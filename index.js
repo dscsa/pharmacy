@@ -4,7 +4,7 @@ var medications
 Cognito.load("forms", { id: "17" }, {success:load})
 
 jQuery.ajax({
-   url:gsheet
+   url:gsheet,
    type: 'GET',
    cache:true,
    success:function($data) {
