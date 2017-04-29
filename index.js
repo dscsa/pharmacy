@@ -41,7 +41,9 @@ function upgradeMedication() {
   }
 }
 
-function gsheet2select(entry) {
+function gsheet2select(entry, i) {
+  if ( ! entry.gsx$stocklevel || ! entry.gsx$genericdrugname || ! entry.gsx$strength || ! entry.gsx$onli30)
+    console.log(entry, i)
   var disabled = entry.gsx$stocklevel.$t == 'Out of Stock' ? ' (Out of Stock)' : ''
   var drug = ' '+entry.gsx$genericdrugname.$t+' '+entry.gsx$strength.$t+', $'+entry.gsx$onli30.$t+'.00'+disabled
   var result = {id:drug, text:drug, disabled:!!disabled, price:entry.gsx$onli30.$t}
