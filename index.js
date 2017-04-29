@@ -1,4 +1,4 @@
-var gsheet = "https://spreadsheets.google.com/feeds/list/14qeTE2R-YsKIdWDCuQKjmjAdc7wkzYmd4z-0A8TzP-A/od6/public/values?alt=json",
+var gsheet = "https://spreadsheets.google.com/feeds/list/14qeTE2R-YsKIdWDCuQKjmjAdc7wkzYmd4z-0A8TzP-A/od6/public/values?alt=json"
 var medications
 
 Cognito.load("forms", { id: "17" }, {success:load})
