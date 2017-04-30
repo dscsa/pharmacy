@@ -4,7 +4,7 @@ var medications
 
 Cognito.load("forms", { id: "17" }, {success:function() {
   console.log('cognito success')
-  load()
+  setTimeout(load, 1000)
 }})
 
 jQuery.ajax({
