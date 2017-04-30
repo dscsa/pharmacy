@@ -21,15 +21,16 @@ jQuery.ajax({
 load.count = 0
 function load() {
   if(++load.count < 2) return
-  setTimeout(showAcceptTerms, 250)
-  setTimeout(upgradeMedication, 250)
+  setTimeout(showAcceptTerms, 300)
+  setTimeout(upgradeMedication, 300)
 }
 
 function upgradeMedication() {
+  var medicationInput  = jQuery('[data-field="SearchAndSelectMedicationsByGenericName"] input')
   var medicationSelect = jQuery('[data-field="SearchAndSelectMedicationsByGenericName"] select')
   var medicationPrice  = jQuery('[data-field="MedicationPrice"] select')
   var medicationList   = jQuery('[data-field="MedicationList"] input')
-  medicationSelect.removeAttribute("type")   //Removes conflict between enfold and select2
+  medicationInput.removeAttr("type")   //Removes conflict between enfold and select2
   medicationSelect.children().remove()
   medicationSelect.select2({multiple:true,data:medications}).on("change", updatePrice)
 
