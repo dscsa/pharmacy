@@ -43,11 +43,19 @@ function upgradeMedication() {
 }
 
 function gsheet2select(entry, i) {
-  if ( ! entry.gsx$stocklevel || ! entry.gsx$genericdrugname || ! entry.gsx$strength || ! entry.gsx$onli30)
-    console.log(entry, i)
-  var disabled = entry.gsx$stocklevel.$t == 'Out of Stock' ? ' (Out of Stock)' : ''
-  var drug = ' '+entry.gsx$genericdrugname.$t+' '+entry.gsx$strength.$t+', $'+entry.gsx$onli30.$t+'.00'+disabled
-  var result = {id:drug, text:drug, disabled:!!disabled, price:entry.gsx$onli30.$t}
+  var price     = entry.gsx$day_2.$t || entry.gsx$day.$t
+  var message   = []
+
+  if (entry.gsx$_cn6ca.$t)
+    message.push(entry.gsx$_cn6ca.$t)
+
+  if (entry.gsx$day.$t)
+    message.push('30 day')
+
+  message = message.length ? ' ('+message.join(', ')+')' : ''
+
+  var drug = ' '+entry.gsx$genericdrugname.$t+', $'+price+message
+  var result = {id:drug, text:drug, disabled:entry.gsx$_cn6ca.$t == 'Out of Stock', price:price}
   return result
 }
 
