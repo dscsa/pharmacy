@@ -2,10 +2,7 @@ var gsheet = "https://spreadsheets.google.com/feeds/list/1MV5mq6605X7U1Np2fpwZ1R
 //ovrg94l is the worksheet id.  To get this you have to use https://spreadsheets.google.com/feeds/worksheets/1MV5mq6605X7U1Np2fpwZ1RHkaCpjsb7YqieLQsEQK88/private/full
 var medications
 
-Cognito.load("forms", { id: "17" }, {success:function() {
-  console.log('cognito success')
-  setTimeout(load, 250)
-}})
+Cognito.load("forms", { id: "17" }, {success:load})
 
 jQuery.ajax({
    url:gsheet,
@@ -25,8 +22,8 @@ document.body.removeAttribute("id");
 load.count = 0
 function load() {
   if(++load.count < 2) return
-  showAcceptTerms()
-  upgradeMedication()
+  setTimeout(showAcceptTerms, 250)
+  setTimeout(upgradeMedication, 250)
 }
 
 function upgradeMedication() {
@@ -66,6 +63,6 @@ function sum(a, b) {
 }
 
 function showAcceptTerms() {
-  jQuery('#loading').hide()
+  jQuery('.loader').hide()
   jQuery('.c-button-section').prepend('<div style="font-size:12px; max-width:785px; margin-left:10px; margin-bottom:10px">By clicking Accept & Submit, I attest to the statements below and understand that the medication(s) that I am receiving from SIRUM now & in the future may have been donated, previously dispensed, and potentially stored in an uncontrolled environment.</div>')
 }
