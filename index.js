@@ -17,8 +17,9 @@ jQuery.ajax({
 
 load.count = 0
 function load() {
+  console.log('load.count', load.count)
   if(load.count++ < 2) return
-  showAcceptTerms()
+  //showAcceptTerms()
   upgradeMedication()
 }
 
@@ -26,19 +27,23 @@ function upgradeMedication() {
   var medicationSelect = jQuery('[data-field="SearchAndSelectMedicationsByGenericName"] select')
   var medicationPrice  = jQuery('[data-field="MedicationPrice"] select')
   var medicationList   = jQuery('[data-field="MedicationList"] input')
-
+console.log(1)
   medicationSelect.children().remove()
+  console.log(2)
   medicationSelect.select2({multiple:true,data:medications})
   .on("select2:open", toggleHeader)
   .on("select2:close", toggleHeader)
   .on("change", updatePrice)
 
   function updatePrice(e) {
+    console.log(3)
     var price = medicationSelect.select2('data').reduce(sum, 0)
-
+  console.log(4)
     //We have to update a text box because cognito won't save values from a multi-select form
     medicationPrice.val(Math.min(100, price)).click().change()
+      console.log(5)
     medicationList.val(medicationSelect.val()).click().change()
+      console.log(6)
   }
 }
 
@@ -60,7 +65,9 @@ function gsheet2select(entry, i) {
 }
 
 function toggleHeader() {
+  console.log('A')
   jQuery('header').toggle()
+  console.log('B')
 }
 
 function sum(a, b) {
