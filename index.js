@@ -26,13 +26,15 @@ function load() {
 }
 
 function upgradeMedication() {
-  var medicationInput  = jQuery('.select2-search__field')
+
   var medicationSelect = jQuery('[data-field="SearchAndSelectMedicationsByGenericName"] select')
   var medicationPrice  = jQuery('[data-field="MedicationPrice"] select')
   var medicationList   = jQuery('[data-field="MedicationList"] input')
-  medicationInput.removeAttr("type").css('background', '#fff')   //Removes conflict between enfold and select2
   medicationSelect.children().remove()
   medicationSelect.select2({multiple:true,data:medications}).on("change", updatePrice)
+
+  var medicationInput = jQuery('.select2-search__field')         //this doesn't exist until select2 is run
+  medicationInput.removeAttr("type").css('background', '#fff')   //Removes conflict between enfold and select2
 
   function updatePrice(e) {
     var price = medicationSelect.select2('data').reduce(sum, 0)
