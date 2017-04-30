@@ -21,8 +21,8 @@ jQuery.ajax({
 load.count = 0
 function load() {
   console.log('load.count', load.count)
-  if(load.count++ < 2) return
-  //showAcceptTerms()
+  if(++load.count < 2) return
+  showAcceptTerms()
   upgradeMedication()
 }
 
