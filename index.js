@@ -18,9 +18,6 @@ jQuery.ajax({
    }
 })
 
-//Removes conflict between enfold and select2
-document.body.removeAttribute("id");
-
 load.count = 0
 function load() {
   console.log('load.count', load.count)
