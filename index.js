@@ -46,8 +46,8 @@ function gsheet2select(entry, i) {
   var price     = entry.gsx$day_2.$t || entry.gsx$day.$t
   var message   = []
 
-  if (entry.gsx$_cn6ca.$t)
-    message.push(entry.gsx$_cn6ca.$t)
+  if (entry.gsx$supplylevel.$t)
+    message.push(entry.gsx$supplylevel.$t)
 
   if (entry.gsx$day.$t)
     message.push('30 day')
@@ -55,7 +55,7 @@ function gsheet2select(entry, i) {
   message = message.length ? ' ('+message.join(', ')+')' : ''
 
   var drug = ' '+entry.gsx$drugname.$t+', $'+price+message
-  var result = {id:drug, text:drug, disabled:entry.gsx$_cn6ca.$t == 'Out of Stock', price:price}
+  var result = {id:drug, text:drug, disabled:entry.gsx$supplylevel.$t == 'Out of Stock', price:price}
   return result
 }
 
