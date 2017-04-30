@@ -54,7 +54,7 @@ function gsheet2select(entry, i) {
 
   message = message.length ? ' ('+message.join(', ')+')' : ''
 
-  var drug = ' '+entry.gsx$genericdrugname.$t+', $'+price+message
+  var drug = ' '+entry.gsx$drugname.$t+', $'+price+message
   var result = {id:drug, text:drug, disabled:entry.gsx$_cn6ca.$t == 'Out of Stock', price:price}
   return result
 }
