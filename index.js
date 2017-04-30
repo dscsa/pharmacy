@@ -2,7 +2,10 @@ var gsheet = "https://spreadsheets.google.com/feeds/list/1MV5mq6605X7U1Np2fpwZ1R
 //ovrg94l is the worksheet id.  To get this you have to use https://spreadsheets.google.com/feeds/worksheets/1MV5mq6605X7U1Np2fpwZ1RHkaCpjsb7YqieLQsEQK88/private/full
 var medications
 
-Cognito.load("forms", { id: "17" }, {success:load})
+Cognito.load("forms", { id: "17" }, {success:function() {
+  console.log('cognito success')
+  setTimeout(load, 1000)
+}})
 
 jQuery.ajax({
    url:gsheet,
