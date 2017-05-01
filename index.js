@@ -23,6 +23,7 @@ function load() {
   if(++load.count < 2) return
   setTimeout(showAcceptTerms, 300)
   setTimeout(upgradeMedication, 300)
+  jQuery(document).on('navigate.cognito', navigate)
 }
 
 function upgradeMedication() {
@@ -33,18 +34,20 @@ function upgradeMedication() {
   medicationSelect.children().remove()
   medicationSelect.select2({multiple:true,data:medications}).on("change", updatePrice)
 
-  jQuery('[data-field="MedicationTest"] input').select2({multiple:true,data:medications}).on("change", updatePrice)
-
-
   var medicationInput = jQuery('.select2-search__field')    //this doesn't exist until select2 is run
   medicationInput.removeAttr("type")                        //Removes conflict between enfold and select2
 
   function updatePrice(e) {
     var price = medicationSelect.select2('data').reduce(sum, 0)
     //We have to update a text box because cognito won't save values from a multi-select form
+    //We could just upgrade a text box (rather than select) but that would require full select2 not lite
     medicationPrice.val(Math.min(100, price)).click().change()
     medicationList.val(medicationSelect.val()).click().change()
   }
+}
+
+function navigate(e, data) {
+  console.log('navigate', e, data)
 }
 
 function gsheet2select(entry, i) {
