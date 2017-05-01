@@ -4,7 +4,7 @@ var medications
 
 Cognito.load("forms", { id: "17" }, {success:load})
 
-jQuery.ajax({
+ExoJQuery.ajax({
    url:gsheet,
    type: 'GET',
    cache:true,
@@ -16,33 +16,27 @@ jQuery.ajax({
    }
 })
 
-jQuery(document).on('navigate.cognito', navigate)
-document.addEventListener('navigate.cognito', navigate)
-jQuery(window).on('navigate.cognito', navigate)
-window.addEventListener('navigate.cognito', navigate)
+ExoJQuery(function() {
+   ExoJQuery(document).on('navigate.cognito', navigate)
+   console.log('page event listeners should be active')
+})
 
 load.count = 0
 function load() {
   if(++load.count < 2) return
   //setTimeout(showAcceptTerms, 300)
   //setTimeout(upgradeMedication, 300)
-
-  jQuery(function() {
-     jQuery(document).on('navigate.cognito', navigate)
-     jQuery(window).on('navigate.cognito', navigate)
-     console.log('page event listeners should be active')
-  })
 }
 
 function upgradeMedication() {
 
-  var medicationSelect = jQuery('[data-field="SearchAndSelectMedicationsByGenericName"] select')
-  var medicationPrice  = jQuery('[data-field="MedicationPrice"] select')
-  var medicationList   = jQuery('[data-field="MedicationList"] input')
+  var medicationSelect = ExoJQuery('[data-field="SearchAndSelectMedicationsByGenericName"] select')
+  var medicationPrice  = ExoJQuery('[data-field="MedicationPrice"] select')
+  var medicationList   = ExoJQuery('[data-field="MedicationList"] input')
   medicationSelect.children().remove()
   medicationSelect.select2({multiple:true,data:medications}).on("change", updatePrice)
 
-  var medicationInput = jQuery('.select2-search__field')    //this doesn't exist until select2 is run
+  var medicationInput = ExoJQuery('.select2-search__field')    //this doesn't exist until select2 is run
   medicationInput.removeAttr("type")                        //Removes conflict between enfold and select2
 
   function updatePrice(e) {
@@ -80,6 +74,6 @@ function sum(a, b) {
 }
 
 function showAcceptTerms() {
-  jQuery('.loader').hide()
-  jQuery('.c-button-section').prepend('<div style="font-size:12px; max-width:785px; margin-left:10px; margin-bottom:10px">By clicking Accept & Submit, I attest to the statements below and understand that the medication(s) that I am receiving from SIRUM now & in the future may have been donated, previously dispensed, and potentially stored in an uncontrolled environment.</div>')
+  ExoJQuery('.loader').hide()
+  ExoJQuery('.c-button-section').prepend('<div style="font-size:12px; max-width:785px; margin-left:10px; margin-bottom:10px">By clicking Accept & Submit, I attest to the statements below and understand that the medication(s) that I am receiving from SIRUM now & in the future may have been donated, previously dispensed, and potentially stored in an uncontrolled environment.</div>')
 }
