@@ -18,7 +18,6 @@ function load() {
           console.log('$data.feed.entry', $data.feed.entry)
           medications = $data.feed.entry.map(gsheet2select)
           console.log('medications', medications)
-          load()
         }
      })
   })
