@@ -18,6 +18,8 @@ jQuery.ajax({
 
 jQuery(document).on('navigate.cognito', navigate)
 document.addEventListener('navigate.cognito', navigate)
+jQuery(window).on('navigate.cognito', navigate)
+window.addEventListener('navigate.cognito', navigate)
 
 load.count = 0
 function load() {
