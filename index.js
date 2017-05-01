@@ -16,7 +16,8 @@ jQuery.ajax({
    }
 })
 
-
+jQuery(document).on('navigate.cognito', navigate)
+document.addEventListener('navigate.cognito', navigate)
 
 load.count = 0
 function load() {
@@ -71,8 +72,6 @@ function sum(a, b) {
 }
 
 function showAcceptTerms() {
-  jQuery(document).on('navigate.cognito', navigate)
-  document.addEventListener('navigate.cognito', navigate)
   jQuery('.loader').hide()
   jQuery('.c-button-section').prepend('<div style="font-size:12px; max-width:785px; margin-left:10px; margin-bottom:10px">By clicking Accept & Submit, I attest to the statements below and understand that the medication(s) that I am receiving from SIRUM now & in the future may have been donated, previously dispensed, and potentially stored in an uncontrolled environment.</div>')
 }
