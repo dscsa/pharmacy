@@ -8,6 +8,7 @@ Cognito.load("forms", { id: "17" }, {success:load})
 function load() {
   ExoJQuery(function() {
      ExoJQuery(document).on('navigate.cognito', navigate)
+     ExoJQuery(window).on('navigate.cognito', navigate)
      console.log('page event listeners should be active')
 
      ExoJQuery.ajax({
