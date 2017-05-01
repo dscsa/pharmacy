@@ -16,14 +16,11 @@ ExoJQuery.ajax({
    }
 })
 
-ExoJQuery(function() {
-   ExoJQuery(document).on('navigate.cognito', navigate)
-   console.log('page event listeners should be active')
-})
-
-load.count = 0
 function load() {
-  if(++load.count < 2) return
+  ExoJQuery(function() {
+     ExoJQuery(document).on('navigate.cognito', navigate)
+     console.log('page event listeners should be active')
+  })
   //setTimeout(showAcceptTerms, 300)
   //setTimeout(upgradeMedication, 300)
 }
