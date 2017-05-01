@@ -24,12 +24,13 @@ window.addEventListener('navigate.cognito', navigate)
 load.count = 0
 function load() {
   if(++load.count < 2) return
-  setTimeout(showAcceptTerms, 300)
-  setTimeout(upgradeMedication, 300)
+  //setTimeout(showAcceptTerms, 300)
+  //setTimeout(upgradeMedication, 300)
 
   jQuery(function() {
      jQuery(document).on('navigate.cognito', navigate)
      jQuery(window).on('navigate.cognito', navigate)
+     console.log('page event listeners should be active')
   })
 }
 
