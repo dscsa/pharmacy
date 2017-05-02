@@ -7,8 +7,8 @@ Cognito.load("forms", { id: "17" }, {success:load})
 
 function load() {
   ExoJQuery(function() {
-     ExoJQuery(document).on('navigate.cognito', navigate)
-     ExoJQuery(window).on('navigate.cognito', navigate)
+     ExoJQuery(document).on('beforeNavigate.cognito', navigate)
+     ExoJQuery(window).on('afterNavigate.cognito', navigate)
      console.log('page event listeners should be active')
 
      ExoJQuery.ajax({
@@ -35,7 +35,7 @@ function upgradeMedication() {
   medicationSelect.select2({multiple:true,data:medications}).on("change", updatePrice)
 
   var medicationInput = ExoJQuery('.select2-search__field')    //this doesn't exist until select2 is run
-  medicationInput.removeAttr("type")                        //Removes conflict between enfold and select2
+  medicationInput.removeAttr("type")                           //Removes conflict between enfold and select2
 
   function updatePrice(e) {
     var price = medicationSelect.select2('data').reduce(sum, 0)
