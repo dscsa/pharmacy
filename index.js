@@ -10,6 +10,7 @@ function load() {
     showAcceptTerms()
 
     ExoJQuery(document).on('afterNavigate.cognito', navigate)
+    jQuery(document).on('afterNavigate.cognito', navigate)
 
     ExoJQuery.ajax({
       url:gsheet,
@@ -18,7 +19,6 @@ function load() {
       success:function($data) {
         console.log('$data.feed.entry', $data.feed.entry)
         medications = $data.feed.entry.map(gsheet2select)
-          upgradeMedication()
         console.log('medications', medications)
       }
     })
@@ -26,10 +26,12 @@ function load() {
 }
 
 function navigate(e, data) {
-  if (data.direction != 'forward') return
 
-  //if(data.sourcePage.number == 1)
-    //upgradeMedication()
+  if (data.direction != 'forward') return
+  console.log('navigate', data)
+
+  if(data.sourcePage.number == 1)
+    upgradeMedication()
 
   if(data.sourcePage.number == 2)
     console.log('page 3', e, data)
