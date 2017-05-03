@@ -28,7 +28,7 @@ function navigate(e, data) {
   if (data.direction != 'forward') return
 
   if(data.sourcePage.number == 1)
-    return upgradeMedication()
+    return setTimeout(upgradeMedication, 500)
 
   if(data.sourcePage.number == 2)
     console.log('page 3', e, data)
