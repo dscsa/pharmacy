@@ -27,10 +27,8 @@ function load() {
 function navigate(e, data) {
   if (data.direction != 'forward') return
 
-  //ExoJQuery(document).append(ExoJQuery('@Ajax.JavaScriptStringEncode(Html.GGroupDropDownListForJavascript(p => p.TagCategoryId, Model.GroupedTagCategories, "").ToHtmlString())'));
-
   if(data.sourcePage.number == 1)
-    return setTimeout(upgradeMedication, 1000)
+    upgradeMedication()
 
   if(data.sourcePage.number == 2)
     console.log('page 3', e, data)
@@ -40,14 +38,13 @@ function navigate(e, data) {
 }
 
 function upgradeMedication() {
-  ExoJQuery(document).find('[data-field="SearchAndSelectMedicationsByGenericName"] select').select2()
-  var medicationSelect = ExoJQuery('[data-field="SearchAndSelectMedicationsByGenericName"] select')
-  var medicationPrice  = ExoJQuery('[data-field="MedicationPrice"] select')
-  var medicationList   = ExoJQuery('[data-field="MedicationList"] input')
+  var medicationSelect = jQuery('[data-field="SearchAndSelectMedicationsByGenericName"] select')
+  var medicationPrice  = jQuery('[data-field="MedicationPrice"] select')
+  var medicationList   = jQuery('[data-field="MedicationList"] input')
   medicationSelect.children().remove()
   medicationSelect.select2({multiple:true,data:medications}).on("change", updatePrice)
 
-  var medicationInput = ExoJQuery('.select2-search__field')    //this doesn't exist until select2 is run
+  var medicationInput = jQuery('.select2-search__field')       //this doesn't exist until select2 is run
   medicationInput.removeAttr("type")                           //Removes conflict between enfold and select2
 
   function updatePrice(e) {
