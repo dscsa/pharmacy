@@ -7,23 +7,34 @@ Cognito.load("forms", { id: "17" }, {success:load})
 
 function load() {
   ExoJQuery(function() {
-     ExoJQuery(document).on('beforeNavigate.cognito', navigate)
-     ExoJQuery(window).on('afterNavigate.cognito', navigate)
-     console.log('page event listeners should be active')
+    showAcceptTerms()
 
-     ExoJQuery.ajax({
-        url:gsheet,
-        type: 'GET',
-        cache:true,
-        success:function($data) {
-          console.log('$data.feed.entry', $data.feed.entry)
-          medications = $data.feed.entry.map(gsheet2select)
-          console.log('medications', medications)
-        }
-     })
+    ExoJQuery(document).on('afterNavigate.cognito', navigate)
+
+    ExoJQuery.ajax({
+      url:gsheet,
+      type: 'GET',
+      cache:true,
+      success:function($data) {
+        console.log('$data.feed.entry', $data.feed.entry)
+        medications = $data.feed.entry.map(gsheet2select)
+        console.log('medications', medications)
+      }
+    })
   })
-  //setTimeout(showAcceptTerms, 300)
-  //setTimeout(upgradeMedication, 300)
+}
+
+function navigate(e, data) {
+  if (data.direction != 'forward') return
+
+  if(data.sourcePage.number == 1)
+    return upgradeMedication()
+
+  if(data.sourcePage.number == 2)
+    console.log('page 3', e, data)
+
+  if(data.sourcePage.number == 3)
+    console.log('page 4', e, data)
 }
 
 function upgradeMedication() {
@@ -44,10 +55,6 @@ function upgradeMedication() {
     medicationPrice.val(Math.min(100, price)).click().change()
     medicationList.val(medicationSelect.val()).click().change()
   }
-}
-
-function navigate(e, data) {
-  console.log('navigate', e, data)
 }
 
 function gsheet2select(entry, i) {
