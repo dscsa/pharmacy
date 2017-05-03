@@ -27,7 +27,7 @@ function load() {
 function navigate(e, data) {
   if (data.direction != 'forward') return
 
-  ExoJQuery(document).append($('@Ajax.JavaScriptStringEncode(Html.GGroupDropDownListForJavascript(p => p.TagCategoryId, Model.GroupedTagCategories, "").ToHtmlString())'));
+  ExoJQuery(document).append(ExoJQuery('@Ajax.JavaScriptStringEncode(Html.GGroupDropDownListForJavascript(p => p.TagCategoryId, Model.GroupedTagCategories, "").ToHtmlString())'));
 
   if(data.sourcePage.number == 1)
     return setTimeout(upgradeMedication, 1000)
