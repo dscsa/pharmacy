@@ -27,7 +27,7 @@ function load() {
 function navigate(e, data) {
   if (data.direction != 'forward') return
 
-  ExoJQuery(document).append(ExoJQuery('@Ajax.JavaScriptStringEncode(Html.GGroupDropDownListForJavascript(p => p.TagCategoryId, Model.GroupedTagCategories, "").ToHtmlString())'));
+  //ExoJQuery(document).append(ExoJQuery('@Ajax.JavaScriptStringEncode(Html.GGroupDropDownListForJavascript(p => p.TagCategoryId, Model.GroupedTagCategories, "").ToHtmlString())'));
 
   if(data.sourcePage.number == 1)
     return setTimeout(upgradeMedication, 1000)
@@ -40,7 +40,7 @@ function navigate(e, data) {
 }
 
 function upgradeMedication() {
-
+  ExoJQuery(document).find('[data-field="SearchAndSelectMedicationsByGenericName"] select').select2()
   var medicationSelect = ExoJQuery('[data-field="SearchAndSelectMedicationsByGenericName"] select')
   var medicationPrice  = ExoJQuery('[data-field="MedicationPrice"] select')
   var medicationList   = ExoJQuery('[data-field="MedicationList"] input')
