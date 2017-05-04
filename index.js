@@ -20,7 +20,6 @@ function load() {
       success:function($data) {
         console.log('medications gsheet', $data.feed.entry)
         medications = $data.feed.entry.map(medication2select)
-        console.log('medications cleaned', medications)
       }
     })
 
@@ -29,9 +28,7 @@ function load() {
       type: 'GET',
       cache:true,
       success:function($data) {
-        console.log('pharmacies gsheet', $data.feed.entry)
         pharmacies = $data.feed.entry.map(pharmacy2select)
-        console.log('pharmacies cleaned', pharmacies)
       }
     })
   })
@@ -107,9 +104,10 @@ function pharmacy2select(entry, i) {
 
 //http://stackoverflow.com/questions/36591473/how-to-use-matcher-in-select2-js-v-4-0-0
 function matcher(param, data) {
+
    var has = true
-   var words = param.term.toUpperCase().split(" ")
-   var text  = data.text.toUpperCase()
+   var words = (param.term || '').toUpperCase().split(" ")
+   var text  = (data.text || '').toUpperCase()
    for (var i =0; i < words.length; i++)
      if ( ! ~ text.indexOf(words[i])) return
 
