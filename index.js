@@ -47,11 +47,8 @@ function upgradeMedication() {
   var medicationSelect = jQuery('[data-field="MedicationSelect"] select')
   var medicationPrice  = jQuery('[data-field="MedicationPrice"] select')
   var medicationList   = jQuery('[data-field="MedicationList"] input')
-  medicationSelect.children().remove()
-  medicationSelect.select2({multiple:true,data:medications}).on("change", updatePrice)
 
-  var medicationInput = jQuery('.select2-search__field')       //this doesn't exist until select2 is run
-  medicationInput.removeAttr("type")                           //Removes conflict between enfold and select2
+  medicationSelect.select2({multiple:true,data:medications}).on("change", updatePrice)
 
   function updatePrice(e) {
 
@@ -73,7 +70,6 @@ function upgradePharmacy() {
   BackupPharmacySelect.children().remove()
   BackupPharmacySelect.select2({data:pharmacies, matcher:matcher, placeholder:"Select Pharmacy"})
 
-  TransferPharmacySelect.children().remove()
   TransferPharmacySelect.select2({data:pharmacies, matcher:matcher, placeholder:"Select Pharmacy"})
 }
 
