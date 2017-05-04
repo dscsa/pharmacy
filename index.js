@@ -25,18 +25,7 @@ function load() {
 }
 
 function navigate(e, data) {
-
-  if (data.direction == 'forward')
-    console.log('navigate', data)
-
-  if(data.destinationPage.number == 1)
-    upgradeMedication()
-
-  if(data.destinationPage.number == 2)
-    console.log('page 3', e, data)
-
-  if(data.destinationPage.number == 3)
-    console.log('page 4', e, data)
+  upgradeMedication()
 }
 
 function upgradeMedication() {
