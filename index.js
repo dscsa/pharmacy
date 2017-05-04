@@ -9,8 +9,7 @@ function load() {
   ExoJQuery(function() {
     showAcceptTerms()
 
-    ExoJQuery(document).on('afterNavigate.cognito', navigate)
-    jQuery(document).on('afterNavigate.cognito', navigate)
+    ExoJQuery(document).on('beforeNavigate.cognito', navigate)
 
     ExoJQuery.ajax({
       url:gsheet,
@@ -27,16 +26,16 @@ function load() {
 
 function navigate(e, data) {
 
-  if (data.direction != 'forward')
+  if (data.direction == 'forward')
     console.log('navigate', data)
 
-  if(data.sourcePage.number == 1)
+  if(data.destinationPage.number == 1)
     upgradeMedication()
 
-  if(data.sourcePage.number == 2)
+  if(data.destinationPage.number == 2)
     console.log('page 3', e, data)
 
-  if(data.sourcePage.number == 3)
+  if(data.destinationPage.number == 3)
     console.log('page 4', e, data)
 }
 
