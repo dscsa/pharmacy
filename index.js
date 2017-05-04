@@ -64,9 +64,9 @@ function upgradePharmacy() {
   console.log('upgradePharmacy')
   var BackupPharmacySelect = jQuery('[data-field="BackupPharmacySelect"] select')
   var TransferPharmacySelect = jQuery('[data-field="TransferPharmacySelect"] select')
-
-  BackupPharmacySelect.select2({data:pharmacies, matcher:matcher, placeholder:"Select Pharmacy"})
-  TransferPharmacySelect.select2({data:pharmacies, matcher:matcher, placeholder:"Select Pharmacy"})
+  var options = {data:pharmacies, matcher:matcher, placeholder:"Select Pharmacy", minimumInputLength:3}
+  BackupPharmacySelect.select2(options)
+  TransferPharmacySelect.select2(options)
 }
 
 function sum(a, b) {
