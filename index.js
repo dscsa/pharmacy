@@ -29,9 +29,9 @@ function load() {
       type: 'GET',
       cache:true,
       success:function($data) {
-        console.log('medications gsheet', $data.feed.entry)
+        console.log('pharmacies gsheet', $data.feed.entry)
         pharmacies = $data.feed.entry.map(pharmacy2select)
-        console.log('medications cleaned', pharmacies)
+        console.log('pharmacies cleaned', pharmacies)
       }
     })
   })
@@ -39,11 +39,12 @@ function load() {
 
 function navigate(e, data) {
   upgradeMedication()
+  upgradePharmacy()
 }
 
 function upgradeMedication() {
   console.log('upgradeMedication')
-  var medicationSelect = jQuery('[data-field="SearchAndSelectMedicationsByGenericName"] select')
+  var medicationSelect = jQuery('[data-field="MedicationSelect"] select')
   var medicationPrice  = jQuery('[data-field="MedicationPrice"] select')
   var medicationList   = jQuery('[data-field="MedicationList"] input')
   medicationSelect.children().remove()
@@ -62,6 +63,17 @@ function upgradeMedication() {
     medicationPrice.val(Math.min(100, price)).click().change()
     medicationList.val(medicationSelect.val()).click().change()
   }
+}
+
+function upgradeMedication() {
+  console.log('upgradePharmacy')
+  var BackupPharmacySelect = jQuery('[data-field="BackupPharmacySelect"] select')
+  var TransferPharmacySelect = jQuery('[data-field="TransferPharmacySelect"] select')
+
+  BackupPharmacySelect.children().remove()
+  TransferPharmacySelect.children().remove()
+  BackupPharmacySelect.select2({data:pharmacies})
+  TransferPharmacySelect.select2({data:pharmacies})
 }
 
 function sum(a, b) {
@@ -92,7 +104,6 @@ function medication2select(entry, i) {
 }
 
 function pharmacy2select(entry, i) {
-  console.log('pharmacy entry')
-  var pharmacy = entry.gsx$name.$t+', '+entry.gsx$cleanaddress.$t+'(phone:'+entry.gsx$phone.$t+', fax:'+entry.gsx$fax.$t+')'
+  var pharmacy = entry.gsx$name.$t+', '+entry.gsx$cleanaddress.$t.slice(0, -4)+'(phone:'+entry.gsx$phone.$t+', fax:'+entry.gsx$fax.$t+')'
   return {id:pharmacy, text:pharmacy}
 }
