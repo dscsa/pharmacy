@@ -103,12 +103,12 @@ function pharmacy2select(entry, i) {
 
 //http://stackoverflow.com/questions/36591473/how-to-use-matcher-in-select2-js-v-4-0-0
 function matcher(param, data) {
-   if ( ! param.term ||  ! data.text) return
+   if ( ! param.term ||  ! data.text) return null
    var has = true
    var words = param.term.toUpperCase().split(" ")
    var text  = data.text.toUpperCase()
    for (var i =0; i < words.length; i++)
-     if ( ! ~ text.indexOf(words[i])) return
+     if ( ! ~ text.indexOf(words[i])) return null
 
    return data
 }
