@@ -45,6 +45,7 @@ function upgradeMedication() {
   var medicationPrice  = jQuery('[data-field="MedicationPrice"] select')
   var medicationList   = jQuery('[data-field="MedicationList"] input')
 
+  medicationSelect.children().remove() //otherwise blank option selected by default
   medicationSelect.select2({multiple:true,data:medications}).on("change", updatePrice)
 
   function updatePrice(e) {
@@ -102,10 +103,10 @@ function pharmacy2select(entry, i) {
 
 //http://stackoverflow.com/questions/36591473/how-to-use-matcher-in-select2-js-v-4-0-0
 function matcher(param, data) {
-
+   if ( ! param.term ||  ! data.text) return
    var has = true
-   var words = (param.term || '').toUpperCase().split(" ")
-   var text  = (data.text || '').toUpperCase()
+   var words = param.term.toUpperCase().split(" ")
+   var text  = data.text.toUpperCase()
    for (var i =0; i < words.length; i++)
      if ( ! ~ text.indexOf(words[i])) return
 
