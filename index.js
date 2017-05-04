@@ -29,6 +29,7 @@ function navigate(e, data) {
 }
 
 function upgradeMedication() {
+  console.log('upgradeMedication')
   var medicationSelect = jQuery('[data-field="SearchAndSelectMedicationsByGenericName"] select')
   var medicationPrice  = jQuery('[data-field="MedicationPrice"] select')
   var medicationList   = jQuery('[data-field="MedicationList"] input')
@@ -39,6 +40,7 @@ function upgradeMedication() {
   medicationInput.removeAttr("type")                           //Removes conflict between enfold and select2
 
   function updatePrice(e) {
+    console.log('updatePrice')
     var price = medicationSelect.select2('data').reduce(sum, 0)
     //We have to update a text box because cognito won't save values from a multi-select form
     //We could just upgrade a text box (rather than select) but that would require full select2 not lite
