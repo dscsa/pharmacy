@@ -97,7 +97,7 @@ function medication2select(entry, i) {
 }
 
 function pharmacy2select(entry, i) {
-  var pharmacy = entry.gsx$name.$t+', '+entry.gsx$cleanaddress.$t.slice(0, -4)+', Phone:'+entry.gsx$phone.$t
+  var pharmacy = entry.gsx$name.$t+', '+entry.gsx$cleanaddress.$t.slice(0, -4)+', Phone: '+entry.gsx$phone.$t
   return {id:pharmacy+', Fax:'+entry.gsx$fax.$t, text:pharmacy}
 }
 
