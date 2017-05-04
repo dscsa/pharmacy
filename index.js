@@ -72,8 +72,8 @@ function upgradeMedication() {
 
   BackupPharmacySelect.children().remove()
   TransferPharmacySelect.children().remove()
-  BackupPharmacySelect.select2({data:pharmacies})
-  TransferPharmacySelect.select2({data:pharmacies})
+  BackupPharmacySelect.select2({data:pharmacies, matcher:matcher})
+  TransferPharmacySelect.select2({data:pharmacies, matcher:matcher})
 }
 
 function sum(a, b) {
@@ -106,4 +106,15 @@ function medication2select(entry, i) {
 function pharmacy2select(entry, i) {
   var pharmacy = entry.gsx$name.$t+', '+entry.gsx$cleanaddress.$t.slice(0, -4)+'(phone:'+entry.gsx$phone.$t+', fax:'+entry.gsx$fax.$t+')'
   return {id:pharmacy, text:pharmacy}
+}
+
+function matcher(term, text) {
+  console.log('matcher', term, text)
+   var has = true;
+   var words = term.toUpperCase().split(" ");
+   for (var i =0; i < words.length; i++){
+     var word = words[i];
+     has = has && ~ text.toUpperCase().indexOf(word);
+   }
+   return has;
 }
