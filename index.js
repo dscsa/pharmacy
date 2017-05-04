@@ -64,9 +64,7 @@ function upgradePharmacy() {
   var BackupPharmacySelect = jQuery('[data-field="BackupPharmacySelect"] select')
   var TransferPharmacySelect = jQuery('[data-field="TransferPharmacySelect"] select')
 
-  BackupPharmacySelect.children().remove()
   BackupPharmacySelect.select2({data:pharmacies, matcher:matcher, placeholder:"Select Pharmacy"})
-
   TransferPharmacySelect.select2({data:pharmacies, matcher:matcher, placeholder:"Select Pharmacy"})
 }
 
