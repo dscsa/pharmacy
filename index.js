@@ -40,8 +40,10 @@ function upgradeMedication() {
   medicationInput.removeAttr("type")                           //Removes conflict between enfold and select2
 
   function updatePrice(e) {
-    console.log('updatePrice')
+
     var price = medicationSelect.select2('data').reduce(sum, 0)
+
+    console.log('updatePrice', price)
     //We have to update a text box because cognito won't save values from a multi-select form
     //We could just upgrade a text box (rather than select) but that would require full select2 not lite
     medicationPrice.val(Math.min(100, price)).click().change()
@@ -67,6 +69,7 @@ function gsheet2select(entry, i) {
 }
 
 function sum(a, b) {
+  console.log('a', a, 'b', b)
   return +b.price+a
 }
 
