@@ -1,5 +1,5 @@
 var medicationGsheet = "https://spreadsheets.google.com/feeds/list/1MV5mq6605X7U1Np2fpwZ1RHkaCpjsb7YqieLQsEQK88/ovrg94l/public/values?alt=json"
-var pharmacyGsheet  = "https://docs.google.com/spreadsheets/d/11Ew_naOBwFihUrkaQnqVTn_3rEx6eAwMvGzksVTv_10/edit#gid=0"
+var pharmacyGsheet  = "https://spreadsheets.google.com/feeds/list/11Ew_naOBwFihUrkaQnqVTn_3rEx6eAwMvGzksVTv_10/1/public/values?alt=json"
 //ovrg94l is the worksheet id.  To get this you have to use https://spreadsheets.google.com/feeds/worksheets/1MV5mq6605X7U1Np2fpwZ1RHkaCpjsb7YqieLQsEQK88/private/full
 var medications
 var pharmacies
