@@ -9,7 +9,7 @@ function load() {
   ExoJQuery(function() {
     showAcceptTerms()
 
-    ExoJQuery(document).on('beforeNavigate.cognito', navigate)
+    ExoJQuery(document).on('afterNavigate.cognito', navigate)
 
     ExoJQuery.ajax({
       url:gsheet,
