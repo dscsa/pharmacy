@@ -27,8 +27,8 @@ function load() {
 
 function navigate(e, data) {
 
-  if (data.direction != 'forward') return
-  console.log('navigate', data)
+  if (data.direction != 'forward')
+    console.log('navigate', data)
 
   if(data.sourcePage.number == 1)
     upgradeMedication()
