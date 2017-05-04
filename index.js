@@ -102,8 +102,8 @@ function medication2select(entry, i) {
 }
 
 function pharmacy2select(entry, i) {
-  var pharmacy = entry.gsx$name.$t+', '+entry.gsx$cleanaddress.$t.slice(0, -4)+' (phone:'+entry.gsx$phone.$t+', fax:'+entry.gsx$fax.$t+')'
-  return {id:pharmacy, text:pharmacy}
+  var pharmacy = entry.gsx$name.$t+', '+entry.gsx$cleanaddress.$t.slice(0, -4)+', Phone:'+entry.gsx$phone.$t
+  return {id:pharmacy+', Fax:'+entry.gsx$fax.$t, text:pharmacy}
 }
 
 //http://stackoverflow.com/questions/36591473/how-to-use-matcher-in-select2-js-v-4-0-0
