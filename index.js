@@ -93,5 +93,6 @@ function medication2select(entry, i) {
 
 function pharmacy2select(entry, i) {
   console.log('pharmacy entry')
-  return {id:drug, text:entry.gsx$name.$t+', '+entry.gsx$cleanaddress.$t+'(phone:'+entry.gsx$phone.$t+', fax:'+entry.gsx$fax.$t+')'}
+  var pharmacy = entry.gsx$name.$t+', '+entry.gsx$cleanaddress.$t+'(phone:'+entry.gsx$phone.$t+', fax:'+entry.gsx$fax.$t+')'
+  return {id:pharmacy, text:pharmacy}
 }
