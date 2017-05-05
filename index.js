@@ -62,11 +62,22 @@ function upgradeMedication() {
 
 function upgradePharmacy() {
   console.log('upgradePharmacy')
+  var BackupPharmacy = jQuery('[data-field="BackupPharmacy"] input')
   var BackupPharmacySelect = jQuery('[data-field="BackupPharmacySelect"] select')
+  var TransferPharmacy = jQuery('[data-field="TransferPharmacy"] input')
   var TransferPharmacySelect = jQuery('[data-field="TransferPharmacySelect"] select')
+
   var options = {data:pharmacies, matcher:matcher, minimumInputLength:3}
-  BackupPharmacySelect.select2(options)
-  TransferPharmacySelect.select2(options)
+  BackupPharmacySelect.select2(options).on("change", updateBackupPharmacy)
+  TransferPharmacySelect.select2(options).on("change", updateTransferPharmacy)
+
+  function updateBackupPharmacy(e) {
+    BackupPharmacy.val(BackupPharmacySelect.val()).click().change()
+  }
+
+  function updateTransferPharmacy(e) {
+    TransferPharmacy.val(TransferPharmacySelect.val()).click().change()
+  }
 }
 
 function sum(a, b) {
