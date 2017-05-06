@@ -81,13 +81,12 @@ function upgradePharmacy() {
 }
 
 function sum(a, b) {
-  console.log('a', a, 'b', b)
   return +b.price+a
 }
 
 function showAcceptTerms() {
   ExoJQuery('.loader').hide()
-  ExoJQuery('#c-submit-button').parent().parent().prepend('<div style="font-size:12px; max-width:785px; margin-left:10px; margin-bottom:10px; padding-top:10px">By clicking Accept & Submit, I attest to the statements below and understand that the medication(s) that I am receiving from SIRUM now & in the future may have been donated, previously dispensed, and potentially stored in an uncontrolled environment.</div>')
+  ExoJQuery('#c-submit-button').parent().parent().prepend('<div style="font-size:12px; max-width:785px; margin-left:10px; margin-bottom:10px; padding-top:10px">By clicking Accept & Submit, I acknowledge receipt of the Notice of Privacy Practice, accepts the Terms of Use, and certify that I am eligible to receive medication(s) donated under <a href="https://goodpill.org/patient-eligibility">OCGA 31-8-300</a>.</div>')
 }
 
 
@@ -98,12 +97,9 @@ function medication2select(entry, i) {
   if (entry.gsx$supplylevel.$t)
     message.push(entry.gsx$supplylevel.$t)
 
-  if (entry.gsx$day.$t)
-    message.push('30 day')
+  message.push(entry.gsx$day.$t ? '30 day' : '90 day')
 
-  message = message.length ? ' ('+message.join(', ')+')' : ''
-
-  var drug = ' '+entry.gsx$drugname.$t+', '+price+message
+  var drug = ' '+entry.gsx$drugname.$t+', '+price+' ('+message.join(', ')+')'
   return {id:drug, text:drug, disabled:entry.gsx$supplylevel.$t == 'Out of Stock', price:price.replace('$', '')}
 }
 
