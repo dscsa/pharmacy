@@ -86,7 +86,7 @@ function sum(a, b) {
 
 function showAcceptTerms() {
   ExoJQuery('.loader').hide()
-  ExoJQuery('#c-submit-button').parent().parent().prepend('<div style="font-size:12px; max-width:785px; margin-left:10px; margin-bottom:10px; padding-top:10px">By clicking Accept & Submit, I acknowledge receipt of the Notice of Privacy Practice, accepts the Terms of Use, and certify that I am eligible to receive medication(s) donated under <a href="https://goodpill.org/patient-eligibility">OCGA 31-8-300</a>.</div>')
+  ExoJQuery('#c-submit-button').parent().parent().prepend('<div style="font-size:12px; max-width:785px; margin-left:10px; margin-bottom:10px; padding-top:10px">By clicking Accept & Submit, I acknowledge receipt of the <a href="https://goodpill.org/npp" target="window">Notice of Privacy Practice</a>, accept Good Pill Pharmacy\'s Terms of Use, and certify that I am <a href="https://goodpill.org/patient-eligibility" target="window">eligible to receive</a> medication(s) donated under OCGA 31-8-300.</div>')
 }
 
 
