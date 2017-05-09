@@ -85,12 +85,11 @@ function upgradePharmacy() {
 
 function fillPayment() {
   console.log('fillPayment')
-  console.log(
-    jQuery('#donately-first-name').val(),
-    jQuery('#donately-last-name').val(),
-    jQuery('#donately-email').val(),
-    jQuery('h5').val()
-  )
+  var login = jQuery('h5').text().replace(/,.*:/, '').split(/\s/)
+
+  jQuery('#donately-first-name').val(login[0]),
+  jQuery('#donately-last-name').val(login[1]),
+  jQuery('#donately-email').val(login.join('_').replace(/\//g, '-')+'@goodpill.org'),
 }
 
 function sum(a, b) {
