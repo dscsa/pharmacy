@@ -87,9 +87,9 @@ function fillPayment() {
   console.log('fillPayment')
   var login = jQuery('h5').text().replace(/,.*:/, '').split(/\s/)
 
-  jQuery('#donately-first-name').val(login[0]),
-  jQuery('#donately-last-name').val(login[1]),
-  jQuery('#donately-email').val(login.join('_').replace(/\//g, '-')+'@goodpill.org'),
+  jQuery('#donately-first-name').val(login[0])
+  jQuery('#donately-last-name').val(login[1])
+  jQuery('#donately-email').val(login.join('_').replace(/\//g, '-')+'@goodpill.org')
 }
 
 function sum(a, b) {
