@@ -35,7 +35,7 @@ function load() {
 }
 
 function navigate(e, data) {
-  ExoJQuery('form.donately-donation-form').show()
+  ExoJQuery('form.donately-donation-form').prop('style', 'display:block !important')
   ExoJQuery('#donately-amount').prop('type', false).prop('disabled', true)
   upgradeMedication()
   upgradePharmacy()
