@@ -39,6 +39,7 @@ function navigate(e, data) {
   ExoJQuery('#donately-amount').prop('type', false).prop('disabled', true)
   upgradeMedication()
   upgradePharmacy()
+  fillPayment()
 }
 
 function upgradeMedication() {
@@ -80,6 +81,16 @@ function upgradePharmacy() {
   function updateTransferPharmacy(e) {
     TransferPharmacy.val(TransferPharmacySelect.val()).click().change()
   }
+}
+
+function fillPayment() {
+  console.log('fillPayment')
+  console.log(
+    jQuery('#donately-first-name').val(),
+    jQuery('#donately-last-name').val(),
+    jQuery('#donately-email').val(),
+    jQuery('h5').val()
+  )
 }
 
 function sum(a, b) {
