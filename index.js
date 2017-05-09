@@ -89,7 +89,7 @@ function fillPayment() {
 
   jQuery('#donately-first-name').val(login[0])
   jQuery('#donately-last-name').val(login[1])
-  jQuery('#donately-email').val(login.join('_').replace(/\//g, '-')+'@goodpill.org')
+  jQuery('#donately-email').val(login.join('.').replace(/\//g, '-')+'@goodpill.org')
 }
 
 function sum(a, b) {
