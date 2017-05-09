@@ -31,6 +31,8 @@ function load() {
         pharmacies = $data.feed.entry.map(pharmacy2select)
       }
     })
+
+    ExoJQuery('#donately-amount').prop('type', false).prop('disabled', true)
   })
 }
 
