@@ -86,7 +86,7 @@ function fillPayment() {
 
   ExoJQuery('form.donately-donation-form').prop('style', 'display:block !important')
   ExoJQuery('#donately-amount').prop('disabled', true)
-  ExoJQuery('form.donately-donation-form input').prop('type', false) //for some reason all have type=tel which messes up css
+  ExoJQuery('form.donately-donation-form input[type="tel"]').prop('type', false) //for some reason all have type=tel which messes up css
 
   var login = jQuery('h5').text().replace(/,.*:/, '').split(/\s/)
 
