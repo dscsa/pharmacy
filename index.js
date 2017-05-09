@@ -44,7 +44,7 @@ function navigate(e, data) {
 function upgradeMedication() {
   console.log('upgradeMedication')
   var medicationSelect = jQuery('[data-field="MedicationSelect"] select')
-  var medicationPrice  = jQuery('[data-field="MedicationPrice"] select')
+  var medicationPrice  = jQuery('#donately-amount')
   var medicationList   = jQuery('[data-field="MedicationList"] input')
 
   medicationSelect.children().remove() //otherwise blank option selected by default
