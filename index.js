@@ -31,12 +31,12 @@ function load() {
         pharmacies = $data.feed.entry.map(pharmacy2select)
       }
     })
-
-    ExoJQuery('#donately-amount').prop('type', false).prop('disabled', true)
   })
 }
 
 function navigate(e, data) {
+  ExoJQuery('form.donately-donation-form').show()
+  ExoJQuery('#donately-amount').prop('type', false).prop('disabled', true)
   upgradeMedication()
   upgradePharmacy()
 }
