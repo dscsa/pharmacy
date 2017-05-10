@@ -10,11 +10,12 @@ Cognito.load("forms", { id: "17" }, {success:load})
 function load() {
 
   jQuery(showAcceptTerms)
-  ExoJQuery.fn.scrollIntoView = function() {
-    console.log('scrollIntoView was disabled')
-  }
 
   ExoJQuery(function() {
+
+    ExoJQuery.fn.scrollIntoView = function() {
+      console.log('scrollIntoView was disabled')
+    }
 
     ExoJQuery(document).on('afterNavigate.cognito', navigate)
 
