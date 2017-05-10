@@ -8,7 +8,9 @@ Cognito.load("forms", { id: "17" }, {success:load})
 
 
 function load() {
-  showAcceptTerms()
+
+  jQuery(showAcceptTerms)
+
   ExoJQuery(function() {
 
     ExoJQuery(document).on('afterNavigate.cognito', navigate)
