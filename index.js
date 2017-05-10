@@ -98,16 +98,25 @@ function fillPayment() {
 
 function validate() {
   ExoJQuery(document).on('beforeSubmit.cognito', function(e, data) {
-    if (data.hasErrors || DonatelyHelpers.showThankYou.name == 'validated') return
 
-    console.log('cognito validated')
-    //Can't figure out how to capture the triggerEvents 'donately.error' and 'donately.success'
-    //validated name allows this event to pass on the 2nd (valid) run.
-    DonatelyHelpers.showThankYou = function validated() {
-      console.log('donately submitted')
-      jQuery('#c-submit-button').click()
+    if (data.hasErrors) return
+
+    if (DonatelyHelpers.showThankYou.name != 'validated') {
+
+      e.preventDefault() //Don't submit until we validate payment as well.
+      //Can't figure out how to capture the triggerEvents 'donately.error' and 'donately.success'
+      //validated function name allows this event to pass on the 2nd (valid) run.
+      DonatelyHelpers.showThankYou = function validated() {
+        console.log('donately submitted')
+        jQuery('#c-submit-button').click()
+      }
+      console.log('cognito validated')
+    } else {
+      console.log('cognito submitted')
     }
-    e.preventDefault() //Don't submit until we validate payment as well.
+
+
+
     jQuery('input.donately-btn.donately-submit').click()
   })
 }
