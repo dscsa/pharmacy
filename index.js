@@ -38,6 +38,7 @@ function navigate(e, data) {
   upgradeMedication()
   upgradePharmacy()
   fillPayment()
+  valididate()
 }
 
 function upgradeMedication() {
@@ -93,6 +94,20 @@ function fillPayment() {
   jQuery('#donately-first-name').val(login[0])
   jQuery('#donately-last-name').val(login[1])
   jQuery('#donately-email').val(login.join('.').replace(/\//g, '-')+'@goodpill.org')
+}
+
+function validate() {
+  //Can't figure out how to capture the triggerEvents 'donately.error' and 'donately.success'
+  DonatelyHelpers.showThankYou = function() {
+    jQuery('#c-submit-button').click()
+  }
+
+  ExoJQuery(document).on('beforeSubmit.cognito', function(e, data) {
+    console.log('validate', e, data)
+    //Don't submit until we validate payment as well.
+    e.preventDefault()
+    //jQuery('input.donately-btn.donately-submit').click()
+  })
 }
 
 function sum(a, b) {
