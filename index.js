@@ -38,7 +38,7 @@ function navigate(e, data) {
   upgradeMedication()
   upgradePharmacy()
   fillPayment()
-  valididate()
+  validate()
 }
 
 function upgradeMedication() {
