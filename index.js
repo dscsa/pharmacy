@@ -11,11 +11,11 @@ function load() {
 
   jQuery(showAcceptTerms)
 
-  ExoJQuery(function() {
+  ExoJQuery.fn.__defineSetter('scrollIntoView', function() {
+    console.log('scrollIntoView was disabled')
+  })
 
-    ExoJQuery.fn.scrollIntoView = function() {
-      console.log('scrollIntoView was disabled')
-    }
+  ExoJQuery(function() {
 
     ExoJQuery(document).on('afterNavigate.cognito', navigate)
 
