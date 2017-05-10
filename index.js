@@ -115,8 +115,6 @@ function validate() {
       console.log('cognito submitted')
     }
 
-
-
     jQuery('input.donately-btn.donately-submit').click()
   })
 }
