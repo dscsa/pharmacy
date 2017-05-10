@@ -127,7 +127,7 @@ function sum(a, b) {
 
 function showAcceptTerms() {
   jQuery('.loader').hide()
-  jQuery('#c-submit-button').parent().parent().prepend('<div style="font-size:12px; max-width:785px; margin-left:10px; margin-bottom:10px; padding-top:10px">By clicking Accept & Submit, I acknowledge receipt of the <a href="https://goodpill.org/npp" target="window">Notice of Privacy Practice</a>, accept Good Pill Pharmacy\'s Terms of Use, and certify that I am <a href="https://goodpill.org/patient-eligibility" target="window">eligible to receive</a> medication(s) donated under OCGA 31-8-300.</div>')
+  jQuery('#c-submit-button').parent().parent().prepend('<div style="font-size:12px; max-width:785px; margin-left:10px; margin-bottom:10px; padding-top:10px">By clicking Accept & Submit, I acknowledge receipt of the <a style="font-weight:bold" href="https://goodpill.org/npp" target="window">Notice of Privacy Practice</a>, accept Good Pill Pharmacy\'s Terms of Use including receiving automatic refills until I cancel, and certify that I am <a style="font-weight:bold" href="https://goodpill.org/patient-eligibility" target="window">eligible to receive</a> medication(s) donated under OCGA 31-8-300.</div>')
 }
 
 
