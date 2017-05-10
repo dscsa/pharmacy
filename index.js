@@ -11,7 +11,7 @@ function load() {
 
   jQuery(showAcceptTerms)
 
-  ExoJQuery.fn.__defineSetter('scrollIntoView', function() {
+  ExoJQuery.fn.__defineSetter__('scrollIntoView', function() {
     console.log('scrollIntoView was disabled')
   })
 
