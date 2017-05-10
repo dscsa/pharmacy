@@ -103,16 +103,15 @@ function validate() {
     console.log('donately submitted')
     DonatelyHelpers.validated = true
     jQuery('#c-submit-button').click()
+    ExoJQuery('form.donately-donation-form').prop('style', 'display:none !important')
   }
 
   ExoJQuery(document).on('beforeSubmit.cognito', function(e, data) {
 
     if (data.hasErrors) return
 
-    if (DonatelyHelpers.validated) {
-      console.log('cognito submitted')
-      return
-    } 
+    if (DonatelyHelpers.validated)
+      return console.log('cognito submitted')
 
     console.log('cognito validated')
     e.preventDefault() //Don't submit until we validate payment as well.
