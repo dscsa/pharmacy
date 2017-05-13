@@ -27,7 +27,6 @@ function load() {
     }
   })
 
-  window.scrollTo(0, 0)
   jQuery('#billing_state').prop('disabled', true)
   jQuery('label#eRX').toggle()
   jQuery("input[name='source']").change(function($event){
@@ -38,6 +37,7 @@ function load() {
 
 function upgradeMedication(medications) {
   console.log('upgradeMedication')
+  window.scrollTo(0, 0)
   var medicationSelect = jQuery('#medicationSelect')
   medicationSelect.select2({multiple:true,data:medications})
 }
