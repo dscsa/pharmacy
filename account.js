@@ -27,7 +27,7 @@ function load() {
     }
   })
 
-  jQuery(document).scrollTop(0)
+  window.scrollTo(0, 0)
   jQuery('#billing_state').prop('disabled', true)
   jQuery('label#eRX').toggle()
   jQuery("input[name='source']").change(function($event){
