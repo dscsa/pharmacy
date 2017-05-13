@@ -1,0 +1,46 @@
+.woocommerce-message,
+.woocommerce-FormRow--first,
+.woocommerce-FormRow--last,
+.woocommerce-FormRow--wide {
+   display:none
+}
+.woocommerce-MyAccount-content, .new-patient, .woocommerce form.checkout, .col-1, .col-2 {
+    width:100% !important;
+}
+@media (min-width: 767px) {
+  .woocommerce-MyAccount-navigation {
+     position:fixed
+  }
+  .questions {
+    position:fixed;
+    margin-top:230px;
+    width:200px;
+  }
+  .woocommerce-MyAccount-content, .new-patient, .woocommerce form.checkout {
+    width:calc(100% - 240px) !important;
+    float:right
+  }
+}
+h3 {
+   text-transform:capitalize;
+}
+.woocommerce-billing-fields h3:before {
+   content:'Shipping & '
+}
+.woocommerce-MyAccount-navigation-link--dashboard,
+.woocommerce-MyAccount-navigation-link--downloads,
+#billing_company_field,
+#billing_country_field,
+.cart_dropdown,
+.cart-subtotal,
+.product-name,
+.product-total,
+.shipping,
+.woocommerce-shipping-fields,
+.woocommerce-additional-fields {
+    display:none
+}
+.order-total th, .order-total td { border:none !important }
+.woocommerce-checkout-payment {
+   margin-top:-15px !important
+}
