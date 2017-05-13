@@ -28,8 +28,10 @@ function load() {
   })
 
   jQuery('#billing_state').prop('disabled', true)
+  jQuery('label#eRX').toggle()
   jQuery("input[name='source']").change(function($event){
-    console.log(jQuery(this).val())
+    jQuery('label#eRX').toggle()
+    jQuery('label#transfer').toggle()
   });
 }
 
