@@ -6,6 +6,9 @@
   border-color:#f8f8f8 !important;
   box-shadow:none !important
 }
+.select2-search--inline {
+  border-bottom:none !important
+}
 .select2-container--default {
   width:100% !important
 }
