@@ -37,7 +37,7 @@ function load() {
     jQuery('label#eRX').toggle()
     jQuery('label#transfer').toggle()
   })
-  jQuery("languageOther").on('input', function($event){
+  jQuery("#languageOther").on('input', function($event){
     jQuery('#languageRadio').prop('checked', true)
   })
 }
