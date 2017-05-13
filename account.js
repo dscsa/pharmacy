@@ -29,7 +29,7 @@ function load() {
 
   jQuery('#billing_state').prop('disabled', true)
   jQuery("input[name='source']").change(function($event){
-    console.log($event)
+    console.log(jQuery(this).val())
   });
 }
 
