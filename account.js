@@ -27,7 +27,7 @@ function load() {
     }
   })
 
-  jQuery("#medicationSelect").focus()
+  jQuery("#billing_first_name").prop('autofocus', false)
   jQuery('#billing_state').prop('disabled', true)
   jQuery('label#eRX').toggle()
   jQuery("input[name='source']").change(function($event){
