@@ -36,7 +36,10 @@ function load() {
   jQuery("input[name='source']").change(function($event){
     jQuery('label#eRX').toggle()
     jQuery('label#transfer').toggle()
-  });
+  })
+  jQuery("languageOther").on('input', function($event){
+    jQuery('#languageRadio').prop('checked', true)
+  })
 }
 
 function upgradeMedication(medications) {
