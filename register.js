@@ -6,7 +6,7 @@ function load() {
   })
 
   jQuery('form').submit(function(e) {
-    console.log('form', this)
+    console.log('form', this.billing_first_name, this.billing_last_name, this.sr_firstname, this.sr_lastname, this.username)
     e.preventDefault()
   })
 }
