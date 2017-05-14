@@ -42,6 +42,7 @@
 .woocommerce-MyAccount-content, .new-patient, .woocommerce form.checkout, .col-1, .col-2 {
     width:100% !important;
 }
+
 @media (min-width: 767px) {
   .woocommerce-MyAccount-navigation {
      position:fixed
@@ -62,6 +63,8 @@ h3 {
 .woocommerce-billing-fields h3:before {
    content:'Shipping & '
 }
+label#eRX,
+.new-patient,
 .woocommerce-MyAccount-navigation-link--dashboard,
 .woocommerce-MyAccount-navigation-link--downloads,
 #billing_company_field,

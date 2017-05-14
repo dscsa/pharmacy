@@ -32,13 +32,12 @@ function load() {
   },1)
 
 
-  if (jQuery('form.login, form.register').length) {
-    jQuery('.new-patient').hide()
+  if (jQuery('.woocommerce-billing-fields').length) {
+    jQuery('.new-patient').show()
   }
 
   jQuery('#billing_state').prop('disabled', true)
 
-  jQuery('label#eRX').hide()
   jQuery("input[name='source']").change(function($event){
     jQuery('label#eRX').toggle()
     jQuery('label#transfer').toggle()
