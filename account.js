@@ -42,15 +42,17 @@ function load() {
       jQuery('label#transfer').toggle()
     })
 
-    jQuery("#languageOther").on('input', function($event){
-      jQuery('#languageRadio').prop('checked', true)
+    jQuery("input[name='languageOther']").on('input', function($event){
+      jQuery("input[name='languageRadio']").prop('checked', true)
     })
 
     jQuery('#wc-stripe-new-payment-method').prop('checked', true)
 
     jQuery('form.checkout').submit(function(e) {
       jQuery('form.new-patient').attr('action', 'http://requestb.in/1et2h7e1').submit()
-      console.log('form.new-patient')
+      var data = jQuery('form.new-patient').serialize()
+      jQuery.post('http://requestb.in/1et2h7e1', {method:'POST', data:data})
+      console.log('form.new-patient', data)
       e.preventDefault()
     })
   }
