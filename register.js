@@ -1,7 +1,7 @@
 jQuery(load)
 
 function load() {
-  jQuery('form').submit(function() {
+  jQuery('input[name="register"]').click(function() {
     console.log('form', this)
   })
 }
