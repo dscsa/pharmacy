@@ -35,10 +35,12 @@ function load() {
     jQuery('.new-patient').show()
   }
 
-  if (jQuery('.woocommerce:eq(1)').text() == 'You must be logged in to checkout.') {
-    jQuery('form.login').hide()
+  var hasProduct = jQuery('.woocommerce:eq(1)')
+  if (hasProduct.text() == 'You must be logged in to checkout.') {
+    jQuery('u-column1').hide()
+    hasProduct.hide()
   }
-  
+
   jQuery('#billing_state').prop('disabled', true)
 
   jQuery("input[name='source']").change(function($event){
