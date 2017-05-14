@@ -31,10 +31,10 @@ function load() {
     window.scrollTo(0, 0)
   },1)
 
-  jQuery('.new-patient').hide()
-  jQuery('form.login, form.register').submit(function() {
-    jQuery('.new-patient').show()
-  })
+
+  if (jQuery('form.login, form.register').length) {
+    jQuery('.new-patient').hide()
+  }
 
   jQuery('#billing_state').prop('disabled', true)
 
