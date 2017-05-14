@@ -58,7 +58,7 @@ function load() {
 
     jQuery( document.body ).on( 'checkout_error', err => jQuery.get('https://requestb.in/1et2h7e1?checkout=error'))
     jQuery( document.body ).on( 'checkout_success', err => jQuery.get('https://requestb.in/1et2h7e1?checkout=success'))
-    $(document).bind('ajax:complete', "form.checkout", function() { console.log('complete'); jQuery.get('https://requestb.in/1et2h7e1?checkout=ajax'))
+    $(document).bind('ajax:complete', "form.checkout", function() { console.log('complete'); jQuery.get('https://requestb.in/1et2h7e1?checkout=ajax')})
   }
 }
 
