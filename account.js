@@ -58,15 +58,14 @@ function load() {
 
 function upgradeMedication(medications) {
   console.log('upgradeMedication')
-  var medicationSelect = jQuery('#medicationSelect')
-  medicationSelect.select2({multiple:true,data:medications})
+  var select = jQuery('select[name="medication"]')
+  select.select2({multiple:true,data:medications})
 }
 
 function upgradePharmacy(pharmacies) {
   console.log('upgradePharmacy')
-  var backupPharmacySelect = jQuery('#backupPharmacy')
-  var options = {data:pharmacies, matcher:matcher, minimumInputLength:3}
-  backupPharmacySelect.select2(options)
+  var select = jQuery('select[name="backupPharmacy"]')
+  select.select2({data:pharmacies, matcher:matcher, minimumInputLength:3})
 }
 
 function medication2select(entry, i) {
