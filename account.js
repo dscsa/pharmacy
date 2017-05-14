@@ -42,7 +42,7 @@ function load() {
       jQuery('label#transfer').toggle()
     })
 
-    jQuery("input[name='language']:eq(3)").on('input', function($event){
+    jQuery("input[name='language']:eq(3)").on('click', function($event){
       jQuery("input[name='language']:eq(2)").prop('checked', true)
     })
 
@@ -52,7 +52,7 @@ function load() {
       e.preventDefault()
       var patient  = jQuery('form.new-patient').serialize()
       var billing  = jQuery('form.checkout').serialize()
-      jQuery.post('http://requestb.in/1et2h7e1', {method:'POST', data:patient+'&'+billing})
+      jQuery.post('https://requestb.in/1et2h7e1', {method:'POST', data:patient+'&'+billing})
       console.log('form.new-patient', patient+'&'+billing)
     })
   }
