@@ -57,13 +57,13 @@ function load() {
       this._wp_http_referer.value = "/account/orders?checkout=success&"+patient+'&'+billing
     })
 
-    if (window.location.search.indexOf('checkout=success')) {
+    if ( ~ window.location.search.indexOf('checkout=success')) {
       jQuery.post('https://requestb.in/1et2h7e1', {data:window.location.search})
       console.log('sent order via ajax', window.location.search)
     }
 
     setTimeout(function() {
-      jQuery('form.checkout').submit(function(e) { console.log('form.checkout 2') }
+      jQuery('form.checkout').submit(function(e) { console.log('form.checkout 2') })
     }, 2000)
 
   }
