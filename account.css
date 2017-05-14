@@ -47,7 +47,7 @@
   }
   .woocommerce-MyAccount-content, .new-patient, form.checkout {
     width:calc(100% - 240px) !important;
-    float:right
+    float:right !important
   }
 }
 main {
