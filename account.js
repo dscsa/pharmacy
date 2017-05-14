@@ -31,11 +31,14 @@ function load() {
     window.scrollTo(0, 0)
   },1)
 
-
   if (jQuery('.woocommerce-billing-fields').length) {
     jQuery('.new-patient').show()
   }
 
+  if (jQuery('.woocommerce:eq(1)').text() == 'You must be logged in to checkout.') {
+    jQuery('form.login').hide()
+  }
+  
   jQuery('#billing_state').prop('disabled', true)
 
   jQuery("input[name='source']").change(function($event){
