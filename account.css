@@ -45,7 +45,7 @@
     margin-top:230px;
     width:200px;
   }
-  .woocommerce-MyAccount-content, .new-patient, form.checkout {
+  .woocommerce-MyAccount-content, .new-patient {
     width:calc(100% - 240px) !important;
     float:right
   }
@@ -61,7 +61,6 @@ h3 {
 }
 label#eRX,
 .woocommerce-message,
-form.checkout,
 .new-patient,
 .woocommerce-MyAccount-navigation-link--dashboard,
 .woocommerce-MyAccount-navigation-link--downloads,
