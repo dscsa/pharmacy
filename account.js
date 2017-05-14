@@ -40,7 +40,8 @@ function load() {
       jQuery('label#transfer').toggle()
     })
 
-    jQuery('#billing_state').val('GA').prop('disabled', true)
+    jQuery('#billing_state').prop('disabled', true)
+    jQuery('<input>').attr({type:'hidden', name:'billing_state', value:'GA'}).appendTo('form.checkout');
 
     jQuery("input[name='language']:eq(3)").on('click', function($event){
       jQuery("input[name='language']:eq(2)").prop('checked', true)
