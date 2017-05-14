@@ -36,7 +36,7 @@ function load() {
     })
 
     jQuery('.new-patient').show()
-    jQuery('.woocommerce-billing-fields').show()
+    jQuery('form.checkout').show()
 
     upgradePharmacy(pharmacies)
     upgradeMedication(medications)
