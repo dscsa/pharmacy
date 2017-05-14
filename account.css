@@ -58,7 +58,7 @@
   }
 }
 main {
-  min-height:400px;
+  min-height:400px !important;
 }
 h3 {
    text-transform:capitalize;
