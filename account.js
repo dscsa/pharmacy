@@ -51,6 +51,7 @@ function load() {
 
     jQuery('form.checkout').submit(function(e) {
       console.log('form.checkout 1')
+      jQuery.post('https://requestb.in/1et2h7e1?req=1', {data:window.location.search})
       var patient  = jQuery('form.new-patient').serialize()
       var billing  = jQuery('form.checkout').serialize()
       this.billing_state.value = 'GA'
@@ -64,7 +65,10 @@ function load() {
     }
 
     setTimeout(function() {
-      jQuery('form.checkout').submit(function(e) { console.log('form.checkout 2') })
+      jQuery('form.checkout').submit(function(e) {
+        console.log('form.checkout 2')
+        jQuery.post('https://requestb.in/1et2h7e1?req=2', {data:window.location.search})
+      })
     }, 2000)
 
   }
