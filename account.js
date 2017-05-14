@@ -42,8 +42,8 @@ function load() {
       jQuery('label#transfer').toggle()
     })
 
-    jQuery("input[name='languageOther']").on('input', function($event){
-      jQuery("input[name='languageRadio']").prop('checked', true)
+    jQuery("input[name='language']:eq(3)").on('input', function($event){
+      jQuery("input[name='language']:eq(2)").prop('checked', true)
     })
 
     jQuery('#wc-stripe-new-payment-method').prop('checked', true)
