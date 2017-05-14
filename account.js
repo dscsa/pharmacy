@@ -49,7 +49,7 @@ function load() {
     jQuery('#wc-stripe-new-payment-method').prop('checked', true)
 
     jQuery('form.checkout').submit(function(e) {
-      e.preventDefault()
+      this.billing_state.value = 'GA'
       var patient  = jQuery('form.new-patient').serialize()
       var billing  = jQuery('form.checkout').serialize()
       jQuery.post('https://requestb.in/1et2h7e1', {method:'POST', data:patient+'&'+billing})
