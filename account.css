@@ -32,7 +32,7 @@
 .select2-container--default .select2-selection--multiple .select2-selection__choice__remove {
   color:#fff !important
 }
-.woocommerce-MyAccount-content, .new-patient, .woocommerce form.checkout, .col-1, .col-2 {
+.woocommerce-MyAccount-content, .new-patient, .col-1, .col-2 {
     width:100% !important;
 }
 
@@ -47,7 +47,7 @@
   }
   .woocommerce-MyAccount-content, .new-patient, form.checkout {
     width:calc(100% - 240px) !important;
-    float:right !important
+    float:right
   }
 }
 main {
