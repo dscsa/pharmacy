@@ -2,6 +2,11 @@ jQuery(load)
 
 function load() {
 
+  jQuery('form.login').submit(function(e) {
+    this._wp_http_referer.value = "/account/orders"
+  })
+
+  var medication, pharmacies
   var medicationGsheet = "https://spreadsheets.google.com/feeds/list/1MV5mq6605X7U1Np2fpwZ1RHkaCpjsb7YqieLQsEQK88/ovrg94l/public/values?alt=json"
   var pharmacyGsheet  = "https://spreadsheets.google.com/feeds/list/11Ew_naOBwFihUrkaQnqVTn_3rEx6eAwMvGzksVTv_10/1/public/values?alt=json"
   //ovrg94l is the worksheet id.  To get this you have to use https://spreadsheets.google.com/feeds/worksheets/1MV5mq6605X7U1Np2fpwZ1RHkaCpjsb7YqieLQsEQK88/private/full
@@ -13,7 +18,6 @@ function load() {
     success:function($data) {
       console.log('medications gsheet', $data.feed.entry)
       medications = $data.feed.entry.map(medication2select)
-      upgradeMedication(medications)
     }
   })
 
@@ -23,36 +27,31 @@ function load() {
     cache:true,
     success:function($data) {
       pharmacies = $data.feed.entry.map(pharmacy2select)
-      upgradePharmacy(pharmacies)
     }
   })
 
-  setTimeout(function() {
-    window.scrollTo(0, 0)
-  },1)
+  // setTimeout(function() {
+  //   window.scrollTo(0, 0)
+  // },1)
 
-  if (jQuery('.woocommerce-billing-fields').length) {
+  if ( ~ jQuery('.woocommerce-MyAccount-content').text().indexOf('No order')) {
     jQuery('.new-patient').show()
+    jQuery('.woocommerce-billing-fields').show()
+
+    upgradePharmacy(pharmacies)
+    upgradeMedication(medications)
+
+    jQuery('#billing_state').prop('disabled', true)
+
+    jQuery("input[name='source']").change(function($event){
+      jQuery('label#eRX').toggle()
+      jQuery('label#transfer').toggle()
+    })
+
+    jQuery("#languageOther").on('input', function($event){
+      jQuery('#languageRadio').prop('checked', true)
+    })
   }
-
-  // var hasProduct = jQuery('.woocommerce:eq(1)')
-  // if (hasProduct.text() == 'You must be logged in to checkout.') {
-  //   jQuery('.u-column1').hide()
-  //   hasProduct.hide()
-  // } else {
-  //   jQuery('.u-column2').hide()
-  // }
-
-  jQuery('#billing_state').prop('disabled', true)
-
-  jQuery("input[name='source']").change(function($event){
-    jQuery('label#eRX').toggle()
-    jQuery('label#transfer').toggle()
-  })
-
-  jQuery("#languageOther").on('input', function($event){
-    jQuery('#languageRadio').prop('checked', true)
-  })
 }
 
 function upgradeMedication(medications) {

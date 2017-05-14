@@ -32,13 +32,6 @@
 .select2-container--default .select2-selection--multiple .select2-selection__choice__remove {
   color:#fff !important
 }
-
-.woocommerce-message,
-.woocommerce-FormRow--first,
-.woocommerce-FormRow--last,
-.woocommerce-FormRow--wide {
-   display:none
-}
 .woocommerce-MyAccount-content, .new-patient, .woocommerce form.checkout, .col-1, .col-2 {
     width:100% !important;
 }
@@ -67,6 +60,8 @@ h3 {
    content:'Shipping & '
 }
 label#eRX,
+.woocommerce-message,
+.woocommerce-billing-fields,
 .new-patient,
 .woocommerce-MyAccount-navigation-link--dashboard,
 .woocommerce-MyAccount-navigation-link--downloads,
