@@ -57,6 +57,9 @@
     float:right
   }
 }
+main {
+  min-height:400px;
+}
 h3 {
    text-transform:capitalize;
 }
