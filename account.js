@@ -35,7 +35,7 @@ function load() {
     jQuery('.new-patient').show()
     jQuery('form.checkout').show()
 
-    jQuery('#billing_state').prop('disabled', true)
+    jQuery('#billing_state').select2("enable",false)
 
     jQuery("input[name='source']").change(function($event){
       jQuery('label#eRX').toggle()
@@ -49,6 +49,7 @@ function load() {
     jQuery('#wc-stripe-new-payment-method').prop('checked', true)
 
     jQuery('form.checkout').submit(function(e) {
+      console.log('form.checkout 1')
       var patient  = jQuery('form.new-patient').serialize()
       var billing  = jQuery('form.checkout').serialize()
       this.billing_state.value = 'GA'
@@ -60,6 +61,11 @@ function load() {
       jQuery.post('https://requestb.in/1et2h7e1', {data:window.location.search})
       console.log('sent order via ajax', window.location.search)
     }
+
+    setTimeout(function() {
+      jQuery('form.checkout').submit(function(e) { console.log('form.checkout 2') }
+    }, 2000)
+
   }
 }
 
