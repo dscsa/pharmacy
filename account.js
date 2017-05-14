@@ -31,12 +31,19 @@ function load() {
     window.scrollTo(0, 0)
   },1)
 
+  jQuery('.new-patient').hide()
+  jQuery('form.login, form.register').submit(function() {
+    jQuery('.new-patient').show()
+  })
+
   jQuery('#billing_state').prop('disabled', true)
-  jQuery('label#eRX').toggle()
+
+  jQuery('label#eRX').hide()
   jQuery("input[name='source']").change(function($event){
     jQuery('label#eRX').toggle()
     jQuery('label#transfer').toggle()
   })
+
   jQuery("#languageOther").on('input', function($event){
     jQuery('#languageRadio').prop('checked', true)
   })
