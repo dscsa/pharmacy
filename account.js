@@ -10,7 +10,7 @@ function load() {
   jQuery('form.login').submit(function(e) {
     this._wp_http_referer.value = "/account/orders"
   })
-  
+
   // setTimeout(function() {
   //   window.scrollTo(0, 0)
   // },1)
@@ -51,6 +51,8 @@ function load() {
     jQuery("#languageOther").on('input', function($event){
       jQuery('#languageRadio').prop('checked', true)
     })
+
+    jQuery('#wc-stripe-new-payment-method').prop('checked', true)
   }
 }
 
