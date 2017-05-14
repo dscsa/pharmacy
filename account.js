@@ -35,13 +35,13 @@ function load() {
     jQuery('.new-patient').show()
   }
 
-  var hasProduct = jQuery('.woocommerce:eq(1)')
-  if (hasProduct.text() == 'You must be logged in to checkout.') {
-    jQuery('.u-column1').hide()
-    hasProduct.hide()
-  } else {
-    jQuery('.u-column2').hide()
-  }
+  // var hasProduct = jQuery('.woocommerce:eq(1)')
+  // if (hasProduct.text() == 'You must be logged in to checkout.') {
+  //   jQuery('.u-column1').hide()
+  //   hasProduct.hide()
+  // } else {
+  //   jQuery('.u-column2').hide()
+  // }
 
   jQuery('#billing_state').prop('disabled', true)
 
