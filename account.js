@@ -35,12 +35,12 @@ function load() {
     jQuery('.new-patient').show()
     jQuery('form.checkout').show()
 
-    jQuery('#billing_state').select2("enable",false)
-
     jQuery("input[name='source']").change(function($event){
       jQuery('label#eRX').toggle()
       jQuery('label#transfer').toggle()
     })
+
+    jQuery('#billing_state').val('GA').prop('disabled', true)
 
     jQuery("input[name='language']:eq(3)").on('click', function($event){
       jQuery("input[name='language']:eq(2)").prop('checked', true)
