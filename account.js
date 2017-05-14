@@ -2,7 +2,6 @@ jQuery(load)
 
 function load() {
 
-  var medications, pharmacies
   var medicationGsheet = "https://spreadsheets.google.com/feeds/list/1MV5mq6605X7U1Np2fpwZ1RHkaCpjsb7YqieLQsEQK88/ovrg94l/public/values?alt=json"
   var pharmacyGsheet  = "https://spreadsheets.google.com/feeds/list/11Ew_naOBwFihUrkaQnqVTn_3rEx6eAwMvGzksVTv_10/1/public/values?alt=json"
   //ovrg94l is the worksheet id.  To get this you have to use https://spreadsheets.google.com/feeds/worksheets/1MV5mq6605X7U1Np2fpwZ1RHkaCpjsb7YqieLQsEQK88/private/full
@@ -11,10 +10,6 @@ function load() {
     this._wp_http_referer.value = "/account/orders"
   })
 
-  // setTimeout(function() {
-  //   window.scrollTo(0, 0)
-  // },1)
-
   if ( ~ jQuery('.woocommerce-MyAccount-content').text().indexOf('No order')) {
     jQuery.ajax({
       url:medicationGsheet,
@@ -22,7 +17,8 @@ function load() {
       cache:true,
       success:function($data) {
         console.log('medications gsheet', $data.feed.entry)
-        medications = $data.feed.entry.map(medication2select)
+        var medications = $data.feed.entry.map(medication2select)
+        upgradeMedication(medications)
       }
     })
 
@@ -31,15 +27,13 @@ function load() {
       type: 'GET',
       cache:true,
       success:function($data) {
-        pharmacies = $data.feed.entry.map(pharmacy2select)
+        var pharmacies = $data.feed.entry.map(pharmacy2select)
+        upgradePharmacy(pharmacies)
       }
     })
 
     jQuery('.new-patient').show()
     jQuery('form.checkout').show()
-
-    upgradePharmacy(pharmacies)
-    upgradeMedication(medications)
 
     jQuery('#billing_state').prop('disabled', true)
 
@@ -53,6 +47,12 @@ function load() {
     })
 
     jQuery('#wc-stripe-new-payment-method').prop('checked', true)
+
+    jQuery('form.checkout').submit(function(e) {
+      var form = jQuery('form.new-patient')
+      console.log('form.new-patient',form.source, form.allergies)
+      e.preventDefault()
+    })
   }
 }
 
