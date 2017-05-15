@@ -57,7 +57,7 @@ function load() {
     e.stopPropagation()
   })
 
-  jQuery('input#place_order').prop('type', 'button')
+  jQuery('input#place_order').attr('type', 'button')
 
   jQuery(document.body).on('checkout_place_order_stripe', function() {
     console.log('checkout_place_order_stripe')
