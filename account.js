@@ -90,7 +90,7 @@ function load() {
   }
 
   function isValid(data) {
-    if ( ~ data.messages.indexOf('Developers:')) {
+    if ( ~ data.messages.indexOf('Developers:'))
       saveGuardian()
 
     jQuery('form.checkout').submit()
