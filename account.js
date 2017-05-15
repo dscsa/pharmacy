@@ -55,6 +55,7 @@ function load() {
   function saveWordpress(e) {
     console.log('saveWordpress')
     e.preventDefault()
+    e.stopPropagation()
     var data = jQuery('form.checkout').serialize()
     jQuery.post({url:'/account/orders/?wc-ajax=checkout', data:data, success:success})
   }
