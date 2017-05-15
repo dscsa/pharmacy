@@ -64,7 +64,8 @@ function load() {
       saveGuardian()
       console.log('success', data)
     } else {
-      jQuery('form.checkout').submit()
+      console.log('failure', data)
+      //jQuery('form.checkout').submit()
     }
   }
 
