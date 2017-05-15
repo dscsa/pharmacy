@@ -60,10 +60,12 @@ function load() {
   }
 
   function success(data) {
-    if (data.result != 'failure')
+    if (data.result != 'failure') {
       saveGuardian()
-
-    jQuery('form.checkout').submit()
+      console.log('success', data)
+    } else {
+      jQuery('form.checkout').submit()
+    }
   }
 
   function saveGuardian() {
