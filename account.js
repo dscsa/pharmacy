@@ -57,23 +57,23 @@ function load() {
     e.stopPropagation()
   })
 
-  jQuery(document).on('checkout_place_order_stripe', function() {
+  jQuery('input#place_order').prop('type', 'button')
+
+  jQuery(document.body).on('checkout_place_order_stripe', function() {
     console.log('checkout_place_order_stripe')
   })
 
-  jQuery(document).on('init_checkout', function() {
+  jQuery(document.body).on('init_checkout', function() {
     console.log('init_checkout')
   })
 
-  jQuery(document).on('submit', function() {
+  jQuery(document.body).on('submit', function() {
     console.log('submit')
   })
 
-  jQuery(document).on('checkout_place_order', function() {
+  jQuery(document.body).on('checkout_place_order', function() {
     console.log('checkout_place_order')
   })
-
-
 
   jQuery('input#place_order').click(saveWordpress)
   function saveWordpress(e) {
