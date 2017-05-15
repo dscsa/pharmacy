@@ -78,6 +78,11 @@ function load() {
     console.log('checkout_place_order')
   })
 
+  // Fire updated_checkout event.
+	jQuery(document.body).on('updated_checkout', function(data) {
+    console.log('updated_checkout', data)
+  })
+
   function saveWordpress(e) {
     console.log('saveWordpress')
     e.preventDefault()
