@@ -51,6 +51,12 @@ function load() {
 
   jQuery('#wc-stripe-new-payment-method').prop('checked', true)
 
+  jQuery('form.checkout').submit(function(e) {
+    console.log('form checkout')
+    e.preventDefault()
+    e.stopPropagation()
+  })
+
   jQuery('input#place_order').click(saveWordpress)
   function saveWordpress(e) {
     console.log('saveWordpress')
