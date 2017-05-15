@@ -51,45 +51,22 @@ function load() {
 
   jQuery('#wc-stripe-new-payment-method').prop('checked', true)
 
-  jQuery('form.checkout').submit(function(e) {
-    console.log('form checkout')
-  })
-
   setTimeout(function() {
-    console.log('setTimeout')
+    //Click doesn't register unless delayed.  Maybe button isn't loaded initially?
     jQuery('input#place_order').click(saveWordpress)
   }, 2000)
 
-  jQuery(document.body).on('checkout_place_order_stripe', function() {
-    console.log('checkout_place_order_stripe')
-  })
-
-  jQuery(document.body).on('init_checkout', function() {
-    console.log('init_checkout')
-  })
-
-  jQuery(document.body).on('submit', function() {
-    console.log('submit')
-  })
-
-  jQuery(document.body).on('checkout_place_order', function() {
-    console.log('checkout_place_order')
-  })
-
-  // Fire updated_checkout event.
-	jQuery(document.body).on('updated_checkout', function(data) {
-    console.log('updated_checkout', data)
-  })
-
   function saveWordpress(e) {
     console.log('saveWordpress')
-    e.preventDefault()
     e.stopImmediatePropagation()
     var data = jQuery('form.checkout').serialize()
     jQuery.post({url:'/account/orders/?wc-ajax=checkout', data:data, success:isValid})
   }
 
   function isValid(data) {
+    //stripe_token not passed with data so data.result != success
+    //however if everything passes except stripe token then we
+    //get a Developers: make sure JS is enabled error, which we detect
     if ( ~ data.messages.indexOf('Developers:'))
       saveGuardian()
 
