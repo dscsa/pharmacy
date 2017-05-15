@@ -57,7 +57,10 @@ function load() {
     e.stopPropagation()
   })
 
-  jQuery('input#place_order').attr('type', 'button')
+  setTimeout(function() {
+    console.log('submit to button')
+    jQuery('input#place_order').attr('type', 'button')
+  }, 2000)
 
   jQuery(document.body).on('checkout_place_order_stripe', function() {
     console.log('checkout_place_order_stripe')
