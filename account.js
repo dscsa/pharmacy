@@ -53,8 +53,6 @@ function load() {
 
   jQuery('form.checkout').submit(function(e) {
     console.log('form checkout')
-    e.preventDefault()
-    e.stopImmediatePropagation()
   })
 
   setTimeout(function() {
@@ -85,18 +83,17 @@ function load() {
 
   function saveWordpress(e) {
     console.log('saveWordpress')
+    e.preventDefault()
+    e.stopImmediatePropagation()
     var data = jQuery('form.checkout').serialize()
-    jQuery.post({url:'/account/orders/?wc-ajax=checkout', data:data, success:success})
+    jQuery.post({url:'/account/orders/?wc-ajax=checkout', data:data, success:isValid})
   }
 
-  function success(data) {
-    if (data.result != 'failure') {
+  function isValid(data) {
+    if ( ~ data.messages.indexOf('Developers:')) {
       saveGuardian()
-      console.log('success', data)
-    } else {
-      console.log('failure', data)
-      //jQuery('form.checkout').submit()
-    }
+
+    jQuery('form.checkout').submit()
   }
 
   function saveGuardian() {
