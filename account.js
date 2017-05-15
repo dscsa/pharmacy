@@ -51,20 +51,27 @@ function load() {
 
   jQuery('#wc-stripe-new-payment-method').prop('checked', true)
 
-  //Do this because an ajax request here fires before validation is complete
-  setTimeout(submit, 1000)
+  jQuery('input#place_order').click(saveWordpress)
+  function saveWordpress(e) {
+    console.log('saveWordpress')
+    e.preventDefault()
+    var data = jQuery('form.checkout').serialize()
+    jQuery.post({url:'/account/orders/?wc-ajax=checkout', data:data, success:success})
+  }
 
-  function submit() {
-    jQuery('form.checkout').submit(function(e) {
-      console.log('form.checkout 1')
-      if ( ! submit.twice)
-        return submit.twice = true
-      console.log('form.checkout 2')
-      var patient  = jQuery('form.new-patient').serialize()
-      var billing  = jQuery('form.checkout').serialize()
+  function success(data) {
+    if (data.result != 'failure')
+      saveGuardian()
 
-      jQuery.post('https://requestb.in/1et2h7e1?req=1', {data:patient+'&'+billing})
-    })
+    jQuery('form.checkout').submit()
+  }
+
+  function saveGuardian() {
+    console.log('saveGuardian')
+    var patient  = jQuery('form.new-patient').serialize()
+    var billing  = jQuery('form.checkout').serialize()
+
+    jQuery.post('https://requestb.in/1et2h7e1', {data:patient+'&'+billing})
   }
 }
 
