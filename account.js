@@ -54,12 +54,12 @@ function load() {
   jQuery('form.checkout').submit(function(e) {
     console.log('form checkout')
     e.preventDefault()
-    e.stopPropagation()
+    e.stopImmediatePropagation()
   })
 
   setTimeout(function() {
-    console.log('submit to button')
-    jQuery('input#place_order').attr('type', 'button')
+    console.log('setTimeout')
+    jQuery('input#place_order').click(saveWordpress)
   }, 2000)
 
   jQuery(document.body).on('checkout_place_order_stripe', function() {
@@ -78,11 +78,10 @@ function load() {
     console.log('checkout_place_order')
   })
 
-  jQuery('input#place_order').click(saveWordpress)
   function saveWordpress(e) {
     console.log('saveWordpress')
     e.preventDefault()
-    e.stopPropagation()
+    e.stopImmediatePropagation()
     var data = jQuery('form.checkout').serialize()
     jQuery.post({url:'/account/orders/?wc-ajax=checkout', data:data, success:success})
   }
