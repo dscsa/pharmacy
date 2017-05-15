@@ -57,6 +57,22 @@ function load() {
     e.stopPropagation()
   })
 
+  jQuery('input#place_order').on('checkout_place_order_stripe', function() {
+    console.log('checkout_place_order_stripe')
+  })
+
+  jQuery('input#place_order').on('init_checkout', function() {
+    console.log('init_checkout')
+  })
+
+  jQuery('input#place_order').on('submit', function() {
+    console.log('submit')
+  })
+
+  jQuery('input#place_order').on('click', function() {
+    console.log('click')
+  })
+
   jQuery('input#place_order').click(saveWordpress)
   function saveWordpress(e) {
     console.log('saveWordpress')
