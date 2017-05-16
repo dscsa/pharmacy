@@ -51,13 +51,12 @@ function load() {
   })
 
   jQuery('#wc-stripe-new-payment-method').prop('checked', true)
-
-  jQuery('input#place_order').click(saveWordpress)
-  checkoutForm.submit(function stopSubmit(e) {
-    console.log('stopSubmit')
-    e.stopImmediatePropagation()
-    e.preventDefault()
-  })
+  jQuery('input#place_order').attr('type', 'button').click(saveWordpress)
+  // checkoutForm.submit(function stopSubmit(e) {
+  //   console.log('stopSubmit')
+  //   e.stopImmediatePropagation()
+  //   e.preventDefault()
+  // })
 
   function saveWordpress(e) {
     console.log('saveWordpress')
