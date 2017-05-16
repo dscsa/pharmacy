@@ -32,6 +32,10 @@
 .select2-container--default .select2-selection--multiple .select2-selection__choice__remove {
   color:#fff !important
 }
+/*this is for uneven saved card buttons in trust commerce gateway */
+#top form {
+  margin-bottom:0
+}
 .woocommerce-MyAccount-content, .new-patient, .col-1, .col-2 {
     width:100% !important;
 }
