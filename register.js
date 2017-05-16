@@ -6,7 +6,7 @@ function load() {
       url:'/account?add-to-cart=281',
       type: 'GET',
       success:function($data) {
-        console.log('registering, add product', $data)
+        console.log('registering, product added')
       }
     })
     this._wp_http_referer.value = "/account/orders"

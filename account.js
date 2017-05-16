@@ -67,6 +67,7 @@ function load() {
   }
 
   function isValid(data) {
+    console.log('isValid', data)
     //stripe_token not passed with data so data.result != success
     //however if everything passes except stripe token then we
     //get a Developers: make sure JS is enabled error, which we detect
