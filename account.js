@@ -50,24 +50,9 @@ function load() {
     jQuery("input[name='language']:eq(2)").prop('checked', true)
   })
 
-  jQuery('input#place_order').click(immediate)
-  setTimeout(function() {
-    //Click doesn't register unless delayed.  Not sure why... Button seems to be loaded initially
-    jQuery('input#place_order').click(delay)
-  }, 2000)
-
   jQuery('#wc-stripe-new-payment-method').prop('checked', true)
 
-  function immediate(e) {
-    console.log('immediate')
-    saveWordpress(e)
-  }
-
-  function delay(e) {
-    console.log('delay')
-    saveWordpress(e)
-  }
-
+  jQuery('input#place_order').click(saveWordpress)
   checkoutForm.submit(function stopSubmit(e) {
     console.log('stopSubmit')
     e.stopImmediatePropagation()
