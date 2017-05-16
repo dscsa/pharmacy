@@ -55,7 +55,10 @@ function load() {
 
   window.onbeforeunload = function() {
     console.log('onbeforeunload')
-    return "Dude, are you sure you want to leave? Think of the kittens!";
+  }
+
+  window.onunload = function() {
+    console.log('onunload')
   }
 
   $( document ).ajaxComplete(function( event, xhr, settings ) {
