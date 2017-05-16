@@ -33,9 +33,10 @@ function load() {
       upgradePharmacy(pharmacies)
     }
   })
-
-  jQuery('.new-patient').show()
-  jQuery('form.checkout').show()
+  var checkoutForm = jQuery('form.checkout')
+  var patientForm  = jQuery('form.new-patient')
+  patientForm.show()
+  checkoutForm.show()
 
   jQuery("input[name='source']").change(function($event){
     jQuery('label#eRX').toggle()
@@ -51,12 +52,8 @@ function load() {
 
   jQuery('#wc-stripe-new-payment-method').prop('checked', true)
 
-  setInterval(function() {
-    console.log('button interval', jQuery('input#place_order').length)
-  }, 500)
-
   setTimeout(function() {
-    //Click doesn't register unless delayed.  Maybe button isn't loaded initially?
+    //Click doesn't register unless delayed.  Not sure why... Button seems to be loaded initially
     jQuery('input#place_order').click(saveWordpress)
   }, 3000)
 
@@ -66,8 +63,8 @@ function load() {
     //stripe_token not passed with data so data.result != success
     //however if everything passes except stripe token then we
     //get a Developers: make sure JS is enabled error, which we detect
-    var data = jQuery('form.checkout').serialize()
-    jQuery.post({url:'/account/orders/?wc-ajax=checkout', data:data, success:isValid})
+    var data = checkoutForm.serialize()
+    jQuery.post({url:'/account/orders/?wc-ajax=checkout', data:data, cache:true, success:isValid})
   }
 
   function isValid(data) {
@@ -77,16 +74,16 @@ function load() {
     //get a Developers: make sure JS is enabled error, which we detect
     if (data.result == 'success' || ~ data.messages.indexOf('Developers:'))
       saveGuardian()
-
-    jQuery('form.checkout').submit()
+    else
+      checkoutForm.submit()
   }
 
   function saveGuardian() {
     console.log('saveGuardian')
-    var patient  = jQuery('form.new-patient').serialize()
-    var billing  = jQuery('form.checkout').serialize()
-
-    jQuery.post('https://requestb.in/1et2h7e1', {data:patient+'&'+billing})
+    jQuery.post('https://requestb.in/1et2h7e1', {
+      data:patientForm.serialize()+'&'+checkoutForm.serialize(),
+      success:function() { checkoutForm.submit() }
+    })
   }
 }
 
