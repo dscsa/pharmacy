@@ -71,6 +71,7 @@ function load() {
 
   function saveWordpress(e) {
     console.log('saveWordpress')
+    e.stopPropagation()
     e.stopImmediatePropagation()
     e.preventDefault()
     //stripe_token not passed with data so data.result != success
