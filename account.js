@@ -62,8 +62,14 @@ function load() {
   }
 
   jQuery( document ).ajaxComplete(function( event, xhr, settings ) {
-    //if ( settings.url === "ajax/test.html" ) {
-    console.log('ajaxComplete', settings.url, xhr.responseText, event, xhr, settings)
+    if ( settings.url != wc_checkout_params.checkout_url)
+      return
+
+    var data = JSON.parse(xhr.responseText)
+    console.log('ajaxComplete', data)
+
+    if (data.redirect && data.result == 'success')
+      saveGuardian(data.redirect.match(/order\/(\d+)/)[1])
   });
 
   // checkoutForm.submit(function(e) {
@@ -111,23 +117,22 @@ function load() {
   //   jQuery.post({url:'/account/orders/?wc-ajax=checkout', data:data, cache:true, success:isValid})
   // }
 
-  function isValid(data) {
-    console.log('isValid', data)
-    //stripe_token not passed with data so data.result != success
-    //however if everything passes except stripe token then we
-    //get a Developers: make sure JS is enabled error, which we detect
-    if (data.result == 'success' || ~ data.messages.indexOf('Developers:')) {
-      saveGuardian()
-    } else {
-      checkoutForm.submit()
-    }
-  }
+  // function isValid(data) {
+  //   console.log('isValid', data)
+  //   //stripe_token not passed with data so data.result != success
+  //   //however if everything passes except stripe token then we
+  //   //get a Developers: make sure JS is enabled error, which we detect
+  //   if (data.result == 'success' || ~ data.messages.indexOf('Developers:')) {
+  //     saveGuardian()
+  //   } else {
+  //     checkoutForm.submit()
+  //   }
+  // }
 
-  function saveGuardian() {
-    console.log('saveGuardian')
+  function saveGuardian(order) {
+    console.log('saveGuardian, order#', order)
     jQuery.post('https://requestb.in/1et2h7e1', {
-      data:patientForm.serialize()+'&'+checkoutForm.serialize(),
-      success:function() { checkoutForm.submit() }
+      data:patientForm.serialize()+'&'+checkoutForm.serialize()+'&order='+order
     })
   }
 }
