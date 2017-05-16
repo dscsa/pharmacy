@@ -51,10 +51,14 @@ function load() {
 
   jQuery('#wc-stripe-new-payment-method').prop('checked', true)
 
+  setInterval(function() {
+    console.log('button interval', jQuery('input#place_order').length)
+  }, 500)
+
   setTimeout(function() {
     //Click doesn't register unless delayed.  Maybe button isn't loaded initially?
     jQuery('input#place_order').click(saveWordpress)
-  }, 2000)
+  }, 3000)
 
   function saveWordpress(e) {
     console.log('saveWordpress')
