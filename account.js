@@ -71,7 +71,7 @@ function load() {
     //stripe_token not passed with data so data.result != success
     //however if everything passes except stripe token then we
     //get a Developers: make sure JS is enabled error, which we detect
-    if ( ~ data.messages.indexOf('Developers:'))
+    if (data.result == 'success' || ~ data.messages.indexOf('Developers:'))
       saveGuardian()
 
     jQuery('form.checkout').submit()
