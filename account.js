@@ -61,7 +61,7 @@ function load() {
     console.log('onunload')
   }
 
-  $( document ).ajaxComplete(function( event, xhr, settings ) {
+  jQuery( document ).ajaxComplete(function( event, xhr, settings ) {
     //if ( settings.url === "ajax/test.html" ) {
     console.log('ajaxComplete', settings.url, xhr.responseText, event, xhr, settings)
   });
