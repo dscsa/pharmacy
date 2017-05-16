@@ -52,44 +52,63 @@ function load() {
 
   jQuery('#wc-stripe-new-payment-method').prop('checked', true)
 
-  console.log('submit button 1', jQuery('input#place_order').length)
-  setTimeout(function() {
-    var button = jQuery('input#place_order').attr('type', 'button').click(console.log.bind(console))
-    console.log('submit button 2', button)
-    button.attr('type', 'button').click(saveWordpress)
-  }, 5000)
+
 
   checkoutForm.submit(function(e) {
     console.log('submit event')
-    // e.stopImmediatePropagation()
-    // e.preventDefault()
-  })
 
-  checkoutForm.on('checkout_place_order', function(e) {
-    console.log('checkout_place_order', e)
-  })
-
-  function saveWordpress(e) {
-    console.log('saveWordpress')
-    e.stopPropagation()
-    e.stopImmediatePropagation()
     e.preventDefault()
-    //stripe_token not passed with data so data.result != success
-    //however if everything passes except stripe token then we
-    //get a Developers: make sure JS is enabled error, which we detect
-    var data = checkoutForm.serialize()
-    jQuery.post({url:'/account/orders/?wc-ajax=checkout', data:data, cache:true, success:isValid})
-  }
+
+    //Borrowed from https://github.com/woocommerce/woocommerce/blob/5f63f81b72b6c71c99cb7c7ac866056294cb06ac/assets/js/frontend/checkout.js
+    checkoutForm.addClass('processing');
+    jQuery.ajax({
+					type:		  'POST',
+					url:		  wc_checkout_params.checkout_url,
+					data:		  checkoutForm.serialize(),
+					dataType: 'json',
+					success:	function( result ) {
+
+            console.log('submit result', result)
+            checkoutForm.removeClass('processing');
+						// try {
+						// 	if ( 'success' === result.result ) {
+						// 		if ( -1 === result.redirect.indexOf( 'https://' ) || -1 === result.redirect.indexOf( 'http://' ) ) {
+						// 			window.location = result.redirect;
+						// 		} else {
+						// 			window.location = decodeURI( result.redirect );
+						// 		}
+						// 	} else if ( 'failure' === result.result ) {
+						// 		throw 'Result failure';
+						// 	} else {
+						// 		throw 'Invalid response'
+            //   }
+            // }
+          }
+        })
+  })
+
+  // function saveWordpress(e) {
+  //   console.log('saveWordpress')
+  //   e.stopPropagation()
+  //   e.stopImmediatePropagation()
+  //   e.preventDefault()
+  //   //stripe_token not passed with data so data.result != success
+  //   //however if everything passes except stripe token then we
+  //   //get a Developers: make sure JS is enabled error, which we detect
+  //   var data = checkoutForm.serialize()
+  //   jQuery.post({url:'/account/orders/?wc-ajax=checkout', data:data, cache:true, success:isValid})
+  // }
 
   function isValid(data) {
     console.log('isValid', data)
     //stripe_token not passed with data so data.result != success
     //however if everything passes except stripe token then we
     //get a Developers: make sure JS is enabled error, which we detect
-    if (data.result == 'success' || ~ data.messages.indexOf('Developers:'))
+    if (data.result == 'success' || ~ data.messages.indexOf('Developers:')) {
       saveGuardian()
-    else
+    } else {
       checkoutForm.submit()
+    }
   }
 
   function saveGuardian() {
