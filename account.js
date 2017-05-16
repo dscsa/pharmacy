@@ -59,11 +59,11 @@ function load() {
     button.attr('type', 'button').click(saveWordpress)
   }, 2000)
 
-  // checkoutForm.submit(function stopSubmit(e) {
-  //   console.log('stopSubmit')
-  //   e.stopImmediatePropagation()
-  //   e.preventDefault()
-  // })
+  checkoutForm.submit(function(e) {
+    console.log('submit event')
+    // e.stopImmediatePropagation()
+    // e.preventDefault()
+  })
 
   checkoutForm.on('checkout_place_order', function(e) {
     console.log('checkout_place_order', e)
