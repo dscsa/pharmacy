@@ -51,12 +51,23 @@ function load() {
   })
 
   jQuery('#wc-stripe-new-payment-method').prop('checked', true)
-  jQuery('input#place_order').attr('type', 'button').click(saveWordpress)
+
+  console.log('submit button 1', jQuery('input#place_order').length)
+  setTimeout(function() {
+    var button = jQuery('input#place_order')
+    console.log('submit button 2', button)
+    button.attr('type', 'button').click(saveWordpress)
+  }, 2000)
+
   // checkoutForm.submit(function stopSubmit(e) {
   //   console.log('stopSubmit')
   //   e.stopImmediatePropagation()
   //   e.preventDefault()
   // })
+
+  checkoutForm.on('checkout_place_order', function(e) {
+    console.log('checkout_place_order', e)
+  })
 
   function saveWordpress(e) {
     console.log('saveWordpress')
