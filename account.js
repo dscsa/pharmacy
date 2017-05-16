@@ -53,39 +53,48 @@ function load() {
   jQuery('#wc-stripe-new-payment-method').prop('checked', true)
 
 
+  window.onbeforeunload = function() {
+    console.log('onbeforeunload')
+    return "Dude, are you sure you want to leave? Think of the kittens!";
+  }
 
-  checkoutForm.submit(function(e) {
-    console.log('submit event')
+  $( document ).ajaxComplete(function( event, xhr, settings ) {
+    //if ( settings.url === "ajax/test.html" ) {
+    console.log('ajaxComplete', settings.url, xhr.responseText, event, xhr, settings)
+  });
 
-    e.preventDefault()
-
-    //Borrowed from https://github.com/woocommerce/woocommerce/blob/5f63f81b72b6c71c99cb7c7ac866056294cb06ac/assets/js/frontend/checkout.js
-    checkoutForm.addClass('processing');
-    jQuery.ajax({
-					type:		  'POST',
-					url:		  wc_checkout_params.checkout_url,
-					data:		  checkoutForm.serialize(),
-					dataType: 'json',
-					success:	function( result ) {
-
-            console.log('submit result', result)
-            checkoutForm.removeClass('processing');
-						// try {
-						// 	if ( 'success' === result.result ) {
-						// 		if ( -1 === result.redirect.indexOf( 'https://' ) || -1 === result.redirect.indexOf( 'http://' ) ) {
-						// 			window.location = result.redirect;
-						// 		} else {
-						// 			window.location = decodeURI( result.redirect );
-						// 		}
-						// 	} else if ( 'failure' === result.result ) {
-						// 		throw 'Result failure';
-						// 	} else {
-						// 		throw 'Invalid response'
-            //   }
-            // }
-          }
-        })
-  })
+  // checkoutForm.submit(function(e) {
+  //   console.log('submit event')
+  //
+  //   e.preventDefault()
+  //
+  //   //Borrowed from https://github.com/woocommerce/woocommerce/blob/5f63f81b72b6c71c99cb7c7ac866056294cb06ac/assets/js/frontend/checkout.js
+  //   checkoutForm.addClass('processing');
+  //   jQuery.post({
+	// 				url:		  wc_checkout_params.checkout_url,
+	// 				data:		  checkoutForm.serialize(),
+  //         cache:    true,
+	// 				dataType: 'json',
+	// 				success:	function( result ) {
+  //
+  //           console.log('submit result', result)
+  //           checkoutForm.removeClass('processing');
+	// 					// try {
+	// 					// 	if ( 'success' === result.result ) {
+	// 					// 		if ( -1 === result.redirect.indexOf( 'https://' ) || -1 === result.redirect.indexOf( 'http://' ) ) {
+	// 					// 			window.location = result.redirect;
+	// 					// 		} else {
+	// 					// 			window.location = decodeURI( result.redirect );
+	// 					// 		}
+	// 					// 	} else if ( 'failure' === result.result ) {
+	// 					// 		throw 'Result failure';
+	// 					// 	} else {
+	// 					// 		throw 'Invalid response'
+  //           //   }
+  //           // }
+  //         }
+  //       })
+  // })
 
   // function saveWordpress(e) {
   //   console.log('saveWordpress')
