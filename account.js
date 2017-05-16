@@ -62,7 +62,7 @@ function load() {
     //stripe_token not passed with data so data.result != success
     //however if everything passes except stripe token then we
     //get a Developers: make sure JS is enabled error, which we detect
-    var data = jQuery('form.checkout').serialize()+'&stripe_token=tok_000000000000000000000000'
+    var data = jQuery('form.checkout').serialize()
     jQuery.post({url:'/account/orders/?wc-ajax=checkout', data:data, success:isValid})
   }
 
