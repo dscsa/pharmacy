@@ -54,7 +54,7 @@ function load() {
   setTimeout(function() {
     //Click doesn't register unless delayed.  Not sure why... Button seems to be loaded initially
     jQuery('input#place_order').click(delay)
-  }, 3000)
+  }, 2000)
 
   jQuery('#wc-stripe-new-payment-method').prop('checked', true)
 
@@ -67,6 +67,12 @@ function load() {
     console.log('delay')
     saveWordpress(e)
   }
+
+  checkoutForm.submit(function stopSubmit(e) {
+    console.log('stopSubmit')
+    e.stopImmediatePropagation()
+    e.preventDefault()
+  })
 
   function saveWordpress(e) {
     console.log('saveWordpress')
