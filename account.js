@@ -54,10 +54,10 @@ function load() {
 
   console.log('submit button 1', jQuery('input#place_order').length)
   setTimeout(function() {
-    var button = jQuery('input#place_order')
+    var button = jQuery('input#place_order').attr('type', 'button').click(console.log.bind(console))
     console.log('submit button 2', button)
     button.attr('type', 'button').click(saveWordpress)
-  }, 2000)
+  }, 5000)
 
   checkoutForm.submit(function(e) {
     console.log('submit event')
