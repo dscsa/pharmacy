@@ -43,8 +43,10 @@ function load() {
     jQuery('label#transfer').toggle()
   })
 
+  //Trust commerce gateway is not smart enough to do MM/YYYY to MM/YY for us
   jQuery('input#trustcommerce-card-expiry').on('blur', function() {
-    this.value = this.value.replace(/20(\d\d)/, '$1')
+    var _this = jQuery(this)
+    _this.val(_this.val().replace(/20(\d\d)/, '$1'))
   })
 
   //jQuery('#billing_state').prop('disabled', true)
@@ -55,15 +57,6 @@ function load() {
   })
 
   jQuery('#wc-stripe-new-payment-method').prop('checked', true)
-
-
-  window.onbeforeunload = function() {
-    console.log('onbeforeunload')
-  }
-
-  window.onunload = function() {
-    console.log('onunload')
-  }
 
   jQuery( document ).ajaxComplete(function( event, xhr, settings ) {
     if ( settings.url != wc_checkout_params.checkout_url)
