@@ -43,6 +43,10 @@ function load() {
     jQuery('label#transfer').toggle()
   })
 
+  jQuery('input#trustcommerce-card-expiry').on('blur', function() {
+    this.value = this.value.replace(/20(\d\d)/, '$1')
+  })
+
   //jQuery('#billing_state').prop('disabled', true)
   //jQuery('<input>').attr({type:'hidden', name:'billing_state', value:'GA'}).appendTo('form.checkout');
 
@@ -70,64 +74,7 @@ function load() {
 
     if (data.redirect && data.result == 'success')
       saveGuardian(data.redirect.match(/order\/(\d+)/)[1])
-  });
-
-  // checkoutForm.submit(function(e) {
-  //   console.log('submit event')
-  //
-  //   e.preventDefault()
-  //
-  //   //Borrowed from https://github.com/woocommerce/woocommerce/blob/5f63f81b72b6c71c99cb7c7ac866056294cb06ac/assets/js/frontend/checkout.js
-  //   checkoutForm.addClass('processing');
-  //   jQuery.post({
-	// 				url:		  wc_checkout_params.checkout_url,
-	// 				data:		  checkoutForm.serialize(),
-  //         cache:    true,
-	// 				dataType: 'json',
-	// 				success:	function( result ) {
-  //
-  //           console.log('submit result', result)
-  //           checkoutForm.removeClass('processing');
-	// 					// try {
-	// 					// 	if ( 'success' === result.result ) {
-	// 					// 		if ( -1 === result.redirect.indexOf( 'https://' ) || -1 === result.redirect.indexOf( 'http://' ) ) {
-	// 					// 			window.location = result.redirect;
-	// 					// 		} else {
-	// 					// 			window.location = decodeURI( result.redirect );
-	// 					// 		}
-	// 					// 	} else if ( 'failure' === result.result ) {
-	// 					// 		throw 'Result failure';
-	// 					// 	} else {
-	// 					// 		throw 'Invalid response'
-  //           //   }
-  //           // }
-  //         }
-  //       })
-  // })
-
-  // function saveWordpress(e) {
-  //   console.log('saveWordpress')
-  //   e.stopPropagation()
-  //   e.stopImmediatePropagation()
-  //   e.preventDefault()
-  //   //stripe_token not passed with data so data.result != success
-  //   //however if everything passes except stripe token then we
-  //   //get a Developers: make sure JS is enabled error, which we detect
-  //   var data = checkoutForm.serialize()
-  //   jQuery.post({url:'/account/orders/?wc-ajax=checkout', data:data, cache:true, success:isValid})
-  // }
-
-  // function isValid(data) {
-  //   console.log('isValid', data)
-  //   //stripe_token not passed with data so data.result != success
-  //   //however if everything passes except stripe token then we
-  //   //get a Developers: make sure JS is enabled error, which we detect
-  //   if (data.result == 'success' || ~ data.messages.indexOf('Developers:')) {
-  //     saveGuardian()
-  //   } else {
-  //     checkoutForm.submit()
-  //   }
-  // }
+  })
 
   function saveGuardian(order) {
     console.log('saveGuardian, order#', order)
