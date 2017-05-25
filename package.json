@@ -1,7 +1,7 @@
 {
   "name": "webform",
-  "version": "0.0.0"
-  dependencies:{
+  "version": "0.0.0",
+  "dependencies":{
     "mssql":"*"
   }
 }
