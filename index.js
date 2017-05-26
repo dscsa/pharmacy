@@ -1,6 +1,6 @@
 const http = require('http')
 const  sql = require('mssql')
-const auth = require('../../auth')
+const auth = require('../../auth.js')
 const pool = sql.connect({
     user:auth.username,
     password:auth.password,
