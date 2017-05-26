@@ -54,6 +54,7 @@
     float:right
   }
 }
+
 main {
   min-height:400px !important;
 }
@@ -83,4 +84,7 @@ form.checkout,
 .order-total th, .order-total td { border:none !important }
 .woocommerce-checkout-payment {
    margin-top:-15px !important
+}
+.fullsize .addresses.col2-set .col-1, .fullsize .addresses.col2-set .col-2 {
+  margin-bottom:10px
 }
