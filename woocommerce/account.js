@@ -75,6 +75,10 @@ function load() {
       patientForm.serialize()+'&'+checkoutForm.serialize()+'&order='+order
     )
   }
+
+  //hide saved cards on everything but the account details page which has a password field
+  if ( ! jQuery('#password_current').length)
+    jQuery('#tc-saved-cards').hide().next().hide()
 }
 
 function upgradeMedication(medications) {
