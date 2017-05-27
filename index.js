@@ -22,6 +22,19 @@ app.use(route.post('/patient', async ctx => {
   // }
 }))
 
+app.use(route.get('(.*)', async ctx => {
+
+
+  console.log('get', ctx.url)
+  res.end('get '+ctx.url)
+  // try {
+  //   const success = await select()
+  //   res.end(JSON.stringify(success.recordset))
+  // } catch(err) {
+  //   res.end('There was an error!!\n\n'+err.stack)
+  // }
+}))
+
 app.listen(9000)
 console.log('listening on port 9000')
 
