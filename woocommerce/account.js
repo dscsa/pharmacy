@@ -71,9 +71,9 @@ function load() {
 
   function saveGuardian(order) {
     console.log('saveGuardian, order#', order)
-    jQuery.post('https://webform.goodpill.org/patient', {
-      data:patientForm.serialize()+'&'+checkoutForm.serialize()+'&order='+order
-    })
+    jQuery.post('https://webform.goodpill.org/patient',
+      patientForm.serialize()+'&'+checkoutForm.serialize()+'&order='+order
+    )
   }
 }
 
