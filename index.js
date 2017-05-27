@@ -1,7 +1,7 @@
 const    fs = require('fs')
+const    qs = require('querystring')
 const   sql = require('mssql')
 const   app = new (require('koa'))()
-const  path = require('path')
 const  auth = require('../../auth.js')
 const route = require('koa-route')
 const https = require('https')
@@ -67,8 +67,7 @@ function body(stream) {
     stream.on('data', data => stream.body += data)
     stream.on('end', _ => {
       try {
-         //default to {} this is what other body parsers do in strict mode.  Not sure what we want to do here.
-        stream.body = JSON.parse(stream.body || '{}')
+        stream.body = qs.parse(stream.body)
         resolve(stream.body)
       } catch (err) {
         reject('Error: Invalid JSON '+stream.body)
