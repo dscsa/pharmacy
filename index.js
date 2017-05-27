@@ -1,3 +1,4 @@
+const  file = require('fs')
 const  path = require('path')
 const   sql = require('mssql')
 const  auth = require('../../auth.js')
@@ -25,9 +26,8 @@ app.use(route.post('/patient', async ctx => {
 
 app.use(route.get('(.*)', async ctx => {
 
-
-  console.log('get', ctx.url)
-  ctx.body = 'get '+ctx.url
+  console.log('get', __dirname+'/..'+ctx.url)
+  ctx.body = file.createReadStream(__dirname+'/..'+ctx.url)
   // try {
   //   const success = await select()
   //   res.end(JSON.stringify(success.recordset))
