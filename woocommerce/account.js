@@ -2,16 +2,21 @@ jQuery(load)
 
 function load() {
 
-  var medicationGsheet = "https://spreadsheets.google.com/feeds/list/1MV5mq6605X7U1Np2fpwZ1RHkaCpjsb7YqieLQsEQK88/ovrg94l/public/values?alt=json"
-  var pharmacyGsheet  = "https://spreadsheets.google.com/feeds/list/11Ew_naOBwFihUrkaQnqVTn_3rEx6eAwMvGzksVTv_10/1/public/values?alt=json"
-  //ovrg94l is the worksheet id.  To get this you have to use https://spreadsheets.google.com/feeds/worksheets/1MV5mq6605X7U1Np2fpwZ1RHkaCpjsb7YqieLQsEQK88/private/full
-
   jQuery('form.login').submit(function(e) {
     this._wp_http_referer.value = "/account/orders"
   })
 
+  //hide saved cards on everything but the account details page which has a password field
+  if ( ! jQuery('#password_current').length)
+    jQuery('#tc-saved-cards').hide().next().hide()
+
   if ( ! ~ jQuery('.woocommerce-MyAccount-content').text().indexOf('No order'))
     return
+
+  var medicationGsheet = "https://spreadsheets.google.com/feeds/list/1MV5mq6605X7U1Np2fpwZ1RHkaCpjsb7YqieLQsEQK88/ovrg94l/public/values?alt=json"
+  var pharmacyGsheet  = "https://spreadsheets.google.com/feeds/list/11Ew_naOBwFihUrkaQnqVTn_3rEx6eAwMvGzksVTv_10/1/public/values?alt=json"
+  //ovrg94l is the worksheet id.  To get this you have to use https://spreadsheets.google.com/feeds/worksheets/1MV5mq6605X7U1Np2fpwZ1RHkaCpjsb7YqieLQsEQK88/private/full
+
 
   jQuery.ajax({
     url:medicationGsheet,
@@ -75,10 +80,6 @@ function load() {
       patientForm.serialize()+'&'+checkoutForm.serialize()+'&order='+order
     )
   }
-
-  //hide saved cards on everything but the account details page which has a password field
-  if ( ! jQuery('#password_current').length)
-    jQuery('#tc-saved-cards').hide().next().hide()
 }
 
 function upgradeMedication(medications) {
