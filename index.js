@@ -27,7 +27,7 @@ app.use(route.post('/patient', async ctx => {
 app.use(route.get('(.*)', async ctx => {
 
   console.log('get', __dirname+'/..'+ctx.url)
-  ctx.body = file.createReadStream(__dirname+'/..'+ctx.url)
+  ctx.body = file.createReadStream(__dirname+'/../../letsencrypt'+ctx.url)
   // try {
   //   const success = await select()
   //   res.end(JSON.stringify(success.recordset))
