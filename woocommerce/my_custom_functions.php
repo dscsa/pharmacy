@@ -9,7 +9,7 @@ function custom_added_post_meta( $meta_id, $post_id, $meta_key, $meta_value )
    //$response = wp_remote_post( $url, );
    if ($meta_key == '_trustcommerce_customer_id') {
     $post = ['body' => ['trustcommerce_customer_id' => $meta_value, 'email' => wp_get_current_user()->data->user_email]];
-    $res  = wp_remote_post('https://webform.goodpill.org/billing', $data);
+    $res  = wp_remote_post('https://webform.goodpill.org/billing', $post);
    	wp_mail('adam@sirum.org', 'added_post_meta', print_r($res, true));
    }
 }

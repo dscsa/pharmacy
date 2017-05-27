@@ -15,7 +15,7 @@ sql.connect({
 
 app.use(route.post('/patient', async ctx => {
 
-  const patient = qs.parse(await body(ctx.req))
+  const patient = await body(ctx.req)
   console.log('patient', patient)
   ctx.body = 'patient '+JSON.stringify(patient)
   // try {
@@ -81,6 +81,7 @@ function body(stream) {
     stream.on('data', data => stream.body += data)
     stream.on('end', _ => {
       try {
+        stream.body = qs.parse(stream.body)
         resolve(stream.body)
       } catch (err) {
         reject('Error: Invalid JSON '+stream.body)
