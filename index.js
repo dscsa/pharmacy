@@ -1,10 +1,12 @@
 const    fs = require('fs')
-const  path = require('path')
 const   sql = require('mssql')
+const   app = new (require('koa'))()
+const  path = require('path')
 const  auth = require('../../auth.js')
 const route = require('koa-route')
-const   app = new (require('koa'))()
-const  pool = sql.connect({
+const https = require('https')
+
+sql.connect({
   user:auth.username,
   password:auth.password,
   server: 'localhost',
