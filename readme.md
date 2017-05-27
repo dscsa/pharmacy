@@ -1,4 +1,4 @@
-To Expose Server Via Comcast
+#To Expose Server Via Comcast
 1-800-391-3000 ask for Tech Support
 
 1. Run node server on desired port
@@ -16,9 +16,18 @@ To Expose Server Via Comcast
   - Goto Advanced > Port Forwarding > Enable > Add Service > Custom > Add Server & Port
   - Goto Advanced > Port Management > Check box to disable all rules and allow inbound traffic
 
-  Installing SSH on windows
+#Installing SSH on windows
+https://www.server-world.info/en/note?os=Windows_Server_2016&p=openssh
 
+#Installing Git on windows
+https://git-for-windows.github.io/
 
-  Installing Git on windows
+#Setup User on MSSQL
+Setup Login
+Create Users
+Set User Permissions
 
-  Setup User on MSSQL
+#Install SSL Certs
+npm install -g letsencrypt-cli
+
+letsencrypt certonly --agree-tos --email adam@sirum.org --standalone --config-dir C: /Users/Administrator/letsencrypt --domains webform.goodpill.org --server https://acme-v01.api.letsencrypt.org/directory --renew-within 60

@@ -27,7 +27,7 @@ app.use(route.post('/patient', async ctx => {
 app.use(route.get('(.*)', async ctx => {
 
   console.log('get', __dirname+'/..'+ctx.url)
-  ctx.body = file.createReadStream(__dirname+'/../../letsencrypt/challenge'+ctx.url)
+  ctx.body = __dirname+'/..'+ctx.url
   // try {
   //   const success = await select()
   //   res.end(JSON.stringify(success.recordset))
@@ -36,8 +36,13 @@ app.use(route.get('(.*)', async ctx => {
   // }
 }))
 
-app.listen(443)
-console.log('listening on https')
+var opts = {
+    key: fs.readFileSync('C:/live/webform.goodpill.org/privkey.pem', 'utf8'),
+   cert: fs.readFileSync('C:/live/webform.goodpill.org/cert.pem', 'utf8'),
+     ca: fs.readFileSync('C:/live/webform.goodpill.org/chain.pem', 'utf8'),
+}
+
+https.createServer(opts, app).listen(443, _ => console.log('https server on port 443'))
 
 const select = async _ => {
   return await sql.query`select * from cppat`
