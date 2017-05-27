@@ -28,7 +28,7 @@ app.use(route.post('/patient', async ctx => {
 
 app.use(route.post('/billing', async ctx => {
 
-  const billing = JSON.parse(await body(ctx.req))
+  const billing = await body(ctx.req)
 
   console.log('billing', billing)
   ctx.body = 'billing '+JSON.stringify(billing)
