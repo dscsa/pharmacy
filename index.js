@@ -44,7 +44,7 @@ var opts = {
      ca: fs.readFileSync('C:/live/webform.goodpill.org/chain.pem', 'utf8'),
 }
 
-https.createServer(opts, app).listen(443, _ => console.log('https server on port 443'))
+https.createServer(opts, app.callback()).listen(443, _ => console.log('https server on port 443'))
 
 const select = async _ => {
   return await sql.query`select * from cppat`
