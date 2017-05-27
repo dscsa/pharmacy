@@ -7,8 +7,9 @@ function load() {
   })
 
   //hide saved cards on everything but the account details page which has a password field
+  //for some reason there is a space in the id so need the \\20
   if ( ! jQuery('#password_current').length)
-    jQuery('#tc-saved-cards').hide().next().hide()
+    jQuery('#tc-saved-cards\\20').hide().next().hide()
 
   if ( ! ~ jQuery('.woocommerce-MyAccount-content').text().indexOf('No order'))
     return
