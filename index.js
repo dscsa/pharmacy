@@ -35,8 +35,8 @@ app.use(route.get('(.*)', async ctx => {
   // }
 }))
 
-app.listen(9000)
-console.log('listening on port 9000')
+app.listen(443)
+console.log('listening on https')
 
 const select = async _ => {
   return await sql.query`select * from cppat`
