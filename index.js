@@ -14,6 +14,7 @@ app.use(route.post('/patient', async ctx => {
 
   const patient = await body(ctx.req)
   console.log('patient', patient)
+  ctx.body = 'patient '+patient
   // try {
   //   const success = await select()
   //   res.end(JSON.stringify(success.recordset))
@@ -26,7 +27,7 @@ app.use(route.get('(.*)', async ctx => {
 
 
   console.log('get', ctx.url)
-  res.end('get '+ctx.url)
+  ctx.body = 'get '+ctx.url
   // try {
   //   const success = await select()
   //   res.end(JSON.stringify(success.recordset))
