@@ -64,6 +64,11 @@ h3 {
 .woocommerce-billing-fields h3:before {
    content:'Shipping & '
 }
+#tc-saved-cards\20 {
+  display:none;
+  margin-top:100px
+}
+.shop_table,
 label#eRX,
 .woocommerce-message,
 .woocommerce-order,
