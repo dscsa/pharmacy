@@ -15,9 +15,23 @@ sql.connect({
 
 app.use(route.post('/patient', async ctx => {
 
-  const patient = await body(ctx.req)
+  const patient = qs.parse(await body(ctx.req))
   console.log('patient', patient)
-  ctx.body = 'patient '+patient
+  ctx.body = 'patient '+JSON.stringify(patient)
+  // try {
+  //   const success = await select()
+  //   res.end(JSON.stringify(success.recordset))
+  // } catch(err) {
+  //   res.end('There was an error!!\n\n'+err.stack)
+  // }
+}))
+
+app.use(route.post('/billing', async ctx => {
+
+  const billing = JSON.parse(await body(ctx.req))
+
+  console.log('billing', billing)
+  ctx.body = 'billing '+JSON.stringify(billing)
   // try {
   //   const success = await select()
   //   res.end(JSON.stringify(success.recordset))
@@ -67,7 +81,6 @@ function body(stream) {
     stream.on('data', data => stream.body += data)
     stream.on('end', _ => {
       try {
-        stream.body = qs.parse(stream.body)
         resolve(stream.body)
       } catch (err) {
         reject('Error: Invalid JSON '+stream.body)

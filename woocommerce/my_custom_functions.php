@@ -1,6 +1,24 @@
-//
-//Install "My Custom Functions" plugin and insert this code into Wordpress > Appearance > Custom Functions
-//
+/*
+ * Install "My Custom Functions" plugin and insert this code into Wordpress > Appearance > Custom Functions
+ */
+
+add_action( 'added_post_meta', 'custom_added_post_meta', 10, 4);
+add_action( 'updated_post_meta', 'custom_added_post_meta', 10, 4);
+function custom_added_post_meta( $meta_id, $post_id, $meta_key, $meta_value )
+{
+   //$response = wp_remote_post( $url, );
+   if ($meta_key == '_trustcommerce_customer_id') {
+    $post = ['body' => ['trustcommerce_customer_id' => $meta_value, 'email' => wp_get_current_user()->data->user_email]];
+    $res  = wp_remote_post('https://webform.goodpill.org/billing', $data);
+   	wp_mail('adam@sirum.org', 'added_post_meta', print_r($res, true));
+   }
+}
+
+add_action( 'deleted_post_meta', 'custom_deleted_post_meta', 10, 4);
+function custom_deleted_post_meta( $deleted_meta_ids, $post_id, $meta_key, $only_delete_these_meta_values )
+{
+   wp_mail('adam@sirum.org', 'deleted_post_meta', print_r(func_get_args(), true));
+}
 
 /**
  * @snippet       Add First & Last Name to My Account Register Form - WooCommerce
