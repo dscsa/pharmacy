@@ -10,8 +10,17 @@ function load() {
       }
     })
     this._wp_http_referer.value = "/account/orders"
-    this.billing_first_name.value = this.sr_firstname.value
-    this.billing_last_name.value = this.sr_lastname.value
-    this.username.value = this.sr_firstname.value+' '+this.sr_lastname.value
+
+    var firstname = document.createElement('input')
+    var lastname  = document.createElement('input')
+    firstname.type = lastname.type = 'hidden'
+    firstname.name = 'billing_first_name'
+    lastname.name  = 'billing_last_name'
+    firstname.value = this.sr_firstname.value
+    lastname.value = this.sr_lastname.value;
+    this.appendChild(firstname)
+    this.appendChild(lastname)
+
+    this.username.value = firstname.value+' '+lastname.value
   })
 }
