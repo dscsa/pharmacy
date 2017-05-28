@@ -44,8 +44,8 @@ function load() {
   var patientForm  = jQuery('form.new-patient')
   patientForm.show()
 
-  setTimeout(showBillingForm, 500)
-  
+  setTimeout(showBillingForm, 1000)
+
   jQuery("input[name='source']").change(function($event){
     jQuery('label#eRX').toggle()
     jQuery('label#transfer').toggle()
