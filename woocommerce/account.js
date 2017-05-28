@@ -44,10 +44,8 @@ function load() {
   var patientForm  = jQuery('form.new-patient')
   patientForm.show()
 
-  console.log('.av-active-counter', jQuery('.av-active-counter').text())
-  if (jQuery('.av-active-counter').text())
-    checkoutForm.show()
-
+  setTimeout(showBillingForm, 500)
+  
   jQuery("input[name='source']").change(function($event){
     jQuery('label#eRX').toggle()
     jQuery('label#transfer').toggle()
@@ -84,6 +82,13 @@ function load() {
     jQuery.post('https://webform.goodpill.org/patient',
       patientForm.serialize()+'&'+checkoutForm.serialize()+'&order='+order
     )
+  }
+
+  //This appears to need a delay
+  function showBillingForm() {
+    console.log('.av-active-counter', jQuery('.av-active-counter').text())
+    if (jQuery('.av-active-counter').text())
+      checkoutForm.show()
   }
 }
 
