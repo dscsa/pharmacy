@@ -36,7 +36,7 @@
 .woocommerce-MyAccount-content, .new-patient, .col-1, .col-2 {
     width:100% !important;
 }
-.checkbox {
+[id^=allergies] {
   margin-bottom:0
 }
 
