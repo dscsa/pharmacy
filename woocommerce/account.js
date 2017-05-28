@@ -6,7 +6,7 @@ function load() {
   //   this._wp_http_referer.value = "/account/orders"
   // })
 
-  jQuery('.woocommerce-MyAccount-navigation-link--dashboard a').text('Place Order')
+  jQuery('.woocommerce-MyAccount-navigation-link--dashboard a').text('New Order')
 
   //hide saved cards on everything but the account details page which has a password field
   //for some reason there is a space in the id so need the \\20
@@ -15,6 +15,8 @@ function load() {
 
   if ( ! ~ jQuery('.woocommerce-MyAccount-content').text().indexOf('dashboard'))
     return
+
+  jQuery('.woocommerce-MyAccount-content').none()
 
   var medicationGsheet = "https://spreadsheets.google.com/feeds/list/1MV5mq6605X7U1Np2fpwZ1RHkaCpjsb7YqieLQsEQK88/ovrg94l/public/values?alt=json"
   var pharmacyGsheet  = "https://spreadsheets.google.com/feeds/list/11Ew_naOBwFihUrkaQnqVTn_3rEx6eAwMvGzksVTv_10/1/public/values?alt=json"
