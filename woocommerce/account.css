@@ -39,7 +39,7 @@
 [id^=allergies\[] {
   margin-bottom:-5px !important
 }
-.allergies\[other_english\]_field {
+#allergies\[other_english\]_field {
   margin-top:10px;
   margin-bottom:10px;
 }

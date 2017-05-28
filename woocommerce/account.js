@@ -51,7 +51,7 @@ function load() {
     }
   })
 
-  setTimeout(showBillingForm, 1000)
+  setTimeout(showBillingForm, 2000)
 
   jQuery("input[name='source']").change(function($event){
     jQuery('label#eRX').toggle()
@@ -99,9 +99,8 @@ function load() {
   //This appears to need a delay
   function showBillingForm() {
     console.log('.av-active-counter', jQuery('.av-active-counter').text())
-    if (jQuery('.av-active-counter').text())
-      checkoutForm.show()
-    else
+    checkoutForm.show()
+    if ( ! jQuery('.av-active-counter').text())  
       jQuery('.new_order').hide()
   }
 }
