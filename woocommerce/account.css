@@ -2,8 +2,8 @@
   color: inherit !important
 }
 .select2-search__field {
-  background-color:#f8f8f8 !important;
-  border-color:#f8f8f8 !important;
+  background-color:transparent !important;
+  border-color:transparent !important;
   box-shadow:none !important
 }
 .select2-search--inline {
