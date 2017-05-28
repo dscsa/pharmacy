@@ -75,7 +75,9 @@ h3 {
  .woocommerce-orders-table__cell-order-total span {
    color:#666
  }
-
+ .woocommerce-table--order-details tfoot tr:nth-child(1), .woocommerce-table--order-details tfoot tr:nth-child(2) {
+   display:none
+ }
 .create-account,
 #tc-saved-cards\20 + table,
 label#eRX,
