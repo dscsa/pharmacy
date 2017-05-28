@@ -1,15 +1,9 @@
 #top .select2-results {
   color: inherit !important
 }
-.select2-search__field {
+.select2-search--inline, .select2-search__field {
   background-color:transparent !important;
   border-color:transparent !important;
-  box-shadow:none !important
-}
-.select2-search--inline {
-  background-color:transparent !important;
-  border-color:transparent !important;
-  border-bottom:none !important
 }
 .select2-container--default {
   width:100% !important
