@@ -68,10 +68,17 @@ h3 {
   display:none;
   margin-top:100px !important
 }
+ .woocommerce-orders-table__cell-order-total {
+   color:transparent
+ }
+
+ .woocommerce-orders-table__cell-order-total span {
+   color:#666
+ }
+
 .create-account,
 #tc-saved-cards\20 + table,
 label#eRX,
-.woocommerce-message,
 .woocommerce-order,
 form.checkout,
 .new-patient,
