@@ -13,8 +13,16 @@ function load() {
   if (jQuery('#password_current').length)
     jQuery('#tc-saved-cards\\20').show().next().show()
 
+  if ( ! ~ ['/account/edit/', '/account/'].indexOf(window.location.pathname))
+    return
+
+  var patientForm = jQuery('form.new-patient')
+  patientForm.show()
+
   if (window.location.pathname != '/account/')
     return
+
+  var checkoutForm = jQuery('form.checkout')
 
   jQuery('.woocommerce-MyAccount-content').hide()
 
@@ -42,15 +50,17 @@ function load() {
       upgradePharmacy(pharmacies)
     }
   })
-  var checkoutForm = jQuery('form.checkout')
-  var patientForm  = jQuery('form.new-patient')
-  patientForm.show()
 
   setTimeout(showBillingForm, 1000)
 
   jQuery("input[name='source']").change(function($event){
     jQuery('label#eRX').toggle()
     jQuery('label#transfer').toggle()
+  })
+
+  jQuery("#language").change(function($event){
+    jQuery('.spanish').toggle()
+    jQuery('.english').toggle()
   })
 
   //Trust commerce gateway is not smart enough to do MM/YYYY to MM/YY for us
@@ -91,6 +101,8 @@ function load() {
     console.log('.av-active-counter', jQuery('.av-active-counter').text())
     if (jQuery('.av-active-counter').text())
       checkoutForm.show()
+    else
+      jQuery('.new_order').hide()
   }
 }
 
