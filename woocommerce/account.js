@@ -13,7 +13,7 @@ function load() {
   if (jQuery('#password_current').length)
     jQuery('#tc-saved-cards\\20').show().next().show()
 
-  if ( ! ~ jQuery('.woocommerce-MyAccount-content').text().indexOf('dashboard'))
+  if (window.location.pathname != '/account/')
     return
 
   jQuery('.woocommerce-MyAccount-content').hide()
