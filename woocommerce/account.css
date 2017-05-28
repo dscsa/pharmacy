@@ -37,9 +37,11 @@
     width:100% !important;
 }
 [id^=allergies\[] {
-  margin-bottom:0
+  margin-bottom:-5px !important
 }
-
+.spanish, .english {
+  display:inline;
+}
 @media (min-width: 767px) {
   .woocommerce-MyAccount-navigation {
      position:fixed
