@@ -4,6 +4,7 @@
 .select2-search--inline, .select2-search__field {
   background-color:transparent !important;
   border-color:transparent !important;
+  box-shadow:none !important;
 }
 .select2-container--default {
   width:100% !important
