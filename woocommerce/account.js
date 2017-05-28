@@ -2,22 +2,23 @@ jQuery(load)
 
 function load() {
 
-  jQuery('form.login').submit(function(e) {
-    this._wp_http_referer.value = "/account/orders"
-  })
+  // jQuery('form.login').submit(function(e) {
+  //   this._wp_http_referer.value = "/account/orders"
+  // })
+
+  jQuery('.woocommerce-MyAccount-navigation-link--dashboard a').text('Place Order')
 
   //hide saved cards on everything but the account details page which has a password field
   //for some reason there is a space in the id so need the \\20
   if (jQuery('#password_current').length)
     jQuery('#tc-saved-cards\\20').show().next().show()
 
-  if ( ! ~ jQuery('.woocommerce-MyAccount-content').text().indexOf('No order'))
+  if ( ! ~ jQuery('.woocommerce-MyAccount-content').text().indexOf('dashboard'))
     return
 
   var medicationGsheet = "https://spreadsheets.google.com/feeds/list/1MV5mq6605X7U1Np2fpwZ1RHkaCpjsb7YqieLQsEQK88/ovrg94l/public/values?alt=json"
   var pharmacyGsheet  = "https://spreadsheets.google.com/feeds/list/11Ew_naOBwFihUrkaQnqVTn_3rEx6eAwMvGzksVTv_10/1/public/values?alt=json"
   //ovrg94l is the worksheet id.  To get this you have to use https://spreadsheets.google.com/feeds/worksheets/1MV5mq6605X7U1Np2fpwZ1RHkaCpjsb7YqieLQsEQK88/private/full
-
 
   jQuery.ajax({
     url:medicationGsheet,
@@ -42,7 +43,10 @@ function load() {
   var checkoutForm = jQuery('form.checkout')
   var patientForm  = jQuery('form.new-patient')
   patientForm.show()
-  checkoutForm.show()
+
+  console.log('.av-active-counter', jQuery('.av-active-counter').text())
+  if (jQuery('.av-active-counter').text())
+    checkoutForm.show()
 
   jQuery("input[name='source']").change(function($event){
     jQuery('label#eRX').toggle()

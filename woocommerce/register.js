@@ -9,7 +9,7 @@ function load() {
         console.log('registering, product added')
       }
     })
-    this._wp_http_referer.value = "/account/orders"
+    //this._wp_http_referer.value = "/account/orders"
 
     var firstname = document.createElement('input')
     var lastname  = document.createElement('input')
