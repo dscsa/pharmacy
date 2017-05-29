@@ -63,9 +63,9 @@ function load() {
     togglePharmacyLabel(this.value, jQuery("#source_"+this.value).val())
   })
 
-  function togglePharmacyLabel($lng, $src) {
+  function togglePharmacyLabel($lang, $src) {
     jQuery('.erx, .pharmacy').hide()
-    jQuery('.'+$language+'.'+$src).show()
+    jQuery('.'+$lang+'.'+$src).show()
   }
 
   //Trust commerce gateway is not smart enough to do MM/YYYY to MM/YY for us
