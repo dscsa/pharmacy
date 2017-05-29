@@ -74,8 +74,12 @@ function load() {
     _this.val(_this.val().replace(/20(\d\d)/, '$1'))
   })
 
-  jQuery("#allergies_english,#allergies_spanish").on('change', function($event){
-    jQuery(".checkbox, #allergies\\[other_english\\]_field, #allergies\\[other_spanish\\]_field").toggle()
+  jQuery("#allergies_english").on('change', function($event){
+    jQuery(".checkbox, #allergies\\[other_english\\]_field").toggle()
+  })
+
+  jQuery("#allergies_spanish").on('change', function($event){
+    jQuery(".checkbox, #allergies\\[other_spanish\\]_field").toggle()
   })
 }
 
