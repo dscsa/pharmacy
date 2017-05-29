@@ -49,15 +49,23 @@ function load() {
   })
 
   jQuery("#source_english").change(function($event){
-    jQuery('#medication_field, .english.erx, .english.pharmacy').toggle()
+    jQuery('#medication_field').toggle()
+    togglePharmacyLabel('english')
   })
 
   jQuery("#source_spanish").change(function($event){
-    jQuery('#medication_field, .spanish.erx, .spanish.pharmacy').toggle()
+    jQuery('#medication_field').toggle()
+    togglePharmacyLabel('spanish')
   })
+
+  function togglePharmacyLabel($language) {
+    jQuery('.'.$language.'.erx, .'.$language.'.pharmacy').toggle()
+  }
 
   jQuery("#language").change(function($event){
     jQuery('.spanish, .english').toggle()
+    console.log('this.language.change', this)
+    togglePharmacyLabel(this.value)
   })
 
   //Trust commerce gateway is not smart enough to do MM/YYYY to MM/YY for us
