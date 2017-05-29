@@ -68,7 +68,7 @@ h3 {
    text-transform:capitalize;
 }
 .payment_methods li {
-  border:none;
+  border:none !important
 }
 .woocommerce-billing-fields h3:before {
    content:'Shipping & '
