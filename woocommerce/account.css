@@ -104,7 +104,7 @@ form.checkout, /* Don't show checkout on every page */
 }
 .order-total th, .order-total td { border:none !important }
 #customer_details { /*brings payment table closer */
-  margin-top:-95px
+  margin-bottom:-95px
 }
 .woocommerce-checkout-review-order-table {
   position:relative;
