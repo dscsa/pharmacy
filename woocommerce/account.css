@@ -86,6 +86,7 @@ main {
  .woocommerce-table--order-details tfoot tr:nth-child(1), .woocommerce-table--order-details tfoot tr:nth-child(2) {
    display:none
  }
+#order_review_heading, /*Large Your Order heading */
 #medication_field, /* don't force medication on eRx (default) */
 .spanish,  /* translation */
 .pharmacy, /*pharmacy transfer off until selected */
@@ -102,8 +103,12 @@ form.checkout, /* Don't show checkout on every page */
     display:none
 }
 .order-total th, .order-total td { border:none !important }
-.woocommerce-checkout-payment {
-   margin-top:-15px !important /*reduce space between total price and payment form */
+.woocommerce-checkout-review-order {
+  margin-top:-30px
+}
+.woocommerce-checkout-review-order-table {
+  position:relative;
+  top:260px
 }
 .fullsize .addresses.col2-set .col-1, .fullsize .addresses.col2-set .col-2 {
   margin-bottom:10px /*space between the billing and shipping addresses on addresses page */
