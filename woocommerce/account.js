@@ -48,25 +48,25 @@ function load() {
     }
   })
 
-  jQuery("#source_english").change(function($event){
+  jQuery("#source_english").change(function(){
     jQuery('#medication_field').toggle()
-    togglePharmacyLabel('english')
+    togglePharmacyLabel('english', this.value)
   })
 
-  jQuery("#source_spanish").change(function($event){
+  jQuery("#source_spanish").change(function(){
     jQuery('#medication_field').toggle()
-    togglePharmacyLabel('spanish')
+    togglePharmacyLabel('spanish', this.value)
   })
 
-  function togglePharmacyLabel($language) {
-    jQuery('.'+$language+'.erx, .'+$language+'.pharmacy').toggle()
-  }
-
-  jQuery("#language").change(function($event){
+  jQuery("#language").change(function(){
     jQuery('.spanish, .english').toggle()
-    console.log('this.language.change', this)
-    togglePharmacyLabel(this.value)
+    togglePharmacyLabel(this.value, jQuery("#source_"+this.value).val())
   })
+
+  function togglePharmacyLabel($lng, $src) {
+    jQuery('.erx, .pharmacy').hide()
+    jQuery('.'+$language+'.'+$src).show()
+  }
 
   //Trust commerce gateway is not smart enough to do MM/YYYY to MM/YY for us
   jQuery('input#trustcommerce-card-expiry').on('input', function() {
