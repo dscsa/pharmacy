@@ -19,6 +19,10 @@ function load() {
   if (window.location.pathname != '/account/')
     return
 
+  //Switch columns https://stackoverflow.com/questions/7742305/changing-the-order-of-elements
+  var cols = document.querySelector(".col2-set");
+  cols.appendChild(cols.firstElementChild);
+
   jQuery('.woocommerce-billing-fields h3').html('<span class="english">New Order</span><span class="spanish">Order Nuevo</span>').css('margin-top', '-30px')
   jQuery('form.checkout').show()
   jQuery('.woocommerce-MyAccount-content').hide()

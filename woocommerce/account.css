@@ -99,7 +99,6 @@ main {
 form.checkout, /* Don't show checkout on every page */
 .woocommerce-MyAccount-navigation-link--downloads, /* No Downloads */
 .woocommerce-shipping-fields,  /* checkbox to add shipping fields */
-#order_comments_field, /*hide note text area */
 .cart-subtotal, /*Hide subtotal row on checkout */
 .shipping, /* Hide shipping cost row on checkout */
 .product-name, /*Hide product name row on checkout */
