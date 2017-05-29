@@ -38,6 +38,7 @@ function custom_checkout_fields( $fields ) {
     //Hide some fields
     $fields['billing']['billing_state']['type'] = 'hidden';
     $fields['billing']['billing_email']['type'] = 'hidden';
+    $fields['billing']['billing_country']['type'] = 'hidden';
 
     $fields['billing']['billing_first_name']['priority'] = 17;
     //Make Phone Field Wide
