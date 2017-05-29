@@ -40,8 +40,8 @@
   margin-bottom:-5px !important
 }
 [id^=allergies\[other] {
-  margin-top:10px !important;
-  margin-bottom:10px !important;
+  margin-top:5px !important;
+  margin-bottom:15px !important;
 }
 .spanish, .english {
   display:inline;
