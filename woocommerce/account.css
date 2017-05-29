@@ -43,8 +43,7 @@
 }
 /*don't condense the last (text) one */
 [id^=allergies\[other] {
-  margin-top:5px !important;
-  margin-bottom:15px !important;
+  margin:5px 0 !important;
 }
 @media (min-width: 767px) {
   .woocommerce-MyAccount-navigation {
