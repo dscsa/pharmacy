@@ -86,7 +86,6 @@ main {
  .woocommerce-table--order-details tfoot tr:nth-child(1), .woocommerce-table--order-details tfoot tr:nth-child(2) {
    display:none
  }
-#order_review_heading, /*Large Your Order heading */
 #medication_field, /* don't force medication on eRx (default) */
 #billing_country_field,
 #billing_state_field,
