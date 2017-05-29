@@ -20,8 +20,7 @@ function load() {
     return
 
   //Switch columns https://stackoverflow.com/questions/7742305/changing-the-order-of-elements
-  var cols = document.querySelector(".col2-set");
-  cols.appendChild(cols.firstElementChild);
+  jQuery('.woocommerce-billing-fields').prepend(jQuery('.woocommerce-additional-fields'))
 
   jQuery('#order_review_heading').html('<span class="english">New Order</span><span class="spanish">Order Nuevo</span>').css('margin-top', '-30px')
   jQuery('form.checkout').show()
