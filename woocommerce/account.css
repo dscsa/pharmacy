@@ -88,6 +88,7 @@ main {
  }
 #medication_field, /* don't force medication on eRx (default) */
 .spanish,  /* translation */
+.pharmacy, /*pharmacy transfer off until selected */
 .create-account, /* Force user to save card */
 #tc-saved-cards\20 + table, /*See above */
 form.checkout, /* Don't show checkout on every page */
