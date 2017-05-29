@@ -91,6 +91,7 @@ main {
 #billing_country_field,
 #billing_state_field,
 #billing_email_field,
+.woocommerce-order, /* duplicated when showing order success */
 .spanish,  /* translation */
 .pharmacy, /*pharmacy transfer off until selected */
 .create-account, /* Force user to save card */
