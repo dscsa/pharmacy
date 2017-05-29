@@ -59,7 +59,7 @@ function load() {
   })
 
   function togglePharmacyLabel($language) {
-    jQuery('.'.$language.'.erx, .'.$language.'.pharmacy').toggle()
+    jQuery('.'+$language+'.erx, .'+$language+'.pharmacy').toggle()
   }
 
   jQuery("#language").change(function($event){
