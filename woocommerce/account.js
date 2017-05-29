@@ -48,8 +48,12 @@ function load() {
     }
   })
 
-  jQuery("#source_english,#source_spanish").change(function($event){
-    jQuery('#medication_field, .erx, .pharmacy').toggle()
+  jQuery("#source_english").change(function($event){
+    jQuery('#medication_field, .english.erx, .english.pharmacy').toggle()
+  })
+
+  jQuery("#source_spanish").change(function($event){
+    jQuery('#medication_field, .spanish.erx, .spanish.pharmacy').toggle()
   })
 
   jQuery("#language").change(function($event){
@@ -69,13 +73,14 @@ function load() {
 
 function upgradeMedication(medications) {
   console.log('upgradeMedication')
-  var select = jQuery('select[name="medication"]')
+  var select = jQuery('#medication')
+  select.empty()
   select.select2({multiple:true,data:medications})
 }
 
 function upgradePharmacy(pharmacies) {
   console.log('upgradePharmacy')
-  var select = jQuery('select[name="backupPharmacy"]')
+  var select = jQuery('#backupPharmacy')
   select.select2({data:pharmacies, matcher:matcher, minimumInputLength:3})
 }
 
