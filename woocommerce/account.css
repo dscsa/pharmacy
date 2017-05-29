@@ -103,12 +103,14 @@ form.checkout, /* Don't show checkout on every page */
     display:none
 }
 .order-total th, .order-total td { border:none !important }
-.woocommerce-checkout-review-order {
-  margin-top:-30px
+#customer_details { /*brings payment table closer */
+  margin-top:-95px
 }
 .woocommerce-checkout-review-order-table {
   position:relative;
-  top:260px
+  top:300px;
+  width:auto !important;
+  margin-left:45px !important
 }
 .fullsize .addresses.col2-set .col-1, .fullsize .addresses.col2-set .col-2 {
   margin-bottom:10px /*space between the billing and shipping addresses on addresses page */
