@@ -19,8 +19,6 @@ function load() {
   if (window.location.pathname != '/account/')
     return
 
-  window.scrollTo(0,0)
-
   jQuery('.woocommerce-billing-fields h3').text('New Order')
   jQuery('form.checkout').show()
   jQuery('.woocommerce-MyAccount-content').hide()
@@ -68,6 +66,8 @@ function load() {
   jQuery("input[name='language']:eq(3)").on('click', function($event){
     jQuery("input[name='language']:eq(2)").prop('checked', true)
   })
+
+  window.scrollTo(0,0)
 }
 
 function upgradeMedication(medications) {
