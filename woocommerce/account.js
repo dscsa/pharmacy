@@ -22,7 +22,7 @@ function load() {
   jQuery('.woocommerce-billing-fields h3').text('New Order').css('margin-top', '-30px')
   jQuery('form.checkout').show()
   jQuery('.woocommerce-MyAccount-content').hide()
-
+  jQuery('#date_of_birth').prop('type', 'date') //can't easily set date type in woocommerce
   var medicationGsheet = "https://spreadsheets.google.com/feeds/list/1MV5mq6605X7U1Np2fpwZ1RHkaCpjsb7YqieLQsEQK88/ovrg94l/public/values?alt=json"
   var pharmacyGsheet  = "https://spreadsheets.google.com/feeds/list/11Ew_naOBwFihUrkaQnqVTn_3rEx6eAwMvGzksVTv_10/1/public/values?alt=json"
   //ovrg94l is the worksheet id.  To get this you have to use https://spreadsheets.google.com/feeds/worksheets/1MV5mq6605X7U1Np2fpwZ1RHkaCpjsb7YqieLQsEQK88/private/full
@@ -48,13 +48,12 @@ function load() {
     }
   })
 
-  jQuery("#source_english_field,#source_spanish_field").change(function($event){
-    jQuery('#medication_field').toggle()
+  jQuery("#source_english,#source_spanish").change(function($event){
+    jQuery('#medication_field, .erx, .pharmacy').toggle()
   })
 
   jQuery("#language").change(function($event){
-    jQuery('.spanish').toggle()
-    jQuery('.english').toggle()
+    jQuery('.spanish, .english').toggle()
   })
 
   //Trust commerce gateway is not smart enough to do MM/YYYY to MM/YY for us
@@ -63,11 +62,9 @@ function load() {
     _this.val(_this.val().replace(/20(\d\d)/, '$1'))
   })
 
-  jQuery("input[name='language']:eq(3)").on('click', function($event){
-    jQuery("input[name='language']:eq(2)").prop('checked', true)
+  jQuery("#allergies_english,#allergies_spanish").on('click', function($event){
+    jQuery(".checkbox").toggle()
   })
-
-  window.scrollTo(0,0)
 }
 
 function upgradeMedication(medications) {
