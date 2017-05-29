@@ -33,18 +33,18 @@
 #top form {
   margin-bottom:0
 }
-.woocommerce-MyAccount-content, .new-patient, .col-1, .col-2 {
+/*We want full page account page */
+.woocommerce-MyAccount-content, .col-1, .col-2 {
     width:100% !important;
 }
+/*condenxe allergy checkboxes*/
 [id^=allergies\[] {
   margin-bottom:-5px !important
 }
+/*don't condense the last (text) one */
 [id^=allergies\[other] {
   margin-top:5px !important;
   margin-bottom:15px !important;
-}
-.spanish, .english {
-  display:inline;
 }
 @media (min-width: 767px) {
   .woocommerce-MyAccount-navigation {
@@ -61,54 +61,46 @@
   }
 }
 
+/* Avoid resizing when checkout loads*/
 main {
   min-height:400px !important;
 }
-h3 {
-   text-transform:capitalize;
-}
+/* Avoid resizing when checkout loads*/
 .payment_methods li {
   border:none !important
 }
-.woocommerce-billing-fields h3:before {
-   content:'Shipping & '
-}
+/* Current tc plugin shows saved cards on every page.  Hide by default */
 #tc-saved-cards\20  {
   display:none;
   margin-top:100px !important
 }
+/* In order details don't show "for X items" */
  .woocommerce-orders-table__cell-order-total {
    color:transparent
  }
-
+/* In order details do show total $ */
  .woocommerce-orders-table__cell-order-total span {
    color:#666
  }
+/* In order details don't show subtotal and shipping rows */
  .woocommerce-table--order-details tfoot tr:nth-child(1), .woocommerce-table--order-details tfoot tr:nth-child(2) {
    display:none
  }
-.spanish,
-.create-account,
-#tc-saved-cards\20 + table,
-label#eRX,
-.woocommerce-order,
-form.checkout,
-.new-patient,
-.woocommerce-MyAccount-navigation-link--downloads,
-#billing_company_field,
-#billing_country_field,
-.cart-subtotal,
-.product-name,
-.product-total,
-.shipping,
-.woocommerce-shipping-fields,
-.woocommerce-additional-fields {
+.spanish,  /* translation */
+.create-account, /* Force user to save card */
+#tc-saved-cards\20 + table, /*See above */
+form.checkout, /* Don't show checkout on every page */
+.woocommerce-MyAccount-navigation-link--downloads, /* No Downloads */
+.cart-subtotal, /*Hide subtotal on checkout */
+.product-name, /*Hide product name row on checkout */
+.product-total, /*Hide product total row on checkout */
+{
     display:none
 }
 .order-total th, .order-total td { border:none !important }
 .woocommerce-checkout-payment {
-   margin-top:-15px !important
+   margin-top:-15px !important /*reduce space between total price and payment form */
 }
 .fullsize .addresses.col2-set .col-1, .fullsize .addresses.col2-set .col-2 {
-  margin-bottom:10px
+  margin-bottom:10px /*space between the billing and shipping addresses on addresses page */
 }

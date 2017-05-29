@@ -16,14 +16,10 @@ function load() {
   if ( ! ~ ['/account/edit/', '/account/'].indexOf(window.location.pathname))
     return
 
-  var patientForm = jQuery('form.new-patient')
-  patientForm.show()
-
   if (window.location.pathname != '/account/')
     return
 
-  var checkoutForm = jQuery('form.checkout')
-
+  jQuery('form.checkout').show()
   jQuery('.woocommerce-MyAccount-content').hide()
 
   var medicationGsheet = "https://spreadsheets.google.com/feeds/list/1MV5mq6605X7U1Np2fpwZ1RHkaCpjsb7YqieLQsEQK88/ovrg94l/public/values?alt=json"
@@ -51,11 +47,8 @@ function load() {
     }
   })
 
-  setTimeout(showBillingForm, 2000)
-
-  jQuery("input[name='source']").change(function($event){
-    jQuery('label#eRX').toggle()
-    jQuery('label#transfer').toggle()
+  jQuery("#source_english_field,#source_spanish_field").change(function($event){
+    jQuery('#medication_field').toggle()
   })
 
   jQuery("#language").change(function($event){
@@ -64,45 +57,14 @@ function load() {
   })
 
   //Trust commerce gateway is not smart enough to do MM/YYYY to MM/YY for us
-  jQuery('input#trustcommerce-card-expiry').on('blur', function() {
+  jQuery('input#trustcommerce-card-expiry').on('input', function() {
     var _this = jQuery(this)
     _this.val(_this.val().replace(/20(\d\d)/, '$1'))
   })
 
-  //jQuery('#billing_state').prop('disabled', true)
-  //jQuery('<input>').attr({type:'hidden', name:'billing_state', value:'GA'}).appendTo('form.checkout');
-
   jQuery("input[name='language']:eq(3)").on('click', function($event){
     jQuery("input[name='language']:eq(2)").prop('checked', true)
   })
-
-  jQuery('#wc-stripe-new-payment-method').prop('checked', true)
-
-  jQuery( document ).ajaxComplete(function( event, xhr, settings ) {
-    if ( settings.url != wc_checkout_params.checkout_url)
-      return
-
-    var data = JSON.parse(xhr.responseText)
-    console.log('ajaxComplete', data)
-
-    if (data.redirect && data.result == 'success')
-      saveGuardian(data.redirect.match(/order\/(\d+)/)[1])
-  })
-
-  function saveGuardian(order) {
-    console.log('saveGuardian, order#', order)
-    jQuery.post('https://webform.goodpill.org/patient',
-      patientForm.serialize()+'&'+checkoutForm.serialize()+'&order='+order
-    )
-  }
-
-  //This appears to need a delay
-  function showBillingForm() {
-    console.log('.av-active-counter', jQuery('.av-active-counter').text())
-    checkoutForm.show()
-    if ( ! jQuery('.av-active-counter').text())  
-      jQuery('.new_order').hide()
-  }
 }
 
 function upgradeMedication(medications) {

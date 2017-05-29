@@ -16,6 +16,19 @@ function custom_deleted_post_meta( $deleted_meta_ids, $post_id, $meta_key, $only
    wp_mail('adam@sirum.org', 'deleted_post_meta', print_r(func_get_args(), true));
 }
 
+//Didn't work: https://stackoverflow.com/questions/38395784/woocommerce-overriding-billing-state-and-post-code-on-existing-checkout-fields
+//Did work: https://stackoverflow.com/questions/36619793/cant-change-postcode-zip-field-label-in-woocommerce
+add_filter( 'gettext', 'zip_and_town_labels');
+function zip_and_town_labels( $translated_text) {
+    if ('ZIP' == $translated_text )
+        return '<span class="english">Zip Code</span><span class="spanish">Hola</span>';
+
+    if ('Town / City' == $translated_text )
+        return '<span class="english">Town / City</span><span class="spanish">Hola</span>';
+
+    return $translated_text;
+}
+
 // Hook in
 add_filter( 'woocommerce_checkout_fields' , 'custom_checkout_fields' );
 
@@ -25,17 +38,18 @@ function custom_checkout_fields( $fields ) {
     //Hide some fields
     $fields['billing']['billing_state']['type'] = 'hidden';
     $fields['billing']['billing_email']['type'] = 'hidden';
-    $fields['billing']['billing_first_name']['type'] = 'hidden';
-    $fields['billing']['billing_last_name']['type'] = 'hidden';
 
+    $fields['billing']['billing_first_name']['priority'] = 17;
     //Make Phone Field Wide
     $fields['billing']['billing_phone']['class'] = array('form-row-wide');
 
     //Translate Some Labels
-    //$fields['billing']['billing_address_1']['label'] = '<span class="english">Address</span><span class="spanish">Hola</span>';
-    //$fields['billing']['billing_city']['label'] = '<span class="english">Town / City</span><span class="spanish">Hola</span>';
-    //$fields['billing']['billing_postcode']['label'] = '<span class="english">Zip Code</span><span class="spanish">Hola</span>';
-    //$fields['billing']['billing_phone']['label'] = '<span class="english">Phone</span><span class="spanish">Hola</span>';
+    $fields['billing']['billing_first_name']['label'] ='<span class="english">First Name</span><span class="spanish">Hola</span>';
+    $fields['billing']['billing_last_name']['label'] = '<span class="english">Last Name</span><span class="spanish">Hola</span>';
+    $fields['billing']['billing_address_1']['label'] = '<span class="english">Address</span><span class="spanish">Hola</span>';
+    $fields['billing']['billing_phone']['label'] = '<span class="english">Phone</span><span class="spanish">Hola</span>';
+
+    unset($fields['billing']['billing_company']);
 
     $custom = [
         'language' => array(
@@ -79,40 +93,46 @@ function custom_checkout_fields( $fields ) {
         ),
         'allergies_english' => array(
         'type'   	=> 'select',
-        'label'     => 'Allergies',
+        'label'     => '<span class="english">Allergies</span>',
         'class'     => array('english'),
         'required'  => true,
         'options'   => ['Yes' => 'Allergies Selected Below', 'No' => 'No Medication Allergies'],
         ),
         'allergies_spanish' => array(
         'type'   	=> 'select',
-        'label'     => 'Spanish Allergies',
+        'label'     => '<span class="spanish">Spanish Allergies</span>',
         'class'     => array('spanish'),
         'required' => true,
         'options'   => ['Yes' => 'Si', 'No' => 'No'],
         ),
         'allergies[aspirin-salicylates]' => array(
-        'type'   	=> 'checkbox',
-        'label'     => '<span class="english">Aspirin and salicylates</span><span class="spanish">Hola</span>',
-        ),
+        'type'   => 'checkbox',
+        'class' => array('form-row-wide'),
+        'label'  => '<span class="english">Aspirin and salicylates</span><span class="spanish">Hola</span>',
+    	),
         'allergies[erythromycin-biaxin-zithromax]' => array(
         'type'   => 'checkbox',
+        'class' => array('form-row-wide'),
         'label'  => '<span class="english">Erythromycin, Biaxin, Zithromax</span><span class="spanish">Hola</span>',
-        ),
+    	),
         'allergies[nsaids]' => array(
         'type'   => 'checkbox',
+        'class' => array('form-row-wide'),
         'label'  => '<span class="english">NSAIDS e.g., ibuprofen, Advil</span><span class="spanish">Hola</span>',
     	),
         'allergies[penicillins-cephalosporins]' => array(
         'type'   => 'checkbox',
+        'class' => array('form-row-wide'),
         'label'  => '<span class="english">Penicillins/cephalosporins e.g., Amoxil, amoxicillin, ampicillin, Keflex, cephalexin</span><span class="spanish">Hola</span>',
     	),
         'allergies[sulfa]' => array(
         'type'   => 'checkbox',
+        'class' => array('form-row-wide'),
         'label'  => '<span class="english">Sulfa drugs e.g., Septra, Bactrim, TMP/SMX</span><span class="spanish">Hola</span>',
     	),
         'allergies[tetracycline]' => array(
         'type'   => 'checkbox',
+        'class' => array('form-row-wide'),
         'label'  => '<span class="english">Tetracycline antibiotics</span><span class="spanish">Hola</span>',
     	),
         'allergies[other_english]' => array(
