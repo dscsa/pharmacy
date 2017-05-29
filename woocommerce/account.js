@@ -19,7 +19,7 @@ function load() {
   if (window.location.pathname != '/account/')
     return
 
-  jQuery('.woocommerce-billing-fields h3').text('New Order').css('margin-top', '-30px')
+  jQuery('.woocommerce-billing-fields h3').html('<span class="english">New Order</span><span class="spanish">Order Nuevo</span>').css('margin-top', '-30px')
   jQuery('form.checkout').show()
   jQuery('.woocommerce-MyAccount-content').hide()
   jQuery('#date_of_birth').prop('type', 'date') //can't easily set date type in woocommerce
