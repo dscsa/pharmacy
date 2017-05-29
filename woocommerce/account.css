@@ -93,8 +93,7 @@ form.checkout, /* Don't show checkout on every page */
 .woocommerce-MyAccount-navigation-link--downloads, /* No Downloads */
 .cart-subtotal, /*Hide subtotal on checkout */
 .product-name, /*Hide product name row on checkout */
-.product-total, /*Hide product total row on checkout */
-{
+.product-total { /*Hide product total row on checkout */
     display:none
 }
 .order-total th, .order-total td { border:none !important }
