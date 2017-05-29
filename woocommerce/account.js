@@ -75,7 +75,7 @@ function load() {
   })
 
   jQuery("#allergies_english,#allergies_spanish").on('change', function($event){
-    jQuery(".checkbox, #allergies[other_english]_field").toggle()
+    jQuery(".checkbox, #allergies\[other_english\]_field, #allergies\[other_spanish\]_field").toggle()
   })
 }
 
