@@ -85,6 +85,7 @@ main {
  .woocommerce-table--order-details tfoot tr:nth-child(1), .woocommerce-table--order-details tfoot tr:nth-child(2) {
    display:none
  }
+#medication_field, /* don't force medication on eRx (default) */
 .spanish,  /* translation */
 .create-account, /* Force user to save card */
 #tc-saved-cards\20 + table, /*See above */

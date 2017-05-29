@@ -19,6 +19,8 @@ function load() {
   if (window.location.pathname != '/account/')
     return
 
+  window.scrollTo(0,0)
+
   jQuery('.woocommerce-billing-fields h3').text('New Order')
   jQuery('form.checkout').show()
   jQuery('.woocommerce-MyAccount-content').hide()
