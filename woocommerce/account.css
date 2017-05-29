@@ -91,6 +91,8 @@ main {
 #tc-saved-cards\20 + table, /*See above */
 form.checkout, /* Don't show checkout on every page */
 .woocommerce-MyAccount-navigation-link--downloads, /* No Downloads */
+.woocommerce-shipping-fields,  /* checkbox to add shipping fields */
+.woocommerce-additional-fields, /*hide note text area */
 .cart-subtotal, /*Hide subtotal on checkout */
 .product-name, /*Hide product name row on checkout */
 .product-total { /*Hide product total row on checkout */
