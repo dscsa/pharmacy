@@ -47,7 +47,8 @@
 }
 @media (min-width: 767px) {
   .woocommerce-MyAccount-navigation {
-     position:fixed
+     position:fixed;
+     margin-top:-30px;
   }
   .questions {
     position:fixed;
