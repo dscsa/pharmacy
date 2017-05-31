@@ -1,7 +1,9 @@
 form.checkout, /* Don't show checkout on every page */
 #medication_field, /* don't force medication on eRx (default) */
 #billing_country_field,
+#shipping_country_field,
 #billing_email_field,
+#shipping_email_field,
 .woocommerce-message a, /* don't show links in messages since often wrong link */
 .pharmacy, /*pharmacy transfer off until selected */
 .spanish, /* translation */
@@ -9,13 +11,12 @@ form.checkout, /* Don't show checkout on every page */
 .cart-subtotal, /*Hide subtotal row on checkout */
 .shipping, /* Hide shipping cost row on checkout */
 .product-name, /*Hide product name row on checkout */
-.product-total,  /*Hide product total row on checkout */
-.create-account /* Force user to save card */
+.product-total  /*Hide product total row on checkout */
 {
   display:none
 }
-#billing_state_field {
-  display:none
+#shipping_state_field {
+  display:none !important
 }
 /*Default is set for 2 columns */
 .col2-set, #order_review_heading, .woocommerce-checkout-review-order {

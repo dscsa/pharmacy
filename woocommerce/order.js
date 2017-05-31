@@ -79,6 +79,13 @@ function load() {
   jQuery("#account_allergies_spanish").on('change', function($event){
     jQuery(".checkbox, #account_allergies\\[other_spanish\\]_field").toggle()
   })
+
+  jQuery("#billing_state").on('change', function($event){
+    if (this.value == 'GA')
+      jQuery("#ship-to-different-address-checkbox").prop('checked', true).prop('disabled', true)
+    else
+      jQuery("#ship-to-different-address-checkbox").prop('disabled', false)
+  })
 }
 
 function upgradeMedication(medications) {
