@@ -1,0 +1,16 @@
+.spanish, /* translation */
+.woocommerce-shipping-fields,  /* checkbox to add shipping fields TODO eventually add these back */
+.cart-subtotal, /*Hide subtotal row on checkout */
+.shipping, /* Hide shipping cost row on checkout */
+.product-name, /*Hide product name row on checkout */
+.product-total { /*Hide product total row on checkout */
+  display:none
+}
+/*Default is set for 2 columns */
+.col2-set, #order_review_heading {
+  width:69% !important
+}
+/*Align payment with billing & shipping */
+.woocommerce-checkout-review-order {
+  margin-right:4.347826087% !important
+}
