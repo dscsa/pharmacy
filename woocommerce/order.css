@@ -21,13 +21,13 @@ form.checkout, /* Don't show checkout on every page */
 }
 /*Align payment with billing & shipping */
 .woocommerce-checkout-review-order {
-  margin-right:4.347826087% !important
+  margin-right:4.3% !important
 }
 /* Condense allergy checkboxes */
 [id^=account_allergies\[] {
    margin-bottom:0 !important;
 }
 #account_allergies\[other_english\]_field {
-  margin-top:10px;
-  margin-bottom:20px !important;
+  margin-top:0.7em;
+  margin-bottom:1.4em !important;
 }
