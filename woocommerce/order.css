@@ -25,8 +25,8 @@ form.checkout, /* Don't show checkout on every page */
 }
 /* Condense allergy checkboxes */
 [id^=allergies\[] {
-   margin-bottom:-5px !important		    margin-bottom:-5px !important
- }		  }
+   margin-bottom:-5px !important;
+}
 .allergies\[other_english\]_field {
   margin-top:10px;
   margin-bottom:10px;
