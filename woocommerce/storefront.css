@@ -7,7 +7,7 @@
 .site-title a {
   font-weight:300 !important
 }
-.site-search, .site-header-cart {
+.site-search, .site-header-cart, .site-info {
   display:none !important
 }
 .main-navigation {
