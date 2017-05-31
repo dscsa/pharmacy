@@ -81,7 +81,7 @@ function load() {
   })
 
   jQuery("#billing_state").on('change', function($event){
-    if (this.value == 'GA')
+    if (this.value != 'GA')
       jQuery("#ship-to-different-address-checkbox").prop('checked', true).prop('disabled', true)
     else
       jQuery("#ship-to-different-address-checkbox").prop('disabled', false)
