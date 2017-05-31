@@ -1,0 +1,15 @@
+.site-branding .site-title {
+  width:100%
+}
+.site-search {
+  display:none
+}
+.site-header {
+  padding-top:1em
+}
+.woocommerce-breadcrumb {
+  margin-bottom:0
+}
+.storefront-full-width-content.woocommerce-account .entry-header {
+  padding-bottom:2em
+}
