@@ -1,5 +1,6 @@
 .site-branding {
-  width:100% !important
+  width:100% !important;
+  font-weight:300 !important
 }
 .site-search, .site-header-cart {
   display:none !important
@@ -15,4 +16,9 @@
 }
 .content-area {
   margin-top:-110px
+}
+.main-navigation {
+  width: 100%;
+  text-align: right;
+  margin-top: -55px;
 }
