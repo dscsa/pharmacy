@@ -17,6 +17,7 @@
 }
 .woocommerce-breadcrumb {
   text-align: right;
+  margin-bottom:0 !important
 }
 .content-area {
   margin-top:-110px
