@@ -1,0 +1,40 @@
+#top .select2-results {
+  color: inherit !important
+}
+.select2-search--inline, .select2-search__field {
+  background-color:transparent !important;
+  border-color:transparent !important;
+  box-shadow:none !important;
+}
+.select2-container--default {
+  width:100% !important
+}
+.select2-selection--single {
+  background-color:#f8f8f8 !important;
+  border-color:#e1e1e1 !important;
+}
+.select2-selection--multiple {
+  background-color:#f8f8f8 !important;
+  border-color:#e1e1e1 !important;
+  height:100px !important
+}
+.select2-container--default .select2-results__option--highlighted {
+  background:#11abd6 !important
+}
+.select2-container--default .select2-selection--multiple .select2-selection__choice {
+  background:#11abd6 !important;
+  color:#fff !important;
+  padding:5px !important
+}
+.select2-container--default .select2-selection--multiple .select2-selection__choice__remove {
+  color:#fff !important
+}
+
+/*condenxe allergy checkboxes*/
+[id^=allergies\[] {
+  margin-bottom:-5px !important
+}
+/*don't condense the last (text) one */
+[id^=allergies\[other] {
+  margin:5px 0 !important;
+}
