@@ -3,6 +3,7 @@ form.checkout, /* Don't show checkout on every page */
 #billing_country_field,
 #billing_state_field,
 #billing_email_field,
+.woocommerce-message a, /* don't show links in messages since often wrong link */
 .pharmacy, /*pharmacy transfer off until selected */
 .spanish, /* translation */
 .woocommerce-shipping-fields,  /* checkbox to add shipping fields TODO eventually add these back */
