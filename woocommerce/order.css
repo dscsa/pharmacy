@@ -13,7 +13,7 @@ form.checkout, /* Don't show checkout on every page */
 .product-total,  /*Hide product total row on checkout */
 .create-account /* Force user to save card */
 {
-  display:none
+  display:none !important
 }
 /*Default is set for 2 columns */
 .col2-set, #order_review_heading, .woocommerce-checkout-review-order {
