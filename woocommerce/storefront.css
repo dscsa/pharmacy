@@ -8,13 +8,11 @@
   padding-top:1em !important
 }
 .woocommerce-breadcrumb {
-  z-index: 999;
   text-align: right;
-  margin-bottom:0 !important
 }
 .storefront-full-width-content.woocommerce-account .entry-header {
   padding-bottom:2em !important
 }
 .content-area {
-  margin-top:-70px
+  margin-top:-110px
 }
