@@ -1,15 +1,15 @@
 .site-branding .site-title {
-  width:100%
+  width:100% !important
 }
 .site-search {
-  display:none
+  display:none !important
 }
 .site-header {
-  padding-top:1em
+  padding-top:1em !important
 }
 .woocommerce-breadcrumb {
-  margin-bottom:0
+  margin-bottom:0 !important
 }
 .storefront-full-width-content.woocommerce-account .entry-header {
-  padding-bottom:2em
+  padding-bottom:2em !important
 }
