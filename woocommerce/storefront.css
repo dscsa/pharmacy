@@ -1,3 +1,6 @@
+.site-header {
+  padding-top:1em !important
+}
 .site-branding {
   width:100% !important
 }
@@ -7,20 +10,17 @@
 .site-search, .site-header-cart {
   display:none !important
 }
-.site-header {
-  padding-top:1em !important
-}
-.woocommerce-breadcrumb {
-  text-align: right;
-}
-.entry-header {
-  padding-bottom:2em !important
-}
-.content-area {
-  margin-top:-110px
-}
 .main-navigation {
   width: 100% !important;
   text-align: right;
   margin-top: -55px;
+}
+.woocommerce-breadcrumb {
+  text-align: right;
+}
+.content-area {
+  margin-top:-110px
+}
+.entry-header {
+  padding-bottom:1em !important
 }
