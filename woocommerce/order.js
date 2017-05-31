@@ -81,16 +81,13 @@ function load() {
   })
 
   jQuery("#billing_state").on('change', function($event){
-    if (this.value != 'GA') {
-      $shipAddress = jQuery("#ship-to-different-address-checkbox")
-      shipAddress.click()
-      setTimeout(timeout, 1000)
-      function timeout() {
-        shipAddress.prop('disabled', true)
-      }
-    }
+
+    var shipAddress = jQuery("#ship-to-different-address-checkbox")
+
+    if (this.value != 'GA')
+      shipAddress.click().prop('disabled', true)
     else
-      jQuery("#ship-to-different-address-checkbox").prop('disabled', false)
+      shipAddress.prop('disabled', false).click()
   })
 }
 
