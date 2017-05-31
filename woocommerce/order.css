@@ -7,7 +7,7 @@
   display:none
 }
 /*Default is set for 2 columns */
-.col2-set, #order_review_heading {
+.col2-set, #order_review_heading, .woocommerce-checkout-review-order {
   width:69% !important
 }
 /*Align payment with billing & shipping */
