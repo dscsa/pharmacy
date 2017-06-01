@@ -1,0 +1,4 @@
+.woocommerce-order /* duplicated when showing order success */
+{
+  display:none
+}
