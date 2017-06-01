@@ -1,4 +1,10 @@
-.woocommerce-order /* duplicated when showing order success */
+/* Current tc plugin shows saved cards on every page.  Hide by default */
+#tc-saved-cards\20  {
+  display:none;
+  margin-top:100px !important
+}
+.woocommerce-order, /* duplicated when showing order success */
+#tc-saved-cards\20 + table, /*See above */
 {
   display:none
 }
