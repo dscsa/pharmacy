@@ -18,6 +18,9 @@ form.checkout, /* Don't show checkout on every page */
 .col2-set, #order_review_heading  {
   width:69% !important
 }
+.col2-set.addresses {
+  width:100% !important
+}
 #shipping_state_field {
   display:none !important
 }
