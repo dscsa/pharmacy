@@ -29,6 +29,7 @@ form.checkout, /* Don't show checkout on every page */
 }
 /*Align payment with billing & shipping */
 .woocommerce-checkout-review-order {
+  width:69% !important;
   margin-right:4.3% !important
 }
 /* Condense allergy checkboxes */
