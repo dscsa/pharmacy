@@ -4,11 +4,8 @@
   margin-top:100px !important
 }
 .woocommerce-order, /* duplicated when showing order success */
+.woocommerce-order-overview,
 #tc-saved-cards\20 + table, /*See above */
 {
   display:none
-}
-/*Default is set for 2 columns */
-.col2-set, #order_review_heading, .woocommerce-checkout-review-order, .woocommerce-order-overview  {
-  width:69% !important
 }

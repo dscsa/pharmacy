@@ -14,6 +14,10 @@ form.checkout, /* Don't show checkout on every page */
 {
   display:none
 }
+/*Default is set for 2 columns */
+.col2-set, #order_review_heading  {
+  width:69% !important
+}
 #shipping_state_field {
   display:none !important
 }
