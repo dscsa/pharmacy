@@ -5,7 +5,7 @@
 }
 .woocommerce-order, /* duplicated when showing order success */
 .woocommerce-order-overview,
-#tc-saved-cards\20 + table, /*See above */
+#tc-saved-cards\20 + table /*See above */
 {
   display:none
 }
