@@ -16,6 +16,10 @@
   - Goto Advanced > Port Forwarding > Enable > Add Service > Custom > Add Server & Port
   - Goto Advanced > Port Management > Check box to disable all rules and allow inbound traffic
 
+#Get Email Working
+- Install SMTP Server Start Bar > Server Manager > Tools > Add New Services > Features > Check Box for SMTP Server > Instal
+- Configure https://www.ruhanirabin.com/php-sendmail-setup-with-smtp-iis-and-windows-servers/
+
 #Installing SSH on windows
 https://www.server-world.info/en/note?os=Windows_Server_2016&p=openssh
 
