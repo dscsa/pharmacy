@@ -5,8 +5,7 @@ const   app = new (require('koa'))()
 const  auth = require('../../auth.js')
 const route = require('koa-route')
 const https = require('https')
-
-sql.connect({
+const pool  = sql.connect({
   user:auth.username,
   password:auth.password,
   server: 'localhost',
@@ -22,7 +21,7 @@ const showPatients = async ctx => {
   const patient = await body(ctx.req)
 
   ctx.body = 'patient '+JSON.stringify(patient)
-  
+
   try {
     const success = await select()
     ctx.body = JSON.stringify(success.recordset)
@@ -31,6 +30,18 @@ const showPatients = async ctx => {
   }
 }
 
+const findPatient = async ctx => {
+  const patient = await pool.request()
+   .input('FName', sql.VarChar(50), 'cindy')
+   .input('LName', sql.VarChar(50), 'Tompson')
+   .input('DOB', sql.VarChar(50), '01-01-1980')
+   .execute('SirumWeb_FindPatByNameandDOB')
+
+  console.dir(patient)
+  ctx.body = patient
+}
+
+app.use(route.get('/patient', showPatients))
 app.use(route.post('/patients', showPatients))
 app.use(route.get('/patients', showPatients))
 
