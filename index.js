@@ -5,7 +5,7 @@ const   app = new (require('koa'))()
 const  auth = require('../../auth.js')
 const route = require('koa-route')
 const https = require('https')
-const pool  = await sql.connect({
+sql.connect({
   user:auth.username,
   password:auth.password,
   server: 'localhost',
@@ -31,7 +31,7 @@ const showPatients = async ctx => {
 }
 
 const findPatient = async ctx => {
-  const patient = await pool.request()
+  const patient = await new sql.Request()
    .input('FName', sql.VarChar(50), 'cindy')
    .input('LName', sql.VarChar(50), 'Tompson')
    .input('DOB', sql.VarChar(50), '01-01-1980')
