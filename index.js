@@ -13,17 +13,22 @@ sql.connect({
   database: 'cph'
 })
 
+const select = async _ => {
+  return await sql.query`select * from cppat`
+}
+
 const showPatients = async ctx => {
 
   const patient = await body(ctx.req)
-  console.log('patient', patient)
+
   ctx.body = 'patient '+JSON.stringify(patient)
-  // try {
-  //   const success = await select()
-  //   res.end(JSON.stringify(success.recordset))
-  // } catch(err) {
-  //   res.end('There was an error!!\n\n'+err.stack)
-  // }
+  
+  try {
+    const success = await select()
+    ctx.body = JSON.stringify(success.recordset)
+  } catch(err) {
+    ctx.body = 'There was an error!!\n\n'+err.stack
+  }
 }
 
 app.use(route.post('/patients', showPatients))
@@ -62,10 +67,6 @@ var opts = {
 }
 
 https.createServer(opts, app.callback()).listen(443, _ => console.log('https server on port 443'))
-
-const select = async _ => {
-  return await sql.query`select * from cppat`
-}
 
 function body(stream) {
 
