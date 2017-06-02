@@ -46,10 +46,10 @@ const findPatient = async ctx => {
      from
       cppat p (nolock)
     where
-      p.lname = '${ctx.query.last_name}'
-      and p.fname = '${ctx.query.first_name}'
-      and IsNULL(NULL, mname) = '${ctx.query.middle_name}'
-      and IsNull(p.birth_date, '${ctx.query.birth_date}') = '${ctx.query.birth_date}'`)
+      p.lname = "${ctx.query.last_name}"
+      and p.fname = "${ctx.query.first_name}"
+      and IsNULL(${ctx.query.middle_name || ''}, mname) = "${ctx.query.middle_name || ''}"
+      and IsNull(p.birth_date, "${ctx.query.birth_date}") = "${ctx.query.birth_date}"`)
   console.dir(ctx.query.birth_date)
   const patient = await sql.query
   `select
@@ -61,10 +61,10 @@ const findPatient = async ctx => {
      from
       cppat p (nolock)
     where
-      p.lname = '${ctx.query.last_name}'
-      and p.fname = '${ctx.query.first_name}'
-      and IsNULL(NULL, mname) = '${ctx.query.middle_name}'
-      and IsNull(p.birth_date, '${ctx.query.birth_date}') = '${ctx.query.birth_date}'`
+      p.lname = "${ctx.query.last_name}"
+      and p.fname = "${ctx.query.first_name}"
+      and IsNULL(${ctx.query.middle_name || ''}, mname) = "${ctx.query.middle_name || ''}"
+      and IsNull(p.birth_date, "${ctx.query.birth_date}") = "${ctx.query.birth_date}"`
 
   console.dir(patient)
   ctx.body = patient
