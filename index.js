@@ -31,11 +31,26 @@ const showPatients = async ctx => {
 }
 
 const findPatient = async ctx => {
-  const patient = await new sql.Request()
-   .input('FName', sql.VarChar(50), 'cindy')
-   .input('LName', sql.VarChar(50), 'Tompson')
-   .input('DOB', sql.VarChar(50), '01-01-1980')
-   .execute('SirumWeb_FindPatByNameandDOB')
+  // const patient = await new sql.Request()
+  //  .input('FName', sql.VarChar(50), 'cindy')
+  //  .input('LName', sql.VarChar(50), 'Tompson')
+  //  .input('DOB', sql.VarChar(50), '01-01-1980')
+  //  .execute('SirumWeb_FindPatByNameandDOB')
+
+  const patient = await sql.query
+  `select
+      p.pat_id
+     ,p.fname
+     ,mname
+     ,lname
+     ,birth_date = IsNull(convert(varchar(10), birth_date, 110), '')
+     from
+      cppat p (nolock)
+    where
+      p.lname = 'Tompson'
+      and p.fname = 'cindy'
+      and IsNULL(@MName, mname) = NULL
+      and IsNull(p.birth_date, @DOB) = 01-01-1980`
 
   console.dir(patient)
   ctx.body = patient
