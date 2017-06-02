@@ -41,7 +41,7 @@ const findPatient = async ctx => {
   ctx.body = patient
 }
 
-app.use(route.get('/patient', showPatients))
+app.use(route.get('/patient', findPatient))
 app.use(route.post('/patients', showPatients))
 app.use(route.get('/patients', showPatients))
 
