@@ -39,8 +39,8 @@ const findPatient = async ctx => {
 
   const patient = await sql.query
 
-  console.dir(this.query)
-  console.dir(this.query.birth_date)
+  console.dir(ctx.query)
+  console.dir(ctx.query.birth_date)
   `select
       p.pat_id
      ,p.fname
