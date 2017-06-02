@@ -38,6 +38,9 @@ const findPatient = async ctx => {
   //  .execute('SirumWeb_FindPatByNameandDOB')
 
   const patient = await sql.query
+
+  console.dir(this.query)
+  console.dir(this.query.birth_date)
   `select
       p.pat_id
      ,p.fname
