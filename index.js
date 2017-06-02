@@ -47,10 +47,10 @@ const findPatient = async ctx => {
      from
       cppat p (nolock)
     where
-      p.lname = 'Tompson'
-      and p.fname = 'cindy'
-      and IsNULL(NULL, mname) = ''
-      and IsNull(p.birth_date, '01-02-1980') = '01-02-1980'`
+      p.lname = '${ctx.query.last_name}'
+      and p.fname = '${ctx.query.first_name}'
+      and IsNULL(NULL, mname) = '${ctx.query.middle_name}'
+      and IsNull(p.birth_date, '${ctx.query.birth_date}') = '${ctx.query.birth_date}'`
 
   console.dir(patient)
   ctx.body = patient
