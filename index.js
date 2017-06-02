@@ -49,9 +49,8 @@ const findPatient = async ctx => {
     where
       p.lname = 'Tompson'
       and p.fname = 'cindy'
-      and IsNull(p.birth_date, '1980-01-01T00:00:00.000Z') = '1980-01-01T00:00:00.000Z'`
-
-//      and IsNULL(NULL, mname) = NULL
+      and IsNULL(NULL, mname) = NULL
+      and IsNull(p.birth_date, '1980-01-01T00:00:00.000Z') = '1980-01-01T00:00:00.000Z'` 
 
   console.dir(patient)
   ctx.body = patient
