@@ -13,7 +13,7 @@ sql.connect({
   database: 'cph'
 })
 
-app.use(route.post('/patient', async ctx => {
+const showPatients = async ctx => {
 
   const patient = await body(ctx.req)
   console.log('patient', patient)
@@ -24,7 +24,10 @@ app.use(route.post('/patient', async ctx => {
   // } catch(err) {
   //   res.end('There was an error!!\n\n'+err.stack)
   // }
-}))
+}
+
+app.use(route.post('/patients', showPatients))
+app.use(route.get('/patients', showPatients))
 
 app.use(route.post('/billing', async ctx => {
 
