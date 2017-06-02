@@ -5,7 +5,7 @@ const   app = new (require('koa'))()
 const  auth = require('../../auth.js')
 const route = require('koa-route')
 const https = require('https')
-const pool  = sql.connect({
+const pool  = await sql.connect({
   user:auth.username,
   password:auth.password,
   server: 'localhost',
