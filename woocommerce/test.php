@@ -7,12 +7,16 @@
 
   $sql = "select * from cppat";
 
-  $stmt = sqlsrv_query( $conn, $sql);
-  if( $stmt === false ) {
+  $query = sqlsrv_query( $conn, $sql);
+  if( $query === false ) {
        die( print_r( sqlsrv_errors(), true));
   }
 
-  print_r($stmt);
+  print_r($query);
+
+  while( $row = sqlsrv_fetch_array( $query, SQLSRV_FETCH_ASSOC )) {
+    print_r($row);
+  }
   
   echo 'end';
 ?>

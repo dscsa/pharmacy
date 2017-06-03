@@ -46,6 +46,13 @@ For Missing Dependency Errors:
 * Handler Mappings = *.php, Module = FastCgiModule, Executable = D;\Program Files (x86)\PHP\v5.6\php-cgi.exe
 * SSL Settings?
 
+#Install SQLSRV (for MSSQL)
+- Download SQLSRV (3.2 for PHP5.6, 4.0 for PHP7.0+)
+- Extract into C:\Program Files (x86)\PHP\v5.6\ext
+- Edit C:\Program Files (x86)\PHP\v5.6\php.ini
+* add extension=php_sqlsrv_56_nts.dll
+* Install ODBC Driver 11 for SQL Server (x64 version: just double click the exe once downloaded)
+
 #Install SSL Certs
 npm install -g letsencrypt-cli
 
