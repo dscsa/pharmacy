@@ -27,9 +27,24 @@ https://www.server-world.info/en/note?os=Windows_Server_2016&p=openssh
 https://git-for-windows.github.io/
 
 #Setup User on MSSQL
-Setup Login
-Create Users
-Set User Permissions
+In Object Explorer > Server:
+- Setup Login = Security (Right Click) > New > Login
+- Create Users = Databases > cph > Security (Right Click) > New User
+ * In General Add User Name, Login Name
+ * In Membership check db_datareader, db_datawriter
+
+# Wordpress
+User Windows Platform Installer to install.
+For Missing Dependency Errors:
+- Server Manager > Manage > Add Roles and Features > Server Roles
+* Web Server IIS (15 of 43 needed)
+- Server Manager > Tools > Internet Information Services (IIS)
+* Add Default site
+* Binding http, port 80, IP = All Unassigned
+* Default Document = index.php
+* You may need to add IUSR as user to wordpress installation folder (with read and write)
+* Handler Mappings = *.php, Module = FastCgiModule, Executable = D;\Program Files (x86)\PHP\v5.6\php-cgi.exe
+* SSL Settings?
 
 #Install SSL Certs
 npm install -g letsencrypt-cli
