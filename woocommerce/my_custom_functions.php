@@ -1,4 +1,5 @@
-$order = [
+global $patient_fields;
+$patient_fields = [
     'account_language' => array(
         'type'   	=> 'select',
         'account_required'  => true,
@@ -53,42 +54,42 @@ $order = [
         'required' => true,
         'options'   => ['Yes' => 'Si', 'No' => 'No'],
     ),
-    'account_allergies[aspirin-salicylates]' => array(
+    'account_allergies_aspirin_salicylates' => array(
         'type'   => 'checkbox',
         'class' => array('form-row-wide'),
         'label'  => '<span class="english">Aspirin and salicylates</span><span class="spanish">Hola</span>',
     ),
-    'account_allergies[erythromycin-biaxin-zithromax]' => array(
+    'account_allergies_erythromycin_biaxin_zithromax' => array(
         'type'   => 'checkbox',
         'class' => array('form-row-wide'),
         'label'  => '<span class="english">Erythromycin, Biaxin, Zithromax</span><span class="spanish">Hola</span>',
     ),
-    'account_allergies[nsaids]' => array(
+    'account_allergies_nsaids' => array(
         'type'   => 'checkbox',
         'class' => array('form-row-wide'),
         'label'  => '<span class="english">NSAIDS e.g., ibuprofen, Advil</span><span class="spanish">Hola</span>',
     ),
-    'account_allergies[penicillins-cephalosporins]' => array(
+    'account_allergies_penicillins_cephalosporins' => array(
         'type'   => 'checkbox',
         'class' => array('form-row-wide'),
         'label'  => '<span class="english">Penicillins/cephalosporins e.g., Amoxil, amoxicillin, ampicillin, Keflex, cephalexin</span><span class="spanish">Hola</span>',
     ),
-    'account_allergies[sulfa]' => array(
+    'account_allergies_sulfa' => array(
         'type'   => 'checkbox',
         'class' => array('form-row-wide'),
         'label'  => '<span class="english">Sulfa drugs e.g., Septra, Bactrim, TMP/SMX</span><span class="spanish">Hola</span>',
     ),
-    'account_allergies[tetracycline]' => array(
+    'account_allergies_tetracycline' => array(
         'type'   => 'checkbox',
         'class' => array('form-row-wide'),
         'label'  => '<span class="english">Tetracycline antibiotics</span><span class="spanish">Hola</span>',
     ),
-    'account_allergies[other_english]' => array(
+    'account_allergies_other_english' => array(
         'type' => 'text',
         'class' => array('english'),
         'placeholder'=> 'Other Allergies'
     ),
-    'account_allergies[other_spanish]' => array(
+    'account_allergies_other_spanish' => array(
         'type' => 'text',
         'class' => array('spanish'),
         'placeholder'=> 'Otras Allergias'
@@ -132,6 +133,8 @@ function custom_my_account_menu($nav) {
           $new[$key] = $val;
   }
 
+  $new['address'] = __( 'Address & Payment', 'woocommerce' );
+
   return $new;
 }
 
@@ -150,13 +153,13 @@ function register_custom_plugin_styles() {
  * Update the order meta with field value
  */
 
+add_action( 'woocommerce_save_account_details', 'save_custom_fields_to_user' );
+add_action( 'woocommerce_checkout_update_user_meta', 'save_custom_fields_to_user');
+function save_custom_fields_to_user( $user_id) {
 
-add_action( 'woocommerce_checkout_update_user_meta', 'save_account_checkout_fields_to_user', 10, 5);
-function save_account_checkout_fields_to_user( $user_id, $post ) {
+   wp_mail('adam.kircher@gmail.com', 'save_custom_fields_to_user', print_r(func_get_args(), true));
 
-   wp_mail('adam.kircher@gmail.com', 'save_account_checkout_fields_to_user', print_r(func_get_args(), true));
-
-    foreach ($post as $key => $val) {
+    foreach ($_POST as $key => $val) {
         if (substr($key, 0, 8) === "account_") {
     		update_user_meta( $user_id, "_".$key, sanitize_text_field($val));
         }
@@ -185,33 +188,18 @@ function custom_updated_user_meta( $meta_id, $post_id, $meta_key, $meta_value )
  */
 add_action( 'woocommerce_edit_account_form', 'my_woocommerce_edit_account_form' );
 function my_woocommerce_edit_account_form() {
+    global $patient_fields;
 
-	$user = get_current_user();
+    $user_id = get_current_user_id();
 
-     $user_id = $user->id;
-    echo $user_id;
-    foreach ($order as $key => $field) {
-       $val = get_user_meta( $user_id, "_".$key);
-
-
-        echo "<p class='form-row form-row-thirds'>";
-        echo "<label for='$key'>$field[label]</label>";
-        echo "<input type='$field[type]' name='$key' value='$val' class='input-text $field[class]' />";
-		echo "</p>";
+    foreach ($patient_fields as $key => $field) {
+        if (substr($key, 0, 8) === "account_") {
+        	$val = get_user_meta( $user_id, "_".$key, true);
+        	echo woocommerce_form_field($key, $field, $val);
+        }
     }
 
 } // end func
-
-
-/**
- * This is to save user input into database
- * hook: woocommerce_save_account_details
- */
-//add_action( 'woocommerce_save_account_details', 'my_woocommerce_save_account_details' );
-
-//function my_woocommerce_save_account_details( $user_id ) {
-//	update_user_meta( $user_id, 'birthdate', htmlentities( $_POST[ 'birthdate' ] ) );
-//} // end func
 
 //Didn't work: https://stackoverflow.com/questions/38395784/woocommerce-overriding-billing-state-and-post-code-on-existing-checkout-fields
 //Did work: https://stackoverflow.com/questions/36619793/cant-change-postcode-zip-field-label-in-woocommerce
@@ -230,9 +218,10 @@ function zip_and_town_labels( $translated_text) {
 add_filter( 'woocommerce_checkout_fields' , 'custom_checkout_fields' );
 function custom_checkout_fields( $fields ) {
 
+    global $patient_fields;
 
    //Also accepts a 'priority' property and a 'default' property
-     $fields['order'] = $order;
+     $fields['order'] = $patient_fields;
 
     //Translate Some Labels
     $fields['order']['billing_first_name']['label'] ='<span class="english">First Name</span><span class="spanish">Hola</span>';
