@@ -1,34 +1,10 @@
 global $patient_fields;
+// 'autofocus' => true, default => 'value'
 $patient_fields = [
     'account_language' => array(
         'type'   	=> 'select',
         'account_required'  => true,
         'options'   => ['english' => 'English', 'spanish' => 'Espanol'],
-    ),
-    'billing_first_name' => $fields['billing']['billing_first_name'],
-    'billing_last_name' => $fields['billing']['billing_last_name'],
-    'source_english' => array(
-        'type'   	=> 'select',
-        'required'  => true,
-        'class'     => array('english'),
-        'options'   => [
-            'erx' => 'Prescription(s) were sent to Good Pill from my doctor',
-            'pharmacy' => 'Please transfer prescription(s) from my pharmacy'
-        ]
-    ),
-    'source_spanish' => array(
-        'type'   	=> 'select',
-        'required'  => true,
-        'class'     => array('spanish'),
-        'options'   => [
-            'erx' => 'Hola eRx',
-            'pharmacy' => 'Adios Pharmacy'
-        ]
-    ),
-    'medication' => array(
-        'type'   	=> 'select',
-        'label'     => '<span class="english">Search and select medications by generic name that you want to transfer to Good Pill</span><span class="spanish">Hola</span>',
-        'options'   => [''],
     ),
     'account_backupPharmacy' => array(
         'type'   	=> 'select',
@@ -99,7 +75,13 @@ $patient_fields = [
         'label'     => '<span class="english">Date of Birth</span><span class="spanish">Hola</span>',
         'required'  => true
     ),
-    'account_phone' => $fields['billing']['billing_phone']
+    'account_phone' => array(
+        'label' => '<span class="english">Phone</span><span class="spanish">Hola</span>',
+       	'required' => true,
+        'type' => 'tel',
+        'validate' => array ('phone'),
+        'autocomplete' => 'tel'
+    )
 ];
 
 // After registration, logout the user and redirect to home page
@@ -133,7 +115,7 @@ function custom_my_account_menu($nav) {
           $new[$key] = $val;
   }
 
-  $new['address'] = __( 'Address & Payment', 'woocommerce' );
+  $new['edit-address'] = __( 'Address & Payment', 'woocommerce' );
 
   return $new;
 }
@@ -159,11 +141,12 @@ function save_custom_fields_to_user( $user_id) {
 
    wp_mail('adam.kircher@gmail.com', 'save_custom_fields_to_user', print_r(func_get_args(), true));
 
-    foreach ($_POST as $key => $val) {
-        if (substr($key, 0, 8) === "account_") {
-    		update_user_meta( $user_id, "_".$key, sanitize_text_field($val));
-        }
-    }
+   global $patient_fields;
+   foreach ($patient_fields as $key => $field) {
+       if (isset($_POST[$key])) {
+    		update_user_meta( $user_id, "_".$key, sanitize_text_field($_POST[$key]));
+       }
+   }
 }
 
 add_action( 'updated_user_meta', 'custom_updated_user_meta', 10, 4);
@@ -186,7 +169,7 @@ function custom_updated_user_meta( $meta_id, $post_id, $meta_key, $meta_value )
  * To display additional field at My Account page
  * Once member login: edit account
  */
-add_action( 'woocommerce_edit_account_form', 'my_woocommerce_edit_account_form' );
+add_action( 'woocommerce_edit_account_form_start', 'my_woocommerce_edit_account_form' );
 function my_woocommerce_edit_account_form() {
     global $patient_fields;
 
@@ -199,7 +182,7 @@ function my_woocommerce_edit_account_form() {
         }
     }
 
-} // end func
+}
 
 //Didn't work: https://stackoverflow.com/questions/38395784/woocommerce-overriding-billing-state-and-post-code-on-existing-checkout-fields
 //Did work: https://stackoverflow.com/questions/36619793/cant-change-postcode-zip-field-label-in-woocommerce
@@ -219,20 +202,47 @@ add_filter( 'woocommerce_checkout_fields' , 'custom_checkout_fields' );
 function custom_checkout_fields( $fields ) {
 
     global $patient_fields;
+    $fields['order'] = $patient_fields;
 
-   //Also accepts a 'priority' property and a 'default' property
-     $fields['order'] = $patient_fields;
+
+    //Also accepts a 'autofocus', 'autocomplete', 'validate', 'priority', 'default' properties
+
+    //Add some order fields that are not in patient profile
+    $fields['order']['source_english'] = array(
+        'priority'  => 2,
+        'type'   	=> 'select',
+        'required'  => true,
+        'class'     => array('english'),
+        'options'   => [
+            'erx' => 'Prescription(s) were sent to Good Pill from my doctor',
+            'pharmacy' => 'Please transfer prescription(s) from my pharmacy'
+        ]
+    );
+    $fields['order']['source_spanish'] = array(
+        'priority'  => 3,
+        'type'   	=> 'select',
+        'required'  => true,
+        'class'     => array('spanish'),
+        'options'   => [
+            'erx' => 'Hola eRx',
+            'pharmacy' => 'Adios Pharmacy'
+        ]
+    );
+    $fields['order']['medication'] = array(
+        'priority'  => 4,
+        'type'   	=> 'select',
+        'label'     => '<span class="english">Search and select medications by generic name that you want to transfer to Good Pill</span><span class="spanish">Hola</span>',
+        'options'   => ['']
+    );
 
     //Translate Some Labels
-    $fields['order']['billing_first_name']['label'] ='<span class="english">First Name</span><span class="spanish">Hola</span>';
-    $fields['order']['billing_last_name']['label'] = '<span class="english">Last Name</span><span class="spanish">Hola</span>';
-    $fields['order']['account_phone']['label'] = '<span class="english">Phone</span><span class="spanish">Hola</span>';
-    $fields['order']['account_phone']['class'] = array('form-row-wide');
+    $fields['billing']['billing_first_name']['label'] ='<span class="english">First Name</span><span class="spanish">Hola</span>';
+    $fields['billing']['billing_last_name']['label'] = '<span class="english">Last Name</span><span class="spanish">Hola</span>';
     $fields['billing']['billing_address_1']['label'] = '<span class="english">Address</span><span class="spanish">Hola</span>';
     $fields['shipping']['shipping_address_1']['label'] = '<span class="english">Georgia Address</span><span class="spanish">Hola</span>';
 
-    unset($fields['billing']['billing_last_name']);
-    unset($fields['billing']['billing_first_name']);
+    //Remove Some Fields
+    unset($fields['billing']['billing_first_name']['autofocus']);
     unset($fields['billing']['billing_phone']);
     unset($fields['billing']['billing_company']);
     unset($fields['shipping']['shipping_company']);
