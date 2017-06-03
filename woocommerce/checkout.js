@@ -5,7 +5,7 @@ function load() {
   //hide saved cards on everything but the account details page which has a password field
   //for some reason there is a space in the id so need the \\20
   if (window.location.pathname == '/account/address')
-    jQuery('#tc-saved-cards\\20').show()
+    jQuery('#tc-saved-cards\\20').next().show()
 
   if ( ! ~ ['/account/edit/', '/account/'].indexOf(window.location.pathname))
     return
