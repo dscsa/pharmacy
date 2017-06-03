@@ -36,8 +36,9 @@ In Object Explorer > Server:
 # Wordpress
 User Windows Platform Installer to install.
 For Missing Dependency Errors:
-- Server Manager > Manage > Add Roles and Features > Server Roles
-* Web Server IIS (15 of 43 needed)
+- Server Manager > Manage > Add Roles and Features
+* SERVER ROLES: Web Server IIS (15 of 43 needed)
+* Features: SMTP Server
 - Server Manager > Tools > Internet Information Services (IIS)
 * Add Default site
 * Binding http, port 80, IP = All Unassigned
@@ -45,12 +46,16 @@ For Missing Dependency Errors:
 * You may need to add IUSR as user to wordpress installation folder (with read and write)
 * Handler Mappings = *.php, Module = FastCgiModule, Executable = D;\Program Files (x86)\PHP\v5.6\php-cgi.exe
 * SSL Settings?
+- Server Manager > Tools > IIS (v6.0)
+* Run SMTP Server (don't remember how)
+* Right Click > Properties > Access > Relay > Select All Except the List Below
 
 #Install SQLSRV (for MSSQL)
 - Download SQLSRV (3.2 for PHP5.6, 4.0 for PHP7.0+)
 - Extract into C:\Program Files (x86)\PHP\v5.6\ext
 - Edit C:\Program Files (x86)\PHP\v5.6\php.ini
 * add extension=php_sqlsrv_56_nts.dll
+* add sendmail_from=rx@goodpill.org
 * Install ODBC Driver 11 for SQL Server (x64 version: just double click the exe once downloaded)
 
 #Install SSL Certs
