@@ -1,9 +1,18 @@
-<?php echo 'adam';
+<?php echo 'start';
 
-  echo '2';
-  echo sqlsrv_connect('GOODPILL-SERVER', ['Database' => 'cph']);
-  echo '3';
-  echo '4';
-  echo $err;
-  echo '5';
+  $conn = sqlsrv_connect('GOODPILL-SERVER', ['Database' => 'cph']);
+  if( $conn === false ) {
+       die( print_r( sqlsrv_errors(), true));
+  }
+
+  $sql = "select * from cppat";
+
+  $stmt = sqlsrv_query( $conn, $sql);
+  if( $stmt === false ) {
+       die( print_r( sqlsrv_errors(), true));
+  }
+
+  print_r($stmt);
+  
+  echo 'end';
 ?>

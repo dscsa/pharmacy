@@ -48,7 +48,7 @@ const findPatient = async ctx => {
     where
       p.lname = "${ctx.query.last_name}"
       and p.fname = "${ctx.query.first_name}"
-      and IsNULL(${ctx.query.middle_name || ''}, mname) = "${ctx.query.middle_name || ''}"
+      and IsNULL("${ctx.query.middle_name || ''}", mname) = "${ctx.query.middle_name || ''}"
       and IsNull(p.birth_date, "${ctx.query.birth_date}") = "${ctx.query.birth_date}"`)
   console.dir(ctx.query.birth_date)
   const patient = await sql.query
