@@ -1,20 +1,28 @@
-global $patient_fields;
-// 'autofocus' => true, default => 'value'
-$patient_fields = [
+function patient_fields() {
+    // 'autofocus' => true, default => 'value'
+    $user_id = get_current_user_id();
+
+    return array(
     'account_language' => array(
         'type'   	=> 'select',
         'account_required'  => true,
         'options'   => ['english' => 'English', 'spanish' => 'Espanol'],
+        'default'   => get_user_meta($user_id, 'account_language', true)
+
     ),
     'account_backup_pharmacy' => array(
         'type'   	=> 'select',
-        'label'     => '<span class="english erx">Name and address of a backup pharmacy to fill your prescriptions if we are out-of-stock</span><span class="spanish erx">Hola Erx</span><span class="english pharmacy">Name and address of pharmacy from which we should transfer your medication(s)</span><span class="spanish pharmacy">Hola Pharmacy</span>',
+        'label'     => '<span class="english_erx">Name and address of a backup pharmacy to fill your prescriptions if we are out-of-stock</span><span class="spanish_erx">Pharmacia if out-of-stock</span><span class="english_pharmacy">Name and address of pharmacy from which we should transfer your medication(s)</span><span class="spanish_pharmacy">Pharmacia Transfer</span>',
         'required'  => true,
         'options'   => [''],
+        'default'   => get_user_meta($user_id, 'account_backup_pharmacy', true)
+
     ),
     'account_medications_other' => array(
         'type'   	=> 'text',
         'label'     => '<span class="english">List any other medication(s) or supplement(s) you are currently taking</span><span class="spanish">Hola</span>',
+        'default'   => get_user_meta($user_id, 'account_medications_other', true)
+
     ),
     'account_allergies_english' => array(
         'type'   	=> 'select',
@@ -22,6 +30,7 @@ $patient_fields = [
         'class'     => array('english'),
         'required'  => true,
         'options'   => ['Yes' => 'Allergies Selected Below', 'No' => 'No Medication Allergies'],
+    	'default'   => get_user_meta($user_id, 'account_allergies_english', true)
     ),
     'account_allergies_spanish' => array(
         'type'   	=> 'select',
@@ -29,51 +38,76 @@ $patient_fields = [
         'class'     => array('spanish'),
         'required' => true,
         'options'   => ['Yes' => 'Si', 'No' => 'No'],
-    ),
+        'default'   => get_user_meta($user_id, 'account_allergies_spanish', true)
+	),
     'account_allergies_aspirin_salicylates' => array(
         'type'   => 'checkbox',
         'class' => array('form-row-wide'),
         'label'  => '<span class="english">Aspirin and salicylates</span><span class="spanish">Hola</span>',
+        'default'   => get_user_meta($user_id, 'account_allergies_aspirin_salicylates', true)
     ),
     'account_allergies_erythromycin_biaxin_zithromax' => array(
         'type'   => 'checkbox',
         'class' => array('form-row-wide'),
         'label'  => '<span class="english">Erythromycin, Biaxin, Zithromax</span><span class="spanish">Hola</span>',
+        'default'   => get_user_meta($user_id, 'account_allergies_erythromycin_biaxin_zithromax', true)
     ),
     'account_allergies_nsaids' => array(
         'type'   => 'checkbox',
         'class' => array('form-row-wide'),
         'label'  => '<span class="english">NSAIDS e.g., ibuprofen, Advil</span><span class="spanish">Hola</span>',
+        'default'   => get_user_meta($user_id, 'account_allergies_nsaids', true)
     ),
     'account_allergies_penicillins_cephalosporins' => array(
         'type'   => 'checkbox',
         'class' => array('form-row-wide'),
         'label'  => '<span class="english">Penicillins/cephalosporins e.g., Amoxil, amoxicillin, ampicillin, Keflex, cephalexin</span><span class="spanish">Hola</span>',
+        'default'   => get_user_meta($user_id, 'account_allergies_penicillins_cephalosporins', true)
     ),
     'account_allergies_sulfa' => array(
         'type'   => 'checkbox',
         'class' => array('form-row-wide'),
         'label'  => '<span class="english">Sulfa drugs e.g., Septra, Bactrim, TMP/SMX</span><span class="spanish">Hola</span>',
+        'default'   => get_user_meta($user_id, 'account_allergies_sulfa', true)
     ),
     'account_allergies_tetracycline' => array(
         'type'   => 'checkbox',
         'class' => array('form-row-wide'),
         'label'  => '<span class="english">Tetracycline antibiotics</span><span class="spanish">Hola</span>',
+        'default'   => get_user_meta($user_id, 'account_allergies_tetracycline', true)
     ),
     'account_allergies_other_english' => array(
-        'type' => 'text',
         'class' => array('english'),
         'placeholder'=> 'Other Allergies',
+        'default'   => get_user_meta($user_id, 'account_allergies_other_english', true)
     ),
     'account_allergies_other_spanish' => array(
-        'type' => 'text',
         'class' => array('spanish'),
         'placeholder'=> 'Otras Allergias',
+        'default'   => get_user_meta($user_id, 'account_allergies_other_spanish', true)
+    ),
+    'account_first_name' => array(
+        'required' => true,
+        'label' => '<span class="english">First Name</span><span class="spanish">Nombre Uno</span>',
+        'class' => array('form-row-first'),
+        'default' => get_user_meta($user_id, 'account_first_name', true)
+    ),
+    'account_last_name' => array(
+        'required' => true,
+        'label' => '<span class="english">Last Name</span><span class="spanish">Nombre Dos</span>',
+        'class' => array('form-row-last'),
+        'default' => get_user_meta($user_id, 'account_last_name', true)
+    ),
+    'account_email' => array(
+        'required' => true,
+        'label' => '<span class="english">Email</span><span class="spanish">Spanish Email</span>',
+        'class' => array('form-row-last'),
+        'default' => get_user_meta($user_id, 'account_email', true)
     ),
     'account_birth_date' => array(
-        'type' => 'text',
         'label'     => '<span class="english">Date of Birth</span><span class="spanish">Hola</span>',
         'required'  => true,
+        'default'   => get_user_meta($user_id, 'account_birth_date', true)
     ),
     'account_phone' => array(
         'label' => '<span class="english">Phone</span><span class="spanish">Hola</span>',
@@ -81,8 +115,9 @@ $patient_fields = [
         'type' => 'tel',
         'validate' => array ('phone'),
         'autocomplete' => 'tel',
+        'default'   => get_user_meta($user_id, 'account_phone', true)
     )
-];
+);
 
 // After registration, logout the user and redirect to home page
 add_action('woocommerce_registration_redirect', 'custom_redirect', 2);
@@ -176,7 +211,7 @@ function my_woocommerce_edit_account_form() {
     foreach ($patient_fields as $key => $field) {
         if (substr($key, 0, 8) === "account_") {
         	$val = get_user_meta( $user_id, $key, true);
-            echo $key.'<br>'.$val.'<br>';
+            //echo $key.'<br>'.$val.'<br>';
             if ($key === "account_backup_pharmacy") {
                 $field['options'] = array($val => $val);
             }

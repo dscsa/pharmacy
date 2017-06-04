@@ -12,14 +12,12 @@ function load() {
 
   upgradePharmacy()
 
-  var lang = jQuery("#account_language").val()
-
-  jQuery('.'+lang).show() //Both languages hidden by default.  Show the one with values.  This messes up pharmacy label
-
-  lang.change(function(){
+  var lang = jQuery("#account_language").change(function(){
     jQuery('.spanish, .english').toggle()
     togglePharmacyLabel(this.value, jQuery("#source_"+this.value).val() || 'pharmacy')
-  })
+  }).val()
+
+  jQuery('.'+lang).show() //Both languages hidden by default.  Show the one with values.  This messes up pharmacy label
 
   if (window.location.pathname != '/account/')
     return togglePharmacyLabel(lang, 'pharmacy')//Both pharmacy labels hidden by default.  Show the one with value
