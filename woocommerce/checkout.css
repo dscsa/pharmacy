@@ -41,7 +41,7 @@ form.checkout, /* Don't show checkout on every page */
   margin-bottom:1.4em !important;
 }
 select, .select2-selection {
-  height:45px
+  height:45px !important
 }
 .select2-selection__rendered {
   line-height:45px !important
