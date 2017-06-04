@@ -17,8 +17,8 @@ function load() {
   }).val()
 
   setTimeout(function() {
-    jQuery('.'+lang).show() //Both languages hide by default.  Need delay because ZIP and City/Town are delayed
-  }, 250)
+    jQuery('.'+lang).show() //Both languages hide by default.  Need delay because ZIP, City/Town, Credit Card are delayed
+  }, 500)
 
   if (window.location.pathname != '/account/')
     return jQuery('.pharmacy').show()//Both pharmacy labels hidden by default.  Show the one with value
