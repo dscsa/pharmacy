@@ -18,7 +18,7 @@ function load() {
 
   setTimeout(function() {
     jQuery('.'+lang).show() //Both languages hide by default.  Need delay because ZIP and City/Town are delayed
-  }, 500)
+  }, 250)
 
   if (window.location.pathname != '/account/')
     return jQuery('.pharmacy').show()//Both pharmacy labels hidden by default.  Show the one with value
@@ -31,7 +31,6 @@ function load() {
   jQuery('.col-1').prepend(jQuery('.woocommerce-additional-fields'))
   jQuery('.col-1').prepend(jQuery('#order_review_heading'))
 
-  jQuery('#order_review_heading').html('<span class="english">New Order</span><span class="spanish">Order Nuevo</span>')
   jQuery('form.checkout').show()
   jQuery('.woocommerce-MyAccount-content').hide()
   jQuery('#account_birth_date').prop('type', 'date') //can't easily set date type in woocommerce
