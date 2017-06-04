@@ -24,7 +24,7 @@ function load() {
     var children = jQuery(".checkbox, #"+this.id+"_other_field")
     console.log('children', children, this.value)
     this.value == 'No' ? children.hide() : children.show()
-  }).triggerHandler('change')
+  })
 
   if (window.location.pathname != '/account/')
     return jQuery('.pharmacy').show()//Both pharmacy labels hidden by default.  Show the one with value
