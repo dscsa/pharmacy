@@ -26,8 +26,9 @@ function load() {
     this.value == 'No' ? children.hide() : children.show()
   }).triggerHandler('change')
 
+  var other_allergy_checkbox = jQuery('#account_allergies_other_checkbox').prop('disabled', true)
   jQuery('#account_allergies_other').on('input', function() {
-    jQuery('#account_allergies_other_checkbox').prop('checked', this.value)
+    other_allergy_checkbox.prop('checked', this.value)
   })
 
   if (window.location.pathname != '/account/')
