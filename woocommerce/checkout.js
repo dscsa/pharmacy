@@ -20,16 +20,9 @@ function load() {
   setTimeout(showLang, 3000) //Both languages hide by default.  Need delay because ZIP, City/Town, Credit Card are delayed
   function showLang() { jQuery('.'+lang.val()).show() }
 
-  var lang = jQuery("#account_language").change(function(){
-    jQuery('.spanish, .english').toggle()
-  })
-
-  showLang()
-  setTimeout(showLang, 3000) //Both languages hide by default.  Need delay because ZIP, City/Town, Credit Card are delayed
-  function showLang() { jQuery('.'+lang.val()).show() }
-
   jQuery("#account_allergies_english, #account_allergies_spanish").on('change', function(){
     var children = jQuery(".checkbox, #"+this.id+"_other_field")
+    console.log('children', children, this.value)
     this.value == 'No' ? children.hide() : children.show()
   }).trigger('change')
 
