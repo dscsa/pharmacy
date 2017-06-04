@@ -26,6 +26,10 @@ function load() {
     this.value == 'No' ? children.hide() : children.show()
   }).triggerHandler('change')
 
+  jQuery('#account_allergies_other').on('input', function() {
+    jQuery('#account_allergies_other_checkbox').prop('checked', this.value)
+  })
+
   if (window.location.pathname != '/account/')
     return jQuery('.pharmacy').show()//Both pharmacy labels hidden by default.  Show the one with value
 
