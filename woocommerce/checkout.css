@@ -44,5 +44,5 @@ select {
   height:45px
 }
 .select2-selection__rendered {
-  line-height:45px
+  line-height:45px !important
 }
