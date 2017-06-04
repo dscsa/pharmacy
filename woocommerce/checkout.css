@@ -38,8 +38,8 @@ form.checkout, /* Don't show checkout on every page */
 [id^=account_allergies_] {
    margin-bottom:0 !important;
 }
-#account_allergies_other_checkbox_field {
-  margin-bottom:1.4em !important;
+#account_birth_date_field {
+  margin-top:1.4em !important;
 }
 select, .select2-selection {
   height:45px !important
