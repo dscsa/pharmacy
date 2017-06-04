@@ -1,12 +1,14 @@
 function patient_fields() {
-    // 'autofocus' => true, default => 'value'
+    //https://docs.woocommerce.com/wc-apidocs/source-function-woocommerce_form_field.html#1841-2061
     $user_id = get_current_user_id();
 
     return array(
     'account_language' => array(
-        'type'   	=> 'select',
-        'account_required'  => true,
-        'options'   => ['english' => 'English', 'spanish' => 'Espanol'],
+        'type'   	=> 'radio',
+        'label'     => __( 'Language', 'woocommerce' ),
+        'label_class' => array('radio'),
+        'required'  => true,
+        'options'   => ['english' => 'English', 'spanish' => __('Spanish')],
         'default'   => get_user_meta($user_id, 'account_language', true)
     ),
     'account_backup_pharmacy' => array(
@@ -21,22 +23,14 @@ function patient_fields() {
         'label'     =>  __( 'List any other medication(s) or supplement(s) you are currently taking', 'woocommerce'),
         'default'   => get_user_meta($user_id, 'account_medications_other', true)
     ),
-    'account_allergies_english' => array(
-        'type'   	=> 'select',
+    'account_allergies' => array(
+        'type'   	=> 'radio',
         'label'     => __( 'Allergies', 'woocommerce' ),
-        'class'     => array('english'),
+        'label_class' => array('radio'),
         'required'  => true,
-        'options'   => ['Yes' => 'Allergies Selected Below', 'No' => 'No Medication Allergies'],
+        'options'   => ['Yes' => __('Allergies Selected Below'), 'No' => __('No Medication Allergies')],
     	'default'   => get_user_meta($user_id, 'account_allergies_english', true)
     ),
-    'account_allergies_spanish' => array(
-        'type'   	=> 'select',
-        'label'     => __( 'Allergies', 'woocommerce' ),
-        'class'     => array('spanish'),
-        'required' => true,
-        'options'   => ['Yes' => 'Si', 'No' => 'No'],
-        'default'   => get_user_meta($user_id, 'account_allergies_spanish', true)
-	),
     'account_allergies_aspirin_salicylates' => array(
         'type'   => 'checkbox',
         'class' => array('form-row-wide'),
@@ -73,15 +67,9 @@ function patient_fields() {
         'label'  => __( 'Tetracycline antibiotics', 'woocommerce' ),
         'default'   => get_user_meta($user_id, 'account_allergies_tetracycline', true)
     ),
-    'account_allergies_other_english' => array(
-        'class' => array('english'),
-        'placeholder'=> 'Other Allergies',
-        'default'   => get_user_meta($user_id, 'account_allergies_other_english', true)
-    ),
-    'account_allergies_other_spanish' => array(
-        'class' => array('spanish'),
-        'placeholder'=> 'Otras Allergias',
-        'default'   => get_user_meta($user_id, 'account_allergies_other_spanish', true)
+    'account_allergies_other_checkbox' => array(
+        'type'   => 'checkbox',
+        'label'  =>__( 'Other Allergies', 'woocommerce' ).'<input class="input-text " name="account_allergies_other" id="account_allergies_other" value="'.get_user_meta($user_id, 'account_allergies_other', true).'">'
     ),
     'account_birth_date' => array(
         'label'     => __( 'Date of Birth', 'woocommerce' ),
@@ -130,6 +118,7 @@ function custom_my_account_menu($nav) {
           $new[$key] = $val;
   }
 
+  $new['edit-account'] = __( 'Account Details', 'woocommerce' );
   $new['edit-address'] = __( 'Address & Payment', 'woocommerce' );
 
   return $new;
@@ -154,10 +143,9 @@ add_action( 'woocommerce_save_account_details', 'save_custom_fields_to_user' );
 add_action( 'woocommerce_checkout_update_user_meta', 'save_custom_fields_to_user');
 function save_custom_fields_to_user( $user_id) {
 
-   wp_mail('adam.kircher@gmail.com', 'save_custom_fields_to_user', print_r(func_get_args(), true));
+   wp_mail('adam.kircher@gmail.com', 'save_custom_fields_to_user', $user_id.' '.print_r($_POST, true));
 
-   global $patient_fields;
-   foreach ($patient_fields as $key => $field) {
+   foreach (patient_fields() as $key => $field) {
     	update_user_meta( $user_id, $key, sanitize_text_field($_POST[$key]));
    }
 }
@@ -201,6 +189,8 @@ add_filter( 'gettext', 'zip_and_town_labels');
 function zip_and_town_labels($term) {
 
     $toSpanish = array(
+        'Language' => 'Lingua',
+        'Spanish'  => 'Espanol',
         'Use a new credit card' => 'Spanish Use a new credit card',
         'Your order' => 'Order Nueva',
         'Billing details' => 'La Cuenta Por Favor',
@@ -208,12 +198,15 @@ function zip_and_town_labels($term) {
         'Search and select medications by generic name that you want to transfer to Good Pill' => 'Drogas de Transfer',
         '<span class="erx">Name and address of a backup pharmacy to fill your prescriptions if we are out-of-stock</span><span class="pharmacy">Name and address of pharmacy from which we should transfer your medication(s)</span>' => '<span class="erx">Pharmacia de out-of-stock</span><span class="pharmacy">Pharmacia de transfer</span>',
 		'Allergies' => 'Allergias',
+        'Allergies Selected Below' => 'Si Allergias',
+        'No Medication Allergies' => 'No Allergias',
 		'Aspirin and salicylates' => 'Drogas de Aspirin',
 		'Erythromycin, Biaxin, Zithromax' => 'Drogas de Erthromycin',
 		'NSAIDS e.g., ibuprofen, Advil' => 'Drogas de NSAIDS',
 		'Penicillins/cephalosporins e.g., Amoxil, amoxicillin, ampicillin, Keflex, cephalexin' => 'Drogas de Penicillin',
 		'Sulfa drugs e.g., Septra, Bactrim, TMP/SMX' => 'Drogas de Sulfa',
 		'Tetracycline antibiotics' => 'Antibiotics de Tetra',
+        'Other Allergies' => 'Otras Allegerias',
 		'Phone' => 'Telefono',
         'List any other medication(s) or supplement(s) you are currently taking' => 'Otras Drogas',
         'First name' => 'Nombre Uno',
@@ -290,6 +283,7 @@ function custom_checkout_fields( $fields ) {
     $fields['shipping']['shipping_address_1']['label'] = __('Shipping address', 'woocommerce');
 
     //Remove Some Fields
+    unset($fields['billing']['billing_first_name']['autofocus']);
     unset($fields['billing']['billing_phone']);
     unset($fields['billing']['billing_company']);
     unset($fields['shipping']['shipping_company']);
