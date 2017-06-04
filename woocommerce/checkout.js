@@ -12,7 +12,7 @@ function load() {
 
   upgradePharmacy()
 
-  var lang = ("input[name=account_language]:checked").val()
+  var lang = jQuery("input[name=account_language]:checked").val()
 
   showLang()
   setTimeout(showLang, 3000) //Both languages hide by default.  Need delay because ZIP, City/Town, Credit Card are delayed
