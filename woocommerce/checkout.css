@@ -5,8 +5,10 @@ form.checkout, /* Don't show checkout on every page */
 #billing_email_field,
 #shipping_email_field,
 .woocommerce-message a, /* don't show links in messages since often wrong link */
-.pharmacy, /*pharmacy transfer off until selected */
-.erx, /*erx transfer off until selected */
+.english_pharmacy, /*pharmacy transfer off until selected */
+.spanish_pharmacy, /*pharmacy transfer off until selected */
+.english_erx, /*erx transfer off until selected */
+.spanish_erx, /*erx transfer off until selected */
 .english, /* translation */
 .spanish, /* translation */
 .cart-subtotal, /*Hide subtotal row on checkout */

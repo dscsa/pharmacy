@@ -14,14 +14,16 @@ function load() {
 
   var lang = jQuery("#account_language")
 
-  jQuery('.'+lang.val()).show() //Both languages hidden by default.  Show the one with value
+  jQuery('.'+lang.val()).show() //Both languages hidden by default.  Show the one with values.  This messes up pharmacy label
 
   lang.change(function(){
     jQuery('.spanish, .english').toggle()
   })
 
   if (window.location.pathname != '/account/')
-    return  //Both pharmacy labels hidden by default.  Show the one with value
+    return togglePharmacyLabel(lang.val(), 'pharmacy')//Both pharmacy labels hidden by default.  Show the one with value
+
+  togglePharmacyLabel(lang.val(), 'erx')
 
   upgradeMedication()
 
@@ -50,8 +52,8 @@ function load() {
   })
 
   function togglePharmacyLabel($lang, $src) {
-    jQuery('.erx, .pharmacy').hide()
-    jQuery('.'+$lang+'.'+$src).show()
+    jQuery('.english_erx, .english_pharmacy, .spanish_erx, .spanish_pharmacy').hide()
+    jQuery('.'+$lang+'_'+$src).show()
   }
 
   //Trust commerce gateway is not smart enough to do MM/YYYY to MM/YY for us
