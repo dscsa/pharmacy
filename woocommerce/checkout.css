@@ -47,10 +47,11 @@ select, .select2-selection {
 .select2-selection__rendered {
   line-height:45px !important
 }
-#account_allergies_field > * {
+.radio {
   display:inline-block !important
 }
 .input-radio {
+  display:inline-block !important;
   margin-left:10px;
   margin-right:4px
 }
