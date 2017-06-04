@@ -7,11 +7,16 @@ function load() {
   if (window.location.pathname == '/account/address/')
     jQuery('#tc-saved-cards\\20').next().show()
 
-  if ( ! ~ ['/account/edit/', '/account/'].indexOf(window.location.pathname))
+  if ( ! ~ ['/account/details/', '/account/'].indexOf(window.location.pathname))
     return
+
+  upgradePharmacy()
+
 
   if (window.location.pathname != '/account/')
     return
+
+  upgradeMedication()
 
   //Switch columns https://stackoverflow.com/questions/7742305/changing-the-order-of-elements
   jQuery('.col-1').prepend(jQuery('.woocommerce-additional-fields'))
@@ -21,30 +26,6 @@ function load() {
   jQuery('form.checkout').show()
   jQuery('.woocommerce-MyAccount-content').hide()
   jQuery('#account_birth_date').prop('type', 'date') //can't easily set date type in woocommerce
-  var medicationGsheet = "https://spreadsheets.google.com/feeds/list/1MV5mq6605X7U1Np2fpwZ1RHkaCpjsb7YqieLQsEQK88/ovrg94l/public/values?alt=json"
-  var pharmacyGsheet  = "https://spreadsheets.google.com/feeds/list/11Ew_naOBwFihUrkaQnqVTn_3rEx6eAwMvGzksVTv_10/1/public/values?alt=json"
-  //ovrg94l is the worksheet id.  To get this you have to use https://spreadsheets.google.com/feeds/worksheets/1MV5mq6605X7U1Np2fpwZ1RHkaCpjsb7YqieLQsEQK88/private/full
-
-  jQuery.ajax({
-    url:medicationGsheet,
-    type: 'GET',
-    cache:true,
-    success:function($data) {
-      console.log('medications gsheet', $data.feed.entry)
-      var medications = $data.feed.entry.map(medication2select)
-      upgradeMedication(medications)
-    }
-  })
-
-  jQuery.ajax({
-    url:pharmacyGsheet,
-    type: 'GET',
-    cache:true,
-    success:function($data) {
-      var pharmacies = $data.feed.entry.map(pharmacy2select)
-      upgradePharmacy(pharmacies)
-    }
-  })
 
   jQuery("#source_english").change(function(){
     jQuery('#medication_field').toggle()
@@ -93,16 +74,40 @@ function load() {
 
 function upgradeMedication(medications) {
   console.log('upgradeMedication')
+
   var select = jQuery('#medication')
   select.empty()
-  select.select2({multiple:true,data:medications})
-  //jQuery('#account_medicationsOther').select2({multiple:true,data:[{id:'id', text:'text'}]})
+
+  var medicationGsheet = "https://spreadsheets.google.com/feeds/list/1MV5mq6605X7U1Np2fpwZ1RHkaCpjsb7YqieLQsEQK88/ovrg94l/public/values?alt=json"
+  //ovrg94l is the worksheet id.  To get this you have to use https://spreadsheets.google.com/feeds/worksheets/1MV5mq6605X7U1Np2fpwZ1RHkaCpjsb7YqieLQsEQK88/private/full
+
+  jQuery.ajax({
+    url:medicationGsheet,
+    type: 'GET',
+    cache:true,
+    success:function($data) {
+      console.log('medications gsheet', $data.feed.entry)
+      select.select2({multiple:true,data:$data.feed.entry.map(medication2select)})
+    }
+  })
 }
 
 function upgradePharmacy(pharmacies) {
   console.log('upgradePharmacy')
+
   var select = jQuery('#account_backup_pharmacy')
-  select.select2({data:pharmacies, matcher:matcher, minimumInputLength:3})
+  var pharmacyGsheet  = "https://spreadsheets.google.com/feeds/list/11Ew_naOBwFihUrkaQnqVTn_3rEx6eAwMvGzksVTv_10/1/public/values?alt=json"
+  //ovrg94l is the worksheet id.  To get this you have to use https://spreadsheets.google.com/feeds/worksheets/1MV5mq6605X7U1Np2fpwZ1RHkaCpjsb7YqieLQsEQK88/private/full
+
+  jQuery.ajax({
+    url:pharmacyGsheet,
+    type: 'GET',
+    cache:true,
+    success:function($data) {
+      var pharmacies = $data.feed.entry.map(pharmacy2select)
+      select.select2({data:pharmacies, matcher:matcher, minimumInputLength:3})
+    }
+  })
 }
 
 function medication2select(entry, i) {

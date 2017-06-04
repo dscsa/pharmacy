@@ -6,13 +6,13 @@ $patient_fields = [
         'account_required'  => true,
         'options'   => ['english' => 'English', 'spanish' => 'Espanol'],
     ),
-    'account_backupPharmacy' => array(
+    'account_backup_pharmacy' => array(
         'type'   	=> 'select',
         'label'     => '<span class="english erx">Name and address of a backup pharmacy to fill your prescriptions if we are out-of-stock</span><span class="spanish erx">Hola Erx</span><span class="english pharmacy">Name and address of pharmacy from which we should transfer your medication(s)</span><span class="spanish pharmacy">Hola Pharmacy</span>',
         'required'  => true,
         'options'   => [''],
     ),
-    'account_medicationsOther' => array(
+    'account_medications_other' => array(
         'type'   	=> 'text',
         'label'     => '<span class="english">List any other medication(s) or supplement(s) you are currently taking</span><span class="spanish">Hola</span>',
     ),
@@ -63,24 +63,24 @@ $patient_fields = [
     'account_allergies_other_english' => array(
         'type' => 'text',
         'class' => array('english'),
-        'placeholder'=> 'Other Allergies'
+        'placeholder'=> 'Other Allergies',
     ),
     'account_allergies_other_spanish' => array(
         'type' => 'text',
         'class' => array('spanish'),
-        'placeholder'=> 'Otras Allergias'
+        'placeholder'=> 'Otras Allergias',
     ),
-    'account_birthdate' => array(
+    'account_birth_date' => array(
         'type' => 'text',
         'label'     => '<span class="english">Date of Birth</span><span class="spanish">Hola</span>',
-        'required'  => true
+        'required'  => true,
     ),
     'account_phone' => array(
         'label' => '<span class="english">Phone</span><span class="spanish">Hola</span>',
        	'required' => true,
         'type' => 'tel',
         'validate' => array ('phone'),
-        'autocomplete' => 'tel'
+        'autocomplete' => 'tel',
     )
 ];
 
@@ -143,9 +143,7 @@ function save_custom_fields_to_user( $user_id) {
 
    global $patient_fields;
    foreach ($patient_fields as $key => $field) {
-       if (isset($_POST[$key])) {
-    		update_user_meta( $user_id, "_".$key, sanitize_text_field($_POST[$key]));
-       }
+    	update_user_meta( $user_id, $key, sanitize_text_field($_POST[$key]));
    }
 }
 
@@ -177,7 +175,12 @@ function my_woocommerce_edit_account_form() {
 
     foreach ($patient_fields as $key => $field) {
         if (substr($key, 0, 8) === "account_") {
-        	$val = get_user_meta( $user_id, "_".$key, true);
+        	$val = get_user_meta( $user_id, $key, true);
+            echo $key.'<br>'.$val.'<br>';
+            if ($key === "account_backup_pharmacy") {
+                $field['options'] = array($val => $val);
+            }
+
         	echo woocommerce_form_field($key, $field, $val);
         }
     }
@@ -204,7 +207,17 @@ function custom_checkout_fields( $fields ) {
     global $patient_fields;
     $fields['order'] = $patient_fields;
 
+    //Add some default values
+    foreach($fields['order'] as $key => $field) {
+        $fields['order'][$key]['default'] = get_user_meta( $user_id, $key, true);
+    }
 
+    $first_name = get_user_meta( $user_id, 'account_first_name', true);
+    $last_name  = get_user_meta( $user_id, 'account_last_name', true);
+    $fields['billing']['billing_first_name']['default'] = $first_name;
+    $fields['billing']['billing_last_name']['default'] = $last_name;
+    $fields['shipping']['shipping_first_name']['default'] = $first_name;
+    $fields['shipping']['shipping_last_name']['default'] = $last_name;
     //Also accepts a 'autofocus', 'autocomplete', 'validate', 'priority', 'default' properties
 
     //Add some order fields that are not in patient profile
@@ -250,17 +263,9 @@ function custom_checkout_fields( $fields ) {
     return $fields;
 }
 
-/**
- * @snippet       Add First & Last Name to My Account Register Form - WooCommerce
- * @how-to        Watch tutorial @ https://businessbloomer.com/?p=19055
- * @sourcecode    https://businessbloomer.com/?p=21974
- * @author        Rodolfo Melogli
- * @credits       Claudio SM Web
- * @compatible    WC 2.6.14, WP 4.7.2, PHP 5.5.9
- */
-
 ///////////////////////////////
 // 3. SAVE FIELDS
+/*
 add_action( 'woocommerce_created_customer', 'save_name_fields_on_registration' );
 function save_name_fields_on_registration( $customer_id ) {
     if ( isset( $_POST['sr_firstname'] ) ) {
@@ -272,3 +277,4 @@ function save_name_fields_on_registration( $customer_id ) {
         update_user_meta( $customer_id, 'billing_last_name', sanitize_text_field( $_POST['sr_lastname'] ) );
     }
 }
+*/
