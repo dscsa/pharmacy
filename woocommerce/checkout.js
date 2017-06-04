@@ -12,7 +12,7 @@ function load() {
 
   upgradePharmacy()
 
-  var lang = jQuery("input[name=account_language]").change(function(){
+  var lang = jQuery("input[name=account_language]:checked").change(function(){
     jQuery('.spanish, .english').toggle()
   }).val()
 
@@ -20,7 +20,7 @@ function load() {
   setTimeout(showLang, 3000) //Both languages hide by default.  Need delay because ZIP, City/Town, Credit Card are delayed
   function showLang() { jQuery('.'+lang).show() }
 
-  jQuery("input[name=account_allergies]").on('change', function(){
+  jQuery("input[name=account_allergies]:checked").on('change', function(){
     var children = jQuery(".checkbox, #account_allergies_other")
     console.log('children', children, this.value)
     this.value == 'No' ? children.hide() : children.show()
