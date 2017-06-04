@@ -12,6 +12,15 @@ function load() {
 
   upgradePharmacy()
 
+  var lang = jQuery("#account_language")
+
+  //Both languages hidden by default.  Show the one with value
+  jQuery('.'+lang.val()).toggle()
+
+  lang.change(function(){
+    jQuery('.spanish, .english').toggle()
+    togglePharmacyLabel(this.value, jQuery("#source_"+this.value).val())
+  })
 
   if (window.location.pathname != '/account/')
     return
@@ -27,7 +36,8 @@ function load() {
   jQuery('.woocommerce-MyAccount-content').hide()
   jQuery('#account_birth_date').prop('type', 'date') //can't easily set date type in woocommerce
 
-  jQuery("#source_english").change(function(){
+  jQuery("#source_english")
+  .change(function(){
     jQuery('#medication_field').toggle()
     togglePharmacyLabel('english', this.value)
   })
@@ -35,11 +45,6 @@ function load() {
   jQuery("#source_spanish").change(function(){
     jQuery('#medication_field').toggle()
     togglePharmacyLabel('spanish', this.value)
-  })
-
-  jQuery("#account_language").change(function(){
-    jQuery('.spanish, .english').toggle()
-    togglePharmacyLabel(this.value, jQuery("#source_"+this.value).val())
   })
 
   function togglePharmacyLabel($lang, $src) {

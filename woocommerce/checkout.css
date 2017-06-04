@@ -6,6 +6,7 @@ form.checkout, /* Don't show checkout on every page */
 #shipping_email_field,
 .woocommerce-message a, /* don't show links in messages since often wrong link */
 .pharmacy, /*pharmacy transfer off until selected */
+.english, /* translation */
 .spanish, /* translation */
 .cart-subtotal, /*Hide subtotal row on checkout */
 .shipping, /* Hide shipping cost row on checkout */
