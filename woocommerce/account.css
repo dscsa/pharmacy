@@ -13,3 +13,6 @@
 .woocommerce-form-row {
   display:none !important/*this also prevents form submission */
 }
+fieldset .woocommerce-form-row {
+  display:block !important/* still enable password change */
+}
