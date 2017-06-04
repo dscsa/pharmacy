@@ -9,11 +9,7 @@
 {
   display:none
 }
-p > #account_first_name,
-p > #account_last_name,
-p > #account_email,
-[for=account_first_name],
-[for=account_last_name],
-[for=account_email] {
+/*this is only meant to target the account name and email fields on account details.  Might have other consequences... */
+.woocommerce-form-row {
   display:none !important/*this also prevents form submission */
 }
