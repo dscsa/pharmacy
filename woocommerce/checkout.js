@@ -21,6 +21,14 @@ function load() {
     jQuery('.'+lang).show() //Both languages hide by default.  Need delay because ZIP, City/Town, Credit Card are delayed
   }, 3000)
 
+  jQuery("#account_allergies_english").on('change', function($event){
+    jQuery(".checkbox, #account_allergies_other_english_field").toggle()
+  })
+
+  jQuery("#account_allergies_spanish").on('change', function($event){
+    jQuery(".checkbox, #account_allergies_other_spanish_field").toggle()
+  })
+
   if (window.location.pathname != '/account/')
     return jQuery('.pharmacy').show()//Both pharmacy labels hidden by default.  Show the one with value
 
@@ -51,14 +59,6 @@ function load() {
   jQuery('input#trustcommerce-card-expiry').on('input', function() {
     var _this = jQuery(this)
     _this.val(_this.val().replace(/20(\d\d)/, '$1'))
-  })
-
-  jQuery("#account_allergies_english").on('change', function($event){
-    jQuery(".checkbox, #account_allergies_other_english_field").toggle()
-  })
-
-  jQuery("#account_allergies_spanish").on('change', function($event){
-    jQuery(".checkbox, #account_allergies_other_spanish_field").toggle()
   })
 
   jQuery("#billing_state").on('change', function($event){
