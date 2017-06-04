@@ -33,10 +33,10 @@ form.checkout, /* Don't show checkout on every page */
   margin-right:4.3% !important
 }
 /* Condense allergy checkboxes */
-[id^=account_allergies\[] {
+[id^=account_allergies_] {
    margin-bottom:0 !important;
 }
-#account_allergies\[other_english\]_field {
+#account_allergies_other_english_field {
   margin-top:0.7em;
   margin-bottom:1.4em !important;
 }
