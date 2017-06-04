@@ -16,7 +16,9 @@ function load() {
     jQuery('.spanish, .english').toggle()
   }).val()
 
-  jQuery('.'+lang).show() //Both languages hidden by default.  Show the one with values.  This messes up pharmacy label
+  setTimeout(function() {
+    jQuery('.'+lang).show() //Both languages hide by default.  Need delay because ZIP and City/Town are delayed
+  }, 500)
 
   if (window.location.pathname != '/account/')
     return jQuery('.pharmacy').show()//Both pharmacy labels hidden by default.  Show the one with value
