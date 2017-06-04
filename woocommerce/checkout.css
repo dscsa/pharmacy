@@ -38,7 +38,7 @@ form.checkout, /* Don't show checkout on every page */
 [id^=account_allergies_] {
    margin-bottom:0 !important;
 }
-#account_allergies_other_english_field, #account_allergies_other_spanish_field {
+#account_allergies_english_other_field, #account_allergies_spanish_other_field {
   margin-top:0.7em;
   margin-bottom:1.4em !important;
 }
