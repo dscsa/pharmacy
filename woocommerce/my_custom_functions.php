@@ -198,8 +198,14 @@ function custom_edit_account_form() {
 //Didn't work: https://stackoverflow.com/questions/38395784/woocommerce-overriding-billing-state-and-post-code-on-existing-checkout-fields
 //Did work: https://stackoverflow.com/questions/36619793/cant-change-postcode-zip-field-label-in-woocommerce
 add_filter( 'gettext', 'zip_and_town_labels');
-function zip_and_town_labels( $english) {
-    $spanish = array(
+function zip_and_town_labels($term) {
+
+    $toSpanish = array(
+        'Use a new credit card' => 'Spanish Use a new credit card',
+        'Your order' => 'Order Nueva',
+        'Billing details' => 'La Cuenta Por Favor',
+        'Ship to a different address?' => 'Spanish Ship to a different address?',
+        'Search and select medications by generic name that you want to transfer to Good Pill' => 'Drogas de Transfer',
         '<span class="erx">Name and address of a backup pharmacy to fill your prescriptions if we are out-of-stock</span><span class="pharmacy">Name and address of pharmacy from which we should transfer your medication(s)</span>' => '<span class="erx">Pharmacia de out-of-stock</span><span class="pharmacy">Pharmacia de transfer</span>',
 		'Allergies' => 'Allergias',
 		'Aspirin and salicylates' => 'Drogas de Aspirin',
@@ -213,6 +219,9 @@ function zip_and_town_labels( $english) {
         'First name' => 'Nombre Uno',
         'Last name' => 'Nombre Dos',
         'Date of Birth' => 'Fetcha Cumpleanos',
+        'Address' => 'Spanish Address',
+        'Shipping address' => 'Spanish Georgia Shipping Address',
+        'State' => 'Spanish State',
         'ZIP' => 'Spanish Zip',
         'Town / City' => 'Ciudad',
         'Password change' => 'Spanish Password',
@@ -221,7 +230,19 @@ function zip_and_town_labels( $english) {
         'Confirm new password' => 'Spanish Confirm new password'
     );
 
-    return ! $spanish[$english] ? $english : "<span class='english'>$english</span><span class='spanish'>$spanish[$english]</span>";
+    $toEnglish = array(
+        'Shipping address' => 'Georgia Shipping Address',
+        'ZIP' => 'Zip code',
+        'Your order' => 'New Order'
+    );
+
+    $spanish = $toSpanish[$term];
+
+    if ( ! $spanish) return $term;
+
+    $english = $toEnglish[$term] ?: $term;
+
+    return  "<span class='english'>$english</span><span class='spanish'>$spanish</span>";
 }
 
 // Hook in
@@ -248,13 +269,13 @@ function custom_checkout_fields( $fields ) {
         'required'  => true,
         'class'     => array('spanish'),
         'options'   => [
-            'erx' => 'Hola eRx',
-            'pharmacy' => 'Adios Pharmacy'
+            'erx' => 'Spanish Source eRx',
+            'pharmacy' => 'Spanish Source Pharmacy'
         ]
       ),
       'medication' => array(
         'type'   	=> 'select',
-        'label'     => '<span class="english">Search and select medications by generic name that you want to transfer to Good Pill</span><span class="spanish">Hola</span>',
+        'label'     => __('Search and select medications by generic name that you want to transfer to Good Pill', 'woocommerce'),
         'options'   => ['']
       )
     );
@@ -266,12 +287,9 @@ function custom_checkout_fields( $fields ) {
     array_slice($patient_fields, $offset, NULL, true);
 
     //Translate Some Labels
-    $fields['billing']['billing_address_1']['label'] = '<span class="english">Address</span><span class="spanish">Hola</span>';
-    $fields['shipping']['shipping_address_1']['label'] = '<span class="english">Georgia Address</span><span class="spanish">Hola</span>';
+    $fields['shipping']['shipping_address_1']['label'] = __('Shipping address', 'woocommerce');
 
     //Remove Some Fields
-    unset($fields['billing']['billing_first_name']);
-    unset($fields['billing']['billing_last_name']);
     unset($fields['billing']['billing_phone']);
     unset($fields['billing']['billing_company']);
     unset($fields['shipping']['shipping_company']);

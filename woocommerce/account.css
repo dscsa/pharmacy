@@ -9,10 +9,3 @@
 {
   display:none
 }
-/*this is only meant to target the account name and email fields on account details.  Might have other consequences... */
-.woocommerce-form-row {
-  display:none !important/*this also prevents form submission */
-}
-fieldset .woocommerce-form-row {
-  display:block !important/* still enable password change */
-}
