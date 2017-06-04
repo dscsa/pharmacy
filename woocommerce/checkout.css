@@ -40,7 +40,7 @@ form.checkout, /* Don't show checkout on every page */
   margin-top:0.7em;
   margin-bottom:1.4em !important;
 }
-select {
+select, select2-selection {
   height:45px
 }
 .select2-selection__rendered {
