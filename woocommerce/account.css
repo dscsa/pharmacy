@@ -9,3 +9,6 @@
 {
   display:none
 }
+p > #account_first_name, p > #account_last_name, p > #account_email {
+  display:none /*this also prevents form submission */
+}
