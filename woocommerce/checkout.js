@@ -12,7 +12,7 @@ function load() {
 
   upgradePharmacy()
 
-  var lang = jQuery("#account_language").change(function(){
+  var lang = jQuery("input[name=account_language]").change(function(){
     jQuery('.spanish, .english').toggle()
   }).val()
 
