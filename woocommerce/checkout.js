@@ -14,17 +14,14 @@ function load() {
 
   var lang = jQuery("#account_language")
 
-
-  jQuery('.'+lang.val()).toggle() //Both languages hidden by default.  Show the one with value
+  jQuery('.'+lang.val()).show() //Both languages hidden by default.  Show the one with value
 
   lang.change(function(){
     jQuery('.spanish, .english').toggle()
   })
 
   if (window.location.pathname != '/account/')
-    return jQuery('.pharmacy').toggle() //Both pharmacy labels hidden by default.  Show the one with value
-
-  jQuery('.erx').toggle() //Both pharmacy labels hidden by default.  Show the one with value
+    return  //Both pharmacy labels hidden by default.  Show the one with value
 
   upgradeMedication()
 
