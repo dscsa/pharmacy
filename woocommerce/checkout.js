@@ -21,12 +21,10 @@ function load() {
     jQuery('.'+lang).show() //Both languages hide by default.  Need delay because ZIP, City/Town, Credit Card are delayed
   }, 3000)
 
-  jQuery("#account_allergies_english").on('change', function($event){
-    jQuery(".checkbox, #account_allergies_other_english_field").toggle()
-  })
 
-  jQuery("#account_allergies_spanish").on('change', function($event){
-    jQuery(".checkbox, #account_allergies_other_spanish_field").toggle()
+  jQuery("#account_allergies_english, #account_allergies_spanish").on('change', function($event){
+    console.log(".checkbox, #"+this.id+"other_field")
+    jQuery(".checkbox, #"+this.id+"_other_field").toggle()
   })
 
   if (window.location.pathname != '/account/')
