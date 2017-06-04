@@ -48,7 +48,7 @@ select, .select2-selection {
 .select2-selection__rendered {
   line-height:45px !important
 }
-#account_allergies_field * {
+#account_allergies_field > * {
   display:inline-block !important
 }
 .input-radio {
