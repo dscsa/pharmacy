@@ -20,8 +20,8 @@ function load() {
   setTimeout(showLang, 3000) //Both languages hide by default.  Need delay because ZIP, City/Town, Credit Card are delayed
   function showLang() { jQuery('.'+lang).show() }
 
-  jQuery("#account_allergies_english:visible, #account_allergies_spanish:visible").on('change', function(){
-    var children = jQuery(".checkbox, #"+this.id+"_other")
+  jQuery("#account_allergies").on('change', function(){
+    var children = jQuery(".checkbox, #account_allergies_other")
     console.log('children', children, this.value)
     this.value == 'No' ? children.hide() : children.show()
   }).triggerHandler('change')
