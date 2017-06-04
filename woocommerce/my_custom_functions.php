@@ -8,25 +8,22 @@ function patient_fields() {
         'account_required'  => true,
         'options'   => ['english' => 'English', 'spanish' => 'Espanol'],
         'default'   => get_user_meta($user_id, 'account_language', true)
-
     ),
     'account_backup_pharmacy' => array(
         'type'   	=> 'select',
-        'label'     => '<span class="english_erx">Name and address of a backup pharmacy to fill your prescriptions if we are out-of-stock</span><span class="spanish_erx">Pharmacia if out-of-stock</span><span class="english_pharmacy">Name and address of pharmacy from which we should transfer your medication(s)</span><span class="spanish_pharmacy">Pharmacia Transfer</span>',
+        'label'     => __('<span class="erx">Name and address of a backup pharmacy to fill your prescriptions if we are out-of-stock</span><span class="pharmacy">Name and address of pharmacy from which we should transfer your medication(s)</span>', 'woocommerce'),
         'required'  => true,
         'options'   => [''],
         'default'   => get_user_meta($user_id, 'account_backup_pharmacy', true)
-
     ),
     'account_medications_other' => array(
         'type'   	=> 'text',
-        'label'     => '<span class="english">List any other medication(s) or supplement(s) you are currently taking</span><span class="spanish">Hola</span>',
+        'label'     =>  __( 'List any other medication(s) or supplement(s) you are currently taking', 'woocommerce'),
         'default'   => get_user_meta($user_id, 'account_medications_other', true)
-
     ),
     'account_allergies_english' => array(
         'type'   	=> 'select',
-        'label'     => '<span class="english">Allergies</span>',
+        'label'     => __( 'Allergies', 'woocommerce' ),
         'class'     => array('english'),
         'required'  => true,
         'options'   => ['Yes' => 'Allergies Selected Below', 'No' => 'No Medication Allergies'],
@@ -34,7 +31,7 @@ function patient_fields() {
     ),
     'account_allergies_spanish' => array(
         'type'   	=> 'select',
-        'label'     => '<span class="spanish">Spanish Allergies</span>',
+        'label'     => __( 'Allergies', 'woocommerce' ),
         'class'     => array('spanish'),
         'required' => true,
         'options'   => ['Yes' => 'Si', 'No' => 'No'],
@@ -43,37 +40,37 @@ function patient_fields() {
     'account_allergies_aspirin_salicylates' => array(
         'type'   => 'checkbox',
         'class' => array('form-row-wide'),
-        'label'  => '<span class="english">Aspirin and salicylates</span><span class="spanish">Hola</span>',
+        'label'  => __( 'Aspirin and salicylates', 'woocommerce' ),
         'default'   => get_user_meta($user_id, 'account_allergies_aspirin_salicylates', true)
     ),
     'account_allergies_erythromycin_biaxin_zithromax' => array(
         'type'   => 'checkbox',
         'class' => array('form-row-wide'),
-        'label'  => '<span class="english">Erythromycin, Biaxin, Zithromax</span><span class="spanish">Hola</span>',
+        'label'  => __( 'Erythromycin, Biaxin, Zithromax', 'woocommerce' ),
         'default'   => get_user_meta($user_id, 'account_allergies_erythromycin_biaxin_zithromax', true)
     ),
     'account_allergies_nsaids' => array(
         'type'   => 'checkbox',
         'class' => array('form-row-wide'),
-        'label'  => '<span class="english">NSAIDS e.g., ibuprofen, Advil</span><span class="spanish">Hola</span>',
+        'label'  => __( 'NSAIDS e.g., ibuprofen, Advil', 'woocommerce' ),
         'default'   => get_user_meta($user_id, 'account_allergies_nsaids', true)
     ),
     'account_allergies_penicillins_cephalosporins' => array(
         'type'   => 'checkbox',
         'class' => array('form-row-wide'),
-        'label'  => '<span class="english">Penicillins/cephalosporins e.g., Amoxil, amoxicillin, ampicillin, Keflex, cephalexin</span><span class="spanish">Hola</span>',
+        'label'  => __( 'Penicillins/cephalosporins e.g., Amoxil, amoxicillin, ampicillin, Keflex, cephalexin', 'woocommerce' ),
         'default'   => get_user_meta($user_id, 'account_allergies_penicillins_cephalosporins', true)
     ),
     'account_allergies_sulfa' => array(
         'type'   => 'checkbox',
         'class' => array('form-row-wide'),
-        'label'  => '<span class="english">Sulfa drugs e.g., Septra, Bactrim, TMP/SMX</span><span class="spanish">Hola</span>',
+        'label'  => __( 'Sulfa drugs e.g., Septra, Bactrim, TMP/SMX', 'woocommerce' ),
         'default'   => get_user_meta($user_id, 'account_allergies_sulfa', true)
     ),
     'account_allergies_tetracycline' => array(
         'type'   => 'checkbox',
         'class' => array('form-row-wide'),
-        'label'  => '<span class="english">Tetracycline antibiotics</span><span class="spanish">Hola</span>',
+        'label'  => __( 'Tetracycline antibiotics', 'woocommerce' ),
         'default'   => get_user_meta($user_id, 'account_allergies_tetracycline', true)
     ),
     'account_allergies_other_english' => array(
@@ -86,38 +83,21 @@ function patient_fields() {
         'placeholder'=> 'Otras Allergias',
         'default'   => get_user_meta($user_id, 'account_allergies_other_spanish', true)
     ),
-    'account_first_name' => array(
-        'required' => true,
-        'label' => '<span class="english">First Name</span><span class="spanish">Nombre Uno</span>',
-        'class' => array('form-row-first'),
-        'default' => get_user_meta($user_id, 'account_first_name', true)
-    ),
-    'account_last_name' => array(
-        'required' => true,
-        'label' => '<span class="english">Last Name</span><span class="spanish">Nombre Dos</span>',
-        'class' => array('form-row-last'),
-        'default' => get_user_meta($user_id, 'account_last_name', true)
-    ),
-    'account_email' => array(
-        'required' => true,
-        'label' => '<span class="english">Email</span><span class="spanish">Spanish Email</span>',
-        'class' => array('form-row-last'),
-        'default' => get_user_meta($user_id, 'account_email', true)
-    ),
     'account_birth_date' => array(
-        'label'     => '<span class="english">Date of Birth</span><span class="spanish">Hola</span>',
+        'label'     => __( 'Date of Birth', 'woocommerce' ),
         'required'  => true,
         'default'   => get_user_meta($user_id, 'account_birth_date', true)
     ),
     'account_phone' => array(
-        'label' => '<span class="english">Phone</span><span class="spanish">Hola</span>',
+        'label' => __( 'Phone', 'woocommerce' ),
        	'required' => true,
         'type' => 'tel',
         'validate' => array ('phone'),
         'autocomplete' => 'tel',
         'default'   => get_user_meta($user_id, 'account_phone', true)
     )
-);
+  );
+}
 
 // After registration, logout the user and redirect to home page
 add_action('woocommerce_registration_redirect', 'custom_redirect', 2);
@@ -202,62 +182,59 @@ function custom_updated_user_meta( $meta_id, $post_id, $meta_key, $meta_value )
  * To display additional field at My Account page
  * Once member login: edit account
  */
-add_action( 'woocommerce_edit_account_form_start', 'my_woocommerce_edit_account_form' );
-function my_woocommerce_edit_account_form() {
-    global $patient_fields;
+add_action( 'woocommerce_edit_account_form_start', 'custom_edit_account_form' );
+function custom_edit_account_form() {
 
-    $user_id = get_current_user_id();
-
-    foreach ($patient_fields as $key => $field) {
-        if (substr($key, 0, 8) === "account_") {
-        	$val = get_user_meta( $user_id, $key, true);
-            //echo $key.'<br>'.$val.'<br>';
-            if ($key === "account_backup_pharmacy") {
-                $field['options'] = array($val => $val);
-            }
-
-        	echo woocommerce_form_field($key, $field, $val);
-        }
+  foreach (patient_fields() as $key => $field) {
+    //echo $key.'<br>'.$val.'<br>';
+    if ($key === "account_backup_pharmacy") {
+      $field['options'] = array($field['default'] => $field['default']);
     }
 
+    echo woocommerce_form_field($key, $field);
+  }
 }
 
 //Didn't work: https://stackoverflow.com/questions/38395784/woocommerce-overriding-billing-state-and-post-code-on-existing-checkout-fields
 //Did work: https://stackoverflow.com/questions/36619793/cant-change-postcode-zip-field-label-in-woocommerce
 add_filter( 'gettext', 'zip_and_town_labels');
-function zip_and_town_labels( $translated_text) {
-    if ('ZIP' == $translated_text )
-        return '<span class="english">Zip Code</span><span class="spanish">Hola</span>';
+function zip_and_town_labels( $english) {
+    $spanish = array(
+        '<span class="erx">Name and address of a backup pharmacy to fill your prescriptions if we are out-of-stock</span><span class="pharmacy">Name and address of pharmacy from which we should transfer your medication(s)</span>' => '<span class="erx">Pharmacia de out-of-stock</span><span class="pharmacy">Pharmacia de transfer</span>',
+		'Allergies' => 'Allergias',
+		'Aspirin and salicylates' => 'Drogas de Aspirin',
+		'Erythromycin, Biaxin, Zithromax' => 'Drogas de Erthromycin',
+		'NSAIDS e.g., ibuprofen, Advil' => 'Drogas de NSAIDS',
+		'Penicillins/cephalosporins e.g., Amoxil, amoxicillin, ampicillin, Keflex, cephalexin' => 'Drogas de Penicillin',
+		'Sulfa drugs e.g., Septra, Bactrim, TMP/SMX' => 'Drogas de Sulfa',
+		'Tetracycline antibiotics' => 'Antibiotics de Tetra',
+		'Phone' => 'Telefono',
+        'List any other medication(s) or supplement(s) you are currently taking' => 'Otras Drogas',
+        'First name' => 'Nombre Uno',
+        'Last name' => 'Nombre Dos',
+        'Date of Birth' => 'Fetcha Cumpleanos',
+        'ZIP' => 'Spanish Zip',
+        'Town / City' => 'Ciudad',
+        'Password change' => 'Spanish Password',
+        'Current password (leave blank to leave unchanged)' => 'Spanish current password (leave blank to leave unchanged)',
+        'New password (leave blank to leave unchanged)' => 'Spanish New password (leave blank to leave unchanged)',
+        'Confirm new password' => 'Spanish Confirm new password'
+    );
 
-    if ('Town / City' == $translated_text )
-        return '<span class="english">Town / City</span><span class="spanish">Hola</span>';
-
-    return $translated_text;
+    return ! $spanish[$english] ? $english : "<span class='english'>$english</span><span class='spanish'>$spanish[$english]</span>";
 }
 
 // Hook in
 add_filter( 'woocommerce_checkout_fields' , 'custom_checkout_fields' );
 function custom_checkout_fields( $fields ) {
 
-    global $patient_fields;
-    $fields['order'] = $patient_fields;
+     $patient_fields = patient_fields();
 
-    //Add some default values
-    foreach($fields['order'] as $key => $field) {
-        $fields['order'][$key]['default'] = get_user_meta( $user_id, $key, true);
-    }
-
-    $first_name = get_user_meta( $user_id, 'account_first_name', true);
-    $last_name  = get_user_meta( $user_id, 'account_last_name', true);
-    $fields['billing']['billing_first_name']['default'] = $first_name;
-    $fields['billing']['billing_last_name']['default'] = $last_name;
-    $fields['shipping']['shipping_first_name']['default'] = $first_name;
-    $fields['shipping']['shipping_last_name']['default'] = $last_name;
     //Also accepts a 'autofocus', 'autocomplete', 'validate', 'priority', 'default' properties
 
     //Add some order fields that are not in patient profile
-    $fields['order']['source_english'] = array(
-        'priority'  => 2,
+    $order_fields = array(
+      'source_english' => array(
         'type'   	=> 'select',
         'required'  => true,
         'class'     => array('english'),
@@ -265,9 +242,8 @@ function custom_checkout_fields( $fields ) {
             'erx' => 'Prescription(s) were sent to Good Pill from my doctor',
             'pharmacy' => 'Please transfer prescription(s) from my pharmacy'
         ]
-    );
-    $fields['order']['source_spanish'] = array(
-        'priority'  => 3,
+      ),
+      'source_spanish' => array(
         'type'   	=> 'select',
         'required'  => true,
         'class'     => array('spanish'),
@@ -275,22 +251,27 @@ function custom_checkout_fields( $fields ) {
             'erx' => 'Hola eRx',
             'pharmacy' => 'Adios Pharmacy'
         ]
-    );
-    $fields['order']['medication'] = array(
-        'priority'  => 4,
+      ),
+      'medication' => array(
         'type'   	=> 'select',
         'label'     => '<span class="english">Search and select medications by generic name that you want to transfer to Good Pill</span><span class="spanish">Hola</span>',
         'options'   => ['']
+      )
     );
 
+     # Insert order fields at offset 2
+    $offset = 1;
+    $fields['order'] = array_slice($patient_fields, 0, $offset, true) +
+    $order_fields +
+    array_slice($patient_fields, $offset, NULL, true);
+
     //Translate Some Labels
-    $fields['billing']['billing_first_name']['label'] ='<span class="english">First Name</span><span class="spanish">Hola</span>';
-    $fields['billing']['billing_last_name']['label'] = '<span class="english">Last Name</span><span class="spanish">Hola</span>';
     $fields['billing']['billing_address_1']['label'] = '<span class="english">Address</span><span class="spanish">Hola</span>';
     $fields['shipping']['shipping_address_1']['label'] = '<span class="english">Georgia Address</span><span class="spanish">Hola</span>';
 
     //Remove Some Fields
-    unset($fields['billing']['billing_first_name']['autofocus']);
+    unset($fields['billing']['billing_first_name']);
+    unset($fields['billing']['billing_last_name']);
     unset($fields['billing']['billing_phone']);
     unset($fields['billing']['billing_company']);
     unset($fields['shipping']['shipping_company']);

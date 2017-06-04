@@ -20,9 +20,9 @@ function load() {
   jQuery('.'+lang).show() //Both languages hidden by default.  Show the one with values.  This messes up pharmacy label
 
   if (window.location.pathname != '/account/')
-    return togglePharmacyLabel(lang, 'pharmacy')//Both pharmacy labels hidden by default.  Show the one with value
+    return jQuery('.pharmacy').show()//Both pharmacy labels hidden by default.  Show the one with value
 
-  togglePharmacyLabel(lang, 'erx')
+  jQuery('.erx').show()
 
   upgradeMedication()
 
