@@ -20,7 +20,7 @@ function load() {
   jQuery('#order_review_heading').html('<span class="english">New Order</span><span class="spanish">Order Nuevo</span>')
   jQuery('form.checkout').show()
   jQuery('.woocommerce-MyAccount-content').hide()
-  jQuery('#account_date_of_birth').prop('type', 'date') //can't easily set date type in woocommerce
+  jQuery('#account_birth_date').prop('type', 'date') //can't easily set date type in woocommerce
   var medicationGsheet = "https://spreadsheets.google.com/feeds/list/1MV5mq6605X7U1Np2fpwZ1RHkaCpjsb7YqieLQsEQK88/ovrg94l/public/values?alt=json"
   var pharmacyGsheet  = "https://spreadsheets.google.com/feeds/list/11Ew_naOBwFihUrkaQnqVTn_3rEx6eAwMvGzksVTv_10/1/public/values?alt=json"
   //ovrg94l is the worksheet id.  To get this you have to use https://spreadsheets.google.com/feeds/worksheets/1MV5mq6605X7U1Np2fpwZ1RHkaCpjsb7YqieLQsEQK88/private/full
@@ -73,11 +73,11 @@ function load() {
   })
 
   jQuery("#account_allergies_english").on('change', function($event){
-    jQuery(".checkbox, #account_allergies\\[other_english\\]_field").toggle()
+    jQuery(".checkbox, #account_allergies_other_english_field").toggle()
   })
 
   jQuery("#account_allergies_spanish").on('change', function($event){
-    jQuery(".checkbox, #account_allergies\\[other_spanish\\]_field").toggle()
+    jQuery(".checkbox, #account_allergies_other_spanish_field").toggle()
   })
 
   jQuery("#billing_state").on('change', function($event){
@@ -96,11 +96,12 @@ function upgradeMedication(medications) {
   var select = jQuery('#medication')
   select.empty()
   select.select2({multiple:true,data:medications})
+  //jQuery('#account_medicationsOther').select2({multiple:true,data:[{id:'id', text:'text'}]})
 }
 
 function upgradePharmacy(pharmacies) {
   console.log('upgradePharmacy')
-  var select = jQuery('#account_backupPharmacy')
+  var select = jQuery('#account_backup_pharmacy')
   select.select2({data:pharmacies, matcher:matcher, minimumInputLength:3})
 }
 
