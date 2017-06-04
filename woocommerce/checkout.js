@@ -14,16 +14,17 @@ function load() {
 
   var lang = jQuery("#account_language")
 
-  //Both languages hidden by default.  Show the one with value
-  jQuery('.'+lang.val()).toggle()
+
+  jQuery('.'+lang.val()).toggle() //Both languages hidden by default.  Show the one with value
 
   lang.change(function(){
     jQuery('.spanish, .english').toggle()
-    togglePharmacyLabel(this.value, jQuery("#source_"+this.value).val())
   })
 
   if (window.location.pathname != '/account/')
-    return
+    return jQuery('.pharmacy').toggle() //Both pharmacy labels hidden by default.  Show the one with value
+
+  jQuery('.erx').toggle() //Both pharmacy labels hidden by default.  Show the one with value
 
   upgradeMedication()
 
@@ -45,6 +46,10 @@ function load() {
   jQuery("#source_spanish").change(function(){
     jQuery('#medication_field').toggle()
     togglePharmacyLabel('spanish', this.value)
+  })
+
+  lang.change(function(){
+    togglePharmacyLabel(this.value, jQuery("#source_"+this.value).val())
   })
 
   function togglePharmacyLabel($lang, $src) {
