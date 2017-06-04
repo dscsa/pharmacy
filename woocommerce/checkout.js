@@ -19,6 +19,7 @@ function load() {
 
   lang.change(function(){
     jQuery('.spanish, .english').toggle()
+    togglePharmacyLabel(this.value, jQuery("#source_"+this.value).val())
   })
 
   if (window.location.pathname != '/account/')
@@ -44,10 +45,6 @@ function load() {
   jQuery("#source_spanish").change(function(){
     jQuery('#medication_field').toggle()
     togglePharmacyLabel('spanish', this.value)
-  })
-
-  lang.change(function(){
-    togglePharmacyLabel(this.value, jQuery("#source_"+this.value).val())
   })
 
   function togglePharmacyLabel($lang, $src) {
