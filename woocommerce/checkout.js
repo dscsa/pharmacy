@@ -21,7 +21,7 @@ function load() {
   function showLang() { jQuery('.'+lang).show() }
 
   jQuery("#account_allergies_"+lang).on('change', function(){
-    var children = jQuery(".checkbox, #"+this.id+"_other_field")
+    var children = jQuery(".checkbox, #"+this.id+"_other")
     console.log('children', children, this.value)
     this.value == 'No' ? children.hide() : children.show()
   }).triggerHandler('change')
