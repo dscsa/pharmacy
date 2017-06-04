@@ -48,3 +48,6 @@ select, .select2-selection {
 .select2-selection__rendered {
   line-height:45px !important
 }
+.input-radio {
+  margin-left:10px
+}
