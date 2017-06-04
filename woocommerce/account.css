@@ -15,5 +15,5 @@ p > #account_email,
 [for=account_first_name],
 [for=account_last_name],
 [for=account_email] {
-  display:none /*this also prevents form submission */
+  display:none !important/*this also prevents form submission */
 }
