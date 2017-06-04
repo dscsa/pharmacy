@@ -14,7 +14,6 @@ function load() {
 
   var lang = jQuery("#account_language").change(function(){
     jQuery('.spanish, .english').toggle()
-    togglePharmacyLabel(this.value, jQuery("#source_"+this.value).val() || 'pharmacy')
   }).val()
 
   jQuery('.'+lang).show() //Both languages hidden by default.  Show the one with values.  This messes up pharmacy label
@@ -38,18 +37,13 @@ function load() {
   jQuery("#source_english")
   .change(function(){
     jQuery('#medication_field').toggle()
-    togglePharmacyLabel('english', this.value)
+    jQuery('.erx, .pharmacy').toggle()
   })
 
   jQuery("#source_spanish").change(function(){
     jQuery('#medication_field').toggle()
-    togglePharmacyLabel('spanish', this.value)
+    jQuery('.erx, .pharmacy').toggle()
   })
-
-  function togglePharmacyLabel($lang, $src) {
-    jQuery('.english_erx, .english_pharmacy, .spanish_erx, .spanish_pharmacy').hide()
-    jQuery('.'+$lang+'_'+$src).show()
-  }
 
   //Trust commerce gateway is not smart enough to do MM/YYYY to MM/YY for us
   jQuery('input#trustcommerce-card-expiry').on('input', function() {
