@@ -10,7 +10,8 @@
   display:none
 }
 #reg_username, label[for=reg_username] {
-  display:none !important
+  display:none !important;
+  margin-below:-26px
 }
 #customer_login > div {
   width:100% !important
