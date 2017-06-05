@@ -1,6 +1,6 @@
 .woocommerce-FormRow:nth-child(3) {
   display:none;
 }
-#customer_login .col-1, #customer_login .col-1 {
+#customer_login .col-1, #customer_login .col-2 {
   width:100% !important
 }
