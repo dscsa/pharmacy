@@ -9,7 +9,7 @@
 {
   display:none
 }
-#reg_username {
+#reg_username, label[for=reg_username] {
   display:none;
 }
 #customer_login > div {
