@@ -18,6 +18,6 @@
 #customer_login .col-2 {
   display:none
 }
-#account_birth_date_field {
+#customer_login #account_birth_date_field {
   margin-bottom:0
 }
