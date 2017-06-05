@@ -36,6 +36,8 @@ function load() {
   if (window.location.pathname != '/account/')
     return jQuery('.pharmacy').show()//Both pharmacy labels hidden by default.  Show the one with value
 
+  jQuery('#account_birth_date').prop('type', 'date') //can't easily set date type in woocommerce
+
   if (window.location.hash == '#join') {
     jQuery('#customer_login > div').toggle()
     return jQuery("form.register").submit(function($event){
@@ -56,7 +58,6 @@ function load() {
 
   jQuery('form.checkout').show()
   jQuery('.woocommerce-MyAccount-content').hide()
-  jQuery('#account_birth_date').prop('type', 'date') //can't easily set date type in woocommerce
 
   jQuery("#source_english")
   .change(function(){
