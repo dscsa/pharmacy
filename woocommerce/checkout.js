@@ -36,18 +36,16 @@ function load() {
   if (window.location.pathname != '/account/')
     return jQuery('.pharmacy').show()//Both pharmacy labels hidden by default.  Show the one with value
 
-  if (window.location.hash != '') {
-
-    i
-    jQuery("form.register").submit(function($event){
+  if (window.location.hash == 'join') {
+    jQuery('#customer_login > div').toggle()
+    return jQuery("form.register").submit(function($event){
       this.username.value = this.account_first_name.value+' '+this.account_last_name.value+' '+this.account_birth_date.value
     })
-    return
   }
 
-  if (window.location.hash != '')
+  if (window.location.hash == 'login')
     return
-    
+
   jQuery('.erx').show()
 
   upgradeMedication()
