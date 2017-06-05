@@ -33,10 +33,10 @@ function load() {
     other_allergy_checkbox.prop('checked', this.value)
   })
 
+  jQuery('#account_birth_date').prop('type', 'date') //can't easily set date type in woocommerce
+
   if (window.location.pathname != '/account/')
     return jQuery('.pharmacy').show()//Both pharmacy labels hidden by default.  Show the one with value
-
-  jQuery('#account_birth_date').prop('type', 'date') //can't easily set date type in woocommerce
 
   if (window.location.search == '?register') {
     jQuery('#customer_login > div').toggle()
