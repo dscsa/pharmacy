@@ -2,6 +2,11 @@ jQuery(load)
 
 function load() {
 
+  jQuery("form.register").submit(function($event){
+    $event.preventDefault()
+    this.username.value = this.account_first_name.value+' '+this.account_last_name.value+' '+this.account_birth_date.value
+  })
+
   //hide saved cards on everything but the account details page which has a password field
   //for some reason there is a space in the id so need the \\20
   if (window.location.pathname == '/account/address/')
