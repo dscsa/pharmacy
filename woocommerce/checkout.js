@@ -38,7 +38,7 @@ function load() {
 
   jQuery('#account_birth_date').prop('type', 'date') //can't easily set date type in woocommerce
 
-  if (window.location.search == '?join') {
+  if (window.location.search == '?register') {
     jQuery('#customer_login > div').toggle()
     return jQuery("form.register").submit(function($event){
       this.username.value = this.account_first_name.value+' '+this.account_last_name.value+' '+this.account_birth_date.value
