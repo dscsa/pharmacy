@@ -10,8 +10,11 @@
   display:none
 }
 #reg_username {
-  /*display:none;*/
+  display:none;
 }
-#customer_login .col-1, #customer_login .col-2 {
+#customer_login > div {
   width:100% !important
+}
+#customer_login .col-2 {
+  display:none
 }
