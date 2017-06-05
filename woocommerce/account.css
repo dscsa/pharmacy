@@ -11,11 +11,13 @@
 }
 #reg_username, label[for=reg_username] {
   display:none !important;
-  margin-below:-26px
 }
 #customer_login > div {
   width:100% !important
 }
 #customer_login .col-2 {
   display:none
+}
+#account_first_name_field, #account_last_name_field {
+  margin-bottom:0
 }
