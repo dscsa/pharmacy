@@ -23,7 +23,7 @@ function load() {
   })
 
   jQuery("input[name=allergies_none]").on('change', function(){
-    var children = jQuery(".checkbox, #allergies_other_input")
+    var children = jQuery(".allergies")
     console.log('children', children, this.value)
     this.value ? children.hide() : children.show()
   }).triggerHandler('change')

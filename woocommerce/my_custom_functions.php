@@ -75,9 +75,8 @@ function patient_fields() {
         'label'     => __('Allergies'),
         'label_class' => ['radio'],
         'required'  => true,
-        'default'   => '',
         'options'   => ['' => __('Allergies Selected Below'), 99 => __('No Medication Allergies')],
-    	  'default'   => get_user_meta($user_id, 'allergies_none', true)
+    	  'default'   => get_user_meta($user_id, 'allergies_none', true) ?: ''
     ],
     'allergies_aspirin' => [
         'type'      => 'checkbox',
@@ -258,6 +257,7 @@ function custom_save_account_details($user_id) {
   ];
 
   foreach (patient_fields() as $key => $field) {
+
     $value = sanitize_text_field($_POST[$key]);
 
     update_user_meta($user_id, $key, $value);
@@ -405,7 +405,7 @@ function custom_checkout_fields( $fields ) {
 function add_remove_allergy($guardian_id, $allergy_id, $value) {
   return run("SirumWeb_AddRemove_Allergy(?, ?, ?, ?)", [
     [$guardian_id, SQLSRV_PARAM_IN],
-    [ !!$value, SQLSRV_PARAM_IN],
+    [(bool)$value, SQLSRV_PARAM_IN],
     [$allergy_id, SQLSRV_PARAM_IN],
     [$value, SQLSRV_PARAM_IN]
   ]);
