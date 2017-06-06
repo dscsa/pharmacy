@@ -1,4 +1,5 @@
-<?php
+<?php //For IDE styling only, Remove the <php tag if/when adding to my-custom-functions
+
 // Register custom style sheets and javascript.
 add_action( 'wp_enqueue_scripts', 'register_custom_plugin_styles' );
 function register_custom_plugin_styles() {
@@ -328,7 +329,7 @@ function custom_checkout_fields( $fields ) {
 
 //$query = sqlsrv_query( $db, "select * from cppat where cppat.pat_id=1003";);
 function findPatient($first_name, $last_name, $birth_date) {
-  return query("{call SirumWeb_FindPatByNameandDOB(?, ?, NULL, ?)}", [
+  return procedure("{call SirumWeb_FindPatByNameandDOB(?, ?, NULL, ?)}", [
     [$last_name, SQLSRV_PARAM_IN],
     [$first_name, SQLSRV_PARAM_IN],
     [$birth_date, SQLSRV_PARAM_IN]
@@ -336,20 +337,20 @@ function findPatient($first_name, $last_name, $birth_date) {
 }
 
 function addPatient($first_name, $last_name, $birth_date) {
-  return query("{call SirumWeb_FindPatByNameandDOB(?, NULL, ?, ?)}", [
+  return procedure("{call SirumWeb_FindPatByNameandDOB(?, NULL, ?, ?)}", [
     [$first_name, SQLSRV_PARAM_IN],
     [$last_name, SQLSRV_PARAM_IN],
     [$birth_date, SQLSRV_PARAM_IN]
   ]);
 }
 
-function query($sp, $params) {
-  return next_array(run_query($sp, $params));
+function procedure($sp, $params) {
+  return next_array(query($sp, $params));
 }
 
-function queryAll($sp, $params) {
+function procedureAll($sp, $params) {
   $result = [];
-  $query  = run_query($sp, $params)
+  $query  = query($sp, $params);
   while($result[] = next_array($query));
   return $result;
 }
@@ -358,7 +359,7 @@ function next_array($query) {
   return sqlsrv_fetch_array($query, SQLSRV_FETCH_ASSOC);
 }
 
-function run_query($sp, $params) {
+function query($sp, $params) {
   return sqlsrv_query(db(), $sp, $params) ?: db_error("Error executing procedure $sp");
 }
 
