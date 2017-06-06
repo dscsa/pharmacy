@@ -121,10 +121,10 @@ function patient_fields() {
         'label'     => __('Tetracycline antibiotics'),
         'default'   => get_user_meta($user_id, 'allergies_tetracycline', true)
     ],
-    'allergies_other_checkbox' => [
+    'allergies_other' => [
         'type'      => 'checkbox',
         'class'     => ['allergies', 'form-row-wide'],
-        'label'     =>__( 'Other Allergies').'<input class="input-text " name="allergies_other" id="allergies_other" value="'.get_user_meta($user_id, 'allergies_other', true).'">'
+        'label'     =>__( 'Other Allergies').'<input class="input-text " name="allergies_other" id="allergies_other_input" value="'.get_user_meta($user_id, 'allergies_other', true).'">'
     ],
     'birth_date' => [
         'label'     => __('Date of Birth'),

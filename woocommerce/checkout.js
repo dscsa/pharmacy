@@ -28,9 +28,9 @@ function load() {
     this.value == 'No' ? children.hide() : children.show()
   }).triggerHandler('change')
 
-  var other_allergy_checkbox = jQuery('#allergies_other_checkbox').prop('disabled', true)
-  jQuery('#allergies_other').on('input', function() {
-    other_allergy_checkbox.prop('checked', this.value)
+  var allergies_other = jQuery('#allergies_other').prop('disabled', true)
+  jQuery('#allergies_other_input').on('input', function() {
+    allergies_other.prop('checked', this.value)
   })
 
   jQuery('#birth_date').prop('type', 'date') //can't easily set date type in woocommerce
