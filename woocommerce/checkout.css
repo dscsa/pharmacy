@@ -38,7 +38,7 @@ form.checkout, /* Don't show checkout on every page */
 select, .select2-selection {
   height:45px !important
 }
-#account_backup_pharmacy_field .select2-selection__rendered {
+.select2-selection--single .select2-selection__rendered {
   line-height:45px !important
 }
 .radio {
