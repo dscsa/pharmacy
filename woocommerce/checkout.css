@@ -8,7 +8,7 @@ form.checkout, /* Don't show checkout on every page */
 .cart-subtotal, /*Hide subtotal row on checkout */
 .shipping, /* Hide shipping cost row on checkout */
 .product-name, /*Hide product name row on checkout */
-.product-total  /*Hide product total row on checkout */
+.product-total,  /*Hide product total row on checkout */
 .create-account /* Hide trust commerce save card option */
 {
   display:none
