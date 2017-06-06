@@ -16,6 +16,7 @@ function load() {
 
   showLang()
   setTimeout(showLang, 3000) //Both languages hide by default.  Need delay because ZIP, City/Town, Credit Card are delayed
+  function showLang() { jQuery('.'+lang).show() }
 
   jQuery("input[name=language]").change(function(){
     jQuery('.spanish, .english').toggle()
@@ -23,7 +24,6 @@ function load() {
 
   jQuery("input[name=allergies_none]").on('change', function(){
     var children = jQuery(".allergies")
-    console.log('children', this.value)
     this.value ? children.hide() : children.show()
   })
   jQuery("input[name=allergies_none]:checked").triggerHandler('change')
@@ -86,8 +86,6 @@ function load() {
       shipAddress.prop('disabled', false).click()
   })
 }
-
-function showLang() { jQuery('.'+lang).show() }
 
 function upgradeMedication(medications) {
   console.log('upgradeMedication')
