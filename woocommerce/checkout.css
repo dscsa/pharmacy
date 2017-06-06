@@ -29,10 +29,10 @@ form.checkout, /* Don't show checkout on every page */
   margin-right:4.3% !important
 }
 /* Condense allergy checkboxes */
-[id^=account_allergies_] {
+[id^=allergies_] {
    margin-bottom:0 !important;
 }
-#account_birth_date_field {
+#birth_date_field {
   margin-top:1.4em !important;
 }
 select, .select2-selection {

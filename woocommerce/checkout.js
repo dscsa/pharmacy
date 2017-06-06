@@ -12,28 +12,28 @@ function load() {
 
   upgradePharmacy()
 
-  var lang = jQuery("input[name=account_language]:checked").val()
+  var lang = jQuery("input[name=language]:checked").val()
 
   showLang()
   setTimeout(showLang, 3000) //Both languages hide by default.  Need delay because ZIP, City/Town, Credit Card are delayed
   function showLang() { jQuery('.'+lang).show() }
 
-  jQuery("input[name=account_language]").change(function(){
+  jQuery("input[name=language]").change(function(){
     jQuery('.spanish, .english').toggle()
   })
 
-  jQuery("input[name=account_allergies]").on('change', function(){
-    var children = jQuery(".checkbox, #account_allergies_other")
+  jQuery("input[name=allergies]").on('change', function(){
+    var children = jQuery(".checkbox, #allergies_other")
     console.log('children', children, this.value)
     this.value == 'No' ? children.hide() : children.show()
   }).triggerHandler('change')
 
-  var other_allergy_checkbox = jQuery('#account_allergies_other_checkbox').prop('disabled', true)
-  jQuery('#account_allergies_other').on('input', function() {
+  var other_allergy_checkbox = jQuery('#allergies_other_checkbox').prop('disabled', true)
+  jQuery('#allergies_other').on('input', function() {
     other_allergy_checkbox.prop('checked', this.value)
   })
 
-  jQuery('#account_birth_date').prop('type', 'date') //can't easily set date type in woocommerce
+  jQuery('#birth_date').prop('type', 'date') //can't easily set date type in woocommerce
 
   if (window.location.pathname != '/account/')
     return jQuery('.pharmacy').show()//Both pharmacy labels hidden by default.  Show the one with value
@@ -41,7 +41,7 @@ function load() {
   if (window.location.search == '?register') {
     jQuery('#customer_login > div').toggle()
     return jQuery("form.register").submit(function($event){
-      this.username.value = this.account_first_name.value+' '+this.account_last_name.value+' '+this.account_birth_date.value
+      this.username.value = this.first_name.value+' '+this.last_name.value+' '+this.birth_date.value
     })
   }
 
@@ -110,7 +110,7 @@ function upgradeMedication(medications) {
 function upgradePharmacy(pharmacies) {
   console.log('upgradePharmacy')
 
-  var select = jQuery('#account_backup_pharmacy')
+  var select = jQuery('#backup_pharmacy')
   var pharmacyGsheet  = "https://spreadsheets.google.com/feeds/list/11Ew_naOBwFihUrkaQnqVTn_3rEx6eAwMvGzksVTv_10/1/public/values?alt=json"
   //ovrg94l is the worksheet id.  To get this you have to use https://spreadsheets.google.com/feeds/worksheets/1MV5mq6605X7U1Np2fpwZ1RHkaCpjsb7YqieLQsEQK88/private/full
 

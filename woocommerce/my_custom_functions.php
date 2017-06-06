@@ -49,86 +49,86 @@ function patient_fields() {
     $user_id = get_current_user_id();
 
     return [
-    'account_language' => [
+    'language' => [
         'type'   	  => 'radio',
         'label'     => __('Language'),
         'label_class' => ['radio'],
         'required'  => true,
         'options'   => ['english' => 'English', 'spanish' => __('Spanish')],
-        'default'   => get_user_meta($user_id, 'account_language', true) ?: 'english'
+        'default'   => get_user_meta($user_id, 'language', true) ?: 'english'
     ],
-    'account_backup_pharmacy' => [
+    'backup_pharmacy' => [
         'type'   	  => 'select',
         'label'     => __('<span class="erx">Name and address of a backup pharmacy to fill your prescriptions if we are out-of-stock</span><span class="pharmacy">Name and address of pharmacy from which we should transfer your medication(s)</span>'),
         'required'  => true,
         'options'   => [''],
-        'default'   => get_user_meta($user_id, 'account_backup_pharmacy', true)
+        'default'   => get_user_meta($user_id, 'backup_pharmacy', true)
     ],
-    'account_medications_other' => [
+    'medications_other' => [
         'label'     =>  __('List any other medication(s) or supplement(s) you are currently taking'),
-        'default'   => get_user_meta($user_id, 'account_medications_other', true)
+        'default'   => get_user_meta($user_id, 'medications_other', true)
     ],
-    'account_allergies' => [
+    'allergies' => [
         'type'   	  => 'radio',
         'label'     => __('Allergies'),
         'label_class' => ['radio'],
         'required'  => true,
         'default'   => 'Yes',
         'options'   => ['Yes' => __('Allergies Selected Below'), 'No' => __('No Medication Allergies')],
-    	  'default'   => get_user_meta($user_id, 'account_allergies_english', true)
+    	  'default'   => get_user_meta($user_id, 'allergies_english', true)
     ],
-    'account_allergies_aspirin_salicylates' => [
+    'allergies_aspirin_salicylates' => [
         'type'      => 'checkbox',
         'class'     => ['form-row-wide'],
         'label'     => __('Aspirin and salicylates'),
-        'default'   => get_user_meta($user_id, 'account_allergies_aspirin_salicylates', true)
+        'default'   => get_user_meta($user_id, 'allergies_aspirin_salicylates', true)
     ],
-    'account_allergies_erythromycin_biaxin_zithromax' => [
+    'allergies_erythromycin_biaxin_zithromax' => [
         'type'      => 'checkbox',
         'class'     => ['form-row-wide'],
         'label'     => __('Erythromycin, Biaxin, Zithromax'),
-        'default'   => get_user_meta($user_id, 'account_allergies_erythromycin_biaxin_zithromax', true)
+        'default'   => get_user_meta($user_id, 'allergies_erythromycin_biaxin_zithromax', true)
     ],
-    'account_allergies_nsaids' => [
+    'allergies_nsaids' => [
         'type'      => 'checkbox',
         'class'     => ['form-row-wide'],
         'label'     => __('NSAIDS e.g., ibuprofen, Advil'),
-        'default'   => get_user_meta($user_id, 'account_allergies_nsaids', true)
+        'default'   => get_user_meta($user_id, 'allergies_nsaids', true)
     ],
-    'account_allergies_penicillins_cephalosporins' => [
+    'allergies_penicillins_cephalosporins' => [
         'type'      => 'checkbox',
         'class'     => ['form-row-wide'],
         'label'     => __('Penicillins/cephalosporins e.g., Amoxil, amoxicillin, ampicillin, Keflex, cephalexin'),
-        'default'   => get_user_meta($user_id, 'account_allergies_penicillins_cephalosporins', true)
+        'default'   => get_user_meta($user_id, 'allergies_penicillins_cephalosporins', true)
     ],
-    'account_allergies_sulfa' => [
+    'allergies_sulfa' => [
         'type'      => 'checkbox',
         'class'     => ['form-row-wide'],
         'label'     => __('Sulfa drugs e.g., Septra, Bactrim, TMP/SMX'),
-        'default'   => get_user_meta($user_id, 'account_allergies_sulfa', true)
+        'default'   => get_user_meta($user_id, 'allergies_sulfa', true)
     ],
-    'account_allergies_tetracycline' => [
+    'allergies_tetracycline' => [
         'type'      => 'checkbox',
         'class'     => ['form-row-wide'],
         'label'     => __('Tetracycline antibiotics'),
-        'default'   => get_user_meta($user_id, 'account_allergies_tetracycline', true)
+        'default'   => get_user_meta($user_id, 'allergies_tetracycline', true)
     ],
-    'account_allergies_other_checkbox' => [
+    'allergies_other_checkbox' => [
         'type'      => 'checkbox',
-        'label'     =>__( 'Other Allergies').'<input class="input-text " name="account_allergies_other" id="account_allergies_other" value="'.get_user_meta($user_id, 'account_allergies_other', true).'">'
+        'label'     =>__( 'Other Allergies').'<input class="input-text " name="allergies_other" id="allergies_other" value="'.get_user_meta($user_id, 'allergies_other', true).'">'
     ],
-    'account_birth_date' => [
+    'birth_date' => [
         'label'     => __('Date of Birth'),
         'required'  => true,
-        'default'   => get_user_meta($user_id, 'account_birth_date', true)
+        'default'   => get_user_meta($user_id, 'birth_date', true)
     ],
-    'account_phone' => [
+    'phone' => [
         'label'     => __('Phone'),
        	'required'  => true,
         'type'      => 'tel',
         'validate'  => ['phone'],
         'autocomplete' => 'tel',
-        'default'   => get_user_meta($user_id, 'account_phone', true)
+        'default'   => get_user_meta($user_id, 'phone', true)
     ]
   ];
 }
@@ -138,7 +138,7 @@ add_action('woocommerce_edit_account_form_start', 'custom_edit_account_form');
 function custom_edit_account_form() {
 
   foreach (patient_fields() as $key => $field) {
-    if ($key === "account_backup_pharmacy") {
+    if ($key === "backup_pharmacy") {
       $field['options'] = [$field['default'] => $field['default']];
     }
 
@@ -148,7 +148,7 @@ function custom_edit_account_form() {
 
 add_action('woocommerce_register_form_start', 'custom_login_form');
 function custom_login_form() {
-	$patient_fields = patient_fields();
+  $patient_fields = patient_fields();
 
   $first_name = [
     'class' => ['form-row-first'],
@@ -160,24 +160,24 @@ function custom_login_form() {
     'label'  => __('Last name')
   ];
 
-  echo woocommerce_form_field('account_language', $patient_fields['account_language']);
-	echo woocommerce_form_field('account_first_name', $first_name);
-  echo woocommerce_form_field('account_last_name', $last_name);
-	echo woocommerce_form_field('account_birth_date', $patient_fields['account_birth_date']);
+  echo woocommerce_form_field('language', $patient_fields['language']);
+  echo woocommerce_form_field('first_name', $first_name);
+  echo woocommerce_form_field('last_name', $last_name);
+  echo woocommerce_form_field('birth_date', $patient_fields['birth_date']);
 }
 
 //After Registration, set default shipping/billing/account fields
 //then save the user into GuardianRx
 add_action('woocommerce_created_customer', 'customer_created');
 function customer_created($user_id) {
-  $first_name = sanitize_text_field($_POST['account_first_name']);
-  $last_name = sanitize_text_field($_POST['account_last_name']);
+  $first_name = sanitize_text_field($_POST['first_name']);
+  $last_name = sanitize_text_field($_POST['last_name']);
   foreach(['', 'billing_', 'shipping_'] as $field) {
-  	update_user_meta($user_id, $field.'first_name', $first_name);
-      update_user_meta($user_id, $field.'last_name', $last_name);
+    update_user_meta($user_id, $field.'first_name', $first_name);
+    update_user_meta($user_id, $field.'last_name', $last_name);
   }
-  update_user_meta($user_id, 'account_birth_date', $_POST['account_birth_date']);
-  update_user_meta($user_id, 'account_language', $_POST['account_language']);
+  update_user_meta($user_id, 'birth_date', $_POST['birth_date']);
+  update_user_meta($user_id, 'language', $_POST['language']);
 
   //Run Guardian addEditPatient()
 }
@@ -185,11 +185,11 @@ function customer_created($user_id) {
 // Function to change email address
 add_filter('wp_mail_from', 'email_address');
 function email_address() {
-    return 'rx@goodpill.org';
+  return 'rx@goodpill.org';
 }
 add_filter('wp_mail_from_name', 'email_name');
 function email_name() {
-	return 'Good Pill Pharmacy';
+  return 'Good Pill Pharmacy';
 }
 
 // After registration and login redirect user to account/orders.
@@ -197,7 +197,7 @@ function email_name() {
 add_action('woocommerce_registration_redirect', 'custom_redirect', 2);
 add_action('woocommerce_login_redirect', 'custom_redirect', 2);
 function custom_redirect() {
-    return home_url('/account/orders');
+  return home_url('/account/orders');
 }
 
 add_filter ('woocommerce_account_menu_items', 'custom_my_account_menu');
@@ -209,8 +209,8 @@ function custom_my_account_menu($nav) {
 
   //Preserve order otherwise new link is at the bottom of menu
   foreach ($nav as $key => $val) {
-      if ($key != 'dashboard')
-          $new[$key] = $val;
+    if ($key != 'dashboard')
+      $new[$key] = $val;
   }
 
   $new['edit-account'] = __('Account Details');
@@ -228,7 +228,7 @@ function save_custom_fields_to_user( $user_id) {
   wp_mail('adam.kircher@gmail.com', 'save_custom_fields_to_user', $user_id.' '.print_r($_POST, true));
 
   foreach (patient_fields() as $key => $field) {
-  	update_user_meta( $user_id, $key, sanitize_text_field($_POST[$key]));
+    update_user_meta( $user_id, $key, sanitize_text_field($_POST[$key]));
   }
 
   //Run Guardian update shipping address, allergies, etc
