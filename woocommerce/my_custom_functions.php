@@ -265,7 +265,7 @@ function custom_save_account_details($user_id) {
     if ($allergy_codes[$key]) {
       //Since all checkboxes submitted even with none selected.  If none
       //is selected manually set value to false for all except none
-      $value = $_POST['allergies_none'] AND $key != 'allergies_none' ? NULL : $value;
+      $value = ($_POST['allergies_none'] AND $key != 'allergies_none') ? NULL : $value;
       add_remove_allergy($guardian_id, $allergy_codes[$key], $value);
     }
   }
