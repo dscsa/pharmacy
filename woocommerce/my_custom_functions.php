@@ -329,7 +329,7 @@ function custom_checkout_fields( $fields ) {
 
 //$query = sqlsrv_query( $db, "select * from cppat where cppat.pat_id=1003";);
 function findPatient($first_name, $last_name, $birth_date) {
-  return procedure("{call SirumWeb_FindPatByNameandDOB(?, ?, NULL, ?)}", [
+  return procedure("SirumWeb_FindPatByNameandDOB(?, ?, NULL, ?)", [
     [$last_name, SQLSRV_PARAM_IN],
     [$first_name, SQLSRV_PARAM_IN],
     [$birth_date, SQLSRV_PARAM_IN]
@@ -337,7 +337,7 @@ function findPatient($first_name, $last_name, $birth_date) {
 }
 
 function addPatient($first_name, $last_name, $birth_date) {
-  return procedure("{call SirumWeb_FindPatByNameandDOB(?, NULL, ?, ?)}", [
+  return procedure("SirumWeb_FindPatByNameandDOB(?, NULL, ?, ?)", [
     [$first_name, SQLSRV_PARAM_IN],
     [$last_name, SQLSRV_PARAM_IN],
     [$birth_date, SQLSRV_PARAM_IN]
@@ -360,7 +360,7 @@ function next_array($query) {
 }
 
 function query($sp, $params) {
-  return sqlsrv_query(db(), $sp, $params) ?: db_error("Error executing procedure $sp");
+  return sqlsrv_query(db(), "{call $sp}", $params) ?: db_error("Error executing procedure $sp");
 }
 
 function db() {
