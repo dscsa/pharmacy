@@ -262,8 +262,12 @@ function custom_save_account_details($user_id) {
 
     update_user_meta($user_id, $key, $value);
 
-    if ($allergy_codes[$key])
+    if ($allergy_codes[$key]) {
+      //Since all checkboxes submitted even with none selected.  If none
+      //is selected manually set value to false for all except none
+      $value = $_POST['allergies_none'] AND $key != 'allergies_none' ? NULL : $value
       add_remove_allergy($guardian_id, $allergy_codes[$key], $value);
+    }
   }
 
   update_cell_phone($guardian_id, sanitize_text_field($_POST['phone']));
