@@ -1,7 +1,5 @@
 form.checkout, /* Don't show checkout on every page */
 #medication_field, /* don't force medication on eRx (default) */
-#billing_country_field,
-#shipping_country_field,
 .woocommerce-message a, /* don't show links in messages since often wrong link */
 .pharmacy, /*pharmacy transfer off until selected */
 .erx, /*erx transfer off until selected */
@@ -11,6 +9,7 @@ form.checkout, /* Don't show checkout on every page */
 .shipping, /* Hide shipping cost row on checkout */
 .product-name, /*Hide product name row on checkout */
 .product-total  /*Hide product total row on checkout */
+.create-account /* Hide trust commerce save card option */
 {
   display:none
 }
@@ -51,7 +50,8 @@ select, .select2-selection {
   margin-right:4px
 }
 /*
-
+#billing_country_field,
+#shipping_country_field,
 #billing_email_field,
 #shipping_email_field,
 #shipping_state_field
