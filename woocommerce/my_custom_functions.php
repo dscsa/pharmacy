@@ -344,13 +344,18 @@ function addPatient($first_name, $last_name, $birth_date) {
 }
 
 function query($sp, $params) {
-  return sqlsrv_fetch_array(run_query($sp, $params), SQLSRV_FETCH_ASSOC);
+  return next_array(run_query($sp, $params));
 }
 
 function queryAll($sp, $params) {
   $result = [];
-  while($result[] = query($sp, $params));
+  $query  = run_query($sp, $params)
+  while($result[] = next_array($query));
   return $result;
+}
+
+function next_array($query) {
+  return sqlsrv_fetch_array($query, SQLSRV_FETCH_ASSOC);
 }
 
 function run_query($sp, $params) {
