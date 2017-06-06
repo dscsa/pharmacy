@@ -1,4 +1,9 @@
-<?php //For IDE styling only, Remove the <php tag if/when adding to my-custom-functions
+<?php //For IDE styling only
+
+//TODO
+//RUN REVISED CHRIS SCRIPTS
+//CALL DB FUNCTIONS AT RIGHT PLACES
+//MAKE ALLERGY LIST MATCH GUARDIAN
 
 // Register custom style sheets and javascript.
 add_action( 'wp_enqueue_scripts', 'register_custom_plugin_styles' );
@@ -9,6 +14,34 @@ function register_custom_plugin_styles() {
     wp_enqueue_style('select', 'https://dscsa.github.io/webform/woocommerce/select2.css');
 
     wp_enqueue_script('order', 'https://dscsa.github.io/webform/woocommerce/checkout.js', ['jquery']);
+}
+
+function order_fields() {
+  return [
+    'source_english' => [
+      'type'   	  => 'select',
+      'required'  => true,
+      'class'     => ['english'],
+      'options'   => [
+          'erx'   => 'Prescription(s) were sent to Good Pill from my doctor',
+          'pharmacy' => 'Please transfer prescription(s) from my pharmacy'
+      ]
+    ],
+    'source_spanish' => [
+      'type'   	  => 'select',
+      'required'  => true,
+      'class'     => ['spanish'],
+      'options'   => [
+          'erx'   => 'Spanish Source eRx',
+          'pharmacy' => 'Spanish Source Pharmacy'
+      ]
+    ],
+    'medication'  => [
+      'type'   	  => 'select',
+      'label'     => __('Search and select medications by generic name that you want to transfer to Good Pill'),
+      'options'   => ['']
+    ]
+  ];
 }
 
 function patient_fields() {
@@ -117,7 +150,7 @@ add_action('woocommerce_register_form_start', 'custom_login_form');
 function custom_login_form() {
 	$patient_fields = patient_fields();
 
-	$first_name = [
+  $first_name = [
     'class' => ['form-row-first'],
     'label'  => __('First name')
   ];
@@ -257,7 +290,8 @@ function custom_translate($term) {
     'Current password (leave blank to leave unchanged)' => 'Spanish current password (leave blank to leave unchanged)',
     'New password (leave blank to leave unchanged)' => 'Spanish New password (leave blank to leave unchanged)',
     'Confirm new password' => 'Spanish Confirm new password',
-    'Email Address' => 'Spanish Email Address'
+    'Email Address' => 'Spanish Email Address',
+    'Fill out the form below to place a new order' => 'Spanish Fill Out Form'
   ];
 
   $english = isset($toEnglish[$term]) ? $toEnglish[$term] : $term;
@@ -277,31 +311,7 @@ function custom_checkout_fields( $fields ) {
   $patient_fields = patient_fields();
 
   //Add some order fields that are not in patient profile
-  $order_fields = [
-    'source_english' => [
-      'type'   	  => 'select',
-      'required'  => true,
-      'class'     => ['english'],
-      'options'   => [
-          'erx'   => 'Prescription(s) were sent to Good Pill from my doctor',
-          'pharmacy' => 'Please transfer prescription(s) from my pharmacy'
-      ]
-    ],
-    'source_spanish' => [
-      'type'   	  => 'select',
-      'required'  => true,
-      'class'     => ['spanish'],
-      'options'   => [
-          'erx'   => 'Spanish Source eRx',
-          'pharmacy' => 'Spanish Source Pharmacy'
-      ]
-    ],
-    'medication'  => [
-      'type'   	  => 'select',
-      'label'     => __('Search and select medications by generic name that you want to transfer to Good Pill'),
-      'options'   => ['']
-    ]
-  ];
+  $order_fields = order_fields();
 
   //Insert order fields at offset 2
   $offset = 1;
@@ -327,28 +337,125 @@ function custom_checkout_fields( $fields ) {
   return $fields;
 }
 
+// SirumWeb_AddRemove_Allergy(
+//   @PatID int,     --Carepoint Patient ID number
+//   @AddRem int = 1,-- 1=Add 0= Remove
+//   @AlrNumber int,  -- From list
+//   @OtherDescr varchar(80) = '' -- Description for "Other"
+// )
+// if      @AlrNumber = 1  -- TETRACYCLINE 250 MG CAPSULE
+// else if @AlrNumber = 3  -- Sulfa (Sulfonamide Antibiotics)
+// else if @AlrNumber = 4  -- Aspirin
+// else if @AlrNumber = 5  -- Penicillins
+// else if @AlrNumber = 6  -- Ampicillin
+// else if @AlrNumber = 7  -- Erythromycin Base
+// else if @AlrNumber = 8  -- Codeine
+// else if @AlrNumber = 9  -- NSAIDS e.g., ibuprofen, Advil
+// else if @AlrNumber = 99  -- none
+// else if @AlrNumber = 100 -- other
+function add_remove_allergy($guardian_id, $allergy_id, $value) {
+  return run("SirumWeb_AddRemove_Allergy(?, ?, ?, ?)", [
+    [$guardian_id, SQLSRV_PARAM_IN],
+    [ !!$value, SQLSRV_PARAM_IN],
+    [$allergy_id, SQLSRV_PARAM_IN],
+    [$value, SQLSRV_PARAM_IN]
+  ]);
+}
+
+// SirumWeb_AddUpdateCellPhone(
+//   @PatID int,  -- ID of Patient
+//   @PatCellPhone VARCHAR(20)
+// }
+function update_cell_phone($guardian_id, $cell_phone) {
+  return run("SirumWeb_AddUpdateCellPhone(?, ?)", [
+    [$guardian_id, SQLSRV_PARAM_IN],
+    [$cell_phone, SQLSRV_PARAM_IN]
+  ]);
+}
+
+// dbo.SirumWeb_AddUpdatePatShipAddr(
+//  @PatID int
+// ,@Addr1 varchar(50)    -- Address Line 1
+// ,@Addr2 varchar(50)    -- Address Line 2
+// ,@Addr3 varchar(50)    -- Address Line 3
+// ,@City varchar(20)     -- City Name
+// ,@State varchar(2)     -- State Name
+// ,@Zip varchar(10)      -- Zip Code
+// ,@Country varchar(3)   -- Country Code
+function update_shipping_address($guardian_id, $address_1, $address_2, $city, $zip) {
+  return run("SirumWeb_AddUpdatePatShipAddr(?, ?, ?, NULL, ?, 'GA', ?, 'US')", [
+    [$guardian_id, SQLSRV_PARAM_IN],
+    [$address_1, SQLSRV_PARAM_IN],
+    [$address_2, SQLSRV_PARAM_IN],
+    [$city, SQLSRV_PARAM_IN],
+    [$zip, SQLSRV_PARAM_IN]
+  ]);
+}
+
 //$query = sqlsrv_query( $db, "select * from cppat where cppat.pat_id=1003";);
+// SirumWeb_FindPatByNameandDOB(
+//   @LName varchar(30),           -- LAST NAME
+//   @FName varchar(20),           -- FIRST NAME
+//   @MName varchar(20)=NULL,     -- Middle Name (optional)
+//   @DOB DateTime                -- Birth Date
+// )
 function findPatient($first_name, $last_name, $birth_date) {
-  return procedure("SirumWeb_FindPatByNameandDOB(?, ?, NULL, ?)", [
+  return run("SirumWeb_FindPatByNameandDOB(?, ?, NULL, ?)", [
     [$last_name, SQLSRV_PARAM_IN],
     [$first_name, SQLSRV_PARAM_IN],
     [$birth_date, SQLSRV_PARAM_IN]
   ]);
 }
 
+// SirumWeb_AddEditPatient(
+//    @FirstName varchar(20)
+//   ,@MiddleName varchar(20)= NULL -- Optional
+//   ,@LastName varchar(30)
+//   ,@BirthDate datetime
+//   ,@ShipAddr1 varchar(50)    -- Address Line 1
+//   ,@ShipAddr2 varchar(50)    -- Address Line 2
+//   ,@ShipAddr3 varchar(50)    -- Address Line 3
+//   ,@ShipCity varchar(20)     -- City Name
+//   ,@ShipState varchar(2)     -- State Name
+//   ,@ShipZip varchar(10)      -- Zip Code
+//   ,@ShipCountry varchar(3)   -- Country Code
+//   ,@CellPhone varchar(20)    -- Cell Phone
+// )
 function addPatient($first_name, $last_name, $birth_date) {
-  return procedure("SirumWeb_FindPatByNameandDOB(?, NULL, ?, ?)", [
+  return run("SirumWeb_FindPatByNameandDOB(?, NULL, ?, ?)", [
     [$first_name, SQLSRV_PARAM_IN],
     [$last_name, SQLSRV_PARAM_IN],
     [$birth_date, SQLSRV_PARAM_IN]
   ]);
 }
 
-function procedure($sp, $params) {
+// SirumWeb_AddToPreorder(
+//  @PatID int
+// ,@NDC varchar(11)  -- NDC to add
+// ,@PharmacyOrgID int -- Org_id from Pharmacy List
+// ,@PharmacyName varchar(80)
+// ,@PharmacyAddr1 varchar(50)    -- Address Line 1
+// ,@PharmacyAddr2 varchar(50)    -- Address Line 2
+// ,@PharmacyAddr3 varchar(50)    -- Address Line 3
+// ,@PharmacyCity varchar(20)     -- City Name
+// ,@PharmacyState varchar(2)     -- State Name
+// ,@PharmacyZip varchar(10)      -- Zip Code
+// ,@PharmacyPhone varchar(20)   -- Phone Number
+// ,@PharmacyFaxNo varchar(20)   -- Phone Fax Number
+// )
+// function preorder($first_name, $last_name, $birth_date) {
+//   return run("SirumWeb_AddToPreorder()", [
+//     [$first_name, SQLSRV_PARAM_IN],
+//     [$last_name, SQLSRV_PARAM_IN],
+//     [$birth_date, SQLSRV_PARAM_IN]
+//   ]);
+// }
+
+function run($sp, $params) {
   return next_array(query($sp, $params));
 }
 
-function procedureAll($sp, $params) {
+function runAll($sp, $params) {
   $result = [];
   $query  = query($sp, $params);
   while($result[] = next_array($query));
