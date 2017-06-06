@@ -8,12 +8,12 @@
 // Register custom style sheets and javascript.
 add_action( 'wp_enqueue_scripts', 'register_custom_plugin_styles' );
 function register_custom_plugin_styles() {
-    wp_enqueue_style('account', 'https://dscsa.github.io/webform/woocommerce/account.css');
-    wp_enqueue_style('checkout', 'https://dscsa.github.io/webform/woocommerce/checkout.css');
-    wp_enqueue_style('storefront', 'https://dscsa.github.io/webform/woocommerce/storefront.css');
-    wp_enqueue_style('select', 'https://dscsa.github.io/webform/woocommerce/select2.css');
+  wp_enqueue_style('account', 'https://dscsa.github.io/webform/woocommerce/account.css');
+  wp_enqueue_style('checkout', 'https://dscsa.github.io/webform/woocommerce/checkout.css');
+  wp_enqueue_style('storefront', 'https://dscsa.github.io/webform/woocommerce/storefront.css');
+  wp_enqueue_style('select', 'https://dscsa.github.io/webform/woocommerce/select2.css');
 
-    wp_enqueue_script('order', 'https://dscsa.github.io/webform/woocommerce/checkout.js', ['jquery']);
+  wp_enqueue_script('order', 'https://dscsa.github.io/webform/woocommerce/checkout.js', ['jquery']);
 }
 
 function order_fields() {
@@ -23,8 +23,8 @@ function order_fields() {
       'required'  => true,
       'class'     => ['english'],
       'options'   => [
-          'erx'   => 'Prescription(s) were sent to Good Pill from my doctor',
-          'pharmacy' => 'Please transfer prescription(s) from my pharmacy'
+        'erx'     => 'Prescription(s) were sent to Good Pill from my doctor',
+        'pharmacy' => 'Please transfer prescription(s) from my pharmacy'
       ]
     ],
     'source_spanish' => [
@@ -32,8 +32,8 @@ function order_fields() {
       'required'  => true,
       'class'     => ['spanish'],
       'options'   => [
-          'erx'   => 'Spanish Source eRx',
-          'pharmacy' => 'Spanish Source Pharmacy'
+        'erx'     => 'Spanish Source eRx',
+        'pharmacy' => 'Spanish Source Pharmacy'
       ]
     ],
     'medication'  => [
