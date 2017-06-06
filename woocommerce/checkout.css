@@ -1,5 +1,7 @@
 form.checkout, /* Don't show checkout on every page */
 #medication_field, /* don't force medication on eRx (default) */
+#billing_country_field,
+#shipping_country_field,
 .woocommerce-message a, /* don't show links in messages since often wrong link */
 .pharmacy, /*pharmacy transfer off until selected */
 .erx, /*erx transfer off until selected */
@@ -19,9 +21,6 @@ form.checkout, /* Don't show checkout on every page */
 .col2-set.addresses {
   width:100% !important
 }
-#shipping_state_field {
-  display:none !important
-}
 #order_review_heading {
   margin-top:-30px
 }
@@ -40,7 +39,7 @@ form.checkout, /* Don't show checkout on every page */
 select, .select2-selection {
   height:45px !important
 }
-.select2-selection__rendered {
+#account_backup_pharmacy_field .select2-selection__rendered {
   line-height:45px !important
 }
 .radio {
@@ -52,8 +51,8 @@ select, .select2-selection {
   margin-right:4px
 }
 /*
-#billing_country_field,
-#shipping_country_field,
+
 #billing_email_field,
 #shipping_email_field,
+#shipping_state_field
 */
