@@ -94,7 +94,7 @@ function patient_fields() {
     'allergies_ampicillin' => [
         'type'      => 'checkbox',
         'class'     => ['allergies', 'form-row-wide'],
-        'label'     => __('Penicillin'),
+        'label'     => __('Ampicillin'),
         'default'   => get_user_meta($user_id, 'allergies_ampicillin', true)
     ],
     'allergies_erythromycin' => [
@@ -181,14 +181,22 @@ add_action('woocommerce_created_customer', 'customer_created');
 function customer_created($user_id) {
   $first_name = sanitize_text_field($_POST['first_name']);
   $last_name = sanitize_text_field($_POST['last_name']);
+  $birth_date = sanitize_text_field($_POST['birth_date']);
   foreach(['', 'billing_', 'shipping_'] as $field) {
     update_user_meta($user_id, $field.'first_name', $first_name);
     update_user_meta($user_id, $field.'last_name', $last_name);
   }
-  update_user_meta($user_id, 'birth_date', $_POST['birth_date']);
+  update_user_meta($user_id, 'birth_date', $birth_date);
   update_user_meta($user_id, 'language', $_POST['language']);
 
-  //Run Guardian addEditPatient()
+  addPatient($first_name, $last_name, $birth_date);
+
+  $patient = findPatient($first_name, $last_name, $birth_date);
+
+  //TODO hopefully addPatient will return PartId itself
+  wp_mail('adam.kircher@gmail.com', 'guardian patient', print_r($patient, true));
+
+  update_user_meta($user_id, 'guardian_id', $patient['PatID']);
 }
 
 // Function to change email address
@@ -230,17 +238,49 @@ function custom_my_account_menu($nav) {
 
 //On new order and account/details save account fields back to user
 //TODO should changing checkout fields overwrite account fields if they are set?
-add_action('woocommerce_save_account_details', 'save_custom_fields_to_user' );
-add_action('woocommerce_checkout_update_user_meta', 'save_custom_fields_to_user');
-function save_custom_fields_to_user( $user_id) {
+add_action('woocommerce_save_account_details', 'custom_save_account_details');
+function custom_save_account_details($user_id) {
 
   wp_mail('adam.kircher@gmail.com', 'save_custom_fields_to_user', $user_id.' '.print_r($_POST, true));
 
+  $guardian_id = get_user_meta($user_id, 'guardian_id', true);
+
+  $allergy_codes = [
+    'allergies_none' => 99,
+    'allergies_aspirin' => 4,
+    'allergies_penicillin' => 5,
+    'allergies_ampicillin' => 6,
+    'allergies_erythromycin' => 7,
+    'allergies_nsaids' => 9,
+    'allergies_sulfa' => 3,
+    'allergies_tetracycline' => 1,
+    'allergies_other' => 100
+  ];
+
   foreach (patient_fields() as $key => $field) {
-    update_user_meta( $user_id, $key, sanitize_text_field($_POST[$key]));
+    $value = sanitize_text_field($_POST[$key]);
+
+    update_user_meta($user_id, $key, $value);
+
+    if ($allergy_codes[$key])
+      add_remove_allergy($guardian_id, $allergy_codes[$key], $value);
   }
 
-  //Run Guardian update shipping address, allergies, etc
+  update_cell_phone($guardian_id, sanitize_text_field($_POST['phone']));
+}
+
+add_action('woocommerce_checkout_update_user_meta', 'custom_save_checkout_details');
+function custom_save_checkout_details($user_id) {
+  //TODO should save if they don't exist, but what if they do, should we be overriding?
+  custom_save_account_details($user_id);
+
+  update_shipping_address(
+    $guardian_id,
+    sanitize_text_field($_POST['shipping_address_1']),
+    sanitize_text_field($_POST['shipping_address_2']),
+    sanitize_text_field($_POST['shipping_city']),
+    sanitize_text_field($_POST['shipping_postcode'])
+  );
 }
 
 //Save Billing info to Guardian
@@ -249,7 +289,7 @@ function custom_updated_user_meta($meta_id, $post_id, $meta_key, $meta_value)
 {
   if ($meta_key != '_trustcommerce_customer_id') return;
 
-  wp_mail('adam.kircher@gmail.com', 'updated_post_meta', print_r([$meta_id, $post_id, $meta_key, $meta_value, $_POST], true));
+  wp_mail('adam.kircher@gmail.com', 'updated_rustcommerce_customer_id', print_r([$meta_id, $post_id, $meta_key, $meta_value, $_POST], true));
 }
 
 //Didn't work: https://stackoverflow.com/questions/38395784/woocommerce-overriding-billing-state-and-post-code-on-existing-checkout-fields
@@ -431,7 +471,7 @@ function findPatient($first_name, $last_name, $birth_date) {
 //   ,@CellPhone varchar(20)    -- Cell Phone
 // )
 function addPatient($first_name, $last_name, $birth_date) {
-  return run("SirumWeb_FindPatByNameandDOB(?, NULL, ?, ?)", [
+  return run("SirumWeb_AddEditPatient(?, NULL, ?, ?)", [
     [$first_name, SQLSRV_PARAM_IN],
     [$last_name, SQLSRV_PARAM_IN],
     [$birth_date, SQLSRV_PARAM_IN]
@@ -460,24 +500,25 @@ function addPatient($first_name, $last_name, $birth_date) {
 //   ]);
 // }
 
-function run($sp, $params) {
-  return next_array(query($sp, $params));
+function run($sp, $params, $live) {
+  return next_array(query($sp, $params, $live), $live);
 }
 
-function runAll($sp, $params) {
+function runAll($sp, $params, $live) {
   $result = [];
-  $query  = query($sp, $params);
-  while($result[] = next_array($query));
+  $query  = query($sp, $params, $live);
+  while($result[] = next_array($query, $live));
   return $result;
 }
 
-function next_array($query) {
-  return [] //sqlsrv_fetch_array($query, SQLSRV_FETCH_ASSOC);
+function next_array($query, $live) {
+  return $live ? sqlsrv_fetch_array($query, SQLSRV_FETCH_ASSOC) : ['query not $live'];
 }
 
-function query($sp, $params) {
-  wp_mail('adam.kircher@gmail.com', $sp, print_r($params, true));
-  //return sqlsrv_query(db(), "{call $sp}", $params) ?: db_error("Error executing procedure $sp");
+function query($sp, $params, $live) {
+  return $live
+    ? sqlsrv_query(db(), "{call $sp}", $params) ?: db_error("Error executing procedure $sp")
+    : wp_mail('adam.kircher@gmail.com', $sp, print_r($params, true));
 }
 
 function db() {

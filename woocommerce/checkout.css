@@ -30,7 +30,7 @@ form.checkout, /* Don't show checkout on every page */
 }
 /* Condense allergy checkboxes */
 .allergies {
-   margin-top:0 !important;
+   margin-top:-25px;
 }
 select, .select2-selection {
   height:45px !important

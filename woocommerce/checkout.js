@@ -22,7 +22,7 @@ function load() {
     jQuery('.spanish, .english').toggle()
   })
 
-  jQuery("input[name=allergies]").on('change', function(){
+  jQuery("input[name=allergies_none]").on('change', function(){
     var children = jQuery(".checkbox, #allergies_other")
     console.log('children', children, this.value)
     this.value == 'No' ? children.hide() : children.show()
