@@ -49,6 +49,7 @@ function order_fields() {
 function patient_fields() {
     //https://docs.woocommerce.com/wc-apidocs/source-function-woocommerce_form_field.html#1841-2061
     $user_id = get_current_user_id();
+    $backup_pharmacy = get_user_meta($user_id, 'backup_pharmacy', true);
 
     return [
     'language' => [
@@ -63,8 +64,8 @@ function patient_fields() {
         'type'   	  => 'select',
         'label'     => __('<span class="erx">Name and address of a backup pharmacy to fill your prescriptions if we are out-of-stock</span><span class="pharmacy">Name and address of pharmacy from which we should transfer your medication(s)</span>'),
         'required'  => true,
-        'options'   => [''],
-        'default'   => get_user_meta($user_id, 'backup_pharmacy', true)
+        'options'   => [$backup_pharmacy => $backup_pharmacy],
+        'default'   => $backup_pharmacy
     ],
     'medications_other' => [
         'label'     =>  __('List any other medication(s) or supplement(s) you are currently taking'),
@@ -289,11 +290,11 @@ function custom_save_checkout_details($user_id) {
 
 //Save Billing info to Guardian
 add_action('updated_user_meta', 'custom_updated_user_meta', 10, 4);
-function custom_updated_user_meta($meta_id, $post_id, $meta_key, $meta_value)
+function custom_updated_user_meta($meta_id, $user_id, $meta_key, $meta_value)
 {
-  if ($meta_key != '_trustcommerce_customer_id') return;
+  if ($meta_key != '_trustcommerce_saved_profiles') return;
 
-  wp_mail('adam.kircher@gmail.com', 'updated_rustcommerce_customer_id', print_r([$meta_id, $post_id, $meta_key, $meta_value, $_POST], true));
+  wp_mail('adam.kircher@gmail.com', 'updated_trustcommerce_customer_id', print_r([$meta_id, $user_id, $meta_key, $meta_value, $_POST], true));
 }
 
 //Didn't work: https://stackoverflow.com/questions/38395784/woocommerce-overriding-billing-state-and-post-code-on-existing-checkout-fields
@@ -343,8 +344,7 @@ function custom_translate($term) {
     'Current password (leave blank to leave unchanged)' => 'Spanish current password (leave blank to leave unchanged)',
     'New password (leave blank to leave unchanged)' => 'Spanish New password (leave blank to leave unchanged)',
     'Confirm new password' => 'Spanish Confirm new password',
-    'Email Address' => 'Spanish Email Address',
-    'Fill out the form below to place a new order' => 'Spanish Fill Out Form'
+    'Email Address' => 'Spanish Email Address'
   ];
 
   $english = isset($toEnglish[$term]) ? $toEnglish[$term] : $term;

@@ -21,7 +21,7 @@
 #customer_login #birth_date_field {
   margin-bottom:0
 }
-.trustcommerce_update_cards_0 { /*uneved edit saved card buttons */
+[class^=trustcommerce_update_cards] { /*uneved edit saved card buttons */
   position: relative;
   top: -1.618em
 }
