@@ -4,6 +4,8 @@
 //RUN REVISED CHRIS SCRIPTS
 //CALL DB FUNCTIONS AT RIGHT PLACES
 //MAKE ALLERGY LIST MATCH GUARDIAN
+//FIX EDIT ADDRESS FIELD LABELS
+//FIX BLANK BUTTON ON SAVE CARD
 
 // Register custom style sheets and javascript.
 add_action( 'wp_enqueue_scripts', 'register_custom_plugin_styles' );
@@ -68,53 +70,60 @@ function patient_fields() {
         'label'     =>  __('List any other medication(s) or supplement(s) you are currently taking'),
         'default'   => get_user_meta($user_id, 'medications_other', true)
     ],
-    'allergies' => [
+    'allergies_none' => [
         'type'   	  => 'radio',
         'label'     => __('Allergies'),
         'label_class' => ['radio'],
         'required'  => true,
-        'default'   => 'Yes',
-        'options'   => ['Yes' => __('Allergies Selected Below'), 'No' => __('No Medication Allergies')],
-    	  'default'   => get_user_meta($user_id, 'allergies_english', true)
+        'default'   => '',
+        'options'   => ['' => __('Allergies Selected Below'), 99 => __('No Medication Allergies')],
+    	  'default'   => get_user_meta($user_id, 'allergies_none', true)
     ],
-    'allergies_aspirin_salicylates' => [
+    'allergies_aspirin' => [
         'type'      => 'checkbox',
-        'class'     => ['form-row-wide'],
-        'label'     => __('Aspirin and salicylates'),
-        'default'   => get_user_meta($user_id, 'allergies_aspirin_salicylates', true)
+        'class'     => ['allergies', 'form-row-wide'],
+        'label'     => __('Aspirin'),
+        'default'   => get_user_meta($user_id, 'allergies_aspirin', true)
     ],
-    'allergies_erythromycin_biaxin_zithromax' => [
+    'allergies_penicillin' => [
         'type'      => 'checkbox',
-        'class'     => ['form-row-wide'],
-        'label'     => __('Erythromycin, Biaxin, Zithromax'),
-        'default'   => get_user_meta($user_id, 'allergies_erythromycin_biaxin_zithromax', true)
+        'class'     => ['allergies', 'form-row-wide'],
+        'label'     => __('Penicillin'),
+        'default'   => get_user_meta($user_id, 'allergies_penicillin', true)
+    ],
+    'allergies_ampicillin' => [
+        'type'      => 'checkbox',
+        'class'     => ['allergies', 'form-row-wide'],
+        'label'     => __('Penicillin'),
+        'default'   => get_user_meta($user_id, 'allergies_ampicillin', true)
+    ],
+    'allergies_erythromycin' => [
+        'type'      => 'checkbox',
+        'class'     => ['allergies', 'form-row-wide'],
+        'label'     => __('Erythromycin'),
+        'default'   => get_user_meta($user_id, 'allergies_erythromycin', true)
     ],
     'allergies_nsaids' => [
         'type'      => 'checkbox',
-        'class'     => ['form-row-wide'],
+        'class'     => ['allergies', 'form-row-wide'],
         'label'     => __('NSAIDS e.g., ibuprofen, Advil'),
         'default'   => get_user_meta($user_id, 'allergies_nsaids', true)
     ],
-    'allergies_penicillins_cephalosporins' => [
-        'type'      => 'checkbox',
-        'class'     => ['form-row-wide'],
-        'label'     => __('Penicillins/cephalosporins e.g., Amoxil, amoxicillin, ampicillin, Keflex, cephalexin'),
-        'default'   => get_user_meta($user_id, 'allergies_penicillins_cephalosporins', true)
-    ],
     'allergies_sulfa' => [
         'type'      => 'checkbox',
-        'class'     => ['form-row-wide'],
-        'label'     => __('Sulfa drugs e.g., Septra, Bactrim, TMP/SMX'),
+        'class'     => ['allergies', 'form-row-wide'],
+        'label'     => __('Sulfa (Sulfonamide Antibiotics'),
         'default'   => get_user_meta($user_id, 'allergies_sulfa', true)
     ],
     'allergies_tetracycline' => [
         'type'      => 'checkbox',
-        'class'     => ['form-row-wide'],
+        'class'     => ['allergies', 'form-row-wide'],
         'label'     => __('Tetracycline antibiotics'),
         'default'   => get_user_meta($user_id, 'allergies_tetracycline', true)
     ],
     'allergies_other_checkbox' => [
         'type'      => 'checkbox',
+        'class'     => ['allergies', 'form-row-wide'],
         'label'     =>__( 'Other Allergies').'<input class="input-text " name="allergies_other" id="allergies_other" value="'.get_user_meta($user_id, 'allergies_other', true).'">'
     ],
     'birth_date' => [
@@ -240,7 +249,7 @@ function custom_updated_user_meta($meta_id, $post_id, $meta_key, $meta_value)
 {
   if ($meta_key != '_trustcommerce_customer_id') return;
 
-  wp_mail('adam.kircher@gmail.com', 'updated_post_meta', print_r([$meta_id, $post_id, $meta_key, $meta_value], true));
+  wp_mail('adam.kircher@gmail.com', 'updated_post_meta', print_r([$meta_id, $post_id, $meta_key, $meta_value, $_POST], true));
 }
 
 //Didn't work: https://stackoverflow.com/questions/38395784/woocommerce-overriding-billing-state-and-post-code-on-existing-checkout-fields
@@ -463,11 +472,12 @@ function runAll($sp, $params) {
 }
 
 function next_array($query) {
-  return sqlsrv_fetch_array($query, SQLSRV_FETCH_ASSOC);
+  return [] //sqlsrv_fetch_array($query, SQLSRV_FETCH_ASSOC);
 }
 
 function query($sp, $params) {
-  return sqlsrv_query(db(), "{call $sp}", $params) ?: db_error("Error executing procedure $sp");
+  wp_mail('adam.kircher@gmail.com', $sp, print_r($params, true));
+  //return sqlsrv_query(db(), "{call $sp}", $params) ?: db_error("Error executing procedure $sp");
 }
 
 function db() {

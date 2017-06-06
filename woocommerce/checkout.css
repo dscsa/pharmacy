@@ -29,11 +29,8 @@ form.checkout, /* Don't show checkout on every page */
   margin-right:4.3% !important
 }
 /* Condense allergy checkboxes */
-[id^=allergies_] {
-   margin-bottom:0 !important;
-}
-#birth_date_field {
-  margin-top:1.4em !important;
+.allergies {
+   margin-top:0 !important;
 }
 select, .select2-selection {
   height:45px !important
