@@ -46,9 +46,9 @@ function order_fields() {
   ];
 }
 
-function patient_fields() {
+function patient_fields($user_id) {
     //https://docs.woocommerce.com/wc-apidocs/source-function-woocommerce_form_field.html#1841-2061
-    $user_id = get_current_user_id();
+    $user_id = $user_id ?: get_current_user_id();
     $backup_pharmacy = get_user_meta($user_id, 'backup_pharmacy', true);
 
     return [
@@ -112,7 +112,7 @@ function patient_fields() {
     'allergies_sulfa' => [
         'type'      => 'checkbox',
         'class'     => ['allergies', 'form-row-wide'],
-        'label'     => __('Sulfa (Sulfonamide Antibiotics'),
+        'label'     => __('Sulfa (Sulfonamide Antibiotics)'),
         'default'   => get_user_meta($user_id, 'allergies_sulfa', true)
     ],
     'allergies_tetracycline' => [
@@ -124,7 +124,7 @@ function patient_fields() {
     'allergies_other' => [
         'type'      => 'checkbox',
         'class'     => ['allergies', 'form-row-wide'],
-        'label'     =>__( 'Other Allergies').'<input class="input-text " name="allergies_other" id="allergies_other_input" value="'.get_user_meta($user_id, 'allergies_other', true).'">'
+        'label'     =>__( 'List Other Allergies Below').'<input class="input-text " name="allergies_other" id="allergies_other_input" value="'.get_user_meta($user_id, 'allergies_other', true).'">'
     ],
     'birth_date' => [
         'label'     => __('Date of Birth'),
@@ -143,10 +143,18 @@ function patient_fields() {
 }
 
 //Display custom fields on account/details
-add_action('woocommerce_edit_account_form_start', 'custom_edit_account_form');
-function custom_edit_account_form() {
+add_action('woocommerce_admin_order_data_after_order_details', 'custom_admin_edit_account');
+function custom_admin_edit_account($order) {
+  return custom_edit_account_form($order->user_id);
+}
+add_action( 'woocommerce_edit_account_form_start', 'custom_user_edit_account');
+function custom_user_edit_account() {
+  return custom_edit_account_form();
+}
 
-  foreach (patient_fields() as $key => $field) {
+function custom_edit_account_form($user_id) {
+
+  foreach (patient_fields($user_id) as $key => $field) {
     if ($key === "backup_pharmacy") {
       $field['options'] = [$field['default'] => $field['default']];
     }
@@ -189,14 +197,9 @@ function customer_created($user_id) {
   update_user_meta($user_id, 'birth_date', $birth_date);
   update_user_meta($user_id, 'language', $_POST['language']);
 
-  addPatient($first_name, $last_name, $birth_date);
+  $patient_id = addPatient($first_name, $last_name, $birth_date);
 
-  $patient = findPatient($first_name, $last_name, $birth_date);
-
-  //TODO hopefully addPatient will return PartId itself
-  wp_mail('adam.kircher@gmail.com', 'guardian patient', print_r($patient, true));
-
-  update_user_meta($user_id, 'guardian_id', $patient['PatID']);
+  update_user_meta($user_id, 'guardian_id', $patient_id);
 }
 
 // Function to change email address
@@ -243,8 +246,6 @@ function custom_save_account_details($user_id) {
 
   wp_mail('adam.kircher@gmail.com', 'save_custom_fields_to_user', $user_id.' '.print_r($_POST, true));
 
-  $guardian_id = get_user_meta($user_id, 'guardian_id', true);
-
   $allergy_codes = [
     'allergies_none' => 99,
     'allergies_aspirin' => 4,
@@ -267,11 +268,11 @@ function custom_save_account_details($user_id) {
       //Since all checkboxes submitted even with none selected.  If none
       //is selected manually set value to false for all except none
       $value = ($_POST['allergies_none'] AND $key != 'allergies_none') ? NULL : $value;
-      add_remove_allergy($guardian_id, $allergy_codes[$key], $value);
+      add_remove_allergy($allergy_codes[$key], $value);
     }
   }
 
-  update_cell_phone($guardian_id, sanitize_text_field($_POST['phone']));
+  update_cell_phone(sanitize_text_field($_POST['phone']));
 }
 
 add_action('woocommerce_checkout_update_user_meta', 'custom_save_checkout_details');
@@ -280,7 +281,6 @@ function custom_save_checkout_details($user_id) {
   custom_save_account_details($user_id);
 
   update_shipping_address(
-    $guardian_id,
     sanitize_text_field($_POST['shipping_address_1']),
     sanitize_text_field($_POST['shipping_address_2']),
     sanitize_text_field($_POST['shipping_city']),
@@ -290,11 +290,17 @@ function custom_save_checkout_details($user_id) {
 
 //Save Billing info to Guardian
 add_action('updated_user_meta', 'custom_updated_user_meta', 10, 4);
-function custom_updated_user_meta($meta_id, $user_id, $meta_key, $meta_value)
+function custom_updated_user_meta($meta_id, $user_id, $meta_key, $meta_val)
 {
   if ($meta_key != '_trustcommerce_saved_profiles') return;
 
-  wp_mail('adam.kircher@gmail.com', 'updated_trustcommerce_customer_id', print_r([$meta_id, $user_id, $meta_key, $meta_value, $_POST], true));
+ // $meta_value = [
+ //   [customer_id] => Q1USQ7
+ //   [last4] => 1111
+ //   [exp_year] => 19
+ //   [exp_month] => 01
+ // ]
+ update_billing_token($meta_value['customer_id'], $meta_value['last4'], $meta_value['exp_month'], $meta_value['exp_year']);
 }
 
 //Didn't work: https://stackoverflow.com/questions/38395784/woocommerce-overriding-billing-state-and-post-code-on-existing-checkout-fields
@@ -323,13 +329,14 @@ function custom_translate($term) {
     'Allergies' => 'Allergias',
     'Allergies Selected Below' => 'Si Allergias',
     'No Medication Allergies' => 'No Allergias',
-    'Aspirin and salicylates' => 'Drogas de Aspirin',
-    'Erythromycin, Biaxin, Zithromax' => 'Drogas de Erthromycin',
+    'Aspirin' => 'Drogas de Aspirin',
+    'Erythromycin' => 'Drogas de Erthromycin',
     'NSAIDS e.g., ibuprofen, Advil' => 'Drogas de NSAIDS',
-    'Penicillins/cephalosporins e.g., Amoxil, amoxicillin, ampicillin, Keflex, cephalexin' => 'Drogas de Penicillin',
-    'Sulfa drugs e.g., Septra, Bactrim, TMP/SMX' => 'Drogas de Sulfa',
+    'Penicillin' => 'Drogas de Penicillin',
+    'Ampicillin' => 'Drogas de Ampicillin',
+    'Sulfa (Sulfonamide Antibiotics)' => 'Drogas de Sulfa',
     'Tetracycline antibiotics' => 'Antibiotics de Tetra',
-    'Other Allergies' => 'Otras Allegerias',
+    'List Other Allergies Below' => 'Otras Allegerias',
     'Phone' => 'Telefono',
     'List any other medication(s) or supplement(s) you are currently taking' => 'Otras Drogas',
     'Email address' => 'Spanish Email',
@@ -344,7 +351,10 @@ function custom_translate($term) {
     'Current password (leave blank to leave unchanged)' => 'Spanish current password (leave blank to leave unchanged)',
     'New password (leave blank to leave unchanged)' => 'Spanish New password (leave blank to leave unchanged)',
     'Confirm new password' => 'Spanish Confirm new password',
-    'Email Address' => 'Spanish Email Address'
+    'Email Address' => 'Spanish Email Address',
+    'Card Number' => 'Spanish Card Number',
+    'Expiry (MM/YY)' => 'Spanish Exp',
+    'Card Code' => 'Spanish Card Code'
   ];
 
   $english = isset($toEnglish[$term]) ? $toEnglish[$term] : $term;
@@ -390,6 +400,13 @@ function custom_checkout_fields( $fields ) {
   return $fields;
 }
 
+function update_billing_token($trustcommerce_id, $last4, $exp_month, $exp_year) {
+  return run("SirumWeb_AddRemove_Billing(?, ?, ?, ?)", [
+    [guardian_id(), SQLSRV_PARAM_IN],
+    [$trustcommerce_id, SQLSRV_PARAM_IN]
+  ]);
+}
+
 // SirumWeb_AddRemove_Allergy(
 //   @PatID int,     --Carepoint Patient ID number
 //   @AddRem int = 1,-- 1=Add 0= Remove
@@ -406,9 +423,9 @@ function custom_checkout_fields( $fields ) {
 // else if @AlrNumber = 9  -- NSAIDS e.g., ibuprofen, Advil
 // else if @AlrNumber = 99  -- none
 // else if @AlrNumber = 100 -- other
-function add_remove_allergy($guardian_id, $allergy_id, $value) {
+function add_remove_allergy($allergy_id, $value) {
   return run("SirumWeb_AddRemove_Allergy(?, ?, ?, ?)", [
-    [$guardian_id, SQLSRV_PARAM_IN],
+    [guardian_id(), SQLSRV_PARAM_IN],
     [(bool)$value, SQLSRV_PARAM_IN],
     [$allergy_id, SQLSRV_PARAM_IN],
     [$value, SQLSRV_PARAM_IN]
@@ -419,9 +436,9 @@ function add_remove_allergy($guardian_id, $allergy_id, $value) {
 //   @PatID int,  -- ID of Patient
 //   @PatCellPhone VARCHAR(20)
 // }
-function update_cell_phone($guardian_id, $cell_phone) {
+function update_cell_phone($cell_phone) {
   return run("SirumWeb_AddUpdateCellPhone(?, ?)", [
-    [$guardian_id, SQLSRV_PARAM_IN],
+    [guardian_id(), SQLSRV_PARAM_IN],
     [$cell_phone, SQLSRV_PARAM_IN]
   ]);
 }
@@ -435,9 +452,9 @@ function update_cell_phone($guardian_id, $cell_phone) {
 // ,@State varchar(2)     -- State Name
 // ,@Zip varchar(10)      -- Zip Code
 // ,@Country varchar(3)   -- Country Code
-function update_shipping_address($guardian_id, $address_1, $address_2, $city, $zip) {
+function update_shipping_address($address_1, $address_2, $city, $zip) {
   return run("SirumWeb_AddUpdatePatShipAddr(?, ?, ?, NULL, ?, 'GA', ?, 'US')", [
-    [$guardian_id, SQLSRV_PARAM_IN],
+    [guardian_id(), SQLSRV_PARAM_IN],
     [$address_1, SQLSRV_PARAM_IN],
     [$address_2, SQLSRV_PARAM_IN],
     [$city, SQLSRV_PARAM_IN],
@@ -457,7 +474,7 @@ function findPatient($first_name, $last_name, $birth_date) {
     [$last_name, SQLSRV_PARAM_IN],
     [$first_name, SQLSRV_PARAM_IN],
     [$birth_date, SQLSRV_PARAM_IN]
-  ]);
+  ], true);
 }
 
 // SirumWeb_AddEditPatient(
@@ -475,11 +492,14 @@ function findPatient($first_name, $last_name, $birth_date) {
 //   ,@CellPhone varchar(20)    -- Cell Phone
 // )
 function addPatient($first_name, $last_name, $birth_date) {
-  return run("SirumWeb_AddEditPatient(?, NULL, ?, ?)", [
+  run("SirumWeb_AddEditPatient(?, NULL, ?, ?, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)", [
     [$first_name, SQLSRV_PARAM_IN],
     [$last_name, SQLSRV_PARAM_IN],
     [$birth_date, SQLSRV_PARAM_IN]
-  ]);
+  ], true);
+
+  //TODO hopefully addPatient will return PartId itself
+  return findPatient($first_name, $last_name, $birth_date)['PatID'];
 }
 
 // SirumWeb_AddToPreorder(
@@ -516,13 +536,24 @@ function runAll($sp, $params, $live) {
 }
 
 function next_array($query, $live) {
-  return $live ? sqlsrv_fetch_array($query, SQLSRV_FETCH_ASSOC) : ['query not $live'];
+  if ( ! $live) return [];
+
+  db_error("Error executing procedure");
+
+	$arr = sqlsrv_fetch_array($query, SQLSRV_FETCH_ASSOC);
+  wp_mail('adam.kircher@gmail.com', 'sqlsrv_fetch_array', print_r($arr, true));
+
+  return $arr;
 }
 
 function query($sp, $params, $live) {
   return $live
-    ? sqlsrv_query(db(), "{call $sp}", $params) ?: db_error("Error executing procedure $sp")
+    ? sqlsrv_query(db(), "{call $sp}", $params)
     : wp_mail('adam.kircher@gmail.com', $sp, print_r($params, true));
+}
+
+function guardian_id() {
+  return get_user_meta(get_current_user_id(), 'guardian_id', true);
 }
 
 function db() {
