@@ -16,7 +16,6 @@ function load() {
 
   showLang()
   setTimeout(showLang, 3000) //Both languages hide by default.  Need delay because ZIP, City/Town, Credit Card are delayed
-  function showLang() { jQuery('.'+lang).show() }
 
   jQuery("input[name=language]").change(function(){
     jQuery('.spanish, .english').toggle()
@@ -87,6 +86,8 @@ function load() {
       shipAddress.prop('disabled', false).click()
   })
 }
+
+function showLang() { jQuery('.'+lang).show() }
 
 function upgradeMedication(medications) {
   console.log('upgradeMedication')
