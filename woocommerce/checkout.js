@@ -22,10 +22,10 @@ function load() {
     jQuery('.spanish, .english').toggle()
   })
 
-  jQuery("input[name=allergies_none]:checked").on('change', function(){
+  jQuery("input[name=allergies_none]").on('change', function(){
     var children = jQuery(".allergies")
-    console.log('children', children, this.value)
-    this.value ? children.hide() : children.show()
+    console.log('children', children, $(this).val())
+    $(this).val() ? children.hide() : children.show()
   }).triggerHandler('change')
 
   var allergies_other = jQuery('#allergies_other').prop('disabled', true)
