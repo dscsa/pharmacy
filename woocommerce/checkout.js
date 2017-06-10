@@ -19,12 +19,12 @@ function load() {
   function showLang() { jQuery('.'+lang).show() }
 
   jQuery("#language_english").change(function($event){
-    jQuery(this).show()
+    jQuery('.english').show()
     jQuery('.spanish').hide()
   })
 
   jQuery("#language_spanish").change(function(){
-    jQuery(this).show()
+    jQuery('.spanish').show()
     jQuery('.english').hide()
   })
 
