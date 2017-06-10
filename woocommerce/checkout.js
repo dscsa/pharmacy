@@ -18,18 +18,15 @@ function load() {
   setTimeout(showLang, 3000) //Both languages hide by default.  Need delay because ZIP, City/Town, Credit Card are delayed
   function showLang() { jQuery('.'+lang).show() }
 
-  // jQuery("input[name=language]").change(function(){
-  //   jQuery('.'+this.value).show()
-  //   jQuery(this.value == 'english' ? '.spanish' : '.english').hide()
-  // })
-
-  jQuery("#language_english, #language_spanish").change(function(){
-    this.value ? jQuery(this).show() : jQuery(this).hide()
+  jQuery("#language_english").change(function($event){
+    jQuery(this).show()
+    jQuery('.spanish').hide()
   })
 
-  // jQuery("#language_spanish").change(function(){
-  //   this.value ? jQuery(this).show() : jQuery(this).hide()
-  // })
+  jQuery("#language_spanish").change(function(){
+    jQuery(this).show()
+    jQuery('.english').hide()
+  })
 
   jQuery("input[name=allergies_none]").on('change', function(){
     var children = jQuery(".allergies")
