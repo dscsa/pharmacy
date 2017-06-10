@@ -19,7 +19,8 @@ function load() {
   function showLang() { jQuery('.'+lang).show() }
 
   jQuery("input[name=language]").change(function(){
-    jQuery('.spanish, .english').toggle()
+    jQuery('.'+this.value).show()
+    jQuery(this.value == 'english' ? '.spanish' : '.english').hide()
   })
 
   jQuery("input[name=allergies_none]").on('change', function(){
