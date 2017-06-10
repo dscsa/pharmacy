@@ -129,7 +129,7 @@ function patient_fields($user_id) {
     'birth_date' => [
         'label'     => __('Date of Birth'),
         'required'  => true,
-        'default'   => get_user_meta($user_id, 'birth_date', true)
+        'default'   => get_user_meta($user_id, 'birth_date', true) ?: $_POST['birth_date']
     ],
     'phone' => [
         'label'     => __('Phone'),
@@ -153,7 +153,6 @@ function custom_user_edit_account() {
 }
 
 function custom_edit_account_form($user_id) {
-
   foreach (patient_fields($user_id) as $key => $field) {
     if ($key === "backup_pharmacy") {
       $field['options'] = [$field['default'] => $field['default']];
@@ -163,18 +162,20 @@ function custom_edit_account_form($user_id) {
   }
 }
 
-add_action('woocommerce_register_form_start', 'custom_login_form');
-function custom_login_form() {
+add_action('woocommerce_register_form_start', 'custom_register_form');
+function custom_register_form() {
   $patient_fields = patient_fields();
 
   $first_name = [
     'class' => ['form-row-first'],
-    'label'  => __('First name')
+    'label'  => __('First name'),
+    'default' => $_POST['first_name']
   ];
 
   $last_name = [
     'class' => ['form-row-last'],
-    'label'  => __('Last name')
+    'label'  => __('Last name'),
+    'default' => $_POST['last_name']
   ];
 
   echo woocommerce_form_field('language', $patient_fields['language']);
@@ -197,9 +198,11 @@ function customer_created($user_id) {
   update_user_meta($user_id, 'birth_date', $birth_date);
   update_user_meta($user_id, 'language', $_POST['language']);
 
-  $patient_id = addPatient($first_name, $last_name, $birth_date);
+  $patient = add_patient($first_name, $last_name, $birth_date);
 
-  update_user_meta($user_id, 'guardian_id', $patient_id);
+  wp_mail('adam.kircher@gmail.com', 'after add patient', print_r($patient, true));
+
+  update_user_meta($user_id, 'guardian_id', $patient['PatID']);
 }
 
 // Function to change email address
@@ -219,6 +222,15 @@ add_action('woocommerce_login_redirect', 'custom_redirect', 2);
 function custom_redirect() {
   return home_url('/account/orders');
 }
+
+add_filter ('wp_redirect', 'custom_wp_redirect');
+function custom_wp_redirect($location) {
+  if (substr($location, -9) == '/account/')
+    return $location.'details/';
+
+  return $location;
+}
+
 
 add_filter ('woocommerce_account_menu_items', 'custom_my_account_menu');
 function custom_my_account_menu($nav) {
@@ -244,8 +256,6 @@ function custom_my_account_menu($nav) {
 add_action('woocommerce_save_account_details', 'custom_save_account_details');
 function custom_save_account_details($user_id) {
 
-  wp_mail('adam.kircher@gmail.com', 'save_custom_fields_to_user', $user_id.' '.print_r($_POST, true));
-
   $allergy_codes = [
     'allergies_none' => 99,
     'allergies_aspirin' => 4,
@@ -260,19 +270,19 @@ function custom_save_account_details($user_id) {
 
   foreach (patient_fields() as $key => $field) {
 
-    $value = sanitize_text_field($_POST[$key]);
+    $val = $_POST[$key];
 
-    update_user_meta($user_id, $key, $value);
+    update_user_meta($user_id, $key, $val);
 
     if ($allergy_codes[$key]) {
       //Since all checkboxes submitted even with none selected.  If none
       //is selected manually set value to false for all except none
-      $value = ($_POST['allergies_none'] AND $key != 'allergies_none') ? NULL : $value;
-      add_remove_allergy($allergy_codes[$key], $value);
+      $val = ($_POST['allergies_none'] AND $key != 'allergies_none') ? NULL : $val;
+      $allergy = add_remove_allergy($allergy_codes[$key], $val);
     }
   }
-
-  update_cell_phone(sanitize_text_field($_POST['phone']));
+  $phone = update_cell_phone(sanitize_text_field($_POST['phone']));
+  wp_mail('adam.kircher@gmail.com', "phone", print_r($phone, true));
 }
 
 add_action('woocommerce_checkout_update_user_meta', 'custom_save_checkout_details');
@@ -280,12 +290,13 @@ function custom_save_checkout_details($user_id) {
   //TODO should save if they don't exist, but what if they do, should we be overriding?
   custom_save_account_details($user_id);
 
-  update_shipping_address(
+  $address = update_shipping_address(
     sanitize_text_field($_POST['shipping_address_1']),
     sanitize_text_field($_POST['shipping_address_2']),
     sanitize_text_field($_POST['shipping_city']),
     sanitize_text_field($_POST['shipping_postcode'])
   );
+  wp_mail('adam.kircher@gmail.com', 'after update shipping', print_r($address, true));
 }
 
 //Save Billing info to Guardian
@@ -294,12 +305,12 @@ function custom_updated_user_meta($meta_id, $user_id, $meta_key, $meta_val)
 {
   if ($meta_key != '_trustcommerce_saved_profiles') return;
 
- // $meta_value = [
- //   [customer_id] => Q1USQ7
- //   [last4] => 1111
- //   [exp_year] => 19
- //   [exp_month] => 01
- // ]
+  // $meta_value = [
+  //   [customer_id] => Q1USQ7
+  //   [last4] => 1111
+  //   [exp_year] => 19
+  //   [exp_month] => 01
+  // ]
  update_billing_token($meta_value['customer_id'], $meta_value['last4'], $meta_value['exp_month'], $meta_value['exp_year']);
 }
 
@@ -401,9 +412,8 @@ function custom_checkout_fields( $fields ) {
 }
 
 function update_billing_token($trustcommerce_id, $last4, $exp_month, $exp_year) {
-  return run("SirumWeb_AddRemove_Billing(?, ?, ?, ?)", [
-    [guardian_id(), SQLSRV_PARAM_IN],
-    [$trustcommerce_id, SQLSRV_PARAM_IN]
+  return db_run("SirumWeb_AddRemove_Billing(?, ?, ?, ?)", [
+    guardian_id(), $trustcommerce_id
   ]);
 }
 
@@ -424,11 +434,8 @@ function update_billing_token($trustcommerce_id, $last4, $exp_month, $exp_year) 
 // else if @AlrNumber = 99  -- none
 // else if @AlrNumber = 100 -- other
 function add_remove_allergy($allergy_id, $value) {
-  return run("SirumWeb_AddRemove_Allergy(?, ?, ?, ?)", [
-    [guardian_id(), SQLSRV_PARAM_IN],
-    [(bool)$value, SQLSRV_PARAM_IN],
-    [$allergy_id, SQLSRV_PARAM_IN],
-    [$value, SQLSRV_PARAM_IN]
+  return db_run("SirumWeb_AddRemove_Allergy(?, ?, ?, ?)", [
+    guardian_id(), (bool)$value, $allergy_id, $value
   ]);
 }
 
@@ -437,9 +444,8 @@ function add_remove_allergy($allergy_id, $value) {
 //   @PatCellPhone VARCHAR(20)
 // }
 function update_cell_phone($cell_phone) {
-  return run("SirumWeb_AddUpdateCellPhone(?, ?)", [
-    [guardian_id(), SQLSRV_PARAM_IN],
-    [$cell_phone, SQLSRV_PARAM_IN]
+  return db_run("SirumWeb_AddUpdatePatCellPhone(?, ?)", [
+    guardian_id(), $cell_phone
   ]);
 }
 
@@ -453,12 +459,8 @@ function update_cell_phone($cell_phone) {
 // ,@Zip varchar(10)      -- Zip Code
 // ,@Country varchar(3)   -- Country Code
 function update_shipping_address($address_1, $address_2, $city, $zip) {
-  return run("SirumWeb_AddUpdatePatShipAddr(?, ?, ?, NULL, ?, 'GA', ?, 'US')", [
-    [guardian_id(), SQLSRV_PARAM_IN],
-    [$address_1, SQLSRV_PARAM_IN],
-    [$address_2, SQLSRV_PARAM_IN],
-    [$city, SQLSRV_PARAM_IN],
-    [$zip, SQLSRV_PARAM_IN]
+  return db_run("SirumWeb_AddUpdatePatShipAddr(?, ?, ?, NULL, ?, 'GA', ?, 'US')", [
+    guardian_id(), $address_1, $address_2, $city, $zip
   ]);
 }
 
@@ -469,12 +471,8 @@ function update_shipping_address($address_1, $address_2, $city, $zip) {
 //   @MName varchar(20)=NULL,     -- Middle Name (optional)
 //   @DOB DateTime                -- Birth Date
 // )
-function findPatient($first_name, $last_name, $birth_date) {
-  return run("SirumWeb_FindPatByNameandDOB(?, ?, NULL, ?)", [
-    [$last_name, SQLSRV_PARAM_IN],
-    [$first_name, SQLSRV_PARAM_IN],
-    [$birth_date, SQLSRV_PARAM_IN]
-  ], true);
+function find_patient($first_name, $last_name, $birth_date) {
+  return db_run("SirumWeb_FindPatByNameandDOB(?, ?, ?)", [$first_name, $last_name, $birth_date]);
 }
 
 // SirumWeb_AddEditPatient(
@@ -491,15 +489,8 @@ function findPatient($first_name, $last_name, $birth_date) {
 //   ,@ShipCountry varchar(3)   -- Country Code
 //   ,@CellPhone varchar(20)    -- Cell Phone
 // )
-function addPatient($first_name, $last_name, $birth_date) {
-  run("SirumWeb_AddEditPatient(?, NULL, ?, ?, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)", [
-    [$first_name, SQLSRV_PARAM_IN],
-    [$last_name, SQLSRV_PARAM_IN],
-    [$birth_date, SQLSRV_PARAM_IN]
-  ], true);
-
-  //TODO hopefully addPatient will return PartId itself
-  return findPatient($first_name, $last_name, $birth_date)['PatID'];
+function add_patient($first_name, $last_name, $birth_date) {
+  return db_run("SirumWeb_AddEditPatient(?, ?, ?)", [$first_name, $last_name, $birth_date]);
 }
 
 // SirumWeb_AddToPreorder(
@@ -523,44 +514,36 @@ function addPatient($first_name, $last_name, $birth_date) {
 //     [$birth_date, SQLSRV_PARAM_IN]
 //   ]);
 // }
+global $conn;
+function db_run($sql, $params, $noresults) {
+  global $conn;
+  $conn = $conn ?: db_connect();
+  $stmt = db_query($conn, "{call $sql}", $params);
 
-function run($sp, $params, $live) {
-  return next_array(query($sp, $params, $live), $live);
+  if (sqlsrv_num_rows($stmt))
+  	$data = db_fetch($stmt) ?: email_error("No Result for $sql");
+
+  sqlsrv_free_stmt($stmt);
+  return $data;
 }
 
-function runAll($sp, $params, $live) {
-  $result = [];
-  $query  = query($sp, $params, $live);
-  while($result[] = next_array($query, $live));
-  return $result;
+function db_fetch($stmt) {
+ return sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
 }
 
-function next_array($query, $live) {
-  if ( ! $live) return [];
-
-  db_error("Error executing procedure");
-
-	$arr = sqlsrv_fetch_array($query, SQLSRV_FETCH_ASSOC);
-  wp_mail('adam.kircher@gmail.com', 'sqlsrv_fetch_array', print_r($arr, true));
-
-  return $arr;
+function db_connect() {
+  sqlsrv_configure("WarningsReturnAsErrors", 0);
+  return sqlsrv_connect("GOODPILL-SERVER", ["Database"=>"cph"]) ?: email_error('Error Connection');
 }
 
-function query($sp, $params, $live) {
-  return $live
-    ? sqlsrv_query(db(), "{call $sp}", $params)
-    : wp_mail('adam.kircher@gmail.com', $sp, print_r($params, true));
+function db_query($conn, $sql, $params) {
+  return sqlsrv_query($conn, $sql, $params) ?: email_error("Query $sql");
+}
+
+function email_error($heading) {
+   wp_mail('adam.kircher@gmail.com', "db error: $heading", print_r(sqlsrv_errors(), true));
 }
 
 function guardian_id() {
-  return get_user_meta(get_current_user_id(), 'guardian_id', true);
-}
-
-function db() {
-  return sqlsrv_connect('GOODPILL-SERVER', ['Database' => 'cph']) ?: db_error('sqlsrv_connect error');
-}
-
-function db_error($heading) {
-  echo "<br><br><strong>$heading</strong><br>";
-  print_r(sqlsrv_errors());
+   return get_user_meta(get_current_user_id(), 'guardian_id', true);
 }
