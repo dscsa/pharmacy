@@ -198,11 +198,9 @@ function customer_created($user_id) {
   update_user_meta($user_id, 'birth_date', $birth_date);
   update_user_meta($user_id, 'language', $_POST['language']);
 
-  $patient = add_patient($first_name, $last_name, $birth_date);
+  $patient_id = add_patient($first_name, $last_name, $birth_date);
 
-  wp_mail('adam.kircher@gmail.com', 'after add patient', print_r($patient, true));
-
-  update_user_meta($user_id, 'guardian_id', $patient['PatID']);
+  update_user_meta($user_id, 'guardian_id', $patient_id);
 }
 
 // Function to change email address
@@ -281,8 +279,9 @@ function custom_save_account_details($user_id) {
       $allergy = add_remove_allergy($allergy_codes[$key], $val);
     }
   }
+  wp_mail('adam.kircher@gmail.com', "phone", $_POST['phone'].' | '.sanitize_text_field($_POST['phone']));
+
   $phone = update_cell_phone(sanitize_text_field($_POST['phone']));
-  wp_mail('adam.kircher@gmail.com', "phone", print_r($phone, true));
 }
 
 add_action('woocommerce_checkout_update_user_meta', 'custom_save_checkout_details');
@@ -490,7 +489,7 @@ function find_patient($first_name, $last_name, $birth_date) {
 //   ,@CellPhone varchar(20)    -- Cell Phone
 // )
 function add_patient($first_name, $last_name, $birth_date) {
-  return db_run("SirumWeb_AddEditPatient(?, ?, ?)", [$first_name, $last_name, $birth_date]);
+  return db_run("SirumWeb_AddEditPatient(?, ?, ?)", [$first_name, $last_name, $birth_date])['PatID'];
 }
 
 // SirumWeb_AddToPreorder(
@@ -520,8 +519,12 @@ function db_run($sql, $params, $noresults) {
   $conn = $conn ?: db_connect();
   $stmt = db_query($conn, "{call $sql}", $params);
 
-  if (sqlsrv_num_rows($stmt))
-  	$data = db_fetch($stmt) ?: email_error("No Result for $sql");
+  if ( ! sqlsrv_has_rows($stmt)) {
+    email_error("No rows for result of $sql");
+    return [];
+  }
+
+  $data = db_fetch($stmt) ?: email_error("No Result for $sql");
 
   sqlsrv_free_stmt($stmt);
   return $data;
@@ -537,6 +540,8 @@ function db_connect() {
 }
 
 function db_query($conn, $sql, $params) {
+  wp_mail('adam.kircher@gmail.com', "db query: $sql", print_r($params, true));
+
   return sqlsrv_query($conn, $sql, $params) ?: email_error("Query $sql");
 }
 
