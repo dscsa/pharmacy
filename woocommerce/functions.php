@@ -276,10 +276,9 @@ function custom_save_account_details($user_id) {
       //Since all checkboxes submitted even with none selected.  If none
       //is selected manually set value to false for all except none
       $val = ($_POST['allergies_none'] AND $key != 'allergies_none') ? NULL : $val;
-      $allergy = add_remove_allergy($allergy_codes[$key], $val);
+      add_remove_allergy($allergy_codes[$key], $val);
     }
   }
-  wp_mail('adam.kircher@gmail.com', "phone", $_POST['phone'].' | '.sanitize_text_field($_POST['phone']));
 
   $phone = update_cell_phone(sanitize_text_field($_POST['phone']));
 }
@@ -520,11 +519,13 @@ function db_run($sql, $params, $noresults) {
   $stmt = db_query($conn, "{call $sql}", $params);
 
   if ( ! sqlsrv_has_rows($stmt)) {
-    email_error("No rows for result of $sql");
+    email_error("no rows for result of $sql");
     return [];
   }
 
-  $data = db_fetch($stmt) ?: email_error("No Result for $sql");
+  $data = db_fetch($stmt) ?: email_error("fetching $sql");
+
+  wp_mail('adam.kircher@gmail.com', "db query: $sql", print_r($params, true).print_r($data, true));
 
   sqlsrv_free_stmt($stmt);
   return $data;
@@ -540,8 +541,6 @@ function db_connect() {
 }
 
 function db_query($conn, $sql, $params) {
-  wp_mail('adam.kircher@gmail.com', "db query: $sql", print_r($params, true));
-
   return sqlsrv_query($conn, $sql, $params) ?: email_error("Query $sql");
 }
 
