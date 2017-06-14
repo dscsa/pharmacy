@@ -1,17 +1,16 @@
 #To Expose Server Via Comcast
 1-800-391-3000 ask for Tech Support
 
-1. Run node server on desired port
-2. Turn off Control Panel > Windows Firewall
-3. Set IP info on networking card
+1. Turn off Control Panel > Windows Firewall
+2. Set IP info on networking card
   - Control Planel > Network and Sharing Center > Change Adapter Setting (left menu) > Right Click Ethernet Properties > IPV4 Properties
   - IP address 96.67.225.25 (this is one less than whatismyip.com provided ".26")
   - Subnet Mask 255.255.255.252
   - Default Gateway 96.67.225.26 (this is what whatismyip.com provided)
   - Preferred DNS 75.75.75.75
   - Alternate DNS 75.75.76.76
-4. Run ipconfig /all to double check setting were saved
-5. Goto gateway 96.67.225.26
+3. Run ipconfig /all to double check setting were saved
+4. Goto gateway 96.67.225.26
   - Login with cusadmin, highspeed
   - Goto Advanced > Port Forwarding > Enable > Add Service > Custom > Add Server & Port
   - Goto Advanced > Port Management > Check box to disable all rules and allow inbound traffic
@@ -41,7 +40,7 @@ For Missing Dependency Errors:
 * Features: SMTP Server
 - Server Manager > Tools > Internet Information Services (IIS)
 * Add Default site
-* Binding http, port 80, IP = All Unassigned
+* Binding http, port 80, IP = All Unassigned, hostname = *
 * Default Document = index.php
 * You may need to add IUSR as user to wordpress installation folder (with read and write)
 * Handler Mappings = *.php, Module = FastCgiModule, Executable = D;\Program Files (x86)\PHP\v5.6\php-cgi.exe
@@ -59,6 +58,9 @@ For Missing Dependency Errors:
 * Install ODBC Driver 11 for SQL Server (x64 version: just double click the exe once downloaded)
 
 #Install SSL Certs
-npm install -g letsencrypt-cli
-
-letsencrypt certonly --agree-tos --email adam@sirum.org --standalone --config-dir C: /Users/Administrator/letsencrypt --domains webform.goodpill.org --server https://acme-v01.api.letsencrypt.org/directory --renew-within 60
+- I installed Server Manager > Manage > Add Role and Features > Feature > DNS, but not sure if that is necessary or not.
+- Set MIME type for "." (no) filetype (in IIS) to "text/plain" (this is needed for the authtoken to be public)
+- Extract letsencrypt-win-simple.exe https://github.com/Lone-Coder/letsencrypt-win-simple/releases
+- Run with domain and manual (-M) flag.  
+- Installation is C:/Users/Administrator/wordpress
+- If error, make sure .well-known directory is accessible
