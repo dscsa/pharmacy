@@ -65,12 +65,12 @@ function load() {
 
   jQuery("#source_english")
   .change(function(){
-    jQuery('#medication[]_field').toggle()
+    jQuery('#medication\\[\\]_field').toggle()
     jQuery('.erx, .pharmacy').toggle()
   })
 
   jQuery("#source_spanish").change(function(){
-    jQuery('#medication[]_field').toggle()
+    jQuery('#medication\\[\\]_field').toggle()
     jQuery('.erx, .pharmacy').toggle()
   })
 
@@ -94,7 +94,7 @@ function load() {
 function upgradeMedication(medications) {
   console.log('upgradeMedication')
 
-  var select = jQuery('#medication[]')
+  var select = jQuery('#medication\\[\\]')
   select.empty()
 
   var medicationGsheet = "https://spreadsheets.google.com/feeds/list/1MV5mq6605X7U1Np2fpwZ1RHkaCpjsb7YqieLQsEQK88/ovrg94l/public/values?alt=json"
