@@ -29,12 +29,3 @@
 .select2-container--default .select2-selection--multiple .select2-selection__choice__remove {
   color:#fff !important
 }
-
-/*condenxe allergy checkboxes*/
-[id^=allergies\[] {
-  margin-bottom:-5px !important
-}
-/*don't condense the last (text) one */
-[id^=allergies\[other] {
-  margin:5px 0 !important;
-}
