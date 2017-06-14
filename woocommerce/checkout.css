@@ -1,5 +1,5 @@
 form.checkout, /* Don't show checkout on every page */
-#medication_field, /* don't force medication on eRx (default) */
+#medication\\[\\]_field, /* don't force medication on eRx (default) */
 .woocommerce-message a, /* don't show links in messages since often wrong link */
 .pharmacy, /*pharmacy transfer off until selected */
 .erx, /*erx transfer off until selected */
