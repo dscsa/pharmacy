@@ -38,7 +38,7 @@ function order_fields() {
         'pharmacy' => 'Spanish Source Pharmacy'
       ]
     ],
-    'medication'  => [
+    'medication[]'  => [
       'type'   	  => 'select',
       'label'     => __('Search and select medications by generic name that you want to transfer to Good Pill'),
       'options'   => ['']
@@ -75,7 +75,6 @@ function patient_fields($user_id) {
         'type'   	  => 'radio',
         'label'     => __('Allergies'),
         'label_class' => ['radio'],
-        'required'  => true,
         'options'   => ['' => __('Allergies Selected Below'), 99 => __('No Medication Allergies')],
     	  'default'   => get_user_meta($user_id, 'allergies_none', true) ?: ''
     ],
@@ -279,8 +278,11 @@ function custom_save_account_details($user_id) {
       add_remove_allergy($allergy_codes[$key], $val);
     }
   }
+  wp_mail('adam.kircher@gmail.com', 'save account data', print_r($_POST, true));
 
-  $phone = update_cell_phone(sanitize_text_field($_POST['phone']));
+  append_comment(sanitize_text_field($_POST['medications_other']));
+  update_email(sanitize_text_field($_POST['account_email']));
+  update_phone(sanitize_text_field($_POST['phone']));
 }
 
 add_action('woocommerce_checkout_update_user_meta', 'custom_save_checkout_details');
@@ -433,7 +435,7 @@ function update_billing_token($trustcommerce_id, $last4, $exp_month, $exp_year) 
 // else if @AlrNumber = 100 -- other
 function add_remove_allergy($allergy_id, $value) {
   return db_run("SirumWeb_AddRemove_Allergy(?, ?, ?, ?)", [
-    guardian_id(), (bool)$value, $allergy_id, $value
+    guardian_id(), $value ? 1 : 0, $allergy_id, $value
   ]);
 }
 
@@ -441,7 +443,7 @@ function add_remove_allergy($allergy_id, $value) {
 //   @PatID int,  -- ID of Patient
 //   @PatCellPhone VARCHAR(20)
 // }
-function update_cell_phone($cell_phone) {
+function update_phone($cell_phone) {
   return db_run("SirumWeb_AddUpdatePatCellPhone(?, ?)", [
     guardian_id(), $cell_phone
   ]);
@@ -491,6 +493,44 @@ function add_patient($first_name, $last_name, $birth_date) {
   return db_run("SirumWeb_AddEditPatient(?, ?, ?)", [$first_name, $last_name, $birth_date])['PatID'];
 }
 
+// Procedure dbo.SirumWeb_AddToPatientComment (@PatID int, @CmtToAdd VARCHAR(4096)
+// The comment will be appended to the existing comment if it is not already in the comment field.
+function append_comment($comment) {
+  return db_run("SirumWeb_AddToPatientComment(?, ?)", [guardian_id(), $comment]);
+}
+
+// Create Procedure dbo.SirumWeb_AddToPreorder(
+//    @PatID int
+//   ,@NDC varchar(11) ='' -- NDC to add
+//   ,@DrugName varchar(60) ='' -- Drug Name to look up NDC
+//   ,@PharmacyOrgID int -- Org_id from Pharmacy List
+//   ,@PharmacyName varchar(80)
+//   ,@PharmacyAddr1 varchar(50)    -- Address Line 1
+//   ,@PharmacyAddr2 varchar(50)    -- Address Line 2
+//   ,@PharmacyAddr3 varchar(50)    -- Address Line 3
+//   ,@PharmacyCity varchar(20)     -- City Name
+//   ,@PharmacyState varchar(2)     -- State Name
+//   ,@PharmacyZip varchar(10)      -- Zip Code
+//   ,@PharmacyPhone varchar(20)   -- Phone Number
+//   ,@PharmacyFaxNo varchar(20)   -- Phone Fax Number
+// If you send the NDC, it will use it.  If you do not send and NCD it will attempt to look up the drug by the name.  I am not sure that this will work correctly, the name you pass in would most likely have to be an exact match, even though I am using  like logic  (ie “%Aspirin 325mg% “) to search.  We may have to work on this a bit more
+function add_preorder($drug_name, $pharmacy) {
+   wp_mail('adam.kircher@gmail.com', 'add preorder', print_r($pharmacy, true));
+  //return db_run("SirumWeb_AddToPreorder(?, ?)", [guardian_id(), $drug_name]);
+}
+
+// Procedure dbo.SirumWeb_AddUpdatePatientUD (@PatID int, @UDNumber int, @UDValue varchar(50) )
+// Set the @UD number for the3 field that you want to update, and set the text value.
+function update_ud($pharmacy) {
+    return db_run("SirumWeb_AddUpdatePatientUD(?, ?)", [guardian_id(), $drug_name]);
+}
+
+//Procedure dbo.SirumWeb_AddUpdatePatEmail (@PatID int, @EMailAddress VARCHAR(255)
+//Set the patID and the new email address
+function update_email($email) {
+    return db_run("SirumWeb_AddUpdatePatEmail(?, ?)", [guardian_id(), $email]);
+}
+
 // SirumWeb_AddToPreorder(
 //  @PatID int
 // ,@NDC varchar(11)  -- NDC to add
@@ -525,9 +565,11 @@ function db_run($sql, $params, $noresults) {
 
   $data = db_fetch($stmt) ?: email_error("fetching $sql");
 
-  wp_mail('adam.kircher@gmail.com', "db query: $sql", print_r($params, true).print_r($data, true));
-
   sqlsrv_free_stmt($stmt);
+
+  wp_mail('adam.kircher@gmail.com', "db query: $sql", print_r($params, true).print_r($data, true));
+  wp_mail('adam.kircher@gmail.com', "db testing", print_r(sqlsrv_errors(), true));
+
   return $data;
 }
 
