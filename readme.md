@@ -63,4 +63,5 @@ For Missing Dependency Errors:
 - Extract letsencrypt-win-simple.exe https://github.com/Lone-Coder/letsencrypt-win-simple/releases
 - Run with domain and manual (-M) flag.  
 - Installation is C:/Users/Administrator/wordpress
-- If error, make sure .well-known directory is accessible
+- If error, make sure token within .well-known directory is accessible via the provided domain
+- Run IIS > SSL Settings > Add Domain and Certificate
