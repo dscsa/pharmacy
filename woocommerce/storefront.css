@@ -17,8 +17,8 @@
   margin-top: -50px;
 }
 .woocommerce-breadcrumb {
-  margin-top:-55px;
-  margin-bottom:0 !important
+  text-align: right;
+  margin-bottom:-50px !important
 }
 .entry-title {
   position: absolute;
