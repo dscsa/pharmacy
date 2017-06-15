@@ -1,5 +1,7 @@
 .site-header {
-  padding-top:1em !important
+  background-color:transparent !important;
+  padding-top:1em !important;
+  margin-bottom:2em !important
 }
 .site-branding {
   width:100% !important
@@ -25,7 +27,6 @@
   left: 0;
   right: 0;
   top:10px;
-  z-index:999;
 }
 .entry-header {
   padding-bottom:0 !important
