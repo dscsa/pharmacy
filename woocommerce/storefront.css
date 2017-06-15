@@ -5,7 +5,7 @@
   width:100% !important
 }
 .site-title a {
-  font-weight:300 !important
+  font-size:20px
 }
 .site-search, .site-header-cart, .site-info {
   display:none !important
@@ -13,7 +13,7 @@
 .main-navigation {
   width: 100% !important;
   text-align: right;
-  margin-top: -55px;
+  margin-top: -50px;
 }
 .woocommerce-breadcrumb {
   text-align: right;
