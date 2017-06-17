@@ -17,7 +17,7 @@ form.checkout, /* Don't show checkout on every page */
   float:right;
   width:69% !important
 }
-.col2-set {
+.col2-set, #order_review {
   width:100% !important
 }
 .woocommerce-message {
