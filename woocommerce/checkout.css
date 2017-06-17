@@ -17,22 +17,20 @@ form.checkout, /* Don't show checkout on every page */
   float:right;
   width:69% !important
 }
-.col2-set.addresses {
+.col2-set {
   width:100% !important
 }
 .woocommerce-message {
   display:none
 }
-.woocommerce-info, form.checkout {
+.woocommerce-info {
   margin-top:-220px;
+}
+form.checkout {
+  margin-top:-160px;
 }
 #order_review_heading {
   margin-top:-30px
-}
-/*Align payment with billing & shipping */
-.woocommerce-checkout-review-order {
-  width:69% !important;
-  margin-right:4.3% !important
 }
 /* Condense allergy checkboxes */
 .allergies {
