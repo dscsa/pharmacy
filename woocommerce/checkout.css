@@ -13,7 +13,7 @@ form.checkout, /* Don't show checkout on every page */
   display:none
 }
 /*Default is set for 2 columns */
-.col2-set, #order_review_heading  {
+.woocommerce-info, .woocommerce-message, form.checkout_coupon, .col2-set, #order_review_heading  {
   width:69% !important
 }
 .col2-set.addresses {

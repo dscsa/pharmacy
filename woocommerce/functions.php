@@ -411,6 +411,11 @@ function custom_checkout_fields( $fields ) {
   return $fields;
 }
 
+add_action('wp_enqueue_scripts', 'remove_sticky_checkout', 99);
+function remove_sticky_checkout() {
+  wp_dequeue_script('storefront-sticky-payment' );
+}
+
 function update_billing_token($trustcommerce_id, $last4, $exp_month, $exp_year) {
   return db_run("SirumWeb_AddRemove_Billing(?, ?, ?, ?)", [
     guardian_id(), $trustcommerce_id
