@@ -20,6 +20,9 @@ form.checkout, /* Don't show checkout on every page */
 .col2-set.addresses {
   width:100% !important
 }
+.woocommerce-message {
+  display:none
+}
 .woocommerce-info, form.checkout {
   margin-top:-220px;
 }
