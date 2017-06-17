@@ -20,9 +20,8 @@ form.checkout, /* Don't show checkout on every page */
 .col2-set.addresses {
   width:100% !important
 }
-.woocommerce-info, form.checkout_coupon {
+.woocommerce-info, form.checkout {
   margin-top:-220px;
-  margin-bottom:-220px
 }
 #order_review_heading {
   margin-top:-30px
