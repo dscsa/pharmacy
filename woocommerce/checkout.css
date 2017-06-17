@@ -13,11 +13,16 @@ form.checkout, /* Don't show checkout on every page */
   display:none
 }
 /*Default is set for 2 columns */
-.woocommerce-info, .woocommerce-message, form.checkout_coupon, .col2-set, #order_review_heading  {
+.woocommerce-info, .woocommerce-message, form.checkout_coupon, form.checkout  {
+  float:right;
   width:69% !important
 }
 .col2-set.addresses {
   width:100% !important
+}
+.woocommerce-info, form.checkout_coupon {
+  margin-top:-220px;
+  margin-bottom:-220px
 }
 #order_review_heading {
   margin-top:-30px
