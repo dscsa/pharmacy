@@ -28,7 +28,7 @@ form.checkout, /* Don't show checkout on every page */
 }
 form.checkout_coupon {
   margin-top:-210px;
-  margin-bottom:-210px
+  margin-bottom:210px
 }
 form.checkout {
   margin-top:-210px
