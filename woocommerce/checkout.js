@@ -1,57 +1,7 @@
 jQuery(load)
 
 function load() {
-
-  //hide saved cards on everything but the account details page which has a password field
-  //for some reason there is a space in the id so need the \\20
-  if (window.location.pathname == '/account/address/')
-    jQuery('#tc-saved-cards\\20').next().show()
-
-  if ( ! ~ ['/account/details/', '/account/'].indexOf(window.location.pathname))
-    return
-
-  upgradePharmacy()
-
-  jQuery("#language_english").change(function($event){
-    jQuery('.english').show()
-    jQuery('.spanish').hide()
-  })
-
-  jQuery("#language_spanish").change(function(){
-    jQuery('.spanish').show()
-    jQuery('.english').hide()
-  })
-
-  showLang()
-  setTimeout(showLang, 3000) //Need delay because ZIP, City/Town, Credit Card are delayed
-  function showLang() { jQuery("input[name=language]:checked").triggerHandler('change') }
-
-  jQuery("input[name=allergies_none]").on('change', function(){
-    var children = jQuery(".allergies")
-    this.value ? children.hide() : children.show()
-  })
-  jQuery("input[name=allergies_none]:checked").triggerHandler('change')
-
-  var allergies_other = jQuery('#allergies_other').prop('disabled', true)
-  jQuery('#allergies_other_input').on('input', function() {
-    allergies_other.prop('checked', this.value)
-  })
-
-  jQuery('#birth_date').prop('type', 'date') //can't easily set date type in woocommerce
-
-  if (window.location.pathname != '/account/')
-    return jQuery('.pharmacy').show()//Both pharmacy labels hidden by default.  Show the one with value
-
-  if (window.location.search == '?register') {
-    jQuery('#customer_login > div').toggle()
-    return jQuery("form.register").submit(function($event){
-      this.username.value = this.first_name.value+' '+this.last_name.value+' '+this.birth_date.value
-    })
-  }
-
-  if (window.location.search == '?login')
-    return
-
+  
   jQuery('.erx').show()
 
   upgradeMedication()

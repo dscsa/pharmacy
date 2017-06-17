@@ -1,13 +1,6 @@
-form.checkout, /* Don't show checkout on every page */
 #medication\[\]_field, /* don't force medication on eRx (default) */
-.woocommerce-message a, /* don't show links in messages since often wrong link */
 .pharmacy, /*pharmacy transfer off until selected */
 .erx, /*erx transfer off until selected */
-.spanish, /* translation */
-.cart-subtotal, /*Hide subtotal row on checkout */
-.shipping, /* Hide shipping cost row on checkout */
-.product-name, /*Hide product name row on checkout */
-.product-total,  /*Hide product total row on checkout */
 .create-account /* Hide trust commerce save card option */
 {
   display:none

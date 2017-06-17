@@ -1,0 +1,74 @@
+.site-header {
+  background-color:transparent !important;
+  padding-top:1em !important;
+}
+.site-branding {
+  width:100% !important
+}
+.site-title a {
+  font-size:20px
+}
+.site-search, .site-header-cart, .site-info {
+  display:none !important
+}
+.main-navigation {
+  width: 100% !important;
+  text-align: right;
+  margin-top: -50px;
+}
+.woocommerce-breadcrumb {
+  text-align: right;
+  margin-top:-10px !important;
+  margin-bottom:-35px !important
+}
+.entry-title {
+  position: absolute;
+  text-align:center;
+  left: 0;
+  right: 0;
+  top:10px;
+}
+.entry-header {
+  padding-bottom:0 !important
+}
+.woocommerce-error {
+  margin-top:0 !important;
+  margin-bottom:-10px !important
+}
+/* Current tc plugin shows saved cards on every page.  Hide by default */
+#tc-saved-cards\20  {
+  display:none;
+  margin-top:100px !important
+}
+.woocommerce-order, /* duplicated when showing order success */
+.woocommerce-order-overview,
+#tc-saved-cards\20 + table /*See above */
+{
+  display:none
+}
+#reg_username, label[for=reg_username] {
+  display:none !important;
+}
+#customer_login > div {
+  width:100% !important
+}
+#customer_login .col-2 {
+  display:none
+}
+#customer_login #birth_date_field {
+  margin-bottom:0
+}
+[class*=trustcommerce_update_cards] { /*uneved edit saved card buttons */
+  position: relative;
+  top: -1.618em
+}
+form.checkout, /* Don't show checkout on every page */
+.woocommerce-message a, /* don't show links in messages since often wrong link */
+.spanish, /* translation */
+.cart-subtotal, /*Hide subtotal row on checkout */
+.shipping, /* Hide shipping cost row on checkout */
+.product-name, /*Hide product name row on checkout */
+.product-total  /*Hide product total row on checkout */
+{
+  display:none
+}
