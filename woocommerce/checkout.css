@@ -1,3 +1,4 @@
+form.checkout, /* Don't show checkout on every page */
 #medication\[\]_field, /* don't force medication on eRx (default) */
 .pharmacy, /*pharmacy transfer off until selected */
 .erx, /*erx transfer off until selected */
@@ -24,10 +25,7 @@
 .woocommerce > .woocommerce-info {
   margin-top:-290px
 }
-form.checkout_coupon {
-  margin-top:-210px;
-}
-#order_review_heading {
+form.checkout, #order_review_heading {
   margin-top:-30px
 }
 
