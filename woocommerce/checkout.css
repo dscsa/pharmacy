@@ -6,7 +6,7 @@
   display:none
 }
 /*Default is set for 2 columns */
-.woocommerce-info, form.checkout_coupon, form.checkout  {
+.woocommerce > .woocommerce-info, form.checkout_coupon, form.checkout  {
   display:block;
   float:right;
   width:69% !important
