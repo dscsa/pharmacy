@@ -1,4 +1,3 @@
-form.checkout, /* Don't show checkout on every page */
 #medication\[\]_field, /* don't force medication on eRx (default) */
 .pharmacy, /*pharmacy transfer off until selected */
 .erx, /*erx transfer off until selected */
