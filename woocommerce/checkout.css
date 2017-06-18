@@ -12,7 +12,6 @@
 /*Default is set for 2 columns */
 @media screen and ( min-width: 768px ) {
   .woocommerce > .woocommerce-info, form.checkout_coupon, form.checkout  {
-    float:right;
     width:69% !important
   }
 }
