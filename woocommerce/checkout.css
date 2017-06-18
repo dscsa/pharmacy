@@ -6,7 +6,7 @@
   display:none
 }
 /*Default is set for 2 columns */
-.woocommerce-info, .woocommerce-message, form.checkout_coupon, form.checkout  {
+.woocommerce-info, form.checkout_coupon, form.checkout  {
   display:block;
   float:right;
   width:69% !important
@@ -14,7 +14,7 @@
 .col2-set, #order_review {
   width:100% !important
 }
-.woocommerce-message {
+.woocommerce > .woocommerce-message {
   display:none
 }
 .woocommerce-info {
@@ -34,14 +34,7 @@ form.checkout {
 .allergies {
    margin-top:-25px;
 }
-.radio {
-  display:inline-block !important
-}
-.input-radio {
-  display:inline-block !important;
-  margin-left:10px;
-  margin-right:4px
-}
+
 /*
 #billing_country_field,
 #shipping_country_field,

@@ -62,8 +62,15 @@
   position: relative;
   top: -1.618em
 }
-
-.woocommerce-info, /* hide coupon link */
+.radio {
+  display:inline-block !important
+}
+.input-radio {
+  display:inline-block !important;
+  margin-left:10px;
+  margin-right:4px
+}
+.woocommerce > .woocommerce-info, /* hide coupon link */
 form.checkout, /* Don't show checkout on every page */
 .woocommerce-message a, /* don't show links in messages since often wrong link */
 .spanish, /* translation */
