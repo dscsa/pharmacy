@@ -33,7 +33,7 @@
 }
 .woocommerce-error {
   margin-top:0 !important;
-  margin-bottom:-10px !important
+  margin-bottom:10px !important
 }
 /* Current tc plugin shows saved cards on every page.  Hide by default */
 #tc-saved-cards\20  {

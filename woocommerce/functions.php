@@ -10,12 +10,15 @@
 // Register custom style sheets and javascript.
 add_action( 'wp_enqueue_scripts', 'register_custom_plugin_styles' );
 function register_custom_plugin_styles() {
-  wp_enqueue_style('account', 'https://dscsa.github.io/webform/woocommerce/account.css');
-  wp_enqueue_style('checkout', 'https://dscsa.github.io/webform/woocommerce/checkout.css');
-  wp_enqueue_style('storefront', 'https://dscsa.github.io/webform/woocommerce/storefront.css');
-  wp_enqueue_style('select', 'https://dscsa.github.io/webform/woocommerce/select2.css');
+  //is_wc_endpoint_url('orders') and is_wc_endpoint_url('account-details') seem to work
+  wp_enqueue_script('dscsa-common', 'https://dscsa.github.io/webform/woocommerce/common.js', ['jquery']);
+  wp_enqueue_style('dscsa-common', 'https://dscsa.github.io/webform/woocommerce/common.css');
+  wp_enqueue_style('dscsa-select', 'https://dscsa.github.io/webform/woocommerce/select2.css');
 
-  wp_enqueue_script('order', 'https://dscsa.github.io/webform/woocommerce/checkout.js', ['jquery']);
+  if (is_checkout() AND ! is_wc_endpoint_url()) {
+     wp_enqueue_style('dscsa-checkout', 'https://dscsa.github.io/webform/woocommerce/checkout.css');
+     wp_enqueue_script('dscsa-checkout', 'https://dscsa.github.io/webform/woocommerce/checkout.js', ['jquery']);
+  }
 }
 
 function order_fields() {
@@ -78,49 +81,49 @@ function patient_fields($user_id) {
         'options'   => ['' => __('Allergies Selected Below'), 99 => __('No Medication Allergies')],
     	  'default'   => get_user_meta($user_id, 'allergies_none', true) ?: ''
     ],
-    'allergies_aspirin' => [
+    'allergies[4]' => [
         'type'      => 'checkbox',
         'class'     => ['allergies', 'form-row-wide'],
         'label'     => __('Aspirin'),
         'default'   => get_user_meta($user_id, 'allergies_aspirin', true)
     ],
-    'allergies_penicillin' => [
+    'allergies[5]' => [
         'type'      => 'checkbox',
         'class'     => ['allergies', 'form-row-wide'],
         'label'     => __('Penicillin'),
         'default'   => get_user_meta($user_id, 'allergies_penicillin', true)
     ],
-    'allergies_ampicillin' => [
+    'allergies[6]' => [
         'type'      => 'checkbox',
         'class'     => ['allergies', 'form-row-wide'],
         'label'     => __('Ampicillin'),
         'default'   => get_user_meta($user_id, 'allergies_ampicillin', true)
     ],
-    'allergies_erythromycin' => [
+    'allergies[7]' => [
         'type'      => 'checkbox',
         'class'     => ['allergies', 'form-row-wide'],
         'label'     => __('Erythromycin'),
         'default'   => get_user_meta($user_id, 'allergies_erythromycin', true)
     ],
-    'allergies_nsaids' => [
+    'allergies[9]' => [
         'type'      => 'checkbox',
         'class'     => ['allergies', 'form-row-wide'],
         'label'     => __('NSAIDS e.g., ibuprofen, Advil'),
         'default'   => get_user_meta($user_id, 'allergies_nsaids', true)
     ],
-    'allergies_sulfa' => [
+    'allergies[3]' => [
         'type'      => 'checkbox',
         'class'     => ['allergies', 'form-row-wide'],
         'label'     => __('Sulfa (Sulfonamide Antibiotics)'),
         'default'   => get_user_meta($user_id, 'allergies_sulfa', true)
     ],
-    'allergies_tetracycline' => [
+    'allergies[1]' => [
         'type'      => 'checkbox',
         'class'     => ['allergies', 'form-row-wide'],
         'label'     => __('Tetracycline antibiotics'),
         'default'   => get_user_meta($user_id, 'allergies_tetracycline', true)
     ],
-    'allergies_other' => [
+    'allergies[100]' => [
         'type'      => 'checkbox',
         'class'     => ['allergies', 'form-row-wide'],
         'label'     =>__( 'List Other Allergies Below').'<input class="input-text " name="allergies_other" id="allergies_other_input" value="'.get_user_meta($user_id, 'allergies_other', true).'">'
@@ -248,37 +251,43 @@ function custom_my_account_menu($nav) {
   return $new;
 }
 
+
+add_action('woocommerce_save_account_details_errors', 'custom_validation');
+add_action('woocommerce_checkout_process', 'custom_validation');
+function custom_validation() {
+  foreach (patient_fields() as $key => $field) {
+    if ($field['required'] AND ! $_POST[$key]) {
+       wc_add_notice(__($field['label']).' is required', 'error');
+    }
+  }
+
+  //in php an empty array is falsey
+  if ( ! $_POST['allergies_none'] AND ! $_POST['allergies']) {
+     wc_add_notice(__('Allergies are required', 'error');
+  }
+}
+
 //On new order and account/details save account fields back to user
 //TODO should changing checkout fields overwrite account fields if they are set?
 add_action('woocommerce_save_account_details', 'custom_save_account_details');
 function custom_save_account_details($user_id) {
-
-  $allergy_codes = [
-    'allergies_none' => 99,
-    'allergies_aspirin' => 4,
-    'allergies_penicillin' => 5,
-    'allergies_ampicillin' => 6,
-    'allergies_erythromycin' => 7,
-    'allergies_nsaids' => 9,
-    'allergies_sulfa' => 3,
-    'allergies_tetracycline' => 1,
-    'allergies_other' => 100
-  ];
 
   foreach (patient_fields() as $key => $field) {
 
     $val = $_POST[$key];
 
     update_user_meta($user_id, $key, $val);
-
-    if ($allergy_codes[$key]) {
-      //Since all checkboxes submitted even with none selected.  If none
-      //is selected manually set value to false for all except none
-      $val = ($_POST['allergies_none'] AND $key != 'allergies_none') ? NULL : $val;
-      add_remove_allergy($allergy_codes[$key], $val);
-    }
   }
+
   wp_mail('adam.kircher@gmail.com', 'save account data', print_r($_POST, true));
+
+  foreach ($_POST['allergies'] as $key => $val) {
+    //Since all checkboxes submitted even with none selected.  If none
+    //is selected manually set value to false for all except none
+    $val = $_POST['allergies_none'] ? NULL : $val;
+    wp_mail('adam.kircher@gmail.com', 'save allergies', "$key $val");
+    //add_remove_allergy($key, $val);
+  }
 
   append_comment(sanitize_text_field($_POST['medications_other']));
   update_email(sanitize_text_field($_POST['account_email']));
@@ -365,7 +374,12 @@ function custom_translate($term) {
     'Email Address' => 'Spanish Email Address',
     'Card Number' => 'Spanish Card Number',
     'Expiry (MM/YY)' => 'Spanish Exp',
-    'Card Code' => 'Spanish Card Code'
+    'Card Code' => 'Spanish Card Code',
+    'Have a coupon?' => 'Spanish Have a coupon?',
+    'Click here to enter your code' => 'Spanish Click here to enter your code',
+    'Free shipping coupon' => 'Spanish Free shipping coupon',
+    '[Remove]' => '[Spanish Remove]',
+    'Total' => 'Spanish Total',
   ];
 
   $english = isset($toEnglish[$term]) ? $toEnglish[$term] : $term;
@@ -411,9 +425,9 @@ function custom_checkout_fields( $fields ) {
   return $fields;
 }
 
-add_action('wp_enqueue_scripts', 'remove_sticky_checkout', 99);
+add_action('wp_enqueue_scripts', 'remove_sticky_checkout', 99 );
 function remove_sticky_checkout() {
-  wp_dequeue_script('storefront-sticky-payment' );
+  wp_dequeue_script( 'storefront-sticky-payment' );
 }
 
 function update_billing_token($trustcommerce_id, $last4, $exp_month, $exp_year) {
