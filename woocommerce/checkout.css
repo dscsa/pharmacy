@@ -1,5 +1,4 @@
 #medication\[\]_field, /* don't force medication on eRx (default) */
-.pharmacy, /*pharmacy transfer off until selected */
 .erx, /*erx transfer off until selected */
 .create-account /* Hide trust commerce save card option */
 {
