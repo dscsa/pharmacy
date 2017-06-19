@@ -39,9 +39,6 @@ function load() {
 
   jQuery('#birth_date').prop('type', 'date') //can't easily set date type in woocommerce
 
-  if (window.location.pathname != '/account/')
-    return jQuery('.pharmacy').show()//Both pharmacy labels hidden by default.  Show the one with value
-
   if (window.location.search == '?register') {
     jQuery('#customer_login > div').toggle()
     return jQuery("form.register").submit(function($event){
