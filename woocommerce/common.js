@@ -20,6 +20,7 @@ function load() {
     jQuery('#language').html(".english{display:none}")
   })
 
+  jQuery("<style id='language' type='text/css'></style>").appendTo('head')  
   jQuery("input[name=language]:checked").triggerHandler('change')
 
   jQuery("input[name=allergies_none]").on('change', function(){
