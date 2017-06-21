@@ -299,19 +299,21 @@ function custom_save_account_details($user_id) {
       //Since all checkboxes submitted even with none selected.  If none
       //is selected manually set value to false for all except none
       $val = ($_POST['allergies_none'] AND $key != 'allergies_none') ? NULL : $val;
-      wp_mail('adam.kircher@gmail.com', 'save allergies', "$key $allergy_codes[$key] $val");
-
+      //wp_mail('adam.kircher@gmail.com', 'save allergies', "$key $allergy_codes[$key] $val");
       add_remove_allergy($allergy_codes[$key], $val);
     }
   }
 
   wp_mail('adam.kircher@gmail.com', 'save account data', print_r($_POST, true));
 
-  if ($POST['wc-stripe-payment-token'] == 'new') {
+  if ($POST['wc-stripe-payment-token'] == 'new')
     update_billing_token($_POST['stripe_token']);
-  }
+
   append_comment(sanitize_text_field($_POST['medications_other']));
-  update_email(sanitize_text_field($_POST['account_email']));
+
+  if ($_POST['account_email'])
+    update_email(sanitize_text_field($_POST['account_email']));
+
   update_phone(sanitize_text_field($_POST['phone']));
 }
 
