@@ -1,6 +1,5 @@
 #medication\[\]_field, /* don't force medication on eRx (default) */
-.erx, /*erx transfer off until selected */
-.create-account /* Hide trust commerce save card option */
+.woocommerce-SavedPaymentMethods-saveNew /* Hide trust commerce save card option */
 {
   display:none
 }
