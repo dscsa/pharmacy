@@ -65,6 +65,8 @@
 .allergies {
    margin-top:-25px;
 }
+.woocommerce-orders-table__cell-order-status, /* Hide irrelevant columns on orders page*/
+.woocommerce-orders-table__cell-order-total, /* Hide irrelevant columns on orders page*/
 form.checkout, /* Don't show checkout on every page */
 .woocommerce > .woocommerce-info, /* hide coupon link */
 .woocommerce-message a, /* don't show links in messages since often wrong link */
