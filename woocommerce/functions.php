@@ -51,8 +51,11 @@ function order_fields() {
 
 function patient_fields($user_id) {
     //https://docs.woocommerce.com/wc-apidocs/source-function-woocommerce_form_field.html#1841-2061
-    $user_id = $user_id ?: get_current_user_id();
-    $backup_pharmacy = get_user_meta($user_id, 'backup_pharmacy', true);
+    $get_default = function($field, $default) {
+      return $_POST ? $_POST[$field] : (get_user_meta($user_id ?: get_current_user_id(), $field, true) ?: $default);
+    };
+
+    $backup_pharmacy = $get_default('backup_pharmacy');
 
     return [
     'language' => [
@@ -61,7 +64,7 @@ function patient_fields($user_id) {
         'label_class' => ['radio'],
         'required'  => true,
         'options'   => ['english' => 'English', 'spanish' => __('Spanish')],
-        'default'   => get_user_meta($user_id, 'language', true) ?: 'english'
+        'default'   => $get_default('language', 'english')
     ],
     'backup_pharmacy' => [
         'type'   	  => 'select',
@@ -72,74 +75,74 @@ function patient_fields($user_id) {
     ],
     'medications_other' => [
         'label'     =>  __('List any other medication(s) or supplement(s) you are currently taking'),
-        'default'   => get_user_meta($user_id, 'medications_other', true)
+        'default'   => $get_default('medications_other')
     ],
     'allergies_none' => [
         'type'   	  => 'radio',
         'label'     => __('Allergies'),
         'label_class' => ['radio'],
         'options'   => ['' => __('Allergies Selected Below'), 99 => __('No Medication Allergies')],
-    	  'default'   => get_user_meta($user_id, 'allergies_none', true) ?: ''
+    	  'default'   => $get_default('allergies_none', '')
     ],
-    'allergies[4]' => [
+    'allergies_aspirin' => [
         'type'      => 'checkbox',
         'class'     => ['allergies', 'form-row-wide'],
         'label'     => __('Aspirin'),
-        'default'   => get_user_meta($user_id, 'allergies_aspirin', true)
+        'default'   => $get_default('allergies_aspirin')
     ],
-    'allergies[5]' => [
+    'allergies_penicillin' => [
         'type'      => 'checkbox',
         'class'     => ['allergies', 'form-row-wide'],
         'label'     => __('Penicillin'),
-        'default'   => get_user_meta($user_id, 'allergies_penicillin', true)
+        'default'   => $get_default('allergies_penicillin')
     ],
-    'allergies[6]' => [
+    'allergies_ampicillin' => [
         'type'      => 'checkbox',
         'class'     => ['allergies', 'form-row-wide'],
         'label'     => __('Ampicillin'),
-        'default'   => get_user_meta($user_id, 'allergies_ampicillin', true)
+        'default'   => $get_default('allergies_ampicillin')
     ],
-    'allergies[7]' => [
+    'allergies_erythromycin' => [
         'type'      => 'checkbox',
         'class'     => ['allergies', 'form-row-wide'],
         'label'     => __('Erythromycin'),
-        'default'   => get_user_meta($user_id, 'allergies_erythromycin', true)
+        'default'   => $get_default('allergies_erythromycin')
     ],
-    'allergies[9]' => [
+    'allergies_nsaids' => [
         'type'      => 'checkbox',
         'class'     => ['allergies', 'form-row-wide'],
         'label'     => __('NSAIDS e.g., ibuprofen, Advil'),
-        'default'   => get_user_meta($user_id, 'allergies_nsaids', true)
+        'default'   => $get_default('allergies_nsaids')
     ],
-    'allergies[3]' => [
+    'allergies_sulfa' => [
         'type'      => 'checkbox',
         'class'     => ['allergies', 'form-row-wide'],
         'label'     => __('Sulfa (Sulfonamide Antibiotics)'),
-        'default'   => get_user_meta($user_id, 'allergies_sulfa', true)
+        'default'   => $get_default('allergies_sulfa')
     ],
-    'allergies[1]' => [
+    'allergies_tetracycline' => [
         'type'      => 'checkbox',
         'class'     => ['allergies', 'form-row-wide'],
         'label'     => __('Tetracycline antibiotics'),
-        'default'   => get_user_meta($user_id, 'allergies_tetracycline', true)
+        'default'   => $get_default('allergies_tetracycline')
     ],
-    'allergies[100]' => [
+    'allergies_other' => [
         'type'      => 'checkbox',
         'class'     => ['allergies', 'form-row-wide'],
-        'label'     =>__( 'List Other Allergies Below').'<input class="input-text " name="allergies_other" id="allergies_other_input" value="'.get_user_meta($user_id, 'allergies_other', true).'">'
+        'label'     =>__( 'List Other Allergies Below').'<input class="input-text " name="allergies_other" id="allergies_other_input" value="'.$get_default('allergies_other').'">'
     ],
     'birth_date' => [
         'label'     => __('Date of Birth'),
         'required'  => true,
-        'default'   => get_user_meta($user_id, 'birth_date', true) ?: $_POST['birth_date']
+        'default'   => $get_default('birth_date')
     ],
     'phone' => [
         'label'     => __('Phone'),
-       	'required'  => true,
+        'required'  => true,
         'type'      => 'tel',
         'validate'  => ['phone'],
         'autocomplete' => 'tel',
-        'default'   => get_user_meta($user_id, 'phone', true)
+        'default'   => $get_default('phone')
     ]
   ];
 }
@@ -251,19 +254,21 @@ function custom_my_account_menu($nav) {
   return $new;
 }
 
-
 add_action('woocommerce_save_account_details_errors', 'custom_validation');
 add_action('woocommerce_checkout_process', 'custom_validation');
 function custom_validation() {
+  $allergy_missing = true;
   foreach (patient_fields() as $key => $field) {
     if ($field['required'] AND ! $_POST[$key]) {
-       wc_add_notice(__($field['label']).' is required', 'error');
+       wc_add_notice('<strong>'.__($field['label']).'</strong> is a required field', 'error');
     }
+
+    if (substr($key, 0, 10) == 'allergies_' AND $_POST[$key])
+ 	  $allergy_missing = false;
   }
 
-  //in php an empty array is falsey
-  if ( ! $_POST['allergies_none'] AND ! $_POST['allergies']) {
-     wc_add_notice(__('Allergies are required', 'error');
+  if ($allergy_missing) {
+    wc_add_notice(__('<strong>Allergies</strong> is a required field'), 'error');
   }
 }
 
@@ -272,23 +277,39 @@ function custom_validation() {
 add_action('woocommerce_save_account_details', 'custom_save_account_details');
 function custom_save_account_details($user_id) {
 
+  $allergy_codes = [
+    'allergies_none' => 99,
+    'allergies_aspirin' => 4,
+    'allergies_penicillin' => 5,
+    'allergies_ampicillin' => 6,
+    'allergies_erythromycin' => 7,
+    'allergies_nsaids' => 9,
+    'allergies_sulfa' => 3,
+    'allergies_tetracycline' => 1,
+    'allergies_other' => 100
+  ];
+
   foreach (patient_fields() as $key => $field) {
 
-    $val = $_POST[$key];
+    $val = sanitize_text_field($_POST[$key]);
 
     update_user_meta($user_id, $key, $val);
+
+    if ($allergy_codes[$key]) {
+      //Since all checkboxes submitted even with none selected.  If none
+      //is selected manually set value to false for all except none
+      $val = ($_POST['allergies_none'] AND $key != 'allergies_none') ? NULL : $val;
+      wp_mail('adam.kircher@gmail.com', 'save allergies', "$key $allergy_codes[$key] $val");
+
+      add_remove_allergy($allergy_codes[$key], $val);
+    }
   }
 
   wp_mail('adam.kircher@gmail.com', 'save account data', print_r($_POST, true));
 
-  foreach ($_POST['allergies'] as $key => $val) {
-    //Since all checkboxes submitted even with none selected.  If none
-    //is selected manually set value to false for all except none
-    $val = $_POST['allergies_none'] ? NULL : $val;
-    wp_mail('adam.kircher@gmail.com', 'save allergies', "$key $val");
-    //add_remove_allergy($key, $val);
+  if ($POST['wc-stripe-payment-token'] == 'new') {
+    update_billing_token($_POST['stripe_token']);
   }
-
   append_comment(sanitize_text_field($_POST['medications_other']));
   update_email(sanitize_text_field($_POST['account_email']));
   update_phone(sanitize_text_field($_POST['phone']));
@@ -309,25 +330,30 @@ function custom_save_checkout_details($user_id) {
 }
 
 //Save Billing info to Guardian
-add_action('updated_user_meta', 'custom_updated_user_meta', 10, 4);
-function custom_updated_user_meta($meta_id, $user_id, $meta_key, $meta_val)
-{
-  if ($meta_key != '_trustcommerce_saved_profiles') return;
-
-  // $meta_value = [
-  //   [customer_id] => Q1USQ7
-  //   [last4] => 1111
-  //   [exp_year] => 19
-  //   [exp_month] => 01
-  // ]
- update_billing_token($meta_value['customer_id'], $meta_value['last4'], $meta_value['exp_month'], $meta_value['exp_year']);
-}
+//add_action('updated_user_meta', 'custom_updated_user_meta', 10, 4);
+//function custom_updated_user_meta($meta_id, $user_id, $meta_key, $meta_val)
+//{
+//  wp_mail('adam.kircher@gmail.com', 'stripe', print_r(func_get_args(), true));
+//
+//  if ($meta_key != '_trustcommerce_saved_profiles') return;
+//
+//  // $meta_value = [
+//  //   [customer_id] => Q1USQ7
+//  //   [last4] => 1111
+//  //   [exp_year] => 19
+//  //   [exp_month] => 01
+//  // ]
+//}
 
 //Didn't work: https://stackoverflow.com/questions/38395784/woocommerce-overriding-billing-state-and-post-code-on-existing-checkout-fields
 //Did work: https://stackoverflow.com/questions/36619793/cant-change-postcode-zip-field-label-in-woocommerce
 add_filter('ngettext', 'custom_translate');
 add_filter('gettext', 'custom_translate');
 function custom_translate($term) {
+
+  if (strpos($term, 'field') !== false) {
+     wp_mail('adam.kircher@gmail.com', 'field term', $term);
+  }
 
   $toEnglish = [
     'Spanish'  => 'Espanol',
@@ -372,9 +398,6 @@ function custom_translate($term) {
     'New password (leave blank to leave unchanged)' => 'Spanish New password (leave blank to leave unchanged)',
     'Confirm new password' => 'Spanish Confirm new password',
     'Email Address' => 'Spanish Email Address',
-    'Card Number' => 'Spanish Card Number',
-    'Expiry (MM/YY)' => 'Spanish Exp',
-    'Card Code' => 'Spanish Card Code',
     'Have a coupon?' => 'Spanish Have a coupon?',
     'Click here to enter your code' => 'Spanish Click here to enter your code',
     'Free shipping coupon' => 'Spanish Free shipping coupon',
@@ -430,9 +453,9 @@ function remove_sticky_checkout() {
   wp_dequeue_script( 'storefront-sticky-payment' );
 }
 
-function update_billing_token($trustcommerce_id, $last4, $exp_month, $exp_year) {
+function update_billing_token($stripe_id) {
   return db_run("SirumWeb_AddRemove_Billing(?, ?, ?, ?)", [
-    guardian_id(), $trustcommerce_id
+    guardian_id(), $stripe_id
   ]);
 }
 
