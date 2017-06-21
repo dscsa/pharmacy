@@ -1,0 +1,13 @@
+/* Current tc plugin shows saved cards on every page.  Hide by default */
+#tc-saved-cards\20  {
+  display:none;
+  margin-top:100px !important
+}
+#tc-saved-cards\20 + table /*See above */
+{
+  display:none
+}
+[class*=trustcommerce_update_cards] { /*uneved edit saved card buttons */
+  position: relative;
+  top: -1.618em
+}
