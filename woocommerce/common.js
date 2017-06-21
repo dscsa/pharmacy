@@ -13,18 +13,16 @@ function load() {
   upgradePharmacy()
 
   jQuery("#language_english").change(function($event){
-    jQuery('.english').show()
-    jQuery('.spanish').hide()
+    jQuery('#language').remove()
+    jQuery("<style id='language' type='text/css'>.spanish{display:none}</style>").appendTo("head")
   })
 
   jQuery("#language_spanish").change(function(){
-    jQuery('.spanish').show()
-    jQuery('.english').hide()
+    jQuery('#language').remove()
+    jQuery("<style id='language' type='text/css'>.english{display:none}</style>").appendTo("head")
   })
 
-  showLang()
-  setTimeout(showLang, 3000) //Need delay because ZIP, City/Town, Credit Card are delayed
-  function showLang() { jQuery("input[name=language]:checked").triggerHandler('change') }
+  jQuery("input[name=language]:checked").triggerHandler('change')
 
   jQuery("input[name=allergies_none]").on('change', function(){
     var children = jQuery(".allergies")
