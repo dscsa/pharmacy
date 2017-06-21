@@ -26,16 +26,22 @@ function account_page() {
 }
 
 function translate() {
-  jQuery("#language_english").change(function($event){
-    jQuery('#language').html(".spanish{display:none}")
-  })
-
-  jQuery("#language_spanish").change(function(){
-    jQuery('#language').html(".english{display:none}")
-  })
+  jQuery("#language_english").change(hideSpanish)
+  jQuery("#language_spanish").change(hideEnglish)
 
   jQuery("<style id='language' type='text/css'></style>").appendTo('head')
-  jQuery("input[name=language]:checked").triggerHandler('change')
+
+  var checked = jQuery("input[name=language]:checked")
+
+  checked.length ? checked.triggerHandler('change') : hideSpanish()
+}
+
+function hideEnglish() {
+  jQuery('#language').html(".english{display:none}")
+}
+
+function hideSpanish() {
+  jQuery('#language').html(".spanish{display:none}")
 }
 
 function upgradeAllergies() {
