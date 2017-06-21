@@ -13,13 +13,11 @@ function load() {
   upgradePharmacy()
 
   jQuery("#language_english").change(function($event){
-    jQuery('#language').remove()
-    jQuery("<style id='language' type='text/css'>.spanish{display:none}</style>").appendTo("head")
+    jQuery('#language').html(".spanish{display:none}")
   })
 
   jQuery("#language_spanish").change(function(){
-    jQuery('#language').remove()
-    jQuery("<style id='language' type='text/css'>.english{display:none}</style>").appendTo("head")
+    jQuery('#language').html(".english{display:none}")
   })
 
   jQuery("input[name=language]:checked").triggerHandler('change')
