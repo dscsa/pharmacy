@@ -2,16 +2,30 @@ jQuery(load)
 
 function load() {
 
-  //hide saved cards on everything but the account details page which has a password field
-  //for some reason there is a space in the id so need the \\20
-  if (window.location.pathname == '/account/address/')
-    jQuery('#tc-saved-cards\\20').next().show()
+  if (window.location.search == '?register')
+    return register_page()
 
-  if ( ! ~ ['/account/details/', '/account/'].indexOf(window.location.pathname))
-    return
+  translate() //not just account_page.  Payment methods too
 
+  if (window.location.pathname == '/account/details/')
+    return account_page()
+
+  if (window.location.pathname == '/account/')
+    return account_page()
+}
+
+function register_page() {
+  createUsername()
+  upgradeBirthdate()
+}
+
+function account_page() {
   upgradePharmacy()
+  upgradeAllergies()
+  upgradeBirthdate()
+}
 
+function translate() {
   jQuery("#language_english").change(function($event){
     jQuery('#language').html(".spanish{display:none}")
   })
@@ -20,9 +34,11 @@ function load() {
     jQuery('#language').html(".english{display:none}")
   })
 
-  jQuery("<style id='language' type='text/css'></style>").appendTo('head')  
+  jQuery("<style id='language' type='text/css'></style>").appendTo('head')
   jQuery("input[name=language]:checked").triggerHandler('change')
+}
 
+function upgradeAllergies() {
   jQuery("input[name=allergies_none]").on('change', function(){
     var children = jQuery(".allergies")
     this.value ? children.hide() : children.show()
@@ -33,15 +49,6 @@ function load() {
   jQuery('#allergies_other_input').on('input', function() {
     allergies_other.prop('checked', this.value)
   })
-
-  jQuery('#birth_date').prop('type', 'date') //can't easily set date type in woocommerce
-
-  if (window.location.search == '?register') {
-    jQuery('#customer_login > div').toggle()
-    return jQuery("form.register").submit(function($event){
-      this.username.value = this.first_name.value+' '+this.last_name.value+' '+this.birth_date.value
-    })
-  }
 }
 
 function upgradePharmacy(pharmacies) {
@@ -60,6 +67,18 @@ function upgradePharmacy(pharmacies) {
       select.select2({data:pharmacies, matcher:matcher, minimumInputLength:3})
     }
   })
+}
+
+//TODO move this to PHP
+function createUsername() {
+  jQuery('#customer_login > div').toggle()
+  return jQuery("form.register").submit(function($event){
+    this.username.value = this.first_name.value+' '+this.last_name.value+' '+this.birth_date.value
+  })
+}
+
+function upgradeBirthdate() {
+  jQuery('#birth_date').prop('type', 'date') //can't easily set date type in woocommerce
 }
 
 function pharmacy2select(entry, i) {
