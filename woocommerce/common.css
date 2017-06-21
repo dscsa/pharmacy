@@ -77,7 +77,6 @@
 form.checkout, /* Don't show checkout on every page */
 .woocommerce > .woocommerce-info, /* hide coupon link */
 .woocommerce-message a, /* don't show links in messages since often wrong link */
-.spanish, /* translation */
 .pharmacy, /*pharmacy transfer off until selected (this needs to be hidden on checkout and account details page)*/
 .cart-subtotal, /*Hide subtotal row on checkout */
 .shipping, /* Hide shipping cost row on checkout */
