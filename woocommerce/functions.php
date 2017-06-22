@@ -365,6 +365,8 @@ global $lang;
 add_filter('ngettext', 'custom_translate');
 add_filter('gettext', 'custom_translate');
 function custom_translate($term) {
+   if (strpos($term, 'currently') !== FALSE OR strpos($term, 'card') !== FALSE OR strpos($term, 'email') !== FALSE)
+     echo "<br>$term<br>";
 
   $toEnglish = [
     'Spanish'  => 'Espanol',
@@ -414,6 +416,7 @@ function custom_translate($term) {
     'Free shipping coupon' => 'Spanish Free shipping coupon',
     '[Remove]' => '[Spanish Remove]',
     'Total' => 'Spanish Total',
+    'Total:' => 'Spanish Total:',
     'Prescription(s) were sent from my doctor' => 'Spanish from Doctor',
     'Transfer prescription(s) from my pharmacy' => 'Spanish from Pharmacy',
     'Street address' => 'Spanish Street address',
@@ -439,7 +442,12 @@ function custom_translate($term) {
     'No credit or debit cards are saved to your account' => 'Spanish No Cards Saved',
     'Add payment method' => 'Spanish Add Payment',
     'Save changes' => 'Spanish Save Changes',
-    'is a required field' => 'es spanish required'
+    'is a required field' => 'es spanish required',
+    'Order #%1$s was placed on %2$s and is currently %3$s.' => 'Spanish order #%1$s was placed on %2$s and is currently %3$s.',
+    'Payment method:' => 'Spanish payment method:',
+    'Email:' => 'Spanish Email:',
+    'Order details' => 'Spanish Order details',
+    'Customer details' => 'Spanish Customer details'
   ];
 
   $english = isset($toEnglish[$term]) ? $toEnglish[$term] : $term;
