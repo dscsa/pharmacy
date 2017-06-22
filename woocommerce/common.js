@@ -86,9 +86,12 @@ function disableFixedFields() {
   jQuery('#birth_date').prop('disabled', true)
   jQuery('#account_first_name').prop('disabled', true)
   jQuery('#account_last_name').prop('disabled', true)
-  jQuery('#allergies_other_input').prop('disabled', true)
   jQuery("#language_EN").prop('disabled', true)
   jQuery("#language_ES").prop('disabled', true)
+
+  var other_allergy = jQuery('#allergies_other_input')
+  if (other_allergy.val()) //we cannot properly edit in guardian right now
+    other_allergy.prop('disabled', true)
 }
 
 function pharmacy2select(entry, i) {
