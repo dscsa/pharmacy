@@ -5,9 +5,11 @@ function load() {
 
   upgradeMedication()
 
+  jQuery('.col-1').prepend(jQuery('.woocommerce-additional-fields'))
+
   jQuery('form.checkout').show()
   jQuery('#wc-stripe-new-payment-method').prop('checked', true)
-  
+
   jQuery("#source")
   .change(function(){
     jQuery('#medication\\[\\]_field').toggle()
