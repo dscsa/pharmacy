@@ -259,7 +259,7 @@ function custom_account_validation() {
 }
 add_action('woocommerce_checkout_process', 'custom_order_validation');
 function custom_order_validation() {
-   custom_validation(shared_fields()+order_fields());
+   custom_validation(order_fields()+shared_fields());
 }
 
 function custom_validation($fields) {
@@ -365,8 +365,6 @@ global $lang;
 add_filter('ngettext', 'custom_translate');
 add_filter('gettext', 'custom_translate');
 function custom_translate($term) {
-   if (strpos($term, 'currently') !== FALSE OR strpos($term, 'card') !== FALSE OR strpos($term, 'email') !== FALSE)
-     echo "<br>$term<br>";
 
   $toEnglish = [
     'Spanish'  => 'Espanol',
