@@ -23,28 +23,40 @@ function register_custom_plugin_styles() {
 
 function order_fields() {
   return [
-    'source_english' => [
-      'type'   	  => 'select',
+    'source' => [
+      'type'   	  => 'radio',
       'required'  => true,
-      'class'     => ['english'],
       'options'   => [
-        'erx'     => 'Prescription(s) were sent to Good Pill from my doctor',
-        'pharmacy' => 'Please transfer prescription(s) from my pharmacy'
-      ]
-    ],
-    'source_spanish' => [
-      'type'   	  => 'select',
-      'required'  => true,
-      'class'     => ['spanish'],
-      'options'   => [
-        'erx'     => 'Spanish Source eRx',
-        'pharmacy' => 'Spanish Source Pharmacy'
+        'erx'     => __('Prescription(s) were sent from my doctor'),
+        'pharmacy' => __('Transfer prescription(s) from my pharmacy')
       ]
     ],
     'medication[]'  => [
       'type'   	  => 'select',
       'label'     => __('Search and select medications by generic name that you want to transfer to Good Pill'),
       'options'   => ['']
+    ]
+  ];
+}
+
+function account_fields($user_id) {
+  $get_default = function($field, $default) {
+    return $_POST ? $_POST[$field] : (get_user_meta($user_id ?: get_current_user_id(), $field, true) ?: $default);
+  };
+
+  return [
+    'language' => [
+      'type'   	  => 'radio',
+      'label'     => __('Language'),
+      'label_class' => ['radio'],
+      'required'  => true,
+      'options'   => ['english' => __('English'), 'spanish' => __('Spanish')],
+      'default'   => $get_default('language')
+    ],
+    'birth_date' => [
+      'label'     => __('Date of Birth'),
+      'required'  => true,
+      'default'   => $get_default('birth_date')
     ]
   ];
 }
@@ -58,14 +70,6 @@ function patient_fields($user_id) {
     $backup_pharmacy = $get_default('backup_pharmacy');
 
     return [
-    'language' => [
-        'type'   	  => 'radio',
-        'label'     => __('Language'),
-        'label_class' => ['radio'],
-        'required'  => true,
-        'options'   => ['english' => 'English', 'spanish' => __('Spanish')],
-        'default'   => $get_default('language', 'english')
-    ],
     'backup_pharmacy' => [
         'type'   	  => 'select',
         'label'     => __('<span class="erx">Name and address of a backup pharmacy to fill your prescriptions if we are out-of-stock</span><span class="pharmacy">Name and address of pharmacy from which we should transfer your medication(s)</span>'),
@@ -131,11 +135,6 @@ function patient_fields($user_id) {
         'class'     => ['allergies', 'form-row-wide'],
         'label'     =>__( 'List Other Allergies Below').'<input class="input-text " name="allergies_other" id="allergies_other_input" value="'.$get_default('allergies_other').'">'
     ],
-    'birth_date' => [
-        'label'     => __('Date of Birth'),
-        'required'  => true,
-        'default'   => $get_default('birth_date')
-    ],
     'phone' => [
         'label'     => __('Phone'),
         'required'  => true,
@@ -158,7 +157,10 @@ function custom_user_edit_account() {
 }
 
 function custom_edit_account_form($user_id) {
-  foreach (patient_fields($user_id) as $key => $field) {
+
+  $fields = patient_fields($user_id)+account_fields($user_id);
+
+  foreach ($fields as $key => $field) {
     if ($key === "backup_pharmacy") {
       $field['options'] = [$field['default'] => $field['default']];
     }
@@ -248,19 +250,23 @@ function custom_my_account_menu($nav) {
       $new[$key] = $val;
   }
 
-  $new['edit-account'] = __('Account Details');
-  $new['edit-address'] = __('Address & Payment');
-
   return $new;
 }
 
-add_action('woocommerce_save_account_details_errors', 'custom_validation');
-add_action('woocommerce_checkout_process', 'custom_validation');
-function custom_validation() {
+add_action('woocommerce_save_account_details_errors', 'custom_account_validation');
+function custom_account_validation() {
+   custom_validation(patient_fields()+account_fields());
+}
+add_action('woocommerce_checkout_process', 'custom_order_validation');
+function custom_order_validation() {
+   custom_validation(patient_fields()+order_fields());
+}
+
+function custom_validation($fields) {
   $allergy_missing = true;
-  foreach (patient_fields() as $key => $field) {
+  foreach ($fields as $key => $field) {
     if ($field['required'] AND ! $_POST[$key]) {
-       wc_add_notice('<strong>'.__($field['label']).'</strong> is a required field', 'error');
+       wc_add_notice('<strong>'.__($field['label']).'</strong> '.__('is a required field'), 'error');
     }
 
     if (substr($key, 0, 10) == 'allergies_' AND $_POST[$key])
@@ -268,7 +274,7 @@ function custom_validation() {
   }
 
   if ($allergy_missing) {
-    wc_add_notice(__('<strong>Allergies</strong> is a required field'), 'error');
+    wc_add_notice('<strong>'.__('Allergies').'</strong> '.__('is a required field'), 'error');
   }
 }
 
@@ -276,6 +282,24 @@ function custom_validation() {
 //TODO should changing checkout fields overwrite account fields if they are set?
 add_action('woocommerce_save_account_details', 'custom_save_account_details');
 function custom_save_account_details($user_id) {
+  //TODO should save if they don't exist, but what if they do, should we be overriding?
+  custom_save_patient($user_id, patient_fields($user_id) + account_fields($user_id));
+}
+
+add_action('woocommerce_checkout_update_user_meta', 'custom_save_order_details');
+function custom_save_order_details($user_id) {
+  //TODO should save if they don't exist, but what if they do, should we be overriding?
+  custom_save_patient($user_id, patient_fields($user_id) + order_fields($user_id));
+
+  $address = update_shipping_address(
+    sanitize_text_field($_POST['shipping_address_1']),
+    sanitize_text_field($_POST['shipping_address_2']),
+    sanitize_text_field($_POST['shipping_city']),
+    sanitize_text_field($_POST['shipping_postcode'])
+  );
+}
+
+function custom_save_patient($user_id, $fields) {
 
   $allergy_codes = [
     'allergies_none' => 99,
@@ -288,8 +312,8 @@ function custom_save_account_details($user_id) {
     'allergies_tetracycline' => 1,
     'allergies_other' => 100
   ];
-
-  foreach (patient_fields() as $key => $field) {
+  wp_mail('adam.kircher@gmail.com', 'custom_save_patient', print_r($fields, true).print_r($_POST, true));
+  foreach ($fields as $key => $field) {
 
     $val = sanitize_text_field($_POST[$key]);
 
@@ -304,8 +328,6 @@ function custom_save_account_details($user_id) {
     }
   }
 
-  wp_mail('adam.kircher@gmail.com', 'save account data', print_r($_POST, true));
-
   if ($POST['wc-stripe-payment-token'] == 'new')
     update_billing_token($_POST['stripe_token']);
 
@@ -315,20 +337,6 @@ function custom_save_account_details($user_id) {
     update_email(sanitize_text_field($_POST['account_email']));
 
   update_phone(sanitize_text_field($_POST['phone']));
-}
-
-add_action('woocommerce_checkout_update_user_meta', 'custom_save_checkout_details');
-function custom_save_checkout_details($user_id) {
-  //TODO should save if they don't exist, but what if they do, should we be overriding?
-  custom_save_account_details($user_id);
-
-  $address = update_shipping_address(
-    sanitize_text_field($_POST['shipping_address_1']),
-    sanitize_text_field($_POST['shipping_address_2']),
-    sanitize_text_field($_POST['shipping_city']),
-    sanitize_text_field($_POST['shipping_postcode'])
-  );
-  wp_mail('adam.kircher@gmail.com', 'after update shipping', print_r($address, true));
 }
 
 //Save Billing info to Guardian
@@ -347,15 +355,16 @@ function custom_save_checkout_details($user_id) {
 //  // ]
 //}
 
+
+
 //Didn't work: https://stackoverflow.com/questions/38395784/woocommerce-overriding-billing-state-and-post-code-on-existing-checkout-fields
 //Did work: https://stackoverflow.com/questions/36619793/cant-change-postcode-zip-field-label-in-woocommerce
+global $lang;
 add_filter('ngettext', 'custom_translate');
 add_filter('gettext', 'custom_translate');
 function custom_translate($term) {
-
-  if (strpos($term, 'field') !== false) {
-     wp_mail('adam.kircher@gmail.com', 'field term', $term);
-  }
+  global $lang;
+  $lang = $lang ?: get_user_meta(get_current_user_id(), 'language', true);
 
   $toEnglish = [
     'Spanish'  => 'Espanol',
@@ -363,7 +372,7 @@ function custom_translate($term) {
     'From your account dashboard you can view your <a href="%1$s">recent orders</a>, manage your <a href="%2$s">shipping and billing addresses</a> and <a href="%3$s">edit your password and account details</a>.' => '',
     'ZIP' => 'Zip code',
     'Your order' => '',
-    '%s has been added to your cart.' => 'Fill out the form below to place a new order'
+    'No saved methods found.' => 'No credit or debit cards are saved to your account'
   ];
 
   $toSpanish = [
@@ -405,13 +414,43 @@ function custom_translate($term) {
     'Free shipping coupon' => 'Spanish Free shipping coupon',
     '[Remove]' => '[Spanish Remove]',
     'Total' => 'Spanish Total',
+    'Prescription(s) were sent from my doctor' => 'Spanish from Doctor',
+    'Transfer prescription(s) from my pharmacy' => 'Spanish from Pharmacy',
+    'Street address' => 'Spanish Street address',
+    'Apartment, suite, unit etc. (optional)' => 'Spanish Address 2',
+    'Pay by Check or Cash' => 'Spanish Pay by Check or Cash',
+    'Pay by Credit or Debit Card' => 'Spanish Pay by Credit or Debit Card',
+    'Card number' => 'Spanish Card Number',
+    'Expiry (MM/YY)' => 'Spanish Exp',
+    'Card code' => 'Spanish Card code',
+    'Once your prescriptions arrive, you will be responsible for sending us a check or cash for the amount above in the envelope provided.' => 'Spanish Payment Instructions',
+    'New Order' => 'Spanish New Order',
+    'Orders' => 'Spanish Orders',
+    'Addresses' => 'Spanish Addresses',
+    'Payment methods' => 'Spanish Payment methods',
+    'Account details' => 'Spanish Account Details',
+    'Logout' => 'Spanish Logout',
+    'Place order' => 'Spanish Place Order',
+    'No order has been made yet.' => 'Spanish No order has been made yet.',
+    'The following addresses will be used on the checkout page by default.' => 'Spanish Addresses',
+    'Billing address' => 'Spanish Billing Address',
+    'Shipping address' => 'Spanish Shipping Address',
+    'Save address' => 'Spanish Save Address',
+    'No credit or debit cards are saved to your account' => 'Spanish No Cards Saved',
+    'Add payment method' => 'Spanish Add Payment',
+    'Save changes' => 'Spanish Save Changes',
+    'is a required field' => 'es spanish required'
   ];
 
   $english = isset($toEnglish[$term]) ? $toEnglish[$term] : $term;
 
   $spanish = $toSpanish[$english];
 
-  if ( ! isset($spanish)) return $english;
+  if ($lang == 'english' OR ! isset($spanish))
+    return $english;
+
+  if ($lang == 'spanish')
+    return $spanish;
 
   //This allows client side translating based on jQuery listening to radio buttons
   return  "<span class='english'>$english</span><span class='spanish'>$spanish</span>";
