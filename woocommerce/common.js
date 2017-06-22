@@ -87,6 +87,8 @@ function disableFixedFields() {
   jQuery('#account_first_name').prop('disabled', true)
   jQuery('#account_last_name').prop('disabled', true)
   jQuery('#allergies_other_input').prop('disabled', true)
+  jQuery("#language_EN").prop('disabled', true)
+  jQuery("#language_ES").prop('disabled', true)
 }
 
 function pharmacy2select(entry, i) {

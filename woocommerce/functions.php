@@ -53,8 +53,8 @@ function account_fields($user_id) {
       'label'     => __('Language'),
       'label_class' => ['radio'],
       'required'  => true,
-      'options'   => ['english' => __('English'), 'spanish' => __('Spanish')],
-      'default'   => get_default('language', $user_id) ?: 'english'
+      'options'   => ['EN' => __('English'), 'ES' => __('Spanish')],
+      'default'   => get_default('language', $user_id) ?: 'EN'
     ],
     'birth_date' => [
       'label'     => __('Date of Birth'),
@@ -196,15 +196,16 @@ function customer_created($user_id) {
   $first_name = sanitize_text_field($_POST['first_name']);
   $last_name = sanitize_text_field($_POST['last_name']);
   $birth_date = sanitize_text_field($_POST['birth_date']);
+  $language = sanitize_text_field($_POST['language']);
+
   foreach(['', 'billing_', 'shipping_'] as $field) {
     update_user_meta($user_id, $field.'first_name', $first_name);
     update_user_meta($user_id, $field.'last_name', $last_name);
   }
   update_user_meta($user_id, 'birth_date', $birth_date);
-  update_user_meta($user_id, 'language', $_POST['language']);
+  update_user_meta($user_id, 'language', $language);
 
-  $patient_id = add_patient($first_name, $last_name, $birth_date);
-  save_language(sanitize_text_field($_POST['language']));
+  $patient_id = add_patient($first_name, $last_name, $birth_date, $language);
 
   update_user_meta($user_id, 'guardian_id', $patient_id);
 }
@@ -282,6 +283,8 @@ function custom_validation($fields) {
 add_action('woocommerce_save_account_details', 'custom_save_account_details');
 function custom_save_account_details($user_id) {
   //TODO should save if they don't exist, but what if they do, should we be overriding?
+  update_email(sanitize_text_field($_POST['account_email']));
+
   custom_save_patient($user_id, shared_fields($user_id) + account_fields($user_id));
 }
 
@@ -290,12 +293,16 @@ function custom_save_order_details($user_id) {
   //TODO should save if they don't exist, but what if they do, should we be overriding?
   custom_save_patient($user_id, shared_fields($user_id) + order_fields($user_id));
 
+  //TODO this should be called on the edit address page as well
   $address = update_shipping_address(
     sanitize_text_field($_POST['shipping_address_1']),
     sanitize_text_field($_POST['shipping_address_2']),
     sanitize_text_field($_POST['shipping_city']),
     sanitize_text_field($_POST['shipping_postcode'])
   );
+
+  //TODO update stripe on change in default.
+  update_stripe($_POST['stripe_token']);
 }
 
 function custom_save_patient($user_id, $fields) {
@@ -327,13 +334,9 @@ function custom_save_patient($user_id, $fields) {
     }
   }
 
-  if ($POST['wc-stripe-payment-token'] == 'new')
-    update_billing_token($_POST['stripe_token']);
+  update_pharmacy($_POST['backup_pharmacy']);
 
   append_comment(sanitize_text_field($_POST['medications_other']));
-
-  if ($_POST['account_email'])
-    update_email(sanitize_text_field($_POST['account_email']));
 
   update_phone(sanitize_text_field($_POST['phone']));
 }
@@ -362,8 +365,6 @@ global $lang;
 add_filter('ngettext', 'custom_translate');
 add_filter('gettext', 'custom_translate');
 function custom_translate($term) {
-  global $lang;
-  $lang = $lang ?: get_user_meta(get_current_user_id(), 'language', true);
 
   $toEnglish = [
     'Spanish'  => 'Espanol',
@@ -442,17 +443,24 @@ function custom_translate($term) {
   ];
 
   $english = isset($toEnglish[$term]) ? $toEnglish[$term] : $term;
-
   $spanish = $toSpanish[$english];
 
-  if ($lang == 'english' OR ! isset($spanish))
-    return $english;
+  $user_id = get_current_user_id();
 
-  if ($lang == 'spanish')
-    return $spanish;
+  if (is_admin() OR ! isset($spanish))
+	return $english;
 
   //This allows client side translating based on jQuery listening to radio buttons
-  return  "<span class='english'>$english</span><span class='spanish'>$spanish</span>";
+  if (isset($_GET['register']))
+    return  "<span class='english'>$english</span><span class='spanish'>$spanish</span>";
+
+  global $lang;
+  $lang = $lang ?: get_user_meta($user_id, 'language', true);
+
+  if ($lang == 'ES')
+    return $spanish;
+
+  return $english;
 }
 
 // Hook in
@@ -491,18 +499,6 @@ function custom_checkout_fields( $fields ) {
 add_action('wp_enqueue_scripts', 'remove_sticky_checkout', 99 );
 function remove_sticky_checkout() {
   wp_dequeue_script( 'storefront-sticky-payment' );
-}
-
-function update_billing_token($stripe_id) {
-  return db_run("SirumWeb_AddRemove_Billing(?, ?, ?, ?)", [
-    guardian_id(), $stripe_id
-  ]);
-}
-
-function update_language($language) {
-  return db_run("SirumWeb_Add_Language(?, ?, ?, ?)", [
-    guardian_id(), $language
-  ]);
 }
 
 // SirumWeb_AddRemove_Allergy(
@@ -577,8 +573,8 @@ function find_patient($first_name, $last_name, $birth_date) {
 //   ,@ShipCountry varchar(3)   -- Country Code
 //   ,@CellPhone varchar(20)    -- Cell Phone
 // )
-function add_patient($first_name, $last_name, $birth_date) {
-  return db_run("SirumWeb_AddEditPatient(?, ?, ?)", [$first_name, $last_name, $birth_date])['PatID'];
+function add_patient($first_name, $last_name, $birth_date, $language) {
+  return db_run("SirumWeb_AddEditPatient(?, ?, ?, ?)", [$first_name, $last_name, $birth_date, $language])['PatID'];
 }
 
 // Procedure dbo.SirumWeb_AddToPatientComment (@PatID int, @CmtToAdd VARCHAR(4096)
@@ -608,9 +604,14 @@ function add_preorder($drug_name, $pharmacy) {
 }
 
 // Procedure dbo.SirumWeb_AddUpdatePatientUD (@PatID int, @UDNumber int, @UDValue varchar(50) )
-// Set the @UD number for the3 field that you want to update, and set the text value.
-function update_ud($pharmacy) {
-    return db_run("SirumWeb_AddUpdatePatientUD(?, ?)", [guardian_id(), $drug_name]);
+// Set the @UD number can be 1-4 for the field that you want to update, and set the text value.
+// 1 is backup pharmacy, 2 is stripe billing token.
+function update_pharmacy($value) {
+    return db_run("SirumWeb_AddUpdatePatientUD(?, 1, ?)", [guardian_id(), $value]);
+}
+
+function update_stripe($value) {
+    return db_run("SirumWeb_AddUpdatePatientUD(?, 2, ?)", [guardian_id(), $value]);
 }
 
 //Procedure dbo.SirumWeb_AddUpdatePatEmail (@PatID int, @EMailAddress VARCHAR(255)
