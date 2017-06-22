@@ -84,8 +84,8 @@ function upgradeBirthdate() {
 
 function disableFixedFields() {
   jQuery('#birth_date').prop('disabled', true)
-  jQuery('#first_name').prop('disabled', true)
-  jQuery('#last_name').prop('disabled', true)
+  jQuery('#account_first_name').prop('disabled', true)
+  jQuery('#account_last_name').prop('disabled', true)
   jQuery('#allergies_other_input').prop('disabled', true)
 }
 
