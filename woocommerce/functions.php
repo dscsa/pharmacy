@@ -21,11 +21,16 @@ function register_custom_plugin_styles() {
   }
 }
 
+function get_default($field, $user_id) {
+  return $_POST ? $_POST[$field] : get_user_meta($user_id ?: get_current_user_id(), $field, true);
+}
+
 function order_fields() {
   return [
     'source' => [
       'type'   	  => 'radio',
       'required'  => true,
+      'default'   => get_default('source'),
       'options'   => [
         'erx'     => __('Prescription(s) were sent from my doctor'),
         'pharmacy' => __('Transfer prescription(s) from my pharmacy')
@@ -33,6 +38,7 @@ function order_fields() {
     ],
     'medication[]'  => [
       'type'   	  => 'select',
+      'default'   => get_default('medication[]'),
       'label'     => __('Search and select medications by generic name that you want to transfer to Good Pill'),
       'options'   => ['']
     ]
@@ -40,9 +46,6 @@ function order_fields() {
 }
 
 function account_fields($user_id) {
-  $get_default = function($field, $default) {
-    return $_POST ? $_POST[$field] : (get_user_meta($user_id ?: get_current_user_id(), $field, true) ?: $default);
-  };
 
   return [
     'language' => [
@@ -51,23 +54,19 @@ function account_fields($user_id) {
       'label_class' => ['radio'],
       'required'  => true,
       'options'   => ['english' => __('English'), 'spanish' => __('Spanish')],
-      'default'   => $get_default('language')
+      'default'   => get_default('language', $user_id) ?: 'english'
     ],
     'birth_date' => [
       'label'     => __('Date of Birth'),
       'required'  => true,
-      'default'   => $get_default('birth_date')
+      'default'   => get_default('birth_date', $user_id)
     ]
   ];
 }
 
-function patient_fields($user_id) {
+function shared_fields($user_id) {
     //https://docs.woocommerce.com/wc-apidocs/source-function-woocommerce_form_field.html#1841-2061
-    $get_default = function($field, $default) {
-      return $_POST ? $_POST[$field] : (get_user_meta($user_id ?: get_current_user_id(), $field, true) ?: $default);
-    };
-
-    $backup_pharmacy = $get_default('backup_pharmacy');
+    $backup_pharmacy = get_default('backup_pharmacy', $user_id);
 
     return [
     'backup_pharmacy' => [
@@ -79,61 +78,61 @@ function patient_fields($user_id) {
     ],
     'medications_other' => [
         'label'     =>  __('List any other medication(s) or supplement(s) you are currently taking'),
-        'default'   => $get_default('medications_other')
+        'default'   => get_default('medications_other', $user_id)
     ],
     'allergies_none' => [
         'type'   	  => 'radio',
         'label'     => __('Allergies'),
         'label_class' => ['radio'],
         'options'   => ['' => __('Allergies Selected Below'), 99 => __('No Medication Allergies')],
-    	  'default'   => $get_default('allergies_none', '')
+    	'default'   => get_default('allergies_none', $user_id)
     ],
     'allergies_aspirin' => [
         'type'      => 'checkbox',
         'class'     => ['allergies', 'form-row-wide'],
         'label'     => __('Aspirin'),
-        'default'   => $get_default('allergies_aspirin')
+        'default'   => get_default('allergies_aspirin', $user_id)
     ],
     'allergies_penicillin' => [
         'type'      => 'checkbox',
         'class'     => ['allergies', 'form-row-wide'],
         'label'     => __('Penicillin'),
-        'default'   => $get_default('allergies_penicillin')
+        'default'   => get_default('allergies_penicillin', $user_id)
     ],
     'allergies_ampicillin' => [
         'type'      => 'checkbox',
         'class'     => ['allergies', 'form-row-wide'],
         'label'     => __('Ampicillin'),
-        'default'   => $get_default('allergies_ampicillin')
+        'default'   => get_default('allergies_ampicillin', $user_id)
     ],
     'allergies_erythromycin' => [
         'type'      => 'checkbox',
         'class'     => ['allergies', 'form-row-wide'],
         'label'     => __('Erythromycin'),
-        'default'   => $get_default('allergies_erythromycin')
+        'default'   => get_default('allergies_erythromycin', $user_id)
     ],
     'allergies_nsaids' => [
         'type'      => 'checkbox',
         'class'     => ['allergies', 'form-row-wide'],
         'label'     => __('NSAIDS e.g., ibuprofen, Advil'),
-        'default'   => $get_default('allergies_nsaids')
+        'default'   => get_default('allergies_nsaids', $user_id)
     ],
     'allergies_sulfa' => [
         'type'      => 'checkbox',
         'class'     => ['allergies', 'form-row-wide'],
         'label'     => __('Sulfa (Sulfonamide Antibiotics)'),
-        'default'   => $get_default('allergies_sulfa')
+        'default'   => get_default('allergies_sulfa', $user_id)
     ],
     'allergies_tetracycline' => [
         'type'      => 'checkbox',
         'class'     => ['allergies', 'form-row-wide'],
         'label'     => __('Tetracycline antibiotics'),
-        'default'   => $get_default('allergies_tetracycline')
+        'default'   => get_default('allergies_tetracycline', $user_id)
     ],
     'allergies_other' => [
         'type'      => 'checkbox',
         'class'     => ['allergies', 'form-row-wide'],
-        'label'     =>__( 'List Other Allergies Below').'<input class="input-text " name="allergies_other" id="allergies_other_input" value="'.$get_default('allergies_other').'">'
+        'label'     =>__('List Other Allergies Below').'<input class="input-text " name="allergies_other" id="allergies_other_input" value="'.get_default('allergies_other', $user_id).'">'
     ],
     'phone' => [
         'label'     => __('Phone'),
@@ -141,7 +140,7 @@ function patient_fields($user_id) {
         'type'      => 'tel',
         'validate'  => ['phone'],
         'autocomplete' => 'tel',
-        'default'   => $get_default('phone')
+        'default'   => get_default('phone', $user_id)
     ]
   ];
 }
@@ -158,7 +157,7 @@ function custom_user_edit_account() {
 
 function custom_edit_account_form($user_id) {
 
-  $fields = patient_fields($user_id)+account_fields($user_id);
+  $fields = shared_fields($user_id)+account_fields($user_id);
 
   foreach ($fields as $key => $field) {
     if ($key === "backup_pharmacy") {
@@ -171,8 +170,7 @@ function custom_edit_account_form($user_id) {
 
 add_action('woocommerce_register_form_start', 'custom_register_form');
 function custom_register_form() {
-  $patient_fields = patient_fields();
-
+  $account_fields = account_fields();
   $first_name = [
     'class' => ['form-row-first'],
     'label'  => __('First name'),
@@ -185,10 +183,10 @@ function custom_register_form() {
     'default' => $_POST['last_name']
   ];
 
-  echo woocommerce_form_field('language', $patient_fields['language']);
+  echo woocommerce_form_field('language', $account_fields['language']);
   echo woocommerce_form_field('first_name', $first_name);
   echo woocommerce_form_field('last_name', $last_name);
-  echo woocommerce_form_field('birth_date', $patient_fields['birth_date']);
+  echo woocommerce_form_field('birth_date', $account_fields['birth_date']);
 }
 
 //After Registration, set default shipping/billing/account fields
@@ -206,6 +204,7 @@ function customer_created($user_id) {
   update_user_meta($user_id, 'language', $_POST['language']);
 
   $patient_id = add_patient($first_name, $last_name, $birth_date);
+  save_language(sanitize_text_field($_POST['language']));
 
   update_user_meta($user_id, 'guardian_id', $patient_id);
 }
@@ -255,11 +254,11 @@ function custom_my_account_menu($nav) {
 
 add_action('woocommerce_save_account_details_errors', 'custom_account_validation');
 function custom_account_validation() {
-   custom_validation(patient_fields()+account_fields());
+   custom_validation(shared_fields()+account_fields());
 }
 add_action('woocommerce_checkout_process', 'custom_order_validation');
 function custom_order_validation() {
-   custom_validation(patient_fields()+order_fields());
+   custom_validation(shared_fields()+order_fields());
 }
 
 function custom_validation($fields) {
@@ -283,13 +282,13 @@ function custom_validation($fields) {
 add_action('woocommerce_save_account_details', 'custom_save_account_details');
 function custom_save_account_details($user_id) {
   //TODO should save if they don't exist, but what if they do, should we be overriding?
-  custom_save_patient($user_id, patient_fields($user_id) + account_fields($user_id));
+  custom_save_patient($user_id, shared_fields($user_id) + account_fields($user_id));
 }
 
 add_action('woocommerce_checkout_update_user_meta', 'custom_save_order_details');
 function custom_save_order_details($user_id) {
   //TODO should save if they don't exist, but what if they do, should we be overriding?
-  custom_save_patient($user_id, patient_fields($user_id) + order_fields($user_id));
+  custom_save_patient($user_id, shared_fields($user_id) + order_fields($user_id));
 
   $address = update_shipping_address(
     sanitize_text_field($_POST['shipping_address_1']),
@@ -460,7 +459,7 @@ function custom_translate($term) {
 add_filter( 'woocommerce_checkout_fields' , 'custom_checkout_fields' );
 function custom_checkout_fields( $fields ) {
 
-  $patient_fields = patient_fields();
+  $shared_fields = shared_fields();
 
   //Add some order fields that are not in patient profile
   $order_fields = order_fields();
@@ -468,9 +467,9 @@ function custom_checkout_fields( $fields ) {
   //Insert order fields at offset 2
   $offset = 1;
   $fields['order'] =
-    array_slice($patient_fields, 0, $offset, true) +
+    array_slice($shared_fields, 0, $offset, true) +
     $order_fields +
-    array_slice($patient_fields, $offset, NULL, true);
+    array_slice($shared_fields, $offset, NULL, true);
 
   //Allow billing out of state but don't allow shipping out of state
   $fields['shipping']['shipping_state']['type'] = 'select';
@@ -497,6 +496,12 @@ function remove_sticky_checkout() {
 function update_billing_token($stripe_id) {
   return db_run("SirumWeb_AddRemove_Billing(?, ?, ?, ?)", [
     guardian_id(), $stripe_id
+  ]);
+}
+
+function update_language($language) {
+  return db_run("SirumWeb_Add_Language(?, ?, ?, ?)", [
+    guardian_id(), $language
   ]);
 }
 

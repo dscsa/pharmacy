@@ -5,8 +5,6 @@ function load() {
   if (window.location.search == '?register')
     return register_page()
 
-  translate() //not just account_page.  Payment methods too
-
   if (window.location.pathname == '/account/details/')
     return account_page()
 
@@ -15,6 +13,7 @@ function load() {
 }
 
 function register_page() {
+  translate()
   createUsername()
   upgradeBirthdate()
 }
@@ -28,12 +27,8 @@ function account_page() {
 function translate() {
   jQuery("#language_english").change(hideSpanish)
   jQuery("#language_spanish").change(hideEnglish)
-
   jQuery("<style id='language' type='text/css'></style>").appendTo('head')
-
-  var checked = jQuery("input[name=language]:checked")
-
-  checked.length ? checked.triggerHandler('change') : hideSpanish()
+  jQuery("input[name=language]:checked").triggerHandler('change')
 }
 
 function hideEnglish() {
