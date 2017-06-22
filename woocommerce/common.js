@@ -21,12 +21,12 @@ function register_page() {
 function account_page() {
   upgradePharmacy()
   upgradeAllergies()
-  upgradeBirthdate()
+  disableFixedFields()
 }
 
 function translate() {
-  jQuery("#language_english").change(hideSpanish)
-  jQuery("#language_spanish").change(hideEnglish)
+  jQuery("#language_EN").change(hideSpanish)
+  jQuery("#language_ES").change(hideEnglish)
   jQuery("<style id='language' type='text/css'></style>").appendTo('head')
   jQuery("input[name=language]:checked").triggerHandler('change')
 }
@@ -80,6 +80,13 @@ function createUsername() {
 
 function upgradeBirthdate() {
   jQuery('#birth_date').prop('type', 'date') //can't easily set date type in woocommerce
+}
+
+function disableFixedFields() {
+  jQuery('#birth_date').prop('disabled', true)
+  jQuery('#first_name').prop('disabled', true)
+  jQuery('#last_name').prop('disabled', true)
+  jQuery('#allergies_other_input').prop('disabled', true)
 }
 
 function pharmacy2select(entry, i) {
