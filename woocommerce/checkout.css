@@ -1,7 +1,10 @@
-#medication\[\]_field, /* don't force medication on eRx (default) */
 .woocommerce-SavedPaymentMethods-saveNew /* Hide trust commerce save card option */
 {
   display:none !important
+}
+#medication\[\]_field /* don't force medication on eRx (default) */
+{
+  display:none
 }
 /*Make sure they are visible */
 .woocommerce > .woocommerce-info, form.checkout_coupon, form.checkout  {
