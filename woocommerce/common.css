@@ -8,7 +8,7 @@
 .site-title a {
   font-size:20px
 }
-.site-search, .site-header-cart, .site-info, .entry-title {
+.site-search, .site-header-cart, .site-info {
   display:none !important
 }
 .main-navigation {
@@ -28,7 +28,8 @@
   margin-top:0 !important;
   margin-bottom:10px !important
 }
-
+.entry-title,
+.storefront-handheld-footer-bar,
 .woocommerce-order, /* duplicated when showing order success */
 .woocommerce-order-overview
 {
