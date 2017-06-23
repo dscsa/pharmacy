@@ -28,6 +28,10 @@
   margin-top:0 !important;
   margin-bottom:10px !important
 }
+/*remove border from mobile menu */
+button.menu-toggle {
+  border:none !important
+}
 .entry-title,
 .storefront-handheld-footer-bar,
 .woocommerce-order, /* duplicated when showing order success */
