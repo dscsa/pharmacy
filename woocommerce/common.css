@@ -8,7 +8,7 @@
 .site-title a {
   font-size:20px
 }
-.site-search, .site-header-cart, .site-info, .site-title {
+.site-search, .site-header-cart, .site-info, .entry-title {
   display:none !important
 }
 .main-navigation {
@@ -20,13 +20,6 @@
   text-align: right;
   margin-top:-10px !important;
   margin-bottom:-35px !important
-}
-.entry-title {
-  position: absolute;
-  text-align:center;
-  left: 0;
-  right: 0;
-  top:10px;
 }
 .entry-header {
   padding-bottom:0 !important
