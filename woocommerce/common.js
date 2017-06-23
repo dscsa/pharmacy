@@ -87,8 +87,8 @@ function disableFixedFields() {
   jQuery('#birth_date').prop('readonly', true)
   jQuery('#account_first_name').prop('readonly', true)
   jQuery('#account_last_name').prop('readonly', true)
-  jQuery("#language_EN").prop('readonly', true)
-  jQuery("#language_ES").prop('readonly', true)
+  //Readonly doesn't work for radios https://stackoverflow.com/questions/1953017/why-cant-radio-buttons-be-readonly
+  jQuery('input[name=language]:not(:checked)').attr('disabled', true)
 
   var other_allergy = jQuery('#allergies_other_input')
   if (other_allergy.val()) //we cannot properly edit in guardian right now
