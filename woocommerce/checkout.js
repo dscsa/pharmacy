@@ -5,7 +5,7 @@ function load() {
 
   upgradeMedication()
 
-  jQuery('.col-1').prepend(jQuery('.woocommerce-additional-fields'))
+  jQuery('form.checkout .col-1').prepend(jQuery('.woocommerce-additional-fields'))
 
   jQuery('form.checkout').show()
   jQuery('.woocommerce-MyAccount-content').hide()
