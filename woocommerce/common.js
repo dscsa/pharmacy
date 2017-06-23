@@ -82,12 +82,13 @@ function upgradeBirthdate() {
   jQuery('#birth_date').prop('type', 'date') //can't easily set date type in woocommerce
 }
 
+//Disabled fields not submitted causing validation error.
 function disableFixedFields() {
-  jQuery('#birth_date').prop('disabled', true)
-  jQuery('#account_first_name').prop('disabled', true)
-  jQuery('#account_last_name').prop('disabled', true)
-  jQuery("#language_EN").prop('disabled', true)
-  jQuery("#language_ES").prop('disabled', true)
+  jQuery('#birth_date').prop('readonly', true)
+  jQuery('#account_first_name').prop('readonly', true)
+  jQuery('#account_last_name').prop('readonly', true)
+  jQuery("#language_EN").prop('readonly', true)
+  jQuery("#language_ES").prop('readonly', true)
 
   var other_allergy = jQuery('#allergies_other_input')
   if (other_allergy.val()) //we cannot properly edit in guardian right now
