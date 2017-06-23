@@ -8,7 +8,7 @@
 .site-title a {
   font-size:20px
 }
-.site-search, .site-header-cart, .site-info {
+.site-search, .site-header-cart, .site-info, .site-title {
   display:none !important
 }
 .main-navigation {
