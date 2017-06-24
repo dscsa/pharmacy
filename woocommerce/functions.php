@@ -21,8 +21,20 @@ function register_custom_plugin_styles() {
   }
 }
 
+add_action('wp_enqueue_scripts', 'remove_sticky_checkout', 99);
+function remove_sticky_checkout() {
+  wp_dequeue_script('storefront-sticky-payment');
+}
+
 function get_default($field, $user_id) {
   return $_POST ? $_POST[$field] : get_user_meta($user_id ?: get_current_user_id(), $field, true);
+}
+
+add_action('updated_user_meta', 'custom_updated_user_meta', 10, 4);
+function custom_updated_user_meta($meta_id, $object, $key, $val) {
+  if(preg_match("/(card|cus_|stripe)/i", $key)) {
+    wp_mail('adam.kircher@gmail.com', 'custom_updated_user_meta', print_r(func_get_args(), true));
+  }
 }
 
 function order_fields() {
@@ -93,17 +105,35 @@ function shared_fields($user_id) {
         'label'     => __('Aspirin'),
         'default'   => get_default('allergies_aspirin', $user_id)
     ],
-    'allergies_penicillin' => [
+    'allergies_amoxicillin' => [
         'type'      => 'checkbox',
         'class'     => ['allergies', 'form-row-wide'],
-        'label'     => __('Penicillin'),
-        'default'   => get_default('allergies_penicillin', $user_id)
+        'label'     => __('Amoxicillin'),
+        'default'   => get_default('allergies_amoxicillin', $user_id)
     ],
     'allergies_ampicillin' => [
         'type'      => 'checkbox',
         'class'     => ['allergies', 'form-row-wide'],
         'label'     => __('Ampicillin'),
         'default'   => get_default('allergies_ampicillin', $user_id)
+    ],
+    'allergies_azithromycin' => [
+        'type'      => 'checkbox',
+        'class'     => ['allergies', 'form-row-wide'],
+        'label'     => __('Azithromycin'),
+        'default'   => get_default('allergies_azithromycin', $user_id)
+    ],
+    'allergies_cephalosporins' => [
+        'type'      => 'checkbox',
+        'class'     => ['allergies', 'form-row-wide'],
+        'label'     => __('Cephalosporins'),
+        'default'   => get_default('allergies_cephalosporins', $user_id)
+    ],
+    'allergies_codeine' => [
+        'type'      => 'checkbox',
+        'class'     => ['allergies', 'form-row-wide'],
+        'label'     => __('Codeine'),
+        'default'   => get_default('allergies_codeine', $user_id)
     ],
     'allergies_erythromycin' => [
         'type'      => 'checkbox',
@@ -116,6 +146,18 @@ function shared_fields($user_id) {
         'class'     => ['allergies', 'form-row-wide'],
         'label'     => __('NSAIDS e.g., ibuprofen, Advil'),
         'default'   => get_default('allergies_nsaids', $user_id)
+    ],
+    'allergies_penicillin' => [
+        'type'      => 'checkbox',
+        'class'     => ['allergies', 'form-row-wide'],
+        'label'     => __('Penicillin'),
+        'default'   => get_default('allergies_penicillin', $user_id)
+    ],
+    'allergies_salicylates' => [
+        'type'      => 'checkbox',
+        'class'     => ['allergies', 'form-row-wide'],
+        'label'     => __('Salicylates'),
+        'default'   => get_default('allergies_salicylates', $user_id)
     ],
     'allergies_sulfa' => [
         'type'      => 'checkbox',
@@ -295,10 +337,10 @@ function custom_save_order_details($user_id) {
 
   //TODO this should be called on the edit address page as well
   $address = update_shipping_address(
-    sanitize_text_field($_POST['shipping_address_1']),
-    sanitize_text_field($_POST['shipping_address_2']),
-    sanitize_text_field($_POST['shipping_city']),
-    sanitize_text_field($_POST['shipping_postcode'])
+    sanitize_text_field($_POST['shipping_address_1'] ?: $_POST['billing_address_1']),
+    sanitize_text_field($_POST['shipping_address_2'] ?: $_POST['billing_address_2']),
+    sanitize_text_field($_POST['shipping_city'] ?: $_POST['billing_city']),
+    sanitize_text_field($_POST['shipping_postcode'] ?: $_POST['billing_postcode'])
   );
 
   //TODO update stripe on change in default.
@@ -308,14 +350,19 @@ function custom_save_order_details($user_id) {
 function custom_save_patient($user_id, $fields) {
 
   $allergy_codes = [
-    'allergies_none' => 99,
+    'allergies_tetracycline' => 1,
+    'allergies_cephalosporins' => 2,
+    'allergies_sulfa' => 3,
     'allergies_aspirin' => 4,
     'allergies_penicillin' => 5,
     'allergies_ampicillin' => 6,
     'allergies_erythromycin' => 7,
+    'allergies_codeine' => 8,
     'allergies_nsaids' => 9,
-    'allergies_sulfa' => 3,
-    'allergies_tetracycline' => 1,
+    'allergies_salicylates' => 10,
+    'allergies_azithromycin' => 11,
+    'allergies_amoxicillin' => 12,
+    'allergies_none' => 99,
     'allergies_other' => 100
   ];
   wp_mail('adam.kircher@gmail.com', 'custom_save_patient', print_r($fields, true).print_r($_POST, true));
@@ -340,24 +387,6 @@ function custom_save_patient($user_id, $fields) {
 
   update_phone(sanitize_text_field($_POST['phone']));
 }
-
-//Save Billing info to Guardian
-//add_action('updated_user_meta', 'custom_updated_user_meta', 10, 4);
-//function custom_updated_user_meta($meta_id, $user_id, $meta_key, $meta_val)
-//{
-//  wp_mail('adam.kircher@gmail.com', 'stripe', print_r(func_get_args(), true));
-//
-//  if ($meta_key != '_trustcommerce_saved_profiles') return;
-//
-//  // $meta_value = [
-//  //   [customer_id] => Q1USQ7
-//  //   [last4] => 1111
-//  //   [exp_year] => 19
-//  //   [exp_month] => 01
-//  // ]
-//}
-
-
 
 //Didn't work: https://stackoverflow.com/questions/38395784/woocommerce-overriding-billing-state-and-post-code-on-existing-checkout-fields
 //Did work: https://stackoverflow.com/questions/36619793/cant-change-postcode-zip-field-label-in-woocommerce
@@ -419,12 +448,9 @@ function custom_translate($term) {
     'Transfer prescription(s) from my pharmacy' => 'Spanish from Pharmacy',
     'Street address' => 'Spanish Street address',
     'Apartment, suite, unit etc. (optional)' => 'Spanish Address 2',
-    'Pay by Check or Cash' => 'Spanish Pay by Check or Cash',
-    'Pay by Credit or Debit Card' => 'Spanish Pay by Credit or Debit Card',
     'Card number' => 'Spanish Card Number',
     'Expiry (MM/YY)' => 'Spanish Exp',
     'Card code' => 'Spanish Card code',
-    'Once your prescriptions arrive, you will be responsible for sending us a check or cash for the amount above in the envelope provided.' => 'Spanish Payment Instructions',
     'New Order' => 'Spanish New Order',
     'Orders' => 'Spanish Orders',
     'Addresses' => 'Spanish Addresses',
@@ -445,7 +471,12 @@ function custom_translate($term) {
     'Payment method:' => 'Spanish payment method:',
     'Email:' => 'Spanish Email:',
     'Order details' => 'Spanish Order details',
-    'Customer details' => 'Spanish Customer details'
+    'Customer details' => 'Spanish Customer details',
+    'Amoxicillin' => 'Drogas de Amoxicillin',
+    'Azithromycin' => 'Drogas de Azithromycin',
+    'Cephalosporins' => 'Drogas de Cephalosporins',
+    'Codeine' => 'Drogas de Codeine',
+    'Salicylates' => 'Drogas de Salicylates'
   ];
 
   $english = isset($toEnglish[$term]) ? $toEnglish[$term] : $term;
@@ -478,12 +509,7 @@ function custom_checkout_fields( $fields ) {
   //Add some order fields that are not in patient profile
   $order_fields = order_fields();
 
-  //Insert order fields at offset 2
-  $offset = 1;
-  $fields['order'] =
-    array_slice($shared_fields, 0, $offset, true) +
-    $order_fields +
-    array_slice($shared_fields, $offset, NULL, true);
+  $fields['order'] = $order_fields + $shared_fields;
 
   //Allow billing out of state but don't allow shipping out of state
   $fields['shipping']['shipping_state']['type'] = 'select';
@@ -502,27 +528,29 @@ function custom_checkout_fields( $fields ) {
   return $fields;
 }
 
-add_action('wp_enqueue_scripts', 'remove_sticky_checkout', 99 );
-function remove_sticky_checkout() {
-  wp_dequeue_script( 'storefront-sticky-payment' );
-}
-
 // SirumWeb_AddRemove_Allergy(
 //   @PatID int,     --Carepoint Patient ID number
 //   @AddRem int = 1,-- 1=Add 0= Remove
 //   @AlrNumber int,  -- From list
 //   @OtherDescr varchar(80) = '' -- Description for "Other"
 // )
-// if      @AlrNumber = 1  -- TETRACYCLINE 250 MG CAPSULE
-// else if @AlrNumber = 3  -- Sulfa (Sulfonamide Antibiotics)
-// else if @AlrNumber = 4  -- Aspirin
-// else if @AlrNumber = 5  -- Penicillins
-// else if @AlrNumber = 6  -- Ampicillin
-// else if @AlrNumber = 7  -- Erythromycin Base
-// else if @AlrNumber = 8  -- Codeine
-// else if @AlrNumber = 9  -- NSAIDS e.g., ibuprofen, Advil
-// else if @AlrNumber = 99  -- none
-// else if @AlrNumber = 100 -- other
+/*
+    Allergies supported
+  if      @AlrNumber = 1  -- TETRACYCLINE
+  else if @AlrNumber = 2  -- Cephalosporins
+  else if @AlrNumber = 3  -- Sulfa (Sulfonamide Antibiotics)
+  else if @AlrNumber = 4  -- Aspirin
+  else if @AlrNumber = 5  -- Penicillins
+  else if @AlrNumber = 6  -- Ampicillin
+  else if @AlrNumber = 7  -- Erythromycin Base
+  else if @AlrNumber = 8  -- Codeine
+  else if @AlrNumber = 9  -- NSAIDS e.g., ibuprofen, Advil
+  else if @AlrNumber = 10  -- Salicylates
+  else if @AlrNumber = 11  -- azithromycin,
+  else if @AlrNumber = 12  -- amoxicillin,
+  else if @AlrNumber = 99  -- none
+  else if @AlrNumber = 100 -- other
+*/
 function add_remove_allergy($allergy_id, $value) {
   return db_run("SirumWeb_AddRemove_Allergy(?, ?, ?, ?)", [
     guardian_id(), $value ? 1 : 0, $allergy_id, $value
@@ -605,8 +633,10 @@ function append_comment($comment) {
 //   ,@PharmacyFaxNo varchar(20)   -- Phone Fax Number
 // If you send the NDC, it will use it.  If you do not send and NCD it will attempt to look up the drug by the name.  I am not sure that this will work correctly, the name you pass in would most likely have to be an exact match, even though I am using  like logic  (ie “%Aspirin 325mg% “) to search.  We may have to work on this a bit more
 function add_preorder($drug_name, $pharmacy) {
-   wp_mail('adam.kircher@gmail.com', 'add preorder', print_r($pharmacy, true));
-  //return db_run("SirumWeb_AddToPreorder(?, ?)", [guardian_id(), $drug_name]);
+   //they have XX MG and we have XXmg, use % for optional space.
+   $drug_name = preg_replace('/(\d+)/i', '$1%', $drug_name);
+   wp_mail('adam.kircher@gmail.com', 'add preorder', print_r($drug_name, true).' '.print_r($pharmacy, true));
+   //return db_run("SirumWeb_AddToPreorder(?, ?, ?)", [guardian_id(), $drug_name, $pharmacy]);
 }
 
 // Procedure dbo.SirumWeb_AddUpdatePatientUD (@PatID int, @UDNumber int, @UDValue varchar(50) )
@@ -626,27 +656,6 @@ function update_email($email) {
     return db_run("SirumWeb_AddUpdatePatEmail(?, ?)", [guardian_id(), $email]);
 }
 
-// SirumWeb_AddToPreorder(
-//  @PatID int
-// ,@NDC varchar(11)  -- NDC to add
-// ,@PharmacyOrgID int -- Org_id from Pharmacy List
-// ,@PharmacyName varchar(80)
-// ,@PharmacyAddr1 varchar(50)    -- Address Line 1
-// ,@PharmacyAddr2 varchar(50)    -- Address Line 2
-// ,@PharmacyAddr3 varchar(50)    -- Address Line 3
-// ,@PharmacyCity varchar(20)     -- City Name
-// ,@PharmacyState varchar(2)     -- State Name
-// ,@PharmacyZip varchar(10)      -- Zip Code
-// ,@PharmacyPhone varchar(20)   -- Phone Number
-// ,@PharmacyFaxNo varchar(20)   -- Phone Fax Number
-// )
-// function preorder($first_name, $last_name, $birth_date) {
-//   return run("SirumWeb_AddToPreorder()", [
-//     [$first_name, SQLSRV_PARAM_IN],
-//     [$last_name, SQLSRV_PARAM_IN],
-//     [$birth_date, SQLSRV_PARAM_IN]
-//   ]);
-// }
 global $conn;
 function db_run($sql, $params, $noresults) {
   global $conn;
