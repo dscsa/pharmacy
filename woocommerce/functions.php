@@ -30,11 +30,25 @@ function get_default($field, $user_id) {
   return $_POST ? $_POST[$field] : get_user_meta($user_id ?: get_current_user_id(), $field, true);
 }
 
-add_action('updated_user_meta', 'custom_updated_user_meta', 10, 4);
-function custom_updated_user_meta($meta_id, $object, $key, $val) {
-  if(preg_match("/(card|cus_|stripe|payment|token)/i", $key)) {
-    wp_mail('adam.kircher@gmail.com', 'custom_updated_user_meta', print_r(func_get_args(), true));
-  }
+add_action('woocommerce_payment_token_set_default', 'custom_payment_token_set_default', 10, 4);
+function custom_payment_token_set_default($token_id, $card) {
+
+   $card = json_encode([
+     'type' => $card->get_card_type(),
+     'exp_year' => $card->get_expiry_year(),
+     'exp_month' => $card->get_expiry_month(),
+     'last4' => $card->get_last4(),
+     'card' => $card->get_token()
+   ]);
+
+   wp_mail('adam.kircher@gmail.com', 'custom_payment_token_set_default', $card);
+   update_stripe_card($card);
+}
+
+add_action('woocommerce_stripe_add_customer', 'custom_stripe_add_customer', 10, 4);
+function custom_stripe_add_customer($meta, $customer) {
+   wp_mail('adam.kircher@gmail.com', 'custom_payment_token_set_default', print_r($customer->id, true));
+   update_stripe_customer($customer->id);
 }
 
 function order_fields() {
@@ -264,40 +278,32 @@ function email_name() {
 // After registration and login redirect user to account/orders.
 // Clicking on Dashboard/New Order in Nave will add the actual product
 add_action('woocommerce_registration_redirect', 'custom_redirect', 2);
-add_action('woocommerce_login_redirect', 'custom_redirect', 2);
 function custom_redirect() {
   return home_url('/account/?add-to-cart=30#/');
 }
 
-add_filter ('wp_redirect', 'custom_wp_redirect', 10, 4);
+add_filter ('wp_redirect', 'custom_wp_redirect');
 function custom_wp_redirect($location) {
   //This goes back to account/details rather than /account after saving account details
   if (substr($location, -9) == '/account/')
     return $location.'details/';
 
-  //if (substr($_GET['key'], 0, 9) == 'wc_order_')
-   //return $location.'/account/?add-to-cart=30#/'
+  //After successful order, add another item back into cart.
+  //Add to card won't work unless we replace query params e.g., key=wc_order_594de1d38152e
+  if (substr($_GET['key'], 0, 9) == 'wc_order_')
+   return substr($location, 0, -26).'add-to-cart=30';
 
-  wp_mail('adam.kircher@gmail.com', 'custom redirect', print_r($_GET, true).print_r(func_get_args(), true));
+  //Hacky, but only way I could get add-to-cart not to be called twice in a row.
+  if (substr($location, -15) == '?add-to-cart=30')
+   return substr($location, 0, -15);
 
   return $location;
 }
 
-
 add_filter ('woocommerce_account_menu_items', 'custom_my_account_menu');
 function custom_my_account_menu($nav) {
-
-  //Clicking on Dashboard/New Order actually adds the product.
-  //Hash is necessary to prevent the trailing slash to ignore query
-  $new = ['?add-to-cart=30#' => __('New Order')];
-
-  //Preserve order otherwise new link is at the bottom of menu
-  foreach ($nav as $key => $val) {
-    if ($key != 'dashboard')
-      $new[$key] = $val;
-  }
-
-  return $new;
+  $nav['dashboard'] = __('New Order');
+  return $nav;
 }
 
 add_action('woocommerce_save_account_details_errors', 'custom_account_validation');
@@ -347,9 +353,6 @@ function custom_save_order_details($user_id) {
     sanitize_text_field($_POST['shipping_city'] ?: $_POST['billing_city']),
     sanitize_text_field($_POST['shipping_postcode'] ?: $_POST['billing_postcode'])
   );
-
-  //TODO update stripe on change in default.
-  update_stripe($_POST['stripe_token']);
 }
 
 function custom_save_patient($user_id, $fields) {
@@ -396,9 +399,13 @@ function custom_save_patient($user_id, $fields) {
 //Didn't work: https://stackoverflow.com/questions/38395784/woocommerce-overriding-billing-state-and-post-code-on-existing-checkout-fields
 //Did work: https://stackoverflow.com/questions/36619793/cant-change-postcode-zip-field-label-in-woocommerce
 global $lang;
-add_filter('ngettext', 'custom_translate');
-add_filter('gettext', 'custom_translate');
-function custom_translate($term) {
+add_filter('esc_html', 'custom_translate', 10, 3);
+add_filter('ngettext', 'custom_translate', 10, 3);
+add_filter('gettext', 'custom_translate', 10, 3);
+function custom_translate($term, $raw, $domain) {
+
+  if (strpos($term, 'been added to your cart') !== false)
+    wp_mail('adam.kircher@gmail.com', 'been added to your cart', $term);
 
   $toEnglish = [
     'Spanish'  => 'Espanol',
@@ -406,7 +413,8 @@ function custom_translate($term) {
     'From your account dashboard you can view your <a href="%1$s">recent orders</a>, manage your <a href="%2$s">shipping and billing addresses</a> and <a href="%3$s">edit your password and account details</a>.' => '',
     'ZIP' => 'Zip code',
     'Your order' => '',
-    'No saved methods found.' => 'No credit or debit cards are saved to your account'
+    'No saved methods found.' => 'No credit or debit cards are saved to your account',
+    '%s has been added to your cart.' => 'Thank you for your order!  Your prescription(s) should arrive within 3-5 days.',
   ];
 
   $toSpanish = [
@@ -470,6 +478,9 @@ function custom_translate($term) {
     'Save address' => 'Spanish Save Address',
     'No credit or debit cards are saved to your account' => 'Spanish No Cards Saved',
     'Add payment method' => 'Spanish Add Payment',
+    'Pay with your credit card via Stripe.' => 'Spanish Pay by Credit or Debit Card',
+    'Credit Card (Stripe)' => 'Hi',
+    'Pay by Check or Cash' => 'Spanish Pay by Check or Cash',
     'Save changes' => 'Spanish Save Changes',
     'is a required field' => 'es spanish required',
     'Order #%1$s was placed on %2$s and is currently %3$s.' => 'Spanish order #%1$s was placed on %2$s and is currently %3$s.',
@@ -481,7 +492,8 @@ function custom_translate($term) {
     'Azithromycin' => 'Drogas de Azithromycin',
     'Cephalosporins' => 'Drogas de Cephalosporins',
     'Codeine' => 'Drogas de Codeine',
-    'Salicylates' => 'Drogas de Salicylates'
+    'Salicylates' => 'Drogas de Salicylates',
+    'Thank you for your order!  Your prescription(s) should arrive within 3-5 days.' => 'Gracias por su order!  Your prescription(s) should llegar en tres or cinco dias.',
   ];
 
   $english = isset($toEnglish[$term]) ? $toEnglish[$term] : $term;
@@ -529,7 +541,6 @@ function custom_checkout_fields( $fields ) {
   unset($fields['billing']['billing_country']);
   unset($fields['shipping']['shipping_country']);
   unset($fields['shipping']['shipping_company']);
-  wp_mail('adam.kircher@gmail.com', 'checkout fields', print_r($fields, true));
 
   return $fields;
 }
@@ -652,8 +663,12 @@ function update_pharmacy($value) {
     return db_run("SirumWeb_AddUpdatePatientUD(?, 1, ?)", [guardian_id(), $value]);
 }
 
-function update_stripe($value) {
+function update_stripe_customer($value) {
     return db_run("SirumWeb_AddUpdatePatientUD(?, 2, ?)", [guardian_id(), $value]);
+}
+
+function update_stripe_card($value) {
+    return db_run("SirumWeb_AddUpdatePatientUD(?, 3, ?)", [guardian_id(), $value]);
 }
 
 //Procedure dbo.SirumWeb_AddUpdatePatEmail (@PatID int, @EMailAddress VARCHAR(255)
