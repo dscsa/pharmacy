@@ -636,13 +636,9 @@ function append_comment($comment) {
 
 // Create Procedure dbo.SirumWeb_AddToPreorder(
 //    @PatID int
-//   ,@NDC varchar(11) ='' -- NDC to add
 //   ,@DrugName varchar(60) ='' -- Drug Name to look up NDC
-//   ,@PharmacyOrgID int -- Org_id from Pharmacy List
 //   ,@PharmacyName varchar(80)
 //   ,@PharmacyAddr1 varchar(50)    -- Address Line 1
-//   ,@PharmacyAddr2 varchar(50)    -- Address Line 2
-//   ,@PharmacyAddr3 varchar(50)    -- Address Line 3
 //   ,@PharmacyCity varchar(20)     -- City Name
 //   ,@PharmacyState varchar(2)     -- State Name
 //   ,@PharmacyZip varchar(10)      -- Zip Code
@@ -650,10 +646,19 @@ function append_comment($comment) {
 //   ,@PharmacyFaxNo varchar(20)   -- Phone Fax Number
 // If you send the NDC, it will use it.  If you do not send and NCD it will attempt to look up the drug by the name.  I am not sure that this will work correctly, the name you pass in would most likely have to be an exact match, even though I am using  like logic  (ie “%Aspirin 325mg% “) to search.  We may have to work on this a bit more
 function add_preorder($drug_name, $pharmacy) {
-   //they have XX MG and we have XXmg, use % for optional space.
-   $drug_name = preg_replace('/(\d+)/i', '$1%', $drug_name);
-   wp_mail('adam.kircher@gmail.com', 'add preorder', print_r($drug_name, true).' '.print_r($pharmacy, true));
-   //return db_run("SirumWeb_AddToPreorder(?, ?, ?)", [guardian_id(), $drug_name, $pharmacy]);
+   $pharmacy = json_decode($pharmacy);
+   return db_run("SirumWeb_AddToPreorder(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", [
+       guardian_id(),
+       $drug_name,
+       $pharmacy['npi'],
+       $pharmacy['name'],
+       $pharmacy['street'],
+       $pharmacy['city'],
+       $pharmacy['state'],
+       $pharmacy['zip'],
+       $pharmacy['phone'],
+       $pharmacy['fax']
+   ]);
 }
 
 // Procedure dbo.SirumWeb_AddUpdatePatientUD (@PatID int, @UDNumber int, @UDValue varchar(50) )

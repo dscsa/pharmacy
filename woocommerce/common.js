@@ -96,9 +96,19 @@ function disableFixedFields() {
 }
 
 function pharmacy2select(entry, i) {
-  var address  = entry.gsx$cleanaddress.$t.replace(/(\d{5})(\d{4})/, '$1')
-  var pharmacy = entry.gsx$name.$t+', '+address+', Phone: '+entry.gsx$phone.$t
-  return {id:pharmacy+', Fax:'+entry.gsx$fax.$t, text:pharmacy}
+
+  var store = {
+    npi:entry.gsx$npi.$t,
+    name:entry.gsx$name.$t,
+    street:entry.gsx$street.$t,
+    city:entry.gsx$city.$t,
+    state:'GA',
+    zip:entry.gsx$zip.$t,
+    phone:entry.gsx$phone.$t, 
+    fax:entry.gsx$fax.$t
+  }
+  var text = store.name+', '+store.street+', '+store.city+', GA '+store.zip+' - Phone: '+store.phone
+  return {id:JSON.stringify(store), text:text}
 }
 
 //http://stackoverflow.com/questions/36591473/how-to-use-matcher-in-select2-js-v-4-0-0
