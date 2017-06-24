@@ -26,8 +26,12 @@ function remove_sticky_checkout() {
   wp_dequeue_script('storefront-sticky-payment');
 }
 
+function get_meta($field, $user_id) {
+  return get_user_meta($user_id ?: get_current_user_id(), $field, true);
+}
+
 function get_default($field, $user_id) {
-  return $_POST ? $_POST[$field] : get_user_meta($user_id ?: get_current_user_id(), $field, true);
+  return $_POST ? $_POST[$field] : get_meta($field, $user_id);
 }
 
 add_action('woocommerce_payment_token_set_default', 'custom_payment_token_set_default', 10, 4);
@@ -56,10 +60,11 @@ function order_fields() {
     'rx_source' => [
       'type'   	  => 'radio',
       'required'  => true,
-      'default'  => 'erx',
+      'default'  => 'pharmacy',
       'options'   => [
-        'pharmacy' => __('Transfer prescription(s) from my pharmacy'),
-        'erx'     => __('Prescription(s) were sent from my doctor')
+        'erx'     => __('Prescription(s) were sent from my doctor'),
+        'pharmacy' => __('Transfer prescription(s) from my pharmacy')
+
       ]
     ],
     'medication[]'  => [
@@ -90,17 +95,24 @@ function account_fields($user_id) {
 }
 
 function shared_fields($user_id) {
+
+    $pharmacy = [
+      'type'  => 'select',
+      'required' => true,
+      'label' => __('<span class="erx">Name and address of a backup pharmacy to fill your prescriptions if we are out-of-stock</span><span class="pharmacy">Name and address of pharmacy from which we should transfer your medication(s)</span>'),
+      'options' => ['' => __('Please choose a pharmacy')]
+    ];
     //https://docs.woocommerce.com/wc-apidocs/source-function-woocommerce_form_field.html#1841-2061
-    $backup_pharmacy = get_default('backup_pharmacy', $user_id);
+    //Can't use get_default here because $POST check messes up the required property below.
+    $pharmacy_meta = get_meta('backup_pharmacy', $user_id);
+
+    if ($pharmacy_meta) {
+      $store = json_decode($pharmacy_meta);
+      $pharmacy['options'] = [$pharmacy_meta => $store->name.', '.$store->street.', '.$store->city.', GA '.$store->zip.' - Phone: '.$store->phone];
+    }
 
     return [
-    'backup_pharmacy' => [
-        'type'   	  => 'select',
-        'label'     => __('<span class="erx">Name and address of a backup pharmacy to fill your prescriptions if we are out-of-stock</span><span class="pharmacy">Name and address of pharmacy from which we should transfer your medication(s)</span>'),
-        'required'  => true,
-        'options'   => [$backup_pharmacy => $backup_pharmacy],
-        'default'   => $backup_pharmacy
-    ],
+    'backup_pharmacy' => $pharmacy,
     'medications_other' => [
         'label'     =>  __('List any other medication(s) or supplement(s) you are currently taking'),
         'default'   => get_default('medications_other', $user_id)
@@ -353,6 +365,11 @@ function custom_save_order_details($user_id) {
     sanitize_text_field($_POST['shipping_city'] ?: $_POST['billing_city']),
     sanitize_text_field($_POST['shipping_postcode'] ?: $_POST['billing_postcode'])
   );
+  if ($_POST['medication']) {
+    foreach ($_POST['medication'] as $drug_name) {
+      add_preorder($drug_name, $_POST['backup_pharmacy']);
+    }
+  }
 }
 
 function custom_save_patient($user_id, $fields) {
@@ -373,12 +390,14 @@ function custom_save_patient($user_id, $fields) {
     'allergies_none' => 99,
     'allergies_other' => 100
   ];
-  wp_mail('adam.kircher@gmail.com', 'custom_save_patient', print_r($fields, true).print_r($_POST, true));
+
   foreach ($fields as $key => $field) {
 
+    //In case of backup pharmacy json, sanitize gets rid of it
     $val = sanitize_text_field($_POST[$key]);
 
-    update_user_meta($user_id, $key, $val);
+    if ($val)
+      update_user_meta($user_id, $key, $val);
 
     if ($allergy_codes[$key]) {
       //Since all checkboxes submitted even with none selected.  If none
@@ -399,13 +418,12 @@ function custom_save_patient($user_id, $fields) {
 //Didn't work: https://stackoverflow.com/questions/38395784/woocommerce-overriding-billing-state-and-post-code-on-existing-checkout-fields
 //Did work: https://stackoverflow.com/questions/36619793/cant-change-postcode-zip-field-label-in-woocommerce
 global $lang;
-add_filter('esc_html', 'custom_translate', 10, 3);
 add_filter('ngettext', 'custom_translate', 10, 3);
 add_filter('gettext', 'custom_translate', 10, 3);
 function custom_translate($term, $raw, $domain) {
 
-  if (strpos($term, 'been added to your cart') !== false)
-    wp_mail('adam.kircher@gmail.com', 'been added to your cart', $term);
+  //if (strpos($term, 'been added to your cart') !== false)
+    //wp_mail('adam.kircher@gmail.com', 'been added to your cart', $term);
 
   $toEnglish = [
     'Spanish'  => 'Espanol',
@@ -494,6 +512,7 @@ function custom_translate($term, $raw, $domain) {
     'Codeine' => 'Drogas de Codeine',
     'Salicylates' => 'Drogas de Salicylates',
     'Thank you for your order!  Your prescription(s) should arrive within 3-5 days.' => 'Gracias por su order!  Your prescription(s) should llegar en tres or cinco dias.',
+    'Please choose a pharmacy' => 'Spanish please choose a pharmacy'
   ];
 
   $english = isset($toEnglish[$term]) ? $toEnglish[$term] : $term;
@@ -594,7 +613,7 @@ function update_phone($cell_phone) {
 // ,@Zip varchar(10)      -- Zip Code
 // ,@Country varchar(3)   -- Country Code
 function update_shipping_address($address_1, $address_2, $city, $zip) {
-  return db_run("SirumWeb_AddUpdatePatShipAddr(?, ?, ?, NULL, ?, 'GA', ?, 'US')", [
+  return db_run("SirumWeb_AddUpdatePatHomeAddr(?, ?, ?, NULL, ?, 'GA', ?, 'US')", [
     guardian_id(), $address_1, $address_2, $city, $zip
   ]);
 }
@@ -637,6 +656,7 @@ function append_comment($comment) {
 // Create Procedure dbo.SirumWeb_AddToPreorder(
 //    @PatID int
 //   ,@DrugName varchar(60) ='' -- Drug Name to look up NDC
+//   ,@PharmacyOrgID int
 //   ,@PharmacyName varchar(80)
 //   ,@PharmacyAddr1 varchar(50)    -- Address Line 1
 //   ,@PharmacyCity varchar(20)     -- City Name
@@ -646,18 +666,20 @@ function append_comment($comment) {
 //   ,@PharmacyFaxNo varchar(20)   -- Phone Fax Number
 // If you send the NDC, it will use it.  If you do not send and NCD it will attempt to look up the drug by the name.  I am not sure that this will work correctly, the name you pass in would most likely have to be an exact match, even though I am using  like logic  (ie “%Aspirin 325mg% “) to search.  We may have to work on this a bit more
 function add_preorder($drug_name, $pharmacy) {
-   $pharmacy = json_decode($pharmacy);
+
+   $store = json_decode(stripslashes($pharmacy));
+
    return db_run("SirumWeb_AddToPreorder(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", [
        guardian_id(),
-       $drug_name,
-       $pharmacy['npi'],
-       $pharmacy['name'],
-       $pharmacy['street'],
-       $pharmacy['city'],
-       $pharmacy['state'],
-       $pharmacy['zip'],
-       $pharmacy['phone'],
-       $pharmacy['fax']
+       explode(",", $drug_name)[0],
+       $store->npi,
+       $store->name,
+       $store->street,
+       $store->city,
+       $store->state,
+       $store->zip,
+       $store->phone,
+       $store->fax
    ]);
 }
 
@@ -697,8 +719,8 @@ function db_run($sql, $params, $noresults) {
 
   sqlsrv_free_stmt($stmt);
 
-  wp_mail('adam.kircher@gmail.com', "db query: $sql", print_r($params, true).print_r($data, true));
-  wp_mail('adam.kircher@gmail.com', "db testing", print_r(sqlsrv_errors(), true));
+  //wp_mail('adam.kircher@gmail.com', "db query: $sql", print_r($params, true).print_r($data, true));
+  //wp_mail('adam.kircher@gmail.com', "db testing", print_r(sqlsrv_errors(), true));
 
   return $data;
 }
