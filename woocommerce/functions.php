@@ -227,10 +227,6 @@ function custom_edit_account_form($user_id) {
   $fields = shared_fields($user_id)+account_fields($user_id);
 
   foreach ($fields as $key => $field) {
-    if ($key === "backup_pharmacy") {
-      $field['options'] = [$field['default'] => $field['default']];
-    }
-
     echo woocommerce_form_field($key, $field);
   }
 }
@@ -396,8 +392,7 @@ function custom_save_patient($user_id, $fields) {
     //In case of backup pharmacy json, sanitize gets rid of it
     $val = sanitize_text_field($_POST[$key]);
 
-    if ($val)
-      update_user_meta($user_id, $key, $val);
+    update_user_meta($user_id, $key, $val);
 
     if ($allergy_codes[$key]) {
       //Since all checkboxes submitted even with none selected.  If none
