@@ -32,25 +32,24 @@ function get_default($field, $user_id) {
 
 add_action('updated_user_meta', 'custom_updated_user_meta', 10, 4);
 function custom_updated_user_meta($meta_id, $object, $key, $val) {
-  if(preg_match("/(card|cus_|stripe)/i", $key)) {
+  if(preg_match("/(card|cus_|stripe|payment|token)/i", $key)) {
     wp_mail('adam.kircher@gmail.com', 'custom_updated_user_meta', print_r(func_get_args(), true));
   }
 }
 
 function order_fields() {
   return [
-    'source' => [
+    'rx_source' => [
       'type'   	  => 'radio',
       'required'  => true,
-      'default'   => get_default('source'),
+      'default'  => 'erx',
       'options'   => [
-        'erx'     => __('Prescription(s) were sent from my doctor'),
-        'pharmacy' => __('Transfer prescription(s) from my pharmacy')
+        'pharmacy' => __('Transfer prescription(s) from my pharmacy'),
+        'erx'     => __('Prescription(s) were sent from my doctor')
       ]
     ],
     'medication[]'  => [
       'type'   	  => 'select',
-      'default'   => get_default('medication[]'),
       'label'     => __('Search and select medications by generic name that you want to transfer to Good Pill'),
       'options'   => ['']
     ]
@@ -267,13 +266,19 @@ function email_name() {
 add_action('woocommerce_registration_redirect', 'custom_redirect', 2);
 add_action('woocommerce_login_redirect', 'custom_redirect', 2);
 function custom_redirect() {
-  return home_url('/account/orders');
+  return home_url('/account/?add-to-cart=30#/');
 }
 
-add_filter ('wp_redirect', 'custom_wp_redirect');
+add_filter ('wp_redirect', 'custom_wp_redirect', 10, 4);
 function custom_wp_redirect($location) {
+  //This goes back to account/details rather than /account after saving account details
   if (substr($location, -9) == '/account/')
     return $location.'details/';
+
+  //if (substr($_GET['key'], 0, 9) == 'wc_order_')
+   //return $location.'/account/?add-to-cart=30#/'
+
+  wp_mail('adam.kircher@gmail.com', 'custom redirect', print_r($_GET, true).print_r(func_get_args(), true));
 
   return $location;
 }
@@ -524,6 +529,7 @@ function custom_checkout_fields( $fields ) {
   unset($fields['billing']['billing_country']);
   unset($fields['shipping']['shipping_country']);
   unset($fields['shipping']['shipping_company']);
+  wp_mail('adam.kircher@gmail.com', 'checkout fields', print_r($fields, true));
 
   return $fields;
 }

@@ -12,7 +12,7 @@ function load() {
 
   jQuery('#wc-stripe-new-payment-method').prop('checked', true)
 
-  jQuery("#source_pharmacy, #source_erx")
+  jQuery("#rx_source_pharmacy, #rx_source_erx")
   .change(function(){
     jQuery('#medication\\[\\]_field').toggle()
     jQuery('.erx, .pharmacy').toggle()
