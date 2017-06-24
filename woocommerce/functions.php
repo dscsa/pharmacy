@@ -45,13 +45,13 @@ function custom_payment_token_set_default($token_id, $card) {
      'card' => $card->get_token()
    ]);
 
-   wp_mail('adam.kircher@gmail.com', 'custom_payment_token_set_default', $card);
+   //wp_mail('adam.kircher@gmail.com', 'custom_payment_token_set_default', $card);
    update_stripe_card($card);
 }
 
 add_action('woocommerce_stripe_add_customer', 'custom_stripe_add_customer', 10, 4);
 function custom_stripe_add_customer($meta, $customer) {
-   wp_mail('adam.kircher@gmail.com', 'custom_payment_token_set_default', print_r($customer->id, true));
+   //wp_mail('adam.kircher@gmail.com', 'custom_payment_token_set_default', print_r($customer->id, true));
    update_stripe_customer($customer->id);
 }
 
