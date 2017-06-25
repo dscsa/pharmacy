@@ -354,12 +354,14 @@ function custom_save_order_details($user_id) {
   //TODO should save if they don't exist, but what if they do, should we be overriding?
   custom_save_patient($user_id, shared_fields($user_id) + order_fields($user_id));
 
+  $prefix = $_POST['ship_to_different_address'] ? 'shipping_' : 'billing_';
+
   //TODO this should be called on the edit address page as well
   $address = update_shipping_address(
-    sanitize_text_field($_POST['shipping_address_1'] ?: $_POST['billing_address_1']),
-    sanitize_text_field($_POST['shipping_address_2'] ?: $_POST['billing_address_2']),
-    sanitize_text_field($_POST['shipping_city'] ?: $_POST['billing_city']),
-    sanitize_text_field($_POST['shipping_postcode'] ?: $_POST['billing_postcode'])
+    sanitize_text_field($_POST[$prefix.'address_1']),
+    sanitize_text_field($_POST[$prefix.'address_2']),
+    sanitize_text_field($_POST[$prefix.'city']),
+    sanitize_text_field($_POST[$prefix.'postcode'])
   );
   if ($_POST['medication']) {
     foreach ($_POST['medication'] as $drug_name) {
@@ -608,9 +610,13 @@ function update_phone($cell_phone) {
 // ,@Zip varchar(10)      -- Zip Code
 // ,@Country varchar(3)   -- Country Code
 function update_shipping_address($address_1, $address_2, $city, $zip) {
-  return db_run("SirumWeb_AddUpdatePatHomeAddr(?, ?, ?, NULL, ?, 'GA', ?, 'US')", [
+  $params = [
     guardian_id(), $address_1, $address_2, $city, $zip
-  ]);
+  ];
+
+  wp_mail('adam.kircher@gmail.com', "update_shipping_address", print_r($params, true));
+
+  return db_run("SirumWeb_AddUpdatePatHomeAddr(?, ?, ?, NULL, ?, 'GA', ?, 'US')", $params);
 }
 
 //$query = sqlsrv_query( $db, "select * from cppat where cppat.pat_id=1003";);
