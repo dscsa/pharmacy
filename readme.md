@@ -18,6 +18,7 @@
 #Get Email Working
 - Install SMTP Server Start Bar > Server Manager > Tools > Add New Services > Features > Check Box for SMTP Server > Instal
 - Configure https://www.ruhanirabin.com/php-sendmail-setup-with-smtp-iis-and-windows-servers/
+- Ensure you add limit connection and relay to 127.0.0.1 or you will spam people within days.
 - Open the run dialog on the server, and enter services.msc.
 - Locate the 'Simple Mail Transfer Protocol (SMTP)' service, right click, choose Properties and set the service to Automatic. From now on, it will start at boot.
 
