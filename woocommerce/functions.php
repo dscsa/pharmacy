@@ -252,6 +252,12 @@ function custom_register_form() {
   echo woocommerce_form_field('birth_date', $account_fields['birth_date']);
 }
 
+add_action('woocommerce_register_form', 'custom_register_form_acknowledgement');
+function custom_register_form_acknowledgement() {
+  echo __('<div style="margin-bottom:8px">By clicking "Register" below, you agree to our <a href="/terms">Terms of Use</a></div>');
+}
+
+
 //After Registration, set default shipping/billing/account fields
 //then save the user into GuardianRx
 add_action('woocommerce_created_customer', 'customer_created');
@@ -509,7 +515,8 @@ function custom_translate($term, $raw, $domain) {
     'Codeine' => 'Drogas de Codeine',
     'Salicylates' => 'Drogas de Salicylates',
     'Thank you for your order!  Your prescription(s) should arrive within 3-5 days.' => 'Gracias por su order!  Your prescription(s) should llegar en tres or cinco dias.',
-    'Please choose a pharmacy' => 'Spanish please choose a pharmacy'
+    'Please choose a pharmacy' => 'Spanish please choose a pharmacy',
+    '<div style="margin-bottom:8px">By clicking "Register" below, you agree to our <a href="/terms">Terms of Use</a></div>' => '<div style="margin-bottom:8px">Spanish by clicking "Register" below, you agree to our <a href="/terms">Terms of Use</a></div>',
   ];
 
   $english = isset($toEnglish[$term]) ? $toEnglish[$term] : $term;
@@ -614,7 +621,7 @@ function update_shipping_address($address_1, $address_2, $city, $zip) {
     guardian_id(), $address_1, $address_2, $city, $zip
   ];
 
-  wp_mail('adam.kircher@gmail.com', "update_shipping_address", print_r($params, true));
+  //wp_mail('adam.kircher@gmail.com', "update_shipping_address", print_r($params, true));
 
   return db_run("SirumWeb_AddUpdatePatHomeAddr(?, ?, ?, NULL, ?, 'GA', ?, 'US')", $params);
 }
