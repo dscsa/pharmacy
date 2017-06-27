@@ -277,6 +277,8 @@ function customer_created($user_id) {
   $patient_id = add_patient($first_name, $last_name, $birth_date, $language);
 
   update_user_meta($user_id, 'guardian_id', $patient_id);
+
+  update_email(sanitize_text_field($_POST['email']));
 }
 
 // Function to change email address
@@ -436,87 +438,82 @@ function custom_translate($term, $raw, $domain) {
     'Your order' => '',
     'No saved methods found.' => 'No credit or debit cards are saved to your account',
     '%s has been added to your cart.' => 'Thank you for your order!  Your prescription(s) should arrive within 3-5 days.',
+    'Email Address' => 'Email address'
   ];
 
   $toSpanish = [
-    'Language' => 'Lingua',
-    'Use a new credit card' => 'Spanish Use a new credit card',
-    'Place New Order' => 'Order Nueva',
-    'Billing details' => 'La Cuenta Por Favor',
-    'Ship to a different address?' => 'Spanish Ship to a different address?',
-    'Search and select medications by generic name that you want to transfer to Good Pill' => 'Drogas de Transfer',
-    '<span class="erx">Name and address of a backup pharmacy to fill your prescriptions if we are out-of-stock</span><span class="pharmacy">Name and address of pharmacy from which we should transfer your medication(s)</span>' => '<span class="erx">Pharmacia de out-of-stock</span><span class="pharmacy">Pharmacia de transfer</span>',
-    'Allergies' => 'Allergias',
-    'Allergies Selected Below' => 'Si Allergias',
-    'No Medication Allergies' => 'No Allergias',
-    'Aspirin' => 'Drogas de Aspirin',
-    'Erythromycin' => 'Drogas de Erthromycin',
-    'NSAIDS e.g., ibuprofen, Advil' => 'Drogas de NSAIDS',
-    'Penicillin' => 'Drogas de Penicillin',
-    'Ampicillin' => 'Drogas de Ampicillin',
-    'Sulfa (Sulfonamide Antibiotics)' => 'Drogas de Sulfa',
-    'Tetracycline antibiotics' => 'Antibiotics de Tetra',
-    'List Other Allergies Below' => 'Otras Allegerias',
-    'Phone' => 'Telefono',
-    'List any other medication(s) or supplement(s) you are currently taking' => 'Otras Drogas',
-    'Email address' => 'Spanish Email',
-    'First name' => 'Nombre Uno',
-    'Last name' => 'Nombre Dos',
-    'Date of Birth' => 'Fetcha Cumpleanos',
-    'Address' => 'Spanish Address',
-    'State' => 'Spanish State',
-    'Zip code' => 'Spanish Zip',
-    'Town / City' => 'Ciudad',
-    'Password change' => 'Spanish Password',
-    'Current password (leave blank to leave unchanged)' => 'Spanish current password (leave blank to leave unchanged)',
-    'New password (leave blank to leave unchanged)' => 'Spanish New password (leave blank to leave unchanged)',
-    'Confirm new password' => 'Spanish Confirm new password',
-    'Email Address' => 'Spanish Email Address',
-    'Have a coupon?' => 'Spanish Have a coupon?',
-    'Click here to enter your code' => 'Spanish Click here to enter your code',
-    'Free shipping coupon' => 'Spanish Free shipping coupon',
-    '[Remove]' => '[Spanish Remove]',
-    'Total' => 'Spanish Total',
-    'Total:' => 'Spanish Total:',
-    'Prescription(s) were sent from my doctor' => 'Spanish from Doctor',
-    'Transfer prescription(s) from my pharmacy' => 'Spanish from Pharmacy',
-    'Street address' => 'Spanish Street address',
-    'Apartment, suite, unit etc. (optional)' => 'Spanish Address 2',
-    'Card number' => 'Spanish Card Number',
-    'Expiry (MM/YY)' => 'Spanish Exp',
-    'Card code' => 'Spanish Card code',
-    'New Order' => 'Spanish New Order',
-    'Orders' => 'Spanish Orders',
-    'Addresses' => 'Spanish Addresses',
-    'Payment methods' => 'Spanish Payment methods',
-    'Account details' => 'Spanish Account Details',
-    'Logout' => 'Spanish Logout',
-    'Place order' => 'Spanish Place Order',
-    'No order has been made yet.' => 'Spanish No order has been made yet.',
-    'The following addresses will be used on the checkout page by default.' => 'Spanish Addresses',
-    'Billing address' => 'Spanish Billing Address',
-    'Shipping address' => 'Spanish Shipping Address',
-    'Save address' => 'Spanish Save Address',
-    'No credit or debit cards are saved to your account' => 'Spanish No Cards Saved',
-    'Add payment method' => 'Spanish Add Payment',
-    'Pay with your credit card via Stripe.' => 'Spanish Pay by Credit or Debit Card',
-    'Credit Card (Stripe)' => 'Hi',
-    'Pay by Check or Cash' => 'Spanish Pay by Check or Cash',
-    'Save changes' => 'Spanish Save Changes',
-    'is a required field' => 'es spanish required',
-    'Order #%1$s was placed on %2$s and is currently %3$s.' => 'Spanish order #%1$s was placed on %2$s and is currently %3$s.',
-    'Payment method:' => 'Spanish payment method:',
+    'Language' => 'Idioma',
+    'Use a new credit card' => 'Use una tarjeta de crédito nueva',
+    'Place New Order' => 'Haga un pedido nuevo',
+    'Place order' => 'Haga un pedido',
+    'Billing details' => 'Detalles de facturas',
+    'Ship to a different address?' => '¿Desea envíos a una dirección diferente?',
+    'Search and select medications by generic name that you want to transfer to Good Pill' => 'Busque y seleccione los medicamentos por nombre genérico que usted desea transferir a Good Pill',
+    '<span class="erx">Name and address of a backup pharmacy to fill your prescriptions if we are out-of-stock</span><span class="pharmacy">Name and address of pharmacy from which we should transfer your medication(s)</span>' => '<span class="erx">Nombre y dirección de una farmacia de respaldo para surtir sus recetas si no tenemos los medicamentos en existencia</span><span class="pharmacy">Nombre & dirección de la farmacia de la que debemos transferir sus medicamentos.</span>',
+    'Allergies' => 'Alergias',
+    'Allergies Selected Below' => 'Alergias seleccionadas abajo',
+    'No Medication Allergies' => 'No hay alergias a medicamentos',
+    'Aspirin' => 'Aspirina',
+    'Erythromycin' => 'Eritromicina',
+    'NSAIDS e.g., ibuprofen, Advil' => 'NSAIDS; por ejemplo, ibuprofeno, Advil',
+    'Penicillin' => 'Penicilina',
+    'Ampicillin' => 'Ampicilina',
+    'Sulfa (Sulfonamide Antibiotics)' => 'Sulfamida (antibióticos de sulfonamidas)',
+    'Tetracycline antibiotics' => 'Antibióticos de tetraciclina',
+    'List Other Allergies Below' => 'Indique otras alergias abajo',
+    'Phone' => 'Teléfono',
+    'List any other medication(s) or supplement(s) you are currently taking' => 'Indique cualquier otro medicamento o suplemento que usted toma actualmente',
+    'Email address' => 'Dirección de correo electrónico',
+    'First name' => 'Nombre',
+    'Last name' => 'Apellido',
+    'Date of Birth' => 'Fecha de nacimiento',
+    'Address' => 'Dirección',
+    'Addresses' => 'Direcciónes',
+    'State' => 'Estado',
+    'Zip code' => 'Código postal',
+    'Town / City' => 'Poblado / Ciudad',
+    'Password change' => 'Cambio de contraseña',
+    'Current password (leave blank to leave unchanged)' => 'Contraseña actual (deje en blanco si no hay cambios)',
+    'New password (leave blank to leave unchanged)' => 'Contraseña nueva (deje en blanco si no hay cambios)',
+    'Confirm new password' => 'Confirmar contraseña nueva',
+    'Have a coupon?' => '¿Tiene un cupón?',
+    'Click here to enter your code' => 'Haga clic aquí para ingresar su código',
+    'Free shipping coupon' => 'Cupón para envíos gratuitos',
+    '[Remove]' => '[Remover]',
+    'Card number' => 'Número de tarjeta',
+    'Expiry (MM/YY)' => 'Fecha de expiración (MM/AA)',
+    'Card code' => 'Código de tarjeta',
+    'New Order' => 'Pedido Nuevo',
+    'Orders' => 'Pedidos',
     'Email:' => 'Spanish Email:',
-    'Order details' => 'Spanish Order details',
-    'Customer details' => 'Spanish Customer details',
-    'Amoxicillin' => 'Drogas de Amoxicillin',
-    'Azithromycin' => 'Drogas de Azithromycin',
-    'Cephalosporins' => 'Drogas de Cephalosporins',
-    'Codeine' => 'Drogas de Codeine',
-    'Salicylates' => 'Drogas de Salicylates',
-    'Thank you for your order!  Your prescription(s) should arrive within 3-5 days.' => 'Gracias por su order!  Your prescription(s) should llegar en tres or cinco dias.',
-    'Please choose a pharmacy' => 'Spanish please choose a pharmacy',
-    '<div style="margin-bottom:8px">By clicking "Register" below, you agree to our <a href="/terms">Terms of Use</a></div>' => '<div style="margin-bottom:8px">Spanish by clicking "Register" below, you agree to our <a href="/terms">Terms of Use</a></div>',
+    'Prescription(s) were sent from my doctor' => 'Prescription(s) were sent from my doctor',
+    'Transfer prescription(s) from my pharmacy' => 'Transfer prescription(s) from my pharmacy',
+    'Street address' => 'Street address',
+    'Apartment, suite, unit etc. (optional)' => 'Apartment, suite, unit etc. (optional)',
+    'Payment methods' => 'Payment methods',
+    'Account details' => 'Account details',
+    'Logout' => 'Logout',
+    'No order has been made yet.' => 'No order has been made yet.',
+    'The following addresses will be used on the checkout page by default.' => 'The following addresses will be used on the checkout page by default.',
+    'Billing address' => 'Billing address',
+    'Shipping address' => 'Shipping address',
+    'Save address' => 'Save address',
+    'No credit or debit cards are saved to your account' => 'No credit or debit cards are saved to your account',
+    'Add payment method' => 'Add payment method',
+    'Save changes' => 'Save changes',
+    'is a required field' => 'is a required field',
+    'Order #%1$s was placed on %2$s and is currently %3$s.' => 'Order #%1$s was placed on %2$s and is currently %3$s.',
+    'Payment method:' => 'Payment method:',
+    'Order details' => 'Order details',
+    'Customer details' => 'Customer details',
+    'Amoxicillin' => 'Amoxicillin',
+    'Azithromycin' => 'Azithromycin',
+    'Cephalosporins' => 'Cephalosporins',
+    'Codeine' => 'Codeine',
+    'Salicylates' => 'Salicylates',
+    'Thank you for your order!  Your prescription(s) should arrive within 3-5 days.' => 'Thank you for your order!  Your prescription(s) should arrive within 3-5 days.',
+    'Please choose a pharmacy' => 'Please choose a pharmacy',
+    '<div style="margin-bottom:8px">By clicking "Register" below, you agree to our <a href="/terms">Terms of Use</a></div>' => '<div style="margin-bottom:8px">By clicking "Register" below, you agree to our <a href="/terms">Terms of Use</a></div>',
   ];
 
   $english = isset($toEnglish[$term]) ? $toEnglish[$term] : $term;
@@ -527,15 +524,18 @@ function custom_translate($term, $raw, $domain) {
   if (is_admin() OR ! isset($spanish))
 	return $english;
 
-  //This allows client side translating based on jQuery listening to radio buttons
-  if (isset($_GET['register']))
-    return  "<span class='english'>$english</span><span class='spanish'>$spanish</span>";
-
   global $lang;
   $lang = $lang ?: get_user_meta($user_id, 'language', true);
 
+  if ($lang == 'EN')
+    return $english;
+
   if ($lang == 'ES')
     return $spanish;
+
+  //This allows client side translating based on jQuery listening to radio buttons
+  if (isset($_GET['register']))
+    return  "<span class='english'>$english</span><span class='spanish'>$spanish</span>";
 
   return $english;
 }
@@ -597,12 +597,12 @@ function add_remove_allergy($allergy_id, $value) {
   ]);
 }
 
-// SirumWeb_AddUpdateCellPhone(
+// SirumWeb_AddUpdateHomePhone(
 //   @PatID int,  -- ID of Patient
 //   @PatCellPhone VARCHAR(20)
 // }
 function update_phone($cell_phone) {
-  return db_run("SirumWeb_AddUpdatePatCellPhone(?, ?)", [
+  return db_run("SirumWeb_AddUpdatePatHomePhone(?, ?)", [
     guardian_id(), $cell_phone
   ]);
 }
