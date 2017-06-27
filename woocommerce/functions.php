@@ -695,15 +695,17 @@ function add_preorder($drug_name, $pharmacy) {
 // Set the @UD number can be 1-4 for the field that you want to update, and set the text value.
 // 1 is backup pharmacy, 2 is stripe billing token.
 function update_pharmacy($value) {
-    return db_run("SirumWeb_AddUpdatePatientUD(?, 1, ?)", [guardian_id(), $value]);
+  $store = json_decode(stripslashes($pharmacy));
+  db_run("SirumWeb_AddUpdatePatientUD(?, 1, ?)", [guardian_id(), $value]);
+  return db_run("SirumWeb_AddUpdatePatientUD(?, 2, ?)", [guardian_id(), $store->name]);
 }
 
 function update_stripe_customer($value) {
-    return db_run("SirumWeb_AddUpdatePatientUD(?, 2, ?)", [guardian_id(), $value]);
+    return db_run("SirumWeb_AddUpdatePatientUD(?, 3, ?)", [guardian_id(), $value]);
 }
 
 function update_stripe_card($value) {
-    return db_run("SirumWeb_AddUpdatePatientUD(?, 3, ?)", [guardian_id(), $value]);
+    return db_run("SirumWeb_AddUpdatePatientUD(?, 4, ?)", [guardian_id(), $value]);
 }
 
 //Procedure dbo.SirumWeb_AddUpdatePatEmail (@PatID int, @EMailAddress VARCHAR(255)
