@@ -265,6 +265,7 @@ function customer_created($user_id) {
   $first_name = sanitize_text_field($_POST['first_name']);
   $last_name = sanitize_text_field($_POST['last_name']);
   $birth_date = sanitize_text_field($_POST['birth_date']);
+  $email = sanitize_text_field($_POST['email']);
   $language = sanitize_text_field($_POST['language']);
 
   foreach(['', 'billing_', 'shipping_'] as $field) {
@@ -274,11 +275,9 @@ function customer_created($user_id) {
   update_user_meta($user_id, 'birth_date', $birth_date);
   update_user_meta($user_id, 'language', $language);
 
-  $patient_id = add_patient($first_name, $last_name, $birth_date, $language);
+  $patient_id = add_patient($first_name, $last_name, $birth_date, $email, $language);
 
   update_user_meta($user_id, 'guardian_id', $patient_id);
-
-  update_email(sanitize_text_field($_POST['email']));
 }
 
 // Function to change email address
@@ -602,6 +601,7 @@ function add_remove_allergy($allergy_id, $value) {
 //   @PatCellPhone VARCHAR(20)
 // }
 function update_phone($cell_phone) {
+  $cell_phone = preg_replace("/[^0-9]/", "", $cell_phone);
   return db_run("SirumWeb_AddUpdatePatHomePhone(?, ?)", [
     guardian_id(), $cell_phone
   ]);
@@ -651,8 +651,8 @@ function find_patient($first_name, $last_name, $birth_date) {
 //   ,@ShipCountry varchar(3)   -- Country Code
 //   ,@CellPhone varchar(20)    -- Cell Phone
 // )
-function add_patient($first_name, $last_name, $birth_date, $language) {
-  return db_run("SirumWeb_AddEditPatient(?, ?, ?, ?)", [$first_name, $last_name, $birth_date, $language])['PatID'];
+function add_patient($first_name, $last_name, $birth_date, $email, $language) {
+  return db_run("SirumWeb_AddEditPatient(?, ?, ?, ?, ?)", [$first_name, $last_name, $birth_date, $email, $language])['PatID'];
 }
 
 // Procedure dbo.SirumWeb_AddToPatientComment (@PatID int, @CmtToAdd VARCHAR(4096)
@@ -694,9 +694,9 @@ function add_preorder($drug_name, $pharmacy) {
 // Procedure dbo.SirumWeb_AddUpdatePatientUD (@PatID int, @UDNumber int, @UDValue varchar(50) )
 // Set the @UD number can be 1-4 for the field that you want to update, and set the text value.
 // 1 is backup pharmacy, 2 is stripe billing token.
-function update_pharmacy($value) {
+function update_pharmacy($pharmacy) {
   $store = json_decode(stripslashes($pharmacy));
-  db_run("SirumWeb_AddUpdatePatientUD(?, 1, ?)", [guardian_id(), $value]);
+  db_run("SirumWeb_AddUpdatePatientUD(?, 1, ?)", [guardian_id(), $pharmacy]);
   return db_run("SirumWeb_AddUpdatePatientUD(?, 2, ?)", [guardian_id(), $store->name]);
 }
 
