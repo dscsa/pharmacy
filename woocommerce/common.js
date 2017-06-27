@@ -98,14 +98,14 @@ function disableFixedFields() {
 function pharmacy2select(entry, i) {
 
   var store = {
-    npi:entry.gsx$npi.$t,
+    fax:entry.gsx$fax.$t,
     name:entry.gsx$name.$t,
+    npi:entry.gsx$npi.$t,
     street:entry.gsx$street.$t,
     city:entry.gsx$city.$t,
     state:'GA',
     zip:entry.gsx$zip.$t,
-    phone:entry.gsx$phone.$t, 
-    fax:entry.gsx$fax.$t
+    phone:entry.gsx$phone.$t
   }
   var text = store.name+', '+store.street+', '+store.city+', GA '+store.zip+' - Phone: '+store.phone
   return {id:JSON.stringify(store), text:text}
