@@ -34,25 +34,41 @@ function get_default($field, $user_id) {
   return $_POST ? $_POST[$field] : get_meta($field, $user_id);
 }
 
-add_action('woocommerce_payment_token_set_default', 'custom_payment_token_set_default', 10, 4);
-function custom_payment_token_set_default($token_id, $card) {
+//do_action( 'woocommerce_stripe_add_card', $this->get_id(), $token, $response );
+add_action('woocommerce_stripe_add_card', 'custom_stripe_add_card', 10, 3);
+function custom_stripe_add_card($stripe_id, $card, $response) {
 
-   $card = json_encode([
-     'type' => $card->get_card_type(),
-     'exp_year' => $card->get_expiry_year(),
-     'exp_month' => $card->get_expiry_month(),
+   $card = [
      'last4' => $card->get_last4(),
-     'card' => $card->get_token()
-   ]);
+     'card' => $card->get_token(),
+     'customer' => $stripe_id,
+     'type' => $card->get_card_type(),
+     'year' => $card->get_expiry_year(),
+     'month' => $card->get_expiry_month()
+   ];
 
-   //wp_mail('adam.kircher@gmail.com', 'custom_payment_token_set_default', $card);
-   update_stripe_card($card);
+   $user_id = get_current_user_id();
+
+   update_user_meta($user_id, 'stripe', $card);
+   //Meet guardian 50 character limit
+   //Customer 18, Card 29, Delimiter 1 = 48
+   update_stripe_tokens($card['customer'].','.$card['card'].',');
+
+   $coupon = get_user_meta($user_id, 'coupon', true);
+
+   update_card_and_coupon($card, $coupon);
 }
 
-add_action('woocommerce_stripe_add_customer', 'custom_stripe_add_customer', 10, 4);
-function custom_stripe_add_customer($meta, $customer) {
-   //wp_mail('adam.kircher@gmail.com', 'custom_payment_token_set_default', print_r($customer->id, true));
-   update_stripe_customer($customer->id);
+//do_action( 'woocommerce_applied_coupon', $coupon_code );
+add_action('woocommerce_applied_coupon', 'custom_applied_coupon');
+function custom_applied_coupon($coupon) {
+   $user_id = get_current_user_id();
+
+   update_user_meta($user_id, 'coupon', $coupon);
+
+   $card = get_user_meta($user_id, 'stripe', true);
+
+   update_card_and_coupon($card, $coupon);
 }
 
 function order_fields() {
@@ -437,7 +453,8 @@ function custom_translate($term, $raw, $domain) {
     'Your order' => '',
     'No saved methods found.' => 'No credit or debit cards are saved to your account',
     '%s has been added to your cart.' => 'Thank you for your order!  Your prescription(s) should arrive within 3-5 days.',
-    'Email Address' => 'Email address'
+    'Email Address' => 'Email address',
+    'Additional information' => ''
   ];
 
   $toSpanish = [
@@ -477,6 +494,8 @@ function custom_translate($term, $raw, $domain) {
     'Confirm new password' => 'Confirmar contraseña nueva',
     'Have a coupon?' => '¿Tiene un cupón?',
     'Click here to enter your code' => 'Haga clic aquí para ingresar su código',
+    'Coupon code' => 'Cupón',
+    'Apply Coupon' => 'Haga un Cupón',
     'Free shipping coupon' => 'Cupón para envíos gratuitos',
     '[Remove]' => '[Remover]',
     'Card number' => 'Número de tarjeta',
@@ -484,7 +503,8 @@ function custom_translate($term, $raw, $domain) {
     'Card code' => 'Código de tarjeta',
     'New Order' => 'Pedido Nuevo',
     'Orders' => 'Pedidos',
-    'Email:' => 'Spanish Email:',
+    'Shipping & Billing' => 'Dirección',
+    'Email:' => 'Email:',
     'Prescription(s) were sent from my doctor' => 'Prescription(s) were sent from my doctor',
     'Transfer prescription(s) from my pharmacy' => 'Transfer prescription(s) from my pharmacy',
     'Street address' => 'Street address',
@@ -553,6 +573,9 @@ function custom_checkout_fields( $fields ) {
   //Allow billing out of state but don't allow shipping out of state
   $fields['shipping']['shipping_state']['type'] = 'select';
   $fields['shipping']['shipping_state']['options'] = ['GA' => 'Georgia'];
+
+  $fields['billing']['billing_state']['type'] = 'select';
+  $fields['billing']['billing_state']['options'] = ['GA' => 'Georgia'];
 
   //Remove Some Fields
   unset($fields['billing']['billing_first_name']['autofocus']);
@@ -696,22 +719,27 @@ function add_preorder($drug_name, $pharmacy) {
 // 1 is backup pharmacy, 2 is stripe billing token.
 function update_pharmacy($pharmacy) {
   $store = json_decode(stripslashes($pharmacy));
-  db_run("SirumWeb_AddUpdatePatientUD(?, 1, ?)", [guardian_id(), $pharmacy]);
-  return db_run("SirumWeb_AddUpdatePatientUD(?, 2, ?)", [guardian_id(), $store->name]);
+  db_run("SirumWeb_AddUpdatePatientUD(?, 1, ?)", [guardian_id(), $store->name]);
+  //Because of 50 character limit, the street will likely be cut off.
+  return db_run("SirumWeb_AddUpdatePatientUD(?, 2, ?)", [guardian_id(), $store->npi.','.$store->fax.','.$store->phone.','.$store->street]);
 }
 
-function update_stripe_customer($value) {
-    return db_run("SirumWeb_AddUpdatePatientUD(?, 3, ?)", [guardian_id(), $value]);
+function update_stripe_tokens($value) {
+  return db_run("SirumWeb_AddUpdatePatientUD(?, 3, ?)", [guardian_id(), $value]);
 }
 
-function update_stripe_card($value) {
-    return db_run("SirumWeb_AddUpdatePatientUD(?, 4, ?)", [guardian_id(), $value]);
+function update_card_and_coupon($card, $coupon) {
+  //Meet guardian 50 character limit
+  //Last4 4, Month 2, Year 2, Type (Mastercard = 10), Delimiter 4, So coupon will be truncated if over 28 characters
+  $value = $card['last4'].','.$card['month'].'/'.substr($card['year'], 2).','.$card['type'].','.$coupon;
+
+  return db_run("SirumWeb_AddUpdatePatientUD(?, 4, ?)", [guardian_id(), $value]);
 }
 
 //Procedure dbo.SirumWeb_AddUpdatePatEmail (@PatID int, @EMailAddress VARCHAR(255)
 //Set the patID and the new email address
 function update_email($email) {
-    return db_run("SirumWeb_AddUpdatePatEmail(?, ?)", [guardian_id(), $email]);
+  return db_run("SirumWeb_AddUpdatePatEmail(?, ?)", [guardian_id(), $email]);
 }
 
 global $conn;
