@@ -59,6 +59,9 @@ function custom_stripe_add_card($stripe_id, $card, $response) {
    update_card_and_coupon($card, $coupon);
 }
 
+//remove_action( 'woocommerce_before_checkout_form', 'woocommerce_checkout_coupon_form');
+//add_action( 'woocommerce_after_checkout_form', 'woocommerce_checkout_coupon_form' );
+
 //do_action( 'woocommerce_applied_coupon', $coupon_code );
 add_action('woocommerce_applied_coupon', 'custom_applied_coupon');
 function custom_applied_coupon($coupon) {
@@ -116,7 +119,7 @@ function shared_fields($user_id) {
       'type'  => 'select',
       'required' => true,
       'label' => __('<span class="erx">Name and address of a backup pharmacy to fill your prescriptions if we are out-of-stock</span><span class="pharmacy">Name and address of pharmacy from which we should transfer your medication(s)</span>'),
-      'options' => ['' => __('Please choose a pharmacy')]
+      'options' => ['' => __("Type to search. For example, 'Walgreens Norcross' will show the Walgreens at '5296 Jimmy Carter Blvd, Norcross, GA'")]
     ];
     //https://docs.woocommerce.com/wc-apidocs/source-function-woocommerce_form_field.html#1841-2061
     //Can't use get_default here because $POST check messes up the required property below.
@@ -270,9 +273,17 @@ function custom_register_form() {
 
 add_action('woocommerce_register_form', 'custom_register_form_acknowledgement');
 function custom_register_form_acknowledgement() {
-  echo __('<div style="margin-bottom:8px">By clicking "Register" below, you agree to our <a href="/terms">Terms of Use</a></div>');
+  echo __('<div style="margin-bottom:8px">By clicking "Register" below, you agree to our <a href="/terms">Terms of Use</a> and agree to receive and pay for your refills automatically unless you contact us to decline.</div>');
 }
 
+//Customer created hook called to late in order to create username
+//    https://github.com/woocommerce/woocommerce/blob/e24ca9d3bce1f9e923fcd00e492208511cdea727/includes/class-wc-form-handler.php#L1002
+add_action('wp_loaded', 'custom_set_username')
+function custom_set_username() {
+  if ( ! empty( $_POST['register'] ) {
+     $_POST['username'] = $_POST['first_name'].' '.$_POST['last_name'].' '.$_POST['birth_date'];
+  }
+}
 
 //After Registration, set default shipping/billing/account fields
 //then save the user into GuardianRx
@@ -442,9 +453,10 @@ add_filter('ngettext', 'custom_translate', 10, 3);
 add_filter('gettext', 'custom_translate', 10, 3);
 function custom_translate($term, $raw, $domain) {
 
-  //if (strpos($term, 'been added to your cart') !== false)
+  if (strpos($term, 'Shipping') !== false) {
+     //echo htmlentities($term).'<br>';
     //wp_mail('adam.kircher@gmail.com', 'been added to your cart', $term);
-
+  }
   $toEnglish = [
     'Spanish'  => 'Espanol',
     'Username or email address' => 'Email Address',
@@ -454,7 +466,8 @@ function custom_translate($term, $raw, $domain) {
     'No saved methods found.' => 'No credit or debit cards are saved to your account',
     '%s has been added to your cart.' => 'Thank you for your order!  Your prescription(s) should arrive within 3-5 days.',
     'Email Address' => 'Email address',
-    'Additional information' => ''
+    'Additional information' => '',
+	'Billing &amp; Shipping' => 'Shipping Address',
   ];
 
   $toSpanish = [
@@ -503,7 +516,7 @@ function custom_translate($term, $raw, $domain) {
     'Card code' => 'Código de tarjeta',
     'New Order' => 'Pedido Nuevo',
     'Orders' => 'Pedidos',
-    'Shipping & Billing' => 'Dirección',
+    'Shipping Address' => 'Dirección de Envíos',
     'Email:' => 'Email:',
     'Prescription(s) were sent from my doctor' => 'Prescription(s) were sent from my doctor',
     'Transfer prescription(s) from my pharmacy' => 'Transfer prescription(s) from my pharmacy',

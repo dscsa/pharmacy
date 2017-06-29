@@ -70,12 +70,8 @@ function upgradePharmacy(pharmacies) {
   })
 }
 
-//TODO move this to PHP
 function createUsername() {
-  jQuery('#customer_login > div').toggle()
-  return jQuery("form.register").submit(function($event){
-    this.username.value = this.first_name.value+' '+this.last_name.value+' '+this.birth_date.value
-  })
+  jQuery('#customer_login > div').hide()
 }
 
 function upgradeBirthdate() {
