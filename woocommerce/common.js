@@ -71,7 +71,7 @@ function upgradePharmacy(pharmacies) {
 }
 
 function createUsername() {
-  jQuery('#customer_login > div').hide()
+  jQuery('#customer_login > div').toggle()
 }
 
 function upgradeBirthdate() {
