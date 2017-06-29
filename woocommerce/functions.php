@@ -278,9 +278,9 @@ function custom_register_form_acknowledgement() {
 
 //Customer created hook called to late in order to create username
 //    https://github.com/woocommerce/woocommerce/blob/e24ca9d3bce1f9e923fcd00e492208511cdea727/includes/class-wc-form-handler.php#L1002
-add_action('wp_loaded', 'custom_set_username')
+add_action('wp_loaded', 'custom_set_username');
 function custom_set_username() {
-  if ( ! empty( $_POST['register'] ) {
+  if ( ! empty( $_POST['register'])) {
      $_POST['username'] = $_POST['first_name'].' '.$_POST['last_name'].' '.$_POST['birth_date'];
   }
 }
