@@ -16,12 +16,27 @@ function register_page() {
   translate()
   createUsername()
   upgradeBirthdate()
+  setSource()
 }
 
 function account_page() {
   upgradePharmacy()
   upgradeAllergies()
   disableFixedFields()
+  setSource()
+}
+
+function setSource() {
+  //Even though default property is always set to pharmacy, it seems that woocommerce is setting
+  //this field to its last saved value.  So after orderig an erx, a new form will default to erx
+  //not sure how to fix this in PHP so fixing here instead
+  if (jQuery("#rx_source_pharmacy:checked").length) {
+    jQuery('#medication\\[\\]_field').show()
+    jQuery('.pharmacy').show()
+  } else { //on account page this radio does not appear so the eRx will show by default
+    jQuery('#medication\\[\\]_field').hide()
+    jQuery('.erx').show()
+  }
 }
 
 function translate() {
