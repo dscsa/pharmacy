@@ -10,6 +10,10 @@ function load() {
   jQuery('form.checkout').show()
   jQuery('.woocommerce-MyAccount-content').hide()
 
+  //Move coupon from top of page to be next to payment instead
+  jQuery( "a.showcoupon" ).parent().appendTo(jQuery('#customer_details'))
+  jQuery('form.checkout_coupon').appendTo(jQuery('#customer_details'))
+
   jQuery('#wc-stripe-new-payment-method').prop('checked', true)
 
   jQuery("#rx_source_pharmacy, #rx_source_erx")
