@@ -1,7 +1,7 @@
 jQuery(load)
 
 function load() {
-  jQuery('.erx').show()
+  //jQuery('.pharmacy').show()
 
   upgradeMedication()
 
