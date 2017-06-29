@@ -18,6 +18,7 @@ function load() {
 
   jQuery("#rx_source_pharmacy, #rx_source_erx")
   .change(function(){
+    console.log('rx source change', this.id)
     jQuery('#medication\\[\\]_field').toggle()
     jQuery('.erx, .pharmacy').toggle()
   })
