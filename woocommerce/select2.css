@@ -12,6 +12,9 @@ select, .select2-selection {
   border-color:transparent !important;
   box-shadow:none !important;
 }
+.select2-selection__placeholder {
+  font-size:14px
+}
 .select2-container--default {
   width:100% !important
 }
