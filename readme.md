@@ -30,6 +30,9 @@ https://git-for-windows.github.io/
 
 #Setup User on MSSQL
 In Object Explorer > Server:
+- Right Click Stored Procedure > Properties > Permission > Search > NT AUTHORITY\IUSR > OK > Grant Execute > OK
+
+If not using windows authentication:
 - Setup Login = Security (Right Click) > New > Login
 - Create Users = Databases > cph > Security (Right Click) > New User
  * In General Add User Name, Login Name
