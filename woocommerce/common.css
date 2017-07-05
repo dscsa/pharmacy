@@ -40,7 +40,7 @@ button.menu-toggle {
 {
   display:none
 }
-#reg_username, label[for=reg_username] {
+#reg_username, label[for=reg_username], label[for=reg_email] .required {
   display:none !important;
 }
 #customer_login > div {
@@ -64,6 +64,7 @@ button.menu-toggle {
 .allergies {
    margin-top:-25px;
 }
+
 .woocommerce-orders-table__cell-order-status, /* Hide irrelevant columns on orders page*/
 .woocommerce-orders-table__cell-order-total, /* Hide irrelevant columns on orders page*/
 form.checkout, /* Don't show checkout on every page */
