@@ -282,6 +282,7 @@ add_action('wp_loaded', 'custom_set_username');
 function custom_set_username() {
   if ( ! empty( $_POST['register'])) {
      $_POST['username'] = $_POST['first_name'].' '.$_POST['last_name'].' '.$_POST['birth_date'];
+     $_POST['email'] = $_POST['email'] ?: $_POST['username'].'@goodpill.org';
   }
 }
 
