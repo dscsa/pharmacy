@@ -281,8 +281,10 @@ function custom_register_form_acknowledgement() {
 add_action('wp_loaded', 'custom_set_username');
 function custom_set_username() {
   if ( ! empty( $_POST['register'])) {
+	 $_POST['birth_date'] = date_format(date_create($_POST['birth_date']), 'Y-m-d'); //in case html type=date does not work (e.g. IE)
      $_POST['username'] = $_POST['first_name'].' '.$_POST['last_name'].' '.$_POST['birth_date'];
-     $_POST['email'] = $_POST['email'] ?: $_POST['username'].'@goodpill.org';
+     $_POST['email'] = $_POST['email'] ?: $_POST['username'].'@sirum.org';
+     wp_mail('hello@goodpill.org', 'Registration Attempted', print_r($_POST, true));
   }
 }
 
@@ -731,8 +733,33 @@ function add_preorder($drug_name, $pharmacy) {
 // Procedure dbo.SirumWeb_AddUpdatePatientUD (@PatID int, @UDNumber int, @UDValue varchar(50) )
 // Set the @UD number can be 1-4 for the field that you want to update, and set the text value.
 // 1 is backup pharmacy, 2 is stripe billing token.
+// Create Procedure dbo.SirumWeb_AddToPreorder(
+//    @PatID int
+//   ,@DrugName varchar(60) ='' -- Drug Name to look up NDC
+//   ,@PharmacyOrgID int
+//   ,@PharmacyName varchar(80)
+//   ,@PharmacyAddr1 varchar(50)    -- Address Line 1
+//   ,@PharmacyCity varchar(20)     -- City Name
+//   ,@PharmacyState varchar(2)     -- State Name
+//   ,@PharmacyZip varchar(10)      -- Zip Code
+//   ,@PharmacyPhone varchar(20)   -- Phone Number
+//   ,@PharmacyFaxNo varchar(20)   -- Phone Fax Number
+// If you send the NDC, it will use it.  If you do not send and NCD it will attempt to look up the drug by the name.  I am not sure that this will work correctly, the name you pass in would most likely have to be an exact match, even though I am using  like logic  (ie “%Aspirin 325mg% “) to search.  We may have to work on this a bit more
 function update_pharmacy($pharmacy) {
+
   $store = json_decode(stripslashes($pharmacy));
+
+  db_run("SirumWeb_AddExternalPharmacy(?, ?, ?, ?, ?, ?, ?, ?)", [
+    $store->npi,
+    $store->name,
+    $store->street,
+    $store->city,
+    $store->state,
+    $store->zip,
+    $store->phone,
+    $store->fax
+  ]);
+
   db_run("SirumWeb_AddUpdatePatientUD(?, 1, ?)", [guardian_id(), $store->name]);
   //Because of 50 character limit, the street will likely be cut off.
   return db_run("SirumWeb_AddUpdatePatientUD(?, 2, ?)", [guardian_id(), $store->npi.','.$store->fax.','.$store->phone.','.$store->street]);
