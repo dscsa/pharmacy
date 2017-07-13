@@ -63,6 +63,6 @@ function medication2select(entry, i) {
 
   message.push(entry.gsx$day.$t ? '30 day' : '90 day')
 
-  var drug = ' '+entry.gsx$drugname.$t+', '+price+' ('+message.join(', ')+')'
+  var drug = ' '+entry.gsx$drugnames.$t+', '+price+' ('+message.join(', ')+')'
   return {id:drug, text:drug, disabled:entry.gsx$supplylevel.$t == 'Out of Stock', price:price.replace('$', '')}
 }
