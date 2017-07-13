@@ -86,8 +86,12 @@ function upgradePharmacy(pharmacies) {
     type: 'GET',
     cache:true,
     success:function($data) {
-      var pharmacies = $data.feed.entry.map(pharmacy2select)
-      select.select2({data:pharmacies, matcher:matcher, minimumInputLength:3})
+      console.log('pharmacy gsheet')
+      var data = []
+      for (var i in $data.feed.entry) {
+        data.push(pharmacy2select($data.feed.entry[i]))
+      }
+      select.select2({data:data, matcher:matcher, minimumInputLength:3})
     }
   })
 }

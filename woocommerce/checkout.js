@@ -48,8 +48,13 @@ function upgradeMedication(medications) {
     type: 'GET',
     cache:true,
     success:function($data) {
-      console.log('medications gsheet', $data.feed.entry)
-      select.select2({multiple:true,data:$data.feed.entry.map(medication2select)})
+      console.log('medications gsheet')
+      var data = []
+      for (var i in $data.feed.entry) {
+        data.push(medication2select($data.feed.entry[i]))
+      }
+
+      select.select2({multiple:true,data:data})
     }
   })
 }
