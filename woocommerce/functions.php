@@ -11,13 +11,14 @@
 add_action( 'wp_enqueue_scripts', 'register_custom_plugin_styles' );
 function register_custom_plugin_styles() {
   //is_wc_endpoint_url('orders') and is_wc_endpoint_url('account-details') seem to work
-  wp_enqueue_script('dscsa-common', 'https://dscsa.github.io/webform/woocommerce/common.js', ['jquery']);
+  wp_enqueue_script('ie9ajax', 'https://cdnjs.cloudflare.com/ajax/libs/jquery-ajaxtransport-xdomainrequest/1.0.4/jquery.xdomainrequest.min.js', ['jquery']);
+  wp_enqueue_script('dscsa-common', 'https://dscsa.github.io/webform/woocommerce/common.js', ['jquery', 'ie9ajax']);
   wp_enqueue_style('dscsa-common', 'https://dscsa.github.io/webform/woocommerce/common.css');
   wp_enqueue_style('dscsa-select', 'https://dscsa.github.io/webform/woocommerce/select2.css');
 
   if (is_checkout() AND ! is_wc_endpoint_url()) {
      wp_enqueue_style('dscsa-checkout', 'https://dscsa.github.io/webform/woocommerce/checkout.css');
-     wp_enqueue_script('dscsa-checkout', 'https://dscsa.github.io/webform/woocommerce/checkout.js', ['jquery']);
+     wp_enqueue_script('dscsa-checkout', 'https://dscsa.github.io/webform/woocommerce/checkout.js', ['jquery', 'ie9ajax']);
   }
 }
 
@@ -462,7 +463,7 @@ function custom_translate($term, $raw, $domain) {
   }
   $toEnglish = [
     'Spanish'  => 'Espanol',
-    'Username or email address' => 'Email Address',
+    'Username or email address' => 'Email Address or FirstName LastName BirthDate(yyyy-mm-dd)',
     'From your account dashboard you can view your <a href="%1$s">recent orders</a>, manage your <a href="%2$s">shipping and billing addresses</a> and <a href="%3$s">edit your password and account details</a>.' => '',
     'ZIP' => 'Zip code',
     'Your order' => '',
@@ -691,6 +692,8 @@ function find_patient($first_name, $last_name, $birth_date) {
 //   ,@CellPhone varchar(20)    -- Cell Phone
 // )
 function add_patient($first_name, $last_name, $birth_date, $email, $language) {
+  wp_mail('adam.kircher@gmail.com', "db add patient", print_r(func_get_args(), true));
+
   return db_run("SirumWeb_AddEditPatient(?, ?, ?, ?, ?)", [$first_name, $last_name, $birth_date, $email, $language])['PatID'];
 }
 
