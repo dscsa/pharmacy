@@ -22,10 +22,16 @@ function register_page() {
 
 function account_page() {
   console.log('common.js account page')
+  signup2signout()
   upgradePharmacy()
   upgradeAllergies()
   disableFixedFields()
   setSource()
+}
+
+//Helps providers signout easier. Also prevents setting the ?register when signed in
+function signup2signout() {
+  jQuery('li#menu-item-103 a').text('Sign Out').prop('href', '/account/logout/')
 }
 
 function setSource() {
