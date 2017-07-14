@@ -32,7 +32,7 @@ function account_page() {
 //Helps providers signout easier. Also prevents setting the ?register when signed in
 function signup2signout() {
   jQuery('li#menu-item-103 a').text('Sign Out').prop('href', '/account/logout/')
-  jQuery('li#menu-item-102').addClass('current-menu-item')
+  jQuery('li#menu-item-102').addClass('current-menu-item').css('pointer-events', 'none')
 }
 
 function setSource() {
