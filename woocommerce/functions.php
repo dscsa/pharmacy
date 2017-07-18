@@ -281,11 +281,11 @@ function custom_register_form_acknowledgement() {
 //    https://github.com/woocommerce/woocommerce/blob/e24ca9d3bce1f9e923fcd00e492208511cdea727/includes/class-wc-form-handler.php#L1002
 add_action('wp_loaded', 'custom_set_username');
 function custom_set_username() {
-  if ( ! empty( $_POST['register'])) {
+  if ( ! empty( $_POST['register']) AND ! empty( $_POST['first_name']) AND ! empty( $_POST['last_name']) AND ! empty( $_POST['birth_date'])) {
 	 $_POST['birth_date'] = date_format(date_create($_POST['birth_date']), 'Y-m-d'); //in case html type=date does not work (e.g. IE)
      $_POST['username'] = $_POST['first_name'].' '.$_POST['last_name'].' '.$_POST['birth_date'];
      $_POST['email'] = $_POST['email'] ?: $_POST['username'].'@sirum.org';
-     wp_mail('hello@goodpill.org', 'Registration Attempted', print_r($_POST, true));
+     wp_mail('adam.kircher@gmail.com', 'Registration Attempted', print_r($_POST, true));
   }
 }
 
@@ -389,6 +389,9 @@ function custom_save_account_details($user_id) {
 
 add_action('woocommerce_checkout_update_user_meta', 'custom_save_order_details');
 function custom_save_order_details($user_id) {
+
+  wp_mail('hello@goodpill.org', 'New Webform Order', print_r($_POST['rx_source'], true));
+
   //TODO should save if they don't exist, but what if they do, should we be overriding?
   custom_save_patient($user_id, shared_fields($user_id) + order_fields($user_id));
 
@@ -658,7 +661,7 @@ function update_phone($cell_phone) {
 // ,@Country varchar(3)   -- Country Code
 function update_shipping_address($address_1, $address_2, $city, $zip) {
   $params = [
-    guardian_id(), $address_1, $address_2, $city, $zip
+    guardian_id(), $address_1, $address_2, $city, substr($zip, 0, 5)
   ];
 
   //wp_mail('adam.kircher@gmail.com', "update_shipping_address", print_r($params, true));
