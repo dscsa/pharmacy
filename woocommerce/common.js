@@ -1,30 +1,3 @@
-jQuery(load)
-function load() {
-
-  if (window.location.pathname == '/account/details/')
-    return account_page()
-
-  if (window.location.pathname == '/account/')
-    return account_page()
-}
-
-function register_page() {
-  console.log('common.js register page')
-  translate()
-  createUsername()
-  upgradeBirthdate()
-  setSource()
-}
-
-function account_page() {
-  console.log('common.js account page')
-  signup2signout()
-  upgradePharmacy()
-  upgradeAllergies()
-  disableFixedFields()
-  setSource()
-}
-
 //Helps providers signout easier. Also prevents setting the ?register when signed in
 function signup2signout() {
   jQuery('li#menu-item-103 a').text('Sign Out').prop('href', '/account/logout/')

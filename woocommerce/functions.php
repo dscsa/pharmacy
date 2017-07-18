@@ -11,14 +11,15 @@
 add_action( 'wp_enqueue_scripts', 'register_custom_plugin_styles' );
 function register_custom_plugin_styles() {
   //is_wc_endpoint_url('orders') and is_wc_endpoint_url('account-details') seem to work
+  wp_enqueue_script('dscsa-common', 'https://dscsa.github.io/webform/woocommerce/common.js', ['jquery', 'ie9ajax']);
+  wp_enqueue_style('dscsa-common', 'https://dscsa.github.io/webform/woocommerce/common.css');
 
   if (is_user_logged_in()) {
     wp_enqueue_script('ie9ajax', 'https://cdnjs.cloudflare.com/ajax/libs/jquery-ajaxtransport-xdomainrequest/1.0.4/jquery.xdomainrequest.min.js', ['jquery']);
-    wp_enqueue_script('dscsa-common', 'https://dscsa.github.io/webform/woocommerce/common.js', ['jquery', 'ie9ajax']);
-    wp_enqueue_style('dscsa-common', 'https://dscsa.github.io/webform/woocommerce/common.css');
+    wp_enqueue_script('dscsa-account', 'https://dscsa.github.io/webform/woocommerce/account.js', ['jquery', 'dscsa-common']);
     wp_enqueue_style('dscsa-select', 'https://dscsa.github.io/webform/woocommerce/select2.css');
   } else {
-    wp_enqueue_script('dscsa-register', 'https://dscsa.github.io/webform/woocommerce/register.js', ['jquery']);
+    wp_enqueue_script('dscsa-register', 'https://dscsa.github.io/webform/woocommerce/register.js', ['jquery', 'dscsa-common']);
   }
 
   if (is_checkout() AND ! is_wc_endpoint_url()) {
