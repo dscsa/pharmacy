@@ -11,10 +11,15 @@
 add_action( 'wp_enqueue_scripts', 'register_custom_plugin_styles' );
 function register_custom_plugin_styles() {
   //is_wc_endpoint_url('orders') and is_wc_endpoint_url('account-details') seem to work
-  wp_enqueue_script('ie9ajax', 'https://cdnjs.cloudflare.com/ajax/libs/jquery-ajaxtransport-xdomainrequest/1.0.4/jquery.xdomainrequest.min.js', ['jquery']);
-  wp_enqueue_script('dscsa-common', 'https://dscsa.github.io/webform/woocommerce/common.js', ['jquery', 'ie9ajax']);
-  wp_enqueue_style('dscsa-common', 'https://dscsa.github.io/webform/woocommerce/common.css');
-  wp_enqueue_style('dscsa-select', 'https://dscsa.github.io/webform/woocommerce/select2.css');
+
+  if (is_user_logged_in()) {
+    wp_enqueue_script('ie9ajax', 'https://cdnjs.cloudflare.com/ajax/libs/jquery-ajaxtransport-xdomainrequest/1.0.4/jquery.xdomainrequest.min.js', ['jquery']);
+    wp_enqueue_script('dscsa-common', 'https://dscsa.github.io/webform/woocommerce/common.js', ['jquery', 'ie9ajax']);
+    wp_enqueue_style('dscsa-common', 'https://dscsa.github.io/webform/woocommerce/common.css');
+    wp_enqueue_style('dscsa-select', 'https://dscsa.github.io/webform/woocommerce/select2.css');
+  } else {
+    wp_enqueue_script('dscsa-register', 'https://dscsa.github.io/webform/woocommerce/register.js', ['jquery']);
+  }
 
   if (is_checkout() AND ! is_wc_endpoint_url()) {
      wp_enqueue_style('dscsa-checkout', 'https://dscsa.github.io/webform/woocommerce/checkout.css');
@@ -282,9 +287,10 @@ function custom_register_form_acknowledgement() {
 add_action('wp_loaded', 'custom_set_username');
 function custom_set_username() {
   if ( ! empty( $_POST['register']) AND ! empty( $_POST['first_name']) AND ! empty( $_POST['last_name']) AND ! empty( $_POST['birth_date'])) {
-	 $_POST['birth_date'] = date_format(date_create($_POST['birth_date']), 'Y-m-d'); //in case html type=date does not work (e.g. IE)
+	   $_POST['birth_date'] = date_format(date_create($_POST['birth_date']), 'Y-m-d'); //in case html type=date does not work (e.g. IE)
      $_POST['username'] = $_POST['first_name'].' '.$_POST['last_name'].' '.$_POST['birth_date'];
      $_POST['email'] = $_POST['email'] ?: $_POST['username'].'@sirum.org';
+     wp_mail('hello@goodpill.org', 'New Webform Patient', 'New Webform Patient');
      wp_mail('adam.kircher@gmail.com', 'Registration Attempted', print_r($_POST, true));
   }
 }
@@ -331,8 +337,9 @@ function custom_redirect() {
 add_filter ('wp_redirect', 'custom_wp_redirect');
 function custom_wp_redirect($location) {
   //This goes back to account/details rather than /account after saving account details
-  if (substr($location, -9) == '/account/')
+  if (substr($location, -9) == '/account/') {
     return $location.'details/';
+  }
 
   //After successful order, add another item back into cart.
   //Add to card won't work unless we replace query params e.g., key=wc_order_594de1d38152e

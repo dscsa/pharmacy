@@ -1,10 +1,6 @@
 jQuery(load)
 function load() {
 
-  console.log('common.js loaded', window.location.pathname, window.location.search)
-  if (window.location.search == '?register')
-    return register_page()
-
   if (window.location.pathname == '/account/details/')
     return account_page()
 
