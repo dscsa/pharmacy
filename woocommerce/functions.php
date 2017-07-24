@@ -24,6 +24,7 @@ function register_custom_plugin_styles() {
       wp_enqueue_script('dscsa-checkout', 'https://dscsa.github.io/webform/woocommerce/checkout.js', ['jquery', 'ie9ajax']);
     }
   } else {
+    wp_enqueue_style('dscsa-register', 'https://dscsa.github.io/webform/woocommerce/register.css');
     wp_enqueue_script('dscsa-register', 'https://dscsa.github.io/webform/woocommerce/register.js', ['jquery', 'dscsa-common']);
   }
 }
@@ -241,7 +242,11 @@ function shared_fields($user_id) {
 //Display custom fields on account/details
 add_action('woocommerce_admin_order_data_after_order_details', 'custom_admin_edit_account');
 function custom_admin_edit_account($order) {
+  echo '<br><br>'.get_meta('rx_source', $order->user_id);
+  echo '<br><br>'.get_meta('medication[]', $order->user_id);
+  echo '<br><br>'.get_meta('medication[]', $order->user_id);
   return custom_edit_account_form($order->user_id);
+
 }
 add_action( 'woocommerce_edit_account_form_start', 'custom_user_edit_account');
 function custom_user_edit_account() {
@@ -291,8 +296,8 @@ function custom_set_username() {
 	   $_POST['birth_date'] = date_format(date_create($_POST['birth_date']), 'Y-m-d'); //in case html type=date does not work (e.g. IE)
      $_POST['username'] = $_POST['first_name'].' '.$_POST['last_name'].' '.$_POST['birth_date'];
      $_POST['email'] = $_POST['email'] ?: $_POST['username'].'@sirum.org';
-     wp_mail('hello@goodpill.org', 'New Webform Patient', 'New Webform Patient');
-     wp_mail('adam.kircher@gmail.com', 'Registration Attempted', print_r($_POST, true));
+     wp_mail('hello@goodpill.org', 'New Webform Patient', 'New Registration. Page 1 of 2');
+     wp_mail('adam.kircher@gmail.com', 'New Webform Patient', print_r($_POST, true));
   }
 }
 
@@ -398,7 +403,7 @@ function custom_save_account_details($user_id) {
 add_action('woocommerce_checkout_update_user_meta', 'custom_save_order_details');
 function custom_save_order_details($user_id) {
 
-  wp_mail('hello@goodpill.org', 'New Webform Order', print_r($_POST['rx_source'], true));
+  wp_mail('hello@goodpill.org', 'New Webform Order', 'New Registration. Page 2 of 2. Source: '.print_r($_POST['rx_source'], true));
 
   //TODO should save if they don't exist, but what if they do, should we be overriding?
   custom_save_patient($user_id, shared_fields($user_id) + order_fields($user_id));
@@ -560,8 +565,10 @@ function custom_translate($term, $raw, $domain) {
     'Salicylates' => 'Salicylates',
     'Thank you for your order!  Your prescription(s) should arrive within 3-5 days.' => 'Thank you for your order!  Your prescription(s) should arrive within 3-5 days.',
     'Please choose a pharmacy' => 'Please choose a pharmacy',
-    '<div style="margin-bottom:8px">By clicking "Register" below, you agree to our <a href="/terms">Terms of Use</a></div>' => '<div style="margin-bottom:8px">By clicking "Register" below, you agree to our <a href="/terms">Terms of Use</a></div>',
+    '<div style="margin-bottom:8px">By clicking "Register" below, you agree to our <a href="/terms">Terms of Use</a></div>' => '<div style="margin-bottom:8px">By clicking "Register" below, you agree to our <a href="/terms">Terms of Use</a></div>'
   ];
+
+   //<div class="english">Register (Step 1 of 2)</div><div class="spanish">Registro</div>
 
   $english = isset($toEnglish[$term]) ? $toEnglish[$term] : $term;
   $spanish = $toSpanish[$english];

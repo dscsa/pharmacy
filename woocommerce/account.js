@@ -9,7 +9,7 @@ function load() {
 }
 
 function account_page() {
-  console.log('common.js account page')
+  console.log('account.js account page')
   signup2signout()
   upgradePharmacy()
   upgradeAllergies()

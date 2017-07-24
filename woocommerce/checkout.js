@@ -5,6 +5,8 @@ function load() {
 
   upgradeMedication()
 
+  //This will only show up on initial registration
+  jQuery(".woocommerce-message").html('<strong>Step 2 of 2 - You are almost done!</strong> Please complete this page so we can fill your prescription(s)')
   jQuery('form.checkout .col-1').prepend(jQuery('.woocommerce-additional-fields'))
 
   jQuery('form.checkout').show()
