@@ -23,7 +23,7 @@ function register_custom_plugin_styles() {
       wp_enqueue_style('dscsa-checkout', 'https://dscsa.github.io/webform/woocommerce/checkout.css');
       wp_enqueue_script('dscsa-checkout', 'https://dscsa.github.io/webform/woocommerce/checkout.js', ['jquery', 'ie9ajax']);
     }
-  } else {
+  } else if (isset($_GET['register'])) {
     wp_enqueue_style('dscsa-register', 'https://dscsa.github.io/webform/woocommerce/register.css');
     wp_enqueue_script('dscsa-register', 'https://dscsa.github.io/webform/woocommerce/register.js', ['jquery', 'dscsa-common']);
   }
