@@ -530,14 +530,15 @@ function custom_translate($term, $raw, $domain) {
     'ZIP' => 'Zip code', //Checkout
     'Your order' => '', //Checkout
     'No saved methods found.' => 'No credit or debit cards are saved to your account',
-    '%s has been added to your cart.' => substr($_SERVER['REQUEST_URI'], 0, 9) == '/account/'
-      ? '<strong>Step 2 of 2:</strong> You are almost done! Please complete this page so we can fill your prescription(s)'
-      : '<strong>Thank you for your order!</strong> Your prescription(s) should arrive within 3-5 days.',
-    'Email Address' => 'Email or phone number',     //For registering
+    '%s has been added to your cart.' => substr($_SERVER['REQUEST_URI'], 0, 15) != '/account/order/'
+      ? 'Step 2 of 2: You are almost done! Please complete this page so we can fill your prescription(s)'
+      : 'Thank you for your order! Your prescription(s) should arrive within 3-5 days.',
+    'Email address' => 'Email or phone number',     //For registering
     'Username or email' => 'Email address', //For resetting passwords
     'Additional information' => '',  //Checkout
 	'Billing &amp; Shipping' => 'Shipping Address', //Checkout
-    'Lost your password? Please enter your username or email address. You will receive a link to create a new password via email.' => 'Lost your password? Call us for assistance or enter the email address you used to register.' //Logging in
+    'Lost your password? Please enter your username or email address. You will receive a link to create a new password via email.' => 'Lost your password? Call us for assistance or enter the email address you used to register.', //Logging in
+    'Please provide a valid email address.' => 'Please provide a valid email address or 10-digit phone number.'
   ];
 
   $toSpanish = [
@@ -657,10 +658,10 @@ function custom_checkout_fields( $fields ) {
   $fields['order'] = $order_fields + $shared_fields;
 
   //Allow billing out of state but don't allow shipping out of state
-  // $fields['shipping']['shipping_state']['type'] = 'select';
-  // $fields['shipping']['shipping_state']['options'] = ['GA' => 'Georgia'];
-  // unset($fields['shipping']['shipping_country']);
-  // unset($fields['shipping']['shipping_company']);
+  $fields['shipping']['shipping_state']['type'] = 'select';
+  $fields['shipping']['shipping_state']['options'] = ['GA' => 'Georgia'];
+  unset($fields['shipping']['shipping_country']);
+  unset($fields['shipping']['shipping_company']);
 
   // We are using our billing address as the shipping address for now.
   $fields['billing']['billing_state']['type'] = 'select';
@@ -843,7 +844,7 @@ function update_stripe_tokens($value) {
 function update_card_and_coupon($card, $coupon) {
   //Meet guardian 50 character limit
   //Last4 4, Month 2, Year 2, Type (Mastercard = 10), Delimiter 4, So coupon will be truncated if over 28 characters
-  $value = $card['last4'].','.$card['month'].'/'.substr($card['year'], 2).','.$card['type'].','.$coupon;
+  $value = $card['last4'].','.$card['month'].'/'.substr($card['year'] ?: '', 2).','.$card['type'].','.$coupon;
 
   return db_run("SirumWeb_AddUpdatePatientUD(?, 4, ?)", [get_meta('guardian_id'), $value]);
 }
