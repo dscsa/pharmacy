@@ -315,7 +315,7 @@ function custom_set_username() {
       $phone = email2phone($_POST['email']);
 
       if ($phone) {
-       $_POST['email'] = $phone.'@sirum.org';
+       $_POST['email'] = $phone.'@goodpill.org';
        $_POST['phone'] = $phone;
       }
     }
