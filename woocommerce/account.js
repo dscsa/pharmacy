@@ -1,6 +1,8 @@
 jQuery(load)
 function load() {
 
+  signup2signout()
+
   if (window.location.pathname == '/account/details/')
     return account_page()
 
@@ -10,7 +12,6 @@ function load() {
 
 function account_page() {
   console.log('account.js account page')
-  signup2signout()
   upgradePharmacy()
   upgradeAllergies()
   upgradeBirthdate()
