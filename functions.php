@@ -23,13 +23,10 @@ function custom_scripts() {
       wp_enqueue_style('dscsa-checkout', 'https://dscsa.github.io/webform/woocommerce/checkout.css');
       wp_enqueue_script('dscsa-checkout', 'https://dscsa.github.io/webform/woocommerce/checkout.js', ['jquery', 'ie9ajax']);
     }
+  } else if (substr($_SERVER['REQUEST_URI'], 0, 9) == '/account/') {
+    wp_enqueue_style('dscsa-register', 'https://dscsa.github.io/webform/woocommerce/login.css');
+  	wp_enqueue_script('dscsa-register', 'https://dscsa.github.io/webform/woocommerce/login.js', ['jquery', 'dscsa-common']);
   }
-}
-
-add_action('login_enqueue_scripts', 'custom_login_scripts');
-function custom_login_scripts() {
-  wp_enqueue_style('dscsa-login', 'https://dscsa.github.io/webform/woocommerce/login.css');
-  wp_enqueue_script('dscsa-login', 'https://dscsa.github.io/webform/woocommerce/login.js', ['jquery', 'dscsa-common']);
 }
 
 add_action('wp_enqueue_scripts', 'remove_sticky_checkout', 99);
@@ -533,15 +530,14 @@ function custom_translate($term, $raw, $domain) {
     'ZIP' => 'Zip code', //Checkout
     'Your order' => '', //Checkout
     'No saved methods found.' => 'No credit or debit cards are saved to your account',
-    '%s has been added to your cart.' => $_SERVER['PATH_INFO'] == '/account/'
+    '%s has been added to your cart.' => substr($_SERVER['REQUEST_URI'], 0, 9) == '/account/'
       ? '<strong>Step 2 of 2:</strong> You are almost done! Please complete this page so we can fill your prescription(s)'
       : '<strong>Thank you for your order!</strong> Your prescription(s) should arrive within 3-5 days.',
     'Email Address' => 'Email or phone number',     //For registering
-    'Email address or username' => 'Email address', //For resetting passwords
+    'Username or email' => 'Email address', //For resetting passwords
     'Additional information' => '',  //Checkout
-	  'Billing &amp; Shipping' => 'Shipping Address', //Checkout
-    'Invalid username. Lost your password?' => 'We could not find your name in our system. Please register a new account or call us for assistance.', //Logging in
-    'Lost your password? Please enter your username or email address.  You will receive a link to create a new password via email.' => 'Lost your password? Call us for assistance or enter the email address you used to register.' //Logging in
+	'Billing &amp; Shipping' => 'Shipping Address', //Checkout
+    'Lost your password? Please enter your username or email address. You will receive a link to create a new password via email.' => 'Lost your password? Call us for assistance or enter the email address you used to register.' //Logging in
   ];
 
   $toSpanish = [
