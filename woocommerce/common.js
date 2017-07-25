@@ -73,7 +73,6 @@ function upgradeBirthdate() { //now 2 on same page (loing & register) so jquery 
 
 //Disabled fields not submitted causing validation error.
 function disableFixedFields() {
-  jQuery('#birth_date').prop('readonly', true)
   jQuery('#account_first_name').prop('readonly', true)
   jQuery('#account_last_name').prop('readonly', true)
   //Readonly doesn't work for radios https://stackoverflow.com/questions/1953017/why-cant-radio-buttons-be-readonly
