@@ -40,17 +40,11 @@ button.menu-toggle {
 {
   display:none
 }
-#reg_username, label[for=reg_username], label[for=reg_email] .required {
-  display:none !important;
-}
 #customer_login > div {
   width:100% !important
 }
 #customer_login .col-2 {
   display:none
-}
-#customer_login #birth_date_field {
-  margin-bottom:0
 }
 .radio {
   display:inline-block !important

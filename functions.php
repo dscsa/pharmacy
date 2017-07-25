@@ -8,8 +8,8 @@
 //FIX BLANK BUTTON ON SAVE CARD
 
 // Register custom style sheets and javascript.
-add_action( 'wp_enqueue_scripts', 'register_custom_plugin_styles' );
-function register_custom_plugin_styles() {
+add_action('wp_enqueue_scripts', 'custom_scripts');
+function custom_scripts() {
   //is_wc_endpoint_url('orders') and is_wc_endpoint_url('account-details') seem to work
   wp_enqueue_script('ie9ajax', 'https://cdnjs.cloudflare.com/ajax/libs/jquery-ajaxtransport-xdomainrequest/1.0.4/jquery.xdomainrequest.min.js', ['jquery']);
   wp_enqueue_script('dscsa-common', 'https://dscsa.github.io/webform/woocommerce/common.js', ['jquery', 'ie9ajax']);
@@ -23,10 +23,13 @@ function register_custom_plugin_styles() {
       wp_enqueue_style('dscsa-checkout', 'https://dscsa.github.io/webform/woocommerce/checkout.css');
       wp_enqueue_script('dscsa-checkout', 'https://dscsa.github.io/webform/woocommerce/checkout.js', ['jquery', 'ie9ajax']);
     }
-  } else if (isset($_GET['register'])) {
-    wp_enqueue_style('dscsa-register', 'https://dscsa.github.io/webform/woocommerce/register.css');
-    wp_enqueue_script('dscsa-register', 'https://dscsa.github.io/webform/woocommerce/register.js', ['jquery', 'dscsa-common']);
   }
+}
+
+add_action('login_enqueue_scripts', 'custom_login_scripts');
+function custom_login_scripts() {
+  wp_enqueue_style('dscsa-login', 'https://dscsa.github.io/webform/woocommerce/login.css');
+  wp_enqueue_script('dscsa-login', 'https://dscsa.github.io/webform/woocommerce/login.js', ['jquery', 'dscsa-common']);
 }
 
 add_action('wp_enqueue_scripts', 'remove_sticky_checkout', 99);
@@ -62,7 +65,7 @@ function custom_stripe_add_card($stripe_id, $card, $response) {
    //Customer 18, Card 29, Delimiter 1 = 48
    update_stripe_tokens($card['customer'].','.$card['card'].',');
 
-   $coupon = get_user_meta($user_id, 'coupon', true);
+   $coupon = get_meta('coupon');
 
    update_card_and_coupon($card, $coupon);
 }
@@ -77,7 +80,7 @@ function custom_applied_coupon($coupon) {
 
    update_user_meta($user_id, 'coupon', $coupon);
 
-   $card = get_user_meta($user_id, 'stripe', true);
+   $card = get_meta('stripe');
 
    update_card_and_coupon($card, $coupon);
 }
@@ -112,11 +115,6 @@ function account_fields($user_id) {
       'required'  => true,
       'options'   => ['EN' => __('English'), 'ES' => __('Spanish')],
       'default'   => get_default('language', $user_id) ?: 'EN'
-    ],
-    'birth_date' => [
-      'label'     => __('Date of Birth'),
-      'required'  => true,
-      'default'   => get_default('birth_date', $user_id)
     ]
   ];
 }
@@ -148,8 +146,8 @@ function shared_fields($user_id) {
         'type'   	  => 'radio',
         'label'     => __('Allergies'),
         'label_class' => ['radio'],
-        'options'   => ['' => __('Allergies Selected Below'), 99 => __('No Medication Allergies')],
-    	'default'   => get_default('allergies_none', $user_id)
+        'options'   => [99 => __('No Medication Allergies'), '' => __('Allergies Selected Below')],
+    	  'default'   => get_default('allergies_none', $user_id)
     ],
     'allergies_aspirin' => [
         'type'      => 'checkbox',
@@ -235,6 +233,11 @@ function shared_fields($user_id) {
         'validate'  => ['phone'],
         'autocomplete' => 'tel',
         'default'   => get_default('phone', $user_id)
+    ],
+    'birth_date' => [
+        'label'     => __('Date of Birth'),
+        'required'  => true,
+        'default'   => get_default('birth_date', $user_id)
     ]
   ];
 }
@@ -262,9 +265,22 @@ function custom_edit_account_form($user_id) {
   }
 }
 
+add_action('woocommerce_login_form_start', 'custom_login_form');
+function custom_login_form() {
+  login_form();
+}
+
 add_action('woocommerce_register_form_start', 'custom_register_form');
 function custom_register_form() {
   $account_fields = account_fields();
+  echo woocommerce_form_field('language', $account_fields['language']);
+  login_form();
+}
+
+function login_form($language) {
+
+  $shared_fields = shared_fields();
+
   $first_name = [
     'class' => ['form-row-first'],
     'label'  => __('First name'),
@@ -277,10 +293,9 @@ function custom_register_form() {
     'default' => $_POST['last_name']
   ];
 
-  echo woocommerce_form_field('language', $account_fields['language']);
   echo woocommerce_form_field('first_name', $first_name);
   echo woocommerce_form_field('last_name', $last_name);
-  echo woocommerce_form_field('birth_date', $account_fields['birth_date']);
+  echo woocommerce_form_field('birth_date', $shared_fields['birth_date']);
 }
 
 add_action('woocommerce_register_form', 'custom_register_form_acknowledgement');
@@ -292,13 +307,35 @@ function custom_register_form_acknowledgement() {
 //    https://github.com/woocommerce/woocommerce/blob/e24ca9d3bce1f9e923fcd00e492208511cdea727/includes/class-wc-form-handler.php#L1002
 add_action('wp_loaded', 'custom_set_username');
 function custom_set_username() {
-  if ( ! empty( $_POST['register']) AND ! empty( $_POST['first_name']) AND ! empty( $_POST['last_name']) AND ! empty( $_POST['birth_date'])) {
-	   $_POST['birth_date'] = date_format(date_create($_POST['birth_date']), 'Y-m-d'); //in case html type=date does not work (e.g. IE)
-     $_POST['username'] = $_POST['first_name'].' '.$_POST['last_name'].' '.$_POST['birth_date'];
-     $_POST['email'] = $_POST['email'] ?: $_POST['username'].'@sirum.org';
-     wp_mail('hello@goodpill.org', 'New Webform Patient', 'New Registration. Page 1 of 2');
-     wp_mail('adam.kircher@gmail.com', 'New Webform Patient', print_r($_POST, true));
+  if ( ! empty( $_POST['first_name']) AND ! empty( $_POST['last_name']) AND ! empty( $_POST['birth_date'])) {
+
+    //Set user name for both login and registration
+    $_POST['birth_date'] = date_format(date_create($_POST['birth_date']), 'Y-m-d'); //in case html type=date does not work (e.g. IE)
+    $_POST['username'] = $_POST['first_name'].' '.$_POST['last_name'].' '.$_POST['birth_date'];
+
+    if ( ! empty( $_POST['register']) AND ! empty( $_POST['email']) ) {
+
+      $phone = email2phone($_POST['email']);
+
+      if ($phone) {
+       $_POST['email'] = $phone.'@sirum.org';
+       $_POST['phone'] = $phone;
+      }
+
+      wp_mail('hello@goodpill.org', 'New Webform Patient', 'New Registration. Page 1 of 2');
+      wp_mail('adam.kircher@gmail.com', 'New Webform Patient', print_r($_POST, true));
+    }
   }
+}
+
+function email2phone($email) {
+
+  if (strpos($_POST['email'], '@') !== false)
+    return false;
+
+  $phone = preg_replace('/\D+/', '', $email);
+
+  return strlen($phone) == 10 ? $phone : false;
 }
 
 //After Registration, set default shipping/billing/account fields
@@ -318,9 +355,8 @@ function customer_created($user_id) {
   update_user_meta($user_id, 'birth_date', $birth_date);
   update_user_meta($user_id, 'language', $language);
 
-  $patient_id = add_patient($first_name, $last_name, $birth_date, $email, $language);
-
-  update_user_meta($user_id, 'guardian_id', $patient_id);
+  if ($_POST['phone'])
+    update_user_meta($user_id, 'phone', $_POST['phone']);
 }
 
 // Function to change email address
@@ -426,6 +462,16 @@ function custom_save_order_details($user_id) {
 
 function custom_save_patient($user_id, $fields) {
 
+  $patient_id = add_patient(
+    $_POST['billing_first_name'],
+    $_POST['billing_last_name'],
+    $_POST['birth_date'],
+    get_meta('account_email', $user_id),
+    get_meta('language', $user_id)
+  );
+
+  update_user_meta($user_id, 'guardian_id', $patient_id);
+
   $allergy_codes = [
     'allergies_tetracycline' => 1,
     'allergies_cephalosporins' => 2,
@@ -450,6 +496,15 @@ function custom_save_patient($user_id, $fields) {
 
     update_user_meta($user_id, $key, $val);
 
+    if ($key == 'backup_pharmacy')
+      update_pharmacy($val);
+
+    if ($key == 'medications_other')
+      append_comment($val);
+
+    if ($key == 'phone')
+      update_phone($val);
+
     if ($allergy_codes[$key]) {
       //Since all checkboxes submitted even with none selected.  If none
       //is selected manually set value to false for all except none
@@ -458,12 +513,6 @@ function custom_save_patient($user_id, $fields) {
       add_remove_allergy($allergy_codes[$key], $val);
     }
   }
-
-  update_pharmacy($_POST['backup_pharmacy']);
-
-  append_comment(sanitize_text_field($_POST['medications_other']));
-
-  update_phone(sanitize_text_field($_POST['phone']));
 }
 
 //Didn't work: https://stackoverflow.com/questions/38395784/woocommerce-overriding-billing-state-and-post-code-on-existing-checkout-fields
@@ -478,16 +527,21 @@ function custom_translate($term, $raw, $domain) {
     //wp_mail('adam.kircher@gmail.com', 'been added to your cart', $term);
   }
   $toEnglish = [
-    'Spanish'  => 'Espanol',
-    'Username or email address' => 'Email Address or FirstName LastName BirthDate(yyyy-mm-dd)',
+    'Spanish'  => 'Espanol', //Registering
+    'Password' => 'Password (emailed to you upon registration)', //Logging in
     'From your account dashboard you can view your <a href="%1$s">recent orders</a>, manage your <a href="%2$s">shipping and billing addresses</a> and <a href="%3$s">edit your password and account details</a>.' => '',
-    'ZIP' => 'Zip code',
-    'Your order' => '',
+    'ZIP' => 'Zip code', //Checkout
+    'Your order' => '', //Checkout
     'No saved methods found.' => 'No credit or debit cards are saved to your account',
-    '%s has been added to your cart.' => 'Thank you for your order!  Your prescription(s) should arrive within 3-5 days.',
-    'Email Address' => 'Email address',
-    'Additional information' => '',
-	'Billing &amp; Shipping' => 'Shipping Address',
+    '%s has been added to your cart.' => $_SERVER['PATH_INFO'] == '/account/'
+      ? '<strong>Step 2 of 2:</strong> You are almost done! Please complete this page so we can fill your prescription(s)'
+      : '<strong>Thank you for your order!</strong> Your prescription(s) should arrive within 3-5 days.',
+    'Email Address' => 'Email or phone number',     //For registering
+    'Email address or username' => 'Email address', //For resetting passwords
+    'Additional information' => '',  //Checkout
+	  'Billing &amp; Shipping' => 'Shipping Address', //Checkout
+    'Invalid username. Lost your password?' => 'We could not find your name in our system. Please register a new account or call us for assistance.', //Logging in
+    'Lost your password? Please enter your username or email address.  You will receive a link to create a new password via email.' => 'Lost your password? Call us for assistance or enter the email address you used to register.' //Logging in
   ];
 
   $toSpanish = [
@@ -512,7 +566,6 @@ function custom_translate($term, $raw, $domain) {
     'List Other Allergies Below' => 'Indique otras alergias abajo',
     'Phone' => 'Teléfono',
     'List any other medication(s) or supplement(s) you are currently taking' => 'Indique cualquier otro medicamento o suplemento que usted toma actualmente',
-    'Email address' => 'Dirección de correo electrónico',
     'First name' => 'Nombre',
     'Last name' => 'Apellido',
     'Date of Birth' => 'Fecha de nacimiento',
@@ -537,6 +590,12 @@ function custom_translate($term, $raw, $domain) {
     'New Order' => 'Pedido Nuevo',
     'Orders' => 'Pedidos',
     'Shipping Address' => 'Dirección de Envíos',
+
+    //Need to be translated
+    // Can't translate on login page because we don't know user's language (though we could make dynamic like registration page)
+    //<div class="english">Register (Step 1 of 2)</div><div class="spanish">Registro (Uno de Dos)</div>
+    //Can't include below since its uses the same message as the "Thank You for your order"
+    'Email or phone number' => 'Dirección de correo electrónico o teléfono',
     'Email:' => 'Email:',
     'Prescription(s) were sent from my doctor' => 'Prescription(s) were sent from my doctor',
     'Transfer prescription(s) from my pharmacy' => 'Transfer prescription(s) from my pharmacy',
@@ -565,21 +624,17 @@ function custom_translate($term, $raw, $domain) {
     'Salicylates' => 'Salicylates',
     'Thank you for your order!  Your prescription(s) should arrive within 3-5 days.' => 'Thank you for your order!  Your prescription(s) should arrive within 3-5 days.',
     'Please choose a pharmacy' => 'Please choose a pharmacy',
-    '<div style="margin-bottom:8px">By clicking "Register" below, you agree to our <a href="/terms">Terms of Use</a></div>' => '<div style="margin-bottom:8px">By clicking "Register" below, you agree to our <a href="/terms">Terms of Use</a></div>'
+    '<div style="margin-bottom:8px">By clicking "Register" below, you agree to our <a href="/terms">Terms of Use</a></div>' => '<div style="margin-bottom:8px">By clicking "Register" below, you agree to our <a href="/terms">Terms of Use</a></div>',
   ];
-
-   //<div class="english">Register (Step 1 of 2)</div><div class="spanish">Registro</div>
 
   $english = isset($toEnglish[$term]) ? $toEnglish[$term] : $term;
   $spanish = $toSpanish[$english];
 
-  $user_id = get_current_user_id();
-
   if (is_admin() OR ! isset($spanish))
-	return $english;
+    return $english;
 
   global $lang;
-  $lang = $lang ?: get_user_meta($user_id, 'language', true);
+  $lang = $lang ?: get_meta('language');
 
   if ($lang == 'EN')
     return $english;
@@ -606,9 +661,12 @@ function custom_checkout_fields( $fields ) {
   $fields['order'] = $order_fields + $shared_fields;
 
   //Allow billing out of state but don't allow shipping out of state
-  $fields['shipping']['shipping_state']['type'] = 'select';
-  $fields['shipping']['shipping_state']['options'] = ['GA' => 'Georgia'];
+  // $fields['shipping']['shipping_state']['type'] = 'select';
+  // $fields['shipping']['shipping_state']['options'] = ['GA' => 'Georgia'];
+  // unset($fields['shipping']['shipping_country']);
+  // unset($fields['shipping']['shipping_company']);
 
+  // We are using our billing address as the shipping address for now.
   $fields['billing']['billing_state']['type'] = 'select';
   $fields['billing']['billing_state']['options'] = ['GA' => 'Georgia'];
 
@@ -619,8 +677,6 @@ function custom_checkout_fields( $fields ) {
   unset($fields['billing']['billing_email']);
   unset($fields['billing']['billing_company']);
   unset($fields['billing']['billing_country']);
-  unset($fields['shipping']['shipping_country']);
-  unset($fields['shipping']['shipping_company']);
 
   return $fields;
 }
@@ -650,7 +706,7 @@ function custom_checkout_fields( $fields ) {
 */
 function add_remove_allergy($allergy_id, $value) {
   return db_run("SirumWeb_AddRemove_Allergy(?, ?, ?, ?)", [
-    guardian_id(), $value ? 1 : 0, $allergy_id, $value
+    get_meta('guardian_id'), $value ? 1 : 0, $allergy_id, $value
   ]);
 }
 
@@ -661,7 +717,7 @@ function add_remove_allergy($allergy_id, $value) {
 function update_phone($cell_phone) {
   $cell_phone = preg_replace("/[^0-9]/", "", $cell_phone);
   return db_run("SirumWeb_AddUpdatePatHomePhone(?, ?)", [
-    guardian_id(), $cell_phone
+    get_meta('guardian_id'), $cell_phone
   ]);
 }
 
@@ -676,11 +732,10 @@ function update_phone($cell_phone) {
 // ,@Country varchar(3)   -- Country Code
 function update_shipping_address($address_1, $address_2, $city, $zip) {
   $params = [
-    guardian_id(), $address_1, $address_2, $city, substr($zip, 0, 5)
+    get_meta('guardian_id'), $address_1, $address_2, $city, substr($zip, 0, 5)
   ];
 
   //wp_mail('adam.kircher@gmail.com', "update_shipping_address", print_r($params, true));
-
   return db_run("SirumWeb_AddUpdatePatHomeAddr(?, ?, ?, NULL, ?, 'GA', ?, 'US')", $params);
 }
 
@@ -710,15 +765,14 @@ function find_patient($first_name, $last_name, $birth_date) {
 //   ,@CellPhone varchar(20)    -- Cell Phone
 // )
 function add_patient($first_name, $last_name, $birth_date, $email, $language) {
-  wp_mail('adam.kircher@gmail.com', "db add patient", print_r(func_get_args(), true));
-
+  //wp_mail('adam.kircher@gmail.com', "db add patient", print_r(func_get_args(), true));
   return db_run("SirumWeb_AddEditPatient(?, ?, ?, ?, ?)", [$first_name, $last_name, $birth_date, $email, $language])['PatID'];
 }
 
 // Procedure dbo.SirumWeb_AddToPatientComment (@PatID int, @CmtToAdd VARCHAR(4096)
 // The comment will be appended to the existing comment if it is not already in the comment field.
 function append_comment($comment) {
-  return db_run("SirumWeb_AddToPatientComment(?, ?)", [guardian_id(), $comment]);
+  return db_run("SirumWeb_AddToPatientComment(?, ?)", [get_meta('guardian_id'), $comment]);
 }
 
 // Create Procedure dbo.SirumWeb_AddToPreorder(
@@ -738,7 +792,7 @@ function add_preorder($drug_name, $pharmacy) {
    $store = json_decode(stripslashes($pharmacy));
 
    return db_run("SirumWeb_AddToPreorder(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", [
-       guardian_id(),
+       get_meta('guardian_id'),
        explode(",", $drug_name)[0],
        $store->npi,
        $store->name,
@@ -781,13 +835,13 @@ function update_pharmacy($pharmacy) {
     $store->fax
   ]);
 
-  db_run("SirumWeb_AddUpdatePatientUD(?, 1, ?)", [guardian_id(), $store->name]);
+  db_run("SirumWeb_AddUpdatePatientUD(?, 1, ?)", [get_meta('guardian_id'), $store->name]);
   //Because of 50 character limit, the street will likely be cut off.
-  return db_run("SirumWeb_AddUpdatePatientUD(?, 2, ?)", [guardian_id(), $store->npi.','.$store->fax.','.$store->phone.','.$store->street]);
+  return db_run("SirumWeb_AddUpdatePatientUD(?, 2, ?)", [get_meta('guardian_id'), $store->npi.','.$store->fax.','.$store->phone.','.$store->street]);
 }
 
 function update_stripe_tokens($value) {
-  return db_run("SirumWeb_AddUpdatePatientUD(?, 3, ?)", [guardian_id(), $value]);
+  return db_run("SirumWeb_AddUpdatePatientUD(?, 3, ?)", [get_meta('guardian_id'), $value]);
 }
 
 function update_card_and_coupon($card, $coupon) {
@@ -795,13 +849,13 @@ function update_card_and_coupon($card, $coupon) {
   //Last4 4, Month 2, Year 2, Type (Mastercard = 10), Delimiter 4, So coupon will be truncated if over 28 characters
   $value = $card['last4'].','.$card['month'].'/'.substr($card['year'], 2).','.$card['type'].','.$coupon;
 
-  return db_run("SirumWeb_AddUpdatePatientUD(?, 4, ?)", [guardian_id(), $value]);
+  return db_run("SirumWeb_AddUpdatePatientUD(?, 4, ?)", [get_meta('guardian_id'), $value]);
 }
 
 //Procedure dbo.SirumWeb_AddUpdatePatEmail (@PatID int, @EMailAddress VARCHAR(255)
 //Set the patID and the new email address
 function update_email($email) {
-  return db_run("SirumWeb_AddUpdatePatEmail(?, ?)", [guardian_id(), $email]);
+  return db_run("SirumWeb_AddUpdatePatEmail(?, ?)", [get_meta('guardian_id'), $email]);
 }
 
 global $conn;
@@ -840,8 +894,4 @@ function db_query($conn, $sql, $params) {
 
 function email_error($heading) {
    wp_mail('adam.kircher@gmail.com', "db error: $heading", print_r(sqlsrv_errors(), true));
-}
-
-function guardian_id() {
-   return get_user_meta(get_current_user_id(), 'guardian_id', true);
 }

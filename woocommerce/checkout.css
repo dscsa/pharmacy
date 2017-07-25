@@ -22,11 +22,3 @@ form.checkout, #order_review_heading {
   margin-top:-30px;
   width:100%; /* only active on small screens, otherwise media filter*/
 }
-
-/*
-#billing_country_field,
-#shipping_country_field,
-#billing_email_field,
-#shipping_email_field,
-#shipping_state_field
-*/

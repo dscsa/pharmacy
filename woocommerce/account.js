@@ -13,6 +13,7 @@ function account_page() {
   signup2signout()
   upgradePharmacy()
   upgradeAllergies()
+  upgradeBirthdate()
   disableFixedFields()
   setSource()
 }

@@ -67,10 +67,6 @@ function upgradePharmacy(pharmacies) {
   })
 }
 
-function createUsername() {
-  jQuery('#customer_login > div').toggle()
-}
-
 function upgradeBirthdate() {
   jQuery('#birth_date').prop('type', 'date') //can't easily set date type in woocommerce
 }
