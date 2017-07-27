@@ -11,10 +11,12 @@ function load() {
     .on("select2:closed", open)
 
     function open() {
+      console.log('select2 open')
       medication.select2("open")
     }
 
     function preventDefault(e) {
+      console.log('select2 preventDefault')
       e.preventDefault()
     }
   })
