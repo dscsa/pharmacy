@@ -297,22 +297,34 @@ function dscsa_register_form_acknowledgement() {
 //    https://github.com/woocommerce/woocommerce/blob/e24ca9d3bce1f9e923fcd00e492208511cdea727/includes/class-wc-form-handler.php#L1002
 add_action('wp_loaded', 'dscsa_set_username');
 function dscsa_set_username() {
-  if ( ! empty( $_POST['first_name']) AND ! empty( $_POST['last_name']) AND ! empty( $_POST['birth_date'])) {
 
-    //Set user name for both login and registration
-    $_POST['birth_date'] = date_format(date_create($_POST['birth_date']), 'Y-m-d'); //in case html type=date does not work (e.g. IE)
-    $_POST['username'] = $_POST['first_name'].' '.$_POST['last_name'].' '.$_POST['birth_date'];
+  if (empty($_POST['birth_date']))
+    return;
 
-    if ( ! empty( $_POST['register']) AND ! empty( $_POST['email']) ) {
+  $_POST['birth_date'] = date_format(date_create($_POST['birth_date']), 'Y-m-d'); //in case html type=date does not work (e.g. IE)
 
-      $phone = email2phone($_POST['email']);
+  if (empty($_POST['first_name']) OR empty($_POST['last_name']))
+    return;
 
-      if ($phone) {
-       $_POST['email'] = $phone.'@goodpill.org';
+  //Set user name for both login and registration
+  $_POST['username'] = $_POST['first_name'].' '.$_POST['last_name'].' '.$_POST['birth_date'];
+}
+
+//Allow phone to be a valid email
+//https://developer.wordpress.org/reference/functions/sanitize_email/
+add_filter('sanitize_email', 'dscsa_sanitize_email', 10, 3);
+function dscsa_sanitize_email($sanitized, $email, $message) {
+
+   if ($message == 'email_no_at') {
+     $phone = email2phone($email);
+
+     if ($phone) {
        $_POST['phone'] = $phone;
-      }
-    }
-  }
+       return $phone.'@goodpill.org';
+     }
+   }
+
+   return $sanitized;
 }
 
 function cleanPhone($phone) { //get rid of all delimiters and a leading 1 if it exists
@@ -324,9 +336,6 @@ function cleanPhone($phone) { //get rid of all delimiters and a leading 1 if it 
 }
 
 function email2phone($email) {
-
-  if (strpos($_POST['email'], '@') !== false)
-    return false;
 
   $phone = cleanPhone($email);
 
@@ -343,7 +352,6 @@ function customer_created($user_id) {
   $first_name = sanitize_text_field($_POST['first_name']);
   $last_name = sanitize_text_field($_POST['last_name']);
   $birth_date = sanitize_text_field($_POST['birth_date']);
-  $email = sanitize_text_field($_POST['email']);
   $language = sanitize_text_field($_POST['language']);
 
   foreach(['', 'billing_', 'shipping_'] as $field) {
@@ -411,9 +419,9 @@ function dscsa_order_validation() {
 function dscsa_validation($fields) {
   $allergy_missing = true;
   foreach ($fields as $key => $field) {
-    if ($field['required'] AND ! $_POST[$key]) {
-       wc_add_notice('<strong>'.__($field['label']).'</strong> '.__('is a required field'), 'error');
-    }
+    //if ($field['required'] AND ! $_POST[$key]) {
+    //   wc_add_notice('<strong>'.__($field['label']).'</strong> '.__('is a required field'), 'error');
+    //}
 
     if (substr($key, 0, 10) == 'allergies_' AND $_POST[$key])
  	  $allergy_missing = false;
@@ -442,14 +450,15 @@ function dscsa_save_order($order_id) {
   wp_mail('hello@goodpill.org', 'New Webform Order', 'New Registration. Page 2 of 2. Source: '.print_r($_POST['rx_source'], true));
   wp_mail('adam.kircher@gmail.com', 'New Webform Order', print_r([get_current_user_id(), $order->user_id, $order->customer_id, $order->get_used_coupons()[0], $order->get_used_coupons()[0]->code, $order->get_used_coupons()], true));
 
-  $coupon = $order->get_used_coupons()[0];
+  //THIS MUST BE CALLED FIRST IN ORDER TO CREATE GUARDIAN ID
+  //TODO should save if they don't exist, but what if they do, should we be overriding?
+  dscsa_save_patient($user_id, shared_fields($user_id) + order_fields($user_id));
+
+  $coupon = $order->get_used_coupons()[0] ?: get_meta('coupon');
   $card = get_meta('stripe');
 
   update_user_meta($user_id, 'coupon', $coupon);
   update_card_and_coupon($card, $coupon);
-
-  //TODO should save if they don't exist, but what if they do, should we be overriding?
-  dscsa_save_patient($user_id, shared_fields($user_id) + order_fields($user_id));
 
   $prefix = $_POST['ship_to_different_address'] ? 'shipping_' : 'billing_';
 
@@ -474,7 +483,7 @@ function dscsa_save_patient($user_id, $fields) {
     $_POST['billing_first_name'],
     $_POST['billing_last_name'],
     $_POST['birth_date'],
-    get_meta('account_email', $user_id),
+    get_userdata($user_id)->user_email, //email is not stored in metadata
     get_meta('language', $user_id)
   );
 
@@ -551,7 +560,8 @@ function dscsa_translate($term, $raw, $domain) {
     'Additional information' => '',  //Checkout
 	'Billing &amp; Shipping' => 'Shipping Address', //Checkout
     'Lost your password? Please enter your username or email address. You will receive a link to create a new password via email.' => 'Lost your password? Call us for assistance or enter the email address you used to register.', //Logging in
-    'Please provide a valid email address.' => 'Please provide a valid email address or 10-digit phone number.'
+    'Please provide a valid email address.' => 'Please provide a valid email address or 10-digit phone number.',
+    'An account is already registered with your email address. Please login.' => 'An account is already registered with that email address or phone number. Please login.'
   ];
 
   $toSpanish = [
