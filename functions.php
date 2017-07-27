@@ -17,6 +17,8 @@ function custom_scripts() {
   wp_enqueue_style('dscsa-common', 'https://dscsa.github.io/webform/woocommerce/common.css');
 
   if (substr($_SERVER['REQUEST_URI'], 0, 6) == '/meds/') {
+    wp_enqueue_script('select2', 'https://goodpill.org/wp-content/plugins/woocommerce/assets/js/select2/select2.full.min.js'); //usually loaded by woocommerce but since this is independent page we need to load manually
+	wp_enqueue_style('select2', 'https://goodpill.org/wp-content/plugins/woocommerce/assets/css/select2.css?ver=3.0.7'); //usually loaded by woocommerce but since this is independent page we need to load manually
     wp_enqueue_script('dscsa-inventory', 'https://dscsa.github.io/webform/woocommerce/inventory.js', ['jquery', 'ie9ajax']);
     wp_enqueue_style('dscsa-inventory', 'https://dscsa.github.io/webform/woocommerce/inventory.css');
   }
@@ -328,12 +330,20 @@ function custom_set_username() {
   }
 }
 
+function cleanPhone($phone) { //get rid of all delimiters and a leading 1 if it exists
+  $phone = preg_replace('/\D+/', '', $phone);
+  if (strlen($phone) == 11 AND substr($phone, 0, 1) == 1)
+    return substr($phone, 0, 10);
+
+  return $phone;
+}
+
 function email2phone($email) {
 
   if (strpos($_POST['email'], '@') !== false)
     return false;
 
-  $phone = preg_replace('/\D+/', '', $email);
+  $phone = cleanPhone($email);
 
   return strlen($phone) == 10 ? $phone : false;
 }
@@ -359,7 +369,7 @@ function customer_created($user_id) {
   update_user_meta($user_id, 'language', $language);
 
   if ($_POST['phone'])
-    update_user_meta($user_id, 'phone', $_POST['phone']);
+    update_user_meta($user_id, 'phone', cleanPhone($_POST['phone']));
 }
 
 // Function to change email address
@@ -497,16 +507,18 @@ function custom_save_patient($user_id, $fields) {
     //In case of backup pharmacy json, sanitize gets rid of it
     $val = sanitize_text_field($_POST[$key]);
 
-    update_user_meta($user_id, $key, $val);
-
     if ($key == 'backup_pharmacy')
       update_pharmacy($val);
 
     if ($key == 'medications_other')
       append_comment($val);
 
-    if ($key == 'phone')
+    if ($key == 'phone') {
+      $val = cleanPhone($val);
       update_phone($val);
+    }
+
+    update_user_meta($user_id, $key, $val);
 
     if ($allergy_codes[$key]) {
       //Since all checkboxes submitted even with none selected.  If none
@@ -718,7 +730,6 @@ function add_remove_allergy($allergy_id, $value) {
 //   @PatCellPhone VARCHAR(20)
 // }
 function update_phone($cell_phone) {
-  $cell_phone = preg_replace("/[^0-9]/", "", $cell_phone);
   return db_run("SirumWeb_AddUpdatePatHomePhone(?, ?)", [
     get_meta('guardian_id'), $cell_phone
   ]);
@@ -803,8 +814,8 @@ function add_preorder($drug_name, $pharmacy) {
        $store->city,
        $store->state,
        $store->zip,
-       $store->phone,
-       $store->fax
+       cleanPhone($store->phone),
+       cleanPhone($store->fax)
    ]);
 }
 
@@ -834,8 +845,8 @@ function update_pharmacy($pharmacy) {
     $store->city,
     $store->state,
     $store->zip,
-    $store->phone,
-    $store->fax
+    cleanPhone($store->phone),
+    cleanPhone($store->fax)
   ]);
 
   db_run("SirumWeb_AddUpdatePatientUD(?, 1, ?)", [get_meta('guardian_id'), $store->name]);
