@@ -137,7 +137,7 @@ function upgradeMedication(openOnSelect, callback) {
       }
 
       select.select2({multiple:true, closeOnSelect: ! openOnSelect, data:data})
-      callback(select)
+      callback && callback(select)
     }
   })
 }
