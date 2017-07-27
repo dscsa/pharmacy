@@ -112,7 +112,7 @@ function matcher(param, data) {
 }
 
 
-function upgradeMedication(openOnSelect) {
+function upgradeMedication(openOnSelect, callback) {
   console.log('upgradeMedication')
 
   var select = jQuery('#medication\\[\\]')
@@ -133,10 +133,9 @@ function upgradeMedication(openOnSelect) {
       }
 
       select.select2({multiple:true, closeOnSelect: ! openOnSelect, data:data})
+      callback(select)
     }
   })
-
-  return select
 }
 
 function medication2select(entry, i) {
