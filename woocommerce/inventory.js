@@ -7,7 +7,8 @@ function load() {
     open()
 
     medication //keep it open always and don't allow selection
-    .on("select2:closing, select2:selecting", preventDefault)
+    .on("select2:closing", preventDefault)
+    .on("select2:selecting", preventDefault)
     .on("select2:closed", open)
 
     function open() {
