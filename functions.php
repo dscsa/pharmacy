@@ -75,21 +75,6 @@ function custom_stripe_add_card($stripe_id, $card, $response) {
    update_card_and_coupon($card, $coupon);
 }
 
-//remove_action( 'woocommerce_before_checkout_form', 'woocommerce_checkout_coupon_form');
-//add_action( 'woocommerce_after_checkout_form', 'woocommerce_checkout_coupon_form' );
-
-//do_action( 'woocommerce_applied_coupon', $coupon_code );
-add_action('woocommerce_applied_coupon', 'custom_applied_coupon');
-function custom_applied_coupon($coupon) {
-   $user_id = get_current_user_id();
-
-   update_user_meta($user_id, 'coupon', $coupon);
-
-   $card = get_meta('stripe');
-
-   update_card_and_coupon($card, $coupon);
-}
-
 function order_fields() {
   return [
     'rx_source' => [
@@ -441,18 +426,27 @@ function custom_validation($fields) {
 
 //On new order and account/details save account fields back to user
 //TODO should changing checkout fields overwrite account fields if they are set?
-add_action('woocommerce_save_account_details', 'custom_save_account_details');
-function custom_save_account_details($user_id) {
+add_action('woocommerce_save_account_details', 'custom_save_account');
+function custom_save_account($user_id) {
   //TODO should save if they don't exist, but what if they do, should we be overriding?
   update_email(sanitize_text_field($_POST['account_email']));
 
   custom_save_patient($user_id, shared_fields($user_id) + account_fields($user_id));
 }
 
-add_action('woocommerce_checkout_update_user_meta', 'custom_save_order_details');
-function custom_save_order_details($user_id) {
+add_action('woocommerce_checkout_update_order_meta', 'custom_save_order');
+function custom_save_order($order_id) {
+  $order = wc_get_order( $order_id );
+  $user_id = $order->user_id;
 
   wp_mail('hello@goodpill.org', 'New Webform Order', 'New Registration. Page 2 of 2. Source: '.print_r($_POST['rx_source'], true));
+  wp_mail('adam.kircher@gmail.com', 'New Webform Order', print_r([get_current_user_id(), $order->user_id, $order->customer_id, $order->get_used_coupons()[0], $order->get_used_coupons()[0]->code, $order->get_used_coupons()], true));
+
+  $coupon = $order->get_used_coupons()[0];
+  $card = get_meta('stripe');
+
+  update_user_meta($user_id, 'coupon', $coupon);
+  update_card_and_coupon($card, $coupon);
 
   //TODO should save if they don't exist, but what if they do, should we be overriding?
   custom_save_patient($user_id, shared_fields($user_id) + order_fields($user_id));
@@ -466,6 +460,7 @@ function custom_save_order_details($user_id) {
     sanitize_text_field($_POST[$prefix.'city']),
     sanitize_text_field($_POST[$prefix.'postcode'])
   );
+
   if ($_POST['medication']) {
     foreach ($_POST['medication'] as $drug_name) {
       add_preorder($drug_name, $_POST['backup_pharmacy']);
@@ -838,7 +833,7 @@ function update_pharmacy($pharmacy) {
 
   $store = json_decode(stripslashes($pharmacy));
 
-  db_run("SirumWeb_AddExternalPharmacy(?, ?, ?, ?, ?, ?, ?, ?)", [
+  $args = [
     $store->npi,
     $store->name,
     $store->street,
@@ -847,7 +842,13 @@ function update_pharmacy($pharmacy) {
     $store->zip,
     cleanPhone($store->phone),
     cleanPhone($store->fax)
-  ]);
+  ];
+
+  wp_mail('adam.kircher@gmail.com', "update_pharmacy 1", print_r($args, true));
+
+  db_run("SirumWeb_AddExternalPharmacy(?, ?, ?, ?, ?, ?, ?, ?)", $args);
+
+  wp_mail('adam.kircher@gmail.com', "update_pharmacy 2", print_r(sqlsrv_errors(), true));
 
   db_run("SirumWeb_AddUpdatePatientUD(?, 1, ?)", [get_meta('guardian_id'), $store->name]);
   //Because of 50 character limit, the street will likely be cut off.
@@ -862,6 +863,8 @@ function update_card_and_coupon($card, $coupon) {
   //Meet guardian 50 character limit
   //Last4 4, Month 2, Year 2, Type (Mastercard = 10), Delimiter 4, So coupon will be truncated if over 28 characters
   $value = $card['last4'].','.$card['month'].'/'.substr($card['year'] ?: '', 2).','.$card['type'].','.$coupon;
+
+    wp_mail('adam.kircher@gmail.com', "update_card_and_coupon", print_r([get_meta('guardian_id'), $value], true));
 
   return db_run("SirumWeb_AddUpdatePatientUD(?, 4, ?)", [get_meta('guardian_id'), $value]);
 }
