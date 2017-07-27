@@ -333,7 +333,7 @@ function custom_set_username() {
 function cleanPhone($phone) { //get rid of all delimiters and a leading 1 if it exists
   $phone = preg_replace('/\D+/', '', $phone);
   if (strlen($phone) == 11 AND substr($phone, 0, 1) == 1)
-    return substr($phone, 0, 10);
+    return substr($phone, 1, 10);
 
   return $phone;
 }
