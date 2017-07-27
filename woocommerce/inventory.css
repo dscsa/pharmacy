@@ -6,7 +6,7 @@ select, .select2-selection {
   font-size:14px
 }
 .select2-container--default {
-  width:100% !important
+  width:60% !important
 }
 .select2-selection--multiple {
   background-color:#f8f8f8 !important;
@@ -21,4 +21,7 @@ ul.select2-results__options {
 }
 .select2-dropdown {
   border:none !important
+}
+.site-footer {
+  background-color:white;
 }
