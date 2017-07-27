@@ -20,12 +20,7 @@ function load() {
 
   //Toggle medication select and backup pharmacy text based on whether
   //Rx is being sent from doctor or transferred from a pharmacy.
-  jQuery("#rx_source_pharmacy, #rx_source_erx")
-  .change(function(){
-    console.log('rx source change', this.id)
-    jQuery('#medication\\[\\]_field').toggle()
-    jQuery('.erx, .pharmacy').toggle()
-  })
+  setSource()
 
   //Not used currently.  We don't need billing info because we don't check
   //it in stripe.  If we ever do then we will need something like this.
