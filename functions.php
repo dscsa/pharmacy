@@ -8,8 +8,8 @@
 //FIX BLANK BUTTON ON SAVE CARD
 
 // Register custom style sheets and javascript.
-add_action('wp_enqueue_scripts', 'custom_scripts');
-function custom_scripts() {
+add_action('wp_enqueue_scripts', 'dscsa_scripts');
+function dscsa_scripts() {
   //is_wc_endpoint_url('orders') and is_wc_endpoint_url('account-details') seem to work
   wp_enqueue_script('ie9ajax', 'https://cdnjs.cloudflare.com/ajax/libs/jquery-ajaxtransport-xdomainrequest/1.0.4/jquery.xdomainrequest.min.js', ['jquery']);
 
@@ -51,8 +51,8 @@ function get_default($field, $user_id) {
 }
 
 //do_action( 'woocommerce_stripe_add_card', $this->get_id(), $token, $response );
-add_action('woocommerce_stripe_add_card', 'custom_stripe_add_card', 10, 3);
-function custom_stripe_add_card($stripe_id, $card, $response) {
+add_action('woocommerce_stripe_add_card', 'dscsa_stripe_add_card', 10, 3);
+function dscsa_stripe_add_card($stripe_id, $card, $response) {
 
    $card = [
      'last4' => $card->get_last4(),
@@ -233,20 +233,20 @@ function shared_fields($user_id) {
 }
 
 //Display custom fields on account/details
-add_action('woocommerce_admin_order_data_after_order_details', 'custom_admin_edit_account');
-function custom_admin_edit_account($order) {
+add_action('woocommerce_admin_order_data_after_order_details', 'dscsa_admin_edit_account');
+function dscsa_admin_edit_account($order) {
   echo '<br><br>'.get_meta('rx_source', $order->user_id);
   echo '<br><br>'.get_meta('medication[]', $order->user_id);
   echo '<br><br>'.get_meta('medication[]', $order->user_id);
-  return custom_edit_account_form($order->user_id);
+  return dscsa_edit_account_form($order->user_id);
 
 }
-add_action( 'woocommerce_edit_account_form_start', 'custom_user_edit_account');
-function custom_user_edit_account() {
-  return custom_edit_account_form();
+add_action( 'woocommerce_edit_account_form_start', 'dscsa_user_edit_account');
+function dscsa_user_edit_account() {
+  return dscsa_edit_account_form();
 }
 
-function custom_edit_account_form($user_id) {
+function dscsa_edit_account_form($user_id) {
 
   $fields = shared_fields($user_id)+account_fields($user_id);
 
@@ -255,13 +255,13 @@ function custom_edit_account_form($user_id) {
   }
 }
 
-add_action('woocommerce_login_form_start', 'custom_login_form');
-function custom_login_form() {
+add_action('woocommerce_login_form_start', 'dscsa_login_form');
+function dscsa_login_form() {
   login_form();
 }
 
-add_action('woocommerce_register_form_start', 'custom_register_form');
-function custom_register_form() {
+add_action('woocommerce_register_form_start', 'dscsa_register_form');
+function dscsa_register_form() {
   $account_fields = account_fields();
   echo woocommerce_form_field('language', $account_fields['language']);
   login_form();
@@ -288,15 +288,15 @@ function login_form($language) {
   echo woocommerce_form_field('birth_date', $shared_fields['birth_date']);
 }
 
-add_action('woocommerce_register_form', 'custom_register_form_acknowledgement');
-function custom_register_form_acknowledgement() {
+add_action('woocommerce_register_form', 'dscsa_register_form_acknowledgement');
+function dscsa_register_form_acknowledgement() {
   echo __('<div style="margin-bottom:8px">By clicking "Register" below, you agree to our <a href="/terms">Terms of Use</a> and agree to receive and pay for your refills automatically unless you contact us to decline.</div>');
 }
 
 //Customer created hook called to late in order to create username
 //    https://github.com/woocommerce/woocommerce/blob/e24ca9d3bce1f9e923fcd00e492208511cdea727/includes/class-wc-form-handler.php#L1002
-add_action('wp_loaded', 'custom_set_username');
-function custom_set_username() {
+add_action('wp_loaded', 'dscsa_set_username');
+function dscsa_set_username() {
   if ( ! empty( $_POST['first_name']) AND ! empty( $_POST['last_name']) AND ! empty( $_POST['birth_date'])) {
 
     //Set user name for both login and registration
@@ -369,13 +369,13 @@ function email_name() {
 
 // After registration and login redirect user to account/orders.
 // Clicking on Dashboard/New Order in Nave will add the actual product
-add_action('woocommerce_registration_redirect', 'custom_redirect', 2);
-function custom_redirect() {
+add_action('woocommerce_registration_redirect', 'dscsa_redirect', 2);
+function dscsa_redirect() {
   return home_url('/account/?add-to-cart=30#/');
 }
 
-add_filter ('wp_redirect', 'custom_wp_redirect');
-function custom_wp_redirect($location) {
+add_filter ('wp_redirect', 'dscsa_wp_redirect');
+function dscsa_wp_redirect($location) {
   //This goes back to account/details rather than /account after saving account details
   if (substr($location, -9) == '/account/') {
     return $location.'details/';
@@ -393,22 +393,22 @@ function custom_wp_redirect($location) {
   return $location;
 }
 
-add_filter ('woocommerce_account_menu_items', 'custom_my_account_menu');
-function custom_my_account_menu($nav) {
+add_filter ('woocommerce_account_menu_items', 'dscsa_my_account_menu');
+function dscsa_my_account_menu($nav) {
   $nav['dashboard'] = __('New Order');
   return $nav;
 }
 
-add_action('woocommerce_save_account_details_errors', 'custom_account_validation');
-function custom_account_validation() {
-   custom_validation(shared_fields()+account_fields());
+add_action('woocommerce_save_account_details_errors', 'dscsa_account_validation');
+function dscsa_account_validation() {
+   dscsa_validation(shared_fields()+account_fields());
 }
-add_action('woocommerce_checkout_process', 'custom_order_validation');
-function custom_order_validation() {
-   custom_validation(order_fields()+shared_fields());
+add_action('woocommerce_checkout_process', 'dscsa_order_validation');
+function dscsa_order_validation() {
+   dscsa_validation(order_fields()+shared_fields());
 }
 
-function custom_validation($fields) {
+function dscsa_validation($fields) {
   $allergy_missing = true;
   foreach ($fields as $key => $field) {
     if ($field['required'] AND ! $_POST[$key]) {
@@ -426,16 +426,16 @@ function custom_validation($fields) {
 
 //On new order and account/details save account fields back to user
 //TODO should changing checkout fields overwrite account fields if they are set?
-add_action('woocommerce_save_account_details', 'custom_save_account');
-function custom_save_account($user_id) {
+add_action('woocommerce_save_account_details', 'dscsa_save_account');
+function dscsa_save_account($user_id) {
   //TODO should save if they don't exist, but what if they do, should we be overriding?
   update_email(sanitize_text_field($_POST['account_email']));
 
-  custom_save_patient($user_id, shared_fields($user_id) + account_fields($user_id));
+  dscsa_save_patient($user_id, shared_fields($user_id) + account_fields($user_id));
 }
 
-add_action('woocommerce_checkout_update_order_meta', 'custom_save_order');
-function custom_save_order($order_id) {
+add_action('woocommerce_checkout_update_order_meta', 'dscsa_save_order');
+function dscsa_save_order($order_id) {
   $order = wc_get_order( $order_id );
   $user_id = $order->user_id;
 
@@ -449,7 +449,7 @@ function custom_save_order($order_id) {
   update_card_and_coupon($card, $coupon);
 
   //TODO should save if they don't exist, but what if they do, should we be overriding?
-  custom_save_patient($user_id, shared_fields($user_id) + order_fields($user_id));
+  dscsa_save_patient($user_id, shared_fields($user_id) + order_fields($user_id));
 
   $prefix = $_POST['ship_to_different_address'] ? 'shipping_' : 'billing_';
 
@@ -468,7 +468,7 @@ function custom_save_order($order_id) {
   }
 }
 
-function custom_save_patient($user_id, $fields) {
+function dscsa_save_patient($user_id, $fields) {
 
   $patient_id = add_patient(
     $_POST['billing_first_name'],
@@ -528,9 +528,9 @@ function custom_save_patient($user_id, $fields) {
 //Didn't work: https://stackoverflow.com/questions/38395784/woocommerce-overriding-billing-state-and-post-code-on-existing-checkout-fields
 //Did work: https://stackoverflow.com/questions/36619793/cant-change-postcode-zip-field-label-in-woocommerce
 global $lang;
-add_filter('ngettext', 'custom_translate', 10, 3);
-add_filter('gettext', 'custom_translate', 10, 3);
-function custom_translate($term, $raw, $domain) {
+add_filter('ngettext', 'dscsa_translate', 10, 3);
+add_filter('gettext', 'dscsa_translate', 10, 3);
+function dscsa_translate($term, $raw, $domain) {
 
   if (strpos($term, 'Shipping') !== false) {
      //echo htmlentities($term).'<br>';
@@ -660,8 +660,8 @@ function custom_translate($term, $raw, $domain) {
 }
 
 // Hook in
-add_filter( 'woocommerce_checkout_fields' , 'custom_checkout_fields' );
-function custom_checkout_fields( $fields ) {
+add_filter( 'woocommerce_checkout_fields' , 'dscsa_checkout_fields' );
+function dscsa_checkout_fields( $fields ) {
 
   $shared_fields = shared_fields();
 
