@@ -5,16 +5,20 @@ function signup2signout() {
 }
 
 function setSource() {
-  //Even though default property is always set to pharmacy, it seems that woocommerce is setting
-  //this field to its last saved value.  So after orderig an erx, a new form will default to erx
-  //not sure how to fix this in PHP so fixing here instead
-  if (jQuery("#rx_source_pharmacy:checked").length) {
-    jQuery('#medication\\[\\]_field').show()
-    jQuery('.pharmacy').show()
-  } else { //on account page this radio does not appear so the eRx will show by default
-    jQuery('#medication\\[\\]_field').hide()
-    jQuery('.erx').show()
-  }
+  jQuery("#rx_source_pharmacy").change(hideErx)
+  jQuery("#rx_source_erx").change(hidePharmacy)
+  jQuery("<style id='rx_source' type='text/css'></style>").appendTo('head')
+  jQuery("input[name=rx_source]:checked").triggerHandler('change')
+}
+
+function hidePharmacy() {
+  jQuery('#rx_source').html(".pharmacy{display:none}")
+  jQuery('#medication\\[\\]_field').hide()
+}
+
+function hideErx() {
+  jQuery('#rx_source').html(".erx{display:none}")
+  jQuery('#medication\\[\\]_field').show()
 }
 
 function translate() {
