@@ -17,7 +17,7 @@ select, .select2-selection {
   background:#11abd6 !important
 }
 ul.select2-results__options {
-  max-height:80% !important
+  overflow-y:visible
 }
 .select2-dropdown {
   border:none !important
