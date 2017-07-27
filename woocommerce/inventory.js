@@ -3,7 +3,7 @@ jQuery(load)
 //<select id="medication[]" data-placeholder="Search available medications" multiple></select>
 function load() {
 
-  upgradeMedication(function(medication) {
+  upgradeMedication(true, function(medication) {
     open()
 
     medication //keep it open always and don't allow selection
