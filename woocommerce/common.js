@@ -111,6 +111,47 @@ function matcher(param, data) {
    return data
 }
 
+
+function upgradeMedication(openOnSelect) {
+  console.log('upgradeMedication')
+
+  var select = jQuery('#medication\\[\\]')
+  select.empty()
+
+  var medicationGsheet = "https://spreadsheets.google.com/feeds/list/1MV5mq6605X7U1Np2fpwZ1RHkaCpjsb7YqieLQsEQK88/ovrg94l/public/values?alt=json"
+  //ovrg94l is the worksheet id.  To get this you have to use https://spreadsheets.google.com/feeds/worksheets/1MV5mq6605X7U1Np2fpwZ1RHkaCpjsb7YqieLQsEQK88/private/full
+
+  jQuery.ajax({
+    url:medicationGsheet,
+    type: 'GET',
+    cache:true,
+    success:function($data) {
+      console.log('medications gsheet')
+      var data = []
+      for (var i in $data.feed.entry) {
+        data.push(medication2select($data.feed.entry[i]))
+      }
+
+      select.select2({multiple:true, closeOnSelect: ! openOnSelect, data:data})
+    }
+  })
+
+  return select
+}
+
+function medication2select(entry, i) {
+  var price = entry.gsx$day_2.$t || entry.gsx$day.$t,
+       days = entry.gsx$day_2.$t ? '90 days' : '30 days',
+       drug = ' '+entry.gsx$drugnames.$t+', '+price+' for '+days
+
+  return {
+    id:drug,
+    text:drug,
+    disabled:entry.gsx$supplylevel.$t == 'Out of Stock',
+    price:price.replace('$', '')
+  }
+}
+
 (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
 (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
 m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)

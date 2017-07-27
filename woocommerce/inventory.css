@@ -1,0 +1,24 @@
+
+select, .select2-selection {
+  height:45px !important
+}
+.select2-selection__placeholder {
+  font-size:14px
+}
+.select2-container--default {
+  width:100% !important
+}
+.select2-selection--multiple {
+  background-color:#f8f8f8 !important;
+  border-color:#e1e1e1 !important;
+  height:100px !important
+}
+.select2-container--default .select2-results__option--highlighted {
+  background:#11abd6 !important
+}
+ul.select2-results__options {
+  max-height:80% !important
+}
+.select2-dropdown {
+  border:none !important
+}

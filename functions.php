@@ -12,20 +12,26 @@ add_action('wp_enqueue_scripts', 'custom_scripts');
 function custom_scripts() {
   //is_wc_endpoint_url('orders') and is_wc_endpoint_url('account-details') seem to work
   wp_enqueue_script('ie9ajax', 'https://cdnjs.cloudflare.com/ajax/libs/jquery-ajaxtransport-xdomainrequest/1.0.4/jquery.xdomainrequest.min.js', ['jquery']);
+
   wp_enqueue_script('dscsa-common', 'https://dscsa.github.io/webform/woocommerce/common.js', ['jquery', 'ie9ajax']);
   wp_enqueue_style('dscsa-common', 'https://dscsa.github.io/webform/woocommerce/common.css');
 
+  if (substr($_SERVER['REQUEST_URI'], 0, 6) == '/meds/') {
+    wp_enqueue_script('dscsa-inventory', 'https://dscsa.github.io/webform/woocommerce/inventory.js', ['jquery', 'ie9ajax']);
+    wp_enqueue_style('dscsa-inventory', 'https://dscsa.github.io/webform/woocommerce/inventory.css');
+  }
+
   if (is_user_logged_in()) {
     wp_enqueue_script('dscsa-account', 'https://dscsa.github.io/webform/woocommerce/account.js', ['jquery', 'dscsa-common']);
-    wp_enqueue_style('dscsa-select', 'https://dscsa.github.io/webform/woocommerce/select2.css');
+    wp_enqueue_style('dscsa-select2', 'https://dscsa.github.io/webform/woocommerce/select2.css');
 
     if (is_checkout() AND ! is_wc_endpoint_url()) {
       wp_enqueue_style('dscsa-checkout', 'https://dscsa.github.io/webform/woocommerce/checkout.css');
       wp_enqueue_script('dscsa-checkout', 'https://dscsa.github.io/webform/woocommerce/checkout.js', ['jquery', 'ie9ajax']);
     }
   } else if (substr($_SERVER['REQUEST_URI'], 0, 9) == '/account/') {
-    wp_enqueue_style('dscsa-register', 'https://dscsa.github.io/webform/woocommerce/login.css');
-  	wp_enqueue_script('dscsa-register', 'https://dscsa.github.io/webform/woocommerce/login.js', ['jquery', 'dscsa-common']);
+    wp_enqueue_style('dscsa-login', 'https://dscsa.github.io/webform/woocommerce/login.css');
+  	wp_enqueue_script('dscsa-login', 'https://dscsa.github.io/webform/woocommerce/login.js', ['jquery', 'dscsa-common']);
   }
 }
 
