@@ -8,7 +8,7 @@ function load() {
 
     //<IE9 subsitute for 100vh
     //Only way I could get results to be scrollable and logo off the page
-    var height = jQuery(window).height()
+    var height = jQuery(window).height() - 200 //200 accounts for the nav and searchbox
     jQuery('ul.select2-results__options').css('max-height', height).css('height', height)
 
     medication //keep it open always and don't allow selection
