@@ -8,7 +8,7 @@ function load() {
 
     //<IE9 subsitute for 100vh
     //Only way I could get results to be scrollable and logo off the page
-    jQuery('site-content, ul.select2-results__options').css('max-height', jQuery(window).height())
+    jQuery('.site-content, ul.select2-results__options').css('max-height', jQuery(window).height())
 
     medication //keep it open always and don't allow selection
     .on("select2:closing", preventDefault)
