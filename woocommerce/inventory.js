@@ -18,6 +18,7 @@ function load() {
     function open() {
       console.log('select2 open')
       medication.select2("open")
+      jQuery(':focus').blur()
     }
 
     function preventDefault(e) {
