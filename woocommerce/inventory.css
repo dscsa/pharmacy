@@ -1,6 +1,13 @@
-
+.select2-container--default {
+  width:100%;
+  height:auto
+}
+.select2-search--inline {
+  width:100%
+}
 .select2-search__field {
-  font-size:24px;
+  width:100%;
+  font-size:24px
 }
 .select2-container--default {
   width:60% !important
