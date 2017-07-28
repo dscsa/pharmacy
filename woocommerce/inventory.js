@@ -24,5 +24,5 @@ function load() {
 
   //<IE9 subsitute for 100vh
   //Only way I could get results to be scrollable
-  Jquery('ul.select2-results__options').css('max-height', jQuery(window).height())
+  jQuery('ul.select2-results__options').css('max-height', jQuery(window).height())
 }
