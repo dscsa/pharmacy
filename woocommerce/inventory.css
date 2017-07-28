@@ -1,5 +1,6 @@
-.select2-container--default {
-  height:50px !important
+.select2-selection {
+  background-color:#f8f8f8 !important;
+  border-color:#e1e1e1 !important;
 }
 .select2-search--inline {
   width:100%
@@ -8,14 +9,7 @@
   font-size:24px !important;
   width:100%
 }
-.select2-container--default {
-  width:60% !important
-}
-.select2-selection--multiple {
-  background-color:#f8f8f8 !important;
-  border-color:#e1e1e1 !important;
-  height:100px !important
-}
+
 .select2-container--default .select2-results__option--highlighted {
   background:#11abd6 !important
 }
