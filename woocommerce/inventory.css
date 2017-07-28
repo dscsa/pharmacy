@@ -16,9 +16,6 @@ select, .select2-selection {
 .select2-container--default .select2-results__option--highlighted {
   background:#11abd6 !important
 }
-ul.select2-results__options {
-  max-height:2000px !important
-}
 .select2-dropdown {
   border:none !important
 }
