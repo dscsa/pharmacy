@@ -37,6 +37,13 @@ function dscsa_scripts() {
   }
 }
 
+add_action('wp_print_scripts', 'DisableStrongPW', 100);
+function DisableStrongPW() {
+  if ( wp_script_is( 'wc-password-strength-meter', 'enqueued' ) ) {
+      wp_dequeue_script( 'wc-password-strength-meter' );
+  }
+}
+
 add_action('wp_enqueue_scripts', 'remove_sticky_checkout', 99);
 function remove_sticky_checkout() {
   wp_dequeue_script('storefront-sticky-payment');
@@ -558,7 +565,7 @@ function dscsa_translate($term, $raw, $domain) {
     'Email address' => 'Email or phone number',     //For registering
     'Username or email' => 'Email address', //For resetting passwords
     'Additional information' => '',  //Checkout
-	'Billing &amp; Shipping' => 'Shipping Address', //Checkout
+	  'Billing &amp; Shipping' => 'Shipping Address', //Checkout
     'Lost your password? Please enter your username or email address. You will receive a link to create a new password via email.' => 'Lost your password? Call us for assistance or enter the email address you used to register.', //Logging in
     'Please provide a valid email address.' => 'Please provide a valid email address or 10-digit phone number.',
     'An account is already registered with your email address. Please login.' => 'An account is already registered with that email address or phone number. Please login.'
@@ -614,7 +621,6 @@ function dscsa_translate($term, $raw, $domain) {
     //Need to be translated
     // Can't translate on login page because we don't know user's language (though we could make dynamic like registration page)
     //<div class="english">Register (Step 1 of 2)</div><div class="spanish">Registro (Uno de Dos)</div>
-    //Can't include below since its uses the same message as the "Thank You for your order"
     'Email or phone number' => 'Dirección de correo electrónico o teléfono',
     'Email:' => 'Email:',
     'Prescription(s) were sent from my doctor' => 'Prescription(s) were sent from my doctor',
