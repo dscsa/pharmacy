@@ -12,6 +12,7 @@ add_action('wp_enqueue_scripts', 'dscsa_scripts');
 function dscsa_scripts() {
   //is_wc_endpoint_url('orders') and is_wc_endpoint_url('account-details') seem to work
   wp_enqueue_script('ie9ajax', 'https://cdnjs.cloudflare.com/ajax/libs/jquery-ajaxtransport-xdomainrequest/1.0.4/jquery.xdomainrequest.min.js', ['jquery']);
+  wp_enqueue_script('datepicker', 'https://goodpill.org/wp-includes/js/jquery/ui/datepicker.min.js', ['jquery']);
 
   wp_enqueue_script('dscsa-common', 'https://dscsa.github.io/webform/woocommerce/common.js', ['jquery', 'ie9ajax']);
   wp_enqueue_style('dscsa-common', 'https://dscsa.github.io/webform/woocommerce/common.css');
@@ -242,6 +243,7 @@ function shared_fields($user_id) {
     'birth_date' => [
         'label'     => __('Date of Birth'),
         'required'  => true,
+        'input_class' => ['date-picker'],
         'default'   => get_default('birth_date', $user_id)
     ]
   ];
