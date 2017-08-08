@@ -314,30 +314,24 @@ function dscsa_register_form_acknowledgement() {
 add_action('wp_loaded', 'dscsa_set_username');
 function dscsa_set_username() {
 
-  $_POST['account_email'] = $_POST['billing_email'];
+  if ($_POST['birth_date'] AND $_POST['first_name'] AND $_POST['last_name']) {
+     $_POST['birth_date'] = date_format(date_create($_POST['birth_date']), 'Y-m-d'); //in case html type=date does not work (e.g. IE)
+     //Set user name for both login and registration
+     $_POST['username'] = $_POST['first_name'].' '.$_POST['last_name'].' '.$_POST['birth_date'];
+  }
 
-  if (empty($_POST['birth_date']))
-    return;
+  if ($_POST['phone']) {
 
-  $_POST['birth_date'] = date_format(date_create($_POST['birth_date']), 'Y-m-d'); //in case html type=date does not work (e.g. IE)
+     $phone = cleanPhone($_POST['phone']);
 
-  if (empty($_POST['first_name']) OR empty($_POST['last_name']))
-    return;
+     $_POST['password'] = $phone;
 
-  //Set user name for both login and registration
-  $_POST['username'] = $_POST['first_name'].' '.$_POST['last_name'].' '.$_POST['birth_date'];
+     if (empty($_POST['email']))
+        $_POST['email'] = $phone.'@goodpill.org';
 
-  if (empty($_POST['phone']))
-    return;
-
-  $phone = cleanPhone($_POST['phone']);
-
-  $_POST['password'] = $phone;
-
-  if ( ! empty($_POST['email']))
-    return;
-
-  $_POST['email'] = $phone.'@goodpill.org';
+     if (empty($_POST['account_email']))
+        $_POST['account_email'] = $phone.'@goodpill.org';
+  }
 }
 
 function cleanPhone($phone) { //get rid of all delimiters and a leading 1 if it exists
@@ -489,7 +483,7 @@ function dscsa_save_patient($user_id, $fields) {
     $_POST['billing_first_name'],
     $_POST['billing_last_name'],
     $_POST['birth_date'],
-    $_POST['account_email'],
+    $_POST['email'],
     get_meta('language', $user_id)
   );
 
@@ -543,9 +537,14 @@ function dscsa_save_patient($user_id, $fields) {
 //Didn't work: https://stackoverflow.com/questions/38395784/woocommerce-overriding-billing-state-and-post-code-on-existing-checkout-fields
 //Did work: https://stackoverflow.com/questions/36619793/cant-change-postcode-zip-field-label-in-woocommerce
 global $lang;
+global $phone;
 add_filter('ngettext', 'dscsa_translate', 10, 3);
 add_filter('gettext', 'dscsa_translate', 10, 3);
 function dscsa_translate($term, $raw, $domain) {
+
+  global $phone;
+  if ( ! $phone AND substr($_SERVER['REQUEST_URI'], 0, 21) == '/account/?add-to-cart')
+     $phone = get_meta('phone');
 
   if (strpos($term, 'Shipping') !== false) {
      //echo htmlentities($term).'<br>';
@@ -553,16 +552,16 @@ function dscsa_translate($term, $raw, $domain) {
   }
   $toEnglish = [
     'Spanish'  => 'Espanol', //Registering
-    'Password' => 'Password (emailed to you upon registration)', //Logging in
     'From your account dashboard you can view your <a href="%1$s">recent orders</a>, manage your <a href="%2$s">shipping and billing addresses</a> and <a href="%3$s">edit your password and account details</a>.' => '',
     'ZIP' => 'Zip code', //Checkout
     'Your order' => '', //Checkout
     'No saved methods found.' => 'No credit or debit cards are saved to your account',
-    '%s has been added to your cart.' => substr($_SERVER['REQUEST_URI'], 0, 15) != '/account/order/'
-      ? 'Step 2 of 2: You are almost done! Please complete this page so we can fill your prescription(s)'
+    '%s has been added to your cart.' => $phone
+      ? 'Step 2 of 2: You are almost done! Please complete this page so we can fill your prescription(s).  If you need to login again, your temporary password is '.$phone.'.  You can change your password on the "Account Details" page'
       : 'Thank you for your order! Your prescription(s) should arrive within 3-5 days.',
     'Username or email' => 'Phone number', //For resetting passwords
     'Additional information' => '',  //Checkout
+    'Billing address' => 'Shipping address', //Order confirmation
 	'Billing &amp; Shipping' => 'Shipping Address', //Checkout
     'Lost your password? Please enter your username or email address. You will receive a link to create a new password via email.' => 'Lost your password? Call us for assistance or enter the email address you used to register.', //Logging in
     'Please provide a valid email address.' => 'Please provide a valid 10-digit phone number.',

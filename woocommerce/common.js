@@ -72,7 +72,9 @@ function upgradePharmacy(pharmacies) {
 }
 
 function upgradeBirthdate() { //now 2 on same page (loing & register) so jquery id, #, selection doesn't work since assumes ids are unique
+  console.log('before upgradeBirthdate')
   jQuery('[name=birth_date]').prop('type', 'date') //can't easily set date type in woocommerce
+  console.log('after upgradeBirthdate')
 }
 
 function clearEmail() {
