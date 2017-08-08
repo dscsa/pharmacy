@@ -12,9 +12,11 @@ add_action('wp_enqueue_scripts', 'dscsa_scripts');
 function dscsa_scripts() {
   //is_wc_endpoint_url('orders') and is_wc_endpoint_url('account-details') seem to work
   wp_enqueue_script('ie9ajax', 'https://cdnjs.cloudflare.com/ajax/libs/jquery-ajaxtransport-xdomainrequest/1.0.4/jquery.xdomainrequest.min.js', ['jquery']);
-  wp_enqueue_script('datepicker', 'https://goodpill.org/wp-includes/js/jquery/ui/datepicker.min.js', ['jquery']);
+  wp_enqueue_script('jquery-ui', "https://goodpill.org/wp-admin/load-scripts.php?c=1&load%5B%5D=jquery-ui-core", ['jquery']);
+  wp_enqueue_style('jquery-ui', 'https://code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.min.css');
+  wp_enqueue_script('datepicker', 'https://goodpill.org/wp-includes/js/jquery/ui/datepicker.min.js', ['jquery-ui']);
 
-  wp_enqueue_script('dscsa-common', 'https://dscsa.github.io/webform/woocommerce/common.js', ['jquery', 'ie9ajax']);
+  wp_enqueue_script('dscsa-common', 'https://dscsa.github.io/webform/woocommerce/common.js', ['datepicker', 'ie9ajax']);
   wp_enqueue_style('dscsa-common', 'https://dscsa.github.io/webform/woocommerce/common.css');
 
   if (substr($_SERVER['REQUEST_URI'], 0, 6) == '/meds/') {
