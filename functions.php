@@ -37,11 +37,11 @@ function dscsa_scripts() {
   }
 }
 
-add_action('wp_print_scripts', 'DisableStrongPW', 100);
+add_action( 'wp_print_scripts', 'DisableStrongPW', 100 );
 function DisableStrongPW() {
-  if ( wp_script_is( 'wc-password-strength-meter', 'enqueued' ) ) {
-      wp_dequeue_script( 'wc-password-strength-meter' );
-  }
+    if ( wp_script_is( 'wc-password-strength-meter', 'enqueued' ) ) {
+        wp_dequeue_script( 'wc-password-strength-meter' );
+    }
 }
 
 add_action('wp_enqueue_scripts', 'remove_sticky_checkout', 99);
@@ -83,6 +83,12 @@ function dscsa_stripe_add_card($stripe_id, $card, $response) {
 }
 
 function order_fields() {
+
+  $email = get_userdata($user_id)->user_email; //email is not stored in metadata
+
+  if (substr($email, -13) == '@goodpill.org')
+     $email = '';
+
   return [
     'rx_source' => [
       'type'   	  => 'radio',
@@ -98,6 +104,13 @@ function order_fields() {
       'type'   	  => 'select',
       'label'     => __('Search and select medications by generic name that you want to transfer to Good Pill'),
       'options'   => ['']
+    ],
+    'account_email' => [
+      'label'     => __('Email'),
+      'type'      => 'email',
+      'validate'  => ['email'],
+      'autocomplete' => 'email',
+      'default'   => $email
     ]
   ];
 }
@@ -112,6 +125,14 @@ function account_fields($user_id) {
       'required'  => true,
       'options'   => ['EN' => __('English'), 'ES' => __('Spanish')],
       'default'   => get_default('language', $user_id) ?: 'EN'
+    ],
+    'phone' => [
+      'label'     => __('Phone'),
+      'required'  => true,
+      'type'      => 'tel',
+      'validate'  => ['phone'],
+      'autocomplete' => 'tel',
+      'default'   => get_default('phone', $user_id)
     ]
   ];
 }
@@ -223,14 +244,6 @@ function shared_fields($user_id) {
         'class'     => ['allergies', 'form-row-wide'],
         'label'     =>__('List Other Allergies Below').'<input class="input-text " name="allergies_other" id="allergies_other_input" value="'.get_default('allergies_other', $user_id).'">'
     ],
-    'phone' => [
-        'label'     => __('Phone'),
-        'required'  => true,
-        'type'      => 'tel',
-        'validate'  => ['phone'],
-        'autocomplete' => 'tel',
-        'default'   => get_default('phone', $user_id)
-    ],
     'birth_date' => [
         'label'     => __('Date of Birth'),
         'required'  => true,
@@ -272,6 +285,7 @@ function dscsa_register_form() {
   $account_fields = account_fields();
   echo woocommerce_form_field('language', $account_fields['language']);
   login_form();
+  echo woocommerce_form_field('phone', $account_fields['phone']);
 }
 
 function login_form($language) {
@@ -315,23 +329,18 @@ function dscsa_set_username() {
 
   //Set user name for both login and registration
   $_POST['username'] = $_POST['first_name'].' '.$_POST['last_name'].' '.$_POST['birth_date'];
-}
 
-//Allow phone to be a valid email
-//https://developer.wordpress.org/reference/functions/sanitize_email/
-add_filter('sanitize_email', 'dscsa_sanitize_email', 10, 3);
-function dscsa_sanitize_email($sanitized, $email, $message) {
+  if (empty($_POST['phone']))
+    return;
 
-   if ($message == 'email_no_at') {
-     $phone = email2phone($email);
+  $phone = cleanPhone($_POST['phone']);
 
-     if ($phone) {
-       $_POST['phone'] = $phone;
-       return $phone.'@goodpill.org';
-     }
-   }
+  $_POST['password'] = $phone;
 
-   return $sanitized;
+  if ( ! empty($_POST['email']))
+    return;
+
+  $_POST['email'] = $phone.'@goodpill.org';
 }
 
 function cleanPhone($phone) { //get rid of all delimiters and a leading 1 if it exists
@@ -340,13 +349,6 @@ function cleanPhone($phone) { //get rid of all delimiters and a leading 1 if it 
     return substr($phone, 1, 10);
 
   return $phone;
-}
-
-function email2phone($email) {
-
-  $phone = cleanPhone($email);
-
-  return strlen($phone) == 10 ? $phone : false;
 }
 
 //After Registration, set default shipping/billing/account fields
@@ -490,7 +492,7 @@ function dscsa_save_patient($user_id, $fields) {
     $_POST['billing_first_name'],
     $_POST['billing_last_name'],
     $_POST['birth_date'],
-    get_userdata($user_id)->user_email, //email is not stored in metadata
+    $_POST['account_email'],
     get_meta('language', $user_id)
   );
 
@@ -562,12 +564,11 @@ function dscsa_translate($term, $raw, $domain) {
     '%s has been added to your cart.' => substr($_SERVER['REQUEST_URI'], 0, 15) != '/account/order/'
       ? 'Step 2 of 2: You are almost done! Please complete this page so we can fill your prescription(s)'
       : 'Thank you for your order! Your prescription(s) should arrive within 3-5 days.',
-    'Email address' => 'Email or phone number',     //For registering
-    'Username or email' => 'Email address', //For resetting passwords
+    'Username or email' => 'Phone number', //For resetting passwords
     'Additional information' => '',  //Checkout
-	  'Billing &amp; Shipping' => 'Shipping Address', //Checkout
+	'Billing &amp; Shipping' => 'Shipping Address', //Checkout
     'Lost your password? Please enter your username or email address. You will receive a link to create a new password via email.' => 'Lost your password? Call us for assistance or enter the email address you used to register.', //Logging in
-    'Please provide a valid email address.' => 'Please provide a valid email address or 10-digit phone number.',
+    'Please provide a valid email address.' => 'Please provide a valid 10-digit phone number.',
     'An account is already registered with your email address. Please login.' => 'An account is already registered with that email address or phone number. Please login.'
   ];
 
@@ -621,7 +622,8 @@ function dscsa_translate($term, $raw, $domain) {
     //Need to be translated
     // Can't translate on login page because we don't know user's language (though we could make dynamic like registration page)
     //<div class="english">Register (Step 1 of 2)</div><div class="spanish">Registro (Uno de Dos)</div>
-    'Email or phone number' => 'Dirección de correo electrónico o teléfono',
+    //Can't include below since its uses the same message as the "Thank You for your order"
+    'Phone number' => 'Teléfono',
     'Email:' => 'Email:',
     'Prescription(s) were sent from my doctor' => 'Prescription(s) were sent from my doctor',
     'Transfer prescription(s) from my pharmacy' => 'Transfer prescription(s) from my pharmacy',

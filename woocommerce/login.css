@@ -1,6 +1,6 @@
-#username, #reg_username, label[for=username], label[for=reg_username] {
+#username, #reg_username, #reg_email, label[for=reg_email], label[for=username], label[for=reg_username] {
   display:none !important;
 }
-#customer_login #birth_date_field {
+#customer_login #phone_field {
   margin-bottom:0
 }
