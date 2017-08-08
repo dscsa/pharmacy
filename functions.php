@@ -84,11 +84,6 @@ function dscsa_stripe_add_card($stripe_id, $card, $response) {
 
 function order_fields() {
 
-  $email = get_userdata($user_id)->user_email; //email is not stored in metadata
-
-  if (substr($email, -13) == '@goodpill.org')
-     $email = '';
-
   return [
     'rx_source' => [
       'type'   	  => 'radio',
@@ -105,12 +100,12 @@ function order_fields() {
       'label'     => __('Search and select medications by generic name that you want to transfer to Good Pill'),
       'options'   => ['']
     ],
-    'account_email' => [
+    'email' => [
       'label'     => __('Email'),
       'type'      => 'email',
       'validate'  => ['email'],
       'autocomplete' => 'email',
-      'default'   => $email
+      'default'   => get_default('email', $user_id)
     ]
   ];
 }
@@ -318,6 +313,8 @@ function dscsa_register_form_acknowledgement() {
 //    https://github.com/woocommerce/woocommerce/blob/e24ca9d3bce1f9e923fcd00e492208511cdea727/includes/class-wc-form-handler.php#L1002
 add_action('wp_loaded', 'dscsa_set_username');
 function dscsa_set_username() {
+
+  $_POST['account_email'] = $_POST['billing_email'];
 
   if (empty($_POST['birth_date']))
     return;

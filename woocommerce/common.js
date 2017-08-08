@@ -75,6 +75,12 @@ function upgradeBirthdate() { //now 2 on same page (loing & register) so jquery 
   jQuery('[name=birth_date]').prop('type', 'date') //can't easily set date type in woocommerce
 }
 
+function clearEmail() {
+  if(jQuery('#account_email').val().slice(-13) == '@goodpill.org') {
+    jQuery('#account_email').val('')
+  }
+}
+
 //Disabled fields not submitted causing validation error.
 function disableFixedFields() {
   jQuery('#account_first_name').prop('readonly', true)

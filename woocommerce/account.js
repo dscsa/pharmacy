@@ -15,6 +15,7 @@ function account_page() {
   upgradePharmacy()
   upgradeAllergies()
   upgradeBirthdate()
+  clearEmail()
   disableFixedFields()
   setSource()
 }
