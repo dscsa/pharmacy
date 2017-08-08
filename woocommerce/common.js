@@ -76,7 +76,8 @@ function upgradeBirthdate() { //now 2 on same page (loing & register) so jquery 
 }
 
 function clearEmail() {
-  if(jQuery('#account_email').val().slice(-13) == '@goodpill.org') {
+  var email = jQuery('#account_email').val()
+  if(email && email.slice(-13) == '@goodpill.org') {
     jQuery('#account_email').val('')
   }
 }
