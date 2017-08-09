@@ -123,14 +123,6 @@ function account_fields($user_id) {
       'required'  => true,
       'options'   => ['EN' => __('English'), 'ES' => __('Spanish')],
       'default'   => get_default('language', $user_id) ?: 'EN'
-    ],
-    'phone' => [
-      'label'     => __('Phone'),
-      'required'  => true,
-      'type'      => 'tel',
-      'validate'  => ['phone'],
-      'autocomplete' => 'tel',
-      'default'   => get_default('phone', $user_id)
     ]
   ];
 }
@@ -247,6 +239,14 @@ function shared_fields($user_id) {
         'required'  => true,
         'input_class' => ['date-picker'],
         'default'   => get_default('birth_date', $user_id)
+    ],
+    'phone' => [
+      'label'     => __('Phone'),
+      'required'  => true,
+      'type'      => 'tel',
+      'validate'  => ['phone'],
+      'autocomplete' => 'tel',
+      'default'   => get_default('phone', $user_id)
     ]
   ];
 }
@@ -291,7 +291,7 @@ function dscsa_register_form() {
   echo woocommerce_form_field('language', $account_fields['language']);
   login_form();
   echo woocommerce_form_field('birth_date', $shared_fields['birth_date']);
-  echo woocommerce_form_field('phone', $account_fields['phone']);
+  echo woocommerce_form_field('phone', $shared_fields['phone']);
 }
 
 function login_form($language) {
@@ -330,15 +330,15 @@ function dscsa_set_username() {
 
   if ($_POST['phone']) {
 
-     $phone = cleanPhone($_POST['phone']);
+     $_POST['phone'] = cleanPhone($_POST['phone']);
 
-     $_POST['password'] = $phone;
+     $_POST['password'] = $_POST['phone'];
 
      if (empty($_POST['email']))
-        $_POST['email'] = $phone.'@goodpill.org';
+        $_POST['email'] = $_POST['phone'].'@goodpill.org';
 
      if (empty($_POST['account_email']))
-        $_POST['account_email'] = $phone.'@goodpill.org';
+        $_POST['account_email'] = $_POST['phone'].'@goodpill.org';
   }
 }
 
@@ -370,7 +370,7 @@ function customer_created($user_id) {
   update_user_meta($user_id, 'language', $language);
 
   if ($_POST['phone'])
-    update_user_meta($user_id, 'phone', cleanPhone($_POST['phone']));
+    update_user_meta($user_id, 'phone', $_POST['phone']);
 }
 
 // Function to change email address
@@ -525,10 +525,8 @@ function dscsa_save_patient($user_id, $fields) {
     if ($key == 'medications_other')
       append_comment($val);
 
-    if ($key == 'phone') {
-      $val = cleanPhone($val);
+    if ($key == 'phone')
       update_phone($val);
-    }
 
     update_user_meta($user_id, $key, $val);
 
