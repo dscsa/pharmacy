@@ -72,7 +72,7 @@ function upgradePharmacy(pharmacies) {
 }
 
 function upgradeBirthdate() { //now 2 on same page (loing & register) so jquery id, #, selection doesn't work since assumes ids are unique
-  jQuery('[name=birth_date]').datepicker({changeMonth:true, changeYear:true, yearRange:"c-100:c"});
+  jQuery('[name=birth_date]').datepicker({changeMonth:true, changeYear:true, yearRange:"c-100:c", defaultDate: "-50y", dateFormat:"yyyy-mm-dd"});
 }
 
 function clearEmail() {

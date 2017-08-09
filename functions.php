@@ -141,7 +141,7 @@ function shared_fields($user_id) {
       'type'  => 'select',
       'required' => true,
       'label' => __('<span class="erx">Name and address of a backup pharmacy to fill your prescriptions if we are out-of-stock</span><span class="pharmacy">Name and address of pharmacy from which we should transfer your medication(s)</span>'),
-      'options' => ['' => __("Type to search. For example, 'Walgreens Norcross' will show the Walgreens at '5296 Jimmy Carter Blvd, Norcross, GA'")]
+      'options' => ['' => __("Type to search. 'Walgreens Norcross' will show the one at '5296 Jimmy Carter Blvd, Norcross'")]
     ];
     //https://docs.woocommerce.com/wc-apidocs/source-function-woocommerce_form_field.html#1841-2061
     //Can't use get_default here because $POST check messes up the required property below.
@@ -277,19 +277,24 @@ function dscsa_edit_account_form($user_id) {
 add_action('woocommerce_login_form_start', 'dscsa_login_form');
 function dscsa_login_form() {
   login_form();
+  $shared_fields = shared_fields();
+  $shared_fields['birth_date']['id'] = 'birth_date_login';
+  echo woocommerce_form_field('birth_date', $shared_fields['birth_date']);
 }
 
 add_action('woocommerce_register_form_start', 'dscsa_register_form');
 function dscsa_register_form() {
   $account_fields = account_fields();
+  $shared_fields = shared_fields();
+  $shared_fields['birth_date']['id'] = 'birth_date_register';
+
   echo woocommerce_form_field('language', $account_fields['language']);
   login_form();
+  echo woocommerce_form_field('birth_date', $shared_fields['birth_date']);
   echo woocommerce_form_field('phone', $account_fields['phone']);
 }
 
 function login_form($language) {
-
-  $shared_fields = shared_fields();
 
   $first_name = [
     'class' => ['form-row-first'],
@@ -305,7 +310,6 @@ function login_form($language) {
 
   echo woocommerce_form_field('first_name', $first_name);
   echo woocommerce_form_field('last_name', $last_name);
-  echo woocommerce_form_field('birth_date', $shared_fields['birth_date']);
 }
 
 add_action('woocommerce_register_form', 'dscsa_register_form_acknowledgement');

@@ -70,4 +70,7 @@ form.checkout, /* Don't show checkout on every page */
 .product-total  /*Hide product total row on checkout */
 {
   display:none
+},
+#ui-datepicker-div {
+  z-index:999;
 }
