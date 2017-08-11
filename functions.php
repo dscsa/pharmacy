@@ -19,7 +19,7 @@ function dscsa_scripts() {
   wp_enqueue_script('dscsa-common', 'https://dscsa.github.io/webform/woocommerce/common.js', ['datepicker', 'ie9ajax']);
   wp_enqueue_style('dscsa-common', 'https://dscsa.github.io/webform/woocommerce/common.css');
 
-  if (substr($_SERVER['REQUEST_URI'], 0, 6) == '/meds/') {
+  if (substr($_SERVER['REQUEST_URI'], 0, 6) == '/inventory/') {
     wp_enqueue_script('select2', 'https://goodpill.org/wp-content/plugins/woocommerce/assets/js/select2/select2.full.min.js'); //usually loaded by woocommerce but since this is independent page we need to load manually
 	wp_enqueue_style('select2', 'https://goodpill.org/wp-content/plugins/woocommerce/assets/css/select2.css?ver=3.0.7'); //usually loaded by woocommerce but since this is independent page we need to load manually
     wp_enqueue_script('dscsa-inventory', 'https://dscsa.github.io/webform/woocommerce/inventory.js', ['jquery', 'ie9ajax']);
