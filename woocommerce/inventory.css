@@ -10,8 +10,8 @@
   width:100%
 }
 
-.select2-container--default .select2-results__option--highlighted {
-  background:#ffffff !important;
+.select2-container--default li.select2-results__option--highlighted {
+  background:transparent !important;
   color:#6d6d6d !important
 }
 .select2-dropdown {
