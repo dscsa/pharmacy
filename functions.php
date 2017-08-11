@@ -328,14 +328,18 @@ function dscsa_set_username() {
      $_POST['username'] = $_POST['first_name'].' '.$_POST['last_name'].' '.$_POST['birth_date'];
   }
 
-  if ($_POST['phone']) {
+  $phone = $_POST['phone'] ?: $_POST['user_login'];
 
-     $_POST['phone'] = cleanPhone($_POST['phone']);
+  if ($phone) {
 
-     $_POST['password'] = $_POST['phone'];
+     $phone = cleanPhone($phone);
+
+      if ( ! $phone) return;
+
+      $_POST['password'] = $_POST['phone'] = $phone;
 
      if (empty($_POST['email']))
-        $_POST['email'] = $_POST['phone'].'@goodpill.org';
+        $_POST['user_login'] = $_POST['email'] = $_POST['phone'].'@goodpill.org';
 
      if (empty($_POST['account_email']))
         $_POST['account_email'] = $_POST['phone'].'@goodpill.org';
@@ -347,7 +351,7 @@ function cleanPhone($phone) { //get rid of all delimiters and a leading 1 if it 
   if (strlen($phone) == 11 AND substr($phone, 0, 1) == 1)
     return substr($phone, 1, 10);
 
-  return $phone;
+  return strlen($phone) == 10 ? $phone : NULL;
 }
 
 //After Registration, set default shipping/billing/account fields
@@ -392,6 +396,7 @@ function dscsa_redirect() {
 
 add_filter ('wp_redirect', 'dscsa_wp_redirect');
 function dscsa_wp_redirect($location) {
+
   //This goes back to account/details rather than /account after saving account details
   if (substr($location, -9) == '/account/') {
     return $location.'details/';
@@ -569,9 +574,14 @@ function dscsa_translate($term, $raw, $domain) {
     'Additional information' => '',  //Checkout
     'Billing address' => 'Shipping address', //Order confirmation
 	'Billing &amp; Shipping' => 'Shipping Address', //Checkout
-    'Lost your password? Please enter your username or email address. You will receive a link to create a new password via email.' => 'Lost your password? Call us for assistance or enter the email address you used to register.', //Logging in
+    'Lost your password? Please enter your username or email address. You will receive a link to create a new password via email.' => 'Lost your password? Call us for assistance or enter the phone number you used to register.', //Logging in
     'Please provide a valid email address.' => 'Please provide a valid 10-digit phone number.',
-    'An account is already registered with your email address. Please login.' => 'An account is already registered with that email address or phone number. Please login.'
+    'Please enter a valid account username.' => 'Please enter your name and date of birth.',
+    'Please enter an account password.' => 'Please provide a valid 10-digit phone number.',
+    'Username is required.' => 'Name and date of birth are required.',
+    'Invalid username or email.' => '<strong>Error</strong>: We cannot find an account with that phone number.',
+    '<strong>ERROR</strong>: Invalid username.' => '<strong>Error</strong>: We cannot find an account with that name and date of birth.',
+    'An account is already registered with your email address. Please login.' => 'An account is already registered with that phone number. Please login.'
   ];
 
   $toSpanish = [
