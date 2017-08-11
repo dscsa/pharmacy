@@ -7,6 +7,7 @@
 //FIX EDIT ADDRESS FIELD LABELS
 //FIX BLANK BUTTON ON SAVE CARD
 
+
 // Register custom style sheets and javascript.
 add_action('wp_enqueue_scripts', 'dscsa_scripts');
 function dscsa_scripts() {
@@ -874,11 +875,7 @@ function update_pharmacy($pharmacy) {
     cleanPhone($store->fax)
   ];
 
-  wp_mail('adam.kircher@gmail.com', "update_pharmacy 1", print_r($args, true));
-
   db_run("SirumWeb_AddExternalPharmacy(?, ?, ?, ?, ?, ?, ?, ?)", $args);
-
-  wp_mail('adam.kircher@gmail.com', "update_pharmacy 2", print_r(sqlsrv_errors(), true));
 
   db_run("SirumWeb_AddUpdatePatientUD(?, 1, ?)", [get_meta('guardian_id'), $store->name]);
   //Because of 50 character limit, the street will likely be cut off.
@@ -893,8 +890,6 @@ function update_card_and_coupon($card, $coupon) {
   //Meet guardian 50 character limit
   //Last4 4, Month 2, Year 2, Type (Mastercard = 10), Delimiter 4, So coupon will be truncated if over 28 characters
   $value = $card['last4'].','.$card['month'].'/'.substr($card['year'] ?: '', 2).','.$card['type'].','.$coupon;
-
-    wp_mail('adam.kircher@gmail.com', "update_card_and_coupon", print_r([get_meta('guardian_id'), $value], true));
 
   return db_run("SirumWeb_AddUpdatePatientUD(?, 4, ?)", [get_meta('guardian_id'), $value]);
 }
