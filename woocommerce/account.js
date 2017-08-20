@@ -12,6 +12,7 @@ function load() {
 
 function account_page() {
   console.log('account.js account page')
+  translate()
   upgradePharmacy()
   upgradeAllergies()
   upgradeBirthdate()
