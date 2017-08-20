@@ -120,7 +120,6 @@ function account_fields($user_id) {
     'language' => [
       'type'   	  => 'radio',
       'label'     => __('Language'),
-      'label_class' => ['radio'],
       'required'  => true,
       'options'   => ['EN' => __('English'), 'ES' => __('Spanish')],
       'default'   => get_default('language', $user_id) ?: 'EN'
@@ -681,8 +680,8 @@ function dscsa_translate($term, $raw, $domain) {
     return $english;
 
   global $lang;
-  if ( ! $lang) {
-    $lang = get_meta('language');
+  if ( ! $lang AND is_page()) {
+    $lang = get_meta('language') ?: 'NOT_SET';
     echo "<input type='radio' id='language_$lang' value='$lang' name='language' checked='checked' style='display:none'>";
   }
 
