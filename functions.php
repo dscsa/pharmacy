@@ -315,7 +315,7 @@ function login_form($language) {
 
 add_action('woocommerce_register_form', 'dscsa_register_form_acknowledgement');
 function dscsa_register_form_acknowledgement() {
-  echo __('<div style="margin-bottom:8px">By clicking "Register" below, you agree to our <a href="/terms">Terms of Use</a> and agree to receive and pay for your refills automatically unless you contact us to decline.</div>');
+  echo '<div style="margin-bottom:8px">'.__('By clicking "Register" below, you agree to our <a href="/terms">Terms of Use</a> and agree to receive and pay for your refills automatically unless you contact us to decline.').'</div>';
 }
 
 //Customer created hook called to late in order to create username
@@ -665,7 +665,7 @@ function dscsa_translate($term, $raw, $domain) {
     'Salicylates' => 'Salicilatos',
     'Thank you for your order!  Your prescription(s) should arrive within 3-5 days.' => '¡Gracias por su orden! Sus medicamentos llegarán dentro de 3-5 días.',
     'Please choose a pharmacy' => 'Por favor, elija una farmacia',
-    '<div style="margin-bottom:8px">By clicking "Register" below, you agree to our <a href="/terms">Terms of Use</a></div>' => '<div style="margin-bottom:8px">Al hacer clic en "Register" a continuación, usted acepta nuestros <a href="/terms">Términos de Uso.</a></div>',
+    'By clicking "Register" below, you agree to our <a href="/terms">Terms of Use</a> and agree to receive and pay for your refills automatically unless you contact us to decline.' => 'Al hacer clic en "Register" a continuación, usted acepta los <a href="/terms">Términos de Uso</a> y acepta recibir y pagar por sus rellenos automáticamente, a menos que usted se ponga en contacto con nosotros para descontinuarlo.',
 
     'Step 2 of 2: You are almost done! Please complete this page so we can fill your prescription(s).  If you need to login again, your temporary password is '.$phone.'.  You can change your password on the "Account Details" page' => 'Step 2 of 2: You are almost done! Please complete this page so we can fill your prescription(s).  If you need to login again, your temporary password is '.$phone.'.  You can change your password on the "Account Details" page',
   ];
