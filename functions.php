@@ -638,7 +638,7 @@ function dscsa_translate($term, $raw, $domain) {
     //<div class="english">Register (Step 1 of 2)</div><div class="spanish">Registro (Uno de Dos)</div>
 
     'Phone number' => 'Teléfono',
-    'Email' => 'Correo electrónico:',
+    'Email' => 'Correo electrónico',
     'Prescription(s) were sent from my doctor' => 'La/s receta/s fueron enviadas de parte de mi médico',
     'Transfer prescription(s) from my pharmacy' => 'Transferir la/s receta/s desde mi farmacia',
     'Street address' => 'Dirección de envío',
