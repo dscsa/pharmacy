@@ -89,13 +89,6 @@ function dscsa_stripe_add_card($stripe_id, $card, $response) {
 function order_fields() {
 
   return [
-    'language' => [
-      'type'   	  => 'radio',
-      'class' => ['hidden'],
-      'options'   => ['EN' => __('English'), 'ES' => __('Spanish')],
-      'default'   => get_default('language', $user_id) ?: 'EN'
-    ],
-
     'rx_source' => [
       'type'   	  => 'radio',
       'required'  => true,
@@ -571,6 +564,7 @@ function dscsa_translate($term, $raw, $domain) {
   }
   $toEnglish = [
     'Spanish'  => 'Espanol', //Registering
+    'Email address' => 'Email', //accounts/details
     'From your account dashboard you can view your <a href="%1$s">recent orders</a>, manage your <a href="%2$s">shipping and billing addresses</a> and <a href="%3$s">edit your password and account details</a>.' => '',
     'ZIP' => 'Zip code', //Checkout
     'Your order' => '', //Checkout
@@ -644,7 +638,7 @@ function dscsa_translate($term, $raw, $domain) {
     //<div class="english">Register (Step 1 of 2)</div><div class="spanish">Registro (Uno de Dos)</div>
 
     'Phone number' => 'Teléfono',
-    'Email:' => 'Correo electrónico:',
+    'Email' => 'Correo electrónico:',
     'Prescription(s) were sent from my doctor' => 'La/s receta/s fueron enviadas de parte de mi médico',
     'Transfer prescription(s) from my pharmacy' => 'Transferir la/s receta/s desde mi farmacia',
     'Street address' => 'Dirección de envío',
@@ -674,7 +668,9 @@ function dscsa_translate($term, $raw, $domain) {
     'Please choose a pharmacy' => 'Por favor, elija una farmacia',
     'By clicking "Register" below, you agree to our <a href="/terms">Terms of Use</a> and agree to receive and pay for your refills automatically unless you contact us to decline.' => 'Al hacer clic en "Register" a continuación, usted acepta los <a href="/terms">Términos de Uso</a> y acepta recibir y pagar por sus rellenos automáticamente, a menos que usted se ponga en contacto con nosotros para descontinuarlo.',
 
-    'Step 2 of 2: You are almost done! Please complete this page so we can fill your prescription(s).  If you need to login again, your temporary password is '.$phone.'.  You can change your password on the "Account Details" page' => 'Step 2 of 2: You are almost done! Please complete this page so we can fill your prescription(s).  If you need to login again, your temporary password is '.$phone.'.  You can change your password on the "Account Details" page',
+    'Edit' => 'Cambio',
+    'Apply Coupon' => 'Agregar Cupón',
+    'Step 2 of 2: You are almost done! Please complete this page so we can fill your prescription(s).  If you need to login again, your temporary password is '.$phone.'.  You can change your password on the "Account Details" page' => 'Paso 2 de 2: ¡Casi has terminado! Por favor complete esta página para poder llenar su (s) receta (s). Si necesita volver a iniciar sesión, su contraseña temporal es '.$phone.'. Puede cambiar su contraseña en la página "Detalles de la cuenta"',
     'Pay by Credit or Debit Card' => 'Pago con tarjeta de crédito o débito'
   ];
 
@@ -685,7 +681,10 @@ function dscsa_translate($term, $raw, $domain) {
     return $english;
 
   global $lang;
-  $lang = $lang ?: get_meta('language');
+  if ( ! $lang) {
+    $lang = get_meta('language');
+    echo "<input type='radio' id='language_$lang' value='$lang' name='language' checked='checked' style='display:none'>";
+  }
 
   if ($lang == 'EN')
     return $english;
