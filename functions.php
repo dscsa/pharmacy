@@ -666,6 +666,8 @@ function dscsa_translate($term, $raw, $domain) {
     'Thank you for your order!  Your prescription(s) should arrive within 3-5 days.' => '¡Gracias por su orden! Sus medicamentos llegarán dentro de 3-5 días.',
     'Please choose a pharmacy' => 'Por favor, elija una farmacia',
     '<div style="margin-bottom:8px">By clicking "Register" below, you agree to our <a href="/terms">Terms of Use</a></div>' => '<div style="margin-bottom:8px">Al hacer clic en "Register" a continuación, usted acepta nuestros <a href="/terms">Términos de Uso.</a></div>',
+
+    'Step 2 of 2: You are almost done! Please complete this page so we can fill your prescription(s).  If you need to login again, your temporary password is '.$phone.'.  You can change your password on the "Account Details" page' => 'Step 2 of 2: You are almost done! Please complete this page so we can fill your prescription(s).  If you need to login again, your temporary password is '.$phone.'.  You can change your password on the "Account Details" page',
   ];
 
   $english = isset($toEnglish[$term]) ? $toEnglish[$term] : $term;
