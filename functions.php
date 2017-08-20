@@ -114,6 +114,12 @@ function order_fields() {
   ];
 }
 
+add_action('wp_footer','hidden_language_radio');
+function hidden_language_radio(){
+  $lang = get_meta('language');
+  echo "<input type='radio' id='language_$lang' value='$lang' name='language' checked='checked' style='display:none'>";
+}
+
 function account_fields($user_id) {
 
   return [
@@ -563,10 +569,14 @@ function dscsa_translate($term, $raw, $domain) {
   }
   $toEnglish = [
     'Spanish'  => 'Espanol', //Registering
+    'Email:' => 'Email', //order details
     'Email address' => 'Email', //accounts/details
     'From your account dashboard you can view your <a href="%1$s">recent orders</a>, manage your <a href="%2$s">shipping and billing addresses</a> and <a href="%3$s">edit your password and account details</a>.' => '',
     'ZIP' => 'Zip code', //Checkout
     'Your order' => '', //Checkout
+    'Shipping:' => 'New Patient Fee:',
+    'Free shipping coupon' => 'Paid with Coupon',
+    'Free shipping' => 'Paid with Coupon', //not working (order details page)
     'No saved methods found.' => 'No credit or debit cards are saved to your account',
     '%s has been added to your cart.' => $phone
       ? 'Step 2 of 2: You are almost done! Please complete this page so we can fill your prescription(s).  If you need to login again, your temporary password is '.$phone.'.  You can change your password on the "Account Details" page'
@@ -623,7 +633,6 @@ function dscsa_translate($term, $raw, $domain) {
     'Click here to enter your code' => 'Haga clic aquí para ingresar su código',
     'Coupon code' => 'Cupón',
     'Apply Coupon' => 'Haga un Cupón',
-    'Free shipping coupon' => 'Cupón para envíos gratuitos',
     '[Remove]' => '[Remover]',
     'Card number' => 'Número de tarjeta',
     'Expiry (MM/YY)' => 'Fecha de expiración (MM/AA)',
@@ -663,14 +672,17 @@ function dscsa_translate($term, $raw, $domain) {
     'Cephalosporins' => 'Cefalosporinas',
     'Codeine' => 'Codeína',
     'Salicylates' => 'Salicilatos',
-    'Thank you for your order!  Your prescription(s) should arrive within 3-5 days.' => '¡Gracias por su orden! Sus medicamentos llegarán dentro de 3-5 días.',
+    'Thank you for your order! Your prescription(s) should arrive within 3-5 days.' => '¡Gracias por su orden! Sus medicamentos llegarán dentro de 3-5 días.',
     'Please choose a pharmacy' => 'Por favor, elija una farmacia',
     'By clicking "Register" below, you agree to our <a href="/terms">Terms of Use</a> and agree to receive and pay for your refills automatically unless you contact us to decline.' => 'Al hacer clic en "Register" a continuación, usted acepta los <a href="/terms">Términos de Uso</a> y acepta recibir y pagar por sus rellenos automáticamente, a menos que usted se ponga en contacto con nosotros para descontinuarlo.',
 
+    'Coupon' => 'Cupón', //not working (checkout applied coupon)
     'Edit' => 'Cambio',
     'Apply coupon' => 'Agregar cupón',
     'Step 2 of 2: You are almost done! Please complete this page so we can fill your prescription(s).  If you need to login again, your temporary password is '.$phone.'.  You can change your password on the "Account Details" page' => 'Paso 2 de 2: ¡Casi has terminado! Por favor complete esta página para poder llenar su (s) receta (s). Si necesita volver a iniciar sesión, su contraseña temporal es '.$phone.'. Puede cambiar su contraseña en la página "Detalles de la cuenta"',
-    'Pay by Credit or Debit Card' => 'Pago con tarjeta de crédito o débito'
+    'Pay by Credit or Debit Card' => 'Pago con tarjeta de crédito o débito',
+    'New Patient Fee:' => 'Cuota de persona nueva:',
+    'Paid with Coupon' => 'Pagada con cupón',
   ];
 
   $english = isset($toEnglish[$term]) ? $toEnglish[$term] : $term;
@@ -680,10 +692,8 @@ function dscsa_translate($term, $raw, $domain) {
     return $english;
 
   global $lang;
-  if ( ! $lang AND is_page()) {
-    $lang = get_meta('language') ?: 'NOT_SET';
-    echo "<input type='radio' id='language_$lang' value='$lang' name='language' checked='checked' style='display:none'>";
-  }
+
+  $lang = $lang ?: get_meta('language');
 
   if ($lang == 'EN')
     return $english;
