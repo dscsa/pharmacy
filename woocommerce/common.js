@@ -1,7 +1,7 @@
 //Helps providers signout easier. Also prevents setting the ?register when signed in
 function signup2signout() {
-  jQuery('li#menu-item-103 a').text('Sign Out').prop('href', '/account/logout/')
-  jQuery('li#menu-item-102 a').text('My Account')
+  jQuery('li#menu-item-103 a').text('<span class="english">Sign Out</span><span class="spanish">Cierre de sesión</span>').prop('href', '/account/logout/')
+  jQuery('li#menu-item-102 a').text('<span class="english">My Account</span><span class="spanish">Mi Cuenta</span>')
   //jQuery('li#menu-item-102').addClass('current-menu-item').css('pointer-events', 'none')
 }
 
