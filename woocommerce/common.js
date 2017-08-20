@@ -26,7 +26,7 @@ function translate() {
   jQuery("#language_EN").change(hideSpanish)
   jQuery("#language_ES").change(hideEnglish)
   jQuery("<style id='language' type='text/css'></style>").appendTo('head')
-  jQuery("input[name=language]:checked").triggerHandler('change')
+  jQuery("input[name=language]:checked").last().triggerHandler('change') //registration page has two language radios
 }
 
 function hideEnglish() {

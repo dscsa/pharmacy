@@ -669,7 +669,7 @@ function dscsa_translate($term, $raw, $domain) {
     'By clicking "Register" below, you agree to our <a href="/terms">Terms of Use</a> and agree to receive and pay for your refills automatically unless you contact us to decline.' => 'Al hacer clic en "Register" a continuación, usted acepta los <a href="/terms">Términos de Uso</a> y acepta recibir y pagar por sus rellenos automáticamente, a menos que usted se ponga en contacto con nosotros para descontinuarlo.',
 
     'Edit' => 'Cambio',
-    'Apply Coupon' => 'Agregar Cupón',
+    'Apply coupon' => 'Agregar cupón',
     'Step 2 of 2: You are almost done! Please complete this page so we can fill your prescription(s).  If you need to login again, your temporary password is '.$phone.'.  You can change your password on the "Account Details" page' => 'Paso 2 de 2: ¡Casi has terminado! Por favor complete esta página para poder llenar su (s) receta (s). Si necesita volver a iniciar sesión, su contraseña temporal es '.$phone.'. Puede cambiar su contraseña en la página "Detalles de la cuenta"',
     'Pay by Credit or Debit Card' => 'Pago con tarjeta de crédito o débito'
   ];
