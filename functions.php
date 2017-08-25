@@ -344,10 +344,10 @@ function dscsa_set_username() {
 
       $_POST['password'] = $_POST['phone'] = $phone;
 
-     if (empty($_POST['email']))
+     if (empty($_POST['email']) OR ! empty($_POST['register']))
         $_POST['user_login'] = $_POST['email'] = $_POST['phone'].'@goodpill.org';
 
-     if (empty($_POST['account_email']))
+     if (empty($_POST['account_email']) OR ! empty($_POST['register']))
         $_POST['account_email'] = $_POST['phone'].'@goodpill.org';
   }
 }
@@ -567,6 +567,7 @@ function dscsa_translate($term, $raw, $domain) {
      //echo htmlentities($term).'<br>';
     //wp_mail('adam.kircher@gmail.com', 'been added to your cart', $term);
   }
+
   $toEnglish = [
     'Spanish'  => 'Espanol', //Registering
     'Email:' => 'Email', //order details
