@@ -330,30 +330,37 @@ function dscsa_register_form_acknowledgement() {
 
 //Customer created hook called to late in order to create username
 //    https://github.com/woocommerce/woocommerce/blob/e24ca9d3bce1f9e923fcd00e492208511cdea727/includes/class-wc-form-handler.php#L1002
-add_action('wp_loaded', 'dscsa_set_username');
-function dscsa_set_username() {
+add_action('wp_loaded', 'dscsa_default_post_value');
+function dscsa_default_post_value() {
 
-  if ($_POST['birth_date'] AND $_POST['first_name'] AND $_POST['last_name']) {
-     $_POST['birth_date'] = date_format(date_create($_POST['birth_date']), 'Y-m-d'); //in case html type=date does not work (e.g. IE)
-     //Set user name for both login and registration
-     $_POST['username'] = $_POST['first_name'].' '.$_POST['last_name'].' '.$_POST['birth_date'];
+  if ($_POST['birth_date']) {
+    $birth_date = date_format(date_create($_POST['birth_date']), 'Y-m-d'); //in case html type=date does not work (e.g. IE)
+    $array = explode('-',$birth_date);
+    if (checkdate($array[1],$array[2],$array[0])) {
+      $_POST['birth_date'] = $birth_date;
+      if ($_POST['first_name'] AND $_POST['last_name'])    //Set user name for both login and registration
+         $_POST['username'] = $_POST['first_name'].' '.$_POST['last_name'].' '.$_POST['birth_date'];
+    }
   }
 
+  //For resetting password
   $phone = $_POST['phone'] ?: $_POST['user_login'];
 
   if ($phone) {
 
      $phone = cleanPhone($phone);
 
-      if ( ! $phone) return;
+     if ( ! $phone) return;
 
-      $_POST['password'] = $_POST['phone'] = $phone;
+     $_POST['phone'] = $phone;
 
-     if (empty($_POST['email']) OR ! empty($_POST['register']))
-        $_POST['user_login'] = $_POST['email'] = $_POST['phone'].'@goodpill.org';
+     if ($_POST['register']) {
+        $_POST['email'] = $_POST['phone'].'@goodpill.org';
+        $_POST['password'] = $phone;
+     }
 
-     if (empty($_POST['account_email']) OR ! empty($_POST['register']))
-        $_POST['account_email'] = $_POST['email'] ?: $_POST['phone'].'@goodpill.org';
+     if ($_POST['user_login']) //reset password
+        $_POST['user_login'] = $_POST['phone'].'@goodpill.org';
   }
 }
 
@@ -461,6 +468,7 @@ function dscsa_validation($fields) {
 add_action('woocommerce_save_account_details', 'dscsa_save_account');
 function dscsa_save_account($user_id) {
   dscsa_save_patient($user_id, shared_fields($user_id) + account_fields($user_id));
+  update_email(sanitize_text_field($_POST['account_email']));
 }
 
 add_action('woocommerce_checkout_update_order_meta', 'dscsa_save_order');
@@ -474,6 +482,8 @@ function dscsa_save_order($order_id) {
   //THIS MUST BE CALLED FIRST IN ORDER TO CREATE GUARDIAN ID
   //TODO should save if they don't exist, but what if they do, should we be overriding?
   dscsa_save_patient($user_id, shared_fields($user_id) + order_fields($user_id));
+
+  update_email(sanitize_text_field($_POST['email']));
 
   $coupon = $order->get_used_coupons()[0] ?: get_meta('coupon');
   $card = get_meta('stripe');
@@ -529,17 +539,13 @@ function dscsa_save_patient($user_id, $fields) {
     'allergies_none' => 99,
     'allergies_other' => 100
   ];
+  wp_mail('adam.kircher@gmail.com', "db $key", $patient_id.' '.print_r($_POST, true).print_r(sqlsrv_errors(), true));
 
   //TODO should save if they don't exist, but what if they do, should we be overriding?
   foreach ($fields as $key => $field) {
 
     //In case of backup pharmacy json, sanitize gets rid of it
     $val = sanitize_text_field($_POST[$key]);
-
-    if ($key == 'account_email' OR $key == 'email') {
-      update_email($val);
-      wp_mail('adam.kircher@gmail.com', "db $key", $patient_id.' '.print_r($_POST, true).print_r(sqlsrv_errors(), true));
-    }
 
     if ($key == 'backup_pharmacy')
       update_pharmacy($val);
@@ -593,15 +599,15 @@ function dscsa_translate($term, $raw, $domain) {
     '%s has been added to your cart.' => $phone
       ? 'Step 2 of 2: You are almost done! Please complete this page so we can fill your prescription(s).  If you need to login again, your temporary password is '.$phone.'.  You can change your password on the "Account Details" page'
       : 'Thank you for your order! Your prescription(s) should arrive within 3-5 days.',
-    'Username or email' => 'Phone number', //For resetting passwords
+    'Username or email' => 'Email or phone number', //For resetting passwords
     'Additional information' => '',  //Checkout
     'Billing address' => 'Shipping address', //Order confirmation
 	'Billing &amp; Shipping' => 'Shipping Address', //Checkout
     'Lost your password? Please enter your username or email address. You will receive a link to create a new password via email.' => 'Lost your password? Call us for assistance or enter the phone number you used to register.', //Logging in
     'Please provide a valid email address.' => 'Please provide a valid 10-digit phone number.',
-    'Please enter a valid account username.' => 'Please enter your name and date of birth.',
+    'Please enter a valid account username.' => 'Please enter your name and date of birth in yyyy-mm-dd format.',
     'Please enter an account password.' => 'Please provide a valid 10-digit phone number.',
-    'Username is required.' => 'Name and date of birth are required.',
+    'Username is required.' => 'Name and date of birth in yyyy-mm-dd format are required.',
     'Invalid username or email.' => '<strong>Error</strong>: We cannot find an account with that phone number.',
     '<strong>ERROR</strong>: Invalid username.' => '<strong>Error</strong>: We cannot find an account with that name and date of birth.',
     'An account is already registered with your email address. Please login.' => 'An account is already registered with that phone number. Please login.'
