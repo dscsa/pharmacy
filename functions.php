@@ -11,6 +11,7 @@
 // Register custom style sheets and javascript.
 add_action('wp_enqueue_scripts', 'dscsa_scripts');
 function dscsa_scripts() {
+
   //is_wc_endpoint_url('orders') and is_wc_endpoint_url('account-details') seem to work
   wp_enqueue_script('ie9ajax', 'https://cdnjs.cloudflare.com/ajax/libs/jquery-ajaxtransport-xdomainrequest/1.0.4/jquery.xdomainrequest.min.js', ['jquery']);
   wp_enqueue_script('jquery-ui', "https://goodpill.org/wp-admin/load-scripts.php?c=1&load%5B%5D=jquery-ui-core", ['jquery']);
@@ -463,6 +464,12 @@ function dscsa_validation($fields) {
   }
 }
 
+// replace woocommerce id with guardian one
+add_filter( 'woocommerce_order_number', 'dscsa_invoice_number');
+function dscsa_invoice_number($order_id, $order) {
+  return get_post_meta($order_id, 'invoice_number', true);
+}
+
 //On new order and account/details save account fields back to user
 //TODO should changing checkout fields overwrite account fields if they are set?
 add_action('woocommerce_save_account_details', 'dscsa_save_account');
@@ -476,12 +483,15 @@ function dscsa_save_order($order_id) {
   $order = wc_get_order( $order_id );
   $user_id = $order->user_id;
 
-  wp_mail('hello@goodpill.org', 'New Webform Order', 'New Registration. Page 2 of 2. Source: '.print_r($_POST['rx_source'], true));
-  wp_mail('adam.kircher@gmail.com', 'New Webform Order', print_r([get_current_user_id(), $order->user_id, $order->customer_id, $order->get_used_coupons()[0], $order->get_used_coupons()[0]->code, $order->get_used_coupons()], true));
-
   //THIS MUST BE CALLED FIRST IN ORDER TO CREATE GUARDIAN ID
   //TODO should save if they don't exist, but what if they do, should we be overriding?
   dscsa_save_patient($user_id, shared_fields($user_id) + order_fields($user_id));
+
+  $invoice_number = get_invoice_number();
+
+  update_post_meta($order_id, 'invoice_number', $invoice_number);
+
+  wp_mail('hello@goodpill.org', 'New Webform Order', "New Order #$invoice_number Webform Complete. Source: ".print_r($_POST['rx_source'], true));
 
   update_email(sanitize_text_field($_POST['email']));
 
@@ -605,9 +615,9 @@ function dscsa_translate($term, $raw, $domain) {
 	'Billing &amp; Shipping' => 'Shipping Address', //Checkout
     'Lost your password? Please enter your username or email address. You will receive a link to create a new password via email.' => 'Lost your password? Call us for assistance or enter the phone number you used to register.', //Logging in
     'Please provide a valid email address.' => 'Please provide a valid 10-digit phone number.',
-    'Please enter a valid account username.' => 'Please enter your name and date of birth in yyyy-mm-dd format.',
+    'Please enter a valid account username.' => 'Please enter your name and date of birth in mm/dd/yyyy format.',
     'Please enter an account password.' => 'Please provide a valid 10-digit phone number.',
-    'Username is required.' => 'Name and date of birth in yyyy-mm-dd format are required.',
+    'Username is required.' => 'Name and date of birth in mm/dd/yyyy format are required.',
     'Invalid username or email.' => '<strong>Error</strong>: We cannot find an account with that phone number.',
     '<strong>ERROR</strong>: Invalid username.' => '<strong>Error</strong>: We cannot find an account with that name and date of birth.',
     'An account is already registered with your email address. Please login.' => 'An account is already registered with that phone number. Please login.'
@@ -758,6 +768,9 @@ function dscsa_checkout_fields( $fields ) {
   return $fields;
 }
 
+function get_invoice_number($value) {
+  return db_run("SirumWeb_FindPendingInvoiceNbrByPatID(?)", [get_meta('guardian_id')])['invoice_nbr'];
+}
 // SirumWeb_AddRemove_Allergy(
 //   @PatID int,     --Carepoint Patient ID number
 //   @AddRem int = 1,-- 1=Add 0= Remove
@@ -792,10 +805,6 @@ function add_remove_allergy($allergy_id, $value) {
 //   @PatCellPhone VARCHAR(20)
 // }
 function update_phone($cell_phone) {
-  wp_mail('adam.kircher@gmail.com', "db update_phone", print_r([
-    get_meta('guardian_id'), $cell_phone
-  ], true));
-
   return db_run("SirumWeb_AddUpdatePatHomePhone(?, ?)", [
     get_meta('guardian_id'), $cell_phone
   ]);
@@ -844,10 +853,8 @@ function find_patient($first_name, $last_name, $birth_date) {
 //   ,@ShipCountry varchar(3)   -- Country Code
 //   ,@CellPhone varchar(20)    -- Cell Phone
 // )
-function add_patient($first_name, $last_name, $birth_date, $email, $language) {
-  wp_mail('adam.kircher@gmail.com', "db add patient", print_r(func_get_args(), true));
-
-  return db_run("SirumWeb_AddEditPatient(?, ?, ?, ?, ?)", [$first_name, $last_name, $birth_date, $email, $language])['PatID'];
+function add_patient($first_name, $last_name, $birth_date, $language) {
+  return db_run("SirumWeb_AddEditPatient(?, ?, ?, ?)", [$first_name, $last_name, $birth_date, $language])['pat_id'];
 }
 
 // Procedure dbo.SirumWeb_AddToPatientComment (@PatID int, @CmtToAdd VARCHAR(4096)
