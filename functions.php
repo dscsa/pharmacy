@@ -455,9 +455,6 @@ function dscsa_validation($fields) {
 //TODO should changing checkout fields overwrite account fields if they are set?
 add_action('woocommerce_save_account_details', 'dscsa_save_account');
 function dscsa_save_account($user_id) {
-  //TODO should save if they don't exist, but what if they do, should we be overriding?
-  update_email(sanitize_text_field($_POST['account_email']));
-
   dscsa_save_patient($user_id, shared_fields($user_id) + account_fields($user_id));
 }
 
@@ -502,7 +499,6 @@ function dscsa_save_patient($user_id, $fields) {
     $_POST['billing_first_name'],
     $_POST['billing_last_name'],
     $_POST['birth_date'],
-    $_POST['email'],
     get_meta('language', $user_id)
   );
 
@@ -525,10 +521,14 @@ function dscsa_save_patient($user_id, $fields) {
     'allergies_other' => 100
   ];
 
+  //TODO should save if they don't exist, but what if they do, should we be overriding?
   foreach ($fields as $key => $field) {
 
     //In case of backup pharmacy json, sanitize gets rid of it
     $val = sanitize_text_field($_POST[$key]);
+
+    if ($key == 'account_email' OR $key == 'email')
+      update_email($val);
 
     if ($key == 'backup_pharmacy')
       update_pharmacy($val);
