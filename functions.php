@@ -109,7 +109,7 @@ function order_fields() {
       'type'      => 'email',
       'validate'  => ['email'],
       'autocomplete' => 'email',
-      'default'   => get_default('email', $user_id)
+      'default'   => get_default('email', $user_id) ?: get_default('account_email', $user_id)
     ]
   ];
 }
@@ -495,14 +495,18 @@ function dscsa_save_order($order_id) {
 
 function dscsa_save_patient($user_id, $fields) {
 
-  $patient_id = add_patient(
-    $_POST['billing_first_name'],
-    $_POST['billing_last_name'],
-    $_POST['birth_date'],
-    get_meta('language', $user_id)
-  );
+  $patient_id = get_meta('guardian_id', $user_id);
 
-  update_user_meta($user_id, 'guardian_id', $patient_id);
+  if ( ! $patient_id) {
+    $patient_id = add_patient(
+      $_POST['billing_first_name'] ?: $_POST['account_first_name'],
+      $_POST['billing_last_name'] ?: $_POST['account_last_name'],
+      $_POST['birth_date'],
+      get_meta('language', $user_id)
+    );
+
+    update_user_meta($user_id, 'guardian_id', $patient_id);
+  }
 
   $allergy_codes = [
     'allergies_tetracycline' => 1,
@@ -527,8 +531,10 @@ function dscsa_save_patient($user_id, $fields) {
     //In case of backup pharmacy json, sanitize gets rid of it
     $val = sanitize_text_field($_POST[$key]);
 
-    if ($key == 'account_email' OR $key == 'email')
+    if ($key == 'account_email' OR $key == 'email') {
       update_email($val);
+      wp_mail('adam.kircher@gmail.com', "db $key", $patient_id.' '.print_r($_POST, true).print_r(sqlsrv_errors(), true));
+    }
 
     if ($key == 'backup_pharmacy')
       update_pharmacy($val);
@@ -775,6 +781,10 @@ function add_remove_allergy($allergy_id, $value) {
 //   @PatCellPhone VARCHAR(20)
 // }
 function update_phone($cell_phone) {
+  wp_mail('adam.kircher@gmail.com', "db update_phone", print_r([
+    get_meta('guardian_id'), $cell_phone
+  ], true));
+
   return db_run("SirumWeb_AddUpdatePatHomePhone(?, ?)", [
     get_meta('guardian_id'), $cell_phone
   ]);
@@ -824,7 +834,8 @@ function find_patient($first_name, $last_name, $birth_date) {
 //   ,@CellPhone varchar(20)    -- Cell Phone
 // )
 function add_patient($first_name, $last_name, $birth_date, $email, $language) {
-  //wp_mail('adam.kircher@gmail.com', "db add patient", print_r(func_get_args(), true));
+  wp_mail('adam.kircher@gmail.com', "db add patient", print_r(func_get_args(), true));
+
   return db_run("SirumWeb_AddEditPatient(?, ?, ?, ?, ?)", [$first_name, $last_name, $birth_date, $email, $language])['PatID'];
 }
 

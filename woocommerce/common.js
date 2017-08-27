@@ -48,6 +48,7 @@ function upgradeAllergies() {
   jQuery('#allergies_other_input').on('input', function() {
     allergies_other.prop('checked', this.value)
   })
+  jQuery('#allergies_other_input').triggerHandler('input')
 }
 
 function upgradePharmacy(pharmacies) {
