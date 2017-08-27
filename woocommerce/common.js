@@ -95,9 +95,9 @@ function disableFixedFields() {
   //Readonly doesn't work for radios https://stackoverflow.com/questions/1953017/why-cant-radio-buttons-be-readonly
   jQuery('input[name=language]:not(:checked)').attr('disabled', true)
 
-  var other_allergy = jQuery('#allergies_other_input')
-  if (other_allergy.val()) //we cannot properly edit in guardian right now
-    other_allergy.prop('disabled', true)
+  // var other_allergy = jQuery('#allergies_other_input')
+  // if (other_allergy.val()) //we cannot properly edit in guardian right now
+  //   other_allergy.prop('disabled', true)
 }
 
 function pharmacy2select(entry, i) {

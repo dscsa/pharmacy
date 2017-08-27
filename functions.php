@@ -112,6 +112,11 @@ function order_fields() {
       'default'   => get_default('email', $user_id) ?: get_default('account_email', $user_id)
     ]
   ];
+
+  echo "email ".get_default('email', $user_id);
+  echo "<br>";
+  echo "account_email ".get_default('account_email', $user_id);
+
 }
 
 add_action('wp_footer','hidden_language_radio');
@@ -348,7 +353,7 @@ function dscsa_set_username() {
         $_POST['user_login'] = $_POST['email'] = $_POST['phone'].'@goodpill.org';
 
      if (empty($_POST['account_email']) OR ! empty($_POST['register']))
-        $_POST['account_email'] = $_POST['phone'].'@goodpill.org';
+        $_POST['account_email'] = $_POST['email'] ?: $_POST['phone'].'@goodpill.org';
   }
 }
 
