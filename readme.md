@@ -68,6 +68,6 @@ For Missing Dependency Errors:
 - Set MIME type for "." (no) filetype (in IIS) to "text/plain" (this is needed for the authtoken to be public)
 - Extract letsencrypt-win-simple.exe https://github.com/Lone-Coder/letsencrypt-win-simple/releases
 - Run with domain and manual (-M) flag.  
-- Installation is C:/Users/Administrator/wordpress
+- Enter a site (installation) path C:/Users/Administrator/wordpress
 - If error, make sure token within .well-known directory is accessible via the provided domain
-- Run IIS > SSL Settings > Add Domain and Certificate
+- Run IIS > Bindings > HTTPS > Edit... > Choose SSL Cert from the Dropdown

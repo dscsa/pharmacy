@@ -955,11 +955,11 @@ function db_run($sql, $params, $noresults) {
   $stmt = db_query($conn, "{call $sql}", $params);
 
   if ( ! sqlsrv_has_rows($stmt)) {
-    email_error("no rows for result of $sql");
+    email_error("no rows for result of $sql", $params);
     return [];
   }
 
-  $data = db_fetch($stmt) ?: email_error("fetching $sql");
+  $data = db_fetch($stmt) ?: email_error("fetching $sql", $params);
 
   sqlsrv_free_stmt($stmt);
 
@@ -979,9 +979,9 @@ function db_connect() {
 }
 
 function db_query($conn, $sql, $params) {
-  return sqlsrv_query($conn, $sql, $params) ?: email_error("Query $sql");
+  return sqlsrv_query($conn, $sql, $params) ?: email_error("Query $sql", $params);
 }
 
-function email_error($heading) {
-   wp_mail('adam.kircher@gmail.com', "db error: $heading", print_r(sqlsrv_errors(), true));
+function email_error($heading, $params = []) {
+   wp_mail('adam.kircher@gmail.com', "db error: $heading", print_r($params + sqlsrv_errors(), true));
 }
