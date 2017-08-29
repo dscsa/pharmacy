@@ -983,5 +983,7 @@ function db_query($conn, $sql, $params) {
 }
 
 function email_error($heading, $params = []) {
-   wp_mail('adam.kircher@gmail.com', "db error: $heading", print_r($params + sqlsrv_errors(), true));
+   $errors = sqlsrv_errors();
+   if ($errors)
+     wp_mail('adam.kircher@gmail.com', "db error: $heading", print_r($params, true).' '.print_r($errors, true));
 }
