@@ -1,13 +1,5 @@
 <?php //For IDE styling only
 
-//TODO
-//RUN REVISED CHRIS SCRIPTS
-//CALL DB FUNCTIONS AT RIGHT PLACES
-//MAKE ALLERGY LIST MATCH GUARDIAN
-//FIX EDIT ADDRESS FIELD LABELS
-//FIX BLANK BUTTON ON SAVE CARD
-
-
 // Register custom style sheets and javascript.
 add_action('wp_enqueue_scripts', 'dscsa_scripts');
 function dscsa_scripts() {
@@ -54,7 +46,7 @@ function remove_sticky_checkout() {
   wp_dequeue_script('storefront-sticky-payment');
 }
 
-function get_meta($field, $user_id) {
+function get_meta($field, $user_id = null) {
   return get_user_meta($user_id ?: get_current_user_id(), $field, true);
 }
 
@@ -268,13 +260,12 @@ add_action('woocommerce_admin_order_data_after_order_details', 'dscsa_admin_edit
 function dscsa_admin_edit_account($order) {
   echo '<br><br>'.get_meta('rx_source', $order->user_id);
   echo '<br><br>'.get_meta('medication[]', $order->user_id);
-  echo '<br><br>'.get_meta('medication[]', $order->user_id);
   return dscsa_edit_account_form($order->user_id);
-
 }
+
 add_action( 'woocommerce_edit_account_form_start', 'dscsa_user_edit_account');
 function dscsa_user_edit_account() {
-  return dscsa_edit_account_form();
+  return dscsa_edit_account_form(get_current_user_id());
 }
 
 function dscsa_edit_account_form($user_id) {
@@ -288,6 +279,13 @@ function dscsa_edit_account_form($user_id) {
 
 add_action('woocommerce_login_form_start', 'dscsa_login_form');
 function dscsa_login_form() {
+
+  $patient_id = get_meta('guardian_id', 99999);
+
+  if ($patient_id) {
+    echo 'There is a patient id '.print_r($patient_id, true);
+  }
+
   login_form();
   $shared_fields = shared_fields();
   $shared_fields['birth_date']['id'] = 'birth_date_login';
@@ -399,7 +397,7 @@ function customer_created($user_id) {
 // Function to change email address
 add_filter('wp_mail_from', 'email_address');
 function email_address() {
-  return 'rx@goodpill.org';
+  return 'webform@goodpill.org';
 }
 add_filter('wp_mail_from_name', 'email_name');
 function email_name() {
@@ -465,9 +463,9 @@ function dscsa_validation($fields) {
 }
 
 // replace woocommerce id with guardian one
-add_filter( 'woocommerce_order_number', 'dscsa_invoice_number');
+add_filter( 'woocommerce_order_number', 'dscsa_invoice_number', 10 , 2);
 function dscsa_invoice_number($order_id, $order) {
-  return get_post_meta($order_id, 'invoice_number', true);
+  return get_post_meta($order_id, 'invoice_number', true) ?: 'Pending-'.$order_id;
 }
 
 //On new order and account/details save account fields back to user
@@ -549,7 +547,7 @@ function dscsa_save_patient($user_id, $fields) {
     'allergies_none' => 99,
     'allergies_other' => 100
   ];
-  wp_mail('adam.kircher@gmail.com', "db $key", $patient_id.' '.print_r($_POST, true).print_r(sqlsrv_errors(), true));
+  wp_mail('adam.kircher@gmail.com', "new patient", $patient_id.' '.print_r($_POST, true).print_r(sqlsrv_errors(), true));
 
   //TODO should save if they don't exist, but what if they do, should we be overriding?
   foreach ($fields as $key => $field) {
@@ -596,6 +594,7 @@ function dscsa_translate($term, $raw, $domain) {
   }
 
   $toEnglish = [
+    "<span class='english'>Pay by Credit or Debit Card</span><span class='spanish'>Pago con tarjeta de crédito o débito</span>" => "Pay by Credit or Debit Card",
     'Spanish'  => 'Espanol', //Registering
     'Email:' => 'Email', //order details
     'Email address' => 'Email', //accounts/details
@@ -736,11 +735,23 @@ function dscsa_translate($term, $raw, $domain) {
   return $english;
 }
 
+
+add_filter( 'esc_html', 'dscsa_esc_html', 10, 2);
+function dscsa_esc_html($safe_text, $text) {
+
+    $english = "/&lt;span class=.*?english.*?&gt;(.*?)&lt;\/?span&gt;/";
+    $spanish = "/&lt;span class=.*?spanish.*?&gt;(.*?)&lt;\/?span&gt;/";
+
+    return preg_replace([$english, $spanish], ['$1', ''], $safe_text);
+}
+
+
+
 // Hook in
 add_filter( 'woocommerce_checkout_fields' , 'dscsa_checkout_fields' );
 function dscsa_checkout_fields( $fields ) {
 
-  $shared_fields = shared_fields();
+  $shared_fields = shared_fields(get_current_user_id());
 
   //Add some order fields that are not in patient profile
   $order_fields = order_fields();
@@ -854,7 +865,7 @@ function find_patient($first_name, $last_name, $birth_date) {
 //   ,@CellPhone varchar(20)    -- Cell Phone
 // )
 function add_patient($first_name, $last_name, $birth_date, $language) {
-  return db_run("SirumWeb_AddEditPatient(?, ?, ?, ?)", [$first_name, $last_name, $birth_date, $language])['pat_id'];
+  return db_run("SirumWeb_AddEditPatient(?, ?, ?, ?)", [$first_name, $last_name, $birth_date, $language])['PatID'];
 }
 
 // Procedure dbo.SirumWeb_AddToPatientComment (@PatID int, @CmtToAdd VARCHAR(4096)
@@ -949,7 +960,7 @@ function update_email($email) {
 }
 
 global $conn;
-function db_run($sql, $params, $noresults) {
+function db_run($sql, $params) {
   global $conn;
   $conn = $conn ?: db_connect();
   $stmt = db_query($conn, "{call $sql}", $params);
