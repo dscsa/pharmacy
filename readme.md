@@ -21,6 +21,7 @@
   - Edit C:\Program Files (x86)\PHP\v5.6\php.ini
   * add extension=php_sqlsrv_56_nts.dll
   * add sendmail_from=webform@goodpill.org
+  * smtp_port = 587
   * do you want to turn on display_errors?
   * Install ODBC Driver 11 for SQL Server (x64 version: just double click the exe once downloaded)
 
