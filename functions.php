@@ -287,7 +287,7 @@ function dscsa_login_form() {
   }
 
   login_form();
-  $shared_fields = shared_fields();
+  $shared_fields = shared_fields(get_current_user_id());
   $shared_fields['birth_date']['id'] = 'birth_date_login';
   echo woocommerce_form_field('birth_date', $shared_fields['birth_date']);
 }
@@ -295,7 +295,7 @@ function dscsa_login_form() {
 add_action('woocommerce_register_form_start', 'dscsa_register_form');
 function dscsa_register_form() {
   $account_fields = account_fields();
-  $shared_fields = shared_fields();
+  $shared_fields = shared_fields(get_current_user_id());
   $shared_fields['birth_date']['id'] = 'birth_date_register';
 
   echo woocommerce_form_field('language', $account_fields['language']);
@@ -304,7 +304,7 @@ function dscsa_register_form() {
   echo woocommerce_form_field('phone', $shared_fields['phone']);
 }
 
-function login_form($language) {
+function login_form() {
 
   $first_name = [
     'class' => ['form-row-first'],
