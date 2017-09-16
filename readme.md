@@ -15,7 +15,23 @@
   - Goto Advanced > Port Forwarding > Enable > Add Service > Custom > Add Server & Port
   - Goto Advanced > Port Management > Check box to disable all rules and allow inbound traffic
 
+#Install SQLSRV (for MSSQL)
+  - Download SQLSRV (3.2 for PHP5.6, 4.0 for PHP7.0+)
+  - Extract into C:\Program Files (x86)\PHP\v5.6\ext
+  - Edit C:\Program Files (x86)\PHP\v5.6\php.ini
+  * add extension=php_sqlsrv_56_nts.dll
+  * add sendmail_from=webform@goodpill.org
+  * do you want to turn on display_errors?
+  * Install ODBC Driver 11 for SQL Server (x64 version: just double click the exe once downloaded)
+
 #Get Email Working
+- Open php.ini (see instructions in Install SQLSRV) and ensure that curl.cainfo is set.
+If not, follow instructions here https://stackoverflow.com/questions/29822686/curl-error-60-ssl-certificate-unable-to-get-local-issuer-certificate
+If this is not set the Gmail SMTP Plugin will show a 500 error when retrieving OAuth code
+- Install Gmail SMTP plugin
+- Follow instructions on https://wphowto.net/gmail-smtp-plugin-for-wordpress-1341
+
+/****** OLD ******/
 - Install SMTP Server Start Bar > Server Manager > Tools > Add New Services > Features > Check Box for SMTP Server > Instal
 - Configure https://www.ruhanirabin.com/php-sendmail-setup-with-smtp-iis-and-windows-servers/
 - Ensure you add limit connection and relay to 127.0.0.1 or you will spam people within days.
@@ -54,14 +70,6 @@ For Missing Dependency Errors:
 - Server Manager > Tools > IIS (v6.0)
 * Run SMTP Server (don't remember how)
 * Right Click > Properties > Access > Relay > Select All Except the List Below
-
-#Install SQLSRV (for MSSQL)
-- Download SQLSRV (3.2 for PHP5.6, 4.0 for PHP7.0+)
-- Extract into C:\Program Files (x86)\PHP\v5.6\ext
-- Edit C:\Program Files (x86)\PHP\v5.6\php.ini
-* add extension=php_sqlsrv_56_nts.dll
-* add sendmail_from=rx@goodpill.org
-* Install ODBC Driver 11 for SQL Server (x64 version: just double click the exe once downloaded)
 
 #Install SSL Certs
 - I installed Server Manager > Manage > Add Role and Features > Feature > DNS, but not sure if that is necessary or not.
