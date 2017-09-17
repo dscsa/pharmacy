@@ -79,7 +79,10 @@ function dscsa_stripe_add_card($stripe_id, $card, $response) {
    update_card_and_coupon($card, $coupon);
 }
 
-function order_fields() {
+function order_fields($user_id = null) {
+
+
+  $user_id = $user_id ?: get_current_user_id();
 
   return [
     'rx_source' => [
@@ -118,7 +121,9 @@ function hidden_language_radio(){
   echo "<input type='radio' id='language_$lang' value='$lang' name='language' checked='checked' style='display:none'>";
 }
 
-function account_fields($user_id) {
+function account_fields($user_id = null) {
+
+  $user_id = $user_id ?: get_current_user_id();
 
   return [
     'language' => [
@@ -131,7 +136,9 @@ function account_fields($user_id) {
   ];
 }
 
-function shared_fields($user_id) {
+function shared_fields($user_id = null) {
+
+    $user_id = $user_id ?: get_current_user_id();
 
     $pharmacy = [
       'type'  => 'select',
@@ -265,10 +272,10 @@ function dscsa_admin_edit_account($order) {
 
 add_action( 'woocommerce_edit_account_form_start', 'dscsa_user_edit_account');
 function dscsa_user_edit_account() {
-  return dscsa_edit_account_form(get_current_user_id());
+  return dscsa_edit_account_form();
 }
 
-function dscsa_edit_account_form($user_id) {
+function dscsa_edit_account_form($user_id = null) {
 
   $fields = shared_fields($user_id)+account_fields($user_id);
 
@@ -287,7 +294,7 @@ function dscsa_login_form() {
   }
 
   login_form();
-  $shared_fields = shared_fields(get_current_user_id());
+  $shared_fields = shared_fields();
   $shared_fields['birth_date']['id'] = 'birth_date_login';
   echo woocommerce_form_field('birth_date', $shared_fields['birth_date']);
 }
@@ -295,7 +302,7 @@ function dscsa_login_form() {
 add_action('woocommerce_register_form_start', 'dscsa_register_form');
 function dscsa_register_form() {
   $account_fields = account_fields();
-  $shared_fields = shared_fields(get_current_user_id());
+  $shared_fields = shared_fields();
   $shared_fields['birth_date']['id'] = 'birth_date_register';
 
   echo woocommerce_form_field('language', $account_fields['language']);
@@ -751,7 +758,7 @@ function dscsa_esc_html($safe_text, $text) {
 add_filter( 'woocommerce_checkout_fields' , 'dscsa_checkout_fields' );
 function dscsa_checkout_fields( $fields ) {
 
-  $shared_fields = shared_fields(get_current_user_id());
+  $shared_fields = shared_fields();
 
   //Add some order fields that are not in patient profile
   $order_fields = order_fields();
@@ -779,9 +786,11 @@ function dscsa_checkout_fields( $fields ) {
   return $fields;
 }
 
-function get_invoice_number($value) {
-  return db_run("SirumWeb_FindPendingInvoiceNbrByPatID(?)", [get_meta('guardian_id')])['invoice_nbr'];
+function get_invoice_number() {
+  return db_run("SirumWeb_FindPendingInvoiceNbrByPatID(?)", [get_meta('guardian_id')], 1)['invoice_nbr'];
 }
+
+
 // SirumWeb_AddRemove_Allergy(
 //   @PatID int,     --Carepoint Patient ID number
 //   @AddRem int = 1,-- 1=Add 0= Remove
@@ -945,7 +954,7 @@ function update_stripe_tokens($value) {
   return db_run("SirumWeb_AddUpdatePatientUD(?, 3, ?)", [get_meta('guardian_id'), $value]);
 }
 
-function update_card_and_coupon($card, $coupon) {
+function update_card_and_coupon($card = [], $coupon) {
   //Meet guardian 50 character limit
   //Last4 4, Month 2, Year 2, Type (Mastercard = 10), Delimiter 4, So coupon will be truncated if over 28 characters
   $value = $card['last4'].','.$card['month'].'/'.substr($card['year'] ?: '', 2).','.$card['type'].','.$coupon;
@@ -960,10 +969,16 @@ function update_email($email) {
 }
 
 global $conn;
-function db_run($sql, $params) {
+function db_run($sql, $params, $resultIndex = 0) {
   global $conn;
   $conn = $conn ?: db_connect();
   $stmt = db_query($conn, "{call $sql}", $params);
+
+  if ( ! stmt) return;
+
+  for ($i = 0; $i < $resultIndex; $i++) {
+    sqlsrv_next_result($stmt);
+  }
 
   if ( ! sqlsrv_has_rows($stmt)) {
     email_error("no rows for result of $sql", $params);
