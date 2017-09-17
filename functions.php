@@ -475,6 +475,12 @@ function dscsa_invoice_number($order_id, $order) {
   return get_post_meta($order_id, 'invoice_number', true) ?: 'Pending-'.$order_id;
 }
 
+add_filter( 'woocommerce_shop_order_search_fields', 'dscsa_order_search_fields');
+function dscsa_order_search_fields( $search_fields ) {
+	array_push( $search_fields, 'invoice_number' );
+	return $search_fields;
+}
+
 //On new order and account/details save account fields back to user
 //TODO should changing checkout fields overwrite account fields if they are set?
 add_action('woocommerce_save_account_details', 'dscsa_save_account');
@@ -486,7 +492,7 @@ function dscsa_save_account($user_id) {
 add_action('woocommerce_checkout_update_order_meta', 'dscsa_save_order');
 function dscsa_save_order($order_id) {
   $order = wc_get_order( $order_id );
-  $user_id = $order->user_id;
+  $user_id = $order->get_user_id();
 
   //THIS MUST BE CALLED FIRST IN ORDER TO CREATE GUARDIAN ID
   //TODO should save if they don't exist, but what if they do, should we be overriding?
