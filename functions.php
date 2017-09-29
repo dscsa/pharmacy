@@ -265,6 +265,7 @@ function shared_fields($user_id = null) {
 //Display custom fields on account/details
 add_action('woocommerce_admin_order_data_after_order_details', 'dscsa_admin_edit_account');
 function dscsa_admin_edit_account($order) {
+  global $wpdb;
   echo '<br><br>'.get_meta('rx_source', $order->user_id);
   echo '<br><br>'.get_meta('medication[]', $order->user_id);
   return dscsa_edit_account_form($order->user_id);
@@ -478,6 +479,7 @@ function dscsa_invoice_number($order_id, $order) {
 add_filter( 'woocommerce_shop_order_search_fields', 'dscsa_order_search_fields');
 function dscsa_order_search_fields( $search_fields ) {
 	array_push( $search_fields, 'invoice_number' );
+    //array_push( $search_fields, 'guardian_id' ); // Doesn't seem to work
 	return $search_fields;
 }
 
@@ -487,6 +489,29 @@ add_action('woocommerce_save_account_details', 'dscsa_save_account');
 function dscsa_save_account($user_id) {
   dscsa_save_patient($user_id, shared_fields($user_id) + account_fields($user_id));
   update_email(sanitize_text_field($_POST['account_email']));
+}
+
+add_filter('woocommerce_rest_pre_insert_shop_order_object', 'dscsa_checkout_create_order', 10, 3);
+function dscsa_checkout_create_order($order, $request, $creating) {
+
+  global $wpdb;
+
+  $invoice_number = $order->get_meta('invoice_number', true);
+  $guardian_id = $order->get_meta('guardian_id', true);
+
+  $orders = $wpdb->get_results("SELECT * FROM " . $wpdb->prefix . "postmeta WHERE (meta_key='invoice_number') AND meta_value = '".$invoice_number."'");
+
+  if (count($orders))
+    return new WP_Error('refill_order_already_exists', __( "Refill Order #$invoice_number already exists", 'woocommerce' ), 200);
+
+  $users = $wpdb->get_results("SELECT DISTINCT user_id FROM " . $wpdb->prefix . "usermeta WHERE (meta_key='guardian_id') AND meta_value = '".$guardian_id."'");
+
+  if ( ! count($users))
+    return new WP_Error( 'could_not_find_user_by_guardian_id', __( "Could not find the user for Guardian Patient Id #$guardian_id", 'woocommerce' ), 400);
+
+  $order->set_customer_id($users[0]->user_id);
+
+  return $order;
 }
 
 add_action('woocommerce_checkout_update_order_meta', 'dscsa_save_order');
