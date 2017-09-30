@@ -120,7 +120,7 @@ function pharmacy2select(entry, i) {
 function matcher(param, data) {
    if ( ! param.term ||  ! data.text) return null
    var has = true
-   var words = param.term.toUpperCase().split(" ")
+   var words = param.term.toUpperCase().split(/,? /)
    var text  = data.text.toUpperCase()
    for (var i =0; i < words.length; i++)
      if ( ! ~ text.indexOf(words[i])) return null
