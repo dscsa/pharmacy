@@ -345,8 +345,11 @@ function dscsa_default_post_value() {
     $array = explode('-',$birth_date);
     if (checkdate($array[1],$array[2],$array[0])) {
       $_POST['birth_date'] = $birth_date;
-      if ($_POST['first_name'] AND $_POST['last_name'])    //Set user name for both login and registration
-         $_POST['username'] = $_POST['first_name'].' '.$_POST['last_name'].' '.$_POST['birth_date'];
+      if ($_POST['first_name'] AND $_POST['last_name']) {    //Set user name for both login and registration
+         $_POST['first_name'] = mb_convert_case($_POST['first_name'], MB_CASE_TITLE, "UTF-8" );
+         $_POST['last_name'] = mb_convert_case($_POST['last_name'], MB_CASE_TITLE, "UTF-8" );
+         $_POST['username'] = "$_POST[first_name] $_POST[last_name] $_POST[birth_date]";
+      }
     }
   }
 
