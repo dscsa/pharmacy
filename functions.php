@@ -494,19 +494,48 @@ function dscsa_save_account($user_id) {
   update_email(sanitize_text_field($_POST['account_email']));
 }
 
-add_filter('woocommerce_rest_pre_insert_shop_order_object', 'dscsa_checkout_create_order', 10, 3);
-function dscsa_checkout_create_order($order, $request, $creating) {
+global $already_run;
 
-  global $wpdb;
+add_filter('rest_request_parameter_order', 'dscsa_rest_update_order', 10, 2);
+function dscsa_rest_update_order($order, $request) {
+
+  global $already_run;
+
+  if ( ! $already_run AND $request->get_method() == 'PUT' AND substr($request->get_route(), 0, 14) == '/wc/v2/orders/') {
+      $already_run = true;
+
+      //TODO incorrectly assuming that invoice number is always 1st (only) value in metadata
+      $orders = get_orders_by_invoice_number($request['id']);
+
+      $count = count($orders);
+
+  	  if ($count != 1)
+    	return new WP_Error('could not locate order by invoice number', __( "Order #$invoice_number has $count matches", 'woocommerce' ), 200);
+
+      $request['id'] = $orders[0]->post_id;
+
+      wp_mail('adam.kircher@gmail.com', "dscsa_rest_update_order", $request['id'].' | /wc/v2/orders/'+$orders[0]->post_id.' '.print_r($orders, true).' '.print_r($request, true));
+  }
+
+  return $order;
+}
+
+add_filter('woocommerce_rest_pre_insert_shop_order_object', 'dscsa_rest_create_order', 10, 3);
+function dscsa_rest_create_order($order, $request, $creating) {
+
+  if ( ! $creating) return $order;
+
+  wp_mail('adam.kircher@gmail.com', "dscsa_rest_create_order", print_r($creating, true));
 
   $invoice_number = $order->get_meta('invoice_number', true);
   $guardian_id = $order->get_meta('guardian_id', true);
 
-  $orders = $wpdb->get_results("SELECT * FROM " . $wpdb->prefix . "postmeta WHERE (meta_key='invoice_number') AND meta_value = '".$invoice_number."'");
+  $orders = get_orders_by_invoice_number($invoice_number);
 
   if (count($orders))
     return new WP_Error('refill_order_already_exists', __( "Refill Order #$invoice_number already exists", 'woocommerce' ), 200);
 
+  global $wpdb;
   $users = $wpdb->get_results("SELECT DISTINCT user_id FROM " . $wpdb->prefix . "usermeta WHERE (meta_key='guardian_id') AND meta_value = '".$guardian_id."'");
 
   if ( ! count($users))
@@ -515,6 +544,21 @@ function dscsa_checkout_create_order($order, $request, $creating) {
   $order->set_customer_id($users[0]->user_id);
 
   return $order;
+}
+
+function get_orders_by_invoice_number($invoice_number) {
+  global $wpdb;
+  return $wpdb->get_results("SELECT post_id FROM " . $wpdb->prefix . "postmeta WHERE (meta_key='invoice_number') AND meta_value = '".$invoice_number."'");
+}
+
+add_action('woocommerce_order_details_after_order_table', 'dscsa_show_order_invoice');
+function dscsa_show_order_invoice($order) {
+    $invoice_doc_id = $order->get_meta('invoice_doc_id', true);
+
+    if ($invoice_doc_id) {
+       echo "<iframe src='https://docs.google.com/document/d/$invoice_doc_id/pub?embedded=true' style='border:none; padding:0px; overflow:hidden; width:100%; height:820px; position:relative; top:-320px; margin-bottom:-250px;' scrolling='no'></iframe>";
+    }
+
 }
 
 add_action('woocommerce_checkout_update_order_meta', 'dscsa_save_order');
