@@ -553,12 +553,22 @@ function get_orders_by_invoice_number($invoice_number) {
 
 add_action('woocommerce_order_details_after_order_table', 'dscsa_show_order_invoice');
 function dscsa_show_order_invoice($order) {
-    $invoice_doc_id = $order->get_meta('invoice_doc_id', true);
+    $invoice_doc_id  = $order->get_meta('invoice_doc_id', true);
+    $tracking_number = $order->get_meta('tracking_number', true);
+    $date_shipped = $order->get_meta('date_shipped', true);
+    $address = $order->get_formatted_billing_address();
 
-    if ($invoice_doc_id) {
-       echo "<iframe src='https://docs.google.com/document/d/$invoice_doc_id/pub?embedded=true' style='border:none; padding:0px; overflow:hidden; width:100%; height:820px; position:relative; top:-320px; margin-bottom:-250px;' scrolling='no'></iframe>";
+    echo '<style>.woocommerce-customer-details, .woocommerce-order-details__title, .woocommerce-table--order-details { display:none }</style>';
+
+    if ($date_shipped AND $tracking_number) {
+       echo "Your order was shipped on <mark class='order-date'>$date_shipped</mark> with tracking number <a target='_blank' href='https://tools.usps.com/go/TrackConfirmAction?tLabels=$tracking_number'>$tracking_number</a> to<br><br><address>$address</address>";
+    } else {
+       echo "Order will be shipped to<br><br><address>$address</address>";
     }
 
+    if ($invoice_doc_id) {
+       echo "<iframe src='https://docs.google.com/document/d/$invoice_doc_id/pub?embedded=true' style='border:none; padding:0px; overflow:hidden; width:100%; height:1800px; position:relative; z-index:-1; left:-60px; top:-65px' scrolling='no'></iframe>";
+    }
 }
 
 add_action('woocommerce_checkout_update_order_meta', 'dscsa_save_order');
