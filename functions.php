@@ -109,9 +109,9 @@ function order_fields($user_id = null) {
     ]
   ];
 
-  echo "email ".get_default('email', $user_id);
-  echo "<br>";
-  echo "account_email ".get_default('account_email', $user_id);
+  //echo "email ".get_default('email', $user_id);
+  //echo "<br>";
+  //echo "account_email ".get_default('account_email', $user_id);
 
 }
 
@@ -265,11 +265,32 @@ function shared_fields($user_id = null) {
 //Display custom fields on account/details
 add_action('woocommerce_admin_order_data_after_order_details', 'dscsa_admin_edit_account');
 function dscsa_admin_edit_account($order) {
-  global $wpdb;
   echo '<br><br>'.get_meta('rx_source', $order->user_id);
   echo '<br><br>'.get_meta('medication[]', $order->user_id);
   return dscsa_edit_account_form($order->user_id);
 }
+
+add_action('woocommerce_admin_order_data_after_order_details', 'dscsa_admin_invoice');
+function dscsa_admin_invoice($order) {
+  $invoice_doc_id  = $order->get_meta('invoice_doc_id', true);
+  $tracking_number = $order->get_meta('tracking_number', true);
+  $date_shipped = $order->get_meta('date_shipped', true);
+  $address = $order->get_formatted_billing_address();
+
+  echo '<style>.order_data_column  { width:100% !important }</style>';
+
+  if ($date_shipped AND $tracking_number) {
+    echo "Your order was shipped on <mark class='order-date'>$date_shipped</mark> with tracking number <a target='_blank' href='https://tools.usps.com/go/TrackConfirmAction?tLabels=$tracking_number'>$tracking_number</a> to<br><br><address>$address</address>";
+  } else {
+    echo "Order will be shipped to<br><br><address>$address</address>";
+  }
+
+  if ($invoice_doc_id) {
+    echo "<iframe src='https://docs.google.com/document/d/$invoice_doc_id/pub?embedded=true' style='border:none; padding:0px; overflow:hidden; width:100%; height:1800px;' scrolling='no'></iframe>";
+  }
+}
+
+
 
 add_action( 'woocommerce_edit_account_form_start', 'dscsa_user_edit_account');
 function dscsa_user_edit_account() {
@@ -514,7 +535,7 @@ function dscsa_rest_update_order($order, $request) {
 
       $request['id'] = $orders[0]->post_id;
 
-      wp_mail('adam.kircher@gmail.com', "dscsa_rest_update_order", $request['id'].' | /wc/v2/orders/'+$orders[0]->post_id.' '.print_r($orders, true).' '.print_r($request, true));
+      //wp_mail('adam.kircher@gmail.com', "dscsa_rest_update_order", $request['id'].' | /wc/v2/orders/'+$orders[0]->post_id.' '.print_r($orders, true).' '.print_r($request, true));
   }
 
   return $order;
@@ -525,7 +546,7 @@ function dscsa_rest_create_order($order, $request, $creating) {
 
   if ( ! $creating) return $order;
 
-  wp_mail('adam.kircher@gmail.com', "dscsa_rest_create_order", print_r($creating, true));
+  //wp_mail('adam.kircher@gmail.com', "dscsa_rest_create_order", print_r($creating, true));
 
   $invoice_number = $order->get_meta('invoice_number', true);
   $guardian_id = $order->get_meta('guardian_id', true);
@@ -851,7 +872,8 @@ function dscsa_checkout_fields( $fields ) {
   //Add some order fields that are not in patient profile
   $order_fields = order_fields();
 
-  $fields['order'] = $order_fields + $shared_fields;
+  //wp_mail('adam.kircher@gmail.com', "db error: $heading", print_r($fields['order']['order_comments'], true).' '.print_r($fields['order'], true));
+  $fields['order'] = $order_fields + $shared_fields + ['order_comments' => $fields['order']['order_comments']];
 
   //Allow billing out of state but don't allow shipping out of state
   $fields['shipping']['shipping_state']['type'] = 'select';
