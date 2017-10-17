@@ -374,24 +374,27 @@ function dscsa_default_post_value() {
     }
   }
 
-  //For resetting password
-  $phone = $_POST['phone'] ?: $_POST['user_login'];
+  if ($_POST['register']) {
 
-  if ($phone) {
+     $phone = cleanPhone($_POST['phone']);
 
-     $phone = cleanPhone($phone);
-
-     if ( ! $phone) return;
-
-     $_POST['phone'] = $phone;
-
-     if ($_POST['register']) {
-        $_POST['email'] = $_POST['phone'].'@goodpill.org';
-        $_POST['password'] = $phone;
+     if ($phone) {
+       $_POST['email'] = $phone.'@goodpill.org';
+       $_POST['password'] = $_POST['phone'] = $phone;
      }
+  }
 
-     if ($_POST['user_login']) //reset password
-        $_POST['user_login'] = $_POST['phone'].'@goodpill.org';
+  //For resetting password
+  if ($_POST['user_login']) {
+
+     $phone = cleanPhone($_POST['user_login']);
+
+     //If user_login is an email than $phone will be null
+
+     if ($phone) {
+       $_POST['user_login'] = $phone.'@goodpill.org';
+       $_POST['phone'] = $phone;
+     }
   }
 }
 
@@ -727,13 +730,13 @@ function dscsa_translate($term, $raw, $domain) {
     'Username or email' => 'Email or phone number', //For resetting passwords
     'Additional information' => '',  //Checkout
     'Billing address' => 'Shipping address', //Order confirmation
-	'Billing &amp; Shipping' => 'Shipping Address', //Checkout
+	  'Billing &amp; Shipping' => 'Shipping Address', //Checkout
     'Lost your password? Please enter your username or email address. You will receive a link to create a new password via email.' => 'Lost your password? Call us for assistance or enter the phone number you used to register.', //Logging in
     'Please provide a valid email address.' => 'Please provide a valid 10-digit phone number.',
     'Please enter a valid account username.' => 'Please enter your name and date of birth in mm/dd/yyyy format.',
     'Please enter an account password.' => 'Please provide a valid 10-digit phone number.',
     'Username is required.' => 'Name and date of birth in mm/dd/yyyy format are required.',
-    'Invalid username or email.' => '<strong>Error</strong>: We cannot find an account with that phone number.',
+    'Invalid username or email.' => '<strong>Error</strong>: We cannot find an account with that email or phone number.',
     '<strong>ERROR</strong>: Invalid username.' => '<strong>Error</strong>: We cannot find an account with that name and date of birth.',
     'An account is already registered with your email address. Please login.' => 'An account is already registered with that phone number. Please login.'
   ];
