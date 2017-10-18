@@ -50,7 +50,7 @@ function get_meta($field, $user_id = null) {
   return get_user_meta($user_id ?: get_current_user_id(), $field, true);
 }
 
-function get_default($field, $user_id) {
+function get_default($field, $user_id = null) {
   return $_POST ? $_POST[$field] : get_meta($field, $user_id);
 }
 
@@ -374,27 +374,24 @@ function dscsa_default_post_value() {
     }
   }
 
-  if ($_POST['register']) {
-
-     $phone = cleanPhone($_POST['phone']);
-
-     if ($phone) {
-       $_POST['email'] = $phone.'@goodpill.org';
-       $_POST['password'] = $_POST['phone'] = $phone;
-     }
-  }
-
   //For resetting password
-  if ($_POST['user_login']) {
+  $phone = $_POST['phone'] ?: $_POST['user_login'];
 
-     $phone = cleanPhone($_POST['user_login']);
+  if ($phone) {
 
-     //If user_login is an email than $phone will be null
+     $phone = cleanPhone($phone);
 
-     if ($phone) {
-       $_POST['user_login'] = $phone.'@goodpill.org';
-       $_POST['phone'] = $phone;
+     if ( ! $phone) return;
+
+     $_POST['phone'] = $phone;
+
+     if ($_POST['register']) {
+        $_POST['email'] = $_POST['phone'].'@goodpill.org';
+        $_POST['password'] = $phone;
      }
+
+     if ($_POST['user_login']) //reset password
+        $_POST['user_login'] = $_POST['phone'].'@goodpill.org';
   }
 }
 
@@ -704,13 +701,8 @@ add_filter('gettext', 'dscsa_translate', 10, 3);
 function dscsa_translate($term, $raw, $domain) {
 
   global $phone;
-  if ( ! $phone AND substr($_SERVER['REQUEST_URI'], 0, 21) == '/account/?add-to-cart')
-     $phone = get_meta('phone');
 
-  if (strpos($term, 'Shipping') !== false) {
-     //echo htmlentities($term).'<br>';
-    //wp_mail('adam.kircher@gmail.com', 'been added to your cart', $term);
-  }
+  $phone = $phone ?: (get_default('phone') ?: '<phone number>');
 
   $toEnglish = [
     "<span class='english'>Pay by Credit or Debit Card</span><span class='spanish'>Pago con tarjeta de crédito o débito</span>" => "Pay by Credit or Debit Card",
@@ -727,16 +719,18 @@ function dscsa_translate($term, $raw, $domain) {
     '%s has been added to your cart.' => $phone
       ? 'Step 2 of 2: You are almost done! Please complete this page so we can fill your prescription(s).  If you need to login again, your temporary password is '.$phone.'.  You can change your password on the "Account Details" page'
       : 'Thank you for your order! Your prescription(s) should arrive within 3-5 days.',
-    'Username or email' => 'Email or phone number', //For resetting passwords
+    'Username or email' => '<strong>Email or phone number</strong>', //For resetting passwords
+    'Password reset email has been sent.' => "Before you reset your password, first try logging in with your 10 digit phone number as your default password",
+    'A password reset email has been sent to the email address on file for your account, but may take several minutes to show up in your inbox. Please wait at least 10 minutes before attempting another reset.' => 'An email with instructions on how to reset your password was sent to the email you provided on the 2nd page of our registration form.  If you did not provide an email or did not complete the 2nd page of the registration form, please call us at <span style="white-space:nowrap">(888) 987-5187</span> for assistance',
     'Additional information' => '',  //Checkout
     'Billing address' => 'Shipping address', //Order confirmation
-	  'Billing &amp; Shipping' => 'Shipping Address', //Checkout
-    'Lost your password? Please enter your username or email address. You will receive a link to create a new password via email.' => 'Lost your password? Call us for assistance or enter the phone number you used to register.', //Logging in
+	'Billing &amp; Shipping' => 'Shipping Address', //Checkout
+    'Lost your password? Please enter your username or email address. You will receive a link to create a new password via email.' => '<h2>Lost your password?</h2>Before you reset your password, first try logging in with your 10 digit phone number without any extra characters as your password.  For example, use the password 1234567890 for the phone number <span style="white-space:nowrap">(123) 456-7890</span>.<br><br>If using your phone number as your password did not work, enter your email or phone number below to receive an email with instructions on how to reset your password. Please note that this option will only work if we have your email on file.<br><br>If you did not provide an email when registering for your account, please call us at <span style="white-space:nowrap">(888) 987-5187</span> for assistance.', //Logging in
     'Please provide a valid email address.' => 'Please provide a valid 10-digit phone number.',
     'Please enter a valid account username.' => 'Please enter your name and date of birth in mm/dd/yyyy format.',
     'Please enter an account password.' => 'Please provide a valid 10-digit phone number.',
     'Username is required.' => 'Name and date of birth in mm/dd/yyyy format are required.',
-    'Invalid username or email.' => '<strong>Error</strong>: We cannot find an account with that email or phone number.',
+    'Invalid username or email.' => '<strong>Error</strong>: We cannot find an account with that phone number.',
     '<strong>ERROR</strong>: Invalid username.' => '<strong>Error</strong>: We cannot find an account with that name and date of birth.',
     'An account is already registered with your email address. Please login.' => 'An account is already registered with that phone number. Please login.'
   ];
@@ -839,7 +833,7 @@ function dscsa_translate($term, $raw, $domain) {
 
   global $lang;
 
-  $lang = $lang ?: get_meta('language');
+  $lang = $lang ?: (get_meta('language') ?: '<language>');
 
   if ($lang == 'EN')
     return $english;
