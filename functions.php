@@ -363,9 +363,14 @@ function dscsa_default_post_value() {
 
   if ($_POST['birth_date']) {
     $birth_date = date_format(date_create($_POST['birth_date']), 'Y-m-d'); //in case html type=date does not work (e.g. IE)
+
     $array = explode('-',$birth_date);
+
+    if ($array[0] > date('Y'))
+      $array[0] -= 100;
+
     if (checkdate($array[1],$array[2],$array[0])) {
-      $_POST['birth_date'] = $birth_date;
+      $_POST['birth_date'] = implode('-', $array);
       if ($_POST['first_name'] AND $_POST['last_name']) {    //Set user name for both login and registration
          $_POST['first_name'] = mb_convert_case($_POST['first_name'], MB_CASE_TITLE, "UTF-8" );
          $_POST['last_name'] = mb_convert_case($_POST['last_name'], MB_CASE_TITLE, "UTF-8" );
