@@ -21,6 +21,7 @@
   - Edit C:\Program Files (x86)\PHP\v5.6\php.ini
   * add extension=php_sqlsrv_56_nts.dll
   * add sendmail_from=webform@goodpill.org
+  * memory_limit = 256M
   * smtp_port = 587
   * do you want to turn on display_errors?
   * Install ODBC Driver 11 for SQL Server (x64 version: just double click the exe once downloaded)
@@ -80,3 +81,9 @@ For Missing Dependency Errors:
 - Enter a site (installation) path C:/Users/Administrator/wordpress
 - If error, make sure token within .well-known directory is accessible via the provided domain
 - Run IIS > Bindings > HTTPS > Edit... > Choose SSL Cert from the Dropdown
+
+#Helpful File Locations
+- MySQL Slow Queries: C:\ProgramData\MySQL\My SQL Server 5.1\Data\GoodPill-Server-Slow.log
+- Wordpress: C:\Users\Administrator\Wordpress
+- PHP Ini C:\Program Files (x86)\PHP\v5.6\php.ini (requires IIS restart)
+- IIS Logs C:\inetpub\logs\Log Files\W3SVC2

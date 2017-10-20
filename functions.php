@@ -267,6 +267,7 @@ add_action('woocommerce_admin_order_data_after_order_details', 'dscsa_admin_edit
 function dscsa_admin_edit_account($order) {
   echo '<br><br>'.get_meta('rx_source', $order->user_id);
   echo '<br><br>'.get_meta('medication[]', $order->user_id);
+  echo '<br><br>'.get_meta('guardian_id', $order->user_id);
   return dscsa_edit_account_form($order->user_id);
 }
 
@@ -290,8 +291,6 @@ function dscsa_admin_invoice($order) {
   }
 }
 
-
-
 add_action( 'woocommerce_edit_account_form_start', 'dscsa_user_edit_account');
 function dscsa_user_edit_account() {
   return dscsa_edit_account_form();
@@ -308,13 +307,6 @@ function dscsa_edit_account_form($user_id = null) {
 
 add_action('woocommerce_login_form_start', 'dscsa_login_form');
 function dscsa_login_form() {
-
-  $patient_id = get_meta('guardian_id', 99999);
-
-  if ($patient_id) {
-    echo 'There is a patient id '.print_r($patient_id, true);
-  }
-
   login_form();
   $shared_fields = shared_fields();
   $shared_fields['birth_date']['id'] = 'birth_date_login';
@@ -604,7 +596,7 @@ function dscsa_save_order($order_id) {
 
   //THIS MUST BE CALLED FIRST IN ORDER TO CREATE GUARDIAN ID
   //TODO should save if they don't exist, but what if they do, should we be overriding?
-  dscsa_save_patient($user_id, shared_fields($user_id) + order_fields($user_id));
+  dscsa_save_patient($user_id, shared_fields($user_id) + order_fields($user_id) + ['order_comments' => true]);
 
   $invoice_number = get_invoice_number();
 
@@ -679,7 +671,7 @@ function dscsa_save_patient($user_id, $fields) {
     if ($key == 'backup_pharmacy')
       update_pharmacy($val);
 
-    if ($key == 'medications_other')
+    if ($key == 'medications_other' OR $key == 'order_comments')
       append_comment($val);
 
     if ($key == 'phone')
