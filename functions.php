@@ -68,15 +68,16 @@ function dscsa_stripe_add_card($stripe_id, $card, $response) {
    ];
 
    $user_id = get_current_user_id();
+   $patient_id = get_meta('guardian_id', $user_id);
 
    update_user_meta($user_id, 'stripe', $card);
    //Meet guardian 50 character limit
    //Customer 18, Card 29, Delimiter 1 = 48
-   update_stripe_tokens($card['customer'].','.$card['card'].',');
+   update_stripe_tokens($patient_id, $card['customer'].','.$card['card'].',');
 
-   $coupon = get_meta('coupon');
+   $coupon = get_meta('coupon', $user_id);
 
-   update_card_and_coupon($card, $coupon);
+   update_card_and_coupon($patient_id, $card, $coupon);
 }
 
 function order_fields($user_id = null) {
@@ -132,6 +133,18 @@ function account_fields($user_id = null) {
       'required'  => true,
       'options'   => ['EN' => __('English'), 'ES' => __('Spanish')],
       'default'   => get_default('language', $user_id) ?: 'EN'
+    ]
+  ];
+}
+
+function admin_fields($user_id = null) {
+
+  $user_id = $user_id ?: get_current_user_id();
+
+  return [
+    'guardian_id' => [
+      'label'     =>  __('Guardian Patient ID'),
+      'default'   => get_default('guardian_id', $user_id)
     ]
   ];
 }
@@ -265,10 +278,8 @@ function shared_fields($user_id = null) {
 //Display custom fields on account/details
 add_action('woocommerce_admin_order_data_after_order_details', 'dscsa_admin_edit_account');
 function dscsa_admin_edit_account($order) {
-  echo '<br><br>'.get_meta('rx_source', $order->user_id);
-  echo '<br><br>'.get_meta('medication[]', $order->user_id);
-  echo '<br><br>'.get_meta('guardian_id', $order->user_id);
-  return dscsa_edit_account_form($order->user_id);
+  $fields = order_fields($order->user_id)+shared_fields($order->user_id)+account_fields($order->user_id)+admin_fields($order->user_id);
+  return dscsa_echo_form_fields($fields);
 }
 
 add_action('woocommerce_admin_order_data_after_order_details', 'dscsa_admin_invoice');
@@ -292,14 +303,12 @@ function dscsa_admin_invoice($order) {
 }
 
 add_action( 'woocommerce_edit_account_form_start', 'dscsa_user_edit_account');
-function dscsa_user_edit_account() {
-  return dscsa_edit_account_form();
+function dscsa_user_edit_account($user_id = null) {
+  $fields = shared_fields($user_id)+account_fields($user_id);
+  return dscsa_echo_form_fields($fields);
 }
 
-function dscsa_edit_account_form($user_id = null) {
-
-  $fields = shared_fields($user_id)+account_fields($user_id);
-
+function dscsa_echo_form_fields($fields) {
   foreach ($fields as $key => $field) {
     echo woocommerce_form_field($key, $field);
   }
@@ -522,6 +531,9 @@ function dscsa_rest_update_order($order, $request) {
   if ( ! $already_run AND $request->get_method() == 'PUT' AND substr($request->get_route(), 0, 14) == '/wc/v2/orders/') {
       $already_run = true;
 
+      wp_mail('adam.kircher@gmail.com', 'dscsa_rest_update_order', print_r($order, true));
+
+
       //TODO incorrectly assuming that invoice number is always 1st (only) value in metadata
       $orders = get_orders_by_invoice_number($request['id']);
 
@@ -542,6 +554,8 @@ add_filter('woocommerce_rest_pre_insert_shop_order_object', 'dscsa_rest_create_o
 function dscsa_rest_create_order($order, $request, $creating) {
 
   if ( ! $creating) return $order;
+
+  wp_mail('adam.kircher@gmail.com', 'dscsa_rest_create_order', print_r($order, true));
 
   //wp_mail('adam.kircher@gmail.com', "dscsa_rest_create_order", print_r($creating, true));
 
@@ -589,49 +603,65 @@ function dscsa_show_order_invoice($order) {
     }
 }
 
-add_action('woocommerce_checkout_update_order_meta', 'dscsa_save_order');
-function dscsa_save_order($order_id) {
-  $order = wc_get_order( $order_id );
+//woocommerce_checkout_update_order_meta
+global $alreadySaved;
+add_action('woocommerce_before_order_object_save', 'dscsa_before_order_object_save');
+function dscsa_before_order_object_save($order) {
+
+  global $alreadySaved;
+
+  if ($alreadySaved OR ! $_POST) return; //$_POST is not set on duplicate order
+
+  $alreadySaved = true;
+
+  //$order = wc_get_order( $order_id );
   $user_id = $order->get_user_id();
 
   //THIS MUST BE CALLED FIRST IN ORDER TO CREATE GUARDIAN ID
   //TODO should save if they don't exist, but what if they do, should we be overriding?
-  dscsa_save_patient($user_id, shared_fields($user_id) + order_fields($user_id) + ['order_comments' => true]);
+  $patient_id = dscsa_save_patient($user_id, shared_fields($user_id) + order_fields($user_id) + ['order_comments' => true]);
 
-  $invoice_number = get_invoice_number();
+  $invoice_number = $order->get_meta('invoice_number', true) ?: get_invoice_number($patient_id);
 
-  update_post_meta($order_id, 'invoice_number', $invoice_number);
+  if ( ! is_admin())
+    wp_mail('hello@goodpill.org', 'New Webform Order', "New Order #$invoice_number Webform Complete. Source: ".print_r($_POST['rx_source'], true));
 
-  wp_mail('hello@goodpill.org', 'New Webform Order', "New Order #$invoice_number Webform Complete. Source: ".print_r($_POST['rx_source'], true));
+  $order->update_meta_data('invoice_number', $invoice_number);
 
-  update_email(sanitize_text_field($_POST['email']));
+  update_email($patient_id, sanitize_text_field($_POST['email']));
 
-  $coupon = $order->get_used_coupons()[0] ?: get_meta('coupon');
-  $card = get_meta('stripe');
+  $coupon = $order->get_used_coupons()[0] ?: get_meta('coupon', $user_id);
+  $card = get_meta('stripe', $user_id);
 
   update_user_meta($user_id, 'coupon', $coupon);
-  update_card_and_coupon($card, $coupon);
+  update_card_and_coupon($patient_id, $card, $coupon);
 
-  $prefix = $_POST['ship_to_different_address'] ? 'shipping_' : 'billing_';
+  //$prefix = $_POST['ship_to_different_address'] ? 'shipping_' : 'billing_';
 
   //TODO this should be called on the edit address page as well
   $address = update_shipping_address(
-    sanitize_text_field($_POST[$prefix.'address_1']),
-    sanitize_text_field($_POST[$prefix.'address_2']),
-    sanitize_text_field($_POST[$prefix.'city']),
-    sanitize_text_field($_POST[$prefix.'postcode'])
+    $patient_id,
+    $order->get_billing_address_1(),
+    $order->get_billing_address_2(),
+    $order->get_billing_city(),
+    $order->get_billing_postcode()
   );
 
   if ($_POST['medication']) {
     foreach ($_POST['medication'] as $drug_name) {
-      add_preorder($drug_name, $_POST['backup_pharmacy']);
+      add_preorder($patient_id, $drug_name, $_POST['backup_pharmacy']);
     }
   }
 }
 
 function dscsa_save_patient($user_id, $fields) {
 
-  $patient_id = get_meta('guardian_id', $user_id);
+  if ($_POST['guardian_id']) {
+    $patient_id = sanitize_text_field($_POST['guardian_id']);
+    update_user_meta($user_id, 'guardian_id', $patient_id);
+  } else {
+    $patient_id = get_meta('guardian_id', $user_id);
+  }
 
   if ( ! $patient_id) {
     $patient_id = add_patient(
@@ -642,6 +672,8 @@ function dscsa_save_patient($user_id, $fields) {
     );
 
     update_user_meta($user_id, 'guardian_id', $patient_id);
+
+    wp_mail('adam.kircher@gmail.com', "new patient", $patient_id.' '.print_r($_POST, true).print_r(sqlsrv_errors(), true));
   }
 
   $allergy_codes = [
@@ -660,7 +692,6 @@ function dscsa_save_patient($user_id, $fields) {
     'allergies_none' => 99,
     'allergies_other' => 100
   ];
-  wp_mail('adam.kircher@gmail.com', "new patient", $patient_id.' '.print_r($_POST, true).print_r(sqlsrv_errors(), true));
 
   //TODO should save if they don't exist, but what if they do, should we be overriding?
   foreach ($fields as $key => $field) {
@@ -669,13 +700,16 @@ function dscsa_save_patient($user_id, $fields) {
     $val = sanitize_text_field($_POST[$key]);
 
     if ($key == 'backup_pharmacy')
-      update_pharmacy($val);
+      update_pharmacy($patient_id, $val);
 
-    if ($key == 'medications_other' OR $key == 'order_comments')
-      append_comment($val);
+    if ($key == 'medications_other')
+      append_comment($patient_id, $val);
+
+    if ($key == 'order_comments')
+      append_comment($patient_id, " $val");
 
     if ($key == 'phone')
-      update_phone($val);
+      update_phone($patient_id, $val);
 
     update_user_meta($user_id, $key, $val);
 
@@ -684,9 +718,13 @@ function dscsa_save_patient($user_id, $fields) {
       //is selected manually set value to false for all except none
       $val = ($_POST['allergies_none'] AND $key != 'allergies_none') ? NULL : $val;
       //wp_mail('adam.kircher@gmail.com', 'save allergies', "$key $allergy_codes[$key] $val");
-      add_remove_allergy($allergy_codes[$key], $val);
+      add_remove_allergy($patient_id, $allergy_codes[$key], $val);
     }
   }
+
+  wp_mail('adam.kircher@gmail.com', "patient saved", $patient_id.' '.print_r($_POST, true).print_r(sqlsrv_errors(), true));
+
+  return $patient_id;
 }
 
 //Didn't work: https://stackoverflow.com/questions/38395784/woocommerce-overriding-billing-state-and-post-code-on-existing-checkout-fields
@@ -699,7 +737,7 @@ function dscsa_translate($term, $raw, $domain) {
 
   global $phone;
 
-  $phone = $phone ?: (get_default('phone') ?: '<phone number>');
+  $phone = $phone ?: get_default('phone');
 
   $toEnglish = [
     "<span class='english'>Pay by Credit or Debit Card</span><span class='spanish'>Pago con tarjeta de crédito o débito</span>" => "Pay by Credit or Debit Card",
@@ -890,8 +928,8 @@ function dscsa_checkout_fields( $fields ) {
   return $fields;
 }
 
-function get_invoice_number() {
-  return db_run("SirumWeb_FindPendingInvoiceNbrByPatID(?)", [get_meta('guardian_id')], 1)['invoice_nbr'];
+function get_invoice_number($guardian_id) {
+  return db_run("SirumWeb_FindPendingInvoiceNbrByPatID(?)", [$guardian_id], 1)['invoice_nbr'];
 }
 
 
@@ -918,9 +956,9 @@ function get_invoice_number() {
   else if @AlrNumber = 99  -- none
   else if @AlrNumber = 100 -- other
 */
-function add_remove_allergy($allergy_id, $value) {
+function add_remove_allergy($guardian_id, $allergy_id, $value) {
   return db_run("SirumWeb_AddRemove_Allergy(?, ?, ?, ?)", [
-    get_meta('guardian_id'), $value ? 1 : 0, $allergy_id, $value
+    $guardian_id, $value ? 1 : 0, $allergy_id, $value
   ]);
 }
 
@@ -928,9 +966,9 @@ function add_remove_allergy($allergy_id, $value) {
 //   @PatID int,  -- ID of Patient
 //   @PatCellPhone VARCHAR(20)
 // }
-function update_phone($cell_phone) {
+function update_phone($guardian_id, $cell_phone) {
   return db_run("SirumWeb_AddUpdatePatHomePhone(?, ?)", [
-    get_meta('guardian_id'), $cell_phone
+    $guardian_id, $cell_phone
   ]);
 }
 
@@ -943,9 +981,9 @@ function update_phone($cell_phone) {
 // ,@State varchar(2)     -- State Name
 // ,@Zip varchar(10)      -- Zip Code
 // ,@Country varchar(3)   -- Country Code
-function update_shipping_address($address_1, $address_2, $city, $zip) {
+function update_shipping_address($guardian_id, $address_1, $address_2, $city, $zip) {
   $params = [
-    get_meta('guardian_id'), $address_1, $address_2, $city, substr($zip, 0, 5)
+    $guardian_id, $address_1, $address_2, $city, substr($zip, 0, 5)
   ];
 
   //wp_mail('adam.kircher@gmail.com', "update_shipping_address", print_r($params, true));
@@ -983,8 +1021,8 @@ function add_patient($first_name, $last_name, $birth_date, $language) {
 
 // Procedure dbo.SirumWeb_AddToPatientComment (@PatID int, @CmtToAdd VARCHAR(4096)
 // The comment will be appended to the existing comment if it is not already in the comment field.
-function append_comment($comment) {
-  return db_run("SirumWeb_AddToPatientComment(?, ?)", [get_meta('guardian_id'), $comment]);
+function append_comment($guardian_id, $comment) {
+  return db_run("SirumWeb_AddToPatientComment(?, ?)", [$guardian_id, $comment]);
 }
 
 // Create Procedure dbo.SirumWeb_AddToPreorder(
@@ -999,12 +1037,12 @@ function append_comment($comment) {
 //   ,@PharmacyPhone varchar(20)   -- Phone Number
 //   ,@PharmacyFaxNo varchar(20)   -- Phone Fax Number
 // If you send the NDC, it will use it.  If you do not send and NCD it will attempt to look up the drug by the name.  I am not sure that this will work correctly, the name you pass in would most likely have to be an exact match, even though I am using  like logic  (ie “%Aspirin 325mg% “) to search.  We may have to work on this a bit more
-function add_preorder($drug_name, $pharmacy) {
+function add_preorder($guardian_id, $drug_name, $pharmacy) {
 
    $store = json_decode(stripslashes($pharmacy));
 
    return db_run("SirumWeb_AddToPreorder(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", [
-       get_meta('guardian_id'),
+       $guardian_id,
        explode(",", $drug_name)[0],
        $store->npi,
        $store->name,
@@ -1032,7 +1070,7 @@ function add_preorder($drug_name, $pharmacy) {
 //   ,@PharmacyPhone varchar(20)   -- Phone Number
 //   ,@PharmacyFaxNo varchar(20)   -- Phone Fax Number
 // If you send the NDC, it will use it.  If you do not send and NCD it will attempt to look up the drug by the name.  I am not sure that this will work correctly, the name you pass in would most likely have to be an exact match, even though I am using  like logic  (ie “%Aspirin 325mg% “) to search.  We may have to work on this a bit more
-function update_pharmacy($pharmacy) {
+function update_pharmacy($guardian_id, $pharmacy) {
 
   $store = json_decode(stripslashes($pharmacy));
 
@@ -1049,27 +1087,27 @@ function update_pharmacy($pharmacy) {
 
   db_run("SirumWeb_AddExternalPharmacy(?, ?, ?, ?, ?, ?, ?, ?)", $args);
 
-  db_run("SirumWeb_AddUpdatePatientUD(?, 1, ?)", [get_meta('guardian_id'), $store->name]);
+  db_run("SirumWeb_AddUpdatePatientUD(?, 1, ?)", [$guardian_id, $store->name]);
   //Because of 50 character limit, the street will likely be cut off.
-  return db_run("SirumWeb_AddUpdatePatientUD(?, 2, ?)", [get_meta('guardian_id'), $store->npi.','.$store->fax.','.$store->phone.','.$store->street]);
+  return db_run("SirumWeb_AddUpdatePatientUD(?, 2, ?)", [$guardian_id, $store->npi.','.$store->fax.','.$store->phone.','.$store->street]);
 }
 
-function update_stripe_tokens($value) {
-  return db_run("SirumWeb_AddUpdatePatientUD(?, 3, ?)", [get_meta('guardian_id'), $value]);
+function update_stripe_tokens($guardian_id, $value) {
+  return db_run("SirumWeb_AddUpdatePatientUD(?, 3, ?)", [$guardian_id, $value]);
 }
 
-function update_card_and_coupon($card = [], $coupon) {
+function update_card_and_coupon($guardian_id, $card = [], $coupon) {
   //Meet guardian 50 character limit
   //Last4 4, Month 2, Year 2, Type (Mastercard = 10), Delimiter 4, So coupon will be truncated if over 28 characters
   $value = $card['last4'].','.$card['month'].'/'.substr($card['year'] ?: '', 2).','.$card['type'].','.$coupon;
 
-  return db_run("SirumWeb_AddUpdatePatientUD(?, 4, ?)", [get_meta('guardian_id'), $value]);
+  return db_run("SirumWeb_AddUpdatePatientUD(?, 4, ?)", [$guardian_id, $value]);
 }
 
 //Procedure dbo.SirumWeb_AddUpdatePatEmail (@PatID int, @EMailAddress VARCHAR(255)
 //Set the patID and the new email address
-function update_email($email) {
-  return db_run("SirumWeb_AddUpdatePatEmail(?, ?)", [get_meta('guardian_id'), $email]);
+function update_email($guardian_id, $email) {
+  return db_run("SirumWeb_AddUpdatePatEmail(?, ?)", [$guardian_id, $email]);
 }
 
 global $conn;
