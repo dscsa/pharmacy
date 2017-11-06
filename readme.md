@@ -56,7 +56,55 @@ If not using windows authentication:
  * In General Add User Name, Login Name
  * In Membership check db_datareader, db_datawriter
 
-# Wordpress
+# Wordpress on Linux (Amazon-AMI)
+
+- Reference:http://coenraets.org/blog/2012/01/setting-up-wordpress-on-amazon-ec2-in-5-minutes/
+- php 5.6 is last version that currently supports mssql: `sudo yum install php56`
+- `sudo yum install php56-mysqlnd`
+- Assuming encrypted EBS drive is named `sdb`:`sudo mkfs -t ext4 /dev/sdb`
+- Put MySQL on the encrypted drive
+- `sudo mkdir /goodpill`
+- `sudo mount /dev/sdb /goodpill`
+- `sudo mv /var/lib/mysql /goodpill/`
+- `sudo ln -s /goodpill/mysql /var/lib/`
+- `sudo mysql_secure_installation`
+* Answer the wizard questions as follows:
+**Enter current password for root: Press return for none
+**Change Root Password: Y
+**New Password: Enter your new password
+**Remove anonymous user: Y
+**Disallow root login remotely: Y
+**Remove test database and access to it: Y
+**Reload privilege tables now: Y
+- Put Wordpress on the encrypted drive
+- `sudo ln -s /goodpill/html /var/www`
+- `cd /goodpill/html`
+- `sudo wget http://wordpress.org/latest.tar.gz`
+- `sudo tar -xzvf latest.tar.gz`
+- `sudo mv wordress/* ./`
+
+- Install FTP so Wordpress can install themes and plugins
+- `sudo yum install vsftpd`
+- `sudo nano /etc/vsftpd/vsftpd.conf`
+*	change anonymous_enable to “=NO”
+* Uncomment chroot_local_user=YES
+*	add pasv_enable=YES
+*	add pasv_min_port=1024
+* add pasv_max_port=1048
+* add pasv_address=<Public IP>
+- `sudo usermod -d /goodpill/html adminsirum`
+- `sudo chown -R adminsirum /goodpill/html`
+- `sudo adduser adminsirum`
+- `sudo passwd adminsirum`
+- `sudo /etc/init.d/vsftpd restart`
+
+
+- `mysqladmin -uroot create goodpill`
+- `sudo service mysqld start`
+- `sudo service httpd start`
+
+
+# Wordpress on Windows
 User Windows Platform Installer to install.
 For Missing Dependency Errors:
 - Server Manager > Manage > Add Roles and Features
