@@ -452,11 +452,10 @@ function dscsa_redirect() {
 add_filter ('wp_redirect', 'dscsa_wp_redirect');
 function dscsa_wp_redirect($location) {
 
-  //This goes back to account/details rather than /account after saving account details
+  //This goes back to account/orders rather than /account after saving account details
   if (substr($location, -9) == '/account/') {
-    return $location.'details/';
+    return $location.'orders/?add-to-cart=30';
   }
-
   //After successful order, add another item back into cart.
   //Add to card won't work unless we replace query params e.g., key=wc_order_594de1d38152e
   if (substr($_GET['key'], 0, 9) == 'wc_order_')
@@ -517,8 +516,8 @@ function dscsa_order_search_fields( $search_fields ) {
 //TODO should changing checkout fields overwrite account fields if they are set?
 add_action('woocommerce_save_account_details', 'dscsa_save_account');
 function dscsa_save_account($user_id) {
-  dscsa_save_patient($user_id, shared_fields($user_id) + account_fields($user_id));
-  update_email(sanitize_text_field($_POST['account_email']));
+  $patient_id = dscsa_save_patient($user_id, shared_fields($user_id) + account_fields($user_id));
+  update_email($patient_id, sanitize_text_field($_POST['account_email']));
 }
 
 global $already_run;
@@ -531,8 +530,7 @@ function dscsa_rest_update_order($order, $request) {
   if ( ! $already_run AND $request->get_method() == 'PUT' AND substr($request->get_route(), 0, 14) == '/wc/v2/orders/') {
       $already_run = true;
 
-      wp_mail('adam.kircher@gmail.com', 'dscsa_rest_update_order', print_r($order, true));
-
+      //wp_mail('adam.kircher@gmail.com', 'dscsa_rest_update_order', print_r($order, true));
 
       //TODO incorrectly assuming that invoice number is always 1st (only) value in metadata
       $orders = get_orders_by_invoice_number($request['id']);
@@ -555,8 +553,7 @@ function dscsa_rest_create_order($order, $request, $creating) {
 
   if ( ! $creating) return $order;
 
-  wp_mail('adam.kircher@gmail.com', 'dscsa_rest_create_order', print_r($order, true));
-
+  //wp_mail('adam.kircher@gmail.com', 'dscsa_rest_create_order', print_r($order, true));
   //wp_mail('adam.kircher@gmail.com', "dscsa_rest_create_order", print_r($creating, true));
 
   $invoice_number = $order->get_meta('invoice_number', true);
@@ -652,6 +649,25 @@ function dscsa_before_order_object_save($order) {
       add_preorder($patient_id, $drug_name, $_POST['backup_pharmacy']);
     }
   }
+}
+
+//TODO implement this funciton
+function get_field($key) {
+   $val = $order->get_meta($key, true);
+   if ( ! $val) {
+     $val = get_from_guardian($key);
+     $order->update_meta_data($key, $val);
+   }
+   return $val;
+}
+
+//TODO implement this funciton
+function set_field($key, $newVal) {
+   $oldVal = $order->get_meta($key, true);
+   if ($newValue != $oldVal) {
+     save_to_guardian($key, $newVal);
+   }
+   return $newVal;
 }
 
 function dscsa_save_patient($user_id, $fields) {
@@ -1119,6 +1135,9 @@ function db_run($sql, $params, $resultIndex = 0) {
   if ( ! stmt) return;
 
   for ($i = 0; $i < $resultIndex; $i++) {
+    if ($resultIndex AND sqlsrv_has_rows($stmt))
+      wp_mail('adam.kircher@gmail.com', "findInvoiceNumber $i", print_r(db_fetch($stmt), true).' '.print_r($params, true).' '.print_r($errors, true));
+
     sqlsrv_next_result($stmt);
   }
 

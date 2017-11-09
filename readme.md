@@ -61,6 +61,7 @@ If not using windows authentication:
 - Reference:http://coenraets.org/blog/2012/01/setting-up-wordpress-on-amazon-ec2-in-5-minutes/
 - php 5.6 is last version that currently supports mssql: `sudo yum install php56`
 - `sudo yum install php56-mysqlnd`
+- Wordpress needs image library to for cropping and resize: `sudo yum install php56-gd`
 - Assuming encrypted EBS drive is named `sdb`:`sudo mkfs -t ext4 /dev/sdb`
 - Put MySQL on the encrypted drive
 - `sudo mkdir /goodpill`
@@ -83,6 +84,11 @@ If not using windows authentication:
 - `sudo tar -xzvf latest.tar.gz`
 - `sudo mv wordress/* ./`
 
+* Enable Uploads to be writeable
+- `sudo mkdir /goodpill/html/wp-content/uploads`
+- `sudo chown -R adminsirum:adminsirum /goodpill/html/wp-content/uploads`
+- `sudo chmod 747 /goodpill/html/wp-content/uploads`
+
 - Install FTP so Wordpress can install themes and plugins
 - `sudo yum install vsftpd`
 - `sudo nano /etc/vsftpd/vsftpd.conf`
@@ -98,10 +104,29 @@ If not using windows authentication:
 - `sudo passwd adminsirum`
 - `sudo /etc/init.d/vsftpd restart`
 
+* Edit .htaccess to remove index.php from URLs
+- sudo nano /etc/httpd/conf/httpd.conf
+* Change all `Override None` to `Override All`
+* Add `AccessFileName /var/www/html/htaccess.txt`
+*  LogLevel rewrite:trace3 # if htaccess troubles
+- `sudo nano /var/www/html/htaccess.txt`
+
+# BEGIN WordPress
+RewriteEngine On
+RewriteBase /
+RewriteRule ^index\.php$ - [L]
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule . /index.php [L]
+# END WordPress
 
 - `mysqladmin -uroot create goodpill`
 - `sudo service mysqld start`
 - `sudo service httpd start`
+
+- Change page permalink from my-account to account
+- Change woocommerce links
+- Change wordpress settings > permalink's to post-name
 
 
 # Wordpress on Windows
