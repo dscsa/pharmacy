@@ -448,7 +448,7 @@ function email_name() {
 // Clicking on Dashboard/New Order in Nave will add the actual product
 add_action('woocommerce_registration_redirect', 'dscsa_redirect', 2);
 function dscsa_redirect() {
-  return home_url('/account/?add-to-cart=30#/');
+  return home_url('/account/?add-to-cart=8#/');
 }
 
 add_filter ('wp_redirect', 'dscsa_wp_redirect');
@@ -456,15 +456,15 @@ function dscsa_wp_redirect($location) {
 
   //This goes back to account/orders rather than /account after saving account details
   if (substr($location, -9) == '/account/') {
-    return $location.'orders/?add-to-cart=30';
+    return $location.'orders/?add-to-cart=8';
   }
   //After successful order, add another item back into cart.
   //Add to card won't work unless we replace query params e.g., key=wc_order_594de1d38152e
   if (substr($_GET['key'], 0, 9) == 'wc_order_')
-   return substr($location, 0, -26).'add-to-cart=30';
+   return substr($location, 0, -26).'add-to-cart=8';
 
   //Hacky, but only way I could get add-to-cart not to be called twice in a row.
-  if (substr($location, -15) == '?add-to-cart=30')
+  if (substr($location, -15) == '?add-to-cart=8')
    return substr($location, 0, -15);
 
   return $location;

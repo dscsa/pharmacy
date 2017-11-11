@@ -59,7 +59,7 @@ If not using windows authentication:
 # Wordpress on Linux (Amazon-AMI)
 
 - Reference:http://coenraets.org/blog/2012/01/setting-up-wordpress-on-amazon-ec2-in-5-minutes/
-- php 5.6 is last version that currently supports mssql: `sudo yum install php56`
+- php 5.6 is last version that currently supports mssql: `sudo yum install php56, php56-mbstring`
 - `sudo yum install php56-mysqlnd`
 - Wordpress needs image library to for cropping and resize: `sudo yum install php56-gd`
 - Assuming encrypted EBS drive is named `sdb`:`sudo mkfs -t ext4 /dev/sdb`
