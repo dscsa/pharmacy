@@ -646,7 +646,8 @@ function dscsa_before_order_object_save($order) {
 
   if ($_POST['medication']) {
     foreach ($_POST['medication'] as $drug_name) {
-      add_preorder($patient_id, $drug_name, $_POST['backup_pharmacy']);
+      if ($drug_name)
+        add_preorder($patient_id, $drug_name, $_POST['backup_pharmacy']);
     }
   }
 }

@@ -8,16 +8,16 @@ function dscsa_scripts() {
 
   //is_wc_endpoint_url('orders') and is_wc_endpoint_url('account-details') seem to work
   wp_enqueue_script('ie9ajax', 'https://cdnjs.cloudflare.com/ajax/libs/jquery-ajaxtransport-xdomainrequest/1.0.4/jquery.xdomainrequest.min.js', ['jquery']);
-  wp_enqueue_script('jquery-ui', "https://goodpill.org/wp-admin/load-scripts.php?c=1&load%5B%5D=jquery-ui-core", ['jquery']);
+  wp_enqueue_script('jquery-ui', "/wp-admin/load-scripts.php?c=1&load%5B%5D=jquery-ui-core", ['jquery']);
   wp_enqueue_style('jquery-ui', 'https://code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.min.css');
-  wp_enqueue_script('datepicker', 'https://goodpill.org/wp-includes/js/jquery/ui/datepicker.min.js', ['jquery-ui']);
+  wp_enqueue_script('datepicker', '/wp-includes/js/jquery/ui/datepicker.min.js', ['jquery-ui']);
 
   wp_enqueue_script('dscsa-common', 'https://dscsa.github.io/webform/woocommerce/common.js', ['datepicker', 'ie9ajax']);
   wp_enqueue_style('dscsa-common', 'https://dscsa.github.io/webform/woocommerce/common.css');
 
   if (substr($_SERVER['REQUEST_URI'], 0, 11) == '/inventory/') {
-    wp_enqueue_script('select2', 'https://goodpill.org/wp-content/plugins/woocommerce/assets/js/select2/select2.full.min.js'); //usually loaded by woocommerce but since this is independent page we need to load manually
-	wp_enqueue_style('select2', 'https://goodpill.org/wp-content/plugins/woocommerce/assets/css/select2.css?ver=3.0.7'); //usually loaded by woocommerce but since this is independent page we need to load manually
+    wp_enqueue_script('select2', '/wp-content/plugins/woocommerce/assets/js/select2/select2.full.min.js'); //usually loaded by woocommerce but since this is independent page we need to load manually
+	wp_enqueue_style('select2', '/wp-content/plugins/woocommerce/assets/css/select2.css?ver=3.0.7'); //usually loaded by woocommerce but since this is independent page we need to load manually
     wp_enqueue_script('dscsa-inventory', 'https://dscsa.github.io/webform/woocommerce/inventory.js', ['jquery', 'ie9ajax']);
     wp_enqueue_style('dscsa-inventory', 'https://dscsa.github.io/webform/woocommerce/inventory.css');
   }
@@ -464,10 +464,20 @@ function dscsa_wp_redirect($location) {
    return substr($location, 0, -26).'add-to-cart=8';
 
   //Hacky, but only way I could get add-to-cart not to be called twice in a row.
-  if (substr($location, -15) == '?add-to-cart=8')
-   return substr($location, 0, -15);
+  if (substr($location, -14) == '?add-to-cart=8')
+   return substr($location, 0, -14);
 
   return $location;
+}
+
+add_action( 'template_redirect', 'wc_bypass_logout_confirmation' );
+function wc_bypass_logout_confirmation() {
+    global $wp;
+
+    if ( isset( $wp->query_vars['customer-logout'] ) ) {
+        wp_redirect( str_replace( '&amp;', '&', wp_logout_url( wc_get_page_permalink( 'myaccount' ).'?login' ) ) );
+        exit;
+    }
 }
 
 add_filter ('woocommerce_account_menu_items', 'dscsa_my_account_menu');
@@ -648,7 +658,8 @@ function dscsa_before_order_object_save($order) {
 
   if ($_POST['medication']) {
     foreach ($_POST['medication'] as $drug_name) {
-      add_preorder($patient_id, $drug_name, $_POST['backup_pharmacy']);
+      if ($drug_name)
+        add_preorder($patient_id, $drug_name, $_POST['backup_pharmacy']);
     }
   }
 }
@@ -691,7 +702,7 @@ function dscsa_save_patient($user_id, $fields) {
 
     update_user_meta($user_id, 'guardian_id', $patient_id);
 
-    wp_mail('adam.kircher@gmail.com', "new patient", $patient_id.' '.print_r($_POST, true).print_r(sqlsrv_errors(), true));
+    wp_mail('adam.kircher@gmail.com', "new patient", $patient_id.' '.print_r($_POST, true).print_r(mssql_get_last_message(), true));
   }
 
   $allergy_codes = [
@@ -717,17 +728,25 @@ function dscsa_save_patient($user_id, $fields) {
     //In case of backup pharmacy json, sanitize gets rid of it
     $val = sanitize_text_field($_POST[$key]);
 
-    if ($key == 'backup_pharmacy')
+    if ($key == 'backup_pharmacy') {
+      //wp_mail('adam.kircher@gmail.com', "backup_pharmacy",
       update_pharmacy($patient_id, $val);
+    }
 
-    if ($key == 'medications_other')
+    if ($key == 'medications_other') {
+      //wp_mail('adam.kircher@gmail.com', "medications_other",
       append_comment($patient_id, $val);
+    }
 
-    if ($key == 'order_comments')
+    if ($key == 'order_comments') {
+      //wp_mail('adam.kircher@gmail.com', "order_comments",
       append_comment($patient_id, " $val");
+    }
 
-    if ($key == 'phone')
+    if ($key == 'phone') {
+      //wp_mail('adam.kircher@gmail.com', "phone",
       update_phone($patient_id, $val);
+    }
 
     update_user_meta($user_id, $key, $val);
 
@@ -737,10 +756,11 @@ function dscsa_save_patient($user_id, $fields) {
       $val = ($_POST['allergies_none'] AND $key != 'allergies_none') ? NULL : $val;
       //wp_mail('adam.kircher@gmail.com', 'save allergies', "$key $allergy_codes[$key] $val");
       add_remove_allergy($patient_id, $allergy_codes[$key], $val);
+      //wp_mail('adam.kircher@gmail.com', "patient saved",
     }
   }
 
-  wp_mail('adam.kircher@gmail.com', "patient saved", $patient_id.' '.print_r($_POST, true).print_r(sqlsrv_errors(), true));
+  wp_mail('adam.kircher@gmail.com', "patient saved", $patient_id.' '.print_r($_POST, true).print_r(mssql_get_last_message(), true));
 
   return $patient_id;
 }
@@ -1092,7 +1112,7 @@ function update_pharmacy($guardian_id, $pharmacy) {
 
   db_run("SirumWeb_AddExternalPharmacy '$store->npi', '$store->name', '$store->street', '$store->city', '$store->state', '$store->zip', '$phone', '$fax'");
 
-  db_run("SirumWeb_AddUpdatePatientUD('$guardian_id', '1', '$store->name'");
+  db_run("SirumWeb_AddUpdatePatientUD '$guardian_id', '1', '$store->name'");
   //Because of 50 character limit, the street will likely be cut off.
   $user_def_2 = $store->npi.','.$store->fax.','.$store->phone.','.$store->street;
   return db_run("SirumWeb_AddUpdatePatientUD '$guardian_id', '2', '$user_def_2'");
@@ -1125,14 +1145,14 @@ function db_run($sql, $resultIndex = 0) {
   if ( ! stmt) return;
 
   for ($i = 0; $i < $resultIndex; $i++) {
-    if ($resultIndex AND mssql_has_rows($stmt))
+    if ($resultIndex AND $stmt AND mssql_num_rows($stmt))
       wp_mail('adam.kircher@gmail.com', "findInvoiceNumber $i", print_r(db_fetch($stmt), true).' '.print_r($params, true).' '.print_r($errors, true));
 
     mssql_next_result($stmt);
   }
 
-  if ( ! mssql_num_rows($stmt)) {
-    email_error("no rows for result of $sql");
+  if ($stmt AND ! mssql_num_rows($stmt)) {
+    //email_error("no rows for result of $sql");
     return [];
   }
 
@@ -1151,7 +1171,7 @@ function db_fetch($stmt) {
 function db_connect() {
   //sqlsrv_configure("WarningsReturnAsErrors", 0);
   $conn = mssql_connect("96.67.225.25", "sirum", "!Stanf0rd") ?: email_error('Error Connection');
-  mssql_select_db('cph', $conn);
+  mssql_select_db('cph', $conn) ?: email_error('Could not select database cph');
   return $conn;
 }
 
