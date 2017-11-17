@@ -744,6 +744,12 @@ function dscsa_save_patient($user_id, $fields) {
   return $patient_id;
 }
 
+add_filter( 'wc_order_statuses', 'dscsa_renaming_order_status' );
+function dscsa_renaming_order_status( $order_statuses ) {
+    $order_statuses['wc-on-hold'] = _x('Being prepared', 'Order status', 'woocommerce' );
+    return $order_statuses;
+}
+
 //Didn't work: https://stackoverflow.com/questions/38395784/woocommerce-overriding-billing-state-and-post-code-on-existing-checkout-fields
 //Did work: https://stackoverflow.com/questions/36619793/cant-change-postcode-zip-field-label-in-woocommerce
 global $lang;
