@@ -30,9 +30,8 @@
   margin-bottom:10px !important
 }
 .woocommerce-error a { /*text-decoration underline did not have enough space between text and underline */
-  border-bottom: solid 2px #fff;
+  border-bottom: solid 1px #fff;
   display: inline;
-  padding-bottom: 3px;
 }
 /*remove border from mobile menu */
 button.menu-toggle {
