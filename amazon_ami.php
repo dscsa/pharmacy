@@ -1,10 +1,19 @@
 <?php
 /* Enter your custom functions here */
 
-
 // Register custom style sheets and javascript.
-add_action('wp_enqueue_scripts', 'dscsa_scripts');
-function dscsa_scripts() {
+add_action('admin_enqueue_scripts', 'dscsa_admin_scripts');
+function dscsa_admin_scripts() {
+  if ($_GET['post'] AND $_GET['action'] == 'edit') {
+    wp_enqueue_script('dscsa-common', 'https://dscsa.github.io/webform/woocommerce/common.js');
+    wp_enqueue_style('dscsa-common', 'https://dscsa.github.io/webform/woocommerce/common.css');
+    wp_enqueue_style('dscsa-admin', 'https://dscsa.github.io/webform/woocommerce/admin.css');
+    wp_enqueue_script('dscsa-admin', 'https://dscsa.github.io/webform/woocommerce/admin.js', ['jquery', 'dscsa-common']);
+  }
+}
+
+add_action('wp_enqueue_scripts', 'dscsa_user_scripts');
+function dscsa_user_scripts() {
 
   //is_wc_endpoint_url('orders') and is_wc_endpoint_url('account-details') seem to work
   wp_enqueue_script('ie9ajax', 'https://cdnjs.cloudflare.com/ajax/libs/jquery-ajaxtransport-xdomainrequest/1.0.4/jquery.xdomainrequest.min.js', ['jquery']);
@@ -17,7 +26,7 @@ function dscsa_scripts() {
 
   if (substr($_SERVER['REQUEST_URI'], 0, 11) == '/inventory/') {
     wp_enqueue_script('select2', '/wp-content/plugins/woocommerce/assets/js/select2/select2.full.min.js'); //usually loaded by woocommerce but since this is independent page we need to load manually
-	wp_enqueue_style('select2', '/wp-content/plugins/woocommerce/assets/css/select2.css?ver=3.0.7'); //usually loaded by woocommerce but since this is independent page we need to load manually
+	  wp_enqueue_style('select2', '/wp-content/plugins/woocommerce/assets/css/select2.css?ver=3.0.7'); //usually loaded by woocommerce but since this is independent page we need to load manually
     wp_enqueue_script('dscsa-inventory', 'https://dscsa.github.io/webform/woocommerce/inventory.js', ['jquery', 'ie9ajax']);
     wp_enqueue_style('dscsa-inventory', 'https://dscsa.github.io/webform/woocommerce/inventory.css');
   }
@@ -91,7 +100,7 @@ function order_fields($user_id = null) {
     'rx_source' => [
       'type'   	  => 'radio',
       'required'  => true,
-      'default'  => 'pharmacy',
+      'default'   => get_default('rx_source', $user_id) ?: 'erx',
       'options'   => [
         'erx'     => __('Prescription(s) were sent from my doctor'),
         'pharmacy' => __('Transfer prescription(s) from my pharmacy')
@@ -789,7 +798,7 @@ function dscsa_translate($term, $raw, $domain) {
   $phone = $phone ?: get_default('phone');
 
   $toEnglish = [
-    "An account is already registered with that username. Please choose another." => 'Looks like you have already registered. Goto the <a href="/account/?login">"Login" page</a> and use your 10 digit phone number as your default password e.g. the phone number (123) 456-7890 would have a default password of 1234567890.',
+    "An account is already registered with that username. Please choose another." => 'Looks like you have already registered. Goto the <a href="/account/?login">Login page</a> and use your 10 digit phone number as your default password e.g. the phone number (123) 456-7890 would have a default password of 1234567890.',
     "<span class='english'>Pay by Credit or Debit Card</span><span class='spanish'>Pago con tarjeta de crédito o débito</span>" => "Pay by Credit or Debit Card",
     'Spanish'  => 'Espanol', //Registering
     'Email:' => 'Email', //order details
