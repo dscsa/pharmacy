@@ -365,19 +365,23 @@ add_action('wp_loaded', 'dscsa_default_post_value');
 function dscsa_default_post_value() {
 
   if ($_POST['birth_date']) {
-    $birth_date = date_format(date_create($_POST['birth_date']), 'Y-m-d'); //in case html type=date does not work (e.g. IE)
+    $birth_date = date_create($_POST['birth_date']);
 
-    $array = explode('-',$birth_date);
+    if ($birth_date) {
+      $birth_date = date_format($birth_date, 'Y-m-d'); //in case html type=date does not work (e.g. IE)
 
-    if ($array[0] > date('Y'))
-      $array[0] -= 100;
+      $array = explode('-',$birth_date);
 
-    if (checkdate($array[1],$array[2],$array[0])) {
-      $_POST['birth_date'] = implode('-', $array);
-      if ($_POST['first_name'] AND $_POST['last_name']) {    //Set user name for both login and registration
-         $_POST['first_name'] = mb_convert_case($_POST['first_name'], MB_CASE_TITLE, "UTF-8" );
-         $_POST['last_name'] = mb_convert_case($_POST['last_name'], MB_CASE_TITLE, "UTF-8" );
-         $_POST['username'] = "$_POST[first_name] $_POST[last_name] $_POST[birth_date]";
+      if ($array[0] > date('Y'))
+        $array[0] -= 100;
+
+      if (checkdate($array[1],$array[2],$array[0])) {
+        $_POST['birth_date'] = implode('-', $array);
+        if ($_POST['first_name'] AND $_POST['last_name']) {    //Set user name for both login and registration
+           $_POST['first_name'] = mb_convert_case($_POST['first_name'], MB_CASE_TITLE, "UTF-8" );
+           $_POST['last_name'] = mb_convert_case($_POST['last_name'], MB_CASE_TITLE, "UTF-8" );
+           $_POST['username'] = "$_POST[first_name] $_POST[last_name] $_POST[birth_date]";
+        }
       }
     }
   }
@@ -446,18 +450,19 @@ function email_name() {
 
 // After registration and login redirect user to account/orders.
 // Clicking on Dashboard/New Order in Nave will add the actual product
-add_action('woocommerce_registration_redirect', 'dscsa_redirect', 2);
-function dscsa_redirect() {
+add_action('woocommerce_registration_redirect', 'dscsa_registration_redirect', 2);
+function dscsa_registration_redirect() {
   return home_url('/account/?add-to-cart=8#/');
+}
+
+add_action('woocommerce_login_redirect', 'dscsa_login_redirect', 2);
+function dscsa_login_redirect() {
+  return home_url('/account/orders/?add-to-cart=8#/');
 }
 
 add_filter ('wp_redirect', 'dscsa_wp_redirect');
 function dscsa_wp_redirect($location) {
 
-  //This goes back to account/orders rather than /account after saving account details
-  if (substr($location, -9) == '/account/') {
-    return $location.'orders/?add-to-cart=8';
-  }
   //After successful order, add another item back into cart.
   //Add to card won't work unless we replace query params e.g., key=wc_order_594de1d38152e
   if (substr($_GET['key'], 0, 9) == 'wc_order_')
@@ -784,6 +789,7 @@ function dscsa_translate($term, $raw, $domain) {
   $phone = $phone ?: get_default('phone');
 
   $toEnglish = [
+    "An account is already registered with that username. Please choose another." => 'Looks like you have already registered. Goto the <a href="/account/?login">"Login" page</a> and use your 10 digit phone number as your default password e.g. the phone number (123) 456-7890 would have a default password of 1234567890.',
     "<span class='english'>Pay by Credit or Debit Card</span><span class='spanish'>Pago con tarjeta de crédito o débito</span>" => "Pay by Credit or Debit Card",
     'Spanish'  => 'Espanol', //Registering
     'Email:' => 'Email', //order details
@@ -796,7 +802,7 @@ function dscsa_translate($term, $raw, $domain) {
     'Free shipping' => 'Paid with Coupon', //not working (order details page)
     'No saved methods found.' => 'No credit or debit cards are saved to your account',
     '%s has been added to your cart.' => substr($_SERVER['REQUEST_URI'], 0, 15) != '/account/order/'
-      ? 'Step 2 of 2: You are almost done! Please complete this page so we can fill your prescription(s).  If you need to login again, your temporary password is '.$phone.'.  You can change your password on the "Account Details" page'
+      ? 'Step 2 of 2: You are almost done! Please complete the "New Order" page so we can fill your prescription(s).  If you need to login again, your temporary password is '.$phone.'.  You can change your password on the "Account Details" page'
       : 'Thank you for your order! Your prescription(s) should arrive within 3-5 days.',
     'Username or email' => '<strong>Email or phone number</strong>', //For resetting passwords
     'Password reset email has been sent.' => "Before you reset your password, first try logging in with your 10 digit phone number as your default password",
@@ -984,7 +990,7 @@ function test_script() {
 
 
 function get_invoice_number($guardian_id) {
-  return db_run("SirumWeb_FindPendingInvoiceNbrByPatID '$guardian_id'", 1)['invoice_nbr'];
+  return db_run("SirumWeb_AddFindInvoiceNbrByPatID '$guardian_id'")['invoice_nbr'];
 }
 
 
@@ -1036,6 +1042,9 @@ function update_phone($guardian_id, $cell_phone) {
 function update_shipping_address($guardian_id, $address_1, $address_2, $city, $zip) {
   //wp_mail('adam.kircher@gmail.com', "update_shipping_address", print_r($params, true));
   $zip = substr($zip, 0, 5);
+  $city = mb_convert_case($city, MB_CASE_TITLE, "UTF-8" );
+  $address_1 = mb_convert_case($address_1, MB_CASE_TITLE, "UTF-8" );
+  $address_2 = mb_convert_case($address_2, MB_CASE_TITLE, "UTF-8" );
   return db_run("SirumWeb_AddUpdatePatHomeAddr '$guardian_id', '$address_1', '$address_2', NULL, '$city', 'GA', '$zip', 'US'");
 }
 

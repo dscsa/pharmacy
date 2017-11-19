@@ -29,6 +29,9 @@
   margin-top:0 !important;
   margin-bottom:10px !important
 }
+.woocommerce-error a {
+  text-decoration:underline !important;
+}
 /*remove border from mobile menu */
 button.menu-toggle {
   border:none !important
