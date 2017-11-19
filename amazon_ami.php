@@ -290,6 +290,7 @@ function shared_fields($user_id = null) {
 add_action('woocommerce_admin_order_data_after_order_details', 'dscsa_admin_edit_account');
 function dscsa_admin_edit_account($order) {
   $fields = order_fields($order->user_id)+shared_fields($order->user_id)+account_fields($order->user_id)+admin_fields($order->user_id);
+  echo '<br>';
   return dscsa_echo_form_fields($fields);
 }
 
