@@ -6,6 +6,7 @@ add_action('admin_enqueue_scripts', 'dscsa_admin_scripts');
 function dscsa_admin_scripts() {
   if ($_GET['post'] AND $_GET['action'] == 'edit') {
     wp_enqueue_script('dscsa-common', 'https://dscsa.github.io/webform/woocommerce/common.js');
+    wp_enqueue_style('dscsa-select2', 'https://dscsa.github.io/webform/woocommerce/select2.css');
     wp_enqueue_style('dscsa-admin', 'https://dscsa.github.io/webform/woocommerce/admin.css');
     wp_enqueue_script('dscsa-admin', 'https://dscsa.github.io/webform/woocommerce/admin.js', ['jquery', 'dscsa-common']);
   }
@@ -289,7 +290,6 @@ function shared_fields($user_id = null) {
 add_action('woocommerce_admin_order_data_after_order_details', 'dscsa_admin_edit_account');
 function dscsa_admin_edit_account($order) {
   $fields = order_fields($order->user_id)+shared_fields($order->user_id)+account_fields($order->user_id)+admin_fields($order->user_id);
-  echo '<br><br>';
   return dscsa_echo_form_fields($fields);
 }
 
@@ -299,8 +299,6 @@ function dscsa_admin_invoice($order) {
   $tracking_number = $order->get_meta('tracking_number', true);
   $date_shipped = $order->get_meta('date_shipped', true);
   $address = $order->get_formatted_billing_address();
-
-  echo '<style>.order_data_column  { width:100% !important }</style>';
 
   if ($date_shipped AND $tracking_number) {
     echo "Your order was shipped on <mark class='order-date'>$date_shipped</mark> with tracking number <a target='_blank' href='https://tools.usps.com/go/TrackConfirmAction?tLabels=$tracking_number'>$tracking_number</a> to<br><br><address>$address</address>";

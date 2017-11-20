@@ -1,1 +1,13 @@
+#email,
+#allergies_other_input,
+#phone {
+  width:100%
+}
 
+/* Otherwise no margin between this and the customer input on admin page */
+#rx_source_field {
+  float:left;
+}
+
+/* This is for the iframe with the google doc invoice*/
+.order_data_column  { width:100% !important }
