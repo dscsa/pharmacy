@@ -147,6 +147,24 @@ For Missing Dependency Errors:
 * Right Click > Properties > Access > Relay > Select All Except the List Below
 
 #Install SSL Certs
+# Idea is that we can skip LetsEncrypt and just use CloudFlare for our public certificates and use a self-signed certificate for cloudflare to connect to
+- Set CloudFlare > Cyrpto > SSL > "Full" (which works with self-signed certs)
+- Make a self-signed certs `sudo openssl req -x509 -nodes -days 2000 -newkey rsa:2048 -keyout /goodpill/ssl/key.pem -out /goodpill/ssl/certificate.pem`
+- Update httpd.conf (Not sure whey we don't need to point to created key files in this config but it seems to be working)
+```
+# Redirect http://example.com and http://www.example.com to main site
+<VirtualHost *:80>
+#  SSLEngine on
+#  SSLCertificateFile /goodpill/ssl/certificate.pem
+#  SSLCertificateKeyFile /goodpill/ssl/key.pem
+  ServerName www.goodpill.org
+  ServerAlias goodpill.org
+
+  Redirect / https://www.goodpill.org/
+</VirtualHost>
+```
+
+#Install SSL Certs (OLD)
 - I installed Server Manager > Manage > Add Role and Features > Feature > DNS, but not sure if that is necessary or not.
 - Set MIME type for "." (no) filetype (in IIS) to "text/plain" (this is needed for the authtoken to be public)
 - Extract letsencrypt-win-simple.exe https://github.com/Lone-Coder/letsencrypt-win-simple/releases
