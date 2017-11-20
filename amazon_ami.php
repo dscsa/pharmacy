@@ -6,7 +6,6 @@ add_action('admin_enqueue_scripts', 'dscsa_admin_scripts');
 function dscsa_admin_scripts() {
   if ($_GET['post'] AND $_GET['action'] == 'edit') {
     wp_enqueue_script('dscsa-common', 'https://dscsa.github.io/webform/woocommerce/common.js');
-    wp_enqueue_style('dscsa-common', 'https://dscsa.github.io/webform/woocommerce/common.css');
     wp_enqueue_style('dscsa-admin', 'https://dscsa.github.io/webform/woocommerce/admin.css');
     wp_enqueue_script('dscsa-admin', 'https://dscsa.github.io/webform/woocommerce/admin.js', ['jquery', 'dscsa-common']);
   }
@@ -290,7 +289,7 @@ function shared_fields($user_id = null) {
 add_action('woocommerce_admin_order_data_after_order_details', 'dscsa_admin_edit_account');
 function dscsa_admin_edit_account($order) {
   $fields = order_fields($order->user_id)+shared_fields($order->user_id)+account_fields($order->user_id)+admin_fields($order->user_id);
-  echo '<br>';
+  echo '<br><br>';
   return dscsa_echo_form_fields($fields);
 }
 
