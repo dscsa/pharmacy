@@ -96,6 +96,20 @@ function order_fields($user_id = null) {
 
   $user_id = $user_id ?: get_current_user_id();
 
+  $medication = [
+    'type'   	  => 'select',
+    'label'     => __('Search and select medications by generic name that you want to transfer to Good Pill'),
+    'options'   => ['']
+  ];
+
+  $medication_meta = get_meta('medication[]', $user_id);
+
+  if ($medication_meta) {
+    print_r($medication_meta);
+    //$store = json_decode($medication_meta);
+    //$medication['options'] = [$medication_meta => $store->name.', '.$store->street.', '.$store->city.', GA '.$store->zip.' - Phone: '.$store->phone];
+  }
+
   return [
     'rx_source' => [
       'type'   	  => 'radio',
@@ -107,11 +121,7 @@ function order_fields($user_id = null) {
 
       ]
     ],
-    'medication[]'  => [
-      'type'   	  => 'select',
-      'label'     => __('Search and select medications by generic name that you want to transfer to Good Pill'),
-      'options'   => ['']
-    ],
+    'medication[]'  => $medication,
     'email' => [
       'label'     => __('Email'),
       'type'      => 'email',
