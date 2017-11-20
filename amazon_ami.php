@@ -891,7 +891,7 @@ function dscsa_translate($term, $raw, $domain) {
     'Email' => 'Correo electrónico',
     'Prescription(s) were sent from my doctor' => 'La/s receta/s fueron enviadas de parte de mi médico',
     'Transfer prescription(s) from my pharmacy' => 'Transferir la/s receta/s desde mi farmacia',
-    'Street address' => 'Dirección de envío',
+    'House number and street name' => 'Dirección de envío',
     'Apartment, suite, unit etc. (optional)' => 'Apartamento, suite, unidad, etc. (opcional)',
     'Payment methods' => 'Métodos de pago',
     'Account details' => 'Detalles de la cuenta',
