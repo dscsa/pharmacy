@@ -26,7 +26,11 @@
   * do you want to turn on display_errors?
   * Install ODBC Driver 11 for SQL Server (x64 version: just double click the exe once downloaded)
 
-#Get Email Working
+#Linux Get Email Working
+`sudo nano /etc/php56.ini`
+sendmail add flag `-f hello@sirum.org`
+
+#Windows Get Email Working
 - Open php.ini (see instructions in Install SQLSRV) and ensure that curl.cainfo is set.
 If not, follow instructions here https://stackoverflow.com/questions/29822686/curl-error-60-ssl-certificate-unable-to-get-local-issuer-certificate
 If this is not set the Gmail SMTP Plugin will show a 500 error when retrieving OAuth code

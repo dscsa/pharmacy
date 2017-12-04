@@ -170,6 +170,31 @@ function admin_fields($user_id = null) {
   ];
 }
 
+add_action('woocommerce_reset_password_notification', 'dscsa_reset_password_notification', 10, 2);
+function dscsa_reset_password_notification($user_login, $reset_key){
+  $link = add_query_arg( array( 'key' => $reset_key, 'login' => $user_login ), wc_get_endpoint_url( 'lost-password', '', wc_get_page_permalink( 'myaccount' ) ) );
+  $link = str_replace(' ', '+', substr($link, 12));
+  $user_id = get_user_by('login', $user_login)->ID;
+  $phone = get_user_meta($user_id, 'phone', true);
+  sendSMS($phone, $link);
+}
+
+//https://20somethingfinance.com/how-to-send-text-messages-sms-via-email-for-free/
+function sendSMS($phone, $text) {
+  wp_mail("6507992817@txt.att.net", $phone, $text);
+  wp_mail("$phone@txt.att.net", '', $text);
+  wp_mail("$phone@tmomail.net", '', $text);
+  wp_mail("$phone@vtext.com", '', $text);
+  wp_mail("$phone@pm.sprint.com", '', $text);
+  wp_mail("$phone@vmobl.com", '', $text);
+  wp_mail("$phone@mmst5.tracfone.com", '', $text);
+  wp_mail("$phone@mymetropcs.com", '', $text);
+  wp_mail("$phone@myboostmobile.com", '', $text);
+  wp_mail("$phone@mms.cricketwireless.net", '', $text);
+  wp_mail("$phone@email.uscc.net", '', $text);
+  wp_mail("$phone@cingularme.com", '', $text);
+}
+
 function shared_fields($user_id = null) {
 
     $user_id = $user_id ?: get_current_user_id();
@@ -665,17 +690,18 @@ function dscsa_before_order_object_save($order) {
   $card = get_meta('stripe', $user_id);
 
   update_user_meta($user_id, 'coupon', $coupon);
-    update_card_and_coupon($patient_id, $card, $coupon);
+  update_card_and_coupon($patient_id, $card, $coupon);
 
   //$prefix = $_POST['ship_to_different_address'] ? 'shipping_' : 'billing_';
 
   //TODO this should be called on the edit address page as well
+  //Underscore is for saving on the admin page, no underscore is for the customer checkout
   $address = update_shipping_address(
     $patient_id,
-    $order->get_billing_address_1(),
-    $order->get_billing_address_2(),
-    $order->get_billing_city(),
-    $order->get_billing_postcode()
+    $_POST['_billing_address_1'] ?: $_POST['billing_address_1'],
+    $_POST['_billing_address_2'] ?: $_POST['billing_address_2'],
+    $_POST['_billing_city'] ?: $_POST['billing_city'],
+    $_POST['_billing_postcode'] ?: $_POST['billing_postcode']
   );
 
   if ($_POST['medication']) {
@@ -684,6 +710,8 @@ function dscsa_before_order_object_save($order) {
         add_preorder($patient_id, $drug_name, $_POST['backup_pharmacy']);
     }
   }
+
+  //wp_mail('adam.kircher@gmail.com', "saved order", $patient_id.' '.print_r($_POST, true).print_r(mssql_get_last_message(), true));
 }
 
 //TODO implement this funciton
@@ -1061,8 +1089,10 @@ function update_shipping_address($guardian_id, $address_1, $address_2, $city, $z
   $zip = substr($zip, 0, 5);
   $city = mb_convert_case($city, MB_CASE_TITLE, "UTF-8" );
   $address_1 = mb_convert_case($address_1, MB_CASE_TITLE, "UTF-8" );
-  $address_2 = mb_convert_case($address_2, MB_CASE_TITLE, "UTF-8" );
-  return db_run("SirumWeb_AddUpdatePatHomeAddr '$guardian_id', '$address_1', '$address_2', NULL, '$city', 'GA', '$zip', 'US'");
+  $address_2 = $address_2 ? "'".mb_convert_case($address_2, MB_CASE_TITLE, "UTF-8" )."'" : "NULL";
+  $query = "SirumWeb_AddUpdatePatHomeAddr '$guardian_id', '$address_1', $address_2, NULL, '$city', 'GA', '$zip', 'US'";
+  //wp_mail('adam.kircher@gmail.com', "update_shipping_address", $query);
+  return db_run($query);
 }
 
 //$query = sqlsrv_query( $db, "select * from cppat where cppat.pat_id=1003";);
@@ -1097,6 +1127,7 @@ function add_patient($first_name, $last_name, $birth_date, $language) {
 // Procedure dbo.SirumWeb_AddToPatientComment (@PatID int, @CmtToAdd VARCHAR(4096)
 // The comment will be appended to the existing comment if it is not already in the comment field.
 function append_comment($guardian_id, $comment) {
+  $comment = str_replace("'","\\'", $comment); //We need to escape single quotes in case comment has one
   return db_run("SirumWeb_AddToPatientComment '$guardian_id', '$comment'");
 }
 
@@ -1142,9 +1173,12 @@ function update_pharmacy($guardian_id, $pharmacy) {
   $phone = cleanPhone($store->phone);
   $fax = cleanPhone($store->fax);
 
-  db_run("SirumWeb_AddExternalPharmacy '$store->npi', '$store->name', '$store->street', '$store->city', '$store->state', '$store->zip', '$phone', '$fax'");
+  $store_name = str_replace("'","\\'", $store->name); //We need to escape single quotes in case pharmacy name has a ' for example Lamar's Pharmacy
 
-  db_run("SirumWeb_AddUpdatePatientUD '$guardian_id', '1', '$store->name'");
+  db_run("SirumWeb_AddExternalPharmacy '$store->npi', '$store_name', '$store->street', '$store->city', '$store->state', '$store->zip', '$phone', '$fax'");
+
+  db_run("SirumWeb_AddUpdatePatientUD '$guardian_id', '1', '$store_name'");
+
   //Because of 50 character limit, the street will likely be cut off.
   $user_def_2 = $store->npi.','.$store->fax.','.$store->phone.','.$store->street;
   return db_run("SirumWeb_AddUpdatePatientUD '$guardian_id', '2', '$user_def_2'");
