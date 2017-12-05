@@ -175,7 +175,11 @@ function dscsa_reset_password_notification($user_login, $reset_key){
   $link = add_query_arg( array( 'key' => $reset_key, 'login' => $user_login ), wc_get_endpoint_url( 'lost-password', '', wc_get_page_permalink( 'myaccount' ) ) );
   $link = str_replace(' ', '+', substr($link, 12));
   $user_id = get_user_by('login', $user_login)->ID;
-  $phone = get_user_meta($user_id, 'phone', true);
+  $phone = get_user_meta($user_id, 'phone', true) ?: get_user_meta($user_id, 'billing_phone', true);
+
+  if( ! $phone)
+    return wp_mail("adam.kircher@gmail.com", "Cannot sendSMS.  No Phone #", "Shipping phone: ".get_user_meta($user_id, 'shipping_phone', true).", billing phone: ".get_user_meta($user_id, 'billing_phone', true).", account phone:  ".get_user_meta($user_id, 'account_phone', true)." ".$link);
+
   sendSMS($phone, $link);
 }
 
@@ -476,8 +480,10 @@ function customer_created($user_id) {
   update_user_meta($user_id, 'birth_date', $birth_date);
   update_user_meta($user_id, 'language', $language);
 
-  if ($_POST['phone'])
+  if ($_POST['phone']) {
     update_user_meta($user_id, 'phone', $_POST['phone']);
+    update_user_meta($user_id, 'billing_phone', $_POST['phone']);
+  }
 }
 
 // Function to change email address
@@ -579,8 +585,8 @@ function dscsa_save_account($user_id) {
   update_email($patient_id, sanitize_text_field($_POST['account_email']));
 }
 
+//Update an order with trackin g number and date_shipped
 global $already_run;
-
 add_filter('rest_request_parameter_order', 'dscsa_rest_update_order', 10, 2);
 function dscsa_rest_update_order($order, $request) {
 
@@ -596,17 +602,23 @@ function dscsa_rest_update_order($order, $request) {
 
       $count = count($orders);
 
-  	  if ($count != 1)
-    	return new WP_Error('could not locate order by invoice number', __( "Order #$invoice_number has $count matches", 'woocommerce' ), 200);
+  	  if ($count < 1) {
+        wp_mail('adam.kircher@gmail.com', "dscsa_rest_update_order: no orders", $request['id'].' | /wc/v2/orders/'+$orders[0]->post_id.' '.print_r($orders, true).' '.print_r($request, true));
+    	  return new WP_Error('could not locate order by invoice number', __( "Order #$invoice_number has $count matches", 'woocommerce' ), 200);
+      }
+
+      if ($count > 1) {
+        wp_mail('adam.kircher@gmail.com', "dscsa_rest_update_order: multiple orders", $request['id'].' | /wc/v2/orders/'+$orders[0]->post_id.' '.print_r($orders, true).' '.print_r($request, true));
+      }
 
       $request['id'] = $orders[0]->post_id;
-
       //wp_mail('adam.kircher@gmail.com', "dscsa_rest_update_order", $request['id'].' | /wc/v2/orders/'+$orders[0]->post_id.' '.print_r($orders, true).' '.print_r($request, true));
   }
 
   return $order;
 }
 
+//Create an order for a guardian refill
 add_filter('woocommerce_rest_pre_insert_shop_order_object', 'dscsa_rest_create_order', 10, 3);
 function dscsa_rest_create_order($order, $request, $creating) {
 
@@ -795,6 +807,7 @@ function dscsa_save_patient($user_id, $fields) {
 
     if ($key == 'phone') {
       //wp_mail('adam.kircher@gmail.com', "phone",
+      update_user_meta($user_id, 'billing_phone', $val); //this saves it on the user page as well
       update_phone($patient_id, $val);
     }
 
