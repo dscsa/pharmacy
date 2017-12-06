@@ -64,7 +64,7 @@ button.menu-toggle {
 }
 
 .woocommerce-orders-table__cell-order-status, /* Hide irrelevant columns on orders page*/
-.woocommerce-orders-table__cell-order-total, /* Hide irrelevant columns on orders page*/
+.woocommerce-Price-amount .amount, /* Hide irrelevant columns on orders page*/
 form.checkout, /* Don't show checkout on every page */
 .woocommerce > .woocommerce-info, /* hide coupon link */
 .woocommerce-message a, /* don't show links in messages since often wrong link */
@@ -73,7 +73,7 @@ form.checkout, /* Don't show checkout on every page */
 .product-name, /*Hide product name row on checkout */
 .product-total  /*Hide product total row on checkout */
 {
-  display:none
+  display:none;
 }
 
 #ui-datepicker-div {
