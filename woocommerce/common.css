@@ -63,8 +63,15 @@ button.menu-toggle {
    margin-top:-25px;
 }
 
+/* Hide number of items in an order since these are just placeholder items*/
+.woocommerce-orders-table__cell-order-total {
+   visibility: collapse;
+}
+.woocommerce-Price-amount .amount {
+   visibility: visible;
+}
+
 .woocommerce-orders-table__cell-order-status, /* Hide irrelevant columns on orders page*/
-.woocommerce-Price-amount .amount, /* Hide irrelevant columns on orders page*/
 form.checkout, /* Don't show checkout on every page */
 .woocommerce > .woocommerce-info, /* hide coupon link */
 .woocommerce-message a, /* don't show links in messages since often wrong link */
