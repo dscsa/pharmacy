@@ -698,7 +698,13 @@ function dscsa_before_order_object_save($order) {
 
   update_email($patient_id, sanitize_text_field($_POST['email']));
 
-  $coupon = $order->get_used_coupons()[0] ?: get_meta('coupon', $user_id);
+  $coupon = $order->get_used_coupons()[0];
+
+  if (  ! $coupon) {
+    $stored_coupon = get_meta('coupon', $user_id);
+    if ($stored_coupon != 'ckim') $coupon = $stored_coupon; //persist all coupons except ckim
+  }
+
   $card = get_meta('stripe', $user_id);
 
   update_user_meta($user_id, 'coupon', $coupon);
@@ -832,6 +838,11 @@ add_filter( 'wc_order_statuses', 'dscsa_renaming_order_status' );
 function dscsa_renaming_order_status( $order_statuses ) {
     $order_statuses['wc-on-hold'] = _x('Being prepared', 'Order status', 'woocommerce' );
     return $order_statuses;
+}
+
+add_filter( 'woocommerce_order_button_text', 'dscsa_order_button_text');
+function dscsa_order_button_text() {
+    return substr($_SERVER['HTTP_REFERER'], -14) == '?add-to-cart=8' ? 'Complete Registration' : 'Place order';
 }
 
 //Didn't work: https://stackoverflow.com/questions/38395784/woocommerce-overriding-billing-state-and-post-code-on-existing-checkout-fields
@@ -1001,7 +1012,10 @@ function dscsa_esc_html($safe_text, $text) {
     return preg_replace([$english, $spanish], ['$1', ''], $safe_text);
 }
 
-
+add_filter('woocommerce_email_order_items_table', 'dscsa_email_items_table');
+function dscsa_email_items_table($items_table) {
+  return '';
+}
 
 // Hook in
 add_filter( 'woocommerce_checkout_fields' , 'dscsa_checkout_fields' );
@@ -1140,7 +1154,7 @@ function add_patient($first_name, $last_name, $birth_date, $language) {
 // Procedure dbo.SirumWeb_AddToPatientComment (@PatID int, @CmtToAdd VARCHAR(4096)
 // The comment will be appended to the existing comment if it is not already in the comment field.
 function append_comment($guardian_id, $comment) {
-  $comment = str_replace("'","\\'", $comment); //We need to escape single quotes in case comment has one
+  $comment = str_replace("'","\'", $comment); //We need to escape single quotes in case comment has one
   return db_run("SirumWeb_AddToPatientComment '$guardian_id', '$comment'");
 }
 
@@ -1186,7 +1200,7 @@ function update_pharmacy($guardian_id, $pharmacy) {
   $phone = cleanPhone($store->phone);
   $fax = cleanPhone($store->fax);
 
-  $store_name = str_replace("'","\\'", $store->name); //We need to escape single quotes in case pharmacy name has a ' for example Lamar's Pharmacy
+  $store_name = str_replace("'","\'", $store->name); //We need to escape single quotes in case pharmacy name has a ' for example Lamar's Pharmacy
 
   db_run("SirumWeb_AddExternalPharmacy '$store->npi', '$store_name', '$store->street', '$store->city', '$store->state', '$store->zip', '$phone', '$fax'");
 
