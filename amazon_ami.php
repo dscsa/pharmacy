@@ -535,7 +535,7 @@ function wc_bypass_logout_confirmation() {
 
 add_filter ('woocommerce_account_menu_items', 'dscsa_my_account_menu');
 function dscsa_my_account_menu($nav) {
-  $nav['dashboard'] = __('New Order');
+  $nav['dashboard'] = __(substr($_SERVER['HTTP_REFERER'], -14) == '?add-to-cart=8' ? 'Registration' : 'New Order');
   return $nav;
 }
 
