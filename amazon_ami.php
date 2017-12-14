@@ -424,9 +424,10 @@ function dscsa_default_post_value() {
       if (checkdate($array[1],$array[2],$array[0])) {
         $_POST['birth_date'] = implode('-', $array);
         if ($_POST['first_name'] AND $_POST['last_name']) {    //Set user name for both login and registration
-           $_POST['first_name'] = mb_convert_case($_POST['first_name'], MB_CASE_TITLE, "UTF-8" );
-           $_POST['last_name'] = mb_convert_case($_POST['last_name'], MB_CASE_TITLE, "UTF-8" );
-           $_POST['username'] = "$_POST[first_name] $_POST[last_name] $_POST[birth_date]";
+           //single quotes / apostrophes were being escaped with backslash on error
+           $_POST['first_name'] = mb_convert_case(stripslashes($_POST['first_name']), MB_CASE_TITLE, "UTF-8" );
+           $_POST['last_name'] = strtoupper(stripslashes($_POST['last_name']));
+           $_POST['username'] = str_replace("'", "", "$_POST[first_name] $_POST[last_name] $_POST[birth_date]");
         }
       }
     }
@@ -535,7 +536,7 @@ function wc_bypass_logout_confirmation() {
 
 add_filter ('woocommerce_account_menu_items', 'dscsa_my_account_menu');
 function dscsa_my_account_menu($nav) {
-  $nav['dashboard'] = __(substr($_SERVER['HTTP_REFERER'], -14) == '?add-to-cart=8' ? 'Registration' : 'New Order');
+  $nav['dashboard'] = __(substr($_SERVER['REQUEST_URI'], -23) == '/account/?add-to-cart=8' ? 'Registration' : 'New Order');
   return $nav;
 }
 
@@ -822,7 +823,7 @@ function dscsa_save_patient($user_id, $fields) {
     if ($allergy_codes[$key]) {
       //Since all checkboxes submitted even with none selected.  If none
       //is selected manually set value to false for all except none
-      $val = ($_POST['allergies_none'] AND $key != 'allergies_none') ? NULL : $val;
+      $val = ($_POST['allergies_none'] AND $key != 'allergies_none') ? NULL : str_replace("'", "''", $val);
       //wp_mail('adam.kircher@gmail.com', 'save allergies', "$key $allergy_codes[$key] $val");
       add_remove_allergy($patient_id, $allergy_codes[$key], $val);
       //wp_mail('adam.kircher@gmail.com', "patient saved",
@@ -886,7 +887,7 @@ function dscsa_translate($term, $raw, $domain) {
     'Username is required.' => 'Name and date of birth in mm/dd/yyyy format are required.',
     'Invalid username or email.' => '<strong>Error</strong>: We cannot find an account with that phone number.',
     '<strong>ERROR</strong>: Invalid username.' => '<strong>Error</strong>: We cannot find an account with that name and date of birth.',
-    'An account is already registered with your email address. Please login.' => 'An account is already registered with that phone number. Please login.'
+    'An account is already registered with your email address. Please log in.' => 'An account is already registered with your phone number. Please log in.'
   ];
 
   $toSpanish = [
@@ -1050,17 +1051,6 @@ function dscsa_checkout_fields( $fields ) {
   return $fields;
 }
 
-// Register custom style sheets and javascript.
-//add_action('wp_enqueue_scripts', 'test_script');
-function test_script() {
-  echo 'hi adam';
-  $params = ['Test', 'New9', '1985-03-10'];
-  echo "SirumWeb_FindPatByNameandDOB '$params[0]', '$params[1]', '$params[2]'";
-  print_r(db_run("SirumWeb_FindPatByNameandDOB '$params[0]', '$params[1]', '$params[2]'"));
-  echo mssql_get_last_message();
-}
-
-
 function get_invoice_number($guardian_id) {
   return db_run("SirumWeb_AddFindInvoiceNbrByPatID '$guardian_id'")['invoice_nbr'];
 }
@@ -1154,7 +1144,7 @@ function add_patient($first_name, $last_name, $birth_date, $language) {
 // Procedure dbo.SirumWeb_AddToPatientComment (@PatID int, @CmtToAdd VARCHAR(4096)
 // The comment will be appended to the existing comment if it is not already in the comment field.
 function append_comment($guardian_id, $comment) {
-  $comment = str_replace("'","\'", $comment); //We need to escape single quotes in case comment has one
+  $comment = str_replace("'", "''", $comment); //We need to escape single quotes in case comment has one
   return db_run("SirumWeb_AddToPatientComment '$guardian_id', '$comment'");
 }
 
@@ -1175,7 +1165,8 @@ function add_preorder($guardian_id, $drug_name, $pharmacy) {
    $drug_name = explode(',', $drug_name)[0];
    $phone = cleanPhone($store->phone);
    $fax = cleanPhone($store->fax);
-   return db_run("SirumWeb_AddToPreorder '$guardian_id', '$drug_name', '$store->npi', '$store->name', '$store->street', '$store->city', '$store->state', '$store->zip', '$phone', '$fax'");
+   $store_name = str_replace("'", "''", $store->name); //We need to escape single quotes in case comment has one
+   return db_run("SirumWeb_AddToPreorder '$guardian_id', '$drug_name', '$store->npi', '$store_name', '$store->street', '$store->city', '$store->state', '$store->zip', '$phone', '$fax'");
 }
 
 // Procedure dbo.SirumWeb_AddUpdatePatientUD (@PatID int, @UDNumber int, @UDValue varchar(50) )
@@ -1200,7 +1191,7 @@ function update_pharmacy($guardian_id, $pharmacy) {
   $phone = cleanPhone($store->phone);
   $fax = cleanPhone($store->fax);
 
-  $store_name = str_replace("'","\'", $store->name); //We need to escape single quotes in case pharmacy name has a ' for example Lamar's Pharmacy
+  $store_name = str_replace("'", "''", $store->name); //We need to escape single quotes in case pharmacy name has a ' for example Lamar's Pharmacy
 
   db_run("SirumWeb_AddExternalPharmacy '$store->npi', '$store_name', '$store->street', '$store->city', '$store->state', '$store->zip', '$phone', '$fax'");
 
