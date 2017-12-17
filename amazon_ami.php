@@ -757,14 +757,15 @@ function dscsa_save_patient($user_id, $fields) {
   if ($_POST['guardian_id']) {
     $patient_id = sanitize_text_field($_POST['guardian_id']);
     update_user_meta($user_id, 'guardian_id', $patient_id);
-  } else {
+  } else if ( ! is_admin()) { //allow admin to delete guardian id (if incorrect) and have it reload
     $patient_id = get_meta('guardian_id', $user_id);
   }
 
   if ( ! $patient_id) {
     $patient_id = add_patient(
-      $_POST['billing_first_name'] ?: $_POST['account_first_name'],
-      $_POST['billing_last_name'] ?: $_POST['account_last_name'],
+      //checkout, account details, admin page
+      $_POST['billing_first_name'] ?: $_POST['account_first_name'] ?: $_POST['_billing_first_name'],
+      $_POST['billing_last_name'] ?: $_POST['account_last_name'] ?: $_POST['_billing_last_name'],
       $_POST['birth_date'],
       get_meta('language', $user_id)
     );
@@ -1138,6 +1139,7 @@ function find_patient($first_name, $last_name, $birth_date) {
 //   ,@CellPhone varchar(20)    -- Cell Phone
 // )
 function add_patient($first_name, $last_name, $birth_date, $language) {
+  wp_mail('adam.kircher@gmail.com', "new patient", "SirumWeb_AddEditPatient '$first_name', '$last_name', '$birth_date', '$language' ".print_r($_POST, true).print_r(mssql_get_last_message(), true));
   return db_run("SirumWeb_AddEditPatient '$first_name', '$last_name', '$birth_date', '$language'")['PatID'];
 }
 
