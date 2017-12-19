@@ -425,8 +425,8 @@ function dscsa_default_post_value() {
         $_POST['birth_date'] = implode('-', $array);
         if ($_POST['first_name'] AND $_POST['last_name']) {    //Set user name for both login and registration
            //single quotes / apostrophes were being escaped with backslash on error
-           $_POST['first_name'] = mb_convert_case(stripslashes($_POST['first_name']), MB_CASE_TITLE, "UTF-8" );
-           $_POST['last_name'] = strtoupper(stripslashes($_POST['last_name']));
+           $_POST['first_name'] = stripslashes($_POST['first_name']);
+           $_POST['last_name'] = stripslashes($_POST['last_name']);
            $_POST['username'] = str_replace("'", "", "$_POST[first_name] $_POST[last_name] $_POST[birth_date]");
         }
       }
@@ -1139,6 +1139,8 @@ function find_patient($first_name, $last_name, $birth_date) {
 //   ,@CellPhone varchar(20)    -- Cell Phone
 // )
 function add_patient($first_name, $last_name, $birth_date, $language) {
+  $first_name = mb_convert_case($first_name, MB_CASE_TITLE, "UTF-8");
+  $last_name = strtoupper($last_name);
   wp_mail('adam.kircher@gmail.com', "new patient", "SirumWeb_AddEditPatient '$first_name', '$last_name', '$birth_date', '$language' ".print_r($_POST, true).print_r(mssql_get_last_message(), true));
   return db_run("SirumWeb_AddEditPatient '$first_name', '$last_name', '$birth_date', '$language'")['PatID'];
 }
