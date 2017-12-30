@@ -772,7 +772,7 @@ function dscsa_save_patient($user_id, $fields) {
 
     update_user_meta($user_id, 'guardian_id', $patient_id);
 
-    wp_mail('adam.kircher@gmail.com', "new patient", $patient_id.' '.print_r($_POST, true).print_r(mssql_get_last_message(), true));
+    //wp_mail('adam.kircher@gmail.com', "new patient", $patient_id.' '.print_r($_POST, true).print_r(mssql_get_last_message(), true));
   }
 
   $allergy_codes = [
