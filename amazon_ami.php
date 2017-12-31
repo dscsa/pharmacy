@@ -173,7 +173,7 @@ function admin_fields($user_id = null) {
 add_action('woocommerce_reset_password_notification', 'dscsa_reset_password_notification', 10, 2);
 function dscsa_reset_password_notification($user_login, $reset_key){
   $link = add_query_arg( array( 'key' => $reset_key, 'login' => $user_login ), wc_get_endpoint_url( 'lost-password', '', wc_get_page_permalink( 'myaccount' ) ) );
-  $link = str_replace(' ', '+', substr($link, 12));
+  $link = "https://www.".str_replace(' ', '+', substr($link, 12));
   $user_id = get_user_by('login', $user_login)->ID;
   $phone = get_user_meta($user_id, 'phone', true) ?: get_user_meta($user_id, 'billing_phone', true);
 
