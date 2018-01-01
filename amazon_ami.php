@@ -873,7 +873,7 @@ function dscsa_translate($term, $raw, $domain) {
     'Free shipping' => 'Paid with Coupon', //not working (order details page)
     'No saved methods found.' => 'No credit or debit cards are saved to your account',
     '%s has been added to your cart.' => substr($_SERVER['REQUEST_URI'], 0, 15) != '/account/order/'
-      ? 'Step 2 of 2: You are almost done! Please complete the "New Order" page so we can fill your prescription(s).  If you need to login again, your temporary password is '.$phone.'.  You can change your password on the "Account Details" page'
+      ? 'Step 2 of 2: You are almost done! Please complete this "Registration" page so we can fill your prescription(s).  If you need to login again, your temporary password is '.$phone.'.  You can change your password on the "Account Details" page'
       : 'Thank you for your order! Your prescription(s) should arrive within 3-5 days.',
     'Username or email' => '<strong>Email or phone number</strong>', //For resetting passwords
     'Password reset email has been sent.' => "Before you reset your password by following the instructions below, first try logging in with your 10 digit phone number as your default password",
