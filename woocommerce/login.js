@@ -6,6 +6,8 @@ function load() {
 
   if ( ~ window.location.search.indexOf('register'))
     return register_page()
+
+  jQuery('form:not([action])').attr('action', location.pathname)
 }
 
 function register_page() {

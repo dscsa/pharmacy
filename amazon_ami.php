@@ -24,7 +24,7 @@ function dscsa_user_scripts() {
   wp_enqueue_script('dscsa-common', 'https://dscsa.github.io/webform/woocommerce/common.js', ['datepicker', 'ie9ajax']);
   wp_enqueue_style('dscsa-common', 'https://dscsa.github.io/webform/woocommerce/common.css');
 
-  if (substr($_SERVER['REQUEST_URI'], 0, 11) == '/inventory/') {
+  if (substr($_SERVER['REQUEST_URI'], 0, 10) == '/gp-stock/') {
     wp_enqueue_script('select2', '/wp-content/plugins/woocommerce/assets/js/select2/select2.full.min.js'); //usually loaded by woocommerce but since this is independent page we need to load manually
 	  wp_enqueue_style('select2', '/wp-content/plugins/woocommerce/assets/css/select2.css?ver=3.0.7'); //usually loaded by woocommerce but since this is independent page we need to load manually
     wp_enqueue_script('dscsa-inventory', 'https://dscsa.github.io/webform/woocommerce/inventory.js', ['jquery', 'ie9ajax']);
