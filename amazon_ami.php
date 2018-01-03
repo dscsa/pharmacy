@@ -529,7 +529,7 @@ function wc_bypass_logout_confirmation() {
     global $wp;
 
     if ( isset( $wp->query_vars['customer-logout'] ) ) {
-        wp_redirect( str_replace( '&amp;', '&', wp_logout_url( wc_get_page_permalink( 'myaccount' ).'?login' ) ) );
+        wp_redirect( str_replace( '&amp;', '&', wp_logout_url( wc_get_page_permalink( 'myaccount' ).'?gp-login' ) ) );
         exit;
     }
 }
@@ -860,7 +860,7 @@ function dscsa_translate($term, $raw, $domain) {
   $phone = $phone ?: get_default('phone');
 
   $toEnglish = [
-    "An account is already registered with that username. Please choose another." => 'Looks like you have already registered. Goto the <a href="/account/?login">Login page</a> and use your 10 digit phone number as your default password e.g. the phone number (123) 456-7890 would have a default password of 1234567890.',
+    "An account is already registered with that username. Please choose another." => 'Looks like you have already registered. Goto the <a href="/account/?gp-login">Login page</a> and use your 10 digit phone number as your default password e.g. the phone number (123) 456-7890 would have a default password of 1234567890.',
     "<span class='english'>Pay by Credit or Debit Card</span><span class='spanish'>Pago con tarjeta de crédito o débito</span>" => "Pay by Credit or Debit Card",
     'Spanish'  => 'Espanol', //Registering
     'Email:' => 'Email', //order details

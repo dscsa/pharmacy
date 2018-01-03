@@ -1,7 +1,7 @@
 jQuery(load)
 function load() {
 
-  console.log('login page always run since might not have ?login after logout')
+  console.log('login page always run since might not have ?gp-login after logout')
   upgradeBirthdate()
 
   if ( ~ window.location.search.indexOf('register'))
