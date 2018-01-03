@@ -408,7 +408,7 @@ function login_form() {
 
 add_action('woocommerce_register_form', 'dscsa_register_form_acknowledgement');
 function dscsa_register_form_acknowledgement() {
-  echo '<div style="margin-bottom:8px">'.__('By clicking "Register" below, you agree to our <a href="/terms">Terms of Use</a> and agree to receive and pay for your refills automatically unless you contact us to decline.').'</div>';
+  echo '<div style="margin-bottom:8px">'.__('By clicking "Register" below, you agree to our <a href="/gp-terms">Terms of Use</a> and agree to receive and pay for your refills automatically unless you contact us to decline.').'</div>';
 }
 
 //Customer created hook called to late in order to create username
@@ -878,7 +878,7 @@ function dscsa_translate($term, $raw, $domain) {
     'Free shipping coupon' => 'Paid with Coupon',
     'Free shipping' => 'Paid with Coupon', //not working (order details page)
     'No saved methods found.' => 'No credit or debit cards are saved to your account',
-    '%s has been added to your cart.' => substr($_SERVER['REQUEST_URI'], 0, 15) != '/account/order/'
+    '%s has been added to your cart.' => $_SERVER['PATH_INFO'] == '/account/'
       ? 'Step 2 of 2: You are almost done! Please complete this "Registration" page so we can fill your prescription(s).  If you need to login again, your temporary password is '.$phone.'.  You can change your password on the "Account Details" page'
       : 'Thank you for your order! Your prescription(s) should arrive within 3-5 days.',
     'Username or email' => '<strong>Email or phone number</strong>', //For resetting passwords
@@ -976,7 +976,7 @@ function dscsa_translate($term, $raw, $domain) {
     'Salicylates' => 'Salicilatos',
     'Thank you for your order! Your prescription(s) should arrive within 3-5 days.' => '¡Gracias por su orden! Sus medicamentos llegarán dentro de 3-5 días.',
     'Please choose a pharmacy' => 'Por favor, elija una farmacia',
-    'By clicking "Register" below, you agree to our <a href="/terms">Terms of Use</a> and agree to receive and pay for your refills automatically unless you contact us to decline.' => 'Al hacer clic en "Register" a continuación, usted acepta los <a href="/terms">Términos de Uso</a> y acepta recibir y pagar por sus rellenos automáticamente, a menos que usted se ponga en contacto con nosotros para descontinuarlo.',
+    'By clicking "Register" below, you agree to our <a href="/gp-terms">Terms of Use</a> and agree to receive and pay for your refills automatically unless you contact us to decline.' => 'Al hacer clic en "Register" a continuación, usted acepta los <a href="/gp-terms">Términos de Uso</a> y acepta recibir y pagar por sus rellenos automáticamente, a menos que usted se ponga en contacto con nosotros para descontinuarlo.',
 
     'Coupon' => 'Cupón', //not working (checkout applied coupon)
     'Edit' => 'Cambio',
