@@ -4,10 +4,10 @@ function load() {
   console.log('login page always run since might not have ?gp-login after logout')
   upgradeBirthdate()
 
+  jQuery('form:not([action])').attr('action', location.pathname)
+
   if ( ~ window.location.search.indexOf('register'))
     return register_page()
-
-  jQuery('form:not([action])').attr('action', location.pathname)
 }
 
 function register_page() {
