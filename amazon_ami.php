@@ -12,6 +12,12 @@ function dscsa_admin_scripts() {
   }
 }
 
+add_action('init', 'cache_login_registration');
+function cache_login_registration() {
+  if (strpos($_SERVER['REQUEST_URI'], 'gp-') === false || $_POST) return; //mimic cloud flare page rules
+  remove_action('wp', ['WC_Cache_Helper', 'prevent_caching']);
+}
+
 add_action('wp_enqueue_scripts', 'dscsa_user_scripts');
 function dscsa_user_scripts() {
 
