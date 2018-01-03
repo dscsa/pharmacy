@@ -1019,6 +1019,11 @@ function dscsa_email_items_table($items_table) {
   return '';
 }
 
+add_action('woocommerce_email_header', 'dscsa_add_css_to_email');
+function dscsa_add_css_to_email() {
+  echo '<style type="text/css">thead, tbody, tfoot { display:none }</style>';
+}
+
 // Hook in
 add_filter( 'woocommerce_checkout_fields' , 'dscsa_checkout_fields' );
 function dscsa_checkout_fields( $fields ) {

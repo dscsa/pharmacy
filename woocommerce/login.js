@@ -4,7 +4,7 @@ function load() {
   console.log('login page always run since might not have ?login after logout')
   upgradeBirthdate()
 
-  if (window.location.search == '?register')
+  if ( ~ window.location.search.indexOf('register'))
     return register_page()
 }
 
