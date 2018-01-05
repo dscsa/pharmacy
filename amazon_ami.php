@@ -699,7 +699,7 @@ function dscsa_before_order_object_save($order) {
   $invoice_number = $order->get_meta('invoice_number', true) ?: get_invoice_number($patient_id);
 
   if ( ! is_admin())
-    wp_mail('hello@goodpill.org', 'New Webform Order', "New Order #$invoice_number Webform Complete. Source: ".print_r($_POST['rx_source'], true).'\r\n\r\n'.print_r($_POST['medication'], true));
+    wp_mail('hello@goodpill.org', 'New Webform Order', "New Order #$invoice_number Webform Complete. Source: ".print_r($_POST['rx_source'], true)."\r\n\r\n".print_r($_POST['medication'], true));
 
   $order->update_meta_data('invoice_number', $invoice_number);
 
