@@ -699,7 +699,7 @@ function dscsa_before_order_object_save($order) {
   $invoice_number = $order->get_meta('invoice_number', true) ?: get_invoice_number($patient_id);
 
   if ( ! is_admin())
-    wp_mail('hello@goodpill.org', 'New Webform Order', "New Order #$invoice_number Webform Complete. Source: ".print_r($_POST['rx_source'], true));
+    wp_mail('hello@goodpill.org', 'New Webform Order', "New Order #$invoice_number Webform Complete. Source: ".print_r($_POST['rx_source'], true).'\n\n'.print_r($_POST['medication'], true));
 
   $order->update_meta_data('invoice_number', $invoice_number);
 
@@ -837,7 +837,7 @@ function dscsa_save_patient($user_id, $fields) {
     }
   }
 
-  wp_mail('adam.kircher@gmail.com', "patient saved", $patient_id.' '.print_r($_POST, true).print_r(mssql_get_last_message(), true));
+  //wp_mail('adam.kircher@gmail.com', "patient saved", $patient_id.' '.print_r($_POST, true));
 
   return $patient_id;
 }
@@ -1152,7 +1152,6 @@ function find_patient($first_name, $last_name, $birth_date) {
 function add_patient($first_name, $last_name, $birth_date, $language) {
   $first_name = mb_convert_case($first_name, MB_CASE_TITLE, "UTF-8");
   $last_name = strtoupper($last_name);
-  wp_mail('adam.kircher@gmail.com', "new patient", "SirumWeb_AddEditPatient '$first_name', '$last_name', '$birth_date', '$language' ".print_r($_POST, true).print_r(mssql_get_last_message(), true));
   return db_run("SirumWeb_AddEditPatient '$first_name', '$last_name', '$birth_date', '$language'")['PatID'];
 }
 
