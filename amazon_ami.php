@@ -451,7 +451,7 @@ function dscsa_default_post_value() {
      $_POST['phone'] = $phone;
 
      if ($_POST['register']) {
-        $_POST['email'] = $_POST['phone'].'@goodpill.org';
+        $_POST['email'] = $_POST['email'] ?: $_POST['phone'].'@goodpill.org';
         $_POST['password'] = $phone;
      }
 
@@ -479,13 +479,14 @@ function customer_created($user_id) {
   $last_name = sanitize_text_field($_POST['last_name']);
   $birth_date = sanitize_text_field($_POST['birth_date']);
   $language = sanitize_text_field($_POST['language']);
+  $email = sanitize_text_field($_POST['email']);
 
   foreach(['', 'billing_', 'shipping_'] as $field) {
     update_user_meta($user_id, $field.'first_name', $first_name);
     update_user_meta($user_id, $field.'last_name', $last_name);
   }
   update_user_meta($user_id, 'birth_date', $birth_date);
-  update_user_meta($user_id, 'language', $language);
+  update_user_meta($user_id, 'email', $email);
 
   if ($_POST['phone']) {
     update_user_meta($user_id, 'phone', $_POST['phone']);
