@@ -391,14 +391,18 @@ function dscsa_register_form() {
 function login_form() {
 
   $first_name = [
+    'type' => 'text',
     'class' => ['form-row-first'],
     'label'  => __('First name'),
+    'required' => true,
     'default' => $_POST['first_name']
   ];
 
   $last_name = [
+    'type' => 'text',
     'class' => ['form-row-last'],
     'label'  => __('Last name'),
+    'required' => true,
     'default' => $_POST['last_name']
   ];
 
