@@ -18,19 +18,11 @@ function load() {
   //Save card info to our account automatically
   jQuery('#wc-stripe-new-payment-method').prop('checked', true)
 
+  //This class causes update_checkout_totals, which causes a spinner and delay that we don't need
+  //https://github.com/woocommerce/woocommerce/blob/master/assets/js/frontend/checkout.js
+  $(".address-field").removeClass("address-field")
+
   //Toggle medication select and backup pharmacy text based on whether
   //Rx is being sent from doctor or transferred from a pharmacy.
   setSource()
-
-  //Not used currently.  We don't need billing info because we don't check
-  //it in stripe.  If we ever do then we will need something like this.
-  // jQuery("#billing_state").on('change', function($event){
-  //
-  //   var shipAddress = jQuery("#ship-to-different-address-checkbox")
-  //
-  //   if (this.value != 'GA')
-  //     shipAddress.click().prop('disabled', true)
-  //   else
-  //     shipAddress.prop('disabled', false).click()
-  // })
 }
