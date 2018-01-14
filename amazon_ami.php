@@ -771,6 +771,17 @@ function dscsa_before_order_object_save($order) {
   //wp_mail('adam.kircher@gmail.com', "saved order", $patient_id.' '.print_r($_POST, true).print_r(mssql_get_last_message(), true));
 }
 
+add_action('woocommerce_customer_save_address', 'dscsa_customer_save_address', 10, 2);
+function dscsa_customer_save_address($user_id, $load_address) {
+  update_shipping_address(
+    get_meta('guardian_id', $user_id),
+    $_POST['billing_address_1'],
+    $_POST['billing_address_2'],
+    $_POST['billing_city'],
+    $_POST['billing_postcode']
+  );
+}
+
 //TODO implement this funciton
 function get_field($key) {
    $val = $order->get_meta($key, true);
