@@ -490,6 +490,7 @@ function customer_created($user_id) {
     update_user_meta($user_id, $field.'last_name', $last_name);
   }
   update_user_meta($user_id, 'birth_date', $birth_date);
+  update_user_meta($user_id, 'language', $language);
   update_user_meta($user_id, 'email', $email);
 
   if ($_POST['phone']) {
@@ -804,12 +805,15 @@ function dscsa_save_patient($user_id, $fields) {
       $_POST['billing_first_name'] ?: $_POST['account_first_name'] ?: $_POST['_billing_first_name'],
       $_POST['billing_last_name'] ?: $_POST['account_last_name'] ?: $_POST['_billing_last_name'],
       $_POST['birth_date'],
+      $_POST['phone'],
       get_meta('language', $user_id)
     );
 
     update_user_meta($user_id, 'guardian_id', $patient_id);
 
     //wp_mail('adam.kircher@gmail.com', "new patient", $patient_id.' '.print_r($_POST, true).print_r(mssql_get_last_message(), true));
+  } else {
+    update_phone($patient_id, $_POST['phone']);
   }
 
   $allergy_codes = [
@@ -853,7 +857,6 @@ function dscsa_save_patient($user_id, $fields) {
     if ($key == 'phone') {
       //wp_mail('adam.kircher@gmail.com', "phone",
       update_user_meta($user_id, 'billing_phone', $val); //this saves it on the user page as well
-      update_phone($patient_id, $val);
     }
 
     update_user_meta($user_id, $key, $val);
@@ -1094,6 +1097,14 @@ function dscsa_checkout_fields( $fields ) {
   return $fields;
 }
 
+//This is for the address details page
+add_filter( 'woocommerce_billing_fields', 'dscsa_billing_fields');
+function dscsa_billing_fields( $fields ) {
+  unset($fields['billing_company']);
+  unset($fields['billing_country']);
+  return $fields;
+}
+
 function get_invoice_number($guardian_id) {
   return db_run("SirumWeb_AddFindInvoiceNbrByPatID '$guardian_id'")['invoice_nbr'];
 }
@@ -1130,7 +1141,6 @@ function add_remove_allergy($guardian_id, $allergy_id, $value) {
 // SirumWeb_AddUpdateHomePhone(
 //   @PatID int,  -- ID of Patient
 //   @PatCellPhone VARCHAR(20)
-// }
 function update_phone($guardian_id, $cell_phone) {
   return db_run("SirumWeb_AddUpdatePatHomePhone '$guardian_id', '$cell_phone'");
 }
@@ -1162,8 +1172,8 @@ function update_shipping_address($guardian_id, $address_1, $address_2, $city, $z
 //   @MName varchar(20)=NULL,     -- Middle Name (optional)
 //   @DOB DateTime                -- Birth Date
 // )
-function find_patient($first_name, $last_name, $birth_date) {
-  return db_run("SirumWeb_FindPatByNameandDOB '$first_name', '$last_name', '$birth_date'");
+function find_patient($first_name, $last_name, $birth_date, $phone) {
+  return db_run("SirumWeb_FindPat '$first_name', '$last_name', '$birth_date', '$phone'");
 }
 
 // SirumWeb_AddEditPatient(
@@ -1180,10 +1190,10 @@ function find_patient($first_name, $last_name, $birth_date) {
 //   ,@ShipCountry varchar(3)   -- Country Code
 //   ,@CellPhone varchar(20)    -- Cell Phone
 // )
-function add_patient($first_name, $last_name, $birth_date, $language) {
+function add_patient($first_name, $last_name, $birth_date, $phone, $language) {
   $first_name = mb_convert_case($first_name, MB_CASE_TITLE, "UTF-8");
   $last_name = strtoupper($last_name);
-  return db_run("SirumWeb_AddEditPatient '$first_name', '$last_name', '$birth_date', '$language'")['PatID'];
+  return db_run("SirumWeb_AddUpdatePatient '$first_name', '$last_name', '$birth_date', '$phone', '$language'")['PatID'];
 }
 
 // Procedure dbo.SirumWeb_AddToPatientComment (@PatID int, @CmtToAdd VARCHAR(4096)
@@ -1299,7 +1309,7 @@ function db_fetch($stmt) {
 
 function db_connect() {
   //sqlsrv_configure("WarningsReturnAsErrors", 0);
-  $conn = mssql_connect("96.67.225.25", "sirum", "!Stanf0rd") ?: email_error('Error Connection');
+  $conn = mssql_connect(GUARDIAN_IP, GUARDIAN_ID, GUARDIAN_PW) ?: email_error('Error Connection');
   mssql_select_db('cph', $conn) ?: email_error('Could not select database cph');
   return $conn;
 }
