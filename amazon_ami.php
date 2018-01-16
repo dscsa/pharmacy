@@ -727,6 +727,7 @@ function dscsa_before_order_object_save($order) {
   $patient_id = dscsa_save_patient($user_id, shared_fields($user_id) + order_fields($user_id) + ['order_comments' => true]);
 
   $invoice_number = $order->get_meta('invoice_number', true) ?: get_invoice_number($patient_id);
+  //wp_mail('adam.kircher@gmail.com', "saved order 0", "$patient_id | $invoice_number ".$order->get_meta('invoice_number', true).get_invoice_number($patient_id).print_r($_POST, true).print_r(mssql_get_last_message(), true));
 
   if ( ! is_admin()) {
     wp_mail('hello@goodpill.org', 'New Webform Order', "New Order #$invoice_number Webform Complete. Source: ".print_r($_POST['rx_source'], true)."\r\n\r\n".print_r($_POST['medication'], true));
@@ -761,6 +762,8 @@ function dscsa_before_order_object_save($order) {
     $_POST['_billing_postcode'] ?: $_POST['billing_postcode']
   );
 
+  //wp_mail('adam.kircher@gmail.com', "saved order 1", "$patient_id | $invoice_number ".print_r($_POST, true).print_r(mssql_get_last_message(), true));
+
   if ($_POST['medication']) {
     foreach ($_POST['medication'] as $drug_name) {
       if ($drug_name)
@@ -768,7 +771,7 @@ function dscsa_before_order_object_save($order) {
     }
   }
 
-  //wp_mail('adam.kircher@gmail.com', "saved order", $patient_id.' '.print_r($_POST, true).print_r(mssql_get_last_message(), true));
+  //wp_mail('adam.kircher@gmail.com', "saved order 2", "$patient_id | $invoice_number ".print_r($_POST, true).print_r(mssql_get_last_message(), true));
 }
 
 add_action('woocommerce_customer_save_address', 'dscsa_customer_save_address', 10, 2);
@@ -1117,7 +1120,9 @@ function dscsa_billing_fields( $fields ) {
 }
 
 function get_invoice_number($guardian_id) {
-  return db_run("SirumWeb_AddFindInvoiceNbrByPatID '$guardian_id'")['invoice_nbr'];
+  $result = db_run("SirumWeb_AddFindInvoiceNbrByPatID '$guardian_id'");
+  //wp_mail('adam.kircher@gmail.com', "get_invoice_number", $guardian_id.print_r($result, true));
+  return $result['invoice_nbr'];
 }
 
 
@@ -1204,7 +1209,12 @@ function find_patient($first_name, $last_name, $birth_date, $phone) {
 function add_patient($first_name, $last_name, $birth_date, $phone, $language) {
   $first_name = mb_convert_case($first_name, MB_CASE_TITLE, "UTF-8");
   $last_name = strtoupper($last_name);
-  return db_run("SirumWeb_AddUpdatePatient '$first_name', '$last_name', '$birth_date', '$phone', '$language'")['PatID'];
+
+  $result = db_run("SirumWeb_AddUpdatePatient '$first_name', '$last_name', '$birth_date', '$phone', '$language'");
+
+  wp_mail('adam.kircher@gmail.com', "add_patient", "$first_name $last_name ".print_r(func_get_args(), true).print_r($result, true));
+
+  return $result['PatID'];
 }
 
 // Procedure dbo.SirumWeb_AddToPatientComment (@PatID int, @CmtToAdd VARCHAR(4096)
