@@ -727,7 +727,7 @@ function dscsa_before_order_object_save($order) {
   $patient_id = dscsa_save_patient($user_id, shared_fields($user_id) + order_fields($user_id) + ['order_comments' => true]);
 
   $invoice_number = $order->get_meta('invoice_number', true) ?: get_invoice_number($patient_id);
-  //wp_mail('adam.kircher@gmail.com', "saved order 0", "$patient_id | $invoice_number ".$order->get_meta('invoice_number', true).get_invoice_number($patient_id).print_r($_POST, true).print_r(mssql_get_last_message(), true));
+  //wp_mail('adam.kircher@gmail.com', "saved order 0", "$patient_id | $invoice_number ".$order->get_meta('invoice_number', true).print_r($_POST, true).print_r(mssql_get_last_message(), true));
 
   if ( ! is_admin()) {
     wp_mail('hello@goodpill.org', 'New Webform Order', "New Order #$invoice_number Webform Complete. Source: ".print_r($_POST['rx_source'], true)."\r\n\r\n".print_r($_POST['medication'], true));
@@ -1212,7 +1212,7 @@ function add_patient($first_name, $last_name, $birth_date, $phone, $language) {
 
   $result = db_run("SirumWeb_AddUpdatePatient '$first_name', '$last_name', '$birth_date', '$phone', '$language'");
 
-  wp_mail('adam.kircher@gmail.com', "add_patient", "$first_name $last_name ".print_r(func_get_args(), true).print_r($result, true));
+  //wp_mail('adam.kircher@gmail.com', "add_patient", "$first_name $last_name ".print_r(func_get_args(), true).print_r($result, true));
 
   return $result['PatID'];
 }
