@@ -20,7 +20,7 @@ function load() {
 
   //This class causes update_checkout_totals, which causes a spinner and delay that we don't need
   //https://github.com/woocommerce/woocommerce/blob/master/assets/js/frontend/checkout.js
-  //$(".input-text.address-field").removeClass("address-field")
+  jQuery('form.checkout').off('keydown', '.address-field input.input-text, .update_totals_on_change input.input-text')
 
   //Toggle medication select and backup pharmacy text based on whether
   //Rx is being sent from doctor or transferred from a pharmacy.

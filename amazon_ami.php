@@ -1302,7 +1302,7 @@ function db_run($sql, $resultIndex = 0) {
   $conn = $conn ?: db_connect();
   $stmt = db_query($conn, $sql);
 
-  if ( ! stmt) return;
+  if ( ! is_resource(stmt)) return;
 
   for ($i = 0; $i < $resultIndex; $i++) {
     if ($resultIndex AND $stmt AND mssql_num_rows($stmt))
@@ -1311,7 +1311,7 @@ function db_run($sql, $resultIndex = 0) {
     mssql_next_result($stmt);
   }
 
-  if ($stmt AND ! mssql_num_rows($stmt)) {
+  if ( ! is_resource($stmt) OR ! mssql_num_rows($stmt)) {
     //email_error("no rows for result of $sql");
     return [];
   }
