@@ -727,7 +727,9 @@ function dscsa_before_order_object_save($order) {
   $patient_id = dscsa_save_patient($user_id, shared_fields($user_id) + order_fields($user_id) + ['order_comments' => true]);
 
   $invoice_number = $order->get_meta('invoice_number', true) ?: get_invoice_number($patient_id);
-  //wp_mail('adam.kircher@gmail.com', "saved order 0", "$patient_id | $invoice_number ".$order->get_meta('invoice_number', true).print_r($_POST, true).print_r(mssql_get_last_message(), true));
+
+  if ( ! $invoice_number)
+    wp_mail('adam.kircher@gmail.com', "NO INVOICE #", "Patient ID: $patient_id\r\n\r\nInvoice #:$invoice_number \r\n\r\nMSSQL:".print_r(mssql_get_last_message(), true)."\r\n\r\nOrder Meta Invoice #:".$order->get_meta('invoice_number', true)."\r\n\r\nPOST:".print_r($_POST, true));
 
   if ( ! is_admin()) {
     wp_mail('hello@goodpill.org', 'New Webform Order', "New Order #$invoice_number Webform Complete. Source: ".print_r($_POST['rx_source'], true)."\r\n\r\n".print_r($_POST['medication'], true));
@@ -1121,7 +1123,7 @@ function dscsa_billing_fields( $fields ) {
 
 function get_invoice_number($guardian_id) {
   $result = db_run("SirumWeb_AddFindInvoiceNbrByPatID '$guardian_id'");
-  //wp_mail('adam.kircher@gmail.com', "get_invoice_number", $guardian_id.print_r($result, true));
+  wp_mail('adam.kircher@gmail.com', "get_invoice_number", $guardian_id.print_r($result, true));
   return $result['invoice_nbr'];
 }
 
@@ -1212,7 +1214,7 @@ function add_patient($first_name, $last_name, $birth_date, $phone, $language) {
 
   $result = db_run("SirumWeb_AddUpdatePatient '$first_name', '$last_name', '$birth_date', '$phone', '$language'");
 
-  //wp_mail('adam.kircher@gmail.com', "add_patient", "$first_name $last_name ".print_r(func_get_args(), true).print_r($result, true));
+  wp_mail('adam.kircher@gmail.com', "add_patient", "$first_name $last_name ".print_r(func_get_args(), true).print_r($result, true));
 
   return $result['PatID'];
 }
@@ -1239,10 +1241,18 @@ function append_comment($guardian_id, $comment) {
 function add_preorder($guardian_id, $drug_name, $pharmacy) {
    $store = json_decode(stripslashes($pharmacy));
    $drug_name = explode(',', $drug_name)[0];
-   $phone = cleanPhone($store->phone);
-   $fax = cleanPhone($store->fax);
+   $phone = cleanPhone($store->phone) ?: '0000000000';
+   $fax = cleanPhone($store->fax) ?: '0000000000';
    $store_name = str_replace("'", "''", $store->name); //We need to escape single quotes in case comment has one
-   return db_run("SirumWeb_AddToPreorder '$guardian_id', '$drug_name', '$store->npi', '$store_name', '$store->street', '$store->city', '$store->state', '$store->zip', '$phone', '$fax'");
+
+   $query = "SirumWeb_AddToPreorder '$guardian_id', '$drug_name', '$store->npi', '$store_name', '$store->street', '$store->city', '$store->state', '$store->zip', '$phone', '$fax'";
+
+   $result = db_run($query);
+
+   if ( ! $store->phone OR ! $store->fax)
+     wp_mail('adam.kircher@gmail.com', "add_preorder", "$query ".print_r(func_get_args(), true).print_r($result, true));
+
+   return $result;
 }
 
 // Procedure dbo.SirumWeb_AddUpdatePatientUD (@PatID int, @UDNumber int, @UDValue varchar(50) )
@@ -1302,16 +1312,20 @@ function db_run($sql, $resultIndex = 0) {
   $conn = $conn ?: db_connect();
   $stmt = db_query($conn, $sql);
 
-  if ( ! is_resource(stmt)) return;
+  if ( ! is_resource($stmt)) {
+    if ($stmt !== true)  //mssql_query($sql, $conn) returns true on no result, false on error, or recource with rows
+      wp_mail('adam.kircher@gmail.com', "No Resource", print_r($sql, true).' '.print_r($stmt, true).' '.print_r(mssql_get_last_message(), true));
+
+    return;
+  }
 
   for ($i = 0; $i < $resultIndex; $i++) {
-    if ($resultIndex AND $stmt AND mssql_num_rows($stmt))
-      wp_mail('adam.kircher@gmail.com', "findInvoiceNumber $i", print_r(db_fetch($stmt), true).' '.print_r($params, true).' '.print_r($errors, true));
-
     mssql_next_result($stmt);
   }
 
   if ( ! is_resource($stmt) OR ! mssql_num_rows($stmt)) {
+    wp_mail('adam.kircher@gmail.com', "No Resource or Rows", print_r($sql, true).' '.print_r($stmt, true).' '.print_r(mssql_get_last_message(), true));
+
     //email_error("no rows for result of $sql");
     return [];
   }
