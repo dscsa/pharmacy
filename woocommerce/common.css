@@ -75,11 +75,7 @@ button.menu-toggle {
 form.checkout, /* Don't show checkout on every page */
 .woocommerce > .woocommerce-info, /* hide coupon link */
 .woocommerce-message a, /* don't show links in messages since often wrong link */
-.cart-subtotal, /*Hide subtotal row on checkout */
-.shipping, /* Hide shipping cost row on checkout */
-.order-total, /* Hide $0 checkout fee */
-.product-name, /*Hide product name row on checkout */
-.product-total  /*Hide product total row on checkout */
+.woocommerce-checkout-review-order-table /*hide all items and costs since we are not charging anything */
 {
   display:none;
 }
