@@ -713,67 +713,69 @@ global $alreadySaved;
 add_action('woocommerce_before_order_object_save', 'dscsa_before_order_object_save');
 function dscsa_before_order_object_save($order) {
 
-  global $alreadySaved;
+  try {
+    global $alreadySaved;
 
-  if ($alreadySaved OR ! $_POST) return; //$_POST is not set on duplicate order
+    if ($alreadySaved OR ! $_POST) return; //$_POST is not set on duplicate order
 
-  $alreadySaved = true;
+    $alreadySaved = true;
 
-  //$order = wc_get_order( $order_id );
-  $user_id = $order->get_user_id();
+    //$order = wc_get_order( $order_id );
+    $user_id = $order->get_user_id();
 
-  //THIS MUST BE CALLED FIRST IN ORDER TO CREATE GUARDIAN ID
-  //TODO should save if they don't exist, but what if they do, should we be overriding?
-  $patient_id = dscsa_save_patient($user_id, shared_fields($user_id) + order_fields($user_id) + ['order_comments' => true]);
+    //THIS MUST BE CALLED FIRST IN ORDER TO CREATE GUARDIAN ID
+    //TODO should save if they don't exist, but what if they do, should we be overriding?
+    $patient_id = dscsa_save_patient($user_id, shared_fields($user_id) + order_fields($user_id) + ['order_comments' => true]);
 
-  $invoice_number = $order->get_meta('invoice_number', true) ?: get_invoice_number($patient_id);
+    $invoice_number = $order->get_meta('invoice_number', true) ?: get_invoice_number($patient_id);
 
-  if ( ! $invoice_number)
-    wp_mail('adam.kircher@gmail.com', "NO INVOICE #", "Patient ID: $patient_id\r\n\r\nInvoice #:$invoice_number \r\n\r\nMSSQL:".print_r(mssql_get_last_message(), true)."\r\n\r\nOrder Meta Invoice #:".$order->get_meta('invoice_number', true)."\r\n\r\nPOST:".print_r($_POST, true));
+    if ( ! $invoice_number)
+      wp_mail('adam.kircher@gmail.com', "NO INVOICE #", "Patient ID: $patient_id\r\n\r\nInvoice #:$invoice_number \r\n\r\nMSSQL:".print_r(mssql_get_last_message(), true)."\r\n\r\nOrder Meta Invoice #:".$order->get_meta('invoice_number', true)."\r\n\r\nPOST:".print_r($_POST, true));
 
-  if ( ! is_admin()) {
-    wp_mail('hello@goodpill.org', 'New Webform Order', "New Order #$invoice_number Webform Complete. Source: ".print_r($_POST['rx_source'], true)."\r\n\r\n".print_r($_POST['medication'], true));
-    wp_mail('adam.kircher@gmail.com', "New Webform Order", "New Order #$invoice_number.  Patient #$patient_id\r\n\r\n".print_r($_POST, true));
-  }
-
-  $order->update_meta_data('invoice_number', $invoice_number);
-
-  update_email($patient_id, sanitize_text_field($_POST['email']));
-
-  $coupon = $order->get_used_coupons()[0];
-
-  if (  ! $coupon) {
-    $stored_coupon = get_meta('coupon', $user_id);
-    if ($stored_coupon != 'ckim') $coupon = $stored_coupon; //persist all coupons except ckim
-  }
-
-  $card = get_meta('stripe', $user_id);
-
-  update_user_meta($user_id, 'coupon', $coupon);
-  update_card_and_coupon($patient_id, $card, $coupon);
-
-  //$prefix = $_POST['ship_to_different_address'] ? 'shipping_' : 'billing_';
-
-  //TODO this should be called on the edit address page as well
-  //Underscore is for saving on the admin page, no underscore is for the customer checkout
-  $address = update_shipping_address(
-    $patient_id,
-    $_POST['_billing_address_1'] ?: $_POST['billing_address_1'],
-    $_POST['_billing_address_2'] ?: $_POST['billing_address_2'],
-    $_POST['_billing_city'] ?: $_POST['billing_city'],
-    $_POST['_billing_postcode'] ?: $_POST['billing_postcode']
-  );
-
-  //wp_mail('adam.kircher@gmail.com', "saved order 1", "$patient_id | $invoice_number ".print_r($_POST, true).print_r(mssql_get_last_message(), true));
-
-  if ($_POST['medication']) {
-    foreach ($_POST['medication'] as $drug_name) {
-      if ($drug_name)
-        add_preorder($patient_id, $drug_name, $_POST['backup_pharmacy']);
+    if ( ! is_admin()) {
+      wp_mail('hello@goodpill.org', 'New Webform Order', "New Order #$invoice_number Webform Complete. Source: ".print_r($_POST['rx_source'], true)."\r\n\r\n".print_r($_POST['medication'], true));
+      wp_mail('adam.kircher@gmail.com', "New Webform Order", "New Order #$invoice_number.  Patient #$patient_id\r\n\r\n".print_r($_POST, true));
     }
-  }
 
-  //wp_mail('adam.kircher@gmail.com', "saved order 2", "$patient_id | $invoice_number ".print_r($_POST, true).print_r(mssql_get_last_message(), true));
+    $order->update_meta_data('invoice_number', $invoice_number);
+
+    update_email($patient_id, sanitize_text_field($_POST['email']));
+
+    $coupon = $order->get_used_coupons()[0];
+
+    if (  ! $coupon) {
+      $stored_coupon = get_meta('coupon', $user_id);
+      if ($stored_coupon != 'ckim') $coupon = $stored_coupon; //persist all coupons except ckim
+    }
+
+    $card = get_meta('stripe', $user_id);
+
+    update_user_meta($user_id, 'coupon', $coupon);
+    update_card_and_coupon($patient_id, $card, $coupon);
+
+    //$prefix = $_POST['ship_to_different_address'] ? 'shipping_' : 'billing_';
+
+    //TODO this should be called on the edit address page as well
+    //Underscore is for saving on the admin page, no underscore is for the customer checkout
+    $address = update_shipping_address(
+      $patient_id,
+      $_POST['_billing_address_1'] ?: $_POST['billing_address_1'],
+      $_POST['_billing_address_2'] ?: $_POST['billing_address_2'],
+      $_POST['_billing_city'] ?: $_POST['billing_city'],
+      $_POST['_billing_postcode'] ?: $_POST['billing_postcode']
+    );
+
+    //wp_mail('adam.kircher@gmail.com', "saved order 1", "$patient_id | $invoice_number ".print_r($_POST, true).print_r(mssql_get_last_message(), true));
+
+    if ($_POST['medication']) {
+      foreach ($_POST['medication'] as $drug_name) {
+        if ($drug_name)
+          add_preorder($patient_id, $drug_name, $_POST['backup_pharmacy']);
+      }
+    }
+  } catch (Exception $e) {
+    wp_mail('adam.kircher@gmail.com', "woocommerce_before_order_object_save", "$patient_id | $invoice_number ".$e->getMessage()." ".print_r($_POST, true).print_r(mssql_get_last_message(), true));
+  }
 }
 
 add_action('woocommerce_customer_save_address', 'dscsa_customer_save_address', 10, 2);
@@ -1080,6 +1082,11 @@ function dscsa_add_css_to_email() {
   echo '<style type="text/css">thead, tbody, tfoot { display:none }</style>';
 }
 
+add_filter('woocommerce_cart_needs_payment', 'dscsa_show_payment_options');
+function dscsa_show_payment_options($show_payment_options) {
+  return empty(WC()->cart->applied_coupons);
+}
+
 // Hook in
 add_filter( 'woocommerce_checkout_fields' , 'dscsa_checkout_fields' );
 function dscsa_checkout_fields( $fields ) {
@@ -1176,8 +1183,8 @@ function update_shipping_address($guardian_id, $address_1, $address_2, $city, $z
   //wp_mail('adam.kircher@gmail.com', "update_shipping_address", print_r($params, true));
   $zip = substr($zip, 0, 5);
   $city = mb_convert_case($city, MB_CASE_TITLE, "UTF-8" );
-  $address_1 = mb_convert_case($address_1, MB_CASE_TITLE, "UTF-8" );
-  $address_2 = $address_2 ? "'".mb_convert_case($address_2, MB_CASE_TITLE, "UTF-8" )."'" : "NULL";
+  $address_1 = mb_convert_case(str_replace("'", "''", $address_1), MB_CASE_TITLE, "UTF-8" );
+  $address_2 = $address_2 ? "'".mb_convert_case(str_replace("'", "''", $address_2), MB_CASE_TITLE, "UTF-8" )."'" : "NULL";
   $query = "SirumWeb_AddUpdatePatHomeAddr '$guardian_id', '$address_1', $address_2, NULL, '$city', 'GA', '$zip', 'US'";
   //wp_mail('adam.kircher@gmail.com', "update_shipping_address", $query);
   return db_run($query);
