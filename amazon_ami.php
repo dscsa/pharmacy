@@ -594,6 +594,7 @@ function dscsa_order_search_fields( $search_fields ) {
 //TODO should changing checkout fields overwrite account fields if they are set?
 add_action('woocommerce_save_account_details', 'dscsa_save_account');
 function dscsa_save_account($user_id) {
+  wp_mail('adam.kircher@gmail.com', "dscsa_save_account_details", print_r($_POST, true));
   $patient_id = dscsa_save_patient($user_id, shared_fields($user_id) + account_fields($user_id));
   update_email($patient_id, sanitize_text_field($_POST['account_email']));
 }
@@ -710,8 +711,8 @@ function dscsa_show_order_invoice($order) {
 
 //woocommerce_checkout_update_order_meta
 global $alreadySaved;
-add_action('woocommerce_before_order_object_save', 'dscsa_before_order_object_save');
-function dscsa_before_order_object_save($order) {
+add_action('woocommerce_before_order_object_save', 'dscsa_before_order_object_save', 10, 2);
+function dscsa_before_order_object_save($order, $data) {
 
   try {
     global $alreadySaved;
@@ -727,7 +728,19 @@ function dscsa_before_order_object_save($order) {
     //TODO should save if they don't exist, but what if they do, should we be overriding?
     $patient_id = dscsa_save_patient($user_id, shared_fields($user_id) + order_fields($user_id) + ['order_comments' => true]);
 
-    $invoice_number = $order->get_meta('invoice_number', true) ?: get_invoice_number($patient_id);
+    //$invoice_number = $order->get_meta('invoice_number', true) ?: get_invoice_number($patient_id);
+
+    $invoice_number = $order->get_meta('invoice_number', true);
+
+    if ( ! $invoice_number) {
+      $guardian_order = get_guardian_order($patient_id);
+      $invoice_number = $guardian_order['invoice_nbr'];
+
+      //HACK for now is to save to POST.  Every status change in this method seemed to get overriden
+      //Tried $order->status = $status, $data->status = $status, $order->set_status($status), $order->update_status($status)
+      $_POST['order_rxs'] = $guardian_order['rxs'];
+    }
+
 
     if ( ! $invoice_number)
       wp_mail('adam.kircher@gmail.com', "NO INVOICE #", "Patient ID: $patient_id\r\n\r\nInvoice #:$invoice_number \r\n\r\nMSSQL:".print_r(mssql_get_last_message(), true)."\r\n\r\nOrder Meta Invoice #:".$order->get_meta('invoice_number', true)."\r\n\r\nPOST:".print_r($_POST, true));
@@ -776,6 +789,24 @@ function dscsa_before_order_object_save($order) {
   } catch (Exception $e) {
     wp_mail('adam.kircher@gmail.com', "woocommerce_before_order_object_save", "$patient_id | $invoice_number ".$e->getMessage()." ".print_r($_POST, true).print_r(mssql_get_last_message(), true));
   }
+}
+
+//Tried woocommerce_status_changed, woocommerce_status_on-hold, woocommerce_thankyou and setting it before_order_object_save and nothing else worked
+add_filter('wp_insert_post_data', 'dscsa_update_order_status');
+function dscsa_update_order_status( $data) {
+
+    if (is_admin() OR ($data['post_status'] != 'wc-on-hold' AND $data['post_status'] != 'wc-processing'))
+      return $data;
+
+    if( ! $_POST['order_rxs']) {
+      $data['post_status'] = $_POST['medication'] ? 'wc-awaiting-transfer' : 'wc-awaiting-rx';
+    }
+
+    if ($data['post_status'] == 'wc-on-hold') {
+      $data['post_status'] = 'wc-processing';
+    }
+
+    return $data;
 }
 
 add_action('woocommerce_customer_save_address', 'dscsa_customer_save_address', 10, 2);
@@ -896,7 +927,7 @@ function dscsa_save_patient($user_id, $fields) {
 
 add_filter( 'wc_order_statuses', 'dscsa_renaming_order_status' );
 function dscsa_renaming_order_status( $order_statuses ) {
-    $order_statuses['wc-on-hold'] = _x('Being prepared', 'Order status', 'woocommerce' );
+    $order_statuses['wc-processing'] = _x('prescription(s) received and being prepared', 'Order status', 'woocommerce' );
     return $order_statuses;
 }
 
@@ -930,7 +961,7 @@ function dscsa_translate($term, $raw, $domain) {
     'Free shipping coupon' => 'Paid with Coupon',
     'Free shipping' => 'Paid with Coupon', //not working (order details page)
     'No saved methods found.' => 'No credit or debit cards are saved to your account',
-    '%s has been added to your cart.' => $_SERVER['PATH_INFO'] == '/account/'
+    '%s has been added to your cart.' => strtok($_SERVER["REQUEST_URI"],'?') == '/account/'
       ? 'Step 2 of 2: You are almost done! Please complete this "Registration" page so we can fill your prescription(s).  If you need to login again, your temporary password is '.$phone.'.  You can change your password on the "Account Details" page'
       : 'Thank you for your order! Your prescription(s) should arrive within 3-5 days.',
     'Username or email' => '<strong>Email or phone number</strong>', //For resetting passwords
@@ -1132,6 +1163,12 @@ function get_invoice_number($guardian_id) {
   $result = db_run("SirumWeb_AddFindInvoiceNbrByPatID '$guardian_id'");
   wp_mail('adam.kircher@gmail.com', "get_invoice_number", $guardian_id.print_r($result, true));
   return $result['invoice_nbr'];
+}
+
+function get_guardian_order($guardian_id) {
+  $result = db_run("SirumWeb_AddFindOrder '$guardian_id'");
+  wp_mail('adam.kircher@gmail.com', "get_guardian_order", $guardian_id.print_r($result, true));
+  return $result;
 }
 
 
