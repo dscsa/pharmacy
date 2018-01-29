@@ -502,7 +502,7 @@ function customer_created($user_id) {
 // Function to change email address
 add_filter('wp_mail_from', 'email_address');
 function email_address() {
-  return 'webform@goodpill.org';
+  return 'support@goodpill.org';
 }
 add_filter('wp_mail_from_name', 'email_name');
 function email_name() {
