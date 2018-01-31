@@ -227,7 +227,7 @@ function shared_fields($user_id = null) {
     return [
     'backup_pharmacy' => $pharmacy,
     'medications_other' => [
-        'label'     =>  __('List any other medication(s) or supplement(s) you are currently taking'),
+        'label'     =>  __('List any other medication(s) or supplement(s) you are currently taking (We will not fill these but need to check for drug interactions)'),
         'default'   => get_default('medications_other', $user_id)
     ],
     'allergies_none' => [
@@ -1001,7 +1001,7 @@ function dscsa_translate($term, $raw, $domain) {
     'Tetracycline antibiotics' => 'Antibióticos de tetraciclina',
     'List Other Allergies Below' => 'Indique otras alergias abajo',
     'Phone' => 'Teléfono',
-    'List any other medication(s) or supplement(s) you are currently taking' => 'Indique cualquier otro medicamento o suplemento que usted toma actualmente',
+    'List any other medication(s) or supplement(s) you are currently taking (We will not fill these but need to check for drug interactions)' => 'Indique cualquier otro medicamento o suplemento que usted toma actualmente',
     'First name' => 'Nombre',
     'Last name' => 'Apellido',
     'Date of Birth' => 'Fecha de nacimiento',
@@ -1033,7 +1033,7 @@ function dscsa_translate($term, $raw, $domain) {
     'Phone number' => 'Teléfono',
     'Email' => 'Correo electrónico',
     'Prescription(s) were sent from my doctor' => 'La/s receta/s fueron enviadas de parte de mi médico',
-    'Transfer prescription(s) from my pharmacy' => 'Transferir la/s receta/s desde mi farmacia',
+    'Transfer prescription(s) with refills remaining from my pharmacy' => 'Transferir la/s receta/s desde mi farmacia',
     'House number and street name' => 'Dirección de envío',
     'Apartment, suite, unit etc. (optional)' => 'Apartamento, suite, unidad, etc. (opcional)',
     'Payment methods' => 'Métodos de pago',
