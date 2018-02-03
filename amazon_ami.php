@@ -123,7 +123,7 @@ function order_fields($user_id = null) {
       'default'   => get_default('rx_source', $user_id) ?: 'erx',
       'options'   => [
         'erx'     => __('Prescription(s) were sent from my doctor'),
-        'pharmacy' => __('Transfer prescription(s) from my pharmacy')
+        'pharmacy' => __('Transfer prescription(s) with refills remaining from my pharmacy')
 
       ]
     ],
