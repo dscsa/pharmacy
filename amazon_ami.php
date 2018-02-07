@@ -598,7 +598,9 @@ function dscsa_order_search_fields( $search_fields ) {
 //TODO should changing checkout fields overwrite account fields if they are set?
 add_action('woocommerce_save_account_details', 'dscsa_save_account');
 function dscsa_save_account($user_id) {
-  wp_mail('adam.kircher@gmail.com', "dscsa_save_account_details", print_r($_POST, true));
+  $sanitized = $_POST;
+  unset($sanitized['password_current'], $sanitized['password_1'], $sanitized['password_2']);
+  wp_mail('adam.kircher@gmail.com', "dscsa_save_account_details", print_r($sanitized, true));
   $patient_id = dscsa_save_patient($user_id, shared_fields($user_id) + account_fields($user_id));
   update_email($patient_id, sanitize_text_field($_POST['account_email']));
 }
