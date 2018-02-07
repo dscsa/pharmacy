@@ -122,8 +122,8 @@ function order_fields($user_id = null) {
       'required'  => true,
       'default'   => get_default('rx_source', $user_id) ?: 'erx',
       'options'   => [
-        'erx'     => __('Prescription(s) were sent from my doctor'),
-        'pharmacy' => __('Transfer prescription(s) with refills remaining from my pharmacy')
+        'erx'     => __('Rx(s) were sent from my doctor'),
+        'pharmacy' => __('Transfer Rx(s) with refills remaining from my pharmacy')
 
       ]
     ],
@@ -459,6 +459,10 @@ function dscsa_default_post_value() {
         $_POST['password'] = $phone;
      }
 
+     if ($_POST['save_account_details']) {
+       $_POST['account_email'] = $_POST['account_email'] ?: $_POST['phone'].'@goodpill.org';
+     }
+
      if ($_POST['user_login']) //reset password
         $_POST['user_login'] = $_POST['phone'].'@goodpill.org';
   }
@@ -610,7 +614,7 @@ function dscsa_rest_update_order($order, $request) {
       $already_run = true;
 
       //wp_mail('adam.kircher@gmail.com', 'dscsa_rest_update_order', print_r($order, true));
-
+    try {
       //TODO incorrectly assuming that invoice number is always 1st (only) value in metadata
       $orders = get_orders_by_invoice_number($request['id']);
 
@@ -640,7 +644,11 @@ function dscsa_rest_update_order($order, $request) {
       }
 
       $request['id'] = $orders[0]->post_id;
-      //wp_mail('adam.kircher@gmail.com', "dscsa_rest_update_order", $request['id'].' | /wc/v2/orders/'+$orders[0]->post_id.' '.print_r($orders, true).' '.print_r($request, true));
+
+    } catch (Exception $e) {
+      wp_mail('adam.kircher@gmail.com', "dscsa_rest_update_order: error", print_r($e, true).' | '.$request['id'].' | /wc/v2/orders/'+$orders[0]->post_id.' '.print_r($orders, true).' '.print_r($request, true));
+    }
+    //wp_mail('adam.kircher@gmail.com', "dscsa_rest_update_order", $request['id'].' | /wc/v2/orders/'+$orders[0]->post_id.' '.print_r($orders, true).' '.print_r($request, true));
   }
 
   return $order;
@@ -705,8 +713,16 @@ function dscsa_show_order_invoice($order) {
     }
 
     if ($invoice_doc_id) {
-       echo "<iframe src='https://docs.google.com/document/d/$invoice_doc_id/pub?embedded=true' style='border:none; padding:0px; overflow:hidden; width:100%; height:1800px; position:relative; z-index:-1; left:-60px; top:-65px' scrolling='no'></iframe>";
+      $url  = "https://docs.google.com/document/d/$invoice_doc_id/pub?embedded=true";
+      $top  = '-65px';
+      $left = '-60px';
+    } else {
+      $url = "https://www.goodpill.org/order-confirmation";
+      $top = '0px';
+      $left = '-40px';
     }
+
+    echo "<iframe src='$url' style='border:none; padding:0px; overflow:hidden; width:100%; height:1800px; position:relative; z-index:-1; left:$left; top:$top' scrolling='no'></iframe>";
 }
 
 //woocommerce_checkout_update_order_meta
@@ -963,7 +979,7 @@ function dscsa_translate($term, $raw, $domain) {
     'No saved methods found.' => 'No credit or debit cards are saved to your account',
     '%s has been added to your cart.' => strtok($_SERVER["REQUEST_URI"],'?') == '/account/'
       ? 'Step 2 of 2: You are almost done! Please complete this "Registration" page so we can fill your prescription(s).  If you need to login again, your temporary password is '.$phone.'.  You can change your password on the "Account Details" page'
-      : 'Thank you for your order! Your prescription(s) should arrive within 3-5 days.',
+      : 'Thank you for your order! We will start working on it right away',
     'Username or email' => '<strong>Email or phone number</strong>', //For resetting passwords
     'Password reset email has been sent.' => "Before you reset your password by following the instructions below, first try logging in with your 10 digit phone number as your default password",
     'A password reset email has been sent to the email address on file for your account, but may take several minutes to show up in your inbox. Please wait at least 10 minutes before attempting another reset.' => 'If you provided an email address or mobile phone number during registration, then an email and/or text message with instructions on how to reset your password was sent to you.  If you do not get an email or text message from us within 5mins, please call us at <span style="white-space:nowrap">(888) 987-5187</span> for assistance',
@@ -1032,8 +1048,8 @@ function dscsa_translate($term, $raw, $domain) {
 
     'Phone number' => 'Teléfono',
     'Email' => 'Correo electrónico',
-    'Prescription(s) were sent from my doctor' => 'La/s receta/s fueron enviadas de parte de mi médico',
-    'Transfer prescription(s) with refills remaining from my pharmacy' => 'Transferir la/s receta/s desde mi farmacia',
+    'Rx(s) were sent from my doctor' => 'La/s receta/s fueron enviadas de parte de mi médico',
+    'Transfer Rx(s) with refills remaining from my pharmacy' => 'Transferir la/s receta/s desde mi farmacia',
     'House number and street name' => 'Dirección de envío',
     'Apartment, suite, unit etc. (optional)' => 'Apartamento, suite, unidad, etc. (opcional)',
     'Payment methods' => 'Métodos de pago',
