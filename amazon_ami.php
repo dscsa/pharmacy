@@ -813,10 +813,12 @@ function dscsa_before_order_object_save($order, $data) {
 add_filter('wp_insert_post_data', 'dscsa_update_order_status');
 function dscsa_update_order_status( $data) {
 
+    wp_mail('adam.kircher@gmail.com', "dscsa_update_order_status", is_admin()." | ".print_r($_POST, true)." | ".print_r($data, true));
+
     if (is_admin() OR ($data['post_status'] != 'wc-on-hold' AND $data['post_status'] != 'wc-processing'))
       return $data;
 
-    if( ! $_POST['order_rxs']) {
+    if($_POST['rx_source'] && ! $_POST['order_rxs']) { //checking for rx_source ensures that API calls to update status still work
       $data['post_status'] = $_POST['medication'] ? 'wc-awaiting-transfer' : 'wc-awaiting-rx';
     }
 
