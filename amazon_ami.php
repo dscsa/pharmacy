@@ -1342,13 +1342,14 @@ function update_pharmacy($guardian_id, $pharmacy) {
   $fax = cleanPhone($store->fax);
 
   $store_name = str_replace("'", "''", $store->name); //We need to escape single quotes in case pharmacy name has a ' for example Lamar's Pharmacy
+  $store_street = str_replace("'", "''", $store->street);
 
-  db_run("SirumWeb_AddExternalPharmacy '$store->npi', '$store_name', '$store->street', '$store->city', '$store->state', '$store->zip', '$phone', '$fax'");
+  db_run("SirumWeb_AddExternalPharmacy '$store->npi', '$store_name, $store->phone, $store_street', '$store_street', '$store->city', '$store->state', '$store->zip', '$phone', '$fax'");
 
   db_run("SirumWeb_AddUpdatePatientUD '$guardian_id', '1', '$store_name'");
 
   //Because of 50 character limit, the street will likely be cut off.
-  $user_def_2 = $store->npi.','.$store->fax.','.$store->phone.','.$store->street;
+  $user_def_2 = $store->npi.','.$store->fax.','.$store->phone.','.$store_street;
   return db_run("SirumWeb_AddUpdatePatientUD '$guardian_id', '2', '$user_def_2'");
 }
 
