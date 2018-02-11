@@ -454,17 +454,14 @@ function dscsa_default_post_value() {
 
      $_POST['phone'] = $phone;
 
-     if ($_POST['register']) {
-        $_POST['email'] = $_POST['email'] ?: $_POST['phone'].'@goodpill.org';
-        $_POST['password'] = $phone;
-     }
+     if ($_POST['register'] AND ! $_POST['email'])
+        $_POST['email'] = "$phone@goodpill.org";
 
-     if ($_POST['save_account_details']) {
-       $_POST['account_email'] = $_POST['account_email'] ?: $_POST['phone'].'@goodpill.org';
-     }
+     if ($_POST['save_account_details'] AND ! $_POST['account_email'])
+       $_POST['account_email'] = "$phone@goodpill.org";
 
-     if ($_POST['user_login']) //reset password
-        $_POST['user_login'] = $_POST['phone'].'@goodpill.org';
+     if ($_POST['user_login']) //reset password if phone rather than email is supplied
+        $_POST['user_login'] = "$phone@goodpill.org";
   }
 }
 
@@ -474,6 +471,11 @@ function cleanPhone($phone) { //get rid of all delimiters and a leading 1 if it 
     return substr($phone, 1, 10);
 
   return strlen($phone) == 10 ? $phone : NULL;
+}
+
+add_filter('random_password', 'dscsa_random_password');
+function dscsa_random_password() {
+  return $_POST['phone'];
 }
 
 //After Registration, set default shipping/billing/account fields
