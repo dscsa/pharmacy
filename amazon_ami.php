@@ -973,7 +973,7 @@ function dscsa_order_is_editable($editable, $order) {
 
   if ($editable) return true;
 
-  return in_array($order->get_status(), array('processing', 'shipped-unpaid', 'shipped-autopay', 'shipped-coupon'), true);
+  return in_array($order->get_status(), array('processing', 'awaiting-rx', 'awaiting-transfer', 'shipped-unpaid', 'shipped-autopay', 'shipped-coupon'), true);
 }
 
 add_filter('woocommerce_order_is_paid_statuses', 'dscsa_order_is_paid_statuses');
