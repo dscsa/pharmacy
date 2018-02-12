@@ -927,6 +927,10 @@ function dscsa_save_patient($user_id, $fields) {
   return $patient_id;
 }
 
+add_filter( 'woocommerce_email_headers', 'dscsa_email_headers', 10, 2);
+function dscsa_email_headers( $headers, $template) {
+		return array($headers, "Bcc:hello@goodpill.org\r\n");
+}
 
 //Tried woocommerce_status_changed, woocommerce_status_on-hold, woocommerce_thankyou and setting it before_order_object_save and nothing else worked
 add_filter('wp_insert_post_data', 'dscsa_update_order_status');
@@ -960,11 +964,11 @@ function dscsa_new_order($order_id) {
 
 add_filter( 'wc_order_statuses', 'dscsa_renaming_order_status' );
 function dscsa_renaming_order_status( $order_statuses ) {
-    $order_statuses['wc-processing'] = _x('getting ready to be shipped. Prescription(s) were received', 'Order status', 'woocommerce');
+    $order_statuses['wc-processing'] = _x('Received Rx. Preparing to fill', 'Order status', 'woocommerce');
     return $order_statuses;
 }
 
-add_filter( 'wc_order_is_editable', 'dscsa_order_is_editable');
+add_filter( 'wc_order_is_editable', 'dscsa_order_is_editable', 10, 2);
 function dscsa_order_is_editable($editable, $order) {
 
   if ($editable) return true;
