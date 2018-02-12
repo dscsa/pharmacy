@@ -73,7 +73,6 @@ button.menu-toggle {
 
 .woocommerce-orders-table__cell-order-status, /* Hide irrelevant columns on orders page*/
 form.checkout, /* Don't show checkout on every page */
-.woocommerce > .woocommerce-info, /* hide coupon link */
 .woocommerce-message a, /* don't show links in messages since often wrong link */
 .woocommerce-checkout-review-order-table /*hide all items and costs since we are not charging anything */
 {

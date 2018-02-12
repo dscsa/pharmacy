@@ -3,20 +3,17 @@
   display:none !important
 }
 /*Make sure they are visible */
-.woocommerce > .woocommerce-info, form.checkout_coupon, form.checkout  {
+form.checkout_coupon, form.checkout  {
   display:inline-block;
 }
 /*Default is set for 2 columns */
 @media screen and ( min-width: 768px ) {
-  .woocommerce > .woocommerce-info, form.checkout_coupon, form.checkout  {
+  form.checkout_coupon, form.checkout  {
     width:69% !important
   }
 }
 .col2-set, #order_review {
   width:100% !important
-}
-.woocommerce > .woocommerce-info {
-  margin-top:-290px
 }
 form.checkout, #order_review_heading {
   margin-top:-30px;

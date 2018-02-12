@@ -811,26 +811,6 @@ function dscsa_before_order_object_save($order, $data) {
   }
 }
 
-//Tried woocommerce_status_changed, woocommerce_status_on-hold, woocommerce_thankyou and setting it before_order_object_save and nothing else worked
-add_filter('wp_insert_post_data', 'dscsa_update_order_status');
-function dscsa_update_order_status( $data) {
-
-    wp_mail('adam.kircher@gmail.com', "dscsa_update_order_status", is_admin()." | ".print_r($_POST, true)." | ".print_r($data, true));
-
-    if (is_admin() OR ($data['post_status'] != 'wc-on-hold' AND $data['post_status'] != 'wc-processing'))
-      return $data;
-
-    if($_POST['rx_source'] && ! $_POST['order_rxs']) { //checking for rx_source ensures that API calls to update status still work
-      $data['post_status'] = $_POST['medication'] ? 'wc-awaiting-transfer' : 'wc-awaiting-rx';
-    }
-
-    if ($data['post_status'] == 'wc-on-hold') {
-      $data['post_status'] = 'wc-processing';
-    }
-
-    return $data;
-}
-
 add_action('woocommerce_customer_save_address', 'dscsa_customer_save_address', 10, 2);
 function dscsa_customer_save_address($user_id, $load_address) {
   update_shipping_address(
@@ -947,10 +927,54 @@ function dscsa_save_patient($user_id, $fields) {
   return $patient_id;
 }
 
+
+//Tried woocommerce_status_changed, woocommerce_status_on-hold, woocommerce_thankyou and setting it before_order_object_save and nothing else worked
+add_filter('wp_insert_post_data', 'dscsa_update_order_status');
+function dscsa_update_order_status( $data) {
+
+    //wp_mail('adam.kircher@gmail.com', "dscsa_update_order_status", is_admin()." | ".strlen($_POST['order_rxs'])." | ".(!!$_POST['order_rxs'])." | ".var_export($_POST['order_rxs'], true)." | ".print_r($_POST, true)." | ".print_r($data, true));
+
+    if (is_admin() OR $data['post_type'] != 'shop_order') return $data;
+
+    if ($_POST['order_rxs']) { //Skip on-hold and go straight to processing if set
+      $data['post_status'] = 'wc-processing';
+    } else if($_POST['rx_source']) { //checking for rx_source ensures that API calls to update status still work.  Even though we are not "capturing charge" setting "needs payment" seems to make the status goto processing
+      $data['post_status'] = $_POST['medication'] ? 'wc-awaiting-transfer' : 'wc-awaiting-rx';
+    }
+
+    return $data;
+}
+
+//On hold emails only triggered in certain circumstances, so we need to trigger them manually
+//https://github.com/woocommerce/woocommerce/blob/f8552ebbad227293c7b819bc4b06cbb6deb2c725/includes/emails/class-wc-email-customer-on-hold-order.php#L39
+add_action('woocommerce_new_order', 'dscsa_new_order');
+function dscsa_new_order($order_id) {
+
+  $order  = wc_get_order($order_id);
+  $status = $order->get_status();
+  $type   = $_POST['order_rxs'] ? 'Processing_Order' : 'On_Hold_Order';
+
+  // Select the email we want & trigger it to send
+  WC()->mailer()->get_emails()["WC_Email_Customer_$type"]->trigger($order_id, $order);
+}
+
 add_filter( 'wc_order_statuses', 'dscsa_renaming_order_status' );
 function dscsa_renaming_order_status( $order_statuses ) {
-    $order_statuses['wc-processing'] = _x('prescription(s) received and being prepared', 'Order status', 'woocommerce' );
+    $order_statuses['wc-processing'] = _x('getting ready to be shipped. Prescription(s) were received', 'Order status', 'woocommerce');
     return $order_statuses;
+}
+
+add_filter( 'wc_order_is_editable', 'dscsa_order_is_editable');
+function dscsa_order_is_editable($editable, $order) {
+
+  if ($editable) return true;
+
+  return in_array($order->get_status(), array('processing', 'shipped-unpaid', 'shipped-autopay', 'shipped-coupon'), true);
+}
+
+add_filter('woocommerce_order_is_paid_statuses', 'dscsa_order_is_paid_statuses');
+function dscsa_order_is_paid_statuses($paid_statuses) {
+  return array('completed', 'shipped-paid');
 }
 
 add_filter( 'woocommerce_order_button_text', 'dscsa_order_button_text');
@@ -985,7 +1009,7 @@ function dscsa_translate($term, $raw, $domain) {
     'No saved methods found.' => 'No credit or debit cards are saved to your account',
     '%s has been added to your cart.' => strtok($_SERVER["REQUEST_URI"],'?') == '/account/'
       ? 'Step 2 of 2: You are almost done! Please complete this "Registration" page so we can fill your prescription(s).  If you need to login again, your temporary password is '.$phone.'.  You can change your password on the "Account Details" page'
-      : 'Thank you for your order! We will start working on it right away',
+      : 'Thank you for your order!',
     'Username or email' => '<strong>Email or phone number</strong>', //For resetting passwords
     'Password reset email has been sent.' => "Before you reset your password by following the instructions below, first try logging in with your 10 digit phone number as your default password",
     'A password reset email has been sent to the email address on file for your account, but may take several minutes to show up in your inbox. Please wait at least 10 minutes before attempting another reset.' => 'If you provided an email address or mobile phone number during registration, then an email and/or text message with instructions on how to reset your password was sent to you.  If you do not get an email or text message from us within 5mins, please call us at <span style="white-space:nowrap">(888) 987-5187</span> for assistance',
@@ -999,7 +1023,9 @@ function dscsa_translate($term, $raw, $domain) {
     'Username is required.' => 'Name and date of birth in mm/dd/yyyy format are required.',
     'Invalid username or email.' => '<strong>Error</strong>: We cannot find an account with that phone number.',
     '<strong>ERROR</strong>: Invalid username.' => '<strong>Error</strong>: We cannot find an account with that name and date of birth.',
-    'An account is already registered with your email address. Please log in.' => 'An account is already registered with your phone number. Please log in.'
+    'An account is already registered with your email address. Please log in.' => 'An account is already registered with your phone number. Please log in.',
+    'Your order is on-hold until we confirm payment has been received. Your order details are shown below for your reference:' => $_POST['medication'] ? 'We are currently requesting a transfer of your Rx(s) from your pharmacy' : 'We are currently waiting on Rx(s) to be sent from your doctor',
+    'Your order has been received and is now being processed. Your order details are shown below for your reference:' => 'We got your prescription(s) and will start working on them right away'
   ];
 
   $toSpanish = [
