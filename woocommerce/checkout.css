@@ -6,6 +6,10 @@
 form.checkout_coupon, form.checkout  {
   display:inline-block;
 }
+/*Hide billing/shipping fields until our custom additional fields are prepended with JS */
+.woocommerce-billing-fields:first-child {
+  display:none;
+}
 /*Default is set for 2 columns */
 @media screen and ( min-width: 768px ) {
   form.checkout_coupon, form.checkout  {
