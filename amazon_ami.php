@@ -97,7 +97,7 @@ function dscsa_stripe_add_card($stripe_id, $card, $response) {
    update_card_and_coupon($patient_id, $card, $coupon);
 }
 
-function order_fields($user_id = null) {
+function order_fields($user_id = null, $medication = ['']) {
 
 
   $user_id = $user_id ?: get_current_user_id();
@@ -105,16 +105,8 @@ function order_fields($user_id = null) {
   $medication = [
     'type'   	  => 'select',
     'label'     => __('Search and select medications by generic name that you want to transfer to Good Pill'),
-    'options'   => ['']
+    'options'   => $medication
   ];
-
-  $medication_meta = get_meta('medication[]', $user_id);
-
-  if ($medication_meta) {
-    print_r($medication_meta);
-    //$store = json_decode($medication_meta);
-    //$medication['options'] = [$medication_meta => $store->name.', '.$store->street.', '.$store->city.', GA '.$store->zip.' - Phone: '.$store->phone];
-  }
 
   return [
     'rx_source' => [
@@ -334,7 +326,10 @@ function shared_fields($user_id = null) {
 //Display custom fields on account/details
 add_action('woocommerce_admin_order_data_after_order_details', 'dscsa_admin_edit_account');
 function dscsa_admin_edit_account($order) {
-  $fields = order_fields($order->user_id)+shared_fields($order->user_id)+account_fields($order->user_id)+admin_fields($order->user_id);
+
+  $medication = $order->get_meta('medication');
+
+  $fields = order_fields($order->user_id, $medication)+shared_fields($order->user_id)+account_fields($order->user_id)+admin_fields($order->user_id);
   return dscsa_echo_form_fields($fields);
 }
 
@@ -393,7 +388,7 @@ function login_form() {
   $first_name = [
     'type' => 'text',
     'class' => ['form-row-first'],
-    'label'  => __('First name'),
+    'label'  => __('Patient First name'),
     'required' => true,
     'default' => $_POST['first_name']
   ];
@@ -401,7 +396,7 @@ function login_form() {
   $last_name = [
     'type' => 'text',
     'class' => ['form-row-last'],
-    'label'  => __('Last name'),
+    'label'  => __('Patient Last name'),
     'required' => true,
     'default' => $_POST['last_name']
   ];
@@ -794,8 +789,8 @@ function dscsa_before_order_object_save($order, $data) {
       $patient_id,
       $_POST['_billing_address_1'] ?: $_POST['billing_address_1'],
       $_POST['_billing_address_2'] ?: $_POST['billing_address_2'],
-      $_POST['_billing_city'] ?: $_POST['billing_city'],
-      $_POST['_billing_postcode'] ?: $_POST['billing_postcode']
+      $_POST['_billing_city']      ?: $_POST['billing_city'],
+      $_POST['_billing_postcode']  ?: $_POST['billing_postcode']
     );
 
     //wp_mail('adam.kircher@gmail.com', "saved order 1", "$patient_id | $invoice_number ".print_r($_POST, true).print_r(mssql_get_last_message(), true));
@@ -805,6 +800,7 @@ function dscsa_before_order_object_save($order, $data) {
         if ($drug_name)
           add_preorder($patient_id, $drug_name, $_POST['backup_pharmacy']);
       }
+      $order->update_meta_data('medication', $_POST['medication']);
     }
   } catch (Exception $e) {
     wp_mail('adam.kircher@gmail.com', "woocommerce_before_order_object_save", "$patient_id | $invoice_number ".$e->getMessage()." ".print_r($_POST, true).print_r(mssql_get_last_message(), true));
@@ -1029,7 +1025,8 @@ function dscsa_translate($term, $raw, $domain) {
     '<strong>ERROR</strong>: Invalid username.' => '<strong>Error</strong>: We cannot find an account with that name and date of birth.',
     'An account is already registered with your email address. Please log in.' => 'An account is already registered with your phone number. Please log in.',
     'Your order is on-hold until we confirm payment has been received. Your order details are shown below for your reference:' => $_POST['medication'] ? 'We are currently requesting a transfer of your Rx(s) from your pharmacy' : 'We are currently waiting on Rx(s) to be sent from your doctor',
-    'Your order has been received and is now being processed. Your order details are shown below for your reference:' => 'We got your prescription(s) and will start working on them right away'
+    'Your order has been received and is now being processed. Your order details are shown below for your reference:' => 'We got your prescription(s) and will start working on them right away',
+    'Your password has been automatically generated:' => 'Your temporary password is your phone number:'
   ];
 
   $toSpanish = [
@@ -1191,6 +1188,8 @@ function dscsa_checkout_fields( $fields ) {
   // We are using our billing address as the shipping address for now.
   $fields['billing']['billing_state']['type'] = 'select';
   $fields['billing']['billing_state']['options'] = ['GA' => 'Georgia'];
+  $fields['billing']['billing_first_name']['label'] = 'Patient First Name';
+  $fields['billing']['billing_last_name']['label'] = 'Patient Last Name';
 
   //Remove Some Fields
   unset($fields['billing']['billing_first_name']['autofocus']);
