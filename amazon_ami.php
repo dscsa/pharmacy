@@ -388,7 +388,7 @@ function login_form() {
   $first_name = [
     'type' => 'text',
     'class' => ['form-row-first'],
-    'label'  => __('Patient First name'),
+    'label'  => __('First name'),
     'required' => true,
     'default' => $_POST['first_name']
   ];
@@ -396,7 +396,7 @@ function login_form() {
   $last_name = [
     'type' => 'text',
     'class' => ['form-row-last'],
-    'label'  => __('Patient Last name'),
+    'label'  => __('Last name'),
     'required' => true,
     'default' => $_POST['last_name']
   ];
@@ -1340,7 +1340,7 @@ function add_preorder($guardian_id, $drug_name, $pharmacy) {
    $fax = cleanPhone($store->fax) ?: '0000000000';
    $store_name = str_replace("'", "''", $store->name); //We need to escape single quotes in case comment has one
 
-   $query = "SirumWeb_AddToPreorder '$guardian_id', '$drug_name', '$store->npi', '$store_name', '$store->street', '$store->city', '$store->state', '$store->zip', '$phone', '$fax'";
+   $query = "SirumWeb_AddToPreorder '$guardian_id', '$drug_name', '$store->npi', '$store_name P:$phone F:$fax', '$store->street', '$store->city', '$store->state', '$store->zip', '$phone', '$fax'";
 
    $result = db_run($query);
 
