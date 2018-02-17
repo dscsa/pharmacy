@@ -950,6 +950,8 @@ function dscsa_update_order_status( $data) {
 add_action('woocommerce_new_order', 'dscsa_new_order');
 function dscsa_new_order($order_id) {
 
+  if ( ! $_POST['rx_source']) return //not triggered by API calls, only form submissions
+
   $order  = wc_get_order($order_id);
   $status = $order->get_status();
   $type   = $_POST['order_rxs'] ? 'Processing_Order' : 'On_Hold_Order';
@@ -1304,8 +1306,10 @@ function find_patient($first_name, $last_name, $birth_date, $phone) {
 //   ,@CellPhone varchar(20)    -- Cell Phone
 // )
 function add_patient($first_name, $last_name, $birth_date, $phone, $language) {
-  $first_name = mb_convert_case($first_name, MB_CASE_TITLE, "UTF-8");
-  $last_name = strtoupper($last_name);
+  
+  $first_name = mb_convert_case(str_replace("'", "''", $first_name), MB_CASE_TITLE, "UTF-8");
+  $last_name = strtoupper(str_replace("'", "''", $last_name));
+
 
   $result = db_run("SirumWeb_AddUpdatePatient '$first_name', '$last_name', '$birth_date', '$phone', '$language'");
 
