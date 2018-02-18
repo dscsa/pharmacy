@@ -407,8 +407,42 @@ function login_form() {
 
 add_action('woocommerce_register_form', 'dscsa_register_form_acknowledgement');
 function dscsa_register_form_acknowledgement() {
-  echo '<div style="margin-bottom:8px">'.__('By clicking "Register" below, you agree to our <a href="/gp-terms">Terms of Use</a> and agree to receive and pay for your refills automatically unless you contact us to decline.').'</div>';
+  echo woocommerce_form_field('certify',[
+    'type'   	  => 'checkbox',
+    'label'     => __("I certify that<br>(1) I understand this program provides medications to those who cannot afford them.<br>(2) I am eligible because my co-pays and/or deductibles are too high to afford or I don't have health insurance.<br>(3) I agree to Good Pill's <a href='/gp-terms'>Terms of Use</a> including receiving and paying for my refills automatically"),
+    'required'  => true
+  ]);
+  //echo '<div style="margin-bottom:8px">'.__('By clicking "Register" below,').'</div>';
 }
+
+
+add_action('woocommerce_register_post', 'dscsa_register_post', 10, 3);
+function dscsa_register_post($username, $email, $validation_errors) {
+
+    //These are handled by the username check
+    // if ( ! $_POST['first_name']) {
+    //     $validation_errors->add('first_name_error', __('<strong>Error</strong>: First name is required!', 'text_domain'));
+    // }
+    //
+    // if ( ! $_POST['last_name']) {
+    //     $validation_errors->add('last_name_error', __('<strong>Error</strong>: Last name is required!', 'text_domain'));
+    // }
+    //
+    // if ( ! $_POST['birth_date']) {
+    //     $validation_errors->add('birth_date_error', __('<strong>Error</strong>: Birth date is required!', 'text_domain'));
+    // }
+
+    if ( ! $_POST['phone']) {
+        $validation_errors->add('phone_error', __('A valid 10-digit phone number is required!', 'text_domain'));
+    }
+
+    if ( ! $_POST['certify']) {
+        $validation_errors->add('certify_error', __('Certification checkbox is required!', 'text_domain'));
+    }
+
+    return $validation_errors;
+}
+
 
 //Customer created hook called to late in order to create username
 //    https://github.com/woocommerce/woocommerce/blob/e24ca9d3bce1f9e923fcd00e492208511cdea727/includes/class-wc-form-handler.php#L1002
@@ -1019,16 +1053,14 @@ function dscsa_translate($term, $raw, $domain) {
     'Billing address' => 'Shipping address', //Order confirmation
 	  'Billing &amp; Shipping' => 'Shipping Address', //Checkout
     'Lost your password? Please enter your username or email address. You will receive a link to create a new password via email.' => '<h2>Lost your password?</h2>Before you reset your password, first try logging in with your 10 digit phone number without any extra characters as your password.  For example, use the password 1234567890 for the phone number <span style="white-space:nowrap">(123) 456-7890</span>.<br><br>If using your phone number as your password did not work, enter your email or phone number below to receive an email with instructions on how to reset your password. Please note that this option will only work if we have your email on file.<br><br>If you did not provide an email when registering for your account, please call us at <span style="white-space:nowrap">(888) 987-5187</span> for assistance.', //Logging in
-    'Please provide a valid email address.' => 'Please provide a valid 10-digit phone number.',
     'Please enter a valid account username.' => 'Please enter your name and date of birth in mm/dd/yyyy format.',
-    'Please enter an account password.' => 'Please provide a valid 10-digit phone number.',
     'Username is required.' => 'Name and date of birth in mm/dd/yyyy format are required.',
     'Invalid username or email.' => '<strong>Error</strong>: We cannot find an account with that phone number.',
     '<strong>ERROR</strong>: Invalid username.' => '<strong>Error</strong>: We cannot find an account with that name and date of birth.',
     'An account is already registered with your email address. Please log in.' => 'An account is already registered with your phone number. Please log in.',
     'Your order is on-hold until we confirm payment has been received. Your order details are shown below for your reference:' => $_POST['medication'] ? 'We are currently requesting a transfer of your Rx(s) from your pharmacy' : 'We are currently waiting on Rx(s) to be sent from your doctor',
     'Your order has been received and is now being processed. Your order details are shown below for your reference:' => 'We got your prescription(s) and will start working on them right away',
-    'Your password has been automatically generated:' => 'Your temporary password is your phone number:'
+    'Your password has been automatically generated: %s' => 'Your temporary password is your phone number: %s'
   ];
 
   $toSpanish = [
@@ -1306,7 +1338,7 @@ function find_patient($first_name, $last_name, $birth_date, $phone) {
 //   ,@CellPhone varchar(20)    -- Cell Phone
 // )
 function add_patient($first_name, $last_name, $birth_date, $phone, $language) {
-  
+
   $first_name = mb_convert_case(str_replace("'", "''", $first_name), MB_CASE_TITLE, "UTF-8");
   $last_name = strtoupper(str_replace("'", "''", $last_name));
 
