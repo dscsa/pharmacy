@@ -511,7 +511,6 @@ function dscsa_random_password() {
 //then save the user into GuardianRx
 add_action('woocommerce_created_customer', 'customer_created');
 function customer_created($user_id) {
-  wp_mail('hello@goodpill.org', 'New Webform Patient', 'New Registration. Page 1 of 2');
   wp_mail('adam.kircher@gmail.com', 'New Webform Patient', print_r($_POST, true));
 
   $first_name = sanitize_text_field($_POST['first_name']);
