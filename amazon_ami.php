@@ -168,15 +168,15 @@ function admin_fields($user_id = null) {
   ];
 }
 
-add_action('woocommerce_reset_password_notification', 'dscsa_reset_password_notification', 10, 2);
-function dscsa_reset_password_notification($user_login, $reset_key){
+//woocommerce_reset_password_notification no working
+add_action('retrieve_password_key', 'dscsa_retrieve_password_key', 10, 2);
+function dscsa_retrieve_password_key($user_login, $reset_key){
   $link = add_query_arg( array( 'key' => $reset_key, 'login' => $user_login ), wc_get_endpoint_url( 'lost-password', '', wc_get_page_permalink( 'myaccount' ) ) );
   $link = "https://www.".str_replace(' ', '+', substr($link, 12));
   $user_id = get_user_by('login', $user_login)->ID;
   $phone = get_user_meta($user_id, 'phone', true) ?: get_user_meta($user_id, 'billing_phone', true);
 
-  if( ! $phone)
-    return wp_mail("adam.kircher@gmail.com", "Cannot sendSMS.  No Phone #", "Shipping phone: ".get_user_meta($user_id, 'shipping_phone', true).", billing phone: ".get_user_meta($user_id, 'billing_phone', true).", account phone:  ".get_user_meta($user_id, 'account_phone', true)." ".$link);
+  wp_mail("adam.kircher@gmail.com", "Password Reset", "$user_login, $reset_key Shipping phone: ".get_user_meta($user_id, 'shipping_phone', true).", billing phone: ".get_user_meta($user_id, 'billing_phone', true).", account phone:  ".get_user_meta($user_id, 'account_phone', true)." ".$link);
 
   sendSMS($phone, $link);
 }
@@ -503,8 +503,8 @@ function cleanPhone($phone) { //get rid of all delimiters and a leading 1 if it 
 }
 
 add_filter('random_password', 'dscsa_random_password');
-function dscsa_random_password() {
-  return $_POST['phone'];
+function dscsa_random_password($password) {
+  return $_POST['phone'] ?: $password;
 }
 
 //After Registration, set default shipping/billing/account fields
@@ -1370,7 +1370,7 @@ function append_comment($guardian_id, $comment) {
 // If you send the NDC, it will use it.  If you do not send and NCD it will attempt to look up the drug by the name.  I am not sure that this will work correctly, the name you pass in would most likely have to be an exact match, even though I am using  like logic  (ie “%Aspirin 325mg% “) to search.  We may have to work on this a bit more
 function add_preorder($guardian_id, $drug_name, $pharmacy) {
    $store = json_decode(stripslashes($pharmacy));
-   $drug_name = explode(',', $drug_name)[0];
+   $drug_name = preg_replace('/,[^,]*$/', '', $drug_name); //remove pricing data after last comma (don't use explode because of combo drugs)
    $phone = cleanPhone($store->phone) ?: '0000000000';
    $fax = cleanPhone($store->fax) ?: '0000000000';
    $store_name = str_replace("'", "''", $store->name); //We need to escape single quotes in case comment has one
@@ -1380,7 +1380,7 @@ function add_preorder($guardian_id, $drug_name, $pharmacy) {
    $result = db_run($query);
 
    if ( ! $store->phone OR ! $store->fax)
-     wp_mail('adam.kircher@gmail.com', "add_preorder", "$query ".print_r(func_get_args(), true).print_r($result, true));
+     wp_mail('adam.kircher@gmail.com', "add_preorder", "$query ".print_r(func_get_args(), true).print_r($result, true).print_r($_POST, true));
 
    return $result;
 }
