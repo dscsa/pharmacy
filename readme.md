@@ -73,6 +73,7 @@ If not using windows authentication:
 - `sudo mv /var/lib/mysql /goodpill/`
 - `sudo ln -s /goodpill/mysql /var/lib/`
 - `sudo mysql_secure_installation`
+- Add Swap Memory of mysql will crash: http://danielgriff.in/2014/add-swap-space-to-ec2-to-increase-performance-and-mitigate-failure/
 * Answer the wizard questions as follows:
 **Enter current password for root: Press return for none
 **Change Root Password: Y
