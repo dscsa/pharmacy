@@ -969,28 +969,40 @@ function dscsa_update_order_status( $data) {
 
     if (is_admin() OR $data['post_type'] != 'shop_order') return $data;
 
+    wp_mail('adam.kircher@gmail.com', "dscsa_update_order_status 1", print_r($data, true).print_r($_POST, true).print_r(mssql_get_last_message(), true));
+
+
     if ($_POST['order_rxs']) { //Skip on-hold and go straight to processing if set
       $data['post_status'] = 'wc-processing';
     } else if($_POST['rx_source']) { //checking for rx_source ensures that API calls to update status still work.  Even though we are not "capturing charge" setting "needs payment" seems to make the status goto processing
       $data['post_status'] = $_POST['medication'] ? 'wc-awaiting-transfer' : 'wc-awaiting-rx';
     }
 
+    wp_mail('adam.kircher@gmail.com', "dscsa_update_order_status 2", print_r($data, true));
+
+
     return $data;
 }
 
 //On hold emails only triggered in certain circumstances, so we need to trigger them manually
 //https://github.com/woocommerce/woocommerce/blob/f8552ebbad227293c7b819bc4b06cbb6deb2c725/includes/emails/class-wc-email-customer-on-hold-order.php#L39
-add_action('woocommerce_new_order', 'dscsa_new_order');
+//woocommerce_new_order hook was causing wc_get_order() to sometimes fail from being called to early (order might not actually be created yet)
+add_action('woocommerce_thankyou', 'dscsa_new_order');
 function dscsa_new_order($order_id) {
+  try { // Select the email we want & trigger it to send
 
-  if ( ! $_POST['rx_source']) return //not triggered by API calls, only form submissions
+    if ( ! $_POST['rx_source']) return //not triggered by API calls, only form submissions
 
-  $order  = wc_get_order($order_id);
-  $status = $order->get_status();
-  $type   = $_POST['order_rxs'] ? 'Processing_Order' : 'On_Hold_Order';
+    $order  = wc_get_order($order_id);
 
-  // Select the email we want & trigger it to send
-  WC()->mailer()->get_emails()["WC_Email_Customer_$type"]->trigger($order_id, $order);
+    $status = $order->get_status();
+
+    $type = $_POST['order_rxs'] ? 'Processing_Order' : 'On_Hold_Order';
+
+    WC()->mailer()->get_emails()["WC_Email_Customer_$type"]->trigger($order_id, $order);
+  } catch (Exception $e) {
+    wp_mail('adam.kircher@gmail.com', "dscsa_new_order FAILED", print_r($e, true).$e->getMessage());
+  }
 }
 
 add_filter( 'wc_order_statuses', 'dscsa_renaming_order_status' );
