@@ -27,7 +27,7 @@ function dscsa_user_scripts() {
   wp_enqueue_style('jquery-ui', 'https://code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.min.css');
   wp_enqueue_script('datepicker', '/wp-includes/js/jquery/ui/datepicker.min.js', ['jquery-ui']);
 
-  wp_enqueue_script('dscsa-common', 'https://dscsa.github.io/webform/woocommerce/common.js', ['datepicker', 'ie9ajax']);
+  wp_enqueue_script('dscsa-common', 'https://dscsa.github.io/webform/woocommerce/common.js', ['datepicker', 'ie9ajax', 'select2']);
   wp_enqueue_style('dscsa-common', 'https://dscsa.github.io/webform/woocommerce/common.css');
 
   if (substr($_SERVER['REQUEST_URI'], 0, 10) == '/gp-stock/') {
@@ -668,7 +668,7 @@ function dscsa_rest_update_order($order, $request) {
 
       if ($count < 1) {
         wp_mail('adam.kircher@gmail.com', "dscsa_rest_update_order: no orders", $request['id'].' | /wc/v2/orders/'+$orders[0]->post_id.' '.print_r($orders, true).' '.print_r($request['body'], true).' '.print_r($request, true));
-    	  return new WP_Error('could not locate order by invoice number', __( "Order #$invoice_number has $count matches", 'woocommerce' ), 200);
+    	  throw new WP_Error('could not locate order by invoice number', __( "Order #$invoice_number has $count matches", 'woocommerce' ), 200);
       }
 
       if ($count > 1) {
@@ -969,7 +969,7 @@ function dscsa_update_order_status( $data) {
 
     if (is_admin() OR $data['post_type'] != 'shop_order') return $data;
 
-    wp_mail('adam.kircher@gmail.com', "dscsa_update_order_status 1", print_r($data, true).print_r($_POST, true).print_r(mssql_get_last_message(), true));
+    //wp_mail('adam.kircher@gmail.com', "dscsa_update_order_status 1", print_r($data, true).print_r($_POST, true).print_r(mssql_get_last_message(), true));
 
 
     if ($_POST['order_rxs']) { //Skip on-hold and go straight to processing if set
@@ -978,7 +978,7 @@ function dscsa_update_order_status( $data) {
       $data['post_status'] = $_POST['medication'] ? 'wc-awaiting-transfer' : 'wc-awaiting-rx';
     }
 
-    wp_mail('adam.kircher@gmail.com', "dscsa_update_order_status 2", print_r($data, true));
+    //wp_mail('adam.kircher@gmail.com', "dscsa_update_order_status 2", print_r($data, true));
 
 
     return $data;
