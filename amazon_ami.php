@@ -781,7 +781,7 @@ function dscsa_before_order_object_save($order, $data) {
     $invoice_number = $order->get_meta('invoice_number', true);
 
     if ( ! $invoice_number) {
-      $guardian_order = get_guardian_order($patient_id);
+      $guardian_order = get_guardian_order($patient_id, $_POST['order_comments']);
       $invoice_number = $guardian_order['invoice_nbr'];
 
       //HACK for now is to save to POST.  Every status change in this method seemed to get overriden
@@ -928,12 +928,7 @@ function dscsa_save_patient($user_id, $fields) {
       //wp_mail('adam.kircher@gmail.com', "medications_other",
       append_comment($patient_id, $val);
     }
-
-    if ($key == 'order_comments') {
-      //wp_mail('adam.kircher@gmail.com', "order_comments",
-      append_comment($patient_id, " $val");
-    }
-
+    
     if ($key == 'phone') {
       //wp_mail('adam.kircher@gmail.com', "phone",
       update_user_meta($user_id, 'billing_phone', $val); //this saves it on the user page as well
@@ -1261,8 +1256,9 @@ function get_invoice_number($guardian_id) {
   return $result['invoice_nbr'];
 }
 
-function get_guardian_order($guardian_id) {
-  $result = db_run("SirumWeb_AddFindOrder '$guardian_id'");
+function get_guardian_order($guardian_id, $comment) {
+  $comment = str_replace("'", "''", $comment ?: '');
+  $result = db_run("SirumWeb_AddFindOrder '$guardian_id', '$comment'");
   wp_mail('adam.kircher@gmail.com', "get_guardian_order", $guardian_id.print_r($result, true));
   return $result;
 }
