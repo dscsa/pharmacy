@@ -928,7 +928,7 @@ function dscsa_save_patient($user_id, $fields) {
       //wp_mail('adam.kircher@gmail.com', "medications_other",
       append_comment($patient_id, $val);
     }
-    
+
     if ($key == 'phone') {
       //wp_mail('adam.kircher@gmail.com', "phone",
       update_user_meta($user_id, 'billing_phone', $val); //this saves it on the user page as well
@@ -1317,17 +1317,6 @@ function update_shipping_address($guardian_id, $address_1, $address_2, $city, $z
   $query = "SirumWeb_AddUpdatePatHomeAddr '$guardian_id', '$address_1', $address_2, NULL, '$city', 'GA', '$zip', 'US'";
   //wp_mail('adam.kircher@gmail.com', "update_shipping_address", $query);
   return db_run($query);
-}
-
-//$query = sqlsrv_query( $db, "select * from cppat where cppat.pat_id=1003";);
-// SirumWeb_FindPatByNameandDOB(
-//   @LName varchar(30),           -- LAST NAME
-//   @FName varchar(20),           -- FIRST NAME
-//   @MName varchar(20)=NULL,     -- Middle Name (optional)
-//   @DOB DateTime                -- Birth Date
-// )
-function find_patient($first_name, $last_name, $birth_date, $phone) {
-  return db_run("SirumWeb_FindPat '$first_name', '$last_name', '$birth_date', '$phone'");
 }
 
 // SirumWeb_AddEditPatient(
