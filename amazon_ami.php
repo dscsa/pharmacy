@@ -666,19 +666,20 @@ function dscsa_rest_update_order($order, $request) {
 
       $count = count($orders);
 
-      if ($count < 1) {
-        wp_mail('adam.kircher@gmail.com', "dscsa_rest_update_order: no orders", $request['id'].' | /wc/v2/orders/'+$orders[0]->post_id.' '.print_r($orders, true).' '.print_r($request['body'], true).' '.print_r($request, true));
-    	  throw new WP_Error('could not locate order by invoice number', __( "Order #$invoice_number has $count matches", 'woocommerce' ), 200);
-      }
-
       if ($count > 1) {
         wp_mail('adam.kircher@gmail.com', "dscsa_rest_update_order: multiple orders", $request['id'].' | /wc/v2/orders/'+$orders[0]->post_id.' '.print_r($orders, true).' '.print_r($request, true));
       }
 
-      $request['id'] = $orders[0]->post_id;
+      if ($count > 0)
+        $request['id'] = $orders[0]->post_id;
 
     } catch (Exception $e) {
       wp_mail('adam.kircher@gmail.com', "dscsa_rest_update_order: error", print_r($e, true).' | '.$request['id'].' | /wc/v2/orders/'+$orders[0]->post_id.' '.print_r($orders, true).' '.print_r($request, true));
+    }
+
+    if ($count == 0) {
+      wp_mail('adam.kircher@gmail.com', "dscsa_rest_update_order: no orders", $request['id'].' | '.print_r($orders, true).' '.print_r($request['body'], true).' '.print_r($request, true));
+  	  throw new WP_Error('no_matching_invoice', __( "Order #$invoice_number has $count matches", 'woocommerce' ), print_r($request['body'], true));
     }
     //wp_mail('adam.kircher@gmail.com', "dscsa_rest_update_order", $request['id'].' | /wc/v2/orders/'+$orders[0]->post_id.' '.print_r($orders, true).' '.print_r($request, true));
   }
@@ -781,7 +782,7 @@ function dscsa_before_order_object_save($order, $data) {
     $invoice_number = $order->get_meta('invoice_number', true);
 
     if ( ! $invoice_number) {
-      $guardian_order = get_guardian_order($patient_id, $_POST['order_comments']);
+      $guardian_order = get_guardian_order($patient_id, $_POST['rx_source'], $_POST['order_comments']);
       $invoice_number = $guardian_order['invoice_nbr'];
 
       //HACK for now is to save to POST.  Every status change in this method seemed to get overriden
@@ -1256,10 +1257,19 @@ function get_invoice_number($guardian_id) {
   return $result['invoice_nbr'];
 }
 
-function get_guardian_order($guardian_id, $comment) {
+function get_guardian_order($guardian_id, $source, $comment) {
   $comment = str_replace("'", "''", $comment ?: '');
-  $result = db_run("SirumWeb_AddFindOrder '$guardian_id', '$comment'");
-  wp_mail('adam.kircher@gmail.com', "get_guardian_order", $guardian_id.print_r($result, true));
+  // Categories can be found or added select * From csct_code where ct_id=5007, UPDATE csct_code SET code_num=2, code=2, user_owned_yn = 1 WHERE code_id = 100824
+  // 0 Unspecified, 1 Webform Complete, 2 Webform eRx, 3 Webform Transfer
+  if ($source == 'erx')
+    $category = 2;
+  else if ($source == 'pharmacy')
+    $category = 3;
+  else
+    $category = 0;
+
+  $result = db_run("SirumWeb_AddFindOrder '$guardian_id', '$category', '$comment'");
+  wp_mail('adam.kircher@gmail.com', "get_guardian_order *$source*", "SirumWeb_AddFindOrder '$guardian_id', '$category', '$comment'".print_r($result, true));
   return $result;
 }
 
