@@ -432,7 +432,10 @@ function dscsa_register_post($username, $email, $validation_errors) {
     //     $validation_errors->add('birth_date_error', __('<strong>Error</strong>: Birth date is required!', 'text_domain'));
     // }
 
-    if ( ! $_POST['phone']) {
+
+    $phone = cleanPhone($_POST['phone']);
+
+    if ( ! $phone) {
         $validation_errors->add('phone_error', __('A valid 10-digit phone number is required!', 'text_domain'));
     }
 
@@ -830,10 +833,7 @@ function dscsa_before_order_object_save($order, $data) {
     //wp_mail('adam.kircher@gmail.com', "saved order 1", "$patient_id | $invoice_number ".print_r($_POST, true).print_r(mssql_get_last_message(), true));
 
     if ($_POST['medication']) {
-      foreach ($_POST['medication'] as $drug_name) {
-        if ($drug_name)
-          add_preorder($patient_id, $drug_name, $_POST['backup_pharmacy']);
-      }
+      add_preorder($patient_id, $_POST['medication'], $_POST['backup_pharmacy']);
       $order->update_meta_data('medication', $_POST['medication']);
     }
   } catch (Exception $e) {
@@ -1269,7 +1269,7 @@ function get_guardian_order($guardian_id, $source, $comment) {
     $category = 0;
 
   $result = db_run("SirumWeb_AddFindOrder '$guardian_id', '$category', '$comment'");
-  wp_mail('adam.kircher@gmail.com', "get_guardian_order *$source*", "SirumWeb_AddFindOrder '$guardian_id', '$category', '$comment'".print_r($result, true));
+  //wp_mail('adam.kircher@gmail.com', "get_guardian_order *$source*", "SirumWeb_AddFindOrder '$guardian_id', '$category', '$comment'".print_r($result, true));
   return $result;
 }
 
@@ -1351,7 +1351,7 @@ function add_patient($first_name, $last_name, $birth_date, $phone, $language) {
 
   $result = db_run("SirumWeb_AddUpdatePatient '$first_name', '$last_name', '$birth_date', '$phone', '$language'");
 
-  wp_mail('adam.kircher@gmail.com', "add_patient", "$first_name $last_name ".print_r(func_get_args(), true).print_r($result, true));
+  //wp_mail('adam.kircher@gmail.com', "add_patient", "$first_name $last_name ".print_r(func_get_args(), true).print_r($result, true));
 
   return $result['PatID'];
 }
@@ -1375,21 +1375,22 @@ function append_comment($guardian_id, $comment) {
 //   ,@PharmacyPhone varchar(20)   -- Phone Number
 //   ,@PharmacyFaxNo varchar(20)   -- Phone Fax Number
 // If you send the NDC, it will use it.  If you do not send and NCD it will attempt to look up the drug by the name.  I am not sure that this will work correctly, the name you pass in would most likely have to be an exact match, even though I am using  like logic  (ie “%Aspirin 325mg% “) to search.  We may have to work on this a bit more
-function add_preorder($guardian_id, $drug_name, $pharmacy) {
+function add_preorder($guardian_id, $drug_names, $pharmacy) {
    $store = json_decode(stripslashes($pharmacy));
-   $drug_name = preg_replace('/,[^,]*$/', '', $drug_name); //remove pricing data after last comma (don't use explode because of combo drugs)
    $phone = cleanPhone($store->phone) ?: '0000000000';
    $fax = cleanPhone($store->fax) ?: '0000000000';
    $store_name = str_replace("'", "''", $store->name); //We need to escape single quotes in case comment has one
 
-   $query = "SirumWeb_AddToPreorder '$guardian_id', '$drug_name', '$store->npi', '$store_name P:$phone F:$fax', '$store->street', '$store->city', '$store->state', '$store->zip', '$phone', '$fax'";
-
-   $result = db_run($query);
+   foreach ($drug_names as $drug_name) {
+     if ($drug_name) {
+       $drug_name = preg_replace('/,[^,]*$/', '', $drug_name); //remove pricing data after last comma (don't use explode because of combo drugs)
+       $query = "SirumWeb_AddToPreorder '$guardian_id', '$drug_name', '$store->npi', '$store_name P:$phone F:$fax', '$store->street', '$store->city', '$store->state', '$store->zip', '$phone', '$fax'";
+       db_run($query);
+     }
+   }
 
    if ( ! $store->phone OR ! $store->fax)
-     wp_mail('adam.kircher@gmail.com', "add_preorder", "$query ".print_r(func_get_args(), true).print_r($result, true).print_r($_POST, true));
-
-   return $result;
+     wp_mail('adam.kircher@gmail.com', "add_preorder", print_r(func_get_args(), true).print_r($_POST, true));
 }
 
 // Procedure dbo.SirumWeb_AddUpdatePatientUD (@PatID int, @UDNumber int, @UDValue varchar(50) )
