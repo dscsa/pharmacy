@@ -650,27 +650,32 @@ function dscsa_rest_update_order($order, $request) {
 
       //wp_mail('adam.kircher@gmail.com', 'dscsa_rest_update_order', print_r($order, true));
     try {
-      //TODO incorrectly assuming that invoice number is always 1st (only) value in metadata
-      $orders = get_orders_by_invoice_number($request['id']);
+
+      $invoice_number = $request['id'];
+      $meta_data      = $request->get_json_params()['meta_data'];
+
+      foreach ($meta_data as $val) {
+        if ($val['key'] == 'guardian_id') {
+          $guardian_id = $val['value'];
+        }
+      }
+
+      if ( ! $guardian_id) {
+        wp_mail('adam.kircher@gmail.com', "no guardian id was provided in this REST request", $invoice_number.print_r($meta_data, true).print_r($request, true));
+      }
+
+      $orders = get_woocommere_orders($guardian_id, $invoice_number);
 
       //Sometimes Guardian order id changes so "get_orders_by_invoice_number" won't work
-  	  if (count($orders) < 1) {
-        $meta_data = $request->get_json_params()['meta_data'];
-        foreach ($meta_data as $val) {
-          if ($val['key'] == 'guardian_id') {
-            //wp_mail('adam.kircher@gmail.com', "guardian_id", $val['value']);
-            $users = get_users_by_guardian_id($val['value']);
-            //wp_mail('adam.kircher@gmail.com', "users", print_r($users, true));
-            $orders = get_pending_orders_by_user_id($users[0]->user_id);
-            //wp_mail('adam.kircher@gmail.com', "users", print_r($orders, true));
-          }
-        }
+      if (count($orders) < 1) {
+        wp_mail('adam.kircher@gmail.com', "Exact invoice number could not be found, using guardian_id instead", $invoice_number.print_r($meta_data, true).print_r($request, true));
+        $orders = get_pending_orders_by_guardian_id($guardian_id);
       }
 
       $count = count($orders);
 
       if ($count > 1) {
-        wp_mail('adam.kircher@gmail.com', "dscsa_rest_update_order: multiple orders", $request['id'].' | /wc/v2/orders/'+$orders[0]->post_id.' '.print_r($orders, true).' '.print_r($request, true));
+        wp_mail('adam.kircher@gmail.com', "dscsa_rest_update_order: multiple orders", $invoice_number.' | using first one /wc/v2/orders/'+$orders[0]->post_id.' '.print_r($orders, true).' '.print_r($request, true));
       }
 
       if ($count > 0)
@@ -680,11 +685,11 @@ function dscsa_rest_update_order($order, $request) {
       wp_mail('adam.kircher@gmail.com', "dscsa_rest_update_order: error", print_r($e, true).' | '.$request['id'].' | /wc/v2/orders/'+$orders[0]->post_id.' '.print_r($orders, true).' '.print_r($request, true));
     }
 
+    //Move this outside of try/catch block since this error should go back to the client
     if ($count == 0) {
-      wp_mail('adam.kircher@gmail.com', "dscsa_rest_update_order: no orders", $request['id'].' | '.print_r($orders, true).' '.print_r($request['body'], true).' '.print_r($request, true));
+      wp_mail('adam.kircher@gmail.com', "dscsa_rest_update_order: no orders", $invoice_number.' | '.print_r($orders, true).' '.print_r($request['body'], true).' '.print_r($request, true));
   	  throw new WP_Error('no_matching_invoice', __( "Order #$invoice_number has $count matches", 'woocommerce' ), print_r($request['body'], true));
     }
-    //wp_mail('adam.kircher@gmail.com', "dscsa_rest_update_order", $request['id'].' | /wc/v2/orders/'+$orders[0]->post_id.' '.print_r($orders, true).' '.print_r($request, true));
   }
 
   return $order;
@@ -702,7 +707,7 @@ function dscsa_rest_create_order($order, $request, $creating) {
   $invoice_number = $order->get_meta('invoice_number', true);
   $guardian_id = $order->get_meta('guardian_id', true);
 
-  $orders = get_orders_by_invoice_number($invoice_number);
+  $orders = get_woocommere_orders($guardian_id, $invoice_number);
 
   if (count($orders))
     return new WP_Error('refill_order_already_exists', __( "Refill Order #$invoice_number already exists", 'woocommerce' ), 200);
@@ -719,19 +724,27 @@ function dscsa_rest_create_order($order, $request, $creating) {
 
 function get_users_by_guardian_id($guardian_id) {
   global $wpdb;
-  return $wpdb->get_results("SELECT user_id FROM wp_usermeta WHERE (meta_key='guardian_id') AND meta_value = '$guardian_id'");
+  return $wpdb->get_results("SELECT user_id FROM wp_usermeta WHERE meta_key='guardian_id' AND meta_value = '$guardian_id'");
 }
 
+function get_woocommere_orders($guardian_id, $invoice_number) {
+  global $wpdb;
+  return $wpdb->get_results("SELECT wp_posts.id FROM wp_posts JOIN wp_postmeta meta1 ON wp_posts.id = meta1.post_id JOIN wp_postmeta meta2 ON wp_posts.id = meta2.post_id WHERE meta1.meta_key='guardian_id' AND meta1.meta_value = '$guardian_id' AND meta2.meta_key='invoice_number' AND meta2.meta_value = '$invoice_number' ORDER BY wp_posts.id DESC");
+}
+
+//Sometimes Guardian order id changes so "get_orders()" won't work
+function get_pending_orders_by_guardian_id($guardian_id) {
+  global $wpdb;
+  return $wpdb->get_results("SELECT post_id FROM wp_postmeta JOIN wp_posts ON wp_posts.id = post_id WHERE meta_key='guardian_id' AND meta_value = '$guardian_id' AND (post_status = 'wc-pending' OR post_status = 'wc-on-hold') ORDER BY post_id DESC");
+}
+
+/*
 function get_orders_by_invoice_number($invoice_number) {
   global $wpdb;
   return $wpdb->get_results("SELECT post_id FROM wp_postmeta WHERE (meta_key='invoice_number') AND meta_value = '$invoice_number' ORDER BY post_id DESC");
 }
+*/
 
-//Sometimes Guardian order id changes so "get_orders_by_invoice_number" won't work
-function get_pending_orders_by_user_id($user_id) {
-  global $wpdb;
-  return $wpdb->get_results("SELECT post_id FROM wp_postmeta JOIN wp_posts ON wp_posts.id = post_id WHERE (meta_key='_customer_user') AND meta_value = '$user_id' AND (post_status = 'wc-pending' OR post_status = 'wc-on-hold') ORDER BY post_id DESC");
-}
 
 add_action('woocommerce_order_details_after_order_table', 'dscsa_show_order_invoice');
 function dscsa_show_order_invoice($order) {
