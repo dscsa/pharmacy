@@ -675,14 +675,16 @@ function dscsa_rest_update_order($order, $request) {
       $count = count($orders);
 
       if ($count > 1) {
-        wp_mail('adam.kircher@gmail.com', "dscsa_rest_update_order: multiple orders", $invoice_number.' | using first one /wc/v2/orders/'+$orders[0]->post_id.' '.print_r($orders, true).' '.print_r($request, true));
+        wp_mail('adam.kircher@gmail.com', "dscsa_rest_update_order: multiple orders", $invoice_number.' | using first one /wc/v2/orders/'.$orders[0]->post_id.' '.print_r($orders, true).' '.print_r($request, true));
       }
+
+      //wp_mail('adam.kircher@gmail.com', "dscsa_rest_update_order: debug", $invoice_number.' | using first one /wc/v2/orders/'.$orders[0]->post_id.' '.print_r($orders, true).' '.print_r($request, true));
 
       if ($count > 0)
         $request['id'] = $orders[0]->post_id;
 
     } catch (Exception $e) {
-      wp_mail('adam.kircher@gmail.com', "dscsa_rest_update_order: error", print_r($e, true).' | '.$request['id'].' | /wc/v2/orders/'+$orders[0]->post_id.' '.print_r($orders, true).' '.print_r($request, true));
+      wp_mail('adam.kircher@gmail.com', "dscsa_rest_update_order: error", print_r($e, true).' | '.$request['id'].' | /wc/v2/orders/'.$orders[0]->post_id.' '.print_r($orders, true).' '.print_r($request, true));
     }
 
     //Move this outside of try/catch block since this error should go back to the client
@@ -729,7 +731,7 @@ function get_users_by_guardian_id($guardian_id) {
 
 function get_woocommere_orders($guardian_id, $invoice_number) {
   global $wpdb;
-  return $wpdb->get_results("SELECT wp_posts.id FROM wp_posts JOIN wp_postmeta meta1 ON wp_posts.id = meta1.post_id JOIN wp_postmeta meta2 ON wp_posts.id = meta2.post_id WHERE meta1.meta_key='guardian_id' AND meta1.meta_value = '$guardian_id' AND meta2.meta_key='invoice_number' AND meta2.meta_value = '$invoice_number' ORDER BY wp_posts.id DESC");
+  return $wpdb->get_results("SELECT meta1.post_id FROM wp_posts JOIN wp_postmeta meta1 ON wp_posts.id = meta1.post_id JOIN wp_postmeta meta2 ON wp_posts.id = meta2.post_id WHERE meta1.meta_key='guardian_id' AND meta1.meta_value = '$guardian_id' AND meta2.meta_key='invoice_number' AND meta2.meta_value = '$invoice_number' ORDER BY wp_posts.id DESC");
 }
 
 //Sometimes Guardian order id changes so "get_orders()" won't work
