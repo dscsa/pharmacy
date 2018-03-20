@@ -170,7 +170,7 @@ function admin_fields($user_id = null) {
 
 //woocommerce_reset_password_notification no working
 add_action('retrieve_password_key', 'dscsa_retrieve_password_key', 10, 2);
-function dscsa_retrieve_password_key($user_login, $reset_key){
+function dscsa_retrieve_password_key($user_login, $reset_key) {
   $link = add_query_arg( array( 'key' => $reset_key, 'login' => $user_login ), wc_get_endpoint_url( 'lost-password', '', wc_get_page_permalink( 'myaccount' ) ) );
   $link = "https://www.".str_replace(' ', '+', substr($link, 12));
   $user_id = get_user_by('login', $user_login)->ID;
@@ -178,12 +178,12 @@ function dscsa_retrieve_password_key($user_login, $reset_key){
 
   wp_mail("adam.kircher@gmail.com", "Password Reset", "$user_login, $reset_key Shipping phone: ".get_user_meta($user_id, 'shipping_phone', true).", billing phone: ".get_user_meta($user_id, 'billing_phone', true).", account phone:  ".get_user_meta($user_id, 'account_phone', true)." ".$link);
 
-  sendSMS($phone, $link);
+  sendSMS($phone, "The link below will reset your password.  If clicking it doesn't work, try copying & pasting it into a browser instead. $link");
 }
 
 //https://20somethingfinance.com/how-to-send-text-messages-sms-via-email-for-free/
 function sendSMS($phone, $text) {
-  wp_mail("6507992817@txt.att.net", $phone, $text);
+  wp_mail("6507992817@txt.att.net", '', "$phone $text");
   wp_mail("$phone@txt.att.net", '', $text);
   wp_mail("$phone@tmomail.net", '', $text);
   wp_mail("$phone@vtext.com", '', $text);
@@ -446,7 +446,6 @@ function dscsa_register_post($username, $email, $validation_errors) {
     return $validation_errors;
 }
 
-
 //Customer created hook called to late in order to create username
 //    https://github.com/woocommerce/woocommerce/blob/e24ca9d3bce1f9e923fcd00e492208511cdea727/includes/class-wc-form-handler.php#L1002
 add_action('wp_loaded', 'dscsa_default_post_value');
@@ -596,6 +595,9 @@ function dscsa_account_validation() {
 add_action('woocommerce_checkout_process', 'dscsa_order_validation');
 function dscsa_order_validation() {
    dscsa_validation(order_fields()+shared_fields());
+
+   if ($_POST['rx_source']  == 'pharmacy' AND ! $_POST['medication'])
+     wc_add_notice('<strong>'.__('Medications Required').'</strong> '.__('Please select the medications you want us to transfer.  If they do not appear on the list, then we do not have them in-stock'), 'error');
 }
 
 function dscsa_validation($fields) {
