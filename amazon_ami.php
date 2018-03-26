@@ -1012,7 +1012,8 @@ function dscsa_new_order($order_id) {
 
     $type = $_POST['order_rxs'] ? 'Processing_Order' : 'On_Hold_Order';
 
-    WC()->mailer()->get_emails()["WC_Email_Customer_$type"]->trigger($order_id, $order);
+    if ($type == 'On_Hold_Order')
+      WC()->mailer()->get_emails()["WC_Email_Customer_$type"]->trigger($order_id, $order);
   } catch (Exception $e) {
     wp_mail('adam.kircher@gmail.com', "dscsa_new_order FAILED", print_r($e, true).$e->getMessage());
   }
