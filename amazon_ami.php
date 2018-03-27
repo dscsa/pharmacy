@@ -1012,7 +1012,7 @@ function dscsa_new_order($order_id) {
 
     $type = $_POST['order_rxs'] ? 'Processing_Order' : 'On_Hold_Order';
 
-    if ($type == 'On_Hold_Order')
+    if ($type == 'On_Hold_Order') //Processing Emails were redundant with Shoppoing Sheets Rx Received Emails
       WC()->mailer()->get_emails()["WC_Email_Customer_$type"]->trigger($order_id, $order);
   } catch (Exception $e) {
     wp_mail('adam.kircher@gmail.com', "dscsa_new_order FAILED", print_r($e, true).$e->getMessage());
@@ -1041,6 +1041,27 @@ function dscsa_order_is_paid_statuses($paid_statuses) {
 add_filter( 'woocommerce_order_button_text', 'dscsa_order_button_text');
 function dscsa_order_button_text() {
     return substr($_SERVER['HTTP_REFERER'], -14) == '?add-to-cart=8' ? 'Complete Registration' : 'Place order';
+}
+
+add_filter('auth_cookie_expiration', 'dscsa_auth_cookie_exp', 99, 3);
+function dscsa_auth_cookie_exp($seconds, $user_id, $remember) {
+
+    //if "remember me" is checked;
+    if ($remember || is_admin()) {
+        //WP defaults to 2 weeks;
+        $expiration = 14*24*60*60; //UPDATE HERE;
+    } else {
+        //WP defaults to 48 hrs/2 days;
+        $expiration = 20*60; //20 minutes;
+    }
+
+    //http://en.wikipedia.org/wiki/Year_2038_problem
+    if ( PHP_INT_MAX - time() < $expiration ) {
+        //Fix to a little bit earlier!
+        $expiration =  PHP_INT_MAX - time() - 5;
+    }
+
+    return $expiration;
 }
 
 //Didn't work: https://stackoverflow.com/questions/38395784/woocommerce-overriding-billing-state-and-post-code-on-existing-checkout-fields
