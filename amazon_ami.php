@@ -1424,12 +1424,13 @@ function add_preorder($guardian_id, $drug_names, $pharmacy) {
      if ($drug_name) {
        $drug_name = preg_replace('/,[^,]*$/', '', $drug_name); //remove pricing data after last comma (don't use explode because of combo drugs)
        $query = "SirumWeb_AddToPreorder '$guardian_id', '$drug_name', '$store->npi', '$store_name P:$phone F:$fax', '$store->street', '$store->city', '$store->state', '$store->zip', '$phone', '$fax'";
-       db_run($query);
+       $res = db_run($query);
+       //wp_mail('adam.kircher@gmail.com', "add_preorder drug $drug_name", "$query ".print_r($res, true).print_r(func_get_args(), true).print_r($_POST, true));
      }
    }
 
    if ( ! $store->phone OR ! $store->fax)
-     wp_mail('adam.kircher@gmail.com', "add_preorder", print_r(func_get_args(), true).print_r($_POST, true));
+     wp_mail('adam.kircher@gmail.com', "add_preorder", "$query ".print_r(func_get_args(), true).print_r($_POST, true));
 }
 
 // Procedure dbo.SirumWeb_AddUpdatePatientUD (@PatID int, @UDNumber int, @UDValue varchar(50) )
