@@ -894,7 +894,9 @@ function dscsa_save_patient($user_id, $fields) {
     $patient_id = sanitize_text_field($_POST['guardian_id']);
     update_user_meta($user_id, 'guardian_id', $patient_id);
   } else if ( ! is_admin()) { //allow admin to delete guardian id (if incorrect) and have it reload
-    $patient_id = get_meta('guardian_id', $user_id);
+    //This was causing errors if someone created an order for a different person in their account
+    //it would then overwrite all their informaiton in guardian.
+    //$patient_id = get_meta('guardian_id', $user_id);
   }
 
   if ( ! $patient_id) {

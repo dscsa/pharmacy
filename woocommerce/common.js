@@ -157,7 +157,7 @@ function upgradeMedication(openOnSelect, callback) {
 
 function medication2select(entry, i) {
   var price = entry.gsx$day_2.$t || entry.gsx$day.$t,
-       days = entry.gsx$day_2.$t ? '90 days' : '30 days',
+       days = entry.gsx$day_2.$t ? '90 days' : '45 days',
        drug = ' '+entry.gsx$drugnames.$t+', '+price+' for '+days
 
   return {
