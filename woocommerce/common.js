@@ -163,7 +163,7 @@ function medication2select(entry, i) {
   return {
     id:drug,
     text:drug,
-    disabled:entry.gsx$supplylevel.$t == 'Out of Stock',
+    disabled:entry.gsx$supplylevel.$t == 'Out of Stock' || entry.gsx$supplylevel.$t == 'Low - Hidden',
     price:price.replace('$', '')
   }
 }
