@@ -10,6 +10,11 @@
   width:100%
 }
 
+.select2-container--default {
+  width:600px !important;
+  z-index:-1 !important;
+}
+
 .select2-container--default li.select2-results__option--highlighted {
   background:transparent !important;
   color:#6d6d6d !important
