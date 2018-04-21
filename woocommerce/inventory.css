@@ -11,7 +11,6 @@
 }
 
 .select2-container--default {
-  width:600px !important;
   z-index:-1 !important;
 }
 
