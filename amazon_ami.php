@@ -835,17 +835,13 @@ function dscsa_before_order_object_save($order, $data) {
     update_user_meta($user_id, 'coupon', $coupon);
     update_card_and_coupon($patient_id, $card, $coupon);
 
-    //$prefix = $_POST['ship_to_different_address'] ? 'shipping_' : 'billing_';
-
-    //TODO this should be called on the edit address page as well
     //Underscore is for saving on the admin page, no underscore is for the customer checkout
-    $address = update_shipping_address(
-      $patient_id,
-      $_POST['_billing_address_1'] ?: $_POST['billing_address_1'],
-      $_POST['_billing_address_2'] ?: $_POST['billing_address_2'],
-      $_POST['_billing_city']      ?: $_POST['billing_city'],
-      $_POST['_billing_postcode']  ?: $_POST['billing_postcode']
-    );
+    $address_1   = $_POST['_billing_address_1'] ?: $_POST['billing_address_1'];
+    $address_2   = $_POST['_billing_address_2'] ?: $_POST['billing_address_2'];
+    $city        = $_POST['_billing_city']      ?: $_POST['billing_city'];
+    $postcode    = $_POST['_billing_postcode']  ?: $_POST['billing_postcode'];
+
+    $address = update_shipping_address($patient_id, $address_1, $address_2, $city, $postcode);
 
     //wp_mail('adam.kircher@gmail.com', "saved order 1", "$patient_id | $invoice_number ".print_r($_POST, true).print_r(mssql_get_last_message(), true));
 
@@ -860,6 +856,8 @@ function dscsa_before_order_object_save($order, $data) {
 
 add_action('woocommerce_customer_save_address', 'dscsa_customer_save_address', 10, 2);
 function dscsa_customer_save_address($user_id, $load_address) {
+  wp_mail('adam.kircher@gmail.com', 'woocommerce_customer_save_address', get_meta('billing_address_1')."\r\n\r\n".print_r($_POST, true)."\r\n\r\n".print_r($load_address, true));
+
   update_shipping_address(
     get_meta('guardian_id', $user_id),
     $_POST['billing_address_1'],
@@ -899,11 +897,44 @@ function dscsa_save_patient($user_id, $fields) {
     //$patient_id = get_meta('guardian_id', $user_id);
   }
 
+  global $woocommerce;
+  //checkout, account details, admin page
+  $first_name = $_POST['billing_first_name'] ?: $_POST['account_first_name'] ?: $_POST['_billing_first_name'];
+  $last_name  = $_POST['billing_last_name'] ?: $_POST['account_last_name'] ?: $_POST['_billing_last_name'];
+  $old_name   = [
+   'birth_date' => substr($woocommerce->customer->username, -10),
+   'first_name' => $woocommerce->customer->first_name,
+   'last_name'  => $woocommerce->customer->last_name
+  ];
+
+  if ($first_name != $old_name['first_name'] OR $last_name != $old_name['last_name'] OR $_POST['birth_date'] != $old_name['birth_date']) {
+    //wp_mail('hello@goodpill.org', 'Patient Name Change', print_r($_POST, true)."\r\n\r\n".print_r($order, true));
+    wp_mail('adam.kircher@gmail.com', 'Warning Patient Identity Changed!', print_r($_POST, true)."\r\n\r\n".print_r($old_name, true));
+  }
+
+  /* THIS ISN"T INVOKED SOON ENOUGH SO WE GET THE UPDATED INFO NOT THE *OLD* INFO
+  $address_1   = $_POST['_billing_address_1'] ?: $_POST['billing_address_1'];
+  $address_2   = $_POST['_billing_address_2'] ?: $_POST['billing_address_2'];
+  $city        = $_POST['_billing_city']      ?: $_POST['billing_city'];
+  $postcode    = $_POST['_billing_postcode']  ?: $_POST['billing_postcode'];
+  //This must be done before dscsa_save_patient() if you want the old info
+  $old_address = [
+   'address_1' => $woocommerce->customer->get_billing_address_1(),
+   'address_2' => $woocommerce->customer->get_billing_address_2(),
+   'city'      => $woocommerce->customer->get_billing_city(),
+   'postcode'  => $woocommerce->customer->get_billing_postcode()
+  ];
+
+  if (true) {
+    //wp_mail('hello@goodpill.org', 'Patient Address Change', print_r($_POST, true)."\r\n\r\n".print_r($old_address, true));
+    wp_mail('adam.kircher@gmail.com', 'Warning Patient Address Changed! B', print_r($_POST, true)."\r\n\r\n".print_r($old_address, true));
+  }
+  */
+
   if ( ! $patient_id) {
     $patient_id = add_patient(
-      //checkout, account details, admin page
-      $_POST['billing_first_name'] ?: $_POST['account_first_name'] ?: $_POST['_billing_first_name'],
-      $_POST['billing_last_name'] ?: $_POST['account_last_name'] ?: $_POST['_billing_last_name'],
+      $first_name,
+      $last_name,
       $_POST['birth_date'],
       $_POST['phone'],
       get_meta('language', $user_id)
