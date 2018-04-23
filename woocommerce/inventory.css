@@ -19,10 +19,16 @@
 }
 
 /* do not hide pricing & availability column on small screens */
+@media (min-width: 768px)
 .fl-col-small {
   position:fixed;
   right:0;
   background:white;
+}
+
+ /* for tiny screens */
+.fl-col-small {
+  display:block;
 }
 
 .site-footer {
