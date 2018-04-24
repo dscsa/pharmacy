@@ -207,7 +207,7 @@ function shared_fields($user_id = null) {
       'label' => __('<span class="erx">Name and address of a backup pharmacy to fill your prescriptions if we are out-of-stock</span><span class="pharmacy">Name and address of pharmacy from which we should transfer your medication(s)</span>'),
       'options' => ['' => __("Type to search. 'Walgreens Norcross' will show the one at '5296 Jimmy Carter Blvd, Norcross'")]
     ];
-    //https://docs.woocommerce.com/wc-apidocs/source-function-woocommerce_form_field.html#1841-2061
+    //https://docs.woocommerce.com/wc-apidocs/source-function-woocommerce_form_field.html#2064-2279
     //Can't use get_default here because $POST check messes up the required property below.
     $pharmacy_meta = get_meta('backup_pharmacy', $user_id);
 
@@ -354,6 +354,7 @@ function dscsa_admin_invoice($order) {
 add_action( 'woocommerce_edit_account_form_start', 'dscsa_user_edit_account');
 function dscsa_user_edit_account($user_id = null) {
   $fields = shared_fields($user_id)+account_fields($user_id);
+  $fields['birth_date']['custom_attributes'] = ['readonly' => true];
   return dscsa_echo_form_fields($fields);
 }
 
@@ -893,12 +894,14 @@ function dscsa_save_patient($user_id, $fields) {
     update_user_meta($user_id, 'guardian_id', $patient_id);
   }
 
+  //checkout, account details, admin page
+  $first_name = $_POST['billing_first_name'] ?: $_POST['account_first_name'] ?: $_POST['_billing_first_name'];
+  $last_name  = $_POST['billing_last_name'] ?: $_POST['account_last_name'] ?: $_POST['_billing_last_name'];
+
   if ( ! is_admin()) {
 
     global $woocommerce;
-    //checkout, account details, admin page
-    $first_name = $_POST['billing_first_name'] ?: $_POST['account_first_name'] ?: $_POST['_billing_first_name'];
-    $last_name  = $_POST['billing_last_name'] ?: $_POST['account_last_name'] ?: $_POST['_billing_last_name'];
+
     $old_name   = [
      'birth_date' => substr($woocommerce->customer->username, -10),
      'first_name' => $woocommerce->customer->first_name,
@@ -1305,6 +1308,9 @@ function dscsa_checkout_fields( $fields ) {
   $fields['billing']['billing_state']['options'] = ['GA' => 'Georgia'];
   $fields['billing']['billing_first_name']['label'] = 'Patient First Name';
   $fields['billing']['billing_last_name']['label'] = 'Patient Last Name';
+  $fields['billing']['billing_first_name']['custom_attributes'] = ['readonly' => true];
+  $fields['billing']['billing_last_name']['custom_attributes'] = ['readonly' => true];
+  $fields['order']['birth_date']['custom_attributes'] = ['readonly' => true];
 
   //Remove Some Fields
   unset($fields['billing']['billing_first_name']['autofocus']);
@@ -1422,10 +1428,11 @@ function add_patient($first_name, $last_name, $birth_date, $phone, $language) {
   $first_name = mb_convert_case(str_replace("'", "''", $first_name), MB_CASE_TITLE, "UTF-8");
   $last_name = strtoupper(str_replace("'", "''", $last_name));
 
+  wp_mail('adam.kircher@gmail.com', "add_patient", "$first_name $last_name ".print_r(func_get_args(), true).print_r($_POST, true));
 
   $result = db_run("SirumWeb_AddUpdatePatient '$first_name', '$last_name', '$birth_date', '$phone', '$language'");
 
-  //wp_mail('adam.kircher@gmail.com', "add_patient", "$first_name $last_name ".print_r(func_get_args(), true).print_r($result, true));
+  wp_mail('adam.kircher@gmail.com', "add_patient", "$first_name $last_name ".print_r(func_get_args(), true).print_r($_POST, true).print_r($result, true));
 
   return $result['PatID'];
 }
