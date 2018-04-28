@@ -487,13 +487,19 @@ function dscsa_default_post_value() {
      $_POST['phone'] = $phone;
 
      if ($_POST['register'] AND ! $_POST['email'])
-        $_POST['email'] = "$phone@goodpill.org";
+       $_POST['email'] = "$phone@goodpill.org";
+
+     if ($_POST['rx_source'] AND ! $_POST['email'])
+       $_POST['email'] = "$phone@goodpill.org";
+
+     if ($_POST['save_addess'] AND ! $_POST['billing_email'])
+       $_POST['billing_email'] = "$phone@goodpill.org";
 
      if ($_POST['save_account_details'] AND ! $_POST['account_email'])
        $_POST['account_email'] = "$phone@goodpill.org";
 
      if ($_POST['user_login']) //reset password if phone rather than email is supplied
-        $_POST['user_login'] = "$phone@goodpill.org";
+       $_POST['user_login'] = "$phone@goodpill.org";
   }
 }
 
