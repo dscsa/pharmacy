@@ -2,7 +2,12 @@ jQuery(load)
 
 function load() {
 
-  upgradeMedication()
+  upgradeMedication(false, function(medication) {
+    var rxs = medication.data('rxs')
+    console.log('data-rxs', typeof rxs, rxs.length, rxs)
+    if (rxs.length) medication.val(rxs).change()
+  })
+
   upgradePharmacy()
   upgradeAllergies()
   upgradeBirthdate()

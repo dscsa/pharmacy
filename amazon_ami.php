@@ -97,7 +97,7 @@ function dscsa_stripe_add_card($stripe_id, $card, $response) {
    update_card_and_coupon($patient_id, $card, $coupon);
 }
 
-function order_fields($user_id = null, $medication = ['']) {
+function order_fields($user_id = null, $medication = []) {
 
 
   $user_id = $user_id ?: get_current_user_id();
@@ -105,7 +105,8 @@ function order_fields($user_id = null, $medication = ['']) {
   $medication = [
     'type'   	  => 'select',
     'label'     => __('Search and select medications by generic name that you want to transfer to Good Pill'),
-    'options'   => $medication
+    'options'   => [''],
+    'custom_attributes' => ['data-rxs' => JSON.stringify($medication)]
   ];
 
   return [
