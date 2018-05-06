@@ -163,7 +163,7 @@ function medication2select(entry, i) {
   return {
     id:drug,
     text:drug,
-    disabled:entry.gsx$supplylevel.$t == 'Out of Stock' || entry.gsx$supplylevel.$t == 'Low - Hidden',
+    disabled:entry.gsx$supplylevel.$t == 'Out of Stock' || entry.gsx$supplylevel.$t == 'Low - Hidden' || entry.gsx$supplylevel.$t == 'Refills Only',
     price:price.replace('$', '')
   }
 }
