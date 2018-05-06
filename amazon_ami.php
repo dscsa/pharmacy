@@ -106,7 +106,7 @@ function order_fields($user_id = null, $medication = []) {
     'type'   	  => 'select',
     'label'     => __('Search and select medications by generic name that you want to transfer to Good Pill'),
     'options'   => [''],
-    'custom_attributes' => ['data-rxs' => JSON.stringify($medication)]
+    'custom_attributes' => ['data-rxs' => json_encode($medication)]
   ];
 
   return [
