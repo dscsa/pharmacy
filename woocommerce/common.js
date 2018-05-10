@@ -194,6 +194,7 @@ function upgradeRxs(orderId, callback) {
       }
       console.log('getOrderRxs medications gsheet', data)
       select.select2({multiple:true, closeOnSelect:true, data:data})
+      if(data.length) select.val(data).change()
       callback && callback(select)
     }
   })
@@ -201,7 +202,7 @@ function upgradeRxs(orderId, callback) {
 
 function rxs2select(entry, i) {
   return JSON.parse(entry.gsx$drugs.$t).map(function(drug) {
-    var text = drug.$Name+', '+drug.$Price+' for '+drug.$Days
+    var text = drug.$Name+', $'+drug.$Price+' for '+drug.$Days
     return {
       id:text,
       text:text,
