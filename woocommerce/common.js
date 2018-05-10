@@ -172,6 +172,10 @@ function upgradeRxs(orderId, callback) {
 
   console.log('upgradeRxs')
 
+  //var rxs = medication.data('rxs')
+  //console.log('data-rxs', typeof rxs, rxs.length, rxs)
+  //if (rxs.length) medication.val(rxs).change()
+
   var select = jQuery('#rxs\\[\\]')
   select.empty()
 
