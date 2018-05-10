@@ -168,7 +168,7 @@ function medication2select(entry, i) {
   }
 }
 
-function upgradeRxs(orderId) {
+function upgradeRxs(orderId, callback) {
 
   console.log('upgradeRxs')
 
