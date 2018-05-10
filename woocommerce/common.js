@@ -189,7 +189,7 @@ function upgradeRxs(orderId) {
           data.push(rxs2select($data.feed.entry[i]))
       }
       console.log('getOrderRxs medications gsheet', data)
-      select.select2({multiple:true, closeOnSelect: ! openOnSelect, data:data})
+      select.select2({multiple:true, closeOnSelect:true, data:data})
       callback && callback(select)
     }
   })

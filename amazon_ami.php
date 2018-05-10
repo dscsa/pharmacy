@@ -1307,29 +1307,32 @@ function dscsa_checkout_fields( $fields ) {
 
   $shared_fields = shared_fields();
 
-  $defaults = order_defaults(
-    $fields['billing']['billing_first_name']['default'],
-    $fields['billing']['billing_last_name']['default'],
-    $fields['order']['birth_date']['default'],
-    $fields['order']['phone']['defaults']
-  );
-
   //Add some order fields that are not in patient profile
-  $order_fields = order_fields(false, $defaults['rxs']);
-
-  $fields['billing']['addresss_1']['default'] = $defaults['address_1']);
-  $fields['billing']['addresss_2']['default'] = $defaults['address_2']);
-  $fields['billing']['city']['default'] = $defaults['city']);
-  $fields['billing']['postcode']['default'] = $defaults['zip']);
+  $order_fields = order_fields();
 
   //wp_mail('adam.kircher@gmail.com', "db error: $heading", print_r($fields['order']['order_comments'], true).' '.print_r($fields['order'], true));
   $fields['order'] = $order_fields + $shared_fields + ['order_comments' => $fields['order']['order_comments']];
 
+  if ( ! $fields['billing']['addresss_1']['default']) {
+    $defaults = order_defaults(
+      $fields['billing']['billing_first_name']['default'],
+      $fields['billing']['billing_last_name']['default'],
+      $fields['order']['birth_date']['default'],
+      $fields['order']['phone']['defaults']
+    );
+
+    $fields['billing']['billing_address_1']['default'] = $defaults['address_1'];
+    $fields['billing']['billing_address_2']['default'] = $defaults['address_2'];
+    $fields['billing']['billing_city']['default'] = $defaults['city'];
+    $fields['billing']['billing_postcode']['default'] = $defaults['zip'];
+  }
+
   //Allow billing out of state but don't allow shipping out of state
-  /*$fields['shipping']['shipping_state']['type'] = 'select';
+  //These seem to be required fields
+  $fields['shipping']['shipping_state']['type'] = 'select';
   $fields['shipping']['shipping_state']['options'] = ['GA' => 'Georgia'];
   unset($fields['shipping']['shipping_country']);
-  unset($fields['shipping']['shipping_company']);*/
+  unset($fields['shipping']['shipping_company']);
 
   // We are using our billing address as the shipping address for now.
   $fields['billing']['billing_state']['type'] = 'select';
