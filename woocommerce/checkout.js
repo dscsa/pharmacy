@@ -4,6 +4,12 @@ function load() {
 
   upgradeMedication()
 
+  try {
+    upgradeRxs()
+  } catch (e) {
+    console.log('upgradeRxs failed', e)
+  }
+
   //Show our form fields at the beginning rather than the end
   jQuery('form.checkout .col-1').prepend(jQuery('.woocommerce-additional-fields'))
 

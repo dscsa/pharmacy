@@ -99,7 +99,6 @@ function dscsa_stripe_add_card($stripe_id, $card, $response) {
 
 function order_fields($user_id = null, $medication = []) {
 
-
   $user_id = $user_id ?: get_current_user_id();
 
   $medication = [
@@ -109,7 +108,7 @@ function order_fields($user_id = null, $medication = []) {
     'custom_attributes' => ['data-rxs' => json_encode($medication)]
   ];
 
-  return [
+  $fields = [
     'rx_source' => [
       'type'   	  => 'radio',
       'required'  => true,
@@ -129,6 +128,16 @@ function order_fields($user_id = null, $medication = []) {
       'default'   => get_default('email', $user_id) ?: get_default('account_email', $user_id)
     ]
   ];
+
+  if ($user_id == 1326) {
+    $fields['rxs[]'] = [
+      'type'   	  => 'select',
+      'label'     => __('Testing RXs'),
+      'options'   => ['']
+    ];
+  }
+
+  return $fields;
 
   //echo "email ".get_default('email', $user_id);
   //echo "<br>";
@@ -477,7 +486,7 @@ function dscsa_default_post_value() {
   }
 
   //For resetting password
-  $phone = $_POST['phone'] ?: $_POST['user_login'];
+  $phone = $_POST['phone'] ?: ($_POST['billing_phone'] ?: $_POST['user_login']);
 
   if ($phone) {
 
@@ -1298,17 +1307,29 @@ function dscsa_checkout_fields( $fields ) {
 
   $shared_fields = shared_fields();
 
+  $defaults = order_defaults(
+    $fields['billing']['billing_first_name']['default'],
+    $fields['billing']['billing_last_name']['default'],
+    $fields['order']['birth_date']['default'],
+    $fields['order']['phone']['defaults']
+  );
+
   //Add some order fields that are not in patient profile
-  $order_fields = order_fields();
+  $order_fields = order_fields(false, $defaults['rxs']);
+
+  $fields['billing']['addresss_1']['default'] = $defaults['address_1']);
+  $fields['billing']['addresss_2']['default'] = $defaults['address_2']);
+  $fields['billing']['city']['default'] = $defaults['city']);
+  $fields['billing']['postcode']['default'] = $defaults['zip']);
 
   //wp_mail('adam.kircher@gmail.com', "db error: $heading", print_r($fields['order']['order_comments'], true).' '.print_r($fields['order'], true));
   $fields['order'] = $order_fields + $shared_fields + ['order_comments' => $fields['order']['order_comments']];
 
   //Allow billing out of state but don't allow shipping out of state
-  $fields['shipping']['shipping_state']['type'] = 'select';
+  /*$fields['shipping']['shipping_state']['type'] = 'select';
   $fields['shipping']['shipping_state']['options'] = ['GA' => 'Georgia'];
   unset($fields['shipping']['shipping_country']);
-  unset($fields['shipping']['shipping_company']);
+  unset($fields['shipping']['shipping_company']);*/
 
   // We are using our billing address as the shipping address for now.
   $fields['billing']['billing_state']['type'] = 'select';
@@ -1414,6 +1435,20 @@ function update_shipping_address($guardian_id, $address_1, $address_2, $city, $z
   $query = "SirumWeb_AddUpdatePatHomeAddr '$guardian_id', '$address_1', $address_2, NULL, '$city', 'GA', '$zip', 'US'";
   //wp_mail('adam.kircher@gmail.com', "update_shipping_address", $query);
   return db_run($query);
+}
+
+function order_defaults($first_name, $last_name, $birth_date, $phone) {
+
+  $first_name = str_replace("'", "''", $first_name);
+  $last_name = str_replace("'", "''", $last_name);
+
+  wp_mail('adam.kircher@gmail.com', "add_patient", "$first_name $last_name ".print_r(func_get_args(), true).print_r($_POST, true));
+
+  $result = db_run("SirumWeb_OrderDefaults '$first_name', '$last_name', '$birth_date', '$phone'");
+
+  wp_mail('adam.kircher@gmail.com', "add_patient", "$first_name $last_name ".print_r(func_get_args(), true).print_r($_POST, true).print_r($result, true));
+
+  return $result;
 }
 
 // SirumWeb_AddEditPatient(

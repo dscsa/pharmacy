@@ -143,7 +143,7 @@ function upgradeMedication(openOnSelect, callback) {
     type: 'GET',
     cache:true,
     success:function($data) {
-      console.log('medications gsheet')
+      console.log('upgradeMedication medications gsheet')
       var data = []
       for (var i in $data.feed.entry) {
         data.push(medication2select($data.feed.entry[i]))
@@ -166,6 +166,46 @@ function medication2select(entry, i) {
     disabled:entry.gsx$supplylevel.$t == 'Out of Stock' || entry.gsx$supplylevel.$t == 'Low - Hidden' || entry.gsx$supplylevel.$t == 'Refills Only',
     price:price.replace('$', '')
   }
+}
+
+function upgradeRxs(orderId) {
+
+  console.log('upgradeRxs')
+
+  var select = jQuery('#rxs\\[\\]')
+  select.empty()
+
+  var medicationGsheet = "https://spreadsheets.google.com/feeds/list/1MV5mq6605X7U1Np2fpwZ1RHkaCpjsb7YqieLQsEQK88/oy8wwvo/public/values?alt=json"
+  //oy8wwvo is the worksheet id.  To get this you have to use https://spreadsheets.google.com/feeds/worksheets/1MV5mq6605X7U1Np2fpwZ1RHkaCpjsb7YqieLQsEQK88/private/full
+  jQuery.ajax({
+    url:medicationGsheet,
+    type: 'GET',
+    cache:true,
+    success:function($data) {
+      console.log('getOrderRxs medications gsheet')
+      var data = []
+      for (var i in $data.feed.entry) {
+        if ($data.feed.entry[i].gsx$orderid.$t == orderId)
+          data.push(rxs2select($data.feed.entry[i]))
+      }
+      console.log('getOrderRxs medications gsheet', data)
+      select.select2({multiple:true, closeOnSelect: ! openOnSelect, data:data})
+      callback && callback(select)
+    }
+  })
+}
+
+function rxs2select(entry, i) {
+  return JSON.parse(entry.gsx$drugs.$t).map(function(drug) {
+    var text = drug.$Name+', '+drug.$Price+' for '+drug.$Days
+    return {
+      id:text,
+      text:text,
+      selected:true,
+      disabled:drug.$Days == 0,
+      price:drug.$Price
+    }
+  })
 }
 
 (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
