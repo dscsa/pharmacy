@@ -187,14 +187,15 @@ function upgradeRxs(orderId, callback) {
     cache:true,
     success:function($data) {
       console.log('getOrderRxs medications gsheet')
-      var data = []
       for (var i in $data.feed.entry) {
         if ($data.feed.entry[i].gsx$orderid.$t == orderId)
-          data.push(rxs2select($data.feed.entry[i]))
+          var data = rxs2select($data.feed.entry[i])
       }
       console.log('getOrderRxs medications gsheet', data)
-      select.select2({multiple:true, closeOnSelect:true, data:data})
-      if(data.length) select.val(data.map(function(drug) { return drug.id })).change()
+      if (data) {
+        select.select2({multiple:true, closeOnSelect:true, data:data})
+        select.val(data.map(function(drug) { return drug.id })).change()
+      }
       callback && callback(select)
     }
   })
