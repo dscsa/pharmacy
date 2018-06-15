@@ -21,6 +21,9 @@ function cache_login_registration() {
 add_action('wp_enqueue_scripts', 'dscsa_user_scripts');
 function dscsa_user_scripts() {
 
+  wp_enqueue_script('google-analytics-external', 'https://www.googletagmanager.com/gtag/js?id=UA-102235287-1');
+  wp_add_inline_script('google-analytics-inline', 'window.dataLayer = window.dataLayer || []; function gtag(){dataLayer.push(arguments);} gtag("js:", new Date());  gtag("config", "UA-102235287-1");');
+
   //is_wc_endpoint_url('orders') and is_wc_endpoint_url('account-details') seem to work
   wp_enqueue_script('ie9ajax', 'https://cdnjs.cloudflare.com/ajax/libs/jquery-ajaxtransport-xdomainrequest/1.0.4/jquery.xdomainrequest.min.js', ['jquery']);
   wp_enqueue_script('jquery-ui', "/wp-admin/load-scripts.php?c=1&load%5B%5D=jquery-ui-core", ['jquery']);
