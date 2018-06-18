@@ -21,8 +21,8 @@ function cache_login_registration() {
 add_action('wp_enqueue_scripts', 'dscsa_user_scripts');
 function dscsa_user_scripts() {
 
-  wp_enqueue_script('google-analytics-external', 'https://www.googletagmanager.com/gtag/js?id=UA-102235287-1');
-  wp_add_inline_script('google-analytics-inline', 'window.dataLayer = window.dataLayer || []; function gtag(){dataLayer.push(arguments);} gtag("js:", new Date());  gtag("config", "UA-102235287-1");');
+  wp_enqueue_script('google-analytics', 'https://www.googletagmanager.com/gtag/js?id=UA-102235287-1');
+  wp_add_inline_script('google-analytics', 'window.dataLayer = window.dataLayer || []; function gtag(){dataLayer.push(arguments);} gtag("js:", new Date());  gtag("config", "UA-102235287-1"); console.log("google analytics loaded");');
 
   //is_wc_endpoint_url('orders') and is_wc_endpoint_url('account-details') seem to work
   wp_enqueue_script('ie9ajax', 'https://cdnjs.cloudflare.com/ajax/libs/jquery-ajaxtransport-xdomainrequest/1.0.4/jquery.xdomainrequest.min.js', ['jquery']);
@@ -367,7 +367,7 @@ function dscsa_admin_invoice($order) {
 add_action( 'woocommerce_edit_account_form_start', 'dscsa_user_edit_account');
 function dscsa_user_edit_account($user_id = null) {
   $fields = shared_fields($user_id)+account_fields($user_id);
-  $fields['birth_date']['custom_attributes'] = ['readonly' => true];
+  $fields['birth_date']['custom_attributes'] = ['readonly' => true, 'autocomplete' => 'off'];
   return dscsa_echo_form_fields($fields);
 }
 
@@ -1342,9 +1342,9 @@ function dscsa_checkout_fields( $fields ) {
   $fields['billing']['billing_state']['options'] = ['GA' => 'Georgia'];
   $fields['billing']['billing_first_name']['label'] = 'Patient First Name';
   $fields['billing']['billing_last_name']['label'] = 'Patient Last Name';
-  $fields['billing']['billing_first_name']['custom_attributes'] = ['readonly' => true];
-  $fields['billing']['billing_last_name']['custom_attributes'] = ['readonly' => true];
-  $fields['order']['birth_date']['custom_attributes'] = ['readonly' => true];
+  $fields['billing']['billing_first_name']['custom_attributes'] = ['readonly' => true, 'autocomplete' => 'off'];
+  $fields['billing']['billing_last_name']['custom_attributes'] = ['readonly' => true, 'autocomplete' => 'off'];
+  $fields['order']['birth_date']['custom_attributes'] = ['readonly' => true, 'autocomplete' => 'off'];
 
   //Remove Some Fields
   unset($fields['billing']['billing_first_name']['autofocus']);
