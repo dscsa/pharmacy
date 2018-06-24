@@ -383,6 +383,7 @@ function dscsa_login_form() {
   login_form();
   $shared_fields = shared_fields();
   $shared_fields['birth_date']['id'] = 'birth_date_login';
+  $shared_fields['birth_date']['custom_attributes']['readonly'] = false;
   echo woocommerce_form_field('birth_date', $shared_fields['birth_date']);
 }
 
@@ -391,6 +392,7 @@ function dscsa_register_form() {
   $account_fields = account_fields();
   $shared_fields = shared_fields();
   $shared_fields['birth_date']['id'] = 'birth_date_register';
+  $shared_fields['birth_date']['custom_attributes']['readonly'] = false;
   $shared_fields['phone']['custom_attributes']['readonly'] = false;
   $shared_fields['phone']['autocomplete'] = 'tel'; //allow autocomplete on first page but not second
 
@@ -1276,7 +1278,7 @@ function dscsa_translate($term, $raw, $domain) {
     return $spanish;
 
   //This allows client side translating based on jQuery listening to radio buttons
-  if (isset($_GET['register']))
+  if (isset($_GET['gp-register']))
     return  "<span class='english'>$english</span><span class='spanish'>$spanish</span>";
 
   return $english;
