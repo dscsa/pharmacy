@@ -332,7 +332,7 @@ function shared_fields($user_id = null) {
       'required'  => true,
       'type'      => 'tel',
       'validate'  => ['phone'],
-      'autocomplete' => 'off',
+      'autocomplete' => 'user-phone', //https://www.20spokes.com/blog/what-to-do-when-chrome-ignores-autocomplete-off-on-your-form
       'default'   => get_default('phone', $user_id)
     ]
   ];
