@@ -324,7 +324,7 @@ function shared_fields($user_id = null) {
         'required'  => true,
         'input_class' => ['date-picker'],
         'autocomplete' => 'off',
-        'custom_attributes' => ['readonly' => true];
+        'custom_attributes' => ['readonly' => true],
         'default'   => get_default('birth_date', $user_id)
     ],
     'phone' => [
