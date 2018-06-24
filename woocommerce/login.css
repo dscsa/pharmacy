@@ -1,4 +1,4 @@
-#username, #reg_username, label[for=username], label[for=reg_username] {
+#username, #reg_username, label[for=reg_email] .required, label[for=username], label[for=reg_username] {
   display:none !important;
 }
 #customer_login #phone_field {
