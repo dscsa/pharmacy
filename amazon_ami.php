@@ -217,7 +217,7 @@ function shared_fields($user_id = null) {
     $pharmacy = [
       'type'  => 'select',
       'required' => true,
-      'label' => __('<span class="erx">Name and address of a backup pharmacy to fill your prescriptions if we are out-of-stock</span><span class="pharmacy">Name and address of pharmacy from which we should transfer your medication(s)</span>'),
+      'label' => __('Backup pharmacy that we can transfer your prescription(s) to and from'),
       'options' => ['' => __("Type to search. 'Walgreens Norcross' will show the one at '5296 Jimmy Carter Blvd, Norcross'")]
     ];
     //https://docs.woocommerce.com/wc-apidocs/source-function-woocommerce_form_field.html#2064-2279
@@ -613,22 +613,22 @@ function dscsa_my_account_menu($nav) {
 
 add_action('woocommerce_save_account_details_errors', 'dscsa_account_validation');
 function dscsa_account_validation() {
-   dscsa_validation(shared_fields()+account_fields());
+   dscsa_validation(shared_fields()+account_fields(), true);
 }
 add_action('woocommerce_checkout_process', 'dscsa_order_validation');
 function dscsa_order_validation() {
-   dscsa_validation(order_fields()+shared_fields());
+   dscsa_validation(order_fields()+shared_fields(), false);
 
    if ($_POST['rx_source']  == 'pharmacy' AND ! $_POST['medication'])
      wc_add_notice('<strong>'.__('Medications Required').'</strong> '.__('Please select the medications you want us to transfer.  If they do not appear on the list, then we do not have them in-stock'), 'error');
 }
 
-function dscsa_validation($fields) {
+function dscsa_validation($fields, $required) {
   $allergy_missing = true;
   foreach ($fields as $key => $field) {
-    //if ($field['required'] AND ! $_POST[$key]) {
-    //   wc_add_notice('<strong>'.__($field['label']).'</strong> '.__('is a required field'), 'error');
-    //}
+    if ($required AND $field['required'] AND ! $_POST[$key]) {
+      wc_add_notice('<strong>'.__($field['label']).'</strong> '.__('is a required field'), 'error');
+    }
 
     if (substr($key, 0, 10) == 'allergies_' AND $_POST[$key])
  	  $allergy_missing = false;
