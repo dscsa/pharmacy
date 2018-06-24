@@ -323,6 +323,8 @@ function shared_fields($user_id = null) {
         'label'     => __('Date of Birth'),
         'required'  => true,
         'input_class' => ['date-picker'],
+        'autocomplete' => 'off',
+        'custom_attributes' => ['readonly' => true];
         'default'   => get_default('birth_date', $user_id)
     ],
     'phone' => [
@@ -330,7 +332,7 @@ function shared_fields($user_id = null) {
       'required'  => true,
       'type'      => 'tel',
       'validate'  => ['phone'],
-      'autocomplete' => 'tel',
+      'autocomplete' => 'off',
       'default'   => get_default('phone', $user_id)
     ]
   ];
@@ -367,7 +369,6 @@ function dscsa_admin_invoice($order) {
 add_action( 'woocommerce_edit_account_form_start', 'dscsa_user_edit_account');
 function dscsa_user_edit_account($user_id = null) {
   $fields = shared_fields($user_id)+account_fields($user_id);
-  $fields['birth_date']['custom_attributes'] = ['readonly' => true, 'autocomplete' => 'off'];
   return dscsa_echo_form_fields($fields);
 }
 
@@ -390,6 +391,8 @@ function dscsa_register_form() {
   $account_fields = account_fields();
   $shared_fields = shared_fields();
   $shared_fields['birth_date']['id'] = 'birth_date_register';
+  $shared_fields['phone']['custom_attributes']['readonly'] = false;
+  $shared_fields['phone']['autocomplete'] = 'tel'; //allow autocomplete on first page but not second
 
   echo woocommerce_form_field('language', $account_fields['language']);
   login_form();
@@ -1344,7 +1347,6 @@ function dscsa_checkout_fields( $fields ) {
   $fields['billing']['billing_last_name']['label'] = 'Patient Last Name';
   $fields['billing']['billing_first_name']['custom_attributes'] = ['readonly' => true, 'autocomplete' => 'off'];
   $fields['billing']['billing_last_name']['custom_attributes'] = ['readonly' => true, 'autocomplete' => 'off'];
-  $fields['order']['birth_date']['custom_attributes'] = ['readonly' => true, 'autocomplete' => 'off'];
 
   //Remove Some Fields
   unset($fields['billing']['billing_first_name']['autofocus']);
