@@ -91,6 +91,9 @@ function dscsa_stripe_add_card($stripe_id, $card, $response) {
    $patient_id = get_meta('guardian_id', $user_id);
 
    update_user_meta($user_id, 'stripe', $card);
+
+   if ( ! $patient_id) return; //in case they fill this out before saving account details or a new order
+
    //Meet guardian 50 character limit
    //Customer 18, Card 29, Delimiter 1 = 48
    update_stripe_tokens($patient_id, $card['customer'].','.$card['card'].',');
