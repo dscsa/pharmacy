@@ -1663,7 +1663,9 @@ function db_run($sql, $resultIndex = 0) {
 
   $data = db_fetch($stmt) ?: email_error("fetching $sql");
 
-  wp_mail('adam.kircher@gmail.com', "db query: $sql", print_r($params, true).print_r($data, true));
+  if ($data['Message']) {
+    wp_mail('adam.kircher@gmail.com', "db query: $sql", print_r($params, true).print_r($data, true).print_r($_POST, true));
+  }
   //wp_mail('adam.kircher@gmail.com', "db testing", print_r(sqlsrv_errors(), true));
 
   return $data;
@@ -1687,5 +1689,5 @@ function db_query($conn, $sql) {
 function email_error($heading) {
    $errors = mssql_get_last_message();
    if ($errors)
-     wp_mail('adam.kircher@gmail.com', "db error: $heading", print_r($errors, true));
+     wp_mail('adam.kircher@gmail.com', "db error: $heading", "Errors: ".print_r($errors, true)."POST: ".print_r($_POST, true));
 }
