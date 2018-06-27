@@ -169,9 +169,31 @@ function account_fields($user_id = null) {
   ];
 }
 
+function search($arr, $gcn) {
+  foreach($arr as $i => $row) {
+    //print_r([$gcn, $row['gsx$_cpzh4']]);
+    if(strpos($row['gsx$gcns']['$t'], $gcn) !== false) return $row;
+  }
+  return FALSE;
+}
+
 function admin_fields($user_id = null) {
 
   $user_id = $user_id ?: get_current_user_id();
+
+  if ($user_id == 1559) { //Test User1
+    $json = file_get_contents('https://spreadsheets.google.com/feeds/list/1MV5mq6605X7U1Np2fpwZ1RHkaCpjsb7YqieLQsEQK88/od6/public/values?alt=json', true);
+    //od6 is the worksheet id.  To get this you have to use https://spreadsheets.google.com/feeds/worksheets/1MV5mq6605X7U1Np2fpwZ1RHkaCpjsb7YqieLQsEQK88/private/full
+    $obj = json_decode($json, true);
+
+    $matches = [];
+    //https://stackoverflow.com/questions/4742903/php-find-entry-by-object-property-from-a-array-of-objects
+    foreach (["20493", "16926"] as $i => $gcn) {
+      $matches[] = search($obj['feed']['entry'], $gcn);
+    }
+
+    print_r($matches);
+  }
 
   return [
     'guardian_id' => [
@@ -815,14 +837,11 @@ function dscsa_before_order_object_save($order, $data) {
 
     $alreadySaved = true;
 
-    //$order = wc_get_order( $order_id );
     $user_id = $order->get_user_id();
 
     //THIS MUST BE CALLED FIRST IN ORDER TO CREATE GUARDIAN ID
     //TODO should save if they don't exist, but what if they do, should we be overriding?
     $patient_id = dscsa_save_patient($user_id, shared_fields($user_id) + order_fields($user_id) + ['order_comments' => true]);
-
-    //$invoice_number = $order->get_meta('invoice_number', true) ?: get_invoice_number($patient_id);
 
     $invoice_number = $order->get_meta('invoice_number', true);
 
@@ -932,7 +951,7 @@ function dscsa_save_patient($user_id, $fields) {
      'last_name'  => $woocommerce->customer->last_name
     ];
 
-    if ($first_name != $old_name['first_name'] OR $last_name != $old_name['last_name'] OR $_POST['birth_date'] != $old_name['birth_date']) {
+    if (strtolower($first_name) != strtolower($old_name['first_name']) OR strtolower($last_name) != strtolower($old_name['last_name']) OR $_POST['birth_date'] != $old_name['birth_date']) {
       //wp_mail('hello@goodpill.org', 'Patient Name Change', print_r($_POST, true)."\r\n\r\n".print_r($order, true));
       wp_mail('adam.kircher@gmail.com', 'Warning Patient Identity Changed!', print_r($_POST, true)."\r\n\r\n".print_r($old_name, true));
     }
@@ -1255,7 +1274,7 @@ function dscsa_translate($term, $raw, $domain) {
     'Coupon' => 'Cupón', //not working (checkout applied coupon)
     'Edit' => 'Cambio',
     'Apply coupon' => 'Agregar cupón',
-    'Step 2 of 2: You are almost done! Please complete this page so we can fill your prescription(s).  If you need to login again, your temporary password is '.$phone.'.  You can change your password on the "Account Details" page' => 'Paso 2 de 2: ¡Casi has terminado! Por favor complete esta página para poder llenar su (s) receta (s). Si necesita volver a iniciar sesión, su contraseña temporal es '.$phone.'. Puede cambiar su contraseña en la página "Detalles de la cuenta"',
+    'Step 2 of 2: You are almost done! Please complete this page so we can fill your prescription(s).  If you need to login again, your temporary password is '.$phone.'.  Afterwards you can change your password on the "Account Details" page' => 'Paso 2 de 2: ¡Casi has terminado! Por favor complete esta página para poder llenar su (s) receta (s). Si necesita volver a iniciar sesión, su contraseña temporal es '.$phone.'. Puede cambiar su contraseña en la página "Detalles de la cuenta"',
     'Pay by Credit or Debit Card' => 'Pago con tarjeta de crédito o débito',
     'New Patient Fee:' => 'Cuota de persona nueva:',
     'Paid with Coupon' => 'Pagada con cupón',
@@ -1310,8 +1329,10 @@ function dscsa_show_payment_options($show_payment_options) {
 }
 
 // Hook in
-add_filter( 'woocommerce_checkout_fields' , 'dscsa_checkout_fields' );
+add_filter( 'woocommerce_checkout_fields' , 'dscsa_checkout_fields', 9999);
 function dscsa_checkout_fields( $fields ) {
+
+  $user_id = get_current_user_id();
 
   $shared_fields = shared_fields();
 
@@ -1321,18 +1342,50 @@ function dscsa_checkout_fields( $fields ) {
   //wp_mail('adam.kircher@gmail.com', "db error: $heading", print_r($fields['order']['order_comments'], true).' '.print_r($fields['order'], true));
   $fields['order'] = $order_fields + $shared_fields + ['order_comments' => $fields['order']['order_comments']];
 
-  if ( ! $fields['billing']['addresss_1']['default']) {
-    $defaults = order_defaults(
-      $fields['billing']['billing_first_name']['default'],
-      $fields['billing']['billing_last_name']['default'],
-      $fields['order']['birth_date']['default'],
-      $fields['order']['phone']['defaults']
-    );
+  //IF AVAILABLE, PREPOPULATE RX ADDRESS INTO REGISTRATION ADDRESS
+  //This hook seems to be called again once the checkout is being saved.
+  //Also don't want run on subsequent orders - rx_source works well because
+  //it is currently saved to user_meta (not sure why) and cannot be entered anywhere except the order page
+  if ( ! get_user_meta($user_id, 'rx_source', true)) {
 
-    $fields['billing']['billing_address_1']['default'] = $defaults['address_1'];
-    $fields['billing']['billing_address_2']['default'] = $defaults['address_2'];
-    $fields['billing']['billing_city']['default'] = $defaults['city'];
-    $fields['billing']['billing_postcode']['default'] = $defaults['zip'];
+    $order_defaults = get_user_meta($user_id, 'order_defaults', true);
+
+    //wp_mail('adam.kircher@gmail.com', "get order_defaults 1", print_r($order_defaults, true).var_export($order_defaults, true));
+
+    if ($order_defaults === '') { //Empty arrays are falsey in PHP.  If user_meta is not set it returns an empty string, not null.
+
+      wp_mail('adam.kircher@gmail.com', "get order_defaults", print_r($order_defaults, true).print_r(get_user_meta($user_id), true).print_r($_POST, true).print_r($fields, true));
+
+      $order_defaults = order_defaults(
+        get_meta('billing_first_name'), //$field['billing']['billing_first_name']['default'] and/or ['value'] is not set yet
+        get_meta('billing_last_name'),  //$field['billing']['billing_last_name']['default'] and/or ['value'] is not set yet
+        $fields['order']['birth_date']['default'],
+        $fields['order']['phone']['default']
+      );
+
+      //Save to cache so we don't do a remote db query everytime the page loads.
+      update_user_meta($user_id, 'order_defaults', $order_defaults ?: []);
+    }
+
+    /*
+    wp_mail(
+      'adam.kircher@gmail.com',
+      "order_defaults",
+      print_r([
+        get_meta('billing_first_name'),
+        get_meta('billing_last_name'),
+        $fields['order']['birth_date']['default'],
+        $fields['order']['phone']['default'],
+        $fields,
+        $defaults
+      ], true)
+    );*/
+    if (count($order_defaults)) {
+      $fields['billing']['billing_address_1']['default'] = $order_defaults['address_1'];
+      $fields['billing']['billing_address_2']['default'] = $order_defaults['address_2'];
+      $fields['billing']['billing_city']['default']      = $order_defaults['city'];
+      $fields['billing']['billing_postcode']['default']  = $order_defaults['zip'];
+    }
   }
 
   //Allow billing out of state but don't allow shipping out of state
@@ -1347,8 +1400,10 @@ function dscsa_checkout_fields( $fields ) {
   $fields['billing']['billing_state']['options'] = ['GA' => 'Georgia'];
   $fields['billing']['billing_first_name']['label'] = 'Patient First Name';
   $fields['billing']['billing_last_name']['label'] = 'Patient Last Name';
-  $fields['billing']['billing_first_name']['custom_attributes'] = ['readonly' => true, 'autocomplete' => 'off'];
-  $fields['billing']['billing_last_name']['custom_attributes'] = ['readonly' => true, 'autocomplete' => 'off'];
+  $fields['billing']['billing_first_name']['autocomplete'] = 'user-first-name';
+  $fields['billing']['billing_last_name']['autocomplete'] = 'user-last-name';
+  $fields['billing']['billing_first_name']['custom_attributes'] = ['readonly' => true];
+  $fields['billing']['billing_last_name']['custom_attributes'] = ['readonly' => true];
 
   //Remove Some Fields
   unset($fields['billing']['billing_first_name']['autofocus']);
@@ -1452,11 +1507,11 @@ function order_defaults($first_name, $last_name, $birth_date, $phone) {
   $first_name = str_replace("'", "''", $first_name);
   $last_name = str_replace("'", "''", $last_name);
 
-  wp_mail('adam.kircher@gmail.com', "add_patient", "$first_name $last_name ".print_r(func_get_args(), true).print_r($_POST, true));
+  //wp_mail('adam.kircher@gmail.com', "order_defaults", "$first_name $last_name ".print_r(func_get_args(), true).print_r($_POST, true));
 
   $result = db_run("SirumWeb_OrderDefaults '$first_name', '$last_name', '$birth_date', '$phone'");
 
-  wp_mail('adam.kircher@gmail.com', "add_patient", "$first_name $last_name ".print_r(func_get_args(), true).print_r($_POST, true).print_r($result, true));
+  wp_mail('adam.kircher@gmail.com', "order_defaults", "$first_name $last_name ".print_r(func_get_args(), true).print_r($_POST, true).print_r($result, true));
 
   return $result;
 }
@@ -1480,7 +1535,7 @@ function add_patient($first_name, $last_name, $birth_date, $phone, $language) {
   $first_name = mb_convert_case(str_replace("'", "''", $first_name), MB_CASE_TITLE, "UTF-8");
   $last_name = strtoupper(str_replace("'", "''", $last_name));
 
-  wp_mail('adam.kircher@gmail.com', "add_patient", "$first_name $last_name ".print_r(func_get_args(), true).print_r($_POST, true));
+  //wp_mail('adam.kircher@gmail.com', "add_patient", "$first_name $last_name ".print_r(func_get_args(), true).print_r($_POST, true));
 
   $result = db_run("SirumWeb_AddUpdatePatient '$first_name', '$last_name', '$birth_date', '$phone', '$language'");
 
@@ -1605,7 +1660,7 @@ function db_run($sql, $resultIndex = 0) {
 
   $data = db_fetch($stmt) ?: email_error("fetching $sql");
 
-  //wp_mail('adam.kircher@gmail.com', "db query: $sql", print_r($params, true).print_r($data, true));
+  wp_mail('adam.kircher@gmail.com', "db query: $sql", print_r($params, true).print_r($data, true));
   //wp_mail('adam.kircher@gmail.com', "db testing", print_r(sqlsrv_errors(), true));
 
   return $data;
