@@ -902,13 +902,16 @@ add_action('woocommerce_customer_save_address', 'dscsa_customer_save_address', 1
 function dscsa_customer_save_address($user_id, $load_address) {
   wp_mail('adam.kircher@gmail.com', 'woocommerce_customer_save_address', get_meta('billing_address_1')."\r\n\r\n".print_r($_POST, true)."\r\n\r\n".print_r($load_address, true));
 
-  update_shipping_address(
-    get_meta('guardian_id', $user_id),
-    $_POST['billing_address_1'],
-    $_POST['billing_address_2'],
-    $_POST['billing_city'],
-    $_POST['billing_postcode']
-  );
+  $patient_id = get_meta('guardian_id', $user_id);
+  if ($patient_id) {//in case they fill this out before saving account details or a new order
+    update_shipping_address(
+      $patient_id,
+      $_POST['billing_address_1'],
+      $_POST['billing_address_2'],
+      $_POST['billing_city'],
+      $_POST['billing_postcode']
+    );
+  }
 }
 
 //TODO implement this funciton
