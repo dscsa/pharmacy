@@ -634,7 +634,8 @@ function wc_bypass_logout_confirmation() {
 
 add_filter ('woocommerce_account_menu_items', 'dscsa_my_account_menu');
 function dscsa_my_account_menu($nav) {
-  $nav['dashboard'] = __(substr($_SERVER['REQUEST_URI'], -23) == '/account/?add-to-cart=8' ? 'Registration' : 'New Order');
+  $prev_order = get_user_meta(get_current_user_id(), 'rx_source', true);
+  $nav['dashboard'] = __($prev_order ? 'New Order' : 'Get started (2 of 2)');
   return $nav;
 }
 
