@@ -168,50 +168,66 @@ function medication2select(entry, i) {
   }
 }
 
-function upgradeRxs(orderId, callback) {
+function upgradeRxs(callback) {
 
   console.log('upgradeRxs')
 
-  //var rxs = medication.data('rxs')
-  //console.log('data-rxs', typeof rxs, rxs.length, rxs)
+  var select = jQuery('#rxs\\[\\]')
+
+  var rxs = select.data('rxs')
+  console.log('data-rxs', typeof rxs, rxs.length, rxs)
   //if (rxs.length) medication.val(rxs).change()
 
-  var select = jQuery('#rxs\\[\\]')
   select.empty()
 
-  var medicationGsheet = "https://spreadsheets.google.com/feeds/list/1MV5mq6605X7U1Np2fpwZ1RHkaCpjsb7YqieLQsEQK88/oy8wwvo/public/values?alt=json"
-  //oy8wwvo is the worksheet id.  To get this you have to use https://spreadsheets.google.com/feeds/worksheets/1MV5mq6605X7U1Np2fpwZ1RHkaCpjsb7YqieLQsEQK88/private/full
+  var medicationGsheet = "https://spreadsheets.google.com/feeds/list/1MV5mq6605X7U1Np2fpwZ1RHkaCpjsb7YqieLQsEQK88/od6/public/values?alt=json"
+  //od6 is the worksheet id.  To get this you have to use https://spreadsheets.google.com/feeds/worksheets/1MV5mq6605X7U1Np2fpwZ1RHkaCpjsb7YqieLQsEQK88/private/full
   jQuery.ajax({
     url:medicationGsheet,
     type: 'GET',
     cache:true,
     success:function($data) {
       console.log('getOrderRxs medications gsheet')
+      var data = []
       for (var i in $data.feed.entry) {
-        if ($data.feed.entry[i].gsx$orderid.$t == orderId)
-          var data = rxs2select($data.feed.entry[i])
+        var entry = $data.feed.entry[i]
+        for (var j in rxs) {
+          rxs.regex = rxs.regex || new RegExp('\\b'+rxs[j].gcn+'\\b')
+          if (entry.gsx$gcns.$t.match(rxs.regex))
+            data.push(rxs2select(rxs[j], entry))
+        }
       }
       console.log('getOrderRxs medications gsheet', data)
-      if (data) {
-        select.select2({multiple:true, closeOnSelect:true, data:data})
-        select.val(data.map(function(drug) { return drug.id })).change()
-      }
+      select.select2({multiple:true, closeOnSelect:true, data:data})
+      select.val(data.map(function(drug) { return drug.id })).change()
+
       callback && callback(select)
     }
   })
 }
 
-function rxs2select(entry, i) {
-  return JSON.parse(entry.gsx$drugs.$t).map(function(drug) {
-    var text = drug.$Name+', $'+drug.$Price+' for '+drug.$Days
-    return {
-      id:text,
-      text:text,
-      selected:true,
-      disabled:drug.$Days == 0,
-      price:drug.$Price
-    }
-  })
+function rxs2select(rx, entry) {
+
+  var notes = []
+
+  if (entry.gsx$stock.$t == 'Out of Stock' || (entry.gsx$stock.$t == 'Refills Only' && ! rx.is_refill))
+    notes.push(entry.gsx$stock.$t)
+
+  if ( ! rx.refills_total)
+    notes.push("No Refills")
+
+  notes = notes.join(', ')
+
+  var price = entry.gsx$order.price90.$t || entry.gsx$order.price30.$t,
+       days = entry.gsx$order.price30.$t ? '90 days' : '45 days',
+       drug = ' '+entry.gsx$_cokwr.$t+', $'+price+' for '+days
+
+  return {
+    id:entry.gsx$_cokwr.$t,
+    text: drug + (notes ? ' ('+notes+')' : ''),
+    disabled:notes,
+    price:price
+  }
 }
 
 /*

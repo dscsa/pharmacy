@@ -103,7 +103,7 @@ function dscsa_stripe_add_card($stripe_id, $card, $response) {
    update_card_and_coupon($patient_id, $card, $coupon);
 }
 
-function order_fields($user_id = null, $medication = []) {
+function order_fields($user_id = null, $rxs = []) {
 
   $user_id = $user_id ?: get_current_user_id();
 
@@ -111,7 +111,7 @@ function order_fields($user_id = null, $medication = []) {
     'type'   	  => 'select',
     'label'     => __('Search and select medications by generic name that you want to transfer to Good Pill'),
     'options'   => [''],
-    'custom_attributes' => ['data-rxs' => json_encode($medication)]
+    'custom_attributes' => ['data-rxs' => json_encode($rxs)]
   ];
 
   $fields = [
@@ -135,11 +135,18 @@ function order_fields($user_id = null, $medication = []) {
     ]
   ];
 
-  if ($user_id == 1326) {
+  if ($user_id == 1559) { //Test User1 1985-03-10
     $fields['rxs[]'] = [
       'type'   	  => 'select',
       'label'     => __('Testing RXs'),
-      'options'   => ['']
+      'options'   => [''],
+      'custom_attributes' => ['data-rxs' => json_encode([
+        {drug:'Allopurinol 100mg' , gcn:2535, is_refill:false, refills_total:2 },
+        {drug:'Allopurinol 300mg' , gcn:2536, is_refill:false, refills_total:2 },
+        {drug:'Amitriptyline 10mg' , gcn:46043, is_refill:true, refills_total:0 },
+        {drug:'Amitriptyline 25mg' , gcn:46046, is_refill:true, refills_total:3 },
+        {drug:'Amitriptyline 50mg' , gcn:46047, is_refill:false, refills_total:3 },
+      ])]
     ];
   }
 
