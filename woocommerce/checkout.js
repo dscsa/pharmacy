@@ -5,7 +5,7 @@ function load() {
   upgradeMedication()
 
   try {
-    upgradeRxs(4366)
+    upgradeRxs()
   } catch (e) {
     console.log('upgradeRxs failed', e)
   }

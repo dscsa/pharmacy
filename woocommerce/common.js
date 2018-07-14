@@ -199,7 +199,7 @@ function upgradeRxs(callback) {
       }
       console.log('getOrderRxs medications gsheet', data)
       select.select2({multiple:true, closeOnSelect:true, data:data})
-      select.val(data.map(function(drug) { return drug.id })).change()
+      select.val(data.map(function(drug) { return ! drug.disabled && drug.id })).change()
 
       callback && callback(select)
     }
@@ -225,7 +225,7 @@ function rxs2select(rx, entry) {
   return {
     id:entry.gsx$_cokwr.$t,
     text: drug + (notes ? ' ('+notes+')' : ''),
-    disabled:notes,
+    disabled:!!notes,
     price:price
   }
 }
