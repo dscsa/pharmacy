@@ -192,8 +192,8 @@ function upgradeRxs(callback) {
       for (var i in $data.feed.entry) {
         var entry = $data.feed.entry[i]
         for (var j in rxs) {
-          rxs.regex = rxs.regex || new RegExp('\\b'+rxs[j].gcn+'\\b')
-          if (entry.gsx$gcns.$t.match(rxs.regex))
+          rxs[j].regex = rxs[j].regex || new RegExp('\\b'+rxs[j].gcn+'\\b')
+          if (entry.gsx$gcns.$t.match(rxs[j].regex))
             data.push(rxs2select(rxs[j], entry))
         }
       }

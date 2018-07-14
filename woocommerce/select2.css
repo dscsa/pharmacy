@@ -25,7 +25,8 @@ select, .select2-selection {
 .select2-selection--multiple {
   background-color:#f8f8f8 !important;
   border-color:#e1e1e1 !important;
-  height:100px !important
+  min-height:100px !important;
+  height:auto !important
 }
 .select2-container--default .select2-results__option--highlighted {
   background:#11abd6 !important
