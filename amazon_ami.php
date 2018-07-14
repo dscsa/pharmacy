@@ -141,11 +141,11 @@ function order_fields($user_id = null, $rxs = []) {
       'label'     => __('Testing RXs'),
       'options'   => [''],
       'custom_attributes' => ['data-rxs' => json_encode([
-        {drug:'Allopurinol 100mg' , gcn:2535, is_refill:false, refills_total:2 },
-        {drug:'Allopurinol 300mg' , gcn:2536, is_refill:false, refills_total:2 },
-        {drug:'Amitriptyline 10mg' , gcn:46043, is_refill:true, refills_total:0 },
-        {drug:'Amitriptyline 25mg' , gcn:46046, is_refill:true, refills_total:3 },
-        {drug:'Amitriptyline 50mg' , gcn:46047, is_refill:false, refills_total:3 },
+        ['drug' => 'Allopurinol 100mg' , 'gcn' => 2535, 'is_refill' => false, 'refills_total' => 2 ],
+        ['drug' => 'Allopurinol 300mg' , 'gcn' => 2536, 'is_refill' => false, 'refills_total' => 2 ],
+        ['drug' =>'Amitriptyline 10mg' , 'gcn' => 46043, 'is_refill' => true, 'refills_total' => 0 ],
+        ['drug' =>'Amitriptyline 25mg' , 'gcn' => 46046, 'is_refill' => true, 'refills_total' => 3 ],
+        ['drug' =>'Amitriptyline 50mg' , 'gcn' => 46047, 'is_refill' => false, 'refills_total' => 3 ]
       ])]
     ];
   }
