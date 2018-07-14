@@ -37,7 +37,7 @@ select, .select2-selection {
   padding:5px !important
 }
 
-#rxs\[\] .select2-selection__choice__remove {
+#rxs\[\]_field .select2-selection__choice__remove {
   display:none;
 }
 
