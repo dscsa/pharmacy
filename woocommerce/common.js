@@ -199,9 +199,10 @@ function upgradeRxs(callback) {
             break
           }
         }
+
         data.push({ //No match found
-          id:rx.drug_name,
-          text: rx.drug_name + ' (GCN Error)',
+          id:rx.drug_name.slice(1, -1),
+          text: rx.drug_name.slice(1, -1) + ' (GCN Error)',
           disabled:true,
           price:0
         })
