@@ -197,15 +197,15 @@ function upgradeRxs(callback) {
           if (entry.gsx$gcns.$t.match(rx.regex)) {
             data.push(rxs2select(rx, entry))
             break
+          } else if (i+1 == $data.feed.entry.length) {
+            data.push({ //No match found
+              id:rx.drug_name.slice(1, -1),
+              text: rx.drug_name.slice(1, -1) + ' (GCN Error)',
+              disabled:true,
+              price:0
+            })
           }
         }
-
-        data.push({ //No match found
-          id:rx.drug_name.slice(1, -1),
-          text: rx.drug_name.slice(1, -1) + ' (GCN Error)',
-          disabled:true,
-          price:0
-        })
       }
       console.log('getOrderRxs medications gsheet', data)
       select.select2({multiple:true, closeOnSelect:true, data:data})
