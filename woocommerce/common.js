@@ -218,8 +218,8 @@ function rxs2select(rx, entry) {
 
   notes = notes.join(', ')
 
-  var price = entry.gsx$order.price90.$t || entry.gsx$order.price30.$t,
-       days = entry.gsx$order.price30.$t ? '90 days' : '45 days',
+  var price = entry['gsx$order.price90'].$t || entry['gsx$order.price30'].$t,
+       days = entry['gsx$order.price30'].$t ? '90 days' : '45 days',
        drug = ' '+entry.gsx$_cokwr.$t+', $'+price+' for '+days
 
   return {
