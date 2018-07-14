@@ -36,6 +36,11 @@ select, .select2-selection {
   color:#fff !important;
   padding:5px !important
 }
+
+#rxs\[\] .select2-selection__choice__remove {
+  display:none;
+}
+
 .select2-container--default .select2-selection--multiple .select2-selection__choice__remove {
   color:#fff !important
 }

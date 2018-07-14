@@ -139,7 +139,6 @@ function order_fields($user_id = null, $rxs = []) {
     $fields['rxs[]'] = [
       'type'   	  => 'select',
       'label'     => __('Testing RXs'),
-      'disabled'  => true,
       'options'   => ['']
     ];
   }

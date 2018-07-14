@@ -209,7 +209,7 @@ function upgradeRxs(callback) {
       }
       console.log('getOrderRxs medications gsheet', data)
       select.select2({multiple:true, closeOnSelect:true, data:data})
-      select.val(data.map(function(drug) { return drug.id })).change()
+      select.val(data.map(function(drug) { return ! drug.disabled && drug.id })).change()
 
       callback && callback(select)
     }
