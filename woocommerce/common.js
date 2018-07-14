@@ -189,13 +189,22 @@ function upgradeRxs(callback) {
     success:function($data) {
       console.log('getOrderRxs medications gsheet')
       var data = []
-      for (var i in $data.feed.entry) {
-        var entry = $data.feed.entry[i]
-        for (var j in rxs) {
-          rxs[j].regex = rxs[j].regex || new RegExp('\\b'+rxs[j].gcn+'\\b')
-          if (entry.gsx$gcns.$t.match(rxs[j].regex))
-            data.push(rxs2select(rxs[j], entry))
+      for (var j in rxs) {
+        var rx = rxs[j]
+        for (var i in $data.feed.entry) {
+          var entry = $data.feed.entry[i]
+          rx.regex = rx.regex || new RegExp('\\b'+rx.gcn_seqno+'\\b')
+          if (entry.gsx$gcns.$t.match(rx.regex)) {
+            data.push(rxs2select(rx, entry))
+            break
+          }
         }
+        data.push({ //No match found
+          id:rx.drug_name,
+          text: rx.drug_name + ' (GCN Error)',
+          disabled:true,
+          price:0
+        })
       }
       console.log('getOrderRxs medications gsheet', data)
       select.select2({multiple:true, closeOnSelect:true, data:data})

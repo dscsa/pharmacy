@@ -139,14 +139,7 @@ function order_fields($user_id = null, $rxs = []) {
     $fields['rxs[]'] = [
       'type'   	  => 'select',
       'label'     => __('Testing RXs'),
-      'options'   => [''],
-      'custom_attributes' => ['data-rxs' => json_encode([
-        ['drug' => 'Allopurinol 100mg' , 'gcn' => 2535, 'is_refill' => false, 'refills_total' => 2 ],
-        ['drug' => 'Allopurinol 300mg' , 'gcn' => 2536, 'is_refill' => false, 'refills_total' => 2 ],
-        ['drug' =>'Amitriptyline 10mg' , 'gcn' => 46043, 'is_refill' => true, 'refills_total' => 0 ],
-        ['drug' =>'Amitriptyline 25mg' , 'gcn' => 46046, 'is_refill' => true, 'refills_total' => 3 ],
-        ['drug' =>'Amitriptyline 50mg' , 'gcn' => 46047, 'is_refill' => false, 'refills_total' => 3 ]
-      ])]
+      'options'   => ['']
     ];
   }
 
@@ -1362,15 +1355,15 @@ function dscsa_checkout_fields( $fields ) {
   //it is currently saved to user_meta (not sure why) and cannot be entered anywhere except the order page
   if ( ! get_user_meta($user_id, 'rx_source', true)) {
 
-    $order_defaults = get_user_meta($user_id, 'order_defaults', true);
+    $patient_profile = get_user_meta($user_id, 'patient_profile', true);
 
     //wp_mail('adam.kircher@gmail.com', "get order_defaults 1", print_r($order_defaults, true).var_export($order_defaults, true));
 
-    if ($order_defaults === '') { //Empty arrays are falsey in PHP.  If user_meta is not set it returns an empty string, not null.
+    if ($patient_profile === '') { //Empty arrays are falsey in PHP.  If user_meta is not set it returns an empty string, not null.
 
-      wp_mail('adam.kircher@gmail.com', "get order_defaults", print_r($order_defaults, true).print_r(get_user_meta($user_id), true).print_r($_POST, true).print_r($fields, true));
+      wp_mail('adam.kircher@gmail.com', "get order_defaults", print_r($patient_profile, true).print_r(get_user_meta($user_id), true).print_r($_POST, true).print_r($fields, true));
 
-      $order_defaults = order_defaults(
+      $patient_profile = patient_profile(
         get_meta('billing_first_name'), //$field['billing']['billing_first_name']['default'] and/or ['value'] is not set yet
         get_meta('billing_last_name'),  //$field['billing']['billing_last_name']['default'] and/or ['value'] is not set yet
         $fields['order']['birth_date']['default'],
@@ -1378,28 +1371,41 @@ function dscsa_checkout_fields( $fields ) {
       );
 
       //Save to cache so we don't do a remote db query everytime the page loads.
-      update_user_meta($user_id, 'order_defaults', $order_defaults ?: []);
+      update_user_meta($user_id, 'patient_profile', $patient_profile ?: []);
     }
 
     /*
     wp_mail(
       'adam.kircher@gmail.com',
-      "order_defaults",
+      "patient_profile",
       print_r([
         get_meta('billing_first_name'),
         get_meta('billing_last_name'),
         $fields['order']['birth_date']['default'],
         $fields['order']['phone']['default'],
+        $patient_profile,
         $fields,
         $defaults
       ], true)
     );*/
-    if (count($order_defaults)) {
-      $fields['billing']['billing_address_1']['default'] = $order_defaults['address_1'];
-      $fields['billing']['billing_address_2']['default'] = $order_defaults['address_2'];
-      $fields['billing']['billing_city']['default']      = $order_defaults['city'];
-      $fields['billing']['billing_postcode']['default']  = $order_defaults['zip'];
+    if (count($patient_profile)) {
+      $fields['billing']['billing_address_1']['default'] = $patient_profile['address_1'];
+      $fields['billing']['billing_address_2']['default'] = $patient_profile['address_2'];
+      $fields['billing']['billing_city']['default']      = $patient_profile['city'];
+      $fields['billing']['billing_postcode']['default']  = $patient_profile['zip'];
     }
+  }
+
+  if ($user_id == 1559) { //Test User1 1985-03-10
+
+    $patient_profile = patient_profile(
+      get_meta('billing_first_name'), //$field['billing']['billing_first_name']['default'] and/or ['value'] is not set yet
+      get_meta('billing_last_name'),  //$field['billing']['billing_last_name']['default'] and/or ['value'] is not set yet
+      $fields['order']['birth_date']['default'],
+      $fields['order']['phone']['default']
+    );
+
+    $fields['order']['rxs[]']['custom_attributes'] = ['data-rxs' => json_encode($patient_profile)];
   }
 
   //Allow billing out of state but don't allow shipping out of state
@@ -1514,6 +1520,20 @@ function update_shipping_address($guardian_id, $address_1, $address_2, $city, $z
   $query = "SirumWeb_AddUpdatePatHomeAddr '$guardian_id', '$address_1', $address_2, NULL, '$city', 'GA', '$zip', 'US'";
   //wp_mail('adam.kircher@gmail.com', "update_shipping_address", $query);
   return db_run($query);
+}
+
+function patient_profile($first_name, $last_name, $birth_date, $phone) {
+
+  $first_name = str_replace("'", "''", $first_name);
+  $last_name = str_replace("'", "''", $last_name);
+
+  //wp_mail('adam.kircher@gmail.com', "order_defaults", "$first_name $last_name ".print_r(func_get_args(), true).print_r($_POST, true));
+
+  $result = db_run("SirumWeb_PatProfile '$first_name', '$last_name', '$birth_date', '$phone'", 0, true);
+
+  wp_mail('adam.kircher@gmail.com', "patient_profile", "$first_name $last_name ".print_r(func_get_args(), true).print_r($_POST, true).print_r($result, true));
+
+  return $result;
 }
 
 function order_defaults($first_name, $last_name, $birth_date, $phone) {
@@ -1649,7 +1669,7 @@ function update_email($guardian_id, $email) {
 }
 
 global $conn;
-function db_run($sql, $resultIndex = 0) {
+function db_run($sql, $resultIndex = 0, $all_rows = false) {
   global $conn;
   $conn = $conn ?: db_connect();
   $stmt = db_query($conn, $sql);
@@ -1672,14 +1692,21 @@ function db_run($sql, $resultIndex = 0) {
     return [];
   }
 
-  $data = db_fetch($stmt) ?: email_error("fetching $sql");
+  $data = [];
+  while ($result = db_fetch($stmt)) {
 
-  if ($data['Message']) {
-    wp_mail('adam.kircher@gmail.com', "db query: $sql", print_r($params, true).print_r($data, true).print_r($_POST, true));
+      if ($result['Message']) {
+        wp_mail('adam.kircher@gmail.com', "db query: $sql", print_r($params, true).print_r($result, true).print_r($data, true).print_r($_POST, true));
+      }
+
+      $data[] = $result;
   }
+
+  if ( ! $data) email_error("fetching $sql");
+
   //wp_mail('adam.kircher@gmail.com', "db testing", print_r(sqlsrv_errors(), true));
 
-  return $data;
+  return $all_rows ? $data : $data[0];
 }
 
 function db_fetch($stmt) {
