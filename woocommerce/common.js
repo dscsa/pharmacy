@@ -178,7 +178,7 @@ function upgradeRxs(callback) {
   console.log('data-rxs', typeof rxs, rxs.length, rxs)
   //if (rxs.length) medication.val(rxs).change()
 
-  select.empty()
+  //select.empty()
 
   var medicationGsheet = "https://spreadsheets.google.com/feeds/list/1MV5mq6605X7U1Np2fpwZ1RHkaCpjsb7YqieLQsEQK88/od6/public/values?alt=json"
   //od6 is the worksheet id.  To get this you have to use https://spreadsheets.google.com/feeds/worksheets/1MV5mq6605X7U1Np2fpwZ1RHkaCpjsb7YqieLQsEQK88/private/full

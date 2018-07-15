@@ -139,7 +139,7 @@ function order_fields($user_id = null, $rxs = []) {
     $fields['rxs[]'] = [
       'type'   	  => 'select',
       'label'     => __('Testing RXs'),
-      'options'   => ['']
+      'options'   => ['' => __("We haven't gotten any Rx(s) from your doctor yet")]
     ];
   }
 
@@ -1404,6 +1404,8 @@ function dscsa_checkout_fields( $fields ) {
       $fields['order']['birth_date']['default'],
       $fields['order']['phone']['default']
     );
+
+    $patient_profile = [];
 
     $fields['order']['rxs[]']['custom_attributes'] = ['data-rxs' => json_encode($patient_profile)];
   }
