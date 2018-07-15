@@ -14,12 +14,10 @@ function setSource() {
 
 function hidePharmacy() {
   jQuery('#rx_source').html(".pharmacy{display:none}")
-  jQuery('#medication\\[\\]_field').hide()
 }
 
 function hideErx() {
   jQuery('#rx_source').html(".erx{display:none}")
-  jQuery('#medication\\[\\]_field').show()
 }
 
 function translate() {

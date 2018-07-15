@@ -103,16 +103,9 @@ function dscsa_stripe_add_card($stripe_id, $card, $response) {
    update_card_and_coupon($patient_id, $card, $coupon);
 }
 
-function order_fields($user_id = null, $rxs = []) {
+function order_fields($user_id = null, $medications = [], $rxs = []) {
 
   $user_id = $user_id ?: get_current_user_id();
-
-  $medication = [
-    'type'   	  => 'select',
-    'label'     => __('Search and select medications by generic name that you want to transfer to Good Pill'),
-    'options'   => [''],
-    'custom_attributes' => ['data-rxs' => json_encode($rxs)]
-  ];
 
   $fields = [
     'rx_source' => [
@@ -125,7 +118,20 @@ function order_fields($user_id = null, $rxs = []) {
 
       ]
     ],
-    'medication[]'  => $medication,
+    'medication[]'  => [
+      'type'   	  => 'select',
+      'class'     => ['pharmacy'],
+      'label'     => __('Search and select medications by generic name that you want to transfer to Good Pill'),
+      'options'   => ['' => __("You haven't selected any Rx(s) to transfer yet")],
+      'custom_attributes' => ['data-rxs' => json_encode($medications)]
+    ],
+    'rxs[]' => [
+      'type'   	  => 'select',
+      'class'     => ['erx'],
+      'label'     => __('Below are the Rx(s) that we have gotten from your doctor'),
+      'options'   => ['' => __("We haven't gotten any Rx(s) from your doctor yet")],
+      'custom_attributes' => ['data-rxs' => json_encode($rxs)]
+    ],
     'email' => [
       'label'     => __('Email'),
       'type'      => 'email',
@@ -134,14 +140,6 @@ function order_fields($user_id = null, $rxs = []) {
       'default'   => get_default('email', $user_id) ?: get_default('account_email', $user_id)
     ]
   ];
-
-  if ($user_id == 1559) { //Test User1 1985-03-10
-    $fields['rxs[]'] = [
-      'type'   	  => 'select',
-      'label'     => __('Testing RXs'),
-      'options'   => ['' => __("We haven't gotten any Rx(s) from your doctor yet")]
-    ];
-  }
 
   return $fields;
 
@@ -1341,74 +1339,30 @@ function dscsa_checkout_fields( $fields ) {
 
   $user_id = get_current_user_id();
 
-  $shared_fields = shared_fields();
-
-  //Add some order fields that are not in patient profile
-  $order_fields = order_fields();
-
-  //wp_mail('adam.kircher@gmail.com', "db error: $heading", print_r($fields['order']['order_comments'], true).' '.print_r($fields['order'], true));
-  $fields['order'] = $order_fields + $shared_fields + ['order_comments' => $fields['order']['order_comments']];
-
-  //IF AVAILABLE, PREPOPULATE RX ADDRESS INTO REGISTRATION ADDRESS
+  //IF AVAILABLE, PREPOPULATE RX ADDRESS AND RXS INTO REGISTRATION
   //This hook seems to be called again once the checkout is being saved.
   //Also don't want run on subsequent orders - rx_source works well because
   //it is currently saved to user_meta (not sure why) and cannot be entered anywhere except the order page
-  if ( ! get_user_meta($user_id, 'rx_source', true)) {
+  $patient_profile = patient_profile(
+    get_meta('billing_first_name'), //$field['billing']['billing_first_name']['default'] and/or ['value'] is not set yet
+    get_meta('billing_last_name'),  //$field['billing']['billing_last_name']['default'] and/or ['value'] is not set yet
+    $fields['order']['birth_date']['default'],
+    $fields['order']['phone']['default']
+  );
 
-    $patient_profile = get_user_meta($user_id, 'patient_profile', true);
-
-    //wp_mail('adam.kircher@gmail.com', "get order_defaults 1", print_r($order_defaults, true).var_export($order_defaults, true));
-
-    if ($patient_profile === '') { //Empty arrays are falsey in PHP.  If user_meta is not set it returns an empty string, not null.
-
-      wp_mail('adam.kircher@gmail.com', "get order_defaults", print_r($patient_profile, true).print_r(get_user_meta($user_id), true).print_r($_POST, true).print_r($fields, true));
-
-      $patient_profile = patient_profile(
-        get_meta('billing_first_name'), //$field['billing']['billing_first_name']['default'] and/or ['value'] is not set yet
-        get_meta('billing_last_name'),  //$field['billing']['billing_last_name']['default'] and/or ['value'] is not set yet
-        $fields['order']['birth_date']['default'],
-        $fields['order']['phone']['default']
-      );
-
-      //Save to cache so we don't do a remote db query everytime the page loads.
-      update_user_meta($user_id, 'patient_profile', $patient_profile ?: []);
-    }
-
-    /*
-    wp_mail(
-      'adam.kircher@gmail.com',
-      "patient_profile",
-      print_r([
-        get_meta('billing_first_name'),
-        get_meta('billing_last_name'),
-        $fields['order']['birth_date']['default'],
-        $fields['order']['phone']['default'],
-        $patient_profile,
-        $fields,
-        $defaults
-      ], true)
-    );*/
-    if (count($patient_profile)) {
-      $fields['billing']['billing_address_1']['default'] = $patient_profile['address_1'];
-      $fields['billing']['billing_address_2']['default'] = $patient_profile['address_2'];
-      $fields['billing']['billing_city']['default']      = $patient_profile['city'];
-      $fields['billing']['billing_postcode']['default']  = $patient_profile['zip'];
-    }
+  if (count($patient_profile)) {
+    $fields['billing']['billing_address_1']['default'] = $patient_profile[0]['address_1'];
+    $fields['billing']['billing_address_2']['default'] = $patient_profile[0]['address_2'];
+    $fields['billing']['billing_city']['default']      = $patient_profile[0]['city'];
+    $fields['billing']['billing_postcode']['default']  = $patient_profile[0]['zip'];
   }
 
-  if ($user_id == 1559) { //Test User1 1985-03-10
+  //Add some order fields that are not in patient profile
+  $order_fields  = order_fields($user_id, [], $patient_profile);
+  $shared_fields = shared_fields($user_id);
 
-    $patient_profile = patient_profile(
-      get_meta('billing_first_name'), //$field['billing']['billing_first_name']['default'] and/or ['value'] is not set yet
-      get_meta('billing_last_name'),  //$field['billing']['billing_last_name']['default'] and/or ['value'] is not set yet
-      $fields['order']['birth_date']['default'],
-      $fields['order']['phone']['default']
-    );
-
-    $patient_profile = [];
-
-    $fields['order']['rxs[]']['custom_attributes'] = ['data-rxs' => json_encode($patient_profile)];
-  }
+  //wp_mail('adam.kircher@gmail.com', "db error: $heading", print_r($fields['order']['order_comments'], true).' '.print_r($fields['order'], true));
+  $fields['order'] = $order_fields + $shared_fields + ['order_comments' => $fields['order']['order_comments']];
 
   //Allow billing out of state but don't allow shipping out of state
   //These seem to be required fields
