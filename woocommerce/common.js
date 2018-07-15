@@ -126,8 +126,35 @@ function matcher(param, data) {
    return data
 }
 
-
 function upgradeMedication(openOnSelect, callback) {
+  console.log('upgradeMedication')
+
+  var select = jQuery('#medication\\[\\]')
+  select.empty()
+
+  var medicationGsheet = "https://spreadsheets.google.com/feeds/list/1MV5mq6605X7U1Np2fpwZ1RHkaCpjsb7YqieLQsEQK88/od6/public/values?alt=json"
+  //ovrg94l is the worksheet id.  To get this you have to use https://spreadsheets.google.com/feeds/worksheets/1MV5mq6605X7U1Np2fpwZ1RHkaCpjsb7YqieLQsEQK88/private/full
+
+  jQuery.ajax({
+    url:medicationGsheet,
+    type: 'GET',
+    cache:true,
+    success:function($data) {
+      console.log('upgradeMedication medications gsheet')
+      var data = []
+      for (var i in $data.feed.entry) {
+        var entry = $data.feed.entry[i]
+        if (entry.gsx$totalqty.$t > 0 && ( ! entry.gsx$stock.$t || ! openOnSelect)) //don't fill up dropdown with stuff we have never gotten
+          data.push(entry2select(entry))
+      }
+
+      select.select2({multiple:true, closeOnSelect: ! openOnSelect, data:data})
+      callback && callback(select)
+    }
+  })
+}
+
+/*function upgradeMedication(openOnSelect, callback) {
   console.log('upgradeMedication')
 
   var select = jQuery('#medication\\[\\]')
@@ -151,9 +178,36 @@ function upgradeMedication(openOnSelect, callback) {
       callback && callback(select)
     }
   })
+}*/
+
+function entry2select(entry, rx) {
+
+  var notes = []
+
+  if (entry.gsx$stock.$t == 'Out of Stock')
+    notes.push(entry.gsx$stock.$t)
+
+  if (entry.gsx$stock.$t == 'Refills Only' && ( ! rx || ! rx.is_refill))
+    notes.push(entry.gsx$stock.$t)
+
+  if (rx && ! rx.refills_total)
+    notes.push("No Refills")
+
+  notes = notes.join(', ')
+
+  var price = entry.gsx$day_2.$t || entry.gsx$day.$t,
+       days = entry.gsx$day_2.$t ? '90 days' : '45 days',
+       drug = ' '+entry.gsx$_cokwr.$t+', $'+price+' for '+days
+
+  return {
+    id:entry.gsx$_cokwr.$t,
+    text: drug + (notes ? ' ('+notes+')' : ''),
+    disabled:!!notes,
+    price:price
+  }
 }
 
-function medication2select(entry, i) {
+/*function medication2select(entry, i) {
   var price = entry.gsx$day_2.$t || entry.gsx$day.$t,
        days = entry.gsx$day_2.$t ? '90 days' : '45 days',
        drug = ' '+entry.gsx$drugnames.$t+', '+price+' for '+days
@@ -164,7 +218,7 @@ function medication2select(entry, i) {
     disabled:entry.gsx$supplylevel.$t == 'Out of Stock' || entry.gsx$supplylevel.$t == 'Low - Hidden' || entry.gsx$supplylevel.$t == 'Refills Only',
     price:price.replace('$', '')
   }
-}
+}*/
 
 function upgradeRxs(callback) {
 
@@ -193,7 +247,7 @@ function upgradeRxs(callback) {
           var entry = $data.feed.entry[i]
           rx.regex = rx.regex || new RegExp('\\b'+rx.gcn_seqno+'\\b')
           if (entry.gsx$gcns.$t.match(rx.regex)) {
-            data.push(rxs2select(rx, entry))
+            data.push(entry2select(entry, rx))
             break
           } else if (i+1 == $data.feed.entry.length) {
             data.push({ //No match found
@@ -213,7 +267,7 @@ function upgradeRxs(callback) {
     }
   })
 }
-
+/*
 function rxs2select(rx, entry) {
 
   var notes = []
@@ -237,6 +291,7 @@ function rxs2select(rx, entry) {
     price:price
   }
 }
+*/
 
 /*
 (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
