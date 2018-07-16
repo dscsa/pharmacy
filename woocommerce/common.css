@@ -79,6 +79,8 @@ form.checkout, /* Don't show checkout on every page */
 {
   display:none;
 }
+
+/* Styles to make Payment methods look better */
 .woocommerce-SavedPaymentMethods-saveNew /* Hide Stripe save card option */
 {
   display:none !important;
@@ -86,6 +88,13 @@ form.checkout, /* Don't show checkout on every page */
 .woocommerce-PaymentBox {
   background-color: #fafafa !important;
 }
+.woocommerce-PaymentBox label {
+  display: inline-block;
+  padding: 1.4em 0em;
+  width: 90%;
+}
+
+
 
 #ui-datepicker-div {
   z-index:999 !important;
