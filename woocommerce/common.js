@@ -211,7 +211,7 @@ function _upgradeMedication(selector, callback, transform) {
     select.select2({
       multiple:true,
       closeOnSelect:selector != 'stock',
-      data:transform(inventory).map(entry2select)
+      data:transform(inventory).map(row2select)
     })
     callback && callback(select)
   })
