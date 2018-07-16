@@ -77,14 +77,14 @@ form.checkout, /* Don't show checkout on every page */
 .woocommerce-message a, /* don't show links in messages since often wrong link */
 .woocommerce-checkout-review-order-table /*hide all items and costs since we are not charging anything */
 {
-  display:none !important;
+  display:none;
 }
 .woocommerce-SavedPaymentMethods-saveNew /* Hide Stripe save card option */
 {
-  display:none;
+  display:none !important;
 }
 .woocommerce-PaymentBox {
-  background-color: #fafafa;
+  background-color: #fafafa !important;
 }
 
 #ui-datepicker-div {
