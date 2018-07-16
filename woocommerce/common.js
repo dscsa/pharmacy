@@ -207,12 +207,13 @@ function _upgradeMedication(selector, callback, transform) {
   var select = jQuery('#'+selector+'\\[\\]')
 
   getInventory(function(inventory) {
+    var data = transform(inventory, select).map(row2select)
     select.select2({
       multiple:true,
       closeOnSelect:selector != 'stock',
-      data:transform(inventory, select).map(row2select)
+      data:data
     })
-    callback && callback(select)
+    callback && callback(select, data)
   })
 }
 
