@@ -6,7 +6,7 @@ function load() {
 
   upgradeRxs(function(select, drugs) {
     select.on("select2:unselecting", preventDefault)
-    select.val(drugs.map(function(drug) { return ! drug.disable && drug.id })).change()
+    select.val(drugs.map(function(drug) { return ! drug.disabled && drug.id })).change()
   })
 
   //Show our form fields at the beginning rather than the end
