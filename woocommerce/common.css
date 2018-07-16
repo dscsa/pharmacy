@@ -88,7 +88,7 @@ form.checkout, /* Don't show checkout on every page */
 .woocommerce-PaymentBox {
   background-color: #fafafa !important;
 }
-.woocommerce-PaymentMethods > label {
+.woocommerce-PaymentMethod > label {
   display: inline-block;
   padding: 1.4em 0em;
   width: 90%;
