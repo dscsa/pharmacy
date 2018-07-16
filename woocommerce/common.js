@@ -1,3 +1,8 @@
+function preventDefault(e) {
+  console.log('select2 preventDefault')
+  e.preventDefault()
+}
+
 //Helps providers signout easier. Also prevents setting the ?register when signed in
 function signup2signout() {
   jQuery('li#menu-item-10 a, li#menu-item-103 a').html('<span class="english">Sign Out</span><span class="spanish">Cierre de sesión</span>').prop('href', '/account/logout/')

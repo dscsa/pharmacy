@@ -20,10 +20,5 @@ function load() {
       stock.select2("open")
       jQuery(':focus').blur()
     }
-
-    function preventDefault(e) {
-      console.log('select2 preventDefault')
-      e.preventDefault()
-    }
   })
 }
