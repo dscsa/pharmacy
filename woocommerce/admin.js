@@ -5,7 +5,8 @@ function load() {
   upgradeOrdered(function(ordered) {
     var rxs = ordered.data('rxs')
     console.log('ordered data-rxs', typeof rxs, rxs.length, rxs)
-    if (rxs.length) ordered.val(rxs).change()
+    ordered.val(rxs).change()
+    select.on("select2:unselecting", preventDefault)
   })
 
   upgradePharmacy()

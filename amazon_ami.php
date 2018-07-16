@@ -379,7 +379,7 @@ add_action('woocommerce_admin_order_data_after_order_details', 'dscsa_admin_edit
 function dscsa_admin_edit_account($order) {
 
   $fields =
-    order_fields($order->user_id, $order->get_meta('transfer') OR $order->get_meta('rxs'))+
+    order_fields($order->user_id, $order->get_meta('transfer') ?: $order->get_meta('rxs'))+
     shared_fields($order->user_id)+
     account_fields($order->user_id)+
     admin_fields($order->user_id);
@@ -837,7 +837,7 @@ function dscsa_show_order_invoice($order) {
     } else {
       $url = "https://www.goodpill.org/order-confirmation";
       $top = '0px';
-      $left = '-40px';
+      $left = '-7%';
     }
 
     echo "<iframe src='$url' style='border:none; padding:0px; overflow:hidden; width:100%; height:1800px; position:relative; z-index:-1; left:$left; top:$top' scrolling='no'></iframe>";
@@ -1085,7 +1085,7 @@ function dscsa_update_order_status( $data) {
     //wp_mail('adam.kircher@gmail.com', "dscsa_update_order_status 1", print_r($data, true).print_r($_POST, true).print_r(mssql_get_last_message(), true));
 
 
-    if ($_POST['rxs']) { //Skip on-hold and go straight to processing if set
+    if ($_POST['rxs'] &&  ! $_POST['transfer']) { //Skip on-hold and go straight to processing if set
       $data['post_status'] = 'wc-processing';
     } else if($_POST['rx_source']) { //checking for rx_source ensures that API calls to update status still work.  Even though we are not "capturing charge" setting "needs payment" seems to make the status goto processing
       $data['post_status'] = $_POST['transfer'] ? 'wc-awaiting-transfer' : 'wc-awaiting-rx';
