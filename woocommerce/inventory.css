@@ -17,6 +17,10 @@
 .select2-dropdown {
   border:none !important;
 }
+/*prevents dropdown from flipping upwards on small screens when search results are filtered enough to have "enoughRoomAbove" */
+.select2-results {
+  min-height: 1000px;
+}
 
 /* for tiny screens */
 .fl-col-small {
