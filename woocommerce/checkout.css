@@ -1,4 +1,4 @@
-.woocommerce-MyAccount-content, .woocommerce-SavedPaymentMethods-saveNew /* Hide "Hello Username. Not?  Signout" and Stripe save card option */
+.woocommerce-MyAccount-content,  /* Hide "Hello Username. Not?  Signout" 
 {
   display:none !important
 }

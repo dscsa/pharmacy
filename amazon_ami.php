@@ -254,7 +254,7 @@ function shared_fields($user_id = null) {
     return [
     'backup_pharmacy' => $pharmacy,
     'medications_other' => [
-        'label'     =>  __('List any other medication(s) or supplement(s) you are currently taking (We will not fill these but need to check for drug interactions)'),
+        'label'     =>  __('List any other medication(s) or supplement(s) you are currently taking<i style="font-size:14px; display:block">We will not fill these but need to check for drug interactions</i>'),
         'default'   => get_default('medications_other', $user_id)
     ],
     'allergies_none' => [
