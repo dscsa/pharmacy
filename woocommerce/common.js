@@ -146,7 +146,8 @@ function upgradeOrdered(callback) {
 //On Admin and Checkout
 function upgradeTransfer(callback) {
   console.log('upgradeTransfer')
-  return _upgradeMedication('transfer', callback, function(inventory) {
+  return _upgradeMedication('transfer', callback, function(inventory, select) {
+    select.empty() //get rid of default option
     return inventory.filter(function(row) { return row.gsx$totalqty.$t > 0 })
   })
 }
