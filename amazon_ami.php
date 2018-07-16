@@ -141,7 +141,7 @@ function order_fields($user_id = null, $ordered = null, $rxs = []) {
       'type'   	  => 'select',
       'class'     => ['pharmacy'],
       'label'     => __('Search and select medications by generic name that you want to transfer to Good Pill'),
-      'options'   => ['']
+      'options'   => ['' => 'Select RX(s)']
     ];
 
     $fields['rxs[]'] = [
