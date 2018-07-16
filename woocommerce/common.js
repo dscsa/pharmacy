@@ -162,11 +162,10 @@ function upgradeStock(callback) {
 function upgradeRxs(callback) {
   console.log('upgradeRxs')
 
-  var rxs = select.data('rxs')
-  console.log('data-rxs', typeof rxs, rxs.length, rxs)
-
-  return _upgradeMedication('rxs', callback, function(inventory) {
+  return _upgradeMedication('rxs', callback, function(inventory, select) {
     var data = []
+    var rxs  = select.data('rxs')
+    console.log('data-rxs', typeof rxs, rxs.length, rxs)
     for (var i in rxs) {
       var rx = rxs[i]
       var regex = new RegExp('\\b'+rx.gcn_seqno+'\\b')
@@ -211,7 +210,7 @@ function _upgradeMedication(selector, callback, transform) {
     select.select2({
       multiple:true,
       closeOnSelect:selector != 'stock',
-      data:transform(inventory).map(row2select)
+      data:transform(inventory, select).map(row2select)
     })
     callback && callback(select)
   })
