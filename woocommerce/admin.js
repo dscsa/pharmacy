@@ -4,7 +4,7 @@ function load() {
 
   upgradeOrdered(function(select) {
     var rxs = select.data('rxs')
-    console.log('ordered data-rxs', typeof rxs, rxs.length, rxs)
+    console.log('ordered data-rxs', typeof rxs, rxs)
     select.val(rxs).change()
     select.on("select2:unselecting", preventDefault)
   })

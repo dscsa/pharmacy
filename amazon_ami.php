@@ -195,20 +195,6 @@ function admin_fields($user_id = null) {
 
   $user_id = $user_id ?: get_current_user_id();
 
-  if ($user_id == 1559) { //Test User1
-    $json = file_get_contents('https://spreadsheets.google.com/feeds/list/1MV5mq6605X7U1Np2fpwZ1RHkaCpjsb7YqieLQsEQK88/od6/public/values?alt=json', true);
-    //od6 is the worksheet id.  To get this you have to use https://spreadsheets.google.com/feeds/worksheets/1MV5mq6605X7U1Np2fpwZ1RHkaCpjsb7YqieLQsEQK88/private/full
-    $obj = json_decode($json, true);
-
-    $matches = [];
-    //https://stackoverflow.com/questions/4742903/php-find-entry-by-object-property-from-a-array-of-objects
-    foreach (["20493", "16926"] as $i => $gcn) {
-      $matches[] = search($obj['feed']['entry'], $gcn);
-    }
-
-    print_r($matches);
-  }
-
   return [
     'guardian_id' => [
       'label'     =>  __('Guardian Patient ID'),
