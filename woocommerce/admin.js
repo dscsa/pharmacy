@@ -2,10 +2,10 @@ jQuery(load)
 
 function load() {
 
-  upgradeOrdered(function(ordered) {
-    var rxs = ordered.data('rxs')
+  upgradeOrdered(function(select) {
+    var rxs = select.data('rxs')
     console.log('ordered data-rxs', typeof rxs, rxs.length, rxs)
-    ordered.val(rxs).change()
+    select.val(rxs).change()
     select.on("select2:unselecting", preventDefault)
   })
 
