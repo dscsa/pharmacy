@@ -2,15 +2,11 @@ jQuery(load)
 
 function load() {
 
-  upgradeMedication()
+  upgradeTransfer()
 
-  try {
-    upgradeRxs(function(rxs) {
-      rxs.on("select2:unselecting", preventDefault)
-    })
-  } catch (e) {
-    console.log('upgradeRxs failed', e)
-  }
+  upgradeRxs(function(rxs) {
+    rxs.on("select2:unselecting", preventDefault)
+  })
 
   //Show our form fields at the beginning rather than the end
   jQuery('form.checkout .col-1').prepend(jQuery('.woocommerce-additional-fields'))

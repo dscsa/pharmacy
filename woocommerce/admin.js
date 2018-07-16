@@ -2,10 +2,10 @@ jQuery(load)
 
 function load() {
 
-  upgradeMedication(false, function(medication) {
-    var rxs = medication.data('rxs')
-    console.log('data-rxs', typeof rxs, rxs.length, rxs)
-    if (rxs.length) medication.val(rxs).change()
+  upgradeOrdered(function(ordered) {
+    var rxs = ordered.data('rxs')
+    console.log('ordered data-rxs', typeof rxs, rxs.length, rxs)
+    if (rxs.length) ordered.val(rxs).change()
   })
 
   upgradePharmacy()

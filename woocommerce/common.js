@@ -126,107 +126,137 @@ function matcher(param, data) {
    return data
 }
 
-function upgradeMedication(openOnSelect, callback) {
-  console.log('upgradeMedication')
+//Used in 2 places: Admin / Order Confirmation.
+function upgradeOrdered(callback) {
+  console.log('upgradeOrdered')
 
-  var select = jQuery('#medication\\[\\]')
-  select.empty()
+  var select = jQuery('#ordered\\[\\]')
 
-  var medicationGsheet = "https://spreadsheets.google.com/feeds/list/1MV5mq6605X7U1Np2fpwZ1RHkaCpjsb7YqieLQsEQK88/od6/public/values?alt=json"
-  //ovrg94l is the worksheet id.  To get this you have to use https://spreadsheets.google.com/feeds/worksheets/1MV5mq6605X7U1Np2fpwZ1RHkaCpjsb7YqieLQsEQK88/private/full
+  var rxs = select.data('rxs') || []
+  console.log('data-rxs', typeof rxs, rxs.length, rxs)
 
-  jQuery.ajax({
-    url:medicationGsheet,
-    type: 'GET',
-    cache:true,
-    success:function($data) {
-      console.log('upgradeMedication medications gsheet')
-      var data = []
-      for (var i in $data.feed.entry) {
-        var entry = $data.feed.entry[i]
-        if (entry.gsx$totalqty.$t > 0 && ( ! entry.gsx$stock.$t || ! openOnSelect)) //don't fill up dropdown with stuff we have never gotten
-          data.push(entry2select(entry))
-      }
+  var data = rxs.map(function(rx) { return { id:rx, text:rx }})
 
-      select.select2({multiple:true, closeOnSelect: ! openOnSelect, data:data})
-      callback && callback(select)
-    }
+  select.select2({multiple:true, data:data})
+  select.val(rxs).change()
+
+  callback && callback(select)
+}
+
+//On Admin and Checkout
+function upgradeTransfer(callback) {
+  console.log('upgradeTransfer')
+  return _upgradeMedication('transfer', callback, function(inventory) {
+    return inventory.filter(function(row) { return row.gsx$totalqty.$t > 0 })
   })
 }
 
-function entry2select(entry, rx) {
-
-  var notes = []
-
-  if (entry.gsx$stock.$t == 'Out of Stock')
-    notes.push(entry.gsx$stock.$t)
-
-  if (entry.gsx$stock.$t == 'Refills Only' && ( ! rx || ! rx.is_refill))
-    notes.push(entry.gsx$stock.$t)
-
-  if (rx && ! rx.refills_total)
-    notes.push("No Refills")
-
-  notes = notes.join(', ')
-
-  var price = entry.gsx$day_2.$t || entry.gsx$day.$t,
-       days = entry.gsx$day_2.$t ? '90 days' : '45 days',
-       drug = ' '+entry.gsx$_cokwr.$t+', $'+price+' for '+days
-
-  return {
-    id:entry.gsx$_cokwr.$t,
-    text: drug + (notes ? ' ('+notes+')' : ''),
-    disabled:!!notes,
-    price:price
-  }
+//On Admin and Checkout
+function upgradeStock(callback) {
+  console.log('upgradeStock')
+  return _upgradeMedication('stock', callback, function(inventory) {
+    return inventory.filter(function(row) { return row.gsx$totalqty.$t > 0 && ! row.gsx$stock.$t })
+  })
 }
 
 function upgradeRxs(callback) {
-
   console.log('upgradeRxs')
-
-  var select = jQuery('#rxs\\[\\]')
 
   var rxs = select.data('rxs')
   console.log('data-rxs', typeof rxs, rxs.length, rxs)
-  //if (rxs.length) medication.val(rxs).change()
 
-  //select.empty()
+  return _upgradeMedication('rxs', callback, function(inventory) {
+    var data = []
+    for (var i in rxs) {
+      var rx = rxs[i]
+      var regex = new RegExp('\\b'+rx.gcn_seqno+'\\b')
+      for (var j in inventory) {
+        var row = inventory[j]
 
+        if (row.gsx$gcns.$t.match(regex)) {
+          if (row.gsx$stock.$t == 'Refills Only' && rx.is_refill)
+            delete row.gsx$stock.$t
+
+          if ( ! rx.refills_total)
+            row.gsx$stock.$t = 'No Refills'
+
+          data.push(row)
+
+          break
+
+        } else if (j+1 == inventory.length) {
+          data.push({ //No match found
+            gsx$_cokwr: {$t: rx.drug_name.slice(1, -1)},
+            gsx$stock : {$t:'GCN Error'}
+          })
+        }
+      }
+    }
+    return data
+  })
+}
+
+function upgradeStock(callback) {
+  console.log('upgradeStock')
+  return _upgradeMedication('stock', callback, function(inventory) {
+    return inventory.filter(function(row) { return row.gsx$totalqty.$t > 0 && ! row.gsx$stock.$t })
+  })
+}
+
+//Used in 2 places: Check Our Stock, Transfers
+function _upgradeMedication(selector, callback, transform) {
+  var select = jQuery('#'+selector+'\\[\\]')
+
+  getInventory(function(inventory) {
+    select.select2({
+      multiple:true,
+      closeOnSelect:selector != 'stock',
+      data:transform(inventory).map(entry2select)
+    })
+    callback && callback(select)
+  })
+}
+
+function getInventory(callback) {
   var medicationGsheet = "https://spreadsheets.google.com/feeds/list/1MV5mq6605X7U1Np2fpwZ1RHkaCpjsb7YqieLQsEQK88/od6/public/values?alt=json"
-  //od6 is the worksheet id.  To get this you have to use https://spreadsheets.google.com/feeds/worksheets/1MV5mq6605X7U1Np2fpwZ1RHkaCpjsb7YqieLQsEQK88/private/full
+  //ovrg94l is the worksheet id.  To get this you have to use https://spreadsheets.google.com/feeds/worksheets/1MV5mq6605X7U1Np2fpwZ1RHkaCpjsb7YqieLQsEQK88/private/full
   jQuery.ajax({
     url:medicationGsheet,
     type: 'GET',
     cache:true,
     success:function($data) {
-      console.log('getOrderRxs medications gsheet')
-      var data = []
-      for (var j in rxs) {
-        var rx = rxs[j]
-        for (var i in $data.feed.entry) {
-          var entry = $data.feed.entry[i]
-          rx.regex = rx.regex || new RegExp('\\b'+rx.gcn_seqno+'\\b')
-          if (entry.gsx$gcns.$t.match(rx.regex)) {
-            data.push(entry2select(entry, rx))
-            break
-          } else if (i+1 == $data.feed.entry.length) {
-            data.push({ //No match found
-              id:rx.drug_name.slice(1, -1),
-              text: rx.drug_name.slice(1, -1) + ' (GCN Error)',
-              disabled:true,
-              price:0
-            })
-          }
-        }
-      }
-      console.log('getOrderRxs medications gsheet', data)
-      select.select2({multiple:true, closeOnSelect:true, data:data})
-      select.val(data.map(function(drug) { return ! drug.disabled && drug.id })).change()
-
-      callback && callback(select)
+      console.log('medications gsheet retrieved')
+      callback($data.feed.entry)
     }
   })
+}
+
+function row2select(entry) {
+
+  var drug = row.gsx$_cokwr.$t,
+      price = row.gsx$day_2.$t || row.gsx$day.$t || '',
+      notes = []
+
+  if (row.gsx$stock.$t)
+    notes.push(row.gsx$stock.$t)
+
+  notes = notes.join(', ')
+
+  if (notes) {
+    notes = ' ('+notes+')'
+  }
+
+  if (price) {
+    var days = row.gsx$day_2.$t ? '90 days' : '45 days',
+    price = ', $'+price+' for '+days
+  }
+
+  return {
+    id:drug,
+    text: ' '+drug + price + notes,
+    disabled:!!notes,
+    price:price
+  }
 }
 
 

@@ -103,7 +103,7 @@ function dscsa_stripe_add_card($stripe_id, $card, $response) {
    update_card_and_coupon($patient_id, $card, $coupon);
 }
 
-function order_fields($user_id = null, $medications = [], $rxs = []) {
+function order_fields($user_id = null, $ordered = null, $rxs = []) {
 
   $user_id = $user_id ?: get_current_user_id();
 
@@ -118,20 +118,6 @@ function order_fields($user_id = null, $medications = [], $rxs = []) {
 
       ]
     ],
-    'medication[]'  => [
-      'type'   	  => 'select',
-      'class'     => ['pharmacy'],
-      'label'     => __('Search and select medications by generic name that you want to transfer to Good Pill'),
-      'options'   => [''],
-      'custom_attributes' => ['data-rxs' => json_encode($medications)]
-    ],
-    'rxs[]' => [
-      'type'   	  => 'select',
-      'class'     => ['erx'],
-      'label'     => __('Below are the Rx(s) that we have gotten from your doctor and are able to fill'),
-      'options'   => ['' => __("We haven't gotten any Rx(s) that we can fill from your doctor yet")],
-      'custom_attributes' => ['data-rxs' => json_encode($rxs)]
-    ],
     'email' => [
       'label'     => __('Email'),
       'type'      => 'email',
@@ -140,6 +126,33 @@ function order_fields($user_id = null, $medications = [], $rxs = []) {
       'default'   => get_default('email', $user_id) ?: get_default('account_email', $user_id)
     ]
   ];
+
+  if ($ordered) { //Admin and Order Confirmation Pages
+    $fields['ordered[]']  = [
+      'type'   	  => 'select',
+      'label'     => __('Here are the Rx(s) in your order.  Call us to make a change'),
+      'options'   => [''],
+      'custom_attributes' => ['data-rxs' => json_encode($ordered)]
+    ];
+
+  } else { //Checkout Page
+
+    $fields['transfer[]']  = [
+      'type'   	  => 'select',
+      'class'     => ['pharmacy'],
+      'label'     => __('Search and select medications by generic name that you want to transfer to Good Pill'),
+      'options'   => ['']
+    ];
+
+    $fields['rxs[]'] = [
+      'type'   	  => 'select',
+      'class'     => ['erx'],
+      'label'     => __('Below are the Rx(s) that we have gotten from your doctor and are able to fill'),
+      'options'   => ['' => __("We haven't gotten any Rx(s) that we can fill from your doctor yet")],
+      'custom_attributes' => ['data-rxs' => json_encode($rxs)]
+    ];
+
+  }
 
   return $fields;
 
@@ -365,9 +378,12 @@ function shared_fields($user_id = null) {
 add_action('woocommerce_admin_order_data_after_order_details', 'dscsa_admin_edit_account');
 function dscsa_admin_edit_account($order) {
 
-  $medication = $order->get_meta('medication');
+  $fields =
+    order_fields($order->user_id, $order->get_meta('transfer') OR $order->get_meta('rxs'))+
+    shared_fields($order->user_id)+
+    account_fields($order->user_id)+
+    admin_fields($order->user_id);
 
-  $fields = order_fields($order->user_id, $medication)+shared_fields($order->user_id)+account_fields($order->user_id)+admin_fields($order->user_id);
   return dscsa_echo_form_fields($fields);
 }
 
@@ -645,7 +661,7 @@ add_action('woocommerce_checkout_process', 'dscsa_order_validation');
 function dscsa_order_validation() {
    dscsa_validation(order_fields()+shared_fields(), false);
 
-   if ($_POST['rx_source']  == 'pharmacy' AND ! $_POST['medication'])
+   if ($_POST['rx_source']  == 'pharmacy' AND ! $_POST['transfer'])
      wc_add_notice('<strong>'.__('Medications Required').'</strong> '.__('Please select the medications you want us to transfer.  If they do not appear on the list, then we do not have them in-stock'), 'error');
 }
 
@@ -850,10 +866,6 @@ function dscsa_before_order_object_save($order, $data) {
     if ( ! $invoice_number) {
       $guardian_order = get_guardian_order($patient_id, $_POST['rx_source'], $_POST['order_comments']);
       $invoice_number = $guardian_order['invoice_nbr'];
-
-      //HACK for now is to save to POST.  Every status change in this method seemed to get overriden
-      //Tried $order->status = $status, $data->status = $status, $order->set_status($status), $order->update_status($status)
-      $_POST['order_rxs'] = $guardian_order['rxs'];
     }
 
 
@@ -861,7 +873,7 @@ function dscsa_before_order_object_save($order, $data) {
       wp_mail('adam.kircher@gmail.com', "NO INVOICE #", "Patient ID: $patient_id\r\n\r\nInvoice #:$invoice_number \r\n\r\nMSSQL:".print_r(mssql_get_last_message(), true)."\r\n\r\nOrder Meta Invoice #:".$order->get_meta('invoice_number', true)."\r\n\r\nPOST:".print_r($_POST, true));
 
     if ( ! is_admin()) {
-      wp_mail('hello@goodpill.org', 'New Webform Order', "New Order #$invoice_number Webform Complete. Source: ".print_r($_POST['rx_source'], true)."\r\n\r\n".print_r($_POST['medication'], true));
+      wp_mail('hello@goodpill.org', 'New Webform Order', "New Order #$invoice_number Webform Complete. Source: ".print_r($_POST['rx_source'], true)."\r\n\r\n".print_r($_POST['rxs'], true)."\r\n\r\n".print_r($_POST['transfer'], true));
       wp_mail('adam.kircher@gmail.com', "New Webform Order", "New Order #$invoice_number.  Patient #$patient_id\r\n\r\n".print_r($_POST, true));
     }
 
@@ -891,9 +903,11 @@ function dscsa_before_order_object_save($order, $data) {
 
     //wp_mail('adam.kircher@gmail.com', "saved order 1", "$patient_id | $invoice_number ".print_r($_POST, true).print_r(mssql_get_last_message(), true));
 
-    if ($_POST['medication']) {
-      add_preorder($patient_id, $_POST['medication'], $_POST['backup_pharmacy']);
-      $order->update_meta_data('medication', $_POST['medication']);
+    if ($_POST['transfer']) {
+      add_preorder($patient_id, $_POST['transfer'], $_POST['backup_pharmacy']);
+      $order->update_meta_data('transfer', $_POST['transfer']);
+    } else {
+      $order->update_meta_data('rxs', $_POST['rxs']);
     }
   } catch (Exception $e) {
     wp_mail('adam.kircher@gmail.com', "woocommerce_before_order_object_save", "$patient_id | $invoice_number ".$e->getMessage()." ".print_r($_POST, true).print_r(mssql_get_last_message(), true));
@@ -1064,17 +1078,17 @@ function dscsa_email_headers( $headers, $template) {
 add_filter('wp_insert_post_data', 'dscsa_update_order_status');
 function dscsa_update_order_status( $data) {
 
-    //wp_mail('adam.kircher@gmail.com', "dscsa_update_order_status", is_admin()." | ".strlen($_POST['order_rxs'])." | ".(!!$_POST['order_rxs'])." | ".var_export($_POST['order_rxs'], true)." | ".print_r($_POST, true)." | ".print_r($data, true));
+    //wp_mail('adam.kircher@gmail.com', "dscsa_update_order_status", is_admin()." | ".strlen($_POST['rxs'])." | ".(!!$_POST['rxs'])." | ".var_export($_POST['rxs'], true)." | ".print_r($_POST, true)." | ".print_r($data, true));
 
     if (is_admin() OR $data['post_type'] != 'shop_order') return $data;
 
     //wp_mail('adam.kircher@gmail.com', "dscsa_update_order_status 1", print_r($data, true).print_r($_POST, true).print_r(mssql_get_last_message(), true));
 
 
-    if ($_POST['order_rxs']) { //Skip on-hold and go straight to processing if set
+    if ($_POST['rxs']) { //Skip on-hold and go straight to processing if set
       $data['post_status'] = 'wc-processing';
     } else if($_POST['rx_source']) { //checking for rx_source ensures that API calls to update status still work.  Even though we are not "capturing charge" setting "needs payment" seems to make the status goto processing
-      $data['post_status'] = $_POST['medication'] ? 'wc-awaiting-transfer' : 'wc-awaiting-rx';
+      $data['post_status'] = $_POST['transfer'] ? 'wc-awaiting-transfer' : 'wc-awaiting-rx';
     }
 
     //wp_mail('adam.kircher@gmail.com', "dscsa_update_order_status 2", print_r($data, true));
@@ -1096,10 +1110,8 @@ function dscsa_new_order($order_id) {
 
     $status = $order->get_status();
 
-    $type = $_POST['order_rxs'] ? 'Processing_Order' : 'On_Hold_Order';
-
-    if ($type == 'On_Hold_Order') //Processing Emails were redundant with Shoppoing Sheets Rx Received Emails
-      WC()->mailer()->get_emails()["WC_Email_Customer_$type"]->trigger($order_id, $order);
+    if ( ! $_POST['rxs']) //Processing Emails were redundant with Shoppoing Sheets Rx Received Emails
+      WC()->mailer()->get_emails()["WC_Email_Customer_On_Hold_Order"]->trigger($order_id, $order);
   } catch (Exception $e) {
     wp_mail('adam.kircher@gmail.com', "dscsa_new_order FAILED", print_r($e, true).$e->getMessage());
   }
@@ -1178,19 +1190,19 @@ function dscsa_translate($term, $raw, $domain) {
     '%s has been added to your cart.' => strtok($_SERVER["REQUEST_URI"],'?') == '/account/'
       ? 'Step 2 of 2: You are almost done! Please complete this "Registration" page so we can fill your prescription(s).  If you need to login again, your temporary password is '.$phone.'.  You can change your password on the "Account Details" page'
       : 'Thank you for your order!',
-    'Username or email' => '<strong>Email or phone number</strong>', //For resetting passwords
+    'Username or email' => '<strong>Email (or cell phone number if no email provided)</strong>', //For resetting passwords
     'Password reset email has been sent.' => "Before you reset your password by following the instructions below, first try logging in with your 10 digit phone number as your default password",
     'A password reset email has been sent to the email address on file for your account, but may take several minutes to show up in your inbox. Please wait at least 10 minutes before attempting another reset.' => 'If you provided an email address or mobile phone number during registration, then an email and/or text message with instructions on how to reset your password was sent to you.  If you do not get an email or text message from us within 5mins, please call us at <span style="white-space:nowrap">(888) 987-5187</span> for assistance',
     'Additional information' => '',  //Checkout
     'Billing address' => 'Shipping address', //Order confirmation
 	  'Billing &amp; Shipping' => 'Shipping Address', //Checkout
-    'Lost your password? Please enter your username or email address. You will receive a link to create a new password via email.' => '<h2>Lost your password?</h2>Before you reset your password, first try logging in with your 10 digit phone number without any extra characters as your password.  For example, use the password 1234567890 for the phone number <span style="white-space:nowrap">(123) 456-7890</span>.<br><br>If using your phone number as your password did not work, enter your email or phone number below to receive an email with instructions on how to reset your password. Please note that this option will only work if we have your email on file.<br><br>If you did not provide an email when registering for your account, please call us at <span style="white-space:nowrap">(888) 987-5187</span> for assistance.', //Logging in
+    'Lost your password? Please enter your username or email address. You will receive a link to create a new password via email.' => '<h2>Lost your password?</h2>New accounts use your phone number as a temporary password. Before you reset your password, first try logging in with your 10 digit phone number without any extra characters as your password.  For example, use the password 1234567890 for the phone number <span style="white-space:nowrap">(123) 456-7890.</span> To ensure your account is secure, we encourage you to choose your own password on the "Account Details" page once you have logged on.<br><br>If using your phone number as your password did not work, enter the email you entered during registration (or a cell phone number if you did not enter an email) below to receive an email (or a text message) with instructions on how to reset your password.<br><br>Please note that this option will only work if you provided an email and/or cell phone number when you registered.  Please note that some phones do not handle links in text messages well, so you may need to copy and paste the password reset hyperlink into a web browser.<br><br>If you did not provide an email or cell phone number when registering for your account, you will need call us at <span style="white-space:nowrap">(888) 987-5187</span> for assistance resetting your password.', //Logging in
     'Please enter a valid account username.' => 'Please enter your name and date of birth in mm/dd/yyyy format.',
     'Username is required.' => 'Name and date of birth in mm/dd/yyyy format are required.',
     'Invalid username or email.' => '<strong>Error</strong>: We cannot find an account with that phone number.',
     '<strong>ERROR</strong>: Invalid username.' => '<strong>Error</strong>: We cannot find an account with that name and date of birth.',
     'An account is already registered with your email address. Please log in.' => 'An account is already registered with your phone number. Please log in.',
-    'Your order is on-hold until we confirm payment has been received. Your order details are shown below for your reference:' => $_POST['medication'] ? 'We are currently requesting a transfer of your Rx(s) from your pharmacy' : 'We are currently waiting on Rx(s) to be sent from your doctor',
+    'Your order is on-hold until we confirm payment has been received. Your order details are shown below for your reference:' => $_POST['transfer'] ? 'We are currently requesting a transfer of your Rx(s) from your pharmacy' : 'We are currently waiting on Rx(s) to be sent from your doctor',
     'Your order has been received and is now being processed. Your order details are shown below for your reference:' => 'We got your prescription(s) and will start working on them right away',
     'Thanks for creating an account on %1$s. Your username is %2$s' => 'Thanks for completing Registration Step 1 of 2 on %1$s. Your username is %2$s',
     'Your password has been automatically generated: %s' => 'Your temporary password is your phone number: %s'
@@ -1361,7 +1373,7 @@ function dscsa_checkout_fields( $fields ) {
   }
 
   //Add some order fields that are not in patient profile
-  $order_fields  = order_fields($user_id, [], $patient_profile);
+  $order_fields  = order_fields($user_id, null, $patient_profile);
 
 
   //wp_mail('adam.kircher@gmail.com', "db error: $heading", print_r($fields['order']['order_comments'], true).' '.print_r($fields['order'], true));
