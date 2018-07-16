@@ -365,7 +365,7 @@ add_action('woocommerce_admin_order_data_after_order_details', 'dscsa_admin_edit
 function dscsa_admin_edit_account($order) {
 
   $fields =
-    order_fields($order->user_id, $order->get_meta('transfer') ?: $order->get_meta('rxs'))+
+    order_fields($order->user_id, ordered_rxs($order))+
     shared_fields($order->user_id)+
     account_fields($order->user_id)+
     admin_fields($order->user_id);
@@ -647,7 +647,7 @@ add_action('woocommerce_checkout_process', 'dscsa_order_validation');
 function dscsa_order_validation() {
    dscsa_validation(order_fields()+shared_fields(), false);
 
-   if ($_POST['rx_source']  == 'pharmacy' AND ! $_POST['transfer'])
+   if ($_POST['rx_source'] == 'pharmacy' AND ! $_POST['transfer'])
      wc_add_notice('<strong>'.__('Medications Required').'</strong> '.__('Please select the medications you want us to transfer.  If they do not appear on the list, then we do not have them in-stock'), 'error');
 }
 
@@ -800,6 +800,9 @@ function get_orders_by_invoice_number($invoice_number) {
 }
 */
 
+function ordered_rxs($order) {
+  return $order->get_meta('transfer') ?: ($order->get_meta('rxs') ?: ["Awaiting RX(s) from your doctor"]);
+}
 
 add_action('woocommerce_order_details_after_order_table', 'dscsa_show_order_invoice');
 function dscsa_show_order_invoice($order) {
@@ -808,12 +811,21 @@ function dscsa_show_order_invoice($order) {
     $date_shipped = $order->get_meta('date_shipped', true);
     $address = $order->get_formatted_billing_address();
 
+    //TODO REFACTOR THIS WHOLE PAGE TO BE LESS HACKY
     echo '<style>.woocommerce-customer-details, .woocommerce-order-details__title, .woocommerce-table--order-details { display:none }</style>';
+    echo "<script>jQuery(function() { upgradeOrdered(function(select) { var rxs = select.data('rxs'); select.val(rxs).change(); select.on('select2:unselecting', preventDefault);}) })</script>";
+
+    echo woocommerce_form_field('ordered[]', [
+      'type'   	  => 'select',
+      'label'     => __('Here are the Rx(s) in your order.  Call us to make a change'),
+      'options'   => [''],
+      'custom_attributes' => ['data-rxs' => json_encode(ordered_rxs($order))]
+    ]);
 
     if ($date_shipped AND $tracking_number) {
-       echo "Your order was shipped on <mark class='order-date'>$date_shipped</mark> with tracking number <a target='_blank' href='https://tools.usps.com/go/TrackConfirmAction?tLabels=$tracking_number'>$tracking_number</a> to<br><br><address>$address</address>";
+       echo "<h4>Your order was shipped on <mark class='order-date'>$date_shipped</mark> with tracking number <a target='_blank' href='https://tools.usps.com/go/TrackConfirmAction?tLabels=$tracking_number'>$tracking_number</a> to</h4><address>$address</address>";
     } else {
-       echo "Order will be shipped to<br><br><address>$address</address>";
+       echo "<h4>Order will be shipped to</h4><address>$address</address>";
     }
 
     if ($invoice_doc_id) {
@@ -887,9 +899,9 @@ function dscsa_before_order_object_save($order, $data) {
 
     $address = update_shipping_address($patient_id, $address_1, $address_2, $city, $postcode);
 
-    //wp_mail('adam.kircher@gmail.com', "saved order 1", "$patient_id | $invoice_number ".print_r($_POST, true).print_r(mssql_get_last_message(), true));
+    wp_mail('adam.kircher@gmail.com', "saved order 1", "$patient_id | $invoice_number ".print_r($_POST, true).print_r(mssql_get_last_message(), true));
 
-    if ($_POST['transfer']) {
+    if ($_POST['rx_source'] == 'pharmacy') {
       add_preorder($patient_id, $_POST['transfer'], $_POST['backup_pharmacy']);
       $order->update_meta_data('transfer', $_POST['transfer']);
     } else {
@@ -1071,10 +1083,10 @@ function dscsa_update_order_status( $data) {
     //wp_mail('adam.kircher@gmail.com', "dscsa_update_order_status 1", print_r($data, true).print_r($_POST, true).print_r(mssql_get_last_message(), true));
 
 
-    if ($_POST['rxs'] &&  ! $_POST['transfer']) { //Skip on-hold and go straight to processing if set
+    if ($_POST['rx_source'] == 'erx' && $_POST['rxs']) { //Skip on-hold and go straight to processing if set
       $data['post_status'] = 'wc-processing';
     } else if($_POST['rx_source']) { //checking for rx_source ensures that API calls to update status still work.  Even though we are not "capturing charge" setting "needs payment" seems to make the status goto processing
-      $data['post_status'] = $_POST['transfer'] ? 'wc-awaiting-transfer' : 'wc-awaiting-rx';
+      $data['post_status'] = $_POST['rx_source'] == 'pharmacy' ? 'wc-awaiting-transfer' : 'wc-awaiting-rx';
     }
 
     //wp_mail('adam.kircher@gmail.com', "dscsa_update_order_status 2", print_r($data, true));
@@ -1188,7 +1200,7 @@ function dscsa_translate($term, $raw, $domain) {
     'Invalid username or email.' => '<strong>Error</strong>: We cannot find an account with that phone number.',
     '<strong>ERROR</strong>: Invalid username.' => '<strong>Error</strong>: We cannot find an account with that name and date of birth.',
     'An account is already registered with your email address. Please log in.' => 'An account is already registered with your phone number. Please log in.',
-    'Your order is on-hold until we confirm payment has been received. Your order details are shown below for your reference:' => $_POST['transfer'] ? 'We are currently requesting a transfer of your Rx(s) from your pharmacy' : 'We are currently waiting on Rx(s) to be sent from your doctor',
+    'Your order is on-hold until we confirm payment has been received. Your order details are shown below for your reference:' => $_POST['rx_source'] == 'pharmacy' ? 'We are currently requesting a transfer of your Rx(s) from your pharmacy' : 'We are currently waiting on Rx(s) to be sent from your doctor',
     'Your order has been received and is now being processed. Your order details are shown below for your reference:' => 'We got your prescription(s) and will start working on them right away',
     'Thanks for creating an account on %1$s. Your username is %2$s' => 'Thanks for completing Registration Step 1 of 2 on %1$s. Your username is %2$s',
     'Your password has been automatically generated: %s' => 'Your temporary password is your phone number: %s'
