@@ -75,10 +75,16 @@ button.menu-toggle {
 form.checkout, /* Don't show checkout on every page */
 .woocommerce > .woocommerce-info, /* hide coupon link on non-checkout page.  On check page it is moved not to be directly under .woocommerce so this style will no longer apply */
 .woocommerce-message a, /* don't show links in messages since often wrong link */
-.woocommerce-checkout-review-order-table, /*hide all items and costs since we are not charging anything */
+.woocommerce-checkout-review-order-table /*hide all items and costs since we are not charging anything */
+{
+  display:none !important;
+}
 .woocommerce-SavedPaymentMethods-saveNew /* Hide Stripe save card option */
 {
   display:none;
+}
+.woocommerce-PaymentBox {
+  background-color: #fafafa;
 }
 
 #ui-datepicker-div {
