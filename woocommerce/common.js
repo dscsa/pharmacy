@@ -230,7 +230,7 @@ function getInventory(callback) {
   })
 }
 
-function row2select(entry) {
+function row2select(row) {
 
   var drug = row.gsx$_cokwr.$t,
       price = row.gsx$day_2.$t || row.gsx$day.$t || '',
