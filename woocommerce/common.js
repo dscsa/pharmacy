@@ -153,7 +153,7 @@ function upgradeTransfer(callback) {
   console.log('upgradeTransfer')
   return _upgradeMedication('transfer', callback, function(inventory, select) {
     select.empty() //get rid of default option
-    return inventory.filter(function(row) { return row.gsx$ordered.$t })
+    return inventory.filter(function(row) { return !!row.gsx$ordered.$t }) //not sure if its necessary here but for consisttency: weird JS quick '' && true -> ''
   })
 }
 
@@ -162,8 +162,7 @@ function upgradeStock(callback) {
   console.log('upgradeStock')
   return _upgradeMedication('stock', callback, function(inventory) {
     return inventory.filter(function(row) {
-      console.log('upgradeStock', row.gsx$_cokwr.$t, typeof row.gsx$ordered.$t, row.gsx$ordered.$t, typeof row.gsx$stock.$t, row.gsx$stock.$t, !!row.gsx$ordered.$t, ! row.gsx$stock.$t, row.gsx$ordered.$t && ! row.gsx$stock.$t)
-      return row.gsx$ordered.$t && ! row.gsx$stock.$t
+      return !!row.gsx$ordered.$t && ! row.gsx$stock.$t //weird JS quick '' && true -> ''
     })
   })
 }
