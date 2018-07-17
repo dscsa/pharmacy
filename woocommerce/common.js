@@ -153,7 +153,7 @@ function upgradeTransfer(callback) {
   console.log('upgradeTransfer')
   return _upgradeMedication('transfer', callback, function(inventory, select) {
     select.empty() //get rid of default option
-    return inventory.filter(function(row) { return row.gsx$totalqty.$t > 0 })
+    return inventory.filter(function(row) { return row.gsx$ordered.$t })
   })
 }
 
@@ -161,7 +161,7 @@ function upgradeTransfer(callback) {
 function upgradeStock(callback) {
   console.log('upgradeStock')
   return _upgradeMedication('stock', callback, function(inventory) {
-    return inventory.filter(function(row) { return row.gsx$totalqty.$t > 0 && ! row.gsx$stock.$t })
+    return inventory.filter(function(row) { return row.gsx$ordered.$t && ! row.gsx$stock.$t })
   })
 }
 
@@ -198,13 +198,6 @@ function upgradeRxs(callback) {
       }
     }
     return data
-  })
-}
-
-function upgradeStock(callback) {
-  console.log('upgradeStock')
-  return _upgradeMedication('stock', callback, function(inventory) {
-    return inventory.filter(function(row) { return row.gsx$totalqty.$t > 0 && ! row.gsx$stock.$t })
   })
 }
 
