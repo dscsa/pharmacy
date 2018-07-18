@@ -6,6 +6,9 @@
 form.checkout_coupon, form.checkout  {
   display:inline-block;
 }
+.woocommerce-form-coupon-toggle {
+  display:block;
+}
 /*Hide billing/shipping fields until our custom additional fields are prepended with JS */
 .woocommerce-billing-fields:first-child {
   display:none;
