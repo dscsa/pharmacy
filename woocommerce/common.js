@@ -226,11 +226,11 @@ function _upgradeMedication(selector, callback, transform) {
     console.log('_upgradeMedication', 'transform.length', data.length)
     data = Object.freeze(data.map(row2select))
     console.log('_upgradeMedication', 'map.length', data.length)
-    /*select.select2({
+    select.select2({
       multiple:true,
       closeOnSelect:selector != 'stock',
-      data:[data[0]]
-    })*/
+      data:data
+    })
     callback && callback(select, data)
   })
 }
