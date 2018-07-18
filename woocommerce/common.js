@@ -244,7 +244,7 @@ function getInventory(callback) {
     cache:false,
     success:function($data) {
       console.log('medications gsheet retrieved')
-      callback($data.feed.entry)
+      callback(Object.freeze($data.feed.entry))
     }
   })
 }
