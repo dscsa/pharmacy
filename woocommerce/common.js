@@ -212,7 +212,7 @@ function _upgradeMedication(selector, callback, transform) {
     console.log('_upgradeMedication', 'inventory.length', inventory.length)
     var data = transform(inventory, select)
     console.log('_upgradeMedication', 'transform.length', data.length)
-    data = data.map(row2select)
+    data = Object.freeze(data.map(row2select))
     console.log('_upgradeMedication', 'map.length', data.length)
     select.select2({
       multiple:true,

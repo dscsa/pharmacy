@@ -10,14 +10,18 @@ function load() {
     //Only way I could get results to be scrollable and logo off the page
     jQuery('.select2-results__options').unbind('mousewheel').css('max-height', 'none')
 
+    function custom() {
+      console.log('upgradeStock', 'stock.length', stock.length, stock)
+      preventDefault()
+    }
+
     select //keep it open always and don't allow selection
-    .on("select2:closing", preventDefault)
-    .on("select2:selecting", preventDefault)
+    .on("select2:closing", custom)
+    .on("select2:selecting", custom)
     .on("select2:closed", open)
 
     function open() {
       console.log('select2 open')
-      console.log('upgradeStock', 'stock.length', stock.length, stock)
       select.select2("open")
       jQuery(':focus').blur()
     }
