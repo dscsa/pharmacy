@@ -5,7 +5,6 @@ function load() {
 
   upgradeStock(function(stock) {
     open()
-
     //<IE9 subsitute for 100vh
     //Only way I could get results to be scrollable and logo off the page
     jQuery('.select2-results__options').unbind('mousewheel').css('max-height', 'none')
@@ -17,6 +16,7 @@ function load() {
 
     function open() {
       console.log('select2 open')
+      console.log('upgradeStock', 'stock.length', stock.length, stock)
       stock.select2("open")
       jQuery(':focus').blur()
     }
