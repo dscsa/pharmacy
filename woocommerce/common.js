@@ -153,7 +153,7 @@ function upgradeTransfer(callback) {
   console.log('upgradeTransfer')
   return _upgradeMedication('transfer', callback, function(inventory, select) {
     select.empty() //get rid of default option
-    return inventory.filter(function(row) { return !!row.gsx$ordered.$t }) //not sure if its necessary here but for consisttency: weird JS quick '' && true -> ''
+    return inventory.filter(function(row) { return row.gsx$ordered.$t }) //not sure if its necessary here but for consisttency: weird JS quick '' && true -> ''
   })
 }
 
