@@ -162,20 +162,7 @@ function upgradeStock(callback) {
   console.log('upgradeStock')
   return _upgradeMedication('stock', callback, function(inventory) {
     return inventory.filter(function(row) {
-      console.log(
-        'upgradeStock',
-        row.gsx$_cokwr.$t,
-        typeof row.gsx$ordered.$t,
-        row.gsx$ordered.$t.length,
-        row.gsx$ordered.$t, '|',
-        typeof row.gsx$stock.$t,
-        row.gsx$stock.$t.length,
-        row.gsx$stock.$t, '|',
-        !!row.gsx$ordered.$t, '|',
-        ! row.gsx$stock.$t, '|',
-        !!row.gsx$ordered.$t && ! row.gsx$stock.$t
-      ) //weird JS quick '' && true -> ''
-      return (row.gsx$ordered.$t && ! row.gsx$stock.$t);
+      return row.gsx$ordered.$t && ! row.gsx$stock.$t
     })
   })
 }
@@ -222,10 +209,8 @@ function _upgradeMedication(selector, callback, transform) {
 
   getInventory(function(inventory) {
     console.log('_upgradeMedication', 'inventory.length', inventory.length)
-    var data = transform(inventory, select)
+    var data = transform(inventory, select).map(row2select)
     console.log('_upgradeMedication', 'transform.length', data.length)
-    data = Object.freeze(data.map(row2select))
-    console.log('_upgradeMedication', 'map.length', data.length)
     select.select2({
       multiple:true,
       closeOnSelect:selector != 'stock',
