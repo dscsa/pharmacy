@@ -241,7 +241,7 @@ function getInventory(callback) {
   jQuery.ajax({
     url:medicationGsheet,
     type: 'GET',
-    cache:true,
+    cache:false,
     success:function($data) {
       console.log('medications gsheet retrieved')
       callback($data.feed.entry)
