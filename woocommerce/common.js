@@ -162,8 +162,8 @@ function upgradeStock(callback) {
   console.log('upgradeStock')
   return _upgradeMedication('stock', callback, function(inventory) {
     return inventory.filter(function(row) {
-      console.log('upgradeStock', row.gsx$_cokwr.$t, typeof row.gsx$ordered.$t, row.gsx$ordered.$t, '|', typeof row.gsx$stock.$t, row.gsx$stock.$t, '|', !!row.gsx$ordered.$t, '|', ! row.gsx$stock.$t, '|', !!row.gsx$ordered.$t && ! row.gsx$stock.$t); //weird JS quick '' && true -> ''
-      return row.gsx$ordered.$t
+      console.log('upgradeStock', row.gsx$_cokwr.$t, typeof row.gsx$ordered.$t, row.gsx$ordered.$t.length, row.gsx$ordered.$t, '|', typeof row.gsx$stock.$t, row.gsx$stock.$t.length, row.gsx$stock.$t, '|', !!row.gsx$ordered.$t, '|', ! row.gsx$stock.$t, '|', !!row.gsx$ordered.$t && ! row.gsx$stock.$t) //weird JS quick '' && true -> ''
+      return (row.gsx$ordered.$t && ! row.gsx$stock.$t);
     })
   })
 }
