@@ -203,7 +203,14 @@ function admin_fields($user_id = null) {
   ];
 }
 
+//github: awesome-Support/includes/admin/functions-user-profile.php
+//github: awesome-Support/includes/admin/metaboxes/user-profile.php
 //woocommerce_reset_password_notification no working
+add_filter('wpas_user_profile_contact_name', 'dscsa_user_profile_contact_name', 10, 3);
+function dscsa_user_profile_contact_name($display_name, $user, $ticket_id) {
+  return "<a target='_blank' href='https://www.goodpill.org/wp-admin/?impersonate=$user->ID'>$display_name</a>";
+}
+
 add_action('retrieve_password_key', 'dscsa_retrieve_password_key', 10, 2);
 function dscsa_retrieve_password_key($user_login, $reset_key) {
   $link = add_query_arg( array( 'key' => $reset_key, 'login' => $user_login ), wc_get_endpoint_url( 'lost-password', '', wc_get_page_permalink( 'myaccount' ) ) );
