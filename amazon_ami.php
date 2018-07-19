@@ -623,14 +623,13 @@ function dscsa_login_redirect() {
 add_filter ('wp_redirect', 'dscsa_wp_redirect');
 function dscsa_wp_redirect($location) {
 
-  //After successful order, add another item back into cart.
-  //Add to card won't work unless we replace query params e.g., key=wc_order_594de1d38152e
-  if (substr($_GET['key'], 0, 9) == 'wc_order_')
-   return substr($location, 0, -26).'add-to-cart=8';
+  //The GET ARRAY APPEARS TO BE ALWAYS EMPTY
+  //wp_mail('adam.kircher@gmail.com', "dscsa_wp_redirect", print_r($location, true).print_r($_GET, true));
 
-  //Hacky, but only way I could get add-to-cart not to be called twice in a row.
-  if (substr($location, -14) == '?add-to-cart=8')
-   return substr($location, 0, -14);
+  //After successful order, add another item back into cart.
+  //https://www.goodpill.org/order-confirmation/
+  if (substr($location, -20) == '/order-confirmation/')
+   return $location.'?add-to-cart=8';
 
   return $location;
 }
