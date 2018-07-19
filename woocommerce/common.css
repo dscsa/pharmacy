@@ -83,7 +83,7 @@ form.checkout, /* Don't show checkout on every page */
 
 label[for=account_display_name], /* On Account Details Page */
 #account_display_name,
-#account_display_name + span
+#account_display_name + span,
 .woocommerce-SavedPaymentMethods-saveNew /* Hide Stripe save card option */
 {
   display:none !important;
