@@ -398,6 +398,12 @@ function dscsa_admin_invoice($order) {
   }
 }
 
+add_filter('woocommerce_save_account_details_required_fields', 'dscsa_save_account_details_required_fields' );
+function dscsa_save_account_details_required_fields( $required_fields ){
+    unset( $required_fields['account_display_name'] );
+    return $required_fields;
+}
+
 add_action( 'woocommerce_edit_account_form_start', 'dscsa_user_edit_account');
 function dscsa_user_edit_account($user_id = null) {
   $fields = shared_fields($user_id)+account_fields($user_id);

@@ -76,13 +76,14 @@ form.checkout, /* Don't show checkout on every page */
 .woocommerce-form-coupon-toggle, /* hide coupon link on non-checkout page. */
 .woocommerce-message a, /* don't show links in messages since often wrong link */
 .woocommerce-checkout-review-order-table, /*hide all items and costs since we are not charging anything */
-label[for=account_display_name],
-#account_display_name
 {
   display:none;
 }
 
-/* Styles to make Payment methods look better */
+
+label[for=account_display_name], /* On Account Details Page */
+#account_display_name,
+#account_display_name + span
 .woocommerce-SavedPaymentMethods-saveNew /* Hide Stripe save card option */
 {
   display:none !important;
