@@ -489,6 +489,11 @@ function dscsa_register_post($username, $email, $validation_errors) {
     //     $validation_errors->add('birth_date_error', __('<strong>Error</strong>: Birth date is required!', 'text_domain'));
     // }
 
+    $birth_date = cleanBirthDate($_POST['birth_date']);
+
+    if ( ! $birth_date) {
+        $validation_errors->add('birth_date_error', __('Please make sure your date of birth is accurate!', 'text_domain'));
+    }
 
     $phone = cleanPhone($_POST['phone']);
 
@@ -503,31 +508,36 @@ function dscsa_register_post($username, $email, $validation_errors) {
     return $validation_errors;
 }
 
+function cleanBirthDate($birth_date) {
+    if ( ! $_POST['birth_date']) return false;
+
+    $birth_date = date_create($birth_date);
+
+    if ( ! $birth_date) return false
+
+    $birth_date = date_format($birth_date, 'Y-m-d'); //in case html type=date does not work (e.g. IE)
+
+    $birth_array = explode('-', $birth_date);
+
+    if ($birth_array[0] > date('Y'))
+      $birth_array[0] -= 100;
+
+    return checkdate($birth_array[1],$birth_array[2],$birth_array[0]) ? implode('-', $birth_array) : false;
+}
+
 //Customer created hook called to late in order to create username
 //    https://github.com/woocommerce/woocommerce/blob/e24ca9d3bce1f9e923fcd00e492208511cdea727/includes/class-wc-form-handler.php#L1002
 add_action('wp_loaded', 'dscsa_default_post_value');
 function dscsa_default_post_value() {
 
-  if ($_POST['birth_date']) {
-    $birth_date = date_create($_POST['birth_date']);
-
-    if ($birth_date) {
-      $birth_date = date_format($birth_date, 'Y-m-d'); //in case html type=date does not work (e.g. IE)
-
-      $array = explode('-',$birth_date);
-
-      if ($array[0] > date('Y'))
-        $array[0] -= 100;
-
-      if (checkdate($array[1],$array[2],$array[0])) {
-        $_POST['birth_date'] = implode('-', $array);
-        if ($_POST['first_name'] AND $_POST['last_name']) {    //Set user name for both login and registration
-           //single quotes / apostrophes were being escaped with backslash on error
-           $_POST['first_name'] = stripslashes($_POST['first_name']);
-           $_POST['last_name'] = stripslashes($_POST['last_name']);
-           $_POST['username'] = str_replace("'", "", "$_POST[first_name] $_POST[last_name] $_POST[birth_date]");
-        }
-      }
+  $birth_date = cleanBirthDate($_POST['birth_date']);
+  if ($birth_date) {
+    $_POST['birth_date'] = $birth_date;
+    if ($_POST['first_name'] AND $_POST['last_name']) {    //Set user name for both login and registration
+       //single quotes / apostrophes were being escaped with backslash on error
+       $_POST['first_name'] = stripslashes($_POST['first_name']);
+       $_POST['last_name'] = stripslashes($_POST['last_name']);
+       $_POST['username'] = str_replace("'", "", "$_POST[first_name] $_POST[last_name] $birth_date");
     }
   }
 
@@ -1376,6 +1386,7 @@ function dscsa_checkout_fields( $fields ) {
   );
 
   if (count($patient_profile)) {
+    $shared_fields['birth_date']['default'] = date_format($patient_profile[0]['birth_date'], 'Y-m-d'); //just in case user entered DOB incorrectly we can fix it in guardian
     $fields['billing']['billing_address_1']['default'] = substr($patient_profile[0]['address_1'], 1, -1);
     $fields['billing']['billing_address_2']['default'] = substr($patient_profile[0]['address_2'], 1, -1);
     $fields['billing']['billing_city']['default']      = $patient_profile[0]['city'];
