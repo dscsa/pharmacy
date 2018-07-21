@@ -37,6 +37,7 @@
 button.menu-toggle {
   border:none !important
 }
+.optional,
 .entry-title,
 .storefront-handheld-footer-bar,
 .woocommerce-order, /* duplicated when showing order success */

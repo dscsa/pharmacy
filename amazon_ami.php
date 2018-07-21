@@ -406,7 +406,42 @@ function dscsa_save_account_details_required_fields( $required_fields ){
 
 add_action( 'woocommerce_edit_account_form_start', 'dscsa_user_edit_account');
 function dscsa_user_edit_account($user_id = null) {
+
   $fields = shared_fields($user_id)+account_fields($user_id);
+
+  //DISPLAY AUTOFILL DRUG TABLE.  BECAUSE OF COMPLEXITY DECIDED NOT TO PUT THIS IN ACCOUNT_FIELDS()
+
+  if (get_current_user_id() == 1559 || get_current_user_id() == 645) {
+
+    //IF AVAILABLE, PREPOPULATE RX ADDRESS AND RXS INTO REGISTRATION
+    //This hook seems to be called again once the checkout is being saved.
+    //Also don't want run on subsequent orders - rx_source works well because
+    //it is currently saved to user_meta (not sure why) and cannot be entered anywhere except the order page
+    $patient_profile = patient_profile(
+      get_user_meta('account_first_name'), //$field['billing']['billing_first_name']['default'] and/or ['value'] is not set yet
+      get_user_meta('account_last_name'),  //$field['billing']['billing_last_name']['default'] and/or ['value'] is not set yet
+      $fields['birth_date']['default'],
+      $fields['phone']['default']
+    );
+
+    if (count($patient_profile)) {
+      // New Prescriptions Sent to good pill, , , , Disabled Checkbox
+      // Medicine Name, Next Refill Date, Days (QTY), Refills, Last Refill Input, Autofill Checkbox
+      $fields['birth_date']['default'] = date_format(date_create($patient_profile[0]['birth_date']), 'Y-m-d'); //just in case user entered DOB incorrectly we can fix it in guardian
+      echo '<table><tr><th>Medication</th><th>Next&nbsp;Refill</th><th>Days&nbsp;(Qty)</th><th>Refills</th><th>Last&nbsp;Refill</th><th>Autofill</th></tr>';
+      foreach ($patient_profile as $rx) {
+        echo "<tr><td>$rx[drug_name]</td><td>".
+          date_format(date_create($row['refill_date']), 'Y-m-d').
+          "</td><td>$row[days_supply] ($row[dispense_qty])</td><td>".
+          "$row[refills_total]</td><td>".
+          date_format(date_create($row['dispense_date']), 'Y-m-d')."</td><td>".
+          woocommerce_form_field($row['rx_id'], ['type' => 'checkbox',  'default' => true, 'return' => true]).
+          "</td></tr>";
+      }
+      echo '</table>';
+    }
+  }
+
   return dscsa_echo_form_fields($fields);
 }
 
@@ -513,7 +548,7 @@ function cleanBirthDate($birth_date) {
 
     $birth_date = date_create($birth_date);
 
-    if ( ! $birth_date) return false
+    if ( ! $birth_date) return false;
 
     $birth_date = date_format($birth_date, 'Y-m-d'); //in case html type=date does not work (e.g. IE)
 
@@ -1386,7 +1421,7 @@ function dscsa_checkout_fields( $fields ) {
   );
 
   if (count($patient_profile)) {
-    $shared_fields['birth_date']['default'] = date_format($patient_profile[0]['birth_date'], 'Y-m-d'); //just in case user entered DOB incorrectly we can fix it in guardian
+    $shared_fields['birth_date']['default'] = date_format(date_create($patient_profile[0]['birth_date']), 'Y-m-d'); //just in case user entered DOB incorrectly we can fix it in guardian
     $fields['billing']['billing_address_1']['default'] = substr($patient_profile[0]['address_1'], 1, -1);
     $fields['billing']['billing_address_2']['default'] = substr($patient_profile[0]['address_2'], 1, -1);
     $fields['billing']['billing_city']['default']      = $patient_profile[0]['city'];
