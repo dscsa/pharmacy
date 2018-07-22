@@ -56,14 +56,20 @@ function upgradeAllergies() {
 
 function upgradeAutofill() {
   jQuery("input.pat_autofill").on('change', function(){
-    console.log('toggle patient autofill', this.value, this.checked)
+    console.log('toggle patient autofill', this.checked)
+    var checked  = this.checked
     var children = jQuery("input.rx_autofill")
-    children.prop('disabled', ! this.checked)
-    if ( ! this.checked) children.prop('checked', false)
-    jQuery("input.new_rx_autofill").prop('checked', this.checked)
-    jQuery(".autofill_table .date-picker").prop('placeholder', this.checked ? this.nextFill : 'N/A')
+    children.prop('disabled', ! checked)
+    if ( ! checked) children.prop('checked', false)
+    jQuery("input.new_rx_autofill").prop('checked', checked)
+    jQuery(".autofill_table .date-picker").each(function(i, elem) {
+      elem.prop('placeholder', checked ? elem.nextFill : 'N/A')
+    })
   })
   jQuery("input.pat_autofill").triggerHandler('change')
+  jQuery('.autofill_table .date-picker').each(function(i, elem) {
+    elem.datepicker({changeMonth:true, changeYear:true, yearRange:"c-100:c", defaultDate:elem.val() || "-50y", dateFormat:"yy-mm-dd", constrainInput:false})
+  })
 }
 
 function upgradePharmacy(pharmacies) {
@@ -89,8 +95,7 @@ function upgradePharmacy(pharmacies) {
 }
 
 function upgradeBirthdate() { //now 2 on same page (loing & register) so jquery id, #, selection doesn't work since assumes ids are unique
-  jQuery('[name=birth_date]:not([readonly])').each(function() {
-    var elem = jQuery(this)
+  jQuery('[name=birth_date]:not([readonly])').each(function(i, elem) {
     elem.datepicker({changeMonth:true, changeYear:true, yearRange:"c-100:c", defaultDate:elem.val() || "-50y", dateFormat:"yy-mm-dd", constrainInput:false})
   })
 }
