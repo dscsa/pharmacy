@@ -64,14 +64,15 @@ function upgradeAutofill() {
     jQuery("input.new_rx_autofill").prop('checked', checked)
     jQuery(".autofill_table .date-picker").each(function() {
       var elem = jQuery(this)
-      console.log('toggle autofill date', elem.attr('nextFill'), elem.nextFill, elem)
+      console.log('toggle autofill date', elem.attr('next-fill'))
+      elem.prop('disabled', ! checked)
       elem.prop('placeholder', checked ? elem.attr('nextFill') : 'N/A')
     })
   })
   jQuery("input.pat_autofill").triggerHandler('change')
   jQuery('.autofill_table .date-picker').each(function() {
     var elem = jQuery(this)
-    elem.datepicker({changeMonth:true, changeYear:true, yearRange:"c-100:c", defaultDate:elem.val() || "-50y", dateFormat:"yy-mm-dd", constrainInput:false})
+    elem.datepicker({changeMonth:true, changeYear:true, yearRange:"c:c+1", dateFormat:"mm/dd", constrainInput:false})
   })
 }
 

@@ -434,7 +434,7 @@ function dscsa_user_edit_account($user_id = null) {
           date_format(date_create($patient_profile[$i]['dispense_date']), 'm/d')."</td><td>".
           $patient_profile[$i]['days_supply']." (".$patient_profile[$i]['dispense_qty'].")</td><td>".
           $patient_profile[$i]['refills_total']."</td><td style='padding:8px'>".
-          woocommerce_form_field("autofill_resume[".$patient_profile[$i]['rx_id']."]", ['custom_attributes' => ['nextFill' => date_format(date_create($patient_profile[$i]['refill_date']), 'm/d')], 'input_class' => ['date-picker'], 'return' => true])."</td><td style='font-size:16px'>".
+          woocommerce_form_field("autofill_resume[".$patient_profile[$i]['rx_id']."]", ['custom_attributes' => ['next-fill' => date_format(date_create($patient_profile[$i]['refill_date']), 'm/d')], 'input_class' => ['date-picker'], 'return' => true])."</td><td style='font-size:16px'>".
           woocommerce_form_field("rx_autofill[".$patient_profile[$i]['rx_id']."]", ['type' => 'checkbox',  'default' => $patient_profile[$i]['rx_autofill'], 'input_class' => ['rx_autofill'], 'return' => true]).
           "</td></tr>";
 
