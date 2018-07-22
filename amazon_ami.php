@@ -434,12 +434,13 @@ function dscsa_user_edit_account($user_id = null) {
           date_format(date_create($patient_profile[$i]['dispense_date']), 'm/d')."</td><td>".
           $patient_profile[$i]['days_supply']." (".$patient_profile[$i]['dispense_qty'].")</td><td>".
           $patient_profile[$i]['refills_total']."</td><td style='padding:8px'>".
-          woocommerce_form_field("autofill_resume[".$patient_profile[$i]['rx_id']."]", ['custom_attributes' => ['next-fill' => date_format(date_create($patient_profile[$i]['refill_date']), 'm/d')], 'return' => true])."</td><td style='font-size:16px'>".
+          //Readonly because could not get disabled to work
+          woocommerce_form_field("autofill_resume[".$patient_profile[$i]['rx_id']."]", ['type' => 'text', 'custom_attributes' => ['readonly' => true, 'next-fill' => $patient_profile[$i]['refills_total'] ? date_format(date_create($patient_profile[$i]['refill_date']), 'm/d') : 'No Refills'], 'return' => true])."</td><td style='font-size:16px'>".
           woocommerce_form_field("rx_autofill[".$patient_profile[$i]['rx_id']."]", ['type' => 'checkbox',  'default' => $patient_profile[$i]['rx_autofill'], 'input_class' => ['rx_autofill'], 'return' => true]).
           "</td></tr>";
 
       }
-      $table .= '<tr><td>New Rx(s) sent to Good Pill</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td><input type="checkbox" class="input-checkbox new_rx_autofill" name="new_rx_autofill" value="1" disabled="true"></td></tr></table>';
+      $table .= '<tr style="font-size:14px"><td>New Rx(s) sent to Good Pill</td><td></td><td></td><td></td><td></td><td><input type="checkbox" class="input-checkbox new_rx_autofill" name="new_rx_autofill" value="1" disabled="true" style="font-size:16px"></td></tr></table>';
 
       echo $table;
 

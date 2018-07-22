@@ -75,7 +75,7 @@ function upgradeAutofill() {
     rx_autofills.trigger('change') //triggerHandler only works on first matched element
   })
 
-  jQuery("input[next-fill]").each(function() {
+  jQuery("input[next-fill]:not([readonly])").each(function() {
     var elem = jQuery(this)
     elem.datepicker({changeMonth:true, changeYear:true, yearRange:"c:c+1", dateFormat:"mm/dd", constrainInput:false})
   })
