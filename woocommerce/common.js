@@ -55,9 +55,11 @@ function upgradeAllergies() {
 }
 
 function upgradeAutofill() {
-  jQuery("input.rx_autofill").on('change', function(){
+  var rx_autofills = jQuery("input.rx_autofill")
+
+  rx_autofills.on('change', function(){
     var elem  = jQuery(this)
-    var input = elem.closest('tr').find('input.date-picker')
+    var input = elem.closest('tr').find('input[next-fill]')
     input.prop('disabled', ! this.checked)
     input.prop('placeholder', this.checked ? input.attr('next-fill') : 'N/A')
   })
@@ -65,14 +67,15 @@ function upgradeAutofill() {
   jQuery("input.pat_autofill").on('change', function(){
     console.log('toggle patient autofill', this.checked)
     var checked  = this.checked
-    var children = jQuery("input.rx_autofill")
-    children.prop('disabled', ! checked)
-    if ( ! checked) children.prop('checked', false)
+
+    rx_autofills.prop('disabled', ! checked)
+    if ( ! checked) rx_autofills.prop('checked', false)
+
     jQuery("input.new_rx_autofill").prop('checked', checked)
-    jQuery("input.rx_autofill").triggerHandler('change')
+    rx_autofills.triggerHandler('change')
   })
 
-  jQuery('.autofill_table .date-picker').each(function() {
+  jQuery("input[next-fill]").each(function() {
     var elem = jQuery(this)
     elem.datepicker({changeMonth:true, changeYear:true, yearRange:"c:c+1", dateFormat:"mm/dd", constrainInput:false})
   })
