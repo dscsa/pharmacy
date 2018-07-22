@@ -72,7 +72,7 @@ function upgradeAutofill() {
     if ( ! checked) rx_autofills.prop('checked', false)
 
     jQuery("input.new_rx_autofill").prop('checked', checked)
-    rx_autofills.triggerHandler('change')
+    rx_autofills.trigger('change') //triggerHandler only works on first matched element
   })
 
   jQuery("input[next-fill]").each(function() {
