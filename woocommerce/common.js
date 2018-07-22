@@ -67,7 +67,7 @@ function upgradeAutofill() {
 
   jQuery("input.rx_autofill").on('change', function(){
     var elem  = jQuery(this)
-    var input = elem.prevAll('input.date-picker').first()
+    var input = elem.closest('tr').find('input.date-picker')
     input.prop('disabled', ! this.checked)
     input.prop('placeholder', this.checked ? input.attr('next-fill') : 'N/A')
   })
