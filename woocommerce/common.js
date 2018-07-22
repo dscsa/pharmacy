@@ -66,7 +66,7 @@ function upgradeAutofill() {
       var elem = jQuery(this)
       console.log('toggle autofill date', elem.attr('next-fill'))
       elem.prop('disabled', ! checked)
-      elem.prop('placeholder', checked ? elem.attr('nextFill') : 'N/A')
+      elem.prop('placeholder', checked ? elem.attr('next-fill') : 'N/A')
     })
   })
   jQuery("input.pat_autofill").triggerHandler('change')
