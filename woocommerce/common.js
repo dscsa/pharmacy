@@ -64,7 +64,8 @@ function upgradeAutofill() {
     jQuery("input.new_rx_autofill").prop('checked', checked)
     jQuery(".autofill_table .date-picker").each(function() {
       var elem = jQuery(this)
-      elem.prop('placeholder', checked ? elem.nextFill : 'N/A')
+      console.log('toggle autofill date', elem.attr('nextFill'), elem.nextFill, elem)
+      elem.prop('placeholder', checked ? elem.attr('nextFill') : 'N/A')
     })
   })
   jQuery("input.pat_autofill").triggerHandler('change')
