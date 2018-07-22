@@ -56,10 +56,11 @@ function upgradeAllergies() {
 
 function upgradeAutofill() {
   jQuery("input.pat_autofill").on('change', function(){
-    var children = jQuery(".rx_autofill")
+    console.log('toggle patient autofill')
+    var children = jQuery("input.rx_autofill")
     children.prop('disabled', ! this.value)
     if ( ! this.value) children.prop('checked', false)
-    jQuery(".new_rx_autofill").prop('checked', this.value)
+    jQuery("input.new_rx_autofill").prop('checked', this.value)
   })
   jQuery("input.pat_autofill").triggerHandler('change')
 }

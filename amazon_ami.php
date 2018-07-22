@@ -428,14 +428,14 @@ function dscsa_user_edit_account($user_id = null) {
       // New Prescriptions Sent to good pill, , , , Disabled Checkbox
       // Medicine Name, Next Refill Date, Days (QTY), Refills, Last Refill Input, Autofill Checkbox
       $fields['birth_date']['default'] = date_format(date_create($patient_profile[0]['birth_date']), 'Y-m-d'); //just in case user entered DOB incorrectly we can fix it in guardian
-      $table = '<table class="autofill_table"><tr><th style="width:400px; padding:16px 8px">Medication</th><th style="padding:16px 8px">Last&nbsp;Refill</th><th style="padding:16px 8px">Days&nbsp;(Qty)</th><th style="padding:16px 8px">Refills</th><th style="width:85px; padding:16px 8px">Next&nbsp;Refill</th><th style="width:85px; font-weight:bold; padding:16px 8px">'.woocommerce_form_field("pat_autofill[".$patient_profile[0]['pat_id']."]", ['type' => 'checkbox',  'label' => 'Autofill', 'default' => $patient_profile[0]['pat_autofill'], 'classes' => ['pat_autofill'], 'return' => true]).'</th></tr>';
+      $table = '<table class="autofill_table"><tr><th style="width:400px; padding:16px 8px">Medication</th><th style="padding:16px 8px">Last&nbsp;Refill</th><th style="padding:16px 8px">Days&nbsp;(Qty)</th><th style="padding:16px 8px">Refills</th><th style="width:85px; padding:16px 8px">Next&nbsp;Refill</th><th style="width:85px; font-weight:bold; padding:16px 8px">'.woocommerce_form_field("pat_autofill[".$patient_profile[0]['pat_id']."]", ['type' => 'checkbox',  'label' => 'Autofill', 'default' => $patient_profile[0]['pat_autofill'], 'input_class' => ['pat_autofill'], 'return' => true]).'</th></tr>';
       foreach ($patient_profile as $i => $rx) {
         $table .= "<tr style='font-size:14px'><td>".substr($patient_profile[$i]['drug_name'], 1, -1)."</td><td>".
           date_format(date_create($patient_profile[$i]['dispense_date']), 'm/d')."</td><td>".
           $patient_profile[$i]['days_supply']." (".$patient_profile[$i]['dispense_qty'].")</td><td>".
           $patient_profile[$i]['refills_total']."</td><td style='padding:8px'>".
           woocommerce_form_field("autofill_resume[".$patient_profile[$i]['rx_id']."]", ['placeholder' => date_format(date_create($patient_profile[$i]['refill_date']), 'm/d'), 'input_class' => ['date-picker'], 'return' => true])."</td><td style='font-size:16px'>".
-          woocommerce_form_field("rx_autofill[".$patient_profile[$i]['rx_id']."]", ['type' => 'checkbox',  'default' => $patient_profile[$i]['rx_autofill'], 'classes' => ['rx_autofill'], 'return' => true]).
+          woocommerce_form_field("rx_autofill[".$patient_profile[$i]['rx_id']."]", ['type' => 'checkbox',  'default' => $patient_profile[$i]['rx_autofill'], 'input_class' => ['rx_autofill'], 'return' => true]).
           "</td></tr>";
 
       }
