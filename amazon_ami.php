@@ -261,7 +261,7 @@ function shared_fields($user_id = null) {
     return [
     'backup_pharmacy' => $pharmacy,
     'medications_other' => [
-        'label'     =>  __('List any other medication(s) or supplement(s) you are currently taking<i style="font-size:14px; display:block">We will not fill these but need to check for drug interactions</i>'),
+        'label'     =>  __('List any other medication(s) or supplement(s) you are currently taking<i style="font-size:14px; display:block; margin-bottom:-20px">We will not fill these but need to check for drug interactions</i>'),
         'default'   => get_default('medications_other', $user_id)
     ],
     'allergies_none' => [
@@ -428,17 +428,23 @@ function dscsa_user_edit_account($user_id = null) {
       // New Prescriptions Sent to good pill, , , , Disabled Checkbox
       // Medicine Name, Next Refill Date, Days (QTY), Refills, Last Refill Input, Autofill Checkbox
       $fields['birth_date']['default'] = date_format(date_create($patient_profile[0]['birth_date']), 'Y-m-d'); //just in case user entered DOB incorrectly we can fix it in guardian
-      echo '<table><tr><th>Medication</th><th>Next&nbsp;Refill</th><th>Days&nbsp;(Qty)</th><th>Refills</th><th>Last&nbsp;Refill</th><th>Autofill</th></tr>';
-      foreach ($patient_profile as $rx) {
-        echo "<tr><td>$rx[drug_name]</td><td>".
-          date_format(date_create($row['refill_date']), 'Y-m-d').
-          "</td><td>$row[days_supply] ($row[dispense_qty])</td><td>".
-          "$row[refills_total]</td><td>".
-          date_format(date_create($row['dispense_date']), 'Y-m-d')."</td><td>".
-          woocommerce_form_field($row['rx_id'], ['type' => 'checkbox',  'default' => true, 'return' => true]).
+      $table = '<table class="autofill_table"><tr><th style="width:400px; padding:16px 8px">Medication</th><th style="padding:16px 8px">Last&nbsp;Refill</th><th style="padding:16px 8px">Days&nbsp;(Qty)</th><th style="padding:16px 8px">Refills</th><th style="width:85px; padding:16px 8px">Next&nbsp;Refill</th><th style="width:85px; font-weight:bold; padding:16px 8px">'.woocommerce_form_field("pat_autofill[".$patient_profile[0]['pat_id']."]", ['type' => 'checkbox',  'label' => 'Autofill', 'default' => $patient_profile[0]['pat_autofill'], 'classes' => ['pat_autofill'], 'return' => true]).'</th></tr>';
+      foreach ($patient_profile as $i => $rx) {
+        $table .= "<tr style='font-size:14px'><td>".substr($patient_profile[$i]['drug_name'], 1, -1)."</td><td>".
+          date_format(date_create($patient_profile[$i]['dispense_date']), 'm/d')."</td><td>".
+          $patient_profile[$i]['days_supply']." (".$patient_profile[$i]['dispense_qty'].")</td><td>".
+          $patient_profile[$i]['refills_total']."</td><td style='padding:8px'>".
+          woocommerce_form_field("autofill_resume[".$patient_profile[$i]['rx_id']."]", ['placeholder' => date_format(date_create($patient_profile[$i]['refill_date']), 'm/d'), 'input_class' => ['date-picker'], 'return' => true])."</td><td style='font-size:16px'>".
+          woocommerce_form_field("rx_autofill[".$patient_profile[$i]['rx_id']."]", ['type' => 'checkbox',  'default' => $patient_profile[$i]['rx_autofill'], 'classes' => ['rx_autofill'], 'return' => true]).
           "</td></tr>";
+
       }
-      echo '</table>';
+      $table .= '<tr><td>New Rx(s) sent to Good Pill</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td><input type="checkbox" class="input-checkbox new_rx_autofill" name="new_rx_autofill" value="1" disabled="true"></td></tr></table>';
+
+      echo $table;
+
+      wp_mail('adam.kircher@gmail.com', "autofill_table", $patient_profile[0][15]." | ".$patient_profile[0]['written_days']." | ".$patient_profile[0]['dispense_qty']." | ".$patient_profile[0]['days_supply']." | ".$table.print_r($patient_profile, true));
+
     }
   }
 
@@ -1284,7 +1290,7 @@ function dscsa_translate($term, $raw, $domain) {
     'Tetracycline antibiotics' => 'Antibióticos de tetraciclina',
     'List Other Allergies Below' => 'Indique otras alergias abajo',
     'Phone' => 'Teléfono',
-    'List any other medication(s) or supplement(s) you are currently taking (We will not fill these but need to check for drug interactions)' => 'Indique cualquier otro medicamento o suplemento que usted toma actualmente',
+    'List any other medication(s) or supplement(s) you are currently taking<i style="font-size:14px; display:block; margin-bottom:-20px">We will not fill these but need to check for drug interactions</i>' => 'Indique cualquier otro medicamento o suplemento que usted toma actualmente',
     'First name' => 'Nombre',
     'Last name' => 'Apellido',
     'Date of Birth' => 'Fecha de nacimiento',

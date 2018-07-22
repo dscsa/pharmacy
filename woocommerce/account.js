@@ -13,6 +13,7 @@ function load() {
 
 function account_page() {
   console.log('account.js account page')
+  upgradeAutofill()
   upgradePharmacy()
   upgradeAllergies()
   upgradeBirthdate()
