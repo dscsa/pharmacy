@@ -62,18 +62,22 @@ function upgradeAutofill() {
     children.prop('disabled', ! checked)
     if ( ! checked) children.prop('checked', false)
     jQuery("input.new_rx_autofill").prop('checked', checked)
-    jQuery(".autofill_table .date-picker").each(function() {
-      var elem = jQuery(this)
-      console.log('toggle autofill date', elem.attr('next-fill'))
-      elem.prop('disabled', ! checked)
-      elem.prop('placeholder', checked ? elem.attr('next-fill') : 'N/A')
-    })
+    jQuery(".autofill_table .date-picker").prop('disabled', ! checked)
   })
-  jQuery("input.pat_autofill").triggerHandler('change')
+
+  jQuery("input.rx_autofill").on('change', function(){
+    var elem  = jQuery(this)
+    var input = elem.prevAll('input.date-picker').first()
+    input.prop('disabled', ! this.checked)
+    input.prop('placeholder', this.checked ? input.attr('next-fill') : 'N/A')
+  })
+
   jQuery('.autofill_table .date-picker').each(function() {
     var elem = jQuery(this)
     elem.datepicker({changeMonth:true, changeYear:true, yearRange:"c:c+1", dateFormat:"mm/dd", constrainInput:false})
   })
+
+  jQuery("input.pat_autofill").triggerHandler('change')
 }
 
 function upgradePharmacy(pharmacies) {
