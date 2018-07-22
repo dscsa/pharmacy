@@ -62,12 +62,14 @@ function upgradeAutofill() {
     children.prop('disabled', ! checked)
     if ( ! checked) children.prop('checked', false)
     jQuery("input.new_rx_autofill").prop('checked', checked)
-    jQuery(".autofill_table .date-picker").each(function(i, elem) {
+    jQuery(".autofill_table .date-picker").each(function() {
+      var elem = jQuery(this)
       elem.prop('placeholder', checked ? elem.nextFill : 'N/A')
     })
   })
   jQuery("input.pat_autofill").triggerHandler('change')
-  jQuery('.autofill_table .date-picker').each(function(i, elem) {
+  jQuery('.autofill_table .date-picker').each(function() {
+    var elem = jQuery(this)
     elem.datepicker({changeMonth:true, changeYear:true, yearRange:"c-100:c", defaultDate:elem.val() || "-50y", dateFormat:"yy-mm-dd", constrainInput:false})
   })
 }
@@ -95,7 +97,8 @@ function upgradePharmacy(pharmacies) {
 }
 
 function upgradeBirthdate() { //now 2 on same page (loing & register) so jquery id, #, selection doesn't work since assumes ids are unique
-  jQuery('[name=birth_date]:not([readonly])').each(function(i, elem) {
+  jQuery('[name=birth_date]:not([readonly])').each(function() {
+    var elem = jQuery(this)
     elem.datepicker({changeMonth:true, changeYear:true, yearRange:"c-100:c", defaultDate:elem.val() || "-50y", dateFormat:"yy-mm-dd", constrainInput:false})
   })
 }
