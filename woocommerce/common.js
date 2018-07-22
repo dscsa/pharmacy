@@ -61,6 +61,7 @@ function upgradeAutofill() {
     children.prop('disabled', ! this.checked)
     if ( ! this.checked) children.prop('checked', false)
     jQuery("input.new_rx_autofill").prop('checked', this.checked)
+    jQuery(".autofill_table .date-picker").prop('placeholder', this.checked ? this.nextFill : 'N/A')
   })
   jQuery("input.pat_autofill").triggerHandler('change')
 }
