@@ -1,7 +1,3 @@
-.woocommerce-MyAccount-content  /* Hide "Hello Username. Not?  Signout" */
-{
-  display:none !important
-}
 /*Make sure they are visible */
 form.checkout_coupon, form.checkout  {
   display:inline-block;

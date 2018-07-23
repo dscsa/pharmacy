@@ -111,7 +111,7 @@ form#order_review  {
 form#order_review tr  {
   display:none;
 }
-form#order_review tr:last-child  {
+form#order_review tfoot tr:last-child  {
   display:table;
 }
 @media screen and ( min-width: 768px ) {
