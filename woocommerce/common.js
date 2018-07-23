@@ -209,6 +209,13 @@ function upgradeRxs(callback) {
       var rx = rxs[i]
       console.log('upgradeRxs', rx.drug_name, i)
       var regex = new RegExp('\\b'+rx.gcn_seqno+'\\b')
+
+      data.push({ //Default Value assuming no match found
+        gsx$_cokwr: {$t: rx.drug_name.slice(1, -1)},
+        gsx$stock : {$t:'GCN Error'},
+        gsx$day_2 : {$t:'??'}
+      })
+
       for (var j in inventory) {
         var row = inventory[j]
 
@@ -220,17 +227,10 @@ function upgradeRxs(callback) {
             row.gsx$stock.$t = 'No Refills'
 
           console.log('upgradeRxs gcn match', rx.drug_name, rx.gcn_seqno, row.gsx$gcns.$t, i, j)
-          data.push(row)
+          data[data.length-1] = row //overwrite the default value
 
           break
 
-        } else if (j+1 == inventory.length) {
-          console.log('upgradeRxs no match', rx.drug_name, rx.gcn_seqno, i, j)
-          data.push({ //No match found
-            gsx$_cokwr: {$t: rx.drug_name.slice(1, -1)},
-            gsx$stock : {$t:'GCN Error'},
-            gsx$day_2 : {$t:'??'}
-          })
         }
       }
     }
