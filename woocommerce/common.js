@@ -267,6 +267,9 @@ function getInventory(callback) {
 
 function row2select(row) {
 
+  if ( ! row.gsx$_cokwr || ! row.gsx$day_2 || ! row.gsx$day)
+    console.error('row2select error', row)
+    
   var drug = row.gsx$_cokwr.$t,
       price = row.gsx$day_2.$t || row.gsx$day.$t || '',
       notes = []

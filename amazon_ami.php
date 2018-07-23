@@ -432,11 +432,27 @@ function dscsa_user_edit_account($user_id = null) {
       foreach ($patient_profile as $i => $rx) {
         $table .= "<tr style='font-size:14px'><td>".substr($patient_profile[$i]['drug_name'], 1, -1)."</td><td>".
           date_format(date_create($patient_profile[$i]['dispense_date']), 'm/d')."</td><td>".
-          $patient_profile[$i]['days_supply']." (".$patient_profile[$i]['dispense_qty'].")</td><td>".
+          ($patient_profile[$i]['days_supply']
+            ? $patient_profile[$i]['days_supply']." (".$patient_profile[$i]['dispense_qty'].")"
+            : 'New Rx')
+          ,"</td><td>".
           $patient_profile[$i]['refills_total']."</td><td style='padding:8px'>".
           //Readonly because could not get disabled to work
-          woocommerce_form_field("autofill_resume[".$patient_profile[$i]['rx_id']."]", ['type' => 'text', 'custom_attributes' => ['readonly' => true, 'next-fill' => $patient_profile[$i]['refills_total'] ? date_format(date_create($patient_profile[$i]['refill_date']), 'm/d') : 'No Refills'], 'return' => true])."</td><td style='font-size:16px'>".
-          woocommerce_form_field("rx_autofill[".$patient_profile[$i]['rx_id']."]", ['type' => 'checkbox',  'default' => $patient_profile[$i]['rx_autofill'], 'input_class' => ['rx_autofill'], 'return' => true]).
+          woocommerce_form_field("autofill_resume[".$patient_profile[$i]['rx_id']."]", [
+            'type' => 'text',
+            'default' => $patient_profile[$i]['refills_total'] ? '' : 'No Refills',
+            'custom_attributes' => [
+              'readonly' => !$patient_profile[$i]['refills_total'],
+              'next-fill' => $patient_profile[$i]['refills_total'] ? date_format(date_create($patient_profile[$i]['refill_date']), 'm/d') : ''
+            ],
+            'return' => true
+          ])."</td><td style='font-size:16px'>".
+          woocommerce_form_field("rx_autofill[".$patient_profile[$i]['rx_id']."]", [
+            'type' => 'checkbox',
+            'default' => $patient_profile[$i]['rx_autofill'],
+            'input_class' => ['rx_autofill'],
+            'return' => true
+          ]).
           "</td></tr>";
 
       }
