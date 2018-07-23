@@ -225,7 +225,8 @@ function upgradeRxs(callback) {
         } else if (j+1 == inventory.length) {
           data.push({ //No match found
             gsx$_cokwr: {$t: rx.drug_name.slice(1, -1)},
-            gsx$stock : {$t:'GCN Error'}
+            gsx$stock : {$t:'GCN Error'},
+            gsx$day_2 : {$t:'??'}
           })
         }
       }
@@ -269,7 +270,7 @@ function row2select(row) {
 
   if ( ! row.gsx$_cokwr || ! row.gsx$day_2 || ! row.gsx$day)
     console.error('row2select error', row)
-    
+
   var drug = row.gsx$_cokwr.$t,
       price = row.gsx$day_2.$t || row.gsx$day.$t || '',
       notes = []
