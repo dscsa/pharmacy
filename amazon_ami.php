@@ -434,8 +434,8 @@ function dscsa_user_edit_account($user_id = null) {
           date_format(date_create($patient_profile[$i]['dispense_date']), 'm/d')."</td><td>".
           ($patient_profile[$i]['days_supply']
             ? $patient_profile[$i]['days_supply']." (".$patient_profile[$i]['dispense_qty'].")"
-            : 'New Rx')
-          ,"</td><td>".
+            : 'New Rx').
+          "</td><td>".
           $patient_profile[$i]['refills_total']."</td><td style='padding:8px'>".
           //Readonly because could not get disabled to work
           woocommerce_form_field("autofill_resume[".$patient_profile[$i]['rx_id']."]", [
@@ -1424,13 +1424,13 @@ function dscsa_show_payment_options($show_payment_options) {
   return empty(WC()->cart->applied_coupons);
 }
 
-add_filters( 'wc_stripe_generate_payment_request', 'dscsa_stripe_generate_payment_request', 10, 3);
-function($post_data, $order, $prepared_source ) {
-  $post_date['capture'] = ($order->get_status == 'wc-shipped-unpaid' OR $order->get_status == 'wc-shipped_autopay') ? true : false;
-  return $post_date;
+add_filter( 'wc_stripe_generate_payment_request', 'dscsa_stripe_generate_payment_request', 10, 3);
+function dscsa_stripe_generate_payment_request($post_data, $order, $prepared_source ) {
+  $post_data['capture'] = ($order->get_status() == 'wc-shipped-unpaid' OR $order->get_status() == 'wc-shipped_autopay') ? true : false;
+  return $post_data;
 }
 
-add_filters( 'woocommerce_valid_order_statuses_for_payment', 'dscsa_valid_order_statuses_for_payment' );
+add_filter( 'woocommerce_valid_order_statuses_for_payment', 'dscsa_valid_order_statuses_for_payment' );
 function dscsa_valid_order_statuses_for_payment($statuses) {
   $statuses[] = 'wc-shipped-unpaid';
   $statuses[] = 'wc-shipped_autopay';
