@@ -1424,6 +1424,19 @@ function dscsa_show_payment_options($show_payment_options) {
   return empty(WC()->cart->applied_coupons);
 }
 
+add_filters( 'wc_stripe_generate_payment_request', 'dscsa_stripe_generate_payment_request', 10, 3);
+function($post_data, $order, $prepared_source ) {
+  $post_date['capture'] = ($order->get_status == 'wc-shipped-unpaid' OR $order->get_status == 'wc-shipped_autopay') ? true : false;
+  return $post_date;
+}
+
+add_filters( 'woocommerce_valid_order_statuses_for_payment', 'dscsa_valid_order_statuses_for_payment' );
+function dscsa_valid_order_statuses_for_payment($statuses) {
+  $statuses[] = 'wc-shipped-unpaid';
+  $statuses[] = 'wc-shipped_autopay';
+  return $statuses;
+}
+
 // Hook in
 add_filter( 'woocommerce_checkout_fields' , 'dscsa_checkout_fields', 9999);
 function dscsa_checkout_fields( $fields ) {

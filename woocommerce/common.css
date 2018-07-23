@@ -97,13 +97,29 @@ label[for=account_display_name], /* On Account Details Page */
   padding: 1.4em 0em;
   width: 90%;
 }
-
-
-
 #ui-datepicker-div {
   z-index:999 !important;
 }
 
 .hidden {
   display:none !important
+}
+/*Order-Pay Screen */
+form#order_review  {
+  display:inline-block;
+}
+form#order_review tr  {
+  display:none;
+}
+form#order_review tr:last-child  {
+  display:table;
+}
+@media screen and ( min-width: 768px ) {
+  form#order_review  {
+    width:69% !important
+  }
+}
+form#order_review {
+  margin-top:-30px;
+  width:100%; /* only active on small screens, otherwise media filter*/
 }
