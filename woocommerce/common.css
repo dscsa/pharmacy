@@ -81,6 +81,10 @@ form.checkout, /* Don't show checkout on every page */
   display:none;
 }
 
+.pat_autofill {/* On Account Details Page */
+  font-weight:600;
+  display:inline-block;
+}
 
 label[for=account_display_name], /* On Account Details Page */
 #account_display_name,

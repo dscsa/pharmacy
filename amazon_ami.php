@@ -118,7 +118,7 @@ function order_fields($user_id = null, $ordered = null, $rxs = []) {
       'required'  => true,
       'default'   => get_default('rx_source', $user_id) ?: 'erx',
       'options'   => [
-        'erx'     => __('Rx(s) were sent from my doctor'),
+        'erx'     => __(is_registered() ? 'Refill the Rx(s) listed below' : 'Rx(s) were sent from my doctor'),
         'pharmacy' => __('Transfer Rx(s) with refills remaining from my pharmacy')
 
       ]
@@ -433,7 +433,13 @@ function dscsa_user_edit_account($user_id = null) {
       // New Prescriptions Sent to good pill, , , , Disabled Checkbox
       // Medicine Name, Next Refill Date, Days (QTY), Refills, Last Refill Input, Autofill Checkbox
       $fields['birth_date']['default'] = date_format(date_create($patient_profile[0]['birth_date']), 'Y-m-d'); //just in case user entered DOB incorrectly we can fix it in guardian
-      $table = '<table class="autofill_table"><tr><th style="width:400px; padding:16px 8px">Medication</th><th style="padding:16px 8px">Last&nbsp;Refill</th><th style="padding:16px 8px">Days&nbsp;(Qty)</th><th style="padding:16px 8px">Refills</th><th style="width:85px; padding:16px 8px">Next&nbsp;Refill</th><th style="width:85px; font-weight:bold; padding:16px 8px">'.woocommerce_form_field("pat_autofill[".$patient_profile[0]['pat_id']."]", ['type' => 'checkbox',  'label' => 'Autofill', 'default' => $patient_profile[0]['pat_autofill'], 'input_class' => ['pat_autofill'], 'return' => true]).'</th></tr>';
+      $table = '<table class="autofill_table"><tr><th style="width:400px; padding:16px 8px">Medication</th><th style="padding:16px 8px">Last&nbsp;Refill</th><th style="padding:16px 8px">Days&nbsp;(Qty)</th><th style="padding:16px 8px">Refills</th><th style="width:85px; padding:16px 8px">Next&nbsp;Refill</th><th style="width:85px; font-weight:bold; padding:16px 8px">'.woocommerce_form_field("pat_autofill[".$patient_profile[0]['pat_id']."]", [
+        'type' => 'checkbox',
+        'label' => 'Autofill',
+        'default' => $patient_profile[0]['pat_autofill'],
+        'class' => ['pat_autofill'],
+        'return' => true
+      ]).'</th></tr>';
       foreach ($patient_profile as $i => $rx) {
 
         if ($patient_profile[$i]['days_supply']) { //Refill
@@ -445,9 +451,6 @@ function dscsa_user_edit_account($user_id = null) {
           $next_refill = is_registered() ? date('m/d', strtotime('+2 days')) : 'N/A';
           $day_qty ='New Rx';
         }
-
-
-
 
         $table .= "<tr style='font-size:14px'><td>".substr($patient_profile[$i]['drug_name'], 1, -1)."</td><td>".
           $last_refill."</td><td>".
@@ -735,7 +738,7 @@ function is_registered() {
 
 add_filter ('woocommerce_account_menu_items', 'dscsa_my_account_menu');
 function dscsa_my_account_menu($nav) {
-  //$nav['dashboard'] = __(is_registered() ? 'New Order' : 'Get started (2 of 2)');
+  $nav['dashboard'] = __('New Order');
   return $nav;
 }
 
@@ -1238,7 +1241,7 @@ function dscsa_order_is_paid_statuses($paid_statuses) {
 
 add_filter( 'woocommerce_order_button_text', 'dscsa_order_button_text');
 function dscsa_order_button_text() {
-    return substr($_SERVER['HTTP_REFERER'], -14) == '?add-to-cart=8' ? 'Complete Registration' : 'Place order';
+    return is_registered() ? 'Place order' : 'Complete Registration';
 }
 
 add_filter('auth_cookie_expiration', 'dscsa_auth_cookie_exp', 99, 3);
@@ -1398,6 +1401,7 @@ function dscsa_translate($term, $raw, $domain) {
     'Pay by Credit or Debit Card' => 'Pago con tarjeta de crédito o débito',
     'New Patient Fee:' => 'Cuota de persona nueva:',
     'Paid with Coupon' => 'Pagada con cupón',
+    'Refill the Rx(s) listed below' => 'Refill the Rx(s) listed below'
   ];
 
   $english = isset($toEnglish[$term]) ? $toEnglish[$term] : $term;
