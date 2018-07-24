@@ -83,6 +83,8 @@ form.checkout, /* Don't show checkout on every page */
 
 .pat_autofill {/* On Account Details Page */
   font-weight:600;
+}
+.pat_autofill input {/* On Account Details Page */
   display:inline-block;
 }
 

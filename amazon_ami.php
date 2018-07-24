@@ -437,7 +437,7 @@ function dscsa_user_edit_account($user_id = null) {
         'type' => 'checkbox',
         'label' => 'Autofill',
         'default' => $patient_profile[0]['pat_autofill'],
-        'class' => ['pat_autofill'],
+        'label_class' => ['pat_autofill'],
         'return' => true
       ]).'</th></tr>';
       foreach ($patient_profile as $i => $rx) {
