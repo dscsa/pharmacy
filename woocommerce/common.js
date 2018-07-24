@@ -82,7 +82,7 @@ function upgradeAutofill() {
   })
 
 
-  jQuery("input.pat_autofill").triggerHandler('change')
+  jQuery(".pat_autofill input").triggerHandler('change')
 
 }
 
