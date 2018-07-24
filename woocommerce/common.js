@@ -62,6 +62,7 @@ function upgradeAutofill() {
     var input = elem.closest('tr').find('input[next-fill]')
     input.prop('disabled', ! this.checked)
     input.prop('placeholder', this.checked ? input.attr('next-fill') : 'N/A')
+    if ( ! this.checked) input.val('')
   })
 
   jQuery("input.pat_autofill").on('change', function(){
