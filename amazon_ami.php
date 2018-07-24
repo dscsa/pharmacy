@@ -44,7 +44,12 @@ function dscsa_user_scripts() {
     wp_enqueue_script('dscsa-account', 'https://dscsa.github.io/webform/woocommerce/account.js', ['jquery', 'dscsa-common']);
     wp_enqueue_style('dscsa-select2', 'https://dscsa.github.io/webform/woocommerce/select2.css');
 
-    if (is_checkout() AND ! is_wc_endpoint_url()) {
+    if (is_checkout() AND ! is_wc_endpoint_url()) { //hack to get wp_add_inline_style() to work. https://www.cssigniter.com/late-enqueue-inline-css-wordpress/
+      if ( ! is_registered()) {
+        wp_register_style( 'hide-nav-for-new-users', false );
+      	wp_enqueue_style( 'hide-nav-for-new-users' );
+      	wp_add_inline_style( 'hide-nav-for-new-users', '.woocommerce-MyAccount-navigation { visibility:hidden }');
+      }
       wp_enqueue_style('dscsa-checkout', 'https://dscsa.github.io/webform/woocommerce/checkout.css');
       wp_enqueue_script('dscsa-checkout', 'https://dscsa.github.io/webform/woocommerce/checkout.js', ['jquery', 'ie9ajax']);
     }
@@ -430,11 +435,23 @@ function dscsa_user_edit_account($user_id = null) {
       $fields['birth_date']['default'] = date_format(date_create($patient_profile[0]['birth_date']), 'Y-m-d'); //just in case user entered DOB incorrectly we can fix it in guardian
       $table = '<table class="autofill_table"><tr><th style="width:400px; padding:16px 8px">Medication</th><th style="padding:16px 8px">Last&nbsp;Refill</th><th style="padding:16px 8px">Days&nbsp;(Qty)</th><th style="padding:16px 8px">Refills</th><th style="width:85px; padding:16px 8px">Next&nbsp;Refill</th><th style="width:85px; font-weight:bold; padding:16px 8px">'.woocommerce_form_field("pat_autofill[".$patient_profile[0]['pat_id']."]", ['type' => 'checkbox',  'label' => 'Autofill', 'default' => $patient_profile[0]['pat_autofill'], 'input_class' => ['pat_autofill'], 'return' => true]).'</th></tr>';
       foreach ($patient_profile as $i => $rx) {
+
+        if ($patient_profile[$i]['days_supply']) { //Refill
+          $last_refill = date_format(date_create($patient_profile[$i]['dispense_date']), 'm/d');
+          $next_refill = date_format(date_create($patient_profile[$i]['refill_date']), 'm/d');
+          $day_qty = $patient_profile[$i]['days_supply']." (".$patient_profile[$i]['dispense_qty'].")";
+        } else { //New Rx
+          $last_refill = 'N/A';
+          $next_refill = is_registered() ? date('m/d', strtotime('+2 days')) : 'N/A';
+          $day_qty ='New Rx';
+        }
+
+
+
+
         $table .= "<tr style='font-size:14px'><td>".substr($patient_profile[$i]['drug_name'], 1, -1)."</td><td>".
-          date_format(date_create($patient_profile[$i]['dispense_date']), 'm/d')."</td><td>".
-          ($patient_profile[$i]['days_supply']
-            ? $patient_profile[$i]['days_supply']." (".$patient_profile[$i]['dispense_qty'].")"
-            : 'New Rx').
+          $last_refill."</td><td>".
+          $day_qty.
           "</td><td>".
           $patient_profile[$i]['refills_total']."</td><td style='padding:8px'>".
           //Readonly because could not get disabled to work
@@ -443,7 +460,7 @@ function dscsa_user_edit_account($user_id = null) {
             'default' => $patient_profile[$i]['refills_total'] ? '' : 'No Refills',
             'custom_attributes' => [
               'readonly' => !$patient_profile[$i]['refills_total'],
-              'next-fill' => $patient_profile[$i]['refills_total'] ? date_format(date_create($patient_profile[$i]['refill_date']), 'm/d') : ''
+              'next-fill' => $patient_profile[$i]['refills_total'] ? $next_refill : ''
             ],
             'return' => true
           ])."</td><td style='font-size:16px'>".
@@ -712,10 +729,13 @@ function wc_bypass_logout_confirmation() {
     }
 }
 
+function is_registered() {
+   return get_user_meta(get_current_user_id(), 'rx_source', true);
+}
+
 add_filter ('woocommerce_account_menu_items', 'dscsa_my_account_menu');
 function dscsa_my_account_menu($nav) {
-  $prev_order = get_user_meta(get_current_user_id(), 'rx_source', true);
-  $nav['dashboard'] = __($prev_order ? 'New Order' : 'Get started (2 of 2)');
+  //$nav['dashboard'] = __(is_registered() ? 'New Order' : 'Get started (2 of 2)');
   return $nav;
 }
 
