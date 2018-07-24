@@ -929,7 +929,7 @@ function dscsa_before_order_object_save($order, $data) {
   try {
     global $alreadySaved;
 
-    if ($alreadySaved OR ! $_POST) return; //$_POST is not set on duplicate order
+    if ($alreadySaved OR ! $_POST['rx_source']) return; //$_POST is not set on duplicate order, and only payment method fields are set in order-pay
 
     $alreadySaved = true;
 
@@ -1157,16 +1157,16 @@ add_filter('wp_insert_post_data', 'dscsa_update_order_status');
 function dscsa_update_order_status( $data) {
 
     //wp_mail('adam.kircher@gmail.com', "dscsa_update_order_status", is_admin()." | ".strlen($_POST['rxs'])." | ".(!!$_POST['rxs'])." | ".var_export($_POST['rxs'], true)." | ".print_r($_POST, true)." | ".print_r($data, true));
+    wp_mail('adam.kircher@gmail.com', "dscsa_update_order_status", print_r($data, true).print_r($_POST, true).print_r(mssql_get_last_message(), true));
 
     if (is_admin() OR $data['post_type'] != 'shop_order') return $data;
-
-    //wp_mail('adam.kircher@gmail.com', "dscsa_update_order_status 1", print_r($data, true).print_r($_POST, true).print_r(mssql_get_last_message(), true));
-
 
     if ($_POST['rx_source'] == 'erx' && $_POST['rxs']) { //Skip on-hold and go straight to processing if set
       $data['post_status'] = 'wc-processing';
     } else if($_POST['rx_source']) { //checking for rx_source ensures that API calls to update status still work.  Even though we are not "capturing charge" setting "needs payment" seems to make the status goto processing
       $data['post_status'] = $_POST['rx_source'] == 'pharmacy' ? 'wc-awaiting-transfer' : 'wc-awaiting-rx';
+    } else if($_POST['payment_method'] == 'stripe') { //order-pay page
+      $data['post_status'] = 'wc-shipped-paid-card';
     }
 
     //wp_mail('adam.kircher@gmail.com', "dscsa_update_order_status 2", print_r($data, true));
@@ -1181,6 +1181,8 @@ function dscsa_update_order_status( $data) {
 add_action('woocommerce_thankyou', 'dscsa_new_order');
 function dscsa_new_order($order_id) {
   try { // Select the email we want & trigger it to send
+
+    wp_mail('adam.kircher@gmail.com', "dscsa_new_order", print_r($order_id, true).print_r($_POST, true).print_r(mssql_get_last_message(), true));
 
     if ( ! $_POST['rx_source']) return //not triggered by API calls, only form submissions
 
@@ -1428,20 +1430,24 @@ function dscsa_show_payment_options($show_payment_options) {
 
 add_filter( 'wc_stripe_generate_payment_request', 'dscsa_stripe_generate_payment_request', 10, 3);
 function dscsa_stripe_generate_payment_request($post_data, $order, $prepared_source ) {
-  $post_data['capture'] = ($order->get_status() == 'wc-shipped-unpaid' OR $order->get_status() == 'wc-shipped_autopay') ? true : false;
+  wp_mail('adam.kircher@gmail.com', "dscsa_stripe_generate_payment_request before", $order->get_status()." ".print_r($post_data, true));
+  $post_data['capture'] = 'true';
   return $post_data;
 }
 
+add_filter( 'woocommerce_valid_order_statuses_for_payment_complete', 'dscsa_valid_order_statuses_for_payment');
 add_filter( 'woocommerce_valid_order_statuses_for_payment', 'dscsa_valid_order_statuses_for_payment' );
 function dscsa_valid_order_statuses_for_payment($statuses) {
-  $statuses[] = 'wc-shipped-unpaid';
-  $statuses[] = 'wc-shipped_autopay';
+  $statuses[] = 'shipped-unpaid';
+  $statuses[] = 'shipped-autopay';
   return $statuses;
 }
 
 // Hook in
 add_filter( 'woocommerce_checkout_fields' , 'dscsa_checkout_fields', 9999);
 function dscsa_checkout_fields( $fields ) {
+
+  if ( ! is_checkout() OR is_wc_endpoint_url()) return;  //this gets called on every account page otherwise
 
   $user_id = get_current_user_id();
 
