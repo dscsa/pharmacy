@@ -433,7 +433,7 @@ function dscsa_user_edit_account($user_id = null) {
       // New Prescriptions Sent to good pill, , , , Disabled Checkbox
       // Medicine Name, Next Refill Date, Days (QTY), Refills, Last Refill Input, Autofill Checkbox
       $fields['birth_date']['default'] = date_format(date_create($patient_profile[0]['birth_date']), 'Y-m-d'); //just in case user entered DOB incorrectly we can fix it in guardian
-      $table = '<table class="autofill_table"><tr><th style="width:400px; padding:16px 8px">Medication</th><th style="padding:16px 8px">Last&nbsp;Refill</th><th style="padding:16px 8px">Days&nbsp;(Qty)</th><th style="padding:16px 8px">Refills</th><th style="width:85px; padding:16px 8px">Next&nbsp;Refill</th><th style="width:85px; font-weight:bold; padding:16px 8px">'.woocommerce_form_field("pat_autofill[".$patient_profile[0]['pat_id']."]", [
+      $table = '<table class="autofill_table"><tr><th style="width:400px; padding:16px 8px">Medication</th><th style="padding:16px 8px">Last&nbsp;Refill</th><th style="padding:16px 8px">Days&nbsp;(Qty)</th><th style="padding:16px 8px">Refills</th><th style="width:85px; padding:16px 8px">Next&nbsp;Refill</th><th style="width:85px; font-weight:bold; padding:16px 8px">'.woocommerce_form_field("pat_autofill", [
         'type' => 'checkbox',
         'label' => 'Autofill',
         'default' => $patient_profile[0]['pat_autofill'],
@@ -791,6 +791,7 @@ function dscsa_save_account($user_id) {
   unset($sanitized['password_current'], $sanitized['password_1'], $sanitized['password_2']);
   wp_mail('adam.kircher@gmail.com', "dscsa_save_account_details", print_r($sanitized, true));
   $patient_id = dscsa_save_patient($user_id, shared_fields($user_id) + account_fields($user_id));
+  update_autofill($patient_id, $_POST['pat_autofill'] ? $_POST['autofill_resume'] : []);
   update_email($patient_id, sanitize_text_field($_POST['account_email']));
 }
 
@@ -1761,6 +1762,14 @@ function update_card_and_coupon($guardian_id, $card = [], $coupon) {
 //Set the patID and the new email address
 function update_email($guardian_id, $email) {
   return db_run("SirumWeb_AddUpdatePatEmail '$guardian_id', '$email'");
+}
+
+//Procedure dbo.SirumWeb_UpdateAutofill (@PatID int, @json {rx_ids:autofill_resume_dates})
+//Set the patID and the new email address
+function update_autofill($guardian_id, $autofills) {
+  $sql = "SirumWeb_UpdateAutofill '$guardian_id', '".json_encode($autofills)."'";
+  wp_mail('adam.kircher@gmail.com', "update_autofill", $sql." ".print_r($_POST, true));
+  return db_run($sql);
 }
 
 global $conn;

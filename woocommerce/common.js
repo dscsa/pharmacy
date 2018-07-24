@@ -65,7 +65,7 @@ function upgradeAutofill() {
     if ( ! this.checked) input.val('')
   })
 
-  jQuery("input.pat_autofill").on('change', function(){
+  jQuery(".pat_autofill input").on('change', function(){
     console.log('toggle patient autofill', this.checked)
     var checked  = this.checked
 
