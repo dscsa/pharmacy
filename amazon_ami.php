@@ -444,11 +444,11 @@ function dscsa_user_edit_account($user_id = null) {
 
         if ($patient_profile[$i]['days_supply']) { //Refill
           $last_refill = date_format(date_create($patient_profile[$i]['dispense_date']), 'm/d');
-          $next_refill = date_format(date_create($patient_profile[$i]['refill_date']), 'yyyy-mm-dd');
+          $next_refill = date_format(date_create($patient_profile[$i]['refill_date']), 'Y-m-d');
           $day_qty = $patient_profile[$i]['days_supply']." (".$patient_profile[$i]['dispense_qty'].")";
         } else { //New Rx
           $last_refill = 'N/A';
-          $next_refill = is_registered() ? date('yyyy-mm-dd', strtotime('+2 days')) : 'N/A';
+          $next_refill = is_registered() ? date('Y-m-d', strtotime('+2 days')) : 'N/A';
           $day_qty ='New Rx';
         }
 
