@@ -416,7 +416,7 @@ function dscsa_user_edit_account($user_id = null) {
 
   //DISPLAY AUTOFILL DRUG TABLE.  BECAUSE OF COMPLEXITY DECIDED NOT TO PUT THIS IN ACCOUNT_FIELDS()
 
-  if (get_current_user_id() == 1559 || get_current_user_id() == 645) {
+  //if (get_current_user_id() == 1559 || get_current_user_id() == 645) {
 
     //IF AVAILABLE, PREPOPULATE RX ADDRESS AND RXS INTO REGISTRATION
     //This hook seems to be called again once the checkout is being saved.
@@ -482,7 +482,7 @@ function dscsa_user_edit_account($user_id = null) {
 
       echo $table;
     }
-  }
+  //}
 
   return dscsa_echo_form_fields($fields);
 }
@@ -721,16 +721,21 @@ function dscsa_wp_redirect($location) {
   if ($_POST['save_account_details'])
     return home_url('/account/details/');
 
+  global $wp;
+  if (isset( $wp->query_vars['customer-logout']) OR isset($_GET['customer-logout']) OR isset($_POST['customer-logout']))
+  wp_mail('adam.kircher@gmail.com', "TEST dscsa_bypass_logout_confirmation", $location." | ".get_current_user_id()." | ".is_admin()." | ".print_r($_GET, true)." ".print_r($_POST, true)." ".print_r($wp->query_vars, true));
+
   return $location;
 }
 
-add_action( 'template_redirect', 'wc_bypass_logout_confirmation' );
-function wc_bypass_logout_confirmation() {
+add_action( 'template_redirect', 'dscsa_bypass_logout_confirmation' );
+function dscsa_bypass_logout_confirmation() {
     global $wp;
 
     if ( isset( $wp->query_vars['customer-logout'] ) ) {
-        wp_redirect( str_replace( '&amp;', '&', wp_logout_url( wc_get_page_permalink( 'myaccount' ).'?gp-login' ) ) );
-        exit;
+        wp_mail('adam.kircher@gmail.com', "dscsa_bypass_logout_confirmation", print_r($_GET, true));
+        //wp_redirect( str_replace( '&amp;', '&', wp_logout_url( wc_get_page_permalink( 'myaccount' ).'?gp-login' ) ) );
+        //exit;
     }
 }
 
