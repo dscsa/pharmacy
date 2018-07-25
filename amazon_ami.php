@@ -423,8 +423,8 @@ function dscsa_user_edit_account($user_id = null) {
     //Also don't want run on subsequent orders - rx_source works well because
     //it is currently saved to user_meta (not sure why) and cannot be entered anywhere except the order page
     $patient_profile = patient_profile(
-      get_user_meta('account_first_name'), //$field['billing']['billing_first_name']['default'] and/or ['value'] is not set yet
-      get_user_meta('account_last_name'),  //$field['billing']['billing_last_name']['default'] and/or ['value'] is not set yet
+      get_meta('billing_first_name'), //use billing because get_user_meta() and get_meta() of account_first_name are empty
+      get_meta('billing_last_name'),  //use billing because get_user_meta() and get_meta() of account_first_name are empty
       $fields['birth_date']['default'],
       $fields['phone']['default']
     );
@@ -441,6 +441,8 @@ function dscsa_user_edit_account($user_id = null) {
         'return' => true
       ]).'</th></tr>';
       foreach ($patient_profile as $i => $rx) {
+
+        $autofill_date = $patient_profile[$i]['autofill_date'] ? date_format(date_create($patient_profile[$i]['autofill_date']), 'Y-m-d') : '';
 
         if ($patient_profile[$i]['days_supply']) { //Refill
           $last_refill = date_format(date_create($patient_profile[$i]['dispense_date']), 'm/d');
@@ -460,7 +462,7 @@ function dscsa_user_edit_account($user_id = null) {
           //Readonly because could not get disabled to work
           woocommerce_form_field("autofill_resume[".$patient_profile[$i]['rx_id']."]", [
             'type' => 'text',
-            'default' => $patient_profile[$i]['refills_total'] ? '' : 'No Refills',
+            'default' => $patient_profile[$i]['refills_total'] ? $autofill_date : 'No Refills',
             'custom_attributes' => [
               'readonly' => !$patient_profile[$i]['refills_total'],
               'next-fill' => $patient_profile[$i]['refills_total'] ? $next_refill : ''
@@ -479,9 +481,6 @@ function dscsa_user_edit_account($user_id = null) {
       $table .= '<tr style="font-size:14px"><td>New Rx(s) sent to Good Pill</td><td></td><td></td><td></td><td></td><td><input type="checkbox" class="input-checkbox new_rx_autofill" name="new_rx_autofill" value="1" disabled="true" style="font-size:16px"></td></tr></table>';
 
       echo $table;
-
-      wp_mail('adam.kircher@gmail.com', "autofill_table", $patient_profile[0][15]." | ".$patient_profile[0]['written_days']." | ".$patient_profile[0]['dispense_qty']." | ".$patient_profile[0]['days_supply']." | ".$table.print_r($patient_profile, true));
-
     }
   }
 
@@ -712,12 +711,15 @@ add_filter ('wp_redirect', 'dscsa_wp_redirect');
 function dscsa_wp_redirect($location) {
 
   //The GET ARRAY APPEARS TO BE ALWAYS EMPTY
-  //wp_mail('adam.kircher@gmail.com', "dscsa_wp_redirect", print_r($location, true).print_r($_GET, true));
+  //wp_mail('adam.kircher@gmail.com', "dscsa_wp_redirect", print_r($location, true).print_r($_GET, true).print_r($_POST, true));
 
   //After successful order, add another item back into cart.
   //https://www.goodpill.org/order-confirmation/
   if (substr($location, -20) == '/order-confirmation/')
-   return $location.'?add-to-cart=8';
+    return $location.'?add-to-cart=8';
+
+  if ($_POST['save_account_details'])
+    return home_url('/account/details/');
 
   return $location;
 }
@@ -1764,12 +1766,13 @@ function update_email($guardian_id, $email) {
   return db_run("SirumWeb_AddUpdatePatEmail '$guardian_id', '$email'");
 }
 
-//Procedure dbo.SirumWeb_UpdateAutofill (@PatID int, @json {rx_ids:autofill_resume_dates})
+//Procedure dbo.SirumWeb_ToggleAutofill (@PatID int, @json {rx_ids:autofill_resume_dates})
 //Set the patID and the new email address
 function update_autofill($guardian_id, $autofills) {
-  $sql = "SirumWeb_UpdateAutofill '$guardian_id', '".json_encode($autofills)."'";
-  wp_mail('adam.kircher@gmail.com', "update_autofill", $sql." ".print_r($_POST, true));
-  return db_run($sql);
+  $sql = "SirumWeb_ToggleAutofill '$guardian_id', '".json_encode($autofills)."'";
+  $res = db_run($sql);
+  wp_mail('adam.kircher@gmail.com', "update_autofill", $sql." ".print_r($_POST, true)." ".print_r($res, true));
+  return $res;
 }
 
 global $conn;
