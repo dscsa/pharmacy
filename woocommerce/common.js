@@ -78,7 +78,7 @@ function upgradeAutofill() {
 
   jQuery("input[next-fill]:not([readonly])").each(function() {
     var elem = jQuery(this)
-    elem.datepicker({changeMonth:true, changeYear:true, yearRange:"c:c+1", dateFormat:"yyyy-mm-dd", constrainInput:false})
+    elem.datepicker({changeMonth:true, changeYear:true, yearRange:"c:c+1", dateFormat:"yy-mm-dd", constrainInput:false})
   })
 
 
