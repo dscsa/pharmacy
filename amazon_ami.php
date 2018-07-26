@@ -448,18 +448,18 @@ function dscsa_user_edit_account($user_id = null) {
         $rx_id = $patient_profile[$i]['rx_id'];
 
         if ($patient_profile[$i]['days_supply']) {
-          $tr_class    = "rx refill gcn$gcn";
+          $tr_class    = "rx gcn$gcn";
           $last_refill = date_format(date_create($patient_profile[$i]['dispense_date']), 'm/d');
           $next_refill = date_format(date_create($patient_profile[$i]['refill_date']), 'Y-m-d');
           $day_qty = $patient_profile[$i]['days_supply']." (".$patient_profile[$i]['dispense_qty'].")";
         } else { //New Rx
-          $tr_class    = "rx new gcn$gcn";
+          $tr_class    = "new rx gcn$gcn";
           $last_refill = 'New Rx';
           $next_refill = is_registered() ? date('Y-m-d', strtotime('+2 days')) : 'N/A';
           $day_qty     = '90';
         }
 
-        $table .= "<tr class='$tr_class' data-gcn='$gcn' style='font-size:14px'>".
+        $table .= "<tr class='$tr_class' gcn='$gcn' style='font-size:14px'>".
              "<td class='drug_name'>".substr($patient_profile[$i]['drug_name'], 1, -1).
         "</td><td class='last_refill'>".$last_refill.
         "</td><td class='day_qty'>".$day_qty.
