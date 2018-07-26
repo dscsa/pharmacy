@@ -102,7 +102,7 @@ function upgradeAutofill() {
         console.log('upgradeAutofill No Refills', i, gcn)
         tableRow.addClass('autofill-disabled')
         nextFill.val('No Refills')
-        continue
+        return
       }
 
       for (var j in inventory) {
