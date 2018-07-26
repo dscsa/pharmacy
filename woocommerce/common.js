@@ -103,7 +103,7 @@ function upgradeAutofill() {
       //We could do this in PHP but doing here because of the parrallel with refills-only, out-of-stock, and gcn-error
 
       if ( ! nextFill.attr('next-fill')) {
-        console.log('upgradeAutofill No Refills', row.gsx$_cokwr.$t, i, gcn)
+        console.log('upgradeAutofill No Refills', i, gcn)
         nextRow.addClass('autofill-disabled')
         nextFill.val('No Refills')
         break
