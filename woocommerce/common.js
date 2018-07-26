@@ -66,6 +66,7 @@ function upgradeAutofill() {
     var disabled = row.hasClass('autofill-disabled')
     console.log('toggle rx autofill', this.checked, disabled, input.val())
     elem.prop('disabled', disabled)
+    elem.prop('checked', ! disabled)
     input.prop('disabled', ! this.checked || disabled)
     input.prop('placeholder', ! this.checked || disabled ? 'N/A' : input.attr('next-fill'))
     if ( ! this.checked && ! disabled) input.val('')
