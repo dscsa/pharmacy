@@ -717,6 +717,8 @@ add_filter ('wp_redirect', 'dscsa_wp_redirect');
 function dscsa_wp_redirect($location) {
 
   //The GET ARRAY APPEARS TO BE ALWAYS EMPTY
+  //global $wp;
+  //wp_mail('adam.kircher@gmail.com', "TEST dscsa_bypass_logout_confirmation", isset($wp->query_vars['customer-logout'])." | ".strpos($_SERVER['HTTP_COOKIE'], 'impersonated_by')." | ".$location." | ".get_current_user_id()." | ".is_admin()." | GET ".print_r($_GET, true)." | POST ".print_r($_POST, true)." | QUERY VARS ".print_r($wp->query_vars, true)." | SERVER".print_r($_SERVER, true));
   //wp_mail('adam.kircher@gmail.com', "dscsa_wp_redirect", print_r($location, true).print_r($_GET, true).print_r($_POST, true));
 
   //After successful order, add another item back into cart.
@@ -727,8 +729,6 @@ function dscsa_wp_redirect($location) {
   if ($_POST['save_account_details'])
     return home_url('/account/details/');
 
-  global $wp;
-  wp_mail('adam.kircher@gmail.com', "TEST dscsa_bypass_logout_confirmation", isset($wp->query_vars['customer-logout'])." | ".strpos($_SERVER['HTTP_COOKIE'], 'impersonated_by')." | ".$location." | ".get_current_user_id()." | ".is_admin()." | GET ".print_r($_GET, true)." | POST ".print_r($_POST, true)." | QUERY VARS ".print_r($wp->query_vars, true)." | SERVER".print_r($_SERVER, true));
   if ($_GET['action'] == 'logout' AND strpos($_SERVER['HTTP_COOKIE'], 'impersonated_by') !== false)
     return home_url('/wp-admin/edit.php?post_type=ticket&author='.get_current_user_id());
 
