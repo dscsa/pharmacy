@@ -61,9 +61,10 @@ function upgradeAutofill() {
   //When RX Autofill is checked have it display placeholder of next-fill and allow user to select date
   rx_autofills.on('change', function(){
     var elem  = jQuery(this)
-    var row   = elem.closest('tr')
+    var row   = elem.closest('tr.rx')
     var input = row.find('input[next-fill]')
     var disabled = row.hasClass('autofill-disabled')
+    console.log('toggle rx autofill', this.checked, disabled, input.val())
     elem.prop('disabled', disabled)
     input.prop('disabled', ! this.checked || disabled)
     input.prop('placeholder', ! this.checked || disabled ? 'N/A' : input.attr('next-fill'))
@@ -100,9 +101,9 @@ function upgradeAutofill() {
       //We could do this in PHP but doing here because of the parrallel with refills-only, out-of-stock, and gcn-error
 
       if ( ! nextFill.attr('next-fill')) {
-        console.log('upgradeAutofill No Refills', i, gcn)
         tableRow.addClass('autofill-disabled')
         nextFill.val('No Refills')
+        console.log('upgradeAutofill No Refills', i, gcn, nextFill.val())
         return
       }
 
