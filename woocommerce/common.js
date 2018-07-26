@@ -64,12 +64,12 @@ function upgradeAutofill() {
     var row   = elem.closest('tr.rx')
     var input = row.find('.next_fill')
     var disabled = row.hasClass('autofill-disabled')
+    var off = row.hasClass('autofill-off')
     console.log('toggle rx autofill', this.checked, disabled, input.val())
+    if (off) elem.prop('checked', false)
     elem.prop('disabled', disabled)
-
     input.prop('disabled', ! this.checked || disabled)
     input.prop('placeholder', ! this.checked || disabled ? 'N/A' : input.attr('next-fill'))
-    if (disabled) elem.prop('checked', false)
     if ( ! this.checked && ! disabled) input.val('')
   })
 
@@ -116,7 +116,7 @@ function upgradeAutofill() {
         if ( ! row.gsx$gcns.$t.match(regex)) continue
 
         if (row.gsx$stock.$t == 'Refills Only' && tableRow.hasClass('new')) {
-          tableRow.addClass('autofill-disabled')
+          tableRow.addClass('autofill-disabled autofill-off')
           nextFill.val('Refills Only')
           console.log('upgradeAutofill Refills Only', row.gsx$_cokwr.$t, i, gcn, nextFill.val(), nextFill)
           jQuery("tr.rx td.day_qty").val(45)
@@ -125,7 +125,7 @@ function upgradeAutofill() {
 
         if (row.gsx$stock.$t == 'Out of Stock') {
           console.log('upgradeAutofill Out of Stock', row.gsx$_cokwr.$t, i, gcn, nextFill.val(), nextFill)
-          tableRow.addClass('autofill-disabled')
+          tableRow.addClass('autofill-disabled autofill-off')
           nextFill.val('Out of Stock')
           jQuery("tr.rx td.day_qty").val(45)
           break
