@@ -93,7 +93,7 @@ function upgradeAutofill() {
 
     for (var i in autofill_rows) {
 
-      var nextRow  = autofill_rows[i]
+      var nextRow  = jQuery(autofill_rows[i])
       var gcn      = nextRow.attr('gcn')
       var regex    = new RegExp('\\b'+gcn+'\\b')
       console.log('upgradeAutofill', i, gcn)
