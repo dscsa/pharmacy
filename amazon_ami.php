@@ -447,7 +447,7 @@ function dscsa_user_edit_account($user_id = null) {
         $refills_total = $patient_profile[$i]['refills_total'];
         $rx_id = $patient_profile[$i]['rx_id'];
 
-        if ($patient_profile[$i]['days_supply']) {
+        if ($patient_profile[$i]['is_refill']) {
           $tr_class    = "rx gcn$gcn";
           $last_refill = date_format(date_create($patient_profile[$i]['dispense_date']), 'm/d');
           $next_refill = date_format(date_create($patient_profile[$i]['refill_date']), 'Y-m-d');
