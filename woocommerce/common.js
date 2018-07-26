@@ -131,7 +131,7 @@ function upgradeAutofill() {
       }
 
       if (j == inventory.length) {
-        console.log('upgradeAutofill Gcn Error', row.gsx$_cokwr.$t, i, nextFill.val(), nextFill)
+        console.log('upgradeAutofill Gcn Error', row.gsx$_cokwr.$t, i, gcn, nextFill.val(), nextFill)
         tableRow.addClass('autofill-disabled')
         nextFill.val('Gcn Error')
         jQuery("tr.rx td.day_qty").val('')
