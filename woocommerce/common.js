@@ -91,6 +91,7 @@ function upgradeAutofill() {
     console.log('upgradeAutofill getInventory', 'inventory.length', inventory.length)
 
     jQuery("tr.rx").each(function(i, tableRow) {
+      tableRow     = jQuery(tableRow)
       var gcn      = tableRow.attr('gcn')
       var regex    = new RegExp('\\b'+gcn+'\\b')
       console.log('upgradeAutofill', i, gcn)
