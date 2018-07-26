@@ -455,7 +455,7 @@ function dscsa_user_edit_account($user_id = null) {
         } else { //New Rx
           $tr_class    = "new rx gcn$gcn";
           $last_refill = 'New Rx';
-          $next_refill = is_registered() ? date('Y-m-d', strtotime('+2 days')) : 'N/A';
+          $next_refill = ''; //ideally we could do date('Y-m-d', strtotime('+2 days')) but sometimes its not included in the order
           $day_qty     = '90';
         }
 
