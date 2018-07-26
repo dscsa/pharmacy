@@ -66,7 +66,7 @@ function upgradeAutofill() {
     var disabled = ! this.checked || row.hasClass('autofill-disabled')
     input.prop('disabled', disabled)
     input.prop('placeholder', disabled ? 'N/A' : input.attr('next-fill'))
-    if (disabled) input.val('')
+    if ( ! this.checked && ! row.hasClass('autofill-disabled')) input.val('')
   })
 
   //When Patient Autofill is unchecked, uncheck and disable all Rx Autofill checkboxes and uncheck the "New Rx" autofill
@@ -82,7 +82,7 @@ function upgradeAutofill() {
   //Put date picker UI on any enabled next-fill input
   jQuery("input[next-fill]").each(function() {
     var elem = jQuery(this)
-    elem.datepicker({changeMonth:true, changeYear:true, yearRange:"c:c+1", dateFormat:"yy-mm-dd", constrainInput:false})
+    elem.datepicker({changeMonth:true, changeYear:true, yearRange:"c:c+1", dateFormat:"yy-mm-dd", constrainInput:true})
   })
 
   //Disable and set days based for new Rxs based on live inventory
