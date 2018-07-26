@@ -485,7 +485,7 @@ function dscsa_user_edit_account($user_id = null) {
           "</td></tr>";
 
       }
-      $table .= '<tr style="font-size:14px"><td>NEW PRESCRIPTIONS(S) SENT TO GOOD PILL</td><td></td><td></td><td></td><td></td><td><input type="checkbox" class="input-checkbox new_rx_autofill" name="new_rx_autofill" value="1" disabled="true" style="font-size:16px"></td></tr></table>';
+      $table .= '<tr style="font-size:14px"><td>NEW PRESCRIPTION(S) SENT TO GOOD PILL</td><td></td><td></td><td></td><td></td><td><input type="checkbox" class="input-checkbox new_rx_autofill" name="new_rx_autofill" value="1" disabled="true" style="font-size:16px"></td></tr></table>';
 
       echo $table;
     }
