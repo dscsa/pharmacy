@@ -443,33 +443,39 @@ function dscsa_user_edit_account($user_id = null) {
       foreach ($patient_profile as $i => $rx) {
 
         $autofill_date = $patient_profile[$i]['autofill_date'] ? date_format(date_create($patient_profile[$i]['autofill_date']), 'Y-m-d') : '';
+        $gcn = $patient_profile[$i]['gcn_seqno'];
+        $refills_total = $patient_profile[$i]['refills_total'];
+        $rx_id = $patient_profile[$i]['rx_id'];
 
-        if ($patient_profile[$i]['days_supply']) { //Refill
+        if ($patient_profile[$i]['days_supply']) {
+          $tr_class    = "rx refill gcn$gcn";
           $last_refill = date_format(date_create($patient_profile[$i]['dispense_date']), 'm/d');
           $next_refill = date_format(date_create($patient_profile[$i]['refill_date']), 'Y-m-d');
           $day_qty = $patient_profile[$i]['days_supply']." (".$patient_profile[$i]['dispense_qty'].")";
         } else { //New Rx
-          $last_refill = 'N/A';
+          $tr_class    = "rx new gcn$gcn";
+          $last_refill = 'New Rx';
           $next_refill = is_registered() ? date('Y-m-d', strtotime('+2 days')) : 'N/A';
-          $day_qty ='New Rx';
+          $day_qty     = '90';
         }
 
-        $table .= "<tr style='font-size:14px'><td>".substr($patient_profile[$i]['drug_name'], 1, -1)."</td><td>".
-          $last_refill."</td><td>".
-          $day_qty.
-          "</td><td>".
-          $patient_profile[$i]['refills_total']."</td><td style='padding:8px'>".
+        $table .= "<tr class='$tr_class' data-gcn='$gcn' style='font-size:14px'>".
+             "<td class='drug_name'>".substr($patient_profile[$i]['drug_name'], 1, -1).
+        "</td><td class='last_refill'>".$last_refill.
+        "</td><td class='day_qty'>".$day_qty.
+        "</td><td class='refills_total'>".$refills_total.
+        "</td><td style='padding:8px'>".
           //Readonly because could not get disabled to work
-          woocommerce_form_field("autofill_resume[".$patient_profile[$i]['rx_id']."]", [
+          woocommerce_form_field("autofill_resume[$rx_id]", [
             'type' => 'text',
-            'default' => $patient_profile[$i]['refills_total'] ? $autofill_date : 'No Refills',
+            'default' => $autofill_date,
             'custom_attributes' => [
-              'readonly' => !$patient_profile[$i]['refills_total'],
-              'next-fill' => $patient_profile[$i]['refills_total'] ? $next_refill : ''
+              'next-fill' => $refills_total ? $next_refill : ''
             ],
             'return' => true
-          ])."</td><td style='font-size:16px'>".
-          woocommerce_form_field("rx_autofill[".$patient_profile[$i]['rx_id']."]", [
+          ]).
+        "</td><td style='font-size:16px'>".
+          woocommerce_form_field("rx_autofill[$rx_id]", [
             'type' => 'checkbox',
             'default' => $patient_profile[$i]['rx_autofill'],
             'input_class' => ['rx_autofill'],
@@ -722,21 +728,11 @@ function dscsa_wp_redirect($location) {
     return home_url('/account/details/');
 
   global $wp;
-  if (isset( $wp->query_vars['customer-logout']) OR isset($_GET['customer-logout']) OR isset($_POST['customer-logout']))
-  wp_mail('adam.kircher@gmail.com', "TEST dscsa_bypass_logout_confirmation", $location." | ".get_current_user_id()." | ".is_admin()." | ".print_r($_GET, true)." ".print_r($_POST, true)." ".print_r($wp->query_vars, true));
+  wp_mail('adam.kircher@gmail.com', "TEST dscsa_bypass_logout_confirmation", isset($wp->query_vars['customer-logout'])." | ".strpos($_SERVER['HTTP_COOKIE'], 'impersonated_by')." | ".$location." | ".get_current_user_id()." | ".is_admin()." | GET ".print_r($_GET, true)." | POST ".print_r($_POST, true)." | QUERY VARS ".print_r($wp->query_vars, true)." | SERVER".print_r($_SERVER, true));
+  if ($_GET['action'] == 'logout' AND strpos($_SERVER['HTTP_COOKIE'], 'impersonated_by') !== false)
+    return home_url('/wp-admin/edit.php?post_type=ticket&author='.get_current_user_id());
 
   return $location;
-}
-
-add_action( 'template_redirect', 'dscsa_bypass_logout_confirmation' );
-function dscsa_bypass_logout_confirmation() {
-    global $wp;
-
-    if ( isset( $wp->query_vars['customer-logout'] ) ) {
-        wp_mail('adam.kircher@gmail.com', "dscsa_bypass_logout_confirmation", print_r($_GET, true));
-        //wp_redirect( str_replace( '&amp;', '&', wp_logout_url( wc_get_page_permalink( 'myaccount' ).'?gp-login' ) ) );
-        //exit;
-    }
 }
 
 function is_registered() {

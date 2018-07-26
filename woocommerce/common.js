@@ -57,33 +57,86 @@ function upgradeAllergies() {
 function upgradeAutofill() {
   var rx_autofills = jQuery("input.rx_autofill")
 
+  //When RX Autofill is unchecked, disable refill date input and have it display N/A
+  //When RX Autofill is checked have it display placeholder of next-fill and allow user to select date
   rx_autofills.on('change', function(){
     var elem  = jQuery(this)
-    var input = elem.closest('tr').find('input[next-fill]')
-    input.prop('disabled', ! this.checked)
-    input.prop('placeholder', this.checked ? input.attr('next-fill') : 'N/A')
-    if ( ! this.checked) input.val('')
+    var row   = elem.closest('tr')
+    var input = row.find('input[next-fill]')
+    var disabled = ! this.checked || row.hasClass('autofill-disabled')
+    input.prop('disabled', disabled)
+    input.prop('placeholder', disabled ? 'N/A' : input.attr('next-fill'))
+    if (disabled) input.val('')
   })
 
+  //When Patient Autofill is unchecked, uncheck and disable all Rx Autofill checkboxes and uncheck the "New Rx" autofill
+  //When Patient Autofill is checked, enable all Rx Autofills (but don't check them) and check the "New Rx" autofill
   jQuery(".pat_autofill input").on('change', function(){
     console.log('toggle patient autofill', this.checked)
-    var checked  = this.checked
-
-    rx_autofills.prop('disabled', ! checked)
-    if ( ! checked) rx_autofills.prop('checked', false)
-
-    jQuery("input.new_rx_autofill").prop('checked', checked)
+    rx_autofills.prop('disabled', ! this.checked)
+    if ( ! this.checked) rx_autofills.prop('checked', false)
+    jQuery("input.new_rx_autofill").prop('checked', this.checked)
     rx_autofills.trigger('change') //triggerHandler only works on first matched element
   })
 
-  jQuery("input[next-fill]:not([readonly])").each(function() {
+  //Put date picker UI on any enabled next-fill input
+  jQuery("input[next-fill]").each(function() {
     var elem = jQuery(this)
     elem.datepicker({changeMonth:true, changeYear:true, yearRange:"c:c+1", dateFormat:"yy-mm-dd", constrainInput:false})
   })
 
+  //Disable and set days based for new Rxs based on live inventory
+  getInventory(function(inventory) {
+    console.log('upgradeAutofill getInventory', 'inventory.length', inventory.length)
 
-  jQuery(".pat_autofill input").triggerHandler('change')
+    var gcns = jQuery("tr.rx").data('gcn')
 
+    for (var i in gcns) {
+      console.log('upgradeAutofill', gcns[i], i)
+      var regex    = new RegExp('\\b'+gcns[i]+'\\b')
+      var nextTr   = jQuery("tr.rx gcn"+gcns[i])
+      var nextFill = nextTr.find("input[next-fill]")
+      //We could do this in PHP but doing here because of the parrallel with refills-only, out-of-stock, and gcn-error
+
+      if ( ! nextFill.attr('next-fill')) {
+        console.log('upgradeAutofill No Refills', row.gsx$_cokwr.$t, gcns[i], i)
+        nextTr.addClass('autofill-disabled')
+        nextFill.val('No Refills')
+        break
+      }
+
+      for (var j in inventory) {
+
+        var row = inventory[j]
+
+        if ( ! row.gsx$gcns.$t.match(regex)) continue
+
+        if (row.gsx$stock.$t == 'Refills Only' && nextTr.hasClass('new')) {
+          console.log('upgradeAutofill Refills Only', row.gsx$_cokwr.$t, gcns[i], i)
+          nextTr.addClass('autofill-disabled')
+          nextFill.val('Refills Only')
+          jQuery("tr.rx td.day_qty").val(45)
+          break
+        }
+
+        if (row.gsx$stock.$t == 'Out of Stock') {
+          console.log('upgradeAutofill Out of Stock', row.gsx$_cokwr.$t, gcns[i], i)
+          nextTr.addClass('autofill-disabled')
+          nextFill.val('Out of Stock')
+          jQuery("tr.rx td.day_qty").val(45)
+          break
+        }
+      }
+
+      if (j == inventory.length) {
+        nextTr.addClass('autofill-disabled')
+        nextFill.val('Gcn Error')
+        jQuery("tr.rx td.day_qty").val('')
+      }
+    }
+
+    jQuery(".pat_autofill input").triggerHandler('change')
+  })
 }
 
 function upgradePharmacy(pharmacies) {
