@@ -90,21 +90,17 @@ function upgradeAutofill() {
   getInventory(function(inventory) {
     console.log('upgradeAutofill getInventory', 'inventory.length', inventory.length)
 
-    var autofill_rows = jQuery("tr.rx")
-
-    for (var i in autofill_rows) {
-
-      var nextRow  = jQuery(autofill_rows[i])
-      var gcn      = nextRow.attr('gcn')
+    jQuery("tr.rx").each(function(i, tableRow) {
+      var gcn      = tableRow.attr('gcn')
       var regex    = new RegExp('\\b'+gcn+'\\b')
       console.log('upgradeAutofill', i, gcn)
 
-      var nextFill = nextRow.find("input[next-fill]")
+      var nextFill = tableRow.find("input[next-fill]")
       //We could do this in PHP but doing here because of the parrallel with refills-only, out-of-stock, and gcn-error
 
       if ( ! nextFill.attr('next-fill')) {
         console.log('upgradeAutofill No Refills', i, gcn)
-        nextRow.addClass('autofill-disabled')
+        tableRow.addClass('autofill-disabled')
         nextFill.val('No Refills')
         continue
       }
@@ -115,9 +111,9 @@ function upgradeAutofill() {
 
         if ( ! row.gsx$gcns.$t.match(regex)) continue
 
-        if (row.gsx$stock.$t == 'Refills Only' && nextRow.hasClass('new')) {
+        if (row.gsx$stock.$t == 'Refills Only' && tableRow.hasClass('new')) {
           console.log('upgradeAutofill Refills Only', row.gsx$_cokwr.$t, i, gcn)
-          nextRow.addClass('autofill-disabled')
+          tableRow.addClass('autofill-disabled')
           nextFill.val('Refills Only')
           jQuery("tr.rx td.day_qty").val(45)
           break
@@ -125,7 +121,7 @@ function upgradeAutofill() {
 
         if (row.gsx$stock.$t == 'Out of Stock') {
           console.log('upgradeAutofill Out of Stock', row.gsx$_cokwr.$t, i, gcn)
-          nextRow.addClass('autofill-disabled')
+          tableRow.addClass('autofill-disabled')
           nextFill.val('Out of Stock')
           jQuery("tr.rx td.day_qty").val(45)
           break
@@ -133,11 +129,11 @@ function upgradeAutofill() {
       }
 
       if (j == inventory.length) {
-        nextRow.addClass('autofill-disabled')
+        tableRow.addClass('autofill-disabled')
         nextFill.val('Gcn Error')
         jQuery("tr.rx td.day_qty").val('')
       }
-    }
+    })
 
     jQuery(".pat_autofill input").triggerHandler('change')
   })
