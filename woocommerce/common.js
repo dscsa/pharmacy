@@ -102,7 +102,7 @@ function upgradeAutofill() {
       //We could do this in PHP but doing here because of the parrallel with refills-only, out-of-stock, and gcn-error
 
       if ( ! nextFill.attr('next-fill')) {
-        console.log('upgradeAutofill No Refills', row.gsx$_cokwr.$t, gcns[i], i)
+        console.log('upgradeAutofill No Refills', row.gsx$_cokwr.$t, i, gcn)
         nextRow.addClass('autofill-disabled')
         nextFill.val('No Refills')
         break
@@ -115,7 +115,7 @@ function upgradeAutofill() {
         if ( ! row.gsx$gcns.$t.match(regex)) continue
 
         if (row.gsx$stock.$t == 'Refills Only' && nextRow.hasClass('new')) {
-          console.log('upgradeAutofill Refills Only', row.gsx$_cokwr.$t, gcns[i], i)
+          console.log('upgradeAutofill Refills Only', row.gsx$_cokwr.$t, i, gcn)
           nextRow.addClass('autofill-disabled')
           nextFill.val('Refills Only')
           jQuery("tr.rx td.day_qty").val(45)
@@ -123,7 +123,7 @@ function upgradeAutofill() {
         }
 
         if (row.gsx$stock.$t == 'Out of Stock') {
-          console.log('upgradeAutofill Out of Stock', row.gsx$_cokwr.$t, gcns[i], i)
+          console.log('upgradeAutofill Out of Stock', row.gsx$_cokwr.$t, i, gcn)
           nextRow.addClass('autofill-disabled')
           nextFill.val('Out of Stock')
           jQuery("tr.rx td.day_qty").val(45)
