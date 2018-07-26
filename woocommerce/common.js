@@ -63,16 +63,16 @@ function upgradeAutofill() {
     var elem  = jQuery(this)
     var row   = elem.closest('tr.rx')
     var input = row.find('.next_fill')
-    var disabled = row.hasClass('nextfill-disabled')
+    var disabled = ! this.checked || row.hasClass('nextfill-disabled')
     var off = row.hasClass('autofill-off')
     console.log('toggle rx autofill', this.checked, disabled, input.val())
     if (off) {
       elem.prop('checked', false)
       elem.prop('disabled', true)
     }
-    input.prop('disabled', ! this.checked || disabled)
-    input.prop('placeholder', ! this.checked || disabled ? 'N/A' : input.attr('next-fill'))
-    if ( ! this.checked && ! disabled) input.val('')
+    input.prop('disabled',  disabled)
+    input.prop('placeholder', disabled ? 'N/A' : input.attr('next-fill'))
+    if ( ! disabled) input.val('')
   })
 
   //When Patient Autofill is unchecked, uncheck and disable all Rx Autofill checkboxes and uncheck the "New Rx" autofill
