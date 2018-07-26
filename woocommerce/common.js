@@ -103,7 +103,7 @@ function upgradeAutofill() {
       if ( ! nextFill.attr('next-fill')) {
         tableRow.addClass('autofill-disabled')
         nextFill.val('No Refills')
-        console.log('upgradeAutofill No Refills', i, gcn, nextFill.val())
+        console.log('upgradeAutofill No Refills', i, gcn, nextFill.val(), nextFill)
         return
       }
 
@@ -114,15 +114,15 @@ function upgradeAutofill() {
         if ( ! row.gsx$gcns.$t.match(regex)) continue
 
         if (row.gsx$stock.$t == 'Refills Only' && tableRow.hasClass('new')) {
-          console.log('upgradeAutofill Refills Only', row.gsx$_cokwr.$t, i, gcn)
           tableRow.addClass('autofill-disabled')
           nextFill.val('Refills Only')
+          console.log('upgradeAutofill Refills Only', row.gsx$_cokwr.$t, i, gcn, nextFill.val(), nextFill)
           jQuery("tr.rx td.day_qty").val(45)
           break
         }
 
         if (row.gsx$stock.$t == 'Out of Stock') {
-          console.log('upgradeAutofill Out of Stock', row.gsx$_cokwr.$t, i, gcn)
+          console.log('upgradeAutofill Out of Stock', row.gsx$_cokwr.$t, i, gcn, nextFill.val(), nextFill)
           tableRow.addClass('autofill-disabled')
           nextFill.val('Out of Stock')
           jQuery("tr.rx td.day_qty").val(45)
@@ -131,6 +131,7 @@ function upgradeAutofill() {
       }
 
       if (j == inventory.length) {
+        console.log('upgradeAutofill Gcn Error', row.gsx$_cokwr.$t, i, , nextFill.val(), nextFill)
         tableRow.addClass('autofill-disabled')
         nextFill.val('Gcn Error')
         jQuery("tr.rx td.day_qty").val('')
