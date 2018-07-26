@@ -100,7 +100,7 @@ function upgradeAutofill() {
       var nextFill = tableRow.find(".next_fill")
       //We could do this in PHP but doing here because of the parrallel with refills-only, out-of-stock, and gcn-error
 
-      if (nextFill.attr('next-fill') == 'N/A') {
+      if ( ! nextFill.attr('next-fill')) {
         tableRow.addClass('autofill-disabled')
         nextFill.val('No Refills')
         console.log('upgradeAutofill No Refills', i, gcn, nextFill.val(), nextFill)
