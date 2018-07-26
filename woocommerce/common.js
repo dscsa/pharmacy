@@ -71,7 +71,7 @@ function upgradeAutofill() {
       elem.prop('disabled', true)
     }
     input.prop('disabled',  disabled)
-    input.prop('placeholder', disabled ? 'N/A' : input.attr('next-fill'))
+    input.prop('placeholder', disabled ? 'N/A' : (input.attr('next-fill') ?: ''))
     if ( ! disabled) input.val('')
   })
 
