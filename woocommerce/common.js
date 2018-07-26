@@ -62,7 +62,7 @@ function upgradeAutofill() {
   rx_autofills.on('change', function(){
     var elem  = jQuery(this)
     var row   = elem.closest('tr.rx')
-    var input = row.find('input[next-fill]')
+    var input = row.find('.next_fill')
     var disabled = row.hasClass('autofill-disabled')
     console.log('toggle rx autofill', this.checked, disabled, input.val())
     elem.prop('disabled', disabled)
@@ -82,7 +82,7 @@ function upgradeAutofill() {
   })
 
   //Put date picker UI on any enabled next-fill input
-  jQuery("input[next-fill]").each(function() {
+  jQuery(".next_fill").each(function() {
     var elem = jQuery(this)
     elem.datepicker({changeMonth:true, changeYear:true, yearRange:"c:c+1", dateFormat:"yy-mm-dd", constrainInput:true})
   })
@@ -97,10 +97,10 @@ function upgradeAutofill() {
       var regex    = new RegExp('\\b'+gcn+'\\b')
       console.log('upgradeAutofill', i, gcn)
 
-      var nextFill = tableRow.find("input[next-fill]")
+      var nextFill = tableRow.find(".next_fill")
       //We could do this in PHP but doing here because of the parrallel with refills-only, out-of-stock, and gcn-error
 
-      if ( ! nextFill.attr('next-fill')) {
+      if (nextFill.attr('next-fill') == 'N/A') {
         tableRow.addClass('autofill-disabled')
         nextFill.val('No Refills')
         console.log('upgradeAutofill No Refills', i, gcn, nextFill.val(), nextFill)

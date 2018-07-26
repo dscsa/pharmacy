@@ -469,6 +469,7 @@ function dscsa_user_edit_account($user_id = null) {
           woocommerce_form_field("autofill_resume[$rx_id]", [
             'type' => 'text',
             'default' => $autofill_date,
+            'input_class' => ['next_fill'],
             'custom_attributes' => [
               'next-fill' => $refills_total ? $next_refill : ''
             ],
