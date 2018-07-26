@@ -63,11 +63,13 @@ function upgradeAutofill() {
     var elem  = jQuery(this)
     var row   = elem.closest('tr.rx')
     var input = row.find('.next_fill')
-    var disabled = row.hasClass('autofill-disabled')
+    var disabled = row.hasClass('nextfill-disabled')
     var off = row.hasClass('autofill-off')
     console.log('toggle rx autofill', this.checked, disabled, input.val())
-    if (off) elem.prop('checked', false)
-    elem.prop('disabled', disabled)
+    if (off) {
+      elem.prop('checked', false)
+      elem.prop('disabled', true)
+    }
     input.prop('disabled', ! this.checked || disabled)
     input.prop('placeholder', ! this.checked || disabled ? 'N/A' : input.attr('next-fill'))
     if ( ! this.checked && ! disabled) input.val('')
@@ -103,7 +105,7 @@ function upgradeAutofill() {
       //We could do this in PHP but doing here because of the parrallel with refills-only, out-of-stock, and gcn-error
 
       if ( ! nextFill.attr('next-fill')) {
-        tableRow.addClass('autofill-disabled')
+        tableRow.addClass('nextfill-disabled')
         nextFill.val('No Refills')
         console.log('upgradeAutofill No Refills', i, gcn, nextFill.val(), nextFill)
         return
@@ -116,7 +118,7 @@ function upgradeAutofill() {
         if ( ! row.gsx$gcns.$t.match(regex)) continue
 
         if (row.gsx$stock.$t == 'Refills Only' && tableRow.hasClass('new')) {
-          tableRow.addClass('autofill-disabled autofill-off')
+          tableRow.addClass('nextfill-disabled autofill-off')
           nextFill.val('Refills Only')
           console.log('upgradeAutofill Refills Only', row.gsx$_cokwr.$t, i, gcn, nextFill.val(), nextFill)
           jQuery("tr.rx td.day_qty").val(45)
@@ -125,7 +127,7 @@ function upgradeAutofill() {
 
         if (row.gsx$stock.$t == 'Out of Stock') {
           console.log('upgradeAutofill Out of Stock', row.gsx$_cokwr.$t, i, gcn, nextFill.val(), nextFill)
-          tableRow.addClass('autofill-disabled autofill-off')
+          tableRow.addClass('nextfill-disabled autofill-off')
           nextFill.val('Out of Stock')
           jQuery("tr.rx td.day_qty").val(45)
           break
@@ -134,7 +136,7 @@ function upgradeAutofill() {
 
       if (j == inventory.length) {
         console.log('upgradeAutofill Gcn Error', row.gsx$_cokwr.$t, i, gcn, nextFill.val(), nextFill)
-        tableRow.addClass('autofill-disabled')
+        tableRow.addClass('nextfill-disabled')
         nextFill.val('Gcn Error')
         jQuery("tr.rx td.day_qty").val('')
       }
