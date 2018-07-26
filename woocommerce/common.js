@@ -65,13 +65,13 @@ function upgradeAutofill() {
     var input = row.find('.next_fill')
     var disabled = ! this.checked || row.hasClass('nextfill-disabled')
     var off = row.hasClass('autofill-off')
-    console.log('toggle rx autofill', this.checked, disabled, input.val())
+    console.log('toggle rx autofill', this.checked, disabled, input.val(), input.attr('next-fill'), (input.attr('next-fill') || ''))
     if (off) {
       elem.prop('checked', false)
       elem.prop('disabled', true)
     }
     input.prop('disabled',  disabled)
-    input.prop('placeholder', disabled ? 'N/A' : (input.attr('next-fill') ?: ''))
+    input.prop('placeholder', disabled ? 'N/A' : (input.attr('next-fill') || ''))
     if ( ! disabled) input.val('')
   })
 
