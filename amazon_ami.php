@@ -1347,7 +1347,7 @@ function dscsa_translate($term, $raw, $domain) {
     'Your order has been received and is now being processed. Your order details are shown below for your reference:' => 'We got your prescription(s) and will start working on them right away',
     'Thanks for creating an account on %1$s. Your username is %2$s' => 'Thanks for completing Registration Step 1 of 2 on %1$s. Your username is %2$s',
     'Your password has been automatically generated: %s' => 'Your temporary password is your phone number: %s',
-    'Add payment method' => strtok($_SERVER["REQUEST_URI"],'?') == '/account/add-payment/' ? 'Save card' : 'Add a new debit/credit card'
+    'Add payment method' => strtok($_SERVER["REQUEST_URI"],'?') == '/account/add-payment/' ? 'Save autopay card' : 'Add a new debit/credit card'
   ];
 
   $toSpanish = [
