@@ -1317,7 +1317,7 @@ function dscsa_translate($term, $raw, $domain) {
     'Shipping:' => 'New Patient Fee:',
     'Free shipping coupon' => 'Paid with Coupon',
     'Free shipping' => 'Paid with Coupon', //not working (order details page)
-    'No saved methods found.' => 'No credit or debit cards are saved to your account',
+    'No saved methods found.' => 'Add a credit/debit card below to activate autopay.  Or pay manually on the "Orders" page',
     '%s has been added to your cart.' => strtok($_SERVER["REQUEST_URI"],'?') == '/account/'
       ? 'Step 2 of 2: You are almost done! Please complete this "Registration" page so we can fill your prescription(s).  If you need to login again, your temporary password is '.$phone.'.  You can change your password on the "Account Details" page'
       : 'Thank you for your order!',
@@ -1337,7 +1337,7 @@ function dscsa_translate($term, $raw, $domain) {
     'Your order has been received and is now being processed. Your order details are shown below for your reference:' => 'We got your prescription(s) and will start working on them right away',
     'Thanks for creating an account on %1$s. Your username is %2$s' => 'Thanks for completing Registration Step 1 of 2 on %1$s. Your username is %2$s',
     'Your password has been automatically generated: %s' => 'Your temporary password is your phone number: %s',
-    'Add payment method' => 'Add a debit/credit card for autopay'
+    'Add payment method' => 'Add a new debit/credit card'
   ];
 
   $toSpanish = [
@@ -1404,7 +1404,6 @@ function dscsa_translate($term, $raw, $domain) {
     'Billing address' => 'Dirección de facturación',
     'Shipping address' => 'Dirección de envío',
     'Save address' => 'Guardar la dirección',
-    'No credit or debit cards are saved to your account' => 'Las tarjetas de crédito o débito no se guardan en su cuenta',
     'Add payment method' => 'Agregar método de pago',
     'Save changes' => 'Guardar los cambios',
     'is a required field' => 'es una información requerida',
