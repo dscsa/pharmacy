@@ -48,7 +48,7 @@ function dscsa_user_scripts() {
       if ( ! is_registered()) {
         wp_register_style( 'hide-nav-for-new-users', false );
       	wp_enqueue_style( 'hide-nav-for-new-users' );
-      	wp_add_inline_style( 'hide-nav-for-new-users', '.woocommerce-MyAccount-navigation { visibility:hidden }');
+      	wp_add_inline_style( 'hide-nav-for-new-users', '.woocommerce-MyAccount-navigation { display:none }');
       }
       wp_enqueue_style('dscsa-checkout', 'https://dscsa.github.io/webform/woocommerce/checkout.css');
       wp_enqueue_script('dscsa-checkout', 'https://dscsa.github.io/webform/woocommerce/checkout.js', ['jquery', 'ie9ajax']);
@@ -79,9 +79,13 @@ function get_default($field, $user_id = null) {
   return $_POST ? $_POST[$field] : get_meta($field, $user_id);
 }
 
+//This doesn't seemed to be called from new order page
 //do_action( 'woocommerce_stripe_add_card', $this->get_id(), $token, $response );
-add_action('woocommerce_stripe_add_card', 'dscsa_stripe_add_card', 10, 3);
-function dscsa_stripe_add_card($stripe_id, $card, $response) {
+//https://github.com/woocommerce/woocommerce-gateway-stripe/blob/4eb09247e5f49563c086e075fd962253773cc7eb/includes/class-wc-stripe-customer.php
+add_action('woocommerce_stripe_add_source', 'dscsa_stripe_add_source', 10, 3);
+function dscsa_stripe_add_source($stripe_id, $card, $response) {
+
+  wp_mail("adam.kircher@gmail.com", "dscsa_stripe_add_source", "$stripe_id ".print_r($card, true).print_r($response, true));
 
    $card = [
      'last4' => $card->get_last4(),
@@ -106,6 +110,22 @@ function dscsa_stripe_add_card($stripe_id, $card, $response) {
    $coupon = get_meta('coupon', $user_id);
 
    update_card_and_coupon($patient_id, $card, $coupon);
+}
+
+add_action('wc_stripe_delete_source', 'dscsa_stripe_delete_source', 10, 2);
+function dscsa_stripe_delete_source($stripe_id, $response) {
+  wp_mail("adam.kircher@gmail.com", "dscsa_stripe_delete_source", "$stripe_id ".print_r($response, true));
+}
+
+add_action('wc_stripe_set_default_source', 'dscsa_stripe_set_default_source', 10, 2);
+function dscsa_stripe_set_default_source($stripe_id, $response) {
+  wp_mail("adam.kircher@gmail.com", "dscsa_stripe_set_default_source", "$stripe_id ".print_r($response, true));
+}
+
+add_filter( 'woocommerce_get_customer_payment_tokens',  'dscsa_get_customer_payment_tokens', 10, 3);
+function dscsa_get_customer_payment_tokens($tokens, $customer_id, $gateway_id ) {
+  wp_mail("adam.kircher@gmail.com", "dscsa_get_customer_payment_tokens", "$customer_id ".print_r($tokens, true));
+  return $tokens;
 }
 
 function order_fields($user_id = null, $ordered = null, $rxs = []) {
@@ -743,6 +763,7 @@ function is_registered() {
 add_filter ('woocommerce_account_menu_items', 'dscsa_my_account_menu');
 function dscsa_my_account_menu($nav) {
   $nav['dashboard'] = __('New Order');
+  $nav['payment-methods'] = __('Autopay');
   return $nav;
 }
 
@@ -1315,7 +1336,8 @@ function dscsa_translate($term, $raw, $domain) {
     'Your order is on-hold until we confirm payment has been received. Your order details are shown below for your reference:' => $_POST['rx_source'] == 'pharmacy' ? 'We are currently requesting a transfer of your Rx(s) from your pharmacy' : 'We are currently waiting on Rx(s) to be sent from your doctor',
     'Your order has been received and is now being processed. Your order details are shown below for your reference:' => 'We got your prescription(s) and will start working on them right away',
     'Thanks for creating an account on %1$s. Your username is %2$s' => 'Thanks for completing Registration Step 1 of 2 on %1$s. Your username is %2$s',
-    'Your password has been automatically generated: %s' => 'Your temporary password is your phone number: %s'
+    'Your password has been automatically generated: %s' => 'Your temporary password is your phone number: %s',
+    'Add payment method' => 'Add a debit/credit card for autopay'
   ];
 
   $toSpanish = [
