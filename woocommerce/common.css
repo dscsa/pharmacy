@@ -135,5 +135,5 @@ form#order_review .payment_method_cheque { /* if you want to pay for order onlin
 
 /* Add-Payment Page */
 form#add_payment_method .input-radio {
-  display:none;
+  display:none !important;
 }
