@@ -85,7 +85,7 @@ function get_default($field, $user_id = null) {
 add_action('woocommerce_stripe_add_source', 'dscsa_stripe_add_source', 10, 3);
 function dscsa_stripe_add_source($stripe_id, $card, $response) {
 
-  wp_mail("adam.kircher@gmail.com", "dscsa_stripe_add_source", "$stripe_id ".print_r($card, true).print_r($response, true));
+  wp_mail("adam.kircher@gmail.com", "dscsa_stripe_add_source", "$stripe_id ".print_r($card, true).print_r($response, true)." ".print_r($_POST, true));
 
    $card = [
      'last4' => $card->get_last4(),
@@ -114,18 +114,18 @@ function dscsa_stripe_add_source($stripe_id, $card, $response) {
 
 add_action('wc_stripe_delete_source', 'dscsa_stripe_delete_source', 10, 2);
 function dscsa_stripe_delete_source($stripe_id, $response) {
-  wp_mail("adam.kircher@gmail.com", "dscsa_stripe_delete_source", "$stripe_id ".print_r($response, true));
+  wp_mail("adam.kircher@gmail.com", "dscsa_stripe_delete_source", "$stripe_id ".print_r($response, true)." ".print_r($_POST, true));
 }
 
 add_action('wc_stripe_set_default_source', 'dscsa_stripe_set_default_source', 10, 2);
 function dscsa_stripe_set_default_source($stripe_id, $response) {
-  wp_mail("adam.kircher@gmail.com", "dscsa_stripe_set_default_source", "$stripe_id ".print_r($response, true));
+  wp_mail("adam.kircher@gmail.com", "dscsa_stripe_set_default_source", "$stripe_id ".print_r($response, true)." ".print_r($_POST, true));
 }
 
-add_filter( 'woocommerce_get_customer_payment_tokens',  'dscsa_get_customer_payment_tokens', 10, 3);
+add_filter( 'woocommerce_get_customer_payment_tokens',  'dscsa_get_customer_payment_tokens', 99, 3);
 function dscsa_get_customer_payment_tokens($tokens, $customer_id, $gateway_id ) {
-  wp_mail("adam.kircher@gmail.com", "dscsa_get_customer_payment_tokens", "$customer_id ".print_r($tokens, true));
-  return $tokens;
+  wp_mail("adam.kircher@gmail.com", "dscsa_get_customer_payment_tokens", "$customer_id | ".is_wc_endpoint_url( 'add-payment' ).(strpos($_SERVER['HTTP_REFERER'], 'payment/') ? ' HIDE TOKENS ' : ' SHOW TOKENS ').print_r(count($tokens), true)." ".print_r($_POST, true)." ".print_r($_SERVER, true));
+  return (strpos($_SERVER['HTTP_REFERER'], 'payment/') AND ! strpos($_SERVER['REQUEST_URI'], '/payment/')) ? [] : $tokens; //Captures payment and add-payment.  Unfortunately is_wc_endpoint_url( 'add-payment' ) didn't work because of a 2nd ajac call to goodpill.org/?wc-ajax=update_order_review
 }
 
 function order_fields($user_id = null, $ordered = null, $rxs = []) {
@@ -1337,7 +1337,7 @@ function dscsa_translate($term, $raw, $domain) {
     'Your order has been received and is now being processed. Your order details are shown below for your reference:' => 'We got your prescription(s) and will start working on them right away',
     'Thanks for creating an account on %1$s. Your username is %2$s' => 'Thanks for completing Registration Step 1 of 2 on %1$s. Your username is %2$s',
     'Your password has been automatically generated: %s' => 'Your temporary password is your phone number: %s',
-    'Add payment method' => 'Add a new debit/credit card'
+    'Add payment method' => strtok($_SERVER["REQUEST_URI"],'?') == '/account/add-payment/' ? 'Save card' : 'Add a new debit/credit card'
   ];
 
   $toSpanish = [
