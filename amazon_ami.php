@@ -79,53 +79,63 @@ function get_default($field, $user_id = null) {
   return $_POST ? $_POST[$field] : get_meta($field, $user_id);
 }
 
-//This doesn't seemed to be called from new order page
-//do_action( 'woocommerce_stripe_add_card', $this->get_id(), $token, $response );
-//https://github.com/woocommerce/woocommerce-gateway-stripe/blob/4eb09247e5f49563c086e075fd962253773cc7eb/includes/class-wc-stripe-customer.php
-add_action('woocommerce_stripe_add_source', 'dscsa_stripe_add_source', 10, 3);
-function dscsa_stripe_add_source($stripe_id, $card, $response) {
-
-  wp_mail("adam.kircher@gmail.com", "dscsa_stripe_add_source", "$stripe_id ".print_r($card, true).print_r($response, true)." ".print_r($_POST, true));
-
-   $card = [
-     'last4' => $card->get_last4(),
-     'card' => $card->get_token(),
-     'customer' => $stripe_id,
-     'type' => $card->get_card_type(),
-     'year' => $card->get_expiry_year(),
-     'month' => $card->get_expiry_month()
-   ];
-
-   $user_id = get_current_user_id();
-   $patient_id = get_meta('guardian_id', $user_id);
-
-   update_user_meta($user_id, 'stripe', $card);
-
-   if ( ! $patient_id) return; //in case they fill this out before saving account details or a new order
-
-   //Meet guardian 50 character limit
-   //Customer 18, Card 29, Delimiter 1 = 48
-   update_stripe_tokens($patient_id, $card['customer'].','.$card['card'].',');
-
-   $coupon = get_meta('coupon', $user_id);
-
-   update_card_and_coupon($patient_id, $card, $coupon);
-}
-
 add_action('wc_stripe_delete_source', 'dscsa_stripe_delete_source', 10, 2);
-function dscsa_stripe_delete_source($stripe_id, $response) {
-  wp_mail("adam.kircher@gmail.com", "dscsa_stripe_delete_source", "$stripe_id ".print_r($response, true)." ".print_r($_POST, true));
+function dscsa_stripe_delete_source($stripe_id, $customer) {
+  $user_id = get_current_user_id();
+
+  $tokens = WC_Payment_Tokens::get_customer_tokens($user_id);
+
+  if (count($tokens)) return;
+
+  $patient_id = get_meta('guardian_id', $user_id);
+
+  $coupon = get_meta('coupon', $user_id);
+
+  wp_mail("adam.kircher@gmail.com", "dscsa_stripe_set_default_source autopay off", "$stripe_id ".count($tokens)." ".print_r($tokens, true)." ".print_r($customer, true));
+
+  update_stripe_tokens($patient_id, ',,');
+
+  update_card_and_coupon($patient_id, null, $coupon);
 }
 
 add_action('wc_stripe_set_default_source', 'dscsa_stripe_set_default_source', 10, 2);
-function dscsa_stripe_set_default_source($stripe_id, $response) {
-  wp_mail("adam.kircher@gmail.com", "dscsa_stripe_set_default_source", "$stripe_id ".print_r($response, true)." ".print_r($_POST, true));
+function dscsa_stripe_set_default_source($stripe_id, $customer) {
+
+  $card = [
+    'last4' => $customer->sources->data[0]->card->last4,
+    'card' => $customer->default_source,
+    'customer' => $stripe_id,
+    'type' => $customer->sources->data[0]->card->brand,
+    'year' => $customer->sources->data[0]->card->exp_year,
+    'month' => $customer->sources->data[0]->card->exp_month
+  ];
+
+  wp_mail("adam.kircher@gmail.com", "dscsa_stripe_set_default_source", "$stripe_id ".print_r($card, true)." ".print_r($customer, true));
+
+  $user_id = get_current_user_id();
+  $patient_id = get_meta('guardian_id', $user_id);
+
+  update_user_meta($user_id, 'stripe', $card);
+
+  if ( ! $patient_id) return; //in case they fill this out before saving account details or a new order
+
+  //Meet guardian 50 character limit
+  //Customer 18, Card 29, Delimiter 1 = 48
+  update_stripe_tokens($patient_id, $card['customer'].','.$card['card'].',');
+
+  $coupon = get_meta('coupon', $user_id);
+
+  update_card_and_coupon($patient_id, $card, $coupon);
 }
 
 add_filter( 'woocommerce_get_customer_payment_tokens',  'dscsa_get_customer_payment_tokens', 99, 3);
 function dscsa_get_customer_payment_tokens($tokens, $customer_id, $gateway_id ) {
-  wp_mail("adam.kircher@gmail.com", "dscsa_get_customer_payment_tokens", "$customer_id | ".is_wc_endpoint_url( 'add-payment' ).(strpos($_SERVER['HTTP_REFERER'], 'payment/') ? ' HIDE TOKENS ' : ' SHOW TOKENS ').print_r(count($tokens), true)." ".print_r($_POST, true)." ".print_r($_SERVER, true));
-  return (strpos($_SERVER['HTTP_REFERER'], 'payment/') AND ! strpos($_SERVER['REQUEST_URI'], '/payment/')) ? [] : $tokens; //Captures payment and add-payment.  Unfortunately is_wc_endpoint_url( 'add-payment' ) didn't work because of a 2nd ajac call to goodpill.org/?wc-ajax=update_order_review
+  //Outer parenthesis are important as assignment comes before OR in precedence http://php.net/manual/en/language.operators.logical.php
+  $is_add_payment = (strpos($_SERVER['REQUEST_URI'], '/add-payment/') OR ($_GET['wc-ajax'] == 'update_order_review' AND strpos($_SERVER['HTTP_REFERER'], '/add-payment/')));
+
+  //wp_mail("adam.kircher@gmail.com", "dscsa_stripe_set_default_source", ($is_add_payment ? 'TRUE' : 'FALSE' ).' | '.(is_wc_endpoint_url( 'add-payment' ) ? 'TRUE' : 'FALSE' ).' | '.($_GET['wc-ajax'] == 'update_order_review' ? 'TRUE' : 'FALSE' ).' | '.(strpos($_SERVER['HTTP_REFERER'], '/add-payment/') ? 'TRUE' : 'FALSE' ).print_r($_GET, true)." ".print_r($_SERVER, true));
+
+  return $is_add_payment ? [] : $tokens;
 }
 
 function order_fields($user_id = null, $ordered = null, $rxs = []) {

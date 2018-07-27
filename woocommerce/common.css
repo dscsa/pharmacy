@@ -110,8 +110,8 @@ label[for=account_display_name], /* On Account Details Page */
 .hidden {
   display:none !important
 }
-/*Order-Pay Screen */
-form#order_review  {
+/*Order-Pay Page*/
+form#order_review {
   display:inline-block;
 }
 form#order_review tr  {
@@ -130,5 +130,10 @@ form#order_review {
   width:100%; /* only active on small screens, otherwise media filter*/
 }
 form#order_review .payment_method_cheque { /* if you want to pay for order online it has to be by credit card */
+  display:none;
+}
+
+/* Add-Payment Page */
+form#add_payment_method .input-radio {
   display:none;
 }
