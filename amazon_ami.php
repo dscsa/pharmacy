@@ -240,6 +240,7 @@ function admin_fields($user_id = null) {
 
 //github: awesome-Support/includes/admin/functions-user-profile.php
 //github: awesome-Support/includes/admin/metaboxes/user-profile.php
+//https://www.goodpill.org/wp-admin/user-edit.php?user_id=1636&wp_http_referer=%2Fwp-admin%2Fusers.php
 //woocommerce_reset_password_notification no working
 add_filter('wpas_user_profile_contact_name', 'dscsa_user_profile_contact_name', 10, 3);
 function dscsa_user_profile_contact_name($display_name, $user, $ticket_id) {
@@ -496,7 +497,7 @@ function dscsa_user_edit_account($user_id = null) {
         "</td><td class='refills_total'>".$refills_total.
         "</td><td style='padding:8px'>".
           //Readonly because could not get disabled to work
-          woocommerce_form_field("autofill_resume[$rx_id]", [
+          woocommerce_form_field("autofill_resume[$gcn]", [
             'type' => 'text',
             'default' => $autofill_date,
             'input_class' => ['next_fill'],
@@ -506,7 +507,7 @@ function dscsa_user_edit_account($user_id = null) {
             'return' => true
           ]).
         "</td><td style='font-size:16px'>".
-          woocommerce_form_field("rx_autofill[$rx_id]", [
+          woocommerce_form_field("rx_autofill[$gcn]", [
             'type' => 'checkbox',
             'default' => $patient_profile[$i]['rx_autofill'],
             'input_class' => ['rx_autofill'],
