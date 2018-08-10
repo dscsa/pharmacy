@@ -827,7 +827,8 @@ function dscsa_save_account($user_id) {
   unset($sanitized['password_current'], $sanitized['password_1'], $sanitized['password_2']);
   wp_mail('adam.kircher@gmail.com', "dscsa_save_account_details", print_r($sanitized, true));
   $patient_id = dscsa_save_patient($user_id, shared_fields($user_id) + account_fields($user_id));
-  update_autofill($patient_id, $_POST['pat_autofill'] ? $_POST['autofill_resume'] : '');
+
+  update_autofill($patient_id, $_POST['pat_autofill'], $_POST['rx_autofill'], $_POST['autofill_resume']);
   update_email($patient_id, sanitize_text_field($_POST['account_email']));
 }
 
@@ -953,19 +954,20 @@ function dscsa_show_order_invoice($order) {
 
     //TODO REFACTOR THIS WHOLE PAGE TO BE LESS HACKY
     echo '<style>.woocommerce-customer-details, .woocommerce-order-details__title, .woocommerce-table--order-details { display:none }</style>';
-    echo "<script>jQuery(function() { upgradeOrdered(function(select) { var rxs = select.data('rxs'); select.val(rxs).change(); select.on('select2:unselecting', preventDefault);}) })</script>";
-
-    echo woocommerce_form_field('ordered[]', [
-      'type'   	  => 'select',
-      'label'     => __('Here are the Rx(s) in your order.  Call us to make a change'),
-      'options'   => [''],
-      'custom_attributes' => ['data-rxs' => json_encode(ordered_rxs($order))]
-    ]);
 
     if ($date_shipped AND $tracking_number) {
        echo "<h4>Your order was shipped on <mark class='order-date'>$date_shipped</mark> with tracking number <a target='_blank' href='https://tools.usps.com/go/TrackConfirmAction?tLabels=$tracking_number'>$tracking_number</a> to</h4><address>$address</address>";
     } else {
-       echo "<h4>Order will be shipped to</h4><address>$address</address>";
+      echo "<script>jQuery(function() { upgradeOrdered(function(select) { var rxs = select.data('rxs'); select.val(rxs).change(); select.on('select2:unselecting', preventDefault);}) })</script>";
+
+      echo woocommerce_form_field('ordered[]', [
+        'type'   	  => 'select',
+        'label'     => __('Here are the Rx(s) in your order.  Call us to make a change'),
+        'options'   => [''],
+        'custom_attributes' => ['data-rxs' => json_encode(ordered_rxs($order))]
+      ]);
+
+      echo "<h4>Order will be shipped to</h4><address>$address</address>";
     }
 
     if ($invoice_doc_id) {
@@ -1105,10 +1107,13 @@ function dscsa_save_patient($user_id, $fields) {
     $old_name   = [
      'birth_date' => substr($woocommerce->customer->username, -10),
      'first_name' => $woocommerce->customer->first_name,
-     'last_name'  => $woocommerce->customer->last_name
+     'last_name'  => $woocommerce->customer->last_name,
+     'email'  => $woocommerce->customer->email
     ];
 
-    if (strtolower($first_name) != strtolower($old_name['first_name']) OR strtolower($last_name) != strtolower($old_name['last_name']) OR $_POST['birth_date'] != $old_name['birth_date']) {
+    $email = $_POST['email'] || $_POST['account_email'];
+
+    if (strtolower($first_name) != strtolower($old_name['first_name']) OR strtolower($last_name) != strtolower($old_name['last_name']) OR $_POST['birth_date'] != $old_name['birth_date'] OR $email != $old_name['email']) {
       //wp_mail('hello@goodpill.org', 'Patient Name Change', print_r($_POST, true)."\r\n\r\n".print_r($order, true));
       wp_mail('adam.kircher@gmail.com', 'Warning Patient Identity Changed!', print_r($_POST, true)."\r\n\r\n".print_r($old_name, true));
     }
@@ -1148,8 +1153,6 @@ function dscsa_save_patient($user_id, $fields) {
     update_user_meta($user_id, 'guardian_id', $patient_id);
 
     //wp_mail('adam.kircher@gmail.com', "new patient", $patient_id.' '.print_r($_POST, true).print_r(mssql_get_last_message(), true));
-  } else {
-    update_phone($patient_id, $_POST['phone']);
   }
 
   $allergy_codes = [
@@ -1187,22 +1190,23 @@ function dscsa_save_patient($user_id, $fields) {
 
     if ($key == 'phone') {
       //wp_mail('adam.kircher@gmail.com', "phone",
+      update_phone($patient_id, $_POST['phone']);
       update_user_meta($user_id, 'billing_phone', $val); //this saves it on the user page as well
     }
 
     update_user_meta($user_id, $key, $val);
 
     if ($allergy_codes[$key]) {
-      //Since all checkboxes submitted even with none selected.  If none
-      //is selected manually set value to false for all except none
-      $val = ($_POST['allergies_none'] AND $key != 'allergies_none') ? NULL : str_replace("'", "''", $val);
-      //wp_mail('adam.kircher@gmail.com', 'save allergies', "$key $allergy_codes[$key] $val");
-      add_remove_allergy($patient_id, $allergy_codes[$key], $val);
-      //wp_mail('adam.kircher@gmail.com', "patient saved",
+      //NOTE: Looping through fields so we will see all allergies even if not in $_POST
+      //Checkboxes remain selected and in $_POST even if patient picks "allergies_none" and they are hidden
+      //we keep this so someone doesn't lose all their information if they accidentally toggle the allergy_none field
+      $add_remove = ($val && ! $_POST['allergies_none']) ? 1 : 0;
+      $other = ($key == 'allergies_other' AND $_POST[$key]) ? str_replace("'", "''", $val) : NULL;
+      add_remove_allergy($patient_id, $add_remove, $allergy_codes[$key], $other);
     }
   }
 
-  //wp_mail('adam.kircher@gmail.com', "patient saved", $patient_id.' '.print_r($_POST, true));
+  wp_mail('adam.kircher@gmail.com', "patient saved", $patient_id.' '.print_r($_POST, true).' '.print_r($fields, true));
 
   return $patient_id;
 }
@@ -1217,16 +1221,20 @@ add_filter('wp_insert_post_data', 'dscsa_update_order_status');
 function dscsa_update_order_status( $data) {
 
     //wp_mail('adam.kircher@gmail.com', "dscsa_update_order_status", is_admin()." | ".strlen($_POST['rxs'])." | ".(!!$_POST['rxs'])." | ".var_export($_POST['rxs'], true)." | ".print_r($_POST, true)." | ".print_r($data, true));
-    wp_mail('adam.kircher@gmail.com', "dscsa_update_order_status", print_r($data, true).print_r($_POST, true).print_r(mssql_get_last_message(), true));
-
     if (is_admin() OR $data['post_type'] != 'shop_order') return $data;
 
     if ($_POST['rx_source'] == 'erx' && $_POST['rxs']) { //Skip on-hold and go straight to processing if set
+      wp_mail('adam.kircher@gmail.com', "New Order - Rx Received (dscsa_update_order_status)", print_r($data, true).print_r($_POST, true).print_r(mssql_get_last_message(), true).print_r($_SERVER, true).print_r($_SESSION, true).print_r($_COOKIE, true));
+
       $data['post_status'] = 'wc-processing';
     } else if($_POST['rx_source']) { //checking for rx_source ensures that API calls to update status still work.  Even though we are not "capturing charge" setting "needs payment" seems to make the status goto processing
+      wp_mail('adam.kircher@gmail.com', "New Order - ".($_POST['rx_source'] == 'pharmacy' ? "Awaiting Transfer" : "Awaiting Doctor Rxs")." (dscsa_update_order_status)", print_r($data, true).print_r($_POST, true).print_r(mssql_get_last_message(), true).print_r($_SERVER, true).print_r($_SESSION, true).print_r($_COOKIE, true));
+
       $data['post_status'] = $_POST['rx_source'] == 'pharmacy' ? 'wc-awaiting-transfer' : 'wc-awaiting-rx';
     } else if($_POST['payment_method'] == 'stripe') { //order-pay page
-      $data['post_status'] = 'wc-shipped-paid-card';
+      wp_mail('adam.kircher@gmail.com', "Order Paid Manually (dscsa_update_order_status)", print_r($data, true).print_r($_POST, true).print_r(mssql_get_last_message(), true).print_r($_SERVER, true).print_r($_SESSION, true).print_r($_COOKIE, true));
+
+      $data['post_status'] = $data['post_status'] == 'wc-failed' ? 'wc-shipped-payfail' : 'wc-shipped-paid-card';
     }
 
     //wp_mail('adam.kircher@gmail.com', "dscsa_update_order_status 2", print_r($data, true));
@@ -1268,7 +1276,7 @@ function dscsa_order_is_editable($editable, $order) {
 
   if ($editable) return true;
 
-  return in_array($order->get_status(), array('processing', 'awaiting-rx', 'awaiting-transfer', 'shipped-unpaid', 'shipped-autopay', 'shipped-coupon'), true);
+  return in_array($order->get_status(), array('processing', 'awaiting-rx', 'awaiting-transfer', 'shipped-unpaid', 'shipped-autopay', 'shipped-payfail', 'shipped-coupon'), true);
 }
 
 add_filter('woocommerce_order_is_paid_statuses', 'dscsa_order_is_paid_statuses');
@@ -1501,6 +1509,7 @@ add_filter( 'woocommerce_valid_order_statuses_for_payment', 'dscsa_valid_order_s
 function dscsa_valid_order_statuses_for_payment($statuses) {
   $statuses[] = 'shipped-unpaid';
   $statuses[] = 'shipped-autopay';
+  $statuses[] = 'shipped-payfail';
   return $statuses;
 }
 
@@ -1622,9 +1631,9 @@ function get_guardian_order($guardian_id, $source, $comment) {
   else if @AlrNumber = 99  -- none
   else if @AlrNumber = 100 -- other
 */
-function add_remove_allergy($guardian_id, $allergy_id, $value) {
-  $isValue = $value ? 1 : 0;
-  return db_run("SirumWeb_AddRemove_Allergy '$guardian_id', '$isValue', '$allergy_id', '$value'");
+function add_remove_allergy($guardian_id, $add_remove, $allergy_id, $value) {
+
+  return db_run("SirumWeb_AddRemove_Allergy '$guardian_id', '$add_remove', '$allergy_id', '$value'");
 }
 
 // SirumWeb_AddUpdateHomePhone(
@@ -1802,8 +1811,23 @@ function update_email($guardian_id, $email) {
 
 //Procedure dbo.SirumWeb_ToggleAutofill (@PatID int, @json {rx_ids:autofill_resume_dates})
 //Set the patID and the new email address
-function update_autofill($guardian_id, $autofills) {
-  $sql = "SirumWeb_ToggleAutofill '$guardian_id', '".json_encode($autofills)."'";
+function update_autofill($guardian_id, $pat_autofill, $rx_autofill, $autofill_resume) {
+
+  $autofills = '';
+
+  if ($pat_autofill) {
+
+    $autofills = [];
+    //If user has no explicit dates then PHP will set $_POST[autofill_resume] to null rathern than array of empty keys.  So we have to use the rx_autofill_array instead.
+    foreach ($rx_autofill as $key => $value) {
+      $autofills[$key] = $autofill_resume[$key] ?: '';
+    }
+
+    $autofills = json_encode($autofills);
+  }
+
+
+  $sql = "SirumWeb_ToggleAutofill '$guardian_id', '$autofills'";
   $res = db_run($sql);
   wp_mail('adam.kircher@gmail.com', "update_autofill", $sql." ".print_r($_POST, true)." ".print_r($res, true));
   return $res;
