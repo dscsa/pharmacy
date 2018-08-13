@@ -1200,7 +1200,7 @@ function dscsa_save_patient($user_id, $fields) {
       //NOTE: Looping through fields so we will see all allergies even if not in $_POST
       //Checkboxes remain selected and in $_POST even if patient picks "allergies_none" and they are hidden
       //we keep this so someone doesn't lose all their information if they accidentally toggle the allergy_none field
-      $add_remove = ($val && ! $_POST['allergies_none']) ? 1 : 0;
+      $add_remove = ($key == 'allergies_none' || ! $_POST['allergies_none']) ? $val : 0;
       $other = ($key == 'allergies_other' AND $_POST[$key]) ? str_replace("'", "''", $val) : NULL;
       add_remove_allergy($patient_id, $add_remove, $allergy_codes[$key], $other);
     }
@@ -1223,7 +1223,7 @@ function dscsa_update_order_status( $data) {
     //wp_mail('adam.kircher@gmail.com', "dscsa_update_order_status", is_admin()." | ".strlen($_POST['rxs'])." | ".(!!$_POST['rxs'])." | ".var_export($_POST['rxs'], true)." | ".print_r($_POST, true)." | ".print_r($data, true));
     if (is_admin() OR $data['post_type'] != 'shop_order') return $data;
 
-    if ($_POST['rx_source'] == 'erx' && $_POST['rxs']) { //Skip on-hold and go straight to processing if set
+    if ($_POST['rx_source'] == 'erx' && $_POST['rxs'] && $_POST['rxs'][0]) { //Skip on-hold and go straight to processing if set.  In some case rather than being [] (falsey) rxs was [0 => ''] (truthy), so checking first element too
       wp_mail('adam.kircher@gmail.com', "New Order - Rx Received (dscsa_update_order_status)", print_r($data, true).print_r($_POST, true).print_r(mssql_get_last_message(), true).print_r($_SERVER, true).print_r($_SESSION, true).print_r($_COOKIE, true));
 
       $data['post_status'] = 'wc-processing';
@@ -1632,8 +1632,10 @@ function get_guardian_order($guardian_id, $source, $comment) {
   else if @AlrNumber = 100 -- other
 */
 function add_remove_allergy($guardian_id, $add_remove, $allergy_id, $value) {
-
-  return db_run("SirumWeb_AddRemove_Allergy '$guardian_id', '$add_remove', '$allergy_id', '$value'");
+  $add_remove = $add_remove ? 1 : 0; //force binary
+  $query = "SirumWeb_AddRemove_Allergy '$guardian_id', '$add_remove', '$allergy_id', '$value'";
+  wp_mail('adam.kircher@gmail.com', "add_remove_allergy", $query);
+  return db_run($query);
 }
 
 // SirumWeb_AddUpdateHomePhone(
