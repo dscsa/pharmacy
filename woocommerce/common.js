@@ -274,7 +274,7 @@ function upgradeRxs(callback) {
       data.push({ //Default Value assuming no match found
         gsx$_cokwr: {$t: rx.drug_name.slice(1, -1)},
         gsx$stock : {$t:'GCN Error'},
-        "gsx$order.price30": {$t:'??'}
+        "gsx$order.price90": {$t:'??'}
       })
 
       for (var j in inventory) {
@@ -282,6 +282,9 @@ function upgradeRxs(callback) {
 
         if (row['gsx$key.3'].$t.match(regex)) {
           if (row.gsx$stock.$t == 'Refills Only' && rx.is_refill)
+            delete row.gsx$stock.$t
+
+          if (row.gsx$stock.$t == 'Low - Hidden')
             delete row.gsx$stock.$t
 
           if ( ! rx.refills_total)
