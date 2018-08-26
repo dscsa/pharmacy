@@ -115,7 +115,7 @@ function upgradeAutofill() {
 
         var row = inventory[j]
 
-        if ( ! row.gsx$gcns.$t.match(regex)) continue
+        if ( ! row['gsx$key.3'].$t.match(regex)) continue
 
         if (row.gsx$stock.$t == 'Refills Only' && tableRow.hasClass('new')) {
           tableRow.addClass('nextfill-disabled autofill-off')
@@ -274,20 +274,20 @@ function upgradeRxs(callback) {
       data.push({ //Default Value assuming no match found
         gsx$_cokwr: {$t: rx.drug_name.slice(1, -1)},
         gsx$stock : {$t:'GCN Error'},
-        gsx$day_2 : {$t:'??'}
+        "gsx$order.price30": {$t:'??'}
       })
 
       for (var j in inventory) {
         var row = inventory[j]
 
-        if (row.gsx$gcns.$t.match(regex)) {
+        if (row['gsx$key.3'].$t.match(regex)) {
           if (row.gsx$stock.$t == 'Refills Only' && rx.is_refill)
             delete row.gsx$stock.$t
 
           if ( ! rx.refills_total)
             row.gsx$stock.$t = 'No Refills'
 
-          console.log('upgradeRxs gcn match', rx.drug_name, rx.gcn_seqno, row.gsx$gcns.$t, i, j)
+          console.log('upgradeRxs gcn match', rx.drug_name, rx.gcn_seqno, row['gsx$key.3'].$t, i, j)
           data[data.length-1] = row //overwrite the default value
 
           break
@@ -317,8 +317,8 @@ function _upgradeMedication(selector, callback, transform) {
 }
 
 function getInventory(callback) {
-  var medicationGsheet = "https://spreadsheets.google.com/feeds/list/1MV5mq6605X7U1Np2fpwZ1RHkaCpjsb7YqieLQsEQK88/od6/public/values?alt=json"
-  //ovrg94l is the worksheet id.  To get this you have to use https://spreadsheets.google.com/feeds/worksheets/1MV5mq6605X7U1Np2fpwZ1RHkaCpjsb7YqieLQsEQK88/private/full
+  var medicationGsheet = "https://spreadsheets.google.com/feeds/list/1gF7EUirJe4eTTJ59EQcAs1pWdmTm2dNHUAcrLjWQIpY/o8csoy3/public/values?alt=json"
+  //o8csoy3 is the worksheet id.  To get this you have to use https://spreadsheets.google.com/feeds/worksheets/1gF7EUirJe4eTTJ59EQcAs1pWdmTm2dNHUAcrLjWQIpY/private/full
   jQuery.ajax({
     url:medicationGsheet,
     type: 'GET',
@@ -332,11 +332,11 @@ function getInventory(callback) {
 
 function row2select(row) {
 
-  if ( ! row.gsx$_cokwr || ! row.gsx$day_2)
+  if ( ! row.gsx$_cokwr || ! (row['gsx$order.price30'] && row['gsx$order.price90']))
     console.error('row2select error', row)
 
   var drug = row.gsx$_cokwr.$t,
-      price = row.gsx$day_2.$t || row.gsx$day.$t || '',
+      price = row['gsx$order.price90'].$t || row['gsx$order.price30'].$t || '',
       notes = []
 
   if (row.gsx$stock.$t)
@@ -349,7 +349,7 @@ function row2select(row) {
   }
 
   if (price) {
-    var days = row.gsx$day_2.$t ? '90 days' : '45 days',
+    var days = row['gsx$order.price90'].$t ? '90 days' : '45 days',
     price = ', $'+price+' for '+days
   }
 
