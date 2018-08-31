@@ -1355,7 +1355,7 @@ function dscsa_translate($term, $raw, $domain) {
     'Username is required.' => 'Name and date of birth in mm/dd/yyyy format are required.',
     'Invalid username or email.' => '<strong>Error</strong>: We cannot find an account with that phone number.',
     '<strong>ERROR</strong>: Invalid username.' => '<strong>Error</strong>: We cannot find an account with that name and date of birth.',
-    'An account is already registered with your email address. Please log in.' => 'An account is already registered with your phone number. Please log in.',
+    'An account is already registered with your email address. Please log in.' => substr($_POST['email'], -13) == '@goodpill.org' ? 'An account is already registered with your phone number. Please log in, use a differnt phone number, or add an email address.' : 'Another account is using that email address.  Please login, use another email, or leave this field blank',
     'Your order is on-hold until we confirm payment has been received. Your order details are shown below for your reference:' => $_POST['rx_source'] == 'pharmacy' ? 'We are currently requesting a transfer of your Rx(s) from your pharmacy' : 'We are currently waiting on Rx(s) to be sent from your doctor',
     'Your order has been received and is now being processed. Your order details are shown below for your reference:' => 'We got your prescription(s) and will start working on them right away',
     'Thanks for creating an account on %1$s. Your username is %2$s' => 'Thanks for completing Registration Step 1 of 2 on %1$s. Your username is %2$s',
