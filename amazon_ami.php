@@ -637,7 +637,7 @@ function cleanBirthDate($birth_date) {
     if ($birth_array[0] > date('Y'))
       $birth_array[0] -= 100;
 
-    return checkdate($birth_array[1],$birth_array[2],$birth_array[0]) ? implode('-', $birth_array) : false;
+    return checkdate($birth_array[1],$birth_array[2],$birth_array[0]) AND $birth_array[0] > 1900 AND $birth_array[0] < 2100 ? implode('-', $birth_array) : false;
 }
 
 //Customer created hook called to late in order to create username
