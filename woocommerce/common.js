@@ -335,11 +335,11 @@ function getInventory(callback) {
 
 function row2select(row) {
 
-  if ( ! row.gsx$_cokwr || ! (row['gsx$order.price30'] && row['gsx$order.price90']))
+  if ( ! row.gsx$_cokwr || ! (row['gsx$order.price45'] && row['gsx$order.price90']))
     console.error('row2select error', row)
 
   var drug = row.gsx$_cokwr.$t,
-      price = row['gsx$order.price90'].$t || row['gsx$order.price30'].$t || '',
+      price = row['gsx$order.price90'].$t || row['gsx$order.price45'].$t || '',
       notes = []
 
   if (row.gsx$stock.$t)
