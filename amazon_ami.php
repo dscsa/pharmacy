@@ -1007,18 +1007,20 @@ function dscsa_before_order_object_save($order, $data) {
 
     $invoice_number = $order->get_meta('invoice_number', true);
 
+    if ( ! $invoice_number && ! is_admin())
+      wp_mail('adam.kircher@gmail.com', "INVOICE# IS ALREDY SAVED.  NOT CREATING ORDER", "Patient ID: $patient_id\r\n\r\nInvoice #:$invoice_number \r\n\r\nMSSQL:".print_r(mssql_get_last_message(), true)."\r\n\r\nOrder Meta Invoice #:".$order->get_meta('invoice_number', true)."\r\n\r\nPOST:".print_r(sanitize($_POST), true).print_r($order, true));
+
     if ( ! $invoice_number) {
       $guardian_order = get_guardian_order($patient_id, $_POST['rx_source'], $_POST['order_comments']);
       $invoice_number = $guardian_order['invoice_nbr'];
     }
-
 
     if ( ! $invoice_number)
       wp_mail('adam.kircher@gmail.com', "NO INVOICE #", "Patient ID: $patient_id\r\n\r\nInvoice #:$invoice_number \r\n\r\nMSSQL:".print_r(mssql_get_last_message(), true)."\r\n\r\nOrder Meta Invoice #:".$order->get_meta('invoice_number', true)."\r\n\r\nPOST:".print_r(sanitize($_POST), true));
 
     if ( ! is_admin()) {
       wp_mail('hello@goodpill.org', 'New Webform Order', "New Order #$invoice_number Webform Complete. Source: ".print_r($_POST['rx_source'], true)."\r\n\r\n".print_r($_POST['rxs'], true)."\r\n\r\n".print_r($_POST['transfer'], true));
-      wp_mail('adam.kircher@gmail.com', "New Webform Order", "New Order #$invoice_number.  Patient #$patient_id\r\n\r\n".print_r(sanitize($_POST), true));
+      wp_mail('adam.kircher@gmail.com', "New Webform Order", "New Order #$invoice_number.  Patient #$patient_id\r\n\r\n".print_r($guardian_order, true).print_r(sanitize($_POST), true));
     }
 
     $order->update_meta_data('invoice_number', $invoice_number);
@@ -1045,14 +1047,15 @@ function dscsa_before_order_object_save($order, $data) {
 
     $address = update_shipping_address($patient_id, $address_1, $address_2, $city, $postcode);
 
-    wp_mail('adam.kircher@gmail.com', "saved order 1", "$patient_id | $invoice_number ".print_r(sanitize($_POST), true).print_r(mssql_get_last_message(), true));
-
     if ($_POST['rx_source'] == 'pharmacy') {
       add_preorder($patient_id, $_POST['transfer'], $_POST['backup_pharmacy']);
       $order->update_meta_data('transfer', $_POST['transfer']);
     } else {
       $order->update_meta_data('rxs', $_POST['rxs']);
     }
+
+    wp_mail('adam.kircher@gmail.com', "saved order 1", "$patient_id | $invoice_number ".print_r($guardian_order, true).print_r(sanitize($_POST), true).print_r(mssql_get_last_message(), true));
+
   } catch (Exception $e) {
     wp_mail('adam.kircher@gmail.com', "woocommerce_before_order_object_save", "$patient_id | $invoice_number ".$e->getMessage()." ".print_r(sanitize($_POST), true).print_r(mssql_get_last_message(), true));
   }
@@ -1755,7 +1758,9 @@ function add_preorder($guardian_id, $drug_names, $pharmacy) {
        $drug_name = preg_replace('/,[^,]*$/', '', $drug_name); //remove pricing data after last comma (don't use explode because of combo drugs)
        $query = "SirumWeb_AddToPreorder '$guardian_id', '$drug_name', '$store->npi', '$store_name P:$phone F:$fax', '$store->street', '$store->city', '$store->state', '$store->zip', '$phone', '$fax'";
        $res = db_run($query);
-       //wp_mail('adam.kircher@gmail.com', "add_preorder drug $drug_name", "$query ".print_r($res, true).print_r(func_get_args(), true).print_r(sanitize($_POST), true));
+
+       if ($res['message'])
+        wp_mail('adam.kircher@gmail.com', "add_preorder drug has error message $drug_name", "$query ".print_r($res, true).print_r(func_get_args(), true).print_r(sanitize($_POST), true));
      }
    }
 
