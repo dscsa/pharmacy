@@ -1274,7 +1274,7 @@ function dscsa_new_order($order_id) {
 
 add_filter( 'wc_order_statuses', 'dscsa_renaming_order_status' );
 function dscsa_renaming_order_status( $order_statuses ) {
-    $order_statuses['wc-processing'] = _x('Received Rx. Preparing to fill', 'Order status', 'woocommerce');
+    $order_statuses['wc-processing'] = _x('Received Rx', 'Order status', 'woocommerce');
     return $order_statuses;
 }
 
