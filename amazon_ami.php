@@ -1300,18 +1300,20 @@ add_filter('auth_cookie_expiration', 'dscsa_auth_cookie_exp', 99, 3);
 function dscsa_auth_cookie_exp($seconds, $user_id, $remember) {
 
     if (is_admin()) {
-      $expiration = 0; //ADMIN NEVER EXPIRES
+      $seconds = 60*60*24*365; //ADMIN EXPIRES AFTER ONE YEAR
     } else if ( ! $remember) {
-      $expiration = 20*60; //20 minutes;
+      $seconds = 20*60; //20 minutes;
+    } else {
+      $seconds = 60*60*24*14;
     }
 
     //http://en.wikipedia.org/wiki/Year_2038_problem
-    if ( PHP_INT_MAX - time() < $expiration ) {
+    if ( PHP_INT_MAX - time() < $seconds ) {
         //Fix to a little bit earlier!
-        $expiration =  PHP_INT_MAX - time() - 5;
+        $seconds =  PHP_INT_MAX - time() - 5;
     }
 
-    return $expiration; //Keep the WP default of 2 weeks for "remember me";
+    return $seconds; //Keep the WP default of 2 weeks for "remember me";
 }
 
 //Didn't work: https://stackoverflow.com/questions/38395784/woocommerce-overriding-billing-state-and-post-code-on-existing-checkout-fields
