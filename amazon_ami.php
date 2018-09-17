@@ -1758,8 +1758,8 @@ function add_preorder($guardian_id, $drug_names, $pharmacy) {
        $query = "SirumWeb_AddToPreorder '$guardian_id', '$drug_name', '$store->npi', '$store_name P:$phone F:$fax', '$store->street', '$store->city', '$store->state', '$store->zip', '$phone', '$fax'";
        $res = db_run($query);
 
-       if ($res['message'])
-        wp_mail('adam.kircher@gmail.com', "add_preorder drug has error message $drug_name", "$query ".print_r($res, true).print_r(func_get_args(), true).print_r(sanitize($_POST), true));
+       if ($res['message'] AND $res['message'] != "''")
+        wp_mail('adam.kircher@gmail.com', "add_preorder drug has error message $drug_name", var_export($res['message'], true)." ".var_export($res[1], true)." $query ".print_r($res, true).print_r(func_get_args(), true).print_r(sanitize($_POST), true));
      }
    }
 
