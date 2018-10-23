@@ -464,7 +464,7 @@ function dscsa_user_edit_account($user_id = null) {
       // New Prescriptions Sent to good pill, , , , Disabled Checkbox
       // Medicine Name, Next Refill Date, Days (QTY), Refills, Last Refill Input, Autofill Checkbox
       $fields['birth_date']['default'] = date_format(date_create($patient_profile[0]['birth_date']), 'Y-m-d'); //just in case user entered DOB incorrectly we can fix it in guardian
-      $table = '<table class="autofill_table"><tr><th style="width:400px; padding:16px 8px">Medication</th><th style="padding:16px 8px">Last&nbsp;Refill</th><th style="padding:16px 8px">Days&nbsp;(Qty)</th><th style="padding:16px 8px">Refills</th><th style="width:115px; padding:16px 4px">Next&nbsp;Refill</th><th style="width:90px; font-weight:bold; padding:16px 8px">'.woocommerce_form_field("pat_autofill", [
+      $table = '<table class="autofill_table"><tr><th style="width:400px; padding:16px 8px">Medication</th><th style="padding:16px 8px">Last&nbsp;Refill</th><th style="padding:16px 8px">Days&nbsp;(Qty)</th><th style="padding:16px 8px">Refills</th><th style="width:120px; padding:16px 4px">Next&nbsp;Refill</th><th style="width:90px; font-weight:bold; padding:16px 8px">'.woocommerce_form_field("pat_autofill", [
         'type' => 'checkbox',
         'label' => 'Autofill',
         'default' => $patient_profile[0]['pat_autofill'],
