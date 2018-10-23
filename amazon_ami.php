@@ -473,9 +473,15 @@ function dscsa_user_edit_account($user_id = null) {
       ]).'</th></tr>';
       foreach ($patient_profile as $i => $rx) {
 
-        $autofill_date = $patient_profile[$i]['autofill_date'] ? date_format(date_create($patient_profile[$i]['autofill_date']), 'Y-m-d') : '';
-        $gcn = $patient_profile[$i]['gcn_seqno'];
         $refills_total = $patient_profile[$i]['refills_total'];
+
+        if ($refills_total)
+          $autofill_date = $patient_profile[$i]['autofill_date'] ? date_format(date_create($patient_profile[$i]['autofill_date']), 'Y-m-d') : '';
+        else
+          $autofill_date = 'No Refills';
+
+        $gcn = $patient_profile[$i]['gcn_seqno'];
+
         $rx_id = $patient_profile[$i]['rx_id'];
 
         if ($patient_profile[$i]['is_refill']) {
@@ -502,7 +508,8 @@ function dscsa_user_edit_account($user_id = null) {
             'default' => $autofill_date,
             'input_class' => ['next_fill'],
             'custom_attributes' => [
-              'next-fill' => $refills_total ? $next_refill : 'N/A'
+              'default' => $autofill_date,
+              'next-fill' => $refills_total ? $next_refill : 'No Refills'
             ],
             'return' => true
           ]).

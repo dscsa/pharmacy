@@ -65,14 +65,13 @@ function upgradeAutofill() {
     var input = row.find('.next_fill')
     var disabled = row.hasClass('nextfill-disabled')
     var off = row.hasClass('autofill-off')
-    console.log('toggle rx autofill', this.checked, disabled, input.val(), input.attr('next-fill'), (input.attr('next-fill') || ''))
+    console.log('toggle rx autofill', this.checked, disabled, input.val(), input.attr('next-fill'), input.attr('default'))
     if (off) {
       elem.prop('checked', false)
       elem.prop('disabled', true)
     }
-    input.prop('disabled',  ! this.checked || disabled)
-    input.prop('placeholder', (! this.checked || disabled) ? 'N/A' : (input.attr('next-fill') || ''))
-    if ( ! disabled && ! this.checked) input.val('')
+    input.prop('disabled',  disabled)
+    input.prop('placeholder', disabled ? 'N/A' : input.attr('next-fill'))
   })
 
   //When Patient Autofill is unchecked, uncheck and disable all Rx Autofill checkboxes and uncheck the "New Rx" autofill
@@ -104,7 +103,7 @@ function upgradeAutofill() {
       var nextFill = tableRow.find(".next_fill")
       //We could do this in PHP but doing here because of the parrallel with refills-only, out-of-stock, and gcn-error
 
-      if (nextFill.attr('next-fill') == 'N/A') {
+      if (nextFill.attr('next-fill') == 'No Refills') {
         tableRow.addClass('nextfill-disabled')
         nextFill.val('No Refills')
         console.log('upgradeAutofill No Refills', i, gcn, nextFill.val(), nextFill)
