@@ -109,6 +109,12 @@ function upgradeAutofill() {
         return
       }
 
+      if (nextFill.val() == 'Transferred') {
+        tableRow.addClass('nextfill-disabled autofill-off')
+        console.log('upgradeAutofill Transferred', i, gcn, nextFill.val(), nextFill)
+        return
+      }
+
       for (var j in inventory) {
 
         var row = inventory[j]

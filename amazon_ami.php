@@ -510,7 +510,8 @@ function dscsa_user_edit_account($user_id = null) {
             'default' => $autofill_date,
             'input_class' => ['next_fill'],
             'custom_attributes' => [
-              'default' => $autofill_date
+              'default' => $autofill_date,
+              'next-fill' => $refills_total ? $next_refill : 'No Refills'
             ],
             'return' => true
           ]).
