@@ -71,7 +71,7 @@ function upgradeAutofill() {
       elem.prop('disabled', true)
     }
     input.prop('disabled',  disabled)
-    input.prop('placeholder', disabled ? 'N/A' : input.attr('next-fill'))
+    input.prop('placeholder', ( ! this.checked || disabled ) ? 'N/A' : input.attr('next-fill'))
   })
 
   //When Patient Autofill is unchecked, uncheck and disable all Rx Autofill checkboxes and uncheck the "New Rx" autofill
