@@ -1828,23 +1828,13 @@ function update_email($guardian_id, $email) {
 
 //Procedure dbo.SirumWeb_ToggleAutofill (@PatID int, @json {rx_ids:autofill_resume_dates})
 //Set the patID and the new email address
+//If user has no explicit dates then PHP will set $_POST[autofill_resume] AND $_POST[$rx_autofill] to null rathern than array of empty keys.  So we have to use the rx_autofill_array instead.
 function update_autofill($guardian_id, $pat_autofill, $rx_autofill, $autofill_resume) {
 
-  $autofills = '';
+  $rx_autofill = $pat_autofill ? '' : json_encode($rx_autofill);
+  $autofill_resume = json_encode($autofill_resume);
 
-  if ($pat_autofill) {
-
-    $autofills = [];
-    //If user has no explicit dates then PHP will set $_POST[autofill_resume] to null rathern than array of empty keys.  So we have to use the rx_autofill_array instead.
-    foreach ($rx_autofill as $key => $value) {
-      $autofills[$key] = $autofill_resume[$key] ?: '';
-    }
-
-    $autofills = json_encode($autofills);
-  }
-
-
-  $sql = "SirumWeb_ToggleAutofill '$guardian_id', '$autofills'";
+  $sql = "SirumWeb_ToggleAutofill '$guardian_id', '$rx_autofill', '$autofill_resume'";
   $res = db_run($sql);
   wp_mail('adam.kircher@gmail.com', "update_autofill", $sql." ".print_r(sanitize($_POST), true)." ".print_r($res, true));
   return $res;
