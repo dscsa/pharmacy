@@ -464,7 +464,7 @@ function dscsa_user_edit_account($user_id = null) {
       // New Prescriptions Sent to good pill, , , , Disabled Checkbox
       // Medicine Name, Next Refill Date, Days (QTY), Refills, Last Refill Input, Autofill Checkbox
       $fields['birth_date']['default'] = date_format(date_create($patient_profile[0]['birth_date']), 'Y-m-d'); //just in case user entered DOB incorrectly we can fix it in guardian
-      $table = '<table class="autofill_table"><tr><th style="width:400px; padding:16px 8px">Medication</th><th style="padding:16px 8px">Last&nbsp;Refill</th><th style="padding:16px 8px">Days&nbsp;(Qty)</th><th style="padding:16px 8px">Refills</th><th style="width:100px; padding:16px 4px">Next&nbsp;Refill</th><th style="width:90px; font-weight:bold; padding:16px 8px">'.woocommerce_form_field("pat_autofill", [
+      $table = '<table class="autofill_table"><tr><th style="width:400px; padding:16px 8px">Medication</th><th style="padding:16px 8px">Last&nbsp;Refill</th><th style="padding:16px 8px">Days&nbsp;(Qty)</th><th style="padding:16px 8px">Refills</th><th style="width:115px; padding:16px 4px">Next&nbsp;Refill</th><th style="width:90px; font-weight:bold; padding:16px 8px">'.woocommerce_form_field("pat_autofill", [
         'type' => 'checkbox',
         'label' => 'Autofill',
         'default' => $patient_profile[0]['pat_autofill'],
@@ -474,17 +474,19 @@ function dscsa_user_edit_account($user_id = null) {
       foreach ($patient_profile as $i => $rx) {
 
         $refills_total = $patient_profile[$i]['refills_total'];
+        $is_refill     = $patient_profile[$i]['is_refill'];
+        $autofill_date = $patient_profile[$i]['autofill_date'];
+        $gcn           = $patient_profile[$i]['gcn_seqno'];
+        $rx_id         = $patient_profile[$i]['rx_id'];
 
         if ($refills_total)
-          $autofill_date = $patient_profile[$i]['autofill_date'] ? date_format(date_create($patient_profile[$i]['autofill_date']), 'Y-m-d') : '';
+          $autofill_date = $autofill_date ? date_format(date_create($autofill_date), 'Y-m-d') : '';
+        else if ( ! $is_refill)
+          $autofill_date = 'Transferred';
         else
           $autofill_date = 'No Refills';
 
-        $gcn = $patient_profile[$i]['gcn_seqno'];
-
-        $rx_id = $patient_profile[$i]['rx_id'];
-
-        if ($patient_profile[$i]['is_refill']) {
+        if ($is_refill) {
           $tr_class    = "rx gcn$gcn";
           $last_refill = date_format(date_create($patient_profile[$i]['dispense_date']), 'm/d');
           $next_refill = date_format(date_create($patient_profile[$i]['refill_date']), 'Y-m-d');
@@ -497,19 +499,18 @@ function dscsa_user_edit_account($user_id = null) {
         }
 
         $table .= "<tr class='$tr_class' gcn='$gcn' style='font-size:14px'>".
-             "<td class='drug_name'>".substr($patient_profile[$i]['drug_name'], 1, -1).
-        "</td><td class='last_refill'>".$last_refill.
-        "</td><td class='day_qty'>".$day_qty.
-        "</td><td class='refills_total'>".$refills_total.
-        "</td><td style='padding:8px'>".
+          "<td class='drug_name'>".substr($patient_profile[$i]['drug_name'], 1, -1).
+          "</td><td class='last_refill'>".$last_refill.
+          "</td><td class='day_qty'>".$day_qty.
+          "</td><td class='refills_total'>".$refills_total.
+          "</td><td style='padding:8px'>".
           //Readonly because could not get disabled to work
           woocommerce_form_field("autofill_resume[$gcn]", [
             'type' => 'text',
             'default' => $autofill_date,
             'input_class' => ['next_fill'],
             'custom_attributes' => [
-              'default' => $autofill_date,
-              'next-fill' => $refills_total ? $next_refill : 'No Refills'
+              'default' => $autofill_date
             ],
             'return' => true
           ]).
@@ -1831,8 +1832,8 @@ function update_email($guardian_id, $email) {
 //If user has no explicit dates then PHP will set $_POST[autofill_resume] AND $_POST[$rx_autofill] to null rathern than array of empty keys.  So we have to use the rx_autofill_array instead.
 function update_autofill($guardian_id, $pat_autofill, $rx_autofill, $autofill_resume) {
 
-  $rx_autofill = $pat_autofill ? '' : json_encode($rx_autofill);
-  $autofill_resume = json_encode($autofill_resume);
+  $rx_autofill = $pat_autofill ? json_encode($rx_autofill ?: []) : '';
+  $autofill_resume = json_encode($autofill_resume ?: []);
 
   $sql = "SirumWeb_ToggleAutofill '$guardian_id', '$rx_autofill', '$autofill_resume'";
   $res = db_run($sql);
