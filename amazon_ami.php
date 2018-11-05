@@ -1016,7 +1016,7 @@ function dscsa_before_order_object_save($order, $data) {
 
     $invoice_number = $order->get_meta('invoice_number', true);
 
-    if ( ! $invoice_number && ! is_admin())
+    if ($invoice_number && ! is_admin())
       wp_mail('adam.kircher@gmail.com', "INVOICE# IS ALREDY SAVED.  NOT CREATING ORDER", "Patient ID: $patient_id\r\n\r\nInvoice #:$invoice_number \r\n\r\nMSSQL:".print_r(mssql_get_last_message(), true)."\r\n\r\nOrder Meta Invoice #:".$order->get_meta('invoice_number', true)."\r\n\r\nPOST:".print_r(sanitize($_POST), true).print_r($order, true));
 
     if ( ! $invoice_number) {
