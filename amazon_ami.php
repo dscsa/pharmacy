@@ -232,8 +232,10 @@ function admin_fields($user_id = null) {
 
   return [
     'guardian_id' => [
+      'type'   	  => 'select',
       'label'     =>  __('Guardian Patient ID'),
-      'default'   => get_default('guardian_id', $user_id)
+      'options'   => [get_default('guardian_id', $user_id)]
+      //'default'   => get_default('guardian_id', $user_id) //TODO if multiple matches we should default to current id but allow others to be choosen
     ]
   ];
 }
@@ -897,7 +899,7 @@ function dscsa_rest_update_order($order, $request) {
     //Move this outside of try/catch block since this error should go back to the client
     if ($count == 0) {
       wp_mail('adam.kircher@gmail.com', "dscsa_rest_update_order: no orders", $invoice_number.' | '.print_r($orders, true).' '.print_r($request['body'], true).' '.print_r($request, true));
-  	  throw new WP_Error('no_matching_invoice', __( "Order #$invoice_number has $count matches", 'woocommerce' ), print_r($request['body'], true));
+  	  return new WP_Error('no_matching_invoice', __( "Order #$invoice_number has $count matches", 'woocommerce' ), print_r($request['body'], true));
     }
   }
 
@@ -1107,15 +1109,13 @@ function set_field($key, $newVal) {
 
 function dscsa_save_patient($user_id, $fields) {
 
-  if ($_POST['guardian_id']) { //This is only on the admin page
-    $patient_id = sanitize_text_field($_POST['guardian_id']);
-    update_user_meta($user_id, 'guardian_id', $patient_id);
-  }
-
   //checkout, account details, admin page
-  $first_name = $_POST['billing_first_name'] ?: $_POST['account_first_name'] ?: $_POST['_billing_first_name'];
-  $last_name  = $_POST['billing_last_name'] ?: $_POST['account_last_name'] ?: $_POST['_billing_last_name'];
+  $first_name = $_POST['billing_first_name'] ?: $_POST['account_first_name'] ?: get_meta('first_name', $user_id);
+  $last_name  = $_POST['billing_last_name'] ?: $_POST['account_last_name'] ?: get_meta('last_name', $user_id);
+  $birth_date = $_POST['birth_date'] ?: get_meta('birth_date', $user_id);
+  $email      = $_POST['email'] ?: $_POST['account_email'];
 
+  //Detect Identity Changes and Email Us a Warning
   if ( ! is_admin()) {
 
     global $woocommerce;
@@ -1127,9 +1127,7 @@ function dscsa_save_patient($user_id, $fields) {
      'email'  => $woocommerce->customer->email
     ];
 
-    $email = $_POST['email'] || $_POST['account_email'];
-
-    if (strtolower($first_name) != strtolower($old_name['first_name']) OR strtolower($last_name) != strtolower($old_name['last_name']) OR $_POST['birth_date'] != $old_name['birth_date'] OR $email != $old_name['email']) {
+    if (strtolower($first_name) != strtolower($old_name['first_name']) OR strtolower($last_name) != strtolower($old_name['last_name']) OR $birth_date != $old_name['birth_date'] OR $email != $old_name['email']) {
       //wp_mail('hello@goodpill.org', 'Patient Name Change', print_r(sanitize($_POST), true)."\r\n\r\n".print_r($order, true));
       wp_mail('adam.kircher@gmail.com', 'Warning Patient Identity Changed!', print_r(sanitize($_POST), true)."\r\n\r\n".print_r($old_name, true));
     }
@@ -1157,19 +1155,21 @@ function dscsa_save_patient($user_id, $fields) {
     //$patient_id = get_meta('guardian_id', $user_id);
   }
 
-  if ( ! $patient_id) {
-    $patient_id = add_patient(
-      $first_name,
-      $last_name,
-      $_POST['birth_date'],
-      $_POST['phone'],
-      get_meta('language', $user_id)
-    );
-
-    update_user_meta($user_id, 'guardian_id', $patient_id);
-
-    //wp_mail('adam.kircher@gmail.com', "new patient", $patient_id.' '.print_r(sanitize($_POST), true).print_r(mssql_get_last_message(), true));
+  if ( ! $first_name OR ! $last_name OR ! $birth_date) {
+    wp_mail('adam.kircher@gmail.com', 'DEBUG dscsa_save_patient', print_r([$first_name, $last_name, $birth_date], true)."|||".print_r(get_user_meta($user_id), true)."|||".print_r($_POST, true));
+    return;
   }
+
+  //TODO Enable Admin to Pick a different Patient ID if there are multiple matches
+  $patient_id = add_patient(
+    $first_name,
+    $last_name,
+    $birth_date,
+    $_POST['phone'],
+    get_meta('language', $user_id)
+  );
+
+  update_user_meta($user_id, 'guardian_id', $patient_id);
 
   $allergy_codes = [
     'allergies_tetracycline' => 1,
@@ -1869,8 +1869,9 @@ function db_run($sql, $resultIndex = 0, $all_rows = false) {
   $data = [];
   while ($result = db_fetch($stmt)) {
 
-      if ($result['Message']) {
+      if (trim($result['Message'])) {
         wp_mail('adam.kircher@gmail.com', "db query: $sql", print_r($params, true).print_r($result, true).print_r($data, true).print_r(sanitize($_POST), true));
+        if (is_admin()) echo '<div class="notice notice-success is-dismissible"><p><strong>Error Saving To Guardian:</strong> "'.$result['Message'].'"</p></div>';
       }
 
       $data[] = $result;
