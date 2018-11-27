@@ -1129,7 +1129,7 @@ function dscsa_save_patient($user_id, $fields) {
 
     if (strtolower($first_name) != strtolower($old_name['first_name']) OR strtolower($last_name) != strtolower($old_name['last_name']) OR $birth_date != $old_name['birth_date'] OR $email != $old_name['email']) {
       //wp_mail('hello@goodpill.org', 'Patient Name Change', print_r(sanitize($_POST), true)."\r\n\r\n".print_r($order, true));
-      wp_mail('adam.kircher@gmail.com', 'Warning Patient Identity Changed!', print_r(sanitize($_POST), true)."\r\n\r\n".print_r($old_name, true));
+      wp_mail('adam.kircher@gmail.com', 'Warning Patient Identity Changed!', "New Info: $first_name $last_name $birth_date $email\r\n\r\nOld Info:".print_r($old_name, true).print_r(sanitize($_POST), true));
     }
 
     /* THIS ISN"T INVOKED SOON ENOUGH SO WE GET THE UPDATED INFO NOT THE *OLD* INFO
