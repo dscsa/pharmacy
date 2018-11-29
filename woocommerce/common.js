@@ -378,6 +378,7 @@ function row2select(row) {
 
 function savePaymentCard() {
   //Save card info to our account automatically
+  console.log('savePaymentCard checkbox')
   jQuery('#wc-stripe-new-payment-method').prop('checked', true)
 }
 

@@ -3,6 +3,7 @@ function load() {
 
   signup2signout()
   translate()
+  savePaymentCard()
 
   if (window.location.pathname == '/account/details/')
     return account_page()
@@ -20,5 +21,4 @@ function account_page() {
   clearEmail()
   disableFixedFields()
   setSource()
-  savePaymentCard()
 }
