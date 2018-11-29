@@ -376,6 +376,11 @@ function row2select(row) {
   }
 }
 
+function savePaymentCard() {
+  //Save card info to our account automatically
+  jQuery('#wc-stripe-new-payment-method').prop('checked', true)
+}
+
 
 /*
 (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){

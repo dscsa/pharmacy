@@ -16,9 +16,6 @@ function load() {
   jQuery( "a.showcoupon" ).parent().appendTo(jQuery('#customer_details'))
   jQuery('form.checkout_coupon').appendTo(jQuery('#customer_details'))
 
-  //Save card info to our account automatically
-  jQuery('#wc-stripe-new-payment-method').prop('checked', true)
-
   //This class causes update_checkout_totals, which causes a spinner and delay that we don't need
   //https://github.com/woocommerce/woocommerce/blob/master/assets/js/frontend/checkout.js
   setTimeout(function() {

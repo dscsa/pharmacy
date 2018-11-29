@@ -20,4 +20,5 @@ function account_page() {
   clearEmail()
   disableFixedFields()
   setSource()
+  savePaymentCard()
 }
