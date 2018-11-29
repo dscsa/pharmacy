@@ -72,7 +72,7 @@ function upgradeAutofill() {
     }
     input.prop('disabled',  disabled)
 
-    var placeholder = 'Upon Request' 
+    var placeholder = 'Upon Request'
 
     if (disabled)
       placeholder = 'N/A'
@@ -189,7 +189,7 @@ function upgradeBirthdate() { //now 2 on same page (loing & register) so jquery 
 
 function clearEmail() {
   var email = jQuery('#email').val() || jQuery('#account_email').val()
-  if(email && /\d{10}@goodpill.org/.test(email)) {
+  if(email && /.+?_.+?_\d{4}-\d{2}-\d{2}@goodpill.org/.test(email)) {
     jQuery('#email').val('')
     jQuery('#account_email').val('')
   }
