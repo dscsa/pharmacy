@@ -475,6 +475,10 @@ function dscsa_user_edit_account($user_id = null) {
       ]).'</th></tr>';
       foreach ($patient_profile as $i => $rx) {
 
+        $drug_name = substr($patient_profile[$i]['drug_name'], 1, -1);
+
+        if ( ! $drug_name) continue; //Empty orders will have one row with a blank drug name
+
         $refills_total = $patient_profile[$i]['refills_total'];
         $is_refill     = $patient_profile[$i]['is_refill'];
         $autofill_date = $patient_profile[$i]['autofill_date'];
@@ -501,7 +505,7 @@ function dscsa_user_edit_account($user_id = null) {
         }
 
         $table .= "<tr class='$tr_class' gcn='$gcn' style='font-size:14px'>".
-          "<td class='drug_name'>".substr($patient_profile[$i]['drug_name'], 1, -1).
+          "<td class='drug_name'>".$drug_name.
           "</td><td class='last_refill'>".$last_refill.
           "</td><td class='day_qty'>".$day_qty.
           "</td><td class='refills_total'>".$refills_total.
