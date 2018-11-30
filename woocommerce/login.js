@@ -13,5 +13,6 @@ function register_page() {
   //Can't do this in PHP because button text is also "Register" and html inside buttons is escaped as text
   jQuery('#customer_login h2').html('<div class="english">Get Started (Step 1 of 2)</div><div class="spanish">Registro (Paso 1 de 2)</div>')
   jQuery('#customer_login > div').toggle() //hide login column show registration
+  clearEmail() //just in case a registration reloads page with the default email populated
   translate()
 }
