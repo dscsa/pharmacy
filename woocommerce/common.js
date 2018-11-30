@@ -192,6 +192,7 @@ function clearEmail() {
   if(email && /.+?_.+?_\d{4}-\d{2}-\d{2}@goodpill.org/.test(email)) {
     jQuery('#email').val('')
     jQuery('#account_email').val('')
+    jQuery('#reg_email').val('')
   }
 }
 
