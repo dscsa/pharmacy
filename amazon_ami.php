@@ -672,9 +672,12 @@ function dscsa_default_post_value() {
 
   if ($phone) {
 
+     $_POST['raw_phone'] = $phone;
+
      $phone = cleanPhone($phone);
 
      if ( ! $phone) return;
+
 
      $_POST['phone'] = $phone;
   }
@@ -1345,7 +1348,7 @@ function dscsa_translate($term, $raw, $domain) {
   $toEnglish = [
     'Hello %1$s (not %1$s? <a href="%2$s">Log out</a>)' => '',
     'From your account dashboard you can view your <a href="%1$s">recent orders</a>, manage your <a href="%2$s">shipping and billing addresses</a>, and <a href="%3$s">edit your password and account details</a>.' => '',
-    "An account is already registered with that username. Please choose another." => 'Looks like you have already registered. Goto the <a href="/account/?gp-login">Login page</a> and use your 10 digit phone number as your default password e.g. the phone number (123) 456-7890 would have a default password of 1234567890.',
+    "An account is already registered with that username. Please choose another." => 'Looks like you have already registered. Goto the <a href="/account/?gp-login">Login page</a> and use your 10 digit phone number as your default password e.g. the phone number '.$_POST['raw_phone'].' would have a default password of '.$_POST['phone'].'.',
     "<span class='english'>Pay by Credit or Debit Card</span><span class='spanish'>Pago con tarjeta de crédito o débito</span>" => "Pay by Credit or Debit Card",
     'Spanish'  => 'Espanol', //Registering
     'Email:' => 'Email', //order details
