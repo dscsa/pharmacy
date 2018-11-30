@@ -663,8 +663,10 @@ function dscsa_default_post_value() {
   $birth_date = cleanBirthDate($_POST['birth_date']);
   if ($birth_date) {
     $_POST['birth_date'] = $birth_date;
-    $first_name = $_POST['first_name'] ?: $_POST['account_first_name'];
-    $last_name = $_POST['last_name'] ?: $_POST['account_last_name'];
+
+    //Registration ?: Account Details ?: Checkout
+    $first_name = $_POST['first_name'] ?: $_POST['account_first_name'] ?: $_POST['billing_first_name'];
+    $last_name = $_POST['last_name'] ?: $_POST['account_last_name'] ?: $_POST['billing_last_name'];
 
     if ($first_name AND $last_name) {    //Set user name for both login and registration
        //single quotes / apostrophes were being escaped with backslash on error
