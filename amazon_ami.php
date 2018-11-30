@@ -624,7 +624,7 @@ function dscsa_register_post($username, $email, $validation_errors) {
     $phone = cleanPhone($_POST['phone']);
 
     if ( ! $phone) {
-        $validation_errors->add('phone_error', __('A valid 10-digit phone number is required!', 'text_domain'));
+        $validation_errors->add('phone_error', __('A valid 10-digit phone number is required! '.print_r($_POST, true), 'text_domain'));
     }
 
     if ( ! $_POST['certify']) {
@@ -659,10 +659,13 @@ function dscsa_default_post_value() {
   $birth_date = cleanBirthDate($_POST['birth_date']);
   if ($birth_date) {
     $_POST['birth_date'] = $birth_date;
-    if ($_POST['first_name'] AND $_POST['last_name']) {    //Set user name for both login and registration
+    $first_name = $_POST['first_name'] ?: $_POST['account_first_name'];
+    $last_name = $_POST['last_name'] ?: $_POST['account_last_name'];
+
+    if ($first_name AND $last_name) {    //Set user name for both login and registration
        //single quotes / apostrophes were being escaped with backslash on error
-       $_POST['first_name'] = stripslashes($_POST['first_name']);
-       $_POST['last_name'] = stripslashes($_POST['last_name']);
+       $_POST['first_name'] = stripslashes($first_name);
+       $_POST['last_name'] = stripslashes($last_name);
        $_POST['username'] = str_replace("'", "", "$_POST[first_name] $_POST[last_name] $birth_date");
     }
   }
@@ -677,7 +680,6 @@ function dscsa_default_post_value() {
      $phone = cleanPhone($phone);
 
      if ( ! $phone) return;
-
 
      $_POST['phone'] = $phone;
   }
@@ -701,6 +703,8 @@ function dscsa_default_post_value() {
      if ($_POST['user_login']) //reset password if phone rather than email is supplied
        $_POST['user_login'] = $defaultEmail;
   }
+
+
 }
 
 function cleanPhone($phone) { //get rid of all delimiters and a leading 1 if it exists
