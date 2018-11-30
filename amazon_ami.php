@@ -624,7 +624,7 @@ function dscsa_register_post($username, $email, $validation_errors) {
     $phone = cleanPhone($_POST['phone']);
 
     if ( ! $phone) {
-        $validation_errors->add('phone_error', __('A valid 10-digit phone number is required! '.print_r($_POST, true), 'text_domain'));
+        $validation_errors->add('phone_error', __('A valid 10-digit phone number is required!', 'text_domain'));
     }
 
     if ( ! $_POST['certify']) {
@@ -1554,6 +1554,7 @@ function dscsa_checkout_fields( $fields ) {
   //This hook seems to be called again once the checkout is being saved.
   //Also don't want run on subsequent orders - rx_source works well because
   //it is currently saved to user_meta (not sure why) and cannot be entered anywhere except the order page
+
   $patient_profile = patient_profile(
     get_meta('billing_first_name'), //$field['billing']['billing_first_name']['default'] and/or ['value'] is not set yet
     get_meta('billing_last_name'),  //$field['billing']['billing_last_name']['default'] and/or ['value'] is not set yet
@@ -1576,16 +1577,16 @@ function dscsa_checkout_fields( $fields ) {
   //wp_mail('adam.kircher@gmail.com', "db error: $heading", print_r($fields['order']['order_comments'], true).' '.print_r($fields['order'], true));
   $fields['order'] = $order_fields + $shared_fields + ['order_comments' => $fields['order']['order_comments']];
 
-  //Allow billing out of state but don't allow shipping out of state
-  //These seem to be required fields
+  //These seem to be required fields.  I think its because we don't check the "make shipping address the same as billing address"
+  //For this reason the shipping and billing addresses need to have these fields match, otherwise we get a "please enter an address to continue" error
   $fields['shipping']['shipping_state']['type'] = 'select';
   $fields['shipping']['shipping_state']['options'] = ['GA' => 'Georgia'];
   unset($fields['shipping']['shipping_country']);
   unset($fields['shipping']['shipping_company']);
 
   // We are using our billing address as the shipping address for now.
-  $fields['billing']['billing_state']['type'] = 'select';
-  $fields['billing']['billing_state']['options'] = ['GA' => 'Georgia'];
+  $fields['billing']['billing_first_name']['priority'] = 10;
+  $fields['billing']['billing_last_name']['priority'] = 20;
   $fields['billing']['billing_first_name']['label'] = 'Patient First Name';
   $fields['billing']['billing_last_name']['label'] = 'Patient Last Name';
   $fields['billing']['billing_first_name']['autocomplete'] = 'user-first-name';
@@ -1598,8 +1599,12 @@ function dscsa_checkout_fields( $fields ) {
   unset($fields['billing']['shipping_first_name']['autofocus']);
   unset($fields['billing']['billing_phone']);
   unset($fields['billing']['billing_email']);
-  unset($fields['billing']['billing_company']);
-  unset($fields['billing']['billing_country']);
+
+  // Bug in woocommerce means we also need to sort the fields based on their 'priority'
+  //https://wordpress.org/support/topic/change-order-of-billing-fields-on-checkout-page/
+  uasort($fields['billing'], function($a, $b) {
+    return ($a['priority'] < $b['priority']) ? -1 : 1;
+  });
 
   return $fields;
 }
@@ -1609,6 +1614,17 @@ add_filter( 'woocommerce_billing_fields', 'dscsa_billing_fields');
 function dscsa_billing_fields( $fields ) {
   unset($fields['billing_company']);
   unset($fields['billing_country']);
+
+  $fields['billing_state']['type'] = 'select';
+  $fields['billing_state']['options'] = ['GA' => 'Georgia'];
+
+  if( ! is_account_page() ) return $fields;
+
+  unset($fields['billing_first_name']);
+  unset($fields['billing_last_name']);
+  unset($fields['billing_email']);
+  unset($fields['billing_phone']);
+
   return $fields;
 }
 
