@@ -1127,11 +1127,11 @@ function set_field($key, $newVal) {
 
 function dscsa_save_patient($user_id, $fields) {
 
-  //checkout, account details, admin page
-  $first_name = $_POST['billing_first_name'] ?: $_POST['account_first_name'] ?: get_meta('first_name', $user_id);
-  $last_name  = $_POST['billing_last_name'] ?: $_POST['account_last_name'] ?: get_meta('last_name', $user_id);
+  //checkout, account details, admin page with correct user, admin page when changing user
+  $first_name = $_POST['billing_first_name'] ?: $_POST['account_first_name'] ?: get_meta('first_name', $user_id) ?: $_POST['_billing_first_name'];
+  $last_name  = $_POST['billing_last_name'] ?: $_POST['account_last_name'] ?: get_meta('last_name', $user_id) ?: $_POST['_billing_last_name'];
   $birth_date = $_POST['birth_date'] ?: get_meta('birth_date', $user_id);
-  $email      = $_POST['email'] ?: $_POST['account_email'];
+  $email      = $_POST['email'] ?: $_POST['account_email'] ?: $_POST['_billing_email'] ;
 
   //Detect Identity Changes and Email Us a Warning
   if ( ! is_admin()) {
