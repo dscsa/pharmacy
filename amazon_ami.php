@@ -1272,8 +1272,6 @@ function dscsa_update_order_status( $data) {
     }
 
     //wp_mail('adam.kircher@gmail.com', "dscsa_update_order_status 2", print_r($data, true));
-
-
     return $data;
 }
 
@@ -1635,12 +1633,15 @@ function dscsa_billing_fields( $fields ) {
 }
 
 function get_invoice_number($guardian_id) {
+  if ( ! $guardian_id) return
   $result = db_run("SirumWeb_AddFindInvoiceNbrByPatID '$guardian_id'");
   wp_mail('adam.kircher@gmail.com', "get_invoice_number", $guardian_id.print_r($result, true));
   return $result['invoice_nbr'];
 }
 
 function get_guardian_order($guardian_id, $source, $comment) {
+  if ( ! $guardian_id) return
+
   $comment = str_replace("'", "''", $comment ?: '');
   // Categories can be found or added select * From csct_code where ct_id=5007, UPDATE csct_code SET code_num=2, code=2, user_owned_yn = 1 WHERE code_id = 100824
   // 0 Unspecified, 1 Webform Complete, 2 Webform eRx, 3 Webform Transfer
@@ -1681,6 +1682,7 @@ function get_guardian_order($guardian_id, $source, $comment) {
   else if @AlrNumber = 100 -- other
 */
 function add_remove_allergy($guardian_id, $add_remove, $allergy_id, $value) {
+  if ( ! $guardian_id) return
   $add_remove = $add_remove ? 1 : 0; //force binary
   $query = "SirumWeb_AddRemove_Allergy '$guardian_id', '$add_remove', '$allergy_id', '$value'";
   wp_mail('adam.kircher@gmail.com', "add_remove_allergy", $query);
@@ -1705,6 +1707,8 @@ function update_phone($guardian_id, $cell_phone) {
 // ,@Country varchar(3)   -- Country Code
 function update_shipping_address($guardian_id, $address_1, $address_2, $city, $zip) {
   //wp_mail('adam.kircher@gmail.com', "update_shipping_address", print_r($params, true));
+  if ( ! $guardian_id) return
+
   $zip = substr($zip, 0, 5);
   $city = mb_convert_case($city, MB_CASE_TITLE, "UTF-8" );
   $address_1 = mb_convert_case(str_replace("'", "''", $address_1), MB_CASE_TITLE, "UTF-8" );
@@ -1773,6 +1777,7 @@ function add_patient($first_name, $last_name, $birth_date, $phone, $language) {
 // Procedure dbo.SirumWeb_AddToPatientComment (@PatID int, @CmtToAdd VARCHAR(4096)
 // The comment will be appended to the existing comment if it is not already in the comment field.
 function append_comment($guardian_id, $comment) {
+  if ( ! $guardian_id) return
   $comment = str_replace("'", "''", $comment); //We need to escape single quotes in case comment has one
   return db_run("SirumWeb_AddToPatientComment '$guardian_id', '$comment'");
 }
@@ -1790,6 +1795,7 @@ function append_comment($guardian_id, $comment) {
 //   ,@PharmacyFaxNo varchar(20)   -- Phone Fax Number
 // If you send the NDC, it will use it.  If you do not send and NCD it will attempt to look up the drug by the name.  I am not sure that this will work correctly, the name you pass in would most likely have to be an exact match, even though I am using  like logic  (ie “%Aspirin 325mg% “) to search.  We may have to work on this a bit more
 function add_preorder($guardian_id, $drug_names, $pharmacy) {
+   if ( ! $guardian_id) return
    $store = json_decode(stripslashes($pharmacy));
    $phone = cleanPhone($store->phone) ?: '0000000000';
    $fax = cleanPhone($store->fax) ?: '0000000000';
@@ -1827,6 +1833,8 @@ function add_preorder($guardian_id, $drug_names, $pharmacy) {
 // If you send the NDC, it will use it.  If you do not send and NCD it will attempt to look up the drug by the name.  I am not sure that this will work correctly, the name you pass in would most likely have to be an exact match, even though I am using  like logic  (ie “%Aspirin 325mg% “) to search.  We may have to work on this a bit more
 function update_pharmacy($guardian_id, $pharmacy) {
 
+  if ( ! $guardian_id) return
+
   $store = json_decode(stripslashes($pharmacy));
 
   $phone = cleanPhone($store->phone);
@@ -1845,10 +1853,12 @@ function update_pharmacy($guardian_id, $pharmacy) {
 }
 
 function update_stripe_tokens($guardian_id, $value) {
+  if ( ! $guardian_id) return
   return db_run("SirumWeb_AddUpdatePatientUD '$guardian_id', '3', '$value'");
 }
 
 function update_card_and_coupon($guardian_id, $card = [], $coupon) {
+  if ( ! $guardian_id) return
   //Meet guardian 50 character limit
   //Last4 4, Month 2, Year 2, Type (Mastercard = 10), Delimiter 4, So coupon will be truncated if over 28 characters
   $value = $card['last4'].','.$card['month'].'/'.substr($card['year'] ?: '', 2).','.$card['type'].','.$coupon;
@@ -1859,6 +1869,7 @@ function update_card_and_coupon($guardian_id, $card = [], $coupon) {
 //Procedure dbo.SirumWeb_AddUpdatePatEmail (@PatID int, @EMailAddress VARCHAR(255)
 //Set the patID and the new email address
 function update_email($guardian_id, $email) {
+  if ( ! $guardian_id) return
   return db_run("SirumWeb_AddUpdatePatEmail '$guardian_id', '$email'");
 }
 
@@ -1866,6 +1877,8 @@ function update_email($guardian_id, $email) {
 //Set the patID and the new email address
 //If user has no explicit dates then PHP will set $_POST[autofill_resume] AND $_POST[$rx_autofill] to null rathern than array of empty keys.  So we have to use the rx_autofill_array instead.
 function update_autofill($guardian_id, $pat_autofill, $rx_autofill, $autofill_resume) {
+
+  if ( ! $guardian_id) return
 
   $rx_autofill = $pat_autofill ? json_encode($rx_autofill ?: []) : '';
   $autofill_resume = json_encode($autofill_resume ?: []);
