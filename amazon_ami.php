@@ -5,7 +5,7 @@
 add_action('admin_enqueue_scripts', 'dscsa_admin_scripts');
 function dscsa_admin_scripts() {
   if ($_GET['post'] AND $_GET['action'] == 'edit') {
-    wp_enqueue_script('dscsa-common', 'https://dscsa.github.io/webform/woocommerce/common.js');
+    wp_enqueue_script('dscsa-common', 'https://dscsa.github.io/webform/woocommerce/common.2.js');
     wp_enqueue_style('dscsa-select2', 'https://dscsa.github.io/webform/woocommerce/select2.css');
     wp_enqueue_style('dscsa-admin', 'https://dscsa.github.io/webform/woocommerce/admin.css');
     wp_enqueue_script('dscsa-admin', 'https://dscsa.github.io/webform/woocommerce/admin.js', ['jquery', 'dscsa-common']);
@@ -30,7 +30,7 @@ function dscsa_user_scripts() {
   wp_enqueue_style('jquery-ui', 'https://code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.min.css');
   wp_enqueue_script('datepicker', '/wp-includes/js/jquery/ui/datepicker.min.js', ['jquery-ui']);
 
-  wp_enqueue_script('dscsa-common', 'https://dscsa.github.io/webform/woocommerce/common.js', ['datepicker', 'ie9ajax', 'select2']);
+  wp_enqueue_script('dscsa-common', 'https://dscsa.github.io/webform/woocommerce/common.2.js', ['datepicker', 'ie9ajax', 'select2']);
   wp_enqueue_style('dscsa-common', 'https://dscsa.github.io/webform/woocommerce/common.css');
 
   if (substr($_SERVER['REQUEST_URI'], 0, 10) == '/gp-stock/') {
@@ -148,7 +148,7 @@ function order_fields($user_id = null, $ordered = null, $rxs = []) {
       'required'  => true,
       'default'   => get_default('rx_source', $user_id) ?: 'erx',
       'options'   => [
-        'erx'     => __(is_registered() ? 'Refill the Rx(s) listed below' : 'Rx(s) were sent from my doctor'),
+        'erx' => __(is_registered() ? 'Refill the Rx(s) listed below' : 'Rx(s) were sent from my doctor'),
         'pharmacy' => __('Transfer Rx(s) with refills remaining from my pharmacy')
 
       ]
@@ -655,62 +655,66 @@ function cleanBirthDate($birth_date) {
     return (checkdate($birth_array[1],$birth_array[2],$birth_array[0]) AND $birth_array[0] > 1900 AND $birth_array[0] < 2100) ? implode('-', $birth_array) : false;
 }
 
+function clean_field($field) {
+  return sanitize_text_field(stripslashes(trim($field)));
+}
+
 //Customer created hook called to late in order to create username
 //    https://github.com/woocommerce/woocommerce/blob/e24ca9d3bce1f9e923fcd00e492208511cdea727/includes/class-wc-form-handler.php#L1002
 add_action('wp_loaded', 'dscsa_default_post_value');
 function dscsa_default_post_value() {
 
-  $birth_date = cleanBirthDate($_POST['birth_date']);
-  if ($birth_date) {
-    $_POST['birth_date'] = $birth_date;
+  //Registration/Checkout/Account Details ?: (Admin?)
+  $birth_date = $_POST['birth_date'] ?: get_meta('birth_date', $user_id);
+  if ($birth_date) $_POST['birth_date'] =  cleanBirthDate(clean_field($birth_date));
 
-    //Registration ?: Account Details ?: Checkout
-    $first_name = $_POST['first_name'] ?: $_POST['account_first_name'] ?: $_POST['billing_first_name'];
-    $last_name = $_POST['last_name'] ?: $_POST['account_last_name'] ?: $_POST['billing_last_name'];
+  //Registration ?: Account Details ?: Checkout ?: admin page when changing user ?: admin page
+  $first_name = $_POST['first_name'] ?: $_POST['account_first_name'] ?: $_POST['billing_first_name'] ?: $_POST['_billing_first_name'] ?: get_meta('first_name', $user_id);
+  if ($first_name) $_POST['first_name'] = mb_convert_case(clean_field($first_name), MB_CASE_TITLE, "UTF-8"));
 
-    if ($first_name AND $last_name) {    //Set user name for both login and registration
-       //single quotes / apostrophes were being escaped with backslash on error
-       $_POST['first_name'] = stripslashes($first_name);
-       $_POST['last_name'] = stripslashes($last_name);
-       $_POST['username'] = str_replace("'", "", "$_POST[first_name] $_POST[last_name] $birth_date");
-    }
+  //Registration ?: Account Details ?: Checkout ?: admin page when changing user ?: admin page
+  $last_name = $_POST['last_name'] ?: $_POST['account_last_name'] ?: $_POST['billing_last_name'] ?: $_POST['_billing_last_name'] ?: get_meta('last_name', $user_id);
+  if ($last_name) $_POST['last_name'] = strtoupper(clean_field($first_name));
+
+  if ($birth_date AND $first_name AND $last_name)    //Set user name for both login and registration
+     $_POST['username'] = str_replace("'", "", "$_POST[first_name] $_POST[last_name] $_POST[birth_date]");
+
+  $email = $_POST['email'] ?: $_POST['account_email'] ?: $_POST['_billing_email'];
+  if ($email) $_POST['email'] = clean_field($email);
+
+  if ($_POST['username']) { //Satisfy required fields on different pages
+
+    $defaultEmail = str_replace(" ", "_", clean_field($_POST['username']))."@goodpill.org";
+
+    if ($_POST['register'] AND ! $_POST['email'])
+      $_POST['email'] = $defaultEmail;
+
+    if ($_POST['rx_source'] AND ! $_POST['email'])
+      $_POST['email'] = $defaultEmail;
+
+    if ($_POST['save_addess'] AND ! $_POST['billing_email'])
+      $_POST['billing_email'] = $defaultEmail;
+
+    if ($_POST['save_account_details'] AND ! $_POST['account_email'])
+      $_POST['account_email'] = $defaultEmail;
+
+    if ($_POST['user_login']) //reset password if phone rather than email is supplied
+      $_POST['user_login'] = $defaultEmail;
   }
 
   //For resetting password
-  $phone = $_POST['phone'] ?: ($_POST['billing_phone'] ?: $_POST['user_login']);
+  $phone = $_POST['phone'] ?: $_POST['billing_phone'] ?: $_POST['user_login'];
 
   if ($phone) {
 
      $_POST['raw_phone'] = $phone;
 
-     $phone = cleanPhone($phone);
+     $phone = cleanPhone(clean_field($phone));
 
      if ( ! $phone) return;
 
      $_POST['phone'] = $phone;
   }
-
-  if ($_POST['username']) {
-
-     $defaultEmail = str_replace(" ", "_", $_POST['username'])."@goodpill.org";
-
-     if ($_POST['register'] AND ! $_POST['email'])
-       $_POST['email'] = $defaultEmail;
-
-     if ($_POST['rx_source'] AND ! $_POST['email'])
-       $_POST['email'] = $defaultEmail;
-
-     if ($_POST['save_addess'] AND ! $_POST['billing_email'])
-       $_POST['billing_email'] = $defaultEmail;
-
-     if ($_POST['save_account_details'] AND ! $_POST['account_email'])
-       $_POST['account_email'] = $defaultEmail;
-
-     if ($_POST['user_login']) //reset password if phone rather than email is supplied
-       $_POST['user_login'] = $defaultEmail;
-  }
-
-
 }
 
 function cleanPhone($phone) { //get rid of all delimiters and a leading 1 if it exists
@@ -732,19 +736,13 @@ add_action('woocommerce_created_customer', 'customer_created');
 function customer_created($user_id) {
   wp_mail('adam.kircher@gmail.com', 'New Webform Patient', print_r(sanitize($_POST), true));
 
-  $first_name = sanitize_text_field($_POST['first_name']);
-  $last_name = sanitize_text_field($_POST['last_name']);
-  $birth_date = sanitize_text_field($_POST['birth_date']);
-  $language = sanitize_text_field($_POST['language']);
-  $email = sanitize_text_field($_POST['email']);
-
   foreach(['', 'billing_', 'shipping_'] as $field) {
-    update_user_meta($user_id, $field.'first_name', $first_name);
-    update_user_meta($user_id, $field.'last_name', $last_name);
+    update_user_meta($user_id, $field.'first_name', $_POST['first_name']);
+    update_user_meta($user_id, $field.'last_name', $_POST['last_name']);
   }
-  update_user_meta($user_id, 'birth_date', $birth_date);
-  update_user_meta($user_id, 'language', $language);
-  update_user_meta($user_id, 'email', $email);
+  update_user_meta($user_id, 'birth_date', $_POST['birth_date']);
+  update_user_meta($user_id, 'language', $_POST['language']);
+  update_user_meta($user_id, 'email', $_POST['email']);
 
   if ($_POST['phone']) {
     update_user_meta($user_id, 'phone', $_POST['phone']);
@@ -862,7 +860,7 @@ function dscsa_save_account($user_id) {
   $patient_id = dscsa_save_patient($user_id, shared_fields($user_id) + account_fields($user_id));
 
   update_autofill($patient_id, $_POST['pat_autofill'], $_POST['rx_autofill'], $_POST['autofill_resume']);
-  update_email($patient_id, sanitize_text_field($_POST['account_email']));
+  update_email($patient_id, $_POST['email']);
 }
 
 //Update an order with trackin g number and date_shipped
@@ -1018,8 +1016,8 @@ function dscsa_show_order_invoice($order) {
 
 //woocommerce_checkout_update_order_meta
 global $alreadySaved;
-add_action('woocommerce_before_order_object_save', 'dscsa_before_order_object_save', 10, 2);
-function dscsa_before_order_object_save($order, $data) {
+add_action('woocommerce_before_order_object_save', 'dscsa_save_order', 10, 2);
+function dscsa_save_order($order, $data) {
 
   try {
     global $alreadySaved;
@@ -1054,7 +1052,7 @@ function dscsa_before_order_object_save($order, $data) {
 
     $order->update_meta_data('invoice_number', $invoice_number);
 
-    update_email($patient_id, sanitize_text_field($_POST['email']));
+    update_email($patient_id, $_POST['email']);
 
     $coupon = $order->get_used_coupons()[0];
 
@@ -1079,8 +1077,11 @@ function dscsa_before_order_object_save($order, $data) {
     if ($_POST['rx_source'] == 'pharmacy') {
       add_preorder($patient_id, $_POST['transfer'], $_POST['backup_pharmacy']);
       $order->update_meta_data('transfer', $_POST['transfer']);
-    } else {
+    } else if ($_POST['rx_source'] == 'erx') {
+      if (is_registered()) add_rxs_to_order($invoice_number, $_POST['rxs']); //eRxs are probably already in order so we just need to add refills to guardian order
       $order->update_meta_data('rxs', $_POST['rxs']);
+    } else {
+      wp_mail('adam.kircher@gmail.com', "order saved without rx_source", "$patient_id | $invoice_number ".print_r($guardian_order, true).print_r(sanitize($_POST), true).print_r(mssql_get_last_message(), true));
     }
 
     wp_mail('adam.kircher@gmail.com', "saved order 1", "$patient_id | $invoice_number ".print_r($guardian_order, true).print_r(sanitize($_POST), true).print_r(mssql_get_last_message(), true));
@@ -1128,10 +1129,8 @@ function set_field($key, $newVal) {
 function dscsa_save_patient($user_id, $fields) {
 
   //checkout, account details, admin page with correct user, admin page when changing user
-  $first_name = $_POST['billing_first_name'] ?: $_POST['account_first_name'] ?: get_meta('first_name', $user_id) ?: $_POST['_billing_first_name'];
-  $last_name  = $_POST['billing_last_name'] ?: $_POST['account_last_name'] ?: get_meta('last_name', $user_id) ?: $_POST['_billing_last_name'];
-  $birth_date = $_POST['birth_date'] ?: get_meta('birth_date', $user_id);
-  $email      = $_POST['email'] ?: $_POST['account_email'] ?: $_POST['_billing_email'] ;
+
+
 
   //Detect Identity Changes and Email Us a Warning
   if ( ! is_admin()) {
@@ -1145,44 +1144,22 @@ function dscsa_save_patient($user_id, $fields) {
      'email'  => $woocommerce->customer->email
     ];
 
-    if (strtolower($first_name) != strtolower($old_name['first_name']) OR strtolower($last_name) != strtolower($old_name['last_name']) OR $birth_date != $old_name['birth_date'] OR $email != $old_name['email']) {
+    if ($_POST['first_name'] != $old_name['first_name'] OR $_POST['last_name'] != $old_name['last_name'] OR $_POST['birth_date'] != $old_name['birth_date'] OR $_POST['email'] != $old_name['email']) {
       //wp_mail('hello@goodpill.org', 'Patient Name Change', print_r(sanitize($_POST), true)."\r\n\r\n".print_r($order, true));
-      wp_mail('adam.kircher@gmail.com', 'Warning Patient Identity Changed!', "New Info: $first_name $last_name $birth_date $email\r\n\r\nOld Info:".print_r($old_name, true).print_r(sanitize($_POST), true));
+      wp_mail('adam.kircher@gmail.com', 'Warning Patient Identity Changed!', "New Info: $_POST[first_name] $_POST[first_name] $_POST[birth_date] $_POST[email]\r\n\r\nOld Info:".print_r($old_name, true).print_r(sanitize($_POST), true));
     }
-
-    /* THIS ISN"T INVOKED SOON ENOUGH SO WE GET THE UPDATED INFO NOT THE *OLD* INFO
-    $address_1   = $_POST['_billing_address_1'] ?: $_POST['billing_address_1'];
-    $address_2   = $_POST['_billing_address_2'] ?: $_POST['billing_address_2'];
-    $city        = $_POST['_billing_city']      ?: $_POST['billing_city'];
-    $postcode    = $_POST['_billing_postcode']  ?: $_POST['billing_postcode'];
-    //This must be done before dscsa_save_patient() if you want the old info
-    $old_address = [
-     'address_1' => $woocommerce->customer->get_billing_address_1(),
-     'address_2' => $woocommerce->customer->get_billing_address_2(),
-     'city'      => $woocommerce->customer->get_billing_city(),
-     'postcode'  => $woocommerce->customer->get_billing_postcode()
-    ];
-
-    if (true) {
-      //wp_mail('hello@goodpill.org', 'Patient Address Change', print_r(sanitize($_POST), true)."\r\n\r\n".print_r($old_address, true));
-      wp_mail('adam.kircher@gmail.com', 'Warning Patient Address Changed! B', print_r(sanitize($_POST), true)."\r\n\r\n".print_r($old_address, true));
-    }
-    */
-    //This was causing errors if someone created an order for a different person in their account
-    //it would then overwrite all their informaiton in guardian.
-    //$patient_id = get_meta('guardian_id', $user_id);
   }
 
-  if ( ! $first_name OR ! $last_name OR ! $birth_date) {
-    wp_mail('adam.kircher@gmail.com', 'DEBUG dscsa_save_patient', print_r([$first_name, $last_name, $birth_date], true)."|||".print_r(get_user_meta($user_id), true)."|||".print_r($_POST, true));
+  if ( ! $_POST['first_name'] OR ! $_POST['last_name'] OR ! $_POST['birth_date']) {
+    wp_mail('adam.kircher@gmail.com', 'DEBUG dscsa_save_patient', print_r([$_POST['first_name'], $_POST['last_name'], $_POST['birth_date']], true)."|||".print_r(get_user_meta($user_id), true)."|||".print_r($_POST, true));
     return;
   }
 
   //TODO Enable Admin to Pick a different Patient ID if there are multiple matches
   $patient_id = add_patient(
-    $first_name,
-    $last_name,
-    $birth_date,
+    $_POST['first_name'],
+    $_POST['last_name'],
+    $_POST['birth_date'],
     $_POST['phone'],
     get_meta('language', $user_id)
   );
@@ -1210,7 +1187,7 @@ function dscsa_save_patient($user_id, $fields) {
   foreach ($fields as $key => $field) {
 
     //In case of backup pharmacy json, sanitize gets rid of it
-    $val = sanitize_text_field($_POST[$key]);
+    $val = clean_field($_POST[$key]);
 
     if ($key == 'backup_pharmacy') {
       //wp_mail('adam.kircher@gmail.com', "backup_pharmacy",
@@ -1225,7 +1202,7 @@ function dscsa_save_patient($user_id, $fields) {
     if ($key == 'phone') {
       //wp_mail('adam.kircher@gmail.com', "phone",
       update_phone($patient_id, $_POST['phone']);
-      update_user_meta($user_id, 'billing_phone', $val); //this saves it on the user page as well
+      update_user_meta($user_id, 'billing_phone', $_POST['phone']); //this saves it on the user page as well
     }
 
     update_user_meta($user_id, $key, $val);
@@ -1257,14 +1234,27 @@ function dscsa_update_order_status( $data) {
     //wp_mail('adam.kircher@gmail.com', "dscsa_update_order_status", is_admin()." | ".strlen($_POST['rxs'])." | ".(!!$_POST['rxs'])." | ".var_export($_POST['rxs'], true)." | ".print_r(sanitize($_POST), true)." | ".print_r($data, true));
     if (is_admin() OR $data['post_type'] != 'shop_order') return $data;
 
-    if ($_POST['rx_source'] == 'erx' && $_POST['rxs'] && $_POST['rxs'][0]) { //Skip on-hold and go straight to processing if set.  In some case rather than being [] (falsey) rxs was [0 => ''] (truthy), so checking first element too
+    if ($_POST['rx_source'] != 'pharmacy' && $_POST['rxs'] && $_POST['rxs'][0]) { //Skip on-hold and go straight to processing if set.  In some case rather than being [] (falsey) rxs was [0 => ''] (truthy), so checking first element too
       wp_mail('adam.kircher@gmail.com', "New Order - Rx Received (dscsa_update_order_status)", print_r($data, true).print_r(sanitize($_POST), true).print_r(mssql_get_last_message(), true).print_r($_SERVER, true).print_r($_SESSION, true).print_r($_COOKIE, true));
 
       $data['post_status'] = 'wc-processing';
     } else if($_POST['rx_source']) { //checking for rx_source ensures that API calls to update status still work.  Even though we are not "capturing charge" setting "needs payment" seems to make the status goto processing
-      wp_mail('adam.kircher@gmail.com', "New Order - ".($_POST['rx_source'] == 'pharmacy' ? "Awaiting Transfer" : "Awaiting Doctor Rxs")." (dscsa_update_order_status)", print_r($data, true).print_r(sanitize($_POST), true).print_r(mssql_get_last_message(), true).print_r($_SERVER, true).print_r($_SESSION, true).print_r($_COOKIE, true));
 
-      $data['post_status'] = $_POST['rx_source'] == 'pharmacy' ? 'wc-awaiting-transfer' : 'wc-awaiting-rx';
+      if ($_POST['rx_source'] == 'pharmacy') {
+        $subject = "Awaiting Transfer";
+        $data['post_status'] = 'wc-awaiting-transfer';
+      }
+      else if ($_POST['rx_source'] == 'erx') {
+        $subject = "Awaiting Doctor Rxs";
+        $data['post_status'] = 'wc-awaiting-rx';
+      }
+      else {
+        $subject = "This shouldn't have happend ".$_POST['rx_source'];
+        $data['post_status'] = 'wc-processing';
+      }
+
+      wp_mail('adam.kircher@gmail.com', "New Order - $subject (dscsa_update_order_status)", print_r($data, true).print_r(sanitize($_POST), true).print_r(mssql_get_last_message(), true).print_r($_SERVER, true).print_r($_SESSION, true).print_r($_COOKIE, true));
+
     } else if($_POST['payment_method'] == 'stripe') { //order-pay page
       wp_mail('adam.kircher@gmail.com', "Order Paid Manually (dscsa_update_order_status)", print_r($data, true).print_r(sanitize($_POST), true).print_r(mssql_get_last_message(), true).print_r($_SERVER, true).print_r($_SESSION, true).print_r($_COOKIE, true));
 
@@ -1645,15 +1635,22 @@ function get_guardian_order($guardian_id, $source, $comment) {
   $comment = str_replace("'", "''", $comment ?: '');
   // Categories can be found or added select * From csct_code where ct_id=5007, UPDATE csct_code SET code_num=2, code=2, user_owned_yn = 1 WHERE code_id = 100824
   // 0 Unspecified, 1 Webform Complete, 2 Webform eRx, 3 Webform Transfer
-  if ($source == 'erx')
-    $category = 2;
-  else if ($source == 'pharmacy')
+  if ($source == 'pharmacy')
     $category = 3;
+  else if ($source == 'erx')
+    $category = is_registered() ? 6 : 2;
   else
     $category = 0;
 
   $result = db_run("SirumWeb_AddFindOrder '$guardian_id', '$category', '$comment'");
   //wp_mail('adam.kircher@gmail.com', "get_guardian_order *$source*", "SirumWeb_AddFindOrder '$guardian_id', '$category', '$comment'".print_r($result, true));
+  return $result;
+}
+
+function add_rxs_to_order($invoice_number, $script_nos) {
+  $script_nos = json_encode($script_nos);
+  $result = db_run("SirumWeb_AddScriptNosToOrder '$invoice_number', '$script_nos'");
+  wp_mail('adam.kircher@gmail.com', "add_rxs_to_order Order #$invoice_number", "SirumWeb_AddScriptNosToOrder '$invoice_number', '$script_nos', '$comment'".print_r($result, true));
   return $result;
 }
 
@@ -1762,8 +1759,8 @@ function order_defaults($first_name, $last_name, $birth_date, $phone) {
 // )
 function add_patient($first_name, $last_name, $birth_date, $phone, $language) {
 
-  $first_name = mb_convert_case(str_replace("'", "''", $first_name), MB_CASE_TITLE, "UTF-8");
-  $last_name = strtoupper(str_replace("'", "''", $last_name));
+  $first_name = str_replace("'", "''", $first_name);
+  $last_name = str_replace("'", "''", $last_name);
 
   //wp_mail('adam.kircher@gmail.com', "add_patient", "$first_name $last_name ".print_r(func_get_args(), true).print_r(sanitize($_POST), true));
 
