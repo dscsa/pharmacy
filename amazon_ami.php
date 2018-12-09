@@ -148,7 +148,7 @@ function order_fields($user_id = null, $ordered = null, $rxs = []) {
       'required'  => true,
       'default'   => get_default('rx_source', $user_id) ?: 'erx',
       'options'   => [
-        'erx' => __(is_registered() ? 'Refill the Rx(s) listed below' : 'Rx(s) were sent from my doctor'),
+        'erx' => __(is_registered() ? 'Refill the Rx(s) selected below' : 'Rx(s) were sent from my doctor'),
         'pharmacy' => __('Transfer Rx(s) with refills remaining from my pharmacy')
 
       ]
@@ -1077,11 +1077,14 @@ function dscsa_save_order($order, $data) {
     $address = update_shipping_address($patient_id, $address_1, $address_2, $city, $postcode);
 
     if ($_POST['rx_source'] == 'pharmacy') {
-      add_preorder($patient_id, $_POST['transfer'], $_POST['backup_pharmacy']);
-      $order->update_meta_data('transfer', $_POST['transfer']);
+      $texts = array_map(function($rx) { return json_decode(stripslashes($rx))->text; }, $_POST['transfer']);
+      add_preorder($patient_id, $texts, $_POST['backup_pharmacy']);
+      $order->update_meta_data('transfer', $texts);
     } else if ($_POST['rx_source'] == 'erx') {
-      if (is_registered()) add_rxs_to_order($invoice_number, $_POST['rxs']); //eRxs are probably already in order so we just need to add refills to guardian order
-      $order->update_meta_data('rxs', $_POST['rxs']);
+      $script_nos = array_map(function($rx) { return json_decode(stripslashes($rx))->script_no; }, $_POST['rxs']);
+      $texts = array_map(function($rx) { return json_decode(stripslashes($rx))->text; }, $_POST['rxs']);
+      if (is_registered()) add_rxs_to_order($invoice_number, $script_nos); //eRxs are probably already in order so we just need to add refills to guardian order
+      $order->update_meta_data('rxs', $texts);
     } else {
       wp_mail('adam.kircher@gmail.com', "order saved without rx_source", "$patient_id | $invoice_number ".print_r($guardian_order, true).print_r(sanitize($_POST), true).print_r(mssql_get_last_message(), true));
     }
@@ -1148,7 +1151,7 @@ function dscsa_save_patient($user_id, $fields) {
 
     if ($_POST['first_name'] != $old_name['first_name'] OR $_POST['last_name'] != $old_name['last_name'] OR $_POST['birth_date'] != $old_name['birth_date'] OR $_POST['email'] != $old_name['email']) {
       //wp_mail('hello@goodpill.org', 'Patient Name Change', print_r(sanitize($_POST), true)."\r\n\r\n".print_r($order, true));
-      wp_mail('adam.kircher@gmail.com', 'Warning Patient Identity Changed!', "New Info: $_POST[first_name] $_POST[first_name] $_POST[birth_date] $_POST[email]\r\n\r\nOld Info:".print_r($old_name, true).print_r(sanitize($_POST), true));
+      wp_mail('adam.kircher@gmail.com', 'Warning Patient Identity Changed!', "New Info: $_POST[first_name] $_POST[last_name] $_POST[birth_date] $_POST[email]\r\n\r\nOld Info:".print_r($old_name, true).print_r(sanitize($_POST), true));
     }
   }
 
@@ -1361,7 +1364,7 @@ function dscsa_translate($term, $raw, $domain) {
     'Free shipping' => 'Paid with Coupon', //not working (order details page)
     'No saved methods found.' => 'Add a credit/debit card below to activate autopay.  Or pay manually on the "Orders" page',
     '%s has been added to your cart.' => strtok($_SERVER["REQUEST_URI"],'?') == '/account/'
-      ? 'Step 2 of 2: You are almost done! Please complete this "Registration" page so we can fill your prescription(s).  If you need to login again, your temporary password is '.$phone.'.  You can change your password on the "Account Details" page'
+      ? 'Step 2 of 2: You are almost done! Please complete this "Registration" page so we can fill your prescription(s).  If you need to login again, your temporary password is '.$phone.'.  After completing your registration, you can change your password on the "Account Details" page'
       : 'Thank you for your order!',
     'Username or email' => '<strong>Email (or cell phone number if no email provided)</strong>', //For resetting passwords
     'Password reset email has been sent.' => "Before you reset your password by following the instructions below, first try logging in with your 10 digit phone number as your default password",
@@ -1469,7 +1472,7 @@ function dscsa_translate($term, $raw, $domain) {
     'Pay by Credit or Debit Card' => 'Pago con tarjeta de crédito o débito',
     'New Patient Fee:' => 'Cuota de persona nueva:',
     'Paid with Coupon' => 'Pagada con cupón',
-    'Refill the Rx(s) listed below' => 'Refill the Rx(s) listed below'
+    'Refill the Rx(s) selected below' => 'Refill the Rx(s) selected below'
   ];
 
   $english = isset($toEnglish[$term]) ? $toEnglish[$term] : $term;
@@ -1665,9 +1668,9 @@ function get_guardian_order($guardian_id, $source, $comment) {
 }
 
 function add_rxs_to_order($invoice_number, $script_nos) {
+  wp_mail('adam.kircher@gmail.com', "add_rxs_to_order Order #$invoice_number", print_r($script_nos, true).print_r(json_encode($script_nos), true).print_r($_POST, true));
   $script_nos = json_encode($script_nos);
   $result = db_run("SirumWeb_AddScriptNosToOrder '$invoice_number', '$script_nos'");
-  wp_mail('adam.kircher@gmail.com', "add_rxs_to_order Order #$invoice_number", "SirumWeb_AddScriptNosToOrder '$invoice_number', '$script_nos', '$comment'".print_r($result, true));
   return $result;
 }
 
@@ -1697,9 +1700,9 @@ function add_rxs_to_order($invoice_number, $script_nos) {
 */
 function add_remove_allergy($guardian_id, $add_remove, $allergy_id, $value) {
   if ( ! $guardian_id) return
-  $add_remove = $add_remove ? 1 : 0; //force binary
-  $query = "SirumWeb_AddRemove_Allergy '$guardian_id', '$add_remove', '$allergy_id', '$value'";
-  wp_mail('adam.kircher@gmail.com', "add_remove_allergy", $query);
+  $binary_add_remove = ($add_remove ? '1' : '0'); //force binary
+  $query = "SirumWeb_AddRemove_Allergy '$guardian_id', $binary_add_remove, '$allergy_id', '$value'";
+  wp_mail('adam.kircher@gmail.com', "add_remove_allergy", $query." | ".$add_remove." | ".$binary_add_remove." | ".print_r(func_get_args(), true).print_r($_POST, true));
   return db_run($query);
 }
 
@@ -1814,6 +1817,7 @@ function add_preorder($guardian_id, $drug_names, $pharmacy) {
    $phone = cleanPhone($store->phone) ?: '0000000000';
    $fax = cleanPhone($store->fax) ?: '0000000000';
    $store_name = str_replace("'", "''", $store->name); //We need to escape single quotes in case comment has one
+   wp_mail('adam.kircher@gmail.com', "select2 add_preorder", print_r(func_get_args(), true).print_r(sanitize($_POST), true));
 
    foreach ($drug_names as $drug_name) {
      if ($drug_name) {
