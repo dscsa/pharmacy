@@ -670,7 +670,7 @@ function dscsa_default_post_value() {
 
   //Registration ?: Account Details ?: Checkout ?: admin page when changing user ?: admin page
   $first_name = $_POST['first_name'] ?: $_POST['account_first_name'] ?: $_POST['billing_first_name'] ?: $_POST['_billing_first_name'] ?: get_meta('first_name', $user_id);
-  if ($first_name) $_POST['first_name'] = mb_convert_case(clean_field($first_name), MB_CASE_TITLE, "UTF-8"));
+  if ($first_name) $_POST['first_name'] = mb_convert_case(clean_field($first_name), MB_CASE_TITLE, "UTF-8");
 
   //Registration ?: Account Details ?: Checkout ?: admin page when changing user ?: admin page
   $last_name = $_POST['last_name'] ?: $_POST['account_last_name'] ?: $_POST['billing_last_name'] ?: $_POST['_billing_last_name'] ?: get_meta('last_name', $user_id);
