@@ -349,10 +349,10 @@ function upgradeOrdered(callback) {
 function getRxMap() {
   var select = jQuery('#rxs\\[\\]')
   var rxs  = select.data('rxs')
-  console.log('data-rxs', typeof rxs, rxs.length, rxs)
-
   var rxMap = {} //Put Rxs into an object {gcn:rx} for easy lookups in filterInventory and filterRxs
-  for (var i in rxs) {
+  console.log('data-rxs', typeof rxs, rxs && rxs.length, rxs)
+
+  for (var i in rxs || []) {
      var rx = {
       name:rxs[i].drug_name.slice(1, -1), //remove quotes
       script_no:rxs[i].script_no,
