@@ -311,7 +311,7 @@ function upgradeRefills() {
 
 }
 
-function upgradeTransfers() {
+function upgradeTransfer() {
 
   var select = jQuery('#transfer\\[\\]')
 
