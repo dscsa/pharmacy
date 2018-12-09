@@ -386,6 +386,7 @@ function getInventory(callback) {
 //Google Sheets have a weird schema based on header row names. Let's convert it to something more friendly
 function mapGoogleSheetInv(inventory) {
   return inventory.map(function(row) {
+    console.log('mapGoogleSheetInv', row)
     var drug = {
       name:row.gsx$_cokwr.$t,
       price:{
