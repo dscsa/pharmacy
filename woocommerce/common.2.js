@@ -426,7 +426,7 @@ function disableInventory(inventory, rxMap) {
 }
 
 //Enables/Disables RXs (eRx and Refill Requests) Based on Inventory
-function disableRXs(inventory, rxMap) {
+function disableRxs(inventory, rxMap) {
 
   mainloop: for (var gcn in rxMap) {
     var rx = rxMap[gcn]
