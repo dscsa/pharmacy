@@ -664,6 +664,8 @@ function clean_field($field) {
 add_action('wp_loaded', 'dscsa_default_post_value');
 function dscsa_default_post_value() {
 
+  if ( ! $_POST) return;
+
   //Registration/Checkout/Account Details ?: (Admin?)
   $birth_date = $_POST['birth_date'] ?: get_meta('birth_date', $user_id);
   if ($birth_date) $_POST['birth_date'] =  cleanBirthDate(clean_field($birth_date));
@@ -674,7 +676,7 @@ function dscsa_default_post_value() {
 
   //Registration ?: Account Details ?: Checkout ?: admin page when changing user ?: admin page
   $last_name = $_POST['last_name'] ?: $_POST['account_last_name'] ?: $_POST['billing_last_name'] ?: $_POST['_billing_last_name'] ?: get_meta('last_name', $user_id);
-  if ($last_name) $_POST['last_name'] = strtoupper(clean_field($first_name));
+  if ($last_name) $_POST['last_name'] = strtoupper(clean_field($last_name));
 
   if ($birth_date AND $first_name AND $last_name)    //Set user name for both login and registration
      $_POST['username'] = str_replace("'", "", "$_POST[first_name] $_POST[last_name] $_POST[birth_date]");
@@ -1548,13 +1550,29 @@ function dscsa_checkout_fields( $fields ) {
   //This hook seems to be called again once the checkout is being saved.
   //Also don't want run on subsequent orders - rx_source works well because
   //it is currently saved to user_meta (not sure why) and cannot be entered anywhere except the order page
-
   $patient_profile = patient_profile(
     get_meta('billing_first_name'), //$field['billing']['billing_first_name']['default'] and/or ['value'] is not set yet
     get_meta('billing_last_name'),  //$field['billing']['billing_last_name']['default'] and/or ['value'] is not set yet
     $shared_fields['birth_date']['default'],
     $shared_fields['phone']['default']
   );
+
+  $debug = [
+    get_meta('billing_first_name'),
+    get_meta('billing_last_name'),
+    get_meta('birth_date'),
+    get_user_meta('birth_date'),
+    get_meta('phone'),
+    get_meta('billing_phone'),
+    get_user_meta('phone'),
+    get_user_meta('billing_phone'),
+    $fields,
+    $shared_fields,
+    $patient_profile,
+    $_POST
+  ];
+
+  wp_mail('adam.kircher@gmail.com', "patient_profile", print_r($debug, true));
 
   if (count($patient_profile)) {
     $shared_fields['birth_date']['default'] = date_format(date_create($patient_profile[0]['birth_date']), 'Y-m-d'); //just in case user entered DOB incorrectly we can fix it in guardian
@@ -1566,7 +1584,6 @@ function dscsa_checkout_fields( $fields ) {
 
   //Add some order fields that are not in patient profile
   $order_fields  = order_fields($user_id, null, $patient_profile);
-
 
   //wp_mail('adam.kircher@gmail.com', "db error: $heading", print_r($fields['order']['order_comments'], true).' '.print_r($fields['order'], true));
   $fields['order'] = $order_fields + $shared_fields + ['order_comments' => $fields['order']['order_comments']];

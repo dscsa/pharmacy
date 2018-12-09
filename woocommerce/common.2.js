@@ -267,7 +267,7 @@ function upgradeStock() {
 }
 
 function upgradeRxs() {
-
+  console.log('upgradeRxs')
   var select = jQuery('#rxs\\[\\]')
 
   getInventory(function(data) {
@@ -290,7 +290,7 @@ function upgradeRxs() {
 
 //TODO can this be combines with upgradeRxs?  Is there any difference?
 function upgradeRefills() {
-
+  console.log('upgradeRefills')
   var select = jQuery('#rxs\\[\\]')
 
   getInventory(function(data) {
@@ -312,11 +312,11 @@ function upgradeRefills() {
 }
 
 function upgradeTransfer() {
-
+  console.log('upgradeTransfer')
   var select = jQuery('#transfer\\[\\]')
 
   getInventory(function(data) {
-    console.log('upgradeTransfers data', data.length, data)
+    console.log('upgradeTransfer data', data.length, data)
 
     var rxMap = getRxMap()
     console.log('rxMap 1', rxMap)
@@ -347,6 +347,7 @@ function upgradeOrdered(callback) {
 
 //Returns object {[gcn]:rx}
 function getRxMap() {
+  console.log('getRxMap')
   var select = jQuery('#rxs\\[\\]')
   var rxs  = select.data('rxs')
   var rxMap = {} //Put Rxs into an object {gcn:rx} for easy lookups in filterInventory and filterRxs
