@@ -386,8 +386,8 @@ function getInventory(callback) {
 
 //Google Sheets have a weird schema based on header row names. Let's convert it to something more friendly
 function mapGoogleSheetInv(inventory) {
+  console.log('mapGoogleSheetInv', row)
   return inventory.map(function(row) {
-    console.log('mapGoogleSheetInv', row)
     var drug = {
       name:row.gsx$_cokwr.$t,
       price:{
@@ -419,7 +419,10 @@ function disableInventory(inventory, rxMap) {
     if (drug.stock != 'Out of Stock') //Out of stock items should be shown but disabled as to not allow transfers (I think???))
       for (var i in drug.gcns) {
         var drugGcn = drug.gcns[i]
-        if (rxMap[drugGcn] && rxMap[drugGcn].$IsRefill) drug.disabled = false //Enable low supply items that are not Out of Stock only if they are refills
+        if (rxMap[drugGcn] && rxMap[drugGcn].$IsRefill) {
+          console.log('Despite low stock, allowing transfer of ', drug, rxMap[drugGcn])
+          drug.disabled = false //Enable low supply items that are not Out of Stock only if they are refills
+        }
       }
   }
 
