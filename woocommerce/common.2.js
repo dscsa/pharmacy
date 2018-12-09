@@ -236,99 +236,6 @@ function matcher(param, data) {
    return data
 }
 
-function upgradeStock() {
-
-  var select = jQuery('#stock\\[\\]')
-
-  getInventory(function(data) {
-    console.log('upgradeStock data', data.length, data)
-
-    //Remove low stock (disabled) items
-    data = disableInventory(data, {}).filter(function(drug) { return ! drug.disabled })
-
-    select.select2({closeOnSelect:false, data:data})
-
-    open()
-    //<IE9 subsitute for 100vh
-    //Only way I could get results to be scrollable and logo off the page
-    jQuery('.select2-results__options').unbind('mousewheel').css('max-height', 'none')
-
-    select //keep it open always and don't allow selection
-    .on("select2:closing", preventDefault)
-    .on("select2:selecting", preventDefault)
-    .on("select2:closed", open)
-  })
-
-  function open() {
-    console.log('select2 open')
-    select.select2("open")
-    jQuery(':focus').blur()
-  }
-}
-
-function upgradeRxs() {
-  console.log('upgradeRxs')
-  var select = jQuery('#rxs\\[\\]')
-
-  getInventory(function(data) {
-
-    console.log('upgradeRxs data', data.length, data)
-
-    //Remove low stock (disabled) items
-    var rxMap = getRxMap()
-    console.log('rxMap 1', rxMap)
-    rxMap = disableRxs(data, rxMap)
-    console.log('rxMap 2', rxMap)
-    rxMap = objValues(rxMap)
-    console.log('rxMap 3', rxMap)
-
-    select.select2({multiple:true, data:rxMap})
-    select.val(rxMap.map(function(rx) { return ! rx.disabled && rx.id })).change()
-  })
-
-}
-
-//TODO can this be combines with upgradeRxs?  Is there any difference?
-function upgradeRefills() {
-  console.log('upgradeRefills')
-  var select = jQuery('#rxs\\[\\]')
-
-  getInventory(function(data) {
-
-    console.log('upgradeRefills data', data.length, data)
-
-    //Remove low stock (disabled) items
-    var rxMap = getRxMap()
-    console.log('rxMap 1', rxMap)
-    rxMap = disableRxs(data, rxMap)
-    console.log('rxMap 2', rxMap)
-    rxMap = objValues(rxMap)
-    console.log('rxMap 3', rxMap)
-
-    select.select2({multiple:true, data:rxMap})
-    select.val(rxMap.map(function(rx) { return ! rx.disabled && rx.id })).change()
-  })
-
-}
-
-function upgradeTransfer() {
-  console.log('upgradeTransfer')
-  var select = jQuery('#transfer\\[\\]')
-
-  getInventory(function(data) {
-    console.log('upgradeTransfer data', data.length, data)
-
-    var rxMap = getRxMap()
-    console.log('rxMap 1', rxMap)
-
-    //Remove low stock (disabled) items
-    data = disableInventory(data, rxMap)
-
-    select.select2({multiple:true, data:data})
-  })
-
-}
-
 //Used in 2 places: Admin / Order Confirmation (inserted inline via amazon_ami.php).
 function upgradeOrdered(callback) {
   console.log('upgradeOrdered')
@@ -398,7 +305,7 @@ function mapGoogleSheetInv(inventory) {
       stock:row.gsx$stock.$t.replace('- Hidden', 'Stock') //Say "Low Stock" instead of "Low - Hidden"
     }
 
-    drug.text = drug.name+', '+drug.price.amount+' for '+drug.price.days //this is what select 2 displays to the user
+    drug.text = drug.name+', $'+drug.price.amount+' for '+drug.price.days //this is what select 2 displays to the user
     drug.id = JSON.stringify(drug) //this is what select2 passes back in $_POST e.g. $_POST == ['rxs[]' =>  [id1, id2, id3]]
 
     return drug

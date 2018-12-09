@@ -3,11 +3,7 @@ jQuery(load)
 function load() {
 
   upgradeTransfer()
-
-  upgradeRxs(function(select, drugs) {
-    select.on("select2:unselecting", preventDefault)
-    select.val(drugs.map(function(drug) { return ! drug.disabled && drug.id })).change()
-  })
+  upgradeRxs()
 
   //Show our form fields at the beginning rather than the end
   jQuery('form.checkout .col-1').prepend(jQuery('.woocommerce-additional-fields'))
@@ -25,4 +21,45 @@ function load() {
   //Toggle medication select and backup pharmacy text based on whether
   //Rx is being sent from doctor or transferred from a pharmacy.
   setSource()
+}
+
+//Initial eRx and Refill Requests
+function upgradeRxs() {
+  console.log('upgradeRxs')
+  var select = jQuery('#rxs\\[\\]')
+
+  getInventory(function(data) {
+
+    console.log('upgradeRxs data', data.length, data)
+
+    //Remove low stock (disabled) items
+    var rxMap = getRxMap()
+    console.log('rxMap 1', rxMap)
+    rxMap = disableRxs(data, rxMap)
+    console.log('rxMap 2', rxMap)
+    rxMap = objValues(rxMap)
+    console.log('rxMap 3', rxMap)
+
+    select.select2({multiple:true, data:rxMap})
+    select.val(rxMap.map(function(rx) { return ! rx.disabled && rx.id })).change()
+  })
+
+}
+
+function upgradeTransfer() {
+  console.log('upgradeTransfer')
+  var select = jQuery('#transfer\\[\\]')
+
+  getInventory(function(data) {
+    console.log('upgradeTransfer data', data.length, data)
+
+    var rxMap = getRxMap()
+    console.log('rxMap 1', rxMap)
+
+    //Remove low stock (disabled) items
+    data = disableInventory(data, rxMap)
+
+    select.select2({multiple:true, data:data})
+  })
+
 }
