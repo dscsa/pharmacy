@@ -390,10 +390,10 @@ function mapGoogleSheetInv(inventory) {
     var drug = {
       name:row.gsx$_cokwr.$t,
       price:{
-        amount:row['gsx$order.price90'].$t || row['gsx$price45'].$t || '',
+        amount:row['gsx$order.price90'].$t || row.gsx$price45.$t || '',
         days:row['gsx$order.price90'].$t ? '90 days' : '45 days'
       },
-      gcns:row['gsx$key.3'].split(','),
+      gcns:row['gsx$key.3'].$t.split(','),
       stock:row.gsx$stock.$t.replace('- Hidden', 'Stock') //Say "Low Stock" instead of "Low - Hidden"
     }
 
