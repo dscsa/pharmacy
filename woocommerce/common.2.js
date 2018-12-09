@@ -450,8 +450,7 @@ function disableRxs(inventory, rxMap) {
           rx.text += ' (Out of Stock)'
           rx.disabled = true //disable low stock non-refills
         }
-
-        if (drug.stock && ! rx.$IsRefill) {
+        else if (drug.stock && ! rx.$IsRefill) {
           rx.text += ' ('+drug.stock+')'
           rx.disabled = true //disable low stock non-refills
         }
