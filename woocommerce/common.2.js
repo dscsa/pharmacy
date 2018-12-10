@@ -221,7 +221,7 @@ function disableInventory(inventory, rxMap) {
     drug.text += ' ('+drug.stock+')'
     drug.disabled = true //By default if its a low stock item
 
-    if (drug.stock != 'Out of Stock') //Out of stock items should be shown but disabled as to not allow transfers (I think???))
+    if (drug.stock != 'Out of Stock' && drug.stock != 'Not Offered') //Out of stock items should be shown but disabled as to not allow transfers (I think???))
       for (var i in drug.gcns) {
         var drugGcn = drug.gcns[i]
         if (rxMap[drugGcn] && rxMap[drugGcn].$IsRefill) {
@@ -240,7 +240,12 @@ function disableRxs(inventory, rxMap) {
   mainloop: for (var gcn in rxMap) {
     var rx = rxMap[gcn]
 
-    if ( ! rx.refills_total) {
+    if ( ! rx.script_status == 'Transferred Out') {
+      rx.text += ' (Transferred Out)'
+      rx.disabled = true //No Refill Rxs should be disabled
+      continue
+    }
+    else if ( ! rx.refills_total) { //this could be caused from the rx being transferred out
       rx.text += ' (No Refills)'
       rx.disabled = true //No Refill Rxs should be disabled
       continue
@@ -254,8 +259,8 @@ function disableRxs(inventory, rxMap) {
 
         if (gcn != drugGcn) continue
 
-        if (drug.stock == 'Out of Stock') {
-          rx.text += ' (Out of Stock)'
+        if (drug.stock == 'Out of Stock' || drug.stock == 'Not Offered') {
+          rx.text += ' ('+drug.stock+')'
           rx.disabled = true //disable low stock non-refills
         }
         else if (drug.stock && ! rx.$IsRefill) {

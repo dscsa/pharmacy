@@ -105,10 +105,10 @@ function upgradeAutofill() {
           break
         }
 
-        if (row.stock == 'Out of Stock') {
-          console.log('upgradeAutofill Out of Stock', row.name, i, gcn, nextFill.val(), nextFill)
+        if (row.stock == 'Out of Stock' || row.stock == 'Not Offered') {
+          console.log('upgradeAutofill Out of Stock || Not Offered', row.name, i, gcn, nextFill.val(), nextFill)
           tableRow.addClass('nextfill-disabled autofill-off')
-          nextFill.val('Out of Stock')
+          nextFill.val(row.stock)
           jQuery("tr.rx td.day_qty").val(45)
           break
         }
