@@ -59,8 +59,8 @@ function upgradeTransfer() {
     //Remove low stock (disabled) items
     data = disableInventory(data, rxMap)
 
+    select.empty() //get rid of default option (Select Rxs) before loading in our actual inventory
     select.select2({multiple:true, data:data})
-    select.empty() //get rid of default option
   })
 
 }
