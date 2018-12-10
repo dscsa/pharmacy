@@ -200,7 +200,8 @@ function mapGoogleSheetInv(inventory) {
         days:row['gsx$order.price90'].$t ? '90 days' : '45 days'
       },
       gcns:row['gsx$key.3'].$t.split(','),
-      stock:row.gsx$stock.$t.replace('- Hidden', 'Stock') //Say "Low Stock" instead of "Low - Hidden"
+      stock:row.gsx$stock.$t.replace('- Hidden', 'Stock'), //Say "Low Stock" instead of "Low - Hidden"
+      status:row.script_status
     }
 
     drug.text = drug.name+', $'+drug.price.amount+' for '+drug.price.days //this is what select 2 displays to the user
@@ -240,9 +241,9 @@ function disableRxs(inventory, rxMap) {
   mainloop: for (var gcn in rxMap) {
     var rx = rxMap[gcn]
 
-    console.log('disableRxs', rx.script_status == 'Transferred Out', rx.script_status, rx)
-    
-    if (rx.script_status == 'Transferred Out') {
+    console.log('disableRxs', rx)
+
+    if (rx.status == 'Transferred Out') {
       rx.text += ' (Transferred Out)'
       rx.disabled = true //No Refill Rxs should be disabled
       continue
