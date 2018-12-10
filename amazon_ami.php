@@ -1643,14 +1643,14 @@ function dscsa_billing_fields( $fields ) {
 }
 
 function get_invoice_number($guardian_id) {
-  if ( ! $guardian_id) return
+  if ( ! $guardian_id) return;
   $result = db_run("SirumWeb_AddFindInvoiceNbrByPatID '$guardian_id'");
   wp_mail('adam.kircher@gmail.com', "get_invoice_number", $guardian_id.print_r($result, true));
   return $result['invoice_nbr'];
 }
 
 function get_guardian_order($guardian_id, $source, $comment) {
-  if ( ! $guardian_id) return
+  if ( ! $guardian_id) return;
 
   $comment = str_replace("'", "''", $comment ?: '');
   // Categories can be found or added select * From csct_code where ct_id=5007, UPDATE csct_code SET code_num=2, code=2, user_owned_yn = 1 WHERE code_id = 100824
@@ -1699,9 +1699,12 @@ function add_rxs_to_order($invoice_number, $script_nos) {
   else if @AlrNumber = 100 -- other
 */
 function add_remove_allergy($guardian_id, $add_remove, $allergy_id, $value) {
-  if ( ! $guardian_id) return
-  $binary_add_remove = ($add_remove ? '1' : '0'); //force binary
-  $query = "SirumWeb_AddRemove_Allergy '$guardian_id', $binary_add_remove, '$allergy_id', '$value'";
+  if ( ! $guardian_id) return;
+
+  $binary_add_remove = 0; //force binary. For some reason a ternary (?:) was making the db field null
+  if ($add_remove) $binary_add_remove = 1;
+
+  $query = "SirumWeb_AddRemove_Allergy '$guardian_id', '$binary_add_remove', '$allergy_id', '$value'";
   wp_mail('adam.kircher@gmail.com', "add_remove_allergy", $query." | ".$add_remove." | ".$binary_add_remove." | ".print_r(func_get_args(), true).print_r($_POST, true));
   return db_run($query);
 }
@@ -1724,7 +1727,7 @@ function update_phone($guardian_id, $cell_phone) {
 // ,@Country varchar(3)   -- Country Code
 function update_shipping_address($guardian_id, $address_1, $address_2, $city, $zip) {
   //wp_mail('adam.kircher@gmail.com', "update_shipping_address", print_r($params, true));
-  if ( ! $guardian_id) return
+  if ( ! $guardian_id) return;
 
   $zip = substr($zip, 0, 5);
   $city = mb_convert_case($city, MB_CASE_TITLE, "UTF-8" );
