@@ -240,7 +240,7 @@ function disableRxs(inventory, rxMap) {
   mainloop: for (var gcn in rxMap) {
     var rx = rxMap[gcn]
 
-    if ( ! rx.script_status == 'Transferred Out') {
+    if (rx.script_status == 'Transferred Out') {
       rx.text += ' (Transferred Out)'
       rx.disabled = true //No Refill Rxs should be disabled
       continue
