@@ -164,7 +164,8 @@ function getRxMap() {
       script_no:rxs[i].script_no,
       refills_total:rxs[i].refills_total,
       is_refill:rxs[i].is_refill,
-      gcn:rxs[i].gcn_seqno
+      gcn:rxs[i].gcn_seqno,
+      status:rxs[i].script_status
     }
 
     rx.text = rx.name+', Rx:'+rx.script_no //this is what select 2 displays to the user
@@ -200,8 +201,7 @@ function mapGoogleSheetInv(inventory) {
         days:row['gsx$order.price90'].$t ? '90 days' : '45 days'
       },
       gcns:row['gsx$key.3'].$t.split(','),
-      stock:row.gsx$stock.$t.replace('- Hidden', 'Stock'), //Say "Low Stock" instead of "Low - Hidden"
-      status:row.script_status
+      stock:row.gsx$stock.$t.replace('- Hidden', 'Stock') //Say "Low Stock" instead of "Low - Hidden"
     }
 
     drug.text = drug.name+', $'+drug.price.amount+' for '+drug.price.days //this is what select 2 displays to the user
