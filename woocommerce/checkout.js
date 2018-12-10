@@ -60,6 +60,7 @@ function upgradeTransfer() {
     data = disableInventory(data, rxMap)
 
     select.select2({multiple:true, data:data})
+    select.empty() //get rid of default option
   })
 
 }
