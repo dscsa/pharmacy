@@ -1304,7 +1304,7 @@ function dscsa_order_is_editable($editable, $order) {
 
   if ($editable) return true;
 
-  return in_array($order->get_status(), array('processing', 'awaiting-rx', 'awaiting-transfer', 'shipped-unpaid', 'shipped-autopay', 'shipped-payfail', 'shipped-coupon'), true);
+  return in_array($order->get_status(), array('processing', 'awaiting-rx', 'awaiting-transfer', 'shipped-unpaid', 'shipped-overdue', 'shipped-autopay', 'shipped-payfail', 'shipped-coupon'), true);
 }
 
 add_filter('woocommerce_order_is_paid_statuses', 'dscsa_order_is_paid_statuses');
@@ -1535,6 +1535,7 @@ add_filter( 'woocommerce_valid_order_statuses_for_payment_complete', 'dscsa_vali
 add_filter( 'woocommerce_valid_order_statuses_for_payment', 'dscsa_valid_order_statuses_for_payment' );
 function dscsa_valid_order_statuses_for_payment($statuses) {
   $statuses[] = 'shipped-unpaid';
+  $statuses[] = 'shipped-overdue';
   $statuses[] = 'shipped-autopay';
   $statuses[] = 'shipped-payfail';
   return $statuses;
