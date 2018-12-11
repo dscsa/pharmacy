@@ -1747,7 +1747,7 @@ function patient_profile($first_name, $last_name, $birth_date, $phone) {
 
   $result = db_run("SirumWeb_PatProfile '$first_name', '$last_name', '$birth_date', '$phone'", 0, true);
 
-  wp_mail('adam.kircher@gmail.com', "patient_profile", "$first_name $last_name ".print_r(func_get_args(), true).print_r(sanitize($_POST), true).print_r($result, true));
+  //wp_mail('adam.kircher@gmail.com', "patient_profile", "$first_name $last_name ".print_r(func_get_args(), true).print_r(sanitize($_POST), true).print_r($result, true));
 
   return $result;
 }
