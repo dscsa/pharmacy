@@ -1029,6 +1029,7 @@ function dscsa_save_order($order, $data) {
     $alreadySaved = true;
 
     $user_id = $order->get_user_id();
+    $is_registered = is_registered(); //dscsa_save_patient will overwrite and set as true so save current value here
 
     //THIS MUST BE CALLED FIRST IN ORDER TO CREATE GUARDIAN ID
     //TODO should save if they don't exist, but what if they do, should we be overriding?
@@ -1040,7 +1041,7 @@ function dscsa_save_order($order, $data) {
       wp_mail('adam.kircher@gmail.com', "INVOICE# IS ALREDY SAVED.  NOT CREATING ORDER", "Patient ID: $patient_id\r\n\r\nInvoice #:$invoice_number \r\n\r\nMSSQL:".print_r(mssql_get_last_message(), true)."\r\n\r\nOrder Meta Invoice #:".$order->get_meta('invoice_number', true)."\r\n\r\nPOST:".print_r(sanitize($_POST), true).print_r($order, true));
 
     if ( ! $invoice_number) {
-      $guardian_order = get_guardian_order($patient_id, $_POST['rx_source'], $_POST['order_comments']);
+      $guardian_order = get_guardian_order($patient_id, $_POST['rx_source'], $_POST['order_comments'], $is_registered);
       $invoice_number = $guardian_order['invoice_nbr'];
     }
 
@@ -1083,7 +1084,7 @@ function dscsa_save_order($order, $data) {
     } else if ($_POST['rx_source'] == 'erx') {
       $script_nos = array_map(function($rx) { return json_decode(stripslashes($rx))->script_no; }, $_POST['rxs']);
       $texts = array_map(function($rx) { return json_decode(stripslashes($rx))->text; }, $_POST['rxs']);
-      if (is_registered()) add_rxs_to_order($invoice_number, $script_nos); //eRxs are probably already in order so we just need to add refills to guardian order
+      if ($is_registered) add_rxs_to_order($invoice_number, $script_nos); //eRxs are probably already in order so we just need to add refills to guardian order
       $order->update_meta_data('rxs', $texts);
     } else {
       wp_mail('adam.kircher@gmail.com', "order saved without rx_source", "$patient_id | $invoice_number ".print_r($guardian_order, true).print_r(sanitize($_POST), true).print_r(mssql_get_last_message(), true));
@@ -1649,7 +1650,7 @@ function get_invoice_number($guardian_id) {
   return $result['invoice_nbr'];
 }
 
-function get_guardian_order($guardian_id, $source, $comment) {
+function get_guardian_order($guardian_id, $source, $comment, $is_registered) {
   if ( ! $guardian_id) return;
 
   $comment = str_replace("'", "''", $comment ?: '');
@@ -1658,7 +1659,7 @@ function get_guardian_order($guardian_id, $source, $comment) {
   if ($source == 'pharmacy')
     $category = 3;
   else if ($source == 'erx')
-    $category = is_registered() ? 6 : 2;
+    $category = $is_registered ? 6 : 2;
   else
     $category = 0;
 
