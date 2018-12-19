@@ -1172,6 +1172,8 @@ function dscsa_save_patient($user_id, $fields) {
 
   update_user_meta($user_id, 'guardian_id', $patient_id);
 
+  $allergies = [];
+
   $allergy_codes = [
     'allergies_tetracycline' => 1,
     'allergies_cephalosporins' => 2,
@@ -1213,15 +1215,21 @@ function dscsa_save_patient($user_id, $fields) {
 
     update_user_meta($user_id, $key, $val);
 
-    if ($allergy_codes[$key]) {
+    /*if ($allergy_codes[$key]) {
       //NOTE: Looping through fields so we will see all allergies even if not in $_POST
       //Checkboxes remain selected and in $_POST even if patient picks "allergies_none" and they are hidden
       //we keep this so someone doesn't lose all their information if they accidentally toggle the allergy_none field
       $add_remove = ($key == 'allergies_none' || ! $_POST['allergies_none']) ? $val : 0;
       $other = ($key == 'allergies_other' AND $_POST[$key]) ? str_replace("'", "''", $val) : NULL;
       add_remove_allergy($patient_id, $add_remove, $allergy_codes[$key], $other);
+    }*/
+
+    if (substr($key, 0, 10) == 'allergies_') {
+      $allergies[$key] = $val;
     }
   }
+
+  add_remove_allergies($patient_id, $allergies);
 
   wp_mail('adam.kircher@gmail.com', "patient saved", $patient_id.' '.print_r(sanitize($_POST), true).' '.print_r($fields, true));
 
@@ -1700,6 +1708,18 @@ function add_rxs_to_order($invoice_number, $script_nos) {
   else if @AlrNumber = 99  -- none
   else if @AlrNumber = 100 -- other
 */
+
+function add_remove_allergies($guardian_id, $post) {
+
+  if ( ! $guardian_id) return;
+
+  $post  = json_encode($post);
+  $query = "SirumWeb_AddRemove_Allergies '$guardian_id', '$post'";
+  wp_mail('adam.kircher@gmail.com', "add_remove_allergies", $query." | ".print_r(func_get_args(), true).print_r($_POST, true));
+  return db_run($query);
+}
+
+/*
 function add_remove_allergy($guardian_id, $add_remove, $allergy_id, $value) {
   if ( ! $guardian_id) return;
 
@@ -1710,6 +1730,7 @@ function add_remove_allergy($guardian_id, $add_remove, $allergy_id, $value) {
   wp_mail('adam.kircher@gmail.com', "add_remove_allergy", $query." | ".$add_remove." | ".$binary_add_remove." | ".print_r(func_get_args(), true).print_r($_POST, true));
   return db_run($query);
 }
+*/
 
 // SirumWeb_AddUpdateHomePhone(
 //   @PatID int,  -- ID of Patient
