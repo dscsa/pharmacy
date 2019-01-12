@@ -1084,7 +1084,7 @@ function dscsa_save_order($order, $data) {
     } else if ($_POST['rx_source'] == 'erx') {
       $script_nos = array_map(function($rx) { return json_decode(stripslashes($rx))->script_no; }, $_POST['rxs']);
       $texts = array_map(function($rx) { return json_decode(stripslashes($rx))->text; }, $_POST['rxs']);
-      if ($is_registered) add_rxs_to_order($invoice_number, $script_nos); //eRxs are probably already in order so we just need to add refills to guardian order
+      add_rxs_to_order($invoice_number, $script_nos); 
       $order->update_meta_data('rxs', $texts);
     } else {
       wp_mail('adam.kircher@gmail.com', "order saved without rx_source", "$patient_id | $invoice_number ".print_r($guardian_order, true).print_r(sanitize($_POST), true).print_r(mssql_get_last_message(), true));
