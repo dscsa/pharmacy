@@ -279,7 +279,10 @@ function sendSMS($phone, $text) {
 
 function shared_fields($user_id = null) {
 
-    $user_id = $user_id ?: get_current_user_id();
+
+    $user = wp_get_current_user();
+
+    $user_id = $user_id ?: $user->ID;
 
     $pharmacy = [
       'type'  => 'select',
@@ -294,6 +297,12 @@ function shared_fields($user_id = null) {
     if ($pharmacy_meta) {
       $store = json_decode($pharmacy_meta);
       $pharmacy['options'] = [$pharmacy_meta => $store->name.', '.$store->street.', '.$store->city.', GA '.$store->zip.' - Phone: '.$store->phone];
+    }
+
+    //THis is necessary because http://woocommerce.wp-a2z.org/oik_api/wc_checkoutget_value/ overwrites an DOB in username with old DOB
+    $birth_date = substr($user->user_login, -10);
+    if ($birth_date != get_user_meta($user_id, 'birth_date', true)) {
+      update_user_meta($user_id, 'birth_date', $birth_date);
     }
 
     return [
@@ -392,7 +401,7 @@ function shared_fields($user_id = null) {
         'input_class' => ['date-picker'],
         'autocomplete' => 'off',
         'custom_attributes' => ['readonly' => true],
-        'default'   => get_default('birth_date', $user_id)
+        'default'   => $birth_date
     ],
     'phone' => [
       'label'     => __('Phone'),
@@ -1084,7 +1093,7 @@ function dscsa_save_order($order, $data) {
     } else if ($_POST['rx_source'] == 'erx') {
       $script_nos = array_map(function($rx) { return json_decode(stripslashes($rx))->script_no; }, $_POST['rxs']);
       $texts = array_map(function($rx) { return json_decode(stripslashes($rx))->text; }, $_POST['rxs']);
-      add_rxs_to_order($invoice_number, $script_nos); 
+      add_rxs_to_order($invoice_number, $script_nos);
       $order->update_meta_data('rxs', $texts);
     } else {
       wp_mail('adam.kircher@gmail.com', "order saved without rx_source", "$patient_id | $invoice_number ".print_r($guardian_order, true).print_r(sanitize($_POST), true).print_r(mssql_get_last_message(), true));
@@ -1570,23 +1579,6 @@ function dscsa_checkout_fields( $fields ) {
     $shared_fields['phone']['default']
   );
 
-  $debug = [
-    get_meta('billing_first_name'),
-    get_meta('billing_last_name'),
-    get_meta('birth_date'),
-    get_user_meta('birth_date'),
-    get_meta('phone'),
-    get_meta('billing_phone'),
-    get_user_meta('phone'),
-    get_user_meta('billing_phone'),
-    $fields,
-    $shared_fields,
-    $patient_profile,
-    $_POST
-  ];
-
-  wp_mail('adam.kircher@gmail.com', "patient_profile", print_r($debug, true));
-
   if (count($patient_profile)) {
     $shared_fields['birth_date']['default'] = date_format(date_create($patient_profile[0]['birth_date']), 'Y-m-d'); //just in case user entered DOB incorrectly we can fix it in guardian
     $fields['billing']['billing_address_1']['default'] = substr($patient_profile[0]['address_1'], 1, -1);
@@ -1629,6 +1621,8 @@ function dscsa_checkout_fields( $fields ) {
   uasort($fields['billing'], function($a, $b) {
     return ($a['priority'] < $b['priority']) ? -1 : 1;
   });
+
+  wp_mail('adam.kircher@gmail.com', "patient_profile", print_r($fields, true).print_r($order_fields, true).print_r($shared_fields, true));
 
   return $fields;
 }
