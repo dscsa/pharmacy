@@ -1842,6 +1842,7 @@ function add_preorder($guardian_id, $drug_names, $pharmacy) {
    foreach ($drug_names as $drug_name) {
      if ($drug_name) {
        $drug_name = preg_replace('/,[^,]*$/', '', $drug_name); //remove pricing data after last comma (don't use explode because of combo drugs)
+       $drug_name = str_replace("'", "''", $drug_name); //We need to escape single quotes e.g., the ' of don't in Fluoxetine 40mg (Prozac, please don't specify tablet vs capsule)
        $query = "SirumWeb_AddToPreorder '$guardian_id', '$drug_name', '$store->npi', '$store_name P:$phone F:$fax', '$store->street', '$store->city', '$store->state', '$store->zip', '$phone', '$fax'";
        $res = db_run($query);
 
