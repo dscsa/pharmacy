@@ -496,12 +496,12 @@ function dscsa_user_edit_account($user_id = null) {
 
         if ($refills_total)
           $autofill_date = $autofill_date ? date_format(date_create($autofill_date), 'Y-m-d') : '';
-        else if ( ! $is_refill)
+        else if ($patient_profile[$i]['script_status'] == 'Transferred Out')
           $autofill_date = 'Transferred';
         else
           $autofill_date = 'No Refills';
 
-        if ($is_refill) {
+        if ($patient_profile[$i]['dispense_date']) { //New Rx that is just dispensed should show that date
           $tr_class    = "rx gcn$gcn";
           $last_refill = date_format(date_create($patient_profile[$i]['dispense_date']), 'm/d');
           $next_refill = date_format(date_create($patient_profile[$i]['refill_date']), 'Y-m-d');
@@ -1675,6 +1675,13 @@ function add_rxs_to_order($invoice_number, $script_nos) {
   wp_mail('adam.kircher@gmail.com', "add_rxs_to_order Order #$invoice_number", print_r($script_nos, true).print_r(json_encode($script_nos), true).print_r($_POST, true));
   $script_nos = json_encode($script_nos);
   $result = db_run("SirumWeb_AddScriptNosToOrder '$invoice_number', '$script_nos'");
+  return $result;
+}
+
+function remove_rxs_from_order($invoice_number, $script_nos) {
+  wp_mail('adam.kircher@gmail.com', "remove_rxs_from_order Order #$invoice_number", print_r($script_nos, true).print_r(json_encode($script_nos), true).print_r($_POST, true));
+  $script_nos = json_encode($script_nos);
+  $result = db_run("SirumWeb_RemoveScriptNosFromOrder '$invoice_number', '$script_nos'");
   return $result;
 }
 
