@@ -1764,6 +1764,8 @@ function update_shipping_address($guardian_id, $address_1, $address_2, $city, $z
 
 function patient_profile($first_name, $last_name, $birth_date, $phone) {
 
+  if (is_admin()) return;
+
   $first_name = str_replace("'", "''", $first_name);
   $last_name = str_replace("'", "''", $last_name);
 
