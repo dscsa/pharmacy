@@ -1168,7 +1168,7 @@ function dscsa_save_patient($user_id, $fields) {
      'email'  => $woocommerce->customer->email
     ];
 
-    if ($_POST['first_name'] != $old_name['first_name'] OR $_POST['last_name'] != $old_name['last_name'] OR $_POST['birth_date'] != $old_name['birth_date'] OR $_POST['email'] != $old_name['email']) {
+    if (strtolower($_POST['first_name']) != strtolower($old_name['first_name']) OR strtolower($_POST['last_name']) != strtolower($old_name['last_name']) OR $_POST['birth_date'] != $old_name['birth_date'] OR strtolower($_POST['email']) != strtolower($old_name['email'])) {
       //wp_mail('hello@goodpill.org', 'Patient Name Change', print_r(sanitize($_POST), true)."\r\n\r\n".print_r($order, true));
       wp_mail('adam.kircher@gmail.com', 'Warning Patient Identity Changed!', "New Info: $_POST[first_name] $_POST[last_name] $_POST[birth_date] $_POST[email]\r\n\r\nOld Info:".print_r($old_name, true).print_r(sanitize($_POST), true));
     }
