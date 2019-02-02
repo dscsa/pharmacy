@@ -3,6 +3,7 @@ function load() {
 
   signup2signout()
   translate()
+  savePaymentCard()
 
   if (window.location.pathname == '/account/details/')
     return account_page()
@@ -13,7 +14,6 @@ function load() {
 
 function account_page() {
   console.log('account.js account page')
-  savePaymentCard()
   upgradeAutofill()
   upgradePharmacy()
   upgradeAllergies()

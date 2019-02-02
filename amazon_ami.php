@@ -82,16 +82,15 @@ function get_default($field, $user_id = null) {
 add_action('wc_stripe_delete_source', 'dscsa_stripe_delete_source', 10, 2);
 function dscsa_stripe_delete_source($stripe_id, $customer) {
   $user_id = get_current_user_id();
+  $patient_id = get_meta('guardian_id', $user_id);
 
-  $tokens = WC_Payment_Tokens::get_customer_tokens($user_id);
+  $tokens = WC_Payment_Tokens::get_customer_default_token($user_id); //Unset Guardian only if we deleted the default token
+
+  wp_mail("adam.kircher@gmail.com", "dscsa_stripe_delete_source autopay off", "WP: $user_id | Stripe: $stripe_id | Guardian: $patient_id | REQUEST_URI: ".$_SERVER['REQUEST_URI']." | wc-ajax: ".$_GET['wc-ajax']." | HTTP_REFERER: ".$_SERVER['HTTP_REFERER']." ".count($tokens)." ".print_r($tokens, true)." ".print_r($customer, true));
 
   if (count($tokens)) return;
 
-  $patient_id = get_meta('guardian_id', $user_id);
-
   $coupon = get_meta('coupon', $user_id);
-
-  wp_mail("adam.kircher@gmail.com", "dscsa_stripe_set_default_source autopay off", "$stripe_id ".count($tokens)." ".print_r($tokens, true)." ".print_r($customer, true));
 
   update_stripe_tokens($patient_id, ',,');
 
@@ -100,6 +99,8 @@ function dscsa_stripe_delete_source($stripe_id, $customer) {
 
 add_action('wc_stripe_set_default_source', 'dscsa_stripe_set_default_source', 10, 2);
 function dscsa_stripe_set_default_source($stripe_id, $customer) {
+
+  if ( ! is_add_payment_page()) return;
 
   $card = [
     'last4' => $customer->sources->data[0]->card->last4,
@@ -110,10 +111,10 @@ function dscsa_stripe_set_default_source($stripe_id, $customer) {
     'month' => $customer->sources->data[0]->card->exp_month
   ];
 
-  wp_mail("adam.kircher@gmail.com", "dscsa_stripe_set_default_source", "$stripe_id ".print_r($card, true)." ".print_r($customer, true));
-
   $user_id = get_current_user_id();
   $patient_id = get_meta('guardian_id', $user_id);
+
+  wp_mail("adam.kircher@gmail.com", "dscsa_stripe_set_default_source", "WP: $user_id | Stripe: $stripe_id | Guardian: $patient_id ".print_r($card, true)." ".print_r($customer, true));
 
   update_user_meta($user_id, 'stripe', $card);
 
@@ -128,14 +129,19 @@ function dscsa_stripe_set_default_source($stripe_id, $customer) {
   update_card_and_coupon($patient_id, $card, $coupon);
 }
 
-add_filter( 'woocommerce_get_customer_payment_tokens',  'dscsa_get_customer_payment_tokens', 99, 3);
-function dscsa_get_customer_payment_tokens($tokens, $customer_id, $gateway_id ) {
+//Set first payment method in guardian even if it is not a "default"
+add_action('woocommerce_stripe_add_source', 'dscsa_stripe_add_source', 10, 4);
+function dscsa_stripe_add_source($stripe_id, $wc_token, $customer, $source_id) {// Called after creating/attaching a source to a customer.
+
+  if ( ! is_add_payment_page()) return;
+
+  WC_Payment_Tokens::set_users_default(get_current_user_id(), $source_id);
+}
+
+//is_add_payment_page (Autopay page) vs just paying for an order
+function is_add_payment_page() {
   //Outer parenthesis are important as assignment comes before OR in precedence http://php.net/manual/en/language.operators.logical.php
-  $is_add_payment = (strpos($_SERVER['REQUEST_URI'], '/add-payment/') OR ($_GET['wc-ajax'] == 'update_order_review' AND strpos($_SERVER['HTTP_REFERER'], '/add-payment/')));
-
-  //wp_mail("adam.kircher@gmail.com", "dscsa_stripe_set_default_source", ($is_add_payment ? 'TRUE' : 'FALSE' ).' | '.(is_wc_endpoint_url( 'add-payment' ) ? 'TRUE' : 'FALSE' ).' | '.($_GET['wc-ajax'] == 'update_order_review' ? 'TRUE' : 'FALSE' ).' | '.(strpos($_SERVER['HTTP_REFERER'], '/add-payment/') ? 'TRUE' : 'FALSE' ).print_r($_GET, true)." ".print_r($_SERVER, true));
-
-  return $is_add_payment ? [] : $tokens;
+  return (strpos($_SERVER['REQUEST_URI'], '/add-payment/') OR ($_GET['wc-ajax'] == 'update_order_review' AND strpos($_SERVER['HTTP_REFERER'], '/add-payment/')));
 }
 
 function order_fields($user_id = null, $ordered = null, $rxs = []) {
@@ -1388,6 +1394,7 @@ function dscsa_translate($term, $raw, $domain) {
     'Password reset email has been sent.' => "Before you reset your password by following the instructions below, first try logging in with your 10 digit phone number as your default password",
     'A password reset email has been sent to the email address on file for your account, but may take several minutes to show up in your inbox. Please wait at least 10 minutes before attempting another reset.' => 'If you provided an email address or mobile phone number during registration, then an email and/or text message with instructions on how to reset your password was sent to you.  If you do not get an email or text message from us within 5mins, please call us at <span style="white-space:nowrap">(888) 987-5187</span> for assistance',
     'Additional information' => '',  //Checkout
+    'Make Default' => 'Use for Autopay',
     'Billing address' => 'Shipping address', //Order confirmation
 	  'Billing &amp; Shipping' => 'Shipping Address', //Checkout
     'Lost your password? Please enter your username or email address. You will receive a link to create a new password via email.' => '<h2>Lost your password?</h2>New accounts use your phone number as a temporary password. Before you reset your password, first try logging in with your 10 digit phone number without any extra characters as your password.  For example, use the password 1234567890 for the phone number <span style="white-space:nowrap">(123) 456-7890.</span> To ensure your account is secure, we encourage you to choose your own password on the "Account Details" page once you have logged on.<br><br>If using your phone number as your password did not work, enter the email you entered during registration (or a cell phone number if you did not enter an email) below to receive an email (or a text message) with instructions on how to reset your password.<br><br>Please note that this option will only work if you provided an email and/or cell phone number when you registered.  Please note that some phones do not handle links in text messages well, so you may need to copy and paste the password reset hyperlink into a web browser.<br><br>If you did not provide an email or cell phone number when registering for your account, you will need call us at <span style="white-space:nowrap">(888) 987-5187</span> for assistance resetting your password.', //Logging in
