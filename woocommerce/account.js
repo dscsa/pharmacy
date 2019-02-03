@@ -63,12 +63,12 @@ function upgradeAutofill() {
 
   //When Patient Autofill is unchecked, uncheck and disable all Rx Autofill checkboxes and uncheck the "New Rx" autofill
   //When Patient Autofill is checked, enable all Rx Autofills (but don't check them) and check the "New Rx" autofill
-  jQuery(".pat_autofill input").on('change', function(){
+  jQuery(".pat_autofill input").on('change', function(e, firstCall){
     console.log('toggle patient autofill', this.checked)
     rx_autofills.prop('disabled', ! this.checked)
     if ( ! this.checked) rx_autofills.prop('checked', false)
     jQuery("input.new_rx_autofill").prop('checked', this.checked)
-    rx_autofills.trigger('change') //triggerHandler only works on first matched element
+    rx_autofills.trigger('change', firstCall) //triggerHandler only works on first matched element
   })
 
   //Put date picker UI on any enabled next-fill input
