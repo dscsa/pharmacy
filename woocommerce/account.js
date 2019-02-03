@@ -32,7 +32,9 @@ function upgradeAutofill() {
     var elem  = jQuery(this)
     var row   = elem.closest('tr.rx')
     var input = row.find('.next_fill')
+    var nextFill = input.attr('next-fill')
     var disabled = row.hasClass('nextfill-disabled')
+    var twoDaysFromNow  = new Date().setDate(new Date().getDate() + 2).toJSON().slice(0, 10)
     var off = row.hasClass('autofill-off')
     console.log('toggle rx autofill', this.checked, disabled, input.val(), input.attr('next-fill'), input.attr('default'))
     if (off) {
@@ -41,14 +43,19 @@ function upgradeAutofill() {
     }
     input.prop('disabled',  disabled)
 
-    var placeholder = 'Upon Request'
+    var placeholder
 
     if (disabled)
       placeholder = 'N/A'
-    else if (this.checked)
-      placeholder = input.attr('next-fill')
+    else if ( ! this.checked)
+      placeholder = 'Upon Request'
+    else if (nextFill >= twoDaysFromNow)
+      placeholder = nextFill
 
-    input.prop('placeholder', placeholder)
+    if (placeholder)
+      input.prop('placeholder', placeholder)
+    else
+      input.val(twoDaysFromNow) //If changed to checked and nextFill is blank or past then set it for two day from now
   })
 
   //When Patient Autofill is unchecked, uncheck and disable all Rx Autofill checkboxes and uncheck the "New Rx" autofill
@@ -62,6 +69,7 @@ function upgradeAutofill() {
   })
 
   //Put date picker UI on any enabled next-fill input
+  //Constraint only works for the UI calendar, it does not prevent writing in a date https://bugs.jqueryui.com/ticket/6917
   jQuery(".next_fill").each(function() {
     var elem = jQuery(this)
     elem.datepicker({changeMonth:true, changeYear:true, minDate:"+2d", maxDate:"+6m", dateFormat:"yy-mm-dd", constrainInput:true})
