@@ -35,7 +35,8 @@ function upgradeAutofill() {
     var nextFill = input.attr('next-fill')
     var disabled = row.hasClass('nextfill-disabled')
     var off = row.hasClass('autofill-off')
-    console.log('toggle rx autofill', this.checked, disabled, input.val(), input.attr('next-fill'), input.attr('default'))
+    var val = input.val()
+    console.log('toggle rx autofill', this.checked, disabled, val, input.attr('next-fill'), input.attr('default'))
     if (off) {
       elem.prop('checked', false)
       elem.prop('disabled', true)
@@ -57,7 +58,7 @@ function upgradeAutofill() {
 
     if (placeholder)
       input.prop('placeholder', placeholder)
-    else if ( ! firstCall)
+    else if ( ! firstCall && ! val)
       input.val(twoDaysFromNow) //If changed to checked and nextFill is blank or past then set it for two day from now
   })
 
