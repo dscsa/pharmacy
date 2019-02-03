@@ -28,7 +28,7 @@ function upgradeAutofill() {
 
   //When RX Autofill is unchecked, disable refill date input and have it display N/A
   //When RX Autofill is checked have it display placeholder of next-fill and allow user to select date
-  rx_autofills.on('change', function(){
+  rx_autofills.on('change', function(e, firstCall){
     var elem  = jQuery(this)
     var row   = elem.closest('tr.rx')
     var input = row.find('.next_fill')
@@ -57,7 +57,7 @@ function upgradeAutofill() {
 
     if (placeholder)
       input.prop('placeholder', placeholder)
-    else if (off)
+    else if ( ! firstCall)
       input.val(twoDaysFromNow) //If changed to checked and nextFill is blank or past then set it for two day from now
   })
 
@@ -133,6 +133,6 @@ function upgradeAutofill() {
       }
     })
 
-    jQuery(".pat_autofill input").triggerHandler('change')
+    jQuery(".pat_autofill input").triggerHandler('change', true)
   })
 }
