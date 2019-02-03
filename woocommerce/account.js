@@ -57,7 +57,7 @@ function upgradeAutofill() {
 
     if (placeholder)
       input.prop('placeholder', placeholder)
-    else
+    else if (off)
       input.val(twoDaysFromNow) //If changed to checked and nextFill is blank or past then set it for two day from now
   })
 
