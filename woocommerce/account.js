@@ -64,7 +64,7 @@ function upgradeAutofill() {
   //Put date picker UI on any enabled next-fill input
   jQuery(".next_fill").each(function() {
     var elem = jQuery(this)
-    elem.datepicker({changeMonth:true, changeYear:true, minDate:"+1d", maxDate:"+6m", dateFormat:"yy-mm-dd", constrainInput:true})
+    elem.datepicker({changeMonth:true, changeYear:true, minDate:"+2d", maxDate:"+6m", dateFormat:"yy-mm-dd", constrainInput:true})
   })
 
   //Disable and set days based for new Rxs based on live inventory
