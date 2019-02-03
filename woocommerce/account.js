@@ -34,7 +34,6 @@ function upgradeAutofill() {
     var input = row.find('.next_fill')
     var nextFill = input.attr('next-fill')
     var disabled = row.hasClass('nextfill-disabled')
-    var twoDaysFromNow  = new Date().setDate(new Date().getDate() + 2).toJSON().slice(0, 10)
     var off = row.hasClass('autofill-off')
     console.log('toggle rx autofill', this.checked, disabled, input.val(), input.attr('next-fill'), input.attr('default'))
     if (off) {
@@ -42,6 +41,10 @@ function upgradeAutofill() {
       elem.prop('disabled', true)
     }
     input.prop('disabled',  disabled)
+
+    var twoDaysFromNow  = new Date()
+    twoDaysFromNow.setDate(twoDaysFromNow.getDate() + 2)
+    twoDaysFromNow = twoDaysFromNow.toJSON().slice(0, 10)
 
     var placeholder
 
