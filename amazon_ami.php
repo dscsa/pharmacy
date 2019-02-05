@@ -1776,7 +1776,8 @@ function update_shipping_address($guardian_id, $address_1, $address_2, $city, $z
 
 function patient_profile($first_name, $last_name, $birth_date, $phone) {
 
-  if (is_admin()) return;
+  if ( ! $first_name OR ! $last_name OR ! $phone OR is_admin())
+    return wp_mail('adam.kircher@gmail.com', "patient_profile error!", print_r(func_get_args(), true).print_r($_POST, true).print_r(debug_backtrace(), true));
 
   $first_name = str_replace("'", "''", $first_name);
   $last_name = str_replace("'", "''", $last_name);
