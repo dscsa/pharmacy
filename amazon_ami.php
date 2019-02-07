@@ -1776,8 +1776,9 @@ function update_shipping_address($guardian_id, $address_1, $address_2, $city, $z
 
 function patient_profile($first_name, $last_name, $birth_date, $phone) {
 
-  if ( ! $first_name OR ! $last_name OR ! $phone OR is_admin())
-    return wp_mail('adam.kircher@gmail.com', "patient_profile error!", print_r(func_get_args(), true).print_r($_POST, true).print_r(debug_backtrace(), true));
+  if ( ! $first_name OR ! $last_name OR ! $phone) {
+    wp_mail('adam.kircher@gmail.com', "patient_profile error!", "is_admin ".is_admin()." ".print_r(func_get_args(), true).print_r($_POST, true).print_r(debug_backtrace(), true));
+  }
 
   $first_name = str_replace("'", "''", $first_name);
   $last_name = str_replace("'", "''", $last_name);
@@ -1998,7 +1999,20 @@ function db_fetch($stmt) {
 
 function db_connect() {
   //sqlsrv_configure("WarningsReturnAsErrors", 0);
-  $conn = mssql_connect(GUARDIAN_IP, GUARDIAN_ID, GUARDIAN_PW) ?: email_error('Error Connection');
+  $conn = mssql_connect(GUARDIAN_IP, GUARDIAN_ID, GUARDIAN_PW);
+
+  if ( ! is_resource($conn)) {
+    email_error('Error Connection 1');
+
+    $conn = mssql_connect(GUARDIAN_IP, GUARDIAN_ID, GUARDIAN_PW);
+
+    if ( ! is_resource($conn)) {
+      email_error('Error Connection 2');
+      echo 'mssql_get_last_message(): '.mssql_get_last_message();
+      return false;
+    }
+  }
+
   mssql_select_db('cph', $conn) ?: email_error('Could not select database cph');
   return $conn;
 }
