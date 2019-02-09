@@ -469,96 +469,114 @@ function dscsa_user_edit_account($user_id = null) {
 
   //if (get_current_user_id() == 1559 || get_current_user_id() == 645) {
 
-    //IF AVAILABLE, PREPOPULATE RX ADDRESS AND RXS INTO REGISTRATION
-    //This hook seems to be called again once the checkout is being saved.
-    //Also don't want run on subsequent orders - rx_source works well because
-    //it is currently saved to user_meta (not sure why) and cannot be entered anywhere except the order page
-    $patient_profile = patient_profile(
-      get_meta('billing_first_name'), //use billing because get_user_meta() and get_meta() of account_first_name are empty
-      get_meta('billing_last_name'),  //use billing because get_user_meta() and get_meta() of account_first_name are empty
-      $fields['birth_date']['default'],
-      $fields['phone']['default']
-    );
+  //IF AVAILABLE, PREPOPULATE RX ADDRESS AND RXS INTO REGISTRATION
+  //This hook seems to be called again once the checkout is being saved.
+  //Also don't want run on subsequent orders - rx_source works well because
+  //it is currently saved to user_meta (not sure why) and cannot be entered anywhere except the order page
+  $patient_profile = patient_profile(
+    get_meta('billing_first_name'), //use billing because get_user_meta() and get_meta() of account_first_name are empty
+    get_meta('billing_last_name'),  //use billing because get_user_meta() and get_meta() of account_first_name are empty
+    $fields['birth_date']['default'],
+    $fields['phone']['default']
+  );
 
-    if (count($patient_profile)) {
-      // New Prescriptions Sent to good pill, , , , Disabled Checkbox
-      // Medicine Name, Next Refill Date, Days (QTY), Refills, Last Refill Input, Autofill Checkbox
-      $fields['birth_date']['default'] = date_format(date_create($patient_profile[0]['birth_date']), 'Y-m-d'); //just in case user entered DOB incorrectly we can fix it in guardian
-      $table = '<table class="autofill_table"><tr><th style="width:400px; padding:16px 8px">Medication</th><th style="padding:16px 8px">Last&nbsp;Refill</th><th style="padding:16px 8px">Days&nbsp;(Qty)</th><th style="padding:16px 8px">Refills</th><th style="width:120px; padding:16px 4px">Next&nbsp;Refill</th><th style="width:90px; font-weight:bold; padding:16px 8px">'.woocommerce_form_field("pat_autofill", [
-        'type' => 'checkbox',
-        'label' => 'Autofill',
-        'default' => $patient_profile[0]['pat_autofill'],
-        'label_class' => ['pat_autofill'],
-        'return' => true
-      ]).'</th></tr>';
-      foreach ($patient_profile as $i => $rx) {
-
-        $drug_name = substr($patient_profile[$i]['drug_name'], 1, -1);
-
-        if ( ! $drug_name) continue; //Empty orders will have one row with a blank drug name
-
-        $refills_total = $patient_profile[$i]['refills_total'];
-        $is_refill     = $patient_profile[$i]['is_refill'];
-        $autofill_date = $patient_profile[$i]['autofill_date'];
-        $gcn           = $patient_profile[$i]['gcn_seqno'];
-        $rx_id         = $patient_profile[$i]['rx_id'];
-        $in_order      = $patient_profile[$i]['in_order'];
-
-        if ($in_order)
-          $autofill_date = 'Order '.explode('-', $in_order)[0];
-        else if ($refills_total)
-          $autofill_date = $autofill_date ? date_format(date_create($autofill_date), 'Y-m-d') : '';
-        else if ($patient_profile[$i]['script_status'] == 'Transferred Out')
-          $autofill_date = 'Transferred';
-        else
-          $autofill_date = 'No Refills';
-
-        if ($patient_profile[$i]['dispense_date']) { //New Rx that is just dispensed should show that date
-          $tr_class    = "rx gcn$gcn";
-          $last_refill = date_format(date_create($patient_profile[$i]['dispense_date']), 'm/d');
-          $next_refill = date_format(date_create($patient_profile[$i]['refill_date']), 'Y-m-d');
-          $day_qty = $patient_profile[$i]['days_supply']." (".$patient_profile[$i]['dispense_qty'].")";
-        } else { //New Rx
-          $tr_class    = "new rx gcn$gcn";
-          $last_refill = 'New Rx';
-          $next_refill = ''; //ideally we could do date('Y-m-d', strtotime('+2 days')) but sometimes its not included in the order
-          $day_qty     = '90';
-        }
-
-        $table .= "<tr class='$tr_class' gcn='$gcn' style='font-size:14px'>".
-          "<td class='drug_name'>".$drug_name.
-          "</td><td class='last_refill'>".$last_refill.
-          "</td><td class='day_qty'>".$day_qty.
-          "</td><td class='refills_total'>".$refills_total.
-          "</td><td style='padding:8px'>".
-          //Readonly because could not get disabled to work
-          woocommerce_form_field("autofill_resume[$gcn]", [
-            'type' => 'text',
-            'default' => $autofill_date,
-            'input_class' => ['next_fill'],
-            'custom_attributes' => [
-              'default' => $autofill_date,
-              'next-fill' => $refills_total ? $next_refill : 'No Refills'
-            ],
-            'return' => true
-          ]).
-        "</td><td style='font-size:16px'>".
-          woocommerce_form_field("rx_autofill[$gcn]", [
-            'type' => 'checkbox',
-            'default' => $patient_profile[$i]['rx_autofill'],
-            'input_class' => ['rx_autofill'],
-            'return' => true
-          ]).
-          "</td></tr>";
-
-      }
-      $table .= '<tr style="font-size:14px"><td>NEW PRESCRIPTION(S) SENT TO GOOD PILL</td><td></td><td></td><td></td><td></td><td><input type="checkbox" class="input-checkbox new_rx_autofill" name="new_rx_autofill" value="1" disabled="true" style="font-size:16px"></td></tr></table>';
-
-      echo $table;
-    }
-  //}
+  echo make_rx_table($patient_profile);
 
   return dscsa_echo_form_fields($fields);
+}
+
+function make_rx_table($patient_profile, $email = false) {
+
+  if ( ! count($patient_profile)) return '';
+  // New Prescriptions Sent to good pill, , , , Disabled Checkbox
+  // Medicine Name, Next Refill Date, Days (QTY), Refills, Last Refill Input, Autofill Checkbox
+  $fields['birth_date']['default'] = date_format(date_create($patient_profile[0]['birth_date']), 'Y-m-d'); //just in case user entered DOB incorrectly we can fix it in guardian
+
+  $pat_autofill = $email
+  ? 'Autofill'
+  : woocommerce_form_field("pat_autofill", [
+    'type' => 'checkbox',
+    'label' => 'Autofill',
+    'default' => $patient_profile[0]['pat_autofill'],
+    'label_class' => ['pat_autofill'],
+    'return' => true
+  ]);
+
+  $padding = $email ? "padding:16px 8px 16px 0px" : "padding:16px 8px";
+
+  $table = "<table class='autofill_table' style='text-align:left'><tr><th style='width:400px; $padding'>Medication</th><th style='$padding'>Last&nbsp;Refill</th><th style='$padding'>Days&nbsp;(Qty)</th><th style='$padding'>Refills</th><th style='width:120px; padding:16px 4px'>Next&nbsp;Refill</th><th style='width:90px; font-weight:bold; $padding'>$pat_autofill</th></tr>";
+
+  foreach ($patient_profile as $i => $rx) {
+
+    $drug_name = substr($patient_profile[$i]['drug_name'], 1, -1);
+
+    if ( ! $drug_name) continue; //Empty orders will have one row with a blank drug name
+
+    $refills_total = $patient_profile[$i]['refills_total'];
+    $is_refill     = $patient_profile[$i]['is_refill'];
+    $autofill_date = $patient_profile[$i]['autofill_date'];
+    $gcn           = $patient_profile[$i]['gcn_seqno'];
+    $rx_id         = $patient_profile[$i]['rx_id'];
+    $in_order      = $patient_profile[$i]['in_order'];
+
+    if ($in_order)
+      $autofill_date = 'Order '.explode('-', $in_order)[0];
+    else if ($refills_total)
+      $autofill_date = $autofill_date ? date_format(date_create($autofill_date), 'Y-m-d') : '';
+    else if ($patient_profile[$i]['script_status'] == 'Transferred Out')
+      $autofill_date = 'Transferred';
+    else
+      $autofill_date = 'No Refills';
+
+    if ($patient_profile[$i]['dispense_date']) { //New Rx that is just dispensed should show that date
+      $tr_class    = "rx gcn$gcn";
+      $last_refill = date_format(date_create($patient_profile[$i]['dispense_date']), 'm/d');
+      $next_refill = date_format(date_create($patient_profile[$i]['refill_date']), 'Y-m-d');
+      $day_qty = $patient_profile[$i]['days_supply']." (".$patient_profile[$i]['dispense_qty'].")";
+    } else { //New Rx
+      $tr_class    = "new rx gcn$gcn";
+      $last_refill = 'New Rx';
+      $next_refill = ''; //ideally we could do date('Y-m-d', strtotime('+2 days')) but sometimes its not included in the order
+      $day_qty     = '90';
+    }
+
+    $autofill_resume = $email
+    ? ($autofill_date ?: '&nbsp;') //Maintain height of row
+    : woocommerce_form_field("autofill_resume[$gcn]", [
+      'type' => 'text',
+      'default' => $autofill_date,
+      'input_class' => ['next_fill'],
+      'custom_attributes' => [
+        'default' => $autofill_date,
+        'next-fill' => $refills_total ? $next_refill : 'No Refills'
+      ],
+      'return' => true
+    ]);
+
+    $rx_autofill = $email
+    ? ($patient_profile[$i]['rx_autofill'] ? 'On' : 'Off')
+    : woocommerce_form_field("rx_autofill[$gcn]", [
+      'type' => 'checkbox',
+      'default' => $patient_profile[$i]['rx_autofill'],
+      'input_class' => ['rx_autofill'],
+      'return' => true
+    ]);
+
+    $table .= "<tr class='$tr_class' gcn='$gcn' style='font-size:14px'>".
+      "<td class='drug_name'>".$drug_name.
+      "</td><td class='last_refill'>".$last_refill.
+      "</td><td class='day_qty'>".$day_qty.
+      "</td><td class='refills_total'>".$refills_total.
+      "</td><td style='padding:8px'>".$autofill_resume.
+      "</td><td style='font-size:16px'>".$rx_autofill.
+      "</td></tr>";
+
+  }
+  $new_rxs = $email
+    ? ($patient_profile[0]['pat_autofill'] ? 'On' : 'Off')
+    : '<input type="checkbox" class="input-checkbox new_rx_autofill" name="new_rx_autofill" value="1" disabled="true">';
+  $table  .= "<tr style='font-size:14px'><td>NEW PRESCRIPTION(S) SENT TO GOOD PILL</td><td></td><td></td><td></td><td style='padding:8px'>&nbsp;</td><td style='font-size:16px'>$new_rxs</td></tr></table>";
+  return $table;
 }
 
 function dscsa_echo_form_fields($fields) {
@@ -879,12 +897,12 @@ function dscsa_order_search_fields( $search_fields ) {
 //TODO should changing checkout fields overwrite account fields if they are set?
 add_action('woocommerce_save_account_details', 'dscsa_save_account');
 function dscsa_save_account($user_id) {
-  wp_mail('adam.kircher@gmail.com', "dscsa_save_account_details", print_r(sanitize($_POST), true));
-  $patient_id = dscsa_save_patient($user_id, shared_fields($user_id) + account_fields($user_id));
 
+  $patient_id = dscsa_save_patient($user_id, shared_fields($user_id) + account_fields($user_id));
   $profile = update_autofill($patient_id, $_POST['pat_autofill'], $_POST['rx_autofill'], $_POST['autofill_resume']);
 
-  wp_mail('adam.kircher@gmail.com', "Your account was saved.", print_r($_POST, true).print_r($profile, true));
+  wp_mail('adam.kircher@gmail.com', "dscsa_save_account_details", print_r($_POST, true).print_r($profile, true));
+  wp_mail($_POST['email'], "Summary of your Good Pill Rx(s)", "<html><body>We saved your account.  Below is a summary of your current Rx(s) and any upcoming Order(s). Please let us know if you have any questions.<br><br>Thanks,<br>The Good Pill Team<br><br>".make_rx_table($profile, true)."</body></html>", ['Content-Type: text/html; charset=UTF-8']);
   update_email($patient_id, $_POST['email']);
 }
 
@@ -1984,7 +2002,7 @@ function update_autofill($guardian_id, $pat_autofill, $rx_autofill, $autofill_re
   $autofill_resume = json_encode($autofill_resume ?: []);
 
   $sql = "SirumWeb_ToggleAutofill '$guardian_id', '$rx_autofill', '$autofill_resume'";
-  $res = db_run($sql);
+  $res = db_run($sql, 0, true); //Get all rows of first table (one row per drug)
   wp_mail('adam.kircher@gmail.com', "update_autofill", $sql." ".print_r(sanitize($_POST), true)." ".print_r($res, true));
   return $res;
 }
