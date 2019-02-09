@@ -93,13 +93,19 @@ function upgradeAutofill() {
 
       if (nextFill.val() == 'No Refills') {
         tableRow.addClass('nextfill-disabled')
-        console.log('upgradeAutofill No Refills', i, gcn, nextFill.val(), nextFill)
+        console.log('upgradeAutofill "No Refills" is disabled', i, gcn, nextFill.val(), nextFill)
+        return
+      }
+
+      if ( ~ nextFill.val().indexOf('Order')) {
+        tableRow.addClass('nextfill-disabled')
+        console.log('upgradeAutofill "Order" is disabled', i, gcn, nextFill.val(), nextFill)
         return
       }
 
       if (nextFill.val() == 'Transferred') {
         tableRow.addClass('nextfill-disabled autofill-off')
-        console.log('upgradeAutofill Transferred', i, gcn, nextFill.val(), nextFill)
+        console.log('upgradeAutofill "Transferred" is disabled', i, gcn, nextFill.val(), nextFill)
         return
       }
 
