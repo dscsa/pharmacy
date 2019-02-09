@@ -52,7 +52,7 @@ function upgradeAutofill() {
     if (disabled)
       placeholder = 'N/A'
     else if ( ! this.checked)
-      placeholder = 'Upon Request'
+      placeholder = 'On Request'
     else if (nextFill >= twoDaysFromNow)
       placeholder = nextFill
 

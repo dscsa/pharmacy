@@ -502,8 +502,11 @@ function dscsa_user_edit_account($user_id = null) {
         $autofill_date = $patient_profile[$i]['autofill_date'];
         $gcn           = $patient_profile[$i]['gcn_seqno'];
         $rx_id         = $patient_profile[$i]['rx_id'];
+        $in_order      = $patient_profile[$i]['in_order'];
 
-        if ($refills_total)
+        if ($in_order)
+          $autofill_date = 'Order '.explode('-', $in_order)[0];
+        else if ($refills_total)
           $autofill_date = $autofill_date ? date_format(date_create($autofill_date), 'Y-m-d') : '';
         else if ($patient_profile[$i]['script_status'] == 'Transferred Out')
           $autofill_date = 'Transferred';
@@ -879,7 +882,9 @@ function dscsa_save_account($user_id) {
   wp_mail('adam.kircher@gmail.com', "dscsa_save_account_details", print_r(sanitize($_POST), true));
   $patient_id = dscsa_save_patient($user_id, shared_fields($user_id) + account_fields($user_id));
 
-  update_autofill($patient_id, $_POST['pat_autofill'], $_POST['rx_autofill'], $_POST['autofill_resume']);
+  $profile = update_autofill($patient_id, $_POST['pat_autofill'], $_POST['rx_autofill'], $_POST['autofill_resume']);
+
+  wp_mail('adam.kircher@gmail.com', "Your account was saved.", print_r($_POST, true).print_r($profile, true));
   update_email($patient_id, $_POST['email']);
 }
 
