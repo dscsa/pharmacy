@@ -197,7 +197,7 @@ function mapGoogleSheetInv(inventory) {
     var drug = {
       name:row.gsx$_cokwr.$t,
       price:{
-        amount:row['gsx$pricemonth'].$t * (row['gsx$inventory.qty'].$t < 1000 ? 1.5 : 3) || '',  
+        amount:row['gsx$pricemonth'].$t * (row['gsx$inventory.qty'].$t < 1000 ? 1.5 : 3) || '',
         days:row['gsx$inventory.qty'].$t < 1000 ? '45 days' : '90 days'
       },
       gcns:row['gsx$key.3'].$t.split(','),
@@ -225,7 +225,7 @@ function disableInventory(inventory, rxMap) {
     if (drug.stock != 'Out of Stock' && drug.stock != 'Not Offered') //Out of stock items should be shown but disabled as to not allow transfers (I think???))
       for (var i in drug.gcns) {
         var drugGcn = drug.gcns[i]
-        if (rxMap[drugGcn] && rxMap[drugGcn].$IsRefill) {
+        if (rxMap[drugGcn] && rxMap[drugGcn].is_refill) {
           console.log('Despite low stock, allowing transfer of ', drug, rxMap[drugGcn])
           drug.disabled = false //Enable low supply items that are not Out of Stock only if they are refills
         }
@@ -266,7 +266,7 @@ function disableRxs(inventory, rxMap) {
           rx.text += ' ('+drug.stock+')'
           rx.disabled = true //disable low stock non-refills
         }
-        else if (drug.stock && ! rx.$IsRefill) {
+        else if (drug.stock && ! rx.is_refill) {
           rx.text += ' ('+drug.stock+')'
           rx.disabled = true //disable low stock non-refills
         }
