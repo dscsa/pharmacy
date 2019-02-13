@@ -905,7 +905,10 @@ function dscsa_save_account($user_id) {
   $profile = update_autofill($patient_id, $_POST['pat_autofill'], $_POST['rx_autofill'], $_POST['autofill_resume']);
 
   wp_mail('adam.kircher@gmail.com', "dscsa_save_account_details", print_r($_POST, true).print_r($profile, true));
-  wp_mail($_POST['email'], "Summary of your Good Pill Rx(s)", "<html><body>We saved your account.  Below is a summary of your current Rx(s) and any upcoming Order(s). Please let us know if you have any questions.<br><br>Thanks,<br>The Good Pill Team<br><br>".make_rx_table($profile, true)."</body></html>", ['Content-Type: text/html; charset=UTF-8']);
+
+  if (count($profile))
+    wp_mail($_POST['email'], "Summary of your Good Pill Rx(s)", "<html><body>We saved your account.  Below is a summary of your current Rx(s) and any upcoming Order(s). Please let us know if you have any questions.<br><br>Thanks,<br>The Good Pill Team<br><br>".make_rx_table($profile, true)."</body></html>", ['Content-Type: text/html; charset=UTF-8']);
+
   update_email($patient_id, $_POST['email']);
 }
 
