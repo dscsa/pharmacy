@@ -1126,7 +1126,7 @@ function dscsa_save_order($order, $data) {
 
     if ($_POST['rx_source'] == 'pharmacy') {
       $texts = array_map(function($rx) { return json_decode(stripslashes($rx))->text; }, $_POST['transfer']);
-      add_preorder($patient_id, $texts, $_POST['backup_pharmacy']);
+      add_preorder($patient_id, $invoice_number, $texts, $_POST['backup_pharmacy']);
       $order->update_meta_data('transfer', $texts);
     } else if ($_POST['rx_source'] == 'erx') {
       $script_nos = array_map(function($rx) { return json_decode(stripslashes($rx))->script_no; }, $_POST['rxs']);
@@ -1916,7 +1916,7 @@ function append_comment($guardian_id, $comment) {
 //   ,@PharmacyPhone varchar(20)   -- Phone Number
 //   ,@PharmacyFaxNo varchar(20)   -- Phone Fax Number
 // If you send the NDC, it will use it.  If you do not send and NCD it will attempt to look up the drug by the name.  I am not sure that this will work correctly, the name you pass in would most likely have to be an exact match, even though I am using  like logic  (ie “%Aspirin 325mg% “) to search.  We may have to work on this a bit more
-function add_preorder($guardian_id, $drug_names, $pharmacy) {
+function add_preorder($guardian_id, $invoice_number, $drug_names, $pharmacy) {
    if ( ! $guardian_id) return;
    $store = json_decode(stripslashes($pharmacy));
    $phone = cleanPhone($store->phone) ?: '0000000000';
@@ -1928,16 +1928,16 @@ function add_preorder($guardian_id, $drug_names, $pharmacy) {
      if ($drug_name) {
        $drug_name = preg_replace('/,[^,]*$/', '', $drug_name); //remove pricing data after last comma (don't use explode because of combo drugs)
        $drug_name = str_replace("'", "''", $drug_name); //We need to escape single quotes e.g., the ' of don't in Fluoxetine 40mg (Prozac, please don't specify tablet vs capsule)
-       $query = "SirumWeb_AddToPreorder '$guardian_id', '$drug_name', '$store->npi', '$store_name P:$phone F:$fax', '$store->street', '$store->city', '$store->state', '$store->zip', '$phone', '$fax'";
+       $query = "SirumWeb_AddToPreorder '$guardian_id', '$invoice_number', '$drug_name', '$store->npi', '$store_name P:$phone F:$fax', '$store->street', '$store->city', '$store->state', '$store->zip', '$phone', '$fax'";
        $res = db_run($query);
 
        if (trim($res['message']))
-        wp_mail('adam.kircher@gmail.com', "add_preorder drug has error message $drug_name", json_encode($res['message'])."|".strlen($res['message'])."|".var_export($res['message'], true)."|".var_export($res[1], true)."|$query|".print_r($res, true).print_r(func_get_args(), true).print_r(sanitize($_POST), true));
+        wp_mail('adam.kircher@gmail.com', "add_preorder for Order #$invoice_number drug has error message $drug_name", json_encode($res['message'])."|".strlen($res['message'])."|".var_export($res['message'], true)."|".var_export($res[1], true)."|$query|".print_r($res, true).print_r(func_get_args(), true).print_r(sanitize($_POST), true));
      }
    }
 
    if ( ! $store->phone OR ! $store->fax)
-     wp_mail('adam.kircher@gmail.com', "add_preorder", "$query ".print_r(func_get_args(), true).print_r(sanitize($_POST), true));
+     wp_mail('adam.kircher@gmail.com', "add_preorder for Order #$invoice_number", "$query ".print_r(func_get_args(), true).print_r(sanitize($_POST), true));
 }
 
 // Procedure dbo.SirumWeb_AddUpdatePatientUD (@PatID int, @UDNumber int, @UDValue varchar(50) )
