@@ -274,6 +274,10 @@ function disableRxs(inventory, rxMap) {
         continue mainloop //skip unneccessary processing once an inventory match is found
       }
     }
+
+    //No match in live inventory
+    rx.text += ' (No Match Found)'
+    rx.disabled = true //disable low stock non-refills
   }
 
   return rxMap
