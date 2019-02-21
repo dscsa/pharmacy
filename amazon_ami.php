@@ -518,6 +518,7 @@ function make_rx_table($patient_profile, $email = false) {
     $gcn           = $patient_profile[$i]['gcn_seqno'];
     $rx_id         = $patient_profile[$i]['rx_id'];
     $in_order      = $patient_profile[$i]['in_order'];
+    $qty           = (int) $patient_profile[$i]['dispense_qty'];
 
     if ($in_order)
       $autofill_date = 'Order '.explode('-', $in_order)[0];
@@ -532,7 +533,7 @@ function make_rx_table($patient_profile, $email = false) {
       $tr_class    = "rx gcn$gcn";
       $last_refill = date_format(date_create($patient_profile[$i]['dispense_date']), 'm/d');
       $next_refill = date_format(date_create($patient_profile[$i]['refill_date']), 'Y-m-d');
-      $day_qty = $patient_profile[$i]['days_supply']." (".$patient_profile[$i]['dispense_qty'].")";
+      $day_qty = $patient_profile[$i]['days_supply']." (".$qty.")";
     } else { //New Rx
       $tr_class    = "new rx gcn$gcn";
       $last_refill = 'New Rx';
@@ -1197,7 +1198,12 @@ function dscsa_save_patient($user_id, $fields) {
      'email'  => $woocommerce->customer->email
     ];
 
-    if (strtolower($_POST['first_name']) != strtolower($old_name['first_name']) OR strtolower($_POST['last_name']) != strtolower($old_name['last_name']) OR $_POST['birth_date'] != $old_name['birth_date'] OR strtolower($_POST['email']) != strtolower($old_name['email'])) {
+    $firstname_changed = strtolower($_POST['first_name']) != strtolower($old_name['first_name']);
+    $lastname_changed  = strtolower($_POST['last_name']) != strtolower($old_name['last_name']);
+    $birthdate_changed = $_POST['birth_date'] != $old_name['birth_date'];
+    $email_changed = (strtolower($_POST['email']) != strtolower($old_name['email'])) AND (strpos($old_name['email'], '@goodpill.org') !== false);
+
+    if ($firstname_changed OR $lastname_changed OR $birthdate_changed OR $email_changed) {
       //wp_mail('hello@goodpill.org', 'Patient Name Change', print_r(sanitize($_POST), true)."\r\n\r\n".print_r($order, true));
       wp_mail('adam.kircher@gmail.com', 'Warning Patient Identity Changed!', "New Info: $_POST[first_name] $_POST[last_name] $_POST[birth_date] $_POST[email]\r\n\r\nOld Info:".print_r($old_name, true).print_r(sanitize($_POST), true));
     }
