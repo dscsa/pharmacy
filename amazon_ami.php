@@ -465,6 +465,8 @@ function dscsa_user_edit_account($user_id = null) {
 
   $fields = shared_fields($user_id)+account_fields($user_id);
 
+  //wp_mail('adam.kircher@gmail.com', "woocommerce_edit_account_form_start $user_id", get_meta('billing_first_name').' | '.get_meta('billing_last_name').' | '.print_r($fields, true));
+
   //DISPLAY AUTOFILL DRUG TABLE.  BECAUSE OF COMPLEXITY DECIDED NOT TO PUT THIS IN ACCOUNT_FIELDS()
 
   //if (get_current_user_id() == 1559 || get_current_user_id() == 645) {
@@ -510,7 +512,7 @@ function make_rx_table($patient_profile, $email = false) {
 
     $drug_name = substr($patient_profile[$i]['drug_name'], 1, -1);
 
-    if ( ! $drug_name) continue; //Empty orders will have one row with a blank drug name
+    if ( ! $drug_name OR $patient_profile[$i]['script_status'] == 'Inactive') continue; //Empty orders will have one row with a blank drug name
 
     $refills_total = $patient_profile[$i]['refills_total'];
     $is_refill     = $patient_profile[$i]['is_refill'];
@@ -1702,7 +1704,7 @@ function dscsa_checkout_fields( $fields ) {
     return ($a['priority'] < $b['priority']) ? -1 : 1;
   });
 
-  wp_mail('adam.kircher@gmail.com', "patient_profile", print_r($fields, true).print_r($order_fields, true).print_r($shared_fields, true));
+  wp_mail('adam.kircher@gmail.com', "woocommerce_checkout_fields", print_r($fields, true).print_r($order_fields, true).print_r($shared_fields, true));
 
   return $fields;
 }
@@ -1844,18 +1846,18 @@ function update_shipping_address($guardian_id, $address_1, $address_2, $city, $z
 
 function patient_profile($first_name, $last_name, $birth_date, $phone) {
 
-  if ( ! $first_name OR ! $last_name OR ! $phone) {
-    wp_mail('adam.kircher@gmail.com', "patient_profile error!", "is_admin ".is_admin()." ".print_r(func_get_args(), true).print_r($_POST, true).print_r(debug_backtrace(), true));
+  //wp_mail('adam.kircher@gmail.com', "patient_profile start", "$first_name $last_name $birth_date, $phone".print_r(func_get_args(), true).print_r(sanitize($_POST), true));
+
+  if ( ! $first_name OR ! $last_name OR ! $birth_date) {
+    wp_mail('adam.kircher@gmail.com', "patient_profile_error!", "is_admin ".is_admin()." ".print_r(func_get_args(), true).print_r($_POST, true));
   }
 
   $first_name = str_replace("'", "''", $first_name);
   $last_name = str_replace("'", "''", $last_name);
 
-  //wp_mail('adam.kircher@gmail.com', "order_defaults", "$first_name $last_name ".print_r(func_get_args(), true).print_r(sanitize($_POST), true));
-
   $result = db_run("SirumWeb_PatProfile '$first_name', '$last_name', '$birth_date', '$phone'", 0, true);
 
-  //wp_mail('adam.kircher@gmail.com', "patient_profile", "$first_name $last_name ".print_r(func_get_args(), true).print_r(sanitize($_POST), true).print_r($result, true));
+  //wp_mail('adam.kircher@gmail.com', "patient_profile end", "$first_name $last_name ".print_r(func_get_args(), true).print_r(sanitize($_POST), true).print_r($result, true));
 
   return $result;
 }
