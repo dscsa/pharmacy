@@ -681,7 +681,12 @@ function dscsa_register_post($username, $email, $validation_errors) {
 }
 
 function cleanBirthDate($birth_date) {
-    if ( ! $_POST['birth_date']) return false;
+    if ( ! $birth_date) return false;
+
+    $nondelimited = preg_match('/^\d{6}$|^\d{8}$/', $birth_date);
+
+    if ($nondelimited) //Assume its MMDDYY or MMDDYYYY and add delimiters otherwise will fail date_create
+      $birth_date = substr($birth_date, 0, 2).'/'.substr($birth_date, 2, 2).'/'.substr($birth_date, 4);
 
     $birth_date = date_create($birth_date);
 
