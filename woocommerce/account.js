@@ -47,7 +47,7 @@ function upgradeAutofill() {
     twoDaysFromNow.setDate(twoDaysFromNow.getDate() + 2)
     twoDaysFromNow = twoDaysFromNow.toJSON().slice(0, 10)
 
-    var placeholder
+    var placeholder = 'Past Due'
 
     if (disabled)
       placeholder = 'N/A'
@@ -58,7 +58,8 @@ function upgradeAutofill() {
 
     if (placeholder)
       input.prop('placeholder', placeholder)
-    else if ( ! firstCall && ! val)
+
+    if (placeholder == 'Past Due' && ! firstCall && ! val)
       input.val(twoDaysFromNow) //If changed to checked and nextFill is blank or past then set it for two day from now
   })
 
