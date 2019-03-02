@@ -545,7 +545,12 @@ function make_rx_table($patient_profile, $email = false) {
       $last_refill = date_format(date_create($patient_profile[$i]['dispense_date']), 'm/d');
       $next_refill = date_format(date_create($patient_profile[$i]['refill_date']), 'Y-m-d');
       $day_qty = $patient_profile[$i]['days_supply']." (".$qty.")";
-    } else { //New Rx
+    } else if ($autofill_date == 'Transferred') { //Never Filled Transferred Out
+      $tr_class    = "transferred rx gcn$gcn";
+      $last_refill = 'Never&nbsp;Filled';
+      $next_refill = ''; //ideally we could do date('Y-m-d', strtotime('+2 days')) but sometimes its not included in the order
+      $day_qty     = '';
+    } else { //New Rx, Never Filled but not transferred out (yet?)
       $tr_class    = "new rx gcn$gcn";
       $last_refill = 'New Rx';
       $next_refill = ''; //ideally we could do date('Y-m-d', strtotime('+2 days')) but sometimes its not included in the order
