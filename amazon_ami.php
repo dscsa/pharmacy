@@ -114,7 +114,16 @@ function dscsa_stripe_set_default_source($stripe_id, $customer) {
 
   wp_mail("adam.kircher@gmail.com", "dscsa_stripe_set_default_source", "WP: $user_id | Stripe: $stripe_id | Guardian: $patient_id | REQUEST_URI: ".$_SERVER['REQUEST_URI']." | wc-ajax: ".$_GET['wc-ajax']." | HTTP_REFERER: ".$_SERVER['HTTP_REFERER']." ".print_r($card, true)." ".print_r($customer, true));
 
-  if ( ! is_add_payment_page()) return;
+  if ( ! is_add_payment_page()) {
+    //Undo this card being set as default
+    //https://github.com/woocommerce/woocommerce/blob/7f12c4e4364105be0c4fb94c4c3381619b0e7214/includes/class-wc-payment-tokens.php
+    //https://github.com/woocommerce/woocommerce/search?q=set_users_default&unscoped_q=set_users_default
+    //https://github.com/woocommerce/woocommerce-gateway-stripe/blob/453f739d2df7316f1a60aeb37e8036a337de903a/includes/class-wc-stripe-customer.php
+    $tokens = WC_Data_Store::load( 'payment-token' );
+		$token  = $tokens->get_users_default_token($user_id);
+    $tokens->set_default_status($token->token_id, false);
+    return;
+  }
 
   update_user_meta($user_id, 'stripe', $card);
 
