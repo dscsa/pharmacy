@@ -1,4 +1,4 @@
-<?php
+debug_email(<?php
 /* Enter your custom functions here */
 
 // Register custom style sheets and javascript.
@@ -474,7 +474,7 @@ function dscsa_user_edit_account($user_id = null) {
 
   $fields = shared_fields($user_id)+account_fields($user_id);
 
-  //wp_mail('adam.kircher@gmail.com', "woocommerce_edit_account_form_start $user_id", get_meta('billing_first_name').' | '.get_meta('billing_last_name').' | '.print_r($fields, true));
+  //debug_email( "woocommerce_edit_account_form_start $user_id", get_meta('billing_first_name').' | '.get_meta('billing_last_name').' | '.print_r($fields, true));
 
   //DISPLAY AUTOFILL DRUG TABLE.  BECAUSE OF COMPLEXITY DECIDED NOT TO PUT THIS IN ACCOUNT_FIELDS()
 
@@ -797,7 +797,7 @@ function dscsa_random_password($password) {
 //then save the user into GuardianRx
 add_action('woocommerce_created_customer', 'customer_created');
 function customer_created($user_id) {
-  wp_mail('adam.kircher@gmail.com', 'New Webform Patient', print_r(sanitize($_POST), true));
+  debug_email('New Webform Patient', print_r(sanitize($_POST), true));
 
   foreach(['', 'billing_', 'shipping_'] as $field) {
     update_user_meta($user_id, $field.'first_name', $_POST['first_name']);
@@ -840,8 +840,8 @@ function dscsa_wp_redirect($location) {
 
   //The GET ARRAY APPEARS TO BE ALWAYS EMPTY
   //global $wp;
-  //wp_mail('adam.kircher@gmail.com', "TEST dscsa_bypass_logout_confirmation", isset($wp->query_vars['customer-logout'])." | ".strpos($_SERVER['HTTP_COOKIE'], 'impersonated_by')." | ".$location." | ".get_current_user_id()." | ".is_admin()." | GET ".print_r($_GET, true)." | POST ".print_r(sanitize($_POST), true)." | QUERY VARS ".print_r($wp->query_vars, true)." | SERVER".print_r($_SERVER, true));
-  //wp_mail('adam.kircher@gmail.com', "dscsa_wp_redirect", print_r($location, true).print_r($_GET, true).print_r(sanitize($_POST), true).print_r($_SERVER['HTTP_COOKIE'], true));
+  //debug_email("TEST dscsa_bypass_logout_confirmation", isset($wp->query_vars['customer-logout'])." | ".strpos($_SERVER['HTTP_COOKIE'], 'impersonated_by')." | ".$location." | ".get_current_user_id()." | ".is_admin()." | GET ".print_r($_GET, true)." | POST ".print_r(sanitize($_POST), true)." | QUERY VARS ".print_r($wp->query_vars, true)." | SERVER".print_r($_SERVER, true));
+  //debug_email("dscsa_wp_redirect", print_r($location, true).print_r($_GET, true).print_r(sanitize($_POST), true).print_r($_SERVER['HTTP_COOKIE'], true));
 
   //After successful order, add another item back into cart.
   //https://www.goodpill.org/order-confirmation/
@@ -926,7 +926,7 @@ function dscsa_save_account($user_id) {
   $patient_id = dscsa_save_patient($user_id, shared_fields($user_id) + account_fields($user_id));
   $profile = update_autofill($patient_id, $_POST['pat_autofill'], $_POST['rx_autofill'], $_POST['autofill_resume']);
 
-  wp_mail('adam.kircher@gmail.com', "dscsa_save_account_details", print_r($_POST, true).print_r($profile, true));
+  debug_email("dscsa_save_account_details", print_r($_POST, true).print_r($profile, true));
 
   if (count($profile))
     wp_mail($_POST['email'], "Summary of your Good Pill Rx(s)", "<html><body>We saved your account.  Below is a summary of your current Rx(s) and any upcoming Order(s). Please let us know if you have any questions.<br><br>Thanks,<br>The Good Pill Team<br><br>".make_rx_table($profile, true)."</body></html>", ['Content-Type: text/html; charset=UTF-8']);
@@ -944,7 +944,7 @@ function dscsa_rest_update_order($order, $request) {
   if ( ! $already_run AND $request->get_method() == 'PUT' AND substr($request->get_route(), 0, 14) == '/wc/v2/orders/') {
       $already_run = true;
 
-      //wp_mail('adam.kircher@gmail.com', 'dscsa_rest_update_order', print_r($order, true));
+      //debug_email('dscsa_rest_update_order', print_r($order, true));
     try {
 
       $invoice_number = $request['id'];
@@ -957,35 +957,35 @@ function dscsa_rest_update_order($order, $request) {
       }
 
       if ( ! $guardian_id) {
-        wp_mail('adam.kircher@gmail.com', "no guardian id was provided in this REST request", $invoice_number.print_r($meta_data, true).print_r($request, true));
+        debug_email("no guardian id was provided in this REST request", $invoice_number.print_r($meta_data, true).print_r($request, true));
       }
 
       $orders = get_woocommere_orders($guardian_id, $invoice_number);
 
       //Sometimes Guardian order id changes so "get_orders_by_invoice_number" won't work
       if (count($orders) < 1) {
-        wp_mail('adam.kircher@gmail.com', "Exact invoice number could not be found, using guardian_id instead", $invoice_number.print_r($meta_data, true).print_r($request, true));
+        debug_email("Exact invoice number could not be found, using guardian_id instead", $invoice_number.print_r($meta_data, true).print_r($request, true));
         $orders = get_pending_orders_by_guardian_id($guardian_id);
       }
 
       $count = count($orders);
 
       if ($count > 1) {
-        wp_mail('adam.kircher@gmail.com', "dscsa_rest_update_order: multiple orders", $invoice_number.' | using first one /wc/v2/orders/'.$orders[0]->post_id.' '.print_r($orders, true).' '.print_r($request, true));
+        debug_email("dscsa_rest_update_order: multiple orders", $invoice_number.' | using first one /wc/v2/orders/'.$orders[0]->post_id.' '.print_r($orders, true).' '.print_r($request, true));
       }
 
-      //wp_mail('adam.kircher@gmail.com', "dscsa_rest_update_order: debug", $invoice_number.' | using first one /wc/v2/orders/'.$orders[0]->post_id.' '.print_r($orders, true).' '.print_r($request, true));
+      //debug_email("dscsa_rest_update_order: debug", $invoice_number.' | using first one /wc/v2/orders/'.$orders[0]->post_id.' '.print_r($orders, true).' '.print_r($request, true));
 
       if ($count > 0)
         $request['id'] = $orders[0]->post_id;
 
     } catch (Exception $e) {
-      wp_mail('adam.kircher@gmail.com', "dscsa_rest_update_order: error", print_r($e, true).' | '.$request['id'].' | /wc/v2/orders/'.$orders[0]->post_id.' '.print_r($orders, true).' '.print_r($request, true));
+      debug_email("dscsa_rest_update_order: error", print_r($e, true).' | '.$request['id'].' | /wc/v2/orders/'.$orders[0]->post_id.' '.print_r($orders, true).' '.print_r($request, true));
     }
 
     //Move this outside of try/catch block since this error should go back to the client
     if ($count == 0) {
-      wp_mail('adam.kircher@gmail.com', "dscsa_rest_update_order: no orders", $invoice_number.' | '.print_r($orders, true).' '.print_r($request['body'], true).' '.print_r($request, true));
+      debug_email("dscsa_rest_update_order: no orders", $invoice_number.' | '.print_r($orders, true).' '.print_r($request['body'], true).' '.print_r($request, true));
   	  return new WP_Error('no_matching_invoice', __( "Order #$invoice_number has $count matches", 'woocommerce' ), print_r($request['body'], true));
     }
   }
@@ -999,8 +999,8 @@ function dscsa_rest_create_order($order, $request, $creating) {
 
   if ( ! $creating) return $order;
 
-  //wp_mail('adam.kircher@gmail.com', 'dscsa_rest_create_order', print_r($order, true));
-  //wp_mail('adam.kircher@gmail.com', "dscsa_rest_create_order", print_r($creating, true));
+  //debug_email('dscsa_rest_create_order', print_r($order, true));
+  //debug_email("dscsa_rest_create_order", print_r($creating, true));
 
   $invoice_number = $order->get_meta('invoice_number', true);
   $guardian_id = $order->get_meta('guardian_id', true);
@@ -1107,7 +1107,7 @@ function dscsa_save_order($order, $data) {
     $invoice_number = $order->get_meta('invoice_number', true);
 
     if ($invoice_number && ! is_admin())
-      wp_mail('adam.kircher@gmail.com', "INVOICE# IS ALREDY SAVED.  NOT CREATING ORDER", "Patient ID: $patient_id\r\n\r\nInvoice #:$invoice_number \r\n\r\nMSSQL:".print_r(mssql_get_last_message(), true)."\r\n\r\nOrder Meta Invoice #:".$order->get_meta('invoice_number', true)."\r\n\r\nPOST:".print_r(sanitize($_POST), true).print_r($order, true));
+      debug_email("INVOICE# IS ALREDY SAVED.  NOT CREATING ORDER", "Patient ID: $patient_id\r\n\r\nInvoice #:$invoice_number \r\n\r\nMSSQL:".print_r(mssql_get_last_message(), true)."\r\n\r\nOrder Meta Invoice #:".$order->get_meta('invoice_number', true)."\r\n\r\nPOST:".print_r(sanitize($_POST), true).print_r($order, true));
 
     if ( ! $invoice_number) {
       $guardian_order = get_guardian_order($patient_id, $_POST['rx_source'], $_POST['order_comments'], $is_registered);
@@ -1115,11 +1115,11 @@ function dscsa_save_order($order, $data) {
     }
 
     if ( ! $invoice_number)
-      wp_mail('adam.kircher@gmail.com', "NO INVOICE #", "Patient ID: $patient_id\r\n\r\nInvoice #:$invoice_number \r\n\r\nMSSQL:".print_r(mssql_get_last_message(), true)."\r\n\r\nOrder Meta Invoice #:".$order->get_meta('invoice_number', true)."\r\n\r\nPOST:".print_r(sanitize($_POST), true));
+      debug_email("NO INVOICE #", "Patient ID: $patient_id\r\n\r\nInvoice #:$invoice_number \r\n\r\nMSSQL:".print_r(mssql_get_last_message(), true)."\r\n\r\nOrder Meta Invoice #:".$order->get_meta('invoice_number', true)."\r\n\r\nPOST:".print_r(sanitize($_POST), true));
 
     if ( ! is_admin()) {
       wp_mail('hello@goodpill.org', 'New Webform Order', "New Order #$invoice_number Webform Complete. Source: ".print_r($_POST['rx_source'], true)."\r\n\r\n".print_r($_POST['rxs'], true)."\r\n\r\n".print_r($_POST['transfer'], true));
-      wp_mail('adam.kircher@gmail.com', "New Webform Order", "New Order #$invoice_number.  Patient #$patient_id\r\n\r\n".print_r($guardian_order, true).print_r(sanitize($_POST), true));
+      debug_email("New Webform Order", "New Order #$invoice_number.  Patient #$patient_id\r\n\r\n".print_r($guardian_order, true).print_r(sanitize($_POST), true));
     }
 
     $order->update_meta_data('invoice_number', $invoice_number);
@@ -1156,19 +1156,19 @@ function dscsa_save_order($order, $data) {
       add_rxs_to_order($invoice_number, $script_nos);
       $order->update_meta_data('rxs', $texts);
     } else {
-      wp_mail('adam.kircher@gmail.com', "order saved without rx_source", "$patient_id | $invoice_number ".print_r($guardian_order, true).print_r(sanitize($_POST), true).print_r(mssql_get_last_message(), true));
+      debug_email("order saved without rx_source", "$patient_id | $invoice_number ".print_r($guardian_order, true).print_r(sanitize($_POST), true).print_r(mssql_get_last_message(), true));
     }
 
-    wp_mail('adam.kircher@gmail.com', "saved order 1", "$patient_id | $invoice_number ".print_r($guardian_order, true).print_r(sanitize($_POST), true).print_r(mssql_get_last_message(), true));
+    debug_email("saved order 1", "$patient_id | $invoice_number ".print_r($guardian_order, true).print_r(sanitize($_POST), true).print_r(mssql_get_last_message(), true));
 
   } catch (Exception $e) {
-    wp_mail('adam.kircher@gmail.com', "woocommerce_before_order_object_save", "$patient_id | $invoice_number ".$e->getMessage()." ".print_r(sanitize($_POST), true).print_r(mssql_get_last_message(), true));
+    debug_email("woocommerce_before_order_object_save", "$patient_id | $invoice_number ".$e->getMessage()." ".print_r(sanitize($_POST), true).print_r(mssql_get_last_message(), true));
   }
 }
 
 add_action('woocommerce_customer_save_address', 'dscsa_customer_save_address', 10, 2);
 function dscsa_customer_save_address($user_id, $load_address) {
-  wp_mail('adam.kircher@gmail.com', 'woocommerce_customer_save_address', get_meta('billing_address_1')."\r\n\r\n".print_r(sanitize($_POST), true)."\r\n\r\n".print_r($load_address, true));
+  debug_email('woocommerce_customer_save_address', get_meta('billing_address_1')."\r\n\r\n".print_r(sanitize($_POST), true)."\r\n\r\n".print_r($load_address, true));
 
   $patient_id = get_meta('guardian_id', $user_id);
   if ($patient_id) {//in case they fill this out before saving account details or a new order
@@ -1226,12 +1226,12 @@ function dscsa_save_patient($user_id, $fields) {
 
     if ($firstname_changed OR $lastname_changed OR $birthdate_changed OR $email_changed) {
       //wp_mail('hello@goodpill.org', 'Patient Name Change', print_r(sanitize($_POST), true)."\r\n\r\n".print_r($order, true));
-      wp_mail('adam.kircher@gmail.com', 'Warning Patient Identity Changed!', "firstname_changed $firstname_changed | lastname_changed $lastname_changed | birthdate_changed $birthdate_changed | email_changed $email_changed.\r\n\r\nNew Info: $_POST[first_name] $_POST[last_name] $_POST[birth_date] $_POST[email]\r\n\r\nstrpos($old_name[email], '@goodpill.org'): ".strpos($old_name['email'], '@goodpill.org')."\r\n\r\nOld Info:".print_r($old_name, true)."\r\n\r\nPOST:".print_r(sanitize($_POST), true));
+      debug_email('Warning Patient Identity Changed!', "firstname_changed $firstname_changed | lastname_changed $lastname_changed | birthdate_changed $birthdate_changed | email_changed $email_changed.\r\n\r\nNew Info: $_POST[first_name] $_POST[last_name] $_POST[birth_date] $_POST[email]\r\n\r\nstrpos($old_name[email], '@goodpill.org'): ".strpos($old_name['email'], '@goodpill.org')."\r\n\r\nOld Info:".print_r($old_name, true)."\r\n\r\nPOST:".print_r(sanitize($_POST), true));
     }
   }
 
   if ( ! $_POST['first_name'] OR ! $_POST['last_name'] OR ! $_POST['birth_date']) {
-    wp_mail('adam.kircher@gmail.com', 'DEBUG dscsa_save_patient', print_r([$_POST['first_name'], $_POST['last_name'], $_POST['birth_date']], true)."|||".print_r(get_user_meta($user_id), true)."|||".print_r($_POST, true));
+    debug_email('DEBUG dscsa_save_patient', print_r([$_POST['first_name'], $_POST['last_name'], $_POST['birth_date']], true)."|||".print_r(get_user_meta($user_id), true)."|||".print_r($_POST, true));
     return;
   }
 
@@ -1272,17 +1272,17 @@ function dscsa_save_patient($user_id, $fields) {
     $val = clean_field($_POST[$key]);
 
     if ($key == 'backup_pharmacy') {
-      //wp_mail('adam.kircher@gmail.com', "backup_pharmacy",
+      //debug_email("backup_pharmacy",
       update_pharmacy($patient_id, $val);
     }
 
     if ($key == 'medications_other') {
-      //wp_mail('adam.kircher@gmail.com', "medications_other",
+      //debug_email("medications_other",
       append_comment($patient_id, $val);
     }
 
     if ($key == 'phone') {
-      //wp_mail('adam.kircher@gmail.com', "phone",
+      //debug_email("phone",
       update_phone($patient_id, $_POST['phone']);
       update_user_meta($user_id, 'billing_phone', $_POST['phone']); //this saves it on the user page as well
     }
@@ -1305,7 +1305,7 @@ function dscsa_save_patient($user_id, $fields) {
 
   add_remove_allergies($patient_id, $allergies);
 
-  wp_mail('adam.kircher@gmail.com', "patient saved", $patient_id.' '.print_r(sanitize($_POST), true).' '.print_r($fields, true));
+  debug_email("patient saved", $patient_id.' '.print_r(sanitize($_POST), true).' '.print_r($fields, true));
 
   return $patient_id;
 }
@@ -1319,11 +1319,11 @@ function dscsa_email_headers( $headers, $template) {
 add_filter('wp_insert_post_data', 'dscsa_update_order_status');
 function dscsa_update_order_status( $data) {
 
-    //wp_mail('adam.kircher@gmail.com', "dscsa_update_order_status", is_admin()." | ".strlen($_POST['rxs'])." | ".(!!$_POST['rxs'])." | ".var_export($_POST['rxs'], true)." | ".print_r(sanitize($_POST), true)." | ".print_r($data, true));
+    //debug_email("dscsa_update_order_status", is_admin()." | ".strlen($_POST['rxs'])." | ".(!!$_POST['rxs'])." | ".var_export($_POST['rxs'], true)." | ".print_r(sanitize($_POST), true)." | ".print_r($data, true));
     if (is_admin() OR $data['post_type'] != 'shop_order') return $data;
 
     if ($_POST['rx_source'] != 'pharmacy' && $_POST['rxs'] && $_POST['rxs'][0]) { //Skip on-hold and go straight to processing if set.  In some case rather than being [] (falsey) rxs was [0 => ''] (truthy), so checking first element too
-      wp_mail('adam.kircher@gmail.com', "New Order - Rx Received (dscsa_update_order_status)", print_r($data, true).print_r(sanitize($_POST), true).print_r(mssql_get_last_message(), true).print_r($_SERVER, true).print_r($_SESSION, true).print_r($_COOKIE, true));
+      debug_email("New Order - Rx Received (dscsa_update_order_status)", print_r($data, true).print_r(sanitize($_POST), true).print_r(mssql_get_last_message(), true).print_r($_SERVER, true).print_r($_SESSION, true).print_r($_COOKIE, true));
 
       $data['post_status'] = 'wc-processing';
     } else if($_POST['rx_source']) { //checking for rx_source ensures that API calls to update status still work.  Even though we are not "capturing charge" setting "needs payment" seems to make the status goto processing
@@ -1341,15 +1341,15 @@ function dscsa_update_order_status( $data) {
         $data['post_status'] = 'wc-processing';
       }
 
-      wp_mail('adam.kircher@gmail.com', "New Order - $subject (dscsa_update_order_status)", print_r($data, true).print_r(sanitize($_POST), true).print_r(mssql_get_last_message(), true).print_r($_SERVER, true).print_r($_SESSION, true).print_r($_COOKIE, true));
+      debug_email("New Order - $subject (dscsa_update_order_status)", print_r($data, true).print_r(sanitize($_POST), true).print_r(mssql_get_last_message(), true).print_r($_SERVER, true).print_r($_SESSION, true).print_r($_COOKIE, true));
 
     } else if($_POST['payment_method'] == 'stripe') { //order-pay page
-      wp_mail('adam.kircher@gmail.com', "Order Paid Manually (dscsa_update_order_status)", print_r($data, true).print_r(sanitize($_POST), true).print_r(mssql_get_last_message(), true).print_r($_SERVER, true).print_r($_SESSION, true).print_r($_COOKIE, true));
+      debug_email("Order Paid Manually (dscsa_update_order_status)", print_r($data, true).print_r(sanitize($_POST), true).print_r(mssql_get_last_message(), true).print_r($_SERVER, true).print_r($_SESSION, true).print_r($_COOKIE, true));
 
       $data['post_status'] = $data['post_status'] == 'wc-failed' ? 'wc-shipped-payfail' : 'wc-shipped-paid-card';
     }
 
-    //wp_mail('adam.kircher@gmail.com', "dscsa_update_order_status 2", print_r($data, true));
+    //debug_email("dscsa_update_order_status 2", print_r($data, true));
     return $data;
 }
 
@@ -1360,7 +1360,7 @@ add_action('woocommerce_thankyou', 'dscsa_new_order');
 function dscsa_new_order($order_id) {
   try { // Select the email we want & trigger it to send
 
-    wp_mail('adam.kircher@gmail.com', "dscsa_new_order", print_r($order_id, true).print_r(sanitize($_POST), true).print_r(mssql_get_last_message(), true));
+    debug_email("dscsa_new_order", print_r($order_id, true).print_r(sanitize($_POST), true).print_r(mssql_get_last_message(), true));
 
     if ( ! $_POST['rx_source']) return //not triggered by API calls, only form submissions
 
@@ -1371,7 +1371,7 @@ function dscsa_new_order($order_id) {
     if ( ! $_POST['rxs']) //Processing Emails were redundant with Shoppoing Sheets Rx Received Emails
       WC()->mailer()->get_emails()["WC_Email_Customer_On_Hold_Order"]->trigger($order_id, $order);
   } catch (Exception $e) {
-    wp_mail('adam.kircher@gmail.com', "dscsa_new_order FAILED", print_r($e, true).$e->getMessage());
+    debug_email("dscsa_new_order FAILED", print_r($e, true).$e->getMessage());
   }
 }
 
@@ -1644,7 +1644,7 @@ function dscsa_show_payment_options($show_payment_options) {
 
 add_filter( 'wc_stripe_generate_payment_request', 'dscsa_stripe_generate_payment_request', 10, 3);
 function dscsa_stripe_generate_payment_request($post_data, $order, $prepared_source ) {
-  wp_mail('adam.kircher@gmail.com', "dscsa_stripe_generate_payment_request before", $order->get_status()." ".print_r($post_data, true));
+  debug_email("dscsa_stripe_generate_payment_request before", $order->get_status()." ".print_r($post_data, true));
   $post_data['capture'] = 'true';
   return $post_data;
 }
@@ -1691,7 +1691,7 @@ function dscsa_checkout_fields( $fields ) {
   //Add some order fields that are not in patient profile
   $order_fields  = order_fields($user_id, null, $patient_profile);
 
-  //wp_mail('adam.kircher@gmail.com', "db error: $heading", print_r($fields['order']['order_comments'], true).' '.print_r($fields['order'], true));
+  //debug_email("db error: $heading", print_r($fields['order']['order_comments'], true).' '.print_r($fields['order'], true));
   $fields['order'] = $order_fields + $shared_fields + ['order_comments' => $fields['order']['order_comments']];
 
   //These seem to be required fields.  I think its because we don't check the "make shipping address the same as billing address"
@@ -1723,7 +1723,7 @@ function dscsa_checkout_fields( $fields ) {
     return ($a['priority'] < $b['priority']) ? -1 : 1;
   });
 
-  wp_mail('adam.kircher@gmail.com', "woocommerce_checkout_fields", print_r($fields, true).print_r($order_fields, true).print_r($shared_fields, true));
+  debug_email("woocommerce_checkout_fields", print_r($fields, true).print_r($order_fields, true).print_r($shared_fields, true));
 
   return $fields;
 }
@@ -1750,7 +1750,7 @@ function dscsa_billing_fields( $fields ) {
 function get_invoice_number($guardian_id) {
   if ( ! $guardian_id) return;
   $result = db_run("SirumWeb_AddFindInvoiceNbrByPatID '$guardian_id'");
-  wp_mail('adam.kircher@gmail.com', "get_invoice_number", $guardian_id.print_r($result, true));
+  debug_email("get_invoice_number", $guardian_id.print_r($result, true));
   return $result['invoice_nbr'];
 }
 
@@ -1768,19 +1768,19 @@ function get_guardian_order($guardian_id, $source, $comment, $is_registered) {
     $category = 0;
 
   $result = db_run("SirumWeb_AddFindOrder '$guardian_id', '$category', '$comment'");
-  //wp_mail('adam.kircher@gmail.com', "get_guardian_order *$source*", "SirumWeb_AddFindOrder '$guardian_id', '$category', '$comment'".print_r($result, true));
+  //debug_email("get_guardian_order *$source*", "SirumWeb_AddFindOrder '$guardian_id', '$category', '$comment'".print_r($result, true));
   return $result;
 }
 
 function add_rxs_to_order($invoice_number, $script_nos) {
-  wp_mail('adam.kircher@gmail.com', "add_rxs_to_order Order #$invoice_number", print_r($script_nos, true).print_r(json_encode($script_nos), true).print_r($_POST, true));
+  debug_email("add_rxs_to_order Order #$invoice_number", print_r($script_nos, true).print_r(json_encode($script_nos), true).print_r($_POST, true));
   $script_nos = json_encode($script_nos);
   $result = db_run("SirumWeb_AddScriptNosToOrder '$invoice_number', '$script_nos'");
   return $result;
 }
 
 function remove_rxs_from_order($invoice_number, $script_nos) {
-  wp_mail('adam.kircher@gmail.com', "remove_rxs_from_order Order #$invoice_number", print_r($script_nos, true).print_r(json_encode($script_nos), true).print_r($_POST, true));
+  debug_email("remove_rxs_from_order Order #$invoice_number", print_r($script_nos, true).print_r(json_encode($script_nos), true).print_r($_POST, true));
   $script_nos = json_encode($script_nos);
   $result = db_run("SirumWeb_RemoveScriptNosFromOrder '$invoice_number', '$script_nos'");
   return $result;
@@ -1817,7 +1817,7 @@ function add_remove_allergies($guardian_id, $post) {
 
   $post  = json_encode($post);
   $query = "SirumWeb_AddRemove_Allergies '$guardian_id', '$post'";
-  wp_mail('adam.kircher@gmail.com', "add_remove_allergies", $query." | ".print_r(func_get_args(), true).print_r($_POST, true));
+  debug_email("add_remove_allergies", $query." | ".print_r(func_get_args(), true).print_r($_POST, true));
   return db_run($query);
 }
 
@@ -1829,7 +1829,7 @@ function add_remove_allergy($guardian_id, $add_remove, $allergy_id, $value) {
   if ($add_remove) $binary_add_remove = 1;
 
   $query = "SirumWeb_AddRemove_Allergy '$guardian_id', '$binary_add_remove', '$allergy_id', '$value'";
-  wp_mail('adam.kircher@gmail.com', "add_remove_allergy", $query." | ".$add_remove." | ".$binary_add_remove." | ".print_r(func_get_args(), true).print_r($_POST, true));
+  debug_email("add_remove_allergy", $query." | ".$add_remove." | ".$binary_add_remove." | ".print_r(func_get_args(), true).print_r($_POST, true));
   return db_run($query);
 }
 */
@@ -1851,7 +1851,7 @@ function update_phone($guardian_id, $cell_phone) {
 // ,@Zip varchar(10)      -- Zip Code
 // ,@Country varchar(3)   -- Country Code
 function update_shipping_address($guardian_id, $address_1, $address_2, $city, $zip) {
-  //wp_mail('adam.kircher@gmail.com', "update_shipping_address", print_r($params, true));
+  //debug_email("update_shipping_address", print_r($params, true));
   if ( ! $guardian_id) return;
 
   $zip = substr($zip, 0, 5);
@@ -1859,16 +1859,16 @@ function update_shipping_address($guardian_id, $address_1, $address_2, $city, $z
   $address_1 = mb_convert_case(str_replace("'", "''", $address_1), MB_CASE_TITLE, "UTF-8" );
   $address_2 = $address_2 ? "'".mb_convert_case(str_replace("'", "''", $address_2), MB_CASE_TITLE, "UTF-8" )."'" : "NULL";
   $query = "SirumWeb_AddUpdatePatHomeAddr '$guardian_id', '$address_1', $address_2, NULL, '$city', 'GA', '$zip', 'US'";
-  //wp_mail('adam.kircher@gmail.com', "update_shipping_address", $query);
+  //debug_email("update_shipping_address", $query);
   return db_run($query);
 }
 
 function patient_profile($first_name, $last_name, $birth_date, $phone) {
 
-  //wp_mail('adam.kircher@gmail.com', "patient_profile start", "$first_name $last_name $birth_date, $phone".print_r(func_get_args(), true).print_r(sanitize($_POST), true));
+  //debug_email("patient_profile start", "$first_name $last_name $birth_date, $phone".print_r(func_get_args(), true).print_r(sanitize($_POST), true));
 
   if ( ! $first_name OR ! $last_name OR ! $birth_date) {
-    wp_mail('adam.kircher@gmail.com', "patient_profile_error!", "is_admin ".is_admin()." ".print_r(func_get_args(), true).print_r($_POST, true));
+    debug_email("patient_profile_error!", "is_admin ".is_admin()." ".print_r(func_get_args(), true).print_r($_POST, true));
   }
 
   $first_name = str_replace("'", "''", $first_name);
@@ -1876,7 +1876,7 @@ function patient_profile($first_name, $last_name, $birth_date, $phone) {
 
   $result = db_run("SirumWeb_PatProfile '$first_name', '$last_name', '$birth_date', '$phone'", 0, true);
 
-  //wp_mail('adam.kircher@gmail.com', "patient_profile end", "$first_name $last_name ".print_r(func_get_args(), true).print_r(sanitize($_POST), true).print_r($result, true));
+  //debug_email("patient_profile end", "$first_name $last_name ".print_r(func_get_args(), true).print_r(sanitize($_POST), true).print_r($result, true));
 
   return $result;
 }
@@ -1886,11 +1886,11 @@ function order_defaults($first_name, $last_name, $birth_date, $phone) {
   $first_name = str_replace("'", "''", $first_name);
   $last_name = str_replace("'", "''", $last_name);
 
-  //wp_mail('adam.kircher@gmail.com', "order_defaults", "$first_name $last_name ".print_r(func_get_args(), true).print_r(sanitize($_POST), true));
+  //debug_email("order_defaults", "$first_name $last_name ".print_r(func_get_args(), true).print_r(sanitize($_POST), true));
 
   $result = db_run("SirumWeb_OrderDefaults '$first_name', '$last_name', '$birth_date', '$phone'");
 
-  wp_mail('adam.kircher@gmail.com', "order_defaults", "$first_name $last_name ".print_r(func_get_args(), true).print_r(sanitize($_POST), true).print_r($result, true));
+  debug_email("order_defaults", "$first_name $last_name ".print_r(func_get_args(), true).print_r(sanitize($_POST), true).print_r($result, true));
 
   return $result;
 }
@@ -1914,11 +1914,11 @@ function add_patient($first_name, $last_name, $birth_date, $phone, $language) {
   $first_name = str_replace("'", "''", $first_name);
   $last_name = str_replace("'", "''", $last_name);
 
-  //wp_mail('adam.kircher@gmail.com', "add_patient", "$first_name $last_name ".print_r(func_get_args(), true).print_r(sanitize($_POST), true));
+  //debug_email("add_patient", "$first_name $last_name ".print_r(func_get_args(), true).print_r(sanitize($_POST), true));
 
   $result = db_run("SirumWeb_AddUpdatePatient '$first_name', '$last_name', '$birth_date', '$phone', '$language'");
 
-  wp_mail('adam.kircher@gmail.com', "add_patient", "$first_name $last_name ".print_r(func_get_args(), true).print_r(sanitize($_POST), true).print_r($result, true));
+  debug_email("add_patient", "$first_name $last_name ".print_r(func_get_args(), true).print_r(sanitize($_POST), true).print_r($result, true));
 
   return $result['PatID'];
 }
@@ -1949,7 +1949,7 @@ function add_preorder($guardian_id, $invoice_number, $drug_names, $pharmacy) {
    $phone = cleanPhone($store->phone) ?: '0000000000';
    $fax = cleanPhone($store->fax) ?: '0000000000';
    $store_name = str_replace("'", "''", $store->name); //We need to escape single quotes in case comment has one
-   wp_mail('adam.kircher@gmail.com', "select2 add_preorder", print_r(func_get_args(), true).print_r(sanitize($_POST), true));
+   debug_email("select2 add_preorder", print_r(func_get_args(), true).print_r(sanitize($_POST), true));
 
    foreach ($drug_names as $drug_name) {
      if ($drug_name) {
@@ -1959,12 +1959,12 @@ function add_preorder($guardian_id, $invoice_number, $drug_names, $pharmacy) {
        $res = db_run($query);
 
        if (trim($res['message']))
-        wp_mail('adam.kircher@gmail.com', "add_preorder for Order #$invoice_number drug has error message $drug_name", json_encode($res['message'])."|".strlen($res['message'])."|".var_export($res['message'], true)."|".var_export($res[1], true)."|$query|".print_r($res, true).print_r(func_get_args(), true).print_r(sanitize($_POST), true));
+        debug_email("add_preorder for Order #$invoice_number drug has error message $drug_name", json_encode($res['message'])."|".strlen($res['message'])."|".var_export($res['message'], true)."|".var_export($res[1], true)."|$query|".print_r($res, true).print_r(func_get_args(), true).print_r(sanitize($_POST), true));
      }
    }
 
    if ( ! $store->phone OR ! $store->fax)
-     wp_mail('adam.kircher@gmail.com', "add_preorder for Order #$invoice_number", "$query ".print_r(func_get_args(), true).print_r(sanitize($_POST), true));
+     debug_email("add_preorder for Order #$invoice_number", "$query ".print_r(func_get_args(), true).print_r(sanitize($_POST), true));
 }
 
 // Procedure dbo.SirumWeb_AddUpdatePatientUD (@PatID int, @UDNumber int, @UDValue varchar(50) )
@@ -2036,7 +2036,7 @@ function update_autofill($guardian_id, $pat_autofill, $rx_autofill, $autofill_re
 
   $sql = "SirumWeb_ToggleAutofill '$guardian_id', '$rx_autofill', '$autofill_resume'";
   $res = db_run($sql, 0, true); //Get all rows of first table (one row per drug)
-  wp_mail('adam.kircher@gmail.com', "update_autofill", $sql." ".print_r(sanitize($_POST), true)." ".print_r($res, true));
+  debug_email("update_autofill", $sql." ".print_r(sanitize($_POST), true)." ".print_r($res, true));
   return $res;
 }
 
@@ -2048,7 +2048,7 @@ function db_run($sql, $resultIndex = 0, $all_rows = false) {
 
   if ( ! is_resource($stmt)) {
     if ($stmt !== true)  //mssql_query($sql, $conn) returns true on no result, false on error, or recource with rows
-      wp_mail('adam.kircher@gmail.com', "No Resource", print_r($sql, true).' '.print_r($stmt, true).' '.print_r(mssql_get_last_message(), true));
+      debug_email("No Resource", print_r($sql, true).' '.print_r($stmt, true).' '.print_r(mssql_get_last_message(), true));
 
     return;
   }
@@ -2058,7 +2058,7 @@ function db_run($sql, $resultIndex = 0, $all_rows = false) {
   }
 
   if ( ! is_resource($stmt) OR ! mssql_num_rows($stmt)) {
-    wp_mail('adam.kircher@gmail.com', "No Resource or Rows", print_r($sql, true).' '.print_r($stmt, true).' '.print_r(mssql_get_last_message(), true));
+    debug_email("No Resource or Rows", print_r($sql, true).' '.print_r($stmt, true).' '.print_r(mssql_get_last_message(), true));
 
     //email_error("no rows for result of $sql");
     return [];
@@ -2068,7 +2068,7 @@ function db_run($sql, $resultIndex = 0, $all_rows = false) {
   while ($result = db_fetch($stmt)) {
 
       if (trim($result['Message'])) {
-        wp_mail('adam.kircher@gmail.com', "db query: $sql", print_r($params, true).print_r($result, true).print_r($data, true).print_r(sanitize($_POST), true));
+        debug_email("db query: $sql", print_r($params, true).print_r($result, true).print_r($data, true).print_r(sanitize($_POST), true));
         if (is_admin()) echo '<div class="notice notice-success is-dismissible"><p><strong>Error Saving To Guardian:</strong> "'.$result['Message'].'"</p></div>';
       }
 
@@ -2077,7 +2077,7 @@ function db_run($sql, $resultIndex = 0, $all_rows = false) {
 
   if ( ! $data) email_error("fetching $sql");
 
-  //wp_mail('adam.kircher@gmail.com', "db testing", print_r(sqlsrv_errors(), true));
+  //debug_email("db testing", print_r(sqlsrv_errors(), true));
 
   return $all_rows ? $data : $data[0];
 }
@@ -2113,5 +2113,10 @@ function db_query($conn, $sql) {
 function email_error($heading) {
    $errors = mssql_get_last_message();
    if ($errors)
-     wp_mail('adam.kircher@gmail.com', "db error: $heading", "Errors: ".print_r($errors, true)."POST: ".print_r(sanitize($_POST), true));
+     debug_email("db error: $heading", "Errors: ".print_r($errors, true)."POST: ".print_r(sanitize($_POST), true));
+}
+
+function debug_email(subject, body) {
+   $type = strpos($_SERVER['HTTP_COOKIE'], 'impersonated_by') === false ? "USER" : "ADMIN";
+   wp_mail('adam.kircher@gmail.com', "$type: $subject", $body);
 }
