@@ -1222,11 +1222,11 @@ function dscsa_save_patient($user_id, $fields) {
     $firstname_changed = strtolower($_POST['first_name']) != strtolower($old_name['first_name']);
     $lastname_changed  = strtolower($_POST['last_name']) != strtolower($old_name['last_name']);
     $birthdate_changed = $_POST['birth_date'] != $old_name['birth_date'];
-    $email_changed = (strtolower($_POST['email']) != strtolower($old_name['email'])) AND (strpos($old_name['email'], '@goodpill.org') === false);
+    $email_changed = (strtolower($_POST['email'] ?: $_POST['account_email']) != strtolower($old_name['email'])) AND (strpos($old_name['email'], '@goodpill.org') === false);
 
     if ($firstname_changed OR $lastname_changed OR $birthdate_changed OR $email_changed) {
       //wp_mail('hello@goodpill.org', 'Patient Name Change', print_r(sanitize($_POST), true)."\r\n\r\n".print_r($order, true));
-      wp_mail('adam.kircher@gmail.com', 'Warning Patient Identity Changed!', "New Info: $_POST[first_name] $_POST[last_name] $_POST[birth_date] $_POST[email]\r\n\r\nOld Info:".print_r($old_name, true)."\r\n\r\nPOST:".print_r(sanitize($_POST), true));
+      wp_mail('adam.kircher@gmail.com', 'Warning Patient Identity Changed!', "firstname_changed $firstname_changed | lastname_changed $lastname_changed | birthdate_changed $birthdate_changed | email_changed $email_changed.\r\n\r\nNew Info: $_POST[first_name] $_POST[last_name] $_POST[birth_date] $_POST[email]\r\n\r\nstrpos($old_name[email], '@goodpill.org'): ".strpos($old_name['email'], '@goodpill.org')."\r\n\r\nOld Info:".print_r($old_name, true)."\r\n\r\nPOST:".print_r(sanitize($_POST), true));
     }
   }
 
