@@ -1,4 +1,4 @@
-debug_email(<?php
+<?php
 /* Enter your custom functions here */
 
 // Register custom style sheets and javascript.
@@ -1272,17 +1272,14 @@ function dscsa_save_patient($user_id, $fields) {
     $val = clean_field($_POST[$key]);
 
     if ($key == 'backup_pharmacy') {
-      //debug_email("backup_pharmacy",
       update_pharmacy($patient_id, $val);
     }
 
     if ($key == 'medications_other') {
-      //debug_email("medications_other",
       append_comment($patient_id, $val);
     }
 
     if ($key == 'phone') {
-      //debug_email("phone",
       update_phone($patient_id, $_POST['phone']);
       update_user_meta($user_id, 'billing_phone', $_POST['phone']); //this saves it on the user page as well
     }
@@ -2116,7 +2113,7 @@ function email_error($heading) {
      debug_email("db error: $heading", "Errors: ".print_r($errors, true)."POST: ".print_r(sanitize($_POST), true));
 }
 
-function debug_email(subject, body) {
+function debug_email($subject, $body) {
    $type = strpos($_SERVER['HTTP_COOKIE'], 'impersonated_by') === false ? "USER" : "ADMIN";
    wp_mail('adam.kircher@gmail.com', "$type: $subject", $body);
 }
