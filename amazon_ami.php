@@ -1771,15 +1771,16 @@ function get_guardian_order($guardian_id, $source, $comment, $is_registered) {
 
 function add_rxs_to_order($invoice_number, $script_nos) {
   debug_email("add_rxs_to_order Order #$invoice_number", print_r($script_nos, true).print_r(json_encode($script_nos), true).print_r($_POST, true));
+  if ( ! $script_nos) return;
   $script_nos = json_encode($script_nos);
   $result = db_run("SirumWeb_AddScriptNosToOrder '$invoice_number', '$script_nos'");
   return $result;
 }
 
 function remove_rxs_from_order($invoice_number, $script_nos) {
-  debug_email("remove_rxs_from_order Order #$invoice_number", print_r($script_nos, true).print_r(json_encode($script_nos), true).print_r($_POST, true));
   $script_nos = json_encode($script_nos);
-  $result = db_run("SirumWeb_RemoveScriptNosFromOrder '$invoice_number', '$script_nos'");
+  $result = db_run("SirumWeb_RemoveScriptNosFromOrder '$invoice_number', '$script_nos'", 2, true);
+  debug_email("remove_rxs_from_order Order #$invoice_number", print_r($script_nos, true).print_r(func_get_args(), true).print_r($_POST, true).print_r($result, true));
   return $result;
 }
 
