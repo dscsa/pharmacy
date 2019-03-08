@@ -1911,11 +1911,12 @@ function order_defaults($first_name, $last_name, $birth_date, $phone) {
 function add_patient($first_name, $last_name, $birth_date, $phone, $language) {
 
   $first_name = str_replace("'", "''", $first_name);
-  $last_name = str_replace("'", "''", $last_name);
+  $last_name  = str_replace("'", "''", $last_name);
+  $autofill   = is_registered() ? NULL : 1; //Turn on autofill when a patient first registers, otherwise keep it the same
 
   //debug_email("add_patient", "$first_name $last_name ".print_r(func_get_args(), true).print_r(sanitize($_POST), true));
 
-  $result = db_run("SirumWeb_AddUpdatePatient '$first_name', '$last_name', '$birth_date', '$phone', '$language'");
+  $result = db_run("SirumWeb_AddUpdatePatient '$first_name', '$last_name', '$birth_date', '$phone', '$language', '$autofill'");
 
   debug_email("add_patient", "$first_name $last_name ".print_r(func_get_args(), true).print_r(sanitize($_POST), true).print_r($result, true));
 
