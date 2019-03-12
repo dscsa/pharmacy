@@ -1204,8 +1204,7 @@ function set_field($key, $newVal) {
 function dscsa_save_patient($user_id, $fields) {
 
   //checkout, account details, admin page with correct user, admin page when changing user
-
-
+  debug_email('dscsa_save_patient_start', is_registered()."|||".print_r(get_user_meta($user_id), true)."|||".print_r($_POST, true));
 
   //Detect Identity Changes and Email Us a Warning
   if ( ! is_admin()) {
@@ -1235,6 +1234,8 @@ function dscsa_save_patient($user_id, $fields) {
     return;
   }
 
+  debug_email('dscsa_save_patient_1', is_registered()."|||".print_r(get_user_meta($user_id), true)."|||".print_r($_POST, true));
+
   //TODO Enable Admin to Pick a different Patient ID if there are multiple matches
   $patient_id = add_patient(
     $_POST['first_name'],
@@ -1243,6 +1244,8 @@ function dscsa_save_patient($user_id, $fields) {
     $_POST['phone'],
     get_meta('language', $user_id)
   );
+
+  debug_email('dscsa_save_patient_2', is_registered()."|||".print_r(get_user_meta($user_id), true)."|||".print_r($_POST, true));
 
   update_user_meta($user_id, 'guardian_id', $patient_id);
 
@@ -1302,7 +1305,7 @@ function dscsa_save_patient($user_id, $fields) {
 
   add_remove_allergies($patient_id, $allergies);
 
-  debug_email("patient saved", $patient_id.' '.print_r(sanitize($_POST), true).' '.print_r($fields, true));
+  debug_email("patient saved", $patient_id.' '.print_r(sanitize($_POST), true).' '.print_r($fields, true).print_r(get_user_meta($user_id), true));
 
   return $patient_id;
 }
@@ -1912,13 +1915,13 @@ function add_patient($first_name, $last_name, $birth_date, $phone, $language) {
 
   $first_name = str_replace("'", "''", $first_name);
   $last_name  = str_replace("'", "''", $last_name);
-  $autofill   = is_registered() ? NULL : 1; //Turn on autofill when a patient first registers, otherwise keep it the same
+  $autofill   = is_registered() ? "NULL" : "'1'"; //Turn on autofill when a patient first registers, otherwise keep it the same
 
   //debug_email("add_patient", "$first_name $last_name ".print_r(func_get_args(), true).print_r(sanitize($_POST), true));
+  $sql = "SirumWeb_AddUpdatePatient '$first_name', '$last_name', '$birth_date', '$phone', '$language', $autofill"; //IMPORTANT NO QUOTES AROUND AUTOFILL
+  $result = db_run($sql);
 
-  $result = db_run("SirumWeb_AddUpdatePatient '$first_name', '$last_name', '$birth_date', '$phone', '$language', '$autofill'");
-
-  debug_email("add_patient", "$first_name $last_name ".print_r(func_get_args(), true).print_r(sanitize($_POST), true).print_r($result, true));
+  debug_email("add_patient", "$first_name $last_name $sql is_registered:".is_registered()." ".print_r(func_get_args(), true).print_r(sanitize($_POST), true).print_r($result, true));
 
   return $result['PatID'];
 }
