@@ -498,7 +498,6 @@ function dscsa_user_edit_account($user_id = null) {
 
 function make_rx_table($patient_profile, $email = false) {
 
-  if ( ! count($patient_profile)) return '';
   // New Prescriptions Sent to good pill, , , , Disabled Checkbox
   // Medicine Name, Next Refill Date, Days (QTY), Refills, Last Refill Input, Autofill Checkbox
   $fields['birth_date']['default'] = date_format(date_create($patient_profile[0]['birth_date']), 'Y-m-d'); //just in case user entered DOB incorrectly we can fix it in guardian
