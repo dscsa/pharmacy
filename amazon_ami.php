@@ -496,7 +496,7 @@ function dscsa_user_edit_account($user_id = null) {
   return dscsa_echo_form_fields($fields);
 }
 
-function make_rx_table($patient_profile, $email = false) {
+function make_rx_table($patient_profile = [], $email = false) {
 
   // New Prescriptions Sent to good pill, , , , Disabled Checkbox
   // Medicine Name, Next Refill Date, Days (QTY), Refills, Last Refill Input, Autofill Checkbox
