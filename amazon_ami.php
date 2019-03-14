@@ -536,6 +536,8 @@ function make_rx_table($patient_profile = [], $email = false) {
       $autofill_date = $autofill_date ? date_format(date_create($autofill_date), 'Y-m-d') : '';
     else if ($patient_profile[$i]['script_status'] == 'Transferred Out')
       $autofill_date = 'Transferred';
+    else if (strtotime($patient_profile[$i]['expire_date']) < time())
+      $autofill_date = 'Rx Expired';
     else
       $autofill_date = 'No Refills';
 

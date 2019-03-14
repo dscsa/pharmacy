@@ -98,6 +98,12 @@ function upgradeAutofill() {
         return
       }
 
+      if (nextFill.val() == 'Rx Expired') {
+        tableRow.addClass('nextfill-disabled')
+        console.log('upgradeAutofill "Rx Expired" is disabled', i, gcn, nextFill.val(), nextFill)
+        return
+      }
+
       if ( ~ nextFill.val().indexOf('Order')) {
         tableRow.addClass('nextfill-disabled')
         console.log('upgradeAutofill "Order" is disabled', i, gcn, nextFill.val(), nextFill)
