@@ -524,13 +524,14 @@ function make_rx_table($patient_profile = [], $email = false) {
 
     $refills_total = $patient_profile[$i]['refills_total'];
     $is_refill     = $patient_profile[$i]['is_refill'];
+    $refill_date   = $patient_profile[$i]['refill_date'];
     $autofill_date = $patient_profile[$i]['autofill_date'];
     $gcn           = $patient_profile[$i]['gcn_seqno'];
     $rx_id         = $patient_profile[$i]['rx_id'];
     $in_order      = $patient_profile[$i]['in_order'];
     $qty           = (int) $patient_profile[$i]['dispense_qty'];
 
-    if ($in_order)
+    if ($in_order AND strtotime($autofill_date ?: $refill_date) < time() + 21*24*60*60*1000)
       $autofill_date = 'Order '.explode('-', $in_order)[0];
     else if ($refills_total)
       $autofill_date = $autofill_date ? date_format(date_create($autofill_date), 'Y-m-d') : '';
@@ -544,7 +545,7 @@ function make_rx_table($patient_profile = [], $email = false) {
     if ($patient_profile[$i]['dispense_date']) { //New Rx that is just dispensed should show that date
       $tr_class    = "rx gcn$gcn";
       $last_refill = date_format(date_create($patient_profile[$i]['dispense_date']), 'm/d');
-      $next_refill = date_format(date_create($patient_profile[$i]['refill_date']), 'Y-m-d');
+      $next_refill = date_format(date_create($refill_date), 'Y-m-d');
       $day_qty = $patient_profile[$i]['days_supply']." (".$qty.")";
     } else if ($autofill_date == 'Transferred') { //Never Filled Transferred Out
       $tr_class    = "transferred rx gcn$gcn";
