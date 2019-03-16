@@ -195,7 +195,7 @@ function mapGoogleSheetInv(inventory) {
   console.log('mapGoogleSheetInv', inventory)
   return inventory.map(function(row) {
     var drug = {
-      name:row.gsx$_cokwr.$t,
+      name:row.gsx$_cn6ca.$t,
       price:{
         amount:row['gsx$pricemonth'].$t * (row['gsx$inventory.qty'].$t < 1000 ? 1.5 : 3) || '',
         days:row['gsx$inventory.qty'].$t < 1000 ? '45 days' : '90 days'
