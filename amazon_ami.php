@@ -1056,6 +1056,8 @@ function dscsa_show_order_invoice($order) {
     $date_shipped = $order->get_meta('date_shipped', true);
     $address = $order->get_formatted_billing_address();
 
+    echo '<button style="float:right; margin-top:-40px" onclick="window.print()">Print</button>';
+
     //TODO REFACTOR THIS WHOLE PAGE TO BE LESS HACKY
     echo '<style>.woocommerce-customer-details, .woocommerce-order-details__title, .woocommerce-table--order-details { display:none }</style>';
 
