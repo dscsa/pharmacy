@@ -127,7 +127,7 @@ form#order_review tfoot tr:last-child  {
 }
 @media print
 {
-    .woocommerce-MyAccount-navigation-link
+    .woocommerce-MyAccount-navigation-link, .main-navigation
     {
         display: none !important;
     }
