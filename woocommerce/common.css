@@ -125,6 +125,13 @@ form#order_review tfoot tr:last-child  {
     width:69% !important
   }
 }
+@media print
+{
+    .woocommerce-MyAccount-navigation-link
+    {
+        display: none !important;
+    }
+}
 form#order_review {
   margin-top:-30px;
   width:100%; /* only active on small screens, otherwise media filter*/
