@@ -11,9 +11,10 @@ form.checkout_coupon, form.checkout  {
 }
 /*Default is set for 2 columns */
 @media screen and ( min-width: 768px ) {
-  form.checkout_coupon, form.checkout, div.woocommerce-info {
+  form.checkout_coupon, form.checkout, .woocommerce-info {
     width:69% !important
   }
+
 }
 .col2-set, #order_review, .reset-to-full-width {
   width:100% !important
