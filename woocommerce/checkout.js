@@ -10,8 +10,6 @@ function load() {
 
   //Move coupon from top of page to be next to payment instead and set width back to 100%
   jQuery('div.woocommerce-form-coupon-toggle').appendTo(jQuery('#customer_details')).addClass('reset-to-full-width')
-  //jQuery('a.showcoupon').parent().appendTo(jQuery('#customer_details'))
-  //jQuery('.woocommerce-info').addClass('reset-to-full-width') //includes the above selector but is more broad to match checkout.css
   jQuery('form.checkout_coupon').appendTo(jQuery('#customer_details')).addClass('reset-to-full-width')
 
   //This class causes update_checkout_totals, which causes a spinner and delay that we don't need

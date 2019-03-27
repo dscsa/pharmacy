@@ -13,7 +13,7 @@ form.checkout, div.woocommerce-form-coupon-toggle, form.checkout_coupon  {
   }
 
 }
-.col2-set, #order_review, .reset-to-full-width {
+.col2-set, #order_review, div.reset-to-full-width, form.reset-to-full-width {
   width:100% !important
 }
 form.checkout, #order_review_heading {
