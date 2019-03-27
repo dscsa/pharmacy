@@ -11,7 +11,7 @@ form.checkout_coupon, form.checkout  {
 }
 /*Default is set for 2 columns */
 @media screen and ( min-width: 768px ) {
-  form.checkout_coupon, form.checkout  {
+  form.checkout  {
     width:69% !important
   }
 }
