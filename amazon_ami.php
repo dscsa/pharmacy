@@ -856,8 +856,10 @@ function dscsa_wp_redirect($location) {
   if ($_GET['imp'] AND strpos($_SERVER['HTTP_COOKIE'], 'impersonated_by') !== false)
     return home_url('/account/details/'); //Switch to account/details rather than new order
 
-  if ($_GET['action'] == 'logout' AND strpos($_SERVER['HTTP_COOKIE'], 'impersonated_by') !== false)
+  if ($_GET['action'] == 'logout' AND strpos($_SERVER['HTTP_COOKIE'], 'impersonated_by') !== false) {
+    WC()->cart->remove_coupons(); //applied coupons seem to follow the admin user otherwise
     return home_url('/wp-admin/edit.php?post_type=ticket&author='.get_current_user_id()); //Switch to user's tickets rather than ??
+  }
 
   return $location;
 }
@@ -1130,12 +1132,11 @@ function dscsa_save_order($order, $data) {
 
     update_email($patient_id, $_POST['email']);
 
-    $coupon = $order->get_used_coupons()[0];
-
-    if (  ! $coupon) {
-      $stored_coupon = get_meta('coupon', $user_id);
-      if ($stored_coupon != 'ckim') $coupon = $stored_coupon; //persist all coupons except ckim
-    }
+    $coupon = $order->get_used_coupons();
+    debug_email("order->get_used_coupons", print_r($coupon, true));
+    $coupon = end($coupon);
+    if ($coupon == 'ckim' || $coupon == 'removecoupon') //don't persist these cookies
+      $coupon = null;
 
     $card = get_meta('stripe', $user_id);
 
@@ -1643,9 +1644,17 @@ function dscsa_add_css_to_email() {
   echo '<style type="text/css">thead, tbody, tfoot { display:none }</style>';
 }
 
-add_filter('woocommerce_cart_needs_payment', 'dscsa_show_payment_options');
-function dscsa_show_payment_options($show_payment_options) {
-  return empty(WC()->cart->applied_coupons);
+add_filter('woocommerce_cart_needs_payment', 'dscsa_show_payment_options', 10, 2);
+function dscsa_show_payment_options($show_payment_options, $cart) {
+
+  if ( ! is_checkout() OR is_wc_endpoint_url()) return; //this gets called on every account page otherwise
+
+  if (end($cart->applied_coupons) == 'removecoupon') return true;
+
+  $chosen_shipping_methods = WC()->session->get( 'chosen_shipping_methods' );
+  //debug_email("woocommerce_cart_needs_payment", print_r($chosen_shipping_methods, true)."cart->get_shipping_total() ".$cart->get_shipping_total()." |||| get_totals ".print_r($cart->get_totals, true)." |||| coupon_discount_totals ".print_r($cart->coupon_discount_totals, true)." |||| coupon_discount_totals ".print_r($cart->coupon_discount_totals, true)." |||| coupon_discount_tax_totals ".print_r($cart->coupon_discount_tax_totals, true)." |||| applied_coupons ".print_r($cart->applied_coupons, true)." |||| ".print_r($show_payment_options, true)." |||| cart->get_cart() ".print_r($cart->get_cart(), true));
+
+  return substr($chosen_shipping_methods[0], 0, 13) != 'free_shipping';
 }
 
 add_filter( 'wc_stripe_generate_payment_request', 'dscsa_stripe_generate_payment_request', 10, 3);
@@ -1672,6 +1681,10 @@ function dscsa_checkout_fields( $fields ) {
   if ( ! is_checkout() OR is_wc_endpoint_url()) return;  //this gets called on every account page otherwise
 
   $user_id = get_current_user_id();
+  $coupon  = get_meta('coupon', $user_id);
+  $cart    = WC()->cart;
+
+  if ($coupon && ! $cart->has_discount($coupon)) $cart->add_discount($coupon);
 
   $shared_fields = shared_fields($user_id);
 
@@ -2017,7 +2030,7 @@ function update_stripe_tokens($guardian_id, $value) {
   return db_run("SirumWeb_AddUpdatePatientUD '$guardian_id', '3', '$value'");
 }
 
-function update_card_and_coupon($guardian_id, $card = [], $coupon) {
+function update_card_and_coupon($guardian_id, $card = [], $coupon = "") {
   if ( ! $guardian_id) return;
   //Meet guardian 50 character limit
   //Last4 4, Month 2, Year 2, Type (Mastercard = 10), Delimiter 4, So coupon will be truncated if over 28 characters
