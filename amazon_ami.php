@@ -496,7 +496,9 @@ function dscsa_user_edit_account($user_id = null) {
   return dscsa_echo_form_fields($fields);
 }
 
-function make_rx_table($patient_profile = [], $email = false) {
+function make_rx_table($patient_profile, $email = false) {
+
+  $patient_profile = $patient_profile ?: []; //default argument was causing issues
 
   // New Prescriptions Sent to good pill, , , , Disabled Checkbox
   // Medicine Name, Next Refill Date, Days (QTY), Refills, Last Refill Input, Autofill Checkbox
@@ -1647,7 +1649,7 @@ function dscsa_add_css_to_email() {
 add_filter('woocommerce_cart_needs_payment', 'dscsa_show_payment_options', 10, 2);
 function dscsa_show_payment_options($show_payment_options, $cart) {
 
-  if ( ! is_checkout() OR is_wc_endpoint_url()) return; //this gets called on every account page otherwise
+  if ( ! is_checkout()) return; //this gets called on every account page otherwise
 
   if (end($cart->applied_coupons) == 'removecoupon') return true;
 
