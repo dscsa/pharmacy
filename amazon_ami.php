@@ -1241,7 +1241,7 @@ function dscsa_save_patient($user_id, $fields) {
     return;
   }
 
-  debug_email('dscsa_save_patient_1', is_registered()."|||".print_r(get_user_meta($user_id), true)."|||".print_r($_POST, true));
+  //debug_email('dscsa_save_patient_1', is_registered()."|||".print_r(get_user_meta($user_id), true)."|||".print_r($_POST, true));
 
   //TODO Enable Admin to Pick a different Patient ID if there are multiple matches
   $patient_id = add_patient(
@@ -1252,7 +1252,7 @@ function dscsa_save_patient($user_id, $fields) {
     get_meta('language', $user_id)
   );
 
-  debug_email('dscsa_save_patient_2', is_registered()."|||".print_r(get_user_meta($user_id), true)."|||".print_r($_POST, true));
+  //debug_email('dscsa_save_patient_2', is_registered()."|||".print_r(get_user_meta($user_id), true)."|||".print_r($_POST, true));
 
   update_user_meta($user_id, 'guardian_id', $patient_id);
 
@@ -1744,7 +1744,7 @@ function dscsa_checkout_fields( $fields ) {
     return ($a['priority'] < $b['priority']) ? -1 : 1;
   });
 
-  debug_email("woocommerce_checkout_fields", print_r($fields, true).print_r($order_fields, true).print_r($shared_fields, true));
+  //debug_email("woocommerce_checkout_fields", print_r($fields, true).print_r($order_fields, true).print_r($shared_fields, true));
 
   return $fields;
 }
