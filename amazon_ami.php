@@ -1135,7 +1135,7 @@ function dscsa_save_order($order, $data) {
     $coupon = $order->get_used_coupons();
     debug_email("order->get_used_coupons", print_r($coupon, true));
     $coupon = end($coupon);
-    if ($coupon == 'ckim' || $coupon == 'removecoupon') //don't persist these cookies
+    if ($coupon == 'onetimecoupon' || $coupon == 'removecoupon') //don't persist these cookies
       $coupon = null;
 
     $card = get_meta('stripe', $user_id);
