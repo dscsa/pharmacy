@@ -92,9 +92,14 @@ function dscsa_stripe_delete_source($stripe_id, $customer) {
 
   $coupon = get_meta('coupon', $user_id);
 
-  update_stripe_tokens($patient_id, ',,');
+  update_payment_method($patient_id, is_pay_coupon($coupon) ? "PAY BY COUPON: $coupon" : "PAY BY MAIL");
 
   update_card_and_coupon($patient_id, null, $coupon);
+}
+
+function is_pay_coupon($coupon) {
+  $coupon = new WC_Coupon($coupon);
+  return $coupon->get_free_shipping();
 }
 
 add_action('wc_stripe_set_default_source', 'dscsa_stripe_set_default_source', 10, 2);
@@ -114,7 +119,7 @@ function dscsa_stripe_set_default_source($stripe_id, $customer) {
 
   wp_mail("adam.kircher@gmail.com", "dscsa_stripe_set_default_source", "WP: $user_id | Stripe: $stripe_id | Guardian: $patient_id | REQUEST_URI: ".$_SERVER['REQUEST_URI']." | wc-ajax: ".$_GET['wc-ajax']." | HTTP_REFERER: ".$_SERVER['HTTP_REFERER']." ".print_r($card, true)." ".print_r($customer, true));
 
-  if ( ! is_add_payment_page()) {
+  if ( ! is_add_payment_page() && ! $_POST['rx_source']) { //This means on Orders->Pay page but not AutoPay or Registration/New Orders pages
     //Undo this card being set as default
     //https://github.com/woocommerce/woocommerce/blob/7f12c4e4364105be0c4fb94c4c3381619b0e7214/includes/class-wc-payment-tokens.php
     //https://github.com/woocommerce/woocommerce/search?q=set_users_default&unscoped_q=set_users_default
@@ -127,13 +132,14 @@ function dscsa_stripe_set_default_source($stripe_id, $customer) {
 
   update_user_meta($user_id, 'stripe', $card);
 
-  if ( ! $patient_id) return; //in case they fill this out before saving account details or a new order
+  if ( ! $patient_id || $_POST['rx_source']) return; //in case they fill this out before saving account details or a new order. Check rx_source so we don't duplicate calls
 
   //Meet guardian 50 character limit
   //Customer 18, Card 29, Delimiter 1 = 48
-  update_stripe_tokens($patient_id, $card['customer'].','.$card['card'].',');
 
   $coupon = get_meta('coupon', $user_id);
+
+  update_payment_method($patient_id, is_pay_coupon($coupon) ? "PAY BY COUPON: $coupon" : "PAY BY CARD: $card[type] $card[last4]");
 
   update_card_and_coupon($patient_id, $card, $coupon);
 }
@@ -1143,6 +1149,14 @@ function dscsa_save_order($order, $data) {
     $card = get_meta('stripe', $user_id);
 
     update_user_meta($user_id, 'coupon', $coupon);
+
+    if (is_pay_coupon($coupon))
+      update_payment_method($patient_id, "PAY BY COUPON: $coupon");
+    else if ($card)
+      update_payment_method($patient_id, "PAY BY CARD: $card[type] $card[last4]");
+    else
+      update_payment_method($patient_id, "PAY BY MAIL");
+
     update_card_and_coupon($patient_id, $card, $coupon);
 
     //Underscore is for saving on the admin page, no underscore is for the customer checkout
@@ -1651,12 +1665,13 @@ function dscsa_show_payment_options($show_payment_options, $cart) {
 
   if ( ! is_checkout()) return; //this gets called on every account page otherwise
 
-  if (end($cart->applied_coupons) == 'removecoupon') return true;
+  $coupon = end($cart->applied_coupons);
 
-  $chosen_shipping_methods = WC()->session->get( 'chosen_shipping_methods' );
+  if ($coupon == 'removecoupon') return true;
+
   //debug_email("woocommerce_cart_needs_payment", print_r($chosen_shipping_methods, true)."cart->get_shipping_total() ".$cart->get_shipping_total()." |||| get_totals ".print_r($cart->get_totals, true)." |||| coupon_discount_totals ".print_r($cart->coupon_discount_totals, true)." |||| coupon_discount_totals ".print_r($cart->coupon_discount_totals, true)." |||| coupon_discount_tax_totals ".print_r($cart->coupon_discount_tax_totals, true)." |||| applied_coupons ".print_r($cart->applied_coupons, true)." |||| ".print_r($show_payment_options, true)." |||| cart->get_cart() ".print_r($cart->get_cart(), true));
 
-  return substr($chosen_shipping_methods[0], 0, 13) != 'free_shipping';
+  return ! is_pay_coupon($coupon);
 }
 
 add_filter( 'wc_stripe_generate_payment_request', 'dscsa_stripe_generate_payment_request', 10, 3);
@@ -2027,7 +2042,7 @@ function update_pharmacy($guardian_id, $pharmacy) {
   return db_run("SirumWeb_AddUpdatePatientUD '$guardian_id', '2', '$user_def_2'");
 }
 
-function update_stripe_tokens($guardian_id, $value) {
+function update_payment_method($guardian_id, $value) {
   if ( ! $guardian_id) return;
   return db_run("SirumWeb_AddUpdatePatientUD '$guardian_id', '3', '$value'");
 }
