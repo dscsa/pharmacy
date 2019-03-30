@@ -723,6 +723,10 @@ function cleanBirthDate($birth_date) {
     if ($birth_array[0] > date('Y'))
       $birth_array[0] -= 100;
 
+
+    //debug_email('Clean Birth Date', print_r($birth_array, true)." |||| birth_array[0] > 1900 ".($birth_array[0] > 1900)." |||| birth_array[0] > '1900' ".($birth_array[0] > '1900'));
+
+
     return (checkdate($birth_array[1],$birth_array[2],$birth_array[0]) AND $birth_array[0] > 1900 AND $birth_array[0] < 2100) ? implode('-', $birth_array) : false;
 }
 
