@@ -145,6 +145,8 @@ function upgradeOrdered(callback) {
 
   var data = rxs.map(function(rx) { return { id:rx, text:rx }})
 
+  if ( ! select.select2) return console.log('No select.select2 function', select)
+
   select.select2({multiple:true, data:data})
   select.val(rxs).change()
   select.on("select2:unselecting", preventDefault)
