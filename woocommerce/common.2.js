@@ -63,6 +63,8 @@ function upgradePharmacy(pharmacies) {
   var pharmacyGsheet = "https://spreadsheets.google.com/feeds/list/1ivCEaGhSix2K2DvgWQGvd9D7HmHEKA3VkQISbhQpK8g/1/public/values?alt=json"
   //ovrg94l is the worksheet id.  To get this you have to use https://spreadsheets.google.com/feeds/worksheets/1MV5mq6605X7U1Np2fpwZ1RHkaCpjsb7YqieLQsEQK88/private/full
 
+  if ( ! select.select2) return console.log('No select.select2 function in upgradePharmacy', select)
+
   jQuery.ajax({
     url:pharmacyGsheet,
     type: 'GET',
@@ -145,7 +147,7 @@ function upgradeOrdered(callback) {
 
   var data = rxs.map(function(rx) { return { id:rx, text:rx }})
 
-  if ( ! select.select2) return console.log('No select.select2 function', select)
+  if ( ! select.select2) return console.log('No select.select2 function in upgradeOrdered', select)
 
   select.select2({multiple:true, data:data})
   select.val(rxs).change()
