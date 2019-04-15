@@ -116,11 +116,11 @@ function pharmacy2select(entry, i) {
     npi:entry.gsx$npi.$t,
     street:entry.gsx$street.$t,
     city:entry.gsx$city.$t,
-    state:'GA',
+    state:entry.gsx$state.$t,
     zip:entry.gsx$zip.$t,
     name:entry.gsx$name.$t
   }
-  var text = store.name+', '+store.street+', '+store.city+', GA '+store.zip+' - Phone: '+store.phone
+  var text = store.name+', '+store.street+', '+store.city+', '+store.state+' '+store.zip+' - Phone: '+store.phone
   return {id:JSON.stringify(store), text:text}
 }
 
