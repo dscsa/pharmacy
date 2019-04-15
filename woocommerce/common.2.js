@@ -215,6 +215,44 @@ function mapGoogleSheetInv(inventory) {
   })
 }
 
+function getPriceComparison(callback) {
+  var medicationGsheet = "https://spreadsheets.google.com/feeds/list/1TcuoHKR8vJ8j3AhVVJywqEvPz7-ecef5O05RywPQj_U/od6/public/values?alt=json"
+  //o8csoy3 is the worksheet id.  To get this you have to use https://spreadsheets.google.com/feeds/worksheets/1gF7EUirJe4eTTJ59EQcAs1pWdmTm2dNHUAcrLjWQIpY/private/full
+  jQuery.ajax({
+    url:medicationGsheet,
+    type: 'GET',
+    cache:false,
+    success:function($data) {
+      console.log('medications gsheet retrieved')
+      callback(mapGoogleSheetPrices($data.feed.entry))
+    }
+  })
+}
+
+//Google Sheets have a weird schema based on header row names. Let's convert it to something more friendly
+function mapGoogleSheetPrices(inventory) {
+  console.log('mapGoogleSheetPrices', inventory)
+  return inventory.map(function(row) {
+    var drug = {
+      name:row.gsx$_cn6ca.$t,
+      price:{
+        amount:row['gsx$pricemonth'].$t * (row['gsx$inventory.qty'].$t < 1000 ? 1.5 : 3) || '',
+        days:row['gsx$inventory.qty'].$t < 1000 ? '45 days' : '90 days',
+        pharmacy1:row['gsx$pharmacyprice1'],
+        pharmacy2:row['gsx$pharmacyprice2'],
+        pharmacy3:row['gsx$pharmacyprice3']
+      },
+      gcns:row['gsx$key.3'].$t.split(','),
+      stock:row.gsx$stock.$t.replace('- Hidden', 'Stock'), //Say "Low Stock" instead of "Low - Hidden"
+    }
+
+    drug.text = drug.name+', $'+drug.price.amount+' for '+drug.price.days+'. '+drug.price.pharmacy1+' | '+drug.price.pharmacy2+' | '+drug.price.pharmacy3 //this is what select 2 displays to the user
+    drug.id = JSON.stringify(drug) //this is what select2 passes back in $_POST e.g. $_POST == ['rxs[]' =>  [id1, id2, id3]]
+
+    return drug
+  })
+}
+
 //Enable/Disable Inventory (Transfers) Based on RxMap
 function disableInventory(inventory, rxMap) {
 
@@ -270,7 +308,7 @@ function disableRxs(inventory, rxMap) {
           rx.text += ' ('+drug.stock+')'
           rx.disabled = true //disable low stock non-refills
         }
-        else if (drug.stock && ! rx.is_refill) {
+        else if (drug.stock && drug.stock != 'Low - Hidden' && ! rx.is_refill) {
           rx.text += ' ('+drug.stock+')'
           rx.disabled = true //disable low stock non-refills
         }

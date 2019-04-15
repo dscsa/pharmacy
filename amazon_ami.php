@@ -40,6 +40,13 @@ function dscsa_user_scripts() {
     wp_enqueue_style('dscsa-inventory', 'https://dscsa.github.io/webform/woocommerce/inventory.css');
   }
 
+  if (substr($_SERVER['REQUEST_URI'], 0, 10) == '/gp-prices/') {
+    wp_enqueue_script('select2', '/wp-content/plugins/woocommerce/assets/js/select2/select2.full.min.js'); //usually loaded by woocommerce but since this is independent page we need to load manually
+	  wp_enqueue_style('select2', '/wp-content/plugins/woocommerce/assets/css/select2.css?ver=3.0.7'); //usually loaded by woocommerce but since this is independent page we need to load manually
+    wp_enqueue_script('dscsa-inventory', 'https://dscsa.github.io/webform/woocommerce/prices.js', ['jquery', 'ie9ajax']);
+    wp_enqueue_style('dscsa-inventory', 'https://dscsa.github.io/webform/woocommerce/prices.css');
+  }
+
   if (is_user_logged_in()) {
     wp_enqueue_script('dscsa-account', 'https://dscsa.github.io/webform/woocommerce/account.js', ['jquery', 'dscsa-common']);
     wp_enqueue_style('dscsa-select2', 'https://dscsa.github.io/webform/woocommerce/select2.css');
