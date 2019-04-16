@@ -15,7 +15,12 @@ function upgradePrices() {
     //Remove low stock (disabled) items
     data = disableInventory(data, {}).filter(function(drug) { return ! drug.disabled })
 
-    select.select2({closeOnSelect:false, data:data})
+    select.select2({
+      closeOnSelect:false,
+      data:data,
+      escapeMarkup: function(m) { return m; },
+      formatResult: window.App.formatFunction
+    })
 
     open()
     //<IE9 subsitute for 100vh
