@@ -18,8 +18,7 @@ function upgradePrices() {
     select.select2({
       closeOnSelect:false,
       data:data,
-      escapeMarkup: function(m) { return m; }
-      //formatResult: window.App.formatFunction
+      escapeMarkup: function(m) { return m; } //don't escape hyperlinks
     })
 
     open()

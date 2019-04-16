@@ -246,7 +246,11 @@ function mapGoogleSheetPrices(inventory) {
       stock:row.gsx$stock.$t.replace('- Hidden', 'Stock'), //Say "Low Stock" instead of "Low - Hidden"
     }
 
-    drug.text = drug.name+', $'+drug.price.amount+' for '+drug.price.days+'. '+drug.price.pharmacy1+' | '+drug.price.pharmacy2+' | '+drug.price.pharmacy3 //this is what select 2 displays to the user
+    drug.text = drug.name+', $'+drug.price.amount+' for '+drug.price.days //this is what select 2 displays to the user
+
+    if (drug.price.pharmacy1)
+      drug.text += '. '+JSON.stringify(drug.price)+' '+drug.price.pharmacy1+' | '+drug.price.pharmacy2+' | '+drug.price.pharmacy3 //this is what select 2 displays to the user
+
     drug.id = JSON.stringify(drug) //this is what select2 passes back in $_POST e.g. $_POST == ['rxs[]' =>  [id1, id2, id3]]
 
     return drug
