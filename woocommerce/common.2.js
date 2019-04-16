@@ -238,9 +238,9 @@ function mapGoogleSheetPrices(inventory) {
       price:{
         amount:row['gsx$pricemonth'].$t * 3 || '',
         days:'90 days',
-        pharmacy1:row['gsx$pharmacyprice1'],
-        pharmacy2:row['gsx$pharmacyprice2'],
-        pharmacy3:row['gsx$pharmacyprice3']
+        pharmacy1:row['gsx$pharmacyprice1'].$t,
+        pharmacy2:row['gsx$pharmacyprice2'].$t,
+        pharmacy3:row['gsx$pharmacyprice3'].$t
       },
       //gcns:row['gsx$key.3'].$t.split(','),
       stock:row.gsx$stock.$t.replace('- Hidden', 'Stock'), //Say "Low Stock" instead of "Low - Hidden"
