@@ -236,8 +236,8 @@ function mapGoogleSheetPrices(inventory) {
     var drug = {
       name:row.gsx$_cn6ca.$t,
       price:{
-        amount:row['gsx$pricemonth'].$t * (row['gsx$inventory.qty'].$t < 1000 ? 1.5 : 3) || '',
-        days:row['gsx$inventory.qty'].$t < 1000 ? '45 days' : '90 days',
+        amount:row['gsx$pricemonth'].$t * 3 || '',
+        days:'90 days',
         pharmacy1:row['gsx$pharmacyprice1'],
         pharmacy2:row['gsx$pharmacyprice2'],
         pharmacy3:row['gsx$pharmacyprice3']
