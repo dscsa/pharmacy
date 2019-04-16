@@ -242,7 +242,7 @@ function mapGoogleSheetPrices(inventory) {
         pharmacy2:row['gsx$pharmacyprice2'],
         pharmacy3:row['gsx$pharmacyprice3']
       },
-      gcns:row['gsx$key.3'].$t.split(','),
+      //gcns:row['gsx$key.3'].$t.split(','),
       stock:row.gsx$stock.$t.replace('- Hidden', 'Stock'), //Say "Low Stock" instead of "Low - Hidden"
     }
 
