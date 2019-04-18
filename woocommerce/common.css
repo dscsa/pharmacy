@@ -125,13 +125,6 @@ form#order_review tfoot tr:last-child  {
     width:69% !important
   }
 }
-@media print
-{
-    .woocommerce-MyAccount-navigation-link, .main-navigation
-    {
-        display: none !important;
-    }
-}
 form#order_review {
   margin-top:-30px;
   width:100%; /* only active on small screens, otherwise media filter*/
@@ -139,8 +132,20 @@ form#order_review {
 form#order_review .payment_method_cheque { /* if you want to pay for order online it has to be by credit card */
   display:none;
 }
+form#order_review .english, form#order_review .spanish { /* get rid of typical order instructions if paying for a previous order */
+  display:none;
+}
 
 /* Add-Payment Page */
 form#add_payment_method .input-radio {
   display:none !important;
+}
+
+/*Printing Invoices*/
+@media print
+{
+    .woocommerce-MyAccount-navigation-link, .main-navigation
+    {
+        display: none !important;
+    }
 }
