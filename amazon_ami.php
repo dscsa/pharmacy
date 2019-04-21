@@ -1101,6 +1101,7 @@ add_action('woocommerce_order_details_after_order_table', 'dscsa_show_order_invo
 function dscsa_show_order_invoice($order) {
     $invoice_doc_id  = $order->get_meta('invoice_doc_id', true);
     $tracking_number = $order->get_meta('tracking_number', true);
+    $date_paid    = $order->get_date_paid();
     $date_shipped = $order->get_meta('date_shipped', true);
     $address = $order->get_formatted_billing_address();
 
@@ -1109,8 +1110,24 @@ function dscsa_show_order_invoice($order) {
     //TODO REFACTOR THIS WHOLE PAGE TO BE LESS HACKY
     echo '<style>.woocommerce-customer-details, .woocommerce-order-details__title, .woocommerce-table--order-details { display:none }</style>';
 
-    if ($date_shipped AND $tracking_number) {
-       echo "<h4>Your order was shipped on <mark class='order-date'>$date_shipped</mark> with tracking number <a target='_blank' href='https://tools.usps.com/go/TrackConfirmAction?tLabels=$tracking_number'>$tracking_number</a> to</h4><address>$address</address>";
+    if ($date_shipped OR $tracking_number) {
+
+       echo "<h4>Your order was";
+
+       if ($date_paid)
+         echo " paid on ".substr($date_paid, 0, 10)." and ";
+
+       echo "shipped";
+
+       if ($date_shipped)
+         echo "on <mark class='order-date'>$date_shipped</mark>";
+
+       if ($tracking_number)
+         echo " with tracking number <a target='_blank' href='https://tools.usps.com/go/TrackConfirmAction?tLabels=$tracking_number'>$tracking_number</a>";
+
+       echo $address ? " to</h4><address>$address</address>" : "</h4>";
+
+
     } else {
       echo "<script>jQuery(function() { upgradeOrdered(function(select) { var rxs = select.data('rxs'); select.val(rxs).change(); select.on('select2:unselecting', preventDefault);}) })</script>";
 
