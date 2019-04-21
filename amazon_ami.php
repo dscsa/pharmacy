@@ -359,8 +359,8 @@ function shared_fields($user_id = null) {
     }
 
     //THis is necessary because http://woocommerce.wp-a2z.org/oik_api/wc_checkoutget_value/ overwrites an DOB in username with old DOB
-    $birth_date = substr($user->user_login, -10);
-    if ($birth_date != get_user_meta($user_id, 'birth_date', true)) {
+    $birth_date = substr($user->user_login, -10) ?: $_POST['birth_date'];
+    if ($user_id AND $birth_date != get_user_meta($user_id, 'birth_date', true)) {
       update_user_meta($user_id, 'birth_date', $birth_date);
     }
 
@@ -674,7 +674,7 @@ function dscsa_echo_form_fields($fields) {
   }
 }
 
-add_action('lostpassword_form', 'dscsa_lostpassword_form');
+add_action('woocommerce_lostpassword_form', 'dscsa_lostpassword_form');
 function dscsa_lostpassword_form() {
   login_form();
   $shared_fields = shared_fields();
@@ -1595,7 +1595,7 @@ function dscsa_translate($term, $raw, $domain) {
       ? 'Step 2 of 2: You are almost done! Please complete this "Registration" page so we can fill your prescription(s).  If you need to login again, your temporary password is '.$phone.'.  After completing your registration, you can change your password on the "Account Details" page'
       : 'Thank you for your order!',
     'Username or email' => '<strong>Email (or cell phone number if no email provided)</strong>', //For resetting passwords
-    'Password reset email has been sent.' => "Before you reset your password by following the instructions below, first try logging in with your 10 digit phone number as your default password",
+    'Password reset email has been sent.' => "A link to reset your password has been sent by email and/or text message",
     'A password reset email has been sent to the email address on file for your account, but may take several minutes to show up in your inbox. Please wait at least 10 minutes before attempting another reset.' => 'If you provided an email address or mobile phone number during registration, then an email and/or text message with instructions on how to reset your password was sent to you.  If you do not get an email or text message from us within 5mins, please call us at <span style="white-space:nowrap">(888) 987-5187</span> for assistance',
     'Additional information' => '',  //Checkout
     'Make default' => 'Set for Autopay',
@@ -1607,7 +1607,7 @@ function dscsa_translate($term, $raw, $domain) {
     'Lost your password? Please enter your username or email address. You will receive a link to create a new password via email.' => 'Lost your password? Before reseting, please note that new accounts use your phone number - e.g., 4701234567 - as a temporary password. To reset, you will receive a link to create a new password via email and/or text message. If you have trouble, call us at (888) 987-5187 for assistance.',
     'Please enter a valid account username.' => 'Please enter your name and date of birth in mm/dd/yyyy format.',
     'Username is required.' => 'Name and date of birth in mm/dd/yyyy format are required.',
-    'Invalid username or email.' => '<strong>Error</strong>: We cannot find an account with that phone number.',
+    'Invalid username or email.' => '<strong>Error</strong>: We cannot find an account with name and date of birth.',
     '<strong>ERROR</strong>: Invalid username.' => '<strong>Error</strong>: We cannot find an account with that name and date of birth.',
     'An account is already registered with your email address. Please log in.' => substr($_POST['email'], -13) == '@goodpill.org' ? 'An account is already registered with that name and date of birth. Please login or use a different name and date of birth.' : 'Another account is already using that email address.  Please login, use another email, or leave this field blank',
     'Your order is on-hold until we confirm payment has been received. Your order details are shown below for your reference:' => $_POST['rx_source'] == 'pharmacy' ? 'We are currently requesting a transfer of your Rx(s) from your pharmacy' : 'We are currently waiting on Rx(s) to be sent from your doctor',
