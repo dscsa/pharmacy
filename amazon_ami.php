@@ -282,9 +282,12 @@ function dscsa_user_profile_contact_name($display_name, $user, $ticket_id) {
 
 add_action('retrieve_password_key', 'dscsa_retrieve_password_key', 10, 2);
 function dscsa_retrieve_password_key($user_login, $reset_key) {
-  $link = add_query_arg( array( 'key' => $reset_key, 'login' => $user_login ), wc_get_endpoint_url( 'lost-password', '', wc_get_page_permalink( 'myaccount' ) ) );
-  $link = "https://www.".str_replace(' ', '+', substr($link, 12));
+
   $user_id = get_user_by('login', $user_login)->ID;
+
+  $link = add_query_arg( array( 'key' => $reset_key, 'id' => $user_id ), wc_get_endpoint_url( 'lost-password', '', wc_get_page_permalink( 'myaccount' ) ) );
+  $link = "https://www.".str_replace(' ', '+', substr($link, 12));
+
   $phone = get_user_meta($user_id, 'phone', true) ?: get_user_meta($user_id, 'billing_phone', true);
 
   wp_mail("adam.kircher@gmail.com", "Password Reset", "$user_login, $reset_key Shipping phone: ".get_user_meta($user_id, 'shipping_phone', true).", billing phone: ".get_user_meta($user_id, 'billing_phone', true).", account phone:  ".get_user_meta($user_id, 'account_phone', true)." ".$link);
@@ -306,6 +309,31 @@ function sendSMS($phone, $text) {
   wp_mail("$phone@mms.cricketwireless.net", '', $text);
   wp_mail("$phone@email.uscc.net", '', $text);
   wp_mail("$phone@cingularme.com", '', $text);
+
+  if (isset($TWILIO_KEY) AND isset($TWILIO_SECRET)) {
+    $ch = curl_init();
+
+    curl_setopt($ch, CURLOPT_URL,"https://api.twilio.com/2010-04-01/Accounts/$TWILIO_KEY/Messages.json");
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); // Receive server response ...
+    curl_setopt($ch, CURLOPT_USERPWD, "$TWILIO_KEY:$TWILIO_SECRET");
+    curl_setopt($ch, CURLOPT_POST, 1);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([
+      'From' => '+16504602327',
+      'To'   => '+16507992817',
+      'Body' => $text
+    ]));
+
+    $server_output = curl_exec($ch);
+
+    curl_close ($ch);
+
+    // Further processing ...
+    if ($server_output == "OK") {
+      wp_mail("adam.kircher@gmail.com", 'TWILIO SUCCCESS', "$phone $text".print_r($server_output, true));
+    } else {
+      wp_mail("adam.kircher@gmail.com", 'TWILIO ERROR', "$phone $text".print_r($server_output, true));
+    }
+  }
 }
 
 function shared_fields($user_id = null) {
@@ -646,6 +674,15 @@ function dscsa_echo_form_fields($fields) {
   }
 }
 
+add_action('lostpassword_form', 'dscsa_lostpassword_form');
+function dscsa_lostpassword_form() {
+  login_form();
+  $shared_fields = shared_fields();
+  $shared_fields['birth_date']['id'] = 'birth_date_lostpassword';
+  $shared_fields['birth_date']['custom_attributes']['readonly'] = false;
+  echo woocommerce_form_field('birth_date', $shared_fields['birth_date']);
+}
+
 add_action('woocommerce_login_form_start', 'dscsa_login_form');
 function dscsa_login_form() {
   login_form();
@@ -787,8 +824,10 @@ function dscsa_default_post_value() {
   $last_name = $_POST['last_name'] ?: $_POST['account_last_name'] ?: $_POST['billing_last_name'] ?: $_POST['_billing_last_name'] ?: get_meta('last_name', $user_id);
   if ($last_name) $_POST['last_name'] = strtoupper(clean_field($last_name));
 
-  if ($birth_date AND $first_name AND $last_name)    //Set user name for both login and registration
+  if ($birth_date AND $first_name AND $last_name) {    //Set username for login, registration & user_login for lost password
      $_POST['username'] = str_replace("'", "", "$_POST[first_name] $_POST[last_name] $_POST[birth_date]");
+     $_POST['user_login'] = $_POST['username'];
+  }
 
   $email = $_POST['email'] ?: $_POST['account_email'] ?: $_POST['_billing_email'];
   if ($email) $_POST['email'] = clean_field($email);
@@ -808,9 +847,6 @@ function dscsa_default_post_value() {
 
     if ($_POST['save_account_details'] AND ! $_POST['account_email'])
       $_POST['account_email'] = $defaultEmail;
-
-    if ($_POST['user_login']) //reset password if phone rather than email is supplied
-      $_POST['user_login'] = $defaultEmail;
   }
 
   //For resetting password
@@ -1568,7 +1604,7 @@ function dscsa_translate($term, $raw, $domain) {
     'Billing address' => 'Shipping address', //Order confirmation
 	  'Billing &amp; Shipping' => 'Shipping Address', //Checkout
     //Logging in
-    'Lost your password? Please enter your username or email address. You will receive a link to create a new password via email.' => '<h2>Lost your password?</h2>New accounts use your phone number as a temporary password. Before you reset your password, first try logging in with your 10 digit phone number without any extra characters as your password.  For example, use the password 1234567890 for the phone number <span style="white-space:nowrap">(123) 456-7890.</span> To ensure your account is secure, we encourage you to choose your own password on the "Account Details" page once you have logged on.<br><br>If using your phone number as your password did not work, enter the email you entered during registration (or a cell phone number if you did not enter an email) below to receive an email (or a text message) with instructions on how to reset your password.<br><br>Please note that this option will only work if you provided an email and/or cell phone number when you registered.  Please note that some phones do not handle links in text messages well, so you may need to copy and paste the password reset hyperlink into a web browser.<br><br>If you did not provide an email or cell phone number when registering for your account, you will need call us at <span style="white-space:nowrap">(888) 987-5187</span> for assistance resetting your password.',
+    'Lost your password? Please enter your username or email address. You will receive a link to create a new password via email.' => 'Lost your password? Before reseting, please note that new accounts use your phone number - e.g., 4701234567 - as a temporary password. To reset, you will receive a link to create a new password via email and/or text message. If you have trouble, call us at (888) 987-5187 for assistance.',
     'Please enter a valid account username.' => 'Please enter your name and date of birth in mm/dd/yyyy format.',
     'Username is required.' => 'Name and date of birth in mm/dd/yyyy format are required.',
     'Invalid username or email.' => '<strong>Error</strong>: We cannot find an account with that phone number.',
