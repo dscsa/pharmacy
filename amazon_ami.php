@@ -445,6 +445,33 @@ function shared_fields($user_id = null) {
   ];
 }
 
+//From: https://stackoverflow.com/questions/45516819/add-a-custom-action-button-in-woocommerce-admin-order-list
+// Add your custom order status action button (for orders with "processing" status)
+//101 Priority so it executes after duplicate-order plugin which uses 100 priority
+add_filter( 'woocommerce_admin_order_actions', 'dscsa_admin_order_actions', 101, 2 );
+function dscsa_admin_order_actions( $actions, $order ) {
+    // Display the button for all orders that have a 'processing' status
+    if ( $order->has_status( array( 'shipped-unpaid' ) ) ) {
+
+        // Set the action button
+        $actions['shipped-paid-mail'] = array(
+            'url'       => wp_nonce_url( admin_url( 'admin-ajax.php?action=woocommerce_mark_order_status&status=shipped-paid-mail&order_id=' .  $order->get_id() ), 'woocommerce-mark-order-status' ),
+            'name'      => __('Marked Paid By Mail', 'woocommerce' ),
+            'action'    => "shipped-paid-mail", // keep "view" class for a clean button CSS
+        );
+
+        unset($actions['duplicate']); //just so pharm techs don't accidentally click this instead
+    }
+    return $actions;
+}
+
+// Set Here the WooCommerce icon for your action button
+//List of icons https://rawgit.com/woothemes/woocommerce-icons/master/demo.html
+add_action( 'admin_head', 'dscsa_add_custom_order_status_actions_button_css' );
+function dscsa_add_custom_order_status_actions_button_css() {
+    echo '<style>.wc-action-button-shipped-paid-mail::after { font-family: woocommerce !important; content: "\e02d" !important; }</style>';
+}
+
 //Display custom fields on account/details
 add_action('woocommerce_admin_order_data_after_order_details', 'dscsa_admin_edit_account');
 function dscsa_admin_edit_account($order) {
