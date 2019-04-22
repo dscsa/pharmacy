@@ -290,7 +290,7 @@ function dscsa_retrieve_password_key($user_login, $reset_key) {
 
   $phone = get_user_meta($user_id, 'phone', true) ?: get_user_meta($user_id, 'billing_phone', true);
 
-  wp_mail("adam.kircher@gmail.com", "Password Reset", "$user_login, $reset_key Shipping phone: ".get_user_meta($user_id, 'shipping_phone', true).", billing phone: ".get_user_meta($user_id, 'billing_phone', true).", account phone:  ".get_user_meta($user_id, 'account_phone', true)." ".$link);
+  debug_email("Password Reset", "$user_login, $reset_key Shipping phone: ".get_user_meta($user_id, 'shipping_phone', true).", billing phone: ".get_user_meta($user_id, 'billing_phone', true).", account phone:  ".get_user_meta($user_id, 'account_phone', true)." ".$link);
 
   sendSMS($phone, "The link below will reset your password.  If clicking it doesn't work, try copying & pasting it into a browser instead. $link");
 }
@@ -328,7 +328,7 @@ function sendSMS($phone, $text) {
     curl_close ($ch);
 
     // Further processing ...
-    if ($server_output == "OK") {
+    if ( ! $server_output['error_message']) {
       wp_mail("adam.kircher@gmail.com", 'TWILIO SUCCCESS', "$phone $text".print_r($server_output, true));
     } else {
       wp_mail("adam.kircher@gmail.com", 'TWILIO ERROR', "$phone $text".print_r($server_output, true));
