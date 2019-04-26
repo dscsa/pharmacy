@@ -2164,6 +2164,9 @@ function update_autofill($guardian_id, $pat_autofill, $rx_autofill, $autofill_re
   $rx_autofill = $pat_autofill ? json_encode($rx_autofill ?: []) : '';
   $autofill_resume = json_encode($autofill_resume ?: []);
 
+  //If javascript doesn't disable input in time, we may get values like "No Refill" "Transferred" in here rather than blanks and dates that we neeed to remove
+  $autofill_resume = preg_replace('/Transferred|No Refills|Rx Expired|Order \d+/', '', $autofill_resume);
+
   $sql = "SirumWeb_ToggleAutofill '$guardian_id', '$rx_autofill', '$autofill_resume'";
   $res = db_run($sql, 0, true); //Get all rows of first table (one row per drug)
   debug_email("update_autofill", $sql." ".print_r(sanitize($_POST), true)." ".print_r($res, true));
