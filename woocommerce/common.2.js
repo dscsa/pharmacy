@@ -128,14 +128,14 @@ function pharmacy2select(entry, i) {
         name:entry.gsx$name.$t
       }
     : {
-        fax:'888-298-7726',
+        fax:'',
         phone:'888-987-5187',
-        npi:'1669909883',
-        street:'1780 Coporate Dr. Suite 420',
-        city:'Norcross',
-        state:'GA',
-        zip:'30093',
-        name:'Error Loading Pharmacies.  Please call us at 888-987-5187 to report'
+        npi:'',
+        street:'',
+        city:'',
+        state:'',
+        zip:'',
+        name:'Error Loading Pharmacies.  Please call us to report'
       }
 
   var text = store.name+', '+store.street+', '+store.city+', '+store.state+' '+store.zip+' - Phone: '+store.phone
