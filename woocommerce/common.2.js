@@ -67,7 +67,7 @@ function upgradePharmacy(pharmacies) {
 
   jQuery.ajax({
     url:pharmacyGsheet,
-    type: 'GET',
+    dataType: 'jsonp', //USED to be method:'GET' until this bug https://issuetracker.google.com/issues/131613284#comment98
     cache:true,
     success:function($data) {
       console.log('pharmacy gsheet')
@@ -220,7 +220,7 @@ function getPriceComparison(callback) {
   //o8csoy3 is the worksheet id.  To get this you have to use https://spreadsheets.google.com/feeds/worksheets/1gF7EUirJe4eTTJ59EQcAs1pWdmTm2dNHUAcrLjWQIpY/private/full
   jQuery.ajax({
     url:medicationGsheet,
-    type: 'GET',
+    dataType: 'jsonp', //USED to be method:'GET' until this bug https://issuetracker.google.com/issues/131613284#comment98
     cache:false,
     success:function($data) {
       console.log('medications gsheet retrieved')
