@@ -2118,9 +2118,6 @@ function update_pharmacy($guardian_id, $pharmacy) {
 
   $store = json_decode(stripslashes($pharmacy));
 
-  $phone = cleanPhone($store->phone);
-  $fax = cleanPhone($store->fax);
-
   $store_name = str_replace("'", "''", $store->name); //We need to escape single quotes in case pharmacy name has a ' for example Lamar's Pharmacy
   $store_street = str_replace("'", "''", $store->street);
 
@@ -2128,8 +2125,8 @@ function update_pharmacy($guardian_id, $pharmacy) {
 
   db_run("SirumWeb_AddUpdatePatientUD '$guardian_id', '1', '$store_name'");
 
-  //Because of 50 character limit, the street will likely be cut off.
-  $user_def_2 = $store->npi.','.$store->fax.','.$store->phone.','.$store_street;
+  //Because of Guardian's 50 character limit for UD fields and 3x 10 character fields with 3 delimiters, we need to cutoff street
+  $user_def_2 = $store->npi.','.cleanPhone($store->fax).','.cleanPhone($store->phone).','.substr($store_street, 0, 50-10-10-10-3);
   return db_run("SirumWeb_AddUpdatePatientUD '$guardian_id', '2', '$user_def_2'");
 }
 
