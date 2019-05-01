@@ -216,11 +216,12 @@ function getInventory(callback) {
 function mapGoogleSheetInv(inventory) {
   console.log('mapGoogleSheetInv', inventory)
   return inventory.map(function(row) {
+    var lowStock = row.gsx$stock.$t && row['gsx$inventory.qty'].$t < 1000
     var drug = {
       name:row.gsx$_cn6ca.$t,
       price:{
-        amount:row['gsx$pricemonth'].$t * (row['gsx$inventory.qty'].$t < 1000 ? 1.5 : 3) || '',
-        days:row['gsx$inventory.qty'].$t < 1000 ? '45 days' : '90 days'
+        amount:row['gsx$pricemonth'].$t * (lowStock ? 1.5 : 3) || '',
+        days:lowStock ? '45 days' : '90 days'
       },
       gcns:row['gsx$key.3'].$t.split(','),
       stock:row.gsx$stock.$t.replace('- Hidden', 'Stock') //Say "Low Stock" instead of "Low - Hidden"
