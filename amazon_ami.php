@@ -1751,6 +1751,11 @@ function dscsa_add_css_to_email() {
   echo '<style type="text/css">thead, tbody, tfoot { display:none }</style>';
 }
 
+add_action('woocommerce_applied_coupon', 'dscsa_applied_coupon');
+function dscsa_applied_coupon($coupon) {
+  if ($coupon == 'removecoupon') update_user_meta(get_current_user_id(), 'coupon', null);
+}
+
 add_filter('woocommerce_cart_needs_payment', 'dscsa_show_payment_options', 10, 2);
 function dscsa_show_payment_options($show_payment_options, $cart) {
 
