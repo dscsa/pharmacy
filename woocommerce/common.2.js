@@ -66,7 +66,7 @@ function upgradePharmacy(pharmacies, retry) {
 
   if ( ! select.select2) {
     console.error('No select.select2 function in upgradePharmacy', 'retry', retry, select)
-    setTimeout(function() { upgradePharmacy(pharmacies, false) }, retry)
+    setTimeout(function() { upgradePharmacy(pharmacies, retry*2) }, retry)
   }
 
   jQuery.ajax({
@@ -83,7 +83,7 @@ function upgradePharmacy(pharmacies, retry) {
     },
     error:function() {
       console.error('COULD NOT GET PHARMACY SPREADSHEET', 'retry', retry)
-      setTimeout(function() { upgradePharmacy(pharmacies, retry*4) }, retry)
+      setTimeout(function() { upgradePharmacy(pharmacies, retry*2) }, retry)
     }
   })
 }
@@ -215,7 +215,7 @@ function getInventory(callback, retry) {
     },
     error:function() {
       console.error('COULD NOT GET LIVE INVENTORY', 'retry', retry)
-      setTimeout(function() { getInventory(callback, retry*4) }, retry)
+      setTimeout(function() { getInventory(callback, retry*2) }, retry)
     }
   })
 }
@@ -242,8 +242,9 @@ function mapGoogleSheetInv(inventory) {
   })
 }
 
-function getPriceComparison(callback) {
+function getPriceComparison(callback, retry) {
   var medicationGsheet = "https://spreadsheets.google.com/feeds/list/1TcuoHKR8vJ8j3AhVVJywqEvPz7-ecef5O05RywPQj_U/od6/public/values?alt=json"
+  retry = retry || 1000
   //o8csoy3 is the worksheet id.  To get this you have to use https://spreadsheets.google.com/feeds/worksheets/1gF7EUirJe4eTTJ59EQcAs1pWdmTm2dNHUAcrLjWQIpY/private/full
   jQuery.ajax({
     url:medicationGsheet,
@@ -252,6 +253,10 @@ function getPriceComparison(callback) {
     success:function($data) {
       console.log('medications gsheet retrieved')
       callback(mapGoogleSheetPrices($data.feed.entry))
+    },
+    error:function() {
+      console.error('COULD NOT GET PRICE COMPARISON', 'retry', retry)
+      setTimeout(function() { getPriceComparison(callback, retry*2) }, retry)
     }
   })
 }
