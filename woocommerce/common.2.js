@@ -56,14 +56,18 @@ function upgradeAllergies() {
 
 
 //Used at checkout and on account details
-function upgradePharmacy(pharmacies) {
+function upgradePharmacy(pharmacies, retry) {
   console.log('upgradePharmacy')
 
   var select = jQuery('#backup_pharmacy')
   var pharmacyGsheet = "https://spreadsheets.google.com/feeds/list/1ivCEaGhSix2K2DvgWQGvd9D7HmHEKA3VkQISbhQpK8g/1/public/values?alt=json"
+  retry = retry || 1000
   //ovrg94l is the worksheet id.  To get this you have to use https://spreadsheets.google.com/feeds/worksheets/1MV5mq6605X7U1Np2fpwZ1RHkaCpjsb7YqieLQsEQK88/private/full
 
-  if ( ! select.select2) return console.log('No select.select2 function in upgradePharmacy', select)
+  if ( ! select.select2) {
+    console.error('No select.select2 function in upgradePharmacy', 'retry', retry, select)
+    setTimeout(function() { upgradePharmacy(pharmacies, false) }, retry)
+  }
 
   jQuery.ajax({
     url:pharmacyGsheet,
@@ -78,9 +82,8 @@ function upgradePharmacy(pharmacies) {
       select.select2({data:data, matcher:matcher, minimumInputLength:3})
     },
     error:function() {
-      console.error('COULD NOT GET PHARMACY SPREADSHEET.  USING HARDCOPY')
-      var data = [pharmacy2select()]
-      select.select2({data:data, matcher:matcher, minimumInputLength:3})
+      console.error('COULD NOT GET PHARMACY SPREADSHEET', 'retry', retry)
+      setTimeout(function() { upgradePharmacy(pharmacies, retry*4) }, retry)
     }
   })
 }
@@ -198,16 +201,21 @@ function getRxMap() {
   return rxMap
 }
 
-function getInventory(callback) {
+function getInventory(callback, retry) {
   var medicationGsheet = "https://spreadsheets.google.com/feeds/list/1gF7EUirJe4eTTJ59EQcAs1pWdmTm2dNHUAcrLjWQIpY/o8csoy3/public/values?alt=json"
+  retry = retry || 1000
   //o8csoy3 is the worksheet id.  To get this you have to use https://spreadsheets.google.com/feeds/worksheets/1gF7EUirJe4eTTJ59EQcAs1pWdmTm2dNHUAcrLjWQIpY/private/full
   jQuery.ajax({
     url:medicationGsheet,
     method:'GET', //dataType: 'jsonp', //USED to be method:'GET' until this bug https://issuetracker.google.com/issues/131613284#comment98
     cache:false,
     success:function($data) {
-      console.log('medications gsheet retrieved')
+      console.log('live inventory gsheet retrieved')
       callback(mapGoogleSheetInv($data.feed.entry))
+    },
+    error:function() {
+      console.error('COULD NOT GET LIVE INVENTORY', 'retry', retry)
+      setTimeout(function() { getInventory(callback, retry*4) }, retry)
     }
   })
 }
