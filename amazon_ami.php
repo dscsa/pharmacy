@@ -999,10 +999,33 @@ function dscsa_invoice_number($order_id, $order) {
 
 add_filter( 'woocommerce_shop_order_search_fields', 'dscsa_order_search_fields');
 function dscsa_order_search_fields( $search_fields ) {
-	array_push( $search_fields, 'invoice_number' );
-    //array_push( $search_fields, 'guardian_id' ); // Doesn't seem to work
-	return $search_fields;
+	//array_push( $search_fields, 'invoice_number' );
+  //return $search_fields;
+	return []; //$this forces search_orders to skip slow query so we can do our own fast query in woocommerce_shop_order_search_results
 }
+
+add_filter('woocommerce_shop_order_search_results',  'dscsa_shop_order_search_results', 10, 3);
+function dscsa_shop_order_search_results($order_ids, $term, $search_fields) {
+
+  global $wpdb;
+
+  $new_order_ids = array_unique(
+		array_merge(
+			$order_ids,
+			faster_wc_search_orders($term),
+			$wpdb->get_col(
+				$wpdb->prepare(
+					"SELECT order_id FROM {$wpdb->prefix}woocommerce_order_items as order_items WHERE order_item_name LIKE %s",
+					'%' . $wpdb->esc_like( wc_clean( $term ) ) . '%'
+				)
+			)
+		)
+	);
+
+  //debug_email("dscsa_shop_order_search_results", "$term ".print_r($order_ids, true).print_r($search_fields, true).print_r($new_order_ids, true));
+  return $new_order_ids; //$order_ids;
+}
+
 
 //On new order and account/details save account fields back to user
 //TODO should changing checkout fields overwrite account fields if they are set?
@@ -1104,6 +1127,11 @@ function dscsa_rest_create_order($order, $request, $creating) {
   $order->set_customer_id($users[0]->user_id);
 
   return $order;
+}
+
+function faster_wc_search_orders($invoice_number) {
+  global $wpdb;
+  return $wpdb->get_col("SELECT post_id FROM wp_postmeta WHERE meta_key='invoice_number' AND meta_value = '$invoice_number'");
 }
 
 function get_users_by_guardian_id($guardian_id) {
@@ -1568,160 +1596,171 @@ function dscsa_auth_cookie_exp($seconds, $user_id, $remember) {
 //Did work: https://stackoverflow.com/questions/36619793/cant-change-postcode-zip-field-label-in-woocommerce
 global $lang;
 global $phone;
+global $toEnglish;
+global $toSpanish;
+
 add_filter('ngettext', 'dscsa_translate', 10, 3);
 add_filter('gettext', 'dscsa_translate', 10, 3);
 function dscsa_translate($term, $raw, $domain) {
 
-  global $phone;
-
-  $phone = $phone ?: get_default('phone');
-
-  $toEnglish = [
-    'Hello %1$s (not %1$s? <a href="%2$s">Log out</a>)' => '',
-    'From your account dashboard you can view your <a href="%1$s">recent orders</a>, manage your <a href="%2$s">shipping and billing addresses</a>, and <a href="%3$s">edit your password and account details</a>.' => '',
-    "An account is already registered with that username. Please choose another." => 'Looks like you have already registered. Goto the <a href="/account/?gp-login">Login page</a> and use your 10 digit phone number as your default password e.g. the phone number '.$_POST['raw_phone'].' would have a default password of '.$_POST['phone'].'.',
-    "<span class='english'>Pay by Credit or Debit Card</span><span class='spanish'>Pago con tarjeta de crédito o débito</span>" => "Pay by Credit or Debit Card",
-    'Spanish'  => 'Espanol', //Registering
-    'Email:' => 'Email', //order details
-    'Email address' => 'Email', //accounts/details
-    'From your account dashboard you can view your <a href="%1$s">recent orders</a>, manage your <a href="%2$s">shipping and billing addresses</a> and <a href="%3$s">edit your password and account details</a>.' => '',
-    'ZIP' => 'Zip code', //Checkout
-    'Your order' => '', //Checkout
-    'Shipping:' => 'New Patient Fee:',
-    'Free shipping coupon' => 'Paid with Coupon',
-    'Free shipping' => 'Paid with Coupon', //not working (order details page)
-    'No saved methods found.' => 'Add a credit/debit card below to activate autopay.  Or pay manually on the "Orders" page',
-    '%s has been added to your cart.' => strtok($_SERVER["REQUEST_URI"],'?') == '/account/'
-      ? 'Step 2 of 2: You are almost done! Please complete this "Registration" page so we can fill your prescription(s).  If you need to login again, your temporary password is '.$phone.'.  After completing your registration, you can change your password on the "Account Details" page'
-      : 'Thank you for your order!',
-    'Username or email' => '<strong>Email (or cell phone number if no email provided)</strong>', //For resetting passwords
-    'Password reset email has been sent.' => "A link to reset your password has been sent by email and/or text message",
-    'A password reset email has been sent to the email address on file for your account, but may take several minutes to show up in your inbox. Please wait at least 10 minutes before attempting another reset.' => 'If you provided an email address or mobile phone number during registration, then an email and/or text message with instructions on how to reset your password was sent to you.  If you do not get an email or text message from us within 5mins, please call us at <span style="white-space:nowrap">(888) 987-5187</span> for assistance',
-    'Additional information' => '',  //Checkout
-    'Make default' => 'Set for Autopay',
-    'This payment method was successfully set as your default.' => 'This credit/debit card will be used for automatic payments on the first week of the month after you receive your medications.',
-    'Payment method successfully added.' => 'This credit/debit card will be used for automatic payments on the first week of the month after you receive your medications.',
-    'Billing address' => 'Shipping address', //Order confirmation
-	  'Billing &amp; Shipping' => 'Shipping Address', //Checkout
-    //Logging in
-    'Lost your password? Please enter your username or email address. You will receive a link to create a new password via email.' => 'Lost your password? Before reseting, please note that new accounts use your phone number - e.g., 4701234567 - as a temporary password. To reset, you will receive a link to create a new password via email and/or text message. If you have trouble, call us at (888) 987-5187 for assistance.',
-    'Please enter a valid account username.' => 'Please enter your name and date of birth in mm/dd/yyyy format.',
-    'Username is required.' => 'Name and date of birth in mm/dd/yyyy format are required.',
-    'Invalid username or email.' => '<strong>Error</strong>: We cannot find an account with name and date of birth.',
-    '<strong>ERROR</strong>: Invalid username.' => '<strong>Error</strong>: We cannot find an account with that name and date of birth.',
-    'An account is already registered with your email address. Please log in.' => substr($_POST['email'], -13) == '@goodpill.org' ? 'An account is already registered with that name and date of birth. Please login or use a different name and date of birth.' : 'Another account is already using that email address.  Please login, use another email, or leave this field blank',
-    'Your order is on-hold until we confirm payment has been received. Your order details are shown below for your reference:' => $_POST['rx_source'] == 'pharmacy' ? 'We are currently requesting a transfer of your Rx(s) from your pharmacy' : 'We are currently waiting on Rx(s) to be sent from your doctor',
-    'Your order has been received and is now being processed. Your order details are shown below for your reference:' => 'We got your prescription(s) and will start working on them right away',
-    'Thanks for creating an account on %1$s. Your username is %2$s' => 'Thanks for completing Registration Step 1 of 2 on %1$s. Your username is %2$s',
-    'Your password has been automatically generated: %s' => 'Your temporary password is your phone number: %s',
-    'Add payment method' => strtok($_SERVER["REQUEST_URI"],'?') == '/account/add-payment/' ? 'Save autopay card' : 'Add a new debit/credit card',
-    'If you have a coupon code, please apply it below.' => 'By entering a coupon below, I authorize Good Pill to release my Personal Health Information (https://www.goodpill.org/gp-npp/) to members of the organization sponsoring this coupon.'
-  ];
-
-  $toSpanish = [
-    'Language' => 'Idioma',
-    'Use a new credit card' => 'Use una tarjeta de crédito nueva',
-    'Place New Order' => 'Haga un pedido nuevo',
-    'Place order' => 'Haga un pedido',
-    'Billing details' => 'Detalles de facturas',
-    'Ship to a different address?' => '¿Desea envíos a una dirección diferente?',
-    'Search and select medications by generic name that you want to transfer to Good Pill' => 'Busque y seleccione los medicamentos por nombre genérico que usted desea transferir a Good Pill',
-    '<span class="erx">Name and address of a backup pharmacy to fill your prescriptions if we are out-of-stock</span><span class="pharmacy">Name and address of pharmacy from which we should transfer your medication(s)</span>' => '<span class="erx">Nombre y dirección de una farmacia de respaldo para surtir sus recetas si no tenemos los medicamentos en existencia</span><span class="pharmacy">Nombre & dirección de la farmacia de la que debemos transferir sus medicamentos.</span>',
-    'Allergies' => 'Alergias',
-    'Allergies Selected Below' => 'Alergias seleccionadas abajo',
-    'No Medication Allergies' => 'No hay alergias a medicamentos',
-    'Aspirin' => 'Aspirina',
-    'Erythromycin' => 'Eritromicina',
-    'NSAIDS e.g., ibuprofen, Advil' => 'NSAIDS; por ejemplo, ibuprofeno, Advil',
-    'Penicillin' => 'Penicilina',
-    'Ampicillin' => 'Ampicilina',
-    'Sulfa (Sulfonamide Antibiotics)' => 'Sulfamida (antibióticos de sulfonamidas)',
-    'Tetracycline antibiotics' => 'Antibióticos de tetraciclina',
-    'List Other Allergies Below' => 'Indique otras alergias abajo',
-    'Phone' => 'Teléfono',
-    'List any other medication(s) or supplement(s) you are currently taking<i style="font-size:14px; display:block; margin-bottom:-20px">We will not fill these but need to check for drug interactions</i>' => 'Indique cualquier otro medicamento o suplemento que usted toma actualmente',
-    'First name' => 'Nombre',
-    'Last name' => 'Apellido',
-    'Date of Birth' => 'Fecha de nacimiento',
-    'Address' => 'Dirección',
-    'Addresses' => 'Direcciónes',
-    'State' => 'Estado',
-    'Zip code' => 'Código postal',
-    'Town / City' => 'Poblado / Ciudad',
-    'Password change' => 'Cambio de contraseña',
-    'Current password (leave blank to leave unchanged)' => 'Contraseña actual (deje en blanco si no hay cambios)',
-    'New password (leave blank to leave unchanged)' => 'Contraseña nueva (deje en blanco si no hay cambios)',
-    'Confirm new password' => 'Confirmar contraseña nueva',
-    'Have a coupon?' => '¿Tiene un cupón?',
-    'Click here to enter your code' => 'Haga clic aquí para ingresar su código',
-    'Coupon code' => 'Cupón',
-    'Apply Coupon' => 'Haga un Cupón',
-    '[Remove]' => '[Remover]',
-    'Card number' => 'Número de tarjeta',
-    'Expiry (MM/YY)' => 'Fecha de expiración (MM/AA)',
-    'Card code' => 'Código de tarjeta',
-    'New Order' => 'Pedido Nuevo',
-    'Orders' => 'Pedidos',
-    'Shipping Address' => 'Dirección de Envíos',
-
-    //Need to be translated
-    // Can't translate on login page because we don't know user's language (though we could make dynamic like registration page)
-    //<div class="english">Register (Step 1 of 2)</div><div class="spanish">Registro (Uno de Dos)</div>
-
-    'Phone number' => 'Teléfono',
-    'Email' => 'Correo electrónico',
-    'Rx(s) were sent from my doctor' => 'La/s receta/s fueron enviadas de parte de mi médico',
-    'Transfer Rx(s) with refills remaining from my pharmacy' => 'Transferir la/s receta/s desde mi farmacia',
-    'House number and street name' => 'Dirección de envío',
-    'Apartment, suite, unit etc. (optional)' => 'Apartamento, suite, unidad, etc. (opcional)',
-    'Payment methods' => 'Métodos de pago',
-    'Account details' => 'Detalles de la cuenta',
-    'Logout' => 'Cierre de sesión',
-    'No order has been made yet.' => 'No se ha hecho aún ningún pedido',
-    'The following addresses will be used on the checkout page by default.' => 'Se utilizarán de forma estándar las siguientes direcciones en la página de pago.',
-    'Billing address' => 'Dirección de facturación',
-    'Shipping address' => 'Dirección de envío',
-    'Save address' => 'Guardar la dirección',
-    'Add payment method' => 'Agregar método de pago',
-    'Save changes' => 'Guardar los cambios',
-    'is a required field' => 'es una información requerida',
-    'Order #%1$s was placed on %2$s and is currently %3$s.' => 'La orden %1$s se ordenó en %2$s y actualmente está %3$s.',
-    'Payment method:' => 'Método de pago:',
-    'Order details' => 'Detalles de la orden',
-    'Customer details' => 'Detalles del cliente',
-    'Amoxicillin' => 'Amoxicilina',
-    'Azithromycin' => 'Azitromicina',
-    'Cephalosporins' => 'Cefalosporinas',
-    'Codeine' => 'Codeína',
-    'Salicylates' => 'Salicilatos',
-    'Thank you for your order! Your prescription(s) should arrive within 3-5 days.' => '¡Gracias por su orden! Sus medicamentos llegarán dentro de 3-5 días.',
-    'Please choose a pharmacy' => 'Por favor, elija una farmacia',
-    'By clicking "Register" below, you agree to our <a href="/gp-terms">Terms of Use</a> and agree to receive and pay for your refills automatically unless you contact us to decline.' => 'Al hacer clic en "Register" a continuación, usted acepta los <a href="/gp-terms">Términos de Uso</a> y acepta recibir y pagar por sus rellenos automáticamente, a menos que usted se ponga en contacto con nosotros para descontinuarlo.',
-
-    'Coupon' => 'Cupón', //not working (checkout applied coupon)
-    'Edit' => 'Cambio',
-    'Apply coupon' => 'Agregar cupón',
-    'Step 2 of 2: You are almost done! Please complete this page so we can fill your prescription(s).  If you need to login again, your temporary password is '.$phone.'.  Afterwards you can change your password on the "Account Details" page' => 'Paso 2 de 2: ¡Casi has terminado! Por favor complete esta página para poder llenar su (s) receta (s). Si necesita volver a iniciar sesión, su contraseña temporal es '.$phone.'. Puede cambiar su contraseña en la página "Detalles de la cuenta"',
-    'Pay by Credit or Debit Card' => 'Pago con tarjeta de crédito o débito',
-    'New Patient Fee:' => 'Cuota de persona nueva:',
-    'Paid with Coupon' => 'Pagada con cupón',
-    'Refill the Rx(s) selected below' => 'Refill the Rx(s) selected below'
-  ];
-
-  $english = isset($toEnglish[$term]) ? $toEnglish[$term] : $term;
-  $spanish = $toSpanish[$english];
-
-  if (is_admin() OR ! isset($spanish))
-    return $english;
 
   global $lang;
+  global $toEnglish;
+  global $toSpanish;
 
-  $lang = $lang ?: (get_meta('language') ?: '<language>');
+  if ( ! $lang) {
+    $lang = is_admin() ? 'EN' : get_meta('language');
+  }
 
-  if ($lang == 'EN')
-    return $english;
+  if ( ! $toEnglish ) {
 
-  if ($lang == 'ES')
+    $phone = $phone ?: get_default('phone');
+
+    $toEnglish = [
+      'Hello %1$s (not %1$s? <a href="%2$s">Log out</a>)' => '',
+      'From your account dashboard you can view your <a href="%1$s">recent orders</a>, manage your <a href="%2$s">shipping and billing addresses</a>, and <a href="%3$s">edit your password and account details</a>.' => '',
+      "An account is already registered with that username. Please choose another." => 'Looks like you have already registered. Goto the <a href="/account/?gp-login">Login page</a> and use your 10 digit phone number as your default password e.g. the phone number '.$_POST['raw_phone'].' would have a default password of '.$_POST['phone'].'.',
+      "<span class='english'>Pay by Credit or Debit Card</span><span class='spanish'>Pago con tarjeta de crédito o débito</span>" => "Pay by Credit or Debit Card",
+      'Spanish'  => 'Espanol', //Registering
+      'Email:' => 'Email', //order details
+      'Email address' => 'Email', //accounts/details
+      'From your account dashboard you can view your <a href="%1$s">recent orders</a>, manage your <a href="%2$s">shipping and billing addresses</a> and <a href="%3$s">edit your password and account details</a>.' => '',
+      'ZIP' => 'Zip code', //Checkout
+      'Your order' => '', //Checkout
+      'Shipping:' => 'New Patient Fee:',
+      'Free shipping coupon' => 'Paid with Coupon',
+      'Free shipping' => 'Paid with Coupon', //not working (order details page)
+      'No saved methods found.' => 'Add a credit/debit card below to activate autopay.  Or pay manually on the "Orders" page',
+      '%s has been added to your cart.' => strtok($_SERVER["REQUEST_URI"],'?') == '/account/'
+        ? 'Step 2 of 2: You are almost done! Please complete this "Registration" page so we can fill your prescription(s).  If you need to login again, your temporary password is '.$phone.'.  After completing your registration, you can change your password on the "Account Details" page'
+        : 'Thank you for your order!',
+      'Username or email' => '<strong>Email (or cell phone number if no email provided)</strong>', //For resetting passwords
+      'Password reset email has been sent.' => "A link to reset your password has been sent by email and/or text message",
+      'A password reset email has been sent to the email address on file for your account, but may take several minutes to show up in your inbox. Please wait at least 10 minutes before attempting another reset.' => 'If you provided an email address or mobile phone number during registration, then an email and/or text message with instructions on how to reset your password was sent to you.  If you do not get an email or text message from us within 5mins, please call us at <span style="white-space:nowrap">(888) 987-5187</span> for assistance',
+      'Additional information' => '',  //Checkout
+      'Make default' => 'Set for Autopay',
+      'This payment method was successfully set as your default.' => 'This credit/debit card will be used for automatic payments on the first week of the month after you receive your medications.',
+      'Payment method successfully added.' => 'This credit/debit card will be used for automatic payments on the first week of the month after you receive your medications.',
+      'Billing address' => 'Shipping address', //Order confirmation
+  	  'Billing &amp; Shipping' => 'Shipping Address', //Checkout
+      //Logging in
+      'Lost your password? Please enter your username or email address. You will receive a link to create a new password via email.' => 'Lost your password? Before reseting, please note that new accounts use your phone number - e.g., 4701234567 - as a temporary password. To reset, you will receive a link to create a new password via email and/or text message. If you have trouble, call us at (888) 987-5187 for assistance.',
+      'Please enter a valid account username.' => 'Please enter your name and date of birth in mm/dd/yyyy format.',
+      'Username is required.' => 'Name and date of birth in mm/dd/yyyy format are required.',
+      'Invalid username or email.' => '<strong>Error</strong>: We cannot find an account with name and date of birth.',
+      '<strong>ERROR</strong>: Invalid username.' => '<strong>Error</strong>: We cannot find an account with that name and date of birth.',
+      'An account is already registered with your email address. Please log in.' => substr($_POST['email'], -13) == '@goodpill.org' ? 'An account is already registered with that name and date of birth. Please login or use a different name and date of birth.' : 'Another account is already using that email address.  Please login, use another email, or leave this field blank',
+      'Your order is on-hold until we confirm payment has been received. Your order details are shown below for your reference:' => $_POST['rx_source'] == 'pharmacy' ? 'We are currently requesting a transfer of your Rx(s) from your pharmacy' : 'We are currently waiting on Rx(s) to be sent from your doctor',
+      'Your order has been received and is now being processed. Your order details are shown below for your reference:' => 'We got your prescription(s) and will start working on them right away',
+      'Thanks for creating an account on %1$s. Your username is %2$s' => 'Thanks for completing Registration Step 1 of 2 on %1$s. Your username is %2$s',
+      'Your password has been automatically generated: %s' => 'Your temporary password is your phone number: %s',
+      'Add payment method' => strtok($_SERVER["REQUEST_URI"],'?') == '/account/add-payment/' ? 'Save autopay card' : 'Add a new debit/credit card',
+      'If you have a coupon code, please apply it below.' => 'By entering a coupon below, I authorize Good Pill to release my Personal Health Information (https://www.goodpill.org/gp-npp/) to members of the organization sponsoring this coupon.'
+    ];
+  }
+
+  $english = isset($toEnglish[$term]) ? $toEnglish[$term] : $term;
+
+  if ($lang == 'EN') return $english;
+
+  if ( ! $toSpanish ) {
+
+    $phone = $phone ?: get_default('phone');
+
+    $toSpanish = [
+      'Language' => 'Idioma',
+      'Use a new credit card' => 'Use una tarjeta de crédito nueva',
+      'Place New Order' => 'Haga un pedido nuevo',
+      'Place order' => 'Haga un pedido',
+      'Billing details' => 'Detalles de facturas',
+      'Ship to a different address?' => '¿Desea envíos a una dirección diferente?',
+      'Search and select medications by generic name that you want to transfer to Good Pill' => 'Busque y seleccione los medicamentos por nombre genérico que usted desea transferir a Good Pill',
+      '<span class="erx">Name and address of a backup pharmacy to fill your prescriptions if we are out-of-stock</span><span class="pharmacy">Name and address of pharmacy from which we should transfer your medication(s)</span>' => '<span class="erx">Nombre y dirección de una farmacia de respaldo para surtir sus recetas si no tenemos los medicamentos en existencia</span><span class="pharmacy">Nombre & dirección de la farmacia de la que debemos transferir sus medicamentos.</span>',
+      'Allergies' => 'Alergias',
+      'Allergies Selected Below' => 'Alergias seleccionadas abajo',
+      'No Medication Allergies' => 'No hay alergias a medicamentos',
+      'Aspirin' => 'Aspirina',
+      'Erythromycin' => 'Eritromicina',
+      'NSAIDS e.g., ibuprofen, Advil' => 'NSAIDS; por ejemplo, ibuprofeno, Advil',
+      'Penicillin' => 'Penicilina',
+      'Ampicillin' => 'Ampicilina',
+      'Sulfa (Sulfonamide Antibiotics)' => 'Sulfamida (antibióticos de sulfonamidas)',
+      'Tetracycline antibiotics' => 'Antibióticos de tetraciclina',
+      'List Other Allergies Below' => 'Indique otras alergias abajo',
+      'Phone' => 'Teléfono',
+      'List any other medication(s) or supplement(s) you are currently taking<i style="font-size:14px; display:block; margin-bottom:-20px">We will not fill these but need to check for drug interactions</i>' => 'Indique cualquier otro medicamento o suplemento que usted toma actualmente',
+      'First name' => 'Nombre',
+      'Last name' => 'Apellido',
+      'Date of Birth' => 'Fecha de nacimiento',
+      'Address' => 'Dirección',
+      'Addresses' => 'Direcciónes',
+      'State' => 'Estado',
+      'Zip code' => 'Código postal',
+      'Town / City' => 'Poblado / Ciudad',
+      'Password change' => 'Cambio de contraseña',
+      'Current password (leave blank to leave unchanged)' => 'Contraseña actual (deje en blanco si no hay cambios)',
+      'New password (leave blank to leave unchanged)' => 'Contraseña nueva (deje en blanco si no hay cambios)',
+      'Confirm new password' => 'Confirmar contraseña nueva',
+      'Have a coupon?' => '¿Tiene un cupón?',
+      'Click here to enter your code' => 'Haga clic aquí para ingresar su código',
+      'Coupon code' => 'Cupón',
+      'Apply Coupon' => 'Haga un Cupón',
+      '[Remove]' => '[Remover]',
+      'Card number' => 'Número de tarjeta',
+      'Expiry (MM/YY)' => 'Fecha de expiración (MM/AA)',
+      'Card code' => 'Código de tarjeta',
+      'New Order' => 'Pedido Nuevo',
+      'Orders' => 'Pedidos',
+      'Shipping Address' => 'Dirección de Envíos',
+
+      //Need to be translated
+      // Can't translate on login page because we don't know user's language (though we could make dynamic like registration page)
+      //<div class="english">Register (Step 1 of 2)</div><div class="spanish">Registro (Uno de Dos)</div>
+
+      'Phone number' => 'Teléfono',
+      'Email' => 'Correo electrónico',
+      'Rx(s) were sent from my doctor' => 'La/s receta/s fueron enviadas de parte de mi médico',
+      'Transfer Rx(s) with refills remaining from my pharmacy' => 'Transferir la/s receta/s desde mi farmacia',
+      'House number and street name' => 'Dirección de envío',
+      'Apartment, suite, unit etc. (optional)' => 'Apartamento, suite, unidad, etc. (opcional)',
+      'Payment methods' => 'Métodos de pago',
+      'Account details' => 'Detalles de la cuenta',
+      'Logout' => 'Cierre de sesión',
+      'No order has been made yet.' => 'No se ha hecho aún ningún pedido',
+      'The following addresses will be used on the checkout page by default.' => 'Se utilizarán de forma estándar las siguientes direcciones en la página de pago.',
+      'Billing address' => 'Dirección de facturación',
+      'Shipping address' => 'Dirección de envío',
+      'Save address' => 'Guardar la dirección',
+      'Add payment method' => 'Agregar método de pago',
+      'Save changes' => 'Guardar los cambios',
+      'is a required field' => 'es una información requerida',
+      'Order #%1$s was placed on %2$s and is currently %3$s.' => 'La orden %1$s se ordenó en %2$s y actualmente está %3$s.',
+      'Payment method:' => 'Método de pago:',
+      'Order details' => 'Detalles de la orden',
+      'Customer details' => 'Detalles del cliente',
+      'Amoxicillin' => 'Amoxicilina',
+      'Azithromycin' => 'Azitromicina',
+      'Cephalosporins' => 'Cefalosporinas',
+      'Codeine' => 'Codeína',
+      'Salicylates' => 'Salicilatos',
+      'Thank you for your order! Your prescription(s) should arrive within 3-5 days.' => '¡Gracias por su orden! Sus medicamentos llegarán dentro de 3-5 días.',
+      'Please choose a pharmacy' => 'Por favor, elija una farmacia',
+      'By clicking "Register" below, you agree to our <a href="/gp-terms">Terms of Use</a> and agree to receive and pay for your refills automatically unless you contact us to decline.' => 'Al hacer clic en "Register" a continuación, usted acepta los <a href="/gp-terms">Términos de Uso</a> y acepta recibir y pagar por sus rellenos automáticamente, a menos que usted se ponga en contacto con nosotros para descontinuarlo.',
+
+      'Coupon' => 'Cupón', //not working (checkout applied coupon)
+      'Edit' => 'Cambio',
+      'Apply coupon' => 'Agregar cupón',
+      'Step 2 of 2: You are almost done! Please complete this page so we can fill your prescription(s).  If you need to login again, your temporary password is '.$phone.'.  Afterwards you can change your password on the "Account Details" page' => 'Paso 2 de 2: ¡Casi has terminado! Por favor complete esta página para poder llenar su (s) receta (s). Si necesita volver a iniciar sesión, su contraseña temporal es '.$phone.'. Puede cambiar su contraseña en la página "Detalles de la cuenta"',
+      'Pay by Credit or Debit Card' => 'Pago con tarjeta de crédito o débito',
+      'New Patient Fee:' => 'Cuota de persona nueva:',
+      'Paid with Coupon' => 'Pagada con cupón',
+      'Refill the Rx(s) selected below' => 'Refill the Rx(s) selected below'
+    ];
+  }
+
+  $spanish = $toSpanish[$english];
+
+  if ($lang == 'ES' && isset($spanish))
     return $spanish;
 
   //This allows client side translating based on jQuery listening to radio buttons
@@ -2002,7 +2041,8 @@ function patient_profile($first_name, $last_name, $birth_date, $phone) {
   //debug_email("patient_profile start", "$first_name $last_name $birth_date, $phone".print_r(func_get_args(), true).print_r(sanitize($_POST), true));
 
   if ( ! $first_name OR ! $last_name OR ! $birth_date) {
-    debug_email("patient_profile_error!", "is_admin ".is_admin()." ".print_r(func_get_args(), true).print_r($_POST, true));
+    //debug_email("patient_profile_error!", "is_admin ".is_admin()." ".print_r(func_get_args(), true).print_r($_POST, true));
+    return;
   }
 
   $first_name = str_replace("'", "''", $first_name);
