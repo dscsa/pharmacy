@@ -1439,7 +1439,7 @@ function dscsa_save_patient($user_id, $fields) {
     }*/
 
     if (substr($key, 0, 10) == 'allergies_') {
-      $allergies[$key] = $val;
+      $allergies[$key] = str_replace("'", "''", $val);
     }
   }
 
