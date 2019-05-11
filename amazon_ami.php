@@ -1007,8 +1007,10 @@ function dscsa_order_search_fields( $search_fields ) {
 add_filter('woocommerce_shop_order_search_results',  'dscsa_shop_order_search_results', 10, 3);
 function dscsa_shop_order_search_results($order_ids, $term, $search_fields) {
 
-  global $wpdb;
 
+
+  /*
+  global $wpdb;
   $new_order_ids = array_unique(
 		array_merge(
 			$order_ids,
@@ -1020,10 +1022,10 @@ function dscsa_shop_order_search_results($order_ids, $term, $search_fields) {
 				)
 			)
 		)
-	);
+	);*/
 
   //debug_email("dscsa_shop_order_search_results", "$term ".print_r($order_ids, true).print_r($search_fields, true).print_r($new_order_ids, true));
-  return $new_order_ids; //$order_ids;
+  return faster_wc_search_orders($term); //$new_order_ids; //$order_ids;
 }
 
 
@@ -1057,7 +1059,11 @@ function dscsa_rest_update_order($order, $request) {
     try {
 
       $invoice_number = $request['id'];
-      $meta_data      = $request->get_json_params()['meta_data'];
+      $json_params    = $request->get_json_params();
+      $meta_data      = $json_params['meta_data'];
+      $no_shipping    = empty($json_params['shipping_lines']);
+
+      //debug_email("no guardian id was provided in this REST request",
 
       foreach ($meta_data as $val) {
         if ($val['key'] == 'guardian_id') {
@@ -1085,8 +1091,16 @@ function dscsa_rest_update_order($order, $request) {
 
       //debug_email("dscsa_rest_update_order: debug", $invoice_number.' | using first one /wc/v2/orders/'.$orders[0]->post_id.' '.print_r($orders, true).' '.print_r($request, true));
 
-      if ($count > 0)
+      if ($count > 0) {
+
+        //This fixes shipping_lines being cumulative by deleting all shipping lines before we add the new one
+        if ( ! $no_shipping) {
+          $order = new WC_Order($orders[0]->post_id);
+          $order->remove_order_items('shipping');
+        }
+
         $request['id'] = $orders[0]->post_id;
+      }
 
     } catch (Exception $e) {
       debug_email("dscsa_rest_update_order: error", print_r($e, true).' | '.$request['id'].' | /wc/v2/orders/'.$orders[0]->post_id.' '.print_r($orders, true).' '.print_r($request, true));
