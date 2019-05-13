@@ -1513,17 +1513,7 @@ function dscsa_update_order_status( $data) {
 add_action('woocommerce_thankyou', 'dscsa_new_order');
 function dscsa_new_order($order_id) {
   try { // Select the email we want & trigger it to send
-
     debug_email("dscsa_new_order", print_r($order_id, true).print_r(sanitize($_POST), true).print_r(mssql_get_last_message(), true));
-
-    if ( ! $_POST['rx_source']) return //not triggered by API calls, only form submissions
-
-    $order  = wc_get_order($order_id);
-
-    $status = $order->get_status();
-
-    if ( ! $_POST['rxs']) //Processing Emails were redundant with Shoppoing Sheets Rx Received Emails
-      WC()->mailer()->get_emails()["WC_Email_Customer_On_Hold_Order"]->trigger($order_id, $order);
   } catch (Exception $e) {
     debug_email("dscsa_new_order FAILED", print_r($e, true).$e->getMessage());
   }
@@ -1774,11 +1764,11 @@ function dscsa_translate($term, $raw, $domain) {
 
   $spanish = $toSpanish[$english];
 
-  if ($lang == 'ES' && isset($spanish))
+  if (isset($spanish) && $lang == 'ES')
     return $spanish;
 
   //This allows client side translating based on jQuery listening to radio buttons
-  if (isset($_GET['gp-register']))
+  if (isset($spanish) && isset($_GET['gp-register']))
     return  "<span class='english'>$english</span><span class='spanish'>$spanish</span>";
 
   return $english;
