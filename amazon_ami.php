@@ -1061,7 +1061,7 @@ function dscsa_rest_update_order($order, $request) {
       $invoice_number = $request['id'];
       $json_params    = $request->get_json_params();
       $meta_data      = $json_params['meta_data'];
-      $no_shipping    = empty($json_params['shipping_lines']);
+      $no_shipping    = empty($json_params['shipping_lines']) || empty($json_params['shipping_lines'][0]['total']);
 
       //debug_email("no guardian id was provided in this REST request",
 
