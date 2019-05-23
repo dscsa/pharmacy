@@ -3,6 +3,9 @@ jQuery(load)
 //<select id="medication[]" data-placeholder="Search available medications" multiple></select>
 function load() {
   upgradeStock()
+
+  if (window.sessionStorage)
+    upgradePharmacy() //not needed on this page but fetch && cache the results for a quicker checkout page
 }
 
 function upgradeStock() {

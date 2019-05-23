@@ -5,7 +5,10 @@ function load() {
   upgradeBirthdate()
 
   if ( ~ window.location.search.indexOf('register'))
-    return register_page()
+    register_page()
+
+  if (window.sessionStorage)
+    upgradePharmacy() //not needed on this page but fetch && cache the results for a quicker checkout page
 }
 
 function register_page() {
