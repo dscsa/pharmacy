@@ -2,8 +2,11 @@ jQuery(load)
 
 function load() {
 
-  upgradeTransfer()
-  upgradeRxs()
+  getInventory(function(data) {
+    var rxMap = getRxMap() //Remove low stock (disabled) items
+    upgradeTransfer(data, rxMap)
+    upgradeRxs(data, rxMap)
+  })
 
   //Show our form fields at the beginning rather than the end
   jQuery('form.checkout .col-1').prepend(jQuery('.woocommerce-additional-fields'))
@@ -24,43 +27,29 @@ function load() {
 }
 
 //Initial eRx and Refill Requests
-function upgradeRxs() {
-  console.log('upgradeRxs')
+function upgradeRxs(data, rxMap) {
+  console.log('upgradeRxs',  data.length)
   var select = jQuery('#rxs\\[\\]')
 
-  getInventory(function(data) {
+  console.log('rxMap 1', rxMap)
+  rxMap = disableRxs(data, rxMap)
+  console.log('rxMap 2', rxMap)
+  rxMap = objValues(rxMap)
+  console.log('rxMap 3', rxMap)
 
-    console.log('upgradeRxs data', data.length, data)
-
-    //Remove low stock (disabled) items
-    var rxMap = getRxMap()
-    console.log('rxMap 1', rxMap)
-    rxMap = disableRxs(data, rxMap)
-    console.log('rxMap 2', rxMap)
-    rxMap = objValues(rxMap)
-    console.log('rxMap 3', rxMap)
-
-    select.select2({multiple:true, data:rxMap})
-    select.val(rxMap.map(function(rx) { return ! rx.disabled && rx.id })).change()
-  })
-
+  select.select2({multiple:true, data:rxMap})
+  select.val(rxMap.map(function(rx) { return ! rx.disabled && rx.id })).change()
 }
 
-function upgradeTransfer() {
-  console.log('upgradeTransfer')
+function upgradeTransfer(data, rxMap) {
+
+  console.log('upgradeTransfer data', data.length)
+
   var select = jQuery('#transfer\\[\\]')
 
-  getInventory(function(data) {
-    console.log('upgradeTransfer data', data.length, data)
+  console.log('rxMap 1', rxMap)
+  data = disableInventory(data, rxMap) //Remove low stock (disabled) items
 
-    var rxMap = getRxMap()
-    console.log('rxMap 1', rxMap)
-
-    //Remove low stock (disabled) items
-    data = disableInventory(data, rxMap)
-
-    select.empty() //get rid of default option (Select Rxs) before loading in our actual inventory
-    select.select2({multiple:true, data:data})
-  })
-
+  select.empty() //get rid of default option (Select Rxs) before loading in our actual inventory
+  select.select2({multiple:true, data:data})
 }

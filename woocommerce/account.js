@@ -5,8 +5,10 @@ function load() {
   translate()
   savePaymentCard()
 
-  if (window.location.pathname == '/account/details/')
+  if (window.location.pathname == '/account/details/') {
+    upgradeAutofill()
     return account_page()
+  }
 
   if (window.location.pathname == '/account/')
     return account_page()
@@ -14,16 +16,17 @@ function load() {
 
 function account_page() {
   console.log('account.js account page')
-  upgradeAutofill()
   upgradePharmacy()
   upgradeAllergies()
-  upgradeBirthdate()
   clearEmail()
   disableFixedFields()
   setSource()
 }
 
 function upgradeAutofill() {
+
+  console.log('upgradeAutofill')
+  var start = new Date()
   var rx_autofills = jQuery("input.rx_autofill")
 
   //When RX Autofill is unchecked, disable refill date input and have it display N/A
@@ -82,7 +85,7 @@ function upgradeAutofill() {
 
   //Disable and set days based for new Rxs based on live inventory
   getInventory(function(inventory) {
-    console.log('upgradeAutofill getInventory', 'inventory.length', inventory.length)
+    console.log('upgradeAutofill getInventory', 'inventory.length', inventory.length, 'load time in secs:', (new Date()-start)/1000)
 
     jQuery("tr.rx").each(function(i, tableRow) {
       tableRow     = jQuery(tableRow)
@@ -145,6 +148,8 @@ function upgradeAutofill() {
         nextFill.val('Gcn Error')
         jQuery("tr.rx td.day_qty").val('')
       }
+
+      console.log('upgradeAutofill getInventory', 'inventory.length', inventory.length, 'finish time in secs:', (new Date()-start)/1000)
     })
 
     jQuery(".pat_autofill input").triggerHandler('change', true)
