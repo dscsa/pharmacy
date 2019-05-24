@@ -252,7 +252,7 @@ function getInventory(callback, retry) {
 
   console.log('getInventory')
 
-  var inventoryCache = storage.get('inventoryCache', 2)
+  var inventoryCache = storage.get('inventoryCache', 10)
   console.log('getInventory, cached:', inventoryCache || 'No Cache')
   if (inventoryCache) return callback(inventoryCache)
 
@@ -305,7 +305,7 @@ function getPriceComparison(callback, retry) {
 
   console.log('getPriceComparison')
 
-  var priceCache = storage.get('priceCache', 2)
+  var priceCache = storage.get('priceCache', 10)
   console.log('getPriceComparison, cached:', priceCache || 'No Cache')
   if (priceCache) return callback(priceCache)
 
