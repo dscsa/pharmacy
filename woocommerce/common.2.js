@@ -62,7 +62,7 @@ function upgradePharmacy(retry) {
 
   if (window.sessionStorage) {
     var pharmacyCache = sessionStorage.getItem('pharmacyCache')
-    console.log('upgradePharmacy, cached:', !!pharmacyCache)
+    console.log('upgradePharmacy, cached:', pharmacyCache || 'No Cache')
     if (pharmacyCache) return select.select2({data:pharmacyCache, matcher:matcher, minimumInputLength:3})
   }
 
@@ -388,4 +388,22 @@ function savePaymentCard() {
   //Save card info to our account automatically
   console.log('savePaymentCard checkbox')
   jQuery('#wc-stripe-new-payment-method').prop('checked', true)
+}
+
+
+
+var storage = {
+  get:function(key, maxAge) {
+    if ( ! window.sessionStorage) return
+    if (window.sessionStorage) {
+      var pharmacyCache = sessionStorage.getItem('pharmacyCache')
+      console.log('upgradePharmacy, cached:', !!pharmacyCache)
+      if (pharmacyCache) return select.select2({data:pharmacyCache, matcher:matcher, minimumInputLength:3})
+    }
+
+  },
+  set:function(key, val) {
+    if ( ! window.sessionStorage) return
+
+  }
 }
