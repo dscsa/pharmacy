@@ -1,3 +1,27 @@
+var storage = {
+  get:function(key, maxMins) {
+
+    if ( ! window.sessionStorage) return
+
+    var cache = sessionStorage.getItem(key)
+
+    if ( ! cache) return
+
+    cache = JSON.parse(cache)
+    var time = new Date().getTime()
+
+    if ( ! maxMins || (cache.time + maxMins*60*1000 > time))
+      return cache.val
+
+    console.log('cache expired: ', (time-cache.time)/60/1000, 'minutes old > maxMins of', maxMins)
+  },
+  set:function(key, val) {
+    if ( ! window.sessionStorage) return
+    var time = new Date().getTime()
+    sessionStorage.setItem(key, JSON.stringify({time:time, val:val}))
+  }
+}
+
 function preventDefault(e) {
   console.log('select2 preventDefault')
   e.preventDefault()
@@ -60,11 +84,11 @@ function upgradePharmacy(retry) {
 
   var select = jQuery('#backup_pharmacy')
 
-  if (window.sessionStorage) {
-    var pharmacyCache = sessionStorage.getItem('pharmacyCache')
+
+    var pharmacyCache = storage.get('pharmacyCache', .2)
     console.log('upgradePharmacy, cached:', pharmacyCache || 'No Cache')
     if (false) return select.select2({data:pharmacyCache, matcher:matcher, minimumInputLength:3})
-  }
+
 
   var start = new Date()
   var pharmacyGsheet = "https://spreadsheets.google.com/feeds/list/1ivCEaGhSix2K2DvgWQGvd9D7HmHEKA3VkQISbhQpK8g/1/public/values?alt=json"
@@ -86,8 +110,7 @@ function upgradePharmacy(retry) {
         pharmacyCache.push(pharmacy2select($data.feed.entry[i]))
       }
 
-      if (window.sessionStorage)
-        sessionStorage.setItem('pharmacyCache', pharmacyCache)
+      storage.set('pharmacyCache', pharmacyCache)
 
       select.select2({data:pharmacyCache, matcher:matcher, minimumInputLength:3})
       console.log('pharmacy gsheet. finish time in secs:', (new Date()-start)/1000)
@@ -388,22 +411,4 @@ function savePaymentCard() {
   //Save card info to our account automatically
   console.log('savePaymentCard checkbox')
   jQuery('#wc-stripe-new-payment-method').prop('checked', true)
-}
-
-
-
-var storage = {
-  get:function(key, maxAge) {
-    if ( ! window.sessionStorage) return
-    if (window.sessionStorage) {
-      var pharmacyCache = sessionStorage.getItem('pharmacyCache')
-      console.log('upgradePharmacy, cached:', !!pharmacyCache)
-      if (pharmacyCache) return select.select2({data:pharmacyCache, matcher:matcher, minimumInputLength:3})
-    }
-
-  },
-  set:function(key, val) {
-    if ( ! window.sessionStorage) return
-
-  }
 }
