@@ -58,7 +58,7 @@ function upgradeAllergies() {
 //Used at checkout and on account details
 function upgradePharmacy(retry) {
 
-  if (windown.sessionStorage) {
+  if (window.sessionStorage) {
     var pharmacyCache = sessionStorage.getItem('pharmacyCache')
     console.log('upgradePharmacy, cached:', !!pharmacyCache)
     if (pharmacyCache) return select.select2({data:pharmacyCache, matcher:matcher, minimumInputLength:3})
@@ -85,7 +85,7 @@ function upgradePharmacy(retry) {
         pharmacyCache.push(pharmacy2select($data.feed.entry[i]))
       }
 
-      if (windown.sessionStorage)
+      if (window.sessionStorage)
         sessionStorage.setItem('pharmacyCache', pharmacyCache)
 
       select.select2({data:pharmacyCache, matcher:matcher, minimumInputLength:3})
