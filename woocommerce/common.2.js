@@ -7,7 +7,12 @@ var storage = {
 
     if ( ! cache) return
 
-    cache = JSON.parse(cache)
+    try {
+      cache = JSON.parse(cache)
+    } catch (e) {
+      return console.log('cache invalid JSON', cache)
+    }
+
     var time = new Date().getTime()
 
     if ( ! maxMins || (cache.time + maxMins*60*1000 > time))
