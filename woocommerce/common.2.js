@@ -63,7 +63,7 @@ function upgradePharmacy(retry) {
   if (window.sessionStorage) {
     var pharmacyCache = sessionStorage.getItem('pharmacyCache')
     console.log('upgradePharmacy, cached:', pharmacyCache || 'No Cache')
-    if (pharmacyCache) return select.select2({data:pharmacyCache, matcher:matcher, minimumInputLength:3})
+    if (false) return select.select2({data:pharmacyCache, matcher:matcher, minimumInputLength:3})
   }
 
   var start = new Date()
