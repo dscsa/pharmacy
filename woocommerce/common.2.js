@@ -11,7 +11,7 @@ var storage = {
       cache = JSON.parse(cache)
     } catch (e) {
       sessionStorage.remove(key)
-      return console.log('cache invalid JSON', cache)
+      return console.log(key, 'cache invalid JSON', cache)
     }
 
     var time = new Date().getTime()
@@ -19,12 +19,18 @@ var storage = {
     if ( ! maxMins || (cache.time + maxMins*60*1000 > time))
       return cache.val
 
-    console.log('cache expired:', ((time-cache.time)/60/1000).toFixed(2), 'minutes old > maxMins of', maxMins)
+    console.log(key, 'cache expired:', ((time-cache.time)/60/1000).toFixed(2), 'minutes old > maxMins of', maxMins)
   },
+
   set:function(key, val) {
+
     if ( ! window.sessionStorage) return
+
     var time = new Date().getTime()
+
     sessionStorage.setItem(key, JSON.stringify({time:time, val:val}))
+
+    console.log(key, 'cache set for', val.length || 1, 'items')
   }
 }
 
