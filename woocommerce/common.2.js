@@ -22,7 +22,7 @@ var storage = {
       return cache.val
     }
 
-    console.log(key, 'cache expired:', ageMins, 'ageMins <=', maxMins || 'unlimited', 'maxMins')
+    console.log(key, 'cache expired:', ageMins, 'ageMins >', maxMins, 'maxMins')
   },
 
   set:function(key, val) {
