@@ -18,11 +18,11 @@ var storage = {
     var ageMins  = ((time-cache.time)/60/1000).toFixed(2)
 
     if ( ! maxMins || ageMins <= maxMins) {
-      console.log(key, 'cache hit:', age, 'minutes old <= maxMins of', maxMins || 'unlimited')
+      console.log(key, 'cache hit:', ageMins, 'minutes old <= maxMins of', maxMins || 'unlimited')
       return cache.val
     }
 
-    console.log(key, 'cache expired:', age, 'minutes old > maxMins of', maxMins)
+    console.log(key, 'cache expired:', ageMins, 'minutes old > maxMins of', maxMins)
   },
 
   set:function(key, val) {
