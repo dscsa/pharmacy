@@ -98,7 +98,7 @@ function upgradePharmacy(retry) {
 
   var pharmacyCache = storage.get('pharmacyCache', 60*24)
   console.log('upgradePharmacy, cached:', pharmacyCache || 'No Cache')
-  if (false) return select.select2({data:pharmacyCache, matcher:matcher, minimumInputLength:3})
+  if (pharmacyCache) return select.select2({data:pharmacyCache, matcher:matcher, minimumInputLength:3})
 
   var start = new Date()
   var pharmacyGsheet = "https://spreadsheets.google.com/feeds/list/1ivCEaGhSix2K2DvgWQGvd9D7HmHEKA3VkQISbhQpK8g/1/public/values?alt=json"
@@ -249,9 +249,9 @@ function getInventory(callback, retry) {
 
   console.log('getInventory')
 
-  var inventoryCache = storage.get('inventoryCache', 1)
+  var inventoryCache = storage.get('inventoryCache', 2)
   console.log('getInventory, cached:', inventoryCache || 'No Cache')
-  if (false) return callback(inventoryCache)
+  if (inventoryCache) return callback(inventoryCache)
 
   var start = new Date()
   var medicationGsheet = "https://spreadsheets.google.com/feeds/list/1gF7EUirJe4eTTJ59EQcAs1pWdmTm2dNHUAcrLjWQIpY/o8csoy3/public/values?alt=json"
@@ -262,9 +262,11 @@ function getInventory(callback, retry) {
     method:'GET', //dataType: 'jsonp', //USED to be method:'GET' until this bug https://issuetracker.google.com/issues/131613284#comment98
     success:function($data) {
       console.log('live inventory gsheet. load time in secs:', (new Date()-start)/1000)
+
       inventoryCache = mapGoogleSheetInv($data.feed.entry)
       storage.set('inventoryCache', inventoryCache)
       callback(inventoryCache)
+
       console.log('live inventory gsheet. finish time in secs:', (new Date()-start)/1000)
     },
     error:function() {
@@ -300,6 +302,10 @@ function getPriceComparison(callback, retry) {
 
   console.log('getPriceComparison')
 
+  var priceCache = storage.get('priceCache', 2)
+  console.log('getPriceComparison, cached:', priceCache || 'No Cache')
+  if (priceCache) return callback(priceCache)
+
   var start = new Date()
   var medicationGsheet = "https://spreadsheets.google.com/feeds/list/1TcuoHKR8vJ8j3AhVVJywqEvPz7-ecef5O05RywPQj_U/od6/public/values?alt=json"
   retry = retry || 1000
@@ -309,7 +315,11 @@ function getPriceComparison(callback, retry) {
     method:'GET', //dataType: 'jsonp', //USED to be method:'GET' until this bug https://issuetracker.google.com/issues/131613284#comment98
     success:function($data) {
       console.log('price comparison gsheet. load time in secs:', (new Date()-start)/1000)
-      callback(mapGoogleSheetPrices($data.feed.entry))
+
+      priceCache = mapGoogleSheetPrices($data.feed.entry)
+      storage.set('priceCache', priceCache)
+      callback(priceCache)
+
       console.log('price comparison gsheet. finish time in secs:', (new Date()-start)/1000)
     },
     error:function() {
