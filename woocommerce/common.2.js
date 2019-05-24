@@ -58,6 +58,8 @@ function upgradeAllergies() {
 //Used at checkout and on account details
 function upgradePharmacy(retry) {
 
+  var select = jQuery('#backup_pharmacy')
+
   if (window.sessionStorage) {
     var pharmacyCache = sessionStorage.getItem('pharmacyCache')
     console.log('upgradePharmacy, cached:', !!pharmacyCache)
@@ -65,7 +67,6 @@ function upgradePharmacy(retry) {
   }
 
   var start = new Date()
-  var select = jQuery('#backup_pharmacy')
   var pharmacyGsheet = "https://spreadsheets.google.com/feeds/list/1ivCEaGhSix2K2DvgWQGvd9D7HmHEKA3VkQISbhQpK8g/1/public/values?alt=json"
   retry = retry || 1000
   //ovrg94l is the worksheet id.  To get this you have to use https://spreadsheets.google.com/feeds/worksheets/1MV5mq6605X7U1Np2fpwZ1RHkaCpjsb7YqieLQsEQK88/private/full
