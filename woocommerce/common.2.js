@@ -19,7 +19,7 @@ var storage = {
     if ( ! maxMins || (cache.time + maxMins*60*1000 > time))
       return cache.val
 
-    console.log('cache expired: ', (time-cache.time)/60/1000, 'minutes old > maxMins of', maxMins)
+    console.log('cache expired:', ((time-cache.time)/60/1000).toFixed(2), 'minutes old > maxMins of', maxMins)
   },
   set:function(key, val) {
     if ( ! window.sessionStorage) return
@@ -90,11 +90,9 @@ function upgradePharmacy(retry) {
 
   var select = jQuery('#backup_pharmacy')
 
-
-    var pharmacyCache = storage.get('pharmacyCache', .2)
-    console.log('upgradePharmacy, cached:', pharmacyCache || 'No Cache')
-    if (false) return select.select2({data:pharmacyCache, matcher:matcher, minimumInputLength:3})
-
+  var pharmacyCache = storage.get('pharmacyCache', 60*24)
+  console.log('upgradePharmacy, cached:', pharmacyCache || 'No Cache')
+  if (false) return select.select2({data:pharmacyCache, matcher:matcher, minimumInputLength:3})
 
   var start = new Date()
   var pharmacyGsheet = "https://spreadsheets.google.com/feeds/list/1ivCEaGhSix2K2DvgWQGvd9D7HmHEKA3VkQISbhQpK8g/1/public/values?alt=json"
@@ -245,6 +243,10 @@ function getInventory(callback, retry) {
 
   console.log('getInventory')
 
+  var inventoryCache = storage.get('inventoryCache', 1)
+  console.log('getInventory, cached:', inventoryCache || 'No Cache')
+  if (false) return callback(inventoryCache)
+
   var start = new Date()
   var medicationGsheet = "https://spreadsheets.google.com/feeds/list/1gF7EUirJe4eTTJ59EQcAs1pWdmTm2dNHUAcrLjWQIpY/o8csoy3/public/values?alt=json"
   retry = retry || 1000
@@ -254,7 +256,9 @@ function getInventory(callback, retry) {
     method:'GET', //dataType: 'jsonp', //USED to be method:'GET' until this bug https://issuetracker.google.com/issues/131613284#comment98
     success:function($data) {
       console.log('live inventory gsheet. load time in secs:', (new Date()-start)/1000)
-      callback(mapGoogleSheetInv($data.feed.entry))
+      inventoryCache = mapGoogleSheetInv($data.feed.entry)
+      session.set('inventoryCache', inventoryCache)
+      callback(inventoryCache)
       console.log('live inventory gsheet. finish time in secs:', (new Date()-start)/1000)
     },
     error:function() {
