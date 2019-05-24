@@ -10,6 +10,7 @@ var storage = {
     try {
       cache = JSON.parse(cache)
     } catch (e) {
+      sessionStorage.remove(key)
       return console.log('cache invalid JSON', cache)
     }
 
