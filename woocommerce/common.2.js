@@ -14,12 +14,15 @@ var storage = {
       return console.log(key, 'cache invalid JSON', cache)
     }
 
-    var time = new Date().getTime()
+    var time     = new Date().getTime()
+    var ageMins  = ((time-cache.time)/60/1000).toFixed(2)
 
-    if ( ! maxMins || (cache.time + maxMins*60*1000 > time))
+    if ( ! maxMins || ageMins <= maxMins) {
+      console.log(key, 'cache hit:', age, 'minutes old <= maxMins of', maxMins || 'unlimited')
       return cache.val
+    }
 
-    console.log(key, 'cache expired:', ((time-cache.time)/60/1000).toFixed(2), 'minutes old > maxMins of', maxMins)
+    console.log(key, 'cache expired:', age, 'minutes old > maxMins of', maxMins)
   },
 
   set:function(key, val) {
