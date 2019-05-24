@@ -257,7 +257,7 @@ function getInventory(callback, retry) {
     success:function($data) {
       console.log('live inventory gsheet. load time in secs:', (new Date()-start)/1000)
       inventoryCache = mapGoogleSheetInv($data.feed.entry)
-      session.set('inventoryCache', inventoryCache)
+      storage.set('inventoryCache', inventoryCache)
       callback(inventoryCache)
       console.log('live inventory gsheet. finish time in secs:', (new Date()-start)/1000)
     },
