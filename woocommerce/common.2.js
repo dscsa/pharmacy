@@ -320,7 +320,10 @@ function getPriceComparison(callback, retry) {
       console.log('price comparison gsheet. load time in secs:', (new Date()-start)/1000)
 
       priceCache = mapGoogleSheetPrices($data.feed.entry)
-      storage.set('priceCache', priceCache)
+
+      if ( ! ~ priceCache[0].price.pharmacy1.indexOf('Loading'))
+        storage.set('priceCache', priceCache)
+
       callback(priceCache)
 
       console.log('price comparison gsheet. finish time in secs:', (new Date()-start)/1000)
