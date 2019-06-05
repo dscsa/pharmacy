@@ -321,7 +321,7 @@ function getPriceComparison(callback, retry) {
 
       priceCache = mapGoogleSheetPrices($data.feed.entry)
 
-      if ( ! ~ priceCache[0].price.pharmacy1.indexOf('Loading'))
+      if ( ! ~ priceCache[0].price.pharmacy1.indexOf('Loading') && ! ~ priceCache[0].price.pharmacy1.indexOf('ERROR'))
         storage.set('priceCache', priceCache)
 
       callback(priceCache)
