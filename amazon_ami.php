@@ -2226,8 +2226,15 @@ function db_run($sql, $resultIndex = 0, $all_rows = false) {
   $stmt = db_query($conn, $sql);
 
   if ( ! is_resource($stmt)) {
+
+    $last_message = mssql_get_last_message();
+
     if ($stmt !== true)  //mssql_query($sql, $conn) returns true on no result, false on error, or recource with rows
-      debug_email("No Resource", print_r($sql, true).' '.print_r($stmt, true).' '.print_r(mssql_get_last_message(), true));
+      debug_email("No Resource", print_r($sql, true).' '.print_r($stmt, true).' '.print_r($last_message, true));
+
+    //Transaction (Process ID 67) was deadlocked on lock resources with another process and has been chosen as the deadlock victim. Rerun the transaction.
+    if (strpos($last_message, 'Rerun the transaction') !== false)
+      db_run($sql, $resultIndex, $all_rows);
 
     return;
   }
