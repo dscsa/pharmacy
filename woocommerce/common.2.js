@@ -418,6 +418,9 @@ function disableRxs(inventory, rxMap) {
           rx.text += ' ('+drug.stock+')'
           rx.disabled = true //disable low stock non-refills
         }
+        else if (drug.stock == 'One-time Only - No Refills') {
+          rx.text += ' ('+drug.stock+')'
+        }
         else if (drug.stock && drug.stock != 'Low - Hidden' && ! rx.is_refill) {
           rx.text += ' ('+drug.stock+')'
           rx.disabled = true //disable low stock non-refills
