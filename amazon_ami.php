@@ -126,6 +126,11 @@ function dscsa_admin_scripts() {
     wp_enqueue_style('dscsa-admin', 'https://dscsa.github.io/webform/woocommerce/admin.css');
     wp_enqueue_script('dscsa-admin', 'https://dscsa.github.io/webform/woocommerce/admin.js', ['jquery', 'dscsa-common']);
   }
+
+  if ($_GET['post_type'] == 'ticket') {
+    wp_enqueue_style('dscsa-support', 'https://dscsa.github.io/webform/woocommerce/support.css');
+    wp_enqueue_script('dscsa-support', 'https://dscsa.github.io/webform/woocommerce/support.js', ['jquery', 'dscsa-common']);
+  }
 }
 
 add_action('init', 'cache_login_registration');
