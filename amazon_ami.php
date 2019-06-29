@@ -12,6 +12,7 @@ function wpas_user_custom_fields() {
 			'title' => __( 'Select your industry', 'wpas' ),
 			'field_type' => 'select',
 			'required' => true,
+      'multiple' => true,
 			'options' => array(
 				'' => 'Please select',
 				'accounting' => 'Accounting &amp; Financial',
@@ -65,6 +66,7 @@ function wpas_user_custom_fields() {
   			'title' => __( 'Select your industry 2', 'wpas' ),
   			'field_type' => 'select',
         'select2' => true,
+        'multiple' => true,
   			'required' => true,
   			'options' => array(
   				'' => 'Please select',
@@ -113,7 +115,147 @@ function wpas_user_custom_fields() {
   				)
   			)
   		);
+
+      wpas_add_custom_taxonomy( 'industry3',
+    		array(
+    			'title' => __( 'Select your industry 3', 'wpas' ),
+    			'field_type' => 'select',
+          'select2' => true,
+    			'required' => true,
+          'multiple' => true,
+          'taxo_hierarchical' => true,
+    			'options' => array(
+    				'' => 'Please select',
+    				'accounting' => 'Accounting &amp; Financial',
+    				'agriculture' => 'Agriculture',
+    				'animals' => 'Animal &amp; Pet',
+    				'architectural' => 'Architectural',
+    				'art' => 'Art &amp; Design',
+    				'attorney' => 'Attorney &amp; Law',
+    				'automotive' => 'Automotive',
+    				'bar' => 'Bar &amp; Nightclub',
+    				'business' => 'Business &amp; Consulting',
+    				'children' => 'Childcare',
+    				'cleaning' => 'Cleaning &amp; Maintenance',
+    				'communications' => 'Communications',
+    				'community' => 'Community &amp; Non-Profit',
+    				'computer' => 'Computer',
+    				'construction' => 'Construction',
+    				'cosmetics' => 'Cosmetics &amp; Beauty',
+    				'dating' => 'Dating',
+    				'education' => 'Education',
+    				'entertainment' => 'Entertainment &amp; The Arts',
+    				'environment' => 'Environmental',
+    				'fashion' => 'Fashion',
+    				'floral' => 'Floral',
+    				'food' => 'Food &amp; Drink',
+    				'games' => 'Games &amp; Recreational',
+    				'home' => 'Home Furnishing',
+    				'industrial' => 'Industrial',
+    				'internet' => 'Internet',
+    				'landscaping' => 'Landscaping',
+    				'medical' => 'Medical &amp; Pharmaceutical',
+    				'photography' => 'Photography',
+    				'physical' => 'Physical Fitness',
+    				'politics' => 'Political',
+    				'realestate' => 'Real Estate &amp; Mortgage',
+    				'religious' => 'Religious',
+    				'restaurant' => 'Restaurant',
+    				'retail' => 'Retail',
+    				'security' => 'Security',
+    				'spa' => 'Spa &amp; Esthetics',
+    				'sports' => 'Sport',
+    				'technology' => 'Technology',
+    				'travel' => 'Travel &amp; Hotel',
+    				'wedding' => 'Wedding Service',
+    				)
+    			)
+    		);
+
+        wpas_add_custom_taxonomy( 'industry4',
+          array(
+            'title' => __( 'Select your industry 4', 'wpas' ),
+            'field_type' => 'select',
+            'required' => true,
+            'options' => array(
+              '' => 'Please select',
+              'accounting' => 'Accounting &amp; Financial',
+              'agriculture' => 'Agriculture',
+              'animals' => 'Animal &amp; Pet',
+              'architectural' => 'Architectural',
+              'art' => 'Art &amp; Design',
+              'attorney' => 'Attorney &amp; Law',
+              'automotive' => 'Automotive',
+              'bar' => 'Bar &amp; Nightclub',
+              'business' => 'Business &amp; Consulting',
+              'children' => 'Childcare',
+              'cleaning' => 'Cleaning &amp; Maintenance',
+              'communications' => 'Communications',
+              'community' => 'Community &amp; Non-Profit',
+              'computer' => 'Computer',
+              'construction' => 'Construction',
+              'cosmetics' => 'Cosmetics &amp; Beauty',
+              'dating' => 'Dating',
+              'education' => 'Education',
+              'entertainment' => 'Entertainment &amp; The Arts',
+              'environment' => 'Environmental',
+              'fashion' => 'Fashion',
+              'floral' => 'Floral',
+              'food' => 'Food &amp; Drink',
+              'games' => 'Games &amp; Recreational',
+              'home' => 'Home Furnishing',
+              'industrial' => 'Industrial',
+              'internet' => 'Internet',
+              'landscaping' => 'Landscaping',
+              'medical' => 'Medical &amp; Pharmaceutical',
+              'photography' => 'Photography',
+              'physical' => 'Physical Fitness',
+              'politics' => 'Political',
+              'realestate' => 'Real Estate &amp; Mortgage',
+              'religious' => 'Religious',
+              'restaurant' => 'Restaurant',
+              'retail' => 'Retail',
+              'security' => 'Security',
+              'spa' => 'Spa &amp; Esthetics',
+              'sports' => 'Sport',
+              'technology' => 'Technology',
+              'travel' => 'Travel &amp; Hotel',
+              'wedding' => 'Wedding Service',
+              )
+            )
+          );
 }
+
+
+add_filter( 'wpas_cf_field_atts', 'multipleSelect2', 10, 3 );
+function multipleSelect2($atts, $field, $opts) {
+
+  if ($opts['args']['multiple']) {
+    array_push($atts, 'multiple');
+
+    //From https://github.com/Awesome-Support/Awesome-Support/blob/0cff0a56bc5b3cbe185e856ef5fb538aa3beda97/includes/custom-fields/field-types/class-cf-select.php
+    foreach ( $atts as $key => $att ) {
+      if ( 'name' === substr( $att, 0, 4 ) ) {
+        $att = substr( $att, 0, - 1 ); // Get rid of the last char (closing backtick)
+        $att .= '[]\''; // Add the brackets for handling multiple files
+        $atts[ $key ] = $att; // Update the array of attributes
+      }
+    }
+  }
+
+  return $atts;
+}
+
+/*
+add_filter( 'wpas_cf_field_class', 'multipleSelect3', 10, 3 );
+function multipleSelect3($atts, $field, $opts) {
+  var$field);
+  echo $opts;
+  array_push($atts, 'multiple');
+  return $atts;
+}*/
+
+
 
 
 /*Awesome Support End */
