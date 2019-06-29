@@ -63,7 +63,8 @@ function wpas_user_custom_fields() {
     wpas_add_custom_field( 'industry2',
   		array(
   			'title' => __( 'Select your industry 2', 'wpas' ),
-  			'field_type' => 'select2',
+  			'field_type' => 'select',
+        'select2' => true,
   			'required' => true,
   			'options' => array(
   				'' => 'Please select',
