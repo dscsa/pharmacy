@@ -7,223 +7,114 @@
 add_action( 'plugins_loaded', 'wpas_user_custom_fields' );
 function wpas_user_custom_fields() {
 
-	wpas_add_custom_field( 'industry',
-		array(
-			'title' => __( 'Select your industry', 'wpas' ),
-			'field_type' => 'select',
-			'required' => true,
-      'multiple' => true,
-			'options' => array(
-				'' => 'Please select',
-				'accounting' => 'Accounting &amp; Financial',
-				'agriculture' => 'Agriculture',
-				'animals' => 'Animal &amp; Pet',
-				'architectural' => 'Architectural',
-				'art' => 'Art &amp; Design',
-				'attorney' => 'Attorney &amp; Law',
-				'automotive' => 'Automotive',
-				'bar' => 'Bar &amp; Nightclub',
-				'business' => 'Business &amp; Consulting',
-				'children' => 'Childcare',
-				'cleaning' => 'Cleaning &amp; Maintenance',
-				'communications' => 'Communications',
-				'community' => 'Community &amp; Non-Profit',
-				'computer' => 'Computer',
-				'construction' => 'Construction',
-				'cosmetics' => 'Cosmetics &amp; Beauty',
-				'dating' => 'Dating',
-				'education' => 'Education',
-				'entertainment' => 'Entertainment &amp; The Arts',
-				'environment' => 'Environmental',
-				'fashion' => 'Fashion',
-				'floral' => 'Floral',
-				'food' => 'Food &amp; Drink',
-				'games' => 'Games &amp; Recreational',
-				'home' => 'Home Furnishing',
-				'industrial' => 'Industrial',
-				'internet' => 'Internet',
-				'landscaping' => 'Landscaping',
-				'medical' => 'Medical &amp; Pharmaceutical',
-				'photography' => 'Photography',
-				'physical' => 'Physical Fitness',
-				'politics' => 'Political',
-				'realestate' => 'Real Estate &amp; Mortgage',
-				'religious' => 'Religious',
-				'restaurant' => 'Restaurant',
-				'retail' => 'Retail',
-				'security' => 'Security',
-				'spa' => 'Spa &amp; Esthetics',
-				'sports' => 'Sport',
-				'technology' => 'Technology',
-				'travel' => 'Travel &amp; Hotel',
-				'wedding' => 'Wedding Service',
-				)
-			)
-		);
-
-    wpas_add_custom_field( 'industry2',
-  		array(
-  			'title' => __( 'Select your industry 2', 'wpas' ),
-  			'field_type' => 'select',
-        'select2' => true,
-        'multiple' => true,
-  			'required' => true,
-  			'options' => array(
-  				'' => 'Please select',
-  				'accounting' => 'Accounting &amp; Financial',
-  				'agriculture' => 'Agriculture',
-  				'animals' => 'Animal &amp; Pet',
-  				'architectural' => 'Architectural',
-  				'art' => 'Art &amp; Design',
-  				'attorney' => 'Attorney &amp; Law',
-  				'automotive' => 'Automotive',
-  				'bar' => 'Bar &amp; Nightclub',
-  				'business' => 'Business &amp; Consulting',
-  				'children' => 'Childcare',
-  				'cleaning' => 'Cleaning &amp; Maintenance',
-  				'communications' => 'Communications',
-  				'community' => 'Community &amp; Non-Profit',
-  				'computer' => 'Computer',
-  				'construction' => 'Construction',
-  				'cosmetics' => 'Cosmetics &amp; Beauty',
-  				'dating' => 'Dating',
-  				'education' => 'Education',
-  				'entertainment' => 'Entertainment &amp; The Arts',
-  				'environment' => 'Environmental',
-  				'fashion' => 'Fashion',
-  				'floral' => 'Floral',
-  				'food' => 'Food &amp; Drink',
-  				'games' => 'Games &amp; Recreational',
-  				'home' => 'Home Furnishing',
-  				'industrial' => 'Industrial',
-  				'internet' => 'Internet',
-  				'landscaping' => 'Landscaping',
-  				'medical' => 'Medical &amp; Pharmaceutical',
-  				'photography' => 'Photography',
-  				'physical' => 'Physical Fitness',
-  				'politics' => 'Political',
-  				'realestate' => 'Real Estate &amp; Mortgage',
-  				'religious' => 'Religious',
-  				'restaurant' => 'Restaurant',
-  				'retail' => 'Retail',
-  				'security' => 'Security',
-  				'spa' => 'Spa &amp; Esthetics',
-  				'sports' => 'Sport',
-  				'technology' => 'Technology',
-  				'travel' => 'Travel &amp; Hotel',
-  				'wedding' => 'Wedding Service',
-  				)
-  			)
-  		);
-
-      wpas_add_custom_taxonomy( 'industry3',
+      wpas_add_custom_taxonomy( 'call-type',
     		array(
-    			'title' => __( 'Select your industry 3', 'wpas' ),
+    			'title' => __( 'Call Type', 'wpas' ),
     			'field_type' => 'select',
           'select2' => true,
     			'required' => true,
           'multiple' => true,
-          'taxo_hierarchical' => true,
-    			'options' => array(
-    				'' => 'Please select',
-    				'accounting' => 'Accounting &amp; Financial',
-    				'agriculture' => 'Agriculture',
-    				'animals' => 'Animal &amp; Pet',
-    				'architectural' => 'Architectural',
-    				'art' => 'Art &amp; Design',
-    				'attorney' => 'Attorney &amp; Law',
-    				'automotive' => 'Automotive',
-    				'bar' => 'Bar &amp; Nightclub',
-    				'business' => 'Business &amp; Consulting',
-    				'children' => 'Childcare',
-    				'cleaning' => 'Cleaning &amp; Maintenance',
-    				'communications' => 'Communications',
-    				'community' => 'Community &amp; Non-Profit',
-    				'computer' => 'Computer',
-    				'construction' => 'Construction',
-    				'cosmetics' => 'Cosmetics &amp; Beauty',
-    				'dating' => 'Dating',
-    				'education' => 'Education',
-    				'entertainment' => 'Entertainment &amp; The Arts',
-    				'environment' => 'Environmental',
-    				'fashion' => 'Fashion',
-    				'floral' => 'Floral',
-    				'food' => 'Food &amp; Drink',
-    				'games' => 'Games &amp; Recreational',
-    				'home' => 'Home Furnishing',
-    				'industrial' => 'Industrial',
-    				'internet' => 'Internet',
-    				'landscaping' => 'Landscaping',
-    				'medical' => 'Medical &amp; Pharmaceutical',
-    				'photography' => 'Photography',
-    				'physical' => 'Physical Fitness',
-    				'politics' => 'Political',
-    				'realestate' => 'Real Estate &amp; Mortgage',
-    				'religious' => 'Religious',
-    				'restaurant' => 'Restaurant',
-    				'retail' => 'Retail',
-    				'security' => 'Security',
-    				'spa' => 'Spa &amp; Esthetics',
-    				'sports' => 'Sport',
-    				'technology' => 'Technology',
-    				'travel' => 'Travel &amp; Hotel',
-    				'wedding' => 'Wedding Service',
-    				)
     			)
-    		);
+    	);
 
-        wpas_add_custom_taxonomy( 'industry4',
-          array(
-            'title' => __( 'Select your industry 4', 'wpas' ),
-            'field_type' => 'select',
-            'required' => true,
-            'options' => array(
-              '' => 'Please select',
-              'accounting' => 'Accounting &amp; Financial',
-              'agriculture' => 'Agriculture',
-              'animals' => 'Animal &amp; Pet',
-              'architectural' => 'Architectural',
-              'art' => 'Art &amp; Design',
-              'attorney' => 'Attorney &amp; Law',
-              'automotive' => 'Automotive',
-              'bar' => 'Bar &amp; Nightclub',
-              'business' => 'Business &amp; Consulting',
-              'children' => 'Childcare',
-              'cleaning' => 'Cleaning &amp; Maintenance',
-              'communications' => 'Communications',
-              'community' => 'Community &amp; Non-Profit',
-              'computer' => 'Computer',
-              'construction' => 'Construction',
-              'cosmetics' => 'Cosmetics &amp; Beauty',
-              'dating' => 'Dating',
-              'education' => 'Education',
-              'entertainment' => 'Entertainment &amp; The Arts',
-              'environment' => 'Environmental',
-              'fashion' => 'Fashion',
-              'floral' => 'Floral',
-              'food' => 'Food &amp; Drink',
-              'games' => 'Games &amp; Recreational',
-              'home' => 'Home Furnishing',
-              'industrial' => 'Industrial',
-              'internet' => 'Internet',
-              'landscaping' => 'Landscaping',
-              'medical' => 'Medical &amp; Pharmaceutical',
-              'photography' => 'Photography',
-              'physical' => 'Physical Fitness',
-              'politics' => 'Political',
-              'realestate' => 'Real Estate &amp; Mortgage',
-              'religious' => 'Religious',
-              'restaurant' => 'Restaurant',
-              'retail' => 'Retail',
-              'security' => 'Security',
-              'spa' => 'Spa &amp; Esthetics',
-              'sports' => 'Sport',
-              'technology' => 'Technology',
-              'travel' => 'Travel &amp; Hotel',
-              'wedding' => 'Wedding Service',
-              )
-            )
-          );
+      wpas_add_custom_taxonomy( 'info',
+    		array(
+    			'title' => __( 'General Info', 'wpas' ),
+    			'field_type' => 'select',
+          'hidden' => true,
+          'select2' => true,
+    			'required' => true,
+          'multiple' => true,
+    			)
+    	);
+
+      wpas_add_custom_taxonomy( 'rx-info',
+    		array(
+    			'title' => __( 'Rx Info', 'wpas' ),
+    			'field_type' => 'select',
+          'hidden' => true,
+          'select2' => true,
+    			'required' => true,
+          'multiple' => true,
+    			)
+    	);
+
+      wpas_add_custom_taxonomy( 'inventory',
+        array(
+          'title' => __( 'Inventory', 'wpas' ),
+          'field_type' => 'select',
+          'hidden' => true,
+          'select2' => true,
+          'required' => true,
+          'multiple' => true,
+          )
+      );
+
+      wpas_add_custom_taxonomy( 'registration',
+        array(
+          'title' => __( 'Registration', 'wpas' ),
+          'field_type' => 'select',
+          'hidden' => true,
+          'select2' => true,
+          'required' => true,
+          'multiple' => true,
+          )
+      );
+
+      wpas_add_custom_taxonomy( 'delivery-issue',
+    		array(
+    			'title' => __( 'Delivery Issue', 'wpas' ),
+    			'field_type' => 'select',
+          'hidden' => true,
+          'select2' => true,
+    			'required' => true,
+          'multiple' => true,
+    			)
+    	);
+
+      wpas_add_custom_taxonomy( 'cancel-order',
+    		array(
+    			'title' => __( 'Cancel/Delay Order', 'wpas' ),
+    			'field_type' => 'select',
+          'hidden' => true,
+          'select2' => true,
+    			'required' => true,
+          'multiple' => true,
+    			)
+    	);
+
+      wpas_add_custom_taxonomy( 'refill-request',
+    		array(
+    			'title' => __( 'Refill Request', 'wpas' ),
+    			'field_type' => 'select',
+          'hidden' => true,
+          'select2' => true,
+    			'required' => true,
+          'multiple' => true,
+    			)
+    	);
+
+      wpas_add_custom_taxonomy( 'transfer-request',
+        array(
+          'title' => __( 'Transfer Request', 'wpas' ),
+          'field_type' => 'select',
+          'hidden' => true,
+          'select2' => true,
+          'required' => true,
+          'multiple' => true,
+          )
+      );
+
+      wpas_add_custom_taxonomy( 'payment',
+    		array(
+    			'title' => __( 'Payment', 'wpas' ),
+    			'field_type' => 'select',
+          'hidden' => true,
+          'select2' => true,
+    			'required' => true,
+          'multiple' => true,
+    			)
+    	);
 }
 
 
@@ -241,6 +132,10 @@ function multipleSelect2($atts, $field, $opts) {
         $atts[ $key ] = $att; // Update the array of attributes
       }
     }
+  }
+
+  if ($opts['args']['hidden']) {
+    array_push($atts, 'dependent');
   }
 
   return $atts;
