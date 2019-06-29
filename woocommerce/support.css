@@ -6,5 +6,5 @@
 #wpas_admin_tabs_ticket_main_ticket .quicktags-toolbar { display:none }
 #wpas_admin_tabs_ticket_main_custom_fields { display:block !important }
 
-[dependent] { display:none }
+.dependent { display:none }
 .wpas-form-group { width:100% ! important }

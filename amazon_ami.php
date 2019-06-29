@@ -21,7 +21,7 @@ function wpas_user_custom_fields() {
     		array(
     			'title' => __( 'General Info', 'wpas' ),
     			'field_type' => 'select',
-          'hidden' => true,
+          'extra_wrapper_css_classes_be' => 'dependent',
           'select2' => true,
     			'required' => true,
           'multiple' => true,
@@ -32,7 +32,7 @@ function wpas_user_custom_fields() {
     		array(
     			'title' => __( 'Rx Info', 'wpas' ),
     			'field_type' => 'select',
-          'hidden' => true,
+          'extra_wrapper_css_classes_be' => 'dependent',
           'select2' => true,
     			'required' => true,
           'multiple' => true,
@@ -43,7 +43,7 @@ function wpas_user_custom_fields() {
         array(
           'title' => __( 'Inventory', 'wpas' ),
           'field_type' => 'select',
-          'hidden' => true,
+          'extra_wrapper_css_classes_be' => 'dependent',
           'select2' => true,
           'required' => true,
           'multiple' => true,
@@ -54,7 +54,7 @@ function wpas_user_custom_fields() {
         array(
           'title' => __( 'Registration', 'wpas' ),
           'field_type' => 'select',
-          'hidden' => true,
+          'extra_wrapper_css_classes_be' => 'dependent',
           'select2' => true,
           'required' => true,
           'multiple' => true,
@@ -65,7 +65,7 @@ function wpas_user_custom_fields() {
     		array(
     			'title' => __( 'Delivery Issue', 'wpas' ),
     			'field_type' => 'select',
-          'hidden' => true,
+          'extra_wrapper_css_classes_be' => 'dependent',
           'select2' => true,
     			'required' => true,
           'multiple' => true,
@@ -76,7 +76,7 @@ function wpas_user_custom_fields() {
     		array(
     			'title' => __( 'Cancel/Delay Order', 'wpas' ),
     			'field_type' => 'select',
-          'hidden' => true,
+          'extra_wrapper_css_classes_be' => 'dependent',
           'select2' => true,
     			'required' => true,
           'multiple' => true,
@@ -87,7 +87,7 @@ function wpas_user_custom_fields() {
     		array(
     			'title' => __( 'Refill Request', 'wpas' ),
     			'field_type' => 'select',
-          'hidden' => true,
+          'extra_wrapper_css_classes_be' => 'dependent',
           'select2' => true,
     			'required' => true,
           'multiple' => true,
@@ -98,7 +98,7 @@ function wpas_user_custom_fields() {
         array(
           'title' => __( 'Transfer Request', 'wpas' ),
           'field_type' => 'select',
-          'hidden' => true,
+          'extra_wrapper_css_classes_be' => 'dependent',
           'select2' => true,
           'required' => true,
           'multiple' => true,
@@ -109,7 +109,7 @@ function wpas_user_custom_fields() {
     		array(
     			'title' => __( 'Payment', 'wpas' ),
     			'field_type' => 'select',
-          'hidden' => true,
+          'extra_wrapper_css_classes_be' => 'dependent',
           'select2' => true,
     			'required' => true,
           'multiple' => true,
@@ -133,11 +133,7 @@ function multipleSelect2($atts, $field, $opts) {
       }
     }
   }
-
-  if ($opts['args']['hidden']) {
-    array_push($atts, 'dependent');
-  }
-
+  
   return $atts;
 }
 
