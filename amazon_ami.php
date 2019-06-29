@@ -166,8 +166,8 @@ function dscsa_admin_scripts() {
   }
 
   if ($_GET['post_type'] == 'ticket') {
-    wp_enqueue_style('dscsa-support', 'https://dscsa.github.io/webform/woocommerce/support.css');
-    wp_enqueue_script('dscsa-support', 'https://dscsa.github.io/webform/woocommerce/support.js', ['jquery', 'dscsa-common']);
+    wp_enqueue_style('dscsa-support-css', 'https://dscsa.github.io/webform/woocommerce/support.css');
+    wp_enqueue_script('dscsa-support-js', 'https://dscsa.github.io/webform/woocommerce/support.js', ['jquery', 'dscsa-common']);
   }
 }
 
