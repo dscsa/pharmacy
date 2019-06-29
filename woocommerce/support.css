@@ -7,4 +7,4 @@
 #wpas_admin_tabs_ticket_main_custom_fields { display:block !important }
 
 [dependent] { display:none }
-.wpas-form-group { width:100% }
+.wpas-form-group { width:100% ! important }
