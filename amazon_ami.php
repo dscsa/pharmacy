@@ -1,6 +1,122 @@
 <?php
 /* Enter your custom functions here */
 
+
+/*Awesome Support Start */
+
+add_action( 'plugins_loaded', 'wpas_user_custom_fields' );
+function wpas_user_custom_fields() {
+
+	wpas_add_custom_field( 'industry',
+		array(
+			'title' => __( 'Select your industry', 'wpas' ),
+			'field_type' => 'select',
+			'required' => true,
+			'options' => array(
+				'' => 'Please select',
+				'accounting' => 'Accounting &amp; Financial',
+				'agriculture' => 'Agriculture',
+				'animals' => 'Animal &amp; Pet',
+				'architectural' => 'Architectural',
+				'art' => 'Art &amp; Design',
+				'attorney' => 'Attorney &amp; Law',
+				'automotive' => 'Automotive',
+				'bar' => 'Bar &amp; Nightclub',
+				'business' => 'Business &amp; Consulting',
+				'children' => 'Childcare',
+				'cleaning' => 'Cleaning &amp; Maintenance',
+				'communications' => 'Communications',
+				'community' => 'Community &amp; Non-Profit',
+				'computer' => 'Computer',
+				'construction' => 'Construction',
+				'cosmetics' => 'Cosmetics &amp; Beauty',
+				'dating' => 'Dating',
+				'education' => 'Education',
+				'entertainment' => 'Entertainment &amp; The Arts',
+				'environment' => 'Environmental',
+				'fashion' => 'Fashion',
+				'floral' => 'Floral',
+				'food' => 'Food &amp; Drink',
+				'games' => 'Games &amp; Recreational',
+				'home' => 'Home Furnishing',
+				'industrial' => 'Industrial',
+				'internet' => 'Internet',
+				'landscaping' => 'Landscaping',
+				'medical' => 'Medical &amp; Pharmaceutical',
+				'photography' => 'Photography',
+				'physical' => 'Physical Fitness',
+				'politics' => 'Political',
+				'realestate' => 'Real Estate &amp; Mortgage',
+				'religious' => 'Religious',
+				'restaurant' => 'Restaurant',
+				'retail' => 'Retail',
+				'security' => 'Security',
+				'spa' => 'Spa &amp; Esthetics',
+				'sports' => 'Sport',
+				'technology' => 'Technology',
+				'travel' => 'Travel &amp; Hotel',
+				'wedding' => 'Wedding Service',
+				)
+			)
+		);
+
+    wpas_add_custom_field( 'industry',
+  		array(
+  			'title' => __( 'Select your industry 2', 'wpas' ),
+  			'field_type' => 'select',
+  			'required' => true,
+  			'options' => array(
+  				'' => 'Please select',
+  				'accounting' => 'Accounting &amp; Financial',
+  				'agriculture' => 'Agriculture',
+  				'animals' => 'Animal &amp; Pet',
+  				'architectural' => 'Architectural',
+  				'art' => 'Art &amp; Design',
+  				'attorney' => 'Attorney &amp; Law',
+  				'automotive' => 'Automotive',
+  				'bar' => 'Bar &amp; Nightclub',
+  				'business' => 'Business &amp; Consulting',
+  				'children' => 'Childcare',
+  				'cleaning' => 'Cleaning &amp; Maintenance',
+  				'communications' => 'Communications',
+  				'community' => 'Community &amp; Non-Profit',
+  				'computer' => 'Computer',
+  				'construction' => 'Construction',
+  				'cosmetics' => 'Cosmetics &amp; Beauty',
+  				'dating' => 'Dating',
+  				'education' => 'Education',
+  				'entertainment' => 'Entertainment &amp; The Arts',
+  				'environment' => 'Environmental',
+  				'fashion' => 'Fashion',
+  				'floral' => 'Floral',
+  				'food' => 'Food &amp; Drink',
+  				'games' => 'Games &amp; Recreational',
+  				'home' => 'Home Furnishing',
+  				'industrial' => 'Industrial',
+  				'internet' => 'Internet',
+  				'landscaping' => 'Landscaping',
+  				'medical' => 'Medical &amp; Pharmaceutical',
+  				'photography' => 'Photography',
+  				'physical' => 'Physical Fitness',
+  				'politics' => 'Political',
+  				'realestate' => 'Real Estate &amp; Mortgage',
+  				'religious' => 'Religious',
+  				'restaurant' => 'Restaurant',
+  				'retail' => 'Retail',
+  				'security' => 'Security',
+  				'spa' => 'Spa &amp; Esthetics',
+  				'sports' => 'Sport',
+  				'technology' => 'Technology',
+  				'travel' => 'Travel &amp; Hotel',
+  				'wedding' => 'Wedding Service',
+  				)
+  			)
+  		);
+}
+
+
+/*Awesome Support End */
+
 // Register custom style sheets and javascript.
 add_action('admin_enqueue_scripts', 'dscsa_admin_scripts');
 function dscsa_admin_scripts() {
@@ -1939,7 +2055,7 @@ function get_guardian_order($guardian_id, $source, $comment, $is_registered) {
   if ($source == 'pharmacy')
     $category = $comment ? 8 : 3;
   else if ($source == 'erx' AND $is_registered)
-    $category = $comment ? 9 : 6; 
+    $category = $comment ? 9 : 6;
   else if ($source == 'erx'AND ! $is_registered)
     $category = $comment ? 7 : 2;
   else

@@ -11,3 +11,11 @@
 
 /* This is for the iframe with the google doc invoice*/
 .order_data_column  { width:100% !important }
+
+
+/*Awesome Support */
+.wpas_admin_tabs_names_wrapper { display:none }
+#wpas_admin_tabs_ticket_main_ticket .wp-editor-wrap { padding-top: 0px }
+#wpas_admin_tabs_ticket_main_ticket .wp-editor-tools { display:none }
+#wpas_admin_tabs_ticket_main_ticket .quicktags-toolbar { display:none }
+#wpas_admin_tabs_ticket_main_custom_fields { display:none }
