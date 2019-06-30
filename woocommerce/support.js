@@ -16,6 +16,9 @@ function load() {
   }
 
 
+  jQuery('.dependent').hide() //Doing this in the CSS seems to prevent select2 from updgrading the dropdowns
+
+
   jQuery('#wpas_call-type').on("select2:selecting", function(e) {
      console.log('support.js selecting', e.params.args.data)
      jQuery('#wpas_'+ map[e.params.args.data.text]).parent().show()
