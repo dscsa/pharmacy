@@ -7,7 +7,7 @@ function load() {
    'General Info':'info',
    'Rx Info':'rx-info',
    'Inventory': 'inventory',
-   'Registration':'registration',
+   'New/Update Account':'update-account',
    'Delivery Issue':'delivery-issue',
    'Cancel/Delay Order':'cancel-order',
    'Refill Request': 'refill-request',

@@ -50,9 +50,9 @@ function wpas_user_custom_fields() {
           )
       );
 
-      wpas_add_custom_taxonomy( 'registration',
+      wpas_add_custom_taxonomy( 'update-account',
         array(
-          'title' => __( 'Registration', 'wpas' ),
+          'title' => __( 'New/Update Account', 'wpas' ),
           'field_type' => 'select',
           'extra_wrapper_css_classes_be' => 'dependent',
           'select2' => true,
@@ -133,7 +133,7 @@ function multipleSelect2($atts, $field, $opts) {
       }
     }
   }
-  
+
   return $atts;
 }
 
