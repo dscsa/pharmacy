@@ -151,6 +151,46 @@ function multipleSelect3($atts, $field, $opts) {
 
 /*Awesome Support End */
 
+/// Add endpoint for a "Remove as Default Payment" button: https://www.sitepoint.com/creating-custom-endpoints-for-the-wordpress-rest-api/
+add_action('rest_api_init', function () {
+  register_rest_route( 'payment', 'remove-default/(?P<user_id>\d+)', [
+    'methods'  => 'GET',
+    'callback' => 'dscsa_remove_default_payment'
+  ]);
+});
+
+function dscsa_remove_default_payment($params) {
+
+    $user_id = $params['user_id']; //get_current_user_id() gives 0 so we must pass user_id as URL parameter
+
+    $tokens  = WC_Data_Store::load( 'payment-token' );
+		$token   = $tokens->get_users_default_token($user_id);
+    $tokens->set_default_status($token->token_id, false);
+
+    $patient_id = get_meta('guardian_id', $user_id);
+    $coupon = get_meta('coupon', $user_id);
+
+    update_payment_method($patient_id, is_pay_coupon($coupon) ? "PAY BY COUPON: $coupon" : "PAY BY MAIL");
+
+    update_card_and_coupon($patient_id, null, $coupon);
+
+    wp_redirect(home_url('/account/payment/'));
+
+    exit;
+}
+
+add_filter('woocommerce_payment_methods_list_item', 'dscsa_payment_methods_list_item', 10, 2);
+function dscsa_payment_methods_list_item($payment, $token) {
+  if ($token->is_default() ) {
+    $payment['actions']['default'] = array(
+      'url'  => home_url('/wp-json/payment/remove-default/'.get_current_user_id()), //URL created in the rest_api_init hook
+      'name' => esc_html__( 'Remove Autopay', 'woocommerce' )
+    );
+  }
+
+  return $payment;
+}
+
 // Register custom style sheets and javascript.
 add_action('admin_enqueue_scripts', 'dscsa_admin_scripts');
 function dscsa_admin_scripts() {
