@@ -1638,15 +1638,6 @@ function dscsa_save_patient($user_id, $fields) {
 
     update_user_meta($user_id, $key, $val);
 
-    /*if ($allergy_codes[$key]) {
-      //NOTE: Looping through fields so we will see all allergies even if not in $_POST
-      //Checkboxes remain selected and in $_POST even if patient picks "allergies_none" and they are hidden
-      //we keep this so someone doesn't lose all their information if they accidentally toggle the allergy_none field
-      $add_remove = ($key == 'allergies_none' || ! $_POST['allergies_none']) ? $val : 0;
-      $other = ($key == 'allergies_other' AND $_POST[$key]) ? str_replace("'", "''", $val) : NULL;
-      add_remove_allergy($patient_id, $add_remove, $allergy_codes[$key], $other);
-    }*/
-
     if (substr($key, 0, 10) == 'allergies_') {
       $allergies[$key] = str_replace("'", "''", $val);
     }
@@ -2192,8 +2183,12 @@ function add_remove_allergies($guardian_id, $post) {
 
   $post  = json_encode($post);
   $query = "SirumWeb_AddRemove_Allergies '$guardian_id', '$post'";
-  debug_email("add_remove_allergies", $query." | ".print_r(func_get_args(), true).print_r($_POST, true));
-  return db_run($query);
+
+  $result = db_run($query, 15);
+
+  debug_email("add_remove_allergies", $query." | ".print_r($result, true).print_r(func_get_args(), true).print_r($_POST, true));
+
+  return $result;
 }
 
 /*
