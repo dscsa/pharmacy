@@ -2186,23 +2186,10 @@ function add_remove_allergies($guardian_id, $post) {
 
   $result = db_run($query, 15);
 
-  debug_email("add_remove_allergies", $query." | ".print_r($result, true).print_r(func_get_args(), true).print_r($_POST, true));
+  debug_email("add_remove_allergies", $query." | ".print_r($result, true).print_r(mssql_get_last_message(), true).print_r(func_get_args(), true).print_r($_POST, true));
 
   return $result;
 }
-
-/*
-function add_remove_allergy($guardian_id, $add_remove, $allergy_id, $value) {
-  if ( ! $guardian_id) return;
-
-  $binary_add_remove = 0; //force binary. For some reason a ternary (?:) was making the db field null
-  if ($add_remove) $binary_add_remove = 1;
-
-  $query = "SirumWeb_AddRemove_Allergy '$guardian_id', '$binary_add_remove', '$allergy_id', '$value'";
-  debug_email("add_remove_allergy", $query." | ".$add_remove." | ".$binary_add_remove." | ".print_r(func_get_args(), true).print_r($_POST, true));
-  return db_run($query);
-}
-*/
 
 // SirumWeb_AddUpdateHomePhone(
 //   @PatID int,  -- ID of Patient
