@@ -504,31 +504,6 @@ function sendSMS($phone, $text) {
   wp_mail("$phone@mms.cricketwireless.net", '', $text);
   wp_mail("$phone@email.uscc.net", '', $text);
   wp_mail("$phone@cingularme.com", '', $text);
-
-  if (isset($TWILIO_KEY) AND isset($TWILIO_SECRET)) {
-    $ch = curl_init();
-
-    curl_setopt($ch, CURLOPT_URL,"https://api.twilio.com/2010-04-01/Accounts/$TWILIO_KEY/Messages.json");
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); // Receive server response ...
-    curl_setopt($ch, CURLOPT_USERPWD, "$TWILIO_KEY:$TWILIO_SECRET");
-    curl_setopt($ch, CURLOPT_POST, 1);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([
-      'From' => '+16504602327',
-      'To'   => '+16507992817',
-      'Body' => $text
-    ]));
-
-    $server_output = curl_exec($ch);
-
-    curl_close ($ch);
-
-    // Further processing ...
-    if ( ! $server_output['error_message']) {
-      wp_mail("adam.kircher@gmail.com", 'TWILIO SUCCCESS', "$phone $text".print_r($server_output, true));
-    } else {
-      wp_mail("adam.kircher@gmail.com", 'TWILIO ERROR', "$phone $text".print_r($server_output, true));
-    }
-  }
 }
 
 function shared_fields($user_id = null) {
@@ -1130,8 +1105,8 @@ function dscsa_wp_redirect($location) {
   if ($_POST['save_account_details'])
     return home_url('/account/details/');
 
-  if ($_GET['imp'] AND strpos($_SERVER['HTTP_COOKIE'], 'impersonated_by') !== false)
-    return home_url('/account/details/'); //Switch to account/details rather than new order
+  if ($_GET['imp'] AND strpos($_SERVER['HTTP_COOKIE'], 'impersonated_by') !== false AND is_registered())
+    return home_url('/account/details/'); //If user is registered already, switch to account/details rather than new order.  Otherwise goto new order page so we complete the registration.
 
   if ($_GET['action'] == 'logout' AND strpos($_SERVER['HTTP_COOKIE'], 'impersonated_by') !== false) {
     WC()->cart->remove_coupons(); //applied coupons seem to follow the admin user otherwise
