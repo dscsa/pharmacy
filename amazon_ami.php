@@ -483,28 +483,70 @@ function dscsa_retrieve_password_key($user_login, $reset_key) {
   $link = add_query_arg( array( 'key' => $reset_key, 'id' => $user_id ), wc_get_endpoint_url( 'lost-password', '', wc_get_page_permalink( 'myaccount' ) ) );
   $link = "https://www.".str_replace(' ', '+', substr($link, 12));
 
-  $phone = get_user_meta($user_id, 'phone', true) ?: get_user_meta($user_id, 'billing_phone', true);
-
   debug_email("Password Reset", "$user_login, $reset_key Shipping phone: ".get_user_meta($user_id, 'shipping_phone', true).", billing phone: ".get_user_meta($user_id, 'billing_phone', true).", account phone:  ".get_user_meta($user_id, 'account_phone', true)." ".$link);
 
-  sendSMS($phone, "The link below will reset your password.  If clicking it doesn't work, try copying & pasting it into a browser instead. $link");
+  passwordResetNotice($user_id, $link);
 }
 
 //https://20somethingfinance.com/how-to-send-text-messages-sms-via-email-for-free/
-function sendSMS($phone, $text) {
-  wp_mail("6507992817@txt.att.net", '', "$phone $text");
-  wp_mail("$phone@txt.att.net", '', $text);
-  wp_mail("$phone@tmomail.net", '', $text);
-  wp_mail("$phone@vtext.com", '', $text);
-  wp_mail("$phone@pm.sprint.com", '', $text);
-  wp_mail("$phone@vmobl.com", '', $text);
-  wp_mail("$phone@mmst5.tracfone.com", '', $text);
-  wp_mail("$phone@mymetropcs.com", '', $text);
-  wp_mail("$phone@myboostmobile.com", '', $text);
-  wp_mail("$phone@mms.cricketwireless.net", '', $text);
-  wp_mail("$phone@email.uscc.net", '', $text);
-  wp_mail("$phone@cingularme.com", '', $text);
+function passwordResetNotice($user_id, $link) {
+
+  $phone = get_user_meta($user_id, 'phone', true) ?: get_user_meta($user_id, 'billing_phone', true);
+  $email = get_user_meta($user_id, 'email', true) ?: get_user_meta($user_id, 'billing_email', true);
+  $msg   = "The following link will enable you to reset your password.  If clicking it doesn't work, try copying & pasting it into a browser instead. $link";
+
+  commCalendar([
+    "password" => COMM_CALENDAR_KEY,
+    "title" => "Password Reset. Created:".date_create()->format('Y-m-d H:i:s'),
+    "body" => [
+      [
+        "sms" => $phone, //COMM_CALENDAR_DEBUG,
+        "workHours" => false,
+        "message" => $msg,
+        "fallbacks" => [
+           [
+            "call" => $phone, //COMM_CALENDAR_DEBUG,
+            "workHours" => false,
+            "message" => 'Hi, this is Good Pill Pharmacy <Pause /> We had trouble emailing and texting you with a link to reset your password.  You will need to give us a call at 8,,,,8,,,,8 <Pause />9,,,,8,,,,7 <Pause />5,,,,1,,,,8,,,,7. <Pause length="2" /> Again please call us to reset your password at 8,,,,8,,,,8 <Pause />9,,,,8,,,,7 <Pause />5,,,,1,,,,8,,,,7. <Pause />'
+           ]
+        ]
+      ],
+      [
+        "email" => $email,
+        "workHours" => false,
+        "subject" => "Good Pill Password Reset",
+        "message" => "Hello,<br><br>$msg<br><br>Thanks!<br>Good Pill Pharmacy",
+      ]
+    ]
+  ]);
 }
+
+function commCalendar($comm_array) {
+
+  $json = json_encode($comm_array, JSON_PRETTY_PRINT);
+
+  wp_mail("adam.kircher@gmail.com", 'COMM-CALENDAR START', "COMM-CALENDAR START ".$json);
+
+  $ch = curl_init();
+
+  curl_setopt($ch, CURLOPT_URL, COMM_CALENDAR_URL);
+  curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); // Receive server response ...
+  curl_setopt($curl, CURLOPT_CUSTOMREQUEST, "POST"); //https://evertpot.com/curl-redirect-requestbody/
+  curl_setopt($ch, CURLOPT_POSTFIELDS, $json);
+  //curl_setopt($curl, CURLOPT_FOLLOWLOCATION, true); //Google App Script always redirects so we need to follow
+
+  $res = curl_exec($ch);
+
+  curl_close ($ch);
+
+  // Further processing ...
+  if ($res['success']) {
+    wp_mail("adam.kircher@gmail.com", 'COMM-CALENDAR SUCCCESS', "COMM-CALENDAR SUCCCESS $json".print_r($res, true));
+  } else {
+    wp_mail("adam.kircher@gmail.com", 'COMM-CALENDAR ERROR', "COMM-CALENDAR ERROR $json".print_r($res, true));
+  }
+}
+
 
 function shared_fields($user_id = null) {
 
@@ -1800,8 +1842,8 @@ function dscsa_translate($term, $raw, $domain) {
         ? 'Step 2 of 2: You are almost done! Please complete this "Registration" page so we can fill your prescription(s).  If you need to login again, your temporary password is '.$phone.'.  After completing your registration, you can change your password on the "Account Details" page'
         : 'Thank you for your order!',
       'Username or email' => '<strong>Email (or cell phone number if no email provided)</strong>', //For resetting passwords
-      'Password reset email has been sent.' => "A link to reset your password has been sent by email and/or text message",
-      'A password reset email has been sent to the email address on file for your account, but may take several minutes to show up in your inbox. Please wait at least 10 minutes before attempting another reset.' => 'If you provided an email address or mobile phone number during registration, then an email and/or text message with instructions on how to reset your password was sent to you.  If you do not get an email or text message from us within 5mins, please call us at <span style="white-space:nowrap">(888) 987-5187</span> for assistance',
+      'Password reset email has been sent.' => "A link to reset your password has been sent by text message and/or email",
+      'A password reset email has been sent to the email address on file for your account, but may take several minutes to show up in your inbox. Please wait at least 10 minutes before attempting another reset.' => 'If you provided an email address or mobile phone number during registration, then an text message and/or email with instructions on how to reset your password was sent to you.  If you do not get an email or text message from us within 5mins, please call us at <span style="white-space:nowrap">(888) 987-5187</span> for assistance',
       'Additional information' => '',  //Checkout
       'Make default' => 'Set for Autopay',
       'This payment method was successfully set as your default.' => 'This credit/debit card will be used for automatic payments on the first week of the month after you receive your medications.',
@@ -1809,7 +1851,7 @@ function dscsa_translate($term, $raw, $domain) {
       'Billing address' => 'Shipping address', //Order confirmation
   	  'Billing &amp; Shipping' => 'Shipping Address', //Checkout
       //Logging in
-      'Lost your password? Please enter your username or email address. You will receive a link to create a new password via email.' => 'Lost your password? Before reseting, please note that new accounts use your phone number - e.g., 4701234567 - as a temporary password. To reset, you will receive a link to create a new password via email and/or text message. If you have trouble, call us at (888) 987-5187 for assistance.',
+      'Lost your password? Please enter your username or email address. You will receive a link to create a new password via email.' => 'Lost your password? Before reseting, please note that new accounts use your phone number - e.g., 4701234567 - as a temporary password. To reset, you will receive a link to create a new password via text message and/or email. If you have trouble, call us at (888) 987-5187 for assistance.',
       'Please enter a valid account username.' => 'Please enter your name and date of birth in mm/dd/yyyy format.',
       'Username is required.' => 'Name and date of birth in mm/dd/yyyy format are required.',
       'Invalid username or email.' => '<strong>Error</strong>: We cannot find an account with name and date of birth.',
