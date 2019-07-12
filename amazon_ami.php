@@ -2201,7 +2201,7 @@ function add_remove_allergies($guardian_id, $post) {
   $post  = json_encode($post);
   $query = "SirumWeb_AddRemove_Allergies '$guardian_id', '$post'";
 
-  $result = db_run($query, 15);
+  $result = db_run($query, 15, true, true);
 
   debug_email("add_remove_allergies", $query." | ".print_r($result, true).print_r(mssql_get_last_message(), true).print_r(func_get_args(), true).print_r($_POST, true));
 
@@ -2417,7 +2417,7 @@ function update_autofill($guardian_id, $pat_autofill, $rx_autofill, $autofill_re
 }
 
 global $conn;
-function db_run($sql, $resultIndex = 0, $all_rows = false) {
+function db_run($sql, $resultIndex = 0, $all_rows = false, $debug = false) {
   global $conn;
   $conn = $conn ?: db_connect();
   $stmt = db_query($conn, $sql);
@@ -2436,37 +2436,40 @@ function db_run($sql, $resultIndex = 0, $all_rows = false) {
     return;
   }
 
-  for ($i = 0; $i < $resultIndex; $i++) {
-    mssql_next_result($stmt);
+  $results = [];
+  do {
+
+    $results[] = db_fetch($stmt, $sql);
+
+  } while (mssql_next_result($stmt));
+
+
+  if ($debug) {
+    debug_email("Debug MSSQL", print_r($sql, true).' '.print_r(mssql_get_last_message(), true).' '.print_r($results, true));
   }
 
-  if ( ! is_resource($stmt) OR ! mssql_num_rows($stmt)) {
-    debug_email("No Resource or Rows", print_r($sql, true).' '.print_r($stmt, true).' '.print_r(mssql_get_last_message(), true));
+  return $all_rows ? $results[$resultIndex] : $results[$resultIndex][0];
+}
 
-    //email_error("no rows for result of $sql");
+function db_fetch($stmt, $sql) {
+
+  if ( ! mssql_num_rows($stmt)) {
+    debug_email("No Rows", print_r($sql, true).' '.print_r($stmt, true).' '.print_r(mssql_get_last_message(), true));
     return [];
   }
 
   $data = [];
-  while ($result = db_fetch($stmt)) {
+  while ($row = mssql_fetch_array($stmt)) {
 
-      if (trim($result['Message'])) {
-        debug_email("db query: $sql", print_r($params, true).print_r($result, true).print_r($data, true).print_r(sanitize($_POST), true));
-        if (is_admin()) echo '<div class="notice notice-success is-dismissible"><p><strong>Error Saving To Guardian:</strong> "'.$result['Message'].'"</p></div>';
+      if (trim($row['Message'])) {
+        debug_email("db query: $sql", print_r($row, true).print_r($data, true).print_r(sanitize($_POST), true));
+        if (is_admin()) echo '<div class="notice notice-success is-dismissible"><p><strong>Error Saving To Guardian:</strong> "'.$row['Message'].'"</p></div>';
       }
 
-      $data[] = $result;
+      $data[] = $row;
   }
 
-  if ( ! $data) email_error("fetching $sql");
-
-  //debug_email("db testing", print_r(sqlsrv_errors(), true));
-
-  return $all_rows ? $data : $data[0];
-}
-
-function db_fetch($stmt) {
- return mssql_fetch_array($stmt);
+  return $data;
 }
 
 function db_connect() {
