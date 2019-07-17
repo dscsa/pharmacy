@@ -1,4 +1,4 @@
-var storage = {
+var webformStorage = {
   get:function(key, maxMins) {
 
     if ( ! window.sessionStorage) return
@@ -99,7 +99,7 @@ function upgradePharmacy(retry) {
 
   var select = jQuery('#backup_pharmacy')
 
-  var pharmacyCache = storage.get('pharmacyCache', 60*24)
+  var pharmacyCache = webformStorage.get('pharmacyCache', 60*24)
   console.log('upgradePharmacy, cached:', pharmacyCache || 'No Cache')
   if (pharmacyCache) return select.select2({data:pharmacyCache, matcher:matcher, minimumInputLength:3})
 
@@ -123,7 +123,7 @@ function upgradePharmacy(retry) {
         pharmacyCache.push(pharmacy2select($data.feed.entry[i]))
       }
 
-      storage.set('pharmacyCache', pharmacyCache)
+      webformStorage.set('pharmacyCache', pharmacyCache)
 
       select.select2({data:pharmacyCache, matcher:matcher, minimumInputLength:3})
       console.log('pharmacy gsheet. finish time in secs:', (new Date()-start)/1000)
@@ -252,7 +252,7 @@ function getInventory(callback, retry) {
 
   console.log('getInventory')
 
-  var inventoryCache = storage.get('inventoryCache', 10)
+  var inventoryCache = webformStorage.get('inventoryCache', 10)
   console.log('getInventory, cached:', inventoryCache || 'No Cache')
   if (inventoryCache) return callback(inventoryCache)
 
@@ -267,7 +267,7 @@ function getInventory(callback, retry) {
       console.log('live inventory gsheet. load time in secs:', (new Date()-start)/1000)
 
       inventoryCache = mapGoogleSheetInv($data.feed.entry)
-      storage.set('inventoryCache', inventoryCache)
+      webformStorage.set('inventoryCache', inventoryCache)
       callback(inventoryCache)
 
       console.log('live inventory gsheet. finish time in secs:', (new Date()-start)/1000)
@@ -305,7 +305,7 @@ function getPriceComparison(callback, retry) {
 
   console.log('getPriceComparison')
 
-  var priceCache = storage.get('priceCache', 10)
+  var priceCache = webformStorage.get('priceCache', 10)
   console.log('getPriceComparison, cached:', priceCache || 'No Cache')
   if (priceCache) return callback(priceCache)
 
@@ -322,7 +322,7 @@ function getPriceComparison(callback, retry) {
       priceCache = mapGoogleSheetPrices($data.feed.entry)
 
       if ( ! ~ priceCache[0].price.pharmacy1.indexOf('Loading') && ! ~ priceCache[0].price.pharmacy1.indexOf('ERROR'))
-        storage.set('priceCache', priceCache)
+        webformStorage.set('priceCache', priceCache)
 
       callback(priceCache)
 
