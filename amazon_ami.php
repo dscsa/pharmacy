@@ -1216,10 +1216,28 @@ function dscsa_order_search_fields( $search_fields ) {
 	return []; //$this forces search_orders to skip slow query so we can do our own fast query in woocommerce_shop_order_search_results
 }
 
+//Add Phone Number Search to Fast User Switching Plugin on Top Menu
+//Plugin as no hooks but uses WP_User_Quey which does have Hooks
+//https://github.com/WordPress/WordPress/blob/master/wp-includes/class-wp-user-query.php
+
+add_action('pre_get_users', 'dscsa_pre_get_users');
+function dscsa_pre_get_users($class) {
+
+  if ( ! $class->query_vars['search']) return;
+
+  $phone = cleanPhone($class->query_vars['search']);
+
+  if ($phone) {
+    $class->query_vars['meta_key']   = 'phone';
+    $class->query_vars['meta_value'] = $phone;
+    unset($class->query_vars['search']);
+  }
+
+  //debug_email("dscsa_pre_get_users", print_r($class->query_vars, true));
+}
+
 add_filter('woocommerce_shop_order_search_results',  'dscsa_shop_order_search_results', 10, 3);
 function dscsa_shop_order_search_results($order_ids, $term, $search_fields) {
-
-
 
   /*
   global $wpdb;
@@ -1236,7 +1254,6 @@ function dscsa_shop_order_search_results($order_ids, $term, $search_fields) {
 		)
 	);*/
 
-  //debug_email("dscsa_shop_order_search_results", "$term ".print_r($order_ids, true).print_r($search_fields, true).print_r($new_order_ids, true));
   return faster_wc_search_orders($term); //$new_order_ids; //$order_ids;
 }
 
