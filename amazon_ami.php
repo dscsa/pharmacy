@@ -1164,7 +1164,7 @@ function is_registered() {
 
 add_filter ('woocommerce_account_menu_items', 'dscsa_my_account_menu');
 function dscsa_my_account_menu($nav) {
-  $nav['dashboard'] = __('New Order');
+  $nav['dashboard'] = __('Request Refills');
   $nav['payment-methods'] = __('Autopay');
   return $nav;
 }
