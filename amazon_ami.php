@@ -920,7 +920,7 @@ function dscsa_register_form() {
 }
 
 function verify_username($id) {
-  echo "<div id='verify_username_$id'><span id='verify_first_name_$id'></span><span id='verify_last_name_$id'></span><span id='verify_birthdate_$id'></span></div>";
+  echo "<div id='verify_username_$id'>Username: <span id='verify_first_name_$id'></span> <span id='verify_last_name_$id'></span> <span id='verify_birth_date_$id'></span></div>";
 }
 
 function login_form($id) {

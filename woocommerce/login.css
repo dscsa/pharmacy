@@ -4,6 +4,7 @@
 #customer_login #phone_field {
   margin-bottom:0
 }
-#verify_username {
+#verify_username_login, #verify_username_register  {
   font-size:22px !important;
+  margin-bottom:8px;
 }
