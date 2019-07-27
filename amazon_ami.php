@@ -920,7 +920,7 @@ function dscsa_register_form() {
 }
 
 function verify_username($id) {
-  echo "<div id='verify_username_$id'><span id='verify_first_name_$id'></span><span id='verify_last_name_$id'></span><span id='verify_birthdate_$id'></span></div>';
+  echo "<div id='verify_username_$id'><span id='verify_first_name_$id'></span><span id='verify_last_name_$id'></span><span id='verify_birthdate_$id'></span></div>";
 }
 
 function login_form($id) {
@@ -949,12 +949,12 @@ function login_form($id) {
 
 add_action('woocommerce_login_form', 'dscsa_login_form_acknowledgement');
 function dscsa_login_form_acknowledgement() {
-  verify_username();
+  verify_username('login');
 }
 
 add_action('woocommerce_register_form', 'dscsa_register_form_acknowledgement');
 function dscsa_register_form_acknowledgement() {
-  verify_username();
+  verify_username('register');
   echo woocommerce_form_field('certify',[
     'type'   	  => 'checkbox',
     'label'     => __("I certify that<br>(1) I understand this program provides medications to those who cannot afford them.<br>(2) I am eligible because my co-pays and/or deductibles are too high to afford or I don't have health insurance.<br>(3) I agree to Good Pill's <a href='/gp-terms'>Terms of Use</a> including receiving and paying for my refills automatically"),
