@@ -13,21 +13,26 @@ function load() {
   var firstName = jQuery('#first_name_login, #first_name_register')
   var lastName  = jQuery('#last_name_login, #last_name_register')
   var birthDate = jQuery('#birth_date_login, #birth_date_register')
+
+  var verifyFirstName = jQuery('#verify_first_name_login, #verify_first_name_register')
+  var verifyLastName = jQuery('#verify_last_name_login, #verify_last_name_register')
+  var verifyBirthDate = jQuery('#verify_birth_date_login, #verify_birth_date_register')
+
   console.log('keyups', firstName, lastName, birthDate)
 
   firstName.on("change keyup paste", function () {
     console.log('First Name Key Up', firstName.val())
-    jQuery('.verify_first_name').text(firstName.val());
+    verifyFirstName.text(firstName.val());
   })
 
   lastName.on("change keyup paste", function () {
     console.log('Last Name Key Up', lastName.val())
-    jQuery('.verify_last_name').text(lastName.val());
+    verifyLastName.text(lastName.val());
   })
 
   birthDate.on("change keyup paste", function () {
     console.log('Birth Date Key Up', birthDate.val())
-    jQuery('.verify_birth_date').text(birthDate.val());
+    verifyBirthDate.text(birthDate.val());
   })
 }
 

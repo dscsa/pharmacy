@@ -902,7 +902,6 @@ function dscsa_login_form() {
   $shared_fields['birth_date']['id'] = 'birth_date_login';
   $shared_fields['birth_date']['custom_attributes']['readonly'] = false;
   echo woocommerce_form_field('birth_date', $shared_fields['birth_date']);
-  verify_username();
 }
 
 add_action('woocommerce_register_form_start', 'dscsa_register_form');
@@ -920,8 +919,8 @@ function dscsa_register_form() {
   echo woocommerce_form_field('phone', $shared_fields['phone']);
 }
 
-function verify_username() {
-  echo '<div class="verify_username"><span class="verify_first_name"></span><span class="verify_last_name"></span><span class="verify_birthdate"></span></div>';
+function verify_username($id) {
+  echo "<div id='verify_username_$id'><span id='verify_first_name_$id'></span><span id='verify_last_name_$id'></span><span id='verify_birthdate_$id'></span></div>';
 }
 
 function login_form($id) {
@@ -946,6 +945,11 @@ function login_form($id) {
 
   echo woocommerce_form_field('first_name', $first_name);
   echo woocommerce_form_field('last_name', $last_name);
+}
+
+add_action('woocommerce_login_form', 'dscsa_login_form_acknowledgement');
+function dscsa_login_form_acknowledgement() {
+  verify_username();
 }
 
 add_action('woocommerce_register_form', 'dscsa_register_form_acknowledgement');
