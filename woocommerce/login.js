@@ -17,17 +17,17 @@ function load() {
 
   firstName.on("change keyup paste", function () {
     console.log('First Name Key Up', firstName.val())
-    jQuery('#verify_first_name').text(firstName.val());
+    jQuery('.verify_first_name').text(firstName.val());
   })
 
   lastName.on("change keyup paste", function () {
     console.log('Last Name Key Up', lastName.val())
-    jQuery('#verify_last_name').text(lastName.val());
+    jQuery('.verify_last_name').text(lastName.val());
   })
 
   birthDate.on("change keyup paste", function () {
     console.log('Birth Date Key Up', birthDate.val())
-    jQuery('#verify_birth_date').text(birthDate.val());
+    jQuery('.verify_birth_date').text(birthDate.val());
   })
 }
 

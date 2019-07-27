@@ -897,10 +897,8 @@ function dscsa_lostpassword_form() {
 
 add_action('woocommerce_login_form_start', 'dscsa_login_form');
 function dscsa_login_form() {
-  login_form();
+  login_form('login');
   $shared_fields = shared_fields();
-  $shared_fields['first_name']['id'] = 'first_name_login';
-  $shared_fields['last_name']['id']  = 'last_name_login';
   $shared_fields['birth_date']['id'] = 'birth_date_login';
   $shared_fields['birth_date']['custom_attributes']['readonly'] = false;
   echo woocommerce_form_field('birth_date', $shared_fields['birth_date']);
@@ -911,30 +909,29 @@ add_action('woocommerce_register_form_start', 'dscsa_register_form');
 function dscsa_register_form() {
   $account_fields = account_fields();
   $shared_fields = shared_fields();
-  $shared_fields['first_name']['id'] = 'first_name_register';
-  $shared_fields['last_name']['id']  = 'last_name_register';
   $shared_fields['birth_date']['id'] = 'birth_date_register';
   $shared_fields['birth_date']['custom_attributes']['readonly'] = false;
   $shared_fields['phone']['custom_attributes']['readonly'] = false;
   $shared_fields['phone']['autocomplete'] = 'tel'; //allow autocomplete on first page but not second
 
   echo woocommerce_form_field('language', $account_fields['language']);
-  login_form();
+  login_form('register');
   echo woocommerce_form_field('birth_date', $shared_fields['birth_date']);
   echo woocommerce_form_field('phone', $shared_fields['phone']);
 }
 
 function verify_username() {
-  echo '<div id="verify_username"><span id="verify_first_name"></span><span id="verify_last_name"></span><span id="verify_birthdate"></span></div>';
+  echo '<div class="verify_username"><span class="verify_first_name"></span><span class="verify_last_name"></span><span class="verify_birthdate"></span></div>';
 }
 
-function login_form() {
+function login_form($id) {
 
   $first_name = [
     'type' => 'text',
     'class' => ['form-row-first'],
     'label'  => __('First name'),
     'required' => true,
+    'id' => "first_name_$id",
     'default' => $_POST['first_name']
   ];
 
@@ -943,6 +940,7 @@ function login_form() {
     'class' => ['form-row-last'],
     'label'  => __('Last name'),
     'required' => true,
+    'id' => "last_name_$id",
     'default' => $_POST['last_name']
   ];
 
