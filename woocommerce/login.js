@@ -22,15 +22,15 @@ function register_page() {
   clearEmail() //just in case a registration reloads page with the default email populated
   translate()
 
-  $('#first_name').keyup(function () {
-    $('#verify_first_name').text($(this).val());
+  jQuery('#first_name').keyup(function () {
+    jQuery('#verify_first_name').text($(this).val());
   })
 
-  $('#last_name').keyup(function () {
-    $('#verify_last_name').text($(this).val());
+  jQuery('#last_name').keyup(function () {
+    jQuery('#verify_last_name').text($(this).val());
   })
 
-  $('#birth_date_register').keyup(function () {
-    $('#verify_birth_date').text($(this).val());
+  jQuery('#birth_date_register').keyup(function () {
+    jQuery('#verify_birth_date').text($(this).val());
   })
 }
