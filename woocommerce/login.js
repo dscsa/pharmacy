@@ -10,9 +10,9 @@ function load() {
   if (window.sessionStorage)
     upgradePharmacy() //not needed on this page but fetch && cache the results for a quicker checkout page
 
-  var firstName = jQuery('#first_name')
-  var lastName  = jQuery('#last_name')
-  var birthDate = jQuery('#birth_date_register')
+  var firstName = jQuery('#first_name_login, #first_name_register')
+  var lastName  = jQuery('#last_name_login, #last_name_register')
+  var birthDate = jQuery('#birth_date_login, #birth_date_register')
   console.log('keyups', firstName, lastName, birthDate)
 
   firstName.on("change keyup paste", function () {

@@ -899,15 +899,20 @@ add_action('woocommerce_login_form_start', 'dscsa_login_form');
 function dscsa_login_form() {
   login_form();
   $shared_fields = shared_fields();
+  $shared_fields['first_name']['id'] = 'first_name_login';
+  $shared_fields['last_name']['id']  = 'last_name_login';
   $shared_fields['birth_date']['id'] = 'birth_date_login';
   $shared_fields['birth_date']['custom_attributes']['readonly'] = false;
   echo woocommerce_form_field('birth_date', $shared_fields['birth_date']);
+  verify_username();
 }
 
 add_action('woocommerce_register_form_start', 'dscsa_register_form');
 function dscsa_register_form() {
   $account_fields = account_fields();
   $shared_fields = shared_fields();
+  $shared_fields['first_name']['id'] = 'first_name_register';
+  $shared_fields['last_name']['id']  = 'last_name_register';
   $shared_fields['birth_date']['id'] = 'birth_date_register';
   $shared_fields['birth_date']['custom_attributes']['readonly'] = false;
   $shared_fields['phone']['custom_attributes']['readonly'] = false;
@@ -917,6 +922,10 @@ function dscsa_register_form() {
   login_form();
   echo woocommerce_form_field('birth_date', $shared_fields['birth_date']);
   echo woocommerce_form_field('phone', $shared_fields['phone']);
+}
+
+function verify_username() {
+  echo '<div id="verify_username"><span id="verify_first_name"></span><span id="verify_last_name"></span><span id="verify_birthdate"></span></div>';
 }
 
 function login_form() {
@@ -943,8 +952,7 @@ function login_form() {
 
 add_action('woocommerce_register_form', 'dscsa_register_form_acknowledgement');
 function dscsa_register_form_acknowledgement() {
-
-  echo '<div id="verify_username"><span id="verify_first_name"></span><span id="verify_last_name"></span><span id="verify_birthdate"></span></div>';
+  verify_username();
   echo woocommerce_form_field('certify',[
     'type'   	  => 'checkbox',
     'label'     => __("I certify that<br>(1) I understand this program provides medications to those who cannot afford them.<br>(2) I am eligible because my co-pays and/or deductibles are too high to afford or I don't have health insurance.<br>(3) I agree to Good Pill's <a href='/gp-terms'>Terms of Use</a> including receiving and paying for my refills automatically"),
