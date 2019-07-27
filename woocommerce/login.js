@@ -23,14 +23,14 @@ function register_page() {
   translate()
 
   jQuery('#first_name').keyup(function () {
-    jQuery('#verify_first_name').text($(this).val());
+    jQuery('#verify_first_name').text(jQuery(this).val());
   })
 
   jQuery('#last_name').keyup(function () {
-    jQuery('#verify_last_name').text($(this).val());
+    jQuery('#verify_last_name').text(jQuery(this).val());
   })
 
   jQuery('#birth_date_register').keyup(function () {
-    jQuery('#verify_birth_date').text($(this).val());
+    jQuery('#verify_birth_date').text(jQuery(this).val());
   })
 }
