@@ -10,29 +10,17 @@ function load() {
   if (window.sessionStorage)
     upgradePharmacy() //not needed on this page but fetch && cache the results for a quicker checkout page
 
-  var firstName = jQuery('#first_name_login, #first_name_register')
-  var lastName  = jQuery('#last_name_login, #last_name_register')
-  var birthDate = jQuery('#birth_date_login, #birth_date_register')
+  jQuery('#first_name_login, #first_name_register').on("change keyup paste", onChange)
+  jQuery('#last_name_login, #last_name_register').on("change keyup paste", onChange)
+  jQuery('#birth_date_login, #birth_date_register').on("change keyup paste", onChange)
 
-  console.log('keyups', firstName, lastName, birthDate)
-
-  firstName.on("change keyup paste", function () {
-    console.log('First Name Key Up', firstName.val())
-    jQuery('#verify_first_name_login').text(firstName.val());
-    jQuery('#verify_first_name_register').text(firstName.val());
-  })
-
-  lastName.on("change keyup paste", function () {
-    console.log('Last Name Key Up', lastName.val())
-    jQuery('#verify_last_name_login').text(lastName.val());
-    jQuery('#verify_last_name_register').text(lastName.val());
-  })
-
-  birthDate.on("change keyup paste", function () {
-    console.log('Birth Date Key Up', birthDate.val())
-    jQuery('#verify_birth_date_login').text(birthDate.val());
-    jQuery('#verify_birth_date_register').text(birthDate.val());
-  })
+  function onChange() {
+    var el  = jQuery(this)
+    var id  = el.attr('id')
+    var val = el.val()
+    console.log(id+' Key Up', val)
+    jQuery('#verify_'+id).text(val);
+  }
 }
 
 function register_page() {
