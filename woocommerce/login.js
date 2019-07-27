@@ -9,6 +9,26 @@ function load() {
 
   if (window.sessionStorage)
     upgradePharmacy() //not needed on this page but fetch && cache the results for a quicker checkout page
+
+  var firstName = jQuery('#first_name')
+  var lastName  = jQuery('#last_name')
+  var birthDate = jQuery('#birth_date_register')
+  console.log('keyups', firstName, lastName, birthDate)
+
+  firstName.on("change keyup paste", function () {
+    console.log('First Name Key Up', firstName.val())
+    jQuery('#verify_first_name').text(firstName.val());
+  })
+
+  lastName.on("change keyup paste", function () {
+    console.log('Last Name Key Up', lastName.val())
+    jQuery('#verify_last_name').text(lastName.val());
+  })
+
+  birthDate.on("change keyup paste", function () {
+    console.log('Birth Date Key Up', birthDate.val())
+    jQuery('#verify_birth_date').text(birthDate.val());
+  })
 }
 
 function register_page() {
@@ -19,21 +39,4 @@ function register_page() {
 
   clearEmail() //just in case a registration reloads page with the default email populated
   translate()
-
-  console.log('keyups')
-
-  jQuery('#first_name').keyup(function () {
-    console.log('First Name Key Up', jQuery(this).val())
-    jQuery('#verify_first_name').text(jQuery(this).val());
-  })
-
-  jQuery('#last_name').keyup(function () {
-      console.log('Last Name Key Up', jQuery(this).val())
-    jQuery('#verify_last_name').text(jQuery(this).val());
-  })
-
-  jQuery('#birth_date_register').keyup(function () {
-      console.log('Birth Date Key Up', jQuery(this).val())
-    jQuery('#verify_birth_date').text(jQuery(this).val());
-  })
 }
