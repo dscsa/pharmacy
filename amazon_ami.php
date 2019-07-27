@@ -943,6 +943,8 @@ function login_form() {
 
 add_action('woocommerce_register_form', 'dscsa_register_form_acknowledgement');
 function dscsa_register_form_acknowledgement() {
+
+  echo '<div id="verify_username"><span id="verify_first_name"></span><span id="verify_last_name"></span><span id="verify_birthdate"></span></div>';
   echo woocommerce_form_field('certify',[
     'type'   	  => 'checkbox',
     'label'     => __("I certify that<br>(1) I understand this program provides medications to those who cannot afford them.<br>(2) I am eligible because my co-pays and/or deductibles are too high to afford or I don't have health insurance.<br>(3) I agree to Good Pill's <a href='/gp-terms'>Terms of Use</a> including receiving and paying for my refills automatically"),
@@ -1039,6 +1041,10 @@ function dscsa_default_post_value() {
   if ($birth_date AND $first_name AND $last_name) {    //Set username for login, registration & user_login for lost password
      $_POST['username'] = str_replace("'", "", "$_POST[first_name] $_POST[last_name] $_POST[birth_date]");
      $_POST['user_login'] = $_POST['username'];
+
+     if ( ! validate_username( $_POST['user_login'] )) {
+       debug_email("invalid username", $_POST['user_login'].print_r($_POST, true));
+     }
   }
 
   $email = $_POST['email'] ?: $_POST['account_email'] ?: $_POST['_billing_email'];
