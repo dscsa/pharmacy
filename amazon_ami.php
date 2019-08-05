@@ -824,9 +824,9 @@ function make_rx_table($patient_profile, $email = false) {
     else
       $autofill_date = 'No Refills';
 
-    if ($patient_profile[$i]['dispense_date']) { //New Rx that is just dispensed should show that date
+    if ($patient_profile[$i]['last_dispense_date']) { //New Rx that is just dispensed should show that date
       $tr_class    = "rx gcn$gcn";
-      $last_refill = date_format(date_create($patient_profile[$i]['dispense_date']), 'm/d');
+      $last_refill = date_format(date_create($patient_profile[$i]['last_dispense_date']), 'm/d');
       $next_refill = date_format(date_create($refill_date), 'Y-m-d');
       $day_qty = $patient_profile[$i]['days_supply']." (".$qty.")";
     } else if ($autofill_date == 'Transferred') { //Never Filled Transferred Out
