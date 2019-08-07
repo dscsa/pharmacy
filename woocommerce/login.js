@@ -18,6 +18,10 @@ function load() {
     var el  = jQuery(this)
     var id  = el.attr('id')
     var val = el.val()
+
+    if (id.slice(0, 10) == 'birth_date')
+      val = new Date(val).toString().slice(4, 11)
+
     console.log(id+' Key Up', val)
     jQuery('#verify_'+id).text(val);
   }

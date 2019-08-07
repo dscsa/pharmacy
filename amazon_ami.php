@@ -800,35 +800,42 @@ function make_rx_table($patient_profile, $email = false) {
 
   foreach ($patient_profile as $i => $rx) {
 
-    $drug_name = substr($patient_profile[$i]['drug_name'], 1, -1);
+    $drug_name = substr($rx['drug_name'], 1, -1);
 
-    if ( ! $drug_name OR $patient_profile[$i]['script_status'] == 'Inactive') continue; //Empty orders will have one row with a blank drug name
+    if ( ! $drug_name OR $rx['script_status'] == 'Inactive') continue; //Empty orders will have one row with a blank drug name
 
-    $refills_total = $patient_profile[$i]['refills_total'];
-    $is_refill     = $patient_profile[$i]['is_refill'];
-    $refill_date   = $patient_profile[$i]['refill_date'];
-    $autofill_date = $patient_profile[$i]['autofill_date'];
-    $gcn           = $patient_profile[$i]['gcn_seqno'];
-    $rx_id         = $patient_profile[$i]['rx_id'];
-    $in_order      = $patient_profile[$i]['in_order'];
-    $qty           = (int) $patient_profile[$i]['dispense_qty'];
+    $refills_total = $rx['refills_total'];
+    $is_refill     = $rx['is_refill'];
+    $refill_date   = $rx['refill_date'];
+    $autofill_date = $rx['autofill_date'];
+    $gcn           = $rx['gcn_seqno'];
+    $rx_id         = $rx['rx_id'];
+    $in_order      = $rx['in_order'];
+    $qty           = (int) $rx['dispense_qty'];
 
-    if ($in_order AND strtotime($autofill_date ?: $refill_date) < time() + 21*24*60*60*1000)
+
+    //From Shopping-SHEET
+    $dispenseDate    = $is_refill ? $rx['last_dispense_date'] : $rx['orig_disp_date'];
+    $daysSinceRefill = floor((strtotime($rx['order_added']) - strtotime($dispenseDate))/60/60/24) || '';
+    $isDispensed     = $rx['dispense_date'] ? !!$in_order : ($in_order && $daysSinceRefill && $daysSinceRefill < 4); //&& daysToRefill >= 15 removed because of Order 17109
+    $inOrder         = $isDispensed || ($in_order && $refills_total);   //Even if its "in the order" it could be a pending or denied surescript refill request (order 7236) so need to make sure refills are available
+
+    if ($inOrder)
       $autofill_date = 'Order '.explode('-', $in_order)[0];
     else if ($refills_total)
       $autofill_date = $autofill_date ? date_format(date_create($autofill_date), 'Y-m-d') : '';
-    else if ($patient_profile[$i]['script_status'] == 'Transferred Out')
+    else if ($rx['script_status'] == 'Transferred Out')
       $autofill_date = 'Transferred';
     else if (strtotime($patient_profile[$i]['expire_date']) < time())
       $autofill_date = 'Rx Expired';
     else
       $autofill_date = 'No Refills';
 
-    if ($patient_profile[$i]['last_dispense_date']) { //New Rx that is just dispensed should show that date
+    if ($rx['last_dispense_date']) { //New Rx that is just dispensed should show that date
       $tr_class    = "rx gcn$gcn";
-      $last_refill = date_format(date_create($patient_profile[$i]['last_dispense_date']), 'm/d');
+      $last_refill = date_format(date_create($rx['last_dispense_date']), 'm/d');
       $next_refill = date_format(date_create($refill_date), 'Y-m-d');
-      $day_qty = $patient_profile[$i]['days_supply']." (".$qty.")";
+      $day_qty = $rx['days_supply']." (".$qty.")";
     } else if ($autofill_date == 'Transferred') { //Never Filled Transferred Out
       $tr_class    = "transferred rx gcn$gcn";
       $last_refill = 'Never&nbsp;Filled';
@@ -855,10 +862,10 @@ function make_rx_table($patient_profile, $email = false) {
     ]);
 
     $rx_autofill = $email
-    ? ($patient_profile[$i]['rx_autofill'] ? 'On' : 'Off')
+    ? ($rx['rx_autofill'] ? 'On' : 'Off')
     : woocommerce_form_field("rx_autofill[$gcn]", [
       'type' => 'checkbox',
-      'default' => $patient_profile[$i]['rx_autofill'],
+      'default' => $rx['rx_autofill'],
       'input_class' => ['rx_autofill'],
       'return' => true
     ]);
