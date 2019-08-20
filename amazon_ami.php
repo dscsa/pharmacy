@@ -2,7 +2,8 @@
 /* Enter your custom functions here */
 
 
-/*Awesome Support Start */
+
+/*Awesome Support Start
 
 add_action( 'plugins_loaded', 'wpas_user_custom_fields' );
 function wpas_user_custom_fields() {
@@ -1175,7 +1176,7 @@ function dscsa_wp_redirect($location) {
 
   if ($_GET['action'] == 'logout' AND strpos($_SERVER['HTTP_COOKIE'], 'impersonated_by') !== false) {
     WC()->cart->remove_coupons(); //applied coupons seem to follow the admin user otherwise
-    return home_url('/wp-admin/edit.php?post_type=ticket&author='.get_current_user_id()); //Switch to user's tickets rather than ??
+    return home_url('/wp-admin/edit.php?s&post_status=all&post_type=shop_order&_customer_user='.get_current_user_id()); //return home_url('/wp-admin/edit.php?post_type=ticket&author='.get_current_user_id()); //Switch to user's tickets rather than ??
   }
 
   return $location;
@@ -1627,7 +1628,7 @@ function dscsa_save_patient($user_id, $fields) {
     $firstname_changed = strtolower($_POST['first_name']) != strtolower($old_name['first_name']);
     $lastname_changed  = strtolower($_POST['last_name']) != strtolower($old_name['last_name']);
     $birthdate_changed = $_POST['birth_date'] != $old_name['birth_date'];
-    $email_changed = ((strtolower($_POST['email'] ?: $_POST['account_email']) != strtolower($old_name['email'])) AND (strpos($old_name['email'], '@goodpill.org') === false));
+    $email_changed = ((strtolower($_POST['email'] ?: $_POST['account_email']) != strtolower($old_name['email'])) AND (strpos($old_name['email'], '@goodpill.org') === false) AND (strlen($old_name['email']) > 0));
 
     if ($firstname_changed OR $lastname_changed OR $birthdate_changed OR $email_changed) {
       //wp_mail('hello@goodpill.org', 'Patient Name Change', print_r(sanitize($_POST), true)."\r\n\r\n".print_r($order, true));
