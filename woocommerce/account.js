@@ -136,7 +136,7 @@ function upgradeAutofill() {
         if (row.stock == 'Out of Stock') {
           console.log('upgradeAutofill Out of Stock', row.name, i, gcn, nextFill.val(), nextFill)
           if (tableRow.hasClass('new')) tableRow.addClass('nextfill-disabled autofill-off')
-          nextFill.val(row.stock)
+          if ( ! nextFill.val()) nextFill.val(row.stock) //Overwrite implicit refill date with "Out of Stock" but if an explicit autofill date is set then we should show it
           jQuery("tr.rx td.day_qty").val(45)
           break
         }
@@ -144,7 +144,7 @@ function upgradeAutofill() {
         if (row.stock == 'Not Offered') {
           console.log('upgradeAutofill Not Offered', row.name, i, gcn, nextFill.val(), nextFill)
           tableRow.addClass('nextfill-disabled autofill-off')
-          if ( ! nextFill.val()) nextFill.val(row.stock) //Overwrite implicit refill date with "Out of Stock" but if an explicit autofill date is set then we should show it
+          nextFill.val(row.stock)
           jQuery("tr.rx td.day_qty").val(45)
           break
         }
