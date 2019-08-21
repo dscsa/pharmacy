@@ -1,3 +1,4 @@
+/*
 jQuery(load)
 function load() {
 
@@ -29,3 +30,4 @@ function load() {
      jQuery('#wpas_'+ map[e.params.args.data.text]).parent().hide()
   });
 }
+*/
