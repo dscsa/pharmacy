@@ -1,7 +1,7 @@
 <?php
 
 require '../db-drivers/grx_mssql.php';
-require '../helpers/replace_empty_with_null.php'
+require '../helpers/replace_empty_with_null.php';
 
 function import_grx_order_items() {
 
