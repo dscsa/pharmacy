@@ -20,7 +20,7 @@ function load() {
     var val = el.val()
 
     if (id.slice(0, 10) == 'birth_date')
-      val = 'born on '+new Date(val).toUTCString().slice(5, 16)
+      val = 'born on '+(new Date(val).toUTCString().slice(5, 16))
 
     console.log(id+' Key Up', val)
     jQuery('#verify_'+id).text(val);
