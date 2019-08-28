@@ -148,6 +148,14 @@ function upgradeAutofill() {
           jQuery("tr.rx td.day_qty").val(45)
           break
         }
+
+        if (row.stock == 'One-time Only - No Refills') {
+          console.log('upgradeAutofill One-time Only - No Refills', row.name, i, gcn, nextFill.val(), nextFill)
+          tableRow.addClass('nextfill-disabled autofill-off')
+          nextFill.val('One-time')
+          jQuery("tr.rx td.day_qty").val(45)
+          break
+        }
       }
 
       if (j == inventory.length) {

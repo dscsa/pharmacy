@@ -1,157 +1,6 @@
 <?php
 /* Enter your custom functions here */
 
-
-
-/*Awesome Support Start
-
-add_action( 'plugins_loaded', 'wpas_user_custom_fields' );
-function wpas_user_custom_fields() {
-
-      wpas_add_custom_taxonomy( 'call-type',
-    		array(
-    			'title' => __( 'Call Type', 'wpas' ),
-    			'field_type' => 'select',
-          'select2' => true,
-    			'required' => true,
-          'multiple' => true,
-    			)
-    	);
-
-      wpas_add_custom_taxonomy( 'info',
-    		array(
-    			'title' => __( 'General Info', 'wpas' ),
-    			'field_type' => 'select',
-          'extra_wrapper_css_classes_be' => 'dependent',
-          'select2' => true,
-    			'required' => true,
-          'multiple' => true,
-    			)
-    	);
-
-      wpas_add_custom_taxonomy( 'rx-info',
-    		array(
-    			'title' => __( 'Rx Info', 'wpas' ),
-    			'field_type' => 'select',
-          'extra_wrapper_css_classes_be' => 'dependent',
-          'select2' => true,
-    			'required' => true,
-          'multiple' => true,
-    			)
-    	);
-
-      wpas_add_custom_taxonomy( 'inventory',
-        array(
-          'title' => __( 'Inventory', 'wpas' ),
-          'field_type' => 'select',
-          'extra_wrapper_css_classes_be' => 'dependent',
-          'select2' => true,
-          'required' => true,
-          'multiple' => true,
-          )
-      );
-
-      wpas_add_custom_taxonomy( 'update-account',
-        array(
-          'title' => __( 'New/Update Account', 'wpas' ),
-          'field_type' => 'select',
-          'extra_wrapper_css_classes_be' => 'dependent',
-          'select2' => true,
-          'required' => true,
-          'multiple' => true,
-          )
-      );
-
-      wpas_add_custom_taxonomy( 'delivery-issue',
-    		array(
-    			'title' => __( 'Delivery Issue', 'wpas' ),
-    			'field_type' => 'select',
-          'extra_wrapper_css_classes_be' => 'dependent',
-          'select2' => true,
-    			'required' => true,
-          'multiple' => true,
-    			)
-    	);
-
-      wpas_add_custom_taxonomy( 'cancel-order',
-    		array(
-    			'title' => __( 'Cancel/Delay Order', 'wpas' ),
-    			'field_type' => 'select',
-          'extra_wrapper_css_classes_be' => 'dependent',
-          'select2' => true,
-    			'required' => true,
-          'multiple' => true,
-    			)
-    	);
-
-      wpas_add_custom_taxonomy( 'refill-request',
-    		array(
-    			'title' => __( 'Refill Request', 'wpas' ),
-    			'field_type' => 'select',
-          'extra_wrapper_css_classes_be' => 'dependent',
-          'select2' => true,
-    			'required' => true,
-          'multiple' => true,
-    			)
-    	);
-
-      wpas_add_custom_taxonomy( 'transfer-request',
-        array(
-          'title' => __( 'Transfer Request', 'wpas' ),
-          'field_type' => 'select',
-          'extra_wrapper_css_classes_be' => 'dependent',
-          'select2' => true,
-          'required' => true,
-          'multiple' => true,
-          )
-      );
-
-      wpas_add_custom_taxonomy( 'payment',
-    		array(
-    			'title' => __( 'Payment', 'wpas' ),
-    			'field_type' => 'select',
-          'extra_wrapper_css_classes_be' => 'dependent',
-          'select2' => true,
-    			'required' => true,
-          'multiple' => true,
-    			)
-    	);
-}
-
-
-add_filter( 'wpas_cf_field_atts', 'multipleSelect2', 10, 3 );
-function multipleSelect2($atts, $field, $opts) {
-
-  if ($opts['args']['multiple']) {
-    array_push($atts, 'multiple');
-
-    //From https://github.com/Awesome-Support/Awesome-Support/blob/0cff0a56bc5b3cbe185e856ef5fb538aa3beda97/includes/custom-fields/field-types/class-cf-select.php
-    foreach ( $atts as $key => $att ) {
-      if ( 'name' === substr( $att, 0, 4 ) ) {
-        $att = substr( $att, 0, - 1 ); // Get rid of the last char (closing backtick)
-        $att .= '[]\''; // Add the brackets for handling multiple files
-        $atts[ $key ] = $att; // Update the array of attributes
-      }
-    }
-  }
-
-  return $atts;
-}
-
-/*
-add_filter( 'wpas_cf_field_class', 'multipleSelect3', 10, 3 );
-function multipleSelect3($atts, $field, $opts) {
-  var$field);
-  echo $opts;
-  array_push($atts, 'multiple');
-  return $atts;
-}*/
-
-
-
-
-/*Awesome Support End */
-
 /// Add endpoint for a "Remove as Default Payment" button: https://www.sitepoint.com/creating-custom-endpoints-for-the-wordpress-rest-api/
 add_action('rest_api_init', function () {
   register_rest_route( 'payment', 'remove-default/(?P<user_id>\d+)', [
@@ -196,15 +45,15 @@ function dscsa_payment_methods_list_item($payment, $token) {
 add_action('admin_enqueue_scripts', 'dscsa_admin_scripts');
 function dscsa_admin_scripts() {
   if ($_GET['post'] AND $_GET['action'] == 'edit') {
-    wp_enqueue_script('dscsa-common', 'https://dscsa.github.io/webform/woocommerce/common.2.js');
-    wp_enqueue_style('dscsa-select2', 'https://dscsa.github.io/webform/woocommerce/select2.css');
-    wp_enqueue_style('dscsa-admin', 'https://dscsa.github.io/webform/woocommerce/admin.css');
-    wp_enqueue_script('dscsa-admin', 'https://dscsa.github.io/webform/woocommerce/admin.js', ['jquery', 'dscsa-common']);
+    wp_enqueue_script('dscsa-common', 'https://dscsa.github.io/webform/js/common.js');
+    wp_enqueue_style('dscsa-select2', 'https://dscsa.github.io/webform/css/select2.css');
+    wp_enqueue_style('dscsa-admin', 'https://dscsa.github.io/webform/css/admin.css');
+    wp_enqueue_script('dscsa-admin', 'https://dscsa.github.io/webform/js/admin.js', ['jquery', 'dscsa-common']);
   }
 
   if ($_GET['post_type'] == 'ticket') {
-    wp_enqueue_style('dscsa-support-css', 'https://dscsa.github.io/webform/woocommerce/support.css');
-    wp_enqueue_script('dscsa-support-js', 'https://dscsa.github.io/webform/woocommerce/support.js', ['jquery']);
+    wp_enqueue_style('dscsa-support-css', 'https://dscsa.github.io/webform/css/support.css');
+    wp_enqueue_script('dscsa-support-js', 'https://dscsa.github.io/webform/js/support.js', ['jquery']);
   }
 }
 
@@ -226,26 +75,26 @@ function dscsa_user_scripts() {
   wp_enqueue_style('jquery-ui', 'https://code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.min.css');
   wp_enqueue_script('datepicker', '/wp-includes/js/jquery/ui/datepicker.min.js', ['jquery-ui']);
 
-  wp_enqueue_script('dscsa-common', 'https://dscsa.github.io/webform/woocommerce/common.2.js', ['datepicker', 'ie9ajax', 'select2']);
-  wp_enqueue_style('dscsa-common', 'https://dscsa.github.io/webform/woocommerce/common.css');
+  wp_enqueue_script('dscsa-common', 'https://dscsa.github.io/webform/js/common.js', ['datepicker', 'ie9ajax', 'select2']);
+  wp_enqueue_style('dscsa-common', 'https://dscsa.github.io/webform/css/common.css');
 
   if (substr($_SERVER['REQUEST_URI'], 0, 10) == '/gp-stock/') {
     wp_enqueue_script('select2', '/wp-content/plugins/woocommerce/assets/js/select2/select2.full.min.js'); //usually loaded by woocommerce but since this is independent page we need to load manually
 	  wp_enqueue_style('select2', '/wp-content/plugins/woocommerce/assets/css/select2.css?ver=3.0.7'); //usually loaded by woocommerce but since this is independent page we need to load manually
-    wp_enqueue_script('dscsa-inventory', 'https://dscsa.github.io/webform/woocommerce/inventory.js', ['jquery', 'ie9ajax']);
-    wp_enqueue_style('dscsa-inventory', 'https://dscsa.github.io/webform/woocommerce/inventory.css');
+    wp_enqueue_script('dscsa-inventory', 'https://dscsa.github.io/webform/js/inventory.js', ['jquery', 'ie9ajax']);
+    wp_enqueue_style('dscsa-inventory', 'https://dscsa.github.io/webform/css/inventory.css');
   }
 
   if (substr($_SERVER['REQUEST_URI'], 0, 11) == '/gp-prices/') {
     wp_enqueue_script('select2', '/wp-content/plugins/woocommerce/assets/js/select2/select2.full.min.js'); //usually loaded by woocommerce but since this is independent page we need to load manually
 	  wp_enqueue_style('select2', '/wp-content/plugins/woocommerce/assets/css/select2.css?ver=3.0.7'); //usually loaded by woocommerce but since this is independent page we need to load manually
-    wp_enqueue_script('dscsa-prices', 'https://dscsa.github.io/webform/woocommerce/prices.js', ['jquery', 'ie9ajax']);
-    wp_enqueue_style('dscsa-prices', 'https://dscsa.github.io/webform/woocommerce/prices.css');
+    wp_enqueue_script('dscsa-prices', 'https://dscsa.github.io/webform/js/prices.js', ['jquery', 'ie9ajax']);
+    wp_enqueue_style('dscsa-prices', 'https://dscsa.github.io/webform/css/prices.css');
   }
 
   if (is_user_logged_in()) {
-    wp_enqueue_script('dscsa-account', 'https://dscsa.github.io/webform/woocommerce/account.js', ['jquery', 'dscsa-common']);
-    wp_enqueue_style('dscsa-select2', 'https://dscsa.github.io/webform/woocommerce/select2.css');
+    wp_enqueue_script('dscsa-account', 'https://dscsa.github.io/webform/js/account.js', ['jquery', 'dscsa-common']);
+    wp_enqueue_style('dscsa-select2', 'https://dscsa.github.io/webform/css/select2.css');
 
     if (is_checkout() AND ! is_wc_endpoint_url()) { //hack to get wp_add_inline_style() to work. https://www.cssigniter.com/late-enqueue-inline-css-wordpress/
       if ( ! is_registered()) {
