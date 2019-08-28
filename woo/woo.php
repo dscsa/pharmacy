@@ -102,12 +102,12 @@ function dscsa_user_scripts() {
       	wp_enqueue_style( 'hide-nav-for-new-users' );
       	wp_add_inline_style( 'hide-nav-for-new-users', '.woocommerce-MyAccount-navigation { display:none }');
       }
-      wp_enqueue_style('dscsa-checkout', 'https://dscsa.github.io/webform/woocommerce/checkout.css');
-      wp_enqueue_script('dscsa-checkout', 'https://dscsa.github.io/webform/woocommerce/checkout.js', ['jquery', 'ie9ajax']);
+      wp_enqueue_style('dscsa-checkout', 'https://dscsa.github.io/webform/css/checkout.css');
+      wp_enqueue_script('dscsa-checkout', 'https://dscsa.github.io/webform/js/checkout.js', ['jquery', 'ie9ajax']);
     }
   } else if (substr($_SERVER['REQUEST_URI'], 0, 9) == '/account/') {
-    wp_enqueue_style('dscsa-login', 'https://dscsa.github.io/webform/woocommerce/login.css');
-  	wp_enqueue_script('dscsa-login', 'https://dscsa.github.io/webform/woocommerce/login.js', ['jquery', 'dscsa-common']);
+    wp_enqueue_style('dscsa-login', 'https://dscsa.github.io/webform/css/login.css');
+  	wp_enqueue_script('dscsa-login', 'https://dscsa.github.io/webform/js/login.js', ['jquery', 'dscsa-common']);
   }
 }
 
