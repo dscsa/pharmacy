@@ -369,7 +369,7 @@ function disableInventory(inventory, rxMap) {
   for (var i in inventory) {
     var drug = inventory[i]
 
-    if ( ! drug.stock) continue  //High supply inventory is available no matter the RXs
+    if ( ! drug.stock || drug.stock == 'One-time Only - No Refills') continue  //High supply inventory is available no matter the RXs
 
     drug.text += ' ('+drug.stock+')'
     drug.disabled = true //By default if its a low stock item
