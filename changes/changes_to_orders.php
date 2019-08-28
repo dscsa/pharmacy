@@ -1,9 +1,9 @@
 <?php
 
-require '../webform_mysql.php';
+require '../dbs/mysql_webform.php';
 
 function get_changes_orders() {
-  $mysql = new Webform_Mysql();
+  $mysql = new Mysql_Webform();
 
   //Get Upserts (Updates & Inserts)
   $upserts = $mysql->run("
