@@ -1,7 +1,7 @@
 <?php
 
-require './keys'
-require './mssql.php'
+require 'keys.php';
+require 'dbs/mssql.php';
 
 class Mssql_Grx extends Mssql {
 

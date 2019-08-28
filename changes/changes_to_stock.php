@@ -1,6 +1,6 @@
 <?php
 
-require '../dbs/mysql_webform.php';
+require 'dbs/mysql_webform.php';
 
 function get_changes_rxs_single() {
   $mysql = new Mysql_Webform();

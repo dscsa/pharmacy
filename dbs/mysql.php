@@ -1,7 +1,5 @@
 <?php
 
-require './keys'
-
 class Mysql {
 
    function __construct($ipaddress, $username, $password, $db){

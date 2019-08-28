@@ -1,6 +1,6 @@
 <?php
 
-require './changes/changes_to_patients';
+require 'changes/changes_to_patients';
 
 function update_patients() {
 

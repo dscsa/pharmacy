@@ -1,5 +1,5 @@
 <?php
-require './changes/changes_to_rxs_single';
+require 'changes/changes_to_rxs_single';
 
 function update_rxs_single() {
 
