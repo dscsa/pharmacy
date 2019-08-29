@@ -39,19 +39,19 @@ function changes_to_orders() {
     RIGHT JOIN gp_orders as old ON
       old.invoice_number <=> new.invoice_number AND
       old.patient_id_grx <=> new.patient_id_grx AND
-      old.order_source <=> new.order_source AND
-      old.order_stage <=> new.order_stage AND
-      old.order_status <=> new.order_status AND
-      old.invoice_doc_id <=> new.invoice_doc_id AND
-      old.order_address1 <=> new.order_address1 AND
-      old.order_address2 <=> new.order_address2 AND
-      old.order_city <=> new.order_city AND
-      old.order_state <=> new.order_state AND
-      old.order_zip <=> new.order_zip AND
-      old.tracking_number <=> new.tracking_number AND
+      -- old.order_source <=> new.order_source AND
+      -- old.order_stage <=> new.order_stage AND
+      -- old.order_status <=> new.order_status AND
+      -- old.invoice_doc_id <=> new.invoice_doc_id AND
+      -- old.order_address1 <=> new.order_address1 AND
+      -- old.order_address2 <=> new.order_address2 AND
+      -- old.order_city <=> new.order_city AND
+      -- old.order_state <=> new.order_state AND
+      -- old.order_zip <=> new.order_zip AND
+      -- old.tracking_number <=> new.tracking_number AND
       -- old.order_date_added <=> new.order_date_added AND
-      old.order_date_dispensed <=> new.order_date_dispensed AND
-      old.order_date_shipped <=> new.order_date_shipped
+      -- old.order_date_dispensed <=> new.order_date_dispensed AND
+      -- old.order_date_shipped <=> new.order_date_shipped
       -- old.order_date_changed <=> new.order_date_changed
     WHERE
       new.invoice_number IS NULL
@@ -107,23 +107,23 @@ function changes_to_orders() {
     RIGHT JOIN gp_orders as old ON
       old.invoice_number <=> new.invoice_number AND
       old.patient_id_grx <=> new.patient_id_grx AND
-      old.order_source <=> new.order_source AND
-      old.order_stage <=> new.order_stage AND
-      old.order_status <=> new.order_status AND
-      old.invoice_doc_id <=> new.invoice_doc_id AND
-      old.order_address1 <=> new.order_address1 AND
-      old.order_address2 <=> new.order_address2 AND
-      old.order_city <=> new.order_city AND
-      old.order_state <=> new.order_state AND
-      old.order_zip <=> new.order_zip AND
-      old.tracking_number <=> new.tracking_number AND
+      -- old.order_source <=> new.order_source AND
+      -- old.order_stage <=> new.order_stage AND
+      -- old.order_status <=> new.order_status AND
+      -- old.invoice_doc_id <=> new.invoice_doc_id AND
+      -- old.order_address1 <=> new.order_address1 AND
+      -- old.order_address2 <=> new.order_address2 AND
+      -- old.order_city <=> new.order_city AND
+      -- old.order_state <=> new.order_state AND
+      -- old.order_zip <=> new.order_zip AND
+      -- old.tracking_number <=> new.tracking_number AND
       -- old.order_date_added <=> new.order_date_added AND
-      old.order_date_dispensed <=> new.order_date_dispensed AND
-      old.order_date_shipped <=> new.order_date_shipped
+      -- old.order_date_dispensed <=> new.order_date_dispensed AND
+      -- old.order_date_shipped <=> new.order_date_shipped
       -- old.order_date_changed <=> new.order_date_changed
     WHERE
       new.invoice_number IS NULL
   ");
 
-  return ['upserts' => $upserts, 'removals' => $removals];
+  return ['upserts' => $upserts[0], 'removals' => $removals[0]];
 }

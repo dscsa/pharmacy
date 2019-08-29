@@ -78,5 +78,5 @@ function changes_to_order_items() {
       staging.pat_id IS NULL
   ");
 
-  return ['upserts' => $upserts, 'removals' => $removals];
+  return ['upserts' => $upserts[0], 'removals' => $removals[0]];
 }

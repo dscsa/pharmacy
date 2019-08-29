@@ -44,25 +44,25 @@ function changes_to_patients() {
       gp_patients_grx as new
     RIGHT JOIN gp_patients as old ON
       old.patient_id_grx <=> new.patient_id_grx AND
-      old.first_name <=> new.first_name AND
-      old.last_name <=> new.last_name AND
-      old.birth_date <=> new.birth_date AND
-      old.phone1 <=> new.phone1 AND
-      old.phone2 <=> new.phone2 AND
-      old.email <=> new.email AND
-      old.patient_autofill <=> new.patient_autofill AND
+      -- old.first_name <=> new.first_name AND
+      -- old.last_name <=> new.last_name AND
+      -- old.birth_date <=> new.birth_date AND
+      -- old.phone1 <=> new.phone1 AND
+      -- old.phone2 <=> new.phone2 AND
+      -- old.email <=> new.email AND
+      -- old.patient_autofill <=> new.patient_autofill AND
       -- old.user_def1 <=> new.user_def1 AND
       -- old.user_def2 <=> new.user_def2 AND
       -- old.user_def3 <=> new.user_def3 AND
       -- old.user_def4 <=> new.user_def4 AND
-      old.patient_address1 <=> new.patient_address1 AND
-      old.patient_address2 <=> new.patient_address2 AND
-      old.patient_city <=> new.patient_city AND
-      old.patient_state <=> new.patient_state AND
-      old.patient_zip <=> new.patient_zip AND
+      -- old.patient_address1 <=> new.patient_address1 AND
+      -- old.patient_address2 <=> new.patient_address2 AND
+      -- old.patient_city <=> new.patient_city AND
+      -- old.patient_state <=> new.patient_state AND
+      -- old.patient_zip <=> new.patient_zip AND
       -- old.total_fills <=> new.total_fills AND
-      old.patient_status <=> new.patient_status AND
-      old.lang <=> new.lang
+      -- old.patient_status <=> new.patient_status AND
+      -- old.lang <=> new.lang
       -- old.patient_date_added <=> new.patient_date_added AND
       -- old.patient_date_changed <=> new.patient_date_changed
     WHERE
@@ -132,30 +132,30 @@ function changes_to_patients() {
     FROM gp_patients_grx as new
     RIGHT JOIN gp_patients as old ON
       old.patient_id_grx <=> new.patient_id_grx AND
-      old.first_name <=> new.first_name AND
-      old.last_name <=> new.last_name AND
-      old.birth_date <=> new.birth_date AND
-      old.phone1 <=> new.phone1 AND
-      old.phone2 <=> new.phone2 AND
-      old.email <=> new.email AND
-      old.patient_autofill <=> new.patient_autofill AND
+      -- old.first_name <=> new.first_name AND
+      -- old.last_name <=> new.last_name AND
+      -- old.birth_date <=> new.birth_date AND
+      -- old.phone1 <=> new.phone1 AND
+      -- old.phone2 <=> new.phone2 AND
+      -- old.email <=> new.email AND
+      -- old.patient_autofill <=> new.patient_autofill AND
       -- old.user_def1 <=> new.user_def1 AND
       -- old.user_def2 <=> new.user_def2 AND
       -- old.user_def3 <=> new.user_def3 AND
       -- old.user_def4 <=> new.user_def4 AND
-      old.patient_address1 <=> new.patient_address1 AND
-      old.patient_address2 <=> new.patient_address2 AND
-      old.patient_city <=> new.patient_city AND
-      old.patient_state <=> new.patient_state AND
-      old.patient_zip <=> new.patient_zip AND
+      -- old.patient_address1 <=> new.patient_address1 AND
+      -- old.patient_address2 <=> new.patient_address2 AND
+      -- old.patient_city <=> new.patient_city AND
+      -- old.patient_state <=> new.patient_state AND
+      -- old.patient_zip <=> new.patient_zip AND
       -- old.total_fills <=> new.total_fills AND
-      old.patient_status <=> new.patient_status AND
-      old.lang <=> new.lang
+      -- old.patient_status <=> new.patient_status AND
+      -- old.lang <=> new.lang
       -- old.patient_date_added <=> new.patient_date_added AND
       -- old.patient_date_changed <=> new.patient_date_changed
     WHERE
       new.patient_id_grx IS NULL
   ");
 
-  return ['upserts' => $upserts, 'removals' => $removals];
+  return ['upserts' => $upserts[0], 'removals' => $removals[0]];
 }
