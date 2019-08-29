@@ -94,7 +94,7 @@ function changes_to_patients() {
   //new.patient_id_grx,	new.first_name,	new.last_name, new.birth_date, new.phone1, new.phone2, new.email,	new.patient_autofill,	new.user_def1, new.user_def2, new.user_def3, new.user_def4, new.address1, new.address2, new.city, new.state, new.zip, new.total_fills, new.pat_status, new.lang, new.pat_add_date
   $mysql->run("
     INSERT INTO gp_patients
-    SELECT *
+    SELECT new.*
     FROM
       gp_patients_grx as new
     LEFT JOIN gp_patients as old ON
