@@ -36,8 +36,8 @@ function import_grx_patients() {
       (SELECT COUNT(*) FROM cprx WHERE cprx.pat_id = pat.pat_id AND orig_disp_date < GETDATE() - 4) as total_fills, --potential to SUM(is_refill) but seems that GCNs churn enough that this is not accurate
       pat.pat_status_cn as patient_status,
       ISNULL(primary_lang_cd, 'EN') as lang,
-      CAST(pat.add_date as smalldatetime) as patient_date_added,
-      CAST(pat.chg_date as smalldatetime) as patient_date_changed
+      CONVERT(varchar, pat.add_date, 20) as patient_date_added,
+      CONVERT(varchar, pat.chg_date, 20) as patient_date_changed
     FROM cppat pat (nolock)
     LEFT OUTER JOIN cppat_phone pp1 (nolock) ON pat.pat_id = pp1.pat_id AND (pp1.phone_type_cn = 6 OR pp1.phone_type_cn IS NULL)
     LEFT OUTER JOIN cppat_phone pp2 (nolock) ON pat.pat_id = pp2.pat_id AND (pp2.phone_type_cn = 9 OR pp2.phone_type_cn IS NULL)

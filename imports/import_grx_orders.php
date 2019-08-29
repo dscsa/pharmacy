@@ -23,10 +23,10 @@ function import_grx_orders() {
       ship_state_cd as order_state,
       LEFT(ship_zip,3) as order_zip,
       csom_ship.tracking_code as tracking_number,
-      CAST(add_date as smalldatetime) as order_date_added,
-      CAST(csom.ship_date as smalldatetime) as order_date_dispensed,
-      CAST(ship.ship_date as smalldatetime) as order_date_shipped,
-      CAST(chg_date as smalldatetime) as order_date_changed
+      CONVERT(varchar, add_date, 20) as order_date_added,
+      CONVERT(varchar, csom.ship_date, 20) as order_date_dispensed,
+      CONVERT(varchar, ship.ship_date, 20) as order_date_shipped,
+      CONVERT(varchar, chg_date, 20) as order_date_changed
     FROM csom
       LEFT JOIN cp_acct ON cp_acct.id = csom.acct_id
       LEFT JOIN csct_code as ostate on (ostate.ct_id = 5000 and (isnull(csom.order_state_cn,0) = ostate.code_num))
