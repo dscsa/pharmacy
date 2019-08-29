@@ -102,22 +102,22 @@ function changes_to_orders() {
     LEFT JOIN gp_orders_grx as new ON
       old.invoice_number = new.invoice_number
     SET
-      invoice_number = new.invoice_number,
-      patient_id_grx = new.patient_id_grx,
-      order_source = new.order_source,
-      order_stage = new.order_stage,
-      order_status = new.order_status,
-      invoice_doc_id = new.invoice_doc_id,
-      order_address1 = new.order_address1,
-      order_address2 = new.order_address2,
-      order_city = new.order_city,
-      order_state = new.order_state,
-      order_zip = new.order_zip,
-      tracking_number = new.tracking_number,
-      order_date_added = new.order_date_added,
-      order_date_dispensed = new.order_date_dispensed,
-      order_date_shipped = new.order_date_shipped,
-      order_date_changed = new.order_date_changed
+      old.invoice_number = new.invoice_number,
+      old.patient_id_grx = new.patient_id_grx,
+      old.order_source = new.order_source,
+      old.order_stage = new.order_stage,
+      old.order_status = new.order_status,
+      old.invoice_doc_id = new.invoice_doc_id,
+      old.order_address1 = new.order_address1,
+      old.order_address2 = new.order_address2,
+      old.order_city = new.order_city,
+      old.order_state = new.order_state,
+      old.order_zip = new.order_zip,
+      old.tracking_number = new.tracking_number,
+      old.order_date_added = new.order_date_added,
+      old.order_date_dispensed = new.order_date_dispensed,
+      old.order_date_shipped = new.order_date_shipped,
+      old.order_date_changed = new.order_date_changed
     WHERE
       NOT old.patient_id_grx <=> new.patient_id_grx OR
       NOT old.order_source <=> new.order_source OR
