@@ -70,7 +70,7 @@ function changes_to_patients() {
   //Do Upserts
   $mysql->run("
     INSERT INTO gp_patients (guardian_id,	first_name,	last_name,	birth_date,	phone1,	phone2,	email,	pat_autofill,	user_def1,	user_def2,	user_def3,	user_def4,	address1,	address2,	city,	state,	zip,	total_fills,	pat_status,	lang,	pat_add_date)
-    SELECT guardian_id,	first_name,	last_name,	birth_date,	phone1,	phone2,	email,	pat_autofill,	user_def1,	user_def2,	user_def3,	user_def4,	address1,	address2,	city,	state,	zip,	total_fills,	pat_status,	lang,	pat_add_date
+    SELECT staging.guardian_id,	staging.first_name,	staging.last_name, staging.birth_date, staging.phone1, staging.phone2, staging.email,	staging.pat_autofill,	staging.user_def1, staging.user_def2, staging.user_def3, staging.user_def4, staging.address1, staging.address2, staging.city, staging.state, staging.zip, staging.total_fills, staging.pat_status, staging.lang, staging.pat_add_date
     FROM
       gp_patients_grx as staging
     RIGHT JOIN gp_patients as pats ON
