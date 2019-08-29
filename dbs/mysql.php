@@ -32,7 +32,12 @@ class Mysql {
 
     function run($sql, $debug = false) {
 
-        $stmt = mysql_query($sql, $this->connection);
+        try {
+          $stmt = mysql_query($sql, $this->connection);
+        }
+        catch (Exception $e) {
+          $this->_emailError('SQL Error', $e->getMessage(), $sql, $debug);
+        }
 
         if ( ! is_resource($stmt) AND ($stmt !== true OR $debug )) {
 
@@ -73,14 +78,14 @@ class Mysql {
     function _getRows($stmt, $sql, $debug) {
 
       if ( ! is_resource($stmt) OR ! mysql_num_rows($stmt)) {
-        $this->_emailError('No Rows', $stmt, $sql, $debug);
+        if ($debug) $this->_emailError('No Rows', $stmt, $sql, $debug);
         return [];
       }
 
       $rows = [];
       while ($row = mysql_fetch_array($stmt, MYSQL_ASSOC)) {
 
-          if ( ! empty($row['Message'])) {
+          if ($debug AND ! empty($row['Message'])) {
             $this->_emailError('dbMessage', $row, $stmt, $sql, $data, $debug);
           }
 

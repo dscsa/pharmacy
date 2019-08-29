@@ -32,13 +32,18 @@ class Mssql {
 
     function run($sql, $debug = false) {
 
-        $stmt = mssql_query($sql, $this->connection);
+        try {
+          $stmt = mssql_query($sql, $this->connection);
+        }
+        catch (Exception $e) {
+          $this->_emailError('SQL Error', $e->getMessage(), $sql, $debug);
+        }
 
         if ( ! is_resource($stmt) AND ($stmt !== true OR $debug )) {
 
           $message = mssql_get_last_message();
 
-          $this->_emailError( $stmt === true ? 'dbQuery' : 'No Resource', $stmt, $message, $sql, $resultIndex, $all_rows);
+          $this->_emailError( $stmt === true ? 'dbQuery' : 'No Resource', $stmt, $message, $sql, $debug);
 
           //Transaction (Process ID 67) was deadlocked on lock resources with another process and has been chosen as the deadlock victim. Rerun the transaction.
           if (strpos($message, 'Rerun the transaction') !== false)
@@ -70,14 +75,14 @@ class Mssql {
     function _getRows($stmt, $sql, $debug) {
 
       if ( ! is_resource($stmt) OR ! mssql_num_rows($stmt)) {
-        $this->_emailError('No Rows', $stmt, $sql, $debug);
+        if ($debug) $this->_emailError('No Rows', $stmt, $sql, $debug);
         return [];
       }
 
       $rows = [];
       while ($row = mssql_fetch_array($stmt, MSSQL_ASSOC)) {
 
-          if ( ! empty($row['Message'])) {
+          if ($debug AND ! empty($row['Message'])) {
             $this->_emailError('dbMessage', $row, $stmt, $sql, $data, $debug);
           }
 
