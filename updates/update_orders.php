@@ -8,7 +8,7 @@ function update_orders() {
 
   mail('adam@sirum.org', "CRON: update_orders", print_r($changes, true));
 
-  if ( ! count($changes['upserts']+$changes['removals'])) return;
+  if ( ! count($changes['deleted']+$changes['created']+$changes['updated'])) return;
 
   //TODO Differentiate between actual order that are to be sent out and
   // - Ones that were faxed/called in but not due yet

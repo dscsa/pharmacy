@@ -5,8 +5,33 @@ require_once 'dbs/mysql_webform.php';
 function changes_to_orders() {
   $mysql = new Mysql_Webform();
 
-  //Get Upserts (Updates & Inserts)
-  $upserts = $mysql->run("
+
+  //Get Removals
+  $deleted = $mysql->run("
+    SELECT
+      new.*,
+    FROM
+      gp_orders_grx as new
+    RIGHT JOIN gp_orders as old ON
+      old.invoice_number = new.invoice_number
+    WHERE
+      new.invoice_number IS NULL
+  ");
+
+  //Get Inserts
+  $created = $mysql->run("
+    SELECT
+      new.*,
+    FROM
+      gp_orders_grx as new
+    LEFT JOIN gp_orders as old ON
+      old.invoice_number = new.invoice_number
+    WHERE
+      old.invoice_number IS NULL
+  ");
+
+  //Get Updates
+  $updated = $mysql->run("
     SELECT
       new.*,
       old.invoice_number as old_invoice_number,
@@ -28,77 +53,55 @@ function changes_to_orders() {
     FROM
       gp_orders_grx as new
     LEFT JOIN gp_orders as old ON
-      old.invoice_number <=> new.invoice_number AND
-      old.patient_id_grx <=> new.patient_id_grx AND
-      old.order_source <=> new.order_source AND
-      old.order_stage <=> new.order_stage AND
-      old.order_status <=> new.order_status AND
-      old.invoice_doc_id <=> new.invoice_doc_id AND
-      old.order_address1 <=> new.order_address1 AND
-      old.order_address2 <=> new.order_address2 AND
-      old.order_city <=> new.order_city AND
-      old.order_state <=> new.order_state AND
-      old.order_zip <=> new.order_zip AND
-      old.tracking_number <=> new.tracking_number AND
-      -- old.order_date_added <=> new.order_date_added AND
-      old.order_date_dispensed <=> new.order_date_dispensed AND
-      old.order_date_shipped <=> new.order_date_shipped
-      -- old.order_date_changed <=> new.order_date_changed
+      old.invoice_number = new.invoice_number
     WHERE
-      old.invoice_number IS NULL
+      NOT old.patient_id_grx <=> new.patient_id_grx OR
+      NOT old.order_source <=> new.order_source OR
+      NOT old.order_stage <=> new.order_stage OR
+      NOT old.order_status <=> new.order_status OR
+      NOT old.invoice_doc_id <=> new.invoice_doc_id OR
+      NOT old.order_address1 <=> new.order_address1 OR
+      NOT old.order_address2 <=> new.order_address2 OR
+      NOT old.order_city <=> new.order_city OR
+      NOT old.order_state <=> new.order_state OR
+      NOT old.order_zip <=> new.order_zip OR
+      NOT old.tracking_number <=> new.tracking_number OR
+      NOT old.order_date_added <=> new.order_date_added OR
+      NOT old.order_date_dispensed <=> new.order_date_dispensed OR
+      NOT old.order_date_shipped <=> new.order_date_shipped OR
+      NOT old.order_date_changed <=> new.order_date_changed
   ");
 
-  //Get Removals
-  $removals = $mysql->run("
-    SELECT old.*
+  //Do Removals
+  $mysql->run("
+    DELETE
+      old
     FROM
       gp_orders_grx as new
     RIGHT JOIN gp_orders as old ON
-      old.invoice_number <=> new.invoice_number AND
-      old.patient_id_grx <=> new.patient_id_grx
-      -- old.order_source <=> new.order_source AND
-      -- old.order_stage <=> new.order_stage AND
-      -- old.order_status <=> new.order_status AND
-      -- old.invoice_doc_id <=> new.invoice_doc_id AND
-      -- old.order_address1 <=> new.order_address1 AND
-      -- old.order_address2 <=> new.order_address2 AND
-      -- old.order_city <=> new.order_city AND
-      -- old.order_state <=> new.order_state AND
-      -- old.order_zip <=> new.order_zip AND
-      -- old.tracking_number <=> new.tracking_number AND
-      -- old.order_date_added <=> new.order_date_added AND
-      -- old.order_date_dispensed <=> new.order_date_dispensed AND
-      -- old.order_date_shipped <=> new.order_date_shipped AND
-      -- old.order_date_changed <=> new.order_date_changed
+      old.invoice_number = new.invoice_number
     WHERE
       new.invoice_number IS NULL
   ");
 
-  //Do Upserts
+  //Do Inserts
   $mysql->run("
     INSERT INTO gp_orders
     SELECT new.*
-    FROM gp_orders_grx as new
+    FROM
+      gp_orders_grx as new
     LEFT JOIN gp_orders as old ON
-      old.invoice_number <=> new.invoice_number AND
-      old.patient_id_grx <=> new.patient_id_grx AND
-      old.order_source <=> new.order_source AND
-      old.order_stage <=> new.order_stage AND
-      old.order_status <=> new.order_status AND
-      old.invoice_doc_id <=> new.invoice_doc_id AND
-      old.order_address1 <=> new.order_address1 AND
-      old.order_address2 <=> new.order_address2 AND
-      old.order_city <=> new.order_city AND
-      old.order_state <=> new.order_state AND
-      old.order_zip <=> new.order_zip AND
-      old.tracking_number <=> new.tracking_number AND
-      -- old.order_date_added <=> new.order_date_added AND
-      old.order_date_dispensed <=> new.order_date_dispensed AND
-      old.order_date_shipped <=> new.order_date_shipped
-      -- old.order_date_changed <=> new.order_date_changed
+      old.invoice_number = new.invoice_number
     WHERE
       old.invoice_number IS NULL
-    ON DUPLICATE KEY UPDATE
+  ");
+
+  //Do Updates
+  $mysql->run("
+    UPDATE gp_orders as old
+    LEFT JOIN gp_orders_grx as new ON
+      old.invoice_number = new.invoice_number
+    SET
       invoice_number = new.invoice_number,
       patient_id_grx = new.patient_id_grx,
       order_source = new.order_source,
@@ -111,36 +114,27 @@ function changes_to_orders() {
       order_state = new.order_state,
       order_zip = new.order_zip,
       tracking_number = new.tracking_number,
-      -- order_date_added = new.order_date_added,
+      order_date_added = new.order_date_added,
       order_date_dispensed = new.order_date_dispensed,
       order_date_shipped = new.order_date_shipped
-      -- order_date_changed = new.order_date_changed
-  ");
-
-  //Do Removals
-  $mysql->run("
-    DELETE old
-    FROM gp_orders_grx as new
-    RIGHT JOIN gp_orders as old ON
-      old.invoice_number <=> new.invoice_number AND
-      old.patient_id_grx <=> new.patient_id_grx
-      -- old.order_source <=> new.order_source AND
-      -- old.order_stage <=> new.order_stage AND
-      -- old.order_status <=> new.order_status AND
-      -- old.invoice_doc_id <=> new.invoice_doc_id AND
-      -- old.order_address1 <=> new.order_address1 AND
-      -- old.order_address2 <=> new.order_address2 AND
-      -- old.order_city <=> new.order_city AND
-      -- old.order_state <=> new.order_state AND
-      -- old.order_zip <=> new.order_zip AND
-      -- old.tracking_number <=> new.tracking_number AND
-      -- old.order_date_added <=> new.order_date_added AND
-      -- old.order_date_dispensed <=> new.order_date_dispensed AND
-      -- old.order_date_shipped <=> new.order_date_shipped AND
-      -- old.order_date_changed <=> new.order_date_changed
+      order_date_changed = new.order_date_changed
     WHERE
-      new.invoice_number IS NULL
+      NOT old.patient_id_grx <=> new.patient_id_grx OR
+      NOT old.order_source <=> new.order_source OR
+      NOT old.order_stage <=> new.order_stage OR
+      NOT old.order_status <=> new.order_status OR
+      NOT old.invoice_doc_id <=> new.invoice_doc_id OR
+      NOT old.order_address1 <=> new.order_address1 OR
+      NOT old.order_address2 <=> new.order_address2 OR
+      NOT old.order_city <=> new.order_city OR
+      NOT old.order_state <=> new.order_state OR
+      NOT old.order_zip <=> new.order_zip OR
+      NOT old.tracking_number <=> new.tracking_number OR
+      NOT old.order_date_added <=> new.order_date_added OR
+      NOT old.order_date_dispensed <=> new.order_date_dispensed OR
+      NOT old.order_date_shipped <=> new.order_date_shipped OR
+      NOT old.order_date_changed <=> new.order_date_changed
   ");
 
-  return ['upserts' => $upserts[0], 'removals' => $removals[0]];
+  return ['deleted' => $deleted[0], 'created' => $created[0], 'updated' => $updated[0]];
 }
