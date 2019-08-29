@@ -6,7 +6,7 @@ function update_order_items() {
 
   $changes = changes_to_order_items();
 
-  $message = "CRON: update_order_items", print_r($changes, true);
+  $message = "CRON: update_order_items ".print_r($changes, true);
 
   echo $message;
 

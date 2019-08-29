@@ -5,7 +5,7 @@ function update_rxs_single() {
 
   $changes = changes_to_rxs_single();
 
-  $message = "CRON: update_rxs_single", print_r($changes, true);
+  $message = "CRON: update_rxs_single ".print_r($changes, true);
 
   echo $message;
 

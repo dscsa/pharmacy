@@ -6,7 +6,7 @@ function update_patients() {
 
   $changes = changes_to_patients();
 
-  $message = "CRON: update_patients", print_r($changes, true);
+  $message = "CRON: update_patients ".print_r($changes, true);
 
   echo $message;
 
