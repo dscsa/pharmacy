@@ -23,7 +23,7 @@ function changes_to_orders() {
       old.tracking_number as old_tracking_number,
       old.order_date_added as old_order_date_added,
       old.order_date_dispensed as old_order_date_dispensed,
-      old.order_date_shipped as old_order_date_shipped
+      old.order_date_shipped as old_order_date_shipped,
       old.order_date_changed as old_order_date_changed
     FROM
       gp_orders_grx as new
