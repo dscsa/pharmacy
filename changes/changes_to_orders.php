@@ -10,7 +10,7 @@ function changes_to_orders() {
     NOT old.order_source <=> new.order_source OR
     NOT old.order_stage <=> new.order_stage OR
     NOT old.order_status <=> new.order_status OR
-    -- Not in GRX NOT old.invoice_doc_id <=> new.invoice_doc_id OR
+    -- Not in GRX -- NOT old.invoice_doc_id <=> new.invoice_doc_id OR
     NOT old.order_address1 <=> new.order_address1 OR
     NOT old.order_address2 <=> new.order_address2 OR
     NOT old.order_city <=> new.order_city OR
@@ -51,22 +51,7 @@ function changes_to_orders() {
   $updated = $mysql->run("
     SELECT
       new.*,
-      old.invoice_number as old_invoice_number,
-      old.patient_id_grx as old_patient_id_grx,
-      old.order_source as old_order_source,
-      old.order_stage as old_order_stage,
-      old.order_status as old_order_status,
-      old.invoice_doc_id as old_invoice_doc_id,
-      old.order_address1 as old_order_address1,
-      old.order_address2 as old_order_address2,
-      old.order_city as old_order_city,
-      old.order_state as old_order_state,
-      old.order_zip as old_order_zip,
-      old.tracking_number as old_tracking_number,
-      old.order_date_added as old_order_date_added,
-      old.order_date_dispensed as old_order_date_dispensed,
-      old.order_date_shipped as old_order_date_shipped,
-      old.order_date_changed as old_order_date_changed
+      {where_to_select_clause($where_changes)}
     FROM
       gp_orders_grx as new
     JOIN gp_orders as old ON
