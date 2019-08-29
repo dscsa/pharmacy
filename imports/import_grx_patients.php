@@ -2,7 +2,7 @@
 
 require_once 'dbs/mssql_grx.php';
 require_once 'dbs/mysql_webform.php';
-require_once 'helpers/replace_empty_with_null.php';
+require_once 'helpers/escape_vals.php';
 
 function import_grx_patients() {
 
@@ -33,7 +33,7 @@ function import_grx_patients() {
       a.state_cd as state,
       a.zip as zip,
 
-      (SELECT COUNT(*) FROM cprx WHERE cprx.pat_id = pat.pat_id AND orig_disp_date < GETDATE() - 4) as is_current, --potential to SUM(is_refill) but seems that GCNs churn enough that this is not accurate
+      (SELECT COUNT(*) FROM cprx WHERE cprx.pat_id = pat.pat_id AND orig_disp_date < GETDATE() - 4) as total_fills, --potential to SUM(is_refill) but seems that GCNs churn enough that this is not accurate
       pat.pat_status_cn as pat_status,
       primary_lang_cd as lang,
       pat.add_date as pat_add_date
@@ -48,20 +48,7 @@ function import_grx_patients() {
   ");
 
   $keys = array_keys($patients[0]);
-  $vals = replace_empty_with_null($patients, [
-    'phone2',
-    'email',
-    'pat_autofill',
-    'user_def1',
-    'user_def2',
-    'user_def3',
-    'user_def4',
-    'address1',
-    'address2',
-    'city',
-    'state',
-    'zip'
-  ]);
+  $vals = escape_vals($patients);
 
   //Replace Staging Table with New Data
   $mysql->run('TRUNCATE TABLE gp_patients_grx');

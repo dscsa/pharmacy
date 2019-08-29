@@ -2,7 +2,7 @@
 
 require_once 'dbs/mssql_grx.php';
 require_once 'dbs/mysql_webform.php';
-require_once 'helpers/replace_empty_with_null.php';
+require_once 'helpers/escape_vals.php';
 
 function import_grx_rxs_single() {
 
@@ -57,14 +57,7 @@ function import_grx_rxs_single() {
   ");
 
   $keys = array_keys($rxs[0]);
-  $vals = replace_empty_with_null($rxs, [
-    'autofill_date',
-    'expire_date',
-    'oldest_script_high_refills',
-    'oldest_script_with_refills',
-    'oldest_active_script',
-    'newest_script'
-  ]);
+  $vals = escape_vals($rxs);
 
   //Replace Staging Table with New Data
   $mysql->run('TRUNCATE TABLE gp_rxs_single_grx');

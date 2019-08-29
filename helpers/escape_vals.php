@@ -1,6 +1,6 @@
 <?php
 
-function replace_empty_with_null($rows) {
+function escape_vals($rows) {
 
   //https://stackoverflow.com/questions/16710800/implode-data-from-a-multi-dimensional-array
   $results = [];

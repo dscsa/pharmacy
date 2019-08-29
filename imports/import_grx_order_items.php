@@ -2,7 +2,7 @@
 
 require_once 'dbs/mssql_grx.php';
 require_once 'dbs/mysql_webform.php';
-require_once 'helpers/replace_empty_with_null.php';
+require_once 'helpers/escape_vals.php';
 
 function import_grx_order_items() {
 
@@ -29,14 +29,7 @@ function import_grx_order_items() {
   ");
 
   $keys = array_keys($order_items[0]);
-  $vals = replace_empty_with_null($order_items, [
-    'autofill_date',
-    'expire_date',
-    'oldest_script_high_refills',
-    'oldest_script_with_refills',
-    'oldest_active_script',
-    'newest_script'
-  ]);
+  $vals = escape_vals($order_items);
 
   //Replace Staging Table with New Data
   $mysql->run('TRUNCATE TABLE gp_order_items_grx');

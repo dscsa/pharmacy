@@ -2,7 +2,7 @@
 
 require_once 'dbs/mssql_grx.php';
 require_once 'dbs/mysql_webform.php';
-require_once 'helpers/replace_empty_with_null.php';
+require_once 'helpers/escape_vals.php';
 
 function import_salesforce_patients() {
 
@@ -48,20 +48,7 @@ function import_salesforce_patients() {
   ");
 
   $keys = array_keys($patients[0]);
-  $vals = replace_empty_with_null($patients, [
-    'phone2',
-    'email',
-    'pat_autofill',
-    'user_def1',
-    'user_def2',
-    'user_def3',
-    'user_def4',
-    'address1',
-    'address2',
-    'city',
-    'state',
-    'zip'
-  ]);
+  $vals = escape_vals($patients);
 
   //Replace Staging Table with New Data
   $mysql->run('TRUNCATE TABLE gp_patients_grx');

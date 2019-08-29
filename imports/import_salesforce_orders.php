@@ -2,7 +2,7 @@
 
 require_once 'dbs/mssql_grx.php';
 require_once 'dbs/mysql_webform.php';
-require_once 'helpers/replace_empty_with_null.php';
+require_once 'helpers/escape_vals.php';
 
 function import_salesforce_orders() {
 
@@ -29,11 +29,7 @@ function import_salesforce_orders() {
   ");
 
   $keys = array_keys($orders[0]);
-  $vals = replace_empty_with_null($orders, [
-    'dispensed_date',
-    'ship_date',
-    'tracking'
-  ]);
+  $vals = escape_vals($orders);
 
   //Replace Staging Table with New Data
   $mysql->run('TRUNCATE TABLE gp_orders_grx');
