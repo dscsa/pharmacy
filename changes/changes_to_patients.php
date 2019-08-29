@@ -2,7 +2,7 @@
 
 require_once 'dbs/mysql_webform.php';
 
-function get_changes_patients() {
+function changes_to_patients() {
   $mysql = new Mysql_Webform();
 
   //Get Upserts (Updates & Inserts)

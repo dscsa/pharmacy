@@ -2,7 +2,7 @@
 
 require_once 'dbs/mysql_webform.php';
 
-function get_changes_rxs_single() {
+function changes_to_rxs_single() {
   $mysql = new Mysql_Webform();
 
   $upserts = $mysql->run("

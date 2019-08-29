@@ -2,7 +2,7 @@
 
 require_once 'dbs/mysql_webform.php';
 
-function get_changes_orders() {
+function changes_to_orders() {
   $mysql = new Mysql_Webform();
 
   //Get Upserts (Updates & Inserts)
