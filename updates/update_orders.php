@@ -10,7 +10,14 @@ function update_orders() {
 
   if ( ! count($changes['upserts']+$changes['removals'])) return;
 
+  //TODO Differentiate between actual order that are to be sent out and
+  // - Ones that were faxed/called in but not due yet
+  // - Ones that were surescripted in but not due yet
+
   //TODO Upsert WooCommerce Order Status, Order Tracking
 
   //TODO Upsert Salseforce Order Status, Order Tracking
+
+  //TODO Remove Delete Orders
+
 }

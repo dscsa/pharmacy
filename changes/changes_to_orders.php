@@ -7,75 +7,123 @@ function changes_to_orders() {
 
   //Get Upserts (Updates & Inserts)
   $upserts = $mysql->run("
-    SELECT staging.*
+    SELECT new.*
     FROM
-      gp_rxs_grx as staging
-    LEFT JOIN gp_rxs as rxs ON
-      rxs.pat_id <=> staging.pat_id AND
-      rxs.gcn_seqno <=> staging.gcn_seqno AND
-      rxs.refills_total <=> staging.refills_total AND
-      rxs.rx_autofill <=> staging.rx_autofill AND
-      rxs.autofill_date <=> staging.autofill_date
+      gp_orders_grx as new
+    LEFT JOIN gp_orders as old ON
+      old.invoice_number <=> new.invoice_number,
+      old.patient_id_grx <=> new.patient_id_grx,
+      old.order_source <=> new.order_source,
+      old.order_stage <=> new.order_stage,
+      old.order_status <=> new.order_status,
+      old.invoice_doc_id <=> new.invoice_doc_id,
+      old.order_address1 <=> new.order_address1,
+      old.order_address2 <=> new.order_address2,
+      old.order_city <=> new.order_city,
+      old.order_state <=> new.order_state,
+      old.order_zip <=> new.order_zip,
+      old.tracking_number <=> new.tracking_number,
+      -- old.order_date_added <=> new.order_date_added,
+      old.order_date_dispensed <=> new.order_date_dispensed,
+      old.order_date_shipped <=> new.order_date_shipped,
+      -- old.order_date_changed <=> new.order_date_changed
     WHERE
-      rxs.pat_id IS NULL
+      old.invoice_number IS NULL
   ");
 
   //Get Removals
   $removals = $mysql->run("
-    SELECT rxs.*
+    SELECT old.*
     FROM
-      gp_rxs_grx as staging
-    RIGHT JOIN gp_rxs as rxs ON
-      rxs.pat_id <=> staging.pat_id AND
-      rxs.gcn_seqno <=> staging.gcn_seqno AND
-      rxs.refills_total <=> staging.refills_total AND
-      rxs.rx_autofill <=> staging.rx_autofill AND
-      rxs.autofill_date <=> staging.autofill_date
+      gp_orders_grx as new
+    RIGHT JOIN gp_orders as old ON
+      old.invoice_number <=> new.invoice_number,
+      old.patient_id_grx <=> new.patient_id_grx,
+      old.order_source <=> new.order_source,
+      old.order_stage <=> new.order_stage,
+      old.order_status <=> new.order_status,
+      old.invoice_doc_id <=> new.invoice_doc_id,
+      old.order_address1 <=> new.order_address1,
+      old.order_address2 <=> new.order_address2,
+      old.order_city <=> new.order_city,
+      old.order_state <=> new.order_state,
+      old.order_zip <=> new.order_zip,
+      old.tracking_number <=> new.tracking_number,
+      -- old.order_date_added <=> new.order_date_added,
+      old.order_date_dispensed <=> new.order_date_dispensed,
+      old.order_date_shipped <=> new.order_date_shipped,
+      -- old.order_date_changed <=> new.order_date_changed
     WHERE
-      staging.pat_id IS NULL
+      new.invoice_number IS NULL
   ");
 
   //Do Upserts
   $mysql->run("
-    INSERT INTO gp_rxs (pat_id, refills_total, gcn_seqno, drug_name, cprx_drug_name, rx_autofill, autofill_date, last_rxdisp_id, expire_date, oldest_script_high_refills, oldest_script_with_refills, oldest_active_script, newest_script)
-    SELECT staging.pat_id, staging.refills_total, staging.gcn_seqno, staging.drug_name, staging.cprx_drug_name, staging.rx_autofill, staging.autofill_date, staging.last_rxdisp_id, staging.expire_date, staging.oldest_script_high_refills, staging.oldest_script_with_refills, staging.oldest_active_script, staging.newest_script
-    FROM gp_rxs_grx as staging
-    LEFT JOIN gp_rxs as rxs ON
-      rxs.pat_id <=> staging.pat_id AND
-      rxs.gcn_seqno <=> staging.gcn_seqno AND
-      rxs.refills_total <=> staging.refills_total AND
-      rxs.rx_autofill <=> staging.rx_autofill AND
-      rxs.autofill_date <=> staging.autofill_date
+    INSERT INTO gp_orders
+    SELECT *
+    FROM gp_orders_grx as new
+    LEFT JOIN gp_orders as old ON
+      old.invoice_number <=> new.invoice_number,
+      old.patient_id_grx <=> new.patient_id_grx,
+      old.order_source <=> new.order_source,
+      old.order_stage <=> new.order_stage,
+      old.order_status <=> new.order_status,
+      old.invoice_doc_id <=> new.invoice_doc_id,
+      old.order_address1 <=> new.order_address1,
+      old.order_address2 <=> new.order_address2,
+      old.order_city <=> new.order_city,
+      old.order_state <=> new.order_state,
+      old.order_zip <=> new.order_zip,
+      old.tracking_number <=> new.tracking_number,
+      -- old.order_date_added <=> new.order_date_added,
+      old.order_date_dispensed <=> new.order_date_dispensed,
+      old.order_date_shipped <=> new.order_date_shipped,
+      -- old.order_date_changed <=> new.order_date_changed
     WHERE
-      rxs.pat_id IS NULL
+      old.invoice_number IS NULL
     ON DUPLICATE KEY UPDATE
-      pat_id = staging.pat_id,
-      refills_total = staging.refills_total,
-      gcn_seqno = staging.gcn_seqno,
-      drug_name = staging.drug_name,
-      cprx_drug_name = staging.cprx_drug_name,
-      rx_autofill = staging.rx_autofill,
-      autofill_date = staging.autofill_date,
-      last_rxdisp_id = staging.last_rxdisp_id,
-      expire_date = staging.expire_date,
-      oldest_script_high_refills = staging.oldest_script_high_refills,
-      oldest_script_with_refills = staging.oldest_script_with_refills,
-      oldest_active_script = staging.oldest_active_script,
-      newest_script = staging.newest_script
+      invoice_number = new.invoice_number,
+      patient_id_grx = new.patient_id_grx,
+      order_source = new.order_source,
+      order_stage = new.order_stage,
+      order_status = new.order_status,
+      invoice_doc_id = new.invoice_doc_id,
+      order_address1 = new.order_address1,
+      order_address2 = new.order_address2,
+      order_city = new.order_city,
+      order_state = new.order_state,
+      order_zip = new.order_zip,
+      tracking_number = new.tracking_number,
+      -- order_date_added = new.order_date_added,
+      order_date_dispensed = new.order_date_dispensed,
+      order_date_shipped = new.order_date_shipped,
+      -- order_date_changed = new.order_date_changed
   ");
 
   //Do Removals
   $mysql->run("
-    DELETE rxs
-    FROM gp_rxs_grx as staging
-    RIGHT JOIN gp_rxs as rxs ON
-      rxs.pat_id <=> staging.pat_id AND
-      rxs.gcn_seqno <=> staging.gcn_seqno AND
-      rxs.refills_total <=> staging.refills_total AND
-      rxs.rx_autofill <=> staging.rx_autofill AND
-      rxs.autofill_date <=> staging.autofill_date
+    DELETE gp_orders
+    FROM gp_orders_grx as new
+    RIGHT JOIN gp_orders as old ON
+      old.invoice_number <=> new.invoice_number,
+      old.patient_id_grx <=> new.patient_id_grx,
+      old.order_source <=> new.order_source,
+      old.order_stage <=> new.order_stage,
+      old.order_status <=> new.order_status,
+      old.invoice_doc_id <=> new.invoice_doc_id,
+      old.order_address1 <=> new.order_address1,
+      old.order_address2 <=> new.order_address2,
+      old.order_city <=> new.order_city,
+      old.order_state <=> new.order_state,
+      old.order_zip <=> new.order_zip,
+      old.tracking_number <=> new.tracking_number,
+      -- old.order_date_added <=> new.order_date_added,
+      old.order_date_dispensed <=> new.order_date_dispensed,
+      old.order_date_shipped <=> new.order_date_shipped,
+      -- old.order_date_changed <=> new.order_date_changed
     WHERE
-      staging.pat_id IS NULL
+      new.invoice_number IS NULL
   ");
-return ['upserts' => $upserts, 'removals' => $removals];
+
+  return ['upserts' => $upserts, 'removals' => $removals];
 }
