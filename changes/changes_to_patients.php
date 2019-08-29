@@ -43,7 +43,7 @@ function changes_to_patients() {
     FROM
       gp_patients_grx as new
     RIGHT JOIN gp_patients as old ON
-      old.patient_id_grx <=> new.patient_id_grx AND
+      old.patient_id_grx <=> new.patient_id_grx
       -- old.first_name <=> new.first_name AND
       -- old.last_name <=> new.last_name AND
       -- old.birth_date <=> new.birth_date AND
@@ -62,7 +62,7 @@ function changes_to_patients() {
       -- old.patient_zip <=> new.patient_zip AND
       -- old.total_fills <=> new.total_fills AND
       -- old.patient_status <=> new.patient_status AND
-      -- old.lang <=> new.lang
+      -- old.lang <=> new.lang AND
       -- old.patient_date_added <=> new.patient_date_added AND
       -- old.patient_date_changed <=> new.patient_date_changed
     WHERE
@@ -131,7 +131,7 @@ function changes_to_patients() {
     DELETE old
     FROM gp_patients_grx as new
     RIGHT JOIN gp_patients as old ON
-      old.patient_id_grx <=> new.patient_id_grx AND
+      old.patient_id_grx <=> new.patient_id_grx
       -- old.first_name <=> new.first_name AND
       -- old.last_name <=> new.last_name AND
       -- old.birth_date <=> new.birth_date AND
@@ -150,7 +150,7 @@ function changes_to_patients() {
       -- old.patient_zip <=> new.patient_zip AND
       -- old.total_fills <=> new.total_fills AND
       -- old.patient_status <=> new.patient_status AND
-      -- old.lang <=> new.lang
+      -- old.lang <=> new.lang AND
       -- old.patient_date_added <=> new.patient_date_added AND
       -- old.patient_date_changed <=> new.patient_date_changed
     WHERE

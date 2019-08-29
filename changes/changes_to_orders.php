@@ -38,7 +38,7 @@ function changes_to_orders() {
       gp_orders_grx as new
     RIGHT JOIN gp_orders as old ON
       old.invoice_number <=> new.invoice_number AND
-      old.patient_id_grx <=> new.patient_id_grx AND
+      old.patient_id_grx <=> new.patient_id_grx
       -- old.order_source <=> new.order_source AND
       -- old.order_stage <=> new.order_stage AND
       -- old.order_status <=> new.order_status AND
@@ -51,7 +51,7 @@ function changes_to_orders() {
       -- old.tracking_number <=> new.tracking_number AND
       -- old.order_date_added <=> new.order_date_added AND
       -- old.order_date_dispensed <=> new.order_date_dispensed AND
-      -- old.order_date_shipped <=> new.order_date_shipped
+      -- old.order_date_shipped <=> new.order_date_shipped AND
       -- old.order_date_changed <=> new.order_date_changed
     WHERE
       new.invoice_number IS NULL
@@ -106,7 +106,7 @@ function changes_to_orders() {
     FROM gp_orders_grx as new
     RIGHT JOIN gp_orders as old ON
       old.invoice_number <=> new.invoice_number AND
-      old.patient_id_grx <=> new.patient_id_grx AND
+      old.patient_id_grx <=> new.patient_id_grx
       -- old.order_source <=> new.order_source AND
       -- old.order_stage <=> new.order_stage AND
       -- old.order_status <=> new.order_status AND
@@ -119,7 +119,7 @@ function changes_to_orders() {
       -- old.tracking_number <=> new.tracking_number AND
       -- old.order_date_added <=> new.order_date_added AND
       -- old.order_date_dispensed <=> new.order_date_dispensed AND
-      -- old.order_date_shipped <=> new.order_date_shipped
+      -- old.order_date_shipped <=> new.order_date_shipped AND
       -- old.order_date_changed <=> new.order_date_changed
     WHERE
       new.invoice_number IS NULL
