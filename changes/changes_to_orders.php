@@ -23,6 +23,9 @@ function changes_to_orders() {
     NOT old.order_date_changed <=> new.order_date_changed
   ";
 
+  $select = where_to_select_clause($where_changes);
+  $set    = where_to_set_clause($where_changes);
+
   //Get Removals
   $deleted = $mysql->run("
     SELECT
@@ -51,7 +54,7 @@ function changes_to_orders() {
   $updated = $mysql->run("
     SELECT
       new.*,
-      {where_to_select_clause($where_changes)}
+      $select
     FROM
       gp_orders_grx as new
     JOIN gp_orders as old ON
@@ -73,8 +76,10 @@ function changes_to_orders() {
 
   //Do Inserts
   $mysql->run("
-    INSERT INTO gp_orders
-    SELECT new.*
+    INSERT INTO
+      gp_orders
+    SELECT
+      new.*
     FROM
       gp_orders_grx as new
     LEFT JOIN gp_orders as old ON
@@ -85,11 +90,14 @@ function changes_to_orders() {
 
   //Do Updates
   $mysql->run("
-    UPDATE gp_orders as old
+    UPDATE
+      gp_orders as old
     LEFT JOIN gp_orders_grx as new ON
       old.invoice_number = new.invoice_number
-    SET {where_to_set_clause($where_changes)}
-    WHERE $where_changes
+    SET
+      $set
+    WHERE
+      $where_changes
   ", true);
 
   return [

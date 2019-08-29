@@ -41,15 +41,16 @@ class Mssql {
           $this->_emailError('SQL Error', $e->getMessage(), $sql, $debug);
         }
 
-        if ( ! is_resource($stmt) AND ($stmt !== true OR $debug )) {
+        if ($stmt === false) {
 
           $message = mssql_get_last_message();
 
-          $this->_emailError( $stmt === true ? 'dbQuery' : 'No Resource', $stmt, $message, $sql, $debug);
-
           //Transaction (Process ID 67) was deadlocked on lock resources with another process and has been chosen as the deadlock victim. Rerun the transaction.
-          if (strpos($message, 'Rerun the transaction') !== false)
+          if (strpos($message, 'Rerun') !== false) {
             $this->run($sql, $debug); //Recursive
+          }
+
+          $this->_emailError('No Resource', $stmt, $message, $sql, $debug);
 
           return;
         }
