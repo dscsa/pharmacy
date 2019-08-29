@@ -14,3 +14,7 @@ function escape_vals($rows) {
 
   return $results;
 }
+
+function where_to_set_clause($where_clause) {
+  return str_replace(['NOT ', '<=>', ' OR'], ['', '=', ','], $where_clause);
+}

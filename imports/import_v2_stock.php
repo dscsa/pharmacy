@@ -1,7 +1,7 @@
 <?php
 
 require_once 'db-drivers/grx_mssql.php';
-require_once 'helpers/escape_vals.php';
+require_once 'helpers/helpers_db.php';
 
 function import_grx_rxs_single() {
 
