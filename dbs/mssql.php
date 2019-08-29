@@ -30,24 +30,26 @@ class Mssql {
         return $conn;
     }
 
-    function run($sql, $resultIndex = 0, $all_rows = true, $debug = false) {
+    function run($sql, $debug = false) {
 
         $stmt = mssql_query($sql, $this->connection);
 
-        if ( ! is_resource($stmt)) {
+        if ( ! is_resource($stmt) AND ($stmt !== true OR $debug )) {
 
-          $this->_emailError( $stmt === true ? 'dbQuery' : 'No Resource', $stmt, $sql, $resultIndex, $all_rows);
+          $message = mssql_get_last_message();
+
+          $this->_emailError( $stmt === true ? 'dbQuery' : 'No Resource', $stmt, $message, $sql, $resultIndex, $all_rows);
 
           //Transaction (Process ID 67) was deadlocked on lock resources with another process and has been chosen as the deadlock victim. Rerun the transaction.
-          if (strpos(mssql_get_last_message(), 'Rerun the transaction') !== false)
-            $this->run($sql, $resultIndex, $all_rows, $debug); //Recursive
+          if (strpos($message, 'Rerun the transaction') !== false)
+            $this->run($sql, $debug); //Recursive
 
           return;
         }
 
         $results = $this->_getResults($stmt, $sql, $debug);
 
-        return $all_rows ? $results[$resultIndex] : $results[$resultIndex][0];
+        return $results;
     }
 
     function _getResults($stmt, $sql, $debug) {
@@ -86,7 +88,8 @@ class Mssql {
     }
 
     function _emailError() {
-      echo "CRON: Debug MSSQL ", print_r(func_get_args(), true).' '.print_r(mssql_get_last_message(), true);
-      mail('adam@sirum.org', "CRON: Debug MSSQL ", print_r(func_get_args(), true).' '.print_r(mssql_get_last_message(), true));
+      $message = print_r(func_get_args(), true).' '.print_r(mssql_get_last_message(), true);
+      echo "CRON: Debug MSSQL $message";
+      mail('adam@sirum.org', "CRON: Debug MSSQL ", $message);
     }
 }
