@@ -6,7 +6,8 @@ function escape_vals($rows) {
   $results = [];
   foreach( $rows as $row ) {
     foreach( $row as $key => $val ) {
-      $row[$key] = $val === '' ? 'NULL' : '"'.mysql_real_escape_string(trim($val)).'"'; // convert empty string to null
+      $val = mysql_real_escape_string(trim($val));
+      $row[$key] = $val === '' ? 'NULL' : '"'.$val.'"'; // convert empty string to null
     }
     $results[] = '('.implode(', ', $row).')';
   }
