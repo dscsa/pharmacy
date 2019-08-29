@@ -9,7 +9,7 @@ function changes_to_orders() {
   //Get Removals
   $deleted = $mysql->run("
     SELECT
-      new.*,
+      new.*
     FROM
       gp_orders_grx as new
     RIGHT JOIN gp_orders as old ON
@@ -21,7 +21,7 @@ function changes_to_orders() {
   //Get Inserts
   $created = $mysql->run("
     SELECT
-      new.*,
+      new.*
     FROM
       gp_orders_grx as new
     LEFT JOIN gp_orders as old ON
