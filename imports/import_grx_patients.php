@@ -15,7 +15,7 @@ function import_grx_patients() {
       pat.pat_id as patient_id_grx,
       fname as first_name,
       lname as last_name,
-      CAST(birth_date as date) as birth_date,
+      CONVERT(varchar, birth_date, 20) as birth_date,
 
       CONCAT(ph1.area_code, ph1.phone_no) as phone1,
       CONCAT(ph2.area_code, ph2.phone_no) as phone2,
