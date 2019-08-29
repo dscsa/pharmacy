@@ -17,6 +17,7 @@ function update_orders() {
   //TODO Differentiate between actual order that are to be sent out and
   // - Ones that were faxed/called in but not due yet
   // - Ones that were surescripted in but not due yet
+  // [order_status] => Surescripts Authorization Approved
 
   //TODO Upsert WooCommerce Order Status, Order Tracking
 

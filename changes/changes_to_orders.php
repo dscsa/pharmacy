@@ -52,7 +52,7 @@ function changes_to_orders() {
       old.order_date_changed as old_order_date_changed
     FROM
       gp_orders_grx as new
-    LEFT JOIN gp_orders as old ON
+    JOIN gp_orders as old ON
       old.invoice_number = new.invoice_number
     WHERE
       NOT old.patient_id_grx <=> new.patient_id_grx OR
