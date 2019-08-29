@@ -56,7 +56,7 @@ class Mysql {
 
         $results = [];
 
-        $results[] = $this->_getRows($stmt, $sql);
+        $results[] = $this->_getRows($stmt, $sql, $debug);
 
         //https://dev.mysql.com/doc/refman/5.5/en/mysql-next-result.html
         //do {
@@ -70,10 +70,10 @@ class Mysql {
         return $results;
     }
 
-    function _getRows($stmt, $sql) {
+    function _getRows($stmt, $sql, $debug) {
 
-      if ( ! mysql_num_rows($stmt)) {
-        $this->_emailError('No Rows', $stmt, $sql);
+      if ( ! is_resource($stmt) OR ! mysql_num_rows($stmt)) {
+        $this->_emailError('No Rows', $stmt, $sql, $debug);
         return [];
       }
 
@@ -81,7 +81,7 @@ class Mysql {
       while ($row = mysql_fetch_array($stmt, MYSQL_ASSOC)) {
 
           if ( ! empty($row['Message'])) {
-            $this->_emailError('dbMessage', $row, $stmt, $sql, $data);
+            $this->_emailError('dbMessage', $row, $stmt, $sql, $data, $debug);
           }
 
           $rows[] = $row;

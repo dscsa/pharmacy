@@ -29,8 +29,8 @@ function import_grx_orders() {
       chg_date as order_date_changed
     FROM csom
     LEFT OUTER JOIN cp_acct ON cp_acct.id = csom.acct_id
-    LEFT OUTER JOIN (SELECT order_id, MAX(ship_date) as ship_date FROM CsOmShipUpdate GROUP BY order_id) ship ON o.order_id = ship.order_id --CSOM_SHIP didn't always? update the tracking number within the day so use CsOmShipUpdate which is what endicia writes
-    LEFT OUTER JOIN csom_ship ON o.order_id = csom_ship.order_id --CsOmShipUpdate won't have tracking numbers that Cindy inputted manually
+    LEFT OUTER JOIN (SELECT order_id, MAX(ship_date) as ship_date FROM CsOmShipUpdate GROUP BY order_id) ship ON o.order_id = ship.order_id -- CSOM_SHIP didn't always? update the tracking number within the day so use CsOmShipUpdate which is what endicia writes
+    LEFT OUTER JOIN csom_ship ON csom.order_id = csom_ship.order_id -- CsOmShipUpdate won't have tracking numbers that Cindy inputted manually
 
   ");
 

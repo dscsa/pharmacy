@@ -57,7 +57,7 @@ class Mssql {
         $results = [];
 
         do {
-          $results[] = $this->_getRows($stmt, $sql);
+          $results[] = $this->_getRows($stmt, $sql, $debug);
         } while (mssql_next_result($stmt));
 
         if ($debug) {
@@ -67,10 +67,10 @@ class Mssql {
         return $results;
     }
 
-    function _getRows($stmt, $sql) {
+    function _getRows($stmt, $sql, $debug) {
 
-      if ( ! mssql_num_rows($stmt)) {
-        $this->_emailError('No Rows', $stmt, $sql);
+      if ( ! is_resource($stmt) OR ! mssql_num_rows($stmt)) {
+        $this->_emailError('No Rows', $stmt, $sql, $debug);
         return [];
       }
 
@@ -78,7 +78,7 @@ class Mssql {
       while ($row = mssql_fetch_array($stmt, MSSQL_ASSOC)) {
 
           if ( ! empty($row['Message'])) {
-            $this->_emailError('dbMessage', $row, $stmt, $sql, $data);
+            $this->_emailError('dbMessage', $row, $stmt, $sql, $data, $debug);
           }
 
           $rows[] = $row;
