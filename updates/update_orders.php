@@ -1,6 +1,6 @@
 <?php
 
-require_once __DIR__.'/../changes/changes_to_orders';
+require_once 'changes/changes_to_orders.php';
 
 function update_orders() {
 
