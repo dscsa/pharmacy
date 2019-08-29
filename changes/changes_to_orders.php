@@ -102,7 +102,7 @@ function changes_to_orders() {
 
   //Do Removals
   $mysql->run("
-    DELETE gp_orders
+    DELETE old
     FROM gp_orders_grx as new
     RIGHT JOIN gp_orders as old ON
       old.invoice_number <=> new.invoice_number,

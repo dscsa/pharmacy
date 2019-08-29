@@ -21,7 +21,7 @@ function import_grx_orders() {
       ship_addr2 as order_address2,
       ship_city as order_city,
       ship_state_cd as order_state,
-      ship_zip as order_zip,
+      LEFT(ship_zip,3) as order_zip,
       csom_ship.tracking_code as tracking_number,
       CAST(add_date as date) as order_date_added,
       CAST(csom.ship_date as date) as order_date_dispensed,

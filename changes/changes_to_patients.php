@@ -147,7 +147,7 @@ function changes_to_patients() {
 
   //Do Removals
   $mysql->run("
-    DELETE gp_patients
+    DELETE old
     FROM gp_patients_grx as new
     RIGHT JOIN gp_patients as old ON
       old.patient_id_grx <=> new.patient_id_grx AND
