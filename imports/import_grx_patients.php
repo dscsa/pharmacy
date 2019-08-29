@@ -33,7 +33,7 @@ function import_grx_patients() {
       a.state_cd as state,
       a.zip as zip,
 
-      IFNULL(SELECT COUNT(*) FROM cprx WHERE cprx.pat_id = pat.pat_id AND orig_disp_date < GETDATE() - 4, 0) as total_fills, --potential to SUM(is_refill) but seems that GCNs churn enough that this is not accurate
+      ISNULL(SELECT COUNT(*) FROM cprx WHERE cprx.pat_id = pat.pat_id AND orig_disp_date < GETDATE() - 4, 0) as total_fills, --potential to SUM(is_refill) but seems that GCNs churn enough that this is not accurate
       pat.pat_status_cn as pat_status,
       primary_lang_cd as lang,
       pat.add_date as pat_add_date
