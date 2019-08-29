@@ -51,7 +51,7 @@ function changes_to_orders() {
       old.tracking_number <=> new.tracking_number AND
       -- old.order_date_added <=> new.order_date_added AND
       old.order_date_dispensed <=> new.order_date_dispensed AND
-      old.order_date_shipped <=> new.order_date_shipped AND
+      old.order_date_shipped <=> new.order_date_shipped
       -- old.order_date_changed <=> new.order_date_changed
     WHERE
       new.invoice_number IS NULL
