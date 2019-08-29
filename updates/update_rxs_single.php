@@ -9,7 +9,7 @@ function update_rxs_single() {
 
   echo $message;
 
-  mail('adam@sirum.org', $message);
+  mail('adam@sirum.org', "CRON: update_rxs_single ", $message);
 
   if ( ! count($changes['upserts']+$changes['removals'])) return;
 

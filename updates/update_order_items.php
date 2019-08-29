@@ -10,7 +10,7 @@ function update_order_items() {
 
   echo $message;
 
-  mail('adam@sirum.org', $message);
+  mail('adam@sirum.org', "CRON: update_order_items ", $message);
 
   if ( ! count($changes['upserts']+$changes['removals'])) return;
 
