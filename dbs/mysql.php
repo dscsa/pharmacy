@@ -64,7 +64,7 @@ class Mysql {
         //} while (mysql_next_result($stmt));
 
         if ($debug) {
-          $this->_emailError('debugInfo', $stmt, $sql,$results);
+          $this->_emailError('_getResults', $stmt, $sql,$results);
         }
 
         return $results;
@@ -80,7 +80,7 @@ class Mysql {
       $rows = [];
       while ($row = mysql_fetch_array($stmt, MYSQL_ASSOC)) {
 
-          if (! empty($row['Message'])) {
+          if ( ! empty($row['Message'])) {
             $this->_emailError('dbMessage', $row, $stmt, $sql, $data);
           }
 

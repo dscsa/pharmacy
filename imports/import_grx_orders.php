@@ -13,18 +13,24 @@ function import_grx_orders() {
 
     SELECT
       invoice_nbr as invoice_number,
-      order_category_cn as order_category,
-      order_state_cn as order_state,
+      pat_id as patient_id_grx,
+      order_category_cn as order_source,
+      order_state_cn as order_stage,
       order_status_cn as order_status,
-      status_cn as order_status_cn,
-      csom_ship.tracking_code as tracking,
-      add_date as order_add_date,
-      ship_date as dispense_date,
-      ship.ship_date as ship_date,
-      chg_date as order_change_date
+      ship_addr1 as order_address1,
+      ship_addr2 as order_address2,
+      ship_city as order_city,
+      ship_state_cd as order_state,
+      ship_zip as order_zip,
+      csom_ship.tracking_code as tracking_number,
+      add_date as order_date_added,
+      ship_date as order_date_dispensed,
+      ship.ship_date as order_date_shipped,
+      chg_date as order_date_changed
     FROM csom
+    LEFT OUTER JOIN cp_acct ON cp_acct.id = csom.acct_id
     LEFT OUTER JOIN (SELECT order_id, MAX(ship_date) as ship_date FROM CsOmShipUpdate GROUP BY order_id) ship ON o.order_id = ship.order_id --CSOM_SHIP didn't always? update the tracking number within the day so use CsOmShipUpdate which is what endicia writes
-    LEFT OUTER JOIN csom_ship (nolock) ON o.order_id = csom_ship.order_id --CsOmShipUpdate won't have tracking numbers that Cindy inputted manually
+    LEFT OUTER JOIN csom_ship ON o.order_id = csom_ship.order_id --CsOmShipUpdate won't have tracking numbers that Cindy inputted manually
 
   ");
 

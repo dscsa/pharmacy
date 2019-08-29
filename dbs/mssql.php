@@ -61,7 +61,7 @@ class Mssql {
         } while (mssql_next_result($stmt));
 
         if ($debug) {
-          $this->_emailError('debugInfo', $stmt, $sql,$results);
+          $this->_emailError('_getResults', $stmt, $sql,$results);
         }
 
         return $results;
@@ -77,7 +77,7 @@ class Mssql {
       $rows = [];
       while ($row = mssql_fetch_array($stmt, MSSQL_ASSOC)) {
 
-          if (! empty($row['Message'])) {
+          if ( ! empty($row['Message'])) {
             $this->_emailError('dbMessage', $row, $stmt, $sql, $data);
           }
 
