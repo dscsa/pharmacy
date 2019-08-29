@@ -68,9 +68,33 @@ function changes_to_patients() {
   ");
 
   //Do Upserts
+  /* (
+    patient_id_grx,
+    first_name,
+    last_name,
+    birth_date,
+    phone1,
+    phone2,
+    email,
+    patient_autofill,
+    user_def1,
+    user_def2,
+    user_def3,
+    user_def4,
+    address1,
+    address2,
+    city,
+    state,
+    zip,
+    total_fills,
+    pat_status,
+    lang,
+    pat_add_date
+  )*/
+  //new.patient_id_grx,	new.first_name,	new.last_name, new.birth_date, new.phone1, new.phone2, new.email,	new.patient_autofill,	new.user_def1, new.user_def2, new.user_def3, new.user_def4, new.address1, new.address2, new.city, new.state, new.zip, new.total_fills, new.pat_status, new.lang, new.pat_add_date
   $mysql->run("
-    INSERT INTO gp_patients (patient_id_grx,	first_name,	last_name,	birth_date,	phone1,	phone2,	email,	pat_autofill,	user_def1,	user_def2,	user_def3,	user_def4,	address1,	address2,	city,	state,	zip,	total_fills,	pat_status,	lang,	pat_add_date)
-    SELECT new.patient_id_grx,	new.first_name,	new.last_name, new.birth_date, new.phone1, new.phone2, new.email,	new.pat_autofill,	new.user_def1, new.user_def2, new.user_def3, new.user_def4, new.address1, new.address2, new.city, new.state, new.zip, new.total_fills, new.pat_status, new.lang, new.pat_add_date
+    INSERT INTO gp_patients
+    SELECT *
     FROM
       gp_patients_grx as new
     LEFT JOIN gp_patients as old ON
@@ -150,6 +174,6 @@ function changes_to_patients() {
     WHERE
       new.patient_id_grx IS NULL
   ");
-  
+
   return ['upserts' => $upserts, 'removals' => $removals];
 }

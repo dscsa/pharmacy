@@ -24,7 +24,7 @@ function import_grx_orders() {
       ship_zip as order_zip,
       csom_ship.tracking_code as tracking_number,
       add_date as order_date_added,
-      ship_date as order_date_dispensed,
+      csom.ship_date as order_date_dispensed,
       ship.ship_date as order_date_shipped,
       chg_date as order_date_changed
     FROM csom
