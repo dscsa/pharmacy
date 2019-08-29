@@ -88,6 +88,6 @@ class Mysql {
 
     function _emailError() {
       echo "CRON: Debug MSSQL", print_r(func_get_args(), true).' '.print_r(mysql_error(), true);
-      mail('adam@sirum.org', "CRON: Debug MYSQL", print_r(func_get_args(), true).' '.print_r(mysql_error(), true));
+      mail('adam@sirum.org', "CRON: Debug MYSQL ", print_r(func_get_args(), true).' '.print_r(mysql_error(), true));
     }
 }

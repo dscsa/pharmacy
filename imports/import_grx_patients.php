@@ -67,6 +67,6 @@ function import_grx_patients() {
   $mysql->run('TRUNCATE TABLE gp_patients_grx');
 
   $mysql->run("
-    INSERT INTO gp_patients_grx ".$keys." VALUES ".implode(',', $vals)
+    INSERT INTO gp_patients_grx ".implode(',', $keys)." VALUES ".implode(',', $vals)
   );
 }
