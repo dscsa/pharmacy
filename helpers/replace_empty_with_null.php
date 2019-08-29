@@ -8,7 +8,7 @@ function replace_empty_with_null($rows, $fields) {
     foreach( $fields as $field) {
       $row[$field] = $row[$field] ?: 'NULL';
     }
-    $results[] = '('+implode(', ', $row)+')';
+    $results[] = '('.implode(', ', $row).')';
   }
 
   return $results;
