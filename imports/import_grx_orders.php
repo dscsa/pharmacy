@@ -24,8 +24,8 @@ function import_grx_orders() {
       ship_zip as order_zip,
       csom_ship.tracking_code as tracking_number,
       CAST(add_date as date) as order_date_added,
-      csom.ship_date as order_date_dispensed,
-      ship.ship_date as order_date_shipped,
+      CAST(csom.ship_date as date) as order_date_dispensed,
+      CAST(ship.ship_date as date) as order_date_shipped,
       CAST(chg_date as date) as order_date_changed
     FROM csom
       LEFT JOIN cp_acct ON cp_acct.id = csom.acct_id
