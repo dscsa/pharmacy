@@ -19,19 +19,19 @@ function changes_to_patients() {
       pats.phone2 <=> staging.phone2 AND
       pats.email <=> staging.email AND
       pats.pat_autofill <=> staging.pat_autofill AND
-      -- pats.user_def1 <=> staging.user_def1 AND
-      -- pats.user_def2 <=> staging.user_def2 AND
-      -- pats.user_def3 <=> staging.user_def3 AND
-      -- pats.user_def4 <=> staging.user_def4 AND
+      # pats.user_def1 <=> staging.user_def1 AND
+      # pats.user_def2 <=> staging.user_def2 AND
+      # pats.user_def3 <=> staging.user_def3 AND
+      # pats.user_def4 <=> staging.user_def4 AND
       pats.address1 <=> staging.address1 AND
       pats.address2 <=> staging.address2 AND
       pats.city <=> staging.city AND
       pats.state <=> staging.state AND
       pats.zip <=> staging.zip AND
-      -- pats.total_fills <=> staging.total_fills AND
+      # pats.total_fills <=> staging.total_fills AND
       pats.pat_status <=> staging.pat_status AND
       pats.lang <=> staging.lang AND
-      -- pats.pat_add_date <=> staging.pat_add_date
+      # pats.pat_add_date <=> staging.pat_add_date
     WHERE
       pats.guardian_id IS NULL
   ");
@@ -50,19 +50,19 @@ function changes_to_patients() {
       pats.phone2 <=> staging.phone2 AND
       pats.email <=> staging.email AND
       pats.pat_autofill <=> staging.pat_autofill AND
-      -- pats.user_def1 <=> staging.user_def1 AND
-      -- pats.user_def2 <=> staging.user_def2 AND
-      -- pats.user_def3 <=> staging.user_def3 AND
-      -- pats.user_def4 <=> staging.user_def4 AND
+      # pats.user_def1 <=> staging.user_def1 AND
+      # pats.user_def2 <=> staging.user_def2 AND
+      # pats.user_def3 <=> staging.user_def3 AND
+      # pats.user_def4 <=> staging.user_def4 AND
       pats.address1 <=> staging.address1 AND
       pats.address2 <=> staging.address2 AND
       pats.city <=> staging.city AND
       pats.state <=> staging.state AND
       pats.zip <=> staging.zip AND
-      -- pats.total_fills <=> staging.total_fills AND
+      # pats.total_fills <=> staging.total_fills AND
       pats.pat_status <=> staging.pat_status AND
       pats.lang <=> staging.lang AND
-      -- pats.pat_add_date <=> staging.pat_add_date
+      # pats.pat_add_date <=> staging.pat_add_date
     WHERE
       staging.guardian_id IS NULL
   ");
@@ -82,19 +82,19 @@ function changes_to_patients() {
       pats.phone2 <=> staging.phone2 AND
       pats.email <=> staging.email AND
       pats.pat_autofill <=> staging.pat_autofill AND
-      -- pats.user_def1 <=> staging.user_def1 AND
-      -- pats.user_def2 <=> staging.user_def2 AND
-      -- pats.user_def3 <=> staging.user_def3 AND
-      -- pats.user_def4 <=> staging.user_def4 AND
+      # pats.user_def1 <=> staging.user_def1 AND
+      # pats.user_def2 <=> staging.user_def2 AND
+      # pats.user_def3 <=> staging.user_def3 AND
+      # pats.user_def4 <=> staging.user_def4 AND
       pats.address1 <=> staging.address1 AND
       pats.address2 <=> staging.address2 AND
       pats.city <=> staging.city AND
       pats.state <=> staging.state AND
       pats.zip <=> staging.zip AND
-      -- pats.total_fills <=> staging.total_fills AND
+      # pats.total_fills <=> staging.total_fills AND
       pats.pat_status <=> staging.pat_status AND
       pats.lang <=> staging.lang AND
-      -- pats.pat_add_date <=> staging.pat_add_date
+      # pats.pat_add_date <=> staging.pat_add_date
     WHERE
       pats.guardian_id IS NULL
     ON DUPLICATE KEY UPDATE
@@ -134,19 +134,19 @@ function changes_to_patients() {
       pats.phone2 <=> staging.phone2 AND
       pats.email <=> staging.email AND
       pats.pat_autofill <=> staging.pat_autofill AND
-      -- pats.user_def1 <=> staging.user_def1 AND
-      -- pats.user_def2 <=> staging.user_def2 AND
-      -- pats.user_def3 <=> staging.user_def3 AND
-      -- pats.user_def4 <=> staging.user_def4 AND
+      # pats.user_def1 <=> staging.user_def1 AND
+      # pats.user_def2 <=> staging.user_def2 AND
+      # pats.user_def3 <=> staging.user_def3 AND
+      # pats.user_def4 <=> staging.user_def4 AND
       pats.address1 <=> staging.address1 AND
       pats.address2 <=> staging.address2 AND
       pats.city <=> staging.city AND
       pats.state <=> staging.state AND
       pats.zip <=> staging.zip AND
-      -- pats.total_fills <=> staging.total_fills AND
+      # pats.total_fills <=> staging.total_fills AND
       pats.pat_status <=> staging.pat_status AND
       pats.lang <=> staging.lang AND
-      -- pats.pat_add_date <=> staging.pat_add_date
+      # pats.pat_add_date <=> staging.pat_add_date
     WHERE
       staging.guardian_id IS NULL
   ");
