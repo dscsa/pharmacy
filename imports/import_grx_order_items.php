@@ -42,6 +42,6 @@ function import_grx_order_items() {
   $mysql->run('TRUNCATE TABLE gp_order_items_grx');
 
   $mysql->run("
-    INSERT INTO gp_order_items_grx ".implode(',', $keys)." VALUES ".implode(',', $vals)
+    INSERT INTO gp_order_items_grx (".implode(',', $keys).") VALUES ".implode(',', $vals)
   );
 }

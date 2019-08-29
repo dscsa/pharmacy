@@ -69,6 +69,6 @@ function import_grx_rxs_single() {
   $mysql->run('TRUNCATE TABLE gp_rxs_single_grx');
 
   $mysql->run("
-    INSERT INTO gp_rxs_single_grx ".implode(',', $keys)." VALUES ".implode(',', $vals)
+    INSERT INTO gp_rxs_single_grx (".implode(',', $keys).") VALUES ".implode(',', $vals)
   );
 }

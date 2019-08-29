@@ -39,7 +39,7 @@ function import_salesforce_orders() {
   $mysql->run('TRUNCATE TABLE gp_orders_grx');
 
   $mysql->run("
-    INSERT INTO gp_orders_grx ".implode(',', $keys)." VALUES ".implode(',', $vals)
+    INSERT INTO gp_orders_grx (".implode(',', $keys).") VALUES ".implode(',', $vals)
   );
 }
 
