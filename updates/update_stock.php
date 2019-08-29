@@ -1,5 +1,5 @@
 <?php
-require_once './changes/changes_to_rxs_single';
+require_once __DIR__.'/changes/changes_to_rxs_single';
 
 function update_rxs_single() {
 
