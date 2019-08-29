@@ -54,10 +54,12 @@ class Mysql {
 
         $results = [];
 
+        $results[] = $this->_getRows($stmt, $sql);
+
         //https://dev.mysql.com/doc/refman/5.5/en/mysql-next-result.html
-        do {
-          $results[] = $this->_getRows($stmt, $sql);
-        } while (mysql_next_result($stmt));
+        //do {
+        //  $results[] = $this->_getRows($stmt, $sql);
+        //} while (mysql_next_result($stmt));
 
         if ($debug) {
           $this->_emailError('debugInfo', $stmt, $sql,$results);
