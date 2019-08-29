@@ -55,8 +55,8 @@ function import_grx_rxs_single() {
 
   ");
 
-  $keys = array_keys($rxs[0]);
-  $vals = escape_vals($rxs);
+  $keys = array_keys($rxs[0][0]);
+  $vals = escape_vals($rxs[0]);
 
   //Replace Staging Table with New Data
   $mysql->run('TRUNCATE TABLE gp_rxs_single_grx');

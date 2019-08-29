@@ -28,8 +28,8 @@ function import_grx_order_items() {
 
   ");
 
-  $keys = array_keys($order_items[0]);
-  $vals = escape_vals($order_items);
+  $keys = array_keys($order_items[0][0]);
+  $vals = escape_vals($order_items[0]);
 
   //Replace Staging Table with New Data
   $mysql->run('TRUNCATE TABLE gp_order_items_grx');

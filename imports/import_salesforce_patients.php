@@ -47,8 +47,8 @@ function import_salesforce_patients() {
 
   ");
 
-  $keys = array_keys($patients[0]);
-  $vals = escape_vals($patients);
+  $keys = array_keys($patients[0][0]);
+  $vals = escape_vals($patients[0]);
 
   //Replace Staging Table with New Data
   $mysql->run('TRUNCATE TABLE gp_patients_grx');

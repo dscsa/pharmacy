@@ -28,8 +28,8 @@ function import_salesforce_orders() {
 
   ");
 
-  $keys = array_keys($orders[0]);
-  $vals = escape_vals($orders);
+  $keys = array_keys($orders[0][0]);
+  $vals = escape_vals($orders[0]);
 
   //Replace Staging Table with New Data
   $mysql->run('TRUNCATE TABLE gp_orders_grx');
