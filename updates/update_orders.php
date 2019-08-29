@@ -1,6 +1,6 @@
 <?php
 
-require 'changes/changes_to_orders';
+require_once 'changes/changes_to_orders';
 
 function update_orders() {
 

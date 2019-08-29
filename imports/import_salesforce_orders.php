@@ -1,8 +1,8 @@
 <?php
 
-require 'dbs/mssql_grx.php';
-require 'dbs/mysql_webform.php';
-require 'helpers/replace_empty_with_null.php';
+require_once 'dbs/mssql_grx.php';
+require_once 'dbs/mysql_webform.php';
+require_once 'helpers/replace_empty_with_null.php';
 
 function import_salesforce_orders() {
 

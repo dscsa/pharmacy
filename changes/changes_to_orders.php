@@ -1,6 +1,6 @@
 <?php
 
-require 'dbs/mysql_webform.php';
+require_once 'dbs/mysql_webform.php';
 
 function get_changes_orders() {
   $mysql = new Mysql_Webform();

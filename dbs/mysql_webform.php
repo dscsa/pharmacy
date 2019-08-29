@@ -1,7 +1,7 @@
 <?php
 
-require 'keys.php';
-require 'dbs/mysql.php';
+require_once 'keys.php';
+require_once 'dbs/mysql.php';
 
 class Mysql_Webform extends Mysql {
 
