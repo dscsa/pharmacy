@@ -5,6 +5,23 @@ require_once 'dbs/mysql_webform.php';
 function changes_to_orders() {
   $mysql = new Mysql_Webform();
 
+  $where_changes = "
+    NOT old.patient_id_grx <=> new.patient_id_grx OR
+    NOT old.order_source <=> new.order_source OR
+    NOT old.order_stage <=> new.order_stage OR
+    NOT old.order_status <=> new.order_status OR
+    -- Not in GRX NOT old.invoice_doc_id <=> new.invoice_doc_id OR
+    NOT old.order_address1 <=> new.order_address1 OR
+    NOT old.order_address2 <=> new.order_address2 OR
+    NOT old.order_city <=> new.order_city OR
+    NOT old.order_state <=> new.order_state OR
+    NOT old.order_zip <=> new.order_zip OR
+    NOT old.tracking_number <=> new.tracking_number OR
+    NOT old.order_date_added <=> new.order_date_added OR
+    NOT old.order_date_dispensed <=> new.order_date_dispensed OR
+    NOT old.order_date_shipped <=> new.order_date_shipped OR
+    NOT old.order_date_changed <=> new.order_date_changed
+  ";
 
   //Get Removals
   $deleted = $mysql->run("
@@ -54,22 +71,7 @@ function changes_to_orders() {
       gp_orders_grx as new
     JOIN gp_orders as old ON
       old.invoice_number = new.invoice_number
-    WHERE
-      NOT old.patient_id_grx <=> new.patient_id_grx OR
-      NOT old.order_source <=> new.order_source OR
-      NOT old.order_stage <=> new.order_stage OR
-      NOT old.order_status <=> new.order_status OR
-      NOT old.invoice_doc_id <=> new.invoice_doc_id OR
-      NOT old.order_address1 <=> new.order_address1 OR
-      NOT old.order_address2 <=> new.order_address2 OR
-      NOT old.order_city <=> new.order_city OR
-      NOT old.order_state <=> new.order_state OR
-      NOT old.order_zip <=> new.order_zip OR
-      NOT old.tracking_number <=> new.tracking_number OR
-      NOT old.order_date_added <=> new.order_date_added OR
-      NOT old.order_date_dispensed <=> new.order_date_dispensed OR
-      NOT old.order_date_shipped <=> new.order_date_shipped OR
-      NOT old.order_date_changed <=> new.order_date_changed
+    WHERE $where_changes
   ", true);
 
   //Do Removals
@@ -107,7 +109,7 @@ function changes_to_orders() {
       old.order_source = new.order_source,
       old.order_stage = new.order_stage,
       old.order_status = new.order_status,
-      old.invoice_doc_id = new.invoice_doc_id,
+      -- Not in GRX NOT old.invoice_doc_id = new.invoice_doc_id,
       old.order_address1 = new.order_address1,
       old.order_address2 = new.order_address2,
       old.order_city = new.order_city,
@@ -118,23 +120,12 @@ function changes_to_orders() {
       old.order_date_dispensed = new.order_date_dispensed,
       old.order_date_shipped = new.order_date_shipped,
       old.order_date_changed = new.order_date_changed
-    WHERE
-      NOT old.patient_id_grx <=> new.patient_id_grx OR
-      NOT old.order_source <=> new.order_source OR
-      NOT old.order_stage <=> new.order_stage OR
-      NOT old.order_status <=> new.order_status OR
-      NOT old.invoice_doc_id <=> new.invoice_doc_id OR
-      NOT old.order_address1 <=> new.order_address1 OR
-      NOT old.order_address2 <=> new.order_address2 OR
-      NOT old.order_city <=> new.order_city OR
-      NOT old.order_state <=> new.order_state OR
-      NOT old.order_zip <=> new.order_zip OR
-      NOT old.tracking_number <=> new.tracking_number OR
-      NOT old.order_date_added <=> new.order_date_added OR
-      NOT old.order_date_dispensed <=> new.order_date_dispensed OR
-      NOT old.order_date_shipped <=> new.order_date_shipped OR
-      NOT old.order_date_changed <=> new.order_date_changed
+    WHERE $where_changes
   ", true);
 
-  return ['deleted' => $deleted[0], 'created' => $created[0], 'updated' => $updated[0]];
+  return [
+    'deleted' => $deleted[0],
+    'created' => $created[0],
+    'updated' => $updated[0]
+  ];
 }
