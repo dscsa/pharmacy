@@ -73,7 +73,7 @@ function changes_to_patients() {
     SELECT staging.guardian_id,	staging.first_name,	staging.last_name, staging.birth_date, staging.phone1, staging.phone2, staging.email,	staging.pat_autofill,	staging.user_def1, staging.user_def2, staging.user_def3, staging.user_def4, staging.address1, staging.address2, staging.city, staging.state, staging.zip, staging.total_fills, staging.pat_status, staging.lang, staging.pat_add_date
     FROM
       gp_patients_grx as staging
-    RIGHT JOIN gp_patients as pats ON
+    LEFT JOIN gp_patients as pats ON
       pats.guardian_id <=> staging.guardian_id AND
       pats.first_name <=> staging.first_name AND
       pats.last_name <=> staging.last_name AND
@@ -96,7 +96,7 @@ function changes_to_patients() {
       pats.lang <=> staging.lang AND
       --pats.pat_add_date <=> staging.pat_add_date
     WHERE
-      staging.guardian_id IS NULL
+      pats.guardian_id IS NULL
     ON DUPLICATE KEY UPDATE
       guardian_id = staging.guardian_id,
       first_name = staging.first_name,
