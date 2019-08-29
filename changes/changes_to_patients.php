@@ -7,7 +7,30 @@ function changes_to_patients() {
 
   //Get Upserts (Updates & Inserts)
   $upserts = $mysql->run("
-    SELECT new.*
+    SELECT
+      new.*,
+      old.patient_id_grx as old_patient_id_grx,
+      old.first_name as old_first_name,
+      old.last_name as old_last_name,
+      old.birth_date as old_birth_date,
+      old.phone1 as old_phone1,
+      old.phone2 as old_phone2,
+      old.email as old_email,
+      old.patient_autofill as old_patient_autofill,
+      old.user_def1 as old_user_def1,
+      old.user_def2 as old_user_def2,
+      old.user_def3 as old_user_def3,
+      old.user_def4 as old_user_def4,
+      old.patient_address1 as old_patient_address1,
+      old.patient_address2 as old_patient_address2,
+      old.patient_city as old_patient_city,
+      old.patient_state as old_patient_state,
+      old.patient_zip as old_patient_zip,
+      old.total_fills as old_total_fills,
+      old.patient_status as old_patient_status,
+      old.lang as old_lang,
+      old.patient_date_added as old_patient_date_added,
+      old.patient_date_changed as old_patient_date_changed
     FROM
       gp_patients_grx as new
     LEFT JOIN gp_patients as old ON
