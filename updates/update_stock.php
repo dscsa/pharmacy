@@ -1,11 +1,15 @@
 <?php
-require_once 'changes/changes_to_rxs_single.php';
+require_once 'changes/changes_to_stock.php';
 
-function update_rxs_single() {
+function update_stock() {
 
-  $changes = changes_to_rxs_single();
+  //$changes = changes_to_rxs_single();
 
-  mail('adam@sirum.org', "CRON: update_rxs_single", print_r($changes, true));
+  //$message = "CRON: update_rxs_single", print_r($changes, true);
+
+  echo $message;
+
+  mail('adam@sirum.org', $message);
 
   if ( ! count($changes['upserts']+$changes['removals'])) return;
 

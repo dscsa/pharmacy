@@ -116,7 +116,7 @@ function changes_to_orders() {
       tracking_number = new.tracking_number,
       order_date_added = new.order_date_added,
       order_date_dispensed = new.order_date_dispensed,
-      order_date_shipped = new.order_date_shipped
+      order_date_shipped = new.order_date_shipped,
       order_date_changed = new.order_date_changed
     WHERE
       NOT old.patient_id_grx <=> new.patient_id_grx OR

@@ -6,7 +6,11 @@ function update_patients() {
 
   $changes = changes_to_patients();
 
-  mail('adam@sirum.org', "CRON: update_patients", print_r($changes, true));
+  $message = "CRON: update_patients", print_r($changes, true);
+
+  echo $message;
+
+  mail('adam@sirum.org', $message);
 
   if ( ! count($changes['upserts']+$changes['removals'])) return;
 
