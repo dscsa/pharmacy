@@ -32,6 +32,8 @@ class Mssql {
 
     function run($sql, $debug = false) {
 
+        $starttime = microtime(true);
+
         try {
           $stmt = mssql_query($sql, $this->connection);
         }
@@ -53,6 +55,8 @@ class Mssql {
         }
 
         $results = $this->_getResults($stmt, $sql, $debug);
+
+        if ($debug) echo (microtime(true) - $starttime)." seconds: ".substr($sql, 0, 30);
 
         return $results;
     }

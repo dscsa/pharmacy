@@ -16,7 +16,7 @@ function changes_to_orders() {
       old.invoice_number = new.invoice_number
     WHERE
       new.invoice_number IS NULL
-  ");
+  ", true);
 
   //Get Inserts
   $created = $mysql->run("
@@ -28,7 +28,7 @@ function changes_to_orders() {
       old.invoice_number = new.invoice_number
     WHERE
       old.invoice_number IS NULL
-  ");
+  ", true);
 
   //Get Updates
   $updated = $mysql->run("
@@ -70,7 +70,7 @@ function changes_to_orders() {
       NOT old.order_date_dispensed <=> new.order_date_dispensed OR
       NOT old.order_date_shipped <=> new.order_date_shipped OR
       NOT old.order_date_changed <=> new.order_date_changed
-  ");
+  ", true);
 
   //Do Removals
   $mysql->run("
@@ -82,7 +82,7 @@ function changes_to_orders() {
       old.invoice_number = new.invoice_number
     WHERE
       new.invoice_number IS NULL
-  ");
+  ", true);
 
   //Do Inserts
   $mysql->run("
@@ -94,7 +94,7 @@ function changes_to_orders() {
       old.invoice_number = new.invoice_number
     WHERE
       old.invoice_number IS NULL
-  ");
+  ", true);
 
   //Do Updates
   $mysql->run("
@@ -134,7 +134,7 @@ function changes_to_orders() {
       NOT old.order_date_dispensed <=> new.order_date_dispensed OR
       NOT old.order_date_shipped <=> new.order_date_shipped OR
       NOT old.order_date_changed <=> new.order_date_changed
-  ");
+  ", true);
 
   return ['deleted' => $deleted[0], 'created' => $created[0], 'updated' => $updated[0]];
 }
