@@ -73,7 +73,7 @@ class Mssql {
       }
 
       $rows = [];
-      while ($row = mssql_fetch_array($stmt)) {
+      while ($row = mssql_fetch_array($stmt, MSSQL_ASSOC)) {
 
           if (! empty($row['Message'])) {
             $this->_emailError('dbMessage', $row, $stmt, $sql, $data);
@@ -86,7 +86,7 @@ class Mssql {
     }
 
     function _emailError() {
-      echo "CRON: Debug MSSQL", print_r(func_get_args(), true).' '.print_r(mssql_get_last_message(), true);
+      echo "CRON: Debug MSSQL ", print_r(func_get_args(), true).' '.print_r(mssql_get_last_message(), true);
       mail('adam@sirum.org', "CRON: Debug MSSQL ", print_r(func_get_args(), true).' '.print_r(mssql_get_last_message(), true));
     }
 }

@@ -74,7 +74,7 @@ class Mysql {
       }
 
       $rows = [];
-      while ($row = mssql_fetch_array($stmt)) {
+      while ($row = mysql_fetch_array($stmt, MYSQL_ASSOC)) {
 
           if (! empty($row['Message'])) {
             $this->_emailError('dbMessage', $row, $stmt, $sql, $data);
@@ -87,7 +87,7 @@ class Mysql {
     }
 
     function _emailError() {
-      echo "CRON: Debug MSSQL", print_r(func_get_args(), true).' '.print_r(mysql_error(), true);
+      echo "CRON: Debug MYSQL ", print_r(func_get_args(), true).' '.print_r(mysql_error(), true);
       mail('adam@sirum.org', "CRON: Debug MYSQL ", print_r(func_get_args(), true).' '.print_r(mysql_error(), true));
     }
 }
