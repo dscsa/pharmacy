@@ -69,17 +69,14 @@ class Mssql {
           $results[] = $this->_getRows($stmt, $sql, $debug);
         } while (mssql_next_result($stmt));
 
-        if ($debug) {
-          $this->_emailError('_getResults', $stmt, $sql,$results);
-        }
-
         return $results;
     }
 
     function _getRows($stmt, $sql, $debug) {
 
       if ( ! is_resource($stmt) OR ! mssql_num_rows($stmt)) {
-        if ($debug) $this->_emailError('No Rows', $stmt, $sql, $debug);
+        if ($debug AND strpos($sql, 'SELECT') !== false)
+          $this->_emailError('No Rows', $stmt, $sql, $debug);
         return [];
       }
 
