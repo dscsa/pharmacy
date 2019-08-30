@@ -22,10 +22,10 @@ function import_grx_patients() {
       pat.email as email,
       pat.auto_refill_cn as patient_autofill,
 
-      user_def_1 as user_def1,
-      user_def_2 as user_def2,
-      user_def_3 as user_def3,
-      user_def_4 as user_def4,
+      user_def_1 as pharmacy_name,
+      user_def_2 as pharmacy_info,
+      user_def_3 as billing_method,
+      user_def_4 as billing_info,
 
       addr1 as patient_address1,
       addr2 as patient_address2,

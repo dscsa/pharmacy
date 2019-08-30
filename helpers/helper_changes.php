@@ -55,7 +55,7 @@ function set_created_sql($new, $old, $id) {
       new.*
     FROM
       $new as new
-    LEFT JOIN gp_orders as old ON
+    LEFT JOIN $old as old ON
       old.$id = new.$id
     WHERE
       old.$id IS NULL

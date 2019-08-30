@@ -12,7 +12,7 @@ function update_patients() {
 
   mail('adam@sirum.org', "CRON: update_patients ", $message);
 
-  if ( ! count($changes['upserts']+$changes['removals'])) return;
+  if ( ! count($changes['deleted']+$changes['created']+$changes['updated'])) return;
 
   //TODO Upsert WooCommerce Patient Info
 
