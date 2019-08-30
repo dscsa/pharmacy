@@ -48,27 +48,26 @@ function import_cp_patients() {
 
   ");
 
-  $keys = array_keys($patients[0][0]);
-  $vals = result_map($patients[0],
+  $keys = result_map($patients[0],
     function($row) {
 
       //This is hard todo in MSSQL so doing it in PHP instead
-      $val1 = explode(',', $row['pharmacy_info']);
-      $val2 = explode(',', $row['billing_info']);
+      $val1 = explode(',', $row['pharmacy_info']) + ['', '', '', ''];
+      $val2 = explode(',', $row['billing_info'])  + ['', '', '', ''];
       unset($row['billing_info']);
       unset($row['pharmacy_info']);
 
-      if (isset($val1[0])) $row['pharmacy_npi']    = clean_val($val1[0]);
-      if (isset($val1[1])) $row['pharmacy_fax']    = clean_val($val1[1]);
-      if (isset($val1[2])) $row['pharmacy_phone']  = clean_val($val1[2]);
-      if (isset($val1[3])) $row['pharmacy_addrss'] = clean_val($val1[3]);
+      $row['pharmacy_npi']    = clean_val($val1[0]);
+      $row['pharmacy_fax']    = clean_val($val1[1]);
+      $row['pharmacy_phone']  = clean_val($val1[2]);
+      $row['pharmacy_addrss'] = clean_val($val1[3]);
 
-      if (isset($val2[0])) $row['card_last4']        = clean_val($val2[0]);
-      if (isset($val2[1])) $row['card_date_expired'] = clean_val($val2[1]);
-      if (isset($val2[2])) $row['card_type']         = clean_val($val2[2]);
-      if (isset($val2[3])) $row['billing_coupon']    = clean_val($val2[3]);
+      $row['card_last4']        = clean_val($val2[0]);
+      $row['card_date_expired'] = clean_val($val2[1]);
+      $row['card_type']         = clean_val($val2[2]);
+      $row['billing_coupon']    = clean_val($val2[3]);
 
-      return '('.sort_cols($row).')';
+      return "(".implode(', ', $row);.")";
     }
   );
 
@@ -76,6 +75,6 @@ function import_cp_patients() {
   $mysql->run('TRUNCATE TABLE gp_patients_cp');
 
   $mysql->run("
-    INSERT INTO gp_patients_cp (".sort_cols($row).") VALUES ".implode(',', $vals)
+    INSERT INTO gp_patients_cp ($keys) VALUES ".implode(',', $patients[0])
   );
 }

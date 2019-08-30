@@ -8,17 +8,20 @@ function clean_val($val) {
 
 //2d array map
 function result_map($rows, $callback) {
+
   foreach( $rows as $i => $row ) {
+
     foreach( $row as $key => $val ) {
       $row[$key] = clean_val($val);
     }
+
     $new = $callback($row, $i);
+
+    //If we added new columns we need to save the keys
+    //WARNING We must save the same columns every time (no ifs) otherwise key / val pairs will be mismatched
+    $keys = $keys ?: array_keys($row);
+
     if ( ! is_null($new)) $rows[$i] = $new;
   }
-  return $rows;
-}
-
-function sort_cols($row) {
-  ksort($row); //by reference, no return value
-  return implode(', ', $row);
+  return $keys;
 }
