@@ -24,8 +24,8 @@ function changes_to_rxs_single($new) {
       -- Not in GRX -- NOT old.sig_frequency_numerator <=> new.sig_frequency_numerator OR
       -- Not in GRX -- NOT old.sig_frequency_denominator <=> new.sig_frequency_denominator OR
     NOT old.rx_autofill <=> new.rx_autofill OR
-    NOT old.refill_date_first <=> new.dispense_date_first OR
-    NOT old.refill_date_last <=> new.dispense_date_last OR
+    NOT old.refill_date_first <=> new.refill_date_first OR
+    NOT old.refill_date_last <=> new.refill_date_last OR
     NOT old.refill_date_manual <=> new.refill_date_manual OR
     NOT old.refill_date_default <=> new.refill_date_default OR
     NOT old.rx_status <=> new.rx_status OR
