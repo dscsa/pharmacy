@@ -46,6 +46,7 @@ function import_cp_rxs_single() {
       expire_date as rx_date_expired
 
   	FROM cprx
+    LEFT JOIN cprx_disp disp (nolock) ON disp.rxdisp_id = last_rxdisp_id
     LEFT JOIN csct_code ON ct_id = 194 AND code_num = input_src_cn
     LEFT JOIN cpmd_spi on cpmd_spi.state = 'GA' AND cprx.md_id = cpmd_spi.md_id
   	LEFT JOIN ( -- TRANSLATE WEIRD BRAND NAMES TO GENERIC NAMES
