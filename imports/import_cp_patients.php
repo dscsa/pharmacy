@@ -55,20 +55,22 @@ function import_cp_patients() {
       //These were single quoted by clean_val() already so need to have quotes striped
       $val1 = $row['pharmacy_info'] == 'NULL' ? 'NULL' : substr($row['pharmacy_info'], 1, -1);
       $val2 = $row['billing_info']  == 'NULL' ? 'NULL' : substr($row['billing_info'], 1, -1);
+
+      unset($row['billing_info']);
+      unset($row['pharmacy_info']);
+
       $val1 = explode(',', $val1) + ['', '', '', ''];
       $val2 = explode(',', $val2) + ['', '', '', ''];
 
       $row['pharmacy_npi']     = clean_val($val1[0]);
-      $row['pharmacy_fax']     = clean_val($val1[1]);
-      $row['pharmacy_phone']   = clean_val($val1[2]);
+      $row['pharmacy_fax']     = str_replace('-', '', clean_val($val1[1]));
+      $row['pharmacy_phone']   = str_replace('-', '', clean_val($val1[2]));
       $row['pharmacy_address'] = clean_val($val1[3]);
 
       $row['card_last4']        = clean_val($val2[0]);
       $row['card_date_expired'] = clean_val($val2[1]);
       $row['card_type']         = clean_val($val2[2]);
       $row['billing_coupon']    = clean_val($val2[3]);
-
-      echo print_r($row, true);
 
       //Some validations
       assert_length($row['pharmacy_npi'], 10);
@@ -83,9 +85,6 @@ function import_cp_patients() {
       if ($row['card_last4'] != 'NULL') {
         $row['card_last4'] = \DateTime::createFromFormat('m/y',$row['card_last4']);
       }
-
-      unset($row['billing_info']);
-      unset($row['pharmacy_info']);
 
       return $row;
     }
