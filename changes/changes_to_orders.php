@@ -28,22 +28,22 @@ function changes_to_orders($new) {
   ";
 
   //Get Deleted
-  $deleted = $mysql->run(get_deleted_sql($new, $old, $id), true);
+  $deleted = $mysql->run(get_deleted_sql($new, $old, $id));
 
   //Get Inserted
-  $created = $mysql->run(get_created_sql($new, $old, $id), true);
+  $created = $mysql->run(get_created_sql($new, $old, $id));
 
   //Get Updated
-  $updated = $mysql->run(get_updated_sql($new, $old, $id, $where), true);
+  $updated = $mysql->run(get_updated_sql($new, $old, $id, $where));
 
   //Save Deletes
-  $mysql->run(set_deleted_sql($new, $old, $id), true);
+  $mysql->run(set_deleted_sql($new, $old, $id));
 
   //Save Inserts
-  $mysql->run(set_created_sql($new, $old, $id), true);
+  $mysql->run(set_created_sql($new, $old, $id));
 
   //Save Updates
-  $mysql->run(set_updated_sql($new, $old, $id, $where), true);
+  $mysql->run(set_updated_sql($new, $old, $id, $where));
 
   return [
     'deleted' => $deleted[0],
