@@ -59,6 +59,8 @@ function import_cp_patients() {
       $val1 = explode(',', $val1) + ['', '', '', ''];
       $val2 = explode(',', $val2) + ['', '', '', ''];
 
+      echo 'result_map: '.print_r($val1, true).' '.print_r($val2, true);
+
       $row['pharmacy_npi']     = clean_val($val1[0]);
       $row['pharmacy_fax']     = str_replace('-', '', clean_val($val1[1]));
       $row['pharmacy_phone']   = str_replace('-', '', clean_val($val1[2]));
@@ -68,6 +70,9 @@ function import_cp_patients() {
       $row['card_date_expired'] = clean_val($val2[1]);
       $row['card_type']         = clean_val($val2[2]);
       $row['billing_coupon']    = clean_val($val2[3]);
+
+
+      echo 'result_map: '.print_r($row, true);
 
       //Some validations
       assert_length($row['pharmacy_npi'], 10);
@@ -82,8 +87,6 @@ function import_cp_patients() {
       if ($row['card_last4'] != 'NULL') {
         $row['card_last4'] = \DateTime::createFromFormat('m/y',$row['card_last4']);
       }
-
-      echo 'result_map: '.print_r($row, true);
 
       unset($row['billing_info']);
       unset($row['pharmacy_info']);
