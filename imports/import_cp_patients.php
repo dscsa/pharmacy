@@ -73,6 +73,7 @@ function import_cp_patients() {
 
 
       //echo 'result_map: '.print_r($row, true);
+      if ($row['card_date_expired'] == '/') $row['card_date_expired'] = 'NULL'; //Assert would catch this but avoid noisy logging
 
       //Some validations
       assert_length($row['pharmacy_npi'], 12);      //no delimiters with single quotes
