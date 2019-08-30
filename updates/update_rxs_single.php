@@ -3,7 +3,7 @@ require_once 'changes/changes_to_rxs_single.php';
 
 function update_rxs_single() {
 
-  $changes = changes_to_rxs_single();
+  $changes = changes_to_rxs_single("gp_rxs_single_cp");
 
   $message = "CRON: update_rxs_single ".print_r($changes, true);
 
@@ -11,11 +11,9 @@ function update_rxs_single() {
 
   mail('adam@sirum.org', "CRON: update_rxs_single ", $message);
 
-  if ( ! count($changes['upserts']+$changes['removals'])) return;
+  if ( ! count($changes['deleted']+$changes['created']+$changes['updated'])) return;
 
   //TODO Calculate Qty Per Day from Sig and save in database
-
-  //TODO Clean Drug Name and save in database RTRIM(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(ISNULL(generic_name, cprx.drug_name), ' CAPSULE', ' CAP'),' CAPS',' CAP'),' TABLET',' TAB'),' TABS',' TAB'),' TB', ' TAB'),' HCL',''),' MG','MG'), '\"', ''))
 
   //TODO Implement rx_status logic that was in MSSQL Query and Save in Database
 

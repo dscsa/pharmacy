@@ -1,78 +1,67 @@
 <?php
 
 require_once 'dbs/mysql_wc.php';
+require_once 'helpers/helper_changes.php';
 
-function changes_to_rxs_single() {
+function changes_to_patients($new) {
   $mysql = new Mysql_Wc();
 
-  $upserts = $mysql->run("
-    SELECT staging.*
-    FROM
-      gp_rxs_cp as staging
-    LEFT JOIN gp_rxs as rxs ON
-      rxs.guardian_id <=> staging.guardian_id AND
-      rxs.gcn_seqno <=> staging.gcn_seqno AND
-      rxs.refills_total <=> staging.refills_total AND
-      rxs.rx_autofill <=> staging.rx_autofill AND
-      rxs.autofill_date <=> staging.autofill_date
-    WHERE
-      rxs.guardian_id IS NULL
-  ");
+  $old   = "gp_rxs_single";
+  $id    = "rx_number";
+  $where = "
+    NOT old.rx_number <=> new.rx_number OR
+    NOT old.patient_id_cp <=> new.patient_id_cp OR
+    NOT old.drug_name <=> new.drug_name OR
+    NOT old.drug_name_raw <=> new.drug_name_raw OR
+    NOT old.gcn <=> new.gcn OR
+    NOT old.refills_left <=> new.refills_left OR
+    NOT old.refills_original <=> new.refills_original OR
+    NOT old.qty_written <=> new.qty_written OR
+    NOT old.sig_raw <=> new.sig_raw OR
+      -- Not in GRX -- NOT old.sig_clean <=> new.sig_clean OR
+      -- Not in GRX -- NOT old.sig_qty_per_day <=> new.sig_qty_per_day OR
+      -- Not in GRX -- NOT old.sig_qty_per_time <=> new.sig_qty_per_time OR
+      -- Not in GRX -- NOT old.sig_frequency <=> new.sig_frequency OR
+      -- Not in GRX -- NOT old.sig_frequency_numerator <=> new.sig_frequency_numerator OR
+      -- Not in GRX -- NOT old.sig_frequency_denominator <=> new.sig_frequency_denominator OR
+    NOT old.rx_autofill <=> new.rx_autofill OR
+    NOT old.refill_date_first <=> new.dispense_date_first OR
+    NOT old.refill_date_last <=> new.dispense_date_last OR
+    NOT old.refill_date_manual <=> new.refill_date_manual OR
+    NOT old.refill_date_default <=> new.refill_date_default OR
+    NOT old.rx_status <=> new.rx_status OR
+    NOT old.rx_stage <=> new.rx_stage OR
+    NOT old.rx_source <=> new.rx_source OR
+    NOT old.rx_transfer <=> new.rx_transfer OR
+    NOT old.provider_npi <=> new.provider_npi OR
+    NOT old.provider_first_name <=> new.provider_first_name OR
+    NOT old.provider_last_name <=> new.provider_last_name OR
+    NOT old.provider_phone <=> new.provider_phone OR
+    NOT old.rx_date_changed <=> new.rx_date_changed OR
+    NOT old.rx_date_expired <=> new.rx_date_expired OR
+  ";
 
-  $removals = $mysql->run("
-    SELECT rxs.*
-    FROM
-      gp_rxs_cp as staging
-    RIGHT JOIN gp_rxs as rxs ON
-      rxs.guardian_id <=> staging.guardian_id AND
-      rxs.gcn_seqno <=> staging.gcn_seqno AND
-      rxs.refills_total <=> staging.refills_total AND
-      rxs.rx_autofill <=> staging.rx_autofill AND
-      rxs.autofill_date <=> staging.autofill_date
-    WHERE
-      staging.guardian_id IS NULL
-  ");
+  //Get Deleted
+  $deleted = $mysql->run(get_deleted_sql($new, $old, $id));
 
-  $mysql->run("
-    INSERT INTO gp_rxs (guardian_id, refills_total, gcn_seqno, drug_name, cprx_drug_name, rx_autofill, autofill_date, last_rxdisp_id, expire_date, oldest_script_high_refills, oldest_script_with_refills, oldest_active_script, newest_script)
-    SELECT staging.guardian_id, staging.refills_total, staging.gcn_seqno, staging.drug_name, staging.cprx_drug_name, staging.rx_autofill, staging.autofill_date, staging.last_rxdisp_id, staging.expire_date, staging.oldest_script_high_refills, staging.oldest_script_with_refills, staging.oldest_active_script, staging.newest_script
-    FROM gp_rxs_cp as staging
-    LEFT JOIN gp_rxs as rxs ON
-      rxs.guardian_id <=> staging.guardian_id AND
-      rxs.gcn_seqno <=> staging.gcn_seqno AND
-      rxs.refills_total <=> staging.refills_total AND
-      rxs.rx_autofill <=> staging.rx_autofill AND
-      rxs.autofill_date <=> staging.autofill_date
-    WHERE
-      rxs.guardian_id IS NULL
-    ON DUPLICATE KEY UPDATE
-      guardian_id = staging.guardian_id,
-      refills_total = staging.refills_total,
-      gcn_seqno = staging.gcn_seqno,
-      drug_name = staging.drug_name,
-      cprx_drug_name = staging.cprx_drug_name,
-      rx_autofill = staging.rx_autofill,
-      autofill_date = staging.autofill_date,
-      last_rxdisp_id = staging.last_rxdisp_id,
-      expire_date = staging.expire_date,
-      oldest_script_high_refills = staging.oldest_script_high_refills,
-      oldest_script_with_refills = staging.oldest_script_with_refills,
-      oldest_active_script = staging.oldest_active_script,
-      newest_script = staging.newest_script
-  ");
+  //Get Inserted
+  $created = $mysql->run(get_created_sql($new, $old, $id));
 
-  $mysql->run("
-    DELETE rxs
-    FROM gp_rxs_cp as staging
-    RIGHT JOIN gp_rxs as rxs ON
-      rxs.guardian_id <=> staging.guardian_id AND
-      rxs.gcn_seqno <=> staging.gcn_seqno AND
-      rxs.refills_total <=> staging.refills_total AND
-      rxs.rx_autofill <=> staging.rx_autofill AND
-      rxs.autofill_date <=> staging.autofill_date
-    WHERE
-      staging.guardian_id IS NULL
-  ");
+  //Get Updated
+  $updated = $mysql->run(get_updated_sql($new, $old, $id, $where));
 
-  return ['upserts' => $upserts[0], 'removals' => $removals[0]];
+  //Save Deletes
+  $mysql->run(set_deleted_sql($new, $old, $id));
+
+  //Save Inserts
+  $mysql->run(set_created_sql($new, $old, $id));
+
+  //Save Updates
+  $mysql->run(set_updated_sql($new, $old, $id, $where));
+
+  return [
+    'deleted' => $deleted[0],
+    'created' => $created[0],
+    'updated' => $updated[0]
+  ];
 }
