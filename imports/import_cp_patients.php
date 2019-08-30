@@ -68,7 +68,7 @@ function import_cp_patients() {
       $row['billing_coupon']    = clean_val($val2[3]);
 
       //some Stripe Tokens still stored in this field
-      if (strlen($row['pharmacy_npi']) > 10) $row['pharmacy_npi'] = 'NULL'
+      if (strlen($row['pharmacy_npi']) > 10) $row['pharmacy_npi'] = 'NULL';
 
       return $row;
     }
