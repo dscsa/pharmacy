@@ -38,23 +38,42 @@ function import_cp_rxs_single() {
       last_transfer_type_io as rx_transfer,
 
       provider_npi,
-      provider_fname as provider_first_name,
-      provider_lname as provider_last_name,
+      provider_first_name,
+      provider_last_name,
       provider_phone,
 
       cprx.chg_date as rx_date_changed,
       expire_date as rx_date_expired
 
   	FROM cprx
-    LEFT JOIN cprx_disp disp (nolock) ON disp.rxdisp_id = last_rxdisp_id
-    LEFT JOIN csct_code ON ct_id = 194 AND code_num = input_src_cn
-    LEFT JOIN cpmd_spi on cpmd_spi.state = 'GA' AND cprx.md_id = cpmd_spi.md_id
+
+    LEFT JOIN cprx_disp disp (nolock) ON
+      disp.rxdisp_id = last_rxdisp_id
+
+    LEFT JOIN csct_code ON
+      ct_id = 194 AND code_num = input_src_cn
+
+    LEFT JOIN (
+      SELECT
+        MAX(name_first) as provider_first_name,
+        MAX(name_last) as provider_last_name,
+        MAX(npi) as npi,
+      FROM cpmd_spi
+      WHERE state = 'GA'
+      GROUP BY md_id
+    ) as md ON
+      cprx.md_id = cpmd_spi.md_id
+
   	LEFT JOIN ( -- TRANSLATE WEIRD BRAND NAMES TO GENERIC NAMES
-  		SELECT STUFF(MIN(gni+fdrndc.ln), 1, 1, '') as generic_name, fdrndc.gcn_seqno -- STUFF is a hack to get first occurance since MSSQL doesn't have that ability
+  		SELECT STUFF(MIN(gni+fdrndc.ln), 1, 1, '') as generic_name, fdrndc.gcn_seqno -- WE WANT GNI FOR MIN() BUT THEN STUFF() REMOVES IT
   		FROM fdrndc
   		GROUP BY fdrndc.gcn_seqno
-  	) as generic_name ON generic_name.gcn_seqno = cprx.gcn_seqno
-    WHERE cprx.status_cn <> 3 AND (cprx.status_cn <> 2 OR last_transfer_type_io = 'O') -- NULL/0 is active, 1 is not yet dispensed?, 2 is transferred out/inactive, 3 is voided
+  	) as generic_name ON
+      generic_name.gcn_seqno = cprx.gcn_seqno
+
+    WHERE
+      cprx.status_cn <> 3 AND
+      (cprx.status_cn <> 2 OR last_transfer_type_io = 'O') -- NULL/0 is active, 1 is not yet dispensed?, 2 is transferred out/inactive, 3 is voided
 
   ");
 
