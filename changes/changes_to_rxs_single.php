@@ -9,7 +9,6 @@ function changes_to_rxs_single($new) {
   $old   = "gp_rxs_single";
   $id    = "rx_number";
   $where = "
-    NOT old.rx_number <=> new.rx_number OR
     NOT old.patient_id_cp <=> new.patient_id_cp OR
     NOT old.drug_name <=> new.drug_name OR
     NOT old.drug_name_raw <=> new.drug_name_raw OR
