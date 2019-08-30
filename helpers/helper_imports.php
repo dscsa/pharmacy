@@ -6,6 +6,14 @@ function clean_val($val) {
   return ($val === '' OR $val === '<Not Specified>' OR $val === 'NULL') ? 'NULL' : "'$val'";
 }
 
+function clean_phone($phone) {
+  if ($phone == 'NULL') return $phone;
+  $phone = preg_replace("/[^0-9]/", "", $phone);
+  $country = $phone[0] == '1' ? 1 : 0;
+  $phone = substr($phone, $country, $country+10);
+  return "'$phone'";
+}
+
 //2d array map
 function result_map(&$rows, $callback = null) {
 

@@ -88,7 +88,7 @@ function import_cp_rxs_single() {
     function($row) {
       //Clean Drug Name and save in database RTRIM(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(ISNULL(generic_name, cprx.drug_name), ' CAPSULE', ' CAP'),' CAPS',' CAP'),' TABLET',' TAB'),' TABS',' TAB'),' TB', ' TAB'),' HCL',''),' MG','MG'), '\"', ''))
       $row['drug_name'] = str_replace([' CAPSULE', ' CAPS', ' CP', ' TABLET', ' TABS', ' TB', ' HCL', ' MG', ' MEQ', ' MCG', '"'], [' CAP', ' CAP', ' CAP', ' TAB', ' TAB', ' TAB', '', '', '', 'MG', ''], trim($row['drug_name']));
-      $row['provider_phone'] = $row['provider_phone'] == 'NULL' ? 'NULL' : substr(str_replace('-', '', $row['provider_phone']), 0, 11)."'";
+      $row['provider_phone'] = clean_phone($row['provider_phone']);
 
       //Some validations
       assert_length($row['provider_phone'], 12);  //no delimiters with single quotes
