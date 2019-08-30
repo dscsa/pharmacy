@@ -82,9 +82,9 @@ function import_cp_patients() {
 
         echo $key.' after '.print_r($row, true);
       }
-
-      $val = clean_val($val);
-
+      else {
+        $val = clean_val($val);
+      }
     }
   );
 
