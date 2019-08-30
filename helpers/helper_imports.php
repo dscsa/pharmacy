@@ -17,6 +17,6 @@ function result_map($rows, $row_cb, $col_cb) {
   return $rows;
 }
 
-function sort_cols($row);
+function sort_cols($row) {
   return implode(', ', ksort($row));
 }
