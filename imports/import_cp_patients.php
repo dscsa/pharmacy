@@ -83,7 +83,7 @@ function import_cp_patients() {
         $row['card_last4'] = \DateTime::createFromFormat('m/y',$row['card_last4']);
       }
 
-      echo 'result_map: '+print_r($row, true);
+      echo 'result_map: '.print_r($row, true);
 
       unset($row['billing_info']);
       unset($row['pharmacy_info']);
