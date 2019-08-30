@@ -49,7 +49,44 @@ function import_cp_patients() {
   ");
 
   $keys = array_keys($patients[0][0]);
-  $vals = escape_vals($patients[0]);
+  $vals = result_map($patients[0],
+    function($row) {
+       $row = '('.implode(', ', $row).')';
+    },
+    function($row, $key, $val) {
+      if ($key == 'pharmacy_info') {
+        echo $key.' before '.print_r($row, true);
+
+        //This is hard todo in MSSQL so do in PHP instead
+        $val = explode(',', $val);
+
+        $row['pharmacy_npi']    = clean_val($val[0]);
+        $row['pharmacy_fax']    = clean_val($val[1]);
+        $row['pharmacy_phone']  = clean_val($val[2]);
+        $row['pharmacy_addrss'] = clean_val($val[3]);
+        unset($row['pharmacy_info']);
+
+        echo $key.' after '.print_r($row, true);
+      }
+      else if ($key == 'billing_info') {
+        echo $key.' before '.print_r($row, true);
+
+        //This is hard todo in MSSQL so do in PHP instead
+        $val = explode(',', $val);
+
+        $row['card_last4']        = clean_val($val[0]);
+        $row['card_date_expired'] = clean_val($val[1]);
+        $row['card_type']         = clean_val($val[2]);
+        $row['billing_coupon']    = clean_val($val[3]);
+        unset($row['billing_info']);
+
+        echo $key.' after '.print_r($row, true);
+      }
+
+      $val = clean_val($val);
+
+    }
+  )
 
   //Replace Staging Table with New Data
   $mysql->run('TRUNCATE TABLE gp_patients_cp');

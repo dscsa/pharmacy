@@ -1,16 +1,18 @@
 <?php
 
-function escape_vals($rows) {
+// Convert empty string to null or CP's <Not Specified> to NULL
+function clean_val($val) {
+  $val = mysql_real_escape_string(trim($val));
+  return ($val === '' OR $val === '<Not Specified>') ? 'NULL' : '"'.$val.'"';
+}
 
-  //https://stackoverflow.com/questions/16710800/implode-data-from-a-multi-dimensional-array
-  $results = [];
+//2d array map
+function result_map($rows, $row_cb, $col_cb) {
   foreach( $rows as $row ) {
     foreach( $row as $key => $val ) {
-      $val = mysql_real_escape_string(trim($val));
-      $row[$key] = ($val === '' OR $val === '<Not Specified>') ? 'NULL' : '"'.$val.'"'; // convert empty string to null
+      $col_cb AND $col_cb(&$row, $key, $val);
     }
-    $results[] = '('.implode(', ', $row).')';
+    $row_cb AND $row_cb(&$row);
   }
-
-  return $results;
+  return $rows;
 }

@@ -38,8 +38,14 @@ function import_cp_orders() {
       pat_id IS NOT NULL -- Some GRX orders have no patient!?
   ");
 
+
+
   $keys = array_keys($orders[0][0]);
-  $vals = escape_vals($orders[0]);
+  $vals = result_map($orders[0],
+    function($row) {
+       $row = '('.implode(', ', $row).')';
+    }
+  );
 
   //Replace Staging Table with New Data
   $mysql->run('TRUNCATE TABLE gp_orders_cp');
