@@ -40,7 +40,7 @@ function assert_length(&$field, $min, $max = null) {
   $len = strlen($field);
   $max = $max ?: $min;
 
-  if ($len >= $min AND $len =< $max) return;
+  if ($len >= $min AND $len <= $max) return;
 
   echo "
     Assert Length: $field has length of $len but needs to be between $min and $max
