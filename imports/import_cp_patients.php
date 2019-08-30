@@ -56,9 +56,6 @@ function import_cp_patients() {
       $val1 = $row['pharmacy_info'] == 'NULL' ? 'NULL' : substr($row['pharmacy_info'], 1, -1);
       $val2 = $row['billing_info']  == 'NULL' ? 'NULL' : substr($row['billing_info'], 1, -1);
 
-      unset($row['billing_info']);
-      unset($row['pharmacy_info']);
-
       $val1 = explode(',', $val1) + ['', '', '', ''];
       $val2 = explode(',', $val2) + ['', '', '', ''];
 
@@ -85,6 +82,11 @@ function import_cp_patients() {
       if ($row['card_last4'] != 'NULL') {
         $row['card_last4'] = \DateTime::createFromFormat('m/y',$row['card_last4']);
       }
+
+      echo 'result_map: '+print_r($row, true);
+
+      unset($row['billing_info']);
+      unset($row['pharmacy_info']);
 
       return $row;
     }
