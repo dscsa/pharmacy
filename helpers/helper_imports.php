@@ -7,12 +7,14 @@ function clean_val($val) {
 }
 
 //2d array map
-function result_map($rows, $row_cb, $col_cb) {
-  foreach( $rows as $row ) {
+function result_map($rows, $row_cb, $col_cb = null) {
+  foreach( $rows as $i => $row ) {
     foreach( $row as $key => $val ) {
-      $col_cb AND $col_cb($row, $key, $val);
+      $new = $col_cb AND $col_cb($key, $val);
+      if ( ! is_null($new)) $row[$key] = $new;
     }
-    $row_cb AND $row_cb($row);
+    $new = $row_cb AND $row_cb($i, $row);
+    if ( ! is_null($new)) $rows[$i] = $new;
   }
   return $rows;
 }
