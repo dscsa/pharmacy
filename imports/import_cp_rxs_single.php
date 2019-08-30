@@ -57,14 +57,15 @@ function import_cp_rxs_single() {
       SELECT
         MAX(name_first) as provider_first_name,
         MAX(name_last) as provider_last_name,
-        MAX(npi) as npi,
+        MAX(npi) as npi
       FROM cpmd_spi
       WHERE state = 'GA'
       GROUP BY md_id
     ) as md ON
       cprx.md_id = md.md_id
 
-  	LEFT JOIN ( -- TRANSLATE WEIRD BRAND NAMES TO GENERIC NAMES
+    -- TRANSLATE WEIRD BRAND NAMES TO GENERIC NAMES
+  	LEFT JOIN (
   		SELECT STUFF(MIN(gni+fdrndc.ln), 1, 1, '') as generic_name, fdrndc.gcn_seqno -- WE WANT GNI FOR MIN() BUT THEN STUFF() REMOVES IT
   		FROM fdrndc
   		GROUP BY fdrndc.gcn_seqno
