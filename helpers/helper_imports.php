@@ -10,9 +10,9 @@ function clean_val($val) {
 function result_map($rows, $row_cb, $col_cb) {
   foreach( $rows as $row ) {
     foreach( $row as $key => $val ) {
-      $col_cb AND $col_cb(&$row, $key, $val);
+      $col_cb AND $col_cb($row, $key, $val);
     }
-    $row_cb AND $row_cb(&$row);
+    $row_cb AND $row_cb($row);
   }
   return $rows;
 }

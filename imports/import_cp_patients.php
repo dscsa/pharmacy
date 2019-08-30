@@ -50,10 +50,10 @@ function import_cp_patients() {
 
   $keys = array_keys($patients[0][0]);
   $vals = result_map($patients[0],
-    function($row) {
+    function(&$row) {
        $row = '('.implode(', ', $row).')';
     },
-    function($row, $key, $val) {
+    function(&$row, $key, &$val) {
       if ($key == 'pharmacy_info') {
         echo $key.' before '.print_r($row, true);
 
