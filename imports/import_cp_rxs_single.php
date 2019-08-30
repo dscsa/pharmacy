@@ -44,6 +44,7 @@ function import_cp_rxs_single() {
       provider_npi,
       provider_first_name,
       provider_last_name,
+      provider_clinic,
       provider_phone,
 
       CONVERT(varchar, cprx.chg_date, 20) as rx_date_changed,
@@ -60,9 +61,10 @@ function import_cp_rxs_single() {
     LEFT JOIN (
       SELECT
         md_id,
+        MAX(npi) as provider_npi,
         MAX(name_first) as provider_first_name,
         MAX(name_last) as provider_last_name,
-        MAX(npi) as provider_npi,
+        MAX(clinic_name) as provider_clinic,
         MAX(phone) as provider_phone
       FROM cpmd_spi
       WHERE state = 'GA'
