@@ -3,7 +3,7 @@
 require_once 'dbs/mysql_wc.php';
 require_once 'helpers/helper_changes.php';
 
-function changes_to_patients($new) {
+function changes_to_rxs_single($new) {
   $mysql = new Mysql_Wc();
 
   $old   = "gp_rxs_single";
