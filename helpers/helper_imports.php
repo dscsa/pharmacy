@@ -15,11 +15,13 @@ function result_map(&$rows, $callback) {
       $row[$key] = clean_val($val);
     }
 
-    $new = ($callback AND $callback($row, $i)) ?: $row;
+    $new =  $callback
+      ? ($callback($row, $i) ?: $row)
+      : $new = $row;
 
     //If we added new columns we need to save the keys
     //WARNING We must save the same columns every time (no ifs) otherwise key / val pairs will be mismatched
-    $keys = $keys ?: array_keys($new);
+    $keys = isset($keys) ? $keys : array_keys($new);
 
     $rows[$i] = array_string($new);
   }
