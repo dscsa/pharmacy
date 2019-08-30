@@ -52,8 +52,9 @@ function import_cp_patients() {
     function($row) {
 
       //This is hard todo in MSSQL so doing it in PHP instead
-      $val1 = explode(',', $row['pharmacy_info']) + ['', '', '', ''];
-      $val2 = explode(',', $row['billing_info'])  + ['', '', '', ''];
+      //These were single quoted by clean_val() already so need to have quotes striped
+      $val1 = explode(',', substr($row['pharmacy_info'], 1, -1)) + ['', '', '', ''];
+      $val2 = explode(',', substr($row['billing_info'], 1, -1))  + ['', '', '', ''];
 
 
       $row['pharmacy_npi']    = clean_val($val1[0]);
