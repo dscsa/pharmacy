@@ -90,7 +90,9 @@ function import_cp_rxs_single() {
       $row['drug_name'] = str_replace([' CAPSULE', ' CAPS', ' CP', ' TABLET', ' TABS', ' TB', ' HCL', ' MG', ' MEQ', ' MCG', '"'], [' CAP', ' CAP', ' CAP', ' TAB', ' TAB', ' TAB', '', '', '', 'MG', ''], trim($row['drug_name']));
       $row['provider_phone'] = str_replace('-', '', $row['provider_phone']);
 
-      //echo 'result_map: '.print_r($row, true);
+      //Some validations
+      assert_length($row['provider_phone'], 12);  //no delimiters with single quotes
+
       return $row;
     }
   );
