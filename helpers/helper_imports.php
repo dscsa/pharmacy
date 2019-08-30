@@ -15,7 +15,7 @@ function result_map(&$rows, $callback) {
       $row[$key] = clean_val($val);
     }
 
-    $new = $callback($row, $i) ?: $row;
+    $new = ($callback AND $callback($row, $i)) ?: $row;
 
     //If we added new columns we need to save the keys
     //WARNING We must save the same columns every time (no ifs) otherwise key / val pairs will be mismatched
