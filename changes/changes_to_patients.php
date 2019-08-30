@@ -17,9 +17,15 @@ function changes_to_patients($new) {
     NOT old.email <=> new.email OR
     NOT old.patient_autofill <=> new.patient_autofill OR
     NOT old.pharmacy_name <=> new.pharmacy_name OR
-    NOT old.pharmacy_info <=> new.pharmacy_info OR
+    NOT old.pharmacy_npi <=> new.pharmacy_npi OR
+    NOT old.pharmacy_fax <=> new.pharmacy_fax OR
+    NOT old.pharmacy_phone <=> new.pharmacy_phone OR
+    NOT old.pharmacy_address <=> new.pharmacy_address OR
+    NOT old.card_type <=> new.card_type OR
+    NOT old.card_last4 <=> new.card_last4 OR
+    NOT old.card_date_expired <=> new.card_date_expired OR
     NOT old.billing_method <=> new.billing_method OR
-    NOT old.billing_info <=> new.billing_info OR
+    NOT old.billing_coupon <=> new.billing_coupon OR
     NOT old.patient_address1 <=> new.patient_address1 OR
     NOT old.patient_address2 <=> new.patient_address2 OR
     NOT old.patient_city <=> new.patient_city OR
