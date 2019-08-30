@@ -85,7 +85,7 @@ function import_cp_patients() {
       assert_length($row['billing_coupon'], 5, 40); //with single quotes
 
       if ($row['card_last4'] != 'NULL') {
-        $row['card_last4'] = \DateTime::createFromFormat('m/y',$row['card_last4']);
+        $row['card_last4'] = "'".\DateTime::createFromFormat("'m/y'",$row['card_last4'])."'";
       }
 
       unset($row['billing_info']);
