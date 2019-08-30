@@ -60,7 +60,7 @@ function import_cp_patients() {
       $row['pharmacy_npi']    = clean_val($val1[0]);
       $row['pharmacy_fax']    = clean_val($val1[1]);
       $row['pharmacy_phone']  = clean_val($val1[2]);
-      $row['pharmacy_addrss'] = clean_val($val1[3]);
+      $row['pharmacy_address'] = clean_val($val1[3]);
 
       $row['card_last4']        = clean_val($val2[0]);
       $row['card_date_expired'] = clean_val($val2[1]);
