@@ -53,13 +53,14 @@ function import_cp_patients() {
 
       //This is hard todo in MSSQL so doing it in PHP instead
       //These were single quoted by clean_val() already so need to have quotes striped
-      $val1 = explode(',', substr($row['pharmacy_info'], 1, -1)) + ['', '', '', ''];
-      $val2 = explode(',', substr($row['billing_info'], 1, -1))  + ['', '', '', ''];
+      $val1 = $row['pharmacy_info'] == 'NULL' ? 'NULL' : substr($row['pharmacy_info'], 1, -1);
+      $val2 = $row['billing_info']  == 'NULL' ? 'NULL' : substr($row['billing_info'], 1, -1);
+      $val1 = explode(',', $val1) + ['', '', '', ''];
+      $val2 = explode(',', $val2) + ['', '', '', ''];
 
-
-      $row['pharmacy_npi']    = clean_val($val1[0]);
-      $row['pharmacy_fax']    = clean_val($val1[1]);
-      $row['pharmacy_phone']  = clean_val($val1[2]);
+      $row['pharmacy_npi']     = clean_val($val1[0]);
+      $row['pharmacy_fax']     = clean_val($val1[1]);
+      $row['pharmacy_phone']   = clean_val($val1[2]);
       $row['pharmacy_address'] = clean_val($val1[3]);
 
       $row['card_last4']        = clean_val($val2[0]);
