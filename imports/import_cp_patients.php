@@ -50,7 +50,7 @@ function import_cp_patients() {
 
   $keys = array_keys($patients[0][0]);
   $vals = result_map($patients[0],
-    function($key, $val) {
+    function($key, $row) {
        unset($row['billing_info']);
        unset($row['pharmacy_info']);
        return '('.sort_cols($row).')';
