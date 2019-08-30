@@ -67,16 +67,17 @@ function import_cp_patients() {
       $row['card_type']         = clean_val($val2[2]);
       $row['billing_coupon']    = clean_val($val2[3]);
 
-      //some Stripe Tokens still stored in this field
-      if (strlen($row['pharmacy_npi']) > 10) $row['pharmacy_npi'] = 'NULL';
-      if (strlen($row['card_last4']) > 4) {
-        echo 'card_last4'.print_r($row, true);
-        $row['card_last4'] = 'NULL';
-      } else {
+      //Some validations
+      assert_length($row['pharmacy_npi'], 10);
+      assert_length($row['pharmacy_fax'], 10);
+      assert_length($row['pharmacy_phone'], 10);
+
+      assert_length($row['card_last4'], 4);
+      assert_length($row['card_date_expired'], 5);
+
+      if ($row['card_last4'] != 'NULL') {
         $row['card_last4'] = \DateTime::createFromFormat('m/y',$row['card_last4']);
       }
-
-
 
       return $row;
     }

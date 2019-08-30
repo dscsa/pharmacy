@@ -34,3 +34,7 @@ function result_map(&$rows, $callback = null) {
 function array_string($arr) {
   return "(".implode(', ', $arr).")";
 }
+
+function assert_length(&$field, $len) {
+  if (strlen($field) != $len) $field = 'NULL';
+}
