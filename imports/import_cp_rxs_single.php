@@ -62,7 +62,7 @@ function import_cp_rxs_single() {
       WHERE state = 'GA'
       GROUP BY md_id
     ) as md ON
-      cprx.md_id = cpmd_spi.md_id
+      cprx.md_id = md.md_id
 
   	LEFT JOIN ( -- TRANSLATE WEIRD BRAND NAMES TO GENERIC NAMES
   		SELECT STUFF(MIN(gni+fdrndc.ln), 1, 1, '') as generic_name, fdrndc.gcn_seqno -- WE WANT GNI FOR MIN() BUT THEN STUFF() REMOVES IT
