@@ -47,8 +47,8 @@ function import_cp_rxs_single() {
 
   	FROM cprx
 
-    LEFT JOIN cprx_disp disp (nolock) ON
-      disp.rxdisp_id = last_rxdisp_id
+    LEFT JOIN cprx_disp ON
+      cprx_disp.rxdisp_id = last_rxdisp_id
 
     LEFT JOIN csct_code ON
       ct_id = 194 AND code_num = input_src_cn
