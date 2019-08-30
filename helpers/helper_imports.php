@@ -7,8 +7,8 @@ function clean_val($val) {
 }
 
 function clean_phone($phone) {
-  if ($phone == 'NULL') return $phone;
   $phone = preg_replace("/[^0-9]/", "", $phone);
+  if ( ! $phone) return 'NULL';
   $country = $phone[0] == '1' ? 1 : 0;
   $phone = substr($phone, $country, $country+10);
   return "'$phone'";
