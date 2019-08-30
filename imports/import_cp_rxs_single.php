@@ -26,7 +26,7 @@ function import_cp_rxs_single() {
       written_qty as qty_written,
       sig_text_english as sig_raw,
 
-      rx_autofill,
+      autofill_yn as rx_autofill,
       orig_disp_date as refill_date_first,
       dispense_date as refill_date_last,
       autofill_date as refill_date_manual,
