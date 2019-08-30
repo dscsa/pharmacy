@@ -50,33 +50,25 @@ function import_cp_patients() {
 
   $keys = array_keys($patients[0][0]);
   $vals = result_map($patients[0],
-    function($key, $row) {
-       unset($row['billing_info']);
-       unset($row['pharmacy_info']);
-       return '('.sort_cols($row).')';
-    },
-    function($key, $val) {
-      if ($key == 'pharmacy_info') {
-        //This is hard todo in MSSQL so do in PHP instead
-        $val = explode(',', $val);
+    function($row) {
 
-        if (isset($val[0])) $row['pharmacy_npi']    = clean_val($val[0]);
-        if (isset($val[1])) $row['pharmacy_fax']    = clean_val($val[1]);
-        if (isset($val[2])) $row['pharmacy_phone']  = clean_val($val[2]);
-        if (isset($val[3])) $row['pharmacy_addrss'] = clean_val($val[3]);
-      }
-      else if ($key == 'billing_info') {
-        //This is hard todo in MSSQL so do in PHP instead
-        $val = explode(',', $val);
+      //This is hard todo in MSSQL so doing it in PHP instead
+      $val1 = explode(',', $row['pharmacy_info']);
+      $val2 = explode(',', $row['billing_info']);
+      unset($row['billing_info']);
+      unset($row['pharmacy_info']);
 
-        if (isset($val[0])) $row['card_last4']        = clean_val($val[0]);
-        if (isset($val[1])) $row['card_date_expired'] = clean_val($val[1]);
-        if (isset($val[2])) $row['card_type']         = clean_val($val[2]);
-        if (isset($val[3])) $row['billing_coupon']    = clean_val($val[3]);
-      }
-      else {
-        return clean_val($val);
-      }
+      if (isset($val1[0])) $row['pharmacy_npi']    = clean_val($val1[0]);
+      if (isset($val1[1])) $row['pharmacy_fax']    = clean_val($val1[1]);
+      if (isset($val1[2])) $row['pharmacy_phone']  = clean_val($val1[2]);
+      if (isset($val1[3])) $row['pharmacy_addrss'] = clean_val($val1[3]);
+
+      if (isset($val2[0])) $row['card_last4']        = clean_val($val2[0]);
+      if (isset($val2[1])) $row['card_date_expired'] = clean_val($val2[1]);
+      if (isset($val2[2])) $row['card_type']         = clean_val($val2[2]);
+      if (isset($val2[3])) $row['billing_coupon']    = clean_val($val2[3]);
+
+      return '('.sort_cols($row).')';
     }
   );
 
