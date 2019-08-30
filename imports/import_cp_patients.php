@@ -59,7 +59,7 @@ function import_cp_patients() {
       $val1 = explode(',', $val1) + ['', '', '', ''];
       $val2 = explode(',', $val2) + ['', '', '', ''];
 
-      echo 'result_map: '.print_r($val1, true).' '.print_r($val2, true);
+      //echo 'result_map: '.print_r($val1, true).' '.print_r($val2, true);
 
       $row['pharmacy_npi']     = clean_val($val1[0]);
       $row['pharmacy_fax']     = str_replace('-', '', clean_val($val1[1]));
@@ -72,17 +72,17 @@ function import_cp_patients() {
       $row['billing_coupon']    = clean_val($val2[3]);
 
 
-      echo 'result_map: '.print_r($row, true);
+      //echo 'result_map: '.print_r($row, true);
 
       //Some validations
-      assert_length($row['pharmacy_npi'], 10);
-      assert_length($row['pharmacy_fax'], 10);
-      assert_length($row['pharmacy_phone'], 10);
+      assert_length($row['pharmacy_npi'], 12);      //no delimiters with single quotes
+      assert_length($row['pharmacy_fax'], 12);      //no delimiters with single quotes
+      assert_length($row['pharmacy_phone'], 12);    //no delimiters with single quotes
 
-      assert_length($row['card_last4'], 4);
-      assert_length($row['card_date_expired'], 5);
-      assert_length($row['card_type'], 4, 20);
-      assert_length($row['billing_coupon'], 5, 20);
+      assert_length($row['card_last4'], 6);         //with single quotes
+      assert_length($row['card_date_expired'], 7);  //with single quotes
+      assert_length($row['card_type'], 4, 20);      //with single quotes
+      assert_length($row['billing_coupon'], 5, 40); //with single quotes
 
       if ($row['card_last4'] != 'NULL') {
         $row['card_last4'] = \DateTime::createFromFormat('m/y',$row['card_last4']);
