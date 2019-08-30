@@ -21,7 +21,7 @@ function import_cp_rxs_single() {
       drug_name as drug_name_raw,
       cprx.gcn_seqno as gcn,
 
-      CASE WHEN script_status_cn = 0 AND expire_date > @today THEN refills_left ELSE 0 END as refills_left,
+      (CASE WHEN script_status_cn = 0 AND expire_date > @today THEN refills_left ELSE 0 END) as refills_left,
       refills_orig + 1 as refills_original,
       written_qty as qty_written,
       sig_text_english as sig_raw,
