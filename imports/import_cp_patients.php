@@ -51,11 +51,13 @@ function import_cp_patients() {
   $keys = result_map($patients[0],
     function($row) {
 
+      if ($row['patient_id_cp'] = 1291)
+        echo print_r($row, true);
+
       //This is hard todo in MSSQL so doing it in PHP instead
       $val1 = explode(',', $row['pharmacy_info']) + ['', '', '', ''];
       $val2 = explode(',', $row['billing_info'])  + ['', '', '', ''];
-      unset($row['billing_info']);
-      unset($row['pharmacy_info']);
+
 
       $row['pharmacy_npi']    = clean_val($val1[0]);
       $row['pharmacy_fax']    = clean_val($val1[1]);
@@ -80,6 +82,12 @@ function import_cp_patients() {
       if ($row['card_last4'] != 'NULL') {
         $row['card_last4'] = \DateTime::createFromFormat('m/y',$row['card_last4']);
       }
+
+      if ($row['patient_id_cp'] = 1291)
+        echo print_r($row, true);
+
+      unset($row['billing_info']);
+      unset($row['pharmacy_info']);
 
       return $row;
     }
