@@ -43,7 +43,7 @@ function import_cp_orders() {
   $keys = array_keys($orders[0][0]);
   $vals = result_map($orders[0],
     function(&$row) {
-       $row = '('.implode(', ', $row).')';
+       $row = '('.sort_cols($row).')';
     }
   );
 
@@ -51,7 +51,7 @@ function import_cp_orders() {
   $mysql->run('TRUNCATE TABLE gp_orders_cp');
 
   $mysql->run("
-    INSERT INTO gp_orders_cp (".implode(',', $keys).") VALUES ".implode(',', $vals)
+    INSERT INTO gp_orders_cp (".sort_cols($row).") VALUES ".implode(',', $vals)
   );
 }
 

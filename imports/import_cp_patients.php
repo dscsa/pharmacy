@@ -51,7 +51,7 @@ function import_cp_patients() {
   $keys = array_keys($patients[0][0]);
   $vals = result_map($patients[0],
     function(&$row) {
-       $row = '('.implode(', ', $row).')';
+       $row = '('.sort_cols($row).')';
     },
     function(&$row, $key, &$val) {
       if ($key == 'pharmacy_info') {
@@ -92,6 +92,6 @@ function import_cp_patients() {
   $mysql->run('TRUNCATE TABLE gp_patients_cp');
 
   $mysql->run("
-    INSERT INTO gp_patients_cp (".implode(',', $keys).") VALUES ".implode(',', $vals)
+    INSERT INTO gp_patients_cp (".sort_cols($row).") VALUES ".implode(',', $vals)
   );
 }
