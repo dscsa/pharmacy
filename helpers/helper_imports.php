@@ -7,7 +7,7 @@ function clean_val($val) {
 }
 
 //2d array map
-function result_map(&$rows, $callback) {
+function result_map(&$rows, $callback = null) {
 
   foreach( $rows as $i => $row ) {
 
@@ -15,7 +15,7 @@ function result_map(&$rows, $callback) {
       $row[$key] = clean_val($val);
     }
 
-    $new =  $callback
+    $new = $callback
       ? ($callback($row, $i) ?: $row)
       : $new = $row;
 
