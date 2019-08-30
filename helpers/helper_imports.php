@@ -17,14 +17,18 @@ function result_map(&$rows, $callback) {
 
     $new = $callback($row, $i) ?: $row;
 
-     //If we added new columns we need to save the keys
-     //WARNING We must save the same columns every time (no ifs) otherwise key / val pairs will be mismatched
-     $keys = $keys ?: array_keys($new);
+    //If we added new columns we need to save the keys
+    //WARNING We must save the same columns every time (no ifs) otherwise key / val pairs will be mismatched
+    $keys = $keys ?: array_keys($new);
 
-     $rows[$i] = "(".implode(', ', $new).")";
+    $rows[$i] = array_string($new);
   }
 
   $rows = implode(',', $rows);
 
-  return "(".implode(', ', $keys).")";
+  return array_string($keys);
+}
+
+function array_string($arr) {
+  return "(".implode(', ', $arr).")";
 }
