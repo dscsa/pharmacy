@@ -42,7 +42,7 @@ function import_cp_rxs_single() {
       provider_lname as provider_last_name,
       provider_phone,
 
-      chg_date as rx_date_changed,
+      cprx.chg_date as rx_date_changed,
       expire_date as rx_date_expired
 
   	FROM cprx
