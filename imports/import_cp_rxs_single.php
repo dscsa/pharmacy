@@ -54,7 +54,7 @@ function import_cp_rxs_single() {
   		FROM fdrndc
   		GROUP BY fdrndc.gcn_seqno
   	) as generic_name ON generic_name.gcn_seqno = cprx.gcn_seqno
-    WHERE status_cn <> 3 AND (status_cn <> 2 OR last_transfer_type_io = 'O') -- NULL/0 is active, 1 is not yet dispensed?, 2 is transferred out/inactive, 3 is voided
+    WHERE cprx.status_cn <> 3 AND (cprx.status_cn <> 2 OR last_transfer_type_io = 'O') -- NULL/0 is active, 1 is not yet dispensed?, 2 is transferred out/inactive, 3 is voided
 
   ");
 
