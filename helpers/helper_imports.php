@@ -37,6 +37,8 @@ function array_string($arr) {
 
 function assert_length(&$field, $min, $max = null) {
 
+  if ($field == 'NULL') return;
+  
   $len = strlen($field);
   $max = $max ?: $min;
 
