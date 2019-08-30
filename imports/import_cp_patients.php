@@ -51,7 +51,7 @@ function import_cp_patients() {
   $keys = result_map($patients[0],
     function($row) {
 
-      if ($row['patient_id_cp'] = 1291)
+      if ($row['patient_id_cp'] == 1291)
         echo print_r($row, true);
 
       //This is hard todo in MSSQL so doing it in PHP instead
@@ -83,7 +83,7 @@ function import_cp_patients() {
         $row['card_last4'] = \DateTime::createFromFormat('m/y',$row['card_last4']);
       }
 
-      if ($row['patient_id_cp'] = 1291)
+      if ($row['patient_id_cp'] == 1291)
         echo print_r($row, true);
 
       unset($row['billing_info']);
