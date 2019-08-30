@@ -86,7 +86,7 @@ function import_cp_patients() {
       $val = clean_val($val);
 
     }
-  )
+  );
 
   //Replace Staging Table with New Data
   $mysql->run('TRUNCATE TABLE gp_patients_cp');
