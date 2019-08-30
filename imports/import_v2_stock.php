@@ -1,11 +1,11 @@
 <?php
 
-require_once 'db-drivers/grx_mssql.php';
+require_once 'db-drivers/cp_mssql.php';
 require_once 'helpers/helper_imports.php';
 
-function import_grx_rxs_single() {
+function import_v2_stock() {
 
-  $mssql = new Grx_Mssql();
+  $mssql = new Cp_Mssql();
   $mysql = new Webform_Mysql();
 
   $rxs = $mssql->run("
@@ -59,9 +59,9 @@ function import_grx_rxs_single() {
   $vals = escape_vals($rxs[0]);
 
   //Replace Staging Table with New Data
-  $mysql->run('TRUNCATE TABLE gp_rxs_single_grx');
+  $mysql->run('TRUNCATE TABLE gp_rxs_single_cp');
 
   $mysql->run("
-    INSERT INTO gp_rxs_single_grx (".implode(',', $keys).") VALUES ".implode(',', $vals)
+    INSERT INTO gp_rxs_single_cp (".implode(',', $keys).") VALUES ".implode(',', $vals)
   );
 }

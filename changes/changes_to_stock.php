@@ -8,7 +8,7 @@ function changes_to_rxs_single() {
   $upserts = $mysql->run("
     SELECT staging.*
     FROM
-      gp_rxs_grx as staging
+      gp_rxs_cp as staging
     LEFT JOIN gp_rxs as rxs ON
       rxs.guardian_id <=> staging.guardian_id AND
       rxs.gcn_seqno <=> staging.gcn_seqno AND
@@ -22,7 +22,7 @@ function changes_to_rxs_single() {
   $removals = $mysql->run("
     SELECT rxs.*
     FROM
-      gp_rxs_grx as staging
+      gp_rxs_cp as staging
     RIGHT JOIN gp_rxs as rxs ON
       rxs.guardian_id <=> staging.guardian_id AND
       rxs.gcn_seqno <=> staging.gcn_seqno AND
@@ -36,7 +36,7 @@ function changes_to_rxs_single() {
   $mysql->run("
     INSERT INTO gp_rxs (guardian_id, refills_total, gcn_seqno, drug_name, cprx_drug_name, rx_autofill, autofill_date, last_rxdisp_id, expire_date, oldest_script_high_refills, oldest_script_with_refills, oldest_active_script, newest_script)
     SELECT staging.guardian_id, staging.refills_total, staging.gcn_seqno, staging.drug_name, staging.cprx_drug_name, staging.rx_autofill, staging.autofill_date, staging.last_rxdisp_id, staging.expire_date, staging.oldest_script_high_refills, staging.oldest_script_with_refills, staging.oldest_active_script, staging.newest_script
-    FROM gp_rxs_grx as staging
+    FROM gp_rxs_cp as staging
     LEFT JOIN gp_rxs as rxs ON
       rxs.guardian_id <=> staging.guardian_id AND
       rxs.gcn_seqno <=> staging.gcn_seqno AND
@@ -63,7 +63,7 @@ function changes_to_rxs_single() {
 
   $mysql->run("
     DELETE rxs
-    FROM gp_rxs_grx as staging
+    FROM gp_rxs_cp as staging
     RIGHT JOIN gp_rxs as rxs ON
       rxs.guardian_id <=> staging.guardian_id AND
       rxs.gcn_seqno <=> staging.gcn_seqno AND

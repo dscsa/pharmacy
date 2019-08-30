@@ -1,12 +1,12 @@
 <?php
 
-require_once 'dbs/mssql_grx.php';
+require_once 'dbs/mssql_cp.php';
 require_once 'dbs/mysql_webform.php';
 require_once 'helpers/helper_imports.php';
 
-function import_grx_rxs_single() {
+function import_cp_rxs_single() {
 
-  $mssql = new Mssql_Grx();
+  $mssql = new Mssql_Cp();
   $mysql = new Mysql_Webform();
 
   $rxs = $mssql->run("
@@ -60,9 +60,9 @@ function import_grx_rxs_single() {
   $vals = escape_vals($rxs[0]);
 
   //Replace Staging Table with New Data
-  $mysql->run('TRUNCATE TABLE gp_rxs_single_grx');
+  $mysql->run('TRUNCATE TABLE gp_rxs_single_cp');
 
   $mysql->run("
-    INSERT INTO gp_rxs_single_grx (".implode(',', $keys).") VALUES ".implode(',', $vals)
+    INSERT INTO gp_rxs_single_cp (".implode(',', $keys).") VALUES ".implode(',', $vals)
   );
 }

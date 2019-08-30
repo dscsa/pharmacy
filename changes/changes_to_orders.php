@@ -9,7 +9,7 @@ function changes_to_orders($new) {
   $old   = "gp_orders";
   $id    = "invoice_number";
   $where = "
-    NOT old.patient_id_grx <=> new.patient_id_grx OR
+    NOT old.patient_id_cp <=> new.patient_id_cp OR
     NOT old.order_source <=> new.order_source OR
     NOT old.order_stage <=> new.order_stage OR
     NOT old.order_status <=> new.order_status OR

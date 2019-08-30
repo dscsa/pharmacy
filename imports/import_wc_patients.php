@@ -1,12 +1,12 @@
 <?php
 
-require_once 'dbs/mssql_grx.php';
+require_once 'dbs/mssql_cp.php';
 require_once 'dbs/mysql_webform.php';
 require_once 'helpers/helper_imports.php';
 
-function import_salesforce_patients() {
+function import_wc_patients() {
 
-  $mssql = new Mssql_Grx();
+  $mssql = new Mssql_Cp();
   $mysql = new Mysql_Webform();
 
   $patients = $mssql->run("
@@ -51,9 +51,9 @@ function import_salesforce_patients() {
   $vals = escape_vals($patients[0]);
 
   //Replace Staging Table with New Data
-  $mysql->run('TRUNCATE TABLE gp_patients_grx');
+  $mysql->run('TRUNCATE TABLE gp_patients_cp');
 
   $mysql->run("
-    INSERT INTO gp_patients_grx (".implode(',', $keys).") VALUES ".implode(',', $vals)
+    INSERT INTO gp_patients_cp (".implode(',', $keys).") VALUES ".implode(',', $vals)
   );
 }

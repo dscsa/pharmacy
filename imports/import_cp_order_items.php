@@ -1,12 +1,12 @@
 <?php
 
-require_once 'dbs/mssql_grx.php';
+require_once 'dbs/mssql_cp.php';
 require_once 'dbs/mysql_webform.php';
 require_once 'helpers/helper_imports.php';
 
-function import_grx_order_items() {
+function import_cp_order_items() {
 
-  $mssql = new Mssql_Grx();
+  $mssql = new Mssql_Cp();
   $mysql = new Mysql_Webform();
 
   $order_items = $mssql->run("
@@ -32,9 +32,9 @@ function import_grx_order_items() {
   $vals = escape_vals($order_items[0]);
 
   //Replace Staging Table with New Data
-  $mysql->run('TRUNCATE TABLE gp_order_items_grx');
+  $mysql->run('TRUNCATE TABLE gp_order_items_cp');
 
   $mysql->run("
-    INSERT INTO gp_order_items_grx (".implode(',', $keys).") VALUES ".implode(',', $vals)
+    INSERT INTO gp_order_items_cp (".implode(',', $keys).") VALUES ".implode(',', $vals)
   );
 }

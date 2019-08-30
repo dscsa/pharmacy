@@ -7,7 +7,7 @@ function changes_to_patients($new) {
   $mysql = new Mysql_Webform();
 
   $old   = "gp_patients";
-  $id    = "patient_id_grx";
+  $id    = "patient_id_cp";
   $where = "
     NOT old.first_name <=> new.first_name OR
     NOT old.last_name <=> new.last_name OR
