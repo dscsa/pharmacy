@@ -72,7 +72,11 @@ function import_cp_patients() {
       if (strlen($row['card_last4']) > 4) {
         echo 'card_last4'.print_r($row, true);
         $row['card_last4'] = 'NULL';
+      } else {
+        $row['card_last4'] = \DateTime::createFromFormat('m/y',$row['card_last4']);
       }
+
+
 
       return $row;
     }

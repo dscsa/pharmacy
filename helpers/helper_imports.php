@@ -3,7 +3,7 @@
 // Convert empty string to null or CP's <Not Specified> to NULL
 function clean_val($val) {
   $val = mysql_real_escape_string(trim($val));
-  return ($val === '' OR $val === '<Not Specified>') ? 'NULL' : '"'.$val.'"';
+  return ($val === '' OR $val === '<Not Specified>' OR $val === 'NULL') ? 'NULL' : '"'.$val.'"';
 }
 
 //2d array map
