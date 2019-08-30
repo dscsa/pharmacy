@@ -74,7 +74,7 @@ function import_cp_patients() {
   //Replace Staging Table with New Data
   $mysql->run('TRUNCATE TABLE gp_patients_cp');
 
-  $mysql->run("
-    INSERT INTO gp_patients_cp ($keys) VALUES ".implode(',', $patients[0])
+  $mysql->run(
+    "INSERT INTO gp_patients_cp (".implode(',', $keys).") VALUES ".implode(',', $patients[0])
   );
 }

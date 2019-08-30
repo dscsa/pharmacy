@@ -7,7 +7,7 @@ function clean_val($val) {
 }
 
 //2d array map
-function result_map($rows, $callback) {
+function result_map(&$rows, $callback) {
 
   foreach( $rows as $i => $row ) {
 
