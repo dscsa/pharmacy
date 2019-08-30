@@ -1,9 +1,9 @@
 <?php
 
-require_once 'dbs/mysql_webform.php';
+require_once 'dbs/mysql_wc.php';
 
 function changes_to_order_items() {
-  $mysql = new Mysql_Webform();
+  $mysql = new Mysql_Wc();
 
   //Get Upserts (Updates & Inserts)
   $upserts = $mysql->run("

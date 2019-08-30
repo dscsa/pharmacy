@@ -1,13 +1,13 @@
 <?php
 
 require_once 'dbs/mssql_cp.php';
-require_once 'dbs/mysql_webform.php';
+require_once 'dbs/mysql_wc.php';
 require_once 'helpers/helper_imports.php';
 
 function import_wc_orders() {
 
   $mssql = new Mssql_Cp();
-  $mysql = new Mysql_Webform();
+  $mysql = new Mysql_Wc();
 
   $orders = $mssql->run("
 

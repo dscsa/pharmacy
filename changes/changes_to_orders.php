@@ -1,10 +1,10 @@
 <?php
 
-require_once 'dbs/mysql_webform.php';
+require_once 'dbs/mysql_wc.php';
 require_once 'helpers/helper_changes.php';
 
 function changes_to_orders($new) {
-  $mysql = new Mysql_Webform();
+  $mysql = new Mysql_Wc();
 
   $old   = "gp_orders";
   $id    = "invoice_number";
