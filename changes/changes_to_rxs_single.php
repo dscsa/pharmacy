@@ -35,6 +35,7 @@ function changes_to_rxs_single($new) {
     NOT old.provider_npi <=> new.provider_npi OR
     NOT old.provider_first_name <=> new.provider_first_name OR
     NOT old.provider_last_name <=> new.provider_last_name OR
+    NOT old.provider_clinic <=> new.provider_clinic OR
     NOT old.provider_phone <=> new.provider_phone OR
     NOT old.rx_date_changed <=> new.rx_date_changed OR
     NOT old.rx_date_expired <=> new.rx_date_expired
