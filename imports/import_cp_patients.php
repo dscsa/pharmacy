@@ -84,8 +84,10 @@ function import_cp_patients() {
       assert_length($row['card_type'], 4, 20);      //with single quotes
       assert_length($row['billing_coupon'], 5, 40); //with single quotes
 
-      if ($row['card_last4'] != 'NULL') {
-        $row['card_last4'] = "'".\DateTime::createFromFormat("'m/y'",$row['card_last4'])."'";
+      if ($row['card_date_expired'] != 'NULL') {
+        echo 'result_map: '.print_r($row, true);
+        $row['card_date_expired'] = "'".\DateTime::createFromFormat("'m/y'", $row['card_date_expired'])."'";
+        echo 'result_map: '.print_r($row, true);
       }
 
       unset($row['billing_info']);
