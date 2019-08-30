@@ -69,6 +69,10 @@ function import_cp_patients() {
 
       //some Stripe Tokens still stored in this field
       if (strlen($row['pharmacy_npi']) > 10) $row['pharmacy_npi'] = 'NULL';
+      if (strlen($row['card_last4']) > 4) {
+        echo 'card_last4'.print_r($row, true);
+        $row['card_last4'] = 'NULL';
+      }
 
       return $row;
     }
