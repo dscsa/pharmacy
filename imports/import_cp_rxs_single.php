@@ -57,7 +57,8 @@ function import_cp_rxs_single() {
       SELECT
         MAX(name_first) as provider_first_name,
         MAX(name_last) as provider_last_name,
-        MAX(npi) as npi
+        MAX(npi) as provider_npi,
+        MAX(phone) as provider_phone
       FROM cpmd_spi
       WHERE state = 'GA'
       GROUP BY md_id
