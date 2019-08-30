@@ -27,8 +27,8 @@ function import_cp_rxs_single() {
       sig_text_english as sig_raw,
 
       autofill_yn as rx_autofill,
-      orig_disp_date as refill_date_first,
-      dispense_date as refill_date_last,
+      CONVERT(varchar, orig_disp_date, 20)  as refill_date_first,
+      CONVERT(varchar, dispense_date, 20) as refill_date_last,
       (CASE WHEN script_status_cn = 0 AND autofill_resume_date >= @today THEN autofill_resume_date ELSE NULL END) as refill_date_manual,
       dispense_date + disp_days_supply as refill_date_default,
 
@@ -42,8 +42,8 @@ function import_cp_rxs_single() {
       provider_last_name,
       provider_phone,
 
-      cprx.chg_date as rx_date_changed,
-      expire_date as rx_date_expired
+      CONVERT(varchar, cprx.chg_date, 20) as rx_date_changed,
+      CONVERT(varchar, expire_date, 20) as rx_date_expired
 
   	FROM cprx
 
