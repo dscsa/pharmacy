@@ -1,9 +1,9 @@
 <?php
 
 // Convert empty string to null or CP's <Not Specified> to NULL
-function clean_val($val) {
+function clean_val($val, $add_quotes = false) {
   $val = mysql_real_escape_string(trim($val));
-  return ($val === '' OR $val === '<Not Specified>' OR $val === 'NULL') ? 'NULL' : "'".$val."'";
+  return ($val === '' OR $val === '<Not Specified>' OR $val === 'NULL') ? 'NULL' : ($add_quotes ? "'$val'" : $val);
 }
 
 //2d array map
@@ -12,7 +12,7 @@ function result_map(&$rows, $callback = null) {
   foreach( $rows as $i => $row ) {
 
     foreach( $row as $key => $val ) {
-      $row[$key] = clean_val($val);
+      $row[$key] = clean_val($val, true);
     }
 
     $new = $callback
