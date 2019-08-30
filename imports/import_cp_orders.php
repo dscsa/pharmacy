@@ -43,7 +43,7 @@ function import_cp_orders() {
   $keys = array_keys($orders[0][0]);
   $vals = result_map($orders[0],
     function($row) {
-      return "(".implode(', ', $row);.")";
+      return "(".implode(', ', $row).")";
     }
   );
 
