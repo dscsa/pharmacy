@@ -18,5 +18,6 @@ function result_map($rows, $row_cb, $col_cb) {
 }
 
 function sort_cols($row) {
-  return implode(', ', ksort($row));
+  ksort($row); //by reference, no return value
+  return implode(', ', $row);
 }
