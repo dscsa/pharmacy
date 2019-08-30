@@ -55,6 +55,7 @@ function import_cp_rxs_single() {
 
     LEFT JOIN (
       SELECT
+        md_id,
         MAX(name_first) as provider_first_name,
         MAX(name_last) as provider_last_name,
         MAX(npi) as provider_npi,
