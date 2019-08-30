@@ -35,6 +35,10 @@ function array_string($arr) {
   return "(".implode(', ', $arr).")";
 }
 
-function assert_length(&$field, $len) {
-  if (strlen($field) != $len) $field = 'NULL';
+function assert_length(&$field, $min, $max = null) {
+
+  $len = strlen($field);
+  $max = $max ?: $min;
+
+  if ($min > $len OR $len > $max) $field = 'NULL';
 }

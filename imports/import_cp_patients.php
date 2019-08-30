@@ -74,6 +74,8 @@ function import_cp_patients() {
 
       assert_length($row['card_last4'], 4);
       assert_length($row['card_date_expired'], 5);
+      assert_length($row['card_type'], 4, 20);
+      assert_length($row['billing_coupon'], 5, 20);
 
       if ($row['card_last4'] != 'NULL') {
         $row['card_last4'] = \DateTime::createFromFormat('m/y',$row['card_last4']);
