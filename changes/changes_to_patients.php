@@ -3,7 +3,7 @@
 require_once 'dbs/mysql_webform.php';
 require_once 'helpers/helper_changes.php';
 
-function changes_to_orders($new) {
+function changes_to_patients($new) {
   $mysql = new Mysql_Webform();
 
   $old   = "gp_patients";
