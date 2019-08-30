@@ -85,9 +85,9 @@ function import_cp_patients() {
       assert_length($row['billing_coupon'], 5, 40); //with single quotes
 
       if ($row['card_date_expired'] != 'NULL') {
-        echo 'result_map: '.print_r($row, true);
+        //echo 'result_map: '.print_r($row, true);
         $row['card_date_expired'] = date_format(date_create_from_format("'m/y'", $row['card_date_expired']), "'Y-m-d'");
-        echo 'result_map: '.print_r($row, true);
+        //echo 'result_map: '.print_r($row, true);
       }
 
       unset($row['billing_info']);
