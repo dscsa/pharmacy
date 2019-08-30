@@ -2,7 +2,7 @@
 
 require_once 'dbs/mssql_grx.php';
 require_once 'dbs/mysql_webform.php';
-require_once 'helpers/helpers_db.php';
+require_once 'helpers/helper_imports.php';
 
 function import_salesforce_patients() {
 

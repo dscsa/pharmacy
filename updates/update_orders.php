@@ -4,7 +4,7 @@ require_once 'changes/changes_to_orders.php';
 
 function update_orders() {
 
-  $changes = changes_to_orders();
+  $changes = changes_to_orders("gp_orders_grx");
 
   $message = "CRON: update_orders ".print_r($changes, true);
 

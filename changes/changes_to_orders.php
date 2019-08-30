@@ -1,11 +1,14 @@
 <?php
 
 require_once 'dbs/mysql_webform.php';
+require_once 'helpers/helper_changes.php';
 
-function changes_to_orders() {
+function changes_to_orders($new) {
   $mysql = new Mysql_Webform();
 
-  $where_changes = "
+  $old   = "gp_orders";
+  $id    = "invoice_number";
+  $where = "
     NOT old.patient_id_grx <=> new.patient_id_grx OR
     NOT old.order_source <=> new.order_source OR
     NOT old.order_stage <=> new.order_stage OR
@@ -19,86 +22,28 @@ function changes_to_orders() {
     NOT old.tracking_number <=> new.tracking_number OR
     NOT old.order_date_added <=> new.order_date_added OR
     NOT old.order_date_dispensed <=> new.order_date_dispensed OR
-    NOT old.order_date_shipped <=> new.order_date_shipped OR
-    NOT old.order_date_changed <=> new.order_date_changed
+    NOT old.order_date_shipped <=> new.order_date_shipped
+    -- False Positives -- NOT old.order_date_changed <=> new.order_date_changed
+    -- Not in GRX -- NOT old.order_date_returned <=> new.order_date_returned
   ";
 
-  $select = where_to_select_clause($where_changes);
-  $set    = where_to_set_clause($where_changes);
+  //Get Deleted
+  $deleted = $mysql->run(get_deleted_sql($new, $old, $id), true);
 
-  //Get Removals
-  $deleted = $mysql->run("
-    SELECT
-      new.*
-    FROM
-      gp_orders_grx as new
-    RIGHT JOIN gp_orders as old ON
-      old.invoice_number = new.invoice_number
-    WHERE
-      new.invoice_number IS NULL
-  ", true);
+  //Get Inserted
+  $created = $mysql->run(get_created_sql($new, $old, $id), true);
 
-  //Get Inserts
-  $created = $mysql->run("
-    SELECT
-      new.*
-    FROM
-      gp_orders_grx as new
-    LEFT JOIN gp_orders as old ON
-      old.invoice_number = new.invoice_number
-    WHERE
-      old.invoice_number IS NULL
-  ", true);
+  //Get Updated
+  $updated = $mysql->run(get_updated_sql($new, $old, $id, $where), true);
 
-  //Get Updates
-  $updated = $mysql->run("
-    SELECT
-      new.*,
-      $select
-    FROM
-      gp_orders_grx as new
-    JOIN gp_orders as old ON
-      old.invoice_number = new.invoice_number
-    WHERE $where_changes
-  ", true);
+  //Save Deletes
+  $mysql->run(set_deleted_sql($new, $old, $id), true);
 
-  //Do Removals
-  $mysql->run("
-    DELETE
-      old
-    FROM
-      gp_orders_grx as new
-    RIGHT JOIN gp_orders as old ON
-      old.invoice_number = new.invoice_number
-    WHERE
-      new.invoice_number IS NULL
-  ", true);
+  //Save Inserts
+  $mysql->run(set_created_sql($new, $old, $id), true);
 
-  //Do Inserts
-  $mysql->run("
-    INSERT INTO
-      gp_orders
-    SELECT
-      new.*
-    FROM
-      gp_orders_grx as new
-    LEFT JOIN gp_orders as old ON
-      old.invoice_number = new.invoice_number
-    WHERE
-      old.invoice_number IS NULL
-  ", true);
-
-  //Do Updates
-  $mysql->run("
-    UPDATE
-      gp_orders as old
-    LEFT JOIN gp_orders_grx as new ON
-      old.invoice_number = new.invoice_number
-    SET
-      $set
-    WHERE
-      $where_changes
-  ", true);
+  //Save Updates
+  $mysql->run(set_updated_sql($new, $old, $id, $where), true);
 
   return [
     'deleted' => $deleted[0],

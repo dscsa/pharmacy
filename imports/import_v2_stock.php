@@ -1,7 +1,7 @@
 <?php
 
 require_once 'db-drivers/grx_mssql.php';
-require_once 'helpers/helpers_db.php';
+require_once 'helpers/helper_imports.php';
 
 function import_grx_rxs_single() {
 

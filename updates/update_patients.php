@@ -4,7 +4,7 @@ require_once 'changes/changes_to_patients.php';
 
 function update_patients() {
 
-  $changes = changes_to_patients();
+  $changes = changes_to_patients("gp_patients_grx");
 
   $message = "CRON: update_patients ".print_r($changes, true);
 

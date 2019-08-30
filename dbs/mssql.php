@@ -57,7 +57,8 @@ class Mssql {
 
         $results = $this->_getResults($stmt, $sql, $debug);
 
-        if ($debug) echo (microtime(true) - $starttime)." seconds: ".substr($sql, 0, 30);
+        if ($debug)
+          echo count($results)." recordsets, the first with ".count($results[0])." rows in ".(microtime(true) - $starttime)." seconds: ".substr($sql, 0, 30);
 
         return $results;
     }
