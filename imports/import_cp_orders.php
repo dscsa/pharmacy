@@ -39,20 +39,12 @@ function import_cp_orders() {
   ");
 
 
-
-  $keys = array_keys($orders[0][0]);
-  $vals = result_map($orders[0],
-    function($row) {
-      return "(".implode(', ', $row).")";
-    }
-  );
+  $keys = result_map($orders[0]);
 
   //Replace Staging Table with New Data
   $mysql->run('TRUNCATE TABLE gp_orders_cp');
 
-  $mysql->run("
-    INSERT INTO gp_orders_cp (".sort_cols($row).") VALUES ".implode(',', $vals)
-  );
+  $mysql->run("INSERT INTO gp_orders_cp ($keys) VALUES ".$orders[0]);
 }
 
 /*

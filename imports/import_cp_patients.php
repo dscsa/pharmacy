@@ -67,7 +67,7 @@ function import_cp_patients() {
       $row['card_type']         = clean_val($val2[2]);
       $row['billing_coupon']    = clean_val($val2[3]);
 
-      return "(".implode(', ', $row).")";
+      return $row;
     }
   );
 
@@ -75,6 +75,6 @@ function import_cp_patients() {
   $mysql->run('TRUNCATE TABLE gp_patients_cp');
 
   $mysql->run(
-    "INSERT INTO gp_patients_cp (".implode(',', $keys).") VALUES ".implode(',', $patients[0])
+    "INSERT INTO gp_patients_cp ($keys) VALUES ".$patients[0];
   );
 }
