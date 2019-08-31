@@ -1,4 +1,7 @@
 <?php
+
+require_once 'helpers/helper_parse_sign.php';
+
 require_once 'imports/import_cp_patients.php';
 require_once 'imports/import_cp_rxs_single.php';
 require_once 'imports/import_cp_orders.php';
@@ -10,6 +13,10 @@ require_once 'updates/update_orders.php';
 require_once 'updates/update_order_items.php';
 
 date_default_timezone_set('America/New_York');
+
+test_parse_sig();
+
+return;
 
 import_cp_patients();
 import_cp_rxs_single();
