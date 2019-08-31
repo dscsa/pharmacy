@@ -123,7 +123,7 @@ function get_frequency($sig) {
 
 
 function test_parse_sig() {
-  $testSigs = [
+  $test_sigs = [
     "Use 4 vials in nebulizer as directed in the morning and evening",
     "Take 1 tablet (12.5 mg) by mouth daily in the morning",
     "Take 1 tablet (80 mg) by mouth daily",
