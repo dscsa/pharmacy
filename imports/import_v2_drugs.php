@@ -16,7 +16,7 @@ function import_v2_drugs() {
   $order = file_get_contents(V2_IP.'/account/8889875187', false, $context);
   $order = json_decode($order, true);
 
-  $drugs = file_get_contents(V2_IP.'/drug/_design/by-generic-gsns/_view/by-generic-gsns?group_level=2', false, $context);
+  $drugs = file_get_contents(V2_IP.'/drug/_design/by-generic-gsns/_view/by-generic-gsns?group_level=3', false, $context);
   $drugs = json_decode($drugs, true);
 
   $vals = [];
@@ -24,7 +24,7 @@ function import_v2_drugs() {
 
     list($drug_generic, $drug_brand, $drug_gsns) = $row['key'];
     list($price_goodrx, $price_nadac, $price_retail) = $row['value'];
-    $o = $order['ordered'][$drug_generic] + $order['default'];
+    $o = isset($order['ordered'][$drug_generic]) ? $order['ordered'][$drug_generic] + $order['default'] : [];
 
     $val = [
       'drug_generic'      => "'$drug_generic'",
