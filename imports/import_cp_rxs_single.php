@@ -93,7 +93,7 @@ function import_cp_rxs_single() {
       $row['provider_phone'] = clean_phone($row['provider_phone']);
 
       //Some validations
-      assert_length($row['provider_phone'], 12);  //no delimiters with single quotes
+      assert_length($row, 'provider_phone', 12);  //no delimiters with single quotes
 
       return $row;
     }

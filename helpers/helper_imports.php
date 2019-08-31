@@ -43,18 +43,17 @@ function array_string($arr) {
   return "(".implode(', ', $arr).")";
 }
 
-function assert_length(&$field, $min, $max = null) {
+function assert_length($row, $key, $min, $max = null) {
 
-  if ($field == 'NULL') return;
+  if ($row[$key] == 'NULL') return;
 
-  $len = strlen($field);
+  $len = strlen($row[$key]);
   $max = $max ?: $min;
 
   if ($len >= $min AND $len <= $max) return;
 
   echo "
-    Assert Length: $field has length of $len but needs to be between $min and $max
-  ";
+    Assert Length: $key => $row[$key] has length of $len but needs to be between $min and $max ".print_r($row, true);
 
-  $field = 'NULL';
+  $row[$key] = 'NULL';
 }

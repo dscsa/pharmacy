@@ -76,14 +76,14 @@ function import_cp_patients() {
       if ($row['card_date_expired'] == "'/'") $row['card_date_expired'] = 'NULL'; //Assert would catch this but avoid noisy logging
 
       //Some validations
-      assert_length($row['pharmacy_npi'], 12);      //no delimiters with single quotes
-      assert_length($row['pharmacy_fax'], 12);      //no delimiters with single quotes
-      assert_length($row['pharmacy_phone'], 12);    //no delimiters with single quotes
+      assert_length($row, 'pharmacy_npi', 12);      //no delimiters with single quotes
+      assert_length($row, 'pharmacy_fax', 12);      //no delimiters with single quotes
+      assert_length($row, 'pharmacy_phone', 12);    //no delimiters with single quotes
 
-      assert_length($row['card_last4'], 6);         //with single quotes
-      assert_length($row['card_date_expired'], 6, 7);  //with single quotes
-      assert_length($row['card_type'], 4, 20);      //with single quotes
-      assert_length($row['billing_coupon'], 5, 40); //with single quotes
+      assert_length($row, 'card_last4', 6);         //with single quotes
+      assert_length($row, 'card_date_expired', 6, 7);  //with single quotes
+      assert_length($row, 'card_type', 4, 20);      //with single quotes
+      assert_length($row, 'billing_coupon', 5, 40); //with single quotes
 
       if ($row['card_date_expired'] != 'NULL') {
         //echo 'result_map: '.print_r($row, true);

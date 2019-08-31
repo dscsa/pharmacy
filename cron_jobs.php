@@ -15,23 +15,29 @@ date_default_timezone_set('America/New_York');
 $start = microtime(true);
 
 import_cp_patients();
-echo 'import_cp_patients '.(microtime(true) - $start);
+echo "
+import_cp_patients ".(microtime(true) - $start);
 
 import_cp_rxs_single();
-echo 'import_cp_rxs_single '.(microtime(true) - $start);
+echo "
+mport_cp_rxs_single ".(microtime(true) - $start);
 
 import_cp_orders();
-echo 'import_cp_orders '.(microtime(true) - $start);
+echo "
+import_cp_orders ".(microtime(true) - $start);
 
 //import_cp_order_items();
 
 update_patients();
-echo 'update_patients '.(microtime(true) - $start);
+echo "
+update_patients ".(microtime(true) - $start);
 
 update_rxs_single();
-echo 'update_rxs_single '.(microtime(true) - $start);
+echo "
+update_rxs_single ".(microtime(true) - $start);
 
 update_orders();
-echo 'update_orders '.(microtime(true) - $start);
+echo "
+update_orders ".(microtime(true) - $start);
 
 //update_order_items();
