@@ -20,8 +20,11 @@ function update_rxs_single() {
 
   $sigs = [];
   foreach($changes['created'] as $rx) {
-    $sig    = parse_sig($rx);
-    $sigs[] = array_string($sig);
+
+    $sig = parse_sig($rx);
+
+    if ($sig)
+      $sigs[] = array_string($sig);
   }
 
   if (count($sigs)) {

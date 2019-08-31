@@ -14,9 +14,10 @@ function parse_sig($rx) {
   foreach ($sigs_cleaned as $sig_cleaned) {
 
     $qty_per_time = get_qty_per_time($sig_cleaned);
+    $frequency = get_frequency($sig_cleaned);
     $frequency_numerator = get_frequency_numerator($sig_cleaned);
     $frequency_demoninator = get_frequency_demoninator($sig_cleaned);
-    $frequency = get_frequency($sig_cleaned);
+
 
     $parsed = [
       'rx_number'                 => "'$rx[rx_number]'",
@@ -27,13 +28,13 @@ function parse_sig($rx) {
       'sig_frequency_demoninator' => "'$frequency_demoninator'"
     ];
 
-    if ($parsed['qty_per_time'] AND $parsed['frequency_numerator'] AND $parsed['frequency_demoninator'] AND $parsed['frequency']) {
-      $parsed['qty_per_day'] = $parsed['qty_per_time'] * $parsed['frequency_numerator'] / $parsed['frequency_demoninator'] / $parsed['frequency'];
-      echo 'Parsed $sig'.$rx['sig_raw'].'|'.$sig_cleaned.'|'.print_r($parsed, true);
+    if ($qty_per_time AND $frequency AND $frequency_numerator AND $frequency_demoninator) {
+      $parsed['qty_per_day'] = $qty_per_time * $frequency_numerator / $frequency_demoninator / $frequency;
+      echo 'Parsed $sig '.$rx['sig_raw'].' | '.$sig_cleaned.' | '.print_r($parsed, true);
       return $parsed;
     }
 
-    echo 'Could not parse $sig'.$rx['sig_raw'].'|'.$sig_cleaned.'|'.print_r($parsed, true);
+    echo 'Could not parse $sig '.$rx['sig_raw'].' | '.$sig_cleaned.' | '.print_r($parsed, true);
   }
 }
 
