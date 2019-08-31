@@ -40,10 +40,10 @@ function import_v2_drugs() {
       'message_display'   => get_order_by_key($o, 'displayMessage'),
       'message_verified'  => get_order_by_key($o, 'verifiedMessage'),
       'message_destroyed' => get_order_by_key($o, 'destroyedMessage'),
-      'price_goodrx'      => $price_goodrx['sum']/$price_goodrx['count'],
-      'price_nadac'       => $price_nadac['sum']/$price_nadac['count'],
-      'price_retail'      => $price_retail['sum']/$price_retail['count'],
-      'count_ndcs'        => $price_goodrx['count']
+      'price_goodrx'      => "'".($price_goodrx['sum']/$price_goodrx['count'])."'",
+      'price_nadac'       => "'".($price_nadac['sum']/$price_nadac['count'])."'",
+      'price_retail'      => "'".($price_retail['sum']/$price_retail['count'])."'",
+      'count_ndcs'        => "'$price_goodrx[count]'"
     ];
 
     $vals[] = '('.implode(', ', $val).')';
