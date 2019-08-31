@@ -1,7 +1,5 @@
 <?php
 
-//""written_qty":"13.0","dispense_qty":"4.0","days_supply":"90.0","dispense_date":"2018-01-22","refill_date":"2018-02-18","sig_text"://
-$complex_sig_regex = '/ then | and (?=\d)/';
 
 function parse_sig($rx) {
 
@@ -10,7 +8,8 @@ function parse_sig($rx) {
   //"Take 2 tablets in the morning and 1 at noon and 1 at supper" --split
   //"take 1 tablet (500 mg) by oral route 2 times per day with morning and evening meals" -- don't split
   //"Take 1 tablet by mouth every morning and 2 tablets in the evening" -- split
-  $cleaned_sigs = array_reverse(preg_split($complex_sig_regex, subsitute_numerals($rx['sig_raw'])));
+  $complex_sig_regex = '/ then | and (?=\d)/';
+  $cleaned_sigs      = array_reverse(preg_split($complex_sig_regex, subsitute_numerals($rx['sig_raw'])));
 
   foreach ($cleaned_sigs as $cleaned_sig) {
 
