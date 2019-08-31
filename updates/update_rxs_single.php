@@ -28,7 +28,7 @@ function update_rxs_single() {
   }
 
   if (count($sigs)) {
-    echo "INSERT INTO gp_rxs_single ".array_string(array_keys($sig)).
+    echo "INSERT INTO gp_rxs_single ".array_string(array_keys($sig+$rx)).
          " VALUES " .implode(', ', $sigs).
          " ON DUPLICATE KEY UPDATE
             sig_clean = sig_clean,
