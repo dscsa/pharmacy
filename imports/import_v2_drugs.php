@@ -13,21 +13,48 @@ function import_v2_drugs() {
       ]
   ]);
 
-  $json = file_get_contents(V2_IP.'/drug/_design/by-generic-gsns/_view/by-generic-gsns?group_level=2', false, $context);
-  $json = json_decode($json, true);
+  $order = file_get_contents(V2_IP.'/account/8889875187', false, $context);
+  $order = json_decode($order, true);
+
+  $drugs = file_get_contents(V2_IP.'/drug/_design/by-generic-gsns/_view/by-generic-gsns?group_level=2', false, $context);
+  $drugs = json_decode($drugs, true);
 
   $vals = [];
-  foreach($json['rows'] as $row) {
-    list($drug_name, $drug_gsns) = $row['key'];
-    //Enclose with ,, so we can do DRUG_GSNS LIKE '%,GSN,%' and still match first and list in list
-    $drug_gsns = $drug_gsns ? "',$drug_gsns,'" : 'NULL';
+  foreach($drugs['rows'] as $row) {
 
-    $vals[] = "('$drug_name', $drug_gsns)";
+    list($drug_generic, $drug_brand, $drug_gsns) = $row['key'];
+    list($price_goodrx, $price_nadac, $price_retail) = $row['value'];
+    $o = $order['ordered'][$drug_generic] + $order['default'];
+
+    $val = [
+      'drug_generic'      => "'$drug_generic'",
+      'drug_brand'        => $drug_brand ? "'$drug_brand'" : 'NULL',
+      'drug_gsns'         => $drug_gsns ? "',$drug_gsns,'" : 'NULL',   //Enclose with ,, so we can do DRUG_GSNS LIKE '%,GSN,%' and still match first and list in list
+      'drug_ordered'      => $o ? 1 : 'NULL',
+      'price30'           => get_order_by_key($o, 'price30'),
+      'price90'           => get_order_by_key($o, 'price90'),
+      'repack_qty'        => get_order_by_key($o, 'repackQty'),
+      'min_qty'           => get_order_by_key($o, 'minQty'),
+      'min_days'          => get_order_by_key($o, 'minDays'),
+      'max_inventory'     => get_order_by_key($o, 'maxInventory'),
+      'message_display'   => get_order_by_key($o, 'displayMessage'),
+      'message_verified'  => get_order_by_key($o, 'verifiedMessage'),
+      'message_destroyed' => get_order_by_key($o, 'destroyedMessage'),
+      'price_goodrx'      => $price_goodrx['sum']/$price_goodrx['count'],
+      'price_nadac'       => $price_nadac['sum']/$price_nadac['count'],
+      'price_retail'      => $price_retail['sum']/$price_retail['count'],
+      'count_ndcs'        => $price_goodrx['count']
+    ];
+
+    $vals[] = '('.implode(', ', $val).')';
   }
-  echo $obj->access_token;
 
   //Replace Staging Table with New Data
   $mysql->run('TRUNCATE TABLE gp_drugs_v2');
 
-  $mysql->run("INSERT INTO gp_drugs_v2 (drug_name, drug_gsns) VALUES ".implode(', ', $vals));
+  $mysql->run("INSERT INTO gp_drugs_v2 (".implode(', ', array_keys($val)).") VALUES ".implode(', ', $vals));
+}
+
+function get_order_by_key($order, $key) {
+  return isset($order[$key])? "'$order[$key]'" : 'NULL';
 }
