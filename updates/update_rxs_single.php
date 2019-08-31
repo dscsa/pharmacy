@@ -18,15 +18,15 @@ function update_rxs_single() {
 
   $mysql = new Mysql_Wc();
 
-  $vals = [];
+  $sigs = [];
   foreach($changes['updated'] as $rx) {
-    $sig = parse_sig($rx);
-    $vals[] = array_string($sig);
+    $sig    = parse_sig($rx);
+    $sigs[] = array_string($sig);
   }
 
-  if (count($parsed_vals)) {
+  if (count($sigs)) {
     echo "INSERT INTO gp_rxs_single ".array_string(array_keys($sig)).
-         " VALUES " .implode(', ', $vals).
+         " VALUES " .implode(', ', $sigs).
          " ON DUPLICATE KEY UPDATE
             sig_clean = sig_clean,
             qty_per_day = qty_per_day,

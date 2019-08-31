@@ -43,7 +43,7 @@ function array_string($arr) {
   return "(".implode(', ', $arr).")";
 }
 
-function assert_length($row, $key, $min, $max = null) {
+function assert_length(&$row, $key, $min, $max = null) {
 
   if ($row[$key] == 'NULL') return;
 
