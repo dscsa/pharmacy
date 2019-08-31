@@ -19,7 +19,7 @@ function import_v2_drugs() {
   $vals = [];
   foreach($json['rows'] as $row) {
     //Enclose with ,, so we can do DRUG_GSNS LIKE '%,GSN,%' and still match first and list in list
-    $drug_gsns = $row['key'][1] ? "',$row['key'][1],'" : 'NULL';
+    $drug_gsns = $row['key'][1] ? "',$row[key][1],'" : 'NULL';
     $vals[] = "('$row[key][0]', $drug_gsns)";
   }
   echo $obj->access_token;
