@@ -14,13 +14,13 @@ function import_v2_drugs() {
   ]);
 
   $json = file_get_contents(V2_IP.'/drug/_design/by-generic-gsns/_view/by-generic-gsns?group_level=2', false, $context);
-  $json = json_decode($json);
+  $json = json_decode($json, true);
 
   $vals = [];
-  foreach($json->rows as $row) {
+  foreach($json['rows'] as $row) {
     //Enclose with ,, so we can do DRUG_GSNS LIKE '%,GSN,%' and still match first and list in list
-    $drug_gsns = $row->key[1] ? "',$row->key[1],'" : 'NULL';
-    $vals[] = "('$row->key[0]', $drug_gsns)";
+    $drug_gsns = $row['key'][1] ? "',$row['key'][1],'" : 'NULL';
+    $vals[] = "('$row[key][0]', $drug_gsns)";
   }
   echo $obj->access_token;
 
