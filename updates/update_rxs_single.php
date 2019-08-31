@@ -1,7 +1,8 @@
 <?php
 require_once 'changes/changes_to_rxs_single.php';
 require_once 'helpers/helper_parse_sig.php';
-
+require_once 'helpers/helper_imports.php';
+require_once 'dbs/mysql_wc.php';
 
 function update_rxs_single() {
 
@@ -15,9 +16,26 @@ function update_rxs_single() {
 
   if ( ! count($changes['deleted']+$changes['created']+$changes['updated'])) return;
 
+  $mysql = new Mysql_Wc();
+
+  $vals = [];
   foreach($changes['updated'] as $rx) {
-    $parsed = parse_sig($rx);
-    echo 'created: '.print_r($parsed, true).print_r($rx, true);
+    $sig = parse_sig($rx);
+    $vals[] = array_string($sig);
+  }
+
+  if (count($parsed_vals)) {
+    echo "INSERT INTO gp_rxs_single ".array_string(array_keys($sig)).
+         " VALUES " .implode(', ', $vals).
+         " ON DUPLICATE KEY UPDATE
+            sig_clean = sig_clean,
+            qty_per_day = qty_per_day,
+            qty_per_time = qty_per_time,
+            frequency = frequency,
+            frequency_numerator = frequency_numerator,
+            frequency_demoninator = frequency_demoninator
+         ";
+    //$mysql->run();
   }
 
   //TODO Calculate Qty Per Day from Sig and save in database
