@@ -45,6 +45,35 @@ function update_rxs_single() {
   //TODO THIS NEED TO BE UPDATED TO MYSQL AND TO INCREMENTAL BASED ON CHANGES
 
   //TODO Add Group by "Qty per Day" so its GROUP BY Pat Id, Drug Name,
+  /*
+
+    SELECT
+  		patient_id_cp,
+      drug_name,
+      sig_qty_per_day,
+
+      MAX(gcn) as gcn,
+      SUM(refills_left) as refills_total,
+      MIN(rx_autofill) as rx_autofill,
+      MAX(rx_date_changed) as rx_date_changed,
+      MAX(rx_date_expired) as rx_date_expired,
+
+      MIN(refill_date_first) as refill_date_first,
+      MAX(refill_date_last) as refill_date_last,
+      COALESCE(MIN(refill_date_manual), MIN(refill_date_default)) as refill_date_next,
+      MIN(refill_date_manual) as refill_date_manual,
+      MIN(refill_date_default) as refill_date_default,
+
+      MIN(CASE WHEN qty_left >= 45 AND days_until_expired >= 45 THEN rx_number ELSE NULL END) as oldest_rx_high_refills,
+		  MIN(CASE WHEN qty_left >= 0 THEN rx_number ELSE NULL END) as oldest_script_with_refills,
+		  MIN(CASE WHEN rx_status = 0 AND days_until_expired >= 0 THEN rx_number ELSE NULL END) as oldest_active_script,
+  		MAX(rx_number) as newest_script 
+  	FROM gp_rxs_single
+  	GROUP BY
+    	patient_id_cp,
+      drug_name,
+      sig_qty_per_day
+  */
   //WE WANT TO INCREMENTALLY UPDATE THIS TABLE RATHER THAN DOING EXPENSIVE GROUPING QUERY ON EVERY READ
   /*$mysql->run("
 

@@ -19,11 +19,13 @@ function import_cp_rxs_single() {
       pat_id as patient_id_cp,
       ISNULL(generic_name, drug_name) as drug_name,
       drug_name as drug_name_raw,
-      cprx.gcn_seqno as gcn,
+      cprx.gcn_seqno as rx_gsn,
 
+      expire_date - @today as days_until_expired,
       (CASE WHEN script_status_cn = 0 AND expire_date > @today THEN refills_left ELSE 0 END) as refills_left,
       refills_orig + 1 as refills_original,
-      written_qty as qty_written,
+      (CASE WHEN script_status_cn = 0 AND expire_date > @today THEN written_qty * refills_left ELSE 0 END) as qty_left,
+      written_qty as qty_original,
       sig_text_english as sig_raw,
 
       autofill_yn as rx_autofill,
@@ -89,7 +91,7 @@ function import_cp_rxs_single() {
   $keys = result_map($rxs[0],
     function($row) {
       //Clean Drug Name and save in database RTRIM(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(ISNULL(generic_name, cprx.drug_name), ' CAPSULE', ' CAP'),' CAPS',' CAP'),' TABLET',' TAB'),' TABS',' TAB'),' TB', ' TAB'),' HCL',''),' MG','MG'), '\"', ''))
-      $row['drug_name'] = str_replace([' CAPSULE', ' CAPS', ' CP', ' TABLET', ' TABS', ' TB', ' HCL', ' MG', ' MEQ', ' MCG', '"'], [' CAP', ' CAP', ' CAP', ' TAB', ' TAB', ' TAB', '', '', '', 'MG', ''], trim($row['drug_name']));
+      $row['drug_name'] = str_replace([' CAPSULE', ' CAPS', ' CP', ' TABLET', ' TABS', ' TB', ' HCL', ' MG', ' MEQ', ' MCG', ' ML', '"'], [' CAP', ' CAP', ' CAP', ' TAB', ' TAB', ' TAB', '', 'MG', 'MEQ', 'MCG', 'ML', ''], trim($row['drug_name']));
       $row['provider_phone'] = clean_phone($row['provider_phone']);
 
       //Some validations
