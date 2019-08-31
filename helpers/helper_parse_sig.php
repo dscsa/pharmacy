@@ -9,31 +9,31 @@ function parse_sig($rx) {
   //"take 1 tablet (500 mg) by oral route 2 times per day with morning and evening meals" -- don't split
   //"Take 1 tablet by mouth every morning and 2 tablets in the evening" -- split
   $complex_sig_regex = '/ then | and (?=\d)/';
-  $sigs_cleaned      = array_reverse(preg_split($complex_sig_regex, subsitute_numerals($rx['sig_raw'])));
+  $sigs_clean        = array_reverse(preg_split($complex_sig_regex, subsitute_numerals($rx['sig_raw'])));
 
-  foreach ($sigs_cleaned as $sig_cleaned) {
+  foreach ($sigs_clean as $sig_clean) {
 
-    $qty_per_time = get_qty_per_time($sig_cleaned);
-    $frequency = get_frequency($sig_cleaned);
-    $frequency_numerator = get_frequency_numerator($sig_cleaned);
-    $frequency_denominator = get_frequency_demoninator($sig_cleaned);
-
+    $qty_per_time = get_qty_per_time($sig_clean);
+    $frequency = get_frequency($sig_clean);
+    $frequency_numerator = get_frequency_numerator($sig_clean);
+    $frequency_denominator = get_frequency_denominator($sig_clean);
 
     $parsed = [
-      'sig_cleaned'               => "'$sig_cleaned'",
+      'rx_number'                 => "'$rx[rx_number]'",
+      'sig_clean'                 => "'$sig_clean'",
       'sig_qty_per_time'          => "'$qty_per_time'",
       'sig_frequency'             => "'$frequency'",
       'sig_frequency_numerator'   => "'$frequency_numerator'",
-      'sig_frequency_demoninator' => "'$frequency_denominator'"
+      'sig_frequency_denominator' => "'$frequency_denominator'"
     ];
 
     if ($qty_per_time AND $frequency AND $frequency_numerator AND $frequency_denominator) {
       $parsed['sig_qty_per_day'] = $qty_per_time * $frequency_numerator / $frequency_denominator / $frequency;
-      echo 'Parsed $sig '.$rx['sig_raw'].' | '.$sig_cleaned.' | '.print_r($parsed, true);
+      echo 'Parsed $sig '.$rx['sig_raw'].' | '.$sig_clean.' | '.print_r($parsed, true);
       return $parsed;
     }
 
-    echo 'Could not parse $sig '.$rx['sig_raw'].' | '.$sig_cleaned.' | '.print_r($parsed, true);
+    echo 'Could not parse $sig '.$rx['sig_raw'].' | '.$sig_clean.' | '.print_r($parsed, true);
   }
 }
 
@@ -100,7 +100,7 @@ function get_frequency_numerator($sig) {
   return $match ? $match[1] : 1;
 }
 
-function get_frequency_demoninator($sig) {
+function get_frequency_denominator($sig) {
   preg_match('/every ([1-9]\\b|10|11|12)(?! +time)/i', $sig, $match);
   return $match ? $match[1] : 1;
 }
@@ -122,7 +122,7 @@ function get_frequency($sig) {
   else if (preg_match('/( hours?| hourly)(?! before| after| prior to)/i', $sig)) //put this last so less likely to match thinks like "2 hours before (meals|bedtime) every day"
     $freq = 1/24; // One 24th of a day
 
-  if (preg_match('/ prn| as needed/i', $sig)) //Not mutually exclusive like the others. TODO: Does this belong in freq demoninator instead? TODO: Check with Cindy how often does as needed mean on average.  Assume once every 3 days for now
+  if (preg_match('/ prn| as needed/i', $sig)) //Not mutually exclusive like the others. TODO: Does this belong in freq denominator instead? TODO: Check with Cindy how often does as needed mean on average.  Assume once every 3 days for now
     $freq *= 1; // I had this as 3 which I think is approximately correct, but Cindy didn't like so setting at 1 which basically means we ignore for now
 
   //Default to daily Example 1 tablet by mouth at bedtime
