@@ -39,7 +39,7 @@ function subsitute_numerals($sig) {
 
   $sig = preg_replace_all('/(^| and | & )(1\/2|one-half) /i', '.5 ', $sig); //Take 1 and 1/2 tablets or Take 1 & 1/2 tablets.  Could combine with next regex but might get complicated
   $sig = preg_replace_all('/(\d+) (1\/2|one-half) /i', '$1.5 ', $sig); //Take 1 1/2 tablets
-  $sig = preg_replace_all('/ (1\/2|one-half) /i', ' .5 '$sig);
+  $sig = preg_replace_all('/ (1\/2|one-half) /i', ' .5 ', $sig);
   $sig = preg_replace_all('/\bone /i', '1 ', $sig); // \b is for space or start of line
   $sig = preg_replace_all('/\btwo |\bother /i', '2 ', $sig); // \b is for space or start of line
   $sig = preg_replace_all('/\bthree /i', '3 ', $sig); // \b is for space or start of line
