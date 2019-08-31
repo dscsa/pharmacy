@@ -92,7 +92,7 @@ function get_frequency_numerator($sig) {
 }
 
 function get_frequency_demoninator($sig) {
-  $match = preg_match('(/every ([1-9]\\b|10|11|12)(?! +time)/i', $sig);
+  $match = preg_match('/every ([1-9]\\b|10|11|12)(?! +time)/i', $sig);
   return $match ? $match[1] : 1;
 }
 
