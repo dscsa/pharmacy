@@ -22,24 +22,24 @@ function import_v2_drugs() {
   $vals = [];
   foreach($drugs['rows'] as $row) {
 
-    list($drug_generic, $drug_brand, $drug_gsns) = $row['key'];
+    list($drug_generic, $drug_gsns, $drug_brand) = $row['key'];
     list($price_goodrx, $price_nadac, $price_retail) = $row['value'];
     $o = isset($order['ordered'][$drug_generic]) ? $order['ordered'][$drug_generic] + $order['default'] : [];
 
     $val = [
       'drug_generic'      => "'$drug_generic'",
-      'drug_brand'        => $drug_brand ? "'$drug_brand'" : 'NULL',
+      'drug_brand'        => clean_val($drug_brand),
       'drug_gsns'         => $drug_gsns ? "',$drug_gsns,'" : 'NULL',   //Enclose with ,, so we can do DRUG_GSNS LIKE '%,GSN,%' and still match first and list in list
       'drug_ordered'      => $o ? 1 : 'NULL',
-      'price30'           => get_order_by_key($o, 'price30'),
-      'price90'           => get_order_by_key($o, 'price90'),
-      'repack_qty'        => get_order_by_key($o, 'repackQty'),
-      'min_qty'           => get_order_by_key($o, 'minQty'),
-      'min_days'          => get_order_by_key($o, 'minDays'),
-      'max_inventory'     => get_order_by_key($o, 'maxInventory'),
-      'message_display'   => get_order_by_key($o, 'displayMessage'),
-      'message_verified'  => get_order_by_key($o, 'verifiedMessage'),
-      'message_destroyed' => get_order_by_key($o, 'destroyedMessage'),
+      'price30'           => clean_val($o['price30']),
+      'price90'           => clean_val($o['price90']),
+      'repack_qty'        => clean_val($o['repackQty']),
+      'min_qty'           => clean_val($o['minQty']),
+      'min_days'          => clean_val($o['minDays']),
+      'max_inventory'     => clean_val($o['maxInventory']),
+      'message_display'   => clean_val($o['displayMessage']),
+      'message_verified'  => clean_val($o['verifiedMessage']),
+      'message_destroyed' => clean_val($o['destroyedMessage']),
       'price_goodrx'      => "'".($price_goodrx['sum']/$price_goodrx['count'])."'",
       'price_nadac'       => "'".($price_nadac['sum']/$price_nadac['count'])."'",
       'price_retail'      => "'".($price_retail['sum']/$price_retail['count'])."'",
@@ -53,8 +53,4 @@ function import_v2_drugs() {
   $mysql->run('TRUNCATE TABLE gp_drugs_v2');
 
   $mysql->run("INSERT INTO gp_drugs_v2 (".implode(', ', array_keys($val)).") VALUES ".implode(', ', $vals));
-}
-
-function get_order_by_key($order, $key) {
-  return isset($order[$key])? "'$order[$key]'" : 'NULL';
 }
