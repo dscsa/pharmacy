@@ -60,6 +60,10 @@ function subsitute_numerals($sig) {
 
   $sig = preg_replace('/\\b1 vial /i', '3ml ', $sig); // vials for inhalation are 2.5 or 3ml, so use 3ml to be conservative
   $sig = preg_replace('/\\b2 vials? /i', '6ml ', $sig); // vials for inhalation are 2.5 or 3ml, so use 3ml to be conservative
+  $sig = preg_replace('/\\b3 vials? /i', '9ml ', $sig); // vials for inhalation are 2.5 or 3ml, so use 3ml to be conservative
+  $sig = preg_replace('/\\b4 vials? /i', '12ml ', $sig); // vials for inhalation are 2.5 or 3ml, so use 3ml to be conservative
+  $sig = preg_replace('/\\b5 vials? /i', '15ml ', $sig); // vials for inhalation are 2.5 or 3ml, so use 3ml to be conservative
+  $sig = preg_replace('/\\b6 vials? /i', '18ml ', $sig); // vials for inhalation are 2.5 or 3ml, so use 3ml to be conservative
 
   //Take Last (Max?) of Numeric Ranges
   $sig = preg_replace('/[.\d]+ or ([.\d]+) /i', '$1 ', $sig, 1); //Take 1 or 2 every 3 or 4 hours. Let's convert that to Take 2 every 3 or 4 hours (no global flag).  CK approves of first substitution but not sure of the 2nd so the conservative answer is to leave it alone
@@ -77,22 +81,22 @@ function subsitute_numerals($sig) {
 
 function get_qty_per_time($sig) {
 
-    $match = preg_match('/([0-9]?\.[0-9]+|[1-9]) (tab|cap|pill|softgel)/i', $sig);
+    preg_match('/([0-9]?\.[0-9]+|[1-9]) (tab|cap|pill|softgel)/i', $sig, $match);
 
     if ($match) return $match[1];
 
-    $match = preg_match('/(^|use +|take +|inhale +|chew +|inject +|oral +)([0-9]?\.[0-9]+|[1-9])(?!\d* ?mg)/i', $sig);
+    preg_match('/(^|use +|take +|inhale +|chew +|inject +|oral +)([0-9]?\.[0-9]+|[1-9])(?!\d* ?mg)/i', $sig, $match);
 
     return $match ? $match[2] : 1; //"Use daily with lantus" won't match the RegEx above
 }
 
 function get_frequency_numerator($sig) {
-  $match = preg_match('/([1-9]\\b|10|11|12) +time/i', $sig);
+  preg_match('/([1-9]\\b|10|11|12) +time/i', $sig, $match);
   return $match ? $match[1] : 1;
 }
 
 function get_frequency_demoninator($sig) {
-  $match = preg_match('/every ([1-9]\\b|10|11|12)(?! +time)/i', $sig);
+  preg_match('/every ([1-9]\\b|10|11|12)(?! +time)/i', $sig, $match);
   return $match ? $match[1] : 1;
 }
 
