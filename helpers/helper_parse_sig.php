@@ -16,20 +16,19 @@ function parse_sig($rx) {
     $qty_per_time = get_qty_per_time($sig_cleaned);
     $frequency = get_frequency($sig_cleaned);
     $frequency_numerator = get_frequency_numerator($sig_cleaned);
-    $frequency_demoninator = get_frequency_demoninator($sig_cleaned);
+    $frequency_denominator = get_frequency_demoninator($sig_cleaned);
 
 
     $parsed = [
-      'rx_number'                 => "'$rx[rx_number]'",
       'sig_cleaned'               => "'$sig_cleaned'",
       'sig_qty_per_time'          => "'$qty_per_time'",
       'sig_frequency'             => "'$frequency'",
       'sig_frequency_numerator'   => "'$frequency_numerator'",
-      'sig_frequency_demoninator' => "'$frequency_demoninator'"
+      'sig_frequency_demoninator' => "'$frequency_denominator'"
     ];
 
-    if ($qty_per_time AND $frequency AND $frequency_numerator AND $frequency_demoninator) {
-      $parsed['qty_per_day'] = $qty_per_time * $frequency_numerator / $frequency_demoninator / $frequency;
+    if ($qty_per_time AND $frequency AND $frequency_numerator AND $frequency_denominator) {
+      $parsed['sig_qty_per_day'] = $qty_per_time * $frequency_numerator / $frequency_denominator / $frequency;
       echo 'Parsed $sig '.$rx['sig_raw'].' | '.$sig_cleaned.' | '.print_r($parsed, true);
       return $parsed;
     }

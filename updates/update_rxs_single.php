@@ -24,7 +24,7 @@ function update_rxs_single() {
     $sig = parse_sig($rx);
 
     if ($sig)
-      $sigs[] = array_string($sig);
+      $sigs[] = array_string($sig+$rx); //Add Rx so we don't get a "No Default Value" mysql error
   }
 
   if (count($sigs)) {
@@ -32,11 +32,11 @@ function update_rxs_single() {
          " VALUES " .implode(', ', $sigs).
          " ON DUPLICATE KEY UPDATE
             sig_clean = sig_clean,
-            qty_per_day = qty_per_day,
-            qty_per_time = qty_per_time,
-            frequency = frequency,
-            frequency_numerator = frequency_numerator,
-            frequency_demoninator = frequency_demoninator
+            sig_qty_per_day = sig_qty_per_day,
+            sig_qty_per_time = sig_qty_per_time,
+            sig_frequency = sig_frequency,
+            sig_frequency_numerator = sig_frequency_numerator,
+            sig_frequency_denominator = sig_frequency_denominator
          ";
     //$mysql->run();
   }
