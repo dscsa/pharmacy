@@ -183,7 +183,8 @@ function test_parse_sig() {
     //"Take 1 tablet by mouth 3 times a day"
     //"Take 1 tablet by mouth 2 (two) times a day with meals."
     //"Take 1 tablet (5 mg total) by mouth 2 (two) times daily.",
-    //"Take 1 tablet by mouth every other day"
+    //"Take 1 tablet by mouth every other day",
+    //"week 1: 100 mg po bid; week 2: 200 mg po bid; week 3: 300 mg po bid; week 4: 400 mg po bid" //Not Fixed
   ];
 
 

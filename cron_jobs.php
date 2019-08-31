@@ -1,6 +1,6 @@
 <?php
 
-require_once 'helpers/helper_parse_sign.php';
+require_once 'helpers/helper_parse_sig.php';
 
 require_once 'imports/import_cp_patients.php';
 require_once 'imports/import_cp_rxs_single.php';
