@@ -34,32 +34,32 @@ function parse_sig($rx) {
 
 function subsitute_numerals($sig) {
   $sig = preg_replace('/\(.*?\)/', '', $sig); //get rid of parenthesis // "Take 1 capsule (300 mg total) by mouth 3 (three) times daily."
-  $sig = preg_replace('/\\/', '', $sig);   //get rid of backslashes
+  $sig = preg_replace('/\\\/', '', $sig);   //get rid of backslashes
 
   $sig = preg_replace('/(^| and | & )(1\/2|one-half) /i', '.5 ', $sig); //Take 1 and 1/2 tablets or Take 1 & 1/2 tablets.  Could combine with next regex but might get complicated
   $sig = preg_replace('/(\d+) (1\/2|one-half) /i', '$1.5 ', $sig); //Take 1 1/2 tablets
   $sig = preg_replace('/ (1\/2|one-half) /i', ' .5 ', $sig);
-  $sig = preg_replace('/\bone /i', '1 ', $sig); // \b is for space or start of line
-  $sig = preg_replace('/\btwo |\bother /i', '2 ', $sig); // \b is for space or start of line
-  $sig = preg_replace('/\bthree /i', '3 ', $sig); // \b is for space or start of line
-  $sig = preg_replace('/\bfour /i', '4 ', $sig); // \b is for space or start of line
-  $sig = preg_replace('/\bfive /i', '5 ', $sig); // \b is for space or start of line
-  $sig = preg_replace('/\bsix /i', '6 ', $sig); // \b is for space or start of line
-  $sig = preg_replace('/\bseven /i', '7 ', $sig); // \b is for space or start of line
-  $sig = preg_replace('/\beight /i', '8 ', $sig); // \b is for space or start of line
-  $sig = preg_replace('/\bnine /i', '9 ', $sig); // \b is for space or start of line
-  $sig = preg_replace('/\bten /i', '10 ', $sig); // \b is for space or start of line
-  $sig = preg_replace('/\beleven /i', '11 ', $sig); // \b is for space or start of line
-  $sig = preg_replace('/\btwelve /i', '12 ', $sig); // \b is for space or start of line
+  $sig = preg_replace('/\\bone /i', '1 ', $sig); // \\b is for space or start of line
+  $sig = preg_replace('/\\btwo |\\bother /i', '2 ', $sig); // \\b is for space or start of line
+  $sig = preg_replace('/\\bthree /i', '3 ', $sig); // \\b is for space or start of line
+  $sig = preg_replace('/\\bfour /i', '4 ', $sig); // \\b is for space or start of line
+  $sig = preg_replace('/\\bfive /i', '5 ', $sig); // \\b is for space or start of line
+  $sig = preg_replace('/\\bsix /i', '6 ', $sig); // \\b is for space or start of line
+  $sig = preg_replace('/\\bseven /i', '7 ', $sig); // \\b is for space or start of line
+  $sig = preg_replace('/\\beight /i', '8 ', $sig); // \\b is for space or start of line
+  $sig = preg_replace('/\\bnine /i', '9 ', $sig); // \\b is for space or start of line
+  $sig = preg_replace('/\\bten /i', '10 ', $sig); // \\b is for space or start of line
+  $sig = preg_replace('/\\beleven /i', '11 ', $sig); // \\b is for space or start of line
+  $sig = preg_replace('/\\btwelve /i', '12 ', $sig); // \\b is for space or start of line
 
   $sig = preg_replace('/ hrs /i', ' hours ', $sig);
   $sig = preg_replace('/ once /i', ' 1 time ', $sig);
-  $sig = preg_replace('/ twice | q12.*?h| BID\b|(?!every) 12 hours/i', ' 2 times ', $sig);
-  $sig = preg_replace('/ q8.*?h| TID\b|(?!every) 8 hours/i', ' 3 times ', $sig);
+  $sig = preg_replace('/ twice | q12.*?h| BID\\b|(?!every) 12 hours/i', ' 2 times ', $sig);
+  $sig = preg_replace('/ q8.*?h| TID\\b|(?!every) 8 hours/i', ' 3 times ', $sig);
   $sig = preg_replace('/ q6.*?h|(?!every) 6 hours/i', ' 4 times ', $sig);
 
-  $sig = preg_replace('/\b1 vial /i', '3ml ', $sig); // vials for inhalation are 2.5 or 3ml, so use 3ml to be conservative
-  $sig = preg_replace('/\b2 vials? /i', '6ml ', $sig); // vials for inhalation are 2.5 or 3ml, so use 3ml to be conservative
+  $sig = preg_replace('/\\b1 vial /i', '3ml ', $sig); // vials for inhalation are 2.5 or 3ml, so use 3ml to be conservative
+  $sig = preg_replace('/\\b2 vials? /i', '6ml ', $sig); // vials for inhalation are 2.5 or 3ml, so use 3ml to be conservative
 
   //Take Last (Max?) of Numeric Ranges
   $sig = preg_replace('/[.\d]+ or ([.\d]+) /i', '$1 ', $sig, 1); //Take 1 or 2 every 3 or 4 hours. Let's convert that to Take 2 every 3 or 4 hours (no global flag).  CK approves of first substitution but not sure of the 2nd so the conservative answer is to leave it alone
@@ -87,12 +87,12 @@ function get_qty_per_time($sig) {
 }
 
 function get_frequency_numerator($sig) {
-  $match = preg_match('/([1-9]\b|10|11|12) +time/i', $sig);
+  $match = preg_match('/([1-9]\\b|10|11|12) +time/i', $sig);
   return $match ? $match[1] : 1;
 }
 
 function get_frequency_demoninator($sig) {
-  $match = preg_match('(/every ([1-9]\b|10|11|12)(?! +time)/i', $sig);
+  $match = preg_match('(/every ([1-9]\\b|10|11|12)(?! +time)/i', $sig);
   return $match ? $match[1] : 1;
 }
 
