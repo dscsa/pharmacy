@@ -9,7 +9,7 @@ function changes_to_drugs($new) {
   $old   = "gp_drugs";
   $id    = "drug_name";
   $where = "
-    NOT old.drugs_gsns <=> new.drugs_gsns
+    NOT old.drug_gsns <=> new.drug_gsns
   ";
 
   //Get Deleted

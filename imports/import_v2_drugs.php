@@ -7,6 +7,7 @@ function import_v2_drugs() {
 
   $mysql = new Mysql_Wc();
 
+  ini_set("allow_url_fopen", 1);
   $json = file_get_contents('http://52.9.6.78:5984/drug/_design/by-generic-gsns/_view/by-generic-gsns?group_level=2');
   $json = json_decode($json);
 
