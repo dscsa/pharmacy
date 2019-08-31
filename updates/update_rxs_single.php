@@ -1,5 +1,7 @@
 <?php
 require_once 'changes/changes_to_rxs_single.php';
+require_once 'helpers/helper_parse_sig.php';
+
 
 function update_rxs_single() {
 
@@ -12,6 +14,11 @@ function update_rxs_single() {
   mail('adam@sirum.org', "CRON: update_rxs_single ", $message);
 
   if ( ! count($changes['deleted']+$changes['created']+$changes['updated'])) return;
+
+  foreach($changes['updated'] as $rx) {
+    $parsed = parse_sig($rx);
+    echo 'created: '.print_r($parsed, true).print_r($rx, true);
+  }
 
   //TODO Calculate Qty Per Day from Sig and save in database
 
