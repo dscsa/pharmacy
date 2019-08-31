@@ -19,7 +19,7 @@ function update_rxs_single() {
   $mysql = new Mysql_Wc();
 
   $sigs = [];
-  foreach($changes['updated'] as $rx) {
+  foreach($changes['created'] as $rx) {
     $sig    = parse_sig($rx);
     $sigs[] = array_string($sig);
   }

@@ -12,32 +12,39 @@ require_once 'updates/update_order_items.php';
 
 date_default_timezone_set('America/New_York');
 
-$start = microtime(true);
+timer("", $time);
 
 import_cp_patients();
-echo "
-import_cp_patients ".(microtime(true) - $start);
+echo timer("import_cp_patients", $time);
 
 import_cp_rxs_single();
-echo "
-mport_cp_rxs_single ".(microtime(true) - $start);
+echo timer("import_cp_rxs_single", $time);
 
 import_cp_orders();
-echo "
-import_cp_orders ".(microtime(true) - $start);
+echo timer("import_cp_orders", $time);
 
 //import_cp_order_items();
 
 update_patients();
-echo "
-update_patients ".(microtime(true) - $start);
+echo timer("update_patients", $time);
 
 update_rxs_single();
-echo "
-update_rxs_single ".(microtime(true) - $start);
+echo timer("update_rxs_single", $time);
 
 update_orders();
-echo "
-update_orders ".(microtime(true) - $start);
+echo timer("update_orders", $time);
+
+function timer($label, &$start) {
+  $start ?: microtime(true);
+  $stop  =  microtime(true);
+
+  $diff = "
+  $label: ".ceil($stop-$start)." seconds
+  ";
+
+  $start = $stop;
+
+  return $diff;
+}
 
 //update_order_items();
