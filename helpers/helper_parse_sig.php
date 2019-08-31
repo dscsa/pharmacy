@@ -19,7 +19,6 @@ function parse_sig($rx) {
     $frequency_denominator = get_frequency_denominator($sig_clean);
 
     $parsed = [
-      'rx_number'                 => "'$rx[rx_number]'",
       'sig_clean'                 => "'$sig_clean'",
       'sig_qty_per_time'          => "'$qty_per_time'",
       'sig_frequency'             => "'$frequency'",

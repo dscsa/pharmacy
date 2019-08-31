@@ -18,27 +18,22 @@ function update_rxs_single() {
 
   $mysql = new Mysql_Wc();
 
-  $sigs = [];
   foreach($changes['created'] as $rx) {
 
     $sig = parse_sig($rx);
 
     if ($sig)
-      $sigs[] = array_string($sig); //Add Rx so we don't get a "No Default Value" mysql error
-  }
-
-  if (count($sigs)) {
-    echo "INSERT IGNORE INTO gp_rxs_single ".array_string(array_keys($sig)).
-         " VALUES " .implode(', ', $sigs).
-         " ON DUPLICATE KEY UPDATE
-            sig_clean = sig_clean,
-            sig_qty_per_day = sig_qty_per_day,
-            sig_qty_per_time = sig_qty_per_time,
-            sig_frequency = sig_frequency,
-            sig_frequency_numerator = sig_frequency_numerator,
-            sig_frequency_denominator = sig_frequency_denominator
-         ";
-    //$mysql->run();
+      $mysql->run("
+        UPDATE gp_rxs_single SET
+          sig_clean = $sig[sig_clean],
+          sig_qty_per_day = $sig[sig_qty_per_day],
+          sig_qty_per_time = $sig[sig_qty_per_time],
+          sig_frequency = $sig[sig_frequency],
+          sig_frequency_numerator = $sig[sig_frequency_numerator],
+          sig_frequency_denominator = $sig[sig_frequency_denominator]
+        WHERE
+          rx_number = $rx[rx_number]
+      ");
   }
 
   //TODO Calculate Qty Per Day from Sig and save in database
