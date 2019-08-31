@@ -195,7 +195,7 @@ function test_parse_sig() {
   //"Take 5 mg by mouth daily."
 
   foreach ($test_sigs as $test_sig) {
-    $parsed = parse_sig(['sig' => $test_sig]);
+    $parsed = parse_sig(['sig_raw' => $test_sig]);
     echo $test_sig.print_r($parsed, true);
   }
 }
