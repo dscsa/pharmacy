@@ -24,11 +24,11 @@ function update_rxs_single() {
     $sig = parse_sig($rx);
 
     if ($sig)
-      $sigs[] = array_string($sig+$rx); //Add Rx so we don't get a "No Default Value" mysql error
+      $sigs[] = array_string($sig); //Add Rx so we don't get a "No Default Value" mysql error
   }
 
   if (count($sigs)) {
-    echo "INSERT INTO gp_rxs_single ".array_string(array_keys($sig+$rx)).
+    echo "INSERT IGNORE INTO gp_rxs_single ".array_string(array_keys($sig)).
          " VALUES " .implode(', ', $sigs).
          " ON DUPLICATE KEY UPDATE
             sig_clean = sig_clean,
