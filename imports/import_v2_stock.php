@@ -19,8 +19,8 @@ function import_v2_stock() {
   $next = ["year" => date('Y', $next), "month" => date('m', $next)];
   $curr = ["year" => date('Y'), "month" => date('m')];
 
-  $last = "?start_key=['8889875187','month','$last[year]','$last[month]']&end_key=['8889875187','month','$curr[year]','$curr[month]',{}]&group_level=5";
-  $next = "?start_key=['8889875187','month','$curr[year]','$curr[month]']&end_key=['8889875187','month','$next[year]','$next[month]',{}]&group_level=5";
+  $last = "?start_key=[\"8889875187\",\"month\",\"$last[year]\",\"$last[month]\"]&end_key=[\"8889875187\",\"month\",\"$curr[year]\",\"$curr[month]\",{}]&group_level=5";
+  $next = "?start_key=[\"8889875187\",\"month\",\"$curr[year]\",\"$curr[month]\"]&end_key=[\"8889875187\",\"month\",\"$next[year]\",\"$next[month]\",{}]&group_level=5";
   $inventory = file_get_contents(V2_IP.'/transaction/_design/inventory.qty-by-generic/_view/inventory.qty-by-generic'.$next, false, $context);
   $entered  = file_get_contents(V2_IP.'/transaction/_design/entered.qty-by-generic/_view/entered.qty-by-generic'.$last, false, $context);
   $verified = file_get_contents(V2_IP.'/transaction/_design/verified.qty-by-generic/_view/verified.qty-by-generic'.$last, false, $context);
