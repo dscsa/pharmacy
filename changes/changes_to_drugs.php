@@ -9,7 +9,23 @@ function changes_to_drugs($new) {
   $old   = "gp_drugs";
   $id    = "drug_name";
   $where = "
-    NOT old.drug_gsns <=> new.drug_gsns
+    NOT old.drug_gsns <=> new.drug_gsns OR
+    NOT old.drug_brand <=> new.drug_brand OR
+    NOT old.drug_gsns <=> new.drug_gsns OR
+    NOT old.drug_ordered <=> new.drug_ordered OR
+    NOT old.price30 <=> new.price30 OR
+    NOT old.price90 <=> new.price90 OR
+    NOT old.repack_qty <=> new.repack_qty OR
+    NOT old.min_qty <=> new.min_qty OR
+    NOT old.min_days <=> new.min_days OR
+    NOT old.max_inventory <=> new.max_inventory OR
+    NOT old.message_display <=> new.message_display OR
+    NOT old.message_verified <=> new.message_verified OR
+    NOT old.message_destroyed <=> new.message_destroyed OR
+    NOT old.price_goodrx <=> new.price_goodrx OR
+    NOT old.price_nadac <=> new.price_nadac OR
+    NOT old.price_retail <=> new.price_retail OR
+    NOT old.count_ndcs <=> new.count_ndcs
   ";
 
   //Get Deleted
