@@ -38,5 +38,5 @@ function import_cp_order_items() {
   //Replace Staging Table with New Data
   $mysql->run('TRUNCATE TABLE gp_order_items_cp');
 
-  $mysql->run("INSERT INTO gp_orders_items_cp $keys VALUES ".$order_items[0]);
+  $mysql->run("INSERT INTO gp_order_items_cp $keys VALUES ".$order_items[0]);
 }
