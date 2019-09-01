@@ -7,9 +7,8 @@ function changes_to_stock_by_month($new) {
   $mysql = new Mysql_Wc();
 
   $old   = "gp_stock_by_month";
-  $id    = "drug_generic";
+  $id    = ["drug_generic", "month"];
   $where = "
-    NOT old.month <=> new.month OR
     NOT old.inventory_sum <=> new.inventory_sum OR
     NOT old.inventory_count <=> new.inventory_count OR
     NOT old.inventory_min <=> new.inventory_min OR
@@ -43,7 +42,7 @@ function changes_to_stock_by_month($new) {
   ";
 
   //Get Deleted - A lot of Turnover with a 3 month window so let's keep historic
-  //$deleted = $mysql->run(get_deleted_sql($new, $old, $id));
+  $deleted = [[]]; //$mysql->run(get_deleted_sql($new, $old, $id));
 
   //Get Inserted
   $created = $mysql->run(get_created_sql($new, $old, $id));
