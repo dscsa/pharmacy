@@ -37,7 +37,7 @@ function import_v2_drugs() {
     'expired' => json_decode($expired, true)['rows'],
     'disposed' => json_decode($disposed, true)['rows'],
     'dispensed' => json_decode($dispensed, true)['rows']
-  ]
+  ];
 
   //Replace Staging Table with New Data
   $mysql->run('TRUNCATE TABLE gp_stock_v2');
