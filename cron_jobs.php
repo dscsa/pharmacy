@@ -13,6 +13,7 @@ require_once 'updates/update_patients.php';
 require_once 'updates/update_rxs_single.php';
 require_once 'updates/update_orders.php';
 
+ini_set('memory_limit', '1024M');
 date_default_timezone_set('America/New_York');
 
 timer("", $time);
