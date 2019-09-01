@@ -83,12 +83,13 @@ function import_cp_rxs_single() {
       generic_name.gcn_seqno = cprx.gcn_seqno
 
     WHERE
+      -- cprx.chg_date > @today - 7 AND -- Only recent scripts to cut down on the
       cprx.status_cn <> 3 AND
       (cprx.status_cn <> 2 OR last_transfer_type_io = 'O') -- NULL/0 is active, 1 is not yet dispensed?, 2 is transferred out/inactive, 3 is voided
 
   ");
 
-  $keys = result_map($rxs[0],
+  result_map($rxs[0],
     function($row) {
       //Clean Drug Name and save in database RTRIM(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(ISNULL(generic_name, cprx.drug_name), ' CAPSULE', ' CAP'),' CAPS',' CAP'),' TABLET',' TAB'),' TABS',' TAB'),' TB', ' TAB'),' HCL',''),' MG','MG'), '\"', ''))
       $row['drug_name'] = str_replace([' CAPSULE', ' CAPS', ' CP', ' TABLET', ' TABS', ' TB', ' HCL', ' MG', ' MEQ', ' MCG', ' ML', '"'], [' CAP', ' CAP', ' CAP', ' TAB', ' TAB', ' TAB', '', 'MG', 'MEQ', 'MCG', 'ML', ''], trim($row['drug_name']));
@@ -104,5 +105,5 @@ function import_cp_rxs_single() {
   //Replace Staging Table with New Data
   $mysql->run('TRUNCATE TABLE gp_rxs_single_cp');
 
-  $mysql->run("INSERT INTO gp_rxs_single_cp $keys VALUES ".$rxs[0]);
+  $mysql->run("INSERT INTO gp_rxs_single_cp VALUES ".$rxs[0]);
 }

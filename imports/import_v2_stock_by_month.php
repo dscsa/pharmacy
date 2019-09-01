@@ -67,7 +67,7 @@ function import_v2_stock_by_month() {
     //Rather than separate tables put into one table using ON DUPLICATE KEY UPDATE
     $mysql->run("
       INSERT INTO
-        gp_stock_by_month_v2 (".implode(', ', array_keys($val)).")
+        gp_stock_by_month_v2
       VALUES
         ".implode(', ', $vals)."
       ON DUPLICATE KEY UPDATE

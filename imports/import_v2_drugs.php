@@ -52,5 +52,5 @@ function import_v2_drugs() {
   //Replace Staging Table with New Data
   $mysql->run('TRUNCATE TABLE gp_drugs_v2');
 
-  $mysql->run("INSERT INTO gp_drugs_v2 (".implode(', ', array_keys($val)).") VALUES ".implode(', ', $vals));
+  $mysql->run("INSERT INTO gp_drugs_v2 VALUES ".implode(', ', $vals));
 }

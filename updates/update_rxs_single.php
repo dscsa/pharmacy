@@ -36,6 +36,45 @@ function update_rxs_single() {
       ");
   }
 
+  //This is an expensive (6-8 seconds) group query.
+  //TODO We should update rxs in this table individually on changes
+  //TODO OR We should add indexed drug info fields to the gp_rxs_single above on created/updated so we don't need the join
+  $mysql->run('TRUNCATE TABLE gp_rxs_grouped');
+
+  $mysql->run("
+    INSERT INTO gp_rxs_grouped
+    SELECT
+  	  patient_id_cp,
+      COALESCE(drug_generic, drug_name_raw),
+      MAX(drug_brand) as drug_brand,
+      MAX(drug_name_raw) as drug_name_raw,
+      sig_qty_per_day,
+
+      MAX(rx_gsn) as max_gsn,
+      SUM(refills_original) as refills_total,
+      MIN(rx_autofill) as rx_autofill,
+
+      MIN(refill_date_first) as refill_date_first,
+      MAX(refill_date_last) as refill_date_last,
+      COALESCE(MIN(refill_date_manual), MIN(refill_date_default)) as refill_date_next,
+      MIN(refill_date_manual) as refill_date_manual,
+      MIN(refill_date_default) as refill_date_default,
+
+      MIN(CASE WHEN qty_left >= 45 AND days_until_expired >= 45 THEN rx_number ELSE NULL END) as oldest_rx_high_refills,
+      MIN(CASE WHEN qty_left >= 0 THEN rx_number ELSE NULL END) as oldest_script_with_refills,
+      MIN(CASE WHEN rx_status = 0 AND days_until_expired >= 0 THEN rx_number ELSE NULL END) as oldest_active_script,
+  	  MAX(rx_number) as newest_script,
+
+      MAX(rx_date_changed) as rx_date_changed,
+      MAX(rx_date_expired) as rx_date_expired
+  	FROM gp_rxs_single
+  	  LEFT JOIN gp_drugs ON drug_gsns LIKE CONCAT('%,', rx_gsn, ',%')
+  	GROUP BY
+      patient_id_cp,
+      COALESCE(drug_generic, drug_name_raw),
+      sig_qty_per_day
+  ");
+
   //TODO Calculate Qty Per Day from Sig and save in database
 
   //TODO Implement rx_status logic that was in MSSQL Query and Save in Database
@@ -74,7 +113,6 @@ function update_rxs_single() {
       drug_name,
       sig_qty_per_day
 
-      GROUP BY order_id, (CASE WHEN gcn_seqno > 0 THEN gcn_seqno ELSE script_no END) --This is because of Orders like 8660 where we had 4 duplicate Citalopram 40mg.  Two that were from Refills, One Denied Surescript Request, and One new Surescript.  We are only going to send one GCN so don't list it multiple times
   */
   //WE WANT TO INCREMENTALLY UPDATE THIS TABLE RATHER THAN DOING EXPENSIVE GROUPING QUERY ON EVERY READ
   /*$mysql->run("
