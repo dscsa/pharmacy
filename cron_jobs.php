@@ -56,17 +56,20 @@ update_orders();
 echo timer("update_orders", $time);
 
 echo "
----- DONE!!! ----";
+
+---- DONE!!! ----
+
+";
 
 function timer($label, &$start) {
-  $start ?: microtime(true);
-  $stop  =  microtime(true);
+  $start ?: [microtime(true), microtime(true)];
+  $stop  =  [microtime(true), microtime(true)];
 
   $diff = "
-  $label: ".ceil($stop-$start)." seconds
+  $label: ".ceil($stop[0]-$start[0])." seconds of ".ceil($stop[1]-$start[1])." total
   ";
 
-  $start = $stop;
+  $start[0] = $stop[0];
 
   return $diff;
 }
