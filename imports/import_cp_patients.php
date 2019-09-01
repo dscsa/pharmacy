@@ -48,7 +48,7 @@ function import_cp_patients() {
 
   ");
 
-  result_map($patients[0],
+  $keys = result_map($patients[0],
     function($row) {
 
       //This is hard todo in MSSQL so doing it in PHP instead
@@ -101,5 +101,5 @@ function import_cp_patients() {
   //Replace Staging Table with New Data
   $mysql->run('TRUNCATE TABLE gp_patients_cp');
 
-  $mysql->run("INSERT INTO gp_patients_cp VALUES ".$patients[0]);
+  $mysql->run("INSERT INTO gp_patients_cp $keys VALUES ".$patients[0]);
 }
