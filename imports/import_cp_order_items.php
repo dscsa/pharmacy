@@ -16,6 +16,7 @@ function import_cp_order_items() {
         ),
         MAX(script_no)
       ) as rx_number, --If multiple of same drug in order, pick the oldest one with refills.  If none have refills use the newest. See dbo.csuser for user ids
+      MAX(disp.rxdisp_id) as rx_dispensed_id, --Hacky, most recent line item might not line up with the rx number we are filling
       MAX(dispense_qty) as qty_dispensed_actual,
       MAX(disp_days_supply) as days_dispensed_actual,
       MAX(CASE

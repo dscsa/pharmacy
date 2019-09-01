@@ -55,6 +55,9 @@ echo timer("update_rxs_single", $time);
 update_orders();
 echo timer("update_orders", $time);
 
+echo "
+---- DONE!!! ----";
+
 function timer($label, &$start) {
   $start ?: microtime(true);
   $stop  =  microtime(true);
