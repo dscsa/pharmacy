@@ -67,12 +67,14 @@ function update_rxs_single() {
       MIN(CASE WHEN qty_left >= 45 AND days_until_expired >= 45 THEN rx_number ELSE NULL END) as oldest_rx_high_refills,
 		  MIN(CASE WHEN qty_left >= 0 THEN rx_number ELSE NULL END) as oldest_script_with_refills,
 		  MIN(CASE WHEN rx_status = 0 AND days_until_expired >= 0 THEN rx_number ELSE NULL END) as oldest_active_script,
-  		MAX(rx_number) as newest_script 
+  		MAX(rx_number) as newest_script
   	FROM gp_rxs_single
   	GROUP BY
     	patient_id_cp,
       drug_name,
       sig_qty_per_day
+
+      GROUP BY order_id, (CASE WHEN gcn_seqno > 0 THEN gcn_seqno ELSE script_no END) --This is because of Orders like 8660 where we had 4 duplicate Citalopram 40mg.  Two that were from Refills, One Denied Surescript Request, and One new Surescript.  We are only going to send one GCN so don't list it multiple times
   */
   //WE WANT TO INCREMENTALLY UPDATE THIS TABLE RATHER THAN DOING EXPENSIVE GROUPING QUERY ON EVERY READ
   /*$mysql->run("

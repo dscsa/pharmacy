@@ -4,7 +4,7 @@ require_once 'changes/changes_to_order_items.php';
 
 function update_order_items() {
 
-  $changes = changes_to_order_items();
+  $changes = changes_to_order_items('gp_order_items_cp');
 
   $message = "CRON: update_order_items ".print_r($changes, true);
 
@@ -12,7 +12,7 @@ function update_order_items() {
 
   mail('adam@sirum.org', "CRON: update_order_items ", $message);
 
-  if ( ! count($changes['upserts']+$changes['removals'])) return;
+  if ( ! count($changes['deleted']+$changes['created']+$changes['updated'])) return;
 
   //TODO Calculate Qty, Days, & Price
 
