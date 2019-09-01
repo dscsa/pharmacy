@@ -3,7 +3,7 @@
 require_once 'dbs/mysql_wc.php';
 require_once 'helpers/helper_imports.php';
 
-function import_v2_stock() {
+function import_v2_stock_by_month() {
 
   $mysql = new Mysql_Wc();
 
@@ -40,7 +40,7 @@ function import_v2_stock() {
   ];
 
   //Replace Staging Table with New Data
-  $mysql->run('TRUNCATE TABLE gp_stock_v2');
+  $mysql->run('TRUNCATE TABLE gp_stock_by_month_v2');
 
 
   foreach($dbs as $key => $rows) {
@@ -67,7 +67,7 @@ function import_v2_stock() {
     //Rather than separate tables put into one table using ON DUPLICATE KEY UPDATE
     $mysql->run("
       INSERT INTO
-        gp_drugs_v2 (".implode(', ', array_keys($val)).")
+        gp_stock_by_month_v2 (".implode(', ', array_keys($val)).")
       VALUES
         ".implode(', ', $vals)."
       ON DUPLICATE KEY UPDATE

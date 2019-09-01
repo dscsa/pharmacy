@@ -1,15 +1,15 @@
 <?php
-require_once 'changes/changes_to_stock.php';
+require_once 'changes/changes_to_stock_by_month.php';
 
-function update_stock() {
+function update_stock_by_month() {
 
-  $changes = changes_to_stock("gp_stock_v2");
+  $changes = changes_to_stock_monthly("gp_stock_v2");
 
-  $message = "CRON: update_stock ".print_r($changes, true);
+  $message = "CRON: changes_to_stock_by_month ".print_r($changes, true);
 
   echo $message;
 
-  mail('adam@sirum.org', "CRON: update_stock", $message);
+  mail('adam@sirum.org', "CRON: changes_to_stock_by_month", $message);
 
   if ( ! count($changes['deleted']+$changes['created']+$changes['updated'])) return;
 

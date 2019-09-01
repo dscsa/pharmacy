@@ -3,7 +3,7 @@
 require_once 'dbs/mysql_wc.php';
 require_once 'helpers/helper_changes.php';
 
-function changes_to_stock($new) {
+function changes_to_stock_by_month($new) {
   $mysql = new Mysql_Wc();
 
   $old   = "gp_stock";
