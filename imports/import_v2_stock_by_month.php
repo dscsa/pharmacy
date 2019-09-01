@@ -54,11 +54,11 @@ function import_v2_stock_by_month() {
       $val = [
         'drug_generic'  => "'$drug_generic'",
         'month'         => date_format(date_create_from_format('m/Y', "$month/$year"), "'Y-m-d'"),
-        $key.'_sum'     => "'$row[value][sum]'",
-        $key.'_count'   => "'$row[value][count]'",
-        $key.'_min'     => "'$row[value][min]'",
-        $key.'_max'     => "'$row[value][max]'",
-        $key.'_sumsqr'  => "'$row[value][sumsqr]'"
+        $key.'_sum'     => clean_val($row['value']['sum']),
+        $key.'_count'   => clean_val($row['value']['count']),
+        $key.'_min'     => clean_val($row['value']['min']),
+        $key.'_max'     => clean_val($row['value']['max']),
+        $key.'_sumsqr'  => clean_val($row['value']['sumsqr'])
       ];
 
       $vals[] = '('.implode(', ', $val).')';
