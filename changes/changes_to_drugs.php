@@ -7,9 +7,8 @@ function changes_to_drugs($new) {
   $mysql = new Mysql_Wc();
 
   $old   = "gp_drugs";
-  $id    = "drug_name";
+  $id    = "drug_generic";
   $where = "
-    NOT old.drug_gsns <=> new.drug_gsns OR
     NOT old.drug_brand <=> new.drug_brand OR
     NOT old.drug_gsns <=> new.drug_gsns OR
     NOT old.drug_ordered <=> new.drug_ordered OR
