@@ -63,13 +63,13 @@ echo "
 
 function timer($label, &$start) {
   $start ?: [microtime(true), microtime(true)];
-  $stop  =  [microtime(true), microtime(true)];
+  $stop  =  microtime(true);
 
   $diff = "
-  $label: ".ceil($stop[0]-$start[0])." seconds of ".ceil($stop[1]-$start[1])." total
+  $label: ".ceil($stop-$start[0])." seconds of ".ceil($stop-$start[1])." total
   ";
 
-  $start[0] = $stop[0];
+  $start[0] = $stop;
 
   return $diff;
 }
