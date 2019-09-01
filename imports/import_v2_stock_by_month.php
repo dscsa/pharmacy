@@ -71,11 +71,11 @@ function import_v2_stock_by_month() {
       VALUES
         ".implode(', ', $vals)."
       ON DUPLICATE KEY UPDATE
-        {$key}_sum    = {$key}_sum,
-        {$key}_count  = {$key}_count,
-        {$key}_min    = {$key}_min,
-        {$key}_max    = {$key}_max,
-        {$key}_sumsqr = {$key}_sumsqr
+        {$key}_sum    = VALUES({$key}_sum),
+        {$key}_count  = VALUES({$key}_count),
+        {$key}_min    = VALUES({$key}_min),
+        {$key}_max    = VALUES({$key}_max),
+        {$key}_sumsqr = VALUES({$key}_sumsqr)
     ");
   }
 }
