@@ -62,8 +62,8 @@ echo "
 ";
 
 function timer($label, &$start) {
-  $start ?: [microtime(true), microtime(true)];
-  $stop  =  microtime(true);
+  $start = $start ?: [microtime(true), microtime(true)];
+  $stop  = microtime(true);
 
   $diff = "
   $label: ".ceil($stop-$start[0])." seconds of ".ceil($stop-$start[1])." total
