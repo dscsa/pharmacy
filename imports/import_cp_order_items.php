@@ -8,7 +8,7 @@ function import_cp_order_items() {
   $order_items = $mssql->run("
 
     SELECT
-      order_id+2 as invoice_number,
+      csomline.order_id+2 as invoice_number,
   		COALESCE(
         MIN(CASE
           WHEN refills_left > .1 THEN script_no
@@ -28,9 +28,9 @@ function import_cp_order_items() {
       ) as item_added_by -- from csuser
   	FROM csomline
   	JOIN cprx ON cprx.rx_id = csomline.rx_id
-    LEFT OUTER JOIN cprx_disp disp ON somline.rxdisp_id > 0 AND disp.rxdisp_id = csomline.rxdisp_id
+    LEFT OUTER JOIN cprx_disp disp ON csomline.rxdisp_id > 0 AND disp.rxdisp_id = csomline.rxdisp_id
     WHERE line_state_cn < 50 -- Unshipped only to cut down volume. Will qty and days be set before this?
-    GROUP BY order_id, (CASE WHEN gcn_seqno > 0 THEN gcn_seqno ELSE script_no END) --This is because of Orders like 8660 where we had 4 duplicate Citalopram 40mg.  Two that were from Refills, One Denied Surescript Request, and One new Surescript.  We are only going to send one GCN so don't list it multiple times
+    GROUP BY csomline.order_id, (CASE WHEN gcn_seqno > 0 THEN gcn_seqno ELSE script_no END) --This is because of Orders like 8660 where we had 4 duplicate Citalopram 40mg.  Two that were from Refills, One Denied Surescript Request, and One new Surescript.  We are only going to send one GCN so don't list it multiple times
   ");
 
   $keys = array_keys($order_items[0][0]);
