@@ -1,12 +1,14 @@
 <?php
 
 require_once 'imports/import_v2_drugs.php';
+require_once 'imports/import_v2_stock.php';
 require_once 'imports/import_cp_patients.php';
 require_once 'imports/import_cp_rxs_single.php';
 require_once 'imports/import_cp_orders.php';
 require_once 'imports/import_cp_order_items.php';
 
 require_once 'updates/update_drugs.php';
+require_once 'updates/update_stock.php';
 require_once 'updates/update_patients.php';
 require_once 'updates/update_rxs_single.php';
 require_once 'updates/update_orders.php';
@@ -18,6 +20,9 @@ timer("", $time);
 
 import_v2_drugs();
 echo timer("import_v2_drugs", $time);
+
+import_v2_stock();
+echo timer("import_v2_stock", $time);
 
 import_cp_patients();
 echo timer("import_cp_patients", $time);
@@ -32,6 +37,9 @@ echo timer("import_cp_orders", $time);
 
 update_drugs();
 echo timer("update_drugs", $time);
+
+update_stock();
+echo timer("import_v2_stock", $time);
 
 update_patients();
 echo timer("update_patients", $time);

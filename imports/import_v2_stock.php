@@ -1,67 +1,81 @@
 <?php
 
-require_once 'db-drivers/cp_mssql.php';
+require_once 'dbs/mysql_wc.php';
 require_once 'helpers/helper_imports.php';
 
-function import_v2_stock() {
+function import_v2_drugs() {
 
-  $mssql = new Cp_Mssql();
-  $mysql = new Webform_Mysql();
+  $mysql = new Mysql_Wc();
 
-  $rxs = $mssql->run("
+  $context = stream_context_create([
+      "http" => [
+          "header" => "Authorization: Basic ".base64_encode(V2_USER.':'.V2_PWD)
+      ]
+  ]);
 
-    DECLARE @today as DATETIME
-    SET @today = GETDATE()
+  $last = strtotime('-3 months');
+  $next = strtotime('+3 months');
+  $last = ["year" => date('Y', $last), "month" => date('m', $last)];
+  $next = ["year" => date('Y', $next), "month" => date('m', $next)];
+  $curr = ["year" => date('Y'), "month" => date('m')];
 
-    SELECT
-      script_no as rx_number,
-      pat_id as guardian_id,
-      ISNULL(generic_name, drug_name) as drug_name_generic,
-      drug_name_raw,
-      cprx.gcn_seqno as gcn,
+  $last = "?start_key=['8889875187','month','$last[year]','$last[month]']&end_key=['8889875187','month','$curr[year]','$curr[month]',{}]&group_level=5";
+  $next = "?start_key=['8889875187','month','$curr[year]','$curr[month]']&end_key=['8889875187','month','$next[year]','$next[month]',{}]&group_level=5";
+  $inventory = file_get_contents(V2_IP.'/transaction/_design/inventory.qty-by-generic/_view/inventory.qty-by-generic'.$next, false, $context);
+  $entered  = file_get_contents(V2_IP.'/transaction/_design/entered.qty-by-generic/_view/entered.qty-by-generic'.$last, false, $context);
+  $verified = file_get_contents(V2_IP.'/transaction/_design/verified.qty-by-generic/_view/verified.qty-by-generic'.$last, false, $context);
+  $refused = file_get_contents(V2_IP.'/transaction/_design/refused.qty-by-generic/_view/refused.qty-by-generic'.$last, false, $context);
+  $expired = file_get_contents(V2_IP.'/transaction/_design/expired.qty-by-generic/_view/expired.qty-by-generic'.$last, false, $context);
+  $disposed = file_get_contents(V2_IP.'/transaction/_design/disposed.qty-by-generic/_view/disposed.qty-by-generic'.$last, false, $context);
+  $dispensed = file_get_contents(V2_IP.'/transaction/_design/dispensed.qty-by-generic/_view/dispensed.qty-by-generic'.$last, false, $context);
 
-      CASE WHEN script_status_cn = 0 AND expire_date > @today THEN refills_left ELSE 0 END as refills_left,
-      refills_orig + 1 as refills_original,
-      written_qty as qty_written,
-      sig_text_english as sig_raw,
-
-      rx_autofill,
-      autofill_date as refill_date_manual,
-      dispense_date + disp_days_supply as refill_date_default,
-
-      script_status_cn as rx_status,
-      ISNULL(IVRCmt, 'Entered') as rx_stage,
-      csct_code.name as rx_source,
-      last_transfer_type_io as transfer,
-
-      provider_npi,
-      provider_fname as provider_first_name,
-      provider_lname as provider_last_name,
-      provider_phone,
-
-      orig_disp_date as dispense_date_first,
-      dispense_date as dispense_date_last,
-      chg_date as rx_change_date,
-      expire_date
-
-  	FROM cprx
-    LEFT JOIN cpmd_spi on cpmd_spi.state = 'GA' AND cprx.md_id = cpmd_spi.md_id
-  	LEFT JOIN (
-  		SELECT STUFF(MIN(gni+fdrndc.ln), 1, 1, '') as generic_name, fdrndc.gcn_seqno -- STUFF is a hack to get first occurance since MSSQL doesn't have that ability
-  		FROM fdrndc
-  		GROUP BY fdrndc.gcn_seqno
-  	) as generic_name ON generic_name.gcn_seqno = cprx.gcn_seqno
-    WHERE status_cn <> 3 AND (status_cn <> 2 OR last_transfer_type_io = 'O') -- NULL/0 is active, 1 is not yet dispensed?, 2 is transferred out/inactive, 3 is voided
-
-  ");
-
-  $keys = array_keys($rxs[0][0]);
-  $vals = escape_vals($rxs[0]);
+  $dbs = [
+    'inventory' => json_decode($inventory, true)['rows'],
+    'entered' => json_decode($entered, true)['rows'],
+    'verified' => json_decode($verified, true)['rows'],
+    'refused' => json_decode($refused, true)['rows'],
+    'expired' => json_decode($expired, true)['rows'],
+    'disposed' => json_decode($disposed, true)['rows'],
+    'dispensed' => json_decode($dispensed, true)['rows']
+  ]
 
   //Replace Staging Table with New Data
-  $mysql->run('TRUNCATE TABLE gp_rxs_single_cp');
+  $mysql->run('TRUNCATE TABLE gp_stock_v2');
 
-  $mysql->run("
-    INSERT INTO gp_rxs_single_cp (".implode(',', $keys).") VALUES ".implode(',', $vals)
-  );
+
+  foreach($dbs as $key => $rows) {
+
+    $vals = [];
+
+    foreach($rows as $row) {
+
+      list($acct, $type, $year, $month, $drug_generic) = $row['key'];
+
+      $val = [
+        'drug_generic'  => "'$drug_generic'",
+        'month'         => date_format(date_create_from_format('m/y', "$month/$year"), "'Y-m-d'"),
+        $key.'_sum'     => "'$row[value][sum]'",
+        $key.'_count'   => "'$row[value][count]'",
+        $key.'_min'     => "'$row[value][min]'",
+        $key.'_max'     => "'$row[value][max]'",
+        $key.'_sumsqr'  => "'$row[value][sumsqr]'"
+      ];
+
+      $vals[] = '('.implode(', ', $val).')';
+    }
+
+    //Rather than separate tables put into one table using ON DUPLICATE KEY UPDATE
+    $mysql->run("
+      INSERT INTO
+        gp_drugs_v2 (".implode(', ', array_keys($val)).")
+      VALUES
+        ".implode(', ', $vals)."
+      ON DUPLICATE KEY UPDATE
+        $key.'_sum'     = $key.'_sum',
+        $key.'_count'   = $key.'_count',
+        $key.'_min'     = $key.'_min',
+        $key.'_max'     = $key.'_max',
+        $key.'_sumsqr'  = $key.'_sumsqr'
+    ");
+  }
 }

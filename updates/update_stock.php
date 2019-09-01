@@ -3,15 +3,15 @@ require_once 'changes/changes_to_stock.php';
 
 function update_stock() {
 
-  //$changes = changes_to_stock();
+  $changes = changes_to_stock("gp_stock_v2");
 
-  //$message = "CRON: update_stock ".print_r($changes, true);
+  $message = "CRON: update_stock ".print_r($changes, true);
 
   echo $message;
 
   mail('adam@sirum.org', "CRON: update_stock", $message);
 
-  if ( ! count($changes['upserts']+$changes['removals'])) return;
+  if ( ! count($changes['deleted']+$changes['created']+$changes['updated'])) return;
 
   //TODO Calculate Qty Per Day from Sig and save in database
 

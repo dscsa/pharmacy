@@ -1,78 +1,68 @@
 <?php
 
 require_once 'dbs/mysql_wc.php';
+require_once 'helpers/helper_changes.php';
 
-function changes_to_rxs_single() {
+function changes_to_stock($new) {
   $mysql = new Mysql_Wc();
 
-  $upserts = $mysql->run("
-    SELECT staging.*
-    FROM
-      gp_rxs_cp as staging
-    LEFT JOIN gp_rxs as rxs ON
-      rxs.guardian_id <=> staging.guardian_id AND
-      rxs.gcn_seqno <=> staging.gcn_seqno AND
-      rxs.refills_total <=> staging.refills_total AND
-      rxs.rx_autofill <=> staging.rx_autofill AND
-      rxs.autofill_date <=> staging.autofill_date
-    WHERE
-      rxs.guardian_id IS NULL
-  ");
+  $old   = "gp_stock";
+  $id    = "drug_generic";
+  $where = "
+    NOT old.month <=> new.month OR
+    NOT old.inventory_sum <=> new.inventory_sum OR
+    NOT old.inventory_count <=> new.inventory_count OR
+    NOT old.inventory_min <=> new.inventory_min OR
+    NOT old.inventory_max <=> new.inventory_max OR
+    NOT old.inventory_sumsqr <=> new.inventory_sumsqr OR
+    NOT old.verified_sum <=> new.verified_sum OR
+    NOT old.verified_count <=> new.verified_count OR
+    NOT old.verified_min <=> new.verified_min OR
+    NOT old.verified_max <=> new.verified_max OR
+    NOT old.verified_sumsqr <=> new.verified_sumsqr OR
+    NOT old.refused_sum <=> new.refused_sum OR
+    NOT old.refused_count <=> new.refused_count OR
+    NOT old.refused_min <=> new.refused_min OR
+    NOT old.refused_max <=> new.refused_max OR
+    NOT old.refused_sumsqr <=> new.refused_sumsqr OR
+    NOT old.expired_sum <=> new.expired_sum OR
+    NOT old.expired_count <=> new.expired_count OR
+    NOT old.expired_min <=> new.expired_min OR
+    NOT old.expired_max <=> new.expired_max OR
+    NOT old.expired_sumsqr <=> new.expired_sumsqr OR
+    NOT old.disposed_sum <=> new.disposed_sum OR
+    NOT old.disposed_count <=> new.disposed_count OR
+    NOT old.disposed_min <=> new.disposed_min OR
+    NOT old.disposed_max <=> new.disposed_max OR
+    NOT old.disposed_sumsqr <=> new.disposed_sumsqr OR
+    NOT old.dispensed_sum <=> new.dispensed_sum OR
+    NOT old.dispensed_count <=> new.dispensed_count OR
+    NOT old.dispensed_min <=> new.dispensed_min OR
+    NOT old.dispensed_max <=> new.dispensed_max OR
+    NOT old.dispensed_sumsqr <=> new.dispensed_sumsqr
+  ";
 
-  $removals = $mysql->run("
-    SELECT rxs.*
-    FROM
-      gp_rxs_cp as staging
-    RIGHT JOIN gp_rxs as rxs ON
-      rxs.guardian_id <=> staging.guardian_id AND
-      rxs.gcn_seqno <=> staging.gcn_seqno AND
-      rxs.refills_total <=> staging.refills_total AND
-      rxs.rx_autofill <=> staging.rx_autofill AND
-      rxs.autofill_date <=> staging.autofill_date
-    WHERE
-      staging.guardian_id IS NULL
-  ");
+  //Get Deleted - A lot of Turnover with a 3 month window so let's keep historic
+  //$deleted = $mysql->run(get_deleted_sql($new, $old, $id));
 
-  $mysql->run("
-    INSERT INTO gp_rxs (guardian_id, refills_total, gcn_seqno, drug_name, cprx_drug_name, rx_autofill, autofill_date, last_rxdisp_id, expire_date, oldest_script_high_refills, oldest_script_with_refills, oldest_active_script, newest_script)
-    SELECT staging.guardian_id, staging.refills_total, staging.gcn_seqno, staging.drug_name, staging.cprx_drug_name, staging.rx_autofill, staging.autofill_date, staging.last_rxdisp_id, staging.expire_date, staging.oldest_script_high_refills, staging.oldest_script_with_refills, staging.oldest_active_script, staging.newest_script
-    FROM gp_rxs_cp as staging
-    LEFT JOIN gp_rxs as rxs ON
-      rxs.guardian_id <=> staging.guardian_id AND
-      rxs.gcn_seqno <=> staging.gcn_seqno AND
-      rxs.refills_total <=> staging.refills_total AND
-      rxs.rx_autofill <=> staging.rx_autofill AND
-      rxs.autofill_date <=> staging.autofill_date
-    WHERE
-      rxs.guardian_id IS NULL
-    ON DUPLICATE KEY UPDATE
-      guardian_id = staging.guardian_id,
-      refills_total = staging.refills_total,
-      gcn_seqno = staging.gcn_seqno,
-      drug_name = staging.drug_name,
-      cprx_drug_name = staging.cprx_drug_name,
-      rx_autofill = staging.rx_autofill,
-      autofill_date = staging.autofill_date,
-      last_rxdisp_id = staging.last_rxdisp_id,
-      expire_date = staging.expire_date,
-      oldest_script_high_refills = staging.oldest_script_high_refills,
-      oldest_script_with_refills = staging.oldest_script_with_refills,
-      oldest_active_script = staging.oldest_active_script,
-      newest_script = staging.newest_script
-  ");
+  //Get Inserted
+  $created = $mysql->run(get_created_sql($new, $old, $id));
 
-  $mysql->run("
-    DELETE rxs
-    FROM gp_rxs_cp as staging
-    RIGHT JOIN gp_rxs as rxs ON
-      rxs.guardian_id <=> staging.guardian_id AND
-      rxs.gcn_seqno <=> staging.gcn_seqno AND
-      rxs.refills_total <=> staging.refills_total AND
-      rxs.rx_autofill <=> staging.rx_autofill AND
-      rxs.autofill_date <=> staging.autofill_date
-    WHERE
-      staging.guardian_id IS NULL
-  ");
+  //Get Updated
+  $updated = $mysql->run(get_updated_sql($new, $old, $id, $where));
 
-  return ['upserts' => $upserts[0], 'removals' => $removals[0]];
+  //Save Deletes - A lot of Turnover with a 3 month window so let's keep historic
+  //$mysql->run(set_deleted_sql($new, $old, $id));
+
+  //Save Inserts
+  $mysql->run(set_created_sql($new, $old, $id));
+
+  //Save Updates
+  $mysql->run(set_updated_sql($new, $old, $id, $where));
+
+  return [
+    'deleted' => $deleted[0],
+    'created' => $created[0],
+    'updated' => $updated[0]
+  ];
 }
