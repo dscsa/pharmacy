@@ -6,7 +6,7 @@ require_once 'helpers/helper_changes.php';
 function changes_to_stock_by_month($new) {
   $mysql = new Mysql_Wc();
 
-  $old   = "gp_stock";
+  $old   = "gp_stock_by_month";
   $id    = "drug_generic";
   $where = "
     NOT old.month <=> new.month OR
