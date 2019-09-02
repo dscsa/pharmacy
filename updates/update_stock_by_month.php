@@ -1,5 +1,6 @@
 <?php
 require_once 'changes/changes_to_stock_by_month.php';
+require_once 'dbs/mysql_wc.php';
 
 function update_stock_by_month() {
 
@@ -12,6 +13,51 @@ function update_stock_by_month() {
   mail('adam@sirum.org', "CRON: changes_to_stock_by_month", $message);
 
   if ( ! count($changes['deleted']+$changes['created']+$changes['updated'])) return;
+
+  $mysql = new Mysql_Wc();
+
+  $mysql->run('TRUNCATE TABLE gp_rxs_grouped');
+
+  $mysql->run("
+    INSERT INTO gp_stock_live
+    SELECT
+      stock.drug_generic,
+      MAX(drug_brand) as drug_brand,
+      MAX(message_display) as message_display,
+      NULL as stock_level,
+      MAX(COALESCE(price30, price90/3)) as price_per_month,
+      MAX(drug_ordered) as drug_ordered,
+      MAX(qty_repack) as qty_repack,
+      MAX(inventory.inventory_sum) as qty_inventory,
+      SUM(stock.entered_sum) as qty_entered,
+      SUM(stock.dispensed_sum) as qty_dispensed,
+      MAX(inventory.inventory_sum) / (100*POWER(GREATEST(SUM(stock.dispensed_sum), MAX(qty_repack)), 1.1) / POWER(1+SUM(stock.entered_sum), .6)) as stock_threshold
+    FROM
+      gp_stock_by_month as stock
+    JOIN gp_drugs ON
+      gp_drugs.drug_generic = stock.drug_generic
+    JOIN gp_stock_by_month as inventory ON
+      stock.drug_generic = inventory.drug_generic AND
+      YEAR(inventory.month)  = YEAR(CURDATE() + INTERVAL 1 MONTH) AND
+      MONTH(inventory.month) = MONTH(CURDATE() + INTERVAL 1 MONTH)
+    WHERE
+      YEAR(stock.month)  >= YEAR(CURDATE() - INTERVAL 3 MONTH) AND
+      MONTH(stock.month) >= MONTH(CURDATE() - INTERVAL 3 MONTH)
+    GROUP BY
+      stock.drug_generic
+  ");
+
+  $mysql->run("
+    UPDATE gp_stock_live
+    SET stock_level = CASE
+      WHEN drug_ordered IS NULL THEN 'NOT OFFERED'
+      WHEN stock_threshold > 1.0 THEN 'HIGH SUPPLY'
+      WHEN stock_threshold > 0.7 THEN 'LOW SUPPLY'
+      WHEN price_per_month >= 20 AND qty_dispensed = 0 AND qty_inventory > 5*qty_repack THEN 'ONE-TIME'
+      WHEN qty_inventory > qty_repack THEN 'REFILLS ONLY'
+      ELSE 'OUT OF STOCK'
+    END
+  ");
 
   //TODO Calculate Qty Per Day from Sig and save in database
 

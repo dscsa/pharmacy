@@ -14,9 +14,9 @@ function changes_to_drugs($new) {
     NOT old.drug_ordered <=> new.drug_ordered OR
     NOT old.price30 <=> new.price30 OR
     NOT old.price90 <=> new.price90 OR
-    NOT old.repack_qty <=> new.repack_qty OR
-    NOT old.min_qty <=> new.min_qty OR
-    NOT old.min_days <=> new.min_days OR
+    NOT old.qty_repack <=> new.qty_repack OR
+    NOT old.qty_min <=> new.min_qty OR
+    NOT old.days_min <=> new.days_min OR
     NOT old.max_inventory <=> new.max_inventory OR
     NOT old.message_display <=> new.message_display OR
     NOT old.message_verified <=> new.message_verified OR
