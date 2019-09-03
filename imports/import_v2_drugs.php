@@ -24,19 +24,20 @@ function import_v2_drugs() {
 
     list($drug_generic, $drug_gsns, $drug_brand) = $row['key'];
     list($price_goodrx, $price_nadac, $price_retail) = $row['value'];
-    $o = isset($order['ordered'][$drug_generic]) ? $order['ordered'][$drug_generic] + $order['default'] : [];
+    $o = $order['ordered'][$drug_generic];
+    $d = $order['default'];
 
     $val = [
       'drug_generic'      => "'$drug_generic'",
       'drug_brand'        => clean_val($drug_brand),
       'drug_gsns'         => $drug_gsns ? "',$drug_gsns,'" : 'NULL',   //Enclose with ,, so we can do DRUG_GSNS LIKE '%,GSN,%' and still match first and list in list
       'drug_ordered'      => $o ? 1 : 'NULL',
-      'price30'           => clean_val($o['price30']),
-      'price90'           => clean_val($o['price90']),
-      'qty_repack'        => clean_val($o['repackQty']),
-      'qty_min'           => clean_val($o['minQty']),
-      'days_min'          => clean_val($o['minDays']),
-      'max_inventory'     => clean_val($o['maxInventory']),
+      'price30'           => clean_val($o['price30']) ?: clean_val($d['price30']),
+      'price90'           => clean_val($o['price90']) ?: clean_val($d['price90']),
+      'qty_repack'        => clean_val($o['repackQty']) ?: clean_val($d['repackQty']),
+      'qty_min'           => clean_val($o['minQty']) ?: clean_val($d['minQty']),
+      'days_min'          => clean_val($o['minDays']) ?: clean_val($d['minDays']),
+      'max_inventory'     => clean_val($o['maxInventory']) ?: clean_val($d['maxInventory']),
       'message_display'   => clean_val($o['displayMessage']),
       'message_verified'  => clean_val($o['verifiedMessage']),
       'message_destroyed' => clean_val($o['destroyedMessage']),
