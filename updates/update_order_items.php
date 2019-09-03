@@ -26,7 +26,8 @@ function update_order_items() {
   $mysql = new Mysql_Wc();
 
   function join_all_tables($order_item, $mysql) {
-    return $mysql->run("
+
+    $sql = "
       SELECT *
       FROM
         gp_order_items
@@ -38,7 +39,9 @@ function update_order_items() {
         gp_rxs_grouped.patient_id_cp = gp_patients.patient_id_cp
       WHERE
         rx_number = $order_item[rx_number]
-    ")[0][0];
+    ";
+
+    return $mysql->run($sql)[0];
   }
 
   //If just added to CP Order we need to
