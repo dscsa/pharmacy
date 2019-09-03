@@ -51,28 +51,87 @@ function update_rxs_single() {
       sig_qty_per_day,
 
       MAX(rx_gsn) as max_gsn,
-      SUM(refills_original) as refills_total,
+      MAX(drug_gsns) as drug_gsns,
+      SUM(refills_left) as refills_left,
       MIN(rx_autofill) as rx_autofill,
 
       MIN(refill_date_first) as refill_date_first,
       MAX(refill_date_last) as refill_date_last,
-      COALESCE(MIN(refill_date_manual), MIN(refill_date_default)) as refill_date_next,
-      MIN(refill_date_manual) as refill_date_manual,
-      MIN(refill_date_default) as refill_date_default,
+      CASE
+        WHEN MIN(rx_autofill) > 0 THEN COALESCE(MAX(refill_date_manual), MAX(refill_date_default))
+        ELSE NULL
+      END as refill_date_next,
+      MAX(refill_date_manual) as refill_date_manual,
+      MAX(refill_date_default) as refill_date_default,
+      NULL as refill_date_target,
+      NULL as refill_target_days,
+      NULL as refill_target_count,
 
-      MIN(CASE WHEN qty_left >= 45 AND days_until_expired >= 45 THEN rx_number ELSE NULL END) as oldest_rx_high_refills,
-      MIN(CASE WHEN qty_left >= 0 THEN rx_number ELSE NULL END) as oldest_script_with_refills,
-      MIN(CASE WHEN rx_status = 0 AND days_until_expired >= 0 THEN rx_number ELSE NULL END) as oldest_active_script,
-  	  MAX(rx_number) as newest_script,
+      CONCAT(',', GROUP_CONCAT(rx_number), ',') as rx_numbers,
 
       MAX(rx_date_changed) as rx_date_changed,
       MAX(rx_date_expired) as rx_date_expired
   	FROM gp_rxs_single
-  	  LEFT JOIN gp_drugs ON drug_gsns LIKE CONCAT('%,', rx_gsn, ',%')
+  	LEFT JOIN gp_drugs ON
+      drug_gsns LIKE CONCAT('%,', rx_gsn, ',%')
   	GROUP BY
       patient_id_cp,
       COALESCE(drug_generic, drug_name_raw),
       sig_qty_per_day
+  ");
+
+  //DRUG SYNCING.
+  // 1) FOR EACH REFILL DATE FOR A PATIENT, FIND OUT HOW MANY DRUGS WILL BE ON IT AND PRIORTIZE BY THAT, BREAKING TIES WITH LONGER DATE
+  // 2) COMPARE EACH OF THESE "TARGET DATES" WITH OUR NEXT FILL DATE.  IT MUST BE 30<=Target<=90 or 100<=Target<=120 TO BE AN ELIGIBLE MATCH.
+  //    NOTE: ANYTHING THAT 80<TARGET<100 doesn't need to be synced since that's the default
+  // 3) UPDATE OUR GROUPED TABLE WITH REFILL_DATE_TARGET, REFILL_TARGET_DATE, & REFILL_TARGET_COUNT with any matches
+  $mysql->run("
+    UPDATE gp_rxs_grouped
+    LEFT JOIN (
+      SELECT
+        gp_rxs_grouped.patient_id_cp,
+        gp_rxs_grouped.refill_date_next,
+        SUBSTRING_INDEX(GROUP_CONCAT(sync_dates.refill_date_next), ',', 1) as refill_date_target,     -- Hacky way to get FIRST()
+        SUBSTRING_INDEX(GROUP_CONCAT(sync_dates.refill_target_count), ',', 1) as refill_target_count, -- Hacky way to get FIRST()
+        (SELECT
+          COUNT(*)
+          FROM gp_rxs_grouped as sub
+          WHERE
+            gp_rxs_grouped.patient_id_cp    = sub.patient_id_cp AND
+            gp_rxs_grouped.refill_date_next = sub.refill_date_next
+        ) as from_count
+      FROM (
+        SELECT
+          patient_id_cp,
+          refill_date_next,
+          COUNT(*) as refill_target_count
+        FROM
+          gp_rxs_grouped
+        GROUP BY
+          patient_id_cp,
+          refill_date_next
+        ORDER BY
+          patient_id_cp,
+          COUNT(*) DESC,
+          refill_date_next DESC
+      ) sync_dates
+      JOIN gp_rxs_grouped ON
+        gp_rxs_grouped.patient_id_cp = sync_dates.patient_id_cp AND
+        DATEDIFF(sync_dates.refill_date_next, gp_rxs_grouped.refill_date_next)  >= 30 AND
+        DATEDIFF(sync_dates.refill_date_next, gp_rxs_grouped.refill_date_next)  <= 120 AND
+        (DATEDIFF(sync_dates.refill_date_next, gp_rxs_grouped.refill_date_next) <= 80 OR DATEDIFF(sync_dates.refill_date_next, gp_rxs_grouped.refill_date_next) >= 100)
+      GROUP BY
+        gp_rxs_grouped.patient_id_cp,
+        gp_rxs_grouped.refill_date_next
+    ) sync_dates ON
+      gp_rxs_grouped.patient_id_cp    = sync_dates.patient_id_cp AND
+      gp_rxs_grouped.refill_date_next = sync_dates.refill_date_next AND
+      sync_dates.refill_target_count   >= sync_dates.from_count
+
+    SET
+      gp_rxs_grouped.refill_date_target  = sync_dates.refill_date_target,
+      gp_rxs_grouped.refill_target_count = sync_dates.refill_target_count,
+      gp_rxs_grouped.refill_target_days  = DATEDIFF(sync_dates.refill_date_target, sync_dates.refill_date_next)
   ");
 
   //TODO Calculate Qty Per Day from Sig and save in database
