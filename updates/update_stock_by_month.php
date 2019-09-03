@@ -10,7 +10,7 @@ function update_stock_by_month() {
   $count_created = count($changes['created']);
   $count_updated = count($changes['updated']);
 
-  $message = "update_order_items $count_deleted deleted, $count_created created, $count_updated updated. ";
+  $message = "update_stock_by_month $count_deleted deleted, $count_created created, $count_updated updated. ";
 
   echo $message;
 
@@ -20,7 +20,7 @@ function update_stock_by_month() {
 
   $mysql = new Mysql_Wc();
 
-  $mysql->run('TRUNCATE TABLE gp_rxs_grouped');
+  $mysql->run('TRUNCATE TABLE gp_stock_live');
 
   $mysql->run("
     INSERT INTO gp_stock_live

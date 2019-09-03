@@ -10,7 +10,7 @@ function update_patients() {
   $count_created = count($changes['created']);
   $count_updated = count($changes['updated']);
 
-  $message = "update_order_items $count_deleted deleted, $count_created created, $count_updated updated. ";
+  $message = "update_patients $count_deleted deleted, $count_created created, $count_updated updated. ";
 
   echo $message;
 
