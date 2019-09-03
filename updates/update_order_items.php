@@ -22,6 +22,22 @@ function update_order_items() {
 
   if ( ! $count_deleted AND ! $count_created AND ! $count_updated) return;
 
+  function join_all_tables($order_item) {
+    return $mysql->run("
+      SELECT *
+      FROM
+        gp_order_items
+      JOIN gp_rxs_grouped ON
+        rx_numbers LIKE CONCAT('%,', rx_number, ',%')
+      JOIN gp_stock_live ON
+        gp_rxs_grouped.drug_generic = gp_stock_live.drug_generic
+      JOIN gp_patients ON
+        gp_rxs_grouped.patient_id_cp = gp_patients.patient_id_cp
+      WHERE
+        rx_number = $order_item[rx_number]
+    ")[0][0];
+  }
+
   //If just added to CP Order we need to
   //  - determine "days_dispensed_default" and "qty_dispensed_default"
   //  - pend in v2 and save applicable fields
@@ -85,22 +101,5 @@ function update_order_items() {
     export_wc_update_order($order_item);
 
     //TODO Update Salesforce Order Total & Order Count & Order Invoice using REST API or a MYSQL Zapier Integration
-  }
-
-
-  function join_all_tables($order_item) {
-    return $mysql->run("
-      SELECT *
-      FROM
-        gp_order_items
-      JOIN gp_rxs_grouped ON
-        rx_numbers LIKE CONCAT('%,', rx_number, ',%')
-      JOIN gp_stock_live ON
-        gp_rxs_grouped.drug_generic = gp_stock_live.drug_generic
-      JOIN gp_patients ON
-        gp_rxs_grouped.patient_id_cp = gp_patients.patient_id_cp
-      WHERE
-        rx_number = $order_item[rx_number]
-    ")[0][0];
   }
 }
