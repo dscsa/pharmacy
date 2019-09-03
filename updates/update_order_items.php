@@ -1,10 +1,10 @@
 <?php
 
 require_once 'changes/changes_to_order_items.php';
-require_once 'changes/export_cp_order_items.php';
-require_once 'changes/export_v2_order_items.php';
-require_once 'changes/changes_gd_orders.php';
-require_once 'changes/changes_wc_orders.php';
+require_once 'exports/export_cp_order_items.php';
+require_once 'exports/export_v2_order_items.php';
+require_once 'exports/changes_gd_orders.php';
+require_once 'exports/changes_wc_orders.php';
 
 function update_order_items() {
 
