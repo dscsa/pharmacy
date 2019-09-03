@@ -24,23 +24,23 @@ function import_v2_drugs() {
 
     list($drug_generic, $drug_gsns, $drug_brand) = $row['key'];
     list($price_goodrx, $price_nadac, $price_retail) = $row['value'];
-    $o = $order['ordered'][$drug_generic];
+    $o = $order['ordered'];
     $d = $order['default'];
 
     $val = [
       'drug_generic'      => "'$drug_generic'",
       'drug_brand'        => clean_val($drug_brand),
       'drug_gsns'         => $drug_gsns ? "',$drug_gsns,'" : 'NULL',   //Enclose with ,, so we can do DRUG_GSNS LIKE '%,GSN,%' and still match first and list in list
-      'drug_ordered'      => $o ? 1 : 'NULL',
-      'price30'           => clean_val($o['price30']) ?: clean_val($d['price30']),
-      'price90'           => clean_val($o['price90']) ?: clean_val($d['price90']),
-      'qty_repack'        => clean_val($o['repackQty']) ?: clean_val($d['repackQty']),
-      'qty_min'           => clean_val($o['minQty']) ?: clean_val($d['minQty']),
-      'days_min'          => clean_val($o['minDays']) ?: clean_val($d['minDays']),
-      'max_inventory'     => clean_val($o['maxInventory']) ?: clean_val($d['maxInventory']),
-      'message_display'   => clean_val($o['displayMessage']),
-      'message_verified'  => clean_val($o['verifiedMessage']),
-      'message_destroyed' => clean_val($o['destroyedMessage']),
+      'drug_ordered'      => isset($o[$drug_generic]) ? 1 : 'NULL',
+      'price30'           => clean_val($o[$drug_generic]['price30']) ?: clean_val($d['price30']),
+      'price90'           => clean_val($o[$drug_generic]['price90']) ?: clean_val($d['price90']),
+      'qty_repack'        => clean_val($o[$drug_generic]['repackQty']) ?: clean_val($d['repackQty']),
+      'qty_min'           => clean_val($o[$drug_generic]['minQty']) ?: clean_val($d['minQty']),
+      'days_min'          => clean_val($o[$drug_generic]['minDays']) ?: clean_val($d['minDays']),
+      'max_inventory'     => clean_val($o[$drug_generic]['maxInventory']) ?: clean_val($d['maxInventory']),
+      'message_display'   => clean_val($o[$drug_generic]['displayMessage']),
+      'message_verified'  => clean_val($o[$drug_generic]['verifiedMessage']),
+      'message_destroyed' => clean_val($o[$drug_generic]['destroyedMessage']),
       'price_goodrx'      => "'".($price_goodrx['sum']/$price_goodrx['count'])."'",
       'price_nadac'       => "'".($price_nadac['sum']/$price_nadac['count'])."'",
       'price_retail'      => "'".($price_retail['sum']/$price_retail['count'])."'",
