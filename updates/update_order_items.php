@@ -178,6 +178,8 @@ function update_order_items() {
   //  - think about what needs to be updated based on changes
   foreach($changes['updated'] as $updated) {
 
+    echo print_r($updated, true);
+
     $order_item = join_all_tables($updated, $mysql);
     //Probably finalized days/qty_dispensed_actual
     //Update invoice now or wait until shipped order?
