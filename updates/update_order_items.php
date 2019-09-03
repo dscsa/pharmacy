@@ -41,6 +41,10 @@ function update_order_items() {
         rx_number = $order_item[rx_number]
     ";
 
+    echo "
+    $sql
+    ";
+
     return $mysql->run($sql)[0];
   }
 
