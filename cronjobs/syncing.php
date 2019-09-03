@@ -1,4 +1,7 @@
 <?php
+
+require_once 'helpers/helper_constants.php';
+
 require_once 'imports/import_v2_drugs.php';
 require_once 'imports/import_v2_stock_by_month.php';
 require_once 'imports/import_cp_rxs_single.php';

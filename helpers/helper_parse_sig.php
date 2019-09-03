@@ -3,6 +3,21 @@
 
 function parse_sig($rx) {
 
+
+  //Inhalers might come with qty 18 (# of inhales/puffs rather than 1 so ignore these).  Not sure if these hardcoded assumptions are correct?  Cindy could need to dispense two inhalers per month?  Or one inhaler lasts more than a month?
+  //Could be written in milliliters since prescriber cannot prescribe over 12 months of inhalers at a time
+  //Convert to Unit of Use by just assuming each inhaler is 30 days
+  if (str_pos($rx['drug_name_raw'], ' INH') !== false) {
+    return [
+      'sig_qty_per_day'           => 1/30,
+      'sig_clean'                 => "'AK assuming 1 inhaler per month'",
+      'sig_qty_per_time'          => "'N/A'",
+      'sig_frequency'             => "''N/A'",
+      'sig_frequency_numerator'   => "'N/A'",
+      'sig_frequency_denominator' => "'N/A'"
+    ];
+  }
+
   //TODO capture BOTH parts of "then" but for now just use second half
   //"1 capsule by mouth at bedtime for 1 week then 2 capsules at bedtime" --split
   //"Take 2 tablets in the morning and 1 at noon and 1 at supper" --split

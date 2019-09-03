@@ -71,6 +71,27 @@ function update_rxs_single() {
       NULL as refill_target_days,
       NULL as refill_target_count,
 
+      COALSECE(
+        MIN(CASE WHEN qty_left >= 45 AND days_left >= 45 THEN rx_number ELSE NULL END),
+        MIN(CASE WHEN qty_left >= 0 THEN rx_number ELSE NULL END),
+        MIN(CASE WHEN rx_status = 0 AND days_left >= 0 THEN rx_number ELSE NULL END),
+    	  MAX(rx_number)
+      ) as best_rx_number,
+
+      COALSECE(
+        SUBSTRING_INDEX(GROUP_CONCAT(CASE WHEN qty_left >= 45 AND days_left >= 45 THEN rx_number ELSE NULL END ORDER BY rx_number ASC), ',', 1),
+        SUBSTRING_INDEX(GROUP_CONCAT(CASE WHEN qty_left >= 0 THEN rx_number ELSE NULL END ORDER BY rx_number ASC), ',', 1),
+        SUBSTRING_INDEX(GROUP_CONCAT(CASE WHEN rx_status = 0 AND days_left >= 0 THEN rx_number ELSE NULL END ORDER BY rx_number ASC), ',', 1),
+    	  SUBSTRING_INDEX(GROUP_CONCAT(rx_number ORDER BY rx_number DESC), ',', 1)
+      ) as best_qty_left,
+
+      COALSECE(
+        SUBSTRING_INDEX(GROUP_CONCAT(CASE WHEN qty_left >= 45 AND days_left >= 45 THEN best_days_left ELSE NULL END ORDER BY rx_number ASC), ',', 1),
+        SUBSTRING_INDEX(GROUP_CONCAT(CASE WHEN qty_left >= 0 THEN best_days_left ELSE NULL END ORDER BY rx_number ASC), ',', 1),
+        SUBSTRING_INDEX(GROUP_CONCAT(CASE WHEN rx_status = 0 AND days_left >= 0 THEN best_days_left ELSE NULL END ORDER BY rx_number ASC), ',', 1),
+    	  SUBSTRING_INDEX(GROUP_CONCAT(best_days_left ORDER BY rx_number DESC), ',', 1)
+      ) as best_days_left,
+
       CONCAT(',', GROUP_CONCAT(rx_number), ',') as rx_numbers,
 
       MAX(rx_date_changed) as rx_date_changed,
@@ -166,9 +187,9 @@ function update_rxs_single() {
       MIN(refill_date_manual) as refill_date_manual,
       MIN(refill_date_default) as refill_date_default,
 
-      MIN(CASE WHEN qty_left >= 45 AND days_until_expired >= 45 THEN rx_number ELSE NULL END) as oldest_rx_high_refills,
+      MIN(CASE WHEN qty_left >= 45 AND days_left >= 45 THEN rx_number ELSE NULL END) as oldest_rx_high_refills,
 		  MIN(CASE WHEN qty_left >= 0 THEN rx_number ELSE NULL END) as oldest_script_with_refills,
-		  MIN(CASE WHEN rx_status = 0 AND days_until_expired >= 0 THEN rx_number ELSE NULL END) as oldest_active_script,
+		  MIN(CASE WHEN rx_status = 0 AND days_left >= 0 THEN rx_number ELSE NULL END) as oldest_active_script,
   		MAX(rx_number) as newest_script
   	FROM gp_rxs_single
   	GROUP BY
