@@ -10,13 +10,17 @@ function update_order_items() {
 
   $changes = changes_to_order_items('gp_order_items_cp');
 
-  $message = "CRON: update_order_items ".print_r($changes, true);
+  $count_deleted = count($changes['deleted']);
+  $count_created = count($changes['created']);
+  $count_updated = count($changes['updated']);
 
-  //echo $message;
+  $message = "update_order_items $count_deleted deleted, $count_created created, $count_updated updated. ";
 
-  mail('adam@sirum.org', "CRON: update_order_items ", $message);
+  echo $message;
 
-  if ( ! count($changes['deleted']+$changes['created']+$changes['updated'])) return;
+  mail('adam@sirum.org', "CRON: $message", $message.print_r($changes, true));
+
+  if ( ! $count_deleted AND ! $count_created AND ! $count_updated) return;
 
   //If just added to CP Order we need to
   //  - determine "days_dispensed_default" and "qty_dispensed_default"

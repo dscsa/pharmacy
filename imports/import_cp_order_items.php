@@ -19,7 +19,7 @@ function import_cp_order_items() {
       MAX(disp.rxdisp_id) as rx_dispensed_id, --Hacky, most recent line item might not line up with the rx number we are filling
       MAX(dispense_qty) as qty_dispensed_actual,
       MAX(disp_days_supply) as days_dispensed_actual,
-      MAX(csomline.add_date) as item_date_added,
+      CONVERT(varchar, MAX(csomline.add_date), 20) as item_date_added,
       MAX(CASE
         WHEN CsOmLine.add_user_id = 901  THEN 'HL7'
         WHEN CsOmLine.add_user_id = 902  THEN 'AUT'

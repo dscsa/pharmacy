@@ -6,13 +6,17 @@ function update_orders() {
 
   $changes = changes_to_orders("gp_orders_cp");
 
-  $message = "CRON: update_orders ".print_r($changes, true);
+  $count_deleted = count($changes['deleted']);
+  $count_created = count($changes['created']);
+  $count_updated = count($changes['updated']);
 
-  //echo $message;
+  $message = "update_order_items $count_deleted deleted, $count_created created, $count_updated updated. ";
 
-  mail('adam@sirum.org', "CRON: update_orders ", $message);
+  echo $message;
 
-  if ( ! count($changes['deleted']+$changes['created']+$changes['updated'])) return;
+  mail('adam@sirum.org', "CRON: $message", $message.print_r($changes, true));
+
+  if ( ! $count_deleted AND ! $count_created AND ! $count_updated) return;
 
   //TODO Differentiate between actual order that are to be sent out and
   // - Ones that were faxed/called in but not due yet
