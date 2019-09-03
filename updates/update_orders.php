@@ -8,7 +8,7 @@ function update_orders() {
 
   $message = "CRON: update_orders ".print_r($changes, true);
 
-  echo $message;
+  //echo $message;
 
   mail('adam@sirum.org', "CRON: update_orders ", $message);
 

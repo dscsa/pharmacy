@@ -87,7 +87,7 @@ function import_cp_patients() {
 
       if ($row['card_date_expired'] != 'NULL') {
         //echo 'result_map: '.print_r($row, true);
-        $row['card_date_expired'] = date_format(date_create_from_format("'m/y'", $row['card_date_expired']), "'Y-m-d'");
+        $row['card_date_expired'] = date_format(date_create_from_format("'m/y'", $row['card_date_expired']), "'Y-m-t'"); //t give last day of month.  d was givign current day
         //echo 'result_map: '.print_r($row, true);
       }
 

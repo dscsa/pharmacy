@@ -8,7 +8,7 @@ function update_stock_by_month() {
 
   $message = "CRON: changes_to_stock_by_month ".print_r($changes, true);
 
-  echo $message;
+  //echo $message;
 
   mail('adam@sirum.org', "CRON: changes_to_stock_by_month", $message);
 

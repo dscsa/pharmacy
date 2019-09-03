@@ -8,7 +8,7 @@ function update_patients() {
 
   $message = "CRON: update_patients ".print_r($changes, true);
 
-  echo $message;
+  //echo $message;
 
   mail('adam@sirum.org', "CRON: update_patients ", $message);
 

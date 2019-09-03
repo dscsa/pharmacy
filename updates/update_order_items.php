@@ -12,7 +12,7 @@ function update_order_items() {
 
   $message = "CRON: update_order_items ".print_r($changes, true);
 
-  echo $message;
+  //echo $message;
 
   mail('adam@sirum.org', "CRON: update_order_items ", $message);
 

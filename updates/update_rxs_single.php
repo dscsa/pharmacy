@@ -10,7 +10,7 @@ function update_rxs_single() {
 
   $message = "CRON: update_rxs_single ".print_r($changes, true);
 
-  echo $message;
+  //echo $message;
 
   mail('adam@sirum.org', "CRON: update_rxs_single ", $message);
 
