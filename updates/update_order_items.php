@@ -22,7 +22,9 @@ function update_order_items() {
 
   if ( ! $count_deleted AND ! $count_created AND ! $count_updated) return;
 
-  function join_all_tables($order_item) {
+  $mysql = new Mysql_Wc();
+
+  function join_all_tables($order_item, $mysql) {
     return $mysql->run("
       SELECT *
       FROM
@@ -46,7 +48,7 @@ function update_order_items() {
   //  - update wc order total
   foreach($changes['created'] as $created) {
 
-    $order_item = join_all_tables($created);
+    $order_item = join_all_tables($created, $mysql);
 
     $days = get_days_dispensed($order_item);
 
@@ -74,7 +76,7 @@ function update_order_items() {
   //  - update wc order total
   foreach($changes['deleted'] as $deleted) {
 
-    $order_item = join_all_tables($deleted);
+    $order_item = join_all_tables($deleted, $mysql);
 
     set_days_dispensed(0);
 
@@ -94,7 +96,7 @@ function update_order_items() {
   //  - think about what needs to be updated based on changes
   foreach($changes['updated'] as $updated) {
 
-    $order_item = join_all_tables($updated);
+    $order_item = join_all_tables($updated, $mysql);
     //Probably finalized days/qty_dispensed_actual
     //Update invoice now or wait until shipped order?
     export_gd_update_invoice($order_item);
