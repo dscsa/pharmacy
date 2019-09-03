@@ -1,7 +1,7 @@
 <?php
 
 // Convert empty string to null or CP's <Not Specified> to NULL
-function clean_val(&$val, &$default) {
+function clean_val(&$val, &$default = null) {
 
   if ( ! isset($val)) {
 
@@ -10,7 +10,7 @@ function clean_val(&$val, &$default) {
 
     $val = $default;
   }
-  
+
   $val = mysql_real_escape_string(trim($val));
   return ($val === '' OR $val === '<Not Specified>' OR $val === 'NULL') ? 'NULL' : "'$val'";
 }
