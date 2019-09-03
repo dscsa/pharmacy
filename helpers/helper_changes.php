@@ -110,7 +110,7 @@ function set_updated_sql($new, $old, $id, $where_changes) {
   return "
     UPDATE
       $old as old
-    LEFT JOIN $new as new ON
+    JOIN $new as new ON
       $join
     SET
       $set
