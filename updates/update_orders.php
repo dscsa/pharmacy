@@ -30,7 +30,7 @@ function update_orders() {
       JOIN gp_order_items ON
         gp_orders.invoice_number = gp_order_items.invoice_number
       JOIN gp_patients ON
-        gp_rxs_grouped.patient_id_cp = gp_patients.patient_id_cp
+        gp_patients.patient_id_cp = gp_orders.patient_id_cp
       WHERE
         gp_order_items.invoice_number = $order[invoice_number]
     ";
