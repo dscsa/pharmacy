@@ -8,14 +8,14 @@ function export_gd_update_invoice($order) {
   $opts = [
     'http' => [
       'method'  => 'POST',
-      'content' => 'key= '.GD_KEY.'&order='.json_encode( $order ),
+      'content' => json_encode( $order ),
       'header'  => "Content-Type: application/json\r\n" .
                    "Accept: application/json\r\n"
     ]
   ];
 
   $context = stream_context_create( $opts );
-  $result  = file_get_contents( GD_URL, false, $context );
+  $result  = file_get_contents( GD_URL.'?GD_KEY='.GD_KEY, false, $context );
   //$response = json_decode( $result );
 
   echo $result;
