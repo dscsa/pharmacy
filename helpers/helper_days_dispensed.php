@@ -65,7 +65,7 @@ function get_days_dispensed($item) {
 
   if ( ! $item['patient_autofill'] AND $manual) {
     echo "OVERRIDE PATIENT AUTOFILL OFF SINCE MANUALLY ADDED";
-    return [days($item), RX_MESSAGE['NOACTION_RX_OFF_AUTOFILL']];
+    return [days_default($item), RX_MESSAGE['NOACTION_RX_OFF_AUTOFILL']];
   }
 
   if ((strtotime($item['item_date_added']) - strtotime($item['refill_date_last'])) < 30*24*60*60 AND ! $manual) {
@@ -85,25 +85,25 @@ function get_days_dispensed($item) {
 
   if ( ! $item['refill_date_first'] AND $not_offered) {
     echo "REFILLS SHOULD NOT HAVE A NOT OFFERED STATUS";
-    return [days($item), RX_MESSAGE['NOACTION_LIVE_INVENTORY_ERROR']];
+    return [days_default($item), RX_MESSAGE['NOACTION_LIVE_INVENTORY_ERROR']];
   }
 
   if ( ! $item['rx_autofill']) { //InOrder is implied here
     echo "IF RX IS IN ORDER FILL IT EVEN IF RX_AUTOFILL IS OFF";
-    return [days($item), RX_MESSAGE['NOACTION_RX_OFF_AUTOFILL']];
+    return [days_default($item), RX_MESSAGE['NOACTION_RX_OFF_AUTOFILL']];
   }
 
   if ((strtotime($item['rx_date_expired']) - strtotime($item['refill_date_next'])) < 45*24*60*60) {
     echo "WARN USERS IF RX IS ABOUT TO EXPIRE";
-    return [day($item), RX_MESSAGE['ACTION_EXPIRING']];
+    return [days_default($item), RX_MESSAGE['ACTION_EXPIRING']];
   }
 
   if ($item['stock_level'] != STOCK_LEVEL['HIGH SUPPLY'] && $item['qty_inventory'] < 1000) { //Only do 45 day if its Low Stock AND less than 1000 Qty.  Cindy noticed we had 8000 Amlodipine but we were filling in 45 day supplies
     echo "WARN USERS IF DRUG IS LOW QTY";
-    return [day($item, 45), RX_MESSAGE['NOACTION_LOW_STOCK']];
+    return [days_default($item, 45), RX_MESSAGE['NOACTION_LOW_STOCK']];
   }
 
-  return [days($item), ['EN' => '', 'ES' => '']];
+  return [days_default($item), ['EN' => '', 'ES' => '']];
   //TODO DON'T NOACTION_PAST_DUE if ( ! drug.$InOrder && drug.$DaysToRefill < 0)
   //TODO NOACTION_LIVE_INVENTORY_ERROR if ( ! drug.$v2)
   //TODO ACTION_CHECK_BACK/NOACTION_WILL_TRANSFER_CHECK_BACK
@@ -167,7 +167,7 @@ function days_default($item, $days_std = 90) {
 
   $days_default = min($days, $days_of_stock);
 
-  mail('adam@sirum.org', "days()", "days:$days, days_of_stock:$days_of_stock, days_of_qty_left:$days_of_qty_left, days_std:$days_std, refill_date_target:$item[refill_date_target]. ".print_r($changes, true));
+  mail('adam@sirum.org', "days_default()", "days:$days, days_of_stock:$days_of_stock, days_of_qty_left:$days_of_qty_left, days_std:$days_std, refill_date_target:$item[refill_date_target]. ".print_r($changes, true));
 
   return $days_default;
 }

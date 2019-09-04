@@ -34,11 +34,11 @@ function parse_sig($rx) {
     $frequency_denominator = get_frequency_denominator($sig_clean);
 
     $parsed = [
-      'sig_clean'                 => "'$sig_clean'",
-      'sig_qty_per_time'          => "'$qty_per_time'",
-      'sig_frequency'             => "'$frequency'",
-      'sig_frequency_numerator'   => "'$frequency_numerator'",
-      'sig_frequency_denominator' => "'$frequency_denominator'"
+      'sig_clean'                 => clean_val($sig_clean),
+      'sig_qty_per_time'          => $qty_per_time,
+      'sig_frequency'             => $frequency,
+      'sig_frequency_numerator'   => $frequency_numerator,
+      'sig_frequency_denominator' => $frequency_denominator
     ];
 
     if ($qty_per_time AND $frequency AND $frequency_numerator AND $frequency_denominator) {
