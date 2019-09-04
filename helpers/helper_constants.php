@@ -1,6 +1,6 @@
 <?php
 
-define('STOCK_LEVEL', [
+const STOCK_LEVEL = [
   'HIGH SUPPLY'  => 'HIGH SUPPLY',
   'LOW SUPPLY'   => 'LOW SUPPLY',
   'ONE TIME'     => 'ONE TIME',
@@ -9,7 +9,7 @@ define('STOCK_LEVEL', [
   'NOT OFFERED'  => 'NOT OFFERED'
 ]);
 
-define('RX_MESSAGE', [
+const RX_MESSAGE = [
   'NOACTION_PAST_DUE' => [
     'EN' => 'is past due and may be Med Synced to this Order *',
     'ES' => ''
