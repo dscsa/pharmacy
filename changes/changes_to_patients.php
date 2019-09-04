@@ -31,7 +31,7 @@ function changes_to_patients($new) {
     NOT old.patient_city <=> new.patient_city OR
     NOT old.patient_state <=> new.patient_state OR
     NOT old.patient_zip <=> new.patient_zip OR
-    NOT old.total_fills <=> new.total_fills OR
+    NOT old.refills_used <=> new.refills_used OR
     NOT old.patient_status <=> new.patient_status OR
     NOT old.lang <=> new.lang OR
     NOT old.patient_date_added <=> new.patient_date_added

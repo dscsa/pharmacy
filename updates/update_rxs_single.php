@@ -56,7 +56,7 @@ function update_rxs_single() {
 
       MAX(rx_gsn) as max_gsn,
       MAX(drug_gsns) as drug_gsns,
-      SUM(refills_left) as refills_left,
+      SUM(refills_left) as refills_total,
       MIN(rx_autofill) as rx_autofill,
 
       MIN(refill_date_first) as refill_date_first,
@@ -78,20 +78,6 @@ function update_rxs_single() {
     	  MAX(rx_number)
       ) as best_rx_number,
 
-      COALSECE(
-        SUBSTRING_INDEX(GROUP_CONCAT(CASE WHEN qty_left >= 45 AND days_left >= 45 THEN rx_number ELSE NULL END ORDER BY rx_number ASC), ',', 1),
-        SUBSTRING_INDEX(GROUP_CONCAT(CASE WHEN qty_left >= 0 THEN rx_number ELSE NULL END ORDER BY rx_number ASC), ',', 1),
-        SUBSTRING_INDEX(GROUP_CONCAT(CASE WHEN rx_status = 0 AND days_left >= 0 THEN rx_number ELSE NULL END ORDER BY rx_number ASC), ',', 1),
-    	  SUBSTRING_INDEX(GROUP_CONCAT(rx_number ORDER BY rx_number DESC), ',', 1)
-      ) as best_qty_left,
-
-      COALSECE(
-        SUBSTRING_INDEX(GROUP_CONCAT(CASE WHEN qty_left >= 45 AND days_left >= 45 THEN best_days_left ELSE NULL END ORDER BY rx_number ASC), ',', 1),
-        SUBSTRING_INDEX(GROUP_CONCAT(CASE WHEN qty_left >= 0 THEN best_days_left ELSE NULL END ORDER BY rx_number ASC), ',', 1),
-        SUBSTRING_INDEX(GROUP_CONCAT(CASE WHEN rx_status = 0 AND days_left >= 0 THEN best_days_left ELSE NULL END ORDER BY rx_number ASC), ',', 1),
-    	  SUBSTRING_INDEX(GROUP_CONCAT(best_days_left ORDER BY rx_number DESC), ',', 1)
-      ) as best_days_left,
-
       CONCAT(',', GROUP_CONCAT(rx_number), ',') as rx_numbers,
 
       MAX(rx_date_changed) as rx_date_changed,
@@ -104,6 +90,22 @@ function update_rxs_single() {
       COALESCE(drug_generic, drug_name_raw),
       sig_qty_per_day
   ");
+
+  /*
+  COALSECE(
+    SUBSTRING_INDEX(GROUP_CONCAT(CASE WHEN qty_left >= 45 AND days_left >= 45 THEN days_left ELSE NULL END ORDER BY rx_number ASC), ',', 1),
+    SUBSTRING_INDEX(GROUP_CONCAT(CASE WHEN qty_left >= 0 THEN days_left ELSE NULL END ORDER BY rx_number ASC), ',', 1),
+    SUBSTRING_INDEX(GROUP_CONCAT(CASE WHEN rx_status = 0 AND days_left >= 0 THEN days_left ELSE NULL END ORDER BY rx_number ASC), ',', 1),
+    SUBSTRING_INDEX(GROUP_CONCAT(days_left ORDER BY rx_number DESC), ',', 1)
+  ) as best_days_left,
+
+  COALSECE(
+    SUBSTRING_INDEX(GROUP_CONCAT(CASE WHEN qty_left >= 45 AND days_left >= 45 THEN rx_number ELSE NULL END ORDER BY rx_number ASC), ',', 1),
+    SUBSTRING_INDEX(GROUP_CONCAT(CASE WHEN qty_left >= 0 THEN rx_number ELSE NULL END ORDER BY rx_number ASC), ',', 1),
+    SUBSTRING_INDEX(GROUP_CONCAT(CASE WHEN rx_status = 0 AND days_left >= 0 THEN rx_number ELSE NULL END ORDER BY rx_number ASC), ',', 1),
+    SUBSTRING_INDEX(GROUP_CONCAT(rx_number ORDER BY rx_number DESC), ',', 1)
+  ) as best_qty_left,
+  */
 
   //DRUG SYNCING.
   // 1) FOR EACH REFILL DATE FOR A PATIENT, FIND OUT HOW MANY DRUGS WILL BE ON IT AND PRIORTIZE BY THAT, BREAKING TIES WITH LONGER DATE

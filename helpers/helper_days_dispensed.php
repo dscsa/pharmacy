@@ -98,6 +98,11 @@ function get_days_dispensed($item) {
     return [day($item), RX_MESSAGE['ACTION_EXPIRING']];
   }
 
+  if ($item['stock_level'] != STOCK_LEVEL['HIGH SUPPLY'] && $item['qty_inventory'] < 1000) { //Only do 45 day if its Low Stock AND less than 1000 Qty.  Cindy noticed we had 8000 Amlodipine but we were filling in 45 day supplies
+    echo "WARN USERS IF DRUG IS LOW QTY";
+    return [day($item, 45), RX_MESSAGE['NOACTION_LOW_STOCK']];
+  }
+
   return [days($item), ['EN' => '', 'ES' => '']];
   //TODO DON'T NOACTION_PAST_DUE if ( ! drug.$InOrder && drug.$DaysToRefill < 0)
   //TODO NOACTION_LIVE_INVENTORY_ERROR if ( ! drug.$v2)
@@ -106,135 +111,63 @@ function get_days_dispensed($item) {
   //if (drug.$NoTransfer)
 }
 
-function set_days_dispensed($order_item) {
-  echo "set_days_dispensed ".print_r($order_item, true);
-}
+function set_days_dispensed($item, $days, $status, $mysql) {
 
-function days($item) {
+  if ( ! $item['days_dispensed_default']) {
 
-  $days_before_dispensed = Math.round($item.$RemainingQty/parsed.numDaily, 0)
-  $days_limited_totalqty = $item.$IsPended ? Infinity : Math.round($item.$TotalQty/parsed.numDaily, 0)
+    $sql = "
+      UPDATE
+        gp_order_items
+      SET
+        days_dispensed_default = $days,
+        qty_dispensed_default  = $days*$item[sig_qty_per_day],
+        refills_total_default  = $item[refills_total],
+        item_status            = ".array_search($status, RX_MESSAGE)."
+      WHERE
+        rx_number = $item[rx_number]
+    ";
 
-  var stdDays = ($item.$Stock && $item.$TotalQty < 1000) ? 45 : 90 //Only do 45 day if its Low Stock AND less than 1000 Qty.  Cindy noticed we had 8000 Amlodipine but we were filling in 45 day supplies
-
-  infoEmail('useEstimate', 'isLimited', days_limited_totalqty < Math.min(days_before_dispensed, stdDays), 'days_before_dispensed', days_before_dispensed, 'days_limited_totalqty', days_limited_totalqty, 'stdDays', stdDays, 'drug.$IsRefill', $item.$IsRefill, 'drug.$TotalQty', $item.$TotalQty, 'drug.$MonthlyPrice', $item.$MonthlyPrice, $item)
-
-  if (days_limited_totalqty < Math.min(days_before_dispensed, stdDays)) {
-
-    if ( ! $item.$NoTransfer) {
-      set0Days($item)
-      setDrugStatus($item, 'NOACTION_WILL_TRANSFER_CHECK_BACK')
-      debugEmail('Low Quantity Transfer', parsed, 'days_before_dispensed', days_before_dispensed, 'days_limited_totalqty', days_limited_totalqty, 'stdDays', stdDays, 'drug.$IsRefill', $item.$IsRefill, 'drug.$TotalQty', $item.$TotalQty, 'drug.$MonthlyPrice', $item.$MonthlyPrice, $item)
-      return
-    }
-
-    $item.$Days = days_limited_totalqty
-    $item.$Type = "Estimate Limited Qty"
-    setDrugStatus($item, 'NOACTION_LOW_STOCK')
-    debugEmail('Low Quantity Hold', parsed, 'days_before_dispensed', days_before_dispensed, 'days_limited_totalqty', days_limited_totalqty, 'stdDays', stdDays, 'drug.$IsRefill', $item.$IsRefill, 'drug.$TotalQty', $item.$TotalQty, 'drug.$MonthlyPrice', $item.$MonthlyPrice, $item)
+    $mysql->run($sql)
   }
-
-  else if (days_before_dispensed <= stdDays+30) {
-    $item.$Days = days_before_dispensed
-    $item.$Type = "Estimate Finish Rx"
-  }
-
   else {
-    $item.$Days = stdDays
-    $item.$Type = "Estimate Std Days"
+
+    $sql = "
+      UPDATE
+        gp_order_items
+      SET
+        -- days_dispensed_default = $days, -- Already set by CP table
+        -- qty_dispensed_default  = $days*$item[sig_qty_per_day], -- Already set by CP table
+        refills_total_actual = $item[refills_total]
+      WHERE
+        rx_number = $item[rx_number]
+    ";
+
+    $mysql->run($sql)
   }
 
-  $item.$Qty = +Math.min($item.$Days * parsed.numDaily, $item.$RemainingQty).toFixed(0) //Math.min added on 2019-01-02 because Order 9240 Promethizine had $Qty 42 > qty_before_dispensed Qty 40 because of rounding
-
-  //This part is pulled from the CP_FillRx and CP_RefillRx SPs
-  //See order #5307 - new script qty 90 w/ 1 refill dispensed as qty 45.  This basically switches the refills from 1 to 2, so after the 1st dispense there should still be one refill left
-  var denominator = $item.$FirstRefill ? $item.$DispenseQty : $item.$WrittenQty  //DispenseQty will be pulled from previous Rxs.  We want to see if it has been set specifically for this Rx.
-  setRefills($item, $item.$RefillsTotal - $item.$Qty/denominator)
-}
-
-function setRefills(drug, refills) {
-
-  if (refills < .1) {
-    refills = 0
-    if ( ! drug.$Status) setDrugStatus(drug, 'ACTION_LAST_REFILL')
-  }
-
-  drug.$Refills = +refills.toFixed(2)
+  echo "set_days_dispensed days:$days, $sql".print_r($item, true);
 }
 
 
-function sql($label, $where, $days, $qty) {
-  return "
-    UPDATE gp_order_items
-    JOIN gp_rxs_grouped ON
-      rx_numbers LIKE CONCAT('%,', rx_number, ',%')
-    JOIN gp_stock_live ON
-      gp_rxs_grouped.drug_generic = gp_stock_live.drug_generic
-    JOIN gp_patients ON
-      gp_rxs_grouped.patient_id_cp = gp_patients.patient_id_cp
-    SET
-      days_dispensed_default = $days,
-      qty_dispensed_default  = $qty,
-      item_status            = '$label'
-    WHERE
-      ($where) AND
-      (days_dispensed_default IS NULL OR qty_dispensed_default IS NULL)
-  ";
-}
+//Days is basically the MIN(target_date ?: std_day, qty_left as days, inventory_left as days).
+//NOTE: We adjust bump up the days by upto 30 in order to finish up an Rx (we don't want partial fills left)
+//NOTE: We base this on the best_rx_number and NOT on the rx currently in the order
+function days_default($item, $days_std = 90) {
 
-function old() {
+  //Convert qtys to days
+  $days_of_qty_left = round($item['qty_left']/$item['sig_qty_per_day']);
+  $days_of_stock    = round($item['qty_inventory']/$item['sig_qty_per_day']);
 
-  //DON'T FILL EXPIRED MEDICATIONS
-  //$mysql->run(sql('ACTION_EXPIRED', 'DATEDIFF(rx_date_expired, refill_date_next) < 0', 0, 0));
+  //Get to the target number of days
+  if ($item['refill_date_target']) {
+    $days_std = (strtotime($item['refill_date_target']) - strtotime($item['refill_date_target']))/60/60/24;
 
-  //DON'T FILL MEDICATIONS WITHOUT REFILLS
-  //$mysql->run(sql('ACTION_NO_REFILLS', 'refill_total < 0.1'), 0, 0);
+  //Fill up to 30 days more to finish up an Rx if almost finished
+  $days_default = ($days_of_qty_left < $days_std+30) ? $days_of_qty_left : $days_std;
 
-  //CAN'T FILL MEDICATIONS WITHOUT A GCN MATCH
-  //$mysql->run(sql('NOACTION_MISSING_GCN', 'drug_gsns IS NULL'), 0, 0);
+  $days_default = min($days, $days_of_stock);
 
-  //TRANSFER OUT NEW RXS IF NOT OFFERED
-  //$mysql->run(sql('NOACTION_WILL_TRANSFER', 'refill_date_first IS NULL AND stock_level = "NOT OFFERED"'), 0, 0);
+  mail('adam@sirum.org', "days()", "days:$days, days_of_stock:$days_of_stock, days_of_qty_left:$days_of_qty_left, days_std:$days_std, refill_date_target:$item[refill_date_target]. ".print_r($changes, true));
 
-  //CHECK BACK IF TRANSFER OUT IS NOT DESIRED
-  //$mysql->run(sql('CASE WHEN (price_per_month >= 20 OR pharmacy_phone = "8889875187") THEN "ACTION_CHECK_BACK" ELSE "NOACTION_WILL_TRANSFER_CHECK_BACK" END', '
-  //  refill_date_first IS NULL AND
-  //  stock_level IN ("OUT OF STOCK","REFILLS ONLY")
-  //'), 0, 0);
-
-  //CHECK BACK NOT ENOUGH QTY UNLESS ADDED MANUALLY
-  //TODO MAYBE WE SHOULD JUST MOVE THE REFILL_DATE_NEXT BACK BY A WEEK OR TWO
-  //$mysql->run(sql('ACTION_CHECK_BACK', '
-  //  refill_date_first IS NOT NULL AND
-  //  qty_inventory / sig_qty_per_day < 30 AND
-  //  item_added_by NOT IN ("MANUAL","WEBFORM")
-  //'), 0, 0);
-
-  //DON'T FILL IF PATIENT AUTOFILL IS OFF AND NOT MANUALLY ADDED
-  //$mysql->run(sql('ACTION_PAT_OFF_AUTOFILL', '
-  //  pat_autofill <> 1 AND
-  //  item_added_by NOT IN ("MANUAL","WEBFORM")
-  //'), 0, 0);
-
-  //DON'T REFILL IF FILLED WITHIN LAST 30 DAYS UNLESS ADDED MANUALLY
-  //$mysql->run(sql('NOACTION_RECENT_FILL', '
-  //  DATEDIFF(item_date_added, refill_date_last) < 30 AND
-  //  item_added_by NOT IN ("MANUAL","WEBFORM")
-  //'), 0, 0);
-
-  //DON'T REFILL IF NOT DUE IN OVER 15 DAYS UNLESS ADDED MANUALLY
-  //$mysql->run(sql('NOACTION_NOT_DUE', '
-  //  DATEDIFF(refill_date_next, item_date_added) > 15 AND
-  //  item_added_by NOT IN ("MANUAL","WEBFORM")
-  //'), 0, 0);
-
-  //SIG SEEMS TO HAVE EXCESSIVE QTY
-  //$mysql->run(sql('NOACTION_CHECK_SIG', '
-  //  refill_date_first IS NULL AND
-  //  qty_inventory < 2000 AND
-  //  sig_qty_per_day > 2.5*qty_repack AND
-  //  item_added_by NOT IN ("MANUAL","WEBFORM")
-  //'), 0, 0);
-
-
+  return $days_default;
 }

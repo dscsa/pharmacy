@@ -25,22 +25,22 @@ function update_order_items() {
 
   $mysql = new Mysql_Wc();
 
-  function join_all_tables($order_item, $mysql) {
+  function join_all_tables($item, $mysql) {
 
     $sql = "
       SELECT *
       FROM
         gp_order_items
-      JOIN gp_rxs_single ON
-        gp_order_items.rx_number = gp_rxs_single.rx_number
       JOIN gp_rxs_grouped ON
         rx_numbers LIKE CONCAT('%,', gp_order_items.rx_number, ',%')
+      JOIN gp_rxs_single ON
+        gp_rxs_grouped.best_rx_number = gp_rxs_single.rx_number
       JOIN gp_stock_live ON
         gp_rxs_grouped.drug_generic = gp_stock_live.drug_generic
       JOIN gp_patients ON
         gp_rxs_grouped.patient_id_cp = gp_patients.patient_id_cp
       WHERE
-        rx_number = $order_item[rx_number]
+        rx_number = $item[rx_number]
     ";
 
     echo "
@@ -132,22 +132,22 @@ function update_order_items() {
   //  - update wc order total
   foreach($changes['created'] as $created) {
 
-    $order_item = join_all_tables($created, $mysql);
+    $item = join_all_tables($created, $mysql);
 
-    $days = get_days_dispensed($order_item);
+    list($days, $status) = get_days_dispensed($item);
 
     if ( ! $days)
-      return export_cp_remove_item($order_item);
+      return export_cp_remove_item($item);
 
-    set_days_dispensed($days);
+    set_days_dispensed($item, $days, $status, $mysql);
 
-    export_v2_add_pended($order_item);
+    export_v2_add_pended($item);
 
-    export_cp_add_more_items($order_item); //this will cause another update and we will end back in this loop
+    export_cp_add_more_items($item); //this will cause another update and we will end back in this loop
 
-    export_gd_update_invoice($order_item);
+    export_gd_update_invoice($item);
 
-    export_wc_update_order($order_item);
+    export_wc_update_order($item);
 
     //TODO Update Salesforce Order Total & Order Count & Order Invoice using REST API or a MYSQL Zapier Integration
   }
@@ -160,17 +160,17 @@ function update_order_items() {
   //  - update wc order total
   foreach($changes['deleted'] as $deleted) {
 
-    $order_item = join_all_tables($deleted, $mysql);
+    $item = join_all_tables($deleted, $mysql);
 
-    set_days_dispensed(0);
+    set_days_dispensed($item, 0, $status, $mysql);
 
-    export_v2_remove_pended($order_item);
+    export_v2_remove_pended($item);
 
-    export_cp_remove_more_items($order_item); //this will cause another update and we will end back in this loop
+    export_cp_remove_more_items($item); //this will cause another update and we will end back in this loop
 
-    export_gd_update_invoice($order_item);
+    export_gd_update_invoice($item);
 
-    export_wc_update_order($order_item);
+    export_wc_update_order($item);
 
     //TODO Update Salesforce Order Total & Order Count & Order Invoice using REST API or a MYSQL Zapier Integration
   }
@@ -182,12 +182,12 @@ function update_order_items() {
 
     echo print_r($updated, true);
 
-    $order_item = join_all_tables($updated, $mysql);
+    $item = join_all_tables($updated, $mysql);
     //Probably finalized days/qty_dispensed_actual
     //Update invoice now or wait until shipped order?
-    export_gd_update_invoice($order_item);
+    export_gd_update_invoice($item);
 
-    export_wc_update_order($order_item);
+    export_wc_update_order($item);
 
     //TODO Update Salesforce Order Total & Order Count & Order Invoice using REST API or a MYSQL Zapier Integration
   }
