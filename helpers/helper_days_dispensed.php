@@ -119,10 +119,11 @@ function set_days_dispensed($item, $days, $status, $mysql) {
       UPDATE
         gp_order_items
       SET
-        days_dispensed_default = $days,
-        qty_dispensed_default  = $days*$item[sig_qty_per_day],
-        refills_total_default  = $item[refills_total],
-        item_status            = ".array_search($status, RX_MESSAGE)."
+        days_dispensed_default  = $days,
+        qty_dispensed_default   = $days*$item[sig_qty_per_day],
+        item_status             = '".array_search($status, RX_MESSAGE)."',
+        price_dispensed_default = $days*$item[price_per_month]/30,
+        refills_total_default   = $item[refills_total]
       WHERE
         rx_number = $item[rx_number]
     ";
@@ -135,9 +136,11 @@ function set_days_dispensed($item, $days, $status, $mysql) {
       UPDATE
         gp_order_items
       SET
-        -- days_dispensed_default = $days, -- Already set by CP table
-        -- qty_dispensed_default  = $days*$item[sig_qty_per_day], -- Already set by CP table
-        refills_total_actual = $item[refills_total]
+        -- days_dispensed_actual = $days, -- Already set by CP table
+        -- qty_dispensed_actual  = $days*$item[sig_qty_per_day], -- Already set by CP table
+        -- item_status           = '".array_search($status, RX_MESSAGE)."', -- Already set by query above
+        price_dispensed_actual   = $days*$item[price_per_month]/30,
+        refills_total_actual     = $item[refills_total]
       WHERE
         rx_number = $item[rx_number]
     ";
@@ -167,7 +170,11 @@ function days_default($item, $days_std = 90) {
 
   $days_default = min($days_default, $days_of_stock);
 
-  mail('adam@sirum.org', "days_default()", "days_default:$days_default, days_of_stock:$days_of_stock, days_of_qty_left:$days_of_qty_left, days_std:$days_std, refill_date_target:$item[refill_date_target]. ".print_r($item, true));
+  $message = "days_default:$days_default, days_of_stock:$days_of_stock, days_of_qty_left:$days_of_qty_left, days_std:$days_std, refill_date_target:$item[refill_date_target]. ".print_r($item, true);
+
+  echo $message;
+  
+  mail('adam@sirum.org', "days_default()", $message);
 
   return $days_default;
 }

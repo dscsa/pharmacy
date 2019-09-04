@@ -142,13 +142,13 @@ function update_order_items() {
 
     set_days_dispensed($item, $days, $status, $mysql);
 
-    export_v2_add_pended($item);
+    //export_v2_add_pended($item);
 
-    export_cp_add_more_items($item); //this will cause another update and we will end back in this loop
+    //export_cp_add_more_items($item); //this will cause another update and we will end back in this loop
 
-    export_gd_update_invoice($item);
+    //export_gd_update_invoice($item);
 
-    export_wc_update_order($item);
+    //export_wc_update_order($item);
 
     //TODO Update Salesforce Order Total & Order Count & Order Invoice using REST API or a MYSQL Zapier Integration
   }
@@ -165,13 +165,13 @@ function update_order_items() {
 
     set_days_dispensed($item, 0, $status, $mysql);
 
-    export_v2_remove_pended($item);
+    //export_v2_remove_pended($item);
 
-    export_cp_remove_more_items($item); //this will cause another update and we will end back in this loop
+    //export_cp_remove_more_items($item); //this will cause another update and we will end back in this loop
 
-    export_gd_update_invoice($item);
+    //export_gd_update_invoice($item);
 
-    export_wc_update_order($item);
+    //export_wc_update_order($item);
 
     //TODO Update Salesforce Order Total & Order Count & Order Invoice using REST API or a MYSQL Zapier Integration
   }
@@ -186,9 +186,9 @@ function update_order_items() {
     $item = join_all_tables($updated, $mysql);
     //Probably finalized days/qty_dispensed_actual
     //Update invoice now or wait until shipped order?
-    export_gd_update_invoice($item);
+    //export_gd_update_invoice($item);
 
-    export_wc_update_order($item);
+    //export_wc_update_order($item);
 
     //TODO Update Salesforce Order Total & Order Count & Order Invoice using REST API or a MYSQL Zapier Integration
   }
