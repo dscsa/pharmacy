@@ -127,7 +127,7 @@ function set_days_dispensed($item, $days, $status, $mysql) {
         rx_number = $item[rx_number]
     ";
 
-    $mysql->run($sql)
+    $mysql->run($sql);
   }
   else {
 
@@ -142,7 +142,7 @@ function set_days_dispensed($item, $days, $status, $mysql) {
         rx_number = $item[rx_number]
     ";
 
-    $mysql->run($sql)
+    $mysql->run($sql);
   }
 
   echo "set_days_dispensed days:$days, $sql".print_r($item, true);
