@@ -123,7 +123,7 @@ function changed_fields($updated) {
   $changes = [];
   foreach($updated as $old_key => $old_val) {
     if (strpos($key, 'old_') !== false) {
-      $new_key = substr($key, 4);
+      $new_key = substr($old_key, 4);
       $new_val = $updated[$new_key];
       if ($old_val != $new_val)
         $changes[] = "$new_key: $old_val >>> $new_val";
