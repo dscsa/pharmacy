@@ -49,9 +49,9 @@ function update_rxs_single() {
     INSERT INTO gp_rxs_grouped
     SELECT
   	  patient_id_cp,
-      COALESCE(drug_generic, drug_name_raw),
+      COALESCE(drug_generic, drug_name),
       MAX(drug_brand) as drug_brand,
-      MAX(drug_name_raw) as drug_name_raw,
+      MAX(drug_name) as drug_name,
       sig_qty_per_day,
 
       MAX(rx_gsn) as max_gsn,

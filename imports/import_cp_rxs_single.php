@@ -17,7 +17,7 @@ function import_cp_rxs_single() {
     SELECT
       script_no as rx_number,
       pat_id as patient_id_cp,
-      drug_name as drug_name_raw,
+      drug_name as drug_name,
       cprx.gcn_seqno as rx_gsn,
 
       DATEDIFF(day, @today, expire_date) as days_left,
