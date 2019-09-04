@@ -159,7 +159,7 @@ function days_default($item, $days_std = 90) {
   $days_of_stock    = round($item['qty_inventory']/$item['sig_qty_per_day']);
 
   //Get to the target number of days
-  if ($item['refill_date_target']) {
+  if ($item['refill_date_target'])
     $days_std = (strtotime($item['refill_date_target']) - strtotime($item['refill_date_target']))/60/60/24;
 
   //Fill up to 30 days more to finish up an Rx if almost finished
