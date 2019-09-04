@@ -24,7 +24,7 @@ function import_cp_rxs_single() {
       (CASE WHEN script_status_cn = 0 AND expire_date > @today THEN refills_left ELSE 0 END) as refills_left,
       refills_orig + 1 as refills_original,
       (CASE WHEN script_status_cn = 0 AND expire_date > @today THEN written_qty * refills_left ELSE 0 END) as qty_left,
-      written_qty as qty_original,
+      written_qty * refills_orig as qty_original,
       sig_text_english as sig_raw,
 
       autofill_yn as rx_autofill,

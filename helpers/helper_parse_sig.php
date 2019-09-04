@@ -8,10 +8,11 @@ function parse_sig($rx) {
   //Inhalers might come with qty 18 (# of inhales/puffs rather than 1 so ignore these).  Not sure if these hardcoded assumptions are correct?  Cindy could need to dispense two inhalers per month?  Or one inhaler lasts more than a month?
   //Could be written in milliliters since prescriber cannot prescribe over 12 months of inhalers at a time
   //Convert to Unit of Use by just assuming each inhaler is 30 days
-  if (strpos($rx['drug_name'], ' INH') !== false) {
+  //Same for Nasal "Sprays"
+  if (strpos($rx['drug_name'], ' INH') !== false OR $rx['qty_original'] < 5) {
     return [
       'sig_qty_per_day'           => 1/30,
-      'sig_clean'                 => "'AK assuming 1 inhaler per month'",
+      'sig_clean'                 => "'AK assuming 1 unit per month'",
       'sig_qty_per_time'          => "NULL",
       'sig_frequency'             => "NULL",
       'sig_frequency_numerator'   => "NULL",
