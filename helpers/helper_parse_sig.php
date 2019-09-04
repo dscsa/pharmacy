@@ -11,10 +11,10 @@ function parse_sig($rx) {
     return [
       'sig_qty_per_day'           => 1/30,
       'sig_clean'                 => "'AK assuming 1 inhaler per month'",
-      'sig_qty_per_time'          => "'N/A'",
-      'sig_frequency'             => "''N/A'",
-      'sig_frequency_numerator'   => "'N/A'",
-      'sig_frequency_denominator' => "'N/A'"
+      'sig_qty_per_time'          => "NULL",
+      'sig_frequency'             => "NULL",
+      'sig_frequency_numerator'   => "NULL",
+      'sig_frequency_denominator' => "NULL"
     ];
   }
 

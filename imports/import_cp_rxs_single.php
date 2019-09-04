@@ -17,7 +17,6 @@ function import_cp_rxs_single() {
     SELECT
       script_no as rx_number,
       pat_id as patient_id_cp,
-      ISNULL(generic_name, drug_name) as drug_name,
       drug_name as drug_name_raw,
       cprx.gcn_seqno as rx_gsn,
 
@@ -73,14 +72,6 @@ function import_cp_rxs_single() {
       GROUP BY md_id
     ) as md ON
       cprx.md_id = md.md_id
-
-    -- TRANSLATE WEIRD BRAND NAMES TO GENERIC NAMES
-  	LEFT JOIN (
-  		SELECT STUFF(MIN(gni+fdrndc.ln), 1, 1, '') as generic_name, fdrndc.gcn_seqno -- WE WANT GNI FOR MIN() BUT THEN STUFF() REMOVES IT
-  		FROM fdrndc
-  		GROUP BY fdrndc.gcn_seqno
-  	) as generic_name ON
-      generic_name.gcn_seqno = cprx.gcn_seqno
 
     WHERE
       -- cprx.chg_date > @today - 7 AND -- Only recent scripts to cut down on the
