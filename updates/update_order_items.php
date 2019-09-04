@@ -15,7 +15,8 @@ function update_order_items() {
   $count_created = count($changes['created']);
   $count_updated = count($changes['updated']);
 
-  $message = "update_order_items $count_deleted deleted, $count_created created, $count_updated updated. ";
+  $message = "
+  update_order_items $count_deleted deleted, $count_created created, $count_updated updated. ";
 
   echo $message;
 
@@ -45,85 +46,11 @@ function update_order_items() {
     ";
 
     echo "
-    $sql
+    Item: $sql
     ";
 
     return $mysql->run($sql)[0][0];
   }
-  /* Example
-
-  [invoice_number] => 18513
-            [rx_number] => 6009999
-            [rx_dispensed_id] =>
-            [days_dispensed_default] =>
-            [days_dispensed_actual] =>
-            [qty_dispensed_default] =>
-            [qty_dispensed_actual] =>
-            [qty_pended_total] =>
-            [qty_pended_repacks] =>
-            [count_pended_total] =>
-            [count_pended_repacks] =>
-            [item_status] =>
-            [item_type] =>
-            [item_date_added] => 2019-09-03 11:55:25
-            [item_added_by] => HL7
-            [patient_id_cp] => 4113
-            [drug_generic] => Methocarbamol 500mg
-            [drug_brand] => Robaxin
-            [drug_name] => ROBAXIN 500 MG TABLET
-            [sig_qty_per_day] => 1.000
-            [max_gsn] => 4654
-            [drug_gsns] => ,4654,
-            [refills_left] => 5.00
-            [rx_autofill] => 0.00
-            [refill_date_first] => 2018-11-28
-            [refill_date_last] => 2019-02-14
-            [refill_date_next] =>
-            [refill_date_manual] =>
-            [refill_date_default] => 2019-05-15
-            [refill_date_target] =>
-            [refill_target_days] =>
-            [refill_target_count] =>
-            [rx_numbers] => ,6009999,6009998,6009997,
-            [rx_date_changed] => 2019-09-03 11:55:25
-            [rx_date_expired] => 2020-09-02
-            [message_display] =>
-            [stock_level] => OUT OF STOCK
-            [price_per_month] => 2
-            [drug_ordered] => 1
-            [qty_repack] =>
-            [qty_inventory] => 4856.0
-            [qty_entered] => 24944.0
-            [qty_dispensed] => 3740.0
-            [stock_threshold] =>
-            [first_name] => Patient First
-            [last_name] => Patient Last
-            [birth_date] => 1985-03-10
-            [phone1] => 9999999999
-            [phone2] =>
-            [email] => patient@gmail.com
-            [patient_autofill] => 1
-            [pharmacy_name] => Ingles Pharmacy #105
-            [pharmacy_npi] => 1437315942
-            [pharmacy_fax] => 7705376966
-            [pharmacy_phone] => 7705379501
-            [pharmacy_address] => 2865 Bremen Mt Zi
-            [card_type] => Visa
-            [card_last4] => 9999
-            [card_date_expired] => 2023-04-30
-            [billing_method] => PAY BY CARD: Visa 7097
-            [billing_coupon] =>
-            [patient_address1] => 99 Patient Ln
-            [patient_address2] =>
-            [patient_city] => City
-            [patient_state] => GA
-            [patient_zip] => 30110
-            [total_fills] => 13
-            [patient_status] => 1
-            [lang] => EN
-            [patient_date_added] => 2018-11-27 09:32:21
-            [patient_date_changed] => 2019-08-26 00:00:00
-  */
 
   //If just added to CP Order we need to
   //  - determine "days_dispensed_default" and "qty_dispensed_default"
@@ -142,13 +69,7 @@ function update_order_items() {
 
     set_days_dispensed($item, $days, $status, $mysql);
 
-    //export_v2_add_pended($item);
-
-    //export_cp_add_more_items($item); //this will cause another update and we will end back in this loop
-
-    //export_gd_update_invoice($item);
-
-    //export_wc_update_order($item);
+    export_v2_add_pended($item);
 
     //TODO Update Salesforce Order Total & Order Count & Order Invoice using REST API or a MYSQL Zapier Integration
   }
@@ -165,13 +86,7 @@ function update_order_items() {
 
     set_days_dispensed($item, 0, $status, $mysql);
 
-    //export_v2_remove_pended($item);
-
-    //export_cp_remove_more_items($item); //this will cause another update and we will end back in this loop
-
-    //export_gd_update_invoice($item);
-
-    //export_wc_update_order($item);
+    export_v2_remove_pended($item);
 
     //TODO Update Salesforce Order Total & Order Count & Order Invoice using REST API or a MYSQL Zapier Integration
   }
@@ -181,14 +96,9 @@ function update_order_items() {
   //  - think about what needs to be updated based on changes
   foreach($changes['updated'] as $updated) {
 
-    echo print_r($updated, true);
+    echo "Updated Item No Action: ";
 
-    $item = join_all_tables($updated, $mysql);
-    //Probably finalized days/qty_dispensed_actual
-    //Update invoice now or wait until shipped order?
-    //export_gd_update_invoice($item);
-
-    //export_wc_update_order($item);
+    echo "Order Items: ".print_r(changed_fields($updated), true).print_r($updated, true);
 
     //TODO Update Salesforce Order Total & Order Count & Order Invoice using REST API or a MYSQL Zapier Integration
   }

@@ -118,3 +118,15 @@ function set_updated_sql($new, $old, $id, $where_changes) {
       $where_changes
   ";
 }
+
+function changed_fields($updated) {
+  $changes = [];
+  foreach($updated as $key => $old_val) {
+    if (strpos($key, 'old_') !== false) {
+      $new_val = $updated[substr($key, 4)];
+      if ($old_val != $new_val)
+        $changes[] = "$old_val >>> $new_val":
+    }
+  }
+  return $changes;
+}

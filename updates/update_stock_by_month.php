@@ -10,7 +10,8 @@ function update_stock_by_month() {
   $count_created = count($changes['created']);
   $count_updated = count($changes['updated']);
 
-  $message = "update_stock_by_month $count_deleted deleted, $count_created created, $count_updated updated. ";
+  $message = "
+  update_stock_by_month $count_deleted deleted, $count_created created, $count_updated updated. ";
 
   echo $message;
 
