@@ -71,7 +71,7 @@ function update_rxs_single() {
       NULL as refill_target_days,
       NULL as refill_target_count,
 
-      COALSECE(
+      COALESCE(
         MIN(CASE WHEN qty_left >= 45 AND days_left >= 45 THEN rx_number ELSE NULL END),
         MIN(CASE WHEN qty_left >= 0 THEN rx_number ELSE NULL END),
         MIN(CASE WHEN rx_status = 0 AND days_left >= 0 THEN rx_number ELSE NULL END),
