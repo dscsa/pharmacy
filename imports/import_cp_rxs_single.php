@@ -84,7 +84,7 @@ function import_cp_rxs_single() {
 
     WHERE
       -- cprx.chg_date > @today - 7 AND -- Only recent scripts to cut down on the
-      script_no IS NOT NULL AND  -- Highly correlated with script_status_cn IS NOT NULL but not exact.  We should figure out which one is better to use
+      script_no > 0 AND  -- Can be NULL or Empty String. Highly correlated with script_status_cn > 0 but not exact.  We should figure out which one is better to use
       ISNULL(cprx.status_cn, 0) <> 3 AND
       (ISNULL(cprx.status_cn, 0) <> 2 OR last_transfer_type_io = 'O') -- NULL/0 is active, 1 is not yet dispensed?, 2 is transferred out/inactive, 3 is voided
 
