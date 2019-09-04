@@ -48,7 +48,7 @@ function update_order_items() {
     $sql
     ";
 
-    return $mysql->run($sql)[0];
+    return $mysql->run($sql)[0][0];
   }
   /* Example
 
