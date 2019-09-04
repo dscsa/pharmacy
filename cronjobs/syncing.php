@@ -26,7 +26,7 @@ import_v2_drugs();
 echo timer("import_v2_drugs", $time);
 
 import_v2_stock_by_month();
-echo timer("import_v2_stock", $time);
+echo timer("import_v2_stock_by_month", $time);
 
 import_cp_rxs_single();
 echo timer("import_cp_rxs_single", $time);
@@ -45,7 +45,7 @@ update_drugs();
 echo timer("update_drugs", $time);
 
 update_stock_by_month();
-echo timer("import_v2_stock", $time);
+echo timer("update_stock_by_month", $time);
 
 update_rxs_single();
 echo timer("update_rxs_single", $time);

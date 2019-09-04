@@ -14,7 +14,7 @@ function import_cp_orders() {
     SELECT
       invoice_nbr as invoice_number,
       pat_id as patient_id_cp,
-      liCount as item_count,
+      ISNULL(liCount, 0) as item_count,
       ustate.name as order_source,
       ostate.name as order_stage,
       ostatus.descr as order_status,

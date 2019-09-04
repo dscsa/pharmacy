@@ -21,7 +21,7 @@ function update_orders() {
 
   $mysql = new Mysql_Wc();
 
-  function join_all_tables($order, $mysql) {
+  function get_full_order($order, $mysql) {
 
     $sql = "
       SELECT *
@@ -35,11 +35,13 @@ function update_orders() {
         gp_order_items.invoice_number = $order[invoice_number]
     ";
 
+    $order = $mysql->run($sql)[0];
+
     echo "
     Order: $sql
-    ";
+    ".print_r($order, true);
 
-    return $mysql->run($sql)[0];
+    return $order;
   }
 
   //If just added to CP Order we need to
@@ -48,7 +50,7 @@ function update_orders() {
   //  - Update wc order count/total
   foreach($changes['created'] as $created) {
 
-    $order = join_all_tables($created, $mysql);
+    $order = get_full_order($created, $mysql);
 
     export_cp_add_more_items($order); //this will cause another update and we will end back in this loop
 
@@ -67,7 +69,7 @@ function update_orders() {
   //  - update wc order total
   foreach($changes['deleted'] as $deleted) {
 
-    $order = join_all_tables($deleted, $mysql);
+    $order = get_full_order($deleted, $mysql);
 
     export_gd_update_invoice($order);
 
@@ -83,7 +85,7 @@ function update_orders() {
 
     echo "Order: ".print_r(changed_fields($updated), true).print_r($updated, true);
 
-    $order = join_all_tables($updated, $mysql);
+    $order = get_full_order($updated, $mysql);
     //Probably finalized days/qty_dispensed_actual
     //Update invoice now or wait until shipped order?
     export_gd_update_invoice($order);

@@ -26,7 +26,7 @@ function update_order_items() {
 
   $mysql = new Mysql_Wc();
 
-  function join_all_tables($item, $mysql) {
+  function get_full_item($item, $mysql) {
 
     $sql = "
       SELECT *
@@ -45,11 +45,13 @@ function update_order_items() {
         gp_order_items.rx_number = $item[rx_number]
     ";
 
+    $item = $mysql->run($sql)[0][0];
+
     echo "
     Item: $sql
-    ";
+    ".print_r($item, true);
 
-    return $mysql->run($sql)[0][0];
+    return $item;
   }
 
   //If just added to CP Order we need to
@@ -60,7 +62,7 @@ function update_order_items() {
   //  - update wc order total
   foreach($changes['created'] as $created) {
 
-    $item = join_all_tables($created, $mysql);
+    $item = get_full_item($created, $mysql);
 
     list($days, $status) = get_days_dispensed($item);
 
@@ -82,7 +84,7 @@ function update_order_items() {
   //  - update wc order total
   foreach($changes['deleted'] as $deleted) {
 
-    $item = join_all_tables($deleted, $mysql);
+    $item = get_full_item($deleted, $mysql);
 
     set_days_dispensed($item, 0, $status, $mysql);
 
