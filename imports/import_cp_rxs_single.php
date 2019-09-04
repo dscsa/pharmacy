@@ -84,8 +84,8 @@ function import_cp_rxs_single() {
 
     WHERE
       -- cprx.chg_date > @today - 7 AND -- Only recent scripts to cut down on the
-      cprx.status_cn <> 3 AND
-      (cprx.status_cn <> 2 OR last_transfer_type_io = 'O') -- NULL/0 is active, 1 is not yet dispensed?, 2 is transferred out/inactive, 3 is voided
+      ISNULL(cprx.status_cn, 0) <> 3 AND
+      (ISNULL(cprx.status_cn, 0) <> 2 OR last_transfer_type_io = 'O') -- NULL/0 is active, 1 is not yet dispensed?, 2 is transferred out/inactive, 3 is voided
 
   ");
 
