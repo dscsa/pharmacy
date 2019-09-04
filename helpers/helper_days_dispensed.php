@@ -167,7 +167,7 @@ function days_default($item, $days_std = 90) {
 
   $days_default = min($days_default, $days_of_stock);
 
-  mail('adam@sirum.org', "days_default()", "days_default:$days_default, days_of_stock:$days_of_stock, days_of_qty_left:$days_of_qty_left, days_std:$days_std, refill_date_target:$item[refill_date_target]. ".print_r($changes, true));
+  mail('adam@sirum.org', "days_default()", "days_default:$days_default, days_of_stock:$days_of_stock, days_of_qty_left:$days_of_qty_left, days_std:$days_std, refill_date_target:$item[refill_date_target]. ".print_r($item, true));
 
   return $days_default;
 }
