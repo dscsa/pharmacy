@@ -87,7 +87,7 @@ function update_rxs_single() {
       drug_gsns LIKE CONCAT('%,', rx_gsn, ',%')
   	GROUP BY
       patient_id_cp,
-      COALESCE(drug_generic, drug_name_raw),
+      COALESCE(drug_generic, drug_name),
       sig_qty_per_day
   ");
 

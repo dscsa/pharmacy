@@ -70,7 +70,7 @@ function update_order_items() {
             [patient_id_cp] => 4113
             [drug_generic] => Methocarbamol 500mg
             [drug_brand] => Robaxin
-            [drug_name_raw] => ROBAXIN 500 MG TABLET
+            [drug_name] => ROBAXIN 500 MG TABLET
             [sig_qty_per_day] => 1.000
             [max_gsn] => 4654
             [drug_gsns] => ,4654,
