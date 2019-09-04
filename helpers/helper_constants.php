@@ -7,7 +7,7 @@ const STOCK_LEVEL = [
   'REFILL ONLY'  => 'REFILL ONLY',
   'OUT OF STOCK' => 'OUT OF STOCK',
   'NOT OFFERED'  => 'NOT OFFERED'
-]);
+];
 
 const RX_MESSAGE = [
   'NOACTION_PAST_DUE' => [
@@ -113,4 +113,4 @@ const RX_MESSAGE = [
     'EN' => 'waiting on you to register',
     'ES' => ''
   ]
-]);
+];
