@@ -3,7 +3,7 @@
 function export_gd_update_invoice($order) {
 
   echo "
-  export_gd_update_invoice "//.print_r($order_item, true);
+  export_gd_update_invoice ";//.print_r($order_item, true);
 
   $opts = [
     'http' => [
