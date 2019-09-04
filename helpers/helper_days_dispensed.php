@@ -14,7 +14,7 @@ function get_days_dispensed($item) {
 
   $refills_only = in_array($item['stock_level'], [
     STOCK_LEVEL['OUT OF STOCK'],
-    STOCK_LEVEL['REFILLS ONLY']
+    STOCK_LEVEL['REFILL ONLY']
   ]);
 
   if ($item['rx_date_expired'] < $item['refill_date_next']) {

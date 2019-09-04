@@ -40,7 +40,7 @@ function update_order_items() {
       JOIN gp_patients ON
         gp_rxs_grouped.patient_id_cp = gp_patients.patient_id_cp
       WHERE
-        rx_number = $item[rx_number]
+        gp_order_items.rx_number = $item[rx_number]
     ";
 
     echo "
