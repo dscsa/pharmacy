@@ -110,16 +110,13 @@ function import_cp_patients() {
 
       $next_month = date('Y-m-d', strtotime('+1 month'));
 
-      echo "
-      payment_card_date_expired: $row[payment_card_date_expired] > $next_month".($row['payment_card_date_expired'] > $next_month);
-
       if ($row['payment_coupon'] != 'NULL') {
         $row['payment_method'] = "'".PAYMENT_METHOD['COUPON']."'";
       }
       else if ($row['payment_card_date_expired'] == 'NULL' ) {
         $row['payment_method'] = "'".PAYMENT_METHOD['MANUAL']."'";
       }
-      else if ($row['payment_card_date_expired'] > $next_month) {
+      else if ($row['payment_card_date_expired'] > "'$next_month'") {
         $row['payment_method'] = "'".PAYMENT_METHOD['AUTOPAY']."'";
       }
       else {
