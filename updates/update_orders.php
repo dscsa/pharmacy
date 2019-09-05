@@ -52,7 +52,7 @@ function update_orders() {
 
     $update['payment_total'] = 0;
 
-    foreach($order as $i = $item)
+    foreach($order as $i => $item)
       $update['payment_total'] += $item['price_dispensed_actual'] ?: $item['price_dispensed_default'];
 
     $update['payment_fee'] = $order[0]['refills_used'] ? $update['payment_total'] : PAYMENT_TOTAL_NEW_PATIENT;
