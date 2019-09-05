@@ -75,11 +75,15 @@ function import_cp_patients() {
           $row['payment_card_date_expired'] = 'NULL';
         } else {
           $date_expired = date_create_from_format("'m/y'", $val2[1]);
-          if ( ! $date_expire) {
+
+          if ($date_expired) {
+            $row['payment_card_date_expired'] = date_format($date_expired, "'Y-m-t'"); //t give last day of month.  d was givign current day
+          }
+          else {
             echo "Error with card expiration date $date_expired: ".$val2[1]." ".print_r($row, true);
             $row['payment_card_date_expired'] = 'NULL';
           }
-          $row['payment_card_date_expired'] = date_format($date_expired, "'Y-m-t'"); //t give last day of month.  d was givign current day
+
         }
       }
 
