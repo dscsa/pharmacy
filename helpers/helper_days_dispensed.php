@@ -138,6 +138,8 @@ function set_days_dispensed($item, $days, $message, $mysql) {
     $message_key  = array_search($message, RX_MESSAGE);
     $message_text = $message[$item['language']];
 
+    $price = $item['price_per_month'] ?: 0; //Might be null
+
     $sql = "
       UPDATE
         gp_order_items
@@ -146,7 +148,7 @@ function set_days_dispensed($item, $days, $message, $mysql) {
         qty_dispensed_default   = $days*$item[sig_qty_per_day],
         item_message_key        = '$message_key',
         item_message_text       = '$message_text',
-        price_dispensed_default = $days*$item[price_per_month]/30,
+        price_dispensed_default = $days*$price/30,
         refills_total_default   = $item[refills_total]
       WHERE
         invoice_number = $item[invoice_number] AND

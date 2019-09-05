@@ -59,14 +59,14 @@ function update_orders() {
     foreach($order as $i => $item)
       $update['payment_total'] += $item['price_dispensed_actual'] ?: $item['price_dispensed_default'];
 
+    //Defaults
     $update['payment_fee'] = $order[0]['refills_used'] ? $update['payment_total'] : PAYMENT_TOTAL_NEW_PATIENT;
-
     $update['payment_due'] = $update['payment_fee'];
+    $update['payment_date_autopay'] = 'NULL';
 
     if ($order[0]['payment_method'] == PAYMENT_METHOD['COUPON']) {
       $update['payment_fee'] = $update['payment_total'];
       $update['payment_due'] = 0;
-      $update['payment_date_autopay'] = 'NULL';
     }
     else if ($order[0]['payment_method'] == PAYMENT_METHOD['AUTOPAY']) {
       $start = date('m/01', strtotime('+ 1 month'));
