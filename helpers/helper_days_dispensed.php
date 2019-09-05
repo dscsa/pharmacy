@@ -135,14 +135,17 @@ function set_days_dispensed($item, $days, $message_key, $mysql) {
 
   if ( ! $item['days_dispensed_default']) {
 
+    $message_key  = array_search($message_text, RX_MESSAGE)
+    $message_text = $message_text[$item['language']];
+
     $sql = "
       UPDATE
         gp_order_items
       SET
         days_dispensed_default  = $days,
         qty_dispensed_default   = $days*$item[sig_qty_per_day],
-        item_message_key        = '".array_search($message_key, RX_MESSAGE)."',
-        item_message_text       = '".RX_MESSAGE[$item['language']]."',
+        item_message_key        = '$message_key',
+        item_message_text       = '$message_text',
         price_dispensed_default = $days*$item[price_per_month]/30,
         refills_total_default   = $item[refills_total]
       WHERE
@@ -161,10 +164,7 @@ function set_days_dispensed($item, $days, $message_key, $mysql) {
       UPDATE
         gp_order_items
       SET
-        -- days_dispensed_actual = $days, -- Already set by CP table
-        -- qty_dispensed_actual  = $days*$item[sig_qty_per_day], -- Already set by CP table
-        -- item_message_key      = '".array_search($status, RX_MESSAGE)."', -- Already set by query above
-        -- item_message_text     = '".RX_MESSAGE[$item['language']]."',
+        -- Other Fields Should Already Be Set Above (And May have Been Sent to Patient) so don't change
         price_dispensed_actual   = $days*$item[price_per_month]/30,
         refills_total_actual     = $item[refills_total]
       WHERE
