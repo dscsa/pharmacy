@@ -85,7 +85,7 @@ function update_orders() {
 
     $mysql->run($sql);
 
-    foreach($order as $i = $item)
+    foreach($order as $i => $item)
       $order[$i] = $update + $item;
 
     return $order;
