@@ -37,9 +37,56 @@ function update_orders() {
 
     $order = $mysql->run($sql)[0];
 
+    $order = set_payment($order);
+
     echo "
     Order: $sql
     ".print_r($order, true);
+
+    return $order;
+  }
+
+  function set_payment($order) {
+
+    $update = [];
+
+    $update['payment_total'] = 0;
+
+    foreach($order as $i = $item)
+      $update['payment_total'] += $item['price_dispensed_actual'] ?: $item['price_dispensed_default'];
+
+    $update['payment_fee'] = $order[0]['refills_used'] ? $update['payment_total'] : PAYMENT_TOTAL_NEW_PATIENT;
+
+    $update['payment_due'] = $update['payment_fee'];
+
+    if ($order[0]['payment_method'] == PAYMENT_METHOD['COUPON']) {
+      $update['payment_fee'] = $update['payment_total'];
+      $update['payment_due'] = 0;
+    }
+    else if ($order[0]['payment_method'] == PAYMENT_METHOD['AUTOPAY']) {
+      $start = date('m/01', strtotime('+ 1 month'));
+      $stop  = date('m/07/y', strtotime('+ 1 month'));
+
+      $update['payment_date_scheduled'] = "$start - $stop";
+      $update['payment_due'] = 0;
+    }
+
+    $sql = "
+      UPDATE
+        gp_orders
+      SET
+        payment_total = $update[payment_total],
+        payment_fee   = $update[payment_fee],
+        payment_due   = $update[payment_due],
+        payment_due_date_scheduled = $update[payment_due_date_scheduled]
+      WHERE
+        invoice_number = $item[invoice_number]
+    ";
+
+    $mysql->run($sql);
+
+    foreach($order as $i = $item)
+      $order[$i] = $update + $item;
 
     return $order;
   }

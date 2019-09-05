@@ -1,5 +1,14 @@
 <?php
 
+const PAYMENT_TOTAL_NEW_PATIENT = 6;
+
+const PAYMENT_METHOD = [
+  'COUPON'       => 'COUPON',
+  'MANUAL'       => 'MANUAL',
+  'AUTOPAY'      => 'AUTOPAY',
+  'CARD_EXPIRED' => 'CARD_EXPIRED'
+];
+
 const STOCK_LEVEL = [
   'HIGH SUPPLY'  => 'HIGH SUPPLY',
   'LOW SUPPLY'   => 'LOW SUPPLY',

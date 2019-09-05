@@ -66,29 +66,43 @@ function import_cp_patients() {
       $row['pharmacy_phone']   = clean_phone($val1[2]);
       $row['pharmacy_address'] = clean_val($val1[3]);
 
-      $row['card_last4']        = clean_val($val2[0]);
-      $row['card_date_expired'] = clean_val($val2[1]);
-      $row['card_type']         = clean_val($val2[2]);
-      $row['billing_coupon']    = clean_val($val2[3]);
+      $row['payment_card_last4']        = clean_val($val2[0]);
+      $row['payment_card_date_expired'] = clean_val($val2[1]);
+      $row['payment_card_type']         = clean_val($val2[2]);
 
+      if ($val2[3] && substr($val2[3], 0, 6) != "track_") {
+        $row['payment_coupon'] = clean_val($val2[3]);
+      } else {
+        $row['tracking_coupon'] = clean_val($val2[3]);
+      }
 
       //echo 'result_map: '.print_r($row, true);
-      if ($row['card_date_expired'] == "'/'") $row['card_date_expired'] = 'NULL'; //Assert would catch this but avoid noisy logging
+      if ($row['payment_card_date_expired'] == "'/'") $row['payment_card_date_expired'] = 'NULL'; //Assert would catch this but avoid noisy logging
 
       //Some validations
       assert_length($row, 'pharmacy_npi', 12);      //no delimiters with single quotes
       assert_length($row, 'pharmacy_fax', 12);      //no delimiters with single quotes
       assert_length($row, 'pharmacy_phone', 12);    //no delimiters with single quotes
 
-      assert_length($row, 'card_last4', 6);         //with single quotes
-      assert_length($row, 'card_date_expired', 6, 7);  //with single quotes
-      assert_length($row, 'card_type', 4, 20);      //with single quotes
-      assert_length($row, 'billing_coupon', 5, 40); //with single quotes
+      assert_length($row, 'payment_card_last4', 6);         //with single quotes
+      assert_length($row, 'payment_card_date_expired', 6, 7);  //with single quotes
+      assert_length($row, 'payment_card_type', 4, 20);      //with single quotes
+      assert_length($row, 'payment_coupon', 5, 40); //with single quotes
+      assert_length($row, 'tracking_coupon', 5, 40); //with single quotes
 
-      if ($row['card_date_expired'] != 'NULL') {
-        //echo 'result_map: '.print_r($row, true);
-        $row['card_date_expired'] = date_format(date_create_from_format("'m/y'", $row['card_date_expired']), "'Y-m-t'"); //t give last day of month.  d was givign current day
-        //echo 'result_map: '.print_r($row, true);
+      if ($row['payment_coupon'] != 'NULL') {
+        $row['payment_method'] = PAYMENT_METHOD['COUPON'];
+      }
+      else if ($row['payment_card_date_expired'] == 'NULL' ) {
+        $row['payment_method'] = PAYMENT_METHOD['MANUAL'];
+      }
+      else {
+        $date_expired = date_create_from_format("'m/y'", $row['payment_card_date_expired']);
+
+        $row['payment_card_date_expired'] = date_format($date_expired, "'Y-m-t'"); //t give last day of month.  d was givign current day
+        $row['payment_method']    = $date_expired > strtotime('+1 month')
+          ? PAYMENT_METHOD['AUTOPAY']
+          : PAYMENT_METHOD['CARD_EXPIRED'];
       }
 
       unset($row['billing_info']);
