@@ -123,7 +123,7 @@ function get_days_dispensed($item) {
 
   echo "
   NO SPECIAL TAG USING DEFAULTS";
-  return [days_default($item), ['EN' => '', 'ES' => '']];
+  return [days_default($item), RX_MESSAGE['NOACTION_STANDARD_FILL']];
   //TODO DON'T NOACTION_PAST_DUE if ( ! drug.$InOrder && drug.$DaysToRefill < 0)
   //TODO NOACTION_LIVE_INVENTORY_ERROR if ( ! drug.$v2)
   //TODO ACTION_CHECK_BACK/NOACTION_WILL_TRANSFER_CHECK_BACK

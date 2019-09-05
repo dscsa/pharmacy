@@ -54,9 +54,9 @@ function update_orders() {
 
     export_cp_add_more_items($order); //this will cause another update and we will end back in this loop
 
-    //export_gd_update_invoice($order);
+    export_gd_update_invoice($order);
 
-    //export_wc_update_order($order);
+    export_wc_update_order($order);
 
     //TODO Update Salesforce Order Total & Order Count & Order Invoice using REST API or a MYSQL Zapier Integration
   }

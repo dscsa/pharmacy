@@ -10,6 +10,10 @@ const STOCK_LEVEL = [
 ];
 
 const RX_MESSAGE = [
+  'NOACTION_STANDARD_FILL' => [
+    'EN' => '',
+    'ES' => ''
+  ],
   'NOACTION_PAST_DUE' => [
     'EN' => 'is past due and may be Med Synced to this Order *',
     'ES' => ''
