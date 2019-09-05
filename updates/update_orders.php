@@ -30,7 +30,9 @@ function update_orders() {
       JOIN gp_patients ON
         gp_patients.patient_id_cp = gp_orders.patient_id_cp
       LEFT JOIN gp_order_items ON -- Orders may not have any items
-          gp_orders.invoice_number = gp_order_items.invoice_number
+        gp_orders.invoice_number = gp_order_items.invoice_number
+      LEFT JOIN gp_rxs_single ON
+        gp_order_items.rx_number = gp_rxs_single.rx_number
       WHERE
         gp_orders.invoice_number = $order[invoice_number]
     ";
