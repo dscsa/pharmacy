@@ -149,6 +149,7 @@ function set_days_dispensed($item, $days, $message_text, $mysql) {
         price_dispensed_default = $days*$item[price_per_month]/30,
         refills_total_default   = $item[refills_total]
       WHERE
+        invoice_number = $item[invoice_number] AND
         rx_number = $item[rx_number]
     ";
 
@@ -168,6 +169,7 @@ function set_days_dispensed($item, $days, $message_text, $mysql) {
         price_dispensed_actual   = $days*$item[price_per_month]/30,
         refills_total_actual     = $item[refills_total]
       WHERE
+        invoice_number = $item[invoice_number] AND
         rx_number = $item[rx_number]
     ";
 
@@ -197,7 +199,8 @@ function days_default($item, $days_std = 90) {
 
   $days_default = min($days_default, $days_of_stock);
 
-  $message = "days_default:$days_default, days_of_stock:$days_of_stock, days_of_qty_left:$days_of_qty_left, days_std:$days_std, refill_date_target:$item[refill_date_target], refill_date_next:$item[refill_date_next]. ".print_r($item, true);
+  $message = "
+  days_default:$days_default, days_of_stock:$days_of_stock, days_of_qty_left:$days_of_qty_left, days_std:$days_std, refill_date_target:$item[refill_date_target], refill_date_next:$item[refill_date_next]. ";//.print_r($item, true);
 
   echo $message;
 
