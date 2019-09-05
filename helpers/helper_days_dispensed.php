@@ -135,7 +135,7 @@ function set_days_dispensed($item, $days, $message_key, $mysql) {
 
   if ( ! $item['days_dispensed_default']) {
 
-    $message_key  = array_search($message_text, RX_MESSAGE)
+    $message_key  = array_search($message_text, RX_MESSAGE);
     $message_text = $message_text[$item['language']];
 
     $sql = "
