@@ -125,8 +125,10 @@ function changed_fields($updated) {
     if (strpos($old_key, 'old_') !== false) {
       $new_key = substr($old_key, 4);
       $new_val = $updated[$new_key];
-      if ($old_val != $new_val)
+      if ($old_val != $new_val) {
+        $old_val = isnull($old_val) ? 'NULL' : $old_val;
         $changes[] = "$new_key: $old_val >>> $new_val";
+      }
     }
   }
   return $changes;

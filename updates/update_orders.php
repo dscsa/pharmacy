@@ -32,7 +32,7 @@ function update_orders() {
       LEFT JOIN gp_order_items ON -- Orders may not have any items
           gp_orders.invoice_number = gp_order_items.invoice_number
       WHERE
-        gp_order_items.invoice_number = $order[invoice_number]
+        gp_orders.invoice_number = $order[invoice_number]
     ";
 
     $order = $mysql->run($sql)[0];
