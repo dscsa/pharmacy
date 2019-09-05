@@ -24,7 +24,7 @@ function import_cp_patients() {
 
       user_def_1 as pharmacy_name,
       user_def_2 as pharmacy_info,
-      user_def_3 as billing_method,
+      user_def_3 as payment_method,
       user_def_4 as billing_info,
 
       addr1 as patient_address1,
@@ -72,23 +72,23 @@ function import_cp_patients() {
 
       if ($val2[3] && substr($val2[3], 0, 6) != "track_") {
         $row['payment_coupon'] = clean_val($val2[3]);
+        assert_length($row, 'payment_coupon', 5, 40); //with single quotes
       } else {
         $row['tracking_coupon'] = clean_val($val2[3]);
+        assert_length($row, 'tracking_coupon', 5, 40); //with single quotes
       }
 
       //echo 'result_map: '.print_r($row, true);
       if ($row['payment_card_date_expired'] == "'/'") $row['payment_card_date_expired'] = 'NULL'; //Assert would catch this but avoid noisy logging
 
       //Some validations
-      assert_length($row, 'pharmacy_npi', 12);      //no delimiters with single quotes
-      assert_length($row, 'pharmacy_fax', 12);      //no delimiters with single quotes
-      assert_length($row, 'pharmacy_phone', 12);    //no delimiters with single quotes
+      assert_length($row, 'pharmacy_npi', 12);
+      assert_length($row, 'pharmacy_fax', 12);
+      assert_length($row, 'pharmacy_phone', 12);
 
-      assert_length($row, 'payment_card_last4', 6);         //with single quotes
-      assert_length($row, 'payment_card_date_expired', 6, 7);  //with single quotes
-      assert_length($row, 'payment_card_type', 4, 20);      //with single quotes
-      assert_length($row, 'payment_coupon', 5, 40); //with single quotes
-      assert_length($row, 'tracking_coupon', 5, 40); //with single quotes
+      assert_length($row, 'payment_card_last4', 6);
+      assert_length($row, 'payment_card_date_expired', 6, 7);
+      assert_length($row, 'payment_card_type', 4, 20);
 
       if ($row['payment_coupon'] != 'NULL') {
         $row['payment_method'] = PAYMENT_METHOD['COUPON'];
@@ -100,7 +100,7 @@ function import_cp_patients() {
         $date_expired = date_create_from_format("'m/y'", $row['payment_card_date_expired']);
 
         $row['payment_card_date_expired'] = date_format($date_expired, "'Y-m-t'"); //t give last day of month.  d was givign current day
-        $row['payment_method']    = $date_expired > strtotime('+1 month')
+        $row['payment_method'] = strtotime($row['payment_card_date_expired']) > strtotime('+1 month')
           ? PAYMENT_METHOD['AUTOPAY']
           : PAYMENT_METHOD['CARD_EXPIRED'];
       }
