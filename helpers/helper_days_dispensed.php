@@ -131,7 +131,7 @@ function get_days_dispensed($item) {
   //if (drug.$NoTransfer)
 }
 
-function set_days_dispensed($item, $days, $status, $mysql) {
+function set_days_dispensed($item, $days, $message_key, $mysql) {
 
   if ( ! $item['days_dispensed_default']) {
 
@@ -141,7 +141,8 @@ function set_days_dispensed($item, $days, $status, $mysql) {
       SET
         days_dispensed_default  = $days,
         qty_dispensed_default   = $days*$item[sig_qty_per_day],
-        item_status             = '".array_search($status, RX_MESSAGE)."',
+        item_message_key        = '".array_search($message_key, RX_MESSAGE)."',
+        item_message_text       = '".RX_MESSAGE[$item['language']]."',
         price_dispensed_default = $days*$item[price_per_month]/30,
         refills_total_default   = $item[refills_total]
       WHERE
@@ -162,7 +163,8 @@ function set_days_dispensed($item, $days, $status, $mysql) {
       SET
         -- days_dispensed_actual = $days, -- Already set by CP table
         -- qty_dispensed_actual  = $days*$item[sig_qty_per_day], -- Already set by CP table
-        -- item_status           = '".array_search($status, RX_MESSAGE)."', -- Already set by query above
+        -- item_message_key      = '".array_search($status, RX_MESSAGE)."', -- Already set by query above
+        -- item_message_text     = '".RX_MESSAGE[$item['language']]."',
         price_dispensed_actual   = $days*$item[price_per_month]/30,
         refills_total_actual     = $item[refills_total]
       WHERE

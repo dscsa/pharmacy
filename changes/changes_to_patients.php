@@ -33,7 +33,7 @@ function changes_to_patients($new) {
     NOT old.patient_zip <=> new.patient_zip OR
     NOT old.refills_used <=> new.refills_used OR
     NOT old.patient_status <=> new.patient_status OR
-    NOT old.lang <=> new.lang OR
+    NOT old.language <=> new.language OR
     NOT old.patient_date_added <=> new.patient_date_added
     -- False Positives -- NOT old.patient_date_changed <=> new.patient_date_changed
   ";

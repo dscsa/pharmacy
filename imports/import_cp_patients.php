@@ -35,7 +35,7 @@ function import_cp_patients() {
 
       (SELECT COUNT(*) FROM cprx WHERE cprx.pat_id = pat.pat_id AND orig_disp_date < GETDATE() - 4) as refills_used, --potential to SUM(is_refill) but seems that GCNs churn enough that this is not accurate
       pat.pat_status_cn as patient_status,
-      ISNULL(primary_lang_cd, 'EN') as lang,
+      ISNULL(primary_lang_cd, 'EN') as language,
       CONVERT(varchar, pat.add_date, 20) as patient_date_added,
       CONVERT(varchar, pat.chg_date, 20) as patient_date_changed
     FROM cppat pat (nolock)
