@@ -27,19 +27,19 @@ function update_orders() {
       SELECT *
       FROM
         gp_orders
-      JOIN gp_order_items ON
-        gp_orders.invoice_number = gp_order_items.invoice_number
       JOIN gp_patients ON
         gp_patients.patient_id_cp = gp_orders.patient_id_cp
+      LEFT JOIN gp_order_items ON -- Orders may not have any items
+          gp_orders.invoice_number = gp_order_items.invoice_number
       WHERE
         gp_order_items.invoice_number = $order[invoice_number]
     ";
 
+    $order = $mysql->run($sql)[0];
+
     echo "
     Order Before: $sql
     ".print_r($order, true);
-
-    $order = $mysql->run($sql)[0];
 
     $order = set_payment($order, $mysql);
 
@@ -72,7 +72,7 @@ function update_orders() {
       $start = date('m/01', strtotime('+ 1 month'));
       $stop  = date('m/07/y', strtotime('+ 1 month'));
 
-      $update['payment_date_autopay'] = "$start - $stop";
+      $update['payment_date_autopay'] = "'$start - $stop'";
       $update['payment_due'] = 0;
     }
 
