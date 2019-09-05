@@ -114,11 +114,11 @@ function import_cp_patients() {
       else if ($row['payment_card_date_expired'] == 'NULL' ) {
         $row['payment_method'] = "'".PAYMENT_METHOD['MANUAL']."'";
       }
-      else if (strtotime($row['payment_card_date_expired']) > strtotime('+1 month')) {
+      else if ($row['payment_card_date_expired'] > date('Y-m-d', strtotime('+1 month'))) {
         $row['payment_method'] = "'".PAYMENT_METHOD['AUTOPAY']."'";
       }
       else {
-        $row['payment_method'] = "'".PAYMENT_METHOD['CARD_EXPIRED']."'";
+        $row['payment_method'] = "'".PAYMENT_METHOD['CARD EXPIRED']."'";
       }
 
       unset($row['billing_info']);

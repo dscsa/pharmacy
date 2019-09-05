@@ -6,7 +6,7 @@ const PAYMENT_METHOD = [
   'COUPON'       => 'COUPON',
   'MANUAL'       => 'MANUAL',
   'AUTOPAY'      => 'AUTOPAY',
-  'CARD_EXPIRED' => 'CARD_EXPIRED'
+  'CARD EXPIRED' => 'CARD EXPIRED'
 ];
 
 const STOCK_LEVEL = [
@@ -19,110 +19,110 @@ const STOCK_LEVEL = [
 ];
 
 const RX_MESSAGE = [
-  'NOACTION_STANDARD_FILL' => [
+  'NOACTION STANDARD FILL' => [
     'EN' => '',
     'ES' => ''
   ],
-  'NOACTION_PAST_DUE' => [
+  'NOACTION PAST DUE' => [
     'EN' => 'is past due and may be Med Synced to this Order *',
     'ES' => ''
   ],
-  'NOACTION_MAY_MEDSYNC' => [
+  'NOACTION MAY MEDSYNC' => [
     'EN' => 'is due soon and may be Med Synced to this Order *',
     'ES' => ''
   ],
-  'NOACTION_WAS_MEDSYNC' => [
+  'NOACTION WAS MEDSYNC' => [
     'EN' => 'was Med Synced to this Order *',
     'ES' => ''
   ],
-  'NOACTION_TARGET_DATE' => [
+  'NOACTION TARGET DATE' => [
     'EN' => 'was Med Synced to $NextRefill *',
     'ES' => ''
   ],
-  'NOACTION_RX_OFF_AUTOFILL' => [
+  'NOACTION RX OFF AUTOFILL' => [
     'EN' => 'has autorefill off but was requested to be filled',
     'ES' => ''
   ],
-  'NOACTION_RECENT_FILL' => [
+  'NOACTION RECENT FILL' => [
     'EN' => 'was filled recently and not due again until $NextRefill',
     'ES' => ''
   ],
-  'NOACTION_NOT_DUE' => [
+  'NOACTION NOT DUE' => [
     'EN' => 'is due for a refill on $NextRefill',
     'ES' => ''
   ],
-  'NOACTION_CHECK_SIG' => [
+  'NOACTION CHECK SIG' => [
     'EN' => 'was prescribed in an unusually high qty and needs to be reviewed by a pharmacist',
     'ES' => ''
   ],
-  'NOACTION_MISSING_GCN' => [
+  'NOACTION MISSING GCN' => [
     'EN' => 'needs to be checked to see if it is available',
     'ES' => ''
   ],
-  'NOACTION_LOW_STOCK' => [
+  'NOACTION LOW STOCK' => [
     'EN' => 'is short filled because this drug is low in stock',
     'ES' => ''
   ],
-  'NOACTION_LOW_REFILL' => [
+  'NOACTION LOW REFILL' => [
     'EN' => 'is short filled because this Rx had limited refills',
     'ES' => ''
   ],
-  'NOACTION_WILL_TRANSFER_CHECK_BACK' => [
+  'NOACTION WILL TRANSFER CHECK BACK' => [
     'EN' => 'is not currently offered and will be transferred to your local pharmacy. Check back in a month or two',
     'ES' => ''
   ],
-  'NOACTION_WILL_TRANSFER' => [
+  'NOACTION WILL TRANSFER' => [
     'EN' => 'is not offered and will be transferred to your local pharmacy',
     'ES' => ''
   ],
-  'NOACTION_WAS_TRANSFERRED' => [
+  'NOACTION WAS TRANSFERRED' => [
     'EN' => 'was transferred out to your local pharmacy on $RxChanged',
     'ES' => ''
   ],
-  'NOACTION_LIVE_INVENTORY_ERROR' => [
+  'NOACTION LIVE INVENTORY ERROR' => [
     'EN' => 'is awaiting manual inventory verification',
     'ES' => ''
   ],
-  'NOACTION_SHOPPING_ERROR' => [
+  'NOACTION SHOPPING ERROR' => [
     'EN' => 'is awaiting manual inventory retrieval',
     'ES' => ''
   ],'
 
   //ACTION BY USER REQUIRED BEFORE (RE)FILL
 
-  ACTION_EXPIRING' => [
+  ACTION EXPIRING' => [
     'EN' => 'will expire soon, ask your doctor for a new Rx',
     'ES' => ''
   ],
-  'ACTION_LAST_REFILL' => [
+  'ACTION LAST REFILL' => [
     'EN' => 'has no more refills',
     'ES' => ''
   ],
-  'ACTION_NO_REFILLS' => [
+  'ACTION NO REFILLS' => [
     'EN' => 'is out of refills, contact your doctor',
     'ES' => ''
   ],
-  'ACTION_EXPIRED' => [
+  'ACTION EXPIRED' => [
     'EN' => 'has expired, ask your doctor for a new Rx',
     'ES' => ''
   ],
-  'ACTION_EXPIRING' => [
+  'ACTION EXPIRING' => [
     'EN' => 'will expire soon, ask your doctor for a new Rx',
     'ES' => ''
   ],
-  'ACTION_CHECK_BACK' => [
+  'ACTION CHECK BACK' => [
     'EN' => 'is unavailable for new RXs at this time, check back later',
     'ES' => ''
   ],
-  'ACTION_RX_OFF_AUTOFILL' => [
+  'ACTION RX OFF AUTOFILL' => [
     'EN' => 'has autorefill turned off, request 2 weeks in advance',
     'ES' => ''
   ],
-  'ACTION_PATIENT_OFF_AUTOFILL' => [
+  'ACTION PATIENT OFF AUTOFILL' => [
     'EN' => 'was not filled because you have turned all medications off autorefill',
     'ES' => ''
   ],
-  'ACTION_NEEDS_FORM' => [
+  'ACTION NEEDS FORM' => [
     'EN' => 'waiting on you to register',
     'ES' => ''
   ]
