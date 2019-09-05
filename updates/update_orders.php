@@ -35,18 +35,22 @@ function update_orders() {
         gp_order_items.invoice_number = $order[invoice_number]
     ";
 
+    echo "
+    Order Before: $sql
+    ".print_r($order, true);
+
     $order = $mysql->run($sql)[0];
 
-    $order = set_payment($order);
+    $order = set_payment($order, $mysql);
 
     echo "
-    Order: $sql
+    Order After: $sql
     ".print_r($order, true);
 
     return $order;
   }
 
-  function set_payment($order) {
+  function set_payment($order, $mysql) {
 
     $update = [];
 
@@ -62,6 +66,7 @@ function update_orders() {
     if ($order[0]['payment_method'] == PAYMENT_METHOD['COUPON']) {
       $update['payment_fee'] = $update['payment_total'];
       $update['payment_due'] = 0;
+      $update['payment_date_autopay'] = 'NULL';
     }
     else if ($order[0]['payment_method'] == PAYMENT_METHOD['AUTOPAY']) {
       $start = date('m/01', strtotime('+ 1 month'));
