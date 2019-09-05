@@ -13,38 +13,40 @@ function import_cp_patients() {
 
     SELECT
       pat.pat_id as patient_id_cp,
-      fname as first_name,
-      lname as last_name,
-      CONVERT(varchar, birth_date, 20) as birth_date,
+      MAX(fname) as first_name,
+      MAX(lname) as last_name,
+      CONVERT(varchar, MAX(birth_date), 20) as birth_date,
 
-      CONCAT(ph1.area_code, ph1.phone_no) as phone1,
-      CONCAT(ph2.area_code, ph2.phone_no) as phone2,
-      pat.email as email,
-      pat.auto_refill_cn as patient_autofill,
+      MAX(CONCAT(ph1.area_code, ph1.phone_no)) as phone1,
+      MAX(CONCAT(ph2.area_code, ph2.phone_no)) as phone2,
+      MAX(pat.email) as email,
+      MAX(pat.auto_refill_cn) as patient_autofill,
 
-      user_def_1 as pharmacy_name,
-      user_def_2 as pharmacy_info,
-      user_def_3 as payment_method,
-      user_def_4 as billing_info,
+      MAX(user_def_1) as pharmacy_name,
+      MAX(user_def_2) as pharmacy_info,
+      MAX(user_def_3) as payment_method,
+      MAX(user_def_4) as billing_info,
 
-      addr1 as patient_address1,
-      addr2 as patient_address2,
-      a.city as patient_city,
-      a.state_cd as patient_state,
-      a.zip as patient_zip,
+      MAX(addr1) as patient_address1,
+      MAX(addr2) as patient_address2,
+      MAX(a.city) as patient_city,
+      MAX(a.state_cd) as patient_state,
+      MAX(a.zip) as patient_zip,
 
-      (SELECT COUNT(*) FROM cprx WHERE cprx.pat_id = pat.pat_id AND orig_disp_date < GETDATE() - 4) as refills_used, --potential to SUM(is_refill) but seems that GCNs churn enough that this is not accurate
-      pat.pat_status_cn as patient_status,
-      ISNULL(primary_lang_cd, 'EN') as language,
-      CONVERT(varchar, pat.add_date, 20) as patient_date_added,
-      CONVERT(varchar, pat.chg_date, 20) as patient_date_changed
+      SUM(refills_orig + 1 - refills_left) as refills_used, --potential to SUM(is_refill) but seems that GCNs churn enough that this is not accurate
+      MAX(pat.pat_status_cn) as patient_status,
+      MAX(ISNULL(primary_lang_cd, 'EN')) as language,
+      CONVERT(varchar, MAX(pat.add_date), 20) as patient_date_added,
+      CONVERT(varchar, MAX(pat.chg_date), 20) as patient_date_changed
     FROM cppat pat (nolock)
-    LEFT OUTER JOIN cppat_phone pp1 (nolock) ON pat.pat_id = pp1.pat_id AND (pp1.phone_type_cn = 6 OR pp1.phone_type_cn IS NULL)
-    LEFT OUTER JOIN cppat_phone pp2 (nolock) ON pat.pat_id = pp2.pat_id AND (pp2.phone_type_cn = 9 OR pp2.phone_type_cn IS NULL)
-    LEFT OUTER JOIN csphone ph1 (nolock) ON pp1.phone_id = ph1.phone_id
-    LEFT OUTER JOIN csphone ph2 (nolock) ON pp2.phone_id = ph2.phone_id
-    LEFT OUTER JOIN cppat_addr pa  (nolock) ON (pat.pat_id = pa.pat_id and pa.addr_type_cn=2)
-    LEFT OUTER JOIN csaddr a (nolock) ON pa.addr_id=a.addr_id
+    LEFT JOIN cppat_phone pp1 (nolock) ON pat.pat_id = pp1.pat_id AND pp1.phone_type_cn = 6
+    LEFT JOIN cppat_phone pp2 (nolock) ON pat.pat_id = pp2.pat_id AND pp2.phone_type_cn = 9
+    LEFT JOIN csphone ph1 (nolock) ON pp1.phone_id = ph1.phone_id
+    LEFT JOIN csphone ph2 (nolock) ON pp2.phone_id = ph2.phone_id
+    LEFT JOIN cppat_addr pa  (nolock) ON (pat.pat_id = pa.pat_id and pa.addr_type_cn=2)
+    LEFT JOIN csaddr a (nolock) ON pa.addr_id=a.addr_id
+    LEFT JOIN cprx ON cprx.pat_id = pat.pat_id AND orig_disp_date < GETDATE() - 4
+    GROUP BY pat.pat_id -- because cppat_phone had a duplicate entry for pat_id 5130 we got two rows so need a groupby.  This also removes refills_used from needing to be a subquery
 
   ");
 
