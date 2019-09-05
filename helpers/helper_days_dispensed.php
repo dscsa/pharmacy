@@ -131,7 +131,7 @@ function get_days_dispensed($item) {
   //if (drug.$NoTransfer)
 }
 
-function set_days_dispensed($item, $days, $message_key, $mysql) {
+function set_days_dispensed($item, $days, $message_text, $mysql) {
 
   if ( ! $item['days_dispensed_default']) {
 
