@@ -5,6 +5,8 @@ function export_gd_update_invoice($order) {
   echo "
   export_gd_update_invoice ";//.print_r($order_item, true);
 
+  if ( ! count($order)) return;
+
   $opts = [
     'http' => [
       'method'  => 'POST',
