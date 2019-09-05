@@ -131,12 +131,12 @@ function get_days_dispensed($item) {
   //if (drug.$NoTransfer)
 }
 
-function set_days_dispensed($item, $days, $message_text, $mysql) {
+function set_days_dispensed($item, $days, $message, $mysql) {
 
   if ( ! $item['days_dispensed_default']) {
 
-    $message_key  = array_search($message_text, RX_MESSAGE);
-    $message_text = $message_text[$item['language']];
+    $message_key  = array_search($message, RX_MESSAGE);
+    $message_text = $message[$item['language']];
 
     $sql = "
       UPDATE

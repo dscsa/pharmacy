@@ -64,14 +64,14 @@ function update_order_items() {
 
     $item = get_full_item($created, $mysql);
 
-    list($days, $status) = get_days_dispensed($item);
+    list($days, $message) = get_days_dispensed($item);
+
+    set_days_dispensed($item, $days, $message, $mysql);
 
     if ( ! $days) {
       export_cp_remove_item($item);
       continue;
     }
-
-    set_days_dispensed($item, $days, $status, $mysql);
 
     export_v2_add_pended($item);
 

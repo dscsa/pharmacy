@@ -2,7 +2,7 @@
 
 function export_cp_remove_item($order_item) {
 
-  //Notify Patient?  Since message_key and message_text have not yet been saved
+  //Notify Patient? 
   echo "
   export_cp_remove_item ";//.print_r($order_item, true);
 }
