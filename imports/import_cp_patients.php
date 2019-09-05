@@ -71,10 +71,10 @@ function import_cp_patients() {
       $row['payment_card_type']         = clean_val($val2[2]);
 
       if ($val2[1]) {
-        if ($val2[1] == "'/'") {
+        if ($val2[1] == "/") {
           $row['payment_card_date_expired'] = 'NULL';
         } else {
-          $date_expired = date_create_from_format("'m/y'", $val2[1]);
+          $date_expired = date_create_from_format("m/y", $val2[1]);
 
           if ($date_expired) {
             $row['payment_card_date_expired'] = date_format($date_expired, "'Y-m-t'"); //t give last day of month.  d was givign current day
