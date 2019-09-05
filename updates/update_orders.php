@@ -67,7 +67,7 @@ function update_orders() {
       $start = date('m/01', strtotime('+ 1 month'));
       $stop  = date('m/07/y', strtotime('+ 1 month'));
 
-      $update['payment_date_scheduled'] = "$start - $stop";
+      $update['payment_date_autopay'] = "$start - $stop";
       $update['payment_due'] = 0;
     }
 
@@ -78,7 +78,7 @@ function update_orders() {
         payment_total = $update[payment_total],
         payment_fee   = $update[payment_fee],
         payment_due   = $update[payment_due],
-        payment_due_date_scheduled = $update[payment_due_date_scheduled]
+        payment_date_autopay = $update[payment_date_autopay]
       WHERE
         invoice_number = $item[invoice_number]
     ";
