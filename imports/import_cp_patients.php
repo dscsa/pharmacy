@@ -91,18 +91,18 @@ function import_cp_patients() {
       assert_length($row, 'payment_card_type', 4, 20);
 
       if ($row['payment_coupon'] != 'NULL') {
-        $row['payment_method'] = PAYMENT_METHOD['COUPON'];
+        $row['payment_method'] = "'".PAYMENT_METHOD['COUPON']."'";
       }
       else if ($row['payment_card_date_expired'] == 'NULL' ) {
-        $row['payment_method'] = PAYMENT_METHOD['MANUAL'];
+        $row['payment_method'] = "'".PAYMENT_METHOD['MANUAL']."'";
       }
       else {
         $date_expired = date_create_from_format("'m/y'", $row['payment_card_date_expired']);
 
         $row['payment_card_date_expired'] = date_format($date_expired, "'Y-m-t'"); //t give last day of month.  d was givign current day
         $row['payment_method'] = strtotime($row['payment_card_date_expired']) > strtotime('+1 month')
-          ? PAYMENT_METHOD['AUTOPAY']
-          : PAYMENT_METHOD['CARD_EXPIRED'];
+          ? "'".PAYMENT_METHOD['AUTOPAY']."'"
+          : "'".PAYMENT_METHOD['CARD_EXPIRED']."'";
       }
 
       unset($row['billing_info']);

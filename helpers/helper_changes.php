@@ -122,7 +122,7 @@ function set_updated_sql($new, $old, $id, $where_changes) {
 function changed_fields($updated) {
   $changes = [];
   foreach($updated as $old_key => $old_val) {
-    if (strpos($key, 'old_') !== false) {
+    if (strpos($old_key, 'old_') !== false) {
       $new_key = substr($old_key, 4);
       $new_val = $updated[$new_key];
       if ($old_val != $new_val)
