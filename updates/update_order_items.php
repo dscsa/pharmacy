@@ -66,8 +66,10 @@ function update_order_items() {
 
     list($days, $status) = get_days_dispensed($item);
 
-    if ( ! $days)
-      return export_cp_remove_item($item);
+    if ( ! $days) {
+      export_cp_remove_item($item);
+      continue;
+    }
 
     set_days_dispensed($item, $days, $status, $mysql);
 
