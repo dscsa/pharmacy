@@ -60,7 +60,7 @@ function update_orders() {
     $update = [];
 
     $update['payment_total'] = 0;
-  
+
     foreach($order as $i => $item)
       $update['payment_total'] += $item['price_dispensed_actual'] ?: $item['price_dispensed_default'];
 
@@ -95,7 +95,7 @@ function update_orders() {
         payment_due   = $update[payment_due],
         payment_date_autopay = $update[payment_date_autopay]
       WHERE
-        invoice_number = $order[invoice_number]
+        invoice_number = $order[0][invoice_number]
     ";
 
     $mysql->run($sql);
