@@ -20,7 +20,7 @@ function import_v2_drugs() {
   $drugs = json_decode($drugs, true);
 
   echo "
-  import_drugs: ".count($drugs['rows']);
+  import_v2_drugs: rows ".count($drugs['rows']);
 
   $vals = [];
   foreach($drugs['rows'] as $row) {

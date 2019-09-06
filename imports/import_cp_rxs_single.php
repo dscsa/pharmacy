@@ -82,7 +82,7 @@ function import_cp_rxs_single() {
   ");
 
   echo "
-  import_rxs_single: ".count($rxs[0]);
+  import_cp_rxs_single: rows ".count($rxs[0]);
 
   $keys = result_map($rxs[0],
     function($row) {

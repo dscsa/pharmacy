@@ -43,7 +43,10 @@ function update_orders() {
     Order Before: $sql
     ".print_r($order, true);
 
-    $order = set_payment($order, $mysql);
+    if ($order) {
+      $update = get_payment($order);
+      $order  = set_payment($order, $update, $mysql);
+    }
 
     echo "
     Order After: $sql
@@ -52,12 +55,12 @@ function update_orders() {
     return $order;
   }
 
-  function set_payment($order, $mysql) {
+  function get_payment($order) {
 
     $update = [];
 
     $update['payment_total'] = 0;
-
+  
     foreach($order as $i => $item)
       $update['payment_total'] += $item['price_dispensed_actual'] ?: $item['price_dispensed_default'];
 
@@ -78,6 +81,11 @@ function update_orders() {
       $update['payment_due'] = 0;
     }
 
+    return $update;
+  }
+
+  function set_payment($order, $update, $mysql) {
+
     $sql = "
       UPDATE
         gp_orders
@@ -87,7 +95,7 @@ function update_orders() {
         payment_due   = $update[payment_due],
         payment_date_autopay = $update[payment_date_autopay]
       WHERE
-        invoice_number = $item[invoice_number]
+        invoice_number = $order[invoice_number]
     ";
 
     $mysql->run($sql);

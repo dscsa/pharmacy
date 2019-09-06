@@ -36,7 +36,7 @@ function import_cp_order_items() {
   ");
 
   echo "
-  import_order_items: ".count($order_items[0]);
+  import_cp_order_items: rows ".count($order_items[0]);
 
   $keys = result_map($order_items[0]);
 

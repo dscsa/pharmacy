@@ -41,7 +41,7 @@ function import_cp_orders() {
   ");
 
   echo "
-  import_orders: ".count($orders[0]);
+  import_cp_orders: rows ".count($orders[0]);
 
   $keys = result_map($orders[0]);
 
