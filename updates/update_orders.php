@@ -11,7 +11,7 @@ function update_orders() {
   $count_updated = count($changes['updated']);
 
   $message = "
-  update_orders $count_deleted deleted, $count_created created, $count_updated updated. ";
+  update_orders: $count_deleted deleted, $count_created created, $count_updated updated. ";
 
   echo $message;
 

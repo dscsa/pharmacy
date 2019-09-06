@@ -13,7 +13,7 @@ function update_rxs_single() {
   $count_updated = count($changes['updated']);
 
   $message = "
-  update_rxs_single $count_deleted deleted, $count_created created, $count_updated updated. ";
+  update_rxs_single: $count_deleted deleted, $count_created created, $count_updated updated. ";
 
   echo $message;
 

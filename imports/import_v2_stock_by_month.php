@@ -41,8 +41,7 @@ function import_v2_stock_by_month() {
 
   //Replace Staging Table with New Data
   $mysql->run('TRUNCATE TABLE gp_stock_by_month_v2');
-
-
+  
   foreach($dbs as $key => $rows) {
 
     $vals = [];

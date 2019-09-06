@@ -50,6 +50,9 @@ function import_cp_patients() {
 
   ");
 
+  echo "
+  import_patients: ".count($patients[0]);
+
   $keys = result_map($patients[0],
     function($row) {
 
