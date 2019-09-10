@@ -1,3 +1,6 @@
+.site-header .custom-logo-link img {
+  width:auto !important;
+}
 .site-header {
   background-color:transparent !important;
   padding-top:1em !important;

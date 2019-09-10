@@ -30,26 +30,6 @@
 `sudo nano /etc/php56.ini`
 sendmail add flag `-f hello@sirum.org`
 
-#Windows Get Email Working
-- Open php.ini (see instructions in Install SQLSRV) and ensure that curl.cainfo is set.
-If not, follow instructions here https://stackoverflow.com/questions/29822686/curl-error-60-ssl-certificate-unable-to-get-local-issuer-certificate
-If this is not set the Gmail SMTP Plugin will show a 500 error when retrieving OAuth code
-- Install Gmail SMTP plugin
-- Follow instructions on https://wphowto.net/gmail-smtp-plugin-for-wordpress-1341
-
-/****** OLD ******/
-- Install SMTP Server Start Bar > Server Manager > Tools > Add New Services > Features > Check Box for SMTP Server > Instal
-- Configure https://www.ruhanirabin.com/php-sendmail-setup-with-smtp-iis-and-windows-servers/
-- Ensure you add limit connection and relay to 127.0.0.1 or you will spam people within days.
-- Open the run dialog on the server, and enter services.msc.
-- Locate the 'Simple Mail Transfer Protocol (SMTP)' service, right click, choose Properties and set the service to Automatic. From now on, it will start at boot.
-
-#Installing SSH on windows
-https://www.server-world.info/en/note?os=Windows_Server_2016&p=openssh
-
-#Installing Git on windows
-https://git-for-windows.github.io/
-
 #Setup User on MSSQL
 In Object Explorer > Server:
 - Right Click Stored Procedure > Properties > Permission > Search > NT AUTHORITY\IUSR > OK > Grant Execute > OK
@@ -62,68 +42,130 @@ If not using windows authentication:
 
 # Wordpress on Linux (Amazon-AMI)
 
-- Reference:http://coenraets.org/blog/2012/01/setting-up-wordpress-on-amazon-ec2-in-5-minutes/
-- php 5.6 is last version that currently supports mssql: `sudo yum install php56, php56-mbstring`
-- `sudo yum install php56-mysqlnd`
-- Wordpress needs image library to for cropping and resize: `sudo yum install php56-gd`
-- Assuming encrypted EBS drive is named `sdb`:`sudo mkfs -t ext4 /dev/sdb`
-- Put MySQL on the encrypted drive
-- `sudo mkdir /goodpill`
-- `sudo mount /dev/sdb /goodpill`
-- `sudo mv /var/lib/mysql /goodpill/`
-- `sudo ln -s /goodpill/mysql /var/lib/`
-- `sudo mysql_secure_installation`
-- Add Swap Memory of mysql will crash: http://danielgriff.in/2014/add-swap-space-to-ec2-to-increase-performance-and-mitigate-failure/
-* Answer the wizard questions as follows:
-**Enter current password for root: Press return for none
-**Change Root Password: Y
-**New Password: Enter your new password
-**Remove anonymous user: Y
-**Disallow root login remotely: Y
-**Remove test database and access to it: Y
-**Reload privilege tables now: Y
-- Put Wordpress on the encrypted drive
-- `sudo ln -s /goodpill/html /var/www`
-- `cd /goodpill/html`
-- `sudo wget http://wordpress.org/latest.tar.gz`
-- `sudo tar -xzvf latest.tar.gz`
-- `sudo mv wordress/* ./`
+Good Reference:http://coenraets.org/blog/2012/01/setting-up-wordpress-on-amazon-ec2-in-5-minutes/
 
-* Enable Uploads to be writeable
-- `sudo mkdir /goodpill/html/wp-content/uploads`
-- `sudo chown -R adminsirum:adminsirum /goodpill/html/wp-content/uploads`
-- `sudo chmod 747 /goodpill/html/wp-content/uploads`
+php 5.6 is last version that currently supports mssql:
+`sudo yum update`
+`sudo yum install php56`
+`sudo yum install php56-mbstring`
+`sudo yum install php56-mssql`
+`sudo yum install php56-gd` //Wordpress needs image library to crop & resize:
+`sudo nano /etc/php.ini`
+- expose_php = Off
+- max_execution_time = 300
+- memory_limit = 900M
+- post_max_size = 300M
+- upload_max_filesize = 300M
+- max_input_time = 300
+- date.timezone = 'UTC'
+- display_errors = On
+- error_log = "/goodpill/html/php_errors.log"
 
-- Install FTP so Wordpress can install themes and plugins
-- `sudo yum install vsftpd`
-- `sudo nano /etc/vsftpd/vsftpd.conf`
-*	change anonymous_enable to “=NO”
-* Uncomment chroot_local_user=YES
-*	add pasv_enable=YES
-*	add pasv_min_port=1024
-* add pasv_max_port=1048
-* add pasv_address=<Public IP>
-- `sudo usermod -d /goodpill/html adminsirum`
-- `sudo chown -R adminsirum /goodpill/html`
-- `sudo adduser adminsirum`
-- `sudo passwd adminsirum`
-- `sudo /etc/init.d/vsftpd restart`
+MYSQL
+`sudo yum install mysql57-server`
+`sudo yum install php56-mysqlnd`
+
+Assuming encrypted EBS drive is named
+`sdb`:`sudo mkfs -t ext4 /dev/sdb`
+
+Put MySQL on the encrypted drive
+`sudo mkdir /goodpill`
+`sudo mount /dev/sdb /goodpill`
+`sudo mv /var/lib/mysql /goodpill/`
+`sudo ln -s /goodpill/mysql /var/lib/`
+
+Put Wordpress on the encrypted drive
+`sudo wget http://wordpress.org/latest.tar.gz`
+`sudo tar -xzvf latest.tar.gz`
+`sudo mv wordpress /goodpill/html`
+`sudo ln -s /goodpill/html /var/www`
+`sudo cp /goodpill/html/wp-config-sample.php /goodpill/html/wp-config-sample.php`
+`sudo nano /goodpill/html/wp-config-sample.php`
+- Copy over all constants from old file
+
+Update Permissions
+`sudo nano /goodpill/html/htaccess.txt`
+- Add `# BEGIN WordPress
+      RewriteEngine On
+      RewriteBase /
+      RewriteRule ^index\.php$ - [L]
+      RewriteCond %{REQUEST_FILENAME} !-f
+      RewriteCond %{REQUEST_FILENAME} !-d
+      RewriteRule . /index.php [L]
+      # END WordPress`
+
+Update Permissions
+`sudo chmod 644 /goodpill/html/htaccess.txt`
+`sudo mkdir /goodpill/html/wp-content/uploads`
+`sudo adduser adminsirum`
+`sudo passwd adminsirum`
+`sudo chown -R adminsirum:adminsirum /goodpill/html/wp-content`
+`sudo chmod -R 747 /goodpill/html/wp-content`
+
+Configure Apache
+`sudo yum install httpd24 openssl mod24_ssl`
+`sudo nano /etc/httpd/conf/httpd.conf`
+- Change 3x `Override None` to `Override All`
+- Change `DocumentRoot` to `/goodpill/html`
+- Change `<Directory "/var/www">` to `<Directory "/goodpill">`
+- Change `<Directory "/var/www/html">` to `<Directory "/goodpill/html">`
+- Change `DirectoryIndex index.html` to `DirectoryIndex index.html index.php`
+- Add `AccessFileName "/goodpill/html/htaccess.txt"`
+- Add `AddType application/x-httpd-php .php`
+
+Test
+`sudo service mysqld start`
+`sudo service httpd start`
+`sudo nano /etc/httpd/logs/error_log` //To debug
+- Goto Public IP
+
+Add Swap Memory of mysql will crash: http://danielgriff.in/2014/add-swap-space-to-ec2-to-increase-performance-and-mitigate-failure/
+
+Secure MySQL
+`sudo mysql_secure_installation`
+- Enter current password for root: Press return for none
+- Change Root Password: Y
+- New Password: Enter your new password
+- Remove anonymous user: Y
+- Disallow root login remotely: Y
+- Remove test database and access to it: Y
+- Reload privilege tables now: Y
+
+Install PHPMyAdmin
+- Find latest version http://www.phpmyadmin.net/home_page/downloads.php
+`cd /goodpill/html`
+`sudo wget https://files.phpmyadmin.net/phpMyAdmin/<version>/phpMyAdmin-<version>-all-languages.tar.gz`
+`sudo tar -xzvf phpMyAdmin-<version>-all-languages.tar.gz`
+`sudo mv phpMyAdmin-<version>-all-languages wp-goodpill`
+`cd /goodpill/html/wp-goodpill`
+`sudo mkdir config`
+`sudo chmod o+rw config`
+`sudo cp config.sample.inc.php config/config.inc.php`
+`sudo chmod o+w config/config.inc.php`
+Browse to `wp-goodpill`, login, and create `goodpill` database
+Browse to `/`, login, and install wordpress
+
+Install FTP so Wordpress can install themes and plugins
+`sudo yum install vsftpd`
+`sudo nano /etc/vsftpd/vsftpd.conf`
+- change anonymous_enable to “=NO”
+- uncomment chroot_local_user=YES
+- add pasv_enable=YES
+- add pasv_min_port=1024
+- add pasv_max_port=1048
+- add pasv_address=<Public IP>
+`sudo usermod -d /goodpill/html adminsirum`
+`sudo chown -R adminsirum /goodpill/html`
+`sudo service vsftpd restart`
+- Debug `sudo nano /var/log/xferlog`
 
 * Edit .htaccess to remove index.php from URLs
 - sudo nano /etc/httpd/conf/httpd.conf
-* Change all `Override None` to `Override All`
-* Add `AccessFileName /var/www/html/htaccess.txt`
+*
+* Add
 *  LogLevel rewrite:trace3 # if htaccess troubles
-- `sudo nano /var/www/html/htaccess.txt`
+-
 
-# BEGIN WordPress
-RewriteEngine On
-RewriteBase /
-RewriteRule ^index\.php$ - [L]
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule . /index.php [L]
-# END WordPress
 
 - `mysqladmin -uroot create goodpill`
 - `sudo service mysqld start`
