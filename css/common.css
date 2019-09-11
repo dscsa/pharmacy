@@ -62,13 +62,17 @@ button.menu-toggle {
 }
 .input-radio {
   display:inline-block !important;
-  margin-left:10px;
-  margin-right:4px
+  transform: scale(2);
+  /*opacity: .6;*/
+  margin-right:8px;
 }
-input[type=checkbox], input[type=radio] {
+label.radio {
+  margin-right:16px;
+}
+.input-checkbox {
     transform: scale(2);
     /*opacity: .6;*/
-    margin-right:8px;
+    margin-right:16px;
     margin-left:4px;
 }
 /* Condense allergy checkboxes */
