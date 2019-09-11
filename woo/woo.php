@@ -668,7 +668,7 @@ function make_rx_table($patient_profile, $email = false) {
 
   $padding = $email ? "padding:16px 8px 16px 0px" : "padding:16px 8px";
 
-  $table = "<table class='autofill_table' style='text-align:left'><tr><th style='width:400px; $padding'>Medication</th><th style='$padding'>Last&nbsp;Refill</th><th style='$padding'>Days&nbsp;(Qty)</th><th style='$padding'>Refills</th><th style='width:120px; padding:16px 4px'>Next&nbsp;Refill</th><th style='width:90px; font-weight:bold; $padding'>$pat_autofill</th></tr>";
+  $table = "<table class='autofill_table' style='text-align:left'><tr><th style='width:400px; $padding'>Medication</th><th style='$padding'>Last&nbsp;Refill</th><th style='$padding'>Days&nbsp;(Qty)</th><th style='$padding'>Refills</th><th style='width:120px; padding:16px 4px'>Next&nbsp;Refill</th><th style='width:110px; font-weight:bold; $padding'>$pat_autofill</th></tr>";
 
   foreach ($patient_profile as $i => $rx) {
 
