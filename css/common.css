@@ -67,6 +67,7 @@ button.menu-toggle {
   margin-right:6px;
 }
 label.radio {
+  margin-left:6px !important;
   margin-right:24px !important;
 }
 .input-checkbox {
