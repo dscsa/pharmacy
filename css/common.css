@@ -64,16 +64,16 @@ button.menu-toggle {
   display:inline-block !important;
   transform: scale(2);
   /*opacity: .6;*/
-  margin-right:8px;
+  margin-right:6px;
 }
 label.radio {
-  margin-right:16px;
+  margin-right:24px !important;
 }
 .input-checkbox {
     transform: scale(2);
     /*opacity: .6;*/
-    margin-right:16px;
-    margin-left:4px;
+    margin-right:12px;
+    margin-left:6px;
 }
 /* Condense allergy checkboxes */
 .allergies {
