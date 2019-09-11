@@ -25,6 +25,9 @@
   margin-top:-10px !important;
   margin-bottom:-35px !important
 }
+.storefront-breadcrumb {
+  margin-bottom:-90px
+}
 .entry-header {
   padding-bottom:0 !important
 }
@@ -61,6 +64,11 @@ button.menu-toggle {
   display:inline-block !important;
   margin-left:10px;
   margin-right:4px
+}
+input[type=checkbox], input[type=radio] {
+    transform: scale(2);
+    opacity: .6;
+    margin-right:8px
 }
 /* Condense allergy checkboxes */
 .allergies {

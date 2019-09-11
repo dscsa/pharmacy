@@ -220,6 +220,7 @@ function order_fields($user_id = null, $ordered = null, $rxs = []) {
 
   $fields = [
     'rx_source' => [
+      'priority'  => 1,
       'type'   	  => 'radio',
       'required'  => true,
       'default'   => get_default('rx_source', $user_id) ?: 'erx',
@@ -230,6 +231,7 @@ function order_fields($user_id = null, $ordered = null, $rxs = []) {
       ]
     ],
     'email' => [
+      'priority'  => 21,
       'label'     => __('Email'),
       'type'      => 'email',
       'validate'  => ['email'],
@@ -249,6 +251,7 @@ function order_fields($user_id = null, $ordered = null, $rxs = []) {
   } else { //Checkout Page
 
     $fields['transfer[]']  = [
+      'priority'  => 3,
       'type'   	  => 'select',
       'class'     => ['pharmacy'],
       'label'     => __('Search and select medications by generic name that you want to transfer to Good Pill'),
@@ -256,6 +259,7 @@ function order_fields($user_id = null, $ordered = null, $rxs = []) {
     ];
 
     $fields['rxs[]'] = [
+      'priority'  => 3,
       'type'   	  => 'select',
       'class'     => ['erx'],
       'label'     => __('Below are the Rx(s) that we have gotten from your doctor and are able to fill'),
@@ -406,6 +410,7 @@ function shared_fields($user_id = null) {
     $user_id = $user_id ?: $user->ID;
 
     $pharmacy = [
+      'priority'  => 2,
       'type'  => 'select',
       'required' => true,
       'label' => __('Backup pharmacy that we can transfer your prescription(s) to and from'),
@@ -429,10 +434,12 @@ function shared_fields($user_id = null) {
     return [
     'backup_pharmacy' => $pharmacy,
     'medications_other' => [
+        'priority'  => 4,
         'label'     =>  __('List any other medication(s) or supplement(s) you are currently taking<i style="font-size:14px; display:block; margin-bottom:-20px">We will not fill these but need to check for drug interactions</i>'),
         'default'   => get_default('medications_other', $user_id)
     ],
     'allergies_none' => [
+        'priority'  => 5,
         'type'   	  => 'radio',
         'label'     => __('Allergies'),
         'label_class' => ['radio'],
@@ -440,83 +447,97 @@ function shared_fields($user_id = null) {
     	  'default'   => get_default('allergies_none', $user_id)
     ],
     'allergies_aspirin' => [
+        'priority'  => 6,
         'type'      => 'checkbox',
         'class'     => ['allergies', 'form-row-wide'],
         'label'     => __('Aspirin'),
         'default'   => get_default('allergies_aspirin', $user_id)
     ],
     'allergies_amoxicillin' => [
+        'priority'  => 7,
         'type'      => 'checkbox',
         'class'     => ['allergies', 'form-row-wide'],
         'label'     => __('Amoxicillin'),
         'default'   => get_default('allergies_amoxicillin', $user_id)
     ],
     'allergies_ampicillin' => [
+        'priority'  => 8,
         'type'      => 'checkbox',
         'class'     => ['allergies', 'form-row-wide'],
         'label'     => __('Ampicillin'),
         'default'   => get_default('allergies_ampicillin', $user_id)
     ],
     'allergies_azithromycin' => [
+        'priority'  => 9,
         'type'      => 'checkbox',
         'class'     => ['allergies', 'form-row-wide'],
         'label'     => __('Azithromycin'),
         'default'   => get_default('allergies_azithromycin', $user_id)
     ],
     'allergies_cephalosporins' => [
+        'priority'  => 10,
         'type'      => 'checkbox',
         'class'     => ['allergies', 'form-row-wide'],
         'label'     => __('Cephalosporins'),
         'default'   => get_default('allergies_cephalosporins', $user_id)
     ],
     'allergies_codeine' => [
+        'priority'  => 11,
         'type'      => 'checkbox',
         'class'     => ['allergies', 'form-row-wide'],
         'label'     => __('Codeine'),
         'default'   => get_default('allergies_codeine', $user_id)
     ],
     'allergies_erythromycin' => [
+        'priority'  => 12,
         'type'      => 'checkbox',
         'class'     => ['allergies', 'form-row-wide'],
         'label'     => __('Erythromycin'),
         'default'   => get_default('allergies_erythromycin', $user_id)
     ],
     'allergies_nsaids' => [
+        'priority'  => 13,
         'type'      => 'checkbox',
         'class'     => ['allergies', 'form-row-wide'],
         'label'     => __('NSAIDS e.g., ibuprofen, Advil'),
         'default'   => get_default('allergies_nsaids', $user_id)
     ],
     'allergies_penicillin' => [
+        'priority'  => 14,
         'type'      => 'checkbox',
         'class'     => ['allergies', 'form-row-wide'],
         'label'     => __('Penicillin'),
         'default'   => get_default('allergies_penicillin', $user_id)
     ],
     'allergies_salicylates' => [
+        'priority'  => 15,
         'type'      => 'checkbox',
         'class'     => ['allergies', 'form-row-wide'],
         'label'     => __('Salicylates'),
         'default'   => get_default('allergies_salicylates', $user_id)
     ],
     'allergies_sulfa' => [
+        'priority'  => 16,
         'type'      => 'checkbox',
         'class'     => ['allergies', 'form-row-wide'],
         'label'     => __('Sulfa (Sulfonamide Antibiotics)'),
         'default'   => get_default('allergies_sulfa', $user_id)
     ],
     'allergies_tetracycline' => [
+        'priority'  => 17,
         'type'      => 'checkbox',
         'class'     => ['allergies', 'form-row-wide'],
         'label'     => __('Tetracycline antibiotics'),
         'default'   => get_default('allergies_tetracycline', $user_id)
     ],
     'allergies_other' => [
+        'priority'  => 18,
         'type'      => 'checkbox',
         'class'     => ['allergies', 'form-row-wide'],
         'label'     =>__('List Other Allergies Below').'<input class="input-text " name="allergies_other" id="allergies_other_input" value="'.get_default('allergies_other', $user_id).'">'
     ],
     'birth_date' => [
+        'priority'  => 19,
         'label'     => __('Date of Birth'),
         'required'  => true,
         'input_class' => ['date-picker'],
@@ -525,6 +546,7 @@ function shared_fields($user_id = null) {
         'default'   => $birth_date
     ],
     'phone' => [
+      'priority'  => 20,
       'label'     => __('Phone'),
       'required'  => true,
       'type'      => 'tel',
@@ -1960,6 +1982,8 @@ function dscsa_checkout_fields( $fields ) {
 
   //Add some order fields that are not in patient profile
   $order_fields  = order_fields($user_id, null, $patient_profile);
+
+  $fields['order']['order_comments']['priority'] = 22;
 
   //debug_email("db error: $heading", print_r($fields['order']['order_comments'], true).' '.print_r($fields['order'], true));
   $fields['order'] = $order_fields + $shared_fields + ['order_comments' => $fields['order']['order_comments']];
