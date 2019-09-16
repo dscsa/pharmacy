@@ -1879,7 +1879,7 @@ function dscsa_translate($term, $raw, $domain) {
     ];
   }
 
-  $spanish = $toSpanish[$english];
+  @$spanish = $toSpanish[$english];
 
   if (isset($spanish) && $lang == 'ES')
     return $spanish;
@@ -1951,7 +1951,7 @@ function dscsa_valid_order_statuses_for_payment($statuses) {
 add_filter( 'woocommerce_checkout_fields' , 'dscsa_checkout_fields', 9999);
 function dscsa_checkout_fields( $fields ) {
 
-  if ( ! is_checkout() OR is_wc_endpoint_url()) return;  //this gets called on every account page otherwise
+  if ( ! is_checkout() OR is_wc_endpoint_url()) return [];  //this gets called on every account page otherwise
 
   $user_id = get_current_user_id();
   $coupon  = get_meta('coupon', $user_id);
@@ -2011,13 +2011,7 @@ function dscsa_checkout_fields( $fields ) {
   unset($fields['billing']['billing_phone']);
   unset($fields['billing']['billing_email']);
 
-  // Bug in woocommerce means we also need to sort the fields based on their 'priority'
-  //https://wordpress.org/support/topic/change-order-of-billing-fields-on-checkout-page/
-  uasort($fields['billing'], function($a, $b) {
-    return ($a['priority'] < $b['priority']) ? -1 : 1;
-  });
-
-  //debug_email("woocommerce_checkout_fields", print_r($fields, true).print_r($order_fields, true).print_r($shared_fields, true));
+  debug_email("woocommerce_checkout_fields", print_r($fields, true).print_r($order_fields, true).print_r($shared_fields, true));
 
   return $fields;
 }
@@ -2026,7 +2020,6 @@ function dscsa_checkout_fields( $fields ) {
 add_filter( 'woocommerce_billing_fields', 'dscsa_billing_fields');
 function dscsa_billing_fields( $fields ) {
   unset($fields['billing_company']);
-  unset($fields['billing_country']);
 
   $fields['billing_state']['type'] = 'select';
   $fields['billing_state']['options'] = ['GA' => 'Georgia'];
@@ -2420,5 +2413,12 @@ function email_error($heading) {
 
 function debug_email($subject, $body) {
    $type = strpos($_SERVER['HTTP_COOKIE'], 'impersonated_by') === false ? "USER" : "ADMIN";
-   wp_mail('adam.kircher@gmail.com', "$type: $subject", $body);
+   mail('adam.kircher@gmail.com', "MAIL $type: $subject", $body);
+   wp_mail('adam.kircher@gmail.com', "WP_MAIL $type: $subject", $body);
+}
+
+add_filter( 'wp_mail_failed', 'dscsa_mail_failed');
+function dscsa_mail_failed($error) {
+  error_log("dscsa_mail_failed ".print_r($error, true));
+  mail('adam.kircher@gmail.com', "dscsa_mail_failed", print_r($error, true));
 }

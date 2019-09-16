@@ -4,13 +4,11 @@
 1. Turn off Control Panel > Windows Firewall
 2. Set IP info on networking card
   - Control Planel > Network and Sharing Center > Change Adapter Setting (left menu) > Right Click Ethernet Properties > IPV4 Properties
-  - IP address 96.67.225.25 (this is one less than whatismyip.com provided ".26")
   - Subnet Mask 255.255.255.252
-  - Default Gateway 96.67.225.26 (this is what whatismyip.com provided)
   - Preferred DNS 75.75.75.75
   - Alternate DNS 75.75.76.76
 3. Run ipconfig /all to double check setting were saved
-4. Goto gateway 96.67.225.26
+4. Goto gateway provided by Internet Service Provider (Comcast)
   - Login with cusadmin, highspeed
   - Goto Advanced > Port Forwarding > Enable > Add Service > Custom > Add Server & Port
   - Goto Advanced > Port Management > Check box to disable all rules and allow inbound traffic
@@ -51,6 +49,9 @@ php 5.6 is last version that currently supports mssql:
 `sudo yum install php56-mssql`
 `sudo yum install php56-gd` //Wordpress needs image library to crop & resize:
 `sudo nano /etc/php.ini`
+- sendmail_from = "webform@goodpill.org"
+- sendmail_path = /usr/sbin/sendmail -t -i -f webform@goodpill.org
+- smtp_port = 25
 - expose_php = Off
 - max_execution_time = 300
 - memory_limit = 900M
@@ -78,40 +79,39 @@ Put Wordpress on the encrypted drive
 `sudo wget http://wordpress.org/latest.tar.gz`
 `sudo tar -xzvf latest.tar.gz`
 `sudo mv wordpress /goodpill/html`
+`sudo rm -R /var/www/html`
 `sudo ln -s /goodpill/html /var/www`
-`sudo cp /goodpill/html/wp-config-sample.php /goodpill/html/wp-config-sample.php`
-`sudo nano /goodpill/html/wp-config-sample.php`
+`sudo cp /goodpill/html/wp-config-sample.php /goodpill/html/wp-config.php`
+`sudo nano /goodpill/html/wp-config.php`
 - Copy over all constants from old file
 
 Update Permissions
-`sudo nano /goodpill/html/htaccess.txt`
-- Add `# BEGIN WordPress
+`sudo mkdir /goodpill/html/wp-content/uploads`
+`sudo find /goodpill/html/ -type d -exec chmod 755 {} \;`
+`sudo find /goodpill/html/ -type f -exec chmod 644 {} \;`
+`sudo chmod 400 /goodpill/html/wp-config.php`
+`sudo chown -R apache:apache /goodpill/html`
+
+
+Configure Apache
+`sudo yum install httpd24`
+`sudo yum install openssl`
+`sudo yum install mod24_ssl`
+`sudo nano /etc/httpd/conf/httpd.conf`
+- Change `DocumentRoot` to `/goodpill/html`
+- Change `<Directory "/var/www">` to `<Directory "/goodpill">` and `Override None` to `Override All`
+- Change `<Directory "/var/www/html">` to `<Directory "/goodpill/html">` and `Override None` to `Override All`
+- Add within `<Directory "/var/www/html">`
+`# BEGIN WordPress
       RewriteEngine On
       RewriteBase /
       RewriteRule ^index\.php$ - [L]
       RewriteCond %{REQUEST_FILENAME} !-f
       RewriteCond %{REQUEST_FILENAME} !-d
       RewriteRule . /index.php [L]
-      # END WordPress`
-
-Update Permissions
-`sudo chmod 644 /goodpill/html/htaccess.txt`
-`sudo mkdir /goodpill/html/wp-content/uploads`
-`sudo adduser adminsirum`
-`sudo passwd adminsirum`
-`sudo chown -R adminsirum:adminsirum /goodpill/html/wp-content`
-`sudo chmod -R 747 /goodpill/html/wp-content`
-
-Configure Apache
-`sudo yum install httpd24 openssl mod24_ssl`
-`sudo nano /etc/httpd/conf/httpd.conf`
-- Change 3x `Override None` to `Override All`
-- Change `DocumentRoot` to `/goodpill/html`
-- Change `<Directory "/var/www">` to `<Directory "/goodpill">`
-- Change `<Directory "/var/www/html">` to `<Directory "/goodpill/html">`
+# END WordPress`
 - Change `DirectoryIndex index.html` to `DirectoryIndex index.html index.php`
-- Add `AccessFileName "/goodpill/html/htaccess.txt"`
-- Add `AddType application/x-httpd-php .php`
+//Necessary? - Add `AddType application/x-httpd-php .php`
 
 Test
 `sudo service mysqld start`
@@ -121,7 +121,7 @@ Test
 
 Add Swap Memory of mysql will crash: http://danielgriff.in/2014/add-swap-space-to-ec2-to-increase-performance-and-mitigate-failure/
 
-Secure MySQL
+Setup and secure MySQL
 `sudo mysql_secure_installation`
 - Enter current password for root: Press return for none
 - Change Root Password: Y
@@ -130,6 +130,9 @@ Secure MySQL
 - Disallow root login remotely: Y
 - Remove test database and access to it: Y
 - Reload privilege tables now: Y
+`sudo nano /etc/my.cnf`
+- Add `max_allowed_packet=300M` //so we can import a large SQL file
+
 
 Install PHPMyAdmin
 - Find latest version http://www.phpmyadmin.net/home_page/downloads.php
@@ -142,22 +145,48 @@ Install PHPMyAdmin
 `sudo chmod o+rw config`
 `sudo cp config.sample.inc.php config/config.inc.php`
 `sudo chmod o+w config/config.inc.php`
-Browse to `wp-goodpill`, login, and create `goodpill` database
-Browse to `/`, login, and install wordpress
+`mysqladmin -u root create goodpill` or browse to `<public_ip>/wp-goodpill`, login, and create `goodpill` database
+
+Transfer Data
+- Exit out of ssh and then `scp -v -r -i /Volumes/EC2/sirum_ec2_key.pem /Users/adam/Downloads/<localSQL> ec2-user@<ip address>:`
+`sudo gunzip <filename>`
+`sudo mysql -u root -p goodpill < file.sql`
+If needed, goto goodpill > wp_options > site_url/home to <public IP>
 
 Install FTP so Wordpress can install themes and plugins
 `sudo yum install vsftpd`
 `sudo nano /etc/vsftpd/vsftpd.conf`
 - change anonymous_enable to “=NO”
 - uncomment chroot_local_user=YES
-- add pasv_enable=YES
-- add pasv_min_port=1024
-- add pasv_max_port=1048
-- add pasv_address=<Public IP>
-`sudo usermod -d /goodpill/html adminsirum`
-`sudo chown -R adminsirum /goodpill/html`
+- add
+`pasv_enable=YES
+pasv_min_port=1024
+pasv_max_port=1048
+pasv_address=<Public IP>`
+
 `sudo service vsftpd restart`
 - Debug `sudo nano /var/log/xferlog`
+
+Install Wordpress
+Browse to `/`, login, and install wordpress and db updates as necessary
+- Install Storefront Theme
+- Install Custom Order Status for WooCommerce
+- Install Fast User Switching
+- Install My Custom functions
+- Install Username Changer
+- Install WC Duplicate Order
+- Install WooCommerce
+- Install WooCommerce Admin
+- Install WooCommerce Stripe Gateway
+- Copy and Pase Woo.php into Settings > PHP Inserter
+
+Fix IP Addresses
+- WP Settings > General > Actual URL
+- In AWS Console, move elastic IP to new server OR
+- Switch CloudFlare/Siteground to new IP and test
+- To get WP Pages to Save you may need to goto WP Setting Permalinks -> Plain (Save) -> (Re)Update Each Page
+-> Post Name (Save)
+
 
 * Edit .htaccess to remove index.php from URLs
 - sudo nano /etc/httpd/conf/httpd.conf
@@ -166,7 +195,8 @@ Install FTP so Wordpress can install themes and plugins
 *  LogLevel rewrite:trace3 # if htaccess troubles
 -
 
-
+`sudo usermod -d /goodpill/html adminsirum`
+`sudo chown -R adminsirum /goodpill/html`
 - `mysqladmin -uroot create goodpill`
 - `sudo service mysqld start`
 - `sudo service httpd start`
