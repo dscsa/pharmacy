@@ -1020,31 +1020,58 @@ function dscsa_login_redirect() {
 add_filter ('wp_redirect', 'dscsa_wp_redirect');
 function dscsa_wp_redirect($location) {
 
-  //The GET ARRAY APPEARS TO BE ALWAYS EMPTY
-  //global $wp;
-  //debug_email("TEST dscsa_bypass_logout_confirmation", isset($wp->query_vars['customer-logout'])." | ".strpos($_SERVER['HTTP_COOKIE'], 'impersonated_by')." | ".$location." | ".get_current_user_id()." | ".is_admin()." | GET ".print_r($_GET, true)." | POST ".print_r(sanitize($_POST), true)." | QUERY VARS ".print_r($wp->query_vars, true)." | SERVER".print_r($_SERVER, true));
-  //debug_email("dscsa_wp_redirect", print_r($location, true).print_r($_GET, true).print_r(sanitize($_POST), true).print_r($_SERVER['HTTP_COOKIE'], true));
+  debug_email('dscsa_wp_redirect', 'Is Admin: '.is_admin().' Location: '.$location.' GET:'.print_r($_GET, true).' SERVER:'.print_r($_SERVER, true));
 
-  //After successful order, add another item back into cart.
+  //After successful order, add another item back into cart, so that the "Request Refills" page continues to have a CheckOut which requires >=1 item in the "Cart"
   //https://www.goodpill.org/order-confirmation/
   if (substr($location, -20) == '/order-confirmation/')
     return $location.'?add-to-cart=8';
 
+  //If someone Saves Acount Details, bring them back to that page not the "Request Refills Page"
   if ($_POST['save_account_details'])
     return home_url('/account/details/');
 
-  if ($_GET['imp'] AND strpos($_SERVER['HTTP_COOKIE'], 'impersonated_by') !== false AND is_registered()) {
-    debug_email('impersonating', 'Is Admin: '.is_admin().' Location: '.$location.' GET:'.print_r($_GET, true).' SERVER:'.print_r($_SERVER, true));
-    //wp_logout();
+
+  //If Admin is impersonating user and tries to impersonate a different user before logging out of old user, they will be redirected to old users page
+  //So we logout of that user first then redirect to that page again
+  if (is_impersonating() AND $_SERVER['SCRIPT_NAME'] == '/wp-admin/index.php' AND substr($location, -9) == '/account/') {
+    debug_email('end impersonating', 'Is Admin: '.is_admin().' Location: '.$location.' GET:'.print_r($_GET, true).' SERVER:'.print_r($_SERVER, true));
+    wp_logout();
+    return home_url($_SERVER['REQUEST_URI']);
+  }
+
+  //If Admin is impersonating user with "Fast-User-Switching" Plugin, take them to the account details page
+  //If they are already impersonating (logged in as a differing user) log them out of that user first
+  //If they are not registered take them to the default New Order page which is the 2nd half of registration
+  if ($_GET['imp'] AND is_impersonating() AND is_registered()) {
+    debug_email('start impersonating', 'Is Admin: '.is_admin().' Location: '.$location.' GET:'.print_r($_GET, true).' SERVER:'.print_r($_SERVER, true));
     return home_url('/account/details/'); //If user is registered already, switch to account/details rather than new order.  Otherwise goto new order page so we complete the registration.
   }
 
-  if ($_GET['action'] == 'logout' AND strpos($_SERVER['HTTP_COOKIE'], 'impersonated_by') !== false) {
+  //When logging out of an impersonated user, bring admin back to that person's order page
+  if ($_GET['action'] == 'logout' AND is_impersonating()) {
     WC()->cart->remove_coupons(); //applied coupons seem to follow the admin user otherwise
     return home_url('/wp-admin/edit.php?s&post_status=all&post_type=shop_order&_customer_user='.get_current_user_id()); //return home_url('/wp-admin/edit.php?post_type=ticket&author='.get_current_user_id()); //Switch to user's tickets rather than ??
   }
 
   return $location;
+}
+
+add_action('admin_page_access_denied', 'dscsa_admin_page_access_denied');
+function dscsa_admin_page_access_denied($var) {
+
+  debug_email('dscsa_admin_page_access_denied', 'Is Admin: '.is_admin().' Location: '.$var.' GET:'.print_r($_GET, true).' SERVER:'.print_r($_SERVER, true));
+
+  if (is_impersonating()) {
+    wp_logout();
+    wp_redirect(home_url($_SERVER['REQUEST_URI']));
+    exit;
+  }
+  
+}
+
+function is_impersonating() {
+  return strpos($_SERVER['HTTP_COOKIE'], 'impersonated_by') !== false;
 }
 
 function is_registered() {
@@ -2406,7 +2433,7 @@ function email_error($heading) {
 }
 
 function debug_email($subject, $body) {
-   $type = strpos($_SERVER['HTTP_COOKIE'], 'impersonated_by') === false ? "USER" : "ADMIN";
+   $type = is_admin() OR strpos($_SERVER['HTTP_COOKIE'], 'impersonated_by') !== false ? "ADMIN" : "USER";
    wp_mail('adam.kircher@gmail.com', "WP_MAIL $type: $subject", $body);
 }
 
