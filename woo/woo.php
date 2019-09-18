@@ -320,15 +320,6 @@ function admin_fields($user_id = null) {
   ];
 }
 
-//github: awesome-Support/includes/admin/functions-user-profile.php
-//github: awesome-Support/includes/admin/metaboxes/user-profile.php
-//https://www.goodpill.org/wp-admin/user-edit.php?user_id=1636&wp_http_referer=%2Fwp-admin%2Fusers.php
-//woocommerce_reset_password_notification no working
-add_filter('wpas_user_profile_contact_name', 'dscsa_user_profile_contact_name', 10, 3);
-function dscsa_user_profile_contact_name($display_name, $user, $ticket_id) {
-  return "<a target='_blank' href='https://www.goodpill.org/wp-admin/?impersonate=$user->ID'>$display_name</a>";
-}
-
 add_action('retrieve_password_key', 'dscsa_retrieve_password_key', 10, 2);
 function dscsa_retrieve_password_key($user_login, $reset_key) {
 
@@ -1042,8 +1033,11 @@ function dscsa_wp_redirect($location) {
   if ($_POST['save_account_details'])
     return home_url('/account/details/');
 
-  if ($_GET['imp'] AND strpos($_SERVER['HTTP_COOKIE'], 'impersonated_by') !== false AND is_registered())
+  if ($_GET['imp'] AND strpos($_SERVER['HTTP_COOKIE'], 'impersonated_by') !== false AND is_registered()) {
+    debug_email('impersonating', 'Is Admin: '.is_admin().' Location: '.$location.' GET:'.print_r($_GET, true).' SERVER:'.print_r($_SERVER, true));
+    //wp_logout();
     return home_url('/account/details/'); //If user is registered already, switch to account/details rather than new order.  Otherwise goto new order page so we complete the registration.
+  }
 
   if ($_GET['action'] == 'logout' AND strpos($_SERVER['HTTP_COOKIE'], 'impersonated_by') !== false) {
     WC()->cart->remove_coupons(); //applied coupons seem to follow the admin user otherwise
