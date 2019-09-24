@@ -133,7 +133,11 @@ function get_days_dispensed($item) {
 
 function set_days_dispensed($item, $days, $message, $mysql) {
 
-  if ( ! $item['days_dispensed_default']) {
+  if ( ! $item['rx_number'] OR ! $item['invoice_number'] ) {
+    echo "
+    Error set_days_dispensed? ".print_r($item, true);
+  }
+  else if ( ! $item['days_dispensed_default']) {
 
     $message_key  = array_search($message, RX_MESSAGE);
     $message_text = $message[$item['language']];
@@ -157,8 +161,8 @@ function set_days_dispensed($item, $days, $message, $mysql) {
 
     $mysql->run($sql);
 
-    echo "
-    set_days_dispensed days:$days, $sql";//.print_r($item, true);
+    //echo "
+    //set_days_dispensed days:$days, $sql";//.print_r($item, true);
 
   }
   else {
@@ -178,7 +182,7 @@ function set_days_dispensed($item, $days, $message, $mysql) {
     $mysql->run($sql);
 
     echo "
-    Actual? set_days_dispensed days:$days, $sql";//.print_r($item, true);
+    Actual? set_days_dispensed days:$days, $sql".print_r($item, true);
   }
 }
 
