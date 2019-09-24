@@ -1020,7 +1020,7 @@ function dscsa_login_redirect() {
 add_filter ('wp_redirect', 'dscsa_wp_redirect');
 function dscsa_wp_redirect($location) {
 
-  debug_email('dscsa_wp_redirect', 'Is Admin: '.is_admin().' Location: '.$location.' GET:'.print_r($_GET, true).' SERVER:'.print_r($_SERVER, true));
+  debug_email('dscsa_wp_redirect', 'Current User Id: '.get_current_user_id().' REQUEST_URI: '.home_url($_SERVER['REQUEST_URI']).' Is Admin: '.is_admin().' Location: '.$location.' GET:'.print_r($_GET, true).' SERVER:'.print_r($_SERVER, true));
 
   //After successful order, add another item back into cart, so that the "Request Refills" page continues to have a CheckOut which requires >=1 item in the "Cart"
   //https://www.goodpill.org/order-confirmation/
@@ -1034,17 +1034,19 @@ function dscsa_wp_redirect($location) {
 
   //If Admin is impersonating user and tries to impersonate a different user before logging out of old user, they will be redirected to old users page
   //So we logout of that user first then redirect to that page again
-  if (is_impersonating() AND $_SERVER['SCRIPT_NAME'] == '/wp-admin/index.php' AND substr($location, -9) == '/account/') {
-    debug_email('end impersonating', 'Is Admin: '.is_admin().' Location: '.$location.' GET:'.print_r($_GET, true).' SERVER:'.print_r($_SERVER, true));
-    wp_logout();
-    return home_url($_SERVER['REQUEST_URI']);
+  if ( ! $_GET['imp'] AND is_impersonating() AND $_SERVER['SCRIPT_NAME'] == '/wp-admin/index.php' AND substr($location, -9) == '/account/') {
+    debug_email('dscsa_wp_redirect end impersonating', 'Current User Id: '.get_current_user_id().' REQUEST_URI: '.home_url($_SERVER['REQUEST_URI']).' Is Admin: '.is_admin().' Location: '.$location.' GET:'.print_r($_GET, true).' SERVER:'.print_r($_SERVER, true));
+    $_SERVER['HTTP_REFERER'] = home_url(home_url($_SERVER['REQUEST_URI']));
+    //wp_destroy_current_session();
+    wp_logout(); //Fast User Switching Hooks into this and redirect to $_SERVER['HTTP_REFERER'])
+    exit;
   }
 
   //If Admin is impersonating user with "Fast-User-Switching" Plugin, take them to the account details page
   //If they are already impersonating (logged in as a differing user) log them out of that user first
   //If they are not registered take them to the default New Order page which is the 2nd half of registration
   if ($_GET['imp'] AND is_impersonating() AND is_registered()) {
-    debug_email('start impersonating', 'Is Admin: '.is_admin().' Location: '.$location.' GET:'.print_r($_GET, true).' SERVER:'.print_r($_SERVER, true));
+    //debug_email('dscsa_wp_redirect start impersonating', 'Current User Id: '.get_current_user_id().' REQUEST_URI: '.home_url($_SERVER['REQUEST_URI']).' Is Admin: '.is_admin().' Location: '.$location.' GET:'.print_r($_GET, true).' SERVER:'.print_r($_SERVER, true));
     return home_url('/account/details/'); //If user is registered already, switch to account/details rather than new order.  Otherwise goto new order page so we complete the registration.
   }
 
@@ -1060,14 +1062,15 @@ function dscsa_wp_redirect($location) {
 add_action('admin_page_access_denied', 'dscsa_admin_page_access_denied');
 function dscsa_admin_page_access_denied($var) {
 
-  debug_email('dscsa_admin_page_access_denied', 'Is Admin: '.is_admin().' Location: '.$var.' GET:'.print_r($_GET, true).' SERVER:'.print_r($_SERVER, true));
+  debug_email('dscsa_wp_redirect dscsa_admin_page_access_denied', 'Current User Id: '.get_current_user_id().' REQUEST_URI: '.home_url($_SERVER['REQUEST_URI']).' Is Admin: '.is_admin().' Location: '.$var.' GET:'.print_r($_GET, true).' SERVER:'.print_r($_SERVER, true));
 
   if (is_impersonating()) {
-    wp_logout();
-    wp_redirect(home_url($_SERVER['REQUEST_URI']));
+    $_SERVER['HTTP_REFERER'] = home_url($_SERVER['REQUEST_URI']);
+    //wp_destroy_current_session();
+    wp_logout(); //Fast User Switching Hooks into this and redirect to $_SERVER['HTTP_REFERER'])
     exit;
   }
-  
+
 }
 
 function is_impersonating() {
