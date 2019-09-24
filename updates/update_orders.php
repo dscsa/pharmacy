@@ -95,7 +95,7 @@ function update_orders() {
         payment_due   = $update[payment_due],
         payment_date_autopay = $update[payment_date_autopay]
       WHERE
-        invoice_number = $order[0][invoice_number]
+        invoice_number = {$order[0]['invoice_number']}
     ";
 
     $mysql->run($sql);
