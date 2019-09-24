@@ -43,12 +43,16 @@ If not using windows authentication:
 Good Reference:http://coenraets.org/blog/2012/01/setting-up-wordpress-on-amazon-ec2-in-5-minutes/
 
 php 5.6 is last version that currently supports mssql:
-`sudo yum update`
-`sudo yum install php56`
-`sudo yum install php56-mbstring`
-`sudo yum install php56-mssql`
-`sudo yum install php56-gd` //Wordpress needs image library to crop & resize:
-`sudo nano /etc/php.ini`
+```
+sudo yum update`
+sudo yum install php56
+sudo yum install php56-mbstring
+sudo yum install php56-mssql
+sudo yum install php56-gd //Wordpress needs image library to crop & resize
+```
+
+```
+sudo nano /etc/php.ini
 - sendmail_from = "webform@goodpill.org"
 - sendmail_path = /usr/sbin/sendmail -t -i -f webform@goodpill.org
 - smtp_port = 25
@@ -61,6 +65,7 @@ php 5.6 is last version that currently supports mssql:
 - date.timezone = 'UTC'
 - display_errors = On
 - error_log = "/goodpill/html/php_errors.log"
+```
 
 MYSQL
 `sudo yum install mysql57-server`
@@ -91,7 +96,6 @@ Update Permissions
 `sudo find /goodpill/html/ -type f -exec chmod 644 {} \;`
 `sudo chmod 400 /goodpill/html/wp-config.php`
 `sudo chown -R apache:apache /goodpill/html`
-
 
 Configure Apache
 `sudo yum install httpd24`
@@ -205,8 +209,38 @@ Fix IP Addresses
 - Change woocommerce links
 - Change wordpress settings > permalink's to post-name
 
+Install Webform
+```
+sudo yum install git
+sudo git clone https://github.com/dscsa/webform
+sudo nano /goodpill/webform/keys.php //Copy & paste keys over
+sudo crontab -e
+*/5 * * * * sudo php /goodpill/webform/cronjobs/syncing.php
+```
 
-# Wordpress on Windows
+Install SSL Certs
+- Idea is that we can skip LetsEncrypt and just use CloudFlare for our public certificates and use a self-signed certificate for cloudflare to connect to
+- Set CloudFlare > Cyrpto > SSL > "Full" (which works with self-signed certs)
+- Make a self-signed certs `sudo openssl req -x509 -nodes -days 2000 -newkey rsa:2048 -keyout /goodpill/ssl/key.pem -out /goodpill/ssl/certificate.pem`
+- Update httpd.conf (Not sure whey we don't need to point to created key files in this config but it seems to be working)
+```
+# Redirect http://example.com and http://www.example.com to main site
+<VirtualHost *:80>
+#  SSLEngine on
+#  SSLCertificateFile /goodpill/ssl/certificate.pem
+#  SSLCertificateKeyFile /goodpill/ssl/key.pem
+  ServerName www.goodpill.org
+  ServerAlias goodpill.org
+
+  Redirect / https://www.goodpill.org/
+</VirtualHost>
+```
+
+
+
+
+
+## OLD Wordpress on Windows
 User Windows Platform Installer to install.
 For Missing Dependency Errors:
 - Server Manager > Manage > Add Roles and Features
@@ -223,23 +257,7 @@ For Missing Dependency Errors:
 * Run SMTP Server (don't remember how)
 * Right Click > Properties > Access > Relay > Select All Except the List Below
 
-#Install SSL Certs
-# Idea is that we can skip LetsEncrypt and just use CloudFlare for our public certificates and use a self-signed certificate for cloudflare to connect to
-- Set CloudFlare > Cyrpto > SSL > "Full" (which works with self-signed certs)
-- Make a self-signed certs `sudo openssl req -x509 -nodes -days 2000 -newkey rsa:2048 -keyout /goodpill/ssl/key.pem -out /goodpill/ssl/certificate.pem`
-- Update httpd.conf (Not sure whey we don't need to point to created key files in this config but it seems to be working)
-```
-# Redirect http://example.com and http://www.example.com to main site
-<VirtualHost *:80>
-#  SSLEngine on
-#  SSLCertificateFile /goodpill/ssl/certificate.pem
-#  SSLCertificateKeyFile /goodpill/ssl/key.pem
-  ServerName www.goodpill.org
-  ServerAlias goodpill.org
 
-  Redirect / https://www.goodpill.org/
-</VirtualHost>
-```
 
 #Install SSL Certs (OLD)
 - I installed Server Manager > Manage > Add Role and Features > Feature > DNS, but not sure if that is necessary or not.
