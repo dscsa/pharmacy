@@ -40,7 +40,7 @@ function import_cp_orders() {
       status_cn <> 3
   ");
 
-  log("
+  log_info("
   import_cp_orders: rows ".count($orders[0]));
 
   $keys = result_map($orders[0]);

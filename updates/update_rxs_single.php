@@ -15,7 +15,7 @@ function update_rxs_single() {
   $message = "
   update_rxs_single: $count_deleted deleted, $count_created created, $count_updated updated. ";
 
-  log($message);
+  log_info($message);
 
   mail('adam@sirum.org', "CRON: $message", $message.print_r($changes, true));
 

@@ -51,7 +51,7 @@ function import_cp_patients() {
 
   ");
 
-  log("
+  log_info("
   import_cp_patients: rows ".count($patients[0]));
 
   $keys = result_map($patients[0],
@@ -86,7 +86,7 @@ function import_cp_patients() {
             $row['payment_card_date_expired'] = date_format($date_expired, "'Y-m-t'"); //t give last day of month.  d was givign current day
           }
           else {
-            log("Error with card expiration date $date_expired: ".$val2[1]." ".print_r($row, true));
+            log_info("Error with card expiration date $date_expired: ".$val2[1]." ".print_r($row, true));
             $row['payment_card_date_expired'] = 'NULL';
           }
 

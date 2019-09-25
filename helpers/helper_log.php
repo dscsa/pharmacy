@@ -1,6 +1,6 @@
 <?php
 
-function log($msg) {
+function log_info($msg) {
 
   if (isset($_ENV['SSH_CLIENT'])) {
     echo $msg;

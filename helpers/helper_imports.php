@@ -61,7 +61,7 @@ function assert_length(&$row, $key, $min, $max = null) {
 
   if ($len >= $min AND $len <= $max) return;
 
-  // log("
+  // log_info("
   //  Assert Length: $key => $row[$key] has length of $len but needs to be between $min and $max ".print_r($row, true));
 
   $row[$key] = 'NULL';

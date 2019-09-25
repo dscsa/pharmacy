@@ -49,7 +49,7 @@ function parse_sig($rx) {
       return $parsed;
     }
 
-    log('Could not parse $sig '.$rx['sig_raw'].' | '.$sig_clean.' | '.print_r($parsed, true));
+    log_info('Could not parse $sig '.$rx['sig_raw'].' | '.$sig_clean.' | '.print_r($parsed, true));
   }
 }
 
@@ -221,6 +221,6 @@ function test_parse_sig() {
 
   foreach ($test_sigs as $i => $test_sig) {
     $parsed = parse_sig(['rx_number' => $i, 'sig_raw' => $test_sig]);
-    log($test_sig.print_r($parsed, true));
+    log_info($test_sig.print_r($parsed, true));
   }
 }

@@ -18,7 +18,7 @@ function update_order_items() {
   $message = "
   update_order_items: $count_deleted deleted, $count_created created, $count_updated updated. ";
 
-  log($message);
+  log_info($message);
 
   mail('adam@sirum.org', "CRON: $message", $message.print_r($changes, true));
 
@@ -47,7 +47,7 @@ function update_order_items() {
 
     $item = $mysql->run($sql)[0][0];
 
-    log("
+    log_info("
     Item: $sql
     ".print_r($item, true));
 
@@ -100,9 +100,9 @@ function update_order_items() {
   //  - think about what needs to be updated based on changes
   foreach($changes['updated'] as $updated) {
 
-    log("Updated Item No Action: ");
+    log_info("Updated Item No Action: ");
 
-    log("Order Items: ".print_r(changed_fields($updated), true).print_r($updated, true));
+    log_info("Order Items: ".print_r(changed_fields($updated), true).print_r($updated, true));
 
     //TODO Update Salesforce Order Total & Order Count & Order Invoice using REST API or a MYSQL Zapier Integration
   }

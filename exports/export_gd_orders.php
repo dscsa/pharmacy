@@ -2,7 +2,7 @@
 
 function export_gd_update_invoice($order) {
 
-  log("
+  log_info("
   export_gd_update_invoice ");//.print_r($order_item, true);
 
   if ( ! count($order)) return;
@@ -20,5 +20,5 @@ function export_gd_update_invoice($order) {
   $result  = file_get_contents( GD_URL.'?GD_KEY='.GD_KEY, false, $context );
   //$response = json_decode( $result );
 
-  log($result);
+  log_info($result);
 }

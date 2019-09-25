@@ -58,7 +58,7 @@ class Mysql {
         $results = $this->_getResults($stmt, $sql, $debug);
 
         if ($debug)
-          log(count($results)." recordsets, the first with ".count($results[0])." rows in ".(microtime(true) - $starttime)." seconds: ".substr($sql, 0, 30));
+          log_info(count($results)." recordsets, the first with ".count($results[0])." rows in ".(microtime(true) - $starttime)." seconds: ".substr($sql, 0, 30));
 
         return $results;
     }
@@ -100,7 +100,7 @@ class Mysql {
 
     function _emailError() {
       $message = print_r(func_get_args(), true).' '.print_r(mysql_error(), true);
-      log("CRON: Debug MYSQL $message");
+      log_info("CRON: Debug MYSQL $message");
       mail('adam@sirum.org', "CRON: Debug MYSQL ", $message);
     }
 }
