@@ -11,7 +11,7 @@ function clean_val(&$val, &$default = null) {
     $val = $default;
   }
 
-  $val = mysql_real_escape_string(trim($val));
+  $val = mysqli_real_escape_string(trim($val));
   return ($val === '' OR $val === '<Not Specified>' OR $val === 'NULL') ? 'NULL' : "'$val'";
 }
 
