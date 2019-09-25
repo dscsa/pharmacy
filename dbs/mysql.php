@@ -35,7 +35,7 @@ class Mysql {
         $starttime = microtime(true);
 
         try {
-          $stmt = mysqli_query($sql, $this->connection);
+          $stmt = mysqli_query($this->connection, $sql);
         }
         catch (Exception $e) {
           $this->_emailError('SQL Error', $e->getMessage(), $sql, $debug);
@@ -43,7 +43,7 @@ class Mysql {
 
         if ($stmt === false) {
 
-          $message = mysqli_error();
+          $message = mysqli_error($this->connection);
 
           //Transaction (Process ID 67) was deadlocked on lock resources with another process and has been chosen as the deadlock victim. Rerun the transaction.
           if (strpos($message, 'Rerun') !== false) {
@@ -99,7 +99,7 @@ class Mysql {
     }
 
     function _emailError() {
-      $message = print_r(func_get_args(), true).' '.print_r(mysqli_connect_error(), true).' '.print_r(mysqli_error(), true);
+      $message = print_r(func_get_args(), true).' '.print_r(mysqli_connect_error(), true).' '.print_r(mysqli_error($this->connection), true);
       log_info("CRON: Debug MYSQL $message");
       mail('adam@sirum.org', "CRON: Debug MYSQL ", $message);
     }
