@@ -1,6 +1,6 @@
 <?php
 
-function log_info($msg) {
+function log_info($msg = null) {
 
   if (isset($_ENV['SSH_CLIENT'])) {
     echo $msg;
@@ -11,9 +11,9 @@ function log_info($msg) {
     $_SERVER['webform_log'] = [];
   }
 
-  if ($msg) {
-    $_SERVER['webform_log'][] = $msg;
-  } else {
+  if (isnull($msg)) {
     return implode('\n', $_SERVER['webform_log']);
   }
+
+  $_SERVER['webform_log'][] = $msg;
 }

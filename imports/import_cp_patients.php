@@ -93,14 +93,20 @@ function import_cp_patients() {
         }
       }
 
-      if ($val2[3] AND (substr($val2[3], 0, 6) != "track_")) {
+      if ( ! $val2[3]) {
         $row['tracking_coupon'] = 'NULL';
-        $row['payment_coupon']  = clean_val($val2[3]);
-        assert_length($row, 'payment_coupon', 5, 40); //with single quotes
-      } else {
+        $row['payment_coupon']  = 'NULL';
+      }
+      else if (substr($val2[3], 0, 6) == "track_") {
+        mail('adam@sirum.org', "Really Tracking Coupon???", print_r($row, true).print_r($val2).' '.substr($val2[3], 0, 6));
         $row['payment_coupon']  = 'NULL';
         $row['tracking_coupon'] = clean_val($val2[3]);
         assert_length($row, 'tracking_coupon', 5, 40); //with single quotes
+      }
+      else {
+        $row['tracking_coupon'] = 'NULL';
+        $row['payment_coupon']  = clean_val($val2[3]);
+        assert_length($row, 'payment_coupon', 5, 40); //with single quotes
       }
 
 
