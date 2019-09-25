@@ -93,7 +93,7 @@ function import_cp_patients() {
         }
       }
 
-      if ($val2[3] && substr($val2[3], 0, 6) != "track_") {
+      if ($val2[3] AND (substr($val2[3], 0, 6) != "track_")) {
         $row['tracking_coupon'] = 'NULL';
         $row['payment_coupon']  = clean_val($val2[3]);
         assert_length($row, 'payment_coupon', 5, 40); //with single quotes
