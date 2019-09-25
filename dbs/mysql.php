@@ -13,20 +13,20 @@ class Mysql {
    function _connect() {
 
         //sqlsrv_configure("WarningsReturnAsErrors", 0);
-        $conn = mysqli_connect($this->ipaddress, $this->username, $this->password);
+        $conn = mysqli_connect($this->ipaddress, $this->username, $this->password, $this->db);
 
         if ( ! is_resource($conn)) {
-          $this->_emailError('Error Connection 1 of 2');
+            $this->_emailError('Error Connection 1 of 2';
 
-          $conn = mysqli_connect($this->ipaddress, $this->username, $this->password);
+            $conn = mysqli_connect($this->ipaddress, $this->username, $this->password, $this->db);
 
-          if ( ! is_resource($conn)) {
-            $this->_emailError('Error Connection 2 of 2');
-            return false;
-          }
+            if ( ! is_resource($conn)) {
+              $this->_emailError('Error Connection 2 of 2');
+              return false;
+            }
         }
 
-        mysqli_select_db($conn, $this->db) ?: $this->_emailError('Could not select database '.$this->db);
+        //mysqli_select_db($conn, $this->db) ?: $this->_emailError('Could not select database '.$this->db);
         return $conn;
     }
 
@@ -99,7 +99,7 @@ class Mysql {
     }
 
     function _emailError() {
-      $message = print_r(func_get_args(), true).' '.print_r(mysqli_error(), true);
+      $message = print_r(func_get_args(), true).' '.print_r(mysqli_connect_error(), true).' '.print_r(mysqli_error(), true);
       log_info("CRON: Debug MYSQL $message");
       mail('adam@sirum.org', "CRON: Debug MYSQL ", $message);
     }
