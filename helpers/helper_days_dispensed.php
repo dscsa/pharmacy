@@ -210,7 +210,7 @@ function days_default($item, $days_std = 90) {
 
   log_info($message);
 
-  mail('adam@sirum.org', "days_default()", $message);
+  //mail('adam@sirum.org', "days_default()", $message);
 
   return $days_default;
 }

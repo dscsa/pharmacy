@@ -67,6 +67,10 @@ log_info("
 
 ");
 
+ //This does the final emaul
+mail('adam@sirum.org', "WebForm CRON Finished", log_info());
+
+
 function timer($label, &$start) {
   $start = $start ?: [microtime(true), microtime(true)];
   $stop  = microtime(true);

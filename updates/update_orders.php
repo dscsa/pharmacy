@@ -13,9 +13,9 @@ function update_orders() {
   $message = "
   update_orders: $count_deleted deleted, $count_created created, $count_updated updated. ";
 
-  log_info($message);
+  log_info($message.print_r($changes, true));
 
-  mail('adam@sirum.org', "CRON: $message", $message.print_r($changes, true));
+  //mail('adam@sirum.org', "CRON: $message", $message.print_r($changes, true));
 
   if ( ! $count_deleted AND ! $count_created AND ! $count_updated) return;
 
@@ -86,22 +86,27 @@ function update_orders() {
 
   function set_payment($order, $update, $mysql) {
 
-    $sql = "
-      UPDATE
-        gp_orders
-      SET
-        payment_total = $update[payment_total],
-        payment_fee   = $update[payment_fee],
-        payment_due   = $update[payment_due],
-        payment_date_autopay = $update[payment_date_autopay]
-      WHERE
-        invoice_number = {$order[0]['invoice_number']}
-    ";
+    if ($order[0]['invoice_number']) {
+      $sql = "
+        UPDATE
+          gp_orders
+        SET
+          payment_total = $update[payment_total],
+          payment_fee   = $update[payment_fee],
+          payment_due   = $update[payment_due],
+          payment_date_autopay = $update[payment_date_autopay]
+        WHERE
+          invoice_number = {$order[0]['invoice_number']}
+      ";
 
-    $mysql->run($sql);
+      $mysql->run($sql);
 
-    foreach($order as $i => $item)
-      $order[$i] = $update + $item;
+      foreach($order as $i => $item)
+        $order[$i] = $update + $item;
+    }
+    else {
+      log_info('set_payment error. no invoice number '.print_r($order, true).print_r($update, true));
+    }
 
     return $order;
   }

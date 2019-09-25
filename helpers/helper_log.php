@@ -14,6 +14,6 @@ function log_info($msg) {
   if ($msg) {
     $_SERVER['webform_log'][] = $msg;
   } else {
-    echo implode('\n', $_SERVER['webform_log']);
+    return implode('\n', $_SERVER['webform_log']);
   }
 }
