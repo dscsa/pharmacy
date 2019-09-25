@@ -1,5 +1,6 @@
 <?php
 
+require_once 'helpers/helper_log.php';
 require_once 'helpers/helper_constants.php';
 
 require_once 'imports/import_v2_drugs.php';
