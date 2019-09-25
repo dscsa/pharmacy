@@ -11,7 +11,7 @@ function log_info($msg = null) {
     $_SERVER['webform_log'] = [];
   }
 
-  if (isnull($msg)) {
+  if (is_null($msg)) {
     return implode('\n', $_SERVER['webform_log']);
   }
 
