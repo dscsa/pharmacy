@@ -7,7 +7,7 @@ function log_info($msg) {
     return;
   }
 
-  if (is_null($_SERVER['webform_log'])) {
+  if ( ! isset($_SERVER['webform_log'])) {
     $_SERVER['webform_log'] = [];
   }
 
