@@ -3,7 +3,8 @@
 function log($msg) {
 
   if (isset($_ENV['SSH_CLIENT'])) {
-    return echo $msg;
+    echo $msg;
+    return;
   }
 
   if (is_null($_SERVER['webform_log'])) {
