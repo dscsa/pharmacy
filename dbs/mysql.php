@@ -16,7 +16,7 @@ class Mysql {
         $conn = mysqli_connect($this->ipaddress, $this->username, $this->password, $this->db);
 
         if (mysqli_connect_errno()) {
-            $this->_emailError('Error Connection 1 of 2 ';
+            $this->_emailError('Error Connection 1 of 2 ');
 
             $conn = mysqli_connect($this->ipaddress, $this->username, $this->password, $this->db);
 
