@@ -215,7 +215,8 @@ sudo yum install git
 sudo git clone https://github.com/dscsa/webform (sudo git pull to update)
 sudo nano /goodpill/webform/keys.php //Copy & paste keys over
 sudo crontab -e
-*/5 * * * * sudo php /goodpill/webform/cronjobs/syncing.php
+- Add */5 * * * * sudo php /goodpill/webform/cronjobs/syncing.php
+- Shift ZZ to Save & Exit
 ```
 
 Install SSL Certs

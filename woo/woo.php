@@ -1017,10 +1017,37 @@ function dscsa_login_redirect() {
   return home_url('/account/orders/?add-to-cart=8#/');
 }
 
+add_filter('site_url', 'dscsa_site_url', 10, 4);
+function dscsa_site_url($site_url) {
+  //debug_email('dscsa_wp_redirect dscsa_site_url', print_r(func_get_args(), true));
+  return $site_url;
+}
+
+add_filter('admin_url', 'dscsa_admin_url', 10, 4);
+function dscsa_admin_url($admin_url) {
+  //debug_email('dscsa_wp_redirect dscsa_admin_url', print_r(func_get_args(), true));
+  return $admin_url;
+}
+
+add_filter('home_url', 'dscsa_home_url', 10, 4);
+function dscsa_home_url($home_url) {
+  //debug_email('dscsa_wp_redirect dscsa_home_url', print_r(func_get_args(), true));
+  return $home_url;
+}
+
+
 add_filter ('wp_redirect', 'dscsa_wp_redirect');
 function dscsa_wp_redirect($location) {
 
   debug_email('dscsa_wp_redirect', 'Current User Id: '.get_current_user_id().' REQUEST_URI: '.home_url($_SERVER['REQUEST_URI']).' Is Admin: '.is_admin().' Location: '.$location.' GET:'.print_r($_GET, true).' SERVER:'.print_r($_SERVER, true));
+
+
+  //Not sure how or why domain changes to salesforce but need to revert it back
+  if (substr($location, 0, 33) == 'https://sirum.lightning.force.com') {
+    debug_email('dscsa_wp_redirect changing base url', $location, substr($location, 33), home_url(substr($location, 33)));
+
+    $location = 'https://www.goodpill.org/wp-admin/'.substr($location, 33);
+  }
 
   //After successful order, add another item back into cart, so that the "Request Refills" page continues to have a CheckOut which requires >=1 item in the "Cart"
   //https://www.goodpill.org/order-confirmation/
@@ -1036,7 +1063,7 @@ function dscsa_wp_redirect($location) {
   //So we logout of that user first then redirect to that page again
   if ( ! $_GET['imp'] AND is_impersonating() AND $_SERVER['SCRIPT_NAME'] == '/wp-admin/index.php' AND substr($location, -9) == '/account/') {
     debug_email('dscsa_wp_redirect end impersonating', 'Current User Id: '.get_current_user_id().' REQUEST_URI: '.home_url($_SERVER['REQUEST_URI']).' Is Admin: '.is_admin().' Location: '.$location.' GET:'.print_r($_GET, true).' SERVER:'.print_r($_SERVER, true));
-    $_SERVER['HTTP_REFERER'] = home_url(home_url($_SERVER['REQUEST_URI']));
+    $_SERVER['HTTP_REFERER'] = home_url($_SERVER['REQUEST_URI']);
     //wp_destroy_current_session();
     wp_logout(); //Fast User Switching Hooks into this and redirect to $_SERVER['HTTP_REFERER'])
     exit;
