@@ -15,12 +15,12 @@ class Mysql {
         //sqlsrv_configure("WarningsReturnAsErrors", 0);
         $conn = mysqli_connect($this->ipaddress, $this->username, $this->password, $this->db);
 
-        if ( ! is_resource($conn)) {
-            $this->_emailError('Error Connection 1 of 2');
+        if (mysqli_connect_errno()) {
+            $this->_emailError('Error Connection 1 of 2 ';
 
             $conn = mysqli_connect($this->ipaddress, $this->username, $this->password, $this->db);
 
-            if ( ! is_resource($conn)) {
+            if (mysqli_connect_errno()) {
               $this->_emailError('Error Connection 2 of 2');
               return false;
             }
@@ -99,7 +99,7 @@ class Mysql {
     }
 
     function _emailError() {
-      $message = print_r(func_get_args(), true).' '.print_r(isset($this->connection) ? mysqli_error($this->connection) : mysqli_connect_error(), true);
+      $message = print_r(func_get_args(), true).' '.print_r(isset($this->connection) ? mysqli_connect_errno($this->connection).': '.mysqli_error($this->connection) : mysqli_connect_errno().': '.mysqli_connect_error(), true);
       log_info("CRON: Debug MYSQL $message");
       mail('adam@sirum.org', "CRON: Debug MYSQL ", $message);
     }
