@@ -23,47 +23,47 @@ timer("", $time);
 
 //Imports
 import_v2_drugs();
-echo timer("import_v2_drugs", $time);
+log(timer("import_v2_drugs", $time));
 
 import_v2_stock_by_month();
-echo timer("import_v2_stock_by_month", $time);
+log(timer("import_v2_stock_by_month", $time));
 
 import_cp_rxs_single();
-echo timer("import_cp_rxs_single", $time);
+log(timer("import_cp_rxs_single", $time));
 
 import_cp_patients();
-echo timer("import_cp_patients", $time);
+log(timer("import_cp_patients", $time));
 
 import_cp_order_items();
-echo timer("import_cp_order_items", $time);
+log(timer("import_cp_order_items", $time));
 
 import_cp_orders();
-echo timer("import_cp_orders", $time);
+log(timer("import_cp_orders", $time));
 
 //Updates
 update_drugs();
-echo timer("update_drugs", $time);
+log(timer("update_drugs", $time));
 
 update_stock_by_month();
-echo timer("update_stock_by_month", $time);
+log(timer("update_stock_by_month", $time));
 
 update_rxs_single();
-echo timer("update_rxs_single", $time);
+log(timer("update_rxs_single", $time));
 
 update_patients();
-echo timer("update_patients", $time);
+log(timer("update_patients", $time));
 
 update_order_items();
-echo timer("update_order_items", $time);
+log(timer("update_order_items", $time));
 
 update_orders();
-echo timer("update_orders", $time);
+log(timer("update_orders", $time));
 
-echo "
+log("
 
 ---- DONE!!! ----
 
-";
+");
 
 function timer($label, &$start) {
   $start = $start ?: [microtime(true), microtime(true)];

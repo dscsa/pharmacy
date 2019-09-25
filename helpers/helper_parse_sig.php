@@ -45,11 +45,11 @@ function parse_sig($rx) {
 
     if ($qty_per_time AND $frequency AND $frequency_numerator AND $frequency_denominator) {
       $parsed['sig_qty_per_day'] = $qty_per_time * $frequency_numerator / $frequency_denominator / $frequency;
-      //echo 'Parsed $sig '.$rx['sig_raw'].' | '.$sig_clean.' | '.print_r($parsed, true);
+      //log('Parsed $sig '.$rx['sig_raw'].' | '.$sig_clean.' | '.print_r($parsed, true));
       return $parsed;
     }
 
-    echo 'Could not parse $sig '.$rx['sig_raw'].' | '.$sig_clean.' | '.print_r($parsed, true);
+    log('Could not parse $sig '.$rx['sig_raw'].' | '.$sig_clean.' | '.print_r($parsed, true));
   }
 }
 
@@ -221,6 +221,6 @@ function test_parse_sig() {
 
   foreach ($test_sigs as $i => $test_sig) {
     $parsed = parse_sig(['rx_number' => $i, 'sig_raw' => $test_sig]);
-    echo $test_sig.print_r($parsed, true);
+    log($test_sig.print_r($parsed, true));
   }
 }

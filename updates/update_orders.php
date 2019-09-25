@@ -13,7 +13,7 @@ function update_orders() {
   $message = "
   update_orders: $count_deleted deleted, $count_created created, $count_updated updated. ";
 
-  echo $message;
+  log($message);
 
   mail('adam@sirum.org', "CRON: $message", $message.print_r($changes, true));
 
@@ -39,18 +39,18 @@ function update_orders() {
 
     $order = $mysql->run($sql)[0];
 
-    echo "
+    log("
     Order Before: $sql
-    ".print_r($order, true);
+    ".print_r($order, true));
 
     if ($order) {
       $update = get_payment($order);
       $order  = set_payment($order, $update, $mysql);
     }
 
-    echo "
+    log("
     Order After: $sql
-    ".print_r($order, true);
+    ".print_r($order, true));
 
     return $order;
   }
@@ -145,7 +145,7 @@ function update_orders() {
   //  - think about what needs to be updated based on changes
   foreach($changes['updated'] as $updated) {
 
-    echo "Order: ".print_r(changed_fields($updated), true).print_r($updated, true);
+    log("Order: ".print_r(changed_fields($updated), true).print_r($updated, true));
 
     $order = get_full_order($updated, $mysql);
     //Probably finalized days/qty_dispensed_actual

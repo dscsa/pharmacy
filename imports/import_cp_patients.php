@@ -51,8 +51,8 @@ function import_cp_patients() {
 
   ");
 
-  echo "
-  import_cp_patients: rows ".count($patients[0]);
+  log("
+  import_cp_patients: rows ".count($patients[0]));
 
   $keys = result_map($patients[0],
     function($row) {
@@ -65,7 +65,7 @@ function import_cp_patients() {
       $val1 = explode(',', $val1) + ['', '', '', ''];
       $val2 = explode(',', $val2) + ['', '', '', ''];
 
-      //echo 'result_map: '.print_r($val1, true).' '.print_r($val2, true);
+      //log('result_map: '.print_r($val1, true).' '.print_r($val2, true));
 
       $row['pharmacy_npi']     = clean_val($val1[0]);
       $row['pharmacy_fax']     = clean_phone($val1[1]);
@@ -86,7 +86,7 @@ function import_cp_patients() {
             $row['payment_card_date_expired'] = date_format($date_expired, "'Y-m-t'"); //t give last day of month.  d was givign current day
           }
           else {
-            echo "Error with card expiration date $date_expired: ".$val2[1]." ".print_r($row, true);
+            log("Error with card expiration date $date_expired: ".$val2[1]." ".print_r($row, true));
             $row['payment_card_date_expired'] = 'NULL';
           }
 
