@@ -1,5 +1,9 @@
 <?php
 
+ini_set('memory_limit', '1024M');
+ini_set('include_path', '/goodpill/webform');
+date_default_timezone_set('America/New_York');
+
 require_once 'helpers/helper_log.php';
 require_once 'helpers/helper_constants.php';
 
@@ -16,9 +20,6 @@ require_once 'updates/update_rxs_single.php';
 require_once 'updates/update_patients.php';
 require_once 'updates/update_orders.php';
 require_once 'updates/update_order_items.php';
-
-ini_set('memory_limit', '1024M');
-date_default_timezone_set('America/New_York');
 
 timer("", $time);
 

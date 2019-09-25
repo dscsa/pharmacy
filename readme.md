@@ -216,7 +216,9 @@ sudo git clone https://github.com/dscsa/webform (sudo git pull to update)
 sudo nano /goodpill/webform/keys.php //Copy & paste keys over
 sudo crontab -e
 - "i" for insert mode, "esc" to exit insert mode
-- Add */5 * * * * sudo php /goodpill/webform/cronjobs/syncing.php
+- Add
+MAILTO=<info email>
+*/5 * * * * sudo php /goodpill/webform/cronjobs/syncing.php
 - Shift ZZ to Save & Exit
 ```
 
