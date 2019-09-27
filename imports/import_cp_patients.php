@@ -53,8 +53,8 @@ function import_cp_patients() {
 
   ");
 
-  log_info("
-  import_cp_patients: rows ".count($patients[0]));
+  //log_info("
+  //import_cp_patients: rows ".count($patients[0]));
 
   $keys = result_map($patients[0],
     function($row) {

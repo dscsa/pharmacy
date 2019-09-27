@@ -35,8 +35,8 @@ function import_cp_order_items() {
     GROUP BY csomline.order_id, (CASE WHEN gcn_seqno > 0 THEN gcn_seqno ELSE script_no END) --This is because of Orders like 8660 where we had 4 duplicate Citalopram 40mg.  Two that were from Refills, One Denied Surescript Request, and One new Surescript.  We are only going to send one GCN so don't list it multiple times
   ");
 
-  log_info("
-  import_cp_order_items: rows ".count($order_items[0]));
+  //log_info("
+  //import_cp_order_items: rows ".count($order_items[0]));
 
   $keys = result_map($order_items[0]);
 

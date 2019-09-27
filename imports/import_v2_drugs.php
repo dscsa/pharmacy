@@ -19,8 +19,8 @@ function import_v2_drugs() {
   $drugs = file_get_contents(V2_IP.'/drug/_design/by-generic-gsns/_view/by-generic-gsns?group_level=3', false, $context);
   $drugs = json_decode($drugs, true);
 
-  log_info("
-  import_v2_drugs: rows ".count($drugs['rows']));
+  //log_info("
+  //import_v2_drugs: rows ".count($drugs['rows']));
 
   $vals = [];
   foreach($drugs['rows'] as $row) {

@@ -46,8 +46,8 @@ function import_v2_stock_by_month() {
 
     $vals = [];
 
-    if ($key == 'entered')
-      log_info("\n   import_v2_stock_by_month: rows ".count($rows));
+    //if ($key == 'entered')
+    //  log_info("\n   import_v2_stock_by_month: rows ".count($rows));
 
     foreach($rows as $row) {
 
