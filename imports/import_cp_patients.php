@@ -16,6 +16,7 @@ function import_cp_patients() {
       MAX(fname) as first_name,
       MAX(lname) as last_name,
       CONVERT(varchar, MAX(birth_date), 20) as birth_date,
+      MAX(cmt) as patient_note,
 
       MAX(CONCAT(ph1.area_code, ph1.phone_no)) as phone1,
       MAX(CONCAT(ph2.area_code, ph2.phone_no)) as phone2,
@@ -46,6 +47,7 @@ function import_cp_patients() {
     LEFT JOIN cppat_addr pa  (nolock) ON (pat.pat_id = pa.pat_id and pa.addr_type_cn=2)
     LEFT JOIN csaddr a (nolock) ON pa.addr_id=a.addr_id
     LEFT JOIN cprx ON cprx.pat_id = pat.pat_id AND orig_disp_date < GETDATE() - 4
+    -- STRING_AGG(cppat_alr)
     WHERE birth_date IS NOT NULL -- pat_id == 5869
     GROUP BY pat.pat_id -- because cppat_phone had a duplicate entry for pat_id 5130 we got two rows so need a groupby.  This also removes refills_used from needing to be a subquery
 

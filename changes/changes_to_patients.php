@@ -12,6 +12,7 @@ function changes_to_patients($new) {
     NOT old.first_name <=> new.first_name OR
     NOT old.last_name <=> new.last_name OR
     NOT old.birth_date <=> new.birth_date OR
+    NOT old.patient_note <=> new.patient_note OR
     NOT old.phone1 <=> new.phone1 OR
     NOT old.phone2 <=> new.phone2 OR
     NOT old.email <=> new.email OR
