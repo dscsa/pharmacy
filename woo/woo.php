@@ -899,6 +899,18 @@ function clean_field($field) {
   return sanitize_text_field(stripslashes(trim($field)));
 }
 
+add_action('plugins_loaded', 'dscsa_plugins_loaded');
+function dscsa_plugins_loaded() {
+  //Enable Fast User Switching to work with Usernames.  This needs to load BEFORE the "init" hook that the plugin uses
+  if ($_GET['impersonate'] AND ! is_numeric($_GET['impersonate'])) {
+    $user = get_user_by('login', $_GET['impersonate']);
+    if($user)
+    {
+       $_GET['impersonate'] = $user->ID;
+    }
+  }
+}
+
 //Customer created hook called to late in order to create username
 //    https://github.com/woocommerce/woocommerce/blob/e24ca9d3bce1f9e923fcd00e492208511cdea727/includes/class-wc-form-handler.php#L1002
 add_action('wp_loaded', 'dscsa_default_post_value');
