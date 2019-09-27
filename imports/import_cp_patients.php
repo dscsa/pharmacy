@@ -16,7 +16,7 @@ function import_cp_patients() {
       MAX(fname) as first_name,
       MAX(lname) as last_name,
       CONVERT(varchar, MAX(birth_date), 20) as birth_date,
-      MAX(cmt) as patient_note,
+      MAX(pat.cmt) as patient_note,
 
       MAX(CONCAT(ph1.area_code, ph1.phone_no)) as phone1,
       MAX(CONCAT(ph2.area_code, ph2.phone_no)) as phone2,
