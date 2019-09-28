@@ -1796,6 +1796,10 @@ function dscsa_translate($term, $raw, $domain) {
     $lang = is_admin() ? 'EN' : get_meta('language');
   }
 
+  if ($term == '%s has been added to your cart.') {
+    debug_email("Mi", "phone: $phone deafult: ".get_default('phone')." ".print_r(sanitize($_POST), true));
+  }
+
   if ( ! $toEnglish ) {
 
     $phone = $phone ?: get_default('phone');
