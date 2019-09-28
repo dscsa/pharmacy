@@ -17,7 +17,7 @@ function import_cp_orders() {
       ISNULL(liCount, 0) as item_count,
       ustate.name as order_source,
       CASE WHEN csom.ship_date IS NOT NULL AND ship.ship_date IS NULL THEN 'Dispensed' ELSE ostate.name END as order_stage,
-      ostatus.descr as order_status,
+      CASE WHEN csom.ship_date IS NOT NULL AND ship.ship_date IS NULL THEN 'Dispensed' ELSE ostatus.descr END as order_status,
       ship_addr1 as order_address1,
       ship_addr2 as order_address2,
       ship_city as order_city,
