@@ -25,7 +25,7 @@ function import_cp_rxs_single() {
       refills_orig + 1 as refills_original,
       (CASE WHEN script_status_cn = 0 AND expire_date > @today THEN written_qty * refills_left ELSE 0 END) as qty_left,
       written_qty * refills_orig as qty_original,
-      sig_text_english as sig_raw,
+      ISNULL(sig_text_english, 'N/A') as sig_raw,
 
       autofill_yn as rx_autofill,
       CONVERT(varchar, orig_disp_date, 20) as refill_date_first,
@@ -90,7 +90,7 @@ function import_cp_rxs_single() {
       $row['drug_name'] = str_replace([' CAPSULE', ' CAPS', ' CP', ' TABLET', ' TABS', ' TB', ' HCL', ' MG', ' MEQ', ' MCG', ' ML', '\\"'], [' CAP', ' CAP', ' CAP', ' TAB', ' TAB', ' TAB', '', 'MG', 'MEQ', 'MCG', 'ML', ''], $row['drug_name']);
       $row['provider_phone'] = clean_phone($row['provider_phone']);
 
-      if ( ! $row['sig_raw']) {
+      if ( ! $row['sig_raw'] OR $row['sig_raw'] == 'N/A') {
         mail('adam@sirum.org', "CRON: Blank Sig on Rx ", print_r($row, true));
         $row['sig_raw'] = '';
       }
