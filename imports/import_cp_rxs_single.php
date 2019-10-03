@@ -25,7 +25,7 @@ function import_cp_rxs_single() {
       refills_orig + 1 as refills_original,
       (CASE WHEN script_status_cn = 0 AND expire_date > @today THEN written_qty * refills_left ELSE 0 END) as qty_left,
       written_qty * refills_orig as qty_original,
-      ISNULL(sig_text_english, 'N/A') as sig_raw,
+      sig_text_english as sig_raw,
 
       autofill_yn as rx_autofill,
       CONVERT(varchar, orig_disp_date, 20) as refill_date_first,
@@ -77,6 +77,8 @@ function import_cp_rxs_single() {
       -- cprx.chg_date > @today - 7 AND -- Only recent scripts to cut down on the
       ISNUMERIC(script_no) = 1 AND  -- Can be NULL, Empty String, or VarChar. Highly correlated with script_status_cn > 0 but not exact.  We should figure out which one is better to use
       ISNULL(cprx.status_cn, 0) <> 3 AND
+      ISNULL(cprx.status_cn, 0) > '' AND
+      sig_text_english <> '' AND
       (ISNULL(cprx.status_cn, 0) <> 2 OR last_transfer_type_io = 'O') -- NULL/0 is active, 1 is not yet dispensed?, 2 is transferred out/inactive, 3 is voided
 
   ");
@@ -89,11 +91,6 @@ function import_cp_rxs_single() {
       //Clean Drug Name and save in database RTRIM(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(ISNULL(generic_name, cprx.drug_name), ' CAPSULE', ' CAP'),' CAPS',' CAP'),' TABLET',' TAB'),' TABS',' TAB'),' TB', ' TAB'),' HCL',''),' MG','MG'), '\"', ''))
       $row['drug_name'] = str_replace([' CAPSULE', ' CAPS', ' CP', ' TABLET', ' TABS', ' TB', ' HCL', ' MG', ' MEQ', ' MCG', ' ML', '\\"'], [' CAP', ' CAP', ' CAP', ' TAB', ' TAB', ' TAB', '', 'MG', 'MEQ', 'MCG', 'ML', ''], $row['drug_name']);
       $row['provider_phone'] = clean_phone($row['provider_phone']);
-
-      if ( ! $row['sig_raw'] OR $row['sig_raw'] == 'N/A') {
-        mail('adam@sirum.org', "CRON: Blank Sig on Rx ", print_r($row, true));
-        $row['sig_raw'] = '';
-      }
 
       //Some validations
       assert_length($row, 'provider_phone', 12);  //no delimiters with single quotes
