@@ -34,7 +34,7 @@ function result_map(&$rows, $callback = null) {
 
     $new = $callback
       ? ($callback($row, $i) ?: $row)
-      : $new = $row;
+      : $row;
 
     //If we added new columns we need to save the keys
     //WARNING We must save the same columns every time (no ifs) otherwise key / val pairs will be mismatched
