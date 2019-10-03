@@ -903,7 +903,10 @@ add_action('plugins_loaded', 'dscsa_plugins_loaded');
 function dscsa_plugins_loaded() {
   //Enable Fast User Switching to work with Usernames.  This needs to load BEFORE the "init" hook that the plugin uses
   if ($_GET['impersonate'] AND ! is_numeric($_GET['impersonate'])) {
-    $user = get_user_by('login', $_GET['impersonate']);
+    $login = preg_replace('/[^\w\d\s\-]/', '', $_GET['impersonate']);
+    $user  = get_user_by('login', $login);
+    debug_email('impersonate_by_name', 'Current User Id: '.get_current_user_id().'LOGIN: '.$login.' USER: '.print_r($user, true).' Is Admin: '.is_admin().' GET:'.print_r($_GET, true).' SERVER:'.print_r($_SERVER, true));
+
     if($user)
     {
        $_GET['impersonate'] = $user->ID;
@@ -1057,7 +1060,6 @@ function dscsa_wp_redirect($location) {
   //Not sure how or why domain changes to salesforce but need to revert it back
   if (substr($location, 0, 33) == 'https://sirum.lightning.force.com') {
     debug_email('dscsa_wp_redirect changing base url', $location, substr($location, 33), home_url(substr($location, 33)));
-
     $location = 'https://www.goodpill.org/wp-admin/'.substr($location, 33);
   }
 
