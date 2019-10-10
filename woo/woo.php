@@ -1228,7 +1228,7 @@ function dscsa_save_account($user_id) {
 
   debug_email("dscsa_save_account_details", print_r($_POST, true).print_r($profile, true));
 
-  if (count($profile))
+  if (count($profile) AND $_POST['email'])
     wp_mail($_POST['email'], "Summary of your Good Pill Rx(s)", "<html><body>We saved your account.  Below is a summary of your current Rx(s) and any upcoming Order(s). Please let us know if you have any questions.<br><br>Thanks,<br>The Good Pill Team<br><br>".make_rx_table($profile, true)."</body></html>", ['Content-Type: text/html; charset=UTF-8']);
 
   update_email($patient_id, $_POST['email']);
@@ -1798,13 +1798,13 @@ function dscsa_translate($term, $raw, $domain) {
     $lang = is_admin() ? 'EN' : get_meta('language');
   }
 
+  $phone = $phone ?: get_default('phone');
+
   if ($term == '%s has been added to your cart.') {
-    debug_email("Mi", "phone: $phone deafult: ".get_default('phone')." ".print_r(sanitize($_POST), true));
+    debug_email("DEBUG Phone", "phone: $phone deafult: ".get_default('phone')." ".print_r(sanitize($_POST), true));
   }
 
   if ( ! $toEnglish ) {
-
-    $phone = $phone ?: get_default('phone');
 
     $toEnglish = [
       'Hello %1$s (not %1$s? <a href="%2$s">Log out</a>)' => '',
