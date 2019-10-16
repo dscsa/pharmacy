@@ -60,16 +60,20 @@ function import_cp_rxs_single() {
       ct_id = 194 AND code_num = input_src_cn
 
     LEFT JOIN (
+
       SELECT
-        md_id,
-        MAX(npi) as provider_npi,
-        MAX(name_first) as provider_first_name,
-        MAX(name_last) as provider_last_name,
-        MAX(clinic_name) as provider_clinic,
-        MAX(phone) as provider_phone
-      FROM cpmd_spi
-      WHERE state = 'GA'
-      GROUP BY md_id
+  			--Service Level MOD 2 = 1 means accepts SureScript Refill Reques
+  			-- STUFF == MSSQL HACK TO GET MOST RECENTLY UPDATED ROW THAT ACCEPTS SURESCRIPTS
+  			md_id,
+        STUFF(MAX(CONCAT(ServiceLevel % 2, last_modified_date, npi)), 1, 23, '') as provider_npi,
+  			STUFF(MAX(CONCAT(ServiceLevel % 2, last_modified_date, name_first)), 1, 23, '') as provider_first_name,
+  			STUFF(MAX(CONCAT(ServiceLevel % 2, last_modified_date, name_last)), 1, 23, '') as provider_last_name,
+        STUFF(MAX(CONCAT(ServiceLevel % 2, last_modified_date, clinic_name)), 1, 23, '') as provider_clinic,
+  			STUFF(MAX(CONCAT(ServiceLevel % 2, last_modified_date, phone)), 1, 23, '') as provider_phone
+  		FROM cpmd_spi
+  		WHERE cpmd_spi.state = 'GA'
+  		GROUP BY md_id
+      
     ) as md ON
       cprx.md_id = md.md_id
 

@@ -1812,6 +1812,8 @@ function dscsa_translate($term, $raw, $domain) {
       "An account is already registered with that username. Please choose another." => 'Looks like you have already registered. Goto the <a href="/account/?gp-login">Login page</a> and use your 10 digit phone number as your default password e.g. the phone number '.$_POST['raw_phone'].' would have a default password of '.$_POST['phone'].'.',
       "<span class='english'>Pay by Credit or Debit Card</span><span class='spanish'>Pago con tarjeta de crédito o débito</span>" => "Pay by Credit or Debit Card",
       'Spanish'  => 'Espanol', //Registering
+      'First name' => 'Legal First Name',
+      'Last name' => 'Legal Last Name',
       'Email:' => 'Email', //order details
       'Email address' => 'Email', //accounts/details
       'From your account dashboard you can view your <a href="%1$s">recent orders</a>, manage your <a href="%2$s">shipping and billing addresses</a> and <a href="%3$s">edit your password and account details</a>.' => '',
@@ -1879,8 +1881,8 @@ function dscsa_translate($term, $raw, $domain) {
       'List Other Allergies Below' => 'Indique otras alergias abajo',
       'Phone' => 'Teléfono',
       'List any other medication(s) or supplement(s) you are currently taking<i style="font-size:14px; display:block; margin-bottom:-20px">We will not fill these but need to check for drug interactions</i>' => 'Indique cualquier otro medicamento o suplemento que usted toma actualmente',
-      'First name' => 'Nombre',
-      'Last name' => 'Apellido',
+      'Legal First Name' => 'Nombre',
+      'Legal Last Name' => 'Apellido',
       'Date of Birth' => 'Fecha de nacimiento',
       'Address' => 'Dirección',
       'Addresses' => 'Direcciónes',
