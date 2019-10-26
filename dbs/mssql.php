@@ -76,7 +76,7 @@ class Mssql {
 
     function _getRows($stmt, $sql, $debug) {
 
-      if ( ! is_resource($stmt) OR ! mssql_num_rows($stmt)) {
+      if ( ! isset($stmt->num_rows)) {
         if ($debug AND strpos($sql, 'SELECT') !== false)
           $this->_emailError('No Rows', $stmt, $sql, $debug);
         return [];
