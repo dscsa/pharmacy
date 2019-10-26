@@ -7,18 +7,18 @@ function export_gd_update_invoice($order) {
 
   if ( ! count($order)) return;
 
-  $opts = [
-    'http' => [
-      'method'  => 'POST',
-      'content' => json_encode( $order ),
-      'header'  => "Content-Type: application/json\r\n" .
-                   "Accept: application/json\r\n"
-    ]
+  $args = [
+    'method'   => 'mergeDocs',
+    'template' => 'Invoice Template v1'
+    'file'     => 'Invoice #'.$order['order_id'],
+    'folder'   => 'Published',
+    'order'    => $order
   ];
 
-  $context = stream_context_create( $opts );
-  $result  = file_get_contents( GD_URL.'?GD_KEY='.GD_KEY, false, $context );
+  $result = gdoc_post(GD_INVOICE_URL, $args);
+
   //$response = json_decode( $result );
+  mail('adam@sirum.org', "WebForm export_gd_update_invoice", json_encode([$args, $result]));
 
   log_info($result);
 }

@@ -17,3 +17,16 @@ function log_info($msg = null) {
 
   $_SERVER['webform_log'][] = $msg;
 }
+
+function timer($label, &$start) {
+  $start = $start ?: [microtime(true), microtime(true)];
+  $stop  = microtime(true);
+
+  $diff = "
+  $label: ".ceil($stop-$start[0])." seconds of ".ceil($stop-$start[1])." total
+  ";
+
+  $start[0] = $stop;
+
+  return $diff;
+}

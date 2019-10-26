@@ -65,17 +65,4 @@ $email = log_info();
 
 if ($email) mail('adam@sirum.org', "WebForm CRON Finished", $email);
 
-function timer($label, &$start) {
-  $start = $start ?: [microtime(true), microtime(true)];
-  $stop  = microtime(true);
-
-  $diff = "
-  $label: ".ceil($stop-$start[0])." seconds of ".ceil($stop-$start[1])." total
-  ";
-
-  $start[0] = $stop;
-
-  return $diff;
-}
-
 //update_order_items();
