@@ -39,7 +39,7 @@ import_cp_patients();
 import_cp_order_items();
 //log_info(timer("import_cp_order_items", $time));
 
-import_cp_orders();
+//import_cp_orders();
 //log_info(timer("import_cp_orders", $time));
 
 //Updates
