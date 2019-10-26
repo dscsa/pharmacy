@@ -9,7 +9,7 @@ function export_gd_update_invoice($order) {
 
   $args = [
     'method'   => 'mergeDocs',
-    'template' => 'Invoice Template v1'
+    'template' => 'Invoice Template v1',
     'file'     => 'Invoice #'.$order['order_id'],
     'folder'   => 'Published',
     'order'    => $order
