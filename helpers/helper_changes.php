@@ -90,7 +90,7 @@ function get_updated_sql($new, $old, $id, $where_changes) {
   $join = join_clause($id);
   $select = where_to_select_clause($where_changes);
 
-  return "
+  $sql = "
     SELECT
       new.*,
       $select
@@ -100,6 +100,10 @@ function get_updated_sql($new, $old, $id, $where_changes) {
       $join
     WHERE $where_changes
   ";
+
+  mail('adam@sirum.org', "CRON: get_updated_sql", $sql);
+
+  return $sql;
 }
 
 function set_updated_sql($new, $old, $id, $where_changes) {
@@ -107,7 +111,7 @@ function set_updated_sql($new, $old, $id, $where_changes) {
   $join = join_clause($id);
   $set  = where_to_set_clause($where_changes);
 
-  return "
+  $sql = "
     UPDATE
       $old as old
     JOIN $new as new ON
@@ -117,6 +121,10 @@ function set_updated_sql($new, $old, $id, $where_changes) {
     WHERE
       $where_changes
   ";
+
+  mail('adam@sirum.org', "CRON: set_updated_sql", $sql);
+
+  return $sql;
 }
 
 function changed_fields($updated) {
