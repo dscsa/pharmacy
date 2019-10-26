@@ -92,11 +92,13 @@ class Mysql {
       $rows = [];
       while ($row = mysqli_fetch_array($stmt, MYSQL_ASSOC)) {
 
-          if ($debug AND ! empty($row['Message'])) {
-            $this->_emailError('dbMessage', $row, $stmt, $sql, $data, $debug);
-          }
+        if ($debug) mail('adam@sirum.org', "CRON: Debug MYSQL Run 3", print_r($row, true));
 
-          $rows[] = $row;
+        if ($debug AND ! empty($row['Message'])) {
+          $this->_emailError('dbMessage', $row, $stmt, $sql, $data, $debug);
+        }
+
+        $rows[] = $row;
       }
 
       return $rows;
