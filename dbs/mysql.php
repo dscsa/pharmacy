@@ -43,7 +43,7 @@ class Mysql {
           $this->_emailError('SQL Error', $e->getMessage(), $sql, $debug);
         }
 
-        if ($debug) mail('adam@sirum.org', "CRON: Debug MYSQL Run 2", ($stmt === false ? 'stmt false ' : 'stmt true ').$stmt.$sql);
+        if ($debug) mail('adam@sirum.org', "CRON: Debug MYSQL Run 2", ($stmt === false ? 'stmt false ' : 'stmt true ').print_r($stmt, true));
 
         if ($stmt === false) {
 
