@@ -34,12 +34,16 @@ class Mysql {
 
         $starttime = microtime(true);
 
+        if ($debug) mail('adam@sirum.org', "CRON: Debug MYSQL Run 1", $sql);
+
         try {
           $stmt = mysqli_query($this->connection, $sql);
         }
         catch (Exception $e) {
           $this->_emailError('SQL Error', $e->getMessage(), $sql, $debug);
         }
+
+        if ($debug) mail('adam@sirum.org', "CRON: Debug MYSQL Run 2", ($stmt === false ? 'stmt false ' : 'stmt true ').$stmt.$sql);
 
         if ($stmt === false) {
 
