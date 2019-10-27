@@ -47,7 +47,7 @@ function update_order_items() {
     ";
 
     $item  = [];
-    $query = $mysql->run($sql)
+    $query = $mysql->run($sql);
 
     if (isset($query[0][0]))
       $item = $query[0][0];
