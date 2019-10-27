@@ -1,5 +1,5 @@
 function testPost() {
-  var event = {parameter:{GD_KEY:GD_KEY, method:'findValue', file:'Order Summary #20660', needle:'(Fee:|Amount Due:)'}}
+  var event = {parameter:{GD_KEY:GD_KEY}, content:{method:'findValue', file:'Order Summary #20660', needle:'(Fee:|Amount Due:)'}}
   debugEmail(event, doPost(event))
 }
 
@@ -13,7 +13,7 @@ function doPost(e) {
     if ( ! e.postData || ! e.postData.contents)
       return debugEmail('web_app post not post data', JSON.stringify(e))
 
-    var contents = JSON.parse(postData.contents)
+    var contents = JSON.parse(e.postData.contents)
 
     if (contents.method == 'mergeDoc')
       return mergeDoc(contents)

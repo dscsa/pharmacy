@@ -12,7 +12,7 @@ function export_gd_update_invoice($order) {
   if ( ! count($order)) return;
 
   $args = [
-    'method'   => 'mergeDocs',
+    'method'   => 'mergeDoc',
     'template' => 'Invoice Template v1',
     'file'     => 'Invoice #'.$order[0]['invoice_number'],
     'folder'   => 'Published',
