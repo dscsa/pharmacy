@@ -5,7 +5,7 @@ var getEnd  = '}'
 
 function mergeDoc(content) {
 
-   flatOrder  = flattenOrder(content.order)
+   flatOrder  = content.order
    template   = fileByName(content.template)
 
    //debugEmail('flatten order', orderID, order)
