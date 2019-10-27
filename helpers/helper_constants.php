@@ -19,71 +19,71 @@ const STOCK_LEVEL = [
 ];
 
 const RX_MESSAGE = [
-  'NOACTION STANDARD FILL' => [
+  'NO ACTION STANDARD FILL' => [
     'EN' => '',
     'ES' => ''
   ],
-  'NOACTION PAST DUE' => [
+  'NO ACTION PAST DUE' => [
     'EN' => 'is past due and may be Med Synced to this Order *',
     'ES' => ''
   ],
-  'NOACTION MAY MEDSYNC' => [
+  'NO ACTION MAY MEDSYNC' => [
     'EN' => 'is due soon and may be Med Synced to this Order *',
     'ES' => ''
   ],
-  'NOACTION WAS MEDSYNC' => [
+  'NO ACTION WAS MEDSYNC' => [
     'EN' => 'was Med Synced to this Order *',
     'ES' => ''
   ],
-  'NOACTION TARGET DATE' => [
+  'NO ACTION TARGET DATE' => [
     'EN' => 'was Med Synced to $NextRefill *',
     'ES' => ''
   ],
-  'NOACTION RX OFF AUTOFILL' => [
+  'NO ACTION RX OFF AUTOFILL' => [
     'EN' => 'has autorefill off but was requested to be filled',
     'ES' => ''
   ],
-  'NOACTION RECENT FILL' => [
+  'NO ACTION RECENT FILL' => [
     'EN' => 'was filled recently and not due again until $NextRefill',
     'ES' => ''
   ],
-  'NOACTION NOT DUE' => [
+  'NO ACTION NOT DUE' => [
     'EN' => 'is due for a refill on $NextRefill',
     'ES' => ''
   ],
-  'NOACTION CHECK SIG' => [
+  'NO ACTION CHECK SIG' => [
     'EN' => 'was prescribed in an unusually high qty and needs to be reviewed by a pharmacist',
     'ES' => ''
   ],
-  'NOACTION MISSING GCN' => [
+  'NO ACTION MISSING GCN' => [
     'EN' => 'needs to be checked to see if it is available',
     'ES' => ''
   ],
-  'NOACTION LOW STOCK' => [
+  'NO ACTION LOW STOCK' => [
     'EN' => 'is short filled because this drug is low in stock',
     'ES' => ''
   ],
-  'NOACTION LOW REFILL' => [
+  'NO ACTION LOW REFILL' => [
     'EN' => 'is short filled because this Rx had limited refills',
     'ES' => ''
   ],
-  'NOACTION WILL TRANSFER CHECK BACK' => [
+  'NO ACTION WILL TRANSFER CHECK BACK' => [
     'EN' => 'is not currently offered and will be transferred to your local pharmacy. Check back in a month or two',
     'ES' => ''
   ],
-  'NOACTION WILL TRANSFER' => [
+  'NO ACTION WILL TRANSFER' => [
     'EN' => 'is not offered and will be transferred to your local pharmacy',
     'ES' => ''
   ],
-  'NOACTION WAS TRANSFERRED' => [
+  'NO ACTION WAS TRANSFERRED' => [
     'EN' => 'was transferred out to your local pharmacy on $RxChanged',
     'ES' => ''
   ],
-  'NOACTION LIVE INVENTORY ERROR' => [
+  'NO ACTION LIVE INVENTORY ERROR' => [
     'EN' => 'is awaiting manual inventory verification',
     'ES' => ''
   ],
-  'NOACTION SHOPPING ERROR' => [
+  'NO ACTION SHOPPING ERROR' => [
     'EN' => 'is awaiting manual inventory retrieval',
     'ES' => ''
   ],'

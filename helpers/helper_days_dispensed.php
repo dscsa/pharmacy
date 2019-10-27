@@ -33,13 +33,13 @@ function get_days_dispensed($item) {
   if ( ! $item['drug_gsns']) {
     log_info("
     CAN'T FILL MEDICATIONS WITHOUT A GCN MATCH");
-    return [0, RX_MESSAGE['NOACTION MISSING GCN']];
+    return [0, RX_MESSAGE['NO ACTION MISSING GCN']];
   }
 
   if ( ! $item['refill_date_first'] AND $not_offered) {
     log_info("
     TRANSFER OUT NEW RXS THAT WE DONT CARRY");
-    return [0, RX_MESSAGE['NOACTION WILL TRANSFER']];
+    return [0, RX_MESSAGE['NO ACTION WILL TRANSFER']];
   }
 
   if ($no_transfer AND ! $item['refill_date_first'] AND $refills_only) {
@@ -51,7 +51,7 @@ function get_days_dispensed($item) {
   if ( ! $no_transfer AND ! $item['refill_date_first'] AND $refills_only) {
     log_info("
     TRANSFER OUT NEW RXS THAT WE CANT FILL");
-    return [0, RX_MESSAGE['NOACTION WILL TRANSFER CHECK BACK']];
+    return [0, RX_MESSAGE['NO ACTION WILL TRANSFER CHECK BACK']];
   }
 
   //TODO MAYBE WE SHOULD JUST MOVE THE REFILL_DATE_NEXT BACK BY A WEEK OR TWO
@@ -76,37 +76,37 @@ function get_days_dispensed($item) {
   if ( ! $item['patient_autofill'] AND $manual) {
     log_info("
     OVERRIDE PATIENT AUTOFILL OFF SINCE MANUALLY ADDED");
-    return [days_default($item), RX_MESSAGE['NOACTION RX OFF AUTOFILL']];
+    return [days_default($item), RX_MESSAGE['NO ACTION RX OFF AUTOFILL']];
   }
 
   if ((strtotime($item['item_date_added']) - strtotime($item['refill_date_last'])) < 30*24*60*60 AND ! $manual) {
     log_info("
     DON'T REFILL IF FILLED WITHIN LAST 30 DAYS UNLESS ADDED MANUALLY");
-    return [0, RX_MESSAGE['NOACTION RECENT FILL']];
+    return [0, RX_MESSAGE['NO ACTION RECENT FILL']];
   }
 
   if ((strtotime($item['refill_date_next']) - strtotime($item['item_date_added'])) > 15*24*60*60 AND ! $manual) {
     log_info("
     DON'T REFILL IF NOT DUE IN OVER 15 DAYS UNLESS ADDED MANUALLY");
-    return [0, RX_MESSAGE['NOACTION NOT DUE']];
+    return [0, RX_MESSAGE['NO ACTION NOT DUE']];
   }
 
   if ( ! $item['refill_date_first'] AND $item['qty_inventory'] < 2000 AND ($item['sig_qty_per_day'] > 2.5*$item['qty_repack']) AND ! $manual) {
     log_info("
     SIG SEEMS TO HAVE EXCESSIVE QTY");
-    return [0, RX_MESSAGE['NOACTION CHECK SIG']];
+    return [0, RX_MESSAGE['NO ACTION CHECK SIG']];
   }
 
   if ( ! $item['refill_date_first'] AND $not_offered) {
     log_info("
     REFILLS SHOULD NOT HAVE A NOT OFFERED STATUS");
-    return [days_default($item), RX_MESSAGE['NOACTION LIVE INVENTORY ERROR']];
+    return [days_default($item), RX_MESSAGE['NO ACTION LIVE INVENTORY ERROR']];
   }
 
   if ( ! $item['rx_autofill']) { //InOrder is implied here
     log_info("
     IF RX IS IN ORDER FILL IT EVEN IF RX_AUTOFILL IS OFF");
-    return [days_default($item), RX_MESSAGE['NOACTION RX OFF AUTOFILL']];
+    return [days_default($item), RX_MESSAGE['NO ACTION RX OFF AUTOFILL']];
   }
 
   if ((strtotime($item['rx_date_expired']) - strtotime($item['refill_date_next'])) < 45*24*60*60) {
@@ -118,15 +118,15 @@ function get_days_dispensed($item) {
   if ($item['stock_level'] != STOCK_LEVEL['HIGH SUPPLY'] && $item['qty_inventory'] < 1000) { //Only do 45 day if its Low Stock AND less than 1000 Qty.  Cindy noticed we had 8000 Amlodipine but we were filling in 45 day supplies
     log_info("
     WARN USERS IF DRUG IS LOW QTY");
-    return [days_default($item, 45), RX_MESSAGE['NOACTION LOW STOCK']];
+    return [days_default($item, 45), RX_MESSAGE['NO ACTION LOW STOCK']];
   }
 
   log_info("
   NO SPECIAL TAG USING DEFAULTS");
-  return [days_default($item), RX_MESSAGE['NOACTION STANDARD FILL']];
-  //TODO DON'T NOACTION_PAST_DUE if ( ! drug.$InOrder && drug.$DaysToRefill < 0)
-  //TODO NOACTION_LIVE_INVENTORY_ERROR if ( ! drug.$v2)
-  //TODO ACTION_CHECK_BACK/NOACTION_WILL_TRANSFER_CHECK_BACK
+  return [days_default($item), RX_MESSAGE['NO ACTION STANDARD FILL']];
+  //TODO DON'T NO ACTION_PAST_DUE if ( ! drug.$InOrder && drug.$DaysToRefill < 0)
+  //TODO NO ACTION_LIVE_INVENTORY_ERROR if ( ! drug.$v2)
+  //TODO ACTION_CHECK_BACK/NO ACTION_WILL_TRANSFER_CHECK_BACK
   //if ( ! drug.$IsRefill && ! drug.$IsPended && ~ ['Out of Stock', 'Refills Only'].indexOf(drug.$Stock))
   //if (drug.$NoTransfer)
 }
@@ -210,7 +210,7 @@ function days_default($item, $days_std = 90) {
 
   log_info($message);
 
-  //mail('adam@sirum.org', "days_default()", $message);
+  mail('adam@sirum.org', "days_default()", print_r($item, true)." $message");
 
   return $days_default;
 }
