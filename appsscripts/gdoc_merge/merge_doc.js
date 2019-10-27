@@ -32,7 +32,7 @@ function flattenOrder(order) {
  for (var i in order) {
 
    for (var j in order[i]) {
-     order[i][i+j] = order[i][j] ?: '' //Prepend row number in front of object key so we can differentiate drugs in the table
+     order[i][i+j] = order[i][j] //Prepend row number in front of object key so we can differentiate drugs in the table
    }
  }
 
@@ -71,23 +71,31 @@ function expandTable(section, vars) {
 
 function replaceVars(section, order) {
   //Replace all variables starting with a "$" with the correct data.  Replacing undefined and null with 'NULL'
-  //Replace most specific strings first: go backwards so that 12$ is replaced before 2$, if 2$ is replaced first then 12$ is no longer recognized (errors occurred when >10 drugs)
+  //Replace most specific strings first: go backwards so that $12 is replaced before $2, if $2 is replaced first then $12 is no longer recognized (errors occurred when >10 drugs)
   //debugEmail('replaceVars', Object.keys(order[0]))
-  Object.keys(order[0]).reverse().forEach(function(key) {
-    //blocks against an empty string key accidentally removing all of our $ prepends
-    //Log('ReplaceVars', key, order[key])
 
-    if ( ! key) return
+  var reverse = orders.reverse()
+  for (var i in reverse) {
 
-    if (order[0][key] == null)
-      return replaceVar(section, key, 'NULL')
+    for (var key in reverse[i]) {
 
-    if (typeof order[0][key] != 'object' )
-      return replaceVar(section, key, order[0][key])
+      var val = reverse[i][key]
 
-    for (var i in order[0][key])
-      replaceVar(section, key + '.' + i, order[0][key][i])
-  })
+      if ( ! key) //blocks against an empty string key accidentally removing all of our $ prepends
+        continue
+
+      else if (val == null)
+        replaceVar(section, i+key, 'NULL')
+
+      else if (typeof val != 'object' )
+        replaceVar(section, i+key, val)
+
+      else { //Handle nested object (just in case)
+        for (var k in val)
+          replaceVar(section, i+key + '.' + k, val[k])
+      }
+    }
+  }
 }
 
 function replaceVar(section, key, val) {
