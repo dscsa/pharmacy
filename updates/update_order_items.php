@@ -46,7 +46,13 @@ function update_order_items() {
         gp_order_items.rx_number = $item[rx_number]
     ";
 
-    $item = $mysql->run($sql)[0][0];
+    $item  = [];
+    $query = $mysql->run($sql)
+
+    if (isset($query[0][0]))
+      $item = $query[0][0];
+    else
+      mail('adam@sirum.org', "Error update_order_items", print_r($query, true).$sql);
 
     log_info("
     Item: $sql
