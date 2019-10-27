@@ -13,8 +13,6 @@ function update_orders() {
   $message = "
   update_orders: $count_deleted deleted, $count_created created, $count_updated updated. ";
 
-  mail('adam@sirum.org', "CRON: $message", $message.print_r($changes, true));
-
   if ($count_deleted+$count_created+$count_updated)
     log_info($message.print_r($changes, true));
 
