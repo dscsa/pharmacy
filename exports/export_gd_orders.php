@@ -1,5 +1,7 @@
 <?php
 
+require_once 'helpers/helper_gdocs.php';
+
 function export_gd_update_invoice($order) {
 
   mail('adam@sirum.org', "WebForm export_gd_update_invoice 1", json_encode($order));
