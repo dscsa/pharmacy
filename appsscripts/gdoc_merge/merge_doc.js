@@ -74,7 +74,7 @@ function replaceVars(section, order) {
   //Replace most specific strings first: go backwards so that $12 is replaced before $2, if $2 is replaced first then $12 is no longer recognized (errors occurred when >10 drugs)
   //debugEmail('replaceVars', Object.keys(order[0]))
 
-  var reverse = orders.reverse()
+  var reverse = order.reverse()
   for (var i in reverse) {
 
     for (var key in reverse[i]) {
@@ -85,14 +85,14 @@ function replaceVars(section, order) {
         continue
 
       else if (val == null)
-        replaceVar(section, i+key, 'NULL')
+        replaceVar(section, key, 'NULL')
 
       else if (typeof val != 'object' )
-        replaceVar(section, i+key, val)
+        replaceVar(section, key, val)
 
       else { //Handle nested object (just in case)
         for (var k in val)
-          replaceVar(section, i+key + '.' + k, val[k])
+          replaceVar(section, key + '.' + k, val[k])
       }
     }
   }
