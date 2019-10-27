@@ -73,18 +73,16 @@ function import_cp_rxs_single() {
   		FROM cpmd_spi
   		WHERE cpmd_spi.state = 'GA'
   		GROUP BY md_id
-      
+
     ) as md ON
       cprx.md_id = md.md_id
 
     WHERE
-      -- cprx.chg_date > @today - 7 AND -- Only recent scripts to cut down on the
-      ISNUMERIC(script_no) = 1 AND  -- Can be NULL, Empty String, or VarChar. Highly correlated with script_status_cn > 0 but not exact.  We should figure out which one is better to use
-      ISNULL(cprx.status_cn, 0) <> 3 AND
-      ISNULL(cprx.status_cn, 0) > '' AND
       sig_text_english <> '' AND
-      (ISNULL(cprx.status_cn, 0) <> 2 OR last_transfer_type_io = 'O') -- NULL/0 is active, 1 is not yet dispensed?, 2 is transferred out/inactive, 3 is voided
-
+      ISNUMERIC(script_no) = 1 AND  -- Can be NULL, Empty String, or VarChar. Highly correlated with script_status_cn > 0 but not exact.  We should figure out which one is better to use
+      ISNULL(cprx.status_cn, 0) <> 3 AND  -- NULL/0 is active, 1 is not yet dispensed?, 2 is transferred out/inactive, 3 is voided
+      (ISNULL(cprx.status_cn, 0) <> 2 OR last_transfer_type_io = 'O')
+      -- cprx.chg_date > @today - 7 AND -- Only recent scripts to cut down on the
   ");
 
   //log_info("

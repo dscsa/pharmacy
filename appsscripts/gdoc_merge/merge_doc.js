@@ -63,20 +63,20 @@ function replaceVars(section, order) {
 
     if ( ! key) return
 
-    if (order[key] == null)
+    if (order[0][key] == null)
       return replaceVar(section, key, 'NULL')
 
-    if (typeof order[key] != 'object' )
-      return replaceVar(section, key, order[key])
+    if (typeof order[0][key] != 'object' )
+      return replaceVar(section, key, order[0][key])
 
-    for (var i in order[key])
-      replaceVar(section, key + '.' + i, order[key][i])
+    for (var i in order[0][key])
+      replaceVar(section, key + '.' + i, order[0][key][i])
   })
 }
 
 function replaceVar(section, key, val) {
 
-  key = key.replace('$', '\\$').replace('.', '\\.') //escape the $ otherwise matches line-endings
+  key = '\\$'+key.replace('.', '\\.') //escape the $ otherwise matches line-endings
   val = val == null ? 'NULL' : val
   try {
     section.replaceText(key, val)
