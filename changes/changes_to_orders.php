@@ -35,9 +35,7 @@ function changes_to_orders($new) {
   $created = $mysql->run(get_created_sql($new, $old, $id));
 
   //Get Updated
-  $updated = $mysql->run(get_updated_sql($new, $old, $id, $where), true);
-
-  mail('adam@sirum.org', "CRON: changes_to_orders", print_r([$updated, $created, $deleted] , true));
+  $updated = $mysql->run(get_updated_sql($new, $old, $id, $where));
 
   //Save Deletes
   $mysql->run(set_deleted_sql($new, $old, $id));
