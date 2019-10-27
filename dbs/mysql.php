@@ -83,7 +83,7 @@ class Mysql {
 
     function _getRows($stmt, $sql, $debug) {
 
-      if ( ! isset($stmt->num_rows)) {
+      if ( ! isset($stmt->num_rows) OR ! $stmt->num_rows) {
         if ($debug AND strpos($sql, 'SELECT') !== false)
           $this->_emailError('No Rows', $stmt, $sql, $debug);
         return [];
