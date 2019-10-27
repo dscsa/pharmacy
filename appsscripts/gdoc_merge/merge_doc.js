@@ -5,8 +5,9 @@ var getEnd  = '}'
 
 function mergeDoc(content) {
 
-   debugEmail('mergeDoc', content)
-   template = fileByName(content.template)
+   //debugEmail('mergeDoc', content)
+   var order    = flattenOrder(content.order)
+   var template = fileByName(content.template)
 
    //debugEmail('flatten order', orderID, order)
    var newDoc = makeCopy(template, content.file, content.folder)
@@ -17,12 +18,25 @@ function mergeDoc(content) {
    var numChildren = documentElement.getNumChildren()
 
    for (var i = 0; i<numChildren; i++) {
-     interpolate(documentElement.getChild(i), content.order)
+     interpolate(documentElement.getChild(i), order)
    }
 
    newDoc.saveAndClose()
 
    return newDoc.getId()
+}
+
+function flattenOrder(order) {
+ Log('order', order)
+
+ for (var i in order) {
+
+   for (var j in order[i]) {
+     order[i][i+j] = order[i][j] ?: '' //Prepend row number in front of object key so we can differentiate drugs in the table
+   }
+ }
+
+ return order
 }
 
 function interpolate(section, order) {
@@ -42,15 +56,15 @@ function expandTable(section, vars) {
    //Copy the table's current rows (skipping header) that will be copied for each drug
    //Prices that look like this $$Price become $0$0Price. It was too hard to fix this
    //root issue with replaceText limitations so work around is to fix it in a 2nd call
-   for (var i = 1; i<numRows; i++) {
-     copyRows.push(drugTable.getRow(i).replaceText('\\$', '0$').replaceText('0\\$0\\$', '$0$'))
+   for (var i = 1; i < numRows; i++) {
+     copyRows.push(drugTable.getRow(i).replaceText('\\$', '$0').replaceText('\\$0\\$0', '$$0'))
    }
 
    var numDrugs = vars.length
    //Copy table's rows for each additional drug (the first set of rows already exists)
-   for (var i = 0; i<numDrugs-1; i++) {
+   for (var i = 1; i < numDrugs; i++) {
      for (var j in copyRows) {
-       drugTable.appendTableRow(copyRows[j].copy().replaceText('0\\$', i+1+'$'))
+       drugTable.appendTableRow(copyRows[j].copy().replaceText('\\$0', '$'+i))
      }
    }
 }
@@ -58,7 +72,7 @@ function expandTable(section, vars) {
 function replaceVars(section, order) {
   //Replace all variables starting with a "$" with the correct data.  Replacing undefined and null with 'NULL'
   //Replace most specific strings first: go backwards so that 12$ is replaced before 2$, if 2$ is replaced first then 12$ is no longer recognized (errors occurred when >10 drugs)
-  debugEmail('replaceVars', Object.keys(order[0]))
+  //debugEmail('replaceVars', Object.keys(order[0]))
   Object.keys(order[0]).reverse().forEach(function(key) {
     //blocks against an empty string key accidentally removing all of our $ prepends
     //Log('ReplaceVars', key, order[key])
