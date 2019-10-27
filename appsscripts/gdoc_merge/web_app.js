@@ -8,10 +8,10 @@ function doPost(e) {
   try{
 
     if (e.parameter.GD_KEY != GD_KEY)
-      return debugEmail('web_app post wrong password', JSON.stringify(e))
+      return debugEmail('web_app post wrong password', e)
 
     if ( ! e.postData || ! e.postData.contents)
-      return debugEmail('web_app post not post data', JSON.stringify(e))
+      return debugEmail('web_app post not post data', e)
 
     var contents = JSON.parse(e.postData.contents)
 
@@ -21,9 +21,9 @@ function doPost(e) {
     if (contents.method == 'findValue')
       return findValue(contents)
 
-    debugEmail('web_app post no matching method', JSON.stringify(e))
+    debugEmail('web_app post no matching method', e)
 
   } catch(err){
-      debugEmail('web_app post error thrown', JSON.stringify([err, e]))
+      debugEmail('web_app post error thrown', err, e)
   }
 }

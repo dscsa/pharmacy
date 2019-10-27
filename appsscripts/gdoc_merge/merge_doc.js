@@ -5,7 +5,8 @@ var getEnd  = '}'
 
 function mergeDoc(content) {
 
-   template   = fileByName(content.template)
+   debugEmail('mergeDoc', content)
+   template = fileByName(content.template)
 
    //debugEmail('flatten order', orderID, order)
    var newDoc = makeCopy(template, content.file, content.folder)
@@ -57,6 +58,7 @@ function expandTable(section, vars) {
 function replaceVars(section, order) {
   //Replace all variables starting with a "$" with the correct data.  Replacing undefined and null with 'NULL'
   //Replace most specific strings first: go backwards so that 12$ is replaced before 2$, if 2$ is replaced first then 12$ is no longer recognized (errors occurred when >10 drugs)
+  debugEmail('replaceVars', Object.keys(order[0]))
   Object.keys(order[0]).reverse().forEach(function(key) {
     //blocks against an empty string key accidentally removing all of our $ prepends
     //Log('ReplaceVars', key, order[key])
