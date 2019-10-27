@@ -5,7 +5,6 @@ var getEnd  = '}'
 
 function mergeDoc(content) {
 
-   flatOrder  = content.order
    template   = fileByName(content.template)
 
    //debugEmail('flatten order', orderID, order)
@@ -17,27 +16,12 @@ function mergeDoc(content) {
    var numChildren = documentElement.getNumChildren()
 
    for (var i = 0; i<numChildren; i++) {
-     interpolate(documentElement.getChild(i), flatOrder)
+     interpolate(documentElement.getChild(i), content.order)
    }
 
    newDoc.saveAndClose()
 
    return newDoc.getId()
-}
-
-//Flatten drug array into the data object by prepending index
-function flattenOrder(order) {
- Log('order', order)
-
- for (var i in order.$Drugs) {
-
-   for (var j in order.$Drugs[i]) {
-     order[i+j] = order.$Drugs[i][j]
-   }
-   order[i+'$Msg'] = order[i+'$Msg'] || ''  //hack because Msg is not always set
- }
-
- return order
 }
 
 function interpolate(section, order) {
@@ -61,7 +45,7 @@ function expandTable(section, vars) {
      copyRows.push(drugTable.getRow(i).replaceText('\\$', '0$').replaceText('0\\$0\\$', '$0$'))
    }
 
-   var numDrugs = vars.$Drugs.length
+   var numDrugs = vars.length
    //Copy table's rows for each additional drug (the first set of rows already exists)
    for (var i = 0; i<numDrugs-1; i++) {
      for (var j in copyRows) {
@@ -73,7 +57,7 @@ function expandTable(section, vars) {
 function replaceVars(section, order) {
   //Replace all variables starting with a "$" with the correct data.  Replacing undefined and null with 'NULL'
   //Replace most specific strings first: go backwards so that 12$ is replaced before 2$, if 2$ is replaced first then 12$ is no longer recognized (errors occurred when >10 drugs)
-  Object.keys(order).reverse().forEach(function(key) {
+  Object.keys(order[0]).reverse().forEach(function(key) {
     //blocks against an empty string key accidentally removing all of our $ prepends
     //Log('ReplaceVars', key, order[key])
 

@@ -38,6 +38,7 @@ function parentByFile(file) {
 }
 
 function makeCopy(oldFile, copyName, copyFolder) {
+   oldFile = DriveApp.getFileById(oldFile.getId()) //Class Document doesn't have makeCopy need Class File
    var newFile = oldFile.makeCopy(copyName)
    parentByFile(newFile).removeFile(newFile)
    folderByName(copyFolder).addFile(newFile)

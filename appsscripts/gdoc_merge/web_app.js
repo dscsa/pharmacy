@@ -24,6 +24,6 @@ function doPost(e) {
     debugEmail('web_app post no matching method', JSON.stringify(e))
 
   } catch(err){
-      debugEmail('web_app post error thrown', JSON.stringify([e,err]))
+      debugEmail('web_app post error thrown', JSON.stringify([err, e]))
   }
 }
