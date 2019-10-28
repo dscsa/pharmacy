@@ -4,7 +4,7 @@ require_once 'helpers/helper_gdocs.php';
 
 function export_gd_update_invoice($order) {
 
-  mail('adam@sirum.org', "WebForm export_gd_update_invoice 1", json_encode($order));
+  //mail('adam@sirum.org', "WebForm export_gd_update_invoice 1", json_encode($order));
 
   log_info("
   export_gd_update_invoice ");//.print_r($order_item, true);
@@ -22,7 +22,7 @@ function export_gd_update_invoice($order) {
   $result = gdoc_post(GD_INVOICE_URL, $args);
 
   //$response = json_decode( $result );
-  mail('adam@sirum.org', "WebForm export_gd_update_invoice 2", json_encode([$args, $result]));
+  //mail('adam@sirum.org', "WebForm export_gd_update_invoice 2", json_encode([$args, $result]));
 
   log_info($result);
 }
