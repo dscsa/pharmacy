@@ -37,7 +37,7 @@ import_cp_rxs_single();
 import_cp_patients();
 //log_info(timer("import_cp_patients", $time));
 
-import_cp_order_items();
+//import_cp_order_items();
 //log_info(timer("import_cp_order_items", $time));
 
 //import_cp_orders();
