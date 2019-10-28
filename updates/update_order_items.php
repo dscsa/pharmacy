@@ -107,7 +107,18 @@ function update_order_items() {
   //  - think about what needs to be updated based on changes
   foreach($changes['updated'] as $updated) {
 
-    log_info("Updated Item No Action: ");
+    $item = get_full_item($updated, $mysql);
+
+    if ($item['days_dispensed_default']) {
+
+      log_info("Updated Item No Action: ");
+
+    } else {
+
+      list($days, $message) = get_days_dispensed($item);
+
+      set_days_dispensed($item, $days, $message, $mysql);
+    }
 
     log_info("Order Items: ".print_r(changed_fields($updated), true).print_r($updated, true));
 
