@@ -109,6 +109,8 @@ function update_order_items() {
 
     $item = get_full_item($updated, $mysql);
 
+    mail('adam@sirum.org', 'update_order_items updated', print_r($item, true));
+
     if ($item['days_dispensed_default']) {
 
       log_info("Updated Item No Action: ");
