@@ -1,41 +1,49 @@
+<?php
 
-function createTransferFax(orderId) { //This is undefined when called from Menu
+require_once 'helpers/helper_gdocs.php';
 
-  var sheet = getSheet('Shopping', 'A', 2) //allow to work for archived shopping sheets as well
-  order = sheet.rowByKey(orderId)    //Defaults to getting active row if OrderID is undefined
+function export_gd_transfer_fax($order) {
 
-  //TODO we should not rely on "transferred" magic (and user-facing!) string.  Need to mark this in the json.
-  if ( ! order.$Drugs.filter) {
-    debugEmail('order.$Drugs.filter is not a function', typeof order.$Drugs, order.$Drugs, order)
+
+  log_info("
+  export_gd_update_fax ");//.print_r($order_item, true);
+
+  if ( ! count($order)) return;
+
+  //TODO DRUGS CHANGED FUNCTIONALITY TO SEND AN INCREMENTAL FAX
+  /*
+  drugsChanged = JSON.stringify(drugsChanged || '')
+
+  if ( ! drugsChanged)
+    return transferStatus
+
+  //Only Fax Out New Drugs That Were Added
+  return ~ drugsChanged.indexOf(drug+' ADDED TO') ? transferStatus : false
+
+  if ( ~ drugsChanged.indexOf('ADDED TO'))
+    debugEmail('Transfer Out Fax Called', 'order', order, 'drugsChanged', drugsChanged, 'drugs', drugs)
+  */
+
+  $fax_outs = [];
+  foreach ($order as $row) {
+    if ($row['item_message_key'] == 'NO ACTION WILL TRANSFER' || $row['item_message_key'] == 'NO ACTION WILL TRANSFER CHECK BACK')
+      $fax_outs[] = $row;
   }
+  $fax_outs = order.filter(function(row) {
 
-  //order.$Drugs
-  var drugs = order.$Drugs.filter(function(drug) {
-    return hasDrugStatus(drug, 'NOACTION_WILL_TRANSFER') || hasDrugStatus(drug, 'NOACTION_WILL_TRANSFER_CHECK_BACK')
-  })
+  $args = [
+    'method'   => 'mergeDoc',
+    'template' => 'Transfer Out Template v1',
+    'file'     => 'Transfer #'.$order[0]['invoice_number'],
+    'folder'   => 'OLD', //Transfer Outs
+    'order'    => $fax_outs
+  ];
 
-  if ( ! drugs.length || ! LIVE_MODE) return
+  $result = gdoc_post(GD_MERGE_URL, $args);
 
-  order.$Drugs = drugs
+  mail('adam@sirum.org', "WebForm export_gd_transfer_fax", json_encode([$args, $result]));
 
-  var fax = mergeDoc("Transfer Out Fax v1", "Transfer #"+order.$OrderId, "Transfer Outs", order)
-  var pdf = fax.getAs(MimeType.PDF)
-
-  if (order.$Pharmacy.fax) {
-    var faxTo = order.$Pharmacy.fax.replace(/\D/g, '')
-    if (faxTo.length == 10) faxTo = '1'+faxTo
-    var res = sendSFax('18882987726', pdf) //(faxTo, pdf)
-    var success = res && res.isSuccess ? "External" : "Error External"
-    sendEmail('adam@sirum.org,cindy@goodpill.org', success + ' Transfer Out Fax', res.message+'. OrderId: '+orderId+'. See the <a href="'+fax.getUrl()+'">fax here</a>')
-  } else {
-    var res = sendSFax('18882987726', pdf)
-    var success = res && res.isSuccess ? "Internal" : "Error Internal"
-  }
-
-  fax.setName(success + ": Transfer #"+order.$OrderId)
-
-  if (res && ! res.isSuccess)
-    debugEmail(success + ' Transfer Out Fax', 'OrderId', orderId, 'isSuccess', res.isSuccess, fax.getUrl(), 'res', res, 'order', order)
+  log_info($result);
 }
 
 function getToken(){

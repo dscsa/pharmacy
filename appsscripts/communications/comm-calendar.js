@@ -149,7 +149,7 @@ function confirmShipmentEvent(order, email, hoursToWait, hourOfDay) {
   var patientLabel = getPatientLabel(order)
   var eventTitle   = order.$OrderId+' Confirm Shipment: '+patientLabel+'.  Created:'+new Date()
 
-  var cancel = cancelEvents(order.$Patient, ['Confirm Shipment'])
+  var cancel = cancelEvents(order.$Patient)
 
   var commArr = newCommArr(email)
 
@@ -273,6 +273,8 @@ function setHours(hourOfDay, date) {
 
 function searchEvents(patient, typeArr) {
 
+  typeArr = typeArr || []
+
   if ( ! patient.first) {
     debugEmail('searchEvents no patient first name', patient, typeArr)
     patient.first = ''
@@ -332,7 +334,7 @@ function removeDrugsFromEvents(patient, drugs, typeArr) {
   }
 
   if (log.length)
-    infoEmail('removeDrugsFromEvents', patient, drugs, typeArr, log, events)
+    infoEmail('removeDrugsFromEvents', regex, patient, drugs, typeArr, log, events)
 }
 
 function cancelEvents(patient, typeArr) {

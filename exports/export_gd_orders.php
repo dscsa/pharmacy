@@ -19,7 +19,7 @@ function export_gd_update_invoice($order) {
     'order'    => $order
   ];
 
-  $result = gdoc_post(GD_INVOICE_URL, $args);
+  $result = gdoc_post(GD_MERGE_URL, $args);
 
   //$response = json_decode( $result );
   //mail('adam@sirum.org', "WebForm export_gd_update_invoice 2", json_encode([$args, $result]));

@@ -80,8 +80,6 @@ function update_order_items() {
       continue;
     }
 
-    export_v2_add_pended($item);
-
     //TODO Update Salesforce Order Total & Order Count & Order Invoice using REST API or a MYSQL Zapier Integration
   }
 

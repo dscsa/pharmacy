@@ -7,9 +7,10 @@ function get_days_dispensed($item) {
   log_info("
   get_days_dispensed ");//.print_r($item, true);
 
+  //TODO OR IT'S AN OTC
   $no_transfer = $item['price_per_month'] >= 20 OR $item['pharmacy_phone'] == "8889875187";
 
-  $manual = in_array($item['stock_level'], ["MANUAL","WEBFORM"]);
+  $manual = in_array($item['item_added_by'], ADDED_MANUALLY);
 
   $not_offered = $item['stock_level'] == STOCK_LEVEL['NOT OFFERED'];
 
@@ -121,6 +122,20 @@ function get_days_dispensed($item) {
     return [days_default($item, 45), RX_MESSAGE['NO ACTION LOW STOCK']];
   }
 
+
+
+  if ( ! $item['item_date_added'] AND (strtotime($item['refill_date_next']) - time()) < 15*24*60*60) {
+    log_info("
+    PAST DUE AND SYNC TO ORDER");
+    return [0, RX_MESSAGE['  NO ACTION PAST DUE AND SYNC TO ORDER']];
+  }
+
+  if ( ! $item['item_date_added'] AND (strtotime($item['refill_date_next']) - time()) <= 15*24*60*60) {
+    log_info("
+    DUE SOON AND SYNC TO ORDER");
+    return [0, RX_MESSAGE['NO ACTION DUE SOON AND SYNC TO ORDER']];
+  }
+
   log_info("
   NO SPECIAL TAG USING DEFAULTS");
   return [days_default($item), RX_MESSAGE['NO ACTION STANDARD FILL']];
@@ -196,17 +211,13 @@ function days_default($item, $days_std = 90) {
   $days_of_qty_left = round($item['qty_left']/$item['sig_qty_per_day']);
   $days_of_stock    = round($item['qty_inventory']/$item['sig_qty_per_day']);
 
-  //Get to the target number of days
-  if ($item['refill_date_target'])
-    $days_std = (strtotime($item['refill_date_target']) - strtotime($item['refill_date_next']))/60/60/24;
-
   //Fill up to 30 days more to finish up an Rx if almost finished
   $days_default = ($days_of_qty_left < $days_std+30) ? $days_of_qty_left : $days_std;
 
   $days_default = min($days_default, $days_of_stock);
 
   $message = "
-  days_default:$days_default, days_of_stock:$days_of_stock, days_of_qty_left:$days_of_qty_left, days_std:$days_std, refill_date_target:$item[refill_date_target], refill_date_next:$item[refill_date_next]. ";//.print_r($item, true);
+  days_default:$days_default, days_of_stock:$days_of_stock, days_of_qty_left:$days_of_qty_left, days_std:$days_std, refill_date_next:$item[refill_date_next]. ";//.print_r($item, true);
 
   log_info($message);
 

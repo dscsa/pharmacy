@@ -42,14 +42,81 @@ function update_orders() {
     Order Before: $sql
     ".print_r($order, true));
 
-    if ($order) {
+    if ($order AND $order[0]['invoice_number']) {
+
+      $target_date = get_sync_to_date($order)
+      $order  = set_sync_to_date($order, $target_date, $mysql);
+
       $update = get_payment($order);
       $order  = set_payment($order, $update, $mysql);
+
+    } else {
+      log_info('set_sync_to_date error. no invoice number '.print_r($order, true).print_r($update, true));
     }
 
     log_info("
     Order After: $sql
     ".print_r($order, true));
+
+    return $order;
+  }
+
+  //Group all drugs by their next fill date and get the most popular date
+  function get_sync_to_date($order) {
+
+    $sync_dates = [];
+    foreach ($order as $item) {
+      if (isset($sync_dates[$item['refill_date_next']]))
+        $sync_dates[$item['refill_date_next']]++
+      else
+        $sync_dates[$item['refill_date_next']] = 0
+    }
+
+    $target_date  = null;
+    $target_count = null;
+    foreach($sync_dates as $date => $count) {
+      if ($count > $target_count) {
+        $target_count = $count;
+        $target_date = $date;
+      }
+      else if ($count == $target_count AND $date > $target_date) { //In case of tie, longest date wins
+        $target_date = $date;
+      }
+    }
+
+    return $target_date;
+  }
+
+  //Sync any drug that has days to the new refill date
+  function set_sync_to_date($order, $target_date, $mysql) {
+
+    foreach($order as $i => $item) {
+
+      if ($item['days_dispensed_default'] == 0) continue; //Don't add them to order if they are not already in it
+
+      $days_extra  = (strtotime($target_date) - strtotime($item['refill_date_next']))/60/60/24;
+      $days_synced = $item['days_dispensed_default'] + $days_extra;
+
+      if ($days_synced >= 15 AND $days_synced <= 120) { //Limits to the amounts by which we are willing sync
+
+        $order[$i]['refill_date_target']     = $target_date;
+        $order[$i]['days_dispensed_default'] = $days_synced;
+
+        $sql = "
+          UPDATE
+            gp_order_items =
+          SET
+            refill_date_target     = $target_date,
+            days_dispensed_default = $days_synced
+          WHERE
+            rx_number = $item['rx_number']
+        ";
+
+        $mysql->run($sql);
+      }
+
+      export_v2_add_pended($order[$i]); //Days should be finalized now
+    }
 
     return $order;
   }
@@ -85,27 +152,22 @@ function update_orders() {
 
   function set_payment($order, $update, $mysql) {
 
-    if ($order[0]['invoice_number']) {
-      $sql = "
-        UPDATE
-          gp_orders
-        SET
-          payment_total = $update[payment_total],
-          payment_fee   = $update[payment_fee],
-          payment_due   = $update[payment_due],
-          payment_date_autopay = $update[payment_date_autopay]
-        WHERE
-          invoice_number = {$order[0]['invoice_number']}
-      ";
+    $sql = "
+      UPDATE
+        gp_orders
+      SET
+        payment_total = $update[payment_total],
+        payment_fee   = $update[payment_fee],
+        payment_due   = $update[payment_due],
+        payment_date_autopay = $update[payment_date_autopay]
+      WHERE
+        invoice_number = {$order[0]['invoice_number']}
+    ";
 
-      $mysql->run($sql);
+    $mysql->run($sql);
 
-      foreach($order as $i => $item)
-        $order[$i] = $update + $item;
-    }
-    else {
-      log_info('set_payment error. no invoice number '.print_r($order, true).print_r($update, true));
-    }
+    foreach($order as $i => $item)
+      $order[$i] = $update + $item;
 
     return $order;
   }

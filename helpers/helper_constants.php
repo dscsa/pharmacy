@@ -1,5 +1,10 @@
 <?php
 
+const ADDED_MANUALLY = [
+  "MANUAL",
+  "WEBFORM"
+];
+
 const PAYMENT_TOTAL_NEW_PATIENT = 6;
 
 const PAYMENT_METHOD = [
@@ -23,20 +28,16 @@ const RX_MESSAGE = [
     'EN' => '',
     'ES' => ''
   ],
-  'NO ACTION PAST DUE' => [
-    'EN' => 'is past due and may be Med Synced to this Order *',
+  'NO ACTION PAST DUE AND SYNC TO ORDER' => [
+    'EN' => 'is past due and was synced to this Order *',
     'ES' => ''
   ],
-  'NO ACTION MAY MEDSYNC' => [
-    'EN' => 'is due soon and may be Med Synced to this Order *',
+  'NO ACTION DUE SOON AND SYNC TO ORDER' => [
+    'EN' => 'is due soon and was synced to this Order *',
     'ES' => ''
   ],
-  'NO ACTION WAS MEDSYNC' => [
-    'EN' => 'was Med Synced to this Order *',
-    'ES' => ''
-  ],
-  'NO ACTION TARGET DATE' => [
-    'EN' => 'was Med Synced to $NextRefill *',
+  'NO ACTION SYNC TO DATE' => [
+    'EN' => 'is due soon and was synced to this Order *',
     'ES' => ''
   ],
   'NO ACTION RX OFF AUTOFILL' => [
