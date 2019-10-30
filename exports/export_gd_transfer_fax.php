@@ -14,7 +14,7 @@ function export_gd_transfer_fax($order) {
   /*
   drugsChanged = JSON.stringify(drugsChanged || '')
 
-  if ( ! drugsChanged)
+  if (drugsChanged == '""')
     return transferStatus
 
   //Only Fax Out New Drugs That Were Added

@@ -124,13 +124,13 @@ function get_days_dispensed($item) {
 
 
 
-  if ( ! $item['item_date_added'] AND (strtotime($item['refill_date_next']) - time()) < 15*24*60*60) {
+  if ( ! $item['item_date_added'] AND $item['refill_date_next'] AND (strtotime($item['refill_date_next']) - time()) < 0) {
     log_info("
     PAST DUE AND SYNC TO ORDER");
     return [0, RX_MESSAGE['  NO ACTION PAST DUE AND SYNC TO ORDER']];
   }
 
-  if ( ! $item['item_date_added'] AND (strtotime($item['refill_date_next']) - time()) <= 15*24*60*60) {
+  if ( ! $item['item_date_added'] AND $item['refill_date_next'] AND (strtotime($item['refill_date_next']) - time()) <= 15*24*60*60) {
     log_info("
     DUE SOON AND SYNC TO ORDER");
     return [0, RX_MESSAGE['NO ACTION DUE SOON AND SYNC TO ORDER']];
