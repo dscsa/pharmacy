@@ -5,11 +5,7 @@ function createCalendarEvent(event) {
 
 function removeCalendarEvents(opts) {
 
-  var calendar = CalendarApp.getCalendarById(opts.cal_id)
-
-  var events = opts.events ||
-
-    var event = calendar.getEventById(opts.ids[i])
+  var events = opts.events || CalendarApp.getCalendarById(opts.cal_id).getEventById(opts.ids[i])
 
   for (var i in events) {
     var title = event.getTitle()+' Deleted:'+new Date()
@@ -58,17 +54,17 @@ function modifyCalendarEvents(opts) {
   var matches  = searchCalendarEvents(opts)
   var regex    = RegExp(opts.regex_replace[0], 'g')
   //TODO Remove if/when Calendar support partial word searches
-  for (var i in events) {
-    var id       = matches[i].id
+  for (var i in matches) {
+    var _id       = matches[i].id
     var title    = matches[i].event.getTitle()
     var old_desc = matches[i].event.getDescription()
     var new_desc = old_desc.replace(regex, opts.regex_replace[1])
 
     if (old_desc == new_desc) {
-      response.unmodified.push({id:id, title:title, old:old_desc, new:new_desc})
+      response.unmodified.push({id:id, title:title, old_desc:old_desc, new_desc:new_desc})
     }
     else {
-      response.modified.push({id:id, title:title, old:old_desc, new:new_desc})
+      response.modified.push({id:_id, title:title, old_desc:old_desc, new_desc:new_desc})
     }
   }
 
