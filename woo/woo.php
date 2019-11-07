@@ -57,10 +57,9 @@ function dscsa_admin_scripts() {
   }
 }
 
-add_action('init', 'cache_login_registration');
-function cache_login_registration() {
-  if (strpos($_SERVER['REQUEST_URI'], 'gp-') === false || $_POST) return; //mimic cloud flare page rules
-  remove_action('wp', ['WC_Cache_Helper', 'prevent_caching']);
+add_action('send_headers', 'dscsa_salesforce_iframe');
+function dscsa_salesforce_iframe() {
+  header('Content-Security-Policy: frame-ancestors https://sirum.lightning.force.com/;');
 }
 
 add_action('wp_enqueue_scripts', 'dscsa_user_scripts');
@@ -2483,7 +2482,7 @@ function email_error($heading) {
 }
 
 function debug_email($subject, $body) {
-   $type = is_admin() OR strpos($_SERVER['HTTP_COOKIE'], 'impersonated_by') !== false ? "ADMIN" : "USER";
+   $type = (is_admin() OR strpos($_SERVER['HTTP_COOKIE'], 'impersonated_by') !== false) ? "ADMIN" : "USER";
    wp_mail('adam.kircher@gmail.com', "WP_MAIL $type: $subject", $body);
 }
 
