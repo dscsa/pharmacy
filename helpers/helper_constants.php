@@ -1,5 +1,7 @@
 <?php
 
+const LIVE_MODE = true;
+
 const ADDED_MANUALLY = [
   "MANUAL",
   "WEBFORM"

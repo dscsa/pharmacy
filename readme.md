@@ -116,6 +116,13 @@ Configure Apache
 # END WordPress`
 - Change `DirectoryIndex index.html` to `DirectoryIndex index.html index.php`
 //Necessary? - Add `AddType application/x-httpd-php .php`
+- Add
+`<VirtualHost *:443>
+      SSLEngine on
+      SSLCertificateFile /goodpill/ssl/goodpill.org.pem
+      SSLCertificateKeyFile /goodpill/ssl/goodpill.org.key
+      SSLCertificateChainFile /goodpill/ssl/goodpill.org.root
+</VirtualHost>`
 
 Test
 `sudo service mysqld start`

@@ -18,6 +18,14 @@ function log_info($msg = null) {
   $_SERVER['webform_log'][] = $msg;
 }
 
+function email($subject) {
+  $body = '';
+  foreach (func_get_args() as $arg) {
+    $body .= print_r($arg, true).' | '
+  }
+  mail('adam@sirum.org', print_r($subject, true), $body);
+}
+
 function timer($label, &$start) {
   $start = $start ?: [microtime(true), microtime(true)];
   $stop  = microtime(true);

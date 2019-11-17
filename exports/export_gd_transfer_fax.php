@@ -2,41 +2,20 @@
 
 require_once 'helpers/helper_gdocs.php';
 
-function export_gd_transfer_fax($order) {
-
+function export_gd_transfer_fax($order_item) {
 
   log_info("
   export_gd_update_fax ");//.print_r($order_item, true);
 
-  if ( ! count($order)) return;
-
-  //TODO DRUGS CHANGED FUNCTIONALITY TO SEND AN INCREMENTAL FAX
-  /*
-  drugsChanged = JSON.stringify(drugsChanged || '')
-
-  if (drugsChanged == '""')
-    return transferStatus
-
-  //Only Fax Out New Drugs That Were Added
-  return ~ drugsChanged.indexOf(drug+' ADDED TO') ? transferStatus : false
-
-  if ( ~ drugsChanged.indexOf('ADDED TO'))
-    debugEmail('Transfer Out Fax Called', 'order', order, 'drugsChanged', drugsChanged, 'drugs', drugs)
-  */
-
-  $fax_outs = [];
-  foreach ($order as $row) {
-    if ($row['item_message_key'] == 'NO ACTION WILL TRANSFER' || $row['item_message_key'] == 'NO ACTION WILL TRANSFER CHECK BACK')
-      $fax_outs[] = $row;
-  }
-  $fax_outs = order.filter(function(row) {
+  if ($order_item['item_message_key'] != 'NO ACTION WILL TRANSFER' && $order_item['item_message_key'] != 'NO ACTION WILL TRANSFER CHECK BACK')
+    return;
 
   $args = [
     'method'   => 'mergeDoc',
     'template' => 'Transfer Out Template v1',
-    'file'     => 'Transfer #'.$order[0]['invoice_number'],
+    'file'     => 'Transfer Out #'.$order[0]['rx_number'],
     'folder'   => 'OLD', //Transfer Outs
-    'order'    => $fax_outs
+    'order'    => $order_item
   ];
 
   $result = gdoc_post(GD_MERGE_URL, $args);

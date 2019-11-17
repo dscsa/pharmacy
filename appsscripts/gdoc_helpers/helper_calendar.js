@@ -5,10 +5,15 @@ function createCalendarEvent(event) {
 
 function removeCalendarEvents(opts) {
 
-  var events = opts.events || CalendarApp.getCalendarById(opts.cal_id).getEventById(opts.ids[i])
+  if ( ! opts.events) {
+    var cal = CalendarApp.getCalendarById(opts.cal_id)
+    opts.events = opts.ids.map(function(id) {
+      return cal.getEventById(id)
+    })
+  }
 
-  for (var i in events) {
-    var title = event.getTitle()+' Deleted:'+new Date()
+  for (var i in opts.events) {
+    var title = opts.events[i].getTitle()+' Deleted:'+new Date()
 
     event.setTitle(title)
 
@@ -23,55 +28,56 @@ function removeCalendarEvents(opts) {
   infoEmail('removeCalendarEvents', opts)
 }
 
+function modifyCalendarEvents(opts) {
+
+  var cal = CalendarApp.getCalendarById(opts.cal_id)
+
+  for (var i in opts.events) {
+
+    if ( ! opts.events[i].setTitle || ! opts.events[i].setDescription)
+      opts.events[i] = cal.getEventById(opts.events[i].id)
+
+    opts.events[i].setTitle(opts.events[i].title)
+    opts.events[i].setDescription(opts.events[i].description)
+  }
+
+  infoEmail('modifyCalendarEvents', opts)
+}
+
 function searchCalendarEvents(opts) {
 
   var calendar = CalendarApp.getCalendarById(opts.cal_id)
 
   var start    = opts.start || new Date()
   var length   = addHours(opts.hours, start) //stop date seems to be required by Google.  Everything should happen within 90 days
-  var config   = { search:opts.full_word_search }
+  var config   = { search:opts.word_search }
   var events   = calendar.getEvents(start, stop, config) //Can't put in name because can't google cal doesn't seem to support a partial word search e.g, "greg" will not show results for gregory
-
   //TODO Remove if/when Calendar support partial word searches
 
   var matches = []
   var regex   = opts.regex_search && RegExp(opts.regex_search)
   for (var i in events) {
-    var haystack = (event.getTitle()+' '+event.getDescription()).toLowerCase()
+
+    var event = {
+      id:event.getId(),
+      title:event.getTitle(),
+      description:event.getDescription(),
+      start:event.getStartTime(),
+      end:event.getStartTime()
+    }
+
+    if ( ! opts.past && (~ event.title.indexOf('CALLED') ||  ~ event.title.indexOf('EMAILED') ||  ~ event.title.indexOf('TEXTED'))) continue;
+
+    var haystack = (event.title+' '+event.description).toLowerCase()
+
     if ( ! regex || haystack.match(regex))
-      matches.push({id:event.getId(), event:event})
+      matches.push(event)
   }
 
   if (events.length)
     infoEmail('searchCalendarEvents', start, stop, matches ? matches.length : events.length, 'of '+events.length+' of the events below match the following:', opts)
 
   return matches
-}
-
-function modifyCalendarEvents(opts) {
-
-  var response = {modified:[], unmodified:[]}
-  var matches  = searchCalendarEvents(opts)
-  var regex    = RegExp(opts.regex_replace[0], 'g')
-  //TODO Remove if/when Calendar support partial word searches
-  for (var i in matches) {
-    var _id       = matches[i].id
-    var title    = matches[i].event.getTitle()
-    var old_desc = matches[i].event.getDescription()
-    var new_desc = old_desc.replace(regex, opts.regex_replace[1])
-
-    if (old_desc == new_desc) {
-      response.unmodified.push({id:id, title:title, old_desc:old_desc, new_desc:new_desc})
-    }
-    else {
-      response.modified.push({id:_id, title:title, old_desc:old_desc, new_desc:new_desc})
-    }
-  }
-
-  if (events.length)
-    infoEmail('modifyCalendarEvents', opts, response)
-
-  return response
 }
 
 function addHours(hours, date) {

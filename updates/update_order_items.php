@@ -35,6 +35,8 @@ function update_order_items() {
         gp_order_items
       JOIN gp_rxs_grouped ON
         rx_numbers LIKE CONCAT('%,', gp_order_items.rx_number, ',%')
+      JOIN gp_orders ON
+        gp_orders.invoice_number = gp_order_items.invoice_number
       JOIN gp_rxs_single ON
         gp_rxs_grouped.best_rx_number = gp_rxs_single.rx_number
       JOIN gp_patients ON
@@ -77,6 +79,7 @@ function update_order_items() {
 
     if ( ! $days) {
       export_cp_remove_item($item);
+      export_gd_transfer_fax($item);
       continue;
     }
 
