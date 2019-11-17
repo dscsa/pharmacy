@@ -15,7 +15,7 @@ function export_gd_update_invoice($order) {
     'method'   => 'mergeDoc',
     'template' => 'Invoice Template v1',
     'file'     => 'Invoice #'.$order[0]['invoice_number'],
-    'folder'   => 'OLD', //Published
+    'folder'   => INVOICE_FOLDER_NAME,
     'order'    => $order
   ];
 

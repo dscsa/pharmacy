@@ -164,13 +164,13 @@ function new_comm_arr($email, $text) {
 
   $commArr = [];
 
-  if (LIVE_MODE && $email && ! preg_match($email, '/\d\d\d\d-\d\d-\d\d@goodpill\.org/')) {
+  if (LIVE_MODE AND $email AND ! preg_match($email, '/\d\d\d\d-\d\d-\d\d@goodpill\.org/')) {
     $email['bcc']  = DEBUG_EMAIL;
     $email['from'] = 'Good Pill Pharmacy < support@goodpill.org >'; //spaces inside <> are so that google cal doesn't get rid of "HTML" if user edits description
     $commArr[] = $email;
   }
 
-  if (LIVE_MODE && $text && $text['sms'] && strpos(DO_NOT_SMS, $text['sms']) === false) {
+  if (LIVE_MODE AND $text AND $text['sms'] AND strpos(DO_NOT_SMS, $text['sms']) === false) {
     //addCallFallback
     $json = preg_replace('/ undefined/g', '', json_encode($text));
 

@@ -7,6 +7,8 @@ const ADDED_MANUALLY = [
   "WEBFORM"
 ];
 
+const INVOICE_FOLDER_NAME = 'OLD';  //Published
+
 const PAYMENT_TOTAL_NEW_PATIENT = 6;
 
 const PAYMENT_METHOD = [

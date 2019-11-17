@@ -22,9 +22,9 @@ function group_drugs($order) {
 
     $days    = $item['days_dispensed_default'];
     $fill    = $days ? 'FILL_' : 'NOFILL_';
-    $msg_key = $item['item_message_key'] || 'NOACTION';
+    $msg_key = $item['item_message_key'] ?: 'NOACTION';
 
-    $price   = ($days && $item['refills_used']) ? ', $'.round($item['price_per_month']*$days/30).' for '.$days.' days' : '';
+    $price   = ($days AND $item['refills_used']) ? ', $'.round($item['price_per_month']*$days/30).' for '.$days.' days' : '';
     $action  = explode('_', $msg_key)[0]; //ACTION OR NOACTION
 
     $group[$fill+$action][] = $item['drug_generic'].' '.$item['item_message_text'];
@@ -37,10 +37,10 @@ function group_drugs($order) {
     if ( ! $item['refills_left'])
       $group['NO_REFILLS'][] = $item['drug_generic'].' '.$item['item_message_text'];
 
-    if ($days && ! $item['rx_autofill'])
+    if ($days AND ! $item['rx_autofill'])
       $group['NO_AUTOFILL'][] = $item['drug_generic'].' '.$item['item_message_text'];
 
-    if ( ! $item['refills_left'] && $days && $days < $group['MIN_DAYS'])
+    if ( ! $item['refills_left'] AND $days AND $days < $group['MIN_DAYS'])
       $group['MIN_DAYS'] = $days;
 
     if ($item['item_added_by'] == 'MANUAL' OR $item['item_added_by'] == 'WEBFORM')
@@ -376,66 +376,66 @@ function needs_form_notice($order, $email, $text, $hours_to_wait, $hour_of_day) 
     $message = "We are very sorry for the inconvenience but we can't fill the Rx(s) in Order #".$order[0]['invoice_number']." that we received from your doctor. Please ask your local pharmacy to contact us to get the prescription OR register online or over the phone and let us know to which pharmacy we should transfer the Rx(s).<br><br>Because we rely on donated medicine, we can only fill medications that are listed here www.goodpill.org/gp-stock";
   }
 
-  $email = { email:order.$Patient.email }
-  $text  = { sms:getPhones(order), message:subject+' '+message }
+  $email = [ "email" => $order[0]['email'] ];
+  $text  = [ "sms"   => get_phones($order), "message" => $subject.' '.$message ];
 
-  email.subject = subject
-  email.message = [
+  $email['subject'] = $subject;
+  $email['message'] = implode('<br>', [
     'Hello,',
     '',
-    subject+' '+message,
+    $subject.' '.$message,
     '',
     'Thanks!',
     'The Good Pill Team',
     '',
     ''
-  ].join('<br>')
+  ]);
 
   //By basing on added at, we remove uncertainty of when script was run relative to the order being added
-  $hourAdded = order.$RowAdded.getHours()
+  $hour_added = substr($order['order_date_added'], 11, 2); //get hours
 
-  if(hourAdded < 10){
+  if($hour_added < 10){
     //A if before 10am, the first one is at 10am, the next one is 5pm, then 10am tomorrow, then 5pm tomorrow
-    $hoursToWait = [0, 0, 24, 24, 24*7, 24*14]
-    $hourOfDay   = [11, 17, 11, 17, 17, 17]
+    $hours_to_wait = [0, 0, 24, 24, 24*7, 24*14];
+    $hour_of_day   = [11, 17, 11, 17, 17, 17];
 
-  } else if (hourAdded < 17){
+  } else if ($hour_added < 17){
     //A if before 5pm, the first one is 10mins from now, the next one is 5pm, then 10am tomorrow, then 5pm tomorrow
-    $hoursToWait = [10/60, 0, 24, 24, 24*7, 24*14]
-    $hourOfDay   = [null, 17, 11, 17, 17, 17]
+    $hours_to_wait = [10/60, 0, 24, 24, 24*7, 24*14];
+    $hour_of_day   = [null, 17, 11, 17, 17, 17];
 
   } else {
     //B if after 5pm, the first one is 10am tomorrow, 5pm tomorrow, 10am the day after tomorrow, 5pm day after tomorrow.
-    $hoursToWait = [24, 24, 48, 48, 24*7, 24*14]
-    $hourOfDay   = [11, 17, 11, 17, 17, 17]
+    $hours_to_wait = [24, 24, 48, 48, 24*7, 24*14];
+    $hour_of_day   = [11, 17, 11, 17, 17, 17];
   }
 
-  needs_form_event(order, email, text, hoursToWait[0], hourOfDay[0])
+  needs_form_event($order, $email, $text, $hours_to_wait[0], $hour_of_day[0]);
 
-  if ( ! numFills) return //Don't hassle folks if we aren't filling anything
+  if ( ! $num_fills) return; //Don't hassle folks if we aren't filling anything
 
-  needs_form_event(order, email, text, hoursToWait[1], hourOfDay[1])
-  needs_form_event(order, email, text, hoursToWait[2], hourOfDay[2])
-  needs_form_event(order, email, text, hoursToWait[3], hourOfDay[3])
+  needs_form_event($order, $email, $text, $hours_to_wait[1], $hour_of_day[1]);
+  needs_form_event($order, $email, $text, $hours_to_wait[2], $hour_of_day[2]);
+  needs_form_event($order, $email, $text, $hours_to_wait[3], $hour_of_day[3]);
 }
 
 //We are coording patient communication via sms, calls, emails, & faxes
 //by building commication arrays based on github.com/dscsa/communication-calendar
-function noRxNotice(order) {
+function no_rx_notice($order) {
 
-  $subject = 'Good Pill received Order #'+order.$OrderId+' but is waiting for your prescriptions'
-  $message  = order.$Patient.source == 'Transfer'
-    ? "We will attempt to transfer the Rxs you requested from "+order.$Pharmacy.short.replace(/ \(\d{10}\)/g, '')+"."
-    : "We haven't gotten any Rxs from your doctor yet but will notify you as soon as we do."
+  $subject = 'Good Pill received Order #'.$order[0]['invoice_number'].' but is waiting for your prescriptions';
+  $message  = $order[0]['order_source'] == 'Transfer'
+    ? "We will attempt to transfer the Rxs you requested from, ".$order[0]['pharmacy_name'].' '.$order[0]['pharmacy_address'].'.';
+    : "We haven't gotten any Rxs from your doctor yet but will notify you as soon as we do.";
 
-  $email = { email:order.$Patient.email }
-  $text  = { sms:getPhones(order), message:subject+'. '+message }
+  $email = [ "email" => $order[0]['email'] ];
+  $text  = [ "sms"   => get_phones($order), $message => $subject.'. '.$message ];
 
-  email.subject = subject
-  email.message = [
+  $email['subject'] = $subject;
+  $email['message']  = implode('<br>', [
     'Hello,',
     '',
-    subject+'. '+message,
+    $subject.'. '.$message,
     '',
     '',
     'Thanks,',
@@ -443,76 +443,76 @@ function noRxNotice(order) {
     '',
     '',
     "Note: if this is correct, there is no need to do anything. If you think there is a mistake, please let us know as soon as possible."
-  ].join('<br>')
+  ]);
 
   //Wait 15 minutes to hopefully batch staggered surescripts and manual rx entry and cindy updates
-  no_rx_event(order, email, text, 15/60)
+  no_rx_event($order, $email, $text, 15/60);
 }
 
-function orderFailedNotice(order, numFills) {
+function order_failed_notice($order, $num_fills) {
 
-  $subject  = "Apologies but Good Pill is having trouble with your Order #"+order.$OrderId
+  $subject  = "Apologies but Good Pill is having trouble with your Order #".$order[0]['invoice_number'];
 
-  if (numFills)
-    $message = "We are so sorry for the inconvenience. Please call us at (888) 987-5187 and we will explain the issue."
-  else if (order.$Patient.source == 'Transfer')
-    $message = "We were unable to transfer the Rxs you requested from "+order.$Pharmacy.short.replace(/ \(\d{10}\)/g, '')+". This usually happens because we have the wrong pharmacy on file, we are requesting the wrong Rxs, or your Rxs have no refills remaining"
+  if ($num_fills)
+    $message = "We are so sorry for the inconvenience. Please call us at (888) 987-5187 and we will explain the issue.";
+  else if ($order[0]['order_source'] == 'Transfer')
+    $message = "We were unable to transfer the Rxs you requested from, ".$order[0]['pharmacy_name'].' '.$order[0]['pharmacy_address'].". This usually happens because we have the wrong pharmacy on file, we are requesting the wrong Rxs, or your Rxs have no refills remaining";
   else
-    $message = "We haven't gotten any Rxs from your doctor yet. You may want to contact your doctor.  If you had meant for us to transfer Rxs from your pharmacy instead, please login to your account and place a new 'transfer' order or give us a call at (888) 987-5187."
+    $message = "We haven't gotten any Rxs from your doctor yet. You may want to contact your doctor.  If you had meant for us to transfer Rxs from your pharmacy instead, please login to your account and place a new 'transfer' order or give us a call at (888) 987-5187.";
 
-  $email = { email:order.$Patient.email }
-  $text  = { sms:getPhones(order),  message:subject+'. '+message }
+  $email = [ "email" => $order[0]['email'] ];
+  $text  = [ "sms" => get_phones($order),  "message" => $subject.'. '.$message ];
 
-  email.subject = subject
-  email.message = [
+  $email['subject'] = $subject;
+  $email['message'] = implode('<br>', [
     'Hello,',
     '',
-    subject+'. '+message,
+    $subject.'. '.$message,
     '',
     'Thanks!',
     'The Good Pill Team',
     '',
     ''
-  ].join('<br>')
+  ]);
 
-  order_failed_event(order, email, text, 7*24, 13)
-  order_failed_event(order, {
-    email:CINDY_EMAIL+','+DEBUG_EMAIL,
-    subject:'To Be Sent Tomorrow: '+subject,
-    message:'To Be Sent Tomorrow: '+email.message
-  }, null, 6*24, 13)
+  order_failed_event($order, $email, $text, 7*24, 13);
+  order_failed_event($order, [
+    "email"   => CINDY_EMAIL.','.DEBUG_EMAIL,
+    "subject" => 'To Be Sent Tomorrow: '.$subject,
+    "message" => 'To Be Sent Tomorrow: '.$email.$message
+  ], null, 6*24, 13);
 }
 
-function confirmShipmentNotice(order, groups) {
-  confirmShippingInternal(order, groups)
-  confirmShippingExternal(order, groups)
+function confirm_shipment_notice($order, $groups) {
+  confirm_shipping_internal($order, $groups);
+  confirm_shipping_external($order, $groups);
 }
 
-function confirmShippingInternal(order, groups) {
+function confirm_shipping_internal($order, $groups) {
 
-  if ( ! order.$New) return
+  if ( ! $order[0]['refills_used']) return;
 
-  $numFills   = groups.FILL_ACTION.length + groups.FILL_NOACTION.length
-  $numNoFills = groups.NOFILL_ACTION.length + groups.NOFILL_NOACTION.length
+  $num_fills    = count($groups['FILL_ACTION']) + count($groups['FILL_NOACTION']);
+  $num_no_fills = count($groups['NOFILL_ACTION']) + count($groups['NOFILL_NOACTION']);
 
   ///It's depressing to get updates if nothing is being filled
-  $subject = "Follow up on new patient's first order"
-  $daysAgo = 5
+  $subject  = "Follow up on new patient's first order";
+  $days_ago = 5;
 
-  $email = { email:'support@goodpill.org' }
+  $email = [ "email" => 'support@goodpill.org' ];
 
-  email.subject = subject
-  email.message = [
+  $email['subject'] = $subject;
+  $email['message'] = implide('<br>', [
     'Hello,',
     '',
-    order.$Patient.first+' '+order.$Patient.last+' '+order.$Patient.birth_date+' is a new patient.  They were shipped Order #'+order.$OrderId+' with '+numFills+' items '+daysAgo+' days ago.',
+    $order[0]['first_name'].' '.$order[0]['last_name'].' '.$order[0]['birth_date'].' is a new patient.  They were shipped Order #'.$order[0]['invoice_number'].' with '.$num_fills.' items '.$days_ago.' days ago.',
     '',
-    'Please call them at '+[order.$Patient.phone1, order.$Patient.phone2]+' and check on the following:',
-    '- Order with tracking number '+trackingLink(order.$Tracking)+' was delivered and that they received it',
+    'Please call them at '.$order[0]['phone1'].', '.$order[0]['phone2'].' and check on the following:',
+    '- Order with tracking number '.tracking_link($order[0]['tracking_number']).' was delivered and that they received it',
     '',
-    '- Make sure they got all '+numFills+' of their medications, that we filled the correct number of pills, and answer any questions the patient has',
-    numNoFills ? '<br>- Explain why we did NOT fill:<br>'+groups.NOFILL_NOACTION.concat(groups.NOFILL_ACTION).join(';<br>')+'<br>' : '',
-    '- Let them know they are currently set to pay via '+payment(order)+' and the cost of the '+numFills+' items was $'+order.$Fee+' this time, but next time it will be $'+order.$Total,
+    '- Make sure they got all '.$num_fills.' of their medications, that we filled the correct number of pills, and answer any questions the patient has',
+    $num_no_fills ? '<br>- Explain why we did NOT fill:<br>'.implode(';<br>', $groups['NOFILL_NOACTION'] + $groups['NOFILL_ACTION']).'<br>' : '',
+    '- Let them know they are currently set to pay via '+payment($order)+' and the cost of the '.$num_fills.' items was $'.$order[0]['payment_fee'].' this time, but next time it will be $'.$order['payment_total'],
     '',
     '- Review their current medication list and remind them which prescriptions we will be filling automatically and which ones they need to request 2 weeks in advance',
     '',
@@ -520,59 +520,54 @@ function confirmShippingInternal(order, groups) {
     'The Good Pill Team',
     '',
     ''
-  ].join('<br>')
+  ]);
 
-
-  confirmShipmentEvent(order, email, daysAgo*24, 13)
+  confirm_shipment_event($order, $email, $days_ago*24, 13);
 }
 
-function confirmShippingExternal(order, groups) {
+function confirm_shipping_external($order, $groups) {
 
-  $email = { email:order.$Patient.email }
-  $text  = { sms:getPhones(order) }
+  $email = [ "email" => $order[0]['email'] ];
+  $text  = [ "sms"   => get_phones($order) ];
 
-  $subject = "Order #"+order.$OrderId+" was delivered."
-  $message = " should have been delivered within the past few days.  Please contact us at 888.987.5187 if you have not yet received your order."
+  $subject = "Order #".$order[0]['invoice_number']." was delivered.";
+  $message = " should have been delivered within the past few days.  Please contact us at 888.987.5187 if you have not yet received your order.";
 
-  text.message = subject+' Your order with tracking number '+order.$Tracking+message
+  $text['message'] = $subject.' Your order with tracking number '.$order[0]['tracking_number'].$message;
 
-  email.subject = subject
-  email.message = [
+  $email['subject'] = $subject;
+  $email['message'] = implode('<br>', [
     'Hello,',
     '',
-    subject+' Your order with tracking number '+trackingLink(order.$Tracking)+message,
+    $subject.' Your order with tracking number '.tracking_link($order['tracking_number']).$message,
     '',
     'Thanks!',
     'The Good Pill Team',
     '',
     ''
-  ].join('<br>')
+  ]);
 
-  confirmShipmentEvent(order, email, 7*24, 14)
+  confirm_shipment_event($order, $email, 7*24, 14);
 }
 
-function trackingURL(trackingNumber) {
+function tracking_url($tracking_number) {
 
-  $url = '#'
+  $url = '#';
 
-  if (trackingNumber.length == 22) {
-    url = 'https://tools.usps.com/go/TrackConfirmAction?tLabels='
-  } else if (trackingNumber.length == 15 || trackingNumber.length == 12) { //Ground or Express
-    url = 'https://www.fedex.com/apps/fedextrack/?tracknumbers='
+  if (strlen($tracking_number) == 22) {
+    $url = 'https://tools.usps.com/go/TrackConfirmAction?tLabels=';
+  } else if (strlen($tracking_number) == 15 OR strlen($tracking_number) == 12) { //Ground or Express
+    $url = 'https://www.fedex.com/apps/fedextrack/?tracknumbers=';
   }
 
-  return url+trackingNumber
+  return $url.$tracking_number;
 }
 
 //Convert gsheet hyperlink formula to an html link
-function trackingLink(tracking) {
-  return '<a href="'+trackingURL(tracking)+'">'+tracking+'</a>'
+function tracking_link($tracking) {
+  return '<a href="'.tracking_url($tracking).'">'.$tracking.'</a>';
 }
 
-function trackingFormula(tracking) {
-  return '=HYPERLINK("'+trackingURL(tracking)+'", "'+tracking+'")'
-}
-
-function getPhones(order) {
-  return order.$Patient.phone1+(order.$Patient.phone2 ? ','+order.$Patient.phone2 : '')
+function get_phones($order) {
+  return $order[0]['phone1'].($order[0]['phone2'] ? ','.$order[0]['phone2'] : '');
 }

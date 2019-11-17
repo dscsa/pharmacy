@@ -116,7 +116,7 @@ function get_days_dispensed($item) {
     return [days_default($item), RX_MESSAGE['ACTION EXPIRING']];
   }
 
-  if ($item['stock_level'] != STOCK_LEVEL['HIGH SUPPLY'] && $item['qty_inventory'] < 1000) { //Only do 45 day if its Low Stock AND less than 1000 Qty.  Cindy noticed we had 8000 Amlodipine but we were filling in 45 day supplies
+  if ($item['stock_level'] != STOCK_LEVEL['HIGH SUPPLY'] AND $item['qty_inventory'] < 1000) { //Only do 45 day if its Low Stock AND less than 1000 Qty.  Cindy noticed we had 8000 Amlodipine but we were filling in 45 day supplies
     log_info("
     WARN USERS IF DRUG IS LOW QTY");
     return [days_default($item, 45), RX_MESSAGE['NO ACTION LOW STOCK']];
@@ -139,10 +139,10 @@ function get_days_dispensed($item) {
   log_info("
   NO SPECIAL TAG USING DEFAULTS");
   return [days_default($item), RX_MESSAGE['NO ACTION STANDARD FILL']];
-  //TODO DON'T NO ACTION_PAST_DUE if ( ! drug.$InOrder && drug.$DaysToRefill < 0)
+  //TODO DON'T NO ACTION_PAST_DUE if ( ! drug.$InOrder AND drug.$DaysToRefill < 0)
   //TODO NO ACTION_LIVE_INVENTORY_ERROR if ( ! drug.$v2)
   //TODO ACTION_CHECK_BACK/NO ACTION_WILL_TRANSFER_CHECK_BACK
-  //if ( ! drug.$IsRefill && ! drug.$IsPended && ~ ['Out of Stock', 'Refills Only'].indexOf(drug.$Stock))
+  //if ( ! drug.$IsRefill AND ! drug.$IsPended AND ~ ['Out of Stock', 'Refills Only'].indexOf(drug.$Stock))
   //if (drug.$NoTransfer)
 }
 

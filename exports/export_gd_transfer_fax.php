@@ -7,7 +7,7 @@ function export_gd_transfer_fax($order_item) {
   log_info("
   export_gd_update_fax ");//.print_r($order_item, true);
 
-  if ($order_item['item_message_key'] != 'NO ACTION WILL TRANSFER' && $order_item['item_message_key'] != 'NO ACTION WILL TRANSFER CHECK BACK')
+  if ($order_item['item_message_key'] != 'NO ACTION WILL TRANSFER' AND $order_item['item_message_key'] != 'NO ACTION WILL TRANSFER CHECK BACK')
     return;
 
   $args = [

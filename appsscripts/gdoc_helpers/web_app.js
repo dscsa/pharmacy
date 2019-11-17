@@ -18,6 +18,9 @@ function doPost(e) {
     if (contents.method == 'removeFiles')
       return removeFiles(contents)
 
+    if (contents.method == 'watchFiles')
+      return watchFiles(contents)
+
     if (contents.method == 'createCalendarEvent')
       return createCalendarEvent(contents)
 

@@ -18,9 +18,6 @@ function doPost(e) {
     if (contents.method == 'mergeDoc')
       return mergeDoc(contents)
 
-    if (contents.method == 'findValue')
-      return findValue(contents)
-
     debugEmail('web_app post no matching method', e)
 
   } catch(err){
