@@ -21,6 +21,9 @@ function doPost(e) {
     if (contents.method == 'watchFiles')
       return watchFiles(contents)
 
+    if (contents.method == 'newSpreadsheet')
+      return newSpreadsheet(contents)
+
     if (contents.method == 'createCalendarEvent')
       return createCalendarEvent(contents)
 

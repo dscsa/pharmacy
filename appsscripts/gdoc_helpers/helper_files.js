@@ -42,3 +42,40 @@ function watchFiles(opts) {
   infoEmail('watchFiles', folderId, files)
   return files
 }
+
+function newSpreadsheet(opts) {
+
+  var ss   = SpreadsheetApp.create(opts.file)
+  var file = DriveApp.getFileById(ss.getId())
+
+  if (opts.vals) {
+    ss.getRange(1, 1, opts.vals.length, opts.vals[0].length).setValues(opts.vals).setHorizontalAlignment('left').setFontFamily('Roboto Mono')
+  }
+
+  var widths = opts.widths || {}
+  for (var col in widths) {
+    ss.setColumnWidth(col, widths[col]); //show the full id when it print
+  }
+
+  moveToFolder(file, opts.folder)
+}
+
+function moveToFolder(file, folder) {
+  if ( ! folder ) return
+  parentByFile(file).removeFile(file)
+  folderByName(folder).addFile(file)
+  return file
+}
+
+function folderByName(name) {
+  return DriveApp.getFoldersByName(name).next()
+}
+
+function parentByFile(file) {
+
+  try {
+    return file.getParents().next()
+  } catch(e) {
+    return DriveApp.getRootFolder()
+  }
+}

@@ -2,12 +2,12 @@
 
 require_once 'helpers/helper_gdocs.php';
 
-function export_gd_transfer_fax($order_item) {
+function export_gd_transfer_fax($item) {
 
   log_info("
-  export_gd_update_fax ");//.print_r($order_item, true);
+  export_gd_update_fax ");//.print_r($item, true);
 
-  if ($order_item['item_message_key'] != 'NO ACTION WILL TRANSFER' AND $order_item['item_message_key'] != 'NO ACTION WILL TRANSFER CHECK BACK')
+  if ($item['item_message_key'] != 'NO ACTION WILL TRANSFER' AND $item['item_message_key'] != 'NO ACTION WILL TRANSFER CHECK BACK')
     return;
 
   $args = [
@@ -15,7 +15,7 @@ function export_gd_transfer_fax($order_item) {
     'template' => 'Transfer Out Template v1',
     'file'     => 'Transfer Out #'.$order[0]['rx_number'],
     'folder'   => 'OLD', //Transfer Outs
-    'order'    => $order_item
+    'order'    => $item
   ];
 
   $result = gdoc_post(GD_MERGE_URL, $args);

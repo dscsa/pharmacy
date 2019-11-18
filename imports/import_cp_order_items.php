@@ -5,7 +5,7 @@ function import_cp_order_items() {
   $mssql = new Mssql_Cp();
   $mysql = new Mysql_Wc();
 
-  $order_items = $mssql->run("
+  $items = $mssql->run("
 
     SELECT
       csomline.order_id+2 as invoice_number,
@@ -36,12 +36,12 @@ function import_cp_order_items() {
   ");
 
   //log_info("
-  //import_cp_order_items: rows ".count($order_items[0]));
+  //import_cp_order_items: rows ".count($items[0]));
 
-  $keys = result_map($order_items[0]);
+  $keys = result_map($items[0]);
 
   //Replace Staging Table with New Data
   $mysql->run('TRUNCATE TABLE gp_order_items_cp');
 
-  $mysql->run("INSERT INTO gp_order_items_cp $keys VALUES ".$order_items[0]);
+  $mysql->run("INSERT INTO gp_order_items_cp $keys VALUES ".$items[0]);
 }

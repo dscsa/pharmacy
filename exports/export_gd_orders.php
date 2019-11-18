@@ -7,7 +7,7 @@ function export_gd_update_invoice($order) {
   //mail('adam@sirum.org', "WebForm export_gd_update_invoice 1", json_encode($order));
 
   log_info("
-  export_gd_update_invoice ");//.print_r($order_item, true);
+  export_gd_update_invoice ");//.print_r($item, true);
 
   if ( ! count($order)) return;
 

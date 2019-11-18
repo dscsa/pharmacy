@@ -2,354 +2,253 @@
 
 //TODO Pend v2 Inventory
 
-function export_v2_add_pended($order_item) {
+function export_v2_add_pended($item) {
   log_info("
-  export_v2_add_pended ");//.print_r($order_item, true);
+  export_v2_add_pended ");//.print_r($item, true);
 
-  make_pick_list($order_item);
-  print_pick_list($order_item);
-  pend_pick_list($order_item);
+  $vals = make_pick_list($item);
+  print_pick_list($item, $vals);
+  pend_pick_list($item, $vals);
 }
 
-function export_v2_remove_pended($order_item) {
+function export_v2_remove_pended($item) {
   log_info("
-  export_v2_remove_pended ");//.print_r($order_item, true);
+  export_v2_remove_pended ");//.print_r($item, true);
 
   //delete_pick_list
-  $res = v2_fetch('/account/8889875187/pend/'.$order_item['invoice_number'], 'DELETE');
+  //$res = v2_fetch('/account/8889875187/pend/'.$item['invoice_number'], 'DELETE');
 
   //unpend_pick_list
-  gdoc_remove_files(pick_list_prefix($order_item['invoice_number']), '1PcDYKM_Ky-9zWmCNuBnTka3uCKjU3A0q');
+  gdoc_remove_files(pick_list_prefix($item['invoice_number']), '1PcDYKM_Ky-9zWmCNuBnTka3uCKjU3A0q');
+}
+
+function pick_list_name($item) {
+  return pick_list_prefix($item).pick_list_suffix($item);
 }
 
 function pick_list_prefix($item) {
-  return 'Shopping List #'.$order_item['invoice_number'];
+  return 'Pick List #'.$item['invoice_number'].': ';
 }
 
-function make_pick_list($order) {
-
-  var orderID = order.$OrderId
-
-  //infoEmail('createShoppingLists', order, new Error().stack) //debug v2 shopping for meds after they are already dispensed
-
-  var status = 'Shopping '+new Date().toJSON().slice(5,10)
-  var errs  = [] //Aggregate Errors By Order
-  for (var i in drugs) {
-    try {
-
-      var prefix = shoppingListPrefix(drugs[i])
-      var suffix = shoppingListSuffix(drugs[i])
-
-      var files = DriveApp.searchFiles('title contains "'+prefix+suffix+'"')
-
-      //TODO Compare Quantities and Incrementally Shop if Qty Increased
-      if (files.hasNext()) {
-        status = 'Re: '+status
-        //errs.push(prefix+suffix+' was not shopped because the shopping list was already created')
-        continue
-      }
-
-      var vals = createShoppingList(drugs[i], order)
-
-      if (vals && vals.length) {
-        var ss = newSpreadsheet(prefix+suffix+': '+(drugs[i].$Qty || ''), 'Shopping Lists')
-        ss.getRange('A1:F'+vals.length).setValues(vals).setHorizontalAlignment('left').setFontFamily('Roboto Mono')
-        ss.setColumnWidth(1, 243); //show the full id when it print
-      }
-
-    } catch (err) {
-      errs.push(err)
-    }
-  }
-
-  if (errs.length) //Consolidate Error emails so we don't have email quota issues.  Most likely this order has already been shopped for so: "A sheet with the name XXX already exists. Please enter another name."
-    debugEmail('Could not create shopping list(s)', '#'+orderID, errs, order)
-
-  return '=HYPERLINK("https://drive.google.com/drive/search?q='+prefix.replace('#', '')+'", IF(NOW() - $OrderChanged > 4,  IF(NOW() - $OrderChanged > 7, "Not Filling", "Delayed"), "'+status+'"))'
+function pick_list_suffix($item) {
+  return $item['drug_generic'];
 }
 
-function createShoppingList(drug, order) {
+function print_pick_list($item, $vals) {
 
-  var orderID   = order.$OrderId
-  var v2name    = drug.$v2
-  var minDays   = drug.$Days
-  var minQty    = drug.$Qty
+  $header = [
+    ['Order #'.$item['invoice_number'].' '.$item['drug_generic'].' '.$item['drug_name'].' '.date_create(), '', '' ,'', '', ''],
+    ['Days:'.$item['days_dispensed_default'].', Qty:'.$item['qty_dispensed_default'].', Count:'.count($vals).(drug.$Stock ? ' ('+drug.$Stock+')' : '')+($shopped['half_fill'] || ''), '', '', '', '', ''],
+    ['', '', '', '', '', '']
+  ];
+
+  $args = [
+    'method'   => 'newSpreadsheet',
+    'file'     => pick_list_name($item),
+    'folder'   => PICK_LIST_FOLDER_NAME,
+    'vals'     => $header + $vals,
+    'widths'   => [1 => 243] //show the full id when it prints
+  ];
+
+  $result = gdoc_post(GD_MERGE_URL, $args);
 
 
-  if ( ! v2name || ! minDays || drug.$IsPended || drug.$IsDispensed || order.$Status == 'Dispensing') { //createShoppingLists gets called on a PER ORDER basis.  Some drugs in a Shopping Order may already be pended or dispensed
-    //$Msg should already be set when minDays is 0.  drug.$Msg += ' did not shop because minDays is 0'
-    return Log('createShoppingList no min days or is already pended/dispensed', drug.$Stock, drug.$Msg, orderID, v2name, minQty, minDays, drug)
-  }
+  mail('adam@sirum.org', "WebForm make_pick_list", json_encode([$item, $args, $result]));
+}
 
-  var shopped = shopV2(drug, orderID)
+function pend_pick_list($item, $vals) {
 
-  if ( ! shopped) {
-    setDrugStatus(drug, 'NOACTION_SHOPPING_ERROR')
-    return debugEmail('Shopping Error: Could not be shopped because not enough qty found - tabs/caps/M-F00/X00/Y00/Z00? (2)', drug.$Stock, drug.$Msg, '#'+orderID, v2name, minQty, minDays, drug)
-  }
+  if ( ! LIVE_MODE) return mail('adam@sirum.org', "WebForm pend_pick_list", json_encode([$item, $vals]));
 
-  if ( ! LIVE_MODE) return debugEmail('createShoppingList canceled because LIVE MODE OFF')
+  //Pend after all forseeable errors are accounted for.
+  //v2_fetch('/account/8889875187/pend/'.$item['invoice_number'].' - '.$item['qty_dispensed_default'], 'POST', $vals);
+}
 
-  try {
-    //Pend after all forseeable errors are accounted for.
-    var res = v2Fetch('/account/8889875187/pend/'+orderID+' - '+minQty, 'POST', shopped.pend)
+function make_pick_list($item) {
 
-    infoEmail('V2 Pended', drug.$Name, v2name, '#'+orderID, minQty, shopped.pend, res, drug, order)
+  $safety   = 0.15;
+  $generic  = $item['drug_generic'];
+  $min_days = $item['days_dispensed_default'];
+  $min_qty  = $item['qty_dispensed_default'];
+  $stock    = $item['stock_level'];
 
-    var vals = [
-      ['Order #'+orderID+' '+drug.$Name+' '+(new Date().toJSON()), '', '' ,'', '', ''],
-      ['Days:'+minDays+', Qty:'+minQty+', Count:'+shopped.list.length+(drug.$Stock ? ' ('+drug.$Stock+')' : '')+(shopped.halfFill || ''), '', '', '', '', ''],
-      ['', '', '', '', '', '']
-    ].concat(shopped.list)
+  $min_exp   = explode('-', date('Y-m', strtotime("+{$min_days-2*7} days"))); //Used to use +14 days rather than -14 days as a buffer for dispensing and shipping. But since lots of prepacks expiring I am going to let almost expired things be prepacked
+  $long_exp  = explode('-', date('Y-m', strtotime("+{$min_days+6*7} days"))); //2015-05-13 We want any surplus from packing fast movers to be usable for ~6 weeks.  Otherwise a lot of prepacks expire on the shelf
 
-    return vals
+  $start_key = '["8889875187","month","'.$min_exp[0].'","'.$min_exp[1].'","'.$generic.'"]';
+  $end_key   = '["8889875187","month","'.$min_exp[0].'","'.$min_exp[1].'","'.$generic.'",{}]';
 
-  } catch (e) {
-    debugEmail('Shopping Error: was not shopped because already shopped (3)', e.message, e.stack, drug.$Name, v2name, '#'+orderID, minQty, drug, shopped.pend)
+  $url  = '/transaction/_design/inventory.qty-by-generic/_view/inventory.qty-by-generic?reduce=false&include_docs=true&limit=300&startkey='.$start_key.'&endkey='.$end_key;
+  $rows = v2_fetch($url);
+
+  $unsorted_ndcs = group_by_ndc($rows, $item);
+  $sorted_ndcs   = sort_by_ndc($unsorted_ndcs, $long_exp);
+  $list          = get_qty_needed($sorted_ndcs, $min_qty, $safety);
+
+  mail('adam@sirum.org', "Webform make_pick_list", json_endcode([$url, $item, $list, $sorted_ndcs]);
+
+  if ($list OR $min_days <= 45) return $list;
+
+  mail('adam@sirum.org', "Webform Shopping Error: Not enough qty found, trying 45 days and no safety", json_endcode([$url, $item, $list, $sorted_ndcs]);
+
+  $list = get_qty_needed($sorted_ndcs, $min_qty*(45/$min_days*$min_qty), $safety);
+
+  if ($list) {
+    $list['half_fill'] = ', HALF FILL - COULD NOT FIND ENOUGH QUANTITY';
+    return $list;
   }
 }
 
-//Returns array on success and error string on failure
-function shopV2(drug, orderID) {
-
-  var v2name    = drug.$v2
-  var minQty    = drug.$Qty
-  var minDays   = drug.$Days
-  var drugStock = drug.$Stock
-
-  var minExp   = addHours((+minDays-2*7)*24).toJSON().slice(0, 7).split('-') //Used to use +14 days rather than -14 days as a buffer for dispensing and shipping. But since lots of prepacks expiring I am going to let almost expired things be prepacked
-  var longExp  = addHours((+minDays+6*7)*24).toJSON().slice(0, 7) //2015-05-13 We want any surplus from packing fast movers to be usable for ~6 weeks.  Otherwise a lot of prepacks expire on the shelf
-
-  var safety    = 0.15
-  var startkey  = '["8889875187","month","'+minExp[0]+'","'+minExp[1]+'","'+v2name+'"]'
-  var endkey    = '["8889875187","month","'+minExp[0]+'","'+minExp[1]+'","'+v2name+'",{}]'
-
-  var url  = '/transaction/_design/inventory.qty-by-generic/_view/inventory.qty-by-generic?reduce=false&include_docs=true&limit=300&startkey='+startkey+'&endkey='+endkey
-  var rows = v2Fetch(url)
-
-  var unsortedNDCs = groupByNdc(rows, drug)
-  var sortedNDCs   = sortNDCs(unsortedNDCs, longExp)
-
-  Log('shopV2', drug.$Name, v2name, 'orderID', '#'+orderID, 'minQty', minQty, 'minDays', minDays, 'drugStock', drugStock, 'url:', url, 'rows:', rows, 'sortedNDCs', sortedNDCs)
-
-  var list = makeList(sortedNDCs, minQty, safety)
-  if (list || minDays <= 45) return list
-
-  debugEmail('Shopping Error: Not enough qty found, trying 45 days and no safety', '#'+orderID, drug.$Name, v2name, minQty, minDays, drugStock, url, 'sortedNDCs', sortedNDCs, 'unsortedNDCs', unsortedNDCs, 'rows', rows)
-
-  var list = makeList(sortedNDCs, +(45/minDays*minQty).toFixed(0), 0)
-  if (list) {
-    list.halfFill = ', HALF FILL - COULD NOT FIND ENOUGH QUANTITY'
-    return list
-  }
-
-  /*
-  Cindy thinks its best to do a manual intervention if we can't do at least 45 days.  For example, Order 6552 had minQty of 450 for Vitamin B12 (5x a day).
-  infoEmail('Shopping Error: Not enough qty found, trying 30 days and no safety', '#'+orderID, $Name, v2name, minQty, minDays, drugStock, url, rowsB4sort, rowsB4filter, rowsB4pend)
-
-  var list = makeList(ndcs, +(30/minDays*minQty).toFixed(0), 0)
-  if (list) return list
-  */
-
-  if (new Date().getMinutes() >= 55) //Otherwise we get an email on every run
-    debugEmail('Shopping Error: Not enough qty found, must be pended manually', '#'+orderID, drug.$Name, v2name, minQty, minDays)
-}
-
-function groupByNdc(rows, drug) {
+function group_by_ndc($rows, $item) {
   //Organize by NDC since we don't want to mix them
-  var ndcs = {}
-  var caps = drug.$Name.match(/ cap(?!l)s?| cps?\b| softgel| sfgl\b/i) //include cap, caps, capsule but not caplet which is more like a tablet
-  var tabs = drug.$Name.match(/ tabs?| tbs?| capl\b/i) //include caplet which is like a tablet
+  $ndcs = [];
+  $caps = preg_match('/ cap(?!l)s?| cps?\b| softgel| sfgl\b/i', $item['drug_name']); //include cap, caps, capsule but not caplet which is more like a tablet
+  $tabs = preg_match('/ tabs?| tbs?| capl\b/i', $item['drug_name']);  //include caplet which is like a tablet
 
-  //debugEmail('Shopping Now', $Name, v2name, minQty, minDays, drugStock, rows)
-
-  for (var i in rows) {
+  foreach ($rows as $row) {
 
     //Ignore Cindy's makeshift dispensed queue
-    if ( ~ ['M00', 'T00', 'W00', 'R00', 'F00', 'X00', 'Y00', 'Z00'].indexOf(rows[i].doc.bin)) continue
+    if (in_array($row['doc']['bin'], ['M00', 'T00', 'W00', 'R00', 'F00', 'X00', 'Y00', 'Z00']) continue;
     //Only select the correct form even though v2 gives us both
-    if ( ~ rows[i].doc.drug.form.indexOf('Tablet') && caps) {
-      var msg = 'may only be available in capsule form'
-      continue
+    if ($caps AND strpos('Tablet', $row['doc']['drug']['form']) !== false) {
+      $msg = 'may only be available in capsule form';
+      continue;
     }
-    if ( ~ rows[i].doc.drug.form.indexOf('Capsule') && tabs) {
-      var msg = 'may only be available in tablet form'
-      continue
-    }
-
-    var ndc = rows[i].doc.drug._id
-    ndcs[ndc] = ndcs[ndc] || []
-    ndcs[ndc].prepackQty = ndcs[ndc].prepackQty || 0 //Hacky to set property on an array
-
-    if (rows[i].doc.bin.length == 3) {
-      ndcs[ndc].prepackQty += rows[i].doc.qty.to
-      if (rows[i].doc.exp.to < ndcs[ndc].prepackExp)
-        ndcs[ndc].prepackExp = rows[i].doc.exp.to
+    if ($tabs AND strpos('Capsule', $row['doc']['drug']['form']) !== false) {
+      $msg = 'may only be available in tablet form';
+      continue;
     }
 
-    ndcs[ndc].push(rows[i].doc)
+    $ndc = $row['doc']['drug']['_id'];
+    $ndcs[$ndc] = $ndcs[$ndc] ?: [];
+    $ndcs[$ndc]['prepack_qty'] = $ndcs[$ndc]['prepack_qty'] ?: 0; //Hacky to set property on an array
+
+    if (strlen($row['doc']['bin']) == 3) {
+      $ndcs[$ndc]['prepack_qty'] += $row['doc']['qty']['to'];
+
+      if ($row['doc']['exp']['to'] < $ndcs[$ndc]['prepack_exp'])
+        $ndcs[$ndc]['prepack_exp'] = $row['doc']['exp']['to'];
+    }
+
+    $ndcs[$ndc][] = $row['doc'];
   }
 
-  return ndcs
+  return $ndcs;
 }
 
-function sortNDCs(ndcs, longExp) {
+function sort_by_ndc($ndcs, $long_exp) {
 
-  var sortedNDCs = []
+  $sorted_ndcs = [];
   //Sort the highest prepack qty first
-  for (var ndc in ndcs) {
-    sortedNDCs.push({ndc:ndc, inventory:sortInventory(ndcs[ndc], longExp)})
+  foreach ($ndcs as $ndc => $row) {
+    $sorted_ndcs[] = ['ndc' => $ndc, 'inventory' => sort_inventory($row, $long_exp)];
   }
-  //Sort in descending order of prepackQty. TODO should we look Exp date as well?
-  sortedNDCs.sort(function(a, b) { return b.inventory.prepackQty - a.inventory.prepackQty })
+  //Sort in descending order of prepack_qty. TODO should we look Exp date as well?
+  usort($sorted_ndcs, function($a, $b) { return $b['inventory']['prepack_qty'] - $a['inventory']['prepack_qty'] });
 
-  //infoEmail('Shopping List Calculations', '#'+orderID, $Name, v2name, minQty, minDays, drugStock, url, rowsB4sort, rowsB4filter, rowsB4pend)
-
-  return sortedNDCs
+  return $sorted_ndcs;
 }
 
-function sortInventory(inventory, longExp) {
+function sort_inventory($inventory, $long_exp) {
 
     //Lots of prepacks were expiring because pulled stock with long exp was being paired with short prepack exp making the surplus shortdated
     //Default to longExp since that simplifies sort() if there are no prepacks
-    return inventory.sort(function(a, b) {
+    usort($inventory, function($a, $b) {
 
       //Deprioritize ones that are missing data
-      if ( ! b.bin || ! b.exp || ! b.qty) return -1
-      if ( ! a.bin || ! a.exp || ! a.qty) return 1
+      if ( ! $b['bin'] OR ! $b['exp'] OR ! $b['qty']) return -1;
+      if ( ! $a['bin'] OR ! $a['exp'] OR ! $a['qty']) return 1;
 
       //Priortize prepacks over other stock
-      var aPack = a.bin.length == 3
-      var bPack = b.bin.length == 3
-      if (aPack && ! bPack) return -1
-      if (bPack && ! aPack) return 1
+      $aPack = strlen($a['bin']) == 3;
+      $bPack = strlen($b['bin']) == 3;
+      if ($aPack AND ! $bPack) return -1;
+      if ($bPack AND ! $aPack) return 1;
 
       //Let's shop for non-prepacks that are closest (but not less than) to our min prepack exp date in order to avoid waste
-      aMonths = monthsBetween(inventory.prepackExp || longExp, a.exp.to.slice(0, 10)) // >0 if minPrepackExp < a.doc.exp.to (which is what we prefer)
-      bMonths = monthsBetween(inventory.prepackExp || longExp, b.exp.to.slice(0, 10)) // >0 if minPrepackExp < b.doc.exp.to (which is what we prefer)
-
-      //Debugging
-      //a.months = aMonths+' prepackExp:'+inventory.prepackExp+' longExp:'+longExp+' a.exp.to:'+a.exp.to
-      //b.months = bMonths+' prepackExp:'+inventory.prepackExp+' longExp:'+longExp+' b.exp.to:'+b.exp.to
+      $aMonths = months_between($inventory['prepack_exp'] ?: $long_exp, substr($a['exp']['to'], 0, 10)); // >0 if minPrepackExp < a.doc.exp.to (which is what we prefer)
+      $bMonths = months_between($inventory['prepack_exp'] ?: $long_exp, substr($b['exp']['to'], 0, 10)); // >0 if minPrepackExp < b.doc.exp.to (which is what we prefer)
 
       //Deprioritize anything with a closer exp date than the min prepack exp date.  This - by definition - can only be non-prepack stock
-      if (aMonths >= 0 && bMonths < 0) return -1
-      if (bMonths >= 0 && aMonths < 0) return 1
+      if ($aMonths >= 0 AND $bMonths < 0) return -1;
+      if ($bMonths >= 0 AND $aMonths < 0) return 1;
 
       //Priorize anything that is closer to - but not under - our min prepack exp
       //If there is no prepack this is set to 3 months out so that any surplus has time to sit on our shelf
-      if (aMonths >= 0 && bMonths >= 0 && aMonths < bMonths) return -1
-      if (aMonths >= 0 && bMonths >= 0 && bMonths < aMonths) return 1
+      if ($aMonths >= 0 AND $bMonths >= 0 AND $aMonths < $bMonths) return -1;
+      if ($aMonths >= 0 AND $bMonths >= 0 AND $bMonths < $aMonths) return 1;
 
       //If they both expire sooner than our min prepack exp pick the closest
-      if (aMonths < 0 && bMonths < 0 && aMonths > bMonths) return -1
-      if (aMonths < 0 && bMonths < 0 && bMonths > aMonths) return 1
+      if ($aMonths < 0 AND $bMonths < 0 AND $aMonths > $bMonths) return -1;
+      if ($aMonths < 0 AND $bMonths < 0 AND $bMonths > $aMonths) return 1;
 
       //When choosing between two items of same type and same exp, choose the one with a higher quantity (less items to shop for).
-      if (a.qty.to > b.qty.to) return -1
-      if (b.qty.to > a.qty.to) return 1
+      if ($a['qty']['to'] > $b['qty']['to']) return -1;
+      if ($b['qty']['to'] > $a['qty']['to']) return 1;
 
       //keep sorting the same as the view (ascending NDCs) [doc.drug._id, doc.exp.to || doc.exp.from, sortedBin, doc.bin, doc._id]
-      return 0
-    })
+      return 0;
+    });
+
+    return $inventory;
 }
 
-function monthsBetween(from, to) {
-  to = new Date(to), from = new Date(from)
-  return to.getMonth() - from.getMonth() + 12 * (to.getFullYear() - from.getFullYear());
+function months_between($from, $to) {
+  $diff = date_diff(date_create($from), date_create($to));
+  return $diff->m + ($diff->y * 12);
 }
 
-function makeList(ndcs, minQty, safety) {
-  for (var i in ndcs) {
+function get_qty_needed($rows, $min_qty, $safety) {
 
-    var ndc = ndcs[i].ndc
-    var inventory = ndcs[i].inventory
+  foreach ($rows as $row) {
 
-    var list = []
-    var pend = []
-    var qty  = minQty
+    $ndc = $row['ndc'];
+    $inventory = $row['inventory'];
 
-    for (var i in inventory) {
+    $list = [];
+    $pend = [];
+    $qty  = $min_qty;
 
-      if (i == 'prepackQty') continue
+    foreach ($inventory as $i => $option) {
 
-      if ( ! inventory[i].qty) {
-        debugEmail('Shopping Error: qty not set', i, '|', inventory[i], '|', Object.keys(inventory), inventory)
-        continue
-      }
+      if ($i == 'prepack_qty') continue;
 
-      pend.unshift(inventory[i])
-      qty -= pend[0].qty.to * (pend[0].bin.length == 3 ? 1 : (1 - safety))
-      list.push([pend[0]._id, pend[0].drug._id, pend[0].drug.form, pend[0].exp.to.slice(0, 7), pend[0].qty.to, pend[0].bin])
+      array_unshift($pend, $option);
 
-      if (qty <= 0) {
-        //infoEmail('Pending the following transactions', v2name, pend)
-        return {list:list.sort(sortList), ndc:ndc, pend:pend}
+      $qty -= $pend[0]['qty']['to'] * (strlen($pend[0]['bin']) == 3 ? 1 : (1 - $safety));
+      $list[] = [
+        $pend[0]['_id'],
+        $pend[0]['drug']['_id'],
+        $pend[0]['drug']['form'],
+        substr($pend[0]['exp']['to'], 0, 7),
+        $pend[0]['qty']['to'],
+        $pend[0]['bin']
+      ];
+
+      if ($qty <= 0) {
+        return ['list' => usort($list, 'sort_list'), 'ndc' => $ndc, 'pend' => $pend ];
       }
     }
   }
 }
 
-function v2Fetch(url, method, body) {
+function sort_list($a, $b) {
 
-  var opts = {
-    method:method,
-    payload:body ? JSON.stringify(body) : body,
-    //contentType: 'application/json',
-    muteHttpExceptions:true,
-    escaping: false,
-    headers:{Authorization:"Basic " + Utilities.base64Encode(V2_AUTH)}
-  }
+  $aBin = $a[4];
+  $bBin = $b[4];
 
-  try {
-    var json = UrlFetchApp.fetch(encodeURI('http://52.8.112.88'+url), opts)
-    if ( ~ JSON.stringify(json).indexOf('Internal Server Error'))
-      throw new Error('Adam: Internal Server Error')//This is getting returned without an HTTP error code so its not throwing an error
-  } catch (e) {
-    try {
-      debugEmail('Could not fetch v2 Shopping List from Primary (52.8.112.88).  Is the 52.8.112.88 server down?', e, url, opts, json)
-      var json = UrlFetchApp.fetch(encodeURI('http://52.9.6.78'+url), opts)
-      if ( ~ JSON.stringify(json).indexOf('Internal Server Error'))
-        throw new Error('Adam: Internal Server Error')//This is getting returned without an HTTP error code so its not throwing an error
-    } catch (e) {
-      return debugEmail('Could not fetch v2 Shopping List from Primary (52.8.112.88) OR Secondary (52.9.6.78).  Are both v2 servers down?', e, url, opts, json)
-    }
-  }
+  $aPack = $aBin AND strlen(aBin) == 3;
+  $bPack = $bBin AND strlen(bBin) == 3;
 
-  json = json.getContentText()
-
-  if (method == 'POST') Log('v2Fetch POST', url, encodeURI(url), json, opts.payload)
-
-  try {
-    var parsed = JSON.parse(json)
-    var rows   = parsed.rows
-
-    if ( ! rows && method != 'POST' && method != 'DELETE')
-      debugEmail('v2 Shopping Error: No Rows', method, url, opts.payload, rows, parsed, json)
-
-    return rows
-  } catch (e) {
-    debugEmail('v2 Shopping Error', e, json)
-  }
-}
-
-function sortList(a, b) {
-
-  var aBin = a[4]
-  var bBin = b[4]
-
-  var aPack = aBin && aBin.length == 3
-  var bPack = bBin && bBin.length == 3
-
-  if (aPack > bPack) return -1
-  if (aPack < bPack) return 1
+  if ($aPack > $bPack) return -1;
+  if ($aPack < $bPack) return 1;
 
   //Flip columns and rows for sorting, since shopping is easier if you never move backwards
-  var aFlip = aBin[0]+aBin[2]+aBin[1]+(aBin[3] || '')
-  var bFlip = bBin[0]+bBin[2]+bBin[1]+(bBin[3] || '')
+  $aFlip = $aBin[0].$aBin[2].$aBin[1].($aBin[3] ?: '');
+  $bFlip = $bBin[0].$bBin[2].$bBin[1].($bBin[3] ?: '');
 
-  if (aFlip > bFlip) return 1
-  if (aFlip < bFlip) return -1
+  if ($aFlip > $bFlip) return 1;
+  if ($aFlip < $bFlip) return -1;$
 
-  return 0
+  return 0;
 }
