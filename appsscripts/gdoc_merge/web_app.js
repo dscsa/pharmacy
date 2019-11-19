@@ -13,12 +13,17 @@ function doPost(e) {
     if ( ! e.postData || ! e.postData.contents)
       return debugEmail('web_app post not post data', e)
 
+    var response
     var contents = JSON.parse(e.postData.contents)
 
     if (contents.method == 'mergeDoc')
-      return mergeDoc(contents)
+      response = mergeDoc(contents)
 
     debugEmail('web_app post no matching method', e)
+
+    return ContentService
+      .createTextOutput(JSON.stringify(response))
+      .setMimeType(ContentService.MimeType.JSON)
 
   } catch(err){
       debugEmail('web_app post error thrown', err, e)
