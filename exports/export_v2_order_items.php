@@ -250,7 +250,7 @@ function sort_list($a, $b) {
   $bFlip = $bBin[0].$bBin[2].$bBin[1].($bBin[3] ?: '');
 
   if ($aFlip > $bFlip) return 1;
-  if ($aFlip < $bFlip) return -1;$
+  if ($aFlip < $bFlip) return -1;
 
   return 0;
 }
