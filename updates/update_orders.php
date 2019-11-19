@@ -110,7 +110,7 @@ function update_orders() {
             refill_date_target     = $target_date,
             days_dispensed_default = $days_synced
           WHERE
-            rx_number = $item['rx_number']
+            rx_number = $item[rx_number]
         ";
 
         $mysql->run($sql);
