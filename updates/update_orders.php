@@ -45,7 +45,7 @@ function update_orders() {
 
     if ($order AND $order[0]['invoice_number']) {
 
-      $target_date = get_sync_to_date($order)
+      $target_date = get_sync_to_date($order);
       $order  = set_sync_to_date($order, $target_date, $mysql);
 
       $update = get_payment($order);
