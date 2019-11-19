@@ -40,7 +40,7 @@ function watchFiles(opts) {
     files.push(file)
   }
 
-  infoEmail('watchFiles', folderId, files)
+  infoEmail('watchFiles', folder, files)
   return files
 }
 
