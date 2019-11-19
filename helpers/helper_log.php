@@ -2,8 +2,8 @@
 
 function log_info($msg = null) {
 
-  print_r($_ENV);
-  
+  $_ENV = getenv('env'); //https://stackoverflow.com/questions/3780866/why-is-my-env-empty
+
   if (isset($_ENV['SSH_CLIENT'])) {
     echo $msg;
     return;
