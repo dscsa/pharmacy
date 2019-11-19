@@ -8,6 +8,14 @@ function removeFiles(opts) {
   }
 }
 
+function testWatch() {
+  var folder = DriveApp.getFoldersByName('OLD').next()
+  var query  = 'modifiedDate > "2019-11-19T16:07:49.089Z"'
+  var iterator = folder.searchFiles(query)
+
+  Logger.log(['testWatch', query, iterator.hasNext() ? iterator.next().getUrl() : 'No Files Modified'])
+}
+
 function watchFiles(opts) {
 
   var today     = new Date();
@@ -17,7 +25,7 @@ function watchFiles(opts) {
 
   var files    = []
   var folder   = DriveApp.getFoldersByName(opts.folder).next()
-  var iterator = folder.searchFiles('modifiedDate > "' + startTime + '")')
+  var iterator = folder.searchFiles('modifiedDate > "' + startTime + '"')
 
   while (iterator.hasNext()) {
 
