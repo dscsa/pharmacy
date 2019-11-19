@@ -68,9 +68,9 @@ function update_orders() {
     $sync_dates = [];
     foreach ($order as $item) {
       if (isset($sync_dates[$item['refill_date_next']]))
-        $sync_dates[$item['refill_date_next']]++
+        $sync_dates[$item['refill_date_next']]++;
       else
-        $sync_dates[$item['refill_date_next']] = 0
+        $sync_dates[$item['refill_date_next']] = 0;
     }
 
     $target_date  = null;
