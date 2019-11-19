@@ -89,7 +89,7 @@ function make_pick_list($item) {
 
   if ($list OR $min_days <= 45) return $list;
 
-  mail('adam@sirum.org', "Webform Shopping Error: Not enough qty found, trying 45 days and no safety", json_encode([$url, $item, $list, $sorted_ndcs]);
+  mail('adam@sirum.org', "Webform Shopping Error: Not enough qty found, trying 45 days and no safety", json_encode([$url, $item, $list, $sorted_ndcs]));
 
   $list = get_qty_needed($sorted_ndcs, $min_qty*(45/$min_days*$min_qty), $safety);
 
