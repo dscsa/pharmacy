@@ -757,7 +757,7 @@ function dscsa_echo_form_fields($fields) {
 
 add_action('woocommerce_lostpassword_form', 'dscsa_lostpassword_form');
 function dscsa_lostpassword_form() {
-  login_form();
+  login_form('lostpassword');
   $shared_fields = shared_fields();
   $shared_fields['birth_date']['id'] = 'birth_date_lostpassword';
   $shared_fields['birth_date']['custom_attributes']['readonly'] = false;
