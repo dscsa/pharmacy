@@ -1,5 +1,6 @@
 <?php
 
+
 //TODO Pend v2 Inventory
 
 function export_v2_add_pended($item) {
@@ -37,7 +38,7 @@ function pick_list_suffix($item) {
 function print_pick_list($item, $vals) {
 
   $header = [
-    ['Order #'.$item['invoice_number'].' '.$item['drug_generic'].' '.$item['drug_name'].' '.date_create(), '', '' ,'', '', ''],
+    ['Order #'.$item['invoice_number'].' '.$item['drug_generic'].' '.$item['drug_name'].' '.date('Y-m-d H:i:s'), '', '' ,'', '', ''],
     ['Days:'.$item['days_dispensed_default'].', Qty:'.$item['qty_dispensed_default'].', Count:'.count($vals).(drug.$Stock ? ' ('+drug.$Stock+')' : '')+($shopped['half_fill'] || ''), '', '', '', '', ''],
     ['', '', '', '', '', '']
   ];
@@ -79,7 +80,12 @@ function make_pick_list($item) {
   $end_key   = '["8889875187","month","'.$min_exp[0].'","'.$min_exp[1].'","'.$generic.'",{}]';
 
   $url  = '/transaction/_design/inventory.qty-by-generic/_view/inventory.qty-by-generic?reduce=false&include_docs=true&limit=300&startkey='.$start_key.'&endkey='.$end_key;
-  $rows = v2_fetch($url);
+
+  try {
+    $rows = v2_fetch($url);
+  } catch (Error $e) {
+    $rows = v2_fetch($url);
+  }
 
   $unsorted_ndcs = group_by_ndc($rows, $item);
   $sorted_ndcs   = sort_by_ndc($unsorted_ndcs, $long_exp);
