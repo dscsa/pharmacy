@@ -26,41 +26,41 @@ timer("", $time);
 
 //Imports
 import_v2_drugs();
-//log_info(timer("import_v2_drugs", $time));
+log_info(timer("import_v2_drugs", $time));
 
 import_v2_stock_by_month();
-//log_info(timer("import_v2_stock_by_month", $time));
+log_info(timer("import_v2_stock_by_month", $time));
 
 import_cp_rxs_single();
-//log_info(timer("import_cp_rxs_single", $time));
+log_info(timer("import_cp_rxs_single", $time));
 
 import_cp_patients();
-//log_info(timer("import_cp_patients", $time));
+log_info(timer("import_cp_patients", $time));
 
-//import_cp_order_items();
-//log_info(timer("import_cp_order_items", $time));
+import_cp_order_items();
+log_info(timer("import_cp_order_items", $time));
 
-//import_cp_orders();
-//log_info(timer("import_cp_orders", $time));
+import_cp_orders();
+log_info(timer("import_cp_orders", $time));
 
 //Updates
 update_drugs();
-//log_info(timer("update_drugs", $time));
+log_info(timer("update_drugs", $time));
 
 update_stock_by_month();
-//log_info(timer("update_stock_by_month", $time));
+log_info(timer("update_stock_by_month", $time));
 
 update_rxs_single();
-//log_info(timer("update_rxs_single", $time));
+log_info(timer("update_rxs_single", $time));
 
 update_patients();
-//log_info(timer("update_patients", $time));
+log_info(timer("update_patients", $time));
 
 update_order_items();
-//log_info(timer("update_order_items", $time));
+log_info(timer("update_order_items", $time));
 
 update_orders();
-//log_info(timer("update_orders", $time));
+log_info(timer("update_orders", $time));
 
 $email = log_info();
 
