@@ -37,7 +37,7 @@ function watchFiles(opts) {
       file['part'+i] = child.getText()
     }
 
-    files[] = file
+    files.push(file)
   }
 
   infoEmail('watchFiles', folderId, files)
