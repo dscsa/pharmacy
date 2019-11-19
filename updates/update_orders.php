@@ -6,39 +6,6 @@ require_once 'exports/export_wc_orders.php';
 
 function update_orders() {
 
-  function watch_invoices() {
-
-    $args = [
-      'method'       => 'watchFiles',
-      'folder'       => INVOICE_FOLDER_NAME
-    ];
-
-    $result = gdoc_post(GD_HELPER_URL, $args);
-
-    email('watch_invoices', $args, $result);
-
-    /*
-
-    //Parse Invoice Text and Look For Changes
-      if ( ! match) continue
-
-      var text   = match.getElement()
-      var value  = text.replace(RegExp('('+content.needle+') *'), '')
-      var digits = value.replace(/\D/g, '')
-      var match  = text.replace(RegExp(' *'+value.replace('$', '\\$')), '')
-
-      res.values.push({text:text, match:match, value:value, digits:digits})
-
-      findText('('+content.needle+') *[$\w]+')
-
-
-      $order  = set_payment($order, get_payment($order), $mysql);
-    */
-    return $result;
-
-
-  }
-
   watch_invoices();
   $changes = changes_to_orders("gp_orders_cp");
 
