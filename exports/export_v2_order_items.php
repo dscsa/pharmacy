@@ -72,8 +72,8 @@ function make_pick_list($item) {
   $min_qty  = $item['qty_dispensed_default'];
   $stock    = $item['stock_level'];
 
-  $min_exp   = explode('-', date('Y-m', strtotime("+{$min_days-2*7} days"))); //Used to use +14 days rather than -14 days as a buffer for dispensing and shipping. But since lots of prepacks expiring I am going to let almost expired things be prepacked
-  $long_exp  = explode('-', date('Y-m', strtotime("+{$min_days+6*7} days"))); //2015-05-13 We want any surplus from packing fast movers to be usable for ~6 weeks.  Otherwise a lot of prepacks expire on the shelf
+  $min_exp   = explode('-', date('Y-m', strtotime("+".($min_days-2*7)." days"))); //Used to use +14 days rather than -14 days as a buffer for dispensing and shipping. But since lots of prepacks expiring I am going to let almost expired things be prepacked
+  $long_exp  = explode('-', date('Y-m', strtotime("+".($min_days+6*7)." days"))); //2015-05-13 We want any surplus from packing fast movers to be usable for ~6 weeks.  Otherwise a lot of prepacks expire on the shelf
 
   $start_key = '["8889875187","month","'.$min_exp[0].'","'.$min_exp[1].'","'.$generic.'"]';
   $end_key   = '["8889875187","month","'.$min_exp[0].'","'.$min_exp[1].'","'.$generic.'",{}]';
