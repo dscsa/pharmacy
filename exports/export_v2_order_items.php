@@ -144,7 +144,9 @@ function sort_by_ndc($ndcs, $long_exp) {
     $sorted_ndcs[] = ['ndc' => $ndc, 'inventory' => sort_inventory($row, $long_exp)];
   }
   //Sort in descending order of prepack_qty. TODO should we look Exp date as well?
-  usort($sorted_ndcs, function($a, $b) { return $b['inventory']['prepack_qty'] - $a['inventory']['prepack_qty'] });
+  usort($sorted_ndcs, function($a, $b) {
+    return $b['inventory']['prepack_qty'] - $a['inventory']['prepack_qty'];
+  });
 
   return $sorted_ndcs;
 }
