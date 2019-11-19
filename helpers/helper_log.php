@@ -2,6 +2,8 @@
 
 function log_info($msg = null) {
 
+  print_r($_ENV);
+  
   if (isset($_ENV['SSH_CLIENT'])) {
     echo $msg;
     return;

@@ -8,7 +8,7 @@ function debugEmail() {
     return Log.apply(this, arguments)
   }
 
-  var subject = 'gdoc_merge Debug '+getCaller()+" "+(1501 - quota)+" of 1500. Elapsed secs "+Math.floor((new Date() - scriptStart)/1000)
+  var subject = 'gdoc_helpers Debug '+getCaller()+" "+(1501 - quota)+" of 1500. Elapsed secs "+Math.floor((new Date() - scriptStart)/1000)
   var body = '<pre>'+argArray(arguments).join('\n\n')+'</pre>'
   sendEmail(subject, body.split('\n'))
 }
@@ -21,7 +21,7 @@ function infoEmail() {
     return Log.apply(this, arguments)
   }
 
-  var subject = 'gdoc_merge Info '+getCaller()+" "+(1501 - quota)+" of 1500. Elapsed secs "+Math.floor((new Date() - scriptStart)/1000)
+  var subject = 'gdoc_helpers Info '+getCaller()+" "+(1501 - quota)+" of 1500. Elapsed secs "+Math.floor((new Date() - scriptStart)/1000)
   var body = '<pre>'+argArray(arguments).join('\n\n')+'</pre>'
   sendEmail(subject, body.split('\n'))
 }
@@ -99,7 +99,7 @@ function sendEmail(to, subject, body, attachments) {
       to:to,
       cc:cc,
       bcc:bcc,
-      subject:'gdoc_merge '+subject,
+      subject:'gdoc_helpers '+subject,
       htmlBody:body.join ? body.join('<br>') : body,
       attachments:attachments
     }
