@@ -4,8 +4,6 @@ require_once 'changes/changes_to_order_items.php';
 require_once 'helpers/helper_days_dispensed.php';
 require_once 'exports/export_cp_order_items.php';
 require_once 'exports/export_v2_order_items.php';
-require_once 'exports/export_gd_orders.php';
-require_once 'exports/export_wc_orders.php';
 
 function update_order_items() {
 

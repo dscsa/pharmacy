@@ -1,5 +1,8 @@
 <?php
 
+require_once 'changes/changes_to_orders.php';
+require_once 'exports/export_gd_orders.php';
+require_once 'exports/export_wc_orders.php';
 
 function update_orders() {
 
