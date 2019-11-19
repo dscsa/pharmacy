@@ -108,7 +108,7 @@ function group_by_ndc($rows, $item) {
   foreach ($rows as $row) {
 
     //Ignore Cindy's makeshift dispensed queue
-    if (in_array($row['doc']['bin'], ['M00', 'T00', 'W00', 'R00', 'F00', 'X00', 'Y00', 'Z00']) continue;
+    if (in_array($row['doc']['bin'], ['M00', 'T00', 'W00', 'R00', 'F00', 'X00', 'Y00', 'Z00'])) continue;
     //Only select the correct form even though v2 gives us both
     if ($caps AND strpos('Tablet', $row['doc']['drug']['form']) !== false) {
       $msg = 'may only be available in capsule form';
