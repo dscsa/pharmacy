@@ -237,8 +237,8 @@ function sort_list($a, $b) {
   $aBin = $a[4];
   $bBin = $b[4];
 
-  $aPack = $aBin AND strlen(aBin) == 3;
-  $bPack = $bBin AND strlen(bBin) == 3;
+  $aPack = $aBin AND strlen($aBin) == 3;
+  $bPack = $bBin AND strlen($bBin) == 3;
 
   if ($aPack > $bPack) return -1;
   if ($aPack < $bPack) return 1;
