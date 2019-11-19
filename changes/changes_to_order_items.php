@@ -33,7 +33,7 @@ function changes_to_order_items($new) {
   $mysql->run(set_created_sql($new, $old, $id));
 
   //Save Updates
-  //$mysql->run(set_updated_sql($new, $old, $id, $where));
+  $mysql->run(set_updated_sql($new, $old, $id, $where));
 
   return [
     'deleted' => $deleted[0],
