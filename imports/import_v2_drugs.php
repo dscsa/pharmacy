@@ -2,6 +2,7 @@
 
 require_once 'dbs/mysql_wc.php';
 require_once 'helpers/helper_imports.php';
+require_once 'helpers/helper_v2.php';
 
 function import_v2_drugs() {
 
