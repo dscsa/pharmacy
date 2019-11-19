@@ -21,7 +21,7 @@ function log_info($msg = null) {
 function email($subject) {
   $body = '';
   foreach (func_get_args() as $arg) {
-    $body .= print_r($arg, true).' | '
+    $body .= print_r($arg, true).' | ';
   }
   mail('adam@sirum.org', print_r($subject, true), $body);
 }
