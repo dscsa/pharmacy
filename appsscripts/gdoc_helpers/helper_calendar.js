@@ -1,5 +1,7 @@
 function createCalendarEvent(event) {
-  event.stop = addHours(event.hours, event.start).toJSON().slice(0, 19)
+  event.stop  = addHours(event.hours, event.start)
+  event.start = new Date(event.start)
+  infoEmail('createCalendarEvent', event)
   CalendarApp.getCalendarById(event.cal_id).createEvent(event.title, event.start, event.stop, {description:event.description})
 }
 
