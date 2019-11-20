@@ -3,6 +3,7 @@
 require_once 'changes/changes_to_orders.php';
 require_once 'exports/export_gd_orders.php';
 require_once 'exports/export_wc_orders.php';
+require_once 'helpers/helper_comm_calendar.php';
 
 function update_orders() {
 
@@ -226,7 +227,7 @@ function update_orders() {
     }
 
     $groups['NUM_FILLED'] = count($groups['FILL_ACTION']) + count($groups['FILL_NOACTION']);
-    $groups['NUM_NOFILL']   = count($groups['NOFILL_ACTION']) + count($groups['NOFILL_NOACTION']);
+    $groups['NUM_NOFILL'] = count($groups['NOFILL_ACTION']) + count($groups['NOFILL_NOACTION']);
 
     return $groups;
   }
