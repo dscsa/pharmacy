@@ -2,6 +2,18 @@
 
 require_once 'exports/export_gd_comm_calendar.php';
 
+function short_links($links) {
+
+  $args = [
+    'method'  => 'shortLinks',
+    'links'  => $links
+  ];
+
+  $result = gdoc_post(GD_HELPER_URL, $args);
+
+  email('modify_events', $args, $result);
+}
+
 //Internal communication warning an order was shipped but not dispensed.  Gets erased when/if order is shipped
 function order_dispensed_notice($groups) {
 
@@ -39,10 +51,15 @@ function order_shipped_notice($groups) {
   $email = [ "email" => $groups['ALL'][0]['email'] ];
   $text  = [ "sms"   => get_phones($groups['ALL']) ];
 
+  $links = short_links([
+    'invoice' => 'https://docs.google.com/document/d/'.$groups['ALL'][0]['invoice_doc_id'].'/pub?embedded=true',
+    'tracking' => tracking_url($groups['ALL'][0]['tracking_number'])
+  ]);
+
   $text['message'] =
     $subject.
-    ($groups['ALL'][0]['invoice_doc_id'] ? ' View it at '.short_link('https://docs.google.com/document/d/'.$groups['ALL'][0]['invoice_doc_id'].'/pub?embedded=true').'. ' : '');
-    'Track it at '.short_link(tracking_url($groups['ALL'][0]['tracking_number'])).'. '.
+    ($groups['ALL'][0]['invoice_doc_id'] ? ' View it at '.$links['invoice'].'. ' : '');
+    'Track it at '.$links['tracking'].'. '.
     $message;
 
   $email['subject'] = $subject;

@@ -37,6 +37,9 @@ function doPost(e) {
     else if (contents.method == 'modifyCalendarEvents')
       response = modifyCalendarEvents(contents)
 
+    else if (contents.method == 'shortLinks')
+      response = shortLinks(contents)
+
     else
       debugEmail('web_app post no matching method', e)
 
