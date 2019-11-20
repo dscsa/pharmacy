@@ -185,7 +185,7 @@ function new_comm_arr($email, $text) {
     $commArr[] = $text;
   }
 
-  return $commArr //just in case we were sloppy with undefined
+  return $commArr; //just in case we were sloppy with undefined
 }
 
 function format_text($text_json) {
@@ -384,7 +384,7 @@ function cancel_events_by_person($first_name, $last_name, $birth_date, $types) {
 
   foreach ($events as $event) {
 
-    cancel_event($events[i], $event['title'])
+    cancel_event($events[i], $event['title']);
 
     $cancel[] = $event['id'];
   }
