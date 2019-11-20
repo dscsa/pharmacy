@@ -1,5 +1,7 @@
 <?php
 
+require_once 'exports/export_gd_comm_calendar.php';
+
 //Internal communication warning an order was shipped but not dispensed.  Gets erased when/if order is shipped
 function order_dispensed_notice($groups) {
 
@@ -337,6 +339,8 @@ function needs_form_notice($groups) {
 //by building commication arrays based on github.com/dscsa/communication-calendar
 function no_rx_notice($groups) {
 
+  email('adam@sirum.org', 'no_rx_notice', json_encode($groups));
+
   $subject = 'Good Pill received Order #'.$groups['ALL'][0]['invoice_number'].' but is waiting for your prescriptions';
   $message  = ($groups['ALL'][0]['order_source'] == 'Webform Transfer' OR $groups['ALL'][0]['order_source'] == 'Transfer w/ Note')
     ? "We will attempt to transfer the Rxs you requested from, ".$groups['ALL'][0]['pharmacy_name'].' '.$groups['ALL'][0]['pharmacy_address'].'.'
@@ -480,5 +484,6 @@ function tracking_link($tracking) {
 }
 
 function get_phones($order) {
+  email('adam@sirum.org', 'get_phones', json_encode($order));
   return $order[0]['phone1'].($order[0]['phone2'] ? ','.$order[0]['phone2'] : '');
 }
