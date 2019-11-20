@@ -175,6 +175,113 @@ function update_orders() {
     return $order;
   }
 
+  //All Communication should group drugs into 4 Categories based on ACTION/NOACTION and FILL/NOFILL
+  //1) FILLING NO ACTION
+  //2) FILLING ACTION
+  //3) NOT FILLING ACTION
+  //4) NOT FILLING NO ACTION
+  function group_drugs($order) {
+
+    $group = [
+      "ALL" => [],
+      "FILL_ACTION" => [],
+      "FILL_NOACTION" => [],
+      "NOFILL_ACTION" => [],
+      "NOFILL_NOACTION" => [],
+      "FILLED" => [],
+      "FILLED_WITH_PRICES" => [],
+      "NO_REFILLS" => [],
+      "NO_AUTOFILL" => [],
+      "MIN_DAYS" => INF
+    ];
+
+    foreach ($order as $item) {
+
+      $days    = $item['days_dispensed_default'];
+      $fill    = $days ? 'FILL_' : 'NOFILL_';
+      $msg_key = $item['item_message_key'] ?: 'NOACTION';
+
+      $price   = ($days AND $item['refills_used']) ? ', $'.round($item['price_per_month']*$days/30).' for '.$days.' days' : '';
+      $action  = explode('_', $msg_key)[0]; //ACTION OR NOACTION
+
+      $group['ALL'][] = $item['drug_generic'].' '.$item['item_message_text'];
+      $group[$fill+$action][] = $item['drug_generic'].' '.$item['item_message_text'];
+
+      if ($days) {//This is handy because it is not appended with a message like the others
+        $group['FILLED'][] = $item['drug_generic'];
+        $group['FILLED_WITH_PRICES'][] = $item['drug_generic'].$price;
+      }
+
+      if ( ! $item['refills_left'])
+        $group['NO_REFILLS'][] = $item['drug_generic'].' '.$item['item_message_text'];
+
+      if ($days AND ! $item['rx_autofill'])
+        $group['NO_AUTOFILL'][] = $item['drug_generic'].' '.$item['item_message_text'];
+
+      if ( ! $item['refills_left'] AND $days AND $days < $group['MIN_DAYS'])
+        $group['MIN_DAYS'] = $days;
+
+      if ($item['item_added_by'] == 'MANUAL' OR $item['item_added_by'] == 'WEBFORM')
+        $group['MANUALLY_ADDED'] = true;
+    }
+
+    $group['NUM_FILLED'] = count($groups['FILL_ACTION']) + count($groups['FILL_NOACTION']);
+    $group['NUM_NOFILL']   = count($groups['NOFILL_ACTION']) + count($groups['NOFILL_NOACTION']);
+
+    return $group;
+  }
+
+  function send_created_order_communications($order) {
+
+    $groups = group_drugs($order);
+
+    if ( ! $order[0]['pharmacy_name']) //Use Pharmacy name rather than $New to keep us from repinging folks if the row has been readded
+      needs_form_notice($groups);
+
+    if ( ! $groups['NUM_NOFILL'] AND ! $groups['NUM_FILLED'])
+      no_rx_notice($groups);
+
+    if ( ! $groups['NUM_FILLED'])
+      order_hold_notice($groups);
+
+    //['Not Specified', 'Webform Complete', 'Webform eRx', 'Webform Transfer', 'Auto Refill', '0 Refills', 'Webform Refill', 'eRx /w Note', 'Transfer /w Note', 'Refill w/ Note']
+    else if ($order[0]['rx_source'] == 'Webform Transfer' OR $order[0]['rx_source'] == 'Transfer /w Note')
+      transfer_requested_notice($groups);
+
+    else
+      order_created_notice($groups);
+  }
+
+  function send_deleted_order_communications($order) {
+
+    $groups = group_drugs($order);
+    //TODO We need something here!
+    order_failed_notice($groups, 0);
+    mail('adam@sirum.org', 'Order was deleted', json_encode([$order, $groups]));
+  }
+
+  function send_updated_order_communications($order) {
+
+    $groups = group_drugs($order);
+
+    if ($order[0]['tracking_number']) {
+      order_shipped_notice($groups);
+      confirm_shipment_notice($groups);
+      refill_reminder_notice($groups);
+
+      if ($order[0]['payment_method'] == PAYMENT_METHOD['AUTOPAY'])
+        autopay_reminder_notice($groups);
+    }
+
+    else if ($order[0]['days_dispensed_actual'])
+      order_dispensed_notice($groups);
+
+    else {
+      order_updated_notice($groups);
+      order_failed_notice($groups, 7); //After updated event since orderUpdatedEvent() will delete an previous orderFailed messages
+    }
+  }
+
   //If just added to CP Order we need to
   //  - Find out any other rxs need to be added
   //  - Update invoice
@@ -234,113 +341,6 @@ function update_orders() {
     //TODO Update Salesforce Order Total & Order Count & Order Invoice using REST API or a MYSQL Zapier Integration
   }
 
-  function send_created_order_communications($order) {
-
-    $groups = group_drugs($order);
-
-    if ( ! $order[0]['pharmacy_name']) //Use Pharmacy name rather than $New to keep us from repinging folks if the row has been readded
-      needs_form_notice($groups);
-
-    if ( ! $groups['NUM_NOFILL'] AND ! $groups['NUM_FILLED'])
-      no_rx_notice($groups);
-
-    if ( ! $groups['NUM_FILLED'])
-      order_hold_notice($groups);
-
-    //['Not Specified', 'Webform Complete', 'Webform eRx', 'Webform Transfer', 'Auto Refill', '0 Refills', 'Webform Refill', 'eRx /w Note', 'Transfer /w Note', 'Refill w/ Note']
-    else if ($order[0]['rx_source'] == 'Webform Transfer' OR $order[0]['rx_source'] == 'Transfer /w Note')
-      transfer_requested_notice($groups);
-
-    else
-      order_created_notice($groups);
-  }
-
-  function send_deleted_order_communications($order) {
-
-    $groups = group_drugs($order);
-    //TODO We need something here!
-    order_failed_notice($groups, 0);
-    mail('adam@sirum.org', 'Order was deleted', json_encode([$order, $groups]));
-  }
-
-  function send_updated_order_communications($order) {
-
-    $groups = group_drugs($order);
-
-    if ($order[0]['tracking_number']) {
-      order_shipped_notice($groups);
-      confirm_shipment_notice($groups);
-      refill_reminder_notice($groups);
-
-      if ($order[0]['payment_method'] == PAYMENT_METHOD['AUTOPAY'])
-        autopay_reminder_notice($groups);
-    }
-
-    else if ($order[0]['days_dispensed_actual'])
-      order_dispensed_notice($groups);
-
-    else {
-      order_updated_notice($groups);
-      order_failed_notice($groups, 7); //After updated event since orderUpdatedEvent() will delete an previous orderFailed messages
-    }
-  }
-
-  //All Communication should group drugs into 4 Categories based on ACTION/NOACTION and FILL/NOFILL
-  //1) FILLING NO ACTION
-  //2) FILLING ACTION
-  //3) NOT FILLING ACTION
-  //4) NOT FILLING NO ACTION
-  function group_drugs($order) {
-
-    $group = [
-      "ALL" => [],
-      "FILL_ACTION" => [],
-      "FILL_NOACTION" => [],
-      "NOFILL_ACTION" => [],
-      "NOFILL_NOACTION" => [],
-      "FILLED" => [],
-      "FILLED_WITH_PRICES" => [],
-      "NO_REFILLS" => [],
-      "NO_AUTOFILL" => [],
-      "MIN_DAYS" => INF
-    ];
-
-    foreach ($order as $item) {
-
-      $days    = $item['days_dispensed_default'];
-      $fill    = $days ? 'FILL_' : 'NOFILL_';
-      $msg_key = $item['item_message_key'] ?: 'NOACTION';
-
-      $price   = ($days AND $item['refills_used']) ? ', $'.round($item['price_per_month']*$days/30).' for '.$days.' days' : '';
-      $action  = explode('_', $msg_key)[0]; //ACTION OR NOACTION
-
-      $group['ALL'][] = $item['drug_generic'].' '.$item['item_message_text'];
-      $group[$fill+$action][] = $item['drug_generic'].' '.$item['item_message_text'];
-
-      if ($days) {//This is handy because it is not appended with a message like the others
-        $group['FILLED'][] = $item['drug_generic'];
-        $group['FILLED_WITH_PRICES'][] = $item['drug_generic'].$price;
-      }
-
-      if ( ! $item['refills_left'])
-        $group['NO_REFILLS'][] = $item['drug_generic'].' '.$item['item_message_text'];
-
-      if ($days AND ! $item['rx_autofill'])
-        $group['NO_AUTOFILL'][] = $item['drug_generic'].' '.$item['item_message_text'];
-
-      if ( ! $item['refills_left'] AND $days AND $days < $group['MIN_DAYS'])
-        $group['MIN_DAYS'] = $days;
-
-      if ($item['item_added_by'] == 'MANUAL' OR $item['item_added_by'] == 'WEBFORM')
-        $group['MANUALLY_ADDED'] = true;
-    }
-
-    $group['NUM_FILLED'] = count($groups['FILL_ACTION']) + count($groups['FILL_NOACTION']);
-    $group['NUM_NOFILL']   = count($groups['NOFILL_ACTION']) + count($groups['NOFILL_NOACTION']);
-
-    return $group;
-  }
-
   //TODO Differentiate between actual order that are to be sent out and
   // - Ones that were faxed/called in but not due yet
   // - Ones that were surescripted in but not due yet  [order_status] => Surescripts Fill
@@ -352,4 +352,4 @@ function update_orders() {
 
   //TODO Remove Delete Orders
 
-}
+  }
