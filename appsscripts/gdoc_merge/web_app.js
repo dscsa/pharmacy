@@ -19,7 +19,8 @@ function doPost(e) {
     if (contents.method == 'mergeDoc')
       response = mergeDoc(contents)
 
-    debugEmail('web_app post no matching method', e)
+    else
+      debugEmail('web_app post no matching method', e)
 
     return ContentService
       .createTextOutput(JSON.stringify(response))

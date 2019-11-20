@@ -37,7 +37,8 @@ function doPost(e) {
     else if (contents.method == 'modifyCalendarEvents')
       response = modifyCalendarEvents(contents)
 
-    debugEmail('web_app post no matching method', e)
+    else
+      debugEmail('web_app post no matching method', e)
 
     return ContentService
       .createTextOutput(JSON.stringify(response))
