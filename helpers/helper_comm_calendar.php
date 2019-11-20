@@ -339,7 +339,7 @@ function no_rx_notice($groups) {
 
   $subject = 'Good Pill received Order #'.$groups['ALL'][0]['invoice_number'].' but is waiting for your prescriptions';
   $message  = ($groups['ALL'][0]['order_source'] == 'Webform Transfer' OR $groups['ALL'][0]['order_source'] == 'Transfer w/ Note')
-    ? "We will attempt to transfer the Rxs you requested from, ".$groups['ALL'][0]['pharmacy_name'].' '.$groups['ALL'][0]['pharmacy_address'].'.';
+    ? "We will attempt to transfer the Rxs you requested from, ".$groups['ALL'][0]['pharmacy_name'].' '.$groups['ALL'][0]['pharmacy_address'].'.'
     : "We haven't gotten any Rxs from your doctor yet but will notify you as soon as we do.";
 
   $email = [ "email" => $groups['ALL'][0]['email'] ];
