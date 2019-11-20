@@ -195,11 +195,11 @@ function update_orders() {
       $fill    = $days ? 'FILLED_' : 'NOFILL_';
 
       if (strpos('NO ACTION', $item['item_message_key']) !== false)
-        $msg_key = 'NOACTION';
+        $action = 'NOACTION';
       else if (strpos('ACTION', $item['item_message_key']) !== false)
-        $msg_key = 'ACTION';
+        $action = 'ACTION';
       else
-        $msg_key = 'NOACTION';
+        $action = 'NOACTION';
 
       $price   = ($days AND $item['refills_used']) ? ', $'.round($item['price_per_month']*$days/30).' for '.$days.' days' : '';
 
