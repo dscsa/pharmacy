@@ -125,6 +125,9 @@ function needs_form_event($order, $email, $text, $hoursToWait, $hourOfDay) {
 
 function no_rx_event($order, $email, $text, $hoursToWait, $hourOfDay) {
 
+  if ( ! isset($order[0]['invoice_number']))
+    email('ERROR no_rx_event: indexes not set', $order);
+
   $patientLabel = get_patient_label($order);
   $eventTitle   = $order[0]['invoice_number'].' No Rx: '.$patientLabel.'.  Created:'.date('Y:m:d H:i:s');
 
