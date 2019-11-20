@@ -3,13 +3,13 @@
 function log_info($msg = null) {
 
   if ( ! $_ENV) {
-    $_ENV = getenv(); //https://stackoverflow.com/questions/3780866/why-is-my-env-empty
+    $_ENV = getenv('SSH_CLIENT'); //https://stackoverflow.com/questions/3780866/why-is-my-env-empty
     print_r($_ENV);
   }
 
   echo $msg;
 
-  if (isset($_ENV['SSH_CLIENT'])) {
+  if (isset(getenv('SSH_CLIENT'))) {
     echo $msg;
     return;
   }
