@@ -168,7 +168,7 @@ function confirm_shipment_event($order, $email, $hoursToWait, $hourOfDay) {
   create_event($eventTitle, $commArr, $hoursToWait, $hourOfDay);
 }
 
-function new_comm_arr($email, $text) {
+function new_comm_arr($email, $text = '') {
 
   $commArr = [];
 
@@ -278,7 +278,7 @@ function create_event($eventTitle, $commArr, $hoursToWait = 0, $hourOfDay = null
     'start'       => $startTime,
     'hours'       => 0.5,
     'title'       => $eventTitle,
-    'description' => $commArr
+    'description' => json_encode($commArr)
   ];
 
   $result = gdoc_post(GD_HELPER_URL, $args);
