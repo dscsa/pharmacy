@@ -1,5 +1,5 @@
 function createCalendarEvent(event) {
-  var eventStop = addHours(event.hours, event.start)
+  event.stop = addHours(event.hours, event.start)
   CalendarApp.getCalendarById(event.cal_id).createEvent(event.title, event.start, event.stop, {description:event.description})
 }
 
@@ -49,7 +49,7 @@ function searchCalendarEvents(opts) {
   var calendar = CalendarApp.getCalendarById(opts.cal_id)
 
   var start    = opts.start || new Date()
-  var length   = addHours(opts.hours, start) //stop date seems to be required by Google.  Everything should happen within 90 days
+  var stop     = addHours(opts.hours, start) //stop date seems to be required by Google.  Everything should happen within 90 days
   var config   = { search:opts.word_search }
   var events   = calendar.getEvents(start, stop, config) //Can't put in name because can't google cal doesn't seem to support a partial word search e.g, "greg" will not show results for gregory
   //TODO Remove if/when Calendar support partial word searches
