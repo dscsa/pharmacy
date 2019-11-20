@@ -9,7 +9,7 @@ function log_info($msg = null) {
 
   echo $msg;
 
-  if (isset(getenv('SSH_CLIENT'))) {
+  if (getenv('SSH_CLIENT')) {
     echo $msg;
     return;
   }
