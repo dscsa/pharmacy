@@ -391,11 +391,10 @@ function cancel_events_by_person($first_name, $last_name, $birth_date, $types) {
   $events = search_events_by_person($first_name, $last_name, $birth_date, false, $types);
 
   foreach ($events as $event) {
-
-    cancel_event($events[i], $event['title']);
-
     $cancel[] = $event['id'];
   }
+
+  cancel_events($cancel);
 
   return $cancel;
 }
