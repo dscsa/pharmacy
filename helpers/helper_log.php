@@ -2,17 +2,11 @@
 
 function log_info($msg = null) {
 
-  if ( ! $_ENV) {
-    $_ENV = ['SSH_CLIENT' => getenv('SSH_CLIENT')]; //https://stackoverflow.com/questions/3780866/why-is-my-env-empty
-    print_r($_ENV);
+  if ( ! in_array('log=info', $argv)) {
+    return;
   }
 
   echo $msg;
-
-  if (getenv('SSH_CLIENT')) {
-    echo $msg;
-    return;
-  }
 
   if ( ! isset($_SERVER['webform_log'])) {
     $_SERVER['webform_log'] = [];
