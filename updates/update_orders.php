@@ -43,10 +43,6 @@ function update_orders() {
 
     $order = $mysql->run($sql)[0];
 
-    log_info("
-    Order Before: $sql
-    ".print_r($order, true));
-
     if ($order AND $order[0]['invoice_number']) {
 
       $target_date = get_sync_to_date($order);
@@ -56,12 +52,8 @@ function update_orders() {
       $order  = set_payment($order, $update, $mysql);
 
     } else {
-      log_info('set_sync_to_date error. no invoice number '.print_r($order, true));
+      email('ERROR! get_full_order: no invoice number ', $order);
     }
-
-    log_info("
-    Order After: $sql
-    ".print_r($order, true));
 
     return $order;
   }
@@ -229,6 +221,8 @@ function update_orders() {
 
     $groups['NUM_FILLED'] = count($groups['FILL_ACTION']) + count($groups['FILL_NOACTION']);
     $groups['NUM_NOFILL'] = count($groups['NOFILL_ACTION']) + count($groups['NOFILL_NOACTION']);
+
+    email('GROUP_DRUGS', $order, $groups);
 
     return $groups;
   }
