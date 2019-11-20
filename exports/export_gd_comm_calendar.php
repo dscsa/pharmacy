@@ -312,7 +312,7 @@ function modify_events() {
 //Return a copy of the date (or now) with the 24-hour set
 function get_start_time($hoursToWait, $hourOfDay) {
 
-  $start = date('Y-m-d H:i:s', strtotime("+$hoursToWait hours"));
+  $start = date('Y-m-dTH:i:s', strtotime("+$hoursToWait hours"));
 
   if ($hourOfDay) {
     $start = substr($start, 0, 11)."$hourOfDay:00:00";
