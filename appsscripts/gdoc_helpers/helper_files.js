@@ -37,7 +37,8 @@ function watchFiles(opts) {
     }
 
     //getBody does not have headers or footers
-    var documentElement = next.getBody().getParent()
+    var doc = DocumentApp.openById(next.getId())
+    var documentElement = doc.getBody().getParent()
     var numChildren = documentElement.getNumChildren()
 
     for (var i = 0; i<numChildren; i++) {
