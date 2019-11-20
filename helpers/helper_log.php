@@ -2,9 +2,9 @@
 
 function log_info($msg = null) {
 
-  if ( ! in_array('log=info', $argv)) {
-    return;
-  }
+  global $argv;
+
+  if ( ! in_array('log=info', $argv)) return;
 
   echo $msg;
 
