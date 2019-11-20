@@ -339,7 +339,7 @@ function needs_form_notice($groups) {
 //by building commication arrays based on github.com/dscsa/communication-calendar
 function no_rx_notice($groups) {
 
-  email('adam@sirum.org', 'no_rx_notice', json_encode($groups));
+  email('no_rx_notice', $groups);
 
   $subject = 'Good Pill received Order #'.$groups['ALL'][0]['invoice_number'].' but is waiting for your prescriptions';
   $message  = ($groups['ALL'][0]['order_source'] == 'Webform Transfer' OR $groups['ALL'][0]['order_source'] == 'Transfer w/ Note')

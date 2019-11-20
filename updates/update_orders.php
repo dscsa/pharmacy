@@ -26,8 +26,9 @@ function update_orders() {
 
   function get_full_order($order, $mysql) {
 
+    //gp_orders.invoice_number at end because otherwise potentially null gp_order_items.invoice_number will override gp_orders.invoice_number
     $sql = "
-      SELECT *
+      SELECT *, gp_orders.invoice_number
       FROM
         gp_orders
       JOIN gp_patients ON
@@ -40,13 +41,13 @@ function update_orders() {
         gp_orders.invoice_number = $order[invoice_number]
     ";
 
-    $order = $mysql->run($sql)[0];
+    $order = $mysql->run($sql);
 
     log_info("
     Order Before: $sql
     ".print_r($order, true));
 
-    if ($order AND $order['invoice_number']) {
+    if ($order AND $order[0]['invoice_number']) {
 
       $target_date = get_sync_to_date($order);
       $order  = set_sync_to_date($order, $target_date, $mysql);
