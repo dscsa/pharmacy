@@ -25,7 +25,7 @@ function get_deleted_sql($new, $old, $id) {
 
   return "
     SELECT
-      new.*
+      old.*
     FROM
       $new as new
     RIGHT JOIN $old as old ON
