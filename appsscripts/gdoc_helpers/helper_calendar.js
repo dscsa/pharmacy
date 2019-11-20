@@ -1,5 +1,5 @@
 function createCalendarEvent(event) {
-  event.stop = addHours(event.hours, event.start)
+  event.stop = addHours(event.hours, event.start).toJSON()
   CalendarApp.getCalendarById(event.cal_id).createEvent(event.title, event.start, event.stop, {description:event.description})
 }
 
