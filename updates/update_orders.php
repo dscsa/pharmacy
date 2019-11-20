@@ -178,8 +178,8 @@ function update_orders() {
 
     $groups = [
       "ALL" => [],
-      "FILL_ACTION" => [],
-      "FILL_NOACTION" => [],
+      "FILLED_ACTION" => [],
+      "FILLED_NOACTION" => [],
       "NOFILL_ACTION" => [],
       "NOFILL_NOACTION" => [],
       "FILLED" => [],
