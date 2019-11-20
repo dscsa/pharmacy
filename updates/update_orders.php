@@ -45,7 +45,7 @@ function update_orders() {
     Order Before: $sql
     ".print_r($order, true));
 
-    if ($order AND $order[0]['invoice_number']) {
+    if ($order AND $order['invoice_number']) {
 
       $target_date = get_sync_to_date($order);
       $order  = set_sync_to_date($order, $target_date, $mysql);
@@ -54,7 +54,7 @@ function update_orders() {
       $order  = set_payment($order, $update, $mysql);
 
     } else {
-      log_info('set_sync_to_date error. no invoice number '.print_r($order, true).print_r($update, true));
+      log_info('set_sync_to_date error. no invoice number '.print_r($order, true));
     }
 
     log_info("
