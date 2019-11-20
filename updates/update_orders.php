@@ -101,7 +101,7 @@ function update_orders() {
 
         $sql = "
           UPDATE
-            gp_order_items =
+            gp_order_items
           SET
             refill_date_target     = $target_date,
             days_dispensed_default = $days_synced

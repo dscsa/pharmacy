@@ -67,6 +67,9 @@ function pend_pick_list($item, $vals) {
 
 function make_pick_list($item) {
 
+  if ( ! isset($item['stock_level']))
+    email("ERROR make_pick_list: stock_level is not set", $item);
+
   $safety   = 0.15;
   $generic  = $item['drug_generic'];
   $min_days = $item['days_dispensed_default'];
