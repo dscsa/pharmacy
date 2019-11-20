@@ -182,7 +182,7 @@ function update_orders() {
   //4) NOT FILLING NO ACTION
   function group_drugs($order) {
 
-    $group = [
+    $groups = [
       "ALL" => [],
       "FILL_ACTION" => [],
       "FILL_NOACTION" => [],
@@ -204,31 +204,31 @@ function update_orders() {
       $price   = ($days AND $item['refills_used']) ? ', $'.round($item['price_per_month']*$days/30).' for '.$days.' days' : '';
       $action  = explode('_', $msg_key)[0]; //ACTION OR NOACTION
 
-      $group['ALL'][] = $item['drug_generic'].' '.$item['item_message_text'];
-      $group[$fill+$action][] = $item['drug_generic'].' '.$item['item_message_text'];
+      $groups['ALL'][] = $item['drug_generic'].' '.$item['item_message_text'];
+      $groups[$fill+$action][] = $item['drug_generic'].' '.$item['item_message_text'];
 
       if ($days) {//This is handy because it is not appended with a message like the others
-        $group['FILLED'][] = $item['drug_generic'];
-        $group['FILLED_WITH_PRICES'][] = $item['drug_generic'].$price;
+        $groups['FILLED'][] = $item['drug_generic'];
+        $groups['FILLED_WITH_PRICES'][] = $item['drug_generic'].$price;
       }
 
-      if ( ! $item['refills_left'])
-        $group['NO_REFILLS'][] = $item['drug_generic'].' '.$item['item_message_text'];
+      if ( ! $item['refills_total_default'])
+        $groups['NO_REFILLS'][] = $item['drug_generic'].' '.$item['item_message_text'];
 
       if ($days AND ! $item['rx_autofill'])
-        $group['NO_AUTOFILL'][] = $item['drug_generic'].' '.$item['item_message_text'];
+        $groups['NO_AUTOFILL'][] = $item['drug_generic'].' '.$item['item_message_text'];
 
-      if ( ! $item['refills_left'] AND $days AND $days < $group['MIN_DAYS'])
-        $group['MIN_DAYS'] = $days;
+      if ( ! $item['refills_total_default'] AND $days AND $days < $groups['MIN_DAYS'])
+        $groups['MIN_DAYS'] = $days;
 
       if ($item['item_added_by'] == 'MANUAL' OR $item['item_added_by'] == 'WEBFORM')
-        $group['MANUALLY_ADDED'] = true;
+        $groups['MANUALLY_ADDED'] = true;
     }
 
-    $group['NUM_FILLED'] = count($groups['FILL_ACTION']) + count($groups['FILL_NOACTION']);
-    $group['NUM_NOFILL']   = count($groups['NOFILL_ACTION']) + count($groups['NOFILL_NOACTION']);
+    $groups['NUM_FILLED'] = count($groups['FILL_ACTION']) + count($groups['FILL_NOACTION']);
+    $groups['NUM_NOFILL']   = count($groups['NOFILL_ACTION']) + count($groups['NOFILL_NOACTION']);
 
-    return $group;
+    return $groups;
   }
 
   function send_created_order_communications($order) {
