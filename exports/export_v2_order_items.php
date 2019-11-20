@@ -54,12 +54,12 @@ function print_pick_list($item, $vals) {
   $result = gdoc_post(GD_MERGE_URL, $args);
 
 
-  mail('adam@sirum.org', "WebForm make_pick_list", json_encode([$item, $args, $result]));
+  email("WebForm make_pick_list", $item, $args, $result);
 }
 
 function pend_pick_list($item, $vals) {
 
-  if ( ! LIVE_MODE) return mail('adam@sirum.org', "WebForm pend_pick_list", json_encode([$item, $vals]));
+  if ( ! LIVE_MODE) return email("WebForm pend_pick_list", $item, $vals);
 
   //Pend after all forseeable errors are accounted for.
   //v2_fetch('/account/8889875187/pend/'.$item['invoice_number'].' - '.$item['qty_dispensed_default'], 'POST', $vals);
@@ -91,11 +91,11 @@ function make_pick_list($item) {
   $sorted_ndcs   = sort_by_ndc($unsorted_ndcs, $long_exp);
   $list          = get_qty_needed($sorted_ndcs, $min_qty, $safety);
 
-  mail('adam@sirum.org', "Webform make_pick_list", json_encode([$url, $item, $list, $sorted_ndcs]));
+  email("Webform make_pick_list", $url, $item, $list, $sorted_ndcs);
 
   if ($list OR $min_days <= 45) return $list;
 
-  mail('adam@sirum.org', "Webform Shopping Error: Not enough qty found, trying 45 days and no safety", json_encode([$url, $item, $list, $sorted_ndcs]));
+  email("Webform Shopping Error: Not enough qty found, trying 45 days and no safety", $url, $item, $list, $sorted_ndcs);
 
   $list = get_qty_needed($sorted_ndcs, $min_qty*(45/$min_days*$min_qty), $safety);
 

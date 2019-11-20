@@ -18,7 +18,7 @@ function update_rxs_single() {
   if ($count_deleted+$count_created+$count_updated)
     log_info($message.print_r($changes, true));
 
-  //mail('adam@sirum.org', "CRON: $message", $message.print_r($changes, true));
+  //email("CRON: $message", $message, $changes);
 
   if ( ! $count_deleted AND ! $count_created AND ! $count_updated) return;
 

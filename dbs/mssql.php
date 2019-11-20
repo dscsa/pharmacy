@@ -98,6 +98,6 @@ class Mssql {
     function _emailError() {
       $message = print_r(func_get_args(), true).' '.print_r(mssql_get_last_message(), true);
       log_info("CRON: Debug MSSQL $message");
-      mail('adam@sirum.org', "CRON: Debug MSSQL ", $message);
+      email("CRON: Debug MSSQL ", $message);
     }
 }

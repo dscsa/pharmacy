@@ -64,4 +64,4 @@ log_info(timer("update_orders", $time));
 
 $email = log_info();
 
-mail('adam@sirum.org', "WebForm CRON Finished", $email ?: 'No Logs');
+email("WebForm CRON Finished", $email ?: 'No Logs');

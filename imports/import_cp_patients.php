@@ -100,7 +100,7 @@ function import_cp_patients() {
         $row['payment_coupon']  = 'NULL';
       }
       else if (substr($val2[3], 0, 6) == "track_") {
-        mail('adam@sirum.org', "Really Tracking Coupon???", print_r($row, true).print_r($val2).' '.substr($val2[3], 0, 6));
+        email("Really Tracking Coupon???", $row, $val2, substr($val2[3], 0, 6));
         $row['payment_coupon']  = 'NULL';
         $row['tracking_coupon'] = clean_val($val2[3]);
         assert_length($row, 'tracking_coupon', 5, 40); //with single quotes

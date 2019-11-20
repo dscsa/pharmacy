@@ -24,7 +24,7 @@ function email($subject) {
   foreach (func_get_args() as $arg) {
     $body .= print_r($arg, true).' | ';
   }
-  mail('adam@sirum.org', print_r($subject, true), $body);
+  mail(DEBUG_EMAIL, print_r($subject, true), $body);
 }
 
 function timer($label, &$start) {

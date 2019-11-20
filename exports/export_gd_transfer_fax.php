@@ -20,7 +20,7 @@ function export_gd_transfer_fax($item) {
 
   $result = gdoc_post(GD_MERGE_URL, $args);
 
-  mail('adam@sirum.org', "WebForm export_gd_transfer_fax", json_encode([$args, $result]));
+  email("WebForm export_gd_transfer_fax", $args, $result);
 
   log_info($result);
 }

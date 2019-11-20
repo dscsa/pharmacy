@@ -19,7 +19,7 @@ function update_order_items() {
   if ($count_deleted+$count_created+$count_updated)
     log_info($message.print_r($changes, true));
 
-  //mail('adam@sirum.org', "CRON: $message", $message.print_r($changes, true));
+  //email("CRON: $message", $message, $changes);
 
   if ( ! $count_deleted AND ! $count_created AND ! $count_updated) return;
 
@@ -52,7 +52,7 @@ function update_order_items() {
     if (isset($query[0][0]))
       $item = $query[0][0];
     else
-      mail('adam@sirum.org', "Error update_order_items", print_r($query, true).$sql);
+      email("Error update_order_items", $query, $sql);
 
     log_info("
     Item: $sql
@@ -108,7 +108,7 @@ function update_order_items() {
 
     $item = get_full_item($updated, $mysql);
 
-    mail('adam@sirum.org', 'update_order_items updated', print_r($item, true));
+    email('update_order_items updated', $item);
 
     if ($item['days_dispensed_default']) {
 

@@ -101,6 +101,6 @@ class Mysql {
     function _emailError() {
       $message = print_r(func_get_args(), true).' '.print_r(isset($this->connection) ? mysqli_connect_errno($this->connection).': '.mysqli_error($this->connection) : mysqli_connect_errno().': '.mysqli_connect_error(), true);
       log_info("CRON: Debug MYSQL $message");
-      mail('adam@sirum.org', "CRON: Debug MYSQL ", $message);
+      email("CRON: Debug MYSQL ", $message);
     }
 }

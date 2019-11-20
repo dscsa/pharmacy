@@ -258,7 +258,7 @@ function update_orders() {
     $groups = group_drugs($order);
     //TODO We need something here!
     order_failed_notice($groups, 0);
-    mail('adam@sirum.org', 'Order was deleted', json_encode([$order, $groups]));
+    email('Order was deleted', $order, $groups);
   }
 
   function send_updated_order_communications($order) {
