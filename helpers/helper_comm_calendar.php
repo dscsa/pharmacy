@@ -7,7 +7,7 @@ function order_dispensed_notice($groups) {
   $days_ago = 2;
   $email   = [
     "email"   => PHARMACIST_EMAIL.','.DEBUG_EMAIL,
-    "subject" => 'Warning Order #'.$groups['ALL'][0]['invoice_number'].' dispensed but not shipped';
+    "subject" => 'Warning Order #'.$groups['ALL'][0]['invoice_number'].' dispensed but not shipped'
   ];
 
   $email['message'] = implode('<br>', [
