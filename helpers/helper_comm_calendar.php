@@ -395,7 +395,7 @@ function order_failed_notice($groups, $days) {
 
   order_failed_event($groups['ALL'], $email, $text, $days*24, 13);
   order_failed_event($groups['ALL'], [
-    "email"   => CINDY_EMAIL.','.DEBUG_EMAIL,
+    "email"   => PHARMACIST_EMAIL.','.DEBUG_EMAIL,
     "subject" => 'To Be Sent Tomorrow: '.$subject,
     "message" => 'To Be Sent Tomorrow: '.$email.$message
   ], null, ($days-1)*24, 13);
