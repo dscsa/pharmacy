@@ -4,7 +4,7 @@ require_once 'changes/changes_to_order_items.php';
 require_once 'helpers/helper_days_dispensed.php';
 require_once 'exports/export_cp_order_items.php';
 require_once 'exports/export_v2_order_items.php';
-require_once 'exports/export_gd_transfer_fax.php';
+//require_once 'exports/export_gd_transfer_fax.php';
 
 function update_order_items() {
 
@@ -78,7 +78,7 @@ function update_order_items() {
 
     if ( ! $days) {
       export_cp_remove_item($item);
-      export_gd_transfer_fax($item);
+      //export_gd_transfer_fax($item);
       continue;
     }
 
