@@ -7,6 +7,9 @@ function get_days_dispensed($item) {
   log_info("
   get_days_dispensed ");//.print_r($item, true);
 
+  if ( ! isset($item['price_per_month']))
+    email('ERROR get_days_dispensed: price_per_month not set', $item);
+
   //TODO OR IT'S AN OTC
   $no_transfer = $item['price_per_month'] >= 20 OR $item['pharmacy_phone'] == "8889875187";
 
