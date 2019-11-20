@@ -68,6 +68,7 @@ function order_created_event($order, $email, $text, $hoursToWait) {
 }
 
 function transfer_requested_event($order, $email, $text, $hoursToWait) {
+
   $patientLabel = get_patient_label($order);
   $eventTitle   = $order[0]['invoice_number'].' Transfer Requested: '.$patientLabel.'.  Created:'.date('Y:m:d H:i:s');
 
@@ -81,6 +82,10 @@ function transfer_requested_event($order, $email, $text, $hoursToWait) {
 }
 
 function order_hold_event($order, $email, $text, $hoursToWait) {
+
+  if ( ! isset($order[0]['invoice_number']))
+    email('ERROR order_hold_event: indexes not set', $order);
+
   $patientLabel = get_patient_label($order);
   $eventTitle   = $order[0]['invoice_number'].' Order Hold: '.$patientLabel.'.  Created:'.date('Y:m:d H:i:s');
 
@@ -164,13 +169,16 @@ function new_comm_arr($email, $text) {
 
   $commArr = [];
 
+  if(is_array($email))
+    email('ERROR new_comm_arr: email is an array', $email, $text);
+
   if (LIVE_MODE AND $email AND ! preg_match($email, '/\d\d\d\d-\d\d-\d\d@goodpill\.org/')) {
     $email['bcc']  = DEBUG_EMAIL;
     $email['from'] = 'Good Pill Pharmacy < support@goodpill.org >'; //spaces inside <> are so that google cal doesn't get rid of "HTML" if user edits description
     $commArr[] = $email;
   }
 
-  if (LIVE_MODE AND $text AND $text['sms'] AND strpos(DO_NOT_SMS, $text['sms']) === false) {
+  if (LIVE_MODE AND $text AND $text['sms'] AND in_array($text['sms'], DO_NOT_SMS)) {
     //addCallFallback
     $json = preg_replace('/ undefined/g', '', json_encode($text));
 
@@ -257,7 +265,7 @@ function get_patient_label($order) {
   return $order[0]['first_name'].' '.$order[0]['last_name'].' '.$order[0]['birth_date'];
 }
 
-function create_event($eventTitle, $commArr, $hoursToWait, $hourOfDay) {
+function create_event($eventTitle, $commArr, $hoursToWait = 0, $hourOfDay = null) {
 
   $startTime = get_start_time($hoursToWait, $hourOfDay);
 
