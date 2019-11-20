@@ -192,11 +192,16 @@ function update_orders() {
     foreach ($order as $item) {
 
       $days    = $item['days_dispensed_default'];
-      $fill    = $days ? 'FILL_' : 'NOFILL_';
-      $msg_key = $item['item_message_key'] ?: 'NOACTION';
+      $fill    = $days ? 'FILLED_' : 'NOFILL_';
+
+      if (strpos('NO ACTION', $item['item_message_key']) !== false)
+        $msg_key = 'NOACTION';
+      else if (strpos('ACTION', $item['item_message_key']) !== false)
+        $msg_key = 'ACTION';
+      else
+        $msg_key = 'NOACTION';
 
       $price   = ($days AND $item['refills_used']) ? ', $'.round($item['price_per_month']*$days/30).' for '.$days.' days' : '';
-      $action  = explode('_', $msg_key)[0]; //ACTION OR NOACTION
 
       $groups['ALL'][] = $item['drug_generic'].' '.$item['item_message_text'];
       $groups[$fill+$action][] = $item['drug_generic'].' '.$item['item_message_text'];
@@ -219,7 +224,7 @@ function update_orders() {
         $groups['MANUALLY_ADDED'] = true;
     }
 
-    $groups['NUM_FILLED'] = count($groups['FILL_ACTION']) + count($groups['FILL_NOACTION']);
+    $groups['NUM_FILLED'] = count($groups['FILLED_ACTION']) + count($groups['FILLED_NOACTION']);
     $groups['NUM_NOFILL'] = count($groups['NOFILL_ACTION']) + count($groups['NOFILL_NOACTION']);
 
     email('GROUP_DRUGS', $order, $groups);

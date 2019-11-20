@@ -31,7 +31,7 @@ function order_shipped_notice($groups) {
   $message   = '';
 
   if ($groups['NUM_FILLED'])
-    $message .= '<br><u>These Rxs are on the way:</u><br>'.implode(';<br>', $groups['FILL_ACTION'] + $groups['FILL_NOACTION']).';';
+    $message .= '<br><u>These Rxs are on the way:</u><br>'.implode(';<br>', $groups['FILLED_ACTION'] + $groups['FILLED_NOACTION']).';';
 
   if (count($groups['NOFILL_ACTION']))
     $message .= '<br><br><u>We cannot fill these Rxs without your help:</u><br>'.implode(';<br>', $groups['NOFILL_ACTION']).';';
