@@ -41,7 +41,7 @@ function update_orders() {
         gp_orders.invoice_number = $order[invoice_number]
     ";
 
-    $order = $mysql->run($sql);
+    $order = $mysql->run($sql)[0];
 
     log_info("
     Order Before: $sql
