@@ -42,7 +42,7 @@ function refill_reminder_event($order, $email, $text, $hoursToWait, $hourOfDay) 
 }
 
 function autopay_reminder_event($order, $email, $text, $hoursToWait, $hourOfDay) {
-  $patientLabel = get_patient_label($order)
+  $patientLabel = get_patient_label($order);
   $eventTitle   = $order[0]['invoice_number'].' Autopay Reminder: '.$patientLabel.'.  Created:'.new Date();
 
   $cancel = cancel_events($order[0]['first_name'], $order[0]['last_name'], $order[0]['birth_date'], ['Autopay Reminder']);
