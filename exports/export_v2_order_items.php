@@ -85,9 +85,9 @@ function make_pick_list($item) {
   $url  = '/transaction/_design/inventory.qty-by-generic/_view/inventory.qty-by-generic?reduce=false&include_docs=true&limit=300&startkey='.$start_key.'&endkey='.$end_key;
 
   try {
-    $resp = v2_fetch($url, 5984);
+    $resp = v2_fetch($url);
   } catch (Error $e) {
-    $resp = v2_fetch($url, 5984);
+    $resp = v2_fetch($url);
   }
 
   $unsorted_ndcs = group_by_ndc($resp['rows'], $item);
