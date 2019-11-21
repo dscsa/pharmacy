@@ -202,6 +202,8 @@ function set_days_dispensed($item, $days, $message, $mysql) {
     log_info("
     Actual? set_days_dispensed days:$days, $sql".print_r($item, true));
   }
+
+  email('set_days_dispensed', $item, $days, $message, $sql);
 }
 
 
