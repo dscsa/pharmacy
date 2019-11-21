@@ -191,20 +191,21 @@ function update_orders() {
 
     foreach ($order as $item) {
 
-      $days    = $item['days_dispensed_default'];
-      $fill    = $days ? 'FILLED_' : 'NOFILL_';
+      $days = $item['days_dispensed_default'];
+      $fill = $days ? 'FILLED_' : 'NOFILL_';
+      $msg  = $item['item_message_text'] ?: '';
 
-      if (strpos('NO ACTION', $item['item_message_key']) !== false)
+      if (strpos('NO ACTION', $msg) !== false)
         $action = 'NOACTION';
-      else if (strpos('ACTION', $item['item_message_key']) !== false)
+      else if (strpos('ACTION', $msg) !== false)
         $action = 'ACTION';
       else
         $action = 'NOACTION';
 
-      $price = $item['price_dispensed_default'] ? ', $'.$item['price_dispensed_default'].' for '.$days.' days' : '';
+      $price = $item['price_dispensed_default'] ? ', $'.$msg.' for '.$days.' days' : '';
 
       $groups['ALL'][] = $item;
-      $groups[$fill.$action][] = $item['drug_generic'].' '.$item['item_message_text'];
+      $groups[$fill.$action][] = $item['drug_generic'].' '.$msg;
 
       if ($days) {//This is handy because it is not appended with a message like the others
         $groups['FILLED'][] = $item['drug_generic'];
@@ -212,10 +213,10 @@ function update_orders() {
       }
 
       if ( ! $item['refills_total_default'])
-        $groups['NO_REFILLS'][] = $item['drug_generic'].' '.$item['item_message_text'];
+        $groups['NO_REFILLS'][] = $item['drug_generic'].' '.$msg;
 
       if ($days AND ! $item['rx_autofill'])
-        $groups['NO_AUTOFILL'][] = $item['drug_generic'].' '.$item['item_message_text'];
+        $groups['NO_AUTOFILL'][] = $item['drug_generic'].' '.$msg;
 
       if ( ! $item['refills_total_default'] AND $days AND $days < $groups['MIN_DAYS'])
         $groups['MIN_DAYS'] = $days;

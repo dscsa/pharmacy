@@ -501,6 +501,6 @@ function tracking_link($tracking) {
 }
 
 function get_phones($order) {
-  email('adam@sirum.org', 'get_phones', json_encode($order));
+  //email('get_phones', $order);
   return $order[0]['phone1'].($order[0]['phone2'] ? ','.$order[0]['phone2'] : '');
 }
