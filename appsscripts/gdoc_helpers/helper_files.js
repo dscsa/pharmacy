@@ -31,9 +31,11 @@ function watchFiles(opts) {
 
     var next = iterator.next()
     var file = {
+      name:next.getName(),
       id:next.getId(),
       url:next.getUrl(),
-      name:next.getName()
+      date_modified:next.getLastUpdated(),
+      date_created:next.getDateCreated()
     }
 
     //getBody does not have headers or footers

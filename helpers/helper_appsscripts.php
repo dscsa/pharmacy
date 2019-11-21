@@ -21,14 +21,14 @@ function watch_invoices() {
     'folder'       => INVOICE_FOLDER_NAME
   ];
 
-  $result = gdoc_post(GD_HELPER_URL, $args);
+  $result = json_decode(gdoc_post(GD_HELPER_URL, $args));
 
-  email('watch_invoices', $args, $result);
+  preg_match('/(Total:? +|Amount Due:? +)\$(\d+)/', $result['part0'], $matches);
 
-  /*
+  email('watch_invoices', $result['name'], $result['date_modified'], $result['date_created'], $matches, $args, $result);
 
   //Parse Invoice Text and Look For Changes
-    if ( ! match) continue
+  /*  if ( ! match) continue
 
     var text   = match.getElement()
     var value  = text.replace(RegExp('('+content.needle+') *'), '')
@@ -38,10 +38,10 @@ function watch_invoices() {
     res.values.push({text:text, match:match, value:value, digits:digits})
 
     findText('('+content.needle+') *[$\w]+')
-
-
-    $order  = set_payment($order, get_payment($order), $mysql);
   */
+
+ //$order  = set_payment($order, get_payment($order), $mysql);
+
   return $result;
 
 
