@@ -82,7 +82,7 @@ function make_pick_list($item) {
   $start_key = '["8889875187","month","'.$min_exp[0].'","'.$min_exp[1].'","'.$generic.'"]';
   $end_key   = '["8889875187","month","'.$min_exp[0].'","'.$min_exp[1].'","'.$generic.'",{}]';
 
-  $url  = '/transaction/_design/inventory.qty-by-generic/_view/inventory.qty-by-generic?reduce=false&include_docs=true&limit=300&startkey='.$start_key.'&endkey='.$end_key;
+  $url  = ':5984/transaction/_design/inventory.qty-by-generic/_view/inventory.qty-by-generic?reduce=false&include_docs=true&limit=300&startkey='.$start_key.'&endkey='.$end_key;
 
   try {
     $resp = v2_fetch($url);
