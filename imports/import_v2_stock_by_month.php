@@ -13,23 +13,21 @@ function import_v2_stock_by_month() {
       ]
   ]);
 
-  $last = strtotime('-3 months');
   $next = strtotime('+4 months');
-  $last = ["year" => date('Y', $last), "month" => date('m', $last)];
   $next = ["year" => date('Y', $next), "month" => date('m', $next)];
   $curr = ["year" => date('Y'), "month" => date('m')];
 
-  $last = "?start_key=[\"8889875187\",\"month\",\"$last[year]\",\"$last[month]\"]&end_key=[\"8889875187\",\"month\",\"$curr[year]\",\"$curr[month]\",{}]&group_level=5";
-  $next = "?start_key=[\"8889875187\",\"month\",\"$next[year]\",\"$next[month]\"]&end_key=[\"8889875187\",\"month\",\"$next[year]\",\"$next[month]\",{}]&group_level=5";
-  $inventory = file_get_contents(V2_IP.'/transaction/_design/inventory.qty-by-generic/_view/inventory.qty-by-generic'.$next, false, $context);
-  $entered  = file_get_contents(V2_IP.'/transaction/_design/entered.qty-by-generic/_view/entered.qty-by-generic'.$last, false, $context);
-  $verified = file_get_contents(V2_IP.'/transaction/_design/verified.qty-by-generic/_view/verified.qty-by-generic'.$last, false, $context);
-  $refused = file_get_contents(V2_IP.'/transaction/_design/refused.qty-by-generic/_view/refused.qty-by-generic'.$last, false, $context);
-  $expired = file_get_contents(V2_IP.'/transaction/_design/expired.qty-by-generic/_view/expired.qty-by-generic'.$last, false, $context);
-  $disposed = file_get_contents(V2_IP.'/transaction/_design/disposed.qty-by-generic/_view/disposed.qty-by-generic'.$last, false, $context);
-  $dispensed = file_get_contents(V2_IP.'/transaction/_design/dispensed.qty-by-generic/_view/dispensed.qty-by-generic'.$last, false, $context);
+  $curr_query = "?start_key=[\"8889875187\",\"month\",\"$curr[year]\",\"$curr[month]\"]&end_key=[\"8889875187\",\"month\",\"$curr[year]\",\"$curr[month]\",{}]&group_level=5";
+  $next_query = "?start_key=[\"8889875187\",\"month\",\"$next[year]\",\"$next[month]\"]&end_key=[\"8889875187\",\"month\",\"$next[year]\",\"$next[month]\",{}]&group_level=5";
+  $inventory = file_get_contents(V2_IP.'/transaction/_design/inventory.qty-by-generic/_view/inventory.qty-by-generic'.$next_query, false, $context);
+  $entered  = file_get_contents(V2_IP.'/transaction/_design/entered.qty-by-generic/_view/entered.qty-by-generic'.$curr_query, false, $context);
+  $verified = file_get_contents(V2_IP.'/transaction/_design/verified.qty-by-generic/_view/verified.qty-by-generic'.$curr_query, false, $context);
+  $refused = file_get_contents(V2_IP.'/transaction/_design/refused.qty-by-generic/_view/refused.qty-by-generic'.$curr_query, false, $context);
+  $expired = file_get_contents(V2_IP.'/transaction/_design/expired.qty-by-generic/_view/expired.qty-by-generic'.$curr_query, false, $context);
+  $disposed = file_get_contents(V2_IP.'/transaction/_design/disposed.qty-by-generic/_view/disposed.qty-by-generic'.$curr_query, false, $context);
+  $dispensed = file_get_contents(V2_IP.'/transaction/_design/dispensed.qty-by-generic/_view/dispensed.qty-by-generic'.$curr_query, false, $context);
 
-  email('import_v2_stock_by_month', V2_IP.'/transaction/_design/inventory.qty-by-generic/_view/inventory.qty-by-generic'.$next, $inventory);
+  email('import_v2_stock_by_month', V2_IP.'/transaction/_design/inventory.qty-by-generic/_view/inventory.qty-by-generic'.$next_query, $inventory);
 
   $dbs = [
     'inventory' => json_decode($inventory, true)['rows'],
@@ -57,7 +55,7 @@ function import_v2_stock_by_month() {
 
       $val = [
         'drug_generic'  => "'$drug_generic'",
-        'month'         => date_format(date_create_from_format('m/Y', "$month/$year"), "'Y-m-01'"),
+        'month'         => $curr['year'].'-'.$curr['month'].'-01',
         $key.'_sum'     => clean_val($row['value']['sum']),
         $key.'_count'   => clean_val($row['value']['count']),
         $key.'_min'     => clean_val($row['value']['min']),
