@@ -56,11 +56,10 @@ function update_order_items() {
 
     if (isset($query[0][0]))
       $item = $query[0][0];
+    else if ($item AND ! isset($item['price_per_month']))
+      email('ERROR get_full_item: missing stock level', $item, $query, $sql);
     else
-      email("ERROR update_order_items: missing item", $query, $sql);
-
-    if ( ! isset($item['price_per_month']))
-      email('ERROR get_full_item: price_per_month not set', $item);
+      email("ERROR get_full_item: missing item", $item, $query, $sql);
 
     log_info("
     Item: $sql
