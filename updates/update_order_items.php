@@ -28,14 +28,17 @@ function update_order_items() {
 
   function get_full_item($item, $mysql) {
 
+    /* ORDER MAY HAVE NOT BEEN ADDED YET
+    JOIN gp_orders ON
+      gp_orders.invoice_number = gp_order_items.invoice_number
+    */
+
     $sql = "
       SELECT *
       FROM
         gp_order_items
       JOIN gp_rxs_grouped ON
         rx_numbers LIKE CONCAT('%,', gp_order_items.rx_number, ',%')
-      JOIN gp_orders ON
-        gp_orders.invoice_number = gp_order_items.invoice_number
       JOIN gp_rxs_single ON
         gp_rxs_grouped.best_rx_number = gp_rxs_single.rx_number
       JOIN gp_patients ON
@@ -47,13 +50,17 @@ function update_order_items() {
         gp_order_items.rx_number = $item[rx_number]
     ";
 
+
     $item  = [];
     $query = $mysql->run($sql);
 
     if (isset($query[0][0]))
       $item = $query[0][0];
     else
-      email("Error update_order_items", $query, $sql);
+      email("ERROR update_order_items: missing item", $query, $sql);
+
+    if ( ! isset($item['price_per_month']))
+      email('ERROR get_full_item: price_per_month not set', $item);
 
     log_info("
     Item: $sql
