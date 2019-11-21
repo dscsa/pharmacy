@@ -27,7 +27,7 @@ function import_v2_stock_by_month() {
   $disposed = file_get_contents(V2_IP.'/transaction/_design/disposed.qty-by-generic/_view/disposed.qty-by-generic'.$curr_query, false, $context);
   $dispensed = file_get_contents(V2_IP.'/transaction/_design/dispensed.qty-by-generic/_view/dispensed.qty-by-generic'.$curr_query, false, $context);
 
-  email('import_v2_stock_by_month', V2_IP.'/transaction/_design/inventory.qty-by-generic/_view/inventory.qty-by-generic'.$next_query, $inventory);
+  //email('import_v2_stock_by_month', V2_IP.'/transaction/_design/inventory.qty-by-generic/_view/inventory.qty-by-generic'.$next_query, $inventory);
 
   $dbs = [
     'inventory' => json_decode($inventory, true)['rows'],

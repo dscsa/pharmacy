@@ -64,4 +64,5 @@ log_info(timer("update_orders", $time));
 
 $email = log_info();
 
-email("WebForm CRON Finished", $email ?: 'No Logs');
+if ($email)
+  email("WebForm CRON Finished", $email);

@@ -16,7 +16,7 @@ function update_stock_by_month() {
   if ($count_deleted+$count_created+$count_updated)
     log_info($message.print_r($changes, true));
 
-  email("CRON: $message", $message, $changes);
+  //email("CRON: $message", $message, $changes);
 
   if ( ! $count_deleted AND ! $count_created AND ! $count_updated) return;
 

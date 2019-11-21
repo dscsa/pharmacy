@@ -49,14 +49,14 @@ function changes_to_stock_by_month($new) {
 
   //Get Updated
   $updated = $mysql->run(get_updated_sql($new, $old, $id, $where));
-  email('changes_to_stock_by_month: get updated', get_updated_sql($new, $old, $id, $where), $updated);
+  //email('changes_to_stock_by_month: get updated', get_updated_sql($new, $old, $id, $where), $updated);
 
   //Save Deletes - A lot of Turnover with a 3 month window so let's keep historic
   //$mysql->run(set_deleted_sql($new, $old, $id));
 
   //Save Inserts
   $mysql->run(set_created_sql($new, $old, $id));
-  email('changes_to_stock_by_month: set updated', set_created_sql($new, $old, $id));
+  //email('changes_to_stock_by_month: set updated', set_created_sql($new, $old, $id));
 
   //Save Updates
   $mysql->run(set_updated_sql($new, $old, $id, $where));

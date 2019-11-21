@@ -280,7 +280,7 @@ function create_event($eventTitle, $commArr, $hours_to_wait = 0, $hour_of_day = 
 
   $result = gdoc_post(GD_HELPER_URL, $args);
 
-  email('create_event', $args, $result);
+  //email('create_event', $args, $result);
 }
 
 function cancel_events($ids) {
@@ -338,7 +338,8 @@ function search_events_by_person($first_name, $last_name, $birth_date, $past = f
 
   $result = gdoc_post(GD_HELPER_URL, $args);
 
-  email('search_events', $args, $result);
+  if ($result != '[]')
+    email('search_events', $args, $result);
 
   return json_decode($result, true);
 }
