@@ -38,6 +38,10 @@ function watchFiles(opts) {
       date_created:next.getDateCreated()
     }
 
+    file.isNew = (file.date_modified - file.date_created) < 1 * 60 * 1000 //1 minute
+
+    if ( ! opts.includeNew && file.isNew) continue;
+
     //getBody does not have headers or footers
     var doc = DocumentApp.openById(next.getId())
     var documentElement = doc.getBody().getParent()

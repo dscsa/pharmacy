@@ -37,7 +37,7 @@ function update_stock_by_month() {
       AVG(inventory_sum) as qty_inventory,
       SUM(entered_sum) as qty_entered,
       SUM(dispensed_sum) as qty_dispensed,
-      AVG(inventory_sum) / (100*POWER(GREATEST(SUM(dispensed_sum), MAX(qty_repack)), 1.1) / POWER(1+SUM(entered_sum), .6)) as stock_threshold
+      AVG(inventory_sum) / (100*POWER(GREATEST(SUM(dispensed_sum), COALESCE(MAX(qty_repack), 135)), 1.1) / POWER(1+SUM(entered_sum), .6)) as stock_threshold
     FROM
       gp_stock_by_month
     JOIN gp_drugs ON
