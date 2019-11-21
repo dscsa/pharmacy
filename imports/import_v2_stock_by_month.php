@@ -57,7 +57,7 @@ function import_v2_stock_by_month() {
 
       $val = [
         'drug_generic'  => "'$drug_generic'",
-        'month'         => date_format(date_create_from_format('m/Y', "$month/$year"), "'Y-m-t'"),
+        'month'         => date_format(date_create_from_format('m/Y', "$month/$year"), "'Y-m-01'"),
         $key.'_sum'     => clean_val($row['value']['sum']),
         $key.'_count'   => clean_val($row['value']['count']),
         $key.'_min'     => clean_val($row['value']['min']),
