@@ -204,7 +204,7 @@ function update_orders() {
       $price   = ($days AND $item['refills_used']) ? ', $'.round($item['price_per_month']*$days/30).' for '.$days.' days' : '';
 
       $groups['ALL'][] = $item;
-      $groups[$fill+$action][] = $item['drug_generic'].' '.$item['item_message_text'];
+      $groups[$fill.$action][] = $item['drug_generic'].' '.$item['item_message_text'];
 
       if ($days) {//This is handy because it is not appended with a message like the others
         $groups['FILLED'][] = $item['drug_generic'];
