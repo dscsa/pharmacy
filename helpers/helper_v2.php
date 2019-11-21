@@ -1,10 +1,10 @@
 <?php
 
-function v2_fetch($url, $method = 'GET', $content = []) {
+function v2_fetch($url, $port = 80, $method = 'GET', $content = []) {
 
   $opts = [
       "socket"  => [
-        'bindto' => '0:5984',
+        'bindto' => "0:$port",
       ],
       "http" => [
         'method'  => $method,
