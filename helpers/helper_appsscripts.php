@@ -21,11 +21,11 @@ function watch_invoices() {
     'folder'       => INVOICE_FOLDER_NAME
   ];
 
-  $invoices = json_decode(gdoc_post(GD_HELPER_URL, $args));
+  $invoices = json_decode(gdoc_post(GD_HELPER_URL, $args), true);
 
   foreach ($invoices as $invoice) {
 
-    preg_match('/(Total:? +|Amount Due:? +)\$(\d+)/', $result['part0'], $matches);
+    preg_match('/(Total:? +|Amount Due:? +)\$(\d+)/', $invoice['part0'], $matches);
 
     email('watch_invoices', $invoice['name'], $invoice['date_modified'], $invoice['date_created'], $matches, $args, $invoice);
   }

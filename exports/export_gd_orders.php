@@ -21,7 +21,7 @@ function export_gd_update_invoice($order) {
 
   $result = gdoc_post(GD_MERGE_URL, $args);
 
-  //$response = json_decode( $result );
+  //$response = json_decode( $result, true);
   //email("WebForm export_gd_update_invoice 2", $args, $result);
 
   log_info($result);

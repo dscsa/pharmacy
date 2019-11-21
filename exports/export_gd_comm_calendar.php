@@ -201,7 +201,7 @@ function format_text($text_json) {
   $text_json = preg_replace(['/<br>/g', '/<.*?>/g', '/#(\d{4,})/g'], ['\\n', '', '$1'], $text_json);
 
   try {
-    return json_decode($text_json);
+    return json_decode($text_json, true);
   } catch (Error $e) {
     email('format_text json.parse error', $text_json, $e);
   }
@@ -255,7 +255,7 @@ function format_call($call_json) {
   $call_json = preg_replace($regex, $replace, $call_json);
 
   try {
-    return json_decode($call_json);
+    return json_decode($call_json, true);
   } catch (Error $e) {
     email('format_call json.parse error', $call_json, $e);
   }
@@ -340,7 +340,7 @@ function search_events_by_person($first_name, $last_name, $birth_date, $past = f
 
   email('search_events', $args, $result);
 
-  return json_decode($result);
+  return json_decode($result, true);
 }
 
 //NOTE: RELIES on the assumption that ALL drugs (and their associated messages) end with a semicolon (;) and
