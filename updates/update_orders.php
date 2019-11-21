@@ -201,7 +201,7 @@ function update_orders() {
       else
         $action = 'NOACTION';
 
-      $price   = ($days AND $item['refills_used']) ? ', $'.round($item['price_per_month']*$days/30).' for '.$days.' days' : '';
+      $price = $item['price_dispensed_default'] ? ', $'.$item['price_dispensed_default'].' for '.$days.' days' : '';
 
       $groups['ALL'][] = $item;
       $groups[$fill.$action][] = $item['drug_generic'].' '.$item['item_message_text'];
@@ -246,7 +246,7 @@ function update_orders() {
       order_hold_notice($groups);
 
     //['Not Specified', 'Webform Complete', 'Webform eRx', 'Webform Transfer', 'Auto Refill', '0 Refills', 'Webform Refill', 'eRx /w Note', 'Transfer /w Note', 'Refill w/ Note']
-    else if ($order[0]['rx_source'] == 'Webform Transfer' OR $order[0]['rx_source'] == 'Transfer /w Note')
+    else if ($order[0]['order_source'] == 'Webform Transfer' OR $order[0]['order_source'] == 'Transfer /w Note')
       transfer_requested_notice($groups);
 
     else
