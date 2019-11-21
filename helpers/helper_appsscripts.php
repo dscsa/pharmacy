@@ -25,7 +25,7 @@ function watch_invoices() {
 
   foreach ($invoices as $invoice) {
 
-    preg_match('/(Total:? +|Amount Due:? +)\$(\d+)/', $invoice['part0'], $matches);
+    preg_match_all('/(Total:? +|Amount Due:? +)\$(\d+)/', $invoice['part0'], $matches);
 
     email('watch_invoices', $invoice['name'], $invoice['date_modified'], $invoice['date_created'], $matches, $args, $invoice);
   }
