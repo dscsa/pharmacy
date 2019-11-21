@@ -312,13 +312,11 @@ function update_orders() {
   //  - update wc order total
   foreach($changes['deleted'] as $deleted) {
 
-    $order = get_full_order($deleted, $mysql);
+    export_gd_update_invoice($deleted);
 
-    export_gd_update_invoice($order);
+    export_wc_update_order($deleted);
 
-    export_wc_update_order($order);
-
-    send_deleted_order_communications($order);
+    send_deleted_order_communications($deleted);
 
 
     //TODO Update Salesforce Order Total & Order Count & Order Invoice using REST API or a MYSQL Zapier Integration

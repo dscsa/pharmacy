@@ -221,13 +221,13 @@ function order_hold_notice($groups) {
   //['Not Specified', 'Webform Complete', 'Webform eRx', 'Webform Transfer', 'Auto Refill', '0 Refills', 'Webform Refill', 'eRx /w Note', 'Transfer /w Note', 'Refill w/ Note']
   $trigger = '';
 
-  if (in_array($groups['ALL'][0]['rx_source'], ["Not Specified", "SureScripts", "Fax", "Phone"]))
+  if (in_array($groups['ALL'][0]['order_source'], ["Not Specified", "SureScripts", "Fax", "Phone"]))
     $trigger = 'We got Rxs from your doctor via '.$groups['ALL'][0]['rx_source'].' but';
-  else if (in_array($groups['ALL'][0]['rx_source'], ["Webform eRx", "eRx /w Note"]))
+  else if (in_array($groups['ALL'][0]['order_source'], ["Webform eRx", "eRx /w Note"]))
     $trigger = 'You successfully registered but';
-  else if (in_array($groups['ALL'][0]['rx_source'], ["0 Refills"]))
+  else if (in_array($groups['ALL'][0]['order_source'], ["0 Refills"]))
     $trigger = 'We requested refills from your doctor but have not heard back so';
-  else if (in_array($groups['ALL'][0]['rx_source'], ["Webform Refill", "Refill w/ Note"]))
+  else if (in_array($groups['ALL'][0]['order_source'], ["Webform Refill", "Refill w/ Note"]))
     $trigger = 'We received your refill request but';
 
   $email = [ "email" => $groups['ALL'][0]['email'] ];
