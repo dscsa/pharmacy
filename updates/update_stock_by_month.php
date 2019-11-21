@@ -27,30 +27,26 @@ function update_stock_by_month() {
   $mysql->run("
     INSERT INTO gp_stock_live
     SELECT
-      stock.drug_generic,
+      gp_stock_by_month.drug_generic,
       MAX(drug_brand) as drug_brand,
       MAX(message_display) as message_display,
       NULL as stock_level,
       MAX(COALESCE(price30, price90/3)) as price_per_month,
       MAX(drug_ordered) as drug_ordered,
       MAX(qty_repack) as qty_repack,
-      MAX(inventory.inventory_sum) as qty_inventory,
-      SUM(stock.entered_sum) as qty_entered,
-      SUM(stock.dispensed_sum) as qty_dispensed,
-      MAX(inventory.inventory_sum) / (100*POWER(GREATEST(SUM(stock.dispensed_sum), MAX(qty_repack)), 1.1) / POWER(1+SUM(stock.entered_sum), .6)) as stock_threshold
+      AVG(inventory_sum) as qty_inventory,
+      SUM(entered_sum) as qty_entered,
+      SUM(dispensed_sum) as qty_dispensed,
+      AVG(inventory_sum) / (100*POWER(GREATEST(SUM(dispensed_sum), MAX(qty_repack)), 1.1) / POWER(1+SUM(entered_sum), .6)) as stock_threshold
     FROM
-      gp_stock_by_month as stock
+      gp_stock_by_month
     JOIN gp_drugs ON
-      gp_drugs.drug_generic = stock.drug_generic
-    JOIN gp_stock_by_month as inventory ON
-      stock.drug_generic = inventory.drug_generic AND
-      YEAR(inventory.month)  = YEAR(CURDATE() + INTERVAL 1 MONTH) AND
-      MONTH(inventory.month) = MONTH(CURDATE() + INTERVAL 1 MONTH)
+      gp_drugs.drug_generic = gp_stock_by_month.drug_generic
     WHERE
-      YEAR(stock.month)  >= YEAR(CURDATE() - INTERVAL 3 MONTH) AND
-      MONTH(stock.month) >= MONTH(CURDATE() - INTERVAL 3 MONTH)
+      YEAR(month)  >= YEAR(CURDATE() - INTERVAL 3 MONTH) AND
+      MONTH(month) >= MONTH(CURDATE() - INTERVAL 3 MONTH)
     GROUP BY
-      stock.drug_generic
+      gp_stock_by_month.drug_generic
   ");
 
   $mysql->run("
