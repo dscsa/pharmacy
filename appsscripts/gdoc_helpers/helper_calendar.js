@@ -71,11 +71,11 @@ function searchCalendarEvents(opts) {
   for (var i in events) {
 
     var event = {
-      id:event.getId(),
-      title:event.getTitle(),
-      description:event.getDescription(),
-      start:event.getStartTime(),
-      end:event.getStartTime()
+      id:events[i].getId(),
+      title:events[i].getTitle(),
+      description:events[i].getDescription(),
+      start:events[i].getStartTime(),
+      end:events[i].getStartTime()
     }
 
     if ( ! opts.past && (~ event.title.indexOf('CALLED') ||  ~ event.title.indexOf('EMAILED') ||  ~ event.title.indexOf('TEXTED'))) continue;
