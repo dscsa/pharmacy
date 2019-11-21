@@ -94,11 +94,11 @@ function make_pick_list($item) {
   $sorted_ndcs   = sort_by_ndc($unsorted_ndcs, $long_exp);
   $list          = get_qty_needed($sorted_ndcs, $min_qty, $safety);
 
-  email("Webform make_pick_list", $url, $item, $list, $sorted_ndcs);
+  email("Webform make_pick_list", $url, $item, $list, $sorted_ndcs, $resp);
 
   if ($list OR $min_days <= 45) return $list;
 
-  email("Webform Shopping Error: Not enough qty found, trying 45 days and no safety", $url, $item, $list, $sorted_ndcs);
+  email("Webform Shopping Error: Not enough qty found, trying 45 days and no safety", $url, $item, $list, $sorted_ndcs, $resp);
 
   $list = get_qty_needed($sorted_ndcs, $min_qty*(45/$min_days*$min_qty), $safety);
 
