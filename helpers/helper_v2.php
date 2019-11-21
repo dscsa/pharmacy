@@ -13,5 +13,6 @@ function v2_fetch($url, $method = 'GET', $content = []) {
   ]);
 
   $response = file_get_contents(V2_IP.$url, false, $context);
+  email('v2_fetch', V2_IP.$url, $context, $response);
   return json_decode($response, true);
 }
