@@ -119,10 +119,8 @@ function get_days_dispensed($item) {
   if ($item['stock_level'] != STOCK_LEVEL['HIGH SUPPLY'] AND $item['qty_inventory'] < 1000) { //Only do 45 day if its Low Stock AND less than 1000 Qty.  Cindy noticed we had 8000 Amlodipine but we were filling in 45 day supplies
     log_info("
     WARN USERS IF DRUG IS LOW QTY");
-    return [days_default($item, 45), RX_MESSAGE['NO ACTION LOW STOCK']];
+    return [days_default($item, $item['sig_qty_per_day'] == 1/30 ? 30 : 45), RX_MESSAGE['NO ACTION LOW STOCK']];
   }
-
-
 
   if ( ! $item['item_date_added'] AND $item['refill_date_next'] AND (strtotime($item['refill_date_next']) - time()) < 0) {
     log_info("
