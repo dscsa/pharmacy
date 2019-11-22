@@ -103,6 +103,8 @@ function update_orders() {
         $sql = "
           UPDATE
             gp_order_items
+          JOIN gp_rxs_grouped ON
+            rx_numbers LIKE CONCAT('%,', gp_order_items.rx_number, ',%')
           SET
             refill_date_target      = '$target_date',
             days_dispensed_default  = $days_synced,
