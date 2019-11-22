@@ -242,10 +242,10 @@ function update_orders() {
     if ( ! $order[0]['pharmacy_name']) //Use Pharmacy name rather than $New to keep us from repinging folks if the row has been readded
       needs_form_notice($groups);
 
-    if ( ! $groups['NUM_NOFILL'] AND ! $groups['NUM_FILLED'])
+    else if ( ! $groups['NUM_NOFILL'] AND ! $groups['NUM_FILLED'])
       no_rx_notice($groups);
 
-    if ( ! $groups['NUM_FILLED'])
+    else if ( ! $groups['NUM_FILLED'])
       order_hold_notice($groups);
 
     //['Not Specified', 'Webform Complete', 'Webform eRx', 'Webform Transfer', 'Auto Refill', '0 Refills', 'Webform Refill', 'eRx /w Note', 'Transfer /w Note', 'Refill w/ Note']
