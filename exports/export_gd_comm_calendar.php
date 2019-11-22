@@ -68,7 +68,7 @@ function order_shipped_notice($groups) {
     '',
     'Thanks for choosing Good Pill Pharmacy. '.$subject,
     '',
-    'Your receipt for order <strong>#'.$groups['ALL'][0]['invoice_number'].'</strong> is attached. Your tracking number is '.tracking_link($groups['ALL'][0]['tracking']).'.',
+    'Your receipt for order <strong>#'.$groups['ALL'][0]['invoice_number'].'</strong> is attached. Your tracking number is '.tracking_link($groups['ALL'][0]['tracking_number']).'.',
     'Use this link to request delivery notifications and/or provide the courier specific delivery instructions.',
     $message,
     '',
