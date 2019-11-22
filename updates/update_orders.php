@@ -98,7 +98,7 @@ function update_orders() {
 
         $order[$i]['refill_date_target']     = $target_date;
         $order[$i]['days_dispensed_default'] = $days_synced;
-        $price = $item['price_per_month'] ?: 0; //Might be null
+        $price = ($item['price_dispensed_default'] ?: 0) * $days_synced / $item['days_dispensed_default']; //Might be null
 
         $sql = "
           UPDATE
@@ -107,7 +107,7 @@ function update_orders() {
             refill_date_target      = '$target_date',
             days_dispensed_default  = $days_synced,
             qty_dispensed_default   = ".($days_synced*$item['sig_qty_per_day']).",
-            price_dispensed_default = ".max(1, round($days_synced*$price/30)).",
+            price_dispensed_default = ".max(1, round($price)).",
           WHERE
             rx_number = $item[rx_number]
         ";

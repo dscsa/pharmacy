@@ -39,7 +39,7 @@ function print_pick_list($item, $vals) {
 
   $header = [
     ['Order #'.$item['invoice_number'].' '.$item['drug_generic'].' '.$item['drug_name'].' '.date('Y-m-d H:i:s'), '', '' ,'', '', ''],
-    ['Days:'.$item['days_dispensed_default'].', Qty:'.$item['qty_dispensed_default'].', Count:'.count($vals).($item['stock_level'] ? ' ('.$item['stock_level'].')' : '').($vals['half_fill'] || ''), '', '', '', '', ''],
+    ['Days:'.$item['days_dispensed_default'].', Qty:'.$item['qty_dispensed_default'].', Count:'.count($vals).($item['stock_level_initial'] ? ' ('.$item['stock_level_initial'].')' : '').($vals['half_fill'] || ''), '', '', '', '', ''],
     ['', '', '', '', '', '']
   ];
 
@@ -74,7 +74,7 @@ function make_pick_list($item) {
   $generic  = $item['drug_generic'];
   $min_days = $item['days_dispensed_default'];
   $min_qty  = $item['qty_dispensed_default'];
-  $stock    = $item['stock_level'];
+  $stock    = $item['stock_level_initial'];
 
   $min_exp   = explode('-', date('Y-m', strtotime("+".($min_days-2*7)." days"))); //Used to use +14 days rather than -14 days as a buffer for dispensing and shipping. But since lots of prepacks expiring I am going to let almost expired things be prepacked
   $long_exp  = explode('-', date('Y-m', strtotime("+".($min_days+6*7)." days"))); //2015-05-13 We want any surplus from packing fast movers to be usable for ~6 weeks.  Otherwise a lot of prepacks expire on the shelf
