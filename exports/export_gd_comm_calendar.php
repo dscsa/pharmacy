@@ -434,7 +434,7 @@ function confirm_shipping_internal($groups) {
   $email = [ "email" => 'support@goodpill.org' ];
 
   $email['subject'] = $subject;
-  $email['message'] = implide('<br>', [
+  $email['message'] = implode('<br>', [
     'Hello,',
     '',
     $groups['ALL'][0]['first_name'].' '.$groups['ALL'][0]['last_name'].' '.$groups['ALL'][0]['birth_date'].' is a new patient.  They were shipped Order #'.$groups['ALL'][0]['invoice_number'].' with '.$groups['NUM_FILLED'].' items '.$days_ago.' days ago.',
