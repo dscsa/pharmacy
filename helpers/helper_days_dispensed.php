@@ -148,6 +148,8 @@ function get_days_dispensed($item) {
 
 function set_days_dispensed($item, $days, $message, $mysql) {
 
+  $price = $item['price_per_month'] ?: 0; //Might be null
+
   if ( ! $item['rx_number'] OR ! $item['invoice_number'] ) {
     log_info("
     Error set_days_dispensed? ".print_r($item, true));
@@ -156,8 +158,6 @@ function set_days_dispensed($item, $days, $message, $mysql) {
 
     $message_key  = array_search($message, RX_MESSAGE);
     $message_text = $message[$item['language']];
-
-    $price = $item['price_per_month'] ?: 0; //Might be null
 
     $sql = "
       UPDATE
@@ -169,7 +169,7 @@ function set_days_dispensed($item, $days, $message, $mysql) {
         item_message_text       = '$message_text',
         price_dispensed_default = ".max(1, round($days*$price/30)).",
         refills_total_default   = $item[refills_total],
-        stock_level_initial     = $item[stock_level]       
+        stock_level_initial     = $item[stock_level]
       WHERE
         invoice_number = $item[invoice_number] AND
         rx_number = $item[rx_number]
@@ -188,7 +188,7 @@ function set_days_dispensed($item, $days, $message, $mysql) {
         gp_order_items
       SET
         -- Other Fields Should Already Be Set Above (And May have Been Sent to Patient) so don't change
-        price_dispensed_actual   = $days*$item[price_per_month]/30,
+        price_dispensed_actual   = ".max(1, round($days*$price/30)).",
         refills_total_actual     = $item[refills_total]
       WHERE
         invoice_number = $item[invoice_number] AND
