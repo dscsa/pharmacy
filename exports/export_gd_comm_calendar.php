@@ -58,7 +58,7 @@ function order_shipped_notice($groups) {
 
   $text['message'] =
     $subject.
-    ($groups['ALL'][0]['invoice_doc_id'] ? ' View it at '.$links['invoice'].'. ' : '');
+    ($groups['ALL'][0]['invoice_doc_id'] ? ' View it at '.$links['invoice'].'. ' : '').
     'Track it at '.$links['tracking'].'. '.
     $message;
 
@@ -80,7 +80,9 @@ function order_shipped_notice($groups) {
 
   if ($groups['ALL'][0]['invoice_doc_id']) $email['attachments'] = [$groups['ALL'][0]['invoice_doc_id']];
 
-  order_shipped_event($groups['ALL'], $email, $text);
+  email('order_shipped_event', $groups['ALL'], $email, $text);
+
+  order_shipped_event($groups, $email, $text);
 }
 
 function refill_reminder_notice($groups) {
@@ -295,7 +297,6 @@ function order_updated_notice($groups) {
   //Wait 15 minutes to hopefully batch staggered surescripts and manual rx entry and cindy updates
   order_updated_event($groups['ALL'], $email, $text, 15/60);
 }
-
 
 function needs_form_notice($groups) {
 

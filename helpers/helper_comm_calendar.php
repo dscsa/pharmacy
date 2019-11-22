@@ -4,82 +4,82 @@
 function order_dispensed_event($order, $email, $hours_to_wait) {
 
   $patient_label = get_patient_label($order);
-  $eventTitle   = $order[0]['invoice_number'].' Order Dispensed: '.$patient_label.'.  Created:'.date('Y:m:d H:i:s');
+  $event_title   = $order[0]['invoice_number'].' Order Dispensed: '.$patient_label.'.  Created:'.date('Y:m:d H:i:s');
 
   $cancel = cancel_events_by_person($order[0]['first_name'], $order[0]['last_name'], $order[0]['birth_date'], ['Order Dispensed', 'Order Failed', 'Needs Form']);
 
   $comm_arr = new_comm_arr($email);
 
-  email('order_dispensed_event', $eventTitle, $comm_arr, $cancel, $order);
+  email('order_dispensed_event', $event_title, $comm_arr, $cancel, $order);
 
-  create_event($eventTitle, $comm_arr, $hours_to_wait);
+  create_event($event_title, $comm_arr, $hours_to_wait);
 }
 
 function order_shipped_event($order, $email, $text) {
 
   $patient_label = get_patient_label($order);
-  $eventTitle   = $order[0]['invoice_number'].' Order Shipped: '.$patient_label.'.  Created:'.date('Y:m:d H:i:s');
+  $event_title   = $order[0]['invoice_number'].' Order Shipped: '.$patient_label.'.  Created:'.date('Y:m:d H:i:s');
 
   $cancel = cancel_events_by_person($order[0]['first_name'], $order[0]['last_name'], $order[0]['birth_date'], ['Order Shipped', 'Order Dispensed', 'Order Failed', 'Needs Form']);
 
   $comm_arr = new_comm_arr($email, $text);
 
-  email('order_shipped_event', $eventTitle, $comm_arr, $cancel, $order);
+  email('order_shipped_event', $event_title, $comm_arr, $cancel, $order);
 
-  create_event($eventTitle, $comm_arr);
+  create_event($event_title, $comm_arr);
 }
 
 function refill_reminder_event($order, $email, $text, $hours_to_wait, $hour_of_day = null) {
   $patient_label = get_patient_label($order);
-  $eventTitle   = $order[0]['invoice_number'].' Refill Reminder: '.$patient_label.'.  Created:'.date('Y:m:d H:i:s');
+  $event_title   = $order[0]['invoice_number'].' Refill Reminder: '.$patient_label.'.  Created:'.date('Y:m:d H:i:s');
 
   //$cancel = cancel_events_by_person($order['first_name'], $order['last_name'], $order['birth_date'], ['Refill Reminder'])
 
   $comm_arr = new_comm_arr($email, $text);
 
-  email('refill_reminder_event', $eventTitle, $comm_arr, $hours_to_wait, $hour_of_day, $order); //$cancel
+  email('refill_reminder_event', $event_title, $comm_arr, $hours_to_wait, $hour_of_day, $order); //$cancel
 
-  create_event($eventTitle, $comm_arr, $hours_to_wait, $hour_of_day);
+  create_event($event_title, $comm_arr, $hours_to_wait, $hour_of_day);
 }
 
 function autopay_reminder_event($order, $email, $text, $hours_to_wait, $hour_of_day = null) {
   $patient_label = get_patient_label($order);
-  $eventTitle   = $order[0]['invoice_number'].' Autopay Reminder: '.$patient_label.'.  Created:'.date('Y:m:d H:i:s');
+  $event_title   = $order[0]['invoice_number'].' Autopay Reminder: '.$patient_label.'.  Created:'.date('Y:m:d H:i:s');
 
   $cancel = cancel_events_by_person($order[0]['first_name'], $order[0]['last_name'], $order[0]['birth_date'], ['Autopay Reminder']);
 
   $comm_arr = new_comm_arr($email, $text);
 
-  email('autopay_reminder_event', $eventTitle, $comm_arr, $hours_to_wait, $hour_of_day, $cancel, $order);
+  email('autopay_reminder_event', $event_title, $comm_arr, $hours_to_wait, $hour_of_day, $cancel, $order);
 
-  create_event($eventTitle, $comm_arr, $hours_to_wait, $hour_of_day);
+  create_event($event_title, $comm_arr, $hours_to_wait, $hour_of_day);
 }
 
 function order_created_event($order, $email, $text, $hours_to_wait) {
   $patient_label = get_patient_label($order);
-  $eventTitle   = $order[0]['invoice_number'].' Order Created: '.$patient_label.'.  Created:'.date('Y:m:d H:i:s');
+  $event_title   = $order[0]['invoice_number'].' Order Created: '.$patient_label.'.  Created:'.date('Y:m:d H:i:s');
 
   $cancel = cancel_events_by_person($order[0]['first_name'], $order[0]['last_name'], $order[0]['birth_date'], ['Order Created', 'Transfer Requested', 'Order Updated', 'Order Failed', 'Order Hold', 'No Rx', 'Needs Form']);
 
   $comm_arr = new_comm_arr($email, $text);
 
-  email('order_created_event', $eventTitle, $comm_arr, $hours_to_wait, $cancel, $order);
+  email('order_created_event', $event_title, $comm_arr, $hours_to_wait, $cancel, $order);
 
-  create_event($eventTitle, $comm_arr, $hours_to_wait);
+  create_event($event_title, $comm_arr, $hours_to_wait);
 }
 
 function transfer_requested_event($order, $email, $text, $hours_to_wait) {
 
   $patient_label = get_patient_label($order);
-  $eventTitle   = $order[0]['invoice_number'].' Transfer Requested: '.$patient_label.'.  Created:'.date('Y:m:d H:i:s');
+  $event_title   = $order[0]['invoice_number'].' Transfer Requested: '.$patient_label.'.  Created:'.date('Y:m:d H:i:s');
 
   $cancel = cancel_events_by_person($order[0]['first_name'], $order[0]['last_name'], $order[0]['birth_date'], ['Order Created', 'Transfer Requested', 'Order Updated', 'Order Hold', 'No Rx']);
 
   $comm_arr = new_comm_arr($email, $text);
 
-  email('transfer_requested_event', $eventTitle, $comm_arr, $hours_to_wait, $cancel, $order);
+  email('transfer_requested_event', $event_title, $comm_arr, $hours_to_wait, $cancel, $order);
 
-  create_event($eventTitle, $comm_arr, $hours_to_wait);
+  create_event($event_title, $comm_arr, $hours_to_wait);
 }
 
 function order_hold_event($order, $email, $text, $hours_to_wait) {
@@ -88,42 +88,42 @@ function order_hold_event($order, $email, $text, $hours_to_wait) {
     email('ERROR order_hold_event: indexes not set', $order);
 
   $patient_label = get_patient_label($order);
-  $eventTitle   = $order[0]['invoice_number'].' Order Hold: '.$patient_label.'.  Created:'.date('Y:m:d H:i:s');
+  $event_title   = $order[0]['invoice_number'].' Order Hold: '.$patient_label.'.  Created:'.date('Y:m:d H:i:s');
 
   $cancel = cancel_events_by_person($order[0]['first_name'], $order[0]['last_name'], $order[0]['birth_date'], ['Order Created', 'Transfer Requested', 'Order Updated', 'Order Hold', 'No Rx']);
 
   $comm_arr = new_comm_arr($email, $text);
 
-  email('order_hold_event', $eventTitle, $comm_arr, $hours_to_wait, $cancel, $order);
+  email('order_hold_event', $event_title, $comm_arr, $hours_to_wait, $cancel, $order);
 
-  create_event($eventTitle, $comm_arr, $hours_to_wait);
+  create_event($event_title, $comm_arr, $hours_to_wait);
 }
 
 function order_updated_event($order, $email, $text, $hours_to_wait) {
   $patient_label = get_patient_label($order);
-  $eventTitle   = $order[0]['invoice_number'].' Order Updated: '.$patient_label.'.  Created:'.date('Y:m:d H:i:s');
+  $event_title   = $order[0]['invoice_number'].' Order Updated: '.$patient_label.'.  Created:'.date('Y:m:d H:i:s');
 
   $cancel = cancel_events_by_person($order[0]['first_name'], $order[0]['last_name'], $order[0]['birth_date'], ['Order Created', 'Transfer Requested', 'Order Updated', 'Order Hold', 'No Rx', 'Needs Form', 'Order Failed']);
 
   $comm_arr = new_comm_arr($email, $text);
 
-  email('order_updated_event', $eventTitle, $comm_arr, $hours_to_wait, $cancel, $order);
+  email('order_updated_event', $event_title, $comm_arr, $hours_to_wait, $cancel, $order);
 
-  create_event($eventTitle, $comm_arr, $hours_to_wait);
+  create_event($event_title, $comm_arr, $hours_to_wait);
 }
 
 function needs_form_event($order, $email, $text, $hours_to_wait, $hour_of_day = null) {
 
   $patient_label = get_patient_label($order);
-  $eventTitle   = $order[0]['invoice_number'].' Needs Form: '.$patient_label.'.  Created:'.date('Y:m:d H:i:s');
+  $event_title   = $order[0]['invoice_number'].' Needs Form: '.$patient_label.'.  Created:'.date('Y:m:d H:i:s');
 
   $cancel = cancel_events_by_person($order[0]['first_name'], $order[0]['last_name'], $order[0]['birth_date'], ['Needs Form']);
 
   $comm_arr = new_comm_arr($email, $text);
 
-  email('needs_form_event', $eventTitle, $comm_arr, $hours_to_wait, $hour_of_day, $cancel, $order);
+  email('needs_form_event', $event_title, $comm_arr, $hours_to_wait, $hour_of_day, $cancel, $order);
 
-  create_event($eventTitle, $comm_arr, $hours_to_wait, $hour_of_day);
+  create_event($event_title, $comm_arr, $hours_to_wait, $hour_of_day);
 }
 
 function no_rx_event($order, $email, $text, $hours_to_wait, $hour_of_day = null) {
@@ -132,43 +132,43 @@ function no_rx_event($order, $email, $text, $hours_to_wait, $hour_of_day = null)
     email('ERROR no_rx_event: indexes not set', $order);
 
   $patient_label = get_patient_label($order);
-  $eventTitle   = $order[0]['invoice_number'].' No Rx: '.$patient_label.'.  Created:'.date('Y:m:d H:i:s');
+  $event_title   = $order[0]['invoice_number'].' No Rx: '.$patient_label.'.  Created:'.date('Y:m:d H:i:s');
 
   $cancel = cancel_events_by_person($order[0]['first_name'], $order[0]['last_name'], $order[0]['birth_date'], ['No Rx']);
 
   $comm_arr = new_comm_arr($email, $text);
 
-  email('no_rx_event', $eventTitle, $comm_arr, $hours_to_wait, $hour_of_day, $cancel, $order);
+  email('no_rx_event', $event_title, $comm_arr, $hours_to_wait, $hour_of_day, $cancel, $order);
 
-  create_event($eventTitle, $comm_arr, $hours_to_wait, $hour_of_day);
+  create_event($event_title, $comm_arr, $hours_to_wait, $hour_of_day);
 }
 
 function order_failed_event($order, $email, $text, $hours_to_wait, $hour_of_day  = null) {
 
   $patient_label = get_patient_label($order);
-  $eventTitle   = $order[0]['invoice_number'].' Order Failed: '.$patient_label.'.  Created:'.date('Y:m:d H:i:s');
+  $event_title   = $order[0]['invoice_number'].' Order Failed: '.$patient_label.'.  Created:'.date('Y:m:d H:i:s');
 
   $cancel = cancel_events_by_person($order[0]['first_name'], $order[0]['last_name'], $order[0]['birth_date'], ['Order Failed']);
 
   $comm_arr = new_comm_arr($email, $text);
 
-  email('order_failed_event', $eventTitle, $comm_arr, $hours_to_wait, $hour_of_day, $cancel, $order);
+  email('order_failed_event', $event_title, $comm_arr, $hours_to_wait, $hour_of_day, $cancel, $order);
 
-  create_event($eventTitle, $comm_arr, $hours_to_wait, $hour_of_day);
+  create_event($event_title, $comm_arr, $hours_to_wait, $hour_of_day);
 }
 
 function confirm_shipment_event($order, $email, $hours_to_wait, $hour_of_day = null) {
 
   $patient_label = get_patient_label($order);
-  $eventTitle   = $order[0]['invoice_number'].' Confirm Shipment: '.$patient_label.'.  Created:'.date('Y:m:d H:i:s');
+  $event_title   = $order[0]['invoice_number'].' Confirm Shipment: '.$patient_label.'.  Created:'.date('Y:m:d H:i:s');
 
   $cancel = cancel_events_by_person($order[0]['first_name'], $order[0]['last_name'], $order[0]['birth_date']);
 
   $comm_arr = new_comm_arr($email);
 
-  email('confirmShipmentEvent', $eventTitle, $comm_arr, $hours_to_wait, $hour_of_day, $cancel, $order);
+  email('confirmShipmentEvent', $event_title, $comm_arr, $hours_to_wait, $hour_of_day, $cancel, $order);
 
-  create_event($eventTitle, $comm_arr, $hours_to_wait, $hour_of_day);
+  create_event($event_title, $comm_arr, $hours_to_wait, $hour_of_day);
 }
 
 function new_comm_arr($email, $text = '') {
@@ -268,7 +268,7 @@ function get_patient_label($order) {
   return $order[0]['first_name'].' '.$order[0]['last_name'].' '.$order[0]['birth_date'];
 }
 
-function create_event($eventTitle, $comm_arr, $hours_to_wait = 0, $hour_of_day = null) {
+function create_event($event_title, $comm_arr, $hours_to_wait = 0, $hour_of_day = null) {
 
   $startTime = get_start_time($hours_to_wait, $hour_of_day);
 
@@ -277,7 +277,7 @@ function create_event($eventTitle, $comm_arr, $hours_to_wait = 0, $hour_of_day =
     'cal_id'      => GD_CAL_ID,
     'start'       => $startTime,
     'hours'       => 0.5,
-    'title'       => "(NEW) $eventTitle",
+    'title'       => "(NEW) $event_title",
     'description' => json_encode($comm_arr)
   ];
 
