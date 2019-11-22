@@ -51,7 +51,7 @@ function print_pick_list($item, $vals) {
     'widths'   => [1 => 243] //show the full id when it prints
   ];
 
-  $result = gdoc_post(GD_MERGE_URL, $args);
+  $result = gdoc_post(GD_HELPER_URL, $args);
 
 
   email("WebForm make_pick_list", $item, $args, $result);
