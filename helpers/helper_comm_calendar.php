@@ -1,12 +1,308 @@
 <?php
 
-require_once 'exports/export_gd_comm_calendar.php';
 
-function short_links($links) {
+function order_dispensed_event($order, $email, $hours_to_wait) {
+
+  $patientLabel = get_patient_label($order);
+  $eventTitle   = $order[0]['invoice_number'].' Order Dispensed: '.$patientLabel.'.  Created:'.date('Y:m:d H:i:s');
+
+  $cancel = cancel_events_by_person($order[0]['first_name'], $order[0]['last_name'], $order[0]['birth_date'], ['Order Dispensed', 'Order Failed', 'Needs Form']);
+
+  $commArr = new_comm_arr($email);
+
+  email('order_dispensed_event', $eventTitle, $commArr, $cancel, $order);
+
+  create_event($eventTitle, $commArr, $hours_to_wait);
+}
+
+function order_shipped_event($order, $email, $text) {
+
+  $patientLabel = get_patient_label($order);
+  $eventTitle   = $order[0]['invoice_number'].' Order Shipped: '.$patientLabel.'.  Created:'.date('Y:m:d H:i:s');
+
+  $cancel = cancel_events_by_person($order[0]['first_name'], $order[0]['last_name'], $order[0]['birth_date'], ['Order Shipped', 'Order Dispensed', 'Order Failed', 'Needs Form']);
+
+  $commArr = new_comm_arr($email, $text);
+
+  email('order_shipped_event', $eventTitle, $commArr, $cancel, $order);
+
+  create_event($eventTitle, $commArr);
+}
+
+function refill_reminder_event($order, $email, $text, $hours_to_wait, $hour_of_day = null) {
+  $patientLabel = get_patient_label($order);
+  $eventTitle   = $order[0]['invoice_number'].' Refill Reminder: '.$patientLabel.'.  Created:'.date('Y:m:d H:i:s');
+
+  //$cancel = cancel_events_by_person($order['first_name'], $order['last_name'], $order['birth_date'], ['Refill Reminder'])
+
+  $commArr = new_comm_arr($email, $text);
+
+  email('refill_reminder_event', $eventTitle, $commArr, $hours_to_wait, $hour_of_day, $order); //$cancel
+
+  create_event($eventTitle, $commArr, $hours_to_wait, $hour_of_day);
+}
+
+function autopay_reminder_event($order, $email, $text, $hours_to_wait, $hour_of_day = null) {
+  $patientLabel = get_patient_label($order);
+  $eventTitle   = $order[0]['invoice_number'].' Autopay Reminder: '.$patientLabel.'.  Created:'.date('Y:m:d H:i:s');
+
+  $cancel = cancel_events_by_person($order[0]['first_name'], $order[0]['last_name'], $order[0]['birth_date'], ['Autopay Reminder']);
+
+  $commArr = new_comm_arr($email, $text);
+
+  email('autopay_reminder_event', $eventTitle, $commArr, $hours_to_wait, $hour_of_day, $cancel, $order);
+
+  create_event($eventTitle, $commArr, $hours_to_wait, $hour_of_day);
+}
+
+function order_created_event($order, $email, $text, $hours_to_wait) {
+  $patientLabel = get_patient_label($order);
+  $eventTitle   = $order[0]['invoice_number'].' Order Created: '.$patientLabel.'.  Created:'.date('Y:m:d H:i:s');
+
+  $cancel = cancel_events_by_person($order[0]['first_name'], $order[0]['last_name'], $order[0]['birth_date'], ['Order Created', 'Transfer Requested', 'Order Updated', 'Order Failed', 'Order Hold', 'No Rx', 'Needs Form']);
+
+  $commArr = new_comm_arr($email, $text);
+
+  email('order_created_event', $eventTitle, $commArr, $hours_to_wait, $cancel, $order);
+
+  create_event($eventTitle, $commArr, $hours_to_wait);
+}
+
+function transfer_requested_event($order, $email, $text, $hours_to_wait) {
+
+  $patientLabel = get_patient_label($order);
+  $eventTitle   = $order[0]['invoice_number'].' Transfer Requested: '.$patientLabel.'.  Created:'.date('Y:m:d H:i:s');
+
+  $cancel = cancel_events_by_person($order[0]['first_name'], $order[0]['last_name'], $order[0]['birth_date'], ['Order Created', 'Transfer Requested', 'Order Updated', 'Order Hold', 'No Rx']);
+
+  $commArr = new_comm_arr($email, $text);
+
+  email('transfer_requested_event', $eventTitle, $commArr, $hours_to_wait, $cancel, $order);
+
+  create_event($eventTitle, $commArr, $hours_to_wait);
+}
+
+function order_hold_event($order, $email, $text, $hours_to_wait) {
+
+  if ( ! isset($order[0]['invoice_number']))
+    email('ERROR order_hold_event: indexes not set', $order);
+
+  $patientLabel = get_patient_label($order);
+  $eventTitle   = $order[0]['invoice_number'].' Order Hold: '.$patientLabel.'.  Created:'.date('Y:m:d H:i:s');
+
+  $cancel = cancel_events_by_person($order[0]['first_name'], $order[0]['last_name'], $order[0]['birth_date'], ['Order Created', 'Transfer Requested', 'Order Updated', 'Order Hold', 'No Rx']);
+
+  $commArr = new_comm_arr($email, $text);
+
+  email('order_hold_event', $eventTitle, $commArr, $hours_to_wait, $cancel, $order);
+
+  create_event($eventTitle, $commArr, $hours_to_wait);
+}
+
+function order_updated_event($order, $email, $text, $hours_to_wait) {
+  $patientLabel = get_patient_label($order);
+  $eventTitle   = $order[0]['invoice_number'].' Order Updated: '.$patientLabel.'.  Created:'.date('Y:m:d H:i:s');
+
+  $cancel = cancel_events_by_person($order[0]['first_name'], $order[0]['last_name'], $order[0]['birth_date'], ['Order Created', 'Transfer Requested', 'Order Updated', 'Order Hold', 'No Rx', 'Needs Form', 'Order Failed']);
+
+  $commArr = new_comm_arr($email, $text);
+
+  email('order_updated_event', $eventTitle, $commArr, $hours_to_wait, $cancel, $order);
+
+  create_event($eventTitle, $commArr, $hours_to_wait);
+}
+
+function needs_form_event($order, $email, $text, $hours_to_wait, $hour_of_day = null) {
+
+  $patientLabel = get_patient_label($order);
+  $eventTitle   = $order[0]['invoice_number'].' Needs Form: '.$patientLabel.'.  Created:'.date('Y:m:d H:i:s');
+
+  $commArr = new_comm_arr($email, $text);
+
+  email('needs_form_event', $eventTitle, $commArr, $hours_to_wait, $hour_of_day, $order);
+
+  create_event($eventTitle, $commArr, $hours_to_wait, $hour_of_day);
+}
+
+function no_rx_event($order, $email, $text, $hours_to_wait, $hour_of_day = null) {
+
+  if ( ! isset($order[0]['invoice_number']))
+    email('ERROR no_rx_event: indexes not set', $order);
+
+  $patientLabel = get_patient_label($order);
+  $eventTitle   = $order[0]['invoice_number'].' No Rx: '.$patientLabel.'.  Created:'.date('Y:m:d H:i:s');
+
+  $cancel = cancel_events_by_person($order[0]['first_name'], $order[0]['last_name'], $order[0]['birth_date'], ['No Rx']);
+
+  $commArr = new_comm_arr($email, $text);
+
+  email('no_rx_event', $eventTitle, $commArr, $hours_to_wait, $hour_of_day, $cancel, $order);
+
+  create_event($eventTitle, $commArr, $hours_to_wait, $hour_of_day);
+}
+
+function order_failed_event($order, $email, $text, $hours_to_wait, $hour_of_day  = null) {
+
+  $patientLabel = get_patient_label($order);
+  $eventTitle   = $order[0]['invoice_number'].' Order Failed: '.$patientLabel.'.  Created:'.date('Y:m:d H:i:s');
+
+  $cancel = cancel_events_by_person($order[0]['first_name'], $order[0]['last_name'], $order[0]['birth_date'], ['Order Failed']);
+
+  $commArr = new_comm_arr($email, $text);
+
+  email('order_failed_event', $eventTitle, $commArr, $hours_to_wait, $hour_of_day, $cancel, $order);
+
+  create_event($eventTitle, $commArr, $hours_to_wait, $hour_of_day);
+}
+
+function confirm_shipment_event($order, $email, $hours_to_wait, $hour_of_day = null) {
+
+  $patientLabel = get_patient_label($order);
+  $eventTitle   = $order[0]['invoice_number'].' Confirm Shipment: '.$patientLabel.'.  Created:'.date('Y:m:d H:i:s');
+
+  $cancel = cancel_events_by_person($order[0]['first_name'], $order[0]['last_name'], $order[0]['birth_date']);
+
+  $commArr = new_comm_arr($email);
+
+  email('confirmShipmentEvent', $eventTitle, $commArr, $hours_to_wait, $hour_of_day, $cancel, $order);
+
+  create_event($eventTitle, $commArr, $hours_to_wait, $hour_of_day);
+}
+
+function new_comm_arr($email, $text = '') {
+
+  $commArr = [];
+
+  if (LIVE_MODE AND $email AND ! preg_match('/\d\d\d\d-\d\d-\d\d@goodpill\.org/', $email['email'])) {
+    $email['bcc']  = DEBUG_EMAIL;
+    $email['from'] = 'Good Pill Pharmacy < support@goodpill.org >'; //spaces inside <> are so that google cal doesn't get rid of "HTML" if user edits description
+    $commArr[] = $email;
+  }
+
+  if (LIVE_MODE AND $text AND $text['sms'] AND in_array($text['sms'], DO_NOT_SMS)) {
+    //addCallFallback
+    $json = preg_replace('/ undefined/g', '', json_encode($text));
+
+    $text = format_text(json);
+    $call = format_call(json);
+
+    $call['message'] = 'Hi, this is Good Pill Pharmacy <Pause />'.$call['message'].' <Pause length="2" />if you need to speak to someone please call us at 8,,,,8,,,,8 <Pause />9,,,,8,,,,7 <Pause />5,,,,1,,,,8,,,,7. <Pause length="2" /> Again our phone number is 8,,,,8,,,,8 <Pause />9,,,,8,,,,7 <Pause />5,,,,1,,,,8,,,,7. <Pause />';
+    $call['call']    = $call['sms'];
+    $call['sms']     = undefined;
+
+    $text['fallbacks'] = [$call];
+    $commArr[] = $text;
+  }
+
+  return $commArr; //just in case we were sloppy with undefined
+}
+
+function format_text($text_json) {
+
+  $text_json = preg_replace(['/<br>/g', '/<.*?>/g', '/#(\d{4,})/g'], ['\\n', '', '$1'], $text_json);
+
+  try {
+    return json_decode($text_json, true);
+  } catch (Error $e) {
+    email('format_text json.parse error', $text_json, $e);
+  }
+}
+
+function format_call($call_json) {
+
+  $regex = [
+    '/View it at [^ ]+ /',
+    '/Track it at [^ ]+ /',
+    '/\(?888[)-.]? ?987[.-]?5187/g',
+    '/(www\.)?goodpill\.org/g',
+    '/(\w):(?!\/\/)/g',
+    '/;<br>/g',
+    '/;|\./g,',
+    '/(<br>)+/g',
+    '/\.(\d)(\d)?(\d)?/g',
+    '/ but /g',
+    '/(\d+)MG/g',
+    '/(\d+)MCG/g',
+    '/(\d+)MCG/g',
+    '/ Rxs/ig',
+    '/ ER /ig',
+    '/ DR /ig',
+    '/ TAB| CAP/ig',
+    '/\#(\d)(\d)(\d)(\d)(\d)(\d)?/'
+  ];
+
+  $replace = [
+    "",
+    "View and track your $order online at www.goodpill.org",
+    '8,,,,8,,,,8 <Pause />9,,,,8,,,,7 <Pause />5,,,,1,,,,8,,,,7',
+    'w,,w,,w,,dot,,,,good,,,,pill,,,,dot,,,,org,,,,again that is g,,,,o,,,,o,,,d,,,,p,,,,i,,,,l,,,,l,,,,dot,,,,o,,,,r,,,,g',
+    '$1<Pause />', //Don't capture JSON $text or URL links
+    '<Pause /> and <Pause />', //combine drug list with "and" since it sounds more natural
+    ' <Pause />', //can't do commas without testing for inside quotes because that is part of json syntax
+    ' <Pause length=\\"1\\" />',
+    ' point $1,,$2,,$3', //skips pronouncing decimal points
+    ',,,,but,,,,',
+    '<Pause />$1 milligrams',
+    '<Pause />$1 micrograms',
+    '<Pause />$1 micrograms',
+    ' prescriptions',
+    ' extended release ',
+    ' delayed release ',
+    ' <Pause />',
+    'number,,,,$1,,$2,,$3,,$4,,$5,,$6' //<Pause /> again that is $order number <Pause />$1,,$2,,$3,,$4,,$5,,$6
+  ];
+
+  //Improve Pronounciation
+  $call_json = preg_replace($regex, $replace, $call_json);
+
+  try {
+    return json_decode($call_json, true);
+  } catch (Error $e) {
+    email('format_call json.parse error', $call_json, $e);
+  }
+}
+
+function get_patient_label($order) {
+  return $order[0]['first_name'].' '.$order[0]['last_name'].' '.$order[0]['birth_date'];
+}
+
+function create_event($eventTitle, $commArr, $hours_to_wait = 0, $hour_of_day = null) {
+
+  $startTime = get_start_time($hours_to_wait, $hour_of_day);
 
   $args = [
-    'method'  => 'shortLinks',
-    'links'  => $links
+    'method'      => 'createCalendarEvent',
+    'cal_id'      => GD_CAL_ID,
+    'start'       => $startTime,
+    'hours'       => 0.5,
+    'title'       => $eventTitle,
+    'description' => json_encode($commArr)
+  ];
+
+  $result = gdoc_post(GD_HELPER_URL, $args);
+
+  //email('create_event', $args, $result);
+}
+
+function cancel_events($ids) {
+
+  $args = [
+    'method'      => 'removeCalendarEvents',
+    'cal_id'      => GD_CAL_ID,
+    'ids'         => $ids
+  ];
+
+  $result = gdoc_post(GD_HELPER_URL, $args);
+
+  email('cancel_events', $args, $result);
+}
+
+function modify_events() {
+
+  $args = [
+    'method'  => 'modifyCalendarEvents',
+    'cal_id'  => GD_CAL_ID,
+    'events'  => $modify
   ];
 
   $result = gdoc_post(GD_HELPER_URL, $args);
@@ -14,493 +310,93 @@ function short_links($links) {
   email('modify_events', $args, $result);
 }
 
-//Internal communication warning an order was shipped but not dispensed.  Gets erased when/if order is shipped
-function order_dispensed_notice($groups) {
+//Return a copy of the date (or now) with the 24-hour set
+function get_start_time($hours_to_wait, $hour_of_day) {
 
+  $start = date('Y-m-d\TH:i:s', strtotime("+$hours_to_wait hours"));
 
-  $days_ago = 2;
-  $email   = [
-    "email"   => PHARMACIST_EMAIL.','.DEBUG_EMAIL,
-    "subject" => 'Warning Order #'.$groups['ALL'][0]['invoice_number'].' dispensed but not shipped'
+  if ($hour_of_day) {
+    $start = substr($start, 0, 11)."$hour_of_day:00:00";
+  }
+
+  return $start;
+}
+
+//TODO exactly replicate Guardian's patient matching function
+function search_events_by_person($first_name, $last_name, $birth_date, $past = false, $types = []) {
+
+  $types = implode('|', $types);
+  $first_name = substr($first_name, 0, 3);
+
+  $args = [
+    'method'       => 'searchCalendarEvents',
+    'cal_id'       => GD_CAL_ID,
+    'hours'        => 90*24,
+    'past'         => $past,
+    'word_search'  => "$last_name $birth_date",
+    'regex_search' => "/($types).+$first_name/i" //first name is partial which is not currently supported by gcal natively
   ];
 
-  $email['message'] = implode('<br>', [
+  $result = gdoc_post(GD_HELPER_URL, $args);
 
-    $email['subject'].' '.$days_ago.' day ago. Please either add tracking number to guardian or erase the "Order Failed" event.'
+  if ($result != '[]')
+    email('search_events', $args, $result);
 
-  ]);
-
-  order_dispensed_event($groups, $email, $days_ago*24);
+  return json_decode($result, true);
 }
 
-//We are coording patient communication via sms, calls, emails, & faxes
-//by building commication arrays based on github.com/dscsa/communication-calendar
-function order_shipped_notice($groups) {
+//NOTE: RELIES on the assumption that ALL drugs (and their associated messages) end with a semicolon (;) and
+//that NO other semicolons are used for any other reason. It removes everything between the drug name and the
+//semicolon, and if no semicolons are left in the communication, then the entire communication is deleted
+function remove_drugs_from_events($first_name, $last_name, $birth_date, $types, $drugs) {
 
-  //autopayReminderNotice(order, groups)
+  if ( ! LIVE_MODE) return;
 
-  $subject   = 'Your order '.($groups['NUM_FILLED'] ? 'of '.$groups['NUM_FILLED'].' items ' : '').'has shipped and should arrive in 3-5 days.';
-  $message   = '';
+  $modify = [];
+  $remove = [];
+  $events = search_events_by_person($first_name, $last_name, $birth_date, false, $types);
 
-  if ($groups['NUM_FILLED'])
-    $message .= '<br><u>These Rxs are on the way:</u><br>'.implode(';<br>', $groups['FILLED_ACTION'] + $groups['FILLED_NOACTION']).';';
+  foreach ($events as $event) {
+    $old_desc = $event['description']; //This is still JSON.stringified
 
-  if (count($groups['NOFILL_ACTION']))
-    $message .= '<br><br><u>We cannot fill these Rxs without your help:</u><br>'.implode(';<br>', $groups['NOFILL_ACTION']).';';
+    $new_desc = preg_replace('/'.implode(';|', $drugs).';/g', '', $old_desc);
 
-  $email = [ "email" => $groups['ALL'][0]['email'] ];
-  $text  = [ "sms"   => get_phones($groups['ALL']) ];
+    if ($old_desc == $new_desc) {
+      continue;
+    }
 
-  $links = short_links([
-    'invoice' => 'https://docs.google.com/document/d/'.$groups['ALL'][0]['invoice_doc_id'].'/pub?embedded=true',
-    'tracking' => tracking_url($groups['ALL'][0]['tracking_number'])
-  ]);
-
-  $text['message'] =
-    $subject.
-    ($groups['ALL'][0]['invoice_doc_id'] ? ' View it at '.$links['invoice'].'. ' : '');
-    'Track it at '.$links['tracking'].'. '.
-    $message;
-
-  $email['subject'] = $subject;
-  $email['message'] = implode('<br>', [
-    'Hello,',
-    '',
-    'Thanks for choosing Good Pill Pharmacy. '.$subject,
-    '',
-    'Your receipt for order <strong>#'.$groups['ALL'][0]['invoice_number'].'</strong> is attached. Your tracking number is '.tracking_link($groups['ALL'][0]['tracking']).'.',
-    'Use this link to request delivery notifications and/or provide the courier specific delivery instructions.',
-    $message,
-    '',
-    'Thanks!',
-    'The Good Pill Team',
-    '',
-    ''
-  ]);
-
-  if ($groups['ALL'][0]['invoice_doc_id']) $email['attachments'] = [$groups['ALL'][0]['invoice_doc_id']];
-
-  order_shipped_event($groups['ALL'], $email, $text);
-}
-
-function refill_reminder_notice($groups) {
-
-  if ($groups['MIN_DAYS'] == INF OR ( ! count($groups['NO_REFILLS']) AND ! count($groups['NO_AUTOFILL']))) return;
-
-  $subject  = 'Good Pill cannot refill these Rxs without your help.';
-  $message  = '';
-
-  if (count($groups['NO_REFILLS']))
-    $message .= '<br><u>We need a new Rx for the following:</u><br>'.implode(';<br>', $groups['NO_REFILLS']).';';
-
-  if (count($groups['NO_AUTOFILL']))
-    $message .= '<br><br><u>These Rxs will NOT be filled automatically and must be requested 2 weeks in advance:</u><br>'.implode(';<br>', $groups['NO_AUTOFILL']).';';
-
-  $email = [ "email" => $groups['ALL'][0]['email'] ];
-  $text  = [ "sms" => getPhones($groups['ALL']), "message" => $subject.$message ];
-
-  $email['subject'] = $subject;
-  $email['message'] = implode('<br>', [
-    'Hello,',
-    '',
-    'A friendly reminder that '.ucfirst($subject),
-    $message,
-    '',
-    'Thanks!',
-    'The Good Pill Team',
-    '',
-    ''
-  ]);
-
-  refill_reminder_event($groups['ALL'], $email, $text, $groups['MIN_DAYS']*24, 12);
-}
-
-//Called from Webform so that we didn't have to repeat conditional logic
-function autopay_reminder_notice($groups) {
-
-  $subject  = "Autopay Reminder.";
-  $message  = "Because you are enrolled in autopay, Good Pill Pharmacy will be be billing your card ".implode(' <Pause />', str_split($groups['ALL'][0]['payment_card_last4'])).' for $'.$groups['ALL'][0]['payment_fee'].".00. Please let us right away if your card has recently changed. Again we will be billing your card for $".$groups['ALL'][0]['payment_fee'].".00 for last month's Order #".$groups['ALL'][0]['invoice_number']." of ".$groups['NUM_FILLED']." items";
-
-  $email = [ "email" => $groups['ALL'][0]['email'] ];
-  $text  = [ "sms" => get_phones($groups['ALL']), "message" => $subject.' '.$message ];
-
-  $text['message'] = $subject.' '.$message;
-
-  $email['subject'] = $subject;
-  $email['message'] = implode('<br>', [
-    'Hello,',
-    '',
-    "Quick reminder that we are billing your card this week for last month's order.",
-    $message,
-    '',
-    'Thanks!',
-    'The Good Pill Team',
-    '',
-    ''
-  ]);
-
-  $next_month = strtotime('+1 month');
-  $time_wait  = $next_month - strtotime();
-
-  autopay_reminder_event($groups['ALL'], $email, $text, $time_wait/60/60, 14);
-}
-
-//We are coording patient communication via sms, calls, emails, & faxes
-//by building commication arrays based on github.com/dscsa/communication-calendar
-function order_created_notice($groups) {
-
-  $subject   = 'Good Pill is starting to prepare '.$groups['NUM_FILLED'].' items for Order #'.$groups['ALL'][0]['invoice_number'].'.';
-  $message   = 'If your address has recently changed please let us know right away.';
-  $drug_list = '<br><br><u>These Rxs will be included once we confirm their availability:</u><br>'.implode(';<br>', $groups['FILLED_WITH_PRICES']).';';
-
-  if ( ! $groups['ALL'][0]['refills_used'])
-    $message .= ' Your first order will only be $6 total for all of your medications.';
-
-  if ($groups['NUM_NOFILL'])
-    $drug_list .= '<br><br><u>We are NOT filling these Rxs:</u><br>'.implode(';<br>', $groups['NOFILL_NOACTION'] + $groups['NOFILL_ACTION']).';';
-
-  $suffix = implode('<br><br>', [
-    "Note: if this is correct, there is no need to do anything. If you want to change or delay this order, please let us know as soon as possible. If delaying, please specify the date on which you want it filled, otherwise if you don't, we will delay it 3 weeks by default."
-  ]);
-
-  $email = [ "email" => $groups['ALL'][0]['email'] ];
-  $text  = [ "sms" => get_phones($groups['ALL']), "message" => $subject.' '.$message.$drug_list ];
-
-  $email['subject'] = $subject;
-  $email['message'] = implode('<br>', [
-    'Hello,',
-    '',
-    $subject.' We will notify you again once it ships. '.$message.$drug_list,
-    '',
-    ($groups['NUM_FILLED'] >= $groups['NUM_NOFILL']) ? 'Thanks for choosing Good Pill!' : 'Apologies for any inconvenience,',
-    'The Good Pill Team',
-    '',
-    '',
-    $suffix
-  ]);
-
-  //Remove Refill Reminders for new Rxs we just received Order #14512
-  remove_drugs_from_events($groups['ALL'][0]['first_name'], $groups['ALL'][0]['last_name'], $groups['ALL'][0]['birth_date'], ['Refill Reminder'], $groups['FILLED']);
-
-  //Wait 15 minutes to hopefully batch staggered surescripts and manual rx entry and cindy updates
-  order_created_event($groups['ALL'], $email, $text, 15/60);
-}
-
-function transfer_requested_notice($groups) {
-
-  $subject = 'Good Pill recieved your transfer request for Order #'.$groups['ALL'][0]['invoice_number'].'.';
-  $message = 'We will notify you once we have contacted your pharmacy, '.$groups['ALL'][0]['pharmacy_name'].' '.$groups['ALL'][0]['pharmacy_address'].', and let you know whether the transfer was successful or not;';
-
-
-  $email = [ "email" => $groups['ALL'][0]['email'] ];
-  $text  = [ "sms" => get_phones($groups['ALL']), "message" => $subject.' '.$message ];
-
-  $email['subject'] = $subject;
-  $email['message'] = implode('<br>', [
-    'Hello,',
-    '',
-    $subject,
-    '',
-    $message,
-    '',
-    'Thanks!',
-    'The Good Pill Team'
-  ]);
-
-  //Wait 15 minutes to hopefully batch staggered surescripts and manual rx entry and cindy updates
-  transfer_requested_event($groups['ALL'], $email, $text, 15/60);
-}
-
-//We are coording patient communication via sms, calls, emails, & faxes
-//by building commication arrays based on github.com/dscsa/communication-calendar
-function order_hold_notice($groups) {
-
-  $subject = 'Good Pill is NOT filling your '.$groups['NUM_NOFILL'].' items for Order #'.$groups['ALL'][0]['invoice_number'].'.';
-  $message = '<u>We are NOT filling these Rxs:</u><br>'.implode(';<br>', $groups['NOFILL_NOACTION'] + $groups['NOFILL_ACTION']).';';
-
-  //['Not Specified', 'Webform Complete', 'Webform eRx', 'Webform Transfer', 'Auto Refill', '0 Refills', 'Webform Refill', 'eRx /w Note', 'Transfer /w Note', 'Refill w/ Note']
-  $trigger = '';
-
-  if (in_array($groups['ALL'][0]['order_source'], ["Not Specified", "SureScripts", "Fax", "Phone"]))
-    $trigger = 'We got Rxs from your doctor via '.$groups['ALL'][0]['rx_source'].' but';
-  else if (in_array($groups['ALL'][0]['order_source'], ["Webform eRx", "eRx /w Note"]))
-    $trigger = 'You successfully registered but';
-  else if (in_array($groups['ALL'][0]['order_source'], ["0 Refills"]))
-    $trigger = 'We requested refills from your doctor but have not heard back so';
-  else if (in_array($groups['ALL'][0]['order_source'], ["Webform Refill", "Refill w/ Note"]))
-    $trigger = 'We received your refill request but';
-
-  $email = [ "email" => $groups['ALL'][0]['email'] ];
-  $text  = [ "sms" => get_phones($groups['ALL']), "message" => $trigger.' '.$subject.' '.$message ];
-
-  $email['subject'] = $subject;
-  $email['message'] = implode('<br>', [
-    'Hello,',
-    '',
-    $trigger.' '.$subject,
-    '',
-    $message,
-    '',
-    'Apologies for any inconvenience,',
-    'The Good Pill Team',
-    '',
-    '',
-    "Note: if this is correct, there is no need to do anything. If you think there is a mistake, please let us know as soon as possible."
-  ]);
-
-  //Wait 15 minutes to hopefully batch staggered surescripts and manual rx entry and cindy updates
-  order_hold_event($groups['ALL'], $email, $text, 15/60);
-}
-
-//We are coording patient communication via sms, calls, emails, & faxes
-//by building commication arrays based on github.com/dscsa/communication-calendar
-function order_updated_notice($groups) {
-
-  //It's depressing to get updates if nothing is being filled.  So only send these if manually added and the order was just added (not just drugs changed)
-  if ( ! $groups['NUM_FILLED'] AND ! $groups['MANUALLY_ADDED']) {
-    $cancel = cancel_events($groups['ALL'][0]['first_name'], $groups['ALL'][0]['last_name'], $groups['ALL'][0]['birth_date'], ['Order Created', 'Order Updated', 'Order Hold', 'No Rx', 'Needs Form']);
-    return email('order_updated_notice NOT sent', $groups);
+    if (str_pos($new_desc, ';') !== false) {
+      $event['description'] = $new_desc;
+      $modify[] = $event;
+    }
+    else {
+      $remove[] = $event['id'];
+    }
   }
 
-  $subject = 'Update for Order #'.$groups['ALL'][0]['invoice_number'].($groups['NUM_FILLED'] ? ' of '.$groups['NUM_FILLED'].' items.' : '');
-  $message = '';
-
-  if ($groups['NUM_FILLED'])
-    $message .= '<br><u>These Rxs will be included once we confirm their availability:</u><br>'.implode(';<br>', $groups['FILLED_WITH_PRICES']).';';
-
-  if ($groups['NUM_NOFILL'])
-    $message .= '<br><br><u>We are NOT filling these Rxs:</u><br>'.implode(';<br>', $groups['NOFILL_NOACTION'] + $groups['NOFILL_ACTION']).';';
-
-  $suffix = implode('<br><br>', [
-    "Note: if this is correct, there is no need to do anything. If you want to change or delay this order, please let us know as soon as possible. If delaying, please specify the date on which you want it filled, otherwise if you don't, we will delay it 3 weeks by default."
-  ]);
-
-  $email = [ "email" => $groups['ALL'][0]['email'] ];
-  $text  = [ "sms" => get_phones($groups['ALL']), "message" => $subject.$message ];
-
-  $email['subject'] = $subject;
-  $email['message'] = implode('<br>', [
-    'Hello,',
-    '',
-    $subject.' We will notify you again once it ships.',
-    $message,
-    '',
-    ($groups['NUM_FILLED'] >= $groups['NUM_NOFILL']) ? 'Thanks for choosing Good Pill!' : 'Apologies for any inconvenience,',
-    'The Good Pill Team',
-    '',
-    '',
-    $suffix
-  ]);
-
-  //Wait 15 minutes to hopefully batch staggered surescripts and manual rx entry and cindy updates
-  order_updated_event($groups['ALL'], $email, $text, 15/60);
-}
-
-
-function needs_form_notice($groups) {
-
-  ///It's depressing to get updates if nothing is being filled
-  if ($groups['NUM_FILLED']) {
-    $subject = 'Welcome to Good Pill!  We are excited to fill your 1st Order.';
-    $message = 'Your order will be #'.$groups['ALL'][0]['invoice_number'].". Please take 5mins to register so that we can fill the Rxs we got from your doctor as soon as possible. Once you register it will take 5-7 business days before you receive your order. You can register online at www.goodpill.org or by calling us at (888) 987-5187.<br><br><u>The drugs in your 1st order will be:</u><br>".implode(';<br>', $groups['FILLED_WITH_PRICES']).';';
-  }
-  else {
-    $subject = "Welcome to Good Pill. Unfortunately we can't complete your 1st Order";
-    $message = "We are very sorry for the inconvenience but we can't fill the Rx(s) in Order #".$groups['ALL'][0]['invoice_number']." that we received from your doctor. Please ask your local pharmacy to contact us to get the prescription OR register online or over the phone and let us know to which pharmacy we should transfer the Rx(s).<br><br>Because we rely on donated medicine, we can only fill medications that are listed here www.goodpill.org/gp-stock";
+  if (count($modify)) {
+    email('remove_drugs_from_events modifyEvent', $modify, $first_name, $last_name, $birth_date, $drugs);
+    modify_events($modify);
   }
 
-  $email = [ "email" => $groups['ALL'][0]['email'] ];
-  $text  = [ "sms"   => get_phones($groups['ALL']), "message" => $subject.' '.$message ];
+  if (count($remove)) {
+    email('remove_drugs_from_events removeEvent', $remove, $first_name, $last_name, $birth_date, $drugs);
+    cancel_events($remove);
+  }
+}
 
-  $email['subject'] = $subject;
-  $email['message'] = implode('<br>', [
-    'Hello,',
-    '',
-    $subject.' '.$message,
-    '',
-    'Thanks!',
-    'The Good Pill Team',
-    '',
-    ''
-  ]);
+function cancel_events_by_person($first_name, $last_name, $birth_date, $types) {
 
-  //By basing on added at, we remove uncertainty of when script was run relative to the order being added
-  $hour_added = substr($groups['ALL'][0]['order_date_added'], 11, 2); //get hours
+  if ( ! LIVE_MODE) return;
 
-  if($hour_added < 10){
-    //A if before 10am, the first one is at 10am, the next one is 5pm, then 10am tomorrow, then 5pm tomorrow
-    $hours_to_wait = [0, 0, 24, 24, 24*7, 24*14];
-    $hour_of_day   = [11, 17, 11, 17, 17, 17];
+  $cancel = [];
+  $events = search_events_by_person($first_name, $last_name, $birth_date, false, $types);
 
-  } else if ($hour_added < 17){
-    //A if before 5pm, the first one is 10mins from now, the next one is 5pm, then 10am tomorrow, then 5pm tomorrow
-    $hours_to_wait = [10/60, 0, 24, 24, 24*7, 24*14];
-    $hour_of_day   = [null, 17, 11, 17, 17, 17];
-
-  } else {
-    //B if after 5pm, the first one is 10am tomorrow, 5pm tomorrow, 10am the day after tomorrow, 5pm day after tomorrow.
-    $hours_to_wait = [24, 24, 48, 48, 24*7, 24*14];
-    $hour_of_day   = [11, 17, 11, 17, 17, 17];
+  foreach ($events as $event) {
+    $cancel[] = $event['id'];
   }
 
-  needs_form_event($groups['ALL'], $email, $text, $hours_to_wait[0], $hour_of_day[0]);
+  cancel_events($cancel);
 
-  if ( ! $groups['NUM_FILLED']) return; //Don't hassle folks if we aren't filling anything
-
-  needs_form_event($groups['ALL'], $email, $text, $hours_to_wait[1], $hour_of_day[1]);
-  needs_form_event($groups['ALL'], $email, $text, $hours_to_wait[2], $hour_of_day[2]);
-  needs_form_event($groups['ALL'], $email, $text, $hours_to_wait[3], $hour_of_day[3]);
-}
-
-//We are coording patient communication via sms, calls, emails, & faxes
-//by building commication arrays based on github.com/dscsa/communication-calendar
-function no_rx_notice($groups) {
-
-  email('no_rx_notice', $groups);
-
-  $subject = 'Good Pill received Order #'.$groups['ALL'][0]['invoice_number'].' but is waiting for your prescriptions';
-  $message  = ($groups['ALL'][0]['order_source'] == 'Webform Transfer' OR $groups['ALL'][0]['order_source'] == 'Transfer w/ Note')
-    ? "We will attempt to transfer the Rxs you requested from, ".$groups['ALL'][0]['pharmacy_name'].' '.$groups['ALL'][0]['pharmacy_address'].'.'
-    : "We haven't gotten any Rxs from your doctor yet but will notify you as soon as we do.";
-
-  $email = [ "email" => $groups['ALL'][0]['email'] ];
-  $text  = [ "sms"   => get_phones($groups['ALL']), $message => $subject.'. '.$message ];
-
-  $email['subject'] = $subject;
-  $email['message']  = implode('<br>', [
-    'Hello,',
-    '',
-    $subject.'. '.$message,
-    '',
-    '',
-    'Thanks,',
-    'The Good Pill Team',
-    '',
-    '',
-    "Note: if this is correct, there is no need to do anything. If you think there is a mistake, please let us know as soon as possible."
-  ]);
-
-  //Wait 15 minutes to hopefully batch staggered surescripts and manual rx entry and cindy updates
-  no_rx_event($groups['ALL'], $email, $text, 15/60);
-}
-
-function order_failed_notice($groups, $days) {
-
-  $subject  = "Apologies but Good Pill is having trouble with your Order #".$groups['ALL'][0]['invoice_number'];
-
-  if ($groups['NUM_FILLED'])
-    $message = "We are so sorry for the inconvenience. Please call us at (888) 987-5187 and we will explain the issue.";
-  else if ($groups['ALL'][0]['order_source'] == 'Webform Transfer' OR $groups['ALL'][0]['order_source'] == 'Transfer w/ Note')
-    $message = "We were unable to transfer the Rxs you requested from, ".$groups['ALL'][0]['pharmacy_name'].' '.$groups['ALL'][0]['pharmacy_address'].". This usually happens because we have the wrong pharmacy on file, we are requesting the wrong Rxs, or your Rxs have no refills remaining";
-  else
-    $message = "We haven't gotten any Rxs from your doctor yet. You may want to contact your doctor.  If you had meant for us to transfer Rxs from your pharmacy instead, please login to your account and place a new 'transfer' order or give us a call at (888) 987-5187.";
-
-  $email = [ "email" => $groups['ALL'][0]['email'] ];
-  $text  = [ "sms" => get_phones($groups['ALL']),  "message" => $subject.'. '.$message ];
-
-  $email['subject'] = $subject;
-  $email['message'] = implode('<br>', [
-    'Hello,',
-    '',
-    $subject.'. '.$message,
-    '',
-    'Thanks!',
-    'The Good Pill Team',
-    '',
-    ''
-  ]);
-
-  order_failed_event($groups['ALL'], $email, $text, $days*24, 13);
-  order_failed_event($groups['ALL'], [
-    "email"   => PHARMACIST_EMAIL.','.DEBUG_EMAIL,
-    "subject" => 'To Be Sent Tomorrow: '.$subject,
-    "message" => 'To Be Sent Tomorrow: '.$email.$message
-  ], null, ($days-1)*24, 13);
-}
-
-function confirm_shipment_notice($groups) {
-  confirm_shipping_internal($groups);
-  confirm_shipping_external($groups);
-}
-
-function confirm_shipping_internal($groups) {
-
-  if ( ! $groups['ALL'][0]['refills_used']) return;
-
-  ///It's depressing to get updates if nothing is being filled
-  $subject  = "Follow up on new patient's first order";
-  $days_ago = 5;
-
-  $email = [ "email" => 'support@goodpill.org' ];
-
-  $email['subject'] = $subject;
-  $email['message'] = implide('<br>', [
-    'Hello,',
-    '',
-    $groups['ALL'][0]['first_name'].' '.$groups['ALL'][0]['last_name'].' '.$groups['ALL'][0]['birth_date'].' is a new patient.  They were shipped Order #'.$groups['ALL'][0]['invoice_number'].' with '.$groups['NUM_FILLED'].' items '.$days_ago.' days ago.',
-    '',
-    'Please call them at '.$groups['ALL'][0]['phone1'].', '.$groups['ALL'][0]['phone2'].' and check on the following:',
-    '- Order with tracking number '.tracking_link($groups['ALL'][0]['tracking_number']).' was delivered and that they received it',
-    '',
-    '- Make sure they got all '.$groups['NUM_FILLED'].' of their medications, that we filled the correct number of pills, and answer any questions the patient has',
-    $groups['NUM_NOFILL'] ? '<br>- Explain why we did NOT fill:<br>'.implode(';<br>', $groups['NOFILL_NOACTION'] + $groups['NOFILL_ACTION']).'<br>' : '',
-    '- Let them know they are currently set to pay via '.$groups['ALL'][0]['payment_method'].' and the cost of the '.$groups['NUM_FILLED'].' items was $'.$groups['ALL'][0]['payment_fee'].' this time, but next time it will be $'.$groups['ALL'][0]['payment_total'],
-    '',
-    '- Review their current medication list and remind them which prescriptions we will be filling automatically and which ones they need to request 2 weeks in advance',
-    '',
-    'Thanks!',
-    'The Good Pill Team',
-    '',
-    ''
-  ]);
-
-  confirm_shipment_event($groups['ALL'], $email, $days_ago*24, 13);
-}
-
-function confirm_shipping_external($groups) {
-
-  $email = [ "email" => $groups['ALL'][0]['email'] ];
-  $text  = [ "sms"   => get_phones($groups['ALL']) ];
-
-  $subject = "Order #".$groups['ALL'][0]['invoice_number']." was delivered.";
-  $message = " should have been delivered within the past few days.  Please contact us at 888.987.5187 if you have not yet received your order.";
-
-  $text['message'] = $subject.' Your order with tracking number '.$groups['ALL'][0]['tracking_number'].$message;
-
-  $email['subject'] = $subject;
-  $email['message'] = implode('<br>', [
-    'Hello,',
-    '',
-    $subject.' Your order with tracking number '.tracking_link($groups['ALL'][0]['tracking_number']).$message,
-    '',
-    'Thanks!',
-    'The Good Pill Team',
-    '',
-    ''
-  ]);
-
-  confirm_shipment_event($groups['ALL'], $email, 7*24, 14);
-}
-
-function tracking_url($tracking_number) {
-
-  $url = '#';
-
-  if (strlen($tracking_number) == 22) {
-    $url = 'https://tools.usps.com/go/TrackConfirmAction?tLabels=';
-  } else if (strlen($tracking_number) == 15 OR strlen($tracking_number) == 12) { //Ground or Express
-    $url = 'https://www.fedex.com/apps/fedextrack/?tracknumbers=';
-  }
-
-  return $url.$tracking_number;
-}
-
-//Convert gsheet hyperlink formula to an html link
-function tracking_link($tracking) {
-  return '<a href="'.tracking_url($tracking).'">'.$tracking.'</a>';
-}
-
-function get_phones($order) {
-  //email('get_phones', $order);
-  return $order[0]['phone1'].($order[0]['phone2'] ? ','.$order[0]['phone2'] : '');
+  return $cancel;
 }
