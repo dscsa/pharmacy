@@ -3,7 +3,7 @@
 require_once 'changes/changes_to_orders.php';
 require_once 'exports/export_gd_orders.php';
 require_once 'exports/export_wc_orders.php';
-require_once 'helpers/helper_comm_calendar.php';
+require_once 'exports/export_gd_comm_calendar.php'
 
 function update_orders() {
 
