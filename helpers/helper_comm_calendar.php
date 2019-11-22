@@ -387,7 +387,7 @@ function remove_drugs_from_events($first_name, $last_name, $birth_date, $types, 
   }
 }
 
-function cancel_events_by_person($first_name, $last_name, $birth_date, $types) {
+function cancel_events_by_person($first_name, $last_name, $birth_date, $types = []) {
 
   if ( ! LIVE_MODE) return;
 

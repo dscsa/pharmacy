@@ -47,7 +47,7 @@ function print_pick_list($item, $vals) {
     'method'   => 'newSpreadsheet',
     'file'     => pick_list_name($item),
     'folder'   => PICK_LIST_FOLDER_NAME,
-    'vals'     => $header + $vals,
+    'vals'     => $header . $vals,
     'widths'   => [1 => 243] //show the full id when it prints
   ];
 

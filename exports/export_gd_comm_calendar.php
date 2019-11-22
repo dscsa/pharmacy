@@ -140,7 +140,7 @@ function autopay_reminder_notice($groups) {
   ]);
 
   $next_month = strtotime('+1 month');
-  $time_wait  = $next_month - strtotime();
+  $time_wait  = $next_month - time();
 
   autopay_reminder_event($groups['ALL'], $email, $text, $time_wait/60/60, 14);
 }
