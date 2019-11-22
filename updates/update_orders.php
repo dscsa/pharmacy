@@ -37,8 +37,6 @@ function update_orders() {
         gp_orders.invoice_number = gp_order_items.invoice_number
       LEFT JOIN gp_rxs_grouped ON
         rx_numbers LIKE CONCAT('%,', gp_order_items.rx_number, ',%')
-      LEFT JOIN gp_stock_live ON -- might not have a match if no GSN match
-        gp_rxs_grouped.drug_generic = gp_stock_live.drug_generic
       WHERE
         gp_orders.invoice_number = $order[invoice_number]
     ";
