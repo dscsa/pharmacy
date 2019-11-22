@@ -275,7 +275,7 @@ function create_event($eventTitle, $commArr, $hours_to_wait = 0, $hour_of_day = 
     'cal_id'      => GD_CAL_ID,
     'start'       => $startTime,
     'hours'       => 0.5,
-    'title'       => $eventTitle,
+    'title'       => "(NEW) $eventTitle",
     'description' => json_encode($commArr)
   ];
 
