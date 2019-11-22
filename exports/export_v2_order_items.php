@@ -164,7 +164,7 @@ function sort_inventory($inventory, $long_exp) {
 
     //Lots of prepacks were expiring because pulled stock with long exp was being paired with short prepack exp making the surplus shortdated
     //Default to longExp since that simplifies sort() if there are no prepacks
-    usort($inventory, function($a, $b) {
+    usort($inventory, function($a, $b) use ($inventory, $long_exp) {
 
       //Deprioritize ones that are missing data
       if ( ! $b['bin'] OR ! $b['exp'] OR ! $b['qty']) return -1;
