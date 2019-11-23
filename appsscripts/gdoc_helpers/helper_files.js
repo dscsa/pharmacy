@@ -65,7 +65,7 @@ function newSpreadsheet(opts) {
   var file = DriveApp.getFileById(ss.getId())
 
   if (opts.vals) {
-    ss.getRange(1, 1, opts.vals.length, opts.vals[0].length).setValues(opts.vals).setHorizontalAlignment('left').setFontFamily('Roboto Mono')
+    ss.getActiveSheet().getRange(1, 1, opts.vals.length, opts.vals[0].length).setValues(opts.vals).setHorizontalAlignment('left').setFontFamily('Roboto Mono')
   }
 
   var widths = opts.widths || {}
