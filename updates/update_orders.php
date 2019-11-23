@@ -207,7 +207,7 @@ function update_orders() {
       else
         $action = 'NOACTION';
 
-      $price = $item['price_dispensed_default'] ? ', $'.$msg.' for '.$days.' days' : '';
+      $price = $item['price_dispensed_default'] ? ', $'.$item['price_dispensed_default'].' '.$msg.' for '.$days.' days' : '';
 
       $groups['ALL'][] = $item;
       $groups[$fill.$action][] = $item['drug_generic'].' '.$msg;
