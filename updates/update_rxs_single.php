@@ -82,6 +82,11 @@ function update_rxs_single() {
 
       CONCAT(',', GROUP_CONCAT(rx_number), ',') as rx_numbers,
 
+      CASE
+        WHEN MAX(refill_date_first) IS NULL THEN GROUP_CONCAT(DISTINCT rx_source)
+        ELSE 'Refill'
+      END as rx_sources,
+
       MAX(rx_date_changed) as rx_date_changed,
       MAX(rx_date_expired) as rx_date_expired
   	FROM gp_rxs_single
