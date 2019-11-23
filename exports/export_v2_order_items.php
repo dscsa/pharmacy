@@ -77,7 +77,7 @@ function make_pick_list($item) {
   $stock    = $item['stock_level_initial'];
 
   $min_exp   = explode('-', date('Y-m', strtotime("+".($min_days-2*7)." days"))); //Used to use +14 days rather than -14 days as a buffer for dispensing and shipping. But since lots of prepacks expiring I am going to let almost expired things be prepacked
-  $long_exp  = explode('-', date('Y-m', strtotime("+".($min_days+6*7)." days"))); //2015-05-13 We want any surplus from packing fast movers to be usable for ~6 weeks.  Otherwise a lot of prepacks expire on the shelf
+  $long_exp  = date('Y-m-01', strtotime("+".($min_days+6*7)." days")); //2015-05-13 We want any surplus from packing fast movers to be usable for ~6 weeks.  Otherwise a lot of prepacks expire on the shelf
 
   $start_key = rawurlencode('["8889875187","month","'.$min_exp[0].'","'.$min_exp[1].'","'.$generic.'"]');
   $end_key   = rawurlencode('["8889875187","month","'.$min_exp[0].'","'.$min_exp[1].'","'.$generic.'",{}]');
@@ -129,8 +129,8 @@ function group_by_ndc($rows, $item) {
     }
 
     $ndc = $row['doc']['drug']['_id'];
-    $ndcs[$ndc] = $ndcs[$ndc] ?: [];
-    $ndcs[$ndc]['prepack_qty'] = $ndcs[$ndc]['prepack_qty'] ?: 0; //Hacky to set property on an array
+    $ndcs[$ndc] = isset($ndcs[$ndc]) ? $ndcs[$ndc] : [];
+    $ndcs[$ndc]['prepack_qty'] = isset($ndcs[$ndc]['prepack_qty']) ? $ndcs[$ndc]['prepack_qty'] : 0; //Hacky to set property on an array
 
     if (strlen($row['doc']['bin']) == 3) {
       $ndcs[$ndc]['prepack_qty'] += $row['doc']['qty']['to'];
