@@ -6,6 +6,8 @@ var infoLog = []
 
 function mergeDoc(content) {
 
+  debugEmail('mergeDoc start', content)
+
    //debugEmail('mergeDoc', content)
    var order    = flattenOrder(content.order)
    var template = fileByName(content.template)
@@ -24,7 +26,7 @@ function mergeDoc(content) {
 
    newDoc.saveAndClose()
 
-   debugEmail('mergeDoc', content.order, order, infoLog)
+   debugEmail('mergeDoc end', content.order, order, infoLog)
 
    return newDoc.getId()
 }
