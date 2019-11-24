@@ -39,7 +39,7 @@ function print_pick_list($item, $vals) {
 
   $header = [
     ['Order #'.$item['invoice_number'].' '.$item['drug_generic'].' '.$item['drug_name'].' '.date('Y-m-d H:i:s'), '', '' ,'', '', ''],
-    ['Days:'.$item['days_dispensed_default'].', Qty:'.$item['qty_dispensed_default'].', Count:'.count($vals).($item['stock_level_initial'] ? ' ('.$item['stock_level_initial'].')' : '').($vals['half_fill'] || ''), '', '', '', '', ''],
+    ['Days:'.$item['days_dispensed_default'].', Qty:'.$item['qty_dispensed_default'].', Count:'.count($vals).($item['stock_level_initial'] != STOCK_LEVEL['HIGH SUPPLY'] ? ' ('.$item['stock_level_initial'].')' : '').(isset($vals['half_fill']) ? $vals['half_fill'] : ''), '', '', '', '', ''],
     ['', '', '', '', '', '']
   ];
 
@@ -47,7 +47,7 @@ function print_pick_list($item, $vals) {
     'method'   => 'newSpreadsheet',
     'file'     => pick_list_name($item),
     'folder'   => PICK_LIST_FOLDER_NAME,
-    'vals'     => $header . $vals,
+    'vals'     => $header + $vals, //merge arrays
     'widths'   => [1 => 243] //show the full id when it prints
   ];
 
@@ -177,8 +177,8 @@ function sort_inventory($inventory, $long_exp) {
       if ($bPack AND ! $aPack) return 1;
 
       //Let's shop for non-prepacks that are closest (but not less than) to our min prepack exp date in order to avoid waste
-      $aMonths = months_between($inventory['prepack_exp'] ?: $long_exp, substr($a['exp']['to'], 0, 10)); // >0 if minPrepackExp < a.doc.exp.to (which is what we prefer)
-      $bMonths = months_between($inventory['prepack_exp'] ?: $long_exp, substr($b['exp']['to'], 0, 10)); // >0 if minPrepackExp < b.doc.exp.to (which is what we prefer)
+      $aMonths = months_between(isset($inventory['prepack_exp']) ? $inventory['prepack_exp'] : $long_exp, substr($a['exp']['to'], 0, 10)); // >0 if minPrepackExp < a.doc.exp.to (which is what we prefer)
+      $bMonths = months_between(isset($inventory['prepack_exp']) ? $inventory['prepack_exp'] : $long_exp, substr($b['exp']['to'], 0, 10)); // >0 if minPrepackExp < b.doc.exp.to (which is what we prefer)
 
       //Deprioritize anything with a closer exp date than the min prepack exp date.  This - by definition - can only be non-prepack stock
       if ($aMonths >= 0 AND $bMonths < 0) return -1;
