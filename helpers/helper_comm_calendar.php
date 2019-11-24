@@ -112,7 +112,7 @@ function order_updated_event($order, $email, $text, $hours_to_wait) {
   create_event($event_title, $comm_arr, $hours_to_wait);
 }
 
-function needs_form_event($order, $email, $text, $hours_to_wait, $hour_of_day = null) {
+function needs_form_event($order, $email, $text, $hours_to_wait, $hour_of_day = 0) {
 
   $patient_label = get_patient_label($order);
   $event_title   = $order[0]['invoice_number'].' Needs Form: '.$patient_label.'.  Created:'.date('Y:m:d H:i:s');
@@ -315,7 +315,10 @@ function modify_events() {
 //Return a copy of the date (or now) with the 24-hour set
 function get_start_time($hours_to_wait, $hour_of_day) {
 
-  $start = date('Y-m-d\TH:i:s', strtotime("+$hours_to_wait hours"));
+  //PHP Issue of strtotime() with fractions https://stackoverflow.com/questions/11086022/can-strtotime-handle-fractions so convert to minutes and round
+  $minutes_to_wait = round($hours_to_wait*60);
+
+  $start = date('Y-m-d\TH:i:s', strtotime("+$minutes_to_wait minutes"));
 
   if ($hour_of_day) {
     $start = substr($start, 0, 11)."$hour_of_day:00:00";

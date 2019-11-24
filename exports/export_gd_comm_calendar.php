@@ -336,7 +336,7 @@ function needs_form_notice($groups) {
   } else if ($hour_added < 17){
     //A if before 5pm, the first one is 10mins from now, the next one is 5pm, then 10am tomorrow, then 5pm tomorrow
     $hours_to_wait = [10/60, 0, 24, 24, 24*7, 24*14];
-    $hour_of_day   = [null, 17, 11, 17, 17, 17];
+    $hour_of_day   = [0, 17, 11, 17, 17, 17];
 
   } else {
     //B if after 5pm, the first one is 10am tomorrow, 5pm tomorrow, 10am the day after tomorrow, 5pm day after tomorrow.
