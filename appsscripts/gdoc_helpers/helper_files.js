@@ -1,6 +1,6 @@
 function removeFiles(opts) {
-  var folder = DriveApp.getFolderById(opts.folderId)
-  var iterator = folder.searchFiles('title contains "'+opts.title+'"')
+  var folder = DriveApp.getFoldersByName(opts.folder).next()
+  var iterator = folder.searchFiles('title contains "'+opts.file+'"')
 
   while (iterator.hasNext()) {
     var file = iterator.next().setTrashed(true) //Prevent printing an old list that Cindy pended and shipped on her own

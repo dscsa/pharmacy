@@ -261,10 +261,9 @@ function update_orders() {
 
   function send_deleted_order_communications($order) {
 
-    $groups = group_drugs($order);
     //TODO We need something here!
-    order_failed_notice($groups, 0);
-    email('Order was deleted', $order, $groups);
+    order_failed_notice($order, 0);
+    email('Order was deleted', $order);
   }
 
   function send_updated_order_communications($order) {
@@ -285,7 +284,7 @@ function update_orders() {
 
     else {
       order_updated_notice($groups);
-      order_failed_notice($groups, 7); //After updated event since orderUpdatedEvent() will delete an previous orderFailed messages
+      order_failed_notice($order, 7); //After updated event since orderUpdatedEvent() will delete an previous orderFailed messages
     }
   }
 
@@ -317,9 +316,9 @@ function update_orders() {
   //  - update wc order total
   foreach($changes['deleted'] as $deleted) {
 
-    export_gd_update_invoice($deleted);
+    export_gd_delete_invoice($deleted);
 
-    export_wc_update_order($deleted);
+    export_wc_delete_order($deleted);
 
     send_deleted_order_communications($deleted);
 

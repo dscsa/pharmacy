@@ -385,19 +385,15 @@ function no_rx_notice($groups) {
   no_rx_event($groups['ALL'], $email, $text, 15/60);
 }
 
-function order_failed_notice($groups, $days) {
+//NOTE: UNLIKE OTHER COMM FUNCTIONS THIS TAKES ORDER AND NOT GROUPS
+//THIS IS BECAUSE A DELETED ORDER DOES NOT HAVE ANY DRUGS TO GROUP
+function order_failed_notice($order, $days) {
 
-  $subject  = "Apologies but Good Pill is having trouble with your Order #".$groups['ALL'][0]['invoice_number'];
+  $subject = "Apologies but Good Pill is having trouble with your Order #".$order[0]['invoice_number'];
+  $message = "We are so sorry for the inconvenience. Please call us at (888) 987-5187 and we will explain the issue.";
 
-  if ($groups['NUM_FILLED'])
-    $message = "We are so sorry for the inconvenience. Please call us at (888) 987-5187 and we will explain the issue.";
-  else if ($groups['ALL'][0]['order_source'] == 'Webform Transfer' OR $groups['ALL'][0]['order_source'] == 'Transfer w/ Note')
-    $message = "We were unable to transfer the Rxs you requested from, ".$groups['ALL'][0]['pharmacy_name'].' '.$groups['ALL'][0]['pharmacy_address'].". This usually happens because we have the wrong pharmacy on file, we are requesting the wrong Rxs, or your Rxs have no refills remaining";
-  else
-    $message = "We haven't gotten any Rxs from your doctor yet. You may want to contact your doctor.  If you had meant for us to transfer Rxs from your pharmacy instead, please login to your account and place a new 'transfer' order or give us a call at (888) 987-5187.";
-
-  $email = [ "email" => $groups['ALL'][0]['email'] ];
-  $text  = [ "sms" => get_phones($groups['ALL']),  "message" => $subject.'. '.$message ];
+  $email = [ "email" => $order[0]['email'] ];
+  $text  = [ "sms" => get_phones($order),  "message" => $subject.'. '.$message ];
 
   $email['subject'] = $subject;
   $email['message'] = implode('<br>', [
@@ -411,8 +407,8 @@ function order_failed_notice($groups, $days) {
     ''
   ]);
 
-  order_failed_event($groups['ALL'], $email, $text, $days*24, 13);
-  order_failed_event($groups['ALL'], [
+  order_failed_event($order, $email, $text, $days*24, 13);
+  order_failed_event($order, [
     "email"   => PHARMACIST_EMAIL.','.DEBUG_EMAIL,
     "subject" => 'To Be Sent Tomorrow: '.$subject,
     "message" => 'To Be Sent Tomorrow: '.$email.$message
