@@ -58,8 +58,29 @@ function update_order_items() {
       $item = $query[0][0];
     else if ($item AND ! isset($item['price_per_month']))
       email('ERROR get_full_item: missing stock level', $item, $query, $sql);
-    else
-      email("ERROR get_full_item: missing item", $item, $query, $sql);
+    else {
+
+      $debug = "
+        SELECT *
+        FROM
+          gp_order_items
+        LEFT JOIN gp_rxs_grouped ON
+          rx_numbers LIKE CONCAT('%,', gp_order_items.rx_number, ',%')
+        LEFT JOIN gp_rxs_single ON
+          gp_rxs_grouped.best_rx_number = gp_rxs_single.rx_number
+        LEFT JOIN gp_patients ON
+          gp_rxs_grouped.patient_id_cp = gp_patients.patient_id_cp
+        LEFT JOIN gp_stock_live ON -- might not have a match if no GSN match
+          gp_rxs_grouped.drug_generic = gp_stock_live.drug_generic
+        WHERE
+          gp_order_items.invoice_number = $item[invoice_number] OR
+          gp_order_items.rx_number = $item[rx_number]
+      ";
+
+      $anything = $mysql->run($debug);
+
+      email("ERROR get_full_item: missing item", $item, $query, $sql, $debug, $anything);
+    }
 
     log_info("
     Item: $sql
