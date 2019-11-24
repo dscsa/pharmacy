@@ -37,7 +37,7 @@ function import_cp_orders() {
       LEFT JOIN csom_ship ON csom.order_id = csom_ship.order_id -- CsOmShipUpdate won't have tracking numbers that Cindy inputted manually
     WHERE
       pat_id IS NOT NULL AND -- Some GRX orders have no patient!?
-      status_cn <> 3
+      ISNULL(status_cn, 0) <> 3
   ");
 
   //log_info("
