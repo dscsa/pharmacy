@@ -36,8 +36,9 @@ function import_cp_orders() {
       LEFT JOIN (SELECT order_id, MAX(ship_date) as ship_date FROM CsOmShipUpdate GROUP BY order_id) ship ON csom.order_id = ship.order_id -- CSOM_SHIP didn't always? update the tracking number within the day so use CsOmShipUpdate which is what endicia writes
       LEFT JOIN csom_ship ON csom.order_id = csom_ship.order_id -- CsOmShipUpdate won't have tracking numbers that Cindy inputted manually
     WHERE
-      pat_id IS NOT NULL AND -- Some GRX orders have no patient!?
-      ISNULL(status_cn, 0) <> 3
+      --pat_id IS NOT NULL AND -- Some GRX orders link 1170 have no patient (now removed so now commented this out)!?
+      ISNULL(status_cn, 0) <> 3 AND
+      liCount > 0 --SureScript Authorization Denied, Webform eRx (before Rxs arrive), Webform Transfer (before transfer made)
   ");
 
   //log_info("
