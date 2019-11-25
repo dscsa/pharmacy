@@ -156,10 +156,10 @@ function sort_by_ndc($ndcs, $long_exp) {
   //Sort in descending order of prepack_qty. TODO should we look Exp date as well?
   usort($sorted_ndcs, function($a, $b) use ($sorted_ndcs) {
 
-    if ( ! isset($a['inventory']['prepack_qty']) OR ! isset($b['inventory']['prepack_qty'])) {
+    if ( ! isset($a['prepack_qty']) OR ! isset($b['prepack_qty'])) {
       email('ERROR: sort_by_ndc', $a, $b, $sorted_ndcs);
     } else {
-      return $b['inventory']['prepack_qty'] - $a['inventory']['prepack_qty'];
+      return $b['prepack_qty'] - $a['prepack_qty'];
     }
   });
 
