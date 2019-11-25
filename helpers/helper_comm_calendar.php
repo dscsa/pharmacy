@@ -221,7 +221,7 @@ function format_call($call_json) {
     '/(www\.)?goodpill\.org/',
     '/(\w):(?!\/\/)/',
     '/;<br>/',
-    '/;|\./,',
+    '/;|\./',
     '/(<br>)+/',
     '/\.(\d)(\d)?(\d)?/',
     '/ but /',
