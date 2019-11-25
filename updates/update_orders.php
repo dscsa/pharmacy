@@ -24,7 +24,7 @@ function update_orders() {
 
   $mysql = new Mysql_Wc();
 
-  order created -> add any additional rxs to order -> import order items -> sync all drugs in order
+  //order created -> add any additional rxs to order -> import order items -> sync all drugs in order
 
   function get_full_order($order, $mysql) {
 
@@ -45,19 +45,22 @@ function update_orders() {
 
     $order = $mysql->run($sql)[0];
 
-    if ($order AND $order[0]['invoice_number']) {
-
-      $target_date = get_sync_to_date($order);
-      $order  = set_sync_to_date($order, $target_date, $mysql);
-
-      $update = get_payment($order);
-      $order  = set_payment($order, $update, $mysql);
-
-    } else {
+    if ( ! $order OR ! $order[0]['invoice_number']) {
       email('ERROR! get_full_order: no invoice number ', $order);
     }
 
     return $order;
+  }
+
+  function sync_to_order($order, $mysql) {
+    foreach($order as $item) {
+      if ($item['invoice_number']) continue; //Item is already in the order
+
+      $days_to_refill = (strtotime($item['refill_date_next']) - time())/60/60/24;
+
+      if ($days_to_refill < 15)
+        email('TODO: Add this item to the Order', $item, $order);
+    }
   }
 
   //Group all drugs by their next fill date and get the most popular date
@@ -296,7 +299,15 @@ function update_orders() {
   //  - Update wc order count/total
   foreach($changes['created'] as $created) {
 
+    sync_to_order($created, $mysql)
+
     $order = get_full_order($created, $mysql);
+
+    $target_date = get_sync_to_date($order);
+    $order  = set_sync_to_date($order, $target_date, $mysql);
+
+    $update = get_payment($order);
+    $order  = set_payment($order, $update, $mysql);
 
     export_cp_add_more_items($order); //this will cause another update and we will end back in this loop
 
@@ -338,6 +349,13 @@ function update_orders() {
     $order = get_full_order($updated, $mysql);
     //Probably finalized days/qty_dispensed_actual
     //Update invoice now or wait until shipped order?
+
+    $target_date = get_sync_to_date($order);
+    $order  = set_sync_to_date($order, $target_date, $mysql);
+
+    $update = get_payment($order);
+    $order  = set_payment($order, $update, $mysql);
+
     export_gd_update_invoice($order);
 
     export_wc_update_order($order);
