@@ -109,7 +109,7 @@ function update_orders() {
             refill_date_target      = '$target_date',
             days_dispensed_default  = $days_synced,
             qty_dispensed_default   = ".($days_synced*$item['sig_qty_per_day']).",
-            price_dispensed_default = ".($days_synced ? max(1, round($price)) : 0)."
+            price_dispensed_default = ".ceil($price)."
           WHERE
             rx_number = $item[rx_number]
         ";
