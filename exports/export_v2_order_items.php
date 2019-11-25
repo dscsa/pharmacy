@@ -130,6 +130,7 @@ function group_by_ndc($rows, $item) {
 
     $ndc = $row['doc']['drug']['_id'];
     $ndcs[$ndc] = isset($ndcs[$ndc]) ? $ndcs[$ndc] : [];
+    $ndcs[$ndc]['rows'] = isset($ndcs[$ndc]['rows']) ? $ndcs[$ndc]['rows'] : [];
     $ndcs[$ndc]['prepack_qty'] = isset($ndcs[$ndc]['prepack_qty']) ? $ndcs[$ndc]['prepack_qty'] : 0; //Hacky to set property on an array
 
     if (strlen($row['doc']['bin']) == 3) {
@@ -139,7 +140,7 @@ function group_by_ndc($rows, $item) {
         $ndcs[$ndc]['prepack_exp'] = $row['doc']['exp']['to'];
     }
 
-    $ndcs[$ndc][] = $row['doc'];
+    $ndcs[$ndc]['rows'][] = $row['doc'];
   }
 
   return $ndcs;
@@ -149,8 +150,8 @@ function sort_by_ndc($ndcs, $long_exp) {
 
   $sorted_ndcs = [];
   //Sort the highest prepack qty first
-  foreach ($ndcs as $ndc => $row) {
-    $sorted_ndcs[] = ['ndc' => $ndc, 'inventory' => sort_inventory($row, $long_exp)];
+  foreach ($ndcs as $ndc => $val) {
+    $sorted_ndcs[] = ['ndc' => $ndc, 'prepack_qty' => $val['prepack_qty'], 'inventory' => sort_inventory($val['rows'], $long_exp)];
   }
   //Sort in descending order of prepack_qty. TODO should we look Exp date as well?
   usort($sorted_ndcs, function($a, $b) use ($sorted_ndcs) {
