@@ -260,7 +260,7 @@ function order_updated_notice($groups) {
 
   //It's depressing to get updates if nothing is being filled.  So only send these if manually added and the order was just added (not just drugs changed)
   if ( ! $groups['NUM_FILLED'] AND ! $groups['MANUALLY_ADDED']) {
-    $cancel = cancel_events($groups['ALL'][0]['first_name'], $groups['ALL'][0]['last_name'], $groups['ALL'][0]['birth_date'], ['Order Created', 'Order Updated', 'Order Hold', 'No Rx', 'Needs Form']);
+    $cancel = cancel_events_by_person($groups['ALL'][0]['first_name'], $groups['ALL'][0]['last_name'], $groups['ALL'][0]['birth_date'], ['Order Created', 'Order Updated', 'Order Hold', 'No Rx', 'Needs Form']);
     return email('order_updated_notice NOT sent', $groups);
   }
 
