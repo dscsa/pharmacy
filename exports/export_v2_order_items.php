@@ -157,9 +157,9 @@ function sort_by_ndc($ndcs, $long_exp) {
 
     if ( ! isset($a['inventory']['prepack_qty']) OR ! isset($b['inventory']['prepack_qty'])) {
       email('ERROR: sort_by_ndc', $a, $b, $sorted_ndcs);
+    } else {
+      return $b['inventory']['prepack_qty'] - $a['inventory']['prepack_qty'];
     }
-
-    return $b['inventory']['prepack_qty'] - $a['inventory']['prepack_qty'];
   });
 
   return $sorted_ndcs;
