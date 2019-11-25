@@ -30,7 +30,7 @@ function order_dispensed_notice($groups) {
 
   ]);
 
-  order_dispensed_event($groups, $email, $days_ago*24);
+  order_dispensed_event($groups['ALL'], $email, $days_ago*24);
 }
 
 //We are coording patient communication via sms, calls, emails, & faxes
@@ -82,7 +82,7 @@ function order_shipped_notice($groups) {
 
   email('order_shipped_event', $groups['ALL'], $email, $text);
 
-  order_shipped_event($groups, $email, $text);
+  order_shipped_event($groups['ALL'], $email, $text);
 }
 
 function refill_reminder_notice($groups) {
@@ -407,8 +407,8 @@ function order_failed_notice($order, $days) {
     ''
   ]);
 
-  order_failed_event($order, $email, $text, $days*24, 13);
-  order_failed_event($order, [
+  order_failed_event($groups['ALL'], $email, $text, $days*24, 13);
+  order_failed_event($groups['ALL'], [
     "email"   => PHARMACIST_EMAIL.','.DEBUG_EMAIL,
     "subject" => 'To Be Sent Tomorrow: '.$subject,
     "message" => 'To Be Sent Tomorrow: '.$email.$message
