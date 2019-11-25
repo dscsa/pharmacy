@@ -303,7 +303,7 @@ function needs_form_notice($groups) {
   ///It's depressing to get updates if nothing is being filled
   if ($groups['NOFILL_ACTION']) {
     $subject = 'Welcome to Good Pill!  We are excited to fill your 1st Order.';
-    $message = 'Your order will be #'.$groups['ALL'][0]['invoice_number'].". Please take 5mins to register so that we can fill the Rxs we got from your doctor as soon as possible. Once you register it will take 5-7 business days before you receive your order. You can register online at www.goodpill.org or by calling us at (888) 987-5187.<br><br><u>The drugs in your 1st order will be:</u><br>".implode(';<br>', $groups['FILLED_WITH_PRICES']).';';
+    $message = 'Your first order will be #'.$groups['ALL'][0]['invoice_number']." and will cost $6. Please take 5mins to register so that we can fill the Rxs we got from your doctor as soon as possible. Once you register it will take 5-7 business days before you receive your order. You can register online at www.goodpill.org or by calling us at (888) 987-5187.<br><br><u>The drugs in your 1st order will be:</u><br>".implode(';<br>', $groups['NOFILL_ACTION']).';';
   }
   else {
     $subject = "Welcome to Good Pill. Unfortunately we can't complete your 1st Order";
