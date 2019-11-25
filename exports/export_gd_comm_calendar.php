@@ -498,6 +498,10 @@ function tracking_link($tracking) {
 }
 
 function get_phones($order) {
+
+  if ( ! isset($order[0])) {
+    email('ERROR: get_phones', $order);
+  }
   //email('get_phones', $order);
   return $order[0]['phone1'].($order[0]['phone2'] ? ','.$order[0]['phone2'] : '');
 }
