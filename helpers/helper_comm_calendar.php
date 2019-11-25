@@ -267,6 +267,11 @@ function format_call($call_json) {
 }
 
 function get_patient_label($order) {
+
+  if ( ! isset($order[0])) {
+    email('ERROR: get_patient_label', $order);
+  }
+
   return $order[0]['first_name'].' '.$order[0]['last_name'].' '.$order[0]['birth_date'];
 }
 
