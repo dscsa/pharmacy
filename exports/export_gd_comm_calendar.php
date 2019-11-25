@@ -407,11 +407,11 @@ function order_failed_notice($order, $days) {
     ''
   ]);
 
-  order_failed_event($groups['ALL'], $email, $text, $days*24, 13);
-  order_failed_event($groups['ALL'], [
+  order_failed_event($order, $email, $text, $days*24, 13);
+  order_failed_event($order, [
     "email"   => PHARMACIST_EMAIL.','.DEBUG_EMAIL,
     "subject" => 'To Be Sent Tomorrow: '.$subject,
-    "message" => 'To Be Sent Tomorrow: '.$email.$message
+    "message" => 'To Be Sent Tomorrow: '.$order[0]['email'].' '.$message
   ], null, ($days-1)*24, 13);
 }
 
