@@ -181,16 +181,16 @@ function new_comm_arr($email, $text = '') {
     $comm_arr[] = $email;
   }
 
-  if (LIVE_MODE AND $text AND $text['sms'] AND in_array($text['sms'], DO_NOT_SMS)) {
+  if (LIVE_MODE AND $text AND $text['sms'] AND ! in_array($text['sms'], DO_NOT_SMS)) {
     //addCallFallback
     $json = preg_replace('/ undefined/g', '', json_encode($text));
 
-    $text = format_text(json);
-    $call = format_call(json);
+    $text = format_text($json);
+    $call = format_call($json);
 
     $call['message'] = 'Hi, this is Good Pill Pharmacy <Pause />'.$call['message'].' <Pause length="2" />if you need to speak to someone please call us at 8,,,,8,,,,8 <Pause />9,,,,8,,,,7 <Pause />5,,,,1,,,,8,,,,7. <Pause length="2" /> Again our phone number is 8,,,,8,,,,8 <Pause />9,,,,8,,,,7 <Pause />5,,,,1,,,,8,,,,7. <Pause />';
     $call['call']    = $call['sms'];
-    $call['sms']     = undefined;
+    unset($call['sms']);
 
     $text['fallbacks'] = [$call];
     $comm_arr[] = $text;
