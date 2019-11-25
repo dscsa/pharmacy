@@ -129,7 +129,7 @@ const RX_MESSAGE = [
     'ES' => ''
   ],
   'ACTION NEEDS FORM' => [
-    'EN' => 'waiting on you to register',
+    'EN' => 'can be filled once you register',
     'ES' => ''
   ]
 ];

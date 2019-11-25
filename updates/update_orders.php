@@ -200,9 +200,9 @@ function update_orders() {
       $fill = $days ? 'FILLED_' : 'NOFILL_';
       $msg  = $item['item_message_text'] ? ' '.$item['item_message_text'] : '';
 
-      if (strpos($msg, 'NO ACTION') !== false)
+      if (strpos($item['item_message_key'], 'NO ACTION') !== false)
         $action = 'NOACTION';
-      else if (strpos($msg, 'ACTION') !== false)
+      else if (strpos($item['item_message_key'], 'ACTION') !== false)
         $action = 'ACTION';
       else
         $action = 'NOACTION';
