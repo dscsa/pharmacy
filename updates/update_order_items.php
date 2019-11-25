@@ -51,14 +51,16 @@ function update_order_items() {
     ";
 
 
-    $item  = [];
+    $full_item  = [];
     $query = $mysql->run($sql);
 
-    if (isset($query[0][0]))
-      $item = $query[0][0];
-    else if ($item AND ! isset($item['price_per_month']))
-      email('ERROR get_full_item: missing stock level', $item, $query, $sql);
-    else {
+    if (isset($query[0][0])) {
+      $full_item = $query[0][0];
+
+      if ( ! isset($full_item['price_per_month']))
+        email('ERROR get_full_item: missing stock level', $item, $full_item, $query, $sql);
+        
+    } else {
 
       $debug = "
         SELECT *
@@ -79,7 +81,7 @@ function update_order_items() {
 
       $anything = $mysql->run($debug);
 
-      email("ERROR get_full_item: missing item", $item, $query, $sql, $debug, $anything);
+      email("ERROR get_full_item: missing item", $item, $full_item, $sql, $query, $debug, $anything);
     }
 
     log_info("
