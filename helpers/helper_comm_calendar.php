@@ -404,6 +404,11 @@ function cancel_events_by_person($first_name, $last_name, $birth_date, $types = 
   $cancel = [];
   $events = search_events_by_person($first_name, $last_name, $birth_date, false, $types);
 
+  if ( ! is_array($events)) {
+    email('ERROR watch_invoices',$events, $first_name, $last_name, $birth_date, false, $types);
+    $events = [];
+  }
+
   foreach ($events as $event) {
     $cancel[] = $event['id'];
   }

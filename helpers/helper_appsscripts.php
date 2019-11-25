@@ -23,6 +23,11 @@ function watch_invoices() {
 
   $invoices = json_decode(gdoc_post(GD_HELPER_URL, $args), true);
 
+  if ( ! is_array($invoices)) {
+    email('ERROR watch_invoices',$invoices, $args);
+    $invoices = [];
+  }
+
   foreach ($invoices as $invoice) {
 
     preg_match_all('/(Total:? +|Amount Due:? +|Price of next order3?:? +)\$(\d+)/', $invoice['part0'], $matches);

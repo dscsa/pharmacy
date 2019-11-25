@@ -53,6 +53,7 @@ function update_orders() {
   }
 
   function sync_to_order($order, $mysql) {
+
     foreach($order as $item) {
 
       if ( ! isset($item['invoice_number'])) {
