@@ -183,7 +183,7 @@ function new_comm_arr($email, $text = '') {
 
   if (LIVE_MODE AND $text AND $text['sms'] AND ! in_array($text['sms'], DO_NOT_SMS)) {
     //addCallFallback
-    $json = preg_replace('/ undefined/g', '', json_encode($text));
+    $json = preg_replace('/ undefined/', '', json_encode($text));
 
     $text = format_text($json);
     $call = format_call($json);
@@ -201,7 +201,7 @@ function new_comm_arr($email, $text = '') {
 
 function format_text($text_json) {
 
-  $text_json = preg_replace(['/<br>/g', '/<.*?>/g', '/#(\d{4,})/g'], ['\\n', '', '$1'], $text_json);
+  $text_json = preg_replace(['/<br>/', '/<.*?>/', '/#(\d{4,})/'], ['\\n', '', '$1'], $text_json);
 
   try {
     return json_decode($text_json, true);
@@ -215,27 +215,27 @@ function format_call($call_json) {
   $regex = [
     '/View it at [^ ]+ /',
     '/Track it at [^ ]+ /',
-    '/\(?888[)-.]? ?987[.-]?5187/g',
-    '/(www\.)?goodpill\.org/g',
-    '/(\w):(?!\/\/)/g',
-    '/;<br>/g',
-    '/;|\./g,',
-    '/(<br>)+/g',
-    '/\.(\d)(\d)?(\d)?/g',
-    '/ but /g',
-    '/(\d+)MG/g',
-    '/(\d+)MCG/g',
-    '/(\d+)MCG/g',
-    '/ Rxs/ig',
-    '/ ER /ig',
-    '/ DR /ig',
-    '/ TAB| CAP/ig',
+    '/\(?888[)-.]? ?987[.-]?5187/',
+    '/(www\.)?goodpill\.org/',
+    '/(\w):(?!\/\/)/',
+    '/;<br>/',
+    '/;|\./,',
+    '/(<br>)+/',
+    '/\.(\d)(\d)?(\d)?/',
+    '/ but /',
+    '/(\d+)MG/',
+    '/(\d+)MCG/',
+    '/(\d+)MCG/',
+    '/ Rxs/i',
+    '/ ER /i',
+    '/ DR /i',
+    '/ TAB| CAP/i',
     '/\#(\d)(\d)(\d)(\d)(\d)(\d)?/'
   ];
 
   $replace = [
     "",
-    "View and track your $order online at www.goodpill.org",
+    "View and track your order online at www.goodpill.org",
     '8,,,,8,,,,8 <Pause />9,,,,8,,,,7 <Pause />5,,,,1,,,,8,,,,7',
     'w,,w,,w,,dot,,,,good,,,,pill,,,,dot,,,,org,,,,again that is g,,,,o,,,,o,,,d,,,,p,,,,i,,,,l,,,,l,,,,dot,,,,o,,,,r,,,,g',
     '$1<Pause />', //Don't capture JSON $text or URL links
