@@ -24,6 +24,8 @@ function update_orders() {
 
   $mysql = new Mysql_Wc();
 
+  order created -> add any additional rxs to order -> import order items -> sync all drugs in order
+
   function get_full_order($order, $mysql) {
 
     //gp_orders.invoice_number at end because otherwise potentially null gp_order_items.invoice_number will override gp_orders.invoice_number
@@ -33,9 +35,9 @@ function update_orders() {
         gp_orders
       JOIN gp_patients ON
         gp_patients.patient_id_cp = gp_orders.patient_id_cp
-      LEFT JOIN gp_order_items ON -- Orders may not have any items
-        gp_orders.invoice_number = gp_order_items.invoice_number
-      LEFT JOIN gp_rxs_grouped ON
+      LEFT JOIN gp_rxs_grouped ON -- Show all Rxs on Invoice regardless if they are in order or not
+        gp_rxs_grouped.patient_id_cp = gp_orders.patient_id_cp
+      LEFT JOIN gp_order_items ON
         rx_numbers LIKE CONCAT('%,', gp_order_items.rx_number, ',%')
       WHERE
         gp_orders.invoice_number = $order[invoice_number]
@@ -316,11 +318,11 @@ function update_orders() {
   //  - update wc order total
   foreach($changes['deleted'] as $deleted) {
 
-    export_gd_delete_invoice($deleted);
+    export_gd_delete_invoice([$deleted]);
 
-    export_wc_delete_order($deleted);
+    export_wc_delete_order([$deleted]);
 
-    send_deleted_order_communications($deleted);
+    send_deleted_order_communications([$deleted]);
 
 
     //TODO Update Salesforce Order Total & Order Count & Order Invoice using REST API or a MYSQL Zapier Integration

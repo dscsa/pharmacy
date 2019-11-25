@@ -1,7 +1,6 @@
 <?php
 
 function export_cp_remove_item($item) {
-
   //Notify Patient?
   log_info("
   export_cp_remove_item ");//.print_r($item, true);
