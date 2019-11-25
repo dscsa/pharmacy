@@ -59,7 +59,7 @@ function update_order_items() {
 
       if ( ! isset($full_item['price_per_month']))
         email('ERROR get_full_item: missing stock level', $item, $full_item, $query, $sql);
-        
+
     } else {
 
       $debug = "
@@ -86,9 +86,9 @@ function update_order_items() {
 
     log_info("
     Item: $sql
-    ".print_r($item, true));
+    ".print_r($full_item, true));
 
-    return $item;
+    return $full_item;
   }
 
   //If just added to CP Order we need to
