@@ -278,7 +278,7 @@ function create_event($event_title, $comm_arr, $hours_to_wait = 0, $hour_of_day 
     'start'       => $startTime,
     'hours'       => 0.5,
     'title'       => "(NEW) $event_title",
-    'description' => json_encode($comm_arr, JSON_PRETTY_PRINT)
+    'description' => $comm_arr
   ];
 
   $result = gdoc_post(GD_HELPER_URL, $args);

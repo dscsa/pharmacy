@@ -12,7 +12,14 @@ function createCalendarEvent(event) {
   event.stopDate  = addHours(event.hours, event.start)
   event.startDate = new Date(event.start)
   infoEmail('createCalendarEvent', event)
-  return CalendarApp.getCalendarById(event.cal_id).createEvent(event.title, event.startDate, event.stopDate, {description:event.description})
+  return CalendarApp
+    .getCalendarById(event.cal_id)
+    .createEvent(
+      event.title,
+      event.startDate,
+      event.stopDate,
+      {description:JSON.stringify(event.description, null, '  ')}
+    )
 }
 
 function removeCalendarEvents(opts) {
