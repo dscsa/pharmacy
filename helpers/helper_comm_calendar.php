@@ -192,6 +192,8 @@ function new_comm_arr($email, $text = '') {
     $call['call']    = $call['sms'];
     unset($call['sms']);
 
+    email('comm_array', $json, $text, $call);
+
     $text['fallbacks'] = [$call];
     $comm_arr[] = $text;
   }
