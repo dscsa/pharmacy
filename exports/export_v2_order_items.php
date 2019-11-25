@@ -135,7 +135,7 @@ function group_by_ndc($rows, $item) {
     if (strlen($row['doc']['bin']) == 3) {
       $ndcs[$ndc]['prepack_qty'] += $row['doc']['qty']['to'];
 
-      if ($row['doc']['exp']['to'] < $ndcs[$ndc]['prepack_exp'])
+      if (isset($ndcs[$ndc]['prepack_exp']) AND $row['doc']['exp']['to'] < $ndcs[$ndc]['prepack_exp'])
         $ndcs[$ndc]['prepack_exp'] = $row['doc']['exp']['to'];
     }
 
