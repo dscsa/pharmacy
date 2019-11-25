@@ -60,6 +60,9 @@ function searchCalendarEvents(opts) {
 
   var calendar = CalendarApp.getCalendarById(opts.cal_id)
 
+  if ( ! calendar)
+    debugEmail('ERROR searchCalendarEvents: cal_id or permission error', opts)
+
   var start    = opts.start || new Date()
   var stop     = addHours(opts.hours, start) //stop date seems to be required by Google.  Everything should happen within 90 days
   var config   = { search:opts.word_search }
