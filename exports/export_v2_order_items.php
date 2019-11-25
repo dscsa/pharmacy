@@ -154,6 +154,11 @@ function sort_by_ndc($ndcs, $long_exp) {
   }
   //Sort in descending order of prepack_qty. TODO should we look Exp date as well?
   usort($sorted_ndcs, function($a, $b) {
+
+    if ( ! isset($a['inventory']['prepack_qty']) OR ! isset($b['inventory']['prepack_qty'])) {
+      email('ERROR: get_patient_label', $a, $b, $sorted_ndcs);
+    }
+
     return $b['inventory']['prepack_qty'] - $a['inventory']['prepack_qty'];
   });
 
