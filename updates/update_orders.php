@@ -299,7 +299,7 @@ function update_orders() {
   //  - Update wc order count/total
   foreach($changes['created'] as $created) {
 
-    sync_to_order($created, $mysql)
+    sync_to_order($created, $mysql);
 
     $order = get_full_order($created, $mysql);
 
