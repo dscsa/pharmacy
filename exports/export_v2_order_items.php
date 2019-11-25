@@ -39,7 +39,7 @@ function print_pick_list($item, $vals) {
 
   $header = [
     ['Order #'.$item['invoice_number'].' '.$item['drug_generic'].' '.$item['drug_name'].' '.date('Y-m-d H:i:s'), '', '' ,'', '', ''],
-    ['Days:'.$item['days_dispensed_default'].', Qty:'.$item['qty_dispensed_default'].', Count:'.count($vals).($item['stock_level_initial'] != STOCK_LEVEL['HIGH SUPPLY'] ? ' ('.$item['stock_level_initial'].')' : '').(isset($vals['half_fill']) ? $vals['half_fill'] : ''), '', '', '', '', ''],
+    ['Days:'.$item['days_dispensed_default'].', Qty:'.$item['qty_dispensed_default'].', Count:'.count($vals['list']).($item['stock_level_initial'] != STOCK_LEVEL['HIGH SUPPLY'] ? ' ('.$item['stock_level_initial'].')' : '').(isset($vals['half_fill']) ? $vals['half_fill'] : ''), '', '', '', '', ''],
     ['', '', '', '', '', '']
   ];
 
@@ -47,7 +47,7 @@ function print_pick_list($item, $vals) {
     'method'   => 'newSpreadsheet',
     'file'     => pick_list_name($item),
     'folder'   => PICK_LIST_FOLDER_NAME,
-    'vals'     => array_values($header + $vals), //merge arrays, make sure array is not associative or json will turn to object
+    'vals'     => $header + $vals['list'], //merge arrays, make sure array is not associative or json will turn to object
     'widths'   => [1 => 243] //show the full id when it prints
   ];
 
@@ -241,8 +241,10 @@ function get_qty_needed($rows, $min_qty, $safety) {
         $pend[0]['bin']
       ];
 
+      usort($list, 'sort_list');
+
       if ($qty <= 0) {
-        return ['list' => usort($list, 'sort_list'), 'ndc' => $ndc, 'pend' => $pend ];
+        return ['list' => $list, 'ndc' => $ndc, 'pend' => $pend ];
       }
     }
   }
