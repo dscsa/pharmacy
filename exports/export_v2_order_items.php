@@ -58,7 +58,7 @@ function print_pick_list($item, $vals) {
     'method'   => 'newSpreadsheet',
     'file'     => pick_list_name($item),
     'folder'   => PICK_LIST_FOLDER_NAME,
-    'vals'     => $header + $vals['list'], //merge arrays, make sure array is not associative or json will turn to object
+    'vals'     => array_merge($header, $vals['list']), //merge arrays, make sure array is not associative or json will turn to object
     'widths'   => [1 => 243] //show the full id when it prints
   ];
 
