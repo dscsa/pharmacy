@@ -281,7 +281,7 @@ function update_orders() {
   function send_deleted_order_communications($order) {
 
     //TODO We need something here!
-    order_failed_notice($order, 0);
+    order_canceled_notice($order);
     email('Order was deleted', $order);
   }
 
@@ -299,13 +299,11 @@ function update_orders() {
         autopay_reminder_notice($groups);
     }
 
-    else if ($order[0]['days_dispensed_actual'])
+    else if ($order[0]['order_status'] == 'Dispensed')
       order_dispensed_notice($groups);
 
-    else {
+    else
       order_updated_notice($groups);
-      order_failed_notice($order, 7); //After updated event since orderUpdatedEvent() will delete an previous orderFailed messages
-    }
   }
 
   //If just added to CP Order we need to

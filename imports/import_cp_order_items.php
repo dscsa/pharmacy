@@ -7,6 +7,9 @@ function import_cp_order_items() {
 
   $items = $mssql->run("
 
+    DECLARE @today as DATETIME
+    SET @today = GETDATE()
+
     SELECT
       csomline.order_id+2 as invoice_number,
   		COALESCE(
@@ -30,8 +33,8 @@ function import_cp_order_items() {
       ) as item_added_by -- from csuser
   	FROM csomline
   	JOIN cprx ON cprx.rx_id = csomline.rx_id
-    LEFT OUTER JOIN cprx_disp disp ON csomline.rxdisp_id > 0 AND disp.rxdisp_id = csomline.rxdisp_id
-    WHERE line_state_cn < 50 -- Unshipped only to cut down volume. Will qty and days be set before this?
+    LEFT JOIN cprx_disp disp ON csomline.rxdisp_id > 0 AND disp.rxdisp_id = csomline.rxdisp_id -- Rx might not yet be dispensed
+    WHERE (line_state_cn < 50 OR cprx.chg_date + 1 > @today)-- Unshipped only to cut down volume. line_state < 50 by itself did not enable qty/days_dispensed_actual to get set properly
     GROUP BY csomline.order_id, (CASE WHEN gcn_seqno > 0 THEN gcn_seqno ELSE script_no END) --This is because of Orders like 8660 where we had 4 duplicate Citalopram 40mg.  Two that were from Refills, One Denied Surescript Request, and One new Surescript.  We are only going to send one GCN so don't list it multiple times
   ");
 

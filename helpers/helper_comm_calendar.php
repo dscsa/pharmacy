@@ -143,7 +143,7 @@ function no_rx_event($order, $email, $text, $hours_to_wait, $hour_of_day = null)
   create_event($event_title, $comm_arr, $hours_to_wait, $hour_of_day);
 }
 
-function order_failed_event($order, $email, $text, $hours_to_wait, $hour_of_day  = null) {
+function order_canceled_event($order, $email, $text, $hours_to_wait, $hour_of_day  = null) {
 
   $patient_label = get_patient_label($order);
   $event_title   = $order[0]['invoice_number'].' Order Failed: '.$patient_label.'.  Created:'.date('Y:m:d H:i:s');
@@ -152,7 +152,7 @@ function order_failed_event($order, $email, $text, $hours_to_wait, $hour_of_day 
 
   $comm_arr = new_comm_arr($email, $text);
 
-  email('order_failed_event', $event_title, $comm_arr, $hours_to_wait, $hour_of_day, $cancel, $order);
+  email('order_canceled_event', $event_title, $comm_arr, $hours_to_wait, $hour_of_day, $cancel, $order);
 
   create_event($event_title, $comm_arr, $hours_to_wait, $hour_of_day);
 }

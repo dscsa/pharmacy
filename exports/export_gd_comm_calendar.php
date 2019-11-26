@@ -387,10 +387,10 @@ function no_rx_notice($groups) {
 
 //NOTE: UNLIKE OTHER COMM FUNCTIONS THIS TAKES ORDER AND NOT GROUPS
 //THIS IS BECAUSE A DELETED ORDER DOES NOT HAVE ANY DRUGS TO GROUP
-function order_failed_notice($order, $days) {
+function order_canceled_notice($order) {
 
-  $subject = "Apologies but Good Pill is having trouble with your Order #".$order[0]['invoice_number'];
-  $message = "We are so sorry for the inconvenience. Please call us at (888) 987-5187 and we will explain the issue.";
+  $subject = "We have canceled your Order #".$order[0]['invoice_number'];
+  $message = "We have canceled this order. Please call us at (888) 987-5187 if you believe this is in error.";
 
   $email = [ "email" => $order[0]['email'] ];
   $text  = [ "sms" => get_phones($order),  "message" => $subject.'. '.$message ];
@@ -407,12 +407,7 @@ function order_failed_notice($order, $days) {
     ''
   ]);
 
-  order_failed_event($order, $email, $text, $days*24, 13);
-  order_failed_event($order, [
-    "email"   => PHARMACIST_EMAIL.','.DEBUG_EMAIL,
-    "subject" => 'To Be Sent Tomorrow: '.$subject,
-    "message" => 'To Be Sent Tomorrow: '.$order[0]['email'].' '.$message
-  ], null, ($days-1)*24, 13);
+  order_canceled_event($order, $email, $text, 15/60);
 }
 
 function confirm_shipment_notice($groups) {
