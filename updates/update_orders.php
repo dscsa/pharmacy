@@ -246,8 +246,7 @@ function update_orders() {
       if ( ! $item['refills_total_default'] AND $days AND $days < $groups['MIN_DAYS'])
         $groups['MIN_DAYS'] = $days;
 
-      if ($item['item_added_by'] == 'MANUAL' OR $item['item_added_by'] == 'WEBFORM')
-        $groups['MANUALLY_ADDED'] = true;
+      $groups['MANUALLY_ADDED'] = $item['item_added_by'] == 'MANUAL' OR $item['item_added_by'] == 'WEBFORM';
     }
 
     $groups['NUM_FILLED'] = count($groups['FILLED_ACTION']) + count($groups['FILLED_NOACTION']);
