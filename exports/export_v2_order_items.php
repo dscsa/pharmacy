@@ -43,6 +43,8 @@ function print_pick_list($item, $vals) {
     ['', '', '', '', '', '']
   ];
 
+  email("WebForm make_pick_list",  $header, $vals, $item, $args, $result);
+
   $args = [
     'method'   => 'newSpreadsheet',
     'file'     => pick_list_name($item),
@@ -52,8 +54,6 @@ function print_pick_list($item, $vals) {
   ];
 
   $result = gdoc_post(GD_HELPER_URL, $args);
-
-  email("WebForm make_pick_list",  $header, $vals, $item, $args, $result);
 }
 
 function pend_pick_list($item, $vals) {
