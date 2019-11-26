@@ -198,6 +198,7 @@ function set_days_dispensed($item, $days, $message, $mysql) {
     //set_days_dispensed days:$days, $sql";//.print_r($item, true));
   }
   else {
+    $sql = '';
     email('ERROR set_days_dispensed', 'days_dispensed_default is set but days_dispensed_actual is not, so why is this function being called?', $item, $days, $message);
   }
 
