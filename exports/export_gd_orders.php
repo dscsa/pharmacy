@@ -11,6 +11,14 @@ function export_gd_update_invoice($order) {
 
   if ( ! count($order)) return;
 
+  //Consolidate default and actual suffixes to avoid conditional overload in the invoice template
+  foreach($order as $item) {
+    $order['days_dispensed'] = $order['days_dispensed_actual'] ?: $order['days_dispensed_default'];
+    $order['qty_dispensed'] = $order['qty_dispensed_actual'] ?: $order['qty_dispensed_default'];
+    $order['refills_total'] = $order['refills_total_actual'] ?: $order['refills_total_default'];
+    $order['price_dispensed'] = $order['price_dispensed_actual'] ?: $order['price_dispensed_default'];
+  }
+
   $args = [
     'method'   => 'mergeDoc',
     'template' => 'Invoice Template v1',
