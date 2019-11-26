@@ -74,7 +74,7 @@ const RX_MESSAGE = [
     'ES' => ''
   ],
   'NO ACTION WILL TRANSFER CHECK BACK' => [
-    'EN' => 'is not currently offered and will be transferred to your local pharmacy. Check back in a month or two',
+    'EN' => 'is not offered and will be transferred to your local pharmacy. Check back in 3 months',
     'ES' => ''
   ],
   'NO ACTION WILL TRANSFER' => [
