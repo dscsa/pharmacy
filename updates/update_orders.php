@@ -188,6 +188,12 @@ function update_orders() {
     return $order;
   }
 
+  function unpend_order($order) {
+    foreach($order as $item) {
+      export_v2_remove_pended($item);
+    }
+  }
+
   //All Communication should group drugs into 4 Categories based on ACTION/NOACTION and FILL/NOFILL
   //1) FILLING NO ACTION
   //2) FILLING ACTION
@@ -288,6 +294,7 @@ function update_orders() {
       order_shipped_notice($groups);
       confirm_shipment_notice($groups);
       refill_reminder_notice($groups);
+      unpend_order($order);
 
       if ($order[0]['payment_method'] == PAYMENT_METHOD['AUTOPAY'])
         autopay_reminder_notice($groups);
@@ -341,6 +348,8 @@ function update_orders() {
     export_gd_delete_invoice([$deleted]);
 
     export_wc_delete_order([$deleted]);
+
+    unpend_order([$deleted]);
 
     send_deleted_order_communications([$deleted]);
 

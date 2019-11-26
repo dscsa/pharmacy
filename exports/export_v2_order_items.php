@@ -16,6 +16,8 @@ function export_v2_remove_pended($item) {
   log_info("
   export_v2_remove_pended ");//.print_r($item, true);
 
+  email('export_v2_remove_pended', $item);
+
   //delete_pick_list
   //$res = v2_fetch('/account/8889875187/pend/'.$item['invoice_number'], 'DELETE');
 
