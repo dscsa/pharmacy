@@ -325,8 +325,6 @@ function update_orders() {
     $update = get_payment($order);
     $order  = set_payment($order, $update, $mysql);
 
-    export_cp_add_more_items($order); //this will cause another update and we will end back in this loop
-
     export_gd_update_invoice($order);
 
     export_wc_update_order($order);
