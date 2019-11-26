@@ -152,6 +152,25 @@ function set_days_dispensed($item, $days, $message, $mysql) {
     log_info("
     Error set_days_dispensed? ".print_r($item, true));
   }
+  else if ($item['days_dispensed_actual']) {
+
+    $sql = "
+      UPDATE
+        gp_order_items
+      SET
+        -- Other Fields Should Already Be Set Above (And May have Been Sent to Patient) so don't change
+        price_dispensed_actual   = ".ceil($days*$price/30).",
+        refills_total_actual     = $item[refills_total]
+      WHERE
+        invoice_number = $item[invoice_number] AND
+        rx_number = $item[rx_number]
+    ";
+
+    $mysql->run($sql);
+
+    log_info("
+    Actual? set_days_dispensed days:$days, $sql".print_r($item, true));
+  }
   else if ( ! $item['days_dispensed_default']) {
 
     $message_key  = array_search($message, RX_MESSAGE);
@@ -165,7 +184,7 @@ function set_days_dispensed($item, $days, $message, $mysql) {
         qty_dispensed_default   = ".($days*$item['sig_qty_per_day']).",
         item_message_key        = '$message_key',
         item_message_text       = '$message_text',
-        price_dispensed_default = ".max(1, round($days*$price/30)).",
+        price_dispensed_default = ".ceil($days*$price/30).",
         refills_total_default   = $item[refills_total],
         stock_level_initial     = '$item[stock_level]'
       WHERE
@@ -177,27 +196,11 @@ function set_days_dispensed($item, $days, $message, $mysql) {
 
     //log("
     //set_days_dispensed days:$days, $sql";//.print_r($item, true));
-
   }
   else {
-
-    $sql = "
-      UPDATE
-        gp_order_items
-      SET
-        -- Other Fields Should Already Be Set Above (And May have Been Sent to Patient) so don't change
-        price_dispensed_actual   = ".max(1, round($days*$price/30)).",
-        refills_total_actual     = $item[refills_total]
-      WHERE
-        invoice_number = $item[invoice_number] AND
-        rx_number = $item[rx_number]
-    ";
-
-    $mysql->run($sql);
-
-    log_info("
-    Actual? set_days_dispensed days:$days, $sql".print_r($item, true));
+    email('ERROR set_days_dispensed', 'days_dispensed_default is set but days_dispensed_actual is not, so why is this function being called?', $item, $days, $message);
   }
+
 
   email('set_days_dispensed', $item, $days, $message, $sql);
 }
@@ -215,7 +218,7 @@ function days_default($item, $days_std = 90) {
   //Fill up to 30 days more to finish up an Rx if almost finished
   $days_default = ($days_of_qty_left < $days_std+30) ? $days_of_qty_left : $days_std;
 
-  $days_default = min($days_default, $days_of_stock);
+  $days_default = round(min($days_default, $days_of_stock)/15)*15; //Round to nearest 15 days so we don't have too many different options
 
   $message = "
   days_default:$days_default, days_of_stock:$days_of_stock, days_of_qty_left:$days_of_qty_left, days_std:$days_std, refill_date_next:$item[refill_date_next]. ";//.print_r($item, true);
