@@ -285,7 +285,7 @@ function update_orders() {
     email('Order was deleted', $order);
   }
 
-  function send_updated_order_communications($order) {
+  function send_updated_order_communications($order, $updated) {
 
     $groups = group_drugs($order);
 
@@ -302,8 +302,10 @@ function update_orders() {
     else if ($order[0]['order_status'] == 'Dispensed')
       order_dispensed_notice($groups);
 
-    else
+    else {
       order_updated_notice($groups);
+      email('order_updated_notice', $updated, $groups);
+    }
   }
 
   //If just added to CP Order we need to
@@ -373,7 +375,7 @@ function update_orders() {
 
     export_wc_update_order($order);
 
-    send_updated_order_communications($order);
+    send_updated_order_communications($order, $updated);
 
     //TODO Update Salesforce Order Total & Order Count & Order Invoice using REST API or a MYSQL Zapier Integration
   }
