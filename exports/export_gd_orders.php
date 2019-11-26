@@ -13,11 +13,11 @@ function export_gd_update_invoice($order) {
 
   //Consolidate default and actual suffixes to avoid conditional overload in the invoice template
   foreach($order as $item) {
-    $order['item_message_text'] = $order['item_message_text'] ?: ''; //Get rid of NULL
-    $order['days_dispensed'] = $order['days_dispensed_actual'] ?: $order['days_dispensed_default'];
-    $order['qty_dispensed'] = (float) $order['qty_dispensed_actual'] ?: $order['qty_dispensed_default']; //cast to float to get rid of .000 decimal
-    $order['refills_total'] = $order['refills_total_actual'] ?: $order['refills_total_default'];
-    $order['price_dispensed'] = $order['price_dispensed_actual'] ?: $order['price_dispensed_default'];
+    $item['item_message_text'] = $item['item_message_text'] ?: ''; //Get rid of NULL
+    $item['days_dispensed'] = $item['days_dispensed_actual'] ?: $item['days_dispensed_default'];
+    $item['qty_dispensed'] = (float) $item['qty_dispensed_actual'] ?: $item['qty_dispensed_default']; //cast to float to get rid of .000 decimal
+    $item['refills_total'] = $item['refills_total_actual'] ?: $item['refills_total_default'];
+    $item['price_dispensed'] = $item['price_dispensed_actual'] ?: $item['price_dispensed_default'];
   }
 
   $args = [
