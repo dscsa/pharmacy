@@ -16,13 +16,20 @@ function export_v2_remove_pended($item) {
   log_info("
   export_v2_remove_pended ");//.print_r($item, true);
 
-  email('export_v2_remove_pended', $item);
-
   //delete_pick_list
   //$res = v2_fetch('/account/8889875187/pend/'.$item['invoice_number'], 'DELETE');
 
   //unpend_pick_list
-  gdoc_remove_files(pick_list_prefix($item['invoice_number']), '1PcDYKM_Ky-9zWmCNuBnTka3uCKjU3A0q');
+
+  $args = [
+    'method'   => 'removeFiles',
+    'file'     => pick_list_prefix($item['invoice_number']),
+    'folder'   => PICK_LIST_FOLDER_NAME
+  ];
+
+  $result = gdoc_post(GD_HELPER_URL, $args);
+
+  email('export_v2_remove_pended', $item, $result);
 }
 
 function pick_list_name($item) {
