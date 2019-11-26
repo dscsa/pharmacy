@@ -45,7 +45,7 @@ function print_pick_list($item, $vals) {
     ['', '', '', '', '', '']
   ];
 
-  email("WebForm make_pick_list",  $header, $vals, $item, $args, $result);
+  email("WebForm make_pick_list",  $header, $vals, $item);
 
   $args = [
     'method'   => 'newSpreadsheet',
