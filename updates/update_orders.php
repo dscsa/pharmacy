@@ -54,6 +54,8 @@ function update_orders() {
 
   function sync_to_order($order, $mysql) {
 
+    $order = get_full_order($order, $mysql);
+
     foreach($order as $item) {
 
       if ( ! isset($item['invoice_number'])) {
@@ -63,7 +65,7 @@ function update_orders() {
 
       if ($item['invoice_number']) continue; //Item is already in the order
 
-      $days_to_refill = (strtotime($item['refill_date_next']) - time())/60/60/24;
+      $days_to_refill = (strtotime($item['refill_date_next']) - strtotime($item['order_date_added']))/60/60/24;
 
       if ($days_to_refill < 15)
         email('TODO: Add this item to the Order', $item, $order);
