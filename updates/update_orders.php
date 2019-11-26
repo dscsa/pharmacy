@@ -14,13 +14,13 @@ function update_orders() {
   $count_created = count($changes['created']);
   $count_updated = count($changes['updated']);
 
+  if ( ! $count_deleted AND ! $count_created AND ! $count_updated) return;
+
   $message = "
   update_orders: $count_deleted deleted, $count_created created, $count_updated updated. ";
 
-  if ($count_deleted+$count_created+$count_updated)
-    log_info($message.print_r($changes, true));
-
-  if ( ! $count_deleted AND ! $count_created AND ! $count_updated) return;
+  log_info($message.print_r($changes, true));
+  email('update_orders', $message, $changes);
 
   $mysql = new Mysql_Wc();
 
