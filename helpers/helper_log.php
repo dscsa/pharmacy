@@ -1,30 +1,39 @@
 <?php
 
-function log_info($msg = null) {
+function log_info() {
 
   global $argv;
 
-  if ( ! in_array('log=info', $argv)) return;
+  if (in_array('log=info', $argv))
+    call_user_func_array("log_all", func_get_args());
+}
 
-  echo $msg;
+function log_all() {
+
+  $log = args_to_string(func_get_args());
 
   if ( ! isset($_SERVER['webform_log'])) {
     $_SERVER['webform_log'] = [];
   }
 
-  if (is_null($msg)) {
+  if ( ! $log) {
     return implode('\n', $_SERVER['webform_log']);
   }
 
-  $_SERVER['webform_log'][] = $msg;
+  $_SERVER['webform_log'][] = $log;
 }
 
 function email($subject) {
+  call_user_func_array("log_info", func_get_args());
+  mail(DEBUG_EMAIL, print_r($subject, true), args_to_string(func_get_args()));
+}
+
+function args_to_string($args) {
   $body = '';
-  foreach (func_get_args() as $arg) {
+  foreach ($args as $arg) {
     $body .= print_r($arg, true).' | ';
   }
-  mail(DEBUG_EMAIL, print_r($subject, true), $body);
+  return $body;
 }
 
 function timer($label, &$start) {
