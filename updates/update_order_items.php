@@ -40,7 +40,7 @@ function update_order_items() {
       JOIN gp_rxs_grouped ON
         rx_numbers LIKE CONCAT('%,', gp_order_items.rx_number, ',%')
       JOIN gp_rxs_single ON
-        gp_rxs_grouped.best_rx_number = gp_rxs_single.rx_number
+        gp_order_items.rx_number = gp_rxs_single.rx_number
       JOIN gp_patients ON
         gp_rxs_grouped.patient_id_cp = gp_patients.patient_id_cp
       LEFT JOIN gp_stock_live ON -- might not have a match if no GSN match
@@ -57,19 +57,19 @@ function update_order_items() {
     if (isset($query[0][0])) {
       $full_item = $query[0][0];
 
-      if (array_key_exists('price_per_month', $full_item))
+      if ( ! array_key_exists('price_per_month', $full_item))
         email('ERROR get_full_item: missing stock level', $item, $full_item, $query, $sql);
 
     } else {
 
       $debug = "
-        SELECT *
+        SELECT *, , gp_order_items.rx_number as rx_number --otherwise gp_rx_single.rx_number overwrites
         FROM
           gp_order_items
         LEFT JOIN gp_rxs_grouped ON
           rx_numbers LIKE CONCAT('%,', gp_order_items.rx_number, ',%')
         LEFT JOIN gp_rxs_single ON
-          gp_rxs_grouped.best_rx_number = gp_rxs_single.rx_number
+          gp_order_items.rx_number = gp_rxs_single.rx_number
         LEFT JOIN gp_patients ON
           gp_rxs_grouped.patient_id_cp = gp_patients.patient_id_cp
         LEFT JOIN gp_stock_live ON -- might not have a match if no GSN match

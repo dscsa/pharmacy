@@ -11,3 +11,8 @@ function export_cp_add_item($item) {
   log_info("
   export_cp_add_more_items ");//.print_r($item, true);
 }
+
+function export_cp_switch_item($item) { //Move CP from current rx_number to the "best_rx_number"
+  log_info("
+  export_cp_switch_item ");//.print_r($item, true);
+}
