@@ -69,9 +69,6 @@ function update_rxs_single() {
       END as refill_date_next,
       MAX(refill_date_manual) as refill_date_manual,
       MAX(refill_date_default) as refill_date_default,
-      NULL as refill_date_target,
-      NULL as refill_target_days,
-      NULL as refill_target_count,
 
       COALESCE(
         MIN(CASE WHEN qty_left >= 45 AND days_left >= 45 THEN rx_number ELSE NULL END),
