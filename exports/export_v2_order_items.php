@@ -7,6 +7,8 @@ function export_v2_add_pended($item) {
   log_info("
   export_v2_add_pended ");//.print_r($item, true);
 
+  if ( ! $item['days_dispensed_default']) return;
+
   $vals = make_pick_list($item);
   print_pick_list($item, $vals);
   pend_pick_list($item, $vals);
@@ -49,14 +51,15 @@ function print_pick_list($item, $vals) {
   $header = [
     ['Order #'.$item['invoice_number'].' '.$item['drug_generic'].' ('.$item['drug_name'].')', '', '' ,'', '', ''],
     [
-      'Days:'.$item['days_dispensed_default'].
-      ', Qty:'.$item['qty_dispensed_default'].
-      ', Count:'.count($vals['list']).
-      ($item['stock_level_initial'] != STOCK_LEVEL['HIGH SUPPLY'] ? ', '.$item['stock_level_initial'] : '').
-      (isset($vals['half_fill']) ? $vals['half_fill'] : '').
+      $vals['half_fill'].
+      "Count:".count($vals['list']).", ".
+      "Days:$item[days_dispensed_default], ".
+      "Qty:$item[qty_dispensed_default], ".
+      "Stock:$item[stock_level_initial], ".
       ', Created:'.date('Y-m-d H:i:s'), '', '', '', '', ''
     ],
-    ['', '', '', '', '', '']
+    ['', '', '', '', '', ''],
+    ['id', 'ndc', 'form', 'exp', 'qty', 'bin']
   ];
 
   email("WebForm make_pick_list",  $header, $vals, $item);
@@ -108,6 +111,7 @@ function make_pick_list($item) {
   $unsorted_ndcs = group_by_ndc($resp['rows'], $item);
   $sorted_ndcs   = sort_by_ndc($unsorted_ndcs, $long_exp);
   $list          = get_qty_needed($sorted_ndcs, $min_qty, $safety);
+  $list['half_fill'] = '';
 
   email("Webform make_pick_list", $url, $item, $list, $sorted_ndcs, $resp);
 
@@ -118,7 +122,7 @@ function make_pick_list($item) {
   $list = get_qty_needed($sorted_ndcs, $min_qty*(45/$min_days*$min_qty), $safety);
 
   if ($list) {
-    $list['half_fill'] = ', HALF FILL - COULD NOT FIND ENOUGH QUANTITY';
+    $list['half_fill'] = 'HALF FILL - COULD NOT FIND ENOUGH QUANTITY, ';
     return $list;
   }
 }
