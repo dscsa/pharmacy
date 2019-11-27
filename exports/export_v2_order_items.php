@@ -47,8 +47,8 @@ function pick_list_suffix($item) {
 function print_pick_list($item, $vals) {
 
   $header = [
-    ['Order #'.$item['invoice_number'].' '.$item['drug_generic'].' '.$item['drug_name'].' '.date('Y-m-d H:i:s'), '', '' ,'', '', ''],
-    ['Days:'.$item['days_dispensed_default'].', Qty:'.$item['qty_dispensed_default'].', Count:'.count($vals['list']).($item['stock_level_initial'] != STOCK_LEVEL['HIGH SUPPLY'] ? ' ('.$item['stock_level_initial'].')' : '').(isset($vals['half_fill']) ? $vals['half_fill'] : ''), '', '', '', '', ''],
+    ['Order #'.$item['invoice_number'].' '.$item['drug_generic'].' ('.$item['drug_name'].')', '', '' ,'', '', ''],
+    ['Days:'.$item['days_dispensed_default'].', Qty:'.$item['qty_dispensed_default'].', Count:'.count($vals['list']).($item['stock_level_initial'] != STOCK_LEVEL['HIGH SUPPLY'] ? ', '.$item['stock_level_initial'] : '').(isset($vals['half_fill']) ? $vals['half_fill'] : '').', Created:'.date('Y-m-d H:i:s'), '', '', '', '', ''],
     ['', '', '', '', '', '']
   ];
 
