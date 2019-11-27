@@ -23,7 +23,7 @@ function changes_to_order_items($new) {
   //Get Inserted
   $created = $mysql->run(get_created_sql($new, $old, $id));
 
-  email('changes_to_order_items created', $created, get_created_sql($new, $old, $id), set_created_sql($new, $old, $id))
+  email('changes_to_order_items created', $created, get_created_sql($new, $old, $id), set_created_sql($new, $old, $id));
   //Get Updated
   $updated = $mysql->run(get_updated_sql($new, $old, $id, $where));
 
