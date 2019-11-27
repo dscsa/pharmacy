@@ -1,10 +1,10 @@
 <?php
 function args_to_string($args) {
-  $body = '';
-  foreach ($args as $arg) {
-    $body .= print_r($arg, true).' | ';
+
+  foreach ($args as $i => $arg) {
+    $args[$i] = print_r($arg, true);
   }
-  return $body;
+  return implode('|', $args);
 }
 
 function log_all() {
