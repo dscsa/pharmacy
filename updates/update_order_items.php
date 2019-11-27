@@ -101,6 +101,8 @@ function update_order_items() {
 
     $item = get_full_item($created, $mysql);
 
+    email('update_order_items created', $created, $item);
+
     list($days, $message) = get_days_dispensed($item);
 
     set_days_dispensed($item, $days, $message, $mysql);
