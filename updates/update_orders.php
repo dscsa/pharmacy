@@ -121,7 +121,7 @@ function update_orders() {
       if ($item['days_dispensed'] !== NULL) continue; //Don't add them to order if they are already in it
 
       $days_extra  = (strtotime($target_date) - strtotime($item['refill_date_next']))/60/60/24;
-      $days_synced = $item['days_dispensed'] + $days_extra;
+      $days_synced = $item['days_dispensed'] + round($days_extra/15)*15;
 
       if ($days_synced >= 15 AND $days_synced <= 120) { //Limits to the amounts by which we are willing sync
 
