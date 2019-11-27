@@ -118,7 +118,7 @@ function update_orders() {
 
     foreach($order as $i => $item) {
 
-      if ($item['days_dispensed'] !== NULL) continue; //Don't add them to order if they are already in it
+      if ( ! $item['days_dispensed']) continue; //Don't add them to order if they are already in it
 
       $days_extra  = (strtotime($target_date) - strtotime($item['refill_date_next']))/60/60/24;
       $days_synced = $item['days_dispensed'] + round($days_extra/15)*15;
