@@ -50,11 +50,11 @@ const RX_MESSAGE = [
     'ES' => ''
   ],
   'NO ACTION RECENT FILL' => [
-    'EN' => 'was filled recently and not due again until $NextRefill',
+    'EN' => 'was filled recently and not due again until refill_date_next',
     'ES' => ''
   ],
   'NO ACTION NOT DUE' => [
-    'EN' => 'is due for a refill on $NextRefill',
+    'EN' => 'is due for a refill on refill_date_next',
     'ES' => ''
   ],
   'NO ACTION CHECK SIG' => [
@@ -82,7 +82,7 @@ const RX_MESSAGE = [
     'ES' => ''
   ],
   'NO ACTION WAS TRANSFERRED' => [
-    'EN' => 'was transferred out to your local pharmacy on $RxChanged',
+    'EN' => 'was transferred out to your local pharmacy on rx_date_changed',
     'ES' => ''
   ],
   'NO ACTION LIVE INVENTORY ERROR' => [

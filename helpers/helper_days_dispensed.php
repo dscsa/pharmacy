@@ -174,6 +174,8 @@ function set_days_dispensed($item, $days, $message, $mysql) {
     $message_key  = array_search($message, RX_MESSAGE);
     $message_text = $message[$item['language']];
 
+    $message_text = str_replace(array_keys($item), array_values($item), $message_text);
+
     $sql = "
       UPDATE
         gp_order_items
