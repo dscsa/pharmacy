@@ -52,9 +52,9 @@ function update_orders() {
       foreach($order as $i => $item) {
         $order[$i]['item_message_text'] = $item['invoice_number'] ? ($item['item_message_text'] ?: ''): get_days_dispensed($item)[1]; //Get rid of NULL. //if not syncing to order lets provide a reason why we are not filling
         $order[$i]['days_dispensed'] = $item['days_dispensed_actual'] ?: $item['days_dispensed_default'];
-        $order[$i]['qty_dispensed'] = (float) $item['qty_dispensed_actual'] ?: (float) $item['qty_dispensed_default']; //cast to float to get rid of .000 decimal
+        $order[$i]['qty_dispensed'] = (float) ($item['qty_dispensed_actual'] ?: $item['qty_dispensed_default']); //cast to float to get rid of .000 decimal
         $order[$i]['refills_total'] = $item['refills_total_actual'] ?: $item['refills_total_default'];
-        $order[$i]['price_dispensed'] = (float) $item['price_dispensed_actual'] ?: (float) $item['price_dispensed_default'];
+        $order[$i]['price_dispensed'] = (float) ($item['price_dispensed_actual'] ?: ($item['price_dispensed_default'] ?: 0);
       }
     }
 
@@ -87,28 +87,34 @@ function update_orders() {
     $sync_dates = [];
     foreach ($order as $item) {
       if (isset($sync_dates[$item['refill_date_next']]))
-        $sync_dates[$item['refill_date_next']]++;
+        $sync_dates[$item['refill_date_next']][] = $item['rx_number'];
       else
-        $sync_dates[$item['refill_date_next']] = 0;
+        $sync_dates[$item['refill_date_next']] = [];
     }
 
-    $target_date  = null;
-    $target_count = null;
-    foreach($sync_dates as $date => $count) {
+    $target_date = null;
+    $target_rxs  = null;
+
+    foreach($sync_dates as $date => $rx_numbers) {
+
+      $count = count($rx_numbers);
+      $target_count = count($target_rxs);
+
       if ($count > $target_count) {
-        $target_count = $count;
         $target_date = $date;
+        $target_rxs  = $rx_numbers;
       }
       else if ($count == $target_count AND $date > $target_date) { //In case of tie, longest date wins
         $target_date = $date;
+        $target_rxs  = $rx_numbers;
       }
     }
 
-    return $target_date;
+    return [$target_date, ','.implode(',', $target_rxs).','];
   }
 
   //Sync any drug that has days to the new refill date
-  function set_sync_to_date($order, $target_date, $mysql) {
+  function set_sync_to_date($order, $target_date, $target_rxs, $mysql) {
 
     foreach($order as $i => $item) {
 
@@ -119,20 +125,21 @@ function update_orders() {
 
       if ($days_synced >= 15 AND $days_synced <= 120) { //Limits to the amounts by which we are willing sync
 
-        $order[$i]['refill_date_target']     = $target_date;
-        $order[$i]['days_dispensed'] = $days_synced;
-        $price = ($item['price_dispensed'] ?: 0) * $days_synced / $item['days_dispensed']; //Might be null
+        $order[$i]['refill_target_date'] = $target_date;
+        $order[$i]['days_dispensed']     = $days_synced;
+        $order[$i]['qty_dispensed']      = $days_synced*$item['sig_qty_per_day'];
+        $order[$i]['price_dispensed']    = ceil($item['price_dispensed'] * $days_synced / $item['days_dispensed']); //Might be null
 
         $sql = "
           UPDATE
             gp_order_items
-          JOIN gp_rxs_grouped ON
-            rx_numbers LIKE CONCAT('%,', gp_order_items.rx_number, ',%')
           SET
-            refill_date_target      = '$target_date',
+            refill_target_date      = '$target_date',
+            refill_target_days      = $days_extra,
+            refill_target_rxs       = '$target_rxs',
             days_dispensed_default  = $days_synced,
-            qty_dispensed_default   = ".($days_synced*$item['sig_qty_per_day']).",
-            price_dispensed_default = ".ceil($price)."
+            qty_dispensed_default   = ".$order[$i]['qty_dispensed'].",
+            price_dispensed_default = ".$order[$i]['price_dispensed']."
           WHERE
             rx_number = $item[rx_number]
         ";
@@ -329,8 +336,8 @@ function update_orders() {
 
     $order = get_full_order($created, $mysql);
 
-    $target_date = get_sync_to_date($order);
-    $order  = set_sync_to_date($order, $target_date, $mysql);
+    list($target_date, $target_rxs) = get_sync_to_date($order);
+    $order  = set_sync_to_date($order, $target_date, $target_rxs, $mysql);
 
     $update = get_payment($order);
     $order  = set_payment($order, $update, $mysql);
@@ -376,8 +383,8 @@ function update_orders() {
     //Probably finalized days/qty_dispensed_actual
     //Update invoice now or wait until shipped order?
 
-    $target_date = get_sync_to_date($order);
-    $order  = set_sync_to_date($order, $target_date, $mysql);
+    list($target_date, $target_rxs) = get_sync_to_date($order);
+    $order  = set_sync_to_date($order, $target_date, $target_rxs, $mysql);
 
     $update = get_payment($order);
     $order  = set_payment($order, $update, $mysql);
