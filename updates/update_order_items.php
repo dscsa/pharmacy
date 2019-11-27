@@ -57,7 +57,7 @@ function update_order_items() {
     if (isset($query[0][0])) {
       $full_item = $query[0][0];
 
-      if ( ! array_key_exists('price_per_month', $full_item))
+      if ( ! $full_item['stock_level'])
         email('ERROR get_full_item: missing stock level', $item, $full_item, $query, $sql);
 
     } else {
