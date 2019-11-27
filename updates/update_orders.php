@@ -48,7 +48,7 @@ function update_orders() {
     if ( ! $order OR ! $order[0]['invoice_number']) {
       email('ERROR! get_full_order: no invoice number ', $order);
     } else {
-      //Consolidate default and actual suffixes to avoid conditional overload in the invoice template
+      //Consolidate default and actual suffixes to avoid conditional overload in the invoice template and redundant code within communications
       foreach($order as $i => $item) {
         $order[$i]['item_message_text'] = $item['invoice_number'] ? ($item['item_message_text'] ?: ''): get_days_dispensed($item)[1]; //Get rid of NULL. //if not syncing to order lets provide a reason why we are not filling
         $order[$i]['days_dispensed'] = $item['days_dispensed_actual'] ?: $item['days_dispensed_default'];
@@ -112,16 +112,16 @@ function update_orders() {
 
     foreach($order as $i => $item) {
 
-      if ($item['days_dispensed_default'] == 0) continue; //Don't add them to order if they are not already in it
+      if ($item['days_dispensed'] !== NULL) continue; //Don't add them to order if they are already in it
 
       $days_extra  = (strtotime($target_date) - strtotime($item['refill_date_next']))/60/60/24;
-      $days_synced = $item['days_dispensed_default'] + $days_extra;
+      $days_synced = $item['days_dispensed'] + $days_extra;
 
       if ($days_synced >= 15 AND $days_synced <= 120) { //Limits to the amounts by which we are willing sync
 
         $order[$i]['refill_date_target']     = $target_date;
-        $order[$i]['days_dispensed_default'] = $days_synced;
-        $price = ($item['price_dispensed_default'] ?: 0) * $days_synced / $item['days_dispensed_default']; //Might be null
+        $order[$i]['days_dispensed'] = $days_synced;
+        $price = ($item['price_dispensed'] ?: 0) * $days_synced / $item['days_dispensed']; //Might be null
 
         $sql = "
           UPDATE
@@ -153,7 +153,7 @@ function update_orders() {
     $update['payment_total'] = 0;
 
     foreach($order as $i => $item)
-      $update['payment_total'] += $item['price_dispensed_actual'] ?: $item['price_dispensed_default'];
+      $update['payment_total'] += $item['price_dispensed'];
 
     //Defaults
     $update['payment_fee'] = $order[0]['refills_used'] ? $update['payment_total'] : PAYMENT_TOTAL_NEW_PATIENT;
@@ -225,7 +225,7 @@ function update_orders() {
 
     foreach ($order as $item) {
 
-      $days = $item['days_dispensed_default'];
+      $days = $item['days_dispensed'];
       $fill = $days ? 'FILLED_' : 'NOFILL_';
       $msg  = $item['item_message_text'] ? ' '.$item['item_message_text'] : '';
 
@@ -236,7 +236,7 @@ function update_orders() {
       else
         $action = 'NOACTION';
 
-      $price = $item['price_dispensed_default'] ? ', $'.((float) $item['price_dispensed_default']).$msg.' for '.$days.' days' : '';
+      $price = $item['price_dispensed'] ? ', $'.((float) $item['price_dispensed']).$msg.' for '.$days.' days' : '';
 
       $groups['ALL'][] = $item;
       $groups[$fill.$action][] = $item['drug_generic'].$msg;
@@ -246,13 +246,13 @@ function update_orders() {
         $groups['FILLED_WITH_PRICES'][] = $item['drug_generic'].$price;
       }
 
-      if ( ! $item['refills_total_default'])
+      if ( ! $item['refills_total'])
         $groups['NO_REFILLS'][] = $item['drug_generic'].$msg;
 
       if ($days AND ! $item['rx_autofill'])
         $groups['NO_AUTOFILL'][] = $item['drug_generic'].$msg;
 
-      if ( ! $item['refills_total_default'] AND $days AND $days < $groups['MIN_DAYS'])
+      if ( ! $item['refills_total'] AND $days AND $days < $groups['MIN_DAYS'])
         $groups['MIN_DAYS'] = $days;
 
       $groups['MANUALLY_ADDED'] = $item['item_added_by'] == 'MANUAL' OR $item['item_added_by'] == 'WEBFORM';
