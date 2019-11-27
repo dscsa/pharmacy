@@ -4,7 +4,7 @@ function args_to_string($args) {
   foreach ($args as $i => $arg) {
     $args[$i] = print_r($arg, true);
   }
-  return implode('|', $args);
+  return implode(' | ', $args);
 }
 
 function log_all() {
