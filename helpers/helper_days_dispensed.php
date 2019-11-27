@@ -149,8 +149,7 @@ function set_days_dispensed($item, $days, $message, $mysql) {
   $price = $item['price_per_month'] ?: 0; //Might be null
 
   if ( ! $item['rx_number'] OR ! $item['invoice_number'] ) {
-    log_info("
-    Error set_days_dispensed? ".print_r($item, true));
+    email("Error set_days_dispensed? ", $message, $item);
   }
   else if ($item['days_dispensed_actual']) {
 
@@ -168,8 +167,7 @@ function set_days_dispensed($item, $days, $message, $mysql) {
 
     $mysql->run($sql);
 
-    log_info("
-    Actual? set_days_dispensed days:$days, $sql".print_r($item, true));
+    email("set_days_dispensed Actual Days?:", $days, $message, $sql, $item);
   }
   else if ( ! $item['days_dispensed_default']) {
 
@@ -193,6 +191,8 @@ function set_days_dispensed($item, $days, $message, $mysql) {
     ";
 
     $mysql->run($sql);
+
+    email("set_days_dispensed Setting Defaults and Stock Level:", $days, $message, $sql, $item);
 
     //log("
     //set_days_dispensed days:$days, $sql";//.print_r($item, true));

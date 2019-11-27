@@ -250,6 +250,9 @@ function order_hold_notice($groups) {
     "Note: if this is correct, there is no need to do anything. If you think there is a mistake, please let us know as soon as possible."
   ]);
 
+  email('order_hold_event', $groups, $email, $text);
+
+
   //Wait 15 minutes to hopefully batch staggered surescripts and manual rx entry and cindy updates
   order_hold_event($groups['ALL'], $email, $text, 15/60);
 }
