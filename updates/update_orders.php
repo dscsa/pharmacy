@@ -93,7 +93,7 @@ function update_orders() {
     }
 
     $target_date = null;
-    $target_rxs  = null;
+    $target_rxs  = [];
 
     foreach($sync_dates as $date => $rx_numbers) {
 
