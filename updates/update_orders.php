@@ -215,7 +215,7 @@ function update_orders() {
   //2) FILLING ACTION
   //3) NOT FILLING ACTION
   //4) NOT FILLING NO ACTION
-  function group_drugs($order) {
+  function group_drugs($order, $mysql) {
 
     $groups = [
       "ALL" => [],
@@ -250,6 +250,18 @@ function update_orders() {
       $groups['ALL'][] = $item;
       $groups[$fill.$action][] = $item['drug_generic'].$msg;
 
+      $sql = "
+        UPDATE
+          gp_order_items
+        SET
+          group =  if(group is NULL, '$fill$action', concat('$fill$action < ', group))
+        WHERE
+          invoice_number = $item[invoice_number] AND
+          rx_number = $item[rx_number]
+      ";
+
+      $mysql->run($sql);
+
       if ($days) {//This is handy because it is not appended with a message like the others
         $groups['FILLED'][] = $item['drug_generic'];
         $groups['FILLED_WITH_PRICES'][] = $item['drug_generic'].$price;
@@ -267,8 +279,20 @@ function update_orders() {
       $groups['MANUALLY_ADDED'] = $item['item_added_by'] == 'MANUAL' OR $item['item_added_by'] == 'WEBFORM';
     }
 
-    $groups['NUM_FILLED'] = count($groups['FILLED_ACTION']) + count($groups['FILLED_NOACTION']);
-    $groups['NUM_NOFILL'] = count($groups['NOFILL_ACTION']) + count($groups['NOFILL_NOACTION']);
+    $groups['COUNT_FILLED'] = count($groups['FILLED_ACTION']) + count($groups['FILLED_NOACTION']);
+    $groups['COUNT_NOFILL'] = count($groups['NOFILL_ACTION']) + count($groups['NOFILL_NOACTION']);
+
+    $sql = "
+      UPDATE
+        gp_orders
+      SET
+        count_filled = '$groups[COUNT_FILLED]',
+        count_nofill = '$groups[COUNT_NOFILL]',
+      WHERE
+        invoice_number = {$order[0]['invoice_number']}
+    ";
+
+    $mysql->run($sql);
 
     email('GROUP_DRUGS', $order, $groups);
 
@@ -277,15 +301,15 @@ function update_orders() {
 
   function send_created_order_communications($order) {
 
-    $groups = group_drugs($order);
+    $groups = group_drugs($order, $mysql);
 
     if ( ! $order[0]['pharmacy_name']) //Use Pharmacy name rather than $New to keep us from repinging folks if the row has been readded
       needs_form_notice($groups);
 
-    else if ( ! $groups['NUM_NOFILL'] AND ! $groups['NUM_FILLED'])
+    else if ( ! $groups['COUNT_NOFILL'] AND ! $groups['COUNT_FILLED'])
       no_rx_notice($groups);
 
-    else if ( ! $groups['NUM_FILLED'])
+    else if ( ! $groups['COUNT_FILLED'])
       order_hold_notice($groups);
 
     //['Not Specified', 'Webform Complete', 'Webform eRx', 'Webform Transfer', 'Auto Refill', '0 Refills', 'Webform Refill', 'eRx /w Note', 'Transfer /w Note', 'Refill w/ Note']
@@ -303,9 +327,9 @@ function update_orders() {
     email('Order was deleted', $order);
   }
 
-  function send_updated_order_communications($order, $updated) {
+  function send_updated_order_communications($order, $mysql, $updated) {
 
-    $groups = group_drugs($order);
+    $groups = group_drugs($order, $mysql);
 
     if ($order[0]['tracking_number']) {
       order_shipped_notice($groups);
@@ -346,7 +370,7 @@ function update_orders() {
 
     export_wc_update_order($order);
 
-    send_created_order_communications($order);
+    send_created_order_communications($order, $mysql);
 
 
     //TODO Update Salesforce Order Total & Order Count & Order Invoice using REST API or a MYSQL Zapier Integration
@@ -393,7 +417,7 @@ function update_orders() {
 
     export_wc_update_order($order);
 
-    send_updated_order_communications($order, $updated);
+    send_updated_order_communications($order, $mysql, $updated);
 
     //TODO Update Salesforce Order Total & Order Count & Order Invoice using REST API or a MYSQL Zapier Integration
   }

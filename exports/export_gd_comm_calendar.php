@@ -39,10 +39,10 @@ function order_shipped_notice($groups) {
 
   //autopayReminderNotice(order, groups)
 
-  $subject   = 'Your order '.($groups['NUM_FILLED'] ? 'of '.$groups['NUM_FILLED'].' items ' : '').'has shipped and should arrive in 3-5 days.';
+  $subject   = 'Your order '.($groups['COUNT_FILLED'] ? 'of '.$groups['COUNT_FILLED'].' items ' : '').'has shipped and should arrive in 3-5 days.';
   $message   = '';
 
-  if ($groups['NUM_FILLED'])
+  if ($groups['COUNT_FILLED'])
     $message .= '<br><u>These Rxs are on the way:</u><br>'.implode(';<br>', $groups['FILLED_ACTION'] + $groups['FILLED_NOACTION']).';';
 
   if (count($groups['NOFILL_ACTION']))
@@ -121,7 +121,7 @@ function refill_reminder_notice($groups) {
 function autopay_reminder_notice($groups) {
 
   $subject  = "Autopay Reminder.";
-  $message  = "Because you are enrolled in autopay, Good Pill Pharmacy will be be billing your card ".implode(' <Pause />', str_split($groups['ALL'][0]['payment_card_last4'])).' for $'.$groups['ALL'][0]['payment_fee'].".00. Please let us right away if your card has recently changed. Again we will be billing your card for $".$groups['ALL'][0]['payment_fee'].".00 for last month's Order #".$groups['ALL'][0]['invoice_number']." of ".$groups['NUM_FILLED']." items";
+  $message  = "Because you are enrolled in autopay, Good Pill Pharmacy will be be billing your card ".implode(' <Pause />', str_split($groups['ALL'][0]['payment_card_last4'])).' for $'.$groups['ALL'][0]['payment_fee'].".00. Please let us right away if your card has recently changed. Again we will be billing your card for $".$groups['ALL'][0]['payment_fee'].".00 for last month's Order #".$groups['ALL'][0]['invoice_number']." of ".$groups['COUNT_FILLED']." items";
 
   $email = [ "email" => $groups['ALL'][0]['email'] ];
   $text  = [ "sms" => get_phones($groups['ALL']), "message" => $subject.' '.$message ];
@@ -151,14 +151,14 @@ function autopay_reminder_notice($groups) {
 //by building commication arrays based on github.com/dscsa/communication-calendar
 function order_created_notice($groups) {
 
-  $subject   = 'Good Pill is starting to prepare '.$groups['NUM_FILLED'].' items for Order #'.$groups['ALL'][0]['invoice_number'].'.';
+  $subject   = 'Good Pill is starting to prepare '.$groups['COUNT_FILLED'].' items for Order #'.$groups['ALL'][0]['invoice_number'].'.';
   $message   = 'If your address has recently changed please let us know right away.';
   $drug_list = '<br><br><u>These Rxs will be included once we confirm their availability:</u><br>'.implode(';<br>', $groups['FILLED_WITH_PRICES']).';';
 
   if ( ! $groups['ALL'][0]['refills_used'])
     $message .= ' Your first order will only be $6 total for all of your medications.';
 
-  if ($groups['NUM_NOFILL'])
+  if ($groups['COUNT_NOFILL'])
     $drug_list .= '<br><br><u>We are NOT filling these Rxs:</u><br>'.implode(';<br>', $groups['NOFILL_NOACTION'] + $groups['NOFILL_ACTION']).';';
 
   $suffix = implode('<br><br>', [
@@ -174,7 +174,7 @@ function order_created_notice($groups) {
     '',
     $subject.' We will notify you again once it ships. '.$message.$drug_list,
     '',
-    ($groups['NUM_FILLED'] >= $groups['NUM_NOFILL']) ? 'Thanks for choosing Good Pill!' : 'Apologies for any inconvenience,',
+    ($groups['COUNT_FILLED'] >= $groups['COUNT_NOFILL']) ? 'Thanks for choosing Good Pill!' : 'Apologies for any inconvenience,',
     'The Good Pill Team',
     '',
     '',
@@ -217,7 +217,7 @@ function transfer_requested_notice($groups) {
 //by building commication arrays based on github.com/dscsa/communication-calendar
 function order_hold_notice($groups) {
 
-  $subject = 'Good Pill is NOT filling your '.$groups['NUM_NOFILL'].' items for Order #'.$groups['ALL'][0]['invoice_number'].'.';
+  $subject = 'Good Pill is NOT filling your '.$groups['COUNT_NOFILL'].' items for Order #'.$groups['ALL'][0]['invoice_number'].'.';
   $message = '<u>We are NOT filling these Rxs:</u><br>'.implode(';<br>', $groups['NOFILL_NOACTION'] + $groups['NOFILL_ACTION']).';';
 
   //['Not Specified', 'Webform Complete', 'Webform eRx', 'Webform Transfer', 'Auto Refill', '0 Refills', 'Webform Refill', 'eRx /w Note', 'Transfer /w Note', 'Refill w/ Note']
@@ -262,18 +262,18 @@ function order_hold_notice($groups) {
 function order_updated_notice($groups) {
 
   //It's depressing to get updates if nothing is being filled.  So only send these if manually added and the order was just added (not just drugs changed)
-  if ( ! $groups['NUM_FILLED'] AND ! $groups['MANUALLY_ADDED']) {
+  if ( ! $groups['COUNT_FILLED'] AND ! $groups['MANUALLY_ADDED']) {
     $cancel = cancel_events_by_person($groups['ALL'][0]['first_name'], $groups['ALL'][0]['last_name'], $groups['ALL'][0]['birth_date'], ['Order Created', 'Order Updated', 'Order Hold', 'No Rx', 'Needs Form']);
     return email('order_updated_notice NOT sent', $groups);
   }
 
-  $subject = 'Update for Order #'.$groups['ALL'][0]['invoice_number'].($groups['NUM_FILLED'] ? ' of '.$groups['NUM_FILLED'].' items.' : '');
+  $subject = 'Update for Order #'.$groups['ALL'][0]['invoice_number'].($groups['COUNT_FILLED'] ? ' of '.$groups['COUNT_FILLED'].' items.' : '');
   $message = '';
 
-  if ($groups['NUM_FILLED'])
+  if ($groups['COUNT_FILLED'])
     $message .= '<br><u>These Rxs will be included once we confirm their availability:</u><br>'.implode(';<br>', $groups['FILLED_WITH_PRICES']).';';
 
-  if ($groups['NUM_NOFILL'])
+  if ($groups['COUNT_NOFILL'])
     $message .= '<br><br><u>We are NOT filling these Rxs:</u><br>'.implode(';<br>', $groups['NOFILL_NOACTION'] + $groups['NOFILL_ACTION']).';';
 
   $suffix = implode('<br><br>', [
@@ -290,7 +290,7 @@ function order_updated_notice($groups) {
     $subject.' We will notify you again once it ships.',
     $message,
     '',
-    ($groups['NUM_FILLED'] >= $groups['NUM_NOFILL']) ? 'Thanks for choosing Good Pill!' : 'Apologies for any inconvenience,',
+    ($groups['COUNT_FILLED'] >= $groups['COUNT_NOFILL']) ? 'Thanks for choosing Good Pill!' : 'Apologies for any inconvenience,',
     'The Good Pill Team',
     '',
     '',
@@ -349,7 +349,7 @@ function needs_form_notice($groups) {
 
   needs_form_event($groups['ALL'], $email, $text, $hours_to_wait[0], $hour_of_day[0]);
 
-  if ( ! $groups['NUM_FILLED']) return; //Don't hassle folks if we aren't filling anything
+  if ( ! $groups['COUNT_FILLED']) return; //Don't hassle folks if we aren't filling anything
 
   needs_form_event($groups['ALL'], $email, $text, $hours_to_wait[1], $hour_of_day[1]);
   needs_form_event($groups['ALL'], $email, $text, $hours_to_wait[2], $hour_of_day[2]);
@@ -432,14 +432,14 @@ function confirm_shipping_internal($groups) {
   $email['message'] = implode('<br>', [
     'Hello,',
     '',
-    $groups['ALL'][0]['first_name'].' '.$groups['ALL'][0]['last_name'].' '.$groups['ALL'][0]['birth_date'].' is a new patient.  They were shipped Order #'.$groups['ALL'][0]['invoice_number'].' with '.$groups['NUM_FILLED'].' items '.$days_ago.' days ago.',
+    $groups['ALL'][0]['first_name'].' '.$groups['ALL'][0]['last_name'].' '.$groups['ALL'][0]['birth_date'].' is a new patient.  They were shipped Order #'.$groups['ALL'][0]['invoice_number'].' with '.$groups['COUNT_FILLED'].' items '.$days_ago.' days ago.',
     '',
     'Please call them at '.$groups['ALL'][0]['phone1'].', '.$groups['ALL'][0]['phone2'].' and check on the following:',
     '- Order with tracking number '.tracking_link($groups['ALL'][0]['tracking_number']).' was delivered and that they received it',
     '',
-    '- Make sure they got all '.$groups['NUM_FILLED'].' of their medications, that we filled the correct number of pills, and answer any questions the patient has',
-    $groups['NUM_NOFILL'] ? '<br>- Explain why we did NOT fill:<br>'.implode(';<br>', $groups['NOFILL_NOACTION'] + $groups['NOFILL_ACTION']).'<br>' : '',
-    '- Let them know they are currently set to pay via '.$groups['ALL'][0]['payment_method'].' and the cost of the '.$groups['NUM_FILLED'].' items was $'.$groups['ALL'][0]['payment_fee'].' this time, but next time it will be $'.$groups['ALL'][0]['payment_total'],
+    '- Make sure they got all '.$groups['COUNT_FILLED'].' of their medications, that we filled the correct number of pills, and answer any questions the patient has',
+    $groups['COUNT_NOFILL'] ? '<br>- Explain why we did NOT fill:<br>'.implode(';<br>', $groups['NOFILL_NOACTION'] + $groups['NOFILL_ACTION']).'<br>' : '',
+    '- Let them know they are currently set to pay via '.$groups['ALL'][0]['payment_method'].' and the cost of the '.$groups['COUNT_FILLED'].' items was $'.$groups['ALL'][0]['payment_fee'].' this time, but next time it will be $'.$groups['ALL'][0]['payment_total'],
     '',
     '- Review their current medication list and remind them which prescriptions we will be filling automatically and which ones they need to request 2 weeks in advance',
     '',
