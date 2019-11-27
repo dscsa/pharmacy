@@ -5,7 +5,7 @@ function log_info() {
   global $argv;
 
   if (in_array('log=info', $argv))
-    call_user_func_array("log_all", func_get_args());
+    return call_user_func_array("log_all", func_get_args());
 }
 
 function log_all() {
