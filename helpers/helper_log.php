@@ -1,16 +1,17 @@
 <?php
-
-function log_info() {
-
-  global $argv;
-
-  if (in_array('log=info', $argv))
-    return call_user_func_array("log_all", func_get_args());
+function args_to_string($args) {
+  $body = '';
+  foreach ($args as $arg) {
+    $body .= print_r($arg, true).' | ';
+  }
+  return $body;
 }
 
 function log_all() {
 
   $log = args_to_string(func_get_args());
+
+  echo $log;
 
   if ( ! isset($_SERVER['webform_log'])) {
     $_SERVER['webform_log'] = [];
@@ -23,17 +24,17 @@ function log_all() {
   $_SERVER['webform_log'][] = $log;
 }
 
+function log_info() {
+
+  global $argv;
+
+  if (in_array('log=info', $argv))
+    return call_user_func_array("log_all", func_get_args());
+}
+
 function email($subject) {
   call_user_func_array("log_info", func_get_args());
   mail(DEBUG_EMAIL, print_r($subject, true), args_to_string(func_get_args()));
-}
-
-function args_to_string($args) {
-  $body = '';
-  foreach ($args as $arg) {
-    $body .= print_r($arg, true).' | ';
-  }
-  return $body;
 }
 
 function timer($label, &$start) {
