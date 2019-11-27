@@ -19,13 +19,13 @@ function testWatch() {
 function watchFiles(opts) {
 
   var today     = new Date();
-  var minutes   = opts.minutes || 5
-  var oneDayAgo = new Date(today.getTime() - minutes * 60 * 60 * 1000);
-  var startTime = oneDayAgo.toISOString();
+  var minutes   = opts.minutes || 10
+  var startTime = new Date(today.getTime() - minutes * 60 * 1000);
+  var tooRecent = new Date(today.getTime() - 3 * 60 * 1000); //Don't call if we are still making edits
 
   var files    = []
   var folder   = DriveApp.getFoldersByName(opts.folder).next()
-  var iterator = folder.searchFiles('modifiedDate > "' + startTime + '"')
+  var iterator = folder.searchFiles('modifiedDate > "' + startTime.toISOString() + '" AND modifiedDate < "' + tooRecent.toISOString() + '"')
 
   while (iterator.hasNext()) {
 
@@ -38,9 +38,16 @@ function watchFiles(opts) {
       date_created:next.getDateCreated()
     }
 
+    //If don't want watch to keep returning the same file with the same change multiple times
+    var last_watched = file.name.split(' Modified:')[1]
+
+    file.first = ! last_watched || last_watched >= file.date_modified
     file.isNew = (file.date_modified - file.date_created) < 1 * 60 * 1000 //1 minute
 
-    if ( ! opts.includeNew && file.isNew) continue;
+    if ( ! file.first || ( ! opts.includeNew && file.isNew)) continue;
+
+    //This makes last_watched logic work
+    file.setName(file.name+' Modified:'+file.date_modified)
 
     //getBody does not have headers or footers
     var doc = DocumentApp.openById(next.getId())
