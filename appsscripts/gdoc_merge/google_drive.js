@@ -37,6 +37,10 @@ function parentByFile(file) {
   }
 }
 
+//TODO Right now this makes a new file with a new id.  Google Apps Script also does not currently allow the creation of a new revision
+//to an existing doc, or restore a revision (the initial template) so that we can re-mail merge.  BUT we could create the new doc, append
+//content to old doc, erase old doc content and then delete the new doc: https://ctrlq.org/code/19892-merge-multiple-google-documents
+//This seems a lot of work to just not have multiple invoices, so skipping for right now but may be worth revisiting in the future
 function makeCopy(oldFile, copyName, copyFolder) {
    oldFile = DriveApp.getFileById(oldFile.getId()) //Class Document doesn't have makeCopy need Class File
    var newFile = oldFile.makeCopy(copyName)
