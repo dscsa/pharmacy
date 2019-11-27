@@ -1,11 +1,15 @@
 function removeFiles(opts) {
-  var folder = DriveApp.getFoldersByName(opts.folder).next()
+  var folder   = DriveApp.getFoldersByName(opts.folder).next()
   var iterator = folder.searchFiles('title contains "'+opts.file+'"')
+  var res      = []
 
   while (iterator.hasNext()) {
     var file = iterator.next().setTrashed(true) //Prevent printing an old list that Cindy pended and shipped on her own
-    infoEmail('removeFiles', file.getUrl(), file.getName(), opts)
+    res.push([file.getUrl(), file.getName()])
   }
+  
+  infoEmail('removeFiles', opts, res)
+  return ['removeFiles', opts, res]
 }
 
 function testWatch() {

@@ -225,6 +225,8 @@ function update_orders() {
 
     foreach ($order as $item) {
 
+      if ( ! $item['drug_name']) continue; //Might be an empty order
+
       $days = $item['days_dispensed'];
       $fill = $days ? 'FILLED_' : 'NOFILL_';
       $msg  = $item['item_message_text'] ? ' '.$item['item_message_text'] : '';
