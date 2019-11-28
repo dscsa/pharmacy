@@ -11,6 +11,8 @@ function export_gd_update_invoice($order) {
 
   if ( ! count($order)) return;
 
+  export_gd_delete_invoice($order); //Avoid having multiple versions of same invoice
+
   $args = [
     'method'   => 'mergeDoc',
     'template' => 'Invoice Template v1',
