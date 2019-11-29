@@ -38,7 +38,7 @@ function update_orders() {
       LEFT JOIN gp_rxs_grouped ON -- Show all Rxs on Invoice regardless if they are in order or not
         gp_rxs_grouped.patient_id_cp = gp_orders.patient_id_cp
       LEFT JOIN gp_order_items ON
-        rx_numbers LIKE CONCAT('%,', gp_order_items.rx_number, ',%')
+        gp_order_items.invoice_number = $order[invoice_number] AND rx_numbers LIKE CONCAT('%,', gp_order_items.rx_number, ',%') -- In case the rx is added in a different orders
       WHERE
         gp_orders.invoice_number = $order[invoice_number]
     ";
