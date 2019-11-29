@@ -299,7 +299,7 @@ function update_orders() {
     return $groups;
   }
 
-  function send_created_order_communications($order) {
+  function send_created_order_communications($order, $mysql) {
 
     $groups = group_drugs($order, $mysql);
 
