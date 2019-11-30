@@ -48,6 +48,11 @@ function doPost(e) {
       .setMimeType(ContentService.MimeType.JSON)
 
   } catch(err){
-      debugEmail('web_app post error thrown', err, e)
+
+    debugEmail('web_app post error thrown', err, e)
+
+    return ContentService
+      .createTextOutput(JSON.stringify([err, err.stack]))
+      .setMimeType(ContentService.MimeType.JSON)
   }
 }
