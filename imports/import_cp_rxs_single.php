@@ -82,8 +82,7 @@ function import_cp_rxs_single() {
       ISNUMERIC(script_no) = 1 AND  -- Can be NULL, Empty String, or VarChar. Highly correlated with script_status_cn > 0 but not exact.  We should figure out which one is better to use
       ISNULL(cprx.status_cn, 0) <> 3 AND  -- NULL/0 is active, 1 is not yet dispensed?, 2 is transferred out/inactive, 3 is voided
       (ISNULL(cprx.status_cn, 0) <> 2 OR last_transfer_type_io = 'O') AND
-      expire_date > @today - 6*30 -- Improve import speed by ignoring Rx that expired >6 months ago
-      -- cprx.chg_date > @today - 7 AND -- Only recent scripts to cut down on the
+      cprx.chg_date > @today - 7 AND -- Only recent scripts to cut down on the import time (60 secs for 20k Rxs)
   ");
 
   //log_info("
