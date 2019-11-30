@@ -56,6 +56,13 @@ function update_orders() {
         $order[$i]['refills_total'] = $item['refills_total_actual'] ?: $item['refills_total_default'];
         $order[$i]['price_dispensed'] = (float) ($item['price_dispensed_actual'] ?: ($item['price_dispensed_default'] ?: 0));
       }
+
+      usort($order, 'sort_order_by_day')
+
+      function sort_order_by_day($a, $b) {
+        if ($b > 0 AND $a == 0) return 1;
+        if ($a > 0 AND $b == 0) return -1;
+      }
     }
 
     email('get_full_order every item with 0 days should have message', $order);
