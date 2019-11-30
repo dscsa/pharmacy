@@ -4,10 +4,10 @@ function removeFiles(opts) {
   var res      = []
 
   while (iterator.hasNext()) {
-    var file = iterator.next().setTrashed(true) //Prevent printing an old list that Cindy pended and shipped on her own
+    var file = iterator.next().setOwner('aksecure@sirum.org').setTrashed(true) //Prevent printing an old list that Cindy pended and shipped on her own
     res.push([file.getUrl(), file.getName()])
   }
-  
+
   infoEmail('removeFiles', opts, res)
   return ['removeFiles', opts, res]
 }
