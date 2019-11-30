@@ -61,7 +61,7 @@ function changes_to_rxs_single($new) {
   $mysql->run(set_updated_sql($new, $old, $id, $where));
 
   return [
-    'deleted' => $deleted[0],
+    'deleted' => [], //$deleted[0],
     'created' => $created[0],
     'updated' => $updated[0]
   ];
