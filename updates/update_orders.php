@@ -59,16 +59,16 @@ function update_orders() {
         $order[$i]['price_dispensed'] = (float) ($item['price_dispensed_actual'] ?: ($item['price_dispensed_default'] ?: 0));
       }
 
-      function sort_order_by_day($a, $b) {
-        if ($b > 0 AND $a == 0) return 1;
-        if ($a > 0 AND $b == 0) return -1;
-      }
-
       usort($order, 'sort_order_by_day');
     }
 
     email('get_full_order every item with 0 days should have message', $order);
     return $order;
+  }
+
+  function sort_order_by_day($a, $b) {
+    if ($b > 0 AND $a == 0) return 1;
+    if ($a > 0 AND $b == 0) return -1;
   }
 
   function sync_to_order($order, $mysql) {
