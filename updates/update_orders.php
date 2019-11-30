@@ -57,7 +57,7 @@ function update_orders() {
         $order[$i]['price_dispensed'] = (float) ($item['price_dispensed_actual'] ?: ($item['price_dispensed_default'] ?: 0));
       }
 
-      usort($order, 'sort_order_by_day')
+      usort($order, 'sort_order_by_day');
 
       function sort_order_by_day($a, $b) {
         if ($b > 0 AND $a == 0) return 1;
