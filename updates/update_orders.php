@@ -67,8 +67,8 @@ function update_orders() {
   }
 
   function sort_order_by_day($a, $b) {
-    if ($b['days_dispensed' > 0 AND $a['days_dispensed' == 0) return 1;
-    if ($a['days_dispensed' > 0 AND $b['days_dispensed' == 0) return -1;
+    if ($b['days_dispensed'] > 0 AND $a['days_dispensed'] == 0) return 1;
+    if ($a['days_dispensed'] > 0 AND $b['days_dispensed'] == 0) return -1;
   }
 
   function sync_to_order($order, $mysql) {
