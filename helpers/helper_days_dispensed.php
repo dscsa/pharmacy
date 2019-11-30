@@ -178,9 +178,7 @@ function set_days_dispensed($item, $days, $message, $mysql) {
   else if ( ! $item['days_dispensed_default']) {
 
     $message_key  = array_search($message, RX_MESSAGE);
-    $message_text = $message[$item['language']];
-
-    $message_text = str_replace(array_keys($item), array_values($item), $message_text);
+    $message_text = message_text($message, $item);
 
     $sql = "
       UPDATE
@@ -214,6 +212,9 @@ function set_days_dispensed($item, $days, $message, $mysql) {
   email('set_days_dispensed', $item, $days, $message, $sql);
 }
 
+function message_text($message, $item) {
+  return str_replace(array_keys($item), array_values($item), $message[$item['language']]);
+}
 
 //Days is basically the MIN(target_date ?: std_day, qty_left as days, inventory_left as days).
 //NOTE: We adjust bump up the days by upto 30 in order to finish up an Rx (we don't want partial fills left)
