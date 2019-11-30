@@ -101,7 +101,7 @@ const RX_MESSAGE = [
     'ES' => ''
   ],
   'ACTION LAST REFILL' => [
-    'EN' => 'has no more refills',
+    'EN' => 'is the last refill, contact your doctor',
     'ES' => ''
   ],
   'ACTION NO REFILLS' => [

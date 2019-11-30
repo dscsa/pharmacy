@@ -25,7 +25,7 @@ function get_days_dispensed($item) {
     return [0, RX_MESSAGE['ACTION EXPIRED']];
   }
 
-  if ($item['refills_left'] < 0.1) {
+  if ($item['refills_total'] < 0.1) {
     log_info("
     DON'T FILL MEDICATIONS WITHOUT REFILLS");
     return [0, RX_MESSAGE['ACTION NO REFILLS']];
@@ -132,6 +132,12 @@ function get_days_dispensed($item) {
     log_info("
     DUE SOON AND SYNC TO ORDER");
     return [0, RX_MESSAGE['NO ACTION DUE SOON AND SYNC TO ORDER']];
+  }
+
+  if ($item['refills_total'] < 0.1) {
+    log_info("
+    WARN OF LAST REFILL");
+    return [days_default($item), RX_MESSAGE['ACTION LAST REFILL']];
   }
 
   log_info("
