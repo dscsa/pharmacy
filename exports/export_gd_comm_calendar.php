@@ -42,11 +42,7 @@ function order_shipped_notice($groups) {
   $subject   = 'Your order '.($groups['COUNT_FILLED'] ? 'of '.$groups['COUNT_FILLED'].' items ' : '').'has shipped and should arrive in 3-5 days.';
   $message   = '';
 
-  if ($groups['COUNT_FILLED'])
-    $message .= '<br><u>These Rxs are on the way:</u><br>'.implode(';<br>', $groups['FILLED_ACTION'] + $groups['FILLED_NOACTION']).';';
-
-  if (count($groups['NOFILL_ACTION']))
-    $message .= '<br><br><u>We cannot fill these Rxs without your help:</u><br>'.implode(';<br>', $groups['NOFILL_ACTION']).';';
+  $message .= '<br><u>These Rxs are on the way:</u><br>'.implode(';<br>', $groups['FILLED_ACTION'] + $groups['FILLED_NOACTION']).';';
 
   $email = [ "email" => $groups['ALL'][0]['email'] ];
   $text  = [ "sms"   => get_phones($groups['ALL']) ];
@@ -71,6 +67,7 @@ function order_shipped_notice($groups) {
     'Your receipt for order <strong>#'.$groups['ALL'][0]['invoice_number'].'</strong> is attached. Your tracking number is '.tracking_link($groups['ALL'][0]['tracking_number']).'.',
     'Use this link to request delivery notifications and/or provide the courier specific delivery instructions.',
     $message,
+    ! count($groups['NOFILL_ACTION']) ? '' : '<br><u>We cannot fill these Rxs without your help:</u><br>'.implode(';<br>', $groups['NOFILL_ACTION']).';',
     '',
     'Thanks!',
     'The Good Pill Team',
@@ -158,9 +155,6 @@ function order_created_notice($groups) {
   if ( ! $groups['ALL'][0]['refills_used'])
     $message .= ' Your first order will only be $6 total for all of your medications.';
 
-  if ($groups['COUNT_NOFILL'])
-    $drug_list .= '<br><br><u>We are NOT filling these Rxs:</u><br>'.implode(';<br>', $groups['NOFILL_NOACTION'] + $groups['NOFILL_ACTION']).';';
-
   $suffix = implode('<br><br>', [
     "Note: if this is correct, there is no need to do anything. If you want to change or delay this order, please let us know as soon as possible. If delaying, please specify the date on which you want it filled, otherwise if you don't, we will delay it 3 weeks by default."
   ]);
@@ -173,6 +167,7 @@ function order_created_notice($groups) {
     'Hello,',
     '',
     $subject.' We will notify you again once it ships. '.$message.$drug_list,
+    ! $groups['COUNT_NOFILL'] ? '' : '<br><u>We are NOT filling these Rxs:</u><br>'.implode(';<br>', $groups['NOFILL_NOACTION'] + $groups['NOFILL_ACTION']).';',
     '',
     ($groups['COUNT_FILLED'] >= $groups['COUNT_NOFILL']) ? 'Thanks for choosing Good Pill!' : 'Apologies for any inconvenience,',
     'The Good Pill Team',
@@ -192,7 +187,6 @@ function transfer_requested_notice($groups) {
 
   $subject = 'Good Pill recieved your transfer request for Order #'.$groups['ALL'][0]['invoice_number'].'.';
   $message = 'We will notify you once we have contacted your pharmacy, '.$groups['ALL'][0]['pharmacy_name'].' '.$groups['ALL'][0]['pharmacy_address'].', and let you know whether the transfer was successful or not;';
-
 
   $email = [ "email" => $groups['ALL'][0]['email'] ];
   $text  = [ "sms" => get_phones($groups['ALL']), "message" => $subject.' '.$message ];
@@ -273,9 +267,6 @@ function order_updated_notice($groups) {
   if ($groups['COUNT_FILLED'])
     $message .= '<br><u>These Rxs will be included once we confirm their availability:</u><br>'.implode(';<br>', $groups['FILLED_WITH_PRICES']).';';
 
-  if ($groups['COUNT_NOFILL'])
-    $message .= '<br><br><u>We are NOT filling these Rxs:</u><br>'.implode(';<br>', $groups['NOFILL_NOACTION'] + $groups['NOFILL_ACTION']).';';
-
   $suffix = implode('<br><br>', [
     "Note: if this is correct, there is no need to do anything. If you want to change or delay this order, please let us know as soon as possible. If delaying, please specify the date on which you want it filled, otherwise if you don't, we will delay it 3 weeks by default."
   ]);
@@ -289,6 +280,7 @@ function order_updated_notice($groups) {
     '',
     $subject.' We will notify you again once it ships.',
     $message,
+    ! $groups['COUNT_NOFILL'] ? '' : '<br><u>We are NOT filling these Rxs:</u><br>'.implode(';<br>', $groups['NOFILL_NOACTION'] + $groups['NOFILL_ACTION']).';',
     '',
     ($groups['COUNT_FILLED'] >= $groups['COUNT_NOFILL']) ? 'Thanks for choosing Good Pill!' : 'Apologies for any inconvenience,',
     'The Good Pill Team',
@@ -304,7 +296,7 @@ function order_updated_notice($groups) {
 function needs_form_notice($groups) {
 
   ///It's depressing to get updates if nothing is being filled
-  if ($groups['NOFILL_ACTION']) {
+  if ($groups['FILLED']) {
     $subject = 'Welcome to Good Pill!  We are excited to fill your 1st Order.';
     $message = 'Your first order will be #'.$groups['ALL'][0]['invoice_number']." and will cost $6. Please take 5mins to register so that we can fill the Rxs we got from your doctor as soon as possible. Once you register it will take 5-7 business days before you receive your order. You can register online at www.goodpill.org or by calling us at (888) 987-5187.<br><br><u>The drugs in your 1st order will be:</u><br>".implode(';<br>', $groups['NOFILL_ACTION']).';';
   }
