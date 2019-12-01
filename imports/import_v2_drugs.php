@@ -14,8 +14,6 @@ function import_v2_drugs() {
   //log_info("
   //import_v2_drugs: rows ".count($drugs['rows']));
 
-  email('No Drugs', '/drug/_design/by-generic-gsns/_view/by-generic-gsns?group_level=3', $drugs);
-
   $vals = [];
   foreach($drugs['rows'] as $row) {
 
@@ -46,6 +44,8 @@ function import_v2_drugs() {
 
     $vals[] = '('.implode(', ', $val).')';
   }
+
+  email('No Drugs', '/drug/_design/by-generic-gsns/_view/by-generic-gsns?group_level=3', count($vals), count($drugs['rows']), $order, $drugs);
 
   //Replace Staging Table with New Data
   $mysql->run('TRUNCATE TABLE gp_drugs_v2');
