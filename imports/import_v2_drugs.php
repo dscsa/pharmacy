@@ -14,7 +14,7 @@ function import_v2_drugs() {
   //log_info("
   //import_v2_drugs: rows ".count($drugs['rows']));
 
-  if ( ! $drugs['rows']) email('No Drugs', '/drug/_design/by-generic-gsns/_view/by-generic-gsns?group_level=3', $drugs);
+  email('No Drugs', '/drug/_design/by-generic-gsns/_view/by-generic-gsns?group_level=3', $drugs);
 
   $vals = [];
   foreach($drugs['rows'] as $row) {
