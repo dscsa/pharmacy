@@ -45,7 +45,7 @@ function import_v2_drugs() {
     $vals[] = '('.implode(', ', $val).')';
   }
 
-  email('No Drugs', '/drug/_design/by-generic-gsns/_view/by-generic-gsns?group_level=3', count($val), array_keys($val), count($vals), count($drugs['rows']), $order, $drugs);
+  email('No Drugs', '/drug/_design/by-generic-gsns/_view/by-generic-gsns?group_level=3', count($val), array_keys($val), count($vals), $vals);
 
   //Replace Staging Table with New Data
   $mysql->run('TRUNCATE TABLE gp_drugs_v2');
