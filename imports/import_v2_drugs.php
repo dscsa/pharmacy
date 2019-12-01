@@ -45,11 +45,11 @@ function import_v2_drugs() {
     $vals[] = '('.implode(', ', $val).')';
   }
 
-  email('No Drugs', '/drug/_design/by-generic-gsns/_view/by-generic-gsns?group_level=3', count($vals), count($drugs['rows']), $order, $drugs);
+  //email('No Drugs', '/drug/_design/by-generic-gsns/_view/by-generic-gsns?group_level=3', count($vals), count($drugs['rows']), $order, $drugs);
 
   //Replace Staging Table with New Data
   $mysql->run('TRUNCATE TABLE gp_drugs_v2');
 
   $mysql->run("
-    INSERT INTO gp_drugs_v2 (".implode(', ', array_keys($val)).") VALUES ".implode(', ', $vals));
+    INSERT INTO gp_drugs_v2 (".implode(', ', array_keys($vals)).") VALUES ".implode(', ', $vals));
 }
