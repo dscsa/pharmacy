@@ -425,6 +425,8 @@ function update_orders() {
 
     export_gd_update_invoice($order);
 
+    export_gd_publish_invoices($order);
+
     export_wc_update_order($order);
 
     send_updated_order_communications($order, $mysql, $updated);

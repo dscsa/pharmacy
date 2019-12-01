@@ -22,6 +22,9 @@ function doPost(e) {
     else if (contents.method == 'watchFiles')
       response = watchFiles(contents)
 
+    else if (contents.method == 'publishFile')
+      response = publishFile(contents)
+
     else if (contents.method == 'newSpreadsheet')
       response = newSpreadsheet(contents)
 

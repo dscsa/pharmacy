@@ -4,7 +4,7 @@ function removeFiles(opts) {
   var res      = []
 
   while (iterator.hasNext()) {
-    var file = iterator.next().setOwner('aksecure@sirum.org').setTrashed(true) //Prevent printing an old list that Cindy pended and shipped on her own
+    var file = iterator.next().setTrashed(true) //Prevent printing an old list that Cindy pended and shipped on her own
     res.push([file.getUrl(), file.getName()])
   }
 
@@ -68,6 +68,29 @@ function watchFiles(opts) {
 
   infoEmail('watchFiles', folder, files)
   return files
+}
+
+//Drive (not DriveApp) must be turned on under Resources -> Advanced Google Services -> Drive
+//https://stackoverflow.com/questions/40476324/how-to-publish-to-the-web-a-spreadsheet-using-drive-api-and-gas
+function publishFile(opts){
+
+  DriveApp.getFoldersByName(opts.folder).next()
+  var file   = folder.searchFiles('title contains "'+opts.file+'"').next()
+  var fileId = file.getId()
+  //Side effect of this is that this account can no longer delete/trash/remove this file since must be done by owner
+  file.setOwner('admin@sirum.org') //support@goodpill.org can only publish files that require sirum sign in
+
+  var revisions = Drive.Revisions.list(fileId);
+  var items = revisions.items;
+  var revisionId = items[items.length-1].id;
+  var resource = Drive.Revisions.get(fileId, revisionId);
+
+  resource.published = true;
+  resource.publishAuto = true;
+  resource.publishedOutsideDomain = true;
+  resource = Drive.Revisions.update(resource, fileId, revisionId);
+
+  return resource
 }
 
 function newSpreadsheet(opts) {

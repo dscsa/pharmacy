@@ -29,6 +29,23 @@ function export_gd_update_invoice($order) {
   log_info($result);
 }
 
+//Cannot delete (with this account) once published
+function export_gd_publish_invoices($order) {
+
+   if ( ! $order[0]['tracking_number']) return; //only publish if tracking number since we can't delete extra after this point
+
+    $args = [
+      'method'   => 'publishFile',
+      'file'     => 'Invoice #'.$order[0]['invoice_number'],
+      'folder'   => INVOICE_FOLDER_NAME,
+    ];
+
+    $result = gdoc_post(GD_HELPER_URL, $args);
+
+    //$response = json_decode( $result, true);
+    email("WebForm export_gd_publish_invoices", $args, $result);
+}
+
 function export_gd_delete_invoice($order) {
 
   email("WebForm export_gd_delete_invoice 1", $order);
