@@ -1,5 +1,5 @@
 function testPost() {
-  var event = {parameter:{GD_KEY:GD_KEY}, content:{method:'findValue', file:'Order Summary #20660', needle:'(Fee:|Amount Due:)'}}
+  var event = {parameter:{GD_KEY:GD_KEY}, postData:{contents:{method:'findValue', file:'Order Summary #20660', needle:'(Fee:|Amount Due:)'}}}
   debugEmail(event, doPost(event))
 }
 
