@@ -14,20 +14,21 @@ function import_v2_stock_by_month() {
   ]);
 
   $next = strtotime('+4 months');
+  $last = strtotime('-1 months'); //Current month is partial month and can throw off an average
   $next = ["year" => date('Y', $next), "month" => date('m', $next)];
-  $curr = ["year" => date('Y'), "month" => date('m')];
+  $last = ["year" => date('Y', $last), "month" => date('m', $last)];
 
-  $curr_query = "?start_key=[\"8889875187\",\"month\",\"$curr[year]\",\"$curr[month]\"]&end_key=[\"8889875187\",\"month\",\"$curr[year]\",\"$curr[month]\",{}]&group_level=5";
+  $last_query = "?start_key=[\"8889875187\",\"month\",\"$last[year]\",\"$last[month]\"]&end_key=[\"8889875187\",\"month\",\"$last[year]\",\"$last[month]\",{}]&group_level=5";
   $next_query = "?start_key=[\"8889875187\",\"month\",\"$next[year]\",\"$next[month]\"]&end_key=[\"8889875187\",\"month\",\"$next[year]\",\"$next[month]\",{}]&group_level=5";
   $inventory = file_get_contents(V2_IP.'/transaction/_design/inventory.qty-by-generic/_view/inventory.qty-by-generic'.$next_query, false, $context);
-  $entered  = file_get_contents(V2_IP.'/transaction/_design/entered.qty-by-generic/_view/entered.qty-by-generic'.$curr_query, false, $context);
-  $verified = file_get_contents(V2_IP.'/transaction/_design/verified.qty-by-generic/_view/verified.qty-by-generic'.$curr_query, false, $context);
-  $refused = file_get_contents(V2_IP.'/transaction/_design/refused.qty-by-generic/_view/refused.qty-by-generic'.$curr_query, false, $context);
-  $expired = file_get_contents(V2_IP.'/transaction/_design/expired.qty-by-generic/_view/expired.qty-by-generic'.$curr_query, false, $context);
-  $disposed = file_get_contents(V2_IP.'/transaction/_design/disposed.qty-by-generic/_view/disposed.qty-by-generic'.$curr_query, false, $context);
-  $dispensed = file_get_contents(V2_IP.'/transaction/_design/dispensed.qty-by-generic/_view/dispensed.qty-by-generic'.$curr_query, false, $context);
+  $entered  = file_get_contents(V2_IP.'/transaction/_design/entered.qty-by-generic/_view/entered.qty-by-generic'.$last_query, false, $context);
+  $verified = file_get_contents(V2_IP.'/transaction/_design/verified.qty-by-generic/_view/verified.qty-by-generic'.$last_query, false, $context);
+  $refused = file_get_contents(V2_IP.'/transaction/_design/refused.qty-by-generic/_view/refused.qty-by-generic'.$last_query, false, $context);
+  $expired = file_get_contents(V2_IP.'/transaction/_design/expired.qty-by-generic/_view/expired.qty-by-generic'.$last_query, false, $context);
+  $disposed = file_get_contents(V2_IP.'/transaction/_design/disposed.qty-by-generic/_view/disposed.qty-by-generic'.$last_query, false, $context);
+  $dispensed = file_get_contents(V2_IP.'/transaction/_design/dispensed.qty-by-generic/_view/dispensed.qty-by-generic'.$last_query, false, $context);
 
-  email('import_v2_stock_by_month', V2_IP.'/transaction/_design/inventory.qty-by-generic/_view/inventory.qty-by-generic'.$next_query, $inventory);
+  //email('import_v2_stock_by_month', V2_IP.'/transaction/_design/entered.qty-by-generic/_view/entered.qty-by-generic'.$last_query, $entered);
 
   $dbs = [
     'inventory' => json_decode($inventory, true)['rows'],
@@ -48,7 +49,6 @@ function import_v2_stock_by_month() {
 
     email('import_v2_stock_by_month', $key, count($rows));
 
-
     //if ($key == 'entered')
     //  log_info("\n   import_v2_stock_by_month: rows ".count($rows));
 
@@ -58,7 +58,7 @@ function import_v2_stock_by_month() {
 
       $val = [
         'drug_generic'  => "'$drug_generic'",
-        'month'         => "'$curr[year]-$curr[month]-01'",
+        'month'         => "'$last[year]-$last[month]-01'",
         $key.'_sum'     => clean_val($row['value']['sum']),
         $key.'_count'   => clean_val($row['value']['count']),
         $key.'_min'     => clean_val($row['value']['min']),
@@ -70,17 +70,17 @@ function import_v2_stock_by_month() {
     }
 
     //Rather than separate tables put into one table using ON DUPLICATE KEY UPDATE
-    $mysql->run("
-      INSERT INTO
-        gp_stock_by_month_v2 (".implode(', ', array_keys($val)).")
-      VALUES
-        ".implode(', ', $vals)."
-      ON DUPLICATE KEY UPDATE
-        {$key}_sum    = VALUES({$key}_sum),
-        {$key}_count  = VALUES({$key}_count),
-        {$key}_min    = VALUES({$key}_min),
-        {$key}_max    = VALUES({$key}_max),
-        {$key}_sumsqr = VALUES({$key}_sumsqr)
-    ");
+      $mysql->run("
+        INSERT INTO
+          gp_stock_by_month_v2 (".implode(', ', array_keys($val)).")
+        VALUES
+          ".implode(', ', $vals)."
+        ON DUPLICATE KEY UPDATE
+          {$key}_sum    = VALUES({$key}_sum),
+          {$key}_count  = VALUES({$key}_count),
+          {$key}_min    = VALUES({$key}_min),
+          {$key}_max    = VALUES({$key}_max),
+          {$key}_sumsqr = VALUES({$key}_sumsqr)
+      ");
   }
 }
