@@ -44,9 +44,6 @@ function import_v2_drugs() {
 
     $vals[] = '('.implode(', ', $val).')';
   }
-
-  email('No Drugs', '/drug/_design/by-generic-gsns/_view/by-generic-gsns?group_level=3', implode(', ', $vals), "INSERT INTO gp_drugs_v2 (".implode(', ', array_keys($val)).") VALUES ".implode(', ', $vals));
-
   //Replace Staging Table with New Data
   $mysql->run('TRUNCATE TABLE gp_drugs_v2');
 
