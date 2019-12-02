@@ -52,6 +52,7 @@ function update_orders() {
     } else {
       //Consolidate default and actual suffixes to avoid conditional overload in the invoice template and redundant code within communications
       foreach($order as $i => $item) {
+        $order[$i]['drug'] = $item['drug_generic'] ?: $item['drug_name'];
         $order[$i]['item_message_text'] = $item['rx_number'] ? ($item['item_message_text'] ?: '') : message_text(get_days_dispensed($item)[1], $item); //Get rid of NULL. //if not syncing to order lets provide a reason why we are not filling
         $order[$i]['days_dispensed'] = $item['days_dispensed_actual'] ?: $item['days_dispensed_default'];
         $order[$i]['qty_dispensed'] = (float) ($item['qty_dispensed_actual'] ?: $item['qty_dispensed_default']); //cast to float to get rid of .000 decimal
@@ -69,6 +70,7 @@ function update_orders() {
   function sort_order_by_day($a, $b) {
     if ($b['days_dispensed'] > 0 AND $a['days_dispensed'] == 0) return 1;
     if ($a['days_dispensed'] > 0 AND $b['days_dispensed'] == 0) return -1;
+    return strcmp($a['item_message_text'].$a['drug'], $b['item_message_text'].$b['drug']);
   }
 
   function sync_to_order($order, $mysql) {
@@ -258,7 +260,7 @@ function update_orders() {
       $price = $item['price_dispensed'] ? ', $'.((float) $item['price_dispensed']).$msg.' for '.$days.' days' : '';
 
       $groups['ALL'][] = $item;
-      $groups[$fill.$action][] = $item['drug_generic'].$msg;
+      $groups[$fill.$action][] = $item['drug'].$msg;
 
       $sql = "
         UPDATE
@@ -273,15 +275,15 @@ function update_orders() {
       $mysql->run($sql);
 
       if ($days) {//This is handy because it is not appended with a message like the others
-        $groups['FILLED'][] = $item['drug_generic'];
-        $groups['FILLED_WITH_PRICES'][] = $item['drug_generic'].$price;
+        $groups['FILLED'][] = $item['drug'];
+        $groups['FILLED_WITH_PRICES'][] = $item['drug'].$price;
       }
 
       if ( ! $item['refills_total'])
-        $groups['NO_REFILLS'][] = $item['drug_generic'].$msg;
+        $groups['NO_REFILLS'][] = $item['drug'].$msg;
 
       if ($days AND ! $item['rx_autofill'])
-        $groups['NO_AUTOFILL'][] = $item['drug_generic'].$msg;
+        $groups['NO_AUTOFILL'][] = $item['drug'].$msg;
 
       if ( ! $item['refills_total'] AND $days AND $days < $groups['MIN_DAYS'])
         $groups['MIN_DAYS'] = $days;
