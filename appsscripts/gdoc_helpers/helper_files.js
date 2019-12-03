@@ -74,7 +74,7 @@ function watchFiles(opts) {
 //https://stackoverflow.com/questions/40476324/how-to-publish-to-the-web-a-spreadsheet-using-drive-api-and-gas
 function publishFile(opts){
 
-  DriveApp.getFoldersByName(opts.folder).next()
+  var folder = DriveApp.getFoldersByName(opts.folder).next()
   var file   = folder.searchFiles('title contains "'+opts.file+'"').next()
   var fileId = file.getId()
   //Side effect of this is that this account can no longer delete/trash/remove this file since must be done by owner
