@@ -48,6 +48,8 @@ function pick_list_suffix($item) {
 
 function print_pick_list($item, $vals) {
 
+  if ( ! $vals) return; //List could not be made
+
   $header = [
     ['Order #'.$item['invoice_number'].' '.$item['drug_generic'].' ('.$item['drug_name'].')', '', '' ,'', '', ''],
     [
@@ -76,6 +78,8 @@ function print_pick_list($item, $vals) {
 }
 
 function pend_pick_list($item, $vals) {
+
+  if ( ! $vals) return; //List could not be made
 
   if ( ! LIVE_MODE) return email("WebForm pend_pick_list", $item, $vals);
 
