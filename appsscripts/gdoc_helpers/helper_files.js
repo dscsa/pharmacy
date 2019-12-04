@@ -4,8 +4,12 @@ function removeFiles(opts) {
   var res      = []
 
   while (iterator.hasNext()) {
-    var file = iterator.next().setTrashed(true) //Prevent printing an old list that Cindy pended and shipped on her own
-    res.push([file.getUrl(), file.getName()])
+    try {
+      var file = iterator.next().setTrashed(true) //Prevent printing an old list that Cindy pended and shipped on her own
+      res.push(['success', file.getUrl(), file.getName()])
+    } catch (e) {
+      res.push(['error', file.getUrl(), file.getName()]) //e.g., Error: "Access denied: DriveApp."
+    }
   }
 
   infoEmail('removeFiles', opts, res)
