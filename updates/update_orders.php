@@ -266,7 +266,7 @@ function update_orders() {
         UPDATE
           gp_order_items
         SET
-          group =  if(group is NULL, '$fill$action', concat('$fill$action < ', group))
+         `group` = CASE WHEN `group` is NULL THEN '$fill$action' ELSE concat('$fill$action < ', `group`) END
         WHERE
           invoice_number = $item[invoice_number] AND
           rx_number = $item[rx_number]
@@ -299,7 +299,7 @@ function update_orders() {
         gp_orders
       SET
         count_filled = '$groups[COUNT_FILLED]',
-        count_nofill = '$groups[COUNT_NOFILL]',
+        count_nofill = '$groups[COUNT_NOFILL]'
       WHERE
         invoice_number = {$order[0]['invoice_number']}
     ";

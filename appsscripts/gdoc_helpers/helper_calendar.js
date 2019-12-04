@@ -77,7 +77,12 @@ function searchCalendarEvents(opts) {
   //TODO Remove if/when Calendar support partial word searches
 
   var matches = []
-  var regex   = opts.regex_search && RegExp(opts.regex_search)
+
+  if (opts.regex_search) {
+    var slash = opts.regex_search.lastIndexOf("/")
+    var regex = RegExp(opts.regex_search.slice(1, slash), opts.regex_search.slice(slash+1))
+  }
+
   for (var i in events) {
 
     var event = {

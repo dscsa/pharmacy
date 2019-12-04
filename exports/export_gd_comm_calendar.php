@@ -77,7 +77,7 @@ function order_shipped_notice($groups) {
 
   if ($groups['ALL'][0]['invoice_doc_id']) $email['attachments'] = [$groups['ALL'][0]['invoice_doc_id']];
 
-  email('order_shipped_event', $groups['ALL'], $email, $text);
+  email('order_shipped_notice', $groups['ALL'], $email, $text);
 
   order_shipped_event($groups['ALL'], $email, $text);
 }
@@ -406,17 +406,18 @@ function order_canceled_notice($order) {
 }
 
 function confirm_shipment_notice($groups) {
-  confirm_shipping_internal($groups);
-  confirm_shipping_external($groups);
+
+    confirm_shipping_external($groups) //Existing customer just tell them it was delivered
+
+    if ( ! $groups['ALL'][0]['refills_used'])
+      confirm_shipping_internal($groups) //New customer tell them it was delivered and followup with a call
 }
 
 function confirm_shipping_internal($groups) {
 
-  if ( ! $groups['ALL'][0]['refills_used']) return;
-
   ///It's depressing to get updates if nothing is being filled
   $subject  = "Follow up on new patient's first order";
-  $days_ago = 5;
+  $days_ago = 6;
 
   $email = [ "email" => 'support@goodpill.org' ];
 
@@ -466,7 +467,7 @@ function confirm_shipping_external($groups) {
     ''
   ]);
 
-  confirm_shipment_event($groups['ALL'], $email, 7*24, 14);
+  confirm_shipment_event($groups['ALL'], $email, 5*24, 14);
 }
 
 function tracking_url($tracking_number) {
