@@ -32,7 +32,8 @@ function removeCalendarEvents(opts) {
   }
 
   for (var i in opts.events) {
-    var title = opts.events[i].getTitle()+' Deleted:'+new Date()
+    var event = opts.events[i]
+    var title = event.getTitle()+' Deleted:'+new Date()
 
     event.setTitle(title)
 
