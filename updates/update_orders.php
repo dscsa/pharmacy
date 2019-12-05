@@ -330,6 +330,9 @@ function update_orders() {
 
     else
       order_created_notice($groups);
+
+    if ($order[0]['order_source']['tracking_number'])
+      email('Error? Order with tracking number was deleted', $order, $groups);
   }
 
   function send_deleted_order_communications($order) {
