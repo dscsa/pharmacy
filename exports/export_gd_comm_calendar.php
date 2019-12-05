@@ -407,10 +407,10 @@ function order_canceled_notice($order) {
 
 function confirm_shipment_notice($groups) {
 
-    confirm_shipping_external($groups) //Existing customer just tell them it was delivered
+    confirm_shipping_external($groups); //Existing customer just tell them it was delivered
 
     if ( ! $groups['ALL'][0]['refills_used'])
-      confirm_shipping_internal($groups) //New customer tell them it was delivered and followup with a call
+      confirm_shipping_internal($groups); //New customer tell them it was delivered and followup with a call
 }
 
 function confirm_shipping_internal($groups) {

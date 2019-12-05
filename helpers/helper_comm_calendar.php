@@ -288,7 +288,7 @@ function create_event($event_title, $comm_arr, $hours_to_wait = 0, $hour_of_day 
     'description' => $comm_arr
   ];
 
-  $result = gdoc_post(GD_HELPER_URL, $args);
+  //$result = gdoc_post(GD_HELPER_URL, $args);
 
   //email('create_event', $args, $result);
 }
@@ -301,7 +301,7 @@ function cancel_events($ids) {
     'ids'         => $ids
   ];
 
-  $result = gdoc_post(GD_HELPER_URL, $args);
+  //$result = gdoc_post(GD_HELPER_URL, $args);
 
   email('cancel_events', $args, $result);
 }
@@ -314,7 +314,7 @@ function modify_events() {
     'events'  => $modify
   ];
 
-  $result = gdoc_post(GD_HELPER_URL, $args);
+  //$result = gdoc_post(GD_HELPER_URL, $args);
 
   email('modify_events', $args, $result);
 }
