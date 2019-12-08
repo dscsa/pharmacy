@@ -28,9 +28,9 @@ function update_orders() {
 
   function get_full_order($order, $mysql) {
 
-    //gp_orders.invoice_number at end because otherwise potentially null gp_order_items.invoice_number will override gp_orders.invoice_number
+    //gp_orders.invoice_number and other fields at end because otherwise potentially null gp_order_items.invoice_number will override gp_orders.invoice_number
     $sql = "
-      SELECT *, gp_orders.invoice_number
+      SELECT *, gp_orders.invoice_number, gp_rxs_grouped.drug_generic, gp_rxs_grouped.drug_brand, gp_rxs_grouped.drug_name
       FROM
         gp_orders
       JOIN gp_patients ON
@@ -135,7 +135,7 @@ function update_orders() {
       $days_extra  = (strtotime($target_date) - strtotime($item['refill_date_next']))/60/60/24;
       $days_synced = $item['days_dispensed'] + round($days_extra/15)*15;
 
-      if ($days_synced >= 15 AND $days_synced <= 120) { //Limits to the amounts by which we are willing sync
+      if ($days_synced >= 15 AND $days_synced <= 120 AND $days_synced != 90) { //Limits to the amounts by which we are willing sync
 
         $order[$i]['refill_target_date'] = $target_date;
         $order[$i]['days_dispensed']     = $days_synced;
@@ -146,8 +146,9 @@ function update_orders() {
           UPDATE
             gp_order_items
           SET
+            item_message_key        = '".RX_MESSAGE['NO ACTION SYNC TO DATE']."',
             refill_target_date      = '$target_date',
-            refill_target_days      = $days_extra,
+            refill_target_days      = ".($days_synced - $item['days_dispensed']).",
             refill_target_rxs       = '$target_rxs',
             days_dispensed_default  = $days_synced,
             qty_dispensed_default   = ".$order[$i]['qty_dispensed'].",
