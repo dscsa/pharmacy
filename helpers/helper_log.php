@@ -35,7 +35,7 @@ function log_info() {
 function email($subject) {
   sleep(5); //gmail was rejecting messages being sent too fast
   call_user_func_array("log_info", func_get_args());
-  mail(DEBUG_EMAIL, print_r($subject, true), args_to_string(func_get_args()));
+  //mail(DEBUG_EMAIL, print_r($subject, true), args_to_string(func_get_args()));
 }
 
 function timer($label, &$start) {
