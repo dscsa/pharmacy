@@ -50,12 +50,26 @@ function vars_to_json($vars) {
   $diff = array_diff_key($vars, array_flip($non_user_vars));
   $json = json_encode($diff);
 
-  if ($json)
-    return str_replace('\n', '', $json);
+  if ( ! $json) {
+    $error = json_last_error();
+    log_to_cli('ERROR', 'json_encode failed on get_defined_vars()', 'vars_to_json() in helper_log.php', $error);
+    log_to_email('ERROR', 'json_encode failed on get_defined_vars()', 'vars_to_json() in helper_log.php', $error);
+    $json = json_encode(utf8ize($diff));
+  }
 
-  log_to_cli('ERROR', 'get_defined_vars() had no user variable', 'vars_to_json() in helper_log.php', json_encode(array_keys($vars)));
-  log_to_email('ERROR', 'get_defined_vars() had no user variable', 'vars_to_json() in helper_log.php', json_encode(array_keys($vars)));
-  return '{}';
+  return $json ? str_replace('\n', '', $json) : '{}';
+}
+
+//https://stackoverflow.com/questions/19361282/why-would-json-encode-return-an-empty-string
+function utf8ize($d) {
+  if (is_array($d)) {
+      foreach ($d as $k => $v) {
+          $d[$k] = utf8ize($v);
+      }
+  } else if (is_string ($d)) {
+      return utf8_encode($d);
+  }
+  return $d;
 }
 
 function log_info($text, $vars) {
