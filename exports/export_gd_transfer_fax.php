@@ -4,8 +4,7 @@ require_once 'helpers/helper_gdocs.php';
 
 function export_gd_transfer_fax($item) {
 
-  log_info("
-  export_gd_update_fax ");//.print_r($item, true);
+  log_info("export_gd_update_fax", get_defined_vars());//.print_r($item, true);
 
   return;
 
@@ -23,9 +22,7 @@ function export_gd_transfer_fax($item) {
 
   $result = gdoc_post(GD_MERGE_URL, $args);
 
-  email("WebForm export_gd_transfer_fax", $args, $result);
-
-  log_info($result);
+  log_info("WebForm export_gd_transfer_fax", get_defined_vars());
 }
 
 function getToken(){

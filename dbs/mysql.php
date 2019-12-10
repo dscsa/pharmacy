@@ -58,7 +58,7 @@ class Mysql {
         $results = $this->_getResults($stmt, $sql, $debug);
 
         if ($debug)
-          log_info(count($results)." recordsets, the first with ".count($results[0])." rows in ".(microtime(true) - $starttime)." seconds: ".substr($sql, 0, 30));
+          log_info(count($results)." recordsets, the first with ".count($results[0])." rows in ".(microtime(true) - $starttime)." seconds", get_defined_vars());
 
         return $results;
     }
@@ -99,8 +99,7 @@ class Mysql {
     }
 
     function _emailError() {
-      $message = print_r(func_get_args(), true).' '.print_r(isset($this->connection) ? mysqli_connect_errno($this->connection).': '.mysqli_error($this->connection) : mysqli_connect_errno().': '.mysqli_connect_error(), true);
-      log_info("CRON: Debug MYSQL $message");
-      email("CRON: Debug MYSQL ", $message);
+      $mysqli_error = isset($this->connection) ? mysqli_connect_errno($this->connection).': '.mysqli_error($this->connection) : mysqli_connect_errno().': '.mysqli_connect_error()
+      log_error("CRON: Debug MSSQL", ['mysqli_error' => $mysqli_error], func_get_args());
     }
 }

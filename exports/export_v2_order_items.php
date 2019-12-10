@@ -4,8 +4,7 @@
 //TODO Pend v2 Inventory
 
 function export_v2_add_pended($item) {
-  log_info("
-  export_v2_add_pended ");//.print_r($item, true);
+  log_info("export_v2_add_pended", get_defined_vars());//.print_r($item, true);
 
   if ( ! $item['days_dispensed_default']) return;
 
@@ -15,8 +14,7 @@ function export_v2_add_pended($item) {
 }
 
 function export_v2_remove_pended($item) {
-  log_info("
-  export_v2_remove_pended ");//.print_r($item, true);
+  log_info("export_v2_remove_pended", get_defined_vars());//.print_r($item, true);
 
   //delete_pick_list
   //$res = v2_fetch('/account/8889875187/pend/'.$item['invoice_number'], 'DELETE');
@@ -31,7 +29,7 @@ function export_v2_remove_pended($item) {
 
   $result = gdoc_post(GD_HELPER_URL, $args);
 
-  email('export_v2_remove_pended', $item, $result);
+  log_info('export_v2_remove_pended', get_defined_vars());
 }
 
 function pick_list_name($item) {
@@ -64,7 +62,7 @@ function print_pick_list($item, $vals) {
     ['id', 'ndc', 'form', 'exp', 'qty', 'bin']
   ];
 
-  email("WebForm make_pick_list",  $header, $vals, $item);
+  log_info("WebForm make_pick_list", get_defined_vars());
 
   $args = [
     'method'   => 'newSpreadsheet',
@@ -81,7 +79,7 @@ function pend_pick_list($item, $vals) {
 
   if ( ! $vals) return; //List could not be made
 
-  if ( ! LIVE_MODE) return email("WebForm pend_pick_list", $item, $vals);
+  if ( ! LIVE_MODE) return log_info("WebForm pend_pick_list", get_defined_vars());
 
   //Pend after all forseeable errors are accounted for.
   //v2_fetch('/account/8889875187/pend/'.$item['invoice_number'].' - '.$item['qty_dispensed_default'], 'POST', $vals);
@@ -90,7 +88,7 @@ function pend_pick_list($item, $vals) {
 function make_pick_list($item) {
 
   if ( ! isset($item['stock_level_initial']))
-    email("ERROR make_pick_list: stock_level_initial is not set", $item);
+    log_error("ERROR make_pick_list: stock_level_initial is not set", get_defined_vars());
 
   $safety   = 0.15;
   $generic  = $item['drug_generic'];
@@ -116,14 +114,14 @@ function make_pick_list($item) {
   $sorted_ndcs   = sort_by_ndc($unsorted_ndcs, $long_exp);
   $list          = get_qty_needed($sorted_ndcs, $min_qty, $safety);
 
-  email("Webform make_pick_list", $url, $item, $list, $sorted_ndcs, $resp);
+  log_info("Webform make_pick_list", get_defined_vars());
 
   if ($list) {
     $list['half_fill'] = '';
     return $list;
   }
 
-  email("Webform Shopping Error: Not enough qty found, trying half fill and no safety", $url, $item, $list, $sorted_ndcs, $resp);
+  log_info("Webform Shopping Error: Not enough qty found, trying half fill and no safety", get_defined_vars());
 
   $list = get_qty_needed($sorted_ndcs, $min_qty*0.5, 0);
 
@@ -182,7 +180,7 @@ function sort_by_ndc($ndcs, $long_exp) {
   usort($sorted_ndcs, function($a, $b) use ($sorted_ndcs) {
 
     if ( ! isset($a['prepack_qty']) OR ! isset($b['prepack_qty'])) {
-      email('ERROR: sort_by_ndc', $a, $b, $sorted_ndcs);
+      log_error('ERROR: sort_by_ndc', ['sorted_ndcs' => $sorted_ndcs], func_get_args());
     } else {
       return $b['prepack_qty'] - $a['prepack_qty'];
     }

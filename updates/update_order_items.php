@@ -14,15 +14,9 @@ function update_order_items() {
   $count_created = count($changes['created']);
   $count_updated = count($changes['updated']);
 
-  $message = "
-  update_order_items: $count_deleted deleted, $count_created created, $count_updated updated. ";
-
-  if ($count_deleted+$count_created+$count_updated)
-    log_info($message.print_r($changes, true));
-
-  //email("CRON: $message", $message, $changes);
-
   if ( ! $count_deleted AND ! $count_created AND ! $count_updated) return;
+
+  log_info("update_order_items: $count_deleted deleted, $count_created created, $count_updated updated.", get_defined_vars());
 
   $mysql = new Mysql_Wc();
 
@@ -58,7 +52,7 @@ function update_order_items() {
       $full_item = $query[0][0];
 
       if ( ! $full_item['stock_level'])
-        email('ERROR get_full_item: missing stock level', $item, $full_item, $query, $sql);
+        log_error('ERROR get_full_item: missing stock level', get_defined_vars());
 
     } else {
 
@@ -81,12 +75,10 @@ function update_order_items() {
 
       $anything = $mysql->run($debug);
 
-      email("ERROR get_full_item: missing item", $item, $full_item, $sql, $query, $debug, $anything);
+      log_error("ERROR get_full_item: missing item", get_defined_vars());
     }
 
-    log_info("
-    Item: $sql
-    ".print_r($full_item, true));
+    log_info("Get Full Item", get_defined_vars());
 
     return $full_item;
   }
@@ -101,7 +93,7 @@ function update_order_items() {
 
     $item = get_full_item($created, $mysql);
 
-    email('update_order_items created', $created, $item);
+    log_info('update_order_items created', get_defined_vars());
 
     list($days, $message) = get_days_dispensed($item);
 
@@ -140,11 +132,11 @@ function update_order_items() {
 
     $item = get_full_item($updated, $mysql);
 
-    email('update_order_items updated', $item);
+    log_info('update_order_items updated', get_defined_vars());
 
     if ($item['days_dispensed_default']) {
 
-      log_info("Updated Item No Action: ");
+      log_info("Updated Item No Action", get_defined_vars());
 
     } else {
 
@@ -153,7 +145,8 @@ function update_order_items() {
       set_days_dispensed($item, $days, $message, $mysql);
     }
 
-    log_info("Order Items: ".print_r(changed_fields($updated), true).print_r($updated, true));
+    $changed_fields = changed_fields($updated);
+    log_info("update_order_items", get_defined_vars());
 
     //TODO Update Salesforce Order Total & Order Count & Order Invoice using REST API or a MYSQL Zapier Integration
   }

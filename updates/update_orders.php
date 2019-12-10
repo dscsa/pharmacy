@@ -16,11 +16,7 @@ function update_orders() {
 
   if ( ! $count_deleted AND ! $count_created AND ! $count_updated) return;
 
-  $message = "
-  update_orders: $count_deleted deleted, $count_created created, $count_updated updated. ";
-
-  log_info($message.print_r($changes, true));
-  email('update_orders', $message, $changes);
+  log_info("update_orders: $count_deleted deleted, $count_created created, $count_updated updated.", get_defined_vars());
 
   $mysql = new Mysql_Wc();
 
@@ -48,7 +44,7 @@ function update_orders() {
     $order = $mysql->run($sql)[0];
 
     if ( ! $order OR ! $order[0]['invoice_number']) {
-      email('ERROR! get_full_order: no invoice number ', $order);
+      log_error('ERROR! get_full_order: no invoice number', get_defined_vars());
     } else {
       //Consolidate default and actual suffixes to avoid conditional overload in the invoice template and redundant code within communications
       foreach($order as $i => $item) {
@@ -63,7 +59,7 @@ function update_orders() {
       usort($order, 'sort_order_by_day');
     }
 
-    email('get_full_order every item with 0 days should have message', $order);
+    log_info('get_full_order every item with 0 days should have message', get_defined_vars());
     return $order;
   }
 
@@ -80,7 +76,7 @@ function update_orders() {
     foreach($order as $item) {
 
       if ( ! isset($item['invoice_number'])) {
-        email('ERROR sync_to_order', $item, $order);
+        log_error('ERROR sync_to_order', get_defined_vars());
         continue;
       }
 
@@ -89,7 +85,7 @@ function update_orders() {
       $days_to_refill = (strtotime($item['refill_date_next']) - strtotime($item['order_date_added']))/60/60/24;
 
       if ($days_to_refill < 15)
-        email('TODO: Add this item to the Order', $item, $order);
+        log_info('TODO: Add this item to the Order', get_defined_vars());
     }
   }
 
@@ -307,7 +303,7 @@ function update_orders() {
 
     $mysql->run($sql);
 
-    email('GROUP_DRUGS', $order, $groups);
+    log_info('GROUP_DRUGS', get_defined_vars());
 
     return $groups;
   }
@@ -333,14 +329,14 @@ function update_orders() {
       order_created_notice($groups);
 
     if ($order[0]['order_source']['tracking_number'])
-      email('Error? Order with tracking number was deleted', $order, $groups);
+      log_error('Error? Order with tracking number was deleted', get_defined_vars());
   }
 
   function send_deleted_order_communications($order) {
 
     //TODO We need something here!
     order_canceled_notice($order);
-    email('Order was deleted', $order);
+    log_info('Order was deleted', get_defined_vars());
   }
 
   function send_updated_order_communications($order, $mysql, $updated) {
@@ -362,7 +358,7 @@ function update_orders() {
 
     else {
       order_updated_notice($groups);
-      email('order_updated_notice', $updated, $groups);
+      log_info('order_updated_notice', get_defined_vars());
     }
   }
 
@@ -417,7 +413,8 @@ function update_orders() {
   //  - think about what needs to be updated based on changes
   foreach($changes['updated'] as $updated) {
 
-    log_info("Order: ".print_r(changed_fields($updated), true).print_r($updated, true));
+    $changed_fields = changed_fields($updated);
+    log_info("update_orders", get_defined_vars());
 
     $order = get_full_order($updated, $mysql);
     //Probably finalized days/qty_dispensed_actual

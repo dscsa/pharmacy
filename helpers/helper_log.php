@@ -1,40 +1,74 @@
 <?php
-function args_to_string($args) {
 
-  foreach ($args as $i => $arg) {
-    $args[$i] = print_r($arg, true);
-  }
-  return implode(' | ', $args);
+global $mysql;
+
+function log_to_db($severity, $text, $file, $vars) {
+   $mysql = $mysql ?: new Mysql_Wc();
+   $mysql->run("INSERT INTO gp_logs('severity', 'text', 'file', 'vars') VALUES ('$severity', '$text', '$file', '$vars')");
 }
 
-function log_all() {
-
-  $log = args_to_string(func_get_args());
-
-  echo $log;
-
-  if ( ! isset($_SERVER['webform_log'])) {
-    $_SERVER['webform_log'] = [];
-  }
-
-  if ( ! $log) {
-    return implode('\n', $_SERVER['webform_log']);
-  }
-
-  $_SERVER['webform_log'][] = $log;
+function log_to_email($severity, $text, $file, $vars) {
+   mail(DEBUG_EMAIL, "$severity: $text", "$severity: $text. $file vars: $vars");
 }
 
-function log_info() {
+function log_to_cli($severity, $text, $file, $vars) {
+   echo "
+   $severity: $text. $file vars: $vars";
+}
+
+function vars_to_json($vars) {
+
+   $non_user_vars = [
+    "_COOKIE",
+    "_ENV",
+    "_FILES",
+    "_GET",
+    "_POST",
+    "_REQUEST",
+    "_SERVER",
+    "_SESSION",
+    "argc",
+    "argv",
+    "GLOBALS",
+    "HTTP_RAW_POST_DATA",
+    "HTTP_ENV_VARS",
+    "HTTP_POST_VARS",
+    "HTTP_GET_VARS",
+    "HTTP_COOKIE_VARS",
+    "HTTP_SERVER_VARS",
+    "HTTP_POST_FILES",
+    "http_response_header",
+    "ignore",
+    "php_errormsg"
+  ];
+
+  $vars = array_diff_key($vars, array_flip($non_user_vars));
+  return json_encode($vars);
+}
+
+function log_info($text, $vars) {
 
   global $argv;
 
-  if (in_array('log=info', $argv))
-    return call_user_func_array("log_all", func_get_args());
+  if ( ! in_array('log=info', $argv)) return;
+
+  $trace  = debug_backtrace();
+  $caller = array_shift($trace);
+  $file   = "$caller[function]() in $caller[file]";
+  $vars   = vars_to_json($vars);
+
+  log_to_db('INFO', $text, $file, $vars);
+  log_to_cli('INFO', $text, $file, $vars);
 }
 
-function email($subject) {
-  call_user_func_array("log_all", func_get_args());
-  //mail(DEBUG_EMAIL, print_r($subject, true), args_to_string(func_get_args()));
+function log_error($text, $vars) {
+  $trace  = debug_backtrace();
+  $caller = array_shift($trace);
+  $file   = "$caller[function]() in $caller[file]";
+  $vars   = vars_to_json($vars);
+  log_to_email('ERROR', $text, $file, $vars);
+  log_to_db('ERROR', $text, $file, $vars);
+  log_to_cli('ERROR', $text, $file, $vars);
 }
 
 function timer($label, &$start) {

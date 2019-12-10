@@ -10,7 +10,7 @@ function order_dispensed_event($order, $email, $hours_to_wait) {
 
   $comm_arr = new_comm_arr($email);
 
-  email('order_dispensed_event', $event_title, $comm_arr, $cancel, $order);
+  log_info('order_dispensed_event', get_defined_vars());
 
   create_event($event_title, $comm_arr, $hours_to_wait);
 }
@@ -24,7 +24,7 @@ function order_shipped_event($order, $email, $text) {
 
   $comm_arr = new_comm_arr($email, $text);
 
-  email('order_shipped_event', $event_title, $comm_arr, $cancel, $order);
+  log_info('order_shipped_event', get_defined_vars());
 
   create_event($event_title, $comm_arr);
 }
@@ -37,7 +37,7 @@ function refill_reminder_event($order, $email, $text, $hours_to_wait, $hour_of_d
 
   $comm_arr = new_comm_arr($email, $text);
 
-  email('refill_reminder_event', $event_title, $comm_arr, $hours_to_wait, $hour_of_day, $order); //$cancel
+  log_info('refill_reminder_event', get_defined_vars()); //$cancel
 
   create_event($event_title, $comm_arr, $hours_to_wait, $hour_of_day);
 }
@@ -50,7 +50,7 @@ function autopay_reminder_event($order, $email, $text, $hours_to_wait, $hour_of_
 
   $comm_arr = new_comm_arr($email, $text);
 
-  email('autopay_reminder_event', $event_title, $comm_arr, $hours_to_wait, $hour_of_day, $cancel, $order);
+  log_info('autopay_reminder_event', get_defined_vars());
 
   create_event($event_title, $comm_arr, $hours_to_wait, $hour_of_day);
 }
@@ -63,7 +63,7 @@ function order_created_event($order, $email, $text, $hours_to_wait) {
 
   $comm_arr = new_comm_arr($email, $text);
 
-  email('order_created_event', $event_title, $comm_arr, $hours_to_wait, $cancel, $order);
+  log_info('order_created_event', get_defined_vars());
 
   create_event($event_title, $comm_arr, $hours_to_wait);
 }
@@ -77,7 +77,7 @@ function transfer_requested_event($order, $email, $text, $hours_to_wait) {
 
   $comm_arr = new_comm_arr($email, $text);
 
-  email('transfer_requested_event', $event_title, $comm_arr, $hours_to_wait, $cancel, $order);
+  log_info('transfer_requested_event', get_defined_vars());
 
   create_event($event_title, $comm_arr, $hours_to_wait);
 }
@@ -85,7 +85,7 @@ function transfer_requested_event($order, $email, $text, $hours_to_wait) {
 function order_hold_event($order, $email, $text, $hours_to_wait) {
 
   if ( ! isset($order[0]['invoice_number']))
-    email('ERROR order_hold_event: indexes not set', $order);
+    log_error('ERROR order_hold_event: indexes not set', get_defined_vars());
 
   $patient_label = get_patient_label($order);
   $event_title   = $order[0]['invoice_number'].' Order Hold: '.$patient_label.'.  Created:'.date('Y:m:d H:i:s');
@@ -94,7 +94,7 @@ function order_hold_event($order, $email, $text, $hours_to_wait) {
 
   $comm_arr = new_comm_arr($email, $text);
 
-  email('order_hold_event', $event_title, $comm_arr, $hours_to_wait, $cancel, $order);
+  log_info('order_hold_event', get_defined_vars());
 
   create_event($event_title, $comm_arr, $hours_to_wait);
 }
@@ -107,7 +107,7 @@ function order_updated_event($order, $email, $text, $hours_to_wait) {
 
   $comm_arr = new_comm_arr($email, $text);
 
-  email('order_updated_event', $event_title, $comm_arr, $hours_to_wait, $cancel, $order);
+  log_info('order_updated_event', get_defined_vars());
 
   create_event($event_title, $comm_arr, $hours_to_wait);
 }
@@ -121,7 +121,7 @@ function needs_form_event($order, $email, $text, $hours_to_wait, $hour_of_day = 
 
   $comm_arr = new_comm_arr($email, $text);
 
-  email('needs_form_event', $event_title, $comm_arr, $hours_to_wait, $hour_of_day, $cancel, $order);
+  log_info('needs_form_event', get_defined_vars());
 
   create_event($event_title, $comm_arr, $hours_to_wait, $hour_of_day);
 }
@@ -129,7 +129,7 @@ function needs_form_event($order, $email, $text, $hours_to_wait, $hour_of_day = 
 function no_rx_event($order, $email, $text, $hours_to_wait, $hour_of_day = null) {
 
   if ( ! isset($order[0]['invoice_number']))
-    email('ERROR no_rx_event: indexes not set', $order);
+    log_error('ERROR no_rx_event: indexes not set', get_defined_vars());
 
   $patient_label = get_patient_label($order);
   $event_title   = $order[0]['invoice_number'].' No Rx: '.$patient_label.'.  Created:'.date('Y:m:d H:i:s');
@@ -138,7 +138,7 @@ function no_rx_event($order, $email, $text, $hours_to_wait, $hour_of_day = null)
 
   $comm_arr = new_comm_arr($email, $text);
 
-  email('no_rx_event', $event_title, $comm_arr, $hours_to_wait, $hour_of_day, $cancel, $order);
+  log_info('no_rx_event', get_defined_vars());
 
   create_event($event_title, $comm_arr, $hours_to_wait, $hour_of_day);
 }
@@ -152,7 +152,7 @@ function order_canceled_event($order, $email, $text, $hours_to_wait, $hour_of_da
 
   $comm_arr = new_comm_arr($email, $text);
 
-  email('order_canceled_event', $event_title, $comm_arr, $hours_to_wait, $hour_of_day, $cancel, $order);
+  log_info('order_canceled_event', get_defined_vars());
 
   create_event($event_title, $comm_arr, $hours_to_wait, $hour_of_day);
 }
@@ -166,7 +166,7 @@ function confirm_shipment_event($order, $email, $hours_to_wait, $hour_of_day = n
 
   $comm_arr = new_comm_arr($email);
 
-  email('confirmShipmentEvent', $event_title, $comm_arr, $hours_to_wait, $hour_of_day, $cancel, $order);
+  log_info('confirmShipmentEvent', get_defined_vars());
 
   create_event($event_title, $comm_arr, $hours_to_wait, $hour_of_day);
 }
@@ -192,7 +192,7 @@ function new_comm_arr($email, $text = '') {
     $call['call']    = $call['sms'];
     unset($call['sms']);
 
-    email('comm_array', $json, $text, $call);
+    log_info('comm_array', get_defined_vars());
 
     $text['fallbacks'] = [$call];
     $comm_arr[] = $text;
@@ -208,7 +208,7 @@ function format_text($text_json) {
   try {
     return json_decode($text_json, true);
   } catch (Error $e) {
-    email('format_text json.parse error', $text_json, $e);
+    log_error('format_text json.parse error', get_defined_vars());
   }
 }
 
@@ -262,14 +262,14 @@ function format_call($call_json) {
   try {
     return json_decode($call_json, true);
   } catch (Error $e) {
-    email('format_call json.parse error', $call_json, $e);
+    log_error('format_call json.parse error', get_defined_vars());
   }
 }
 
 function get_patient_label($order) {
 
   if ( ! isset($order[0])) {
-    email('ERROR: get_patient_label', $order);
+    log_error('ERROR: get_patient_label', get_defined_vars());
   }
 
   return $order[0]['first_name'].' '.$order[0]['last_name'].' '.$order[0]['birth_date'];
@@ -303,7 +303,7 @@ function cancel_events($ids) {
 
   //$result = gdoc_post(GD_HELPER_URL, $args);
 
-  email('cancel_events', $args, $result);
+  log_info('cancel_events', get_defined_vars());
 }
 
 function modify_events() {
@@ -316,7 +316,7 @@ function modify_events() {
 
   //$result = gdoc_post(GD_HELPER_URL, $args);
 
-  email('modify_events', $args, $result);
+  log_info('modify_events', get_defined_vars());
 }
 
 //Return a copy of the date (or now) with the 24-hour set
@@ -352,7 +352,7 @@ function search_events_by_person($first_name, $last_name, $birth_date, $past = f
   $result = gdoc_post(GD_HELPER_URL, $args);
 
   if ($result != '[]')
-    email('search_events', $args, $result);
+    log_info('search_events', get_defined_vars());
 
   return json_decode($result, true);
 }
@@ -387,12 +387,12 @@ function remove_drugs_from_events($first_name, $last_name, $birth_date, $types, 
   }
 
   if (count($modify)) {
-    email('remove_drugs_from_events modifyEvent', $modify, $first_name, $last_name, $birth_date, $drugs);
+    log_info('remove_drugs_from_events modifyEvent', get_defined_vars());
     modify_events($modify);
   }
 
   if (count($remove)) {
-    email('remove_drugs_from_events removeEvent', $remove, $first_name, $last_name, $birth_date, $drugs);
+    log_info('remove_drugs_from_events removeEvent', get_defined_vars());
     cancel_events($remove);
   }
 }
@@ -405,7 +405,7 @@ function cancel_events_by_person($first_name, $last_name, $birth_date, $types = 
   $events = search_events_by_person($first_name, $last_name, $birth_date, false, $types);
 
   if ( ! is_array($events)) {
-    email('ERROR watch_invoices',$events, $first_name, $last_name, $birth_date, false, $types);
+    log_error('ERROR watch_invoices', get_defined_vars());
     $events = [];
   }
 

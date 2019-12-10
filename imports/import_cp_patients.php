@@ -88,7 +88,7 @@ function import_cp_patients() {
             $row['payment_card_date_expired'] = date_format($date_expired, "'Y-m-t'"); //t give last day of month.  d was givign current day
           }
           else {
-            log_info("Error with card expiration date $date_expired: ".$val2[1]." ".print_r($row, true));
+            log_error("import_cp_patients: error with card expiration date $date_expired", ['val2' => $val2], func_get_args());
             $row['payment_card_date_expired'] = 'NULL';
           }
 
@@ -100,7 +100,7 @@ function import_cp_patients() {
         $row['payment_coupon']  = 'NULL';
       }
       else if (substr($val2[3], 0, 6) == "track_") {
-        email("Really Tracking Coupon???", $row, $val2, substr($val2[3], 0, 6));
+        log_info("Really Tracking Coupon???", get_defined_vars());
         $row['payment_coupon']  = 'NULL';
         $row['tracking_coupon'] = clean_val($val2[3]);
         assert_length($row, 'tracking_coupon', 5, 40); //with single quotes

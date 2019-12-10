@@ -58,7 +58,7 @@ class Mssql {
         $results = $this->_getResults($stmt, $sql, $debug);
 
         if ($debug)
-          log_info(count($results)." recordsets, the first with ".count($results[0])." rows in ".(microtime(true) - $starttime)." seconds: ".substr($sql, 0, 30));
+          log_info(count($results)." recordsets, the first with ".count($results[0])." rows in ".(microtime(true) - $starttime)." seconds", get_defined_vars());
 
         return $results;
     }
@@ -96,8 +96,6 @@ class Mssql {
     }
 
     function _emailError() {
-      $message = print_r(func_get_args(), true).' '.print_r(mssql_get_last_message(), true);
-      log_info("CRON: Debug MSSQL $message");
-      email("CRON: Debug MSSQL ", $message);
+      log_error("CRON: Debug MSSQL", ['mssql_get_last_message' => mssql_get_last_message()], func_get_args());
     }
 }

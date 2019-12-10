@@ -10,15 +10,10 @@ function update_patients() {
   $count_created = count($changes['created']);
   $count_updated = count($changes['updated']);
 
-  $message = "
-  update_patients: $count_deleted deleted, $count_created created, $count_updated updated. ";
-
-  if ($count_deleted+$count_created+$count_updated)
-    log_info($message.print_r($changes, true));
-
-  //email("CRON: $message", $message, $changes);
-
   if ( ! $count_deleted AND ! $count_created AND ! $count_updated) return;
+
+  log_info("update_patients: $count_deleted deleted, $count_created created, $count_updated updated.", get_defined_vars());
+
 
   //TODO Upsert WooCommerce Patient Info
 

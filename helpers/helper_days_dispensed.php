@@ -4,8 +4,7 @@
 
 function get_days_dispensed($item) {
 
-  log_info("
-  get_days_dispensed ");//.print_r($item, true);
+  log_info("get_days_dispensed", get_defined_vars());//.print_r($item, true);
 
   //TODO OR IT'S AN OTC
   $no_transfer = $item['price_per_month'] >= 20 OR $item['pharmacy_phone'] == "8889875187";
@@ -20,128 +19,107 @@ function get_days_dispensed($item) {
   ]);
 
   if ($item['rx_date_expired'] < $item['refill_date_next']) {
-    log_info("
-    DON'T FILL EXPIRED MEDICATIONS");
+    log_info("DON'T FILL EXPIRED MEDICATIONS", get_defined_vars());
     return [0, RX_MESSAGE['ACTION EXPIRED']];
   }
 
   if ($item['refills_total'] < 0.1) {
-    log_info("
-    DON'T FILL MEDICATIONS WITHOUT REFILLS");
+    log_info("DON'T FILL MEDICATIONS WITHOUT REFILLS", get_defined_vars());
     return [0, RX_MESSAGE['ACTION NO REFILLS']];
   }
 
   if ( ! $item['drug_gsns']) {
-    log_info("
-    CAN'T FILL MEDICATIONS WITHOUT A GCN MATCH");
+    log_info("CAN'T FILL MEDICATIONS WITHOUT A GCN MATCH", get_defined_vars());
     return [0, RX_MESSAGE['NO ACTION MISSING GCN']];
   }
 
   if ( ! $item['refill_date_first'] AND $not_offered) {
-    log_info("
-    TRANSFER OUT NEW RXS THAT WE DONT CARRY");
+    log_info("TRANSFER OUT NEW RXS THAT WE DONT CARRY", get_defined_vars());
     return [0, RX_MESSAGE['NO ACTION WILL TRANSFER']];
   }
 
   if ($no_transfer AND ! $item['refill_date_first'] AND $refills_only) {
-    log_info("
-    CHECK BACK IF TRANSFER OUT IS NOT DESIRED");
+    log_info("CHECK BACK IF TRANSFER OUT IS NOT DESIRED", get_defined_vars());
     return [0, RX_MESSAGE['ACTION CHECK BACK']];
   }
 
   if ( ! $no_transfer AND ! $item['refill_date_first'] AND $refills_only) {
-    log_info("
-    TRANSFER OUT NEW RXS THAT WE CANT FILL");
+    log_info("TRANSFER OUT NEW RXS THAT WE CANT FILL", get_defined_vars());
     return [0, RX_MESSAGE['NO ACTION WILL TRANSFER CHECK BACK']];
   }
 
   //TODO MAYBE WE SHOULD JUST MOVE THE REFILL_DATE_NEXT BACK BY A WEEK OR TWO
   if ($item['refill_date_first'] AND ($item['qty_inventory']/$item['sig_qty_per_day'] < 30) AND ! $manual) {
-    log_info("
-    CHECK BACK NOT ENOUGH QTY UNLESS ADDED MANUALLY");
+    log_info("CHECK BACK NOT ENOUGH QTY UNLESS ADDED MANUALLY", get_defined_vars());
     return [0, RX_MESSAGE['ACTION CHECK BACK']];
   }
 
   if (is_null($item['patient_autofill'])) {
-    log_info("
-    PATIENT NEEDS TO REGISTER");
+    log_info("PATIENT NEEDS TO REGISTER", get_defined_vars());
     return [0, RX_MESSAGE['ACTION NEEDS FORM']];
   }
 
   if ( ! $item['patient_autofill'] AND ! $manual) {
-    log_info("
-    DON'T FILL IF PATIENT AUTOFILL IS OFF AND NOT MANUALLY ADDED");
+    log_info("DON'T FILL IF PATIENT AUTOFILL IS OFF AND NOT MANUALLY ADDED", get_defined_vars());
     return [0, RX_MESSAGE['ACTION PATIENT OFF AUTOFILL']];
   }
 
   if ( ! $item['patient_autofill'] AND $manual) {
-    log_info("
-    OVERRIDE PATIENT AUTOFILL OFF SINCE MANUALLY ADDED");
+    log_info("OVERRIDE PATIENT AUTOFILL OFF SINCE MANUALLY ADDED", get_defined_vars());
     return [days_default($item), RX_MESSAGE['NO ACTION RX OFF AUTOFILL']];
   }
 
   if ((strtotime($item['item_date_added']) - strtotime($item['refill_date_last'])) < 30*24*60*60 AND ! $manual) {
-    log_info("
-    DON'T REFILL IF FILLED WITHIN LAST 30 DAYS UNLESS ADDED MANUALLY");
+    log_info("DON'T REFILL IF FILLED WITHIN LAST 30 DAYS UNLESS ADDED MANUALLY", get_defined_vars());
     return [0, RX_MESSAGE['NO ACTION RECENT FILL']];
   }
 
   if ((strtotime($item['refill_date_next']) - strtotime($item['item_date_added'])) > 15*24*60*60 AND ! $manual) {
-    log_info("
-    DON'T REFILL IF NOT DUE IN OVER 15 DAYS UNLESS ADDED MANUALLY");
+    log_info("DON'T REFILL IF NOT DUE IN OVER 15 DAYS UNLESS ADDED MANUALLY", get_defined_vars());
     return [0, RX_MESSAGE['NO ACTION NOT DUE']];
   }
 
   if ( ! $item['refill_date_first'] AND $item['qty_inventory'] < 2000 AND ($item['sig_qty_per_day'] > 2.5*$item['qty_repack']) AND ! $manual) {
-    log_info("
-    SIG SEEMS TO HAVE EXCESSIVE QTY");
+    log_info("SIG SEEMS TO HAVE EXCESSIVE QTY", get_defined_vars());
     return [0, RX_MESSAGE['NO ACTION CHECK SIG']];
   }
 
   if ( ! $item['refill_date_first'] AND $not_offered) {
-    log_info("
-    REFILLS SHOULD NOT HAVE A NOT OFFERED STATUS");
+    log_info("REFILLS SHOULD NOT HAVE A NOT OFFERED STATUS", get_defined_vars());
     return [days_default($item), RX_MESSAGE['NO ACTION LIVE INVENTORY ERROR']];
   }
 
   if ( ! $item['rx_autofill']) { //InOrder is implied here
-    log_info("
-    IF RX IS IN ORDER FILL IT EVEN IF RX_AUTOFILL IS OFF");
+    log_info("IF RX IS IN ORDER FILL IT EVEN IF RX_AUTOFILL IS OFF", get_defined_vars());
     return [days_default($item), RX_MESSAGE['NO ACTION RX OFF AUTOFILL']];
   }
 
   if ((strtotime($item['rx_date_expired']) - strtotime($item['refill_date_next'])) < 45*24*60*60) {
-    log_info("
-    WARN USERS IF RX IS ABOUT TO EXPIRE");
+    log_info("WARN USERS IF RX IS ABOUT TO EXPIRE", get_defined_vars());
     return [days_default($item), RX_MESSAGE['ACTION EXPIRING']];
   }
 
   if ($item['stock_level'] != STOCK_LEVEL['HIGH SUPPLY'] AND $item['qty_inventory'] < 1000) { //Only do 45 day if its Low Stock AND less than 1000 Qty.  Cindy noticed we had 8000 Amlodipine but we were filling in 45 day supplies
-    log_info("
-    WARN USERS IF DRUG IS LOW QTY");
+    log_info("WARN USERS IF DRUG IS LOW QTY", get_defined_vars());
     return [days_default($item, $item['sig_qty_per_day'] == 1/30 ? 30 : 45), RX_MESSAGE['NO ACTION LOW STOCK']];
   }
 
   if ( ! $item['item_date_added'] AND $item['refill_date_next'] AND (strtotime($item['refill_date_next']) - time()) < 0) {
-    log_info("
-    PAST DUE AND SYNC TO ORDER");
+    log_info("PAST DUE AND SYNC TO ORDER", get_defined_vars());
     return [0, RX_MESSAGE['  NO ACTION PAST DUE AND SYNC TO ORDER']];
   }
 
   if ( ! $item['item_date_added'] AND $item['refill_date_next'] AND (strtotime($item['refill_date_next']) - time()) <= 15*24*60*60) {
-    log_info("
-    DUE SOON AND SYNC TO ORDER");
+    log_info("DUE SOON AND SYNC TO ORDER", get_defined_vars());
     return [0, RX_MESSAGE['NO ACTION DUE SOON AND SYNC TO ORDER']];
   }
 
   if ($item['refills_total'] < 0.1) {
-    log_info("
-    WARN OF LAST REFILL");
+    log_info("WARN OF LAST REFILL", get_defined_vars());
     return [days_default($item), RX_MESSAGE['ACTION LAST REFILL']];
   }
 
-  log_info("
-  NO SPECIAL TAG USING DEFAULTS");
+  log_info("NO SPECIAL TAG USING DEFAULTS", get_defined_vars());
   return [days_default($item), RX_MESSAGE['NO ACTION STANDARD FILL']];
   //TODO DON'T NO ACTION_PAST_DUE if ( ! drug.$InOrder AND drug.$DaysToRefill < 0)
   //TODO NO ACTION_LIVE_INVENTORY_ERROR if ( ! drug.$v2)
@@ -155,7 +133,7 @@ function set_days_dispensed($item, $days, $message, $mysql) {
   $price = $item['price_per_month'] ?: 0; //Might be null
 
   if ( ! $item['rx_number'] OR ! $item['invoice_number'] ) {
-    email("Error set_days_dispensed? ", $message, $item);
+    log_error("Error set_days_dispensed? ", get_defined_vars());
   }
   else if ($item['days_dispensed_actual']) {
 
@@ -173,7 +151,7 @@ function set_days_dispensed($item, $days, $message, $mysql) {
 
     $mysql->run($sql);
 
-    email("set_days_dispensed Actual Days?:", $days, $message, $sql, $item);
+    log_info("set_days_dispensed Actual Days?:", get_defined_vars());
   }
   else if ( ! $item['days_dispensed_default']) {
 
@@ -198,18 +176,18 @@ function set_days_dispensed($item, $days, $message, $mysql) {
 
     $mysql->run($sql);
 
-    email("set_days_dispensed Setting Defaults and Stock Level:", $days, $message, $sql, $item);
+    log_info("set_days_dispensed Setting Defaults and Stock Level:", get_defined_vars());
 
     //log("
     //set_days_dispensed days:$days, $sql";//.print_r($item, true));
   }
   else {
     $sql = '';
-    email('ERROR set_days_dispensed', 'days_dispensed_default is set but days_dispensed_actual is not, so why is this function being called?', $item, $days, $message);
+    log_error('ERROR set_days_dispensed. days_dispensed_default is set but days_dispensed_actual is not, so why is this function being called?', get_defined_vars());
   }
 
 
-  email('set_days_dispensed', $item, $days, $message, $sql);
+  log_info('set_days_dispensed', get_defined_vars());
 }
 
 function message_text($message, $item) {
@@ -230,12 +208,7 @@ function days_default($item, $days_std = 90) {
 
   $days_default = round(min($days_default, $days_of_stock)/15)*15; //Round to nearest 15 days so we don't have too many different options
 
-  $message = "
-  days_default:$days_default, days_of_stock:$days_of_stock, days_of_qty_left:$days_of_qty_left, days_std:$days_std, refill_date_next:$item[refill_date_next]. ";//.print_r($item, true);
-
-  log_info($message);
-
-  email("days_default()", $item, $message);
+  log_info("days_default:$days_default, days_of_stock:$days_of_stock, days_of_qty_left:$days_of_qty_left, days_std:$days_std, refill_date_next:$item[refill_date_next].", get_defined_vars());
 
   return $days_default;
 }

@@ -11,7 +11,7 @@ function short_links($links) {
 
   $result = gdoc_post(GD_HELPER_URL, $args);
 
-  email('modify_events', $args, $result);
+  log_info('modify_events', get_defined_vars());
 }
 
 //Internal communication warning an order was shipped but not dispensed.  Gets erased when/if order is shipped
@@ -77,7 +77,7 @@ function order_shipped_notice($groups) {
 
   if ($groups['ALL'][0]['invoice_doc_id']) $email['attachments'] = [$groups['ALL'][0]['invoice_doc_id']];
 
-  email('order_shipped_notice', $groups['ALL'], $email, $text);
+  log_info('order_shipped_notice', get_defined_vars());
 
   order_shipped_event($groups['ALL'], $email, $text);
 }
@@ -244,8 +244,7 @@ function order_hold_notice($groups) {
     "Note: if this is correct, there is no need to do anything. If you think there is a mistake, please let us know as soon as possible."
   ]);
 
-  email('order_hold_event', $groups, $email, $text);
-
+  log_info('order_hold_event', get_defined_vars());
 
   //Wait 15 minutes to hopefully batch staggered surescripts and manual rx entry and cindy updates
   order_hold_event($groups['ALL'], $email, $text, 15/60);
@@ -258,7 +257,7 @@ function order_updated_notice($groups) {
   //It's depressing to get updates if nothing is being filled.  So only send these if manually added and the order was just added (not just drugs changed)
   if ( ! $groups['COUNT_FILLED'] AND ! $groups['MANUALLY_ADDED']) {
     $cancel = cancel_events_by_person($groups['ALL'][0]['first_name'], $groups['ALL'][0]['last_name'], $groups['ALL'][0]['birth_date'], ['Order Created', 'Order Updated', 'Order Hold', 'No Rx', 'Needs Form']);
-    return email('order_updated_notice NOT sent', $groups);
+    return log_info('order_updated_notice NOT sent', get_defined_vars());
   }
 
   $subject = 'Update for Order #'.$groups['ALL'][0]['invoice_number'].($groups['COUNT_FILLED'] ? ' of '.$groups['COUNT_FILLED'].' items.' : '');
@@ -352,7 +351,7 @@ function needs_form_notice($groups) {
 //by building commication arrays based on github.com/dscsa/communication-calendar
 function no_rx_notice($groups) {
 
-  email('no_rx_notice', $groups);
+  log_info('no_rx_notice', get_defined_vars());
 
   $subject = 'Good Pill received Order #'.$groups['ALL'][0]['invoice_number'].' but is waiting for your prescriptions';
   $message  = ($groups['ALL'][0]['order_source'] == 'Webform Transfer' OR $groups['ALL'][0]['order_source'] == 'Transfer w/ Note')
@@ -491,7 +490,7 @@ function tracking_link($tracking) {
 function get_phones($order) {
 
   if ( ! isset($order[0])) {
-    email('ERROR: get_phones', $order);
+    log_error('get_phones', get_defined_vars());
   }
   //email('get_phones', $order);
   return $order[0]['phone1'].($order[0]['phone2'] ? ','.$order[0]['phone2'] : '');

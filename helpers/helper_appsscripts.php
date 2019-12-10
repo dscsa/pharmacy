@@ -24,7 +24,7 @@ function watch_invoices() {
   $invoices = json_decode(gdoc_post(GD_HELPER_URL, $args), true);
 
   if ( ! is_array($invoices)) {
-    email('ERROR watch_invoices',$invoices, $args);
+    log_error('ERROR watch_invoices', compact($invoices, $args), null);
     $invoices = [];
   }
 
@@ -32,7 +32,7 @@ function watch_invoices() {
 
     preg_match_all('/(Total:? +|Amount Due:? +|Price of next order3?:? +)\$(\d+)/', $invoice['part0'], $matches);
 
-    email('watch_invoices', $invoice['name'], $invoice['date_modified'], $invoice['date_created'], $matches, $args, $invoice);
+    log_info('watch_invoices', get_defined_vars());
   }
 
   //Parse Invoice Text and Look For Changes
