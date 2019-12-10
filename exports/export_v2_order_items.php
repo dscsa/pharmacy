@@ -23,7 +23,7 @@ function export_v2_remove_pended($item) {
 
   $args = [
     'method'   => 'removeFiles',
-    'file'     => pick_list_prefix($item['invoice_number']),
+    'file'     => pick_list_prefix($item),
     'folder'   => PICK_LIST_FOLDER_NAME
   ];
 
