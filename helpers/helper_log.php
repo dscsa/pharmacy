@@ -71,7 +71,7 @@ function log_error($text, $vars) {
 function get_file() {
   $trace = debug_backtrace(2); //exlude ["object"] AND ["args"]
   $index = isset($trace[2]) ? 2 : 1;
-  return $trace[$index]['function'].'() in '.$trace[$index]['file'];
+  return $trace[$index]['function'].'() in '.$trace[$index-1]['file'];
 }
 
 function timer($label, &$start) {

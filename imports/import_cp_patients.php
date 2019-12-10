@@ -88,7 +88,7 @@ function import_cp_patients() {
             $row['payment_card_date_expired'] = date_format($date_expired, "'Y-m-t'"); //t give last day of month.  d was givign current day
           }
           else {
-            log_error("import_cp_patients: error with card expiration date $date_expired", ['val2' => $val2], func_get_args());
+            log_error("import_cp_patients: error with card expiration date $date_expired", get_defined_vars());
             $row['payment_card_date_expired'] = 'NULL';
           }
 

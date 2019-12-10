@@ -26,7 +26,7 @@ class Mysql {
             }
         }
 
-        //mysqli_select_db($conn, $this->db) ?: $this->_emailError('Could not select database '.$this->db);
+        //mysqli_select_db($conn, $this->db) ?: $this->_emailError(['Could not select database', $this->db]);
         return $conn;
     }
 
@@ -38,7 +38,7 @@ class Mysql {
           $stmt = mysqli_query($this->connection, $sql);
         }
         catch (Exception $e) {
-          $this->_emailError('SQL Error', $e->getMessage(), $sql, $debug);
+          $this->_emailError(['SQL Error', $e->getMessage(), $sql, $debug]);
         }
 
         if ($stmt === false) {
@@ -50,7 +50,7 @@ class Mysql {
             $this->run($sql, $debug); //Recursive
           }
 
-          $this->_emailError('No Resource', $stmt, $message, $sql, $debug);
+          $this->_emailError(['No Resource', $stmt, $message, $sql, $debug]);
 
           return;
         }
@@ -81,7 +81,7 @@ class Mysql {
 
       if ( ! isset($stmt->num_rows) OR ! $stmt->num_rows) {
         if ($debug AND strpos($sql, 'SELECT') !== false)
-          $this->_emailError('No Rows', $stmt, $sql, $debug);
+          $this->_emailError(['No Rows', $stmt, $sql, $debug]);
         return [];
       }
 
@@ -89,7 +89,7 @@ class Mysql {
       while ($row = mysqli_fetch_array($stmt, MYSQL_ASSOC)) {
 
         if ($debug AND ! empty($row['Message'])) {
-          $this->_emailError('dbMessage', $row, $stmt, $sql, $data, $debug);
+          $this->_emailError(['dbMessage', $row, $stmt, $sql, $data, $debug]);
         }
 
         $rows[] = $row;
@@ -98,8 +98,8 @@ class Mysql {
       return $rows;
     }
 
-    function _emailError() {
+    function _emailError($error) {
       $mysqli_error = isset($this->connection) ? mysqli_connect_errno($this->connection).': '.mysqli_error($this->connection) : mysqli_connect_errno().': '.mysqli_connect_error();
-      log_error("CRON: Debug MSSQL", ['mysqli_error' => $mysqli_error], func_get_args());
+      log_error("CRON: Debug MSSQL", get_defined_vars());
     }
 }

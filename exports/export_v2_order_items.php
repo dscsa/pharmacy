@@ -180,7 +180,7 @@ function sort_by_ndc($ndcs, $long_exp) {
   usort($sorted_ndcs, function($a, $b) use ($sorted_ndcs) {
 
     if ( ! isset($a['prepack_qty']) OR ! isset($b['prepack_qty'])) {
-      log_error('ERROR: sort_by_ndc', ['sorted_ndcs' => $sorted_ndcs], func_get_args());
+      log_error('ERROR: sort_by_ndc', get_defined_vars());
     } else {
       return $b['prepack_qty'] - $a['prepack_qty'];
     }

@@ -26,7 +26,7 @@ class Mssql {
           }
         }
 
-        mssql_select_db($this->db, $conn) ?: $this->_emailError('Could not select database '.$this->db);
+        mssql_select_db($this->db, $conn) ?: $this->_emailError(['Could not select database ', $this->db]);
         return $conn;
     }
 
@@ -38,7 +38,7 @@ class Mssql {
           $stmt = mssql_query($sql, $this->connection);
         }
         catch (Exception $e) {
-          $this->_emailError('SQL Error', $e->getMessage(), $sql, $debug);
+          $this->_emailError(['SQL Error', $e->getMessage(), $sql, $debug]);
         }
 
         if ($stmt === false) {
@@ -50,7 +50,7 @@ class Mssql {
             $this->run($sql, $debug); //Recursive
           }
 
-          $this->_emailError('No Resource', $stmt, $message, $sql, $debug);
+          $this->_emailError(['No Resource', $stmt, $message, $sql, $debug]);
 
           return;
         }
@@ -78,7 +78,7 @@ class Mssql {
 
       if ( ! is_resource($stmt) OR ! mssql_num_rows($stmt)) {
         if ($debug AND strpos($sql, 'SELECT') !== false)
-          $this->_emailError('No Rows', $stmt, $sql, $debug);
+          $this->_emailError(['No Rows', $stmt, $sql, $debug]);
         return [];
       }
 
@@ -86,7 +86,7 @@ class Mssql {
       while ($row = mssql_fetch_array($stmt, MSSQL_ASSOC)) {
 
           if ($debug AND ! empty($row['Message'])) {
-            $this->_emailError('dbMessage', $row, $stmt, $sql, $data, $debug);
+            $this->_emailError(['dbMessage', $row, $stmt, $sql, $data, $debug]);
           }
 
           $rows[] = $row;
@@ -95,7 +95,8 @@ class Mssql {
       return $rows;
     }
 
-    function _emailError() {
-      log_error("CRON: Debug MSSQL", ['mssql_get_last_message' => mssql_get_last_message()], func_get_args());
+    function _emailError($error) {
+      $mssql_get_last_message = mssql_get_last_message();
+      log_error("CRON: Debug MSSQL", get_defined_vars());
     }
 }
