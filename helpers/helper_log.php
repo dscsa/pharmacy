@@ -20,7 +20,7 @@ function log_to_cli($severity, $text, $file, $vars) {
    $severity: $text. $file vars: $vars";
 }
 
-function vars_to_json($vars) {
+function vars_to_json($vars, $file) {
 
    $non_user_vars = [
     "_COOKIE",
@@ -52,8 +52,8 @@ function vars_to_json($vars) {
 
   if ( ! $json) {
     $error = json_last_error_msg();
-    log_to_cli('ERROR', 'json_encode failed on get_defined_vars()', 'vars_to_json() in helper_log.php', $error);
-    log_to_email('ERROR', 'json_encode failed on get_defined_vars()', 'vars_to_json() in helper_log.php', $error);
+    log_to_cli('ERROR', 'json_encode failed on get_defined_vars()', $file, $error);
+    log_to_email('ERROR', 'json_encode failed on get_defined_vars()', $file, $error);
     $json = json_encode(utf8ize($diff));
   }
 
@@ -79,14 +79,14 @@ function log_info($text, $vars) {
   if ( ! in_array('log=info', $argv)) return;
 
   $file   = get_file();
-  $vars   = vars_to_json($vars);
+  $vars   = vars_to_json($vars, $file);
   log_to_cli('INFO', $text, $file, $vars);
   log_to_db('INFO', $text, $file, $vars);
 }
 
 function log_error($text, $vars) {
   $file   = get_file();
-  $vars   = vars_to_json($vars);
+  $vars   = vars_to_json($vars, $file);
   log_to_cli('ERROR', $text, $file, $vars);
   log_to_email('ERROR', $text, $file, $vars);
   log_to_db('ERROR', $text, $file, $vars);

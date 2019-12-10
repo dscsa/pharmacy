@@ -168,7 +168,9 @@ function set_days_dispensed($item, $days, $message, $mysql) {
         item_message_text       = '$message_text',
         price_dispensed_default = ".ceil($days*$price/30).",
         refills_total_default   = $item[refills_total],
-        stock_level_initial     = '$item[stock_level]'
+        stock_level_initial     = '$item[stock_level]',
+        refill_date_next        = '$item[refill_date_next]',
+        refill_date_last        = '$item[refill_date_last]',
       WHERE
         invoice_number = $item[invoice_number] AND
         rx_number = $item[rx_number]
