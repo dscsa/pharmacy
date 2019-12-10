@@ -99,7 +99,7 @@ class Mysql {
     }
 
     function _emailError() {
-      $mysqli_error = isset($this->connection) ? mysqli_connect_errno($this->connection).': '.mysqli_error($this->connection) : mysqli_connect_errno().': '.mysqli_connect_error()
+      $mysqli_error = isset($this->connection) ? mysqli_connect_errno($this->connection).': '.mysqli_error($this->connection) : mysqli_connect_errno().': '.mysqli_connect_error();
       log_error("CRON: Debug MSSQL", ['mysqli_error' => $mysqli_error], func_get_args());
     }
 }
