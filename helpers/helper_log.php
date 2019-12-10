@@ -5,6 +5,7 @@ global $mysql;
 function log_to_db($severity, $text, $file, $vars) {
    global $mysql;
    $mysql = $mysql ?: new Mysql_Wc();
+   $text = str_replace("'", "''", $text); //Escape single quotes
    $mysql->run("INSERT INTO gp_logs (severity, text, file, vars) VALUES ('$severity', '$text', '$file', '$vars')");
 }
 
