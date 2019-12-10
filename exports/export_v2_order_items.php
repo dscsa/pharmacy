@@ -62,7 +62,7 @@ function print_pick_list($item, $vals) {
     ['id', 'ndc', 'form', 'exp', 'qty', 'bin']
   ];
 
-  log_info("WebForm make_pick_list", get_defined_vars());
+  log_info("WebForm make_pick_list", compact('header')); //We don't need full shopping list cluttering logs
 
   $args = [
     'method'   => 'newSpreadsheet',
