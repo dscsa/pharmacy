@@ -40,7 +40,8 @@ function vars_to_json($vars) {
     "HTTP_POST_FILES",
     "http_response_header",
     "ignore",
-    "php_errormsg"
+    "php_errormsg",
+    "mysql"
   ];
 
   $vars = array_diff_key($vars, array_flip($non_user_vars));
@@ -57,9 +58,8 @@ function log_info($text, $vars) {
   $caller = array_shift($trace);
   $file   = "$caller[function]() in $caller[file]";
   $vars   = vars_to_json($vars);
-
-  log_to_db('INFO', $text, $file, $vars);
   log_to_cli('INFO', $text, $file, $vars);
+  log_to_db('INFO', $text, $file, $vars);
 }
 
 function log_error($text, $vars) {
@@ -67,9 +67,9 @@ function log_error($text, $vars) {
   $caller = array_shift($trace);
   $file   = "$caller[function]() in $caller[file]";
   $vars   = vars_to_json($vars);
+  log_to_cli('ERROR', $text, $file, $vars);
   log_to_email('ERROR', $text, $file, $vars);
   log_to_db('ERROR', $text, $file, $vars);
-  log_to_cli('ERROR', $text, $file, $vars);
 }
 
 function timer($label, &$start) {
