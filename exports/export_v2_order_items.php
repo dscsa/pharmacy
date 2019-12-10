@@ -114,8 +114,6 @@ function make_pick_list($item) {
   $sorted_ndcs   = sort_by_ndc($unsorted_ndcs, $long_exp);
   $list          = get_qty_needed($sorted_ndcs, $min_qty, $safety);
 
-  log_info("Webform make_pick_list", get_defined_vars());
-
   if ($list) {
     $list['half_fill'] = '';
     return $list;
