@@ -272,7 +272,8 @@ function update_orders() {
          `group` = CASE WHEN `group` is NULL THEN '$fill$action' ELSE concat('$fill$action < ', `group`) END
         WHERE
           invoice_number = $item[invoice_number] AND
-          rx_number = $item[rx_number]
+          rx_number = $item[rx_number] AND
+          group != '$fill$action'
       ";
 
       $mysql->run($sql);
