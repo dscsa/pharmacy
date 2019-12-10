@@ -30,6 +30,10 @@ class Mysql {
         return $conn;
     }
 
+    function escape($var) {
+      return mysqli_real_escape_string($this->connection, $var);
+    }
+
     function run($sql, $debug = false) {
 
         $starttime = microtime(true);
