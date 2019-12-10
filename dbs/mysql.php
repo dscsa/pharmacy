@@ -99,7 +99,9 @@ class Mysql {
     }
 
     function _emailError($error) {
-      $mysqli_error = isset($this->connection) ? mysqli_connect_errno($this->connection).': '.mysqli_error($this->connection) : mysqli_connect_errno().': '.mysqli_connect_error();
-      log_error("CRON: Debug MSSQL", get_defined_vars());
+      //$mysqli_error = isset($this->connection) ? mysqli_connect_errno($this->connection).': '.mysqli_error($this->connection) : mysqli_connect_errno().': '.mysqli_connect_error();
+      //Don't do database logging here as this could cause an infinite loop
+      log_to_cli('ERROR', "CRON: Debug MYSQL", '', json_encode($error));
+      log_to_email('ERROR', "CRON: Debug MYSQL", '', json_encode($error));
     }
 }
