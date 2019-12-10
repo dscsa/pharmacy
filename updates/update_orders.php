@@ -244,12 +244,6 @@ function update_orders() {
 
       if ( ! $item['drug_name']) continue; //Might be an empty order
 
-      if ( ! $item['rx_number']) {
-        $defined_vars = get_defined_vars();
-        log_error('drug name is set but not rx number', compact('item', 'groups', 'order', 'defined_vars'));
-        continue;
-      }
-
       $days = $item['days_dispensed'];
       $fill = $days ? 'FILLED_' : 'NOFILL_';
       $msg  = $item['item_message_text'] ? ' '.$item['item_message_text'] : '';
@@ -266,16 +260,17 @@ function update_orders() {
       $groups['ALL'][] = $item;
       $groups[$fill.$action][] = $item['drug'].$msg;
 
-      $sql = "
-        UPDATE
-          gp_order_items
-        SET
-         `group` = CASE WHEN `group` is NULL THEN '$fill$action' ELSE concat('$fill$action < ', `group`) END
-        WHERE
-          invoice_number = $item[invoice_number] AND
-          rx_number = $item[rx_number] AND
-          group != '$fill$action'
-      ";
+      if ($item['rx_number']) //Will be null drug is NOT in the order
+        $sql = "
+          UPDATE
+            gp_order_items
+          SET
+           `group` = CASE WHEN `group` is NULL THEN '$fill$action' ELSE concat('$fill$action < ', `group`) END
+          WHERE
+            invoice_number = $item[invoice_number] AND
+            rx_number = $item[rx_number] AND
+            group != '$fill$action'
+        ";
 
       $mysql->run($sql);
 
