@@ -236,7 +236,7 @@ function update_orders() {
       "FILLED_WITH_PRICES" => [],
       "NO_REFILLS" => [],
       "NO_AUTOFILL" => [],
-      "MIN_DAYS" => INF
+      "MIN_DAYS" => 366 //Max Days of a Script
     ];
 
     foreach ($order as $item) {

@@ -84,7 +84,7 @@ function order_shipped_notice($groups) {
 
 function refill_reminder_notice($groups) {
 
-  if ($groups['MIN_DAYS'] == INF OR ( ! count($groups['NO_REFILLS']) AND ! count($groups['NO_AUTOFILL']))) return;
+  if ($groups['MIN_DAYS'] == 366 OR ( ! count($groups['NO_REFILLS']) AND ! count($groups['NO_AUTOFILL']))) return;
 
   $subject  = 'Good Pill cannot refill these Rxs without your help.';
   $message  = '';
