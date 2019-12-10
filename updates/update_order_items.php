@@ -83,7 +83,7 @@ function update_order_items() {
       log_error("ERROR get_full_item: missing item", get_defined_vars());
     }
 
-    log_info("Get Full Item", get_defined_vars());
+    //log_info("Get Full Item", get_defined_vars());
 
     return $full_item;
   }
@@ -97,8 +97,6 @@ function update_order_items() {
   foreach($changes['created'] as $created) {
 
     $item = get_full_item($created, $mysql);
-
-    log_info('update_order_items created', get_defined_vars());
 
     list($days, $message) = get_days_dispensed($item);
 
@@ -137,8 +135,6 @@ function update_order_items() {
 
     $item = get_full_item($updated, $mysql);
 
-    log_info('update_order_items updated', get_defined_vars());
-
     if ($item['days_dispensed_default']) {
 
       log_info("Updated Item No Action", get_defined_vars());
@@ -151,7 +147,7 @@ function update_order_items() {
     }
 
     $changed_fields = changed_fields($updated);
-    log_info("update_order_items", get_defined_vars());
+    //log_info("update_order_items", get_defined_vars());
 
     //TODO Update Salesforce Order Total & Order Count & Order Invoice using REST API or a MYSQL Zapier Integration
   }

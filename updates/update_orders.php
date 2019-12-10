@@ -245,7 +245,7 @@ function update_orders() {
 
       if ( ! $item['rx_number']) {
         $defined_vars = get_defined_vars();
-        log_error('drug name is set but not rx number', compact('item', 'group', 'order', 'defined_vars'));
+        log_error('drug name is set but not rx number', compact('item', 'groups', 'order', 'defined_vars'));
         continue;
       }
 
@@ -310,7 +310,7 @@ function update_orders() {
     $mysql->run($sql);
 
     $defined_vars = get_defined_vars();
-    log_error('GROUP_DRUGS', compact('group', 'order', 'defined_vars'));
+    log_error('GROUP_DRUGS', compact('groups', 'order', 'defined_vars'));
 
     return $groups;
   }

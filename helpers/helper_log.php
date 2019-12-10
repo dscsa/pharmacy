@@ -51,7 +51,7 @@ function vars_to_json($vars) {
   $json = json_encode($diff);
 
   if ( ! $json) {
-    $error = json_last_error();
+    $error = json_last_error_msg();
     log_to_cli('ERROR', 'json_encode failed on get_defined_vars()', 'vars_to_json() in helper_log.php', $error);
     log_to_email('ERROR', 'json_encode failed on get_defined_vars()', 'vars_to_json() in helper_log.php', $error);
     $json = json_encode(utf8ize($diff));
