@@ -54,22 +54,24 @@ function log_info($text, $vars) {
 
   if ( ! in_array('log=info', $argv)) return;
 
-  $trace  = debug_backtrace();
-  $caller = array_shift($trace);
-  $file   = "$caller[function]() in $caller[file]";
+  $file   = get_file();
   $vars   = vars_to_json($vars);
   log_to_cli('INFO', $text, $file, $vars);
   log_to_db('INFO', $text, $file, $vars);
 }
 
 function log_error($text, $vars) {
-  $trace  = debug_backtrace();
-  $caller = array_shift($trace);
-  $file   = "$caller[function]() in $caller[file]";
+  $file   = get_file();
   $vars   = vars_to_json($vars);
   log_to_cli('ERROR', $text, $file, $vars);
   log_to_email('ERROR', $text, $file, $vars);
   log_to_db('ERROR', $text, $file, $vars);
+}
+
+function get_file() {
+  $trace  = debug_backtrace();
+  $caller = array_shift($trace);
+  return $trace[2]['function'].'() in '.$trace[2]['file'];
 }
 
 function timer($label, &$start) {

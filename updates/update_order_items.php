@@ -22,6 +22,11 @@ function update_order_items() {
 
   function get_full_item($item, $mysql) {
 
+    if ( ! $item['invoice_number'] OR ! $item['rx_number']) {
+      log_error('ERROR get_full_item: missing invoice_number or rx_number', get_defined_vars());
+      return [];
+    }
+
     /* ORDER MAY HAVE NOT BEEN ADDED YET
     JOIN gp_orders ON
       gp_orders.invoice_number = gp_order_items.invoice_number
