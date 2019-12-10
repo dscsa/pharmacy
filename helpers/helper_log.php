@@ -45,7 +45,7 @@ function vars_to_json($vars) {
   ];
 
   $vars = array_diff_key($vars, array_flip($non_user_vars));
-  return json_encode($vars);
+  return str_replace('\n', '', json_encode($vars));
 }
 
 function log_info($text, $vars) {
