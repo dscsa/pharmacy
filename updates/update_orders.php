@@ -59,7 +59,8 @@ function update_orders() {
       usort($order, 'sort_order_by_day');
     }
 
-    log_info('get_full_order every item with 0 days should have message', get_defined_vars());
+    //log_info('get_full_order', get_defined_vars());
+
     return $order;
   }
 
