@@ -47,8 +47,15 @@ function vars_to_json($vars) {
     "mysql"
   ];
 
-  $vars = array_diff_key($vars, array_flip($non_user_vars));
-  return str_replace('\n', '', json_encode($vars)) ?: '{}'; //For some reason this seemed to sometimes be an empty string which MYSQL didn't like 
+  $diff = array_diff_key($vars, array_flip($non_user_vars));
+  $json = json_encode($diff);
+
+  if ($json)
+    return str_replace('\n', '', $json);
+
+  log_to_cli('ERROR', 'get_defined_vars() had no user variable', 'vars_to_json() in helper_log.php', json_encode(array_keys($vars)));
+  log_to_email('ERROR', 'get_defined_vars() had no user variable', 'vars_to_json() in helper_log.php', json_encode(array_keys($vars)));
+  return '{}';
 }
 
 function log_info($text, $vars) {
