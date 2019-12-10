@@ -16,7 +16,7 @@ function log_to_email($severity, $text, $file, $vars) {
 
 function log_to_cli($severity, $text, $file, $vars) {
    echo "
-   
+
    $severity: $text. $file vars: $vars";
 }
 
@@ -48,7 +48,7 @@ function vars_to_json($vars) {
   ];
 
   $vars = array_diff_key($vars, array_flip($non_user_vars));
-  return str_replace('\n', '', json_encode($vars));
+  return str_replace('\n', '', json_encode($vars)) ? '{}'; //For some reason this seemed to sometimes be an empty string which MYSQL didn't like 
 }
 
 function log_info($text, $vars) {
