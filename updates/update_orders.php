@@ -243,6 +243,11 @@ function update_orders() {
 
       if ( ! $item['drug_name']) continue; //Might be an empty order
 
+      if ( ! $item['rx_number']) {
+        log_error('drug name is set but not rx number', get_defined_vars());
+        continue;
+      }
+
       $days = $item['days_dispensed'];
       $fill = $days ? 'FILLED_' : 'NOFILL_';
       $msg  = $item['item_message_text'] ? ' '.$item['item_message_text'] : '';
