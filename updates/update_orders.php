@@ -142,7 +142,7 @@ function update_orders() {
           UPDATE
             gp_order_items
           SET
-            item_message_key        = '".RX_MESSAGE['NO ACTION SYNC TO DATE']."',
+            item_message_key        = '".RX_MESSAGE['NO ACTION SYNC TO DATE']['EN']."',
             refill_target_date      = '$target_date',
             refill_target_days      = ".($days_synced - $item['days_dispensed']).",
             refill_target_rxs       = '$target_rxs',

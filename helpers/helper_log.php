@@ -16,6 +16,7 @@ function log_to_email($severity, $text, $file, $vars) {
 
 function log_to_cli($severity, $text, $file, $vars) {
    echo "
+   
    $severity: $text. $file vars: $vars";
 }
 
