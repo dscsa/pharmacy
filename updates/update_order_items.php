@@ -80,7 +80,7 @@ function update_order_items() {
 
       $anything = $mysql->run($debug);
 
-      log_error("ERROR get_full_item: missing item", get_defined_vars());
+      log_error("Missing Order Item!", get_defined_vars());
     }
 
     //log_info("Get Full Item", get_defined_vars());
