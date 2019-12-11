@@ -40,6 +40,9 @@ function import_v2_stock_by_month() {
     'dispensed' => json_decode($dispensed, true)['rows']
   ];
 
+  if ( ! count($dbs['inventory'])) return log_error('No v2 Stock to Import', get_defined_vars());
+
+
   //Replace Staging Table with New Data
   $mysql->run('TRUNCATE TABLE gp_stock_by_month_v2');
 

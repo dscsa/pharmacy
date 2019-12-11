@@ -53,6 +53,9 @@ function import_cp_patients() {
 
   ");
 
+  if ( ! count($patients[0])) return log_error('No Cp Patients to Import', get_defined_vars());
+
+
   //log_info("
   //import_cp_patients: rows ".count($patients[0]));
 

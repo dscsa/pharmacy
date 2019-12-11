@@ -88,6 +88,9 @@ function import_cp_rxs_single() {
   //log_info("
   //import_cp_rxs_single: rows ".count($rxs[0]));
 
+  if ( ! count($rxs[0])) return log_error('No Cp RXs to Import', get_defined_vars());
+
+
   $keys = result_map($rxs[0],
     function($row) {
       //Clean Drug Name and save in database RTRIM(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(ISNULL(generic_name, cprx.drug_name), ' CAPSULE', ' CAP'),' CAPS',' CAP'),' TABLET',' TAB'),' TABS',' TAB'),' TB', ' TAB'),' HCL',''),' MG','MG'), '\"', ''))

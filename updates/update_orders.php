@@ -96,7 +96,7 @@ function update_orders() {
     $sync_dates = [];
     foreach ($order as $item) {
       if (isset($sync_dates[$item['refill_date_next']]))
-        $sync_dates[$item['refill_date_next']][] = $item['best_rx_number'];
+        $sync_dates[$item['refill_date_next']][] = $item['best_rx_number']; //rx_number only set if in the order?
       else
         $sync_dates[$item['refill_date_next']] = [];
     }
@@ -331,9 +331,6 @@ function update_orders() {
 
     else
       order_created_notice($groups);
-
-    if ($groups['ALL'][0]['order_source']['tracking_number'])
-      log_error('Error? Order with tracking number was deleted', get_defined_vars());
   }
 
   function send_deleted_order_communications($order) {
@@ -409,6 +406,9 @@ function update_orders() {
   //  - update invoice
   //  - update wc order total
   foreach($changes['deleted'] as $deleted) {
+
+    if ($deleted['tracking_number'])
+      log_error('Error? Order with tracking number was deleted', get_defined_vars());
 
     export_gd_delete_invoice([$deleted]);
 

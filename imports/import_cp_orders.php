@@ -41,6 +41,9 @@ function import_cp_orders() {
       liCount > 0 --SureScript Authorization Denied, Webform eRx (before Rxs arrive), Webform Transfer (before transfer made)
   ");
 
+  if ( ! count($orders[0])) return log_error('No Cp Orders to Import', get_defined_vars());
+
+
   //log_info("
   //import_cp_orders: rows ".count($orders[0]));
 
