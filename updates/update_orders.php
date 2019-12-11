@@ -313,11 +313,9 @@ function update_orders() {
     return $groups;
   }
 
-  function send_created_order_communications($order, $mysql) {
+  function send_created_order_communications($groups) {
 
-    $groups = group_drugs($order, $mysql);
-
-    if ( ! $order[0]['pharmacy_name']) //Use Pharmacy name rather than $New to keep us from repinging folks if the row has been readded
+    if ( ! $groups['ALL'][0]['pharmacy_name']) //Use Pharmacy name rather than $New to keep us from repinging folks if the row has been readded
       needs_form_notice($groups);
 
     else if ( ! $groups['COUNT_NOFILL'] AND ! $groups['COUNT_FILLED'])
@@ -327,13 +325,13 @@ function update_orders() {
       order_hold_notice($groups);
 
     //['Not Specified', 'Webform Complete', 'Webform eRx', 'Webform Transfer', 'Auto Refill', '0 Refills', 'Webform Refill', 'eRx /w Note', 'Transfer /w Note', 'Refill w/ Note']
-    else if ($order[0]['order_source'] == 'Webform Transfer' OR $order[0]['order_source'] == 'Transfer /w Note')
+    else if ($groups['ALL'][0]['order_source'] == 'Webform Transfer' OR $groups['ALL'][0]['order_source'] == 'Transfer /w Note')
       transfer_requested_notice($groups);
 
     else
       order_created_notice($groups);
 
-    if ($order[0]['order_source']['tracking_number'])
+    if ($groups['ALL'][0]['order_source']['tracking_number'])
       log_error('Error? Order with tracking number was deleted', get_defined_vars());
   }
 
@@ -344,21 +342,19 @@ function update_orders() {
     log_info('Order was deleted', get_defined_vars());
   }
 
-  function send_updated_order_communications($order, $mysql, $updated) {
+  function send_updated_order_communications($groups, $updated) {
 
-    $groups = group_drugs($order, $mysql);
-
-    if ($order[0]['tracking_number']) {
+    if ($groups['ALL'][0]['tracking_number']) {
       order_shipped_notice($groups);
       confirm_shipment_notice($groups);
       refill_reminder_notice($groups);
       unpend_order($order);
 
-      if ($order[0]['payment_method'] == PAYMENT_METHOD['AUTOPAY'])
+      if ($groups['ALL'][0]['payment_method'] == PAYMENT_METHOD['AUTOPAY'])
         autopay_reminder_notice($groups);
     }
 
-    else if ($order[0]['order_status'] == 'Dispensed')
+    else if ($groups['ALL'][0]['order_status'] == 'Dispensed')
       order_dispensed_notice($groups);
 
     else {
@@ -382,6 +378,13 @@ function update_orders() {
       continue;
     }
 
+    $groups = group_drugs($order, $mysql);
+
+    if ( ! $groups['COUNT_FILLED']) {
+      log_error("Created Order But Not Filling Any?", get_defined_vars());
+      continue;
+    }
+
     list($target_date, $target_rxs) = get_sync_to_date($order);
     $order  = set_sync_to_date($order, $target_date, $target_rxs, $mysql);
 
@@ -392,7 +395,7 @@ function update_orders() {
 
     export_wc_update_order($order);
 
-    send_created_order_communications($order, $mysql);
+    send_created_order_communications($groups);
 
 
     //TODO Update Salesforce Order Total & Order Count & Order Invoice using REST API or a MYSQL Zapier Integration
@@ -435,6 +438,8 @@ function update_orders() {
     //Probably finalized days/qty_dispensed_actual
     //Update invoice now or wait until shipped order?
 
+    $groups = group_drugs($order, $mysql);
+
     list($target_date, $target_rxs) = get_sync_to_date($order);
     $order  = set_sync_to_date($order, $target_date, $target_rxs, $mysql);
 
@@ -447,7 +452,7 @@ function update_orders() {
 
     export_wc_update_order($order);
 
-    send_updated_order_communications($order, $mysql, $updated);
+    send_updated_order_communications($groups, $updated);
 
     //TODO Update Salesforce Order Total & Order Count & Order Invoice using REST API or a MYSQL Zapier Integration
   }
