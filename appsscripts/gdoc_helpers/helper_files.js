@@ -48,12 +48,13 @@ function watchFiles(opts) {
     }
 
     //If don't want watch to keep returning the same file with the same change multiple times
-    var last_watched = file.name.split(' Modified:').pop()
+    var last_watched = file.name.split(' Modified:')[1]
 
     file.first = ! last_watched || last_watched >= file.date_modified
     file.isNew = (file.date_modified - file.date_created) < 1 * 60 * 1000 //1 minute
+    file.skip  = ! file.first || ( ! opts.includeNew && file.isNew)
 
-    if ( ! file.first || ( ! opts.includeNew && file.isNew)) continue;
+    if (file.skip) continue;
 
     //This makes last_watched logic work
     next.setName(file.name+' Modified:'+file.date_modified)
