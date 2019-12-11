@@ -79,7 +79,7 @@ function get_days_dispensed($item) {
     return [0, RX_MESSAGE['NO ACTION NOT DUE']];
   }
 
-  if ( ! $item['refill_date_first'] AND $item['qty_inventory'] < 2000 AND ($item['sig_qty_per_day'] > 2.5*$item['qty_repack']) AND ! $manual) {
+  if ( ! $item['refill_date_first'] AND $item['qty_inventory'] < 2000 AND ($item['sig_qty_per_day'] > 2.5*($item['qty_repack'] ?: 135)) AND ! $manual) {
     log_info("SIG SEEMS TO HAVE EXCESSIVE QTY", get_defined_vars());
     return [0, RX_MESSAGE['NO ACTION CHECK SIG']];
   }
