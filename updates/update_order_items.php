@@ -56,8 +56,8 @@ function update_order_items() {
     if (isset($query[0][0])) {
       $full_item = $query[0][0];
 
-      if ( ! $full_item['stock_level'])
-        log_error('ERROR get_full_item: missing stock level', get_defined_vars());
+      if ( ! $full_item['drug_generic'])
+        log_error('Missing GSN!', get_defined_vars());
 
     } else {
 
