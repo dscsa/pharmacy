@@ -96,7 +96,7 @@ function update_orders() {
     $sync_dates = [];
     foreach ($order as $item) {
       if (isset($sync_dates[$item['refill_date_next']]))
-        $sync_dates[$item['refill_date_next']][] = $item['rx_number'];
+        $sync_dates[$item['refill_date_next']][] = $item['best_rx_number'];
       else
         $sync_dates[$item['refill_date_next']] = [];
     }

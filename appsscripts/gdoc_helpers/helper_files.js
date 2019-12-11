@@ -56,7 +56,7 @@ function watchFiles(opts) {
     if ( ! file.first || ( ! opts.includeNew && file.isNew)) continue;
 
     //This makes last_watched logic work
-    file.setName(file.name+' Modified:'+file.date_modified)
+    next.setName(file.name+' Modified:'+file.date_modified)
 
     //getBody does not have headers or footers
     var doc = DocumentApp.openById(next.getId())
