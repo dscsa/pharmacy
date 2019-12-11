@@ -260,7 +260,7 @@ function update_orders() {
       $groups['ALL'][] = $item;
       $groups[$fill.$action][] = $item['drug'].$msg;
 
-      if ($item['rx_number']) //Will be null drug is NOT in the order
+      if ($item['rx_number']) //Will be null drug is NOT in the order. "Group" is keyword so must have ``
         $sql = "
           UPDATE
             gp_order_items
@@ -269,7 +269,7 @@ function update_orders() {
           WHERE
             invoice_number = $item[invoice_number] AND
             rx_number = $item[rx_number] AND
-            group != '$fill$action'
+            `group` != '$fill$action'
         ";
 
       $mysql->run($sql);
