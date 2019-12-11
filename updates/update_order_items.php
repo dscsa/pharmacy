@@ -62,7 +62,7 @@ function update_order_items() {
     } else {
 
       $debug = "
-        SELECT *, , gp_order_items.rx_number as rx_number --otherwise gp_rx_single.rx_number overwrites
+        SELECT *, gp_order_items.rx_number as rx_number --otherwise gp_rx_single.rx_number overwrites
         FROM
           gp_order_items
         LEFT JOIN gp_rxs_grouped ON
@@ -98,6 +98,11 @@ function update_order_items() {
 
     $item = get_full_item($created, $mysql);
 
+    if ( ! $item) {
+      log_error("Created Item Missing", get_defined_vars());
+      continue;
+    }
+
     if ($item['days_dispensed_actual']) {
 
       log_error("Created Item Readded", get_defined_vars());
@@ -130,7 +135,12 @@ function update_order_items() {
 
     $item = get_full_item($deleted, $mysql);
 
-    set_days_default($item, 0, $status, $mysql);
+    if ( ! $item) {
+      log_error("Deleted Item Missing", get_defined_vars());
+      continue;
+    }
+
+    set_days_default($item, 0, '', $mysql);
 
     export_v2_remove_pended($item);
 
@@ -143,6 +153,11 @@ function update_order_items() {
   foreach($changes['updated'] as $updated) {
 
     $item = get_full_item($updated, $mysql);
+
+    if ( ! $item) {
+      log_error("Updated Item Missing", get_defined_vars());
+      continue;
+    }
 
     $changed_fields = changed_fields($updated);
 

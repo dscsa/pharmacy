@@ -375,6 +375,11 @@ function update_orders() {
 
     $order = get_full_order($created, $mysql);
 
+    if ( ! $order) {
+      log_error("Created Order Missing", get_defined_vars());
+      continue;
+    }
+
     list($target_date, $target_rxs) = get_sync_to_date($order);
     $order  = set_sync_to_date($order, $target_date, $target_rxs, $mysql);
 
@@ -420,6 +425,11 @@ function update_orders() {
     log_info("update_orders", get_defined_vars());
 
     $order = get_full_order($updated, $mysql);
+
+    if ( ! $order) {
+      log_error("Updated Order Missing", get_defined_vars());
+      continue;
+    }
     //Probably finalized days/qty_dispensed_actual
     //Update invoice now or wait until shipped order?
 
