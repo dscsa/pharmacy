@@ -32,7 +32,7 @@ function watch_invoices() {
 
     preg_match_all('/(Total:? +|Amount Due:? +|Price of next order3?:? +)\$(\d+)/', $invoice['part0'], $matches);
 
-    log_info('watch_invoices', get_defined_vars());
+    log_error('watch_invoices', get_defined_vars());
   }
 
   //Parse Invoice Text and Look For Changes
