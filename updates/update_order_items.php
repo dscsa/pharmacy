@@ -57,7 +57,7 @@ function update_order_items() {
       $full_item = $query[0][0];
 
       if ( ! $full_item['drug_generic'])
-        log_error('Missing GSN!', get_defined_vars());
+        log_error($full_item['drug_gsns'] ? 'Add GSN to V2!' : 'Missing GSN!', get_defined_vars());
 
     } else {
 
