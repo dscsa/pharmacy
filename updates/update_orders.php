@@ -306,8 +306,7 @@ function update_orders() {
 
     $mysql->run($sql);
 
-    $defined_vars = get_defined_vars();
-    log_error('GROUP_DRUGS', compact('groups', 'order', 'defined_vars'));
+    log_info('GROUP_DRUGS', get_defined_vars());
 
     return $groups;
   }
