@@ -132,7 +132,9 @@ function update_orders() {
       $days_extra  = (strtotime($target_date) - strtotime($item['refill_date_next']))/60/60/24;
       $days_synced = $item['days_dispensed'] + round($days_extra/15)*15;
 
-      if ($days_synced >= 15 AND $days_synced <= 120 AND $days_synced != 90) { //Limits to the amounts by which we are willing sync
+      if ($days_synced >= 15 AND $days_synced <= 120 AND $days_synced != $item['days_dispensed']) { //Limits to the amounts by which we are willing sync
+
+        log_error('debug set_sync_to_date', get_defined_vars());
 
         $order[$i]['refill_target_date'] = $target_date;
         $order[$i]['days_dispensed']     = $days_synced;
