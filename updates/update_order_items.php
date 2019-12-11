@@ -98,14 +98,23 @@ function update_order_items() {
 
     $item = get_full_item($created, $mysql);
 
-    list($days, $message) = get_days_default($item);
+    if ($item['days_dispensed_actual']) {
 
-    set_days_default($item, $days, $message, $mysql);
+      log_error("Created Item Readded", get_defined_vars());
 
-    if ( ! $days) {
-      export_cp_remove_item($item);
-      //export_gd_transfer_fax($item);
-      continue;
+      set_days_actual($item, $mysql);
+
+    } else if {
+
+      list($days, $message) = get_days_default($item);
+
+      set_days_default($item, $days, $message, $mysql);
+
+      if ( ! $days) {
+        export_cp_remove_item($item);
+        //export_gd_transfer_fax($item);
+        continue;
+      }
     }
 
     //TODO Update Salesforce Order Total & Order Count & Order Invoice using REST API or a MYSQL Zapier Integration
