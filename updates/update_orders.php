@@ -262,7 +262,7 @@ function update_orders() {
       $groups['ALL'][] = $item;
       $groups[$fill.$action][] = $item['drug'].$msg;
 
-      if ($item['rx_number']) //Will be null drug is NOT in the order. "Group" is keyword so must have ``
+      if ($item['rx_number']) { //Will be null drug is NOT in the order. "Group" is keyword so must have ``
         $sql = "
           UPDATE
             gp_order_items
@@ -274,7 +274,8 @@ function update_orders() {
             `group` != '$fill$action'
         ";
 
-      $mysql->run($sql);
+        $mysql->run($sql);
+      }
 
       if ($days) {//This is handy because it is not appended with a message like the others
         $groups['FILLED'][] = $item['drug'];
