@@ -104,7 +104,7 @@ function update_order_items() {
 
       set_days_actual($item, $mysql);
 
-    } else if {
+    } else {
 
       list($days, $message) = get_days_default($item);
 
