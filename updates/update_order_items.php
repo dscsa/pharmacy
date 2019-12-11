@@ -98,9 +98,9 @@ function update_order_items() {
 
     $item = get_full_item($created, $mysql);
 
-    list($days, $message) = get_days_dispensed($item);
+    list($days, $message) = get_days_default($item);
 
-    set_days_dispensed($item, $days, $message, $mysql);
+    set_days_default($item, $days, $message, $mysql);
 
     if ( ! $days) {
       export_cp_remove_item($item);
@@ -121,7 +121,7 @@ function update_order_items() {
 
     $item = get_full_item($deleted, $mysql);
 
-    set_days_dispensed($item, 0, $status, $mysql);
+    set_days_default($item, 0, $status, $mysql);
 
     export_v2_remove_pended($item);
 
@@ -135,18 +135,30 @@ function update_order_items() {
 
     $item = get_full_item($updated, $mysql);
 
-    if ($item['days_dispensed_default']) {
+    $changed_fields = changed_fields($updated);
 
-      log_info("Updated Item No Action", get_defined_vars());
+    if ($item['days_dispensed_actual']) {
+
+      set_days_actual($item, $mysql);
+
+    } else if ( ! $item['days_dispensed_default']) {
+
+      log_error("Updated Item has no days_dispensed_default.  Was GSN added?", get_defined_vars());
+
+      list($days, $message) = get_days_default($item);
+
+      set_days_default($item, $days, $message, $mysql);
+
+      if ( ! $days) {
+        export_cp_remove_item($item);
+        //export_gd_transfer_fax($item);
+        continue;
+      }
 
     } else {
-
-      list($days, $message) = get_days_dispensed($item);
-
-      set_days_dispensed($item, $days, $message, $mysql);
+      log_info("Updated Item No Action", get_defined_vars());
     }
 
-    $changed_fields = changed_fields($updated);
     //log_info("update_order_items", get_defined_vars());
 
     //TODO Update Salesforce Order Total & Order Count & Order Invoice using REST API or a MYSQL Zapier Integration

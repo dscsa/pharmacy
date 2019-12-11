@@ -61,7 +61,7 @@ const RX_MESSAGE = [
     'EN' => 'was prescribed in an unusually high qty and needs to be reviewed by a pharmacist',
     'ES' => ''
   ],
-  'NO ACTION MISSING GCN' => [
+  'NO ACTION MISSING GSN' => [
     'EN' => 'needs to be checked to see if it is available',
     'ES' => ''
   ],

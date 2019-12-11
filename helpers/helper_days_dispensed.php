@@ -2,9 +2,9 @@
 
 //TODO Calculate Qty, Days, & Price
 
-function get_days_dispensed($item) {
+function get_days_default($item) {
 
-  log_info("get_days_dispensed", get_defined_vars());//.print_r($item, true);
+  log_info("get_days_default", get_defined_vars());//.print_r($item, true);
 
   //TODO OR IT'S AN OTC
   $no_transfer = $item['price_per_month'] >= 20 OR $item['pharmacy_phone'] == "8889875187";
@@ -29,8 +29,8 @@ function get_days_dispensed($item) {
   }
 
   if ( ! $item['drug_gsns']) {
-    log_info("CAN'T FILL MEDICATIONS WITHOUT A GCN MATCH", get_defined_vars());
-    return [0, RX_MESSAGE['NO ACTION MISSING GCN']];
+    log_error("CAN'T FILL MEDICATIONS WITHOUT A GSN MATCH", get_defined_vars());
+    return [0, RX_MESSAGE['NO ACTION MISSING GSN']];
   }
 
   if ( ! $item['refill_date_first'] AND $not_offered) {
@@ -69,12 +69,14 @@ function get_days_dispensed($item) {
     return [days_default($item), RX_MESSAGE['NO ACTION RX OFF AUTOFILL']];
   }
 
-  if ((strtotime($item['item_date_added']) - strtotime($item['refill_date_last'])) < 30*24*60*60 AND ! $manual) {
-    log_info("DON'T REFILL IF FILLED WITHIN LAST 30 DAYS UNLESS ADDED MANUALLY", get_defined_vars());
-    return [0, RX_MESSAGE['NO ACTION RECENT FILL']];
-  }
-
   if ((strtotime($item['refill_date_next']) - strtotime($item['item_date_added'])) > 15*24*60*60 AND ! $manual) {
+
+    //DON'T STRICTLY NEED THIS TEST BUT IT GIVES A MORE SPECIFIC ERROR SO IT MIGHT BE HELPFUL
+    if ((strtotime($item['item_date_added']) - strtotime($item['refill_date_last'])) < 15*24*60*60 AND ! $manual) {
+      log_info("DON'T REFILL IF FILLED WITHIN LAST 15 DAYS UNLESS ADDED MANUALLY", get_defined_vars());
+      return [0, RX_MESSAGE['NO ACTION RECENT FILL']];
+    }
+
     log_info("DON'T REFILL IF NOT DUE IN OVER 15 DAYS UNLESS ADDED MANUALLY", get_defined_vars());
     return [0, RX_MESSAGE['NO ACTION NOT DUE']];
   }
@@ -119,7 +121,7 @@ function get_days_dispensed($item) {
     return [days_default($item), RX_MESSAGE['ACTION LAST REFILL']];
   }
 
-  log_info("NO SPECIAL TAG USING DEFAULTS", get_defined_vars());
+  log_info("NO SPECIAL RX_MESSAGE USING DEFAULTS", get_defined_vars());
   return [days_default($item), RX_MESSAGE['NO ACTION STANDARD FILL']];
   //TODO DON'T NO ACTION_PAST_DUE if ( ! drug.$InOrder AND drug.$DaysToRefill < 0)
   //TODO NO ACTION_LIVE_INVENTORY_ERROR if ( ! drug.$v2)
@@ -128,30 +130,37 @@ function get_days_dispensed($item) {
   //if (drug.$NoTransfer)
 }
 
-function set_days_dispensed($item, $days, $message, $mysql) {
+function set_days_actual($item, $mysql) {
+
+  if ( ! $item['days_dispensed_actual'])
+    return log_error("set_days_actual has no actual days", get_defined_vars());
+
+  $price = $item['price_per_month'] ?: 0; //Might be null
+
+  $sql = "
+    UPDATE
+      gp_order_items
+    SET
+      -- Other Fields Should Already Be Set Above (And May have Been Sent to Patient) so don't change
+      price_dispensed_actual   = ".ceil($item['days_dispensed_actual']*$price/30).",
+      refills_total_actual     = $item[refills_total]
+    WHERE
+      invoice_number = $item[invoice_number] AND
+      rx_number = $item[rx_number]
+  ";
+
+  $mysql->run($sql);
+}
+
+function set_days_default($item, $days, $message, $mysql) {
 
   $price = $item['price_per_month'] ?: 0; //Might be null
 
   if ( ! $item['rx_number'] OR ! $item['invoice_number'] ) {
-    log_error("Error set_days_dispensed? ", get_defined_vars());
+    log_error("set_days_default without a rx_number AND invoice_number ", get_defined_vars());
   }
   else if ($item['days_dispensed_actual']) {
-
-    $sql = "
-      UPDATE
-        gp_order_items
-      SET
-        -- Other Fields Should Already Be Set Above (And May have Been Sent to Patient) so don't change
-        price_dispensed_actual   = ".ceil($days*$price/30).",
-        refills_total_actual     = $item[refills_total]
-      WHERE
-        invoice_number = $item[invoice_number] AND
-        rx_number = $item[rx_number]
-    ";
-
-    $mysql->run($sql);
-
-    log_info("set_days_dispensed Actual Days?:", get_defined_vars());
+    log_error("set_days_default but it has actual days", get_defined_vars());
   }
   else if ( ! $item['days_dispensed_default']) {
 
@@ -178,19 +187,11 @@ function set_days_dispensed($item, $days, $message, $mysql) {
     ";
 
     $mysql->run($sql);
-
-    log_info("set_days_dispensed Setting Defaults and Stock Level:", get_defined_vars());
-
-    //log("
-    //set_days_dispensed days:$days, $sql";//.print_r($item, true));
   }
   else {
     $sql = '';
-    log_error('ERROR set_days_dispensed. days_dispensed_default is set but days_dispensed_actual is not, so why is this function being called?', get_defined_vars());
+    log_error('ERROR set_days_default. days_dispensed_default is set but days_dispensed_actual is not, so why is this function being called?', get_defined_vars());
   }
-
-
-  log_info('set_days_dispensed', get_defined_vars());
 }
 
 function message_text($message, $item) {
