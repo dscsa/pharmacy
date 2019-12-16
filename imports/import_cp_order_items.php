@@ -13,7 +13,7 @@ function import_cp_order_items() {
     SELECT
       csomline.order_id+2 as invoice_number,
       MAX(drug_name) as drug_name,
-      cprx.pat_id as patient_id_cp,
+      MAX(cprx.pat_id) as patient_id_cp,
   		COALESCE(
         MIN(CASE
           WHEN refills_left > .1 THEN script_no
