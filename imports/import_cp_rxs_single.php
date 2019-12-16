@@ -28,7 +28,7 @@ function import_cp_rxs_single() {
       sig_text_english as sig_raw,
 
       autofill_yn as rx_autofill,
-      CONVERT(varchar, orig_disp_date, 20) as refill_date_first,
+      CONVERT(varchar, COALESCE(orig_disp_date, dispense_date), 20) as refill_date_first,
       CONVERT(varchar, dispense_date, 20) as refill_date_last,
       (CASE
         WHEN script_status_cn = 0 AND autofill_resume_date >= @today

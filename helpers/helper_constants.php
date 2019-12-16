@@ -46,7 +46,7 @@ const RX_MESSAGE = [
     'ES' => ''
   ],
   'NO ACTION RX OFF AUTOFILL' => [
-    'EN' => 'has autorefill off but was requested to be filled',
+    'EN' => 'was requested',
     'ES' => ''
   ],
   'NO ACTION RECENT FILL' => [
