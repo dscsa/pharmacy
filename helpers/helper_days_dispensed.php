@@ -108,11 +108,13 @@ function get_days_default($item) {
 
   if ( ! $item['item_date_added'] AND $item['refill_date_next'] AND (strtotime($item['refill_date_next']) - time()) < 0) {
     log_info("PAST DUE AND SYNC TO ORDER", get_defined_vars());
-    return [0, RX_MESSAGE['  NO ACTION PAST DUE AND SYNC TO ORDER']];
+    export_cp_add_item($item);
+    return [0, RX_MESSAGE['NO ACTION PAST DUE AND SYNC TO ORDER']];
   }
 
   if ( ! $item['item_date_added'] AND $item['refill_date_next'] AND (strtotime($item['refill_date_next']) - time()) <= 15*24*60*60) {
     log_info("DUE SOON AND SYNC TO ORDER", get_defined_vars());
+    export_cp_add_item($item);
     return [0, RX_MESSAGE['NO ACTION DUE SOON AND SYNC TO ORDER']];
   }
 

@@ -12,6 +12,7 @@ function import_cp_order_items() {
 
     SELECT
       csomline.order_id+2 as invoice_number,
+      drug_name,
   		COALESCE(
         MIN(CASE
           WHEN refills_left > .1 THEN script_no
