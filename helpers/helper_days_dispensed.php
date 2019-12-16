@@ -30,7 +30,7 @@ function get_days_default($item) {
 
   if ( ! $item['drug_gsns']) {
     log_error("CAN'T FILL MEDICATIONS WITHOUT A GSN MATCH", get_defined_vars());
-    return [0, RX_MESSAGE['NO ACTION MISSING GSN']];
+    return [ $item['refill_date_first'] ? days_default($item) : 0, RX_MESSAGE['NO ACTION MISSING GSN']];
   }
 
   if ( ! $item['refill_date_first'] AND $not_offered) {
