@@ -66,11 +66,11 @@ const RX_MESSAGE = [
     'ES' => ''
   ],
   'NO ACTION LOW STOCK' => [
-    'EN' => 'is short filled because this drug is low in stock',
+    'EN' => 'is low in stock',
     'ES' => ''
   ],
   'NO ACTION LOW REFILL' => [
-    'EN' => 'is short filled because this Rx had limited refills',
+    'EN' => 'has limited refills',
     'ES' => ''
   ],
   'NO ACTION WILL TRANSFER CHECK BACK' => [

@@ -257,7 +257,10 @@ function update_orders() {
       else
         $action = 'NOACTION';
 
-      $price = $item['price_dispensed'] ? ', $'.((float) $item['price_dispensed']).$msg.' for '.$days.' days' : '';
+      $price = $item['price_dispensed'] ? ', $'.((float) $item['price_dispensed']).' for '.$days.' days'.$msg : '';
+
+      if ($price)
+        log_error('group_drugs: Drug with days still has message', get_defined_vars());
 
       $groups['ALL'][] = $item;
       $groups[$fill.$action][] = $item['drug'].$msg;
@@ -429,7 +432,7 @@ function update_orders() {
   foreach($changes['updated'] as $updated) {
 
     $changed_fields = changed_fields($updated);
-    
+
     $order = get_full_order($updated, $mysql);
 
     if ( ! $order) {
