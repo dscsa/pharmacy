@@ -395,6 +395,7 @@ function update_orders() {
 
     send_created_order_communications($groups);
 
+    log_info("Created Order", get_defined_vars());
 
     //TODO Update Salesforce Order Total & Order Count & Order Invoice using REST API or a MYSQL Zapier Integration
   }
@@ -428,8 +429,7 @@ function update_orders() {
   foreach($changes['updated'] as $updated) {
 
     $changed_fields = changed_fields($updated);
-    log_info("update_orders", get_defined_vars());
-
+    
     $order = get_full_order($updated, $mysql);
 
     if ( ! $order) {
@@ -454,6 +454,8 @@ function update_orders() {
     export_wc_update_order($order);
 
     send_updated_order_communications($groups, $updated);
+
+    log_info("Updated Order", get_defined_vars());
 
     //TODO Update Salesforce Order Total & Order Count & Order Invoice using REST API or a MYSQL Zapier Integration
   }
