@@ -130,14 +130,19 @@ function update_orders() {
       $days_default = $item['days_dispensed_default'];
 
       //TODO Skip syncing if the drug is OUT OF STOCK (or less than 500 qty?)
-      if ( ! $days_default || $item['days_dispensed_actual']) continue; //Don't add them to order if they are no already in it OR if already dispensed
+      if ( ! $days_default OR $item['days_dispensed_actual']) continue; //Don't add them to order if they are no already in it OR if already dispensed
 
       $days_extra  = (strtotime($target_date) - strtotime($item['refill_date_next']))/60/60/24;
       $days_synced = $days_default + round($days_extra/15)*15;
 
       if ($days_synced >= 15 AND $days_synced <= 120 AND $days_synced != $days_default) { //Limits to the amounts by which we are willing sync
 
-        log_error('debug set_sync_to_date', get_defined_vars());
+        if ($days_synced <= 30) {
+          $days_synced += 90;
+          log_error('debug set_sync_to_date: extra time', get_defined_vars());
+        } else {
+          log_error('debug set_sync_to_date: std time', get_defined_vars());
+        }
 
         $order[$i]['refill_target_date'] = $target_date;
         $order[$i]['days_dispensed']     = $days_synced;
