@@ -5,7 +5,7 @@ function export_cp_remove_item($item, $message) {
 
   //TYPES:
   //SureScript Authorization Denied: No Refills 24227
-  if ( ! $item['refills_left'])
+  if ( ! (float) $item['refills_left']) //String "0.00" is truthy
     log_info("export_cp_remove_item Refill Request Denied: $message", get_defined_vars());
 
   //New SureScript of Refill Only Item 24225
