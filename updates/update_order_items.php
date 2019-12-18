@@ -62,7 +62,7 @@ function update_order_items() {
     } else {
 
       $debug = "
-        SELECT *, gp_order_items.rx_number as rx_number --otherwise gp_rx_single.rx_number overwrites
+        SELECT *, gp_order_items.rx_number as rx_number, gp_rxs_grouped.refill_date_manual as refill_date_manual, gp_rxs_grouped.refill_date_default as refill_date_default
         FROM
           gp_order_items
         LEFT JOIN gp_rxs_grouped ON
