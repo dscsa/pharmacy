@@ -4,8 +4,6 @@ require_once 'helpers/helper_appsscripts.php';
 
 function export_gd_update_invoice($order) {
 
-  log_info("WebForm export_gd_update_invoice 1", get_defined_vars());
-
   if ( ! count($order)) return;
 
   export_gd_delete_invoice($order); //Avoid having multiple versions of same invoice
@@ -21,7 +19,6 @@ function export_gd_update_invoice($order) {
   $result = gdoc_post(GD_MERGE_URL, $args);
 
   //$response = json_decode( $result, true);
-  log_info("WebForm export_gd_update_invoice 2", get_defined_vars());
 }
 
 //Cannot delete (with this account) once published
@@ -38,7 +35,6 @@ function export_gd_publish_invoices($order) {
     $result = gdoc_post(GD_HELPER_URL, $args);
 
     //$response = json_decode( $result, true);
-    log_info("WebForm export_gd_publish_invoices", get_defined_vars());
 }
 
 function export_gd_delete_invoice($order) {
@@ -54,5 +50,4 @@ function export_gd_delete_invoice($order) {
   $result = gdoc_post(GD_HELPER_URL, $args);
 
   //$response = json_decode( $result, true);
-  log_info("WebForm export_gd_delete_invoice 2", get_defined_vars());
 }

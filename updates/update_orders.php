@@ -464,7 +464,7 @@ function update_orders() {
 
     send_updated_order_communications($groups, $updated);
 
-    log_info("Updated Order", get_defined_vars());
+    log_error("Updated Order", get_defined_vars());
 
     //TODO Update Salesforce Order Total & Order Count & Order Invoice using REST API or a MYSQL Zapier Integration
   }
