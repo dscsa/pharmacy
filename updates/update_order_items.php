@@ -190,7 +190,7 @@ function update_order_items() {
       log_info("Updated Item No Action", get_defined_vars());
     }
 
-    //log_info("update_order_items", get_defined_vars());
+    log_info("update_order_items", get_defined_vars());
 
     //TODO Update Salesforce Order Total & Order Count & Order Invoice using REST API or a MYSQL Zapier Integration
   }

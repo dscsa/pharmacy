@@ -13,7 +13,6 @@ function changes_to_order_items($new) {
     NOT old.rx_dispensed_id <=> new.rx_dispensed_id OR
     NOT old.qty_dispensed_actual <=> new.qty_dispensed_actual OR
     NOT old.days_dispensed_actual <=> new.days_dispensed_actual OR
-    NOT old.item_date_added <=> new.item_date_added OR
     NOT old.item_added_by <=> new.item_added_by
   ";
 
