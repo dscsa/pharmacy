@@ -30,11 +30,11 @@ function watchFiles(opts) {
   var today     = new Date();
   var minutes   = opts.minutes || 10
   var startTime = new Date(today.getTime() - minutes * 60 * 1000);
-  var tooRecent = new Date(today.getTime() - 3 * 60 * 1000); //Don't call if we are still making edits
+  var tooRecent = new Date(today.getTime() - 0 * 60 * 1000); //Don't call if we are still making edits
 
   var files    = []
   var folder   = DriveApp.getFoldersByName(opts.folder).next()
-  var iterator = folder.searchFiles('modifiedDate > "' + startTime.toISOString() + '" AND modifiedDate < "' + tooRecent.toISOString() + '"')
+  var iterator = folder.searchFiles('modifiedDate > "' + startTime.toJSON() + '" AND modifiedDate < "' + tooRecent.toJSON() + '"')
 
   while (iterator.hasNext()) {
 
@@ -43,16 +43,18 @@ function watchFiles(opts) {
       name:next.getName(),
       id:next.getId(),
       url:next.getUrl(),
-      date_modified:next.getLastUpdated(),
-      date_created:next.getDateCreated()
+      date_modified:next.getLastUpdated().toJSON(),
+      date_created:next.getDateCreated().toJSON()
     }
 
     //If don't want watch to keep returning the same file with the same change multiple times
     var last_watched = file.name.split(' Modified:')[1]
 
-    file.first = ! last_watched || last_watched >= file.date_modified
-    file.isNew = (file.date_modified - file.date_created) < 1 * 60 * 1000 //1 minute
-    file.skip  = ! file.first || ( ! opts.includeNew && file.isNew)
+    file.newEdit = ! last_watched || last_watched >= file.date_modified
+    file.newFile = (file.date_modified - file.date_created) < 1 * 60 * 1000 //1 minute
+    file.skip  = ! file.newEdit || ( ! opts.includeNew && file.newFile)
+
+    Logger.log(JSON.stringify(['file', file], null, ' '))
 
     if (file.skip) continue;
 
