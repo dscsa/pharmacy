@@ -6,14 +6,14 @@ function update_stock_by_month() {
 
   $changes = changes_to_stock_by_month("gp_stock_by_month_v2");
 
-  $count_deleted = count($changes['deleted']);
-  $count_created = count($changes['created']);
-  $count_updated = count($changes['updated']);
+  $month_interval = 3;
+  $count_deleted  = count($changes['deleted']);
+  $count_created  = count($changes['created']);
+  $count_updated  = count($changes['updated']);
 
   if ( ! $count_deleted AND ! $count_created AND ! $count_updated) return;
 
   log_info("update_stock_by_month: $count_deleted deleted, $count_created created, $count_updated updated.", get_defined_vars());
-
 
   $mysql = new Mysql_Wc();
 
@@ -32,14 +32,14 @@ function update_stock_by_month() {
       AVG(inventory_sum) as qty_inventory,
       SUM(entered_sum) as qty_entered,
       SUM(dispensed_sum) as qty_dispensed,
-      AVG(inventory_sum) / (100*POWER(GREATEST(COALESCE(AVG(dispensed_sum), 0)*3, COALESCE(MAX(qty_repack), 135)), 1.1) / POWER(1+AVG(entered_sum)*3, .6)) as stock_threshold
+      AVG(inventory_sum) / (100*POWER(GREATEST(COALESCE(AVG(dispensed_sum), 0)*$month_interval, COALESCE(MAX(qty_repack), 135)), 1.1) / POWER(1+AVG(entered_sum)*$month_interval, .6)) as stock_threshold
     FROM
       gp_stock_by_month
     JOIN gp_drugs ON
       gp_drugs.drug_generic = gp_stock_by_month.drug_generic
     WHERE
-      YEAR(month)  >= YEAR(CURDATE() - INTERVAL 3 MONTH) AND
-      MONTH(month) >= MONTH(CURDATE() - INTERVAL 3 MONTH)
+      YEAR(month)  >= YEAR(CURDATE() - INTERVAL $month_interval MONTH) AND
+      MONTH(month) >= MONTH(CURDATE() - INTERVAL $month_interval MONTH)
     GROUP BY
       gp_stock_by_month.drug_generic
   ");
