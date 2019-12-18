@@ -15,8 +15,8 @@ function get_days_default($item) {
 
   $refills_only = is_refill_only($item);
 
-  //ALTERNATIVE: $item['rx_date_expired'] < $item['refill_date_next']
-  if ($item['days_left'] <= 0) {
+  //ALTERNATIVE: $item['days_left'] <= 0; but doesn't seem to always exist
+  if ($item['rx_date_expired'] < $item['refill_date_next']) {
     log_info("DON'T FILL EXPIRED MEDICATIONS", get_defined_vars());
     return [0, RX_MESSAGE['ACTION EXPIRED']];
   }
