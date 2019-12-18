@@ -62,7 +62,14 @@ function watchFiles(opts) {
     next.setName(file.name+' Modified:'+file.date_modified)
 
     //getBody does not have headers or footers
-    var doc = DocumentApp.openById(next.getId())
+    try {
+      var doc = DocumentApp.openById(next.getId())
+    } catch (e) {
+      //In Trash or Permission Issue
+      debugEmail('watchFiles PERMISSION ERROR', next.getId())
+      continue
+    }
+    
     var documentElement = doc.getBody().getParent()
     var numChildren = documentElement.getNumChildren()
 
@@ -74,7 +81,8 @@ function watchFiles(opts) {
     files.push(file)
   }
 
-  infoEmail('watchFiles', folder, files)
+  if (files.length) debugEmail('watchFiles', folder, files)
+
   return files
 }
 
