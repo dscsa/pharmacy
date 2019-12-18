@@ -13,12 +13,10 @@ function get_days_default($item) {
 
   $not_offered = $item['stock_level'] == STOCK_LEVEL['NOT OFFERED'];
 
-  $refills_only = in_array($item['stock_level'], [
-    STOCK_LEVEL['OUT OF STOCK'],
-    STOCK_LEVEL['REFILL ONLY']
-  ]);
+  $refills_only = is_refill_only($item);
 
-  if ($item['rx_date_expired'] < $item['refill_date_next']) {
+  //ALTERNATIVE: $item['rx_date_expired'] < $item['refill_date_next']
+  if ($item['days_left'] <= 0) {
     log_info("DON'T FILL EXPIRED MEDICATIONS", get_defined_vars());
     return [0, RX_MESSAGE['ACTION EXPIRED']];
   }
@@ -194,6 +192,13 @@ function set_days_default($item, $days, $message, $mysql) {
     $sql = '';
     log_error('ERROR set_days_default. days_dispensed_default is set but days_dispensed_actual is not, so why is this function being called?', get_defined_vars());
   }
+}
+
+function is_refill_only($item) {
+  return in_array($item['stock_level'], [
+    STOCK_LEVEL['OUT OF STOCK'],
+    STOCK_LEVEL['REFILL ONLY']
+  ]);
 }
 
 function message_text($message, $item) {

@@ -116,7 +116,7 @@ function update_order_items() {
       set_days_default($item, $days, $message, $mysql);
 
       if ( ! $days) {
-        export_cp_remove_item($item);
+        export_cp_remove_item($item, "Created: $message");
         //export_gd_transfer_fax($item);
         continue;
       }
@@ -174,7 +174,7 @@ function update_order_items() {
       set_days_default($item, $days, $message, $mysql);
 
       if ( ! $days) {
-        export_cp_remove_item($item);
+        export_cp_remove_item($item, "Updated: $message");
         //export_gd_transfer_fax($item);
         continue;
       }
