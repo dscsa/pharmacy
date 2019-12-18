@@ -455,18 +455,18 @@ function update_orders() {
 
     $groups = group_drugs($order, $mysql);
 
-    //Probably finalized days/qty_dispensed_actual
-        //Update invoice now or wait until shipped order?
-    if ($stage_change AND $updated['order_stage'] == 'Dispensed') {
-      update_payment($order, $mysql);
-      send_dispensed_order_communications($groups);
-      log_error("Updated Order Dispensed", get_defined_vars());
+    if ($stage_change AND $updated['order_date_shipped']) {
+      send_shipped_order_communications($groups);
+      log_error("Updated Order Shipped", get_defined_vars());
       continue;
     }
 
-    if ($stage_change AND $updated['order_stage'] == 'Shipped') {
-      send_shipped_order_communications($groups);
-      log_error("Updated Order Shipped", get_defined_vars());
+    //Probably finalized days/qty_dispensed_actual
+    //Update invoice now or wait until shipped order?
+    if ($stage_change AND $updated['order_date_dispensed']) {
+      update_payment($order, $mysql);
+      send_dispensed_order_communications($groups);
+      log_error("Updated Order Dispensed", get_defined_vars());
       continue;
     }
 
