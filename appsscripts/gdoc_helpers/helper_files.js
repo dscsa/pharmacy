@@ -50,7 +50,7 @@ function watchFiles(opts) {
     //If don't want watch to keep returning the same file with the same change multiple times
     var last_watched = file.name.split(' Modified:')[1]
 
-    file.newEdit = ! last_watched || last_watched >= file.date_modified
+    file.newEdit = ! last_watched || file.date_modified > last_watched
     file.newFile = (file.date_modified - file.date_created) < 1 * 60 * 1000 //1 minute
     file.skip  = ! file.newEdit || ( ! opts.includeNew && file.newFile)
 
@@ -69,7 +69,7 @@ function watchFiles(opts) {
       debugEmail('watchFiles PERMISSION ERROR', next.getId())
       continue
     }
-    
+
     var documentElement = doc.getBody().getParent()
     var numChildren = documentElement.getNumChildren()
 
