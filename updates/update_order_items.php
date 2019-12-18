@@ -169,6 +169,10 @@ function update_order_items() {
 
       set_days_actual($item, $mysql);
 
+    } else if ($updated['item_added_by'] == 'MANUAL' AND $updated['old_item_added_by'] != 'MANUAL') {
+
+      log_info("Cindy deleted and readded this item", get_defined_vars());
+
     } else if ( ! $item['days_dispensed_default']) {
 
       log_error("Updated Item has no days_dispensed_default.  Was GSN added?", get_defined_vars());
