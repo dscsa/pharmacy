@@ -119,7 +119,8 @@ function update_order_items() {
 
         if ($message == RX_MESSAGE['NO ACTION DUE SOON AND SYNC TO ORDER'])
           export_cp_add_item($item, "Created: $message[EN]");
-        else
+          
+        else if ($item['drug_gsns']) //Don't remove ones with a missing GSN
           export_cp_remove_item($item, "Created: $message[EN]");
         //export_gd_transfer_fax($item);
         continue;
