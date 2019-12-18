@@ -127,19 +127,22 @@ function update_orders() {
 
     foreach($order as $i => $item) {
 
-      if ( ! $item['days_dispensed']) continue; //Don't add them to order if they are already in it
+      $days_default = $item['days_dispensed_default'];
+
+      //TODO Skip syncing if the drug is OUT OF STOCK (or less than 500 qty?)
+      if ( ! $days_default || $item['days_dispensed_actual']) continue; //Don't add them to order if they are no already in it OR if already dispensed
 
       $days_extra  = (strtotime($target_date) - strtotime($item['refill_date_next']))/60/60/24;
-      $days_synced = $item['days_dispensed'] + round($days_extra/15)*15;
+      $days_synced = $days_default + round($days_extra/15)*15;
 
-      if ($days_synced >= 15 AND $days_synced <= 120 AND $days_synced != $item['days_dispensed']) { //Limits to the amounts by which we are willing sync
+      if ($days_synced >= 15 AND $days_synced <= 120 AND $days_synced != $days_default) { //Limits to the amounts by which we are willing sync
 
         log_error('debug set_sync_to_date', get_defined_vars());
 
         $order[$i]['refill_target_date'] = $target_date;
         $order[$i]['days_dispensed']     = $days_synced;
         $order[$i]['qty_dispensed']      = $days_synced*$item['sig_qty_per_day'];
-        $order[$i]['price_dispensed']    = ceil($item['price_dispensed'] * $days_synced / $item['days_dispensed']); //Might be null
+        $order[$i]['price_dispensed']    = ceil($item['price_dispensed'] * $days_synced / $days_default); //Might be null
 
         $sql = "
           UPDATE
@@ -147,7 +150,7 @@ function update_orders() {
           SET
             item_message_key        = '".RX_MESSAGE['NO ACTION SYNC TO DATE']['EN']."',
             refill_target_date      = '$target_date',
-            refill_target_days      = ".($days_synced - $item['days_dispensed']).",
+            refill_target_days      = ".($days_synced - $days_default).",
             refill_target_rxs       = '$target_rxs',
             days_dispensed_default  = $days_synced,
             qty_dispensed_default   = ".$order[$i]['qty_dispensed'].",
