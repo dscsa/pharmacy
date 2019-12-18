@@ -323,6 +323,16 @@ function update_orders() {
     return $groups;
   }
 
+  function update_payment($order, $mysql) {
+    $update = get_payment($order);
+    $order  = set_payment($order, $update, $mysql);
+
+    export_gd_update_invoice($order);
+    export_gd_publish_invoices($order);
+
+    export_wc_update_order($order);
+  }
+
   function send_created_order_communications($groups) {
 
     if ( ! $groups['ALL'][0]['pharmacy_name']) //Use Pharmacy name rather than $New to keep us from repinging folks if the row has been readded
@@ -349,25 +359,25 @@ function update_orders() {
     log_info('Order was deleted', get_defined_vars());
   }
 
-  function send_updated_order_communications($groups, $updated) {
+  function send_shipped_order_communications($groups) {
 
-    if ($groups['ALL'][0]['tracking_number']) {
-      order_shipped_notice($groups);
-      confirm_shipment_notice($groups);
-      refill_reminder_notice($groups);
-      unpend_order($order);
+    order_shipped_notice($groups);
+    confirm_shipment_notice($groups);
+    refill_reminder_notice($groups);
+    unpend_order($groups['ALL']);
 
-      if ($groups['ALL'][0]['payment_method'] == PAYMENT_METHOD['AUTOPAY'])
-        autopay_reminder_notice($groups);
-    }
+    if ($groups['ALL'][0]['payment_method'] == PAYMENT_METHOD['AUTOPAY'])
+      autopay_reminder_notice($groups);
+  }
 
-    else if ($groups['ALL'][0]['order_status'] == 'Dispensed')
-      order_dispensed_notice($groups);
+  function send_dispensed_order_communications($groups) {
+    order_dispensed_notice($groups);
+  }
 
-    else {
-      order_updated_notice($groups);
-      log_info('order_updated_notice', get_defined_vars());
-    }
+
+  function send_updated_order_communications($groups) {
+    order_updated_notice($groups);
+    log_info('order_updated_notice', get_defined_vars());
   }
 
   //If just added to CP Order we need to
@@ -395,12 +405,7 @@ function update_orders() {
     list($target_date, $target_rxs) = get_sync_to_date($order);
     $order  = set_sync_to_date($order, $target_date, $target_rxs, $mysql);
 
-    $update = get_payment($order);
-    $order  = set_payment($order, $update, $mysql);
-
-    export_gd_update_invoice($order);
-
-    export_wc_update_order($order);
+    update_payment($order, $mysql);
 
     send_created_order_communications($groups);
 
@@ -445,28 +450,42 @@ function update_orders() {
       log_error("Updated Order Missing", get_defined_vars());
       continue;
     }
-    //Probably finalized days/qty_dispensed_actual
-    //Update invoice now or wait until shipped order?
+
+    $stage_change = $updated['order_stage'] != $updated['old_order_stage'];
 
     $groups = group_drugs($order, $mysql);
+
+    //Probably finalized days/qty_dispensed_actual
+        //Update invoice now or wait until shipped order?
+    if ($stage_change AND $updated['order_stage'] == 'Dispensed') {
+      update_payment($order, $mysql);
+      send_dispensed_order_communications($groups);
+      log_error("Updated Order Dispensed", get_defined_vars());
+      continue;
+    }
+
+    if ($stage_change AND $updated['order_stage'] == 'Shipped') {
+      send_shipped_order_communications($groups);
+      log_error("Updated Order Shipped", get_defined_vars());
+      continue;
+    }
+
+    if ($stage_change) {
+      log_info("Updated Order Stage Change", get_defined_vars());
+      continue;
+    }
 
     list($target_date, $target_rxs) = get_sync_to_date($order);
     $order  = set_sync_to_date($order, $target_date, $target_rxs, $mysql);
 
-    $update = get_payment($order);
-    $order  = set_payment($order, $update, $mysql);
+    update_payment($order, $mysql);
 
-    export_gd_update_invoice($order);
+    send_updated_order_communications($groups);
 
-    export_gd_publish_invoices($order);
-
-    export_wc_update_order($order);
-
-    send_updated_order_communications($groups, $updated);
-
-    log_error("Updated Order", get_defined_vars());
+    log_error("Updated Order NO Stage Change", get_defined_vars());
 
     //TODO Update Salesforce Order Total & Order Count & Order Invoice using REST API or a MYSQL Zapier Integration
+
   }
 
   //TODO Differentiate between actual order that are to be sent out and
