@@ -116,7 +116,11 @@ function update_order_items() {
       set_days_default($item, $days, $message, $mysql);
 
       if ( ! $days) {
-        export_cp_remove_item($item, "Created: $message");
+
+        if ($message == RX_MESSAGE['NO ACTION DUE SOON AND SYNC TO ORDER'])
+          export_cp_add_item($item, "Created: $message");
+        else
+          export_cp_remove_item($item, "Created: $message");
         //export_gd_transfer_fax($item);
         continue;
       }
@@ -174,7 +178,10 @@ function update_order_items() {
       set_days_default($item, $days, $message, $mysql);
 
       if ( ! $days) {
-        export_cp_remove_item($item, "Updated: $message");
+        if ($message == RX_MESSAGE['NO ACTION DUE SOON AND SYNC TO ORDER'])
+          export_cp_add_item($item, "Updated: $message");
+        else
+          export_cp_remove_item($item, "Updated: $message");
         //export_gd_transfer_fax($item);
         continue;
       }
