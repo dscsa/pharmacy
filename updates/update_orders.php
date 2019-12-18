@@ -260,10 +260,7 @@ function update_orders() {
       else
         $action = 'NOACTION';
 
-      $price = $item['price_dispensed'] ? ', $'.((float) $item['price_dispensed']).' for '.$days.' days'.$msg : '';
-
-      if ($price)
-        log_error('group_drugs: Drug with days still has message', get_defined_vars());
+      $price = $item['price_dispensed'] ? ', $'.((float) $item['price_dispensed']).' for '.$days.' days' : '';
 
       $groups['ALL'][] = $item;
       $groups[$fill.$action][] = $item['drug'].$msg;
