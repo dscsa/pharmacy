@@ -13,7 +13,7 @@ function changes_to_orders($new) {
     NOT old.count_items <=> new.count_items OR
     NOT old.order_source <=> new.order_source OR
     NOT old.order_stage <=> new.order_stage OR
-    NOT old.order_status <=> new.order_status OR
+    -- NOT old.order_status <=> new.order_status OR -- SEEMS DUPLICATIVE WITH STAGE AND CAUSES CHANGES ON Rx Expired >>> Entered
     NOT old.order_address1 <=> new.order_address1 OR
     NOT old.order_address2 <=> new.order_address2 OR
     NOT old.order_city <=> new.order_city OR
