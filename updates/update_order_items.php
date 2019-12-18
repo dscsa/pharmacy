@@ -124,6 +124,9 @@ function update_order_items() {
         //export_gd_transfer_fax($item);
         continue;
       }
+
+      if ($item['rx_number'] != $item['best_rx_number'])
+        export_cp_switch_item($item);
     }
 
     //TODO Update Salesforce Order Total & Order Count & Order Invoice using REST API or a MYSQL Zapier Integration

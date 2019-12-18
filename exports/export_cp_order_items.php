@@ -26,5 +26,5 @@ function export_cp_add_item($item, $message) {
 }
 
 function export_cp_switch_item($item) { //Move CP from current rx_number to the "best_rx_number"
-  log_info("export_cp_switch_item", get_defined_vars());//.print_r($item, true);
+  log_error("export_cp_switch_item", get_defined_vars());//.print_r($item, true);
 }
