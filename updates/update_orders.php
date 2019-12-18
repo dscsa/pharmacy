@@ -130,7 +130,7 @@ function update_orders() {
       $days_default = $item['days_dispensed_default'];
 
       //TODO Skip syncing if the drug is OUT OF STOCK (or less than 500 qty?)
-      if ( ! $days_default OR $item['days_dispensed_actual']) continue; //Don't add them to order if they are no already in it OR if already dispensed
+      if ( ! $days_default OR $item['days_dispensed_actual'] OR $item['item_message_key'] == 'NO ACTION LOW STOCK') continue; //Don't add them to order if they are no already in it OR if already dispensed
 
       $days_extra  = (strtotime($target_date) - strtotime($item['refill_date_next']))/60/60/24;
       $days_synced = $days_default + round($days_extra/15)*15;
@@ -153,7 +153,8 @@ function update_orders() {
           UPDATE
             gp_order_items
           SET
-            item_message_key        = '".RX_MESSAGE['NO ACTION SYNC TO DATE']['EN']."',
+            item_message_key        = 'NO ACTION SYNC TO DATE',
+            item_message_text       = '".RX_MESSAGE['NO ACTION SYNC TO DATE'][$item['language']]."',
             refill_target_date      = '$target_date',
             refill_target_days      = ".($days_synced - $days_default).",
             refill_target_rxs       = '$target_rxs',
