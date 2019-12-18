@@ -30,7 +30,7 @@ function watchFiles(opts) {
   var today     = new Date();
   var minutes   = opts.minutes || 10
   var startTime = new Date(today.getTime() - minutes * 60 * 1000);
-  var tooRecent = new Date(today.getTime() - 0 * 60 * 1000); //Don't call if we are still making edits
+  var tooRecent = new Date(today.getTime() - 1 * 60 * 1000); //Don't call if we are still making edits
 
   var files    = []
   var folder   = DriveApp.getFoldersByName(opts.folder).next()
@@ -78,7 +78,7 @@ function watchFiles(opts) {
     for (var i = 0; i<numChildren; i++) {
       var child = documentElement.getChild(i)
       file['part'+i] = child.getText()
-      file['table'+i] = child.getTables()
+      //file['table'+i] = child.getTables() http://ramblings.mcpher.com/Home/excelquirks/goinggas/arrayifytable
     }
 
     files.push(file)
