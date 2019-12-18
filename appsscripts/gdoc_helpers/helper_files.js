@@ -48,18 +48,20 @@ function watchFiles(opts) {
     }
 
     //If don't want watch to keep returning the same file with the same change multiple times
-    var last_watched = file.name.split(' Modified:')[1]
+    var last_watched = file.name.split(' Modified:')
 
-    file.newEdit = ! last_watched || file.date_modified > last_watched
+    file.newEdit = ! last_watched[1] || file.date_modified > last_watched[1]
     file.newFile = (file.date_modified - file.date_created) < 1 * 60 * 1000 //1 minute
     file.skip  = ! file.newEdit || ( ! opts.includeNew && file.newFile)
 
     Logger.log(JSON.stringify(['file', file], null, ' '))
 
-    if (file.skip) continue;
+    if (file.skip) continue
 
     //This makes last_watched logic work
-    next.setName(file.name+' Modified:'+file.date_modified)
+    next.setName(last_watched[0]+' Modified:'+file.date_modified)
+
+    if (next.getMimeType() != MimeType.GOOGLE_DOCS) continue
 
     //getBody does not have headers or footers
     try {
@@ -76,6 +78,7 @@ function watchFiles(opts) {
     for (var i = 0; i<numChildren; i++) {
       var child = documentElement.getChild(i)
       file['part'+i] = child.getText()
+      file['table'+i] = child.getTables()
     }
 
     files.push(file)
