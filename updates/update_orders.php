@@ -49,7 +49,7 @@ function update_orders() {
       //Consolidate default and actual suffixes to avoid conditional overload in the invoice template and redundant code within communications
       foreach($order as $i => $item) {
 
-        $deduct_refill = $order[$i]['days_dispensed'] ? 1 : 0 //We want invoice to show refills after they are dispensed assuming we dispense items currently in order
+        $deduct_refill = $order[$i]['days_dispensed'] ? 1 : 0; //We want invoice to show refills after they are dispensed assuming we dispense items currently in order
 
         $order[$i]['drug'] = $item['drug_name'] ?: $item['drug_generic'];
         $order[$i]['item_message_text'] = $item['rx_number'] ? ($item['item_message_text'] ?: '') : message_text(get_days_default($item)[1], $item); //Get rid of NULL. //if not syncing to order lets provide a reason why we are not filling
@@ -487,9 +487,7 @@ function update_orders() {
 
     send_updated_order_communications($groups);
 
-
-
-    log_error($updated['item_count'] != $updated['old_item_count'] ? "Updated Order Item Count Change" : "Updated Order NO Stage Change", get_defined_vars());
+    log_error($updated['count_items'] != $updated['old_count_items'] ? "Updated Order Item Count Change" : "Updated Order NO Stage Change", get_defined_vars());
 
     //TODO Update Salesforce Order Total & Order Count & Order Invoice using REST API or a MYSQL Zapier Integration
 
