@@ -61,10 +61,6 @@ function import_stock_for_month($month_index, $mysql) {
 
   if ( ! count($dbs['inventory'])) return log_error('No v2 Stock to Import', get_defined_vars());
 
-
-  //Replace Staging Table with New Data
-  $mysql->run('TRUNCATE TABLE gp_stock_by_month_v2');
-
   foreach($dbs as $key => $rows) {
 
     $vals = [];
@@ -90,12 +86,6 @@ function import_stock_for_month($month_index, $mysql) {
 
       $vals[] = '('.implode(', ', $val).')';
     }
-
-    echo $month_index;
-    echo '';
-    echo implode(', ', $vals);
-    echo '';
-    echo '';
 
     //Rather than separate tables put into one table using ON DUPLICATE KEY UPDATE
     $mysql->run("
