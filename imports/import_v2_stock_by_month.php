@@ -28,26 +28,10 @@ function import_stock_for_month($month_index, $mysql) {
   $curr = $month_index;
   $next = $month_index+3;
   $last = $month_index-1; //Current month is partial month and can throw off an average
-  echo $curr;
-  echo "curr
-  ";
-  echo $next;
-  echo "next
-  ";
-  echo $last;
-  echo "last
-  ";
 
   $curr = strtotime(($curr > 0 ? "+$curr" : $curr)." months");
   $next = strtotime(($next > 0 ? "+$next" : $next)." months");
   $last = strtotime(($last > 0 ? "+$last" : $last)." months");
-
-  echo ($curr > 0 ? "+".$curr : $curr)." months (curr)
-  ";
-  echo ($next > 0 ? "+$next" : $next)." months (next)
-  ";
-  echo ($last > 0 ? "+$last" : $last)." months (last)
-  ";
 
   $curr = ["year" => date('Y', $curr), "month" => date('m', $curr)];
   $next = ["year" => date('Y', $next), "month" => date('m', $next)];
@@ -107,18 +91,24 @@ function import_stock_for_month($month_index, $mysql) {
       $vals[] = '('.implode(', ', $val).')';
     }
 
+    echo $month_index;
+    echo '';
+    echo implode(', ', $vals);
+    echo '';
+    echo '';
+
     //Rather than separate tables put into one table using ON DUPLICATE KEY UPDATE
-      $mysql->run("
-        INSERT INTO
-          gp_stock_by_month_v2 (".implode(', ', array_keys($val)).")
-        VALUES
-          ".implode(', ', $vals)."
-        ON DUPLICATE KEY UPDATE
-          {$key}_sum    = VALUES({$key}_sum),
-          {$key}_count  = VALUES({$key}_count),
-          {$key}_min    = VALUES({$key}_min),
-          {$key}_max    = VALUES({$key}_max),
-          {$key}_sumsqr = VALUES({$key}_sumsqr)
-      ");
+    $mysql->run("
+      INSERT INTO
+        gp_stock_by_month_v2 (".implode(', ', array_keys($val)).")
+      VALUES
+        ".implode(', ', $vals)."
+      ON DUPLICATE KEY UPDATE
+        {$key}_sum    = VALUES({$key}_sum),
+        {$key}_count  = VALUES({$key}_count),
+        {$key}_min    = VALUES({$key}_min),
+        {$key}_max    = VALUES({$key}_max),
+        {$key}_sumsqr = VALUES({$key}_sumsqr)
+    ");
   }
 }
