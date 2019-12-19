@@ -53,7 +53,7 @@ function watchFiles(opts) {
     file.newFile = (file.date_modified - file.date_created) < 10 * 60 * 1000 //1 minute
     file.newEdit = file.newFile ? false : ! last_watched[1] || file.date_modified.toJSON() > last_watched[1]
 
-    file.skip  = file.newEdit || (file.newFile && ! opts.includeNew)
+    file.skip  = ! file.newEdit && ! (file.newFile && opts.includeNew)
 
     Logger.log(JSON.stringify(['file', file], null, ' '))
 
