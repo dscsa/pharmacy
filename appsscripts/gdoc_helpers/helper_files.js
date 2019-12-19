@@ -48,10 +48,11 @@ function watchFiles(opts) {
     }
 
     //If don't want watch to keep returning the same file with the same change multiple times
-    var last_watched = file.name.split(' Modified:')
+    var lastEdit = file.name.split(' Modified:')
 
-    file.newFile = (file.date_modified - file.date_created) < 10 * 60 * 1000 //1 minute
-    file.newEdit = file.newFile ? false : ! last_watched[1] || file.date_modified.toJSON() > last_watched[1]
+    file.lastEdit = lastEdit[1]
+    file.newFile  = (file.date_modified - file.date_created) < 10 * 60 * 1000 //1 minute
+    file.newEdit  = file.newFile ? false : ( ! file.lastEdit || file.date_modified.toJSON() > file.lastEdit.slice(0, 16))
 
     file.skip  = ! file.newEdit && ! (file.newFile && opts.includeNew)
 
@@ -60,7 +61,7 @@ function watchFiles(opts) {
     if (file.skip) continue
 
     //This makes last_watched logic work
-    next.setName(last_watched[0]+' Modified:'+file.date_modified.toJSON())
+    next.setName(lastEdit[0]+' Modified:'+new Date().toJSON()) //This changes the modified date
 
     if (next.getMimeType() != MimeType.GOOGLE_DOCS) continue
 
