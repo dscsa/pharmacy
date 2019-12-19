@@ -475,14 +475,18 @@ function update_orders() {
       continue;
     }
 
+    //Usually count_items changed
     list($target_date, $target_rxs) = get_sync_to_date($order);
     $order  = set_sync_to_date($order, $target_date, $target_rxs, $mysql);
 
+    //Usually count_items changed
     update_payment($order, $mysql);
 
     send_updated_order_communications($groups);
 
-    log_error("Updated Order NO Stage Change", get_defined_vars());
+
+
+    log_error($updated['item_count'] != $updated['old_item_count'] ? "Updated Order Item Count Change" : "Updated Order NO Stage Change", get_defined_vars());
 
     //TODO Update Salesforce Order Total & Order Count & Order Invoice using REST API or a MYSQL Zapier Integration
 
