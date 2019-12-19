@@ -33,6 +33,8 @@ function update_orders() {
         gp_patients.patient_id_cp = gp_orders.patient_id_cp
       LEFT JOIN gp_rxs_grouped ON -- Show all Rxs on Invoice regardless if they are in order or not
         gp_rxs_grouped.patient_id_cp = gp_orders.patient_id_cp
+      LEFT JOIN gp_rxs_single ON -- Needed to know qty_left for sync-to-date
+        gp_order_items.rx_number = gp_rxs_single.rx_number
       LEFT JOIN gp_order_items ON
         gp_order_items.invoice_number = $order[invoice_number] AND rx_numbers LIKE CONCAT('%,', gp_order_items.rx_number, ',%') -- In case the rx is added in a different orders
       LEFT JOIN gp_stock_live ON -- might not have a match if no GSN match
@@ -130,27 +132,29 @@ function update_orders() {
 
     foreach($order as $i => $item) {
 
-      $days_default = $item['days_dispensed_default'];
+      $old_days_default = $item['days_dispensed_default'];
 
       //TODO Skip syncing if the drug is OUT OF STOCK (or less than 500 qty?)
-      if ( ! $days_default OR $item['days_dispensed_actual'] OR $item['item_message_key'] == 'NO ACTION LOW STOCK') continue; //Don't add them to order if they are no already in it OR if already dispensed
+      if ( ! $old_days_default OR $item['days_dispensed_actual'] OR $item['item_message_key'] == 'NO ACTION LOW STOCK') continue; //Don't add them to order if they are no already in it OR if already dispensed
 
       $days_extra  = (strtotime($target_date) - strtotime($item['refill_date_next']))/60/60/24;
-      $days_synced = $days_default + round($days_extra/15)*15;
+      $days_synced = $old_days_default + round($days_extra/15)*15;
 
-      if ($days_synced >= 15 AND $days_synced <= 120 AND $days_synced != $days_default) { //Limits to the amounts by which we are willing sync
+      $new_days_default = days_default($item, $days_synced);
 
-        if ($days_synced <= 30) {
-          $days_synced += 90;
+      if ($new_days_default >= 15 AND $new_days_default <= 120 AND $new_days_default != $old_days_default) { //Limits to the amounts by which we are willing sync
+
+        if ($new_days_default <= 30) {
+          $new_days_default += 90;
           log_error('debug set_sync_to_date: extra time', get_defined_vars());
         } else {
           log_error('debug set_sync_to_date: std time', get_defined_vars());
         }
 
         $order[$i]['refill_target_date'] = $target_date;
-        $order[$i]['days_dispensed']     = $days_synced;
-        $order[$i]['qty_dispensed']      = $days_synced*$item['sig_qty_per_day'];
-        $order[$i]['price_dispensed']    = ceil($item['price_dispensed'] * $days_synced / $days_default); //Might be null
+        $order[$i]['days_dispensed']     = $new_days_default;
+        $order[$i]['qty_dispensed']      = $new_days_default*$item['sig_qty_per_day'];
+        $order[$i]['price_dispensed']    = ceil($item['price_dispensed'] * $new_days_default / $old_days_default); //Might be null
 
         $sql = "
           UPDATE
@@ -159,9 +163,9 @@ function update_orders() {
             item_message_key        = 'NO ACTION SYNC TO DATE',
             item_message_text       = '".RX_MESSAGE['NO ACTION SYNC TO DATE'][$item['language']]."',
             refill_target_date      = '$target_date',
-            refill_target_days      = ".($days_synced - $days_default).",
+            refill_target_days      = ".($new_days_default - $old_days_default).",
             refill_target_rxs       = '$target_rxs',
-            days_dispensed_default  = $days_synced,
+            days_dispensed_default  = $new_days_default,
             qty_dispensed_default   = ".$order[$i]['qty_dispensed'].",
             price_dispensed_default = ".$order[$i]['price_dispensed']."
           WHERE
