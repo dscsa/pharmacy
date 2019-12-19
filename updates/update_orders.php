@@ -33,10 +33,10 @@ function update_orders() {
         gp_patients.patient_id_cp = gp_orders.patient_id_cp
       LEFT JOIN gp_rxs_grouped ON -- Show all Rxs on Invoice regardless if they are in order or not
         gp_rxs_grouped.patient_id_cp = gp_orders.patient_id_cp
-      LEFT JOIN gp_rxs_single ON -- Needed to know qty_left for sync-to-date
-        gp_order_items.rx_number = gp_rxs_single.rx_number
       LEFT JOIN gp_order_items ON
         gp_order_items.invoice_number = $order[invoice_number] AND rx_numbers LIKE CONCAT('%,', gp_order_items.rx_number, ',%') -- In case the rx is added in a different orders
+      LEFT JOIN gp_rxs_single ON -- Needed to know qty_left for sync-to-date
+        gp_order_items.rx_number = gp_rxs_single.rx_number
       LEFT JOIN gp_stock_live ON -- might not have a match if no GSN match
         gp_rxs_grouped.drug_generic = gp_stock_live.drug_generic -- this is for the helper_days_dispensed msgs for unordered drugs
       WHERE
