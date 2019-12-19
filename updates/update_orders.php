@@ -491,7 +491,9 @@ function update_orders() {
 
     send_updated_order_communications($groups);
 
-    log_error($updated['count_items'] != $updated['old_count_items'] ? "Updated Order Item Count Change" : "Updated Order NO Stage Change", get_defined_vars());
+    $updated['count_items'] != $updated['old_count_items']
+      ? log_error("Updated Order NO Stage Change", get_defined_vars())
+      : log_info("Updated Order Item Count Change", get_defined_vars());
 
     //TODO Update Salesforce Order Total & Order Count & Order Invoice using REST API or a MYSQL Zapier Integration
 
