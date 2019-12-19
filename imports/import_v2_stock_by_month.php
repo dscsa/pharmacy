@@ -23,12 +23,16 @@ function import_stock_for_month($month_index, $mysql) {
       ]
   ]);
 
-  //In 2019-12, we will store a row for the month 2019-11 with the entered qty for that month and the unexpired inventory for 2019-03.
+  //In 2019-12, we will store a row for the date 2019-12-01 with the entered qty for 2019-11 and the unexpired inventory for 2019-03.
   //This is a 4 month gap because we dispensed in 3 months with a 1 month buffer
   $next = $month_index+3;
   $last = $month_index-1; //Current month is partial month and can throw off an average
+
+  $curr = strtotime(($month_index > 0 ? "+$month_index" : $month_index)." months");
   $next = strtotime(($next > 0 ? "+$next" : $next)." months");
   $last = strtotime(($last > 0 ? "+$last" : $last)." months");
+
+  $curr = ["year" => date('Y', $curr), "month" => date('m', $curr)];
   $next = ["year" => date('Y', $next), "month" => date('m', $next)];
   $last = ["year" => date('Y', $last), "month" => date('m', $last)];
 
@@ -75,7 +79,7 @@ function import_stock_for_month($month_index, $mysql) {
 
       $val = [
         'drug_generic'  => "'$drug_generic'",
-        'month'         => "'$last[year]-$last[month]-01'",
+        'month'         => "'$curr[year]-$curr[month]-01'",
         $key.'_sum'     => clean_val($row['value']['sum']),
         $key.'_count'   => clean_val($row['value']['count']),
         $key.'_min'     => clean_val($row['value']['min']),
