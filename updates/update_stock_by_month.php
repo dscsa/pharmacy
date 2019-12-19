@@ -48,7 +48,7 @@ function update_stock_by_month() {
     UPDATE gp_stock_live
     SET stock_level = CASE
       WHEN drug_ordered IS NULL THEN '".STOCK_LEVEL['NOT OFFERED']."'
-      WHEN stock_threshold > 1.0 THEN '".STOCK_LEVEL['HIGH SUPPLY']."'
+      WHEN stock_threshold > 0.9 THEN '".STOCK_LEVEL['HIGH SUPPLY']."'
       WHEN stock_threshold > 0.7 THEN '".STOCK_LEVEL['LOW SUPPLY']."'
       WHEN price_per_month >= 20 AND qty_dispensed = 0 AND qty_inventory > 5*qty_repack THEN '".STOCK_LEVEL['ONE TIME']."'
       WHEN qty_inventory > IFNULL(qty_repack, 135) THEN '".STOCK_LEVEL['REFILL ONLY']."'
