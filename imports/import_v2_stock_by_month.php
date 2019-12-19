@@ -25,12 +25,17 @@ function import_stock_for_month($month_index, $mysql) {
 
   //In 2019-12, we will store a row for the date 2019-12-01 with the entered qty for 2019-11 and the unexpired inventory for 2019-03.
   //This is a 4 month gap because we dispensed in 3 months with a 1 month buffer
+  $curr = $month_index;
   $next = $month_index+3;
   $last = $month_index-1; //Current month is partial month and can throw off an average
 
-  $curr = strtotime(($month_index > 0 ? "+$month_index" : $month_index)." months");
+  $curr = strtotime(($curr > 0 ? "+$curr" : $curr)." months");
   $next = strtotime(($next > 0 ? "+$next" : $next)." months");
   $last = strtotime(($last > 0 ? "+$last" : $last)." months");
+
+  echo ($curr > 0 ? "+$curr" : $curr)." months (curr)";
+  echo ($next > 0 ? "+$next" : $next)." months (next)";
+  echo ($last > 0 ? "+$last" : $last)." months (last)";
 
   $curr = ["year" => date('Y', $curr), "month" => date('m', $curr)];
   $next = ["year" => date('Y', $next), "month" => date('m', $next)];
