@@ -48,11 +48,14 @@ function update_orders() {
     } else {
       //Consolidate default and actual suffixes to avoid conditional overload in the invoice template and redundant code within communications
       foreach($order as $i => $item) {
+
+        $deduct_refill = $order[$i]['days_dispensed'] ? 1 : 0 //We want invoice to show refills after they are dispensed assuming we dispense items currently in order
+
         $order[$i]['drug'] = $item['drug_name'] ?: $item['drug_generic'];
         $order[$i]['item_message_text'] = $item['rx_number'] ? ($item['item_message_text'] ?: '') : message_text(get_days_default($item)[1], $item); //Get rid of NULL. //if not syncing to order lets provide a reason why we are not filling
         $order[$i]['days_dispensed'] = $item['days_dispensed_actual'] ?: $item['days_dispensed_default'];
         $order[$i]['qty_dispensed'] = (float) ($item['qty_dispensed_actual'] ?: $item['qty_dispensed_default']); //cast to float to get rid of .000 decimal
-        $order[$i]['refills_total'] = (float) ($item['refills_total_actual'] ?: $item['refills_total_default']);
+        $order[$i]['refills_total'] = (float) ($item['refills_total_actual'] ?: $item['refills_total_default'] - $deduct_refill);
         $order[$i]['price_dispensed'] = (float) ($item['price_dispensed_actual'] ?: ($item['price_dispensed_default'] ?: 0));
       }
 
