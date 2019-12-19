@@ -7,14 +7,28 @@ function import_v2_stock_by_month() {
 
   $mysql = new Mysql_Wc();
 
+  //Live Stock Uses Three Months so let's import all three just in case we cleared the table
+  //We can optimize later if this is too slow by checking to see if previous months are missing
+  import_stock_for_month(-2, $mysql);
+  import_stock_for_month(-1, $mysql);
+  import_stock_for_month(0, $mysql);
+}
+
+//$month_index is 0 for current month, -1 for last month, +1 for next month, etc.
+function import_stock_for_month($month_index, $mysql) {
+
   $context = stream_context_create([
       "http" => [
           "header" => "Authorization: Basic ".base64_encode(V2_USER.':'.V2_PWD)
       ]
   ]);
 
-  $next = strtotime('+4 months');
-  $last = strtotime('-1 months'); //Current month is partial month and can throw off an average
+  //In 2019-12, we will store a row for the month 2019-11 with the entered qty for that month and the unexpired inventory for 2019-03.
+  //This is a 4 month gap because we dispensed in 3 months with a 1 month buffer
+  $next = $month_index+3;
+  $last = $month_index-1; //Current month is partial month and can throw off an average
+  $next = strtotime(($next > 0 ? "+$next" : $next)." months");
+  $last = strtotime(($last > 0 ? "+$last" : $last)." months");
   $next = ["year" => date('Y', $next), "month" => date('m', $next)];
   $last = ["year" => date('Y', $last), "month" => date('m', $last)];
 

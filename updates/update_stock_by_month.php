@@ -30,8 +30,8 @@ function update_stock_by_month() {
       MAX(drug_ordered) as drug_ordered,
       MAX(qty_repack) as qty_repack,
       AVG(inventory_sum) as qty_inventory,
-      SUM(entered_sum) as qty_entered,
-      SUM(dispensed_sum) as qty_dispensed,
+      AVG(entered_sum)*$month_interval as qty_entered, -- RATHER THAN SUM TO MAKE MORE ROBUST IF A ROW/MONTH IS DELETED AND WE ARE CALCULATING BASED ON PARTIAL DATA
+      AVG(dispensed_sum)*$month_interval as qty_dispensed,
       AVG(inventory_sum) / (100*POWER(GREATEST(COALESCE(AVG(dispensed_sum), 0)*$month_interval, COALESCE(MAX(qty_repack), 135)), 1.1) / POWER(1+AVG(entered_sum)*$month_interval, .6)) as stock_threshold
     FROM
       gp_stock_by_month
@@ -39,7 +39,7 @@ function update_stock_by_month() {
       gp_drugs.drug_generic = gp_stock_by_month.drug_generic
     WHERE
       YEAR(month)  >= YEAR(CURDATE() - INTERVAL $month_interval MONTH) AND
-      MONTH(month) >= MONTH(CURDATE() - INTERVAL $month_interval MONTH)
+      MONTH(month) >= MONTH(CURDATE() - INTERVAL $month_interval MONTH) -- Selecting in 2019-12 should select 2019-09, 2019-10, 2019-11 (2019-12 will not be made yet because not a full month of data)
     GROUP BY
       gp_stock_by_month.drug_generic
   ");
