@@ -28,14 +28,26 @@ function import_stock_for_month($month_index, $mysql) {
   $curr = $month_index;
   $next = $month_index+3;
   $last = $month_index-1; //Current month is partial month and can throw off an average
+  echo $curr;
+  echo "curr
+  ";
+  echo $next;
+  echo "next
+  ";
+  echo $last;
+  echo "last
+  ";
 
   $curr = strtotime(($curr > 0 ? "+$curr" : $curr)." months");
   $next = strtotime(($next > 0 ? "+$next" : $next)." months");
   $last = strtotime(($last > 0 ? "+$last" : $last)." months");
 
-  echo ($curr > 0 ? "+$curr" : $curr)." months (curr)";
-  echo ($next > 0 ? "+$next" : $next)." months (next)";
-  echo ($last > 0 ? "+$last" : $last)." months (last)";
+  echo ($curr > 0 ? "+".$curr : $curr)." months (curr)
+  ";
+  echo ($next > 0 ? "+$next" : $next)." months (next)
+  ";
+  echo ($last > 0 ? "+$last" : $last)." months (last)
+  ";
 
   $curr = ["year" => date('Y', $curr), "month" => date('m', $curr)];
   $next = ["year" => date('Y', $next), "month" => date('m', $next)];
