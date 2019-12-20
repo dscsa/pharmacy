@@ -37,7 +37,7 @@ function update_orders() {
       LEFT JOIN gp_rxs_grouped ON -- Show all Rxs on Invoice regardless if they are in order or not
         gp_rxs_grouped.patient_id_cp = gp_orders.patient_id_cp
       LEFT JOIN gp_order_items ON
-        gp_order_items.invoice_number = $order[invoice_number] AND rx_numbers LIKE CONCAT('%,', gp_order_items.rx_number, ',%') -- In case the rx is added in a different orders
+        gp_order_items.invoice_number = gp_orders.invoice_number AND rx_numbers LIKE CONCAT('%,', gp_order_items.rx_number, ',%') -- In case the rx is added in a different orders
       LEFT JOIN gp_rxs_single ON -- Needed to know qty_left for sync-to-date
         gp_order_items.rx_number = gp_rxs_single.rx_number
       LEFT JOIN gp_stock_live ON -- might not have a match if no GSN match
@@ -89,12 +89,17 @@ function update_orders() {
         continue;
       }
 
-      if ($item['invoice_number']) continue; //Item is already in the order
+      if ($item['item_date_added']) continue; //Item is already in the order
 
-      $days_to_refill = (strtotime($item['refill_date_next']) - strtotime($item['order_date_added']))/60/60/24;
+      if (sync_to_order_past_due($item)) {
+        log_error("PAST DUE AND SYNC TO ORDER", get_defined_vars());
+        return export_cp_add_item($item, "sync_to_order: PAST DUE AND SYNC TO ORDER");
+      }
 
-      if ($days_to_refill < 15)
-        log_info('TODO: Add this item to the Order', get_defined_vars());
+      if (sync_to_order_due_soon($item)) {
+        log_error("DUE SOON AND SYNC TO ORDER", get_defined_vars());
+        return export_cp_add_item($item, "sync_to_order: DUE SOON AND SYNC TO ORDER");
+      }
     }
   }
 

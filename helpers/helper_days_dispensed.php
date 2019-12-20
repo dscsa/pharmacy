@@ -111,14 +111,16 @@ function get_days_default($item) {
     return [$days_left_in_stock, RX_MESSAGE['NO ACTION LOW STOCK']];
   }
 
-  if ( ! $item['item_date_added'] AND $item['refill_date_next'] AND (strtotime($item['refill_date_next']) - time()) < 0) {
-    log_info("PAST DUE AND SYNC TO ORDER", get_defined_vars());
-    return [0, RX_MESSAGE['NO ACTION PAST DUE AND SYNC TO ORDER']];
+  //TODO and check if added by this program otherwise false positives
+  if (sync_to_order_past_due($item)) {
+    log_error("PAST DUE AND SYNC TO ORDER", get_defined_vars());
+    return [days_default($item), RX_MESSAGE['PAST DUE AND SYNC TO ORDER']];
   }
 
-  if ( ! $item['item_date_added'] AND $item['refill_date_next'] AND (strtotime($item['refill_date_next']) - time()) <= 15*24*60*60) {
-    log_info("DUE SOON AND SYNC TO ORDER", get_defined_vars());
-    return [0, RX_MESSAGE['NO ACTION DUE SOON AND SYNC TO ORDER']];
+  //TODO and check if added by this program otherwise false positives
+  if (sync_to_order_due_soon($item)) {
+    log_error("DUE SOON AND SYNC TO ORDER", get_defined_vars());
+    return [days_default($item), RX_MESSAGE['DUE SOON AND SYNC TO ORDER']];
   }
 
   log_info("NO SPECIAL RX_MESSAGE USING DEFAULTS", get_defined_vars());
@@ -203,6 +205,14 @@ function is_refill_only($item) {
 
 function message_text($message, $item) {
   return str_replace(array_keys($item), array_values($item), $message[$item['language']]);
+}
+
+function sync_to_order_past_due($item) {
+  return $item['refill_date_next'] AND (strtotime($item['refill_date_next']) - time()) < 0;
+}
+
+function sync_to_order_due_soon($item) {
+  return $item['refill_date_next'] AND (strtotime($item['refill_date_next']) - time()) <= 15*24*60*60;
 }
 
 function days_left_in_rx($item, $days_std = 90) {
