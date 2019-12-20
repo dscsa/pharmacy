@@ -78,9 +78,7 @@ function update_orders() {
     return strcmp($a['item_message_text'].$a['drug'], $b['item_message_text'].$b['drug']);
   }
 
-  function sync_to_order($order, $mysql) {
-
-    $order = get_full_order($order, $mysql);
+  function sync_to_order($order) {
 
     foreach($order as $item) {
 
@@ -402,14 +400,14 @@ function update_orders() {
   //  - Update wc order count/total
   foreach($changes['created'] as $created) {
 
-    sync_to_order($created, $mysql);
-
     $order = get_full_order($created, $mysql);
 
     if ( ! $order) {
       log_error("Created Order Missing", get_defined_vars());
       continue;
     }
+
+    sync_to_order($order);
 
     $groups = group_drugs($order, $mysql);
 
