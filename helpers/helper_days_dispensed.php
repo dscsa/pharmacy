@@ -99,25 +99,27 @@ function get_days_default($item) {
     return [days_default($item), RX_MESSAGE['ACTION EXPIRING']];
   }
 
-  if ($item['stock_level'] != STOCK_LEVEL['HIGH SUPPLY'] AND $item['qty_inventory'] < 500) { //Only do 45 day if its Low Stock AND less than 1000 Qty.  Cindy noticed we had 8000 Amlodipine but we were filling in 45 day supplies
+  //Convert qtys to days
+  $days_left_in_rx = days_left_in_rx($item, $days_std) ?: $days_std;
+  if ($item['item_date_added'] AND $days_left_in_rx) { //Only do 45 day if its Low Stock AND less than 1000 Qty.  Cindy noticed we had 8000 Amlodipine but we were filling in 45 day supplies
     log_info("WARN USERS IF DRUG IS LOW QTY", get_defined_vars());
-    return [days_default($item, $item['sig_qty_per_day'] == 1/30 ? 30 : 45), RX_MESSAGE['NO ACTION LOW STOCK']];
+    return [$days_left_in_rx, RX_MESSAGE['ACTION LAST REFILL']];
+  }
+
+  $days_left_in_stock = days_left_in_stock($item);
+  if ($item['item_date_added'] AND $days_left_in_stock) { //Only do 45 day if its Low Stock AND less than 1000 Qty.  Cindy noticed we had 8000 Amlodipine but we were filling in 45 day supplies
+    log_info("WARN USERS IF DRUG IS LOW QTY", get_defined_vars());
+    return [$days_left_in_stock, RX_MESSAGE['NO ACTION LOW STOCK']];
   }
 
   if ( ! $item['item_date_added'] AND $item['refill_date_next'] AND (strtotime($item['refill_date_next']) - time()) < 0) {
     log_info("PAST DUE AND SYNC TO ORDER", get_defined_vars());
-    export_cp_add_item($item);
     return [0, RX_MESSAGE['NO ACTION PAST DUE AND SYNC TO ORDER']];
   }
 
   if ( ! $item['item_date_added'] AND $item['refill_date_next'] AND (strtotime($item['refill_date_next']) - time()) <= 15*24*60*60) {
     log_info("DUE SOON AND SYNC TO ORDER", get_defined_vars());
     return [0, RX_MESSAGE['NO ACTION DUE SOON AND SYNC TO ORDER']];
-  }
-
-  if ($item['refills_total'] < 0.1) {
-    log_info("WARN OF LAST REFILL", get_defined_vars());
-    return [days_default($item), RX_MESSAGE['ACTION LAST REFILL']];
   }
 
   log_info("NO SPECIAL RX_MESSAGE USING DEFAULTS", get_defined_vars());
@@ -204,25 +206,43 @@ function message_text($message, $item) {
   return str_replace(array_keys($item), array_values($item), $message[$item['language']]);
 }
 
+function days_left_in_rx($item, $days_std = 90) {
+
+  $days_left_in_rx = round($item['qty_left']/$item['sig_qty_per_day']);
+
+  //Fill up to 30 days more to finish up an Rx if almost finished.
+  //E.g., If 30 day script with 3 refills (4 fills total, 120 days total) then we want to 1x 120 and not 1x 90 + 1x30
+  if ($days_left_in_rx <= $days_std+30) return $days_left_in_rx;
+}
+
+function days_left_in_stock($item, $days_std = 90) {
+
+  $days_left_in_stock = round($item['qty_inventory']/$item['sig_qty_per_day']);
+
+  if ($days_left_in_stock < $days_std OR $item['qty_inventory'] < 500) {
+
+    if($item['stock_level'] == STOCK_LEVEL['HIGH SUPPLY'])
+      log_error('LOW STOCK ITEM IS MARKED HIGH SUPPLY', get_defined_vars());
+
+    return $item['sig_qty_per_day'] == 1/30 ? 30 : 45;
+  }
+}
+
 //Days is basically the MIN(target_date ?: std_day, qty_left as days, inventory_left as days).
 //NOTE: We adjust bump up the days by upto 30 in order to finish up an Rx (we don't want partial fills left)
 //NOTE: We base this on the best_rx_number and NOT on the rx currently in the order
 function days_default($item, $days_std = 90) {
 
   //Convert qtys to days
-  $days_of_qty_left = round($item['qty_left']/$item['sig_qty_per_day']);
-  $days_of_stock    = round($item['qty_inventory']/$item['sig_qty_per_day']);
+  $days_left_in_rx    = days_left_in_rx($item, $days_std) ?: $days_std;
+  $days_left_in_stock = days_left_in_stock($item, $days_std) ?: $days_std;
 
-  //Fill up to 30 days more to finish up an Rx if almost finished.
-  //E.g., If 30 day script with 3 refills (4 fills total, 120 days total) then we want to 1x 120 and not 1x 90 + 1x30
-  $days_default = ($days_of_qty_left <= $days_std+30) ? $days_of_qty_left : $days_std;
-
-  $days_default = min($days_default, $days_of_stock); //OLD: round(min($days_default, $days_of_stock)/15)*15 Round to nearest 15 days (but not down to 0!) so we don't have too many different options
+  $days_default = min($days_left_in_rx, $days_left_in_stock);
 
   if ($days_default % 15)
     log_error("DEFAULT DAYS IS NOT A MULTIPLE OF 15! days_default:$days_default, days_of_stock:$days_of_stock, days_of_qty_left:$days_of_qty_left, days_std:$days_std, refill_date_next:$item[refill_date_next].", get_defined_vars());
   else
-    log_info("days_default:$days_default, days_of_stock:$days_of_stock, days_of_qty_left:$days_of_qty_left, days_std:$days_std, refill_date_next:$item[refill_date_next].", get_defined_vars());
+    log_info("days_default:$days_default, days_left_in_stock:$days_left_in_stock, days_left_in_rx:$days_left_in_rx, days_std:$days_std, refill_date_next:$item[refill_date_next].", get_defined_vars());
 
   return $days_default;
 }
