@@ -26,7 +26,10 @@ function update_orders() {
 
     //gp_orders.invoice_number and other fields at end because otherwise potentially null gp_order_items.invoice_number will override gp_orders.invoice_number
     $sql = "
-      SELECT *, gp_orders.invoice_number, gp_rxs_grouped.drug_generic, gp_rxs_grouped.drug_brand, gp_rxs_grouped.drug_name
+      SELECT
+        *,
+        gp_orders.invoice_number,
+        gp_rxs_grouped.* -- Need to put this first based on how we are joining, but make sure these grouped fields overwrite their single equivalents
       FROM
         gp_orders
       JOIN gp_patients ON
