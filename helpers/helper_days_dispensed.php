@@ -103,7 +103,7 @@ function get_days_default($item) {
   if ($item['item_date_added']) {
 
     $days_left_in_rx = days_left_in_rx($item);
-    if ($days_left_in_rx)
+    if ($days_left_in_rx) {
       log_info("WARN USERS IF DRUG IS LOW QTY", get_defined_vars());
       return [$days_left_in_rx, RX_MESSAGE['ACTION LAST REFILL']];
     }
