@@ -79,10 +79,14 @@ function pend_pick_list($item, $vals) {
 
   if ( ! $vals) return; //List could not be made
 
-  if ( ! LIVE_MODE) return log_info("WebForm pend_pick_list", get_defined_vars());
+  $pick_date = date('Y-m-d', $item['refill_date_first'] ? strtotime('+1 days') : strtotime('+3 days'));
+
+  $pend_url = "/account/8889875187/pend/$pick_date $item[invoice_number] - $item[qty_dispensed_default]";
+
+  log_error("WebForm pend_pick_list", get_defined_vars());
 
   //Pend after all forseeable errors are accounted for.
-  //v2_fetch('/account/8889875187/pend/'.$item['invoice_number'].' - '.$item['qty_dispensed_default'], 'POST', $vals);
+  //v2_fetch($pend_url, 'POST', $vals);
 }
 
 function make_pick_list($item) {
