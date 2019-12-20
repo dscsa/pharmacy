@@ -108,7 +108,7 @@ function get_days_default($item) {
       return [$days_left_in_rx, RX_MESSAGE['ACTION LAST REFILL']];
     }
 
-    $days_left_in_stock = days_left_in_stock($item)
+    $days_left_in_stock = days_left_in_stock($item);
     if ($days_left_in_stock) {
       log_info("WARN USERS IF DRUG IS LOW QTY", get_defined_vars());
       return [$days_left_in_stock, RX_MESSAGE['NO ACTION LOW STOCK']];
