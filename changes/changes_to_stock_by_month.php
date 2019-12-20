@@ -14,6 +14,11 @@ function changes_to_stock_by_month($new) {
     NOT old.inventory_min <=> new.inventory_min OR
     NOT old.inventory_max <=> new.inventory_max OR
     NOT old.inventory_sumsqr <=> new.inventory_sumsqr OR
+    NOT old.entered_sum <=> new.verified_sum OR
+    NOT old.entered_count <=> new.verified_count OR
+    NOT old.entered_min <=> new.verified_min OR
+    NOT old.entered_max <=> new.verified_max OR
+    NOT old.entered_sumsqr <=> new.verified_sumsqr OR
     NOT old.verified_sum <=> new.verified_sum OR
     NOT old.verified_count <=> new.verified_count OR
     NOT old.verified_min <=> new.verified_min OR
