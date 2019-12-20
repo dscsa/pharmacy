@@ -2212,7 +2212,7 @@ function update_shipping_address($guardian_id, $address_1, $address_2, $city, $z
   $address_1 = mb_convert_case(str_replace("'", "''", $address_1), MB_CASE_TITLE, "UTF-8" );
   $address_2 = $address_2 ? "'".mb_convert_case(str_replace("'", "''", $address_2), MB_CASE_TITLE, "UTF-8" )."'" : "NULL";
   $query = "SirumWeb_AddUpdatePatHomeAddr '$guardian_id', '$address_1', $address_2, NULL, '$city', 'GA', '$zip', 'US'";
-  //debug_email("update_shipping_address", $query);
+  debug_email("update_shipping_address", $query);
   return db_run($query);
 }
 
