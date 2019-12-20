@@ -48,14 +48,15 @@ function order_shipped_notice($groups) {
   $text  = [ "sms"   => get_phones($groups['ALL']) ];
 
   $links = short_links([
-    'invoice' => 'https://docs.google.com/document/d/'.$groups['ALL'][0]['invoice_doc_id'].'/pub?embedded=true',
-    'tracking' => tracking_url($groups['ALL'][0]['tracking_number'])
+    'invoice'       => 'https://docs.google.com/document/d/'.$groups['ALL'][0]['invoice_doc_id'].'/pub?embedded=true',
+    'tracking_url'  => tracking_url($groups['ALL'][0]['tracking_number']),
+    'tracking_link' => tracking_link($groups['ALL'][0]['tracking_number'])
   ]);
 
   $text['message'] =
     $subject.
-    ($groups['ALL'][0]['invoice_doc_id'] ? ' View it at '.$links['invoice'].'. ' : '').
-    'Track it at '.$links['tracking'].'. '.
+    //($groups['ALL'][0]['invoice_doc_id'] ? ' View it at '.$links['invoice'].'. ' : '').
+    //'Track it at '.$links['tracking_url'].'. '.
     $message;
 
   $email['subject'] = $subject;
@@ -64,7 +65,7 @@ function order_shipped_notice($groups) {
     '',
     'Thanks for choosing Good Pill Pharmacy. '.$subject,
     '',
-    'Your receipt for order <strong>#'.$groups['ALL'][0]['invoice_number'].'</strong> is attached. Your tracking number is '.tracking_link($groups['ALL'][0]['tracking_number']).'.',
+    'Your receipt for order <strong>#'.$groups['ALL'][0]['invoice_number'].'</strong> is attached. Your tracking number is ', //.$links['tracking_link'].'.',
     'Use this link to request delivery notifications and/or provide the courier specific delivery instructions.',
     $message,
     ! count($groups['NOFILL_ACTION']) ? '' : '<br><u>We cannot fill these Rxs without your help:</u><br>'.implode(';<br>', $groups['NOFILL_ACTION']).';',
