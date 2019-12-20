@@ -13,8 +13,11 @@ function export_v2_add_pended($item) {
   pend_pick_list($item, $vals);
 }
 
-function export_v2_remove_pended($item) {
-  log_info("export_v2_remove_pended", get_defined_vars());//.print_r($item, true);
+function unpend_pick_list($item) {
+
+  $pend_group = pend_group($item);
+
+  $pend_url = "/account/8889875187/pend/$pend_group - $item[qty_dispensed_default]";
 
   //delete_pick_list
   //$res = v2_fetch('/account/8889875187/pend/'.$item['invoice_number'], 'DELETE');
@@ -29,7 +32,7 @@ function export_v2_remove_pended($item) {
 
   $result = gdoc_post(GD_HELPER_URL, $args);
 
-  log_info('export_v2_remove_pended', get_defined_vars());
+  log_error("unpend_pick_list", get_defined_vars());
 }
 
 function pick_list_name($item) {
@@ -56,7 +59,7 @@ function print_pick_list($item, $vals) {
       "Days:$item[days_dispensed_default], ".
       "Qty:$item[qty_dispensed_default], ".
       "Stock:$item[stock_level_initial], ".
-      ', Created:'.date('Y-m-d H:i:s'), '', '', '', '', ''
+      ", Created:$item[order_date_created]", '', '', '', '', ''
     ],
     ['', '', '', '', '', ''],
     ['id', 'ndc', 'form', 'exp', 'qty', 'bin']
@@ -75,13 +78,28 @@ function print_pick_list($item, $vals) {
   $result = gdoc_post(GD_HELPER_URL, $args);
 }
 
+function pend_group($item) {
+
+  if ($item['refill_date_first']) {
+     $pick_time = strtotime($item['order_date_created'].' +1 days');
+     $invoice    = "R$item[invoice_number]";
+   } else {
+     $pick_time = strtotime($item['order_date_created'].' +3 days');
+     $invoice    = "N$item[invoice_number]"; //N < R so new scripts will appear first on shopping list
+   }
+
+   $pick_date = date('Y-m-d', $pick_time);
+
+   return "$pick_date $invoice";
+}
+
 function pend_pick_list($item, $vals) {
 
   if ( ! $vals) return; //List could not be made
 
-  $pick_date = date('Y-m-d', $item['refill_date_first'] ? strtotime('+1 days') : strtotime('+3 days'));
+  $pend_group = pend_group($item);
 
-  $pend_url = "/account/8889875187/pend/$pick_date $item[invoice_number] - $item[qty_dispensed_default]";
+  $pend_url = "/account/8889875187/pend/$pend_group - $item[qty_dispensed_default]";
 
   log_error("WebForm pend_pick_list", get_defined_vars());
 

@@ -242,7 +242,7 @@ function update_orders() {
 
   function unpend_order($order) {
     foreach($order as $item) {
-      export_v2_remove_pended($item);
+      unpend_pick_list($item);
     }
   }
 
