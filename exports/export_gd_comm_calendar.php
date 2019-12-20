@@ -76,7 +76,7 @@ function order_shipped_notice($groups) {
     ''
   ]);
 
-  if ($groups['ALL'][0]['invoice_doc_id']) $email['attachments'] = [$groups['ALL'][0]['invoice_doc_id']];
+  //if ($groups['ALL'][0]['invoice_doc_id']) $email['attachments'] = [$groups['ALL'][0]['invoice_doc_id']];
 
   log_info('order_shipped_notice', get_defined_vars());
 
