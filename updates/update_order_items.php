@@ -36,10 +36,10 @@ function update_order_items() {
       SELECT *
       FROM
         gp_order_items
-      JOIN gp_rxs_grouped ON
-        rx_numbers LIKE CONCAT('%,', gp_order_items.rx_number, ',%')
       JOIN gp_rxs_single ON
         gp_order_items.rx_number = gp_rxs_single.rx_number
+      JOIN gp_rxs_grouped ON
+        rx_numbers LIKE CONCAT('%,', gp_order_items.rx_number, ',%')
       JOIN gp_patients ON
         gp_rxs_grouped.patient_id_cp = gp_patients.patient_id_cp
       LEFT JOIN gp_stock_live ON -- might not have a match if no GSN match

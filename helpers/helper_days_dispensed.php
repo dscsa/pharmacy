@@ -99,20 +99,16 @@ function get_days_default($item) {
     return [days_default($item), RX_MESSAGE['ACTION EXPIRING']];
   }
 
-  //The following two checks only apply for items in the order
-  if ($item['item_date_added']) {
+  $days_left_in_rx = days_left_in_rx($item);
+  if ($days_left_in_rx) {
+    log_info("WARN USERS IF DRUG IS LOW QTY", get_defined_vars());
+    return [$days_left_in_rx, RX_MESSAGE['ACTION LAST REFILL']];
+  }
 
-    $days_left_in_rx = days_left_in_rx($item);
-    if ($days_left_in_rx) {
-      log_info("WARN USERS IF DRUG IS LOW QTY", get_defined_vars());
-      return [$days_left_in_rx, RX_MESSAGE['ACTION LAST REFILL']];
-    }
-
-    $days_left_in_stock = days_left_in_stock($item);
-    if ($days_left_in_stock) {
-      log_info("WARN USERS IF DRUG IS LOW QTY", get_defined_vars());
-      return [$days_left_in_stock, RX_MESSAGE['NO ACTION LOW STOCK']];
-    }
+  $days_left_in_stock = days_left_in_stock($item);
+  if ($days_left_in_stock) {
+    log_info("WARN USERS IF DRUG IS LOW QTY", get_defined_vars());
+    return [$days_left_in_stock, RX_MESSAGE['NO ACTION LOW STOCK']];
   }
 
   if ( ! $item['item_date_added'] AND $item['refill_date_next'] AND (strtotime($item['refill_date_next']) - time()) < 0) {
@@ -211,6 +207,8 @@ function message_text($message, $item) {
 
 function days_left_in_rx($item, $days_std = 90) {
 
+  if ($item['item_date_added']) return;
+
   $days_left_in_rx = round($item['qty_left']/$item['sig_qty_per_day']);
 
   //Fill up to 30 days more to finish up an Rx if almost finished.
@@ -219,6 +217,8 @@ function days_left_in_rx($item, $days_std = 90) {
 }
 
 function days_left_in_stock($item, $days_std = 90) {
+
+  if ($item['item_date_added']) return;
 
   $days_left_in_stock = round($item['qty_inventory']/$item['sig_qty_per_day']);
 
