@@ -100,7 +100,7 @@ function get_days_default($item) {
   }
 
   //Convert qtys to days
-  $days_left_in_rx = days_left_in_rx($item, $days_std) ?: $days_std;
+  $days_left_in_rx = days_left_in_rx($item, $days_std);
   if ($item['item_date_added'] AND $days_left_in_rx) { //Only do 45 day if its Low Stock AND less than 1000 Qty.  Cindy noticed we had 8000 Amlodipine but we were filling in 45 day supplies
     log_info("WARN USERS IF DRUG IS LOW QTY", get_defined_vars());
     return [$days_left_in_rx, RX_MESSAGE['ACTION LAST REFILL']];
