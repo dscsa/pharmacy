@@ -80,25 +80,26 @@ function update_orders() {
 
   function sync_to_order($order) {
 
-    foreach($order as $item) {
+    $add_items = [];
 
-      if ( ! isset($item['invoice_number'])) {
-        log_error('ERROR sync_to_order', get_defined_vars());
-        continue;
-      }
+    foreach($order as $item) {
 
       if ($item['item_date_added']) continue; //Item is already in the order
 
       if (sync_to_order_past_due($item)) {
-        log_error("PAST DUE AND SYNC TO ORDER", get_defined_vars());
-        return export_cp_add_item($item, "sync_to_order: PAST DUE AND SYNC TO ORDER");
+        $add_items[] = ['PAST DUE AND SYNC TO ORDER', $item];
+        //export_cp_add_item($item, "sync_to_order: PAST DUE AND SYNC TO ORDER");
+        continue;
       }
 
       if (sync_to_order_due_soon($item)) {
-        log_error("DUE SOON AND SYNC TO ORDER", get_defined_vars());
-        return export_cp_add_item($item, "sync_to_order: DUE SOON AND SYNC TO ORDER");
+        $add_items[] = ['DUE SOON AND SYNC TO ORDER', $item];
+        //export_cp_add_item($item, "sync_to_order: DUE SOON AND SYNC TO ORDER");
+        continue;
       }
     }
+
+    return $add_items;
   }
 
   //Group all drugs by their next fill date and get the most popular date
@@ -407,7 +408,8 @@ function update_orders() {
       continue;
     }
 
-    sync_to_order($order);
+    $add_items = sync_to_order($order);
+    if ($add_items) log_error('sync_to_order', get_defined_vars());
 
     $groups = group_drugs($order, $mysql);
 
