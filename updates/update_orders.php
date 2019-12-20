@@ -411,7 +411,7 @@ function update_orders() {
 
     $groups = group_drugs($order, $mysql);
 
-    if ( ! $groups['COUNT_FILLED']) {
+    if ( ! $groups['COUNT_FILLED'] AND $groups['ALL'][0]['item_message_key'] != 'ACTION NEEDS FORM') {
       log_error("Created Order But Not Filling Any?", get_defined_vars());
       continue;
     }
@@ -480,7 +480,7 @@ function update_orders() {
     if ($stage_change AND $updated['order_date_dispensed']) {
       update_payment($order, $mysql);
       send_dispensed_order_communications($groups);
-      log_error("Updated Order Dispensed", get_defined_vars());
+      //log_error("Updated Order Dispensed", get_defined_vars());
       continue;
     }
 
