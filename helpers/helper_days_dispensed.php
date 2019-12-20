@@ -213,12 +213,16 @@ function days_default($item, $days_std = 90) {
   $days_of_qty_left = round($item['qty_left']/$item['sig_qty_per_day']);
   $days_of_stock    = round($item['qty_inventory']/$item['sig_qty_per_day']);
 
-  //Fill up to 30 days more to finish up an Rx if almost finished
-  $days_default = ($days_of_qty_left < $days_std+30) ? $days_of_qty_left : $days_std;
+  //Fill up to 30 days more to finish up an Rx if almost finished.
+  //E.g., If 30 day script with 3 refills (4 fills total, 120 days total) then we want to 1x 120 and not 1x 90 + 1x30
+  $days_default = ($days_of_qty_left <= $days_std+30) ? $days_of_qty_left : $days_std;
 
-  $days_default = round(min($days_default, $days_of_stock)/15)*15; //Round to nearest 15 days so we don't have too many different options
+  $days_default = min($days_default, $days_of_stock); //OLD: round(min($days_default, $days_of_stock)/15)*15 Round to nearest 15 days (but not down to 0!) so we don't have too many different options
 
-  log_info("days_default:$days_default, days_of_stock:$days_of_stock, days_of_qty_left:$days_of_qty_left, days_std:$days_std, refill_date_next:$item[refill_date_next].", get_defined_vars());
+  if ($days_default % 15)
+    log_error("DEFAULT DAYS IS NOT A MULTIPLE OF 15! days_default:$days_default, days_of_stock:$days_of_stock, days_of_qty_left:$days_of_qty_left, days_std:$days_std, refill_date_next:$item[refill_date_next].", get_defined_vars());
+  else
+    log_info("days_default:$days_default, days_of_stock:$days_of_stock, days_of_qty_left:$days_of_qty_left, days_std:$days_std, refill_date_next:$item[refill_date_next].", get_defined_vars());
 
   return $days_default;
 }
