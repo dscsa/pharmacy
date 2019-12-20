@@ -492,7 +492,7 @@ function update_orders() {
 
     send_updated_order_communications($groups);
 
-    $updated['count_items'] != $updated['old_count_items']
+    $updated['count_items'] == $updated['old_count_items']
       ? log_error("Updated Order NO Stage Change", get_defined_vars())
       : log_info("Updated Order Item Count Change", get_defined_vars());
 
