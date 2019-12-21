@@ -56,11 +56,11 @@ function order_shipped_notice($groups) {
     'Your receipt for order is attached. Your tracking number is ', //<strong>#'.$groups['ALL'][0]['invoice_number'].'</strong> .$links['tracking_link'].'.',
     'Use this link to request delivery notifications and/or provide the courier specific delivery instructions.',
     $message,
-    ! count($groups['NOFILL_ACTION']) ? '' : '<br><u>We cannot fill these Rxs without your help:</u><br>'.implode(';<br>', $groups['NOFILL_ACTION']).';',
     '',
     'Thanks!',
     'The Good Pill Team',
     '',
+    ! count($groups['NOFILL_ACTION']) ? '' : '<br><u>We cannot fill these Rxs without your help:</u><br>'.implode(';<br>', $groups['NOFILL_ACTION']).';',
     ''
   ]);
 
@@ -156,13 +156,14 @@ function order_created_notice($groups) {
     'Hello,',
     '',
     $subject.' We will notify you again once it ships. '.$message.$drug_list,
-    ! $groups['COUNT_NOFILL'] ? '' : '<br><u>We are NOT filling these Rxs:</u><br>'.implode(';<br>', $groups['NOFILL_NOACTION'] + $groups['NOFILL_ACTION']).';',
     '',
     ($groups['COUNT_FILLED'] >= $groups['COUNT_NOFILL']) ? 'Thanks for choosing Good Pill!' : 'Apologies for any inconvenience,',
     'The Good Pill Team',
     '',
-    '',
     $suffix
+    '',
+    ! $groups['COUNT_NOFILL'] ? '' : '<br><u>We are NOT filling these Rxs:</u><br>'.implode(';<br>', $groups['NOFILL_NOACTION'] + $groups['NOFILL_ACTION']).';',
+    ''
   ]);
 
   //Remove Refill Reminders for new Rxs we just received Order #14512
@@ -259,8 +260,8 @@ function order_updated_notice($groups) {
     "Note: if this is correct, there is no need to do anything. If you want to change or delay this order, please let us know as soon as possible. If delaying, please specify the date on which you want it filled, otherwise if you don't, we will delay it 3 weeks by default."
   ]);
 
-  $email = [ "email" => $groups['ALL'][0]['email'] ];
-  $text  = [ "sms" => get_phones($groups['ALL']), "message" => $subject.$message ];
+  $email = [ "email" => DEBUG_EMAIL]; //$groups['ALL'][0]['email'] ];
+  $text  = [ "sms" => DEBUG_PHONE, "message" => $subject.$message ]; //get_phones($groups['ALL'])
 
   $email['subject'] = $subject;
   $email['message'] = implode('<br>', [
@@ -268,13 +269,14 @@ function order_updated_notice($groups) {
     '',
     $subject.' We will notify you again once it ships.',
     $message,
-    ! $groups['COUNT_NOFILL'] ? '' : '<br><u>We are NOT filling these Rxs:</u><br>'.implode(';<br>', $groups['NOFILL_NOACTION'] + $groups['NOFILL_ACTION']).';',
     '',
     ($groups['COUNT_FILLED'] >= $groups['COUNT_NOFILL']) ? 'Thanks for choosing Good Pill!' : 'Apologies for any inconvenience,',
     'The Good Pill Team',
     '',
+    $suffix,
     '',
-    $suffix
+    ! $groups['COUNT_NOFILL'] ? '' : '<br><u>We are NOT filling these Rxs:</u><br>'.implode(';<br>', $groups['NOFILL_NOACTION'] + $groups['NOFILL_ACTION']).';',
+    ''
   ]);
 
   //Wait 15 minutes to hopefully batch staggered surescripts and manual rx entry and cindy updates

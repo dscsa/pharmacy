@@ -37,7 +37,7 @@ function group_drugs($order, $mysql) {
     else
       $action = 'NOACTION';
 
-    $price = $item['price_dispensed'] ? ', $'.((float) $item['price_dispensed']).' for '.$days.' days' : '';
+    $price = $days ? ', $'.((float) $item['price_dispensed']).' for '.$days.' days' : '';
 
     $groups['ALL'][] = $item;
     $groups[$fill.$action][] = $item['drug'].$msg;
