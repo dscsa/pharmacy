@@ -30,7 +30,13 @@ function watch_invoices() {
 
   foreach ($invoices as $invoice) {
 
-    preg_match_all('/(Total:? +|Amount Due:? +|Price of next order3?:? +)\$(\d+)/', $invoice['part0'], $matches);
+    preg_match_all('/(Total:? +|Amount Due:? +|Price of next order3?:? +)\$(\d+)/', $invoice['part0'], $matches1);
+
+    preg_match_all('/\$(\d+)/', $invoice['part0'], $matches2);
+
+    preg_match_all('/\$(\d+) *\\n/', $invoice['part0'], $matches3);
+
+    preg_match_all('/\\n\$(\d+)/', $invoice['part0'], $matches4);
 
     log_error('watch_invoices', get_defined_vars());
   }
