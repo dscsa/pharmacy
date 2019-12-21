@@ -93,7 +93,13 @@ function update_orders() {
     }
 
     $add_items = sync_to_order($order);
-    if ($add_items) log_error('sync_to_order', get_defined_vars());
+    if ($add_items) {
+      log_error('sync_to_order', get_defined_vars());
+      $mysql->run('DELETE gp_orders FROM gp_orders WHERE invoice_number = '.$order[0]['invoice_number']);
+      //DON'T CREATE THE ORDER UNTIL THESE ITEMS ARE ADDED!
+      //TODO ADD ITEMS OURSELVES
+      return;
+    }
 
     $groups = group_drugs($order, $mysql);
 
