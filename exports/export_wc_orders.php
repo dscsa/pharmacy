@@ -1,5 +1,8 @@
 <?php
 
+require_once 'helpers/helper_wc.php';
+
+
 function export_wc_delete_order($item) {
   log_info("export_wc_delete_order", get_defined_vars());//.print_r($item, true);
 }
