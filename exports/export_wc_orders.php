@@ -49,10 +49,10 @@ function export_wc_update_order_payment($item) {
   if ($item['payment_method'] == PAYMENT_METHOD['COUPON'])
     $update['coupon_lines'] = [["code" => $item['payment_coupon']]];
 
-  else if ($item['payment_method'] == PAYMENT_METHOD['AUTOPAY']) {
+  else if ($item['payment_method'] == PAYMENT_METHOD['AUTOPAY'])
     $update['payment_method'] = 'stripe';
 
-  else if ($item['payment_method'] == PAYMENT_METHOD['MANUAL']) {
+  else if ($item['payment_method'] == PAYMENT_METHOD['MANUAL'])
     $update['payment_method'] = 'cheque';
 
   else
