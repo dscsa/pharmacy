@@ -1,9 +1,10 @@
 <?php
 
 require_once 'changes/changes_to_orders.php';
-require_once 'exports/export_gd_orders.php';
+require_once 'helpers/helper_payment.php';
+require_once 'helpers/helper_syncing.php';
+require_once 'helpers/helper_communications.php';
 require_once 'exports/export_wc_orders.php';
-require_once 'exports/export_gd_comm_calendar.php';
 
 function update_orders() {
 
@@ -78,323 +79,6 @@ function update_orders() {
     return strcmp($a['item_message_text'].$a['drug'], $b['item_message_text'].$b['drug']);
   }
 
-  function sync_to_order($order) {
-
-    $add_items = [];
-
-    foreach($order as $item) {
-
-      if ($item['item_date_added']) continue; //Item is already in the order
-
-      if (sync_to_order_past_due($item)) {
-        $add_items[] = ['PAST DUE AND SYNC TO ORDER', $item];
-        //export_cp_add_item($item, "sync_to_order: PAST DUE AND SYNC TO ORDER");
-        continue;
-      }
-
-      if (sync_to_order_due_soon($item)) {
-        $add_items[] = ['DUE SOON AND SYNC TO ORDER', $item];
-        //export_cp_add_item($item, "sync_to_order: DUE SOON AND SYNC TO ORDER");
-        continue;
-      }
-    }
-
-    return $add_items;
-  }
-
-  //Group all drugs by their next fill date and get the most popular date
-  function get_sync_to_date($order) {
-
-    $sync_dates = [];
-    foreach ($order as $item) {
-      if (isset($sync_dates[$item['refill_date_next']]))
-        $sync_dates[$item['refill_date_next']][] = $item['best_rx_number']; //rx_number only set if in the order?
-      else
-        $sync_dates[$item['refill_date_next']] = [];
-    }
-
-    $target_date = null;
-    $target_rxs  = [];
-
-    foreach($sync_dates as $date => $rx_numbers) {
-
-      $count = count($rx_numbers);
-      $target_count = count($target_rxs);
-
-      if ($count > $target_count) {
-        $target_date = $date;
-        $target_rxs  = $rx_numbers;
-      }
-      else if ($count == $target_count AND $date > $target_date) { //In case of tie, longest date wins
-        $target_date = $date;
-        $target_rxs  = $rx_numbers;
-      }
-    }
-
-    return [$target_date, ','.implode(',', $target_rxs).','];
-  }
-
-  //Sync any drug that has days to the new refill date
-  function set_sync_to_date($order, $target_date, $target_rxs, $mysql) {
-
-    foreach($order as $i => $item) {
-
-      $old_days_default = $item['days_dispensed_default'];
-
-      //TODO Skip syncing if the drug is OUT OF STOCK (or less than 500 qty?)
-      if ( ! $old_days_default OR $item['days_dispensed_actual'] OR $item['item_message_key'] == 'NO ACTION LOW STOCK') continue; //Don't add them to order if they are no already in it OR if already dispensed
-
-      $time_refill = $item['refill_date_next'] ? strtotime($item['refill_date_next']) : time(); //refill_date_next is sometimes null
-      $days_extra  = (strtotime($target_date) - $time_refill)/60/60/24;
-      $days_synced = $old_days_default + round($days_extra/15)*15;
-
-      $new_days_default = days_default($item, $days_synced);
-
-      if ($new_days_default >= 15 AND $new_days_default <= 120 AND $new_days_default != $old_days_default) { //Limits to the amounts by which we are willing sync
-
-        if ($new_days_default <= 30) {
-          $new_days_default += 90;
-          log_error('debug set_sync_to_date: extra time', get_defined_vars());
-        } else {
-          log_error('debug set_sync_to_date: std time', get_defined_vars());
-        }
-
-        $order[$i]['refill_target_date'] = $target_date;
-        $order[$i]['days_dispensed']     = $new_days_default;
-        $order[$i]['qty_dispensed']      = $new_days_default*$item['sig_qty_per_day'];
-        $order[$i]['price_dispensed']    = ceil($item['price_dispensed'] * $new_days_default / $old_days_default); //Might be null
-
-        $sql = "
-          UPDATE
-            gp_order_items
-          SET
-            item_message_key        = 'NO ACTION SYNC TO DATE',
-            item_message_text       = '".RX_MESSAGE['NO ACTION SYNC TO DATE'][$item['language']]."',
-            refill_target_date      = '$target_date',
-            refill_target_days      = ".($new_days_default - $old_days_default).",
-            refill_target_rxs       = '$target_rxs',
-            days_dispensed_default  = $new_days_default,
-            qty_dispensed_default   = ".$order[$i]['qty_dispensed'].",
-            price_dispensed_default = ".$order[$i]['price_dispensed']."
-          WHERE
-            rx_number = $item[rx_number]
-        ";
-
-        $mysql->run($sql);
-      }
-
-      export_v2_add_pended($order[$i]); //Days should be finalized now
-    }
-
-    return $order;
-  }
-
-  function get_payment($order) {
-
-    $update = [];
-
-    $update['payment_total'] = 0;
-
-    foreach($order as $i => $item)
-      $update['payment_total'] += $item['price_dispensed'];
-
-    //Defaults
-    $update['payment_fee'] = $order[0]['refills_used'] ? $update['payment_total'] : PAYMENT_TOTAL_NEW_PATIENT;
-    $update['payment_due'] = $update['payment_fee'];
-    $update['payment_date_autopay'] = 'NULL';
-
-    if ($order[0]['payment_method'] == PAYMENT_METHOD['COUPON']) {
-      $update['payment_fee'] = $update['payment_total'];
-      $update['payment_due'] = 0;
-    }
-    else if ($order[0]['payment_method'] == PAYMENT_METHOD['AUTOPAY']) {
-      $start = date('m/01', strtotime('+ 1 month'));
-      $stop  = date('m/07/y', strtotime('+ 1 month'));
-
-      $update['payment_date_autopay'] = "'$start - $stop'";
-      $update['payment_due'] = 0;
-    }
-
-    return $update;
-  }
-
-  function set_payment($order, $update, $mysql) {
-
-    $sql = "
-      UPDATE
-        gp_orders
-      SET
-        payment_total = $update[payment_total],
-        payment_fee   = $update[payment_fee],
-        payment_due   = $update[payment_due],
-        payment_date_autopay = $update[payment_date_autopay]
-      WHERE
-        invoice_number = {$order[0]['invoice_number']}
-    ";
-
-    $mysql->run($sql);
-
-    foreach($order as $i => $item)
-      $order[$i] = $update + $item;
-
-    return $order;
-  }
-
-  function unpend_order($order) {
-    foreach($order as $item) {
-      unpend_pick_list($item);
-    }
-  }
-
-  //All Communication should group drugs into 4 Categories based on ACTION/NOACTION and FILL/NOFILL
-  //1) FILLING NO ACTION
-  //2) FILLING ACTION
-  //3) NOT FILLING ACTION
-  //4) NOT FILLING NO ACTION
-  function group_drugs($order, $mysql) {
-
-    $groups = [
-      "ALL" => [],
-      "FILLED_ACTION" => [],
-      "FILLED_NOACTION" => [],
-      "NOFILL_ACTION" => [],
-      "NOFILL_NOACTION" => [],
-      "FILLED" => [],
-      "FILLED_WITH_PRICES" => [],
-      "NO_REFILLS" => [],
-      "NO_AUTOFILL" => [],
-      "MIN_DAYS" => 366 //Max Days of a Script
-    ];
-
-    foreach ($order as $item) {
-
-      if ( ! $item['drug_name']) continue; //Might be an empty order
-
-      $days = $item['days_dispensed'];
-      $fill = $days ? 'FILLED_' : 'NOFILL_';
-      $msg  = $item['item_message_text'] ? ' '.$item['item_message_text'] : '';
-
-      if (strpos($item['item_message_key'], 'NO ACTION') !== false)
-        $action = 'NOACTION';
-      else if (strpos($item['item_message_key'], 'ACTION') !== false)
-        $action = 'ACTION';
-      else
-        $action = 'NOACTION';
-
-      $price = $item['price_dispensed'] ? ', $'.((float) $item['price_dispensed']).' for '.$days.' days' : '';
-
-      $groups['ALL'][] = $item;
-      $groups[$fill.$action][] = $item['drug'].$msg;
-
-      if ($item['rx_number']) { //Will be null drug is NOT in the order. "Group" is keyword so must have ``
-        $sql = "
-          UPDATE
-            gp_order_items
-          SET
-           `group` = CASE WHEN `group` is NULL THEN '$fill$action' ELSE concat('$fill$action < ', `group`) END
-          WHERE
-            invoice_number = $item[invoice_number] AND
-            rx_number = $item[rx_number] AND
-            `group` != '$fill$action'
-        ";
-
-        $mysql->run($sql);
-      }
-
-      if ($days) {//This is handy because it is not appended with a message like the others
-        $groups['FILLED'][] = $item['drug'];
-        $groups['FILLED_WITH_PRICES'][] = $item['drug'].$price;
-      }
-
-      if ( ! $item['refills_total'])
-        $groups['NO_REFILLS'][] = $item['drug'].$msg;
-
-      if ($days AND ! $item['rx_autofill'])
-        $groups['NO_AUTOFILL'][] = $item['drug'].$msg;
-
-      if ( ! $item['refills_total'] AND $days AND $days < $groups['MIN_DAYS'])
-        $groups['MIN_DAYS'] = $days;
-
-      $groups['MANUALLY_ADDED'] = $item['item_added_by'] == 'MANUAL' OR $item['item_added_by'] == 'WEBFORM';
-    }
-
-    $groups['COUNT_FILLED'] = count($groups['FILLED_ACTION']) + count($groups['FILLED_NOACTION']);
-    $groups['COUNT_NOFILL'] = count($groups['NOFILL_ACTION']) + count($groups['NOFILL_NOACTION']);
-
-    $sql = "
-      UPDATE
-        gp_orders
-      SET
-        count_filled = '$groups[COUNT_FILLED]',
-        count_nofill = '$groups[COUNT_NOFILL]'
-      WHERE
-        invoice_number = {$order[0]['invoice_number']}
-    ";
-
-    $mysql->run($sql);
-
-    log_info('GROUP_DRUGS', get_defined_vars());
-
-    return $groups;
-  }
-
-  function update_payment($order, $mysql) {
-    $update = get_payment($order);
-    $order  = set_payment($order, $update, $mysql);
-
-    export_gd_update_invoice($order);
-    export_gd_publish_invoices($order);
-
-    export_wc_update_order($order);
-  }
-
-  function send_created_order_communications($groups) {
-
-    if ( ! $groups['ALL'][0]['pharmacy_name']) //Use Pharmacy name rather than $New to keep us from repinging folks if the row has been readded
-      needs_form_notice($groups);
-
-    else if ( ! $groups['COUNT_NOFILL'] AND ! $groups['COUNT_FILLED'])
-      no_rx_notice($groups);
-
-    else if ( ! $groups['COUNT_FILLED'])
-      order_hold_notice($groups);
-
-    //['Not Specified', 'Webform Complete', 'Webform eRx', 'Webform Transfer', 'Auto Refill', '0 Refills', 'Webform Refill', 'eRx /w Note', 'Transfer /w Note', 'Refill w/ Note']
-    else if ($groups['ALL'][0]['order_source'] == 'Webform Transfer' OR $groups['ALL'][0]['order_source'] == 'Transfer /w Note')
-      transfer_requested_notice($groups);
-
-    else
-      order_created_notice($groups);
-  }
-
-  function send_deleted_order_communications($order) {
-
-    //TODO We need something here!
-    order_canceled_notice($order);
-    log_info('Order was deleted', get_defined_vars());
-  }
-
-  function send_shipped_order_communications($groups) {
-
-    order_shipped_notice($groups);
-    confirm_shipment_notice($groups);
-    refill_reminder_notice($groups);
-    unpend_order($groups['ALL']);
-
-    if ($groups['ALL'][0]['payment_method'] == PAYMENT_METHOD['AUTOPAY'])
-      autopay_reminder_notice($groups);
-  }
-
-  function send_dispensed_order_communications($groups) {
-    order_dispensed_notice($groups);
-  }
-
-
-  function send_updated_order_communications($groups) {
-    order_updated_notice($groups);
-    log_info('order_updated_notice', get_defined_vars());
-  }
-
   //If just added to CP Order we need to
   //  - Find out any other rxs need to be added
   //  - Update invoice
@@ -421,7 +105,9 @@ function update_orders() {
     list($target_date, $target_rxs) = get_sync_to_date($order);
     $order  = set_sync_to_date($order, $target_date, $target_rxs, $mysql);
 
-    update_payment($order, $mysql);
+    helper_update_payment($order, $mysql);
+    export_wc_update_order_metadata($item);
+    export_wc_update_order_shipping($item);
 
     send_created_order_communications($groups);
 
@@ -445,7 +131,7 @@ function update_orders() {
 
     export_wc_delete_order([$deleted]);
 
-    unpend_order([$deleted]);
+    export_v2_unpend_order([$deleted]);
 
     send_deleted_order_communications([$deleted]);
 
@@ -472,6 +158,8 @@ function update_orders() {
     $groups = group_drugs($order, $mysql);
 
     if ($stage_change AND $updated['order_date_shipped']) {
+      export_wc_update_order_metadata($item);
+      export_wc_update_order_shipping($item);
       send_shipped_order_communications($groups);
       log_error("Updated Order Shipped", get_defined_vars());
       continue;
@@ -480,7 +168,9 @@ function update_orders() {
     //Probably finalized days/qty_dispensed_actual
     //Update invoice now or wait until shipped order?
     if ($stage_change AND $updated['order_date_dispensed']) {
-      update_payment($order, $mysql);
+      helper_update_payment($order, $mysql);
+      export_wc_update_order_metadata($item);
+      export_wc_update_order_shipping($item);
       send_dispensed_order_communications($groups);
       //log_error("Updated Order Dispensed", get_defined_vars());
       continue;
@@ -493,10 +183,10 @@ function update_orders() {
 
     //Usually count_items changed
     list($target_date, $target_rxs) = get_sync_to_date($order);
-    $order  = set_sync_to_date($order, $target_date, $target_rxs, $mysql);
+    $order = set_sync_to_date($order, $target_date, $target_rxs, $mysql);
 
     //Usually count_items changed
-    update_payment($order, $mysql);
+    helper_update_payment($order, $mysql);
 
     send_updated_order_communications($groups);
 

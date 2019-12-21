@@ -13,10 +13,10 @@ const INVOICE_FOLDER_NAME   = 'OLD';  //Published
 const PAYMENT_TOTAL_NEW_PATIENT = 6;
 
 const PAYMENT_METHOD = [
-  'COUPON'       => 'COUPON',
-  'MANUAL'       => 'MANUAL',
-  'AUTOPAY'      => 'AUTOPAY',
-  'CARD EXPIRED' => 'CARD EXPIRED'
+  'COUPON'       => 'shipped-coupon',
+  'MANUAL'       => 'shipped-unpaid',
+  'AUTOPAY'      => 'shipped-autopay',
+  'CARD EXPIRED' => 'shipped-card-expired'
 ];
 
 const STOCK_LEVEL = [

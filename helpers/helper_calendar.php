@@ -318,6 +318,45 @@ function modify_events() {
   log_info('modify_events', get_defined_vars());
 }
 
+function short_links($links) {
+
+  $args = [
+    'method'  => 'shortLinks',
+    'links'  => $links
+  ];
+
+  $result = gdoc_post(GD_HELPER_URL, $args);
+
+  log_info('modify_events', get_defined_vars());
+}
+
+function tracking_url($tracking_number) {
+
+  $url = '#';
+
+  if (strlen($tracking_number) == 22) {
+    $url = 'https://tools.usps.com/go/TrackConfirmAction?tLabels=';
+  } else if (strlen($tracking_number) == 15 OR strlen($tracking_number) == 12) { //Ground or Express
+    $url = 'https://www.fedex.com/apps/fedextrack/?tracknumbers=';
+  }
+
+  return $url.$tracking_number;
+}
+
+//Convert gsheet hyperlink formula to an html link
+function tracking_link($tracking) {
+  return '<a href="'.tracking_url($tracking).'">'.$tracking.'</a>';
+}
+
+function get_phones($order) {
+
+  if ( ! isset($order[0])) {
+    log_error('get_phones', get_defined_vars());
+  }
+  //email('get_phones', $order);
+  return $order[0]['phone1'].($order[0]['phone2'] ? ','.$order[0]['phone2'] : '');
+}
+
 //Return a copy of the date (or now) with the 24-hour set
 function get_start_time($hours_to_wait, $hour_of_day) {
 

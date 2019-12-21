@@ -13,6 +13,12 @@ function export_v2_add_pended($item) {
   pend_pick_list($item, $vals);
 }
 
+function export_v2_unpend_order($order) {
+  foreach($order as $item) {
+    unpend_pick_list($item);
+  }
+}
+
 function unpend_pick_list($item) {
 
   $pend_group = pend_group($item);
