@@ -160,7 +160,7 @@ function order_created_notice($groups) {
     ($groups['COUNT_FILLED'] >= $groups['COUNT_NOFILL']) ? 'Thanks for choosing Good Pill!' : 'Apologies for any inconvenience,',
     'The Good Pill Team',
     '',
-    $suffix
+    $suffix,
     '',
     ! $groups['COUNT_NOFILL'] ? '' : '<br><u>We are NOT filling these Rxs:</u><br>'.implode(';<br>', $groups['NOFILL_NOACTION'] + $groups['NOFILL_ACTION']).';',
     ''
