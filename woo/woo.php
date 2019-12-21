@@ -7,7 +7,40 @@ add_action('rest_api_init', function () {
     'methods'  => 'GET',
     'callback' => 'dscsa_remove_default_payment'
   ]);
+
+  register_rest_route( 'reports', 'inventory.csv', array(
+    'methods' => 'GET',
+    'callback' => 'dscsa_inventory_csv',
+  ) );
 });
+
+function dscsa_inventory_csv($params) {
+
+  global $wpdb;
+
+  $cols = [
+    'drug_generic',
+    'drug_brand',
+    'message_display',
+    'stock_level',
+    'price_per_month',
+    'drug_ordered',
+    'qty_repack',
+    'qty_inventory',
+    'qty_entered',
+    'qty_dispensed',
+    'stock_threshold'
+  ];
+
+  $rows = $wpdb->get_results('SELECT '.implode(', ', $cols).' FROM gp_stock_live');
+
+  echo '"'.implode('","', $cols).'"';
+  foreach ($rows as $row) {
+    echo "\n".'"'.implode('","', (array) $row).'"';
+  }
+
+  exit(); //otherwise wordpress will error trying to send json headers
+}
 
 function dscsa_remove_default_payment($params) {
 

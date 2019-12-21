@@ -32,7 +32,11 @@ function watch_invoices() {
 
     preg_match_all('/(Total:? +|Amount Due:? +)\$(\d+)/', $invoice['part0'], $totals);
 
+    //Table columns seem to be divided by table breaks
     preg_match_all('/\\n\$(\d+)/', $invoice['part0'], $items);
+
+    //Differentiate from the four digit year
+    preg_match_all('/\d{5,}/', $invoice['name'], $invoice_number);
 
     log_error('watch_invoices', get_defined_vars());
   }
