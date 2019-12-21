@@ -1299,10 +1299,10 @@ function dscsa_rest_update_order($order, $request) {
       $orders = get_woocommere_orders($guardian_id, $invoice_number);
 
       //Sometimes Guardian order id changes so "get_orders_by_invoice_number" won't work
-      if (count($orders) < 1) {
-        debug_email("Exact invoice number could not be found, using guardian_id instead", $invoice_number.print_r($meta_data, true).print_r($request, true));
-        $orders = get_pending_orders_by_guardian_id($guardian_id);
-      }
+      //if (count($orders) < 1) {
+      //  debug_email("Exact invoice number could not be found, using guardian_id instead", $invoice_number.print_r($meta_data, true).print_r($request, true));
+      //  $orders = get_pending_orders_by_guardian_id($guardian_id);
+      //}
 
       $count = count($orders);
 
