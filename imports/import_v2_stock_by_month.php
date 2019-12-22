@@ -88,11 +88,11 @@ function import_stock_for_month($month_index, $mysql) {
       $val = [
         'drug_generic'  => "'$drug_generic'",
         'month'         => "'$curr[year]-$curr[month]-01'",
-        $key.'_sum'     => clean_val($row['value']['sum']),
-        $key.'_count'   => clean_val($row['value']['count']),
-        $key.'_min'     => clean_val($row['value']['min']),
-        $key.'_max'     => clean_val($row['value']['max']),
-        $key.'_sumsqr'  => clean_val($row['value']['sumsqr'])
+        $key.'_sum'     => clean_val($row['value'][0]['sum']),
+        $key.'_count'   => clean_val($row['value'][0]['count']),
+        $key.'_min'     => clean_val($row['value'][0]['min']),
+        $key.'_max'     => clean_val($row['value'][0]['max']),
+        $key.'_sumsqr'  => clean_val($row['value'][0]['sumsqr'])
       ];
 
       $vals[] = '('.implode(', ', $val).')';
