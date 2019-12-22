@@ -114,16 +114,7 @@ function update_order_items() {
       list($days, $message) = get_days_default($item);
 
       set_days_default($item, $days, $message, $mysql);
-
-      if ( ! $days AND $item['drug_gsns'] AND isset($item['patient_autofill'])) {
-        //Don't remove ones with a missing GSN or patients who need to register
-        export_cp_remove_item($item, "Created: $message[EN]");
-        //export_gd_transfer_fax($item);
-        continue;
-      }
-
-      if ($item['rx_number'] != $item['best_rx_number'])
-        export_cp_switch_item($item);
+      
     }
 
     //TODO Update Salesforce Order Total & Order Count & Order Invoice using REST API or a MYSQL Zapier Integration
@@ -180,13 +171,6 @@ function update_order_items() {
       list($days, $message) = get_days_default($item);
 
       set_days_default($item, $days, $message, $mysql);
-
-      if ( ! $days AND $item['drug_gsns'] AND isset($item['patient_autofill'])) {
-        //Don't remove ones with a missing GSN or patients who need to register
-        export_cp_remove_item($item, "Updated: $message[EN]");
-        //export_gd_transfer_fax($item);
-        continue;
-      }
 
     } else {
       log_info("Updated Item No Action", get_defined_vars());

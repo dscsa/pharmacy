@@ -1,30 +1,35 @@
 <?php
+
+global $mssql;
+
 //Example New Surescript Comes in that we want to remove from Queue
-function export_cp_remove_item($item, $message) {
-  //Notify Patient?
+function export_cp_remove_items($invoice_number, $script_nos) {
 
-  //TYPES:
-  //SureScript Authorization Denied: No Refills 24227
-  if ( ! (float) $item['refills_left']) //String "0.00" is truthy
-    log_info("export_cp_remove_item Refill Request Denied: $message", get_defined_vars());
+  if ($script_nos) $script_nos = json_encode($script_nos);
+  else return;
 
-  //New SureScript of Refill Only Item 24225
-  else if ( ! $item['refill_date_first'] AND is_refill_only($item))
-    log_info("export_cp_remove_item Refill Only Item: $message", get_defined_vars());
+  global $mssql;
+  $mssql = $mssql ?: new Mssql_Wc();
 
-  //New SureScript but not due yet 24222
-  else if ((strtotime($item['refill_date_next']) - strtotime($item['item_date_added'])) > 15*24*60*60)
-    log_info("export_cp_remove_item Not Due Yet: $message", get_defined_vars());
+  $sql = "SirumWeb_RemoveScriptNosFromOrder '$invoice_number', '$script_nos'";
 
-  else
-    log_error("export_cp_remove_item UNKNOWN REASON: $message", get_defined_vars());//.print_r($item, true);
+  //$res = $mssql->run($sql);
+
+  log_error("export_cp_remove_items", get_defined_vars());
 }
 
 //Example update_order::sync_to_order() wants to add another item to existing order because its due in 1 week
-function export_cp_add_item($item, $message) {
-  log_error("export_cp_add_more_items: $message", get_defined_vars());//.print_r($item, true);
-}
+function export_cp_add_items($invoice_number, $script_nos) {
 
-function export_cp_switch_item($item) { //Move CP from current rx_number to the "best_rx_number"
-  log_error("export_cp_switch_item", get_defined_vars());//.print_r($item, true);
+  if ($script_nos) $script_nos = json_encode($script_nos);
+  else return;
+
+  global $mssql;
+  $mssql = $mssql ?: new Mssql_Wc();
+
+  $sql = "SirumWeb_AddScriptNosToOrder '$invoice_number', '$script_nos'";
+
+  //$res = $mssql->run($sql);
+
+  log_error("export_cp_add_items", get_defined_vars());
 }

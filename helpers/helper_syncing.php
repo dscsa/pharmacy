@@ -1,27 +1,45 @@
 <?php
 
-function sync_to_order($order) {
+function sync_to_order($order, $remove_only = false) {
 
-  $add_items = [];
+  $items_to_sync   = [];
+  $items_to_add    = [];
+  $items_to_remove = [];
 
   foreach($order as $item) {
 
-    if ($item['item_date_added']) continue; //Item is already in the order
-
     if (sync_to_order_past_due($item)) {
-      $add_items[] = ['PAST DUE AND SYNC TO ORDER', $item];
-      //export_cp_add_item($item, "sync_to_order: PAST DUE AND SYNC TO ORDER");
+      $items_to_sync[] = ['ADD', 'PAST DUE AND SYNC TO ORDER', $item];
+      $items_to_add [] = $item['best_rx_number'];
       continue;
     }
 
     if (sync_to_order_due_soon($item)) {
-      $add_items[] = ['DUE SOON AND SYNC TO ORDER', $item];
-      //export_cp_add_item($item, "sync_to_order: DUE SOON AND SYNC TO ORDER");
+      $items_to_sync[] = ['ADD', 'DUE SOON AND SYNC TO ORDER', $item];
+      $items_to_add [] = $item['best_rx_number'];
+      continue;
+    }
+
+    //Don't remove items with a missing GSN as this is something we need to do
+    if ( ! $item['days_dispensed'] AND $item['drug_gsns']) {
+      $items_to_sync[]   = ['REMOVE', 'DUE SOON AND SYNC TO ORDER', $item];
+      $items_to_remove[] = $item['rx_number'];
+      continue;
+    }
+
+    if ($item['rx_number'] != $item['best_rx_number']) {
+      $items_to_sync[]   = ['SWITCH', 'RX_NUMBER != BEST_RX_NUMBER', $item];
+      $items_to_add[]    = $item['best_rx_number'];
+      $items_to_remove[] = $item['rx_number'];
       continue;
     }
   }
 
-  return $add_items;
+  export_cp_remove_items($item['invoice_number'], $items_to_remove);
+  if ( ! $remove_only) export_cp_add_items($item['invoice_number'], $items_to_add);
+  else log_error('sync_to_order items NOT added', get_defined_vars());
+
+  return $items_to_sync;
 }
 
 //Group all drugs by their next fill date and get the most popular date
@@ -66,7 +84,7 @@ function set_sync_to_date($order, $target_date, $target_rxs, $mysql) {
     //TODO Skip syncing if the drug is OUT OF STOCK (or less than 500 qty?)
     if ( ! $old_days_default OR $item['days_dispensed_actual'] OR $item['item_message_key'] == 'NO ACTION LOW STOCK') continue; //Don't add them to order if they are no already in it OR if already dispensed
 
-    $time_refill = $item['refill_date_next'] ? strtotime($item['refill_date_next']) : time(); //refill_date_next is sometimes null
+    $time_refill = $item['refill_date_next'] ? strtotime($item['refill_date_next']) : strtotime($item['order_date_added']); //refill_date_next is sometimes null
     $days_extra  = (strtotime($target_date) - $time_refill)/60/60/24;
     $days_synced = $old_days_default + round($days_extra/15)*15;
 

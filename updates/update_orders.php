@@ -92,13 +92,14 @@ function update_orders() {
       continue;
     }
 
-    $add_items = sync_to_order($order);
-    if ($add_items) {
-      log_error('sync_to_order', get_defined_vars());
+    //1) Add Drugs to Guardian that should be in the order
+    //2) Remove drug from guardian that should not be in the order
+    //3) Create a fax out transfer for anything removed that is not offered
+    $items_to_sync = sync_to_order($order);
+    if ($items_to_sync) {
+      log_error('sync_to_order: created', get_defined_vars());
       $mysql->run('DELETE gp_orders FROM gp_orders WHERE invoice_number = '.$order[0]['invoice_number']);
-      //DON'T CREATE THE ORDER UNTIL THESE ITEMS ARE ADDED!
-      //TODO ADD ITEMS OURSELVES
-      return;
+      return; //DON'T CREATE THE ORDER UNTIL THESE ITEMS ARE SYNCED TO AVOID CONFLICTING COMMUNICATIONS!
     }
 
     $groups = group_drugs($order, $mysql);
@@ -157,6 +158,12 @@ function update_orders() {
     if ( ! $order) {
       log_error("Updated Order Missing", get_defined_vars());
       continue;
+    }
+
+    //Remove only (e.g. new surescript comes in), let's not add more drugs to their order since communication already went out
+    $items_to_sync = sync_to_order($order, true);
+    if ($items_to_sync) {
+      log_error('sync_to_order: updated', get_defined_vars());
     }
 
     $stage_change = $updated['order_stage'] != $updated['old_order_stage'];

@@ -208,11 +208,11 @@ function message_text($message, $item) {
 }
 
 function sync_to_order_past_due($item) {
-  return $item['refill_date_next'] AND (strtotime($item['refill_date_next']) - time()) < 0;
+  return $item['refill_date_next'] AND (strtotime($item['refill_date_next']) - strtotime($item['order_date_added'])) < 0;
 }
 
 function sync_to_order_due_soon($item) {
-  return $item['refill_date_next'] AND (strtotime($item['refill_date_next']) - time()) <= 15*24*60*60;
+  return $item['refill_date_next'] AND (strtotime($item['refill_date_next'])  - strtotime($item['order_date_added'])) <= 15*24*60*60;
 }
 
 function days_left_in_rx($item, $days_std = 90) {
