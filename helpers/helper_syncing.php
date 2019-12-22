@@ -27,7 +27,7 @@ function sync_to_order($order, $remove_only = false) {
       continue;
     }
 
-    if ($item['rx_number'] != $item['best_rx_number']) {
+    if ($item['rx_number'] AND $item['rx_number'] != $item['best_rx_number']) {
       $items_to_sync[]   = ['SWITCH', 'RX_NUMBER != BEST_RX_NUMBER', $item];
       $items_to_add[]    = $item['best_rx_number'];
       $items_to_remove[] = $item['rx_number'];
