@@ -8,26 +8,26 @@ function sync_to_order($order, $remove_only = false) {
 
   foreach($order as $item) {
 
-    if (sync_to_order_past_due($item)) {
+    if ( ! $item['item_date_added'] ANDsync_to_order_past_due($item)) {
       $items_to_sync[] = ['ADD', 'PAST DUE AND SYNC TO ORDER', $item];
       $items_to_add [] = $item['best_rx_number'];
       continue;
     }
 
-    if (sync_to_order_due_soon($item)) {
+    if ( ! $item['item_date_added'] AND sync_to_order_due_soon($item)) {
       $items_to_sync[] = ['ADD', 'DUE SOON AND SYNC TO ORDER', $item];
       $items_to_add [] = $item['best_rx_number'];
       continue;
     }
 
     //Don't remove items with a missing GSN as this is something we need to do
-    if ( ! $item['days_dispensed'] AND $item['drug_gsns']) {
-      $items_to_sync[]   = ['REMOVE', 'DUE SOON AND SYNC TO ORDER', $item];
+    if ($item['item_date_added'] AND ! $item['days_dispensed'] AND $item['drug_gsns']) {
+      $items_to_sync[]   = ['REMOVE', $item['item_message_key'], $item];
       $items_to_remove[] = $item['rx_number'];
       continue;
     }
 
-    if ($item['rx_number'] AND $item['rx_number'] != $item['best_rx_number']) {
+    if ($item['item_date_added'] AND $item['rx_number'] != $item['best_rx_number']) {
       $items_to_sync[]   = ['SWITCH', 'RX_NUMBER != BEST_RX_NUMBER', $item];
       $items_to_add[]    = $item['best_rx_number'];
       $items_to_remove[] = $item['rx_number'];
