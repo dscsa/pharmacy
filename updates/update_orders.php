@@ -57,6 +57,12 @@ function update_orders() {
         $order[$i]['drug'] = $item['drug_name'] ?: $item['drug_generic'];
         $order[$i]['days_dispensed'] = $item['days_dispensed_actual'] ?: $item['days_dispensed_default'];
 
+        if ( ! $item['item_date_added']) { //if not syncing to order lets provide a reason why we are not filling
+          $message = get_days_default($item)[1];
+          $order[$i]['item_message_key']  = array_search($message, RX_MESSAGE);
+          $order[$i]['item_message_text'] = message_text($message, $item);
+        }
+        
         $deduct_refill = $order[$i]['days_dispensed'] ? 1 : 0; //We want invoice to show refills after they are dispensed assuming we dispense items currently in order
 
         $order[$i]['qty_dispensed'] = (float) ($item['qty_dispensed_actual'] ?: $item['qty_dispensed_default']); //cast to float to get rid of .000 decimal
