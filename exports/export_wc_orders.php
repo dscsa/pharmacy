@@ -49,6 +49,11 @@ function export_wc_update_order_payment($item) {
     ]
   ];
 
+  //Debuggin
+  $payment_method_key = $item['payment_method'];
+  $payment_method_val = PAYMENT_METHOD['AUTOPAY'];
+  $payment_comparison = $item['payment_method'].' == '.PAYMENT_METHOD['AUTOPAY'];
+
   if ($item['payment_method'] == PAYMENT_METHOD['COUPON'])
     $update['coupon_lines'] = [["code" => $item['payment_coupon']]];
 
