@@ -34,5 +34,5 @@ function wc_fetch($url, $method = 'GET', $content = []) {
   //  debugEmail('saveWebformOrder success?', 'action: '+action, 'endpoint: '+endpoint, 'http code: '+response.getResponseCode(), 'headers', response.getHeaders(), 'request', woocommerceOrder, 'response', parsed)
 
 
-  return json_decode($response, true);
+  //return json_decode($response, true);
 }
