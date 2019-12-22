@@ -44,7 +44,8 @@ function vars_to_json($vars, $file) {
     "http_response_header",
     "ignore",
     "php_errormsg",
-    "mysql"
+    "mysql",
+    "mssql"
   ];
 
   $vars = array_reverse($vars, true); //Put most recent variables at the top of the email
