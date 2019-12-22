@@ -23,13 +23,12 @@ function unpend_pick_list($item) {
 
   $pend_group = pend_group($item);
 
-  $pend_url = "/account/8889875187/pend/$pend_group - $item[qty_dispensed_default]";
+  $pend_url = "/account/8889875187/pend/$pend_group";
 
-  //delete_pick_list
-  //$res = v2_fetch('/account/8889875187/pend/'.$item['invoice_number'], 'DELETE');
+  //delete_pick_list from v2
+  $res = v2_fetch($pend_url, 'DELETE', $vals);
 
-  //unpend_pick_list
-
+  //Delete gdoc pick list
   $args = [
     'method'   => 'removeFiles',
     'file'     => pick_list_prefix($item),
@@ -107,10 +106,10 @@ function pend_pick_list($item, $vals) {
 
   $pend_url = "/account/8889875187/pend/$pend_group - $item[qty_dispensed_default]";
 
-  log_error("WebForm pend_pick_list", get_defined_vars());
-
   //Pend after all forseeable errors are accounted for.
-  //v2_fetch($pend_url, 'POST', $vals);
+  $res = v2_fetch($pend_url, 'POST', $vals);
+
+  log_error("WebForm pend_pick_list", get_defined_vars());
 }
 
 function make_pick_list($item) {
