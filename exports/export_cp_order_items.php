@@ -9,7 +9,7 @@ function export_cp_remove_items($invoice_number, $script_nos) {
   else return;
 
   global $mssql;
-  $mssql = $mssql ?: new Mssql_Wc();
+  $mssql = $mssql ?: new Mssql_Cp();
 
   $sql = "SirumWeb_RemoveScriptNosFromOrder '$invoice_number', '$script_nos'";
 
@@ -25,7 +25,7 @@ function export_cp_add_items($invoice_number, $script_nos) {
   else return;
 
   global $mssql;
-  $mssql = $mssql ?: new Mssql_Wc();
+  $mssql = $mssql ?: new Mssql_Cp();
 
   $sql = "SirumWeb_AddScriptNosToOrder '$invoice_number', '$script_nos'";
 
