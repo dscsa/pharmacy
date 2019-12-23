@@ -1296,7 +1296,7 @@ function dscsa_rest_update_order($order, $request) {
         debug_email("no guardian id was provided in this REST request", $invoice_number.print_r($meta_data, true).print_r($request, true));
       }
 
-      $orders = get_woocommere_orders($guardian_id, $invoice_number);
+      $orders = get_woocommerce_orders($guardian_id, $invoice_number);
 
       //Sometimes Guardian order id changes so "get_orders_by_invoice_number" won't work
       //if (count($orders) < 1) {
@@ -1349,7 +1349,7 @@ function dscsa_rest_create_order($order, $request, $creating) {
   $invoice_number = $order->get_meta('invoice_number', true);
   $guardian_id = $order->get_meta('guardian_id', true);
 
-  $orders = get_woocommere_orders($guardian_id, $invoice_number);
+  $orders = get_woocommerce_orders($guardian_id, $invoice_number);
 
   if (count($orders))
     return new WP_Error('refill_order_already_exists', __( "Refill Order #$invoice_number already exists", 'woocommerce' ), 200);
@@ -1374,7 +1374,7 @@ function get_users_by_guardian_id($guardian_id) {
   return $wpdb->get_results("SELECT user_id FROM wp_usermeta WHERE meta_key='guardian_id' AND meta_value = '$guardian_id'");
 }
 
-function get_woocommere_orders($guardian_id, $invoice_number) {
+function get_woocommerce_orders($guardian_id, $invoice_number) {
   global $wpdb;
   return $wpdb->get_results("SELECT meta1.post_id FROM wp_posts JOIN wp_postmeta meta1 ON wp_posts.id = meta1.post_id JOIN wp_postmeta meta2 ON wp_posts.id = meta2.post_id WHERE meta1.meta_key='guardian_id' AND meta1.meta_value = '$guardian_id' AND meta2.meta_key='invoice_number' AND meta2.meta_value = '$invoice_number' ORDER BY wp_posts.id DESC");
 }

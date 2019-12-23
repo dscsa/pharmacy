@@ -99,6 +99,14 @@ function log_error($text, $vars) {
   log_to_db('ERROR', $text, $file, $vars);
 }
 
+function log_notice($text, $vars) {
+  $file   = get_file();
+  $vars   = vars_to_json($vars, $file);
+  log_to_cli('NOTICE', $text, $file, $vars);
+  log_to_email('NOTICE', $text, $file, $vars);
+  log_to_db('NOTICE', $text, $file, $vars);
+}
+
 function get_file() {
   $trace = debug_backtrace(2); //exlude ["object"] AND ["args"]
   $index = isset($trace[2]) ? 2 : 1;
