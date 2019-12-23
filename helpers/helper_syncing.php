@@ -84,7 +84,7 @@ function set_sync_to_date($order, $target_date, $target_rxs, $mysql) {
     //TODO Skip syncing if the drug is OUT OF STOCK (or less than 500 qty?)
     if ( ! $old_days_default OR $item['days_dispensed_actual'] OR $item['item_message_key'] == 'NO ACTION LOW STOCK') continue; //Don't add them to order if they are no already in it OR if already dispensed
 
-    $time_refill = $item['refill_date_next'] ? strtotime($item['refill_date_next']) : strtotime($item['order_date_added']); //refill_date_next is sometimes null
+    $time_refill = $item['refill_date_next'] ? strtotime($item['refill_date_next']) : strtotime($item['item_date_added']); //refill_date_next is sometimes null
     $days_extra  = (strtotime($target_date) - $time_refill)/60/60/24;
     $days_synced = $old_days_default + round($days_extra/15)*15;
 
