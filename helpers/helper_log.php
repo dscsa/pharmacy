@@ -44,6 +44,7 @@ function vars_to_json($vars, $file) {
     "http_response_header",
     "ignore",
     "php_errormsg",
+    "context",
     "mysql",
     "mssql"
   ];
