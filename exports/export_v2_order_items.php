@@ -42,7 +42,9 @@ function unpend_pick_list($item) {
 }
 
 function save_pick_list($item, $vals) {
-  
+
+  if ( ! $vals) return; //List could not be made
+
   $sql = "
     UPDATE
       gp_order_items
@@ -153,12 +155,12 @@ function make_pick_list($item) {
   $url  = '/transaction/_design/inventory.qty-by-generic/_view/inventory.qty-by-generic?reduce=false&include_docs=true&limit=300&startkey='.$start_key.'&endkey='.$end_key;
 
   try {
-    $resp = v2_fetch($url);
+    $res = v2_fetch($url);
   } catch (Error $e) {
-    $resp = v2_fetch($url);
+    $res = v2_fetch($url);
   }
 
-  $unsorted_ndcs = group_by_ndc($resp['rows'], $item);
+  $unsorted_ndcs = group_by_ndc($res['rows'], $item);
   $sorted_ndcs   = sort_by_ndc($unsorted_ndcs, $long_exp);
   $list          = get_qty_needed($sorted_ndcs, $min_qty, $safety);
 
@@ -167,7 +169,7 @@ function make_pick_list($item) {
     return $list;
   }
 
-  log_info("Webform Shopping Error: Not enough qty found, trying half fill and no safety", get_defined_vars());
+  log_error("Webform Shopping Error: Not enough qty found, trying half fill and no safety", get_defined_vars());
 
   $list = get_qty_needed($sorted_ndcs, $min_qty*0.5, 0);
 
