@@ -104,7 +104,7 @@ function pend_pick_list($item, $vals) {
 
   $pend_group = pend_group($item);
 
-  $pend_url = "/account/8889875187/pend/$pend_group - $item[qty_dispensed_default]";
+  $pend_url = "/account/8889875187/pend/$pend_group?repackQty=$item[qty_dispensed_default]";
 
   //Pend after all forseeable errors are accounted for.
   $res = v2_fetch($pend_url, 'POST', $vals);

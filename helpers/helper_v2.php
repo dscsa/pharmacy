@@ -20,6 +20,8 @@ function v2_fetch($url, $method = 'GET', $content = []) {
   $context = stream_context_create($opts);
 
   $response = file_get_contents(V2_IP.$url, false, $context);
-  //email('v2_fetch', V2_IP.$url, $opts, $response, $http_response_header);
+
+  log_error("v2_fetch", get_defined_vars());
+
   return json_decode($response, true);
 }

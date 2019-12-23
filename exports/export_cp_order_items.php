@@ -29,8 +29,7 @@ function export_cp_add_items($invoice_number, $script_nos) {
 
   $sql = "SirumWeb_AddScriptNosToOrder '$invoice_number', '$script_nos'";
 
-  if ($invoice_number == '24234')
-    $res = $mssql->run($sql);
+  $res = $mssql->run($sql);
 
   log_error("export_cp_add_items", get_defined_vars());
 }
