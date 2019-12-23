@@ -187,6 +187,9 @@ function group_by_ndc($rows, $item) {
 
   foreach ($rows as $row) {
 
+    if ($row['doc']['next'])
+      log_error('Shopping list pulled inventory in which "next" is set!', get_defined_vars());
+
     //Ignore Cindy's makeshift dispensed queue
     if (in_array($row['doc']['bin'], ['M00', 'T00', 'W00', 'R00', 'F00', 'X00', 'Y00', 'Z00'])) continue;
     //Only select the correct form even though v2 gives us both
