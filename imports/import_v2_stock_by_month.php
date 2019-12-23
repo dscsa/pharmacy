@@ -76,11 +76,6 @@ function import_stock_for_month($month_index, $mysql) {
 
     $vals = [];
 
-    //email('import_v2_stock_by_month', $key, count($rows));
-
-    //if ($key == 'entered')
-    //  log_info("\n   import_v2_stock_by_month: rows ".count($rows));
-
     foreach($rows as $row) {
 
       list($acct, $type, $year, $month, $drug_generic) = $row['key'];
@@ -94,6 +89,17 @@ function import_stock_for_month($month_index, $mysql) {
         $key.'_max'     => clean_val($row['value'][0]['max']),
         $key.'_sumsqr'  => clean_val($row['value'][0]['sumsqr'])
       ];
+
+      if (
+        ! $val[$key.'_sum'] OR
+        ! $val[$key.'_count'] OR
+        ! $val[$key.'_min'] OR
+        ! $val[$key.'_max'] OR
+        ! $val[$key.'_sumsqr']
+      ) {
+        log_error('v2 Stock Importing NULL', get_defined_vars());
+        continue;
+      }
 
       $vals[] = '('.implode(', ', $val).')';
     }
