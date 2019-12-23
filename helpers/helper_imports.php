@@ -3,16 +3,16 @@
 // Convert empty string to null or CP's <Not Specified> to NULL
 function clean_val(&$val, &$default = null) {
 
-  if ( ! isset($val)) {
+  if ( ! isset($val) OR $val === '' OR $val === '<Not Specified>' OR $val === 'NULL') {
 
-    if ( ! isset($default))
+    if (isset($default))
       return 'NULL';
 
     $val = $default;
   }
 
   $val = @mysql_escape_string(trim($val));
-  return ($val === '' OR $val === '<Not Specified>' OR $val === 'NULL') ? 'NULL' : "'$val'";
+  return "'$val'";
 }
 
 function clean_phone($phone) {
