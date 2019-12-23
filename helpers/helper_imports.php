@@ -3,16 +3,18 @@
 // Convert empty string to null or CP's <Not Specified> to NULL
 function clean_val(&$val, &$default = null) {
 
-  if (is_nully($val)) {
+  $clean = $val; //Since passed by reference don't accidentally overwrite $val
 
-    if ( ! is_nully($default))
+  if (is_nully($clean)) {
+
+    if (is_nully($default))
       return 'NULL';
 
-    $val = $default;
+    $clean = $default;
   }
 
-  $val = @mysql_escape_string(trim($val));
-  return "'$val'";
+  $clean = @mysql_escape_string(trim($clean));
+  return "'$clean'";
 }
 
 //Like Truthy or Falsey but for our data sources
