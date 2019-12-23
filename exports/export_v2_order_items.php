@@ -11,6 +11,7 @@ function export_v2_add_pended($item) {
   $vals = make_pick_list($item);
   print_pick_list($item, $vals);
   pend_pick_list($item, $vals);
+  save_pick_list($item, $vals);
 }
 
 function export_v2_unpend_order($order) {
@@ -40,6 +41,26 @@ function unpend_pick_list($item) {
   log_error("unpend_pick_list", get_defined_vars());
 }
 
+function save_pick_list($item, $vals) {
+  
+  $sql = "
+    UPDATE
+      gp_order_items
+    SET
+      qty_pended_total = $vals[qty],
+      qty_pended_repacks = $vals[qty_repacks],
+      count_pended_total = $vals[count],
+      count_pended_repacks = $vals[count_repacks],
+    WHERE
+      invoice_number = $item[invoice_number] AND
+      rx_number = $item[rx_number]
+  ";
+
+  log_error('save_pick_list', get_defined_vars());
+
+  $mysql->run($sql);
+}
+
 function pick_list_name($item) {
   return pick_list_prefix($item).pick_list_suffix($item);
 }
@@ -60,9 +81,9 @@ function print_pick_list($item, $vals) {
     ['Order #'.$item['invoice_number'].' '.$item['drug_generic'].' ('.$item['drug_name'].')', '', '' ,'', '', ''],
     [
       $vals['half_fill'].
-      "Count:".count($vals['list']).", ".
+      "Count:$vals[count], ".
       "Days:$item[days_dispensed_default], ".
-      "Qty:$item[qty_dispensed_default], ".
+      "Qty:$item[qty_dispensed_default] ($vals[qty]), ".
       "Stock:$item[stock_level_initial], ".
       ", Created:$item[order_date_created]", '', '', '', '', ''
     ],
@@ -270,9 +291,12 @@ function get_qty_needed($rows, $min_qty, $safety) {
     $ndc = $row['ndc'];
     $inventory = $row['inventory'];
 
-    $list = [];
-    $pend = [];
-    $qty  = $min_qty;
+    $list  = [];
+    $pend  = [];
+    $qty = 0;
+    $qty_repacks = 0;
+    $count_repacks = 0;
+    $left = $min_qty;
 
     foreach ($inventory as $i => $option) {
 
@@ -280,7 +304,15 @@ function get_qty_needed($rows, $min_qty, $safety) {
 
       array_unshift($pend, $option);
 
-      $qty -= $pend[0]['qty']['to'] * (strlen($pend[0]['bin']) == 3 ? 1 : (1 - $safety));
+      $usable = 1 - $safety;
+      if (strlen($pend[0]['bin']) == 3) {
+        $usable = 1;
+        $qty_repacks += $pend[0]['qty']['to'];
+        $count_repacks++;
+      }
+
+      $qty += $pend[0]['qty']['to'];
+      $left -= $pend[0]['qty']['to'] * $usable;
       $list[] = [
         $pend[0]['_id'],
         $pend[0]['drug']['_id'],
@@ -292,8 +324,16 @@ function get_qty_needed($rows, $min_qty, $safety) {
 
       usort($list, 'sort_list');
 
-      if ($qty <= 0) {
-        return ['list' => $list, 'ndc' => $ndc, 'pend' => $pend ];
+      if ($left <= 0) {
+        return [
+          'list' => $list,
+          'ndc' => $ndc,
+          'pend' => $pend,
+          'qty' => $qty,
+          'count' => count($list),
+          'qty_repacks' => $qty_repacks,
+          'count_repacks' => $count_repacks
+        ];
       }
     }
   }
