@@ -52,7 +52,7 @@ function save_pick_list($item, $vals) {
       qty_pended_total = $vals[qty],
       qty_pended_repacks = $vals[qty_repacks],
       count_pended_total = $vals[count],
-      count_pended_repacks = $vals[count_repacks],
+      count_pended_repacks = $vals[count_repacks]
     WHERE
       invoice_number = $item[invoice_number] AND
       rx_number = $item[rx_number]

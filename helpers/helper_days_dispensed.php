@@ -4,8 +4,6 @@
 
 function get_days_default($item) {
 
-  log_info("get_days_default", get_defined_vars());//.print_r($item, true);
-
   //TODO OR IT'S AN OTC
   $no_transfer = $item['price_per_month'] >= 20 OR $item['pharmacy_phone'] == "8889875187";
 
@@ -152,6 +150,8 @@ function set_days_actual($item, $mysql) {
   ";
 
   $mysql->run($sql);
+
+  log_info("set_days_actual", get_defined_vars());
 }
 
 function set_days_default($item, $days, $message, $mysql) {
