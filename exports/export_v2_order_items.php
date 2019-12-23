@@ -3,7 +3,7 @@
 
 //TODO Pend v2 Inventory
 
-function export_v2_add_pended($item) {
+function export_v2_add_pended($item, $mysql) {
   log_info("export_v2_add_pended", get_defined_vars());//.print_r($item, true);
 
   if ( ! $item['days_dispensed_default']) return;
@@ -11,7 +11,7 @@ function export_v2_add_pended($item) {
   $vals = make_pick_list($item);
   print_pick_list($item, $vals);
   pend_pick_list($item, $vals);
-  save_pick_list($item, $vals);
+  save_pick_list($item, $vals, $mysql);
 }
 
 function export_v2_unpend_order($order) {
@@ -41,7 +41,7 @@ function unpend_pick_list($item) {
   log_error("unpend_pick_list", get_defined_vars());
 }
 
-function save_pick_list($item, $vals) {
+function save_pick_list($item, $vals, $mysql) {
 
   if ( ! $vals) return; //List could not be made
 
@@ -87,7 +87,7 @@ function print_pick_list($item, $vals) {
       "Days:$item[days_dispensed_default], ".
       "Qty:$item[qty_dispensed_default] ($vals[qty]), ".
       "Stock:$item[stock_level_initial], ".
-      ", Created:$item[order_date_created]", '', '', '', '', ''
+      ", Created:$item[item_date_added]", '', '', '', '', ''
     ],
     ['', '', '', '', '', ''],
     ['id', 'ndc', 'form', 'exp', 'qty', 'bin']
@@ -109,10 +109,10 @@ function print_pick_list($item, $vals) {
 function pend_group($item) {
 
   if ($item['refill_date_first']) {
-     $pick_time = strtotime($item['order_date_created'].' +1 days');
+     $pick_time = strtotime($item['item_date_added'].' +1 days');
      $invoice    = "R$item[invoice_number]";
    } else {
-     $pick_time = strtotime($item['order_date_created'].' +3 days');
+     $pick_time = strtotime($item['item_date_added'].' +3 days');
      $invoice    = "N$item[invoice_number]"; //N < R so new scripts will appear first on shopping list
    }
 

@@ -112,13 +112,13 @@ function get_days_default($item) {
   //TODO and check if added by this program otherwise false positives
   if (sync_to_order_past_due($item)) {
     log_error("WAS PAST DUE BUT WAS SYNCED TO ORDER", get_defined_vars());
-    return [days_default($item), RX_MESSAGE['PAST DUE AND SYNC TO ORDER']];
+    return [days_default($item), RX_MESSAGE['NO ACTION PAST DUE AND SYNC TO ORDER']];
   }
 
   //TODO and check if added by this program otherwise false positives
   if (sync_to_order_due_soon($item)) {
     log_error("WAS DUE SOON BUT WAS SYNCED TO ORDER", get_defined_vars());
-    return [days_default($item), RX_MESSAGE['DUE SOON AND SYNC TO ORDER']];
+    return [days_default($item), RX_MESSAGE['NO ACTION DUE SOON AND SYNC TO ORDER']];
   }
 
   log_info("NO SPECIAL RX_MESSAGE USING DEFAULTS", get_defined_vars());

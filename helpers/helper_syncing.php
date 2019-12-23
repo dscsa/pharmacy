@@ -123,7 +123,7 @@ function set_sync_to_date($order, $target_date, $target_rxs, $mysql) {
       $mysql->run($sql);
     }
 
-    export_v2_add_pended($order[$i]); //Days should be finalized now
+    export_v2_add_pended($order[$i], $mysql); //Days should be finalized now
   }
 
   return $order;
