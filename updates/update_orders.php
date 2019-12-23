@@ -62,7 +62,7 @@ function update_orders() {
           $order[$i]['item_message_key']  = array_search($message, RX_MESSAGE);
           $order[$i]['item_message_text'] = message_text($message, $item);
         }
-        
+
         $deduct_refill = $order[$i]['days_dispensed'] ? 1 : 0; //We want invoice to show refills after they are dispensed assuming we dispense items currently in order
 
         $order[$i]['qty_dispensed'] = (float) ($item['qty_dispensed_actual'] ?: $item['qty_dispensed_default']); //cast to float to get rid of .000 decimal
@@ -118,8 +118,8 @@ function update_orders() {
     $order  = set_sync_to_date($order, $target_date, $target_rxs, $mysql);
 
     helper_update_payment($order, $mysql);
-    export_wc_update_order_metadata($item);
-    export_wc_update_order_shipping($item);
+    export_wc_update_order_metadata($order);
+    export_wc_update_order_shipping($order);
 
     send_created_order_communications($groups);
 
