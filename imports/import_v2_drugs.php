@@ -46,7 +46,7 @@ function import_v2_drugs() {
   }
 
   if ( ! count($vals)) return log_error('No v2 Drugs to Import', get_defined_vars());
-  
+
   //Replace Staging Table with New Data
   $mysql->run('TRUNCATE TABLE gp_drugs_v2');
 

@@ -3,9 +3,9 @@
 // Convert empty string to null or CP's <Not Specified> to NULL
 function clean_val(&$val, &$default = null) {
 
-  if ( ! isset($val) OR $val === '' OR $val === '<Not Specified>' OR $val === 'NULL') {
+  if (is_nully($val)) {
 
-    if (isset($default))
+    if ( ! is_nully($default))
       return 'NULL';
 
     $val = $default;
@@ -13,6 +13,11 @@ function clean_val(&$val, &$default = null) {
 
   $val = @mysql_escape_string(trim($val));
   return "'$val'";
+}
+
+//Like Truthy or Falsey but for our data sources
+function is_nully($val) {
+  return ! isset($val) OR $val === '' OR $val === '<Not Specified>' OR $val === 'NULL';
 }
 
 function clean_phone($phone) {
