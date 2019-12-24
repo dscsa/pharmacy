@@ -102,7 +102,7 @@ function update_orders() {
     //3) Create a fax out transfer for anything removed that is not offered
     $items_to_sync = sync_to_order($order);
     if ($items_to_sync) {
-      log_error('sync_to_order: created', get_defined_vars());
+      log_notice('sync_to_order: created', get_defined_vars());
       $mysql->run('DELETE gp_orders FROM gp_orders WHERE invoice_number = '.$order[0]['invoice_number']);
       return; //DON'T CREATE THE ORDER UNTIL THESE ITEMS ARE SYNCED TO AVOID CONFLICTING COMMUNICATIONS!
     }
@@ -110,7 +110,7 @@ function update_orders() {
     $groups = group_drugs($order, $mysql);
 
     if ( ! $groups['COUNT_FILLED'] AND $groups['ALL'][0]['item_message_key'] != 'ACTION NEEDS FORM') {
-      log_error("Created Order But Not Filling Any?", get_defined_vars());
+      log_notice("Created Order But Not Filling Any?", get_defined_vars());
       continue;
     }
 
@@ -168,7 +168,7 @@ function update_orders() {
     //Remove only (e.g. new surescript comes in), let's not add more drugs to their order since communication already went out
     $items_to_sync = sync_to_order($order, true);
     if ($items_to_sync) {
-      log_error('sync_to_order: updated', get_defined_vars());
+      log_notice('sync_to_order: updated', get_defined_vars());
     }
 
     $stage_change = $updated['order_stage'] != $updated['old_order_stage'];
@@ -179,7 +179,7 @@ function update_orders() {
       export_wc_update_order_metadata($item);
       export_wc_update_order_shipping($item);
       send_shipped_order_communications($groups);
-      log_error("Updated Order Shipped", get_defined_vars());
+      log_notice("Updated Order Shipped", get_defined_vars());
       continue;
     }
 
@@ -190,7 +190,7 @@ function update_orders() {
       export_wc_update_order_metadata($item);
       export_wc_update_order_shipping($item);
       send_dispensed_order_communications($groups);
-      //log_error("Updated Order Dispensed", get_defined_vars());
+      //log_notice("Updated Order Dispensed", get_defined_vars());
       continue;
     }
 
@@ -209,7 +209,7 @@ function update_orders() {
     send_updated_order_communications($groups);
 
     $updated['count_items'] == $updated['old_count_items']
-      ? log_error("Updated Order NO Stage Change", get_defined_vars())
+      ? log_notice("Updated Order NO Stage Change", get_defined_vars())
       : log_info("Updated Order Item Count Change", get_defined_vars());
 
     //TODO Update Salesforce Order Total & Order Count & Order Invoice using REST API or a MYSQL Zapier Integration

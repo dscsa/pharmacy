@@ -38,7 +38,7 @@ function unpend_pick_list($item) {
 
   $result = gdoc_post(GD_HELPER_URL, $args);
 
-  log_error("unpend_pick_list", get_defined_vars());
+  log_notice("unpend_pick_list", get_defined_vars());
 }
 
 function save_pick_list($item, $vals, $mysql) {
@@ -58,7 +58,7 @@ function save_pick_list($item, $vals, $mysql) {
       rx_number = $item[rx_number]
   ";
 
-  log_error('save_pick_list', get_defined_vars());
+  log_notice('save_pick_list', get_defined_vars());
 
   $mysql->run($sql);
 }
@@ -133,7 +133,7 @@ function pend_pick_list($item, $vals) {
   //Pend after all forseeable errors are accounted for.
   $res = v2_fetch($pend_url, 'POST', $vals['pend']);
 
-  log_error("WebForm pend_pick_list", get_defined_vars());
+  log_notice("WebForm pend_pick_list", get_defined_vars());
 }
 
 function make_pick_list($item) {
@@ -232,7 +232,7 @@ function sort_by_ndc($ndcs, $long_exp) {
   usort($sorted_ndcs, function($a, $b) use ($sorted_ndcs) {
 
     if ( ! isset($a['prepack_qty']) OR ! isset($b['prepack_qty'])) {
-      log_error('ERROR: sort_by_ndc', get_defined_vars());
+      log_error('ERROR: sort_by_ndc but prepack_qty is not set', get_defined_vars());
     } else {
       return $b['prepack_qty'] - $a['prepack_qty'];
     }

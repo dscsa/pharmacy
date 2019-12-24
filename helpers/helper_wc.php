@@ -20,7 +20,7 @@ function wc_fetch($url, $method = 'GET', $content = []) {
 
   $url = WC_IP."/wp-json/wc/v2/$url";
 
-  log_error("wc_fetch", get_defined_vars());
+  log_notice("wc_fetch", get_defined_vars());
 
   //$context = stream_context_create($opts);
 

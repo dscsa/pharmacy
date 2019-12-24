@@ -37,7 +37,7 @@ function sync_to_order($order, $remove_only = false) {
 
   export_cp_remove_items($item['invoice_number'], $items_to_remove);
   if ( ! $remove_only) export_cp_add_items($item['invoice_number'], $items_to_add);
-  else log_error('sync_to_order items NOT added', get_defined_vars());
+  else log_notice('sync_to_order items NOT added', get_defined_vars());
 
   return $items_to_sync;
 }
@@ -94,9 +94,9 @@ function set_sync_to_date($order, $target_date, $target_rxs, $mysql) {
 
       if ($new_days_default <= 30) {
         $new_days_default += 90;
-        log_error('debug set_sync_to_date: extra time', get_defined_vars());
+        log_notice('debug set_sync_to_date: extra time', get_defined_vars());
       } else {
-        log_error('debug set_sync_to_date: std time', get_defined_vars());
+        log_notice('debug set_sync_to_date: std time', get_defined_vars());
       }
 
       $order[$i]['refill_target_date'] = $target_date;

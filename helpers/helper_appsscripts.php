@@ -38,7 +38,7 @@ function watch_invoices() {
     //Differentiate from the four digit year
     preg_match_all('/\d{5,}/', $invoice['name'], $invoice_number);
 
-    log_error('watch_invoices', get_defined_vars());
+    log_notice('watch_invoices', get_defined_vars());
   }
 
   //Parse Invoice Text and Look For Changes
