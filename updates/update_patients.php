@@ -13,8 +13,8 @@ function update_patients() {
   $message = "
   update_patients: $count_deleted deleted, $count_created created, $count_updated updated. ";
 
-  if ($count_deleted+$count_created+$count_updated)
-    log_info($message.print_r($changes, true));
+  if ($count_deleted+$count_created+$count_updated > 20)
+    return log_error("Too many patients changed at once", get_defined_vars());
 
   //mail('adam@sirum.org', "CRON: $message", $message.print_r($changes, true));
 

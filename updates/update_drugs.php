@@ -13,10 +13,8 @@ function update_drugs() {
   $message = "
   update_drugs: $count_deleted deleted, $count_created created, $count_updated updated. ";
 
-  if ($count_deleted+$count_created+$count_updated)
-    log_info($message.print_r($changes, true));
-
-  //mail('adam@sirum.org', "CRON: $message", $message.print_r($changes, true));
+  if ($count_deleted+$count_created+$count_updated > 20)
+    return log_error("Too many drugs changed at once", get_defined_vars());
 
   if ( ! $count_deleted AND ! $count_created AND ! $count_updated) return;
 

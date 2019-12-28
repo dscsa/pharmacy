@@ -13,10 +13,9 @@ function update_stock_by_month() {
   $message = "
   update_stock_by_month: $count_deleted deleted, $count_created created, $count_updated updated. ";
 
-  if ($count_deleted+$count_created+$count_updated)
-    log_info($message.print_r($changes, true));
+  if ($count_deleted+$count_created+$count_updated > 100)
+    return log_error("Too many stock levels changed at once", get_defined_vars());
 
-  //mail('adam@sirum.org', "CRON: $message", $message.print_r($changes, true));
 
   if ( ! $count_deleted AND ! $count_created AND ! $count_updated) return;
 
