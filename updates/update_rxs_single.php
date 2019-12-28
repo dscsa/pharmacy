@@ -15,8 +15,8 @@ function update_rxs_single() {
   $message = "
   update_rxs_single: $count_deleted deleted, $count_created created, $count_updated updated. ";
 
-  if ($count_deleted+$count_created+$count_updated > 20)
-    return log_error("Too many RXs changed at once", get_defined_vars());
+  if ($count_deleted+$count_created+$count_updated)
+    log_info($message.print_r($changes, true));
 
   //mail('adam@sirum.org', "CRON: $message", $message.print_r($changes, true));
 
