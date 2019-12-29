@@ -97,6 +97,11 @@ function update_orders() {
       continue;
     }
 
+    if ($order[0]['order_date_shipped']) {
+      log_notice("Shipped Order Being Readded", get_defined_vars());
+      continue;
+    }
+
     //1) Add Drugs to Guardian that should be in the order
     //2) Remove drug from guardian that should not be in the order
     //3) Create a fax out transfer for anything removed that is not offered
