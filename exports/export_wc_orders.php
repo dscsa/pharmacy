@@ -11,9 +11,14 @@ function wc_select($invoice_number) {
   global $mysql;
   $mysql = $mysql ?: new Mysql_Wc();
 
-  $order_meta = $mysql->run("SELECT * FROM wp_posts JOIN wp_postmeta meta1 ON wp_posts.id = meta1.post_id JOIN wp_postmeta meta1 ON wp_posts.id = meta2.post_id JOIN wp_postmeta meta2 ON wp_posts.id = meta2.post_id WHERE meta2.meta_key='invoice_number' AND meta2.meta_value = '$invoice_number' ORDER BY wp_posts.id DESC");
+  $sql = "SELECT * FROM wp_posts JOIN wp_postmeta meta1 ON wp_posts.id = meta1.post_id JOIN wp_postmeta meta1 ON wp_posts.id = meta2.post_id JOIN wp_postmeta meta2 ON wp_posts.id = meta2.post_id WHERE meta2.meta_key='invoice_number' AND meta2.meta_value = '$invoice_number' ORDER BY wp_posts.id DESC";
 
-  return $order_meta ? $order_meta[0] : null;
+  $order_meta = $mysql->run($sql);
+
+  if ($order_meta)
+    return $order_meta[0];
+
+  log_error('wc_select no matching order', get_defined_vars());
 }
 
 function wc_insert($post_id, $meta_key, $meta_value) {
