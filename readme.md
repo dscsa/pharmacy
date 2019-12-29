@@ -116,6 +116,13 @@ Configure Apache
 # END WordPress`
 - Change `DirectoryIndex index.html` to `DirectoryIndex index.html index.php`
 //Necessary? - Add `AddType application/x-httpd-php .php`
+- Add
+`<VirtualHost *:443>
+      SSLEngine on
+      SSLCertificateFile /goodpill/ssl/goodpill.org.pem
+      SSLCertificateKeyFile /goodpill/ssl/goodpill.org.key
+      SSLCertificateChainFile /goodpill/ssl/goodpill.org.root
+</VirtualHost>`
 
 Test
 `sudo service mysqld start`
@@ -225,8 +232,7 @@ MAILTO=<info email>
 Install SSL Certs
 - Idea is that we can skip LetsEncrypt and just use CloudFlare for our public certificates and use a self-signed certificate for cloudflare to connect to
 - Set CloudFlare > Cyrpto > SSL > "Full" (which works with self-signed certs)
-- Make a self-signed certs `sudo openssl req -x509 -nodes -days 2000 -newkey rsa:2048 -keyout /goodpill/ssl/key.pem -out /goodpill/ssl/certificate.pem`
-- Update httpd.conf (Not sure whey we don't need to point to created key files in this config but it seems to be working)
+- Update httpd.conf
 ```
 # Redirect http://example.com and http://www.example.com to main site
 <VirtualHost *:80>
@@ -238,6 +244,19 @@ Install SSL Certs
 
   Redirect / https://www.goodpill.org/
 </VirtualHost>
+```
+
+Install Composer & Logging
+```
+cd ~
+sudo curl -sS https://getcomposer.org/installer | php
+sudo mv composer.phar /usr/local/bin/composer
+sudo chmod +x /usr/local/bin/composer
+composer -V
+
+cd /goodpill
+composer require google/cloud-logging
+
 ```
 
 
@@ -261,7 +280,7 @@ For Missing Dependency Errors:
 * Run SMTP Server (don't remember how)
 * Right Click > Properties > Access > Relay > Select All Except the List Below
 
-
+- Make a self-signed certs `sudo openssl req -x509 -nodes -days 2000 -newkey rsa:2048 -keyout /goodpill/ssl/key.pem -out /goodpill/ssl/certificate.pem`
 
 #Install SSL Certs (OLD)
 - I installed Server Manager > Manage > Add Role and Features > Feature > DNS, but not sure if that is necessary or not.

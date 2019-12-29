@@ -1,17 +1,35 @@
 <?php
 
-function export_cp_remove_item($order_item) {
+global $mssql;
 
-  //Notify Patient?
-  log_info("
-  export_cp_remove_item ");//.print_r($order_item, true);
+//Example New Surescript Comes in that we want to remove from Queue
+function export_cp_remove_items($invoice_number, $script_nos) {
+
+  if ($script_nos) $script_nos = json_encode($script_nos);
+  else return;
+
+  global $mssql;
+  $mssql = $mssql ?: new Mssql_Cp();
+
+  $sql = "SirumWeb_RemoveScriptNosFromOrder '$invoice_number', '$script_nos'";
+
+  //$res = $mssql->run($sql);
+
+  log_notice("export_cp_remove_items", get_defined_vars());
 }
 
-function export_cp_add_more_items($order_item) {
-  log_info("
-  export_cp_add_more_items ");//.print_r($order_item, true);
-}
-function export_cp_remove_more_items($order_item) {
-  log_info("
-  export_cp_remove_more_items ");//.print_r($order_item, true);
+//Example update_order::sync_to_order() wants to add another item to existing order because its due in 1 week
+function export_cp_add_items($invoice_number, $script_nos) {
+
+  if ($script_nos) $script_nos = json_encode($script_nos);
+  else return;
+
+  global $mssql;
+  $mssql = $mssql ?: new Mssql_Cp();
+
+  $sql = "SirumWeb_AddScriptNosToOrder '$invoice_number', '$script_nos'";
+
+  $res = $mssql->run($sql);
+
+  log_notice("export_cp_add_items", get_defined_vars());
 }

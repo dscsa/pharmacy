@@ -14,6 +14,11 @@ function changes_to_stock_by_month($new) {
     NOT old.inventory_min <=> new.inventory_min OR
     NOT old.inventory_max <=> new.inventory_max OR
     NOT old.inventory_sumsqr <=> new.inventory_sumsqr OR
+    NOT old.entered_sum <=> new.entered_sum OR
+    NOT old.entered_count <=> new.entered_count OR
+    NOT old.entered_min <=> new.entered_min OR
+    NOT old.entered_max <=> new.entered_max OR
+    NOT old.entered_sumsqr <=> new.entered_sumsqr OR
     NOT old.verified_sum <=> new.verified_sum OR
     NOT old.verified_count <=> new.verified_count OR
     NOT old.verified_min <=> new.verified_min OR
@@ -49,12 +54,14 @@ function changes_to_stock_by_month($new) {
 
   //Get Updated
   $updated = $mysql->run(get_updated_sql($new, $old, $id, $where));
+  //email('changes_to_stock_by_month: get updated', get_updated_sql($new, $old, $id, $where), $updated);
 
   //Save Deletes - A lot of Turnover with a 3 month window so let's keep historic
   //$mysql->run(set_deleted_sql($new, $old, $id));
 
   //Save Inserts
   $mysql->run(set_created_sql($new, $old, $id));
+  //email('changes_to_stock_by_month: set updated', set_created_sql($new, $old, $id));
 
   //Save Updates
   $mysql->run(set_updated_sql($new, $old, $id, $where));

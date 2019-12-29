@@ -25,7 +25,7 @@ function get_deleted_sql($new, $old, $id) {
 
   return "
     SELECT
-      new.*
+      old.*
     FROM
       $new as new
     RIGHT JOIN $old as old ON
@@ -101,7 +101,7 @@ function get_updated_sql($new, $old, $id, $where_changes) {
     WHERE $where_changes
   ";
 
-  //mail('adam@sirum.org', "CRON: get_updated_sql", $sql);
+  //email("CRON: get_updated_sql", $sql);
 
   return $sql;
 }
@@ -122,7 +122,7 @@ function set_updated_sql($new, $old, $id, $where_changes) {
       $where_changes
   ";
 
-  //mail('adam@sirum.org', "CRON: set_updated_sql", $sql);
+  //email("CRON: set_updated_sql", $sql);
 
   return $sql;
 }

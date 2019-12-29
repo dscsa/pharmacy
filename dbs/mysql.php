@@ -26,8 +26,12 @@ class Mysql {
             }
         }
 
-        //mysqli_select_db($conn, $this->db) ?: $this->_emailError('Could not select database '.$this->db);
+        //mysqli_select_db($conn, $this->db) ?: $this->_emailError(['Could not select database', $this->db]);
         return $conn;
+    }
+
+    function escape($var) {
+      return mysqli_real_escape_string($this->connection, $var);
     }
 
     function run($sql, $debug = false) {
@@ -38,7 +42,7 @@ class Mysql {
           $stmt = mysqli_query($this->connection, $sql);
         }
         catch (Exception $e) {
-          $this->_emailError('SQL Error', $e->getMessage(), $sql, $debug);
+          $this->_emailError(['SQL Error', $e->getMessage(), $sql, $debug]);
         }
 
         if ($stmt === false) {
@@ -50,7 +54,7 @@ class Mysql {
             $this->run($sql, $debug); //Recursive
           }
 
-          $this->_emailError('No Resource', $stmt, $message, $sql, $debug);
+          $this->_emailError(['No Resource', $stmt, $message, $sql, $debug]);
 
           return;
         }
@@ -58,7 +62,7 @@ class Mysql {
         $results = $this->_getResults($stmt, $sql, $debug);
 
         if ($debug)
-          log_info(count($results)." recordsets, the first with ".count($results[0])." rows in ".(microtime(true) - $starttime)." seconds: ".substr($sql, 0, 30));
+          log_info(count($results)." recordsets, the first with ".count($results[0])." rows in ".(microtime(true) - $starttime)." seconds", get_defined_vars());
 
         return $results;
     }
@@ -81,7 +85,7 @@ class Mysql {
 
       if ( ! isset($stmt->num_rows) OR ! $stmt->num_rows) {
         if ($debug AND strpos($sql, 'SELECT') !== false)
-          $this->_emailError('No Rows', $stmt, $sql, $debug);
+          $this->_emailError(['No Rows', $stmt, $sql, $debug]);
         return [];
       }
 
@@ -89,7 +93,7 @@ class Mysql {
       while ($row = mysqli_fetch_array($stmt, MYSQL_ASSOC)) {
 
         if ($debug AND ! empty($row['Message'])) {
-          $this->_emailError('dbMessage', $row, $stmt, $sql, $data, $debug);
+          $this->_emailError(['dbMessage', $row, $stmt, $sql, $data, $debug]);
         }
 
         $rows[] = $row;
@@ -98,9 +102,10 @@ class Mysql {
       return $rows;
     }
 
-    function _emailError() {
-      $message = print_r(func_get_args(), true).' '.print_r(isset($this->connection) ? mysqli_connect_errno($this->connection).': '.mysqli_error($this->connection) : mysqli_connect_errno().': '.mysqli_connect_error(), true);
-      log_info("CRON: Debug MYSQL $message");
-      mail('adam@sirum.org', "CRON: Debug MYSQL ", $message);
+    function _emailError($error) {
+      //$mysqli_error = isset($this->connection) ? mysqli_connect_errno($this->connection).': '.mysqli_error($this->connection) : mysqli_connect_errno().': '.mysqli_connect_error();
+      //Don't do database logging here as this could cause an infinite loop
+      log_to_cli('ERROR', "CRON: Debug MYSQL", '', json_encode($error));
+      log_to_email('ERROR', "CRON: Debug MYSQL", '', json_encode($error));
     }
 }

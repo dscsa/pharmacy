@@ -2,22 +2,14 @@
 
 require_once 'dbs/mysql_wc.php';
 require_once 'helpers/helper_imports.php';
+require_once 'helpers/helper_v2.php';
 
 function import_v2_drugs() {
 
   $mysql = new Mysql_Wc();
 
-  $context = stream_context_create([
-      "http" => [
-          "header" => "Authorization: Basic ".base64_encode(V2_USER.':'.V2_PWD)
-      ]
-  ]);
-
-  $order = file_get_contents(V2_IP.'/account/8889875187', false, $context);
-  $order = json_decode($order, true);
-
-  $drugs = file_get_contents(V2_IP.'/drug/_design/by-generic-gsns/_view/by-generic-gsns?group_level=3', false, $context);
-  $drugs = json_decode($drugs, true);
+  $order = v2_fetch('/account/8889875187');
+  $drugs = v2_fetch('/drug/_design/by-generic-gsns/_view/by-generic-gsns?group_level=3');
 
   //log_info("
   //import_v2_drugs: rows ".count($drugs['rows']));
@@ -52,6 +44,8 @@ function import_v2_drugs() {
 
     $vals[] = '('.implode(', ', $val).')';
   }
+
+  if ( ! count($vals)) return log_error('No v2 Drugs to Import', get_defined_vars());
 
   //Replace Staging Table with New Data
   $mysql->run('TRUNCATE TABLE gp_drugs_v2');

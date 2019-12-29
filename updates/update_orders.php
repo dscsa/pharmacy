@@ -1,175 +1,87 @@
 <?php
 
 require_once 'changes/changes_to_orders.php';
+require_once 'helpers/helper_payment.php';
+require_once 'helpers/helper_syncing.php';
+require_once 'helpers/helper_communications.php';
+require_once 'exports/export_wc_orders.php';
 
 function update_orders() {
 
+  watch_invoices();
   $changes = changes_to_orders("gp_orders_cp");
 
   $count_deleted = count($changes['deleted']);
   $count_created = count($changes['created']);
   $count_updated = count($changes['updated']);
 
-  $message = "
-  update_orders: $count_deleted deleted, $count_created created, $count_updated updated. ";
-
-  if ($count_deleted+$count_created+$count_updated)
-    log_info($message.print_r($changes, true));
-
   if ( ! $count_deleted AND ! $count_created AND ! $count_updated) return;
+
+  log_info("update_orders: $count_deleted deleted, $count_created created, $count_updated updated.", get_defined_vars());
 
   $mysql = new Mysql_Wc();
 
+  //order created -> add any additional rxs to order -> import order items -> sync all drugs in order
+
   function get_full_order($order, $mysql) {
 
+    //gp_orders.invoice_number and other fields at end because otherwise potentially null gp_order_items.invoice_number will override gp_orders.invoice_number
     $sql = "
-      SELECT *
+      SELECT
+        *,
+        gp_orders.invoice_number,
+        gp_rxs_grouped.* -- Need to put this first based on how we are joining, but make sure these grouped fields overwrite their single equivalents
       FROM
         gp_orders
       JOIN gp_patients ON
         gp_patients.patient_id_cp = gp_orders.patient_id_cp
-      LEFT JOIN gp_order_items ON -- Orders may not have any items
-        gp_orders.invoice_number = gp_order_items.invoice_number
-      LEFT JOIN gp_rxs_grouped ON
-        rx_numbers LIKE CONCAT('%,', gp_order_items.rx_number, ',%')
+      LEFT JOIN gp_rxs_grouped ON -- Show all Rxs on Invoice regardless if they are in order or not
+        gp_rxs_grouped.patient_id_cp = gp_orders.patient_id_cp
+      LEFT JOIN gp_order_items ON
+        gp_order_items.invoice_number = gp_orders.invoice_number AND rx_numbers LIKE CONCAT('%,', gp_order_items.rx_number, ',%') -- In case the rx is added in a different orders
+      LEFT JOIN gp_rxs_single ON -- Needed to know qty_left for sync-to-date
+        gp_order_items.rx_number = gp_rxs_single.rx_number
+      LEFT JOIN gp_stock_live ON -- might not have a match if no GSN match
+        gp_rxs_grouped.drug_generic = gp_stock_live.drug_generic -- this is for the helper_days_dispensed msgs for unordered drugs
       WHERE
         gp_orders.invoice_number = $order[invoice_number]
     ";
 
     $order = $mysql->run($sql)[0];
 
-    log_info("
-    Order Before: $sql
-    ".print_r($order, true));
-
-    if ($order AND $order[0]['invoice_number']) {
-
-      $target_date = get_sync_to_date($order)
-      $order  = set_sync_to_date($order, $target_date, $mysql);
-
-      $update = get_payment($order);
-      $order  = set_payment($order, $update, $mysql);
-
+    if ( ! $order OR ! $order[0]['invoice_number']) {
+      log_error('ERROR! get_full_order: no invoice number', get_defined_vars());
     } else {
-      log_info('set_sync_to_date error. no invoice number '.print_r($order, true).print_r($update, true));
+      //Consolidate default and actual suffixes to avoid conditional overload in the invoice template and redundant code within communications
+      foreach($order as $i => $item) {
+        $order[$i]['drug'] = $item['drug_name'] ?: $item['drug_generic'];
+        $order[$i]['days_dispensed'] = $item['days_dispensed_actual'] ?: $item['days_dispensed_default'];
+
+        if ( ! $item['item_date_added']) { //if not syncing to order lets provide a reason why we are not filling
+          $message = get_days_default($item)[1];
+          $order[$i]['item_message_key']  = array_search($message, RX_MESSAGE);
+          $order[$i]['item_message_text'] = message_text($message, $item);
+        }
+
+        $deduct_refill = $order[$i]['days_dispensed'] ? 1 : 0; //We want invoice to show refills after they are dispensed assuming we dispense items currently in order
+
+        $order[$i]['qty_dispensed'] = (float) ($item['qty_dispensed_actual'] ?: $item['qty_dispensed_default']); //cast to float to get rid of .000 decimal
+        $order[$i]['refills_total'] = (float) ($item['refills_total_actual'] ?: $item['refills_total_default'] - $deduct_refill);
+        $order[$i]['price_dispensed'] = (float) ($item['price_dispensed_actual'] ?: ($item['price_dispensed_default'] ?: 0));
+      }
+
+      usort($order, 'sort_order_by_day');
     }
 
-    log_info("
-    Order After: $sql
-    ".print_r($order, true));
+    //log_info('get_full_order', get_defined_vars());
 
     return $order;
   }
 
-  //Group all drugs by their next fill date and get the most popular date
-  function get_sync_to_date($order) {
-
-    $sync_dates = [];
-    foreach ($order as $item) {
-      if (isset($sync_dates[$item['refill_date_next']]))
-        $sync_dates[$item['refill_date_next']]++
-      else
-        $sync_dates[$item['refill_date_next']] = 0
-    }
-
-    $target_date  = null;
-    $target_count = null;
-    foreach($sync_dates as $date => $count) {
-      if ($count > $target_count) {
-        $target_count = $count;
-        $target_date = $date;
-      }
-      else if ($count == $target_count AND $date > $target_date) { //In case of tie, longest date wins
-        $target_date = $date;
-      }
-    }
-
-    return $target_date;
-  }
-
-  //Sync any drug that has days to the new refill date
-  function set_sync_to_date($order, $target_date, $mysql) {
-
-    foreach($order as $i => $item) {
-
-      if ($item['days_dispensed_default'] == 0) continue; //Don't add them to order if they are not already in it
-
-      $days_extra  = (strtotime($target_date) - strtotime($item['refill_date_next']))/60/60/24;
-      $days_synced = $item['days_dispensed_default'] + $days_extra;
-
-      if ($days_synced >= 15 AND $days_synced <= 120) { //Limits to the amounts by which we are willing sync
-
-        $order[$i]['refill_date_target']     = $target_date;
-        $order[$i]['days_dispensed_default'] = $days_synced;
-
-        $sql = "
-          UPDATE
-            gp_order_items =
-          SET
-            refill_date_target     = $target_date,
-            days_dispensed_default = $days_synced
-          WHERE
-            rx_number = $item['rx_number']
-        ";
-
-        $mysql->run($sql);
-      }
-
-      export_v2_add_pended($order[$i]); //Days should be finalized now
-    }
-
-    return $order;
-  }
-
-  function get_payment($order) {
-
-    $update = [];
-
-    $update['payment_total'] = 0;
-
-    foreach($order as $i => $item)
-      $update['payment_total'] += $item['price_dispensed_actual'] ?: $item['price_dispensed_default'];
-
-    //Defaults
-    $update['payment_fee'] = $order[0]['refills_used'] ? $update['payment_total'] : PAYMENT_TOTAL_NEW_PATIENT;
-    $update['payment_due'] = $update['payment_fee'];
-    $update['payment_date_autopay'] = 'NULL';
-
-    if ($order[0]['payment_method'] == PAYMENT_METHOD['COUPON']) {
-      $update['payment_fee'] = $update['payment_total'];
-      $update['payment_due'] = 0;
-    }
-    else if ($order[0]['payment_method'] == PAYMENT_METHOD['AUTOPAY']) {
-      $start = date('m/01', strtotime('+ 1 month'));
-      $stop  = date('m/07/y', strtotime('+ 1 month'));
-
-      $update['payment_date_autopay'] = "'$start - $stop'";
-      $update['payment_due'] = 0;
-    }
-
-    return $update;
-  }
-
-  function set_payment($order, $update, $mysql) {
-
-    $sql = "
-      UPDATE
-        gp_orders
-      SET
-        payment_total = $update[payment_total],
-        payment_fee   = $update[payment_fee],
-        payment_due   = $update[payment_due],
-        payment_date_autopay = $update[payment_date_autopay]
-      WHERE
-        invoice_number = {$order[0]['invoice_number']}
-    ";
-
-    $mysql->run($sql);
-
-    foreach($order as $i => $item)
-      $order[$i] = $update + $item;
-
-    return $order;
+  function sort_order_by_day($a, $b) {
+    if ($b['days_dispensed'] > 0 AND $a['days_dispensed'] == 0) return 1;
+    if ($a['days_dispensed'] > 0 AND $b['days_dispensed'] == 0) return -1;
+    return strcmp($a['item_message_text'].$a['drug'], $b['item_message_text'].$b['drug']);
   }
 
   //If just added to CP Order we need to
@@ -180,11 +92,38 @@ function update_orders() {
 
     $order = get_full_order($created, $mysql);
 
-    export_cp_add_more_items($order); //this will cause another update and we will end back in this loop
+    if ( ! $order) {
+      log_error("Created Order Missing", get_defined_vars());
+      continue;
+    }
 
-    export_gd_update_invoice($order);
+    //1) Add Drugs to Guardian that should be in the order
+    //2) Remove drug from guardian that should not be in the order
+    //3) Create a fax out transfer for anything removed that is not offered
+    $items_to_sync = sync_to_order($order);
+    if ($items_to_sync) {
+      log_notice('sync_to_order: created', get_defined_vars());
+      $mysql->run('DELETE gp_orders FROM gp_orders WHERE invoice_number = '.$order[0]['invoice_number']);
+      return; //DON'T CREATE THE ORDER UNTIL THESE ITEMS ARE SYNCED TO AVOID CONFLICTING COMMUNICATIONS!
+    }
 
-    export_wc_update_order($order);
+    $groups = group_drugs($order, $mysql);
+
+    if ( ! $groups['COUNT_FILLED'] AND $groups['ALL'][0]['item_message_key'] != 'ACTION NEEDS FORM') {
+      log_notice("Created Order But Not Filling Any?", get_defined_vars());
+      continue;
+    }
+
+    list($target_date, $target_rxs) = get_sync_to_date($order);
+    $order  = set_sync_to_date($order, $target_date, $target_rxs, $mysql);
+
+    helper_update_payment($order, $mysql);
+    export_wc_update_order_metadata($order);
+    export_wc_update_order_shipping($order);
+
+    send_created_order_communications($groups);
+
+    log_info("Created Order", get_defined_vars());
 
     //TODO Update Salesforce Order Total & Order Count & Order Invoice using REST API or a MYSQL Zapier Integration
   }
@@ -197,11 +136,17 @@ function update_orders() {
   //  - update wc order total
   foreach($changes['deleted'] as $deleted) {
 
-    $order = get_full_order($deleted, $mysql);
+    if ($deleted['tracking_number'])
+      log_error('Error? Order with tracking number was deleted', get_defined_vars());
 
-    export_gd_update_invoice($order);
+    export_gd_delete_invoice([$deleted]);
 
-    export_wc_update_order($order);
+    export_wc_delete_order([$deleted]);
+
+    export_v2_unpend_order([$deleted]);
+
+    send_deleted_order_communications([$deleted]);
+
 
     //TODO Update Salesforce Order Total & Order Count & Order Invoice using REST API or a MYSQL Zapier Integration
   }
@@ -211,16 +156,64 @@ function update_orders() {
   //  - think about what needs to be updated based on changes
   foreach($changes['updated'] as $updated) {
 
-    log_info("Order: ".print_r(changed_fields($updated), true).print_r($updated, true));
+    $changed_fields = changed_fields($updated);
 
     $order = get_full_order($updated, $mysql);
+
+    if ( ! $order) {
+      log_error("Updated Order Missing", get_defined_vars());
+      continue;
+    }
+
+    //Remove only (e.g. new surescript comes in), let's not add more drugs to their order since communication already went out
+    $items_to_sync = sync_to_order($order, true);
+    if ($items_to_sync) {
+      log_notice('sync_to_order: updated', get_defined_vars());
+    }
+
+    $stage_change = $updated['order_stage'] != $updated['old_order_stage'];
+
+    $groups = group_drugs($order, $mysql);
+
+    if ($stage_change AND $updated['order_date_shipped']) {
+      export_wc_update_order_metadata($item);
+      export_wc_update_order_shipping($item);
+      send_shipped_order_communications($groups);
+      log_notice("Updated Order Shipped", get_defined_vars());
+      continue;
+    }
+
     //Probably finalized days/qty_dispensed_actual
     //Update invoice now or wait until shipped order?
-    export_gd_update_invoice($order);
+    if ($stage_change AND $updated['order_date_dispensed']) {
+      helper_update_payment($order, $mysql);
+      export_wc_update_order_metadata($item);
+      export_wc_update_order_shipping($item);
+      send_dispensed_order_communications($groups);
+      //log_notice("Updated Order Dispensed", get_defined_vars());
+      continue;
+    }
 
-    export_wc_update_order($order);
+    if ($stage_change) {
+      log_info("Updated Order Stage Change", get_defined_vars());
+      continue;
+    }
+
+    //Usually count_items changed
+    list($target_date, $target_rxs) = get_sync_to_date($order);
+    $order = set_sync_to_date($order, $target_date, $target_rxs, $mysql);
+
+    //Usually count_items changed
+    helper_update_payment($order, $mysql);
+
+    send_updated_order_communications($groups);
+
+    $updated['count_items'] == $updated['old_count_items']
+      ? log_notice("Updated Order NO Stage Change", get_defined_vars())
+      : log_info("Updated Order Item Count Change", get_defined_vars());
 
     //TODO Update Salesforce Order Total & Order Count & Order Invoice using REST API or a MYSQL Zapier Integration
+
   }
 
   //TODO Differentiate between actual order that are to be sent out and
@@ -234,4 +227,4 @@ function update_orders() {
 
   //TODO Remove Delete Orders
 
-}
+  }

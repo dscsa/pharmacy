@@ -6,19 +6,14 @@ function update_stock_by_month() {
 
   $changes = changes_to_stock_by_month("gp_stock_by_month_v2");
 
-  $count_deleted = count($changes['deleted']);
-  $count_created = count($changes['created']);
-  $count_updated = count($changes['updated']);
-
-  $message = "
-  update_stock_by_month: $count_deleted deleted, $count_created created, $count_updated updated. ";
-
-  if ($count_deleted+$count_created+$count_updated)
-    log_info($message.print_r($changes, true));
-
-  //mail('adam@sirum.org', "CRON: $message", $message.print_r($changes, true));
+  $month_interval = 3;
+  $count_deleted  = count($changes['deleted']);
+  $count_created  = count($changes['created']);
+  $count_updated  = count($changes['updated']);
 
   if ( ! $count_deleted AND ! $count_created AND ! $count_updated) return;
+
+  log_info("update_stock_by_month: $count_deleted deleted, $count_created created, $count_updated updated.", get_defined_vars());
 
   $mysql = new Mysql_Wc();
 
@@ -27,40 +22,36 @@ function update_stock_by_month() {
   $mysql->run("
     INSERT INTO gp_stock_live
     SELECT
-      stock.drug_generic,
+      gp_stock_by_month.drug_generic,
       MAX(drug_brand) as drug_brand,
       MAX(message_display) as message_display,
       NULL as stock_level,
       MAX(COALESCE(price30, price90/3)) as price_per_month,
       MAX(drug_ordered) as drug_ordered,
       MAX(qty_repack) as qty_repack,
-      MAX(inventory.inventory_sum) as qty_inventory,
-      SUM(stock.entered_sum) as qty_entered,
-      SUM(stock.dispensed_sum) as qty_dispensed,
-      MAX(inventory.inventory_sum) / (100*POWER(GREATEST(SUM(stock.dispensed_sum), MAX(qty_repack)), 1.1) / POWER(1+SUM(stock.entered_sum), .6)) as stock_threshold
+      AVG(inventory_sum) as qty_inventory,
+      AVG(entered_sum)*$month_interval as qty_entered, -- RATHER THAN SUM TO MAKE MORE ROBUST IF A ROW/MONTH IS DELETED AND WE ARE CALCULATING BASED ON PARTIAL DATA
+      AVG(dispensed_sum)*$month_interval as qty_dispensed,
+      AVG(inventory_sum) / (100*POWER(GREATEST(COALESCE(AVG(dispensed_sum), 0)*$month_interval, COALESCE(MAX(qty_repack), 135)), 1.1) / POWER(1+AVG(entered_sum)*$month_interval, .6)) as stock_threshold
     FROM
-      gp_stock_by_month as stock
+      gp_stock_by_month
     JOIN gp_drugs ON
-      gp_drugs.drug_generic = stock.drug_generic
-    JOIN gp_stock_by_month as inventory ON
-      stock.drug_generic = inventory.drug_generic AND
-      YEAR(inventory.month)  = YEAR(CURDATE() + INTERVAL 1 MONTH) AND
-      MONTH(inventory.month) = MONTH(CURDATE() + INTERVAL 1 MONTH)
+      gp_drugs.drug_generic = gp_stock_by_month.drug_generic
     WHERE
-      YEAR(stock.month)  >= YEAR(CURDATE() - INTERVAL 3 MONTH) AND
-      MONTH(stock.month) >= MONTH(CURDATE() - INTERVAL 3 MONTH)
+      YEAR(month)  >= YEAR(CURDATE() - INTERVAL $month_interval MONTH) AND
+      MONTH(month) >= MONTH(CURDATE() - INTERVAL $month_interval MONTH) -- Selecting in 2019-12 should select 2019-09, 2019-10, 2019-11 (2019-12 will not be made yet because not a full month of data)
     GROUP BY
-      stock.drug_generic
+      gp_stock_by_month.drug_generic
   ");
 
   $mysql->run("
     UPDATE gp_stock_live
     SET stock_level = CASE
       WHEN drug_ordered IS NULL THEN '".STOCK_LEVEL['NOT OFFERED']."'
-      WHEN stock_threshold > 1.0 THEN '".STOCK_LEVEL['HIGH SUPPLY']."'
+      WHEN stock_threshold > 0.9 THEN '".STOCK_LEVEL['HIGH SUPPLY']."'
       WHEN stock_threshold > 0.7 THEN '".STOCK_LEVEL['LOW SUPPLY']."'
       WHEN price_per_month >= 20 AND qty_dispensed = 0 AND qty_inventory > 5*qty_repack THEN '".STOCK_LEVEL['ONE TIME']."'
-      WHEN qty_inventory > qty_repack THEN '".STOCK_LEVEL['REFILL ONLY']."'
+      WHEN qty_inventory > IFNULL(qty_repack, 135) THEN '".STOCK_LEVEL['REFILL ONLY']."'
       ELSE '".STOCK_LEVEL['OUT OF STOCK']."'
     END
   ");

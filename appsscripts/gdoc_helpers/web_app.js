@@ -1,5 +1,5 @@
 function testPost() {
-  var event = {parameter:{GD_KEY:GD_KEY}, content:{method:'findValue', file:'Order Summary #20660', needle:'(Fee:|Amount Due:)'}}
+  var event = {parameter:{GD_KEY:GD_KEY}, postData:{contents:'{"method":"watchFiles", "folder":"OLD"}'}}
   debugEmail(event, doPost(event))
 }
 
@@ -13,26 +13,49 @@ function doPost(e) {
     if ( ! e.postData || ! e.postData.contents)
       return debugEmail('web_app post not post data', e)
 
+    var response
     var contents = JSON.parse(e.postData.contents)
 
     if (contents.method == 'removeFiles')
-      return removeFiles(contents)
+      response = removeFiles(contents)
 
-    if (contents.method == 'createCalendarEvent')
-      return createCalendarEvent(contents)
+    else if (contents.method == 'watchFiles')
+      response = watchFiles(contents)
 
-    if (contents.method == 'removeCalendarEvents')
-      return removeCalendarEvents(contents)
+    else if (contents.method == 'publishFile')
+      response = publishFile(contents)
 
-    if (contents.method == 'searchCalendarEvents')
-      return searchCalendarEvents(contents)
+    else if (contents.method == 'newSpreadsheet')
+      response = newSpreadsheet(contents)
 
-    if (contents.method == 'modifyCalendarEvents')
-      return modifyCalendarEvents(contents)
+    else if (contents.method == 'createCalendarEvent')
+      response = createCalendarEvent(contents)
 
-    debugEmail('web_app post no matching method', e)
+    else if (contents.method == 'removeCalendarEvents')
+      response = removeCalendarEvents(contents)
+
+    else if (contents.method == 'searchCalendarEvents')
+      response = searchCalendarEvents(contents)
+
+    else if (contents.method == 'modifyCalendarEvents')
+      response = modifyCalendarEvents(contents)
+
+    else if (contents.method == 'shortLinks')
+      response = shortLinks(contents)
+
+    else
+      debugEmail('web_app post no matching method', e)
+
+    return ContentService
+      .createTextOutput(JSON.stringify(response))
+      .setMimeType(ContentService.MimeType.JSON)
 
   } catch(err){
-      debugEmail('web_app post error thrown', err, e)
+
+    debugEmail('web_app post error thrown', err, e)
+
+    return ContentService
+      .createTextOutput(JSON.stringify([err, err.stack]))
+      .setMimeType(ContentService.MimeType.JSON)
   }
 }

@@ -1,17 +1,22 @@
 <?php
 
+const LIVE_MODE = true;
+
 const ADDED_MANUALLY = [
   "MANUAL",
   "WEBFORM"
 ];
 
+const PICK_LIST_FOLDER_NAME = 'OLD';
+const INVOICE_FOLDER_NAME   = 'OLD';  //Published
+
 const PAYMENT_TOTAL_NEW_PATIENT = 6;
 
 const PAYMENT_METHOD = [
-  'COUPON'       => 'COUPON',
-  'MANUAL'       => 'MANUAL',
-  'AUTOPAY'      => 'AUTOPAY',
-  'CARD EXPIRED' => 'CARD EXPIRED'
+  'COUPON'       => 'shipped-coupon',
+  'MANUAL'       => 'shipped-unpaid',
+  'AUTOPAY'      => 'shipped-autopay',
+  'CARD EXPIRED' => 'shipped-card-expired'
 ];
 
 const STOCK_LEVEL = [
@@ -41,35 +46,35 @@ const RX_MESSAGE = [
     'ES' => ''
   ],
   'NO ACTION RX OFF AUTOFILL' => [
-    'EN' => 'has autorefill off but was requested to be filled',
+    'EN' => 'was requested',
     'ES' => ''
   ],
   'NO ACTION RECENT FILL' => [
-    'EN' => 'was filled recently and not due again until $NextRefill',
+    'EN' => 'was filled recently and not due again until refill_date_next',
     'ES' => ''
   ],
   'NO ACTION NOT DUE' => [
-    'EN' => 'is due for a refill on $NextRefill',
+    'EN' => 'is due for a refill on refill_date_next',
     'ES' => ''
   ],
   'NO ACTION CHECK SIG' => [
     'EN' => 'was prescribed in an unusually high qty and needs to be reviewed by a pharmacist',
     'ES' => ''
   ],
-  'NO ACTION MISSING GCN' => [
+  'NO ACTION MISSING GSN' => [
     'EN' => 'needs to be checked to see if it is available',
     'ES' => ''
   ],
   'NO ACTION LOW STOCK' => [
-    'EN' => 'is short filled because this drug is low in stock',
+    'EN' => 'is low in stock',
     'ES' => ''
   ],
   'NO ACTION LOW REFILL' => [
-    'EN' => 'is short filled because this Rx had limited refills',
+    'EN' => 'has limited refills',
     'ES' => ''
   ],
   'NO ACTION WILL TRANSFER CHECK BACK' => [
-    'EN' => 'is not currently offered and will be transferred to your local pharmacy. Check back in a month or two',
+    'EN' => 'is not offered and will be transferred to your local pharmacy. Check back in 3 months',
     'ES' => ''
   ],
   'NO ACTION WILL TRANSFER' => [
@@ -77,7 +82,7 @@ const RX_MESSAGE = [
     'ES' => ''
   ],
   'NO ACTION WAS TRANSFERRED' => [
-    'EN' => 'was transferred out to your local pharmacy on $RxChanged',
+    'EN' => 'was transferred out to your local pharmacy on rx_date_changed',
     'ES' => ''
   ],
   'NO ACTION LIVE INVENTORY ERROR' => [
@@ -96,7 +101,7 @@ const RX_MESSAGE = [
     'ES' => ''
   ],
   'ACTION LAST REFILL' => [
-    'EN' => 'has no more refills',
+    'EN' => 'is the last refill, contact your doctor',
     'ES' => ''
   ],
   'ACTION NO REFILLS' => [
@@ -124,7 +129,7 @@ const RX_MESSAGE = [
     'ES' => ''
   ],
   'ACTION NEEDS FORM' => [
-    'EN' => 'waiting on you to register',
+    'EN' => 'can be filled once you register',
     'ES' => ''
   ]
 ];

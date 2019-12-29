@@ -10,10 +10,10 @@ function changes_to_orders($new) {
   $id    = "invoice_number";
   $where = "
     NOT old.patient_id_cp <=> new.patient_id_cp OR
-    NOT old.item_count <=> new.item_count OR
+    NOT old.count_items <=> new.count_items OR
     NOT old.order_source <=> new.order_source OR
     NOT old.order_stage <=> new.order_stage OR
-    NOT old.order_status <=> new.order_status OR
+    -- NOT old.order_status <=> new.order_status OR -- SEEMS DUPLICATIVE WITH STAGE AND CAUSES CHANGES ON Rx Expired >>> Entered
     NOT old.order_address1 <=> new.order_address1 OR
     NOT old.order_address2 <=> new.order_address2 OR
     NOT old.order_city <=> new.order_city OR
@@ -44,7 +44,7 @@ function changes_to_orders($new) {
   $mysql->run(set_created_sql($new, $old, $id));
 
   //Save Updates
-  //$mysql->run(set_updated_sql($new, $old, $id, $where));
+  $mysql->run(set_updated_sql($new, $old, $id, $where));
 
   return [
     'deleted' => $deleted[0],

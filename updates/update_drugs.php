@@ -10,15 +10,10 @@ function update_drugs() {
   $count_created = count($changes['created']);
   $count_updated = count($changes['updated']);
 
-  $message = "
-  update_drugs: $count_deleted deleted, $count_created created, $count_updated updated. ";
-
-  if ($count_deleted+$count_created+$count_updated)
-    log_info($message.print_r($changes, true));
-
-  //mail('adam@sirum.org', "CRON: $message", $message.print_r($changes, true));
-
   if ( ! $count_deleted AND ! $count_created AND ! $count_updated) return;
+
+  log_info("update_drugs: $count_deleted deleted, $count_created created, $count_updated updated.", get_defined_vars());
+
 
   //TODO Upsert WooCommerce Patient Info
 

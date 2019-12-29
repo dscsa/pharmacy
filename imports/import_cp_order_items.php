@@ -5,10 +5,15 @@ function import_cp_order_items() {
   $mssql = new Mssql_Cp();
   $mysql = new Mysql_Wc();
 
-  $order_items = $mssql->run("
+  $items = $mssql->run("
+
+    DECLARE @today as DATETIME
+    SET @today = GETDATE()
 
     SELECT
       csomline.order_id+2 as invoice_number,
+      MAX(drug_name) as drug_name,
+      MAX(cprx.pat_id) as patient_id_cp,
   		COALESCE(
         MIN(CASE
           WHEN refills_left > .1 THEN script_no
@@ -30,18 +35,20 @@ function import_cp_order_items() {
       ) as item_added_by -- from csuser
   	FROM csomline
   	JOIN cprx ON cprx.rx_id = csomline.rx_id
-    LEFT OUTER JOIN cprx_disp disp ON csomline.rxdisp_id > 0 AND disp.rxdisp_id = csomline.rxdisp_id
-    WHERE line_state_cn < 50 -- Unshipped only to cut down volume. Will qty and days be set before this?
+    LEFT JOIN cprx_disp disp ON csomline.rxdisp_id > 0 AND disp.rxdisp_id = csomline.rxdisp_id -- Rx might not yet be dispensed
+    WHERE line_state_cn < 50 -- Unshipped only to cut down volume. i think this still enables qty/days_dispensed_actual to be set properly
     GROUP BY csomline.order_id, (CASE WHEN gcn_seqno > 0 THEN gcn_seqno ELSE script_no END) --This is because of Orders like 8660 where we had 4 duplicate Citalopram 40mg.  Two that were from Refills, One Denied Surescript Request, and One new Surescript.  We are only going to send one GCN so don't list it multiple times
   ");
 
-  //log_info("
-  //import_cp_order_items: rows ".count($order_items[0]));
+  if ( ! count($items[0])) return log_error('No Cp Order Items to Import', get_defined_vars());
 
-  $keys = result_map($order_items[0]);
+  //log_info("
+  //import_cp_order_items: rows ".count($items[0]));
+
+  $keys = result_map($items[0]);
 
   //Replace Staging Table with New Data
   $mysql->run('TRUNCATE TABLE gp_order_items_cp');
 
-  $mysql->run("INSERT INTO gp_order_items_cp $keys VALUES ".$order_items[0]);
+  $mysql->run("INSERT INTO gp_order_items_cp $keys VALUES ".$items[0]);
 }

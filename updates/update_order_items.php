@@ -4,8 +4,7 @@ require_once 'changes/changes_to_order_items.php';
 require_once 'helpers/helper_days_dispensed.php';
 require_once 'exports/export_cp_order_items.php';
 require_once 'exports/export_v2_order_items.php';
-require_once 'exports/export_gd_orders.php';
-require_once 'exports/export_wc_orders.php';
+//require_once 'exports/export_gd_transfer_fax.php';
 
 function update_order_items() {
 
@@ -15,28 +14,32 @@ function update_order_items() {
   $count_created = count($changes['created']);
   $count_updated = count($changes['updated']);
 
-  $message = "
-  update_order_items: $count_deleted deleted, $count_created created, $count_updated updated. ";
-
-  if ($count_deleted+$count_created+$count_updated)
-    log_info($message.print_r($changes, true));
-
-  //mail('adam@sirum.org', "CRON: $message", $message.print_r($changes, true));
-
   if ( ! $count_deleted AND ! $count_created AND ! $count_updated) return;
+
+  log_info("update_order_items: $count_deleted deleted, $count_created created, $count_updated updated.", get_defined_vars());
 
   $mysql = new Mysql_Wc();
 
   function get_full_item($item, $mysql) {
 
+    if ( ! $item['invoice_number'] OR ! $item['rx_number']) {
+      log_error('ERROR get_full_item: missing invoice_number or rx_number', get_defined_vars());
+      return [];
+    }
+
+    /* ORDER MAY HAVE NOT BEEN ADDED YET
+    JOIN gp_orders ON
+      gp_orders.invoice_number = gp_order_items.invoice_number
+    */
+
     $sql = "
       SELECT *
       FROM
         gp_order_items
+      JOIN gp_rxs_single ON
+        gp_order_items.rx_number = gp_rxs_single.rx_number
       JOIN gp_rxs_grouped ON
         rx_numbers LIKE CONCAT('%,', gp_order_items.rx_number, ',%')
-      JOIN gp_rxs_single ON
-        gp_rxs_grouped.best_rx_number = gp_rxs_single.rx_number
       JOIN gp_patients ON
         gp_rxs_grouped.patient_id_cp = gp_patients.patient_id_cp
       LEFT JOIN gp_stock_live ON -- might not have a match if no GSN match
@@ -46,19 +49,43 @@ function update_order_items() {
         gp_order_items.rx_number = $item[rx_number]
     ";
 
-    $item  = [];
+
+    $full_item  = [];
     $query = $mysql->run($sql);
 
-    if (isset($query[0][0]))
-      $item = $query[0][0];
-    else
-      mail('adam@sirum.org', "Error update_order_items", print_r($query, true).$sql);
+    if (isset($query[0][0])) {
+      $full_item = $query[0][0];
 
-    log_info("
-    Item: $sql
-    ".print_r($item, true));
+      if ( ! $full_item['drug_generic'])
+        log_error($full_item['drug_gsns'] ? 'get_full_item: Add GSN to V2!' : 'get_full_item: Missing GSN!', get_defined_vars());
 
-    return $item;
+    } else {
+
+      $debug = "
+        SELECT *, gp_order_items.rx_number as rx_number, gp_rxs_grouped.refill_date_manual as refill_date_manual, gp_rxs_grouped.refill_date_default as refill_date_default
+        FROM
+          gp_order_items
+        LEFT JOIN gp_rxs_grouped ON
+          rx_numbers LIKE CONCAT('%,', gp_order_items.rx_number, ',%')
+        LEFT JOIN gp_rxs_single ON
+          gp_order_items.rx_number = gp_rxs_single.rx_number
+        LEFT JOIN gp_patients ON
+          gp_rxs_grouped.patient_id_cp = gp_patients.patient_id_cp
+        LEFT JOIN gp_stock_live ON -- might not have a match if no GSN match
+          gp_rxs_grouped.drug_generic = gp_stock_live.drug_generic
+        WHERE
+          gp_order_items.invoice_number = $item[invoice_number] OR
+          gp_order_items.rx_number = $item[rx_number]
+      ";
+
+      $anything = $mysql->run($debug);
+
+      log_error("Missing Order Item!", get_defined_vars());
+    }
+
+    //log_info("Get Full Item", get_defined_vars());
+
+    return $full_item;
   }
 
   //If just added to CP Order we need to
@@ -71,13 +98,23 @@ function update_order_items() {
 
     $item = get_full_item($created, $mysql);
 
-    list($days, $message) = get_days_dispensed($item);
-
-    set_days_dispensed($item, $days, $message, $mysql);
-
-    if ( ! $days) {
-      export_cp_remove_item($item);
+    if ( ! $item) {
+      log_error("Created Item Missing", get_defined_vars());
       continue;
+    }
+
+    if ($item['days_dispensed_actual']) {
+
+      log_error("Created Item Readded", get_defined_vars());
+
+      set_days_actual($item, $mysql);
+
+    } else {
+
+      list($days, $message) = get_days_default($item);
+
+      set_days_default($item, $days, $message, $mysql);
+      
     }
 
     //TODO Update Salesforce Order Total & Order Count & Order Invoice using REST API or a MYSQL Zapier Integration
@@ -93,7 +130,12 @@ function update_order_items() {
 
     $item = get_full_item($deleted, $mysql);
 
-    set_days_dispensed($item, 0, $status, $mysql);
+    if ( ! $item) {
+      log_error("Deleted Item Missing", get_defined_vars());
+      continue;
+    }
+
+    set_days_default($item, 0, '', $mysql);
 
     export_v2_remove_pended($item);
 
@@ -107,20 +149,34 @@ function update_order_items() {
 
     $item = get_full_item($updated, $mysql);
 
-    mail('adam@sirum.org', 'update_order_items updated', print_r($item, true));
-
-    if ($item['days_dispensed_default']) {
-
-      log_info("Updated Item No Action: ");
-
-    } else {
-
-      list($days, $message) = get_days_dispensed($item);
-
-      set_days_dispensed($item, $days, $message, $mysql);
+    if ( ! $item) {
+      log_error("Updated Item Missing", get_defined_vars());
+      continue;
     }
 
-    log_info("Order Items: ".print_r(changed_fields($updated), true).print_r($updated, true));
+    $changed_fields = changed_fields($updated);
+
+    if ($item['days_dispensed_actual']) {
+
+      set_days_actual($item, $mysql);
+
+    } else if ($updated['item_added_by'] == 'MANUAL' AND $updated['old_item_added_by'] != 'MANUAL') {
+
+      log_info("Cindy deleted and readded this item", get_defined_vars());
+
+    } else if ( ! $item['days_dispensed_default']) {
+
+      log_error("Updated Item has no days_dispensed_default.  Was GSN added?", get_defined_vars());
+
+      list($days, $message) = get_days_default($item);
+
+      set_days_default($item, $days, $message, $mysql);
+
+    } else {
+      log_info("Updated Item No Action", get_defined_vars());
+    }
+
+    log_info("update_order_items", get_defined_vars());
 
     //TODO Update Salesforce Order Total & Order Count & Order Invoice using REST API or a MYSQL Zapier Integration
   }

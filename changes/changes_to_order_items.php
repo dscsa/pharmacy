@@ -13,7 +13,6 @@ function changes_to_order_items($new) {
     NOT old.rx_dispensed_id <=> new.rx_dispensed_id OR
     NOT old.qty_dispensed_actual <=> new.qty_dispensed_actual OR
     NOT old.days_dispensed_actual <=> new.days_dispensed_actual OR
-    NOT old.item_date_added <=> new.item_date_added OR
     NOT old.item_added_by <=> new.item_added_by
   ";
 
@@ -23,17 +22,19 @@ function changes_to_order_items($new) {
   //Get Inserted
   $created = $mysql->run(get_created_sql($new, $old, $id));
 
+  //email('changes_to_order_items created', $created, get_created_sql($new, $old, $id), set_created_sql($new, $old, $id));
+
   //Get Updated
   $updated = $mysql->run(get_updated_sql($new, $old, $id, $where));
 
-  //Save Deletes - A lot of Turnover with no shipped items so let's keep historic
-  //$mysql->run(set_deleted_sql($new, $old, $id));
+  //Save Deletes
+  $mysql->run(set_deleted_sql($new, $old, $id));
 
   //Save Inserts
   $mysql->run(set_created_sql($new, $old, $id));
 
   //Save Updates
-  //$mysql->run(set_updated_sql($new, $old, $id, $where));
+  $mysql->run(set_updated_sql($new, $old, $id, $where));
 
   return [
     'deleted' => $deleted[0],

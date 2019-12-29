@@ -2,8 +2,11 @@
 var getIf   = ' ?if *\\( *'
 var getBody = ' *\\) *'
 var getEnd  = '}'
+var infoLog = []
 
 function mergeDoc(content) {
+
+   //debugEmail('mergeDoc start', content)
 
    //debugEmail('mergeDoc', content)
    var order    = flattenOrder(content.order)
@@ -22,6 +25,8 @@ function mergeDoc(content) {
    }
 
    newDoc.saveAndClose()
+
+   //debugEmail('mergeDoc end', content.order, order, infoLog)
 
    return newDoc.getId()
 }
@@ -103,6 +108,7 @@ function replaceVar(section, key, val) {
   key = '\\$'+key.replace('.', '\\.') //escape the $ otherwise matches line-endings
   val = val == null ? 'NULL' : val
   try {
+    infoLog.push({'method':'replaceText', 'key':key, 'val':val })
     section.replaceText(key, val)
   } catch (e) {
     debugEmail('Merge Google Doc replaceVar', typeof key, key, typeof val, val, e)
