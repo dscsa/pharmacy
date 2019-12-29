@@ -1,7 +1,5 @@
 <?php
 
-require_once 'helpers/helper_wc.php';
-
 global $mysql;
 
 function export_wc_delete_order($item) {
