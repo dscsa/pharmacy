@@ -283,7 +283,7 @@ function getInventory(callback, retry) {
 function mapGoogleSheetInv(inventory) {
   console.log('mapGoogleSheetInv', inventory)
   return inventory.map(function(row) {
-    var lowStock = row.gsx$stock.$t && row['gsx$inventory.qty'].$t < 1000
+    var lowStock = row.gsx$stock.$t && row['gsx$qty.inventory'].$t < 1000
     var drug = {
       name:row.gsx$_cn6ca.$t,
       price:{
