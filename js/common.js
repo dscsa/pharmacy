@@ -248,7 +248,7 @@ function getRxMap() {
   return rxMap
 }
 
-function getInventory(callback, retry) {
+function getInventory(medicationGsheet, callback, retry) {
 
   console.log('getInventory')
 
@@ -257,9 +257,9 @@ function getInventory(callback, retry) {
   if (inventoryCache) return callback(inventoryCache)
 
   var start = new Date()
-  var medicationGsheet = "https://spreadsheets.google.com/feeds/list/1gF7EUirJe4eTTJ59EQcAs1pWdmTm2dNHUAcrLjWQIpY/o8csoy3/public/values?alt=json"
-  retry = retry || 1000
   //o8csoy3 is the worksheet id.  To get this you have to use https://spreadsheets.google.com/feeds/worksheets/1gF7EUirJe4eTTJ59EQcAs1pWdmTm2dNHUAcrLjWQIpY/private/full
+  var medicationGsheet = medicationGsheet || "https://spreadsheets.google.com/feeds/list/1gF7EUirJe4eTTJ59EQcAs1pWdmTm2dNHUAcrLjWQIpY/o8csoy3/public/values?alt=json"
+  retry = retry || 1000
   jQuery.ajax({
     url:medicationGsheet,
     method:'GET', //dataType: 'jsonp', //USED to be method:'GET' until this bug https://issuetracker.google.com/issues/131613284#comment98
@@ -283,14 +283,14 @@ function getInventory(callback, retry) {
 function mapGoogleSheetInv(inventory) {
   console.log('mapGoogleSheetInv', inventory)
   return inventory.map(function(row) {
-    var lowStock = row.gsx$stock.$t && row['gsx$qty.inventory'].$t < 1000
+    //var lowStock = row.gsx$stock.$t != 'High Supply' && row['gsx$qty.inventory'].$t < 1000
     var drug = {
       name:row.gsx$_cn6ca.$t,
       price:{
-        amount:row['gsx$pricemonth'].$t * (lowStock ? 1.5 : 3) || '',
-        days:lowStock ? '45 days' : '90 days'
+        amount:row['gsx$pricemonth'].$t * 3 || '',
+        days:'90 days'
       },
-      gcns:row['gsx$key.3'].$t.split(','),
+      gcns:row['gsx$key.3'] ? row['gsx$key.3'].$t.split(',') : [],
       stock:row.gsx$stock.$t.replace('- Hidden', 'Stock') //Say "Low Stock" instead of "Low - Hidden"
     }
 
