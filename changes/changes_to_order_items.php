@@ -27,8 +27,8 @@ function changes_to_order_items($new) {
   //Get Updated
   $updated = $mysql->run(get_updated_sql($new, $old, $id, $where));
 
-  //Save Deletes - A lot of Turnover with no shipped items so let's keep historic
-  //$mysql->run(set_deleted_sql($new, $old, $id));
+  //Save Deletes
+  $mysql->run(set_deleted_sql($new, $old, $id));
 
   //Save Inserts
   $mysql->run(set_created_sql($new, $old, $id));
