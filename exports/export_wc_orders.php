@@ -2,7 +2,7 @@
 
 global $mysql;
 
-function export_wc_delete_order($item) {
+function export_wc_delete_order($order) {
   log_notice("export_wc_delete_order", get_defined_vars());//.print_r($item, true);
 }
 
@@ -53,7 +53,7 @@ function export_wc_update_order_metadata($order) {
 
   $order_meta = wc_select($order[0]['invoice_number']);
 
-  if ( ! $order_meta)
+  if ( ! $order_meta OR ! $order_meta['post_id'])
     return log_error('no order exists with this invoice number', get_defined_vars());
 
   wc_upsert($order_meta, 'tracking_number', $order[0]['tracking_number']);
@@ -76,7 +76,7 @@ function export_wc_update_order_shipping($order) {
 
   $order_meta = wc_select($order[0]['invoice_number']);
 
-  if ( ! $order_meta)
+  if ( ! $order_meta OR ! $order_meta['post_id'])
     return log_error('no order exists with this invoice number', get_defined_vars());
 
   wc_upsert($order_meta, '_shipping_first_name', $order[0]['first_name']);
@@ -116,7 +116,7 @@ function export_wc_update_order_payment($order) {
 
   $order_meta = wc_select($order[0]['invoice_number']);
 
-  if ( ! $order_meta)
+  if ( ! $order_meta OR ! $order_meta['post_id'])
     return log_error('no order exists with this invoice number', get_defined_vars());
 
   wc_upsert($order_meta, 'shipping_method_id', ['31694']);
