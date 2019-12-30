@@ -64,5 +64,5 @@ update_orders();
 $email .= timer("update_orders", $time);
 
 if ($email) {
-  log_info("WebForm CRON Finished", get_defined_vars());
+  //log_info("WebForm CRON Finished", get_defined_vars());
 }
