@@ -36,7 +36,7 @@ function sync_to_order($order, $remove_only = false) {
     }
   }
 
-  export_cp_remove_items($item['invoice_number'], $items_to_remove);
+  export_cp_remove_items($item['invoice_number'], $items_to_remove, $order);
   if ( ! $remove_only) export_cp_add_items($item['invoice_number'], $items_to_add);
   else log_notice('sync_to_order items NOT added', get_defined_vars());
 
