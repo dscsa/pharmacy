@@ -128,7 +128,7 @@ function update_orders() {
 
     send_created_order_communications($groups);
 
-    log_info("Created Order", get_defined_vars());
+    log_notice("Created Order", get_defined_vars());
 
     //TODO Update Salesforce Order Total & Order Count & Order Invoice using REST API or a MYSQL Zapier Integration
   }

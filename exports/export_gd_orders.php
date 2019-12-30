@@ -18,7 +18,7 @@ function export_gd_update_invoice($order) {
 
   $result = gdoc_post(GD_MERGE_URL, $args);
 
-  log_info("export_gd_update_invoice", get_defined_vars());
+  log_notice("export_gd_update_invoice", get_defined_vars());
 }
 
 //Cannot delete (with this account) once published
@@ -34,7 +34,7 @@ function export_gd_publish_invoices($order) {
 
   $result = gdoc_post(GD_HELPER_URL, $args);
 
-  log_info("export_gd_publish_invoices", get_defined_vars());
+  log_notice("export_gd_publish_invoices", get_defined_vars());
 }
 
 function export_gd_delete_invoice($order) {
