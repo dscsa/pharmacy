@@ -15,10 +15,10 @@ function wc_select($invoice_number) {
 
   $order_meta = $mysql->run($sql);
 
+  log_error('wc_select no matching order', get_defined_vars());
+
   if ($order_meta)
     return $order_meta[0];
-
-  log_error('wc_select no matching order', get_defined_vars());
 }
 
 function wc_insert($post_id, $meta_key, $meta_value) {
