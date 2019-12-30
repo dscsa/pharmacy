@@ -3,7 +3,7 @@
 global $mysql;
 
 function export_wc_delete_order($item) {
-  log_info("export_wc_delete_order", get_defined_vars());//.print_r($item, true);
+  log_notice("export_wc_delete_order", get_defined_vars());//.print_r($item, true);
 }
 
 function wc_select($invoice_number) {
@@ -39,10 +39,7 @@ function wc_update($post_id, $meta_key, $meta_value) {
 
 function wc_upsert($order_meta, $meta_key, $meta_value) {
 
-  if ( ! $order_meta)
-    log_error('no order exists with this invoice number', get_defined_vars());
-
-  else if ( ! isset($order_meta[$meta_key]))
+  if ( ! isset($order_meta[$meta_key]))
     wc_insert($order_meta['post_id'], $meta_key, $meta_value);
 
   else if ($order_meta[$meta_key] != $meta_value)
@@ -55,6 +52,9 @@ function wc_upsert($order_meta, $meta_key, $meta_value) {
 function export_wc_update_order_metadata($order) {
 
   $order_meta = wc_select($order[0]['invoice_number']);
+
+  if ( ! $order_meta)
+    return log_error('no order exists with this invoice number', get_defined_vars());
 
   wc_upsert($order_meta, 'tracking_number', $order[0]['tracking_number']);
   wc_upsert($order_meta, 'patient_id_cp', $order[0]['patient_id_cp']);
@@ -75,6 +75,9 @@ function export_wc_update_order_metadata($order) {
 function export_wc_update_order_shipping($order) {
 
   $order_meta = wc_select($order[0]['invoice_number']);
+
+  if ( ! $order_meta)
+    return log_error('no order exists with this invoice number', get_defined_vars());
 
   wc_upsert($order_meta, '_shipping_first_name', $order[0]['first_name']);
   wc_upsert($order_meta, '_shipping_last_name', $order[0]['last_name']);
@@ -112,6 +115,9 @@ function export_wc_update_order_payment($order) {
     log_error('update_order_payment: UNKNOWN Payment Method', get_defined_vars());
 
   $order_meta = wc_select($order[0]['invoice_number']);
+
+  if ( ! $order_meta)
+    return log_error('no order exists with this invoice number', get_defined_vars());
 
   wc_upsert($order_meta, 'shipping_method_id', ['31694']);
   wc_upsert($order_meta, 'shipping_method_title', ['31694' => 'Admin Fee']);
