@@ -13,7 +13,7 @@ function export_cp_remove_items($invoice_number, $script_nos) {
 
   $sql = "SirumWeb_RemoveScriptNosFromOrder '$invoice_number', '$script_nos'";
 
-  //$res = $mssql->run($sql);
+  $res = $mssql->run($sql);
 
   log_notice("export_cp_remove_items", get_defined_vars());
 }

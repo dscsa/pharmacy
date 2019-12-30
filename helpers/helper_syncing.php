@@ -1,5 +1,6 @@
 <?php
 
+//Remove Only flag so that once we communicate what's in an order to a patient we "lock" it, so that if new SureScript come in we remove them so we don't surprise a patient with new drugs
 function sync_to_order($order, $remove_only = false) {
 
   $items_to_sync   = [];
@@ -21,16 +22,16 @@ function sync_to_order($order, $remove_only = false) {
     }
 
     //Don't remove items with a missing GSN as this is something we need to do
-    if ($item['item_date_added'] AND ! $item['days_dispensed'] AND $item['drug_gsns']) {
+    if ($item['item_date_added'] AND $item['item_added_by'] != 'MANUAL' AND ! $item['days_dispensed'] AND $item['drug_gsns']) {
       $items_to_sync[]   = ['REMOVE', $item['item_message_key'], $item];
       $items_to_remove[] = $item['rx_number'];
       continue;
     }
 
-    if ($item['item_date_added'] AND $item['rx_number'] != $item['best_rx_number']) {
+    if ($item['item_date_added'] AND $item['item_added_by'] != 'MANUAL' AND $item['rx_number'] != $item['best_rx_number']) {
       $items_to_sync[]   = ['SWITCH', 'RX_NUMBER != BEST_RX_NUMBER', $item];
-      //$items_to_add[]    = $item['best_rx_number'];
-      //$items_to_remove[] = $item['rx_number'];
+      $items_to_add[]    = $item['best_rx_number'];
+      $items_to_remove[] = $item['rx_number'];
       continue;
     }
   }

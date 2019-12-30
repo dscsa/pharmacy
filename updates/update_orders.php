@@ -109,7 +109,7 @@ function update_orders() {
     if ($items_to_sync) {
       log_notice('sync_to_order: created', get_defined_vars());
       $mysql->run('DELETE gp_orders FROM gp_orders WHERE invoice_number = '.$order[0]['invoice_number']);
-      return; //DON'T CREATE THE ORDER UNTIL THESE ITEMS ARE SYNCED TO AVOID CONFLICTING COMMUNICATIONS!
+      continue; //DON'T CREATE THE ORDER UNTIL THESE ITEMS ARE SYNCED TO AVOID CONFLICTING COMMUNICATIONS!
     }
 
     $groups = group_drugs($order, $mysql);
