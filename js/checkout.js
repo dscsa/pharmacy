@@ -2,7 +2,7 @@ jQuery(load)
 
 function load() {
 
-  getInventory('', function(data) {
+  getInventory(function(data) {
     var rxMap = getRxMap() //Remove low stock (disabled) items
     upgradeTransfer(data, rxMap)
     upgradeRxs(data, rxMap)

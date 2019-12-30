@@ -84,7 +84,7 @@ function upgradeAutofill() {
   })
 
   //Disable and set days based for new Rxs based on live inventory
-  getInventory('', function(inventory) {
+  getInventory(function(inventory) {
     console.log('upgradeAutofill getInventory', 'inventory.length', inventory.length, 'load time in secs:', (new Date()-start)/1000)
 
     jQuery("tr.rx").each(function(i, tableRow) {

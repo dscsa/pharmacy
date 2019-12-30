@@ -248,7 +248,7 @@ function getRxMap() {
   return rxMap
 }
 
-function getInventory(medicationGsheet, callback, retry) {
+function getInventory(callback, retry) {
 
   console.log('getInventory')
 
@@ -258,7 +258,7 @@ function getInventory(medicationGsheet, callback, retry) {
 
   var start = new Date()
   //o8csoy3 is the worksheet id.  To get this you have to use https://spreadsheets.google.com/feeds/worksheets/1gF7EUirJe4eTTJ59EQcAs1pWdmTm2dNHUAcrLjWQIpY/private/full
-  var medicationGsheet = medicationGsheet || "https://spreadsheets.google.com/feeds/list/1gF7EUirJe4eTTJ59EQcAs1pWdmTm2dNHUAcrLjWQIpY/o8csoy3/public/values?alt=json"
+  var medicationGsheet = "https://spreadsheets.google.com/feeds/list/1E8KVM8Ih6XgWYuCZVCSa9kvLPiLbbQ-Kh8AHYHrnT4E/o8csoy3/public/values?alt=json"
   retry = retry || 1000
   jQuery.ajax({
     url:medicationGsheet,
@@ -287,11 +287,11 @@ function mapGoogleSheetInv(inventory) {
     var drug = {
       name:row.gsx$_cn6ca.$t,
       price:{
-        amount:row['gsx$pricemonth'].$t * 3 || '',
+        amount:row.gsx$pricemonth.$t * 3 || '',
         days:'90 days'
       },
-      gcns:row['gsx$key.3'] ? row['gsx$key.3'].$t.split(',') : [],
-      stock:row.gsx$stock.$t.replace('- Hidden', 'Stock') //Say "Low Stock" instead of "Low - Hidden"
+      gcns:row.gsx$gsns.$t.slice(1, -1).split(','),
+      stock:row.gsx$stock.$t
     }
 
     drug.text = drug.name+', $'+drug.price.amount+' for '+drug.price.days //this is what select 2 displays to the user
@@ -349,7 +349,7 @@ function mapGoogleSheetPrices(inventory) {
         pharmacy3:row['gsx$pharmacyprice3'].$t
       },
       //gcns:row['gsx$key.3'].$t.split(','),
-      stock:row.gsx$stock.$t.replace('- Hidden', 'Stock'), //Say "Low Stock" instead of "Low - Hidden"
+      stock:row.gsx$stock.$t
     }
 
     drug.text = drug.name+', $'+drug.price.amount+' for '+drug.price.days //this is what select 2 displays to the user
@@ -421,7 +421,7 @@ function disableRxs(inventory, rxMap) {
         else if (drug.stock == 'One-time Only, No Refills') {
           rx.text += ' ('+drug.stock+')'
         }
-        else if (drug.stock && drug.stock != 'Low - Hidden' && ! rx.is_refill) {
+        else if (drug.stock != 'High Supply' && drug.stock != 'Low Supply' && ! rx.is_refill) {
           rx.text += ' ('+drug.stock+')'
           rx.disabled = true //disable low stock non-refills
         }

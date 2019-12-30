@@ -12,9 +12,7 @@ function upgradeStock() {
 
   var select = jQuery('#stock\\[\\]')
 
-  var url = "https://spreadsheets.google.com/feeds/list/1E8KVM8Ih6XgWYuCZVCSa9kvLPiLbbQ-Kh8AHYHrnT4E/o8csoy3/public/values?alt=json"
-
-  getInventory(url, function(data) {
+  getInventory(function(data) {
     console.log('upgradeStock data', data.length, data)
 
     //Remove low stock (disabled) items
