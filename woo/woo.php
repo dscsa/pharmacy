@@ -29,7 +29,8 @@ function dscsa_inventory_csv($params) {
     'qty_inventory',
     'qty_entered',
     'qty_dispensed',
-    'stock_threshold'
+    'stock_threshold',
+    'drug_gsns'
   ];
 
   $rows = $wpdb->get_results('SELECT '.implode(', ', $cols).' FROM gp_stock_live');

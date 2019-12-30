@@ -24,6 +24,7 @@ function update_stock_by_month() {
     SELECT
       gp_stock_by_month.drug_generic,
       MAX(drug_brand) as drug_brand,
+      MAX(drug_gsns) as drug_gsns,
       MAX(message_display) as message_display,
       NULL as stock_level,
       MAX(COALESCE(price30, price90/3)) as price_per_month,
