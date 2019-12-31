@@ -12,7 +12,7 @@ function export_cp_remove_items($invoice_number, $script_nos, $remove_only, $ord
   $mssql = $mssql ?: new Mssql_Cp();
 
   $order_id   = $invoice_number - 2; //TODO SUPER HACKY
-  $script_nos = "('".implode("', '")."')";
+  $script_nos = "('".implode("', '", $script_nos)."')";
 
   //$sql = "SirumWeb_RemoveScriptNosFromOrder '$invoice_number', '$script_nos'";
 
