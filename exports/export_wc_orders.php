@@ -3,10 +3,19 @@
 global $mysql;
 
 function export_wc_delete_order($order) {
+
+  $order = wc_select_order($order[0]['invoice_number']);
+
+  if ( ! $order_meta OR ! $order_meta['post_id'])
+    return log_error('export_wc_delete_order: no order exists with this invoice number', get_defined_vars());
+
+  $sql1 = "DELETE FROM wp_posts WHERE id = $order_meta[post_id]";
+  $sql2 = "DELETE FROM wp_postmeta WHERE post_id = $order_meta[post_id]";
+
   log_notice("export_wc_delete_order", get_defined_vars());//.print_r($item, true);
 }
 
-function wc_select($invoice_number) {
+function wc_select_order($invoice_number) {
 
   global $mysql;
   $mysql = $mysql ?: new Mysql_Wc();
@@ -15,10 +24,32 @@ function wc_select($invoice_number) {
 
   $order_meta = $mysql->run($sql);
 
-  log_error('wc_select no matching order', get_defined_vars());
+  log_notice('wc_select no matching order', get_defined_vars());
 
   if ($order_meta)
     return $order_meta[0];
+}
+
+//Select or Insert
+function wc_get_or_new_order($order) {
+
+  $invoice_number = $order[0]['invoice_number'];
+  $first_name = $order[0]['first_name'];
+  $last_name = $order[0]['last_name'];
+  $birth_date = $order[0]['birth_date'];
+
+  $order = wc_select_order($invoice_number);
+
+  if ( ! $order) {
+
+    $response = wc_fetch("patient/$first_name $last_name $birth_date/order/$invoice_number")
+
+    $order = $response['order'];
+
+    log_notice('wc_get_or_new_order: created new order', get_defined_vars());
+  }
+
+  return $order;
 }
 
 function wc_insert($post_id, $meta_key, $meta_value) {
@@ -51,10 +82,10 @@ function wc_upsert($order_meta, $meta_key, $meta_value) {
 
 function export_wc_update_order_metadata($order) {
 
-  $order_meta = wc_select($order[0]['invoice_number']);
+  $order_meta = wc_get_or_new_order($order);
 
   if ( ! $order_meta OR ! $order_meta['post_id'])
-    return log_error('no order exists with this invoice number', get_defined_vars());
+    return log_error('export_wc_update_order_metadata: no order exists with this invoice number', get_defined_vars());
 
   wc_upsert($order_meta, 'tracking_number', $order[0]['tracking_number']);
   wc_upsert($order_meta, 'patient_id_cp', $order[0]['patient_id_cp']);
@@ -74,10 +105,10 @@ function export_wc_update_order_metadata($order) {
 
 function export_wc_update_order_shipping($order) {
 
-  $order_meta = wc_select($order[0]['invoice_number']);
+  $order_meta = wc_get_or_new_order($order);
 
   if ( ! $order_meta OR ! $order_meta['post_id'])
-    return log_error('no order exists with this invoice number', get_defined_vars());
+    return log_error('export_wc_update_order_shipping: no order exists with this invoice number', get_defined_vars());
 
   wc_upsert($order_meta, '_shipping_first_name', $order[0]['first_name']);
   wc_upsert($order_meta, '_shipping_last_name', $order[0]['last_name']);
@@ -112,9 +143,9 @@ function export_wc_update_order_payment($order) {
     $payment_method = 'cheque';
 
   else
-    log_error('update_order_payment: UNKNOWN Payment Method', get_defined_vars());
+    log_error('export_wc_update_order_payment: update_order_payment: UNKNOWN Payment Method', get_defined_vars());
 
-  $order_meta = wc_select($order[0]['invoice_number']);
+  $order_meta = wc_get_or_new_order($order);
 
   if ( ! $order_meta OR ! $order_meta['post_id'])
     return log_error('no order exists with this invoice number', get_defined_vars());
@@ -125,4 +156,39 @@ function export_wc_update_order_payment($order) {
   wc_upsert($order_meta, 'post_status', $order[0]['payment_method']);
   wc_upsert($order_meta, '_payment_method', $payment_method);
   wc_upsert($order_meta, '_coupon_lines', [["code" => $order[0]['payment_coupon']]]);
+}
+
+function wc_fetch($url, $method = 'GET', $content = []) {
+
+  $opts = [
+      /*
+      "socket"  => [
+        'bindto' => "0:$port",
+      ],
+      */
+      "http" => [
+        'method'  => $method,
+        'content' => json_encode($content),
+        'header'  => "Content-Type: application/json\r\n".
+                     "Accept: application/json\r\n".
+                     "Authorization: Basic ".base64_encode(WC_USER.':'.WC_PWD)
+      ]
+  ];
+
+  $url = WC_IP."/wp-json/wc/v2/$url";
+
+
+
+  $context = stream_context_create($opts);
+
+  $response = file_get_contents($url, false, $context);
+
+  $response = json_decode($response, true);
+
+  if ($response['error'])
+    return log_error("wc_fetch", get_defined_vars());
+
+  log_notice("wc_fetch", get_defined_vars());
+
+  return $response;
 }

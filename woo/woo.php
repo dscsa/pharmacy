@@ -8,10 +8,15 @@ add_action('rest_api_init', function () {
     'callback' => 'dscsa_remove_default_payment'
   ]);
 
-  register_rest_route( 'reports', 'inventory.csv', array(
+  register_rest_route( 'patient', '(?P<user_login>[^/]+)/order/(?P<invoice_number>\d+)', [
+    'methods'  => 'GET',
+    'callback' => 'dscsa_create_order'
+  ]);
+
+  register_rest_route( 'reports', 'inventory.csv', [
     'methods' => 'GET',
     'callback' => 'dscsa_inventory_csv',
-  ) );
+  ]);
 });
 
 function dscsa_inventory_csv($params) {
@@ -40,7 +45,46 @@ function dscsa_inventory_csv($params) {
     echo "\n".'"'.implode('","', (array) $row).'"';
   }
 
-  exit(); //otherwise wordpress will error trying to send json headers
+  exit; //otherwise wordpress will error trying to send json headers
+}
+
+function dscsa_create_order($params) {
+
+  if ( ! $params['user_login'] OR ! $params['invoice_number']) {
+    return debug_email("dscsa_create_order: missing user_login:$params[user_login] invoice_number:$params[invoice_number]");
+  }
+
+  $order = get_order_by_invoice_number($params['invoice_number']);
+
+  if ($order) {
+
+    echo json_encode(['error' => "dscsa_create_order: Order #$params[invoice_number] already exists", 'order' => $order]);
+    exit;
+
+  }
+
+  global $woocommerce;
+  // Now we create the order
+
+  try {
+    $order = wc_create_order();
+
+    $login = str_replace('%20', ' ', $params['user_login']);
+    $user  = get_user_by('login', $login);
+    $order->add_meta_data('invoice_number', $params['invoice_number']);
+    $order->set_customer_id($user->ID);
+    //$order->set_status('processing');
+    $order->save();
+
+    $order = get_order_by_invoice_number($params['invoice_number']);
+
+    echo json_encode(['order' => $order]);
+    exit;
+
+  } catch (Error $e) {
+    echo json_encode(['error' => "dscsa_create_order: Problem creating Order #$params[invoice_number] ".$e, 'order' => $order]);
+    exit;
+  }
 }
 
 function dscsa_remove_default_payment($params) {
@@ -1378,6 +1422,11 @@ function get_users_by_guardian_id($guardian_id) {
 function get_woocommerce_orders($guardian_id, $invoice_number) {
   global $wpdb;
   return $wpdb->get_results("SELECT meta1.post_id FROM wp_posts JOIN wp_postmeta meta1 ON wp_posts.id = meta1.post_id JOIN wp_postmeta meta2 ON wp_posts.id = meta2.post_id WHERE meta1.meta_key='guardian_id' AND meta1.meta_value = '$guardian_id' AND meta2.meta_key='invoice_number' AND meta2.meta_value = '$invoice_number' ORDER BY wp_posts.id DESC");
+}
+
+function get_order_by_invoice_number($invoice_number) {
+  global $wpdb;
+  return $wpdb->get_results("SELECT * FROM wp_posts JOIN wp_postmeta meta1 ON wp_posts.id = meta1.post_id JOIN wp_postmeta meta2 ON wp_posts.id = meta2.post_id WHERE meta1.meta_key='invoice_number' AND meta1.meta_value = '$invoice_number'");
 }
 
 //Sometimes Guardian order id changes so "get_orders()" won't work
