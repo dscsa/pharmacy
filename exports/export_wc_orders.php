@@ -20,7 +20,7 @@ function wc_select_order($invoice_number) {
   global $mysql;
   $mysql = $mysql ?: new Mysql_Wc();
 
-  $sql = "SELECT * FROM wp_posts JOIN wp_postmeta meta1 ON wp_posts.id = meta1.post_id JOIN wp_postmeta meta2 ON wp_posts.id = meta2.post_id WHERE meta2.meta_key='invoice_number' AND meta2.meta_value = '$invoice_number' ORDER BY wp_posts.id DESC";
+  $sql = "SELECT * FROM wp_posts JOIN wp_postmeta meta1 ON wp_posts.id = meta1.post_id JOIN wp_postmeta meta2 ON wp_posts.id = meta2.post_id WHERE meta1.meta_key='invoice_number' AND meta1.meta_value = '$invoice_number' ORDER BY wp_posts.id DESC";
 
   $order_meta = $mysql->run($sql);
 
