@@ -5,8 +5,7 @@ global $mssql;
 //Example New Surescript Comes in that we want to remove from Queue
 function export_cp_remove_items($invoice_number, $script_nos, $remove_only, $order) {
 
-  if ($script_nos) $script_nos = json_encode($script_nos);
-  else return;
+  if ( ! $script_nos) return;
 
   global $mssql;
   $mssql = $mssql ?: new Mssql_Cp();
