@@ -29,9 +29,10 @@ function import_stock_for_month($month_index, $mysql) {
   $next = $month_index+3;
   $last = $month_index-1; //Current month is partial month and can throw off an average
 
-  $curr = strtotime(($curr > 0 ? "+$curr" : $curr)." months");
-  $next = strtotime(($next > 0 ? "+$next" : $next)." months");
-  $last = strtotime(($last > 0 ? "+$last" : $last)." months");
+  //https://stackoverflow.com/questions/1889758/getting-last-months-date-in-php
+  $curr = strtotime("first day of ".($curr > 0 ? "+$curr" : $curr)." months");
+  $next = strtotime("first day of ".($next > 0 ? "+$next" : $next)." months");
+  $last = strtotime("first day of ".($last > 0 ? "+$last" : $last)." months");
 
   $curr = ["year" => date('Y', $curr), "month" => date('m', $curr)];
   $next = ["year" => date('Y', $next), "month" => date('m', $next)];
