@@ -42,7 +42,7 @@ function wc_get_or_new_order($order) {
 
   if ( ! $order) {
 
-    $response = wc_fetch("patient/$first_name $last_name $birth_date/order/$invoice_number")
+    $response = wc_fetch("patient/$first_name $last_name $birth_date/order/$invoice_number");
 
     $order = $response['order'];
 

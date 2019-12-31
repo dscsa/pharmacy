@@ -13,9 +13,9 @@ function export_cp_remove_items($invoice_number, $script_nos, $remove_only, $ord
 
   $sql = "SirumWeb_RemoveScriptNosFromOrder '$invoice_number', '$script_nos'";
 
-  //$res = $mssql->run($sql);
+  $res = $mssql->run($sql);
 
-  log_notice("export_cp_remove_items", get_defined_vars());
+  log_notice("export_cp_remove_items remove_only: $remove_only", get_defined_vars());
 }
 
 //Example update_order::sync_to_order() wants to add another item to existing order because its due in 1 week

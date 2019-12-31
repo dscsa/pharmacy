@@ -107,7 +107,7 @@ function update_orders() {
     //3) Create a fax out transfer for anything removed that is not offered
     $items_to_sync = sync_to_order($order);
     if ($items_to_sync) {
-      log_notice('sync_to_order: created', get_defined_vars());
+      log_info('sync_to_order: created', get_defined_vars());
       $mysql->run('DELETE gp_orders FROM gp_orders WHERE invoice_number = '.$order[0]['invoice_number']);
       continue; //DON'T CREATE THE ORDER UNTIL THESE ITEMS ARE SYNCED TO AVOID CONFLICTING COMMUNICATIONS!
     }
