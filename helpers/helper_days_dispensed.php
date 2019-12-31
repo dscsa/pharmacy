@@ -50,7 +50,7 @@ function get_days_default($item) {
     return [0, RX_MESSAGE['ACTION CHECK BACK']];
   }
 
-  if (is_null($item['patient_autofill'])) {
+  if ( ! $item['pharmacy_npi']) {
     log_info("PATIENT NEEDS TO REGISTER", get_defined_vars());
     return [0, RX_MESSAGE['ACTION NEEDS FORM']];
   }

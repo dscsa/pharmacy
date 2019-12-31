@@ -21,10 +21,10 @@ function export_cp_remove_items($invoice_number, $script_nos, $remove_only, $ord
     JOIN cprx ON cprx.rx_id = csomline.rx_id
     WHERE csomline.order_id = '$order_id'
     AND script_no IN $script_nos
-    AND rxdisp_id IS NULL -- if the rxdisp_id is set on the line, you have to call CpOmVoidDispense first.
+    AND rxdisp_id = 0 -- if the rxdisp_id is set on the line, you have to call CpOmVoidDispense first.
   ";
 
-  //$res = $mssql->run($sql);
+  $res = $mssql->run($sql);
 
   log_notice("export_cp_remove_items remove_only: $remove_only", get_defined_vars());
 }
