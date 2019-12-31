@@ -4,7 +4,7 @@ global $mysql;
 
 function export_wc_delete_order($order) {
 
-  $order = wc_select_order($order[0]['invoice_number']);
+  $order_meta = wc_select_order($order[0]['invoice_number']);
 
   if ( ! $order_meta OR ! $order_meta['post_id'])
     return log_error('export_wc_delete_order: no order exists with this invoice number', get_defined_vars());
