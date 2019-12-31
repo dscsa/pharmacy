@@ -11,9 +11,21 @@ function export_cp_remove_items($invoice_number, $script_nos, $remove_only, $ord
   global $mssql;
   $mssql = $mssql ?: new Mssql_Cp();
 
-  $sql = "SirumWeb_RemoveScriptNosFromOrder '$invoice_number', '$script_nos'";
+  $order_id   = $invoice_number - 2; //TODO SUPER HACKY
+  $script_nos = "('".implode("', '")."')";
 
-  $res = $mssql->run($sql);
+  //$sql = "SirumWeb_RemoveScriptNosFromOrder '$invoice_number', '$script_nos'";
+
+  $sql = "
+    DELETE csomline
+    FROM csomline
+    JOIN cprx ON cprx.rx_id = csomline.rx_id
+    WHERE csomline.order_id = '$order_id'
+    AND script_no IN $script_nos
+    AND rxdisp_id IS NULL -- if the rxdisp_id is set on the line, you have to call CpOmVoidDispense first.
+  ";
+
+  //$res = $mssql->run($sql);
 
   log_notice("export_cp_remove_items remove_only: $remove_only", get_defined_vars());
 }

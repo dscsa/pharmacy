@@ -23,12 +23,24 @@ function sync_to_order($order, $remove_only = false) {
 
     //Don't remove items with a missing GSN as this is something we need to do
     if ($item['item_date_added'] AND $item['item_added_by'] != 'MANUAL' AND ! $item['days_dispensed'] AND $item['drug_gsns']) {
+
+      if ($item['rx_dispensed_id']) {
+        log_error('removing item canceled because already dispensed', get_defined_vars());
+        continue;
+      }
+
       $items_to_sync[]   = ['REMOVE', $item['item_message_key'], $item];
       $items_to_remove[] = $item['rx_number'];
       continue;
     }
 
     if ($item['item_date_added'] AND $item['item_added_by'] != 'MANUAL' AND $item['rx_number'] != $item['best_rx_number']) {
+
+      if ($item['rx_dispensed_id']) {
+        log_error('switching item canceled because already dispensed', get_defined_vars());
+        continue;
+      }
+
       $items_to_sync[]   = ['SWITCH', 'RX_NUMBER != BEST_RX_NUMBER', $item];
       $items_to_add[]    = $item['best_rx_number'];
       $items_to_remove[] = $item['rx_number'];
