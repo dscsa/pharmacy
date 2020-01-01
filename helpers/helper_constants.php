@@ -92,7 +92,7 @@ const RX_MESSAGE = [
 
   //ACTION BY USER REQUIRED BEFORE (RE)FILL
 
-  ACTION EXPIRING' => [
+  'ACTION EXPIRING' => [
     'EN' => 'will expire soon, ask your doctor for a new Rx',
     'ES' => ''
   ],
