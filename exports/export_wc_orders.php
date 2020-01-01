@@ -53,6 +53,9 @@ function wc_get_or_new_order($order) {
 }
 
 function wc_insert($post_id, $meta_key, $meta_value) {
+
+  if ( ! $meta_value) return;
+
   global $mysql;
   $mysql = $mysql ?: new Mysql_Wc();
   $sql = "INSERT INTO wp_postmeta ('post_id', 'meta_key', 'meta_value') VALUES ('$post_id', '$meta_key', '$meta_value')";
@@ -61,6 +64,9 @@ function wc_insert($post_id, $meta_key, $meta_value) {
 }
 
 function wc_update($post_id, $meta_key, $meta_value) {
+
+  if ( ! $meta_value) return;
+
   global $mysql;
   $mysql = $mysql ?: new Mysql_Wc();
   $sql = "UPDATE wp_postmeta SET $meta_key = '$meta_value' WHERE post_id = $post_id";
@@ -70,14 +76,16 @@ function wc_update($post_id, $meta_key, $meta_value) {
 
 function wc_upsert($order_meta, $meta_key, $meta_value) {
 
-  if ( ! isset($order_meta[$meta_key]))
-    wc_insert($order_meta[0]['post_id'], $meta_key, $meta_value);
+  for ($order_meta as $meta) {
+    if ($meta['meta_key'] == $meta_key) {
+      if ($meta['meta_value'] == $meta_value)
+        return log_notice('wc_upsert aborted because wc is already up to date', get_defined_vars());
 
-  else if ($order_meta[$meta_key] != $meta_value)
-    wc_update($order_meta[0]['post_id'], $meta_key, $meta_value);
-
-  else
-    log_notice('wc_upsert unneccessary value is already correct', get_defined_vars());
+      return wc_update($meta['post_id'], $meta_key, $meta_value);
+    }
+  }
+  
+  wc_insert($order_meta[0]['post_id'], $meta_key, $meta_value);
 }
 
 function export_wc_update_order_metadata($order) {
