@@ -42,7 +42,7 @@ function import_stock_for_month($month_index, $mysql) {
   $next_query = "?start_key=[\"8889875187\",\"month\",\"$next[year]\",\"$next[month]\"]&end_key=[\"8889875187\",\"month\",\"$next[year]\",\"$next[month]\",{}]&group_level=5";
 
   $disposed_url = V2_IP.'/transaction/_design/disposed-by-generic/_view/disposed-by-generic'.$last_query;
-  $dispensed_url = V2_IP.'/transaction/_design/dispensed-by-generic/_view/dispensed-by-generic'.$last_query
+  $dispensed_url = V2_IP.'/transaction/_design/dispensed-by-generic/_view/dispensed-by-generic'.$last_query;
 
   $inventory = file_get_contents(V2_IP.'/transaction/_design/inventory-by-generic/_view/inventory-by-generic'.$next_query, false, $context);
   $entered  = file_get_contents(V2_IP.'/transaction/_design/entered-by-generic/_view/entered-by-generic'.$last_query, false, $context);
