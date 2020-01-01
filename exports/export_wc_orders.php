@@ -175,18 +175,20 @@ function wc_fetch($url, $method = 'GET', $content = []) {
       ]
   ];
 
-  $url = 'http://'.WC_IP."/wp-json/$url";
+  $url = WC_URL."/wp-json/$url";
 
   $context = stream_context_create($opts);
 
-  $response = file_get_contents($url, false, $context);
+  $res = file_get_contents($url, false, $context);
 
-  $response = json_decode($response, true);
+  $res_code = http_response_code();
 
-  if ($response['error'])
+  $res = json_decode($res, true);
+
+  if ($res['error'])
     return log_error("wc_fetch", get_defined_vars());
 
   log_notice("wc_fetch", get_defined_vars());
 
-  return $response;
+  return $res;
 }
