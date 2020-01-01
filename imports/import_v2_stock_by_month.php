@@ -40,13 +40,17 @@ function import_stock_for_month($month_index, $mysql) {
 
   $last_query = "?start_key=[\"8889875187\",\"month\",\"$last[year]\",\"$last[month]\"]&end_key=[\"8889875187\",\"month\",\"$last[year]\",\"$last[month]\",{}]&group_level=5";
   $next_query = "?start_key=[\"8889875187\",\"month\",\"$next[year]\",\"$next[month]\"]&end_key=[\"8889875187\",\"month\",\"$next[year]\",\"$next[month]\",{}]&group_level=5";
+
+  $disposed_url = V2_IP.'/transaction/_design/disposed-by-generic/_view/disposed-by-generic'.$last_query;
+  $dispensed_url = V2_IP.'/transaction/_design/dispensed-by-generic/_view/dispensed-by-generic'.$last_query
+
   $inventory = file_get_contents(V2_IP.'/transaction/_design/inventory-by-generic/_view/inventory-by-generic'.$next_query, false, $context);
   $entered  = file_get_contents(V2_IP.'/transaction/_design/entered-by-generic/_view/entered-by-generic'.$last_query, false, $context);
   $verified = file_get_contents(V2_IP.'/transaction/_design/verified-by-generic/_view/verified-by-generic'.$last_query, false, $context);
   $refused = file_get_contents(V2_IP.'/transaction/_design/refused-by-generic/_view/refused-by-generic'.$last_query, false, $context);
   $expired = file_get_contents(V2_IP.'/transaction/_design/expired-by-generic/_view/expired-by-generic'.$last_query, false, $context);
-  $disposed = file_get_contents(V2_IP.'/transaction/_design/disposed-by-generic/_view/disposed-by-generic'.$last_query, false, $context);
-  $dispensed = file_get_contents(V2_IP.'/transaction/_design/dispensed-by-generic/_view/dispensed-by-generic'.$last_query, false, $context);
+  $disposed = file_get_contents($disposed_url, false, $context);
+  $dispensed = file_get_contents($dispensed_url, false, $context);
 
   //email('import_v2_stock_by_month', V2_IP.'/transaction/_design/entered.qty-by-generic/_view/entered.qty-by-generic'.$last_query, $entered);
 
