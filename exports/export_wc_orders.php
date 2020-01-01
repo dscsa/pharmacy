@@ -38,18 +38,18 @@ function wc_get_or_new_order($order) {
   $last_name = $order[0]['last_name'];
   $birth_date = $order[0]['birth_date'];
 
-  $order = wc_select_order($invoice_number);
+  $order_meta = wc_select_order($invoice_number);
 
-  if ( ! $order) {
+  if ( ! $order_meta) {
 
     $response = wc_fetch("patient/$first_name $last_name $birth_date/order/$invoice_number");
 
-    $order = $response['order'];
+    $order_meta = $response['order'];
 
     log_notice('wc_get_or_new_order: created new order', get_defined_vars());
   }
 
-  return $order;
+  return $order_meta;
 }
 
 function wc_insert($post_id, $meta_key, $meta_value) {
@@ -76,7 +76,7 @@ function wc_update($post_id, $meta_key, $meta_value) {
 
 function wc_upsert($order_meta, $meta_key, $meta_value) {
 
-  for ($order_meta as $meta) {
+  foreach ($order_meta as $meta) {
     if ($meta['meta_key'] == $meta_key) {
       if ($meta['meta_value'] == $meta_value)
         return log_notice('wc_upsert aborted because wc is already up to date', get_defined_vars());
@@ -84,7 +84,7 @@ function wc_upsert($order_meta, $meta_key, $meta_value) {
       return wc_update($meta['post_id'], $meta_key, $meta_value);
     }
   }
-  
+
   wc_insert($order_meta[0]['post_id'], $meta_key, $meta_value);
 }
 
@@ -95,6 +95,26 @@ function export_wc_update_order_metadata($order) {
   if ( ! $order_meta OR ! $order_meta[0]['post_id'])
     return log_error('export_wc_update_order_metadata: no order exists with this invoice number', get_defined_vars());
 
+  if ($order[0]['payment_method'] == PAYMENT_METHOD['COUPON'])
+    $payment_method = null;
+
+  else if ($order[0]['payment_method'] == PAYMENT_METHOD['AUTOPAY'])
+    $payment_method = 'stripe';
+
+  else if ($order[0]['payment_method'] == PAYMENT_METHOD['MANUAL'])
+    $payment_method = 'cheque';
+
+  else
+    log_error('export_wc_update_order_payment: update_order_payment: UNKNOWN Payment Method', get_defined_vars());
+
+  //Native Fields
+  wc_upsert($order_meta, 'shipping_method_id', ['31694']);
+  wc_upsert($order_meta, 'shipping_method_title', ['31694' => 'Admin Fee']);
+  wc_upsert($order_meta, 'post_status', $order[0]['payment_method']);
+  wc_upsert($order_meta, '_payment_method', $payment_method);
+  wc_upsert($order_meta, '_coupon_lines', [["code" => $order[0]['payment_coupon']]]);
+
+  //Custom Fields
   wc_upsert($order_meta, 'tracking_number', $order[0]['tracking_number']);
   wc_upsert($order_meta, 'patient_id_cp', $order[0]['patient_id_cp']);
   wc_upsert($order_meta, 'order_date_added', $order[0]['order_date_added']);
@@ -132,39 +152,16 @@ function export_wc_update_order_shipping($order) {
   wc_upsert($order_meta, '_shipping_postcode', $order[0]['order_zip']);
 }
 
-function export_wc_update_order_payment($order) {
+function export_wc_update_order_payment($invoice_number, $payment_fee) {
 
-  $update = [
-    "status" => $order[0]['payment_method'],
-    "shipping_lines" => [
-      ["method_id" => "flat_rate", "total" => $order[0]['payment_fee']]
-    ]
-  ];
-
-  if ($order[0]['payment_method'] == PAYMENT_METHOD['COUPON'])
-    $payment_method = null;
-
-  else if ($order[0]['payment_method'] == PAYMENT_METHOD['AUTOPAY'])
-    $payment_method = 'stripe';
-
-  else if ($order[0]['payment_method'] == PAYMENT_METHOD['MANUAL'])
-    $payment_method = 'cheque';
-
-  else
-    log_error('export_wc_update_order_payment: update_order_payment: UNKNOWN Payment Method', get_defined_vars());
-
-  $order_meta = wc_get_or_new_order($order);
+  $order_meta = wc_select_order($invoice_number);
 
   if ( ! $order_meta OR ! $order_meta[0]['post_id'])
     return log_error('export_wc_update_order_payment: no order exists with this invoice number', get_defined_vars());
 
-  wc_upsert($order_meta, 'shipping_method_id', ['31694']);
-  wc_upsert($order_meta, 'shipping_method_title', ['31694' => 'Admin Fee']);
-  wc_upsert($order_meta, 'shipping_cost', ['31694' => $order[0]['payment_fee']]);
-  wc_upsert($order_meta, 'post_status', $order[0]['payment_method']);
-  wc_upsert($order_meta, '_payment_method', $payment_method);
-  wc_upsert($order_meta, '_coupon_lines', [["code" => $order[0]['payment_coupon']]]);
+  wc_upsert($order_meta, 'shipping_cost', ['31694' => $payment_fee]);
 }
+
 
 function wc_fetch($url, $method = 'GET', $content = []) {
 

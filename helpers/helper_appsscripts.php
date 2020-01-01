@@ -48,6 +48,7 @@ function watch_invoices() {
     log_notice('watch_invoices', get_defined_vars());
 
     set_payment_actual($invoice_number[0][0], $payment, $mysql);
+    export_wc_update_order_payment($invoice_number[0][0], $payment['fee']);
   }
 
   return $invoices;
