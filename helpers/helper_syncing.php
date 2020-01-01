@@ -1,7 +1,7 @@
 <?php
 
 //Remove Only flag so that once we communicate what's in an order to a patient we "lock" it, so that if new SureScript come in we remove them so we don't surprise a patient with new drugs
-function sync_to_order($order, $remove_only = false) {
+function sync_to_order($order, $updated = null) {
 
   $items_to_sync   = [];
   $items_to_add    = [];
@@ -48,9 +48,12 @@ function sync_to_order($order, $remove_only = false) {
     }
   }
 
-  export_cp_remove_items($item['invoice_number'], $items_to_remove, $remove_only, $order);
-  if ( ! $remove_only) export_cp_add_items($item['invoice_number'], $items_to_add);
-  else log_notice('sync_to_order items NOT added', get_defined_vars());
+  export_cp_remove_items($item['invoice_number'], $items_to_remove, $updated);
+
+  if ( ! $updated)
+    export_cp_add_items($item['invoice_number'], $items_to_add);
+  else
+    log_notice('sync_to_order items NOT added', get_defined_vars());
 
   return $items_to_sync;
 }

@@ -171,7 +171,7 @@ function update_orders() {
     }
 
     //Remove only (e.g. new surescript comes in), let's not add more drugs to their order since communication already went out
-    $items_to_sync = sync_to_order($order, true);
+    $items_to_sync = sync_to_order($order, $updated);
     if ($items_to_sync) {
       log_notice('sync_to_order: updated', get_defined_vars());
     }
