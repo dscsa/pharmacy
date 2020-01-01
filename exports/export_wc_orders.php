@@ -6,11 +6,11 @@ function export_wc_delete_order($order) {
 
   $order_meta = wc_select_order($order[0]['invoice_number']);
 
-  if ( ! $order_meta OR ! $order_meta['post_id'])
+  if ( ! $order_meta OR ! $order_meta[0]['post_id'])
     return log_error('export_wc_delete_order: no order exists with this invoice number', get_defined_vars());
 
-  $sql1 = "DELETE FROM wp_posts WHERE id = $order_meta[post_id]";
-  $sql2 = "DELETE FROM wp_postmeta WHERE post_id = $order_meta[post_id]";
+  $sql1 = "DELETE FROM wp_posts WHERE id = ".$order_meta[0]['post_id'];
+  $sql2 = "DELETE FROM wp_postmeta WHERE post_id = ".$order_meta[0]['post_id'];
 
   log_notice("export_wc_delete_order", get_defined_vars());//.print_r($item, true);
 }
@@ -24,10 +24,10 @@ function wc_select_order($invoice_number) {
 
   $order_meta = $mysql->run($sql);
 
-  log_notice('wc_select no matching order', get_defined_vars());
-
   if ($order_meta)
     return $order_meta[0];
+
+  log_notice('wc_select no matching order', get_defined_vars());
 }
 
 //Select or Insert
@@ -71,10 +71,10 @@ function wc_update($post_id, $meta_key, $meta_value) {
 function wc_upsert($order_meta, $meta_key, $meta_value) {
 
   if ( ! isset($order_meta[$meta_key]))
-    wc_insert($order_meta['post_id'], $meta_key, $meta_value);
+    wc_insert($order_meta[0]['post_id'], $meta_key, $meta_value);
 
   else if ($order_meta[$meta_key] != $meta_value)
-    wc_update($order_meta['post_id'], $meta_key, $meta_value);
+    wc_update($order_meta[0]['post_id'], $meta_key, $meta_value);
 
   else
     log_notice('wc_upsert unneccessary value is already correct', get_defined_vars());
@@ -84,7 +84,7 @@ function export_wc_update_order_metadata($order) {
 
   $order_meta = wc_get_or_new_order($order);
 
-  if ( ! $order_meta OR ! $order_meta['post_id'])
+  if ( ! $order_meta OR ! $order_meta[0]['post_id'])
     return log_error('export_wc_update_order_metadata: no order exists with this invoice number', get_defined_vars());
 
   wc_upsert($order_meta, 'tracking_number', $order[0]['tracking_number']);
@@ -107,7 +107,7 @@ function export_wc_update_order_shipping($order) {
 
   $order_meta = wc_get_or_new_order($order);
 
-  if ( ! $order_meta OR ! $order_meta['post_id'])
+  if ( ! $order_meta OR ! $order_meta[0]['post_id'])
     return log_error('export_wc_update_order_shipping: no order exists with this invoice number', get_defined_vars());
 
   wc_upsert($order_meta, '_shipping_first_name', $order[0]['first_name']);
@@ -147,7 +147,7 @@ function export_wc_update_order_payment($order) {
 
   $order_meta = wc_get_or_new_order($order);
 
-  if ( ! $order_meta OR ! $order_meta['post_id'])
+  if ( ! $order_meta OR ! $order_meta[0]['post_id'])
     return log_error('export_wc_update_order_payment: no order exists with this invoice number', get_defined_vars());
 
   wc_upsert($order_meta, 'shipping_method_id', ['31694']);
