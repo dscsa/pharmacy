@@ -175,7 +175,7 @@ function wc_fetch($url, $method = 'GET', $content = []) {
       ]
   ];
 
-  $url = WC_IP."/wp-json/$url";
+  $url = 'http://'.WC_IP."/wp-json/$url";
 
   $context = stream_context_create($opts);
 
