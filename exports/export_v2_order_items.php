@@ -87,7 +87,7 @@ function print_pick_list($item, $vals) {
       "Days:$item[days_dispensed_default], ".
       "Qty:$item[qty_dispensed_default] ($vals[qty]), ".
       "Stock:$item[stock_level_initial], ".
-      ", Created:$item[item_date_added]", '', '', '', '', ''
+      "Created:$item[item_date_added]", '', '', '', '', ''
     ],
     ['', '', '', '', '', ''],
     ['id', 'ndc', 'form', 'exp', 'qty', 'bin']
