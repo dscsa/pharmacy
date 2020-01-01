@@ -14,7 +14,7 @@ function order_dispensed_notice($groups) {
 
   $email['message'] = implode('<br>', [
 
-    $email['subject'].' '.$days_ago.' day ago. Please either add tracking number to guardian or erase the "Order Failed" event.'
+    $email['subject'].' '.$days_ago.' day ago. Please add a tracking number.'
 
   ]);
 
