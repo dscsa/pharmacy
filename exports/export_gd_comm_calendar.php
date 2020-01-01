@@ -386,6 +386,8 @@ function order_canceled_notice($order) {
     '',
     $subject.'. '.$message,
     '',
+    json_encode($order),
+    '',
     'Thanks!',
     'The Good Pill Team',
     '',
