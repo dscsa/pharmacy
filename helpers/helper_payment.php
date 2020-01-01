@@ -72,7 +72,7 @@ function set_payment_actual($invoice_number, $payment, $mysql) {
     SET
       payment_total_actual = $payment[total],
       payment_fee_actual   = $payment[fee],
-      payment_due_actual   = $payment[due],
+      payment_due_actual   = $payment[due]
     WHERE
       invoice_number = $invoice_number
   ";
