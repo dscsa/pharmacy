@@ -34,11 +34,11 @@ const RX_MESSAGE = [
     'ES' => ''
   ],
   'NO ACTION PAST DUE AND SYNC TO ORDER' => [
-    'EN' => 'is past due and was synced to this Order *',
+    'EN' => 'is past due so synced to Order*',
     'ES' => ''
   ],
   'NO ACTION DUE SOON AND SYNC TO ORDER' => [
-    'EN' => 'is due soon and was synced to this Order *',
+    'EN' => 'is due soon so synced to Order*',
     'ES' => ''
   ],
   'NO ACTION SYNC TO DATE' => [
@@ -50,11 +50,11 @@ const RX_MESSAGE = [
     'ES' => ''
   ],
   'NO ACTION RECENT FILL' => [
-    'EN' => 'was filled recently and not due again until refill_date_next',
+    'EN' => 'filled on refill_date_last and due on refill_date_next',
     'ES' => ''
   ],
   'NO ACTION NOT DUE' => [
-    'EN' => 'is due for a refill on refill_date_next',
+    'EN' => 'is not due until refill_date_next',
     'ES' => ''
   ],
   'NO ACTION CHECK SIG' => [
@@ -62,7 +62,11 @@ const RX_MESSAGE = [
     'ES' => ''
   ],
   'NO ACTION MISSING GSN' => [
-    'EN' => 'needs to be checked to see if it is available',
+    'EN' => "is being checked if it's available",
+    'ES' => ''
+  ],
+  'NO ACTION NEW GSN' => [
+    'EN' => 'is being verified',
     'ES' => ''
   ],
   'NO ACTION LOW STOCK' => [
@@ -85,14 +89,6 @@ const RX_MESSAGE = [
     'EN' => 'was transferred out to your local pharmacy on rx_date_changed',
     'ES' => ''
   ],
-  'NO ACTION LIVE INVENTORY ERROR' => [
-    'EN' => 'is awaiting manual inventory verification',
-    'ES' => ''
-  ],
-  'NO ACTION SHOPPING ERROR' => [
-    'EN' => 'is awaiting manual inventory retrieval',
-    'ES' => ''
-  ],'
 
   //ACTION BY USER REQUIRED BEFORE (RE)FILL
 

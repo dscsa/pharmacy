@@ -84,7 +84,7 @@ function get_days_default($item) {
 
   if ( ! $item['refill_date_first'] AND $not_offered) {
     log_info("REFILLS SHOULD NOT HAVE A NOT OFFERED STATUS", get_defined_vars());
-    return [days_default($item), RX_MESSAGE['NO ACTION LIVE INVENTORY ERROR']];
+    return [days_default($item), RX_MESSAGE['NO ACTION NEW GSN']];
   }
 
   if ( ! $item['rx_autofill']) { //InOrder is implied here
