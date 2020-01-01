@@ -3,6 +3,28 @@
 require_once 'dbs/mysql_wc.php';
 require_once 'helpers/helper_changes.php';
 
+//As of 2019-12-31 there are 32000 order items and this will only grow with time.
+//Rather than import all of them, we only import unshipped ones.
+//We want to detect deletions of "unshipped" ones (Cindy adjusting the order)
+//BUT leave "shipped" ones alone (although these will appear to have been deleted since they are not imported)
+function order_items_set_deleted_sql($new, $old, $id) {
+
+  $join = join_clause($id);
+
+  return "
+    DELETE
+      old
+    FROM
+      $new as new
+    RIGHT JOIN $old as old ON
+      $join
+    WHERE
+      new.$id IS NULL
+    AND
+      new.days_dispensed_actual IS NULL
+  ";
+}
+
 function changes_to_order_items($new) {
   $mysql = new Mysql_Wc();
 
@@ -27,8 +49,8 @@ function changes_to_order_items($new) {
   //Get Updated
   $updated = $mysql->run(get_updated_sql($new, $old, $id, $where));
 
-  //Save Deletes
-  $mysql->run(set_deleted_sql($new, $old, $id));
+  //NOTICE THIS IS A CUSTOMIZED FUNCTION!!!
+  $mysql->run(order_items_set_deleted_sql($new, $old, $id));
 
   //Save Inserts
   $mysql->run(set_created_sql($new, $old, $id));
