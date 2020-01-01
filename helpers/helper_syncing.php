@@ -125,7 +125,7 @@ function set_sync_to_date($order, $target_date, $target_rxs, $mysql) {
           gp_order_items
         SET
           item_message_key        = 'NO ACTION SYNC TO DATE',
-          item_message_text       = '".RX_MESSAGE['NO ACTION SYNC TO DATE'][$item['language']]."',
+          item_message_text       = '".message_text(RX_MESSAGE['NO ACTION SYNC TO DATE'], $order[$i])."',
           refill_target_date      = '$target_date',
           refill_target_days      = ".($new_days_default - $old_days_default).",
           refill_target_rxs       = '$target_rxs',

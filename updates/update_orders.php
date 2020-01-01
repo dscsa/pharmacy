@@ -112,15 +112,16 @@ function update_orders() {
       continue; //DON'T CREATE THE ORDER UNTIL THESE ITEMS ARE SYNCED TO AVOID CONFLICTING COMMUNICATIONS!
     }
 
+    //Needs to be called before "$groups" is set
+    list($target_date, $target_rxs) = get_sync_to_date($order);
+    $order  = set_sync_to_date($order, $target_date, $target_rxs, $mysql);
+
     $groups = group_drugs($order, $mysql);
 
     if ( ! $groups['COUNT_FILLED'] AND $groups['ALL'][0]['item_message_key'] != 'ACTION NEEDS FORM') {
       log_notice("Created Order But Not Filling Any?", get_defined_vars());
       continue;
     }
-
-    list($target_date, $target_rxs) = get_sync_to_date($order);
-    $order  = set_sync_to_date($order, $target_date, $target_rxs, $mysql);
 
     helper_update_payment($order, $mysql);
     export_wc_update_order_metadata($order);
@@ -178,6 +179,10 @@ function update_orders() {
 
     $stage_change = $updated['order_stage'] != $updated['old_order_stage'];
 
+    //Needs to be called before "$groups" is set
+    list($target_date, $target_rxs) = get_sync_to_date($order);
+    $order = set_sync_to_date($order, $target_date, $target_rxs, $mysql);
+
     $groups = group_drugs($order, $mysql);
 
     if ($stage_change AND $updated['order_date_shipped']) {
@@ -203,10 +208,6 @@ function update_orders() {
       log_info("Updated Order Stage Change", get_defined_vars());
       continue;
     }
-
-    //Usually count_items changed
-    list($target_date, $target_rxs) = get_sync_to_date($order);
-    $order = set_sync_to_date($order, $target_date, $target_rxs, $mysql);
 
     //Usually count_items changed
     helper_update_payment($order, $mysql);

@@ -42,7 +42,7 @@ const RX_MESSAGE = [
     'ES' => ''
   ],
   'NO ACTION SYNC TO DATE' => [
-    'EN' => 'is due soon and was synced to this Order *',
+    'EN' => 'is due soon and was synced to refill_target_date',
     'ES' => ''
   ],
   'NO ACTION RX OFF AUTOFILL' => [
