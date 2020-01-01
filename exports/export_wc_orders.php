@@ -148,7 +148,7 @@ function export_wc_update_order_payment($order) {
   $order_meta = wc_get_or_new_order($order);
 
   if ( ! $order_meta OR ! $order_meta['post_id'])
-    return log_error('no order exists with this invoice number', get_defined_vars());
+    return log_error('export_wc_update_order_payment: no order exists with this invoice number', get_defined_vars());
 
   wc_upsert($order_meta, 'shipping_method_id', ['31694']);
   wc_upsert($order_meta, 'shipping_method_title', ['31694' => 'Admin Fee']);
@@ -175,9 +175,7 @@ function wc_fetch($url, $method = 'GET', $content = []) {
       ]
   ];
 
-  $url = WC_IP."/wp-json/wc/v2/$url";
-
-
+  $url = WC_IP."/wp-json/$url";
 
   $context = stream_context_create($opts);
 
