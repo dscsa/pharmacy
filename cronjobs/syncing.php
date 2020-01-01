@@ -63,6 +63,9 @@ $email .= timer("update_order_items", $time);
 update_orders();
 $email .= timer("update_orders", $time);
 
+watch_invoices();
+$email .= timer("watch_invoices", $time);
+
 if ($email) {
   //log_info("WebForm CRON Finished", get_defined_vars());
 }

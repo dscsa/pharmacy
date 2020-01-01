@@ -5,7 +5,7 @@ require_once 'exports/export_gd_orders.php';
 
 function helper_update_payment($order, $mysql) {
   $update = get_payment($order);
-  $order  = set_payment($order, $update, $mysql);
+  $order  = set_payment_default($order, $update, $mysql);
 
   export_gd_update_invoice($order);
   export_gd_publish_invoices($order);
@@ -42,16 +42,16 @@ function get_payment($order) {
   return $update;
 }
 
-function set_payment($order, $update, $mysql) {
+function set_payment_default($order, $update, $mysql) {
 
   $sql = "
     UPDATE
       gp_orders
     SET
-      payment_total = $update[payment_total],
-      payment_fee   = $update[payment_fee],
-      payment_due   = $update[payment_due],
-      payment_date_autopay = $update[payment_date_autopay]
+      payment_total_default = $update[payment_total],
+      payment_fee_default   = $update[payment_fee],
+      payment_due_default   = $update[payment_due],
+      payment_date_autopay  = $update[payment_date_autopay]
     WHERE
       invoice_number = {$order[0]['invoice_number']}
   ";
@@ -62,4 +62,20 @@ function set_payment($order, $update, $mysql) {
     $order[$i] = $update + $item;
 
   return $order;
+}
+
+function set_payment_actual($invoice_number, $payment, $mysql) {
+
+  $sql = "
+    UPDATE
+      gp_orders
+    SET
+      payment_total_actual = $payment[total],
+      payment_fee_actual   = $payment[fee],
+      payment_due_actual   = $payment[due],
+    WHERE
+      invoice_number = $invoice_number
+  ";
+
+  $mysql->run($sql);
 }

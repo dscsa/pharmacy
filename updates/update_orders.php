@@ -8,7 +8,6 @@ require_once 'exports/export_wc_orders.php';
 
 function update_orders() {
 
-  watch_invoices();
   $changes = changes_to_orders("gp_orders_cp");
 
   $count_deleted = count($changes['deleted']);
