@@ -38,7 +38,7 @@ function unpend_pick_list($item) {
 
   $result = gdoc_post(GD_HELPER_URL, $args);
 
-  log_notice("unpend_pick_list", get_defined_vars());
+  //log_notice("unpend_pick_list", get_defined_vars());
 }
 
 function save_pick_list($item, $vals, $mysql) {
