@@ -19,7 +19,7 @@ function orders_set_deleted_sql($new, $old, $id) {
     WHERE
       new.$id IS NULL
     AND
-      tracking_number IS NOT NULL
+      old.tracking_number IS NULL
   ";
 }
 
