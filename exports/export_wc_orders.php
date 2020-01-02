@@ -88,7 +88,7 @@ function wc_upsert($order_meta, $meta_key, $meta_value) {
   foreach ($order_meta as $meta) {
     if ($meta['meta_key'] == $meta_key) {
       if ($meta['meta_value'] == $meta_value)
-        return log_notice('wc_upsert aborted because wc is already up to date', get_defined_vars());
+        return; //log_notice('wc_upsert aborted because wc is already up to date', get_defined_vars());
 
       return wc_update($meta['post_id'], $meta_key, $meta_value);
     }
