@@ -141,8 +141,21 @@ function update_orders() {
   //  - update wc order total
   foreach($changes['deleted'] as $deleted) {
 
-    if ($deleted['tracking_number'])
-      log_error('Error? Order with tracking number was deleted', get_defined_vars());
+
+    //Order was Returned to Sender
+    if ($deleted['tracking_number']) {
+
+      set_payment_actual($deleted['invoice_number'], 0, $mysql);
+      export_wc_update_order_payment($deleted['invoice_number'], 0);
+
+      $sql = "
+        UPDATE gp_orders SET order_date_returned = GETDATE() WHERE invoice_number = $deleted[invoice_number]
+      ";
+
+      $mysql->run($sql);
+
+      return log_error('Confirm this order was returned! Order with tracking number was deleted', get_defined_vars());
+    }
 
     export_gd_delete_invoice([$deleted]);
 
@@ -150,10 +163,17 @@ function update_orders() {
 
     export_v2_unpend_order([$deleted]);
 
-    send_deleted_order_communications([$deleted]);
+    $sql = "
+      SELECT * FROM gp_patients WHERE patient_id_cp = $deleted[patient_id_cp]
+    ";
 
+    $patient = $mysql->run($sql)[0];
 
-    //TODO Update Salesforce Order Total & Order Count & Order Invoice using REST API or a MYSQL Zapier Integration
+    if ( ! $patient)
+      log_error('No patient associated with deleted order', get_defined_vars());
+
+    if ($patient['pharmacy_name']) //Cindy deletes "Needs Form" orders and we don't want to confuse them with a canceled communication
+      send_deleted_order_communications([$deleted]);
   }
 
   //If just updated we need to
@@ -187,6 +207,7 @@ function update_orders() {
     if ($stage_change AND $updated['order_date_shipped']) {
       export_wc_update_order_metadata($order);
       export_wc_update_order_shipping($order);
+      export_v2_unpend_order($order);
       send_shipped_order_communications($groups);
       log_notice("Updated Order Shipped", get_defined_vars());
       continue;
@@ -198,6 +219,7 @@ function update_orders() {
       helper_update_payment($order, $mysql);
       export_wc_update_order_metadata($order);
       export_wc_update_order_shipping($order);
+      export_v2_unpend_order($order);
       send_dispensed_order_communications($groups);
       //log_notice("Updated Order Dispensed", get_defined_vars());
       continue;

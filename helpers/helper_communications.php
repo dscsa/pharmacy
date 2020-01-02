@@ -117,7 +117,6 @@ function send_deleted_order_communications($order) {
 
   //TODO We need something here!
   order_canceled_notice($order);
-  log_info('Order was deleted', get_defined_vars());
 }
 
 function send_shipped_order_communications($groups) {
