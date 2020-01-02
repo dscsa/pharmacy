@@ -58,7 +58,7 @@ function save_pick_list($item, $vals, $mysql) {
       rx_number = $item[rx_number]
   ";
 
-  log_notice('save_pick_list', get_defined_vars());
+  //log_notice('save_pick_list', get_defined_vars());
 
   $mysql->run($sql);
 }

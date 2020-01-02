@@ -47,13 +47,13 @@ function wc_get_or_new_order($order) {
     $order_meta = $response['order'];
 
     //These are the metadata that should NOT change
-    wc_upsert($order_meta, 'shipping_method_id', ['31694']);
-    wc_upsert($order_meta, 'shipping_method_title', ['31694' => 'Admin Fee']);
-    wc_upsert($order_meta, 'patient_id_cp', $order[0]['patient_id_cp']);
-    wc_upsert($order_meta, 'order_date_added', $order[0]['order_date_added']);
-    wc_upsert($order_meta, 'refills_used', $order[0]['refills_used']);
-    wc_upsert($order_meta, 'patient_autofill', $order[0]['patient_autofill']);
-    wc_upsert($order_meta, 'order_source', $order[0]['order_source']);
+    wc_upsert_meta($order_meta, 'shipping_method_id', ['31694']);
+    wc_upsert_meta($order_meta, 'shipping_method_title', ['31694' => 'Admin Fee']);
+    wc_upsert_meta($order_meta, 'patient_id_cp', $order[0]['patient_id_cp']);
+    wc_upsert_meta($order_meta, 'order_date_added', $order[0]['order_date_added']);
+    wc_upsert_meta($order_meta, 'refills_used', $order[0]['refills_used']);
+    wc_upsert_meta($order_meta, 'patient_autofill', $order[0]['patient_autofill']);
+    wc_upsert_meta($order_meta, 'order_source', $order[0]['order_source']);
 
     log_notice('wc_get_or_new_order: created new order', get_defined_vars());
   }
@@ -61,49 +61,58 @@ function wc_get_or_new_order($order) {
   return $order_meta;
 }
 
-function wc_insert($post_id, $meta_key, $meta_value) {
+function wc_insert_meta($post_id, $meta_key, $meta_value) {
 
   if ( ! $meta_value) return;
 
   global $mysql;
   $mysql = $mysql ?: new Mysql_Wc();
   $sql = "INSERT INTO wp_postmeta ('post_id', 'meta_key', 'meta_value') VALUES ('$post_id', '$meta_key', '$meta_value')";
-  //log_notice('wc_insert', get_defined_vars());
+  //log_notice('wc_insert_meta', get_defined_vars());
   //$mysql->run($sql);
 }
 
-function wc_update($post_id, $meta_key, $meta_value) {
+function wc_update_meta($post_id, $meta_key, $meta_value) {
 
   if ( ! $meta_value) return;
 
   global $mysql;
   $mysql = $mysql ?: new Mysql_Wc();
   $sql = "UPDATE wp_postmeta SET $meta_key = '$meta_value' WHERE post_id = $post_id";
-  log_notice('wc_update', get_defined_vars());
+  log_notice('wc_update_meta', get_defined_vars());
   //$mysql->run($sql);
 }
 
-function wc_upsert($order_meta, $meta_key, $meta_value) {
+function wc_update_status($post_id, $post_status) {
+
+  global $mysql;
+  $mysql = $mysql ?: new Mysql_Wc();
+  $sql = "UPDATE wp_posts SET 'post_status' = '$post_status' WHERE post_id = $post_id";
+  log_notice('wc_update_status', get_defined_vars());
+  //$mysql->run($sql);
+}
+
+function wc_upsert_meta($order_meta, $meta_key, $meta_value) {
 
   foreach ($order_meta as $meta) {
     if ($meta['meta_key'] == $meta_key) {
       if ($meta['meta_value'] == $meta_value)
-        return; //log_notice('wc_upsert aborted because wc is already up to date', get_defined_vars());
+        return; //log_notice('wc_upsert_meta aborted because wc is already up to date', get_defined_vars());
 
-      return wc_update($meta['post_id'], $meta_key, $meta_value);
+      return wc_update_meta($meta['post_id'], $meta_key, $meta_value);
     }
   }
 
-  wc_insert($order_meta[0]['post_id'], $meta_key, $meta_value);
+  wc_insert_meta($order_meta[0]['post_id'], $meta_key, $meta_value);
 }
 
 //These are the ones that might change
-function export_wc_update_order_metadata($order) {
+function export_wc_update_meta_order_metadata($order) {
 
   $order_meta = wc_get_or_new_order($order);
 
   if ( ! $order_meta OR ! $order_meta[0]['post_id'])
-    return log_error('export_wc_update_order_metadata: no order exists with this invoice number', get_defined_vars());
+    return log_error('export_wc_update_meta_order_metadata: no order exists with this invoice number', get_defined_vars());
 
   //Native Fields
   if ($order[0]['payment_method'] == PAYMENT_METHOD['COUPON'])
@@ -116,60 +125,60 @@ function export_wc_update_order_metadata($order) {
     $payment_method = 'cheque';
 
   else
-    log_error('export_wc_update_order_payment: update_order_payment: UNKNOWN Payment Method', get_defined_vars());
+    log_error('export_wc_update_meta_order_payment: update_order_payment: UNKNOWN Payment Method', get_defined_vars());
 
-  wc_upsert($order_meta, '_payment_method', $payment_method);
-  wc_upsert($order_meta, 'order_stage', $order[0]['order_stage']);
-  wc_upsert($order_meta, 'order_status', $order[0]['order_status']);
-  wc_upsert($order_meta, 'invoice_doc_id', $order[0]['invoice_doc_id']);
+  wc_upsert_status($order_meta, 'post_status', $order[0]['payment_method']);
+  wc_upsert_meta($order_meta, '_payment_method', $payment_method);
+  wc_upsert_meta($order_meta, 'order_stage', $order[0]['order_stage']);
+  wc_upsert_meta($order_meta, 'order_status', $order[0]['order_status']);
+  wc_upsert_meta($order_meta, 'invoice_doc_id', $order[0]['invoice_doc_id']);
 
   if ($order[0]['payment_coupon'])
-    wc_upsert($order_meta, '_coupon_lines', [["code" => $order[0]['payment_coupon']]]);
+    wc_upsert_meta($order_meta, '_coupon_lines', [["code" => $order[0]['payment_coupon']]]);
 
   if ($order[0]['order_date_dispensed']) {
-    wc_upsert($order_meta, 'order_date_dispensed', $order[0]['order_date_dispensed']);
-    wc_upsert($order_meta, 'invoice_doc_id', $order[0]['invoice_doc_id']);
-    wc_upsert($order_meta, 'count_items', $order[0]['count_items']);
-    wc_upsert($order_meta, 'count_filled', $order[0]['count_filled']);
-    wc_upsert($order_meta, 'count_nofill', $order[0]['count_nofill']);
+    wc_upsert_meta($order_meta, 'order_date_dispensed', $order[0]['order_date_dispensed']);
+    wc_upsert_meta($order_meta, 'invoice_doc_id', $order[0]['invoice_doc_id']);
+    wc_upsert_meta($order_meta, 'count_items', $order[0]['count_items']);
+    wc_upsert_meta($order_meta, 'count_filled', $order[0]['count_filled']);
+    wc_upsert_meta($order_meta, 'count_nofill', $order[0]['count_nofill']);
   }
 
   if ($order[0]['tracking_number']) { //Keep status the same until it is shipped
-    wc_upsert($order_meta, 'post_status', $order[0]['payment_method']);
-    wc_upsert($order_meta, 'tracking_number', $order[0]['tracking_number']);
-    wc_upsert($order_meta, 'order_date_shipped', $order[0]['order_date_shipped']);
+    wc_upsert_meta($order_meta, 'tracking_number', $order[0]['tracking_number']);
+    wc_upsert_meta($order_meta, 'order_date_shipped', $order[0]['order_date_shipped']);
   }
 }
 
-function export_wc_update_order_shipping($order) {
+function export_wc_update_meta_order_shipping($order) {
 
   $order_meta = wc_get_or_new_order($order);
 
   if ( ! $order_meta OR ! $order_meta[0]['post_id'])
-    return log_error('export_wc_update_order_shipping: no order exists with this invoice number', get_defined_vars());
+    return log_error('export_wc_update_meta_order_shipping: no order exists with this invoice number', get_defined_vars());
 
-  wc_upsert($order_meta, '_shipping_first_name', $order[0]['first_name']);
-  wc_upsert($order_meta, '_shipping_last_name', $order[0]['last_name']);
-  wc_upsert($order_meta, '_shipping_email', $order[0]['email']);
-  wc_upsert($order_meta, '_shipping_phone', $order[0]['phone1']);
-  wc_upsert($order_meta, '_billing_phone', $order[0]['phone2']);
+  wc_upsert_meta($order_meta, '_shipping_first_name', $order[0]['first_name']);
+  wc_upsert_meta($order_meta, '_shipping_last_name', $order[0]['last_name']);
+  wc_upsert_meta($order_meta, '_shipping_email', $order[0]['email']);
+  wc_upsert_meta($order_meta, '_shipping_phone', $order[0]['phone1']);
+  wc_upsert_meta($order_meta, '_billing_phone', $order[0]['phone2']);
 
 
-  wc_upsert($order_meta, '_shipping_address_1', $order[0]['order_address1']);
-  wc_upsert($order_meta, '_shipping_address_2', $order[0]['order_address2']);
-  wc_upsert($order_meta, '_shipping_city', $order[0]['order_city']);
-  wc_upsert($order_meta, '_shipping_state', $order[0]['order_state']);
-  wc_upsert($order_meta, '_shipping_postcode', $order[0]['order_zip']);
+  wc_upsert_meta($order_meta, '_shipping_address_1', $order[0]['order_address1']);
+  wc_upsert_meta($order_meta, '_shipping_address_2', $order[0]['order_address2']);
+  wc_upsert_meta($order_meta, '_shipping_city', $order[0]['order_city']);
+  wc_upsert_meta($order_meta, '_shipping_state', $order[0]['order_state']);
+  wc_upsert_meta($order_meta, '_shipping_postcode', $order[0]['order_zip']);
 }
 
-function export_wc_update_order_payment($invoice_number, $payment_fee) {
+function export_wc_update_meta_order_payment($invoice_number, $payment_fee) {
 
   $order_meta = wc_select_order($invoice_number);
 
   if ( ! $order_meta OR ! $order_meta[0]['post_id'])
-    return log_error('export_wc_update_order_payment: no order exists with this invoice number', get_defined_vars());
+    return log_error('export_wc_update_meta_order_payment: no order exists with this invoice number', get_defined_vars());
 
-  wc_upsert($order_meta, 'shipping_cost', ['31694' => $payment_fee]);
+  wc_upsert_meta($order_meta, 'shipping_cost', ['31694' => $payment_fee]);
 }
 
 
