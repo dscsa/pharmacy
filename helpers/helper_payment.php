@@ -8,8 +8,6 @@ function helper_update_payment($order, $mysql) {
   $order  = set_payment_default($order, $update, $mysql);
 
   export_gd_update_invoice($order);
-  export_gd_publish_invoices($order);
-
   export_wc_update_order_payment($order[0]['invoice_number'], $order[0]['payment_fee']);
 }
 

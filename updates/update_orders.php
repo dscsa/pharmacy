@@ -205,6 +205,7 @@ function update_orders() {
     $groups = group_drugs($order, $mysql);
 
     if ($stage_change AND $updated['order_date_shipped']) {
+      export_gd_publish_invoice($order);
       export_wc_update_order_metadata($order);
       export_wc_update_order_shipping($order);
       export_v2_unpend_order($order);
@@ -217,6 +218,7 @@ function update_orders() {
     //Update invoice now or wait until shipped order?
     if ($stage_change AND $updated['order_date_dispensed']) {
       helper_update_payment($order, $mysql);
+      export_gd_publish_invoice($order);
       export_wc_update_order_metadata($order);
       export_wc_update_order_shipping($order);
       export_v2_unpend_order($order);

@@ -121,6 +121,7 @@ function export_wc_update_order_metadata($order) {
   wc_upsert($order_meta, '_payment_method', $payment_method);
   wc_upsert($order_meta, 'order_stage', $order[0]['order_stage']);
   wc_upsert($order_meta, 'order_status', $order[0]['order_status']);
+  wc_upsert($order_meta, 'invoice_doc_id', $order[0]['invoice_doc_id']);
 
   if ($order[0]['payment_coupon'])
     wc_upsert($order_meta, '_coupon_lines', [["code" => $order[0]['payment_coupon']]]);

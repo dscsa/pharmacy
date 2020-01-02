@@ -2,7 +2,7 @@
 
 require_once 'helpers/helper_appsscripts.php';
 
-function export_gd_update_invoice($order) {
+function export_gd_update_invoice($order, $mysql) {
 
   if ( ! count($order)) return;
 
@@ -18,11 +18,19 @@ function export_gd_update_invoice($order) {
 
   $result = gdoc_post(GD_MERGE_URL, $args);
 
+  $invoice_doc_id = json_decode($result, true);
+
+  $sql = "
+    UPDATE gp_orders SET invoice_doc_id = $invoice_doc_id WHERE invoice_number = {$order[0]['invoice_number']}
+  ";
+
+  $mysql->run($sql);
+
   log_notice("export_gd_update_invoice", get_defined_vars());
 }
 
 //Cannot delete (with this account) once published
-function export_gd_publish_invoices($order) {
+function export_gd_publish_invoice($order) {
 
  if ( ! $order[0]['tracking_number']) return; //only publish if tracking number since we can't delete extra after this point
 
@@ -34,7 +42,7 @@ function export_gd_publish_invoices($order) {
 
   $result = gdoc_post(GD_HELPER_URL, $args);
 
-  log_notice("export_gd_publish_invoices", get_defined_vars());
+  log_notice("export_gd_publish_invoice", get_defined_vars());
 }
 
 function export_gd_delete_invoice($order) {
