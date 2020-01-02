@@ -109,10 +109,10 @@ function print_pick_list($item, $vals) {
 function pend_group($item) {
 
   if ($item['refill_date_first']) {
-     $pick_time = strtotime($item['item_date_added'].' +1 days');
+     $pick_time = strtotime($item['order_date_added'].' +1 days');
      $invoice    = "R$item[invoice_number]";
    } else {
-     $pick_time = strtotime($item['item_date_added'].' +3 days');
+     $pick_time = strtotime($item['order_date_added'].' +3 days');
      $invoice    = "N$item[invoice_number]"; //N < R so new scripts will appear first on shopping list
    }
 
