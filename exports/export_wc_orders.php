@@ -68,7 +68,7 @@ function wc_insert($post_id, $meta_key, $meta_value) {
   global $mysql;
   $mysql = $mysql ?: new Mysql_Wc();
   $sql = "INSERT INTO wp_postmeta ('post_id', 'meta_key', 'meta_value') VALUES ('$post_id', '$meta_key', '$meta_value')";
-  log_notice('wc_insert', get_defined_vars());
+  //log_notice('wc_insert', get_defined_vars());
   //$mysql->run($sql);
 }
 
@@ -119,9 +119,11 @@ function export_wc_update_order_metadata($order) {
     log_error('export_wc_update_order_payment: update_order_payment: UNKNOWN Payment Method', get_defined_vars());
 
   wc_upsert($order_meta, '_payment_method', $payment_method);
-  wc_upsert($order_meta, '_coupon_lines', [["code" => $order[0]['payment_coupon']]]);
   wc_upsert($order_meta, 'order_stage', $order[0]['order_stage']);
   wc_upsert($order_meta, 'order_status', $order[0]['order_status']);
+
+  if ($order[0]['payment_coupon'])
+    wc_upsert($order_meta, '_coupon_lines', [["code" => $order[0]['payment_coupon']]]);
 
   if ($order[0]['order_date_dispensed']) {
     wc_upsert($order_meta, 'order_date_dispensed', $order[0]['order_date_dispensed']);
