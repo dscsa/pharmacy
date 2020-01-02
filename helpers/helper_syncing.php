@@ -52,7 +52,8 @@ function sync_to_order($order, $updated = null) {
 
   if ( ! $updated)
     export_cp_add_items($item['invoice_number'], $items_to_add);
-  else
+
+  else if ($items_to_add)
     log_notice('sync_to_order items NOT added because UPDATED not created', get_defined_vars());
 
   return $items_to_sync;
