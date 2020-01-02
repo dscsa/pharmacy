@@ -13,7 +13,7 @@ function update_stock_by_month() {
 
   if ( ! $count_deleted AND ! $count_created AND ! $count_updated) return;
 
-  log_info("update_stock_by_month: $count_deleted deleted, $count_created created, $count_updated updated.", get_defined_vars());
+  //log_info("update_stock_by_month: $count_deleted deleted, $count_created created, $count_updated updated.", get_defined_vars());
 
   $mysql = new Mysql_Wc();
 
