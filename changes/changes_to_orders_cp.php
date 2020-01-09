@@ -23,7 +23,7 @@ function orders_set_deleted_sql($new, $old, $id) {
   ";
 }
 
-function changes_to_orders($new) {
+function changes_to_orders_cp($new) {
   $mysql = new Mysql_Wc();
 
   $old   = "gp_orders";

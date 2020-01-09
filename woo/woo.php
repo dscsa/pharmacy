@@ -2199,7 +2199,7 @@ function get_guardian_order($guardian_id, $source, $comment, $is_registered) {
 
   $comment = str_replace("'", "''", $comment ?: '');
   // Categories can be found or added select * From csct_code where ct_id=5007, UPDATE csct_code SET code_num=2, code=2, user_owned_yn = 1 WHERE code_id = 100824
-  // 0 Unspecified, 1 Webform Complete, 2 Webform eRx, 3 Webform Transfer, 6 Webform Refill, 7 Webform eRX with Note, 8 Webform Transfer with Note,
+  // 0 Unspecified, 1 Webform Complete, 2 Webform eRx, 3 Webform Transfer, 6 Webform Refill, 7 Webform eRX with Note, 8 Webform Transfer with Note, 9 Webform Refill with Note,
 
   if ($source == 'pharmacy')
     $category = $comment ? 8 : 3;
