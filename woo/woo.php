@@ -1593,7 +1593,6 @@ function dscsa_save_order($order, $data) {
 
 add_action('woocommerce_customer_save_address', 'dscsa_customer_save_address', 10, 2);
 function dscsa_customer_save_address($user_id, $load_address) {
-  debug_email('woocommerce_customer_save_address', get_meta('billing_address_1')."\r\n\r\n".print_r(sanitize($_POST), true)."\r\n\r\n".print_r($load_address, true));
 
   $patient_id = get_meta('guardian_id', $user_id);
   if ($patient_id) {//in case they fill this out before saving account details or a new order
@@ -1604,6 +1603,9 @@ function dscsa_customer_save_address($user_id, $load_address) {
       $_POST['billing_city'],
       $_POST['billing_postcode']
     );
+    debug_email('woocommerce_customer_save_address', get_meta('billing_address_1')."\r\n\r\n".print_r(sanitize($_POST), true)."\r\n\r\n".print_r($load_address, true));
+  } else {
+    debug_email('ERROR: woocommerce_customer_save_address', get_meta('billing_address_1')."\r\n\r\n".print_r(sanitize($_POST), true)."\r\n\r\n".print_r($load_address, true));
   }
 }
 
@@ -2288,7 +2290,7 @@ function update_phone($guardian_id, $cell_phone) {
 // ,@Country varchar(3)   -- Country Code
 function update_shipping_address($guardian_id, $address_1, $address_2, $city, $zip) {
   //debug_email("update_shipping_address", print_r($params, true));
-  if ( ! $guardian_id) return;
+  if ( ! $guardian_id) return debug_email("update_shipping_address: no guardian id", print_r([$guardian_id, $address_1, $address_2, $city, $zip], true));
 
   $zip = substr($zip, 0, 5);
   $city = mb_convert_case($city, MB_CASE_TITLE, "UTF-8" );
