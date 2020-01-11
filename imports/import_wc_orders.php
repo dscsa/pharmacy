@@ -28,7 +28,7 @@ function import_wc_orders() {
     MAX(CASE WHEN wp_postmeta.meta_key = '_shipping_state' then wp_postmeta.meta_value ELSE NULL END) as order_state,
     MAX(CASE WHEN wp_postmeta.meta_key = '_shipping_postcode' then wp_postmeta.meta_value ELSE NULL END) as order_zip,
 
-    MAX(CASE WHEN wp_postmeta.meta_key = '_customer_user' then wp_postmeta.meta_value ELSE NULL END) as patient_id_wc,
+    MAX(CASE WHEN wp_postmeta.meta_key = '_customer_user' then wp_postmeta.meta_value ELSE NULL END) as patient_id_wc
 
   FROM
     wp_posts
