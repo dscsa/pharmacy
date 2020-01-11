@@ -1,5 +1,9 @@
 <?php
 
+function get_column_names($table) {
+  return "SELECT GROUP_CONCAT(`COLUMN_NAME`) FROM `INFORMATION_SCHEMA`.`COLUMNS` WHERE `TABLE_SCHEMA`='goodpill' AND `TABLE_NAME`='$table'";
+}
+
 function where_to_set_clause($where_clause) {
   return str_replace(['NOT ', '<=>', ' OR'], ['', '=', ','], $where_clause);
 }
@@ -67,13 +71,13 @@ function get_created_sql($new, $old, $id) {
   ";
 }
 
-function set_created_sql($new, $old, $id) {
+function set_created_sql($new, $old, $id, $columns = '') {
 
   $join = join_clause($id);
 
   return "
     INSERT INTO
-      $old
+      $old $columns
     SELECT
       new.*
     FROM

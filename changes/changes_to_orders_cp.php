@@ -48,6 +48,8 @@ function changes_to_orders_cp($new) {
     -- Not in CP -- NOT old.order_date_returned <=> new.order_date_returned
   ";
 
+  $columns = $mysql->run(get_column_names($table))[0][0];
+
   //Get Deleted
   $deleted = $mysql->run(get_deleted_sql($new, $old, $id));
 
@@ -61,7 +63,7 @@ function changes_to_orders_cp($new) {
   $mysql->run(orders_set_deleted_sql($new, $old, $id));
 
   //Save Inserts
-  $mysql->run(set_created_sql($new, $old, $id));
+  $mysql->run(set_created_sql($new, $old, $id, '('.$columns.')'));
 
   //Save Updates
   $mysql->run(set_updated_sql($new, $old, $id, $where));

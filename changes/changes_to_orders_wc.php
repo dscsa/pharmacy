@@ -16,6 +16,8 @@ function changes_to_orders_wc($new) {
     NOT old.order_stage_wc <=> new.order_stage_wc
   ";
 
+  $columns = $mysql->run(get_column_names($table))[0][0];
+
   //Get Deleted
   $deleted = $mysql->run(get_deleted_sql($new, $old, $id));
 
@@ -28,7 +30,7 @@ function changes_to_orders_wc($new) {
   $mysql->run(set_deleted_sql($new, $old, $id));
 
   //Save Inserts
-  $mysql->run(set_created_sql($new, $old, $id));
+  $mysql->run(set_created_sql($new, $old, $id, '('.$columns.')'));
 
   //Save Updates
   $mysql->run(set_updated_sql($new, $old, $id, $where));
