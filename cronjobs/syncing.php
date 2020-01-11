@@ -13,6 +13,7 @@ require_once 'imports/import_v2_stock_by_month.php';
 require_once 'imports/import_cp_rxs_single.php';
 require_once 'imports/import_cp_patients.php';
 require_once 'imports/import_cp_orders.php';
+require_once 'imports/import_wc_orders.php';
 require_once 'imports/import_cp_order_items.php';
 
 require_once 'updates/update_drugs.php';
