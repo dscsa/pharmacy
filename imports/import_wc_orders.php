@@ -37,6 +37,8 @@ function import_wc_orders() {
     post_type = 'shop_order'
   GROUP BY
      wp_posts.ID
+  HAVING
+    patient_id_wc > 0
   ");
 
   if ( ! count($orders[0])) return log_error('No Wc Orders to Import', get_defined_vars());
