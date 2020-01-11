@@ -1,10 +1,10 @@
 <?php
 
-require_once 'changes/changes_to_orders_wp.php';
+require_once 'changes/changes_to_orders_wc.php';
 
 function update_orders_wp() {
 
-  $changes = changes_to_orders_wp("gp_orders_wp");
+  $changes = changes_to_orders_wp("gp_orders_wc");
 
   $count_deleted = count($changes['deleted']);
   $count_created = count($changes['created']);
