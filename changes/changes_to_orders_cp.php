@@ -49,8 +49,10 @@ function changes_to_orders_cp($new) {
   ";
 
   // 1st Result Set -> 1st Row -> 1st Column
-  $columns = $mysql->run(get_column_names($new))[0][0][0];
-  
+  $columns = $mysql->run(get_column_names($new));
+
+  print_r($columns);
+
   //Get Deleted
   $deleted = $mysql->run(get_deleted_sql($new, $old, $id));
 

@@ -16,7 +16,7 @@ function import_cp_orders() {
       pat_id as patient_id_cp,
       ISNULL(liCount, 0) as count_items,
       ustate.name as order_source,
-      CASE WHEN csom.ship_date IS NOT NULL AND ship.ship_date IS NULL THEN 'Dispensed' ELSE ostate.name END as order_stage,
+      CASE WHEN csom.ship_date IS NOT NULL AND ship.ship_date IS NULL THEN 'Dispensed' ELSE ostate.name END as order_stage_cp,
       CASE WHEN csom.ship_date IS NOT NULL AND ship.ship_date IS NULL THEN 'Dispensed' ELSE ostatus.descr END as order_status,
       ship_addr1 as order_address1,
       ship_addr2 as order_address2,
