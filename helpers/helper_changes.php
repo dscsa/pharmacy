@@ -1,7 +1,7 @@
 <?php
 
 function get_column_names($table) {
-  return "SELECT GROUP_CONCAT(`COLUMN_NAME`) FROM `INFORMATION_SCHEMA`.`COLUMNS` WHERE `TABLE_SCHEMA`='goodpill' AND `TABLE_NAME`='$table'";
+  return "SELECT GROUP_CONCAT(`COLUMN_NAME`) as columns FROM `INFORMATION_SCHEMA`.`COLUMNS` WHERE `TABLE_SCHEMA`='goodpill' AND `TABLE_NAME`='$table'";
 }
 
 function where_to_set_clause($where_clause) {
