@@ -42,6 +42,7 @@ function wc_get_or_new_order($order) {
 
   if ( ! $order_meta) {
 
+    //This creates order and adds invoice number to metadata
     $response = wc_fetch("patient/$first_name $last_name $birth_date/order/$invoice_number");
 
     $order_meta = $response['order'];

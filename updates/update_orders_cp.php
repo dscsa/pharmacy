@@ -83,7 +83,7 @@ function update_orders_cp() {
     //Order was Returned to Sender
     if ($deleted['tracking_number']) {
 
-      set_payment_actual($deleted['invoice_number'], 0, $mysql);
+      set_payment_actual($deleted['invoice_number'], ['total' => 0, 'fee' => 0, 'due' => 0], $mysql);
       export_wc_update_order_payment($deleted['invoice_number'], 0);
 
       $sql = "

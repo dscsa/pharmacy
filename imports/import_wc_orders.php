@@ -11,7 +11,9 @@ function import_wc_orders() {
 
   SELECT
     wp_posts.post_status as order_stage_wc,
+    wp_posts.post_excerpt as order_note,
 
+    MAX(CASE WHEN wp_postmeta.meta_key = 'order_source' then wp_postmeta.meta_value ELSE NULL END) as order_source,
     MAX(CASE WHEN wp_postmeta.meta_key = '_payment_method' then wp_postmeta.meta_value ELSE NULL END) as payment_method,
     MAX(CASE WHEN wp_postmeta.meta_key = '_coupon_lines' then wp_postmeta.meta_value ELSE NULL END) as coupon_lines,
 
