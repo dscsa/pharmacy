@@ -14,6 +14,8 @@ function update_orders_wc() {
 
   log_info("update_orders: $count_deleted deleted, $count_created created, $count_updated updated.", get_defined_vars());
 
+  log_notice("changes_to_orders_wc", $changes);
+
   $mssql = new Mssql_Cp();
 
   function save_guardian_order($patient_id_cp, $source, $is_registered, $comment = '') {
@@ -38,7 +40,7 @@ function update_orders_wc() {
 
   foreach($changes['created'] as $created) {
 
-    log_notice("Created Order WC", get_defined_vars());
+    //log_notice("Created Order WC", get_defined_vars());
 
 
 
@@ -49,7 +51,7 @@ function update_orders_wc() {
 
   foreach($changes['deleted'] as $deleted) {
 
-    log_notice("Deleted Order WC", get_defined_vars());
+    //log_notice("Deleted Order WC", get_defined_vars());
 
   }
 
@@ -58,7 +60,7 @@ function update_orders_wc() {
   //  - think about what needs to be updated based on changes
   foreach($changes['updated'] as $updated) {
 
-    log_notice("Updated Order WC", get_defined_vars());
+    //log_notice("Updated Order WC", get_defined_vars());
 
   }
 }
