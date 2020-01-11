@@ -13,10 +13,12 @@ function changes_to_orders_wc($new) {
     NOT old.patient_id_wc <=> new.patient_id_wc OR
     NOT old.payment_method <=> new.payment_method OR
     NOT old.coupon_lines <=> new.coupon_lines OR
+    NOT old.order_note <=> new.order_note OR
     NOT old.order_stage_wc <=> new.order_stage_wc
   ";
 
-  $columns = $mysql->run(get_column_names($table))[0][0];
+  // 1st Result Set -> 1st Row -> 1st Column
+  $columns = $mysql->run(get_column_names($new))[0][0][0];
 
   //Get Deleted
   $deleted = $mysql->run(get_deleted_sql($new, $old, $id));

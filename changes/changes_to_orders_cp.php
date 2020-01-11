@@ -48,8 +48,9 @@ function changes_to_orders_cp($new) {
     -- Not in CP -- NOT old.order_date_returned <=> new.order_date_returned
   ";
 
-  $columns = $mysql->run(get_column_names($table))[0][0];
-
+  // 1st Result Set -> 1st Row -> 1st Column
+  $columns = $mysql->run(get_column_names($new))[0][0][0];
+  
   //Get Deleted
   $deleted = $mysql->run(get_deleted_sql($new, $old, $id));
 

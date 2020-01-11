@@ -12,7 +12,7 @@ function update_orders_wc() {
 
   if ( ! $count_deleted AND ! $count_created AND ! $count_updated) return;
 
-  log_info("update_orders: $count_deleted deleted, $count_created created, $count_updated updated.", get_defined_vars());
+  log_info("update_orders_wc: $count_deleted deleted, $count_created created, $count_updated updated.", get_defined_vars());
 
   log_notice("changes_to_orders_wc", $changes);
 
