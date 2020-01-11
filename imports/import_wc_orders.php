@@ -7,7 +7,7 @@ function import_wc_orders() {
 
   $mysql = new Mysql_Wc();
 
-  $orders = $mssql->run("
+  $orders = $mysql->run("
 
   SELECT
     wp_posts.post_status as order_stage_wc,
