@@ -27,7 +27,7 @@ function changes_to_orders_wc($new) {
   //Get Updated
   $updated = $mysql->run(get_updated_sql($new, $old, $id, $where));
 
-  $mysql->run(set_deleted_sql($new, $old, $id));
+  //$mysql->run(set_deleted_sql($new, $old, $id));
 
   //Save Inserts
   $mysql->run(set_created_sql($new, $old, $id, '('.$columns.')'));
