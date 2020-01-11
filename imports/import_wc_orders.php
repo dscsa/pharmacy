@@ -39,6 +39,7 @@ function import_wc_orders() {
      wp_posts.ID
   HAVING
     patient_id_wc > 0
+    invoice_number > 0
   ");
 
   if ( ! count($orders[0])) return log_error('No Wc Orders to Import', get_defined_vars());
