@@ -86,16 +86,16 @@ function update_orders_cp() {
       set_payment_actual($deleted['invoice_number'], ['total' => 0, 'fee' => 0, 'due' => 0], $mysql);
       export_wc_update_order_payment($deleted['invoice_number'], 0);
 
-      $sql = "
+      $update_sql = "
         UPDATE gp_orders SET order_date_returned = GETDATE() WHERE invoice_number = $deleted[invoice_number]
       ";
 
-      $mysql->run($sql);
+      $mysql->run($update_sql);
 
       return log_error('Confirm this order was returned! Order with tracking number was deleted', get_defined_vars());
     }
 
-    export_gd_delete_invoice([$deleted]);
+    export_gd_delete_invoice([$deleted], $mysql);
 
     export_wc_delete_order([$deleted]);
 
