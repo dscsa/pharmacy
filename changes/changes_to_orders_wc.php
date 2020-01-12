@@ -19,8 +19,8 @@ function wc_orders_set_deleted_sql($new, $old, $id) {
     WHERE
       new.$id IS NULL
     AND
-      order_stage_wc != 'processing' AND
-      order_stage_wc != 'trash'
+      old.order_stage_wc != 'processing' AND
+      old.order_stage_wc != 'trash'
   ";
 }
 
