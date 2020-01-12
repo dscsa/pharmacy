@@ -5,7 +5,7 @@ require_once 'helpers/helper_changes.php';
 
 //Returned Orders like 24174 have status_cn == 3 and liCount == 0.  This makes them appear to be deleted
 //We don't want to update them with this information BUT we do want to keep the old order in the database and add a date_returned
-function orders_set_deleted_sql($new, $old, $id) {
+function cp_orders_set_deleted_sql($new, $old, $id) {
 
   $join = join_clause($id);
 
@@ -61,7 +61,7 @@ function changes_to_orders_cp($new) {
   $updated = $mysql->run(get_updated_sql($new, $old, $id, $where));
 
   //NOTICE THIS IS A CUSTOMIZED FUNCTION!!!
-  $mysql->run(orders_set_deleted_sql($new, $old, $id));
+  $mysql->run(cp_orders_set_deleted_sql($new, $old, $id));
 
   //Save Inserts
   $mysql->run(set_created_sql($new, $old, $id, '('.$columns.')'));
