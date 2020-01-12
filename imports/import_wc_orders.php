@@ -35,7 +35,8 @@ function import_wc_orders() {
     wp_posts
   LEFT JOIN wp_postmeta ON wp_postmeta.post_id = wp_posts.ID
   WHERE
-    post_type = 'shop_order'
+    post_type    = 'shop_order' AND
+    post_status != 'trash'
   GROUP BY
      wp_posts.ID
   HAVING

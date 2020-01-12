@@ -19,8 +19,8 @@ function wc_orders_set_deleted_sql($new, $old, $id) {
     WHERE
       new.$id IS NULL
     AND
-      old.order_stage_wc != 'processing' AND
-      old.order_stage_wc != 'trash'
+      old.order_stage_wc = 'processing' OR
+      old.order_stage_wc = 'trash'
   ";
 }
 
@@ -51,7 +51,7 @@ function changes_to_orders_wc($new) {
   $updated = $mysql->run(get_updated_sql($new, $old, $id, $where));
 
   //Custom function to not remove to many orders until things settle
-  $mysql->run(wc_orders_set_deleted_sql($new, $old, $id));
+  //$mysql->run(wc_orders_set_deleted_sql($new, $old, $id));
 
   //Save Inserts
   $mysql->run(set_created_sql($new, $old, $id, '('.$columns.')'));
