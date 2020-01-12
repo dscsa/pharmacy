@@ -14,8 +14,6 @@ function update_orders_wc() {
 
   log_info("update_orders_wc: $count_deleted deleted, $count_created created, $count_updated updated.", get_defined_vars());
 
-  log_notice("changes_to_orders_wc", $changes);
-
   $mssql = new Mssql_Cp();
 
   function save_guardian_order($patient_id_cp, $source, $is_registered, $comment = '') {
@@ -38,29 +36,40 @@ function update_orders_wc() {
     return $result;
   }
 
+  $notices = [];
+
+  //This captures 2 USE CASES:
+  //1) A user/tech created an order in WC and we need to add it to Guardian
+  //2) An order is incorrectly saved in WC even though it should be gone (tech bug)
   foreach($changes['created'] as $created) {
 
-    //log_notice("Created Order WC", get_defined_vars());
+    if ($created['invoice_number'] > 25000) {
+      $notices[] = ["Order deleted in WC", get_defined_vars()];
+    }
 
-
-
-    //save_guardian_order($created);
-
-    //TODO Update Salesforce Order Total & Order Count & Order Invoice using REST API or a MYSQL Zapier Integration
   }
 
+  //This captures 2 USE CASES:
+  //1) An order is in WC and CP but then is deleted in WC, probably because wp-admin deleted it (look for Update with order_stage_wc == 'trashed')
+  //2) An order is in CP but not in (never added to) WC, probably because of a tech bug.
   foreach($changes['deleted'] as $deleted) {
 
-    //log_notice("Deleted Order WC", get_defined_vars());
+    if ($deleted['order_stage_wc'] == 'trashed') {
+      $notices[] = ["Order deleted in WC", get_defined_vars()];
+    }
 
   }
 
-  //If just updated we need to
-  //  - see which fields changed
-  //  - think about what needs to be updated based on changes
   foreach($changes['updated'] as $updated) {
 
-    //log_notice("Updated Order WC", get_defined_vars());
-
+    if ($updated['order_stage_wc'] == 'trashed') {
+      $notices[] = ["Order trashed in WC", get_defined_vars()];
+    } else {
+      $notices[] = ["Order updated in WC", get_defined_vars()];
+    }
+    
   }
+
+  log_notice("update_orders_wc notices", $notices);
+
 }
