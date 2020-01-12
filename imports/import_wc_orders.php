@@ -10,6 +10,9 @@ function import_wc_orders() {
   $orders = $mysql->run("
 
   SELECT
+
+    MAX(CASE WHEN wp_postmeta.meta_key = '_customer_user' then wp_postmeta.meta_value ELSE NULL END) as patient_id_wc,
+    MAX(CASE WHEN wp_postmeta.meta_key = 'invoice_number' then wp_postmeta.meta_value ELSE NULL END) as invoice_number,
     wp_posts.post_status as order_stage_wc,
     wp_posts.post_excerpt as order_note,
 
@@ -26,9 +29,7 @@ function import_wc_orders() {
     MAX(CASE WHEN wp_postmeta.meta_key = '_shipping_address_2' then wp_postmeta.meta_value ELSE NULL END) as order_address2,
     MAX(CASE WHEN wp_postmeta.meta_key = '_shipping_city' then wp_postmeta.meta_value ELSE NULL END) as order_city,
     MAX(CASE WHEN wp_postmeta.meta_key = '_shipping_state' then wp_postmeta.meta_value ELSE NULL END) as order_state,
-    MAX(CASE WHEN wp_postmeta.meta_key = '_shipping_postcode' then LEFT(wp_postmeta.meta_value, 5) ELSE NULL END) as order_zip,
-
-    MAX(CASE WHEN wp_postmeta.meta_key = '_customer_user' then wp_postmeta.meta_value ELSE NULL END) as patient_id_wc
+    MAX(CASE WHEN wp_postmeta.meta_key = '_shipping_postcode' then LEFT(wp_postmeta.meta_value, 5) ELSE NULL END) as order_zip
 
   FROM
     wp_posts
