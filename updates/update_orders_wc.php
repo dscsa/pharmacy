@@ -12,7 +12,7 @@ function update_orders_wc() {
 
   if ( ! $count_deleted AND ! $count_created AND ! $count_updated) return;
 
-  log_info("update_orders_wc: $count_deleted deleted, $count_created created, $count_updated updated.", get_defined_vars());
+  log_info("update_orders_wc: $count_deleted deleted, $count_created created, $count_updated updated.");
 
   $mssql = new Mssql_Cp();
 
@@ -44,7 +44,7 @@ function update_orders_wc() {
   foreach($changes['created'] as $created) {
 
     if ($created['invoice_number'] > 25000) {
-      $notices[] = ["Order deleted in WC", get_defined_vars()];
+      $notices[] = ["Order deleted in WC", $created];
     }
 
   }
@@ -55,7 +55,7 @@ function update_orders_wc() {
   foreach($changes['deleted'] as $deleted) {
 
     if ($deleted['order_stage_wc'] == 'trashed') {
-      $notices[] = ["Order deleted in WC", get_defined_vars()];
+      $notices[] = ["Order deleted in WC", $deleted];
     }
 
   }
@@ -63,11 +63,11 @@ function update_orders_wc() {
   foreach($changes['updated'] as $updated) {
 
     if ($updated['order_stage_wc'] == 'trashed') {
-      $notices[] = ["Order trashed in WC", get_defined_vars()];
+      $notices[] = ["Order trashed in WC", $updated];
     } else {
-      $notices[] = ["Order updated in WC", get_defined_vars()];
+      $notices[] = ["Order updated in WC", $updated];
     }
-    
+
   }
 
   log_notice("update_orders_wc notices", $notices);

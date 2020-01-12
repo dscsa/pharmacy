@@ -48,8 +48,6 @@ function changes_to_orders_wc($new) {
     'get_deleted' => $get_deleted_sql,
     'get_created' => $get_created_sql,
     'get_updated' => $get_updated_sql,
-    'set_deleted' => $set_deleted_sql,
-    'set_created' => $set_created_sql,
     'set_updated' => $set_updated_sql
   ]);
 
