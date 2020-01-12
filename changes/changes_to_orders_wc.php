@@ -53,7 +53,11 @@ function changes_to_orders_wc($new) {
   $updated_sql = get_updated_sql($new, $old, $id, $where);
   $updated = $mysql->run($updated_sql);
 
-  log_notice('changes_to_orders_wc', get_defined_vars());
+  log_notice('changes_to_orders_wc', [
+    'deleted' => $deleted_sql,
+    'created' => $created_sql,
+    'updated' => $updated_sql
+  ]);
 
   //Custom function to not remove to many orders until things settle
   //$mysql->run(wc_orders_set_deleted_sql($new, $old, $id));
