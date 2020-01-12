@@ -50,7 +50,7 @@ function changes_to_orders_wc($new) {
   $created = $mysql->run($created_sql);
 
   //Get Updated
-  $updated_sql = get_updated_sql($new, $old, $id, $where)
+  $updated_sql = get_updated_sql($new, $old, $id, $where);
   $updated = $mysql->run($updated_sql);
 
   log_notice('changes_to_orders_wc', get_defined_vars());
