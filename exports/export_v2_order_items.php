@@ -22,12 +22,12 @@ function export_v2_unpend_order($order) {
 
 function unpend_pick_list($item) {
 
-  $pend_group = pend_group($item);
+  $pend_group_refill = pend_group_refill($item);
+  $pend_group_new_rx = pend_group_new_rx($item);
 
-  $pend_url = "/account/8889875187/pend/$pend_group";
-
-  //delete_pick_list from v2
-  $res = v2_fetch($pend_url, 'DELETE', $vals);
+  //Once order is deleted it not longer has items so its hard to determine if the items were New or Refills so just delete both
+  $res_refill = v2_fetch("/account/8889875187/pend/$pend_group_refill", 'DELETE');
+  $res_new_rx = v2_fetch("/account/8889875187/pend/$pend_group_new_rx", 'DELETE');
 
   //Delete gdoc pick list
   $args = [
@@ -106,15 +106,20 @@ function print_pick_list($item, $vals) {
   $result = gdoc_post(GD_HELPER_URL, $args);
 }
 
-function pend_group($item) {
+function pend_group_refill($item) {
 
-  if ($item['refill_date_first']) {
-     $pick_time = strtotime($item['order_date_added'].' +1 days');
-     $invoice    = "R$item[invoice_number]";
-   } else {
-     $pick_time = strtotime($item['order_date_added'].' +3 days');
-     $invoice    = "N$item[invoice_number]"; //N < R so new scripts will appear first on shopping list
-   }
+   $pick_time = strtotime($item['order_date_added'].' +3 days');
+   $invoice    = "N$item[invoice_number]"; //N < R so new scripts will appear first on shopping list
+
+   $pick_date = date('Y-m-d', $pick_time);
+
+   return "$pick_date $invoice";
+}
+
+function pend_group_new_rx($item) {
+
+   $pick_time = strtotime($item['order_date_added'].' +1 days');
+   $invoice    = "R$item[invoice_number]";
 
    $pick_date = date('Y-m-d', $pick_time);
 
@@ -125,7 +130,7 @@ function pend_pick_list($item, $vals) {
 
   if ( ! $vals) return; //List could not be made
 
-  $pend_group = pend_group($item);
+  $pend_group = $item['refill_date_first'] ? pend_group_refill($item) : pend_group_new_rx($item);
   $qty = round($item['qty_dispensed_default']);
 
   $pend_url = "/account/8889875187/pend/$pend_group?repackQty=$qty";

@@ -42,13 +42,18 @@ function changes_to_orders_wc($new) {
   $columns = $mysql->run(get_column_names($new))[0][0]['columns'];
 
   //Get Deleted
-  $deleted = $mysql->run(get_deleted_sql($new, $old, $id));
+  $deleted_sql = get_deleted_sql($new, $old, $id);
+  $deleted = $mysql->run($deleted_sql);
 
   //Get Inserted
-  $created = $mysql->run(get_created_sql($new, $old, $id));
+  $created_sql = get_created_sql($new, $old, $id);
+  $created = $mysql->run($created_sql);
 
   //Get Updated
-  $updated = $mysql->run(get_updated_sql($new, $old, $id, $where));
+  $updated_sql = get_updated_sql($new, $old, $id, $where)
+  $updated = $mysql->run($updated_sql);
+
+  log_notice('changes_to_orders_wc', get_defined_vars());
 
   //Custom function to not remove to many orders until things settle
   //$mysql->run(wc_orders_set_deleted_sql($new, $old, $id));

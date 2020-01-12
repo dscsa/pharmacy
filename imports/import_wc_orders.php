@@ -3,6 +3,9 @@
 require_once 'dbs/mysql_wc.php';
 require_once 'helpers/helper_imports.php';
 
+//DETECT DUPLICATES
+//SELECT invoice_number, COUNT(*) as counts FROM gp_orders_wc GROUP BY invoice_number HAVING counts > 1
+
 function import_wc_orders() {
 
   $mysql = new Mysql_Wc();
@@ -45,7 +48,6 @@ function import_wc_orders() {
   ");
 
   if ( ! count($orders[0])) return log_error('No Wc Orders to Import', get_defined_vars());
-
 
   //log_info("
   //import_cp_orders: rows ".count($orders[0]));
