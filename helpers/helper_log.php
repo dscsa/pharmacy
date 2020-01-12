@@ -79,29 +79,29 @@ function utf8ize($d) {
   return $d;
 }
 
-function log_info($text, $vars) {
+function log_info($text, $vars = '') {
 
   global $argv;
 
   if ( ! in_array('log=info', $argv)) return;
 
   $file   = get_file();
-  $vars   = vars_to_json($vars, $file);
+  $vars   = $vars ? vars_to_json($vars, $file) : '';
   log_to_cli('INFO', $text, $file, $vars);
   log_to_db('INFO', $text, $file, $vars);
 }
 
-function log_error($text, $vars) {
+function log_error($text, $vars = '') {
   $file   = get_file();
-  $vars   = vars_to_json($vars, $file);
+  $vars   = $vars ? vars_to_json($vars, $file) : '';
   log_to_cli('ERROR', $text, $file, $vars);
   log_to_email('ERROR', $text, $file, $vars);
   log_to_db('ERROR', $text, $file, $vars);
 }
 
-function log_notice($text, $vars) {
+function log_notice($text, $vars = '') {
   $file   = get_file();
-  $vars   = vars_to_json($vars, $file);
+  $vars   = $vars ? vars_to_json($vars, $file) : '';
   log_to_cli('NOTICE', $text, $file, $vars);
   log_to_email('NOTICE', $text, $file, $vars);
   log_to_db('NOTICE', $text, $file, $vars);
