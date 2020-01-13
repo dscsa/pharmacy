@@ -137,7 +137,7 @@ function export_wc_update_order_metadata($order) {
     return log_error('export_wc_update_order_metadata: order missing', get_defined_vars());
 
   $orderdata = [
-    'post_status' => get_order_stage_wc($order),
+    'post_status' => $order[0]['order_stage_wc'],
     'post_except' => $order[0]['order_note']
   ];
 
@@ -201,131 +201,6 @@ function export_wc_update_meta_order_payment($invoice_number, $payment_fee) {
     return log_error('export_wc_update_meta_order_payment: order missing', get_defined_vars());
 
   wc_update_meta($invoice_number, ['_order_shipping' => $payment_fee]);
-}
-
-
-/*
-const ORDER_STATUS_WC = [
-
-  'late-mail-pay'              => 'Shipped (Mail Payment Not Made)',
-  'late-auto-pay-card-missing' => 'Shipped (Autopay Card Missing)',
-  'late-auto-pay-card-expired' => 'Shipped (Autopay Card Expired)',
-  'late-auto-pay-card-failed'  => 'Shipped (Autopay Card Failed)',
-  'late-online-pay'            => 'Shipped (Online Payment Not Made)',
-  'late-plan-approved'         => 'Shipped (Payment Plan Approved)',
-
-  'completed-card-pay'    => 'Completed (Paid by Card)',
-  'completed-mail-pay'    => 'Completed (Paid by Mail)',
-  'completed-finaid'      => 'Completed (Financial Aid)',
-  'completed-fee-waived'  => 'Completed (Fee Waived)',
-  'completed-clinic-pay'  => 'Completed (Paid by Clinic)',
-  'completed-auto-pay'    => 'Completed (Paid by Autopay)',
-  'completed-refused-pay' => 'Completed (Refused to Pay)',
-
-  'returned-usps'         => 'Returned (USPS)',
-  'returned-customer'     => 'Returned (Customer)'
-];
-*/
-function get_order_stage_wc($order) {
-
-  //Anything past shipped we just have to rely on WC
-  if (in_array(explode('-', $order[0]['order_stage_wc'])[0], ['late', 'completed', 'returned']))
-    return $order[0]['order_stage_wc'];
-
-  /*
-  'confirming-*' means no drugs in the order yet so check for count_items
-  order_source: NULL, O Refills, Auto Refill v2, Webform eRX, Webform eRX Note, Webform Refill, Webform Refill Note, Webform Transfer, Webform Transfer Note
-
-  'confirming-new-rx'   => 'Confirming Order (Doctor Will Send Rxs)'
-  'confirming-transfer' => 'Confirming Order (Transfer)',
-  'confirming-refill'   => 'Confirming Order (Refill Request)',
-  'confirming-autofill' => 'Confirming Order (Autofill)',
-  */
-
-  if ( ! $order[0]['count_items'] AND ! $order[0]['order_source'])
-    return 'confirming-new-rx';
-
-  if ( ! $order[0]['count_items'] AND in_array($order[0]['order_source'], ['Webform Transfer', 'Webform Transfer Note']))
-    return 'confirming-transfer';
-
-  if ( ! $order[0]['count_items'] AND in_array($order[0]['order_source'], ['Webform Refill', 'Webform Refill Note']))
-    return 'confirming-refill';
-
-  if ( ! $order[0]['count_items'] AND in_array($order[0]['order_source'], ['Auto Refill v2', 'O Refills']))
-    return 'confirming-autofill';
-
-  if ( ! $order[0]['count_items']) {
-    log_error('get_order_stage_wc error: confirming-* unknown order_source', get_defined_vars());
-    return 'on-hold';
-  }
-
-  /*
-  'preparing-*' means drugs are in the order but order is not yet shipped
-  rx_source: Fax, Pharmacy, Phone, Prescription, SureScripts
-
-  'preparing-refill'    => 'Preparing Order (Refill)',
-  'preparing-erx'       => 'Preparing Order (eScript)',
-  'preparing-fax'       => 'Preparing Order (Fax)',
-  'preparing-transfer'  => 'Preparing Order (Transfer)',
-  'preparing-phone'     => 'Preparing Order (Phone)',
-  'preparing-mail'      => 'Preparing Order (Mail)',
-  */
-
-  if ( ! $order[0]['tracking_number'] AND in_array($order[0]['order_source'], ['Webform Refill', 'Webform Refill Note', 'Auto Refill v2', 'O Refills']))
-    return 'preparing-refill';
-
-  if ( ! $order[0]['tracking_number'] AND $order[0]['rx_source'] == 'SureScripts')
-    return 'preparing-erx';
-
-  if ( ! $order[0]['tracking_number'] AND $order[0]['rx_source'] == 'Fax')
-    return 'preparing-fax';
-
-  if ( ! $order[0]['tracking_number'] AND $order[0]['rx_source'] == 'Pharmacy')
-    return 'preparing-transfer';
-
-  if ( ! $order[0]['tracking_number'] AND $order[0]['rx_source'] == 'Phone')
-    return 'preparing-phone';
-
-  if ( ! $order[0]['tracking_number'] AND $order[0]['rx_source'] == 'Prescription')
-    return 'preparing-mail';
-
-  if ( ! $order[0]['tracking_number']) {
-    log_error('get_order_stage_wc error: preparing-* unknown rx_source', get_defined_vars());
-    return 'on-hold';
-  }
-
-  /*
-
-    const PAYMENT_METHOD = [
-      'COUPON'       => 'coupon',
-      'MAIL'         => 'cheque',
-      'ONLINE'       => 'cash',
-      'AUTOPAY'      => 'stripe',
-      'CARD EXPIRED' => 'stripe-card-expired'
-    ];
-
-    'shipped-*' means order was shipped but not yet paid.  We have to go by order_stage_wc here
-    rx_source: Fax, Pharmacy, Phone, Prescription, SureScripts
-
-    'shipped-mail-pay'    => 'Shipped (Pay by Mail)',
-    'shipped-auto-pay'    => 'Shipped (Autopay Scheduled)',
-    'shipped-online-pay'  => 'Shipped (Pay Online)',
-    'shipped-partial-pay' => 'Shipped (Partially Paid)',
-  */
-  if ($order[0]['payment_method'] == PAYMENT_METHOD['MAIL'])
-    return 'shipped-mail-pay';
-
-  if ($order[0]['payment_method'] == PAYMENT_METHOD['AUTOPAY'])
-    return 'shipped-auto-pay';
-
-  if ($order[0]['payment_method'] == PAYMENT_METHOD['ONLINE'])
-    return 'shipped-online-pay';
-
-  if ($order[0]['order_stage_wc'] == 'shipped-partial-pay')
-    return 'shipped-partial-pay';
-
-  log_error('get_order_stage_wc error: shipped-* unknown payment_method', get_defined_vars());
-  return $order[0]['order_stage_wc'];
 }
 
 function wc_fetch($url, $method = 'GET', $content = []) {
