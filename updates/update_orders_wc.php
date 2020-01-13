@@ -57,8 +57,11 @@ function update_orders_wc() {
     if ($deleted['order_stage_wc'] == 'trash') {
 
       if ($deleted['invoice_number'] < 25000) {
-        export_wc_update_order_metadata($deleted);
-        export_wc_update_order_shipping($deleted);
+
+        if ($deleted['invoice_number'] = 19901) {
+          export_wc_update_order_metadata([$deleted]);
+          export_wc_update_order_shipping([$deleted]);
+        }
         $notices[] = ["Adding Order to WC", $deleted];
 
       } else
