@@ -22,7 +22,7 @@ function changes_to_patients($new) {
     NOT old.pharmacy_fax <=> new.pharmacy_fax OR
     NOT old.pharmacy_phone <=> new.pharmacy_phone OR
     NOT old.pharmacy_address <=> new.pharmacy_address OR
-    NOT old.payment_method <=> new.payment_method OR
+    NOT old.payment_method_default <=> new.payment_method_default OR
     NOT old.payment_card_type <=> new.payment_card_type OR
     NOT old.payment_card_last4 <=> new.payment_card_last4 OR
     NOT old.payment_card_date_expired <=> new.payment_card_date_expired OR

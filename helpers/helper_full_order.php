@@ -55,6 +55,7 @@ function add_gd_fields_to_order($order) {
   foreach($order as $i => $item) {
     $order[$i]['drug'] = $item['drug_name'] ?: $item['drug_generic'];
     $order[$i]['days_dispensed'] = $item['days_dispensed_actual'] ?: $item['days_dispensed_default'];
+    $order[$i]['payment_method'] = $item['payment_method_actual'] ?: $item['payment_method_default'];
 
     if ( ! $item['item_date_added']) { //if not syncing to order lets provide a reason why we are not filling
       $message = get_days_default($item)[1];
