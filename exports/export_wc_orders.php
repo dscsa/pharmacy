@@ -20,21 +20,17 @@ function wc_insert_meta($invoice_number, $metadata) {
   global $mysql;
   $mysql = $mysql ?: new Mysql_Wc();
 
-  $sql = "";
-
   $post_id = wc_get_post_id($invoice_number);
 
   foreach ($metadata as $meta_key => $meta_value) {
     if (is_array($meta_value))
       $meta_value = json_encode($meta_value);
 
-    $sql .= "
-      INSERT INTO wp_postmeta (meta_id, post_id, meta_key, meta_value) VALUES (NULL, '$post_id', '$meta_key', '$meta_value');
-    ";
+    //mysql->run() does mysqli_query and not mysqli_multi_query so we cannot concatentate the inserts and run all at once
+    $mysql->run("INSERT INTO wp_postmeta (meta_id, post_id, meta_key, meta_value) VALUES (NULL, '$post_id', '$meta_key', '$meta_value')");
   }
 
   log_notice('wc_insert_meta', get_defined_vars());
-  $mysql->run($sql);
 }
 
 //Avoid having duplicated meta_key(s) for a single order
@@ -43,22 +39,18 @@ function wc_update_meta($invoice_number, $metadata) {
   global $mysql;
   $mysql = $mysql ?: new Mysql_Wc();
 
-  $sql = "";
-
   $post_id = wc_get_post_id($invoice_number);
 
   foreach ($metadata as $meta_key => $meta_value) {
     if (is_array($meta_value))
       $meta_value = json_encode($meta_value);
 
-    $sql .= "
-      UPDATE wp_postmeta SET meta_value = '$meta_value' WHERE post_id = $post_id AND meta_key = '$meta_key';
-    ";
+    //mysql->run() does mysqli_query and not mysqli_multi_query so we cannot concatentate the inserts and run all at once
+    //$mysql->run("UPDATE wp_postmeta SET meta_value = '$meta_value' WHERE post_id = $post_id AND meta_key = '$meta_key'");
   }
 
 
   log_notice('wc_update_meta', get_defined_vars());
-  //$mysql->run($sql);
 }
 
 function wc_update_order($invoice_number, $orderdata) {
@@ -83,7 +75,7 @@ function wc_update_order($invoice_number, $orderdata) {
   ";
 
   log_notice('wc_update_order', get_defined_vars());
-  //$mysql->run($sql);
+  $mysql->run($sql);
 }
 
 function export_wc_delete_order($invoice_number) {
@@ -143,8 +135,8 @@ function export_wc_update_order_metadata($order, $meta_fn = 'wc_update_meta') {
     return log_error('export_wc_update_order_metadata: order missing', get_defined_vars());
 
   $orderdata = [
-    'post_status' => 'wc-'.$order[0]['order_stage_wc'],
-    'post_except' => $order[0]['order_note']
+    'post_status' => 'wc-'.$order[0]['order_stage_wc'] //,
+    //'post_except' => $order[0]['order_note']
   ];
 
   wc_update_order($order[0]['invoice_number'], $orderdata);

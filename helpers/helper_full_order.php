@@ -108,68 +108,56 @@ const ORDER_STATUS_WC = [
 function get_order_stage_wc($order) {
 
   //Anything past shipped we just have to rely on WC
-  if (in_array(explode('-', $order[0]['order_stage_wc'])[0], ['late', 'completed', 'returned']))
+  if (in_array(explode('-', $order[0]['order_stage_wc'])[0], ['late', 'done', 'return']))
     return $order[0]['order_stage_wc'];
 
   /*
-  'confirming-*' means no drugs in the order yet so check for count_items
+  'confirm-*' means no drugs in the order yet so check for count_items
   order_source: NULL, O Refills, Auto Refill v2, Webform eRX, Webform eRX Note, Webform Refill, Webform Refill Note, Webform Transfer, Webform Transfer Note
-
-  'confirming-new-rx'   => 'Confirming Order (Doctor Will Send Rxs)'
-  'confirming-transfer' => 'Confirming Order (Transfer)',
-  'confirming-refill'   => 'Confirming Order (Refill Request)',
-  'confirming-autofill' => 'Confirming Order (Autofill)',
   */
 
   if ( ! $order[0]['count_items'] AND ! $order[0]['order_source'])
-    return 'confirming-new-rx';
+    return 'confirm-new-rx';
 
   if ( ! $order[0]['count_items'] AND in_array($order[0]['order_source'], ['Webform Transfer', 'Webform Transfer Note']))
-    return 'confirming-transfer';
+    return 'confirm-transfer';
 
   if ( ! $order[0]['count_items'] AND in_array($order[0]['order_source'], ['Webform Refill', 'Webform Refill Note']))
-    return 'confirming-refill';
+    return 'confirm-refill';
 
   if ( ! $order[0]['count_items'] AND in_array($order[0]['order_source'], ['Auto Refill v2', 'O Refills']))
-    return 'confirming-autofill';
+    return 'confirm-autofill';
 
   if ( ! $order[0]['count_items']) {
-    log_error('get_order_stage_wc error: confirming-* unknown order_source', get_defined_vars());
+    log_error('get_order_stage_wc error: confirm-* unknown order_source', get_defined_vars());
     return 'on-hold';
   }
 
   /*
-  'preparing-*' means drugs are in the order but order is not yet shipped
+  'prepare-*' means drugs are in the order but order is not yet shipped
   rx_source: Fax, Pharmacy, Phone, Prescription, SureScripts
-
-  'preparing-refill'    => 'Preparing Order (Refill)',
-  'preparing-erx'       => 'Preparing Order (eScript)',
-  'preparing-fax'       => 'Preparing Order (Fax)',
-  'preparing-transfer'  => 'Preparing Order (Transfer)',
-  'preparing-phone'     => 'Preparing Order (Phone)',
-  'preparing-mail'      => 'Preparing Order (Mail)',
   */
 
   if ( ! $order[0]['tracking_number'] AND in_array($order[0]['order_source'], ['Webform Refill', 'Webform Refill Note', 'Auto Refill v2', 'O Refills']))
-    return 'preparing-refill';
+    return 'prepare-refill';
 
   if ( ! $order[0]['tracking_number'] AND $order[0]['rx_source'] == 'SureScripts')
-    return 'preparing-erx';
+    return 'prepare-erx';
 
   if ( ! $order[0]['tracking_number'] AND $order[0]['rx_source'] == 'Fax')
-    return 'preparing-fax';
+    return 'prepare-fax';
 
   if ( ! $order[0]['tracking_number'] AND $order[0]['rx_source'] == 'Pharmacy')
-    return 'preparing-transfer';
+    return 'prepare-transfer';
 
   if ( ! $order[0]['tracking_number'] AND $order[0]['rx_source'] == 'Phone')
-    return 'preparing-phone';
+    return 'prepare-phone';
 
   if ( ! $order[0]['tracking_number'] AND $order[0]['rx_source'] == 'Prescription')
-    return 'preparing-mail';
+    return 'prepare-mail';
 
   if ( ! $order[0]['tracking_number']) {
-    log_error('get_order_stage_wc error: preparing-* unknown rx_source', get_defined_vars());
+    log_error('get_order_stage_wc error: prepare-* unknown rx_source', get_defined_vars());
     return 'on-hold';
   }
 
@@ -185,15 +173,10 @@ function get_order_stage_wc($order) {
 
     'shipped-*' means order was shipped but not yet paid.  We have to go by order_stage_wc here
     rx_source: Fax, Pharmacy, Phone, Prescription, SureScripts
-
-    'shipped-mail-pay'    => 'Shipped (Pay by Mail)',
-    'shipped-auto-pay'    => 'Shipped (Autopay Scheduled)',
-    'shipped-online-pay'  => 'Shipped (Pay Online)',
-    'shipped-partial-pay' => 'Shipped (Partially Paid)',
   */
 
   if ($order[0]['order_stage_wc'] == 'shipped-partial-pay')
-    return 'shipped-partial-pay';
+    return 'shipped-part-pay';
 
   if ($order[0]['payment_method_actual'] == PAYMENT_METHOD['MAIL'])
     return 'shipped-mail-pay';
@@ -202,7 +185,7 @@ function get_order_stage_wc($order) {
     return 'shipped-auto-pay';
 
   if ($order[0]['payment_method_actual'] == PAYMENT_METHOD['ONLINE'])
-    return 'shipped-online-pay';
+    return 'shipped-web-pay';
 
   if ($order[0]['payment_method_default'] == PAYMENT_METHOD['MAIL'])
     return 'shipped-mail-pay';
@@ -211,7 +194,7 @@ function get_order_stage_wc($order) {
     return 'shipped-auto-pay';
 
   if ($order[0]['payment_method_default'] == PAYMENT_METHOD['ONLINE'])
-    return 'shipped-online-pay';
+    return 'shipped-web-pay';
 
   log_error('get_order_stage_wc error: shipped-* unknown payment_method', get_defined_vars());
   return $order[0]['order_stage_wc'];

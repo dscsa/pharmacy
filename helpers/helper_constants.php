@@ -21,40 +21,41 @@ const PAYMENT_METHOD = [
 ];
 
 const ORDER_STATUS_WC = [
-  'confirming-transfer' => 'Confirming Order (Transfer)',
-  'confirming-refill'   => 'Confirming Order (Refill Request)',
-  'confirming-autofill' => 'Confirming Order (Autofill)',
-  'confirming-new-rx'   => 'Confirming Order (Doctor Will Send Rxs)',
 
-  'preparing-refill'    => 'Preparing Order (Refill)',
-  'preparing-erx'       => 'Preparing Order (eScript)',
-  'preparing-fax'       => 'Preparing Order (Fax)',
-  'preparing-transfer'  => 'Preparing Order (Transfer)',
-  'preparing-phone'     => 'Preparing Order (Phone)',
-  'preparing-mail'      => 'Preparing Order (Mail)',
+  'confirm-transfer' => 'Confirming Order (Transfer)',
+  'confirm-refill'   => 'Confirming Order (Refill Request)',
+  'confirm-autofill' => 'Confirming Order (Autofill)',
+  'confirm-new-rx'   => 'Confirming Order (Doctor Will Send Rxs)',
 
-  'shipped-mail-pay'    => 'Shipped (Pay by Mail)',
-  'shipped-auto-pay'    => 'Shipped (Autopay Scheduled)',
-  'shipped-online-pay'  => 'Shipped (Pay Online)',
-  'shipped-partial-pay' => 'Shipped (Partially Paid)',
+  'prepare-refill'    => 'Preparing Order (Refill)',
+  'prepare-erx'       => 'Preparing Order (eScript)',
+  'prepare-fax'       => 'Preparing Order (Fax)',
+  'prepare-transfer'  => 'Preparing Order (Transfer)',
+  'prepare-phone'     => 'Preparing Order (Phone)',
+  'prepare-mail'      => 'Preparing Order (Mail)',
 
-  'late-mail-pay'              => 'Shipped (Mail Payment Not Made)',
-  'late-auto-pay-card-missing' => 'Shipped (Autopay Card Missing)',
-  'late-auto-pay-card-expired' => 'Shipped (Autopay Card Expired)',
-  'late-auto-pay-card-failed'  => 'Shipped (Autopay Card Failed)',
-  'late-online-pay'            => 'Shipped (Online Payment Not Made)',
-  'late-plan-approved'         => 'Shipped (Payment Plan Approved)',
+  'shipped-mail-pay' => 'Shipped (Pay by Mail)',
+  'shipped-auto-pay' => 'Shipped (Autopay Scheduled)',
+  'shipped-web-pay'  => 'Shipped (Pay Online)',
+  'shipped-part-pay' => 'Shipped (Partially Paid)',
 
-  'completed-card-pay'    => 'Completed (Paid by Card)',
-  'completed-mail-pay'    => 'Completed (Paid by Mail)',
-  'completed-finaid'      => 'Completed (Financial Aid)',
-  'completed-fee-waived'  => 'Completed (Fee Waived)',
-  'completed-clinic-pay'  => 'Completed (Paid by Clinic)',
-  'completed-auto-pay'    => 'Completed (Paid by Autopay)',
-  'completed-refused-pay' => 'Completed (Refused to Pay)',
+  'done-card-pay'    => 'Completed (Paid by Card)',
+  'done-mail-pay'    => 'Completed (Paid by Mail)',
+  'done-finaid'      => 'Completed (Financial Aid)',
+  'done-fee-waived'  => 'Completed (Fee Waived)',
+  'done-clinic-pay'  => 'Completed (Paid by Clinic)',
+  'done-auto-pay'    => 'Completed (Paid by Autopay)',
+  'done-refused-pay' => 'Completed (Refused to Pay)',
 
-  'returned-usps'         => 'Returned (USPS)',
-  'returned-customer'     => 'Returned (Customer)'
+  'late-mail-pay'     => 'Shipped (Mail Payment Not Made)',
+  'late-card-missing' => 'Shipped (Autopay Card Missing)',
+  'late-card-expired' => 'Shipped (Autopay Card Expired)',
+  'late-card-failed'  => 'Shipped (Autopay Card Failed)',
+  'late-web-pay'      => 'Shipped (Online Payment Not Made)',
+  'late-payment-plan' => 'Shipped (Payment Plan Approved)',
+
+  'return-usps'      => 'Returned (USPS)',
+  'return-customer'  => 'Returned (Customer)'
 ];
 
 const STOCK_LEVEL = [
