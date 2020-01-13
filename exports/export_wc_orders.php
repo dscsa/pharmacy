@@ -180,7 +180,7 @@ function export_wc_update_order_shipping($order) {
     '_shipping_first_name' => $order[0]['first_name'],
     '_shipping_last_name'  => $order[0]['last_name'],
     '_shipping_email'      => $order[0]['email'],
-    '_shipping_phone'      => $order[0]['phone1']
+    '_shipping_phone'      => $order[0]['phone1'],
     '_billing_phone'       => $order[0]['phone2'],
 
     '_shipping_address_1'  => $order[0]['order_address1'],
