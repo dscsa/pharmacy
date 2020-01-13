@@ -145,24 +145,24 @@ function export_wc_update_order_metadata($order) {
 
   $metadata = [
     '_payment_method' => $order[0]['payment_method'],
-    'order_stage' => $order[0]['order_stage'],
-    'order_status' => $order[0]['order_status'],
-    'invoice_doc_id' => $order[0]['invoice_doc_id']
+    'order_stage'     => $order[0]['order_stage'],
+    'order_status'    => $order[0]['order_status'],
+    'invoice_doc_id'  => $order[0]['invoice_doc_id']
   ];
 
   if ($order[0]['payment_coupon'])
     $metadata['_coupon_lines'] = [["code" => $order[0]['payment_coupon']]];
 
   if ($order[0]['order_date_dispensed']) {
-    $metadata['order_date_dispensed']] = $order[0]['order_date_dispensed'];
-    $metadata['invoice_doc_id']        = $order[0]['invoice_doc_id'];
-    $metadata['count_items']           = $order[0]['count_items'];
-    $metadata['count_filled']          = $order[0]['count_filled'];
-    $metadata['count_nofill']          = $order[0]['count_nofill'];
+    $metadata['order_date_dispensed'] = $order[0]['order_date_dispensed'];
+    $metadata['invoice_doc_id']       = $order[0]['invoice_doc_id'];
+    $metadata['count_items']          = $order[0]['count_items'];
+    $metadata['count_filled']         = $order[0]['count_filled'];
+    $metadata['count_nofill']         = $order[0]['count_nofill'];
   }
 
   if ($order[0]['tracking_number']) { //Keep status the same until it is shipped
-    $metadata['tracking_number'] = $order[0]['tracking_number'];
+    $metadata['tracking_number']    = $order[0]['tracking_number'];
     $metadata['order_date_shipped'] = $order[0]['order_date_shipped'];
   }
 
@@ -178,16 +178,16 @@ function export_wc_update_order_shipping($order) {
 
   $metadata = [
     '_shipping_first_name' => $order[0]['first_name'],
-    '_shipping_last_name' => $order[0]['last_name'],
-    '_shipping_email' => $order[0]['email'],
-    '_shipping_phone' => $order[0]['phone1']
-    '_billing_phone' => $order[0]['phone2'],
+    '_shipping_last_name'  => $order[0]['last_name'],
+    '_shipping_email'      => $order[0]['email'],
+    '_shipping_phone'      => $order[0]['phone1']
+    '_billing_phone'       => $order[0]['phone2'],
 
-    '_shipping_address_1' => $order[0]['order_address1'],
-    '_shipping_address_2' => $order[0]['order_address2'],
-    '_shipping_city' => $order[0]['order_city'],
-    '_shipping_state' => $order[0]['order_state'],
-    '_shipping_postcode' => $order[0]['order_zip']
+    '_shipping_address_1'  => $order[0]['order_address1'],
+    '_shipping_address_2'  => $order[0]['order_address2'],
+    '_shipping_city'       => $order[0]['order_city'],
+    '_shipping_state'      => $order[0]['order_state'],
+    '_shipping_postcode'   => $order[0]['order_zip']
   ];
 
   wc_update_meta($order[0]['invoice_number'], $metadata);
