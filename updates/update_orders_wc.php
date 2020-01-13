@@ -50,11 +50,11 @@ function update_orders_wc() {
   }
 
   //This captures 2 USE CASES:
-  //1) An order is in WC and CP but then is deleted in WC, probably because wp-admin deleted it (look for Update with order_stage_wc == 'trashed')
+  //1) An order is in WC and CP but then is deleted in WC, probably because wp-admin deleted it (look for Update with order_stage_wc == 'trash')
   //2) An order is in CP but not in (never added to) WC, probably because of a tech bug.
   foreach($changes['deleted'] as $deleted) {
 
-    if ($deleted['order_stage_wc'] == 'trashed') {
+    if ($deleted['order_stage_wc'] == 'trash') {
       $notices[] = ["Order deleted in WC", $deleted];
     }
 
@@ -62,7 +62,7 @@ function update_orders_wc() {
 
   foreach($changes['updated'] as $updated) {
 
-    if ($updated['order_stage_wc'] == 'trashed') {
+    if ($updated['order_stage_wc'] == 'trash') {
       $notices[] = ["Order trashed in WC", $updated];
     } else {
       $notices[] = ["Order updated in WC", $updated];
