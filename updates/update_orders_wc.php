@@ -16,6 +16,7 @@ function update_orders_wc() {
   log_info("update_orders_wc: $count_deleted deleted, $count_created created, $count_updated updated.");
 
   $mssql = new Mssql_Cp();
+  $mysql = new Mysql_Wc();
 
   function save_guardian_order($patient_id_cp, $source, $is_registered, $comment = '') {
 
