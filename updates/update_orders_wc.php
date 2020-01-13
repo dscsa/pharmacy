@@ -1,6 +1,7 @@
 <?php
 
 require_once 'changes/changes_to_orders_wc.php';
+require_once 'helpers/helper_full_order.php';
 
 function update_orders_wc() {
 
@@ -59,8 +60,9 @@ function update_orders_wc() {
       if ($deleted['invoice_number'] < 25000) {
 
         if ($deleted['invoice_number'] = 19901) {
-          export_wc_update_order_metadata([$deleted]);
-          export_wc_update_order_shipping([$deleted]);
+          $order = get_full_order($deleted, $mysql);
+          export_wc_update_order_metadata($order);
+          export_wc_update_order_shipping($order);
         }
         $notices[] = ["Adding Order to WC", $deleted];
 
