@@ -15,7 +15,7 @@ const PAYMENT_TOTAL_NEW_PATIENT = 6;
 const PAYMENT_METHOD = [
   'COUPON'       => 'coupon',
   'MAIL'         => 'cheque',
-  'ONLINE'       => 'cash',
+  'ONLINE'       => 'cod',
   'AUTOPAY'      => 'stripe',
   'CARD EXPIRED' => 'stripe-card-expired'
 ];
