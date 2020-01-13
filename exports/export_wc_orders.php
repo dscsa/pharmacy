@@ -128,7 +128,7 @@ function export_wc_create_order($order) {
   wc_insert_meta($invoice_number, $metadata);
   export_wc_update_order_metadata($order, 'wc_insert_meta');
   export_wc_update_order_shipped($order, 'wc_insert_meta');
-  export_wc_update_order_payment($invoice_number, $order[0]['payment_fee'], 'wc_insert_meta')
+  export_wc_update_order_payment($invoice_number, $order[0]['payment_fee'], 'wc_insert_meta');
 
   log_notice('export_wc_create_order: created new order', get_defined_vars());
 
