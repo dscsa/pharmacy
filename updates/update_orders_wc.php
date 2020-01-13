@@ -62,8 +62,9 @@ function update_orders_wc() {
 
         if ($deleted['invoice_number'] = 19901) {
           $order = get_full_order($deleted, $mysql);
-          export_wc_update_order_metadata($order);
-          export_wc_update_order_shipping($order);
+          export_wc_create_order($order);
+          //export_wc_update_order_metadata($order);
+          //export_wc_update_order_shipping($order);
         }
         $notices[] = ["Adding Order to WC", $deleted];
 

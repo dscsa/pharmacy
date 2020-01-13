@@ -204,8 +204,14 @@ function get_order_stage_wc($order) {
   if ($order[0]['payment_method_actual'] == PAYMENT_METHOD['ONLINE'])
     return 'shipped-online-pay';
 
-  if ($order[0]['payment_method_default'])
-    return $order[0]['payment_method_default'];
+  if ($order[0]['payment_method_default'] == PAYMENT_METHOD['MAIL'])
+    return 'shipped-mail-pay';
+
+  if ($order[0]['payment_method_default'] == PAYMENT_METHOD['AUTOPAY'])
+    return 'shipped-auto-pay';
+
+  if ($order[0]['payment_method_default'] == PAYMENT_METHOD['ONLINE'])
+    return 'shipped-online-pay';
 
   log_error('get_order_stage_wc error: shipped-* unknown payment_method', get_defined_vars());
   return $order[0]['order_stage_wc'];
