@@ -10,7 +10,7 @@ function changes_to_orders_wc($new) {
   $id    = "invoice_number";
   $where = "
     NOT old.patient_id_wc <=> new.patient_id_wc OR
-    NOT old.payment_method <=> new.payment_method OR
+    NOT old.payment_method_actual <=> new.payment_method_actual OR
     NOT old.coupon_lines <=> new.coupon_lines OR
     NOT old.order_note <=> new.order_note OR
     NOT old.order_stage_wc <=> new.order_stage_wc

@@ -20,7 +20,7 @@ function import_wc_orders() {
     wp_posts.post_excerpt as order_note,
 
     MAX(CASE WHEN wp_postmeta.meta_key = 'order_source' then wp_postmeta.meta_value ELSE NULL END) as order_source,
-    MAX(CASE WHEN wp_postmeta.meta_key = '_payment_method' then wp_postmeta.meta_value ELSE NULL END) as payment_method,
+    MAX(CASE WHEN wp_postmeta.meta_key = '_payment_method' then wp_postmeta.meta_value ELSE NULL END) as payment_method_actual,
     MAX(CASE WHEN wp_postmeta.meta_key = '_coupon_lines' then wp_postmeta.meta_value ELSE NULL END) as coupon_lines,
 
     -- MAX(CASE WHEN wp_postmeta.meta_key = '_shipping_first_name' then wp_postmeta.meta_value ELSE NULL END) as first_name,
@@ -38,7 +38,7 @@ function import_wc_orders() {
     wp_posts
   LEFT JOIN wp_postmeta ON wp_postmeta.post_id = wp_posts.ID
   WHERE
-    post_type    = 'shop_order'
+    post_type = 'shop_order'
   GROUP BY
      wp_posts.ID
   HAVING

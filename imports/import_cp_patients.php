@@ -126,16 +126,16 @@ function import_cp_patients() {
       $next_month = date('Y-m-d', strtotime('+1 month'));
 
       if ($row['payment_coupon'] != 'NULL') {
-        $row['payment_method'] = "'".PAYMENT_METHOD['COUPON']."'";
+        $row['payment_method_default'] = "'".PAYMENT_METHOD['COUPON']."'";
       }
       else if ($row['payment_card_date_expired'] == 'NULL' ) {
-        $row['payment_method'] = "'".PAYMENT_METHOD['MAIL']."'";
+        $row['payment_method_default'] = "'".PAYMENT_METHOD['MAIL']."'";
       }
       else if ($row['payment_card_date_expired'] > "'$next_month'") {
-        $row['payment_method'] = "'".PAYMENT_METHOD['AUTOPAY']."'";
+        $row['payment_method_default'] = "'".PAYMENT_METHOD['AUTOPAY']."'";
       }
       else {
-        $row['payment_method'] = "'".PAYMENT_METHOD['CARD EXPIRED']."'";
+        $row['payment_method_default'] = "'".PAYMENT_METHOD['CARD EXPIRED']."'";
       }
 
       unset($row['billing_info']);
