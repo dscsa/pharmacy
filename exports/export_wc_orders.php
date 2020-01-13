@@ -29,7 +29,7 @@ function wc_insert_meta($invoice_number, $metadata) {
       $meta_value = json_encode($meta_value);
 
     $sql .= "
-      INSERT INTO wp_postmeta ('post_id', 'meta_key', 'meta_value') VALUES ('$post_id', '$meta_key', '$meta_value');
+      INSERT INTO wp_postmeta (post_id, meta_key, meta_value) VALUES ('$post_id', '$meta_key', '$meta_value');
     ";
   }
 
@@ -88,7 +88,7 @@ function wc_update_order($invoice_number, $orderdata) {
 
 function export_wc_delete_order($invoice_number) {
 
-  $sql = "DELETE FROM wp_posts, wp_postmeta JOIN wp_postmeta ON wp_posts.id = wp_postmeta.post_id WHERE wp_postmeta.meta_key='invoice_number' AND wp_postmeta.meta_value = '$invoice_number'";
+  $sql = "DELETE FROM wp_posts, meta2 JOIN wp_postmeta meta1 ON wp_posts.id = meta1.post_id JOIN wp_postmeta meta2 ON wp_posts.id = meta2.post_id WHERE meta1.meta_key='invoice_number' AND meta1.meta_value = '$invoice_number'";
 
   //$mysql->run($sql);
 
