@@ -108,12 +108,12 @@ function wc_upsert_meta($order_meta, $meta_key, $meta_value) {
 }
 
 //These are the ones that might change
-function export_wc_update_meta_order_metadata($order) {
+function export_wc_update_order_metadata($order) {
 
   $order_meta = wc_get_or_new_order($order);
 
   if ( ! $order_meta OR ! $order_meta[0]['post_id'])
-    return log_error('export_wc_update_meta_order_metadata: no order exists with this invoice number', get_defined_vars());
+    return log_error('export_wc_update_order_metadata: no order exists with this invoice number', get_defined_vars());
 
   //Native Fields
   if ($order[0]['payment_method'] == PAYMENT_METHOD['COUPON'])
@@ -126,7 +126,7 @@ function export_wc_update_meta_order_metadata($order) {
     $payment_method = 'cheque';
 
   else
-    log_error('export_wc_update_meta_order_payment: update_order_payment: UNKNOWN Payment Method', get_defined_vars());
+    log_error('export_wc_update_order_payment: update_order_payment: UNKNOWN Payment Method', get_defined_vars());
 
   wc_upsert_status($order_meta, 'post_status', $order[0]['payment_method']);
   wc_upsert_meta($order_meta, '_payment_method', $payment_method);
@@ -151,7 +151,7 @@ function export_wc_update_meta_order_metadata($order) {
   }
 }
 
-function export_wc_update_meta_order_shipping($order) {
+function export_wc_update_order_shipping($order) {
 
   $order_meta = wc_get_or_new_order($order);
 

@@ -44,7 +44,7 @@ function update_orders_wc() {
   foreach($changes['created'] as $created) {
 
     if ($created['invoice_number'] > 25000) {
-      $notices[] = ["Order deleted in WC", $created];
+      $notices[] = ["Order created in WC", $created];
     }
 
   }
@@ -55,7 +55,14 @@ function update_orders_wc() {
   foreach($changes['deleted'] as $deleted) {
 
     if ($deleted['order_stage_wc'] == 'trash') {
-      $notices[] = ["Order deleted in WC", $deleted];
+
+      if ($created['invoice_number'] < 25000) {
+        export_wc_update_order_metadata($order);
+        export_wc_update_order_shipping($order);
+        $notices[] = ["Adding Order to WC", $deleted];
+
+      } else
+        $notices[] = ["Order deleted in WC", $deleted];
     }
 
   }
