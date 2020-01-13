@@ -33,9 +33,8 @@ function wc_insert_meta($invoice_number, $metadata) {
     ";
   }
 
-
   log_notice('wc_insert_meta', get_defined_vars());
-  //$mysql->run($sql);
+  $mysql->run($sql);
 }
 
 //Avoid having duplicated meta_key(s) for a single order
@@ -110,7 +109,7 @@ function export_wc_create_order($order) {
   if ( ! $response)
     return log_error('export_wc_create_order: failed', get_defined_vars());
 
-  if ($response['error'])
+  if ( ! empty($response['error']))
     return log_error('export_wc_create_order: order already exists!', get_defined_vars());
 
   //These are the metadata that should NOT change
@@ -176,7 +175,7 @@ function export_wc_update_order_metadata($order, $meta_fn = 'wc_update_meta') {
   $meta_fn($order[0]['invoice_number'], $metadata);
 }
 
-function export_wc_update_order_shipping($order, $meta_fn = 'wc_update_meta') {
+function export_wc_update_order_shipped($order, $meta_fn = 'wc_update_meta') {
 
   $post_id = wc_get_post_id($order[0]['invoice_number']);
 
