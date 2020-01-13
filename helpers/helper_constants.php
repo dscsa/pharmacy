@@ -13,10 +13,48 @@ const INVOICE_FOLDER_NAME   = 'OLD';  //Published
 const PAYMENT_TOTAL_NEW_PATIENT = 6;
 
 const PAYMENT_METHOD = [
-  'COUPON'       => 'shipped-coupon',
-  'MANUAL'       => 'shipped-unpaid',
-  'AUTOPAY'      => 'shipped-autopay',
-  'CARD EXPIRED' => 'shipped-card-expired'
+  'COUPON'       => 'coupon',
+  'MAIL'         => 'cheque',
+  'ONLINE'       => 'cash',
+  'AUTOPAY'      => 'stripe',
+  'CARD EXPIRED' => 'stripe-card-expired'
+];
+
+const ORDER_STATUS_WC = [
+  'confirming-transfer' => 'Confirming Order (Transfer)',
+  'confirming-refill'   => 'Confirming Order (Refill Request)',
+  'confirming-autofill' => 'Confirming Order (Autofill)',
+  'confirming-new-rx'   => 'Confirming Order (Doctor Will Send Rxs)',
+
+  'preparing-refill'    => 'Preparing Order (Refill)',
+  'preparing-erx'       => 'Preparing Order (eScript)',
+  'preparing-fax'       => 'Preparing Order (Fax)',
+  'preparing-transfer'  => 'Preparing Order (Transfer)',
+  'preparing-phone'     => 'Preparing Order (Phone)',
+  'preparing-mail'      => 'Preparing Order (Mail)',
+
+  'shipped-mail-pay'    => 'Shipped (Pay by Mail)',
+  'shipped-auto-pay'    => 'Shipped (Autopay Scheduled)',
+  'shipped-online-pay'  => 'Shipped (Pay Online)',
+  'shipped-partial-pay' => 'Shipped (Partially Paid)',
+
+  'late-mail-pay'              => 'Shipped (Mail Payment Not Made)',
+  'late-auto-pay-card-missing' => 'Shipped (Autopay Card Missing)',
+  'late-auto-pay-card-expired' => 'Shipped (Autopay Card Expired)',
+  'late-auto-pay-card-failed'  => 'Shipped (Autopay Card Failed)',
+  'late-online-pay'            => 'Shipped (Online Payment Not Made)',
+  'late-plan-approved'         => 'Shipped (Payment Plan Approved)',
+
+  'completed-card-pay'    => 'Completed (Paid by Card)',
+  'completed-mail-pay'    => 'Completed (Paid by Mail)',
+  'completed-finaid'      => 'Completed (Financial Aid)',
+  'completed-fee-waived'  => 'Completed (Fee Waived)',
+  'completed-clinic-pay'  => 'Completed (Paid by Clinic)',
+  'completed-auto-pay'    => 'Completed (Paid by Autopay)',
+  'completed-refused-pay' => 'Completed (Refused to Pay)',
+
+  'returned-usps'         => 'Returned (USPS)',
+  'returned-customer'     => 'Returned (Customer)'
 ];
 
 const STOCK_LEVEL = [

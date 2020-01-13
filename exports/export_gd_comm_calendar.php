@@ -215,6 +215,8 @@ function order_hold_notice($groups) {
     $trigger = 'We requested refills from your doctor but have not heard back so';
   else if (in_array($groups['ALL'][0]['order_source'], ["Webform Refill", "Refill w/ Note"]))
     $trigger = 'We received your refill request but';
+  else if (in_array($groups['ALL'][0]['order_source'], ['Webform Transfer', 'Transfer /w Note']))
+    $trigger = 'We received your transfer request but';
 
   $email = [ "email" => $groups['ALL'][0]['email'] ];
   $text  = [ "sms" => get_phones($groups['ALL']), "message" => $trigger.' '.$subject.' '.$message ];

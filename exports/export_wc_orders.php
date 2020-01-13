@@ -2,186 +2,331 @@
 
 global $mysql;
 
-function export_wc_delete_order($order) {
+function wc_get_post_id($invoice_number) {
+  global $mysql;
+  $mysql = $mysql ?: new Mysql_Wc();
 
-  $order_meta = wc_select_order($order[0]['invoice_number']);
+  $sql = "SELECT * FROM wp_posts JOIN wp_postmeta ON wp_posts.id = wp_postmeta.post_id WHERE wp_postmeta.meta_key='invoice_number' AND wp_postmeta.meta_value = '$invoice_number'";
+  $res = $mysql->run($sql);
 
-  if ( ! $order_meta OR ! $order_meta[0]['post_id'])
-    return log_error('export_wc_delete_order: no order exists with this invoice number', get_defined_vars());
+  if (isset($res[0][0]))
+    return $res[0][0]['post_id'];
 
-  $sql1 = "DELETE FROM wp_posts WHERE id = ".$order_meta[0]['post_id'];
-  $sql2 = "DELETE FROM wp_postmeta WHERE post_id = ".$order_meta[0]['post_id'];
-
-  log_notice("export_wc_delete_order", get_defined_vars());//.print_r($item, true);
+  log_error('wc_get_post_id: failed', get_defined_vars());
 }
 
-function wc_select_order($invoice_number) {
+function wc_insert_meta($invoice_number, $metadata) {
 
   global $mysql;
   $mysql = $mysql ?: new Mysql_Wc();
 
-  $sql = "SELECT * FROM wp_posts JOIN wp_postmeta meta1 ON wp_posts.id = meta1.post_id JOIN wp_postmeta meta2 ON wp_posts.id = meta2.post_id WHERE meta1.meta_key='invoice_number' AND meta1.meta_value = '$invoice_number' ORDER BY wp_posts.id DESC";
+  $sql = "";
 
-  $order_meta = $mysql->run($sql);
+  $post_id = wc_get_post_id($invoice_number);
 
-  if ($order_meta)
-    return $order_meta[0];
+  foreach ($metadata as $meta_key => $meta_value) {
+    if (is_array($meta_value))
+      $meta_value = json_encode($meta_value);
 
-  log_notice('wc_select no matching order', get_defined_vars());
+    $sql .= "
+      INSERT INTO wp_postmeta ('post_id', 'meta_key', 'meta_value') VALUES ('$post_id', '$meta_key', '$meta_value');
+    ";
+  }
+
+
+  log_notice('wc_insert_meta', get_defined_vars());
+  //$mysql->run($sql);
 }
 
-//Select or Insert
-function wc_get_or_new_order($order) {
+function wc_update_meta($invoice_number, $metadata) {
+
+  global $mysql;
+  $mysql = $mysql ?: new Mysql_Wc();
+
+  $sql = "";
+
+  $post_id = wc_get_post_id($invoice_number);
+
+  foreach ($metadata as $meta_key => $meta_value) {
+    if (is_array($meta_value))
+      $meta_value = json_encode($meta_value);
+
+    $sql .= "
+      UPDATE wp_postmeta SET $meta_key = '$meta_value' WHERE post_id = $post_id;
+    ";
+  }
+
+
+  log_notice('wc_update_meta', get_defined_vars());
+  //$mysql->run($sql);
+}
+
+function wc_update_order($invoice_number, $orderdata) {
+
+  global $mysql;
+  $mysql = $mysql ?: new Mysql_Wc();
+
+  $set = [];
+
+  $post_id = wc_get_post_id($invoice_number);
+
+  foreach ($orderdata as $order_key => $order_value) {
+
+    if (is_array($order_value))
+      $order_value = json_encode($order_value);
+
+    $set[] = "$order_key = '$order_value'";
+  }
+
+  $sql = "
+    UPDATE wp_posts SET ".implode(', ', $set)." WHERE post_id = $post_id;
+  ";
+
+  log_notice('wc_update_order', get_defined_vars());
+  //$mysql->run($sql);
+}
+
+function export_wc_delete_order($invoice_number) {
+
+  $sql = "DELETE FROM wp_posts, wp_postmeta JOIN wp_postmeta ON wp_posts.id = wp_postmeta.post_id WHERE wp_postmeta.meta_key='invoice_number' AND wp_postmeta.meta_value = '$invoice_number'";
+
+  //$mysql->run($sql);
+
+  log_notice("export_wc_delete_order", get_defined_vars());//.print_r($item, true);
+}
+
+function export_wc_create_order($order) {
 
   $invoice_number = $order[0]['invoice_number'];
   $first_name = $order[0]['first_name'];
   $last_name = $order[0]['last_name'];
   $birth_date = $order[0]['birth_date'];
 
-  $order_meta = wc_select_order($invoice_number);
+  //This creates order and adds invoice number to metadata
+  //We do this through REST API because direct database calls seemed messy
+  $response = wc_fetch("patient/$first_name $last_name $birth_date/order/$invoice_number");
 
-  if ( ! $order_meta) {
+  if ( ! $response)
+    return log_error('export_wc_create_order: failed', get_defined_vars());
 
-    //This creates order and adds invoice number to metadata
-    $response = wc_fetch("patient/$first_name $last_name $birth_date/order/$invoice_number");
+  //These are the metadata that should NOT change
+  //wc_upsert_meta($order_meta, 'shipping_method_id', ['31694']);
+  //wc_upsert_meta($order_meta, 'shipping_method_title', ['31694' => 'Admin Fee']);
 
-    $order_meta = $response['order'];
+  $metadata = [
+    'patient_id_cp'     => $order[0]['patient_id_cp'],
+    'order_date_added'  => $order[0]['order_date_added'],
+    'refills_used'      => $order[0]['refills_used'],
+    'patient_autofill'  => $order[0]['patient_autofill'],
+    'order_source'      => $order[0]['order_source']
+  ];
 
-    //These are the metadata that should NOT change
-    wc_upsert_meta($order_meta, 'shipping_method_id', ['31694']);
-    wc_upsert_meta($order_meta, 'shipping_method_title', ['31694' => 'Admin Fee']);
-    wc_upsert_meta($order_meta, 'patient_id_cp', $order[0]['patient_id_cp']);
-    wc_upsert_meta($order_meta, 'order_date_added', $order[0]['order_date_added']);
-    wc_upsert_meta($order_meta, 'refills_used', $order[0]['refills_used']);
-    wc_upsert_meta($order_meta, 'patient_autofill', $order[0]['patient_autofill']);
-    wc_upsert_meta($order_meta, 'order_source', $order[0]['order_source']);
+  wc_insert_meta($invoice_number, $metadata);
 
-    log_notice('wc_get_or_new_order: created new order', get_defined_vars());
-  }
+  log_notice('export_wc_create_order: created new order', get_defined_vars());
 
-  return $order_meta;
-}
-
-function wc_insert_meta($post_id, $meta_key, $meta_value) {
-
-  if ( ! $meta_value) return;
-
-  global $mysql;
-  $mysql = $mysql ?: new Mysql_Wc();
-  $sql = "INSERT INTO wp_postmeta ('post_id', 'meta_key', 'meta_value') VALUES ('$post_id', '$meta_key', '$meta_value')";
-  //log_notice('wc_insert_meta', get_defined_vars());
-  //$mysql->run($sql);
-}
-
-function wc_update_meta($post_id, $meta_key, $meta_value) {
-
-  if ( ! $meta_value) return;
-
-  global $mysql;
-  $mysql = $mysql ?: new Mysql_Wc();
-  $sql = "UPDATE wp_postmeta SET $meta_key = '$meta_value' WHERE post_id = $post_id";
-  log_notice('wc_update_meta', get_defined_vars());
-  //$mysql->run($sql);
-}
-
-function wc_update_status($post_id, $post_status) {
-
-  global $mysql;
-  $mysql = $mysql ?: new Mysql_Wc();
-  $sql = "UPDATE wp_posts SET 'post_status' = '$post_status' WHERE post_id = $post_id";
-  log_notice('wc_update_status', get_defined_vars());
-  //$mysql->run($sql);
-}
-
-function wc_upsert_meta($order_meta, $meta_key, $meta_value) {
-
-  foreach ($order_meta as $meta) {
-    if ($meta['meta_key'] == $meta_key) {
-      if ($meta['meta_value'] == $meta_value)
-        return; //log_notice('wc_upsert_meta aborted because wc is already up to date', get_defined_vars());
-
-      return wc_update_meta($meta['post_id'], $meta_key, $meta_value);
-    }
-  }
-
-  wc_insert_meta($order_meta[0]['post_id'], $meta_key, $meta_value);
+  return $order;
 }
 
 //These are the ones that might change
 function export_wc_update_order_metadata($order) {
 
-  $order_meta = wc_get_or_new_order($order);
+  $post_id = wc_get_post_id($order[0]['invoice_number']);
 
-  if ( ! $order_meta OR ! $order_meta[0]['post_id'])
-    return log_error('export_wc_update_order_metadata: no order exists with this invoice number', get_defined_vars());
+  if ( ! $post_id)
+    return log_error('export_wc_update_order_metadata: order missing', get_defined_vars());
 
-  //Native Fields
-  if ($order[0]['payment_method'] == PAYMENT_METHOD['COUPON'])
-    $payment_method = null;
+  $orderdata = [
+    'post_status' => get_order_stage_wc($order),
+    'post_except' => $order[0]['order_note']
+  ];
 
-  else if ($order[0]['payment_method'] == PAYMENT_METHOD['AUTOPAY'])
-    $payment_method = 'stripe';
+  wc_update_order($order[0]['invoice_number'], $orderdata);
 
-  else if ($order[0]['payment_method'] == PAYMENT_METHOD['MANUAL'])
-    $payment_method = 'cheque';
-
-  else
-    log_error('export_wc_update_order_payment: update_order_payment: UNKNOWN Payment Method', get_defined_vars());
-
-  wc_upsert_status($order_meta, 'post_status', $order[0]['payment_method']);
-  wc_upsert_meta($order_meta, '_payment_method', $payment_method);
-  wc_upsert_meta($order_meta, 'order_stage', $order[0]['order_stage']);
-  wc_upsert_meta($order_meta, 'order_status', $order[0]['order_status']);
-  wc_upsert_meta($order_meta, 'invoice_doc_id', $order[0]['invoice_doc_id']);
+  $metadata = [
+    '_payment_method' => $order[0]['payment_method'],
+    'order_stage' => $order[0]['order_stage'],
+    'order_status' => $order[0]['order_status'],
+    'invoice_doc_id' => $order[0]['invoice_doc_id']
+  ];
 
   if ($order[0]['payment_coupon'])
-    wc_upsert_meta($order_meta, '_coupon_lines', [["code" => $order[0]['payment_coupon']]]);
+    $metadata['_coupon_lines'] = [["code" => $order[0]['payment_coupon']]];
 
   if ($order[0]['order_date_dispensed']) {
-    wc_upsert_meta($order_meta, 'order_date_dispensed', $order[0]['order_date_dispensed']);
-    wc_upsert_meta($order_meta, 'invoice_doc_id', $order[0]['invoice_doc_id']);
-    wc_upsert_meta($order_meta, 'count_items', $order[0]['count_items']);
-    wc_upsert_meta($order_meta, 'count_filled', $order[0]['count_filled']);
-    wc_upsert_meta($order_meta, 'count_nofill', $order[0]['count_nofill']);
+    $metadata['order_date_dispensed']] = $order[0]['order_date_dispensed'];
+    $metadata['invoice_doc_id']        = $order[0]['invoice_doc_id'];
+    $metadata['count_items']           = $order[0]['count_items'];
+    $metadata['count_filled']          = $order[0]['count_filled'];
+    $metadata['count_nofill']          = $order[0]['count_nofill'];
   }
 
   if ($order[0]['tracking_number']) { //Keep status the same until it is shipped
-    wc_upsert_meta($order_meta, 'tracking_number', $order[0]['tracking_number']);
-    wc_upsert_meta($order_meta, 'order_date_shipped', $order[0]['order_date_shipped']);
+    $metadata['tracking_number'] = $order[0]['tracking_number'];
+    $metadata['order_date_shipped'] = $order[0]['order_date_shipped'];
   }
+
+  wc_update_meta($order[0]['invoice_number'], $metadata);
 }
 
 function export_wc_update_order_shipping($order) {
 
-  $order_meta = wc_get_or_new_order($order);
+  $post_id = wc_get_post_id($order[0]['invoice_number']);
 
-  if ( ! $order_meta OR ! $order_meta[0]['post_id'])
-    return log_error('export_wc_update_meta_order_shipping: no order exists with this invoice number', get_defined_vars());
+  if ( ! $post_id)
+    return log_error('export_wc_update_order_shipping: order missing', get_defined_vars());
 
-  wc_upsert_meta($order_meta, '_shipping_first_name', $order[0]['first_name']);
-  wc_upsert_meta($order_meta, '_shipping_last_name', $order[0]['last_name']);
-  wc_upsert_meta($order_meta, '_shipping_email', $order[0]['email']);
-  wc_upsert_meta($order_meta, '_shipping_phone', $order[0]['phone1']);
-  wc_upsert_meta($order_meta, '_billing_phone', $order[0]['phone2']);
+  $metadata = [
+    '_shipping_first_name' => $order[0]['first_name'],
+    '_shipping_last_name' => $order[0]['last_name'],
+    '_shipping_email' => $order[0]['email'],
+    '_shipping_phone' => $order[0]['phone1']
+    '_billing_phone' => $order[0]['phone2'],
 
+    '_shipping_address_1' => $order[0]['order_address1'],
+    '_shipping_address_2' => $order[0]['order_address2'],
+    '_shipping_city' => $order[0]['order_city'],
+    '_shipping_state' => $order[0]['order_state'],
+    '_shipping_postcode' => $order[0]['order_zip']
+  ];
 
-  wc_upsert_meta($order_meta, '_shipping_address_1', $order[0]['order_address1']);
-  wc_upsert_meta($order_meta, '_shipping_address_2', $order[0]['order_address2']);
-  wc_upsert_meta($order_meta, '_shipping_city', $order[0]['order_city']);
-  wc_upsert_meta($order_meta, '_shipping_state', $order[0]['order_state']);
-  wc_upsert_meta($order_meta, '_shipping_postcode', $order[0]['order_zip']);
+  wc_update_meta($order[0]['invoice_number'], $metadata);
 }
 
 function export_wc_update_meta_order_payment($invoice_number, $payment_fee) {
 
-  $order_meta = wc_select_order($invoice_number);
+  $post_id = wc_get_post_id($invoice_number);
 
-  if ( ! $order_meta OR ! $order_meta[0]['post_id'])
-    return log_error('export_wc_update_meta_order_payment: no order exists with this invoice number', get_defined_vars());
+  if ( ! $post_id)
+    return log_error('export_wc_update_meta_order_payment: order missing', get_defined_vars());
 
-  wc_upsert_meta($order_meta, 'shipping_cost', ['31694' => $payment_fee]);
+  wc_update_meta($invoice_number, ['_order_shipping' => $payment_fee]);
 }
 
+
+/*
+const ORDER_STATUS_WC = [
+
+  'late-mail-pay'              => 'Shipped (Mail Payment Not Made)',
+  'late-auto-pay-card-missing' => 'Shipped (Autopay Card Missing)',
+  'late-auto-pay-card-expired' => 'Shipped (Autopay Card Expired)',
+  'late-auto-pay-card-failed'  => 'Shipped (Autopay Card Failed)',
+  'late-online-pay'            => 'Shipped (Online Payment Not Made)',
+  'late-plan-approved'         => 'Shipped (Payment Plan Approved)',
+
+  'completed-card-pay'    => 'Completed (Paid by Card)',
+  'completed-mail-pay'    => 'Completed (Paid by Mail)',
+  'completed-finaid'      => 'Completed (Financial Aid)',
+  'completed-fee-waived'  => 'Completed (Fee Waived)',
+  'completed-clinic-pay'  => 'Completed (Paid by Clinic)',
+  'completed-auto-pay'    => 'Completed (Paid by Autopay)',
+  'completed-refused-pay' => 'Completed (Refused to Pay)',
+
+  'returned-usps'         => 'Returned (USPS)',
+  'returned-customer'     => 'Returned (Customer)'
+];
+*/
+function get_order_stage_wc($order) {
+
+  //Anything past shipped we just have to rely on WC
+  if (in_array(explode('-', $order[0]['order_stage_wc'])[0], ['late', 'completed', 'returned']))
+    return $order[0]['order_stage_wc'];
+
+  /*
+  'confirming-*' means no drugs in the order yet so check for count_items
+  order_source: NULL, O Refills, Auto Refill v2, Webform eRX, Webform eRX Note, Webform Refill, Webform Refill Note, Webform Transfer, Webform Transfer Note
+
+  'confirming-new-rx'   => 'Confirming Order (Doctor Will Send Rxs)'
+  'confirming-transfer' => 'Confirming Order (Transfer)',
+  'confirming-refill'   => 'Confirming Order (Refill Request)',
+  'confirming-autofill' => 'Confirming Order (Autofill)',
+  */
+
+  if ( ! $order[0]['count_items'] AND ! $order[0]['order_source'])
+    return 'confirming-new-rx';
+
+  if ( ! $order[0]['count_items'] AND in_array($order[0]['order_source'], ['Webform Transfer', 'Webform Transfer Note']))
+    return 'confirming-transfer';
+
+  if ( ! $order[0]['count_items'] AND in_array($order[0]['order_source'], ['Webform Refill', 'Webform Refill Note']))
+    return 'confirming-refill';
+
+  if ( ! $order[0]['count_items'] AND in_array($order[0]['order_source'], ['Auto Refill v2', 'O Refills']))
+    return 'confirming-autofill';
+
+  if ( ! $order[0]['count_items']) {
+    log_error('get_order_stage_wc error: confirming-* unknown order_source', get_defined_vars());
+    return 'on-hold';
+  }
+
+  /*
+  'preparing-*' means drugs are in the order but order is not yet shipped
+  rx_source: Fax, Pharmacy, Phone, Prescription, SureScripts
+
+  'preparing-refill'    => 'Preparing Order (Refill)',
+  'preparing-erx'       => 'Preparing Order (eScript)',
+  'preparing-fax'       => 'Preparing Order (Fax)',
+  'preparing-transfer'  => 'Preparing Order (Transfer)',
+  'preparing-phone'     => 'Preparing Order (Phone)',
+  'preparing-mail'      => 'Preparing Order (Mail)',
+  */
+
+  if ( ! $order[0]['tracking_number'] AND in_array($order[0]['order_source'], ['Webform Refill', 'Webform Refill Note', 'Auto Refill v2', 'O Refills']))
+    return 'preparing-refill';
+
+  if ( ! $order[0]['tracking_number'] AND $order[0]['rx_source'] == 'SureScripts')
+    return 'preparing-erx';
+
+  if ( ! $order[0]['tracking_number'] AND $order[0]['rx_source'] == 'Fax')
+    return 'preparing-fax';
+
+  if ( ! $order[0]['tracking_number'] AND $order[0]['rx_source'] == 'Pharmacy')
+    return 'preparing-transfer';
+
+  if ( ! $order[0]['tracking_number'] AND $order[0]['rx_source'] == 'Phone')
+    return 'preparing-phone';
+
+  if ( ! $order[0]['tracking_number'] AND $order[0]['rx_source'] == 'Prescription')
+    return 'preparing-mail';
+
+  if ( ! $order[0]['tracking_number']) {
+    log_error('get_order_stage_wc error: preparing-* unknown rx_source', get_defined_vars());
+    return 'on-hold';
+  }
+
+  /*
+
+    const PAYMENT_METHOD = [
+      'COUPON'       => 'coupon',
+      'MAIL'         => 'cheque',
+      'ONLINE'       => 'cash',
+      'AUTOPAY'      => 'stripe',
+      'CARD EXPIRED' => 'stripe-card-expired'
+    ];
+
+    'shipped-*' means order was shipped but not yet paid.  We have to go by order_stage_wc here
+    rx_source: Fax, Pharmacy, Phone, Prescription, SureScripts
+
+    'shipped-mail-pay'    => 'Shipped (Pay by Mail)',
+    'shipped-auto-pay'    => 'Shipped (Autopay Scheduled)',
+    'shipped-online-pay'  => 'Shipped (Pay Online)',
+    'shipped-partial-pay' => 'Shipped (Partially Paid)',
+  */
+  if ($order[0]['payment_method'] == PAYMENT_METHOD['MAIL'])
+    return 'shipped-mail-pay';
+
+  if ($order[0]['payment_method'] == PAYMENT_METHOD['AUTOPAY'])
+    return 'shipped-auto-pay';
+
+  if ($order[0]['payment_method'] == PAYMENT_METHOD['ONLINE'])
+    return 'shipped-online-pay';
+
+  if ($order[0]['order_stage_wc'] == 'shipped-partial-pay')
+    return 'shipped-partial-pay';
+
+  log_error('get_order_stage_wc error: shipped-* unknown payment_method', get_defined_vars());
+  return $order[0]['order_stage_wc'];
+}
 
 function wc_fetch($url, $method = 'GET', $content = []) {
 
@@ -210,7 +355,7 @@ function wc_fetch($url, $method = 'GET', $content = []) {
 
   $res = json_decode($res, true);
 
-  if ($res['error'])
+  if ( ! empty($res['error']))
     return log_error("wc_fetch", get_defined_vars());
 
   log_notice("wc_fetch", get_defined_vars());

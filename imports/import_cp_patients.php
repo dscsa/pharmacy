@@ -129,7 +129,7 @@ function import_cp_patients() {
         $row['payment_method'] = "'".PAYMENT_METHOD['COUPON']."'";
       }
       else if ($row['payment_card_date_expired'] == 'NULL' ) {
-        $row['payment_method'] = "'".PAYMENT_METHOD['MANUAL']."'";
+        $row['payment_method'] = "'".PAYMENT_METHOD['MAIL']."'";
       }
       else if ($row['payment_card_date_expired'] > "'$next_month'") {
         $row['payment_method'] = "'".PAYMENT_METHOD['AUTOPAY']."'";
