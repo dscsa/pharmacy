@@ -143,7 +143,7 @@ function export_wc_update_order_metadata($order, $meta_fn = 'wc_update_meta') {
     return log_error('export_wc_update_order_metadata: order missing', get_defined_vars());
 
   $orderdata = [
-    'post_status' => $order[0]['order_stage_wc'],
+    'post_status' => 'wc-'.$order[0]['order_stage_wc'],
     'post_except' => $order[0]['order_note']
   ];
 
