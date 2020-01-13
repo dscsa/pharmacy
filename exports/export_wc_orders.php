@@ -38,6 +38,7 @@ function wc_insert_meta($invoice_number, $metadata) {
   //$mysql->run($sql);
 }
 
+//Avoid having duplicated meta_key(s) for a single order
 function wc_update_meta($invoice_number, $metadata) {
 
   global $mysql;
@@ -52,7 +53,7 @@ function wc_update_meta($invoice_number, $metadata) {
       $meta_value = json_encode($meta_value);
 
     $sql .= "
-      UPDATE wp_postmeta SET $meta_key = '$meta_value' WHERE post_id = $post_id;
+      UPDATE wp_postmeta SET meta_value = '$meta_value' WHERE post_id = $post_id AND meta_key = '$meta_key';
     ";
   }
 
@@ -109,6 +110,9 @@ function export_wc_create_order($order) {
   if ( ! $response)
     return log_error('export_wc_create_order: failed', get_defined_vars());
 
+  if ($response['error'])
+    return log_error('export_wc_create_order: order already exists!', get_defined_vars());
+
   //These are the metadata that should NOT change
   //wc_upsert_meta($order_meta, 'shipping_method_id', ['31694']);
   //wc_upsert_meta($order_meta, 'shipping_method_title', ['31694' => 'Admin Fee']);
@@ -122,6 +126,9 @@ function export_wc_create_order($order) {
   ];
 
   wc_insert_meta($invoice_number, $metadata);
+  export_wc_update_order_metadata($order, 'wc_insert_meta');
+  export_wc_update_order_shipped($order, 'wc_insert_meta');
+  export_wc_update_order_payment($invoice_number, $order[0]['payment_fee'], 'wc_insert_meta')
 
   log_notice('export_wc_create_order: created new order', get_defined_vars());
 
@@ -129,7 +136,7 @@ function export_wc_create_order($order) {
 }
 
 //These are the ones that might change
-function export_wc_update_order_metadata($order) {
+function export_wc_update_order_metadata($order, $meta_fn = 'wc_update_meta') {
 
   $post_id = wc_get_post_id($order[0]['invoice_number']);
 
@@ -145,7 +152,7 @@ function export_wc_update_order_metadata($order) {
 
   $metadata = [
     '_payment_method' => $order[0]['payment_method'],
-    'order_stage'     => $order[0]['order_stage'],
+    'order_stage_cp'  => $order[0]['order_stage_cp'],
     'order_status'    => $order[0]['order_status'],
     'invoice_doc_id'  => $order[0]['invoice_doc_id']
   ];
@@ -166,10 +173,10 @@ function export_wc_update_order_metadata($order) {
     $metadata['order_date_shipped'] = $order[0]['order_date_shipped'];
   }
 
-  wc_update_meta($order[0]['invoice_number'], $metadata);
+  $meta_fn($order[0]['invoice_number'], $metadata);
 }
 
-function export_wc_update_order_shipping($order) {
+function export_wc_update_order_shipping($order, $meta_fn = 'wc_update_meta') {
 
   $post_id = wc_get_post_id($order[0]['invoice_number']);
 
@@ -190,17 +197,17 @@ function export_wc_update_order_shipping($order) {
     '_shipping_postcode'   => $order[0]['order_zip']
   ];
 
-  wc_update_meta($order[0]['invoice_number'], $metadata);
+  $meta_fn($order[0]['invoice_number'], $metadata);
 }
 
-function export_wc_update_meta_order_payment($invoice_number, $payment_fee) {
+function export_wc_update_order_payment($invoice_number, $payment_fee, $meta_fn = 'wc_update_meta') {
 
   $post_id = wc_get_post_id($invoice_number);
 
   if ( ! $post_id)
     return log_error('export_wc_update_meta_order_payment: order missing', get_defined_vars());
 
-  wc_update_meta($invoice_number, ['_order_shipping' => $payment_fee]);
+  $meta_fn($invoice_number, ['_order_shipping' => $payment_fee]);
 }
 
 function wc_fetch($url, $method = 'GET', $content = []) {

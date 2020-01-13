@@ -61,8 +61,7 @@ function update_orders_cp() {
     }
 
     helper_update_payment($order, $mysql);
-    export_wc_update_order_metadata($order);
-    export_wc_update_order_shipping($order);
+    export_wc_create_order($order);
 
     send_created_order_communications($groups);
 
