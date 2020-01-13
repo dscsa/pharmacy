@@ -29,7 +29,7 @@ function wc_insert_meta($invoice_number, $metadata) {
       $meta_value = json_encode($meta_value);
 
     $sql .= "
-      INSERT INTO wp_postmeta (post_id, meta_key, meta_value) VALUES ('$post_id', '$meta_key', '$meta_value');
+      INSERT INTO wp_postmeta (meta_id, post_id, meta_key, meta_value) VALUES (NULL, '$post_id', '$meta_key', '$meta_value');
     ";
   }
 
