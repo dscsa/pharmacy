@@ -101,6 +101,8 @@ function log_error($text, $vars = '') {
 
 function log_notice($text, $vars = '') {
 
+  global $argv;
+
   if ( ! in_array('log=notice', $argv) AND ! in_array('log=info', $argv)) return;
 
   $file   = get_file();
