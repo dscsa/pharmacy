@@ -42,6 +42,9 @@ function get_payment($order) {
 function set_payment_default($order, $update, $mysql) {
 
   if (
+    isset($order['payment_total_default']) AND
+    isset($order['payment_fee_default']) AND
+    isset($order['payment_due_default']) AND
     $order['payment_total_default'] == $update['payment_total_default'] AND
     $order['payment_fee_default'] == $update['payment_fee_default'] AND
     $order['payment_due_default'] == $update['payment_due_default']
@@ -50,7 +53,15 @@ function set_payment_default($order, $update, $mysql) {
     return $order;
   }
 
-  $update['invoice_doc_id'] = export_gd_update_invoice($order);
+  //Update order before we make the invoice
+  foreach($order as $i => $item)
+    $order[$i] = $update + $item;
+
+  $invoice_doc_id = export_gd_update_invoice($order);
+
+  //Need to make a second loop to now update the invoice number
+  foreach($order as $i => $item)
+    $order[$i]['invoice_doc_id'] = $update['invoice_doc_id'];
 
   $sql = "
     UPDATE
@@ -60,15 +71,12 @@ function set_payment_default($order, $update, $mysql) {
       payment_fee_default   = $update[payment_fee_default],
       payment_due_default   = $update[payment_due_default],
       payment_date_autopay  = $update[payment_date_autopay],
-      invoice_doc_id        = '$update[invoice_doc_id]'
+      invoice_doc_id        = '$invoice_doc_id'
     WHERE
       invoice_number = {$order[0]['invoice_number']}
   ";
 
   $mysql->run($sql);
-
-  foreach($order as $i => $item)
-    $order[$i] = $update + $item;
 
   return $order;
 }
