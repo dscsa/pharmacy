@@ -79,7 +79,7 @@ function update_orders_wc() {
 
   foreach($changes['updated'] as $updated) {
 
-    if ($updated['order_stage_wc'] == $updated['old_order_stage_wc') {
+    if ($updated['order_stage_wc'] == $updated['old_order_stage_wc']) {
       //$notices[] = ["WC Order Stage Change", $updated];
     } else {
       $notices[] = ["Order updated in WC", $updated];
