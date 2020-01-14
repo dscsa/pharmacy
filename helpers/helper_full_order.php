@@ -201,6 +201,9 @@ function get_order_stage_wc($order) {
   if ($order[0]['payment_method_default'] == PAYMENT_METHOD['COUPON'])
     return 'done-clinic-pay';
 
+  if ($order[0]['payment_method_default'] == PAYMENT_METHOD['CARD EXPIRED'])
+    return 'late-card-expired';
+
   log_error('get_order_stage_wc error: shipped-* unknown payment_method', get_defined_vars());
   return $order[0]['order_stage_wc'];
 }

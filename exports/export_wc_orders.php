@@ -224,6 +224,7 @@ function wc_fetch($url, $method = 'GET', $content = []) {
         'method'  => $method,
         'content' => json_encode($content),
         'ignore_errors' => true,
+        'timeout' => 2*60, //Seconds
         'header'  => "Content-Type: application/json\r\n".
                      "Accept: application/json\r\n".
                      "Authorization: Basic ".base64_encode(WC_USER.':'.WC_PWD)
