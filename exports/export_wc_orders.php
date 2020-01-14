@@ -242,8 +242,8 @@ function wc_fetch($url, $method = 'GET', $content = []) {
   $json = json_decode($res, true);
 
   if ( ! $json) {
-    log_error("wc_fetch: no response", ['url' => $url, 'res' => $res]);
-    return ['error' => "no response from wc_fetch. status code:$http_response_header"];
+    log_error("wc_fetch: no response", ['url' => $url, 'res' => $res, 'http_code' => $http_response_header]);
+    return ['error' => "no response from wc_fetch"];
   }
 
   log_notice("wc_fetch", ['url' => $url, 'json' => $json]);
