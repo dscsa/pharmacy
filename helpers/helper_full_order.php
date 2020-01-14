@@ -114,19 +114,21 @@ function get_order_stage_wc($order) {
   order_source: NULL, O Refills, Auto Refill v2, Webform eRX, Webform eRX Note, Webform Refill, Webform Refill Note, Webform Transfer, Webform Transfer Note
   */
 
-  if ( ! $order[0]['count_filled'] AND ! $order[0]['order_source'])
+  $count_filled = $order[0]['order_stage_cp'] == 'Shipped' ? $order[0]['count_items'] : $order[0]['count_filled'];
+
+  if ( ! $count_filled AND ! $order[0]['order_source'])
     return 'confirm-new-rx'; //New SureScript(s) that we are not filling
 
-  if ( ! $order[0]['count_filled'] AND in_array($order[0]['order_source'], ['Webform Transfer', 'Webform Transfer Note']))
+  if ( ! $count_filled AND in_array($order[0]['order_source'], ['Webform Transfer', 'Webform Transfer Note']))
     return 'confirm-transfer';
 
-  if ( ! $order[0]['count_filled'] AND in_array($order[0]['order_source'], ['Webform Refill', 'Webform Refill Note']))
+  if ( ! $count_filled AND in_array($order[0]['order_source'], ['Webform Refill', 'Webform Refill Note']))
     return 'confirm-refill';
 
-  if ( ! $order[0]['count_filled'] AND in_array($order[0]['order_source'], ['Auto Refill v2', 'O Refills']))
+  if ( ! $count_filled AND in_array($order[0]['order_source'], ['Auto Refill v2', 'O Refills']))
     return 'confirm-autofill';
 
-  if ( ! $order[0]['count_filled']) {
+  if ( ! $count_filled) {
     log_error('get_order_stage_wc error: confirm-* unknown order_source', get_defined_vars());
     return 'on-hold';
   }

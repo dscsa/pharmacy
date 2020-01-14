@@ -70,7 +70,7 @@ function update_orders_wc() {
 
         export_wc_create_order($order);
         export_gd_publish_invoice($order);
-        $notices[] = ["Adding Order to WC", $deleted];
+        $notices[] = ["Adding Order to WC", $order[0]['count_filled'], $deleted, $order];
       }
       $notices[] = ["Will Add Order to WC", $deleted];
 
