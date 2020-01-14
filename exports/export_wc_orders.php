@@ -130,6 +130,9 @@ function export_wc_update_order($order) {
 //These are the metadata that might change
 function export_wc_update_order_metadata($order, $meta_fn = 'wc_update_meta') {
 
+  if ( ! $order[0]['order_stage_wc'])
+    return log_error('export_wc_update_order_metadata: no order_stage_wc', get_defined_vars());
+
   $post_id = wc_get_post_id($order[0]['invoice_number']);
 
   if ( ! $post_id)
