@@ -136,7 +136,7 @@ function set_days_actual($item, $mysql) {
     return log_error("set_days_actual has no actual days", get_defined_vars());
 
   $price_per_month = $item['price_per_month'] ?: 0; //Might be null
-  $price_actual    = ceil($item['days_dispensed_actual']*$price_per_month/30)
+  $price_actual    = ceil($item['days_dispensed_actual']*$price_per_month/30);
 
   if ($price_actual > 60)
     return log_error("set_days_actual: too high", get_defined_vars());
