@@ -62,15 +62,17 @@ function update_orders_wc() {
         $order = get_full_order($deleted, $mysql);
         $order = helper_update_payment($order, $mysql);
 
-        $group = group_drugs($order, $mysql);
-
-        $order[0]['count_filled'] = $group['COUNT_FILLED'];
-        $order[0]['count_nofill'] = $group['COUNT_NOFILL'];
+        $order[0]['count_filled'] = 0;
+        foreach ($order as $item) {
+          if ($item['item_added_by'])
+            $order[0]['count_filled']++;
+        }
 
         export_wc_create_order($order);
         export_gd_publish_invoice($order);
+        $notices[] = ["Adding Order to WC", $deleted];
       }
-      $notices[] = ["Adding Order to WC", $deleted];
+      $notices[] = ["Will Add Order to WC", $deleted];
 
     } else
       $notices[] = ["Order deleted in WC", $deleted];
