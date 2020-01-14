@@ -11,8 +11,6 @@ function wc_get_post_id($invoice_number) {
 
   if (isset($res[0][0]))
     return $res[0][0]['post_id'];
-
-  log_error('wc_get_post_id: failed', get_defined_vars());
 }
 
 function wc_insert_meta($invoice_number, $metadata) {
@@ -126,7 +124,7 @@ function export_wc_create_order($order) {
 function export_wc_update_order($order) {
   export_wc_update_order_metadata($order);
   export_wc_update_order_shipped($order);
-  export_wc_update_order_payment($invoice_number, $order[0]['payment_fee_default']);
+  export_wc_update_order_payment($order[0]['invoice_number'], $order[0]['payment_fee_default']);
 }
 
 //These are the metadata that might change

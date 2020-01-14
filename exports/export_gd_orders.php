@@ -26,7 +26,7 @@ function export_gd_update_invoice($order, $mysql) {
 
   $mysql->run($sql);
 
-  log_notice("export_gd_update_invoice", get_defined_vars());
+  log_error("export_gd_update_invoice", get_defined_vars());
 }
 
 //Cannot delete (with this account) once published

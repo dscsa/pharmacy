@@ -135,14 +135,18 @@ function set_days_actual($item, $mysql) {
   if ( ! $item['days_dispensed_actual'])
     return log_error("set_days_actual has no actual days", get_defined_vars());
 
-  $price = $item['price_per_month'] ?: 0; //Might be null
+  $price_per_month = $item['price_per_month'] ?: 0; //Might be null
+  $price_actual    = ceil($item['days_dispensed_actual']*$price_per_month/30)
+
+  if ($price_actual > 60)
+    return log_error("set_days_actual: too high", get_defined_vars());
 
   $sql = "
     UPDATE
       gp_order_items
     SET
       -- Other Fields Should Already Be Set Above (And May have Been Sent to Patient) so don't change
-      price_dispensed_actual   = ".ceil($item['days_dispensed_actual']*$price/30).",
+      price_dispensed_actual   = $price_actual,
       refills_total_actual     = $item[refills_total]
     WHERE
       invoice_number = $item[invoice_number] AND
@@ -150,8 +154,6 @@ function set_days_actual($item, $mysql) {
   ";
 
   $mysql->run($sql);
-
-  log_error("set_days_actual", get_defined_vars());
 }
 
 function set_days_default($item, $days, $message, $mysql) {
