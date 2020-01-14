@@ -61,7 +61,7 @@ function set_payment_default($order, $update, $mysql) {
 
   //Need to make a second loop to now update the invoice number
   foreach($order as $i => $item)
-    $order[$i]['invoice_doc_id'] = $update['invoice_doc_id'];
+    $order[$i]['invoice_doc_id'] = $invoice_doc_id;
 
   $sql = "
     UPDATE
