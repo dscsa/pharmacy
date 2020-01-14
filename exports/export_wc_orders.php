@@ -238,16 +238,15 @@ function wc_fetch($url, $method = 'GET', $content = []) {
 
   $context = stream_context_create($opts);
 
-  $res = file_get_contents($url, false, $context);
+  $res  = file_get_contents($url, false, $context);
+  $json = json_decode($res, true);
 
-  if ( ! $res) {
+  if ( ! $json) {
     log_error("wc_fetch: no response", ['url' => $url, 'res' => $res]);
     return ['error' => "no response from wc_fetch. status code:$http_response_header"];
   }
 
-  $res = json_decode($res, true);
+  log_notice("wc_fetch", ['url' => $url, 'json' => $json]);
 
-  log_error("wc_fetch", ['url' => $url, 'res' => $res]);
-
-  return $res;
+  return $json;
 }
