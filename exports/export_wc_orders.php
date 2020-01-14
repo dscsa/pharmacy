@@ -20,6 +20,9 @@ function wc_insert_meta($invoice_number, $metadata) {
 
   $post_id = wc_get_post_id($invoice_number);
 
+  if ( ! $post_id)
+    log_error('wc_insert_meta: no post id', get_defined_vars());
+
   foreach ($metadata as $meta_key => $meta_value) {
     if (is_array($meta_value))
       $meta_value = json_encode($meta_value);
@@ -238,13 +241,13 @@ function wc_fetch($url, $method = 'GET', $content = []) {
   $res = file_get_contents($url, false, $context);
 
   if ( ! $res) {
-    log_error("wc_fetch: no response", get_defined_vars());
+    log_error("wc_fetch: no response", ['url' => $url, 'res' => $res]);
     return ['error' => "no response from wc_fetch. status code:$http_response_header"];
   }
 
   $res = json_decode($res, true);
 
-  log_notice("wc_fetch", get_defined_vars());
+  log_error("wc_fetch", ['url' => $url, 'res' => $res]);
 
   return $res;
 }
