@@ -2,7 +2,7 @@
 
 require_once 'helpers/helper_appsscripts.php';
 
-function export_gd_update_invoice($order, $mysql) {
+function export_gd_update_invoice($order) {
 
   if ( ! count($order)) return;
 
@@ -20,13 +20,9 @@ function export_gd_update_invoice($order, $mysql) {
 
   $invoice_doc_id = json_decode($result, true);
 
-  $sql = "
-    UPDATE gp_orders SET invoice_doc_id = '$invoice_doc_id' WHERE invoice_number = {$order[0]['invoice_number']}
-  ";
+  log_error("export_gd_update_invoice", ['file' => $args['file'], 'result' => $result, 'sql' => $sql]);
 
-  $mysql->run($sql);
-
-  log_error("export_gd_update_invoice", ['args' => $args, 'result' => $result, 'sql' => $sql]);
+  return $invoice_doc_id;
 }
 
 //Cannot delete (with this account) once published

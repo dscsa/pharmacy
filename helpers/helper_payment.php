@@ -7,7 +7,6 @@ function helper_update_payment($order, $mysql) {
   $update = get_payment($order);
   $order  = set_payment_default($order, $update, $mysql);
 
-  export_gd_update_invoice($order, $mysql);
   return $order;
 }
 
@@ -42,6 +41,17 @@ function get_payment($order) {
 
 function set_payment_default($order, $update, $mysql) {
 
+  if (
+    $order['payment_total_default'] == $update['payment_total_default'] AND
+    $order['payment_fee_default'] == $update['payment_fee_default'] AND
+    $order['payment_due_default'] == $update['payment_due_default'] AND
+  ) {
+    log_error('set_payment_default: but no changes', get_defined_vars());
+    return $order;
+  }
+
+  $update['invoice_doc_id'] = export_gd_update_invoice($order);
+
   $sql = "
     UPDATE
       gp_orders
@@ -49,7 +59,8 @@ function set_payment_default($order, $update, $mysql) {
       payment_total_default = $update[payment_total_default],
       payment_fee_default   = $update[payment_fee_default],
       payment_due_default   = $update[payment_due_default],
-      payment_date_autopay  = $update[payment_date_autopay]
+      payment_date_autopay  = $update[payment_date_autopay],
+      invoice_doc_id        = '$update[invoice_doc_id]'
     WHERE
       invoice_number = {$order[0]['invoice_number']}
   ";
