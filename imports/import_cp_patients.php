@@ -25,7 +25,7 @@ function import_cp_patients() {
 
       MAX(user_def_1) as pharmacy_name,
       MAX(user_def_2) as pharmacy_info,
-      MAX(user_def_3) as payment_method,
+      MAX(user_def_3) as payment_method_default,
       MAX(user_def_4) as billing_info,
 
       MAX(addr1) as patient_address1,
