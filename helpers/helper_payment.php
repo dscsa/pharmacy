@@ -8,33 +8,33 @@ function helper_update_payment($order, $mysql) {
   $order  = set_payment_default($order, $update, $mysql);
 
   export_gd_update_invoice($order, $mysql);
-  export_wc_update_order_payment($order[0]['invoice_number'], $order[0]['payment_fee']);
+  return $order;
 }
 
 function get_payment($order) {
 
   $update = [];
 
-  $update['payment_total'] = 0;
+  $update['payment_total_default'] = 0;
 
   foreach($order as $i => $item)
-    $update['payment_total'] += $item['price_dispensed'];
+    $update['payment_total_default'] += $item['price_dispensed'];
 
   //Defaults
-  $update['payment_fee'] = $order[0]['refills_used'] ? $update['payment_total'] : PAYMENT_TOTAL_NEW_PATIENT;
-  $update['payment_due'] = $update['payment_fee'];
+  $update['payment_fee_default'] = $order[0]['refills_used'] ? $update['payment_total_default'] : PAYMENT_TOTAL_NEW_PATIENT;
+  $update['payment_due_default'] = $update['payment_fee_default'];
   $update['payment_date_autopay'] = 'NULL';
 
   if ($order[0]['payment_method'] == PAYMENT_METHOD['COUPON']) {
-    $update['payment_fee'] = $update['payment_total'];
-    $update['payment_due'] = 0;
+    $update['payment_fee_default'] = $update['payment_total_default'];
+    $update['payment_due_default'] = 0;
   }
   else if ($order[0]['payment_method'] == PAYMENT_METHOD['AUTOPAY']) {
     $start = date('m/01', strtotime('+ 1 month'));
     $stop  = date('m/07/y', strtotime('+ 1 month'));
 
     $update['payment_date_autopay'] = "'$start - $stop'";
-    $update['payment_due'] = 0;
+    $update['payment_due_default'] = 0;
   }
 
   return $update;
@@ -46,9 +46,9 @@ function set_payment_default($order, $update, $mysql) {
     UPDATE
       gp_orders
     SET
-      payment_total_default = $update[payment_total],
-      payment_fee_default   = $update[payment_fee],
-      payment_due_default   = $update[payment_due],
+      payment_total_default = $update[payment_total_default],
+      payment_fee_default   = $update[payment_fee_default],
+      payment_due_default   = $update[payment_due_default],
       payment_date_autopay  = $update[payment_date_autopay]
     WHERE
       invoice_number = {$order[0]['invoice_number']}

@@ -60,7 +60,7 @@ function update_orders_cp() {
       continue;
     }
 
-    helper_update_payment($order, $mysql);
+    $order = helper_update_payment($order, $mysql);
     export_wc_create_order($order);
 
     send_created_order_communications($groups);
@@ -83,7 +83,7 @@ function update_orders_cp() {
     if ($deleted['tracking_number']) {
 
       set_payment_actual($deleted['invoice_number'], ['total' => 0, 'fee' => 0, 'due' => 0], $mysql);
-      export_wc_update_order_payment($deleted['invoice_number'], 0);
+      //export_wc_update_order_payment($deleted['invoice_number'], 0); //Don't need this because we are deleting the WC order later
 
       $update_sql = "
         UPDATE gp_orders SET order_date_returned = GETDATE() WHERE invoice_number = $deleted[invoice_number]
@@ -133,7 +133,7 @@ function update_orders_cp() {
       log_notice('sync_to_order: updated', get_defined_vars());
     }
 
-    $stage_change = $updated['order_stage'] != $updated['old_order_stage'];
+    $stage_change_cp = ($updated['order_stage_cp'] != $updated['old_order_stage_cp']);
 
     //Needs to be called before "$groups" is set
     list($target_date, $target_rxs) = get_sync_to_date($order);
@@ -141,10 +141,9 @@ function update_orders_cp() {
 
     $groups = group_drugs($order, $mysql);
 
-    if ($stage_change AND $updated['order_date_shipped']) {
+    if ($stage_change_cp AND $updated['order_date_shipped']) {
       export_gd_publish_invoice($order);
-      export_wc_update_order_metadata($order);
-      export_wc_update_order_shipping($order);
+      export_wc_update_order($order);
       export_v2_unpend_order($order);
       send_shipped_order_communications($groups);
       log_notice("Updated Order Shipped", get_defined_vars());
@@ -153,24 +152,24 @@ function update_orders_cp() {
 
     //Probably finalized days/qty_dispensed_actual
     //Update invoice now or wait until shipped order?
-    if ($stage_change AND $updated['order_date_dispensed']) {
-      helper_update_payment($order, $mysql);
+    if ($stage_change_cp AND $updated['order_date_dispensed']) {
+      $order = helper_update_payment($order, $mysql);
       export_gd_publish_invoice($order);
-      export_wc_update_order_metadata($order);
-      export_wc_update_order_shipping($order);
+      export_wc_update_order($order);
       export_v2_unpend_order($order);
       send_dispensed_order_communications($groups);
       //log_notice("Updated Order Dispensed", get_defined_vars());
       continue;
     }
 
-    if ($stage_change) {
-      log_info("Updated Order Stage Change", get_defined_vars());
+    if ($stage_change_cp) {
+      log_info("Updated Order stage_change_cp:", get_defined_vars());
       continue;
     }
 
     //Usually count_items changed
-    helper_update_payment($order, $mysql);
+    $order = helper_update_payment($order, $mysql);
+    export_wc_update_order_payment($order[0]['invoice_number'], $order[0]['payment_fee_default']);
 
     send_updated_order_communications($groups);
 

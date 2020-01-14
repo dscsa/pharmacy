@@ -21,7 +21,7 @@ function export_gd_update_invoice($order, $mysql) {
   $invoice_doc_id = json_decode($result, true);
 
   $sql = "
-    UPDATE gp_orders SET invoice_doc_id = $invoice_doc_id WHERE invoice_number = {$order[0]['invoice_number']}
+    UPDATE gp_orders SET invoice_doc_id = '$invoice_doc_id' WHERE invoice_number = {$order[0]['invoice_number']}
   ";
 
   $mysql->run($sql);

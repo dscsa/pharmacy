@@ -62,7 +62,7 @@ function update_orders_wc() {
 
         if ($deleted['invoice_number'] = 19901) {
           $order = get_full_order($deleted, $mysql);
-          helper_update_payment($order, $mysql);
+          $order = helper_update_payment($order, $mysql);
 
           $group = group_drugs($order, $mysql);
 

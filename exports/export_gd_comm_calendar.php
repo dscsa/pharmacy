@@ -107,7 +107,7 @@ function refill_reminder_notice($groups) {
 function autopay_reminder_notice($groups) {
 
   $subject  = "Autopay Reminder.";
-  $message  = "Because you are enrolled in autopay, Good Pill Pharmacy will be be billing your card ".implode(' <Pause />', str_split($groups['ALL'][0]['payment_card_last4'])).' for $'.$groups['ALL'][0]['payment_fee'].".00. Please let us right away if your card has recently changed. Again we will be billing your card for $".$groups['ALL'][0]['payment_fee'].".00 for last month's Order #".$groups['ALL'][0]['invoice_number']." of ".$groups['COUNT_FILLED']." items";
+  $message  = "Because you are enrolled in autopay, Good Pill Pharmacy will be be billing your card ".implode(' <Pause />', str_split($groups['ALL'][0]['payment_card_last4'])).' for $'.$groups['ALL'][0]['payment_fee_default'].".00. Please let us right away if your card has recently changed. Again we will be billing your card for $".$groups['ALL'][0]['payment_fee_default'].".00 for last month's Order #".$groups['ALL'][0]['invoice_number']." of ".$groups['COUNT_FILLED']." items";
 
   $email = [ "email" => $groups['ALL'][0]['email'] ];
   $text  = [ "sms" => get_phones($groups['ALL']), "message" => $subject.' '.$message ];
@@ -426,7 +426,7 @@ function confirm_shipping_internal($groups) {
     '',
     '- Make sure they got all '.$groups['COUNT_FILLED'].' of their medications, that we filled the correct number of pills, and answer any questions the patient has',
     $groups['COUNT_NOFILL'] ? '<br>- Explain why we did NOT fill:<br>'.implode(';<br>', $groups['NOFILL_NOACTION'] + $groups['NOFILL_ACTION']).'<br>' : '',
-    '- Let them know they are currently set to pay via '.$groups['ALL'][0]['payment_method'].' and the cost of the '.$groups['COUNT_FILLED'].' items was $'.$groups['ALL'][0]['payment_fee'].' this time, but next time it will be $'.$groups['ALL'][0]['payment_total'],
+    '- Let them know they are currently set to pay via '.$groups['ALL'][0]['payment_method'].' and the cost of the '.$groups['COUNT_FILLED'].' items was $'.$groups['ALL'][0]['payment_fee_default'].' this time, but next time it will be $'.$groups['ALL'][0]['payment_total_default'],
     '',
     '- Review their current medication list and remind them which prescriptions we will be filling automatically and which ones they need to request 2 weeks in advance',
     '',

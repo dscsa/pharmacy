@@ -119,14 +119,20 @@ function export_wc_create_order($order) {
   wc_insert_meta($invoice_number, $metadata);
   export_wc_update_order_metadata($order, 'wc_insert_meta');
   export_wc_update_order_shipped($order, 'wc_insert_meta');
-  export_wc_update_order_payment($invoice_number, $order[0]['payment_fee']);
+  export_wc_update_order_payment($invoice_number, $order[0]['payment_fee_default']);
 
   log_notice('export_wc_create_order: created new order', get_defined_vars());
 
   return $order;
 }
 
-//These are the ones that might change
+function export_wc_update_order($order) {
+  export_wc_update_order_metadata($order);
+  export_wc_update_order_shipped($order);
+  export_wc_update_order_payment($invoice_number, $order[0]['payment_fee_default']);
+}
+
+//These are the metadata that might change
 function export_wc_update_order_metadata($order, $meta_fn = 'wc_update_meta') {
 
   $post_id = wc_get_post_id($order[0]['invoice_number']);
@@ -191,7 +197,7 @@ function export_wc_update_order_shipped($order, $meta_fn = 'wc_update_meta') {
   $meta_fn($order[0]['invoice_number'], $metadata);
 }
 
-//Use REST API because direct DB calls to order_items and order_itemsmeta tables seemed messy/brittle 
+//Use REST API because direct DB calls to order_items and order_itemsmeta tables seemed messy/brittle
 function export_wc_update_order_payment($invoice_number, $payment_fee) {
 
   $post_id = wc_get_post_id($invoice_number);
