@@ -21,7 +21,7 @@ function wc_insert_meta($invoice_number, $metadata) {
   $post_id = wc_get_post_id($invoice_number);
 
   if ( ! $post_id)
-    log_error('wc_insert_meta: no post id', get_defined_vars());
+    return log_error('wc_insert_meta: no post id', get_defined_vars());
 
   foreach ($metadata as $meta_key => $meta_value) {
     if (is_array($meta_value))
