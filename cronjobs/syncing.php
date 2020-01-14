@@ -29,7 +29,7 @@ timer("", $time);
 $email = '';
 
 //Imports
-/*
+
 import_v2_drugs();
 $email .= timer("import_v2_drugs", $time);
 
@@ -52,7 +52,7 @@ import_cp_orders();
 $email .= timer("import_cp_orders", $time);
 
 //Updates
-/*
+
 update_drugs();
 $email .= timer("update_drugs", $time);
 
@@ -67,7 +67,7 @@ $email .= timer("update_patients", $time);
 
 update_order_items();
 $email .= timer("update_order_items", $time);
-*/
+
 update_orders_wc();
 $email .= timer("update_orders_wc", $time);
 

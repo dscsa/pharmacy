@@ -96,7 +96,7 @@ function update_orders_cp() {
 
     export_gd_delete_invoice([$deleted], $mysql);
 
-    export_wc_delete_order([$deleted]);
+    export_wc_delete_order($deleted['invoice_number']);
 
     export_v2_unpend_order([$deleted]);
 
@@ -109,7 +109,7 @@ function update_orders_cp() {
     if ( ! $patient)
       log_error('No patient associated with deleted order', get_defined_vars());
 
-    if ($patient['pharmacy_name']) //Cindy deletes "Needs Form" orders and we don't want to confuse them with a canceled communication
+    if ( ! empty($patient['pharmacy_name'])) //Cindy deletes "Needs Form" orders and we don't want to confuse them with a canceled communication
       send_deleted_order_communications([$deleted]);
   }
 

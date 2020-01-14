@@ -33,10 +33,15 @@ function dscsa_update_payment_fee($params) {
   try {
 
     $order = new WC_Order($params['post_id']);
-    $order->remove_order_items('shipping');
-    $order->setShippingAmount($params['payment_fee']);
-    $order->setBaseShippingAmount($params['payment_fee']);
-    $order->setGrandTotal($params['payment_fee']); //adding shipping price to grand total
+    $fee   = new WC_Shipping_Rate(
+      'flat_rate',
+      'Admin Fee',
+      (float) $params['payment_fee']
+    );
+
+    $order->remove_order_items('shipping'); //Otherwise the updates are cumulative
+    $order->add_shipping($fee);
+    $order->calculate_totals();
     $order->save();
 
     echo json_encode(['success' => true, 'params' => $params]);
