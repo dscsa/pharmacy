@@ -46,7 +46,7 @@ function update_orders_wc() {
   foreach($changes['created'] as $created) {
 
     if ($created['invoice_number'] > 25000) {
-      $notices[] = ["Order created in WC", $created];
+      //$notices[] = ["Order created in WC", $created];
     }
 
   }
@@ -79,8 +79,8 @@ function update_orders_wc() {
 
   foreach($changes['updated'] as $updated) {
 
-    if ($updated['order_stage_wc'] == 'trash') {
-      $notices[] = ["Order trashed in WC", $updated];
+    if ($updated['order_stage_wc'] == $updated['old_order_stage_wc') {
+      //$notices[] = ["WC Order Stage Change", $updated];
     } else {
       $notices[] = ["Order updated in WC", $updated];
     }
