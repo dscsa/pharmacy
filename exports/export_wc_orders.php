@@ -98,9 +98,6 @@ function export_wc_create_order($order) {
   //We do this through REST API because direct database calls seemed messy
   $response = wc_fetch("patient/$first_name $last_name $birth_date/order/$invoice_number");
 
-  if ( ! $response)
-    return log_error('export_wc_create_order: failed', get_defined_vars());
-
   if ( ! empty($response['error']))
     return log_error('export_wc_create_order: order already exists!', get_defined_vars());
 
@@ -239,10 +236,12 @@ function wc_fetch($url, $method = 'GET', $content = []) {
 
   $res_code = http_response_code();
 
-  $res = json_decode($res, true);
+  if ( ! $res) {
+    log_error("wc_fetch: no response", get_defined_vars());
+    return ['error' => "no response from wc_fetch. status code:$res_code"];
+  }
 
-  if ( ! empty($res['error']))
-    return log_error("wc_fetch", get_defined_vars());
+  $res = json_decode($res, true);
 
   log_notice("wc_fetch", get_defined_vars());
 
