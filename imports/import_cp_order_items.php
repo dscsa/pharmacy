@@ -36,9 +36,12 @@ function import_cp_order_items() {
   	FROM csomline
   	JOIN cprx ON cprx.rx_id = csomline.rx_id
     LEFT JOIN cprx_disp disp ON csomline.rxdisp_id > 0 AND disp.rxdisp_id = csomline.rxdisp_id -- Rx might not yet be dispensed
-    WHERE dispense_date IS NULL OR CAST(@today as DATE) = dispense_date -- Unshipped only to cut down volume. i think this still enables qty/days_dispensed_actual to be set properly
+    WHERE dispense_date IS NULL OR dispense_date > @today - 7  -- Undispensed and dispensed within the week only to cut down volume. i think this still enables qty/days_dispensed_actual to be set properly
     GROUP BY csomline.order_id, (CASE WHEN gcn_seqno > 0 THEN gcn_seqno ELSE script_no END) --This is because of Orders like 8660 where we had 4 duplicate Citalopram 40mg.  Two that were from Refills, One Denied Surescript Request, and One new Surescript.  We are only going to send one GCN so don't list it multiple times
   ");
+
+  cprx.chg_date > @today - 7 -- Only recent scripts to cut down on the import time (60 secs for 20k Rxs)
+
 
   if ( ! count($items[0])) return log_error('No Cp Order Items to Import', get_defined_vars());
 
