@@ -220,9 +220,10 @@ function wc_fetch($url, $method = 'GET', $content = []) {
         'bindto' => "0:$port",
       ],
       */
-      "http" => [
+      'http' => [
         'method'  => $method,
         'content' => json_encode($content),
+        'ignore_errors' => true,
         'header'  => "Content-Type: application/json\r\n".
                      "Accept: application/json\r\n".
                      "Authorization: Basic ".base64_encode(WC_USER.':'.WC_PWD)
@@ -235,11 +236,9 @@ function wc_fetch($url, $method = 'GET', $content = []) {
 
   $res = file_get_contents($url, false, $context);
 
-  $res_code = http_response_code();
-
   if ( ! $res) {
     log_error("wc_fetch: no response", get_defined_vars());
-    return ['error' => "no response from wc_fetch. status code:$res_code"];
+    return ['error' => "no response from wc_fetch. status code:$http_response_header"];
   }
 
   $res = json_decode($res, true);
