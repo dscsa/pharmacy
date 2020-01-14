@@ -58,15 +58,9 @@ function update_orders_wc() {
 
     if ($deleted['invoice_number'] < 25000) {
 
-      if ($deleted['invoice_number'] >= 23000) {
+      if ($deleted['invoice_number'] >= 22000) {
         $order = get_full_order($deleted, $mysql);
         $order = helper_update_payment($order, $mysql);
-
-        $order[0]['count_filled'] = 0;
-        foreach ($order as $item) {
-          if ($item['item_added_by'])
-            $order[0]['count_filled']++;
-        }
 
         export_wc_create_order($order);
         export_gd_publish_invoice($order);

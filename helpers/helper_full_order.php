@@ -114,7 +114,9 @@ function get_order_stage_wc($order) {
   order_source: NULL, O Refills, Auto Refill v2, Webform eRX, Webform eRX Note, Webform Refill, Webform Refill Note, Webform Transfer, Webform Transfer Note
   */
 
-  $count_filled = $order[0]['order_stage_cp'] == 'Shipped' ? $order[0]['count_items'] : $order[0]['count_filled'];
+  $count_filled = in_array($order[0]['order_stage_cp'], ['Shipped', 'Dispensed'])
+    ? $order[0]['count_items']
+    : $order[0]['count_filled'];
 
   if ( ! $count_filled AND ! $order[0]['order_source'])
     return 'confirm-new-rx'; //New SureScript(s) that we are not filling
