@@ -167,7 +167,7 @@ function set_days_default($item, $days, $message, $mysql) {
   else if ( ! $item['days_dispensed_default']) {
 
     $message_key  = array_search($message, RX_MESSAGE);
-    $message_text = message_text($message, $item);
+    $message_text = @mysql_escape_string(message_text($message, $item));
 
     $sql = "
       UPDATE
