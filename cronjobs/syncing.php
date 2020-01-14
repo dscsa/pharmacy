@@ -41,9 +41,10 @@ $email .= timer("import_cp_rxs_single", $time);
 
 import_cp_patients();
 $email .= timer("import_cp_patients", $time);
-*/
+
 import_cp_order_items();
 $email .= timer("import_cp_order_items", $time);
+*/
 
 import_wc_orders();
 $email .= timer("import_wc_orders", $time);
