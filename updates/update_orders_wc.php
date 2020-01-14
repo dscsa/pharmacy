@@ -56,27 +56,24 @@ function update_orders_wc() {
   //2) An order is in CP but not in (never added to) WC, probably because of a tech bug.
   foreach($changes['deleted'] as $deleted) {
 
-    if ($deleted['order_stage_wc'] == 'trash') {
+    if ($deleted['invoice_number'] < 25000) {
 
-      if ($deleted['invoice_number'] < 25000) {
+      if ($deleted['invoice_number'] = 19901) {
+        $order = get_full_order($deleted, $mysql);
+        $order = helper_update_payment($order, $mysql);
 
-        if ($deleted['invoice_number'] = 19901) {
-          $order = get_full_order($deleted, $mysql);
-          $order = helper_update_payment($order, $mysql);
+        $group = group_drugs($order, $mysql);
 
-          $group = group_drugs($order, $mysql);
+        $order[0]['count_filled'] = $group['COUNT_FILLED'];
+        $order[0]['count_nofill'] = $group['COUNT_NOFILL'];
 
-          $order[0]['count_filled'] = $group['COUNT_FILLED'];
-          $order[0]['count_nofill'] = $group['COUNT_NOFILL'];
+        export_wc_create_order($order);
+        export_gd_publish_invoice($order);
+      }
+      $notices[] = ["Adding Order to WC", $deleted];
 
-          export_wc_create_order($order);
-          export_gd_publish_invoice($order);
-        }
-        $notices[] = ["Adding Order to WC", $deleted];
-
-      } else
-        $notices[] = ["Order deleted in WC", $deleted];
-    }
+    } else
+      $notices[] = ["Order deleted in WC", $deleted];
 
   }
 
