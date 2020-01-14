@@ -151,7 +151,7 @@ function set_days_actual($item, $mysql) {
 
   $mysql->run($sql);
 
-  log_info("set_days_actual", get_defined_vars());
+  log_notice("set_days_actual", get_defined_vars());
 }
 
 function set_days_default($item, $days, $message, $mysql) {

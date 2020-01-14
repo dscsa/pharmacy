@@ -100,6 +100,9 @@ function log_error($text, $vars = '') {
 }
 
 function log_notice($text, $vars = '') {
+
+  if ( ! in_array('log=notice', $argv) AND ! in_array('log=info', $argv)) return;
+
   $file   = get_file();
   $vars   = $vars ? vars_to_json($vars, $file) : '';
   log_to_cli('NOTICE', $text, $file, $vars);
