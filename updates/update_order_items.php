@@ -17,8 +17,6 @@ function update_order_items() {
   if ( ! $count_deleted AND ! $count_created AND ! $count_updated) return;
 
   log_info("update_order_items: $count_deleted deleted, $count_created created, $count_updated updated.", get_defined_vars());
-
-  return;
   
   $mysql = new Mysql_Wc();
 
