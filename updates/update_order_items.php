@@ -18,6 +18,8 @@ function update_order_items() {
 
   log_info("update_order_items: $count_deleted deleted, $count_created created, $count_updated updated.", get_defined_vars());
 
+  return;
+  
   $mysql = new Mysql_Wc();
 
   function get_full_item($item, $mysql) {
@@ -114,7 +116,7 @@ function update_order_items() {
       list($days, $message) = get_days_default($item);
 
       set_days_default($item, $days, $message, $mysql);
-      
+
     }
 
     //TODO Update Salesforce Order Total & Order Count & Order Invoice using REST API or a MYSQL Zapier Integration

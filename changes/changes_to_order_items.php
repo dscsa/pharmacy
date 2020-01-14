@@ -21,7 +21,7 @@ function order_items_set_deleted_sql($new, $old, $id) {
     WHERE
       new.$id IS NULL
     AND
-      new.days_dispensed_actual IS NULL
+      old.days_dispensed_actual IS NULL
   ";
 }
 
