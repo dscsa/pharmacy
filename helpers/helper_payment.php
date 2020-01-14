@@ -44,7 +44,7 @@ function set_payment_default($order, $update, $mysql) {
   if (
     $order['payment_total_default'] == $update['payment_total_default'] AND
     $order['payment_fee_default'] == $update['payment_fee_default'] AND
-    $order['payment_due_default'] == $update['payment_due_default'] AND
+    $order['payment_due_default'] == $update['payment_due_default']
   ) {
     log_error('set_payment_default: but no changes', get_defined_vars());
     return $order;
