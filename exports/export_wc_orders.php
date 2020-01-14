@@ -71,7 +71,7 @@ function wc_update_order($invoice_number, $orderdata) {
   }
 
   $sql = "
-    UPDATE wp_posts SET ".implode(', ', $set)." WHERE post_id = $post_id;
+    UPDATE wp_posts SET ".implode(', ', $set)." WHERE ID = $post_id;
   ";
 
   log_notice('wc_update_order', get_defined_vars());
@@ -119,7 +119,7 @@ function export_wc_create_order($order) {
   wc_insert_meta($invoice_number, $metadata);
   export_wc_update_order_metadata($order, 'wc_insert_meta');
   export_wc_update_order_shipped($order, 'wc_insert_meta');
-  export_wc_update_order_payment($invoice_number, $order[0]['payment_fee'], 'wc_insert_meta');
+  export_wc_update_order_payment($invoice_number, $order[0]['payment_fee']);
 
   log_notice('export_wc_create_order: created new order', get_defined_vars());
 
@@ -191,14 +191,21 @@ function export_wc_update_order_shipped($order, $meta_fn = 'wc_update_meta') {
   $meta_fn($order[0]['invoice_number'], $metadata);
 }
 
-function export_wc_update_order_payment($invoice_number, $payment_fee, $meta_fn = 'wc_update_meta') {
+//Use REST API because direct DB calls to order_items and order_itemsmeta tables seemed messy/brittle 
+function export_wc_update_order_payment($invoice_number, $payment_fee) {
 
   $post_id = wc_get_post_id($invoice_number);
 
   if ( ! $post_id)
-    return log_error('export_wc_update_meta_order_payment: order missing', get_defined_vars());
+    return log_error('export_wc_update_order_payment: order missing', get_defined_vars());
 
-  $meta_fn($invoice_number, ['_order_shipping' => $payment_fee]);
+  $response = wc_fetch("order/$post_id/payment_fee/$payment_fee");
+
+  if ( ! $response)
+    return log_error('export_wc_update_order_payment: failed', get_defined_vars());
+
+  if ( ! empty($response['error']))
+    return log_error('export_wc_update_order_payment: error', get_defined_vars());
 }
 
 function wc_fetch($url, $method = 'GET', $content = []) {

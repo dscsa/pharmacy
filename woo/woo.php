@@ -13,11 +13,41 @@ add_action('rest_api_init', function () {
     'callback' => 'dscsa_create_order'
   ]);
 
+  register_rest_route( 'order', '(?P<post_id>\d+)/payment_fee/(?P<payment_fee>\d+)', [
+    'methods'  => 'GET',
+    'callback' => 'dscsa_update_payment_fee'
+  ]);
+
   register_rest_route( 'reports', 'inventory.csv', [
     'methods' => 'GET',
     'callback' => 'dscsa_inventory_csv',
   ]);
 });
+
+function dscsa_update_payment_fee($params) {
+
+  if ( ! $params['post_id'] OR ! $params['payment_fee']) {
+    return debug_email("dscsa_update_payment_fee: missing post_id:$params[post_id] OR payment_fee:$params[payment_fee]");
+  }
+
+  try {
+
+    $order = new WC_Order($params['post_id']);
+    $order->remove_order_items('shipping');
+    $order->setShippingAmount($params['payment_fee']);
+    $order->setBaseShippingAmount($params['payment_fee']);
+    $order->setGrandTotal($params['payment_fee']); //adding shipping price to grand total
+    $order->save();
+
+    echo json_encode(['success' => true, 'params' => $params]);
+
+  } catch (Error $e) {
+    echo json_encode(['error' => "dscsa_update_payment_fee: ".$e, 'params' => $params]);
+  }
+
+  exit;
+
+}
 
 function dscsa_inventory_csv($params) {
 
@@ -51,7 +81,7 @@ function dscsa_inventory_csv($params) {
 function dscsa_create_order($params) {
 
   if ( ! $params['user_login'] OR ! $params['invoice_number']) {
-    return debug_email("dscsa_create_order: missing user_login:$params[user_login] invoice_number:$params[invoice_number]");
+    return debug_email("dscsa_create_order: missing user_login:$params[user_login] OR invoice_number:$params[invoice_number]");
   }
 
   $order = get_order_by_invoice_number($params['invoice_number']);
