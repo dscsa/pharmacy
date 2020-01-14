@@ -70,8 +70,7 @@ function update_orders_wc() {
           $order[0]['count_nofill'] = $group['COUNT_NOFILL'];
 
           export_wc_create_order($order);
-          //export_wc_update_order_metadata($order);
-          //export_wc_update_order_shipping($order);
+          export_gd_publish_invoice($order)
         }
         $notices[] = ["Adding Order to WC", $deleted];
 
