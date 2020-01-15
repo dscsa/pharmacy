@@ -216,7 +216,7 @@ function export_wc_update_order_payment($invoice_number, $payment_fee) {
     return log_error('export_wc_update_order_payment: error', get_defined_vars());
 }
 
-function wc_fetch($path, $method = 'GET', $content = [], $retry = false) {
+function wc_fetch($path, $method = 'GET', $content = null, $retry = false) {
 
   $opts = [
       /*
@@ -226,7 +226,6 @@ function wc_fetch($path, $method = 'GET', $content = [], $retry = false) {
       */
       'http' => [
         'method'  => $method,
-        'content' => json_encode($content),
         'ignore_errors' => true,
         'timeout' => 2*60, //Seconds
         'header'  => "Content-Type: application/json\r\n".
@@ -235,7 +234,10 @@ function wc_fetch($path, $method = 'GET', $content = [], $retry = false) {
       ]
   ];
 
-  $url = WC_URL."/wp-json/$path";
+  if ($content)
+    $opts['http']['content'] = json_encode($content);
+
+  $url = urlencode(WC_URL."/wp-json/$path");
 
   $context = stream_context_create($opts);
 
