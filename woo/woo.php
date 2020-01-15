@@ -86,7 +86,10 @@ function dscsa_inventory_csv($params) {
 function dscsa_create_order($params) {
 
   if ( ! $params['user_login'] OR ! $params['invoice_number']) {
-    return debug_email("dscsa_create_order: missing user_login:$params[user_login] OR invoice_number:$params[invoice_number]");
+
+    echo json_encode(['error' => "dscsa_create_order: missing user_login:$params[user_login] OR invoice_number:$params[invoice_number]"]);
+    exit;
+    
   }
 
   $order = get_order_by_invoice_number($params['invoice_number']);
