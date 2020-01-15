@@ -215,7 +215,7 @@ function export_wc_update_order_payment($invoice_number, $payment_fee) {
     return log_error('export_wc_update_order_payment: error', get_defined_vars());
 }
 
-function wc_fetch($url, $method = 'GET', $content = []) {
+function wc_fetch($url, $method = 'GET', $content = [], $retry = false) {
 
   $opts = [
       /*
@@ -241,8 +241,15 @@ function wc_fetch($url, $method = 'GET', $content = []) {
   $res  = file_get_contents($url, false, $context);
   $json = json_decode($res, true);
 
-  if ( ! $json) {
-    log_error("wc_fetch: no response", ['url' => $url, 'res' => $res, 'http_code' => $http_response_header]);
+  if ( ! $json AND ! $retry) {
+    //CloudFlare sometimes returns a 400 Bad Request error even on valid url.  Tried Cloud Flare Page Rules but still having issues
+    sleep(5);
+    log_error("wc_fetch: no response attempt 1 of 2", ['url' => $url, 'res' => $res, 'http_code' => $http_response_header]);
+    return wc_fetch($url, $method, $content, true);
+  }
+  else if ( ! $json) {
+
+    log_error("wc_fetch: no response attempt 2 of 2", ['url' => $url, 'res' => $res, 'http_code' => $http_response_header]);
     return ['error' => "no response from wc_fetch"];
   }
 

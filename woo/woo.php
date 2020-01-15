@@ -108,7 +108,7 @@ function dscsa_create_order($params) {
     $user  = get_user_by('login', $login);
     $order->update_meta_data('invoice_number', $params['invoice_number']);
     $order->set_customer_id($user->ID);
-    //$order->set_status('processing');
+    //$order->set_status('processing'); //I believe the default is On-Hold
     $order->save();
 
     $order = get_order_by_invoice_number($params['invoice_number']);
