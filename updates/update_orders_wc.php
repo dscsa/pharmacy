@@ -58,14 +58,13 @@ function update_orders_wc() {
 
     if ($deleted['invoice_number'] < 25000) {
 
-      if ($deleted['invoice_number'] >= 19000) {
-        $order = get_full_order($deleted, $mysql);
-        $order = helper_update_payment($order, $mysql);
+      $order = get_full_order($deleted, $mysql);
+      $order = helper_update_payment($order, $mysql);
 
-        export_wc_create_order($order);
-        export_gd_publish_invoice($order);
-        $notices[] = ["Adding Order to WC", $order[0]['count_filled'], $deleted, $order];
-      }
+      export_wc_create_order($order);
+      export_gd_publish_invoice($order);
+      $notices[] = ["Adding Order to WC", $order[0]['count_filled'], $deleted, $order];
+
       //$notices[] = ["Will Add Order to WC", $deleted];
 
     } else {
