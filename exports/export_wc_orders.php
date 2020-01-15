@@ -97,10 +97,11 @@ function export_wc_create_order($order) {
 
   //This creates order and adds invoice number to metadata
   //We do this through REST API because direct database calls seemed messy
-  $response = wc_fetch("patient/$first_name $last_name $birth_date/order/$invoice_number");
+  $url = "patient/$first_name $last_name $birth_date/order/$invoice_number";
+  $res = wc_fetch($url);
 
-  if ( ! empty($response['error']))
-    return log_error("export_wc_create_order: $response[error]", get_defined_vars());
+  if ( ! empty($res['error']))
+    return log_error("export_wc_create_order: $url", $res);
 
   //These are the metadata that should NOT change
   //wc_upsert_meta($order_meta, 'shipping_method_id', ['31694']);

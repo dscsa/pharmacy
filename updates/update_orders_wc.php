@@ -45,8 +45,8 @@ function update_orders_wc() {
   //2) An order is incorrectly saved in WC even though it should be gone (tech bug)
   foreach($changes['created'] as $created) {
 
-    if ($created['invoice_number'] > 25000) {
-      //$notices[] = ["Order created in WC", $created];
+    if ($created['invoice_number'] < 25305) {
+      $notices[] = ["Order in WC that's not in Guardian", $created];
     }
 
   }
@@ -56,12 +56,12 @@ function update_orders_wc() {
   //2) An order is in CP but not in (never added to) WC, probably because of a tech bug.
   foreach($changes['deleted'] as $deleted) {
 
-    if ($deleted['invoice_number'] < 25000) {
+    if ($deleted['invoice_number'] < 25305) {
 
       $order = get_full_order($deleted, $mysql);
 
       if ( ! $order) continue;
-      
+
       $order = helper_update_payment($order, $mysql);
 
       export_wc_create_order($order);
