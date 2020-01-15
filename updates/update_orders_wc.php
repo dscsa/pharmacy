@@ -59,6 +59,9 @@ function update_orders_wc() {
     if ($deleted['invoice_number'] < 25000) {
 
       $order = get_full_order($deleted, $mysql);
+
+      if ( ! $order) continue;
+      
       $order = helper_update_payment($order, $mysql);
 
       export_wc_create_order($order);
