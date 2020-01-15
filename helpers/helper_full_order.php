@@ -30,8 +30,8 @@ function get_full_order($order, $mysql) {
   if ( ! $order OR ! $order[0]['invoice_number'])
     return log_error('ERROR! get_full_order: no invoice number', get_defined_vars());
 
-  $order = add_wc_status_to_order($order);
   $order = add_gd_fields_to_order($order);
+  $order = add_wc_status_to_order($order);
 
   return $order;
 }
@@ -40,14 +40,18 @@ function add_wc_status_to_order($order) {
 
   $order_stage_wc = get_order_stage_wc($order);
 
-  foreach($order as $i => $item)
+  foreach($order as $i => $item) {
     $order[$i]['order_stage_wc'] = $order_stage_wc;
+    $order[$i]['count_filled']   = $order[0]['count_filled'];
+  }
 
   return $order;
 }
 
 //Simplify GDoc Invoice Logic by combining _actual
 function add_gd_fields_to_order($order) {
+
+  $order[0]['count_filled'] = 0;
 
   //Consolidate default and actual suffixes to avoid conditional overload in the invoice template and redundant code within communications
   foreach($order as $i => $item) {
@@ -61,7 +65,12 @@ function add_gd_fields_to_order($order) {
       $order[$i]['item_message_text'] = message_text($message, $item);
     }
 
-    $deduct_refill = $order[$i]['days_dispensed'] ? 1 : 0; //We want invoice to show refills after they are dispensed assuming we dispense items currently in order
+    $deduct_refill = 0; //We want invoice to show refills after they are dispensed assuming we dispense items currently in order
+
+    if ($order[$i]['days_dispensed']) {
+      $deduct_refill = 1;
+      $order[0]['count_filled']++;
+    }
 
     $order[$i]['qty_dispensed'] = (float) ($item['qty_dispensed_actual'] ?: $item['qty_dispensed_default']); //cast to float to get rid of .000 decimal
     $order[$i]['refills_total'] = (float) ($item['refills_total_actual'] ?: $item['refills_total_default'] - $deduct_refill);

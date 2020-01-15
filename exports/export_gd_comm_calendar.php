@@ -85,7 +85,7 @@ function refill_reminder_notice($groups) {
     $message .= '<br><br><u>These Rxs will NOT be filled automatically and must be requested 2 weeks in advance:</u><br>'.implode(';<br>', $groups['NO_AUTOFILL']).';';
 
   $email = [ "email" => $groups['ALL'][0]['email'] ];
-  $text  = [ "sms" => getPhones($groups['ALL']), "message" => $subject.$message ];
+  $text  = [ "sms" => get_phones($groups['ALL']), "message" => $subject.$message ];
 
   $email['subject'] = $subject;
   $email['message'] = implode('<br>', [

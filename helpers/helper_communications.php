@@ -77,6 +77,14 @@ function group_drugs($order, $mysql) {
   $groups['COUNT_FILLED'] = count($groups['FILLED_ACTION']) + count($groups['FILLED_NOACTION']);
   $groups['COUNT_NOFILL'] = count($groups['NOFILL_ACTION']) + count($groups['NOFILL_NOACTION']);
 
+  if ($groups['COUNT_FILLED'] != $order[0]['count_filled']) {
+    log_error('group_drugs: wrong count_filled', get_defined_vars());
+  }
+
+  if ($groups['COUNT_NOFILL'] != (count($order) - $order[0]['count_filled'])) {
+    log_error('group_drugs: wrong count_nofill', get_defined_vars());
+  }
+
   $sql = "
     UPDATE
       gp_orders
