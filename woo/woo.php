@@ -106,7 +106,7 @@ function dscsa_create_order($params) {
 
     $login = str_replace('%20', ' ', $params['user_login']);
     $user  = get_user_by('login', $login);
-    $order->add_meta_data('invoice_number', $params['invoice_number']);
+    $order->update_meta_data('invoice_number', $params['invoice_number']);
     $order->set_customer_id($user->ID);
     //$order->set_status('processing');
     $order->save();
@@ -330,17 +330,23 @@ function order_fields($user_id = null, $ordered = null, $rxs = []) {
 
   $user_id = $user_id ?: get_current_user_id();
 
+  $rx_source_opts = ['pharmacy' => __('Transfer Rx(s) with refills remaining from my pharmacy')];
+
+  if (is_registered()) {
+    $rx_source_opts['erx'] = 'Rx(s) were sent from my doctor';
+    $default_option = 'erx';
+  } else {
+    $rx_source_opts['refill'] = 'Refill the Rx(s) selected below';
+    $default_option = 'refill';
+  }
+
   $fields = [
     'rx_source' => [
       'priority'  => 1,
       'type'   	  => 'radio',
       'required'  => true,
-      'default'   => get_default('rx_source', $user_id) ?: 'erx',
-      'options'   => [
-        'erx' => __(is_registered() ? 'Refill the Rx(s) selected below' : 'Rx(s) were sent from my doctor'),
-        'pharmacy' => __('Transfer Rx(s) with refills remaining from my pharmacy')
-
-      ]
+      'default'   => get_default('rx_source', $user_id) ?: $default_option,
+      'options'   => $rx_source_opts
     ],
     'email' => [
       'priority'  => 21,
@@ -666,14 +672,14 @@ function shared_fields($user_id = null) {
 add_filter( 'woocommerce_admin_order_actions', 'dscsa_admin_order_actions', 101, 2 );
 function dscsa_admin_order_actions( $actions, $order ) {
     // Display the button for all orders that have a 'processing' status
-    if ( $order->has_status( array( 'shipped-unpaid' ) ) ) {
+    if ($order->has_status(['shipped-unpaid', 'shipped-mail-pay', 'shipped-web-pay', 'late-mail-pay', 'late-card-missing', 'late-card-expired', 'late-card-failed', 'late-web-pay', 'late-payment-plan'])) {
 
         // Set the action button
-        $actions['shipped-paid-mail'] = array(
+        $actions['shipped-paid-mail'] = [
             'url'       => wp_nonce_url( admin_url( 'admin-ajax.php?action=woocommerce_mark_order_status&status=shipped-paid-mail&order_id=' .  $order->get_id() ), 'woocommerce-mark-order-status' ),
             'name'      => __('Marked Paid By Mail', 'woocommerce' ),
             'action'    => "shipped-paid-mail", // keep "view" class for a clean button CSS
-        );
+        ];
 
         unset($actions['duplicate']); //just so pharm techs don't accidentally click this instead
     }
@@ -1606,15 +1612,21 @@ function dscsa_save_order($order, $data) {
 
     $address = update_shipping_address($patient_id, $address_1, $address_2, $city, $postcode);
 
+    $order->update_meta_data('rx_source', $_POST['rx_source']);
+
     if ($_POST['rx_source'] == 'pharmacy') {
+
       $texts = array_map(function($rx) { return json_decode(stripslashes($rx))->text; }, $_POST['transfer']);
       add_preorder($patient_id, $invoice_number, $texts, $_POST['backup_pharmacy']);
       $order->update_meta_data('transfer', $texts);
-    } else if ($_POST['rx_source'] == 'erx') {
+
+    } else if ($_POST['rx_source'] == 'erx' OR $_POST['rx_source'] == 'refill') {
+
       $script_nos = array_map(function($rx) { return json_decode(stripslashes($rx))->script_no; }, $_POST['rxs']);
       $texts = array_map(function($rx) { return json_decode(stripslashes($rx))->text; }, $_POST['rxs']);
       add_rxs_to_order($invoice_number, $script_nos);
       $order->update_meta_data('rxs', $texts);
+
     } else {
       debug_email("order saved without rx_source", "$patient_id | $invoice_number ".print_r($guardian_order, true).print_r(sanitize($_POST), true).print_r(mssql_get_last_message(), true));
     }
@@ -1775,32 +1787,31 @@ function dscsa_update_order_status( $data) {
     //debug_email("dscsa_update_order_status", is_admin()." | ".strlen($_POST['rxs'])." | ".(!!$_POST['rxs'])." | ".var_export($_POST['rxs'], true)." | ".print_r(sanitize($_POST), true)." | ".print_r($data, true));
     if (is_admin() OR $data['post_type'] != 'shop_order') return $data;
 
-    if ($_POST['rx_source'] != 'pharmacy' && $_POST['rxs'] && $_POST['rxs'][0]) { //Skip on-hold and go straight to processing if set.  In some case rather than being [] (falsey) rxs was [0 => ''] (truthy), so checking first element too
-      debug_email("New Order - Rx Received (dscsa_update_order_status)", print_r($data, true).print_r(sanitize($_POST), true).print_r(mssql_get_last_message(), true).print_r($_SERVER, true).print_r($_SESSION, true).print_r($_COOKIE, true));
+    $has_rxs = $_POST['rxs'] && $_POST['rxs'][0]; //In some case rather than being [] (falsey) rxs was [0 => ''] (truthy), so checking first element too
 
-      $data['post_status'] = 'wc-processing';
-    } else if($_POST['rx_source']) { //checking for rx_source ensures that API calls to update status still work.  Even though we are not "capturing charge" setting "needs payment" seems to make the status goto processing
-
-      if ($_POST['rx_source'] == 'pharmacy') {
-        $subject = "Awaiting Transfer";
-        $data['post_status'] = 'wc-awaiting-transfer';
-      }
-      else if ($_POST['rx_source'] == 'erx') {
-        $subject = "Awaiting Doctor Rxs";
-        $data['post_status'] = 'wc-awaiting-rx';
-      }
-      else {
-        $subject = "This shouldn't have happend ".$_POST['rx_source'];
-        $data['post_status'] = 'wc-processing';
-      }
-
-      debug_email("New Order - $subject (dscsa_update_order_status)", print_r($data, true).print_r(sanitize($_POST), true).print_r(mssql_get_last_message(), true).print_r($_SERVER, true).print_r($_SESSION, true).print_r($_COOKIE, true));
-
-    } else if($_POST['payment_method'] == 'stripe') { //order-pay page
-      debug_email("Order Paid Manually (dscsa_update_order_status)", print_r($data, true).print_r(sanitize($_POST), true).print_r(mssql_get_last_message(), true).print_r($_SERVER, true).print_r($_SESSION, true).print_r($_COOKIE, true));
-
-      $data['post_status'] = $data['post_status'] == 'wc-failed' ? 'wc-shipped-payfail' : 'wc-shipped-paid-card';
+    if ($_POST['rx_source'] == 'pharmacy') {
+      $data['post_status'] = 'wc-confirm-transfer';
     }
+    else if ($has_rxs AND $_POST['rx_source'] == 'erx') {
+      $data['post_status'] = 'wc-prepare-erx';
+    }
+    else if ($has_rxs AND $_POST['rx_source'] == 'refill') {
+      $data['post_status'] = 'wc-prepare-refill';
+    }
+    else if ( ! $has_rxs AND $_POST['rx_source'] == 'erx') {
+      $data['post_status'] = 'wc-confirm-erx';
+    }
+    else if ( ! $has_rxs AND $_POST['rx_source'] == 'refill') {
+      $data['post_status'] = 'wc-confirm-refill';
+    }
+    else if($_POST['payment_method'] == 'stripe' AND $data['post_status'] == 'wc-failed') { //order-pay page
+      $data['post_status'] = 'wc-late-card-failed';
+    }
+    else if($_POST['payment_method'] == 'stripe' AND $data['post_status'] != 'wc-failed') { //order-pay page
+      $data['post_status'] = 'wc-done-card-pay';
+    }
+
+    debug_email("dscsa_update_order_status: New Order - ", print_r($data, true).print_r(sanitize($_POST), true).print_r(mssql_get_last_message(), true).print_r($_SERVER, true).print_r($_SESSION, true).print_r($_COOKIE, true));
 
     //debug_email("dscsa_update_order_status 2", print_r($data, true));
     return $data;
@@ -1864,7 +1875,35 @@ function dscsa_order_is_editable($editable, $order) {
 
   if ($editable) return true;
 
-  return in_array($order->get_status(), array('processing', 'awaiting-rx', 'awaiting-transfer', 'shipped-unpaid', 'shipped-overdue', 'shipped-autopay', 'shipped-payfail', 'shipped-coupon'), true);
+  return in_array($order->get_status(), [
+
+    'confirm-transfer',
+    'confirm-refill',
+    'confirm-autofill',
+    'confirm-new-rx',
+    'prepare-refill',
+    'prepare-erx',
+    'prepare-fax',
+    'prepare-transfer',
+    'prepare-phone',
+    'prepare-mail',
+    'shipped-mail-pay',
+    'shipped-auto-pay',
+    'shipped-part-pay',
+    'shipped-web-pay',
+    'return-usps',
+    'return-customer',
+
+    //Old Deprecated Status
+    'processing',
+    'awaiting-rx',
+    'awaiting-transfer',
+    'shipped-unpaid',
+    'shipped-overdue',
+    'shipped-autopay',
+    'shipped-payfail',
+    'shipped-coupon'
+  ], true);
 }
 
 add_filter('woocommerce_order_is_paid_statuses', 'dscsa_order_is_paid_statuses');
@@ -2130,10 +2169,25 @@ function dscsa_stripe_generate_payment_request($post_data, $order, $prepared_sou
 add_filter( 'woocommerce_valid_order_statuses_for_payment_complete', 'dscsa_valid_order_statuses_for_payment');
 add_filter( 'woocommerce_valid_order_statuses_for_payment', 'dscsa_valid_order_statuses_for_payment' );
 function dscsa_valid_order_statuses_for_payment($statuses) {
+
+  $statuses[] = 'shipped-mail-pay';
+  $statuses[] = 'shipped-auto-pay';
+  $statuses[] = 'shipped-web-pay';
+  $statuses[] = 'shipped-part-pay';
+
+  $statuses[] = 'late-mail-pay';
+  $statuses[] = 'late-card-missing';
+  $statuses[] = 'late-card-expired';
+  $statuses[] = 'late-card-failed';
+  $statuses[] = 'late-web-pay';
+  $statuses[] = 'late-payment-plan';
+
+  //Old Deprecated Statuses
   $statuses[] = 'shipped-unpaid';
   $statuses[] = 'shipped-overdue';
   $statuses[] = 'shipped-autopay';
   $statuses[] = 'shipped-payfail';
+
   return $statuses;
 }
 
