@@ -237,7 +237,7 @@ function wc_fetch($path, $method = 'GET', $content = null, $retry = false) {
   if ($content)
     $opts['http']['content'] = json_encode($content);
 
-  $url = urlencode(WC_URL."/wp-json/$path");
+  $url = str_replace(' ', '%20', WC_URL."/wp-json/$path");
 
   $context = stream_context_create($opts);
 
