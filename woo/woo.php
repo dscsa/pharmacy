@@ -1867,9 +1867,17 @@ function unhook_those_pesky_emails( $email_class ) {
 		//remove_action( 'woocommerce_new_customer_note_notification', array( $email_class->emails['WC_Email_Customer_Note'], 'trigger' ) );
 }
 
+//https://stackoverflow.com/questions/37790855/renaming-woocommerce-order-status
 add_filter( 'wc_order_statuses', 'dscsa_renaming_order_status' );
 function dscsa_renaming_order_status( $order_statuses ) {
     $order_statuses['wc-processing'] = _x('Unclassified', 'Order status', 'woocommerce');
+    return $order_statuses;
+}
+
+//https://stackoverflow.com/questions/37790855/renaming-woocommerce-order-status
+add_filter( 'woocommerce_register_shop_order_post_statuses', 'dscsa_rename_order_status_type' );
+function dscsa_rename_order_status_type( $order_statuses ) {
+    $order_statuses['wc-processing']['label_count'] = _n_noop( 'Unclassified <span class="count">(%s)</span>', 'Unclassified <span class="count">(%s)</span>', 'woocommerce' );
     return $order_statuses;
 }
 
