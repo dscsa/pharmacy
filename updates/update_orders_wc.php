@@ -76,21 +76,7 @@ function update_orders_wc() {
   //2) An order is in CP but not in (never added to) WC, probably because of a tech bug.
   foreach($changes['deleted'] as $deleted) {
 
-    if ($deleted['order_stage_wc'] == 'trashed') {
-
-      $notices[] = ["Order deleted in WC", $deleted];
-
-    } else if ($deleted['tracking_number']) {
-
-      $notices[] = ["Historic Order never added to WC", $deleted];
-
-    } else {
-
-      $notices[] = ["New Order not added to WC yet", $deleted];
-
-    }
-
-    if (false AND $deleted['invoice_number'] < 25305) {
+    if ($deleted['invoice_number'] < 25305) {
 
       $order = get_full_order($deleted, $mysql);
 
@@ -105,6 +91,21 @@ function update_orders_wc() {
       //$notices[] = ["Will Add Order to WC", $deleted];
 
     }
+    else if ($deleted['order_stage_wc'] == 'trashed') {
+
+      $notices[] = ["Order deleted in WC", $deleted];
+
+    } else if ($deleted['tracking_number']) {
+
+      $notices[] = ["Historic Order never added to WC", $deleted];
+
+    } else {
+
+      $notices[] = ["New Order not added to WC yet", $deleted];
+
+    }
+
+
 
   }
 
