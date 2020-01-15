@@ -59,7 +59,7 @@ function update_orders_wc() {
       'wc-done-mail-pay',
       'wc-done-clinic-pay',
       'wc-done-auto-pay'
-    ]) {
+    ])) {
 
         $notices[] = ["Paid WC not in Guardian. Refund?", $created];
 
