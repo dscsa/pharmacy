@@ -672,13 +672,25 @@ function shared_fields($user_id = null) {
 add_filter( 'woocommerce_admin_order_actions', 'dscsa_admin_order_actions', 101, 2 );
 function dscsa_admin_order_actions( $actions, $order ) {
     // Display the button for all orders that have a 'processing' status
-    if ($order->has_status(['shipped-unpaid', 'shipped-mail-pay', 'shipped-web-pay', 'late-mail-pay', 'late-card-missing', 'late-card-expired', 'late-card-failed', 'late-web-pay', 'late-payment-plan'])) {
+    if ($order->has_status([
+      'shipped-mail-pay',
+      'shipped-web-pay',
+      'late-mail-pay',
+      'late-card-missing',
+      'late-card-expired',
+      'late-card-failed',
+      'late-web-pay',
+      'late-payment-plan',
+
+      //Old Deprecated Status
+      'shipped-unpaid'
+    ])) {
 
         // Set the action button
-        $actions['shipped-paid-mail'] = [
-            'url'       => wp_nonce_url( admin_url( 'admin-ajax.php?action=woocommerce_mark_order_status&status=shipped-paid-mail&order_id=' .  $order->get_id() ), 'woocommerce-mark-order-status' ),
+        $actions['done-mail-pay'] = [
+            'url'       => wp_nonce_url( admin_url( 'admin-ajax.php?action=woocommerce_mark_order_status&status=done-mail-pay&order_id=' .  $order->get_id() ), 'woocommerce-mark-order-status' ),
             'name'      => __('Marked Paid By Mail', 'woocommerce' ),
-            'action'    => "shipped-paid-mail", // keep "view" class for a clean button CSS
+            'action'    => "done-mail-pay", // keep "view" class for a clean button CSS
         ];
 
         unset($actions['duplicate']); //just so pharm techs don't accidentally click this instead
@@ -690,7 +702,7 @@ function dscsa_admin_order_actions( $actions, $order ) {
 //List of icons https://rawgit.com/woothemes/woocommerce-icons/master/demo.html
 add_action( 'admin_head', 'dscsa_add_custom_order_status_actions_button_css' );
 function dscsa_add_custom_order_status_actions_button_css() {
-    echo '<style>.wc-action-button-shipped-paid-mail::after { font-family: woocommerce !important; content: "\e02d" !important; }</style>';
+    echo '<style>.wc-action-button-done-mail-pay::after { font-family: woocommerce !important; content: "\e02d" !important; }</style>';
 }
 
 //Display custom fields on account/details
@@ -1919,7 +1931,19 @@ function dscsa_order_is_editable($editable, $order) {
 
 add_filter('woocommerce_order_is_paid_statuses', 'dscsa_order_is_paid_statuses');
 function dscsa_order_is_paid_statuses($paid_statuses) {
-  return array('completed', 'shipped-paid');
+  return [
+    'done-card-pay',
+    'done-mail-pay',
+    'done-finaid',
+    'done-fee-waived',
+    'done-clinic-pay',
+    'done-auto-pay',
+    'done-refused-pay',
+
+    //Old Deprecated Statuses
+    'completed',
+    'shipped-paid'
+  ];
 }
 
 add_filter( 'woocommerce_order_button_text', 'dscsa_order_button_text');
