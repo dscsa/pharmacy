@@ -1473,7 +1473,7 @@ function get_order_by_invoice_number($invoice_number) {
 //Sometimes Guardian order id changes so "get_orders()" won't work
 function get_pending_orders_by_guardian_id($guardian_id) {
   global $wpdb;
-  return $wpdb->get_results("SELECT post_id FROM wp_postmeta JOIN wp_posts ON wp_posts.id = post_id WHERE meta_key='guardian_id' AND meta_value = '$guardian_id' AND (post_status = 'wc-pending' OR post_status = 'wc-on-hold') ORDER BY post_id DESC");
+  return $wpdb->get_results("SELECT post_id FROM wp_postmeta JOIN wp_posts ON wp_posts.id = post_id WHERE meta_key='guardian_id' AND meta_value = '$guardian_id' AND (post_status = 'wc-pending' OR post_status = 'wc-processing' OR post_status = 'wc-on-hold') ORDER BY post_id DESC");
 }
 
 /*
@@ -1810,6 +1810,9 @@ function dscsa_update_order_status( $data) {
     else if($_POST['payment_method'] == 'stripe' AND $data['post_status'] != 'wc-failed') { //order-pay page
       $data['post_status'] = 'wc-done-card-pay';
     }
+    else { //Put rest in the unclassified status
+      $data['post_status'] = 'wc-processing';
+    }
 
     debug_email("dscsa_update_order_status: New Order - ", print_r($data, true).print_r(sanitize($_POST), true).print_r(mssql_get_last_message(), true).print_r($_SERVER, true).print_r($_SESSION, true).print_r($_COOKIE, true));
 
@@ -1866,7 +1869,7 @@ function unhook_those_pesky_emails( $email_class ) {
 
 add_filter( 'wc_order_statuses', 'dscsa_renaming_order_status' );
 function dscsa_renaming_order_status( $order_statuses ) {
-    $order_statuses['wc-processing'] = _x('Received Rx', 'Order status', 'woocommerce');
+    $order_statuses['wc-processing'] = _x('Unclassified', 'Order status', 'woocommerce');
     return $order_statuses;
 }
 
