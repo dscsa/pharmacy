@@ -91,9 +91,9 @@ function export_wc_delete_order($invoice_number) {
 function export_wc_create_order($order) {
 
   $invoice_number = $order[0]['invoice_number'];
-  $first_name = $order[0]['first_name'];
-  $last_name = $order[0]['last_name'];
-  $birth_date = $order[0]['birth_date'];
+  $first_name = str_replace('*', '', $order[0]['first_name']); //Ignore Cindy's internal marking
+  $last_name = str_replace('*', '', $order[0]['last_name']); //Ignore Cindy's internal marking
+  $birth_date = str_replace('*', '', $order[0]['birth_date']); //Ignore Cindy's internal marking
 
   //This creates order and adds invoice number to metadata
   //We do this through REST API because direct database calls seemed messy
