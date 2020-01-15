@@ -42,7 +42,6 @@ function import_wc_orders() {
   GROUP BY
      wp_posts.ID
   HAVING
-    patient_id_wc > 0 AND
     invoice_number > 0
   ");
 

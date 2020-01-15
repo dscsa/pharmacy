@@ -45,8 +45,28 @@ function update_orders_wc() {
   //2) An order is incorrectly saved in WC even though it should be gone (tech bug)
   foreach($changes['created'] as $created) {
 
-    if ($created['invoice_number'] < 25305) {
-      $notices[] = ["Order in WC that's not in Guardian", $created];
+    $stage = explode('-', $created['order_stage_wc'])[1];
+
+    if ($stage == 'awaiting' OR $stage == 'confirming') {
+      $notices[] = ["Empty Orders are intentially not imported into Guardian", $created];
+
+    } else if (in_array($created['order_stage_wc'], [
+      'wc-shipped-paid',
+      'wc-shipped-paid-card',
+      'wc-shipped-paid-mail',
+      'wc-shipped-refused',
+      'wc-done-card-pay',
+      'wc-done-mail-pay',
+      'wc-done-clinic-pay',
+      'wc-done-auto-pay'
+    ]) {
+
+        $notices[] = ["Paid WC not in Guardian. Refund?", $created];
+
+    } else {
+
+      $notices[] = ["Add to Order Guadian Once We Stop Webform from Adding", $created];
+
     }
 
   }
@@ -57,9 +77,17 @@ function update_orders_wc() {
   foreach($changes['deleted'] as $deleted) {
 
     if ($deleted['order_stage_wc'] == 'trashed') {
+
       $notices[] = ["Order deleted in WC", $deleted];
+
+    } else if ($deleted['tracking_number']) {
+
+      $notices[] = ["Historic Order never added to WC", $deleted];
+
     } else {
-      $notices[] = ["Order never added to WC", $deleted];
+
+      $notices[] = ["New Order not added to WC yet", $deleted];
+
     }
 
     if (false AND $deleted['invoice_number'] < 25305) {
@@ -82,7 +110,7 @@ function update_orders_wc() {
 
   foreach($changes['updated'] as $updated) {
 
-    if ($updated['order_stage_wc'] == $updated['old_order_stage_wc']) {
+    if ($updated['order_stage_wc'] != $updated['old_order_stage_wc']) {
       //$notices[] = ["WC Order Stage Change", $updated];
     } else {
       $notices[] = ["Order updated in WC", $updated];
