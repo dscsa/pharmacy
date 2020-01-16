@@ -45,7 +45,7 @@ class Mysql {
           $this->_emailError(['SQL Error', $e->getMessage(), $sql, $debug]);
         }
 
-        if ($stmt === false) {
+        if ( ! is_resource($stmt)) {
 
           $message = mysqli_error($this->connection);
 

@@ -41,7 +41,7 @@ class Mssql {
           $this->_emailError(['SQL Error', $e->getMessage(), $sql, $debug]);
         }
 
-        if ($stmt === false) {
+        if ( ! is_resource($stmt)) {
 
           $message = mssql_get_last_message();
 
