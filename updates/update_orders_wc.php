@@ -28,7 +28,8 @@ function update_orders_wc() {
     $stage = explode('-', $created['order_stage_wc'])[1];
 
     if ($stage == 'awaiting' OR $stage == 'confirming') {
-      $notices[] = ["Empty Orders are intentially not imported into Guardian", $created];
+
+      //$notices[] = ["Empty Orders are intentially not imported into Guardian", $created];
 
     } else if (in_array($created['order_stage_wc'], [
       'wc-shipped-paid',

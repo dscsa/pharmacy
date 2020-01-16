@@ -64,8 +64,8 @@ function add_gd_fields_to_order($order, $mysql) {
       $order[$i]['item_message_key']  = array_search($message, RX_MESSAGE);
       $order[$i]['item_message_text'] = message_text($message, $item);
 
-      //We can only save it if its an order_item
-      if ($item['item_date_added'])
+      //We can only save it if its an order_item that's not yet dispensed
+      if ($item['item_date_added'] AND ! $item['days_dispensed_actual'])
         set_days_default($item, $days, $message, $mysql);
     }
 
