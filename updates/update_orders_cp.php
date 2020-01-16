@@ -173,6 +173,14 @@ function update_orders_cp() {
       continue;
     }
 
+    log_error('cp order changed', [
+      'old_count_filled' => $updated['count_filled'],
+      'new_count_filled' => $order[0]['count_filled'],
+      'updated' => $updated,
+      'stage_change' => $stage_change_cp,
+      'order[0]' => $order[0]
+    ]);
+
     //Usually count_items changed
     $order = helper_update_payment($order, $mysql);
     export_wc_update_order($order);
