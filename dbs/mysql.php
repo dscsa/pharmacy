@@ -38,12 +38,8 @@ class Mysql {
 
         $starttime = microtime(true);
 
-        try {
-          $stmt = mysqli_query($this->connection, $sql);
-        }
-        catch (Exception $e) {
-          $this->_emailError(['SQL Error', $e->getMessage(), $sql, $debug]);
-        }
+      try {
+        $stmt = mysqli_query($this->connection, $sql);
 
         if ( ! is_resource($stmt)) {
 
@@ -65,6 +61,10 @@ class Mysql {
           log_info(count($results)." recordsets, the first with ".count($results[0])." rows in ".(microtime(true) - $starttime)." seconds", get_defined_vars());
 
         return $results;
+      }
+      catch (Exception $e) {
+        $this->_emailError(['SQL Error', $e->getMessage(), $sql, $debug]);
+      }
     }
 
     function _getResults($stmt, $sql, $debug) {

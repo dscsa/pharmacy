@@ -32,14 +32,11 @@ class Mssql {
 
     function run($sql, $debug = false) {
 
-        $starttime = microtime(true);
+      $starttime = microtime(true);
 
-        try {
-          $stmt = mssql_query($sql, $this->connection);
-        }
-        catch (Exception $e) {
-          $this->_emailError(['SQL Error', $e->getMessage(), $sql, $debug]);
-        }
+      try {
+        $stmt = mssql_query($sql, $this->connection);
+
 
         if ( ! is_resource($stmt)) {
 
@@ -61,6 +58,10 @@ class Mssql {
           log_info(count($results)." recordsets, the first with ".count($results[0])." rows in ".(microtime(true) - $starttime)." seconds", get_defined_vars());
 
         return $results;
+      }
+      catch (Exception $e) {
+        $this->_emailError(['SQL Error', $e->getMessage(), $sql, $debug]);
+      }
     }
 
     function _getResults($stmt, $sql, $debug) {
