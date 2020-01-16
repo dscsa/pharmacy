@@ -55,20 +55,18 @@ function add_gd_fields_to_order($order, $mysql) {
 
   //Consolidate default and actual suffixes to avoid conditional overload in the invoice template and redundant code within communications
   foreach($order as $i => $item) {
-    $order[$i]['drug'] = $item['drug_name'] ?: $item['drug_generic'];
-    $order[$i]['days_dispensed'] = $item['days_dispensed_actual'] ?: $item['days_dispensed_default'];
-    $order[$i]['payment_method'] = $item['payment_method_actual'] ?: $item['payment_method_default'];
 
     if ( ! $order[$i]['item_message_key']) { //if not syncing to order lets provide a reason why we are not filling
       list($days, $message) = get_days_default($item);
+      $order[$i]['days_dispensed_default'] = $days;
       $order[$i]['item_message_key']  = array_search($message, RX_MESSAGE);
       $order[$i]['item_message_text'] = message_text($message, $item);
-
-      //We can only save it if its an order_item that's not yet dispensed
-      if ($item['item_date_added'] AND ! $item['days_dispensed_actual'])
-        set_days_default($item, $days, $message, $mysql);
+      set_days_default($item, $days, $message, $mysql);
     }
 
+    $order[$i]['drug'] = $item['drug_name'] ?: $item['drug_generic'];
+    $order[$i]['days_dispensed'] = $item['days_dispensed_actual'] ?: $item['days_dispensed_default'];
+    $order[$i]['payment_method'] = $item['payment_method_actual'] ?: $item['payment_method_default'];
 
     $deduct_refill = 0; //We want invoice to show refills after they are dispensed assuming we dispense items currently in order
 

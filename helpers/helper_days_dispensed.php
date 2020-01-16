@@ -158,44 +158,43 @@ function set_price_refills_actual($item, $mysql) {
 
 function set_days_default($item, $days, $message, $mysql) {
 
+  //We can only save it if its an order_item that's not yet dispensed
+  if ( ! $item['item_date_added'])
+    return; //We can only save for items in order (order_items)
+
+  if ( ! $item['rx_number'] OR ! $item['invoice_number'] )
+    return log_error("set_days_default without a rx_number AND invoice_number ", get_defined_vars());
+
+  if ($item['days_dispensed_actual'])
+    return log_error("set_days_default but it has actual days", get_defined_vars());
+
+  if ($item['days_dispensed_default'])
+    return log_error('ERROR set_days_default. days_dispensed_default is set but days_dispensed_actual is not, so why is this function being called?', get_defined_vars());
+
   $price = $item['price_per_month'] ?: 0; //Might be null
+  $message_key  = array_search($message, RX_MESSAGE);
+  $message_text = @mysql_escape_string(message_text($message, $item));
 
-  if ( ! $item['rx_number'] OR ! $item['invoice_number'] ) {
-    log_error("set_days_default without a rx_number AND invoice_number ", get_defined_vars());
-  }
-  else if ($item['days_dispensed_actual']) {
-    log_error("set_days_default but it has actual days", get_defined_vars());
-  }
-  else if ( ! $item['days_dispensed_default']) {
+  $sql = "
+    UPDATE
+      gp_order_items
+    SET
+      days_dispensed_default  = $days,
+      qty_dispensed_default   = ".($days*$item['sig_qty_per_day']).",
+      item_message_key        = '$message_key',
+      item_message_text       = '$message_text',
+      price_dispensed_default = ".ceil($days*$price/30).",
+      refills_total_default   = $item[refills_total],
+      stock_level_initial     = '$item[stock_level]',
+      refill_date_manual      = ".($item['refill_date_manual'] ? "'$item[refill_date_manual]'" : 'NULL').",
+      refill_date_default     = ".($item['refill_date_default'] ? "'$item[refill_date_default]'" : 'NULL').",
+      refill_date_last        = ".($item['refill_date_last'] ? "'$item[refill_date_last]'" : 'NULL')."
+    WHERE
+      invoice_number = $item[invoice_number] AND
+      rx_number = $item[rx_number]
+  ";
 
-    $message_key  = array_search($message, RX_MESSAGE);
-    $message_text = @mysql_escape_string(message_text($message, $item));
-
-    $sql = "
-      UPDATE
-        gp_order_items
-      SET
-        days_dispensed_default  = $days,
-        qty_dispensed_default   = ".($days*$item['sig_qty_per_day']).",
-        item_message_key        = '$message_key',
-        item_message_text       = '$message_text',
-        price_dispensed_default = ".ceil($days*$price/30).",
-        refills_total_default   = $item[refills_total],
-        stock_level_initial     = '$item[stock_level]',
-        refill_date_manual      = ".($item['refill_date_manual'] ? "'$item[refill_date_manual]'" : 'NULL').",
-        refill_date_default     = ".($item['refill_date_default'] ? "'$item[refill_date_default]'" : 'NULL').",
-        refill_date_last        = ".($item['refill_date_last'] ? "'$item[refill_date_last]'" : 'NULL')."
-      WHERE
-        invoice_number = $item[invoice_number] AND
-        rx_number = $item[rx_number]
-    ";
-
-    $mysql->run($sql);
-  }
-  else {
-    $sql = '';
-    log_error('ERROR set_days_default. days_dispensed_default is set but days_dispensed_actual is not, so why is this function being called?', get_defined_vars());
-  }
+  $mysql->run($sql);
 }
 
 function is_refill_only($item) {
