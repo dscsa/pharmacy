@@ -128,7 +128,7 @@ function get_order_stage_wc($order) {
     : $order[0]['count_filled'];
 
   if ( ! $count_filled)
-    log_error('double check count_filled == 0', get_defined_vars());
+    log_error('get_order_stage_wc: double check count_filled == 0', get_defined_vars());
 
   if ( ! $count_filled AND ! $order[0]['order_source'])
     return 'confirm-new-rx'; //New SureScript(s) that we are not filling
@@ -151,6 +151,9 @@ function get_order_stage_wc($order) {
   'prepare-*' means drugs are in the order but order is not yet shipped
   rx_source: Fax, Pharmacy, Phone, Prescription, SureScripts
   */
+
+  if ( ! $order[0]['tracking_number'] AND $order[0]['invoice_number'] < 25305)
+    log_error('get_order_stage_wc: old unshipped order being added', get_defined_vars());
 
   if ( ! $order[0]['tracking_number'] AND in_array($order[0]['order_source'], ['Webform Refill', 'Webform Refill Note', 'Auto Refill v2', 'O Refills']))
     return 'prepare-refill';
