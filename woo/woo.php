@@ -26,8 +26,12 @@ add_action('rest_api_init', function () {
 
 function dscsa_update_payment_fee($params) {
 
-  if ( ! $params['post_id'] OR ! $params['payment_fee']) {
-    return debug_email("dscsa_update_payment_fee: missing post_id:$params[post_id] OR payment_fee:$params[payment_fee]");
+  //payment_fee == 0 is okay
+  if ( ! $params['post_id'] OR ! isset($params['payment_fee'])) {
+
+    echo json_encode(['error' => "dscsa_update_payment_fee: missing post_id:$params[post_id] OR payment_fee:$params[payment_fee]"]);
+    exit;
+
   }
 
   try {
@@ -89,7 +93,7 @@ function dscsa_create_order($params) {
 
     echo json_encode(['error' => "dscsa_create_order: missing user_login:$params[user_login] OR invoice_number:$params[invoice_number]"]);
     exit;
-    
+
   }
 
   $order = get_order_by_invoice_number($params['invoice_number']);
