@@ -83,8 +83,8 @@ function update_orders_wc() {
 
     if ($updated['order_stage_wc'] != $updated['old_order_stage_wc']) {
 
-      if ($deleted['order_stage_wc'] == 'trash')
-          $notices[] = ["Order trashed in WC", $deleted];
+      if ($updated['order_stage_wc'] == 'trash')
+          $notices[] = ["Order trashed in WC", $updated];
       //else
           //$notices[] = ["WC Order Stage Change", $updated];
 
