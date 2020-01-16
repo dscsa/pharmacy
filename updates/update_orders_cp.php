@@ -162,20 +162,22 @@ function update_orders_cp() {
       continue;
     }
 
-    if ($stage_change_cp) {
-      log_info("Updated Order stage_change_cp:", get_defined_vars());
+    if ($updated['count_filled'] == $order[0]['count_filled']) {
+      export_wc_update_order($order);
+
+      if ($stage_change_cp)
+        log_info("Updated Order stage_change_cp:", get_defined_vars());
+      else
+        log_error("Updated Order Count Not Changed", get_defined_vars());
+
       continue;
     }
 
     //Usually count_items changed
     $order = helper_update_payment($order, $mysql);
-    export_wc_update_order_payment($order[0]['invoice_number'], $order[0]['payment_fee_default']);
+    export_wc_update_order($order);
 
     send_updated_order_communications($groups);
-
-    $updated['count_items'] == $updated['old_count_items']
-      ? log_notice("Updated Order NO Stage Change", get_defined_vars())
-      : log_info("Updated Order Item Count Change", get_defined_vars());
 
     //TODO Update Salesforce Order Total & Order Count & Order Invoice using REST API or a MYSQL Zapier Integration
 
