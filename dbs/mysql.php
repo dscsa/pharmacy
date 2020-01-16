@@ -41,7 +41,7 @@ class Mysql {
       try {
         $stmt = mysqli_query($this->connection, $sql);
 
-        if ( ! is_resource($stmt)) {
+        if ($stmt === false) {
 
           $message = mysqli_error($this->connection);
 
