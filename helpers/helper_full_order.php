@@ -115,7 +115,7 @@ const ORDER_STATUS_WC = [
 function get_order_stage_wc($order) {
 
   //Anything past shipped we just have to rely on WC
-  if (in_array(explode('-', $order[0]['order_stage_wc'])[0], ['late', 'done', 'return']))
+  if ($order[0]['order_stage_wc'] AND in_array(explode('-', $order[0]['order_stage_wc'])[0], ['late', 'done', 'return']))
     return $order[0]['order_stage_wc'];
 
   /*
@@ -126,6 +126,9 @@ function get_order_stage_wc($order) {
   $count_filled = in_array($order[0]['order_stage_cp'], ['Shipped', 'Dispensed'])
     ? $order[0]['count_items']
     : $order[0]['count_filled'];
+
+  if ( ! $count_filled)
+    log_error('double check count_filled == 0', get_defined_vars());
 
   if ( ! $count_filled AND ! $order[0]['order_source'])
     return 'confirm-new-rx'; //New SureScript(s) that we are not filling
