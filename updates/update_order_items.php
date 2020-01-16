@@ -17,7 +17,7 @@ function update_order_items() {
   if ( ! $count_deleted AND ! $count_created AND ! $count_updated) return;
 
   log_info("update_order_items: $count_deleted deleted, $count_created created, $count_updated updated.", get_defined_vars());
-  
+
   $mysql = new Mysql_Wc();
 
   function get_full_item($item, $mysql) {
@@ -107,13 +107,7 @@ function update_order_items() {
 
       log_error("Created Item Readded", get_defined_vars());
 
-      set_days_actual($item, $mysql);
-
-    } else {
-
-      list($days, $message) = get_days_default($item);
-
-      set_days_default($item, $days, $message, $mysql);
+      set_price_refills_actual($item, $mysql);
 
     }
 
@@ -158,7 +152,7 @@ function update_order_items() {
 
     if ($item['days_dispensed_actual']) {
 
-      set_days_actual($item, $mysql);
+      set_price_refills_actual($item, $mysql);
 
     } else if ($updated['item_added_by'] == 'MANUAL' AND $updated['old_item_added_by'] != 'MANUAL') {
 
@@ -167,10 +161,6 @@ function update_order_items() {
     } else if ( ! $item['days_dispensed_default']) {
 
       log_error("Updated Item has no days_dispensed_default.  Was GSN added?", get_defined_vars());
-
-      list($days, $message) = get_days_default($item);
-
-      set_days_default($item, $days, $message, $mysql);
 
     } else {
       log_info("Updated Item No Action", get_defined_vars());

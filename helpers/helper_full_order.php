@@ -30,7 +30,7 @@ function get_full_order($order, $mysql) {
   if ( ! $order OR ! $order[0]['invoice_number'])
     return log_error('ERROR! get_full_order: no invoice number', get_defined_vars());
 
-  $order = add_gd_fields_to_order($order);
+  $order = add_gd_fields_to_order($order, $mysql);
   $order = add_wc_status_to_order($order);
 
   return $order;
@@ -49,7 +49,7 @@ function add_wc_status_to_order($order) {
 }
 
 //Simplify GDoc Invoice Logic by combining _actual
-function add_gd_fields_to_order($order) {
+function add_gd_fields_to_order($order, $mysql) {
 
   $order[0]['count_filled'] = 0;
 
@@ -59,11 +59,16 @@ function add_gd_fields_to_order($order) {
     $order[$i]['days_dispensed'] = $item['days_dispensed_actual'] ?: $item['days_dispensed_default'];
     $order[$i]['payment_method'] = $item['payment_method_actual'] ?: $item['payment_method_default'];
 
-    if ( ! $item['item_date_added']) { //if not syncing to order lets provide a reason why we are not filling
-      $message = get_days_default($item)[1];
+    if ( ! $order[$i]['item_message_key']) { //if not syncing to order lets provide a reason why we are not filling
+      list($days, $message) = get_days_default($item);
       $order[$i]['item_message_key']  = array_search($message, RX_MESSAGE);
       $order[$i]['item_message_text'] = message_text($message, $item);
+
+      //We can only save it if its an order_item
+      if ($item['item_date_added'])
+        set_days_default($item, $days, $message, $mysql);
     }
+
 
     $deduct_refill = 0; //We want invoice to show refills after they are dispensed assuming we dispense items currently in order
 
