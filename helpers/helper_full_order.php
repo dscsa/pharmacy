@@ -31,7 +31,7 @@ function get_full_order($order, $mysql) {
     return log_error('ERROR! get_full_order: no invoice number', get_defined_vars());
 
   $order = add_gd_fields_to_order($order, $mysql);
-  usaort($order, 'sort_order_by_day'); //Put Rxs in order (with Rx_Source) at the top
+  uasort($order, 'sort_order_by_day'); //Put Rxs in order (with Rx_Source) at the top
   $order = add_wc_status_to_order($order);
 
   return $order;
