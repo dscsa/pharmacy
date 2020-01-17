@@ -99,13 +99,13 @@ function update_order_items() {
     $item = get_full_item($created, $mysql);
 
     if ( ! $item) {
-      log_error("Created Item Missing", get_defined_vars());
+      log_error("Created Item Missing", $item);
       continue;
     }
 
     if ($item['days_dispensed_actual']) {
 
-      log_error("Created Item Readded", get_defined_vars());
+      log_error("Created Item Readded", $item);
 
       set_price_refills_actual($item, $mysql);
 

@@ -41,6 +41,10 @@ function add_wc_status_to_order($order) {
 
   $order_stage_wc = get_order_stage_wc($order);
 
+  if (empty($order['count_filled'])) {
+    log_error('order[count_filled] is not set but should be', $order);
+  }
+
   $count_filled = $order['count_filled'];
 
   unset($order['count_filled']);
