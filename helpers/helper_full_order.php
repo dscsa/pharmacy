@@ -41,12 +41,14 @@ function add_wc_status_to_order($order) {
 
   $order_stage_wc = get_order_stage_wc($order);
 
-  foreach($order as $i => $item) {
-    $order[$i]['order_stage_wc'] = $order_stage_wc;
-    $order[$i]['count_filled']   = $order['count_filled'];
-  }
+  $count_filled = $order['count_filled'];
 
   unset($order['count_filled']);
+
+  foreach($order as $i => $item) {
+    $order[$i]['order_stage_wc'] = $order_stage_wc;
+    $order[$i]['count_filled']   = $count_filled;
+  }
 
   return $order;
 }
@@ -54,7 +56,7 @@ function add_wc_status_to_order($order) {
 //Simplify GDoc Invoice Logic by combining _actual
 function add_gd_fields_to_order($order, $mysql) {
 
-  $order['count_filled'] = 0;
+  $count_filled = 0;
 
   //Consolidate default and actual suffixes to avoid conditional overload in the invoice template and redundant code within communications
   foreach($order as $i => $dontuse) { //don't use val because order[$i] and $item will become out of sync as we set properties
@@ -72,10 +74,10 @@ function add_gd_fields_to_order($order, $mysql) {
 
     if ($order[$i]['days_dispensed']) {
       $deduct_refill = 1;
-      $order['count_filled']++;
+      $count_filled++;
     }
 
-    if ( ! $order[0]['count_filled'] AND ($order[$i]['days_dispensed'] OR $order[$i]['days_dispensed_default'] OR $order[$i]['days_dispensed_actual'])) {
+    if ( ! $count_filled AND ($order[$i]['days_dispensed'] OR $order[$i]['days_dispensed_default'] OR $order[$i]['days_dispensed_actual'])) {
       log_error('add_gd_fields_to_order: What going on here?', get_defined_vars());
     }
 
@@ -83,6 +85,8 @@ function add_gd_fields_to_order($order, $mysql) {
     $order[$i]['refills_total'] = (float) ($order[$i]['refills_total_actual'] ?: $order[$i]['refills_total_default'] - $deduct_refill);
     $order[$i]['price_dispensed'] = (float) ($order[$i]['price_dispensed_actual'] ?: ($order[$i]['price_dispensed_default'] ?: 0));
   }
+
+  $order['count_filled'] = $count_filled;
 
   //log_info('get_full_order', get_defined_vars());
 
