@@ -184,11 +184,13 @@ function set_days_default($item, $days, $message, $mysql) {
 
   $price = $item['price_per_month'] ?: 0; //Might be null
 
-  $item['days_dispensed_default'] = $days;
-  $item['item_message_key']  = array_search($message, RX_MESSAGE);
-  $item['item_message_text'] = message_text($message, $item);
-  $item['qty_dispensed_default'] = $days*$item['sig_qty_per_day'];
+  $item['days_dispensed_default']  = $days;
+  $item['item_message_key']        = array_search($message, RX_MESSAGE);
+  $item['item_message_text']       = message_text($message, $item);
+  $item['qty_dispensed_default']   = $days*$item['sig_qty_per_day'];
   $item['price_dispensed_default'] = ceil($days*$price/30);
+  $item['refills_total_default']   = $item['refills_total'];
+  $item['stock_level_initial']     = $item['stock_level'];
 
   $sql = "
     UPDATE
@@ -199,8 +201,8 @@ function set_days_default($item, $days, $message, $mysql) {
       item_message_key        = '$item[item_message_key]',
       item_message_text       = '".@mysql_escape_string($item['item_message_text'])."',
       price_dispensed_default = $item[price_dispensed_default],
-      refills_total_default   = $item[refills_total],
-      stock_level_initial     = '$item[stock_level]',
+      refills_total_default   = $item[refills_total_default],
+      stock_level_initial     = '$item[stock_level_initial]',
       refill_date_manual      = ".($item['refill_date_manual'] ? "'$item[refill_date_manual]'" : 'NULL').",
       refill_date_default     = ".($item['refill_date_default'] ? "'$item[refill_date_default]'" : 'NULL').",
       refill_date_last        = ".($item['refill_date_last'] ? "'$item[refill_date_last]'" : 'NULL')."
