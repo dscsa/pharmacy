@@ -167,16 +167,20 @@ function set_days_default($item, $days, $message, $mysql) {
 
   //We can only save it if its an order_item that's not yet dispensed
   if ( ! $item['item_date_added'])
-    return; //We can only save for items in order (order_items)
+    return $item; //We can only save for items in order (order_items)
 
   if ($item['days_dispensed_actual'])
-    return; //log_error("set_days_default but it has actual days", get_defined_vars());
+    return $item; //log_error("set_days_default but it has actual days", get_defined_vars());
 
-  if ( ! $item['rx_number'] OR ! $item['invoice_number'] )
-    return log_error("set_days_default without a rx_number AND invoice_number ", get_defined_vars());
+  if ( ! $item['rx_number'] OR ! $item['invoice_number']) {
+    log_error("set_days_default without a rx_number AND invoice_number ", get_defined_vars());
+    return $item;
+  }
 
-  if ($days AND $item['days_dispensed_default'])
-    return log_error('ERROR set_days_default. days_dispensed_default is already do not overwrite (unless with a 0)', get_defined_vars());
+  if ($days AND $item['days_dispensed_default']) {
+    log_error('ERROR set_days_default. days_dispensed_default is already do not overwrite (unless with a 0)', get_defined_vars());
+    return $item;
+  }
 
   $price = $item['price_per_month'] ?: 0; //Might be null
 
