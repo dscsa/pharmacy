@@ -41,12 +41,14 @@ function add_wc_status_to_order($order) {
 
   $order_stage_wc = get_order_stage_wc($order);
 
-  foreach($order as $i => $item) {
-    $order[$i]['order_stage_wc'] = $order_stage_wc;
-    $order[$i]['count_filled']   = $order['count_filled'];
-  }
+  $count_filled = $order['count_filled'];
 
   unset($order['count_filled']);
+
+  foreach($order as $i => $item) {
+    $order[$i]['order_stage_wc'] = $order_stage_wc;
+    $order[$i]['count_filled']   = $count_filled;
+  }
 
   return $order;
 }
