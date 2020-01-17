@@ -31,7 +31,7 @@ function get_full_order($order, $mysql) {
     return log_error('ERROR! get_full_order: no invoice number', get_defined_vars());
 
   $order = add_gd_fields_to_order($order, $mysql);
-  usort($order, 'sort_order_by_day'); //Put Rxs in order (with Rx_Source) at the top
+  usaort($order, 'sort_order_by_day'); //Put Rxs in order (with Rx_Source) at the top
   $order = add_wc_status_to_order($order);
 
   return $order;
@@ -41,18 +41,12 @@ function add_wc_status_to_order($order) {
 
   $order_stage_wc = get_order_stage_wc($order);
 
-  if (empty($order['count_filled'])) {
-    log_error('order[count_filled] is not set but should be', $order);
-  }
-
-  $count_filled = $order['count_filled'];
-
-  unset($order['count_filled']);
-
   foreach($order as $i => $item) {
     $order[$i]['order_stage_wc'] = $order_stage_wc;
-    $order[$i]['count_filled']   = $count_filled;
+    $order[$i]['count_filled']   = $order['count_filled'];
   }
+
+  unset($order['count_filled']);
 
   return $order;
 }
