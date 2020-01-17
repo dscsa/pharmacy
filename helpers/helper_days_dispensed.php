@@ -65,10 +65,10 @@ function get_days_default($item) {
     return [days_default($item), RX_MESSAGE['NO ACTION RX OFF AUTOFILL']];
   }
 
-  if ((strtotime($item['refill_date_next']) - strtotime($item['item_date_added'])) > 15*24*60*60 AND ! $manual) {
+  if ((strtotime($item['refill_date_next']) - strtotime($item['order_date_added'])) > 15*24*60*60 AND ! $manual) {
 
     //DON'T STRICTLY NEED THIS TEST BUT IT GIVES A MORE SPECIFIC ERROR SO IT MIGHT BE HELPFUL
-    if ((strtotime($item['item_date_added']) - strtotime($item['refill_date_last'])) < 15*24*60*60 AND ! $manual) {
+    if ((strtotime($item['order_date_added']) - strtotime($item['refill_date_last'])) < 15*24*60*60 AND ! $manual) {
       log_info("DON'T REFILL IF FILLED WITHIN LAST 15 DAYS UNLESS ADDED MANUALLY", get_defined_vars());
       return [0, RX_MESSAGE['NO ACTION RECENT FILL']];
     }
@@ -121,6 +121,8 @@ function get_days_default($item) {
     return [days_default($item), RX_MESSAGE['NO ACTION DUE SOON AND SYNC TO ORDER']];
   }
 
+
+
   log_info("NO SPECIAL RX_MESSAGE USING DEFAULTS", get_defined_vars());
   return [days_default($item), RX_MESSAGE['NO ACTION STANDARD FILL']];
   //TODO DON'T NO ACTION_PAST_DUE if ( ! drug.$InOrder AND drug.$DaysToRefill < 0)
@@ -162,11 +164,11 @@ function set_days_default($item, $days, $message, $mysql) {
   if ( ! $item['item_date_added'])
     return; //We can only save for items in order (order_items)
 
+  if ($item['days_dispensed_actual'])
+    return; //log_error("set_days_default but it has actual days", get_defined_vars());
+
   if ( ! $item['rx_number'] OR ! $item['invoice_number'] )
     return log_error("set_days_default without a rx_number AND invoice_number ", get_defined_vars());
-
-  if ($item['days_dispensed_actual'])
-    return log_error("set_days_default but it has actual days", get_defined_vars());
 
   if ($item['days_dispensed_default'])
     return log_error('ERROR set_days_default. days_dispensed_default is set but days_dispensed_actual is not, so why is this function being called?', get_defined_vars());
@@ -209,11 +211,11 @@ function message_text($message, $item) {
 }
 
 function sync_to_order_past_due($item) {
-  return $item['refill_date_next'] AND (strtotime($item['refill_date_next']) - strtotime($item['item_date_added'])) < 0;
+  return $item['refill_date_next'] AND (strtotime($item['refill_date_next']) - strtotime($item['order_date_added'])) < 0;
 }
 
 function sync_to_order_due_soon($item) {
-  return $item['refill_date_next'] AND (strtotime($item['refill_date_next'])  - strtotime($item['item_date_added'])) <= 15*24*60*60;
+  return $item['refill_date_next'] AND (strtotime($item['refill_date_next'])  - strtotime($item['order_date_added'])) <= 15*24*60*60;
 }
 
 function days_left_in_rx($item, $days_std = 90) {
