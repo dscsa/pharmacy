@@ -103,7 +103,7 @@ function export_wc_create_order($order) {
   $url = "patient/$first_name $last_name $birth_date/order/$invoice_number";
   $res = wc_fetch($url);
 
-  if ( ! empty($res['error']))
+  if ( ! empty($res['error']) AND empty($res['order'])) //if order is set, then its just a this order already exists error
     return log_error("export_wc_create_order: res[error] for $url", $res);
 
   //These are the metadata that should NOT change

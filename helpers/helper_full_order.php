@@ -31,9 +31,8 @@ function get_full_order($order, $mysql) {
     return log_error('ERROR! get_full_order: no invoice number', get_defined_vars());
 
   $order = add_gd_fields_to_order($order, $mysql);
+  usort($order, 'sort_order_by_day'); //Put Rxs in order (with Rx_Source) at the top
   $order = add_wc_status_to_order($order);
-
-  usort($order, 'sort_order_by_day');
 
   return $order;
 }
@@ -44,8 +43,10 @@ function add_wc_status_to_order($order) {
 
   foreach($order as $i => $item) {
     $order[$i]['order_stage_wc'] = $order_stage_wc;
-    $order[$i]['count_filled']   = $order[0]['count_filled'];
+    $order[$i]['count_filled']   = $order['count_filled'];
   }
+
+  unset($order['count_filled']);
 
   return $order;
 }
@@ -53,7 +54,7 @@ function add_wc_status_to_order($order) {
 //Simplify GDoc Invoice Logic by combining _actual
 function add_gd_fields_to_order($order, $mysql) {
 
-  $order[0]['count_filled'] = 0;
+  $order['count_filled'] = 0;
 
   //Consolidate default and actual suffixes to avoid conditional overload in the invoice template and redundant code within communications
   foreach($order as $i => $dontuse) { //don't use val because order[$i] and $item will become out of sync as we set properties
@@ -71,7 +72,7 @@ function add_gd_fields_to_order($order, $mysql) {
 
     if ($order[$i]['days_dispensed']) {
       $deduct_refill = 1;
-      $order[0]['count_filled']++;
+      $order['count_filled']++;
     }
 
     if ( ! $order[0]['count_filled'] AND ($order[$i]['days_dispensed'] OR $order[$i]['days_dispensed_default'] OR $order[$i]['days_dispensed_actual'])) {
