@@ -27,11 +27,12 @@ function update_orders_wc() {
 
     $stage = explode('-', $created['order_stage_wc'])[1];
 
-    if ($stage == 'awaiting' OR $stage == 'confirming') {
+    if ($stage == 'awaiting' OR $stage == 'confirm') {
 
       //$notices[] = ["Empty Orders are intentially not imported into Guardian", $created];
 
     } else if (in_array($created['order_stage_wc'], [
+      'wc-shipped-unpaid',
       'wc-shipped-paid',
       'wc-shipped-paid-card',
       'wc-shipped-paid-mail',
@@ -42,7 +43,7 @@ function update_orders_wc() {
       'wc-done-auto-pay'
     ])) {
 
-        $notices[] = ["Paid WC not in Guardian. Refund?", $created];
+        $notices[] = ["Shipped/Paid WC not in Guardian. Delete/Refund?", $created];
 
     } else {
 
@@ -60,7 +61,7 @@ function update_orders_wc() {
 
     if ($deleted['order_stage_wc'] == 'trash') {
 
-      $notices[] = ["Order deleted in WC", $deleted];
+      //$notices[] = ["Order deleted in WC", $deleted];
 
     } else {
 

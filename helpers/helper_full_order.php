@@ -56,22 +56,22 @@ function add_gd_fields_to_order($order, $mysql) {
   $order[0]['count_filled'] = 0;
 
   //Consolidate default and actual suffixes to avoid conditional overload in the invoice template and redundant code within communications
-  foreach($order as $i => $item) {
+  foreach($order as $i => $dontuse) { //don't use val because order[$i] and $item will become out of sync as we set properties
 
     if ( ! $order[$i]['item_message_key']) { //if not syncing to order lets provide a reason why we are not filling
-      list($days, $message) = get_days_default($item);
+      list($days, $message) = get_days_default($order[$i]);
 
       $order[$i]['days_dispensed_default'] = $days;
       $order[$i]['item_message_key']  = array_search($message, RX_MESSAGE);
-      $order[$i]['item_message_text'] = message_text($message, $item);
+      $order[$i]['item_message_text'] = message_text($message, $order[$i]);
 
       //TODO we need to set QTY and other things here or above
-      set_days_default($item, $days, $message, $mysql);
+      set_days_default($order[$i], $days, $message, $mysql);
     }
 
-    $order[$i]['drug'] = $item['drug_name'] ?: $item['drug_generic'];
-    $order[$i]['days_dispensed'] = $item['days_dispensed_actual'] ?: $item['days_dispensed_default'];
-    $order[$i]['payment_method'] = $item['payment_method_actual'] ?: $item['payment_method_default'];
+    $order[$i]['drug'] = $order[$i]['drug_name'] ?: $order[$i]['drug_generic'];
+    $order[$i]['days_dispensed'] = $order[$i]['days_dispensed_actual'] ?: $order[$i]['days_dispensed_default'];
+    $order[$i]['payment_method'] = $order[$i]['payment_method_actual'] ?: $order[$i]['payment_method_default'];
 
     $deduct_refill = 0; //We want invoice to show refills after they are dispensed assuming we dispense items currently in order
 
@@ -84,9 +84,9 @@ function add_gd_fields_to_order($order, $mysql) {
       log_error('add_gd_fields_to_order: What going on here?', get_defined_vars());
     }
 
-    $order[$i]['qty_dispensed'] = (float) ($item['qty_dispensed_actual'] ?: $item['qty_dispensed_default']); //cast to float to get rid of .000 decimal
-    $order[$i]['refills_total'] = (float) ($item['refills_total_actual'] ?: $item['refills_total_default'] - $deduct_refill);
-    $order[$i]['price_dispensed'] = (float) ($item['price_dispensed_actual'] ?: ($item['price_dispensed_default'] ?: 0));
+    $order[$i]['qty_dispensed'] = (float) ($order[$i]['qty_dispensed_actual'] ?: $order[$i]['qty_dispensed_default']); //cast to float to get rid of .000 decimal
+    $order[$i]['refills_total'] = (float) ($order[$i]['refills_total_actual'] ?: $order[$i]['refills_total_default'] - $deduct_refill);
+    $order[$i]['price_dispensed'] = (float) ($order[$i]['price_dispensed_actual'] ?: ($order[$i]['price_dispensed_default'] ?: 0));
   }
 
   //log_info('get_full_order', get_defined_vars());
