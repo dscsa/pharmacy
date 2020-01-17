@@ -129,7 +129,7 @@ function update_order_items() {
       continue;
     }
 
-    set_days_default($item, 0, '', $mysql);
+    $item = set_days_default($item, 0, '', $mysql);
 
     export_v2_remove_pended($item);
 

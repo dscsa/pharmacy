@@ -80,6 +80,10 @@ const RX_MESSAGE = [
     'EN' => 'is due soon so synced to Order*',
     'ES' => ''
   ],
+  'NO ACTION NEW RX SYNCED TO ORDER' => [
+    'EN' => 'is a new Rx synced to Order*',
+    'ES' => ''
+  ],
   'NO ACTION SYNC TO DATE' => [
     'EN' => 'was synced to refill_target_date',
     'ES' => ''

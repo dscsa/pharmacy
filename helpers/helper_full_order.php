@@ -60,13 +60,7 @@ function add_gd_fields_to_order($order, $mysql) {
 
     if ( ! $order[$i]['item_message_key']) { //if not syncing to order lets provide a reason why we are not filling
       list($days, $message) = get_days_default($order[$i]);
-
-      $order[$i]['days_dispensed_default'] = $days;
-      $order[$i]['item_message_key']  = array_search($message, RX_MESSAGE);
-      $order[$i]['item_message_text'] = message_text($message, $order[$i]);
-
-      //TODO we need to set QTY and other things here or above
-      set_days_default($order[$i], $days, $message, $mysql);
+      $order[$i] = set_days_default($order[$i], $days, $message, $mysql);
     }
 
     $order[$i]['drug'] = $order[$i]['drug_name'] ?: $order[$i]['drug_generic'];

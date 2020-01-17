@@ -104,7 +104,7 @@ function export_wc_create_order($order) {
   $res = wc_fetch($url);
 
   if ( ! empty($res['error']))
-    return log_error("export_wc_create_order: $url", $res);
+    return log_error("export_wc_create_order: res[error] for $url", $res);
 
   //These are the metadata that should NOT change
   //wc_upsert_meta($order_meta, 'shipping_method_id', ['31694']);

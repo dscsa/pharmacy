@@ -25,9 +25,9 @@ function update_orders_wc() {
   //2) An order is incorrectly saved in WC even though it should be gone (tech bug)
   foreach($changes['created'] as $created) {
 
-    $stage = explode('-', $created['order_stage_wc'])[1];
+    $stage = $created['order_stage_wc'] AND explode('-', $created['order_stage_wc'])[1];
 
-    if ($stage == 'awaiting' OR $stage == 'confirm') {
+    if ($stage == 'awaiting' OR $stage == 'confirm' OR $created['order_stage_wc'] == 'trash') {
 
       //$notices[] = ["Empty Orders are intentially not imported into Guardian", $created];
 

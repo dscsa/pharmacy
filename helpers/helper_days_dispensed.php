@@ -109,6 +109,11 @@ function get_days_default($item) {
     return [$days_left_in_stock, RX_MESSAGE['NO ACTION LOW STOCK']];
   }
 
+  if ( ! $item['refill_date_first'] AND ! $item['item_date_added'] AND $item['rx_autofill']) {
+    log_notice('NO ACTION NEW RX SYNCED TO ORDER', get_defined_vars());
+    return [days_default($item), RX_MESSAGE['NO ACTION NEW RX SYNCED TO ORDER']];
+  }
+
   //TODO and check if added by this program otherwise false positives
   if (sync_to_order_past_due($item)) {
     log_notice("WAS PAST DUE SO WAS SYNCED TO ORDER", get_defined_vars());
@@ -170,22 +175,26 @@ function set_days_default($item, $days, $message, $mysql) {
   if ( ! $item['rx_number'] OR ! $item['invoice_number'] )
     return log_error("set_days_default without a rx_number AND invoice_number ", get_defined_vars());
 
-  if ($item['days_dispensed_default'])
-    return log_error('ERROR set_days_default. days_dispensed_default is set but days_dispensed_actual is not, so why is this function being called?', get_defined_vars());
+  if ($days AND $item['days_dispensed_default'])
+    return log_error('ERROR set_days_default. days_dispensed_default is already do not overwrite (unless with a 0)', get_defined_vars());
 
   $price = $item['price_per_month'] ?: 0; //Might be null
-  $message_key  = array_search($message, RX_MESSAGE);
-  $message_text = @mysql_escape_string(message_text($message, $item));
+
+  $item['days_dispensed_default'] = $days;
+  $item['item_message_key']  = array_search($message, RX_MESSAGE);
+  $item['item_message_text'] = message_text($message, $item);
+  $item['qty_dispensed_default'] = $days*$item['sig_qty_per_day'];
+  $item['price_dispensed_default'] = ceil($days*$price/30);
 
   $sql = "
     UPDATE
       gp_order_items
     SET
       days_dispensed_default  = $days,
-      qty_dispensed_default   = ".($days*$item['sig_qty_per_day']).",
-      item_message_key        = '$message_key',
-      item_message_text       = '$message_text',
-      price_dispensed_default = ".ceil($days*$price/30).",
+      qty_dispensed_default   = $item[qty_dispensed_default],
+      item_message_key        = '$item[item_message_key]',
+      item_message_text       = '".@mysql_escape_string($item['item_message_text'])."',
+      price_dispensed_default = $item[price_dispensed_default],
       refills_total_default   = $item[refills_total],
       stock_level_initial     = '$item[stock_level]',
       refill_date_manual      = ".($item['refill_date_manual'] ? "'$item[refill_date_manual]'" : 'NULL').",
@@ -197,6 +206,8 @@ function set_days_default($item, $days, $message, $mysql) {
   ";
 
   $mysql->run($sql);
+
+  return $item;
 }
 
 function is_refill_only($item) {
