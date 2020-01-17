@@ -88,9 +88,6 @@ function add_gd_fields_to_order($order, $mysql) {
 
   $order['count_filled'] = $count_filled;
 
-  log_error('order[count_filled] is what?', $order);
-
-
   //log_info('get_full_order', get_defined_vars());
 
   return $order;
