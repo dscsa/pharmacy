@@ -340,11 +340,11 @@ function order_fields($user_id = null, $ordered = null, $rxs = []) {
   $rx_source_opts = ['pharmacy' => __('Transfer Rx(s) with refills remaining from my pharmacy')];
 
   if (is_registered()) {
-    $rx_source_opts['erx'] = 'Rx(s) were sent from my doctor';
-    $default_option = 'erx';
-  } else {
     $rx_source_opts['refill'] = 'Refill the Rx(s) selected below';
     $default_option = 'refill';
+  } else {
+    $rx_source_opts['erx'] = 'Rx(s) were sent from my doctor';
+    $default_option = 'erx';
   }
 
   $fields = [

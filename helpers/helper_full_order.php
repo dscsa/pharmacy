@@ -91,6 +91,8 @@ function add_gd_fields_to_order($order, $mysql) {
 function sort_order_by_day($a, $b) {
   if ($b['days_dispensed'] > 0 AND $a['days_dispensed'] == 0) return 1;
   if ($a['days_dispensed'] > 0 AND $b['days_dispensed'] == 0) return -1;
+  if ($b['item_date_added'] > 0 AND $a['item_date_added'] == 0) return 1;
+  if ($a['item_date_added'] > 0 AND $b['item_date_added'] == 0) return -1;
   return strcmp($a['item_message_text'].$a['drug'], $b['item_message_text'].$b['drug']);
 }
 
