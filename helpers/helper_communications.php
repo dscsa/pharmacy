@@ -132,7 +132,6 @@ function send_shipped_order_communications($groups) {
   order_shipped_notice($groups);
   confirm_shipment_notice($groups);
   refill_reminder_notice($groups);
-  unpend_order($groups['ALL']);
 
   if ($groups['ALL'][0]['payment_method'] == PAYMENT_METHOD['AUTOPAY'])
     autopay_reminder_notice($groups);
