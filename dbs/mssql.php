@@ -38,7 +38,7 @@ class Mssql {
         $stmt = mssql_query($sql, $this->connection);
 
 
-        if ( ! is_resource($stmt)) {
+        if ($stmt === false) { //false for error, true for deletes/updates / resource for selects
 
           $message = mssql_get_last_message();
 
@@ -51,6 +51,9 @@ class Mssql {
 
           return;
         }
+
+        if ( ! is_resource($stmt))
+          return; //I think this means query was succesful but it was a DELETE or UPDATE
 
         $results = $this->_getResults($stmt, $sql, $debug);
 
