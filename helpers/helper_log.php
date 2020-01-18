@@ -49,6 +49,10 @@ function vars_to_json($vars, $file) {
     "mssql"
   ];
 
+  if ( ! is_array($vars)) { //MySQl json does not accept plain strings
+    $vars = [$vars];
+  }
+
   $vars = array_reverse($vars, true); //Put most recent variables at the top of the email
   $diff = array_diff_key($vars, array_flip($non_user_vars));
   $json = json_encode($diff, JSON_PRETTY_PRINT);
