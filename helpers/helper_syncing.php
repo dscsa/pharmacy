@@ -31,6 +31,9 @@ function sync_to_order($order, $updated = null) {
 
       $items_to_sync[]   = ['REMOVE', $item['item_message_key'], $item];
       $items_to_remove[] = $item['rx_number'];
+      log_error('sync_to_order: Removing Item within Order', "$item[invoice_number] $item[drug] $item[item_message_key] refills last:$item[refill_date_last'] next:$item[refill_date_next] total:$item[refills_total] left:$item[refills_left]",
+");
+
       continue;
     }
 
@@ -44,14 +47,14 @@ function sync_to_order($order, $updated = null) {
       $items_to_sync[]   = ['SWITCH', 'RX_NUMBER != BEST_RX_NUMBER', $item];
       $items_to_add[]    = $item['best_rx_number'];
       $items_to_remove[] = $item['rx_number'];
+      log_error('sync_to_order: switching Items within Order', "$item[invoice_number] $item[drug] $item[item_message_key] $item[rx_number] -> $item[best_rx_number]");
+
       continue;
     }
   }
 
-  if ($items_to_remove) {
-    log_error('Removing Items from Order', $items_to_sync);
+  if ($items_to_remove)
     export_cp_remove_items($item['invoice_number'], $items_to_remove);
-  }
 
   if ( ! $updated)
     export_cp_add_items($item['invoice_number'], $items_to_add);
