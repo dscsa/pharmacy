@@ -179,7 +179,7 @@ function export_wc_update_order_metadata($order, $meta_fn = 'wc_update_meta') {
 
   if ($order[0]['order_date_dispensed']) {
     $metadata['order_date_dispensed'] = $order[0]['order_date_dispensed'];
-    $metadata['invoice_doc_id']       = $order[0]['invoice_doc_id'];
+    //$metadata['invoice_doc_id']       = $order[0]['invoice_doc_id'];
     $metadata['count_items']          = $order[0]['count_items'];
     $metadata['count_filled']         = $order[0]['count_filled'];
     $metadata['count_nofill']         = $order[0]['count_nofill'];

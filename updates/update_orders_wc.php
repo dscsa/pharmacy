@@ -60,8 +60,16 @@ function update_orders_wc() {
 
 
     if ($deleted['order_stage_wc'] == 'trash') {
+      /*
+      $order = get_full_order($deleted, $mysql);
 
-      //$notices[] = ["Order deleted in WC", $deleted];
+      if ( ! $order) continue;
+
+      $order = helper_update_payment($order, $mysql);
+
+      export_wc_create_order($order);
+      */
+      $notices[] = ["Order deleted in WC", $deleted];
 
     } else if ($deleted['order_stage_cp'] != 'Shipped' AND $deleted['order_stage_cp'] != 'Dispensed') {
 
