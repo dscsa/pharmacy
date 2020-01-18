@@ -13,7 +13,7 @@ function update_orders_wc() {
 
   if ( ! $count_deleted AND ! $count_created AND ! $count_updated) return;
 
-  log_info("update_orders_wc: $count_deleted deleted, $count_created created, $count_updated updated.");
+  log_notice("update_orders_wc: $count_deleted deleted, $count_created created, $count_updated updated.");
 
   $mssql = new Mssql_Cp();
   $mysql = new Mysql_Wc();
@@ -63,8 +63,6 @@ function update_orders_wc() {
 
       $notices[] = ["Order deleted from trash in WC", $deleted];
 
-      if ($deleted['invoice_number'] == 20993 OR $deleted['invoice_number'] == 23211 OR $deleted['invoice_number'] == 23792) {
-
         $order = get_full_order($deleted, $mysql);
 
         if ( ! $order) continue;
@@ -73,7 +71,6 @@ function update_orders_wc() {
 
         export_wc_create_order($order);
         export_gd_publish_invoice($order);
-      }
 
     } else if ($deleted['order_stage_cp'] != 'Shipped' AND $deleted['order_stage_cp'] != 'Dispensed') {
 
