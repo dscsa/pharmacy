@@ -30,12 +30,12 @@ function update_orders_cp() {
     $order = get_full_order($created, $mysql);
 
     if ( ! $order) {
-      log_error("Created Order Missing", get_defined_vars());
+      log_error("Created Order Missing", $created);
       continue;
     }
 
     if ($order[0]['order_date_shipped']) {
-      log_notice("Shipped Order Being Readded", get_defined_vars());
+      log_notice("Shipped Order Being Readded", $order);
       continue;
     }
 
@@ -44,7 +44,7 @@ function update_orders_cp() {
     //3) Create a fax out transfer for anything removed that is not offered
     $items_to_sync = sync_to_order($order);
     if ($items_to_sync) {
-      log_info('sync_to_order: created', get_defined_vars());
+      log_info('sync_to_order: created', [$items_to_sync, $order]);
       $mysql->run('DELETE gp_orders FROM gp_orders WHERE invoice_number = '.$order[0]['invoice_number']);
       continue; //DON'T CREATE THE ORDER UNTIL THESE ITEMS ARE SYNCED TO AVOID CONFLICTING COMMUNICATIONS!
     }
@@ -56,7 +56,7 @@ function update_orders_cp() {
     $groups = group_drugs($order, $mysql);
 
     if ( ! $groups['COUNT_FILLED'] AND $groups['ALL'][0]['item_message_key'] != 'ACTION NEEDS FORM') {
-      log_notice("Created Order But Not Filling Any?", get_defined_vars());
+      log_notice("Created Order But Not Filling Any?", $groups);
       continue;
     }
 
@@ -65,7 +65,7 @@ function update_orders_cp() {
 
     send_created_order_communications($groups);
 
-    log_notice("Created Order", get_defined_vars());
+    log_info("Created Order", $groups);
 
     //TODO Update Salesforce Order Total & Order Count & Order Invoice using REST API or a MYSQL Zapier Integration
   }

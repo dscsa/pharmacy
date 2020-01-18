@@ -31,7 +31,7 @@ function wc_insert_meta($invoice_number, $metadata) {
     $mysql->run("INSERT INTO wp_postmeta (meta_id, post_id, meta_key, meta_value) VALUES (NULL, '$post_id', '$meta_key', '$meta_value')");
   }
 
-  log_notice('wc_insert_meta', get_defined_vars());
+  log_info('wc_insert_meta', get_defined_vars());
 }
 
 //Avoid having duplicated meta_key(s) for a single order
@@ -50,7 +50,7 @@ function wc_update_meta($invoice_number, $metadata) {
     $mysql->run("UPDATE wp_postmeta SET meta_value = '$meta_value' WHERE post_id = $post_id AND meta_key = '$meta_key'");
   }
 
-  log_notice('wc_update_meta', get_defined_vars());
+  log_info('wc_update_meta', get_defined_vars());
 }
 
 function wc_update_order($invoice_number, $orderdata) {
@@ -74,7 +74,8 @@ function wc_update_order($invoice_number, $orderdata) {
     UPDATE wp_posts SET ".implode(', ', $set)." WHERE ID = $post_id;
   ";
 
-  //log_error('wc_update_order', get_defined_vars());
+  log_info('wc_update_order', get_defined_vars());
+
   $mysql->run($sql);
 }
 
@@ -131,7 +132,7 @@ function export_wc_create_order($order) {
   export_wc_update_order_address($order, 'wc_insert_meta');
   export_wc_update_order_payment($invoice_number, $order[0]['payment_fee_default']);
 
-  log_notice('export_wc_create_order: created new order', get_defined_vars());
+  log_notice('export_wc_create_order: created new order', $metadata);
 
   return $order;
 }
@@ -158,7 +159,7 @@ function export_wc_update_order_metadata($order, $meta_fn = 'wc_update_meta') {
     //'post_except' => $order[0]['order_note']
   ];
 
-  log_error('export_wc_update_order_metadata: wc_update_order', [
+  log_notice('export_wc_update_order_metadata: wc_update_order', [
     'invoice_number' => $order[0]['invoice_number'],
     'order_stage_wc' => $order[0]['order_stage_wc'],
     'order_stage_cp' => $order[0]['order_stage_cp']
@@ -276,7 +277,7 @@ function wc_fetch($path, $method = 'GET', $content = null, $retry = false) {
     return ['error' => "no response from wc_fetch"];
   }
 
-  log_notice("wc_fetch", ['url' => $url, 'json' => $json]);
+  log_info("wc_fetch", ['url' => $url, 'json' => $json]);
 
   return $json;
 }
