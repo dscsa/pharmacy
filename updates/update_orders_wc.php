@@ -99,7 +99,17 @@ function update_orders_wc() {
 
     if ($updated['order_stage_wc'] == 'trash') {
 
-      if ($updated['order_stage_cp'] == 'Shipped' AND $updated['order_stage_cp'] == 'Dispensed')
+      if (in_array($created['old_order_stage_wc'], [
+        'wc-shipped-unpaid',
+        'wc-shipped-paid',
+        'wc-shipped-paid-card',
+        'wc-shipped-paid-mail',
+        'wc-shipped-refused',
+        'wc-done-card-pay',
+        'wc-done-mail-pay',
+        'wc-done-clinic-pay',
+        'wc-done-auto-pay'
+      ]))
         $notices[] = ["Shipped Order trashed in WC. Are you sure you wanted to do this?", $updated];
       else
         $notices[] = ["Non-Shipped Order trashed in WC", $updated];
