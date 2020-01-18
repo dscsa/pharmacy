@@ -91,7 +91,7 @@ function update_orders_cp() {
 
       $mysql->run($update_sql);
 
-      return log_error('Confirm this order was returned! Order with tracking number was deleted', get_defined_vars());
+      return log_error('Confirm this order was returned! Order with tracking number was deleted', $deleted;
     }
 
     export_gd_delete_invoice([$deleted], $mysql);
@@ -107,7 +107,7 @@ function update_orders_cp() {
     $patient = $mysql->run($sql)[0];
 
     if ( ! $patient)
-      log_error('No patient associated with deleted order', get_defined_vars());
+      log_error('No patient associated with deleted order', ['deleted' => $deleted, 'sql' => $sql]);
 
     if ( ! empty($patient['pharmacy_name'])) //Cindy deletes "Needs Form" orders and we don't want to confuse them with a canceled communication
       send_deleted_order_communications([$deleted]);
@@ -123,14 +123,14 @@ function update_orders_cp() {
     $order = get_full_order($updated, $mysql);
 
     if ( ! $order) {
-      log_error("Updated Order Missing", get_defined_vars());
+      log_error("Updated Order Missing", $order);
       continue;
     }
 
     //Remove only (e.g. new surescript comes in), let's not add more drugs to their order since communication already went out
     $items_to_sync = sync_to_order($order, $updated);
     if ($items_to_sync) {
-      log_notice('sync_to_order: updated', get_defined_vars());
+      log_notice('sync_to_order: updated', $items_to_sync);
     }
 
     $stage_change_cp = ($updated['order_stage_cp'] != $updated['old_order_stage_cp']);
@@ -146,7 +146,7 @@ function update_orders_cp() {
       export_wc_update_order($order);
       export_v2_unpend_order($order);
       send_shipped_order_communications($groups);
-      log_notice("Updated Order Shipped", get_defined_vars());
+      log_notice("Updated Order Shipped", $order);
       continue;
     }
 
@@ -166,9 +166,9 @@ function update_orders_cp() {
       export_wc_update_order($order);
 
       if ($stage_change_cp)
-        log_info("Updated Order stage_change_cp:", get_defined_vars());
+        log_info("Updated Order stage_change_cp:", $order);
       else
-        log_error("Updated Order Count Not Changed", get_defined_vars());
+        log_error("Updated Order Count Not Changed", $order);
 
       continue;
     }

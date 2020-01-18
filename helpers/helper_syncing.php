@@ -49,7 +49,7 @@ function sync_to_order($order, $updated = null) {
   }
 
   if ($items_to_remove) {
-    log_error('Removing Items from Order', get_defined_vars());
+    log_error('Removing Items from Order', $items_to_remove);
     export_cp_remove_items($item['invoice_number'], $items_to_remove);
   }
 
@@ -57,7 +57,7 @@ function sync_to_order($order, $updated = null) {
     export_cp_add_items($item['invoice_number'], $items_to_add);
 
   else if ($items_to_add)
-    log_notice('sync_to_order items NOT added because UPDATED not created', get_defined_vars());
+    log_notice('sync_to_order items NOT added because UPDATED not created', $items_to_add);
 
   return $items_to_sync;
 }
