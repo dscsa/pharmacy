@@ -51,7 +51,7 @@ function wc_update_meta($invoice_number, $metadata) {
   }
 
 
-  log_notice('wc_update_meta', get_defined_vars());
+  log_error('wc_update_meta: commented out right now', get_defined_vars());
 }
 
 function wc_update_order($invoice_number, $orderdata) {
@@ -87,7 +87,7 @@ function export_wc_delete_order($invoice_number) {
   $post_id = wc_get_post_id($invoice_number);
 
   if ( ! $post_id)
-    log_error("export_wc_delete_order: cannot delete if no post_id", get_defined_vars());//.print_r($item, true);
+    return log_error("export_wc_delete_order: cannot delete if no post_id", get_defined_vars());//.print_r($item, true);
 
   $sql1 = "DELETE FROM wp_postmeta WHERE post_id = $post_id";
 
@@ -139,7 +139,7 @@ function export_wc_create_order($order) {
 
 function export_wc_update_order($order) {
   export_wc_update_order_metadata($order);
-  export_wc_update_order_shipped($order);
+  export_wc_update_order_address($order);
   export_wc_update_order_payment($order[0]['invoice_number'], $order[0]['payment_fee_default']);
 }
 
@@ -159,7 +159,10 @@ function export_wc_update_order_metadata($order, $meta_fn = 'wc_update_meta') {
     //'post_except' => $order[0]['order_note']
   ];
 
-  log_error('export_wc_update_order_metadata: wc_update_order', get_defined_vars());
+  log_error('export_wc_update_order_metadata: wc_update_order', [
+    'invoice_number' => $order[0]['invoice_number'],
+    'order_stage_wc' => $order[0]['order_stage_wc']
+  ]);
 
   wc_update_order($order[0]['invoice_number'], $orderdata);
 
@@ -189,7 +192,7 @@ function export_wc_update_order_metadata($order, $meta_fn = 'wc_update_meta') {
   $meta_fn($order[0]['invoice_number'], $metadata);
 }
 
-function export_wc_update_order_shipped($order, $meta_fn = 'wc_update_meta') {
+function export_wc_update_order_address($order, $meta_fn = 'wc_update_meta') {
 
   $post_id = wc_get_post_id($order[0]['invoice_number']);
 
