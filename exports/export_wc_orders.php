@@ -47,11 +47,10 @@ function wc_update_meta($invoice_number, $metadata) {
       $meta_value = json_encode($meta_value);
 
     //mysql->run() does mysqli_query and not mysqli_multi_query so we cannot concatentate the inserts and run all at once
-    //$mysql->run("UPDATE wp_postmeta SET meta_value = '$meta_value' WHERE post_id = $post_id AND meta_key = '$meta_key'");
+    $mysql->run("UPDATE wp_postmeta SET meta_value = '$meta_value' WHERE post_id = $post_id AND meta_key = '$meta_key'");
   }
 
-
-  log_error('wc_update_meta: commented out right now', get_defined_vars());
+  log_notice('wc_update_meta', get_defined_vars());
 }
 
 function wc_update_order($invoice_number, $orderdata) {
