@@ -79,8 +79,8 @@ function update_orders_cp() {
   foreach($changes['deleted'] as $deleted) {
 
 
-    //Order was Returned to Sender
-    if ($deleted['tracking_number']) {
+    //Order was Returned to Sender and not logged yet
+    if ($deleted['tracking_number'] AND ! $deleted['order_date_returned']) {
 
       set_payment_actual($deleted['invoice_number'], ['total' => 0, 'fee' => 0, 'due' => 0], $mysql);
       //export_wc_update_order_payment($deleted['invoice_number'], 0); //Don't need this because we are deleting the WC order later
