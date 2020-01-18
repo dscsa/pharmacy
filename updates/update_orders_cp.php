@@ -91,7 +91,7 @@ function update_orders_cp() {
 
       $mysql->run($update_sql);
 
-      return log_error('Confirm this order was returned! Order with tracking number was deleted', $deleted;
+      return log_error('Confirm this order was returned! Order with tracking number was deleted', $deleted);
     }
 
     export_gd_delete_invoice([$deleted], $mysql);
