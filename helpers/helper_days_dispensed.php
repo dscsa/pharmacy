@@ -228,11 +228,11 @@ function message_text($message, $item) {
 }
 
 function sync_to_order_past_due($item) {
-  return ($item['refills_total'] >= 0.1) AND $item['refill_date_next'] AND (strtotime($item['refill_date_next']) - strtotime($item['order_date_added'])) < 0;
+  return  ! $item['item_date_added'] AND $item['refills_total'] >= 0.1 AND $item['refill_date_next'] AND (strtotime($item['refill_date_next']) - strtotime($item['order_date_added'])) < 0;
 }
 
 function sync_to_order_due_soon($item) {
-  return ($item['refills_total'] >= 0.1) AND $item['refill_date_next'] AND (strtotime($item['refill_date_next'])  - strtotime($item['order_date_added'])) <= 15*24*60*60;
+  return ! $item['item_date_added'] AND $item['refills_total'] >= 0.1 AND AND $item['refill_date_next'] AND (strtotime($item['refill_date_next'])  - strtotime($item['order_date_added'])) <= 15*24*60*60;
 }
 
 function days_left_in_rx($item, $days_std = 90) {
