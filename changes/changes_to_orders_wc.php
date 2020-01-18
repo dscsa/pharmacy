@@ -44,7 +44,7 @@ function changes_to_orders_wc($new) {
   $set_updated_sql = set_updated_sql($new, $old, $id, $where);
   $mysql->run($set_updated_sql);
 
-  log_notice('changes_to_orders_wc', [
+  log_info('changes_to_orders_wc', [
     'get_deleted' => $get_deleted_sql,
     'get_created' => $get_created_sql,
     'get_updated' => $get_updated_sql,
