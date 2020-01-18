@@ -114,7 +114,7 @@ function update_orders_wc() {
       else {
         $notices[] = ["Non-Shipped Order trashed in WC", $updated];
 
-        $order = get_full_order($deleted, $mysql);
+        $order = get_full_order($updated, $mysql);
 
         if ( ! $order) continue;
 
