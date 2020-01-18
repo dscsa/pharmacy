@@ -111,24 +111,25 @@ function update_orders_wc() {
         'wc-done-auto-pay'
       ]))
         $notices[] = ["Shipped Order trashed in WC. Are you sure you wanted to do this?", $updated];
-      else
+      else {
         $notices[] = ["Non-Shipped Order trashed in WC", $updated];
 
-      /*
-      $order = get_full_order($deleted, $mysql);
+        $order = get_full_order($deleted, $mysql);
 
-      if ( ! $order) continue;
+        if ( ! $order) continue;
 
-      $order = helper_update_payment($order, $mysql);
+        $orderdata = [
+          'post_status' => 'wc-'.$order[0]['order_stage_wc']
+        ];
 
-      export_wc_create_order($order);
-      */
+        log_error('reclassifying order from WC trash', [
+          'invoice_number' => $order[0]['invoice_number'],
+          'order_stage_wc' => $order[0]['order_stage_wc'],
+          'order_stage_cp' => $order[0]['order_stage_cp']
+        ]);
 
-      //25831
-      //25844
-
-      //25931
-      //25850
+        //wc_update_order($order[0]['invoice_number'], $orderdata);
+      }
 
     } else if ($updated['order_stage_wc'] != $updated['old_order_stage_wc']) {
 
