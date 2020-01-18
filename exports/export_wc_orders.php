@@ -86,6 +86,9 @@ function export_wc_delete_order($invoice_number) {
 
   $post_id = wc_get_post_id($invoice_number);
 
+  if ( ! $post_id)
+    log_error("export_wc_delete_order: cannot delete if no post_id", get_defined_vars());//.print_r($item, true);
+
   $sql1 = "DELETE FROM wp_postmeta WHERE post_id = $post_id";
 
   $mysql->run($sql1);

@@ -43,7 +43,7 @@ function update_orders_wc() {
       'wc-done-auto-pay'
     ])) {
 
-      $notices[] = ["Shipped/Paid WC not in Guardian. Delete/Refund?", $created];
+      //$notices[] = ["Shipped/Paid WC not in Guardian. Delete/Refund?", $created];
 
     } else {
 
@@ -65,14 +65,12 @@ function update_orders_wc() {
 
     } else {
 
-      $notices[] = ["Not sure: WC Order Deleted not through trash?", $order[0]['count_filled'], $deleted];
+      $notices[] = ["Not sure: WC Order Deleted not through trash?", $deleted];
     }
 
   }
 
   foreach($changes['updated'] as $updated) {
-
-
 
     if ($updated['order_stage_wc'] != $updated['old_order_stage_wc']) {
 

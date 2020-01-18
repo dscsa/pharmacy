@@ -12,12 +12,16 @@ function sync_to_order($order, $updated = null) {
     if ( ! $item['item_date_added'] AND sync_to_order_past_due($item)) {
       $items_to_sync[] = ['ADD', 'PAST DUE AND SYNC TO ORDER', $item];
       $items_to_add [] = $item['best_rx_number'];
+      log_error('sync_to_order: Adding Item sync_to_order_past_due', "$item[invoice_number] $item[drug] $item[item_message_key] refills last:$item[refill_date_last] next:$item[refill_date_next] total:$item[refills_total] left:$item[refills_left]");
+
       continue;
     }
 
     if ( ! $item['item_date_added'] AND sync_to_order_due_soon($item)) {
       $items_to_sync[] = ['ADD', 'DUE SOON AND SYNC TO ORDER', $item];
       $items_to_add [] = $item['best_rx_number'];
+      log_error('sync_to_order: Adding Item sync_to_order_due_soon', "$item[invoice_number] $item[drug] $item[item_message_key] refills last:$item[refill_date_last] next:$item[refill_date_next] total:$item[refills_total] left:$item[refills_left]");
+
       continue;
     }
 
