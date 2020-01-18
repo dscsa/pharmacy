@@ -60,16 +60,20 @@ function update_orders_wc() {
 
 
     if ($deleted['order_stage_wc'] == 'trash') {
-      /*
-      $order = get_full_order($deleted, $mysql);
 
-      if ( ! $order) continue;
+      $notices[] = ["Order deleted from trach in WC", $deleted];
 
-      $order = helper_update_payment($order, $mysql);
+      if ($deleted['invoice_number'] == 20993 OR $deleted['invoice_number'] == 23211 OR $deleted['invoice_number'] == 23792) {
 
-      export_wc_create_order($order);
-      */
-      $notices[] = ["Order deleted in WC", $deleted];
+        $order = get_full_order($deleted, $mysql);
+
+        if ( ! $order) continue;
+
+        $order = helper_update_payment($order, $mysql);
+
+        export_wc_create_order($order);
+        export_gd_publish_invoice($order);
+      }
 
     } else if ($deleted['order_stage_cp'] != 'Shipped' AND $deleted['order_stage_cp'] != 'Dispensed') {
 
@@ -93,11 +97,31 @@ function update_orders_wc() {
 
   foreach($changes['updated'] as $updated) {
 
-    if ($updated['order_stage_wc'] != $updated['old_order_stage_wc']) {
+    if ($updated['order_stage_wc'] == 'trash') {
 
-      //if ($updated['order_stage_wc'] == 'trash')
-          //$notices[] = ["Order trashed in WC", $updated];
-      //else
+      if ($deleted['order_stage_cp'] == 'Shipped' AND $deleted['order_stage_cp'] == 'Dispensed') {
+        $notices[] = ["Shipped Order trashed in WC. Are you sure you wanted to do this?", $updated];
+      else
+        $notices[] = ["Non-Shipped Order trashed in WC", $updated];
+
+      /*
+      $order = get_full_order($deleted, $mysql);
+
+      if ( ! $order) continue;
+
+      $order = helper_update_payment($order, $mysql);
+
+      export_wc_create_order($order);
+      */
+
+      //25831
+      //25844
+
+      //25931
+      //25850
+
+    } else if ($updated['order_stage_wc'] != $updated['old_order_stage_wc']) {
+
           //$notices[] = ["WC Order Stage Change", $updated];
 
     } else {
