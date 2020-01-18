@@ -128,7 +128,7 @@ function update_orders_wc() {
           'order_stage_cp' => $order[0]['order_stage_cp']
         ]);
 
-        //wc_update_order($order[0]['invoice_number'], $orderdata);
+        wc_update_order($order[0]['invoice_number'], $orderdata);
       }
 
     } else if ($updated['order_stage_wc'] != $updated['old_order_stage_wc']) {
