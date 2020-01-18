@@ -61,7 +61,7 @@ function update_orders_wc() {
 
     if ($deleted['order_stage_wc'] == 'trash') {
 
-      $notices[] = ["Order deleted from trach in WC", $deleted];
+      $notices[] = ["Order deleted from trash in WC", $deleted];
 
       if ($deleted['invoice_number'] == 20993 OR $deleted['invoice_number'] == 23211 OR $deleted['invoice_number'] == 23792) {
 
@@ -99,7 +99,7 @@ function update_orders_wc() {
 
     if ($updated['order_stage_wc'] == 'trash') {
 
-      if ($deleted['order_stage_cp'] == 'Shipped' AND $deleted['order_stage_cp'] == 'Dispensed')
+      if ($updated['order_stage_cp'] == 'Shipped' AND $updated['order_stage_cp'] == 'Dispensed')
         $notices[] = ["Shipped Order trashed in WC. Are you sure you wanted to do this?", $updated];
       else
         $notices[] = ["Non-Shipped Order trashed in WC", $updated];
