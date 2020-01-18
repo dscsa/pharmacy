@@ -6,7 +6,7 @@ function log_to_db($severity, $text, $file, $vars) {
    global $mysql;
    $mysql = $mysql ?: new Mysql_Wc();
    $text  = $mysql->escape($text);
-   $vars  = $mysql->escape($vars);
+   $vars  = $mysql->escape($vars) ?: '[]';
    $mysql->run("INSERT INTO gp_logs (severity, text, file, vars) VALUES ('$severity', '$text', '$file', '$vars')");
 }
 
