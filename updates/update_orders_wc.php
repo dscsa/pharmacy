@@ -99,7 +99,7 @@ function update_orders_wc() {
 
     if ($updated['order_stage_wc'] == 'trash') {
 
-      if (in_array($created['old_order_stage_wc'], [
+      if (in_array($updated['old_order_stage_wc'], [
         'wc-shipped-unpaid',
         'wc-shipped-paid',
         'wc-shipped-paid-card',
