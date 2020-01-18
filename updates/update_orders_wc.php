@@ -63,7 +63,7 @@ function update_orders_wc() {
 
       //$notices[] = ["Order deleted in WC", $deleted];
 
-    } else if ($delete['order_stage_cp'] != 'Shipped' AND $delete['order_stage_cp'] != 'Dispensed') {
+    } else if ($deleted['order_stage_cp'] != 'Shipped' AND $deleted['order_stage_cp'] != 'Dispensed') {
 
       $order = get_full_order($deleted, $mysql);
 

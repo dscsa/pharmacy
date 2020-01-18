@@ -75,7 +75,7 @@ function wc_update_order($invoice_number, $orderdata) {
     UPDATE wp_posts SET ".implode(', ', $set)." WHERE ID = $post_id;
   ";
 
-  log_error('wc_update_order', get_defined_vars());
+  //log_error('wc_update_order', get_defined_vars());
   $mysql->run($sql);
 }
 
@@ -161,7 +161,8 @@ function export_wc_update_order_metadata($order, $meta_fn = 'wc_update_meta') {
 
   log_error('export_wc_update_order_metadata: wc_update_order', [
     'invoice_number' => $order[0]['invoice_number'],
-    'order_stage_wc' => $order[0]['order_stage_wc']
+    'order_stage_wc' => $order[0]['order_stage_wc'],
+    'order_stage_cp' => $order[0]['order_stage_cp']
   ]);
 
   wc_update_order($order[0]['invoice_number'], $orderdata);
