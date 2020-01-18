@@ -156,6 +156,8 @@ function export_wc_update_order_metadata($order, $meta_fn = 'wc_update_meta') {
     //'post_except' => $order[0]['order_note']
   ];
 
+  log_error('export_wc_update_order_metadata: wc_update_order', get_defined_vars());
+
   wc_update_order($order[0]['invoice_number'], $orderdata);
 
   $metadata = [
