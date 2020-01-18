@@ -175,7 +175,7 @@ function make_pick_list($item) {
     return $list;
   }
 
-  log_error("Webform Shopping Error: Not enough qty found, trying half fill and no safety", get_defined_vars());
+  log_error("Webform Shopping Error: Not enough qty found, trying half fill and no safety", ['count_inventory' => count($sorted_ndcs), 'item' => $item]);
 
   $list = get_qty_needed($sorted_ndcs, $min_qty*0.5, 0);
 
@@ -193,8 +193,10 @@ function group_by_ndc($rows, $item) {
 
   foreach ($rows as $row) {
 
-    if ($row['doc']['next'])
+    if ($row['doc']['next']) {
       log_error('Shopping list pulled inventory in which "next" is set!', get_defined_vars());
+      if ($row['doc']['next']['dispensed']) continue;
+    }
 
     //Ignore Cindy's makeshift dispensed queue
     if (in_array($row['doc']['bin'], ['M00', 'T00', 'W00', 'R00', 'F00', 'X00', 'Y00', 'Z00'])) continue;

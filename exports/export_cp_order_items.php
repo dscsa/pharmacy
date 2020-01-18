@@ -3,7 +3,7 @@
 global $mssql;
 
 //Example New Surescript Comes in that we want to remove from Queue
-function export_cp_remove_items($invoice_number, $script_nos, $updated) {
+function export_cp_remove_items($invoice_number, $script_nos) {
 
   if ( ! $script_nos) return;
 
@@ -25,8 +25,6 @@ function export_cp_remove_items($invoice_number, $script_nos, $updated) {
   ";
 
   $res = $mssql->run($sql);
-
-  log_error("export_cp_remove_items ".($updated ? 'on update' : 'on created'), get_defined_vars());
 }
 
 //Example update_order::sync_to_order() wants to add another item to existing order because its due in 1 week

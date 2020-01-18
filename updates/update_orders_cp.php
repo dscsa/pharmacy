@@ -86,7 +86,7 @@ function update_orders_cp() {
       //export_wc_update_order_payment($deleted['invoice_number'], 0); //Don't need this because we are deleting the WC order later
 
       $update_sql = "
-        UPDATE gp_orders SET order_date_returned = GETDATE() WHERE invoice_number = $deleted[invoice_number]
+        UPDATE gp_orders SET order_date_returned = NOW() WHERE invoice_number = $deleted[invoice_number]
       ";
 
       $mysql->run($update_sql);

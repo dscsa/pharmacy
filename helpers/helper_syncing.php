@@ -48,7 +48,10 @@ function sync_to_order($order, $updated = null) {
     }
   }
 
-  export_cp_remove_items($item['invoice_number'], $items_to_remove, $updated);
+  if ($items_to_remove) {
+    log_error('Removing Items from Order', get_defined_vars());
+    export_cp_remove_items($item['invoice_number'], $items_to_remove);
+  }
 
   if ( ! $updated)
     export_cp_add_items($item['invoice_number'], $items_to_add);
