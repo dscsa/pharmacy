@@ -43,7 +43,7 @@ function update_orders_wc() {
       'wc-done-auto-pay'
     ])) {
 
-        $notices[] = ["Shipped/Paid WC not in Guardian. Delete/Refund?", $created];
+      $notices[] = ["Shipped/Paid WC not in Guardian. Delete/Refund?", $created];
 
     } else {
 
@@ -65,16 +65,7 @@ function update_orders_wc() {
 
     } else {
 
-      $order = get_full_order($deleted, $mysql);
-
-      if ( ! $order) continue;
-
-      $order = helper_update_payment($order, $mysql);
-
-      export_wc_create_order($order);
-      export_gd_publish_invoice($order);
-
-      //$notices[] = ["Adding Order to WC", $order[0]['count_filled'], $deleted];
+      $notices[] = ["Not sure: WC Order Deleted not through trash?", $order[0]['count_filled'], $deleted];
     }
 
   }
@@ -85,8 +76,8 @@ function update_orders_wc() {
 
     if ($updated['order_stage_wc'] != $updated['old_order_stage_wc']) {
 
-      if ($updated['order_stage_wc'] == 'trash')
-          $notices[] = ["Order trashed in WC", $updated];
+      //if ($updated['order_stage_wc'] == 'trash')
+          //$notices[] = ["Order trashed in WC", $updated];
       //else
           //$notices[] = ["WC Order Stage Change", $updated];
 
