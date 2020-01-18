@@ -84,9 +84,15 @@ function export_wc_delete_order($invoice_number) {
   global $mysql;
   $mysql = $mysql ?: new Mysql_Wc();
 
-  $sql = "DELETE FROM wp_posts, meta2 JOIN wp_postmeta meta1 ON wp_posts.id = meta1.post_id JOIN wp_postmeta meta2 ON wp_posts.id = meta2.post_id WHERE meta1.meta_key='invoice_number' AND meta1.meta_value = '$invoice_number'";
+  $post_id = wc_get_post_id($invoice_number);
 
-  $mysql->run($sql);
+  $sql1 = "DELETE FROM wp_postmeta WHERE post_id = $post_id";
+
+  $mysql->run($sql1);
+
+  $sql2 = "DELETE FROM wp_posts WHERE id = $post_id";
+
+  $mysql->run($sql2);
 
   log_notice("export_wc_delete_order", get_defined_vars());//.print_r($item, true);
 }

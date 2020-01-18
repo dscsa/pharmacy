@@ -94,6 +94,8 @@ function update_orders_cp() {
       return log_error('Confirm this order was returned! Order with tracking number was deleted', $deleted);
     }
 
+    log_error('Deleting WC Order', $deleted);
+
     export_gd_delete_invoice([$deleted], $mysql);
 
     export_wc_delete_order($deleted['invoice_number']);
