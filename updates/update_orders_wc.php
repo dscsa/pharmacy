@@ -63,6 +63,19 @@ function update_orders_wc() {
 
       //$notices[] = ["Order deleted in WC", $deleted];
 
+    } else if ($delete['order_stage_cp'] != 'Shipped' AND $delete['order_stage_cp'] != 'Dispensed') {
+
+      $order = get_full_order($deleted, $mysql);
+
+      if ( ! $order) continue;
+
+      $order = helper_update_payment($order, $mysql);
+
+      export_wc_create_order($order);
+      export_gd_publish_invoice($order);
+
+      //$notices[] = ["CP Created Order that has not been saved in WC yet", $deleted];
+
     } else {
 
       $notices[] = ["Not sure: WC Order Deleted not through trash?", $deleted];
