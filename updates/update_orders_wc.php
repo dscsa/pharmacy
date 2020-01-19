@@ -15,7 +15,6 @@ function update_orders_wc() {
 
   log_notice("update_orders_wc: $count_deleted deleted, $count_created created, $count_updated updated.");
 
-  $mssql = new Mssql_Cp();
   $mysql = new Mysql_Wc();
 
   $notices = [];
@@ -63,6 +62,7 @@ function update_orders_wc() {
 
       $notices[] = ["Order deleted from trash in WC", $deleted];
 
+      /* TODO Investigate if/why this is needed
         $order = get_full_order($deleted, $mysql);
 
         if ( ! $order) continue;
@@ -71,6 +71,7 @@ function update_orders_wc() {
 
         export_wc_create_order($order);
         export_gd_publish_invoice($order);
+      */
 
     } else if ($deleted['order_stage_cp'] != 'Shipped' AND $deleted['order_stage_cp'] != 'Dispensed') {
 
@@ -140,6 +141,7 @@ function update_orders_wc() {
 
   }
 
-  log_error("update_orders_wc notices", $notices);
+
+  log_notice("update_orders_wc notices", $notices);
 
 }
