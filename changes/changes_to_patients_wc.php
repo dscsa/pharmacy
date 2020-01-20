@@ -48,8 +48,8 @@ function changes_to_patients_cp($new) {
     NOT old.allergies_salicylates <=> new.allergies_salicylates OR
     NOT old.allergies_azithromycin <=> new.allergies_azithromycin OR
     NOT old.allergies_amoxicillin <=> new.allergies_amoxicillin OR
-    NOT old.allergies_none <=> new.allergies_none OR
     NOT old.allergies_other <=> new.allergies_other OR
+    NOT old.allergies_none <=> new.allergies_none OR
 
     NOT old.patient_date_added <=> new.patient_date_added
     -- False Positives -- NOT old.patient_date_changed <=> new.patient_date_changed

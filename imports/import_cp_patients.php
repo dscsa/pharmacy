@@ -34,6 +34,7 @@ function import_cp_patients() {
       MAX(a.state_cd) as patient_state,
       MAX(a.zip) as patient_zip,
 
+      MAX(CASE WHEN Dam_agcsp = 900388 then 'No Known Allergies' ELSE NULL END) as allergies_none,
       MAX(CASE WHEN Dam_agcsp = 478 then 'Tetracyclines' ELSE NULL END) as allergies_tetracycline,
       MAX(CASE WHEN Dam_agcsp = 477 then 'Cephalosporins' ELSE NULL END) as allergies_cephalosporins,
       MAX(CASE WHEN Dam_agcsp = 491 then 'Sulfa' ELSE NULL END) as allergies_sulfa,
@@ -45,7 +46,6 @@ function import_cp_patients() {
       MAX(CASE WHEN Dam_agcsp = 270 then 'Salicylates' ELSE NULL END) as allergies_salicylates,
       MAX(CASE WHEN hic ='W1DH' then 'Azithromycin' ELSE NULL END) as allergies_azithromycin,
       MAX(CASE WHEN hic ='W1AU' then 'Amoxicillin' ELSE NULL END) as allergies_amoxicillin,
-      MAX(CASE WHEN Dam_agcsp = 900388 then 'No Known Allergies' ELSE NULL END) as allergies_none,
       MAX(CASE WHEN hic ='' AND Dam_agcsp = 0 then name ELSE NULL END) as allergies_other,
 
       SUM(refills_orig + 1 - refills_left) as refills_used, --potential to SUM(is_refill) but seems that GCNs churn enough that this is not accurate

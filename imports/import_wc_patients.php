@@ -14,35 +14,56 @@ function import_wc_orders() {
 
   SELECT
 
-    MAX(CASE WHEN wp_postmeta.meta_key = '_customer_user' then wp_postmeta.meta_value ELSE NULL END) as patient_id_wc,
-    MAX(CASE WHEN wp_postmeta.meta_key = 'invoice_number' then wp_postmeta.meta_value ELSE NULL END) as invoice_number,
-    wp_posts.post_status as order_stage_wc,
-    wp_posts.post_excerpt as order_note,
+    MAX(CASE WHEN wp_usermeta.meta_key = 'patient_id_cp' then wp_usermeta.meta_value ELSE NULL END) as patient_id_cp,
+    MAX(CASE WHEN wp_usermeta.meta_key = 'first_name' then wp_usermeta.meta_value ELSE NULL END) as first_name,
+    MAX(CASE WHEN wp_usermeta.meta_key = 'last_name' then wp_usermeta.meta_value ELSE NULL END) as last_name,
+    RIGHT(user_login, 10) as birth_date,
+    MAX(CASE WHEN wp_usermeta.meta_key = 'medications_other' then wp_usermeta.meta_value ELSE NULL END) as patient_note,
 
-    MAX(CASE WHEN wp_postmeta.meta_key = 'order_source' then wp_postmeta.meta_value ELSE NULL END) as order_source,
-    MAX(CASE WHEN wp_postmeta.meta_key = '_payment_method' then wp_postmeta.meta_value ELSE NULL END) as payment_method_actual,
-    MAX(CASE WHEN wp_postmeta.meta_key = '_coupon_lines' then wp_postmeta.meta_value ELSE NULL END) as coupon_lines,
+    MAX(CASE WHEN wp_usermeta.meta_key = 'phone' then wp_usermeta.meta_value ELSE NULL END) as phone1,
+    MAX(CASE WHEN wp_usermeta.meta_key = 'billing_phone' then wp_usermeta.meta_value ELSE NULL END) as phone2,
+    user_email as email,
 
-    -- MAX(CASE WHEN wp_postmeta.meta_key = '_shipping_first_name' then wp_postmeta.meta_value ELSE NULL END) as first_name,
-    -- MAX(CASE WHEN wp_postmeta.meta_key = '_shipping_last_name' then wp_postmeta.meta_value ELSE NULL END) as last_name,
-    -- MAX(CASE WHEN wp_postmeta.meta_key = '_shipping_email' then wp_postmeta.meta_value ELSE NULL END) as email,
-    -- MAX(CASE WHEN wp_postmeta.meta_key = '_shipping_phone' then wp_postmeta.meta_value ELSE NULL END) as primary_phone,
-    -- MAX(CASE WHEN wp_postmeta.meta_key = '_billing_phone' then wp_postmeta.meta_value ELSE NULL END) as secondary_phone,
-    MAX(CASE WHEN wp_postmeta.meta_key = '_shipping_address_1' then wp_postmeta.meta_value ELSE NULL END) as order_address1,
-    MAX(CASE WHEN wp_postmeta.meta_key = '_shipping_address_2' then wp_postmeta.meta_value ELSE NULL END) as order_address2,
-    MAX(CASE WHEN wp_postmeta.meta_key = '_shipping_city' then wp_postmeta.meta_value ELSE NULL END) as order_city,
-    MAX(CASE WHEN wp_postmeta.meta_key = '_shipping_state' then wp_postmeta.meta_value ELSE NULL END) as order_state,
-    MAX(CASE WHEN wp_postmeta.meta_key = '_shipping_postcode' then LEFT(wp_postmeta.meta_value, 5) ELSE NULL END) as order_zip
+    MAX(CASE WHEN wp_usermeta.meta_key = 'patient_autofill' then wp_usermeta.meta_value ELSE NULL END) as patient_autofill,
+    MAX(CASE WHEN wp_usermeta.meta_key = 'pharmacy_name' then wp_usermeta.meta_value ELSE NULL END) as pharmacy_name,
+    MAX(CASE WHEN wp_usermeta.meta_key = 'pharmacy_npi' then wp_usermeta.meta_value ELSE NULL END) as pharmacy_npi,
+    MAX(CASE WHEN wp_usermeta.meta_key = 'pharmacy_fax' then wp_usermeta.meta_value ELSE NULL END) as pharmacy_fax,
+    MAX(CASE WHEN wp_usermeta.meta_key = 'pharmacy_phone' then wp_usermeta.meta_value ELSE NULL END) as pharmacy_phone,
+    MAX(CASE WHEN wp_usermeta.meta_key = 'pharmacy_address' then wp_usermeta.meta_value ELSE NULL END) as pharmacy_address,
+
+    MAX(CASE WHEN wp_usermeta.meta_key = 'payment_card_type' then wp_usermeta.meta_value ELSE NULL END) as payment_card_type,
+    MAX(CASE WHEN wp_usermeta.meta_key = 'payment_card_last4' then wp_usermeta.meta_value ELSE NULL END) as payment_card_last4,
+    MAX(CASE WHEN wp_usermeta.meta_key = 'payment_card_date_expired' then wp_usermeta.meta_value ELSE NULL END) as payment_card_date_expired,
+    MAX(CASE WHEN wp_usermeta.meta_key = 'payment_method_default' then wp_usermeta.meta_value ELSE NULL END) as payment_method_default,
+    MAX(CASE WHEN wp_usermeta.meta_key = 'coupon' AND LEFT(wp_usermeta.meta_value, 6) = 'track' then wp_usermeta.meta_value ELSE NULL END) as tracking_coupon,
+    MAX(CASE WHEN wp_usermeta.meta_key = 'coupon' AND LEFT(wp_usermeta.meta_value, 6) != 'track' then wp_usermeta.meta_value ELSE NULL END) as payment_coupon,
+
+    MAX(CASE WHEN wp_usermeta.meta_key = 'billing_address_1' then wp_usermeta.meta_value ELSE NULL END) as patient_address1,
+    MAX(CASE WHEN wp_usermeta.meta_key = 'billing_address_2' then wp_usermeta.meta_value ELSE NULL END) as patient_address2,
+    MAX(CASE WHEN wp_usermeta.meta_key = 'billing_city' then wp_usermeta.meta_value ELSE NULL END) as patient_city,
+    MAX(CASE WHEN wp_usermeta.meta_key = 'billing_state' then wp_usermeta.meta_value ELSE NULL END) as patient_state,
+    MAX(CASE WHEN wp_usermeta.meta_key = 'billing_postcode' then wp_usermeta.meta_value ELSE NULL END) as patient_zip,
+    MAX(CASE WHEN wp_usermeta.meta_key = 'language' then wp_usermeta.meta_value ELSE NULL END) as language,
+
+    MAX(CASE WHEN wp_usermeta.meta_key = 'allergies_none' then 'No Known Allergies' ELSE NULL END) as allergies_none,
+    MAX(CASE WHEN wp_usermeta.meta_key = 'allergies_tetracycline' then 'Tetracyclines' ELSE NULL END) as allergies_tetracycline,
+    MAX(CASE WHEN wp_usermeta.meta_key = 'allergies_cephalosporins' then 'Cephalosporins' ELSE NULL END) as allergies_cephalosporins,
+    MAX(CASE WHEN wp_usermeta.meta_key = 'allergies_sulfa' then 'Sulfa' ELSE NULL END) as allergies_sulfa,
+    MAX(CASE WHEN wp_usermeta.meta_key = 'allergies_aspirin' then 'Aspirin' ELSE NULL END) as allergies_aspirin,
+    MAX(CASE WHEN wp_usermeta.meta_key = 'allergies_penicillin' then 'Penicillin' ELSE NULL END) as allergies_penicillin,
+    MAX(CASE WHEN wp_usermeta.meta_key = 'allergies_erythromycin' then 'Erythromycin' ELSE NULL END) as allergies_erythromycin,
+    MAX(CASE WHEN wp_usermeta.meta_key = 'allergies_codeine' then 'Codeine' ELSE NULL END) as allergies_codeine,
+    MAX(CASE WHEN wp_usermeta.meta_key = 'allergies_nsaids' then 'NSAIDS' ELSE NULL END) as allergies_nsaids,
+    MAX(CASE WHEN wp_usermeta.meta_key = 'allergies_salicylates' then 'Salicylates' ELSE NULL END) as allergies_salicylates,
+    MAX(CASE WHEN wp_usermeta.meta_key = 'allergies_azithromycin' then 'Azithromycin' ELSE NULL END) as allergies_azithromycin,
+    MAX(CASE WHEN wp_usermeta.meta_key = 'allergies_amoxicillin' then 'Amoxicillin' ELSE NULL END) as allergies_amoxicillin,
+    MAX(CASE WHEN wp_usermeta.meta_key = 'allergies_other' then wp_usermeta.meta_value ELSE NULL END) as allergies_other
 
   FROM
-    wp_posts
-  LEFT JOIN wp_postmeta ON wp_postmeta.post_id = wp_posts.ID
-  WHERE
-    post_type = 'shop_order'
+    wp_users
+  LEFT JOIN wp_usermeta ON wp_usermeta.user_id = wp_users.ID
   GROUP BY
-     wp_posts.ID
-  HAVING
-    invoice_number > 0
+     wp_users.ID
   ");
 
   if ( ! count($orders[0])) return log_error('No Wc Orders to Import', get_defined_vars());
