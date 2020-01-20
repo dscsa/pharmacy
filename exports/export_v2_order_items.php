@@ -194,8 +194,8 @@ function group_by_ndc($rows, $item) {
   foreach ($rows as $row) {
 
     if ($row['doc']['next']) {
-      log_error('Shopping list pulled inventory in which "next" is set!', get_defined_vars());
-      if ($row['doc']['next']['dispensed']) continue;
+      log_error('Shopping list pulled inventory in which "next" is set!', $row, $item);
+      if ( ! empty($row['doc']['next']['dispensed'])) continue;
     }
 
     //Ignore Cindy's makeshift dispensed queue

@@ -35,7 +35,7 @@ function sync_to_order($order, $updated = null) {
 
       $items_to_sync[]   = ['REMOVE', $item['item_message_key'], $item];
       $items_to_remove[] = $item['rx_number'];
-      log_error('sync_to_order: Removing Item within Order', "$item[invoice_number] $item[drug] $item[item_message_key] refills last:$item[refill_date_last] next:$item[refill_date_next] total:$item[refills_total] left:$item[refills_left]");
+      log_error('sync_to_order: Removing Item within Order', "$item[invoice_number] $item[drug] $item[stock_level] $item[item_message_key] refills last:$item[refill_date_last] next:$item[refill_date_next] total:$item[refills_total] left:$item[refills_left]");
 
       continue;
     }
