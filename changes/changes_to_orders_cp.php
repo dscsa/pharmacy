@@ -3,49 +3,69 @@
 require_once 'dbs/mysql_wc.php';
 require_once 'helpers/helper_changes.php';
 
-//Returned Orders like 24174 have status_cn == 3 and liCount == 0.  This makes them appear to be deleted
-//We don't want to update them with this information BUT we do want to keep the old order in the database and add a date_returned
-function cp_orders_set_deleted_sql($new, $old, $id) {
 
-  $join = join_clause($id);
-
-  return "
-    DELETE
-      old
-    FROM
-      $new as new
-    RIGHT JOIN $old as old ON
-      $join
-    WHERE
-      new.$id IS NULL
-    AND
-      old.tracking_number IS NULL
-  ";
-}
-
-function changes_to_orders_cp($new) {
+function changes_to_patients_cp($new) {
   $mysql = new Mysql_Wc();
 
-  $old   = "gp_orders";
-  $id    = "invoice_number";
+  $old   = "gp_patients";
+  $id    = "patient_id_cp";
   $where = "
     NOT old.patient_id_cp <=> new.patient_id_cp OR
-    NOT old.count_items <=> new.count_items OR
-    NOT old.order_source <=> new.order_source OR
-    NOT old.order_stage_cp <=> new.order_stage_cp OR
-    -- NOT old.order_status <=> new.order_status OR -- SEEMS DUPLICATIVE WITH STAGE AND CAUSES CHANGES ON Rx Expired >>> Entered
-    NOT old.order_address1 <=> new.order_address1 OR
-    NOT old.order_address2 <=> new.order_address2 OR
-    NOT old.order_city <=> new.order_city OR
-    NOT old.order_state <=> new.order_state OR
-    NOT old.order_zip <=> new.order_zip OR
-    NOT old.tracking_number <=> new.tracking_number OR
-    NOT old.order_date_added <=> new.order_date_added OR
-    NOT old.order_date_dispensed <=> new.order_date_dispensed OR
-    NOT old.order_date_shipped <=> new.order_date_shipped
-    -- Not in CP -- NOT old.invoice_doc_id <=> new.invoice_doc_id OR
-    -- False Positives -- NOT old.order_date_changed <=> new.order_date_changed OR
-    -- Not in CP -- NOT old.order_date_returned <=> new.order_date_returned
+    first_name
+    NOT old.patient_id_cp <=> new.patient_id_cp OR
+    last_name
+    NOT old.patient_id_cp <=> new.patient_id_cp OR
+    birth_date
+    NOT old.patient_id_cp <=> new.patient_id_cp OR
+    email
+    NOT old.patient_id_cp <=> new.patient_id_cp OR
+    phone
+    NOT old.patient_id_cp <=> new.patient_id_cp OR
+    billing_phone
+    NOT old.patient_id_cp <=> new.patient_id_cp OR
+    backup_pharmacy (name/npi/phone/address)
+    NOT old.patient_id_cp <=> new.patient_id_cp OR
+    NOT old.patient_id_cp <=> new.patient_id_cp OR
+    NOT old.patient_id_cp <=> new.patient_id_cp OR
+    NOT old.patient_id_cp <=> new.patient_id_cp OR
+    allergies_sulfa
+    NOT old.patient_id_cp <=> new.patient_id_cp OR
+    allergies_other
+    NOT old.patient_id_cp <=> new.patient_id_cp OR
+    medications_other
+    NOT old.patient_id_cp <=> new.patient_id_cp OR
+    allergies_aspirin
+        NOT old.patient_id_cp <=> new.patient_id_cp OR
+    allergies_penicillin
+        NOT old.patient_id_cp <=> new.patient_id_cp OR
+    allergies_ampicillin
+        NOT old.patient_id_cp <=> new.patient_id_cp OR
+    allergies_erythromycin
+        NOT old.patient_id_cp <=> new.patient_id_cp OR
+    allergies_nsaids
+        NOT old.patient_id_cp <=> new.patient_id_cp OR
+    allergies_tetracycline
+        NOT old.patient_id_cp <=> new.patient_id_cp OR
+    allergies_none
+        NOT old.patient_id_cp <=> new.patient_id_cp OR
+    allergies_cephalosporins
+        NOT old.patient_id_cp <=> new.patient_id_cp OR
+    allergies_salicylates
+        NOT old.patient_id_cp <=> new.patient_id_cp OR
+    allergies_amoxicillin
+        NOT old.patient_id_cp <=> new.patient_id_cp OR
+    allergies_azithromycin
+        NOT old.patient_id_cp <=> new.patient_id_cp OR
+    allergies_codeine
+        NOT old.patient_id_cp <=> new.patient_id_cp OR
+    billing_address_1
+        NOT old.patient_id_cp <=> new.patient_id_cp OR
+    billing_city
+        NOT old.patient_id_cp <=> new.patient_id_cp OR
+    billing_postcode
+        NOT old.patient_id_cp <=> new.patient_id_cp OR
+    coupon / payment_method
+        NOT old.patient_id_cp <=> new.patient_id_cp OR
   ";
 
   // 1st Result Set -> 1st Row -> 1st Column

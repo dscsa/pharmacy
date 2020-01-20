@@ -11,19 +11,20 @@ require_once 'helpers/helper_constants.php';
 require_once 'imports/import_v2_drugs.php';
 require_once 'imports/import_v2_stock_by_month.php';
 require_once 'imports/import_cp_rxs_single.php';
+require_once 'imports/import_wc_patients.php';
 require_once 'imports/import_cp_patients.php';
-require_once 'imports/import_cp_orders.php';
-require_once 'imports/import_wc_orders.php';
 require_once 'imports/import_cp_order_items.php';
+require_once 'imports/import_wc_orders.php';
+require_once 'imports/import_cp_orders.php';
 
 require_once 'updates/update_drugs.php';
 require_once 'updates/update_stock_by_month.php';
 require_once 'updates/update_rxs_single.php';
-require_once 'updates/update_patients.php';
-require_once 'updates/update_orders_cp.php';
-require_once 'updates/update_orders_wc.php';
-
+require_once 'updates/update_patients_wc.php';
+require_once 'updates/update_patients_cp.php';
 require_once 'updates/update_order_items.php';
+require_once 'updates/update_orders_wc.php';
+require_once 'updates/update_orders_cp.php';
 
 timer("", $time);
 $email = '';
@@ -38,6 +39,9 @@ $email .= timer("import_v2_stock_by_month", $time);
 
 import_cp_rxs_single();
 $email .= timer("import_cp_rxs_single", $time);
+
+import_wc_patients();
+$email .= timer("import_wc_patients", $time);
 
 import_cp_patients();
 $email .= timer("import_cp_patients", $time);
@@ -62,8 +66,11 @@ $email .= timer("update_stock_by_month", $time);
 update_rxs_single();
 $email .= timer("update_rxs_single", $time);
 
-update_patients();
-$email .= timer("update_patients", $time);
+update_patients_wc();
+$email .= timer("update_patients_wc", $time);
+
+update_patients_cp();
+$email .= timer("update_patients_cp", $time);
 
 update_order_items();
 $email .= timer("update_order_items", $time);

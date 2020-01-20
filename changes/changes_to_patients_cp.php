@@ -3,7 +3,7 @@
 require_once 'dbs/mysql_wc.php';
 require_once 'helpers/helper_changes.php';
 
-function changes_to_patients($new) {
+function changes_to_patients_cp($new) {
   $mysql = new Mysql_Wc();
 
   $old   = "gp_patients";
@@ -36,6 +36,21 @@ function changes_to_patients($new) {
     NOT old.refills_used <=> new.refills_used OR
     NOT old.patient_status <=> new.patient_status OR
     NOT old.language <=> new.language OR
+
+    NOT old.allergies_tetracycline <=> new.allergies_tetracycline OR
+    NOT old.allergies_cephalosporins <=> new.allergies_cephalosporins OR
+    NOT old.allergies_sulfa <=> new.allergies_sulfa OR
+    NOT old.allergies_aspirin <=> new.allergies_aspirin OR
+    NOT old.allergies_penicillin <=> new.allergies_penicillin OR
+    NOT old.allergies_erythromycin <=> new.allergies_erythromycin OR
+    NOT old.allergies_codeine <=> new.allergies_codeine OR
+    NOT old.allergies_nsaids <=> new.allergies_nsaids OR
+    NOT old.allergies_salicylates <=> new.allergies_salicylates OR
+    NOT old.allergies_azithromycin <=> new.allergies_azithromycin OR
+    NOT old.allergies_amoxicillin <=> new.allergies_amoxicillin OR
+    NOT old.allergies_none <=> new.allergies_none OR
+    NOT old.allergies_other <=> new.allergies_other OR
+
     NOT old.patient_date_added <=> new.patient_date_added
     -- False Positives -- NOT old.patient_date_changed <=> new.patient_date_changed
   ";

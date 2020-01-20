@@ -34,6 +34,20 @@ function import_cp_patients() {
       MAX(a.state_cd) as patient_state,
       MAX(a.zip) as patient_zip,
 
+      MAX(CASE WHEN Dam_agcsp = 478 then 'Tetracyclines' ELSE NULL END) as allergies_tetracycline,
+      MAX(CASE WHEN Dam_agcsp = 477 then 'Cephalosporins' ELSE NULL END) as allergies_cephalosporins,
+      MAX(CASE WHEN Dam_agcsp = 491 then 'Sulfa' ELSE NULL END) as allergies_sulfa,
+      MAX(CASE WHEN hic ='H3DB' then 'Aspirin' ELSE NULL END) as allergies_aspirin,
+      MAX(CASE WHEN Dam_agcsp = 476 then 'Penicillin' ELSE NULL END) as allergies_penicillin,
+      MAX(CASE WHEN hic ='W1DA' then 'Erythromycin' ELSE NULL END) as allergies_erythromycin,
+      MAX(CASE WHEN hic ='H3AH' then 'Codeine' ELSE NULL END) as allergies_codeine,
+      MAX(CASE WHEN Dam_agcsp = 439 then 'NSAIDS' ELSE NULL END) as allergies_nsaids,
+      MAX(CASE WHEN Dam_agcsp = 270 then 'Salicylates' ELSE NULL END) as allergies_salicylates,
+      MAX(CASE WHEN hic ='W1DH' then 'Azithromycin' ELSE NULL END) as allergies_azithromycin,
+      MAX(CASE WHEN hic ='W1AU' then 'Amoxicillin' ELSE NULL END) as allergies_amoxicillin,
+      MAX(CASE WHEN Dam_agcsp = 900388 then 'No Known Allergies' ELSE NULL END) as allergies_none,
+      MAX(CASE WHEN hic ='' AND Dam_agcsp = 0 then name ELSE NULL END) as allergies_other,
+
       SUM(refills_orig + 1 - refills_left) as refills_used, --potential to SUM(is_refill) but seems that GCNs churn enough that this is not accurate
       MAX(pat.pat_status_cn) as patient_status,
       MAX(ISNULL(primary_lang_cd, 'EN')) as language,
@@ -47,11 +61,18 @@ function import_cp_patients() {
     LEFT JOIN cppat_addr pa  (nolock) ON (pat.pat_id = pa.pat_id and pa.addr_type_cn=2)
     LEFT JOIN csaddr a (nolock) ON pa.addr_id=a.addr_id
     LEFT JOIN cprx ON cprx.pat_id = pat.pat_id AND orig_disp_date < GETDATE() - 4
-    -- STRING_AGG(cppat_alr)
+    LEFT JOIN cppat_alr ON cppat_alr.pat_id = pat.pat_id
     WHERE birth_date IS NOT NULL -- pat_id == 5869
     GROUP BY pat.pat_id -- because cppat_phone had a duplicate entry for pat_id 5130 we got two rows so need a groupby.  This also removes refills_used from needing to be a subquery
 
   ");
+
+
+
+
+
+
+
 
   if ( ! count($patients[0])) return log_error('No Cp Patients to Import', get_defined_vars());
 
