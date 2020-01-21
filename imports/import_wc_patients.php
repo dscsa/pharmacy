@@ -6,7 +6,7 @@ require_once 'helpers/helper_imports.php';
 //DETECT DUPLICATES
 //SELECT invoice_number, COUNT(*) as counts FROM gp_orders_wc GROUP BY invoice_number HAVING counts > 1
 
-function import_wc_orders() {
+function import_wc_patients() {
 
   $mysql = new Mysql_Wc();
 
