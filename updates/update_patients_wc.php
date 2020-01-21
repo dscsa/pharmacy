@@ -3,7 +3,7 @@
 
 function update_patients_wc() {
 
-  $changes = changes_to_orders_wc("gp_patients_wc");
+  $changes = changes_to_patients_wc("gp_patients_wc");
 
   $count_deleted = count($changes['deleted']);
   $count_created = count($changes['created']);
