@@ -7,8 +7,9 @@ function changes_to_patients_wc($new) {
   $mysql = new Mysql_Wc();
 
   $old   = "gp_patients";
-  $id    = "patient_id_cp";
+  $id    = "patient_id_wc";
   $where = "
+    NOT old.patient_id_wc <=> new.patient_id_wc OR
     NOT old.first_name <=> new.first_name OR
     NOT old.last_name <=> new.last_name OR
     NOT old.birth_date <=> new.birth_date OR
