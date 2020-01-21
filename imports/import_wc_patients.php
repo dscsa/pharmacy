@@ -22,8 +22,8 @@ function import_wc_patients() {
     MAX(CASE WHEN wp_usermeta.meta_key = 'medications_other' then wp_usermeta.meta_value ELSE NULL END) as patient_note,
 
     -- https://stackoverflow.com/questions/37268248/how-to-get-only-digits-from-string-in-mysql
-    MAX(CASE WHEN wp_usermeta.meta_key = 'phone' then wp_usermeta.meta_value ELSE NULL END)+0 as phone1,
-    MAX(CASE WHEN wp_usermeta.meta_key = 'billing_phone' then wp_usermeta.meta_value ELSE NULL END)+0 as phone2,
+    RIGHT(MAX(CASE WHEN wp_usermeta.meta_key = 'phone' then wp_usermeta.meta_value ELSE NULL END)+0, 10) as phone1,
+    RIGHT(MAX(CASE WHEN wp_usermeta.meta_key = 'billing_phone' then wp_usermeta.meta_value ELSE NULL END)+0, 10) as phone2,
     user_email as email,
 
     MAX(CASE WHEN wp_usermeta.meta_key = 'patient_autofill' then wp_usermeta.meta_value ELSE NULL END) as patient_autofill,
