@@ -69,13 +69,12 @@ function import_wc_patients() {
 
   if ( ! count($orders[0])) return log_error('No Wc Orders to Import', get_defined_vars());
 
-  //log_info("
-  //import_cp_orders: rows ".count($orders[0]));
-
   $keys = result_map($orders[0]);
 
   //Replace Staging Table with New Data
   $mysql->run('TRUNCATE TABLE gp_patients_wc');
+
+  log_error("import_wc_patients: rows ".count($orders[0]).$keys.$orders[0]);
 
   $mysql->run("INSERT INTO gp_patients_wc $keys VALUES ".$orders[0]);
 }
