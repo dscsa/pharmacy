@@ -4,7 +4,7 @@ require_once 'dbs/mysql_wc.php';
 require_once 'helpers/helper_changes.php';
 
 
-function changes_to_patients_cp($new) {
+function changes_to_orders_cp($new) {
   $mysql = new Mysql_Wc();
 
   $old   = "gp_patients";
