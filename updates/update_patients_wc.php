@@ -1,5 +1,6 @@
 <?php
 
+require_once 'changes/changes_to_patients_wc.php';
 
 function update_patients_wc() {
 
