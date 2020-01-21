@@ -15,7 +15,7 @@ function import_wc_patients() {
   SELECT
 
     MAX(CASE WHEN wp_usermeta.meta_key = 'patient_id_cp' then wp_usermeta.meta_value ELSE NULL END) as patient_id_cp,
-    MAX(CASE WHEN wp_usermeta.meta_key = 'patient_id_wc' then wp_usermeta.meta_value ELSE NULL END) as patient_id_wc,
+    wp_users.ID as patient_id_wc,
     MAX(CASE WHEN wp_usermeta.meta_key = 'first_name' then wp_usermeta.meta_value ELSE NULL END) as first_name,
     MAX(CASE WHEN wp_usermeta.meta_key = 'last_name' then wp_usermeta.meta_value ELSE NULL END) as last_name,
     RIGHT(user_login, 10) as birth_date,
