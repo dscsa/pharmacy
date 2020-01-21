@@ -62,7 +62,11 @@ function import_wc_patients() {
 
   FROM
     wp_users
-  LEFT JOIN wp_usermeta ON wp_usermeta.user_id = wp_users.ID
+  LEFT JOIN
+    wp_usermeta ON wp_usermeta.user_id = wp_users.ID
+  WHERE
+    MID(user_login, -10, 4) > 1900 AND -- validate birth_date in username so users with malformed birthdates or users like 'root'
+    MID(user_login, -10, 4) < 2100
   GROUP BY
      wp_users.ID
   ");
