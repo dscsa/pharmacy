@@ -33,10 +33,9 @@ function changes_to_patients_cp($new) {
     NOT old.patient_city <=> new.patient_city OR
     NOT old.patient_state <=> new.patient_state OR
     NOT old.patient_zip <=> new.patient_zip OR
-    NOT old.refills_used <=> new.refills_used OR
-    NOT old.patient_status <=> new.patient_status OR
     NOT old.language <=> new.language OR
 
+    NOT old.allergies_none <=> new.allergies_none OR
     NOT old.allergies_tetracycline <=> new.allergies_tetracycline OR
     NOT old.allergies_cephalosporins <=> new.allergies_cephalosporins OR
     NOT old.allergies_sulfa <=> new.allergies_sulfa OR
@@ -48,11 +47,7 @@ function changes_to_patients_cp($new) {
     NOT old.allergies_salicylates <=> new.allergies_salicylates OR
     NOT old.allergies_azithromycin <=> new.allergies_azithromycin OR
     NOT old.allergies_amoxicillin <=> new.allergies_amoxicillin OR
-    NOT old.allergies_other <=> new.allergies_other OR
-    NOT old.allergies_none <=> new.allergies_none OR
-
-    NOT old.patient_date_added <=> new.patient_date_added
-    -- False Positives -- NOT old.patient_date_changed <=> new.patient_date_changed
+    NOT old.allergies_other <=> new.allergies_other
   ";
 
   //Get Deleted

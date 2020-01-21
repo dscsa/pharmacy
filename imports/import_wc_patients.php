@@ -74,7 +74,7 @@ function import_wc_orders() {
   $keys = result_map($orders[0]);
 
   //Replace Staging Table with New Data
-  $mysql->run('TRUNCATE TABLE gp_orders_wc');
+  $mysql->run('TRUNCATE TABLE gp_patients_wc');
 
-  $mysql->run("INSERT INTO gp_orders_wc $keys VALUES ".$orders[0]);
+  $mysql->run("INSERT INTO gp_patients_wc $keys VALUES ".$orders[0]);
 }
