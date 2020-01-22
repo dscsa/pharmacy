@@ -12,7 +12,7 @@ function update_patients_wc() {
 
   if ( ! $count_deleted AND ! $count_created AND ! $count_updated) return;
 
-  log_notice("update_patients_wc: $count_deleted deleted, $count_created created, $count_updated updated.");
+  log_error("update_patients_wc: $count_deleted deleted, $count_created created, $count_updated updated.");
 
   $mysql = new Mysql_Wc();
 
@@ -50,11 +50,14 @@ function update_patients_wc() {
           patient_id_wc = 0 AND
           patient_id_cp = '".$patient[0]['patient_id_cp']."'
       ";
-      
+
       $mysql->run($sql2);
       $mysql->run($sql3);
 
       log_error('update_patients_wc: matched', [$sql2, $sql3, $patient[0]]);
+    }
+    else if ( ! $created['pharmacy_name']) {
+      //Registration Not Complete
     }
     else
       log_error('update_patients_wc: created', [$sql, $created]);
