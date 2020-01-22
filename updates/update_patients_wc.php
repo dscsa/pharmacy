@@ -98,7 +98,7 @@ function update_patients_wc() {
 
   foreach($changes['updated'] as $updated) {
 
-    log_error('update_patients_wc: updated', $updated);
+    log_error('update_patients_wc: updated', changed_fields($updated));
 
   }
 }
