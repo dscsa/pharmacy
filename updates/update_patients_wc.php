@@ -36,7 +36,7 @@ function update_patients_wc() {
 
       $sql2 = "
         INSERT INTO
-          wp_usermeta (meta_id, user_id, meta_key, meta_value)
+          wp_usermeta (umeta_id, user_id, meta_key, meta_value)
         VALUES
           (NULL, '$created[patient_id_wc]', 'patient_id_cp', '".$patient[0]['patient_id_cp']."')
       ";
@@ -47,7 +47,7 @@ function update_patients_wc() {
         SET
           patient_id_wc = $created[patient_id_wc]
         WHERE
-          patient_id_wc IS NULL AND
+          patient_id_wc = 0 AND
           patient_id_cp = '".$patient[0]['patient_id_cp']."'
       ";
       //$mysql->run();
@@ -61,7 +61,7 @@ function update_patients_wc() {
 
   foreach($changes['deleted'] as $deleted) {
 
-    log_error('update_patients_wc: deleted', $deleted);
+    //log_error('update_patients_wc: deleted', $deleted);
 
   }
 
