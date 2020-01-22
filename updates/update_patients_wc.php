@@ -29,18 +29,20 @@ function update_patients_wc() {
 
     $patient = $mysql->run($sql)[0];
 
-    if (isset($patient[0]['patient_id_wc'])) {
+    if ( ! empty($patient[0]['patient_id_wc'])) {
       //No Log
     }
-    else if (isset($patient[0]['patient_id_cp'])) {
+    else if ( ! empty($patient[0]['patient_id_cp'])) {
 
-      $mysql->run("INSERT INTO wp_usermeta (meta_id, user_id, meta_key, meta_value) VALUES (NULL, '$created[patient_id_wc]', 'patient_id_cp', '$created[patient_id_cp]')");
-      $mysql->run("UPDATE gp_patients SET patient_id_wc = $created[patient_id_wc] WHERE patient_id_wc IS NULL AND patient_id_cp = $created[patient_id_cp]");
+      $sql2 = "INSERT INTO wp_usermeta (meta_id, user_id, meta_key, meta_value) VALUES (NULL, '$created[patient_id_wc]', 'patient_id_cp', '$created[patient_id_cp]')";
+      $sql3 = "UPDATE gp_patients SET patient_id_wc = $created[patient_id_wc] WHERE patient_id_wc IS NULL AND patient_id_cp = $created[patient_id_cp]";
+      //$mysql->run();
+      //$mysql->run();
 
-      log_error('update_patients_wc: matched', $patient[0]);
+      log_error('update_patients_wc: matched', [$sql2, $sql3, $patient[0]]);
     }
     else
-      log_error('update_patients_wc: created', $created);
+      log_error('update_patients_wc: created', [$sql, $created]);
   }
 
   foreach($changes['deleted'] as $deleted) {
