@@ -27,7 +27,7 @@ function update_patients_wc() {
         birth_date = $created[birth_date]
     ")[0];
 
-    if (isset($patient['patient_id_cp'])
+    if (isset($patient['patient_id_cp']))
       log_error('update_patients_wc: matched', [$created, $patient]);
     else
       log_error('update_patients_wc: created', [$created, $patient]);
