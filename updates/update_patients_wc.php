@@ -34,8 +34,8 @@ function update_patients_wc() {
     }
     else if (isset($patient[0]['patient_id_cp'])) {
 
-      $mysql->run("INSERT INTO wp_usermeta (meta_id, user_id, meta_key, meta_value) VALUES (NULL, '$created[patient_id_wc]', 'patient_id_cp', '$created[patient_id_cp]')")
-      $mysql->run("UPDATE gp_patients SET patient_id_wc = $created[patient_id_wc] WHERE patient_id_wc IS NULL AND patient_id_cp = $created[patient_id_cp]")
+      $mysql->run("INSERT INTO wp_usermeta (meta_id, user_id, meta_key, meta_value) VALUES (NULL, '$created[patient_id_wc]', 'patient_id_cp', '$created[patient_id_cp]')");
+      $mysql->run("UPDATE gp_patients SET patient_id_wc = $created[patient_id_wc] WHERE patient_id_wc IS NULL AND patient_id_cp = $created[patient_id_cp]");
 
       log_error('update_patients_wc: matched', $patient[0]);
     }
