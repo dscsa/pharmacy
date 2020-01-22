@@ -34,8 +34,22 @@ function update_patients_wc() {
     }
     else if ( ! empty($patient[0]['patient_id_cp'])) {
 
-      $sql2 = "INSERT INTO wp_usermeta (meta_id, user_id, meta_key, meta_value) VALUES (NULL, '$created[patient_id_wc]', 'patient_id_cp', '$created[patient_id_cp]')";
-      $sql3 = "UPDATE gp_patients SET patient_id_wc = $created[patient_id_wc] WHERE patient_id_wc IS NULL AND patient_id_cp = $created[patient_id_cp]";
+      $sql2 = "
+        INSERT INTO
+          wp_usermeta (meta_id, user_id, meta_key, meta_value)
+        VALUES
+          (NULL, '$created[patient_id_wc]', 'patient_id_cp', '".$patient[0]['patient_id_cp']."')
+      ";
+
+      $sql3 = "
+        UPDATE
+          gp_patients
+        SET
+          patient_id_wc = $created[patient_id_wc]
+        WHERE
+          patient_id_wc IS NULL AND
+          patient_id_cp = '".$patient[0]['patient_id_cp']."'
+      ";
       //$mysql->run();
       //$mysql->run();
 
