@@ -16,6 +16,11 @@ function update_patients_wc() {
 
   $mysql = new Mysql_Wc();
 
+  $created_upto_date = 0;
+  $created_no_id_cp = 0;
+  $created_needs_form = 0;
+  $created_new_to_cp = 0;
+
   foreach($changes['created'] as $created) {
 
     $sql = "
@@ -30,9 +35,12 @@ function update_patients_wc() {
     $patient = $mysql->run($sql)[0];
 
     if ( ! empty($patient[0]['patient_id_wc'])) {
+      $created_upto_date++;
       //No Log
     }
     else if ( ! empty($patient[0]['patient_id_cp'])) {
+
+      $created_no_id_cp++;
 
       $sql2 = "
         INSERT INTO
@@ -57,15 +65,19 @@ function update_patients_wc() {
       log_error('update_patients_wc: matched', [$sql2, $sql3, $patient[0]]);
     }
     else if ( ! $created['pharmacy_name']) {
+      $created_needs_form++;
       //Registration Not Complete
     }
-    else
+    else {
+      $created_new_to_cp++;
       log_error('update_patients_wc: created', [$sql, $created]);
+    }
   }
 
-  foreach($changes['deleted'] as $deleted) {
+  foreach($changes['deleted'] as $i => $deleted) {
 
-    //log_error('update_patients_wc: deleted', $deleted);
+    if ($i < 5)
+      log_error('update_patients_wc: deleted', $deleted);
 
   }
 
