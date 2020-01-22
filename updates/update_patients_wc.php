@@ -87,7 +87,7 @@ function update_patients_wc() {
 
     //Dummy accounts that have been cleared out of WC
     if (stripos($deleted['first_name'], 'Test') !== false OR stripos($deleted['first_name'], 'User') !== false OR stripos($deleted['email'], 'user') !== false OR stripos($deleted['email'], 'test') !== false)
-      continue
+      continue;
 
     if ($deleted['patient_id_wc'])
       log_error('update_patients_wc: deleted', $deleted);
