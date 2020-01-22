@@ -68,7 +68,7 @@ function update_patients_wc() {
     }
     else if ( ! $created['pharmacy_name']) {
       $created_needs_form++;
-      //Registration Not Complete
+      //Registration Started but Not Complete
     }
     else {
       $created_new_to_cp++;
@@ -86,8 +86,13 @@ function update_patients_wc() {
   foreach($changes['deleted'] as $i => $deleted) {
 
     //Dummy accounts that have been cleared out of WC
-    if (strpos($deleted['first_name'], 'Test') == false AND strpos($deleted['first_name'], 'User') == false AND strpos($deleted['email'], 'user') == false AND strpos($deleted['email'], 'test') == false)
+    if (stripos($deleted['first_name'], 'Test') !== false OR stripos($deleted['first_name'], 'User') !== false OR stripos($deleted['email'], 'user') !== false OR stripos($deleted['email'], 'test') !== false)
+      continue
+
+    if ($deleted['patient_id_wc'])
       log_error('update_patients_wc: deleted', $deleted);
+    //else
+    //  log_error('update_patients_wc: never added', $deleted);
 
   }
 
