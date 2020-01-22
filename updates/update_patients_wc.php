@@ -50,8 +50,9 @@ function update_patients_wc() {
           patient_id_wc = 0 AND
           patient_id_cp = '".$patient[0]['patient_id_cp']."'
       ";
-      //$mysql->run();
-      //$mysql->run();
+      
+      $mysql->run($sql2);
+      $mysql->run($sql3);
 
       log_error('update_patients_wc: matched', [$sql2, $sql3, $patient[0]]);
     }
