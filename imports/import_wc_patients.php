@@ -27,11 +27,7 @@ function import_wc_patients() {
     user_email as email,
 
     MAX(CASE WHEN wp_usermeta.meta_key = 'patient_autofill' then wp_usermeta.meta_value ELSE NULL END) as patient_autofill,
-    MAX(CASE WHEN wp_usermeta.meta_key = 'pharmacy_name' then wp_usermeta.meta_value ELSE NULL END) as pharmacy_name,
-    MAX(CASE WHEN wp_usermeta.meta_key = 'pharmacy_npi' then wp_usermeta.meta_value ELSE NULL END) as pharmacy_npi,
-    MAX(CASE WHEN wp_usermeta.meta_key = 'pharmacy_fax' then wp_usermeta.meta_value ELSE NULL END) as pharmacy_fax,
-    MAX(CASE WHEN wp_usermeta.meta_key = 'pharmacy_phone' then wp_usermeta.meta_value ELSE NULL END) as pharmacy_phone,
-    MAX(CASE WHEN wp_usermeta.meta_key = 'pharmacy_address' then wp_usermeta.meta_value ELSE NULL END) as pharmacy_address,
+    MAX(CASE WHEN wp_usermeta.meta_key = 'backup_pharmacy' then wp_usermeta.meta_value ELSE NULL END) as pharmacy_name,
 
     MAX(CASE WHEN wp_usermeta.meta_key = 'payment_card_type' then wp_usermeta.meta_value ELSE NULL END) as payment_card_type,
     MAX(CASE WHEN wp_usermeta.meta_key = 'payment_card_last4' then wp_usermeta.meta_value ELSE NULL END) as payment_card_last4,
@@ -47,19 +43,19 @@ function import_wc_patients() {
     LEFT(0+MAX(CASE WHEN wp_usermeta.meta_key = 'billing_postcode' then wp_usermeta.meta_value ELSE NULL END), 5) as patient_zip,
     MAX(CASE WHEN wp_usermeta.meta_key = 'language' then wp_usermeta.meta_value ELSE NULL END) as language,
 
-    MAX(CASE WHEN wp_usermeta.meta_key = 'allergies_none' then 'No Known Allergies' ELSE NULL END) as allergies_none,
-    MAX(CASE WHEN wp_usermeta.meta_key = 'allergies_tetracycline' then 'Tetracyclines' ELSE NULL END) as allergies_tetracycline,
-    MAX(CASE WHEN wp_usermeta.meta_key = 'allergies_cephalosporins' then 'Cephalosporins' ELSE NULL END) as allergies_cephalosporins,
-    MAX(CASE WHEN wp_usermeta.meta_key = 'allergies_sulfa' then 'Sulfa' ELSE NULL END) as allergies_sulfa,
-    MAX(CASE WHEN wp_usermeta.meta_key = 'allergies_aspirin' then 'Aspirin' ELSE NULL END) as allergies_aspirin,
-    MAX(CASE WHEN wp_usermeta.meta_key = 'allergies_penicillin' then 'Penicillin' ELSE NULL END) as allergies_penicillin,
-    MAX(CASE WHEN wp_usermeta.meta_key = 'allergies_erythromycin' then 'Erythromycin' ELSE NULL END) as allergies_erythromycin,
-    MAX(CASE WHEN wp_usermeta.meta_key = 'allergies_codeine' then 'Codeine' ELSE NULL END) as allergies_codeine,
-    MAX(CASE WHEN wp_usermeta.meta_key = 'allergies_nsaids' then 'NSAIDS' ELSE NULL END) as allergies_nsaids,
-    MAX(CASE WHEN wp_usermeta.meta_key = 'allergies_salicylates' then 'Salicylates' ELSE NULL END) as allergies_salicylates,
-    MAX(CASE WHEN wp_usermeta.meta_key = 'allergies_azithromycin' then 'Azithromycin' ELSE NULL END) as allergies_azithromycin,
-    MAX(CASE WHEN wp_usermeta.meta_key = 'allergies_amoxicillin' then 'Amoxicillin' ELSE NULL END) as allergies_amoxicillin,
-    MAX(CASE WHEN wp_usermeta.meta_key = 'allergies_other' then wp_usermeta.meta_value ELSE NULL END) as allergies_other
+    MAX(CASE WHEN wp_usermeta.meta_key = 'allergies_none' AND wp_usermeta.meta_value then 'No Known Allergies' ELSE NULL END) as allergies_none,
+    MAX(CASE WHEN wp_usermeta.meta_key = 'allergies_tetracycline' AND wp_usermeta.meta_value then 'Tetracyclines' ELSE NULL END) as allergies_tetracycline,
+    MAX(CASE WHEN wp_usermeta.meta_key = 'allergies_cephalosporins' AND wp_usermeta.meta_value then 'Cephalosporins' ELSE NULL END) as allergies_cephalosporins,
+    MAX(CASE WHEN wp_usermeta.meta_key = 'allergies_sulfa' AND wp_usermeta.meta_value then 'Sulfa' ELSE NULL END) as allergies_sulfa,
+    MAX(CASE WHEN wp_usermeta.meta_key = 'allergies_aspirin' AND wp_usermeta.meta_value then 'Aspirin' ELSE NULL END) as allergies_aspirin,
+    MAX(CASE WHEN wp_usermeta.meta_key = 'allergies_penicillin' AND wp_usermeta.meta_value then 'Penicillin' ELSE NULL END) as allergies_penicillin,
+    MAX(CASE WHEN wp_usermeta.meta_key = 'allergies_erythromycin' AND wp_usermeta.meta_value then 'Erythromycin' ELSE NULL END) as allergies_erythromycin,
+    MAX(CASE WHEN wp_usermeta.meta_key = 'allergies_codeine' AND wp_usermeta.meta_value then 'Codeine' ELSE NULL END) as allergies_codeine,
+    MAX(CASE WHEN wp_usermeta.meta_key = 'allergies_nsaids' AND wp_usermeta.meta_value then 'NSAIDS' ELSE NULL END) as allergies_nsaids,
+    MAX(CASE WHEN wp_usermeta.meta_key = 'allergies_salicylates' AND wp_usermeta.meta_value then 'Salicylates' ELSE NULL END) as allergies_salicylates,
+    MAX(CASE WHEN wp_usermeta.meta_key = 'allergies_azithromycin' AND wp_usermeta.meta_value then 'Azithromycin' ELSE NULL END) as allergies_azithromycin,
+    MAX(CASE WHEN wp_usermeta.meta_key = 'allergies_amoxicillin' AND wp_usermeta.meta_value then 'Amoxicillin' ELSE NULL END) as allergies_amoxicillin,
+    MAX(CASE WHEN wp_usermeta.meta_key = 'allergies_other' AND wp_usermeta.meta_value then wp_usermeta.meta_value ELSE NULL END) as allergies_other
 
   FROM
     wp_users
@@ -74,7 +70,25 @@ function import_wc_patients() {
 
   if ( ! count($orders[0])) return log_error('No Wc Orders to Import', get_defined_vars());
 
-  $keys = result_map($orders[0]);
+  $keys = result_map($orders[0],
+    function($row) {
+
+      $pharmacy = json_decode($row['backup_pharmacy'], true);
+
+      $row['pharmacy_name'] = $pharmacy['name'];
+      $row['pharmacy_npi'] = $pharmacy['npi'];
+      $row['pharmacy_fax'] = $pharmacy['fax'];
+      $row['pharmacy_phone'] = $pharmacy['phone'];
+      $row['pharmacy_address'] = $pharmacy['address'];
+
+      unset($row['backup_pharmacy']);
+
+      return $row;
+    }
+  );
+
+
+
 
   //Replace Staging Table with New Data
   $mysql->run('TRUNCATE TABLE gp_patients_wc');

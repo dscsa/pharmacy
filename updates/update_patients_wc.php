@@ -36,6 +36,8 @@ function update_patients_wc() {
 
     if ( ! empty($patient[0]['patient_id_wc'])) {
       $created_upto_date++;
+
+      log_error('update_patients_wc: upto date', [$created, $patient[0]]);
       //No Log
     }
     else if ( ! empty($patient[0]['patient_id_cp'])) {
@@ -83,7 +85,8 @@ function update_patients_wc() {
 
   foreach($changes['deleted'] as $i => $deleted) {
 
-    if ($i < 5)
+    //Dummy accounts that have been cleared out of WC
+    if (strpos($deleted['first_name'], 'Test') == false AND strpos($deleted['first_name'], 'User') == false AND strpos($deleted['email'], 'user') == false AND strpos($deleted['email'], 'test') == false)
       log_error('update_patients_wc: deleted', $deleted);
 
   }
