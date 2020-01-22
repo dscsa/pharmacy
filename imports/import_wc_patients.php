@@ -27,7 +27,7 @@ function import_wc_patients() {
     user_email as email,
 
     MAX(CASE WHEN wp_usermeta.meta_key = 'patient_autofill' then wp_usermeta.meta_value ELSE NULL END) as patient_autofill,
-    MAX(CASE WHEN wp_usermeta.meta_key = 'backup_pharmacy' then wp_usermeta.meta_value ELSE NULL END) as pharmacy_name,
+    MAX(CASE WHEN wp_usermeta.meta_key = 'backup_pharmacy' then wp_usermeta.meta_value ELSE NULL END) as backup_pharmacy,
 
     MAX(CASE WHEN wp_usermeta.meta_key = 'payment_card_type' then wp_usermeta.meta_value ELSE NULL END) as payment_card_type,
     MAX(CASE WHEN wp_usermeta.meta_key = 'payment_card_last4' then wp_usermeta.meta_value ELSE NULL END) as payment_card_last4,
