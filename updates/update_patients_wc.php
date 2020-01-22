@@ -24,7 +24,7 @@ function update_patients_wc() {
       WHERE
         first_name LIKE '".substr($created['first_name'], 0, 3)."%' AND
         REPLACE(REPLACE(last_name, '*', ''), '\'', '') = '$created[last_name]' AND
-        birth_date = $created[birth_date]
+        birth_date = '$created[birth_date]'
     ";
 
     $patient = $mysql->run($sql)[0];
