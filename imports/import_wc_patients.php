@@ -87,15 +87,12 @@ function import_wc_patients() {
     }
   );
 
-
-
-
   //Replace Staging Table with New Data
   $mysql->run('TRUNCATE TABLE gp_patients_wc');
 
   $sql = "INSERT INTO gp_patients_wc $keys VALUES ".$orders[0];
 
-  //log_error("import_wc_patients: ".$sql);
+  log_error("import_wc_patients: ".$sql);
 
   $mysql->run($sql);
 }
