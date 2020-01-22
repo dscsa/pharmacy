@@ -18,19 +18,21 @@ function update_patients_wc() {
 
   foreach($changes['created'] as $created) {
 
-    $patient = $mysql->run("
+    $sql = "
       SELECT *
       FROM gp_patients
       WHERE
-        LEFT(first_name, 3) = '$created[first_name]' AND
-        last_name = REPLACE(REPLACE('$created[last_name]', '*', ''), '\'', '') AND
+        first_name LIKE '".substr($created['first_name'], 0, 3)."%' AND
+        REPLACE(REPLACE(last_name, '*', ''), '\'', '') = '$created[last_name]' AND
         birth_date = $created[birth_date]
-    ")[0];
+    ";
+
+    $patient = $mysql->run($sql)[0];
 
     if (isset($patient['patient_id_cp']))
-      log_error('update_patients_wc: matched', [$created, $patient]);
+      log_error('update_patients_wc: matched', [$sql, $created, $patient]);
     else
-      log_error('update_patients_wc: created', [$created, $patient]);
+      log_error('update_patients_wc: created', [$sql, $created, $patient]);
   }
 
   foreach($changes['deleted'] as $deleted) {
