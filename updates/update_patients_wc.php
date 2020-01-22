@@ -29,10 +29,10 @@ function update_patients_wc() {
 
     $patient = $mysql->run($sql)[0];
 
-    if (isset($patient['patient_id_cp']))
-      log_error('update_patients_wc: matched', [$sql, $created, $patient]);
+    if (isset($patient[0]['patient_id_cp']))
+      log_error('update_patients_wc: matched', $patient[0]);
     else
-      log_error('update_patients_wc: created', [$sql, $created, $patient]);
+      log_error('update_patients_wc: created', $patient[0]);
   }
 
   foreach($changes['deleted'] as $deleted) {
