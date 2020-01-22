@@ -74,6 +74,13 @@ function update_patients_wc() {
     }
   }
 
+  log_error('created counts', [
+    '$created_upto_date' => $created_upto_date,
+    '$created_no_id_cp' => $created_no_id_cp,
+    '$created_needs_form' => $created_needs_form,
+    '$created_new_to_cp' => $created_new_to_cp
+  ]);
+
   foreach($changes['deleted'] as $i => $deleted) {
 
     if ($i < 5)
