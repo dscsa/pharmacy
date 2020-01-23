@@ -77,7 +77,7 @@ function update_patients_wc() {
   }
 
   log_error('created counts', [
-    '$created_upto_date' => $created_mismatched,
+    '$created_mismatched' => $created_mismatched,
     '$created_matched' => $created_matched,
     '$created_needs_form' => $created_needs_form,
     '$created_new_to_cp' => $created_new_to_cp
@@ -100,14 +100,47 @@ function update_patients_wc() {
 
     $changed = changed_fields($updated);
 
+    $cp_to_wc = [
+      'patient_zip' => 'billing_postcode',
+      'patient_state' => 'billing_state',
+      'patient_city' => 'billing_city',
+      'patient_address2' => 'billing_address_2',
+      'patient_address1' => 'billing_address_1',
+      'payment_coupon' => 'coupon',
+      'tracking_coupon' => 'coupon',
+      'pharmacy_name' => 'backup_pharmacy',
+      'pharmacy_npi' => 'backup_pharmacy',
+      'pharmacy_fax' => 'backup_pharmacy',
+      'pharmacy_phone' => 'backup_pharmacy',
+      'pharmacy_address' => 'backup_pharmacy',
+      'phone2' => 'billing_phone',
+      'phone1' => 'phone',
+      'patient_note' => 'medications_other'
+    ];
+
     $set_patients = [];
     $set_usermeta = [];
     foreach ($changed as $key => $val) {
       if ($updated[$key] AND ! $updated["old_$key"])
-        $set_patients[] = "$key = $updated[$key]";
+        $set_patients[] = "$key = '$updated[$key]'";
 
-      if ( ! $updated[$key] AND $updated["old_$key"])
-        $set_usermeta[] = "(NULL, $updated[patient_id_wc], '$key',  '".$updated['old_'.$key]."')";
+      if ( ! $updated[$key] AND $updated["old_$key"]) {
+
+        $wc_key = $cp_to_wc[$key] ?: $key;
+        $wc_val = $updated['old_'.$key];
+
+        if ($wc_key == 'backup_pharmacy')
+          $wc_val = json_encode([
+            'name' => $updated['old_pharmacy_name'],
+            'npi' => $updated['old_pharmacy_npi'],
+            'fax' => $updated['old_pharmacy_fax'],
+            'phone' => $updated['old_pharmacy_phone'],
+            'address' => $updated['old_pharmacy_address']
+          ]);
+
+
+        $set_usermeta[] = "(NULL, $updated[patient_id_wc], '$wc_key',  '$wc_val')";
+      }
     }
 
     $set_patients = implode(', ', $set_patients);
@@ -115,8 +148,8 @@ function update_patients_wc() {
 
     log_error("update_patients_wc: changed", $changed);
 
-    if ($set_patients)
-      log_error("update_patients_wc: UPDATE gp_patients SET $set_patients WHERE patient_id_cp = $updated[patient_id_cp]");
+    //if ($set_patients)
+    //  log_error("update_patients_wc: UPDATE cppat SET $set_patients WHERE pat_id = $updated[patient_id_cp]");
 
     if ($set_usermeta)
       log_error("update_patients_wc: INSERT wp_usermeta (umeta_id, user_id, meta_key, meta_value) VALUES $set_usermeta");
