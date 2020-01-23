@@ -82,8 +82,9 @@ function import_wc_patients() {
       $row['pharmacy_address'] = clean_val($pharmacy['street']);
       $row['language'] = $row['language'] ?: "'EN'";
 
-      //echo "
-      //".json_encode($row, JSON_PRETTY_PRINT);
+      if (strpos($row['patient_note'], "'") !== false)
+        echo "
+        ".$row['patient_note']." ".json_encode($row, JSON_PRETTY_PRINT);
 
       unset($row['backup_pharmacy']);
 
