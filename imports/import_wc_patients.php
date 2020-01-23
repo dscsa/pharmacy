@@ -96,5 +96,5 @@ function import_wc_patients() {
   $error = $mysql->run($sql);
 
   if ($error)
-    log_error("import_wc_patients: ", "$error $sql");
+    log_error("import_wc_patients: ", $error);
 }

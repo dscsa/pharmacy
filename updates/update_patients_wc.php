@@ -37,7 +37,7 @@ function update_patients_wc() {
     if ( ! empty($patient[0]['patient_id_wc'])) {
       $created_upto_date++;
 
-      log_error('update_patients_wc: upto date', [$created, $patient[0]]);
+      log_error('update_patients_wc: mismatched patient_id_wc?', [$created, $patient[0]]);
       //No Log
     }
     else if ( ! empty($patient[0]['patient_id_cp'])) {
