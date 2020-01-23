@@ -125,15 +125,18 @@ function update_patients_wc() {
       $old_val = $updated['old_'.$key];
       $new_val = $updated[$key];
 
-      if ( ! $new_val AND $old_val) {
-
-        $set_patients[] = "$key = '$old_val'";
-      }
-
       if ($new_val AND ! $old_val) {
 
+        if ($key == 'phone2' AND $updated['phone2'] == $updated['phone1'])
+          continue;
+
+        $set_patients[] = "$key = '$new_val'";
+      }
+
+      if ( ! $new_val AND $old_val) {
+
         $wc_key = isset($cp_to_wc[$key]) ? $cp_to_wc[$key] : $key;
-        $wc_val = $new_val;
+        $wc_val = $old_val;
 
         if ($wc_key == 'medications_other') continue;
 
@@ -155,7 +158,7 @@ function update_patients_wc() {
     $set_usermeta = implode(', ', $set_usermeta);
 
     echo "
-    
+
     ".json_encode($changed, true);
 
     //if ($set_patients)
