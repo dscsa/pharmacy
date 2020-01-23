@@ -129,7 +129,7 @@ function update_patients_wc() {
         $wc_key = $cp_to_wc[$key] ?: $key;
         $wc_val = $updated['old_'.$key];
 
-        if ($wc_key == 'medications_other') continue
+        if ($wc_key == 'medications_other') continue;
 
         if ($wc_key == 'backup_pharmacy')
           $wc_val = json_encode([
