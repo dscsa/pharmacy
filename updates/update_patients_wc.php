@@ -107,7 +107,7 @@ function update_patients_wc() {
         $set_patients[] = "$key = $updated[$key]";
 
       if ( ! $updated[$key] AND $updated["old_$key"])
-        $set_usermeta[] = "(NULL, $changed[patient_id_wc], '$key',  '$updated[old_$key]')";
+        $set_usermeta[] = "(NULL, $updated[patient_id_wc], '$key',  '".$updated['old_'.$key]."')";
     }
 
     $set_patients = implode(', ', $set_patients);
@@ -116,7 +116,7 @@ function update_patients_wc() {
     log_error("update_patients_wc: changed", $changed);
 
     if ($set_patients)
-      log_error("update_patients_wc: UPDATE gp_patients SET $set_patients WHERE patient_id_cp = $changed[patient_id_cp]");
+      log_error("update_patients_wc: UPDATE gp_patients SET $set_patients WHERE patient_id_cp = $updated[patient_id_cp]");
 
     if ($set_usermeta)
       log_error("update_patients_wc: INSERT wp_usermeta (umeta_id, user_id, meta_key, meta_value) VALUES $set_usermeta");
