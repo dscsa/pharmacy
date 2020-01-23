@@ -121,13 +121,19 @@ function update_patients_wc() {
     $set_patients = [];
     $set_usermeta = [];
     foreach ($changed as $key => $val) {
-      if ( ! $updated[$key] AND $updated["old_$key"])
-        $set_patients[] = "$key = '$updated[$key]'";
 
-      if ($updated[$key] AND ! $updated["old_$key"]) {
+      $old_val = $updated['old_'.$key];
+      $new_val = $updated[$key];
+
+      if ( ! $new_val AND $old_val) {
+
+        $set_patients[] = "$key = '$old_val'";
+      }
+
+      if ($new_val AND ! $old_val) {
 
         $wc_key = isset($cp_to_wc[$key]) ? $cp_to_wc[$key] : $key;
-        $wc_val = $updated['old_'.$key];
+        $wc_val = $new_val;
 
         if ($wc_key == 'medications_other') continue;
 
