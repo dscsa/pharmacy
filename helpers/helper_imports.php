@@ -14,6 +14,10 @@ function clean_val(&$val, &$default = null) {
   }
 
   $clean = @mysql_escape_string(trim($clean));
+
+  if($clean[0] == '{' AND $clean[strlen($clean) - 1] == '}')
+    return $clean;
+
   return "'$clean'";
 }
 
