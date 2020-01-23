@@ -13,6 +13,10 @@ function clean_val(&$val, &$default = null) {
     $clean = $default;
   }
 
+  //Don't escape or wrap JSON
+  if($clean[0] == '{' AND $clean[strlen($clean) - 1] == '}')
+    return $clean;
+
   $clean = @mysql_escape_string(trim($clean));
   return "'$clean'";
 }

@@ -73,7 +73,7 @@ function import_wc_patients() {
   $keys = result_map($orders[0],
     function($row) {
 
-      $pharmacy = substr($row['backup_pharmacy'], 1, -1);
+      $pharmacy = $row['backup_pharmacy'];
 
       echo "
       ".$pharmacy;
