@@ -84,6 +84,9 @@ function import_wc_patients() {
 
       unset($row['backup_pharmacy']);
 
+      echo "
+      ".json_encode($row, JSON_PRETTY_PRINT);
+
       return $row;
     }
   );
