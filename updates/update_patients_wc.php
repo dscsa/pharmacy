@@ -139,7 +139,7 @@ function update_patients_wc() {
           ]);
 
 
-        $set_usermeta[] = "(NULL, $updated[patient_id_wc], '$wc_key',  '$wc_val')";
+        $set_usermeta[$wc_key] = "(NULL, $updated[patient_id_wc], '$wc_key',  '$wc_val')";
       }
     }
 
