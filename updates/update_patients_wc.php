@@ -16,8 +16,8 @@ function update_patients_wc() {
 
   $mysql = new Mysql_Wc();
 
-  $created_upto_date = 0;
-  $created_no_id_cp = 0;
+  $created_mismatched = 0;
+  $created_matched = 0;
   $created_needs_form = 0;
   $created_new_to_cp = 0;
 
@@ -35,14 +35,14 @@ function update_patients_wc() {
     $patient = $mysql->run($sql)[0];
 
     if ( ! empty($patient[0]['patient_id_wc'])) {
-      $created_upto_date++;
+      $created_mismatched++;
 
       log_error('update_patients_wc: mismatched patient_id_wc?', [$created, $patient[0]]);
       //No Log
     }
     else if ( ! empty($patient[0]['patient_id_cp'])) {
 
-      $created_no_id_cp++;
+      $created_matched++;
 
       $sql2 = "
         INSERT INTO
@@ -72,13 +72,13 @@ function update_patients_wc() {
     }
     else {
       $created_new_to_cp++;
-      log_error('update_patients_wc: created', [$sql, $created]);
+      log_error('update_patients_wc: new_to_cp', [$sql, $created]);
     }
   }
 
   log_error('created counts', [
-    '$created_upto_date' => $created_upto_date,
-    '$created_no_id_cp' => $created_no_id_cp,
+    '$created_upto_date' => $created_mismatched,
+    '$created_matched' => $created_matched,
     '$created_needs_form' => $created_needs_form,
     '$created_new_to_cp' => $created_new_to_cp
   ]);
@@ -98,7 +98,27 @@ function update_patients_wc() {
 
   foreach($changes['updated'] as $updated) {
 
-    log_error('update_patients_wc: updated', changed_fields($updated));
+    $changed = changed_fields($updated);
 
+    $set_patients = [];
+    $set_usermeta = [];
+    foreach ($changed as $key => $val) {
+      if ($updated[$key] AND ! $updated["old_$key"])
+        $set_patients[] = "$key = $updated[$key]";
+
+      if ( ! $updated[$key] AND $updated["old_$key"])
+        $set_usermeta[] = "(NULL, $changed[patient_id_wc], '$key',  '$updated[old_$key]')";
+    }
+
+    $set_patients = implode(', ', $set_patients);
+    $set_usermeta = implode(', ', $set_usermeta);
+
+    log_error("update_patients_wc: changed", $changed);
+
+    if ($set_patients)
+      log_error("update_patients_wc: UPDATE gp_patients SET $set_patients WHERE patient_id_cp = $changed[patient_id_cp]");
+
+    if ($set_usermeta)
+      log_error("update_patients_wc: INSERT wp_usermeta (umeta_id, user_id, meta_key, meta_value) VALUES $set_usermeta");
   }
 }
