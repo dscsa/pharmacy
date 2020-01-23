@@ -121,12 +121,12 @@ function update_patients_wc() {
     $set_patients = [];
     $set_usermeta = [];
     foreach ($changed as $key => $val) {
-      if ($updated[$key] AND ! $updated["old_$key"])
+      if ( ! $updated[$key] AND $updated["old_$key"])
         $set_patients[] = "$key = '$updated[$key]'";
 
-      if ( ! $updated[$key] AND $updated["old_$key"]) {
+      if ($updated[$key] AND ! $updated["old_$key"]) {
 
-        $wc_key = $cp_to_wc[$key] ?: $key;
+        $wc_key = isset($cp_to_wc[$key]) ? $cp_to_wc[$key] : $key;
         $wc_val = $updated['old_'.$key];
 
         if ($wc_key == 'medications_other') continue;
@@ -154,7 +154,7 @@ function update_patients_wc() {
     //  log_error("update_patients_wc: UPDATE cppat SET $set_patients WHERE pat_id = $updated[patient_id_cp]");
 
     if ( ! empty($changed['last_name']))
-      echo "UPDATE wp_usermeta SET meta_value = UPPER($updated[last_name]) WHERE user_id = $updated[patient_id_wc] AND meta_key = 'last_name'";
+      echo "UPDATE wp_usermeta SET meta_value = UPPER('$updated[last_name]') WHERE user_id = $updated[patient_id_wc] AND meta_key = 'last_name'";
 
     if ($set_usermeta)
       echo "update_patients_wc: INSERT wp_usermeta (umeta_id, user_id, meta_key, meta_value) VALUES $set_usermeta";
