@@ -73,7 +73,7 @@ function import_wc_patients() {
   $keys = result_map($orders[0],
     function($row) {
 
-      $pharmacy = json_decode($row['backup_pharmacy'], true);
+      $pharmacy = json_decode(substr($row['backup_pharmacy'], 1, -1), true);
 
       $row['pharmacy_name'] = $pharmacy['name'] ?: 'NULL';
       $row['pharmacy_npi'] = $pharmacy['npi'] ?: 'NULL';
