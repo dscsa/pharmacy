@@ -82,10 +82,13 @@ function import_wc_patients() {
       $row['pharmacy_address'] = $pharmacy['address'] ?: 'NULL';
       $row['language'] = $pharmacy['language'] ?: "'EN'";
 
-      unset($row['backup_pharmacy']);
+      echo "
+      ".json_encode($pharmacy, JSON_PRETTY_PRINT);
 
       echo "
       ".json_encode($row, JSON_PRETTY_PRINT);
+
+      unset($row['backup_pharmacy']);
 
       return $row;
     }
