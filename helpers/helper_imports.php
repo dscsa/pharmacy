@@ -17,8 +17,8 @@ function clean_val(&$val, &$default = null) {
   if($clean[0] == '{' AND $clean[strlen($clean) - 1] == '}')
     return $clean;
 
-  if (strpos($clean, '\\') === false)
-    $clean = @mysql_escape_string(trim($clean));
+  //StripSlashes meant to prevent double escaping string
+  $clean = @mysql_escape_string(stripslashes(trim($clean)));
 
   return "'$clean'";
 }
