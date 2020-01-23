@@ -80,7 +80,7 @@ function import_wc_patients() {
       $row['pharmacy_fax'] = $pharmacy['fax'] ?: 'NULL';
       $row['pharmacy_phone'] = $pharmacy['phone'] ?: 'NULL';
       $row['pharmacy_address'] = $pharmacy['address'] ?: 'NULL';
-      $row['language'] = $pharmacy['language'] ?: 'EN';
+      $row['language'] = $pharmacy['language'] ?: "'EN'";
 
       unset($row['backup_pharmacy']);
 
