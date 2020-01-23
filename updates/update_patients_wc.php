@@ -129,6 +129,8 @@ function update_patients_wc() {
         $wc_key = $cp_to_wc[$key] ?: $key;
         $wc_val = $updated['old_'.$key];
 
+        if ($wc_key == 'medications_other') continue
+
         if ($wc_key == 'backup_pharmacy')
           $wc_val = json_encode([
             'name' => $updated['old_pharmacy_name'],
@@ -146,12 +148,15 @@ function update_patients_wc() {
     $set_patients = implode(', ', $set_patients);
     $set_usermeta = implode(', ', $set_usermeta);
 
-    log_error("update_patients_wc: changed", $changed);
+    //log_error("update_patients_wc: changed", $changed);
 
     //if ($set_patients)
     //  log_error("update_patients_wc: UPDATE cppat SET $set_patients WHERE pat_id = $updated[patient_id_cp]");
 
+    if ( ! empty($changed['last_name']))
+      echo "UPDATE wp_usermeta SET meta_value = UPPER($updated[last_name]) WHERE user_id = $updated[patient_id_wc] AND meta_key = 'last_name'";
+
     if ($set_usermeta)
-      log_error("update_patients_wc: INSERT wp_usermeta (umeta_id, user_id, meta_key, meta_value) VALUES $set_usermeta");
+      echo "update_patients_wc: INSERT wp_usermeta (umeta_id, user_id, meta_key, meta_value) VALUES $set_usermeta";
   }
 }
