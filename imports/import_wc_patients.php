@@ -84,8 +84,8 @@ function import_wc_patients() {
       $row['pharmacy_npi'] = $pharmacy['npi'] ?: 'NULL';
       $row['pharmacy_fax'] = $pharmacy['fax'] ?: 'NULL';
       $row['pharmacy_phone'] = $pharmacy['phone'] ?: 'NULL';
-      $row['pharmacy_address'] = $pharmacy['address'] ?: 'NULL';
-      $row['language'] = $pharmacy['language'] ?: "'EN'";
+      $row['pharmacy_address'] = $pharmacy['street'] ?: 'NULL';
+      $row['language'] = $row['language'] ?: "'EN'";
 
       echo "
       ".json_encode($row, JSON_PRETTY_PRINT);

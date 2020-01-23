@@ -146,7 +146,7 @@ function update_patients_wc() {
             'npi' => $updated['old_pharmacy_npi'],
             'fax' => $updated['old_pharmacy_fax'],
             'phone' => $updated['old_pharmacy_phone'],
-            'address' => $updated['old_pharmacy_address']
+            'street' => $updated['old_pharmacy_address']
           ]);
 
 
