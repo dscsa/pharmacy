@@ -70,14 +70,19 @@ function import_wc_patients() {
 
   if ( ! count($orders[0])) return log_error('No Wc Orders to Import', get_defined_vars());
 
+  echo "
+  1: ".strlen($orders[0][2]['patient_note'])." ".$orders[0][2]['patient_note'];
+
   $keys = result_map($orders[0],
     function($row) {
 
       $pharmacy = json_decode($row['backup_pharmacy'], true);
 
-      if ( ! isset($pharmacy['fax']))
+      if ( ! isset($pharmacy['fax'])) {
         echo "
         pharmacy malformed: ".$row['backup_pharmacy']." ".json_encode($row, JSON_PRETTY_PRINT);
+        return;
+      }
 
       $row['pharmacy_name'] = clean_val($pharmacy['name']);
       $row['pharmacy_npi'] = clean_val($pharmacy['npi']);
@@ -96,13 +101,19 @@ function import_wc_patients() {
     }
   );
 
+  echo "
+  2: ".strlen($orders[0][2]['patient_note'])." ".$orders[0][2]['patient_note'];
+
+
   //Replace Staging Table with New Data
   $mysql->run('TRUNCATE TABLE gp_patients_wc');
 
   $sql = "INSERT INTO gp_patients_wc $keys VALUES ".$orders[0];
 
+  echo "
+  ".$sql;
+
   $error = $mysql->run($sql);
 
-  if ($sql)
-    log_error("import_wc_patients: ", $sql);
+  //log_error("import_wc_patients: ", $sql);
 }
