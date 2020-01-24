@@ -83,10 +83,15 @@ function import_wc_patients() {
         pharmacy malformed: ".$row['backup_pharmacy']." ".json_encode($row, JSON_PRETTY_PRINT);
       }
 
-      $row['pharmacy_name'] =clean_val(substr($pharmacy['name'], 0, 50));
-      $row['pharmacy_npi'] = clean_val(substr($pharmacy['npi'], 0, 10));
-      $row['pharmacy_fax'] = clean_phone(substr($pharmacy['fax'], 0, 12));
-      $row['pharmacy_phone'] = clean_phone(substr($pharmacy['phone'], 0, 12));
+      $pharmacy['name'] = substr($pharmacy['name'], 0, 50);
+      $pharmacy['npi'] = substr($pharmacy['npi'], 0, 10);
+      $pharmacy['fax'] = substr($pharmacy['fax'], 0, 12);
+      $pharmacy['phone'] = substr($pharmacy['phone'], 0, 12);
+      
+      $row['pharmacy_name'] =clean_val($pharmacy['name']);
+      $row['pharmacy_npi'] = clean_val($pharmacy['npi']);
+      $row['pharmacy_fax'] = clean_phone($pharmacy['fax']);
+      $row['pharmacy_phone'] = clean_phone($pharmacy['phone']);
       $row['pharmacy_address'] = clean_val($pharmacy['street']);
       $row['language'] = $row['language'] ?: "'EN'";
 
