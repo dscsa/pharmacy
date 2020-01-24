@@ -93,17 +93,13 @@ function import_wc_patients() {
 
       if (strpos(substr($row['patient_note'], 1, -1), "'") !== false)
         echo "
-        patient_note malformed".$row['patient_note']." ".json_encode($row, JSON_PRETTY_PRINT);
+        patient_note malformed".strlen($row['patient_note'])." ".$row['patient_note']." ".json_encode($row, JSON_PRETTY_PRINT);
 
       unset($row['backup_pharmacy']);
 
       return $row;
     }
   );
-
-  echo "
-  2: ".strlen($orders[0][2]['patient_note'])." ".$orders[0][2]['patient_note'];
-
 
   //Replace Staging Table with New Data
   $mysql->run('TRUNCATE TABLE gp_patients_wc');

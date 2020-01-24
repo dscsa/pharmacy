@@ -102,7 +102,8 @@ class Mssql {
     function _emailError($error) {
       //$mssql_get_last_message = mssql_get_last_message();
       //Don't do database logging here as this could cause an infinite loop
-      log_to_cli('ERROR', "CRON: Debug MSSQL", '', json_encode($error));
-      log_to_email('ERROR', "CRON: Debug MSSQL", '', json_encode($error));
+      echo json_encode($error, JSON_PRETTY_PRINT);
+      log_to_cli('ERROR', "CRON: Debug MSSQL", '', json_encode($error, JSON_PRETTY_PRINT));
+      log_to_email('ERROR', "CRON: Debug MSSQL", '', json_encode($error, JSON_PRETTY_PRINT));
     }
 }
