@@ -81,7 +81,6 @@ function import_wc_patients() {
       if ( ! isset($pharmacy['fax'])) {
         echo "
         pharmacy malformed: ".$row['backup_pharmacy']." ".json_encode($row, JSON_PRETTY_PRINT);
-        return;
       }
 
       $row['pharmacy_name'] = clean_val($pharmacy['name']);
