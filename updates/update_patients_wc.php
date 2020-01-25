@@ -149,7 +149,7 @@ function update_patients_wc() {
          $user_def4 = "$updated[payment_card_last4],$updated[payment_card_date_expired],$updated[payment_card_type],'".($updated['payment_coupon'] ?: $updated['tracking_coupon']);
 
          echo "
-         SirumWeb_AddUpdatePatientUD '$updated[patient_id_cp]', '4', '$user_def4'");
+         SirumWeb_AddUpdatePatientUD '$updated[patient_id_cp]', '4', '$user_def4'";
         }
 
         if ($key == 'email') {
@@ -177,7 +177,7 @@ function update_patients_wc() {
           SirumWeb_AddUpdatePatHomePhone '$updated[patient_id_cp]', '$updated[phone1]'";
         }
 
-        if () {
+        if (substr($key, 0, 10) == 'allergies_') {
           $allergies = json_encode([
             'allergies_none' => !!$updated['allergies_none'],
             'allergies_aspirin' => !!$updated['allergies_aspirin'],
