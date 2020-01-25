@@ -144,8 +144,8 @@ function update_patients_wc() {
           $sql = "UPDATE wp_usermeta SET meta_value = $old_val WHERE user_id = $updated[patient_id_wc] AND meta_key = '$wc_key'";
           echo "
           $sql";
+          $mysql->run($sql);
           continue;
-          //$mysql->run($sql);
         }
 
         if ($wc_key == 'backup_pharmacy')
@@ -176,14 +176,12 @@ function update_patients_wc() {
       $sql = "UPDATE wp_usermeta SET meta_value = UPPER('$updated[last_name]') WHERE user_id = $updated[patient_id_wc] AND meta_key = 'last_name'";
       echo "
       $sql";
-      //if ($i < 10)
-      //  $mysql->run($sql);
+      $mysql->run($sql);
     }
     if ($set_usermeta)
       $sql = "INSERT wp_usermeta (umeta_id, user_id, meta_key, meta_value) VALUES $set_usermeta";
       echo "
       $sql";
-      //if ($i < 10)
-      //  $mysql->run($sql);
+      $mysql->run($sql);
   }
 }
