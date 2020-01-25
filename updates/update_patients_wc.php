@@ -96,7 +96,7 @@ function update_patients_wc() {
 
   }
 
-  foreach($changes['updated'] as $updated) {
+  foreach($changes['updated'] as $i => $updated) {
 
     $changed = changed_fields($updated);
 
@@ -164,12 +164,18 @@ function update_patients_wc() {
     //if ($set_patients)
     //  log_error("update_patients_wc: UPDATE cppat SET $set_patients WHERE pat_id = $updated[patient_id_cp]");
 
-    if ( ! empty($changed['last_name']))
+    if ( ! empty($changed['last_name'])) {
+      $sql = "UPDATE wp_usermeta SET meta_value = UPPER('$updated[last_name]') WHERE user_id = $updated[patient_id_wc] AND meta_key = 'last_name'";
       echo "
-      UPDATE wp_usermeta SET meta_value = UPPER('$updated[last_name]') WHERE user_id = $updated[patient_id_wc] AND meta_key = 'last_name'";
-
+      $sql";
+      if ($i < 10)
+        $mysql->run($sql);
+    }
     if ($set_usermeta)
+      $sql = "INSERT wp_usermeta (umeta_id, user_id, meta_key, meta_value) VALUES $set_usermeta";
       echo "
-      INSERT wp_usermeta (umeta_id, user_id, meta_key, meta_value) VALUES $set_usermeta";
+      $sql";
+      if ($i < 10)
+        $mysql->run($sql);
   }
 }
