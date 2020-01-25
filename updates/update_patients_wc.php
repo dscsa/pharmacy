@@ -118,7 +118,7 @@ function update_patients_wc() {
       'patient_note' => 'medications_other'
     ];
 
-    $set_patients = [];
+    //$set_patients = [];
     $set_usermeta = [];
     foreach ($changed as $key => $val) {
 
@@ -130,7 +130,75 @@ function update_patients_wc() {
         if ($key == 'phone2' AND $updated['phone2'] == $updated['phone1'])
           continue;
 
-        $set_patients[] = "$key = '$new_val'";
+        if ($key == 'backup_pharmacy') {
+
+         echo "
+         SirumWeb_AddExternalPharmacy '$updated[pharmacy_npi]', '$updated[pharmacy_name], $updated[pharmacy_phone], $updated[pharmacy_address]', '$updated[pharmacy_address]', '$updated[pharmacy_city]', '$updated[pharmacy_state]', '$updated[pharmacy_zip]', '$updated[pharmacy_phone]', '$updated[pharmacy_fax]'";
+
+         echo "
+         SirumWeb_AddUpdatePatientUD '$updated[patient_id_cp]', '1', '$updated[pharmacy_name]'";
+
+         $user_def2 = substr("$updated[pharmacy_npi],$updated[pharmacy_fax],$updated[pharmacy_phone],$updated[pharmacy_address]", 0, 50-10-10-10-3);
+
+         echo "
+         SirumWeb_AddUpdatePatientUD '$updated[patient_id_cp]', '2', '$user_def2'";
+
+         echo "
+         SirumWeb_AddUpdatePatientUD '$updated[patient_id_cp]', '3', '$updated[payment_method_default]'";
+
+         $user_def4 = "$updated[payment_card_last4],$updated[payment_card_date_expired],$updated[payment_card_type],'".($updated['payment_coupon'] ?: $updated['tracking_coupon']);
+
+         echo "
+         SirumWeb_AddUpdatePatientUD '$updated[patient_id_cp]', '4', '$user_def4'");
+        }
+
+        if ($key == 'email') {
+          echo "
+          SirumWeb_AddUpdatePatEmail '$updated[patient_id_cp]', '$updated[email]'";
+        }
+
+        if ($key == 'medications_other') {
+          echo "
+          SirumWeb_AddToPatientComment '$updated[patient_id_cp]', '$updated[medications_other]'";
+        }
+
+        if (in_array($key, ['first_name', 'last_name', 'birth_date','language', 'patient_autofill'] ) {
+          echo "
+          SirumWeb_AddUpdatePatient '$updated[first_name]', '$updated[last_name]', '$updated[birth_date]', '$updated[phone1]', '$updated[language]', $updated[patient_autofill]";
+        }
+
+        if (in_array($key, ['patient_address1', 'patient_address2', 'patient_city', 'patient_zip'] ) {
+          echo "
+          SirumWeb_AddUpdatePatHomeAddr '$updated[patient_id_cp]', '$updated[patient_address1]', $updated[patient_address2], NULL, '$updated[patient_city]', 'GA', '$updated[patient_zip]', 'US'";
+        }
+
+        if ($key == 'phone1') {
+          echo "
+          SirumWeb_AddUpdatePatHomePhone '$updated[patient_id_cp]', '$updated[phone1]'";
+        }
+
+        if () {
+          $allergies = json_encode([
+            'allergies_none' => !!$updated['allergies_none'],
+            'allergies_aspirin' => !!$updated['allergies_aspirin'],
+            'allergies_amoxicillin' => !!$updated['allergies_amoxicillin'],
+            'allergies_ampicillin' => !!$updated['allergies_ampicillin'],
+            'allergies_azithromycin' => !!$updated['allergies_azithromycin'],
+            'allergies_cephalosporins' => !!$updated['allergies_cephalosporins'],
+            'allergies_codeine' => !!$updated['allergies_codeine'],
+            'allergies_erythromycin' => !!$updated['allergies_erythromycin'],
+            'allergies_penicillin' => !!$updated['allergies_penicillin'],
+            'allergies_salicylates' => !!$updated['allergies_salicylates'],
+            'allergies_sulfa' => !!$updated['allergies_sulfa'],
+            'allergies_tetracycline' => !!$updated['allergies_tetracycline'],
+            'allergies_other' => !!$updated['allergies_other']
+          ]);
+
+          echo "
+          SirumWeb_AddRemove_Allergies '$updated[patient_id_cp]', '$allergies'";
+        }
+
+        //$set_patients[$key] = "$key = '$new_val'";
       }
 
       if ( ! $new_val AND $old_val) {
@@ -178,10 +246,52 @@ function update_patients_wc() {
       $sql";
       $mysql->run($sql);
     }
-    if ($set_usermeta)
+
+    if ($set_usermeta) {
       $sql = "INSERT wp_usermeta (umeta_id, user_id, meta_key, meta_value) VALUES $set_usermeta";
       echo "
       $sql";
       $mysql->run($sql);
+    }
+
+    if ($set_patients) {
+
+
+
+    }
+
+    /*
+    function update_pharmacy($guardian_id, $pharmacy) {
+
+      if ( ! $guardian_id) return;
+
+      $store = json_decode(stripslashes($pharmacy));
+
+      $store_name = str_replace("'", "''", $store->name); //We need to escape single quotes in case pharmacy name has a ' for example Lamar's Pharmacy
+      $store_street = str_replace("'", "''", $store->street);
+
+      db_run("SirumWeb_AddExternalPharmacy '$store->npi', '$store_name, $store->phone, $store_street', '$store_street', '$store->city', '$store->state', '$store->zip', '$phone', '$fax'");
+
+      db_run("SirumWeb_AddUpdatePatientUD '$guardian_id', '1', '$store_name'");
+
+      //Because of Guardian's 50 character limit for UD fields and 3x 10 character fields with 3 delimiters, we need to cutoff street
+      $user_def_2 = $store->npi.','.cleanPhone($store->fax).','.cleanPhone($store->phone).','.substr($store_street, 0, 50-10-10-10-3);
+      return db_run("SirumWeb_AddUpdatePatientUD '$guardian_id', '2', '$user_def_2'");
+    }
+
+    function update_payment_method($guardian_id, $value) {
+      if ( ! $guardian_id) return;
+      return db_run("SirumWeb_AddUpdatePatientUD '$guardian_id', '3', '$value'");
+    }
+
+    function update_card_and_coupon($guardian_id, $card = [], $coupon = "") {
+      if ( ! $guardian_id) return;
+      //Meet guardian 50 character limit
+      //Last4 4, Month 2, Year 2, Type (Mastercard = 10), Delimiter 4, So coupon will be truncated if over 28 characters
+      $value = $card['last4'].','.$card['month'].'/'.substr($card['year'] ?: '', 2).','.$card['type'].','.$coupon;
+
+      return db_run("SirumWeb_AddUpdatePatientUD '$guardian_id', '4', '$value'");
+    }
+    */
   }
 }

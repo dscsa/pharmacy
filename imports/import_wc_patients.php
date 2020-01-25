@@ -70,9 +70,6 @@ function import_wc_patients() {
 
   if ( ! count($orders[0])) return log_error('No Wc Orders to Import', get_defined_vars());
 
-  echo "
-  1: ".strlen($orders[0][2]['patient_note'])." ".$orders[0][2]['patient_note'];
-
   $keys = result_map($orders[0],
     function($row) {
 
