@@ -127,9 +127,6 @@ function update_patients_wc() {
 
       if ($new_val AND ! $old_val) {
 
-        if ($key == 'phone2' AND $updated['phone2'] == $updated['phone1'])
-          continue;
-
         if ($key == 'backup_pharmacy') {
 
          echo "
@@ -230,7 +227,7 @@ function update_patients_wc() {
       }
     }
 
-    $set_patients = implode(', ', $set_patients);
+    //$set_patients = implode(', ', $set_patients);
     $set_usermeta = implode(', ', $set_usermeta);
 
     echo "
