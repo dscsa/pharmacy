@@ -125,7 +125,7 @@ function update_patients_wc() {
       $old_val = $updated['old_'.$key];
       $new_val = $updated[$key];
 
-      if ($new_val AND ! $old_val) {
+      if ($new_val != $old_val) {
 
         if ($key == 'backup_pharmacy') {
 
@@ -249,12 +249,6 @@ function update_patients_wc() {
       echo "
       $sql";
       $mysql->run($sql);
-    }
-
-    if ($set_patients) {
-
-
-
     }
 
     /*
