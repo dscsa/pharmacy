@@ -83,17 +83,17 @@ function import_wc_patients() {
         pharmacy malformed: ".$row['backup_pharmacy']." ".json_encode($row, JSON_PRETTY_PRINT);
       }
 
-      $pharmacy['name'] = substr($pharmacy['name'], 0, 50);
-      $pharmacy['npi'] = substr($pharmacy['npi'], 0, 10);
-      $pharmacy['fax'] = substr($pharmacy['fax'], 0, 12);
-      $pharmacy['phone'] = substr($pharmacy['phone'], 0, 12);
-      
+      $pharmacy['name'] = substr(@$pharmacy['name'], 0, 50);
+      $pharmacy['npi'] = substr(@$pharmacy['npi'], 0, 10);
+      $pharmacy['fax'] = substr(@$pharmacy['fax'], 0, 12);
+      $pharmacy['phone'] = substr(@$pharmacy['phone'], 0, 12);
+
       $row['pharmacy_name'] =clean_val($pharmacy['name']);
       $row['pharmacy_npi'] = clean_val($pharmacy['npi']);
       $row['pharmacy_fax'] = clean_phone($pharmacy['fax']);
       $row['pharmacy_phone'] = clean_phone($pharmacy['phone']);
       $row['pharmacy_address'] = clean_val($pharmacy['street']);
-      $row['language'] = $row['language'] ?: "'EN'";
+      $row['language'] = $row['language'] == 'NULL' ? "'EN'" : $row['language'];
 
       if (strpos(substr($row['patient_note'], 1, -1), "'") !== false)
         echo "
@@ -109,9 +109,6 @@ function import_wc_patients() {
   $mysql->run('TRUNCATE TABLE gp_patients_wc');
 
   $sql = "INSERT INTO gp_patients_wc $keys VALUES ".$orders[0];
-
-  echo "
-  ".$sql;
 
   $error = $mysql->run($sql);
 
