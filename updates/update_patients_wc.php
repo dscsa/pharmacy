@@ -162,12 +162,12 @@ function update_patients_wc() {
           SirumWeb_AddToPatientComment '$updated[patient_id_cp]', '$updated[medications_other]'";
         }
 
-        if (in_array($key, ['first_name', 'last_name', 'birth_date','language', 'patient_autofill'] ) {
+        if (in_array($key, ['first_name', 'last_name', 'birth_date','language', 'patient_autofill'])) {
           echo "
           SirumWeb_AddUpdatePatient '$updated[first_name]', '$updated[last_name]', '$updated[birth_date]', '$updated[phone1]', '$updated[language]', $updated[patient_autofill]";
         }
 
-        if (in_array($key, ['patient_address1', 'patient_address2', 'patient_city', 'patient_zip'] ) {
+        if (in_array($key, ['patient_address1', 'patient_address2', 'patient_city', 'patient_zip'])) {
           echo "
           SirumWeb_AddUpdatePatHomeAddr '$updated[patient_id_cp]', '$updated[patient_address1]', $updated[patient_address2], NULL, '$updated[patient_city]', 'GA', '$updated[patient_zip]', 'US'";
         }
