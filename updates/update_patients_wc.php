@@ -15,6 +15,7 @@ function update_patients_wc() {
   log_error("update_patients_wc: $count_deleted deleted, $count_created created, $count_updated updated.");
 
   $mysql = new Mysql_Wc();
+  $mssql = new Mssql_Cp();
 
   $created_mismatched = 0;
   $created_matched = 0;
@@ -178,7 +179,7 @@ function update_patients_wc() {
 
         if ($SirumWeb_AddUpdatePatientUD1 && $key == 'pharmacy_name') {
         $SirumWeb_AddUpdatePatientUD1 = false;
-         $mysql->run("SirumWeb_AddUpdatePatientUD '$updated[patient_id_cp]', '1', '$updated[pharmacy_name]'");
+         $mssql->run("SirumWeb_AddUpdatePatientUD '$updated[patient_id_cp]', '1', '$updated[pharmacy_name]'");
          echo "
          $updated[first_name] $updated[last_name] $updated[birth_date] SirumWeb_AddUpdatePatientUD '$updated[patient_id_cp]', '1', '$updated[pharmacy_name]'";
         }
@@ -188,7 +189,7 @@ function update_patients_wc() {
 
          $SirumWeb_AddUpdatePatientUD2 = false;
 
-         $mysql->run("SirumWeb_AddUpdatePatientUD '$updated[patient_id_cp]', '2', '$user_def2'");
+         $mssql->run("SirumWeb_AddUpdatePatientUD '$updated[patient_id_cp]', '2', '$user_def2'");
          echo "
          $updated[first_name] $updated[last_name] $updated[birth_date] SirumWeb_AddUpdatePatientUD '$updated[patient_id_cp]', '2', '$user_def2'";
         }
@@ -196,7 +197,7 @@ function update_patients_wc() {
         if ($SirumWeb_AddUpdatePatientUD3 && $key == 'payment_method_default') {
         $SirumWeb_AddUpdatePatientUD3 = false;
 
-         $mysql->run("SirumWeb_AddUpdatePatientUD '$updated[patient_id_cp]', '3', '$updated[payment_method_default]'");
+         $mssql->run("SirumWeb_AddUpdatePatientUD '$updated[patient_id_cp]', '3', '$updated[payment_method_default]'");
          echo "
          $updated[first_name] $updated[last_name] $updated[birth_date] SirumWeb_AddUpdatePatientUD '$updated[patient_id_cp]', '3', '$updated[payment_method_default]'";
         }
@@ -206,7 +207,7 @@ function update_patients_wc() {
 
          $SirumWeb_AddUpdatePatientUD4 = false;
 
-         $mysql->run("SirumWeb_AddUpdatePatientUD '$updated[patient_id_cp]', '4', '$user_def4'");
+         $mssql->run("SirumWeb_AddUpdatePatientUD '$updated[patient_id_cp]', '4', '$user_def4'");
          echo "
          $updated[first_name] $updated[last_name] $updated[birth_date] SirumWeb_AddUpdatePatientUD '$updated[patient_id_cp]', '4', '$user_def4'";
         }
@@ -214,7 +215,7 @@ function update_patients_wc() {
         if ($SirumWeb_AddUpdatePatEmail && $key == 'email') {
           $SirumWeb_AddUpdatePatEmail = false;
 
-          $mysql->run("SirumWeb_AddUpdatePatEmail '$updated[patient_id_cp]', '$updated[email]'");
+          $mssql->run("SirumWeb_AddUpdatePatEmail '$updated[patient_id_cp]', '$updated[email]'");
           echo "
           $updated[first_name] $updated[last_name] $updated[birth_date] SirumWeb_AddUpdatePatEmail '$updated[patient_id_cp]', '$updated[email]'";
         }
@@ -242,7 +243,7 @@ function update_patients_wc() {
         if ($SirumWeb_AddUpdatePatHomePhone && $key == 'phone1' && strlen($updated['phone1']) >= 10) {
           $SirumWeb_AddUpdatePatHomePhone = false;
 
-          $mysql->run("SirumWeb_AddUpdatePatHomePhone '$updated[patient_id_cp]', '$updated[phone1]'");
+          $mssql->run("SirumWeb_AddUpdatePatHomePhone '$updated[patient_id_cp]', '$updated[phone1]'");
           echo "
           $updated[first_name] $updated[last_name] $updated[birth_date] SirumWeb_AddUpdatePatHomePhone '$updated[patient_id_cp]', '$updated[phone1]'";
         }
