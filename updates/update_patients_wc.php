@@ -224,7 +224,7 @@ function update_patients_wc() {
         if ($SirumWeb_AddUpdatePatHomeAddr && in_array($key, ['patient_address1', 'patient_address2', 'patient_city', 'patient_zip'])) {
           $SirumWeb_AddUpdatePatHomeAddr = false;
 
-          $address2 = $updated['patient_address2'] ? "'$updated['patient_address2']'" : 'NULL';
+          $address2 = $updated['patient_address2'] ? "'$updated[patient_address2]'" : 'NULL';
           echo "
           SirumWeb_AddUpdatePatHomeAddr '$updated[patient_id_cp]', '$updated[patient_address1]', $address2, NULL, '$updated[patient_city]', 'GA', '$updated[patient_zip]', 'US'";
         }
