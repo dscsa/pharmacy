@@ -120,83 +120,24 @@ function update_patients_wc() {
 
     //$set_patients = [];
     $set_usermeta = [];
+    $SirumWeb_AddExternalPharmacy = true;
+    $SirumWeb_AddUpdatePatientUD1 = true;
+    $SirumWeb_AddUpdatePatientUD2 = true;
+    $SirumWeb_AddUpdatePatientUD3 = true;
+    $SirumWeb_AddUpdatePatientUD4 = true;
+    $SirumWeb_AddUpdatePatEmail = true;
+    $SirumWeb_AddToPatientComment = true;
+    $SirumWeb_AddUpdatePatient = true;
+    $SirumWeb_AddUpdatePatHomeAddr = true;
+    $SirumWeb_AddUpdatePatHomePhone = true;
+    $SirumWeb_AddRemove_Allergies = true;
     foreach ($changed as $key => $val) {
 
       $old_val = $updated['old_'.$key];
       $new_val = $updated[$key];
 
-      if ($new_val != $old_val) {
-
-        if ($key == 'backup_pharmacy') {
-
-         echo "
-         SirumWeb_AddExternalPharmacy '$updated[pharmacy_npi]', '$updated[pharmacy_name], $updated[pharmacy_phone], $updated[pharmacy_address]', '$updated[pharmacy_address]', '$updated[pharmacy_city]', '$updated[pharmacy_state]', '$updated[pharmacy_zip]', '$updated[pharmacy_phone]', '$updated[pharmacy_fax]'";
-
-         echo "
-         SirumWeb_AddUpdatePatientUD '$updated[patient_id_cp]', '1', '$updated[pharmacy_name]'";
-
-         $user_def2 = substr("$updated[pharmacy_npi],$updated[pharmacy_fax],$updated[pharmacy_phone],$updated[pharmacy_address]", 0, 50-10-10-10-3);
-
-         echo "
-         SirumWeb_AddUpdatePatientUD '$updated[patient_id_cp]', '2', '$user_def2'";
-
-         echo "
-         SirumWeb_AddUpdatePatientUD '$updated[patient_id_cp]', '3', '$updated[payment_method_default]'";
-
-         $user_def4 = "$updated[payment_card_last4],$updated[payment_card_date_expired],$updated[payment_card_type],'".($updated['payment_coupon'] ?: $updated['tracking_coupon']);
-
-         echo "
-         SirumWeb_AddUpdatePatientUD '$updated[patient_id_cp]', '4', '$user_def4'";
-        }
-
-        if ($key == 'email') {
-          echo "
-          SirumWeb_AddUpdatePatEmail '$updated[patient_id_cp]', '$updated[email]'";
-        }
-
-        if ($key == 'medications_other') {
-          echo "
-          SirumWeb_AddToPatientComment '$updated[patient_id_cp]', '$updated[medications_other]'";
-        }
-
-        if (in_array($key, ['first_name', 'last_name', 'birth_date','language', 'patient_autofill'])) {
-          echo "
-          SirumWeb_AddUpdatePatient '$updated[first_name]', '$updated[last_name]', '$updated[birth_date]', '$updated[phone1]', '$updated[language]', $updated[patient_autofill]";
-        }
-
-        if (in_array($key, ['patient_address1', 'patient_address2', 'patient_city', 'patient_zip'])) {
-          echo "
-          SirumWeb_AddUpdatePatHomeAddr '$updated[patient_id_cp]', '$updated[patient_address1]', $updated[patient_address2], NULL, '$updated[patient_city]', 'GA', '$updated[patient_zip]', 'US'";
-        }
-
-        if ($key == 'phone1') {
-          echo "
-          SirumWeb_AddUpdatePatHomePhone '$updated[patient_id_cp]', '$updated[phone1]'";
-        }
-
-        if (substr($key, 0, 10) == 'allergies_') {
-          $allergies = json_encode([
-            'allergies_none' => !!$updated['allergies_none'],
-            'allergies_aspirin' => !!$updated['allergies_aspirin'],
-            'allergies_amoxicillin' => !!$updated['allergies_amoxicillin'],
-            'allergies_ampicillin' => !!$updated['allergies_ampicillin'],
-            'allergies_azithromycin' => !!$updated['allergies_azithromycin'],
-            'allergies_cephalosporins' => !!$updated['allergies_cephalosporins'],
-            'allergies_codeine' => !!$updated['allergies_codeine'],
-            'allergies_erythromycin' => !!$updated['allergies_erythromycin'],
-            'allergies_penicillin' => !!$updated['allergies_penicillin'],
-            'allergies_salicylates' => !!$updated['allergies_salicylates'],
-            'allergies_sulfa' => !!$updated['allergies_sulfa'],
-            'allergies_tetracycline' => !!$updated['allergies_tetracycline'],
-            'allergies_other' => !!$updated['allergies_other']
-          ]);
-
-          echo "
-          SirumWeb_AddRemove_Allergies '$updated[patient_id_cp]', '$allergies'";
-        }
-
-        //$set_patients[$key] = "$key = '$new_val'";
-      }
+      if (strtoupper($old_val) == strtoupper($new_val))
+        continue;
 
       if ( ! $new_val AND $old_val) {
 
@@ -224,6 +165,98 @@ function update_patients_wc() {
 
 
         $set_usermeta[$wc_key] = "(NULL, $updated[patient_id_wc], '$wc_key',  '$wc_val')";
+      }
+
+      else if ($new_val != $old_val) {
+
+        if ($SirumWeb_AddExternalPharmacy && in_array($key, ['pharmacy_npi','pharmacy_name','pharmacy_phone','pharmacy_fax','pharmacy_zip','pharmacy_address','pharmacy_city'])) {
+         $SirumWeb_AddExternalPharmacy = false;
+         echo "
+         SirumWeb_AddExternalPharmacy '$updated[pharmacy_npi]', '$updated[pharmacy_name], $updated[pharmacy_phone], $updated[pharmacy_address]', '$updated[pharmacy_address]', '$updated[pharmacy_city]', '$updated[pharmacy_state]', '$updated[pharmacy_zip]', '$updated[pharmacy_phone]', '$updated[pharmacy_fax]'";
+        }
+
+        if ($SirumWeb_AddUpdatePatientUD1 && $key == 'pharmacy_name') {
+        $SirumWeb_AddUpdatePatientUD1 = false;
+         echo "
+         SirumWeb_AddUpdatePatientUD '$updated[patient_id_cp]', '1', '$updated[pharmacy_name]'";
+        }
+
+        if ($SirumWeb_AddUpdatePatientUD2 && in_array($key, ['pharmacy_npi','pharmacy_fax','pharmacy_phone','pharmacy_address'])) {
+         $user_def2 = substr("$updated[pharmacy_npi],$updated[pharmacy_fax],$updated[pharmacy_phone],$updated[pharmacy_address]", 0, 50-10-10-10-3);
+
+         $SirumWeb_AddUpdatePatientUD2 = false;
+         echo "
+         SirumWeb_AddUpdatePatientUD '$updated[patient_id_cp]', '2', '$user_def2'";
+        }
+
+        if ($SirumWeb_AddUpdatePatientUD3 $key == 'payment_method_default') {
+        $SirumWeb_AddUpdatePatientUD3 = false;
+         echo "
+         SirumWeb_AddUpdatePatientUD '$updated[patient_id_cp]', '3', '$updated[payment_method_default]'";
+        }
+
+        if ($SirumWeb_AddUpdatePatientUD4 && in_array($key, ['payment_card_last4','payment_card_date_expired','payment_card_type','payment_coupon','tracking_coupon'])) {
+         $user_def4 = "$updated[payment_card_last4],$updated[payment_card_date_expired],$updated[payment_card_type],'".($updated['payment_coupon'] ?: $updated['tracking_coupon']);
+
+         $SirumWeb_AddUpdatePatientUD4 = false;
+         echo "
+         SirumWeb_AddUpdatePatientUD '$updated[patient_id_cp]', '4', '$user_def4'";
+        }
+
+        if ($SirumWeb_AddUpdatePatEmail && $key == 'email') {
+          $SirumWeb_AddUpdatePatEmail = false;
+          echo "
+          SirumWeb_AddUpdatePatEmail '$updated[patient_id_cp]', '$updated[email]'";
+        }
+
+        if ($SirumWeb_AddToPatientComment && $key == 'medications_other') {
+          $SirumWeb_AddToPatientComment = false;
+          echo "
+          SirumWeb_AddToPatientComment '$updated[patient_id_cp]', '$updated[medications_other]'";
+        }
+
+        if ($SirumWeb_AddUpdatePatient && in_array($key, ['first_name', 'last_name', 'birth_date','language', 'patient_autofill'])) {
+          $SirumWeb_AddUpdatePatient = false;
+          echo "
+          SirumWeb_AddUpdatePatient '$updated[first_name]', '$updated[last_name]', '$updated[birth_date]', '$updated[phone1]', '$updated[language]', $updated[patient_autofill]";
+        }
+
+        if ($SirumWeb_AddUpdatePatHomeAddr && in_array($key, ['patient_address1', 'patient_address2', 'patient_city', 'patient_zip'])) {
+          $SirumWeb_AddUpdatePatHomeAddr = false;
+
+          $address2 = $updated['patient_address2'] ? "'$updated['patient_address2']'" : 'NULL';
+          echo "
+          SirumWeb_AddUpdatePatHomeAddr '$updated[patient_id_cp]', '$updated[patient_address1]', $address2, NULL, '$updated[patient_city]', 'GA', '$updated[patient_zip]', 'US'";
+        }
+
+        if ($SirumWeb_AddUpdatePatHomePhone && $key == 'phone1') {
+          $SirumWeb_AddUpdatePatHomePhone = false;
+          echo "
+          SirumWeb_AddUpdatePatHomePhone '$updated[patient_id_cp]', '$updated[phone1]'";
+        }
+
+        if ($SirumWeb_AddRemove_Allergies && substr($key, 0, 10) == 'allergies_') {
+          $SirumWeb_AddRemove_Allergies = false;
+          $allergies = json_encode([
+            'allergies_none' => !!$updated['allergies_none'],
+            'allergies_aspirin' => !!$updated['allergies_aspirin'],
+            'allergies_amoxicillin' => !!$updated['allergies_amoxicillin'],
+            'allergies_azithromycin' => !!$updated['allergies_azithromycin'],
+            'allergies_cephalosporins' => !!$updated['allergies_cephalosporins'],
+            'allergies_codeine' => !!$updated['allergies_codeine'],
+            'allergies_erythromycin' => !!$updated['allergies_erythromycin'],
+            'allergies_penicillin' => !!$updated['allergies_penicillin'],
+            'allergies_salicylates' => !!$updated['allergies_salicylates'],
+            'allergies_sulfa' => !!$updated['allergies_sulfa'],
+            'allergies_tetracycline' => !!$updated['allergies_tetracycline'],
+            'allergies_other' => $updated['allergies_other']
+          ]);
+
+          echo "
+          SirumWeb_AddRemove_Allergies '$updated[patient_id_cp]', '$allergies'";
+        }
+
+        //$set_patients[$key] = "$key = '$new_val'";
       }
     }
 
