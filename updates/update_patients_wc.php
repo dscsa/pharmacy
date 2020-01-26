@@ -189,7 +189,7 @@ function update_patients_wc() {
          SirumWeb_AddUpdatePatientUD '$updated[patient_id_cp]', '2', '$user_def2'";
         }
 
-        if ($SirumWeb_AddUpdatePatientUD3 $key == 'payment_method_default') {
+        if ($SirumWeb_AddUpdatePatientUD3 && $key == 'payment_method_default') {
         $SirumWeb_AddUpdatePatientUD3 = false;
          echo "
          SirumWeb_AddUpdatePatientUD '$updated[patient_id_cp]', '3', '$updated[payment_method_default]'";
