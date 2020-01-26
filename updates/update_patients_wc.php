@@ -287,9 +287,9 @@ function update_patients_wc() {
     //$set_patients = implode(', ', $set_patients);
     $set_usermeta = implode(', ', $set_usermeta);
 
-    //echo "
-    //
-    //".json_encode($changed, JSON_PRETTY_PRINT);
+    echo json_encode($changed, JSON_PRETTY_PRINT)."
+
+    ";
 
     //if ($set_patients)
     //  log_error("update_patients_wc: UPDATE cppat SET $set_patients WHERE pat_id = $updated[patient_id_cp]");
