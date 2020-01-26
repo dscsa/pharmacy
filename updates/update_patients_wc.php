@@ -130,6 +130,7 @@ function update_patients_wc() {
     $SirumWeb_AddUpdatePatient = true;
     $SirumWeb_AddUpdatePatHomeAddr = true;
     $SirumWeb_AddUpdatePatHomePhone = true;
+    $SirumWeb_AddUpdatePatCellPhone = true;
     $SirumWeb_AddRemove_Allergies = true;
     foreach ($changed as $key => $val) {
 
@@ -171,26 +172,31 @@ function update_patients_wc() {
 
         if ($SirumWeb_AddExternalPharmacy && in_array($key, ['pharmacy_npi','pharmacy_name','pharmacy_phone','pharmacy_fax','pharmacy_zip','pharmacy_address','pharmacy_city'])) {
          $SirumWeb_AddExternalPharmacy = false;
-         //echo "
-         //SirumWeb_AddExternalPharmacy '$updated[pharmacy_npi]', '$updated[pharmacy_name], $updated[pharmacy_phone], $updated[pharmacy_address]', '$updated[pharmacy_address]', '$updated[pharmacy_city]', '$updated[pharmacy_state]', '$updated[pharmacy_zip]', '$updated[pharmacy_phone]', '$updated[pharmacy_fax]'";
+         echo "
+         SirumWeb_AddExternalPharmacy '$updated[pharmacy_npi]', '$updated[pharmacy_name], $updated[pharmacy_phone], $updated[pharmacy_address]', '$updated[pharmacy_address]', '$updated[pharmacy_city]', '$updated[pharmacy_state]', '$updated[pharmacy_zip]', '$updated[pharmacy_phone]', '$updated[pharmacy_fax]'";
         }
 
         if ($SirumWeb_AddUpdatePatientUD1 && $key == 'pharmacy_name') {
         $SirumWeb_AddUpdatePatientUD1 = false;
+         $mysql->run("SirumWeb_AddUpdatePatientUD '$updated[patient_id_cp]', '1', '$updated[pharmacy_name]'");
          echo "
          $updated[first_name] $updated[last_name] $updated[birth_date] SirumWeb_AddUpdatePatientUD '$updated[patient_id_cp]', '1', '$updated[pharmacy_name]'";
         }
 
-        if ($SirumWeb_AddUpdatePatientUD2 && in_array($key, ['pharmacy_npi','pharmacy_fax','pharmacy_phone','pharmacy_address'])) {
+        if ($SirumWeb_AddUpdatePatientUD2 && strlen($updated['pharmacy_fax']) >= 10 && in_array($key, ['pharmacy_npi','pharmacy_fax','pharmacy_phone','pharmacy_address'])) {
          $user_def2 = substr("$updated[pharmacy_npi],$updated[pharmacy_fax],$updated[pharmacy_phone],$updated[pharmacy_address]", 0, 50);
 
          $SirumWeb_AddUpdatePatientUD2 = false;
+
+         $mysql->run("SirumWeb_AddUpdatePatientUD '$updated[patient_id_cp]', '2', '$user_def2'");
          echo "
          $updated[first_name] $updated[last_name] $updated[birth_date] SirumWeb_AddUpdatePatientUD '$updated[patient_id_cp]', '2', '$user_def2'";
         }
 
         if ($SirumWeb_AddUpdatePatientUD3 && $key == 'payment_method_default') {
         $SirumWeb_AddUpdatePatientUD3 = false;
+
+         $mysql->run("SirumWeb_AddUpdatePatientUD '$updated[patient_id_cp]', '3', '$updated[payment_method_default]'");
          echo "
          $updated[first_name] $updated[last_name] $updated[birth_date] SirumWeb_AddUpdatePatientUD '$updated[patient_id_cp]', '3', '$updated[payment_method_default]'";
         }
@@ -199,12 +205,16 @@ function update_patients_wc() {
          $user_def4 = "$updated[payment_card_last4],$updated[payment_card_date_expired],$updated[payment_card_type],'".($updated['payment_coupon'] ?: $updated['tracking_coupon']);
 
          $SirumWeb_AddUpdatePatientUD4 = false;
+
+         $mysql->run("SirumWeb_AddUpdatePatientUD '$updated[patient_id_cp]', '4', '$user_def4'");
          echo "
          $updated[first_name] $updated[last_name] $updated[birth_date] SirumWeb_AddUpdatePatientUD '$updated[patient_id_cp]', '4', '$user_def4'";
         }
 
         if ($SirumWeb_AddUpdatePatEmail && $key == 'email') {
           $SirumWeb_AddUpdatePatEmail = false;
+
+          $mysql->run("SirumWeb_AddUpdatePatEmail '$updated[patient_id_cp]', '$updated[email]'");
           echo "
           $updated[first_name] $updated[last_name] $updated[birth_date] SirumWeb_AddUpdatePatEmail '$updated[patient_id_cp]', '$updated[email]'";
         }
@@ -231,25 +241,35 @@ function update_patients_wc() {
 
         if ($SirumWeb_AddUpdatePatHomePhone && $key == 'phone1' && strlen($updated['phone1']) >= 10) {
           $SirumWeb_AddUpdatePatHomePhone = false;
+
+          $mysql->run("SirumWeb_AddUpdatePatHomePhone '$updated[patient_id_cp]', '$updated[phone1]'");
           echo "
           $updated[first_name] $updated[last_name] $updated[birth_date] SirumWeb_AddUpdatePatHomePhone '$updated[patient_id_cp]', '$updated[phone1]'";
+        }
+
+        if ($SirumWeb_AddUpdatePatCellPhone && $key == 'phone2' && strlen($updated['phone2']) >= 10) {
+          $SirumWeb_AddUpdatePatCellPhone = false;
+
+          //$mysql->run("SirumWeb_AddUpdatePatHomePhone '$updated[patient_id_cp]', '$updated[phone1]', 9");
+          echo "
+          $updated[first_name] $updated[last_name] $updated[birth_date] SirumWeb_AddUpdatePatHomePhone '$updated[patient_id_cp]', '$updated[phone1]', 9";
         }
 
         if ($SirumWeb_AddRemove_Allergies && substr($key, 0, 10) == 'allergies_') {
           $SirumWeb_AddRemove_Allergies = false;
           $allergies = json_encode([
-            'allergies_none' => !!$updated['allergies_none'],
-            'allergies_aspirin' => !!$updated['allergies_aspirin'],
-            'allergies_amoxicillin' => !!$updated['allergies_amoxicillin'],
-            'allergies_azithromycin' => !!$updated['allergies_azithromycin'],
-            'allergies_cephalosporins' => !!$updated['allergies_cephalosporins'],
-            'allergies_codeine' => !!$updated['allergies_codeine'],
-            'allergies_erythromycin' => !!$updated['allergies_erythromycin'],
-            'allergies_penicillin' => !!$updated['allergies_penicillin'],
-            'allergies_salicylates' => !!$updated['allergies_salicylates'],
-            'allergies_sulfa' => !!$updated['allergies_sulfa'],
-            'allergies_tetracycline' => !!$updated['allergies_tetracycline'],
-            'allergies_other' => $updated['allergies_other']
+            'allergies_none' => $updated['allergies_none'] ?: '',
+            'allergies_aspirin' => $updated['allergies_aspirin'] ?: '',
+            'allergies_amoxicillin' => $updated['allergies_amoxicillin'] ?: '',
+            'allergies_azithromycin' => $updated['allergies_azithromycin'] ?: '',
+            'allergies_cephalosporins' => $updated['allergies_cephalosporins'] ?: '',
+            'allergies_codeine' => $updated['allergies_codeine'] ?: '',
+            'allergies_erythromycin' => $updated['allergies_erythromycin'] ?: '',
+            'allergies_penicillin' => $updated['allergies_penicillin'] ?: '',
+            'allergies_salicylates' => $updated['allergies_salicylates'] ?: '',
+            'allergies_sulfa' => $updated['allergies_sulfa'] ?: '',
+            'allergies_tetracycline' => $updated['allergies_tetracycline'] ?: '',
+            'allergies_other' => $updated['allergies_other'] ?: ''
           ]);
 
           echo "
