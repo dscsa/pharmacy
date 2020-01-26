@@ -128,6 +128,7 @@ function update_patients_wc() {
     $SirumWeb_AddUpdatePatientUD4 = true;
     $SirumWeb_AddUpdatePatEmail = true;
     $SirumWeb_AddToPatientComment = true;
+    $SirumWeb_AddUpdatePatientLang = true;
     $SirumWeb_AddUpdatePatient = true;
     $SirumWeb_AddUpdatePatHomeAddr = true;
     $SirumWeb_AddUpdatePatHomePhone = true;
@@ -226,6 +227,12 @@ function update_patients_wc() {
           $updated[first_name] $updated[last_name] $updated[birth_date] $changed[$key] SirumWeb_AddToPatientComment '$updated[patient_id_cp]', '$updated[medications_other]'";
         }
 
+        if ($SirumWeb_AddUpdatePatientLang && in_array($key, ['language'])) {
+          $SirumWeb_AddUpdatePatientLang = false;
+          echo "
+          $updated[first_name] $updated[last_name] $updated[birth_date] $changed[$key] SirumWeb_AddUpdatePatient '$updated[first_name]', '$updated[last_name]', '$updated[birth_date]', '$updated[phone1]', '$updated[language]', $updated[patient_autofill]";
+        }
+
         if ($SirumWeb_AddUpdatePatient && in_array($key, ['first_name', 'last_name', 'birth_date','language', 'patient_autofill'])) {
           $SirumWeb_AddUpdatePatient = false;
           echo "
@@ -239,8 +246,8 @@ function update_patients_wc() {
 
           $sql = "UPDATE wp_usermeta SET meta_value = '$old_val' WHERE user_id = $updated[patient_id_wc] AND meta_key = '$wc_key'";
           echo "
-           $updated[first_name] $updated[last_name] $updated[birth_date] $changed[$key] $sql";
-          //$mysql->run($sql);
+          RAN $updated[first_name] $updated[last_name] $updated[birth_date] $changed[$key] $sql";
+          $mysql->run($sql);
         }
 
         if ($SirumWeb_AddUpdatePatHomePhone && $key == 'phone1' && strlen($updated['phone1']) >= 10) {
@@ -273,7 +280,7 @@ function update_patients_wc() {
             'allergies_salicylates' => $updated['allergies_salicylates'] ?: '',
             'allergies_sulfa' => $updated['allergies_sulfa'] ?: '',
             'allergies_tetracycline' => $updated['allergies_tetracycline'] ?: '',
-            'allergies_other' => $updated['allergies_other'] ?: ''
+            'allergies_other' => mysql_escape_string($updated['allergies_other']) ?: ''
           ]);
 
           $mssql->run("SirumWeb_AddRemove_Allergies '$updated[patient_id_cp]', '$allergies'");
@@ -295,14 +302,14 @@ function update_patients_wc() {
     if ( ! empty($changed['last_name'])) {
       $sql = "UPDATE wp_usermeta SET meta_value = UPPER('$updated[last_name]') WHERE user_id = $updated[patient_id_wc] AND meta_key = 'last_name'";
       echo "
-      $sql";
+      RAN $updated[first_name] $updated[last_name] $updated[birth_date] $changed[last_name] $sql";
       $mysql->run($sql);
     }
 
     if ($set_usermeta) {
       $sql = "INSERT wp_usermeta (umeta_id, user_id, meta_key, meta_value) VALUES $set_usermeta";
       echo "
-      $sql";
+      RAN $updated[first_name] $updated[last_name] $updated[birth_date] $sql";
       $mysql->run($sql);
     }
 
