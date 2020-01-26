@@ -235,9 +235,12 @@ function update_patients_wc() {
         if ($SirumWeb_AddUpdatePatHomeAddr && in_array($key, ['patient_address1', 'patient_address2', 'patient_city', 'patient_zip'])) {
           $SirumWeb_AddUpdatePatHomeAddr = false;
 
-          $address2 = $updated['patient_address2'] ? "'$updated[patient_address2]'" : 'NULL';
+          $wc_key = isset($cp_to_wc[$key]) ? $cp_to_wc[$key] : $key;
+
+          $sql = "UPDATE wp_usermeta SET meta_value = $old_val WHERE user_id = $updated[patient_id_wc] AND meta_key = '$wc_key'";
           echo "
-          $updated[first_name] $updated[last_name] $updated[birth_date] SirumWeb_AddUpdatePatHomeAddr '$updated[patient_id_cp]', '$updated[patient_address1]', $address2, NULL, '$updated[patient_city]', 'GA', '$updated[patient_zip]', 'US'";
+          $sql";
+          //$mysql->run($sql);
         }
 
         if ($SirumWeb_AddUpdatePatHomePhone && $key == 'phone1' && strlen($updated['phone1']) >= 10) {
