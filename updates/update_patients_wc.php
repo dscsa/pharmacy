@@ -171,8 +171,8 @@ function update_patients_wc() {
 
         if ($SirumWeb_AddExternalPharmacy && in_array($key, ['pharmacy_npi','pharmacy_name','pharmacy_phone','pharmacy_fax','pharmacy_zip','pharmacy_address','pharmacy_city'])) {
          $SirumWeb_AddExternalPharmacy = false;
-         echo "
-         SirumWeb_AddExternalPharmacy '$updated[pharmacy_npi]', '$updated[pharmacy_name], $updated[pharmacy_phone], $updated[pharmacy_address]', '$updated[pharmacy_address]', '$updated[pharmacy_city]', '$updated[pharmacy_state]', '$updated[pharmacy_zip]', '$updated[pharmacy_phone]', '$updated[pharmacy_fax]'";
+         //echo "
+         //SirumWeb_AddExternalPharmacy '$updated[pharmacy_npi]', '$updated[pharmacy_name], $updated[pharmacy_phone], $updated[pharmacy_address]', '$updated[pharmacy_address]', '$updated[pharmacy_city]', '$updated[pharmacy_state]', '$updated[pharmacy_zip]', '$updated[pharmacy_phone]', '$updated[pharmacy_fax]'";
         }
 
         if ($SirumWeb_AddUpdatePatientUD1 && $key == 'pharmacy_name') {
@@ -182,7 +182,7 @@ function update_patients_wc() {
         }
 
         if ($SirumWeb_AddUpdatePatientUD2 && in_array($key, ['pharmacy_npi','pharmacy_fax','pharmacy_phone','pharmacy_address'])) {
-         $user_def2 = substr("$updated[pharmacy_npi],$updated[pharmacy_fax],$updated[pharmacy_phone],$updated[pharmacy_address]", 0, 50-10-10-10-3);
+         $user_def2 = substr("$updated[pharmacy_npi],$updated[pharmacy_fax],$updated[pharmacy_phone],$updated[pharmacy_address]", 0, 50);
 
          $SirumWeb_AddUpdatePatientUD2 = false;
          echo "
@@ -263,9 +263,9 @@ function update_patients_wc() {
     //$set_patients = implode(', ', $set_patients);
     $set_usermeta = implode(', ', $set_usermeta);
 
-    echo "
-
-    ".json_encode($changed, JSON_PRETTY_PRINT);
+    //echo "
+    //
+    //".json_encode($changed, JSON_PRETTY_PRINT);
 
     //if ($set_patients)
     //  log_error("update_patients_wc: UPDATE cppat SET $set_patients WHERE pat_id = $updated[patient_id_cp]");
