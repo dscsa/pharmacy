@@ -178,7 +178,7 @@ function update_patients_wc() {
         if ($SirumWeb_AddUpdatePatientUD1 && $key == 'pharmacy_name') {
         $SirumWeb_AddUpdatePatientUD1 = false;
          echo "
-         SirumWeb_AddUpdatePatientUD '$updated[patient_id_cp]', '1', '$updated[pharmacy_name]'";
+         $updated[first_name] $updated[last_name] $updated[birth_date] SirumWeb_AddUpdatePatientUD '$updated[patient_id_cp]', '1', '$updated[pharmacy_name]'";
         }
 
         if ($SirumWeb_AddUpdatePatientUD2 && in_array($key, ['pharmacy_npi','pharmacy_fax','pharmacy_phone','pharmacy_address'])) {
@@ -186,13 +186,13 @@ function update_patients_wc() {
 
          $SirumWeb_AddUpdatePatientUD2 = false;
          echo "
-         SirumWeb_AddUpdatePatientUD '$updated[patient_id_cp]', '2', '$user_def2'";
+         $updated[first_name] $updated[last_name] $updated[birth_date] SirumWeb_AddUpdatePatientUD '$updated[patient_id_cp]', '2', '$user_def2'";
         }
 
         if ($SirumWeb_AddUpdatePatientUD3 && $key == 'payment_method_default') {
         $SirumWeb_AddUpdatePatientUD3 = false;
          echo "
-         SirumWeb_AddUpdatePatientUD '$updated[patient_id_cp]', '3', '$updated[payment_method_default]'";
+         $updated[first_name] $updated[last_name] $updated[birth_date] SirumWeb_AddUpdatePatientUD '$updated[patient_id_cp]', '3', '$updated[payment_method_default]'";
         }
 
         if ($SirumWeb_AddUpdatePatientUD4 && in_array($key, ['payment_card_last4','payment_card_date_expired','payment_card_type','payment_coupon','tracking_coupon'])) {
@@ -200,25 +200,25 @@ function update_patients_wc() {
 
          $SirumWeb_AddUpdatePatientUD4 = false;
          echo "
-         SirumWeb_AddUpdatePatientUD '$updated[patient_id_cp]', '4', '$user_def4'";
+         $updated[first_name] $updated[last_name] $updated[birth_date] SirumWeb_AddUpdatePatientUD '$updated[patient_id_cp]', '4', '$user_def4'";
         }
 
         if ($SirumWeb_AddUpdatePatEmail && $key == 'email') {
           $SirumWeb_AddUpdatePatEmail = false;
           echo "
-          SirumWeb_AddUpdatePatEmail '$updated[patient_id_cp]', '$updated[email]'";
+          $updated[first_name] $updated[last_name] $updated[birth_date] SirumWeb_AddUpdatePatEmail '$updated[patient_id_cp]', '$updated[email]'";
         }
 
         if ($SirumWeb_AddToPatientComment && $key == 'medications_other') {
           $SirumWeb_AddToPatientComment = false;
           echo "
-          SirumWeb_AddToPatientComment '$updated[patient_id_cp]', '$updated[medications_other]'";
+          $updated[first_name] $updated[last_name] $updated[birth_date] SirumWeb_AddToPatientComment '$updated[patient_id_cp]', '$updated[medications_other]'";
         }
 
         if ($SirumWeb_AddUpdatePatient && in_array($key, ['first_name', 'last_name', 'birth_date','language', 'patient_autofill'])) {
           $SirumWeb_AddUpdatePatient = false;
           echo "
-          SirumWeb_AddUpdatePatient '$updated[first_name]', '$updated[last_name]', '$updated[birth_date]', '$updated[phone1]', '$updated[language]', $updated[patient_autofill]";
+          $updated[first_name] $updated[last_name] $updated[birth_date] SirumWeb_AddUpdatePatient '$updated[first_name]', '$updated[last_name]', '$updated[birth_date]', '$updated[phone1]', '$updated[language]', $updated[patient_autofill]";
         }
 
         if ($SirumWeb_AddUpdatePatHomeAddr && in_array($key, ['patient_address1', 'patient_address2', 'patient_city', 'patient_zip'])) {
@@ -226,13 +226,13 @@ function update_patients_wc() {
 
           $address2 = $updated['patient_address2'] ? "'$updated[patient_address2]'" : 'NULL';
           echo "
-          SirumWeb_AddUpdatePatHomeAddr '$updated[patient_id_cp]', '$updated[patient_address1]', $address2, NULL, '$updated[patient_city]', 'GA', '$updated[patient_zip]', 'US'";
+          $updated[first_name] $updated[last_name] $updated[birth_date] SirumWeb_AddUpdatePatHomeAddr '$updated[patient_id_cp]', '$updated[patient_address1]', $address2, NULL, '$updated[patient_city]', 'GA', '$updated[patient_zip]', 'US'";
         }
 
-        if ($SirumWeb_AddUpdatePatHomePhone && $key == 'phone1') {
+        if ($SirumWeb_AddUpdatePatHomePhone && $key == 'phone1' && strlen($updated['phone1']) >= 10) {
           $SirumWeb_AddUpdatePatHomePhone = false;
           echo "
-          SirumWeb_AddUpdatePatHomePhone '$updated[patient_id_cp]', '$updated[phone1]'";
+          $updated[first_name] $updated[last_name] $updated[birth_date] SirumWeb_AddUpdatePatHomePhone '$updated[patient_id_cp]', '$updated[phone1]'";
         }
 
         if ($SirumWeb_AddRemove_Allergies && substr($key, 0, 10) == 'allergies_') {
@@ -253,7 +253,7 @@ function update_patients_wc() {
           ]);
 
           echo "
-          SirumWeb_AddRemove_Allergies '$updated[patient_id_cp]', '$allergies'";
+          $updated[first_name] $updated[last_name] $updated[birth_date] SirumWeb_AddRemove_Allergies '$updated[patient_id_cp]', '$allergies'";
         }
 
         //$set_patients[$key] = "$key = '$new_val'";
