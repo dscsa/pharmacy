@@ -253,7 +253,7 @@ function update_patients_wc() {
 
           //$mysql->run("SirumWeb_AddUpdatePatHomePhone '$updated[patient_id_cp]', '$updated[phone1]', 9");
           echo "
-          $updated[first_name] $updated[last_name] $updated[birth_date] SirumWeb_AddUpdatePatHomePhone '$updated[patient_id_cp]', '$updated[phone1]', 9";
+          $updated[first_name] $updated[last_name] $updated[birth_date] $updated[phone1] == $updated[phone2]? SirumWeb_AddUpdatePatHomePhone '$updated[patient_id_cp]', '$updated[phone1]', 9";
         }
 
         if ($SirumWeb_AddRemove_Allergies && substr($key, 0, 10) == 'allergies_') {
