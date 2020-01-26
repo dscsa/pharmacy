@@ -43,19 +43,19 @@ function import_wc_patients() {
     LEFT(0+MAX(CASE WHEN wp_usermeta.meta_key = 'billing_postcode' then wp_usermeta.meta_value ELSE NULL END), 5) as patient_zip,
     MAX(CASE WHEN wp_usermeta.meta_key = 'language' then wp_usermeta.meta_value ELSE NULL END) as language,
 
-    MAX(CASE WHEN wp_usermeta.meta_key = 'allergies_none' AND wp_usermeta.meta_value then 'No Known Allergies' ELSE NULL END) as allergies_none,
-    MAX(CASE WHEN wp_usermeta.meta_key = 'allergies_tetracycline' AND wp_usermeta.meta_value then 'Tetracyclines' ELSE NULL END) as allergies_tetracycline,
-    MAX(CASE WHEN wp_usermeta.meta_key = 'allergies_cephalosporins' AND wp_usermeta.meta_value then 'Cephalosporins' ELSE NULL END) as allergies_cephalosporins,
-    MAX(CASE WHEN wp_usermeta.meta_key = 'allergies_sulfa' AND wp_usermeta.meta_value then 'Sulfa' ELSE NULL END) as allergies_sulfa,
-    MAX(CASE WHEN wp_usermeta.meta_key = 'allergies_aspirin' AND wp_usermeta.meta_value then 'Aspirin' ELSE NULL END) as allergies_aspirin,
-    MAX(CASE WHEN wp_usermeta.meta_key = 'allergies_penicillin' AND wp_usermeta.meta_value then 'Penicillin' ELSE NULL END) as allergies_penicillin,
-    MAX(CASE WHEN wp_usermeta.meta_key = 'allergies_erythromycin' AND wp_usermeta.meta_value then 'Erythromycin' ELSE NULL END) as allergies_erythromycin,
-    MAX(CASE WHEN wp_usermeta.meta_key = 'allergies_codeine' AND wp_usermeta.meta_value then 'Codeine' ELSE NULL END) as allergies_codeine,
-    MAX(CASE WHEN wp_usermeta.meta_key = 'allergies_nsaids' AND wp_usermeta.meta_value then 'NSAIDS' ELSE NULL END) as allergies_nsaids,
-    MAX(CASE WHEN wp_usermeta.meta_key = 'allergies_salicylates' AND wp_usermeta.meta_value then 'Salicylates' ELSE NULL END) as allergies_salicylates,
-    MAX(CASE WHEN wp_usermeta.meta_key = 'allergies_azithromycin' AND wp_usermeta.meta_value then 'Azithromycin' ELSE NULL END) as allergies_azithromycin,
-    MAX(CASE WHEN wp_usermeta.meta_key = 'allergies_amoxicillin' AND wp_usermeta.meta_value then 'Amoxicillin' ELSE NULL END) as allergies_amoxicillin,
-    MAX(CASE WHEN wp_usermeta.meta_key = 'allergies_other' AND wp_usermeta.meta_value then wp_usermeta.meta_value ELSE NULL END) as allergies_other
+    MAX(CASE WHEN wp_usermeta.meta_key = 'allergies_none' AND wp_usermeta.meta_value > '' then 'No Known Allergies' ELSE NULL END) as allergies_none,
+    MAX(CASE WHEN wp_usermeta.meta_key = 'allergies_tetracycline' AND wp_usermeta.meta_value > '' then 'Tetracyclines' ELSE NULL END) as allergies_tetracycline,
+    MAX(CASE WHEN wp_usermeta.meta_key = 'allergies_cephalosporins' AND wp_usermeta.meta_value > '' then 'Cephalosporins' ELSE NULL END) as allergies_cephalosporins,
+    MAX(CASE WHEN wp_usermeta.meta_key = 'allergies_sulfa' AND wp_usermeta.meta_value > '' then 'Sulfa' ELSE NULL END) as allergies_sulfa,
+    MAX(CASE WHEN wp_usermeta.meta_key = 'allergies_aspirin' AND wp_usermeta.meta_value > '' then 'Aspirin' ELSE NULL END) as allergies_aspirin,
+    MAX(CASE WHEN wp_usermeta.meta_key = 'allergies_penicillin' AND wp_usermeta.meta_value > '' then 'Penicillin' ELSE NULL END) as allergies_penicillin,
+    MAX(CASE WHEN wp_usermeta.meta_key = 'allergies_erythromycin' AND wp_usermeta.meta_value > '' then 'Erythromycin' ELSE NULL END) as allergies_erythromycin,
+    MAX(CASE WHEN wp_usermeta.meta_key = 'allergies_codeine' AND wp_usermeta.meta_value > '' then 'Codeine' ELSE NULL END) as allergies_codeine,
+    MAX(CASE WHEN wp_usermeta.meta_key = 'allergies_nsaids' AND wp_usermeta.meta_value > '' then 'NSAIDS' ELSE NULL END) as allergies_nsaids,
+    MAX(CASE WHEN wp_usermeta.meta_key = 'allergies_salicylates' AND wp_usermeta.meta_value > '' then 'Salicylates' ELSE NULL END) as allergies_salicylates,
+    MAX(CASE WHEN wp_usermeta.meta_key = 'allergies_azithromycin' AND wp_usermeta.meta_value > '' then 'Azithromycin' ELSE NULL END) as allergies_azithromycin,
+    MAX(CASE WHEN wp_usermeta.meta_key = 'allergies_amoxicillin' AND wp_usermeta.meta_value > '' then 'Amoxicillin' ELSE NULL END) as allergies_amoxicillin,
+    MAX(CASE WHEN wp_usermeta.meta_key = 'allergies_other' AND wp_usermeta.meta_value > '' then wp_usermeta.meta_value ELSE NULL END) as allergies_other
 
   FROM
     wp_users
