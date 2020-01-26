@@ -173,15 +173,15 @@ function update_patients_wc() {
 
         if ($SirumWeb_AddExternalPharmacy && in_array($key, ['pharmacy_npi','pharmacy_name','pharmacy_phone','pharmacy_fax','pharmacy_zip','pharmacy_address','pharmacy_city'])) {
          $SirumWeb_AddExternalPharmacy = false;
-         echo "
-         SirumWeb_AddExternalPharmacy '$updated[pharmacy_npi]', '$updated[pharmacy_name], $updated[pharmacy_phone], $updated[pharmacy_address]', '$updated[pharmacy_address]', '$updated[pharmacy_city]', '$updated[pharmacy_state]', '$updated[pharmacy_zip]', '$updated[pharmacy_phone]', '$updated[pharmacy_fax]'";
+         //echo "
+         //SirumWeb_AddExternalPharmacy '$updated[pharmacy_npi]', '$updated[pharmacy_name], $updated[pharmacy_phone], $updated[pharmacy_address]', '$updated[pharmacy_address]', '$updated[pharmacy_city]', '$updated[pharmacy_state]', '$updated[pharmacy_zip]', '$updated[pharmacy_phone]', '$updated[pharmacy_fax]'";
         }
 
         if ($SirumWeb_AddUpdatePatientUD1 && $key == 'pharmacy_name') {
         $SirumWeb_AddUpdatePatientUD1 = false;
          $mssql->run("SirumWeb_AddUpdatePatientUD '$updated[patient_id_cp]', '1', '$updated[pharmacy_name]'");
          echo "
-         $updated[first_name] $updated[last_name] $updated[birth_date] SirumWeb_AddUpdatePatientUD '$updated[patient_id_cp]', '1', '$updated[pharmacy_name]'";
+         RAN $updated[first_name] $updated[last_name] $updated[birth_date] SirumWeb_AddUpdatePatientUD '$updated[patient_id_cp]', '1', '$updated[pharmacy_name]'";
         }
 
         if ($SirumWeb_AddUpdatePatientUD2 && strlen($updated['pharmacy_fax']) >= 10 && in_array($key, ['pharmacy_npi','pharmacy_fax','pharmacy_phone','pharmacy_address'])) {
@@ -191,7 +191,7 @@ function update_patients_wc() {
 
          $mssql->run("SirumWeb_AddUpdatePatientUD '$updated[patient_id_cp]', '2', '$user_def2'");
          echo "
-         $updated[first_name] $updated[last_name] $updated[birth_date] SirumWeb_AddUpdatePatientUD '$updated[patient_id_cp]', '2', '$user_def2'";
+         RAN $updated[first_name] $updated[last_name] $updated[birth_date] SirumWeb_AddUpdatePatientUD '$updated[patient_id_cp]', '2', '$user_def2'";
         }
 
         if ($SirumWeb_AddUpdatePatientUD3 && $key == 'payment_method_default') {
@@ -199,17 +199,17 @@ function update_patients_wc() {
 
          $mssql->run("SirumWeb_AddUpdatePatientUD '$updated[patient_id_cp]', '3', '$updated[payment_method_default]'");
          echo "
-         $updated[first_name] $updated[last_name] $updated[birth_date] SirumWeb_AddUpdatePatientUD '$updated[patient_id_cp]', '3', '$updated[payment_method_default]'";
+         RAN $updated[first_name] $updated[last_name] $updated[birth_date] SirumWeb_AddUpdatePatientUD '$updated[patient_id_cp]', '3', '$updated[payment_method_default]'";
         }
 
         if ($SirumWeb_AddUpdatePatientUD4 && in_array($key, ['payment_card_last4','payment_card_date_expired','payment_card_type','payment_coupon','tracking_coupon'])) {
-         $user_def4 = "$updated[payment_card_last4],$updated[payment_card_date_expired],$updated[payment_card_type],'".($updated['payment_coupon'] ?: $updated['tracking_coupon']);
+         $user_def4 = "$updated[payment_card_last4],$updated[payment_card_date_expired],$updated[payment_card_type],".($updated['payment_coupon'] ?: $updated['tracking_coupon']);
 
          $SirumWeb_AddUpdatePatientUD4 = false;
 
          $mssql->run("SirumWeb_AddUpdatePatientUD '$updated[patient_id_cp]', '4', '$user_def4'");
          echo "
-         $updated[first_name] $updated[last_name] $updated[birth_date] SirumWeb_AddUpdatePatientUD '$updated[patient_id_cp]', '4', '$user_def4'";
+         RAN $updated[first_name] $updated[last_name] $updated[birth_date] SirumWeb_AddUpdatePatientUD '$updated[patient_id_cp]', '4', '$user_def4'";
         }
 
         if ($SirumWeb_AddUpdatePatEmail && $key == 'email') {
@@ -217,7 +217,7 @@ function update_patients_wc() {
 
           $mssql->run("SirumWeb_AddUpdatePatEmail '$updated[patient_id_cp]', '$updated[email]'");
           echo "
-          $updated[first_name] $updated[last_name] $updated[birth_date] SirumWeb_AddUpdatePatEmail '$updated[patient_id_cp]', '$updated[email]'";
+          RAN $updated[first_name] $updated[last_name] $updated[birth_date] SirumWeb_AddUpdatePatEmail '$updated[patient_id_cp]', '$updated[email]'";
         }
 
         if ($SirumWeb_AddToPatientComment && $key == 'medications_other') {
@@ -245,7 +245,7 @@ function update_patients_wc() {
 
           $mssql->run("SirumWeb_AddUpdatePatHomePhone '$updated[patient_id_cp]', '$updated[phone1]'");
           echo "
-          $updated[first_name] $updated[last_name] $updated[birth_date] SirumWeb_AddUpdatePatHomePhone '$updated[patient_id_cp]', '$updated[phone1]'";
+          RAN $updated[first_name] $updated[last_name] $updated[birth_date] SirumWeb_AddUpdatePatHomePhone '$updated[patient_id_cp]', '$updated[phone1]'";
         }
 
         if ($SirumWeb_AddUpdatePatCellPhone && $key == 'phone2' && strlen($updated['phone2']) >= 10) {
