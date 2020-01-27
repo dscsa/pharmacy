@@ -34,8 +34,8 @@ function update_orders_cp() {
       continue;
     }
 
-    if ($order[0]['invoice_number'] == 25769 OR $order[0]['invoice_number'] == 25814)
-      log_error('cp order created', [$changed_fields, $order[0]]);
+    if ($order[0]['order_stage_wc'] == 'wc-processing')
+      log_error('Problem: cp order wc-processing created', $order[0]);
 
     if ($order[0]['order_date_shipped']) {
       log_notice("Shipped Order Being Readded", $order);
@@ -81,9 +81,8 @@ function update_orders_cp() {
   //  - update wc order total
   foreach($changes['deleted'] as $deleted) {
 
-    if ($order[0]['invoice_number'] == 25769 OR $order[0]['invoice_number'] == 25814)
-      log_error('cp order deleted', [$changed_fields, $order[0]]);
-
+    if ($order[0]['order_stage_wc'] == 'wc-processing')
+      log_error('Problem: cp order wc-processing deleted', $deleted);
 
     //Order was Returned to Sender and not logged yet
     if ($deleted['tracking_number'] AND ! $deleted['order_date_returned']) {
@@ -135,8 +134,8 @@ function update_orders_cp() {
       continue;
     }
 
-    if ($order[0]['invoice_number'] == 25769 OR $order[0]['invoice_number'] == 25814)
-      log_error('cp order updated', [$changed_fields, $order[0]]);
+    if ($order[0]['order_stage_wc'] == 'wc-processing')
+      log_error('Problem: cp order wc-processing updated', [$order[0], $changed_fields]);
 
     //Remove only (e.g. new surescript comes in), let's not add more drugs to their order since communication already went out
     $items_to_sync = sync_to_order($order, $updated);

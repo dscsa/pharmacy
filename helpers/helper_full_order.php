@@ -124,6 +124,10 @@ function get_order_stage_wc($order) {
   if ($order[0]['order_stage_wc'] AND in_array(explode('-', $order[0]['order_stage_wc'])[0], ['late', 'done', 'return']))
     return $order[0]['order_stage_wc'];
 
+
+  if ($order[0]['order_stage_wc'] == 'wc-processing')
+    log_error('Problem: get_order_stage_wc wc-processing', $order[0]);
+
   /*
   'confirm-*' means no drugs in the order yet so check for count_items
   order_source: NULL, O Refills, Auto Refill v2, Webform eRX, Webform eRX Note, Webform Refill, Webform Refill Note, Webform Transfer, Webform Transfer Note
