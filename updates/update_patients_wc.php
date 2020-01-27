@@ -151,7 +151,7 @@ function update_patients_wc() {
         if ($wc_key == 'medications_other') continue;
 
         if ($wc_key == 'user_email') {
-          $sql = "UPDATE wp_users SET user_email = '$wc_val' WHERE user_id = $updated[patient_id_wc]";
+          $sql = "UPDATE wp_users SET user_email = '$wc_val' WHERE ID = $updated[patient_id_wc]";
           echo "
           $sql";
           $mysql->run($sql);
@@ -291,7 +291,7 @@ function update_patients_wc() {
             'allergies_salicylates' => $updated['allergies_salicylates'] ?: '',
             'allergies_sulfa' => $updated['allergies_sulfa'] ?: '',
             'allergies_tetracycline' => $updated['allergies_tetracycline'] ?: '',
-            'allergies_other' => @mysql_escape_string($updated['allergies_other']) ?: ''
+            'allergies_other' => str_replace("'", "''", $updated['allergies_other']) ?: ''
           ]);
 
           $mssql->run("SirumWeb_AddRemove_Allergies '$updated[patient_id_cp]', '$allergies'");
