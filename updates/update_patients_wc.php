@@ -311,7 +311,7 @@ function update_patients_wc() {
     //  log_error("update_patients_wc: UPDATE cppat SET $set_patients WHERE pat_id = $updated[patient_id_cp]");
 
     if ( ! empty($changed['last_name'])) {
-      $wc_val = @mysql_escape_string($updated['last_name']);
+      $wc_val = @mysql_escape_string($updated['old_last_name']);
       $sql = "UPDATE wp_usermeta SET meta_value = UPPER('$wc_val') WHERE user_id = $updated[patient_id_wc] AND meta_key = 'last_name'";
       echo "
       RAN $updated[first_name] $updated[last_name] $updated[birth_date] $changed[last_name] $sql";
