@@ -3,6 +3,26 @@
 require_once 'dbs/mysql_wc.php';
 require_once 'helpers/helper_changes.php';
 
+//We don't import "Returned" orders from CP but we don't want that to trigger a delete
+function cp_orders_get_deleted_sql($new, $old, $id) {
+
+  $join = join_clause($id);
+
+  return "
+    SELECT
+      old.*
+    FROM
+      $new as new
+    RIGHT JOIN $old as old ON
+      $join
+    WHERE
+      new.$id IS NULL
+    AND
+      old.order_date_returned IS NULL
+  ";
+}
+
+//Only auto-delete orders without tracking numbers
 function cp_orders_set_deleted_sql($new, $old, $id) {
 
   $join = join_clause($id);
@@ -49,8 +69,8 @@ function changes_to_orders_cp($new) {
   // 1st Result Set -> 1st Row -> 1st Column
   $columns = $mysql->run(get_column_names($new))[0][0]['columns'];
 
-  //Get Deleted
-  $deleted = $mysql->run(get_deleted_sql($new, $old, $id));
+  //NOTICE THIS IS A CUSTOMIZED FUNCTION!!!
+  $deleted = $mysql->run(cp_orders_get_deleted_sql($new, $old, $id));
 
   //Get Inserted
   $created = $mysql->run(get_created_sql($new, $old, $id));
