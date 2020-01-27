@@ -240,13 +240,13 @@ function update_patients_wc() {
           $SirumWeb_AddUpdatePatientLang = false;
           $mysql->run("SirumWeb_AddUpdatePatient '$updated[first_name]', '$updated[last_name]', '$updated[birth_date]', '$updated[phone1]', '$updated[language]', $updated[patient_autofill]");
           echo "
-          RAN $updated[first_name] $updated[last_name] $updated[birth_date] $changed[$key] SirumWeb_AddUpdatePatient '$updated[first_name]', '$updated[last_name]', '$updated[birth_date]', '$updated[phone1]', '$updated[language]', $updated[patient_autofill]";
+          RAN $updated[first_name] $updated[last_name] $updated[birth_date] $changed[$key] SirumWeb_AddUpdatePatient '$updated[first_name]', '$updated[last_name]', '$updated[birth_date]', '$updated[phone1]', '$updated[language]'";
         }
 
         if ($SirumWeb_AddUpdatePatient && in_array($key, ['first_name', 'last_name', 'birth_date','language', 'patient_autofill'])) {
           $SirumWeb_AddUpdatePatient = false;
           echo "
-          $updated[first_name] $updated[last_name] $updated[birth_date] $changed[$key] SirumWeb_AddUpdatePatient '$updated[first_name]', '$updated[last_name]', '$updated[birth_date]', '$updated[phone1]', '$updated[language]', $updated[patient_autofill]";
+          $updated[first_name] $updated[last_name] $updated[birth_date] $changed[$key] SirumWeb_AddUpdatePatient '$updated[first_name]', '$updated[last_name]', '$updated[birth_date]', '$updated[phone1]', '$updated[language]'";
         }
 
         if ($SirumWeb_AddUpdatePatHomeAddr && in_array($key, ['patient_address1', 'patient_address2', 'patient_city', 'patient_zip'])) {
