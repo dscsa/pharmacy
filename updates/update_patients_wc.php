@@ -168,7 +168,7 @@ function update_patients_wc() {
 
         if ($wc_key == 'backup_pharmacy')
           $wc_val = json_encode([
-            'name' => $updated['old_pharmacy_name'],
+            'name' => @mysql_escape_string($updated['old_pharmacy_name']),
             'npi' => $updated['old_pharmacy_npi'],
             'fax' => $updated['old_pharmacy_fax'],
             'phone' => $updated['old_pharmacy_phone'],
