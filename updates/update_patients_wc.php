@@ -24,8 +24,10 @@ function update_patients_wc() {
 
   foreach($changes['created'] as $created) {
 
-    $first_name_prefix = substr(array_shift(explode(' ', $created['first_name'])), 0, 3);
-    $last_name_prefix = array_pop(explode(' ', $created['last_name']));
+    $first_name_prefix = explode(' ', $created['first_name']);
+    $last_name_prefix  = explode(' ', $created['last_name']);
+    $first_name_prefix = substr(array_shift($first_name_prefix), 0, 3);
+    $last_name_prefix  = array_pop($last_name_prefix);
 
     $sql = "
       SELECT *
