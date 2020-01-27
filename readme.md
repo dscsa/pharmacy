@@ -1,3 +1,9 @@
+# Helpful Queries
+```
+Ensure Unique GSNs:
+SELECT GROUP_CONCAT(drug_generic, '; '), drug_gsns, COUNT(*) as number FROM `gp_stock_live` GROUP BY drug_gsns HAVING number > 1
+```
+
 #To Expose Server Via Comcast
 1-800-391-3000 ask for Tech Support
 

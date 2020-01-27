@@ -57,6 +57,15 @@ function update_stock_by_month() {
     END
   ");
 
+  $duplicate_gsns = $mysql->run("
+    SELECT GROUP_CONCAT(drug_generic, '; '), drug_gsns, COUNT(*) as number FROM gp_stock_live GROUP BY drug_gsns HAVING number > 1
+  ");
+
+  if (isset($duplicate_gsns[0][0])) {
+    log_error('Duplicate GSNs in V2', $duplicate_gsns[0]);
+  }
+
+
   //TODO Calculate Qty Per Day from Sig and save in database
 
   //TODO Clean Drug Name and save in database RTRIM(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(ISNULL(generic_name, cprx.drug_name), ' CAPSULE', ' CAP'),' CAPS',' CAP'),' TABLET',' TAB'),' TABS',' TAB'),' TB', ' TAB'),' HCL',''),' MG','MG'), '\"', ''))
