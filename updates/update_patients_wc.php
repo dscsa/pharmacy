@@ -188,8 +188,9 @@ function update_patients_wc() {
         }
 
         if ($SirumWeb_AddUpdatePatientUD1 && $key == 'pharmacy_name') {
-        $SirumWeb_AddUpdatePatientUD1 = false;
-         $mssql->run("SirumWeb_AddUpdatePatientUD '$updated[patient_id_cp]', '1', '$updated[pharmacy_name]'");
+         $SirumWeb_AddUpdatePatientUD1 = false;
+         $pharmacy_name = str_replace("'", "''", $updated['pharmacy_name']);
+         $mssql->run("SirumWeb_AddUpdatePatientUD '$updated[patient_id_cp]', '1', '$pharmacy_name'");
          //echo "
          //RAN $updated[first_name] $updated[last_name] $updated[birth_date] $changed[$key] SirumWeb_AddUpdatePatientUD '$updated[patient_id_cp]', '1', '$updated[pharmacy_name]'";
         }
@@ -312,7 +313,7 @@ function update_patients_wc() {
 
     if ( ! empty($changed['last_name'])) {
       $wc_val = @mysql_escape_string($updated['old_last_name']);
-      $sql = "UPDATE wp_usermeta SET meta_value = UPPER('$wc_val') WHERE user_id = $updated[patient_id_wc] AND meta_key = 'last_name'";
+      $sql = "UPDATE wp_usermeta SET meta_value = '$wc_val' WHERE user_id = $updated[patient_id_wc] AND meta_key = 'last_name'";
       echo "
       RAN $updated[first_name] $updated[last_name] $updated[birth_date] $changed[last_name] $sql";
       $mysql->run($sql);
