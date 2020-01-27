@@ -55,6 +55,8 @@ function changes_to_patients_cp($new) {
     -- False Positives -- NOT old.patient_date_changed <=> new.patient_date_changed
   ";
 
+  $columns = $mysql->run(get_column_names($new))[0][0]['columns'];
+
   //Get Deleted
   $deleted = $mysql->run(get_deleted_sql($new, $old, $id));
 
@@ -68,7 +70,7 @@ function changes_to_patients_cp($new) {
   $mysql->run(set_deleted_sql($new, $old, $id));
 
   //Save Inserts
-  $mysql->run(set_created_sql($new, $old, $id));
+  $mysql->run(set_created_sql($new, $old, $id, '('.$columns.')'));
 
   //Save Updates
   $mysql->run(set_updated_sql($new, $old, $id, $where));

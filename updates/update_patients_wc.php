@@ -102,6 +102,7 @@ function update_patients_wc() {
     $changed = changed_fields($updated);
 
     $cp_to_wc = [
+      'email' => 'user_email',
       'patient_zip' => 'billing_postcode',
       'patient_state' => 'billing_state',
       'patient_city' => 'billing_city',
@@ -145,12 +146,20 @@ function update_patients_wc() {
       if ( ! $new_val AND $old_val) {
 
         $wc_key = isset($cp_to_wc[$key]) ? $cp_to_wc[$key] : $key;
-        $wc_val = $old_val;
+        $wc_val = @mysql_escape_string($old_val);
 
         if ($wc_key == 'medications_other') continue;
 
+        if ($wc_key == 'user_email') {
+          $sql = "UPDATE wp_users SET user_email = '$wc_val' WHERE user_id = $updated[patient_id_wc]";
+          echo "
+          $sql";
+          $mysql->run($sql);
+          continue;
+        }
+
         if (substr($wc_key, 8) == 'billing_') {
-          $sql = "UPDATE wp_usermeta SET meta_value = $old_val WHERE user_id = $updated[patient_id_wc] AND meta_key = '$wc_key'";
+          $sql = "UPDATE wp_usermeta SET meta_value = '$wc_val' WHERE user_id = $updated[patient_id_wc] AND meta_key = '$wc_key'";
           echo "
           $sql";
           $mysql->run($sql);
@@ -229,8 +238,9 @@ function update_patients_wc() {
 
         if ($SirumWeb_AddUpdatePatientLang && in_array($key, ['language'])) {
           $SirumWeb_AddUpdatePatientLang = false;
+          $mysql->run("SirumWeb_AddUpdatePatient '$updated[first_name]', '$updated[last_name]', '$updated[birth_date]', '$updated[phone1]', '$updated[language]', $updated[patient_autofill]");
           echo "
-          $updated[first_name] $updated[last_name] $updated[birth_date] $changed[$key] SirumWeb_AddUpdatePatient '$updated[first_name]', '$updated[last_name]', '$updated[birth_date]', '$updated[phone1]', '$updated[language]', $updated[patient_autofill]";
+          RAN $updated[first_name] $updated[last_name] $updated[birth_date] $changed[$key] SirumWeb_AddUpdatePatient '$updated[first_name]', '$updated[last_name]', '$updated[birth_date]', '$updated[phone1]', '$updated[language]', $updated[patient_autofill]";
         }
 
         if ($SirumWeb_AddUpdatePatient && in_array($key, ['first_name', 'last_name', 'birth_date','language', 'patient_autofill'])) {
@@ -243,8 +253,9 @@ function update_patients_wc() {
           //$SirumWeb_AddUpdatePatHomeAddr = false;
 
           $wc_key = isset($cp_to_wc[$key]) ? $cp_to_wc[$key] : $key;
+          $wc_val = mysql_escape_string($old_val);
 
-          $sql = "UPDATE wp_usermeta SET meta_value = '$old_val' WHERE user_id = $updated[patient_id_wc] AND meta_key = '$wc_key'";
+          $sql = "UPDATE wp_usermeta SET meta_value = '$wc_val' WHERE user_id = $updated[patient_id_wc] AND meta_key = '$wc_key'";
           echo "
           RAN $updated[first_name] $updated[last_name] $updated[birth_date] $changed[$key] $sql";
           $mysql->run($sql);
@@ -280,7 +291,7 @@ function update_patients_wc() {
             'allergies_salicylates' => $updated['allergies_salicylates'] ?: '',
             'allergies_sulfa' => $updated['allergies_sulfa'] ?: '',
             'allergies_tetracycline' => $updated['allergies_tetracycline'] ?: '',
-            'allergies_other' => mysql_escape_string($updated['allergies_other']) ?: ''
+            'allergies_other' => @mysql_escape_string($updated['allergies_other']) ?: ''
           ]);
 
           $mssql->run("SirumWeb_AddRemove_Allergies '$updated[patient_id_cp]', '$allergies'");
@@ -300,7 +311,8 @@ function update_patients_wc() {
     //  log_error("update_patients_wc: UPDATE cppat SET $set_patients WHERE pat_id = $updated[patient_id_cp]");
 
     if ( ! empty($changed['last_name'])) {
-      $sql = "UPDATE wp_usermeta SET meta_value = UPPER('$updated[last_name]') WHERE user_id = $updated[patient_id_wc] AND meta_key = 'last_name'";
+      $wc_val = @mysql_escape_string($updated['last_name']);
+      $sql = "UPDATE wp_usermeta SET meta_value = UPPER('$wc_val') WHERE user_id = $updated[patient_id_wc] AND meta_key = 'last_name'";
       echo "
       RAN $updated[first_name] $updated[last_name] $updated[birth_date] $changed[last_name] $sql";
       $mysql->run($sql);
