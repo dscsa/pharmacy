@@ -20,7 +20,7 @@ function export_gd_update_invoice($order) {
 
   $invoice_doc_id = json_decode($result, true);
 
-  log_error("export_gd_update_invoice", ['file' => $args['file'], 'result' => $result]);
+  log_notice("export_gd_update_invoice", ['file' => $args['file'], 'result' => $result]);
 
   return $invoice_doc_id;
 }

@@ -74,7 +74,7 @@ function wc_update_order($invoice_number, $orderdata) {
     UPDATE wp_posts SET ".implode(', ', $set)." WHERE ID = $post_id;
   ";
 
-  log_error('wc_update_order', get_defined_vars());
+  log_notice('wc_update_order', get_defined_vars());
 
   $mysql->run($sql);
 }

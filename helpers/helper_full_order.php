@@ -134,7 +134,7 @@ function get_order_stage_wc($order) {
     : $order[0]['count_filled'];
 
   if ( ! $count_filled)
-    log_error('get_order_stage_wc: double check count_filled == 0', get_defined_vars());
+    log_error('get_order_stage_wc: double check count_filled == 0', [$order[0]['invoice_number'], $order[0]['order_stage_cp']]);
 
   if ( ! $count_filled AND ! $order[0]['order_source'])
     return 'confirm-new-rx'; //New SureScript(s) that we are not filling

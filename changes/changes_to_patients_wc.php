@@ -53,12 +53,12 @@ function changes_to_patients_wc($new) {
 
   //Get Deleted
   $sql = get_deleted_sql($new, $old, $id);
-  log_error('changes_to_patients_wc: deleted', $sql);
+  //log_error('changes_to_patients_wc: deleted', $sql);
   $deleted = $mysql->run($sql);
 
   //Get Inserted
   $sql = get_created_sql($new, $old, $id);
-  log_error('changes_to_patients_wc: created', $sql);
+  //log_error('changes_to_patients_wc: created', $sql);
   $created = $mysql->run($sql);
 
   //Get Updated
