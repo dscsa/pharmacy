@@ -124,6 +124,8 @@ function update_orders_cp() {
 
     $order = get_full_order($updated, $mysql);
 
+    log_error('cp order updated', [$changed_fields, $order[0]]);
+
     if ( ! $order) {
       log_error("Updated Order Missing", $order);
       continue;
@@ -186,7 +188,7 @@ function update_orders_cp() {
     }
 
     if ( ! $stage_change_cp AND $updated['count_filled'] == $order[0]['count_filled'])
-      log_error('cp order changed', [
+      log_error('cp order abnormal change', [
         'old_count_filled' => $updated['count_filled'],
         'new_count_filled' => $order[0]['count_filled'],
         'updated' => $updated,
