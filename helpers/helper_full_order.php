@@ -158,7 +158,7 @@ function get_order_stage_wc($order) {
   rx_source: Fax, Pharmacy, Phone, Prescription, SureScripts
   */
 
-  if ( ! $order[0]['tracking_number'] AND $order[0]['invoice_number'] < 25305)
+  if ( ! $order[0]['tracking_number'] AND $order[0]['invoice_number'] < 29000)
     log_error('get_order_stage_wc: old unshipped order being added', get_defined_vars());
 
   if ( ! $order[0]['tracking_number'] AND in_array($order[0]['order_source'], ['Webform Refill', 'Webform Refill Note', 'Auto Refill v2', 'O Refills']))
