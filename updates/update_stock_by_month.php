@@ -58,7 +58,7 @@ function update_stock_by_month() {
   ");
 
   $duplicate_gsns = $mysql->run("
-    SELECT GROUP_CONCAT(drug_generic, '; '), drug_gsns, COUNT(*) as number FROM gp_stock_live GROUP BY drug_gsns HAVING number > 1
+    SELECT GROUP_CONCAT(drug_generic, '; ') as drugs, drug_gsns as gsns, COUNT(*) as number FROM gp_stock_live WHERE drug_gsns IS NOT NULL GROUP BY drug_gsns HAVING number > 1
   ");
 
   if (isset($duplicate_gsns[0][0])) {
