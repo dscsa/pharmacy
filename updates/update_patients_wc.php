@@ -319,6 +319,14 @@ function update_patients_wc() {
       $mysql->run($sql);
     }
 
+    if ( ! empty($changed['first_name'])) {
+      $wc_val = @mysql_escape_string($updated['old_first_name']);
+      $sql = "UPDATE wp_usermeta SET meta_value = '$wc_val' WHERE user_id = $updated[patient_id_wc] AND meta_key = 'first_name'";
+      echo "
+      RAN $updated[first_name] $updated[last_name] $updated[birth_date] $changed[last_name] $sql";
+      $mysql->run($sql);
+    }
+
     if ($set_usermeta) {
       $sql = "INSERT wp_usermeta (umeta_id, user_id, meta_key, meta_value) VALUES $set_usermeta";
       echo "
