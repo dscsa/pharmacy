@@ -143,7 +143,12 @@ function update_orders_cp() {
 
     $groups = group_drugs($order, $mysql);
 
-    if ($stage_change_cp AND $updated['order_date_shipped']) {
+    if ($updated['order_date_shipped']) {
+
+      if ( ! $stage_change_cp) {
+        log_error("Shipped Order Was Updated?", $order);
+      }
+
       export_gd_publish_invoice($order);
       export_wc_update_order($order);
       export_v2_unpend_order($order);
@@ -154,7 +159,12 @@ function update_orders_cp() {
 
     //Probably finalized days/qty_dispensed_actual
     //Update invoice now or wait until shipped order?
-    if ($stage_change_cp AND $updated['order_date_dispensed']) {
+    if ($updated['order_date_dispensed']) {
+
+      if ( ! $stage_change_cp) {
+        log_error("Dispensed Order Was Updated?", $order);
+      }
+
       $order = helper_update_payment($order, $mysql);
       export_gd_publish_invoice($order);
       export_wc_update_order($order);
