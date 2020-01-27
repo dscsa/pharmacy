@@ -24,12 +24,15 @@ function update_patients_wc() {
 
   foreach($changes['created'] as $created) {
 
+    $first_name_prefix = substr(array_shift(explode(' ', $created['first_name'])), 0, 3);
+    $last_name_prefix = array_pop(explode(' ', $created['last_name']));
+
     $sql = "
       SELECT *
       FROM gp_patients
       WHERE
-        first_name LIKE '".substr($created['first_name'], 0, 3)."%' AND
-        REPLACE(REPLACE(last_name, '*', ''), '\'', '') = '$created[last_name]' AND
+        first_name LIKE '".$first_name_prefix."%' AND
+        REPLACE(REPLACE(last_name, '*', ''), '\'', '') LIKE '%$last_name_prefix' AND
         birth_date = '$created[birth_date]'
     ";
 
@@ -58,7 +61,7 @@ function update_patients_wc() {
         SET
           patient_id_wc = $created[patient_id_wc]
         WHERE
-          patient_id_wc = 0 AND
+          patient_id_wc IS NULL AND
           patient_id_cp = '".$patient[0]['patient_id_cp']."'
       ";
 
@@ -172,7 +175,7 @@ function update_patients_wc() {
             'npi' => $updated['old_pharmacy_npi'],
             'fax' => $updated['old_pharmacy_fax'],
             'phone' => $updated['old_pharmacy_phone'],
-            'street' => $updated['old_pharmacy_address1']
+            'street' => $updated['old_pharmacy_address']
           ]);
 
 
@@ -254,7 +257,7 @@ function update_patients_wc() {
           //$SirumWeb_AddUpdatePatHomeAddr = false;
 
           $wc_key = isset($cp_to_wc[$key]) ? $cp_to_wc[$key] : $key;
-          $wc_val = mysql_escape_string($old_val);
+          $wc_val = @mysql_escape_string($old_val);
 
           $sql = "UPDATE wp_usermeta SET meta_value = '$wc_val' WHERE user_id = $updated[patient_id_wc] AND meta_key = '$wc_key'";
           //echo "
