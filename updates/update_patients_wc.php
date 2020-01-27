@@ -238,7 +238,7 @@ function update_patients_wc() {
 
         if ($SirumWeb_AddUpdatePatientLang && in_array($key, ['language'])) {
           $SirumWeb_AddUpdatePatientLang = false;
-          $mysql->run("SirumWeb_AddUpdatePatient '$updated[first_name]', '$updated[last_name]', '$updated[birth_date]', '$updated[phone1]', '$updated[language]'");
+          $mssql->run("SirumWeb_AddUpdatePatient '$updated[first_name]', '$updated[last_name]', '$updated[birth_date]', '$updated[phone1]', '$updated[language]'");
           echo "
           RAN $updated[first_name] $updated[last_name] $updated[birth_date] $changed[$key] SirumWeb_AddUpdatePatient '$updated[first_name]', '$updated[last_name]', '$updated[birth_date]', '$updated[phone1]', '$updated[language]'";
         }
