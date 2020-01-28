@@ -1481,7 +1481,7 @@ function get_users_by_guardian_id($guardian_id) {
 
 function get_woocommerce_orders($guardian_id, $invoice_number) {
   global $wpdb;
-  return $wpdb->get_results("SELECT meta1.post_id FROM wp_posts JOIN wp_postmeta meta1 ON wp_posts.id = meta1.post_id JOIN wp_postmeta meta2 ON wp_posts.id = meta2.post_id WHERE meta1.meta_key='guardian_id' AND meta1.meta_value = '$guardian_id' AND meta2.meta_key='invoice_number' AND meta2.meta_value = '$invoice_number' ORDER BY wp_posts.id DESC");
+  return $wpdb->get_results("SELECT meta1.post_id FROM wp_posts JOIN wp_postmeta meta1 ON wp_posts.id = meta1.post_id JOIN wp_postmeta meta2 ON wp_posts.id = meta2.post_id WHERE ((meta1.meta_key='guardian_id' OR meta1.meta_key='patient_id_cp') AND meta1.meta_value = '$guardian_id') AND meta2.meta_key='invoice_number' AND meta2.meta_value = '$invoice_number' ORDER BY wp_posts.id DESC");
 }
 
 function get_order_by_invoice_number($invoice_number) {

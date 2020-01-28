@@ -142,6 +142,6 @@ function update_orders_wc() {
   }
 
 
-  log_notice("update_orders_wc notices", $notices);
+  log_errors("update_orders_wc notices", $notices);
 
 }
