@@ -87,8 +87,8 @@ function set_payment_actual($invoice_number, $payment, $mysql) {
     UPDATE
       gp_orders
     SET
-      payment_total_actual = ".($payment['total'] ?: 'NULL')."
-      payment_fee_actual   = ".($payment['fee'] ?: 'NULL')."
+      payment_total_actual = ".($payment['total'] ?: 'NULL').",
+      payment_fee_actual   = ".($payment['fee'] ?: 'NULL').",
       payment_due_actual   = ".($payment['due'] ?: 'NULL')."
     WHERE
       invoice_number = $invoice_number
