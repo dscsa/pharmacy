@@ -46,7 +46,7 @@ function update_orders_wc() {
 
     } else {
 
-      $order = get_full_order($deleted, $mysql);
+      $order = get_full_order($created, $mysql);
 
       if ( ! $order) continue;
 
