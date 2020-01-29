@@ -13,7 +13,7 @@ function update_orders_wc() {
 
   if ( ! $count_deleted AND ! $count_created AND ! $count_updated) return;
 
-  log_notice("update_orders_wc: $count_deleted deleted, $count_created created, $count_updated updated.");
+  log_error("update_orders_wc: $count_deleted deleted, $count_created created, $count_updated updated.");
 
   $mysql = new Mysql_Wc();
 
@@ -46,7 +46,16 @@ function update_orders_wc() {
 
     } else {
 
-      $notices[] = ["Add to Order Guadian Once We Stop Webform from Adding", $created];
+      $order = get_full_order($deleted, $mysql);
+
+      if ( ! $order) continue;
+
+      $order = helper_update_payment($order, $mysql);
+
+      export_wc_create_order($order);
+      export_gd_publish_invoice($order);
+
+      $notices[] = ["New WC Order to Add Guadian", $created];
 
     }
 
@@ -88,12 +97,22 @@ function update_orders_wc() {
 
     } else {
 
-      $notices[] = ["Not sure: WC Order Deleted not through trash?", $deleted];
+      $order = get_full_order($deleted, $mysql);
+
+      if ( ! $order) continue;
+
+      $order = helper_update_payment($order, $mysql);
+
+      export_wc_create_order($order);
+
+      $notices[] = ["Readding Order that should not have been deleted. Not sure: WC Order Deleted not through trash?", $deleted];
     }
 
   }
 
   foreach($changes['updated'] as $updated) {
+
+    $changed = changed_fields($updated);
 
     if ($updated['order_stage_wc'] == 'trash') {
 
@@ -133,9 +152,16 @@ function update_orders_wc() {
 
           //$notices[] = ["WC Order Stage Change", $updated];
 
+    } else if ($updated['patient_id_wc'] AND ! $updated['old_patient_id_wc']) {
+
+
+      //26214, 26509
+      $notices[] = ["WC Patient Id Added to Order", [$changed, $updated]];
+
+
     } else {
 
-      $notices[] = ["Order updated in WC", $updated];
+      $notices[] = ["Order updated in WC", [$changed, $updated]];
 
     }
 
