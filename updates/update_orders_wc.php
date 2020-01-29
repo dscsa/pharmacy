@@ -42,20 +42,11 @@ function update_orders_wc() {
       'wc-done-auto-pay'
     ])) {
 
-      //$notices[] = ["Shipped/Paid WC not in Guardian. Delete/Refund?", $created];
+      $notices[] = ["Shipped/Paid WC not in Guardian. Delete/Refund?", $created];
 
     } else {
 
-      $order = get_full_order($created, $mysql);
-
-      if ( ! $order) continue;
-
-      $order = helper_update_payment($order, $mysql);
-
-      export_wc_create_order($order);
-      export_gd_publish_invoice($order);
-
-      $notices[] = ["New WC Order to Add Guadian", $created];
+      $notices[] = ["New WC Order to Add Guadian / Or Guardian Order Deleted and not yet deleted from WC", $created];
 
     }
 

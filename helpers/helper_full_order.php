@@ -1,7 +1,7 @@
 <?php
 //order created -> add any additional rxs to order -> import order items -> sync all drugs in order
 
-function get_full_order($order, $mysql) {
+function get_full_order($partial, $mysql) {
 
   //gp_orders.invoice_number and other fields at end because otherwise potentially null gp_order_items.invoice_number will override gp_orders.invoice_number
   $sql = "
@@ -22,7 +22,7 @@ function get_full_order($order, $mysql) {
     LEFT JOIN gp_stock_live ON -- might not have a match if no GSN match
       gp_rxs_grouped.drug_generic = gp_stock_live.drug_generic -- this is for the helper_days_dispensed msgs for unordered drugs
     WHERE
-      gp_orders.invoice_number = $order[invoice_number]
+      gp_orders.invoice_number = $partial[invoice_number]
   ";
 
   $order = $mysql->run($sql)[0];
