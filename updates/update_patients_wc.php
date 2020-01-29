@@ -70,7 +70,7 @@ function update_patients_wc() {
       $mysql->run($sql2);
       $mysql->run($sql3);
 
-      log_error('update_patients_wc: matched', [$sql2, $sql3, $patient[0]]);
+      log_notice('update_patients_wc: matched', [$sql2, $sql3, $patient[0]]);
     }
     else if ( ! $created['pharmacy_name']) {
       $created_needs_form++;
