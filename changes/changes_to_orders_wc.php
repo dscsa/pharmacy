@@ -42,6 +42,7 @@ function changes_to_orders_wc($new) {
 
   //Save Updates
   $set_updated_sql = set_updated_sql($new, $old, $id, $where);
+  log_error('changes to order wc: set_updated_sql', $set_updated_sql);
   $mysql->run($set_updated_sql);
 
   log_info('changes_to_orders_wc', [
