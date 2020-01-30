@@ -199,7 +199,11 @@ function update_patients_wc() {
          //RAN $updated[first_name] $updated[last_name] $updated[birth_date] $changed[$key] SirumWeb_AddUpdatePatientUD '$updated[patient_id_cp]', '1', '$updated[pharmacy_name]'";
         }
 
-        if ($SirumWeb_AddUpdatePatientUD2 && strlen($updated['pharmacy_fax']) >= 10 && in_array($key, ['pharmacy_npi','pharmacy_fax','pharmacy_phone'])) {
+        if ($key == 'pharmacy_fax')
+          echo "
+          RAN $key $SirumWeb_AddUpdatePatientUD2 new:$updated['pharmacy_fax'] old:$updated['old_pharmacy_fax']".strlen($updated['pharmacy_fax']);
+
+        if ($SirumWeb_AddUpdatePatientUD2 && (strlen($updated['pharmacy_fax']) >= 10) && in_array($key, ['pharmacy_npi','pharmacy_fax','pharmacy_phone'])) {
          $user_def2 = substr("$updated[pharmacy_npi],$updated[pharmacy_fax],$updated[pharmacy_phone],$updated[pharmacy_address]", 0, 50);
 
          $SirumWeb_AddUpdatePatientUD2 = false;
