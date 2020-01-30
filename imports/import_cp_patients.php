@@ -18,8 +18,8 @@ function import_cp_patients() {
       CONVERT(varchar, MAX(birth_date), 20) as birth_date,
       MAX(CAST(pat.cmt as VARCHAR(3072))) as patient_note, -- MAX DOESN'T WORK WITH TXT
 
-      MAX(CONCAT(ph1.area_code, ph1.phone_no)) as phone1,
-      MAX(CONCAT(ph2.area_code, ph2.phone_no)) as phone2,
+      NULLIF(MAX(CONCAT(ph1.area_code, ph1.phone_no)), '') as phone1,
+      NULLIF(MAX(CONCAT(ph2.area_code, ph2.phone_no)), '') as phone2,
       MAX(pat.email) as email,
       MAX(pat.auto_refill_cn) as patient_autofill,
 
@@ -28,8 +28,8 @@ function import_cp_patients() {
       MAX(user_def_3) as payment_method_default,
       MAX(user_def_4) as billing_info,
 
-      MAX(addr1) as patient_address1,
-      MAX(addr2) as patient_address2,
+      NULLIF(MAX(addr1), '') as patient_address1,
+      NULLIF(MAX(addr2), '') as patient_address2,
       MAX(a.city) as patient_city,
       MAX(a.state_cd) as patient_state,
       MAX(a.zip) as patient_zip,
