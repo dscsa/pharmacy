@@ -192,21 +192,21 @@ function update_patients_wc() {
 
          //Cindy updates CP so trust that data over WC
          $backup_pharmacy = json_encode([
-           'npi' => $updated['old_pharmacy_npi'],
-           'name' => $updated['old_pharmacy_name'],
-           'street' => $updated['old_pharmacy_address'],
-           'city' => $updated['old_pharmacy_city'],
-           'state' => $updated['old_pharmacy_state'],
-           'zip' => $updated['old_pharmacy_zip'],
-           'phone' => $updated['old_pharmacy_phone'],
-           'fax' => $updated['old_pharmacy_fax']
+           'npi' => @$updated['old_pharmacy_npi'] ?: $updated['pharmacy_npi'],
+           'name' => @$updated['old_pharmacy_name'] ?: $updated['pharmacy_name'],
+           'street' => @$updated['old_pharmacy_address'] ?: $updated['pharmacy_address'],
+           'city' => @$updated['old_pharmacy_city'] ?: $updated['pharmacy_city'],
+           'state' => @$updated['old_pharmacy_state'] ?: $updated['pharmacy_state'],
+           'zip' => @$updated['old_pharmacy_zip'] ?: $updated['pharmacy_zip'],
+           'phone' => @$updated['old_pharmacy_phone'] ?: $updated['pharmacy_phone'],
+           'fax' => @$updated['old_pharmacy_fax'] ?: $updated['pharmacy_fax']
          ]);
 
          $sql = "UPDATE wp_usermeta SET meta_value = '$backup_pharmacy' WHERE user_id = $updated[patient_id_wc] AND meta_key = 'backup_pharmacy'";
 
          echo "
          $updated[first_name] $updated[last_name] $updated[birth_date] $key $changed[$key] $sql ".json_encode($updated, JSON_PRETTY_PRINT);
-         //$mysql->run($sql2);
+         $mysql->run($sql);
         }
 
         if ($SirumWeb_AddUpdatePatientUD1 && $key == 'pharmacy_name') {
