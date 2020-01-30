@@ -106,7 +106,7 @@ function update_patients_wc() {
 
     $changed = changed_fields($updated);
 
-    log_error("update_patients_wc: updated $updated[invoice_number]", $changed);
+    log_error("update_patients_wc: updated cp:$updated[patient_id_cp] wc:$updated[patient_id_wc]", $changed);
 
     $cp_to_wc = [
       'email' => 'user_email',
@@ -264,8 +264,8 @@ function update_patients_wc() {
           $wc_val = @mysql_escape_string($old_val);
 
           $sql = "UPDATE wp_usermeta SET meta_value = '$wc_val' WHERE user_id = $updated[patient_id_wc] AND meta_key = '$wc_key'";
-          //echo "
-          //RAN $updated[first_name] $updated[last_name] $updated[birth_date] $changed[$key] $sql";
+          echo "
+          RAN $updated[first_name] $updated[last_name] $updated[birth_date] $key $changed[$key] $sql";
           $mysql->run($sql);
         }
 
