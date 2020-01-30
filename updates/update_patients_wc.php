@@ -283,9 +283,16 @@ function update_patients_wc() {
         if ($SirumWeb_AddUpdatePatCellPhone && $key == 'phone2' && (strlen($updated['phone2']) >= 10)) {
           $SirumWeb_AddUpdatePatCellPhone = false;
 
-          //$mysql->run("SirumWeb_AddUpdatePatHomePhone '$updated[patient_id_cp]', '$updated[phone1]', 9");
-          echo "
-          $updated[first_name] $updated[last_name] $updated[birth_date] $changed[$key] $updated[phone1] == $updated[phone2]? SirumWeb_AddUpdatePatHomePhone '$updated[patient_id_cp]', '$updated[phone1]', 9";
+          if ($updated['phone1'] == $updated['phone2']) {
+            $sql = "DELETE wp_usermeta FROM wp_usermeta WHERE user_id = $updated[patient_id_wc] AND meta_key = 'billing_phone'";
+            echo "
+            DELETING phone2 from WC $updated[first_name] $updated[last_name] $updated[birth_date] $key $changed[$key] $sql";
+            $mysql->run($sql);
+          } else {
+            //$mysql->run("SirumWeb_AddUpdatePatHomePhone '$updated[patient_id_cp]', '$updated[phone1]', 9");
+            echo "
+            ADDING phone2 to CP $updated[first_name] $updated[last_name] $updated[birth_date] $changed[$key] $updated[phone1] == $updated[phone2]? SirumWeb_AddUpdatePatHomePhone '$updated[patient_id_cp]', '$updated[phone1]', 9";
+          }
         }
 
         if ($SirumWeb_AddRemove_Allergies && substr($key, 0, 10) == 'allergies_') {

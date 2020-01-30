@@ -15,7 +15,7 @@ function changes_to_patients_wc($new) {
     NOT old.birth_date <=> new.birth_date OR
     -- NOT old.patient_note <=> new.patient_note OR
     NOT old.phone1 <=> new.phone1 OR
-    NOT COALESCE(old.phone2, old.phone1) <=> COALESCE(new.phone2, new.phone1) OR -- Right now often Phone2 === Phone1, don't trigger change in this case
+    NOT old.phone2 <=> new.phone2 OR -- Right now often Phone2 === Phone1, don't trigger change in this case
     NOT old.email <=> new.email OR
     -- NOT old.patient_autofill <=> new.patient_autofill OR
     NOT old.pharmacy_name <=> new.pharmacy_name OR
