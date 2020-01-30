@@ -78,7 +78,7 @@ function changes_to_orders_wc($new) {
       post_status LIKE 'wc-confirm-%'
 
 
-    SELECT * 
+    SELECT *
     FROM wp_posts
     LEFT JOIN wp_postmeta ON post_id = ID AND meta_key = 'invoice_number'
     WHERE post_type = 'shop_order'
@@ -89,7 +89,7 @@ function changes_to_orders_wc($new) {
     SELECT meta_key, meta_value, GROUP_CONCAT(post_status), COUNT(*) as number
     FROM `wp_postmeta`
     JOIN wp_posts ON post_id = wp_posts.ID
-    WHERE meta_key
+    WHERE meta_key = 'invoice_number'
     GROUP BY meta_value
     HAVING number > 1
 

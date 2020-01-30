@@ -106,6 +106,8 @@ function update_patients_wc() {
 
     $changed = changed_fields($updated);
 
+    log_error("update_patients_wc: updated $updated[invoice_number]", $changed);
+
     $cp_to_wc = [
       'email' => 'user_email',
       'patient_zip' => 'billing_postcode',
