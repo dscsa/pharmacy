@@ -147,9 +147,6 @@ function update_patients_wc() {
       $old_val = $updated['old_'.$key];
       $new_val = $updated[$key];
 
-      if (strtoupper($old_val) == strtoupper($new_val))
-        continue;
-
       if ( ! $new_val AND $old_val) {
 
         $wc_key = isset($cp_to_wc[$key]) ? $cp_to_wc[$key] : $key;
@@ -208,8 +205,8 @@ function update_patients_wc() {
          $SirumWeb_AddUpdatePatientUD2 = false;
 
          $mssql->run("SirumWeb_AddUpdatePatientUD '$updated[patient_id_cp]', '2', '$user_def2'");
-         //echo "
-         //RAN $updated[first_name] $updated[last_name] $updated[birth_date] $changed[$key] SirumWeb_AddUpdatePatientUD '$updated[patient_id_cp]', '2', '$user_def2'";
+         echo "
+         RAN $updated[first_name] $updated[last_name] $updated[birth_date] $key $changed[$key] SirumWeb_AddUpdatePatientUD '$updated[patient_id_cp]', '2', '$user_def2'";
         }
 
         if ($SirumWeb_AddUpdatePatientUD3 && $key == 'payment_method_default') {
