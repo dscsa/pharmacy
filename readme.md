@@ -1,5 +1,6 @@
 Get Allergy Syncing Working
 Fix Mismatched Patient
+Unclassified Orders in WC
 Understand Created Item Readded.
 ERROR: Missing Order Item!.
 Created Item Missing.

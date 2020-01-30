@@ -62,7 +62,9 @@ function changes_to_patients_wc($new) {
   $created = $mysql->run($sql);
 
   //Get Updated
-  $updated = $mysql->run(get_updated_sql($new, $old, $id, $where));
+  $sql = get_updated_sql($new, $old, $id, $where);
+  log_error('changes_to_patients_wc: updated', $sql);
+  $updated = $mysql->run($sql);
 
   //Save Deletes
   //$mysql->run(set_deleted_sql($new, $old, $id));

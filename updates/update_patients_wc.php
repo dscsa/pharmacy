@@ -205,7 +205,7 @@ function update_patients_wc() {
          $sql = "UPDATE wp_usermeta SET meta_value = '$backup_pharmacy' WHERE user_id = $updated[patient_id_wc] AND meta_key = 'backup_pharmacy'";
 
          echo "
-         $updated[first_name] $updated[last_name] $updated[birth_date] $key $changed[$key] $sql";
+         $updated[first_name] $updated[last_name] $updated[birth_date] $key $changed[$key] $sql ".json_encode($updated, JSON_PRETTY_PRINT);
          //$mysql->run($sql2);
         }
 
