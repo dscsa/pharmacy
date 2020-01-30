@@ -189,8 +189,24 @@ function update_patients_wc() {
 
         if ($SirumWeb_AddExternalPharmacy && in_array($key, ['pharmacy_npi','pharmacy_name','pharmacy_phone','pharmacy_fax','pharmacy_zip','pharmacy_address','pharmacy_city'])) {
          $SirumWeb_AddExternalPharmacy = false;
-         //echo "
-         //$updated[first_name] $updated[last_name] $updated[birth_date] $changed[$key] SirumWeb_AddExternalPharmacy '$updated[pharmacy_npi]', '$updated[pharmacy_name], $updated[pharmacy_phone], $updated[pharmacy_address]', '$updated[pharmacy_address]', '$updated[pharmacy_city]', '$updated[pharmacy_state]', '$updated[pharmacy_zip]', '$updated[pharmacy_phone]', '$updated[pharmacy_fax]'";
+
+         //Cindy updates CP so trust that data over WC
+         $backup_pharmacy = json_encode([
+           'npi':$updated['old_pharmacy_npi'],
+           'name':$updated['old_pharmacy_name'],
+           'street':$updated['old_pharmacy_address'],
+           'city':$updated['old_pharmacy_city'],
+           'state':$updated['old_pharmacy_state'],
+           'zip':$updated['old_pharmacy_zip'],
+           'phone':$updated['old_pharmacy_phone'],
+           'fax':$updated['old_pharmacy_fax']
+         ]);
+
+         $sql = "UPDATE wp_usermeta SET meta_value = '$backup_pharmacy' WHERE user_id = $updated[patient_id_wc] AND meta_key = 'backup_pharmacy'";
+
+         echo "
+         $updated[first_name] $updated[last_name] $updated[birth_date] $key $changed[$key] $sql";
+         //$mysql->run($sql2);
         }
 
         if ($SirumWeb_AddUpdatePatientUD1 && $key == 'pharmacy_name') {

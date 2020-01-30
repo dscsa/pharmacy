@@ -1,7 +1,69 @@
+Get Allergy Syncing Working
+Fix Mismatched Patient
+Understand Created Item Readded.
+ERROR: Missing Order Item!.
+Created Item Missing.
+"Shipped/Paid WC not in Guardian. Delete/Refund?
+Get rid of old WC Order Statuses
+ 1168 deleted patients in Guardian
+ Clear out unused WC Meta_Keys
+
+Review and Switch CommCalendar
+Review and Switch Invoices
+Implement, Review, and Switch Fax Out Transfers
+
 # Helpful Queries
 ```
 Ensure Unique GSNs:
-SELECT GROUP_CONCAT(drug_generic, '; '), drug_gsns, COUNT(*) as number FROM `gp_stock_live` GROUP BY drug_gsns HAVING number > 1
+  SELECT GROUP_CONCAT(drug_generic, '; '), drug_gsns, COUNT(*) as number
+  FROM `gp_stock_live`
+  GROUP BY drug_gsns
+  HAVING number > 1
+
+Review Duplicated WC Order Data:
+  SELECT post_id, meta_key, COUNT(*) as number, meta_value
+  FROM `wp_postmeta`
+  GROUP BY post_id, meta_key, meta_value
+  HAVING number > 1
+
+Remove Duplicated WC Order Data by Key:
+  DELETE t1 FROM wp_postmeta t1
+  INNER JOIN wp_postmeta t2
+  WHERE
+    t1.meta_id < t2.meta_id AND
+    t1.post_id = t2.post_id AND
+    t1.meta_key = t2.meta_key AND
+    t1.meta_value=t2.meta_value AND
+    t1.meta_key = 'invoice_doc_id' AND
+    -- t1.post_id = 32945
+
+Remove Duplicated Orders/Invoice Numbers:
+  DELETE t1 FROM wp_postmeta t1
+  INNER JOIN wp_postmeta t2
+  JOIN wp_posts ON t1.post_id = wp_posts.ID
+  WHERE
+    t1.meta_id < t2.meta_id AND
+    t1.meta_key = 'invoice_number' AND
+    t1.meta_value = t2.meta_value AND
+    (wp_posts.post_status LIKE 'wc-prepare-%' OR wp_posts.post_status LIKE 'wc-confirm-%')
+
+Review Orders that have NO invoice number:
+  SELECT *
+  FROM wp_posts
+  LEFT JOIN wp_postmeta ON post_id = ID AND meta_key = 'invoice_number'
+  WHERE post_type = 'shop_order'
+  AND post_status != 'trash'
+  AND meta_id IS NULL
+  ORDER BY ID ASC
+
+Review Orders that have a DUPLICATE invoice number:
+  SELECT meta_key, meta_value, GROUP_CONCAT(post_status), COUNT(*) as number
+  FROM `wp_postmeta`
+  JOIN wp_posts ON post_id = wp_posts.ID
+  WHERE meta_key = 'invoice_number'
+  GROUP BY meta_value
+  HAVING number > 1
+*/
 ```
 
 #To Expose Server Via Comcast
