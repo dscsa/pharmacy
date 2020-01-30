@@ -106,7 +106,9 @@ function update_patients_wc() {
 
     $changed = changed_fields($updated);
 
-    log_error("update_patients_wc: updated cp:$updated[patient_id_cp] wc:$updated[patient_id_wc]", $changed);
+    $changed
+      ? log_error("update_patients_wc: updated changed cp:$updated[patient_id_cp] wc:$updated[patient_id_wc]", $changed)
+      : log_error("update_patients_wc: updated no change? cp:$updated[patient_id_cp] wc:$updated[patient_id_wc]", $updated);
 
     $cp_to_wc = [
       'email' => 'user_email',
