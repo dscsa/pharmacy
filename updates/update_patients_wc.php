@@ -315,7 +315,7 @@ function update_patients_wc() {
           else if ($updated['phone1'] == $updated['phone2'] AND ! $updated['old_phone2']) {
             $sql = "DELETE wp_usermeta FROM wp_usermeta WHERE user_id = $updated[patient_id_wc] AND meta_key = 'billing_phone'";
             echo "
-            DELETING phone2 from WC $updated[first_name] $updated[last_name] $updated[birth_date] $key $changed[$key] $sql";
+            DELETING phone2 from WC $updated[first_name] $updated[last_name] $updated[birth_date] $updated[phone1] $key $changed[$key] $sql";
             $mysql->run($sql);
           } else {
             $sql = "EXEC SirumWeb_AddUpdatePatHomePhone '$updated[patient_id_cp]', '$updated[phone1]', 9";
