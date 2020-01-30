@@ -45,6 +45,58 @@ function changes_to_orders_wc($new) {
   log_error('changes to order wc: set_updated_sql', $set_updated_sql);
   $mysql->run($set_updated_sql);
 
+  //SELECT post_id, meta_key, COUNT(*) as number, meta_value FROM `wp_postmeta` GROUP BY post_id, meta_key, meta_value HAVING number > 1
+  /*
+
+  DELETE t1 FROM wp_postmeta t1
+  INNER JOIN wp_postmeta t2
+  WHERE
+    t1.meta_id < t2.meta_id AND
+    t1.post_id = t2.post_id AND
+    t1.meta_key = t2.meta_key AND
+    t1.meta_value=t2.meta_value AND
+    t1.meta_key = 'invoice_doc_id' AND
+    t1.post_id = 32945
+
+
+    DELETE t1 FROM wp_postmeta t1
+    INNER JOIN wp_postmeta t2
+    JOIN wp_posts ON t1.post_id = wp_posts.ID
+    WHERE
+      t1.meta_id < t2.meta_id AND
+      t1.meta_key = 'invoice_number' AND
+      t1.meta_value = t2.meta_value AND
+      (wp_posts.post_status LIKE 'wc-prepare-%' OR wp_posts.post_status LIKE 'wc-confirm-%')
+
+
+    DELETE wp_posts
+    FROM wp_posts
+    LEFT JOIN wp_postmeta ON post_id = ID AND meta_key = 'invoice_number'
+    WHERE
+      post_type = 'shop_order' AND
+      meta_id IS NULL AND
+      post_status LIKE 'wc-confirm-%'
+
+
+    SELECT * 
+    FROM wp_posts
+    LEFT JOIN wp_postmeta ON post_id = ID AND meta_key = 'invoice_number'
+    WHERE post_type = 'shop_order'
+    AND post_status != 'trash'
+    AND meta_id IS NULL
+    ORDER BY ID ASC
+
+    SELECT meta_key, meta_value, GROUP_CONCAT(post_status), COUNT(*) as number
+    FROM `wp_postmeta`
+    JOIN wp_posts ON post_id = wp_posts.ID
+    WHERE meta_key
+    GROUP BY meta_value
+    HAVING number > 1
+
+    1XqG_DR6RuCOrD-zVUqh0RDOBUIq9tmzLWzI7iywhHQM
+
+  */
+
   log_info('changes_to_orders_wc', [
     'get_deleted' => $get_deleted_sql,
     'get_created' => $get_created_sql,
