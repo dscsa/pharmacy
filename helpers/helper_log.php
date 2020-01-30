@@ -99,7 +99,7 @@ function log_error($text, $vars = '') {
   $file   = get_file();
   $vars   = $vars ? vars_to_json($vars, $file) : '';
   log_to_cli('ERROR', $text, $file, $vars);
-  log_to_email('ERROR', $text, $file, $vars);
+  //log_to_email('ERROR', $text, $file, $vars);
   log_to_db('ERROR', $text, $file, $vars);
 }
 
