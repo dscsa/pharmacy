@@ -20,7 +20,7 @@ function import_cp_patients() {
 
       NULLIF(MAX(CONCAT(ph1.area_code, ph1.phone_no)), '') as phone1,
       NULLIF(MAX(CONCAT(ph2.area_code, ph2.phone_no)), '') as phone2,
-      MAX(pat.email) as email,
+      NULLIF(MAX(pat.email), '') as email,
       MAX(pat.auto_refill_cn) as patient_autofill,
 
       MAX(user_def_1) as pharmacy_name,
