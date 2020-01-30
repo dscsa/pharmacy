@@ -269,9 +269,7 @@ function update_patients_wc() {
           $wc_key = isset($cp_to_wc[$key]) ? $cp_to_wc[$key] : $key;
           $wc_val = @mysql_escape_string($old_val);
 
-          $wc_val = $wc_val ? "'$wc_val'" : 'NULL';
-
-          $sql = "UPDATE wp_usermeta SET meta_value = $wc_val WHERE user_id = $updated[patient_id_wc] AND meta_key = '$wc_key'";
+          $sql = "UPDATE wp_usermeta SET meta_value = '$wc_val' WHERE user_id = $updated[patient_id_wc] AND meta_key = '$wc_key'";
           echo "
           RAN $updated[first_name] $updated[last_name] $updated[birth_date] $key $changed[$key] $sql";
           $mysql->run($sql);
@@ -287,7 +285,7 @@ function update_patients_wc() {
             RAN $updated[first_name] $updated[last_name] $updated[birth_date] $sql";
           }
           else if (strlen($updated['old_phone1']) >= 10) {
-            $sql = "UPDATE wp_usermeta SET phone = '$updated[old_phone1]' WHERE user_id = $updated[patient_id_wc] AND meta_key = 'phone'";
+            $sql = "UPDATE wp_usermeta SET meta_value = '$updated[old_phone1]' WHERE user_id = $updated[patient_id_wc] AND meta_key = 'phone'";
             echo "
             UPDATING phone1 within WC $updated[first_name] $updated[last_name] $updated[birth_date] $key $changed[$key] $sql";
             $mysql->run($sql);
@@ -298,13 +296,13 @@ function update_patients_wc() {
           $SirumWeb_AddUpdatePatCellPhone = false;
 
           if ($updated['phone2'] AND ! $updated['old_phone2']) {
-            $sql = "SirumWeb_AddUpdatePatHomePhone '$updated[patient_id_cp]', '$updated[phone1]', 9";
-            $mysql->run($sql);
+            $sql = "EXEC SirumWeb_AddUpdatePatHomePhone '$updated[patient_id_cp]', '$updated[phone1]', 9";
+            $mssql->run($sql);
             echo "
             ADDING phone2 to CP $updated[first_name] $updated[last_name] $updated[birth_date] $key $changed[$key] $sql";
           }
           if ($updated['phone1'] == $updated['phone2'] AND $updated['old_phone2']) {
-            $sql = "UPDATE wp_usermeta SET billing_phone = '$updated[old_phone2]' WHERE user_id = $updated[patient_id_wc] AND meta_key = 'billing_phone'";
+            $sql = "UPDATE wp_usermeta SET meta_value = '$updated[old_phone2]' WHERE user_id = $updated[patient_id_wc] AND meta_key = 'billing_phone'";
             echo "
             UPDATING phone2 within WC $updated[first_name] $updated[last_name] $updated[birth_date] $key $changed[$key] $sql";
             $mysql->run($sql);
@@ -315,8 +313,8 @@ function update_patients_wc() {
             DELETING phone2 from WC $updated[first_name] $updated[last_name] $updated[birth_date] $key $changed[$key] $sql";
             $mysql->run($sql);
           } else {
-            $sql = "SirumWeb_AddUpdatePatHomePhone '$updated[patient_id_cp]', '$updated[phone1]', 9";
-            $mysql->run($sql);
+            $sql = "EXEC SirumWeb_AddUpdatePatHomePhone '$updated[patient_id_cp]', '$updated[phone1]', 9";
+            $mssql->run($sql);
             echo "
             ADDING phone2 to CP $updated[first_name] $updated[last_name] $updated[birth_date] $key $changed[$key] $sql";
           }
