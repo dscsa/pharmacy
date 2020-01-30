@@ -139,6 +139,8 @@ function changed_fields($updated) {
       $new_val = $updated[$new_key];
       if ($old_val !== $new_val) {
         $old_val = is_null($old_val) ? 'NULL' : $old_val;
+        $new_val = is_null($new_val) ? 'NULL' : $new_val;
+
         $changes[$new_key] = "$old_val >>> $new_val";
       }
     }

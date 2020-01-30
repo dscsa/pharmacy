@@ -185,7 +185,7 @@ function update_patients_wc() {
         $set_usermeta[$wc_key] = "(NULL, $updated[patient_id_wc], '$wc_key',  '$wc_val')";
       }
 
-      else if ($new_val != $old_val) {
+      else if ($new_val !== $old_val) {
 
         if ($SirumWeb_AddExternalPharmacy && in_array($key, ['pharmacy_npi','pharmacy_name','pharmacy_phone','pharmacy_fax','pharmacy_zip','pharmacy_address','pharmacy_city'])) {
          $SirumWeb_AddExternalPharmacy = false;
