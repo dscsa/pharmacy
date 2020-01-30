@@ -295,16 +295,10 @@ function update_patients_wc() {
         if ($SirumWeb_AddUpdatePatCellPhone && $key == 'phone2' && (strlen($updated['phone2']) >= 10)) {
           $SirumWeb_AddUpdatePatCellPhone = false;
 
-          if ($updated['phone2'] AND ! $updated['old_phone2']) {
-            $sql = "EXEC SirumWeb_AddUpdatePatHomePhone '$updated[patient_id_cp]', '$updated[phone1]', 9";
-            $mssql->run($sql);
-            echo "
-            ADDING phone2 to CP $updated[first_name] $updated[last_name] $updated[birth_date] $key $changed[$key] $sql";
-          }
           if ($updated['phone1'] == $updated['phone2'] AND $updated['old_phone2']) {
             $sql = "UPDATE wp_usermeta SET meta_value = '$updated[old_phone2]' WHERE user_id = $updated[patient_id_wc] AND meta_key = 'billing_phone'";
             echo "
-            UPDATING phone2 within WC $updated[first_name] $updated[last_name] $updated[birth_date] $key $changed[$key] $sql";
+            UPDATING phone2 within WC $updated[first_name] $updated[last_name] $updated[birth_date] $updated['phone1'] $key $changed[$key] $sql";
             $mysql->run($sql);
           }
           else if ($updated['phone1'] == $updated['phone2'] AND ! $updated['old_phone2']) {
