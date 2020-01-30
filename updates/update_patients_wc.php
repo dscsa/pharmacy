@@ -270,15 +270,15 @@ function update_patients_wc() {
           $mysql->run($sql);
         }
 
-        if ($SirumWeb_AddUpdatePatHomePhone && $key == 'phone1' && strlen($updated['phone1']) >= 10) {
+        if ($SirumWeb_AddUpdatePatHomePhone && $key == 'phone1' && (strlen($updated['phone1']) >= 10)) {
           $SirumWeb_AddUpdatePatHomePhone = false;
 
           $mssql->run("SirumWeb_AddUpdatePatHomePhone '$updated[patient_id_cp]', '$updated[phone1]'");
-          //echo "
-          //RAN $updated[first_name] $updated[last_name] $updated[birth_date] SirumWeb_AddUpdatePatHomePhone '$updated[patient_id_cp]', '$updated[phone1]'";
+          echo "
+          RAN $updated[first_name] $updated[last_name] $updated[birth_date] SirumWeb_AddUpdatePatHomePhone '$updated[patient_id_cp]', '$updated[phone1]'";
         }
 
-        if ($SirumWeb_AddUpdatePatCellPhone && $key == 'phone2' && strlen($updated['phone2']) >= 10) {
+        if ($SirumWeb_AddUpdatePatCellPhone && $key == 'phone2' && (strlen($updated['phone2']) >= 10)) {
           $SirumWeb_AddUpdatePatCellPhone = false;
 
           //$mysql->run("SirumWeb_AddUpdatePatHomePhone '$updated[patient_id_cp]', '$updated[phone1]', 9");

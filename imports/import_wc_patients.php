@@ -77,8 +77,8 @@ function import_wc_patients() {
 
       $pharmacy['name'] = substr(@$pharmacy['name'], 0, 50);
       $pharmacy['npi'] = substr(@$pharmacy['npi'], 0, 10);
-      $pharmacy['fax'] = substr(@$pharmacy['fax'], 0, 12);
-      $pharmacy['phone'] = substr(@$pharmacy['phone'], 0, 12);
+      $pharmacy['fax'] = substr(@$pharmacy['fax'], 0, 14); //1-999-999-9999
+      $pharmacy['phone'] = substr(@$pharmacy['phone'], 0, 14); //1-999-999-9999
 
       $row['pharmacy_name'] =clean_val($pharmacy['name']);
       $row['pharmacy_npi'] = clean_val($pharmacy['npi']);
