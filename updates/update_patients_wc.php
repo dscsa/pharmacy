@@ -269,10 +269,19 @@ function update_patients_wc() {
           $wc_key = isset($cp_to_wc[$key]) ? $cp_to_wc[$key] : $key;
           $wc_val = @mysql_escape_string($old_val);
 
-          $sql = "UPDATE wp_usermeta SET meta_value = '$wc_val' WHERE user_id = $updated[patient_id_wc] AND meta_key = '$wc_key'";
+          $sql1 = "SELECT * FROM wp_usermeta WHERE user_id = $updated[patient_id_wc] AND meta_key = '$wc_key'";
+
+          $exists = $mysql->run($sql1);
+
+          if (isset($exists[0][0]) {
+            $sql2 = "UPDATE wp_usermeta SET meta_value = '$wc_val' WHERE user_id = $updated[patient_id_wc] AND meta_key = '$wc_key'";
+          } else {
+            $sql2 = "INSERT wp_usermeta (umeta_id, user_id, meta_key, meta_value) VALUES (NULL, $updated[patient_id_wc], '$wc_key', '$wc_val')";
+          }
+
           echo "
-          RAN $updated[first_name] $updated[last_name] $updated[birth_date] $key $changed[$key] $sql";
-          $mysql->run($sql);
+          RAN $updated[first_name] $updated[last_name] $updated[birth_date] $key $changed[$key] $sql2";
+          $mysql->run($sql2);
         }
 
         if ($SirumWeb_AddUpdatePatHomePhone && $key == 'phone1') {
