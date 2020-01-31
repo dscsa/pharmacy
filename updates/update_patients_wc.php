@@ -235,14 +235,34 @@ function update_patients_wc() {
         'npi' => $updated['old_pharmacy_npi'],
         'fax' => $updated['old_pharmacy_fax'],
         'phone' => $updated['old_pharmacy_phone'],
-        'street' => $updated['old_pharmacy_address']
+        'street' => $updated['pharmacy_address'] // old_pharamcy address is not populated since We only save a partial address in CP so will always differ
       ]));
     }
 
-    if ( ! $updated['payment_method_default'] AND $updated['old_payment_method_default']) {
-      upsert_patient_wc($mysql, $updated['patient_id_wc'], 'payment_method_default', $updated['old_payment_method_default']);
-    } else if ($updated['payment_method_default'] !== $updated['old_payment_method_default']) {
+    if ($updated['payment_method_default'] AND ! $updated['old_payment_method_default']) {
+
       upsert_patient_cp($mssql, "SirumWeb_AddUpdatePatientUD '$updated[patient_id_cp]', '3', '$updated[payment_method_default]'");
+
+    } else if ($updated['payment_method_default'] !== $updated['old_payment_method_default']) {
+
+      if ($updated['old_payment_method_default'] == PAYMENT_METHOD['MAIL'])
+        upsert_patient_wc($mysql, $updated['patient_id_wc'], 'payment_method_default', PAYMENT_METHOD['MAIL']);
+
+      else if ($updated['old_payment_method_default'] == PAYMENT_METHOD['AUTOPAY'])
+        upsert_patient_wc($mysql, $updated['patient_id_wc'], 'payment_method_default', PAYMENT_METHOD['AUTOPAY']);
+
+      else if ($updated['old_payment_method_default'] == PAYMENT_METHOD['ONLINE'])
+        upsert_patient_wc($mysql, $updated['patient_id_wc'], 'payment_method_default', PAYMENT_METHOD['ONLINE']);
+
+      else if ($updated['old_payment_method_default'] == PAYMENT_METHOD['COUPON'])
+        upsert_patient_wc($mysql, $updated['patient_id_wc'], 'payment_method_default', PAYMENT_METHOD['COUPON']);
+
+      else if ($updated['old_payment_method_default'] == PAYMENT_METHOD['CARD EXPIRED'])
+        upsert_patient_wc($mysql, $updated['patient_id_wc'], 'payment_method_default', PAYMENT_METHOD['CARD EXPIRED']);
+
+      else
+        echo "
+        NOT SURE WHAT TO DO FOR PAYMENT METHOD $updated";
     }
 
     if (

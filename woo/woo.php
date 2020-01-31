@@ -140,7 +140,13 @@ function dscsa_remove_default_payment($params) {
     $patient_id = get_meta('guardian_id', $user_id);
     $coupon = get_meta('coupon', $user_id);
 
-    update_payment_method($patient_id, is_pay_coupon($coupon) ? "PAY BY COUPON: $coupon" : "PAY BY MAIL");
+    if (is_pay_coupon($coupon))
+      $payment_method = "coupon";
+    else
+      $payment_method = "cheque"; //Code for Mail Pay
+
+    update_payment_method($patient_id, $payment_method);
+    update_user_meta($user_id, 'payment_method_default', $payment_method);
 
     update_card_and_coupon($patient_id, null, $coupon);
 
@@ -263,7 +269,9 @@ function dscsa_stripe_delete_source($stripe_id, $customer) {
 
   $coupon = get_meta('coupon', $user_id);
 
-  update_payment_method($patient_id, is_pay_coupon($coupon) ? "PAY BY COUPON: $coupon" : "PAY BY MAIL");
+  $payment_method = is_pay_coupon($coupon) ? "coupon" : "cheque"; //COD is what we use for "Online"
+  update_payment_method($patient_id, $payment_method);
+  update_user_meta($user_id, 'payment_method_default', $payment_method);
 
   update_card_and_coupon($patient_id, null, $coupon);
 }
@@ -310,7 +318,10 @@ function dscsa_stripe_set_default_source($stripe_id, $customer) {
 
   $coupon = get_meta('coupon', $user_id);
 
-  update_payment_method($patient_id, is_pay_coupon($coupon) ? "PAY BY COUPON: $coupon" : "PAY BY CARD: $card[type] $card[last4]");
+  $payment_method = is_pay_coupon($coupon) ? "coupon" : "stripe";
+  update_payment_method($patient_id, $payment_method);
+  update_user_meta($user_id, 'payment_method_default', $payment_method);
+
 
   update_card_and_coupon($patient_id, $card, $coupon);
 }
@@ -1615,12 +1626,12 @@ function dscsa_save_order($order, $data) {
     update_user_meta($user_id, 'coupon', $coupon);
 
     if (is_pay_coupon($coupon))
-      update_payment_method($patient_id, "PAY BY COUPON: $coupon");
-    else if ($card)
-      update_payment_method($patient_id, "PAY BY CARD: $card[type] $card[last4]");
+      $payment_method = "coupon";
     else
-      update_payment_method($patient_id, "PAY BY MAIL");
+      $payment_method = $order->get_payment_method();
 
+    update_payment_method($patient_id, $payment_method);
+    update_user_meta($user_id, 'payment_method_default', $payment_method);
     update_card_and_coupon($patient_id, $card, $coupon);
 
     //Underscore is for saving on the admin page, no underscore is for the customer checkout
@@ -1808,29 +1819,39 @@ function dscsa_update_order_status( $data) {
 
     $has_rxs = $_POST['rxs'] && $_POST['rxs'][0]; //In some case rather than being [] (falsey) rxs was [0 => ''] (truthy), so checking first element too
 
-    if ($_POST['rx_source'] == 'pharmacy') {
+    if ($data['post_status'] != 'wc-confirm-transfer' AND $_POST['rx_source'] == 'pharmacy') {
       $data['post_status'] = 'wc-confirm-transfer';
     }
-    else if ($has_rxs AND $_POST['rx_source'] == 'erx') {
-      $data['post_status'] = 'wc-prepare-erx';
+    else if ( ! $has_rxs AND $_POST['rx_source'] == 'refill' AND $_POST['rx_source']) {
+      $data['post_status'] = 'wc-confirm-refill';
+    }
+    else if ( ! $has_rxs AND $_POST['rx_source'] == 'refill' AND ! $_POST['rx_source']) {
+      $data['post_status'] = 'wc-confirm-autofill';
+    }
+    else if ( ! $has_rxs AND $_POST['rx_source'] == 'erx') {
+      $data['post_status'] = 'wc-confirm-new-rx';
     }
     else if ($has_rxs AND $_POST['rx_source'] == 'refill') {
       $data['post_status'] = 'wc-prepare-refill';
     }
-    else if ( ! $has_rxs AND $_POST['rx_source'] == 'erx') {
-      $data['post_status'] = 'wc-confirm-erx';
+    else if ($has_rxs AND $_POST['rx_source'] == 'erx') {
+      $data['post_status'] = 'wc-prepare-erx';
     }
-    else if ( ! $has_rxs AND $_POST['rx_source'] == 'refill') {
-      $data['post_status'] = 'wc-confirm-refill';
+    else if ($data['post_status'] == 'wc-confirm-transfer' AND $_POST['rx_source'] == 'pharmacy') {
+      $data['post_status'] = 'wc-prepare-erx';
     }
     else if($_POST['payment_method'] == 'stripe' AND $data['post_status'] == 'wc-failed') { //order-pay page
       $data['post_status'] = 'wc-late-card-failed';
     }
-    else if($_POST['payment_method'] == 'stripe' AND $data['post_status'] != 'wc-failed') { //order-pay page
+    else if($_POST['payment_method'] == 'stripe' AND $data['post_status'] != 'wc-failed' AND $data['post_status'] == 'wc-shipped-web-pay') { //order-pay page
       $data['post_status'] = 'wc-done-card-pay';
+    }
+    else if($_POST['payment_method'] == 'stripe' AND $data['post_status'] != 'wc-failed' AND $data['post_status'] == 'wc-shipped-auto-pay') { //order-pay page
+      $data['post_status'] = 'wc-done-auto-pay';
     }
     else { //Put rest in the unclassified status
       $data['post_status'] = 'wc-processing';
+      debug_email("dscsa_update_order_status: Unclassified Order - ", print_r($data, true).print_r(sanitize($_POST), true).print_r(mssql_get_last_message(), true).print_r($_SERVER, true).print_r($_SESSION, true).print_r($_COOKIE, true));
     }
 
     debug_email("dscsa_update_order_status: New Order - ", print_r($data, true).print_r(sanitize($_POST), true).print_r(mssql_get_last_message(), true).print_r($_SERVER, true).print_r($_SESSION, true).print_r($_COOKIE, true));
