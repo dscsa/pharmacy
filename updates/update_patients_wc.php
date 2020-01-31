@@ -226,8 +226,8 @@ function update_patients_wc() {
     } else if ( //If pharmacy name is the same trust CP data over WC data so always update WC
         $updated['pharmacy_npi'] !== $updated['old_pharmacy_npi'] OR
         $updated['pharmacy_fax'] !== $updated['old_pharmacy_fax'] OR
-        $updated['pharmacy_phone'] !== $updated['old_pharmacy_phone'] OR
-        $updated['pharmacy_address'] !== $updated['old_pharmacy_address']
+        $updated['pharmacy_phone'] !== $updated['old_pharmacy_phone'] //OR
+        //$updated['pharmacy_address'] !== $updated['old_pharmacy_address'] // We only save a partial address in CP so will always differ
     ) {
 
       upsert_patient_wc($updated['patient_id_wc'], 'backup_pharmacy', json_encode([
