@@ -19,7 +19,15 @@ function import_wc_orders() {
     wp_posts.post_status as order_stage_wc,
     wp_posts.post_excerpt as order_note,
 
-    MAX(CASE WHEN wp_postmeta.meta_key = 'order_source' then wp_postmeta.meta_value ELSE NULL END) as order_source,
+    MAX(
+      CASE
+        WHEN wp_postmeta.meta_key = 'rx_source' AND wp_postmeta.meta_value = 'refill' THEN 'Webform Refill'
+        WHEN wp_postmeta.meta_key = 'rx_source' AND wp_postmeta.meta_value = 'pharmacy' THEN 'Webform Transfer'
+        WHEN wp_postmeta.meta_key = 'rx_source' AND wp_postmeta.meta_value = 'erx' THEN 'Webform eRx'
+        WHEN wp_postmeta.meta_key = 'order_source' THEN wp_postmeta.meta_value -- Unlike the others this is not the original, instead this is the CP source which was saved to the order
+        ELSE NULL
+      END
+    ) as order_source,
     MAX(CASE WHEN wp_postmeta.meta_key = '_payment_method' then wp_postmeta.meta_value ELSE NULL END) as payment_method_actual,
     MAX(CASE WHEN wp_postmeta.meta_key = '_coupon_lines' then wp_postmeta.meta_value ELSE NULL END) as coupon_lines,
 

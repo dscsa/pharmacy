@@ -2,7 +2,7 @@ Get Allergy Syncing Working
 Fix Mismatched Patient
 Unclassified Orders in WC
 Understand Created Item Readded.
-ERROR: Missing Order Item!.
+ERROR: Missing Order Item!
 Created Item Missing.
 "Shipped/Paid WC not in Guardian. Delete/Refund?
 Get rid of old WC Order Statuses

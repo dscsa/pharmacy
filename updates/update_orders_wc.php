@@ -44,10 +44,14 @@ function update_orders_wc() {
 
       $notices[] = ["Shipped/Paid WC not in Guardian. Delete/Refund?", $created];
 
+    //This comes from import_wc_orders so we don't need the "w/ Note" counterpart sources
+    } else if (in_array($created['order_source'], ["Webform Refill", "Webform Transfer", "Webform eRx"])) {
+
+      $notices[] = ["New WC Order to Add Guadian", $created];
+
     } else {
 
-      $notices[] = ["New WC Order to Add Guadian / Or Guardian Order Deleted and not yet deleted from WC", $created];
-
+      $notices[] = ["Guardian Order Deleted that should be deleted from WC later in this run", $created];
     }
 
   }
@@ -60,18 +64,18 @@ function update_orders_wc() {
 
     if ($deleted['order_stage_wc'] == 'trash') {
 
-      $notices[] = ["Order deleted from trash in WC", $deleted];
+      if ($deleted['tracking_number']) {
+        $notices[] = ["Shipped Order deleted from trash in WC. Why?", $deleted];
 
-      /* TODO Investigate if/why this is needed
-        $order = get_full_order($deleted, $mysql);
+      /* TODO Investigate if/why this is needed */
+      $order = get_full_order($deleted, $mysql);
 
-        if ( ! $order) continue;
+      if ( ! $order) continue;
 
-        $order = helper_update_payment($order, $mysql);
+      $order = helper_update_payment($order, $mysql);
 
-        export_wc_create_order($order);
-        export_gd_publish_invoice($order);
-      */
+      export_wc_create_order($order);
+      export_gd_publish_invoice($order);
 
     } else if ($deleted['order_stage_cp'] != 'Shipped' AND $deleted['order_stage_cp'] != 'Dispensed') {
 

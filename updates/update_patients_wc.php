@@ -195,9 +195,9 @@ function update_patients_wc() {
            'npi' => @$updated['old_pharmacy_npi'] ?: $updated['pharmacy_npi'],
            'name' => @$updated['old_pharmacy_name'] ?: $updated['pharmacy_name'],
            'street' => @$updated['old_pharmacy_address'] ?: $updated['pharmacy_address'],
-           'city' => @$updated['old_pharmacy_city'] ?: $updated['pharmacy_city'],
-           'state' => @$updated['old_pharmacy_state'] ?: $updated['pharmacy_state'],
-           'zip' => @$updated['old_pharmacy_zip'] ?: $updated['pharmacy_zip'],
+           'city' => @$updated['old_pharmacy_city'] ?: @$updated['pharmacy_city'],
+           'state' => @$updated['old_pharmacy_state'] ?: @$updated['pharmacy_state'],
+           'zip' => @$updated['old_pharmacy_zip'] ?: @$updated['pharmacy_zip'],
            'phone' => @$updated['old_pharmacy_phone'] ?: $updated['pharmacy_phone'],
            'fax' => @$updated['old_pharmacy_fax'] ?: $updated['pharmacy_fax']
          ]);
