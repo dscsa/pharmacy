@@ -182,7 +182,13 @@ function update_patients_wc() {
         $updated['patient_state'] !== $updated['old_patient_state'] OR
         $updated['patient_zip'] !== $updated['old_patient_zip']
     ) {
-      upsert_patient_cp($mssql, "SirumWeb_AddUpdatePatHomeAddr '$updated[patient_id_wc]', '$updated[patient_address1]', $updated[patient_address2], NULL, '$updated[patient_city]', '$updated[patient_state]', '$updated[patient_zip]', 'US'");
+
+      $address1 = $updated['patient_address1'];
+
+      if ($updated['patient_state'] != 'GA')
+        $address1 = "WARNING NON-GEORGIA ADDRESS: $address1";
+
+      upsert_patient_cp($mssql, "SirumWeb_AddUpdatePatHomeAddr '$updated[patient_id_wc]', '$address1', $updated[patient_address2], NULL, '$updated[patient_city]', '$updated[patient_state]', '$updated[patient_zip]', 'US'");
     }
 
     //NOTE: Different logic here. Deleting in CP should save back into WC
@@ -209,13 +215,13 @@ function update_patients_wc() {
     }
 
     if ($updated['phone2'] AND $updated['phone2'] == $updated['phone1']) {
-      upsert_patient_wc($mysql, $updated['patient_id_wc'], 'phone2', NULL);
+      upsert_patient_wc($mysql, $updated['patient_id_wc'], 'phone2', NULL, true);
     } else if ($updated['old_phone2'] AND $updated['old_phone2'] == $updated['old_phone1']) {
-      upsert_patient_cp($mssql, "SirumWeb_AddUpdatePatHomePhone '$updated[patient_id_cp]', '', 9");
+      upsert_patient_cp($mssql, "SirumWeb_AddUpdatePatHomePhone '$updated[patient_id_cp]', '', 9", true);
     } else if (strlen($updated['phone2']) < 10 AND strlen($updated['old_phone2']) >= 10) {
-      upsert_patient_wc($mysql, $updated['patient_id_wc'], 'phone2', $updated['old_phone2']);
+      upsert_patient_wc($mysql, $updated['patient_id_wc'], 'phone2', $updated['old_phone2'], true);
     } else if ($updated['phone2'] !== $updated['old_phone2']) {
-      upsert_patient_cp($mssql, "SirumWeb_AddUpdatePatHomePhone '$updated[patient_id_cp]', '$updated[phone2]', 9");
+      upsert_patient_cp($mssql, "SirumWeb_AddUpdatePatHomePhone '$updated[patient_id_cp]', '$updated[phone2]', 9", true);
     }
 
     //If pharmacy name changes then trust WC over CP
