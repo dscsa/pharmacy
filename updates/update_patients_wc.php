@@ -17,6 +17,50 @@ function update_patients_wc() {
   $mysql = new Mysql_Wc();
   $mssql = new Mssql_Cp();
 
+  function cp_to_wc_key($key) {
+
+    $cp_to_wc = [
+      'patient_zip' => 'billing_postcode',
+      'patient_state' => 'billing_state',
+      'patient_city' => 'billing_city',
+      'patient_address2' => 'billing_address_2',
+      'patient_address1' => 'billing_address_1',
+      'payment_coupon' => 'coupon',
+      'tracking_coupon' => 'coupon',
+      'phone2' => 'billing_phone',
+      'phone1' => 'phone',
+      'patient_note' => 'medications_other'
+    ];
+
+    return isset($cp_to_wc[$key]) ? $cp_to_wc[$key] : $key;
+  }
+
+  function upsert_patient_wc($mysql, $user_id, $meta_key, $meta_value) {
+
+    $wc_key = cp_to_wc_key($meta_key);
+    $wc_val = is_null($meta_value) ? 'NULL' : "'".@mysql_escape_string($meta_value)."'";
+
+    $select = "SELECT * FROM wp_usermeta WHERE user_id = $user_id AND meta_key = '$wc_key'";
+
+    $exists = $mysql->run($select);
+
+    if (isset($exists[0][0])) {
+      $upsert = "UPDATE wp_usermeta SET meta_value = $wc_val WHERE user_id = $user_id AND meta_key = '$wc_key'";
+    } else {
+      $upsert = "INSERT wp_usermeta (umeta_id, user_id, meta_key, meta_value) VALUES (NULL, $user_id, '$wc_key', $wc_val)";
+    }
+
+    echo "
+    $upsert";
+    //$mysql->run($upsert);
+  }
+
+  function upsert_patient_cp($mssql, $stored_procedure) {
+    echo "
+    EXEC $stored_procedure";
+    //$mssql->run("EXEC $stored_procedure");
+  }
+
   $created_mismatched = 0;
   $created_matched = 0;
   $created_needs_form = 0;
@@ -109,50 +153,6 @@ function update_patients_wc() {
     $changed
       ? log_error("update_patients_wc: updated changed cp:$updated[patient_id_cp] wc:$updated[patient_id_wc]", $changed)
       : log_error("update_patients_wc: updated no change? cp:$updated[patient_id_cp] wc:$updated[patient_id_wc]", $updated);
-
-    function cp_to_wc_key($key) {
-
-      $cp_to_wc = [
-        'patient_zip' => 'billing_postcode',
-        'patient_state' => 'billing_state',
-        'patient_city' => 'billing_city',
-        'patient_address2' => 'billing_address_2',
-        'patient_address1' => 'billing_address_1',
-        'payment_coupon' => 'coupon',
-        'tracking_coupon' => 'coupon',
-        'phone2' => 'billing_phone',
-        'phone1' => 'phone',
-        'patient_note' => 'medications_other'
-      ];
-
-      return isset($cp_to_wc[$key]) ? $cp_to_wc[$key] : $key;
-    }
-
-    function upsert_patient_wc($mysql, $user_id, $meta_key, $meta_value) {
-
-      $wc_key = cp_to_wc_key($meta_key);
-      $wc_val = is_null($meta_value) ? 'NULL' : "'".@mysql_escape_string($meta_value)."'";
-
-      $select = "SELECT * FROM wp_usermeta WHERE user_id = $user_id AND meta_key = '$wc_key'";
-
-      $exists = $mysql->run($select);
-
-      if (isset($exists[0][0])) {
-        $upsert = "UPDATE wp_usermeta SET meta_value = $wc_val WHERE user_id = $user_id AND meta_key = '$wc_key'";
-      } else {
-        $upsert = "INSERT wp_usermeta (umeta_id, user_id, meta_key, meta_value) VALUES (NULL, $user_id, '$wc_key', $wc_val)";
-      }
-
-      echo "
-      $upsert";
-      //$mysql->run($upsert);
-    }
-
-    function upsert_patient_cp($mssql, $stored_procedure) {
-      echo "
-      EXEC $stored_procedure";
-      //$mssql->run("EXEC $stored_procedure");
-    }
 
     if ( ! $updated['email'] AND $updated['old_email']) {
       upsert_patient_wc($mysql, $updated['patient_id_wc'], 'email', $update['old_email']);
