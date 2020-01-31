@@ -188,17 +188,16 @@ function update_patients_wc() {
       if ($updated['patient_state'] != 'GA')
         $address1 = "WARNING NON-GEORGIA ADDRESS: $address1";
 
-      $address2 = $updated['patient_address2'] ? "'$updated[patient_address2]'" : 'NULL';
-
-      upsert_patient_cp($mssql, "SirumWeb_AddUpdatePatHomeAddr '$updated[patient_id_wc]', '$address1', $address2, NULL, '$updated[patient_city]', '$updated[patient_state]', '$updated[patient_zip]', 'US'", true);
+      upsert_patient_cp($mssql, "SirumWeb_AddUpdatePatHomeAddr '$updated[patient_id_wc]', '$address1', '$updated[patient_address2]', NULL, '$updated[patient_city]', '$updated[patient_state]', '$updated[patient_zip]', 'US'", true);
     }
 
-    //NOTE: Different logic here. Deleting in CP should save back into WC
+    //NOTE: Different/Reverse logic here. Deleting in CP should save back into WC
     if (
         ($updated['payment_coupon'] AND ! $updated['old_payment_coupon']) OR
         ($updated['tracking_coupon'] AND ! $updated['old_tracking_coupon'])
     ) {
-      upsert_patient_wc($mysql, $updated['patient_id_wc'], 'coupon', $updated['old_payment_coupon'] ?: $updated['old_tracking_coupon']);
+      $user_def4 = "$updated[payment_card_last4],$updated[payment_card_date_expired],$updated[payment_card_type],".($updated['payment_coupon'] ?: $updated['tracking_coupon']);
+      upsert_patient_cp($mssql, "SirumWeb_AddUpdatePatientUD '$updated[patient_id_cp]', '4', '$user_def4'");
     } else if (
             //$updated['payment_card_last4'] !== $updated['old_payment_card_last4'] OR
             //$updated['payment_card_date_expired'] !== $updated['old_payment_card_date_expired'] OR
@@ -206,8 +205,7 @@ function update_patients_wc() {
             $updated['payment_coupon'] !== $updated['old_payment_coupon'] OR //Still allow for deleteing coupons in CP
             $updated['tracking_coupon'] !== $updated['old_tracking_coupon'] //Still allow for deleteing coupons in CP
     ) {
-      $user_def4 = "$updated[payment_card_last4],$updated[payment_card_date_expired],$updated[payment_card_type],".($updated['payment_coupon'] ?: $updated['tracking_coupon']);
-      upsert_patient_cp($mssql, "SirumWeb_AddUpdatePatientUD '$updated[patient_id_cp]', '4', '$user_def4'");
+      upsert_patient_wc($mysql, $updated['patient_id_wc'], 'coupon', $updated['old_payment_coupon'] ?: $updated['old_tracking_coupon']);
     }
 
     if (strlen($updated['phone1']) < 10 AND strlen($updated['old_phone1']) >= 10) {
