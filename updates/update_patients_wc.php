@@ -245,7 +245,7 @@ function update_patients_wc() {
         'fax' => $updated['old_pharmacy_fax'],
         'phone' => $updated['old_pharmacy_phone'],
         'street' => $updated['pharmacy_address'] // old_pharamcy address is not populated since We only save a partial address in CP so will always differ
-      ]));
+      ]), true);
     }
 
     if ($updated['payment_method_default'] AND ! $updated['old_payment_method_default']) {
