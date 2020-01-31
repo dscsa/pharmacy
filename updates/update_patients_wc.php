@@ -173,11 +173,11 @@ function update_patients_wc() {
         upsert_patient_wc($updated['patient_id_wc'], 'patient_state', $update['old_patient_state']);
         upsert_patient_wc($updated['patient_id_wc'], 'patient_zip', $update['old_patient_zip']);
     } else if (
-        $updated['patient_address1'] !== $updated['old_patient_address1']) OR
-        $updated['patient_address2'] !== $updated['old_patient_address2']) OR
-        $updated['patient_city'] !== $updated['old_patient_city']) OR
-        $updated['patient_state'] !== $updated['old_patient_state']) OR
-        $updated['patient_zip'] !== $updated['old_patient_zip'])
+        $updated['patient_address1'] !== $updated['old_patient_address1'] OR
+        $updated['patient_address2'] !== $updated['old_patient_address2'] OR
+        $updated['patient_city'] !== $updated['old_patient_city'] OR
+        $updated['patient_state'] !== $updated['old_patient_state'] OR
+        $updated['patient_zip'] !== $updated['old_patient_zip']
     ) {
       upsert_patient_cp("SirumWeb_AddUpdatePatHomeAddr '$updated[patient_id_wc]', '$updated[patient_address1]', $updated[patient_address2], NULL, '$updated[patient_city]', '$updated[patient_state]', '$updated[patient_zip]', 'US'");
     }
