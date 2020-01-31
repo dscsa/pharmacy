@@ -197,6 +197,8 @@ function update_patients_wc() {
         ($updated['tracking_coupon'] AND ! $updated['old_tracking_coupon'])
     ) {
       $user_def4 = "$updated[payment_card_last4],$updated[payment_card_date_expired],$updated[payment_card_type],".($updated['payment_coupon'] ?: $updated['tracking_coupon']);
+      echo "
+      ".json_encode($updated, JSON_PRETTY_PRINT);
       upsert_patient_cp($mssql, "SirumWeb_AddUpdatePatientUD '$updated[patient_id_cp]', '4', '$user_def4'");
     } else if (
             //$updated['payment_card_last4'] !== $updated['old_payment_card_last4'] OR
