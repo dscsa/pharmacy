@@ -67,15 +67,16 @@ function update_orders_wc() {
       if ($deleted['tracking_number']) {
         $notices[] = ["Shipped Order deleted from trash in WC. Why?", $deleted];
 
-      /* TODO Investigate if/why this is needed */
-      $order = get_full_order($deleted, $mysql);
+        /* TODO Investigate if/why this is needed */
+        $order = get_full_order($deleted, $mysql);
 
-      if ( ! $order) continue;
+        if ( ! $order) continue;
 
-      $order = helper_update_payment($order, $mysql);
+        $order = helper_update_payment($order, $mysql);
 
-      export_wc_create_order($order);
-      export_gd_publish_invoice($order);
+        export_wc_create_order($order);
+        export_gd_publish_invoice($order);
+      }
 
     } else if ($deleted['order_stage_cp'] != 'Shipped' AND $deleted['order_stage_cp'] != 'Dispensed') {
 
