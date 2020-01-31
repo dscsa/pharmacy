@@ -35,7 +35,7 @@ function update_patients_wc() {
     return isset($cp_to_wc[$key]) ? $cp_to_wc[$key] : $key;
   }
 
-  function upsert_patient_wc($mysql, $user_id, $meta_key, $meta_value) {
+  function upsert_patient_wc($mysql, $user_id, $meta_key, $meta_value, $live = false) {
 
     $wc_key = cp_to_wc_key($meta_key);
     $wc_val = is_null($meta_value) ? 'NULL' : "'".@mysql_escape_string($meta_value)."'";
@@ -50,15 +50,18 @@ function update_patients_wc() {
       $upsert = "INSERT wp_usermeta (umeta_id, user_id, meta_key, meta_value) VALUES (NULL, $user_id, '$wc_key', $wc_val)";
     }
 
+
     echo "
-    $upsert";
-    //$mysql->run($upsert);
+    live:$live $upsert";
+
+    if ($live) $mysql->run($upsert);
   }
 
-  function upsert_patient_cp($mssql, $stored_procedure) {
+  function upsert_patient_cp($mssql, $stored_procedure, $live = false) {
     echo "
-    EXEC $stored_procedure";
-    //$mssql->run("EXEC $stored_procedure");
+    live:$live EXEC $stored_procedure";
+
+    if ($live) $mssql->run("EXEC $stored_procedure");
   }
 
   $created_mismatched = 0;
@@ -246,19 +249,19 @@ function update_patients_wc() {
     } else if ($updated['payment_method_default'] !== $updated['old_payment_method_default']) {
 
       if ($updated['old_payment_method_default'] == PAYMENT_METHOD['MAIL'])
-        upsert_patient_wc($mysql, $updated['patient_id_wc'], 'payment_method_default', PAYMENT_METHOD['MAIL']);
+        upsert_patient_wc($mysql, $updated['patient_id_wc'], 'payment_method_default', PAYMENT_METHOD['MAIL'], true);
 
       else if ($updated['old_payment_method_default'] == PAYMENT_METHOD['AUTOPAY'])
-        upsert_patient_wc($mysql, $updated['patient_id_wc'], 'payment_method_default', PAYMENT_METHOD['AUTOPAY']);
+        upsert_patient_wc($mysql, $updated['patient_id_wc'], 'payment_method_default', PAYMENT_METHOD['AUTOPAY'], true);
 
       else if ($updated['old_payment_method_default'] == PAYMENT_METHOD['ONLINE'])
-        upsert_patient_wc($mysql, $updated['patient_id_wc'], 'payment_method_default', PAYMENT_METHOD['ONLINE']);
+        upsert_patient_wc($mysql, $updated['patient_id_wc'], 'payment_method_default', PAYMENT_METHOD['ONLINE'], true);
 
       else if ($updated['old_payment_method_default'] == PAYMENT_METHOD['COUPON'])
-        upsert_patient_wc($mysql, $updated['patient_id_wc'], 'payment_method_default', PAYMENT_METHOD['COUPON']);
+        upsert_patient_wc($mysql, $updated['patient_id_wc'], 'payment_method_default', PAYMENT_METHOD['COUPON'], true);
 
       else if ($updated['old_payment_method_default'] == PAYMENT_METHOD['CARD EXPIRED'])
-        upsert_patient_wc($mysql, $updated['patient_id_wc'], 'payment_method_default', PAYMENT_METHOD['CARD EXPIRED']);
+        upsert_patient_wc($mysql, $updated['patient_id_wc'], 'payment_method_default', PAYMENT_METHOD['CARD EXPIRED'], true);
 
       else
         echo "
