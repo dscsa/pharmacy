@@ -33,7 +33,7 @@ function clean_phone($phone) {
   if ( ! $phone) return 'NULL';
   $country = $phone[0] == '1' ? 1 : 0;
   $phone = substr($phone, $country, $country+10);
-  return "'$phone'";
+  return strlen($phone) == 10 ? "'$phone'" : 'NULL';
 }
 
 //2d array map
