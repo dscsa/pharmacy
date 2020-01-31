@@ -160,15 +160,15 @@ function update_patients_wc() {
     if ( ! $updated['email'] AND $updated['old_email']) {
       upsert_patient_wc($mysql, $updated['patient_id_wc'], 'email', $update['old_email']);
     } else if ($updated['email'] !== $updated['old_email']) {
-      upsert_patient_cp($mssql, "SirumWeb_AddUpdatePatEmail '$updated[patient_id_cp]', '$updated[email]'");
+      upsert_patient_cp($mssql, "SirumWeb_AddUpdatePatEmail '$updated[patient_id_cp]', '$updated[email]'", true);
     }
 
     if (
         ( ! $updated['patient_address1'] AND $updated['old_patient_address1']) OR
         ( ! $updated['patient_address2'] AND $updated['old_patient_address2']) OR
         ( ! $updated['patient_city'] AND $updated['old_patient_city']) OR
-        ( ! $updated['patient_state'] AND $updated['old_patient_state']) OR
-        ( ! $updated['patient_zip'] AND $updated['old_patient_zip'])
+        (strlen($updated['patient_state']) != 2 AND strlen($updated['old_patient_state']) == 2) OR
+        (strlen($updated['patient_zip']) != 5 AND strlen($updated['old_patient_zip']) == 5)
     ) {
         upsert_patient_wc($mysql, $updated['patient_id_wc'], 'patient_address1', $update['old_patient_address1']);
         upsert_patient_wc($mysql, $updated['patient_id_wc'], 'patient_address2', $update['old_patient_address2']);
@@ -179,8 +179,8 @@ function update_patients_wc() {
         $updated['patient_address1'] !== $updated['old_patient_address1'] OR
         $updated['patient_address2'] !== $updated['old_patient_address2'] OR
         $updated['patient_city'] !== $updated['old_patient_city'] OR
-        $updated['patient_state'] !== $updated['old_patient_state'] OR
-        $updated['patient_zip'] !== $updated['old_patient_zip']
+        (strlen($updated['patient_state']) == 2 AND $updated['patient_state'] !== $updated['old_patient_state']) OR
+        (strlen($updated['patient_zip']) == 5 AND $updated['patient_zip'] !== $updated['old_patient_zip'])
     ) {
 
       $address1 = $updated['patient_address1'];
@@ -188,7 +188,9 @@ function update_patients_wc() {
       if ($updated['patient_state'] != 'GA')
         $address1 = "WARNING NON-GEORGIA ADDRESS: $address1";
 
-      upsert_patient_cp($mssql, "SirumWeb_AddUpdatePatHomeAddr '$updated[patient_id_wc]', '$address1', $updated[patient_address2], NULL, '$updated[patient_city]', '$updated[patient_state]', '$updated[patient_zip]', 'US'");
+      $address2 = $updated['patient_address2'] ? "'$updated[patient_address2]'" : 'NULL';
+
+      upsert_patient_cp($mssql, "SirumWeb_AddUpdatePatHomeAddr '$updated[patient_id_wc]', '$address1', $address2, NULL, '$updated[patient_city]', '$updated[patient_state]', '$updated[patient_zip]', 'US'", true);
     }
 
     //NOTE: Different logic here. Deleting in CP should save back into WC
