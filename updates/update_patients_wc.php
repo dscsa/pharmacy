@@ -188,7 +188,7 @@ function update_patients_wc() {
       if ($updated['patient_state'] != 'GA')
         $address1 = "WARNING NON-GEORGIA ADDRESS: $address1";
 
-      upsert_patient_cp($mssql, "SirumWeb_AddUpdatePatHomeAddr '$updated[patient_id_wc]', '$address1', '$updated[patient_address2]', NULL, '$updated[patient_city]', '$updated[patient_state]', '$updated[patient_zip]', 'US'", true);
+      upsert_patient_cp($mssql, "SirumWeb_AddUpdatePatHomeAddr '$updated[patient_id_cp]', '$address1', '$updated[patient_address2]', NULL, '$updated[patient_city]', '$updated[patient_state]', '$updated[patient_zip]', 'US'", true);
     }
 
     //NOTE: Different/Reverse logic here. Deleting in CP should save back into WC
