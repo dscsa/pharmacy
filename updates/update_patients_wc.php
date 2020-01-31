@@ -189,9 +189,9 @@ function update_patients_wc() {
     ) {
       upsert_patient_wc($updated['patient_id_wc'], 'coupon', $updated['old_payment_coupon'] ?: $updated['old_tracking_coupon']);
     } else if (
-            $updated['payment_card_last4'] !== $updated['old_payment_card_last4'] OR
-            $updated['payment_card_date_expired'] !== $updated['old_payment_card_date_expired'] OR
-            $updated['payment_card_type'] !== $updated['old_payment_card_type'] OR
+            //$updated['payment_card_last4'] !== $updated['old_payment_card_last4'] OR
+            //$updated['payment_card_date_expired'] !== $updated['old_payment_card_date_expired'] OR
+            //$updated['payment_card_type'] !== $updated['old_payment_card_type'] OR
             $updated['payment_coupon'] !== $updated['old_payment_coupon'] OR //Still allow for deleteing coupons in CP
             $updated['tracking_coupon'] !== $updated['old_tracking_coupon'] //Still allow for deleteing coupons in CP
     ) {
