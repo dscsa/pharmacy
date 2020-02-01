@@ -40,7 +40,7 @@ function import_wc_patients() {
     MAX(CASE WHEN wp_usermeta.meta_key = 'billing_address_2' then wp_usermeta.meta_value ELSE NULL END) as patient_address2,
     MAX(CASE WHEN wp_usermeta.meta_key = 'billing_city' then wp_usermeta.meta_value ELSE NULL END) as patient_city,
     MAX(CASE WHEN wp_usermeta.meta_key = 'billing_state' then wp_usermeta.meta_value ELSE NULL END) as patient_state,
-    LEFT(0+MAX(CASE WHEN wp_usermeta.meta_key = 'billing_postcode' then wp_usermeta.meta_value ELSE NULL END), 5) as patient_zip,
+    MAX(CASE WHEN wp_usermeta.meta_key = 'billing_postcode' then LEFT(wp_usermeta.meta_value, 5) ELSE NULL END) as patient_zip,
     MAX(CASE WHEN wp_usermeta.meta_key = 'language' then wp_usermeta.meta_value ELSE NULL END) as language,
 
     MAX(CASE WHEN wp_usermeta.meta_key = 'allergies_none' AND wp_usermeta.meta_value > '' then 'No Known Allergies' ELSE NULL END) as allergies_none,
