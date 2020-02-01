@@ -170,11 +170,11 @@ function update_patients_wc() {
         (strlen($updated['patient_state']) != 2 AND strlen($updated['old_patient_state']) == 2) OR
         (strlen($updated['patient_zip']) != 5 AND strlen($updated['old_patient_zip']) == 5)
     ) {
-        upsert_patient_wc($mysql, $updated['patient_id_wc'], 'patient_address1', $updated['old_patient_address1']);
-        upsert_patient_wc($mysql, $updated['patient_id_wc'], 'patient_address2', $updated['old_patient_address2']);
-        upsert_patient_wc($mysql, $updated['patient_id_wc'], 'patient_city', $updated['old_patient_city']);
-        upsert_patient_wc($mysql, $updated['patient_id_wc'], 'patient_state', $updated['old_patient_state']);
-        upsert_patient_wc($mysql, $updated['patient_id_wc'], 'patient_zip', $updated['old_patient_zip']);
+        upsert_patient_wc($mysql, $updated['patient_id_wc'], 'patient_address1', $updated['old_patient_address1'], true);
+        upsert_patient_wc($mysql, $updated['patient_id_wc'], 'patient_address2', $updated['old_patient_address2'], true);
+        upsert_patient_wc($mysql, $updated['patient_id_wc'], 'patient_city', $updated['old_patient_city'], true);
+        upsert_patient_wc($mysql, $updated['patient_id_wc'], 'patient_state', $updated['old_patient_state'], true);
+        upsert_patient_wc($mysql, $updated['patient_id_wc'], 'patient_zip', $updated['old_patient_zip'], true);
     } else if (
         $updated['patient_address1'] !== $updated['old_patient_address1'] OR
         $updated['patient_address2'] !== $updated['old_patient_address2'] OR
@@ -183,12 +183,13 @@ function update_patients_wc() {
         (strlen($updated['patient_zip']) == 5 AND $updated['patient_zip'] !== $updated['old_patient_zip'])
     ) {
 
-      $address1 = $updated['patient_address1'];
+      $address3 = 'NULL';
+      if ($updated['patient_state'] != 'GA') {
+        echo "$updated[first_name] $updated[last_name] $updated[birth_date]";
+        $address3 = "'!!!! WARNING NON-GEORGIA ADDRESS !!!!'";
+      }
 
-      if ($updated['patient_state'] != 'GA')
-        $address1 = "WARNING NON-GEORGIA ADDRESS: $address1";
-
-      upsert_patient_cp($mssql, "EXEC SirumWeb_AddUpdatePatHomeAddr '$updated[patient_id_cp]', '$address1', '$updated[patient_address2]', NULL, '$updated[patient_city]', '$updated[patient_state]', '$updated[patient_zip]', 'US'", true);
+      upsert_patient_cp($mssql, "EXEC SirumWeb_AddUpdatePatHomeAddr '$updated[patient_id_cp]', '$updated[patient_address1]', '$updated[patient_address2]', $address3, '$updated[patient_city]', '$updated[patient_state]', '$updated[patient_zip]', 'US'", true);
     }
 
     //NOTE: Different/Reverse logic here. Deleting in CP should save back into WC
@@ -227,7 +228,7 @@ function update_patients_wc() {
         FROM cppat_phone pp
         JOIN csphone ph ON pp.phone_id = ph.phone_id
         WHERE pp.pat_id = $updated[patient_id_cp] AND pp.phone_type_cn = 9
-      ");
+      ", true);
 
     } else if (strlen($updated['phone2']) < 10 AND strlen($updated['old_phone2']) >= 10) {
       upsert_patient_wc($mysql, $updated['patient_id_wc'], 'phone2', $updated['old_phone2'], true);

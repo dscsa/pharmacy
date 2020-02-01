@@ -30,9 +30,9 @@ function import_cp_patients() {
 
       NULLIF(MAX(addr1), '') as patient_address1,
       NULLIF(MAX(addr2), '') as patient_address2,
-      MAX(a.city) as patient_city,
-      MAX(a.state_cd) as patient_state,
-      MAX(a.zip) as patient_zip,
+      NULLIF(MAX(a.city), '') as patient_city,
+      NULLIF(MAX(a.state_cd), '') as patient_state,
+      NULLIF(MAX(a.zip), '') as patient_zip,
 
       MAX(CASE WHEN Dam_agcsp = 900388 then 'No Known Allergies' ELSE NULL END) as allergies_none,
       MAX(CASE WHEN Dam_agcsp = 478 then 'Tetracyclines' ELSE NULL END) as allergies_tetracycline,
