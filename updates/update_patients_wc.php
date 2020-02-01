@@ -302,19 +302,21 @@ function update_patients_wc() {
       upsert_patient_cp($mssql, "EXEC SirumWeb_AddUpdatePatient '$updated[first_name]', '$updated[last_name]', '$updated[birth_date]', '$updated[phone1]', '$updated[language]'");
     }
 
+    if (
+      $updated['allergies_none'] !== $updated['old_allergies_none'] OR
+      $updated['allergies_aspirin'] !== $updated['old_allergies_aspirin'] OR
+      $updated['allergies_amoxicillin'] !== $updated['old_allergies_amoxicillin'] OR
+      $updated['allergies_azithromycin'] !== $updated['old_allergies_azithromycin'] OR
+      $updated['allergies_cephalosporins'] !== $updated['old_allergies_cephalosporins'] OR
+      $updated['allergies_codeine'] !== $updated['old_allergies_codeine'] OR
+      $updated['allergies_erythromycin'] !== $updated['old_allergies_erythromycin'] OR
+      $updated['allergies_penicillin'] !== $updated['old_allergies_penicillin'] OR
+      $updated['allergies_salicylates'] !== $updated['old_allergies_salicylates'] OR
+      $updated['allergies_sulfa'] !== $updated['old_allergies_sulfa'] OR
+      $updated['allergies_tetracycline'] !== $updated['old_allergies_tetracycline'] OR
+      $updated['allergies_other'] !== $updated['old_allergies_other']
+    ) {
 
-
-    /*
-
-    if ($EXEC SirumWeb_AddToPatientComment && $key == 'medications_other') {
-      $EXEC SirumWeb_AddToPatientComment = false;
-      echo "
-      $updated[first_name] $updated[last_name] $updated[birth_date] $changed[$key] EXEC SirumWeb_AddToPatientComment '$updated[patient_id_cp]', '$updated[medications_other]'";
-    }
-
-
-    if ($EXEC SirumWeb_AddRemove_Allergies && substr($key, 0, 10) == 'allergies_') {
-      $EXEC SirumWeb_AddRemove_Allergies = false;
       $allergies = json_encode([
         'allergies_none' => $updated['allergies_none'] ?: '',
         'allergies_aspirin' => $updated['allergies_aspirin'] ?: '',
@@ -330,13 +332,11 @@ function update_patients_wc() {
         'allergies_other' => str_replace("'", "''", $updated['allergies_other']) ?: ''
       ]);
 
-      $sql = "EXEC SirumWeb_AddRemove_Allergies '$updated[patient_id_cp]', '$allergies'";
-
-      //$mssql->run($sql);
-
-      echo "
-      RAN $updated[first_name] $updated[last_name] $updated[birth_date] $key $changed[$key] $sql";
+      upsert_patient_cp($mssql, "EXEC SirumWeb_AddRemove_Allergies '$updated[patient_id_cp]', '$allergies'");
     }
-  */
+
+    if ($updated['patient_note'] AND $updated['patient_note'] !== $updated['old_patient_note']) {
+      upsert_patient_cp($mssql, "EXEC SirumWeb_AddToPatientComment '$updated[patient_id_cp]', '$updated[patient_note]'");
+    }
   }
 }

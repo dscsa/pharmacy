@@ -13,7 +13,7 @@ function changes_to_patients_wc($new) {
     NOT old.first_name <=> new.first_name OR
     NOT REPLACE(old.last_name, '*', '') <=> new.last_name OR
     NOT old.birth_date <=> new.birth_date OR
-    -- NOT old.patient_note <=> new.patient_note OR
+    NOT old.patient_note <=> new.patient_note OR
     NOT old.phone1 <=> new.phone1 OR
     NOT old.phone2 <=> new.phone2 OR -- Right now often Phone2 === Phone1, don't trigger change in this case
     NOT old.email <=> new.email OR
