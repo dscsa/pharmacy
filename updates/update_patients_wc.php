@@ -57,11 +57,11 @@ function update_patients_wc() {
     if ($live) $mysql->run($upsert);
   }
 
-  function upsert_patient_cp($mssql, $stored_procedure, $live = false) {
+  function upsert_patient_cp($mssql, $sql, $live = false) {
     echo "
-    live:$live EXEC $stored_procedure";
+    live:$live $sql";
 
-    if ($live) $mssql->run("EXEC $stored_procedure");
+    if ($live) $mssql->run("$sql");
   }
 
   $created_mismatched = 0;
@@ -160,7 +160,7 @@ function update_patients_wc() {
     if ( ! $updated['email'] AND $updated['old_email']) {
       upsert_patient_wc($mysql, $updated['patient_id_wc'], 'email', $update['old_email']);
     } else if ($updated['email'] !== $updated['old_email']) {
-      upsert_patient_cp($mssql, "SirumWeb_AddUpdatePatEmail '$updated[patient_id_cp]', '$updated[email]'", true);
+      upsert_patient_cp($mssql, "EXEC SirumWeb_AddUpdatePatEmail '$updated[patient_id_cp]', '$updated[email]'", true);
     }
 
     if (
@@ -188,7 +188,7 @@ function update_patients_wc() {
       if ($updated['patient_state'] != 'GA')
         $address1 = "WARNING NON-GEORGIA ADDRESS: $address1";
 
-      upsert_patient_cp($mssql, "SirumWeb_AddUpdatePatHomeAddr '$updated[patient_id_cp]', '$address1', '$updated[patient_address2]', NULL, '$updated[patient_city]', '$updated[patient_state]', '$updated[patient_zip]', 'US'", true);
+      upsert_patient_cp($mssql, "EXEC SirumWeb_AddUpdatePatHomeAddr '$updated[patient_id_cp]', '$address1', '$updated[patient_address2]', NULL, '$updated[patient_city]', '$updated[patient_state]', '$updated[patient_zip]', 'US'", true);
     }
 
     //NOTE: Different/Reverse logic here. Deleting in CP should save back into WC
@@ -199,7 +199,7 @@ function update_patients_wc() {
       $user_def4 = "$updated[payment_card_last4],$updated[payment_card_date_expired],$updated[payment_card_type],".($updated['payment_coupon'] ?: $updated['tracking_coupon']);
       echo "
       ".json_encode($updated, JSON_PRETTY_PRINT);
-      upsert_patient_cp($mssql, "SirumWeb_AddUpdatePatientUD '$updated[patient_id_cp]', '4', '$user_def4'");
+      upsert_patient_cp($mssql, "EXEC SirumWeb_AddUpdatePatientUD '$updated[patient_id_cp]', '4', '$user_def4'");
     } else if (
             //$updated['payment_card_last4'] !== $updated['old_payment_card_last4'] OR
             //$updated['payment_card_date_expired'] !== $updated['old_payment_card_date_expired'] OR
@@ -213,17 +213,26 @@ function update_patients_wc() {
     if (strlen($updated['phone1']) < 10 AND strlen($updated['old_phone1']) >= 10) {
       upsert_patient_wc($mysql, $updated['patient_id_wc'], 'phone1', $updated['old_phone1']);
     } else if ($updated['phone1'] !== $updated['old_phone1']) {
-      upsert_patient_cp($mssql, "SirumWeb_AddUpdatePatHomePhone '$updated[patient_id_cp]', '$updated[phone1]'");
+      upsert_patient_cp($mssql, "EXEC SirumWeb_AddUpdatePatHomePhone '$updated[patient_id_cp]', '$updated[phone1]'");
     }
 
     if ($updated['phone2'] AND $updated['phone2'] == $updated['phone1']) {
       upsert_patient_wc($mysql, $updated['patient_id_wc'], 'phone2', NULL, true);
     } else if ($updated['old_phone2'] AND $updated['old_phone2'] == $updated['old_phone1']) {
-      upsert_patient_cp($mssql, "SirumWeb_AddUpdatePatHomePhone '$updated[patient_id_cp]', '', 9", true);
+
+      //EXEC SirumWeb_AddUpdatePatHomePhone only inserts new phone numbers
+      upsert_patient_cp($mssql, "
+        UPDATE ph
+        SET area_code = NULL, phone_no = NULL
+        FROM cppat_phone pp
+        JOIN csphone ph ON pp.phone_id = ph.phone_id
+        WHERE pp.pat_id = $updated[patient_id_cp] AND pp.phone_type_cn = 9
+      ");
+
     } else if (strlen($updated['phone2']) < 10 AND strlen($updated['old_phone2']) >= 10) {
       upsert_patient_wc($mysql, $updated['patient_id_wc'], 'phone2', $updated['old_phone2'], true);
     } else if ($updated['phone2'] !== $updated['old_phone2']) {
-      upsert_patient_cp($mssql, "SirumWeb_AddUpdatePatHomePhone '$updated[patient_id_cp]', '$updated[phone2]', 9", true);
+      upsert_patient_cp($mssql, "EXEC SirumWeb_AddUpdatePatHomePhone '$updated[patient_id_cp]', '$updated[phone2]', 9", true);
     }
 
     //If pharmacy name changes then trust WC over CP
@@ -232,8 +241,8 @@ function update_patients_wc() {
       $user_def1 = str_replace("'", "''", $updated['pharmacy_name']);
       $user_def2 = substr("$updated[pharmacy_npi],$updated[pharmacy_fax],$updated[pharmacy_phone],$updated[pharmacy_address]", 0, 50);
 
-      upsert_patient_cp($mssql, "SirumWeb_AddUpdatePatientUD '$updated[patient_id_cp]', '1', '$user_def1'");
-      upsert_patient_cp($mssql, "SirumWeb_AddUpdatePatientUD '$updated[patient_id_cp]', '2', '$user_def2'");
+      upsert_patient_cp($mssql, "EXEC SirumWeb_AddUpdatePatientUD '$updated[patient_id_cp]', '1', '$user_def1'");
+      upsert_patient_cp($mssql, "EXEC SirumWeb_AddUpdatePatientUD '$updated[patient_id_cp]', '2', '$user_def2'");
     } else if ( //If pharmacy name is the same trust CP data over WC data so always update WC
         $updated['pharmacy_npi'] !== $updated['old_pharmacy_npi'] OR
         $updated['pharmacy_fax'] !== $updated['old_pharmacy_fax'] OR
@@ -252,7 +261,7 @@ function update_patients_wc() {
 
     if ($updated['payment_method_default'] AND ! $updated['old_payment_method_default']) {
 
-      upsert_patient_cp($mssql, "SirumWeb_AddUpdatePatientUD '$updated[patient_id_cp]', '3', '$updated[payment_method_default]'");
+      upsert_patient_cp($mssql, "EXEC SirumWeb_AddUpdatePatientUD '$updated[patient_id_cp]', '3', '$updated[payment_method_default]'");
 
     } else if ($updated['payment_method_default'] !== $updated['old_payment_method_default']) {
 
@@ -289,22 +298,22 @@ function update_patients_wc() {
       upsert_patient_wc($mysql, $updated['patient_id_wc'], 'language', $updated['old_language']);
 
     } else if ($updated['language'] !== $updated['language']) {
-      upsert_patient_cp($mssql, "SirumWeb_AddUpdatePatient '$updated[first_name]', '$updated[last_name]', '$updated[birth_date]', '$updated[phone1]', '$updated[language]'");
+      upsert_patient_cp($mssql, "EXEC SirumWeb_AddUpdatePatient '$updated[first_name]', '$updated[last_name]', '$updated[birth_date]', '$updated[phone1]', '$updated[language]'");
     }
 
 
 
     /*
 
-    if ($SirumWeb_AddToPatientComment && $key == 'medications_other') {
-      $SirumWeb_AddToPatientComment = false;
+    if ($EXEC SirumWeb_AddToPatientComment && $key == 'medications_other') {
+      $EXEC SirumWeb_AddToPatientComment = false;
       echo "
-      $updated[first_name] $updated[last_name] $updated[birth_date] $changed[$key] SirumWeb_AddToPatientComment '$updated[patient_id_cp]', '$updated[medications_other]'";
+      $updated[first_name] $updated[last_name] $updated[birth_date] $changed[$key] EXEC SirumWeb_AddToPatientComment '$updated[patient_id_cp]', '$updated[medications_other]'";
     }
 
 
-    if ($SirumWeb_AddRemove_Allergies && substr($key, 0, 10) == 'allergies_') {
-      $SirumWeb_AddRemove_Allergies = false;
+    if ($EXEC SirumWeb_AddRemove_Allergies && substr($key, 0, 10) == 'allergies_') {
+      $EXEC SirumWeb_AddRemove_Allergies = false;
       $allergies = json_encode([
         'allergies_none' => $updated['allergies_none'] ?: '',
         'allergies_aspirin' => $updated['allergies_aspirin'] ?: '',
@@ -320,7 +329,7 @@ function update_patients_wc() {
         'allergies_other' => str_replace("'", "''", $updated['allergies_other']) ?: ''
       ]);
 
-      $sql = "SirumWeb_AddRemove_Allergies '$updated[patient_id_cp]', '$allergies'";
+      $sql = "EXEC SirumWeb_AddRemove_Allergies '$updated[patient_id_cp]', '$allergies'";
 
       //$mssql->run($sql);
 
