@@ -35,7 +35,7 @@ function update_patients_wc() {
     }
     else if ( ! empty($patient[0]['patient_id_cp'])) {
       $created_matched++;
-      match_patient_wc();
+      match_patient_wc($mysql, $created, $patient);
     }
     else if ( ! $created['pharmacy_name']) {
       $created_needs_form++;
