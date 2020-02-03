@@ -40,28 +40,28 @@ function upsert_patient_wc($mysql, $user_id, $meta_key, $meta_value, $live = fal
   if ($live) $mysql->run($upsert);
 }
 
-function match_patient_wc($mysql, $created, $patient) {
-  $sql2 = "
+function match_patient_wc($mysql, $created, $patient_id_cp) {
+  $sql1 = "
     INSERT INTO
       wp_usermeta (umeta_id, user_id, meta_key, meta_value)
     VALUES
-      (NULL, '$created[patient_id_wc]', 'patient_id_cp', '".$patient[0]['patient_id_cp']."')
+      (NULL, '$created[patient_id_wc]', 'patient_id_cp', '$patient_id_cp')
   ";
 
-  $sql3 = "
+  $sql2 = "
     UPDATE
       gp_patients
     SET
       patient_id_wc = $created[patient_id_wc]
     WHERE
       patient_id_wc IS NULL AND
-      patient_id_cp = '".$patient[0]['patient_id_cp']."'
+      patient_id_cp = '$patient_id_cp'
   ";
 
+  $mysql->run($sql1);
   $mysql->run($sql2);
-  $mysql->run($sql3);
 
-  log_notice('update_patients_wc: matched', [$sql2, $sql3, $patient[0]]);
+  log_error('update_patients_wc: matched', [$sql1, $sql2]);
 }
 
 function find_patient_wc($mysql, $created) {

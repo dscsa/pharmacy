@@ -35,7 +35,7 @@ function update_patients_wc() {
     }
     else if ( ! empty($patient[0]['patient_id_cp'])) {
       $created_matched++;
-      match_patient_wc($mysql, $created, $patient);
+      match_patient_wc($mysql, $created, $patient[0]['patient_id_cp']);
     }
     else if ( ! $created['pharmacy_name']) {
       $created_needs_form++;
@@ -71,9 +71,7 @@ function update_patients_wc() {
 
     if ( ! $updated['patient_id_cp']) {
       $patient = find_patient_wc($mysql, $updated);
-      echo "
-      Missing patient_id_cp ".json_encode($patient, JSON_PRETTY_PRINT);
-      match_patient_wc($mysql, $created, $patient);
+      match_patient_wc($mysql, $created, $patient[0]['patient_id_cp']);
       continue;
     }
 
