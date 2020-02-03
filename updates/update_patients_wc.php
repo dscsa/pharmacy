@@ -71,7 +71,7 @@ function update_patients_wc() {
 
     if ( ! $updated['patient_id_cp']) {
       $patient = find_patient_wc($mysql, $updated);
-      match_patient_wc($mysql, $created, $patient[0]['patient_id_cp']);
+      match_patient_wc($mysql, $updated, $patient[0]['patient_id_cp']);
       continue;
     }
 
