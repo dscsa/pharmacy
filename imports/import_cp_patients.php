@@ -89,10 +89,6 @@ function import_cp_patients() {
       $val1 = explode(',', $val1) + ['', '', '', ''];
       $val2 = explode(',', $val2) + ['', '', '', ''];
 
-      if (strlen($row['medications_other']) > 255)
-        echo "
-        $row[first_name] $row[last_name] ".strlen($row['medications_other']);
-
       //log('result_map: '.print_r($val1, true).' '.print_r($val2, true));
 
       $row['pharmacy_npi']     = clean_val($val1[0]);
@@ -167,8 +163,6 @@ function import_cp_patients() {
       return $row;
     }
   );
-
-  exit;
 
   //Replace Staging Table with New Data
   $mysql->run('TRUNCATE TABLE gp_patients_cp');
