@@ -64,6 +64,35 @@ Review Orders that have a DUPLICATE invoice number:
   WHERE meta_key = 'invoice_number'
   GROUP BY meta_value
   HAVING number > 1
+
+Review Patients that have a DUPLICATE patient_id_cp:
+  SELECT GROUP_CONCAT(user_login), GROUP_CONCAT(user_id), meta_key, meta_value, COUNT(*) as number
+  FROM `wp_usermeta`
+  JOIN wp_users ON user_id = wp_users.ID
+  WHERE meta_key = 'patient_id_cp'
+  GROUP BY meta_value
+  HAVING number > 1
+
+Delete Duplicate Invoice Number.  
+
+  SELECT * FROM wp_usermeta t1
+  INNER JOIN wp_usermeta t2
+  JOIN wp_users ON t1.user_id = wp_users.ID
+  WHERE
+    t1.umeta_id < t2.umeta_id AND
+    t1.meta_key = 'patient_id_cp' AND
+    t1.meta_value = t2.meta_value AND
+    t1.meta_value > 0
+
+WARNING THIS DELETED MORE ROWS THAN EXPECTED!!! TEST WITH SELECT ABOVE FIRST  
+  DELETE t1 FROM wp_usermeta t1
+  INNER JOIN wp_usermeta t2
+  JOIN wp_users ON t1.user_id = wp_users.ID
+  WHERE
+    t1.umeta_id < t2.umeta_id AND
+    t1.meta_key = 'patient_id_cp' AND
+    t1.meta_value = t2.meta_value AND
+    t1.meta_value > 0
 */
 ```
 
