@@ -21,7 +21,7 @@ function import_cp_patients() {
       CONVERT(varchar, MAX(birth_date), 20) as birth_date,
 
       MAX(NULLIF(SUBSTRING(pat.cmt, 0, ISNULL(NULLIF(CHARINDEX(CHAR(10)+'___', pat.cmt), 0), 9999)), '')) as patient_note,
-      MAX(NULLIF(SUBSTRING(pat.cmt, ISNULL(NULLIF(NULLIF(CHARINDEX('___'+CHAR(13), pat.cmt)+3, 3), 4), 9999), 9999), '')) as medications_other,
+      MAX(NULLIF(SUBSTRING(pat.cmt, ISNULL(NULLIF(NULLIF(CHARINDEX('___'+CHAR(13), pat.cmt)+3, 3), DATALENGTH(pat.cmt)), 9999), 9999), '')) as medications_other,
 
       NULLIF(MAX(CONCAT(ph1.area_code, ph1.phone_no)), '') as phone1,
       NULLIF(MAX(CONCAT(ph2.area_code, ph2.phone_no)), '') as phone2,
