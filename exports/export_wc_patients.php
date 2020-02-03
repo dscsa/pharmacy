@@ -65,8 +65,8 @@ function match_patient_wc($mysql, $created, $patient) {
 }
 
 function find_patient_wc($mysql, $created) {
-  $first_name_prefix = explode(' ', $created['first_name']);
-  $last_name_prefix  = explode(' ', $created['last_name']);
+  $first_name_prefix = explode(' ', str_replace("'", "''", $created['first_name']));
+  $last_name_prefix  = explode(' ', str_replace("'", "''", $created['last_name']));
   $first_name_prefix = substr(array_shift($first_name_prefix), 0, 3);
   $last_name_prefix  = array_pop($last_name_prefix);
 
@@ -74,7 +74,7 @@ function find_patient_wc($mysql, $created) {
     SELECT *
     FROM gp_patients
     WHERE
-      first_name LIKE '".$first_name_prefix."%' AND
+      first_name LIKE '$first_name_prefix%' AND
       REPLACE(REPLACE(last_name, '*', ''), '\'', '') LIKE '%$last_name_prefix' AND
       birth_date = '$created[birth_date]'
   ";
