@@ -164,10 +164,10 @@ function import_cp_patients() {
     }
   );
 
-  exit;
-
   //Replace Staging Table with New Data
   $mysql->run('TRUNCATE TABLE gp_patients_cp');
 
   $mysql->run("INSERT INTO gp_patients_cp $keys VALUES ".$patients[0]);
+
+  exit;
 }
