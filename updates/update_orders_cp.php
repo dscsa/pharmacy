@@ -123,7 +123,10 @@ function update_orders_cp() {
   //If just updated we need to
   //  - see which fields changed
   //  - think about what needs to be updated based on changes
-  foreach($changes['updated'] as $updated) {
+  foreach($changes['updated'] as $i => $updated) {
+
+    echo "
+    Updated Orders: $updated[invoice_number] $i of ".count($updated);
 
     $changed_fields = changed_fields($updated);
 
@@ -161,6 +164,7 @@ function update_orders_cp() {
       export_wc_update_order($order);
       export_v2_unpend_order($order);
       send_shipped_order_communications($groups);
+      log_error("Updated Order Shipped", $order[0]['invoice_number']);
       log_notice("Updated Order Shipped", $order);
       continue;
     }
@@ -178,7 +182,8 @@ function update_orders_cp() {
       export_wc_update_order($order);
       export_v2_unpend_order($order);
       send_dispensed_order_communications($groups);
-      //log_notice("Updated Order Dispensed", get_defined_vars());
+      log_error("Updated Order Dispensed", $order[0]['invoice_number']);
+      log_notice("Updated Order Dispensed", $order);
       continue;
     }
 
