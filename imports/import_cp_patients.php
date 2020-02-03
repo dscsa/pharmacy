@@ -16,7 +16,9 @@ function import_cp_patients() {
       MAX(fname) as first_name,
       MAX(lname) as last_name,
       CONVERT(varchar, MAX(birth_date), 20) as birth_date,
-      MAX(CAST(pat.cmt as VARCHAR(3072))) as patient_note, -- MAX DOESN'T WORK WITH TXT
+
+      MAX(LEFT(CAST(pat.cmt as VARCHAR(3072)), CHARINDEX(CHAR(10)+'___', pat.cmt))) as patient_note,
+      MAX(CASE WHEN DATALENGTH(pat.cmt) > 5 THEN RIGHT(CAST(pat.cmt as VARCHAR(3072)), DATALENGTH(pat.cmt)-CHARINDEX('___'+CHAR(13), pat.cmt)-5) ELSE NULL END) as medications_other,
 
       NULLIF(MAX(CONCAT(ph1.area_code, ph1.phone_no)), '') as phone1,
       NULLIF(MAX(CONCAT(ph2.area_code, ph2.phone_no)), '') as phone2,
@@ -66,13 +68,6 @@ function import_cp_patients() {
     GROUP BY pat.pat_id -- because cppat_phone had a duplicate entry for pat_id 5130 we got two rows so need a groupby.  This also removes refills_used from needing to be a subquery
 
   ");
-
-
-
-
-
-
-
 
   if ( ! count($patients[0])) return log_error('No Cp Patients to Import', get_defined_vars());
 

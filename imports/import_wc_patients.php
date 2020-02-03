@@ -19,7 +19,7 @@ function import_wc_patients() {
     MAX(CASE WHEN wp_usermeta.meta_key = 'first_name' then wp_usermeta.meta_value ELSE NULL END) as first_name,
     MAX(CASE WHEN wp_usermeta.meta_key = 'last_name' then wp_usermeta.meta_value ELSE NULL END) as last_name,
     RIGHT(user_login, 10) as birth_date,
-    MAX(CASE WHEN wp_usermeta.meta_key = 'medications_other' then wp_usermeta.meta_value ELSE NULL END) as patient_note,
+    MAX(CASE WHEN wp_usermeta.meta_key = 'medications_other' then wp_usermeta.meta_value ELSE NULL END) as medications_other,
 
     -- https://stackoverflow.com/questions/37268248/how-to-get-only-digits-from-string-in-mysql
     RIGHT(0+MAX(CASE WHEN wp_usermeta.meta_key = 'phone' then wp_usermeta.meta_value ELSE NULL END), 10) as phone1,

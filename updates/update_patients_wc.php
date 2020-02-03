@@ -1,6 +1,9 @@
 <?php
 
 require_once 'changes/changes_to_patients_wc.php';
+require_once 'exports/export_wc_patients.php';
+require_once 'exports/export_cp_patients.php';
+
 
 function update_patients_wc() {
 
@@ -17,53 +20,6 @@ function update_patients_wc() {
   $mysql = new Mysql_Wc();
   $mssql = new Mssql_Cp();
 
-  function cp_to_wc_key($key) {
-
-    $cp_to_wc = [
-      'patient_zip' => 'billing_postcode',
-      'patient_state' => 'billing_state',
-      'patient_city' => 'billing_city',
-      'patient_address2' => 'billing_address_2',
-      'patient_address1' => 'billing_address_1',
-      'payment_coupon' => 'coupon',
-      'tracking_coupon' => 'coupon',
-      'phone2' => 'billing_phone',
-      'phone1' => 'phone',
-      'patient_note' => 'medications_other'
-    ];
-
-    return isset($cp_to_wc[$key]) ? $cp_to_wc[$key] : $key;
-  }
-
-  function upsert_patient_wc($mysql, $user_id, $meta_key, $meta_value, $live = false) {
-
-    $wc_key = cp_to_wc_key($meta_key);
-    $wc_val = is_null($meta_value) ? 'NULL' : "'".@mysql_escape_string($meta_value)."'";
-
-    $select = "SELECT * FROM wp_usermeta WHERE user_id = $user_id AND meta_key = '$wc_key'";
-
-    $exists = $mysql->run($select);
-
-    if (isset($exists[0][0])) {
-      $upsert = "UPDATE wp_usermeta SET meta_value = $wc_val WHERE user_id = $user_id AND meta_key = '$wc_key'";
-    } else {
-      $upsert = "INSERT wp_usermeta (umeta_id, user_id, meta_key, meta_value) VALUES (NULL, $user_id, '$wc_key', $wc_val)";
-    }
-
-
-    echo "
-    live:$live $upsert";
-
-    if ($live) $mysql->run($upsert);
-  }
-
-  function upsert_patient_cp($mssql, $sql, $live = false) {
-    echo "
-    live:$live $sql";
-
-    if ($live) $mssql->run("$sql");
-  }
-
   $created_mismatched = 0;
   $created_matched = 0;
   $created_needs_form = 0;
@@ -71,53 +27,15 @@ function update_patients_wc() {
 
   foreach($changes['created'] as $created) {
 
-    $first_name_prefix = explode(' ', $created['first_name']);
-    $last_name_prefix  = explode(' ', $created['last_name']);
-    $first_name_prefix = substr(array_shift($first_name_prefix), 0, 3);
-    $last_name_prefix  = array_pop($last_name_prefix);
-
-    $sql = "
-      SELECT *
-      FROM gp_patients
-      WHERE
-        first_name LIKE '".$first_name_prefix."%' AND
-        REPLACE(REPLACE(last_name, '*', ''), '\'', '') LIKE '%$last_name_prefix' AND
-        birth_date = '$created[birth_date]'
-    ";
-
-    $patient = $mysql->run($sql)[0];
+    $patient = find_patient_wc($mysql, $created);
 
     if ( ! empty($patient[0]['patient_id_wc'])) {
       $created_mismatched++;
-
       log_error('update_patients_wc: mismatched patient_id_wc?', [$created, $patient[0]]);
-      //No Log
     }
     else if ( ! empty($patient[0]['patient_id_cp'])) {
-
       $created_matched++;
-
-      $sql2 = "
-        INSERT INTO
-          wp_usermeta (umeta_id, user_id, meta_key, meta_value)
-        VALUES
-          (NULL, '$created[patient_id_wc]', 'patient_id_cp', '".$patient[0]['patient_id_cp']."')
-      ";
-
-      $sql3 = "
-        UPDATE
-          gp_patients
-        SET
-          patient_id_wc = $created[patient_id_wc]
-        WHERE
-          patient_id_wc IS NULL AND
-          patient_id_cp = '".$patient[0]['patient_id_cp']."'
-      ";
-
-      $mysql->run($sql2);
-      $mysql->run($sql3);
-
-      log_notice('update_patients_wc: matched', [$sql2, $sql3, $patient[0]]);
+      match_patient_wc();
     }
     else if ( ! $created['pharmacy_name']) {
       $created_needs_form++;
@@ -336,7 +254,7 @@ function update_patients_wc() {
     }
 
     if ($updated['patient_note'] AND $updated['patient_note'] !== $updated['old_patient_note']) {
-      upsert_patient_cp($mssql, "EXEC SirumWeb_AddToPatientComment '$updated[patient_id_cp]', '$updated[patient_note]'");
+      export_cp_patient_save_patient_note($mssql, $updated);
     }
   }
 }
