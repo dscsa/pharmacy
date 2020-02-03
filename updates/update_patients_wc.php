@@ -43,7 +43,7 @@ function update_patients_wc() {
     }
     else {
       $created_new_to_cp++;
-      log_error('update_patients_wc: new_to_cp', [$sql, $created]);
+      log_error('update_patients_wc: new_to_cp', [$created, $patient]);
     }
   }
 
@@ -257,6 +257,9 @@ function update_patients_wc() {
     }
 
     if ($updated['medications_other'] AND $updated['medications_other'] !== $updated['medications_other']) {
+      $patient = find_patient_wc($mysql, $updated);
+      echo "
+      Patient Note: $patient[patient_note]";
       export_cp_patient_save_medications_other($mssql, $updated);
     }
   }
