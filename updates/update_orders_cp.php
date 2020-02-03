@@ -126,7 +126,7 @@ function update_orders_cp() {
   foreach($changes['updated'] as $i => $updated) {
 
     echo "
-    Updated Orders: $updated[invoice_number] $i of ".count($updated);
+    Updated Orders: $updated[invoice_number] {$i+1} of ".count($updated);
 
     $changed_fields = changed_fields($updated);
 
