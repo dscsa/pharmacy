@@ -34,18 +34,6 @@ function export_cp_patient_save_patient_note($mssql, $patient, $live = false) {
   //$mssql->run("$sql");
 }
 
-function export_cp_patient_remove_medication($mssql, $created) {
-
-}
-
-function export_cp_patient_add_allergy($mssql) {
-
-}
-
-function export_cp_patient_add_allergy($mssql) {
-
-}
-
 function upsert_patient_cp($mssql, $sql, $live = false) {
   echo "
   live:$live $sql";
