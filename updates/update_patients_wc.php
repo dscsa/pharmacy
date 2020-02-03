@@ -80,8 +80,6 @@ function update_patients_wc() {
     $changed
       ? log_error("update_patients_wc: updated changed cp:$updated[patient_id_cp] wc:$updated[patient_id_wc]", $changed)
       : log_error("update_patients_wc: updated no change? cp:$updated[patient_id_cp] wc:$updated[patient_id_wc]", $updated);
-
-    continue;
     
     if ( ! $updated['email'] AND $updated['old_email']) {
       upsert_patient_wc($mysql, $updated['patient_id_wc'], 'email', $update['old_email']);
