@@ -13,7 +13,7 @@ function export_cp_patient_save_medications_other($mssql, $patient, $live = fals
   ";
 
   echo "
-  live:$live $sql";
+  live:$live $patient[first_name] $patient[last_name] $sql";
 
   $mssql->run("$sql");
 }

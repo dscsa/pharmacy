@@ -17,6 +17,8 @@ function update_patients_wc() {
 
   log_error("update_patients_wc: $count_deleted deleted, $count_created created, $count_updated updated.");
 
+  exit;
+
   $mysql = new Mysql_Wc();
   $mssql = new Mssql_Cp();
 
@@ -273,3 +275,7 @@ function update_patients_wc() {
     }
   }
 }
+PROVENTIL INHALER, GLUCOSAMINE, WOMEN'S VITAMIN, B-12 VITAMIN, ROBAXIN, QVAR INHALER, PREVASTATIN, SPIRIVA RESPIMAT,VITAMIN D3, ISOSORB, HYDROCORTISONE, SOLU-CORTEF, AZELASTINE SPRAY, ASPIRIN, LASIX, SINGULAIR, ADVAIR
+atenolol (TENORMIN) 25 mg tablet, meloxicam (MOBIC) 15 MG tablet, omega-3 fatty acids-fish oil 360-1,200 mg Cap, omeprazole (PRILOSEC OTC) 20 MG tablet, triamterene-hydrochlorothiazide (MAXZIDE-25) 37.5-25 mg per tablet, losartan (COZAAR) 50 MG tablet, ox, atenolol (TENORMIN) 25 mg tablet, meloxicam (MOBIC) 15 MG tablet, omega-3 fatty acids-fish oil 360-1,200 mg Cap, omeprazole (PRILOSEC OTC) 20 MG tablet, triamterene-hydrochlorothiazide (MAXZIDE-25) 37.5-25 mg per tablet, losartan (COZAAR) 50 MG tablet, ox
+
+atenolol (TENORMIN) 25 mg tablet, meloxicam (MOBIC) 15 MG tablet, omega-3 fatty acids-fish oil 360-1,200 mg Cap, omeprazole (PRILOSEC OTC) 20 MG tablet, triamterene-hydrochlorothiazide (MAXZIDE-25) 37.5-25 mg per tablet, losartan (COZAAR) 50 MG tablet, ox, atenolol (TENORMIN) 25 mg tablet, meloxicam (MOBIC) 15 MG tablet, omega-3 fatty acids-fish oil 360-1,200 mg Cap, omeprazole (PRILOSEC OTC) 20 MG tablet, triamterene-hydrochlorothiazide (MAXZIDE-25) 37.5-25 mg per tablet, losartan (COZAAR) 50 MG tablet, ox
