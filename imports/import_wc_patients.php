@@ -98,7 +98,11 @@ function import_wc_patients() {
 
   $sql = "INSERT INTO gp_patients_wc $keys VALUES ".$orders[0];
 
+  echo $sql;
+
   $error = $mysql->run($sql);
+
+  echo "error: $error";
 
   //log_error("import_wc_patients: ", $sql);
 }
