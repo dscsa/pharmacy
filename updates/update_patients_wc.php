@@ -139,6 +139,9 @@ function update_patients_wc() {
       upsert_patient_wc($mysql, $updated['patient_id_wc'], 'phone2', NULL, true);
     } else if ($updated['old_phone2'] AND $updated['old_phone2'] == $updated['old_phone1']) {
 
+      echo "
+      Phone1: $updated[old_phone1] >>> $updated[phone1]";
+
       //EXEC SirumWeb_AddUpdatePatHomePhone only inserts new phone numbers
       upsert_patient_cp($mssql, "
         UPDATE ph
@@ -151,11 +154,6 @@ function update_patients_wc() {
     } else if (strlen($updated['phone2']) < 10 AND strlen($updated['old_phone2']) >= 10) {
       upsert_patient_wc($mysql, $updated['patient_id_wc'], 'phone2', $updated['old_phone2'], true);
     } else if ($updated['phone2'] !== $updated['old_phone2']) {
-
-      if ( ! $updated['phone2'])
-        echo "
-        Phone1: $updated[old_phone1] >>> $updated[phone1]";
-        
       upsert_patient_cp($mssql, "EXEC SirumWeb_AddUpdatePatHomePhone '$updated[patient_id_cp]', '$updated[phone2]', 9", true);
     }
 
@@ -256,10 +254,6 @@ function update_patients_wc() {
       ]);
 
       upsert_patient_cp($mssql, "EXEC SirumWeb_AddRemove_Allergies '$updated[patient_id_cp]', '$allergies'");
-    }
-
-    if ($updated['patient_note'] AND $updated['patient_note'] !== $updated['old_patient_note']) {
-      export_cp_patient_save_patient_note($mssql, $updated);
     }
 
     if ($updated['medications_other'] AND $updated['medications_other'] !== $updated['medications_other']) {
