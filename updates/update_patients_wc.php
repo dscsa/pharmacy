@@ -256,13 +256,13 @@ function update_patients_wc() {
       upsert_patient_cp($mssql, "EXEC SirumWeb_AddRemove_Allergies '$updated[patient_id_cp]', '$allergies'");
     }
 
-    if ($updated['medications_other'] AND $updated['medications_other'] !== $updated['old_medications_other']) {
+    if ($updated['medications_other'] !== $updated['old_medications_other']) {
       $patient = find_patient_wc($mysql, $updated);
 
       if (@$patient['patient_note'])
         echo "
         Patient Note: $patient[patient_note]";
-        
+
       export_cp_patient_save_medications_other($mssql, $updated);
     }
   }
