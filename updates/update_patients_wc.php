@@ -69,6 +69,13 @@ function update_patients_wc() {
 
   foreach($changes['updated'] as $i => $updated) {
 
+    if ( ! $updated['patient_id_cp']) {
+      $patient = find_patient_wc($mysql, $updated);
+      echo "
+      Missing patient_id_cp ".json_encode($patient, JSON_PRETTY_PRINT);
+      continue;
+    }
+
     $changed = changed_fields($updated);
 
     $changed
