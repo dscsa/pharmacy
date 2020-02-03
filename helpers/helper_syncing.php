@@ -29,7 +29,7 @@ function sync_to_order($order, $updated = null) {
     if ($item['item_date_added'] AND $item['item_added_by'] != 'MANUAL' AND ! $item['days_dispensed'] AND $item['drug_gsns']) {
 
       if ($item['rx_dispensed_id']) {
-        log_error('removing item canceled because already dispensed', get_defined_vars());
+        log_error('removing item canceled because already dispensed', $item);
         continue;
       }
 
@@ -43,7 +43,7 @@ function sync_to_order($order, $updated = null) {
     if ($item['item_date_added'] AND $item['item_added_by'] != 'MANUAL' AND $item['rx_number'] != $item['best_rx_number']) {
 
       if ($item['rx_dispensed_id']) {
-        log_error('switching item canceled because already dispensed', get_defined_vars());
+        log_error('switching item canceled because already dispensed', $item);
         continue;
       }
 
