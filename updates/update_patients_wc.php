@@ -73,6 +73,7 @@ function update_patients_wc() {
       $patient = find_patient_wc($mysql, $updated);
       echo "
       Missing patient_id_cp ".json_encode($patient, JSON_PRETTY_PRINT);
+      match_patient_wc($mysql, $created, $patient);
       continue;
     }
 

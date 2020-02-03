@@ -15,7 +15,7 @@ function export_cp_patient_save_medications_other($mssql, $patient, $live = fals
   echo "
   live:$live $sql";
 
-  //$mssql->run("$sql");
+  $mssql->run("$sql");
 }
 
 function export_cp_patient_save_patient_note($mssql, $patient, $live = false) {
