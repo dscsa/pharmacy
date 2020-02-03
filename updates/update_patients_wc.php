@@ -258,8 +258,11 @@ function update_patients_wc() {
 
     if ($updated['medications_other'] AND $updated['medications_other'] !== $updated['old_medications_other']) {
       $patient = find_patient_wc($mysql, $updated);
-      echo "
-      Patient Note: $patient[patient_note]";
+
+      if (@$patient['patient_note'])
+        echo "
+        Patient Note: $patient[patient_note]";
+        
       export_cp_patient_save_medications_other($mssql, $updated);
     }
   }
