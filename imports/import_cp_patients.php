@@ -9,6 +9,9 @@ function import_cp_patients() {
   $mssql = new Mssql_Cp();
   $mysql = new Mysql_Wc();
 
+
+
+
   $patients = $mssql->run("
 
     SELECT
@@ -18,7 +21,7 @@ function import_cp_patients() {
       CONVERT(varchar, MAX(birth_date), 20) as birth_date,
 
       MAX(NULLIF(SUBSTRING(pat.cmt, 0, ISNULL(NULLIF(CHARINDEX(CHAR(10)+'___', pat.cmt), 0), DATALENGTH(pat.cmt)+1)), '')) as patient_note,
-      MAX(NULLIF(RIGHT(CAST(pat.cmt as VARCHAR(3072)), DATALENGTH(pat.cmt)-ISNULL(NULLIF(CHARINDEX('___'+CHAR(13), pat.cmt)+3, 3), DATALENGTH(pat.cmt))), '')) as medications_other,
+      MAX(NULLIF(SUBSTRING(pat.cmt, DATALENGTH(pat.cmt)-ISNULL(NULLIF(CHARINDEX('___'+CHAR(13), pat.cmt)+3, 3), DATALENGTH(pat.cmt)), 9999), '')) as medications_other,
 
       NULLIF(MAX(CONCAT(ph1.area_code, ph1.phone_no)), '') as phone1,
       NULLIF(MAX(CONCAT(ph2.area_code, ph2.phone_no)), '') as phone2,
@@ -85,6 +88,10 @@ function import_cp_patients() {
 
       $val1 = explode(',', $val1) + ['', '', '', ''];
       $val2 = explode(',', $val2) + ['', '', '', ''];
+
+      if (str_len($row['medications_other']) > 255)
+        echo "
+        $row[first_name] $row[last_name] ".str_len($row['medications_other']);
 
       //log('result_map: '.print_r($val1, true).' '.print_r($val2, true));
 
@@ -160,6 +167,8 @@ function import_cp_patients() {
       return $row;
     }
   );
+
+  exit;
 
   //Replace Staging Table with New Data
   $mysql->run('TRUNCATE TABLE gp_patients_cp');
