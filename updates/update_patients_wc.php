@@ -132,13 +132,13 @@ function update_patients_wc() {
             $updated['payment_coupon'] !== $updated['old_payment_coupon'] OR //Still allow for deleteing coupons in CP
             $updated['tracking_coupon'] !== $updated['old_tracking_coupon'] //Still allow for deleteing coupons in CP
     ) {
-      upsert_patient_wc($mysql, $updated['patient_id_wc'], 'coupon', $updated['old_payment_coupon'] ?: $updated['old_tracking_coupon']);
+      upsert_patient_wc($mysql, $updated['patient_id_wc'], 'coupon', $updated['old_payment_coupon'] ?: $updated['old_tracking_coupon'], true);
     }
 
     if (strlen($updated['phone1']) < 10 AND strlen($updated['old_phone1']) >= 10) {
       upsert_patient_wc($mysql, $updated['patient_id_wc'], 'phone1', $updated['old_phone1']);
     } else if ($updated['phone1'] !== $updated['old_phone1']) {
-      upsert_patient_cp($mssql, "EXEC SirumWeb_AddUpdatePatHomePhone '$updated[patient_id_cp]', '$updated[phone1]'");
+      upsert_patient_cp($mssql, "EXEC SirumWeb_AddUpdatePatHomePhone '$updated[patient_id_cp]', '$updated[phone1]'", true);
     }
 
     if ($updated['phone2'] AND $updated['phone2'] == $updated['phone1']) {
