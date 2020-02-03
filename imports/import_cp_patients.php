@@ -89,9 +89,9 @@ function import_cp_patients() {
       $val1 = explode(',', $val1) + ['', '', '', ''];
       $val2 = explode(',', $val2) + ['', '', '', ''];
 
-      if (str_len($row['medications_other']) > 255)
+      if (strlen($row['medications_other']) > 255)
         echo "
-        $row[first_name] $row[last_name] ".str_len($row['medications_other']);
+        $row[first_name] $row[last_name] ".strlen($row['medications_other']);
 
       //log('result_map: '.print_r($val1, true).' '.print_r($val2, true));
 
