@@ -256,5 +256,9 @@ function update_patients_wc() {
     if ($updated['patient_note'] AND $updated['patient_note'] !== $updated['old_patient_note']) {
       export_cp_patient_save_patient_note($mssql, $updated);
     }
+
+    if ($updated['medications_other'] AND $updated['medications_other'] !== $updated['medications_other']) {
+      export_cp_patient_save_medications_other($mssql, $updated);
+    }
   }
 }
