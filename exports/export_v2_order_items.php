@@ -193,7 +193,16 @@ function group_by_ndc($rows, $item) {
 
   foreach ($rows as $row) {
 
-    if ($row['doc']['next']) {
+    if (
+        isset($row['doc']['next'][0]) AND
+        (
+          count($row['doc']['next'][0]) > 1 OR
+          (
+            count($row['doc']['next'][0]) == 1 AND
+            ! isset($row['doc']['next'][0]['picked'])
+          )
+        )
+    ) {
       log_error('Shopping list pulled inventory in which "next" is set!', $row, $item);
       if ( ! empty($row['doc']['next']['dispensed'])) continue;
     }

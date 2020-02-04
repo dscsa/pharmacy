@@ -42,6 +42,7 @@ function update_patients_wc() {
       //Registration Started but Not Complete
     }
     else {
+      //People who filled out first 1/2 of the registration form
       $created_new_to_cp++;
       log_error('update_patients_wc: new_to_cp', [$created, $patient]);
     }
