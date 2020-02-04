@@ -1599,7 +1599,7 @@ function dscsa_save_order($order, $data) {
       debug_email("INVOICE# IS ALREDY SAVED.  NOT CREATING ORDER", "Patient ID: $patient_id\r\n\r\nInvoice #:$invoice_number \r\n\r\nMSSQL:".print_r(mssql_get_last_message(), true)."\r\n\r\nOrder Meta Invoice #:".$order->get_meta('invoice_number', true)."\r\n\r\nPOST:".print_r(sanitize($_POST), true).print_r($order, true));
 
     if ( ! $invoice_number) {
-      $guardian_order = get_guardian_order($patient_id, $_POST['rx_source'], $_POST['order_comments'], $is_registered);
+      $guardian_order = get_guardian_order($patient_id, $_POST['rx_source'], $_POST['order_comments']);
       $invoice_number = $guardian_order['invoice_nbr'];
     }
 
@@ -2351,18 +2351,18 @@ function get_invoice_number($guardian_id) {
   return $result['invoice_nbr'];
 }
 
-function get_guardian_order($guardian_id, $source, $comment, $is_registered) {
+function get_guardian_order($guardian_id, $rx_source, $comment) {
   if ( ! $guardian_id) return;
 
   $comment = str_replace("'", "''", $comment ?: '');
   // Categories can be found or added select * From csct_code where ct_id=5007, UPDATE csct_code SET code_num=2, code=2, user_owned_yn = 1 WHERE code_id = 100824
   // 0 Unspecified, 1 Webform Complete, 2 Webform eRx, 3 Webform Transfer, 6 Webform Refill, 7 Webform eRX with Note, 8 Webform Transfer with Note, 9 Webform Refill with Note,
 
-  if ($source == 'pharmacy')
+  if ($rx_source == 'pharmacy')
     $category = $comment ? 8 : 3;
-  else if ($source == 'erx' AND $is_registered)
+  else if ($rx_source == 'refill')
     $category = $comment ? 9 : 6;
-  else if ($source == 'erx'AND ! $is_registered)
+  else if ($rx_source == 'erx')
     $category = $comment ? 7 : 2;
   else
     $category = 0;

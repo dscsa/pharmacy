@@ -52,6 +52,7 @@ function signup2signout() {
 function setSource() {
   jQuery("#rx_source_pharmacy").change(hideErx)
   jQuery("#rx_source_erx").change(hidePharmacy)
+  jQuery("#rx_source_refill").change(hidePharmacy)
   jQuery("<style id='rx_source' type='text/css'></style>").appendTo('head')
   jQuery("input[name=rx_source]:checked").triggerHandler('change')
 }
