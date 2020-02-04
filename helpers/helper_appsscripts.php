@@ -38,7 +38,7 @@ function watch_invoices() {
     //Differentiate from the four digit year
     preg_match_all('/\d{5,}/', $invoice['name'], $invoice_number);
 
-    if ( ! isset($totals[2])) {
+    if ( ! isset($totals[2][0]) OR ! isset($totals[2][1])) {
       log_error('watch_invoices', $invoice['part0']);
       continue;
     }
