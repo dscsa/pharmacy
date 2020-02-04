@@ -1849,6 +1849,9 @@ function dscsa_update_order_status( $data) {
     else if($_POST['payment_method'] == 'stripe' AND $data['post_status'] != 'wc-failed' AND $data['post_status'] == 'wc-shipped-auto-pay') { //order-pay page
       $data['post_status'] = 'wc-done-auto-pay';
     }
+    else if($_POST['payment_method'] == 'stripe' AND $data['post_status'] != 'wc-failed') { //order-pay page
+      $data['post_status'] = 'wc-done-card-pay';
+    }
     else { //Put rest in the unclassified status
       $data['post_status'] = 'wc-processing';
       debug_email("dscsa_update_order_status: Unclassified Order - ", print_r($data, true).print_r(sanitize($_POST), true).print_r(mssql_get_last_message(), true).print_r($_SERVER, true).print_r($_SESSION, true).print_r($_COOKIE, true));
