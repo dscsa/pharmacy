@@ -363,8 +363,8 @@ function order_fields($user_id = null, $ordered = null, $rxs = []) {
       'priority'  => 1,
       'type'   	  => 'radio',
       'required'  => true,
-      'default'   => get_default('rx_source', $user_id) ?: $default_option,
-      'options'   => $rx_source_opts
+      'default'   => $default_option,
+      'options'   => array_reverse($rx_source_opts, true) //Want default option to be the left most radio
     ],
     'email' => [
       'priority'  => 21,

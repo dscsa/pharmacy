@@ -1,10 +1,8 @@
-Get Allergy Syncing Working
-Fix Mismatched Patient
 Unclassified Orders in WC
 Understand Created Item Readded.
+Not all invoices being published? (or is this a shopping sheet eror)
 ERROR: Missing Order Item!
 Created Item Missing.
-"Shipped/Paid WC not in Guardian. Delete/Refund?
 Get rid of old WC Order Statuses
  1168 deleted patients in Guardian
  Clear out unused WC Meta_Keys
