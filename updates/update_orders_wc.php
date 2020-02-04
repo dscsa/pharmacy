@@ -47,11 +47,13 @@ function update_orders_wc() {
     //This comes from import_wc_orders so we don't need the "w/ Note" counterpart sources
     } else if (in_array($created['order_source'], ["Webform Refill", "Webform Transfer", "Webform eRx"])) {
 
+      export_wc_delete_order($created['invoice_number']);
       $notices[] = ["New WC Order to Add Guadian", $created];
 
     } else {
 
-      $notices[] = ["Guardian Order Deleted that should be deleted from WC later in this run", $created];
+      export_wc_delete_order($created['invoice_number']); //NOTE: Needs investigation. Added this because they were seeming to be deleted as intended
+      $notices[] = ["Guardian Order Deleted that should be deleted from WC later in this run or already deleted", $created];
     }
 
   }

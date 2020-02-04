@@ -80,7 +80,7 @@ function update_patients_wc() {
     $changed
       ? log_error("update_patients_wc: updated changed cp:$updated[patient_id_cp] wc:$updated[patient_id_wc]", $changed)
       : log_error("update_patients_wc: updated no change? cp:$updated[patient_id_cp] wc:$updated[patient_id_wc]", $updated);
-    
+
     if ( ! $updated['email'] AND $updated['old_email']) {
       upsert_patient_wc($mysql, $updated['patient_id_wc'], 'email', $update['old_email']);
     } else if ($updated['email'] !== $updated['old_email']) {
@@ -124,7 +124,7 @@ function update_patients_wc() {
       $user_def4 = "$updated[payment_card_last4],$updated[payment_card_date_expired],$updated[payment_card_type],".($updated['payment_coupon'] ?: $updated['tracking_coupon']);
       echo "
       ".json_encode($updated, JSON_PRETTY_PRINT);
-      upsert_patient_cp($mssql, "EXEC SirumWeb_AddUpdatePatientUD '$updated[patient_id_cp]', '4', '$user_def4'");
+      upsert_patient_cp($mssql, "EXEC SirumWeb_AddUpdatePatientUD '$updated[patient_id_cp]', '4', '$user_def4'", true);
     } else if (
             //$updated['payment_card_last4'] !== $updated['old_payment_card_last4'] OR
             //$updated['payment_card_date_expired'] !== $updated['old_payment_card_date_expired'] OR
