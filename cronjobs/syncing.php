@@ -31,6 +31,15 @@ $email = '';
 
 //Imports
 
+import_wc_orders();
+$email .= timer("import_wc_orders", $time);
+
+import_wc_patients();
+$email .= timer("import_wc_patients", $time);
+
+exit;
+
+
 import_v2_drugs();
 $email .= timer("import_v2_drugs", $time);
 
