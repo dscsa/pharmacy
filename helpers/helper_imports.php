@@ -18,8 +18,8 @@ function clean_val(&$val, &$default = null) {
     return $clean;
 
   //StripSlashes meant to prevent double escaping string
-  $clean = preg_replace("/[^']'[^']/i", "''", trim($clean));
-  //@mysql_escape_string(stripslashes(trim($clean)));
+  $clean = @mysql_escape_string(stripslashes(trim($clean))); //preg_replace("/([^'])'([^'])/i", "$1''$2", trim($clean));
+  //
 
   return "'$clean'";
 }
