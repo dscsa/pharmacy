@@ -39,7 +39,12 @@ function watch_invoices() {
     preg_match_all('/\d{5,}/', $invoice['name'], $invoice_number);
 
     if ( ! isset($totals[2][0]) OR ! isset($totals[2][1])) {
-      log_error('watch_invoices', $invoice['part0']);
+      log_error('watch_invoices: incorrect totals', $invoice['part0']);
+      continue;
+    }
+
+    if ( ! isset($invoice_number[0][0])) {
+      log_error('watch_invoices: incorrect invoice number', $invoice_number);
       continue;
     }
 
