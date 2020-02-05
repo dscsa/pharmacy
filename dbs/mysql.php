@@ -43,7 +43,7 @@ class Mysql {
 
         if ($stmt === false) {
 
-          $message = mysqli_error($this->connection);
+          $message = mysqli_error($this->connection)->getMessage();
 
           //Transaction (Process ID 67) was deadlocked on lock resources with another process and has been chosen as the deadlock victim. Rerun the transaction.
           if (strpos($message, 'Rerun') !== false) {
@@ -107,7 +107,7 @@ class Mysql {
       //Don't do database logging here as this could cause an infinite loop
 
       if ( ! $error) {
-        log_to_cli('ERROR', 'MYSQL Error with no value', '', vars_to_json(get_defined_vars(), 'mysql.php'));  
+        log_to_cli('ERROR', 'MYSQL Error with no value', '', vars_to_json(get_defined_vars(), 'mysql.php'));
       }
 
       echo "Debug MYSQL ".json_encode($error, JSON_PRETTY_PRINT);
