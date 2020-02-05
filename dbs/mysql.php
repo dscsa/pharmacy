@@ -105,8 +105,8 @@ class Mysql {
     function _emailError($error) {
       //$mysqli_error = isset($this->connection) ? mysqli_connect_errno($this->connection).': '.mysqli_error($this->connection) : mysqli_connect_errno().': '.mysqli_connect_error();
       //Don't do database logging here as this could cause an infinite loop
-      echo json_encode($error, JSON_PRETTY_PRINT);
-      log_to_cli('ERROR', "CRON: Debug MYSQL", '', json_encode($error, JSON_PRETTY_PRINT));
-      log_to_email('ERROR', "CRON: Debug MYSQL", '', json_encode($error, JSON_PRETTY_PRINT));
+      echo "Debug MYSQL ".json_encode($error, JSON_PRETTY_PRINT);
+      log_to_cli('ERROR', "Debug MYSQL", '', json_encode($error, JSON_PRETTY_PRINT));
+      log_to_email('ERROR', "Debug MYSQL", '', json_encode($error, JSON_PRETTY_PRINT));
     }
 }
