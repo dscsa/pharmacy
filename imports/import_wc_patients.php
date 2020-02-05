@@ -93,7 +93,7 @@ function import_wc_patients() {
     }
   );
 
-  $sql = "INSERT INTO gp_patients_wc $keys VALUES ".$orders[0]
+  $sql = "INSERT INTO gp_patients_wc $keys VALUES ".$orders[0];
 
   $mysql->run("START TRANSACTION");
   $mysql->run("DELETE FROM gp_orders_wc");
