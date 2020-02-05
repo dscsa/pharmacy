@@ -106,11 +106,8 @@ class Mssql {
       //$mssql_get_last_message = mssql_get_last_message();
       //Don't do database logging here as this could cause an infinite loop
 
-      if ( ! $error) {
-        log_to_cli('ERROR', 'MSSQL Error with no value', '', vars_to_json(get_defined_vars(), 'mssql.php'));
-      }
-
-      echo "Debug MSSQL ".json_encode($error, JSON_PRETTY_PRINT);
+      echo "
+      Debug MSSQL ".var_dump($error);
       log_to_cli('ERROR', "CRON: Debug MSSQL", '', json_encode($error, JSON_PRETTY_PRINT));
       log_to_email('ERROR', "CRON: Debug MSSQL", '', json_encode($error, JSON_PRETTY_PRINT));
     }
