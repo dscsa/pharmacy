@@ -100,7 +100,7 @@ function import_wc_patients() {
     COMMIT;
   ";
 
-  //echo $sql;
+  echo $sql;
 
   $error = $mysql->run($sql);
 
