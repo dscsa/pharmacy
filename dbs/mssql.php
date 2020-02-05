@@ -104,7 +104,7 @@ class Mssql {
       //Don't do database logging here as this could cause an infinite loop
 
       if ( ! $error) {
-        log_to_cli('MSSQL Error with no value', get_defined_vars());
+        log_to_cli('ERROR', 'MSSQL Error with no value', '', vars_to_json(get_defined_vars(), 'mssql.php'));
       }
 
       echo "Debug MSSQL ".json_encode($error, JSON_PRETTY_PRINT);
