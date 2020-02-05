@@ -50,9 +50,12 @@ function import_cp_orders() {
   $keys = result_map($orders[0]);
 
   //Replace Staging Table with New Data
-  $mysql->run('TRUNCATE TABLE gp_orders_cp');
+  $sql = "INSERT INTO gp_orders_cp $keys VALUES ".$orders[0];
 
-  $mysql->run("INSERT INTO gp_orders_cp $keys VALUES ".$orders[0]);
+  $mysql->run("START TRANSACTION");
+  $mysql->run("DELETE FROM gp_orders_cp");
+  $mysql->run($sql);
+  $mysql->run("COMMIT");
 }
 
 /*

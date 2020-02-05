@@ -48,7 +48,10 @@ function import_cp_order_items() {
   $keys = result_map($items[0]);
 
   //Replace Staging Table with New Data
-  $mysql->run('TRUNCATE TABLE gp_order_items_cp');
+  $sql = "INSERT INTO gp_order_items_cp $keys VALUES ".$items[0];
 
-  $mysql->run("INSERT INTO gp_order_items_cp $keys VALUES ".$items[0]);
+  $mysql->run("START TRANSACTION");
+  $mysql->run("DELETE FROM gp_order_items_cp");
+  $mysql->run($sql);
+  $mysql->run("COMMIT");
 }

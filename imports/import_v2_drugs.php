@@ -47,9 +47,10 @@ function import_v2_drugs() {
 
   if ( ! count($vals)) return log_error('No v2 Drugs to Import', get_defined_vars());
 
-  //Replace Staging Table with New Data
-  $mysql->run('TRUNCATE TABLE gp_drugs_v2');
+  $sql = "INSERT INTO gp_drugs_v2 (".implode(', ', array_keys($val)).") VALUES ".implode(', ', $vals);
 
-  $mysql->run("
-    INSERT INTO gp_drugs_v2 (".implode(', ', array_keys($val)).") VALUES ".implode(', ', $vals));
+  $mysql->run("START TRANSACTION");
+  $mysql->run("DELETE FROM gp_drugs_v2");
+  $mysql->run($sql);
+  $mysql->run("COMMIT");
 }
