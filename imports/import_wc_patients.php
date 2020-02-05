@@ -93,13 +93,12 @@ function import_wc_patients() {
     }
   );
 
-  $sql = "START TRANSACTION; DELETE FROM gp_patients_wc; INSERT INTO gp_patients_wc $keys VALUES ".$orders[0]."; COMMIT;";
+  $sql = "INSERT INTO gp_patients_wc $keys VALUES ".$orders[0]
 
-  //echo $sql;
-
-  $error = $mysql->run($sql);
-
-  //echo "error: $error";
+  $mysql->run("START TRANSACTION");
+  $mysql->run("DELETE FROM gp_orders_wc");
+  $mysql->run($sql);
+  $mysql->run("COMMIT");
 
   //log_error("import_wc_patients: ", $sql);
 }

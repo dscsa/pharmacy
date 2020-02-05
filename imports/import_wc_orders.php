@@ -61,9 +61,12 @@ function import_wc_orders() {
   $keys = result_map($orders[0]);
 
   //Replace Staging Table with New Data
-  $sql = "START TRANSACTION; DELETE FROM gp_orders_wc; INSERT INTO gp_orders_wc $keys VALUES ".$orders[0]."; COMMIT;";
+  $sql = "INSERT INTO gp_orders_wc $keys VALUES ".$orders[0]
 
+  $mysql->run("START TRANSACTION");
+  $mysql->run("DELETE FROM gp_orders_wc");
   $mysql->run($sql);
+  $mysql->run("COMMIT");
 
   //$mysql->run('TRUNCATE TABLE gp_orders_wc');
 
