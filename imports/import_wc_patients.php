@@ -94,15 +94,10 @@ function import_wc_patients() {
   );
 
   $sql = "
-    BEGIN TRY
-      BEGIN TRAN T1;
-        DELETE FROM gp_patients_wc;
-        INSERT INTO gp_patients_wc $keys VALUES ".$orders[0].";
-      COMMIT TRAN T1;
-    END TRY
-    BEGIN CATCH
-      ROLLBACK TRAN T1;
-    END CATCH
+    START TRANSACTION;
+      DELETE FROM gp_patients_wc;
+      INSERT INTO gp_patients_wc $keys VALUES ".$orders[0].";
+    COMMIT;
   ";
 
   //echo $sql;

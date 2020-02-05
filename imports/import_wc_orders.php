@@ -62,15 +62,10 @@ function import_wc_orders() {
 
   //Replace Staging Table with New Data
   $sql = "
-    BEGIN TRY
-      BEGIN TRAN T1;
-        DELETE FROM gp_orders_wc;
-        INSERT INTO gp_orders_wc $keys VALUES ".$orders[0].";
-      COMMIT TRAN T1;
-    END TRY
-    BEGIN CATCH
-      ROLLBACK TRAN T1;
-    END CATCH
+    START TRANSACTION;
+      DELETE FROM gp_orders_wc;
+      INSERT INTO gp_orders_wc $keys VALUES ".$orders[0].";
+    COMMIT;
   ";
 
   $mysql->run($sql);
