@@ -45,9 +45,6 @@ class Mysql {
 
           $message = mysqli_error($this->connection);
 
-          echo "
-          mysqli_error message $message";
-
           //Transaction (Process ID 67) was deadlocked on lock resources with another process and has been chosen as the deadlock victim. Rerun the transaction.
           if (strpos($message, 'Rerun') !== false) {
             $this->run($sql, $debug); //Recursive
@@ -108,9 +105,7 @@ class Mysql {
     function _emailError($error) {
       //$mysqli_error = isset($this->connection) ? mysqli_connect_errno($this->connection).': '.mysqli_error($this->connection) : mysqli_connect_errno().': '.mysqli_connect_error();
       //Don't do database logging here as this could cause an infinite loop
-      echo "
-      Debug MYSQL ".var_dump($error);
-      log_to_cli('ERROR', "Debug MYSQL", '', json_encode($error, JSON_PRETTY_PRINT));
-      log_to_email('ERROR', "Debug MYSQL", '', json_encode($error, JSON_PRETTY_PRINT));
+      log_to_cli('ERROR', "Debug MYSQL", '', print_r($error, true));
+      log_to_email('ERROR', "Debug MYSQL", '', print_r($error, true));
     }
 }

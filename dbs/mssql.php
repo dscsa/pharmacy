@@ -42,9 +42,6 @@ class Mssql {
 
           $message = mssql_get_last_message();
 
-          echo "
-          mssql_error message $message";
-
           //Transaction (Process ID 67) was deadlocked on lock resources with another process and has been chosen as the deadlock victim. Rerun the transaction.
           if (strpos($message, 'Rerun') !== false) {
             $this->run($sql, $debug); //Recursive
@@ -107,8 +104,8 @@ class Mssql {
       //Don't do database logging here as this could cause an infinite loop
 
       echo "
-      Debug MSSQL ".var_dump($error);
-      log_to_cli('ERROR', "CRON: Debug MSSQL", '', json_encode($error, JSON_PRETTY_PRINT));
-      log_to_email('ERROR', "CRON: Debug MSSQL", '', json_encode($error, JSON_PRETTY_PRINT));
+      Debug MSSQL ".print_r($error, true);
+      log_to_cli('ERROR', "CRON: Debug MSSQL", '', print_r($error, true));
+      log_to_email('ERROR', "CRON: Debug MSSQL", '', print_r($error, true));
     }
 }
