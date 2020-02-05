@@ -43,7 +43,10 @@ class Mysql {
 
         if ($stmt === false) {
 
-          $message = mysqli_error($this->connection)->getMessage();
+          $message = mysqli_error($this->connection);
+
+          echo "
+          mysqli_error message $message";
 
           //Transaction (Process ID 67) was deadlocked on lock resources with another process and has been chosen as the deadlock victim. Rerun the transaction.
           if (strpos($message, 'Rerun') !== false) {

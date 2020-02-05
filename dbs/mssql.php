@@ -42,6 +42,9 @@ class Mssql {
 
           $message = mssql_get_last_message();
 
+          echo "
+          mssql_error message $message";
+
           //Transaction (Process ID 67) was deadlocked on lock resources with another process and has been chosen as the deadlock victim. Rerun the transaction.
           if (strpos($message, 'Rerun') !== false) {
             $this->run($sql, $debug); //Recursive
