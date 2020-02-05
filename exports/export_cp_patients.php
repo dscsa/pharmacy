@@ -6,7 +6,7 @@ function export_cp_patient_save_medications_other($mssql, $patient, $live = fals
 
   $select = "
     SELECT
-      LEN(cmt) as cmt_length,
+      DATALENGTH(cmt) as cmt_length,
       CHARINDEX(CHAR(10), cmt) as char10_index,
       CHARINDEX(CHAR(13), cmt) as char13_index,
       CHARINDEX(CHAR(10)+'___', cmt) as divider_index,

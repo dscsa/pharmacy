@@ -2236,6 +2236,8 @@ add_filter( 'woocommerce_valid_order_statuses_for_payment_complete', 'dscsa_vali
 add_filter( 'woocommerce_valid_order_statuses_for_payment', 'dscsa_valid_order_statuses_for_payment' );
 function dscsa_valid_order_statuses_for_payment($statuses) {
 
+  $statuses[] = 'processing';
+
   $statuses[] = 'shipped-mail-pay';
   $statuses[] = 'shipped-auto-pay';
   $statuses[] = 'shipped-web-pay';
