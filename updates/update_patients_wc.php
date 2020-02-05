@@ -221,6 +221,7 @@ function update_patients_wc() {
         ( ! $updated['language'] AND $updated['old_language'])
     ) {
 
+      log_error("Patient Identity Changed?", $changed);
       upsert_patient_wc($mysql, $updated['patient_id_wc'], 'first_name', $updated['old_first_name']);
       upsert_patient_wc($mysql, $updated['patient_id_wc'], 'last_name', $updated['old_last_name']);
       upsert_patient_wc($mysql, $updated['patient_id_wc'], 'birth_date', $updated['old_birth_date']);
@@ -260,7 +261,7 @@ function update_patients_wc() {
         'allergies_other' => str_replace("'", "''", $updated['allergies_other']) ?: ''
       ]);
 
-      upsert_patient_cp($mssql, "EXEC SirumWeb_AddRemove_Allergies '$updated[patient_id_cp]', '$allergies'");
+      upsert_patient_cp($mssql, "EXEC SirumWeb_AddRemove_Allergies '$updated[patient_id_cp]', '$allergies'", true);
     }
 
     if ($updated['medications_other'] !== $updated['old_medications_other']) {
