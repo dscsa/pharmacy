@@ -109,6 +109,11 @@ function export_wc_create_order($order, $reason) {
   global $mysql;
   $mysql = $mysql ?: new Mysql_Wc();
 
+  $invoice_number = $order[0]['invoice_number'];
+  $first_name = str_replace('*', '', $order[0]['first_name']); //Ignore Cindy's internal marking
+  $last_name = str_replace('*', '', $order[0]['last_name']); //Ignore Cindy's internal marking
+  $birth_date = str_replace('*', '', $order[0]['birth_date']); //Ignore Cindy's internal marking
+
   $matches = $mysql->run("
     SELECT *
     FROM wp_posts
@@ -121,11 +126,6 @@ function export_wc_create_order($order, $reason) {
     log_error("export_wc_create_order: aborting create order", get_defined_vars());
     return $order;
   }
-
-  $invoice_number = $order[0]['invoice_number'];
-  $first_name = str_replace('*', '', $order[0]['first_name']); //Ignore Cindy's internal marking
-  $last_name = str_replace('*', '', $order[0]['last_name']); //Ignore Cindy's internal marking
-  $birth_date = str_replace('*', '', $order[0]['birth_date']); //Ignore Cindy's internal marking
 
   //This creates order and adds invoice number to metadata
   //We do this through REST API because direct database calls seemed messy
