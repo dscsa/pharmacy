@@ -77,6 +77,10 @@ function wc_update_order($invoice_number, $orderdata) {
   log_notice('wc_update_order', get_defined_vars());
 
   $mysql->run($sql);
+
+  if (@$orderdata['post_status']) {
+    wc_update_meta($invoice_number, ['status_update' => 'Webform '.date('Y-m-d H:i:s')])
+  }
 }
 
 function export_wc_delete_order($invoice_number) {

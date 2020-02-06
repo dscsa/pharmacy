@@ -140,7 +140,7 @@ function update_orders_wc() {
 
     } else if (count($changed) == 1 AND $updated['order_stage_wc'] != $updated['old_order_stage_wc']) {
 
-      $old_stage = explode('-', $created['old_order_stage_wc']);
+      $old_stage = explode('-', $updated['old_order_stage_wc']);
 
       if (
         ($stage[1] == 'confirm' AND $old_stage[1] == 'prepare') OR
