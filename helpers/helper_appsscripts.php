@@ -30,7 +30,7 @@ function watch_invoices() {
 
   foreach ($invoices as $invoice) {
 
-    preg_match_all('/(Total:? +|Amount Due:? +)\$(\d+)/', $invoice['part0'], $totals);
+    preg_match_all('/(Total:? +|Due:? +)\$(\d+)/', $invoice['part0'], $totals);
 
     //Table columns seem to be divided by table breaks
     preg_match_all('/\\n\$(\d+)/', $invoice['part0'], $items);
