@@ -257,10 +257,10 @@ function days_left_in_stock($item, $days_std = 90) {
 
   if ($days_left_in_stock < $days_std OR $item['qty_inventory'] < 500) {
 
-    if($item['stock_level'] == STOCK_LEVEL['HIGH SUPPLY'])
+    if($item['stock_level'] == STOCK_LEVEL['HIGH SUPPLY'] AND $item['sig_qty_per_day'] != 1/30)
       log_error('LOW STOCK ITEM IS MARKED HIGH SUPPLY', get_defined_vars());
 
-    return $item['sig_qty_per_day'] == 1/30 ? 30 : 45;
+    return $item['sig_qty_per_day'] == 1/30 ? 30 : 45; //Assume an Inhaler lasts one month
   }
 }
 
