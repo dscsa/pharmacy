@@ -239,6 +239,7 @@ function update_patients_wc() {
       $updated['allergies_cephalosporins'] !== $updated['old_allergies_cephalosporins'] OR
       $updated['allergies_codeine'] !== $updated['old_allergies_codeine'] OR
       $updated['allergies_erythromycin'] !== $updated['old_allergies_erythromycin'] OR
+      $updated['allergies_nsaids'] !== $updated['old_allergies_nsaids'] OR
       $updated['allergies_penicillin'] !== $updated['old_allergies_penicillin'] OR
       $updated['allergies_salicylates'] !== $updated['old_allergies_salicylates'] OR
       $updated['allergies_sulfa'] !== $updated['old_allergies_sulfa'] OR
@@ -254,6 +255,7 @@ function update_patients_wc() {
         'allergies_cephalosporins' => $updated['allergies_cephalosporins'] ?: '',
         'allergies_codeine' => $updated['allergies_codeine'] ?: '',
         'allergies_erythromycin' => $updated['allergies_erythromycin'] ?: '',
+        'allergies_nsaids' => $updated['allergies_nsaids'] ?: '',
         'allergies_penicillin' => $updated['allergies_penicillin'] ?: '',
         'allergies_salicylates' => $updated['allergies_salicylates'] ?: '',
         'allergies_sulfa' => $updated['allergies_sulfa'] ?: '',
