@@ -64,7 +64,7 @@ function update_orders_cp() {
     }
 
     $order = helper_update_payment($order, $mysql);
-    export_wc_create_order($order);
+    export_wc_create_order($order, "update_orders_cp: created");
 
     send_created_order_communications($groups);
 

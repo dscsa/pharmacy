@@ -76,7 +76,7 @@ function update_orders_wc() {
 
         $order = helper_update_payment($order, $mysql);
 
-        export_wc_create_order($order);
+        export_wc_create_order($order, "update_orders_wc: deleted trash");
         export_gd_publish_invoice($order);
       }
 
@@ -88,7 +88,7 @@ function update_orders_wc() {
 
       $order = helper_update_payment($order, $mysql);
 
-      export_wc_create_order($order);
+      export_wc_create_order($order,  "update_orders_wc: deleted but still in CP");
       export_gd_publish_invoice($order);
 
       //$notices[] = ["CP Created Order that has not been saved in WC yet", $deleted];
@@ -101,7 +101,7 @@ function update_orders_wc() {
 
       $order = helper_update_payment($order, $mysql);
 
-      export_wc_create_order($order);
+      export_wc_create_order($order,  "update_orders_wc: deleted unknown reason");
 
       $notices[] = ["Readding Order that should not have been deleted. Not sure: WC Order Deleted not through trash?", $deleted];
     }

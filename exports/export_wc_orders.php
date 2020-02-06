@@ -104,7 +104,23 @@ function export_wc_delete_order($invoice_number) {
   log_error("export_wc_delete_order", get_defined_vars());//.print_r($item, true);
 }
 
-function export_wc_create_order($order) {
+function export_wc_create_order($order, $reason) {
+
+  global $mysql;
+  $mysql = $mysql ?: new Mysql_Wc();
+
+  $matches = $mysql->run("
+    SELECT *
+    FROM wp_posts
+    JOIN wp_postmeta meta1 ON wp_posts.id = meta1.post_id
+    WHERE meta1.meta_key='invoice_number'
+    AND meta1.meta_value = '$invoice_number'
+  ");
+
+  if (count($matches[0])) {
+    log_error("export_wc_create_order: aborting create order", get_defined_vars());
+    return $order;
+  }
 
   $invoice_number = $order[0]['invoice_number'];
   $first_name = str_replace('*', '', $order[0]['first_name']); //Ignore Cindy's internal marking
