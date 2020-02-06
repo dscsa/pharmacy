@@ -84,5 +84,5 @@ watch_invoices();
 $email .= timer("watch_invoices", $time);
 
 if ($email) {
-  log_info("WebForm CRON Finished", get_defined_vars());
+  log_error("WebForm CRON Finished", get_defined_vars());
 }
