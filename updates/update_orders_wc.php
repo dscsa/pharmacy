@@ -28,7 +28,7 @@ function update_orders_wc() {
 
     if ($created['order_stage_wc'] == 'trash' OR $stage[1] == 'awaiting' OR $stage[1] == 'confirm') {
 
-      $notices[] = ["Empty Orders are intentially not imported into Guardian", $created['invoice_number']];
+      $notices[] = ["Empty Orders are intentially not imported into Guardian", "$created[invoice_number] $created[order_stage_wc]"];
 
     } else if (in_array($created['order_stage_wc'], [
       'wc-shipped-unpaid',
@@ -117,9 +117,9 @@ function update_orders_wc() {
     if ($updated['order_stage_wc'] == 'trash') {
 
       if ($stage[1] == 'shipped' OR $stage[1] == 'done' OR $stage[1] == 'late' OR $stage[1] == 'return')
-        $notices[] = ["Shipped Order trashed in WC. Are you sure you wanted to do this?", $updated];
+        $notices[] = ["$updated[invoice_number]: Shipped Order trashed in WC. Are you sure you wanted to do this?", $updated];
       else {
-        $notices[] = ["Non-Shipped Order trashed in WC", $updated];
+        $notices[] = ["$updated[invoice_number]: Non-Shipped Order trashed in WC", $updated];
 
         $order = get_full_order($updated, $mysql);
 
@@ -138,20 +138,20 @@ function update_orders_wc() {
         wc_update_order($order[0]['invoice_number'], $orderdata);
       }
 
-    } else if ($updated['order_stage_wc'] != $updated['old_order_stage_wc']) {
+    } else if (count($changed) == 1 AND $updated['order_stage_wc'] != $updated['old_order_stage_wc']) {
 
-      $notices[] = ["WC Order Stage Change", $changed];
+      $notices[] = ["$updated[invoice_number]: WC Order Stage Change", $changed];
 
     } else if ($updated['patient_id_wc'] AND ! $updated['old_patient_id_wc']) {
 
 
       //26214, 26509
-      $notices[] = ["WC Patient Id Added to Order", [$changed, $updated]];
+      $notices[] = ["$updated[invoice_number]: WC Patient Id Added to Order", [$changed, $updated]];
 
 
     } else {
 
-      $notices[] = ["Order updated in WC", [$changed, $updated]];
+      $notices[] = ["$updated[invoice_number]: Order updated in WC", [$changed, $updated]];
 
     }
 
