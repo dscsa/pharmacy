@@ -170,8 +170,8 @@ function update_patients_wc() {
       $user_def1 = str_replace("'", "''", $updated['pharmacy_name']);
       $user_def2 = substr("$updated[pharmacy_npi],$updated[pharmacy_fax],$updated[pharmacy_phone],$updated[pharmacy_address]", 0, 50);
 
-      upsert_patient_cp($mssql, "EXEC SirumWeb_AddUpdatePatientUD '$updated[patient_id_cp]', '1', '$user_def1'");
-      upsert_patient_cp($mssql, "EXEC SirumWeb_AddUpdatePatientUD '$updated[patient_id_cp]', '2', '$user_def2'");
+      upsert_patient_cp($mssql, "EXEC SirumWeb_AddUpdatePatientUD '$updated[patient_id_cp]', '1', '$user_def1'", true);
+      upsert_patient_cp($mssql, "EXEC SirumWeb_AddUpdatePatientUD '$updated[patient_id_cp]', '2', '$user_def2'", true);
     } else if ( //If pharmacy name is the same trust CP data over WC data so always update WC
         $updated['pharmacy_npi'] !== $updated['old_pharmacy_npi'] OR
         $updated['pharmacy_fax'] !== $updated['old_pharmacy_fax'] OR
@@ -190,7 +190,7 @@ function update_patients_wc() {
 
     if ($updated['payment_method_default'] AND ! $updated['old_payment_method_default']) {
 
-      upsert_patient_cp($mssql, "EXEC SirumWeb_AddUpdatePatientUD '$updated[patient_id_cp]', '3', '$updated[payment_method_default]'");
+      upsert_patient_cp($mssql, "EXEC SirumWeb_AddUpdatePatientUD '$updated[patient_id_cp]', '3', '$updated[payment_method_default]'", true);
 
     } else if ($updated['payment_method_default'] !== $updated['old_payment_method_default']) {
 
