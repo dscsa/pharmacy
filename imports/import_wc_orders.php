@@ -10,6 +10,22 @@ function import_wc_orders() {
 
   $mysql = new Mysql_Wc();
 
+  $duplicates = $mysql->run("
+    SELECT
+      meta_key,
+      meta_value,
+      GROUP_CONCAT(post_status) as post_status,
+      COUNT(*) as number
+    FROM `wp_postmeta`
+    JOIN wp_posts ON post_id = wp_posts.ID
+    WHERE meta_key = 'invoice_number'
+    GROUP BY meta_value
+    HAVING number > 1
+  ");
+
+  if (count($duplicates[0]))
+    return log_error('WARNING Duplicate Invoice Numbers in WC', $duplicates[0]);
+
   $orders = $mysql->run("
 
   SELECT

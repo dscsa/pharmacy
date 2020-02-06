@@ -140,7 +140,20 @@ function update_orders_wc() {
 
     } else if (count($changed) == 1 AND $updated['order_stage_wc'] != $updated['old_order_stage_wc']) {
 
-      $notices[] = ["$updated[invoice_number]: WC Order Stage Change", $changed];
+      $old_stage = explode('-', $created['old_order_stage_wc']);
+
+      if (
+        ($stage[1] == 'confirm' AND $old_stage[1] == 'prepare') OR
+        ($stage[1] == 'prepare' AND $old_stage[1] == 'shipped') OR
+        ($stage[1] == 'prepare' AND $old_stage[1] == 'done') OR
+        ($stage[1] == 'shipped' AND $old_stage[1] == 'done') OR
+        ($stage[1] == 'shipped' AND $old_stage[1] == 'late') OR
+        ($stage[1] == 'shipped' AND $old_stage[1] == 'returned')
+      ) {
+        $notices[] = ["$updated[invoice_number]: WC Order Normal Stage Change", $changed];
+      } else {
+        $notices[] = ["$updated[invoice_number]: WC Order Irregular Stage Change", $updated];
+      }
 
     } else if ($updated['patient_id_wc'] AND ! $updated['old_patient_id_wc']) {
 
