@@ -79,7 +79,7 @@ function wc_update_order($invoice_number, $orderdata) {
   $mysql->run($sql);
 
   if (@$orderdata['post_status']) {
-    wc_insert_meta($invoice_number, ['status_update' => 'Webform '.date('Y-m-d H:i:s')]);
+    wc_insert_meta($invoice_number, ['status_update' => "Webform $orderdata[post_status] ".date('Y-m-d H:i:s')]);
   }
 }
 
