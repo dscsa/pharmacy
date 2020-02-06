@@ -143,7 +143,7 @@ function pend_pick_list($item, $vals) {
 
 function make_pick_list($item) {
 
-  if ( ! isset($item['stock_level_initial']))
+  if ( ! isset($item['stock_level_initial']) AND $item['rx_gsn']) //If missing GSN then stock level won't be set
     log_error("ERROR make_pick_list: stock_level_initial is not set", get_defined_vars());
 
   $safety   = 0.15;
