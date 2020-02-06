@@ -28,7 +28,7 @@ function update_orders_wc() {
 
     if ($created['order_stage_wc'] == 'trash' OR $stage[1] == 'awaiting' OR $stage[1] == 'confirm') {
 
-      //$notices[] = ["Empty Orders are intentially not imported into Guardian", $created];
+      $notices[] = ["Empty Orders are intentially not imported into Guardian", $created['invoice_number']];
 
     } else if (in_array($created['order_stage_wc'], [
       'wc-shipped-unpaid',
@@ -140,7 +140,7 @@ function update_orders_wc() {
 
     } else if ($updated['order_stage_wc'] != $updated['old_order_stage_wc']) {
 
-          //$notices[] = ["WC Order Stage Change", $updated];
+      $notices[] = ["WC Order Stage Change", $changed];
 
     } else if ($updated['patient_id_wc'] AND ! $updated['old_patient_id_wc']) {
 
