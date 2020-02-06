@@ -17,7 +17,7 @@ function update_orders_cp() {
 
   if ( ! $count_deleted AND ! $count_created AND ! $count_updated) return;
 
-  log_error("update_orders_cp: $count_deleted deleted, $count_created created, $count_updated updated.", get_defined_vars());
+  log_error("update_orders_cp: $count_deleted deleted, $count_created created, $count_updated updated.");
 
   $mysql = new Mysql_Wc();
 
