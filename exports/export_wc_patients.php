@@ -18,7 +18,7 @@ function cp_to_wc_key($key) {
   return isset($cp_to_wc[$key]) ? $cp_to_wc[$key] : $key;
 }
 
-function upsert_patient_wc($mysql, $user_id, $meta_key, $meta_value, $live = false) {
+function upsert_patient_wc($mysql, $user_id, $meta_key, $meta_value) {
 
   $wc_key = cp_to_wc_key($meta_key);
   $wc_val = is_null($meta_value) ? 'NULL' : "'".@mysql_escape_string($meta_value)."'";
@@ -34,10 +34,10 @@ function upsert_patient_wc($mysql, $user_id, $meta_key, $meta_value, $live = fal
   }
 
 
-  echo "
-  live:$live $upsert";
+  //echo "
+  //$upsert";
 
-  if ($live) $mysql->run($upsert);
+  $mysql->run($upsert);
 }
 
 function match_patient_wc($mysql, $patient, $patient_id_cp) {

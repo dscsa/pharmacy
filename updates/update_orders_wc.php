@@ -155,7 +155,16 @@ function update_orders_wc() {
         $notices[] = ["$updated[invoice_number]: WC Order Irregular Stage Change", $updated];
       }
 
-    } else if ($updated['patient_id_wc'] AND ! $updated['old_patient_id_wc']) {
+    }
+    else if ( ! $updated['patient_id_wc'] AND $updated['old_patient_id_wc']) {
+
+
+      //26214, 26509
+      $notices[] = ["$updated[invoice_number]: WC Patient Id Removed from Order", [$changed, $updated]];
+
+
+    }
+    else if ($updated['patient_id_wc'] AND ! $updated['old_patient_id_wc']) {
 
 
       //26214, 26509

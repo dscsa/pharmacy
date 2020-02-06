@@ -17,7 +17,7 @@ function update_orders_cp() {
 
   if ( ! $count_deleted AND ! $count_created AND ! $count_updated) return;
 
-  log_info("update_orders_cp: $count_deleted deleted, $count_created created, $count_updated updated.", get_defined_vars());
+  log_error("update_orders_cp: $count_deleted deleted, $count_created created, $count_updated updated.", get_defined_vars());
 
   $mysql = new Mysql_Wc();
 
@@ -38,7 +38,7 @@ function update_orders_cp() {
       log_error('Problem: cp order wc-processing created', $order[0]);
 
     if ($order[0]['order_date_shipped']) {
-      log_notice("Shipped Order Being Readded", $order);
+      log_error("Shipped Order Being Readded", $order);
       continue;
     }
 

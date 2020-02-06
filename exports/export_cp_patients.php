@@ -44,9 +44,9 @@ function export_cp_patient_save_patient_note($mssql, $patient, $live = false) {
   //$mssql->run("$sql");
 }
 
-function upsert_patient_cp($mssql, $sql, $live = false) {
-  echo "
-  live:$live $sql";
+function upsert_patient_cp($mssql, $sql) {
+  //echo "
+  //$sql";
 
-  if ($live) $mssql->run("$sql");
+  $mssql->run("$sql");
 }
