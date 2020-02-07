@@ -4,6 +4,7 @@ function export_cp_patient_save_medications_other($mssql, $patient, $live = fals
 
   $medications_other = str_replace("'", "''", $patient['medications_other']);
 
+  /*
   $select = "
     SELECT
       DATALENGTH(cmt) as cmt_length,
@@ -16,6 +17,7 @@ function export_cp_patient_save_medications_other($mssql, $patient, $live = fals
     FROM cppat
     WHERE pat_id = $patient[patient_id_cp]
   ";
+  */
 
   $sql = "
     UPDATE cppat
@@ -26,12 +28,12 @@ function export_cp_patient_save_medications_other($mssql, $patient, $live = fals
     WHERE pat_id = $patient[patient_id_cp]
   ";
 
-  $res1 = $mssql->run("$select");
+  //$res1 = $mssql->run("$select");
   $mssql->run("$sql");
-  $res2 = $mssql->run("$select");
+  //$res2 = $mssql->run("$select");
 
-  echo "
-  live:$live $patient[first_name] $patient[last_name] $sql ".json_encode($res1, JSON_PRETTY_PRINT)." ".json_encode($res2, JSON_PRETTY_PRINT);
+  //echo "
+  //live:$live $patient[first_name] $patient[last_name] $sql ".json_encode($res1, JSON_PRETTY_PRINT)." ".json_encode($res2, JSON_PRETTY_PRINT);
 }
 
 function export_cp_patient_save_patient_note($mssql, $patient, $live = false) {

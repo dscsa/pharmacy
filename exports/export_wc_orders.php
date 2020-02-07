@@ -123,7 +123,7 @@ function export_wc_create_order($order, $reason) {
   ");
 
   if (count($matches[0])) {
-    log_error("export_wc_create_order: aborting create order", get_defined_vars());
+    log_error("export_wc_create_order: aborting create order", [$first_name, $last_name, $invoice_number, $reason, $order[0]['order_stage_cp'], $order[0]['order_source'], $matches]);
     return $order;
   }
 

@@ -64,6 +64,9 @@ function update_orders_cp() {
     }
 
     $order = helper_update_payment($order, $mysql);
+
+    //This is not necessary if order was created by webform, which then created the order in Guardian
+    //"order_source": "Webform eRX",  "item_added_by": "WEBFORM",
     export_wc_create_order($order, "update_orders_cp: created");
 
     send_created_order_communications($groups);

@@ -61,7 +61,7 @@ function match_patient_wc($mysql, $patient, $patient_id_cp) {
   $mysql->run($sql1);
   $mysql->run($sql2);
 
-  log_error('update_patients_wc: matched', [$patient, $sql1, $sql2]);
+  log_error("update_patients_wc: matched $patient[first_name] $patient[last_name]");
 }
 
 function find_patient_wc($mysql, $patient) {
