@@ -175,7 +175,7 @@ function make_pick_list($item) {
     return $list;
   }
 
-  log_error("Webform Shopping Error: Not enough qty found, trying half fill and no safety", ['count_inventory' => count($sorted_ndcs), 'item' => $item]);
+  log_notice("Webform Shopping Error: Not enough qty found, trying half fill and no safety", ['count_inventory' => count($sorted_ndcs), 'item' => $item]);
 
   $list = get_qty_needed($sorted_ndcs, $min_qty*0.5, 0);
 
