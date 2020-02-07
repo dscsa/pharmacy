@@ -127,6 +127,9 @@ function export_wc_create_order($order, $reason) {
     return $order;
   }
 
+  if ($reason == "update_orders_wc: deleted but still in CP")
+    log_error("export_wc_create_order: deleted but still in CP success, not duplicated", $order);
+
   //This creates order and adds invoice number to metadata
   //We do this through REST API because direct database calls seemed messy
   $url = "patient/$first_name $last_name $birth_date/order/$invoice_number";
