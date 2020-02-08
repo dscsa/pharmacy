@@ -44,7 +44,7 @@ function update_patients_wc() {
     else {
       //People who filled out first 1/2 of the registration form
       $created_new_to_cp++;
-      log_error('update_patients_wc: new_to_cp', [$created, $patient]);
+      log_error("update_patients_wc: new_to_cp $created[first_name] $created[last_name] wc:$created[patient_id_wc]");
     }
   }
 

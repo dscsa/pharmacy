@@ -9,6 +9,11 @@ function sync_to_order($order, $updated = null) {
 
   foreach($order as $item) {
 
+    if ($item['rx_dispensed_id']) {
+      log_notice('syncing item canceled because already dispensed', $item);
+      continue;
+    }
+
     if (sync_to_order_past_due($item)) {
       $items_to_sync[] = ['ADD', 'PAST DUE AND SYNC TO ORDER', $item];
       $items_to_add [] = $item['best_rx_number'];
@@ -27,12 +32,6 @@ function sync_to_order($order, $updated = null) {
 
     //Don't remove items with a missing GSN as this is something we need to do
     if ($item['item_date_added'] AND $item['item_added_by'] != 'MANUAL' AND ! $item['days_dispensed'] AND $item['drug_gsns']) {
-
-      if ($item['rx_dispensed_id']) {
-        log_error('removing item canceled because already dispensed', $item);
-        continue;
-      }
-
       $items_to_sync[]   = ['REMOVE', $item['item_message_key'], $item];
       $items_to_remove[] = $item['rx_number'];
       log_error('sync_to_order: Removing Item within Order', "$item[invoice_number] $item[rx_number] $item[drug], $item[stock_level], $item[item_message_key] refills last:$item[refill_date_last] next:$item[refill_date_next] total:$item[refills_total] left:$item[refills_left]");
@@ -41,12 +40,6 @@ function sync_to_order($order, $updated = null) {
     }
 
     if ($item['item_date_added'] AND $item['item_added_by'] != 'MANUAL' AND $item['rx_number'] != $item['best_rx_number']) {
-
-      if ($item['rx_dispensed_id']) {
-        log_error('switching item canceled because already dispensed', $item);
-        continue;
-      }
-
       $items_to_sync[]   = ['SWITCH', 'RX_NUMBER != BEST_RX_NUMBER', $item];
       $items_to_add[]    = $item['best_rx_number'];
       $items_to_remove[] = $item['rx_number'];

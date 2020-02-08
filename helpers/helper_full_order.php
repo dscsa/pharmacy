@@ -149,6 +149,9 @@ function get_order_stage_wc($order) {
   if ( ! $count_filled AND ! $order[0]['order_source'])
     return 'confirm-new-rx'; //New SureScript(s) that we are not filling
 
+  if ( ! $count_filled AND in_array($order[0]['order_source'], ['Webform eRX', 'Webform eRX Note']))
+    return 'confirm-new-rx'; //New SureScript(s) that we are not filling
+
   if ( ! $count_filled AND in_array($order[0]['order_source'], ['Webform Transfer', 'Webform Transfer Note']))
     return 'confirm-transfer';
 

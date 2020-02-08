@@ -47,12 +47,12 @@ function update_orders_wc() {
     //This comes from import_wc_orders so we don't need the "w/ Note" counterpart sources
     } else if (in_array($created['order_source'], ["Webform Refill", "Webform Transfer", "Webform eRx"])) {
 
-      export_wc_delete_order($created['invoice_number']);
+      export_wc_delete_order($created['invoice_number'], 'update_orders_wc: Deleted Webform Order');
       $notices[] = ["New WC Order to Add Guadian", $created];
 
     } else {
 
-      export_wc_delete_order($created['invoice_number']); //NOTE: Needs investigation. Added this because they were seeming to be deleted as intended
+      export_wc_delete_order($created['invoice_number'],  'update_orders_wc: unknown reason '.json_encode($created, JSON_PRETTY_PRINT)); //NOTE: Needs investigation. Added this because they were seeming to be deleted as intended
       $notices[] = ["Guardian Order Deleted that should be deleted from WC later in this run or already deleted", $created];
     }
 

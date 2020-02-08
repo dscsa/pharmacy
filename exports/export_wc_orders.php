@@ -83,7 +83,7 @@ function wc_update_order($invoice_number, $orderdata) {
   }
 }
 
-function export_wc_delete_order($invoice_number) {
+function export_wc_delete_order($invoice_number, $reason) {
 
   global $mysql;
   $mysql = $mysql ?: new Mysql_Wc();
