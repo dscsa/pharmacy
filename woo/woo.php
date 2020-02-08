@@ -1643,6 +1643,7 @@ function dscsa_save_order($order, $data) {
     $address = update_shipping_address($patient_id, $address_1, $address_2, $city, $postcode);
 
     $order->update_meta_data('rx_source', $_POST['rx_source']);
+    $order->update_meta_data('webform_by', (is_admin() OR strpos($_SERVER['HTTP_COOKIE'], 'impersonated_by') !== false) ? "ADMIN" : "USER");
 
     if ($_POST['rx_source'] == 'pharmacy') {
 
@@ -2358,7 +2359,7 @@ function get_guardian_order($guardian_id, $rx_source, $comment) {
 
   $comment = str_replace("'", "''", $comment ?: '');
   // Categories can be found or added select * From csct_code where ct_id=5007, UPDATE csct_code SET code_num=2, code=2, user_owned_yn = 1 WHERE code_id = 100824
-  // 0 Unspecified, 1 Webform Complete, 2 Webform eRx, 3 Webform Transfer, 6 Webform Refill, 7 Webform eRX with Note, 8 Webform Transfer with Note, 9 Webform Refill with Note,
+  // 0 Unspecified, 1 Webform Complete, 2 Webform eRX, 3 Webform Transfer, 6 Webform Refill, 7 Webform eRX with Note, 8 Webform Transfer with Note, 9 Webform Refill with Note,
 
   if ($rx_source == 'pharmacy')
     $category = $comment ? 8 : 3;
