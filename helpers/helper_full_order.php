@@ -28,7 +28,7 @@ function get_full_order($partial, $mysql) {
   $order = $mysql->run($sql)[0];
 
   if ( ! $order OR ! $order[0]['invoice_number'])
-    return log_error('ERROR! get_full_order: no invoice number', get_defined_vars());
+    return log_error('ERROR! get_full_order: no order with that invoice number or order does not have active patient', get_defined_vars());
 
   $order = add_gd_fields_to_order($order, $mysql);
   usort($order, 'sort_order_by_day'); //Put Rxs in order (with Rx_Source) at the top

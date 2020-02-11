@@ -302,7 +302,7 @@ function cancel_events($ids) {
   log_info('cancel_events', get_defined_vars());
 }
 
-function modify_events() {
+function modify_events($modify) {
 
   $args = [
     'method'  => 'modifyCalendarEvents',

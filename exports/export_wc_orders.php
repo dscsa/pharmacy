@@ -46,8 +46,10 @@ function wc_update_meta($invoice_number, $metadata) {
     if (is_array($meta_value))
       $meta_value = json_encode($meta_value);
 
+    $meta_value = clean_val($meta_value);
+
     //mysql->run() does mysqli_query and not mysqli_multi_query so we cannot concatentate the inserts and run all at once
-    $mysql->run("UPDATE wp_postmeta SET meta_value = '$meta_value' WHERE post_id = $post_id AND meta_key = '$meta_key'");
+    $mysql->run("UPDATE wp_postmeta SET meta_value = $meta_value WHERE post_id = $post_id AND meta_key = '$meta_key'");
   }
 
   log_info('wc_update_meta', get_defined_vars());
@@ -67,7 +69,9 @@ function wc_update_order($invoice_number, $orderdata) {
     if (is_array($order_value))
       $order_value = json_encode($order_value);
 
-    $set[] = "$order_key = '$order_value'";
+    $order_value = clean_val($order_value);
+
+    $set[] = "$order_key = $order_value";
   }
 
   $sql = "
@@ -123,7 +127,10 @@ function export_wc_create_order($order, $reason) {
   ");
 
   if (count($matches[0])) {
-    log_error("export_wc_create_order: aborting create order", [$first_name, $last_name, $invoice_number, $reason, $order[0]['order_stage_cp'], $order[0]['order_source'], $matches]);
+
+    if ($reason != "update_orders_wc: deleted but still in CP")
+      log_error("export_wc_create_order: aborting create order", [$first_name, $last_name, $invoice_number, $reason, $order[0]['order_stage_cp'], $order[0]['order_source'], $matches]);
+
     return $order;
   }
 
