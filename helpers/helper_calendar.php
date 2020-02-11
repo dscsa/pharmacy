@@ -406,7 +406,7 @@ function remove_drugs_from_events($first_name, $last_name, $birth_date, $types, 
   foreach ($events as $event) {
     $old_desc = $event['description']; //This is still JSON.stringified
 
-    $new_desc = preg_replace_all('/'.implode(';|', $drugs).';/', '', $old_desc);
+    $new_desc = preg_replace('/'.implode(';|', $drugs).';/', '', $old_desc);
 
     if ($old_desc == $new_desc) {
       continue;
