@@ -120,13 +120,17 @@ const ORDER_STATUS_WC = [
 */
 function get_order_stage_wc($order) {
 
+  $count_filled = in_array($order[0]['order_stage_cp'], ['Shipped', 'Dispensed'])
+    ? $order[0]['count_items']
+    : $order[0]['count_filled'];
+
   //Anything past shipped we just have to rely on WC
   if ($order[0]['order_stage_wc'] AND in_array(explode('-', $order[0]['order_stage_wc'])[1], ['shipped', 'late', 'done', 'return'])) {
 
     if ( ! $count_filled OR ! $order[0]['tracking_number'] OR ! $order[0]['payment_method_actual'])
       log_error('helper_full_order: get_order_stage_wc error', $order);
 
-    return $order[0]['order_stage_wc'];
+    return str_replace('wc-', '', $order[0]['order_stage_wc']);
   }
 
 
@@ -137,10 +141,6 @@ function get_order_stage_wc($order) {
   'confirm-*' means no drugs in the order yet so check for count_items
   order_source: NULL, O Refills, Auto Refill v2, Webform eRX, Webform eRX Note, Webform Refill, Webform Refill Note, Webform Transfer, Webform Transfer Note
   */
-
-  $count_filled = in_array($order[0]['order_stage_cp'], ['Shipped', 'Dispensed'])
-    ? $order[0]['count_items']
-    : $order[0]['count_filled'];
 
   if ( ! $count_filled)
     log_notice('get_order_stage_wc: double check count_filled == 0', [

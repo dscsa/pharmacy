@@ -191,21 +191,14 @@ function update_orders_cp() {
       export_wc_update_order($order);
 
       if ($stage_change_cp)
-        log_info("Updated Order stage_change_cp:", $order);
+        log_info("Updated Order stage_change_cp:", [$changed_fields, $order]);
+      else if ($updated['count_items'] == $order[0]['count_items'])
+        log_info("Updated Order count_items changed:", [$changed_fields, $order]);
       else
-        log_error("Updated Order Count Not Changed", $order);
+        log_error("Updated Order abnormal change", [$changed_fields, $order]);
 
       continue;
     }
-
-    if ( ! $stage_change_cp AND $updated['count_filled'] == $order[0]['count_filled'])
-      log_error('cp order abnormal change', [
-        'old_count_filled' => $updated['count_filled'],
-        'new_count_filled' => $order[0]['count_filled'],
-        'updated' => $updated,
-        'stage_change' => "$updated[old_order_stage_cp] >>> $updated[order_stage_cp]",
-        'order[0]' => $order[0]
-      ]);
 
     //Usually count_items changed
     $order = helper_update_payment($order, $mysql);
