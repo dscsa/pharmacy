@@ -118,18 +118,12 @@ function export_wc_create_order($order, $reason) {
   $last_name = str_replace('*', '', $order[0]['last_name']); //Ignore Cindy's internal marking
   $birth_date = str_replace('*', '', $order[0]['birth_date']); //Ignore Cindy's internal marking
 
-  $matches = $mysql->run("
-    SELECT *
-    FROM wp_posts
-    JOIN wp_postmeta meta1 ON wp_posts.id = meta1.post_id
-    WHERE meta1.meta_key='invoice_number'
-    AND meta1.meta_value = '$invoice_number'
-  ");
+  $post_id = wc_get_post_id($invoice_number);
 
-  if (count($matches[0])) {
+  if ($post_id) {
 
     if ($reason != "update_orders_wc: deleted but still in CP")
-      log_error("export_wc_create_order: aborting create order", [$first_name, $last_name, $invoice_number, $reason, $order[0]['order_stage_cp'], $order[0]['order_source'], $matches]);
+      log_error("export_wc_create_order: aborting create order", [$first_name, $last_name, $invoice_number, $reason, $order[0]['order_stage_cp'], $order[0]['order_source'], $post_id]);
 
     return $order;
   }
