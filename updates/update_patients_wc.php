@@ -194,7 +194,7 @@ function update_patients_wc() {
 
     } else if ($updated['payment_method_default'] !== $updated['old_payment_method_default']) {
 
-      log_notice('update_patients_wc: updated payment_method_default', "$updated[payment_method_default] $updated[payment_card_type] $updated[payment_card_last4] $updated[payment_card_date_expired]")
+      log_notice('update_patients_wc: updated payment_method_default', "$updated[payment_method_default] $updated[payment_card_type] $updated[payment_card_last4] $updated[payment_card_date_expired]");
 
       if ($updated['old_payment_method_default'] == PAYMENT_METHOD['MAIL'])
         upsert_patient_wc($mysql, $updated['patient_id_wc'], 'payment_method_default', PAYMENT_METHOD['MAIL']);
