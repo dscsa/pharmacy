@@ -164,14 +164,14 @@ function update_orders_wc() {
       ) {
         log_notice("$updated[invoice_number]: WC Order Normal Stage Change", $changed);
       } else {
-        log_notice("$updated[invoice_number]: WC Order Irregular Stage Change", $updated);
+        log_error("$updated[invoice_number]: WC Order Irregular Stage Change", $updated);
       }
 
     }
     else if ( ! $updated['patient_id_wc'] AND $updated['old_patient_id_wc']) {
 
       //26214, 26509
-      log_notice("$updated[invoice_number]: WC Patient Id Removed from Order", [$changed, $updated]);
+      log_error("$updated[invoice_number]: WC Patient Id Removed from Order", [$changed, $updated]);
 
 
     }
@@ -179,7 +179,7 @@ function update_orders_wc() {
 
 
       //26214, 26509
-      log_notice("$updated[invoice_number]: WC Patient Id Added to Order", [$changed, $updated]);
+      log_error("$updated[invoice_number]: WC Patient Id Added to Order", [$changed, $updated]);
 
 
     } else {

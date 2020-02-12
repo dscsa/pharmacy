@@ -110,7 +110,7 @@ function update_patients_wc() {
 
       $address3 = 'NULL';
       if ($updated['patient_state'] != 'GA') {
-        echo "$updated[first_name] $updated[last_name] $updated[birth_date]";
+        log_notice("$updated[first_name] $updated[last_name] $updated[birth_date]");
         $address3 = "'!!!! WARNING NON-GEORGIA ADDRESS !!!!'";
       }
 
@@ -229,7 +229,10 @@ function update_patients_wc() {
       //upsert_patient_wc($mysql, $updated['patient_id_wc'], 'birth_date', $updated['old_birth_date']);
       //upsert_patient_wc($mysql, $updated['patient_id_wc'], 'language', $updated['old_language']);
 
-    } else if ($updated['language'] !== $updated['language']) {
+    } else if (
+      $updated['language'] !== $updated['old_language'] OR
+      $updated['birth_date'] !== $updated['old_birth_date']
+    ) {
       upsert_patient_cp($mssql, "EXEC SirumWeb_AddUpdatePatient '$updated[first_name]', '$updated[last_name]', '$updated[birth_date]', '$updated[phone1]', '$updated[language]'");
     }
 

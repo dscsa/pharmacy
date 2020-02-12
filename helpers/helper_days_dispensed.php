@@ -26,7 +26,7 @@ function get_days_default($item) {
 
   if ( ! $item['drug_gsns']) {
     $item['max_gsn']
-      ? log_error("GSN NEEDS TO BE ADDED TO V2", $item)
+      ? log_error("GSN NEEDS TO BE ADDED TO V2", "$item[drug_name] $item[drug_generic] rx_gsn:$item[rx_gsn] max_gsn:$item[max_gsn]");
       : log_info("RX IS MISSING GSN", $item);
 
     return [ $item['refill_date_first'] ? days_default($item) : 0, RX_MESSAGE['NO ACTION MISSING GSN']];

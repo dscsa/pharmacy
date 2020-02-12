@@ -121,8 +121,13 @@ const ORDER_STATUS_WC = [
 function get_order_stage_wc($order) {
 
   //Anything past shipped we just have to rely on WC
-  if ($order[0]['order_stage_wc'] AND in_array(explode('-', $order[0]['order_stage_wc'])[0], ['late', 'done', 'return']))
+  if ($order[0]['order_stage_wc'] AND in_array(explode('-', $order[0]['order_stage_wc'])[1], ['shipped', 'late', 'done', 'return'])) {
+
+    if ( ! $count_filled OR ! $order[0]['tracking_number'] OR ! $order[0]['payment_method_actual'])
+      log_error('helper_full_order: get_order_stage_wc error', $order);
+
     return $order[0]['order_stage_wc'];
+  }
 
 
   if ($order[0]['order_stage_wc'] == 'wc-processing')
