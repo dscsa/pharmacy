@@ -15,7 +15,7 @@ function update_patients_wc() {
 
   if ( ! $count_deleted AND ! $count_created AND ! $count_updated) return;
 
-  log_error("update_patients_wc: $count_deleted deleted, $count_created created, $count_updated updated.");
+  log_notice("update_patients_wc: $count_deleted deleted, $count_created created, $count_updated updated.");
 
   $mysql = new Mysql_Wc();
   $mssql = new Mssql_Cp();
@@ -44,11 +44,11 @@ function update_patients_wc() {
     else {
       //People who filled out first 1/2 of the registration form
       $created_new_to_cp++;
-      log_error("update_patients_wc: new_to_cp $created[first_name] $created[last_name] wc:$created[patient_id_wc]");
+      log_notice("update_patients_wc: new_to_cp $created[first_name] $created[last_name] wc:$created[patient_id_wc]");
     }
   }
 
-  log_error('created counts', [
+  log_notice('created counts', [
     '$created_mismatched' => $created_mismatched,
     '$created_matched' => $created_matched,
     '$created_needs_form' => $created_needs_form,
@@ -79,7 +79,7 @@ function update_patients_wc() {
     $changed = changed_fields($updated);
 
     $changed
-      ? log_error("update_patients_wc: updated changed $updated[first_name] $updated[last_name] cp:$updated[patient_id_cp] wc:$updated[patient_id_wc]", $changed)
+      ? log_notice("update_patients_wc: updated changed $updated[first_name] $updated[last_name] cp:$updated[patient_id_cp] wc:$updated[patient_id_wc]", $changed)
       : log_error("update_patients_wc: updated no change? $updated[first_name] $updated[last_name] cp:$updated[patient_id_cp] wc:$updated[patient_id_wc]", $updated);
 
     if ( ! $updated['email'] AND $updated['old_email']) {
@@ -193,6 +193,8 @@ function update_patients_wc() {
       upsert_patient_cp($mssql, "EXEC SirumWeb_AddUpdatePatientUD '$updated[patient_id_cp]', '3', '$updated[payment_method_default]'");
 
     } else if ($updated['payment_method_default'] !== $updated['old_payment_method_default']) {
+
+      log_notice('update_patients_wc: updated payment_method_default', "$updated[payment_method_default] $updated[payment_card_type] $updated[payment_card_last4] $updated[payment_card_date_expired]")
 
       if ($updated['old_payment_method_default'] == PAYMENT_METHOD['MAIL'])
         upsert_patient_wc($mysql, $updated['patient_id_wc'], 'payment_method_default', PAYMENT_METHOD['MAIL']);

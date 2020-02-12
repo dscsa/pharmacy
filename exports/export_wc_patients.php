@@ -61,7 +61,7 @@ function match_patient_wc($mysql, $patient, $patient_id_cp) {
   $mysql->run($sql1);
   $mysql->run($sql2);
 
-  log_error("update_patients_wc: matched $patient[first_name] $patient[last_name]");
+  log_notice("update_patients_wc: matched $patient[first_name] $patient[last_name]");
 }
 
 function find_patient_wc($mysql, $patient) {
@@ -79,7 +79,7 @@ function find_patient_wc($mysql, $patient) {
       birth_date = '$patient[birth_date]'
   ";
 
-  log_notice('update_patients_wc: finding', [$sql, $patient]);
+  log_info('update_patients_wc: finding', [$sql, $patient]);
 
   return $mysql->run($sql)[0];
 }

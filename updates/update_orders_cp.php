@@ -59,7 +59,7 @@ function update_orders_cp() {
     $groups = group_drugs($order, $mysql);
 
     if ( ! $groups['COUNT_FILLED'] AND $groups['ALL'][0]['item_message_key'] != 'ACTION NEEDS FORM') {
-      log_notice("Created Order But Not Filling Any?", $groups);
+      log_info("Created Order But Not Filling Any?", $groups);
       continue;
     }
 
@@ -99,7 +99,7 @@ function update_orders_cp() {
 
       $mysql->run($update_sql);
 
-      return log_error('Confirm this order was returned! Order with tracking number was deleted', $deleted);
+      return log_notice('Confirm this order was returned! Order with tracking number was deleted', $deleted);
     }
 
     export_gd_delete_invoice([$deleted], $mysql);
@@ -143,7 +143,7 @@ function update_orders_cp() {
     //Remove only (e.g. new surescript comes in), let's not add more drugs to their order since communication already went out
     $items_to_sync = sync_to_order($order, $updated);
     if ($items_to_sync) {
-      log_notice('sync_to_order: updated', $items_to_sync);
+      log_info('sync_to_order: updated', $items_to_sync);
     }
 
     $stage_change_cp = ($updated['order_stage_cp'] != $updated['old_order_stage_cp']);
@@ -165,7 +165,7 @@ function update_orders_cp() {
       export_v2_unpend_order($order);
       send_shipped_order_communications($groups);
       log_error("Updated Order Shipped", $order[0]['invoice_number']);
-      log_notice("Updated Order Shipped", $order);
+      log_info("Updated Order Shipped", $order);
       continue;
     }
 
@@ -183,7 +183,7 @@ function update_orders_cp() {
       export_v2_unpend_order($order);
       send_dispensed_order_communications($groups);
       log_error("Updated Order Dispensed", $order[0]['invoice_number']);
-      log_notice("Updated Order Dispensed", $order);
+      log_info("Updated Order Dispensed", $order);
       continue;
     }
 

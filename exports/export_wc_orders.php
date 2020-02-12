@@ -21,7 +21,7 @@ function wc_insert_meta($invoice_number, $metadata) {
   $post_id = wc_get_post_id($invoice_number);
 
   if ( ! $post_id)
-    return log_error('wc_insert_meta: no post id', get_defined_vars());
+    return log_notice('wc_insert_meta: no post id', get_defined_vars());
 
   foreach ($metadata as $meta_key => $meta_value) {
     if (is_array($meta_value))
@@ -78,7 +78,7 @@ function wc_update_order($invoice_number, $orderdata) {
     UPDATE wp_posts SET ".implode(', ', $set)." WHERE ID = $post_id;
   ";
 
-  log_notice('wc_update_order', get_defined_vars());
+  log_info('wc_update_order', get_defined_vars());
 
   $mysql->run($sql);
 
@@ -105,7 +105,7 @@ function export_wc_delete_order($invoice_number, $reason) {
 
   $mysql->run($sql2);
 
-  log_error("export_wc_delete_order", get_defined_vars());//.print_r($item, true);
+  log_notice("export_wc_delete_order", get_defined_vars());//.print_r($item, true);
 }
 
 function export_wc_create_order($order, $reason) {
@@ -162,7 +162,7 @@ function export_wc_create_order($order, $reason) {
   export_wc_update_order_address($order, 'wc_insert_meta');
   export_wc_update_order_payment($invoice_number, $order[0]['payment_fee_default']);
 
-  log_notice('export_wc_create_order: created new order', $metadata);
+  log_info('export_wc_create_order: created new order', $metadata);
 
   return $order;
 }
@@ -189,7 +189,7 @@ function export_wc_update_order_metadata($order, $meta_fn = 'wc_update_meta') {
     //'post_except' => $order[0]['order_note']
   ];
 
-  log_notice('export_wc_update_order_metadata: wc_update_order', [
+  log_info('export_wc_update_order_metadata: wc_update_order', [
     'invoice_number' => $order[0]['invoice_number'],
     'order_stage_wc' => $order[0]['order_stage_wc'],
     'order_stage_cp' => $order[0]['order_stage_cp']

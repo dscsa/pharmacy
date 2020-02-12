@@ -27,7 +27,7 @@ function get_days_default($item) {
   if ( ! $item['drug_gsns']) {
     $item['max_gsn']
       ? log_error("GSN NEEDS TO BE ADDED TO V2", $item)
-      : log_notice("RX IS MISSING GSN", $item);
+      : log_info("RX IS MISSING GSN", $item);
 
     return [ $item['refill_date_first'] ? days_default($item) : 0, RX_MESSAGE['NO ACTION MISSING GSN']];
   }
@@ -113,19 +113,19 @@ function get_days_default($item) {
   }
 
   if ( ! $item['refill_date_first'] AND ! $item['item_date_added'] AND $item['rx_autofill']) {
-    log_notice('NO ACTION NEW RX SYNCED TO ORDER', get_defined_vars());
+    log_info('NO ACTION NEW RX SYNCED TO ORDER', get_defined_vars());
     return [days_default($item), RX_MESSAGE['NO ACTION NEW RX SYNCED TO ORDER']];
   }
 
   //TODO and check if added by this program otherwise false positives
   if (sync_to_order_past_due($item)) {
-    log_notice("WAS PAST DUE SO WAS SYNCED TO ORDER", get_defined_vars());
+    log_info("WAS PAST DUE SO WAS SYNCED TO ORDER", get_defined_vars());
     return [days_default($item), RX_MESSAGE['NO ACTION PAST DUE AND SYNC TO ORDER']];
   }
 
   //TODO and check if added by this program otherwise false positives
   if (sync_to_order_due_soon($item)) {
-    log_notice("WAS DUE SOON SO WAS SYNCED TO ORDER", get_defined_vars());
+    log_info("WAS DUE SOON SO WAS SYNCED TO ORDER", get_defined_vars());
     return [days_default($item), RX_MESSAGE['NO ACTION DUE SOON AND SYNC TO ORDER']];
   }
 

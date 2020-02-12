@@ -24,7 +24,7 @@ function changes_to_orders_wc($new) {
   SELECT      old.*    FROM      gp_orders_wc as new    RIGHT JOIN gp_orders as old ON      old.invoice_number = new.invoice_number    WHERE      new.invoice_number IS NULL
   */
   $get_deleted_sql = get_deleted_sql($new, $old, $id);
-  log_error('changes to order wc: get_deleted_sql', $get_deleted_sql);
+  log_notice('changes to order wc: get_deleted_sql', $get_deleted_sql);
   $deleted = $mysql->run($get_deleted_sql);
 
   /*

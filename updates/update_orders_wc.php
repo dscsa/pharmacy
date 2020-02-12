@@ -13,7 +13,7 @@ function update_orders_wc() {
 
   if ( ! $count_deleted AND ! $count_created AND ! $count_updated) return;
 
-  log_error("update_orders_wc: $count_deleted deleted, $count_created created, $count_updated updated.");
+  log_notice("update_orders_wc: $count_deleted deleted, $count_created created, $count_updated updated.");
 
   $mysql = new Mysql_Wc();
 
@@ -180,6 +180,6 @@ function update_orders_wc() {
   }
 
 
-  log_error("update_orders_wc notices", $notices);
+  log_notice("update_orders_wc notices", $notices);
 
 }

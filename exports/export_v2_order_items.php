@@ -38,7 +38,7 @@ function unpend_pick_list($item) {
 
   $result = gdoc_post(GD_HELPER_URL, $args);
 
-  //log_notice("unpend_pick_list", get_defined_vars());
+  //log_info("unpend_pick_list", get_defined_vars());
 }
 
 function save_pick_list($item, $vals, $mysql) {
@@ -58,7 +58,7 @@ function save_pick_list($item, $vals, $mysql) {
       rx_number = $item[rx_number]
   ";
 
-  //log_notice('save_pick_list', get_defined_vars());
+  //log_info('save_pick_list', get_defined_vars());
 
   $mysql->run($sql);
 }
@@ -138,7 +138,7 @@ function pend_pick_list($item, $vals) {
   //Pend after all forseeable errors are accounted for.
   //$res = v2_fetch($pend_url, 'POST', $vals['pend']);
 
-  log_notice("WebForm pend_pick_list", $pend_url);
+  log_info("WebForm pend_pick_list", $pend_url);
 }
 
 function make_pick_list($item) {
@@ -175,7 +175,7 @@ function make_pick_list($item) {
     return $list;
   }
 
-  log_notice("Webform Shopping Error: Not enough qty found, trying half fill and no safety", ['count_inventory' => count($sorted_ndcs), 'item' => $item]);
+  log_info("Webform Shopping Error: Not enough qty found, trying half fill and no safety", ['count_inventory' => count($sorted_ndcs), 'item' => $item]);
 
   $list = get_qty_needed($sorted_ndcs, $min_qty*0.5, 0);
 

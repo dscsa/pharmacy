@@ -10,14 +10,14 @@ function sync_to_order($order, $updated = null) {
   foreach($order as $item) {
 
     if ($item['rx_dispensed_id']) {
-      log_notice('syncing item canceled because already dispensed', $item);
+      log_info('syncing item canceled because already dispensed', $item);
       continue;
     }
 
     if (sync_to_order_past_due($item)) {
       $items_to_sync[] = ['ADD', 'PAST DUE AND SYNC TO ORDER', $item];
       $items_to_add [] = $item['best_rx_number'];
-      log_error('sync_to_order: Adding Item sync_to_order_past_due', "$item[invoice_number] $item[drug] $item[item_message_key] refills last:$item[refill_date_last] next:$item[refill_date_next] total:$item[refills_total] left:$item[refills_left]");
+      log_notice('sync_to_order: Adding Item sync_to_order_past_due', "$item[invoice_number] $item[drug] $item[item_message_key] refills last:$item[refill_date_last] next:$item[refill_date_next] total:$item[refills_total] left:$item[refills_left]");
 
       continue;
     }
@@ -25,7 +25,7 @@ function sync_to_order($order, $updated = null) {
     if (sync_to_order_due_soon($item)) {
       $items_to_sync[] = ['ADD', 'DUE SOON AND SYNC TO ORDER', $item];
       $items_to_add [] = $item['best_rx_number'];
-      log_error('sync_to_order: Adding Item sync_to_order_due_soon', "$item[invoice_number] $item[drug] $item[item_message_key] refills last:$item[refill_date_last] next:$item[refill_date_next] total:$item[refills_total] left:$item[refills_left]");
+      log_notice('sync_to_order: Adding Item sync_to_order_due_soon', "$item[invoice_number] $item[drug] $item[item_message_key] refills last:$item[refill_date_last] next:$item[refill_date_next] total:$item[refills_total] left:$item[refills_left]");
 
       continue;
     }
@@ -34,7 +34,7 @@ function sync_to_order($order, $updated = null) {
     if ($item['item_date_added'] AND $item['item_added_by'] != 'MANUAL' AND ! $item['days_dispensed'] AND $item['drug_gsns']) {
       $items_to_sync[]   = ['REMOVE', $item['item_message_key'], $item];
       $items_to_remove[] = $item['rx_number'];
-      log_error('sync_to_order: Removing Item within Order', "$item[invoice_number] $item[rx_number] $item[drug], $item[stock_level], $item[item_message_key] refills last:$item[refill_date_last] next:$item[refill_date_next] total:$item[refills_total] left:$item[refills_left]");
+      log_notice('sync_to_order: Removing Item within Order', "$item[invoice_number] $item[rx_number] $item[drug], $item[stock_level], $item[item_message_key] refills last:$item[refill_date_last] next:$item[refill_date_next] total:$item[refills_total] left:$item[refills_left]");
 
       continue;
     }
@@ -43,7 +43,7 @@ function sync_to_order($order, $updated = null) {
       $items_to_sync[]   = ['SWITCH', 'RX_NUMBER != BEST_RX_NUMBER', $item];
       $items_to_add[]    = $item['best_rx_number'];
       $items_to_remove[] = $item['rx_number'];
-      log_error('sync_to_order: switching Items within Order', "$item[invoice_number] $item[drug] $item[item_message_key] $item[rx_number] -> $item[best_rx_number]");
+      log_notice('sync_to_order: switching Items within Order', "$item[invoice_number] $item[drug] $item[item_message_key] $item[rx_number] -> $item[best_rx_number]");
 
       continue;
     }
@@ -56,7 +56,7 @@ function sync_to_order($order, $updated = null) {
     export_cp_add_items($item['invoice_number'], $items_to_add);
 
   else if ($items_to_add)
-    log_notice('sync_to_order items NOT added because UPDATED not created', $items_to_sync);
+    log_info('sync_to_order items NOT added because UPDATED not created', $items_to_sync);
 
   return $items_to_sync;
 }
@@ -113,9 +113,9 @@ function set_sync_to_date($order, $target_date, $target_rxs, $mysql) {
 
       if ($new_days_default <= 30) {
         $new_days_default += 90;
-        log_notice('debug set_sync_to_date: extra time', get_defined_vars());
+        log_info('debug set_sync_to_date: extra time', get_defined_vars());
       } else {
-        log_notice('debug set_sync_to_date: std time', get_defined_vars());
+        log_info('debug set_sync_to_date: std time', get_defined_vars());
       }
 
       $order[$i]['refill_target_date'] = $target_date;

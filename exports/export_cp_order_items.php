@@ -40,5 +40,5 @@ function export_cp_add_items($invoice_number, $script_nos) {
 
   $res = $mssql->run($sql);
 
-  log_notice("export_cp_add_items", get_defined_vars());
+  log_info("export_cp_add_items", get_defined_vars());
 }

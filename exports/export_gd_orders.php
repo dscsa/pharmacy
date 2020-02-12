@@ -20,7 +20,7 @@ function export_gd_update_invoice($order) {
 
   $invoice_doc_id = json_decode($result, true);
 
-  log_notice("export_gd_update_invoice", ['file' => $args['file'], 'result' => $result]);
+  log_info("export_gd_update_invoice", ['file' => $args['file'], 'result' => $result]);
 
   return $invoice_doc_id;
 }
@@ -38,7 +38,7 @@ function export_gd_publish_invoice($order) {
 
   $result = gdoc_post(GD_HELPER_URL, $args);
 
-  log_notice("export_gd_publish_invoice", get_defined_vars());
+  log_info("export_gd_publish_invoice", get_defined_vars());
 }
 
 function export_gd_delete_invoice($order) {
