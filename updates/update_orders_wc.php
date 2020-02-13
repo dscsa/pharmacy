@@ -56,6 +56,8 @@ function update_orders_wc() {
 
     } else {
 
+      $post_id = wc_get_post_id($created['invoice_number']);
+
       if ( ! $post_id)
         log_error("update_orders_wc: created for unknown reason, but not in WC?", get_defined_vars());//.print_r($item, true);
       else
