@@ -13,6 +13,15 @@ Implement, Review, and Switch Fax Out Transfers
 
 # Helpful Queries
 ```
+Update Order Created Date to be Shipped Date
+  UPDATE wp_posts
+  JOIN wp_postmeta ON post_id = ID
+  SET post_date = meta_value, post_date_gmt = meta_value
+  WHERE post_type = 'shop_order'
+  AND meta_key = 'order_date_shipped'
+  AND meta_value != post_date
+  AND meta_value > 0
+
 Ensure Unique GSNs:
   SELECT GROUP_CONCAT(drug_generic, '; '), drug_gsns, COUNT(*) as number
   FROM `gp_stock_live`
@@ -72,7 +81,6 @@ Review Patients that have a DUPLICATE patient_id_cp:
   HAVING number > 1
 
 Delete Duplicate Invoice Number.  
-
   SELECT * FROM wp_usermeta t1
   INNER JOIN wp_usermeta t2
   JOIN wp_users ON t1.user_id = wp_users.ID
