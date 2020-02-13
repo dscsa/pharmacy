@@ -148,6 +148,7 @@ function export_wc_create_order($order, $reason) {
 
   $metadata = [
     'patient_id_cp'     => $order[0]['patient_id_cp'],
+    'patient_id_wc'     => $order[0]['patient_id_wc'],
     'order_date_added'  => $order[0]['order_date_added'],
     'refills_used'      => $order[0]['refills_used'],
     'patient_autofill'  => $order[0]['patient_autofill'],

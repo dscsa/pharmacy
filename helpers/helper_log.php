@@ -91,14 +91,14 @@ function log_info($text, $vars = '') {
 
   $file   = get_file();
   $vars   = $vars ? vars_to_json($vars, $file) : '';
-  log_to_cli('INFO', $text, $file, $vars);
+  log_to_cli(date('Y-m-d H:i:s').' INFO', $text, $file, $vars);
   log_to_db('INFO', $text, $file, $vars);
 }
 
 function log_error($text, $vars = '') {
   $file   = get_file();
   $vars   = $vars ? vars_to_json($vars, $file) : '';
-  log_to_cli('ERROR', $text, $file, $vars);
+  log_to_cli(date('Y-m-d H:i:s').' ERROR', $text, $file, $vars);
   log_to_email('ERROR', $text, $file, $vars);
   log_to_db('ERROR', $text, $file, $vars);
 }
@@ -111,7 +111,7 @@ function log_notice($text, $vars = '') {
 
   $file   = get_file();
   $vars   = $vars ? vars_to_json($vars, $file) : '';
-  log_to_cli('NOTICE', $text, $file, $vars);
+  log_to_cli(date('Y-m-d H:i:s').' NOTICE', $text, $file, $vars);
   //log_to_email('NOTICE', $text, $file, $vars);
   log_to_db('NOTICE', $text, $file, $vars);
 }

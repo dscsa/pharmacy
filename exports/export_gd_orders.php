@@ -6,6 +6,8 @@ function export_gd_update_invoice($order) {
 
   if ( ! count($order)) return;
 
+  $start = microtime(true);
+
   export_gd_delete_invoice($order); //Avoid having multiple versions of same invoice
 
   $args = [
@@ -20,6 +22,9 @@ function export_gd_update_invoice($order) {
 
   $invoice_doc_id = json_decode($result, true);
 
+  $time = $start - microtime(true);
+
+  log_error("export_gd_update_invoice $time seconds");
   log_info("export_gd_update_invoice", ['file' => $args['file'], 'result' => $result]);
 
   return $invoice_doc_id;
@@ -28,7 +33,9 @@ function export_gd_update_invoice($order) {
 //Cannot delete (with this account) once published
 function export_gd_publish_invoice($order) {
 
- if ( ! $order[0]['order_date_shipped']) return; //only publish if tracking number since we can't delete extra after this point
+  if ( ! $order[0]['order_date_shipped']) return; //only publish if tracking number since we can't delete extra after this point
+
+  $start = microtime(true);
 
   $args = [
     'method'   => 'publishFile',
@@ -38,6 +45,9 @@ function export_gd_publish_invoice($order) {
 
   $result = gdoc_post(GD_HELPER_URL, $args);
 
+  $time = $start - microtime(true);
+
+  log_error("export_gd_update_invoice $time seconds");
   log_info("export_gd_publish_invoice", get_defined_vars());
 }
 
