@@ -28,7 +28,7 @@ function export_gd_update_invoice($order) {
 //Cannot delete (with this account) once published
 function export_gd_publish_invoice($order) {
 
- if ( ! $order[0]['tracking_number']) return; //only publish if tracking number since we can't delete extra after this point
+ if ( ! $order[0]['order_date_shipped']) return; //only publish if tracking number since we can't delete extra after this point
 
   $args = [
     'method'   => 'publishFile',

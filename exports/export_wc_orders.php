@@ -151,7 +151,8 @@ function export_wc_create_order($order, $reason) {
     'order_date_added'  => $order[0]['order_date_added'],
     'refills_used'      => $order[0]['refills_used'],
     'patient_autofill'  => $order[0]['patient_autofill'],
-    'order_source'      => $order[0]['order_source']
+    'order_source'      => $order[0]['order_source'],
+    'reason'            => $reason
   ];
 
   wc_insert_meta($invoice_number, $metadata);
