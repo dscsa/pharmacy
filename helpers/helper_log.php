@@ -112,7 +112,7 @@ function log_notice($text, $vars = '') {
   $file   = get_file();
   $vars   = $vars ? vars_to_json($vars, $file) : '';
   log_to_cli('NOTICE', $text, $file, $vars);
-  log_to_email('NOTICE', $text, $file, $vars);
+  //log_to_email('NOTICE', $text, $file, $vars);
   log_to_db('NOTICE', $text, $file, $vars);
 }
 
