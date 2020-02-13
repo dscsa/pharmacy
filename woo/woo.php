@@ -109,10 +109,17 @@ function dscsa_create_order($params) {
   // Now we create the order
 
   try {
-    $order = wc_create_order();
-
     $login = str_replace('%20', ' ', $params['user_login']);
     $user  = get_user_by('login', $login);
+
+    if ( ! $user) {
+
+      echo json_encode(['error' => "dscsa_create_order: User, $params[user_login], for Order #$params[invoice_number] cannot be found", 'order' => $order]);
+      exit;
+
+    }
+
+    $order = wc_create_order();
     $order->update_meta_data('invoice_number', $params['invoice_number']);
     $order->set_customer_id($user->ID);
     //$order->set_status('processing'); //I believe the default is On-Hold
