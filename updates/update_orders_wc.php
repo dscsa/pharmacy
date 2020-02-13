@@ -48,7 +48,7 @@ function update_orders_wc() {
       $post_id = wc_get_post_id($created['invoice_number']);
 
       if ( ! $post_id)
-        log_error("update_orders_wc: deleted webform order, but not in WC?", get_defined_vars());//.print_r($item, true);
+        log_error("update_orders_wc: deleted webform order, but not in WC?", $created);//.print_r($item, true);
       else
         export_wc_delete_order($created['invoice_number'], 'update_orders_wc: deleted webform order');
 
@@ -59,7 +59,7 @@ function update_orders_wc() {
       $post_id = wc_get_post_id($created['invoice_number']);
 
       if ( ! $post_id)
-        log_error("update_orders_wc: created for unknown reason, but not in WC?", get_defined_vars());//.print_r($item, true);
+        log_error("update_orders_wc: created for unknown reason, but not in WC?", $created);//.print_r($item, true);
       else
         export_wc_delete_order($created['invoice_number'],  'update_orders_wc: created for unknown reason '.json_encode($created, JSON_PRETTY_PRINT)); //NOTE: Needs investigation. Added this because they were seeming to be deleted as intended
 

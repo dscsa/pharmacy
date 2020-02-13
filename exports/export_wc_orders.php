@@ -78,13 +78,16 @@ function wc_update_order($invoice_number, $orderdata) {
     UPDATE wp_posts SET ".implode(', ', $set)." WHERE ID = $post_id;
   ";
 
-  $mysql->run($sql);
-
   if (@$orderdata['post_status']) {
     $res = $mysql->run("SELECT * FROM wp_posts JOIN wp_postmeta ON wp_posts.id = wp_postmeta.post_id WHERE wp_postmeta.meta_key='invoice_number' AND wp_postmeta.meta_value = '$invoice_number'");
-    log_error('wc_update_order: status change', [$sql, $res[0][0]]);
-    wc_insert_meta($invoice_number, ['status_update' => "Webform $orderdata[post_status] ".date('Y-m-d H:i:s')]);
+
+    if ($res[0][0]['post_status'] != $orderdata['post_status']) {
+      log_error('wc_update_order: status change', [$sql, $res[0][0]]);
+      wc_insert_meta($invoice_number, ['status_update' => "Webform $orderdata[post_status] ".date('Y-m-d H:i:s')]);
+    }
   }
+
+  $mysql->run($sql);
 }
 
 function export_wc_delete_order($invoice_number, $reason) {
