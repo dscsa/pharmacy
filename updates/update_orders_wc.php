@@ -139,7 +139,7 @@ function update_orders_wc() {
 
     $changed = changed_fields($updated);
 
-    $stage = explode('-', $created['order_stage_wc']);
+    $stage = explode('-', $updated['order_stage_wc']);
 
     if ($updated['order_stage_wc'] == 'trash') {
 
