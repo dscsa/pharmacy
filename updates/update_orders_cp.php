@@ -167,8 +167,8 @@ function update_orders_cp() {
 
     if ($updated['order_date_shipped']) {
 
-      //order_stage_cp and order_date_shipped
-      if (count($changed_fields) > 2) {
+      //order_stage_cp and tracking_number, order_date_shipped
+      if (count($changed_fields) > 3) {
         export_gd_publish_invoice($order);
         export_wc_update_order($order);
         log_error("Updated Order Dispensed: changed fields ".$order[0]['invoice_number'], $changed_fields);
