@@ -63,6 +63,11 @@ function update_orders_cp() {
       continue;
     }
 
+    if ( ! $order[0]['pharmacy_name']) {
+      log_error("Guardian Order Created But Patient Not Yet Registered in WC so not creating WC Order ".$order[0]['invoice_number']);
+      continue;
+    }
+
     $order = helper_update_payment($order, $mysql);
 
     //This is not necessary if order was created by webform, which then created the order in Guardian

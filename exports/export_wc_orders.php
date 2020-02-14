@@ -81,8 +81,10 @@ function wc_update_order($invoice_number, $orderdata) {
   if (@$orderdata['post_status']) {
     $res = $mysql->run("SELECT * FROM wp_posts JOIN wp_postmeta ON wp_posts.id = wp_postmeta.post_id WHERE wp_postmeta.meta_key='invoice_number' AND wp_postmeta.meta_value = '$invoice_number'");
 
+    $old_status = $res[0][0]['post_status'];
+
     if ($res[0][0]['post_status'] != $orderdata['post_status']) {
-      log_error('wc_update_order: status change', [$sql, $res[0][0]]);
+      log_error("wc_update_order: status change $old_status >>> $orderdata[post_status]");
       wc_insert_meta($invoice_number, ['status_update' => "Webform $orderdata[post_status] ".date('Y-m-d H:i:s')]);
     }
   }
@@ -117,8 +119,8 @@ function export_wc_create_order($order, $reason) {
   $mysql = $mysql ?: new Mysql_Wc();
 
   $invoice_number = $order[0]['invoice_number'];
-  $first_name = str_replace('*', '', $order[0]['first_name']); //Ignore Cindy's internal marking
-  $last_name = str_replace('*', '', $order[0]['last_name']); //Ignore Cindy's internal marking
+  $first_name = str_replace(["'", '*'], '', $order[0]['first_name']); //Ignore Cindy's internal marking
+  $last_name = str_replace(["'", '*'], '', $order[0]['last_name']); //Ignore Cindy's internal marking
   $birth_date = str_replace('*', '', $order[0]['birth_date']); //Ignore Cindy's internal marking
 
   $post_id = wc_get_post_id($invoice_number);
@@ -126,13 +128,13 @@ function export_wc_create_order($order, $reason) {
   if ($post_id) {
 
     if ($reason != "update_orders_wc: deleted but still in CP")
-      log_error("export_wc_create_order: aborting create order", [$first_name, $last_name, $invoice_number, $reason, $order[0]['order_stage_cp'], $order[0]['order_source'], $post_id]);
+      log_error("export_wc_create_order: aborting create order", $order[0]);
 
     return $order;
   }
 
   if ($reason == "update_orders_wc: deleted but still in CP")
-    log_error("export_wc_create_order: deleted but still in CP success, not duplicated", $order);
+    log_error("export_wc_create_order: deleted but still in CP success, not duplicated", $order[0]);
 
   //This creates order and adds invoice number to metadata
   //We do this through REST API because direct database calls seemed messy
