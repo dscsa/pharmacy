@@ -72,6 +72,12 @@ function update_orders_cp() {
 
     //This is not necessary if order was created by webform, which then created the order in Guardian
     //"order_source": "Webform eRX",  "item_added_by": "WEBFORM",
+
+    if ($order[0]['invoice_number'] == 27778) {
+      log_error("Debugging Order ".$order[0]['invoice_number'], $order[0]);
+      continue;
+    }
+
     export_wc_create_order($order, "update_orders_cp: created");
 
     send_created_order_communications($groups);
@@ -197,7 +203,7 @@ function update_orders_cp() {
 
       if ($stage_change_cp)
         log_info("Updated Order stage_change_cp:", [$changed_fields, $order]);
-      else if ($updated['count_items'] == $order[0]['count_items'])
+      else if ($updated['count_items'] != $order[0]['count_items'])
         log_info("Updated Order count_items changed:", [$changed_fields, $order]);
       else
         log_error("Updated Order abnormal change", [$changed_fields, $order]);

@@ -27,6 +27,8 @@ function wc_insert_meta($invoice_number, $metadata) {
     if (is_array($meta_value))
       $meta_value = json_encode($meta_value);
 
+    $meta_value = clean_val($meta_value);
+
     //mysql->run() does mysqli_query and not mysqli_multi_query so we cannot concatentate the inserts and run all at once
     $mysql->run("INSERT INTO wp_postmeta (meta_id, post_id, meta_key, meta_value) VALUES (NULL, '$post_id', '$meta_key', '$meta_value')");
   }
@@ -142,7 +144,7 @@ function export_wc_create_order($order, $reason) {
   $res = wc_fetch($url);
 
   if ( ! empty($res['error']) AND empty($res['order'])) //if order is set, then its just a this order already exists error
-    return log_error("export_wc_create_order: res[error] for $url", $res);
+    return log_error("export_wc_create_order: res[error] for $url", [$reason, $res, $order[0]]);
 
   //These are the metadata that should NOT change
   //wc_upsert_meta($order_meta, 'shipping_method_id', ['31694']);
