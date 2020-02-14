@@ -80,11 +80,13 @@ function import_wc_patients() {
       $pharmacy['fax'] = substr(@$pharmacy['fax'], 0, 14); //1-999-999-9999
       $pharmacy['phone'] = substr(@$pharmacy['phone'], 0, 14); //1-999-999-9999
 
-      $row['pharmacy_name'] =clean_val($pharmacy['name']);
+      $row['pharmacy_name'] = $pharmacy['name'] ? clean_val($pharmacy['name']) : 'NULL';
       $row['pharmacy_npi'] = $pharmacy['npi'] ? clean_val($pharmacy['npi']) : 'NULL';
+      $row['pharmacy_address'] = clean_val($pharmacy['street']);
+      
       $row['pharmacy_fax'] = clean_phone($pharmacy['fax']);
       $row['pharmacy_phone'] = clean_phone($pharmacy['phone']);
-      $row['pharmacy_address'] = clean_val($pharmacy['street']);
+
       $row['language'] = $row['language'] == 'NULL' ? "'EN'" : $row['language'];
 
       unset($row['backup_pharmacy']);
