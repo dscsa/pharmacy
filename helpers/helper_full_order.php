@@ -60,7 +60,7 @@ function add_gd_fields_to_order($order, $mysql) {
       $order[$i] = set_days_default($order[$i], $days, $message, $mysql);
     }
 
-    if ( ! $order[$i]['item_message_key'] OR ! $order[$i]['item_message_text']) {
+    if ( ! $order[$i]['item_message_key'] OR ! isset($order[$i]['item_message_text'])) {
       log_error('add_gd_fields_to_order: error item_message not set!', [$order[$i], $days, $message]);
     }
 
