@@ -52,12 +52,10 @@ function import_cp_orders() {
   //Replace Staging Table with New Data
   $sql = "INSERT INTO gp_orders_cp $keys VALUES ".$orders[0];
 
-  $res1 = $mysql->run("START TRANSACTION");
-  $res2 = $mysql->run("DELETE FROM gp_orders_cp");
-  $res3 = $mysql->run($sql);
-  $res4 = $mysql->run("COMMIT");
-
-  log_notice('import_cp_orders: insert transaction', [$res1, $res2, $res3, $res4, $sql]);
+  $mysql->run("START TRANSACTION");
+  $mysql->run("DELETE FROM gp_orders_cp");
+  $mysql->run($sql);
+  $mysql->run("COMMIT");
 }
 
 /*

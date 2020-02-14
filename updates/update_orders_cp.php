@@ -95,7 +95,7 @@ function update_orders_cp() {
   //  - update wc order total
   foreach($changes['deleted'] as $deleted) {
 
-    if ($order[0]['order_stage_wc'] == 'wc-processing')
+    if ($deleted['order_stage_wc'] == 'wc-processing')
       log_error('Problem: cp order wc-processing deleted', $deleted);
 
     //Order was Returned to Sender and not logged yet
