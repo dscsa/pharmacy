@@ -238,7 +238,7 @@ function update_patients_wc() {
       $updated['language'] !== $updated['old_language']
     ) {
       $sp = "EXEC SirumWeb_AddUpdatePatient '$updated[first_name]', '$updated[last_name]', '$updated[birth_date]', '$updated[phone1]', '$updated[language]'";
-      log_error("Patient Identity Updated", [$sp, $updated]);
+      log_error("Patient Identity Updated", [$sp, $changed]);
       upsert_patient_cp($mssql, $sp);
     }
 

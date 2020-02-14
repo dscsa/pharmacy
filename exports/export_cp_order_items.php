@@ -15,7 +15,7 @@ function export_cp_remove_items($invoice_number, $script_nos) {
 
   //$sql = "SirumWeb_RemoveScriptNosFromOrder '$invoice_number', '$script_nos'";
 
-  $sql = "
+  $sql1 = "
     DELETE csomline
     FROM csomline
     JOIN cprx ON cprx.rx_id = csomline.rx_id
@@ -24,7 +24,14 @@ function export_cp_remove_items($invoice_number, $script_nos) {
     AND rxdisp_id = 0 -- if the rxdisp_id is set on the line, you have to call CpOmVoidDispense first.
   ";
 
-  $res = $mssql->run($sql);
+  $sql2 = "
+    UPDATE csom
+    SET csom.liCount = (SELECT COUNT(*) FROM csomline WHERE order_id = '$order_id')
+    WHERE order_id = '$order_id'
+  ";
+
+  $res = $mssql->run($sql1);
+  $res = $mssql->run($sql2);
 }
 
 //Example update_order::sync_to_order() wants to add another item to existing order because its due in 1 week

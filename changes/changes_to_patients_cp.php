@@ -9,8 +9,8 @@ function changes_to_patients_cp($new) {
   $old   = "gp_patients";
   $id    = "patient_id_cp";
   $where = "
-    NOT old.first_name <=> new.first_name OR
-    NOT old.last_name <=> new.last_name OR
+    NOT old.first_name COLLATE latin1_general_cs <=> new.first_name OR -- case sensitive
+    NOT old.last_name COLLATE latin1_general_cs <=> new.last_name OR -- case sensitive
     NOT old.birth_date <=> new.birth_date OR
     NOT old.patient_note <=> new.patient_note OR
     NOT old.medications_other <=> new.medications_other OR
