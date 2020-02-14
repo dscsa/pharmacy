@@ -30,7 +30,7 @@ function wc_insert_meta($invoice_number, $metadata) {
     $meta_value = clean_val($meta_value);
 
     //mysql->run() does mysqli_query and not mysqli_multi_query so we cannot concatentate the inserts and run all at once
-    $mysql->run("INSERT INTO wp_postmeta (meta_id, post_id, meta_key, meta_value) VALUES (NULL, '$post_id', '$meta_key', '$meta_value')");
+    $mysql->run("INSERT INTO wp_postmeta (meta_id, post_id, meta_key, meta_value) VALUES (NULL, '$post_id', '$meta_key', $meta_value)");
   }
 
   log_info('wc_insert_meta', get_defined_vars());
