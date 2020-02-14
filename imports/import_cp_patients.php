@@ -90,8 +90,8 @@ function import_cp_patients() {
       $val2 = explode(',', $val2) + ['', '', '', ''];
 
       //log('result_map: '.print_r($val1, true).' '.print_r($val2, true));
-      var_dump($row['pharmacy_name']);
-      $row['pharmacy_name']    = $row['pharmacy_name'] ?: 'NULL';
+
+      $row['pharmacy_name']    = $row['pharmacy_name'] == "''" ? 'NULL' : $row['pharmacy_name']; //Not sure how this happens
       $row['pharmacy_npi']     = clean_val($val1[0]);
       $row['pharmacy_fax']     = clean_phone($val1[1]);
       $row['pharmacy_phone']   = clean_phone($val1[2]);
