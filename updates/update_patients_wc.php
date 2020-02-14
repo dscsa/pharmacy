@@ -79,8 +79,8 @@ function update_patients_wc() {
     $changed = changed_fields($updated);
 
     $changed
-      ? log_notice("update_patients_wc: updated changed $updated[first_name] $updated[last_name] cp:$updated[patient_id_cp] wc:$updated[patient_id_wc]", $changed)
-      : log_error("update_patients_wc: updated no change? $updated[first_name] $updated[last_name] cp:$updated[patient_id_cp] wc:$updated[patient_id_wc]", $updated);
+      ? log_notice("update_patients_wc: updated changed $updated[first_name] $updated[last_name] $updated[birth_date] cp:$updated[patient_id_cp] wc:$updated[patient_id_wc]", $changed)
+      : log_error("update_patients_wc: updated no change? $updated[first_name] $updated[last_name] $updated[birth_date] cp:$updated[patient_id_cp] wc:$updated[patient_id_wc]", $updated);
 
     if ( ! $updated['email'] AND $updated['old_email']) {
       upsert_patient_wc($mysql, $updated['patient_id_wc'], 'email', $update['old_email']);

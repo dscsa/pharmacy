@@ -174,16 +174,16 @@ function update_orders_wc() {
       $old_stage = explode('-', $updated['old_order_stage_wc']);
 
       if (
-        ($stage[1] == 'confirm' AND $old_stage[1] == 'prepare') OR
-        ($stage[1] == 'prepare' AND $old_stage[1] == 'shipped') OR
-        ($stage[1] == 'prepare' AND $old_stage[1] == 'done') OR
-        ($stage[1] == 'shipped' AND $old_stage[1] == 'done') OR
-        ($stage[1] == 'shipped' AND $old_stage[1] == 'late') OR
-        ($stage[1] == 'shipped' AND $old_stage[1] == 'returned')
+        ($old_stage[1] == 'confirm' AND $stage[1] == 'prepare') OR
+        ($old_stage[1] == 'prepare' AND $stage[1] == 'shipped') OR
+        ($old_stage[1] == 'prepare' AND $stage[1] == 'done') OR
+        ($old_stage[1] == 'shipped' AND $stage[1] == 'done') OR
+        ($old_stage[1] == 'shipped' AND $stage[1] == 'late') OR
+        ($old_stage[1] == 'shipped' AND $stage[1] == 'returned')
       ) {
         log_notice("$updated[invoice_number]: WC Order Normal Stage Change", $changed);
       } else {
-        log_error("$updated[invoice_number]: WC Order Irregular Stage Change", $updated);
+        log_error("$updated[invoice_number]: WC Order Irregular Stage Change", [$stage, $old_stage, $updated]);
       }
 
     }
