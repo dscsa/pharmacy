@@ -168,6 +168,9 @@ function set_price_refills_actual($item, $mysql) {
 
 function set_days_default($item, $days, $message, $mysql) {
 
+  $item['item_message_key']  = array_search($message, RX_MESSAGE);
+  $item['item_message_text'] = message_text($message, $item);
+
   //We can only save it if its an order_item that's not yet dispensed
   if ( ! $item['item_date_added'])
     return $item; //We can only save for items in order (order_items)
@@ -188,8 +191,6 @@ function set_days_default($item, $days, $message, $mysql) {
   $price = $item['price_per_month'] ?: 0; //Might be null
 
   $item['days_dispensed_default']  = $days;
-  $item['item_message_key']        = array_search($message, RX_MESSAGE);
-  $item['item_message_text']       = message_text($message, $item);
   $item['qty_dispensed_default']   = $days*$item['sig_qty_per_day'];
   $item['price_dispensed_default'] = ceil($days*$price/30);
   $item['refills_total_default']   = $item['refills_total'];

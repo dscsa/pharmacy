@@ -60,6 +60,10 @@ function add_gd_fields_to_order($order, $mysql) {
       $order[$i] = set_days_default($order[$i], $days, $message, $mysql);
     }
 
+    if ( ! $order[$i]['item_message_key'] OR ! $order[$i]['item_message_text']) {
+      log_error('add_gd_fields_to_order: error item_message not set!', [$order[$i], $days, $message]);
+    }
+
     $order[$i]['drug'] = $order[$i]['drug_name'] ?: $order[$i]['drug_generic'];
     $order[$i]['days_dispensed'] = $order[$i]['days_dispensed_actual'] ?: $order[$i]['days_dispensed_default'];
     $order[$i]['payment_method'] = $order[$i]['payment_method_actual'] ?: $order[$i]['payment_method_default'];
