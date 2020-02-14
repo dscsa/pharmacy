@@ -217,12 +217,12 @@ function update_patients_wc() {
     }
 
     if ( ! $updated['first_name'] OR ! $updated['first_name'] OR ! $updated['birth_date']) {
-      
+
        log_error("Patient Set Incorrectly", [$changed, $updated]);
 
     } else if (
-        (strtoupper($updated['first_name']) !== strtoupper($updated['old_first_name'])) OR
-        (strtoupper($updated['last_name'] !== strtoupper($updated['old_last_name']))
+        strtoupper($updated['first_name']) !== strtoupper($updated['old_first_name']) OR
+        strtoupper($updated['last_name']) !== strtoupper($updated['old_last_name'])
     ) {
 
       log_error("Patient Identity Changed?", $changed);
