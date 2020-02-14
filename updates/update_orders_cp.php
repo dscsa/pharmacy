@@ -208,13 +208,13 @@ function update_orders_cp() {
       continue;
     }
 
-    if ($updated['count_filled'] == $order[0]['count_filled']) {
+    if ($updated['count_filled'] == $updated['old_count_filled']) {
       export_wc_update_order($order);
 
       if ($stage_change_cp)
         log_info("Updated Order stage_change_cp:", [$changed_fields, $order]);
       else if ($updated['count_items'] != $updated['old_count_items'])
-        log_info("Updated Order count_items changed:", [$changed_fields, $order]);
+        log_info("Updated Order count_items changed but count_filled did not:", [$changed_fields, $order]);
       else
         log_error("Updated Order abnormal change", [$changed_fields, $order]);
 
@@ -222,6 +222,13 @@ function update_orders_cp() {
     }
 
     //Usually count_items changed
+    if ($stage_change_cp AND count($changed_fields) == 1) {
+      log_info("Updated Order Stage Change", [$changed_fields, $order]);
+      continue;
+    }
+
+    log_error("Updated Order: Unknown Change", [$changed_fields, $order]);
+    
     $order = helper_update_payment($order, $mysql);
     export_wc_update_order($order);
 
