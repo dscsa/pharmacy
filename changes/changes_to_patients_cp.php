@@ -74,7 +74,9 @@ function changes_to_patients_cp($new) {
   $mysql->run(set_created_sql($new, $old, $id, '('.$columns.')'));
 
   //Save Updates
-  $mysql->run(set_updated_sql($new, $old, $id, $where));
+  $sql = set_updated_sql($new, $old, $id, $where);
+  log_error('changes_to_patients_cp: set updated', $sql);
+  $mysql->run($sql);
 
   return [
     'deleted' => $deleted[0],
