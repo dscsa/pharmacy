@@ -91,7 +91,7 @@ function import_cp_patients() {
 
       //log('result_map: '.print_r($val1, true).' '.print_r($val2, true));
 
-      $row['pharmacy_name']    = $row['name'] ?: 'NULL';
+      $row['pharmacy_name']    = $row['pharmacy_name'] ?: 'NULL';
       $row['pharmacy_npi']     = clean_val($val1[0]);
       $row['pharmacy_fax']     = clean_phone($val1[1]);
       $row['pharmacy_phone']   = clean_phone($val1[2]);
