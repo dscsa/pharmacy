@@ -225,7 +225,7 @@ function update_patients_wc() {
         strtoupper($updated['last_name']) !== strtoupper($updated['old_last_name'])
     ) {
 
-      log_error("Patient Identity Changed?", $changed);
+      log_error("Patient Identity Changed?", $updated);
       //upsert_patient_wc($mysql, $updated['patient_id_wc'], 'first_name', $updated['old_first_name']);
       //upsert_patient_wc($mysql, $updated['patient_id_wc'], 'last_name', $updated['old_last_name']);
       //upsert_patient_wc($mysql, $updated['patient_id_wc'], 'birth_date', $updated['old_birth_date']);
@@ -237,7 +237,9 @@ function update_patients_wc() {
       $updated['birth_date'] !== $updated['old_birth_date'] OR
       $updated['language'] !== $updated['old_language']
     ) {
-      upsert_patient_cp($mssql, "EXEC SirumWeb_AddUpdatePatient '$updated[first_name]', '$updated[last_name]', '$updated[birth_date]', '$updated[phone1]', '$updated[language]'");
+      $sp = "EXEC SirumWeb_AddUpdatePatient '$updated[first_name]', '$updated[last_name]', '$updated[birth_date]', '$updated[phone1]', '$updated[language]'";
+      log_error("Patient Identity Updated", [$sp, $updated]);
+      upsert_patient_cp($mssql, $sp);
     }
 
     if (
