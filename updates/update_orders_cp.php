@@ -167,7 +167,8 @@ function update_orders_cp() {
 
     if ($updated['order_date_shipped']) {
 
-      if (count($changed_fields) > 1) {
+      //order_stage_cp and order_date_shipped
+      if (count($changed_fields) > 2) {
         export_gd_publish_invoice($order);
         export_wc_update_order($order);
         log_error("Updated Order Dispensed: changed fields ".$order[0]['invoice_number'], $changed_fields);
@@ -179,7 +180,7 @@ function update_orders_cp() {
 
       export_v2_unpend_order($order);
       send_shipped_order_communications($groups);
-      
+
       log_info("Updated Order Shipped", $order);
       continue;
     }
@@ -188,7 +189,8 @@ function update_orders_cp() {
     //Update invoice now or wait until shipped order?
     if ($updated['order_date_dispensed']) {
 
-      if (count($changed_fields) > 1) {
+      //order_stage_cp and order_date_dispensed
+      if (count($changed_fields) > 2) {
         $order = helper_update_payment($order, $mysql);
         export_gd_publish_invoice($order);
         export_wc_update_order($order);

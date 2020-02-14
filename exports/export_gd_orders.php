@@ -22,9 +22,13 @@ function export_gd_update_invoice($order) {
 
   $invoice_doc_id = json_decode($result, true);
 
-  $time = microtime(true) - $start;
+  $time = ceil(microtime(true) - $start);
 
-  log_error("export_gd_update_invoice: Order #".$order[0]['invoice_number']." $time seconds. docs.google.com/document/d/".$order[0]['invoice_doc_id']." >>>  docs.google.com/document/d/$invoice_doc_id");
+  if ($order[0]['invoice_doc_id'])
+    log_error("export_gd_update_invoice: Updated Order #".$order[0]['invoice_number']." $time seconds. docs.google.com/document/d/".$order[0]['invoice_doc_id']." >>>  docs.google.com/document/d/$invoice_doc_id");
+  else
+    log_error("export_gd_update_invoice: Created Order #".$order[0]['invoice_number']." $time seconds. docs.google.com/document/d/$invoice_doc_id");
+
   log_info("export_gd_update_invoice", ['file' => $args['file'], 'result' => $result]);
 
   return $invoice_doc_id;
@@ -45,7 +49,7 @@ function export_gd_publish_invoice($order) {
 
   $result = gdoc_post(GD_HELPER_URL, $args);
 
-  $time = microtime(true) - $start;
+  $time = ceil(microtime(true) - $start);
 
   log_error("export_gd_update_invoice $time seconds");
   log_info("export_gd_publish_invoice", get_defined_vars());
