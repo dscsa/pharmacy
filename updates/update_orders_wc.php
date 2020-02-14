@@ -98,13 +98,13 @@ function update_orders_wc() {
       //If all items are removed, order will not be imported from CP
       $items_to_remove = [];
       foreach($order as $item) {
-        if ($item['item_date_added'] AND $item['item_added_by'] != 'MANUAL' AND ! $item['days_dispensed'])
+        if ($item['item_date_added'] AND $item['item_added_by'] != 'MANUAL' AND ! $item['rx_dispensed_id'])
           $items_to_remove[] = $item['rx_number'];
       }
 
       export_cp_remove_items($item['invoice_number'], $items_to_remove);
 
-      log_notice("update_orders_wc: RXs created an order in CP but patient has not yet registered so there is no order in WC yet", [$items_to_remove, $deleted, $order[0]]);
+      log_notice("update_orders_wc: RXs created an order in CP but patient has not yet registered so there is no order in WC yet", [$items_to_remove, $order[0]]);
 
     } else if ($deleted['order_stage_cp'] != 'Shipped' AND $deleted['order_stage_cp'] != 'Dispensed') {
 
