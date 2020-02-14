@@ -216,11 +216,13 @@ function update_patients_wc() {
         NOT SURE WHAT TO DO FOR PAYMENT METHOD $updated";
     }
 
-    if (
-        ( ! $updated['first_name'] AND $updated['old_first_name']) OR
-        ( ! $updated['last_name'] AND $updated['old_last_name']) OR
-        ( ! $updated['birth_date'] AND $updated['old_birth_date']) OR
-        ( ! $updated['language'] AND $updated['old_language'])
+    if ( ! $updated['first_name'] OR ! $updated['first_name'] OR ! $updated['birth_date']) {
+      
+       log_error("Patient Set Incorrectly", [$changed, $updated]);
+
+    } else if (
+        (strtoupper($updated['first_name']) !== strtoupper($updated['old_first_name'])) OR
+        (strtoupper($updated['last_name'] !== strtoupper($updated['old_last_name']))
     ) {
 
       log_error("Patient Identity Changed?", $changed);
@@ -230,8 +232,10 @@ function update_patients_wc() {
       //upsert_patient_wc($mysql, $updated['patient_id_wc'], 'language', $updated['old_language']);
 
     } else if (
-      $updated['language'] !== $updated['old_language'] OR
-      $updated['birth_date'] !== $updated['old_birth_date']
+      $updated['first_name'] !== $updated['old_first_name'] OR
+      $updated['last_name'] !== $updated['old_last_name'] OR
+      $updated['birth_date'] !== $updated['old_birth_date'] OR
+      $updated['language'] !== $updated['old_language']
     ) {
       upsert_patient_cp($mssql, "EXEC SirumWeb_AddUpdatePatient '$updated[first_name]', '$updated[last_name]', '$updated[birth_date]', '$updated[phone1]', '$updated[language]'");
     }
