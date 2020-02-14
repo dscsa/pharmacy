@@ -167,15 +167,19 @@ function update_orders_cp() {
 
     if ($updated['order_date_shipped']) {
 
-      if ( ! $stage_change_cp) {
+      if (count($changed_fields) > 1) {
+        export_gd_publish_invoice($order);
+        export_wc_update_order($order);
+        log_error("Updated Order Dispensed: changed fields ".$order[0]['invoice_number'], $changed_fields);
+      } else if ($stage_change_cp) {
+        log_error("Updated Order Shipped: status change only", $order[0]['invoice_number']);
+      } else {
         log_error("Shipped Order Was Updated?", $order);
       }
 
-      export_gd_publish_invoice($order);
-      export_wc_update_order($order);
       export_v2_unpend_order($order);
       send_shipped_order_communications($groups);
-      log_error("Updated Order Shipped", $order[0]['invoice_number']);
+      
       log_info("Updated Order Shipped", $order);
       continue;
     }
@@ -184,16 +188,20 @@ function update_orders_cp() {
     //Update invoice now or wait until shipped order?
     if ($updated['order_date_dispensed']) {
 
-      if ( ! $stage_change_cp) {
+      if (count($changed_fields) > 1) {
+        $order = helper_update_payment($order, $mysql);
+        export_gd_publish_invoice($order);
+        export_wc_update_order($order);
+        log_error("Updated Order Dispensed: changed fields ".$order[0]['invoice_number'], $changed_fields);
+      } else if ($stage_change_cp) {
+        log_error("Updated Order Dispensed: status change only", $order[0]['invoice_number']);
+      } else {
         log_error("Dispensed Order Was Updated?", $order);
       }
 
-      $order = helper_update_payment($order, $mysql);
-      export_gd_publish_invoice($order);
-      export_wc_update_order($order);
       export_v2_unpend_order($order);
       send_dispensed_order_communications($groups);
-      log_error("Updated Order Dispensed", $order[0]['invoice_number']);
+
       log_info("Updated Order Dispensed", $order);
       continue;
     }

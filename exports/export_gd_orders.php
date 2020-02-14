@@ -24,7 +24,7 @@ function export_gd_update_invoice($order) {
 
   $time = microtime(true) - $start;
 
-  log_error("export_gd_update_invoice $time seconds. docs.google.com/document/d/".$order[0]['invoice_doc_id']." >>>  docs.google.com/document/d/$invoice_doc_id");
+  log_error("export_gd_update_invoice: Order #".$order[0]['invoice_number']." $time seconds. docs.google.com/document/d/".$order[0]['invoice_doc_id']." >>>  docs.google.com/document/d/$invoice_doc_id");
   log_info("export_gd_update_invoice", ['file' => $args['file'], 'result' => $result]);
 
   return $invoice_doc_id;
