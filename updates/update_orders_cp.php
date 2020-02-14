@@ -213,7 +213,7 @@ function update_orders_cp() {
 
       if ($stage_change_cp)
         log_info("Updated Order stage_change_cp:", [$changed_fields, $order]);
-      else if ($updated['count_items'] != $order[0]['count_items'])
+      else if ($updated['count_items'] != $updated['old_count_items'])
         log_info("Updated Order count_items changed:", [$changed_fields, $order]);
       else
         log_error("Updated Order abnormal change", [$changed_fields, $order]);

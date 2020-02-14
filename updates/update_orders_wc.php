@@ -198,7 +198,7 @@ function update_orders_wc() {
 
 
       //26214, 26509
-      log_error("$updated[invoice_number]: WC Patient Id Added to Order", [$changed, $updated]);
+      log_error("$updated[invoice_number]: WC Order was created last eun ao now patient_id_wc can be added", $changed);
 
 
     } else {
