@@ -52,7 +52,7 @@ function update_orders_wc() {
       else
         export_wc_delete_order($created['invoice_number'], 'update_orders_wc: deleted webform order');
 
-      log_notice("New WC Order to Add Guadian", $created);
+      //log_notice("New WC Order to Add Guadian", $created);
 
     } else {
 
@@ -63,7 +63,7 @@ function update_orders_wc() {
       else
         export_wc_delete_order($created['invoice_number'],  'update_orders_wc: created for unknown reason '.json_encode($created, JSON_PRETTY_PRINT)); //NOTE: Needs investigation. Added this because they were seeming to be deleted as intended
 
-      log_notice("Guardian Order Deleted that should be deleted from WC later in this run or already deleted", $created);
+      //log_notice("Guardian Order Deleted that should be deleted from WC later in this run or already deleted", $created);
     }
 
   }

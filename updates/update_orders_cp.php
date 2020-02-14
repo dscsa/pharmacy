@@ -173,7 +173,7 @@ function update_orders_cp() {
         export_wc_update_order($order);
         log_error("Updated Order Dispensed: changed fields ".$order[0]['invoice_number'], $changed_fields);
       } else if ($stage_change_cp) {
-        log_error("Updated Order Shipped: status change only", $order[0]['invoice_number']);
+        log_error("Updated Order Shipped: status change only ".$order[0]['invoice_number']);
       } else {
         log_error("Shipped Order Was Updated?", $order);
       }
@@ -196,7 +196,7 @@ function update_orders_cp() {
         export_wc_update_order($order);
         log_error("Updated Order Dispensed: changed fields ".$order[0]['invoice_number'], $changed_fields);
       } else if ($stage_change_cp) {
-        log_error("Updated Order Dispensed: status change only", $order[0]['invoice_number']);
+        log_error("Updated Order Dispensed: status change only ".$order[0]['invoice_number']);
       } else {
         log_error("Dispensed Order Was Updated?", $order);
       }
@@ -208,7 +208,7 @@ function update_orders_cp() {
       continue;
     }
 
-    if ($updated['count_filled'] == $updated['old_count_filled']) {
+    if ($updated['count_filled'] == $order[0]['count_filled']) {
       export_wc_update_order($order);
 
       if ($stage_change_cp)
@@ -228,7 +228,7 @@ function update_orders_cp() {
     }
 
     log_error("Updated Order: Unknown Change", [$changed_fields, $order]);
-    
+
     $order = helper_update_payment($order, $mysql);
     export_wc_update_order($order);
 
