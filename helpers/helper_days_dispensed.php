@@ -171,6 +171,9 @@ function set_days_default($item, $days, $message, $mysql) {
   $item['item_message_key']  = array_search($message, RX_MESSAGE);
   $item['item_message_text'] = message_text($message, $item);
 
+  if ( ! $days)
+    $item['item_message_text'] .= ' **'; //If not filling reference to backup pharmacy footnote on Invoices
+
   //We can only save it if its an order_item that's not yet dispensed
   if ( ! $item['item_date_added'])
     return $item; //We can only save for items in order (order_items)
