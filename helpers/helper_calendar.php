@@ -267,6 +267,7 @@ function get_patient_label($order) {
 
   if ( ! isset($order[0])) {
     log_error('ERROR: get_patient_label', get_defined_vars());
+    return '';
   }
 
   return $order[0]['first_name'].' '.$order[0]['last_name'].' '.$order[0]['birth_date'];
@@ -349,6 +350,7 @@ function get_phones($order) {
 
   if ( ! isset($order[0])) {
     log_error('get_phones', get_defined_vars());
+    return '';
   }
   //email('get_phones', $order);
   return $order[0]['phone1'].($order[0]['phone2'] ? ','.$order[0]['phone2'] : '');

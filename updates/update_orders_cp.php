@@ -64,7 +64,7 @@ function update_orders_cp() {
     }
 
     if ( ! $order[0]['pharmacy_name']) {
-      log_error("Guardian Order Created But Patient Not Yet Registered in WC so not creating WC Order ".$order[0]['invoice_number']);
+      log_notice("Guardian Order Created But Patient Not Yet Registered in WC so not creating WC Order ".$order[0]['invoice_number']);
       continue;
     }
 
