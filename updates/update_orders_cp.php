@@ -214,7 +214,7 @@ function update_orders_cp() {
       if ($stage_change_cp)
         log_info("Updated Order stage_change_cp:", [$changed_fields, $order]);
       else if ($updated['count_items'] != $updated['old_count_items'])
-        log_info("Updated Order count_items changed but count_filled did not:", [$changed_fields, $order]);
+        log_notice("Updated Order count_items changed but count_filled did not:", [$changed_fields, $order]);
       else
         log_error("Updated Order abnormal change", [$changed_fields, $order]);
 
@@ -228,7 +228,7 @@ function update_orders_cp() {
     }
 
     if ($changed_fields['count_items'] AND count($changed_fields) == 1)
-      log_error("Updated Order: count_items changed", $changed_fields);
+      log_info("Updated Order: count_items changed", $changed_fields);
     else
       log_error("Updated Order: Unknown Change", [$order, $updated, $changed_fields]);
 
