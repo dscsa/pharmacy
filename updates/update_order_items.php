@@ -229,11 +229,12 @@ function update_order_items() {
 
     if ($item['days_dispensed_actual']) {
 
+      log_notice("days_dispensed_actual was set, update invoice?", [$updated, $changed_fields]);
       set_price_refills_actual($item, $mysql);
 
     } else if ($updated['item_added_by'] == 'MANUAL' AND $updated['old_item_added_by'] != 'MANUAL') {
 
-      log_info("Cindy deleted and readded this item", get_defined_vars());
+      log_info("Cindy deleted and readded this item", [$updated, $changed_fields]);
 
     } else if ( ! $item['days_dispensed_default']) {
 
