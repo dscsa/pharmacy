@@ -17,7 +17,7 @@ function update_orders_cp() {
 
   if ( ! $count_deleted AND ! $count_created AND ! $count_updated) return;
 
-  log_error("update_orders_cp: $count_deleted deleted, $count_created created, $count_updated updated.");
+  log_notice("update_orders_cp: $count_deleted deleted, $count_created created, $count_updated updated.");
 
   $mysql = new Mysql_Wc();
 
@@ -139,7 +139,7 @@ function update_orders_cp() {
 
     $changed_fields = changed_fields($updated);
 
-    log_error("Updated Orders Cp: $updated[invoice_number] ".($i+1)." of ".count($changes['updated']), $changed_fields);
+    log_notice("Updated Orders Cp: $updated[invoice_number] ".($i+1)." of ".count($changes['updated']), $changed_fields);
 
     $order = get_full_order($updated, $mysql);
 

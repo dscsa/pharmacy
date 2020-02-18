@@ -86,8 +86,8 @@ function wc_update_order($invoice_number, $orderdata) {
     $old_status = $res[0][0]['post_status'];
 
     if ($res[0][0]['post_status'] != $orderdata['post_status']) {
-      log_error("wc_update_order: status change $old_status >>> $orderdata[post_status]");
-      wc_insert_meta($invoice_number, ['status_update' => "Webform $orderdata[post_status] ".date('Y-m-d H:i:s')]);
+      log_notice("wc_update_order: status change $old_status >>> $orderdata[post_status]");
+      wc_insert_meta($invoice_number, ['status_update' => "Webform $old_status >>> $orderdata[post_status] ".date('Y-m-d H:i:s')]);
     }
   }
 

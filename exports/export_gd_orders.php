@@ -32,7 +32,7 @@ function export_gd_update_invoice($order) {
   if ($order[0]['invoice_doc_id'])
     log_error("export_gd_update_invoice: updated invoice for Order #".$order[0]['invoice_number'].' '.$order[0]['order_stage_cp']." $time seconds. docs.google.com/document/d/".$order[0]['invoice_doc_id']." >>>  docs.google.com/document/d/$invoice_doc_id");
   else
-    log_error("export_gd_update_invoice: created invoice for Order #".$order[0]['invoice_number'].' '.$order[0]['order_stage_cp']." $time seconds. docs.google.com/document/d/$invoice_doc_id");
+    log_notice("export_gd_update_invoice: created invoice for Order #".$order[0]['invoice_number'].' '.$order[0]['order_stage_cp']." $time seconds. docs.google.com/document/d/$invoice_doc_id");
 
   return $invoice_doc_id;
 }

@@ -146,7 +146,7 @@ function get_order_stage_wc($order) {
   order_source: NULL, O Refills, Auto Refill v2, Webform eRX, Webform eRX Note, Webform Refill, Webform Refill Note, Webform Transfer, Webform Transfer Note
   */
 
-  if ( ! $count_filled)
+  if ( ! $count_filled AND $order[0]['item_message_key'] == 'ACTION NEEDS FORM')
     log_notice('get_order_stage_wc: double check count_filled == 0', [
       'invoice_number' => $order[0]['invoice_number'],
       'order_stage_cp' => $order[0]['order_stage_cp'],
