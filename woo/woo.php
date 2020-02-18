@@ -2320,8 +2320,8 @@ function dscsa_checkout_fields( $fields ) {
   $fields['billing']['billing_last_name']['priority'] = 20;
   $fields['billing']['billing_first_name']['label'] = 'Patient First Name';
   $fields['billing']['billing_last_name']['label'] = 'Patient Last Name';
-  $fields['billing']['billing_first_name']['autocomplete'] = 'user-first-name';
-  $fields['billing']['billing_last_name']['autocomplete'] = 'user-last-name';
+  $fields['billing']['billing_first_name']['autocomplete'] = 'off';
+  $fields['billing']['billing_last_name']['autocomplete'] = 'off';
   $fields['billing']['billing_first_name']['custom_attributes'] = ['readonly' => true];
   $fields['billing']['billing_last_name']['custom_attributes'] = ['readonly' => true];
 

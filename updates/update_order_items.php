@@ -21,7 +21,7 @@ function update_order_items() {
   $mysql = new Mysql_Wc();
   $mssql = new Mssql_Cp();
 
-  function get_full_item($item, $mysql) {
+  function get_full_item($item, $mysql, $mssql) {
 
     if ( ! $item['invoice_number'] OR ! $item['rx_number']) {
       log_error('ERROR get_full_item: missing invoice_number or rx_number', get_defined_vars());
@@ -173,7 +173,7 @@ function update_order_items() {
   //  - update wc order total
   foreach($changes['created'] as $created) {
 
-    $item = get_full_item($created, $mysql);
+    $item = get_full_item($created, $mysql, $mssql);
 
     if ( ! $item) {
       log_error("Created Item Missing", $created);
@@ -199,7 +199,7 @@ function update_order_items() {
   //  - update wc order total
   foreach($changes['deleted'] as $deleted) {
 
-    $item = get_full_item($deleted, $mysql);
+    $item = get_full_item($deleted, $mysql, $mssql);
 
     if ( ! $item) {
       log_error("Deleted Item Missing", get_defined_vars());
@@ -218,7 +218,7 @@ function update_order_items() {
   //  - think about what needs to be updated based on changes
   foreach($changes['updated'] as $updated) {
 
-    $item = get_full_item($updated, $mysql);
+    $item = get_full_item($updated, $mysql, $mssql);
 
     if ( ! $item) {
       log_error("Updated Item Missing", get_defined_vars());

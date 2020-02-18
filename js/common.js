@@ -156,6 +156,8 @@ function clearEmail() {
 function disableFixedFields() {
   jQuery('#account_first_name').prop('readonly', true)
   jQuery('#account_last_name').prop('readonly', true)
+  jQuery('#account_first_name').prop('autocomplete', 'off')
+  jQuery('#account_last_name').prop('autocomplete', 'off')
   //Readonly doesn't work for radios https://stackoverflow.com/questions/1953017/why-cant-radio-buttons-be-readonly
   jQuery('input[name=language]:not(:checked)').attr('disabled', true)
 
