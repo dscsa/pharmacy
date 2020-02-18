@@ -227,10 +227,10 @@ function update_orders_cp() {
       continue;
     }
 
-    if ($changed_fields['count_items'] AND count($changed_fields) == 1)
+    if (@$changed_fields['count_items'] AND count($changed_fields) == 1)
       log_info("Updated Order: count_items changed", $changed_fields);
-    else
-      log_error("Updated Order: Unknown Change", [$order, $updated, $changed_fields]);
+    else //Usually an Address Change
+      log_error("Updated Order: Unknown Change", $changed_fields);
 
     $order = helper_update_payment($order, $mysql);
     export_wc_update_order($order);
