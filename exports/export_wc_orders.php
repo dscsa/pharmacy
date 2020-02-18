@@ -171,6 +171,12 @@ function export_wc_create_order($order, $reason) {
 }
 
 function export_wc_update_order($order) {
+
+  if ($order[0]['item_message_key'] == 'ACTION NEEDS FORM') {
+    log_error('export_wc_update_order: update order skipped because order not yet created in WC', $order[0]);
+    return;
+  }
+
   export_wc_update_order_metadata($order);
   export_wc_update_order_address($order);
   export_wc_update_order_payment($order[0]['invoice_number'], $order[0]['payment_fee_default']);
