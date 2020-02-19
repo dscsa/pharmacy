@@ -1,6 +1,7 @@
 <?php
 
 global $mysql;
+global $log_notices = [];
 
 function log_to_db($severity, $text, $file, $vars) {
    global $mysql;
@@ -103,6 +104,12 @@ function log_error($text, $vars = '') {
   log_to_db('ERROR', $text, $file, $vars);
 }
 
+function log_notices() {
+  global $log_notices;
+  return implode(",
+  ", $log_notices);
+}
+
 function log_notice($text, $vars = '') {
 
   global $argv;
@@ -111,6 +118,9 @@ function log_notice($text, $vars = '') {
 
   $file   = get_file();
   $vars   = $vars ? vars_to_json($vars, $file) : '';
+  
+  $log_notices[] = date('Y-m-d H:i:s')." NOTICE $text, file:$file, vars:$vars";
+
   log_to_cli(date('Y-m-d H:i:s').' NOTICE', $text, $file, $vars);
   //log_to_email('NOTICE', $text, $file, $vars);
   log_to_db('NOTICE', $text, $file, $vars);
