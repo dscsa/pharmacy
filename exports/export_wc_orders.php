@@ -127,16 +127,16 @@ function export_wc_create_order($order, $reason) {
 
   $post_id = wc_get_post_id($invoice_number);
 
+  if ($reason == "update_orders_wc: deleted but still in CP")
+    log_error("export_wc_create_order: deleted but still in CP: $post_id ".($post_id ? 'in WC' : 'not in WC'), $order[0]);
+
   if ($post_id) {
 
     if ($reason != "update_orders_wc: deleted but still in CP")
-      log_error("export_wc_create_order: aborting create order", $order[0]);
+      log_error("export_wc_create_order: aborting create order", [$order[0], $reason]);
 
     return $order;
   }
-
-  if ($reason == "update_orders_wc: deleted but still in CP")
-    log_error("export_wc_create_order: deleted but still in CP success, not duplicated", $order[0]);
 
   //This creates order and adds invoice number to metadata
   //We do this through REST API because direct database calls seemed messy

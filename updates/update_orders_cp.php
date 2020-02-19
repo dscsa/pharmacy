@@ -213,7 +213,7 @@ function update_orders_cp() {
       } else if ($stage_change_cp) {
         log_notice("Updated Order Dispensed: status change only ".$order[0]['invoice_number']);
       } else {
-        log_error("Dispensed Order Was Updated?", $order);
+        log_error("Dispensed Order Was Updated?", $changed_fields);
       }
 
       export_v2_unpend_order($order);
