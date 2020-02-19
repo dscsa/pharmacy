@@ -2324,6 +2324,8 @@ function dscsa_checkout_fields( $fields ) {
   $fields['billing']['billing_last_name']['autocomplete'] = 'off';
   $fields['billing']['billing_first_name']['custom_attributes'] = ['readonly' => true];
   $fields['billing']['billing_last_name']['custom_attributes'] = ['readonly' => true];
+  $fields['billing']['billing_state']['autocomplete'] = 'off';
+  $fields['billing']['billing_state']['options'] = ['GA' => 'Georgia (only state available at this time)']; //DOESN"T SEEM TO WORK
 
   //Remove Some Fields
   unset($fields['billing']['billing_first_name']['autofocus']);
@@ -2336,13 +2338,22 @@ function dscsa_checkout_fields( $fields ) {
   return $fields;
 }
 
+add_filter( 'woocommerce_states', 'dscsa_states' );
+function dscsa_states( $states ) {
+  $states['US'] = [
+    'GA' => 'Georgia (we only deliver within georgia at this time)'
+  ];
+
+  return $states;
+}
+
 //This is for the address details page
 add_filter( 'woocommerce_billing_fields', 'dscsa_billing_fields');
 function dscsa_billing_fields( $fields ) {
   unset($fields['billing_company']);
 
   $fields['billing_state']['type'] = 'select';
-  $fields['billing_state']['options'] = ['GA' => 'Georgia'];
+  $fields['billing_state']['options'] = ['GA' => 'Georgia']; //DOESN"T SEEM TO WORK
 
   if( ! is_account_page() ) return $fields;
 
