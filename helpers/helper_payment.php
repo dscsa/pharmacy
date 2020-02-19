@@ -59,7 +59,7 @@ function set_payment_default($order, $update, $mysql) {
 
 
   if ($order[0]['invoice_doc_id']) {
-    log_error('set_payment_default is updating invoice', $update)
+    log_error('set_payment_default is updating invoice', $update);
   }
 
   $invoice_doc_id = export_gd_update_invoice($order);
