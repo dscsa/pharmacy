@@ -168,8 +168,16 @@ function set_price_refills_actual($item, $mysql) {
 
 function set_days_default($item, $days, $message, $mysql) {
 
+  $old_item_message_key = $item['item_message_key'];
+  $old_item_message_text = $item['item_message_text'];
+
   $item['item_message_key']  = array_search($message, RX_MESSAGE);
   $item['item_message_text'] = message_text($message, $item);
+
+  if ( ! $item['item_message_key']) {
+    log_error("set_days_default could not get item_message_key ", get_defined_vars());
+    return $item;
+  }
 
   if ( ! $days)
     $item['item_message_text'] .= ' **'; //If not filling reference to backup pharmacy footnote on Invoices

@@ -42,12 +42,12 @@ function get_payment($order) {
 function set_payment_default($order, $update, $mysql) {
 
   if (
-    isset($order['payment_total_default']) AND
-    isset($order['payment_fee_default']) AND
-    isset($order['payment_due_default']) AND
-    $order['payment_total_default'] == $update['payment_total_default'] AND
-    $order['payment_fee_default'] == $update['payment_fee_default'] AND
-    $order['payment_due_default'] == $update['payment_due_default']
+    isset($order[0]['payment_total_default']) AND
+    isset($order[0]['payment_fee_default']) AND
+    isset($order[0]['payment_due_default']) AND
+    $order[0]['payment_total_default'] == $update['payment_total_default'] AND
+    $order[0]['payment_fee_default'] == $update['payment_fee_default'] AND
+    $order[0]['payment_due_default'] == $update['payment_due_default']
   ) {
     log_error('set_payment_default: but no changes', get_defined_vars());
     return $order;
