@@ -11,7 +11,7 @@ function log_to_db($severity, $text, $file, $vars) {
 }
 
 function log_to_email($severity, $text, $file, $vars) {
-   mail(DEBUG_EMAIL, "$severity: $text", "$severity: $text. $file vars: $vars", "From: webform@goodpill.org\r\n");
+   mail(DEBUG_EMAIL, "$severity: $text", "$severity: $text. $file vars: $vars", "From: webform@goodpill.org\r\n", "-f webform@goodpill.org");
 }
 
 function log_to_cli($severity, $text, $file, $vars) {
