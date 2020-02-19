@@ -113,6 +113,7 @@ function log_notices() {
 function log_notice($text, $vars = '') {
 
   global $argv;
+  global $log_notices;
 
   if ( ! in_array('log=notice', $argv) AND ! in_array('log=info', $argv)) return;
 
