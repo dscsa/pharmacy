@@ -85,5 +85,5 @@ $email .= timer("watch_invoices", $time);
 
 if ($email) {
   log_notice("WebForm CRON Finished", get_defined_vars());
-  mail(DEBUG_EMAIL, log_notices(), "From: webform@goodpill.org\r\n", "-f webform@goodpill.org");
+  mail(DEBUG_EMAIL, "Log Notices", log_notices(), "From: webform@goodpill.org\r\n", "-f webform@goodpill.org");
 }
