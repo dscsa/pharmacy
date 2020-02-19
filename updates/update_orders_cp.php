@@ -71,12 +71,7 @@ function update_orders_cp() {
     $order = helper_update_payment($order, $mysql);
 
     //This is not necessary if order was created by webform, which then created the order in Guardian
-    //"order_source": "Webform eRX",  "item_added_by": "WEBFORM",
-
-    if ($order[0]['invoice_number'] == 27778) {
-      log_error("Debugging Order ".$order[0]['invoice_number'], $order[0]);
-      continue;
-    }
+    //"order_source": "Webform eRX",  "item_added_by": "WEBFORM"
 
     export_wc_create_order($order, "update_orders_cp: created");
 

@@ -87,9 +87,6 @@ function update_orders_wc() {
 
         export_wc_create_order($order, "update_orders_wc: deleted trash");
 
-        if ( ! $order[0]['invoice_doc_id'])
-          export_gd_update_invoice($order);
-
         export_gd_publish_invoice($order);
       }
 
@@ -112,9 +109,6 @@ function update_orders_wc() {
 
       export_wc_create_order($order,  "update_orders_wc: deleted but still in CP");
 
-      if ( ! $order[0]['invoice_doc_id'])
-        export_gd_update_invoice($order);
-
       export_gd_publish_invoice($order);
 
       //log_notice("CP Created Order that has not been saved in WC yet", $order[0]);
@@ -128,9 +122,6 @@ function update_orders_wc() {
       $order = helper_update_payment($order, $mysql);
 
       export_wc_create_order($order,  "update_orders_wc: deleted unknown reason");
-
-      if ( ! $order[0]['invoice_doc_id'])
-        export_gd_update_invoice($order);
 
       export_gd_publish_invoice($order);
 
