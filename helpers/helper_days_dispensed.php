@@ -191,6 +191,20 @@ function set_days_default($item, $days, $message, $mysql) {
     return $item;
   }
 
+  $exists = $mysql->run("
+    SELECT *
+    FROM
+      gp_order_items
+    WHERE
+      invoice_number = $item[invoice_number] AND
+      rx_number = $item[rx_number]
+  ");
+
+  if ( ! count($exists[0])) {
+    log_error("set_days_default cannot set days for invoice_number = $item[invoice_number] AND rx_number = $item[rx_number]", get_defined_vars());
+    return $item;
+  }
+
   $price = $item['price_per_month'] ?: 0; //Might be null
 
   $item['days_dispensed_default']  = $days;
@@ -198,6 +212,7 @@ function set_days_default($item, $days, $message, $mysql) {
   $item['price_dispensed_default'] = ceil($days*$price/30);
   $item['refills_total_default']   = $item['refills_total'];
   $item['stock_level_initial']     = $item['stock_level'];
+
 
   $sql = "
     UPDATE

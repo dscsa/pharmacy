@@ -182,10 +182,10 @@ function update_order_items() {
 
     if ($item['days_dispensed_actual']) {
 
-      log_error("Created Item Readded", $item);
+      log_error("order_item created but days_dispensed_actual already set", $item);
 
       set_price_refills_actual($item, $mysql);
-
+      continue;
     }
 
     //TODO Update Salesforce Order Total & Order Count & Order Invoice using REST API or a MYSQL Zapier Integration
