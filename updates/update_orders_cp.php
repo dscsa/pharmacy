@@ -190,7 +190,7 @@ function update_orders_cp() {
         if (
           $item['qty_dispensed_default'] != $item['qty_dispensed_actual'] OR
           $item['days_dispensed_default'] != $item['days_dispensed_actual'] OR
-          $item['refills_total_default'] != $item['refills_total_actual']
+          $item['refills_total'] != $item['refills_total_actual'] //Don't use _default here because we don't subtract the current refill from it
         )
           $dispensing_changes[] = $item;
       }
