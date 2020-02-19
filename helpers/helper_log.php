@@ -1,7 +1,7 @@
 <?php
 
 global $mysql;
-global $log_notices = [];
+$log_notices = [];
 
 function log_to_db($severity, $text, $file, $vars) {
    global $mysql;
@@ -118,7 +118,7 @@ function log_notice($text, $vars = '') {
 
   $file   = get_file();
   $vars   = $vars ? vars_to_json($vars, $file) : '';
-  
+
   $log_notices[] = date('Y-m-d H:i:s')." NOTICE $text, file:$file, vars:$vars";
 
   log_to_cli(date('Y-m-d H:i:s').' NOTICE', $text, $file, $vars);
