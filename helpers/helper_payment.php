@@ -53,14 +53,13 @@ function set_payment_default($order, $update, $mysql) {
     return $order;
   }
 
-  //Update order before we make the invoice
-  foreach($order as $i => $item)
-    $order[$i] = $update + $item;
-
-
   if ($order[0]['invoice_doc_id']) {
     log_error('set_payment_default is updating invoice', [$order, $update]);
   }
+
+  //Update order before we make the invoice
+  foreach($order as $i => $item)
+    $order[$i] = $update + $item;
 
   $invoice_doc_id = export_gd_update_invoice($order);
 
