@@ -97,8 +97,14 @@ function log_info($text, $vars = '') {
 }
 
 function log_error($text, $vars = '') {
+
+  global $log_notices;
+
   $file   = get_file();
   $vars   = $vars ? vars_to_json($vars, $file) : '';
+
+  $log_notices[] = date('Y-m-d H:i:s')." ERROR $text, file:$file, vars:$vars";
+
   log_to_cli(date('Y-m-d H:i:s').' ERROR', $text, $file, $vars);
   log_to_email('ERROR', $text, $file, $vars);
   log_to_db('ERROR', $text, $file, $vars);
