@@ -183,7 +183,7 @@ function get_order_stage_wc($order) {
   $elapsed_time = time() - strtotime($order[0]['order_date_added']);
 
   if ( ! $order[0]['order_date_dispensed'] AND $elapsed_time > 7*24*60*60)
-    log_error('helper_full_order: order is over 7 days old', $order[0]);
+    log_error('helper_full_order: order is '.($elapsed_time/60/60/24).' days old', $order[0]);
 
   if ( ! $order[0]['tracking_number'] AND in_array($order[0]['order_source'], ['Webform Refill', 'Webform Refill Note', 'Auto Refill v2', 'O Refills']))
     return 'prepare-refill';

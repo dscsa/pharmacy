@@ -189,12 +189,32 @@ function update_orders_cp() {
     //Update invoice now or wait until shipped order?
     if ($updated['order_date_dispensed']) {
 
+      $dispensing_changes = [];
+
+      foreach ($order as $item) {
+        if (
+          $item['qty_dispensed_default'] != $item['qty_dispensed_actual'] OR
+          $item['days_dispensed_default'] != $item['days_dispensed_actual'] OR
+          $item['refills_total_default'] != $item['refills_total_actual']
+        )
+          $dispensing_changes[] = $item;
+      }
+
       //order_stage_cp and order_date_dispensed
-      if (count($changed_fields) > 2) {
+      if ($dispensing_changes) {
+
+        $order = helper_update_payment($order, $mysql);
+        export_gd_publish_invoice($order);
+        export_wc_update_order($order);
+        log_error("Updated Order Dispensed: dispensing changes ".$order[0]['invoice_number'], [$changed_fields, $dispensing_changes]);
+
+      } else if (count($changed_fields) > 2) {
+
         $order = helper_update_payment($order, $mysql);
         export_gd_publish_invoice($order);
         export_wc_update_order($order);
         log_error("Updated Order Dispensed: changed fields ".$order[0]['invoice_number'], $changed_fields);
+
       } else if ($stage_change_cp) {
         log_notice("Updated Order Dispensed: status change only ".$order[0]['invoice_number']);
       } else {
