@@ -40,9 +40,8 @@ function update_rxs_single() {
   //This is an expensive (6-8 seconds) group query.
   //TODO We should update rxs in this table individually on changes
   //TODO OR We should add indexed drug info fields to the gp_rxs_single above on created/updated so we don't need the join
-  $mysql->run('TRUNCATE TABLE gp_rxs_grouped');
 
-  $mysql->run("
+  $sql = "
     INSERT INTO gp_rxs_grouped
     SELECT
   	  patient_id_cp,
@@ -89,8 +88,13 @@ function update_rxs_single() {
       patient_id_cp,
       COALESCE(drug_generic, drug_name),
       sig_qty_per_day
-  ");
+  ";
 
+  $mysql->run("START TRANSACTION");
+  $mysql->run("DELETE FROM gp_rxs_grouped");
+  $mysql->run($sql);
+  $mysql->run("COMMIT");
+  
   //TODO Implement rx_status logic that was in MSSQL Query and Save in Database
 
   //TODO Maybe? Update Salesforce Objects using REST API or a MYSQL Zapier Integration
