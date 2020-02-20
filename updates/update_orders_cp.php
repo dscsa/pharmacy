@@ -192,7 +192,7 @@ function update_orders_cp() {
           $item['days_dispensed_default'] != $item['days_dispensed_actual'] OR
           $item['refills_total'] != $item['refills_total_actual'] //Don't use _default here because we don't subtract the current refill from it
         )
-          $dispensing_changes[] = $item;
+          $dispensing_changes[] = "rx:$item[rx_number] qty:$item[qty_dispensed_default] >>> $item[qty_dispensed_actual] days:$item[days_dispensed_default] >>> $item[days_dispensed_actual] refills:$item[refills_total] >>> $item[refills_total_actual]";
       }
 
       //order_stage_cp and order_date_dispensed
@@ -201,7 +201,7 @@ function update_orders_cp() {
         $order = helper_update_payment($order, $mysql);
         export_gd_publish_invoice($order);
         export_wc_update_order($order);
-        log_error("Updated Order Dispensed: dispensing changes: qty:$item[qty_dispensed_default] >>> $item[qty_dispensed_actual] days:$item[days_dispensed_default] >>> $item[days_dispensed_actual] refills:$item[refills_total] >>> $item[refills_total_actual]".$order[0]['invoice_number'], [$changed_fields, $dispensing_changes]);
+        log_error("Updated Order Dispensed: dispensing changes: ".implode('; ', $dispensing_changes).' '.$order[0]['invoice_number'], [$item, $changed_fields]);
 
       } else if (count($changed_fields) > 2) {
 
