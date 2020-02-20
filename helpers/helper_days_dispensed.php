@@ -188,11 +188,18 @@ function set_days_default($item, $days, $message, $mysql) {
     $item['item_message_text'] .= ' **'; //If not filling reference to backup pharmacy footnote on Invoices
 
   //We can only save it if its an order_item that's not yet dispensed
-  if ( ! $item['item_date_added'])
+  if ( ! $days AND ! $item['item_date_added'])
     return $item; //We can only save for items in order (order_items)
 
-  if ($item['days_dispensed_actual'])
-    return $item; //log_error("set_days_default but it has actual days", get_defined_vars());
+  if ($days AND ! $item['item_date_added']) {
+    log_notice('ERROR set_days_default. days is being set to item that is not in order', get_defined_vars());
+    return $item; //We can only save for items in order (order_items)
+  }
+
+  if ($item['days_dispensed_actual']) {
+    log_notice("set_days_default but it has actual days", get_defined_vars());
+    return $item;
+  }
 
   if ( ! $item['rx_number'] OR ! $item['invoice_number']) {
     log_error("set_days_default without a rx_number AND invoice_number ", get_defined_vars());
