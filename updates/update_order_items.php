@@ -235,7 +235,7 @@ function update_order_items() {
       if ($item['days_dispensed_actual'] == $item['days_dispensed_default']) {
         log_info("days_dispensed_actual was set", [$updated, $changed_fields]);
       } else {
-        log_error("days_dispensed_default was wrong: $item[days_dispensed_actual] == $item[days_dispensed_default]", ['item' => $item, 'updated' => $updated, 'changed' => $changed_fields]);
+        log_error("days_dispensed_default was wrong: $item[days_dispensed_default] >>> $item[days_dispensed_actual]", ['item' => $item, 'updated' => $updated, 'changed' => $changed_fields]);
       }
 
     } else if ($updated['item_added_by'] == 'MANUAL' AND $updated['old_item_added_by'] != 'MANUAL') {

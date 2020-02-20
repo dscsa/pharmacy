@@ -73,11 +73,11 @@ function subsitute_numerals($sig) {
   $sig = preg_replace('/\\beleven /i', '11 ', $sig); // \\b is for space or start of line
   $sig = preg_replace('/\\btwelve /i', '12 ', $sig); // \\b is for space or start of line
 
-  $sig = preg_replace('/ hrs /i', ' hours ', $sig);
+  $sig = preg_replace('/ hrs\\b/i', ' hours', $sig);
   $sig = preg_replace('/ once /i', ' 1 time ', $sig);
-  $sig = preg_replace('/ twice | q12.*?h| BID\\b|(?!every) 12 hours/i', ' 2 times ', $sig);
-  $sig = preg_replace('/ q8.*?h| TID\\b|(?!every) 8 hours/i', ' 3 times ', $sig);
-  $sig = preg_replace('/ q6.*?h|(?!every) 6 hours/i', ' 4 times ', $sig);
+  $sig = preg_replace('/ twice\\b| q12.*?h\\b| BID\\b|(?<!every) 12 hours\\b/i', ' 2 times', $sig);
+  $sig = preg_replace('/ q8.*?h\\b| TID\\b|(?<!every) 8 hours\\b/i', ' 3 times ', $sig);
+  $sig = preg_replace('/ q6.*?h\\b|(?<!every) 6 hours\\b/i', ' 4 times', $sig);
 
   $sig = preg_replace('/\\b1 vial /i', '3ml ', $sig); // vials for inhalation are 2.5 or 3ml, so use 3ml to be conservative
   $sig = preg_replace('/\\b2 vials? /i', '6ml ', $sig); // vials for inhalation are 2.5 or 3ml, so use 3ml to be conservative
@@ -95,8 +95,6 @@ function subsitute_numerals($sig) {
   $sig = preg_replace('/ dinner /i', ' evening ', $sig);
   $sig = preg_replace('/ mornings? and evenings? /i', ' 2 times ', $sig);
 
-  $sig = preg_replace('/ hrs /i', ' hours ', $sig);
-
   return trim($sig);
 }
 
@@ -106,7 +104,7 @@ function get_qty_per_time($sig) {
 
     if ($match) return $match[1];
 
-    preg_match('/(^|use +|take +|inhale +|chew +|inject +|oral +)([0-9]?\.[0-9]+|[1-9])(?!\d* ?mg)/i', $sig, $match);
+    preg_match('/(^|use +|take +|inhale +|chew +|inject +|oral +)([0-9]?\.[0-9]+|[1-9])(?<!\d* ?mg)/i', $sig, $match);
 
     return $match ? $match[2] : 1; //"Use daily with lantus" won't match the RegEx above
 }
@@ -117,7 +115,7 @@ function get_frequency_numerator($sig) {
 }
 
 function get_frequency_denominator($sig) {
-  preg_match('/every ([1-9]\\b|10|11|12)(?! +time)/i', $sig, $match);
+  preg_match('/every ([1-9]\\b|10|11|12)(?<! +time)/i', $sig, $match);
   return $match ? $match[1] : 1;
 }
 
@@ -135,11 +133,11 @@ function get_frequency($sig) {
   else if (preg_match('/ month| monthly/i', $sig))
     $freq = 30;
 
-  else if (preg_match('/( hours?| hourly)(?! before| after| prior to)/i', $sig)) //put this last so less likely to match thinks like "2 hours before (meals|bedtime) every day"
+  else if (preg_match('/( hours?| hourly)(?<! before| after| prior to)/i', $sig)) //put this last so less likely to match thinks like "2 hours before (meals|bedtime) every day"
     $freq = 1/24; // One 24th of a day
 
   if (preg_match('/ prn| as needed/i', $sig)) //Not mutually exclusive like the others. TODO: Does this belong in freq denominator instead? TODO: Check with Cindy how often does as needed mean on average.  Assume once every 3 days for now
-    $freq *= 1; // I had this as 3 which I think is approximately correct, but Cindy didn't like so setting at 1 which basically means we ignore for now
+    $freq *= 3; // I had this as 3 which I think is approximately correct, but Cindy didn't like so setting at 1 which basically means we ignore for now
 
   //Default to daily Example 1 tablet by mouth at bedtime
   return $freq;
