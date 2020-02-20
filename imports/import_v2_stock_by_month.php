@@ -96,15 +96,8 @@ function import_stock_for_month($month_index, $mysql) {
         $key.'_sumsqr'  => clean_val($row['value'][0]['sumsqr'], $zero)
       ];
 
-      if (
-        $val[$key.'_sum'] == 'NULL' OR
-        $val[$key.'_count'] == 'NULL' OR
-        $val[$key.'_min'] == 'NULL' OR
-        $val[$key.'_max'] == 'NULL' OR
-        $val[$key.'_sumsqr'] == 'NULL'
-      ) {
-        log_error('v2 Stock Importing NULL', get_defined_vars());
-        continue;
+      if ($drug_generic == 'Potassium Chloride 750mg Er Sprinkle') {
+        log_error('v2 Stock Importing NULL', [$key, $val,$row]);
       }
 
       $vals[] = '('.implode(', ', $val).')';
