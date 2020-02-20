@@ -84,15 +84,16 @@ function import_stock_for_month($month_index, $mysql) {
     foreach($rows as $row) {
 
       list($acct, $type, $year, $month, $drug_generic) = $row['key'];
+      $zero = 0;
 
       $val = [
         'drug_generic'  => "'$drug_generic'",
         'month'         => "'$curr[year]-$curr[month]-01'",
-        $key.'_sum'     => clean_val($row['value'][0]['sum'], 0),
-        $key.'_count'   => clean_val($row['value'][0]['count'], 0),
-        $key.'_min'     => clean_val($row['value'][0]['min'], 0),
-        $key.'_max'     => clean_val($row['value'][0]['max'], 0),
-        $key.'_sumsqr'  => clean_val($row['value'][0]['sumsqr'], 0)
+        $key.'_sum'     => clean_val($row['value'][0]['sum'], $zero),
+        $key.'_count'   => clean_val($row['value'][0]['count'], $zero),
+        $key.'_min'     => clean_val($row['value'][0]['min'], $zero),
+        $key.'_max'     => clean_val($row['value'][0]['max'], $zero),
+        $key.'_sumsqr'  => clean_val($row['value'][0]['sumsqr'], $zero)
       ];
 
       if (
