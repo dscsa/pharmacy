@@ -97,11 +97,11 @@ function import_stock_for_month($month_index, $mysql) {
       ];
 
       if (
-        ! $val[$key.'_sum'] OR
-        ! $val[$key.'_count'] OR
-        ! $val[$key.'_min'] OR
-        ! $val[$key.'_max'] OR
-        ! $val[$key.'_sumsqr']
+        $val[$key.'_sum'] == 'NULL' OR
+        $val[$key.'_count'] == 'NULL' OR
+        $val[$key.'_min'] == 'NULL' OR
+        $val[$key.'_max'] == 'NULL' OR
+        $val[$key.'_sumsqr'] == 'NULL'
       ) {
         log_error('v2 Stock Importing NULL', get_defined_vars());
         continue;

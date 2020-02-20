@@ -30,7 +30,7 @@ function update_orders_cp() {
     $order = get_full_order($created, $mysql);
 
     if ( ! $order) {
-      log_error("Created Order Missing", $created);
+      log_error("Created Order Missing.  Most likely because cp order has liCount > 0 even though 0 items in order.  If correct, update liCount in CP to 0", $created);
       continue;
     }
 
