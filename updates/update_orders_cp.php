@@ -242,6 +242,12 @@ function update_orders_cp() {
       continue;
     }
 
+    //Array Union to make sure only those 4 changes were made
+    if (count($changed_fields + ['order_address1' => '', 'order_address2' => '', 'order_city' => '', 'order_zip' => '']) == 4) {
+      log_notice("Updated Order Address Change", [$changed_fields, $order]);
+      continue;
+    }
+
     if (@$changed_fields['count_items'] AND count($changed_fields) == 1)
       log_info("Updated Order: count_items changed ".$order[0]['invoice_number'], $changed_fields);
     else //Usually an Address Change
