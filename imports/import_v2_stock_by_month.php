@@ -84,20 +84,26 @@ function import_stock_for_month($month_index, $mysql) {
     foreach($rows as $row) {
 
       list($acct, $type, $year, $month, $drug_generic) = $row['key'];
-      $zero = 0;
 
       $val = [
         'drug_generic'  => "'$drug_generic'",
         'month'         => "'$curr[year]-$curr[month]-01'",
-        $key.'_sum'     => clean_val($row['value'][0]['sum'], $zero),
-        $key.'_count'   => clean_val($row['value'][0]['count'], $zero),
-        $key.'_min'     => clean_val($row['value'][0]['min'], $zero),
-        $key.'_max'     => clean_val($row['value'][0]['max'], $zero),
-        $key.'_sumsqr'  => clean_val($row['value'][0]['sumsqr'], $zero)
+        $key.'_sum'     => clean_val($row['value'][0]['sum']),
+        $key.'_count'   => clean_val($row['value'][0]['count']),
+        $key.'_min'     => clean_val($row['value'][0]['min']),
+        $key.'_max'     => clean_val($row['value'][0]['max']),
+        $key.'_sumsqr'  => clean_val($row['value'][0]['sumsqr'])
       ];
 
-      if ($drug_generic == 'Potassium Chloride 750mg Er Sprinkle') {
-        log_error('v2 Stock Importing NULL', [$key, $val,$row]);
+      if (
+        ! $val[$key.'_sum'] OR
+        ! $val[$key.'_count'] OR
+        ! $val[$key.'_min'] OR
+        ! $val[$key.'_max'] OR
+        ! $val[$key.'_sumsqr']
+      ) {
+        log_error('v2 Stock Importing NULL', get_defined_vars());
+        continue;
       }
 
       $vals[] = '('.implode(', ', $val).')';
