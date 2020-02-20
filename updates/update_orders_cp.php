@@ -243,7 +243,7 @@ function update_orders_cp() {
     }
 
     //Array Union to make sure only those 4 changes were made
-    if (count($changed_fields + ['order_address1' => '', 'order_address2' => '', 'order_city' => '', 'order_zip' => '']) == 4) {
+    if (count($changed_fields + ['order_stage_cp' => '', 'order_address1' => '', 'order_address2' => '', 'order_city' => '', 'order_zip' => '']) == 5) {
       log_notice("Updated Order Address Change", [$changed_fields, $order]);
       continue;
     }
