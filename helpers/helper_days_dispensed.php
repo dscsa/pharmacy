@@ -187,6 +187,10 @@ function set_days_default($item, $days, $message, $mysql) {
   if ( ! $days)
     $item['item_message_text'] .= ' **'; //If not filling reference to backup pharmacy footnote on Invoices
 
+  if (is_null($days)) {
+    log_error("set_days_default days should not be NULL", get_defined_vars());
+  }
+
   //We can only save it if its an order_item that's not yet dispensed
   if ( ! $days AND ! $item['item_date_added'])
     return $item; //We can only save for items in order (order_items)
