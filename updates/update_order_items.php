@@ -234,8 +234,6 @@ function update_order_items() {
 
       if ($item['days_dispensed_actual'] == $item['days_dispensed_default']) {
         log_info("days_dispensed_actual was set", [$updated, $changed_fields]);
-      } else if ( ! $item['days_dispensed_default']) {
-        log_notice("days_dispensed_default was never set", [$updated, $changed_fields]);
       } else {
         log_error("days_dispensed_default was wrong: $item[days_dispensed_actual] == $item[days_dispensed_default]", ['item' => $item, 'updated' => $updated, 'changed' => $changed_fields]);
       }

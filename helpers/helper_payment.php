@@ -54,7 +54,7 @@ function set_payment_default($order, $update, $mysql) {
   }
 
   if ($order[0]['invoice_doc_id']) {
-    log_error('set_payment_default is updating invoice', [$order, $update]);
+    log_notice('set_payment_default is updating invoice', [$order, $update]);
   }
 
   //Update order before we make the invoice
