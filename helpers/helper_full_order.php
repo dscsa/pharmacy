@@ -3,6 +3,8 @@
 
 function get_full_order($partial, $mysql) {
 
+  $month_interval = 6;
+
   //gp_orders.invoice_number and other fields at end because otherwise potentially null gp_order_items.invoice_number will override gp_orders.invoice_number
   $sql = "
     SELECT
@@ -22,6 +24,7 @@ function get_full_order($partial, $mysql) {
     LEFT JOIN gp_stock_live ON -- might not have a match if no GSN match
       gp_rxs_grouped.drug_generic = gp_stock_live.drug_generic -- this is for the helper_days_dispensed msgs for unordered drugs
     WHERE
+      (CASE WHEN refills_total OR item_date_added THEN gp_rxs_grouped.rx_date_expired ELSE COALESCE(gp_rxs_grouped.rx_date_transferred, gp_rxs_grouped.refill_date_last) END) > CURDATE() - INTERVAL $month_interval MONTH AND
       gp_orders.invoice_number = $partial[invoice_number]
   ";
 
@@ -80,7 +83,7 @@ function add_gd_fields_to_order($order, $mysql) {
     }
 
     $order[$i]['qty_dispensed'] = (float) ($order[$i]['qty_dispensed_actual'] ?: $order[$i]['qty_dispensed_default']); //cast to float to get rid of .000 decimal
-    $order[$i]['refills_total'] = (float) ($order[$i]['refills_total_actual'] ?: $order[$i]['refills_total_default'] - $deduct_refill);
+    $order[$i]['refills_total'] = (float) ($order[$i]['refills_total_actual'] ?: max(0, $order[$i]['refills_total_default'] - $deduct_refill));
     $order[$i]['price_dispensed'] = (float) ($order[$i]['price_dispensed_actual'] ?: ($order[$i]['price_dispensed_default'] ?: 0));
   }
 

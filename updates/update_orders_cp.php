@@ -213,7 +213,7 @@ function update_orders_cp() {
       } else if ($stage_change_cp) {
         log_notice("Updated Order Dispensed: status change only ".$order[0]['invoice_number']);
       } else {
-        log_error("Dispensed Order Was Updated?", $changed_fields);
+        log_error("Dispensed Order Was Updated? ".$order[0]['invoice_number'], $changed_fields);
       }
 
       export_v2_unpend_order($order);
@@ -243,9 +243,9 @@ function update_orders_cp() {
     }
 
     if (@$changed_fields['count_items'] AND count($changed_fields) == 1)
-      log_info("Updated Order: count_items changed", $changed_fields);
+      log_info("Updated Order: count_items changed ".$order[0]['invoice_number'], $changed_fields);
     else //Usually an Address Change
-      log_error("Updated Order: Unknown Change", $changed_fields);
+      log_error("Updated Order: Unknown Change ".$order[0]['invoice_number'], $changed_fields);
 
     $order = helper_update_payment($order, $mysql);
     export_wc_update_order($order);

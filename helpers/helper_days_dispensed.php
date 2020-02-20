@@ -32,6 +32,11 @@ function get_days_default($item) {
     return [ $item['refill_date_first'] ? days_default($item) : 0, RX_MESSAGE['NO ACTION MISSING GSN']];
   }
 
+  if ($item['rx_date_transferred']) {
+    log_info("RX WAS ALREADY TRANSFERRED OUT", get_defined_vars());
+    return [0, RX_MESSAGE['NO ACTION WAS TRANSFERRED']];
+  }
+
   if ( ! $item['refill_date_first'] AND $not_offered) {
     log_info("TRANSFER OUT NEW RXS THAT WE DONT CARRY", get_defined_vars());
     return [0, RX_MESSAGE['NO ACTION WILL TRANSFER']];
