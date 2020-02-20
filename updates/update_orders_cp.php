@@ -201,7 +201,7 @@ function update_orders_cp() {
         $order = helper_update_payment($order, $mysql);
         export_gd_publish_invoice($order);
         export_wc_update_order($order);
-        log_error("Updated Order Dispensed: dispensing changes ".$order[0]['invoice_number'], [$changed_fields, $dispensing_changes]);
+        log_error("Updated Order Dispensed: dispensing changes: qty:$item[qty_dispensed_default] >>> $item[qty_dispensed_actual] days:$item[days_dispensed_default] >>> $item[days_dispensed_actual] refills:$item[refills_total] >>> $item[refills_total_actual]".$order[0]['invoice_number'], [$changed_fields, $dispensing_changes]);
 
       } else if (count($changed_fields) > 2) {
 
