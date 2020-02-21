@@ -23,6 +23,8 @@ function update_rxs_single() {
 
     $sig = parse_sig($rx);
 
+    //TODO Eventually Save the Clean Script back into Guardian so that Cindy doesn't need to rewrite them
+
     if ($sig)
       $mysql->run("
         UPDATE gp_rxs_single SET

@@ -42,6 +42,9 @@ function changes_to_rxs_single($new) {
     NOT old.rx_date_expired <=> new.rx_date_expired
   ";
 
+  // 1st Result Set -> 1st Row -> 1st Column
+  $columns = $mysql->run(get_column_names($new))[0][0]['columns'];
+
   //Get Deleted
   //$deleted = $mysql->run(get_deleted_sql($new, $old, $id));
 
@@ -55,7 +58,7 @@ function changes_to_rxs_single($new) {
   //$mysql->run(set_deleted_sql($new, $old, $id));
 
   //Save Inserts
-  $mysql->run(set_created_sql($new, $old, $id));
+  $mysql->run(set_created_sql($new, $old, $id, '('.$columns.')'));
 
   //Save Updates
   $mysql->run(set_updated_sql($new, $old, $id, $where));

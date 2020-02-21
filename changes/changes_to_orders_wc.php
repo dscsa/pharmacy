@@ -17,7 +17,7 @@ function changes_to_orders_wc($new) {
   ";
 
   // 1st Result Set -> 1st Row -> 1st Column
-  $columns = $mysql->run(get_column_names($new))[0][0]['columns'];
+  //$columns = $mysql->run(get_column_names($new))[0][0]['columns'];
 
   //Get Deleted
   /*
