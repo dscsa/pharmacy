@@ -141,7 +141,7 @@ function send_dispensed_order_communications($groups) {
   order_dispensed_notice($groups);
 }
 
-function send_updated_order_communications($groups) {
-  order_updated_notice($groups);
+function send_updated_order_communications($groups, $changed_fields) {
+  order_updated_notice($groups, $changed_fields);
   log_info('order_updated_notice', get_defined_vars());
 }

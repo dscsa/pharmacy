@@ -139,10 +139,14 @@ function order_created_notice($groups) {
 
   $subject   = 'Good Pill is starting to prepare '.$groups['COUNT_FILLED'].' items for Order #'.$groups['ALL'][0]['invoice_number'].'.';
   $message   = 'If your address has recently changed please let us know right away.';
-  $drug_list = '<br><br><u>These Rxs will be included once we confirm their availability:</u><br>'.implode(';<br>', $groups['FILLED_WITH_PRICES']).';';
+  $drug_list = '<br><br><u>These Rxs will be included once we confirm their availability:</u><br>';
 
-  if ( ! $groups['ALL'][0]['refills_used'])
-    $message .= ' Your first order will only be $6 total for all of your medications.';
+  if ( ! $groups['ALL'][0]['refills_used']) {
+    $message   .= ' Your first order will only be $6 total for all of your medications.';
+    $drug_list .= implode(';<br>', $groups['FILLED_ACTION'] + $groups['FILLED_NOACTION']).';';
+  } else {
+    $drug_list .= implode(';<br>', $groups['FILLED_WITH_PRICES']).';'
+  }
 
   $suffix = implode('<br><br>', [
     "Note: if this is correct, there is no need to do anything. If you want to change or delay this order, please let us know as soon as possible. If delaying, please specify the date on which you want it filled, otherwise if you don't, we will delay it 3 weeks by default."
@@ -244,7 +248,7 @@ function order_hold_notice($groups) {
 
 //We are coording patient communication via sms, calls, emails, & faxes
 //by building commication arrays based on github.com/dscsa/communication-calendar
-function order_updated_notice($groups) {
+function order_updated_notice($groups, $changed_fields) {
 
   //It's depressing to get updates if nothing is being filled.  So only send these if manually added and the order was just added (not just drugs changed)
   if ( ! $groups['COUNT_FILLED'] AND ! $groups['MANUALLY_ADDED']) {
@@ -255,8 +259,11 @@ function order_updated_notice($groups) {
   $subject = 'Update for Order #'.$groups['ALL'][0]['invoice_number'].($groups['COUNT_FILLED'] ? ' of '.$groups['COUNT_FILLED'].' items.' : '');
   $message = '';
 
-  if ($groups['COUNT_FILLED'])
+  if ($groups['COUNT_FILLED'] AND ! $groups['ALL'][0]['refills_used']) {
+    $message .= '<br><u>These Rxs will be included once we confirm their availability:</u><br>'.implode(';<br>', $groups['FILLED_ACTION'] + $groups['FILLED_NOACTION']).';';
+  } else if ($groups['COUNT_FILLED']) {
     $message .= '<br><u>These Rxs will be included once we confirm their availability:</u><br>'.implode(';<br>', $groups['FILLED_WITH_PRICES']).';';
+  }
 
   $suffix = implode('<br><br>', [
     "Note: if this is correct, there is no need to do anything. If you want to change or delay this order, please let us know as soon as possible. If delaying, please specify the date on which you want it filled, otherwise if you don't, we will delay it 3 weeks by default."
@@ -278,6 +285,8 @@ function order_updated_notice($groups) {
     $suffix,
     '',
     ! $groups['COUNT_NOFILL'] ? '' : '<br><u>We are NOT filling these Rxs:</u><br>'.implode(';<br>', $groups['NOFILL_NOACTION'] + $groups['NOFILL_ACTION']).';',
+    '',
+    json_encode($changed_fields),
     ''
   ]);
 

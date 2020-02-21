@@ -259,7 +259,7 @@ function update_orders_cp() {
     $order = helper_update_payment($order, $mysql);
     export_wc_update_order($order);
 
-    send_updated_order_communications($groups);
+    send_updated_order_communications($groups, $changed_fields);
 
     //TODO Update Salesforce Order Total & Order Count & Order Invoice using REST API or a MYSQL Zapier Integration
 
