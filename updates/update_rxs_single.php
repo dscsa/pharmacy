@@ -28,7 +28,7 @@ function update_rxs_single() {
     if ($sig)
       $mysql->run("
         UPDATE gp_rxs_single SET
-          sig_initial = $sig[sig_actual],
+          sig_initial = '$sig[sig_actual]',
           sig_clean = $sig[sig_clean],
           sig_qty_per_day = $sig[sig_qty_per_day],
           sig_qty_per_time = $sig[sig_qty_per_time],
