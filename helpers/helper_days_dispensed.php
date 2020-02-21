@@ -196,7 +196,8 @@ function set_days_default($item, $days, $message, $mysql) {
     return $item; //We can only save for items in order (order_items)
 
   if ($days AND ! $item['item_date_added']) {
-    log_notice('ERROR set_days_default. days is being set to item that is not in order', get_defined_vars());
+    //TODO Still investigating Most likely we already sent out a patient communiction saying what was in the order and we didn't want to add this one in and retell the patient
+    log_error('ERROR set_days_default. days is being set to item that is not in order', get_defined_vars());
     return $item; //We can only save for items in order (order_items)
   }
 
