@@ -137,22 +137,28 @@ function update_orders_wc() {
     $new_stage = explode('-', $updated['order_stage_wc']);
     $old_stage = explode('-', $updated['old_order_stage_wc']);
 
-    if ($updated['order_stage_wc'] == 'trash') {
+    if ($old_stage[0] == 'trash') {
+
+      log_error('WC Order was removed from trash', $updated);
+
+    } else if ($new_stage[0] == 'trash') {
 
       if ($old_stage[1] == 'shipped' OR $old_stage[1] == 'done' OR $old_stage[1] == 'late' OR $old_stage[1] == 'return')
-        log_notice("$updated[invoice_number]: Shipped Order trashed in WC. Are you sure you wanted to do this?", $updated);
+        log_error("$updated[invoice_number]: Shipped Order trashed in WC. Are you sure you wanted to do this?", $updated);
       else {
-        log_notice("$updated[invoice_number]: Non-Shipped Order trashed in WC", $updated);
 
         $order = get_full_order($updated, $mysql);
 
-        if ( ! $order) continue;
+        if ( ! $order) {
+          log_notice("$updated[invoice_number]: Non-Shipped Order trashed in WC", $updated);
+          continue;
+        }
 
         $orderdata = [
           'post_status' => 'wc-'.$order[0]['order_stage_wc']
         ];
 
-        log_error('reclassifying order from WC trash', [
+        log_error('Why was this order trashed? It still exists in Guarduan.  Removing from trash', [
           'invoice_number' => $order[0]['invoice_number'],
           'order_stage_wc' => $order[0]['order_stage_wc'],
           'order_stage_cp' => $order[0]['order_stage_cp']
