@@ -248,10 +248,13 @@ function update_orders_cp() {
       continue;
     }
 
-    if (@$changed_fields['count_items'] AND count($changed_fields) == 1)
+    if (@$changed_fields['count_items'] AND count($changed_fields) == 1) {
       log_info("Updated Order: count_items changed ".$order[0]['invoice_number'], $changed_fields);
-    else //Usually an Address Change
-      log_error("Updated Order: Unknown Change ".$order[0]['invoice_number'], $changed_fields);
+      continue; //As long as count_filled doesn't change then this shouldn't matter
+    }
+
+    //Usually an Address Change
+    log_error("Updated Order: Unknown Change ".$order[0]['invoice_number'], $changed_fields);
 
     $order = helper_update_payment($order, $mysql);
     export_wc_update_order($order);
