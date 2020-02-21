@@ -22,9 +22,9 @@ function update_orders_wc() {
   //2) An order is incorrectly saved in WC even though it should be gone (tech bug)
   foreach($changes['created'] as $created) {
 
-    $stage = explode('-', $created['order_stage_wc']);
+    $new_stage = explode('-', $created['order_stage_wc']);
 
-    if ($created['order_stage_wc'] == 'trash' OR $stage[1] == 'awaiting' OR $stage[1] == 'confirm') {
+    if ($created['order_stage_wc'] == 'trash' OR $new_stage[1] == 'awaiting' OR $new_stage[1] == 'confirm') {
 
       log_info("Empty Orders are intentially not imported into Guardian", "$created[invoice_number] $created[order_stage_wc]");
 
@@ -134,11 +134,12 @@ function update_orders_wc() {
 
     $changed = changed_fields($updated);
 
-    $stage = explode('-', $updated['order_stage_wc']);
+    $new_stage = explode('-', $updated['order_stage_wc']);
+    $old_stage = explode('-', $updated['old_order_stage_wc']);
 
     if ($updated['order_stage_wc'] == 'trash') {
 
-      if ($stage[1] == 'shipped' OR $stage[1] == 'done' OR $stage[1] == 'late' OR $stage[1] == 'return')
+      if ($old_stage[1] == 'shipped' OR $old_stage[1] == 'done' OR $old_stage[1] == 'late' OR $old_stage[1] == 'return')
         log_notice("$updated[invoice_number]: Shipped Order trashed in WC. Are you sure you wanted to do this?", $updated);
       else {
         log_notice("$updated[invoice_number]: Non-Shipped Order trashed in WC", $updated);
@@ -162,19 +163,17 @@ function update_orders_wc() {
 
     } else if (count($changed) == 1 AND $updated['order_stage_wc'] != $updated['old_order_stage_wc']) {
 
-      $old_stage = explode('-', $updated['old_order_stage_wc']);
-
       if (
-        ($old_stage[1] == 'confirm' AND $stage[1] == 'prepare') OR
-        ($old_stage[1] == 'prepare' AND $stage[1] == 'shipped') OR
-        ($old_stage[1] == 'prepare' AND $stage[1] == 'done') OR
-        ($old_stage[1] == 'shipped' AND $stage[1] == 'done') OR
-        ($old_stage[1] == 'shipped' AND $stage[1] == 'late') OR
-        ($old_stage[1] == 'shipped' AND $stage[1] == 'returned')
+        ($old_stage[1] == 'confirm' AND $new_stage[1] == 'prepare') OR
+        ($old_stage[1] == 'prepare' AND $new_stage[1] == 'shipped') OR
+        ($old_stage[1] == 'prepare' AND $new_stage[1] == 'done') OR
+        ($old_stage[1] == 'shipped' AND $new_stage[1] == 'done') OR
+        ($old_stage[1] == 'shipped' AND $new_stage[1] == 'late') OR
+        ($old_stage[1] == 'shipped' AND $new_stage[1] == 'returned')
       ) {
         log_notice("$updated[invoice_number]: WC Order Normal Stage Change", $changed);
       } else {
-        log_error("$updated[invoice_number]: WC Order Irregular Stage Change", [$stage, $old_stage, $updated]);
+        log_error("$updated[invoice_number]: WC Order Irregular Stage Change", [$new_stage, $old_stage, $updated]);
       }
 
     }
