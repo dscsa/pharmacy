@@ -58,6 +58,11 @@ function add_gd_fields_to_order($order, $mysql) {
   //Consolidate default and actual suffixes to avoid conditional overload in the invoice template and redundant code within communications
   foreach($order as $i => $dontuse) { //don't use val because order[$i] and $item will become out of sync as we set properties
 
+    if ($order[$i]['item_message_key'] == 'ACTION NO REFILLS' AND $order[$i]['refills_total_default'] >= .1) {
+      log_error('add_gd_fields_to_order: status of ACTION NO REFILLS but has refills. Do we need to send updated communications?', $order[$i]);
+      $order[$i]['item_message_key'] = NULL;
+    }
+
     if ( ! $order[$i]['item_message_key']) { //if not syncing to order lets provide a reason why we are not filling
       list($days, $message) = get_days_default($order[$i]);
       $order[$i] = set_days_default($order[$i], $days, $message, $mysql);

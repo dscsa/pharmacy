@@ -5,6 +5,7 @@ $log_notices = [];
 
 function log_to_db($severity, $text, $file, $vars) {
    global $mysql;
+   $text  = substr($text, 0, 255);
    $mysql = $mysql ?: new Mysql_Wc();
    $text  = $mysql->escape($text);
    $vars  = $mysql->escape($vars) ?: '[]';

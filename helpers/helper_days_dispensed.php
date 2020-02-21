@@ -276,7 +276,7 @@ function message_text($message, $item) {
 }
 
 function sync_to_order_new_rx($item) {
-  return ! $item['refill_date_first'] AND ! $item['item_date_added'] AND $item['rx_autofill'];
+  return  ! $item['item_date_added'] AND $item['refills_total_default'] >= 0.1 AND ! $item['refill_date_first'] AND $item['rx_autofill'];
 }
 
 function sync_to_order_past_due($item) {
