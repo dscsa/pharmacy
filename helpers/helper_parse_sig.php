@@ -187,7 +187,8 @@ function test_parse_sig() {
     "take 1 tablet (500 mg) by oral route 2 times per day with morning and evening meals",
     "Take 1 tablet by mouth twice a day for 10 days , then take 1 tablet daily", //Unfixed
     "Take 2 capsules by mouth in the morning 1 capsule once daily AT NOON AND 2 capsules at bedtime", //Unfixed
-    "Take 1 tablet by mouth 1 time daily then, if no side effects, increase to 1 tablet 2 times daily with meals" //Unfixed
+    "Take 1 tablet by mouth 1 time daily then, if no side effects, increase to 1 tablet 2 times daily with meals", //Unfixed
+    "Take 1 tablet by mouth once daily and two on sundays", //Unfixed
     //"Take 1 tablet (12.5 mg total) by mouth every 12 (twelve) hours",
     //"1 ORAL every eight hours as needed",
     //"Take 5 mg by mouth 2 (two) times daily.",

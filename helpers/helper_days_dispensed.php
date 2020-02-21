@@ -19,7 +19,7 @@ function get_days_default($item) {
     return [0, RX_MESSAGE['ACTION EXPIRED']];
   }
 
-  if ( ! $item['rx_dispensed_id'] AND $item['refills_total'] < 0.1) {
+  if ($item['refills_total_default'] < 0.1) { //Unlike refills_total_default, refill_total and refill_total_actual are -= 1 so might be 0 if rx is dispensed
     log_info("DON'T FILL MEDICATIONS WITHOUT REFILLS", get_defined_vars());
     return [0, RX_MESSAGE['ACTION NO REFILLS']];
   }
@@ -194,11 +194,11 @@ function set_days_default($item, $days, $message, $mysql) {
     return $item; //We can only save for items in order (order_items)
 
   if ($days AND ! $item['item_date_added']) {
+
     //TODO Still investigating Most likely we already sent out a patient communiction saying what was in the order and we didn't want to add this one in and retell the patient
-
-    if ( ! in_array($item['item_message_key'], ['NO ACTION PAST DUE AND SYNC TO ORDER', 'NO ACTION DUE SOON AND SYNC TO ORDER','NO ACTION NEW RX SYNCED TO ORDER']))
-      log_error('ERROR set_days_default. days is being set to item that is not in order', get_defined_vars());
-
+    if ( ! in_array($item['item_message_key'], ['NO ACTION PAST DUE AND SYNC TO ORDER', 'NO ACTION DUE SOON AND SYNC TO ORDER', 'NO ACTION NEW RX SYNCED TO ORDER'])) {
+      log_error("helper_days_dispensed set_days_default: $item[item_message_key]. days is being set to item that is not in order. Hopefully this synced to order later?", get_defined_vars());
+    }
     return $item; //We can only save for items in order (order_items)
   }
 
