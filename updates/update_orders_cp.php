@@ -193,6 +193,10 @@ function update_orders_cp() {
           $item['refills_total'] != $item['refills_total_actual'] //Don't use _default here because we don't subtract the current refill from it
         )
           $dispensing_changes[] = "rx:$item[rx_number] qty:$item[qty_dispensed_default] >>> $item[qty_dispensed_actual] days:$item[days_dispensed_default] >>> $item[days_dispensed_actual] refills:$item[refills_total] >>> $item[refills_total_actual]";
+
+        $actual_sig_qty_per_day = $item['qty_dispensed_actual']/$item['days_dispensed_actual'];
+        if ($item['sig_qty_per_day'] != $actual_sig_qty_per_day)
+          log_error("sig parsing error '$item[sig_raw]' $item[sig_qty_per_day] != $actual_sig_qty_per_day $item[qty_dispensed_actual]/$item[days_dispensed_actual]", $item);
       }
 
       //order_stage_cp and order_date_dispensed

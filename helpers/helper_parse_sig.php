@@ -184,7 +184,8 @@ function test_parse_sig() {
     "Use daily with lantus",
     "take 1 tablet by Oral route 3 times per day with food as needed for pain",
     "Take 1 capsule daily for 7 days then increase to 1 capsule twice daily",  //UNFIXED BUT USING 2nd RATHER THAN 1st HALF
-    "take 1 tablet (500 mg) by oral route 2 times per day with morning and evening meals"
+    "take 1 tablet (500 mg) by oral route 2 times per day with morning and evening meals",
+    "Take 1 tablet by mouth twice a day for 10 days , then take 1 tablet daily", //Unfixed
     //"Take 1 tablet (12.5 mg total) by mouth every 12 (twelve) hours",
     //"1 ORAL every eight hours as needed",
     //"Take 5 mg by mouth 2 (two) times daily.",
