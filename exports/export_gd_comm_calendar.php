@@ -145,7 +145,7 @@ function order_created_notice($groups) {
     $message   .= ' Your first order will only be $6 total for all of your medications.';
     $drug_list .= implode(';<br>', $groups['FILLED_ACTION'] + $groups['FILLED_NOACTION']).';';
   } else {
-    $drug_list .= implode(';<br>', $groups['FILLED_WITH_PRICES']).';'
+    $drug_list .= implode(';<br>', $groups['FILLED_WITH_PRICES']).';';
   }
 
   $suffix = implode('<br><br>', [
