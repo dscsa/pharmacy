@@ -26,6 +26,7 @@ function update_rxs_single() {
     if ($sig)
       $mysql->run("
         UPDATE gp_rxs_single SET
+          sig_initial = $sig[sig_actual],
           sig_clean = $sig[sig_clean],
           sig_qty_per_day = $sig[sig_qty_per_day],
           sig_qty_per_time = $sig[sig_qty_per_time],
@@ -94,7 +95,7 @@ function update_rxs_single() {
   $mysql->run("DELETE FROM gp_rxs_grouped");
   $mysql->run($sql);
   $mysql->run("COMMIT");
-  
+
   //TODO Implement rx_status logic that was in MSSQL Query and Save in Database
 
   //TODO Maybe? Update Salesforce Objects using REST API or a MYSQL Zapier Integration

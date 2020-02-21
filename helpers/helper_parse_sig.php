@@ -26,7 +26,7 @@ function parse_sig($rx) {
   //"take 1 tablet (500 mg) by oral route 2 times per day with morning and evening meals" -- don't split
   //"Take 1 tablet by mouth every morning and 2 tablets in the evening" -- split
   $complex_sig_regex = '/ then | and (?=\d)/';
-  $sigs_clean        = array_reverse(preg_split($complex_sig_regex, subsitute_numerals($rx['sig_raw'])));
+  $sigs_clean        = array_reverse(preg_split($complex_sig_regex, subsitute_numerals($rx['sig_initial'])));
 
   foreach ($sigs_clean as $sig_clean) {
 
@@ -45,11 +45,11 @@ function parse_sig($rx) {
 
     if ($qty_per_time AND $frequency AND $frequency_numerator AND $frequency_denominator) {
       $parsed['sig_qty_per_day'] = $qty_per_time * $frequency_numerator / $frequency_denominator / $frequency;
-      //log('Parsed $sig '.$rx['sig_raw'].' | '.$sig_clean.' | '.print_r($parsed, true));
+      //log('Parsed $sig '.$rx['sig_initial'].' | '.$sig_clean.' | '.print_r($parsed, true));
       return $parsed;
     }
 
-    log_info('Could not parse $sig', get_defined_vars());
+    log_error("Could not parse sig $rx[sig_initial] >>> $sig_clean", $parsed);
   }
 }
 
@@ -219,7 +219,7 @@ function test_parse_sig() {
   //"Take 5 mg by mouth daily."
 
   foreach ($test_sigs as $i => $test_sig) {
-    $parsed = parse_sig(['rx_number' => $i, 'sig_raw' => $test_sig]);
+    $parsed = parse_sig(['rx_number' => $i, 'sig_initial' => $test_sig]);
     log_info("test_parse_sig: $test_sig", get_defined_vars());
   }
 }

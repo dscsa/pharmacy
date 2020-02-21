@@ -25,7 +25,7 @@ function import_cp_rxs_single() {
       refills_orig + 1 as refills_original,
       (CASE WHEN script_status_cn = 0 AND expire_date > @today THEN written_qty * refills_left ELSE 0 END) as qty_left,
       written_qty * (refills_orig + 1) as qty_original,
-      sig_text_english as sig_raw,
+      sig_text_english as sig_actual,
 
       autofill_yn as rx_autofill,
       CONVERT(varchar, COALESCE(orig_disp_date, dispense_date), 20) as refill_date_first,

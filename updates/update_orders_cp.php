@@ -196,7 +196,7 @@ function update_orders_cp() {
 
         $actual_sig_qty_per_day = $item['qty_dispensed_actual']/$item['days_dispensed_actual'];
         if ($item['sig_qty_per_day'] != $actual_sig_qty_per_day)
-          log_error("sig parsing error '$item[sig_raw]' $item[sig_qty_per_day] != $actual_sig_qty_per_day $item[qty_dispensed_actual]/$item[days_dispensed_actual]", $item);
+          log_error("sig parsing error '$item[sig_initial]' $item[sig_qty_per_day] != $actual_sig_qty_per_day $item[qty_dispensed_actual]/$item[days_dispensed_actual]", $item);
       }
 
       //order_stage_cp and order_date_dispensed
@@ -205,7 +205,7 @@ function update_orders_cp() {
         $order = helper_update_payment($order, $mysql);
         export_gd_publish_invoice($order);
         export_wc_update_order($order);
-        log_error("Updated Order Dispensed: dispensing changes: ".implode('; ', $dispensing_changes).' '.$order[0]['invoice_number'], [$item, $changed_fields]);
+        log_notice("Updated Order Dispensed: dispensing changes: ".implode('; ', $dispensing_changes).' '.$order[0]['invoice_number'], [$item, $changed_fields]);
 
       } else if (count($changed_fields) > 2) {
 

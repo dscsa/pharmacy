@@ -17,7 +17,7 @@ function changes_to_rxs_single($new) {
     NOT old.refills_original <=> new.refills_original OR
     NOT old.qty_left <=> new.qty_left OR
     NOT old.qty_original <=> new.qty_original OR
-    NOT old.sig_raw <=> new.sig_raw OR
+    NOT old.sig_actual <=> new.sig_actual OR
       -- Not in CP -- NOT old.sig_clean <=> new.sig_clean OR
       -- Not in CP -- NOT old.sig_qty_per_day <=> new.sig_qty_per_day OR
       -- Not in CP -- NOT old.sig_qty_per_time <=> new.sig_qty_per_time OR
