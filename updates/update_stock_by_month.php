@@ -17,9 +17,7 @@ function update_stock_by_month() {
 
   $mysql = new Mysql_Wc();
 
-  $mysql->run('TRUNCATE TABLE gp_stock_live');
-
-  $mysql->run("
+  $sql1 = "
     INSERT INTO gp_stock_live
     SELECT
       gp_stock_by_month.drug_generic,
@@ -40,12 +38,12 @@ function update_stock_by_month() {
       gp_drugs.drug_generic = gp_stock_by_month.drug_generic
     WHERE
       month > (CURDATE() - INTERVAL ".($month_interval+1)." MONTH) AND
-      month < (CURDATE() - INTERVAL 1 MONTH) -- Selecting in 2019-12 should select 2019-09, 2019-10, 2019-11 (2019-12 will not be made yet because not a full month of data).  Likewise in 2019-02-20 should select 2020-01, 2019-12, 2019-11
+      month <= (CURDATE() - INTERVAL 1 MONTH) -- Selecting in 2019-12 should select 2019-09, 2019-10, 2019-11 (2019-12 will not be made yet because not a full month of data).  Likewise in 2019-02-20 should select 2020-01, 2019-12, 2019-11
     GROUP BY
       gp_stock_by_month.drug_generic
-  ");
+  ";
 
-  $mysql->run("
+  $sql2 = "
     UPDATE gp_stock_live
     SET stock_level = CASE
       WHEN drug_ordered IS NULL THEN '".STOCK_LEVEL['NOT OFFERED']."'
@@ -55,7 +53,13 @@ function update_stock_by_month() {
       WHEN qty_inventory > IFNULL(qty_repack, 135) THEN '".STOCK_LEVEL['REFILL ONLY']."'
       ELSE '".STOCK_LEVEL['OUT OF STOCK']."'
     END
-  ");
+  ";
+
+  $mysql->run("START TRANSACTION");
+  $mysql->run("DELETE FROM gp_stock_live");
+  $mysql->run($sql1);
+  $mysql->run($sql2);
+  $mysql->run("COMMIT");
 
   $duplicate_gsns = $mysql->run("
     SELECT GROUP_CONCAT(drug_generic, '; ') as drugs, drug_gsns as gsns, COUNT(*) as number FROM gp_stock_live WHERE drug_gsns IS NOT NULL GROUP BY drug_gsns HAVING number > 1
