@@ -19,7 +19,7 @@ function get_days_default($item) {
     return [0, RX_MESSAGE['ACTION EXPIRED']];
   }
 
-  if ($item['refills_total'] < 0.1) {
+  if ( ! $item['rx_dispensed_id'] AND $item['refills_total'] < 0.1) {
     log_info("DON'T FILL MEDICATIONS WITHOUT REFILLS", get_defined_vars());
     return [0, RX_MESSAGE['ACTION NO REFILLS']];
   }

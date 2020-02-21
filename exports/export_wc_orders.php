@@ -112,7 +112,7 @@ function export_wc_delete_order($invoice_number, $reason) {
 
   $mysql->run($sql2);
 
-  log_notice("export_wc_delete_order", get_defined_vars());//.print_r($item, true);
+  log_notice("export_wc_delete_order", ['invoice_number' => $invoice_number, 'reason' => $reason, 'post_id' => $post_id]);//.print_r($item, true);
 }
 
 function export_wc_create_order($order, $reason) {
