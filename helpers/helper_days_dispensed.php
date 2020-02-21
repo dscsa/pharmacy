@@ -117,7 +117,7 @@ function get_days_default($item) {
     return [$days_left_in_stock, RX_MESSAGE['NO ACTION LOW STOCK']];
   }
 
-  if ( ! $item['refill_date_first'] AND ! $item['item_date_added'] AND $item['rx_autofill']) {
+  if (sync_to_order_new_rx($item)) {
     log_info('NO ACTION NEW RX SYNCED TO ORDER', get_defined_vars());
     return [days_default($item), RX_MESSAGE['NO ACTION NEW RX SYNCED TO ORDER']];
   }
@@ -133,8 +133,6 @@ function get_days_default($item) {
     log_info("WAS DUE SOON SO WAS SYNCED TO ORDER", get_defined_vars());
     return [days_default($item), RX_MESSAGE['NO ACTION DUE SOON AND SYNC TO ORDER']];
   }
-
-
 
   log_info("NO SPECIAL RX_MESSAGE USING DEFAULTS", get_defined_vars());
   return [days_default($item), RX_MESSAGE['NO ACTION STANDARD FILL']];
@@ -272,6 +270,10 @@ function is_refill_only($item) {
 
 function message_text($message, $item) {
   return str_replace(array_keys($item), array_values($item), $message[$item['language']]);
+}
+
+function sync_to_order_new_rx($item) {
+  return ! $item['refill_date_first'] AND ! $item['item_date_added'] AND $item['rx_autofill'];
 }
 
 function sync_to_order_past_due($item) {
