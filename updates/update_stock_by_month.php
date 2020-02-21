@@ -39,8 +39,8 @@ function update_stock_by_month() {
     JOIN gp_drugs ON
       gp_drugs.drug_generic = gp_stock_by_month.drug_generic
     WHERE
-      YEAR(month)  >= YEAR(CURDATE() - INTERVAL $month_interval MONTH) AND
-      MONTH(month) >= MONTH(CURDATE() - INTERVAL $month_interval MONTH) -- Selecting in 2019-12 should select 2019-09, 2019-10, 2019-11 (2019-12 will not be made yet because not a full month of data)
+      month > (CURDATE() - INTERVAL ".($month_interval+1)." MONTH) AND
+      month < (CURDATE() - INTERVAL 1 MONTH) AND -- Selecting in 2019-12 should select 2019-09, 2019-10, 2019-11 (2019-12 will not be made yet because not a full month of data).  Likewise in 2019-02-20 should select 2020-01, 2019-12, 2019-11
     GROUP BY
       gp_stock_by_month.drug_generic
   ");
