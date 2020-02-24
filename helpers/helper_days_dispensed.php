@@ -324,7 +324,15 @@ function days_left_in_stock($item) {
 //NOTE: We base this on the best_rx_number and NOT on the rx currently in the order
 function days_default($days_left_in_expiration, $days_left_in_refills, $days_left_in_stock) {
 
-  $days_default = min($days_left_in_expiration, $days_left_in_refills, $days_left_in_stock, 90);
+  $days_default = 90;
+
+  //Cannot have NULL inside of MIN()
+  $days_default = min(
+    $days_left_in_expiration ?: $days_default,
+    $days_left_in_refills ?: $days_default,
+    $days_left_in_stock ?: $days_default,
+    $days_default
+  );
 
   if ($days_default % 15)
     log_error("DEFAULT DAYS IS NOT A MULTIPLE OF 15! days_default:$days_default, days_left_in_stock:$days_left_in_stock, days_left_in_refills:$days_left_in_refills", get_defined_vars());
