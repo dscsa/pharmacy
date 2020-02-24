@@ -45,11 +45,11 @@ function parse_sig($rx) {
 
     if ($qty_per_time AND $frequency AND $frequency_numerator AND $frequency_denominator) {
       $parsed['sig_qty_per_day'] = $qty_per_time * $frequency_numerator / $frequency_denominator / $frequency;
-      //log('Parsed $sig '.$rx['sig_initial'].' | '.$sig_clean.' | '.print_r($parsed, true));
+      //log('Parsed $sig '.$rx['sig_actual'].' | '.$sig_clean.' | '.print_r($parsed, true));
       return $parsed;
     }
 
-    log_error("Could not parse sig $rx[sig_initial] >>> $sig_clean", $parsed);
+    log_error("Could not parse sig $rx[sig_actual] >>> $sig_clean", $parsed);
   }
 }
 
@@ -223,7 +223,7 @@ function test_parse_sig() {
   //"Take 5 mg by mouth daily."
 
   foreach ($test_sigs as $i => $test_sig) {
-    $parsed = parse_sig(['rx_number' => $i, 'sig_initial' => $test_sig]);
+    $parsed = parse_sig(['rx_number' => $i, 'sig_actual' => $test_sig]);
     log_info("test_parse_sig: $test_sig", get_defined_vars());
   }
 }

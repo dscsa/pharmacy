@@ -71,9 +71,9 @@ function update_orders_cp() {
     $order = helper_update_payment($order, "update_orders_cp: created", $mysql);
 
     //This is not necessary if order was created by webform, which then created the order in Guardian
-    //"order_source": "Webform eRX",  "item_added_by": "WEBFORM"
-
-    export_wc_create_order($order, "update_orders_cp: created");
+    //"order_source": "Webform eRX/Transfer/Refill [w/ Note]"
+    if (strpos($order[0]['order_source'], 'Webform') === false)
+      export_wc_create_order($order, "update_orders_cp: created");
 
     send_created_order_communications($groups);
 
@@ -196,7 +196,7 @@ function update_orders_cp() {
 
         $actual_sig_qty_per_day = $item['days_dispensed_actual'] ? round($item['qty_dispensed_actual']/$item['days_dispensed_actual'], 3) : 0;
         if ($actual_sig_qty_per_day AND $actual_sig_qty_per_day != $item['sig_qty_per_day'])
-          log_error("sig parsing error '$item[sig_initial]' $item[sig_qty_per_day] != $actual_sig_qty_per_day $item[qty_dispensed_actual]/$item[days_dispensed_actual]", $item);
+          log_error("sig parsing error '$item[sig_actual]' $item[sig_qty_per_day] (default) != $actual_sig_qty_per_day $item[qty_dispensed_actual]/$item[days_dispensed_actual] (actual)", $item);
       }
 
       //order_stage_cp and order_date_dispensed
