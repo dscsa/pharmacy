@@ -19,6 +19,7 @@ function import_wc_orders() {
     FROM `wp_postmeta`
     JOIN wp_posts ON post_id = wp_posts.ID
     WHERE meta_key = 'invoice_number'
+    AND post_status != 'trash'
     GROUP BY meta_value
     HAVING number > 1
   ");
