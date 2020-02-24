@@ -194,7 +194,7 @@ function update_orders_cp() {
         )
           $dispensing_changes[] = "rx:$item[rx_number] qty:$item[qty_dispensed_default] >>> $item[qty_dispensed_actual] days:$item[days_dispensed_default] >>> $item[days_dispensed_actual] refills:$item[refills_dispensed_default] >>> $item[refills_dispensed_actual]";
 
-        $actual_sig_qty_per_day = round($item['qty_dispensed_actual']/$item['days_dispensed_actual'], 3);
+        $actual_sig_qty_per_day = $item['days_dispensed_actual'] ? round($item['qty_dispensed_actual']/$item['days_dispensed_actual'], 3) : 0;
         if ($actual_sig_qty_per_day AND $actual_sig_qty_per_day != $item['sig_qty_per_day'])
           log_error("sig parsing error '$item[sig_initial]' $item[sig_qty_per_day] != $actual_sig_qty_per_day $item[qty_dispensed_actual]/$item[days_dispensed_actual]", $item);
       }

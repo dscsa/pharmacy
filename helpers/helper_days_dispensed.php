@@ -20,7 +20,7 @@ function get_days_default($item) {
   }
 
   if ( ! $item['rx_dispensed_id'] AND $item['refills_total'] < 0.1) { //Unlike refills_dispensed_default/actual might not be set yet
-    log_error("DON'T FILL MEDICATIONS WITHOUT REFILLS", $item);
+    log_info("DON'T FILL MEDICATIONS WITHOUT REFILLS", $item);
     return [0, RX_MESSAGE['ACTION NO REFILLS']];
   }
 
