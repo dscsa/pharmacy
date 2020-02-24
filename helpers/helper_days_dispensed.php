@@ -13,6 +13,11 @@ function get_days_default($item) {
 
   $refills_only = is_refill_only($item);
 
+  $days_left_in_expiration = days_left_in_expiration($item);
+  $days_left_in_refills    = days_left_in_refills($item);
+  $days_left_in_stock      = days_left_in_stock($item);
+  $days_default            = days_default($days_left_in_expiration, $days_left_in_refills, $days_left_in_stock);
+
   //ALTERNATIVE: $item['days_left'] <= 0; but doesn't seem to always exist
   if ($item['rx_date_expired'] < $item['refill_date_next']) {
     log_info("DON'T FILL EXPIRED MEDICATIONS", get_defined_vars());
@@ -60,7 +65,7 @@ function get_days_default($item) {
 
   if ( ! $item['pharmacy_name']) {
     log_info("PATIENT NEEDS TO REGISTER", get_defined_vars());
-    return [days_default($item), RX_MESSAGE['ACTION NEEDS FORM']];
+    return [$days_default, RX_MESSAGE['ACTION NEEDS FORM']];
   }
 
   if ( ! $item['patient_autofill'] AND ! $manual) {
@@ -70,7 +75,7 @@ function get_days_default($item) {
 
   if ( ! $item['patient_autofill'] AND $manual) {
     log_info("OVERRIDE PATIENT AUTOFILL OFF SINCE MANUALLY ADDED", get_defined_vars());
-    return [days_default($item), RX_MESSAGE['NO ACTION RX OFF AUTOFILL']];
+    return [$days_default, RX_MESSAGE['NO ACTION RX OFF AUTOFILL']];
   }
 
   if ((strtotime($item['refill_date_next']) - strtotime($item['order_date_added'])) > 15*24*60*60 AND ! $manual) {
@@ -92,50 +97,48 @@ function get_days_default($item) {
 
   if ( ! $item['refill_date_first'] AND $not_offered) {
     log_info("REFILLS SHOULD NOT HAVE A NOT OFFERED STATUS", get_defined_vars());
-    return [days_default($item), RX_MESSAGE['NO ACTION NEW GSN']];
+    return [$days_default, RX_MESSAGE['NO ACTION NEW GSN']];
   }
 
   if ( ! $item['rx_autofill']) { //InOrder is implied here
     log_info("IF RX IS IN ORDER FILL IT EVEN IF RX_AUTOFILL IS OFF", get_defined_vars());
-    return [days_default($item), RX_MESSAGE['NO ACTION RX OFF AUTOFILL']];
-  }
-
-  if ((strtotime($item['rx_date_expired']) - strtotime($item['refill_date_next'])) < 45*24*60*60) {
-    log_info("WARN USERS IF RX IS ABOUT TO EXPIRE", get_defined_vars());
-    return [days_default($item), RX_MESSAGE['ACTION EXPIRING']];
-  }
-
-  $days_left_in_rx = days_left_in_rx($item);
-  if ($days_left_in_rx) {
-    log_info("WARN USERS IF DRUG IS LOW QTY", get_defined_vars());
-    return [$days_left_in_rx, RX_MESSAGE['ACTION LAST REFILL']];
-  }
-
-  $days_left_in_stock = days_left_in_stock($item);
-  if ($days_left_in_stock) {
-    log_info("WARN USERS IF DRUG IS LOW QTY", get_defined_vars());
-    return [$days_left_in_stock, RX_MESSAGE['NO ACTION LOW STOCK']];
+    return [$days_default, RX_MESSAGE['NO ACTION RX OFF AUTOFILL']];
   }
 
   if (sync_to_order_new_rx($item)) {
     log_info('NO ACTION NEW RX SYNCED TO ORDER', get_defined_vars());
-    return [days_default($item), RX_MESSAGE['NO ACTION NEW RX SYNCED TO ORDER']];
+    return [$days_default, RX_MESSAGE['NO ACTION NEW RX SYNCED TO ORDER']];
   }
 
   //TODO and check if added by this program otherwise false positives
   if (sync_to_order_past_due($item)) {
     log_info("WAS PAST DUE SO WAS SYNCED TO ORDER", get_defined_vars());
-    return [days_default($item), RX_MESSAGE['NO ACTION PAST DUE AND SYNC TO ORDER']];
+    return [$days_default, RX_MESSAGE['NO ACTION PAST DUE AND SYNC TO ORDER']];
   }
 
   //TODO and check if added by this program otherwise false positives
   if (sync_to_order_due_soon($item)) {
     log_info("WAS DUE SOON SO WAS SYNCED TO ORDER", get_defined_vars());
-    return [days_default($item), RX_MESSAGE['NO ACTION DUE SOON AND SYNC TO ORDER']];
+    return [$days_default, RX_MESSAGE['NO ACTION DUE SOON AND SYNC TO ORDER']];
+  }
+
+  if ($days_left_in_expiration == $days_default) {
+    log_info("WARN USERS IF RX IS ABOUT TO EXPIRE", get_defined_vars());
+    return [$days_default, RX_MESSAGE['ACTION EXPIRING']];
+  }
+
+  if ($days_left_in_refills == $days_default) {
+    log_info("WARN USERS IF DRUG IS LOW QTY", get_defined_vars());
+    return [$days_default, RX_MESSAGE['ACTION LAST REFILL']];
+  }
+
+  if ($days_left_in_stock == $days_default) {
+    log_info("WARN USERS IF DRUG IS LOW QTY", get_defined_vars());
+    return [$days_default, RX_MESSAGE['NO ACTION LOW STOCK']];
   }
 
   log_info("NO SPECIAL RX_MESSAGE USING DEFAULTS", get_defined_vars());
-  return [days_default($item), RX_MESSAGE['NO ACTION STANDARD FILL']];
+  return [$days_default, RX_MESSAGE['NO ACTION STANDARD FILL']];
   //TODO DON'T NO ACTION_PAST_DUE if ( ! drug.$InOrder AND drug.$DaysToRefill < 0)
   //TODO NO ACTION_LIVE_INVENTORY_ERROR if ( ! drug.$v2)
   //TODO ACTION_CHECK_BACK/NO ACTION_WILL_TRANSFER_CHECK_BACK
@@ -171,7 +174,7 @@ function set_price_refills_actual($item, $mysql) {
 
 function set_days_default($item, $days, $message, $mysql) {
 
-  $old_item_message_key = $item['item_message_key'];
+  $old_item_message_key  = $item['item_message_key'];
   $old_item_message_text = $item['item_message_text'];
 
   $item['item_message_key']  = array_search($message, RX_MESSAGE);
@@ -287,20 +290,23 @@ function sync_to_order_due_soon($item) {
   return ! $item['item_date_added'] AND $item['refills_total'] >= 0.1 AND $item['refill_date_next'] AND (strtotime($item['refill_date_next'])  - strtotime($item['order_date_added'])) <= 15*24*60*60;
 }
 
-function days_left_in_rx($item, $days_std = 90) {
+function days_left_in_expiration($item) {
 
-  if ($item['item_date_added']) return;
+  $days_left_in_expiration = strtotime($item['rx_date_expired']) - strtotime($item['refill_date_next']);
 
-  $days_left_in_rx = round($item['qty_left']/$item['sig_qty_per_day']);
+  if ($days_left_in_expiration <= $days_std+30) return $days_left_in_expiration;
+}
+
+function days_left_in_refills($item) {
+
+  $days_left_in_refills = round($item['qty_left']/$item['sig_qty_per_day']);
 
   //Fill up to 30 days more to finish up an Rx if almost finished.
   //E.g., If 30 day script with 3 refills (4 fills total, 120 days total) then we want to 1x 120 and not 1x 90 + 1x30
-  if ($days_left_in_rx <= $days_std+30) return $days_left_in_rx;
+  if ($days_left_in_refills <= $days_std+30) return $days_left_in_refills;
 }
 
-function days_left_in_stock($item, $days_std = 90) {
-
-  if ($item['item_date_added']) return;
+function days_left_in_stock($item) {
 
   $days_left_in_stock = round($item['qty_inventory']/$item['sig_qty_per_day']);
 
@@ -316,18 +322,14 @@ function days_left_in_stock($item, $days_std = 90) {
 //Days is basically the MIN(target_date ?: std_day, qty_left as days, inventory_left as days).
 //NOTE: We adjust bump up the days by upto 30 in order to finish up an Rx (we don't want partial fills left)
 //NOTE: We base this on the best_rx_number and NOT on the rx currently in the order
-function days_default($item, $days_std = 90) {
+function days_default($days_left_in_expiration, $days_left_in_refills, $days_left_in_stock) {
 
-  //Convert qtys to days
-  $days_left_in_rx    = days_left_in_rx($item, $days_std) ?: $days_std;
-  $days_left_in_stock = days_left_in_stock($item, $days_std) ?: $days_std;
-
-  $days_default = min($days_left_in_rx, $days_left_in_stock);
+  $days_default = min($days_left_in_expiration, $days_left_in_refills, $days_left_in_stock, 90);
 
   if ($days_default % 15)
-    log_error("DEFAULT DAYS IS NOT A MULTIPLE OF 15! days_default:$days_default, days_of_stock:$days_of_stock, days_of_qty_left:$days_of_qty_left, days_std:$days_std, refill_date_next:$item[refill_date_next].", get_defined_vars());
+    log_error("DEFAULT DAYS IS NOT A MULTIPLE OF 15! days_default:$days_default, days_left_in_stock:$days_left_in_stock, days_left_in_refills:$days_left_in_refills", get_defined_vars());
   else
-    log_info("days_default:$days_default, days_left_in_stock:$days_left_in_stock, days_left_in_rx:$days_left_in_rx, days_std:$days_std, refill_date_next:$item[refill_date_next].", get_defined_vars());
+    log_info("days_default:$days_default, days_left_in_stock:$days_left_in_stock, days_left_in_refills:$days_left_in_refills", get_defined_vars());
 
   return $days_default;
 }

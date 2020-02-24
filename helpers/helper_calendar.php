@@ -389,7 +389,7 @@ function search_events_by_person($first_name, $last_name, $birth_date, $past = f
   $result = gdoc_post(GD_HELPER_URL, $args);
 
   if ($result != '[]')
-    log_info('search_events', get_defined_vars());
+    log_error('search_events', get_defined_vars());
 
   return json_decode($result, true);
 }
@@ -442,7 +442,7 @@ function cancel_events_by_person($first_name, $last_name, $birth_date, $types = 
   $events = search_events_by_person($first_name, $last_name, $birth_date, false, $types);
 
   if ( ! is_array($events)) {
-    log_error('ERROR watch_invoices', get_defined_vars());
+    log_error('cancel_events_by_person', get_defined_vars());
     $events = [];
   }
 
