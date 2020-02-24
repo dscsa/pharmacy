@@ -184,15 +184,19 @@ function update_orders_cp() {
     //Update invoice now or wait until shipped order?
     if ($updated['order_date_dispensed']) {
 
-      $dispensing_changes = [];
+      $day_changes = [];
+      $qty_changes = [];
 
       foreach ($order as $item) {
-        if (
+
+        if ($item['days_dispensed_default']    != $item['days_dispensed_actual'])
+          $day_changes[] = "rx:$item[rx_number] qty:$item[qty_dispensed_default] >>> $item[qty_dispensed_actual] days:$item[days_dispensed_default] >>> $item[days_dispensed_actual] refills:$item[refills_dispensed_default] >>> $item[refills_dispensed_actual]";
+
+        else if (
           $item['qty_dispensed_default']     != $item['qty_dispensed_actual'] OR
-          $item['days_dispensed_default']    != $item['days_dispensed_actual'] OR
           $item['refills_dispensed_default'] != $item['refills_dispensed_actual']
         )
-          $dispensing_changes[] = "rx:$item[rx_number] qty:$item[qty_dispensed_default] >>> $item[qty_dispensed_actual] days:$item[days_dispensed_default] >>> $item[days_dispensed_actual] refills:$item[refills_dispensed_default] >>> $item[refills_dispensed_actual]";
+          $qty_changes[] = "rx:$item[rx_number] qty:$item[qty_dispensed_default] >>> $item[qty_dispensed_actual] days:$item[days_dispensed_default] >>> $item[days_dispensed_actual] refills:$item[refills_dispensed_default] >>> $item[refills_dispensed_actual]";
 
         $actual_sig_qty_per_day = $item['days_dispensed_actual'] ? round($item['qty_dispensed_actual']/$item['days_dispensed_actual'], 3) : 0;
         if ($actual_sig_qty_per_day AND $actual_sig_qty_per_day != $item['sig_qty_per_day'])
@@ -200,15 +204,20 @@ function update_orders_cp() {
       }
 
       //order_stage_cp and order_date_dispensed
-      if ($dispensing_changes) {
+      if ($day_changes) {
 
-        $order = helper_update_payment($order,  "update_orders_cp: updated - dispensing changes", $mysql);
+        $order = helper_update_payment($order,  "update_orders_cp: updated - dispensing day changes", $mysql);
         export_gd_publish_invoice($order);
         export_wc_update_order($order);
-        log_notice("Updated Order Dispensed: dispensing changes: ".implode('; ', $dispensing_changes).' '.$order[0]['invoice_number'], [$item, $changed_fields]);
+        log_notice("Updated Order Dispensed: dispensing day changes: ".implode('; ', $dispensing_changes).' '.$order[0]['invoice_number'], [$item, $changed_fields]);
+
+      }
+      else if ($qty_changes) {
+        export_gd_publish_invoice($order);
+        log_notice("Updated Order Dispensed: dispensing qty/refill changes: ".implode('; ', $dispensing_changes).' '.$order[0]['invoice_number'], [$item, $changed_fields]);
 
       } else if (count($changed_fields) > 2) {
-
+        //Usually some type of address change in addition to be dispensed
         $order = helper_update_payment($order,  "update_orders_cp: updated > 2 fields", $mysql);
         export_gd_publish_invoice($order);
         export_wc_update_order($order);
