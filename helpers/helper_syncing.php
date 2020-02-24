@@ -40,6 +40,13 @@ function sync_to_order($order, $updated = null) {
 
     //Don't remove items with a missing GSN as this is something we need to do
     if ($item['item_date_added'] AND $item['item_added_by'] != 'MANUAL' AND ! $item['days_dispensed'] AND $item['drug_gsns']) {
+
+      //DEBUG CODE
+      if ($item['item_message_key'] == 'ACTION NO REFILLS' AND $item['refills_total_default'] >= 0.1) {
+        log_error('aborting helper_syncing because NO REFILLS has refills', $item);
+        continue;
+      }
+
       $items_to_sync[]   = ['REMOVE', $item['item_message_key'], $item];
       $items_to_remove[] = $item['rx_number'];
       //log_notice('sync_to_order removing item', "$item[invoice_number] $item[rx_number] $item[drug], $item[stock_level], $item[item_message_key] refills last:$item[refill_date_last] next:$item[refill_date_next] total:$item[refills_total] left:$item[refills_left]");
