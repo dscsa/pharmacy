@@ -3,9 +3,9 @@
 require_once 'exports/export_gd_orders.php';
 
 
-function helper_update_payment($order, $update, $mysql) {
+function helper_update_payment($order, $reason, $mysql) {
   $update = get_payment($order);
-  $order  = set_payment_default($order, $update, $mysql);
+  $order  = set_payment_default($order, $update, $reason, $mysql);
 
   return $order;
 }
@@ -39,7 +39,7 @@ function get_payment($order) {
   return $update;
 }
 
-function set_payment_default($order, $update, $mysql) {
+function set_payment_default($order, $update, $reason, $mysql) {
 
   if (
     isset($order[0]['payment_total_default']) AND
@@ -49,12 +49,12 @@ function set_payment_default($order, $update, $mysql) {
     $order[0]['payment_fee_default'] == $update['payment_fee_default'] AND
     $order[0]['payment_due_default'] == $update['payment_due_default']
   ) {
-    log_error('set_payment_default: but no changes', [$order, $update]);
+    log_error('set_payment_default: but no changes', [$order, $update, $reason]);
     return $order;
   }
 
   if ($order[0]['invoice_doc_id']) {
-    log_notice('set_payment_default is updating invoice', [$order, $update]);
+    log_notice('set_payment_default is updating invoice', [$order, $update, $reason]);
   }
 
   //Update order before we make the invoice
