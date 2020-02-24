@@ -83,9 +83,9 @@ function update_orders_wc() {
       if ($deleted['tracking_number']) {
         log_notice("Shipped Order deleted from trash in WC. Why?", $deleted);
 
-        $order = helper_update_payment($order, $mysql);
+        $order = helper_update_payment($order, "update_orders_wc: deleted - trash", $mysql);
 
-        export_wc_create_order($order, "update_orders_wc: deleted trash");
+        export_wc_create_order($order, "update_orders_wc: deleted - trash");
 
         export_gd_publish_invoice($order);
       }
@@ -105,9 +105,9 @@ function update_orders_wc() {
 
     } else if ($deleted['order_stage_cp'] != 'Shipped' AND $deleted['order_stage_cp'] != 'Dispensed') {
 
-      $order = helper_update_payment($order, $mysql);
+      $order = helper_update_payment($order,  "update_orders_wc: deleted - 0 items", $mysql);
 
-      export_wc_create_order($order,  "update_orders_wc: deleted but still in CP");
+      export_wc_create_order($order,  "update_orders_wc: deleted - 0 items");
 
       export_gd_publish_invoice($order);
 
@@ -119,9 +119,9 @@ function update_orders_wc() {
       $gp_orders = $mysql->run("SELECT * FROM gp_orders WHERE $deleted[invoice_number]")[0];
       $wc_orders = wc_get_post_id($invoice_number);
 
-      $order = helper_update_payment($order, $mysql);
+      $order = helper_update_payment($order, "update_orders_wc: deleted - unknown reason", $mysql);
 
-      export_wc_create_order($order,  "update_orders_wc: deleted unknown reason");
+      export_wc_create_order($order,  "update_orders_wc: deleted - unknown reason");
 
       export_gd_publish_invoice($order);
 

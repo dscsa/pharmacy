@@ -68,7 +68,7 @@ function update_orders_cp() {
       continue;
     }
 
-    $order = helper_update_payment($order, $mysql);
+    $order = helper_update_payment($order, "update_orders_cp: created", $mysql);
 
     //This is not necessary if order was created by webform, which then created the order in Guardian
     //"order_source": "Webform eRX",  "item_added_by": "WEBFORM"
@@ -202,14 +202,14 @@ function update_orders_cp() {
       //order_stage_cp and order_date_dispensed
       if ($dispensing_changes) {
 
-        $order = helper_update_payment($order, $mysql);
+        $order = helper_update_payment($order,  "update_orders_cp: updated - dispensing changes", $mysql);
         export_gd_publish_invoice($order);
         export_wc_update_order($order);
         log_notice("Updated Order Dispensed: dispensing changes: ".implode('; ', $dispensing_changes).' '.$order[0]['invoice_number'], [$item, $changed_fields]);
 
       } else if (count($changed_fields) > 2) {
 
-        $order = helper_update_payment($order, $mysql);
+        $order = helper_update_payment($order,  "update_orders_cp: updated > 2 fields", $mysql);
         export_gd_publish_invoice($order);
         export_wc_update_order($order);
         log_error("Updated Order Dispensed: changed fields ".$order[0]['invoice_number'], $changed_fields);
@@ -260,7 +260,7 @@ function update_orders_cp() {
     //Usually an Address Change
     log_error("Updated Order: Unknown Change ".$order[0]['invoice_number'], $changed_fields);
 
-    $order = helper_update_payment($order, $mysql);
+    $order = helper_update_payment($order,  "update_orders_cp: updated - unknown change", $mysql);
     export_wc_update_order($order);
 
     send_updated_order_communications($groups, $changed_fields);
