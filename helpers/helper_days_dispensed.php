@@ -20,7 +20,7 @@ function get_days_default($item) {
   }
 
   if ($item['refills_total_default'] < 0.1) { //Unlike refills_total_default, refill_total and refill_total_actual are -= 1 so might be 0 if rx is dispensed
-    log_info("DON'T FILL MEDICATIONS WITHOUT REFILLS", get_defined_vars());
+    log_notice("DON'T FILL MEDICATIONS WITHOUT REFILLS", $item);
     return [0, RX_MESSAGE['ACTION NO REFILLS']];
   }
 

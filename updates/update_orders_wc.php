@@ -111,7 +111,7 @@ function update_orders_wc() {
 
       export_gd_publish_invoice($order);
 
-      //log_notice("CP Created Order that has not been saved in WC yet", $order[0]);
+      log_notice("update_orders_wc: order had all items removed so it appeared to be deleted from CP, but when items were added back in the order 'reappeared'", [$items_to_remove, $order[0]]);
 
     } else {
 
