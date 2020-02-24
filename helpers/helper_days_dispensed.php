@@ -19,7 +19,7 @@ function get_days_default($item) {
     return [0, RX_MESSAGE['ACTION EXPIRED']];
   }
 
-  if ($item['refills_total_default'] < 0.1) { //Unlike refills_total_default, refill_total and refill_total_actual are -= 1 so might be 0 if rx is dispensed
+  if ( ! $item['rx_dispensed_id'] AND $item['refills_total'] < 0.1) { //Unlike refills_dispensed_default/actual might not be set yet
     log_error("DON'T FILL MEDICATIONS WITHOUT REFILLS", $item);
     return [0, RX_MESSAGE['ACTION NO REFILLS']];
   }
@@ -160,7 +160,7 @@ function set_price_refills_actual($item, $mysql) {
     SET
       -- Other Fields Should Already Be Set Above (And May have Been Sent to Patient) so don't change
       price_dispensed_actual   = $price_actual,
-      refills_total_actual     = $item[refills_total]
+      refills_dispensed_actual = $item[refills_total]
     WHERE
       invoice_number = $item[invoice_number] AND
       rx_number = $item[rx_number]
@@ -233,27 +233,27 @@ function set_days_default($item, $days, $message, $mysql) {
 
   $price = $item['price_per_month'] ?: 0; //Might be null
 
-  $item['days_dispensed_default']  = $days;
-  $item['qty_dispensed_default']   = $days*$item['sig_qty_per_day'];
-  $item['price_dispensed_default'] = ceil($days*$price/30);
-  $item['refills_total_default']   = $item['refills_total'];
-  $item['stock_level_initial']     = $item['stock_level'];
+  $item['days_dispensed_default']    = $days;
+  $item['qty_dispensed_default']     = $days*$item['sig_qty_per_day'];
+  $item['price_dispensed_default']   = ceil($days*$price/30);
+  $item['refills_dispensed_default'] = max(0, $item['refills_total'] - ($days ? 1 : 0));  //We want invoice to show refills after they are dispensed assuming we dispense items currently in order
+  $item['stock_level_initial']       = $item['stock_level'];
 
 
   $sql = "
     UPDATE
       gp_order_items
     SET
-      days_dispensed_default  = $days,
-      qty_dispensed_default   = $item[qty_dispensed_default],
-      item_message_key        = '$item[item_message_key]',
-      item_message_text       = '".@mysql_escape_string($item['item_message_text'])."',
-      price_dispensed_default = $item[price_dispensed_default],
-      refills_total_default   = $item[refills_total_default],
-      stock_level_initial     = '$item[stock_level_initial]',
-      refill_date_manual      = ".($item['refill_date_manual'] ? "'$item[refill_date_manual]'" : 'NULL').",
-      refill_date_default     = ".($item['refill_date_default'] ? "'$item[refill_date_default]'" : 'NULL').",
-      refill_date_last        = ".($item['refill_date_last'] ? "'$item[refill_date_last]'" : 'NULL')."
+      days_dispensed_default    = $days,
+      qty_dispensed_default     = $item[qty_dispensed_default],
+      item_message_key          = '$item[item_message_key]',
+      item_message_text         = '".@mysql_escape_string($item['item_message_text'])."',
+      price_dispensed_default   = $item[price_dispensed_default],
+      refills_dispensed_default = $item[refills_dispensed_default],
+      stock_level_initial       = '$item[stock_level_initial]',
+      refill_date_manual        = ".($item['refill_date_manual'] ? "'$item[refill_date_manual]'" : 'NULL').",
+      refill_date_default       = ".($item['refill_date_default'] ? "'$item[refill_date_default]'" : 'NULL').",
+      refill_date_last          = ".($item['refill_date_last'] ? "'$item[refill_date_last]'" : 'NULL')."
     WHERE
       invoice_number = $item[invoice_number] AND
       rx_number = $item[rx_number]
@@ -276,7 +276,7 @@ function message_text($message, $item) {
 }
 
 function sync_to_order_new_rx($item) {
-  return  ! $item['item_date_added'] AND $item['refills_total_default'] >= 0.1 AND ! $item['refill_date_first'] AND $item['rx_autofill'];
+  return  ! $item['item_date_added'] AND $item['refills_total'] >= 0.1 AND ! $item['refill_date_first'] AND $item['rx_autofill'];
 }
 
 function sync_to_order_past_due($item) {

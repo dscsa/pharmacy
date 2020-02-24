@@ -188,11 +188,11 @@ function update_orders_cp() {
 
       foreach ($order as $item) {
         if (
-          $item['qty_dispensed_default'] != $item['qty_dispensed_actual'] OR
-          $item['days_dispensed_default'] != $item['days_dispensed_actual'] OR
-          $item['refills_total'] != $item['refills_total_actual'] //Don't use _default here because we don't subtract the current refill from it
+          $item['qty_dispensed_default']     != $item['qty_dispensed_actual'] OR
+          $item['days_dispensed_default']    != $item['days_dispensed_actual'] OR
+          $item['refills_dispensed_default'] != $item['refills_dispensed_actual']
         )
-          $dispensing_changes[] = "rx:$item[rx_number] qty:$item[qty_dispensed_default] >>> $item[qty_dispensed_actual] days:$item[days_dispensed_default] >>> $item[days_dispensed_actual] refills:$item[refills_total] >>> $item[refills_total_actual]";
+          $dispensing_changes[] = "rx:$item[rx_number] qty:$item[qty_dispensed_default] >>> $item[qty_dispensed_actual] days:$item[days_dispensed_default] >>> $item[days_dispensed_actual] refills:$item[refills_dispensed_default] >>> $item[refills_dispensed_actual]";
 
         $actual_sig_qty_per_day = round($item['qty_dispensed_actual']/$item['days_dispensed_actual'], 3);
         if ($actual_sig_qty_per_day AND $actual_sig_qty_per_day != $item['sig_qty_per_day'])

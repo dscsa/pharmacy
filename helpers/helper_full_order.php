@@ -58,7 +58,7 @@ function add_gd_fields_to_order($order, $mysql) {
   //Consolidate default and actual suffixes to avoid conditional overload in the invoice template and redundant code within communications
   foreach($order as $i => $dontuse) { //don't use val because order[$i] and $item will become out of sync as we set properties
 
-    if ($order[$i]['item_message_key'] == 'ACTION NO REFILLS' AND $order[$i]['refills_total_default'] >= .1) {
+    if ($order[$i]['item_message_key'] == 'ACTION NO REFILLS' AND $order[$i]['rx_dispensed_id'] AND $order[$i]['refills_total'] >= .1) {
       log_error('add_gd_fields_to_order: status of ACTION NO REFILLS but has refills. Do we need to send updated communications?', $order[$i]);
       $order[$i]['item_message_key'] = NULL;
     }
@@ -76,10 +76,7 @@ function add_gd_fields_to_order($order, $mysql) {
     $order[$i]['days_dispensed'] = $order[$i]['days_dispensed_actual'] ?: $order[$i]['days_dispensed_default'];
     $order[$i]['payment_method'] = $order[$i]['payment_method_actual'] ?: $order[$i]['payment_method_default'];
 
-    $deduct_refill = 0; //We want invoice to show refills after they are dispensed assuming we dispense items currently in order
-
     if ($order[$i]['days_dispensed']) {
-      $deduct_refill = 1;
       $count_filled++;
     }
 
@@ -87,9 +84,9 @@ function add_gd_fields_to_order($order, $mysql) {
       log_error('add_gd_fields_to_order: What going on here?', get_defined_vars());
     }
 
-    $order[$i]['qty_dispensed'] = (float) ($order[$i]['qty_dispensed_actual'] ?: $order[$i]['qty_dispensed_default']); //cast to float to get rid of .000 decimal
-    $order[$i]['refills_total'] = (float) ($order[$i]['refills_total_actual'] ?: max(0, $order[$i]['refills_total_default'] - $deduct_refill));
-    $order[$i]['price_dispensed'] = (float) ($order[$i]['price_dispensed_actual'] ?: ($order[$i]['price_dispensed_default'] ?: 0));
+    $order[$i]['qty_dispensed']     = (float) ($order[$i]['qty_dispensed_actual'] ?: $order[$i]['qty_dispensed_default']); //cast to float to get rid of .000 decimal
+    $order[$i]['refills_dispensed'] = (float) ($order[$i]['refills_dispensed_actual'] ?: $order[$i]['refills_dispensed_default']);
+    $order[$i]['price_dispensed']   = (float) ($order[$i]['price_dispensed_actual'] ?: ($order[$i]['price_dispensed_default'] ?: 0));
   }
 
   foreach($order as $i => $item)
