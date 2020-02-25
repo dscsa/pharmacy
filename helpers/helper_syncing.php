@@ -15,6 +15,12 @@ function sync_to_order($order, $updated = null) {
     }
 
     if (sync_to_order_past_due($item)) {
+
+      if ($updated) {
+        log_error('sync_to_order adding item: updated so did not add "PAST DUE AND SYNC TO ORDER" ', "$item[invoice_number] $item[drug] $item[item_message_key] refills last:$item[refill_date_last] next:$item[refill_date_next] total:$item[refills_total] left:$item[refills_left]");
+        continue;
+      }
+
       $items_to_sync[] = ['ADD', 'PAST DUE AND SYNC TO ORDER', $item];
       $items_to_add [] = $item['best_rx_number'];
       //log_notice('sync_to_order adding item: PAST DUE AND SYNC TO ORDER', "$item[invoice_number] $item[drug] $item[item_message_key] refills last:$item[refill_date_last] next:$item[refill_date_next] total:$item[refills_total] left:$item[refills_left]");
@@ -23,6 +29,12 @@ function sync_to_order($order, $updated = null) {
     }
 
     if (sync_to_order_due_soon($item)) {
+
+      if ($updated) {
+        log_error('sync_to_order adding item: updated so did not add "DUE SOON AND SYNC TO ORDER" ', "$item[invoice_number] $item[drug] $item[item_message_key] refills last:$item[refill_date_last] next:$item[refill_date_next] total:$item[refills_total] left:$item[refills_left]");
+        continue;
+      }
+
       $items_to_sync[] = ['ADD', 'DUE SOON AND SYNC TO ORDER', $item];
       $items_to_add [] = $item['best_rx_number'];
       //log_notice('sync_to_order adding item: DUE SOON AND SYNC TO ORDER', "$item[invoice_number] $item[drug] $item[item_message_key] refills last:$item[refill_date_last] next:$item[refill_date_next] total:$item[refills_total] left:$item[refills_left]");
@@ -31,9 +43,14 @@ function sync_to_order($order, $updated = null) {
     }
 
     if (sync_to_order_new_rx($item)) {
+
+      if ($updated) {
+        log_error('sync_to_order adding item: updated so did not add "NO ACTION NEW RX SYNCED TO ORDER" ', "$item[invoice_number] $item[drug] $item[item_message_key] refills last:$item[refill_date_last] next:$item[refill_date_next] total:$item[refills_total] left:$item[refills_left]");
+        continue;
+      }
+
       $items_to_sync[] = ['ADD', 'NO ACTION NEW RX SYNCED TO ORDER', $item];
       $items_to_add [] = $item['best_rx_number'];
-      //log_notice('sync_to_order adding item: NO ACTION NEW RX SYNCED TO ORDER', "$item[invoice_number] $item[drug] $item[item_message_key] refills last:$item[refill_date_last] next:$item[refill_date_next] total:$item[refills_total] left:$item[refills_left]");
 
       continue;
     }
@@ -67,11 +84,8 @@ function sync_to_order($order, $updated = null) {
   if ($items_to_remove)
     export_cp_remove_items($item['invoice_number'], $items_to_remove);
 
-  if ( ! $updated)
+  if ($items_to_add)
     export_cp_add_items($item['invoice_number'], $items_to_add);
-
-  else if ($items_to_add)
-    log_info('sync_to_order items NOT added because UPDATED not created', $items_to_sync);
 
   return $items_to_sync;
 }
