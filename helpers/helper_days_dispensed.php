@@ -90,14 +90,14 @@ function get_days_default($item) {
     return [0, RX_MESSAGE['NO ACTION CHECK SIG']];
   }
 
+  if ( ! $item['item_date_added'] AND ! $item['rx_autofill']) {
+    log_info("DON'T FILL IF RX_AUTOFILL IS OFF AND NOT IN ORDER", get_defined_vars());
+    return [0, RX_MESSAGE['NO ACTION RX OFF AUTOFILL']];
+  }
+
   if ( ! $item['refill_date_first'] AND $not_offered) {
     log_info("REFILLS SHOULD NOT HAVE A NOT OFFERED STATUS", get_defined_vars());
     return [$days_default, RX_MESSAGE['NO ACTION NEW GSN']];
-  }
-
-  if ($item['item_date_added'] AND ! $item['rx_autofill']) {
-    log_info("IF RX IS IN ORDER FILL IT EVEN IF RX_AUTOFILL IS OFF", get_defined_vars());
-    return [$days_default, RX_MESSAGE['NO ACTION RX OFF AUTOFILL']];
   }
 
   if (sync_to_order_new_rx($item)) {
