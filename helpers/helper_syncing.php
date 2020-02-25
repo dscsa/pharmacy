@@ -51,6 +51,14 @@ function sync_to_order($order, $updated = null) {
         continue;
       }
 
+      //Don't sync if an order with these instructions already exists in order
+      foreach($order as $item2) {
+        if ($item === $item2 OR $item['drugs_gsns'] != $item2['drugs_gsns']) continue;
+
+        log_error("sync_to_order adding item: matching drug_gsns so did not add 'NO ACTION NEW RX SYNCED TO ORDER' $item[invoice_number] $item[drug] $item[item_message_key] refills last:$item[refill_date_last] next:$item[refill_date_next] total:$item[refills_total] left:$item[refills_left]", [$item, $updated]);
+        continue 2;
+      }
+
       $items_to_sync[] = ['ADD', 'NO ACTION NEW RX SYNCED TO ORDER', $item];
       $items_to_add [] = $item['best_rx_number'];
 
