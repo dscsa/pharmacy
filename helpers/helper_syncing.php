@@ -14,7 +14,7 @@ function sync_to_order($order, $updated = null) {
       continue;
     }
 
-    if ($item['item_message_key'] == 'NO ACTION PAST DUE AND SYNC TO ORDER') {
+    if ($item['item_message_key'] == 'NO ACTION PAST DUE AND SYNC TO ORDER' AND ! is_duplicate_gsn($order, $item)) {
 
       if ($updated) {
         log_error("sync_to_order adding item: updated so did not add 'NO ACTION PAST DUE AND SYNC TO ORDER' $item[invoice_number] $item[drug] $item[item_message_key] refills last:$item[refill_date_last] next:$item[refill_date_next] total:$item[refills_total] left:$item[refills_left]", [$item, $updated]);
@@ -28,7 +28,7 @@ function sync_to_order($order, $updated = null) {
       continue;
     }
 
-    if ($item['item_message_key'] == 'NO ACTION DUE SOON AND SYNC TO ORDER') {
+    if ($item['item_message_key'] == 'NO ACTION DUE SOON AND SYNC TO ORDER' AND ! is_duplicate_gsn($order, $item)) {
 
       if ($updated) {
         log_error("sync_to_order adding item: updated so did not add 'NO ACTION DUE SOON AND SYNC TO ORDER' $item[invoice_number] $item[drug] $item[item_message_key] refills last:$item[refill_date_last] next:$item[refill_date_next] total:$item[refills_total] left:$item[refills_left]", [$item, $updated]);
@@ -42,21 +42,13 @@ function sync_to_order($order, $updated = null) {
       continue;
     }
 
-    if ($item['item_message_key'] == 'NO ACTION NEW RX SYNCED TO ORDER') {
+    if ($item['item_message_key'] == 'NO ACTION NEW RX SYNCED TO ORDER' AND ! is_duplicate_gsn($order, $item)) {
 
       if ($updated) {
         if ($item['drug_gsns'])
           log_error("sync_to_order adding item: updated so did not add 'NO ACTION NEW RX SYNCED TO ORDER' $item[invoice_number] $item[drug] $item[item_message_key] refills last:$item[refill_date_last] next:$item[refill_date_next] total:$item[refills_total] left:$item[refills_left]", [$item, $updated]);
 
         continue;
-      }
-
-      //Don't sync if an order with these instructions already exists in order
-      foreach($order as $item2) {
-        if ($item === $item2 OR $item['drug_gsns'] != $item2['drug_gsns']) continue;
-
-        log_error("sync_to_order adding item: matching drug_gsns so did not add 'NO ACTION NEW RX SYNCED TO ORDER' $item[invoice_number] $item[drug] $item[item_message_key] refills last:$item[refill_date_last] next:$item[refill_date_next] total:$item[refills_total] left:$item[refills_left]", [$item, $updated]);
-        continue 2;
       }
 
       $items_to_sync[] = ['ADD', 'NO ACTION NEW RX SYNCED TO ORDER', $item];
@@ -98,6 +90,18 @@ function sync_to_order($order, $updated = null) {
     export_cp_add_items($item['invoice_number'], $items_to_add);
 
   return $items_to_sync;
+}
+
+//Don't sync if an order with these instructions already exists in order
+function is_duplicate_gsn($order, $item1) {
+  //Don't sync if an order with these instructions already exists in order
+  foreach($order as $item2) {
+    if ($item1 !== $item2 AND $item['drug_gsns'] == $item2['drug_gsns']) {
+      log_error("sync_to_order adding item: matching drug_gsns so did not add 'NO ACTION NEW RX SYNCED TO ORDER' $item[invoice_number] $item[drug] $item[item_message_key] refills last:$item[refill_date_last] next:$item[refill_date_next] total:$item[refills_total] left:$item[refills_left]", [$item, $updated]);
+      return true;
+    }
+  }
+
 }
 
 //Group all drugs by their next fill date and get the most popular date
