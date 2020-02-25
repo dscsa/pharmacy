@@ -53,7 +53,7 @@ function sync_to_order($order, $updated = null) {
 
       //Don't sync if an order with these instructions already exists in order
       foreach($order as $item2) {
-        if ($item === $item2 OR $item['drugs_gsns'] != $item2['drugs_gsns']) continue;
+        if ($item === $item2 OR $item['drug_gsns'] != $item2['drug_gsns']) continue;
 
         log_error("sync_to_order adding item: matching drug_gsns so did not add 'NO ACTION NEW RX SYNCED TO ORDER' $item[invoice_number] $item[drug] $item[item_message_key] refills last:$item[refill_date_last] next:$item[refill_date_next] total:$item[refills_total] left:$item[refills_left]", [$item, $updated]);
         continue 2;
@@ -146,7 +146,10 @@ function set_sync_to_date($order, $target_date, $target_rxs, $mysql) {
     $days_extra  = (strtotime($target_date) - $time_refill)/60/60/24;
     $days_synced = $old_days_default + round($days_extra/15)*15;
 
-    $new_days_default = days_default($item, $days_synced);
+    $days_left_in_expiration = days_left_in_expiration($item);
+    $days_left_in_refills    = days_left_in_refills($item);
+    $days_left_in_stock      = days_left_in_stock($item);
+    $new_days_default        = days_default($days_left_in_expiration, $days_left_in_refills, $days_left_in_stock);
 
     if ($new_days_default >= 15 AND $new_days_default <= 120 AND $new_days_default != $old_days_default) { //Limits to the amounts by which we are willing sync
 

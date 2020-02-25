@@ -191,7 +191,8 @@ function test_parse_sig() {
     "Take 1 tablet by mouth 1 time daily then, if no side effects, increase to 1 tablet 2 times daily with meals", //Unfixed
     "Take 1 tablet by mouth once daily and two on sundays", //Unfixed
     "Take 4 tablets by mouth 3 times a day with meal and 2 tablets twice a day with snacks", //Unfixed
-    "Take 7.5mg three days per week (M,W,F) and 5mg four days per week OR as directed per Coumadin Clinic." //Unfixed
+    "Take 7.5mg three days per week (M,W,F) and 5mg four days per week OR as directed per Coumadin Clinic.", //Unfixed
+    "Take 1 tablet by mouth every 8 hours as needed" //Unfixed
     //"Take 1 tablet (12.5 mg total) by mouth every 12 (twelve) hours",
     //"1 ORAL every eight hours as needed",
     //"Take 5 mg by mouth 2 (two) times daily.",
