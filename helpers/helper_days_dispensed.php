@@ -4,22 +4,17 @@
 
 function get_days_default($item) {
 
-  //TODO OR IT'S AN OTC
-  $no_transfer = $item['price_per_month'] >= 20 OR $item['pharmacy_phone'] == "8889875187";
-
-  $manual = in_array($item['item_added_by'], ADDED_MANUALLY);
-
-  $not_offered = $item['stock_level'] == STOCK_LEVEL['NOT OFFERED'];
-
-  $refills_only = is_refill_only($item);
+  $no_transfer    = is_no_transfer($item);
+  $added_manually = is_added_manually($item);
+  $not_offered    = is_not_offered($item);
+  $refills_only   = is_refill_only($item);
 
   $days_left_in_expiration = days_left_in_expiration($item);
   $days_left_in_refills    = days_left_in_refills($item);
   $days_left_in_stock      = days_left_in_stock($item);
   $days_default            = days_default($days_left_in_expiration, $days_left_in_refills, $days_left_in_stock);
 
-  //ALTERNATIVE: $item['days_left'] <= 0; but doesn't seem to always exist
-  if ($item['rx_date_expired'] < $item['refill_date_next']) {
+  if ($days_left_in_expiration <= 0) {
     log_info("DON'T FILL EXPIRED MEDICATIONS", get_defined_vars());
     return [0, RX_MESSAGE['ACTION EXPIRED']];
   }
@@ -267,6 +262,19 @@ function set_days_default($item, $days, $message, $mysql) {
   return $item;
 }
 
+//TODO OR IT'S AN OTC
+function is_no_transfer($item) {
+  return $item['price_per_month'] >= 20 OR $item['pharmacy_phone'] == "8889875187";
+}
+
+function is_added_manually($item) {
+  return in_array($item['item_added_by'], ADDED_MANUALLY);
+}
+
+function is_not_offered($item) {
+  return $item['stock_level'] == STOCK_LEVEL['NOT OFFERED'];
+}
+
 function is_refill_only($item) {
   return in_array($item['stock_level'], [
     STOCK_LEVEL['OUT OF STOCK'],
@@ -279,7 +287,10 @@ function message_text($message, $item) {
 }
 
 function sync_to_order_new_rx($item) {
-  return  ! $item['item_date_added'] AND $item['refills_total'] >= 0.1 AND ! $item['refill_date_first'] AND $item['rx_autofill'];
+  $not_offered  = is_not_offered($item);
+  $refills_only = is_refill_only($item);
+
+  return  ! $item['item_date_added'] AND $item['refills_total'] >= 0.1 AND ! $item['refill_date_first'] AND $item['rx_autofill'] AND ! $not_offered AND ! $refills_only;
 }
 
 function sync_to_order_past_due($item) {
