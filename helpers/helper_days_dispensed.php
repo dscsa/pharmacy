@@ -337,9 +337,9 @@ function days_default($days_left_in_expiration, $days_left_in_refills, $days_lef
 
   //Cannot have NULL inside of MIN()
   $days_default = min(
-    $days_left_in_expiration ?: $days_default,
-    $days_left_in_refills ?: $days_default,
-    $days_left_in_stock ?: $days_default,
+    $days_left_in_expiration ?: DAYS_STD,
+    $days_left_in_refills ?: DAYS_STD,
+    $days_left_in_stock ?: DAYS_STD,
     DAYS_STD
   );
 
