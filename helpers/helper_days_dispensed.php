@@ -305,7 +305,7 @@ function days_left_in_expiration($item) {
 
   $days_left_in_expiration = strtotime($item['rx_date_expired']) - strtotime($item['refill_date_next']);
 
-  if ($days_left_in_expiration <= $days_std+30) return $days_left_in_expiration;
+  if ($days_left_in_expiration <= DAYS_STD+30) return $days_left_in_expiration;
 }
 
 function days_left_in_refills($item) {
@@ -314,7 +314,7 @@ function days_left_in_refills($item) {
 
   //Fill up to 30 days more to finish up an Rx if almost finished.
   //E.g., If 30 day script with 3 refills (4 fills total, 120 days total) then we want to 1x 120 and not 1x 90 + 1x30
-  if ($days_left_in_refills <= $days_std+30) return $days_left_in_refills;
+  if ($days_left_in_refills <= DAYS_STD+30) return $days_left_in_refills;
 }
 
 function days_left_in_stock($item) {
@@ -335,14 +335,12 @@ function days_left_in_stock($item) {
 //NOTE: We base this on the best_rx_number and NOT on the rx currently in the order
 function days_default($days_left_in_expiration, $days_left_in_refills, $days_left_in_stock) {
 
-  $days_default = 90;
-
   //Cannot have NULL inside of MIN()
   $days_default = min(
     $days_left_in_expiration ?: $days_default,
     $days_left_in_refills ?: $days_default,
     $days_left_in_stock ?: $days_default,
-    $days_default
+    DAYS_STD
   );
 
   if ($days_default % 15)

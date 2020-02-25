@@ -2,6 +2,8 @@
 
 const LIVE_MODE = true;
 
+const DAYS_STD = 90;
+
 const ADDED_MANUALLY = [
   "MANUAL",
   "WEBFORM"
