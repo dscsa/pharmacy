@@ -53,7 +53,7 @@ function get_days_default($item) {
   }
 
   //TODO MAYBE WE SHOULD JUST MOVE THE REFILL_DATE_NEXT BACK BY A WEEK OR TWO
-  if ($item['refill_date_first'] AND ($item['qty_inventory']/$item['sig_qty_per_day'] < 30) AND ! $manual) {
+  if ($item['refill_date_first'] AND ($item['qty_inventory']/$item['sig_qty_per_day'] < 30) AND ! $added_manually) {
     log_info("CHECK BACK NOT ENOUGH QTY UNLESS ADDED MANUALLY", get_defined_vars());
     return [0, RX_MESSAGE['ACTION CHECK BACK']];
   }
@@ -63,20 +63,20 @@ function get_days_default($item) {
     return [$item['item_date_added'] ? $days_default : 0, RX_MESSAGE['ACTION NEEDS FORM']];
   }
 
-  if ( ! $item['patient_autofill'] AND ! $manual) {
+  if ( ! $item['patient_autofill'] AND ! $added_manually) {
     log_info("DON'T FILL IF PATIENT AUTOFILL IS OFF AND NOT MANUALLY ADDED", get_defined_vars());
     return [0, RX_MESSAGE['ACTION PATIENT OFF AUTOFILL']];
   }
 
-  if ( ! $item['patient_autofill'] AND $manual) {
+  if ( ! $item['patient_autofill'] AND $added_manually) {
     log_info("OVERRIDE PATIENT AUTOFILL OFF SINCE MANUALLY ADDED", get_defined_vars());
     return [$days_default, RX_MESSAGE['NO ACTION RX OFF AUTOFILL']];
   }
 
-  if ((strtotime($item['refill_date_next']) - strtotime($item['order_date_added'])) > 15*24*60*60 AND ! $manual) {
+  if ((strtotime($item['refill_date_next']) - strtotime($item['order_date_added'])) > 15*24*60*60 AND ! $added_manually) {
 
     //DON'T STRICTLY NEED THIS TEST BUT IT GIVES A MORE SPECIFIC ERROR SO IT MIGHT BE HELPFUL
-    if ((strtotime($item['order_date_added']) - strtotime($item['refill_date_last'])) < 15*24*60*60 AND ! $manual) {
+    if ((strtotime($item['order_date_added']) - strtotime($item['refill_date_last'])) < 15*24*60*60 AND ! $added_manually) {
       log_info("DON'T REFILL IF FILLED WITHIN LAST 15 DAYS UNLESS ADDED MANUALLY", get_defined_vars());
       return [0, RX_MESSAGE['NO ACTION RECENT FILL']];
     }
@@ -85,7 +85,7 @@ function get_days_default($item) {
     return [0, RX_MESSAGE['NO ACTION NOT DUE']];
   }
 
-  if ( ! $item['refill_date_first'] AND $item['qty_inventory'] < 2000 AND ($item['sig_qty_per_day'] > 2.5*($item['qty_repack'] ?: 135)) AND ! $manual) {
+  if ( ! $item['refill_date_first'] AND $item['qty_inventory'] < 2000 AND ($item['sig_qty_per_day'] > 2.5*($item['qty_repack'] ?: 135)) AND ! $added_manually) {
     log_info("SIG SEEMS TO HAVE EXCESSIVE QTY", get_defined_vars());
     return [0, RX_MESSAGE['NO ACTION CHECK SIG']];
   }
