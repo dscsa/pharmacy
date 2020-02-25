@@ -29,7 +29,7 @@ function get_days_default($item) {
       ? log_error("GSN NEEDS TO BE ADDED TO V2", "rx:$item[rx_number] $item[drug_name] $item[drug_generic] rx_gsn:$item[rx_gsn] max_gsn:$item[max_gsn]")
       : log_info("RX IS MISSING GSN", $item);
 
-    return [ $item['refill_date_first'] ? days_default($item) : 0, RX_MESSAGE['NO ACTION MISSING GSN']];
+    return [ $item['refill_date_first'] ? $days_default : 0, RX_MESSAGE['NO ACTION MISSING GSN']];
   }
 
   if ($item['rx_date_transferred']) {
@@ -310,7 +310,7 @@ function days_left_in_expiration($item) {
 
 function days_left_in_refills($item) {
 
-  $days_left_in_refills = round($item['qty_left']/$item['sig_qty_per_day']);
+  $days_left_in_refills = $item['qty_left']/$item['sig_qty_per_day'];
 
   //Fill up to 30 days more to finish up an Rx if almost finished.
   //E.g., If 30 day script with 3 refills (4 fills total, 120 days total) then we want to 1x 120 and not 1x 90 + 1x30
@@ -344,13 +344,12 @@ function days_default($days_left_in_expiration, $days_left_in_refills, $days_lef
     $days_left_in_expiration ?: DAYS_STD,
     $days_left_in_refills ?: DAYS_STD,
     $days_left_in_stock ?: DAYS_STD,
-    DAYS_STD
   );
 
   if ($days_default % 15)
-    log_error("DEFAULT DAYS IS NOT A MULTIPLE OF 15! days_default:$days_default, days_left_in_stock:$days_left_in_stock, days_left_in_refills:$days_left_in_refills", get_defined_vars());
+    log_error("DEFAULT DAYS IS NOT A MULTIPLE OF 15! days_default:$days_default, days_left_in_expiration:$days_left_in_expiration, days_left_in_stock:$days_left_in_stock, days_left_in_refills:$days_left_in_refills", get_defined_vars());
   else
-    log_info("days_default:$days_default, days_left_in_stock:$days_left_in_stock, days_left_in_refills:$days_left_in_refills", get_defined_vars());
+    log_info("days_default:$days_default,  days_left_in_expiration:$days_left_in_expiration, days_left_in_stock:$days_left_in_stock, days_left_in_refills:$days_left_in_refills", get_defined_vars());
 
   return $days_default;
 }
