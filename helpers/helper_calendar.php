@@ -388,10 +388,12 @@ function search_events_by_person($first_name, $last_name, $birth_date, $past = f
 
   $result = gdoc_post(GD_HELPER_URL, $args);
 
-  if ($result != '[]')
-    log_error('search_events', get_defined_vars());
+  $json = json_decode($result, true);
 
-  return json_decode($result, true);
+  if ($result != '[]')
+    log_notice('search_events', $json);
+
+  return $json;
 }
 
 //NOTE: RELIES on the assumption that ALL drugs (and their associated messages) end with a semicolon (;) and
