@@ -17,7 +17,7 @@ function sync_to_order($order, $updated = null) {
     if (sync_to_order_past_due($item)) {
 
       if ($updated) {
-        log_error('sync_to_order adding item: updated so did not add "PAST DUE AND SYNC TO ORDER" ', "$item[invoice_number] $item[drug] $item[item_message_key] refills last:$item[refill_date_last] next:$item[refill_date_next] total:$item[refills_total] left:$item[refills_left]");
+        log_error('sync_to_order adding item: updated so did not add "PAST DUE AND SYNC TO ORDER" ', "$item[invoice_number] $item[drug] $item[item_message_key] refills last:$item[refill_date_last] next:$item[refill_date_next] total:$item[refills_total] left:$item[refills_left]", $updated);
         continue;
       }
 
@@ -31,7 +31,7 @@ function sync_to_order($order, $updated = null) {
     if (sync_to_order_due_soon($item)) {
 
       if ($updated) {
-        log_error('sync_to_order adding item: updated so did not add "DUE SOON AND SYNC TO ORDER" ', "$item[invoice_number] $item[drug] $item[item_message_key] refills last:$item[refill_date_last] next:$item[refill_date_next] total:$item[refills_total] left:$item[refills_left]");
+        log_error('sync_to_order adding item: updated so did not add "DUE SOON AND SYNC TO ORDER" ', "$item[invoice_number] $item[drug] $item[item_message_key] refills last:$item[refill_date_last] next:$item[refill_date_next] total:$item[refills_total] left:$item[refills_left]", $updated);
         continue;
       }
 
@@ -45,7 +45,7 @@ function sync_to_order($order, $updated = null) {
     if (sync_to_order_new_rx($item)) {
 
       if ($updated) {
-        log_error('sync_to_order adding item: updated so did not add "NO ACTION NEW RX SYNCED TO ORDER" ', "$item[invoice_number] $item[drug] $item[item_message_key] refills last:$item[refill_date_last] next:$item[refill_date_next] total:$item[refills_total] left:$item[refills_left]");
+        log_error('sync_to_order adding item: updated so did not add "NO ACTION NEW RX SYNCED TO ORDER" ', "$item[invoice_number] $item[drug] $item[item_message_key] refills last:$item[refill_date_last] next:$item[refill_date_next] total:$item[refills_total] left:$item[refills_left]", $updated);
         continue;
       }
 
