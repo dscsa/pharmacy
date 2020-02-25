@@ -29,7 +29,7 @@ function import_cp_rxs_single() {
 
       autofill_yn as rx_autofill,
       CONVERT(varchar, COALESCE(orig_disp_date, dispense_date), 20) as refill_date_first,
-      CONVERT(varchar, dispense_date, 20) as refill_date_last,
+      CONVERT(varchar, COALESCE(dispense_date, orig_disp_date), 20) as refill_date_last, -- Order #28647 had orig_disp_date but not dispense_date
       (CASE
         WHEN script_status_cn = 0 AND autofill_resume_date >= @today
         THEN CONVERT(varchar, autofill_resume_date, 20)

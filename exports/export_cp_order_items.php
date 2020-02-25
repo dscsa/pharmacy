@@ -43,7 +43,7 @@ function export_cp_add_items($invoice_number, $script_nos) {
   global $mssql;
   $mssql = $mssql ?: new Mssql_Cp();
 
-  $sql = "SirumWeb_AddScriptNosToOrder '$invoice_number', '$script_nos'";
+  $sql = "SirumWeb_AddItemsToOrder '$invoice_number', '$script_nos'";
 
   $res = $mssql->run($sql);
 

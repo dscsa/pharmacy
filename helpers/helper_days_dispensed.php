@@ -60,7 +60,7 @@ function get_days_default($item) {
 
   if ( ! $item['pharmacy_name']) {
     log_info("PATIENT NEEDS TO REGISTER", get_defined_vars());
-    return [$days_default, RX_MESSAGE['ACTION NEEDS FORM']];
+    return [$item['item_date_added'] ? $days_default : 0, RX_MESSAGE['ACTION NEEDS FORM']];
   }
 
   if ( ! $item['patient_autofill'] AND ! $manual) {
@@ -95,7 +95,7 @@ function get_days_default($item) {
     return [$days_default, RX_MESSAGE['NO ACTION NEW GSN']];
   }
 
-  if ( ! $item['rx_autofill']) { //InOrder is implied here
+  if ($item['item_date_added'] AND ! $item['rx_autofill']) {
     log_info("IF RX IS IN ORDER FILL IT EVEN IF RX_AUTOFILL IS OFF", get_defined_vars());
     return [$days_default, RX_MESSAGE['NO ACTION RX OFF AUTOFILL']];
   }
