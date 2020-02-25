@@ -303,9 +303,9 @@ function sync_to_order_due_soon($item) {
 
 function days_left_in_expiration($item) {
 
-  $days_left_in_expiration = strtotime($item['rx_date_expired']) - strtotime($item['refill_date_next']);
+  $days_left_in_expiration = (strtotime($item['rx_date_expired']) - strtotime($item['refill_date_next']))/60/60/24;
 
-  if ($days_left_in_expiration <= DAYS_STD+30) return $days_left_in_expiration;
+  if ($days_left_in_expiration <= DAYS_STD+30) return round15($days_left_in_expiration);
 }
 
 function days_left_in_refills($item) {
@@ -314,7 +314,7 @@ function days_left_in_refills($item) {
 
   //Fill up to 30 days more to finish up an Rx if almost finished.
   //E.g., If 30 day script with 3 refills (4 fills total, 120 days total) then we want to 1x 120 and not 1x 90 + 1x30
-  if ($days_left_in_refills <= DAYS_STD+30) return $days_left_in_refills;
+  if ($days_left_in_refills <= DAYS_STD+30) return round15($days_left_in_refills);
 }
 
 function days_left_in_stock($item) {
@@ -328,6 +328,10 @@ function days_left_in_stock($item) {
 
     return $item['sig_qty_per_day'] == 1/30 ? 30 : 45; //Assume an Inhaler lasts one month
   }
+}
+
+function round15($days) {
+  return floor($days/15)*15;
 }
 
 //Days is basically the MIN(target_date ?: std_day, qty_left as days, inventory_left as days).
