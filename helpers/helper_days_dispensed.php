@@ -343,7 +343,7 @@ function days_default($days_left_in_expiration, $days_left_in_refills, $days_lef
   $days_default = min(
     $days_left_in_expiration ?: DAYS_STD,
     $days_left_in_refills ?: DAYS_STD,
-    $days_left_in_stock ?: DAYS_STD,
+    $days_left_in_stock ?: DAYS_STD
   );
 
   if ($days_default % 15)
