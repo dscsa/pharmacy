@@ -36,6 +36,7 @@ function parse_sig($rx) {
     $frequency_denominator = get_frequency_denominator($sig_clean);
 
     $parsed = [
+      'sig_qty_per_day'           => "NULL",
       'sig_clean'                 => clean_val($sig_clean), //this may have a single quote in it that needs escaping
       'sig_qty_per_time'          => $qty_per_time,
       'sig_frequency'             => $frequency,

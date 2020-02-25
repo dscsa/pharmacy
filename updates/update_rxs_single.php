@@ -28,7 +28,7 @@ function update_rxs_single() {
     if ($sig)
       $mysql->run("
         UPDATE gp_rxs_single SET
-          sig_initial = '$sig[sig_actual]',
+          sig_initial = '$rx[sig_actual]',
           sig_clean = $sig[sig_clean],
           sig_qty_per_day = $sig[sig_qty_per_day],
           sig_qty_per_time = $sig[sig_qty_per_time],
@@ -99,7 +99,7 @@ function update_rxs_single() {
   $mysql->run("COMMIT");
 
 
-  //TODO if new Rx arrives and there is an active order where that Rx is not included because of "ACTION NO REFILLS" or "ACTION RX EXPIRED" or the like, then we should rerun the helper_days_dispensed on the order_item 
+  //TODO if new Rx arrives and there is an active order where that Rx is not included because of "ACTION NO REFILLS" or "ACTION RX EXPIRED" or the like, then we should rerun the helper_days_dispensed on the order_item
 
   //TODO Implement rx_status logic that was in MSSQL Query and Save in Database
 

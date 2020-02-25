@@ -103,8 +103,11 @@ function import_cp_rxs_single() {
     }
   );
 
-  //Replace Staging Table with New Data
-  $mysql->run('TRUNCATE TABLE gp_rxs_single_cp');
+  $sql = "INSERT INTO gp_rxs_single_cp $keys VALUES ".$rxs[0];
 
-  $mysql->run("INSERT INTO gp_rxs_single_cp $keys VALUES ".$rxs[0]);
+  //Replace Staging Table with New Data
+  $mysql->run("START TRANSACTION");
+  $mysql->run("DELETE FROM gp_rxs_single_cp");
+  $mysql->run($sql);
+  $mysql->run("COMMIT");
 }
