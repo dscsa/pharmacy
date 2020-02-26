@@ -113,7 +113,21 @@ function update_orders_wc() {
 
       $wc_orders = wc_get_post_id($deleted['invoice_number']);
 
-      log_error("update_orders_wc: order had all items removed so it appeared to be deleted from CP, but when items were added back in the order 'reappeared'", [$order[0], $deleted, $wc_orders]);
+      $sql = get_deleted_sql("gp_orders_wc", "gp_orders", "invoice_number");
+
+      $gp_orders    = $mysql->run("SELECT * FROM gp_orders WHERE invoice_number = $deleted[invoice_number]");
+      $gp_orders_wc = $mysql->run("SELECT * FROM gp_orders_wc WHERE invoice_number = $deleted[invoice_number]");
+      $gp_orders_cp = $mysql->run("SELECT * FROM gp_orders_cp WHERE invoice_number = $deleted[invoice_number]");
+
+      log_error("update_orders_wc: order had all items removed so it appeared to be deleted from CP, but when items were added back in the order 'reappeared'", [
+        'order[0]' => $order[0],
+        'deleted' => $deleted,
+        'wc_post_id' => $wc_orders,
+        'gp_orders' => $gp_orders,
+        'gp_orders_wc' => $gp_orders_wc,
+        'gp_orders_cp' => $gp_orders_cp,
+        'sql' => $sql
+      ]);
 
     } else {
 

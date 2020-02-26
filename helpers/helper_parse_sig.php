@@ -196,7 +196,9 @@ function test_parse_sig() {
     "Take 1 tablet by mouth twice a day 1 in am and 1 at 3pm", //Unfixed
     "Take 3 tablets by mouth 3 times a day with meal and 2 tablets twice a day with snack", //Unfixed
     "Take 1 tablet by mouth once  every morning then 1/2 tablet at night", //Unfixed
-    "Inject 0.4 mL (40 mg total) under the skin daily as directed" //Unfixed
+    "Inject 0.4 mL (40 mg total) under the skin daily as directed", //Unfixed
+    "Place 1 tablet under the tongue every 5 minutes as needed for chest pain Not to exceed 3 tablets per day", //Unfixed
+    "Take 1 capsule by mouth once  at bedtime x7 days then 1 capsule twice a day x7 days then 3 times a day" //Unfixed
     //"Take 1 tablet (12.5 mg total) by mouth every 12 (twelve) hours",
     //"1 ORAL every eight hours as needed",
     //"Take 5 mg by mouth 2 (two) times daily.",
