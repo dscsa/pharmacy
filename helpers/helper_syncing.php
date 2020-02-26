@@ -89,6 +89,12 @@ function sync_to_order($order, $updated = null) {
   if ($items_to_add)
     export_cp_add_items($item['invoice_number'], $items_to_add);
 
+  //TODO Should we do a patient communication here???
+  $remove_order = count($items_to_remove)+count($items_to_add)-$order[0]['count_filled'];
+  if ($remove_order <= 0) {
+    log_error("helper_syncing is effectively removing order ".$order[0]['invoice_number'], ['order' => $order, 'removing' => count($items_to_remove), 'adding' => count($items_to_add), 'old_filled' => $order[0]['count_filled'], 'new_filled' => $remove_order]);
+  }
+
   return $items_to_sync;
 }
 
