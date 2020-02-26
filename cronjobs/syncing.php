@@ -30,11 +30,11 @@ timer("", $time);
 $email = '';
 
 //Imports
-import_cp_orders();
-$email .= timer("import_cp_orders", $time);
-
 import_wc_orders();
 $email .= timer("import_wc_orders", $time);
+
+import_cp_orders(); //Put this after wc_orders so that we never have an wc_order without a matching cp_order
+$email .= timer("import_cp_orders", $time);
 
 import_cp_order_items(); //Put this after orders so that we never have an order without a matching order_item
 $email .= timer("import_cp_order_items", $time);
@@ -73,11 +73,11 @@ $email .= timer("update_patients_cp", $time);
 update_order_items();
 $email .= timer("update_order_items", $time);
 
-update_orders_wc();
-$email .= timer("update_orders_wc", $time);
-
 update_orders_cp();
 $email .= timer("update_orders_cp", $time);
+
+update_orders_wc();
+$email .= timer("update_orders_wc", $time);
 
 watch_invoices();
 $email .= timer("watch_invoices", $time);
