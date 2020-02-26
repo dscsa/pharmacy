@@ -43,9 +43,18 @@ function get_full_order($partial, $mysql) {
 function add_wc_status_to_order($order) {
 
   $order_stage_wc = get_order_stage_wc($order);
+  $drug_names     = []; //Append qty_per_day if multiple of same strength, do this after sorting
 
-  foreach($order as $i => $item)
+  foreach($order as $i => $item) {
     $order[$i]['order_stage_wc'] = $order_stage_wc;
+
+    if (in_array($order[$i]['drug'], $drug_names)) {
+      $order[$i]['drug'] .= ' ('.( (float) $order[$i]['sig_qty_per_day'] ).' per day)';
+      log_error("helper_full_order add_wc_status_to_order: appended sig_qty_per_day to duplicate drug", $order);
+    } else {
+      $drug_names[] = $order[$i]['drug'];
+    }
+  }
 
   return $order;
 }

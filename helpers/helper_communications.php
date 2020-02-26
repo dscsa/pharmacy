@@ -28,7 +28,7 @@ function group_drugs($order, $mysql) {
 
     $days = $item['days_dispensed'];
     $fill = $days ? 'FILLED_' : 'NOFILL_';
-    $msg  = $item['item_message_text'] ? ' '.$item['item_message_text'] : '';
+    $msg  = $item['item_message_text'] ? ' '.str_replace(' **', '', $item['item_message_text']) : '';
 
     if (strpos($item['item_message_key'], 'NO ACTION') !== false)
       $action = 'NOACTION';
