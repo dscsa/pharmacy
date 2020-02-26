@@ -39,12 +39,11 @@ function update_patients_wc() {
     }
     else if ( ! $created['pharmacy_name']) {
       $created_needs_form++;
-      //Registration Started but Not Complete
+      //Registration Started but Not Complete (first 1/2 of the registration form)
     }
     else {
-      //People who filled out first 1/2 of the registration form
       $created_new_to_cp++;
-      log_notice("update_patients_wc: new_to_cp $created[first_name] $created[last_name] wc:$created[patient_id_wc]");
+      log_error("update_patients_wc: new_to_cp $created[first_name] $created[last_name] wc:$created[patient_id_wc]", [$patient, $created]);
     }
   }
 
