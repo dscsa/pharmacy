@@ -132,7 +132,7 @@ function export_wc_create_order($order, $reason) {
 
   if ($post_id) {
 
-    if ($reason != "update_orders_wc: deleted but still in CP")
+    if ($reason != "update_orders_wc: deleted but still in CP" AND $reason != "update_orders_wc: deleted - 0 items")
       log_error("export_wc_create_order: aborting create order", [$order[0], $reason]);
 
     return $order;
