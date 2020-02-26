@@ -56,6 +56,8 @@ function update_orders_cp() {
     list($target_date, $target_rxs) = get_sync_to_date($order);
     $order  = set_sync_to_date($order, $target_date, $target_rxs, $mysql);
 
+    log_notice("Created Order", $order);
+
     $groups = group_drugs($order, $mysql);
 
     if ( ! $groups['COUNT_FILLED'] AND $groups['ALL'][0]['item_message_key'] != 'ACTION NEEDS FORM') {
@@ -76,8 +78,6 @@ function update_orders_cp() {
       export_wc_create_order($order, "update_orders_cp: created");
 
     send_created_order_communications($groups);
-
-    log_info("Created Order", $groups);
 
     //TODO Update Salesforce Order Total & Order Count & Order Invoice using REST API or a MYSQL Zapier Integration
   }

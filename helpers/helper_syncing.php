@@ -17,7 +17,7 @@ function sync_to_order($order, $updated = null) {
     if ($item['item_message_key'] == 'NO ACTION PAST DUE AND SYNC TO ORDER' AND ! is_duplicate_gsn($order, $item)) {
 
       if ($updated) {
-        log_error("sync_to_order adding item: updated so did not add 'NO ACTION PAST DUE AND SYNC TO ORDER' $item[invoice_number] $item[drug] $item[item_message_key] refills last:$item[refill_date_last] next:$item[refill_date_next] total:$item[refills_total] left:$item[refills_left]", [$item, $updated]);
+        log_notice("sync_to_order adding item: updated so did not add 'NO ACTION PAST DUE AND SYNC TO ORDER' $item[invoice_number] $item[drug] $item[item_message_key] refills last:$item[refill_date_last] next:$item[refill_date_next] total:$item[refills_total] left:$item[refills_left]", [$item, $updated]);
         continue;
       }
 
@@ -31,7 +31,7 @@ function sync_to_order($order, $updated = null) {
     if ($item['item_message_key'] == 'NO ACTION DUE SOON AND SYNC TO ORDER' AND ! is_duplicate_gsn($order, $item)) {
 
       if ($updated) {
-        log_error("sync_to_order adding item: updated so did not add 'NO ACTION DUE SOON AND SYNC TO ORDER' $item[invoice_number] $item[drug] $item[item_message_key] refills last:$item[refill_date_last] next:$item[refill_date_next] total:$item[refills_total] left:$item[refills_left]", [$item, $updated]);
+        log_notice("sync_to_order adding item: updated so did not add 'NO ACTION DUE SOON AND SYNC TO ORDER' $item[invoice_number] $item[drug] $item[item_message_key] refills last:$item[refill_date_last] next:$item[refill_date_next] total:$item[refills_total] left:$item[refills_left]", [$item, $updated]);
         continue;
       }
 
@@ -46,7 +46,7 @@ function sync_to_order($order, $updated = null) {
 
       if ($updated) {
         if ($item['drug_gsns'])
-          log_error("sync_to_order adding item: updated so did not add 'NO ACTION NEW RX SYNCED TO ORDER' $item[invoice_number] $item[drug] $item[item_message_key] refills last:$item[refill_date_last] next:$item[refill_date_next] total:$item[refills_total] left:$item[refills_left]", [$item, $updated]);
+          log_notice("sync_to_order adding item: updated so did not add 'NO ACTION NEW RX SYNCED TO ORDER' $item[invoice_number] $item[drug] $item[item_message_key] refills last:$item[refill_date_last] next:$item[refill_date_next] total:$item[refills_total] left:$item[refills_left]", [$item, $updated]);
 
         continue;
       }
