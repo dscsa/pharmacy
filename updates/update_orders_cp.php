@@ -110,7 +110,8 @@ function update_orders_cp() {
 
     export_gd_delete_invoice([$deleted], $mysql);
 
-    export_wc_delete_order($deleted['invoice_number'], "update_orders_cp: $deleted[invoice_number] $deleted[order_stage_cp] $deleted[order_stage_wc] $deleted[order_source]");
+    //TODO this is getting called on a CP order that is not yet in WC
+    export_wc_delete_order($deleted['invoice_number'], "update_orders_cp: $deleted[invoice_number] $deleted[order_stage_cp] $deleted[order_stage_wc] $deleted[order_source] ".json_encode($deleted));
 
     export_v2_unpend_order([$deleted]);
 

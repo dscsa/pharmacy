@@ -90,7 +90,7 @@ function update_orders_wc() {
         export_gd_publish_invoice($order);
       }
 
-    } else if ( ! $order[0]['pharmacy_name']) {
+    } else if ($order[0]['item_message_key'] == 'ACTION NEEDS FORM') {
       //TODO eventually set registration comm-calendar event then delete order but right now just remove items from order
       //If all items are removed, order will not be imported from CP
       $items_to_remove = [];
@@ -101,7 +101,7 @@ function update_orders_wc() {
 
       export_cp_remove_items($item['invoice_number'], $items_to_remove);
 
-      log_notice("update_orders_wc: RXs created an order in CP but patient has not yet registered so there is no order in WC yet", [$items_to_remove, $order[0]]);
+      log_notice("update_orders_wc: RXs created an order in CP but patient has not yet registered so there is no order in WC yet", [$order, $items_to_remove]);
 
     } else if ($deleted['order_stage_cp'] != 'Shipped' AND $deleted['order_stage_cp'] != 'Dispensed') {
 
