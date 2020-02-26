@@ -48,11 +48,11 @@ function add_wc_status_to_order($order) {
   foreach($order as $i => $item) {
     $order[$i]['order_stage_wc'] = $order_stage_wc;
 
-    if (isset($drug_names[$order[$i]['drug']])) {
-      $order[$i]['drug'] .= ' ('.( (float) $order[$i]['sig_qty_per_day'] ).' per day)';
-      log_error("helper_full_order add_wc_status_to_order: appended sig_qty_per_day to duplicate drug ".$order[$i]['drug']." >>> ".$drug_names[$order[$i]['drug']], $order[$i]);
+    if (isset($drug_names[$item['drug']])) {
+      $order[$i]['drug'] .= ' ('.( (float) $item['sig_qty_per_day'] ).' per day)';
+      log_notice("helper_full_order add_wc_status_to_order: appended sig_qty_per_day to duplicate drug ".$item['drug']." >>> ".$drug_names[$item['drug']], [$order, $item, $drug_names]);
     } else {
-      $drug_names[$order[$i]['drug']] = $order[$i]['sig_qty_per_day'];
+      $drug_names[$item['drug']] = $item['sig_qty_per_day'];
     }
   }
 

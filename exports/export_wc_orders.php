@@ -2,7 +2,7 @@
 
 global $mysql;
 
-function wc_get_post_id($invoice_number) {
+function wc_get_post_id($invoice_number, $full_order = false) {
   global $mysql;
   $mysql = $mysql ?: new Mysql_Wc();
 
@@ -10,7 +10,7 @@ function wc_get_post_id($invoice_number) {
   $res = $mysql->run($sql);
 
   if (isset($res[0][0]))
-    return $res[0][0]['post_id'];
+    return $full_order ? $res[0][0] : $res[0][0]['post_id'];
 }
 
 function wc_insert_meta($invoice_number, $metadata) {

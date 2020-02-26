@@ -30,32 +30,31 @@ timer("", $time);
 $email = '';
 
 //Imports
-import_v2_drugs();
-$email .= timer("import_v2_drugs", $time);
-
-import_v2_stock_by_month();
-$email .= timer("import_v2_stock_by_month", $time);
-
-import_cp_rxs_single();
-$email .= timer("import_cp_rxs_single", $time);
-
-import_wc_patients();
-$email .= timer("import_wc_patients", $time);
-
-import_cp_patients();
-$email .= timer("import_cp_patients", $time);
-
-import_cp_order_items();
-$email .= timer("import_cp_order_items", $time);
+import_cp_orders();
+$email .= timer("import_cp_orders", $time);
 
 import_wc_orders();
 $email .= timer("import_wc_orders", $time);
 
-import_cp_orders();
-$email .= timer("import_cp_orders", $time);
+import_cp_order_items(); //Put this after orders so that we never have an order without a matching order_item
+$email .= timer("import_cp_order_items", $time);
 
-//Updates
+import_wc_patients(); //Put this after orders so that we never have an order without a matching patient
+$email .= timer("import_wc_patients", $time);
 
+import_cp_patients(); //Put this after orders so that we never have an order without a matching patient
+$email .= timer("import_cp_patients", $time);
+
+import_cp_rxs_single(); //Put this after order_items so that we never have an order item without a matching rx
+$email .= timer("import_cp_rxs_single", $time);
+
+import_v2_stock_by_month(); //Put this after rxs so that we never have a rxs without a matching stock level
+$email .= timer("import_v2_stock_by_month", $time);
+
+import_v2_drugs(); //Put this after rxs so that we never have a rxs without a matching drug
+$email .= timer("import_v2_drugs", $time);
+
+//Updates (Mirror Ordering of the above - not sure how necessary this is)
 update_drugs();
 $email .= timer("update_drugs", $time);
 

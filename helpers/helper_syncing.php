@@ -83,11 +83,11 @@ function sync_to_order($order, $updated = null) {
     }
   }
 
-  if ($items_to_remove)
-    export_cp_remove_items($item['invoice_number'], $items_to_remove);
+  //if ($items_to_remove)
+  //  export_cp_remove_items($item['invoice_number'], $items_to_remove);
 
-  if ($items_to_add)
-    export_cp_add_items($item['invoice_number'], $items_to_add);
+  //if ($items_to_add)
+  //  export_cp_add_items($item['invoice_number'], $items_to_add);
 
   //TODO Should we do a patient communication here???
   //NEEDS FORM

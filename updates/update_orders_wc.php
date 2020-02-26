@@ -111,7 +111,7 @@ function update_orders_wc() {
 
       export_gd_publish_invoice($order);
 
-      $wc_orders = wc_get_post_id($deleted['invoice_number']);
+      $wc_orders = wc_get_post_id($deleted['invoice_number'], true);
 
       $sql = get_deleted_sql("gp_orders_wc", "gp_orders", "invoice_number");
 
