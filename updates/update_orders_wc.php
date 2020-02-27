@@ -192,7 +192,8 @@ function update_orders_wc() {
         ($old_stage[1] == 'prepare' AND $new_stage[1] == 'done') OR
         ($old_stage[1] == 'shipped' AND $new_stage[1] == 'done') OR
         ($old_stage[1] == 'shipped' AND $new_stage[1] == 'late') OR
-        ($old_stage[1] == 'shipped' AND $new_stage[1] == 'returned')
+        ($old_stage[1] == 'shipped' AND $new_stage[1] == 'returned') OR
+        ($old_stage[1] == 'shipped' AND $new_stage[1] == 'prepare') //TODO REMOVE AFTER SHOPPING SHEET DEPRECATED.  IT MARKS DISPENSED AS SHIPPED BUT HERE WE MARK IT AS PREPARE SO STATUS CAN GO BACKWARDS RIGHT NOW
       ) {
         log_notice("$updated[invoice_number]: WC Order Normal Stage Change", $changed);
       } else {

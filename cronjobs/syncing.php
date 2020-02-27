@@ -39,11 +39,11 @@ $email .= timer("import_cp_orders", $time);
 import_cp_order_items(); //Put this after orders so that we never have an order without a matching order_item
 $email .= timer("import_cp_order_items", $time);
 
-import_wc_patients(); //Put this after orders so that we never have an order without a matching patient
-$email .= timer("import_wc_patients", $time);
-
 import_cp_patients(); //Put this after orders so that we never have an order without a matching patient
 $email .= timer("import_cp_patients", $time);
+
+import_wc_patients(); //Put this after cp_patients so that we always import all new cp_patients first, so that out wc_patient created feed does not give false positives
+$email .= timer("import_wc_patients", $time);
 
 import_cp_rxs_single(); //Put this after order_items so that we never have an order item without a matching rx
 $email .= timer("import_cp_rxs_single", $time);
@@ -64,11 +64,11 @@ $email .= timer("update_stock_by_month", $time);
 update_rxs_single();
 $email .= timer("update_rxs_single", $time);
 
-update_patients_wc();
-$email .= timer("update_patients_wc", $time);
-
 update_patients_cp();
 $email .= timer("update_patients_cp", $time);
+
+update_patients_wc();
+$email .= timer("update_patients_wc", $time);
 
 update_order_items();
 $email .= timer("update_order_items", $time);
