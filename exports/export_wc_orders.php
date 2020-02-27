@@ -120,20 +120,22 @@ function export_wc_create_order($order, $reason) {
   global $mysql;
   $mysql = $mysql ?: new Mysql_Wc();
 
-  $invoice_number = $order[0]['invoice_number'];
-  $first_name = str_replace(["'", '*'], '', $order[0]['first_name']); //Ignore Cindy's internal marking
-  $last_name = str_replace(["'", '*'], '', $order[0]['last_name']); //Ignore Cindy's internal marking
-  $birth_date = str_replace('*', '', $order[0]['birth_date']); //Ignore Cindy's internal marking
+  $first_item = $order[0];
+
+  $invoice_number = $first_item['invoice_number'];
+  $first_name = str_replace(["'", '*'], '', $first_item['first_name']); //Ignore Cindy's internal marking
+  $last_name = str_replace(["'", '*'], '', $first_item['last_name']); //Ignore Cindy's internal marking
+  $birth_date = str_replace('*', '', $first_item['birth_date']); //Ignore Cindy's internal marking
 
   $post_id = wc_get_post_id($invoice_number);
 
   if ($reason == "update_orders_wc: deleted but still in CP")
-    log_error("export_wc_create_order: deleted but still in CP: $post_id ".($post_id ? 'in WC' : 'not in WC'), $order[0]);
+    log_error("export_wc_create_order: deleted but still in CP: $post_id ".($post_id ? 'in WC' : 'not in WC'), $first_item);
 
   if ($post_id) {
 
     if ($reason != "update_orders_wc: deleted but still in CP" AND $reason != "update_orders_wc: deleted - 0 items")
-      log_error("export_wc_create_order: aborting create order", [$order[0], $reason]);
+      log_error("export_wc_create_order: aborting create order", [$first_item, $reason]);
 
     return $order;
   }
@@ -144,28 +146,62 @@ function export_wc_create_order($order, $reason) {
   $res = wc_fetch($url);
 
   if ( ! empty($res['error']) AND empty($res['order'])) //if order is set, then its just a this order already exists error
-    return log_error("export_wc_create_order: res[error] for $url", [$reason, $res, $order[0]]);
+    return log_error("export_wc_create_order: res[error] for $url", [$reason, $res, $first_item]);
 
   //These are the metadata that should NOT change
   //wc_upsert_meta($order_meta, 'shipping_method_id', ['31694']);
   //wc_upsert_meta($order_meta, 'shipping_method_title', ['31694' => 'Admin Fee']);
 
   $metadata = [
-    'patient_id_cp'     => $order[0]['patient_id_cp'],
-    'patient_id_wc'     => $order[0]['patient_id_wc'],
-    'order_date_added'  => $order[0]['order_date_added'],
-    'refills_used'      => $order[0]['refills_used'],
-    'patient_autofill'  => $order[0]['patient_autofill'],
-    'order_source'      => $order[0]['order_source'],
+    'patient_id_cp'     => $first_item['patient_id_cp'],
+    'patient_id_wc'     => $first_item['patient_id_wc'],
+    'order_date_added'  => $first_item['order_date_added'],
+    'refills_used'      => $first_item['refills_used'],
+    'patient_autofill'  => $first_item['patient_autofill'],
+    'order_source'      => $first_item['order_source'],
     'reason'            => $reason
   ];
 
   wc_insert_meta($invoice_number, $metadata);
   export_wc_update_order_metadata($order, 'wc_insert_meta');
   export_wc_update_order_address($order, 'wc_insert_meta');
-  export_wc_update_order_payment($invoice_number, $order[0]['payment_fee_default']);
+  export_wc_update_order_payment($invoice_number, $first_item['payment_fee_default']);
 
-  log_info('export_wc_create_order: created new order', $metadata);
+  //This function call will happen AFTER the wc_order import happened, so we need to add this order to gp_orders_wc table or it might still appear as "deleted" in the wc_order changes feeds
+  $sql = "
+  INSERT INTO gp_orders_wc (
+    invoice_number,
+    patient_id_wc,
+    order_stage_wc,
+    order_source,
+    invoice_doc_id,
+    order_address1,
+    order_address2,
+    order_city,
+    order_state,
+    order_zip,
+    payment_method_actual,
+    coupon_lines,
+    order_note
+  ) VALUES (
+    '$invoice_number',
+    '$first_item[patient_id_wc]',
+    '$first_item[order_stage_wc]',
+    '$first_item[order_source]',
+    '$first_item[invoice_doc_id]',
+    '$first_item[order_address1]',
+    '$first_item[order_address2]',
+    '$first_item[order_city]',
+    '$first_item[order_state]',
+    '$first_item[order_zip]',
+    '$first_item[payment_method_actual]',
+    '$first_item[coupon_lines]',
+    '$first_item[order_note]'
+  )";
+
+  $mysql->run($sql);
+
+  log_notice('export_wc_create_order: created new order', [$metadata, $sql]);
 
   return $order;
 }

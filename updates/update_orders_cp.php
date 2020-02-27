@@ -75,7 +75,7 @@ function update_orders_cp() {
     //This is not necessary if order was created by webform, which then created the order in Guardian
     //"order_source": "Webform eRX/Transfer/Refill [w/ Note]"
     if (strpos($order[0]['order_source'], 'Webform') === false)
-      export_wc_create_order($order, "update_orders_cp: created");
+      export_wc_create_order($order, "update_orders_cp: created"); 
 
     send_created_order_communications($groups);
 
