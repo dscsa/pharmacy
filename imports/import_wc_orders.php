@@ -24,8 +24,10 @@ function import_wc_orders() {
     HAVING number > 1
   ");
 
-  if (count($duplicates[0]))
-    return log_error('WARNING Duplicate Invoice Numbers in WC', $duplicates[0]);
+  if (count($duplicates[0])) {
+    log_error('WARNING Duplicate Invoice Numbers in WC. Stopping Cron Until Fixed', $duplicates[0]);
+    exit;
+  }
 
   $orders = $mysql->run("
 

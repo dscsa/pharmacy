@@ -6,6 +6,7 @@ function sync_to_order($order, $updated = null) {
   $items_to_sync   = [];
   $items_to_add    = [];
   $items_to_remove = [];
+  $new_count_items = $order[0]['count_items'];
 
   foreach($order as $item) {
 
@@ -21,6 +22,7 @@ function sync_to_order($order, $updated = null) {
         continue;
       }
 
+      $new_count_items++;
       $items_to_sync[] = ['ADD', 'NO ACTION PAST DUE AND SYNC TO ORDER', $item];
       $items_to_add [] = $item['best_rx_number'];
       //log_notice('sync_to_order adding item: PAST DUE AND SYNC TO ORDER', "$item[invoice_number] $item[drug] $item[item_message_key] refills last:$item[refill_date_last] next:$item[refill_date_next] total:$item[refills_total] left:$item[refills_left]");
@@ -35,6 +37,7 @@ function sync_to_order($order, $updated = null) {
         continue;
       }
 
+      $new_count_items++;
       $items_to_sync[] = ['ADD', 'NO ACTION DUE SOON AND SYNC TO ORDER', $item];
       $items_to_add [] = $item['best_rx_number'];
       //log_notice('sync_to_order adding item: DUE SOON AND SYNC TO ORDER', "$item[invoice_number] $item[drug] $item[item_message_key] refills last:$item[refill_date_last] next:$item[refill_date_next] total:$item[refills_total] left:$item[refills_left]");
@@ -51,6 +54,7 @@ function sync_to_order($order, $updated = null) {
         continue;
       }
 
+      $new_count_items++;
       $items_to_sync[] = ['ADD', 'NO ACTION NEW RX SYNCED TO ORDER', $item];
       $items_to_add [] = $item['best_rx_number'];
 
@@ -66,6 +70,7 @@ function sync_to_order($order, $updated = null) {
         continue;
       }
 
+      $new_count_items--;
       $items_to_sync[]   = ['REMOVE', $item['item_message_key'], $item];
       $items_to_remove[] = $item['rx_number'];
       //log_notice('sync_to_order removing item', "$item[invoice_number] $item[rx_number] $item[drug], $item[stock_level], $item[item_message_key] refills last:$item[refill_date_last] next:$item[refill_date_next] total:$item[refills_total] left:$item[refills_left]");
@@ -83,18 +88,17 @@ function sync_to_order($order, $updated = null) {
     }
   }
 
-  //if ($items_to_remove)
-  //  export_cp_remove_items($item['invoice_number'], $items_to_remove);
+  if ($items_to_remove)
+    export_cp_remove_items($item['invoice_number'], $items_to_remove);
 
-  //if ($items_to_add)
-  //  export_cp_add_items($item['invoice_number'], $items_to_add);
+  if ($items_to_add)
+    export_cp_add_items($item['invoice_number'], $items_to_add);
 
   //TODO Should we do a patient communication here???
   //NEEDS FORM
   //TRANSFER OUT
-  $new_count_filled = $order[0]['count_filled']-count($items_to_remove)+count($items_to_add);
-  if ($new_count_filled <= 0) {
-    log_error("helper_syncing is effectively removing order ".$order[0]['invoice_number'], ['order' => $order, 'removing' => count($items_to_remove), 'adding' => count($items_to_add), 'old_filled' => $order[0]['count_filled'], 'new_filled' => $new_count_filled]);
+  if ($new_count_items <= 0) {
+    log_error("helper_syncing is effectively removing order ".$order[0]['invoice_number'], ['order' => $order, 'items_to_add' => $items_to_add, 'items_to_remove' => $items_to_remove, 'old_count' => $order[0]['count_items'], 'new_count' => $new_count_items]);
   }
 
   return $items_to_sync;
