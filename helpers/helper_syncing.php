@@ -97,6 +97,7 @@ function sync_to_order($order, $updated = null) {
   //TODO Should we do a patient communication here???
   //NEEDS FORM
   //TRANSFER OUT
+  //ACTION PATIENT OFF AUTOFILL
   if ($new_count_items <= 0) {
     log_error("helper_syncing is effectively removing order ".$order[0]['invoice_number'], ['order' => $order, 'items_to_add' => $items_to_add, 'items_to_remove' => $items_to_remove, 'old_count' => $order[0]['count_items'], 'new_count' => $new_count_items]);
   }

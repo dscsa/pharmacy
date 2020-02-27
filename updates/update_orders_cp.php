@@ -111,7 +111,7 @@ function update_orders_cp() {
     export_gd_delete_invoice([$deleted], $mysql);
 
     //START DEBUG this is getting called on a CP order that is not yet in WC
-    $order = get_full_order($deleted, $mysql);
+    $order = get_full_order($deleted, $mysql, true);
     log_error('update_orders_cp: cp order deleted so deleting wc order as well', [$order, $deleted]);
     //END DEBUG
 
@@ -175,7 +175,7 @@ function update_orders_cp() {
       } else if ($stage_change_cp) {
         log_notice("Updated Order Shipped: status change only ".$order[0]['invoice_number']);
       } else {
-        log_error("Shipped Order Was Updated?", $order);
+        log_error("Shipped Order Was Updated?", [$order, $changed_fields]);
       }
 
       export_v2_unpend_order($order);
@@ -203,8 +203,8 @@ function update_orders_cp() {
         )
           $qty_changes[] = "rx:$item[rx_number] qty:$item[qty_dispensed_default] >>> $item[qty_dispensed_actual] days:$item[days_dispensed_default] >>> $item[days_dispensed_actual] refills:$item[refills_dispensed_default] >>> $item[refills_dispensed_actual]";
 
-        $actual_sig_qty_per_day = $item['days_dispensed_actual'] ? round($item['qty_dispensed_actual']/$item['days_dispensed_actual'], 3) : 0;
-        if ($actual_sig_qty_per_day AND $actual_sig_qty_per_day != $item['sig_qty_per_day'])
+        $actual_sig_qty_per_day = $item['days_dispensed_actual'] ? round($item['qty_dispensed_actual']/$item['days_dispensed_actual'], 1) : 0;
+        if ($actual_sig_qty_per_day AND $actual_sig_qty_per_day != round($item['sig_qty_per_day'], 1))
           log_error("sig parsing error '$item[sig_actual]' $item[sig_qty_per_day] (default) != $actual_sig_qty_per_day $item[qty_dispensed_actual]/$item[days_dispensed_actual] (actual)", $item);
       }
 

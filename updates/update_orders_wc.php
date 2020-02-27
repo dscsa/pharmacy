@@ -187,6 +187,7 @@ function update_orders_wc() {
 
       if (
         ($old_stage[1] == 'confirm' AND $new_stage[1] == 'prepare') OR
+        ($old_stage[1] == 'prepare' AND $new_stage[1] == 'prepare') OR //User completes webform twice then prepare-refill will overwrite prepare-erx
         ($old_stage[1] == 'prepare' AND $new_stage[1] == 'shipped') OR
         ($old_stage[1] == 'prepare' AND $new_stage[1] == 'done') OR
         ($old_stage[1] == 'shipped' AND $new_stage[1] == 'done') OR

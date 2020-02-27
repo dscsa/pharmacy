@@ -1,7 +1,7 @@
 <?php
 //order created -> add any additional rxs to order -> import order items -> sync all drugs in order
 
-function get_full_order($partial, $mysql) {
+function get_full_order($partial, $mysql, $suppress_error) {
 
   $month_interval = 6;
 
@@ -30,8 +30,10 @@ function get_full_order($partial, $mysql) {
 
   $order = $mysql->run($sql)[0];
 
-  if ( ! $order OR ! $order[0]['invoice_number'])
-    return log_error('ERROR! get_full_order: no order with that invoice number or order does not have active patient', get_defined_vars());
+  if ( ! $order OR ! $order[0]['invoice_number']) {
+    if ( ! $suppress_error) log_error('ERROR! get_full_order: no order with that invoice number or order does not have active patient', get_defined_vars());
+    return;
+  }
 
   $order = add_gd_fields_to_order($order, $mysql);
   usort($order, 'sort_order_by_day'); //Put Rxs in order (with Rx_Source) at the top
