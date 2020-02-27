@@ -325,7 +325,9 @@ function short_links($links) {
 
   $result = gdoc_post(GD_HELPER_URL, $args);
 
-  log_info('modify_events', get_defined_vars());
+  log_notice('short_links', get_defined_vars());
+
+  return $result;
 }
 
 function tracking_url($tracking_number) {

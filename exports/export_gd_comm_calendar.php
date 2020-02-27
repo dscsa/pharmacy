@@ -53,7 +53,7 @@ function order_shipped_notice($groups) {
     '',
     'Thanks for choosing Good Pill Pharmacy. '.$subject,
     '',
-    'Your receipt for order is attached. Your tracking number is ', //<strong>#'.$groups['ALL'][0]['invoice_number'].'</strong> .$links['tracking_link'].'.',
+    'Your receipt for order is attached. Your tracking number is '.$links['tracking_link'], //<strong>#'.$groups['ALL'][0]['invoice_number'].'</strong> .$links['tracking_link'].'.',
     'Use this link to request delivery notifications and/or provide the courier specific delivery instructions.',
     $message,
     '',
@@ -73,7 +73,10 @@ function order_shipped_notice($groups) {
 
 function refill_reminder_notice($groups) {
 
-  if ($groups['MIN_DAYS'] == 366 OR ( ! count($groups['NO_REFILLS']) AND ! count($groups['NO_AUTOFILL']))) return;
+  if ($groups['MIN_DAYS'] == 366 OR ( ! count($groups['NO_REFILLS']) AND ! count($groups['NO_AUTOFILL']))) {
+    log_error("Not making a refill_reminder_notice", $groups);
+    return;
+  }
 
   $subject  = 'Good Pill cannot refill these Rxs without your help.';
   $message  = '';
@@ -127,7 +130,7 @@ function autopay_reminder_notice($groups) {
     ''
   ]);
 
-  $next_month = strtotime('+1 month');
+  $next_month = strtotime('first day of +1 months');
   $time_wait  = $next_month - time();
 
   autopay_reminder_event($groups['ALL'], $email, $text, $time_wait/60/60, 14);
