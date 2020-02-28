@@ -45,23 +45,20 @@ function set_payment_default($order, $update, $reason, $mysql) {
     isset($order[0]['payment_total_default']) AND
     isset($order[0]['payment_fee_default']) AND
     isset($order[0]['payment_due_default']) AND
+    isset($order[0]['invoice_doc_id']) AND
     $order[0]['payment_total_default'] == $update['payment_total_default'] AND
     $order[0]['payment_fee_default'] == $update['payment_fee_default'] AND
-    $order[0]['payment_due_default'] == $update['payment_due_default']
+    $order[0]['payment_due_default'] == $update['payment_due_default'] AND
+    $order[0]['invoice_doc_id'] == $update['invoice_doc_id']
   ) {
 
-    if ($reason != "update_orders_wc: deleted - 0 items")
-      log_error('set_payment_default: but no changes', [$order, $update, $reason]);
+    log_error('set_payment_default: but no changes', [$order, $update, $reason]);
 
     return $order;
   }
 
   if ($reason == "update_orders_wc: deleted - 0 items")
     log_error('set_payment_default update_orders_wc: deleted - 0 items HAD CHANGES', [$order, $update, $reason]);
-
-  if ($order[0]['invoice_doc_id']) {
-    log_notice('set_payment_default is updating invoice', [$order, $update, $reason]);
-  }
 
   //Update order before we make the invoice
   foreach($order as $i => $item)

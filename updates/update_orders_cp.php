@@ -186,11 +186,14 @@ function update_orders_cp() {
       $order = helper_update_payment($order,  "update_orders_cp: updated - count filled changes", $mysql);
       export_wc_update_order($order);
 
-    } else if ($day_changes OR $qty_changes) {
-
+    } else if ($day_changes) {
+      //Updates invoice with new days/price/qty/refills.
       $order = helper_update_payment($order,  "update_orders_cp: updated - dispensing day changes", $mysql);
-      export_wc_update_order($order);
+      export_wc_update_order($order); //Price will also have changed
 
+    } else if ($qty_changes) {
+      //Updates invoice with new qty/refills.  Prices should not have changed so no need to update WC
+      $order = helper_update_payment($order,  "update_orders_cp: updated - dispensing qty changes", $mysql);
     }
 
     if ($stage_change_cp AND $updated['order_date_shipped']) {
