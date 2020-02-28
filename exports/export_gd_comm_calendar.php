@@ -74,7 +74,7 @@ function order_shipped_notice($groups) {
 function refill_reminder_notice($groups) {
 
   if ($groups['MIN_DAYS'] == 366 OR ( ! count($groups['NO_REFILLS']) AND ! count($groups['NO_AUTOFILL']))) {
-    log_error("Not making a refill_reminder_notice", $groups);
+    log_notice("Not making a refill_reminder_notice", $groups);
     return;
   }
 
