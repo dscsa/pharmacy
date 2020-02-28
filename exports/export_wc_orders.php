@@ -168,6 +168,7 @@ function export_wc_create_order($order, $reason) {
   ];
 
   wc_insert_meta($invoice_number, $metadata);
+  export_wc_update_order_status($order);
   export_wc_update_order_metadata($order, 'wc_insert_meta');
   export_wc_update_order_address($order, 'wc_insert_meta');
   export_wc_update_order_payment($invoice_number, $first_item['payment_fee_default']);
@@ -218,9 +219,25 @@ function export_wc_update_order($order) {
     return;
   }
 
+  export_wc_update_order_status($order);
   export_wc_update_order_metadata($order);
   export_wc_update_order_address($order);
   export_wc_update_order_payment($order[0]['invoice_number'], $order[0]['payment_fee_default']);
+}
+
+function export_wc_update_order_status($order) {
+  $orderdata = [
+    'post_status' => 'wc-'.$order[0]['order_stage_wc'] //,
+    //'post_except' => $order[0]['order_note']
+  ];
+
+  log_info('export_wc_update_order_status: wc_update_order', [
+    'invoice_number' => $order[0]['invoice_number'],
+    'order_stage_wc' => $order[0]['order_stage_wc'],
+    'order_stage_cp' => $order[0]['order_stage_cp']
+  ]);
+
+  wc_update_order($order[0]['invoice_number'], $orderdata);
 }
 
 //These are the metadata that might change
@@ -233,19 +250,6 @@ function export_wc_update_order_metadata($order, $meta_fn = 'wc_update_meta') {
 
   if ( ! $post_id)
     return log_error('export_wc_update_order_metadata: order missing', get_defined_vars());
-
-  $orderdata = [
-    'post_status' => 'wc-'.$order[0]['order_stage_wc'] //,
-    //'post_except' => $order[0]['order_note']
-  ];
-
-  log_info('export_wc_update_order_metadata: wc_update_order', [
-    'invoice_number' => $order[0]['invoice_number'],
-    'order_stage_wc' => $order[0]['order_stage_wc'],
-    'order_stage_cp' => $order[0]['order_stage_cp']
-  ]);
-
-  wc_update_order($order[0]['invoice_number'], $orderdata);
 
   $metadata = [
     '_payment_method' => $order[0]['payment_method'],

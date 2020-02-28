@@ -111,6 +111,6 @@ if ($sig_index === false) {
 
   $test_sig = $argv[$sig_index+1];
   $parsed = parse_sig(['rx_number' => 'test', 'sig_actual' => $test_sig]);
-  log_notice("test_parse_sig: $test_sig", [$parsed, $test_sig, $i]);
+  log_notice("test_parse_sig: $test_sig", [$parsed, $test_sig]);
 
 }
