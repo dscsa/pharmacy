@@ -75,7 +75,7 @@ function update_orders_cp() {
     //This is not necessary if order was created by webform, which then created the order in Guardian
     //"order_source": "Webform eRX/Transfer/Refill [w/ Note]"
     if (strpos($order[0]['order_source'], 'Webform') === false)
-      export_wc_create_order($order, "update_orders_cp: created"); 
+      export_wc_create_order($order, "update_orders_cp: created");
 
     send_created_order_communications($groups);
 
@@ -112,7 +112,11 @@ function update_orders_cp() {
 
     //START DEBUG this is getting called on a CP order that is not yet in WC
     $order = get_full_order($deleted, $mysql, true);
-    log_error('update_orders_cp: cp order deleted so deleting wc order as well', [$order, $deleted]);
+    
+    if ($order)
+      log_error('update_orders_cp: cp order deleted (but still exists) so deleting wc order as well', [$order, $deleted]);
+    else
+      log_notice('update_orders_cp: cp order deleted so deleting wc order as well', [$order, $deleted]);
     //END DEBUG
 
     export_wc_delete_order($deleted['invoice_number'], "update_orders_cp: $deleted[invoice_number] $deleted[order_stage_cp] $deleted[order_stage_wc] $deleted[order_source] ".json_encode($deleted));

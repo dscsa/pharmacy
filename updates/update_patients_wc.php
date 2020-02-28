@@ -43,7 +43,7 @@ function update_patients_wc() {
     }
     else {
       $created_new_to_cp++;
-      log_error("update_patients_wc: new_to_cp (if repeated then likely duplicate user in WC) $created[first_name] $created[last_name] wc:$created[patient_id_wc]", [$patient, $created]);
+      log_error("update_patients_wc: patient in WC but not in CP, likely a duplicate user in WC $created[first_name] $created[last_name] wc:$created[patient_id_wc]", [$patient, $created]);
     }
   }
 
