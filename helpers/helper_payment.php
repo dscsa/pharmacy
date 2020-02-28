@@ -45,11 +45,9 @@ function set_payment_default($order, $update, $reason, $mysql) {
     isset($order[0]['payment_total_default']) AND
     isset($order[0]['payment_fee_default']) AND
     isset($order[0]['payment_due_default']) AND
-    isset($order[0]['invoice_doc_id']) AND
     $order[0]['payment_total_default'] == $update['payment_total_default'] AND
     $order[0]['payment_fee_default'] == $update['payment_fee_default'] AND
-    $order[0]['payment_due_default'] == $update['payment_due_default'] AND
-    $order[0]['invoice_doc_id'] == $update['invoice_doc_id']
+    $order[0]['payment_due_default'] == $update['payment_due_default']
   ) {
 
     log_error('set_payment_default: but no changes', [$order, $update, $reason]);
