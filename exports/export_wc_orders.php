@@ -112,6 +112,11 @@ function export_wc_delete_order($invoice_number, $reason) {
 
   $mysql->run($sql2);
 
+  //This function call will happen AFTER the wc_order import happened, so we need to remove this order from the gp_orders_wc table or it might still appear as "created" in the wc_order changes feeds
+  $sql3 = "DELETE FROM gp_orders_wc WHERE invoice_number = $invoice_number";
+
+  $mysql->run($sql3);
+
   log_notice("export_wc_delete_order", ['invoice_number' => $invoice_number, 'reason' => $reason, 'post_id' => $post_id]);//.print_r($item, true);
 }
 
