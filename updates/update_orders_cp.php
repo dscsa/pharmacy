@@ -178,6 +178,8 @@ function update_orders_cp() {
     //Do we need to update the order in WC or it's invoice?
     if ($updated['count_filled'] != $order[0]['count_filled']) {
 
+      log_error("update_orders_cp: count filled updated $updated[old_count_filled] >>> $updated[count_filled]. Order count filled: ".$order[0]['count_filled'], [$order, $updated]);
+
       $items_to_sync = sync_to_order($order, $updated);
 
       list($target_date, $target_rxs) = get_sync_to_date($order);
