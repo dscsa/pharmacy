@@ -9,7 +9,7 @@ function parse_sig($rx) {
   //Could be written in milliliters since prescriber cannot prescribe over 12 months of inhalers at a time
   //Convert to Unit of Use by just assuming each inhaler is 30 days
   //Same for Nasal "Sprays"
-  if (strpos($rx['drug_name'], ' INH') !== false OR $rx['qty_original'] < 5) {
+  if (isset($rx['drug_name']) AND isset($rx['qty_original']) AND (strpos($rx['drug_name'], ' INH') !== false OR $rx['qty_original'] < 5)) {
     return [
       'sig_qty_per_day'           => 1/30,
       'sig_clean'                 => "'AK assuming 1 unit per month'",

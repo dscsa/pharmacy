@@ -3,6 +3,7 @@
 ini_set('include_path', '/goodpill/webform');
 date_default_timezone_set('America/New_York');
 
+require_once 'helpers/helper_log.php';
 require_once 'helpers/helper_parse_sig.php';
 
 $test_sigs = [
