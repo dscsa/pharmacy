@@ -40,28 +40,18 @@ function update_orders_wc() {
       'wc-done-auto-pay'
     ])) {
 
-      log_notice("Shipped/Paid WC not in Guardian. Delete/Refund?", $created);
+      log_error("Shipped/Paid WC not in Guardian. Delete/Refund?", $created);
 
     //This comes from import_wc_orders so we don't need the "w/ Note" counterpart sources
     } else if (in_array($created['order_source'], ["Webform Refill", "Webform Transfer", "Webform eRx"])) {
 
-      $post_id = wc_get_post_id($created['invoice_number']);
-
-      if ( ! $post_id)
-        log_error("update_orders_wc: deleted webform order, but not in WC?", $created);//.print_r($item, true);
-      else
-        export_wc_delete_order($created['invoice_number'], 'update_orders_wc: deleted webform order');
+      log_error("update_orders_wc: created Webform eRx/Refill/Transfer order that is not in CP?", $created);//.print_r($item, true);
 
       //log_notice("New WC Order to Add Guadian", $created);
 
     } else {
 
-      $post_id = wc_get_post_id($created['invoice_number']);
-
-      if ( ! $post_id)
-        log_error("update_orders_wc: created for unknown reason, but not in WC?", $created);//.print_r($item, true);
-      else
-        export_wc_delete_order($created['invoice_number'],  'update_orders_wc: created for unknown reason '.json_encode($created, JSON_PRETTY_PRINT)); //NOTE: Needs investigation. Added this because they were seeming to be deleted as intended
+      log_error("update_orders_wc: created non-Webform order that is not in CP?", $created);//.print_r($item, true);
 
       //log_notice("Guardian Order Deleted that should be deleted from WC later in this run or already deleted", $created);
     }
@@ -76,9 +66,11 @@ function update_orders_wc() {
     $order = get_full_order($deleted, $mysql);
 
     /* TODO Investigate if/why this is needed */
-    if ( ! $order) continue;
+    if ( ! $order) {
 
-    if ($deleted['order_stage_wc'] == 'trash') {
+      log_error("update_orders_wc: deleted WC order that is not in CP?", $deleted)
+
+    } else if ($deleted['order_stage_wc'] == 'trash') {
 
       if ($deleted['tracking_number']) {
         log_notice("Shipped Order deleted from trash in WC. Why?", $deleted);
@@ -141,7 +133,7 @@ function update_orders_wc() {
 
       export_gd_publish_invoice($order);
 
-      log_notice("Readding Order that should not have been deleted. Not sure: WC Order Deleted not through trash?", [$order[0], $gp_orders_wc, $gp_orders, $wc_orders]);
+      log_error("Readding Order that should not have been deleted. Not sure: WC Order Deleted not through trash?", [$order[0], $gp_orders_wc, $gp_orders, $wc_orders]);
     }
 
   }
@@ -193,6 +185,7 @@ function update_orders_wc() {
         ($old_stage[1] == 'shipped' AND $new_stage[1] == 'done') OR
         ($old_stage[1] == 'shipped' AND $new_stage[1] == 'late') OR
         ($old_stage[1] == 'shipped' AND $new_stage[1] == 'returned') OR
+        ($old_stage[1] == 'shipped' AND $updated['order_stage_wc'] == 'wc-shipped-part-pay') OR
         ($old_stage[1] == 'shipped' AND $new_stage[1] == 'prepare') //TODO REMOVE AFTER SHOPPING SHEET DEPRECATED.  IT MARKS DISPENSED AS SHIPPED BUT HERE WE MARK IT AS PREPARE SO STATUS CAN GO BACKWARDS RIGHT NOW
       ) {
         log_notice("$updated[invoice_number]: WC Order Normal Stage Change", $changed);

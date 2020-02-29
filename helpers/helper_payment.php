@@ -51,8 +51,7 @@ function set_payment_default($order, $update, $reason, $mysql) {
   ) {
 
     log_error('set_payment_default: but no changes', [$order, $update, $reason]);
-
-    return $order;
+    
   }
 
   if ($reason == "update_orders_wc: deleted - 0 items")
