@@ -30,6 +30,21 @@ function sync_to_order($order, $updated = null) {
       continue;
     }
 
+    if ($item['item_message_key'] == 'NO ACTION MISSING NEXT AND SYNC TO ORDER' AND ! is_duplicate_gsn($order, $item)) {
+
+      if ($updated) {
+        log_notice("sync_to_order adding item: updated so did not add 'NO ACTION MISSING NEXT AND SYNC TO ORDER' $item[invoice_number] $item[drug] $item[item_message_key] refills last:$item[refill_date_last] next:$item[refill_date_next] total:$item[refills_total] left:$item[refills_left]", [$item, $updated]);
+        continue;
+      }
+
+      $new_count_items++;
+      $items_to_sync[] = ['ADD', 'NO ACTION MISSING NEXT AND SYNC TO ORDER', $item];
+      $items_to_add [] = $item['best_rx_number'];
+      //log_notice('sync_to_order adding item: PAST DUE AND SYNC TO ORDER', "$item[invoice_number] $item[drug] $item[item_message_key] refills last:$item[refill_date_last] next:$item[refill_date_next] total:$item[refills_total] left:$item[refills_left]");
+
+      continue;
+    }
+
     if ($item['item_message_key'] == 'NO ACTION DUE SOON AND SYNC TO ORDER' AND ! is_duplicate_gsn($order, $item)) {
 
       if ($updated) {

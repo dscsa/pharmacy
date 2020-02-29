@@ -78,6 +78,10 @@ const RX_MESSAGE = [
     'EN' => 'is past due so synced to Order **',
     'ES' => ''
   ],
+  'NO ACTION MISSING NEXT AND SYNC TO ORDER' => [
+    'EN' => 'was past due so synced to Order **',
+    'ES' => ''
+  ],
   'NO ACTION DUE SOON AND SYNC TO ORDER' => [
     'EN' => 'is due soon so synced to Order **',
     'ES' => ''
