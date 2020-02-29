@@ -97,29 +97,35 @@ function update_orders_wc() {
 
     } else if ($deleted['order_stage_cp'] != 'Shipped' AND $deleted['order_stage_cp'] != 'Dispensed') {
 
-      $order = helper_update_payment($order,  "update_orders_wc: deleted - 0 items", $mysql);
-
-      export_wc_create_order($order,  "update_orders_wc: deleted - 0 items");
-
-      export_gd_publish_invoice($order);
-
       $wc_orders = wc_get_post_id($deleted['invoice_number'], true);
 
       $sql = get_deleted_sql("gp_orders_wc", "gp_orders", "invoice_number");
 
-      $gp_orders    = $mysql->run("SELECT * FROM gp_orders WHERE invoice_number = $deleted[invoice_number]");
-      $gp_orders_wc = $mysql->run("SELECT * FROM gp_orders_wc WHERE invoice_number = $deleted[invoice_number]");
-      $gp_orders_cp = $mysql->run("SELECT * FROM gp_orders_cp WHERE invoice_number = $deleted[invoice_number]");
+      $gp_orders      = $mysql->run("SELECT * FROM gp_orders WHERE invoice_number = $deleted[invoice_number]");
+      $gp_orders_wc   = $mysql->run("SELECT * FROM gp_orders_wc WHERE invoice_number = $deleted[invoice_number]");
+      $gp_orders_cp   = $mysql->run("SELECT * FROM gp_orders_cp WHERE invoice_number = $deleted[invoice_number]");
+      $deleted_orders = $mysql->run("SELECT old.* FROM gp_orders_wc as new RIGHT JOIN gp_orders as old ON old.invoice_number = new.invoice_number WHERE new.invoice_number IS NULL");
 
-      log_error("update_orders_wc: A) order had all items removed so it appeared to be deleted from CP, but when items were added back in the order 'reappeared' or B) Failed when trying to be added to WC", [
+      //TODO WHAT IS GOING ON HERE?
+      //Idea1:  Order had all items removed so it appeared to be deleted from CP, but when items were added back in the order 'reappeared'
+      //Idea2: Failed when trying to be added to WC
+      //Neither Idea1 or Idea2 seems to be the case for Order 29033
+      log_error("update_orders_wc: WC Order Appears to be DELETED", [
         'order[0]' => $order[0],
         'deleted' => $deleted,
         'wc_post_id' => $wc_orders,
         'gp_orders' => $gp_orders,
         'gp_orders_wc' => $gp_orders_wc,
         'gp_orders_cp' => $gp_orders_cp,
-        'sql' => $sql
+        'sql' => $sql,
+        'deleted_orders' => $deleted_orders
       ]);
+
+      $order = helper_update_payment($order,  "update_orders_wc: deleted - 0 items", $mysql);
+
+      export_wc_create_order($order,  "update_orders_wc: deleted - 0 items");
+
+      export_gd_publish_invoice($order);
 
     } else {
 

@@ -132,18 +132,14 @@ function export_wc_create_order($order, $reason) {
   $last_name = str_replace(["'", '*'], '', $first_item['last_name']); //Ignore Cindy's internal marking
   $birth_date = str_replace('*', '', $first_item['birth_date']); //Ignore Cindy's internal marking
 
+  //START DEBUG
   $post_id = wc_get_post_id($invoice_number);
 
-  if ($reason == "update_orders_wc: deleted but still in CP")
-    log_error("export_wc_create_order: deleted but still in CP: $post_id ".($post_id ? 'in WC' : 'not in WC'), $first_item);
-
   if ($post_id) {
-
-    if ($reason != "update_orders_wc: deleted but still in CP" AND $reason != "update_orders_wc: deleted - 0 items")
-      log_error("export_wc_create_order: aborting create order", [$first_item, $reason]);
-
+    log_error("export_wc_create_order: aborting create order", [$first_item, $reason]);
     return $order;
   }
+  //STOP DEBUG
 
   //This creates order and adds invoice number to metadata
   //We do this through REST API because direct database calls seemed messy
@@ -207,7 +203,7 @@ function export_wc_create_order($order, $reason) {
 
   $mysql->run($sql);
 
-  log_notice('export_wc_create_order: created new order', [$metadata, $sql]);
+  log_notice('export_wc_create_order: created new order', [$metadata, $sql, $invoice_number]);
 
   return $order;
 }
