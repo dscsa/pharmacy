@@ -26,6 +26,13 @@ require_once 'updates/update_order_items.php';
 require_once 'updates/update_orders_wc.php';
 require_once 'updates/update_orders_cp.php';
 
+//Don't run next cron job if previous one is still running!!! Webform Log Notices 2020-02-29 04:47pm
+//https://stackoverflow.com/questions/10552016/how-to-prevent-the-cron-job-execution-if-it-is-already-running
+$f = fopen('readme.md', 'w') or log_error('Webform Cron Job Cannot Create Lock File');
+
+if ( ! flock($f, LOCK_EX | LOCK_NB))
+  return log_error('Skipping Webform Cron Job Because Previous One Is Still Running');
+
 timer("", $time);
 $email = '';
 
