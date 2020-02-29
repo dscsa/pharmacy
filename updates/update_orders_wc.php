@@ -197,7 +197,7 @@ function update_orders_wc() {
     else if ( ! $updated['patient_id_wc'] AND $updated['old_patient_id_wc']) {
 
       //26214, 26509
-      log_error("$updated[invoice_number]: WC Patient Id Removed from Order", [$changed, $updated]);
+      log_error("$updated[invoice_number]: WC Patient Id Removed from Order.  Likely a patient was deleted from WC that still had an order", [$changed, $updated]);
 
 
     }

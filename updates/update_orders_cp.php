@@ -105,7 +105,15 @@ function update_orders_cp() {
 
       $mysql->run($update_sql);
 
-      return log_notice('Confirm this order was returned! Order with tracking number was deleted', $deleted);
+      log_notice('Confirm this order was returned! Order with tracking number was deleted', $deleted);
+
+      continue;
+    }
+
+    //Order #28984
+    if ( ! $deleted['patient_id_wc']) {
+      log_error('update_orders_cp: cp order deleted - Likely Guardian Order Was Created But Patient Was Not Yet Registered in WC so never created WC Order And No Need To Delete It', [$order, $deleted]);
+      continue;
     }
 
     export_gd_delete_invoice([$deleted], $mysql);
@@ -113,10 +121,12 @@ function update_orders_cp() {
     //START DEBUG this is getting called on a CP order that is not yet in WC
     $order = get_full_order($deleted, $mysql, true);
 
-    if ($order)
-      log_error('update_orders_cp: cp order deleted (but still exists) so deleting wc order as well', [$order, $deleted]);
-    else
-      log_notice('update_orders_cp: cp order deleted so deleting wc order as well', [$order, $deleted]);
+    if ($order) {
+      log_error('update_orders_cp: cp order deleted (but still exists???) so deleting wc order as well', [$order, $deleted]);
+      continue;
+    }
+
+    log_notice('update_orders_cp: cp order deleted so deleting wc order as well', [$order, $deleted]);
     //END DEBUG
 
     export_wc_delete_order($deleted['invoice_number'], "update_orders_cp: $deleted[invoice_number] $deleted[order_stage_cp] $deleted[order_stage_wc] $deleted[order_source] ".json_encode($deleted));
