@@ -68,7 +68,7 @@ function update_orders_wc() {
     /* TODO Investigate if/why this is needed */
     if ( ! $order) {
 
-      log_error("update_orders_wc: deleted WC order that is not in CP?", $deleted)
+      log_error("update_orders_wc: deleted WC order that is not in CP?", $deleted);
 
     } else if ($deleted['order_stage_wc'] == 'trash') {
 
