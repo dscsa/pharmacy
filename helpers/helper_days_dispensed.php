@@ -296,23 +296,17 @@ function sync_to_order_new_rx($item) {
   $not_offered  = is_not_offered($item);
   $refills_only = is_refill_only($item);
 
-  return  ! $item['item_date_added'] AND $item['refills_total'] >= 0.1 AND ! $item['refill_date_first'] AND $item['rx_autofill'] AND ! $not_offered AND ! $refills_only;
+  return ! $item['item_date_added'] AND $item['refills_total'] >= 0.1 AND ! $item['refill_date_first'] AND $item['rx_autofill'] AND ! $not_offered AND ! $refills_only;
 }
 
 function sync_to_order_past_due($item) {
-  return  ! $item['item_date_added'] AND $item['refills_total'] >= 0.1 AND $item['refill_date_next'] AND (strtotime($item['refill_date_next']) - strtotime($item['order_date_added'])) < 0;
+  return ! $item['item_date_added'] AND $item['refills_total'] >= 0.1 AND $item['refill_date_next'] AND (strtotime($item['refill_date_next']) - strtotime($item['order_date_added'])) < 0;
 }
 
 //Order 29017 had a refill_date_first and rx/pat_autofill ON but was missing a refill_date_default/refill_date_manual/refill_date_next
 function sync_to_order_missing_next($item) {
-  return  ! $item['item_date_added'] AND $item['refills_total'] >= 0.1 AND $item['refill_date_first'] AND ! $item['refill_date_default'];
+  return ! $item['item_date_added'] AND $item['refills_total'] >= 0.1 AND $item['refill_date_first'] AND ! $item['refill_date_default'];
 }
-
-"refill_date_first": "2019-09-17",
-     "refill_date_last": null,
-     "refill_date_next": null,
-     "refill_date_manual": null,
-     "refill_date_default": null,
 
 function sync_to_order_due_soon($item) {
   return ! $item['item_date_added'] AND $item['refills_total'] >= 0.1 AND $item['refill_date_next'] AND (strtotime($item['refill_date_next'])  - strtotime($item['order_date_added'])) <= 15*24*60*60;
