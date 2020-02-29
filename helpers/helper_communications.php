@@ -104,14 +104,8 @@ function group_drugs($order, $mysql) {
 
 function send_created_order_communications($groups) {
 
-  if ( ! $groups['ALL'][0]['pharmacy_name']) //Use Pharmacy name rather than $New to keep us from repinging folks if the row has been readded
-    needs_form_notice($groups);
-
-  else if ( ! $groups['COUNT_NOFILL'] AND ! $groups['COUNT_FILLED'])
+  if ( ! $groups['COUNT_NOFILL'] AND ! $groups['COUNT_FILLED'])
     no_rx_notice($groups);
-
-  else if ( ! $groups['COUNT_FILLED'])
-    order_hold_notice($groups);
 
   //['Not Specified', 'Webform Complete', 'Webform eRx', 'Webform Transfer', 'Auto Refill', '0 Refills', 'Webform Refill', 'eRx /w Note', 'Transfer /w Note', 'Refill w/ Note']
   else if ($groups['ALL'][0]['order_source'] == 'Webform Transfer' OR $groups['ALL'][0]['order_source'] == 'Transfer /w Note')
@@ -123,8 +117,15 @@ function send_created_order_communications($groups) {
 
 function send_deleted_order_communications($order) {
 
-  //TODO We need something here!
-  order_canceled_notice($order);
+  log_error("send_deleted_order_communications", $order);
+
+  if ( ! isset($order[0]['item_message_key']))
+    order_canceled_notice($order);
+  else if ($order[0]['item_message_key'] == 'NEEDS FORM')
+    needs_form_notice($groups);
+  else
+    order_hold_notice($groups);
+
 }
 
 function send_shipped_order_communications($groups) {

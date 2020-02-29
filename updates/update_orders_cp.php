@@ -52,7 +52,7 @@ function update_orders_cp() {
     //NEEDS FORM, TRANSFER OUT OF ALL ITEMS, ACTION PATIENT OFF AUTOFILL
     if ($synced['new_count_items'] <= 0) {
       $groups = group_drugs($order, $mysql);
-      order_hold_notice($groups);
+      send_deleted_order_communications($order);
       log_error("helper_syncing is effectively removing order ".$order[0]['invoice_number'], ['order' => $order, 'synced' => $synced]);
     }
 
@@ -71,12 +71,12 @@ function update_orders_cp() {
     $groups = group_drugs($order, $mysql);
 
     if ( ! $groups['COUNT_FILLED'] AND $groups['ALL'][0]['item_message_key'] != 'ACTION NEEDS FORM') {
-      log_info("Created Order But Not Filling Any?", $groups);
+      log_error("SHOULD HAVE BEEN DELETED WITH SYNC CODE ABOVE: Created Order But Not Filling Any?", $groups);
       continue;
     }
 
     if ( ! $order[0]['pharmacy_name']) {
-      log_notice("Guardian Order Created But Patient Not Yet Registered in WC so not creating WC Order ".$order[0]['invoice_number']);
+      log_error("SHOULD HAVE BEEN DELETED WITH SYNC CODE ABOVE: Guardian Order Created But Patient Not Yet Registered in WC so not creating WC Order ".$order[0]['invoice_number']);
       continue;
     }
 
@@ -139,7 +139,7 @@ function update_orders_cp() {
     log_notice('update_orders_cp: cp order deleted so deleting wc order as well', [$order, $deleted]);
     //END DEBUG
 
-    export_wc_delete_order($deleted['invoice_number'], "update_orders_cp: $deleted[invoice_number] $deleted[order_stage_cp] $deleted[order_stage_wc] $deleted[order_source] ".json_encode($deleted));
+    export_wc_delete_order($deleted['invoice_number'], "update_orders_cp: cp order deleted $deleted[invoice_number] $deleted[order_stage_cp] $deleted[order_stage_wc] $deleted[order_source] ".json_encode($deleted));
 
     export_v2_unpend_order([$deleted]);
 
@@ -152,8 +152,7 @@ function update_orders_cp() {
     if ( ! $patient)
       log_error('No patient associated with deleted order', ['deleted' => $deleted, 'sql' => $sql]);
 
-    if ( ! empty($patient['pharmacy_name'])) //Cindy deletes "Needs Form" orders and we don't want to confuse them with a canceled communication
-      send_deleted_order_communications([$deleted]);
+    send_deleted_order_communications([$deleted]);
   }
 
   //If just updated we need to
