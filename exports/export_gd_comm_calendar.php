@@ -30,7 +30,7 @@ function order_shipped_notice($groups) {
   $subject   = 'Your order '.($groups['COUNT_FILLED'] ? 'of '.$groups['COUNT_FILLED'].' items ' : '').'has shipped and should arrive in 3-5 days.';
   $message   = '';
 
-  $message .= '<br><u>These Rxs are on the way:</u><br>'.implode(';<br>', $groups['FILLED_ACTION'] + $groups['FILLED_NOACTION']).';';
+  $message .= '<br><u>These Rxs are on the way:</u><br>'.implode(';<br>', array_merge($groups['FILLED_ACTION'], $groups['FILLED_NOACTION'])).';';
 
   $email = [ "email" => $groups['ALL'][0]['email'] ];
   $text  = [ "sms"   => get_phones($groups['ALL']) ];
@@ -146,7 +146,7 @@ function order_created_notice($groups) {
 
   if ( ! $groups['ALL'][0]['refills_used']) {
     $message   .= ' Your first order will only be $6 total for all of your medications.';
-    $drug_list .= implode(';<br>', $groups['FILLED_ACTION'] + $groups['FILLED_NOACTION']).';';
+    $drug_list .= implode(';<br>', array_merge($groups['FILLED_ACTION'], $groups['FILLED_NOACTION'])).';';
   } else {
     $drug_list .= implode(';<br>', $groups['FILLED_WITH_PRICES']).';';
   }
@@ -169,7 +169,7 @@ function order_created_notice($groups) {
     '',
     $suffix,
     '',
-    ! $groups['COUNT_NOFILL'] ? '' : '<br><u>We are NOT filling these Rxs:</u><br>'.implode(';<br>', $groups['NOFILL_NOACTION'] + $groups['NOFILL_ACTION']).';',
+    ! $groups['COUNT_NOFILL'] ? '' : '<br><u>We are NOT filling these Rxs:</u><br>'.implode(';<br>', array_merge($groups['NOFILL_NOACTION'], $groups['NOFILL_ACTION'])).';',
     ''
   ]);
 
@@ -209,7 +209,7 @@ function transfer_requested_notice($groups) {
 function order_hold_notice($groups) {
 
   $subject = 'Good Pill is NOT filling your '.$groups['COUNT_NOFILL'].' items for Order #'.$groups['ALL'][0]['invoice_number'].'.';
-  $message = '<u>We are NOT filling these Rxs:</u><br>'.implode(';<br>', $groups['NOFILL_NOACTION'] + $groups['NOFILL_ACTION']).';';
+  $message = '<u>We are NOT filling these Rxs:</u><br>'.implode(';<br>', array_merge($groups['NOFILL_NOACTION'], $groups['NOFILL_ACTION'])).';';
 
   //['Not Specified', 'Webform Complete', 'Webform eRx', 'Webform Transfer', 'Auto Refill', '0 Refills', 'Webform Refill', 'eRx /w Note', 'Transfer /w Note', 'Refill w/ Note']
   $trigger = '';
@@ -263,7 +263,7 @@ function order_updated_notice($groups, $changed_fields) {
   $message = '';
 
   if ($groups['COUNT_FILLED'] AND ! $groups['ALL'][0]['refills_used']) {
-    $message .= '<br><u>These Rxs will be included once we confirm their availability:</u><br>'.implode(';<br>', $groups['FILLED_ACTION'] + $groups['FILLED_NOACTION']).';';
+    $message .= '<br><u>These Rxs will be included once we confirm their availability:</u><br>'.implode(';<br>', array_merge($groups['FILLED_ACTION'], $groups['FILLED_NOACTION'])).';';
   } else if ($groups['COUNT_FILLED']) {
     $message .= '<br><u>These Rxs will be included once we confirm their availability:</u><br>'.implode(';<br>', $groups['FILLED_WITH_PRICES']).';';
   }
@@ -287,7 +287,7 @@ function order_updated_notice($groups, $changed_fields) {
     '',
     $suffix,
     '',
-    ! $groups['COUNT_NOFILL'] ? '' : '<br><u>We are NOT filling these Rxs:</u><br>'.implode(';<br>', $groups['NOFILL_NOACTION'] + $groups['NOFILL_ACTION']).';',
+    ! $groups['COUNT_NOFILL'] ? '' : '<br><u>We are NOT filling these Rxs:</u><br>'.implode(';<br>', array_merge($groups['NOFILL_NOACTION'], $groups['NOFILL_ACTION'])).';',
     '',
     json_encode($changed_fields),
     ''
@@ -437,7 +437,7 @@ function confirm_shipping_internal($groups) {
     '- Order with tracking number '.tracking_link($groups['ALL'][0]['tracking_number']).' was delivered and that they received it',
     '',
     '- Make sure they got all '.$groups['COUNT_FILLED'].' of their medications, that we filled the correct number of pills, and answer any questions the patient has',
-    $groups['COUNT_NOFILL'] ? '<br>- Explain why we did NOT fill:<br>'.implode(';<br>', $groups['NOFILL_NOACTION'] + $groups['NOFILL_ACTION']).'<br>' : '',
+    $groups['COUNT_NOFILL'] ? '<br>- Explain why we did NOT fill:<br>'.implode(';<br>', array_merge($groups['NOFILL_NOACTION'], $groups['NOFILL_ACTION'])).'<br>' : '',
     '- Let them know they are currently set to pay via '.$groups['ALL'][0]['payment_method'].' and the cost of the '.$groups['COUNT_FILLED'].' items was $'.$groups['ALL'][0]['payment_fee_default'].' this time, but next time it will be $'.$groups['ALL'][0]['payment_total_default'],
     '',
     '- Review their current medication list and remind them which prescriptions we will be filling automatically and which ones they need to request 2 weeks in advance',
