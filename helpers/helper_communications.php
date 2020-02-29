@@ -115,14 +115,16 @@ function send_created_order_communications($groups) {
     order_created_notice($groups);
 }
 
-function send_deleted_order_communications($order) {
+function send_deleted_order_communications($groups) {
 
-  log_error("send_deleted_order_communications", $order);
+  log_error("send_deleted_order_communications", $groups);
 
-  if ( ! isset($order[0]['item_message_key']))
-    order_canceled_notice($order);
-  else if ($order[0]['item_message_key'] == 'NEEDS FORM')
+  if ( ! isset($groups['ALL'][0]['item_message_key']))
+    order_canceled_notice($groups);
+
+  else if ($groups['ALL'][0]['item_message_key'] == 'NEEDS FORM')
     needs_form_notice($groups);
+    
   else
     order_hold_notice($groups);
 
