@@ -45,9 +45,19 @@ function update_orders_cp() {
     //1) Add Drugs to Guardian that should be in the order
     //2) Remove drug from guardian that should not be in the order
     //3) Create a fax out transfer for anything removed that is not offered
-    $items_to_sync = sync_to_order($order);
-    if ($items_to_sync) {
-      log_error('sync_to_order necessary: deleting order for it to be readded', $items_to_sync);
+    //ACTION PATIENT OFF AUTOFILL Notice
+    $synced = sync_to_order($order);
+
+    //Patient communication that we are cancelling their order examples include:
+    //NEEDS FORM, TRANSFER OUT OF ALL ITEMS, ACTION PATIENT OFF AUTOFILL
+    if ($synced['new_count_items'] <= 0) {
+      $groups = group_drugs($order, $mysql);
+      order_hold_notice($groups);
+      log_error("helper_syncing is effectively removing order ".$order[0]['invoice_number'], ['order' => $order, 'synced' => $synced]);
+    }
+
+    if ($synced['items_to_sync']) {
+      log_error('sync_to_order necessary: deleting order for it to be readded', $synced['items_to_sync']);
       $mysql->run('DELETE gp_orders FROM gp_orders WHERE invoice_number = '.$order[0]['invoice_number']);
       continue; //DON'T CREATE THE ORDER UNTIL THESE ITEMS ARE SYNCED TO AVOID CONFLICTING COMMUNICATIONS!
     }
