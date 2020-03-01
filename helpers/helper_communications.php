@@ -62,14 +62,14 @@ function group_drugs($order, $mysql) {
       $groups['FILLED_WITH_PRICES'][] = $item['drug'].$price;
     }
 
-    if ( ! $item['refills_total'])
+    if ( ! $item['refills_dispensed'])
       $groups['NO_REFILLS'][] = $item['drug'].$msg;
 
     if ($days AND ! $item['rx_autofill'])
       $groups['NO_AUTOFILL'][] = $item['drug'].$msg;
 
-    if ( ! $item['refills_total'] AND $days AND $days < $groups['MIN_DAYS'])
-      $groups['MIN_DAYS'] = $days;
+    if ( ! $item['refills_dispensed'] AND $days AND $days < $groups['MIN_DAYS'])
+      $groups['MIN_DAYS'] = $days; //How many days before the first Rx to run out of refills
 
     $groups['MANUALLY_ADDED'] = $item['item_added_by'] == 'MANUAL' OR $item['item_added_by'] == 'WEBFORM';
   }
@@ -124,7 +124,7 @@ function send_deleted_order_communications($groups) {
 
   else if ($groups['ALL'][0]['item_message_key'] == 'NEEDS FORM')
     needs_form_notice($groups);
-    
+
   else
     order_hold_notice($groups);
 
