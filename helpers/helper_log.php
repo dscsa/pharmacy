@@ -136,8 +136,8 @@ function log_notice($text, $vars = '') {
 
 function get_file() {
   $trace = debug_backtrace(2); //exlude ["object"] AND ["args"]
-  $index = isset($trace[2]) ? 2 : 1;
-  return $trace[$index]['function'].'() in '.$trace[$index-1]['file'];
+  $index = count($trace) - 1;
+  return $trace[$index]['function']."($index) in ".$trace[$index-1]['file']." on line ".$trace[$index-1]['line'];
 }
 
 function timer($label, &$start) {
