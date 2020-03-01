@@ -453,10 +453,12 @@ function cancel_events_by_person($first_name, $last_name, $birth_date, $types = 
     $cancel[] = $event['id'];
   }
 
-  log_error('cancel_events_by_person', get_defined_vars());
-
-  if ($cancel)
+  if ($cancel) {
+    log_error('cancel_events_by_person: has events', get_defined_vars());
     cancel_events($cancel);
+  } else {
+    log_notice('cancel_events_by_person: no events', get_defined_vars());
+  }
 
   return $cancel;
 }
