@@ -300,7 +300,7 @@ function cancel_events($ids) {
 
   $result = gdoc_post(GD_HELPER_URL, $args);
 
-  log_info('cancel_events', get_defined_vars());
+  log_notice('cancel_events', get_defined_vars());
 }
 
 function modify_events($modify) {
@@ -446,13 +446,14 @@ function cancel_events_by_person($first_name, $last_name, $birth_date, $types = 
   $events = search_events_by_person($first_name, $last_name, $birth_date, false, $types);
 
   if ( ! is_array($events)) {
-    log_error('cancel_events_by_person', get_defined_vars());
     $events = [];
   }
 
   foreach ($events as $event) {
     $cancel[] = $event['id'];
   }
+
+  log_error('cancel_events_by_person', get_defined_vars());
 
   if ($cancel)
     cancel_events($cancel);
