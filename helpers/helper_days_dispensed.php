@@ -14,7 +14,8 @@ function get_days_default($item) {
   $days_left_in_stock      = days_left_in_stock($item);
   $days_default            = days_default($days_left_in_expiration, $days_left_in_refills, $days_left_in_stock);
 
-  if ( ! $item['rx_dispensed_id'] AND $days_left_in_expiration < 0) { // Can't do <= 0 because null <= 0 is true
+  //#29005 was expired but never dispensed, so check "refill_date_first" so we asking doctors for new rxs that we never dispensed
+  if ($item['refill_date_first'] AND ! $item['rx_dispensed_id'] AND $days_left_in_expiration < 0) { // Can't do <= 0 because null <= 0 is true
     log_info("DON'T FILL EXPIRED MEDICATIONS", get_defined_vars());
     return [0, RX_MESSAGE['ACTION EXPIRED']];
   }
