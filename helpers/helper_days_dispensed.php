@@ -90,9 +90,16 @@ function get_days_default($item) {
     return [0, RX_MESSAGE['NO ACTION CHECK SIG']];
   }
 
-  if ( ! $item['item_date_added'] AND ! $item['rx_autofill']) {
+  //If SureScript comes in AND only *rx* is off autofill, we assume patients wants it.
+  //This is different when *patient* is off autofill, then we assume they don't want it unless added_manually
+  if ( ! $item['rx_autofill'] AND ! $item['item_date_added']) {
     log_info("DON'T FILL IF RX_AUTOFILL IS OFF AND NOT IN ORDER", get_defined_vars());
-    return [0, RX_MESSAGE['NO ACTION RX OFF AUTOFILL']];
+    return [0, RX_MESSAGE['ACTION RX OFF AUTOFILL']];
+  }
+
+  if ( ! $item['rx_autofill'] AND $item['item_date_added']) {
+    log_info("OVERRIDE RX AUTOFILL OFF", get_defined_vars());
+    return [$days_default, RX_MESSAGE['NO ACTION RX OFF AUTOFILL']];
   }
 
   if ( ! $item['refill_date_first'] AND $not_offered) {
