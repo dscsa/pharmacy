@@ -103,6 +103,7 @@ function refill_reminder_notice($groups) {
     ''
   ]);
 
+  log_error("refill_reminder_notice is this right?", [$groups, $email]);
   refill_reminder_event($groups['ALL'], $email, $text, $groups['MIN_DAYS']*24, 12);
 }
 
@@ -343,6 +344,7 @@ function needs_form_notice($groups) {
     $hour_of_day   = [11, 17, 11, 17, 17, 17];
   }
 
+  log_error("needs_form_notice is this right?", [$groups, $email]);
   needs_form_event($groups['ALL'], $email, $text, $hours_to_wait[0], $hour_of_day[0]);
 
   if ( ! $groups['COUNT_FILLED']) return; //Don't hassle folks if we aren't filling anything
@@ -384,15 +386,15 @@ function no_rx_notice($groups) {
   no_rx_event($groups['ALL'], $email, $text, 15/60);
 }
 
-//NOTE: UNLIKE OTHER COMM FUNCTIONS THIS TAKES ORDER AND NOT GROUPS
-//THIS IS BECAUSE A DELETED ORDER DOES NOT HAVE ANY DRUGS TO GROUP
-function order_canceled_notice($order) {
+//NOTE: UNLIKE OTHER COMM FUNCTIONS THIS TAKES DELETED AND NOT GROUPS
+//THIS IS BECAUSE there is not an $order to make $groups
+function order_canceled_notice($deleted) {
 
-  $subject = "We have canceled your Order #".$order[0]['invoice_number'];
+  $subject = "We have canceled your Order #".$deleted['invoice_number'];
   $message = "We have canceled this order. Please call us at (888) 987-5187 if you believe this is in error.";
 
-  $email = [ "email" => $order[0]['email'] ];
-  $text  = [ "sms" => get_phones($order),  "message" => $subject.'. '.$message ];
+  $email = [ "email" => $deleted['email'] ];
+  $text  = [ "sms" => get_phones([$deleted]),  "message" => $subject.'. '.$message ];
 
   $email['subject'] = $subject;
   $email['message'] = implode('<br>', [
@@ -400,7 +402,7 @@ function order_canceled_notice($order) {
     '',
     $subject.'. '.$message,
     '',
-    json_encode($order),
+    json_encode($deleted),
     '',
     'Thanks!',
     'The Good Pill Team',
@@ -408,7 +410,8 @@ function order_canceled_notice($order) {
     ''
   ]);
 
-  order_canceled_event($order, $email, $text, 15/60);
+  log_error("order_canceled_notice is this right?", [$deleted, $email]);
+  order_canceled_event($deleted, $email, $text, 15/60);
 }
 
 function confirm_shipment_notice($groups) {

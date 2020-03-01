@@ -52,7 +52,7 @@ function update_orders_cp() {
     //NEEDS FORM, TRANSFER OUT OF ALL ITEMS, ACTION PATIENT OFF AUTOFILL
     if ($synced['new_count_items'] <= 0) {
       $groups = group_drugs($order, $mysql);
-      send_deleted_order_communications($order);
+      send_deleted_order_communications($groups);
       log_error("helper_syncing is effectively removing order ".$order[0]['invoice_number'], ['order' => $order, 'synced' => $synced]);
     }
 
@@ -152,7 +152,7 @@ function update_orders_cp() {
     if ( ! $patient)
       log_error('No patient associated with deleted order', ['deleted' => $deleted, 'sql' => $sql]);
 
-    send_deleted_order_communications([$deleted]);
+    send_deleted_order_communications($deleted);
   }
 
   //If just updated we need to
