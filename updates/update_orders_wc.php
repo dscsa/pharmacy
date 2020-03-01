@@ -11,6 +11,8 @@ function update_orders_wc() {
   $count_created = count($changes['created']);
   $count_updated = count($changes['updated']);
 
+  return;
+
   if ( ! $count_deleted AND ! $count_created AND ! $count_updated) return;
 
   log_notice("update_orders_wc: $count_deleted deleted, $count_created created, $count_updated updated.");
