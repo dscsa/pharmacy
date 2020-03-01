@@ -12,7 +12,7 @@ function get_days_default($item) {
   $days_left_in_expiration = days_left_in_expiration($item);
   $days_left_in_refills    = days_left_in_refills($item);
   $days_left_in_stock      = days_left_in_stock($item);
-  $days_default            = days_default($days_left_in_expiration, $days_left_in_refills, $days_left_in_stock);
+  $days_default            = days_default($days_left_in_refills, $days_left_in_stock);
 
   //#29005 was expired but never dispensed, so check "refill_date_first" so we asking doctors for new rxs that we never dispensed
   if ($item['refill_date_first'] AND ! $item['rx_dispensed_id'] AND $days_left_in_expiration < 0) { // Can't do <= 0 because null <= 0 is true
@@ -131,14 +131,14 @@ function get_days_default($item) {
     return [$days_default, RX_MESSAGE['NO ACTION DUE SOON AND SYNC TO ORDER']];
   }
 
-  if ($days_left_in_expiration == $days_default) {
-    log_info("WARN USERS IF RX IS ABOUT TO EXPIRE", get_defined_vars());
-    return [$days_default, RX_MESSAGE['ACTION EXPIRING']];
+  if ($days_left_in_refills == $days_default) {
+    log_info("WARN USERS IF DRUG IS ON LAST REFILL", get_defined_vars());
+    return [$days_default, RX_MESSAGE['ACTION LAST REFILL']];
   }
 
-  if ($days_left_in_refills == $days_default) {
-    log_info("WARN USERS IF DRUG IS LOW QTY", get_defined_vars());
-    return [$days_default, RX_MESSAGE['ACTION LAST REFILL']];
+  if ($days_left_in_expiration <= $days_default) {
+    log_info("WARN USERS IF RX IS ABOUT TO EXPIRE", get_defined_vars());
+    return [$days_default, RX_MESSAGE['ACTION EXPIRING']];
   }
 
   if ($days_left_in_stock == $days_default) {
@@ -356,19 +356,18 @@ function round15($days) {
 //Days is basically the MIN(target_date ?: std_day, qty_left as days, inventory_left as days).
 //NOTE: We adjust bump up the days by upto 30 in order to finish up an Rx (we don't want partial fills left)
 //NOTE: We base this on the best_rx_number and NOT on the rx currently in the order
-function days_default($days_left_in_expiration, $days_left_in_refills, $days_left_in_stock) {
+function days_default($days_left_in_refills, $days_left_in_stock) {
 
   //Cannot have NULL inside of MIN()
   $days_default = min(
-    $days_left_in_expiration ?: DAYS_STD,
     $days_left_in_refills ?: DAYS_STD,
     $days_left_in_stock ?: DAYS_STD
   );
 
   if ($days_default % 15)
-    log_error("DEFAULT DAYS IS NOT A MULTIPLE OF 15! days_default:$days_default, days_left_in_expiration:$days_left_in_expiration, days_left_in_stock:$days_left_in_stock, days_left_in_refills:$days_left_in_refills", get_defined_vars());
+    log_error("DEFAULT DAYS IS NOT A MULTIPLE OF 15! days_default:$days_default, days_left_in_stock:$days_left_in_stock, days_left_in_refills:$days_left_in_refills", get_defined_vars());
   else
-    log_info("days_default:$days_default,  days_left_in_expiration:$days_left_in_expiration, days_left_in_stock:$days_left_in_stock, days_left_in_refills:$days_left_in_refills", get_defined_vars());
+    log_info("days_default:$days_default, days_left_in_stock:$days_left_in_stock, days_left_in_refills:$days_left_in_refills", get_defined_vars());
 
   return $days_default;
 }

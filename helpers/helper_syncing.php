@@ -170,10 +170,9 @@ function set_sync_to_date($order, $target_date, $target_rxs, $mysql) {
     $days_extra  = (strtotime($target_date) - $time_refill)/60/60/24;
     $days_synced = $old_days_default + round($days_extra/15)*15;
 
-    $days_left_in_expiration = days_left_in_expiration($item);
     $days_left_in_refills    = days_left_in_refills($item);
     $days_left_in_stock      = days_left_in_stock($item);
-    $new_days_default        = days_default($days_left_in_expiration, $days_left_in_refills, $days_left_in_stock);
+    $new_days_default        = days_default($days_left_in_refills, $days_left_in_stock);
 
     if ($new_days_default >= 15 AND $new_days_default <= 120 AND $new_days_default != $old_days_default) { //Limits to the amounts by which we are willing sync
 
