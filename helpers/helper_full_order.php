@@ -1,7 +1,7 @@
 <?php
 //order created -> add any additional rxs to order -> import order items -> sync all drugs in order
 
-function get_full_order($partial, $mysql, $suppress_error) {
+function get_full_order($partial, $mysql, $suppress_error = false) {
 
   $month_interval = 6;
 
@@ -241,19 +241,19 @@ function get_order_stage_wc($order) {
   if ($order[0]['order_stage_wc'] == 'shipped-partial-pay')
     return 'shipped-part-pay';
 
-  if ($order[0]['payment_method_actual'] == PAYMENT_METHOD['MAIL'])
+  if ($order[0]['payment_method'] == PAYMENT_METHOD['MAIL'])
     return 'shipped-mail-pay';
 
-  if ($order[0]['payment_method_actual'] == PAYMENT_METHOD['AUTOPAY'])
+  if ($order[0]['payment_method'] == PAYMENT_METHOD['AUTOPAY'])
     return 'shipped-auto-pay';
 
-  if ($order[0]['payment_method_actual'] == PAYMENT_METHOD['ONLINE'])
+  if ($order[0]['payment_method'] == PAYMENT_METHOD['ONLINE'])
     return 'shipped-web-pay';
 
-  if ($order[0]['payment_method_default'] == PAYMENT_METHOD['COUPON'])
+  if ($order[0]['payment_method'] == PAYMENT_METHOD['COUPON'])
     return 'done-clinic-pay';
 
-  if ($order[0]['payment_method_default'] == PAYMENT_METHOD['CARD EXPIRED'])
+  if ($order[0]['payment_method'] == PAYMENT_METHOD['CARD EXPIRED'])
     return 'late-card-expired';
 
   log_error('get_order_stage_wc error: shipped-* unknown payment_method', get_defined_vars());
