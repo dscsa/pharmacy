@@ -174,7 +174,7 @@ function set_sync_to_date($order, $target_date, $target_rxs, $mysql) {
     $days_left_in_stock      = days_left_in_stock($item);
     $new_days_default        = days_default($days_left_in_refills, $days_left_in_stock);
 
-    log_error("set_sync_to_date", ['invoice_number' => $order[0]['invoice_number'], 'drug_generic' => $order[0]['drug_generic'], 'target_date' => "$item[refill_date_next] >>> $target_date", 'days_default' => "$old_days_default >>> $new_days_default"])
+    log_error("set_sync_to_date", ['invoice_number' => $order[0]['invoice_number'], 'drug_generic' => $order[0]['drug_generic'], 'target_date' => "$item[refill_date_next] >>> $target_date", 'days_default' => "$old_days_default >>> $new_days_default"]);
 
     if ($new_days_default >= 15 AND $new_days_default <= 120 AND $new_days_default != $old_days_default) { //Limits to the amounts by which we are willing sync
 
