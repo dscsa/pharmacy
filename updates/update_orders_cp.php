@@ -76,7 +76,7 @@ function update_orders_cp() {
     }
 
     if ( ! $order[0]['pharmacy_name']) {
-      log_error("SHOULD HAVE BEEN DELETED WITH SYNC CODE ABOVE: Guardian Order Created But Patient Not Yet Registered in WC so not creating WC Order ".$order[0]['invoice_number']);
+      log_error("SHOULD HAVE BEEN DELETED WITH SYNC CODE ABOVE: Guardian Order Created But Patient Not Yet Registered in WC so not creating WC Order ".$order[0]['invoice_number'], $order);
       continue;
     }
 
@@ -122,7 +122,7 @@ function update_orders_cp() {
 
     //Order #28984
     if ( ! $deleted['patient_id_wc']) {
-      log_error('update_orders_cp: cp order deleted - Likely Guardian Order Was Created But Patient Was Not Yet Registered in WC so never created WC Order And No Need To Delete It', [$order, $deleted]);
+      log_error('update_orders_cp: cp order deleted - Likely Guardian Order Was Created But Patient Was Not Yet Registered in WC so never created WC Order And No Need To Delete It', $deleted);
       continue;
     }
 

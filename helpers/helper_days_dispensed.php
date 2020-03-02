@@ -29,7 +29,12 @@ function get_days_default($item) {
   }
 
   if ($item['rx_date_transferred']) {
-    log_info("RX WAS ALREADY TRANSFERRED OUT", get_defined_vars());
+
+    if($item['stock_level'] == STOCK_LEVEL['HIGH SUPPLY'])
+      log_error('HIGH STOCK ITEM WAS TRANSFERRED', get_defined_vars());
+    else
+      log_info("RX WAS ALREADY TRANSFERRED OUT", get_defined_vars());
+      
     return [0, RX_MESSAGE['NO ACTION WAS TRANSFERRED']];
   }
 
