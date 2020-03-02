@@ -64,9 +64,9 @@ function subsitute_numerals($sig) {
   $sig = preg_replace('/\(.*?\)/', '', $sig); //get rid of parenthesis // "Take 1 capsule (300 mg total) by mouth 3 (three) times daily."
   $sig = preg_replace('/\\\/', '', $sig);   //get rid of backslashes
 
-  $sig = preg_replace('/(^| *and *| *& *)(1\/2|one-half) /i', '.5 ', $sig); //Take 1 and 1/2 tablets or Take 1 & 1/2 tablets.  Could combine with next regex but might get complicated
+  $sig = preg_replace('/(^| *and *| *& *)(1\/2|one-half|one half|1 half) /i', '.5 ', $sig); //Take 1 and 1/2 tablets or Take 1 & 1/2 tablets.  Could combine with next regex but might get complicated
   $sig = preg_replace('/(\d+) (1\/2|one-half) /i', '$1.5 ', $sig); //Take 1 1/2 tablets
-  $sig = preg_replace('/ (1\/2|one-half) /i', ' .5 ', $sig);
+  $sig = preg_replace('/ (1\/2|one-half|one half|1 half) /i', ' .5 ', $sig);
   $sig = preg_replace('/\\bone |\\buno /i', '1 ', $sig); // \\b is for space or start of line
   $sig = preg_replace('/\\btwo |\\bdos |\\bother |\\botra /i', '2 ', $sig); // \\b is for space or start of line
   $sig = preg_replace('/\\bthree |\\tres /i', '3 ', $sig); // \\b is for space or start of line
@@ -102,6 +102,9 @@ function subsitute_numerals($sig) {
   $sig = preg_replace('/ dinner /i', ' evening ', $sig);
   $sig = preg_replace('/ mornings? and evenings? /i', ' 2 times ', $sig);
 
+  //Remove double spaces for aesthetics
+  $sig = preg_replace('/  +/i', ' ', $sig);
+
   return trim($sig);
 }
 
@@ -111,7 +114,7 @@ function get_qty_per_time($sig) {
 
     if ($match) return $match[1];
 
-    preg_match('/(^|use +|take +|inhale +|chew +|inject +|oral +)([0-9]?\.[0-9]+|[1-9])(?!\d* ?mg)/i', $sig, $match);
+    preg_match('/(^|use +|take +|inhale +|chew +|inject +|oral +)([0-9]?\.[0-9]+|[1-9])(?!\d* ?mg)(?! +time)/i', $sig, $match);
 
     return $match ? $match[2] : 1; //"Use daily with lantus" won't match the RegEx above
 }

@@ -63,8 +63,10 @@ $test_sigs = [
   "Take 1 tablet by mouth twice a day with meal", //Unfixed?
   "TAKE ONE AND ONE-HALF TABLET BY MOUTH TWICE A DAY", //Unfixed
   "Take 1 TO 2 tablets by mouth twice a day FOR DIABETES", //Unfixed
-  "1 tab under tongue at onset of CP may repeat twice in five minutes" //Unfixed
-
+  "1 tab under tongue at onset of CP may repeat twice in five minutes", //Unfixed
+  "Take 1 tablet by mouth once daily with fluids, as early as possible after the onset of a migraine attack, may repeat 2 hours if headahce returns, not to 200 mg in 24 hours", //Unfixed
+  "ORAL Take  1 half tablet daily for high blood pressure",
+  "ORAL Take bid for diabetes"
   //"Take 1 tablet (12.5 mg total) by mouth every 12 (twelve) hours",
   //"1 ORAL every eight hours as needed",
   //"Take 5 mg by mouth 2 (two) times daily.",
