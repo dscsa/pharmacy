@@ -12,7 +12,7 @@ function get_days_default($item) {
   $days_left_in_expiration = days_left_in_expiration($item);
   $days_left_in_refills    = days_left_in_refills($item);
   $days_left_in_stock      = days_left_in_stock($item);
-  $days_default            = days_default($days_left_in_refills, $days_left_in_stock);
+  $days_default            = days_default($days_left_in_refills, $days_left_in_stock, $days_left_in_expiration);
 
   //#29005 was expired but never dispensed, so check "refill_date_first" so we asking doctors for new rxs that we never dispensed
   if ($item['refill_date_first'] AND ! $item['rx_dispensed_id'] AND $days_left_in_expiration < 0) { // Can't do <= 0 because null <= 0 is true
@@ -131,14 +131,14 @@ function get_days_default($item) {
     return [$days_default, RX_MESSAGE['NO ACTION DUE SOON AND SYNC TO ORDER']];
   }
 
+  if (days_left_in_expiration($item)) {
+    log_info("WARN USERS IF RX IS ABOUT TO EXPIRE", get_defined_vars());
+    return [$days_default, RX_MESSAGE['ACTION EXPIRING']];
+  }
+
   if ($days_left_in_refills == $days_default) {
     log_info("WARN USERS IF DRUG IS ON LAST REFILL", get_defined_vars());
     return [$days_default, RX_MESSAGE['ACTION LAST REFILL']];
-  }
-
-  if ($days_left_in_expiration <= $days_default) {
-    log_info("WARN USERS IF RX IS ABOUT TO EXPIRE", get_defined_vars());
-    return [$days_default, RX_MESSAGE['ACTION EXPIRING']];
   }
 
   if ($days_left_in_stock == $days_default) {
@@ -320,11 +320,13 @@ function sync_to_order_due_soon($item) {
   return ! $item['item_date_added'] AND $item['refills_total'] >= 0.1 AND $item['refill_date_next'] AND (strtotime($item['refill_date_next'])  - strtotime($item['order_date_added'])) <= 15*24*60*60;
 }
 
+//Although you can dispense up until an Rx expires (so refill_date_next is well past rx_date_expired) we want to use
+//as much of a Rx as possible, so if it will expire before  the standard dispense date than dispense everything left
 function days_left_in_expiration($item) {
 
   $days_left_in_expiration = (strtotime($item['rx_date_expired']) - strtotime($item['refill_date_next']))/60/60/24;
 
-  if ($days_left_in_expiration <= DAYS_STD+30) return round15($days_left_in_expiration);
+  if ($days_left_in_expiration <= DAYS_STD) return round15($item['qty_left']/$item['sig_qty_per_day']);
 }
 
 function days_left_in_refills($item) {

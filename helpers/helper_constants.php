@@ -154,7 +154,7 @@ const RX_MESSAGE = [
     'ES' => ''
   ],
   'ACTION EXPIRED' => [
-    'EN' => 'has expired, ask your doctor for a new Rx',
+    'EN' => 'will expire before your next refill, ask your doctor for a new Rx',
     'ES' => ''
   ],
   'ACTION EXPIRING' => [
