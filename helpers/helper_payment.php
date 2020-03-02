@@ -71,7 +71,7 @@ function set_payment_default($order, $mysql) {
       payment_fee_default   = {$order[0]['payment_fee_default']},
       payment_due_default   = {$order[0]['payment_due_default']},
       payment_date_autopay  = {$order[0]['payment_date_autopay']},
-      invoice_doc_id        = {$order[0]['invoice_doc_id']}
+      invoice_doc_id        = '{$order[0]['invoice_doc_id']}'
     WHERE
       invoice_number = {$order[0]['invoice_number']}
   ";

@@ -36,7 +36,7 @@ function export_gd_update_invoice($order, $reason) {
 
   //Need to make a second loop to now update the invoice number
   foreach($order as $i => $item)
-    $order[$i]['invoice_doc_id'] = "'$invoice_doc_id'";
+    $order[$i]['invoice_doc_id'] = $invoice_doc_id;
 
   return $order;
 }
