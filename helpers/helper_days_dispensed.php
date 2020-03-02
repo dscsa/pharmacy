@@ -358,12 +358,12 @@ function round15($days) {
 //Days is basically the MIN(target_date ?: std_day, qty_left as days, inventory_left as days).
 //NOTE: We adjust bump up the days by upto 30 in order to finish up an Rx (we don't want partial fills left)
 //NOTE: We base this on the best_rx_number and NOT on the rx currently in the order
-function days_default($days_left_in_refills, $days_left_in_stock) {
+function days_default($days_left_in_refills, $days_left_in_stock, $days_default = DAYS_STD) {
 
   //Cannot have NULL inside of MIN()
   $days_default = min(
-    $days_left_in_refills ?: DAYS_STD,
-    $days_left_in_stock ?: DAYS_STD
+    $days_left_in_refills ?: $days_default,
+    $days_left_in_stock ?: $days_default
   );
 
   if ($days_default % 15)

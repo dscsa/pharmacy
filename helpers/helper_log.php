@@ -135,7 +135,7 @@ function log_notice($text, $vars = '') {
 }
 
 function get_file() {
-  $trace = debug_backtrace(2, 2); //1st arge: exlude ["object"] AND ["args"], 2nd arg is a limit to how far back
+  $trace = debug_backtrace(2, 3); //1st arge: exlude ["object"] AND ["args"], 2nd arg is a limit to how far back
   $index = count($trace) - 1;
   return $trace[$index]['function']."($index) in ".$trace[$index-1]['file']." on line #".$trace[$index-1]['line'];
 }
