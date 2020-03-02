@@ -131,9 +131,9 @@ function get_days_default($item) {
     return [$days_default, RX_MESSAGE['NO ACTION DUE SOON AND SYNC TO ORDER']];
   }
 
-  if (days_left_in_expiration($item)) {
+  if ($days_left_in_expiration) {
     log_info("WARN USERS IF RX IS ABOUT TO EXPIRE", get_defined_vars());
-    return [$days_default, RX_MESSAGE['ACTION EXPIRING']];
+    return [$days_left_in_expiration, RX_MESSAGE['ACTION EXPIRING']];
   }
 
   if ($days_left_in_refills == $days_default) {
