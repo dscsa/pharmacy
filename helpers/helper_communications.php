@@ -95,7 +95,10 @@ function group_drugs($order, $mysql) {
       invoice_number = {$order[0]['invoice_number']}
   ";
 
-  $mysql->run($sql);
+  if ($order[0]['invoice_number'])
+    $mysql->run($sql);
+  else
+    log_error('GROUP_DRUGS has no invoice number', get_defined_vars());
 
   log_info('GROUP_DRUGS', get_defined_vars());
 

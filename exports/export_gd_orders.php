@@ -2,9 +2,12 @@
 
 require_once 'helpers/helper_appsscripts.php';
 
-function export_gd_update_invoice($order, $reason) {
+function export_gd_update_invoice($order, $reason, $mysql) {
 
-  if ( ! count($order)) return;
+  if ( ! count($order)) {
+    log_error("export_gd_update_invoice: got malformed order", [$order, $reason]);
+    return $order;
+  }
 
   $start = microtime(true);
 
@@ -37,6 +40,17 @@ function export_gd_update_invoice($order, $reason) {
   //Need to make a second loop to now update the invoice number
   foreach($order as $i => $item)
     $order[$i]['invoice_doc_id'] = $invoice_doc_id;
+
+  $sql = "
+    UPDATE
+      gp_orders
+    SET
+      invoice_doc_id = '$invoice_doc_id'
+    WHERE
+      invoice_number = {$order[0]['invoice_number']}
+  ";
+
+  $mysql->run($sql);
 
   return $order;
 }

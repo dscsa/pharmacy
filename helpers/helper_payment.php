@@ -6,12 +6,13 @@ require_once 'exports/export_gd_orders.php';
 function helper_update_payment($order, $reason, $mysql) {
 
   $order = get_payment_default($order, $reason);
-
-  $order = export_gd_update_invoice($order, $reason);
-
-  log_notice('set_payment_default', [$order, $update, $reason]);
-
   set_payment_default($order, $mysql);
+
+  //We include this call in the helper because it MUST be called after get_payment_default or the totals will be wrong
+  //If called manually from main thread it is likely that this ordering would not be honored and result in issues
+  $order = export_gd_update_invoice($order, $reason, $mysql);
+
+  log_notice('helper_update_payment', [$order, $update, $reason]);
 
   return $order;
 }
@@ -51,7 +52,7 @@ function get_payment_default($order, $reason) {
     $order[0]['payment_due_default'] == $update['payment_due_default']
   ) {
 
-    log_error('set_payment_default: but no changes, should have just called export_gd_update_invoice()', [$order, $update, $reason]);
+    log_error('get_payment_default: but no changes, should have just called export_gd_update_invoice()', [$order, $update, $reason]);
 
   }
 
@@ -70,8 +71,7 @@ function set_payment_default($order, $mysql) {
       payment_total_default = {$order[0]['payment_total_default']},
       payment_fee_default   = {$order[0]['payment_fee_default']},
       payment_due_default   = {$order[0]['payment_due_default']},
-      payment_date_autopay  = {$order[0]['payment_date_autopay']},
-      invoice_doc_id        = '{$order[0]['invoice_doc_id']}'
+      payment_date_autopay  = {$order[0]['payment_date_autopay']}
     WHERE
       invoice_number = {$order[0]['invoice_number']}
   ";
