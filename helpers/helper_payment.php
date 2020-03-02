@@ -4,13 +4,19 @@ require_once 'exports/export_gd_orders.php';
 
 
 function helper_update_payment($order, $reason, $mysql) {
-  $update = get_payment($order);
-  $order  = set_payment_default($order, $update, $reason, $mysql);
+
+  $order = get_payment_default($order, $reason);
+
+  $order = export_gd_update_invoice($order, $reason);
+
+  log_notice('set_payment_default', [$order, $update, $reason]);
+
+  set_payment_default($order, $mysql);
 
   return $order;
 }
 
-function get_payment($order) {
+function get_payment_default($order, $reason) {
 
   $update = [];
 
@@ -36,11 +42,6 @@ function get_payment($order) {
     $update['payment_due_default'] = 0;
   }
 
-  return $update;
-}
-
-function set_payment_default($order, $update, $reason, $mysql) {
-
   if (
     isset($order[0]['payment_total_default']) AND
     isset($order[0]['payment_fee_default']) AND
@@ -50,39 +51,32 @@ function set_payment_default($order, $update, $reason, $mysql) {
     $order[0]['payment_due_default'] == $update['payment_due_default']
   ) {
 
-    return log_notice('set_payment_default: but no changes', [$order, $update, $reason]);
+    log_error('set_payment_default: but no changes, should have just called export_gd_update_invoice()', [$order, $update, $reason]);
 
   }
 
-  if ($reason == "update_orders_wc: deleted - 0 items")
-    log_error('set_payment_default update_orders_wc: deleted - 0 items HAD CHANGES', [$order, $update, $reason]);
-
-  //Update order before we make the invoice
   foreach($order as $i => $item)
     $order[$i] = $update + $item;
 
-  $invoice_doc_id = export_gd_update_invoice($order, $reason);
+  return $order;
+}
 
-  //Need to make a second loop to now update the invoice number
-  foreach($order as $i => $item)
-    $order[$i]['invoice_doc_id'] = $invoice_doc_id;
+function set_payment_default($order, $mysql) {
 
   $sql = "
     UPDATE
       gp_orders
     SET
-      payment_total_default = $update[payment_total_default],
-      payment_fee_default   = $update[payment_fee_default],
-      payment_due_default   = $update[payment_due_default],
-      payment_date_autopay  = $update[payment_date_autopay],
-      invoice_doc_id        = ".($invoice_doc_id ? "'$invoice_doc_id'" : 'NULL')."
+      payment_total_default = {$order[0]['payment_total_default']},
+      payment_fee_default   = {$order[0]['payment_fee_default']},
+      payment_due_default   = {$order[0]['payment_due_default']},
+      payment_date_autopay  = {$order[0]['payment_date_autopay']},
+      invoice_doc_id        = {$order[0]['invoice_doc_id']}
     WHERE
       invoice_number = {$order[0]['invoice_number']}
   ";
 
   $mysql->run($sql);
-
-  return $order;
 }
 
 function set_payment_actual($invoice_number, $payment, $mysql) {

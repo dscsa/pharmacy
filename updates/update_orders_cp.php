@@ -214,7 +214,7 @@ function update_orders_cp() {
 
     } else if ($qty_changes) {
       //Updates invoice with new qty/refills.  Prices should not have changed so no need to update WC
-      $order = helper_update_payment($order,  "update_orders_cp: updated - dispensing qty changes ".implode(', ', $qty_changes), $mysql);
+      $order = export_gd_update_invoice($order, "update_orders_cp: updated - dispensing qty changes ".implode(', ', $qty_changes));
     }
 
     if ($stage_change_cp AND $updated['order_date_shipped']) {
