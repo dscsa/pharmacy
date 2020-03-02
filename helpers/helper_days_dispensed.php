@@ -34,7 +34,7 @@ function get_days_default($item) {
       log_error('HIGH STOCK ITEM WAS TRANSFERRED', get_defined_vars());
     else
       log_info("RX WAS ALREADY TRANSFERRED OUT", get_defined_vars());
-      
+
     return [0, RX_MESSAGE['NO ACTION WAS TRANSFERRED']];
   }
 
@@ -349,10 +349,10 @@ function days_left_in_stock($item) {
 
   if ($days_left_in_stock < DAYS_STD OR $item['qty_inventory'] < 500) {
 
-    if($item['stock_level'] == STOCK_LEVEL['HIGH SUPPLY'] AND $item['sig_qty_per_day'] != 1/30)
+    if($item['stock_level'] == STOCK_LEVEL['HIGH SUPPLY'] AND $item['sig_qty_per_day'] != round(1/30, 3))
       log_error('LOW STOCK ITEM IS MARKED HIGH SUPPLY', get_defined_vars());
 
-    return $item['sig_qty_per_day'] == 1/30 ? 30 : 45; //Assume an Inhaler lasts one month
+    return $item['sig_qty_per_day'] == round(1/30, 3) ? 60.6 : 45; //Dispensed 2 inhalers per time, since 1/30 is rounded to 3 decimals (.033), 2 month/.033 = 60.6 qty
   }
 }
 
