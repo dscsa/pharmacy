@@ -55,24 +55,30 @@ function parse_sig($rx) {
 }
 
 function subsitute_numerals($sig) {
+
+  //Spanish
+  $sig = preg_replace('/\\btomar /i', 'take ', $sig);
+  $sig = preg_replace('/\\bcada /i', 'each ', $sig);
+  $sig = preg_replace('/\\bhoras /i', 'hours ', $sig);
+
   $sig = preg_replace('/\(.*?\)/', '', $sig); //get rid of parenthesis // "Take 1 capsule (300 mg total) by mouth 3 (three) times daily."
   $sig = preg_replace('/\\\/', '', $sig);   //get rid of backslashes
 
   $sig = preg_replace('/(^| ?and ?| ?& ?)(1\/2|one-half) /i', '.5 ', $sig); //Take 1 and 1/2 tablets or Take 1 & 1/2 tablets.  Could combine with next regex but might get complicated
   $sig = preg_replace('/(\d+) (1\/2|one-half) /i', '$1.5 ', $sig); //Take 1 1/2 tablets
   $sig = preg_replace('/ (1\/2|one-half) /i', ' .5 ', $sig);
-  $sig = preg_replace('/\\bone /i', '1 ', $sig); // \\b is for space or start of line
-  $sig = preg_replace('/\\btwo |\\bother /i', '2 ', $sig); // \\b is for space or start of line
-  $sig = preg_replace('/\\bthree /i', '3 ', $sig); // \\b is for space or start of line
-  $sig = preg_replace('/\\bfour /i', '4 ', $sig); // \\b is for space or start of line
-  $sig = preg_replace('/\\bfive /i', '5 ', $sig); // \\b is for space or start of line
-  $sig = preg_replace('/\\bsix /i', '6 ', $sig); // \\b is for space or start of line
-  $sig = preg_replace('/\\bseven /i', '7 ', $sig); // \\b is for space or start of line
-  $sig = preg_replace('/\\beight /i', '8 ', $sig); // \\b is for space or start of line
-  $sig = preg_replace('/\\bnine /i', '9 ', $sig); // \\b is for space or start of line
-  $sig = preg_replace('/\\bten /i', '10 ', $sig); // \\b is for space or start of line
-  $sig = preg_replace('/\\beleven /i', '11 ', $sig); // \\b is for space or start of line
-  $sig = preg_replace('/\\btwelve /i', '12 ', $sig); // \\b is for space or start of line
+  $sig = preg_replace('/\\bone |\\buno /i', '1 ', $sig); // \\b is for space or start of line
+  $sig = preg_replace('/\\btwo |\\bdos |\\bother |\\botra /i', '2 ', $sig); // \\b is for space or start of line
+  $sig = preg_replace('/\\bthree |\\tres /i', '3 ', $sig); // \\b is for space or start of line
+  $sig = preg_replace('/\\bfour |\\bquatro /i', '4 ', $sig); // \\b is for space or start of line
+  $sig = preg_replace('/\\bfive |\\bcinco /i', '5 ', $sig); // \\b is for space or start of line
+  $sig = preg_replace('/\\bsix |\\bseis /i', '6 ', $sig); // \\b is for space or start of line
+  $sig = preg_replace('/\\bseven |\\bsiete /i', '7 ', $sig); // \\b is for space or start of line
+  $sig = preg_replace('/\\beight |\\bocho /i', '8 ', $sig); // \\b is for space or start of line
+  $sig = preg_replace('/\\bnine |\\bnueve /i', '9 ', $sig); // \\b is for space or start of line
+  $sig = preg_replace('/\\bten |\\bdiez /i', '10 ', $sig); // \\b is for space or start of line
+  $sig = preg_replace('/\\beleven |\\bonce /i', '11 ', $sig); // \\b is for space or start of line
+  $sig = preg_replace('/\\btwelve |\\bdoce /i', '12 ', $sig); // \\b is for space or start of line
 
   $sig = preg_replace('/ hrs\\b/i', ' hours', $sig);
   $sig = preg_replace('/ once /i', ' 1 time ', $sig);
