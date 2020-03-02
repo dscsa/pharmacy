@@ -12,17 +12,12 @@ function get_days_default($item) {
   $days_left_in_expiration = days_left_in_expiration($item);
   $days_left_in_refills    = days_left_in_refills($item);
   $days_left_in_stock      = days_left_in_stock($item);
-  $days_default            = days_default($days_left_in_refills, $days_left_in_stock, $days_left_in_expiration);
+  $days_default            = days_default($days_left_in_refills, $days_left_in_stock);
 
   //#29005 was expired but never dispensed, so check "refill_date_first" so we asking doctors for new rxs that we never dispensed
   if ($item['refill_date_first'] AND ! $item['rx_dispensed_id'] AND $days_left_in_expiration < 0) { // Can't do <= 0 because null <= 0 is true
     log_info("DON'T FILL EXPIRED MEDICATIONS", get_defined_vars());
     return [0, RX_MESSAGE['ACTION EXPIRED']];
-  }
-
-  if ( ! $item['rx_dispensed_id'] AND $item['refills_total'] < 0.1) { //Unlike refills_dispensed_default/actual might not be set yet
-    log_info("DON'T FILL MEDICATIONS WITHOUT REFILLS", $item);
-    return [0, RX_MESSAGE['ACTION NO REFILLS']];
   }
 
   if ( ! $item['drug_gsns']) {
@@ -53,10 +48,9 @@ function get_days_default($item) {
     return [0, RX_MESSAGE['NO ACTION WILL TRANSFER CHECK BACK']];
   }
 
-  //TODO MAYBE WE SHOULD JUST MOVE THE REFILL_DATE_NEXT BACK BY A WEEK OR TWO
-  if ($item['refill_date_first'] AND ($item['qty_inventory']/$item['sig_qty_per_day'] < 30) AND ! $added_manually) {
-    log_info("CHECK BACK NOT ENOUGH QTY UNLESS ADDED MANUALLY", get_defined_vars());
-    return [0, RX_MESSAGE['ACTION CHECK BACK']];
+  if ( ! $item['rx_dispensed_id'] AND $item['refills_total'] < 0.1) { //Unlike refills_dispensed_default/actual might not be set yet
+    log_info("DON'T FILL MEDICATIONS WITHOUT REFILLS", $item);
+    return [0, RX_MESSAGE['ACTION NO REFILLS']];
   }
 
   if ( ! $item['pharmacy_name']) {
@@ -67,6 +61,12 @@ function get_days_default($item) {
   if ( ! $item['patient_autofill'] AND ! $added_manually) {
     log_info("DON'T FILL IF PATIENT AUTOFILL IS OFF AND NOT MANUALLY ADDED", get_defined_vars());
     return [0, RX_MESSAGE['ACTION PATIENT OFF AUTOFILL']];
+  }
+
+  //TODO MAYBE WE SHOULD JUST MOVE THE REFILL_DATE_NEXT BACK BY A WEEK OR TWO
+  if ($item['refill_date_first'] AND ($item['qty_inventory']/$item['sig_qty_per_day'] < 30) AND ! $added_manually) {
+    log_error("YIKES! REFILL RX DOESN'T HAVE ENOUGH QTY TO FILL", get_defined_vars());
+    return [$days_default, RX_MESSAGE['ACTION CHECK BACK']];
   }
 
   if ( ! $item['patient_autofill'] AND $added_manually) {
