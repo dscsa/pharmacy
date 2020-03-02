@@ -50,7 +50,7 @@ function set_payment_default($order, $update, $reason, $mysql) {
     $order[0]['payment_due_default'] == $update['payment_due_default']
   ) {
 
-    log_notice('set_payment_default: but no changes', [$order, $update, $reason]);
+    return log_notice('set_payment_default: but no changes', [$order, $update, $reason]);
 
   }
 
