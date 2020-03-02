@@ -51,7 +51,7 @@ function set_payment_default($order, $update, $reason, $mysql) {
   ) {
 
     log_error('set_payment_default: but no changes', [$order, $update, $reason]);
-    
+
   }
 
   if ($reason == "update_orders_wc: deleted - 0 items")
@@ -61,7 +61,7 @@ function set_payment_default($order, $update, $reason, $mysql) {
   foreach($order as $i => $item)
     $order[$i] = $update + $item;
 
-  $invoice_doc_id = export_gd_update_invoice($order);
+  $invoice_doc_id = export_gd_update_invoice($order, $reason);
 
   //Need to make a second loop to now update the invoice number
   foreach($order as $i => $item)
