@@ -62,7 +62,7 @@ function group_drugs($order, $mysql) {
       $groups['FILLED_WITH_PRICES'][] = $item['drug'].$price;
     }
 
-    if ( ! $item['refills_dispensed'])
+    if ( ! $item['refills_dispensed'] AND ! $item['rx_date_transferred'])
       $groups['NO_REFILLS'][] = $item['drug'].$msg;
 
     if ($days AND ! $item['rx_autofill'])
