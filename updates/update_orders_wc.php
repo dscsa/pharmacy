@@ -45,7 +45,7 @@ function update_orders_wc() {
     //This comes from import_wc_orders so we don't need the "w/ Note" counterpart sources
     } else if (in_array($created['order_source'], ["Webform Refill", "Webform Transfer", "Webform eRx"])) {
       //TODO Investigate #29187
-      
+
       $gp_orders      = $mysql->run("SELECT * FROM gp_orders WHERE invoice_number = $created[invoice_number]");
       $gp_orders_cp   = $mysql->run("SELECT * FROM gp_orders_cp WHERE invoice_number = $created[invoice_number]");
 
@@ -196,6 +196,7 @@ function update_orders_wc() {
         ($old_stage[1] == 'prepare' AND $new_stage[1] == 'shipped') OR
         ($old_stage[1] == 'prepare' AND $new_stage[1] == 'done') OR
         ($old_stage[1] == 'shipped' AND $new_stage[1] == 'done') OR
+        ($old_stage[1] == 'late'    AND $new_stage[1] == 'done') OR
         ($old_stage[1] == 'shipped' AND $new_stage[1] == 'late') OR
         ($old_stage[1] == 'shipped' AND $new_stage[1] == 'returned') OR
         ($old_stage[1] == 'shipped' AND $updated['order_stage_wc'] == 'wc-shipped-part-pay') OR
