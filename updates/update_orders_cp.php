@@ -187,14 +187,14 @@ function update_orders_cp() {
 
       //! $updated['old_days_dispensed_actual'] otherwise triggered twice, once one stage: Printed/Processed and again on stage:Dispensed
       if ($item['days_dispensed_actual'] AND ! $updated['old_days_dispensed_actual'] AND $item['days_dispensed_default'] != $item['days_dispensed_actual'])
-        $day_changes[] = "rx:$item[rx_number] qty:$item[qty_dispensed_default] >>> $item[qty_dispensed_actual] days:$item[days_dispensed_default] >>> $item[days_dispensed_actual] refills:$item[refills_dispensed_default] >>> $item[refills_dispensed_actual]";
+        $day_changes[] = "rx:$item[rx_number] qty:$item[qty_dispensed_default] >>> $item[qty_dispensed_actual] days:$item[days_dispensed_default] >>> $item[days_dispensed_actual] refills:$item[refills_dispensed_default] >>> $item[refills_dispensed_actual] ".json_encode($changed_fields);
 
       //! $updated['old_qty/refills_dispensed_actual'] otherwise triggered twice, once one stage: Printed/Processed and again on stage:Dispensed
       if (
         ($item['qty_dispensed_actual'] AND ! $updated['old_qty_dispensed_actual'] AND $item['qty_dispensed_default'] != $item['qty_dispensed_actual']) OR
         ($item['refills_dispensed_actual'] AND ! $updated['old_refills_dispensed_actual'] AND $item['refills_dispensed_default'] != $item['refills_dispensed_actual'])
       )
-        $qty_changes[] = "rx:$item[rx_number] qty:$item[qty_dispensed_default] >>> $item[qty_dispensed_actual] days:$item[days_dispensed_default] >>> $item[days_dispensed_actual] refills:$item[refills_dispensed_default] >>> $item[refills_dispensed_actual]";
+        $qty_changes[] = "rx:$item[rx_number] qty:$item[qty_dispensed_default] >>> $item[qty_dispensed_actual] days:$item[days_dispensed_default] >>> $item[days_dispensed_actual] refills:$item[refills_dispensed_default] >>> $item[refills_dispensed_actual] ".json_encode($changed_fields);
 
       //! $updated['old_days_dispensed_actual'] otherwise triggered twice, once one stage: Printed/Processed and again on stage:Dispensed
       $actual_sig_qty_per_day = ($item['days_dispensed_actual'] AND ! $updated['old_days_dispensed_actual']) ? round($item['qty_dispensed_actual']/$item['days_dispensed_actual'], 1) : 0;

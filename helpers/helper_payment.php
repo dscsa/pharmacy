@@ -52,7 +52,7 @@ function get_payment_default($order, $reason) {
     $order[0]['payment_due_default'] == $update['payment_due_default']
   ) {
 
-    log_error('get_payment_default: but no changes, should have just called export_gd_update_invoice()', [$order, $update, $reason]);
+    log_error("get_payment_default: but no changes, should have just called export_gd_update_invoice() ".$order[0]['order_stage_cp'], [$order, $update, $reason]);
 
   }
 
