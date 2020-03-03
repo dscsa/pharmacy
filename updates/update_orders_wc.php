@@ -104,7 +104,7 @@ function update_orders_wc() {
       $gp_orders      = $mysql->run("SELECT * FROM gp_orders WHERE invoice_number = $deleted[invoice_number]");
       $gp_orders_wc   = $mysql->run("SELECT * FROM gp_orders_wc WHERE invoice_number = $deleted[invoice_number]");
       $gp_orders_cp   = $mysql->run("SELECT * FROM gp_orders_cp WHERE invoice_number = $deleted[invoice_number]");
-      $deleted_orders = $mysql->run("SELECT old.* FROM gp_orders_wc as new RIGHT JOIN gp_orders as old ON old.invoice_number = new.invoice_number WHERE new.invoice_number IS NULL");
+      //$deleted_orders = $mysql->run("SELECT old.* FROM gp_orders_wc as new RIGHT JOIN gp_orders as old ON old.invoice_number = new.invoice_number WHERE new.invoice_number IS NULL");
 
       //TODO WHAT IS GOING ON HERE?
       //Idea1:  Order had all items removed so it appeared to be deleted from CP, but when items were added back in the order 'reappeared'
@@ -117,8 +117,7 @@ function update_orders_wc() {
         'gp_orders' => $gp_orders,
         'gp_orders_wc' => $gp_orders_wc,
         'gp_orders_cp' => $gp_orders_cp,
-        'sql' => $sql,
-        'deleted_orders' => $deleted_orders
+        'sql' => $sql
       ]);
 
       $order = helper_update_payment($order,  "update_orders_wc: deleted - 0 items", $mysql);

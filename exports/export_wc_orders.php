@@ -133,10 +133,10 @@ function export_wc_create_order($order, $reason) {
   $birth_date = str_replace('*', '', $first_item['birth_date']); //Ignore Cindy's internal marking
 
   //START DEBUG
-  $post_id = wc_get_post_id($invoice_number);
+  $wc_order = wc_get_post_id($invoice_number, true);
 
-  if ($post_id) {
-    log_error("export_wc_create_order: aborting create order", [$first_item, $reason]);
+  if ($wc_order) {
+    log_error("export_wc_create_order: aborting create WC order because it already exists", [$first_item, $wc_order, $reason]);
     return $order;
   }
   //STOP DEBUG
