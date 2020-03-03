@@ -108,7 +108,7 @@ function update_orders_wc() {
 
       //TODO WHAT IS GOING ON HERE?
       //Idea1:  Order had all items removed so it appeared to be deleted from CP, but when items were added back in the order 'reappeared'
-      //Idea2: Failed when trying to be added to WC
+      //Idea2: Failed when trying to be added to WC (e.g., in #28162 the patient could not be found)
       //Neither Idea1 or Idea2 seems to be the case for Order 29033
       log_error("update_orders_wc: WC Order Appears to be DELETED", [
         'order[0]' => $order[0],

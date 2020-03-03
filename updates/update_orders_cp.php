@@ -57,8 +57,8 @@ function update_orders_cp() {
     }
 
     if ($synced['items_to_sync']) {
-      log_notice('sync_to_order necessary: deleting order for it to be readded', $synced['items_to_sync']);
-      $mysql->run('DELETE gp_orders FROM gp_orders WHERE invoice_number = '.$order[0]['invoice_number']);
+      log_notice('update_orders_cp sync_to_order necessary on CREATE: deleting order for it to be readded', $synced['items_to_sync']);
+      $mysql->run('DELETE gp_orders FROM gp_orders WHERE invoice_number = '.$order[0]['invoice_number']); //Force created to run again after the changes take place
       continue; //DON'T CREATE THE ORDER UNTIL THESE ITEMS ARE SYNCED TO AVOID CONFLICTING COMMUNICATIONS!
     }
 
@@ -199,8 +199,16 @@ function update_orders_cp() {
         log_error("sig parsing error '$item[sig_actual]' $item[sig_qty_per_day] (default) != $actual_sig_qty_per_day $item[qty_dispensed_actual]/$item[days_dispensed_actual] (actual)", $item);
     }
 
+    //We won't sync new drugs to the order, but if a new drug comes in that we are not filling, we will remove it
+    $synced = sync_to_order($order, $updated);
+
+    if ($synced['items_to_sync']) {
+
+      log_error("update_orders_cp sync_to_order necessary on UPDATE:", [$updated, $synced['items_to_sync']]);
+      $mysql->run("UPDATE gp_orders SET count_items = 0 WHERE invoice_number = {$order[0]['invoice_number']}"); //Force updated to run again after the changes take place
+
+    } else if ($order[0]['count_items'] != $order[0]['count_filled']) {
     //Do we need to update the order in WC or it's invoice?
-    if ($order[0]['count_items'] != $order[0]['count_filled']) {
 
       $items_not_filled = [];
       foreach ($order as $item) {
@@ -209,10 +217,7 @@ function update_orders_cp() {
         }
       }
 
-
       log_error("update_orders_cp: count filled updated ".$order[0]['count_items']." (count items) != ".$order[0]['count_filled']." (count filled)", [$order, $updated, $items_not_filled]);
-
-      $items_to_sync = sync_to_order($order, $updated);
 
       list($target_date, $target_rxs) = get_sync_to_date($order);
       $order = set_sync_to_date($order, $target_date, $target_rxs, $mysql);
