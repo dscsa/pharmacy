@@ -44,14 +44,22 @@ function update_orders_wc() {
 
     //This comes from import_wc_orders so we don't need the "w/ Note" counterpart sources
     } else if (in_array($created['order_source'], ["Webform Refill", "Webform Transfer", "Webform eRx"])) {
+      //TODO Investigate #29187
+      
+      $gp_orders      = $mysql->run("SELECT * FROM gp_orders WHERE invoice_number = $created[invoice_number]");
+      $gp_orders_cp   = $mysql->run("SELECT * FROM gp_orders_cp WHERE invoice_number = $created[invoice_number]");
 
-      log_error("update_orders_wc: created Webform eRx/Refill/Transfer order that is not in CP?", $created);//.print_r($item, true);
+      log_error("update_orders_wc: created Webform eRx/Refill/Transfer order that is not in CP?", ['gp_orders_cp' => $gp_orders_cp, 'gp_orders' => $gp_orders, 'created' => $created]);//.print_r($item, true);
 
       //log_notice("New WC Order to Add Guadian", $created);
 
     } else {
       //TODO Investigate #29147
-      log_error("update_orders_wc: created non-Webform order that is not in CP?", $created);//.print_r($item, true);
+
+      $gp_orders      = $mysql->run("SELECT * FROM gp_orders WHERE invoice_number = $created[invoice_number]");
+      $gp_orders_cp   = $mysql->run("SELECT * FROM gp_orders_cp WHERE invoice_number = $created[invoice_number]");
+
+      log_error("update_orders_wc: created non-Webform order that is not in CP?", ['gp_orders_cp' => $gp_orders_cp, 'gp_orders' => $gp_orders, 'created' => $created]);//.print_r($item, true);
 
       //log_notice("Guardian Order Deleted that should be deleted from WC later in this run or already deleted", $created);
     }
