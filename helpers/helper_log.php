@@ -1,5 +1,7 @@
 <?php
 
+require_once 'dbs/mysql_wc.php';
+
 global $mysql;
 $log_notices = [];
 

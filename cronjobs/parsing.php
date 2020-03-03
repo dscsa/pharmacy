@@ -3,6 +3,7 @@
 ini_set('include_path', '/goodpill/webform');
 date_default_timezone_set('America/New_York');
 
+require_once 'keys.php';
 require_once 'helpers/helper_log.php';
 require_once 'helpers/helper_parse_sig.php';
 
@@ -70,7 +71,8 @@ $test_sigs = [
   "Take 1 tablet by mouth @8am and 1/2 tablet @3pm",
   "Take 1 tablet under tongue as directed Take every 5 minutes up to 3 doses as needed for chest",
   "Take 2 tablets by mouth in the morning and Take 1 tablet once in the evening",
-  "Take 1 tablet by mouth once a day when your feet are swollen. When not swollen, take every other day"
+  "Take 1 tablet by mouth once a day when your feet are swollen. When not swollen, take every other day",
+  "Take 1 tablet by mouth 1-3 hours before bedtime"
   //"Take 1 tablet (12.5 mg total) by mouth every 12 (twelve) hours",
   //"1 ORAL every eight hours as needed",
   //"Take 5 mg by mouth 2 (two) times daily.",
