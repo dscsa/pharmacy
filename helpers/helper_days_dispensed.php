@@ -30,7 +30,7 @@ function get_days_default($item) {
 
   if ($item['rx_date_transferred']) {
 
-    if($item['stock_level'] == STOCK_LEVEL['HIGH SUPPLY'])
+    if(($item['stock_level_initial'] ?: $item['stock_level']) == STOCK_LEVEL['HIGH SUPPLY'])
       log_error('HIGH STOCK ITEM WAS TRANSFERRED', get_defined_vars());
     else
       log_info("RX WAS ALREADY TRANSFERRED OUT", get_defined_vars());
@@ -291,11 +291,11 @@ function is_added_manually($item) {
 }
 
 function is_not_offered($item) {
-  return $item['stock_level'] == STOCK_LEVEL['NOT OFFERED'];
+  return ($item['stock_level_initial'] ?: $item['stock_level'])  == STOCK_LEVEL['NOT OFFERED'];
 }
 
 function is_refill_only($item) {
-  return in_array($item['stock_level'], [
+  return in_array($item['stock_level_initial'] ?: $item['stock_level'], [
     STOCK_LEVEL['OUT OF STOCK'],
     STOCK_LEVEL['REFILL ONLY']
   ]);
@@ -349,7 +349,7 @@ function days_left_in_stock($item) {
 
   if ($days_left_in_stock < DAYS_STD OR $item['qty_inventory'] < 500) {
 
-    if($item['stock_level'] == STOCK_LEVEL['HIGH SUPPLY'] AND $item['sig_qty_per_day'] != round(1/30, 3))
+    if(($item['stock_level_initial'] ?: $item['stock_level']) == STOCK_LEVEL['HIGH SUPPLY'] AND $item['sig_qty_per_day'] != round(1/30, 3))
       log_error('LOW STOCK ITEM IS MARKED HIGH SUPPLY', get_defined_vars());
 
     return $item['sig_qty_per_day'] == round(1/30, 3) ? 60.6 : 45; //Dispensed 2 inhalers per time, since 1/30 is rounded to 3 decimals (.033), 2 month/.033 = 60.6 qty

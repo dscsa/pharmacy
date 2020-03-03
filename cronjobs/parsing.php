@@ -67,7 +67,8 @@ $test_sigs = [
   "Take 1 tablet by mouth once daily with fluids, as early as possible after the onset of a migraine attack, may repeat 2 hours if headahce returns, not to 200 mg in 24 hours", //Unfixed
   "ORAL Take  1 half tablet daily for high blood pressure",
   "ORAL Take bid for diabetes",
-  "Take 1 tablet by mouth @8am and 1/2 tablet @3pm"
+  "Take 1 tablet by mouth @8am and 1/2 tablet @3pm",
+  "Take 1 tablet under tongue as directed Take every 5 minutes up to 3 doses as needed for chest"
   //"Take 1 tablet (12.5 mg total) by mouth every 12 (twelve) hours",
   //"1 ORAL every eight hours as needed",
   //"Take 5 mg by mouth 2 (two) times daily.",

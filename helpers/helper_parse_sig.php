@@ -147,7 +147,7 @@ function get_frequency($sig) {
     $freq = 1/24; // One 24th of a day
 
   if (preg_match('/ prn| as needed/i', $sig)) //Not mutually exclusive like the others. TODO: Does this belong in freq denominator instead? TODO: Check with Cindy how often does as needed mean on average.  Assume once every 3 days for now
-    $freq *= 2; // I had this as 3 which I think is approximately correct, but Cindy didn't like so setting at 1 which basically means we ignore for now
+    $freq *= $freq > 1 ? 2 : 1; // I had this as 3 which I think is approximately correct, but Cindy didn't like so setting at 1 which basically means we ignore for now
 
   //Default to daily Example 1 tablet by mouth at bedtime
   return $freq;
