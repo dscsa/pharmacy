@@ -68,12 +68,6 @@ function get_days_default($item) {
     return [0, RX_MESSAGE['ACTION PATIENT OFF AUTOFILL']];
   }
 
-  //TODO MAYBE WE SHOULD JUST MOVE THE REFILL_DATE_NEXT BACK BY A WEEK OR TWO
-  if ($item['refill_date_first'] AND ($item['qty_inventory']/$item['sig_qty_per_day'] < 30) AND ! $added_manually) {
-    log_error("YIKES! REFILL RX DOESN'T HAVE ENOUGH QTY TO FILL", get_defined_vars());
-    return [$days_default, RX_MESSAGE['ACTION CHECK BACK']];
-  }
-
   if ( ! $item['patient_autofill'] AND $added_manually) {
     log_info("OVERRIDE PATIENT AUTOFILL OFF SINCE MANUALLY ADDED", get_defined_vars());
     return [$days_default, RX_MESSAGE['NO ACTION RX OFF AUTOFILL']];
@@ -147,7 +141,12 @@ function get_days_default($item) {
   }
 
   if ($days_left_in_stock == $days_default) {
-    log_info("WARN USERS IF DRUG IS LOW QTY", get_defined_vars());
+
+    if ($item['qty_inventory']/$item['sig_qty_per_day'] < 30)
+      log_error("YIKES! REFILL RX DOESN'T HAVE ENOUGH QTY TO FILL AT LEAST 30 DAYS", get_defined_vars());
+    else
+      log_info("WARN USERS IF DRUG IS LOW QTY", get_defined_vars());
+      
     return [$days_default, RX_MESSAGE['NO ACTION LOW STOCK']];
   }
 

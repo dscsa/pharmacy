@@ -46,7 +46,10 @@ function parse_sig($rx) {
 
     if ($qty_per_time AND $frequency AND $frequency_numerator AND $frequency_denominator) {
       $parsed['sig_qty_per_day'] = $qty_per_time * $frequency_numerator / $frequency_denominator / $frequency;
-      //log('Parsed $sig '.$rx['sig_actual'].' | '.$sig_clean.' | '.print_r($parsed, true));
+
+      if ($parsed['sig_qty_per_day'] > 6)
+        log_error("Parse sig sig_qty_per_day is >6: $rx[sig_actual] >>> $sig_clean", $parsed);
+    
       return $parsed;
     }
 
