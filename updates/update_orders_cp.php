@@ -123,21 +123,20 @@ function update_orders_cp() {
     //START DEBUG this is getting called on a CP order that is not yet in WC
     $order = get_full_order($deleted, $mysql, true);
 
-    //Order #28984, #29121
-    if ( ! $deleted['patient_id_wc']) {
-      //Likely
-      //  (1) Guardian Order Was Created But Patient Was Not Yet Registered in WC so never created WC Order And No Need To Delete It
-      //  (2) OR Guardian Order had items synced to/from it, so was deleted and readded, which effectively erases the patient_id_wc
-      log_error('update_orders_cp: cp order deleted - no patient_id_wc', [$order, $deleted]);
-      continue;
-    }
-
     if ($order) {
       log_error('update_orders_cp: cp order deleted (but still exists???)', [$order, $deleted]);
       continue;
     }
 
-    log_notice('update_orders_cp: cp order deleted so deleting wc order as well', [$order, $deleted]);
+    //Order #28984, #29121
+    if ( ! $deleted['patient_id_wc']) {
+      //Likely
+      //  (1) Guardian Order Was Created But Patient Was Not Yet Registered in WC so never created WC Order (and No Need To Delete It)
+      //  (2) OR Guardian Order had items synced to/from it, so was deleted and readded, which effectively erases the patient_id_wc
+      log_error('update_orders_cp: cp order deleted - no patient_id_wc', [$order, $deleted]);
+    } else {
+      log_notice('update_orders_cp: cp order deleted so deleting wc order as well', [$order, $deleted]);
+    }
     //END DEBUG
 
     export_gd_delete_invoice([$deleted], $mysql);
