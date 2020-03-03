@@ -5,14 +5,14 @@ require_once 'exports/export_gd_orders.php';
 
 function helper_update_payment($order, $reason, $mysql) {
 
+  log_notice('helper_update_payment', ['order_before' => $order, $reason]);
+
   $order = get_payment_default($order, $reason);
   set_payment_default($order, $mysql);
 
   //We include this call in the helper because it MUST be called after get_payment_default or the totals will be wrong
   //If called manually from main thread it is likely that this ordering would not be honored and result in issues
   $order = export_gd_update_invoice($order, $reason, $mysql);
-
-  log_notice('helper_update_payment', [$order, $update, $reason]);
 
   return $order;
 }
