@@ -125,7 +125,7 @@ function send_deleted_order_communications($groups) {
   if ( ! isset($groups['ALL'][0]['item_message_key']))
     order_canceled_notice($groups); //We passed in $deleted because there is not $order to make $groups
 
-  else if ($groups['ALL'][0]['item_message_key'] == 'NEEDS FORM')
+  else if ($groups['ALL'][0]['item_message_key'] == 'ACTION NEEDS FORM')
     needs_form_notice($groups);
 
   else

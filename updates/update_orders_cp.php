@@ -66,17 +66,20 @@ function update_orders_cp() {
     list($target_date, $target_rxs) = get_sync_to_date($order);
     $order  = set_sync_to_date($order, $target_date, $target_rxs, $mysql);
 
-    log_notice("Created Order", $order);
+    log_notice("Created Order", ['order' => $order, 'synced' => $synced]);
 
     $groups = group_drugs($order, $mysql);
 
-    if ( ! $groups['COUNT_FILLED'] AND $groups['ALL'][0]['item_message_key'] != 'ACTION NEEDS FORM') {
-      log_error("SHOULD HAVE BEEN DELETED WITH SYNC CODE ABOVE: Created Order But Not Filling Any?", $groups);
+    // 3 Steps of ACTION NEEDS FORM:
+    // 1) Here.  update_orders_cp created (surescript came in and created a CP order)
+    // 2) Same cycle: update_order_wc deleted (since WC doesn't have the new order yet)
+    // 3) Next cycle: update_orders_cp deleted (not sure yet why it gets deleted from CP)
+    if ($groups['ALL'][0]['item_message_key'] == 'ACTION NEEDS FORM') {
+      log_error("SHOULD HAVE BEEN DELETED WITH SYNC CODE ABOVE: Guardian Order Created But Patient Not Yet Registered in WC so not creating WC Order ".$order[0]['invoice_number'], $order);
       continue;
     }
-
-    if ( ! $order[0]['pharmacy_name']) {
-      log_error("SHOULD HAVE BEEN DELETED WITH SYNC CODE ABOVE: Guardian Order Created But Patient Not Yet Registered in WC so not creating WC Order ".$order[0]['invoice_number'], $order);
+    else if ( ! $groups['COUNT_FILLED']) {
+      log_error("SHOULD HAVE BEEN DELETED WITH SYNC CODE ABOVE: Created Order But Not Filling Any?", $groups);
       continue;
     }
 
@@ -128,7 +131,7 @@ function update_orders_cp() {
       continue;
     }
 
-    //Order #28984, #29121
+    //Order #28984, #29121, #29105
     if ( ! $deleted['patient_id_wc']) {
       //Likely
       //  (1) Guardian Order Was Created But Patient Was Not Yet Registered in WC so never created WC Order (and No Need To Delete It)
