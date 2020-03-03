@@ -118,21 +118,6 @@ function send_created_order_communications($groups) {
     order_created_notice($groups);
 }
 
-function send_deleted_order_communications($groups) {
-
-  log_error("send_deleted_order_communications", $groups);
-
-  if ( ! isset($groups['ALL'][0]['item_message_key']))
-    order_canceled_notice($groups); //We passed in $deleted because there is not $order to make $groups
-
-  else if ($groups['ALL'][0]['item_message_key'] == 'ACTION NEEDS FORM')
-    needs_form_notice($groups);
-
-  else
-    order_hold_notice($groups);
-
-}
-
 function send_shipped_order_communications($groups) {
 
   order_shipped_notice($groups);

@@ -52,8 +52,8 @@ function update_orders_cp() {
     //NEEDS FORM, TRANSFER OUT OF ALL ITEMS, ACTION PATIENT OFF AUTOFILL
     if ($synced['new_count_items'] <= 0) {
       $groups = group_drugs($order, $mysql);
-      send_deleted_order_communications($groups);
-      log_error("helper_syncing is effectively removing order ".$order[0]['invoice_number'], ['order' => $order, 'synced' => $synced]);
+      order_hold_notice($groups);
+      log_error("update_orders_cp  helper_syncing is effectively removing order ".$order[0]['invoice_number'], ['order' => $order, 'synced' => $synced]);
     }
 
     if ($synced['items_to_sync']) {
@@ -75,11 +75,14 @@ function update_orders_cp() {
     // 2) Same cycle: update_order_wc deleted (since WC doesn't have the new order yet)
     // 3) Next cycle: update_orders_cp deleted (not sure yet why it gets deleted from CP)
     if ($groups['ALL'][0]['item_message_key'] == 'ACTION NEEDS FORM') {
-      log_error("SHOULD HAVE BEEN DELETED WITH SYNC CODE ABOVE: Guardian Order Created But Patient Not Yet Registered in WC so not creating WC Order ".$order[0]['invoice_number'], $order);
+      needs_form_notice($groups);
+      log_error("update_orders_cp SHOULD HAVE BEEN DELETED WITH SYNC CODE ABOVE: Guardian Order Created But Patient Not Yet Registered in WC so not creating WC Order ".$order[0]['invoice_number'], $order);
       continue;
     }
-    else if ( ! $groups['COUNT_FILLED']) {
-      log_error("SHOULD HAVE BEEN DELETED WITH SYNC CODE ABOVE: Created Order But Not Filling Any?", $groups);
+
+    if ( ! $groups['COUNT_FILLED']) {
+      order_hold_notice($groups);
+      log_error("update_orders_cp SHOULD HAVE BEEN DELETED WITH SYNC CODE ABOVE: Created Order But Not Filling Any? Hopefully due to 'NO ACTION MISSING GSN'", $groups);
       continue;
     }
 
@@ -157,7 +160,7 @@ function update_orders_cp() {
     if ( ! $patient)
       log_error('No patient associated with deleted order', ['deleted' => $deleted, 'sql' => $sql]);
 
-    send_deleted_order_communications($deleted);
+    order_canceled_notice($deleted); //We passed in $deleted because there is not $order to make $groups
   }
 
   //If just updated we need to
