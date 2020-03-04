@@ -21,6 +21,40 @@ function update_orders_cp() {
 
   $mysql = new Mysql_Wc();
 
+
+  //Usually we could just do old_days_dispensed_default != days_dispensed_default AND old_days_dispensed_actual != days_dispensed_actual
+  //BUT those are on the order_item level.  We don't want to handle them in update_order_items.php because we need to batch the changes
+  //so we don't need to rerun the invoice update on every call.  We only run this when the order is dispensed, otherwise it could detect
+  //the same change multiple times (days_dispensed_actual is first set on the Printed/Processed stage) and then would trigger a 2nd time
+  //when Dispensed and maybe a 3rd time when shipped.
+  function detect_dispensing_changes($order) {
+
+    $day_changes     = [];
+    $qty_changes     = [];
+
+    //Normall would run this in the update_order_items.php but we want to wait for all the items to change so that we don't rerun multiple times
+    foreach ($order as $item) {
+
+      //! $updated['order_date_dispensed'] otherwise triggered twice, once one stage: Printed/Processed and again on stage:Dispensed
+      if ($item['days_dispensed_default'] != $item['days_dispensed_actual'])
+        $day_changes[] = "rx:$item[rx_number] qty:$item[qty_dispensed_default] >>> $item[qty_dispensed_actual] days:$item[days_dispensed_default] >>> $item[days_dispensed_actual] refills:$item[refills_dispensed_default] >>> $item[refills_dispensed_actual] updated:".json_encode($updated);
+
+      //! $updated['order_date_dispensed'] otherwise triggered twice, once one stage: Printed/Processed and again on stage:Dispensed
+      if ($item['qty_dispensed_default'] != $item['qty_dispensed_actual'] OR $item['refills_dispensed_default'] != $item['refills_dispensed_actual'])
+        $qty_changes[] = "rx:$item[rx_number] qty:$item[qty_dispensed_default] >>> $item[qty_dispensed_actual] days:$item[days_dispensed_default] >>> $item[days_dispensed_actual] refills:$item[refills_dispensed_default] >>> $item[refills_dispensed_actual] updated:".json_encode($updated);
+
+      //! $updated['order_date_dispensed'] otherwise triggered twice, once one stage: Printed/Processed and again on stage:Dispensed
+      $actual_sig_qty_per_day = $item['days_dispensed_actual'] ? round($item['qty_dispensed_actual']/$item['days_dispensed_actual'], 1) : 0;
+
+      if ($item['days_dispensed_actual'] > 120 OR $item['days_dispensed_actual'] < 30)
+        log_error("check days dispensed is not within limits: 30 < $item[days_dispensed_actual] < 120", $item);
+      else if ($actual_sig_qty_per_day AND $actual_sig_qty_per_day != round($item['sig_qty_per_day'], 1))
+        log_error("sig parsing error '$item[sig_actual]' $item[sig_qty_per_day] (default) != $actual_sig_qty_per_day $item[qty_dispensed_actual]/$item[days_dispensed_actual] (actual)", $item);
+    }
+
+    return ['day_changes' => $day_changes, 'qty_changes' => $qty_changes];
+  }
+
   //If just added to CP Order we need to
   //  - Find out any other rxs need to be added
   //  - Update invoice
@@ -171,8 +205,6 @@ function update_orders_cp() {
   foreach($changes['updated'] as $i => $updated) {
 
     $changed_fields  = changed_fields($updated);
-    $day_changes     = [];
-    $qty_changes     = [];
     $stage_change_cp = $updated['order_stage_cp'] != $updated['old_order_stage_cp'];
 
     log_notice("Updated Orders Cp: $updated[invoice_number] ".($i+1)." of ".count($changes['updated']), $changed_fields);
@@ -187,27 +219,37 @@ function update_orders_cp() {
     if ($order[0]['order_stage_wc'] == 'wc-processing')
       log_error('Problem: cp order wc-processing updated', [$order[0], $changed_fields]);
 
-    //Normall would run this in the update_order_items.php but we want to wait for all the items to change so that we don't rerun multiple times
-    foreach ($order as $item) {
 
-      //! $updated['order_date_dispensed'] otherwise triggered twice, once one stage: Printed/Processed and again on stage:Dispensed
-      if ($item['days_dispensed_actual'] AND $updated['order_date_dispensed'] AND $item['days_dispensed_default'] != $item['days_dispensed_actual'])
-        $day_changes[] = "rx:$item[rx_number] qty:$item[qty_dispensed_default] >>> $item[qty_dispensed_actual] days:$item[days_dispensed_default] >>> $item[days_dispensed_actual] refills:$item[refills_dispensed_default] >>> $item[refills_dispensed_actual] updated:".json_encode($updated);
-
-      //! $updated['order_date_dispensed'] otherwise triggered twice, once one stage: Printed/Processed and again on stage:Dispensed
-      if (
-        ($item['qty_dispensed_actual'] AND $updated['order_date_dispensed'] AND $item['qty_dispensed_default'] != $item['qty_dispensed_actual']) OR
-        ($item['refills_dispensed_actual'] AND ! $updated['old_refills_dispensed_actual'] AND $item['refills_dispensed_default'] != $item['refills_dispensed_actual'])
-      )
-        $qty_changes[] = "rx:$item[rx_number] qty:$item[qty_dispensed_default] >>> $item[qty_dispensed_actual] days:$item[days_dispensed_default] >>> $item[days_dispensed_actual] refills:$item[refills_dispensed_default] >>> $item[refills_dispensed_actual] updated:".json_encode($updated);
-
-      //! $updated['order_date_dispensed'] otherwise triggered twice, once one stage: Printed/Processed and again on stage:Dispensed
-      $actual_sig_qty_per_day = ($item['days_dispensed_actual'] AND $updated['order_date_dispensed']) ? round($item['qty_dispensed_actual']/$item['days_dispensed_actual'], 1) : 0;
-      if ($item['days_dispensed_actual'] AND ($item['days_dispensed_actual'] > 120 OR $item['days_dispensed_actual'] < 30))
-        log_error("check days dispensed is not within limits: 30 < $item[days_dispensed_actual] < 120", $item);
-      else if ($actual_sig_qty_per_day AND $actual_sig_qty_per_day != round($item['sig_qty_per_day'], 1))
-        log_error("sig parsing error '$item[sig_actual]' $item[sig_qty_per_day] (default) != $actual_sig_qty_per_day $item[qty_dispensed_actual]/$item[days_dispensed_actual] (actual)", $item);
+    if ($stage_change_cp AND $updated['order_date_shipped']) {
+      $groups = group_drugs($order, $mysql);
+      export_v2_unpend_order($order);
+      export_wc_update_order_status($order); //Update status from prepare to shipped
+      send_shipped_order_communications($groups);
+      log_notice("Updated Order Shipped", $order);
+      continue;
     }
+
+    if ($stage_change_cp AND $updated['order_date_dispensed']) {
+
+      $dispensing_changes = detect_dispensing_changes($order);
+
+      if ($dispensing_changes['day_changes']) {
+        //Updates invoice with new days/price/qty/refills.
+        $order = helper_update_payment($order,  "update_orders_cp: updated - dispensing day changes ".implode(', ', $day_changes), $mysql);
+        export_wc_update_order($order); //Price will also have changed
+
+      } else if ($dispensing_changes['qty_changes']) {
+        //Updates invoice with new qty/refills.  Prices should not have changed so no need to update WC
+        $order = export_gd_update_invoice($order, "update_orders_cp: updated - dispensing qty changes ".implode(', ', $qty_changes), $mysql);
+      }
+
+      $groups = group_drugs($order, $mysql);
+      export_gd_publish_invoice($order);
+      send_dispensed_order_communications($groups);
+      log_notice("Updated Order Dispensed", $order);
+      continue;
+    }
+
 
     //We won't sync new drugs to the order, but if a new drug comes in that we are not filling, we will remove it
     $synced = sync_to_order($order, $updated);
@@ -216,8 +258,10 @@ function update_orders_cp() {
 
       log_error("update_orders_cp sync_to_order necessary on UPDATE:", [$updated, $synced['items_to_sync']]);
       $mysql->run("UPDATE gp_orders SET count_items = 0 WHERE invoice_number = {$order[0]['invoice_number']}"); //Force updated to run again after the changes take place
+      continue;
+    }
 
-    } else if ($order[0]['count_items'] != $order[0]['count_filled']) {
+    if ($order[0]['count_items'] != $order[0]['count_filled']) {
     //Do we need to update the order in WC or it's invoice?  Need to confirm but this is likely NOT caught (and remvoved) in helper_syncing because the item was added manually
 
       $items_not_filled = [];
@@ -234,36 +278,14 @@ function update_orders_cp() {
 
       $order = helper_update_payment($order,  "update_orders_cp: updated - count filled changes ".$order[0]['count_items']." (count items) != ".$order[0]['count_filled']." (count filled)", $mysql);
       export_wc_update_order($order);
-
-    } else if ($day_changes) {
-      //Updates invoice with new days/price/qty/refills.
-      $order = helper_update_payment($order,  "update_orders_cp: updated - dispensing day changes ".implode(', ', $day_changes), $mysql);
-      export_wc_update_order($order); //Price will also have changed
-
-    } else if ($qty_changes) {
-      //Updates invoice with new qty/refills.  Prices should not have changed so no need to update WC
-      $order = export_gd_update_invoice($order, "update_orders_cp: updated - dispensing qty changes ".implode(', ', $qty_changes), $mysql);
+      continue;
     }
 
-    if ($stage_change_cp AND $updated['order_date_shipped']) {
-      $groups = group_drugs($order, $mysql);
-      export_v2_unpend_order($order);
-      export_wc_update_order_status($order); //Update status from prepare to shipped
-      send_shipped_order_communications($groups);
-      log_notice("Updated Order Shipped", $order);
-    }
-
-    if ($stage_change_cp AND $updated['order_date_dispensed']) {
-      $groups = group_drugs($order, $mysql);
-      export_gd_publish_invoice($order);
-      send_dispensed_order_communications($groups);
-      log_notice("Updated Order Dispensed", $order);
-    }
+    log_error("update_orders_cp updated: no action taken", [$updated, $changed_fields]);
 
     //TODO Update Salesforce Order Total & Order Count & Order Invoice using REST API or a MYSQL Zapier Integration
 
   }
-
   //TODO Upsert Salseforce Order Status, Order Tracking
 
-  }
+}
