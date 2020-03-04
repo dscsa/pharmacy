@@ -26,10 +26,10 @@ function update_orders_wc() {
 
     if ($new_stage[1] == 'confirm') {
 
-      $order  = get_full_order($created, $mysql);
-      $groups = group_drugs($order, $mysql);
-      no_rx_notice($groups); //We passed in $deleted because there is not $order to make $groups
-      log_error("update_orders_wc created: wc_stage == confirm so called no_rx_notice()", [$groups, $created]);
+      //$order  = get_full_order($created, $mysql);
+      //$groups = group_drugs($order, $mysql);
+      //no_rx_notice($groups); //We passed in $deleted because there is not $order to make $groups
+      log_error("update_orders_wc created: wc_stage == confirm so called no_rx_notice()", [$created]);
 
     } else if ($created['order_stage_wc'] == 'trash' OR $new_stage[1] == 'awaiting') {
 
