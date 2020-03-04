@@ -95,8 +95,9 @@ function add_gd_fields_to_order($order, $mysql) {
       log_error('add_gd_fields_to_order: What going on here?', get_defined_vars());
     }
 
+    //refills_dispensed_default/actual only exists as an order item.  But for grouping we need to know for items not in the order
+    $order[$i]['refills_dispensed'] = (float) ($order[$i]['refills_dispensed_actual'] ?: ($order[$i]['refills_dispensed_default'] ?: $order[$i]['refills_total']));
     $order[$i]['qty_dispensed']     = (float) ($order[$i]['qty_dispensed_actual'] ?: $order[$i]['qty_dispensed_default']); //cast to float to get rid of .000 decimal
-    $order[$i]['refills_dispensed'] = (float) ($order[$i]['refills_dispensed_actual'] ?: $order[$i]['refills_dispensed_default']);
     $order[$i]['price_dispensed']   = (float) ($order[$i]['price_dispensed_actual'] ?: ($order[$i]['price_dispensed_default'] ?: 0));
   }
 

@@ -72,7 +72,7 @@ function export_gd_publish_invoice($order) {
 
   $time = ceil(microtime(true) - $start);
 
-  log_error("export_gd_update_invoice $time seconds");
+  log_notice("export_gd_update_invoice $time seconds");
   log_info("export_gd_publish_invoice", get_defined_vars());
 }
 
