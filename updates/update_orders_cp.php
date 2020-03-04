@@ -106,6 +106,25 @@ function update_orders_cp() {
   //  - update wc order total
   foreach($changes['deleted'] as $deleted) {
 
+    //START DEBUG this is getting called on a CP order that is not yet in WC
+    $order = get_full_order($deleted, $mysql, true);
+
+    if ($order) {
+      log_error('update_orders_cp: cp order deleted (but still exists???)', [$order, $deleted]);
+      continue;
+    }
+
+    //Order #28984, #29121, #29105
+    if ( ! $deleted['patient_id_wc']) {
+      //Likely
+      //  (1) Guardian Order Was Created But Patient Was Not Yet Registered in WC so never created WC Order (and No Need To Delete It)
+      //  (2) OR Guardian Order had items synced to/from it, so was deleted and readded, which effectively erases the patient_id_wc
+      log_error('update_orders_cp: cp order deleted - no patient_id_wc', [$order, $deleted]);
+    } else {
+      log_notice('update_orders_cp: cp order deleted so deleting wc order as well', [$order, $deleted]);
+    }
+    //END DEBUG
+
     if ($deleted['order_stage_wc'] == 'wc-processing')
       log_error('Problem: cp order wc-processing deleted', $deleted);
 
@@ -125,25 +144,6 @@ function update_orders_cp() {
 
       continue;
     }
-
-    //START DEBUG this is getting called on a CP order that is not yet in WC
-    $order = get_full_order($deleted, $mysql, true);
-
-    if ($order) {
-      log_error('update_orders_cp: cp order deleted (but still exists???)', [$order, $deleted]);
-      continue;
-    }
-
-    //Order #28984, #29121, #29105
-    if ( ! $deleted['patient_id_wc']) {
-      //Likely
-      //  (1) Guardian Order Was Created But Patient Was Not Yet Registered in WC so never created WC Order (and No Need To Delete It)
-      //  (2) OR Guardian Order had items synced to/from it, so was deleted and readded, which effectively erases the patient_id_wc
-      log_error('update_orders_cp: cp order deleted - no patient_id_wc', [$order, $deleted]);
-    } else {
-      log_notice('update_orders_cp: cp order deleted so deleting wc order as well', [$order, $deleted]);
-    }
-    //END DEBUG
 
     export_gd_delete_invoice([$deleted], $mysql);
 
