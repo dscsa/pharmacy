@@ -73,7 +73,8 @@ $test_sigs = [
   "Take 2 tablets by mouth in the morning and Take 1 tablet once in the evening",
   "Take 1 tablet by mouth once a day when your feet are swollen. When not swollen, take every other day",
   "Take 1 tablet by mouth 1-3 hours before bedtime",
-  "Take 2 capsule by mouth three times a day for mood"
+  "Take 2 capsule by mouth three times a day for mood",
+  "Take 1 tablet by mouth in the morning AND Take 0.5 tablets AT LUNCHTIME"
   //"Take 1 tablet (12.5 mg total) by mouth every 12 (twelve) hours",
   //"1 ORAL every eight hours as needed",
   //"Take 5 mg by mouth 2 (two) times daily.",

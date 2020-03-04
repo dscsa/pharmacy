@@ -56,7 +56,7 @@ function update_order_items() {
       $full_item = $query[0][0];
 
       if ( ! $full_item['drug_generic'])
-        log_error($full_item['rx_gsn'] ? 'get_full_item: Add GSN to V2!' : 'get_full_item: Missing GSN!', "$full_item[invoice_number] $full_item[drug_name] $full_item[rx_number] $full_item[rx_gsn]  $full_item[drug_gsns]");
+        log_error($full_item['rx_gsn'] ? 'get_full_item: Add GSN to V2!' : 'get_full_item: Missing GSN!', "Invoice Number:$full_item[invoice_number] Drug:$full_item[drug_name] Rx:$full_item[rx_number] GSN:$full_item[rx_gsn] GSNS:$full_item[drug_gsns]");
 
       return $full_item;
 
@@ -179,7 +179,7 @@ function update_order_items() {
 
     if ($item['days_dispensed_actual']) {
 
-      log_error("order_item created but days_dispensed_actual already set", $item);
+      log_error("order_item created but days_dispensed_actual already set.  Most likely item added to order and dispensed all within the time between cron jobs", $item);
 
       set_price_refills_actual($item, $mysql);
       continue;
