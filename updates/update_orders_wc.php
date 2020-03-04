@@ -24,7 +24,14 @@ function update_orders_wc() {
 
     $new_stage = explode('-', $created['order_stage_wc']);
 
-    if ($created['order_stage_wc'] == 'trash' OR $new_stage[1] == 'awaiting' OR $new_stage[1] == 'confirm') {
+    if ($new_stage[1] == 'confirm') {
+
+      $order  = get_full_order($created, $mysql);
+      $groups = group_drugs($order, $mysql);
+      no_rx_notice($groups); //We passed in $deleted because there is not $order to make $groups
+      log_error("update_orders_wc created: wc_stage == confirm so called no_rx_notice()", [$groups, $created]);
+
+    } else if ($created['order_stage_wc'] == 'trash' OR $new_stage[1] == 'awaiting' OR) {
 
       log_info("Empty Orders are intentially not imported into Guardian", "$created[invoice_number] $created[order_stage_wc]");
 

@@ -107,8 +107,10 @@ function group_drugs($order, $mysql) {
 
 function send_created_order_communications($groups) {
 
-  if ( ! $groups['COUNT_NOFILL'] AND ! $groups['COUNT_FILLED'])
+  if ( ! $groups['COUNT_NOFILL'] AND ! $groups['COUNT_FILLED']) {
     no_rx_notice($groups);
+    log_error("send_created_order_communications: ! count_nofill and ! count_filled so called no_rx_notice()", $groups);
+  }
 
   //['Not Specified', 'Webform Complete', 'Webform eRx', 'Webform Transfer', 'Auto Refill', '0 Refills', 'Webform Refill', 'eRx /w Note', 'Transfer /w Note', 'Refill w/ Note']
   else if ($groups['ALL'][0]['order_source'] == 'Webform Transfer' OR $groups['ALL'][0]['order_source'] == 'Transfer /w Note')
