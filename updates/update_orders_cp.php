@@ -195,7 +195,7 @@ function update_orders_cp() {
       log_error('No patient associated with deleted order', ['deleted' => $deleted, 'sql' => $sql]);
 
     //We should be able to delete wc-confirm-* from CP queue without triggering an order cancel notice
-    if (substr($deleted['order_stage_wc'], 0, 10) != 'wc-confirm') {
+    if (substr($deleted['order_stage_wc'], 0, 10) != 'wc-confirm')
       order_canceled_notice($deleted); //We passed in $deleted because there is not $order to make $groups
   }
 
