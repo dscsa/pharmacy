@@ -77,11 +77,16 @@ function sync_to_order($order, $updated = null) {
     }
 
     //Don't remove items with a missing GSN as this is something we need to do
-    if ($item['item_date_added'] AND $item['item_added_by'] != 'MANUAL' AND ! $item['days_dispensed'] AND $item['drug_gsns']) {
+    if ($item['item_date_added'] AND ! $item['days_dispensed'] AND $item['drug_gsns']) {
 
       //DEBUG CODE SHOULD NOT BE NEEDED
       if ($item['item_message_key'] == 'ACTION NO REFILLS' AND $item['refills_total'] >= 0.1) {
         log_error('aborting helper_syncing because NO REFILLS has refills', $item);
+        continue;
+      }
+
+      if ($item['item_added_by'] == 'MANUAL') {
+        log_error('aborting helper_syncing because item to be REMOVED was added MANUALLY', $item);
         continue;
       }
 
@@ -93,7 +98,13 @@ function sync_to_order($order, $updated = null) {
       continue;
     }
 
-    if ($item['item_date_added'] AND $item['item_added_by'] != 'MANUAL' AND $item['rx_number'] != $item['best_rx_number']) {
+    if ($item['item_date_added'] AND $item['rx_number'] != $item['best_rx_number']) {
+
+      if ($item['item_added_by'] == 'MANUAL') {
+        log_error('aborting helper_syncing because item to be SWITCHED was added MANUALLY', $item);
+        continue;
+      }
+
       $items_to_sync[]   = ['SWITCH', 'RX_NUMBER != BEST_RX_NUMBER', $item];
       $items_to_add[]    = $item['best_rx_number'];
       $items_to_remove[] = $item['rx_number'];

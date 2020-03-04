@@ -216,12 +216,12 @@ function update_orders_cp() {
       $mysql->run("UPDATE gp_orders SET count_items = 0 WHERE invoice_number = {$order[0]['invoice_number']}"); //Force updated to run again after the changes take place
 
     } else if ($order[0]['count_items'] != $order[0]['count_filled']) {
-    //Do we need to update the order in WC or it's invoice?
+    //Do we need to update the order in WC or it's invoice?  Need to confirm but this is likely NOT caught (and remvoved) in helper_syncing because the item was added manually
 
       $items_not_filled = [];
       foreach ($order as $item) {
         if ($item['item_date_added'] AND ! $item['days_dispensed']) {
-          $items_not_filled[] = $item;
+          $items_not_filled[] = ['item_added_by' => $item['item_added_by'], 'item' => $item];
         }
       }
 

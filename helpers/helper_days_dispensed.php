@@ -350,7 +350,7 @@ function days_left_in_stock($item) {
   if ($days_left_in_stock < DAYS_STD OR $item['qty_inventory'] < 500) {
 
     if(($item['stock_level_initial'] ?: $item['stock_level']) == STOCK_LEVEL['HIGH SUPPLY'] AND $item['sig_qty_per_day'] != round(1/30, 3))
-      log_error('LOW STOCK ITEM IS MARKED HIGH SUPPLY', get_defined_vars());
+      log_error("LOW STOCK ITEM IS MARKED HIGH SUPPLY $item[drug_generic] days_left_in_stock:$days_left_in_stock qty_inventory:$item[qty_inventory]", get_defined_vars());
 
     return $item['sig_qty_per_day'] == round(1/30, 3) ? 60.6 : 45; //Dispensed 2 inhalers per time, since 1/30 is rounded to 3 decimals (.033), 2 month/.033 = 60.6 qty
   }
