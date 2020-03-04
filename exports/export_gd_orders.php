@@ -25,10 +25,10 @@ function export_gd_update_invoice($order, $reason, $mysql) {
 
   $invoice_doc_id = json_decode($result, true);
 
-  if ($invoice_doc_id)
-    log_info("export_gd_update_invoice: invoice success", ['file' => $args['file'], 'result' => $result]);
-  else
+  if ( ! $invoice_doc_id) {
     log_error("export_gd_update_invoice: invoice error", ['file' => $args['file'], 'result' => $result]);
+    return $order;
+  }
 
   $time = ceil(microtime(true) - $start);
 
@@ -45,7 +45,7 @@ function export_gd_update_invoice($order, $reason, $mysql) {
     UPDATE
       gp_orders
     SET
-      invoice_doc_id = '$invoice_doc_id'
+      invoice_doc_id = ".($invoice_doc_id ? "'$invoice_doc_id'" : 'NULL')." -- Unique Index forces us to use NULL rather than ''
     WHERE
       invoice_number = {$order[0]['invoice_number']}
   ";

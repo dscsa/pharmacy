@@ -188,19 +188,19 @@ function update_orders_cp() {
     //Normall would run this in the update_order_items.php but we want to wait for all the items to change so that we don't rerun multiple times
     foreach ($order as $item) {
 
-      //! $updated['old_days_dispensed_actual'] otherwise triggered twice, once one stage: Printed/Processed and again on stage:Dispensed
-      if ($item['days_dispensed_actual'] AND ! $updated['old_days_dispensed_actual'] AND $item['days_dispensed_default'] != $item['days_dispensed_actual'])
-        $day_changes[] = "rx:$item[rx_number] qty:$item[qty_dispensed_default] >>> $item[qty_dispensed_actual] days:$item[days_dispensed_default] >>> $item[days_dispensed_actual] refills:$item[refills_dispensed_default] >>> $item[refills_dispensed_actual] ".json_encode($changed_fields);
+      //! $updated['order_date_dispensed'] otherwise triggered twice, once one stage: Printed/Processed and again on stage:Dispensed
+      if ($item['days_dispensed_actual'] AND $updated['order_date_dispensed'] AND $item['days_dispensed_default'] != $item['days_dispensed_actual'])
+        $day_changes[] = "rx:$item[rx_number] qty:$item[qty_dispensed_default] >>> $item[qty_dispensed_actual] days:$item[days_dispensed_default] >>> $item[days_dispensed_actual] refills:$item[refills_dispensed_default] >>> $item[refills_dispensed_actual] updated:".json_encode($updated);
 
-      //! $updated['old_qty/refills_dispensed_actual'] otherwise triggered twice, once one stage: Printed/Processed and again on stage:Dispensed
+      //! $updated['order_date_dispensed'] otherwise triggered twice, once one stage: Printed/Processed and again on stage:Dispensed
       if (
-        ($item['qty_dispensed_actual'] AND ! $updated['old_qty_dispensed_actual'] AND $item['qty_dispensed_default'] != $item['qty_dispensed_actual']) OR
+        ($item['qty_dispensed_actual'] AND $updated['order_date_dispensed'] AND $item['qty_dispensed_default'] != $item['qty_dispensed_actual']) OR
         ($item['refills_dispensed_actual'] AND ! $updated['old_refills_dispensed_actual'] AND $item['refills_dispensed_default'] != $item['refills_dispensed_actual'])
       )
-        $qty_changes[] = "rx:$item[rx_number] qty:$item[qty_dispensed_default] >>> $item[qty_dispensed_actual] days:$item[days_dispensed_default] >>> $item[days_dispensed_actual] refills:$item[refills_dispensed_default] >>> $item[refills_dispensed_actual] ".json_encode($changed_fields);
+        $qty_changes[] = "rx:$item[rx_number] qty:$item[qty_dispensed_default] >>> $item[qty_dispensed_actual] days:$item[days_dispensed_default] >>> $item[days_dispensed_actual] refills:$item[refills_dispensed_default] >>> $item[refills_dispensed_actual] updated:".json_encode($updated);
 
-      //! $updated['old_days_dispensed_actual'] otherwise triggered twice, once one stage: Printed/Processed and again on stage:Dispensed
-      $actual_sig_qty_per_day = ($item['days_dispensed_actual'] AND ! $updated['old_days_dispensed_actual']) ? round($item['qty_dispensed_actual']/$item['days_dispensed_actual'], 1) : 0;
+      //! $updated['order_date_dispensed'] otherwise triggered twice, once one stage: Printed/Processed and again on stage:Dispensed
+      $actual_sig_qty_per_day = ($item['days_dispensed_actual'] AND $updated['order_date_dispensed']) ? round($item['qty_dispensed_actual']/$item['days_dispensed_actual'], 1) : 0;
       if ($actual_sig_qty_per_day AND $actual_sig_qty_per_day != round($item['sig_qty_per_day'], 1))
         log_error("sig parsing error '$item[sig_actual]' $item[sig_qty_per_day] (default) != $actual_sig_qty_per_day $item[qty_dispensed_actual]/$item[days_dispensed_actual] (actual)", $item);
     }
