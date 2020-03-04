@@ -291,7 +291,7 @@ function is_added_manually($item) {
 
 function is_not_offered($item) {
   $stock_level = $item['stock_level_initial'] ?: $item['stock_level'];
-  return isnull($stock_level) OR $stock_level == STOCK_LEVEL['NOT OFFERED'];
+  return is_null($stock_level) OR $stock_level == STOCK_LEVEL['NOT OFFERED'];
 }
 
 function is_refill_only($item) {
