@@ -31,7 +31,7 @@ function update_orders_wc() {
       no_rx_notice($groups); //We passed in $deleted because there is not $order to make $groups
       log_error("update_orders_wc created: wc_stage == confirm so called no_rx_notice()", [$groups, $created]);
 
-    } else if ($created['order_stage_wc'] == 'trash' OR $new_stage[1] == 'awaiting' OR) {
+    } else if ($created['order_stage_wc'] == 'trash' OR $new_stage[1] == 'awaiting') {
 
       log_info("Empty Orders are intentially not imported into Guardian", "$created[invoice_number] $created[order_stage_wc]");
 
