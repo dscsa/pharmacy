@@ -146,7 +146,7 @@ function get_days_default($item) {
       log_error("YIKES! REFILL RX DOESN'T HAVE ENOUGH QTY TO FILL AT LEAST 30 DAYS", get_defined_vars());
     else
       log_info("WARN USERS IF DRUG IS LOW QTY", get_defined_vars());
-      
+
     return [$days_default, RX_MESSAGE['NO ACTION LOW STOCK']];
   }
 
@@ -290,7 +290,8 @@ function is_added_manually($item) {
 }
 
 function is_not_offered($item) {
-  return ($item['stock_level_initial'] ?: $item['stock_level'])  == STOCK_LEVEL['NOT OFFERED'];
+  $stock_level = $item['stock_level_initial'] ?: $item['stock_level'];
+  return isnull($stock_level) OR $stock_level == STOCK_LEVEL['NOT OFFERED'];
 }
 
 function is_refill_only($item) {
