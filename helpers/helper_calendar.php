@@ -441,6 +441,7 @@ function cancel_events_by_person($first_name, $last_name, $birth_date, $caller, 
   if ( ! LIVE_MODE) return;
 
   $cancel = [];
+  $titles = [];
   $events = search_events_by_person($first_name, $last_name, $birth_date, false, $types);
 
   if ( ! is_array($events)) {
@@ -449,13 +450,14 @@ function cancel_events_by_person($first_name, $last_name, $birth_date, $caller, 
 
   foreach ($events as $event) {
     $cancel[] = $event['id'];
+    $titles[] = $event['title'];
   }
 
   if ($cancel) {
-    log_notice('cancel_events_by_person: has events', get_defined_vars());
+    log_notice('cancel_events_by_person: has events', [$titles, $first_name, $last_name, $birth_date, $caller, $types]);
     cancel_events($cancel);
   } else {
-    log_notice('cancel_events_by_person: no events', get_defined_vars());
+    log_notice('cancel_events_by_person: no events', [$titles, $first_name, $last_name, $birth_date, $caller, $types]);
   }
 
   return $cancel;

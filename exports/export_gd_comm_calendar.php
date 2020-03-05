@@ -344,7 +344,7 @@ function needs_form_notice($groups) {
     $hour_of_day   = [11, 17, 11, 17, 17, 17];
   }
 
-  log_error("needs_form_notice is this right?", [$groups, $email]);
+  log_notice("needs_form_notice is this right?", [$groups, $email]);
   needs_form_event($groups['ALL'], $email, $text, $hours_to_wait[0], $hour_of_day[0]);
 
   if ( ! $groups['COUNT_FILLED']) return; //Don't hassle folks if we aren't filling anything
@@ -411,7 +411,7 @@ function order_canceled_notice($deleted) {
     ''
   ]);
 
-  log_error("order_canceled_notice is this right?", [$deleted, $email]);
+  log_notice("order_canceled_notice is this right?", [$deleted, $email]);
   order_canceled_event($deleted, $email, $text, 15/60);
 }
 
