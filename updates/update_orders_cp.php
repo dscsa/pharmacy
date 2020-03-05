@@ -285,7 +285,11 @@ function update_orders_cp() {
       continue;
     }
 
-    log_error("update_orders_cp updated: no action taken", [$updated, $changed_fields]);
+    //Count Item Changes
+    //Address Changes
+    //Stage Change
+    //Order_Source Change (now that we overwrite when saving webform)
+    log_notice("update_orders_cp updated: no action taken", [$updated, $changed_fields]);
 
     //TODO Update Salesforce Order Total & Order Count & Order Invoice using REST API or a MYSQL Zapier Integration
 
