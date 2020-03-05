@@ -160,7 +160,7 @@ function update_patients_wc() {
     } else if (strlen($updated['phone2']) < 10 AND strlen($updated['old_phone2']) >= 10) {
       upsert_patient_wc($mysql, $updated['patient_id_wc'], 'phone2', $updated['old_phone2']);
     } else if ($updated['phone2'] !== $updated['old_phone2']) {
-      log_error("EXEC SirumWeb_AddUpdatePatHomePhone '$updated[patient_id_cp]', '$updated[phone2]', 9");
+      log_error("EXEC SirumWeb_AddUpdatePatHomePhone '$updated[patient_id_cp]', '$updated[phone2]', 9", $updated);
       upsert_patient_cp($mssql, "EXEC SirumWeb_AddUpdatePatHomePhone '$updated[patient_id_cp]', '$updated[phone2]', 9");
     }
 
