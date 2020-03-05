@@ -153,9 +153,9 @@ function update_orders_cp() {
       //Likely
       //  (1) Guardian Order Was Created But Patient Was Not Yet Registered in WC so never created WC Order (and No Need To Delete It)
       //  (2) OR Guardian Order had items synced to/from it, so was deleted and readded, which effectively erases the patient_id_wc
-      log_error('update_orders_cp: cp order deleted - no patient_id_wc', [$order, $deleted]);
+      log_error('update_orders_cp: cp order deleted - no patient_id_wc', $deleted);
     } else {
-      log_notice('update_orders_cp: cp order deleted so deleting wc order as well', [$order, $deleted]);
+      log_notice('update_orders_cp: cp order deleted so deleting wc order as well', $deleted);
     }
     //END DEBUG
 
@@ -197,6 +197,10 @@ function update_orders_cp() {
     //We should be able to delete wc-confirm-* from CP queue without triggering an order cancel notice
     if (substr($deleted['order_stage_wc'], 0, 10) != 'wc-confirm')
       order_canceled_notice($deleted); //We passed in $deleted because there is not $order to make $groups
+    else {
+      no_rx_notice($deleted);
+      log_error("update_orders_cp deleted: wc_stage == confirm so call no_rx_notice() rather than order_canceled_notice()", $deleted);
+    }
   }
 
   //If just updated we need to

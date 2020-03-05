@@ -356,17 +356,17 @@ function needs_form_notice($groups) {
 
 //We are coording patient communication via sms, calls, emails, & faxes
 //by building commication arrays based on github.com/dscsa/communication-calendar
-function no_rx_notice($groups) {
+function no_rx_notice($deleted) {
 
   log_info('no_rx_notice', get_defined_vars());
 
-  $subject = 'Good Pill received Order #'.$groups['ALL'][0]['invoice_number'].' but is waiting for your prescriptions';
-  $message  = ($groups['ALL'][0]['order_source'] == 'Webform Transfer' OR $groups['ALL'][0]['order_source'] == 'Transfer w/ Note')
-    ? "We will attempt to transfer the Rxs you requested from, ".$groups['ALL'][0]['pharmacy_name'].' '.$groups['ALL'][0]['pharmacy_address'].'.'
+  $subject = 'Good Pill received Order #'.$deleted['invoice_number'].' but is waiting for your prescriptions';
+  $message  = ($deleted['order_source'] == 'Webform Transfer' OR $deleted['order_source'] == 'Transfer w/ Note')
+    ? "We will attempt to transfer the Rxs you requested from your pharmacy."
     : "We haven't gotten any Rxs from your doctor yet but will notify you as soon as we do.";
 
-  $email = [ "email" => $groups['ALL'][0]['email'] ];
-  $text  = [ "sms"   => get_phones($groups['ALL']), $message => $subject.'. '.$message ];
+  $email = [ "email" => $deleted['email'] ]; //TODO email is not actual a property on $deleted
+  $text  = [ "sms"   => get_phones([$deleted]), $message => $subject.'. '.$message ];
 
   $email['subject'] = $subject;
   $email['message']  = implode('<br>', [
@@ -374,6 +374,7 @@ function no_rx_notice($groups) {
     '',
     $subject.'. '.$message,
     '',
+    json_encode($deleted),
     '',
     'Thanks,',
     'The Good Pill Team',
@@ -383,7 +384,7 @@ function no_rx_notice($groups) {
   ]);
 
   //Wait 15 minutes to hopefully batch staggered surescripts and manual rx entry and cindy updates
-  no_rx_event($groups['ALL'], $email, $text, 15/60);
+  no_rx_event($deleted, $email, $text, 15/60);
 }
 
 //NOTE: UNLIKE OTHER COMM FUNCTIONS THIS TAKES DELETED AND NOT GROUPS
@@ -393,7 +394,7 @@ function order_canceled_notice($deleted) {
   $subject = "We have canceled your Order #".$deleted['invoice_number'];
   $message = "We have canceled this order. Please call us at (888) 987-5187 if you believe this is in error.";
 
-  $email = [ "email" => $deleted['email'] ];
+  $email = [ "email" => $deleted['email'] ]; //TODO email is not actual a property on $deleted
   $text  = [ "sms" => get_phones([$deleted]),  "message" => $subject.'. '.$message ];
 
   $email['subject'] = $subject;
