@@ -128,8 +128,8 @@ function export_wc_create_order($order, $reason) {
   $first_item = $order[0];
 
   $invoice_number = $first_item['invoice_number'];
-  $first_name = str_replace(["'", '*', '-'], ['','',' '], $first_item['first_name']); //Ignore Cindy's internal marking
-  $last_name = str_replace(["'", '*', '-'], ['','',' '], $first_item['last_name']); //Ignore Cindy's internal marking
+  $first_name = str_replace(["'", '*'], ['',''], $first_item['first_name']); //Ignore Cindy's internal marking
+  $last_name = str_replace(["'", '*'], ['',''], $first_item['last_name']); //Ignore Cindy's internal marking
   $birth_date = str_replace('*', '', $first_item['birth_date']); //Ignore Cindy's internal marking
 
   //START DEBUG

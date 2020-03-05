@@ -11,7 +11,7 @@ function changes_to_patients_wc($new) {
   $where = "
     NOT old.patient_id_wc <=> new.patient_id_wc OR
     NOT old.first_name <=> new.first_name OR
-    NOT REPLACE(REPLACE(old.last_name, '*', ''), '-', ' ') <=> new.last_name OR
+    NOT REPLACE(old.last_name, '*', '') <=> new.last_name OR
     NOT old.birth_date <=> new.birth_date OR
     NOT old.medications_other <=> new.medications_other OR
     NOT old.phone1 <=> new.phone1 OR

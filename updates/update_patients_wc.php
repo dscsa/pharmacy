@@ -20,6 +20,12 @@ function update_patients_wc() {
   $mysql = new Mysql_Wc();
   $mssql = new Mssql_Cp();
 
+  function name_mismatch($new, $old) {
+    $new = str_replace(['-'], [''], $new);
+    $old = str_replace(['-'], [''], $old);
+    return stripos($new, $old) === false AND stripos($old, $new) === false;
+  }
+
   $created_mismatched = 0;
   $created_matched = 0;
   $created_needs_form = 0;
@@ -221,11 +227,11 @@ function update_patients_wc() {
        log_error("Patient Set Incorrectly", [$changed, $updated]);
 
     } else if (
-        (stripos($updated['first_name'], $updated['old_first_name']) === false AND stripos($updated['old_first_name'], $updated['first_name']) === false) OR
-        (stripos($updated['last_name'], $updated['old_last_name']) === false AND stripos($updated['old_last_name'], $updated['last_name']) === false)
+        name_mismatch($updated['first_name'],  $updated['old_first_name']) OR
+        name_mismatch($updated['last_name'],  $updated['old_last_name'])
     ) {
 
-      log_error("Patient Identity Changed?", $updated);
+      log_error("Patient Name Misspelled or Identity Changed?", $updated);
       //upsert_patient_wc($mysql, $updated['patient_id_wc'], 'first_name', $updated['old_first_name']);
       //upsert_patient_wc($mysql, $updated['patient_id_wc'], 'last_name', $updated['old_last_name']);
       //upsert_patient_wc($mysql, $updated['patient_id_wc'], 'birth_date', $updated['old_birth_date']);
@@ -238,7 +244,7 @@ function update_patients_wc() {
       $updated['language'] !== $updated['old_language']
     ) {
       $sp = "EXEC SirumWeb_AddUpdatePatient '$updated[first_name]', '$updated[last_name]', '$updated[birth_date]', '$updated[phone1]', '$updated[language]'";
-      log_error("Patient Identity Updated", [$sp, $changed]);
+      log_error("Patient Name/Identity Updated", [$sp, $changed]);
       upsert_patient_cp($mssql, $sp);
     }
 
