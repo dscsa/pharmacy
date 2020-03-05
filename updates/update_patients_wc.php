@@ -141,7 +141,7 @@ function update_patients_wc() {
       upsert_patient_cp($mssql, "EXEC SirumWeb_AddUpdatePatHomePhone '$updated[patient_id_cp]', '$updated[phone1]'");
     }
 
-    if ($updated['phone2'] AND $updated['phone2'] == $updated['phone1']) {
+    if ( ! is_null($updated['phone2']) AND $updated['phone2'] == $updated['phone1']) {
       upsert_patient_wc($mysql, $updated['patient_id_wc'], 'phone2', NULL);
     } else if ($updated['old_phone2'] AND $updated['old_phone2'] == $updated['old_phone1']) {
 
