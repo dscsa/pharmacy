@@ -81,17 +81,8 @@ function import_cp_patients() {
   $keys = result_map($patients[0],
     function($row) {
 
-      $phone1 = clean_phone($row['phone1']);
-      $phone2 = clean_phone($row['phone2']);
-
-      if ($phone2 === 0 OR $phone2 === '0')
-        log_error("phone2 is 0", [$row, $phone2]);
-
-      if ($phone1 === 0 OR $phone1 === '0')
-        log_error("phone1 is 0", [$row, $phone1]);
-
-      $row['phone1'] = $phone1;
-      $row['phone2'] = $phone2;
+      $row['phone1'] = clean_phone($row['phone1']);
+      $row['phone2'] = clean_phone($row['phone2']);
 
       //This is hard todo in MSSQL so doing it in PHP instead
       //These were single quoted by clean_val() already so need to have quotes striped

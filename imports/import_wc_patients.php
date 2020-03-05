@@ -73,8 +73,8 @@ function import_wc_patients() {
   $keys = result_map($orders[0],
     function($row) {
 
-      $phone1 = clean_phone($row['phone1']);
-      $phone2 = clean_phone($row['phone2']);
+      $row['phone1'] = clean_phone($row['phone1']);
+      $row['phone2'] = clean_phone($row['phone2']);
 
       $pharmacy = json_decode($row['backup_pharmacy'], true);
 
