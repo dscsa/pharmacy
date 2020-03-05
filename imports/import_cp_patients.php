@@ -23,8 +23,8 @@ function import_cp_patients() {
       CONVERT(text, MAX(NULLIF(SUBSTRING(pat.cmt, 0, ISNULL(NULLIF(CHARINDEX(CHAR(10)+'___', pat.cmt), 0), 9999)), ''))) as patient_note,
       CONVERT(text, MAX(NULLIF(SUBSTRING(pat.cmt, ISNULL(NULLIF(NULLIF(CHARINDEX('___'+CHAR(13), pat.cmt)+3, 3), DATALENGTH(pat.cmt)), 9999), 9999), ''))) as medications_other,
 
-      NULLIF(MAX(CONCAT(ph1.area_code, ph1.phone_no)), '') as phone1,
-      NULLIF(MAX(CONCAT(ph2.area_code, ph2.phone_no)), '') as phone2,
+      NULLIF(NULLIF(MAX(CONCAT(ph1.area_code, ph1.phone_no)), ''), 0) as phone1,
+      NULLIF(NULLIF(MAX(CONCAT(ph2.area_code, ph2.phone_no)), ''), 0) as phone2,
       NULLIF(MAX(pat.email), '') as email,
       MAX(pat.auto_refill_cn) as patient_autofill,
 
