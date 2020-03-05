@@ -140,13 +140,6 @@ function update_orders_cp() {
   //  - update wc order total
   foreach($changes['deleted'] as $deleted) {
 
-    //START DEBUG this is getting called on a CP order that is not yet in WC
-    $order = get_full_order($deleted, $mysql, true);
-
-    if ($order) {
-      log_error('update_orders_cp: cp order deleted (but still exists???)', [$order, $deleted]);
-      continue;
-    }
 
     //Order #28984, #29121, #29105
     if ( ! $deleted['patient_id_wc']) {
@@ -157,10 +150,6 @@ function update_orders_cp() {
     } else {
       log_notice('update_orders_cp: cp order deleted so deleting wc order as well', $deleted);
     }
-    //END DEBUG
-
-    if ($deleted['order_stage_wc'] == 'wc-processing')
-      log_error('Problem: cp order wc-processing deleted', $deleted);
 
     //Order was Returned to Sender and not logged yet
     if ($deleted['tracking_number'] AND ! $deleted['order_date_returned']) {
@@ -178,6 +167,16 @@ function update_orders_cp() {
 
       continue;
     }
+
+    //START DEBUG this is getting called on a CP order that is not yet in WC
+    $order = get_full_order($deleted, $mysql, true);
+
+    //This will be true for returned packages
+    if ($order) {
+      log_error('update_orders_cp: cp order deleted (but still exists???)', [$order, $deleted]);
+      continue;
+    }
+    //END DEBUG
 
     export_gd_delete_invoice([$deleted], $mysql);
 
