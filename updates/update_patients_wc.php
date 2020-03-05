@@ -221,8 +221,8 @@ function update_patients_wc() {
        log_error("Patient Set Incorrectly", [$changed, $updated]);
 
     } else if (
-        strtoupper($updated['first_name']) !== strtoupper($updated['old_first_name']) OR
-        strtoupper($updated['last_name']) !== strtoupper($updated['old_last_name'])
+        (stripos($updated['first_name'], $updated['old_first_name']) === false AND stripos($updated['old_first_name'], $updated['first_name']) === false) OR
+        (stripos($updated['last_name'], $updated['old_last_name']) === false AND stripos($updated['old_last_name'], $updated['last_name']) === false)
     ) {
 
       log_error("Patient Identity Changed?", $updated);
