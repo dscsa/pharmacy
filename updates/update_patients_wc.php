@@ -141,7 +141,7 @@ function update_patients_wc() {
       upsert_patient_cp($mssql, "EXEC SirumWeb_AddUpdatePatHomePhone '$updated[patient_id_cp]', '$updated[phone1]'");
     }
 
-    if ( ! is_null($updated['phone2']) AND $updated['phone2'] == $updated['phone1']) {
+    if ($updated['phone2'] AND $updated['phone2'] == $updated['phone1']) {
       upsert_patient_wc($mysql, $updated['patient_id_wc'], 'phone2', NULL);
     } else if ($updated['old_phone2'] AND $updated['old_phone2'] == $updated['old_phone1']) {
 
@@ -160,7 +160,8 @@ function update_patients_wc() {
     } else if (strlen($updated['phone2']) < 10 AND strlen($updated['old_phone2']) >= 10) {
       upsert_patient_wc($mysql, $updated['patient_id_wc'], 'phone2', $updated['old_phone2']);
     } else if ($updated['phone2'] !== $updated['old_phone2']) {
-      upsert_patient_cp($mssql, "EXEC SirumWeb_AddUpdatePatHomePhone '$updated[patient_id_cp]', '$updated[phone2]', 9");
+      $phone2 = $updated['phone2'] ? "'$updated[phone2]'" : 'NULL'; //Without NULL here, phone2 0 >>> NULL was never being fixed
+      upsert_patient_cp($mssql, "EXEC SirumWeb_AddUpdatePatHomePhone '$updated[patient_id_cp]', $phone2, 9");
     }
 
     //If pharmacy name changes then trust WC over CP
