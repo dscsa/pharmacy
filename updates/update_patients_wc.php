@@ -21,8 +21,8 @@ function update_patients_wc() {
   $mssql = new Mssql_Cp();
 
   function name_mismatch($new, $old) {
-    $new = str_replace(['-'], [''], $new);
-    $old = str_replace(['-'], [''], $old);
+    $new = str_replace(['-'], [' '], $new);
+    $old = str_replace(['-'], [' '], $old);
     return stripos($new, $old) === false AND stripos($old, $new) === false;
   }
 
