@@ -160,9 +160,8 @@ function update_patients_wc() {
     } else if (strlen($updated['phone2']) < 10 AND strlen($updated['old_phone2']) >= 10) {
       upsert_patient_wc($mysql, $updated['patient_id_wc'], 'phone2', $updated['old_phone2']);
     } else if ($updated['phone2'] !== $updated['old_phone2']) {
-      $phone2 = $updated['phone2'] ? "'$updated[phone2]'" : 'NULL'; //Without NULL here, phone2 0 >>> NULL was never being fixed
-      log_error("EXEC SirumWeb_AddUpdatePatHomePhone '$updated[patient_id_cp]', $phone2, 9");
-      upsert_patient_cp($mssql, "EXEC SirumWeb_AddUpdatePatHomePhone '$updated[patient_id_cp]', $phone2, 9");
+      log_error("EXEC SirumWeb_AddUpdatePatHomePhone '$updated[patient_id_cp]', '$updated[phone2]', 9");
+      upsert_patient_cp($mssql, "EXEC SirumWeb_AddUpdatePatHomePhone '$updated[patient_id_cp]', '$updated[phone2]', 9");
     }
 
     //If pharmacy name changes then trust WC over CP
