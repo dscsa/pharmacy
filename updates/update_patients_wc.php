@@ -61,7 +61,7 @@ function update_patients_wc() {
       continue;
 
     if ($deleted['patient_id_wc'])
-      log_error('update_patients_wc: deleted', $deleted);
+      log_error('update_patients_wc deleted: patient was just deleted from WC', $deleted);
     //else
     //  log_error('update_patients_wc: never added', $deleted);
 

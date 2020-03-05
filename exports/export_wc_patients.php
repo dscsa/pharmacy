@@ -75,7 +75,7 @@ function find_patient_wc($mysql, $patient) {
     FROM gp_patients
     WHERE
       first_name LIKE '$first_name_prefix%' AND
-      REPLACE(last_name, '*', '') LIKE '%$last_name_prefix' AND
+      REPLACE(REPLACE(last_name, '*', ''), '-', ' ') LIKE '%$last_name_prefix' AND
       birth_date = '$patient[birth_date]'
   ";
 
