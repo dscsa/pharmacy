@@ -161,6 +161,7 @@ function update_patients_wc() {
       upsert_patient_wc($mysql, $updated['patient_id_wc'], 'phone2', $updated['old_phone2']);
     } else if ($updated['phone2'] !== $updated['old_phone2']) {
       $phone2 = $updated['phone2'] ? "'$updated[phone2]'" : 'NULL'; //Without NULL here, phone2 0 >>> NULL was never being fixed
+      log_error("EXEC SirumWeb_AddUpdatePatHomePhone '$updated[patient_id_cp]', $phone2, 9");
       upsert_patient_cp($mssql, "EXEC SirumWeb_AddUpdatePatHomePhone '$updated[patient_id_cp]', $phone2, 9");
     }
 
