@@ -84,10 +84,10 @@ function import_cp_patients() {
       $phone1 = clean_phone($row['phone1']);
       $phone2 = clean_phone($row['phone2']);
 
-      if ($phone1 != $row['phone1'])
+      if ($phone1 !== $row['phone1'])
         log_error("phone1 changed", [$row, $phone1]);
 
-      if ($phone2 != $row['phone2'])
+      if ($phone2 !== $row['phone2'])
         log_error("phone2 changed", [$row, $phone2]);
 
       //This is hard todo in MSSQL so doing it in PHP instead
