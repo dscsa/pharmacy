@@ -37,11 +37,11 @@ function update_orders_cp() {
 
       //! $updated['order_date_dispensed'] otherwise triggered twice, once one stage: Printed/Processed and again on stage:Dispensed
       if ($item['days_dispensed_default'] != $item['days_dispensed_actual'])
-        $day_changes[] = "rx:$item[rx_number] qty:$item[qty_dispensed_default] >>> $item[qty_dispensed_actual] days:$item[days_dispensed_default] >>> $item[days_dispensed_actual] refills:$item[refills_dispensed_default] >>> $item[refills_dispensed_actual] updated:".json_encode($updated);
+        $day_changes[] = "rx:$item[rx_number] qty:$item[qty_dispensed_default] >>> $item[qty_dispensed_actual] days:$item[days_dispensed_default] >>> $item[days_dispensed_actual] refills:$item[refills_dispensed_default] >>> $item[refills_dispensed_actual] item:".json_encode($item);
 
       //! $updated['order_date_dispensed'] otherwise triggered twice, once one stage: Printed/Processed and again on stage:Dispensed
       if ($item['qty_dispensed_default'] != $item['qty_dispensed_actual'] OR $item['refills_dispensed_default'] != $item['refills_dispensed_actual'])
-        $qty_changes[] = "rx:$item[rx_number] qty:$item[qty_dispensed_default] >>> $item[qty_dispensed_actual] days:$item[days_dispensed_default] >>> $item[days_dispensed_actual] refills:$item[refills_dispensed_default] >>> $item[refills_dispensed_actual] updated:".json_encode($updated);
+        $qty_changes[] = "rx:$item[rx_number] qty:$item[qty_dispensed_default] >>> $item[qty_dispensed_actual] days:$item[days_dispensed_default] >>> $item[days_dispensed_actual] refills:$item[refills_dispensed_default] >>> $item[refills_dispensed_actual] item:".json_encode($item);
 
       //! $updated['order_date_dispensed'] otherwise triggered twice, once one stage: Printed/Processed and again on stage:Dispensed
       $actual_sig_qty_per_day = $item['days_dispensed_actual'] ? round($item['qty_dispensed_actual']/$item['days_dispensed_actual'], 1) : 0;
@@ -239,12 +239,12 @@ function update_orders_cp() {
 
       if ($dispensing_changes['day_changes']) {
         //Updates invoice with new days/price/qty/refills.
-        $order = helper_update_payment($order,  "update_orders_cp: updated - dispensing day changes ".implode(', ', $day_changes), $mysql);
+        $order = helper_update_payment($order,  "update_orders_cp: updated - dispensing day changes ".implode(', ', $dispensing_changes['day_changes']), $mysql);
         export_wc_update_order($order); //Price will also have changed
 
       } else if ($dispensing_changes['qty_changes']) {
         //Updates invoice with new qty/refills.  Prices should not have changed so no need to update WC
-        $order = export_gd_update_invoice($order, "update_orders_cp: updated - dispensing qty changes ".implode(', ', $qty_changes), $mysql);
+        $order = export_gd_update_invoice($order, "update_orders_cp: updated - dispensing qty changes ".implode(', ', $dispensing_changes['qty_changes']), $mysql);
       }
 
       $groups = group_drugs($order, $mysql);
