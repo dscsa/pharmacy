@@ -15,6 +15,12 @@ function update_drugs() {
   log_info("update_drugs: $count_deleted deleted, $count_created created, $count_updated updated.", get_defined_vars());
 
 
+  foreach($changes['updated'] as $i => $updated) {
+     if ($update['drug_ordered'] != $update['old_drug_ordered'])
+      log_error("drug ordered changed", $updated);
+  }
+
+
   //TODO Upsert WooCommerce Patient Info
 
   //TODO Upsert Salseforce Patient Info
