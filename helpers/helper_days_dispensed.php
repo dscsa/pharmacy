@@ -102,7 +102,7 @@ function get_days_default($item) {
     return [$days_default, RX_MESSAGE['NO ACTION RX OFF AUTOFILL']];
   }
 
-  if ( ! $item['refill_date_first'] AND $not_offered) {
+  if ($item['refill_date_first'] AND $not_offered) {
     log_info("REFILLS SHOULD NOT HAVE A NOT OFFERED STATUS", get_defined_vars());
     return [$days_default, RX_MESSAGE['NO ACTION NEW GSN']];
   }
@@ -296,6 +296,8 @@ function is_not_offered($item) {
 
   if ($not_offered) //TODO Alert here is drug is not offered but has a qty_inventory > 500
     log_error('is_not_offered', get_defined_vars());
+  else
+    log_notice('is_not_offered', get_defined_vars());
 
   return $not_offered;
 }

@@ -21,7 +21,7 @@ function update_drugs() {
       log_error("drug ordered changed", $updated);
 
     if ($updated['drug_gsns'] != $updated['old_drug_gsns'])
-     log_error("drug gsns changed", $updated);
+      log_error("drug gsns changed", $updated);
 
   }
 
