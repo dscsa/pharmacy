@@ -17,10 +17,10 @@ function update_drugs() {
 
   foreach($changes['updated'] as $i => $updated) {
 
-    if ($update['drug_ordered'] != $update['old_drug_ordered'])
+    if ($updated['drug_ordered'] != $updated['old_drug_ordered'])
       log_error("drug ordered changed", $updated);
 
-    if ($update['drug_gsns'] != $update['old_drug_gsns'])
+    if ($updated['drug_gsns'] != $updated['old_drug_gsns'])
      log_error("drug gsns changed", $updated);
 
   }
