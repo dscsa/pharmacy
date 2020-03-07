@@ -59,7 +59,7 @@ function update_orders_wc() {
       $gp_orders      = $mysql->run("SELECT * FROM gp_orders WHERE invoice_number = $created[invoice_number]");
       $gp_orders_cp   = $mysql->run("SELECT * FROM gp_orders_cp WHERE invoice_number = $created[invoice_number]");
 
-      log_error("update_orders_wc: created non-Webform order that is not in CP?", ['gp_orders_cp' => $gp_orders_cp, 'gp_orders' => $gp_orders, 'created' => $created]);//.print_r($item, true);
+      log_error("update_orders_wc: created non-Webform order that is not in CP? Maybe it was deleted by Pharmacist in CP quickly before it was imported?", ['gp_orders_cp' => $gp_orders_cp, 'gp_orders' => $gp_orders, 'created' => $created]);//.print_r($item, true);
 
       //log_notice("Guardian Order Deleted that should be deleted from WC later in this run or already deleted", $created);
     }
@@ -175,17 +175,19 @@ function update_orders_wc() {
           continue;
         }
 
-        $orderdata = [
-          'post_status' => 'wc-'.$order[0]['order_stage_wc']
-        ];
-
-        log_error('Why was this order trashed? It still exists in Guarduan.  Removing from trash', [
+        log_error('Why was this order trashed? It still exists in Guarduan.  Stop Removing from trash, as it might be a *duplicate* order that was trashed', [
           'invoice_number' => $order[0]['invoice_number'],
           'order_stage_wc' => $order[0]['order_stage_wc'],
           'order_stage_cp' => $order[0]['order_stage_cp']
         ]);
 
+        /*
+        $orderdata = [
+          'post_status' => 'wc-'.$order[0]['order_stage_wc']
+        ];
+
         wc_update_order($order[0]['invoice_number'], $orderdata);
+        */
       }
 
     } else if (count($changed) == 1 AND $updated['order_stage_wc'] != $updated['old_order_stage_wc']) {
