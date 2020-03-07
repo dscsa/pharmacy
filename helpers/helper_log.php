@@ -11,7 +11,7 @@ function log_to_db($severity, $text, $file, $vars) {
    $mysql = $mysql ?: new Mysql_Wc();
    $text  = $mysql->escape($text);
    $vars  = $mysql->escape($vars) ?: '[]';
-   $mysql->run("INSERT INTO gp_logs (severity, text, file, vars) VALUES ('$severity', '$text', '$file', '$vars')");
+   //$mysql->run("INSERT INTO gp_logs (severity, text, file, vars) VALUES ('$severity', '$text', '$file', '$vars')");
 }
 
 function log_to_email($severity, $text, $file, $vars) {
