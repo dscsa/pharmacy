@@ -525,7 +525,7 @@ $test_sigs = [
     'frequency_numerator' => '1',
     'frequency_denominator' => '8',
     'frequency' => '1/24*2',
-    'duration' => '30,60'
+    'duration' => '90'
   ],
   "Take 5 mg by mouth 2 (two) times daily." => [
     'qty_per_time' => '1',

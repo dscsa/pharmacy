@@ -109,11 +109,11 @@ function durations($cleaned) {
 
     $durations = [];
     $remaining_days = DAYS_STD;
-    $complex_sig_regex = '/ then[ ,]+| and[ ,]+(use +|take +|inhale +|chew +|inject +|oral +)?(?=\d)/i';
+    $complex_sig_regex = '/(may|can) increase|[a-z][.;] | then[ ,]+| and[ ,]+(use +|take +|inhale +|chew +|inject +|oral +)?(?=\d)/i';
     $splits = preg_split($complex_sig_regex, $cleaned);
 
     foreach ($splits as $split) {
-      preg_match('/for (\d+) day/i', $split, $match);
+      preg_match('/(\d+) day/i', $split, $match);
 
       if ($match AND $match[1]) {
         $remaining_days   -= $match[1];
@@ -177,6 +177,8 @@ function get_qty_per_time($sig) {
 }
 
 function get_frequency_numerator($sig) {
+  //  $sig = preg_replace('/ with meals\\b/i', ' 3 times per day', $sig);
+
   preg_match('/([1-9]\\b|10|11|12) +time/i', $sig, $match);
   return $match ? $match[1] : 1;
 }
