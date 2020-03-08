@@ -86,7 +86,7 @@ function clean_sig($sig) {
 function durations($cleaned) {
     $complex_sig_regex = '/ then | and (?=\d)/';
     $split = preg_split($complex_sig_regex, $cleaned);
-    log_notice("durations $cleaned", $split)
+    log_notice("durations $cleaned", $split);
 }
 
 function overflow() {
