@@ -112,7 +112,7 @@ function durations($cleaned) {
     $complex_sig_regex = '/ then | and (?=\d)/';
     $splits = preg_split($complex_sig_regex, $cleaned);
 
-    foreach ($splits => $split) {
+    foreach ($splits as $split) {
       preg_match('/for (\d+) days/i', $split, $match);
 
       if ($match AND $match[1]) {
