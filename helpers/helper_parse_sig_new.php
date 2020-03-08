@@ -61,12 +61,8 @@ function clean_sig($sig) {
   $sig = preg_replace('/\\bninety |\\bnoventa /i', '90 ', $sig); // \\b is for space or start of line
 
 
-  $handle_milligrams = function($matches) use ($sig) {
-    log_notice("handle_milligrams", [$matches, $sig]);
-    return 99;
-  };
-
-  $sig = preg_replace_callback('/([0-9]*\.[0-9]+|[1-9]+) ?mc?g /i', $handle_milligrams, $sig); //Take 1 1/2 tablets
+  $sig = preg_match_all('/([0-9]*\.[0-9]+|[1-9]+) ?mc?g /i', $sig, $matches); //Take 1 1/2 tablets
+  log_notice("handle milligrams $sig", $matches);
 
   //Duration
   $sig = preg_replace('/\\bx ?(\d+) /i', 'for $1 ', $sig); // X7 Days == for 7 days
