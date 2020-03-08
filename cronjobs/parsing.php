@@ -725,7 +725,7 @@ if ($sig_index === false) {
     $parsed = parse_sig($test_sig);
 
     if (count($parsed) > 1 OR strpos(',', $test_results['qty_per_time']))
-      log_notice("test_parse_sig: $test_sig", [$parsed, $test_results['duration'], implode(',' $parsed)]);
+      log_notice("test_parse_sig: $test_sig", [$parsed, $test_results['duration'], implode(',', $parsed)]);
   }
 
 } else {
