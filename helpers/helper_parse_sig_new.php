@@ -34,11 +34,7 @@ function clean_sig($sig) {
   $sig = preg_replace('/ prn\\b| at onset\\b| when\\b/i', ' as needed', $sig);
   $sig = preg_replace('/ days per week\\b/i', ' times per week', $sig);
 
-  //Cruft
-  $sig = preg_replace('/\(.*?\)/', '', $sig); //get rid of parenthesis // "Take 1 capsule (300 mg total) by mouth 3 (three) times daily."
-  $sig = preg_replace('/\\\/', '', $sig);   //get rid of backslashes
-
-  //Numerals
+  //Substitute Numerals
   $sig = preg_replace('/(^| *and *| *& *)(1\/2|one-half|one half|1 half) /i', '.5 ', $sig); //Take 1 and 1/2 tablets or Take 1 & 1/2 tablets.  Could combine with next regex but might get complicated
   $sig = preg_replace('/(\d+) (1\/2|one-half) /i', '$1.5 ', $sig); //Take 1 1/2 tablets
   $sig = preg_replace('/ (1\/2|one-half|one half|1 half) /i', ' .5 ', $sig);
@@ -82,11 +78,15 @@ function clean_sig($sig) {
   $sig = preg_replace('/\\bfor 11 weeks?/i', 'for 77 days ', $sig);
   $sig = preg_replace('/\\bfor 12 weeks?/i', 'for 84 days ', $sig);
 
+  //Alternative frequency numerator wordings
   $sig = preg_replace('/ once /i', ' 1 time ', $sig);
   $sig = preg_replace('/ twice\\b| q12.*?h\\b| BID\\b|(?<!every) 12 hours\\b/i', ' 2 times', $sig);
   $sig = preg_replace('/ q8.*?h\\b| TID\\b|(?<!every) 8 hours\\b/i', ' 3 times ', $sig);
   $sig = preg_replace('/ q6.*?h\\b|(?<!every) 6 hours\\b/i', ' 4 times', $sig);
+  $sig = preg_replace('/ (breakfast|mornings?) and (dinner|night|evenings?) /i', ' 2 times per day ', $sig);
+  $sig = preg_replace('/ with meals /i', ' 3 times per day ', $sig);
 
+  //Alternate units of measure
   $sig = preg_replace('/\\b1 vial /i', '3ml ', $sig); // vials for inhalation are 2.5 or 3ml, so use 3ml to be conservative
   $sig = preg_replace('/\\b2 vials? /i', '6ml ', $sig); // vials for inhalation are 2.5 or 3ml, so use 3ml to be conservative
   $sig = preg_replace('/\\b3 vials? /i', '9ml ', $sig); // vials for inhalation are 2.5 or 3ml, so use 3ml to be conservative
@@ -99,12 +99,10 @@ function clean_sig($sig) {
   $sig = preg_replace('/[.\d]+ to ([.\d]+) /i', '$1 ', $sig, 1); //Take 1 to 2 every 3 or 4 hours. Let's convert that to Take 2 every 3 or 4 hours (no global flag).  CK approves of first substitution but not sure of the 2nd so the conservative answer is to leave it alone
   $sig = preg_replace('/[.\d]+-([.\d]+) /i', '$1 ', $sig, 1); //Take 1-2 every 3 or 4 hours. Let's convert that to Take 2 every 3 or 4 hours (no global flag).  CK approves of first substitution but not sure of the 2nd so the conservative answer is to leave it alone
 
-  $sig = preg_replace('/ breakfast /i', ' morning ', $sig);
-  $sig = preg_replace('/ dinner /i', ' evening ', $sig);
-  $sig = preg_replace('/ mornings? and evenings? /i', ' 2 times ', $sig);
-
-  //Remove double spaces for aesthetics
-  $sig = preg_replace('/  +/i', ' ', $sig);
+  //Cleanup
+  $sig = preg_replace('/  +/i', ' ', $sig); //Remove double spaces for aesthetics
+  $sig = preg_replace('/\(.*?\)/', '', $sig); //get rid of parenthesis // "Take 1 capsule (300 mg total) by mouth 3 (three) times daily."
+  $sig = preg_replace('/\\\/', '', $sig);   //get rid of backslashes
 
   return trim($sig);
 }
@@ -141,12 +139,12 @@ function qtys_per_time($durations, $correct) {
 
   foreach ($durations as $sig_part => $duration) {
     //"Use daily with lantus"  won't match the RegEx below
-    preg_match_all('/([0-9]?\.[0-9]+|[1-9]) (tab|cap|pill|softgel|patch|injection|each)|(^|use +|take +|inhale +|chew +|inject +|oral +)([0-9]?\.[0-9]+|[1-9])(?!\d* ?mg| +time)/i', $sig_part, $match);
-    $qtys_per_time[$sig_part] = $match ? $match[1][0]+$match[4][0] : 1;
+    $count = preg_match_all('/([0-9]*\.[0-9]+|[1-9]+) ?(ml|tab|cap|pill|softgel|patch|injection|each)|(^|use +|take +|inhale +|chew +|inject +|oral +)([0-9]*\.[0-9]+|[1-9]+)(?!\d* ?mg| +time)/i', $sig_part, $match);
+    $qtys_per_time[$sig_part] = $count ? array_sum($match[1])+array_sum($match[4]) : 1;
   }
 
   if (implode(',', $qtys_per_time) != $correct['qty_per_time']) {
-    log_notice("test_parse_sig incorrect qtys_per_time:", ['cleaned' => $cleaned, 'correct' => $correct['qty_per_time'], 'current' => $qtys_per_time]);
+    log_notice("test_parse_sig incorrect qtys_per_time:", ['durations' => $durations, 'correct' => $correct['qty_per_time'], 'current' => $qtys_per_time]);
   }
 
   return $qtys_per_time;
