@@ -110,7 +110,7 @@ function durations($cleaned) {
 
     $durations = [];
     $remaining_days = DAYS_STD;
-    $complex_sig_regex = '/(may|can) increase|[a-z][.;] | then[ ,]+| and[ ,]+at | and[ ,]+(?=use +|take +|inhale +|chew +|inject +|oral +)?(?=\d)/i';
+    $complex_sig_regex = '/(may|can) increase|[a-z][.;] | then[ ,]+| and +at | and[ ,]+(?=\d|use +|take +|inhale +|chew +|inject +|oral +)/i';
     $splits = preg_split($complex_sig_regex, $cleaned);
 
     foreach ($splits as $split) {
