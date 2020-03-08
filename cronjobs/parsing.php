@@ -297,8 +297,8 @@ $test_sigs = [
     'duration' => '90,90'
   ], //Unfixed
   "Take 1 tablet by mouth 1 time daily then, if no side effects, increase to 1 tablet 2 times daily with meals" => [
-    'qty_per_time' => '1,2',
-    'frequency_numerator' => '1,1',
+    'qty_per_time' => '1,1',
+    'frequency_numerator' => '1,2',
     'frequency_denominator' => '1,1',
     'frequency' => '1,1',
     'duration' => 'X,90-X' //Uncertain Duration!  What's the default
