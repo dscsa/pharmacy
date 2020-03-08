@@ -16,7 +16,7 @@ function parse_sig($sig_actual) {
   //$parsed    = parse_parts($parts);
   //$parsed    = combine_parsed($parsed);
 
-  return $parsed;
+  return $durations;
 }
 
 function clean_sig($sig) {
@@ -86,7 +86,7 @@ function clean_sig($sig) {
 function durations($cleaned) {
     $complex_sig_regex = '/ then | and (?=\d)/';
     $split = preg_split($complex_sig_regex, $cleaned);
-    log_notice("durations $cleaned", $split);
+    return $split;
 }
 
 function overflow() {

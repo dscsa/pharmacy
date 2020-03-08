@@ -722,7 +722,9 @@ if ($sig_index === false) {
 
   foreach ($test_sigs as $test_sig => $test_results) {
     $parsed = parse_sig($test_sig);
-    //log_notice("test_parse_sig: $test_sig", [$parsed['sig_clean'], $parsed['sig_parts']]);
+
+    if (count($parsed) > 1 OR strpos(',', $test_results['qty_per_time']))
+      log_notice("test_parse_sig: $test_sig", $parsed);
   }
 
 } else {
