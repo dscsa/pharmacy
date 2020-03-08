@@ -2,10 +2,6 @@
 
 require_once 'helpers/helper_imports.php';
 
-function handle_milligrams($matches) {
-  log_notice("handle_milligrams", $matches);
-  return 99;
-}
 
 function parse_sig($sig_actual, $correct = null) {
 
@@ -65,7 +61,11 @@ function clean_sig($sig) {
   $sig = preg_replace('/\\bninety |\\bnoventa /i', '90 ', $sig); // \\b is for space or start of line
 
 
-  $sig = preg_replace_callback('/(\d+) ?mc?g /i', handle_milligrams, $sig); //Take 1 1/2 tablets
+  $handle_milligrams = function($matches) use ($sig) {
+    log_notice("handle_milligrams", [$matches, $sig]);
+    return 99;
+  }
+  $sig = preg_replace_callback('/(\d+) ?mc?g /i', $handle_milligrams, $sig); //Take 1 1/2 tablets
 
   //Duration
   $sig = preg_replace('/\\bx ?(\d+) /i', 'for $1 ', $sig); // X7 Days == for 7 days
