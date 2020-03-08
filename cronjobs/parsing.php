@@ -720,6 +720,10 @@ if ($sig_index === false) {
     $parsed = parse_sig($test_sig);
     $duration = implode(',', $parsed);
 
+    if ( ! @$test_results['duration']) {
+      log_notice("duration not set", [$test_sig, $test_results]);
+    }
+
     if ($duration != $test_results['duration']) {
       $error_count++;
       log_notice("test_parse_sig: $test_sig", [$parsed, 'correct' => $test_results['duration'], 'parsed' => $duration]);
