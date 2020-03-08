@@ -2,7 +2,7 @@
 
 require_once 'helpers/helper_imports.php';
 
-function parse_sig($sig_actual) {
+function parse_sig($sig_actual, $correct = null) {
 
   //1 Clean sig
   //2 Split into Durations
@@ -10,9 +10,9 @@ function parse_sig($sig_actual) {
   //4 Parse each part
   //5 Combine parts into total
 
-  $cleaned       = clean_sig($sig_actual);
-  $durations     = durations($cleaned);
-  $qtys_per_time = qtys_per_time($durations);
+  $cleaned       = clean_sig($sig_actual, $correct);
+  $durations     = durations($cleaned, $correct);
+  $qtys_per_time = qtys_per_time($durations, $correct);
   //$parsed    = parse_parts($parts);
   //$parsed    = combine_parsed($parsed);
 
@@ -109,7 +109,7 @@ function clean_sig($sig) {
   return trim($sig);
 }
 
-function durations($cleaned) {
+function durations($cleaned, $correct) {
 
     $durations = [];
     $remaining_days = DAYS_STD;
@@ -128,17 +128,25 @@ function durations($cleaned) {
       }
     }
 
+    if (implode(',', $durations) != $correct['duration']) {
+      log_notice("test_parse_sig incorrect duration:", ['cleaned' => $cleaned, 'correct' => $correct['duration'], 'current' => $durations]);
+    }
+
     return $durations;
 }
 
-function qtys_per_time($durations) {
+function qtys_per_time($durations, $correct) {
 
   $qtys_per_time = [];
 
   foreach ($durations as $sig_part => $duration) {
     //"Use daily with lantus"  won't match the RegEx below
     preg_match_all('/([0-9]?\.[0-9]+|[1-9]) (tab|cap|pill|softgel|patch|injection|each)|(^|use +|take +|inhale +|chew +|inject +|oral +)([0-9]?\.[0-9]+|[1-9])(?!\d* ?mg| +time)/i', $sig_part, $match);
-    $qtys_per_time[$sig_part] = $match;
+    $qtys_per_time[$sig_part] = $match ? $match[1][0]+$match[4][0] : 1;
+  }
+
+  if (implode(',', $qtys_per_time) != $correct['qty_per_time']) {
+    log_notice("test_parse_sig incorrect qtys_per_time:", ['cleaned' => $cleaned, 'correct' => $correct['qty_per_time'], 'current' => $qtys_per_time]);
   }
 
   return $qtys_per_time;

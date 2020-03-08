@@ -720,19 +720,7 @@ if ($sig_index === false) {
   ];
 
   foreach ($test_sigs as $sig => $correct) {
-    $parsed       = parse_sig($sig);
-    $duration     = implode(',', $parsed['duration']);
-    $qty_per_time = implode(',', $parsed['qty_per_time'] ? implode(',', array_column($parsed['qty_per_time'], 1))+implode(',', array_column($parsed['qty_per_time'], 4)) : 1);
-
-    if ($duration != $correct['duration']) {
-      $errors['duration']++;
-      log_notice("test_parse_sig incorrect duration: $sig", [$parsed['duration'], 'correct' => $correct['duration'], 'current' => $duration]);
-    }
-
-    if ($qty_per_time != $correct['qty_per_time']) {
-      $errors['qty_per_time']++;
-      log_notice("test_parse_sig incorrect qty_per_time: $sig", [$parsed['qty_per_time'], 'correct' => $correct['qty_per_time'], 'current' => $qty_per_time]);
-    }
+    $parsed = parse_sig($sig, $correct);
   }
 
   log_notice("error count ".array_sum($errors), $errors);
