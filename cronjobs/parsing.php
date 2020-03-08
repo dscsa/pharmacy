@@ -720,8 +720,9 @@ if ($sig_index === false) {
     $parsed = parse_sig($test_sig);
     $duration = implode(',', $parsed);
 
-    if ( ! @$test_results['duration']) {
+    if ( ! isset($test_results['duration'])) {
       log_notice("duration not set", [$test_sig, $test_results]);
+      continue;
     }
 
     if ($duration != $test_results['duration']) {
