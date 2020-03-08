@@ -138,8 +138,8 @@ function qtys_per_time($durations) {
   foreach ($durations as $sig_part => $duration) {
     //"Use daily with lantus"  won't match the RegEx below
     preg_match_all('/([0-9]?\.[0-9]+|[1-9]) (tab|cap|pill|softgel|patch|injection|each)|(^|use +|take +|inhale +|chew +|inject +|oral +)([0-9]?\.[0-9]+|[1-9])(?!\d* ?mg| +time)/i', $sig_part, $match);
-    $qtys_per_time[$sig_part] = $match[0] ? $match[0][1]+$match[0][4] : 1;
-    if ($match[1]) log_notice("multiple qty_per_time matches $sig_part", $match);
+    $qtys_per_time[$sig_part] = $match ? $match[1]+$match[4] : 1;
+    log_notice("qty_per_time matches $sig_part", $match);
   }
 
   return $qtys_per_time;
