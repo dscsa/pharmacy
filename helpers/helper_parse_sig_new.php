@@ -67,7 +67,7 @@ function clean_sig($sig) {
     $match_mgs,
     function($match) use($matches, $sig) {
       log_notice("handle milligrams $sig", [$matches, $match, $match / min($matches[1])]);
-      return $match / min($matches[1])
+      return $match / min($matches[1]);
     },
     $sig
   );
