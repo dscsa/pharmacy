@@ -290,11 +290,11 @@ $test_sigs = [
     'duration' => '10,80'
   ], //Unfixed
   "Take 2 capsules by mouth in the morning 1 capsule once daily AT NOON AND 2 capsules at bedtime" => [
-    'qty_per_time' => '2,1,2',
-    'frequency_numerator' => '1,1,1',
-    'frequency_denominator' => '1,1,1',
-    'frequency' => '1,1,1',
-    'duration' => '90,90,90'
+    'qty_per_time' => '3,2',
+    'frequency_numerator' => '1,1',
+    'frequency_denominator' => '1,1',
+    'frequency' => '1,1',
+    'duration' => '90,90'
   ], //Unfixed
   "Take 1 tablet by mouth 1 time daily then, if no side effects, increase to 1 tablet 2 times daily with meals" => [
     'qty_per_time' => '1,2',
@@ -714,13 +714,19 @@ $sig_index = array_search('sig', $argv);
 
 if ($sig_index === false) {
 
+  $error_count = 0;
+
   foreach ($test_sigs as $test_sig => $test_results) {
     $parsed = parse_sig($test_sig);
     $duration = implode(',', $parsed);
 
-    if ($duration != $test_results['duration'])
+    if ($duration != $test_results['duration']) {
+      $error_count++;
       log_notice("test_parse_sig: $test_sig", [$parsed, 'correct' => $test_results['duration'], 'parsed' => $duration]);
+    }
   }
+
+  log_notice("error count: $error_count");
 
 } else {
 
