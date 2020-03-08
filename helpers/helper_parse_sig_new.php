@@ -66,8 +66,8 @@ function clean_sig($sig) {
   $sig = preg_replace_callback(
     $match_mgs,
     function($match) use($matches, $sig) {
-      log_notice("handle milligrams $sig", [$matches, $match, $match / min($matches[1])]);
-      return $match / min($matches[1]);
+      log_notice("handle milligrams $sig", [$matches, $match, $match[1] / min($matches[1])]);
+      return $match[1] / min($matches[1]);
     },
     $sig
   );
