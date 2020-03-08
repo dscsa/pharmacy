@@ -51,20 +51,20 @@ $test_sigs = [
     'frequency' => '1',
     'duration' => '90'
   ],
-  "1 capsule by Oral route 1 time per week => [
+  "1 capsule by Oral route 1 time per week" => [
     'qty_per_time' => '1',
     'frequency_numerator' => '1',
     'frequency_denominator' => '1',
     'frequency' => '7.5',
     'duration' => '90'
-  ]",
-  "take 1 tablet (150 mg) by oral route 2 times per day => [
+  ],
+  "take 1 tablet (150 mg) by oral route 2 times per day" => [
     'qty_per_time' => '1',
-    'frequency_numerator' => '2,
+    'frequency_numerator' => '2',
     'frequency_denominator' => '1',
     'frequency' => '1',
     'duration' => '90'
-  ]",
+  ],
   "take 1 tablet (20 mg) by oral route once daily" => [
     'qty_per_time' => '1',
     'frequency_numerator' => '1',
