@@ -64,7 +64,8 @@ function clean_sig($sig) {
   $handle_milligrams = function($matches) use ($sig) {
     log_notice("handle_milligrams", [$matches, $sig]);
     return 99;
-  }
+  };
+  
   $sig = preg_replace_callback('/(\d+) ?mc?g /i', $handle_milligrams, $sig); //Take 1 1/2 tablets
 
   //Duration
