@@ -2,62 +2,24 @@
 
 require_once 'helpers/helper_imports.php';
 
-function parse_sig($rx) {
+function parse_sig($sig_actual) {
 
+  //1 Clean sig
+  //2 Split into Durations
+  //3 Split into Parts
+  //4 Parse each part
+  //5 Combine parts into total
 
-  //Inhalers might come with qty 18 (# of inhales/puffs rather than 1 so ignore these).  Not sure if these hardcoded assumptions are correct?  Cindy could need to dispense two inhalers per month?  Or one inhaler lasts more than a month?
-  //Could be written in milliliters since prescriber cannot prescribe over 12 months of inhalers at a time
-  //Convert to Unit of Use by just assuming each inhaler is 30 days
-  //Same for Nasal "Sprays"
-  if (isset($rx['drug_name']) AND isset($rx['qty_original']) AND (strpos($rx['drug_name'], ' INH') !== false OR $rx['qty_original'] < 5)) {
-    return [
-      'sig_qty_per_day'           => 1/30,
-      'sig_clean'                 => "'AK assuming 1 unit per month'",
-      'sig_qty_per_time'          => "NULL",
-      'sig_frequency'             => "NULL",
-      'sig_frequency_numerator'   => "NULL",
-      'sig_frequency_denominator' => "NULL"
-    ];
-  }
+  $cleaned   = clean_sig($sig_actual);
+  $durations = durations($cleaned);
+  //$parts     = split_parts($durations);
+  //$parsed    = parse_parts($parts);
+  //$parsed    = combine_parsed($parsed);
 
-  //TODO capture BOTH parts of "then" but for now just use second half
-  //"1 capsule by mouth at bedtime for 1 week then 2 capsules at bedtime" --split
-  //"Take 2 tablets in the morning and 1 at noon and 1 at supper" --split
-  //"take 1 tablet (500 mg) by oral route 2 times per day with morning and evening meals" -- don't split
-  //"Take 1 tablet by mouth every morning and 2 tablets in the evening" -- split
-  $complex_sig_regex = '/ then | and (?=\d)/';
-  $sigs_clean        = array_reverse(preg_split($complex_sig_regex, subsitute_numerals($rx['sig_actual'])));
-
-  foreach ($sigs_clean as $sig_clean) {
-
-    $qty_per_time = get_qty_per_time($sig_clean);
-    $frequency = get_frequency($sig_clean);
-    $frequency_numerator = get_frequency_numerator($sig_clean);
-    $frequency_denominator = get_frequency_denominator($sig_clean);
-
-    $parsed = [
-      'sig_qty_per_day'           => "NULL",
-      'sig_clean'                 => clean_val($sig_clean), //this may have a single quote in it that needs escaping
-      'sig_qty_per_time'          => $qty_per_time,
-      'sig_frequency'             => $frequency,
-      'sig_frequency_numerator'   => $frequency_numerator,
-      'sig_frequency_denominator' => $frequency_denominator
-    ];
-
-    if ($qty_per_time AND $frequency AND $frequency_numerator AND $frequency_denominator) {
-      $parsed['sig_qty_per_day'] = $qty_per_time * $frequency_numerator / $frequency_denominator / $frequency;
-
-      if ($parsed['sig_qty_per_day'] > 6)
-        log_error("Parse sig sig_qty_per_day is >6: $rx[sig_actual] >>> $sig_clean", $parsed);
-
-      return $parsed;
-    }
-
-    log_error("Could not parse sig $rx[sig_actual] >>> $sig_clean", $parsed);
-  }
+  return $parsed;
 }
 
-function subsitute_numerals($sig) {
+function clean_sig($sig) {
 
   //Spanish
   $sig = preg_replace('/\\btomar /i', 'take ', $sig);
@@ -92,6 +54,8 @@ function subsitute_numerals($sig) {
   $sig = preg_replace('/\\bninety |\\bnoventa /i', '90 ', $sig); // \\b is for space or start of line
 
   $sig = preg_replace('/ hrs\\b/i', ' hours', $sig);
+  $sig = preg_replace('/\\bx ?(\d) /i', 'for $1 ', $sig); // X7 Days == for 7 days
+
   $sig = preg_replace('/ once /i', ' 1 time ', $sig);
   $sig = preg_replace('/ twice\\b| q12.*?h\\b| BID\\b|(?<!every) 12 hours\\b/i', ' 2 times', $sig);
   $sig = preg_replace('/ q8.*?h\\b| TID\\b|(?<!every) 8 hours\\b/i', ' 3 times ', $sig);
@@ -119,9 +83,53 @@ function subsitute_numerals($sig) {
   return trim($sig);
 }
 
+function durations($cleaned) {
+    $complex_sig_regex = '/ then | and (?=\d)/';
+    $split = preg_split($complex_sig_regex, $cleaned);
+    log_notice("durations $cleaned", $split)
+}
+
+function overflow() {
+  $parts     = split_parts($durations);
+  $parsed    = parse_parts($parts);
+  $parsed    = combine_parsed($parsed);
+
+  $sigs_clean = array_reverse([]);
+
+  foreach ($sigs_clean as $sig_clean) {
+
+    $qty_per_time = get_qty_per_time($sig_clean);
+    $frequency = get_frequency($sig_clean);
+    $frequency_numerator = get_frequency_numerator($sig_clean);
+    $frequency_denominator = get_frequency_denominator($sig_clean);
+
+    $parsed = [
+      'sig_qty_per_day'           => "NULL",
+      'sig_clean'                 => clean_val($sig_clean), //this may have a single quote in it that needs escaping
+      'sig_qty_per_time'          => $qty_per_time,
+      'sig_frequency'             => $frequency,
+      'sig_frequency_numerator'   => $frequency_numerator,
+      'sig_frequency_denominator' => $frequency_denominator
+    ];
+
+    if ($qty_per_time AND $frequency AND $frequency_numerator AND $frequency_denominator) {
+      $parsed['sig_qty_per_day'] = $qty_per_time * $frequency_numerator / $frequency_denominator / $frequency;
+
+      if ($parsed['sig_qty_per_day'] > 6)
+        log_error("Parse sig sig_qty_per_day is >6: $rx[sig_actual] >>> $sig_clean", $parsed);
+
+      return $parsed;
+    }
+
+    log_error("Could not parse sig $rx[sig_actual] >>> $sig_clean", $parsed);
+  }
+}
+
+
+
 function get_qty_per_time($sig) {
 
-    preg_match('/([0-9]?\.[0-9]+|[1-9]) (tab|cap|pill|softgel)/i', $sig, $match);
+    preg_match('/([0-9]?\.[0-9]+|[1-9]) (tab|cap|pill|softgel|patch|injection|each)/i', $sig, $match);
 
     if ($match) return $match[1];
 
