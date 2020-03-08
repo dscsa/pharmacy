@@ -48,7 +48,7 @@ function clean_sig($sig) {
   $sig = preg_replace('/\\beight |\\bocho /i', '8 ', $sig); // \\b is for space or start of line
   $sig = preg_replace('/\\bnine |\\bnueve /i', '9 ', $sig); // \\b is for space or start of line
   $sig = preg_replace('/\\bten |\\bdiez /i', '10 ', $sig); // \\b is for space or start of line
-  $sig = preg_replace('/\\beleven |\\bonce /i', '11 ', $sig); // \\b is for space or start of line
+  $sig = preg_replace('/\\beleven /i', '11 ', $sig); // once for 11 is both spanish and english
   $sig = preg_replace('/\\btwelve |\\bdoce /i', '12 ', $sig); // \\b is for space or start of line
   $sig = preg_replace('/\\btwenty |\\bveinte /i', '20 ', $sig); // \\b is for space or start of line
   $sig = preg_replace('/\\bthirty |\\btreinta /i', '30 ', $sig); // \\b is for space or start of line
@@ -109,11 +109,11 @@ function durations($cleaned) {
 
     $durations = [];
     $remaining_days = DAYS_STD;
-    $complex_sig_regex = '/ then | and (?=\d)/';
+    $complex_sig_regex = '/ then[ ,]+| and[ ,]+(use +|take +|inhale +|chew +|inject +|oral +)?(?=\d)/i';
     $splits = preg_split($complex_sig_regex, $cleaned);
 
     foreach ($splits as $split) {
-      preg_match('/for (\d+) days/i', $split, $match);
+      preg_match('/for (\d+) day/i', $split, $match);
 
       if ($match AND $match[1]) {
         $remaining_days   -= $match[1];

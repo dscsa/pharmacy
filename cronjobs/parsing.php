@@ -91,7 +91,7 @@ $test_sigs = [
     'frequency_numerator' => '3',
     'frequency_denominator' => '1',
     'frequency' => '7.5',
-    'duration' => '30,60'
+    'duration' => '90'
   ],
   "take 1 tablet (100 mg) by oral route once daily" => [
     'qty_per_time' => '1',
@@ -719,7 +719,7 @@ if ($sig_index === false) {
     $duration = implode(',', $parsed);
 
     if ($duration != $test_results['duration'])
-      log_notice("test_parse_sig: $test_sig", [$parsed, $test_results['duration'], $duration]);
+      log_notice("test_parse_sig: $test_sig", [$parsed, 'correct' => $test_results['duration'], 'parsed' => $duration]);
   }
 
 } else {
