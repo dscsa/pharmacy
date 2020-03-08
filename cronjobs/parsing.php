@@ -333,7 +333,7 @@ $test_sigs = [
   ], //Unfixed
   "Take 1 tablet by mouth twice a day 1 in am and 1 at 3pm" => [
     'qty_per_time' => '1',
-    'frequency_numerator' => '1',
+    'frequency_numerator' => '2',
     'frequency_denominator' => '1',
     'frequency' => '1',
     'duration' => '90'
@@ -343,7 +343,7 @@ $test_sigs = [
     'frequency_numerator' => '4,1',
     'frequency_denominator' => '2,1',
     'frequency' => '1,1',
-    'duration' => '30,60'
+    'duration' => '90,90'
   ], //Unfixed
   "Take 1 tablet by mouth once every morning then 1/2 tablet at night" => [
     'qty_per_time' => '1,.5',
@@ -512,13 +512,6 @@ $test_sigs = [
     'frequency_denominator' => '1,1',
     'frequency' => '1,1',
     'duration' => '90,90'
-  ],
-  "Take 1 tablet by mouth twice a day take 1 in the morning and 1 at 3pm" => [
-    'qty_per_time' => '1',
-    'frequency_numerator' => '2',
-    'frequency_denominator' => '1',
-    'frequency' => '1',
-    'duration' => '90'
   ],
   "Take 1 tablet (12.5 mg total) by mouth every 12 (twelve) hours" => [
     'qty_per_time' => '1',
@@ -723,9 +716,10 @@ if ($sig_index === false) {
 
   foreach ($test_sigs as $test_sig => $test_results) {
     $parsed = parse_sig($test_sig);
+    $duration = implode(',', $parsed);
 
-    if (count($parsed) > 1 OR strpos(',', $test_results['qty_per_time']))
-      log_notice("test_parse_sig: $test_sig", [$parsed, $test_results['duration'], implode(',', $parsed)]);
+    if ($duration != $test_results['duration'])
+      log_notice("test_parse_sig: $test_sig", [$parsed, $test_results['duration'], $duration]);
   }
 
 } else {
