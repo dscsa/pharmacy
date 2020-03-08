@@ -26,9 +26,15 @@ function clean_sig($sig) {
   $sig = preg_replace('/\\bcada /i', 'each ', $sig);
   $sig = preg_replace('/\\bhoras /i', 'hours ', $sig);
 
+  //Abreviations
+  $sig = preg_replace('/ hrs\\b/i', ' hours', $sig);
+  $sig = preg_replace('/ prn\\b| at onset\\b| when\\b/i', ' as needed', $sig);
+
+  //Cruft
   $sig = preg_replace('/\(.*?\)/', '', $sig); //get rid of parenthesis // "Take 1 capsule (300 mg total) by mouth 3 (three) times daily."
   $sig = preg_replace('/\\\/', '', $sig);   //get rid of backslashes
 
+  //Numerals
   $sig = preg_replace('/(^| *and *| *& *)(1\/2|one-half|one half|1 half) /i', '.5 ', $sig); //Take 1 and 1/2 tablets or Take 1 & 1/2 tablets.  Could combine with next regex but might get complicated
   $sig = preg_replace('/(\d+) (1\/2|one-half) /i', '$1.5 ', $sig); //Take 1 1/2 tablets
   $sig = preg_replace('/ (1\/2|one-half|one half|1 half) /i', ' .5 ', $sig);
@@ -53,8 +59,24 @@ function clean_sig($sig) {
   $sig = preg_replace('/\\beighty |\\bochenta /i', '80 ', $sig); // \\b is for space or start of line
   $sig = preg_replace('/\\bninety |\\bnoventa /i', '90 ', $sig); // \\b is for space or start of line
 
-  $sig = preg_replace('/ hrs\\b/i', ' hours', $sig);
-  $sig = preg_replace('/\\bx ?(\d) /i', 'for $1 ', $sig); // X7 Days == for 7 days
+  //Duration
+  $sig = preg_replace('/\\bx ?(\d+) /i', 'for $1 ', $sig); // X7 Days == for 7 days
+  $sig = preg_replace('/\\bfor 1 month/i', 'for 30 days ', $sig);
+  $sig = preg_replace('/\\bfor 2 month/i', 'for 60 days ', $sig);
+  $sig = preg_replace('/\\bfor 3 month/i', 'for 90 days ', $sig);
+  $sig = preg_replace('/\\bfor 1 week/i', 'for 7 days ', $sig);
+  $sig = preg_replace('/\\bfor 1 week/i', 'for 7 days ', $sig);
+  $sig = preg_replace('/\\bfor 2 week/i', 'for 14 days ', $sig);
+  $sig = preg_replace('/\\bfor 3 week/i', 'for 21 days ', $sig);
+  $sig = preg_replace('/\\bfor 4 week/i', 'for 28 days ', $sig);
+  $sig = preg_replace('/\\bfor 5 week/i', 'for 35 days ', $sig);
+  $sig = preg_replace('/\\bfor 6 week/i', 'for 42 days ', $sig);
+  $sig = preg_replace('/\\bfor 7 week/i', 'for 49 days ', $sig);
+  $sig = preg_replace('/\\bfor 8 week/i', 'for 56 days ', $sig);
+  $sig = preg_replace('/\\bfor 9 week/i', 'for 63 days ', $sig);
+  $sig = preg_replace('/\\bfor 10 week/i', 'for 70 days ', $sig);
+  $sig = preg_replace('/\\bfor 11 week/i', 'for 77 days ', $sig);
+  $sig = preg_replace('/\\bfor 12 week/i', 'for 84 days ', $sig);
 
   $sig = preg_replace('/ once /i', ' 1 time ', $sig);
   $sig = preg_replace('/ twice\\b| q12.*?h\\b| BID\\b|(?<!every) 12 hours\\b/i', ' 2 times', $sig);
@@ -84,9 +106,25 @@ function clean_sig($sig) {
 }
 
 function durations($cleaned) {
+
+    $durations = [];
+    $remaining_days = DAYS_STD;
     $complex_sig_regex = '/ then | and (?=\d)/';
-    $split = preg_split($complex_sig_regex, $cleaned);
-    return $split;
+    $splits = preg_split($complex_sig_regex, $cleaned);
+
+    foreach ($splits => $split) {
+      preg_match('/for (\d+) days/i', $split, $match);
+
+      if ($match AND $match[1]) {
+        $remaining_days   -= $match[1];
+        $durations[$split] = $match[1];
+
+      } else {
+        $durations[$split] = $remaining_days;
+      }
+    }
+
+    return $durations;
 }
 
 function overflow() {
