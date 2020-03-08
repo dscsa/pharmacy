@@ -29,6 +29,7 @@ function clean_sig($sig) {
   //Abreviations
   $sig = preg_replace('/ hrs\\b/i', ' hours', $sig);
   $sig = preg_replace('/ prn\\b| at onset\\b| when\\b/i', ' as needed', $sig);
+  $sig = preg_replace('/ days per week\\b/i', ' times per week', $sig);
 
   //Cruft
   $sig = preg_replace('/\(.*?\)/', '', $sig); //get rid of parenthesis // "Take 1 capsule (300 mg total) by mouth 3 (three) times daily."
@@ -61,10 +62,10 @@ function clean_sig($sig) {
 
   //Duration
   $sig = preg_replace('/\\bx ?(\d+) /i', 'for $1 ', $sig); // X7 Days == for 7 days
-  $sig = preg_replace('/\\bfor 1 month/i', 'for 30 days ', $sig);
+  $sig = preg_replace('/\\bfor 1 month|month \d+/i', 'for 30 days ', $sig);
   $sig = preg_replace('/\\bfor 2 month/i', 'for 60 days ', $sig);
   $sig = preg_replace('/\\bfor 3 month/i', 'for 90 days ', $sig);
-  $sig = preg_replace('/\\bfor 1 week/i', 'for 7 days ', $sig);
+  $sig = preg_replace('/\\bfor 1 week|week \d+/i', 'for 7 days ', $sig);
   $sig = preg_replace('/\\bfor 1 week/i', 'for 7 days ', $sig);
   $sig = preg_replace('/\\bfor 2 week/i', 'for 14 days ', $sig);
   $sig = preg_replace('/\\bfor 3 week/i', 'for 21 days ', $sig);
@@ -109,11 +110,11 @@ function durations($cleaned) {
 
     $durations = [];
     $remaining_days = DAYS_STD;
-    $complex_sig_regex = '/(may|can) increase|[a-z][.;] | then[ ,]+| and[ ,]+(use +|take +|inhale +|chew +|inject +|oral +)?(?=\d)/i';
+    $complex_sig_regex = '/([0-9]?\.[0-9]+|[1-9]) (tab|cap|pill|softgel|patch|injection|each)|(may|can) increase|[a-z][.;] | then[ ,]+| and[ ,]+(use +|take +|inhale +|chew +|inject +|oral +)?(?=\d)/i';
     $splits = preg_split($complex_sig_regex, $cleaned);
 
     foreach ($splits as $split) {
-      preg_match('/(\d+) day/i', $split, $match);
+      preg_match('/(?<!every )(\d+) day/i', $split, $match);
 
       if ($match AND $match[1]) {
         $remaining_days   -= $match[1];
