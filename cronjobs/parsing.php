@@ -722,7 +722,7 @@ if ($sig_index === false) {
   foreach ($test_sigs as $sig => $correct) {
     $parsed       = parse_sig($sig);
     $duration     = implode(',', $parsed['duration']);
-    $qty_per_time = implode(',', $parsed['qty_per_time'] ? array_sum($parsed['qty_per_time'][1])+array_sum($parsed['qty_per_time'][4]) : 1);
+    $qty_per_time = implode(',', $parsed['qty_per_time'] ? implode(',', array_column($parsed['qty_per_time'], 1))+implode(',', array_column($parsed['qty_per_time'], 4)) : 1);
 
     if ($duration != $correct['duration']) {
       $errors['duration']++;
