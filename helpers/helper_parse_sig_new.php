@@ -10,13 +10,16 @@ function parse_sig($sig_actual) {
   //4 Parse each part
   //5 Combine parts into total
 
-  $cleaned   = clean_sig($sig_actual);
-  $durations = durations($cleaned);
-  //$parts     = split_parts($durations);
+  $cleaned       = clean_sig($sig_actual);
+  $durations     = durations($cleaned);
+  $qtys_per_time = qtys_per_time($durations);
   //$parsed    = parse_parts($parts);
   //$parsed    = combine_parsed($parsed);
 
-  return $durations;
+  return [
+    'duration' => $durations,
+    'qty_per_time' => $qtys_per_time
+  ];
 }
 
 function clean_sig($sig) {
@@ -62,22 +65,22 @@ function clean_sig($sig) {
 
   //Duration
   $sig = preg_replace('/\\bx ?(\d+) /i', 'for $1 ', $sig); // X7 Days == for 7 days
-  $sig = preg_replace('/\\bfor 1 month|month \d+/i', 'for 30 days ', $sig);
-  $sig = preg_replace('/\\bfor 2 month/i', 'for 60 days ', $sig);
-  $sig = preg_replace('/\\bfor 3 month/i', 'for 90 days ', $sig);
-  $sig = preg_replace('/\\bfor 1 week|week \d+/i', 'for 7 days ', $sig);
-  $sig = preg_replace('/\\bfor 1 week/i', 'for 7 days ', $sig);
-  $sig = preg_replace('/\\bfor 2 week/i', 'for 14 days ', $sig);
-  $sig = preg_replace('/\\bfor 3 week/i', 'for 21 days ', $sig);
-  $sig = preg_replace('/\\bfor 4 week/i', 'for 28 days ', $sig);
-  $sig = preg_replace('/\\bfor 5 week/i', 'for 35 days ', $sig);
-  $sig = preg_replace('/\\bfor 6 week/i', 'for 42 days ', $sig);
-  $sig = preg_replace('/\\bfor 7 week/i', 'for 49 days ', $sig);
-  $sig = preg_replace('/\\bfor 8 week/i', 'for 56 days ', $sig);
-  $sig = preg_replace('/\\bfor 9 week/i', 'for 63 days ', $sig);
-  $sig = preg_replace('/\\bfor 10 week/i', 'for 70 days ', $sig);
-  $sig = preg_replace('/\\bfor 11 week/i', 'for 77 days ', $sig);
-  $sig = preg_replace('/\\bfor 12 week/i', 'for 84 days ', $sig);
+  $sig = preg_replace('/\\bfor 1 months?|months? \d+/i', 'for 30 days ', $sig);
+  $sig = preg_replace('/\\bfor 2 months?/i', 'for 60 days ', $sig);
+  $sig = preg_replace('/\\bfor 3 months?/i', 'for 90 days ', $sig);
+  $sig = preg_replace('/\\bfor 1 weeks?|weeks? \d+/i', 'for 7 days ', $sig);
+  $sig = preg_replace('/\\bfor 1 weeks?/i', 'for 7 days ', $sig);
+  $sig = preg_replace('/\\bfor 2 weeks?/i', 'for 14 days ', $sig);
+  $sig = preg_replace('/\\bfor 3 weeks?/i', 'for 21 days ', $sig);
+  $sig = preg_replace('/\\bfor 4 weeks?/i', 'for 28 days ', $sig);
+  $sig = preg_replace('/\\bfor 5 weeks?/i', 'for 35 days ', $sig);
+  $sig = preg_replace('/\\bfor 6 weeks?/i', 'for 42 days ', $sig);
+  $sig = preg_replace('/\\bfor 7 weeks?/i', 'for 49 days ', $sig);
+  $sig = preg_replace('/\\bfor 8 weeks?/i', 'for 56 days ', $sig);
+  $sig = preg_replace('/\\bfor 9 weeks?/i', 'for 63 days ', $sig);
+  $sig = preg_replace('/\\bfor 10 weeks?/i', 'for 70 days ', $sig);
+  $sig = preg_replace('/\\bfor 11 weeks?/i', 'for 77 days ', $sig);
+  $sig = preg_replace('/\\bfor 12 weeks?/i', 'for 84 days ', $sig);
 
   $sig = preg_replace('/ once /i', ' 1 time ', $sig);
   $sig = preg_replace('/ twice\\b| q12.*?h\\b| BID\\b|(?<!every) 12 hours\\b/i', ' 2 times', $sig);
@@ -128,6 +131,19 @@ function durations($cleaned) {
     return $durations;
 }
 
+function qtys_per_time($durations) {
+
+  $qtys_per_time = [];
+
+  foreach ($durations as $sig_part => $duration) {
+    //"Use daily with lantus"  won't match the RegEx below
+    preg_match_all('/([0-9]?\.[0-9]+|[1-9]) (tab|cap|pill|softgel|patch|injection|each)|(^|use +|take +|inhale +|chew +|inject +|oral +)([0-9]?\.[0-9]+|[1-9])(?!\d* ?mg| +time)/i', $sig_part, $match);
+    $qtys_per_time[$sig_part] = $match ?: 1;
+  }
+
+  return $qtys_per_time;
+}
+
 function overflow() {
   $parts     = split_parts($durations);
   $parsed    = parse_parts($parts);
@@ -166,16 +182,7 @@ function overflow() {
 
 
 
-function get_qty_per_time($sig) {
 
-    preg_match('/([0-9]?\.[0-9]+|[1-9]) (tab|cap|pill|softgel|patch|injection|each)/i', $sig, $match);
-
-    if ($match) return $match[1];
-
-    preg_match('/(^|use +|take +|inhale +|chew +|inject +|oral +)([0-9]?\.[0-9]+|[1-9])(?!\d* ?mg)(?! +time)/i', $sig, $match);
-
-    return $match ? $match[2] : 1; //"Use daily with lantus" won't match the RegEx above
-}
 
 function get_frequency_numerator($sig) {
   //  $sig = preg_replace('/ with meals\\b/i', ' 3 times per day', $sig);

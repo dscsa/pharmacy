@@ -714,24 +714,28 @@ $sig_index = array_search('sig', $argv);
 
 if ($sig_index === false) {
 
-  $error_count = 0;
+  $errors = [
+    'duration' => 0,
+    'qty_per_time' => 0
+  ];
 
-  foreach ($test_sigs as $test_sig => $test_results) {
-    $parsed = parse_sig($test_sig);
-    $duration = implode(',', $parsed);
+  foreach ($test_sigs as $sig => $correct) {
+    $parsed       = parse_sig($sig);
+    $duration     = implode(',', $parsed['duration']);
+    $qty_per_time = implode(',', $parsed['qty_per_time']);
 
-    if ( ! isset($test_results['duration'])) {
-      log_notice("duration not set", [$test_sig, $test_results]);
-      continue;
+    if ($duration != $correct['duration']) {
+      $errors['duration']++;
+      log_notice("test_parse_sig incorrect duration: $sig", [$parsed['duration'], 'correct' => $correct['duration'], 'current' => $duration]);
     }
 
-    if ($duration != $test_results['duration']) {
-      $error_count++;
-      log_notice("test_parse_sig: $test_sig", [$parsed, 'correct' => $test_results['duration'], 'parsed' => $duration]);
+    if ($qty_per_time != $correct['qty_per_time']) {
+      $errors['qty_per_time']++;
+      log_notice("test_parse_sig incorrect qty_per_time: $sig", [$parsed['qty_per_time'], 'correct' => $correct['qty_per_time'], 'current' => $qty_per_time]);
     }
   }
 
-  log_notice("error count: $error_count");
+  log_notice("error count ".array_sum($errors), $errors);
 
 } else {
 
