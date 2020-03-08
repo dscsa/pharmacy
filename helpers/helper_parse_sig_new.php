@@ -65,8 +65,8 @@ function clean_sig($sig) {
     log_notice("handle_milligrams", [$matches, $sig]);
     return 99;
   };
-  
-  $sig = preg_replace_callback('/(\d+) ?mc?g /i', $handle_milligrams, $sig); //Take 1 1/2 tablets
+
+  $sig = preg_replace_callback('/([0-9]*\.[0-9]+|[1-9]+) ?mc?g /i', $handle_milligrams, $sig); //Take 1 1/2 tablets
 
   //Duration
   $sig = preg_replace('/\\bx ?(\d+) /i', 'for $1 ', $sig); // X7 Days == for 7 days
