@@ -13,11 +13,11 @@ function parse_sig($sig_actual, $drug_name, $correct = null) {
 
   $parsed = [];
   $parsed['cleaned'] = clean_sig($sig_actual);
-  $parsed['duration'] = durations($cleaned, $correct);
-  $parsed['qty_per_time'] = qtys_per_time($durations, $drug_name, $correct);
-  $parsed['frequency_numerator'] = frequency_numerators($durations, $correct);
-  $parsed['frequency_denominator'] = frequency_denominators($durations, $correct);
-  $parsed['frquency'] = frequencies($durations, $correct);
+  $parsed['duration'] = durations($parsed['cleaned'], $correct);
+  $parsed['qty_per_time'] = qtys_per_time($parsed['duration'], $drug_name, $correct);
+  $parsed['frequency_numerator'] = frequency_numerators($parsed['duration'], $correct);
+  $parsed['frequency_denominator'] = frequency_denominators($parsed['duration'], $correct);
+  $parsed['frquency'] = frequencies($parsed['duration'], $correct);
   $parsed['sig_qty_per_day'] = sig_qty_per_day($parsed);
 
   return $parsed;
