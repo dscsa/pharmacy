@@ -120,6 +120,7 @@ function clean_sig($sig) {
   //Latin and Appreviations
   $sig = preg_replace('/\\bBID\\b/i', '2 times per day', $sig);
   $sig = preg_replace('/\\bTID\\b/i', '3 times per day', $sig);
+  $sig = preg_replace('/\\b(QAM|QPM)\\b/i', '1 time per day', $sig);
   $sig = preg_replace('/\\b(q12.*?h)\\b/i', 'every 12 hours', $sig);
   $sig = preg_replace('/\\b(q8.*?h)\\b/i', 'every 8 hours', $sig);
   $sig = preg_replace('/\\b(q6.*?h)\\b/i', 'every 6 hours', $sig);
@@ -245,8 +246,6 @@ function frequencies($durations, $correct) {
 
   foreach ($durations as $sig_part => $duration) {
 
-    $freq = '1'; //defaults to daily if no matches
-
     $as_needed = preg_match('/ prn| as needed| at onset| when/i', $sig_part);
 
     if (preg_match('/((?<! in \d\d)|(?<! in \d)) day\\b/i', $sig_part))
@@ -263,6 +262,9 @@ function frequencies($durations, $correct) {
 
     else if (preg_match('/((?<! in \d\d)|(?<! in \d)) minutes? *(?!before|after|prior to)/i', $sig_part)) //put this last so less likely to match thinks like "2 hours before (meals|bedtime) every day"
       $freq = $as_needed ? '1' : '1/24/60'; // One 24th of a day
+
+    else
+      $freq = '1'; //defaults to daily if no matches
 
     //Default to daily Example 1 tablet by mouth at bedtime
     $frequencies[$sig_part] = $freq;

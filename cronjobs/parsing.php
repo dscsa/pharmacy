@@ -216,7 +216,7 @@ $test_sigs = [
     'qty_per_time' => '1',
     'frequency_numerator' => '1',
     'frequency_denominator' => '8',
-    'frequency' => '2/24',
+    'frequency' => '1', //hourly as needed
     'duration' => '90'
   ],
   "Take 2 tablets in the morning and 1 at noon and 1 at supper" => [
@@ -265,7 +265,7 @@ $test_sigs = [
     'qty_per_time' => '1',
     'frequency_numerator' => '3',
     'frequency_denominator' => '1',
-    'frequency' => '1',
+    'frequency' => '2',  //daily as needed
     'duration' => '90'
   ],
   "Take 1 capsule daily for 7 days then increase to 1 capsule twice daily" => [
@@ -364,7 +364,7 @@ $test_sigs = [
     'qty_per_time' => '1',
     'frequency_numerator' => '1',
     'frequency_denominator' => '5',
-    'frequency' => '1', //This is unclear: minutes or days?  Has effect of qty_per_time too
+    'frequency' => '2', //Daily as needed. TODO This is unclear: minutes or days?  Has effect of qty_per_time too
     'duration' => '90'  //Not attempting to use the limit
   ], //Unfixed
   "Take 1 capsule by mouth once at bedtime x7 days then 1 capsule twice a day x7 days then 3 times a day" => [
@@ -406,7 +406,7 @@ $test_sigs = [
     'qty_per_time' => '1',
     'frequency_numerator' => '2',
     'frequency_denominator' => '1',
-    'frequency' => '2',
+    'frequency' => '2', //Daily as needed
     'duration' => '90' //"At onset == As needed?
   ], //Unfixed
   "Take 1 tablet by mouth once daily with fluids, as early as possible after the onset of a migraine attack, may repeat 2 hours if headahce returns, not to 200 mg in 24 hours" => [
@@ -614,8 +614,8 @@ $test_sigs = [
   ],
   "ORAL 1 q8-12h prn muscle spasm" => [
     'qty_per_time' => '1',
-    'frequency_numerator' => '3',
-    'frequency_denominator' => '1',
+    'frequency_numerator' => '1',
+    'frequency_denominator' => '8',
     'frequency' => '1/24',
     'duration' => '90'
   ],
@@ -630,7 +630,7 @@ $test_sigs = [
     'qty_per_time' => '1,3',
     'frequency_numerator' => '1,1',
     'frequency_denominator' => '1,1',
-    'frequency' => '30/4,30/4',
+    'frequency' => '1,1',
     'duration' => '90,21'
   ], //NOT FIXED
   "Take 1 tablet by mouth 3 times a day" => [
@@ -651,7 +651,7 @@ $test_sigs = [
     'qty_per_time' => '1',
     'frequency_numerator' => '2',
     'frequency_denominator' => '1',
-    'frequency' => '1,',
+    'frequency' => '1',
     'duration' => '90'
   ],
   "Take 1 tablet by mouth every other day" => [
