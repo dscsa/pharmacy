@@ -152,7 +152,7 @@ function qtys_per_time($durations, $drug_name, $correct) {
 
     $regex_match = '/([0-9]*\.[0-9]+|[1-9][0-9]*) ?mc?g\\b/i';
     preg_match($regex_match, $drug_name, $drug_match);
-    preg_match($regex_match, $sig, $sig_match);
+    preg_match($regex_match, $sig_part, $sig_match);
 
     if ( ! $drug_match OR ! $sig_match) {
       $qtys_per_time[$sig_part] = 1;

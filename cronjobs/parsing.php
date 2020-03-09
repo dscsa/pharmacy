@@ -718,7 +718,7 @@ if ($sig_index === false) {
 
   foreach ($test_sigs as $sig => $correct) {
     $correct['sig'] = $sig;
-    $parsed = parse_sig($sig, $correct['drug_name'], $correct);
+    $parsed = parse_sig($sig, @$correct['drug_name'], $correct);
   }
 
 } else {
