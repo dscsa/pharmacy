@@ -249,7 +249,7 @@ function frequencies($durations, $correct) {
 
     $as_needed = preg_match('/ prn| as needed| at onset| when/i', $sig_part);
 
-    if (preg_match('/(?<! in \d+) day\\b/i', $sig_part))
+    if (preg_match('/((?<! in \d\d)|(?<! in \d)) day\\b/i', $sig_part))
       $freq = '1';
 
     else if (preg_match('/((?<! in \d\d)|(?<! in \d)) week\\b/i', $sig_part))
