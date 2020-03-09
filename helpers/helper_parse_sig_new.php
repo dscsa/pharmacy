@@ -15,13 +15,15 @@ function parse_sig($sig_actual, $drug_name, $correct = null) {
   $durations     = durations($cleaned, $correct);
   $qtys_per_time = qtys_per_time($durations, $drug_name, $correct);
   $frequency_numerators = frequency_numerators($durations, $correct);
-  //$parsed    = parse_parts($parts);
+  $frequency_denominators = frequency_denominators($durations, $correct);
+  //frequency
   //$parsed    = combine_parsed($parsed);
 
   return [
     'duration' => $durations,
     'qty_per_time' => $qtys_per_time,
-    'frequency_numerators' => $frequency_numerators
+    'frequency_numerators' => $frequency_numerators,
+    'frequency_denominators' => $frequency_denominators
   ];
 }
 
@@ -192,6 +194,25 @@ function frequency_numerators($durations, $correct) {
   return $frequency_numerators;
 }
 
+
+function frequency_denominators($durations, $correct) {
+
+  $frequency_denominators = [];
+
+  foreach ($durations as $sig_part => $duration) {
+
+    preg_match('/every ([1-9]\\b|10|11|12)(?! +time)/i', $sig, $match);
+    $frequency_denominators[$sig_part] = $match ? $match[1] : 1;
+  }
+
+  if (implode(',', $frequency_denominators) != $correct['frequency_denominator']) {
+    log_notice("test_parse_sig incorrect frequency_denominators: $correct[sig]", ['durations' => $durations, 'correct' => $correct['frequency_denominator'], 'current' => $frequency_denominators]);
+  }
+
+  return $frequency_denominators;
+}
+
+
 function overflow() {
   $parts     = split_parts($durations);
   $parsed    = parse_parts($parts);
@@ -233,11 +254,6 @@ function overflow() {
 
 
 
-
-function get_frequency_denominator($sig) {
-  preg_match('/every ([1-9]\\b|10|11|12)(?! +time)/i', $sig, $match);
-  return $match ? $match[1] : 1;
-}
 
 //Returns frequency in number of days (e.g, weekly means 7 days)
 function get_frequency($sig) {
