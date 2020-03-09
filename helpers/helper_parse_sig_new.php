@@ -34,7 +34,7 @@ function clean_sig($sig) {
   //Cleanup
   $sig = preg_replace('/\(.*?\)/', '', $sig); //get rid of parenthesis // "Take 1 capsule (300 mg total) by mouth 3 (three) times daily."
   $sig = preg_replace('/\\\/', '', $sig);   //get rid of backslashes
-  $sig = preg_replace('/ +(mc?g)\\b/', '$1', $sig);   //get rid of backslashes
+  $sig = preg_replace('/ +(mc?g)\\b| +(ml)\\b/', '$1', $sig);   //get rid of backslashes
 
   //Spanish
   $sig = preg_replace('/\\btomar\\b/i', 'take', $sig);
@@ -224,20 +224,20 @@ function frequencies($durations, $correct) {
 
     $freq = 1; //defaults to daily if no matches
 
-    if (preg_match('/ day| daily/i', $sig_part))
+    if (preg_match('/ day\\b| daily/i', $sig_part))
       $freq = 1;
 
-    else if (preg_match('/ week| weekly/i', $sig_part))
+    else if (preg_match('/ week\\b| weekly/i', $sig_part))
       $freq = 30/4; //rather than 7 days, calculate as 1/4th a month so we get 45/90 days rather than 42/84 days
 
-    else if (preg_match('/ month| monthly/i', $sig_part))
+    else if (preg_match('/ month\\b| monthly/i', $sig_part))
       $freq = 30;
 
-    else if (preg_match('/( hours? | hourly )(?!before|after|prior to)/i', $sig_part)) //put this last so less likely to match thinks like "2 hours before (meals|bedtime) every day"
+    else if (preg_match('/( hours?| hourly)(?! before| after| prior to)/i', $sig_part)) //put this last so less likely to match thinks like "2 hours before (meals|bedtime) every day"
       $freq = 1/24; // One 24th of a day
 
-    if (preg_match('/ prn| as needed/i', $sig_part)) //Not mutually exclusive like the others. TODO: Does this belong in freq denominator instead? TODO: Check with Cindy how often does as needed mean on average.  Assume once every 3 days for now
-      $freq *= $freq > 1 ? 1 : 2; // I had this as 3 which I think is approximately correct, but Cindy didn't like so setting at 1 which basically means we ignore for now
+    if (preg_match('/ prn| as needed| at onset| when/i', $sig_part)) //Not mutually exclusive like the others.
+      $freq *= $freq > 1 ? 1 : 2; //Checked with Josph and Cindy. No good answer unless by drug.  This seemed reasonable 
 
     //Default to daily Example 1 tablet by mouth at bedtime
     $frequencies[$sig_part] = $freq;
