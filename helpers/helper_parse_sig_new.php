@@ -233,6 +233,8 @@ function frequencies($durations, $correct) {
 
     $freq = '1'; //defaults to daily if no matches
 
+    $as_needed = preg_match('/ prn| as needed| at onset| when/i', $sig_part);
+
     if (preg_match('/ day\\b| daily/i', $sig_part))
       $freq = '1';
 
@@ -243,17 +245,17 @@ function frequencies($durations, $correct) {
       $freq = '30';
 
     else if (preg_match('/( hours?| hourly)(?! before| after| prior to)/i', $sig_part)) //put this last so less likely to match thinks like "2 hours before (meals|bedtime) every day"
-      $freq = '1/24'; // One 24th of a day
+      $freq = $as_needed ? '2/24' : '1/24'; // One 24th of a day
 
-    if (preg_match('/ prn| as needed| at onset| when/i', $sig_part)) //Not mutually exclusive like the others.
-      $freq *= $freq > '1' ? '1' : '2'; //Checked with Josph and Cindy. No good answer unless by drug.  This seemed reasonable
+    else if (preg_match('/( minutes?)(?! before| after| prior to)/i', $sig_part)) //put this last so less likely to match thinks like "2 hours before (meals|bedtime) every day"
+      $freq = $as_needed ? '2/24/60' : '1/24/60'; // One 24th of a day
 
     //Default to daily Example 1 tablet by mouth at bedtime
     $frequencies[$sig_part] = $freq;
   }
 
   if (implode(',', $frequencies) != $correct['frequency']) {
-    log_notice("test_parse_sig incorrect frequencies: $correct[sig]", ['durations' => $durations, 'correct' => $correct['frequency'], 'current' => $frequencies]);
+    log_notice("test_parse_sig incorrect frequencies: $correct[sig]", ['as_needed' => $as_needed, 'durations' => $durations, 'correct' => $correct['frequency'], 'current' => $frequencies]);
   }
 
   return $frequencies;

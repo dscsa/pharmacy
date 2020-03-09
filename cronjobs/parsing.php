@@ -195,14 +195,14 @@ $test_sigs = [
     'qty_per_time' => '1',
     'frequency_numerator' => '4',
     'frequency_denominator' => '1',
-    'frequency' => '2', //Daily as needed
+    'frequency' => '1', //Daily as needed
     'duration' => '90'
   ],
   "ORAL 1 TAB PO QAM PRN SWELLING" => [
     'qty_per_time' => '1',
     'frequency_numerator' => '1',
     'frequency_denominator' => '1',
-    'frequency' => '2', //Daily as needed
+    'frequency' => '1', //Daily as needed
     'duration' => '90'
   ],
   "one tablet ORAL every day" => [
@@ -216,7 +216,7 @@ $test_sigs = [
     'qty_per_time' => '1',
     'frequency_numerator' => '1',
     'frequency_denominator' => '8',
-    'frequency' => '1/24/2',
+    'frequency' => '2/24',
     'duration' => '90'
   ],
   "Take 2 tablets in the morning and 1 at noon and 1 at supper" => [
@@ -265,7 +265,7 @@ $test_sigs = [
     'qty_per_time' => '1',
     'frequency_numerator' => '3',
     'frequency_denominator' => '1',
-    'frequency' => '1/2',
+    'frequency' => '1',
     'duration' => '90'
   ],
   "Take 1 capsule daily for 7 days then increase to 1 capsule twice daily" => [
@@ -329,7 +329,7 @@ $test_sigs = [
     'qty_per_time' => '1',
     'frequency_numerator' => '1',
     'frequency_denominator' => '8',
-    'frequency' => '1/24',
+    'frequency' => '2/24',
     'duration' => '90'
   ], //Unfixed
   "Take 1 tablet by mouth twice a day 1 in am and 1 at 3pm" => [
@@ -364,7 +364,7 @@ $test_sigs = [
     'qty_per_time' => '1',
     'frequency_numerator' => '1',
     'frequency_denominator' => '5',
-    'frequency' => '1/24/60*2',
+    'frequency' => '2/24/60',
     'duration' => '90'  //Not attempting to use the limit
   ], //Unfixed
   "Take 1 capsule by mouth once at bedtime x7 days then 1 capsule twice a day x7 days then 3 times a day" => [
