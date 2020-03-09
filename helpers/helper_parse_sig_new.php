@@ -72,6 +72,11 @@ function clean_sig($sig) {
   $sig = preg_replace('/\\b(\d+) (and |& )?(.5|1\/2|1-half|1 half)\\b/i', '$1.5', $sig); //Take 1 1/2 tablets
   $sig = preg_replace('/(^| )(.5|1\/2|1-half|1 half)\\b/i', ' 0.5', $sig);
 
+  //Take Last (Max?) of Numeric Ranges
+  $sig = preg_replace('/\\b[.\d]+ or ([.\d]+)\\b/i', '$1', $sig, 1); //Take 1 or 2 every 3 or 4 hours. Let's convert that to Take 2 every 3 or 4 hours (no global flag).  CK approves of first substitution but not sure of the 2nd so the conservative answer is to leave it alone
+  $sig = preg_replace('/\\b[.\d]+ to ([.\d]+)\\b/i', '$1', $sig, 1); //Take 1 to 2 every 3 or 4 hours. Let's convert that to Take 2 every 3 or 4 hours (no global flag).  CK approves of first substitution but not sure of the 2nd so the conservative answer is to leave it alone
+  $sig = preg_replace('/\\b[.\d]+-([.\d]+)\\b/i', '$1', $sig, 1); //Take 1-2 every 3 or 4 hours. Let's convert that to Take 2 every 3 or 4 hours (no global flag).  CK approves of first substitution but not sure of the 2nd so the conservative answer is to leave it alone
+
   //Duration
   $sig = preg_replace('/\\bx ?(\d+)\\b/i', 'for $1', $sig); // X7 Days == for 7 days
   $sig = preg_replace('/\\bfor 1 months?|months?\d+/i', 'for 30 days', $sig);
@@ -94,12 +99,20 @@ function clean_sig($sig) {
   //Alternative frequency numerator wordings
   $sig = preg_replace('/\\bonce\\b/i', '1 time', $sig);
   $sig = preg_replace('/\\twice\\b/i', '2 times', $sig);
-  $sig = preg_replace('/\\b(q12.*?h|BID|(?<!every) 12 hours)\\b/i', '2 times per day', $sig);
-  $sig = preg_replace('/\\b(q8.*?h|TID|(?<!every) 8 hours)\\b/i', '3 times per day', $sig);
-  $sig = preg_replace('/\\b(q6.*?h|(?<!every) 6 hours)\\b/i', '4 times per day', $sig);
   $sig = preg_replace('/\\b(breakfast|mornings?) and (dinner|night|evenings?)\\b/i', '2 times per day', $sig);
   $sig = preg_replace('/\\b(before|with|after) meals\\b/i', '3 times per day', $sig); //TODO wrong when "2 times daily with meals"
   $sig = preg_replace('/\\b1 (in|at) \d*(am|pm) (and|&) 1 (in|at) \d*(am|pm)\\b/i', '2 times per day', $sig); // Take 1 tablet by mouth twice a day 1 in am and 1 at 3pm was causing issues
+
+  //Latin and Appreviations
+  $sig = preg_replace('/\\bBID\\b/i', '2 times per day', $sig);
+  $sig = preg_replace('/\\bTID\\b/i', '3 times per day', $sig);
+  $sig = preg_replace('/\\b(q12.*?h)\\b/i', 'every 12 hours', $sig);
+  $sig = preg_replace('/\\b(q8.*?h)\\b/i', 'every 8 hours', $sig);
+  $sig = preg_replace('/\\b(q6.*?h)\\b/i', 'every 6 hours', $sig);
+  $sig = preg_replace('/\\b(q4.*?h)\\b/i', 'every 4 hours', $sig);
+  $sig = preg_replace('/\\b(q3.*?h)\\b/i', 'every 3 hours', $sig);
+  $sig = preg_replace('/\\b(q2.*?h)\\b/i', 'every 2 hours', $sig);
+  $sig = preg_replace('/\\b(q1.*?h|every hour)\\b/i', 'every 1 hours', $sig);
 
   //Alternate units of measure
   $sig = preg_replace('/\\b1 vial\\b/i', '3ml', $sig); // vials for inhalation are 2.5 or 3ml, so use 3ml to be conservative
@@ -109,10 +122,6 @@ function clean_sig($sig) {
   $sig = preg_replace('/\\b5 vials?\\b/i', '15ml', $sig); // vials for inhalation are 2.5 or 3ml, so use 3ml to be conservative
   $sig = preg_replace('/\\b6 vials?\\b/i', '18ml', $sig); // vials for inhalation are 2.5 or 3ml, so use 3ml to be conservative
 
-  //Take Last (Max?) of Numeric Ranges
-  $sig = preg_replace('/\\b[.\d]+ or ([.\d]+)\\b/i', '$1', $sig, 1); //Take 1 or 2 every 3 or 4 hours. Let's convert that to Take 2 every 3 or 4 hours (no global flag).  CK approves of first substitution but not sure of the 2nd so the conservative answer is to leave it alone
-  $sig = preg_replace('/\\b[.\d]+ to ([.\d]+)\\b/i', '$1', $sig, 1); //Take 1 to 2 every 3 or 4 hours. Let's convert that to Take 2 every 3 or 4 hours (no global flag).  CK approves of first substitution but not sure of the 2nd so the conservative answer is to leave it alone
-  $sig = preg_replace('/\\b[.\d]+-([.\d]+)\\b/i', '$1', $sig, 1); //Take 1-2 every 3 or 4 hours. Let's convert that to Take 2 every 3 or 4 hours (no global flag).  CK approves of first substitution but not sure of the 2nd so the conservative answer is to leave it alone
 
   //Cleanup
   $sig = preg_replace('/  +/i', ' ', $sig); //Remove double spaces for aesthetics
@@ -237,7 +246,7 @@ function frequencies($durations, $correct) {
       $freq = '1/24'; // One 24th of a day
 
     if (preg_match('/ prn| as needed| at onset| when/i', $sig_part)) //Not mutually exclusive like the others.
-      $freq *= $freq > '1' ? '1' : '2'; //Checked with Josph and Cindy. No good answer unless by drug.  This seemed reasonable 
+      $freq *= $freq > '1' ? '1' : '2'; //Checked with Josph and Cindy. No good answer unless by drug.  This seemed reasonable
 
     //Default to daily Example 1 tablet by mouth at bedtime
     $frequencies[$sig_part] = $freq;

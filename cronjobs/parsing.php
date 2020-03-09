@@ -195,14 +195,14 @@ $test_sigs = [
     'qty_per_time' => '1',
     'frequency_numerator' => '4',
     'frequency_denominator' => '1',
-    'frequency' => '1/2',
+    'frequency' => '2', //Daily as needed
     'duration' => '90'
   ],
   "ORAL 1 TAB PO QAM PRN SWELLING" => [
     'qty_per_time' => '1',
     'frequency_numerator' => '1',
     'frequency_denominator' => '1',
-    'frequency' => '1/2',
+    'frequency' => '2', //Daily as needed
     'duration' => '90'
   ],
   "one tablet ORAL every day" => [
