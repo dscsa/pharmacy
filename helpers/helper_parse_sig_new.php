@@ -77,9 +77,8 @@ function clean_sig($sig) {
   }
 
   //Substitute fractions
-  $sig = preg_replace('/(^| *and *| *& *)(1\/2|one-half|one half|1 half)\\b/i', '.5', $sig); //Take 1 and 1/2 tablets or Take 1 & 1/2 tablets.  Could combine with next regex but might get complicated
-  $sig = preg_replace('/\\b(\d+) (1\/2|one-half)\\b/i', '$1.5', $sig); //Take 1 1/2 tablets
-  $sig = preg_replace('/\\b(1\/2|(?<!\d).5|one-half|one half|1 half)\\b/i', '0.5', $sig);
+  $sig = preg_replace('/\\b(\d+) (and |& )?(.5|1\/2|1-half|1 half)\\b/i', '$1.5', $sig); //Take 1 1/2 tablets
+  $sig = preg_replace('/ (.5|1\/2|1-half|1 half)\\b/i', ' 0.5', $sig);
 
   //Duration
   $sig = preg_replace('/\\bx ?(\d+)\\b/i', 'for $1', $sig); // X7 Days == for 7 days
@@ -159,7 +158,7 @@ function qtys_per_time($durations, $correct) {
 
   foreach ($durations as $sig_part => $duration) {
     //"Use daily with lantus"  won't match the RegEx below
-    $count = preg_match_all('/(?<!exceed )([0-9]*\.[0-9]+|[1-9][0-9]*) ?(ml|tab|cap|pill|softgel|patch|injection|each)|(^|use +|take +|inhale +|chew +|inject +|oral +)([0-9]*\.[0-9]+|[1-9][0-9]*)(?!\d* ?mg| +time)/i', $sig_part, $match);
+    $count = preg_match_all('/(?<!exceed |not to )([0-9]*\.[0-9]+|[1-9][0-9]*) ?(ml|tab|cap|pill|softgel|patch|injection|each)|(^|use +|take +|inhale +|chew +|inject +|oral +)([0-9]*\.[0-9]+|[1-9][0-9]*)(?!\d* ?mg| +time)/i', $sig_part, $match);
     $qtys_per_time[$sig_part] = $count ? array_sum($match[1])+array_sum($match[4]) : 1;
   }
 
