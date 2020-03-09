@@ -11,22 +11,16 @@ function parse_sig($sig_actual, $drug_name, $correct = null) {
   //4 Parse each part
   //5 Combine parts into total
 
-  $cleaned       = clean_sig($sig_actual);
-  $durations     = durations($cleaned, $correct);
-  $qtys_per_time = qtys_per_time($durations, $drug_name, $correct);
-  $frequency_numerators = frequency_numerators($durations, $correct);
-  $frequency_denominators = frequency_denominators($durations, $correct);
-  $frequencies = frequencies($durations, $correct);
-  //frequency
-  //$parsed    = combine_parsed($parsed);
+  $parsed = [];
+  $parsed['cleaned'] = clean_sig($sig_actual);
+  $parsed['duration'] = durations($cleaned, $correct);
+  $parsed['qty_per_time'] = qtys_per_time($durations, $drug_name, $correct);
+  $parsed['frequency_numerator'] = frequency_numerators($durations, $correct);
+  $parsed['frequency_denominator'] = frequency_denominators($durations, $correct);
+  $parsed['frquency'] = frequencies($durations, $correct);
+  $parsed['sig_qty_per_day'] = sig_qty_per_day($parsed);
 
-  return [
-    'duration' => $durations,
-    'qty_per_time' => $qtys_per_time,
-    'frequency_numerators' => $frequency_numerators,
-    'frequency_denominators' => $frequency_denominators,
-    'frquency' => $frequencies
-  ];
+  return $parsed
 }
 
 function clean_sig($sig) {
@@ -277,39 +271,6 @@ function frequencies($durations, $correct) {
   return $frequencies;
 }
 
-
-function overflow() {
-  $parts     = split_parts($durations);
-  $parsed    = parse_parts($parts);
-  $parsed    = combine_parsed($parsed);
-
-  $sigs_clean = array_reverse([]);
-
-  foreach ($sigs_clean as $sig_clean) {
-
-    $qty_per_time = get_qty_per_time($sig_clean);
-    $frequency = get_frequency($sig_clean);
-    $frequency_numerator = get_frequency_numerator($sig_clean);
-    $frequency_denominator = get_frequency_denominator($sig_clean);
-
-    $parsed = [
-      'sig_qty_per_day'           => "NULL",
-      'sig_clean'                 => clean_val($sig_clean), //this may have a single quote in it that needs escaping
-      'sig_qty_per_time'          => $qty_per_time,
-      'sig_frequency'             => $frequency,
-      'sig_frequency_numerator'   => $frequency_numerator,
-      'sig_frequency_denominator' => $frequency_denominator
-    ];
-
-    if ($qty_per_time AND $frequency AND $frequency_numerator AND $frequency_denominator) {
-      $parsed['sig_qty_per_day'] = $qty_per_time * $frequency_numerator / $frequency_denominator / $frequency;
-
-      if ($parsed['sig_qty_per_day'] > 6)
-        log_error("Parse sig sig_qty_per_day is >6: $rx[sig_actual] >>> $sig_clean", $parsed);
-
-      return $parsed;
-    }
-
-    log_error("Could not parse sig $rx[sig_actual] >>> $sig_clean", $parsed);
-  }
+function sig_qty_per_day($parsed) {
+  log_notice("sig_qty_per_day", $parsed);
 }
