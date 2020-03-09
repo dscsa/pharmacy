@@ -93,9 +93,10 @@ function clean_sig($sig) {
 
   //Alternative frequency numerator wordings
   $sig = preg_replace('/\\bonce\\b/i', '1 time', $sig);
-  $sig = preg_replace('/\\b(twice|q12.*?h|BID|(?<!every) 12 hours)\\b/i', '2 times', $sig);
-  $sig = preg_replace('/\\b(q8.*?h|TID|(?<!every) 8 hours)\\b/i', '3 times', $sig);
-  $sig = preg_replace('/\\b(q6.*?h|(?<!every) 6 hours)\\b/i', '4 times', $sig);
+  $sig = preg_replace('/\\twice\\b/i', '2 times', $sig);
+  $sig = preg_replace('/\\b(q12.*?h|BID|(?<!every) 12 hours)\\b/i', '2 times per day', $sig);
+  $sig = preg_replace('/\\b(q8.*?h|TID|(?<!every) 8 hours)\\b/i', '3 times per day', $sig);
+  $sig = preg_replace('/\\b(q6.*?h|(?<!every) 6 hours)\\b/i', '4 times per day', $sig);
   $sig = preg_replace('/\\b(breakfast|mornings?) and (dinner|night|evenings?)\\b/i', '2 times per day', $sig);
   $sig = preg_replace('/\\b(before|with|after) meals\\b/i', '3 times per day', $sig); //TODO wrong when "2 times daily with meals"
   $sig = preg_replace('/\\b1 (in|at) \d*(am|pm) (and|&) 1 (in|at) \d*(am|pm)\\b/i', '2 times per day', $sig); // Take 1 tablet by mouth twice a day 1 in am and 1 at 3pm was causing issues
