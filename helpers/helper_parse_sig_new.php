@@ -14,12 +14,14 @@ function parse_sig($sig_actual, $drug_name, $correct = null) {
   $cleaned       = clean_sig($sig_actual, $correct);
   $durations     = durations($cleaned, $correct);
   $qtys_per_time = qtys_per_time($durations, $drug_name, $correct);
+  $frequency_numerators = frequency_numerators($durations, $correct);
   //$parsed    = parse_parts($parts);
   //$parsed    = combine_parsed($parsed);
 
   return [
     'duration' => $durations,
-    'qty_per_time' => $qtys_per_time
+    'qty_per_time' => $qtys_per_time,
+    'frequency_numerators' => $frequency_numerators
   ];
 }
 
@@ -172,6 +174,24 @@ function qtys_per_time($durations, $drug_name, $correct) {
   return $qtys_per_time;
 }
 
+function frequency_numerators($durations, $correct) {
+
+  $frequency_numerators = [];
+
+  foreach ($durations as $sig_part => $duration) {
+
+    preg_match('/([1-9]\\b|10|11|12) +time/i', $sig_part, $match);
+    $frequency_numerators[$sig_part] = $match ? $match[1] : 1;
+
+  }
+
+  if (implode(',', $frequency_numerators) != $correct['frequency_numerators']) {
+    log_notice("test_parse_sig incorrect get_frequency_numerator: $correct[sig]", ['durations' => $durations, 'correct' => $correct['frequency_numerator'], 'current' => $frequency_numerators]);
+  }
+
+  return $frequency_numerators;
+}
+
 function overflow() {
   $parts     = split_parts($durations);
   $parsed    = parse_parts($parts);
@@ -212,12 +232,7 @@ function overflow() {
 
 
 
-function get_frequency_numerator($sig) {
-  //  $sig = preg_replace('/ with meals\\b/i', ' 3 times per day', $sig);
 
-  preg_match('/([1-9]\\b|10|11|12) +time/i', $sig, $match);
-  return $match ? $match[1] : 1;
-}
 
 function get_frequency_denominator($sig) {
   preg_match('/every ([1-9]\\b|10|11|12)(?! +time)/i', $sig, $match);
