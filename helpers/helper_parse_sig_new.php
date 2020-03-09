@@ -42,7 +42,7 @@ function clean_sig($sig) {
   //Substitute Numerals
   $sig = preg_replace('/(^| *and *| *& *)(1\/2|one-half|one half|1 half)\\b/i', '.5', $sig); //Take 1 and 1/2 tablets or Take 1 & 1/2 tablets.  Could combine with next regex but might get complicated
   $sig = preg_replace('/\\b(\d+) (1\/2|one-half)\\b/i', '$1.5', $sig); //Take 1 1/2 tablets
-  $sig = preg_replace('/\\b(1\/2|one-half|one half|1 half)\\b/i', '.5', $sig);
+  $sig = preg_replace('/\\b(1\/2|.5|one-half|one half|1 half)\\b/i', '0.5', $sig);
   $sig = preg_replace('/\\bone\\b|\\buno\\b/i', '1', $sig); // \\b is for space or start of line
   $sig = preg_replace('/\\b(two|dos|other|otra)\\b/i', '2', $sig); // \\b is for space or start of line
   $sig = preg_replace('/\\b(three|tres)\\b/i', '3', $sig); // \\b is for space or start of line
@@ -71,7 +71,7 @@ function clean_sig($sig) {
     $new_sig = preg_replace_callback(
       $match_mgs,
       function($match) use($matches, $sig) {
-        return $match[1] / min($matches[1]);
+        return ($match[1] / min($matches[1])).' each';
       },
       $sig
     );
@@ -145,7 +145,7 @@ function durations($cleaned, $correct) {
     }
 
     if (implode(',', $durations) != $correct['duration']) {
-      log_notice("test_parse_sig incorrect duration:", ['cleaned' => $cleaned, 'correct' => $correct['duration'], 'current' => $durations]);
+      log_notice("test_parse_sig incorrect duration: $correct[sig]", ['cleaned' => $cleaned, 'correct' => $correct['duration'], 'current' => $durations]);
     }
 
     return $durations;
@@ -162,7 +162,7 @@ function qtys_per_time($durations, $correct) {
   }
 
   if (implode(',', $qtys_per_time) != $correct['qty_per_time']) {
-    log_notice("test_parse_sig incorrect qtys_per_time:", ['durations' => $durations, 'correct' => $correct['qty_per_time'], 'current' => $qtys_per_time]);
+    log_notice("test_parse_sig incorrect qtys_per_time: $correct[sig]", ['durations' => $durations, 'correct' => $correct['qty_per_time'], 'current' => $qtys_per_time]);
   }
 
   return $qtys_per_time;
