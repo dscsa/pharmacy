@@ -161,7 +161,7 @@ function qtys_per_time($durations, $drug_name, $correct) {
     }
 
     $qtys_per_time[$sig_part] = $sig_match[1]/$drug_match[1];
-    log_notice("qtys_per_time: cleaning milligrams: $sig_part", ['sig_match' => $sig_match, 'drug_match' => $drug_match]);
+    //log_notice("qtys_per_time: cleaning milligrams: $sig_part", ['sig_match' => $sig_match, 'drug_match' => $drug_match]);
   }
 
   if (implode(',', $qtys_per_time) != $correct['qty_per_time']) {
