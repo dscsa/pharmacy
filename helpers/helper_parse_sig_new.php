@@ -16,6 +16,7 @@ function parse_sig($sig_actual, $drug_name, $correct = null) {
   $qtys_per_time = qtys_per_time($durations, $drug_name, $correct);
   $frequency_numerators = frequency_numerators($durations, $correct);
   $frequency_denominators = frequency_denominators($durations, $correct);
+  $frequencies = frequencies($durations, $correct);
   //frequency
   //$parsed    = combine_parsed($parsed);
 
@@ -23,7 +24,8 @@ function parse_sig($sig_actual, $drug_name, $correct = null) {
     'duration' => $durations,
     'qty_per_time' => $qtys_per_time,
     'frequency_numerators' => $frequency_numerators,
-    'frequency_denominators' => $frequency_denominators
+    'frequency_denominators' => $frequency_denominators,
+    'frquency' => $frequencies
   ];
 }
 
@@ -212,6 +214,41 @@ function frequency_denominators($durations, $correct) {
   return $frequency_denominators;
 }
 
+//Returns frequency in number of days (e.g, weekly means 7 days)
+function frequencies($durations, $correct) {
+
+  $frequencies = [];
+
+  foreach ($durations as $sig_part => $duration) {
+
+    $freq = 1; //defaults to daily if no matches
+
+    if (preg_match('/ day| daily/i', $sig_part))
+      $freq = 1;
+
+    else if (preg_match('/ week| weekly/i', $sig_part))
+      $freq = 30/4; //rather than 7 days, calculate as 1/4th a month so we get 45/90 days rather than 42/84 days
+
+    else if (preg_match('/ month| monthly/i', $sig_part))
+      $freq = 30;
+
+    else if (preg_match('/( hours? | hourly )(?!before|after|prior to)/i', $sig_part)) //put this last so less likely to match thinks like "2 hours before (meals|bedtime) every day"
+      $freq = 1/24; // One 24th of a day
+
+    if (preg_match('/ prn| as needed/i', $sig_part)) //Not mutually exclusive like the others. TODO: Does this belong in freq denominator instead? TODO: Check with Cindy how often does as needed mean on average.  Assume once every 3 days for now
+      $freq *= $freq > 1 ? 1 : 2; // I had this as 3 which I think is approximately correct, but Cindy didn't like so setting at 1 which basically means we ignore for now
+
+    //Default to daily Example 1 tablet by mouth at bedtime
+    $frequencies[$sig_part] = $freq;
+  }
+
+  if (implode(',', $frequencies) != $correct['frequency']) {
+    log_notice("test_parse_sig incorrect frequencies: $correct[sig]", ['durations' => $durations, 'correct' => $correct['frequency'], 'current' => $frequencies]);
+  }
+
+  return $frequencies;
+}
+
 
 function overflow() {
   $parts     = split_parts($durations);
@@ -247,34 +284,4 @@ function overflow() {
 
     log_error("Could not parse sig $rx[sig_actual] >>> $sig_clean", $parsed);
   }
-}
-
-
-
-
-
-
-
-//Returns frequency in number of days (e.g, weekly means 7 days)
-function get_frequency($sig) {
-
-  $freq = 1; //defaults to daily if no matches
-
-  if (preg_match('/ day| daily/i', $sig))
-    $freq = 1;
-
-  else if (preg_match('/ week| weekly/i', $sig))
-    $freq = 30/4; //rather than 7 days, calculate as 1/4th a month so we get 45/90 days rather than 42/84 days
-
-  else if (preg_match('/ month| monthly/i', $sig))
-    $freq = 30;
-
-  else if (preg_match('/( hours? | hourly )(?!before|after|prior to)/i', $sig)) //put this last so less likely to match thinks like "2 hours before (meals|bedtime) every day"
-    $freq = 1/24; // One 24th of a day
-
-  if (preg_match('/ prn| as needed/i', $sig)) //Not mutually exclusive like the others. TODO: Does this belong in freq denominator instead? TODO: Check with Cindy how often does as needed mean on average.  Assume once every 3 days for now
-    $freq *= $freq > 1 ? 1 : 2; // I had this as 3 which I think is approximately correct, but Cindy didn't like so setting at 1 which basically means we ignore for now
-
-  //Default to daily Example 1 tablet by mouth at bedtime
-  return $freq;
 }
