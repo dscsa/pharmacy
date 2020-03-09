@@ -12,13 +12,19 @@ function parse_sig($sig_actual, $drug_name, $correct = null) {
   //5 Combine parts into total
 
   $parsed = [];
-  $parsed['cleaned'] = clean_sig($sig_actual);
-  $parsed['duration'] = durations($parsed['cleaned'], $correct);
+  $parsed['sig_actual'] = $sig_actual;
+  $parsed['sig_clean'] = clean_sig($sig_actual);
+  $parsed['duration'] = durations($parsed['sig_clean'], $correct);
   $parsed['qty_per_time'] = qtys_per_time($parsed['duration'], $drug_name, $correct);
   $parsed['frequency_numerator'] = frequency_numerators($parsed['duration'], $correct);
   $parsed['frequency_denominator'] = frequency_denominators($parsed['duration'], $correct);
-  $parsed['frquency'] = frequencies($parsed['duration'], $correct);
-  $parsed['sig_qty_per_day'] = sig_qty_per_day($parsed);
+  $parsed['frequency'] = frequencies($parsed['duration'], $correct);
+
+  $parsed['sig_qty']         = sig_qty($parsed);
+  $parsed['sig_days']        = array_sum($parsed['duration']);
+  $parsed['sig_qty_per_day'] = round($parsed['sig_qty']/$parsed['sig_days'], 3);
+
+  log_notice("parsed sig", $parsed);
 
   return $parsed;
 }
@@ -271,6 +277,12 @@ function frequencies($durations, $correct) {
   return $frequencies;
 }
 
-function sig_qty_per_day($parsed) {
-  log_notice("sig_qty_per_day", $parsed);
+function sig_qty($parsed) {
+
+  $qty = 0;
+
+  foreach ($parsed['frequency'] as $i => $frequency)
+    $qty += $parsed['qty_per_time'][$i] * $parsed['frequency_numerator'][$i] / $parsed['frequency_denominator'][$i] / $frequency;
+
+  return $qty;
 }
