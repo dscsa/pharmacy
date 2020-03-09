@@ -301,7 +301,7 @@ $test_sigs = [
     'frequency_numerator' => '1,2',
     'frequency_denominator' => '1,1',
     'frequency' => '1,1',
-    'duration' => 'X,90-X' //Uncertain Duration!  What's the default
+    'duration' => '90,90' //Uncertain Duration!  What's the default
   ], //Unfixed
   "Take 1 tablet by mouth once daily and two on sundays" => [
     'qty_per_time' => '1,2',

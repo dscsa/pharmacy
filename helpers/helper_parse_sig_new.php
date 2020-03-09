@@ -91,7 +91,7 @@ function clean_sig($sig) {
   $sig = preg_replace('/\\b(q8.*?h|TID|(?<!every) 8 hours)\\b/i', '3 times', $sig);
   $sig = preg_replace('/\\b(q6.*?h|(?<!every) 6 hours)\\b/i', '4 times', $sig);
   $sig = preg_replace('/\\b(breakfast|mornings?) and (dinner|night|evenings?)\\b/i', '2 times per day', $sig);
-  $sig = preg_replace('/\\bwith meals\\b/i', '3 times per day', $sig);
+  $sig = preg_replace('/\\bwith meals\\b/i', '3 times per day', $sig); //TODO wrong when "2 times daily with meals"
   $sig = preg_replace('/\\b1 (in|at) \d*(am|pm) (and|&) 1 (in|at) \d*(am|pm)\\b/i', '2 times per day', $sig); // Take 1 tablet by mouth twice a day 1 in am and 1 at 3pm was causing issues
 
   //Alternate units of measure
@@ -117,7 +117,7 @@ function durations($cleaned, $correct) {
 
     $durations = [];
     $remaining_days = DAYS_STD;
-    $complex_sig_regex = '/(may|can) increase|[a-z][.;] | then[ ,]+| and +at | and[ ,]+(?=\d|use +|take +|inhale +|chew +|inject +|oral +)/i';
+    $complex_sig_regex = '/(may|can) increase( .*/ *(month|week))?|[a-z][.;] | then[ ,]+| and +at | and[ ,]+(?=\d|use +|take +|inhale +|chew +|inject +|oral +)/i';
     $splits = preg_split($complex_sig_regex, $cleaned);
 
     foreach ($splits as $split) {
