@@ -35,7 +35,8 @@ function clean_sig($sig) {
   $sig = preg_replace('/\(.*?\)/', '', $sig); //get rid of parenthesis // "Take 1 capsule (300 mg total) by mouth 3 (three) times daily."
   $sig = preg_replace('/\\\/', '', $sig);   //get rid of backslashes
   $sig = preg_replace('/\\band\\b/i', '&', $sig);   // & is easier tp search in regex than "and"
-  $sig = preg_replace('/ +(mc?g)\\b| +(ml)\\b/', '$1', $sig);   //get rid of backslashes
+  $sig = preg_replace('/\\bin \d+ (minutes?|days?|weeks?|months?)\\b|/i', '', $sig); // Remove "in 5 days|hours|weeks" so that we don't confuse frequencies
+  $sig = preg_replace('/ +(mc?g)\\b| +(ml)\\b/i', '$1', $sig);   //get rid of backslashes
 
   //Spanish
   $sig = preg_replace('/\\btomar\\b/i', 'take', $sig);
@@ -248,19 +249,19 @@ function frequencies($durations, $correct) {
 
     $as_needed = preg_match('/(^| )(prn|as needed|at onset|when)/i', $sig_part);
 
-    if (preg_match('/((?<! in \d\d)|(?<! in \d)) day\\b/i', $sig_part))
+    if (preg_match('/ day\\b/i', $sig_part))
       $freq = $as_needed ? '2' : '1';
 
-    else if (preg_match('/((?<! in \d\d)|(?<! in \d)) week\\b/i', $sig_part))
+    else if (preg_match('/ week\\b/i', $sig_part))
       $freq = '30/4'; //rather than 7 days, calculate as 1/4th a month so we get 45/90 days rather than 42/84 days
 
-    else if (preg_match('/((?<! in \d\d)|(?<! in \d)) month\\b/i', $sig_part))
+    else if (preg_match('/ month\\b/i', $sig_part))
       $freq = '30';
 
-    else if (preg_match('/((?<! in \d\d)|(?<! in \d)) hours? *(?!before|after|prior to)/i', $sig_part)) //put this last so less likely to match thinks like "2 hours before (meals|bedtime) every day"
+    else if (preg_match('/ hours? *(?!before|after|prior to)/i', $sig_part)) //put this last so less likely to match thinks like "2 hours before (meals|bedtime) every day"
       $freq = $as_needed ? '1' : '1/24'; // One 24th of a day
 
-    else if (preg_match('/((?<! in \d\d)|(?<! in \d)) minutes? *(?!before|after|prior to)/i', $sig_part)) //put this last so less likely to match thinks like "2 hours before (meals|bedtime) every day"
+    else if (preg_match('/ minutes? *(?!before|after|prior to)/i', $sig_part)) //put this last so less likely to match thinks like "2 hours before (meals|bedtime) every day"
       $freq = $as_needed ? '1' : '1/24/60'; // One 24th of a day
 
     else
