@@ -258,10 +258,10 @@ function frequencies($durations, $correct) {
     else if (preg_match('/((?<! in \d\d)|(?<! in \d)) month\\b/i', $sig_part))
       $freq = '30';
 
-    else if (preg_match('/((?<! in \d\d)|(?<! in \d)) hours? (?!before|after|prior to)/i', $sig_part)) //put this last so less likely to match thinks like "2 hours before (meals|bedtime) every day"
+    else if (preg_match('/((?<! in \d\d)|(?<! in \d)) hours? *(?!before|after|prior to)/i', $sig_part)) //put this last so less likely to match thinks like "2 hours before (meals|bedtime) every day"
       $freq = $as_needed ? '1' : '1/24'; // One 24th of a day
 
-    else if (preg_match('/((?<! in \d\d)|(?<! in \d)) minutes? (?!before|after|prior to)/i', $sig_part)) //put this last so less likely to match thinks like "2 hours before (meals|bedtime) every day"
+    else if (preg_match('/((?<! in \d\d)|(?<! in \d)) minutes? *(?!before|after|prior to)/i', $sig_part)) //put this last so less likely to match thinks like "2 hours before (meals|bedtime) every day"
       $freq = $as_needed ? '1' : '1/24/60'; // One 24th of a day
 
     //Default to daily Example 1 tablet by mouth at bedtime
