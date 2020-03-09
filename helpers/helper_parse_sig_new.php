@@ -42,7 +42,7 @@ function clean_sig($sig) {
   //Substitute Numerals
   $sig = preg_replace('/(^| *and *| *& *)(1\/2|one-half|one half|1 half)\\b/i', '.5', $sig); //Take 1 and 1/2 tablets or Take 1 & 1/2 tablets.  Could combine with next regex but might get complicated
   $sig = preg_replace('/\\b(\d+) (1\/2|one-half)\\b/i', '$1.5', $sig); //Take 1 1/2 tablets
-  $sig = preg_replace('/\\b(1\/2|.5|one-half|one half|1 half)\\b/i', '0.5', $sig);
+  $sig = preg_replace('/\\b(1\/2|(?<!\d).5|one-half|one half|1 half)\\b/i', '0.5', $sig);
   $sig = preg_replace('/\\bone\\b|\\buno\\b/i', '1', $sig); // \\b is for space or start of line
   $sig = preg_replace('/\\b(two|dos|other|otra)\\b/i', '2', $sig); // \\b is for space or start of line
   $sig = preg_replace('/\\b(three|tres)\\b/i', '3', $sig); // \\b is for space or start of line
