@@ -364,7 +364,7 @@ $test_sigs = [
     'qty_per_time' => '1',
     'frequency_numerator' => '1',
     'frequency_denominator' => '5',
-    'frequency' => '2/24/60',
+    'frequency' => '1', //This is unclear: minutes or days?  Has effect of qty_per_time too
     'duration' => '90'  //Not attempting to use the limit
   ], //Unfixed
   "Take 1 capsule by mouth once at bedtime x7 days then 1 capsule twice a day x7 days then 3 times a day" => [
@@ -441,7 +441,7 @@ $test_sigs = [
     'qty_per_time' => '1',
     'frequency_numerator' => '1',
     'frequency_denominator' => '5',
-    'frequency' => '1/24/60',
+    'frequency' => '1', // as needed minutes
     'duration' => '90'
   ],
   "Take 2 tablets by mouth in the morning and Take 1 tablet once in the evening" => [
