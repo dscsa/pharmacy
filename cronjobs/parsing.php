@@ -342,7 +342,7 @@ $test_sigs = [
   "Take 3 tablets by mouth 3 times a day with meal and 2 tablets twice a day with snack" => [
     'qty_per_time' => '3,2',
     'frequency_numerator' => '3,2',
-    'frequency_denominator' => '2,1',
+    'frequency_denominator' => '1,1',
     'frequency' => '1,1',
     'duration' => '90,90'
   ], //Unfixed
