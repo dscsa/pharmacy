@@ -105,9 +105,9 @@ function clean_sig($sig) {
   $sig = preg_replace('/\\bweekly\\b/i', 'per week', $sig);
   $sig = preg_replace('/\\bmonthly\\b/i', 'per month', $sig);
 
-  $sig = preg_replace('/\\ on (tuesday|tu?e?s?)[, &]*(thursday|th?u?r?s?)\\b/i', '2 times per week', $sig);
-  $sig = preg_replace('/\\ on (monday|mo?n?)[, &]*(wednesday|we?d?)[, &]*(friday|fr?i?)\\b/i', '3 times per week', $sig);
-  $sig = preg_replace('/\\b on (sunday|sun|monday|mon|tuesday|tues?|wednesday|wed|thursday|thur?s?|friday|fri|saturday|sat)\\b/i', '1 time per week', $sig);
+  $sig = preg_replace('/\\ on (tuesdays?|tu?e?s?)[, &]*(thursdays?|th?u?r?s?)\\b/i', '2 times per week', $sig);
+  $sig = preg_replace('/\\ on (mondays?|mo?n?)[, &]*(wednesdays?|we?d?)[, &]*(fridays?|fr?i?)\\b/i', '3 times per week', $sig);
+  $sig = preg_replace('/\\b on (sundays?|sun|mondays?|mon|tuesdays?|tues?|wednesdays?|wed|thursdays?|thur?s?|fridays?|fri|saturdays?|sat)\\b/i', '1 time per week', $sig);
 
   $sig = preg_replace('/\\bmonthly\\b/i', 'per month', $sig);
   $sig = preg_replace('/\\bmonthly\\b/i', 'per month', $sig);
