@@ -92,6 +92,7 @@ function clean_sig($sig) {
   $sig = preg_replace('/\\b(q6.*?h|(?<!every) 6 hours)\\b/i', '4 times', $sig);
   $sig = preg_replace('/\\b(breakfast|mornings?) and (dinner|night|evenings?)\\b/i', '2 times per day', $sig);
   $sig = preg_replace('/\\bwith meals\\b/i', '3 times per day', $sig);
+  $sig = preg_replace('/\\b(and )?in (am|pm)\\b|\\b(and )?at \d*(am|pm)\\b/i', '', $sig); // Take 1 tablet by mouth twice a day 1 in am and 1 at 3pm was causing issues
 
   //Alternate units of measure
   $sig = preg_replace('/\\b1 vial\\b/i', '3ml', $sig); // vials for inhalation are 2.5 or 3ml, so use 3ml to be conservative
