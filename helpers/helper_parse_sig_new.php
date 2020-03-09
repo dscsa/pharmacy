@@ -185,7 +185,7 @@ function frequency_numerators($durations, $correct) {
 
   }
 
-  if (implode(',', $frequency_numerators) != $correct['frequency_numerators']) {
+  if (implode(',', $frequency_numerators) != $correct['frequency_numerator']) {
     log_notice("test_parse_sig incorrect get_frequency_numerator: $correct[sig]", ['durations' => $durations, 'correct' => $correct['frequency_numerator'], 'current' => $frequency_numerators]);
   }
 
