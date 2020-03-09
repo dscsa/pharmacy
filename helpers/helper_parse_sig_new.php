@@ -11,7 +11,7 @@ function parse_sig($sig_actual, $drug_name, $correct = null) {
   //4 Parse each part
   //5 Combine parts into total
 
-  $cleaned       = clean_sig($sig_actual, $correct);
+  $cleaned       = clean_sig($sig_actual);
   $durations     = durations($cleaned, $correct);
   $qtys_per_time = qtys_per_time($durations, $drug_name, $correct);
   $frequency_numerators = frequency_numerators($durations, $correct);
@@ -98,7 +98,12 @@ function clean_sig($sig) {
 
   //Alternative frequency numerator wordings
   $sig = preg_replace('/\\bonce\\b/i', '1 time', $sig);
-  $sig = preg_replace('/\\twice\\b/i', '2 times', $sig);
+  $sig = preg_replace('/\\btwice\\b/i', '2 times', $sig);
+  $sig = preg_replace('/\\bhourly\\b/i', 'per hour', $sig);
+  $sig = preg_replace('/\\bdaily\\b/i', 'per day', $sig);
+  $sig = preg_replace('/\\bweekly\\b/i', 'per week', $sig);
+  $sig = preg_replace('/\\bmonthly\\b/i', 'per month', $sig);
+
   $sig = preg_replace('/\\b(breakfast|mornings?) and (dinner|night|evenings?)\\b/i', '2 times per day', $sig);
   $sig = preg_replace('/\\b(before|with|after) meals\\b/i', '3 times per day', $sig); //TODO wrong when "2 times daily with meals"
   $sig = preg_replace('/\\b1 (in|at) \d*(am|pm) (and|&) 1 (in|at) \d*(am|pm)\\b/i', '2 times per day', $sig); // Take 1 tablet by mouth twice a day 1 in am and 1 at 3pm was causing issues
@@ -235,19 +240,19 @@ function frequencies($durations, $correct) {
 
     $as_needed = preg_match('/ prn| as needed| at onset| when/i', $sig_part);
 
-    if (preg_match('/ day\\b| daily/i', $sig_part))
+    if (preg_match('/ day\\b/i', $sig_part))
       $freq = '1';
 
-    else if (preg_match('/ week\\b| weekly/i', $sig_part))
+    else if (preg_match('/ week\\b/i', $sig_part))
       $freq = '30/4'; //rather than 7 days, calculate as 1/4th a month so we get 45/90 days rather than 42/84 days
 
-    else if (preg_match('/ month\\b| monthly/i', $sig_part))
+    else if (preg_match('/ month\\b/i', $sig_part))
       $freq = '30';
 
-    else if (preg_match('/( hours?| hourly)(?! before| after| prior to)/i', $sig_part)) //put this last so less likely to match thinks like "2 hours before (meals|bedtime) every day"
+    else if (preg_match('/ hours?(?! before| after| prior to)/i', $sig_part)) //put this last so less likely to match thinks like "2 hours before (meals|bedtime) every day"
       $freq = $as_needed ? '2/24' : '1/24'; // One 24th of a day
 
-    else if (preg_match('/( minutes?)(?! before| after| prior to)/i', $sig_part)) //put this last so less likely to match thinks like "2 hours before (meals|bedtime) every day"
+    else if (preg_match('/ minutes?(?! before| after| prior to)/i', $sig_part)) //put this last so less likely to match thinks like "2 hours before (meals|bedtime) every day"
       $freq = $as_needed ? '2/24/60' : '1/24/60'; // One 24th of a day
 
     //Default to daily Example 1 tablet by mouth at bedtime
