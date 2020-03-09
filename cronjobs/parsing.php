@@ -341,7 +341,7 @@ $test_sigs = [
   ], //Unfixed
   "Take 3 tablets by mouth 3 times a day with meal and 2 tablets twice a day with snack" => [
     'qty_per_time' => '3,2',
-    'frequency_numerator' => '4,1',
+    'frequency_numerator' => '3,2',
     'frequency_denominator' => '2,1',
     'frequency' => '1,1',
     'duration' => '90,90'
@@ -404,7 +404,7 @@ $test_sigs = [
   ], //Unfixed
   "1 tab under tongue at onset of CP may repeat twice in five minutes" => [
     'qty_per_time' => '1',
-    'frequency_numerator' => '1',
+    'frequency_numerator' => '2',
     'frequency_denominator' => '1',
     'frequency' => '2',
     'duration' => '90' //"At onset == As needed?
@@ -614,7 +614,7 @@ $test_sigs = [
   ],
   "ORAL 1 q8-12h prn muscle spasm" => [
     'qty_per_time' => '1',
-    'frequency_numerator' => '2',
+    'frequency_numerator' => '3',
     'frequency_denominator' => '1',
     'frequency' => '1/24',
     'duration' => '90'

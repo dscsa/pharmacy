@@ -93,7 +93,7 @@ function clean_sig($sig) {
   $sig = preg_replace('/\\b(q8.*?h|TID|(?<!every) 8 hours)\\b/i', '3 times', $sig);
   $sig = preg_replace('/\\b(q6.*?h|(?<!every) 6 hours)\\b/i', '4 times', $sig);
   $sig = preg_replace('/\\b(breakfast|mornings?) and (dinner|night|evenings?)\\b/i', '2 times per day', $sig);
-  $sig = preg_replace('/\\bwith meals\\b/i', '3 times per day', $sig); //TODO wrong when "2 times daily with meals"
+  $sig = preg_replace('/\\b(before|with|after) meals\\b/i', '3 times per day', $sig); //TODO wrong when "2 times daily with meals"
   $sig = preg_replace('/\\b1 (in|at) \d*(am|pm) (and|&) 1 (in|at) \d*(am|pm)\\b/i', '2 times per day', $sig); // Take 1 tablet by mouth twice a day 1 in am and 1 at 3pm was causing issues
 
   //Alternate units of measure
@@ -186,7 +186,7 @@ function frequency_numerators($durations, $correct) {
   }
 
   if (implode(',', $frequency_numerators) != $correct['frequency_numerator']) {
-    log_notice("test_parse_sig incorrect get_frequency_numerator: $correct[sig]", ['durations' => $durations, 'correct' => $correct['frequency_numerator'], 'current' => $frequency_numerators]);
+    log_notice("test_parse_sig incorrect frequency_numerators: $correct[sig]", ['durations' => $durations, 'correct' => $correct['frequency_numerator'], 'current' => $frequency_numerators]);
   }
 
   return $frequency_numerators;
