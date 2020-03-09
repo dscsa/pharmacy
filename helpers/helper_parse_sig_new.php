@@ -282,7 +282,7 @@ function sig_qty($parsed) {
   $qty = 0;
 
   foreach ($parsed['frequency'] as $i => $frequency)
-    $qty += $parsed['qty_per_time'][$i] * $parsed['frequency_numerator'][$i] / $parsed['frequency_denominator'][$i] / $frequency;
+    $qty += $parsed['duration'][$i] * $parsed['qty_per_time'][$i] * $parsed['frequency_numerator'][$i] / $parsed['frequency_denominator'][$i] / $frequency;
 
   return $qty;
 }
