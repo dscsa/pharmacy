@@ -39,10 +39,7 @@ function clean_sig($sig) {
   $sig = preg_replace('/\\b(prn|at onset|when)\\b/i', 'as needed', $sig);
   $sig = preg_replace('/\\bdays per week\\b/i', 'times per week', $sig);
 
-  //Substitute Numerals
-  $sig = preg_replace('/(^| *and *| *& *)(1\/2|one-half|one half|1 half)\\b/i', '.5', $sig); //Take 1 and 1/2 tablets or Take 1 & 1/2 tablets.  Could combine with next regex but might get complicated
-  $sig = preg_replace('/\\b(\d+) (1\/2|one-half)\\b/i', '$1.5', $sig); //Take 1 1/2 tablets
-  $sig = preg_replace('/\\b(1\/2|(?<!\d).5|one-half|one half|1 half)\\b/i', '0.5', $sig);
+  //Substitute Integers
   $sig = preg_replace('/\\bone\\b|\\buno\\b/i', '1', $sig); // \\b is for space or start of line
   $sig = preg_replace('/\\b(two|dos|other|otra)\\b/i', '2', $sig); // \\b is for space or start of line
   $sig = preg_replace('/\\b(three|tres)\\b/i', '3', $sig); // \\b is for space or start of line
@@ -78,6 +75,11 @@ function clean_sig($sig) {
     //log_notice("cleaning milligrams: $sig >>> $new_sig", $matches);
     $sig = $new_sig;
   }
+
+  //Substitute fractions
+  $sig = preg_replace('/(^| *and *| *& *)(1\/2|one-half|one half|1 half)\\b/i', '.5', $sig); //Take 1 and 1/2 tablets or Take 1 & 1/2 tablets.  Could combine with next regex but might get complicated
+  $sig = preg_replace('/\\b(\d+) (1\/2|one-half)\\b/i', '$1.5', $sig); //Take 1 1/2 tablets
+  $sig = preg_replace('/\\b(1\/2|(?<!\d).5|one-half|one half|1 half)\\b/i', '0.5', $sig);
 
   //Duration
   $sig = preg_replace('/\\bx ?(\d+)\\b/i', 'for $1', $sig); // X7 Days == for 7 days
