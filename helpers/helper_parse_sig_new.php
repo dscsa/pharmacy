@@ -3,7 +3,7 @@
 require_once 'helpers/helper_imports.php';
 
 
-function parse_sig($sig_actual, $correct = null) {
+function parse_sig($sig_actual, $drug_name, $correct = null) {
 
   //1 Clean sig
   //2 Split into Durations
@@ -13,7 +13,7 @@ function parse_sig($sig_actual, $correct = null) {
 
   $cleaned       = clean_sig($sig_actual, $correct);
   $durations     = durations($cleaned, $correct);
-  $qtys_per_time = qtys_per_time($durations, $correct);
+  $qtys_per_time = qtys_per_time($durations, $drug_name, $correct);
   //$parsed    = parse_parts($parts);
   //$parsed    = combine_parsed($parsed);
 
@@ -137,31 +137,30 @@ function durations($cleaned, $correct) {
     return $durations;
 }
 
-function qtys_per_time($durations, $correct) {
+function qtys_per_time($durations, $drug_name, $correct) {
 
   $qtys_per_time = [];
 
   foreach ($durations as $sig_part => $duration) {
     //"Use daily with lantus"  won't match the RegEx below
-    $count = preg_match_all('/(?<!exceed |not to )([0-9]*\.[0-9]+|[1-9][0-9]*) ?(ml|tab|cap|pill|softgel|patch|injection|each)|(^|use +|take +|inhale +|chew +|inject +|oral +)([0-9]*\.[0-9]+|[1-9][0-9]*)(?!\d* ?mg| +time)/i', $sig_part, $match);
-    $qtys_per_time[$sig_part] = $count ? array_sum($match[1])+array_sum($match[4]) : 1;
+    $count = preg_match_all('/(?<!exceed |not to )([0-9]*\.[0-9]+|[1-9][0-9]*) ?(ml|tab|cap|pill|softgel|patch|injection|each)|(^|use +|take +|inhale +|chew +|inject +|oral +)([0-9]*\.[0-9]+|[1-9][0-9]*)(?! *mg| *time)/i', $sig_part, $match);
 
-    /*
-    $match_mgs = '/([0-9]*\.[0-9]+|[1-9][0-9]*) ?mc?g\\b/i';
-    $match_num = preg_match_all($match_mgs, $sig, $matches); //Take 1 1/2 tablets
-
-    if ($match_num) {
-      $new_sig = preg_replace_callback(
-        $match_mgs,
-        function($match) use($matches, $sig) {
-          return ($match[1] / min($matches[1])).' each';
-        },
-        $sig
-      );
-      //log_notice("cleaning milligrams: $sig >>> $new_sig", $matches);
-      $sig = $new_sig;
+    if ($count) {
+      $qtys_per_time[$sig_part] = array_sum($match[1])+array_sum($match[4]);
+      continue;
     }
-    */
+
+    $regex_match = '/([0-9]*\.[0-9]+|[1-9][0-9]*) ?mc?g\\b/i';
+    preg_match($regex_match, $drug_name, $drug_match);
+    preg_match($regex_match, $sig, $sig_match);
+
+    if ( ! $drug_match OR ! $sig_match) {
+      $qtys_per_time[$sig_part] = 1;
+      continue;
+    }
+
+    $qtys_per_time[$sig_part] = $sig_match[1]/$drug_match[1];
+    log_notice("qtys_per_time: cleaning milligrams: $sig_part", ['sig_match' => $sig_match, 'drug_match' => $drug_match]);
   }
 
   if (implode(',', $qtys_per_time) != $correct['qty_per_time']) {

@@ -318,6 +318,7 @@ $test_sigs = [
     'duration' => '90,90'
   ], //Unfixed
   "Take 7.5mg three days per week (M,W,F) and 5mg four days per week OR as directed per Coumadin Clinic." => [
+    'drug_name' => 'DRUGXXXXXX 2.5mg',
     'qty_per_time' => '1.5,1',
     'frequency_numerator' => '3,4',
     'frequency_denominator' => '1,1',
@@ -630,7 +631,7 @@ $test_sigs = [
     'frequency_numerator' => '1,1',
     'frequency_denominator' => '1,1',
     'frequency' => '7.5,7.5',
-    'duration' => '21,69'
+    'duration' => '90,21'
   ], //NOT FIXED
   "Take 1 tablet by mouth 3 times a day" => [
     'qty_per_time' => '1',
@@ -661,6 +662,7 @@ $test_sigs = [
     'duration' => '90'
   ],
   "week 1: 100 mg po bid; week 2: 200 mg po bid; week 3: 300 mg po bid; week 4: 400 mg po bid" => [
+    'drug_name' => 'DRUGXXXXXX 50mg',
     'qty_per_time' => '1,2,3,4',
     'frequency_numerator' => '2,2,2,2',
     'frequency_denominator' => '1,1,1,1',
@@ -716,7 +718,7 @@ if ($sig_index === false) {
 
   foreach ($test_sigs as $sig => $correct) {
     $correct['sig'] = $sig;
-    $parsed = parse_sig($sig, $correct);
+    $parsed = parse_sig($sig, $correct['drug_name'], $correct);
   }
 
 } else {
