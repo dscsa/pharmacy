@@ -55,7 +55,7 @@ $test_sigs = [
     'qty_per_time' => '1',
     'frequency_numerator' => '1',
     'frequency_denominator' => '1',
-    'frequency' => '7.5',
+    'frequency' => '30/4',
     'duration' => '90'
   ],
   "take 1 tablet (150 mg) by oral route 2 times per day" => [
@@ -90,7 +90,7 @@ $test_sigs = [
     'qty_per_time' => '1',
     'frequency_numerator' => '3',
     'frequency_denominator' => '1',
-    'frequency' => '7.5',
+    'frequency' => '30/4',
     'duration' => '90'
   ],
   "take 1 tablet (100 mg) by oral route once daily" => [
@@ -125,7 +125,7 @@ $test_sigs = [
     'qty_per_time' => '1',
     'frequency_numerator' => '1',
     'frequency_denominator' => '1',
-    'frequency' => '7.5',
+    'frequency' => '30/4',
     'duration' => '90'
   ],
   "3 ml every 6 hrs Inhalation 90 days" => [
@@ -307,7 +307,7 @@ $test_sigs = [
     'qty_per_time' => '1,2',
     'frequency_numerator' => '1,1',
     'frequency_denominator' => '1,1',
-    'frequency' => '1,7.5',
+    'frequency' => '1,30/4',
     'duration' => '90,90' //Note this incorrectly gives 1 + 2 = 3 on sunday rather than just 2
   ], //Unfixed
   "Take 4 tablets by mouth 3 times a day with meal and 2 tablets twice a day with snacks" => [
@@ -322,7 +322,7 @@ $test_sigs = [
     'qty_per_time' => '3,2',
     'frequency_numerator' => '3,4',
     'frequency_denominator' => '1,1',
-    'frequency' => '7.5,7.5',
+    'frequency' => '30/4,30/4',
     'duration' => '90,90'
   ], //Unfixed
   "Take 1 tablet by mouth every 8 hours as needed" => [
@@ -630,7 +630,7 @@ $test_sigs = [
     'qty_per_time' => '1,3',
     'frequency_numerator' => '1,1',
     'frequency_denominator' => '1,1',
-    'frequency' => '7.5,7.5',
+    'frequency' => '30/4,30/4',
     'duration' => '90,21'
   ], //NOT FIXED
   "Take 1 tablet by mouth 3 times a day" => [
