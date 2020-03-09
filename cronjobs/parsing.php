@@ -721,6 +721,8 @@ if ($sig_index === false) {
     $parsed = parse_sig($sig, @$correct['drug_name'], $correct);
   }
 
+  log_notice("...sig testing complete...");
+
 } else {
 
   $test_sig = $argv[$sig_index+1];
