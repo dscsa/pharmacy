@@ -318,7 +318,7 @@ $test_sigs = [
     'duration' => '90,90'
   ], //Unfixed
   "Take 7.5mg three days per week (M,W,F) and 5mg four days per week OR as directed per Coumadin Clinic." => [
-    'qty_per_time' => '1,1',
+    'qty_per_time' => '1.5,1',
     'frequency_numerator' => '3,4',
     'frequency_denominator' => '1,1',
     'frequency' => '7.5,7.5',
@@ -346,14 +346,14 @@ $test_sigs = [
     'duration' => '90,90'
   ], //Unfixed
   "Take 1 tablet by mouth once every morning then 1/2 tablet at night" => [
-    'qty_per_time' => '1,.5',
+    'qty_per_time' => '1,0.5',
     'frequency_numerator' => '1,1',
     'frequency_denominator' => '1,1',
     'frequency' => '1,1',
     'duration' => '90,90'
   ], //Unfixed
   "Inject 0.4 mL (40 mg total) under the skin daily as directed" => [
-    'qty_per_time' => '1',
+    'qty_per_time' => '0.4',
     'frequency_numerator' => '1',
     'frequency_denominator' => '1',
     'frequency' => '1',
@@ -416,7 +416,7 @@ $test_sigs = [
     'duration' => '90'
   ], //Unfixed
   "ORAL Take 1 half tablet daily for high blood pressure" => [
-    'qty_per_time' => '.5',
+    'qty_per_time' => '0.5',
     'frequency_numerator' => '1',
     'frequency_denominator' => '1',
     'frequency' => '1',
@@ -430,7 +430,7 @@ $test_sigs = [
     'duration' => '90'
   ],
   "Take 1 tablet by mouth @8am and 1/2 tablet @3pm" => [
-    'qty_per_time' => '1,.5',
+    'qty_per_time' => '1,0.5',
     'frequency_numerator' => '1',
     'frequency_denominator' => '1',
     'frequency' => '1',
@@ -472,21 +472,21 @@ $test_sigs = [
     'duration' => '90'
   ],
   "Take 1 tablet by mouth in the morning AND Take 0.5 tablets AT LUNCHTIME" => [
-    'qty_per_time' => '1,.5',
+    'qty_per_time' => '1,0.5',
     'frequency_numerator' => '1,1',
     'frequency_denominator' => '1,1',
     'frequency' => '1,1',
     'duration' => '90,90'
   ],
   "Take 1/2 tablet by mouth once daily X7 DAYS THEN INCREASE TO 1 tablet once daily" => [
-    'qty_per_time' => '.5,1',
+    'qty_per_time' => '0.5,1',
     'frequency_numerator' => '1,1',
     'frequency_denominator' => '1,1',
     'frequency' => '1,1',
     'duration' => '7,83'
   ],
   "Take 1 tablet by mouth every morning then 1/2 tablet in the evening" => [
-    'qty_per_time' => '1,.5',
+    'qty_per_time' => '1,0.5',
     'frequency_numerator' => '1,1',
     'frequency_denominator' => '1,1',
     'frequency' => '1,1',
@@ -563,7 +563,7 @@ $test_sigs = [
     'duration' => '90'
   ],
   "Take 1/2 tablet by mouth every day" => [
-    'qty_per_time' => '.5',
+    'qty_per_time' => '0.5',
     'frequency_numerator' => '1',
     'frequency_denominator' => '1',
     'frequency' => '1',
@@ -577,7 +577,7 @@ $test_sigs = [
     'duration' => '90'
   ],
   "1/2 tablet Once a day Orally 90 days" => [
-    'qty_per_time' => '.5',
+    'qty_per_time' => '0.5',
     'frequency_numerator' => '1',
     'frequency_denominator' => '1',
     'frequency' => '1',

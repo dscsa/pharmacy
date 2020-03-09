@@ -25,42 +25,46 @@ function parse_sig($sig_actual, $correct = null) {
 
 function clean_sig($sig) {
 
+  //Cleanup
+  $sig = preg_replace('/\(.*?\)/', '', $sig); //get rid of parenthesis // "Take 1 capsule (300 mg total) by mouth 3 (three) times daily."
+  $sig = preg_replace('/\\\/', '', $sig);   //get rid of backslashes
+
   //Spanish
-  $sig = preg_replace('/\\btomar /i', 'take ', $sig);
-  $sig = preg_replace('/\\bcada /i', 'each ', $sig);
-  $sig = preg_replace('/\\bhoras /i', 'hours ', $sig);
+  $sig = preg_replace('/\\btomar\\b/i', 'take', $sig);
+  $sig = preg_replace('/\\bcada\\b/i', 'each', $sig);
+  $sig = preg_replace('/\\bhoras\\b/i', 'hours', $sig);
 
   //Abreviations
-  $sig = preg_replace('/ hrs\\b/i', ' hours', $sig);
-  $sig = preg_replace('/ prn\\b| at onset\\b| when\\b/i', ' as needed', $sig);
-  $sig = preg_replace('/ days per week\\b/i', ' times per week', $sig);
+  $sig = preg_replace('/\\bhrs\\b/i', 'hours', $sig);
+  $sig = preg_replace('/\\b(prn|at onset|when)\\b/i', 'as needed', $sig);
+  $sig = preg_replace('/\\bdays per week\\b/i', 'times per week', $sig);
 
   //Substitute Numerals
-  $sig = preg_replace('/(^| *and *| *& *)(1\/2|one-half|one half|1 half) /i', '.5 ', $sig); //Take 1 and 1/2 tablets or Take 1 & 1/2 tablets.  Could combine with next regex but might get complicated
-  $sig = preg_replace('/(\d+) (1\/2|one-half) /i', '$1.5 ', $sig); //Take 1 1/2 tablets
-  $sig = preg_replace('/ (1\/2|one-half|one half|1 half) /i', ' .5 ', $sig);
-  $sig = preg_replace('/\\bone |\\buno /i', '1 ', $sig); // \\b is for space or start of line
-  $sig = preg_replace('/\\btwo |\\bdos |\\bother |\\botra /i', '2 ', $sig); // \\b is for space or start of line
-  $sig = preg_replace('/\\bthree |\\tres /i', '3 ', $sig); // \\b is for space or start of line
-  $sig = preg_replace('/\\bfour |\\bquatro /i', '4 ', $sig); // \\b is for space or start of line
-  $sig = preg_replace('/\\bfive |\\bcinco /i', '5 ', $sig); // \\b is for space or start of line
-  $sig = preg_replace('/\\bsix |\\bseis /i', '6 ', $sig); // \\b is for space or start of line
-  $sig = preg_replace('/\\bseven |\\bsiete /i', '7 ', $sig); // \\b is for space or start of line
-  $sig = preg_replace('/\\beight |\\bocho /i', '8 ', $sig); // \\b is for space or start of line
-  $sig = preg_replace('/\\bnine |\\bnueve /i', '9 ', $sig); // \\b is for space or start of line
-  $sig = preg_replace('/\\bten |\\bdiez /i', '10 ', $sig); // \\b is for space or start of line
-  $sig = preg_replace('/\\beleven /i', '11 ', $sig); // once for 11 is both spanish and english
-  $sig = preg_replace('/\\btwelve |\\bdoce /i', '12 ', $sig); // \\b is for space or start of line
-  $sig = preg_replace('/\\btwenty |\\bveinte /i', '20 ', $sig); // \\b is for space or start of line
-  $sig = preg_replace('/\\bthirty |\\btreinta /i', '30 ', $sig); // \\b is for space or start of line
-  $sig = preg_replace('/\\bforty |\\bcuarenta /i', '40 ', $sig); // \\b is for space or start of line
-  $sig = preg_replace('/\\bfifty |\\bcincuenta /i', '50 ', $sig); // \\b is for space or start of line
-  $sig = preg_replace('/\\bsixty |\\bsesenta /i', '60 ', $sig); // \\b is for space or start of line
-  $sig = preg_replace('/\\bseventy |\\bsetenta /i', '70 ', $sig); // \\b is for space or start of line
-  $sig = preg_replace('/\\beighty |\\bochenta /i', '80 ', $sig); // \\b is for space or start of line
-  $sig = preg_replace('/\\bninety |\\bnoventa /i', '90 ', $sig); // \\b is for space or start of line
+  $sig = preg_replace('/(^| *and *| *& *)(1\/2|one-half|one half|1 half)\\b/i', '.5', $sig); //Take 1 and 1/2 tablets or Take 1 & 1/2 tablets.  Could combine with next regex but might get complicated
+  $sig = preg_replace('/\\b(\d+) (1\/2|one-half)\\b/i', '$1.5', $sig); //Take 1 1/2 tablets
+  $sig = preg_replace('/\\b(1\/2|one-half|one half|1 half)\\b/i', '.5', $sig);
+  $sig = preg_replace('/\\bone\\b|\\buno\\b/i', '1', $sig); // \\b is for space or start of line
+  $sig = preg_replace('/\\b(two|dos|other|otra)\\b/i', '2', $sig); // \\b is for space or start of line
+  $sig = preg_replace('/\\b(three|tres)\\b/i', '3', $sig); // \\b is for space or start of line
+  $sig = preg_replace('/\\b(four|quatro)\\b/i', '4', $sig); // \\b is for space or start of line
+  $sig = preg_replace('/\\b(five|cinco)\\b/i', '5', $sig); // \\b is for space or start of line
+  $sig = preg_replace('/\\b(six|seis)\\b/i', '6', $sig); // \\b is for space or start of line
+  $sig = preg_replace('/\\b(seven|siete)\\b/i', '7', $sig); // \\b is for space or start of line
+  $sig = preg_replace('/\\b(eight|ocho)\\b/i', '8', $sig); // \\b is for space or start of line
+  $sig = preg_replace('/\\b(nine|nueve)\\b/i', '9', $sig); // \\b is for space or start of line
+  $sig = preg_replace('/\\b(ten|diez)\\b/i', '10', $sig); // \\b is for space or start of line
+  $sig = preg_replace('/\\beleven\\b/i', '11', $sig); // once for 11 is both spanish and english
+  $sig = preg_replace('/\\b(twelve|doce)\\b/i', '12', $sig); // \\b is for space or start of line
+  $sig = preg_replace('/\\b(twenty|veinte)\\b/i', '20', $sig); // \\b is for space or start of line
+  $sig = preg_replace('/\\b(thirty|treinta)\\b/i', '30', $sig); // \\b is for space or start of line
+  $sig = preg_replace('/\\b(forty|cuarenta)\\b/i', '40', $sig); // \\b is for space or start of line
+  $sig = preg_replace('/\\b(fifty|cincuenta)\\b/i', '50', $sig); // \\b is for space or start of line
+  $sig = preg_replace('/\\b(sixty|sesenta)\\b/i', '60', $sig); // \\b is for space or start of line
+  $sig = preg_replace('/\\b(seventy|setenta)\\b/i', '70', $sig); // \\b is for space or start of line
+  $sig = preg_replace('/\\b(eighty|ochenta)\\b/i', '80', $sig); // \\b is for space or start of line
+  $sig = preg_replace('/\\b(ninety|noventa)\\b/i', '90', $sig); // \\b is for space or start of line
 
-  $match_mgs = '/([0-9]*\.[0-9]+|[1-9]+) ?mc?g\\b/i';
+  $match_mgs = '/([0-9]*\.[0-9]+|[1-9][0-9]*) ?mc?g\\b/i';
   $match_num = preg_match_all($match_mgs, $sig, $matches); //Take 1 1/2 tablets
 
   if ($match_num) {
@@ -71,56 +75,52 @@ function clean_sig($sig) {
       },
       $sig
     );
-    log_notice("cleaning milligrams: $sig >>> $new_sig", $matches);
+    //log_notice("cleaning milligrams: $sig >>> $new_sig", $matches);
     $sig = $new_sig;
   }
 
-
-
   //Duration
-  $sig = preg_replace('/\\bx ?(\d+) /i', 'for $1 ', $sig); // X7 Days == for 7 days
-  $sig = preg_replace('/\\bfor 1 months?|months? \d+/i', 'for 30 days ', $sig);
-  $sig = preg_replace('/\\bfor 2 months?/i', 'for 60 days ', $sig);
-  $sig = preg_replace('/\\bfor 3 months?/i', 'for 90 days ', $sig);
-  $sig = preg_replace('/\\bfor 1 weeks?|weeks? \d+/i', 'for 7 days ', $sig);
-  $sig = preg_replace('/\\bfor 1 weeks?/i', 'for 7 days ', $sig);
-  $sig = preg_replace('/\\bfor 2 weeks?/i', 'for 14 days ', $sig);
-  $sig = preg_replace('/\\bfor 3 weeks?/i', 'for 21 days ', $sig);
-  $sig = preg_replace('/\\bfor 4 weeks?/i', 'for 28 days ', $sig);
-  $sig = preg_replace('/\\bfor 5 weeks?/i', 'for 35 days ', $sig);
-  $sig = preg_replace('/\\bfor 6 weeks?/i', 'for 42 days ', $sig);
-  $sig = preg_replace('/\\bfor 7 weeks?/i', 'for 49 days ', $sig);
-  $sig = preg_replace('/\\bfor 8 weeks?/i', 'for 56 days ', $sig);
-  $sig = preg_replace('/\\bfor 9 weeks?/i', 'for 63 days ', $sig);
-  $sig = preg_replace('/\\bfor 10 weeks?/i', 'for 70 days ', $sig);
-  $sig = preg_replace('/\\bfor 11 weeks?/i', 'for 77 days ', $sig);
-  $sig = preg_replace('/\\bfor 12 weeks?/i', 'for 84 days ', $sig);
+  $sig = preg_replace('/\\bx ?(\d+)\\b/i', 'for $1', $sig); // X7 Days == for 7 days
+  $sig = preg_replace('/\\bfor 1 months?|months?\d+/i', 'for 30 days', $sig);
+  $sig = preg_replace('/\\bfor 2 months?/i', 'for 60 days', $sig);
+  $sig = preg_replace('/\\bfor 3 months?/i', 'for 90 days', $sig);
+  $sig = preg_replace('/\\bfor 1 weeks?|weeks? \d+/i', 'for 7 days', $sig);
+  $sig = preg_replace('/\\bfor 1 weeks?/i', 'for 7 days', $sig);
+  $sig = preg_replace('/\\bfor 2 weeks?/i', 'for 14 days', $sig);
+  $sig = preg_replace('/\\bfor 3 weeks?/i', 'for 21 days', $sig);
+  $sig = preg_replace('/\\bfor 4 weeks?/i', 'for 28 days', $sig);
+  $sig = preg_replace('/\\bfor 5 weeks?/i', 'for 35 days', $sig);
+  $sig = preg_replace('/\\bfor 6 weeks?/i', 'for 42 days', $sig);
+  $sig = preg_replace('/\\bfor 7 weeks?/i', 'for 49 days', $sig);
+  $sig = preg_replace('/\\bfor 8 weeks?/i', 'for 56 days', $sig);
+  $sig = preg_replace('/\\bfor 9 weeks?/i', 'for 63 days', $sig);
+  $sig = preg_replace('/\\bfor 10 weeks?/i', 'for 70 days', $sig);
+  $sig = preg_replace('/\\bfor 11 weeks?/i', 'for 77 days', $sig);
+  $sig = preg_replace('/\\bfor 12 weeks?/i', 'for 84 days', $sig);
 
   //Alternative frequency numerator wordings
-  $sig = preg_replace('/ once /i', ' 1 time ', $sig);
-  $sig = preg_replace('/ twice\\b| q12.*?h\\b| BID\\b|(?<!every) 12 hours\\b/i', ' 2 times', $sig);
-  $sig = preg_replace('/ q8.*?h\\b| TID\\b|(?<!every) 8 hours\\b/i', ' 3 times ', $sig);
-  $sig = preg_replace('/ q6.*?h\\b|(?<!every) 6 hours\\b/i', ' 4 times', $sig);
-  $sig = preg_replace('/ (breakfast|mornings?) and (dinner|night|evenings?) /i', ' 2 times per day ', $sig);
-  $sig = preg_replace('/ with meals /i', ' 3 times per day ', $sig);
+  $sig = preg_replace('/\\bonce\\b/i', '1 time', $sig);
+  $sig = preg_replace('/\\b(twice|q12.*?h|BID|(?<!every) 12 hours)\\b/i', '2 times', $sig);
+  $sig = preg_replace('/\\b(q8.*?h|TID|(?<!every) 8 hours)\\b/i', '3 times', $sig);
+  $sig = preg_replace('/\\b(q6.*?h|(?<!every) 6 hours)\\b/i', '4 times', $sig);
+  $sig = preg_replace('/\\b(breakfast|mornings?) and (dinner|night|evenings?)\\b/i', '2 times per day', $sig);
+  $sig = preg_replace('/\\bwith meals\\b/i', '3 times per day', $sig);
 
   //Alternate units of measure
-  $sig = preg_replace('/\\b1 vial /i', '3ml ', $sig); // vials for inhalation are 2.5 or 3ml, so use 3ml to be conservative
-  $sig = preg_replace('/\\b2 vials? /i', '6ml ', $sig); // vials for inhalation are 2.5 or 3ml, so use 3ml to be conservative
-  $sig = preg_replace('/\\b3 vials? /i', '9ml ', $sig); // vials for inhalation are 2.5 or 3ml, so use 3ml to be conservative
-  $sig = preg_replace('/\\b4 vials? /i', '12ml ', $sig); // vials for inhalation are 2.5 or 3ml, so use 3ml to be conservative
-  $sig = preg_replace('/\\b5 vials? /i', '15ml ', $sig); // vials for inhalation are 2.5 or 3ml, so use 3ml to be conservative
-  $sig = preg_replace('/\\b6 vials? /i', '18ml ', $sig); // vials for inhalation are 2.5 or 3ml, so use 3ml to be conservative
+  $sig = preg_replace('/\\b1 vial\\b/i', '3ml', $sig); // vials for inhalation are 2.5 or 3ml, so use 3ml to be conservative
+  $sig = preg_replace('/\\b2 vials?\\b/i', '6ml', $sig); // vials for inhalation are 2.5 or 3ml, so use 3ml to be conservative
+  $sig = preg_replace('/\\b3 vials?\\b/i', '9ml', $sig); // vials for inhalation are 2.5 or 3ml, so use 3ml to be conservative
+  $sig = preg_replace('/\\b4 vials?\\b/i', '12ml', $sig); // vials for inhalation are 2.5 or 3ml, so use 3ml to be conservative
+  $sig = preg_replace('/\\b5 vials?\\b/i', '15ml', $sig); // vials for inhalation are 2.5 or 3ml, so use 3ml to be conservative
+  $sig = preg_replace('/\\b6 vials?\\b/i', '18ml', $sig); // vials for inhalation are 2.5 or 3ml, so use 3ml to be conservative
 
   //Take Last (Max?) of Numeric Ranges
-  $sig = preg_replace('/[.\d]+ or ([.\d]+) /i', '$1 ', $sig, 1); //Take 1 or 2 every 3 or 4 hours. Let's convert that to Take 2 every 3 or 4 hours (no global flag).  CK approves of first substitution but not sure of the 2nd so the conservative answer is to leave it alone
-  $sig = preg_replace('/[.\d]+ to ([.\d]+) /i', '$1 ', $sig, 1); //Take 1 to 2 every 3 or 4 hours. Let's convert that to Take 2 every 3 or 4 hours (no global flag).  CK approves of first substitution but not sure of the 2nd so the conservative answer is to leave it alone
-  $sig = preg_replace('/[.\d]+-([.\d]+) /i', '$1 ', $sig, 1); //Take 1-2 every 3 or 4 hours. Let's convert that to Take 2 every 3 or 4 hours (no global flag).  CK approves of first substitution but not sure of the 2nd so the conservative answer is to leave it alone
+  $sig = preg_replace('/\\b[.\d]+ or ([.\d]+)\\b/i', '$1', $sig, 1); //Take 1 or 2 every 3 or 4 hours. Let's convert that to Take 2 every 3 or 4 hours (no global flag).  CK approves of first substitution but not sure of the 2nd so the conservative answer is to leave it alone
+  $sig = preg_replace('/\\b[.\d]+ to ([.\d]+)\\b/i', '$1', $sig, 1); //Take 1 to 2 every 3 or 4 hours. Let's convert that to Take 2 every 3 or 4 hours (no global flag).  CK approves of first substitution but not sure of the 2nd so the conservative answer is to leave it alone
+  $sig = preg_replace('/\\b[.\d]+-([.\d]+)\\b/i', '$1', $sig, 1); //Take 1-2 every 3 or 4 hours. Let's convert that to Take 2 every 3 or 4 hours (no global flag).  CK approves of first substitution but not sure of the 2nd so the conservative answer is to leave it alone
 
   //Cleanup
   $sig = preg_replace('/  +/i', ' ', $sig); //Remove double spaces for aesthetics
-  $sig = preg_replace('/\(.*?\)/', '', $sig); //get rid of parenthesis // "Take 1 capsule (300 mg total) by mouth 3 (three) times daily."
-  $sig = preg_replace('/\\\/', '', $sig);   //get rid of backslashes
 
   return trim($sig);
 }
@@ -157,7 +157,7 @@ function qtys_per_time($durations, $correct) {
 
   foreach ($durations as $sig_part => $duration) {
     //"Use daily with lantus"  won't match the RegEx below
-    $count = preg_match_all('/([0-9]*\.[0-9]+|[1-9]+) ?(ml|tab|cap|pill|softgel|patch|injection|each)|(^|use +|take +|inhale +|chew +|inject +|oral +)([0-9]*\.[0-9]+|[1-9]+)(?!\d* ?mg| +time)/i', $sig_part, $match);
+    $count = preg_match_all('/(?<!exceed )([0-9]*\.[0-9]+|[1-9][0-9]*) ?(ml|tab|cap|pill|softgel|patch|injection|each)|(^|use +|take +|inhale +|chew +|inject +|oral +)([0-9]*\.[0-9]+|[1-9][0-9]*)(?!\d* ?mg| +time)/i', $sig_part, $match);
     $qtys_per_time[$sig_part] = $count ? array_sum($match[1])+array_sum($match[4]) : 1;
   }
 
