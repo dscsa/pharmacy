@@ -431,10 +431,10 @@ $test_sigs = [
   ],
   "Take 1 tablet by mouth @8am and 1/2 tablet @3pm" => [
     'qty_per_time' => '1,0.5',
-    'frequency_numerator' => '1',
-    'frequency_denominator' => '1',
-    'frequency' => '1',
-    'duration' => '90'
+    'frequency_numerator' => '1,1',
+    'frequency_denominator' => '1,1',
+    'frequency' => '1,1',
+    'duration' => '90,90'
   ],
   "Take 1 tablet under tongue as directed Take every 5 minutes up to 3 doses as needed for chest" => [
     'qty_per_time' => '1',
@@ -714,17 +714,10 @@ $sig_index = array_search('sig', $argv);
 
 if ($sig_index === false) {
 
-  $errors = [
-    'duration' => 0,
-    'qty_per_time' => 0
-  ];
-
   foreach ($test_sigs as $sig => $correct) {
     $correct['sig'] = $sig;
     $parsed = parse_sig($sig, $correct);
   }
-
-  log_notice("error count ".array_sum($errors), $errors);
 
 } else {
 

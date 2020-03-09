@@ -61,24 +61,9 @@ function clean_sig($sig) {
   $sig = preg_replace('/\\b(eighty|ochenta)\\b/i', '80', $sig); // \\b is for space or start of line
   $sig = preg_replace('/\\b(ninety|noventa)\\b/i', '90', $sig); // \\b is for space or start of line
 
-  $match_mgs = '/([0-9]*\.[0-9]+|[1-9][0-9]*) ?mc?g\\b/i';
-  $match_num = preg_match_all($match_mgs, $sig, $matches); //Take 1 1/2 tablets
-
-  if ($match_num) {
-    $new_sig = preg_replace_callback(
-      $match_mgs,
-      function($match) use($matches, $sig) {
-        return ($match[1] / min($matches[1])).' each';
-      },
-      $sig
-    );
-    //log_notice("cleaning milligrams: $sig >>> $new_sig", $matches);
-    $sig = $new_sig;
-  }
-
   //Substitute fractions
   $sig = preg_replace('/\\b(\d+) (and |& )?(.5|1\/2|1-half|1 half)\\b/i', '$1.5', $sig); //Take 1 1/2 tablets
-  $sig = preg_replace('/ (.5|1\/2|1-half|1 half)\\b/i', ' 0.5', $sig);
+  $sig = preg_replace('/(^| )(.5|1\/2|1-half|1 half)\\b/i', ' 0.5', $sig);
 
   //Duration
   $sig = preg_replace('/\\bx ?(\d+)\\b/i', 'for $1', $sig); // X7 Days == for 7 days
@@ -160,6 +145,23 @@ function qtys_per_time($durations, $correct) {
     //"Use daily with lantus"  won't match the RegEx below
     $count = preg_match_all('/(?<!exceed |not to )([0-9]*\.[0-9]+|[1-9][0-9]*) ?(ml|tab|cap|pill|softgel|patch|injection|each)|(^|use +|take +|inhale +|chew +|inject +|oral +)([0-9]*\.[0-9]+|[1-9][0-9]*)(?!\d* ?mg| +time)/i', $sig_part, $match);
     $qtys_per_time[$sig_part] = $count ? array_sum($match[1])+array_sum($match[4]) : 1;
+
+    /*
+    $match_mgs = '/([0-9]*\.[0-9]+|[1-9][0-9]*) ?mc?g\\b/i';
+    $match_num = preg_match_all($match_mgs, $sig, $matches); //Take 1 1/2 tablets
+
+    if ($match_num) {
+      $new_sig = preg_replace_callback(
+        $match_mgs,
+        function($match) use($matches, $sig) {
+          return ($match[1] / min($matches[1])).' each';
+        },
+        $sig
+      );
+      //log_notice("cleaning milligrams: $sig >>> $new_sig", $matches);
+      $sig = $new_sig;
+    }
+    */
   }
 
   if (implode(',', $qtys_per_time) != $correct['qty_per_time']) {
