@@ -616,7 +616,7 @@ $test_sigs = [
     'qty_per_time' => '1',
     'frequency_numerator' => '1',
     'frequency_denominator' => '8',
-    'frequency' => '1/24',
+    'frequency' => '1', //hourly as needed
     'duration' => '90'
   ],
   "Take 1 tablet (12.5 mg total) by mouth every 12 (twelve) hours" => [

@@ -246,7 +246,7 @@ function frequencies($durations, $correct) {
 
   foreach ($durations as $sig_part => $duration) {
 
-    $as_needed = preg_match('/ prn| as needed| at onset| when/i', $sig_part);
+    $as_needed = preg_match('/(^| )(prn|as needed|at onset|when)/i', $sig_part);
 
     if (preg_match('/((?<! in \d\d)|(?<! in \d)) day\\b/i', $sig_part))
       $freq = $as_needed ? '2' : '1';
@@ -264,7 +264,7 @@ function frequencies($durations, $correct) {
       $freq = $as_needed ? '1' : '1/24/60'; // One 24th of a day
 
     else
-      $freq = '1'; //defaults to daily if no matches
+      $freq = $as_needed ? '2' : '1'; //defaults to daily if no matches
 
     //Default to daily Example 1 tablet by mouth at bedtime
     $frequencies[$sig_part] = $freq;
