@@ -20,7 +20,7 @@ function parse_sig($sig_actual, $drug_name, $correct = null) {
   $parsed['frquency'] = frequencies($durations, $correct);
   $parsed['sig_qty_per_day'] = sig_qty_per_day($parsed);
 
-  return $parsed
+  return $parsed;
 }
 
 function clean_sig($sig) {
