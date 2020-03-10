@@ -24,7 +24,7 @@ function parse_sig($sig_actual, $drug_name, $correct = null) {
   $parsed['sig_qty']     = sig_qty($parsed);
   $parsed['qty_per_day'] = qty_per_day($parsed);
 
-  log_notice("parsed sig", $parsed);
+  //log_notice("parsed sig", $parsed);
 
   return $parsed;
 }
