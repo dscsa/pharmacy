@@ -695,7 +695,7 @@ if ($sig_index === false) {
 
   $mysql = new Mysql_Wc();
 
-  $rxs = $mysql->run("SELECT * FROM gp_rxs_single WHERE sig_initial IS NULL LIMIT 100")[0];
+  $rxs = $mysql->run("SELECT * FROM gp_rxs_single WHERE sig_initial IS NULL LIMIT 10")[0];
 
   log_notice("parsing test sig database rxs", $rxs);
 
@@ -708,20 +708,18 @@ if ($sig_index === false) {
     else
       log_info("parsing test sig database change: sig_qty_per_day $rx[sig_qty_per_day] >>> $parsed[qty_per_day], $rx[drug_name], $rx[sig_actual]", $parsed);
 
-    //$mysql->run(
-
-    log_notice("
+    $mysql->run("
       UPDATE gp_rxs_single SET
-        sig_initial               = '$parsed[sig_actual]',
-        sig_clean                 = '$parsed[sig_clean]',
-        sig_qty                   = $parsed[sig_qty],
-        sig_days                  = ".($parsed['sig_days'] ?: 'NULL')."
-        sig_qty_per_day           = $parsed[qty_per_day],
-        sig_duration              = '".implode(',', $parsed['duration'])."',
-        sig_qty_per_time          = '".implode(',', $parsed['qty_per_time'])."',
-        sig_frequency             = '".implode(',', $parsed['frequency'])."',
-        sig_frequency_numerator   = '".implode(',', $parsed['frequency_numerator'])."',
-        sig_frequency_denominator = '".implode(',', $parsed['frequency_denominator'])."'
+        sig_initial                = '$parsed[sig_actual]',
+        sig_clean                  = '$parsed[sig_clean]',
+        sig_qty                    = $parsed[sig_qty],
+        sig_days                   = ".($parsed['sig_days'] ?: 'NULL').",
+        sig_qty_per_day            = $parsed[qty_per_day],
+        sig_durations              = '".implode(',', $parsed['durations'])."',
+        sig_qtys_per_time          = '".implode(',', $parsed['qtys_per_time'])."',
+        sig_frequencies            = '".implode(',', $parsed['frequencies'])."',
+        sig_frequency_numerators   = '".implode(',', $parsed['frequency_numerators'])."',
+        sig_frequency_denominators = '".implode(',', $parsed['frequency_denominators'])."'
       WHERE
         rx_number = $rx[rx_number]
     ");
