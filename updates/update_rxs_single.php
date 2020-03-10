@@ -21,23 +21,30 @@ function update_rxs_single() {
 
   foreach($changes['created'] as $rx) {
 
-    $sig = parse_sig($rx);
+    $sig = parse_sig($rx['sig_actual'], $rx['drug_name']);
 
     //TODO Eventually Save the Clean Script back into Guardian so that Cindy doesn't need to rewrite them
 
-    if ($sig)
-      $mysql->run("
-        UPDATE gp_rxs_single SET
-          sig_initial = '$rx[sig_actual]',
-          sig_clean = $sig[sig_clean],
-          sig_qty_per_day = $sig[sig_qty_per_day],
-          sig_qty_per_time = $sig[sig_qty_per_time],
-          sig_frequency = $sig[sig_frequency],
-          sig_frequency_numerator = $sig[sig_frequency_numerator],
-          sig_frequency_denominator = $sig[sig_frequency_denominator]
-        WHERE
-          rx_number = $rx[rx_number]
-      ");
+    if ( ! $parsed['qty_per_day']) {
+      log_error("update_rxs_single created: sig could not be parsed");
+      continue;
+    }
+
+    $mysql->run("
+      UPDATE gp_rxs_single SET
+        sig_initial                = '$parsed[sig_actual]',
+        sig_clean                  = '$parsed[sig_clean]',
+        sig_qty                    = $parsed[sig_qty],
+        sig_days                   = ".($parsed['sig_days'] ?: 'NULL').",
+        sig_qty_per_day            = $parsed[qty_per_day],
+        sig_durations              = ',".implode(',', $parsed['durations']).",',
+        sig_qtys_per_time          = ',".implode(',', $parsed['qtys_per_time']).",',
+        sig_frequencies            = ',".implode(',', $parsed['frequencies']).",',
+        sig_frequency_numerators   = ',".implode(',', $parsed['frequency_numerators']).",',
+        sig_frequency_denominators = ',".implode(',', $parsed['frequency_denominators']).",'
+      WHERE
+        rx_number = $rx[rx_number]
+    ");
   }
 
   //This is an expensive (6-8 seconds) group query.

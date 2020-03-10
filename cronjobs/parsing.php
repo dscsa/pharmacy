@@ -5,7 +5,7 @@ date_default_timezone_set('America/New_York');
 
 require_once 'keys.php';
 require_once 'helpers/helper_log.php';
-require_once 'helpers/helper_parse_sig_new.php';
+require_once 'helpers/helper_parse_sig.php';
 require_once 'helpers/helper_constants.php';
 require_once 'dbs/mysql_wc.php';
 
@@ -708,6 +708,11 @@ if ($sig_index === false) {
     else
       log_notice("parsing test sig database CHANGE: $rx[rx_number] sig_qty_per_day $rx[sig_qty_per_day] >>> $parsed[qty_per_day], $rx[drug_name], $rx[sig_actual]", $parsed);
 
+    if ( ! $parsed['qty_per_day']) {
+      log_error("parsing database: sig could not be parsed");
+      continue;
+    }
+
     $mysql->run("
       UPDATE gp_rxs_single SET
         sig_initial                = '$parsed[sig_actual]',
@@ -715,11 +720,11 @@ if ($sig_index === false) {
         sig_qty                    = $parsed[sig_qty],
         sig_days                   = ".($parsed['sig_days'] ?: 'NULL').",
         sig_qty_per_day            = $parsed[qty_per_day],
-        sig_durations              = '".implode(',', $parsed['durations'])."',
-        sig_qtys_per_time          = '".implode(',', $parsed['qtys_per_time'])."',
-        sig_frequencies            = '".implode(',', $parsed['frequencies'])."',
-        sig_frequency_numerators   = '".implode(',', $parsed['frequency_numerators'])."',
-        sig_frequency_denominators = '".implode(',', $parsed['frequency_denominators'])."'
+        sig_durations              = ',".implode(',', $parsed['durations']).",',
+        sig_qtys_per_time          = ',".implode(',', $parsed['qtys_per_time']).",',
+        sig_frequencies            = ',".implode(',', $parsed['frequencies']).",',
+        sig_frequency_numerators   = ',".implode(',', $parsed['frequency_numerators']).",',
+        sig_frequency_denominators = ',".implode(',', $parsed['frequency_denominators']).",'
       WHERE
         rx_number = $rx[rx_number]
     ");
