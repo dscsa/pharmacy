@@ -21,9 +21,9 @@ function parse_sig($sig_actual, $drug_name, $correct = null) {
   $parsed['frequency'] = frequencies($parsed['duration'], $correct);
 
   $parsed['sig_days'] = sig_days($parsed['duration']);
-  $parsed['sig_qty']  = sig_qty($parsed);
+  $parsed['sig_qty']  = sig_qty($parsed)
 
-  $parsed['sig_qty_per_day'] = round($parsed['sig_qty']/$parsed['sig_days'], 3);
+  $parsed['sig_qty_per_day'] = round($parsed['sig_qty']/($parsed['sig_days'] ?: DAYS_STD), 3);
 
   log_notice("parsed sig", $parsed);
 
@@ -286,7 +286,7 @@ function frequencies($durations, $correct) {
 }
 
 function sig_days($duration) {
-  return array_sum($duration) ?: DAYS_STD;
+  return array_sum($duration);
 }
 
 function sig_qty($parsed) {

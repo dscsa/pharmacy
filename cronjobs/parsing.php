@@ -704,25 +704,31 @@ if ($sig_index === false) {
     $parsed = parse_sig($rx['sig_actual'], $rx['drug_name']);
 
     if ($rx['sig_qty_per_day'] == $parsed['sig_qty_per_day'])
-      log_notice("parsing test sig database same: sig_qty_per_day $rx[sig_qty_per_day] $rx[drug_name] $rx[sig_actual]", $parsed);
+      log_notice("parsing test sig database same: sig_qty_per_day $rx[sig_qty_per_day], $rx[drug_name], $rx[sig_actual]", $parsed);
     else
-      log_error("parsing test sig database change: sig_qty_per_day $rx[sig_qty_per_day] >>> $parsed[sig_qty_per_day] $rx[drug_name] $rx[sig_actual]", $parsed);
+      log_error("parsing test sig database change: sig_qty_per_day $rx[sig_qty_per_day] >>> $parsed[sig_qty_per_day], $rx[drug_name], $rx[sig_actual]", $parsed);
+
+    //$mysql->run(
+
+    log_notice("
+      UPDATE gp_rxs_single SET
+        sig_initial               = '$rx[sig_actual]',
+        sig_clean                 = '$sig[sig_clean]',
+        sig_qty                   = $sig[sig_qty],
+        sig_days                  = ".($sig['sig_days'] ?: 'NULL')."
+        sig_qty_per_day           = $sig[sig_qty_per_day],
+        sig_qty_per_time          = $sig[sig_qty_per_time],
+        sig_frequency             = $sig[sig_frequency],
+        sig_frequency_numerator   = $sig[sig_frequency_numerator],
+        sig_frequency_denominator = $sig[sig_frequency_denominator]
+      WHERE
+        rx_number = $rx[rx_number]
+    ");
 
   }
 
 
 
-  /*$mysql->run("
-    UPDATE gp_rxs_single SET
-      sig_initial = '$rx[sig_actual]',
-      sig_clean = $sig[sig_clean],
-      sig_qty_per_day = $sig[sig_qty_per_day],
-      sig_qty_per_time = $sig[sig_qty_per_time],
-      sig_frequency = $sig[sig_frequency],
-      sig_frequency_numerator = $sig[sig_frequency_numerator],
-      sig_frequency_denominator = $sig[sig_frequency_denominator]
-    WHERE
-      rx_number = $rx[rx_number]
-  ");*/
+
 
 }
