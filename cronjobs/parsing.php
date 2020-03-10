@@ -7,6 +7,7 @@ require_once 'keys.php';
 require_once 'helpers/helper_log.php';
 require_once 'helpers/helper_parse_sig_new.php';
 require_once 'helpers/helper_constants.php';
+require_once 'dbs/mysql_wc.php';
 
 $test_sigs = [
   "Take 2 tablets by mouth in the morning and Take 1 tablet once in the evening" => [
@@ -671,45 +672,6 @@ $test_sigs = [
   ] //Not Fixed
 ];
 
-//Take 2 capsules by mouth in the morning 1 capsule once daily AT NOON AND 2 capsules at bedtime
-//THEN
-
-/*
-Take 3 (qty_per_time) pills 4 (frequency_numerator) times every 2 (frequency_denominator) days (frequency) for 30 days.
-qty_per_time = 3
-frequency_numerator = 4
-frequency_denominator = 2
-frequency = 1 (days is 1)
-duration  = 30
-*/
-
-/*
-Take 3 (qty_per_time) pills 4 (frequency_numerator) times every 2 (frequency_denominator) days (frequency) for 30 days then 2 tablets a day
-qty_per_time = 3,2
-frequency_numerator = 4,X (Default 1)
-frequency_denominator = 2,X (Default 1)
-frequency = 1,1 (Days is 1)
-duration  = 30,X (Default is 90 - 30 = 60 Days)
-
-$qty_per_time * $frequency_numerator / $frequency_denominator / $frequency;
-
-3*4/2/1*30 + 2*1/1/1*60 = 300 (3.333 qty_per_day)
-
-*/
-
-
-
-
-
-
-
-//TODO: NOT WORKING
-//"Take 2 tablet by mouth three times a day Take 2 with meals and 1 with snacks", //Not working
-//"Take 5 tablets by mouth 3 times a day with meals and 3 tablets 3 times a day with snack", //Not working
-//"Take 1 tablet by mouth every morning then 1/2 tablet in the evening", //Not working
-//2 am 2 pm ORAL three times a day
-//"Take 5 mg by mouth daily."
-
 
 global $argv;
 $sig_index = array_search('sig', $argv);
@@ -723,10 +685,38 @@ if ($sig_index === false) {
 
   log_notice("...sig testing complete...");
 
+} else if ($argv[$sig_index+1] != 'database') {
+
+  $sig = $argv[$sig_index+1];
+  $parsed = parse_sig($sig, null);
+  log_notice("parsing test sig specified: $sig", [$parsed, $sig]);
+
 } else {
 
-  $test_sig = $argv[$sig_index+1];
-  $parsed = parse_sig(['rx_number' => 'test', 'sig_actual' => $test_sig]);
-  log_notice("test_parse_sig: $test_sig", [$parsed, $test_sig]);
+  $mysql = new Mysql_Wc();
+
+  $rxs = $mysql->run("SELECT * FROM gp_rxs_single WHERE sig_initial IS NULL LIMIT 10")[0];
+
+  foreach ($rxs as $rx) {
+
+    $parsed = parse_sig($rx['sig_actual'], $rx['drug_name']);
+    log_notice("parsing test sig database: $rx[drug_name] $rx[sig_actual]", $parsed);
+    
+  }
+
+
+
+  /*$mysql->run("
+    UPDATE gp_rxs_single SET
+      sig_initial = '$rx[sig_actual]',
+      sig_clean = $sig[sig_clean],
+      sig_qty_per_day = $sig[sig_qty_per_day],
+      sig_qty_per_time = $sig[sig_qty_per_time],
+      sig_frequency = $sig[sig_frequency],
+      sig_frequency_numerator = $sig[sig_frequency_numerator],
+      sig_frequency_denominator = $sig[sig_frequency_denominator]
+    WHERE
+      rx_number = $rx[rx_number]
+  ");*/
 
 }
