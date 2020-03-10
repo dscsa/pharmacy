@@ -12,8 +12,8 @@ function parse_sig($sig_actual, $drug_name, $correct = null) {
   //5 Combine parts into total
 
   $parsed = [];
-  $parsed['sig_actual'] = $sig_actual;
-  $parsed['sig_clean'] = clean_sig($sig_actual);
+  $parsed['sig_actual'] = preg_replace('/\'/', "''", $sig_actual);   //escape single quotes (latter for sql savings errors);
+  $parsed['sig_clean'] = clean_sig($parsed['sig_actual']);
   $parsed['durations'] = durations($parsed['sig_clean'], $correct);
   $parsed['qtys_per_time'] = qtys_per_time($parsed['durations'], $drug_name, $correct);
   $parsed['frequency_numerators'] = frequency_numerators($parsed['durations'], $correct);
@@ -34,7 +34,6 @@ function clean_sig($sig) {
   //Cleanup
   $sig = preg_replace('/\(.*?\)/', '', $sig); //get rid of parenthesis // "Take 1 capsule (300 mg total) by mouth 3 (three) times daily."
   $sig = preg_replace('/\\\/', '', $sig);   //get rid of backslashes and single quotes (latter for sql savings errors)
-  $sig = preg_replace('/\'/', "''", $sig);   //escape single quotes (latter for sql savings errors)
   $sig = preg_replace('/\\band\\b/i', '&', $sig);   // & is easier tp search in regex than "and"
   $sig = preg_replace('/ +(mc?g)\\b| +(ml)\\b/i', '$1', $sig);   //get rid of backslashes
 
