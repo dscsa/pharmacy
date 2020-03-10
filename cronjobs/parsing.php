@@ -712,15 +712,15 @@ if ($sig_index === false) {
 
     log_notice("
       UPDATE gp_rxs_single SET
-        sig_initial               = '$rx[sig_actual]',
-        sig_clean                 = '$sig[sig_clean]',
-        sig_qty                   = $sig[sig_qty],
-        sig_days                  = ".($sig['sig_days'] ?: 'NULL')."
-        sig_qty_per_day           = $sig[sig_qty_per_day],
-        sig_qty_per_time          = $sig[sig_qty_per_time],
-        sig_frequency             = $sig[sig_frequency],
-        sig_frequency_numerator   = $sig[sig_frequency_numerator],
-        sig_frequency_denominator = $sig[sig_frequency_denominator]
+        sig_initial               = '$parsed[sig_actual]',
+        sig_clean                 = '$parsed[sig_clean]',
+        sig_qty                   = $parsed[sig_qty],
+        sig_days                  = ".($parsed['sig_days'] ?: 'NULL')."
+        sig_qty_per_day           = $parsed[sig_qty_per_day],
+        sig_qty_per_time          = $parsed[sig_qty_per_time],
+        sig_frequency             = $parsed[sig_frequency],
+        sig_frequency_numerator   = $parsed[sig_frequency_numerator],
+        sig_frequency_denominator = $parsed[sig_frequency_denominator]
       WHERE
         rx_number = $rx[rx_number]
     ");
