@@ -15,12 +15,12 @@ function parse_sig($sig_actual, $drug_name, $correct = null) {
   $parsed['sig_actual'] = $sig_actual;
   $parsed['sig_clean'] = clean_sig($sig_actual);
   $parsed['durations'] = durations($parsed['sig_clean'], $correct);
-  $parsed['qtys_per_time'] = qtys_per_time($parsed['duration'], $drug_name, $correct);
-  $parsed['frequency_numerators'] = frequency_numerators($parsed['duration'], $correct);
-  $parsed['frequency_denominators'] = frequency_denominators($parsed['duration'], $correct);
-  $parsed['frequencies'] = frequencies($parsed['duration'], $correct);
+  $parsed['qtys_per_time'] = qtys_per_time($parsed['durations'], $drug_name, $correct);
+  $parsed['frequency_numerators'] = frequency_numerators($parsed['durations'], $correct);
+  $parsed['frequency_denominators'] = frequency_denominators($parsed['durations'], $correct);
+  $parsed['frequencies'] = frequencies($parsed['durations'], $correct);
 
-  $parsed['sig_days']    = array_sum($parsed['duration']);
+  $parsed['sig_days']    = array_sum($parsed['durations']);
   $parsed['sig_qty']     = sig_qty($parsed);
   $parsed['qty_per_day'] = qty_per_day($parsed);
 
@@ -170,8 +170,8 @@ function durations($cleaned, $correct) {
       }
     }
 
-    if ($correct AND implode(',', $durations) != $correct['duration']) {
-      log_error("test_parse_sig incorrect duration: $correct[sig_actual]", ['cleaned' => $cleaned, 'correct' => $correct['duration'], 'current' => $durations]);
+    if ($correct AND implode(',', $durations) != $correct['durations']) {
+      log_error("test_parse_sig incorrect duration: $correct[sig_actual]", ['cleaned' => $cleaned, 'correct' => $correct['durations'], 'current' => $durations]);
     }
 
     return $durations;
@@ -203,8 +203,8 @@ function qtys_per_time($durations, $drug_name, $correct) {
     //log_notice("qtys_per_time: cleaning milligrams: $sig_part", ['sig_match' => $sig_match, 'drug_match' => $drug_match]);
   }
 
-  if ($correct AND implode(',', $qtys_per_time) != $correct['qty_per_time']) {
-    log_error("test_parse_sig incorrect qtys_per_time: $correct[sig_actual]", ['durations' => $durations, 'correct' => $correct['qty_per_time'], 'current' => $qtys_per_time]);
+  if ($correct AND implode(',', $qtys_per_time) != $correct['qtys_per_time']) {
+    log_error("test_parse_sig incorrect qtys_per_time: $correct[sig_actual]", ['durations' => $durations, 'correct' => $correct['qtys_per_time'], 'current' => $qtys_per_time]);
   }
 
   return $qtys_per_time;
@@ -221,8 +221,8 @@ function frequency_numerators($durations, $correct) {
 
   }
 
-  if ($correct AND implode(',', $frequency_numerators) != $correct['frequency_numerator']) {
-    log_error("test_parse_sig incorrect frequency_numerators: $correct[sig_actual]", ['durations' => $durations, 'correct' => $correct['frequency_numerator'], 'current' => $frequency_numerators]);
+  if ($correct AND implode(',', $frequency_numerators) != $correct['frequency_numerators']) {
+    log_error("test_parse_sig incorrect frequency_numerators: $correct[sig_actual]", ['durations' => $durations, 'correct' => $correct['frequency_numerators'], 'current' => $frequency_numerators]);
   }
 
   return $frequency_numerators;
@@ -239,8 +239,8 @@ function frequency_denominators($durations, $correct) {
     $frequency_denominators[$sig_part] = $match ? $match[1] : 1;
   }
 
-  if ($correct AND implode(',', $frequency_denominators) != $correct['frequency_denominator']) {
-    log_error("test_parse_sig incorrect frequency_denominators: $correct[sig_actual]", ['durations' => $durations, 'correct' => $correct['frequency_denominator'], 'current' => $frequency_denominators]);
+  if ($correct AND implode(',', $frequency_denominators) != $correct['frequency_denominators']) {
+    log_error("test_parse_sig incorrect frequency_denominators: $correct[sig_actual]", ['durations' => $durations, 'correct' => $correct['frequency_denominators'], 'current' => $frequency_denominators]);
   }
 
   return $frequency_denominators;
@@ -277,8 +277,8 @@ function frequencies($durations, $correct) {
     $frequencies[$sig_part] = $freq;
   }
 
-  if ($correct AND implode(',', $frequencies) != $correct['frequency']) {
-    log_error("test_parse_sig incorrect frequencies: $correct[sig_actual]", ['as_needed' => $as_needed, 'durations' => $durations, 'correct' => $correct['frequency'], 'current' => $frequencies]);
+  if ($correct AND implode(',', $frequencies) != $correct['frequencies']) {
+    log_error("test_parse_sig incorrect frequencies: $correct[sig_actual]", ['as_needed' => $as_needed, 'durations' => $durations, 'correct' => $correct['frequencies'], 'current' => $frequencies]);
   }
 
   return $frequencies;
@@ -293,8 +293,8 @@ function sig_qty($parsed) {
   $qty = 0;
 
   //eval converts string fractions to decimals https://stackoverflow.com/questions/7142657/convert-fraction-string-to-decimal
-  foreach ($parsed['frequency'] as $i => $frequency)
-    $qty += ($parsed['duration'][$i] ?: DAYS_STD) * $parsed['qty_per_time'][$i] * $parsed['frequency_numerator'][$i] / $parsed['frequency_denominator'][$i] / eval("return $frequency;");
+  foreach ($parsed['frequencies'] as $i => $frequency)
+    $qty += ($parsed['durations'][$i] ?: DAYS_STD) * $parsed['qtys_per_time'][$i] * $parsed['frequency_numerators'][$i] / $parsed['frequency_denominators'][$i] / eval("return $frequency;");
 
   return $qty;
 }
