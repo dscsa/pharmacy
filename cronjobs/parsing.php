@@ -679,7 +679,7 @@ $sig_index = array_search('sig', $argv);
 if ($sig_index === false) {
 
   foreach ($test_sigs as $sig => $correct) {
-    $correct['sig'] = $sig;
+    $correct['sig_actual'] = $sig;
     $parsed = parse_sig($sig, @$correct['drug_name'], $correct);
   }
 
@@ -703,10 +703,10 @@ if ($sig_index === false) {
 
     $parsed = parse_sig($rx['sig_actual'], $rx['drug_name']);
 
-    if ($rx['sig_qty_per_day'] == $parsed['sig_qty_per_day'])
-      log_info("parsing test sig database same: sig_qty_per_day $rx[sig_qty_per_day], $rx[drug_name], $rx[sig_actual]", $parsed);
+    if ($rx['qty_per_day'] == $parsed['qty_per_day'])
+      log_info("parsing test sig database same: qty_per_day $rx[qty_per_day], $rx[drug_name], $rx[sig_actual]", $parsed);
     else
-      log_error("parsing test sig database change: sig_qty_per_day $rx[sig_qty_per_day] >>> $parsed[sig_qty_per_day], $rx[drug_name], $rx[sig_actual]", $parsed);
+      log_error("parsing test sig database change: sig_qty_per_day $rx[qty_per_day] >>> $parsed[qty_per_day], $rx[drug_name], $rx[sig_actual]", $parsed);
 
     //$mysql->run(
 
@@ -717,10 +717,10 @@ if ($sig_index === false) {
         sig_qty                   = $parsed[sig_qty],
         sig_days                  = ".($parsed['sig_days'] ?: 'NULL')."
         sig_qty_per_day           = $parsed[qty_per_day],
-        sig_qty_per_time          = $parsed[qty_per_time],
-        sig_frequency             = $parsed[frequency],
-        sig_frequency_numerator   = $parsed[frequency_numerator],
-        sig_frequency_denominator = $parsed[frequency_denominator]
+        sig_qty_per_time          = ".implode(',', $parsed['qty_per_time']).",
+        sig_frequency             = ".implode(',', $parsed['frequency']).",
+        sig_frequency_numerator   = ".implode(',', $parsed['frequency_numerator']).",
+        sig_frequency_denominator = ".implode(',', $parsed['frequency_denominator'])."
       WHERE
         rx_number = $rx[rx_number]
     ");
