@@ -77,6 +77,11 @@ function add_gd_fields_to_order($order, $mysql) {
     if ( ! $order[$i]['item_message_key']) { //if not syncing to order lets provide a reason why we are not filling
       list($days, $message) = get_days_default($order[$i]);
       $order[$i] = set_days_default($order[$i], $days, $message, $mysql);
+
+      if ($order[$i]['sig_days']) {
+        log_error("helper_full_order: sig has days specified. What should we do?", $order[$i]);
+      }
+
     }
 
     if ( ! $order[$i]['item_message_key'] OR ! isset($order[$i]['item_message_text'])) {
