@@ -717,7 +717,7 @@ if ($sig_index === false) {
         sig_qty                   = $parsed[sig_qty],
         sig_days                  = ".($parsed['sig_days'] ?: 'NULL')."
         sig_qty_per_day           = $parsed[qty_per_day],
-        sig_duration              = '".implode(',', $parsed['qty_per_time'])."',
+        sig_duration              = '".implode(',', $parsed['duration'])."',
         sig_qty_per_time          = '".implode(',', $parsed['qty_per_time'])."',
         sig_frequency             = '".implode(',', $parsed['frequency'])."',
         sig_frequency_numerator   = '".implode(',', $parsed['frequency_numerator'])."',
