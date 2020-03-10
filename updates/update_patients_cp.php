@@ -22,7 +22,7 @@ function update_patients_cp() {
     if ( ! $updated['phone2'] AND $updated['old_phone2']) {
       //Phone deleted in CP so delete in WC
       $patient = find_patient_wc($mysql, $updated);
-      upsert_patient_wc($mysql, $patient['patient_id_wc'], 'phone2', NULL);
+      upsert_patient_wc($mysql, $patient['patient_id_wc'], 'billing_phone', NULL);
 
     } else if ($updated['phone2'] AND $updated['phone2'] == $updated['phone1']) {
       //EXEC SirumWeb_AddUpdatePatHomePhone only inserts new phone numbers
@@ -31,7 +31,7 @@ function update_patients_cp() {
     } else if ($updated['phone2'] !== $updated['old_phone2']) {
       $patient = find_patient_wc($mysql, $updated);
       log_error("Phone2 updated in CP", [$updated, $patient]);
-      upsert_patient_wc($mysql, $patient['patient_id_wc'], 'phone2', $updated['phone2']);
+      upsert_patient_wc($mysql, $patient['patient_id_wc'], 'billing_phone', $updated['phone2']);
     }
 
     if ($updated['phone1'] !== $updated['old_phone1']) {
