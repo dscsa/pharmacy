@@ -172,7 +172,7 @@ function durations($cleaned, $correct) {
     }
 
     if ($correct AND implode(',', $durations) != $correct['duration']) {
-      log_notice("test_parse_sig incorrect duration: $correct[sig]", ['cleaned' => $cleaned, 'correct' => $correct['duration'], 'current' => $durations]);
+      log_error("test_parse_sig incorrect duration: $correct[sig]", ['cleaned' => $cleaned, 'correct' => $correct['duration'], 'current' => $durations]);
     }
 
     return $durations;
@@ -205,7 +205,7 @@ function qtys_per_time($durations, $drug_name, $correct) {
   }
 
   if ($correct AND implode(',', $qtys_per_time) != $correct['qty_per_time']) {
-    log_notice("test_parse_sig incorrect qtys_per_time: $correct[sig]", ['durations' => $durations, 'correct' => $correct['qty_per_time'], 'current' => $qtys_per_time]);
+    log_error("test_parse_sig incorrect qtys_per_time: $correct[sig]", ['durations' => $durations, 'correct' => $correct['qty_per_time'], 'current' => $qtys_per_time]);
   }
 
   return $qtys_per_time;
@@ -223,7 +223,7 @@ function frequency_numerators($durations, $correct) {
   }
 
   if ($correct AND implode(',', $frequency_numerators) != $correct['frequency_numerator']) {
-    log_notice("test_parse_sig incorrect frequency_numerators: $correct[sig]", ['durations' => $durations, 'correct' => $correct['frequency_numerator'], 'current' => $frequency_numerators]);
+    log_error("test_parse_sig incorrect frequency_numerators: $correct[sig]", ['durations' => $durations, 'correct' => $correct['frequency_numerator'], 'current' => $frequency_numerators]);
   }
 
   return $frequency_numerators;
@@ -241,7 +241,7 @@ function frequency_denominators($durations, $correct) {
   }
 
   if ($correct AND implode(',', $frequency_denominators) != $correct['frequency_denominator']) {
-    log_notice("test_parse_sig incorrect frequency_denominators: $correct[sig]", ['durations' => $durations, 'correct' => $correct['frequency_denominator'], 'current' => $frequency_denominators]);
+    log_error("test_parse_sig incorrect frequency_denominators: $correct[sig]", ['durations' => $durations, 'correct' => $correct['frequency_denominator'], 'current' => $frequency_denominators]);
   }
 
   return $frequency_denominators;
@@ -279,7 +279,7 @@ function frequencies($durations, $correct) {
   }
 
   if ($correct AND implode(',', $frequencies) != $correct['frequency']) {
-    log_notice("test_parse_sig incorrect frequencies: $correct[sig]", ['as_needed' => $as_needed, 'durations' => $durations, 'correct' => $correct['frequency'], 'current' => $frequencies]);
+    log_error("test_parse_sig incorrect frequencies: $correct[sig]", ['as_needed' => $as_needed, 'durations' => $durations, 'correct' => $correct['frequency'], 'current' => $frequencies]);
   }
 
   return $frequencies;
