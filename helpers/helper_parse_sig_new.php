@@ -283,6 +283,6 @@ function sig_qty($parsed) {
 
   //eval converts string fractions to decimals https://stackoverflow.com/questions/7142657/convert-fraction-string-to-decimal
   foreach ($parsed['frequency'] as $i => $frequency)
-    $qty += $parsed['duration'][$i] * $parsed['qty_per_time'][$i] * $parsed['frequency_numerator'][$i] / $parsed['frequency_denominator'][$i] / eval($frequency);
+    $qty += $parsed['duration'][$i] * $parsed['qty_per_time'][$i] * $parsed['frequency_numerator'][$i] / $parsed['frequency_denominator'][$i] / eval("return $frequency;");
   return $qty;
 }
