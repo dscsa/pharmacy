@@ -33,7 +33,8 @@ function clean_sig($sig) {
 
   //Cleanup
   $sig = preg_replace('/\(.*?\)/', '', $sig); //get rid of parenthesis // "Take 1 capsule (300 mg total) by mouth 3 (three) times daily."
-  $sig = preg_replace('/\\\/', '', $sig);   //get rid of backslashes
+  $sig = preg_replace('/\\\/', '', $sig);   //get rid of backslashes and single quotes (latter for sql savings errors)
+  $sig = preg_replace('/\'/', "''", $sig);   //escape single quotes (latter for sql savings errors)
   $sig = preg_replace('/\\band\\b/i', '&', $sig);   // & is easier tp search in regex than "and"
   $sig = preg_replace('/ +(mc?g)\\b| +(ml)\\b/i', '$1', $sig);   //get rid of backslashes
 
