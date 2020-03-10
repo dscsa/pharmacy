@@ -67,7 +67,9 @@ function import_cp_patients() {
     LEFT JOIN csaddr a (nolock) ON pa.addr_id=a.addr_id
     LEFT JOIN cprx ON cprx.pat_id = pat.pat_id AND orig_disp_date < GETDATE() - 4
     LEFT JOIN cppat_alr ON cppat_alr.pat_id = pat.pat_id
-    WHERE birth_date IS NOT NULL -- pat.pat_id = 5869
+    WHERE
+      birth_date IS NOT NULL AND -- pat.pat_id = 5869
+      pat_status_cn <> 2 -- Patient Inactive in Guardian
     GROUP BY pat.pat_id -- because cppat_phone had a duplicate entry for pat_id 5130 we got two rows so need a groupby.  This also removes refills_used from needing to be a subquery
 
   ");
