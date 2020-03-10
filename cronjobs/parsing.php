@@ -704,7 +704,7 @@ if ($sig_index === false) {
     $parsed = parse_sig($rx['sig_actual'], $rx['drug_name']);
 
     if ($rx['sig_qty_per_day'] == $parsed['sig_qty_per_day'])
-      log_notice("parsing test sig database same: sig_qty_per_day $rx[sig_qty_per_day], $rx[drug_name], $rx[sig_actual]", $parsed);
+      log_info("parsing test sig database same: sig_qty_per_day $rx[sig_qty_per_day], $rx[drug_name], $rx[sig_actual]", $parsed);
     else
       log_error("parsing test sig database change: sig_qty_per_day $rx[sig_qty_per_day] >>> $parsed[sig_qty_per_day], $rx[drug_name], $rx[sig_actual]", $parsed);
 
@@ -716,11 +716,11 @@ if ($sig_index === false) {
         sig_clean                 = '$parsed[sig_clean]',
         sig_qty                   = $parsed[sig_qty],
         sig_days                  = ".($parsed['sig_days'] ?: 'NULL')."
-        sig_qty_per_day           = $parsed[sig_qty_per_day],
-        sig_qty_per_time          = $parsed[sig_qty_per_time],
-        sig_frequency             = $parsed[sig_frequency],
-        sig_frequency_numerator   = $parsed[sig_frequency_numerator],
-        sig_frequency_denominator = $parsed[sig_frequency_denominator]
+        sig_qty_per_day           = $parsed[qty_per_day],
+        sig_qty_per_time          = $parsed[qty_per_time],
+        sig_frequency             = $parsed[frequency],
+        sig_frequency_numerator   = $parsed[frequency_numerator],
+        sig_frequency_denominator = $parsed[frequency_denominator]
       WHERE
         rx_number = $rx[rx_number]
     ");
