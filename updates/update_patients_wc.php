@@ -47,9 +47,12 @@ function update_patients_wc() {
       $created_needs_form++;
       //Registration Started but Not Complete (first 1/2 of the registration form)
     }
+    else if ($created['patient_state'] != 'GA') {
+      //log_error("update_patients_wc: patient in WC but not in CP, because patient is not in GA $created[first_name] $created[last_name] wc:$created[patient_id_wc]", [$patient, $created]);
+    }
     else {
       $created_new_to_cp++;
-      log_error("update_patients_wc: patient in WC but not in CP, likely a duplicate user in WC $created[first_name] $created[last_name] wc:$created[patient_id_wc]", [$patient, $created]);
+      log_error("update_patients_wc: patient in WC but not in CP, likely a duplicate user in WC or patient inactivated in CP $created[first_name] $created[last_name] wc:$created[patient_id_wc]", [$patient, $created]);
     }
   }
 
