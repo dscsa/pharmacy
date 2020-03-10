@@ -171,7 +171,7 @@ function durations($cleaned, $correct) {
       }
     }
 
-    if (implode(',', $durations) != $correct['duration']) {
+    if ($correct AND implode(',', $durations) != $correct['duration']) {
       log_notice("test_parse_sig incorrect duration: $correct[sig]", ['cleaned' => $cleaned, 'correct' => $correct['duration'], 'current' => $durations]);
     }
 
@@ -204,7 +204,7 @@ function qtys_per_time($durations, $drug_name, $correct) {
     //log_notice("qtys_per_time: cleaning milligrams: $sig_part", ['sig_match' => $sig_match, 'drug_match' => $drug_match]);
   }
 
-  if (implode(',', $qtys_per_time) != $correct['qty_per_time']) {
+  if ($correct AND implode(',', $qtys_per_time) != $correct['qty_per_time']) {
     log_notice("test_parse_sig incorrect qtys_per_time: $correct[sig]", ['durations' => $durations, 'correct' => $correct['qty_per_time'], 'current' => $qtys_per_time]);
   }
 
@@ -222,7 +222,7 @@ function frequency_numerators($durations, $correct) {
 
   }
 
-  if (implode(',', $frequency_numerators) != $correct['frequency_numerator']) {
+  if ($correct AND implode(',', $frequency_numerators) != $correct['frequency_numerator']) {
     log_notice("test_parse_sig incorrect frequency_numerators: $correct[sig]", ['durations' => $durations, 'correct' => $correct['frequency_numerator'], 'current' => $frequency_numerators]);
   }
 
@@ -240,7 +240,7 @@ function frequency_denominators($durations, $correct) {
     $frequency_denominators[$sig_part] = $match ? $match[1] : 1;
   }
 
-  if (implode(',', $frequency_denominators) != $correct['frequency_denominator']) {
+  if ($correct AND implode(',', $frequency_denominators) != $correct['frequency_denominator']) {
     log_notice("test_parse_sig incorrect frequency_denominators: $correct[sig]", ['durations' => $durations, 'correct' => $correct['frequency_denominator'], 'current' => $frequency_denominators]);
   }
 
@@ -278,7 +278,7 @@ function frequencies($durations, $correct) {
     $frequencies[$sig_part] = $freq;
   }
 
-  if (implode(',', $frequencies) != $correct['frequency']) {
+  if ($correct AND implode(',', $frequencies) != $correct['frequency']) {
     log_notice("test_parse_sig incorrect frequencies: $correct[sig]", ['as_needed' => $as_needed, 'durations' => $durations, 'correct' => $correct['frequency'], 'current' => $frequencies]);
   }
 
