@@ -697,11 +697,13 @@ if ($sig_index === false) {
 
   $rxs = $mysql->run("SELECT * FROM gp_rxs_single WHERE sig_initial IS NULL LIMIT 10")[0];
 
+  log_notice("parsing test sig database rxs", $rxs);
+
   foreach ($rxs as $rx) {
 
     $parsed = parse_sig($rx['sig_actual'], $rx['drug_name']);
     log_notice("parsing test sig database: $rx[drug_name] $rx[sig_actual]", $parsed);
-    
+
   }
 
 
