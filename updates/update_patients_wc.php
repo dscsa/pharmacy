@@ -88,7 +88,7 @@ function update_patients_wc() {
       : log_error("update_patients_wc: updated no change? $updated[first_name] $updated[last_name] $updated[birth_date] cp:$updated[patient_id_cp] wc:$updated[patient_id_wc]", $updated);
 
     if ( ! $updated['email'] AND $updated['old_email']) {
-      upsert_patient_wc($mysql, $updated['patient_id_wc'], 'email', $update['old_email']);
+      upsert_patient_wc($mysql, $updated['patient_id_wc'], 'email', $updated['old_email']);
     } else if ($updated['email'] !== $updated['old_email']) {
       upsert_patient_cp($mssql, "EXEC SirumWeb_AddUpdatePatEmail '$updated[patient_id_cp]', '$updated[email]'");
     }
@@ -141,31 +141,28 @@ function update_patients_wc() {
       upsert_patient_wc($mysql, $updated['patient_id_wc'], 'coupon', $updated['old_payment_coupon'] ?: $updated['old_tracking_coupon']);
     }
 
-    if (strlen($updated['phone1']) < 10 AND strlen($updated['old_phone1']) >= 10) {
+    if ( ! $updated['phone1'] AND $updated['old_phone1']) {
+      //Phone was deleted in WC, so delete in CP
+      delete_cp_phone($mssql, $updated['patient_id_cp'], 6);
+    } else if (strlen($updated['phone1']) < 10 AND strlen($updated['old_phone1']) >= 10) {
+      //Phone added to WC was malformed, so revert to old phone
       upsert_patient_wc($mysql, $updated['patient_id_wc'], 'phone1', $updated['old_phone1']);
     } else if ($updated['phone1'] !== $updated['old_phone1']) {
+      //Well-formed added to WC so now add to CP
       upsert_patient_cp($mssql, "EXEC SirumWeb_AddUpdatePatHomePhone '$updated[patient_id_cp]', '$updated[phone1]'");
     }
 
-    if ($updated['phone2'] AND $updated['phone2'] == $updated['phone1']) {
+    if ( ! $updated['phone2'] AND $updated['old_phone2']) {
+      //Phone was deleted in WC, so delete in CP
+      delete_cp_phone($mssql, $updated['patient_id_cp'], 9);
+    } else if ($updated['phone2'] AND $updated['phone2'] == $updated['phone1']) {
+      //Phone added to WC was a duplicate
       upsert_patient_wc($mysql, $updated['patient_id_wc'], 'phone2', NULL);
-    } else if ($updated['old_phone2'] AND $updated['old_phone2'] == $updated['old_phone1']) {
-
-      echo "
-      Phone1: $updated[old_phone1] >>> $updated[phone1]";
-
-      //EXEC SirumWeb_AddUpdatePatHomePhone only inserts new phone numbers
-      upsert_patient_cp($mssql, "
-        UPDATE ph
-        SET area_code = NULL, phone_no = NULL
-        FROM cppat_phone pp
-        JOIN csphone ph ON pp.phone_id = ph.phone_id
-        WHERE pp.pat_id = $updated[patient_id_cp] AND pp.phone_type_cn = 9
-      ");
-
     } else if (strlen($updated['phone2']) < 10 AND strlen($updated['old_phone2']) >= 10) {
+      //Phone added to WC was malformed, so revert to old phone
       upsert_patient_wc($mysql, $updated['patient_id_wc'], 'phone2', $updated['old_phone2']);
     } else if ($updated['phone2'] !== $updated['old_phone2']) {
+      //Well-formed, non-duplicated phone added to WC so now add to CP
       log_error("EXEC SirumWeb_AddUpdatePatHomePhone '$updated[patient_id_cp]', '$updated[phone2]', 9", $updated);
       upsert_patient_cp($mssql, "EXEC SirumWeb_AddUpdatePatHomePhone '$updated[patient_id_cp]', '$updated[phone2]', 9");
     }

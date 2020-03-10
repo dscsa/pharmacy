@@ -50,5 +50,17 @@ function upsert_patient_cp($mssql, $sql) {
   //echo "
   //$sql";
 
-  $mssql->run("$sql");
+  return $mssql->run("$sql");
+}
+
+//EXEC SirumWeb_AddUpdatePatHomePhone only inserts new phone numbers
+//6 is Phone1 and 9 is Phone2
+function delete_cp_phone($mssql, $patient_id_cp, $phone_type_cn) {
+  return upsert_patient_cp($mssql, "
+    UPDATE ph
+    SET area_code = NULL, phone_no = NULL
+    FROM cppat_phone pp
+    JOIN csphone ph ON pp.phone_id = ph.phone_id
+    WHERE pp.pat_id = $patient_id_cp AND pp.phone_type_cn = $phone_type_cn
+  ");
 }
