@@ -285,8 +285,8 @@ function frequencies($durations, $correct) {
   return $frequencies;
 }
 
-function sig_days($parsed) {
-  return array_sum($parsed['duration']) ?: DAYS_STD;
+function sig_days($duration) {
+  return array_sum($duration) ?: DAYS_STD;
 }
 
 function sig_qty($parsed) {
