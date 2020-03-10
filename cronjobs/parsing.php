@@ -704,9 +704,9 @@ if ($sig_index === false) {
     $parsed = parse_sig($rx['sig_actual'], $rx['drug_name']);
 
     if ($rx['sig_qty_per_day'] == $parsed['qty_per_day'])
-      log_notice("parsing test sig database SAME: qty_per_day $parsed[qty_per_day], $rx[drug_name], $rx[sig_actual]", $parsed);
+      log_notice("parsing test sig database SAME: $rx[rx_number] qty_per_day $parsed[qty_per_day], $rx[drug_name], $rx[sig_actual]", $parsed);
     else
-      log_notice("parsing test sig database CHANGE: sig_qty_per_day $rx[sig_qty_per_day] >>> $parsed[qty_per_day], $rx[drug_name], $rx[sig_actual]", $parsed);
+      log_notice("parsing test sig database CHANGE: $rx[rx_number] sig_qty_per_day $rx[sig_qty_per_day] >>> $parsed[qty_per_day], $rx[drug_name], $rx[sig_actual]", $parsed);
 
     $mysql->run("
       UPDATE gp_rxs_single SET
