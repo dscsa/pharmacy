@@ -19,8 +19,11 @@ function update_patients_cp() {
 
   foreach($changes['updated'] as $i => $updated) {
 
-    if ($updated['phone2'] AND $updated['phone2'] == $updated['phone1']) {
-
+    if ( ! $updated['phone2'] AND $updated['old_phone2']) {
+      //Phone deleted in CP so delete in WC
+      upsert_patient_wc($mysql, $updated['patient_id_wc'], 'phone2', NULL);
+      
+    } else if ($updated['phone2'] AND $updated['phone2'] == $updated['phone1']) {
       //EXEC SirumWeb_AddUpdatePatHomePhone only inserts new phone numbers
       delete_cp_phone($mssql, $updated['patient_id_cp'], 9);
 
