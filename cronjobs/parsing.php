@@ -224,7 +224,7 @@ $test_sigs = [
     'qty_per_time' => '1',
     'frequency_numerator' => '1',
     'frequency_denominator' => '8',
-    'frequency' => '1', //hourly as needed
+    'frequency' => '2/24', //hourly as needed
     'duration' => '0'
   ],
   "Take 2 tablets in the morning and 1 at noon and 1 at supper" => [
@@ -337,7 +337,7 @@ $test_sigs = [
     'qty_per_time' => '1',
     'frequency_numerator' => '1',
     'frequency_denominator' => '8',
-    'frequency' => '1', //hourly as needed
+    'frequency' => '2/24', //hourly as needed
     'duration' => '0'
   ], //Unfixed
   "Take 1 tablet by mouth twice a day 1 in am and 1 at 3pm" => [
@@ -449,14 +449,14 @@ $test_sigs = [
     'qty_per_time' => '1',
     'frequency_numerator' => '1',
     'frequency_denominator' => '5',
-    'frequency' => '1', // as needed minutes
+    'frequency' => '2/24/60', // as needed minutes
     'duration' => '0'
   ],
   "Take 1 tablet by mouth once a day when your feet are swollen. When not swollen, take every other day" => [
     'qty_per_time' => '1,1',
     'frequency_numerator' => '1,1',
     'frequency_denominator' => '1,2',
-    'frequency' => '2,2', //when == as needed
+    'frequency' => '2,2', //when == as needed, as needed days
     'duration' => '0,0'
   ],
   "Take 1 tablet by mouth 1-3 hours before bedtime" => [
@@ -526,7 +526,7 @@ $test_sigs = [
     'qty_per_time' => '1',
     'frequency_numerator' => '1',
     'frequency_denominator' => '8',
-    'frequency' => '1', //hourly as needed
+    'frequency' => '2/24', //hourly as needed
     'duration' => '0'
   ],
   "Take 5 mg by mouth 2 (two) times daily." => [
@@ -617,7 +617,7 @@ $test_sigs = [
     'qty_per_time' => '1',
     'frequency_numerator' => '1',
     'frequency_denominator' => '8',
-    'frequency' => '1', //hourly as needed
+    'frequency' => '2/24', //hourly as needed
     'duration' => '0'
   ],
   "Take 1 tablet (12.5 mg total) by mouth every 12 (twelve) hours" => [

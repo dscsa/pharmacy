@@ -266,10 +266,10 @@ function frequencies($durations, $correct) {
       $freq = '30';
 
     else if (preg_match('/ hour(?!s? +before|s? +after|s? +prior to)/i', $sig_part)) //put this last so less likely to match thinks like "2 hours before (meals|bedtime) every day"
-      $freq = $as_needed ? '1' : '1/24'; // One 24th of a day
+      $freq = $as_needed ? '2/24' : '1/24'; // One 24th of a day
 
     else if (preg_match('/ minute(?!s? +before|s? +after|s? +prior to)/i', $sig_part)) //put this last so less likely to match thinks like "2 hours before (meals|bedtime) every day"
-      $freq = $as_needed ? '1' : '1/24/60'; // One 24th of a day
+      $freq = $as_needed ? '2/24/60' : '1/24/60'; // One 24th of a day
 
     else
       $freq = $as_needed ? '2' : '1'; //defaults to daily if no matches
