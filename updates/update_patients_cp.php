@@ -24,7 +24,7 @@ function update_patients_cp() {
 
     if ( ! $updated['phone2'] AND $updated['old_phone2']) {
       //Phone deleted in CP so delete in WC
-      $patient = find_patient_wc($mysql, $updated);
+      $patient = find_patient_wc($mysql, $updated)[0];
       log_error("Phone2 deleted in CP", [$updated, $patient]);
       update_wc_phone2($mysql, $patient['patient_id_wc'], NULL);
 
@@ -33,7 +33,7 @@ function update_patients_cp() {
       delete_cp_phone($mssql, $updated['patient_id_cp'], 9);
 
     } else if ($updated['phone2'] !== $updated['old_phone2']) {
-      $patient = find_patient_wc($mysql, $updated);
+      $patient = find_patient_wc($mysql, $updated)[0];
       log_error("Phone2 updated in CP", [$updated, $patient]);
       update_wc_phone2($mysql, $patient['patient_id_wc'], $updated['phone2']);
     }
