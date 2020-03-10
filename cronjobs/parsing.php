@@ -702,7 +702,11 @@ if ($sig_index === false) {
   foreach ($rxs as $rx) {
 
     $parsed = parse_sig($rx['sig_actual'], $rx['drug_name']);
-    log_notice("parsing test sig database: $rx[drug_name] $rx[sig_actual]", $parsed);
+
+    if ($rx['sig_qty_per_day'] == $parsed['sig_qty_per_day'])
+      log_notice("parsing test sig database same: sig_qty_per_day $rx['sig_qty_per_day'] $rx[drug_name] $rx[sig_actual]", $parsed);
+    else
+      log_error("parsing test sig database change: sig_qty_per_day $rx['sig_qty_per_day'] >>> $parsed['sig_qty_per_day'] $rx[drug_name] $rx[sig_actual]", $parsed);
 
   }
 
