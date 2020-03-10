@@ -20,8 +20,9 @@ function parse_sig($sig_actual, $drug_name, $correct = null) {
   $parsed['frequency_denominator'] = frequency_denominators($parsed['duration'], $correct);
   $parsed['frequency'] = frequencies($parsed['duration'], $correct);
 
-  $parsed['sig_qty']         = sig_qty($parsed);
-  $parsed['sig_days']        = array_sum($parsed['duration']);
+  $parsed['sig_days'] = sig_days($parsed['duration']);
+  $parsed['sig_qty']  = sig_qty($parsed);
+
   $parsed['sig_qty_per_day'] = round($parsed['sig_qty']/$parsed['sig_days'], 3);
 
   log_notice("parsed sig", $parsed);
@@ -155,11 +156,18 @@ function durations($cleaned, $correct) {
       preg_match('/(?<!every )(\d+) day/i', $split, $match);
 
       if ($match AND $match[1]) {
+
         $remaining_days   -= $match[1];
         $durations[$split] = $match[1];
 
-      } else {
+      } else if ($remaining_days != DAYS_STD) {
+
         $durations[$split] = $remaining_days;
+
+      } else {
+
+        $durations[$split] = 0;
+
       }
     }
 
@@ -277,12 +285,17 @@ function frequencies($durations, $correct) {
   return $frequencies;
 }
 
+function sig_days($parsed) {
+  return array_sum($parsed['duration']) ?: DAYS_STD;
+}
+
 function sig_qty($parsed) {
 
   $qty = 0;
 
   //eval converts string fractions to decimals https://stackoverflow.com/questions/7142657/convert-fraction-string-to-decimal
   foreach ($parsed['frequency'] as $i => $frequency)
-    $qty += $parsed['duration'][$i] * $parsed['qty_per_time'][$i] * $parsed['frequency_numerator'][$i] / $parsed['frequency_denominator'][$i] / eval("return $frequency;");
+    $qty += ($parsed['duration'][$i] ?: DAYS_STD) * $parsed['qty_per_time'][$i] * $parsed['frequency_numerator'][$i] / $parsed['frequency_denominator'][$i] / eval("return $frequency;");
+
   return $qty;
 }

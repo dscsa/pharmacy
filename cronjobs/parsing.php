@@ -9,6 +9,13 @@ require_once 'helpers/helper_parse_sig_new.php';
 require_once 'helpers/helper_constants.php';
 
 $test_sigs = [
+  "Take 2 tablets by mouth in the morning and Take 1 tablet once in the evening" => [
+    'qty_per_time' => '2,1',
+    'frequency_numerator' => '1,1',
+    'frequency_denominator' => '1,1',
+    'frequency' => '1,1',
+    'duration' => '90,90'
+  ],
   "Use 4 vials in nebulizer as directed in the morning and evening" => [
     'qty_per_time' => '12', //MLs
     'frequency_numerator' => '2',
@@ -443,13 +450,6 @@ $test_sigs = [
     'frequency_denominator' => '5',
     'frequency' => '1', // as needed minutes
     'duration' => '90'
-  ],
-  "Take 2 tablets by mouth in the morning and Take 1 tablet once in the evening" => [
-    'qty_per_time' => '2,1',
-    'frequency_numerator' => '1,1',
-    'frequency_denominator' => '1,1',
-    'frequency' => '1,1',
-    'duration' => '90,90'
   ],
   "Take 1 tablet by mouth once a day when your feet are swollen. When not swollen, take every other day" => [
     'qty_per_time' => '1,1',
