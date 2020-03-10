@@ -26,7 +26,7 @@ function update_rxs_single() {
     //TODO Eventually Save the Clean Script back into Guardian so that Cindy doesn't need to rewrite them
 
     if ( ! $parsed['qty_per_day']) {
-      log_error("update_rxs_single created: sig could not be parsed");
+      log_error("update_rxs_single created: sig could not be parsed", $rx);
       continue;
     }
 
