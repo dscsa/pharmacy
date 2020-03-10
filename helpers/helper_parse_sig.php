@@ -70,8 +70,8 @@ function clean_sig($sig) {
   $sig = preg_replace('/\\b(ninety|noventa)\\b/i', '90', $sig); // \\b is for space or start of line
 
   //Substitute fractions
-  $sig = preg_replace('/\\b(\d+) (& )?(.5|1\/2|1-half|1 half)\\b/i', '$1.5', $sig); //Take 1 1/2 tablets
-  $sig = preg_replace('/(^| )(.5|1\/2|1-half|1 half)\\b/i', ' 0.5', $sig);
+  $sig = preg_replace('/\\b(\d+) (& )?(\.5|1\/2|1-half|1 half)\\b/i', '$1.5', $sig); //Take 1 1/2 tablets
+  $sig = preg_replace('/(^| )(\.5|1\/2|1-half|1 half)\\b/i', ' 0.5', $sig);
 
   //Take Last (Max?) of Numeric Ranges
   $sig = preg_replace('/\\b[.\d]+ or ([.\d]+)\\b/i', '$1', $sig, 1); //Take 1 or 2 every 3 or 4 hours. Let's convert that to Take 2 every 3 or 4 hours (no global flag).  CK approves of first substitution but not sure of the 2nd so the conservative answer is to leave it alone
@@ -116,7 +116,7 @@ function clean_sig($sig) {
   $sig = preg_replace('/\\b(breakfast|mornings?)[, &]*(dinner|night|evenings?)\\b/i', '2 times per day', $sig);
   $sig = preg_replace('/\\b(before|with|after) meals\\b/i', '3 times per day', $sig); //TODO wrong when "2 times daily with meals"
   $sig = preg_replace('/\\b1 (in|at) \d*(am|pm)[, &]*1 (in|at) \d*(am|pm)\\b/i', '2 times per day', $sig); // Take 1 tablet by mouth twice a day 1 in am and 1 at 3pm was causing issues
-  $sig = preg_replace('/\\bin \d+ (minutes?|days?|weeks?|months?)\\b|/i', '', $sig); // Remove "in 5 days|hours|weeks" so that we don't confuse frequencies
+  $sig = preg_replace('/\\b(with)?in \d+ (minutes?|days?|weeks?|months?)\\b|/i', '', $sig); // Remove "in 5 days|hours|weeks" so that we don't confuse frequencies
 
   //Latin and Appreviations
   $sig = preg_replace('/\\bBID\\b/i', '2 times per day', $sig);
@@ -253,7 +253,7 @@ function frequencies($durations, $correct) {
 
   foreach ($durations as $sig_part => $duration) {
 
-    $as_needed = preg_match('/(^| )(prn|as needed|at onset|when)/i', $sig_part);
+    $as_needed = preg_match('/(^| )(prn|as needed|at onset|when|at first sign)/i', $sig_part);
 
     if (preg_match('/ day\\b/i', $sig_part))
       $freq = $as_needed ? '2' : '1';
