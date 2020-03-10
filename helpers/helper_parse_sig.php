@@ -116,7 +116,7 @@ function clean_sig($sig) {
   $sig = preg_replace('/\\b(breakfast|mornings?)[, &]*(dinner|night|evenings?)\\b/i', '2 times per day', $sig);
   $sig = preg_replace('/\\b(before|with|after) meals\\b/i', '3 times per day', $sig); //TODO wrong when "2 times daily with meals"
   $sig = preg_replace('/\\b1 (in|at) \d*(am|pm)[, &]*1 (in|at) \d*(am|pm)\\b/i', '2 times per day', $sig); // Take 1 tablet by mouth twice a day 1 in am and 1 at 3pm was causing issues
-  $sig = preg_replace('/\\b(with)?in \d+ (a )?(minutes?|days?|weeks?|months?)\\b|/i', '', $sig); // Remove "in 5 days|hours|weeks" so that we don't confuse frequencies
+  $sig = preg_replace('/\\b(with)?in (a )?\d+ (minutes?|days?|weeks?|months?)\\b|/i', '', $sig); // Remove "in 5 days|hours|weeks" so that we don't confuse frequencies
 
   //Latin and Appreviations
   $sig = preg_replace('/\\bBID\\b/i', '2 times per day', $sig);
