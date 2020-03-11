@@ -633,7 +633,7 @@ $test_sigs = [
     'frequency_denominators' => '1,1',
     'frequencies' => '1,1',
     'durations' => '0,21'
-  ], //NOT FIXED
+  ],
   "Take 1 tablet by mouth 3 times a day" => [
     'qtys_per_time' => '1',
     'frequency_numerators' => '3',
@@ -669,7 +669,9 @@ $test_sigs = [
     'frequency_denominators' => '1,1,1,1',
     'frequencies' => '1,1,1,1',
     'durations' => '7,7,7,7'
-  ] //Not Fixed
+  ]
+
+  //Take 2 tablets (250 mcg total) by mouth daily. This medication REPLACES Levothyroxine 112 mcg",
 ];
 
 

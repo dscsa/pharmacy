@@ -96,6 +96,9 @@ function import_cp_rxs_single() {
       $row['drug_name'] = str_replace([' CAPSULE', ' CAPS', ' CP', ' TABLET', ' TABS', ' TB', ' HCL', ' MG', ' MEQ', ' MCG', ' ML', '\\"'], [' CAP', ' CAP', ' CAP', ' TAB', ' TAB', ' TAB', '', 'MG', 'MEQ', 'MCG', 'ML', ''], $row['drug_name']);
       $row['provider_phone'] = clean_phone($row['provider_phone']);
 
+
+      if ( ! $row['rx_date_expired']) log_error('import_cp_rxs_single has NO EXPIRATION DATE', $row);
+
       //Some validations
       assert_length($row, 'provider_phone', 12);  //no delimiters with single quotes
 
