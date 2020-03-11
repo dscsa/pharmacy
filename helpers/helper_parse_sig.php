@@ -287,7 +287,13 @@ function frequencies($durations, $correct) {
 }
 
 function qty_per_day($parsed) {
-  return round($parsed['sig_qty']/($parsed['sig_days'] ?: DAYS_STD), 3);
+
+  $qty_per_day = $parsed['sig_qty']/($parsed['sig_days'] ?: DAYS_STD);
+
+  if ($qty_per_day > 10)
+    log_error("qty_per_day > 10", $parsed);
+
+  return round($qty_per_day, 3);
 }
 
 function sig_qty($parsed) {
