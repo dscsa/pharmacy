@@ -81,7 +81,8 @@ function import_cp_rxs_single() {
       sig_text_english <> '' AND
       ISNUMERIC(script_no) = 1 AND  -- Can be NULL, Empty String, or VarChar. Highly correlated with script_status_cn > 0 but not exact.  We should figure out which one is better to use
       ISNULL(cprx.status_cn, 0) <> 3 AND -- NULL/0 is active, 1 is not yet dispensed?, 2 is transferred out/inactive, 3 is voided
-      cprx.chg_date > @today - 7 -- Only recent scripts to cut down on the import time (60 secs for 20k Rxs)
+      cprx.chg_date > @today - 7 AND -- Only recent scripts to cut down on the import time (60 secs for 20k Rxs)
+      cprx.expire_date IS NOT NULL -- IF null this messes up days_left, rx_date_expired, refill_orig??, and more...
   ");
 
   //log_info("
@@ -95,9 +96,6 @@ function import_cp_rxs_single() {
       //Clean Drug Name and save in database RTRIM(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(ISNULL(generic_name, cprx.drug_name), ' CAPSULE', ' CAP'),' CAPS',' CAP'),' TABLET',' TAB'),' TABS',' TAB'),' TB', ' TAB'),' HCL',''),' MG','MG'), '\"', ''))
       $row['drug_name'] = str_replace([' CAPSULE', ' CAPS', ' CP', ' TABLET', ' TABS', ' TB', ' HCL', ' MG', ' MEQ', ' MCG', ' ML', '\\"'], [' CAP', ' CAP', ' CAP', ' TAB', ' TAB', ' TAB', '', 'MG', 'MEQ', 'MCG', 'ML', ''], $row['drug_name']);
       $row['provider_phone'] = clean_phone($row['provider_phone']);
-
-
-      if ( ! $row['rx_date_expired']) log_error('import_cp_rxs_single has NO EXPIRATION DATE', $row);
 
       //Some validations
       assert_length($row, 'provider_phone', 12);  //no delimiters with single quotes
