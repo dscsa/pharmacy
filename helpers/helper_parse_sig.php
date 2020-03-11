@@ -114,7 +114,6 @@ function clean_sig($sig) {
   $sig = preg_replace('/\\bmonthly\\b/i', 'per month', $sig);
 
   $sig = preg_replace('/\\b(breakfast|mornings?)[, &]*(dinner|night|evenings?)\\b/i', '2 times per day', $sig);
-  $sig = preg_replace('/\\b(before|with|after) meals\\b/i', '3 times per day', $sig); //TODO wrong when "2 times daily with meals"
   $sig = preg_replace('/\\b1 (in|at) \d*(am|pm)[, &]*1 (in|at) \d*(am|pm)\\b/i', '2 times per day', $sig); // Take 1 tablet by mouth twice a day 1 in am and 1 at 3pm was causing issues
   $sig = preg_replace('/\\b(in|at) \d\d\d\d?[, &]*(in|at)?\d\d\d\d?\\b/i', '2 times per day', $sig); //'Take 2 tablets by mouth twice a day at 0800 and 1700'
   $sig = preg_replace('/\\b(with)?in (a )?\d+ (minutes?|days?|weeks?|months?)\\b|/i', '', $sig); // Remove "in 5 days|hours|weeks" so that we don't confuse frequencies
@@ -215,10 +214,12 @@ function frequency_numerators($durations, $correct) {
 
   $frequency_numerators = [];
 
+  $default = preg_match('/\\b(before|with|after) meals\\b/i', $sig_part, $match) ? 3 : 1;
+
   foreach ($durations as $sig_part => $duration) {
 
     preg_match('/([1-9]\\b|10|11|12) +time/i', $sig_part, $match);
-    $frequency_numerators[$sig_part] = $match ? $match[1] : 1;
+    $frequency_numerators[$sig_part] = $match ? $match[1] : $default;
 
   }
 

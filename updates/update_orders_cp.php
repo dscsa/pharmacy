@@ -116,7 +116,7 @@ function update_orders_cp() {
 
     if ( ! $groups['COUNT_FILLED']) {
       order_hold_notice($groups);
-      log_error("update_orders_cp SHOULD HAVE BEEN DELETED WITH SYNC CODE ABOVE: Created Order But Not Filling Any? Hopefully due to 'NO ACTION MISSING GSN'", $groups);
+      log_error("update_orders_cp SHOULD HAVE BEEN DELETED WITH SYNC CODE ABOVE: Created Order But Not Filling Any? Hopefully due to 'NO ACTION MISSING GSN' or Order had all items removed already", $groups);
       continue;
     }
 
