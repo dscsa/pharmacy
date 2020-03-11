@@ -258,7 +258,7 @@ function frequencies($durations, $correct) {
     $as_needed = preg_match('/(^| )(prn|as needed|at onset|when|at first sign)/i', $sig_part);
 
     if (preg_match('/ day\\b/i', $sig_part))
-      $freq = $as_needed ? '2' : '1';
+      $freq = '1';
 
     else if (preg_match('/ week\\b/i', $sig_part))
       $freq = '30/4'; //rather than 7 days, calculate as 1/4th a month so we get 45/90 days rather than 42/84 days
