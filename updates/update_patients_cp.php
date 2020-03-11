@@ -21,7 +21,7 @@ function update_patients_cp() {
 
     $changed = changed_fields($updated);
 
-    if ($updated['refills_used'] != $updated['old_refills_used'])
+    if ($updated['refills_used'] == $updated['old_refills_used'])
       log_error("Patient updated in CP", [$updated, $changed]);
 
     if ( ! $updated['phone2'] AND $updated['old_phone2']) {
