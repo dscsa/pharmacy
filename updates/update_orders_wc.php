@@ -130,7 +130,8 @@ function update_orders_wc() {
 
       $order = helper_update_payment($order,  "update_orders_wc: deleted - 0 items", $mysql);
 
-      export_wc_create_order($order,  "update_orders_wc: deleted - 0 items");
+      if ($order[0]['pharmacy_name']) //Don't try to create an order if the person isn't registered
+        export_wc_create_order($order,  "update_orders_wc: deleted - 0 items");
 
       export_gd_publish_invoice($order);
 

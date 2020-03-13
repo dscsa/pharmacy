@@ -672,6 +672,10 @@ $test_sigs = [
   ]
 
   //Take 2 tablets (250 mcg total) by mouth daily. This medication REPLACES Levothyroxine 112 mcg",
+  //'Take 1 tablet by mouth daily Take additional tablet as needed for HF symptoms'
+  //Place 1 tablet under the tongue every 5 minutes as needed for chest pain.
+  //'Take 1 tablet by mouth five times a day for 10 days.'
+  //Take 1 tablet by mouth 5 times a day Take 1 tablet by mouth 5 times a day for 10 days.
 ];
 
 
