@@ -90,7 +90,7 @@ function update_orders_wc() {
         export_gd_publish_invoice($order);
       }
 
-    } else if ($order[0]['item_message_key'] == 'ACTION NEEDS FORM') {
+    } else if ( ! $order[0]['pharmacy_name']) {  //Can't do $order[0]['item_message_key'] == 'ACTION NEEDS FORM' because other keys can take precedence even if form is needed
       //TODO eventually set registration comm-calendar event then delete order but right now just remove items from order
       //If all items are removed, order will not be imported from CP
       $items_to_remove = [];
@@ -130,8 +130,7 @@ function update_orders_wc() {
 
       $order = helper_update_payment($order,  "update_orders_wc: deleted - 0 items", $mysql);
 
-      if ($order[0]['pharmacy_name']) //Don't try to create an order if the person isn't registered
-        export_wc_create_order($order,  "update_orders_wc: deleted - 0 items");
+      export_wc_create_order($order,  "update_orders_wc: deleted - 0 items");
 
       export_gd_publish_invoice($order);
 
