@@ -676,6 +676,8 @@ $test_sigs = [
   //Place 1 tablet under the tongue every 5 minutes as needed for chest pain.
   //'Take 1 tablet by mouth five times a day for 10 days.'
   //Take 1 tablet by mouth 5 times a day Take 1 tablet by mouth 5 times a day for 10 days.
+  //'Take 1 tablet by mouth once a day as directed Take 30 minute before first meal of the day
+  //"Take 1 tablet by mouth at bedtime Dr. Jonathan Williams NPI 1346391299
 ];
 
 

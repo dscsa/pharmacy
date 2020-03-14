@@ -160,7 +160,7 @@ function update_orders_wc() {
 
     if ($old_stage[0] == 'trash' AND $updated['patient_id_wc'] == $updated['old_patient_id_wc']) {
 
-      log_error('WC Order was removed from trash or recreated', $updated);
+      log_error('WC Order was removed from trash, recreated, or duplicate order was permanently deleted', $updated);
 
     } else if ($old_stage[0] == 'trash' AND $updated['patient_id_wc'] != $updated['old_patient_id_wc']) {
 
