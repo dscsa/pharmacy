@@ -236,6 +236,10 @@ function update_order_items() {
         //log_error("days_dispensed_default was wrong: $item[days_dispensed_default] >>> $item[days_dispensed_actual]", ['item' => $item, 'updated' => $updated, 'changed' => $changed_fields]);
       }
 
+      if ($item['refills_dispensed_actual'] != $item['refills_dispensed_default']) {
+        log_error('update_order_items: refills changed', $item);
+      }
+
     } else if ($updated['item_added_by'] == 'MANUAL' AND $updated['old_item_added_by'] != 'MANUAL') {
 
       log_info("Cindy deleted and readded this item", [$updated, $changed_fields]);
