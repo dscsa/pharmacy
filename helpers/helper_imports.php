@@ -80,3 +80,22 @@ function assert_length(&$row, $key, $min, $max = null) {
 
   $row[$key] = 'NULL';
 }
+
+function replace_table($table, $vals) {
+
+  if ( ! count($vals))
+    return log_error("No $table to Import", get_defined_vars());
+
+  $keys = implode(', ', array_keys($vals[0]));
+  $sql  = "INSERT INTO $table ($keys) VALUES ".implode(', ', $vals);
+
+  $mysql->transaction();
+  $mysql->run("DELETE FROM $table");
+  $mysql->run($sql);
+
+  if ($mysql->run("SELECT * FROM $table")[0])
+    return $mysql->commit();
+
+  $mysql->rollback();
+  log_error("$table import was ABORTED");
+}

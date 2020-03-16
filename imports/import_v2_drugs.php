@@ -45,12 +45,5 @@ function import_v2_drugs() {
     $vals[] = '('.implode(', ', $val).')';
   }
 
-  if ( ! count($vals)) return log_error('No v2 Drugs to Import', get_defined_vars());
-
-  $sql = "INSERT INTO gp_drugs_v2 (".implode(', ', array_keys($val)).") VALUES ".implode(', ', $vals);
-
-  $mysql->transaction();
-  $mysql->run("DELETE FROM gp_drugs_v2");
-  $mysql->run($sql);
-  $mysql->run("SELECT * FROM gp_drugs_v2")[0] ? $mysql->commit() : $mysql->rollback();
+  replace_table("gp_drugs_v2", $vals);
 }
