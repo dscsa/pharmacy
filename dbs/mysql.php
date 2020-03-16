@@ -30,6 +30,18 @@ class Mysql {
         return $conn;
     }
 
+    function commit() {
+      return mysqli_commit($this->connection);
+    }
+
+    function transaction() {
+      return mysqli_begin_transaction($this->connection);
+    }
+
+    function rollback() {
+      return mysqli_rollback($this->connection); 
+    }
+
     function escape($var) {
       return mysqli_real_escape_string($this->connection, $var);
     }
