@@ -49,6 +49,11 @@ function import_v2_drugs() {
 
   $sql = "INSERT INTO gp_drugs_v2 (".implode(', ', array_keys($val)).") VALUES ".implode(', ', $vals);
 
+  $mysql->run("DECLARE EXIT HANDLER FOR SQLEXCEPTION
+      BEGIN
+          ROLLBACK;  -- rollback any error in the transaction
+      END;
+  ");
   $mysql->run("START TRANSACTION");
   $mysql->run("DELETE FROM gp_drugs_v2");
   $mysql->run($sql);
