@@ -10,7 +10,7 @@ function import_wc_patients() {
 
   $mysql = new Mysql_Wc();
 
-  $orders = $mysql->run("
+  $patients = $mysql->run("
 
   SELECT
 
@@ -68,9 +68,9 @@ function import_wc_patients() {
      wp_users.ID
   ");
 
-  if ( ! count($orders[0])) return log_error('No Wc Orders to Import', get_defined_vars());
+  if ( ! count($patients[0])) return log_error('No Wc Patients to Import', get_defined_vars());
 
-  $keys = result_map($orders[0],
+  $keys = result_map($patients[0],
     function($row) {
 
       $row['phone1'] = clean_phone($row['phone1']);
@@ -98,12 +98,7 @@ function import_wc_patients() {
     }
   );
 
-  $sql = "INSERT INTO gp_patients_wc $keys VALUES ".$orders[0];
-
-  $mysql->run("START TRANSACTION");
-  $mysql->run("DELETE FROM gp_patients_wc");
-  $mysql->run($sql);
-  $mysql->run("COMMIT");
+  $mysql->replace_table("gp_patients_wc", $keys, $patients[0]);
 
   //log_error("import_wc_patients: ", $sql);
 }

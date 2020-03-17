@@ -42,16 +42,6 @@ function import_cp_order_items() {
 
   if ( ! count($items[0])) return log_error('No Cp Order Items to Import', get_defined_vars());
 
-  //log_info("
-  //import_cp_order_items: rows ".count($items[0]));
-
   $keys = result_map($items[0]);
-
-  //Replace Staging Table with New Data
-  $sql = "INSERT INTO gp_order_items_cp $keys VALUES ".$items[0];
-
-  $mysql->run("START TRANSACTION");
-  $mysql->run("DELETE FROM gp_order_items_cp");
-  $mysql->run($sql);
-  $mysql->run("COMMIT");
+  $mysql->replace_table("gp_order_items_cp", $keys, $items[0]);
 }

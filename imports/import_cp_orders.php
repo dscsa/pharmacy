@@ -43,19 +43,8 @@ function import_cp_orders() {
 
   if ( ! count($orders[0])) return log_error('No Cp Orders to Import', get_defined_vars());
 
-
-  //log_info("
-  //import_cp_orders: rows ".count($orders[0]));
-
   $keys = result_map($orders[0]);
-
-  //Replace Staging Table with New Data
-  $sql = "INSERT INTO gp_orders_cp $keys VALUES ".$orders[0];
-
-  $mysql->run("START TRANSACTION");
-  $mysql->run("DELETE FROM gp_orders_cp");
-  $mysql->run($sql);
-  $mysql->run("COMMIT");
+  $mysql->replace_table("gp_orders_cp", $keys, $orders[0]);
 }
 
 /*

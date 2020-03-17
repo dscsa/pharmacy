@@ -9,9 +9,6 @@ function import_cp_patients() {
   $mssql = new Mssql_Cp();
   $mysql = new Mysql_Wc();
 
-
-
-
   $patients = $mssql->run("
 
     SELECT
@@ -170,11 +167,5 @@ function import_cp_patients() {
     }
   );
 
-  //Replace Staging Table with New Data
-  $sql = "INSERT INTO gp_patients_cp $keys VALUES ".$patients[0];
-
-  $mysql->run("START TRANSACTION");
-  $mysql->run("DELETE FROM gp_patients_cp");
-  $mysql->run($sql);
-  $mysql->run("COMMIT");
+  $mysql->replace_table("gp_patients_cp", $keys, $patients[0]);
 }

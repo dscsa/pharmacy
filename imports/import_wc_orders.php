@@ -74,20 +74,6 @@ function import_wc_orders() {
 
   if ( ! count($orders[0])) return log_error('No Wc Orders to Import', get_defined_vars());
 
-  //log_info("
-  //import_cp_orders: rows ".count($orders[0]));
-
   $keys = result_map($orders[0]);
-
-  //Replace Staging Table with New Data
-  $sql = "INSERT INTO gp_orders_wc $keys VALUES ".$orders[0];
-
-  $mysql->run("START TRANSACTION");
-  $mysql->run("DELETE FROM gp_orders_wc");
-  $mysql->run($sql);
-  $mysql->run("COMMIT");
-
-  //$mysql->run('TRUNCATE TABLE gp_orders_wc');
-
-  //$mysql->run("INSERT INTO gp_orders_wc $keys VALUES ".$orders[0]);
+  $mysql->replace_table("gp_orders_wc", $keys, $orders[0]);
 }
