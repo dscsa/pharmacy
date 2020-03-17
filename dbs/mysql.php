@@ -39,11 +39,30 @@ class Mysql {
     }
 
     function rollback() {
-      return mysqli_rollback($this->connection); 
+      return mysqli_rollback($this->connection);
     }
 
     function escape($var) {
       return mysqli_real_escape_string($this->connection, $var);
+    }
+
+    function replace_table($table, $keys, $vals) {
+
+      if ( ! count($vals))
+        return log_error("No $table to Import", get_defined_vars());
+
+      $keys = implode(', ', $keys);
+      $sql  = "INSERT INTO $table ($keys) VALUES ".implode(', ', $vals);
+
+      $this->transaction();
+      $this->run("DELETE FROM $table");
+      $this->run($sql);
+
+      if ($this->run("SELECT * FROM $table")[0])
+        return $this->commit();
+
+      $this->rollback();
+      log_error("$table import was ABORTED");
     }
 
     function run($sql, $debug = false) {

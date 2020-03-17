@@ -45,5 +45,5 @@ function import_v2_drugs() {
     $vals[] = '('.implode(', ', $val).')';
   }
 
-  replace_table("gp_drugs_v2", $vals);
+  replace_table("gp_drugs_v2", array_keys($val), $vals);
 }
