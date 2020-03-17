@@ -57,8 +57,6 @@ function result_map(&$rows, $callback = null) {
     $rows[$i] = array_string($new);
   }
 
-  $rows = implode(',', $rows);
-
   return $keys;
 }
 
