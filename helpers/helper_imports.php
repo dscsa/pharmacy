@@ -59,7 +59,7 @@ function result_map(&$rows, $callback = null) {
 
   $rows = implode(',', $rows);
 
-  return array_string($keys);
+  return $keys;
 }
 
 function array_string($arr) {

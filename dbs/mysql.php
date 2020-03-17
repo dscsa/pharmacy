@@ -48,10 +48,10 @@ class Mysql {
 
     function replace_table($table, $keys, $vals) {
 
-      if ( ! count($vals))
+      if ( ! $vals OR ! count($vals))
         return log_error("No $table vals to Import", ['vals' => $vals, 'keys' => $keys]);
 
-      if ( ! count($keys))
+      if ( ! $keys OR ! count($keys))
         return log_error("No $table keys to Import", ['vals' => $vals, 'keys' => $keys]);
 
       $keys = implode(', ', $keys);
