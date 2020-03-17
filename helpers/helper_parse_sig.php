@@ -217,9 +217,9 @@ function frequency_numerators($durations, $correct) {
 
   $frequency_numerators = [];
 
-  $default = preg_match('/\\b(before|with|after) meals\\b/i', $sig_part, $match) ? 3 : 1;
-
   foreach ($durations as $sig_part => $duration) {
+
+    $default = preg_match('/\\b(before|with|after) meals\\b/i', $sig_part, $match) ? 3 : 1;
 
     preg_match('/([1-9]\\b|10|11|12) +time/i', $sig_part, $match);
     $frequency_numerators[$sig_part] = $match ? $match[1] : $default;
