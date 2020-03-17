@@ -49,10 +49,10 @@ class Mysql {
     function replace_table($table, $keys, $vals) {
 
       if ( ! count($vals))
-        return log_error("No $table vals to Import", get_defined_vars());
+        return log_error("No $table vals to Import", ['vals' => $vals, 'keys' => $keys]);
 
       if ( ! count($keys))
-        return log_error("No $table keys to Import", get_defined_vars());
+        return log_error("No $table keys to Import", ['vals' => $vals, 'keys' => $keys]);
 
       $keys = implode(', ', $keys);
       $sql  = "INSERT INTO $table ($keys) VALUES ".implode(', ', $vals);
@@ -65,7 +65,7 @@ class Mysql {
         return $this->commit();
 
       $this->rollback();
-      log_error("$table import was ABORTED");
+      log_error("$table import was ABORTED", ['vals' => $vals, 'keys' => $keys]);
     }
 
     function run($sql, $debug = false) {
