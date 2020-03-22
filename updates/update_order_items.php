@@ -224,6 +224,8 @@ function update_order_items() {
 
     $changed_fields = changed_fields($updated);
 
+    $old_refills_dispensed_default = max(0, $item['refills_total'] - ($item['days_dispensed_default'] ? 1 : 0));
+
     if ($item['days_dispensed_actual']) {
 
       set_price_refills_actual($item, $mysql);
@@ -237,8 +239,12 @@ function update_order_items() {
       }
 
       if ($item['refills_dispensed_actual'] != $item['refills_dispensed_default']) {
-        log_error('update_order_items: refills changed', $item);
+        log_error('update_order_items: refills_dispensed changed', $item);
       }
+
+    } else if ($updated['refills_dispensed_default'] != $old_refills_dispensed_default) {
+
+      log_error('update_order_items: refills_total changed', [$item, $changed_fields]);
 
     } else if ($updated['item_added_by'] == 'MANUAL' AND $updated['old_item_added_by'] != 'MANUAL') {
 

@@ -46,4 +46,20 @@ function import_v2_drugs() {
   }
 
   $mysql->replace_table("gp_drugs_v2", array_keys($val), $vals);
+
+  $duplicates = $mysql->run("
+    SELECT
+      drug1.drug_gsns,
+      GROUP_CONCAT(drug1.drug_generic) as drug_generics,
+      COUNT(*) as number
+    FROM gp_drugs_v2 drug1
+    JOIN gp_drugs_v2 drug2
+      ON drug1.drug_gsns = drug2.drug_gsns
+    WHERE drug1.drug_generic != drug2.drug_generic
+    GROUP BY drug_gsns HAVING number > 1
+  ");
+
+  if (count($duplicates[0])) {
+    log_error('WARNING Duplicate GSNs in V2', $duplicates[0]);
+  }
 }
