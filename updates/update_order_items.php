@@ -238,7 +238,7 @@ function update_order_items() {
         //log_error("days_dispensed_default was wrong: $item[days_dispensed_default] >>> $item[days_dispensed_actual]", ['item' => $item, 'updated' => $updated, 'changed' => $changed_fields]);
       }
 
-      if ($item['refills_dispensed_actual'] != ($item['refills_dispensed_default']+0)) {
+      if ($item['refills_total'] != $item['refills_dispensed_default']) { //refills_dispensed_actual is not set yet, so use refills_total instead
         log_error('update_order_items: refills_dispensed changed', $item);
       }
 
