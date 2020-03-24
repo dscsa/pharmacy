@@ -40,7 +40,7 @@ function update_orders_cp() {
         $day_changes[] = "rx:$item[rx_number] qty:$item[qty_dispensed_default] >>> $item[qty_dispensed_actual] days:$item[days_dispensed_default] >>> $item[days_dispensed_actual] refills:$item[refills_dispensed_default] >>> $item[refills_dispensed_actual] item:".json_encode($item);
 
       //! $updated['order_date_dispensed'] otherwise triggered twice, once one stage: Printed/Processed and again on stage:Dispensed
-      if ($item['qty_dispensed_default'] != $item['qty_dispensed_actual'] OR $item['refills_dispensed_default'] != $item['refills_dispensed_actual'])
+      if ($item['qty_dispensed_default'] != $item['qty_dispensed_actual'] OR (($item['refills_dispensed_default']+0) != $item['refills_dispensed_actual']))
         $qty_changes[] = "rx:$item[rx_number] qty:$item[qty_dispensed_default] >>> $item[qty_dispensed_actual] days:$item[days_dispensed_default] >>> $item[days_dispensed_actual] refills:$item[refills_dispensed_default] >>> $item[refills_dispensed_actual] item:".json_encode($item);
 
       //! $updated['order_date_dispensed'] otherwise triggered twice, once one stage: Printed/Processed and again on stage:Dispensed
@@ -48,7 +48,7 @@ function update_orders_cp() {
 
       if ($item['days_dispensed_actual'] AND ($item['days_dispensed_actual'] > 120 OR $item['days_dispensed_actual'] < 30))
         log_error("check days dispensed is not within limits: 30 < $item[days_dispensed_actual] < 120", $item);
-      else if ($actual_sig_qty_per_day AND $actual_sig_qty_per_day != round($item['sig_qty_per_day'], 1))
+      else if ($actual_sig_qty_per_day AND $actual_sig_qty_per_day != round($item['sig_qty_per_day'], 1) AND $actual_sig_qty_per_day != round($item['sig_qty_per_day']*2, 1)) // *2 is a hack for "as needed" being different right now
         log_error("sig parsing error '$item[sig_actual]' $item[sig_qty_per_day] (default) != $actual_sig_qty_per_day $item[qty_dispensed_actual]/$item[days_dispensed_actual] (actual)", $item);
     }
 
@@ -87,7 +87,7 @@ function update_orders_cp() {
     if ($synced['new_count_items'] <= 0) {
       $groups = group_drugs($order, $mysql);
       order_hold_notice($groups);
-      log_error("update_orders_cp  helper_syncing is effectively removing order ".$order[0]['invoice_number'], ['order' => $order, 'synced' => $synced]);
+      log_notice("update_orders_cp  helper_syncing is effectively removing order ".$order[0]['invoice_number'], ['order' => $order, 'synced' => $synced]);
     }
 
     if ($synced['items_to_sync']) {
