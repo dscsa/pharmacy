@@ -15,7 +15,7 @@ function sync_to_order($order, $updated = null) {
       continue;
     }
 
-    if ($item['item_message_key'] == 'NO ACTION PAST DUE AND SYNC TO ORDER' AND ! is_duplicate_gsn($order, $item)) {
+    if ($item['item_message_key'] == 'NO ACTION PAST DUE AND SYNC TO ORDER') {
 
       if ($updated) {
         log_notice("sync_to_order adding item: updated so did not add 'NO ACTION PAST DUE AND SYNC TO ORDER' $item[invoice_number] $item[drug] $item[item_message_key] refills last:$item[refill_date_last] next:$item[refill_date_next] total:$item[refills_total] left:$item[refills_left]", [$item, $updated]);
@@ -30,7 +30,7 @@ function sync_to_order($order, $updated = null) {
       continue;
     }
 
-    if ($item['item_message_key'] == 'NO ACTION MISSING NEXT AND SYNC TO ORDER' AND ! is_duplicate_gsn($order, $item)) {
+    if ($item['item_message_key'] == 'NO ACTION MISSING NEXT AND SYNC TO ORDER') {
 
       if ($updated) {
         log_notice("sync_to_order adding item: updated so did not add 'NO ACTION MISSING NEXT AND SYNC TO ORDER' $item[invoice_number] $item[drug] $item[item_message_key] refills last:$item[refill_date_last] next:$item[refill_date_next] total:$item[refills_total] left:$item[refills_left]", [$item, $updated]);
@@ -45,7 +45,7 @@ function sync_to_order($order, $updated = null) {
       continue;
     }
 
-    if ($item['item_message_key'] == 'NO ACTION DUE SOON AND SYNC TO ORDER' AND ! is_duplicate_gsn($order, $item)) {
+    if ($item['item_message_key'] == 'NO ACTION DUE SOON AND SYNC TO ORDER') {
 
       if ($updated) {
         log_notice("sync_to_order adding item: updated so did not add 'NO ACTION DUE SOON AND SYNC TO ORDER' $item[invoice_number] $item[drug] $item[item_message_key] refills last:$item[refill_date_last] next:$item[refill_date_next] total:$item[refills_total] left:$item[refills_left]", [$item, $updated]);
@@ -60,7 +60,7 @@ function sync_to_order($order, $updated = null) {
       continue;
     }
 
-    if ($item['item_message_key'] == 'NO ACTION NEW RX SYNCED TO ORDER' AND ! is_duplicate_gsn($order, $item)) {
+    if ($item['item_message_key'] == 'NO ACTION NEW RX SYNCED TO ORDER') {
 
       if ($updated) {
         if ($item['drug_gsns'])
@@ -121,18 +121,6 @@ function sync_to_order($order, $updated = null) {
     export_cp_add_items($item['invoice_number'], $items_to_add);
 
   return ['new_count_items' => $new_count_items, 'items_to_sync' => $items_to_sync];
-}
-
-//Don't sync if an order with these instructions already exists in order
-function is_duplicate_gsn($order, $item1) {
-  //Don't sync if an order with these instructions already exists in order
-  foreach($order as $item2) {
-    if ($item1 !== $item2 AND $item2['item_date_added'] AND $item1['drug_gsns'] == $item2['drug_gsns']) {
-      log_notice("sync_to_order adding item: matching drug_gsns so did not add 'NO ACTION NEW RX SYNCED TO ORDER' $item1[invoice_number] $item1[drug] $item1[item_message_key] refills last:$item1[refill_date_last] next:$item1[refill_date_next] total:$item1[refills_total] left:$item1[refills_left]", ['item1' => $item1, 'item2' => $item2]);
-      return true;
-    }
-  }
-
 }
 
 //Group all drugs by their next fill date and get the most popular date

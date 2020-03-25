@@ -111,25 +111,25 @@ function get_days_default($item) {
     return [$days_default, RX_MESSAGE['NO ACTION NEW GSN']];
   }
 
-  if (sync_to_order_new_rx($item)) {
+  if (sync_to_order_new_rx($item, $order)) {
     log_info('NO ACTION NEW RX SYNCED TO ORDER', get_defined_vars());
     return [$days_default, RX_MESSAGE['NO ACTION NEW RX SYNCED TO ORDER']];
   }
 
   //TODO and check if added by this program otherwise false positives
-  if (sync_to_order_past_due($item)) {
+  if (sync_to_order_past_due($item, $order)) {
     log_info("WAS PAST DUE SO WAS SYNCED TO ORDER", get_defined_vars());
     return [$days_default, RX_MESSAGE['NO ACTION PAST DUE AND SYNC TO ORDER']];
   }
 
   //TODO CHECK IF THIS IS A GUARDIAN ERROR OR WHETHER WE ARE IMPORTING WRONG.  SEEMS THAT IF REFILL_DATE_FIRST IS SET, THEN REFILL_DATE_DEFAULT should be set
-  if (sync_to_order_missing_next($item)) {
+  if (sync_to_order_missing_next($item, $order)) {
     log_info("WAS MISSING REFILL_DATE_NEXT SO WAS SYNCED TO ORDER", get_defined_vars());
     return [$days_default, RX_MESSAGE['NO ACTION MISSING NEXT AND SYNC TO ORDER']];
   }
 
   //TODO and check if added by this program otherwise false positives
-  if (sync_to_order_due_soon($item)) {
+  if (sync_to_order_due_soon($item, $order)) {
     log_info("WAS DUE SOON SO WAS SYNCED TO ORDER", get_defined_vars());
     return [$days_default, RX_MESSAGE['NO ACTION DUE SOON AND SYNC TO ORDER']];
   }
@@ -317,24 +317,24 @@ function message_text($message, $item) {
   return str_replace(array_keys($item), array_values($item), $message[$item['language']]);
 }
 
-function sync_to_order_new_rx($item) {
+function sync_to_order_new_rx($item, $order) {
   $not_offered  = is_not_offered($item);
   $refills_only = is_refill_only($item);
 
-  return ! $item['item_date_added'] AND $item['refills_total'] >= 0.1 AND ! $item['refill_date_first'] AND $item['rx_autofill'] AND ! $not_offered AND ! $refills_only;
+  return ! $item['item_date_added'] AND $item['refills_total'] >= 0.1 AND ! is_duplicate_gsn($item, $order) AND ! $item['refill_date_first'] AND $item['rx_autofill'] AND ! $not_offered AND ! $refills_only;
 }
 
-function sync_to_order_past_due($item) {
-  return ! $item['item_date_added'] AND $item['refills_total'] >= 0.1 AND $item['refill_date_next'] AND (strtotime($item['refill_date_next']) - strtotime($item['order_date_added'])) < 0;
+function sync_to_order_past_due($item, $order) {
+  return ! $item['item_date_added'] AND $item['refills_total'] >= 0.1 AND ! is_duplicate_gsn($item, $order) AND $item['refill_date_next'] AND (strtotime($item['refill_date_next']) - strtotime($item['order_date_added'])) < 0;
 }
 
 //Order 29017 had a refill_date_first and rx/pat_autofill ON but was missing a refill_date_default/refill_date_manual/refill_date_next
-function sync_to_order_missing_next($item) {
-  return ! $item['item_date_added'] AND $item['refills_total'] >= 0.1 AND $item['refill_date_first'] AND ! $item['refill_date_default'];
+function sync_to_order_missing_next($item, $order) {
+  return ! $item['item_date_added'] AND $item['refills_total'] >= 0.1 AND ! is_duplicate_gsn($item, $order) AND $item['refill_date_first'] AND ! $item['refill_date_default'];
 }
 
-function sync_to_order_due_soon($item) {
-  return ! $item['item_date_added'] AND $item['refills_total'] >= 0.1 AND $item['refill_date_next'] AND (strtotime($item['refill_date_next'])  - strtotime($item['order_date_added'])) <= 15*24*60*60;
+function sync_to_order_due_soon($item, $order) {
+  return ! $item['item_date_added'] AND $item['refills_total'] >= 0.1 AND ! is_duplicate_gsn($item, $order) AND $item['refill_date_next'] AND (strtotime($item['refill_date_next'])  - strtotime($item['order_date_added'])) <= 15*24*60*60;
 }
 
 //Although you can dispense up until an Rx expires (so refill_date_next is well past rx_date_expired) we want to use
@@ -389,4 +389,15 @@ function days_default($days_left_in_refills, $days_left_in_stock, $days_default 
     log_info("days_default:$days_default, days_left_in_stock:$days_left_in_stock, days_left_in_refills:$days_left_in_refills", get_defined_vars());
 
   return $days_default;
+}
+
+//Don't sync if an order with these instructions already exists in order
+function is_duplicate_gsn($item1, $order) {
+  //Don't sync if an order with these instructions already exists in order
+  foreach($order as $item2) {
+    if ($item1 !== $item2 AND $item2['item_date_added'] AND $item1['drug_gsns'] == $item2['drug_gsns']) {
+      log_notice("sync_to_order adding item: matching drug_gsns so did not add 'NO ACTION NEW RX SYNCED TO ORDER' $item1[invoice_number] $item1[drug] $item1[item_message_key] refills last:$item1[refill_date_last] next:$item1[refill_date_next] total:$item1[refills_total] left:$item1[refills_left]", ['item1' => $item1, 'item2' => $item2]);
+      return true;
+    }
+  }
 }
