@@ -146,10 +146,10 @@ function get_days_default($item) {
 
   if ($days_left_in_stock == $days_default) {
 
-    if ($item['qty_inventory']/$item['sig_qty_per_day'] < 30)
-      log_error("YIKES! REFILL RX DOESN'T HAVE ENOUGH QTY TO FILL AT LEAST 30 DAYS", get_defined_vars());
+    if ($item['refill_date_first'])
+      log_error("YIKES! IS REFILL RX IS OUT OF STOCK?", get_defined_vars());
     else
-      log_info("WARN USERS IF DRUG IS LOW QTY", get_defined_vars());
+      log_notice("WARN USERS IF DRUG IS LOW QTY", get_defined_vars());
 
     return [$days_default, RX_MESSAGE['NO ACTION LOW STOCK']];
   }
