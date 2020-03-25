@@ -136,13 +136,6 @@ function upgradePharmacy(retry) {
   })
 }
 
-function upgradeBirthdate() { //now 2 on same page (loing & register) so jquery id, #, selection doesn't work since assumes ids are unique
-  jQuery('[name=birth_date]:not([readonly])').each(function() {
-    var elem = jQuery(this)
-    elem.datepicker({changeMonth:true, changeYear:true, yearRange:"c-100:c", defaultDate:elem.val() || "-50y", dateFormat:"yy-mm-dd", constrainInput:false})
-  })
-}
-
 function clearEmail() {
   var email = jQuery('#email').val() || jQuery('#account_email').val() || jQuery('#reg_email').val()
   if(email && /.+?_.+?_\d{4}-\d{2}-\d{2}@goodpill.org/.test(email)) {

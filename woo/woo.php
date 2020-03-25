@@ -256,7 +256,26 @@ function remove_sticky_checkout() {
 }
 
 function get_meta($field, $user_id = null) {
-  return get_user_meta($user_id ?: get_current_user_id(), $field, true);
+
+  $user = wp_get_current_user();
+
+  //We don't store birthdate like other meta fields, since its part of the user_login
+  if ($field == 'birth_date_month' OR $field == 'birth_date_day' OR $field == 'birth_date_year') {
+    //This is necessary because http://woocommerce.wp-a2z.org/oik_api/wc_checkoutget_value/ overwrites an DOB in username with old DOB
+    $birth_date = substr($user->user_login, -10);
+    $birth_date = explode('-', $birth_date);
+
+    if ($field == 'birth_date_month')
+      return $birth_date[1];
+
+    if ($field == 'birth_date_day')
+      return $birth_date[2];
+
+    if ($field == 'birth_date_year')
+      return $birth_date[0];
+  }
+
+  return get_user_meta($user_id ?: $user->ID, $field, true);
 }
 
 function get_default($field, $user_id = null) {
@@ -535,6 +554,111 @@ function commCalendar($comm_array) {
   }
 }
 
+function birth_date_year($user_id) {
+  $max_year = date('Y') - 5;   //Minimum Age to register
+  $min_year = $max_year - 100; //Can't be over 100 or could span 2 centuries - e.g. 2000 -> 1895 - causing regex to fail
+
+  $max_prefix = substr("$max_year", 0, 2);
+  $min_prefix = substr("$min_year", 0, 2);
+
+  $max_mid_high = substr("$max_year", 2, 1);
+  $min_mid_high = substr("$min_year", 2, 1);
+
+  $max_mid_low = max(0, $max_mid_high-1);
+  $min_mid_low = max(0, $min_mid_high-1);
+
+  $max_suffix = substr("$max_year", 3, 1);
+  $min_suffix = substr("$min_year", 3, 1);
+
+  //2009 -> 20[0-0][0-9]|200[0-9], 2025 -> 20[0-1][0-9]|202[0-5]
+  $max_regex  = "$max_prefix[0-$max_mid_low][0-9]|$max_prefix$max_mid_high[0-$max_suffix]";
+  $min_regex  = "$min_prefix[0-$min_mid_low][0-9]|$min_prefix$min_mid_high[0-$min_suffix]";
+
+  return [
+      'id' => 'birth_date_year',
+      'default' => get_default('birth_date_year', $user_id),
+      'autocomplete' => 'user-birth-day-year',
+      'custom_attributes' => [
+        'readonly' => true,
+        'pattern' => "\d{2}|$min_regex|$max_regex",
+        'minlength' => '2',
+        'maxlength' => '4'
+      ]
+  ];
+}
+
+function birth_date_month($user_id) {
+  return [
+      'type'  => 'select',
+      'id' => 'birth_date_month',
+      'default' => get_default('birth_date_month', $user_id),
+      'autocomplete' => 'user-birth-day-month',
+      'custom_attributes' => [
+        'readonly' => true
+      ],
+      'options' => [
+        ''   => __("Select Month..."),
+        '01' => __("January"),
+        '02' => __("February"),
+        '03' => __("March"),
+        '04' => __("April"),
+        '05' => __("May"),
+        '06' => __("June"),
+        '07' => __("July"),
+        '08' => __("August"),
+        '09' => __("September"),
+        '10' => __("October"),
+        '11' => __("November"),
+        '12' => __("December")
+      ]
+    ];
+}
+
+function birth_date_day($user_id) {
+  return [
+    'type'  => 'select',
+    'id' => 'birth_date_day',
+    'default' => get_default('birth_date_day', $user_id),
+    'autocomplete' => 'user-birth-day-day',
+    'custom_attributes' => [
+      'readonly' => true
+    ],
+    'options' => [
+      ''   => __("Day"),
+      '01' => __("01"),
+      '02' => __("02"),
+      '03' => __("03"),
+      '04' => __("04"),
+      '05' => __("05"),
+      '06' => __("06"),
+      '07' => __("07"),
+      '08' => __("08"),
+      '09' => __("09"),
+      '10' => __("10"),
+      '11' => __("11"),
+      '12' => __("12"),
+      '13' => __("13"),
+      '14' => __("14"),
+      '15' => __("15"),
+      '16' => __("16"),
+      '17' => __("17"),
+      '18' => __("18"),
+      '19' => __("19"),
+      '20' => __("20"),
+      '21' => __("21"),
+      '22' => __("22"),
+      '23' => __("23"),
+      '24' => __("24"),
+      '25' => __("25"),
+      '26' => __("26"),
+      '27' => __("27"),
+      '28' => __("28"),
+      '29' => __("29"),
+      '30' => __("30"),
+      '31' => __("31")
+    ]
+  ];
+}
 
 function shared_fields($user_id = null) {
 
@@ -557,12 +681,6 @@ function shared_fields($user_id = null) {
     if ($pharmacy_meta) {
       $store = json_decode($pharmacy_meta);
       $pharmacy['options'] = [$pharmacy_meta => $store->name.', '.$store->street.', '.$store->city.', GA '.$store->zip.' - Phone: '.$store->phone];
-    }
-
-    //THis is necessary because http://woocommerce.wp-a2z.org/oik_api/wc_checkoutget_value/ overwrites an DOB in username with old DOB
-    $birth_date = substr($user->user_login, -10) ?: $_POST['birth_date'];
-    if ($user_id AND $birth_date != get_user_meta($user_id, 'birth_date', true)) {
-      update_user_meta($user_id, 'birth_date', $birth_date);
     }
 
     return [
@@ -670,17 +788,11 @@ function shared_fields($user_id = null) {
         'class'     => ['allergies', 'form-row-wide'],
         'label'     =>__('List Other Allergies Below').'<input class="input-text " name="allergies_other" id="allergies_other_input" value="'.get_default('allergies_other', $user_id).'">'
     ],
-    'birth_date' => [
-        'priority'  => 19,
-        'label'     => __('Date of Birth'),
-        'required'  => true,
-        'input_class' => ['date-picker'],
-        'autocomplete' => 'off',
-        'custom_attributes' => ['readonly' => true],
-        'default'   => $birth_date
-    ],
+    'birth_date_month' => $birth_date_month,
+    'birth_date_day'   =>$birth_date_day,
+    'birth_date_year' => $birth_date_year,
     'phone' => [
-      'priority'  => 20,
+      'priority'  => 22,
       'label'     => __('Phone'),
       'required'  => true,
       'type'      => 'tel',
@@ -785,7 +897,9 @@ function dscsa_user_edit_account($user_id = null) {
   $patient_profile = patient_profile(
     get_meta('billing_first_name'), //use billing because get_user_meta() and get_meta() of account_first_name are empty
     get_meta('billing_last_name'),  //use billing because get_user_meta() and get_meta() of account_first_name are empty
-    $fields['birth_date']['default'],
+    $fields['birth_date_year']['default'],
+    $fields['birth_date_month']['default'],
+    $fields['birth_date_day']['default'],
     $fields['phone']['default']
   );
 
@@ -800,8 +914,6 @@ function make_rx_table($patient_profile, $email = false) {
 
   // New Prescriptions Sent to good pill, , , , Disabled Checkbox
   // Medicine Name, Next Refill Date, Days (QTY), Refills, Last Refill Input, Autofill Checkbox
-  $fields['birth_date']['default'] = date_format(date_create($patient_profile[0]['birth_date']), 'Y-m-d'); //just in case user entered DOB incorrectly we can fix it in guardian
-
   $pat_autofill = $email
   ? 'Autofill'
   : woocommerce_form_field("pat_autofill", [
@@ -915,37 +1027,65 @@ add_action('woocommerce_lostpassword_form', 'dscsa_lostpassword_form');
 function dscsa_lostpassword_form() {
   login_form('lostpassword');
   $shared_fields = shared_fields();
-  $shared_fields['birth_date']['id'] = 'birth_date_lostpassword';
+  $shared_fields['birth_date_year']['id'] = 'birth_date_year_lostpassword';
+  $shared_fields['birth_date_month']['id'] = 'birth_date_month_lostpassword';
+  $shared_fields['birth_date_day']['id'] = 'birth_date_day_lostpassword';
+
   $shared_fields['birth_date']['custom_attributes']['readonly'] = false;
-  echo woocommerce_form_field('birth_date', $shared_fields['birth_date']);
+  $shared_fields['birth_date']['custom_attributes']['readonly'] = false;
+  $shared_fields['birth_date']['custom_attributes']['readonly'] = false;
+
+  echo woocommerce_form_field('birth_date_month', $shared_fields['birth_date_month']);
+  echo woocommerce_form_field('birth_date_day', $shared_fields['birth_date_day']);
+  echo woocommerce_form_field('birth_date_year', $shared_fields['birth_date_year']);
 }
 
 add_action('woocommerce_login_form_start', 'dscsa_login_form');
 function dscsa_login_form() {
   login_form('login');
+
   $shared_fields = shared_fields();
-  $shared_fields['birth_date']['id'] = 'birth_date_login';
-  $shared_fields['birth_date']['custom_attributes']['readonly'] = false;
-  echo woocommerce_form_field('birth_date', $shared_fields['birth_date']);
+
+  $shared_fields['birth_date_year']['id'] = 'birth_date_year_login';
+  $shared_fields['birth_date_month']['id'] = 'birth_date_month_login';
+  $shared_fields['birth_date_day']['id'] = 'birth_date_day_login';
+
+  $shared_fields['birth_date_year']['custom_attributes']['readonly'] = false;
+  $shared_fields['birth_date_month']['custom_attributes']['readonly'] = false;
+  $shared_fields['birth_date_day']['custom_attributes']['readonly'] = false;
+
+  echo woocommerce_form_field('birth_date_month', $shared_fields['birth_date_month']);
+  echo woocommerce_form_field('birth_date_day', $shared_fields['birth_date_day']);
+  echo woocommerce_form_field('birth_date_year', $shared_fields['birth_date_year']);
 }
 
 add_action('woocommerce_register_form_start', 'dscsa_register_form');
 function dscsa_register_form() {
   $account_fields = account_fields();
+
   $shared_fields = shared_fields();
-  $shared_fields['birth_date']['id'] = 'birth_date_register';
-  $shared_fields['birth_date']['custom_attributes']['readonly'] = false;
+
+  $shared_fields['birth_date_year']['id'] = 'birth_date_year_register';
+  $shared_fields['birth_date_month']['id'] = 'birth_date_month_register';
+  $shared_fields['birth_date_day']['id'] = 'birth_date_day_register';
+
+  $shared_fields['birth_date_year']['custom_attributes']['readonly'] = false;
+  $shared_fields['birth_date_month']['custom_attributes']['readonly'] = false;
+  $shared_fields['birth_date_day']['custom_attributes']['readonly'] = false;
+
   $shared_fields['phone']['custom_attributes']['readonly'] = false;
   $shared_fields['phone']['autocomplete'] = 'tel'; //allow autocomplete on first page but not second
 
   echo woocommerce_form_field('language', $account_fields['language']);
   login_form('register');
-  echo woocommerce_form_field('birth_date', $shared_fields['birth_date']);
+  echo woocommerce_form_field('birth_date_month', $shared_fields['birth_date_month']);
+  echo woocommerce_form_field('birth_date_day', $shared_fields['birth_date_day']);
+  echo woocommerce_form_field('birth_date_year', $shared_fields['birth_date_year']);
   echo woocommerce_form_field('phone', $shared_fields['phone']);
 }
 
 function verify_username($id) {
-  echo "<div id='verify_username_$id'>Legal Name: <span id='verify_first_name_$id'></span> <span id='verify_last_name_$id'></span> <span id='verify_birth_date_$id'></span></div>";
+  echo "<div id='verify_username_$id'>Legal Name: <span id='verify_first_name_$id'></span> <span id='verify_last_name_$id'></span> <span id='verify_birth_date_month_$id'></span></div>/<span id='verify_birth_date_day_$id'></span></div> <span id='verify_birth_date_year_$id'></span></div>";
 }
 
 function login_form($id) {
@@ -1005,9 +1145,7 @@ function dscsa_register_post($username, $email, $validation_errors) {
     //     $validation_errors->add('birth_date_error', __('<strong>Error</strong>: Birth date is required!', 'text_domain'));
     // }
 
-    $birth_date = cleanBirthDate($_POST['birth_date']);
-
-    if ( ! $birth_date) {
+    if ( ! $_POST['birth_date_month'] OR ! $_POST['birth_date_day'] OR ! $_POST['birth_date_year']) {
         $validation_errors->add('birth_date_error', __('Please make sure your date of birth is accurate!', 'text_domain'));
     }
 
@@ -1022,32 +1160,6 @@ function dscsa_register_post($username, $email, $validation_errors) {
     }
 
     return $validation_errors;
-}
-
-function cleanBirthDate($birth_date) {
-    if ( ! $birth_date) return false;
-
-    $nondelimited = preg_match('/^\d{6}$|^\d{8}$/', $birth_date);
-
-    if ($nondelimited) //Assume its MMDDYY or MMDDYYYY and add delimiters otherwise will fail date_create
-      $birth_date = substr($birth_date, 0, 2).'/'.substr($birth_date, 2, 2).'/'.substr($birth_date, 4);
-
-    $birth_date = date_create($birth_date);
-
-    if ( ! $birth_date) return false;
-
-    $birth_date = date_format($birth_date, 'Y-m-d'); //in case html type=date does not work (e.g. IE)
-
-    $birth_array = explode('-', $birth_date);
-
-    if ($birth_array[0] > date('Y'))
-      $birth_array[0] -= 100;
-
-
-    //debug_email('Clean Birth Date', print_r($birth_array, true)." |||| birth_array[0] > 1900 ".($birth_array[0] > 1900)." |||| birth_array[0] > '1900' ".($birth_array[0] > '1900'));
-
-
-    return (checkdate($birth_array[1],$birth_array[2],$birth_array[0]) AND $birth_array[0] > 1900 AND $birth_array[0] < 2100) ? implode('-', $birth_array) : false;
 }
 
 function clean_field($field) {
@@ -1076,10 +1188,6 @@ function dscsa_default_post_value() {
 
   if ( ! $_POST) return;
 
-  //Registration/Checkout/Account Details ?: (Admin?)
-  $birth_date = $_POST['birth_date'] ?: get_meta('birth_date', $user_id);
-  if ($birth_date) $_POST['birth_date'] =  cleanBirthDate(clean_field($birth_date));
-
   //Registration ?: Account Details ?: Checkout ?: admin page when changing user ?: admin page
   $first_name = $_POST['first_name'] ?: $_POST['account_first_name'] ?: $_POST['billing_first_name'] ?: $_POST['_billing_first_name'] ?: get_meta('first_name', $user_id);
   if ($first_name) $_POST['first_name'] = mb_convert_case(clean_field($first_name), MB_CASE_TITLE, "UTF-8");
@@ -1088,8 +1196,8 @@ function dscsa_default_post_value() {
   $last_name = $_POST['last_name'] ?: $_POST['account_last_name'] ?: $_POST['billing_last_name'] ?: $_POST['_billing_last_name'] ?: get_meta('last_name', $user_id);
   if ($last_name) $_POST['last_name'] = strtoupper(clean_field($last_name));
 
-  if ($birth_date AND $first_name AND $last_name) {    //Set username for login, registration & user_login for lost password
-     $_POST['username'] = str_replace("'", "", "$_POST[first_name] $_POST[last_name] $_POST[birth_date]");
+  if ($first_name AND $last_name AND $_POST['birth_date_year'] AND $_POST['birth_date_month'] AND $_POST['birth_date_day']) {    //Set username for login, registration & user_login for lost password
+     $_POST['username'] = str_replace("'", "", "$_POST[first_name] $_POST[last_name] $_POST[birth_date_year]-$_POST[birth_date_month]-$_POST[birth_date_day]");
      $_POST['user_login'] = $_POST['username'];
 
      if ( ! validate_username( $_POST['user_login'] )) {
@@ -1155,7 +1263,11 @@ function customer_created($user_id) {
     update_user_meta($user_id, $field.'first_name', $_POST['first_name']);
     update_user_meta($user_id, $field.'last_name', $_POST['last_name']);
   }
-  update_user_meta($user_id, 'birth_date', $_POST['birth_date']);
+
+  update_user_meta($user_id, 'birth_date_year', $_POST['birth_date_year']);
+  update_user_meta($user_id, 'birth_date_month', $_POST['birth_date_month']);
+  update_user_meta($user_id, 'birth_date_day', $_POST['birth_date_day']);
+
   update_user_meta($user_id, 'language', $_POST['language']);
   update_user_meta($user_id, 'email', $_POST['email']);
 
@@ -1723,6 +1835,8 @@ function dscsa_save_patient($user_id, $fields) {
 
     global $woocommerce;
 
+    $birth_date = "$_POST[birth_date_year]-$_POST[birth_date_month]-$_POST[birth_date_day]";
+
     $old_name   = [
      'birth_date' => substr($woocommerce->customer->username, -10),
      'first_name' => $woocommerce->customer->first_name,
@@ -1732,17 +1846,17 @@ function dscsa_save_patient($user_id, $fields) {
 
     $firstname_changed = strtolower($_POST['first_name']) != strtolower($old_name['first_name']);
     $lastname_changed  = strtolower($_POST['last_name']) != strtolower($old_name['last_name']);
-    $birthdate_changed = $_POST['birth_date'] != $old_name['birth_date'];
+    $birthdate_changed = $birth_date != $old_name['birth_date'];
     $email_changed = ((strtolower($_POST['email'] ?: $_POST['account_email']) != strtolower($old_name['email'])) AND (strpos($old_name['email'], '@goodpill.org') === false) AND (strlen($old_name['email']) > 0));
 
     if ($firstname_changed OR $lastname_changed OR $birthdate_changed OR $email_changed) {
       //wp_mail('hello@goodpill.org', 'Patient Name Change', print_r(sanitize($_POST), true)."\r\n\r\n".print_r($order, true));
-      debug_email('Warning Patient Identity Changed!', "firstname_changed $firstname_changed | lastname_changed $lastname_changed | birthdate_changed $birthdate_changed | email_changed $email_changed.\r\n\r\nNew Info: $_POST[first_name] $_POST[last_name] $_POST[birth_date] $_POST[email]\r\n\r\nstrpos($old_name[email], '@goodpill.org'): ".strpos($old_name['email'], '@goodpill.org')."\r\n\r\nOld Info:".print_r($old_name, true)."\r\n\r\nPOST:".print_r(sanitize($_POST), true));
+      debug_email('Warning Patient Identity Changed!', "firstname_changed $firstname_changed | lastname_changed $lastname_changed | birthdate_changed $birthdate_changed | email_changed $email_changed.\r\n\r\nNew Info: $_POST[first_name] $_POST[last_name] $birth_date $_POST[email]\r\n\r\nstrpos($old_name[email], '@goodpill.org'): ".strpos($old_name['email'], '@goodpill.org')."\r\n\r\nOld Info:".print_r($old_name, true)."\r\n\r\nPOST:".print_r(sanitize($_POST), true));
     }
   }
 
-  if ( ! $_POST['first_name'] OR ! $_POST['last_name'] OR ! $_POST['birth_date']) {
-    debug_email('DEBUG dscsa_save_patient', print_r([$_POST['first_name'], $_POST['last_name'], $_POST['birth_date']], true)."|||".print_r(get_user_meta($user_id), true)."|||".print_r($_POST, true));
+  if ( ! $_POST['first_name'] OR ! $_POST['last_name'] OR ! $_POST['birth_date_year'] OR ! $_POST['birth_date_month'] OR ! $_POST['birth_date_day']) {
+    debug_email('DEBUG dscsa_save_patient', print_r([$_POST['first_name'], $_POST['last_name'], $birth_date], true)."|||".print_r(get_user_meta($user_id), true)."|||".print_r($_POST, true));
     return;
   }
 
@@ -1752,7 +1866,7 @@ function dscsa_save_patient($user_id, $fields) {
   $patient_id = add_patient(
     $_POST['first_name'],
     $_POST['last_name'],
-    $_POST['birth_date'],
+    $birth_date,
     $_POST['phone'],
     get_meta('language', $user_id)
   );
@@ -2288,12 +2402,13 @@ function dscsa_checkout_fields( $fields ) {
   $patient_profile = patient_profile(
     get_meta('billing_first_name'), //$field['billing']['billing_first_name']['default'] and/or ['value'] is not set yet
     get_meta('billing_last_name'),  //$field['billing']['billing_last_name']['default'] and/or ['value'] is not set yet
-    $shared_fields['birth_date']['default'],
+    $shared_fields['birth_date_year']['default'],
+    $shared_fields['birth_date_month']['default'],
+    $shared_fields['birth_date_day']['default'],
     $shared_fields['phone']['default']
   );
 
   if (count($patient_profile)) {
-    $shared_fields['birth_date']['default'] = date_format(date_create($patient_profile[0]['birth_date']), 'Y-m-d'); //just in case user entered DOB incorrectly we can fix it in guardian
     $fields['billing']['billing_address_1']['default'] = substr($patient_profile[0]['address_1'], 1, -1);
     $fields['billing']['billing_address_2']['default'] = substr($patient_profile[0]['address_2'], 1, -1);
     $fields['billing']['billing_city']['default']      = $patient_profile[0]['city'];
@@ -2477,7 +2592,7 @@ function update_shipping_address($guardian_id, $address_1, $address_2, $city, $z
   return db_run($query);
 }
 
-function patient_profile($first_name, $last_name, $birth_date, $phone) {
+function patient_profile($first_name, $last_name, $birth_date_year, $birth_date_month, $birth_date_day, $phone) {
 
   //debug_email("patient_profile start", "$first_name $last_name $birth_date, $phone".print_r(func_get_args(), true).print_r(sanitize($_POST), true));
 
@@ -2489,23 +2604,9 @@ function patient_profile($first_name, $last_name, $birth_date, $phone) {
   $first_name = str_replace("'", "''", $first_name);
   $last_name = str_replace("'", "''", $last_name);
 
-  $result = db_run("SirumWeb_PatProfile '$first_name', '$last_name', '$birth_date', '$phone'", 0, true);
+  $result = db_run("SirumWeb_PatProfile '$first_name', '$last_name', '$birth_date_year-$birth_date_month-$birth_month_day', '$phone'", 0, true);
 
   //debug_email("patient_profile end", "$first_name $last_name ".print_r(func_get_args(), true).print_r(sanitize($_POST), true).print_r($result, true));
-
-  return $result;
-}
-
-function order_defaults($first_name, $last_name, $birth_date, $phone) {
-
-  $first_name = str_replace("'", "''", $first_name);
-  $last_name = str_replace("'", "''", $last_name);
-
-  //debug_email("order_defaults", "$first_name $last_name ".print_r(func_get_args(), true).print_r(sanitize($_POST), true));
-
-  $result = db_run("SirumWeb_OrderDefaults '$first_name', '$last_name', '$birth_date', '$phone'");
-
-  debug_email("order_defaults", "$first_name $last_name ".print_r(func_get_args(), true).print_r(sanitize($_POST), true).print_r($result, true));
 
   return $result;
 }

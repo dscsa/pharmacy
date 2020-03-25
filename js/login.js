@@ -2,7 +2,6 @@ jQuery(load)
 function load() {
 
   console.log('login page always run since might not have ?gp-login after logout')
-  upgradeBirthdate()
 
   if ( ~ window.location.search.indexOf('register'))
     register_page()
@@ -12,15 +11,15 @@ function load() {
 
   jQuery('#first_name_login, #first_name_register').on("change keyup paste", onChange)
   jQuery('#last_name_login, #last_name_register').on("change keyup paste", onChange)
-  jQuery('#birth_date_login, #birth_date_register').on("change keyup paste", onChange)
+
+  jQuery('#birth_date_year_login, #birth_date_year_register').on("change keyup paste", onChange)
+  jQuery('#birth_date_month_login, #birth_date_month_register').on("change keyup paste", onChange)
+  jQuery('#birth_date_day_login, #birth_date_day_register').on("change keyup paste", onChange)
 
   function onChange() {
     var el  = jQuery(this)
     var id  = el.attr('id')
     var val = el.val()
-
-    if (id.slice(0, 10) == 'birth_date')
-      val = 'born on '+(new Date(val).toUTCString().slice(5, 16))
 
     console.log(id+' Key Up', val)
     jQuery('#verify_'+id).text(val);
