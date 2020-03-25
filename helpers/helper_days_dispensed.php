@@ -320,21 +320,24 @@ function message_text($message, $item) {
 function sync_to_order_new_rx($item, $order) {
   $not_offered  = is_not_offered($item);
   $refills_only = is_refill_only($item);
-
-  return ! $item['item_date_added'] AND $item['refills_total'] >= 0.1 AND ! is_duplicate_gsn($item, $order) AND ! $item['refill_date_first'] AND $item['rx_autofill'] AND ! $not_offered AND ! $refills_only;
+  $eligible     = ! $item['item_date_added'] AND $item['refills_total'] >= 0.1 AND ! $item['refill_date_first'] AND $item['rx_autofill'] AND ! $not_offered AND ! $refills_only;
+  return $eligible AND ! is_duplicate_gsn($item, $order);
 }
 
 function sync_to_order_past_due($item, $order) {
-  return ! $item['item_date_added'] AND $item['refills_total'] >= 0.1 AND ! is_duplicate_gsn($item, $order) AND $item['refill_date_next'] AND (strtotime($item['refill_date_next']) - strtotime($item['order_date_added'])) < 0;
+  $eligible = ! $item['item_date_added'] AND $item['refills_total'] >= 0.1 AND $item['refill_date_next'] AND (strtotime($item['refill_date_next']) - strtotime($item['order_date_added'])) < 0;
+  return $eligible AND ! is_duplicate_gsn($item, $order);
 }
 
 //Order 29017 had a refill_date_first and rx/pat_autofill ON but was missing a refill_date_default/refill_date_manual/refill_date_next
 function sync_to_order_missing_next($item, $order) {
-  return ! $item['item_date_added'] AND $item['refills_total'] >= 0.1 AND ! is_duplicate_gsn($item, $order) AND $item['refill_date_first'] AND ! $item['refill_date_default'];
+  $eligible = ! $item['item_date_added'] AND $item['refills_total'] >= 0.1 AND $item['refill_date_first'] AND ! $item['refill_date_default'];
+  return $eligible AND ! is_duplicate_gsn($item, $order);
 }
 
 function sync_to_order_due_soon($item, $order) {
-  return ! $item['item_date_added'] AND $item['refills_total'] >= 0.1 AND ! is_duplicate_gsn($item, $order) AND $item['refill_date_next'] AND (strtotime($item['refill_date_next'])  - strtotime($item['order_date_added'])) <= 15*24*60*60;
+  $eligible = ! $item['item_date_added'] AND $item['refills_total'] >= 0.1 AND $item['refill_date_next'] AND (strtotime($item['refill_date_next'])  - strtotime($item['order_date_added'])) <= 15*24*60*60;
+  return $eligible AND ! is_duplicate_gsn($item, $order);
 }
 
 //Although you can dispense up until an Rx expires (so refill_date_next is well past rx_date_expired) we want to use
@@ -396,7 +399,7 @@ function is_duplicate_gsn($item1, $order) {
   //Don't sync if an order with these instructions already exists in order
   foreach($order as $item2) {
     if ($item1 !== $item2 AND $item2['item_date_added'] AND $item1['drug_gsns'] == $item2['drug_gsns']) {
-      log_notice("sync_to_order adding item: matching drug_gsns so did not add 'NO ACTION NEW RX SYNCED TO ORDER' $item1[invoice_number] $item1[drug] $item1[item_message_key] refills last:$item1[refill_date_last] next:$item1[refill_date_next] total:$item1[refills_total] left:$item1[refills_left]", ['item1' => $item1, 'item2' => $item2]);
+      log_notice("helper_days_dispensed syncing item: matching drug_gsns so did not SYNC TO ORDER' $item1[invoice_number] $item1[drug] $item1[item_message_key] refills last:$item1[refill_date_last] next:$item1[refill_date_next] total:$item1[refills_total] left:$item1[refills_left]", ['item1' => $item1, 'item2' => $item2]);
       return true;
     }
   }
