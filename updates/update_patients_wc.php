@@ -52,7 +52,7 @@ function update_patients_wc() {
     }
     else {
       $created_new_to_cp++;
-      log_error("update_patients_wc: patient in WC but not in CP, likely a duplicate user in WC or patient inactivated in CP $created[first_name] $created[last_name] wc:$created[patient_id_wc]", [$patient, $created]);
+      log_error("update_patients_wc: patient in WC but not in CP, likely a duplicate user in WC, patient inactivated in CP, or inconsistent birth_date $created[first_name] $created[last_name] wc:$created[patient_id_wc]", [$patient, $created]);
     }
   }
 
