@@ -58,19 +58,14 @@ button.menu-toggle {
   display:none
 }
 
-#birth_date_month_field, #birth_date_year_field  {
+#birth_date_month_field, #birth_date_day_field, #birth_date_year_field  {
   display:inline-block;
-  width:40%;
-}
-
-#birth_date_day_field {
-  display:inline-block;
-  width:10%;
+  width:auto;
 }
 
 #birth_date_month  {
   display:inline-block;
-  width:150px;
+  width:100px;
 }
 
 .radio {

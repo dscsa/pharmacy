@@ -588,7 +588,7 @@ function birth_date_year($user_id) {
       'default' => get_default('birth_date_year', $user_id),
       'autocomplete' => 'user-birth-date-year',
       'custom_attributes' => [
-        'readonly' => true,
+        'disabled' => true,
         'pattern' => "\d{2}|$min_regex|$max_regex",
         'minlength' => '2',
         'maxlength' => '4',
@@ -606,7 +606,7 @@ function birth_date_month($user_id) {
       'default' => get_default('birth_date_month', $user_id),
       'autocomplete' => 'user-birth-date-month',
       'custom_attributes' => [
-        'readonly' => true,
+        'disabled' => true,
         'user_id'  => $user_id
       ],
       'options' => [
@@ -634,7 +634,7 @@ function birth_date_day($user_id) {
     'default' => get_default('birth_date_day', $user_id),
     'autocomplete' => 'user-birth-date-day',
     'custom_attributes' => [
-      'readonly' => true,
+      'disabled' => true,
       'user_id'  => $user_id
     ],
     'options' => [
