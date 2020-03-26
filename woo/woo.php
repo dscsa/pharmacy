@@ -396,7 +396,7 @@ function order_fields($user_id = null, $ordered = null, $rxs = []) {
       'options'   => array_reverse($rx_source_opts, true) //Want default option to be the left most radio
     ],
     'email' => [
-      'priority'  => 21,
+      'priority'  => 22,
       'label'     => __('Email'),
       'type'      => 'email',
       'validate'  => ['email'],
@@ -585,6 +585,7 @@ function birth_date_year($user_id) {
 
   return [
       'id' => 'birth_date_year',
+      'priority'  => 21,
       'default' => get_default('birth_date_year', $user_id),
       'autocomplete' => 'user-birth-date-year',
       'custom_attributes' => [
@@ -601,6 +602,7 @@ function birth_date_month($user_id) {
   return [
       'label'     => __('Birth Date'),
       'label_class' => ['radio'],
+      'priority'  => 19,
       'type'  => 'select',
       'id' => 'birth_date_month',
       'default' => get_default('birth_date_month', $user_id),
@@ -630,6 +632,7 @@ function birth_date_month($user_id) {
 function birth_date_day($user_id) {
   return [
     'type'  => 'select',
+    'priority'  => 20,
     'id' => 'birth_date_day',
     'default' => get_default('birth_date_day', $user_id),
     'autocomplete' => 'user-birth-date-day',
@@ -805,8 +808,9 @@ function shared_fields($user_id = null) {
     'birth_date_month' => birth_date_month($user_id),
     'birth_date_day'   => birth_date_day($user_id),
     'birth_date_year' =>  birth_date_year($user_id),
+    //Email priority 22
     'phone' => [
-      'priority'  => 22,
+      'priority'  => 23,
       'label'     => __('Phone'),
       'required'  => true,
       'type'      => 'tel',
