@@ -599,6 +599,8 @@ function birth_date_year($user_id) {
 
 function birth_date_month($user_id) {
   return [
+      'label'     => __('Birth Date'),
+      'label_class' => ['radio'],
       'type'  => 'select',
       'id' => 'birth_date_month',
       'default' => get_default('birth_date_month', $user_id),
