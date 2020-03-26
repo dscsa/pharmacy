@@ -57,6 +57,12 @@ button.menu-toggle {
 #customer_login .col-2 {
   display:none
 }
+
+#birth_date_month, #birth_date_day, #birth_date_year  {
+  display:inline-block;
+  width:30%;
+}
+
 .radio {
   display:inline-block !important
 }

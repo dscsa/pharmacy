@@ -257,6 +257,9 @@ function remove_sticky_checkout() {
 
 function get_meta($field, $user_id = null) {
 
+  if ( ! function_exists( 'wp_get_current_user' ))
+        return null;
+
   $user = wp_get_current_user();
 
   //We don't store birthdate like other meta fields, since its part of the user_login
@@ -567,22 +570,29 @@ function birth_date_year($user_id) {
   $max_mid_low = max(0, $max_mid_high-1);
   $min_mid_low = max(0, $min_mid_high-1);
 
+  $max_mid_low = "[0-$max_mid_low][0-9]";
+  $min_mid_low = "[0-$min_mid_low][0-9]";
+
   $max_suffix = substr("$max_year", 3, 1);
   $min_suffix = substr("$min_year", 3, 1);
 
+  $max_suffix = "[0-$max_suffix]";
+  $min_suffix = "[0-$min_suffix]";
+
   //2009 -> 20[0-0][0-9]|200[0-9], 2025 -> 20[0-1][0-9]|202[0-5]
-  $max_regex  = "$max_prefix[0-$max_mid_low][0-9]|$max_prefix$max_mid_high[0-$max_suffix]";
-  $min_regex  = "$min_prefix[0-$min_mid_low][0-9]|$min_prefix$min_mid_high[0-$min_suffix]";
+  $max_regex  = "$max_prefix$max_mid_low|$max_prefix$max_mid_high$max_suffix";
+  $min_regex  = "$min_prefix$min_mid_low|$min_prefix$min_mid_high$min_suffix";
 
   return [
       'id' => 'birth_date_year',
       'default' => get_default('birth_date_year', $user_id),
-      'autocomplete' => 'user-birth-day-year',
+      'autocomplete' => 'user-birth-date-year',
       'custom_attributes' => [
         'readonly' => true,
         'pattern' => "\d{2}|$min_regex|$max_regex",
         'minlength' => '2',
-        'maxlength' => '4'
+        'maxlength' => '4',
+        'user_id'  => $user_id
       ]
   ];
 }
@@ -592,9 +602,10 @@ function birth_date_month($user_id) {
       'type'  => 'select',
       'id' => 'birth_date_month',
       'default' => get_default('birth_date_month', $user_id),
-      'autocomplete' => 'user-birth-day-month',
+      'autocomplete' => 'user-birth-date-month',
       'custom_attributes' => [
-        'readonly' => true
+        'readonly' => true,
+        'user_id'  => $user_id
       ],
       'options' => [
         ''   => __("Select Month..."),
@@ -619,9 +630,10 @@ function birth_date_day($user_id) {
     'type'  => 'select',
     'id' => 'birth_date_day',
     'default' => get_default('birth_date_day', $user_id),
-    'autocomplete' => 'user-birth-day-day',
+    'autocomplete' => 'user-birth-date-day',
     'custom_attributes' => [
-      'readonly' => true
+      'readonly' => true,
+      'user_id'  => $user_id
     ],
     'options' => [
       ''   => __("Day"),
@@ -788,9 +800,9 @@ function shared_fields($user_id = null) {
         'class'     => ['allergies', 'form-row-wide'],
         'label'     =>__('List Other Allergies Below').'<input class="input-text " name="allergies_other" id="allergies_other_input" value="'.get_default('allergies_other', $user_id).'">'
     ],
-    'birth_date_month' => $birth_date_month,
-    'birth_date_day'   =>$birth_date_day,
-    'birth_date_year' => $birth_date_year,
+    'birth_date_month' => birth_date_month($user_id),
+    'birth_date_day'   => birth_date_day($user_id),
+    'birth_date_year' =>  birth_date_year($user_id),
     'phone' => [
       'priority'  => 22,
       'label'     => __('Phone'),
