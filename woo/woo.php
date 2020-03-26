@@ -558,39 +558,46 @@ function commCalendar($comm_array) {
 }
 
 function birth_date_year($user_id) {
-  $max_year = date('Y') - 5;   //Minimum Age to register
-  $min_year = $max_year - 100; //Can't be over 100 or could span 2 centuries - e.g. 2000 -> 1895 - causing regex to fail
+  $max_date = date('Y') - 5;   //Minimum Age to register
+  $min_date = $max_date - 100; //Can't be over 100 or could span 2 centuries - e.g. 2000 -> 1895 - causing regex to fail
 
-  $max_prefix = substr("$max_year", 0, 2);
-  $min_prefix = substr("$min_year", 0, 2);
+  $max_century = substr("$max_date", 0, 2);   //2025 -> 2020 -> 20
+  $min_century = substr("$min_date", 0, 2);   //2025 -> 1920 -> 19
 
-  $max_mid_high = substr("$max_year", 2, 1);
-  $min_mid_high = substr("$min_year", 2, 1);
+  $max_decade = substr("$max_date", 2, 1); //2020 -> 2020 -> 2
+  $min_decade = substr("$min_date", 2, 1); //2020 -> 1920 -> 2
 
-  $max_mid_low = max(0, $max_mid_high-1);
-  $min_mid_low = max(0, $min_mid_high-1);
+  $max_year = substr("$max_date", 3, 1);   //2025 -> 2020 -> 0
+  $min_year = substr("$min_date", 3, 1);   //2025 -> 1920 -> 0
 
-  $max_mid_low = "[0-$max_mid_low][0-9]";
-  $min_mid_low = "[0-$min_mid_low][0-9]";
+  //In 2020 -> Eligible DOB 1915 - 2015
+  //191[5-9]|19[2-9][0-9]|20[0-0][0-9]|201[0-5]
 
-  $max_suffix = substr("$max_year", 3, 1);
-  $min_suffix = substr("$min_year", 3, 1);
+  //In 2009 -> Eligible DOB 1904 - 2004
+  //190[4-9]|19[1-9][0-9]|20[0--1][0-9]|201[0-5]
 
-  $max_suffix = "[0-$max_suffix]";
-  $min_suffix = "[0-$min_suffix]";
+  $regexs = ['\d{2}'];
 
-  //2009 -> 20[0-0][0-9]|200[0-9], 2025 -> 20[0-1][0-9]|202[0-5]
-  $max_regex  = "$max_prefix$max_mid_low|$max_prefix$max_mid_high$max_suffix";
-  $min_regex  = "$min_prefix$min_mid_low|$min_prefix$min_mid_high$min_suffix";
+  $regexs[] = $min_century.$min_decade."[$min_year-9]";
+
+  if ($min_decade < 9)
+    $regexs[] = $min_century."[".($min_decade+1)."-9][0-9]";
+
+  if ($max_decade > 0)
+    $regexs[] = $max_century."[0-".($max_decade-1)."][0-9]";
+
+  $regexs[] = $max_century.$max_decade."[0-$max_year]";
 
   return [
       'id' => 'birth_date_year',
       'priority'  => 21,
       'default' => get_default('birth_date_year', $user_id),
       'autocomplete' => 'user-birth-date-year',
+      'placeholder' => 'Year...',
       'custom_attributes' => [
         'disabled' => true,
-        'pattern' => "\d{2}|$min_regex|$max_regex",
+        'pattern'  => implode('|', $regexs),
+        'title' => "Please enter a year between $min_date-$max_date",
         'minlength' => '2',
         'maxlength' => '4',
         'user_id'  => $user_id
@@ -641,7 +648,7 @@ function birth_date_day($user_id) {
       'user_id'  => $user_id
     ],
     'options' => [
-      ''   => __("Day"),
+      ''   => __("Day..."),
       '01' => __("01"),
       '02' => __("02"),
       '03' => __("03"),
@@ -1103,7 +1110,7 @@ function dscsa_register_form() {
 }
 
 function verify_username($id) {
-  echo "<div id='verify_username_$id'>Legal Name: <span id='verify_first_name_$id'></span> <span id='verify_last_name_$id'></span> <span id='verify_birth_date_month_$id'></span></div>/<span id='verify_birth_date_day_$id'></span></div> <span id='verify_birth_date_year_$id'></span></div>";
+  return "<span id='verify_first_name_$id'></span> <span id='verify_last_name_$id'></span> <span id='verify_birth_date_month_$id'></span>/<span id='verify_birth_date_day_$id'></span>/<span id='verify_birth_date_year_$id'></span>";
 }
 
 function login_form($id) {
@@ -1132,12 +1139,12 @@ function login_form($id) {
 
 add_action('woocommerce_login_form', 'dscsa_login_form_acknowledgement');
 function dscsa_login_form_acknowledgement() {
-  verify_username('login');
+  echo "<div id='verify_username_login'>Confirm your login: ".verify_username('login')."</div>";
 }
 
 add_action('woocommerce_register_form', 'dscsa_register_form_acknowledgement');
 function dscsa_register_form_acknowledgement() {
-  verify_username('register');
+  echo "<div id='verify_username_register'>Your login will be: ".verify_username('register')."</div>";
   echo woocommerce_form_field('certify',[
     'type'   	  => 'checkbox',
     'label'     => __("I certify that<br>(1) I understand this program provides medications to those who cannot afford them.<br>(2) I am eligible because my co-pays and/or deductibles are too high to afford or I don't have health insurance.<br>(3) I agree to Good Pill's <a href='/gp-terms'>Terms of Use</a> including receiving and paying for my refills automatically"),
@@ -1215,6 +1222,14 @@ function dscsa_default_post_value() {
   if ($last_name) $_POST['last_name'] = strtoupper(clean_field($last_name));
 
   if ($first_name AND $last_name AND $_POST['birth_date_year'] AND $_POST['birth_date_month'] AND $_POST['birth_date_day']) {    //Set username for login, registration & user_login for lost password
+
+     if (strlen($_POST['birth_date_year']) == 2) {
+       $century = substr(date('Y'), 0, 2);
+       $_POST['birth_date_year'] = date('y') > $_POST['birth_date_year']
+        ? $century.$_POST['birth_date_year']
+        : ($century-1).$_POST['birth_date_year'];
+     }
+
      $_POST['username'] = str_replace("'", "", "$_POST[first_name] $_POST[last_name] $_POST[birth_date_year]-$_POST[birth_date_month]-$_POST[birth_date_day]");
      $_POST['user_login'] = $_POST['username'];
 
@@ -2200,7 +2215,7 @@ function dscsa_translate($term, $raw, $domain) {
   	  'Billing &amp; Shipping' => 'Shipping Address', //Checkout
       //Logging in
       'Lost your password? Please enter your username or email address. You will receive a link to create a new password via email.' => 'Lost your password? Before reseting, please note that new accounts use your phone number - e.g., 4701234567 - as a temporary password. To reset, you will receive a link to create a new password via text message and/or email. If you have trouble, call us at (888) 987-5187 for assistance.',
-      'Please enter a valid account username.' => 'Please enter your name and date of birth in mm/dd/yyyy format.',
+      'Please enter a valid account username.' => 'Please verify your name and date of birth are correct',
       'Username is required.' => 'Name and date of birth in mm/dd/yyyy format are required.',
       'Invalid username or email.' => '<strong>Error</strong>: We cannot find an account with name and date of birth.',
       '<strong>ERROR</strong>: Invalid username.' => '<strong>Error</strong>: We cannot find an account with that name and date of birth.',
