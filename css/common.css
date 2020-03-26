@@ -67,7 +67,11 @@ button.menu-toggle {
 
 #birth_date_month, #birth_date_month_login, #birth_date_month_register  {
   display:inline-block;
-  width:100px;
+  width:120px;
+}
+
+select { /* mirror select2.js that is included on other pages*/
+  height:45px !important
 }
 
 .radio {
