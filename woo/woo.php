@@ -593,11 +593,12 @@ function birth_date_year($user_id) {
       'priority'  => 21,
       'default' => get_default('birth_date_year', $user_id),
       'autocomplete' => 'user-birth-date-year',
-      'placeholder' => 'Year...',
+      'placeholder' => 'Year',
       'custom_attributes' => [
         'disabled' => true,
         'pattern'  => implode('|', $regexs),
         'title' => "Please enter a year between $min_date-$max_date",
+        'inputmode' => 'numeric',
         'minlength' => '2',
         'maxlength' => '4',
         'user_id'  => $user_id
@@ -619,7 +620,7 @@ function birth_date_month($user_id) {
         'user_id'  => $user_id
       ],
       'options' => [
-        ''   => __("Select Month..."),
+        ''   => __("Month"),
         '01' => __("January"),
         '02' => __("February"),
         '03' => __("March"),
@@ -648,7 +649,7 @@ function birth_date_day($user_id) {
       'user_id'  => $user_id
     ],
     'options' => [
-      ''   => __("Day..."),
+      ''   => __("Day"),
       '01' => __("01"),
       '02' => __("02"),
       '03' => __("03"),
@@ -2628,7 +2629,7 @@ function patient_profile($first_name, $last_name, $birth_date_year, $birth_date_
 
   //debug_email("patient_profile start", "$first_name $last_name $birth_date, $phone".print_r(func_get_args(), true).print_r(sanitize($_POST), true));
 
-  if ( ! $first_name OR ! $last_name OR ! $birth_date) {
+  if ( ! $first_name OR ! $last_name OR ! $birth_date_year OR ! $birth_date_month OR ! $birth_date_day) {
     //debug_email("patient_profile_error!", "is_admin ".is_admin()." ".print_r(func_get_args(), true).print_r($_POST, true));
     return;
   }
@@ -2636,9 +2637,11 @@ function patient_profile($first_name, $last_name, $birth_date_year, $birth_date_
   $first_name = str_replace("'", "''", $first_name);
   $last_name = str_replace("'", "''", $last_name);
 
-  $result = db_run("SirumWeb_PatProfile '$first_name', '$last_name', '$birth_date_year-$birth_date_month-$birth_month_day', '$phone'", 0, true);
+  $sql = "SirumWeb_PatProfile '$first_name', '$last_name', '$birth_date_year-$birth_date_month-$birth_month_day', '$phone'";
 
-  //debug_email("patient_profile end", "$first_name $last_name ".print_r(func_get_args(), true).print_r(sanitize($_POST), true).print_r($result, true));
+  $result = db_run($sql, 0, true);
+
+  debug_email("patient_profile end", "$first_name $last_name $sql".print_r(func_get_args(), true).print_r(sanitize($_POST), true).print_r($result, true));
 
   return $result;
 }
