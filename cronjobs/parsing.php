@@ -678,6 +678,7 @@ $test_sigs = [
   //Take 1 tablet by mouth 5 times a day Take 1 tablet by mouth 5 times a day for 10 days.
   //'Take 1 tablet by mouth once a day as directed Take 30 minute before first meal of the day
   //"Take 1 tablet by mouth at bedtime Dr. Jonathan Williams NPI 1346391299
+  //1 Capsule(s) PO QHS TAKE 1 CAPSULE BY MOUTH EVERYDAY AT BEDTIME
 ];
 
 

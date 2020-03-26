@@ -86,7 +86,7 @@ function sync_to_order($order, $updated = null) {
       }
 
       if ($item['item_added_by'] == 'MANUAL') {
-        log_error('aborting helper_syncing because item to be REMOVED was added MANUALLY', $item);
+        log_notice('aborting helper_syncing because item to be REMOVED was added MANUALLY', $item);
         continue;
       }
 
@@ -101,7 +101,7 @@ function sync_to_order($order, $updated = null) {
     if ($item['item_date_added'] AND $item['rx_number'] != $item['best_rx_number']) {
 
       if ($item['item_added_by'] == 'MANUAL') {
-        log_error('aborting helper_syncing because item to be SWITCHED was added MANUALLY', $item);
+        log_notice('aborting helper_syncing because item to be SWITCHED was added MANUALLY', $item);
         continue;
       }
 
