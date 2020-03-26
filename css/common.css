@@ -58,7 +58,7 @@ button.menu-toggle {
   display:none
 }
 
-#birth_date_month, #birth_date_day, #birth_date_year  {
+#birth_date_month_field, #birth_date_day_field, #birth_date_year_field  {
   display:inline-block;
   width:30%;
 }
