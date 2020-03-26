@@ -1049,9 +1049,9 @@ function dscsa_lostpassword_form() {
   $shared_fields['birth_date_month']['id'] = 'birth_date_month_lostpassword';
   $shared_fields['birth_date_day']['id'] = 'birth_date_day_lostpassword';
 
-  $shared_fields['birth_date']['custom_attributes']['readonly'] = false;
-  $shared_fields['birth_date']['custom_attributes']['readonly'] = false;
-  $shared_fields['birth_date']['custom_attributes']['readonly'] = false;
+  $shared_fields['birth_date']['custom_attributes']['disabled'] = false;
+  $shared_fields['birth_date']['custom_attributes']['disabled'] = false;
+  $shared_fields['birth_date']['custom_attributes']['disabled'] = false;
 
   echo woocommerce_form_field('birth_date_month', $shared_fields['birth_date_month']);
   echo woocommerce_form_field('birth_date_day', $shared_fields['birth_date_day']);
@@ -1068,9 +1068,9 @@ function dscsa_login_form() {
   $shared_fields['birth_date_month']['id'] = 'birth_date_month_login';
   $shared_fields['birth_date_day']['id'] = 'birth_date_day_login';
 
-  $shared_fields['birth_date_year']['custom_attributes']['readonly'] = false;
-  $shared_fields['birth_date_month']['custom_attributes']['readonly'] = false;
-  $shared_fields['birth_date_day']['custom_attributes']['readonly'] = false;
+  $shared_fields['birth_date_year']['custom_attributes']['disabled'] = false;
+  $shared_fields['birth_date_month']['custom_attributes']['disabled'] = false;
+  $shared_fields['birth_date_day']['custom_attributes']['disabled'] = false;
 
   echo woocommerce_form_field('birth_date_month', $shared_fields['birth_date_month']);
   echo woocommerce_form_field('birth_date_day', $shared_fields['birth_date_day']);
@@ -1087,9 +1087,9 @@ function dscsa_register_form() {
   $shared_fields['birth_date_month']['id'] = 'birth_date_month_register';
   $shared_fields['birth_date_day']['id'] = 'birth_date_day_register';
 
-  $shared_fields['birth_date_year']['custom_attributes']['readonly'] = false;
-  $shared_fields['birth_date_month']['custom_attributes']['readonly'] = false;
-  $shared_fields['birth_date_day']['custom_attributes']['readonly'] = false;
+  $shared_fields['birth_date_year']['custom_attributes']['disabled'] = false;
+  $shared_fields['birth_date_month']['custom_attributes']['disabled'] = false;
+  $shared_fields['birth_date_day']['custom_attributes']['disabled'] = false;
 
   $shared_fields['phone']['custom_attributes']['readonly'] = false;
   $shared_fields['phone']['autocomplete'] = 'tel'; //allow autocomplete on first page but not second
@@ -1846,17 +1846,17 @@ function set_field($key, $newVal) {
 function dscsa_save_patient($user_id, $fields) {
 
   //checkout, account details, admin page with correct user, admin page when changing user
-  debug_email('dscsa_save_patient_start', is_registered()."|||".print_r(get_user_meta($user_id), true)."|||".print_r($_POST, true));
+  debug_email('dscsa_save_patient_start', is_registered()."|||".print_r($woocommerce->customer, true)."|||".print_r(get_user_meta($user_id), true)."|||".print_r($_POST, true));
 
   //Detect Identity Changes and Email Us a Warning
   if ( ! is_admin()) {
 
     global $woocommerce;
 
-    $birth_date = "$_POST[birth_date_year]-$_POST[birth_date_month]-$_POST[birth_date_day]";
+    $birth_date = substr($woocommerce->customer->username, -10);
 
     $old_name   = [
-     'birth_date' => substr($woocommerce->customer->username, -10),
+     'birth_date' => $birth_date,
      'first_name' => $woocommerce->customer->first_name,
      'last_name'  => $woocommerce->customer->last_name,
      'email'  => $woocommerce->customer->email
@@ -1864,17 +1864,16 @@ function dscsa_save_patient($user_id, $fields) {
 
     $firstname_changed = strtolower($_POST['first_name']) != strtolower($old_name['first_name']);
     $lastname_changed  = strtolower($_POST['last_name']) != strtolower($old_name['last_name']);
-    $birthdate_changed = $birth_date != $old_name['birth_date'];
     $email_changed = ((strtolower($_POST['email'] ?: $_POST['account_email']) != strtolower($old_name['email'])) AND (strpos($old_name['email'], '@goodpill.org') === false) AND (strlen($old_name['email']) > 0));
 
-    if ($firstname_changed OR $lastname_changed OR $birthdate_changed OR $email_changed) {
+    if ($firstname_changed OR $lastname_changed OR $email_changed) {
       //wp_mail('hello@goodpill.org', 'Patient Name Change', print_r(sanitize($_POST), true)."\r\n\r\n".print_r($order, true));
-      debug_email('Warning Patient Identity Changed!', "firstname_changed $firstname_changed | lastname_changed $lastname_changed | birthdate_changed $birthdate_changed | email_changed $email_changed.\r\n\r\nNew Info: $_POST[first_name] $_POST[last_name] $birth_date $_POST[email]\r\n\r\nstrpos($old_name[email], '@goodpill.org'): ".strpos($old_name['email'], '@goodpill.org')."\r\n\r\nOld Info:".print_r($old_name, true)."\r\n\r\nPOST:".print_r(sanitize($_POST), true));
+      debug_email('Warning Patient Identity Changed!', "firstname_changed $firstname_changed | lastname_changed $lastname_changed | email_changed $email_changed.\r\n\r\nNew Info: $_POST[first_name] $_POST[last_name] $birth_date $_POST[email]\r\n\r\nstrpos($old_name[email], '@goodpill.org'): ".strpos($old_name['email'], '@goodpill.org')."\r\n\r\nOld Info:".print_r($old_name, true)."\r\n\r\nPOST:".print_r(sanitize($_POST), true));
     }
   }
 
-  if ( ! $_POST['first_name'] OR ! $_POST['last_name'] OR ! $_POST['birth_date_year'] OR ! $_POST['birth_date_month'] OR ! $_POST['birth_date_day']) {
-    debug_email('DEBUG dscsa_save_patient', print_r([$_POST['first_name'], $_POST['last_name'], $birth_date], true)."|||".print_r(get_user_meta($user_id), true)."|||".print_r($_POST, true));
+  if ( ! $_POST['first_name'] OR ! $_POST['last_name'] OR ! $birth_date) {
+    debug_email('DEBUG dscsa_save_patient', print_r($woocommerce->customer, true)."|||".print_r(get_user_meta($user_id), true)."|||".print_r($_POST, true));
     return;
   }
 
@@ -2522,7 +2521,7 @@ function get_guardian_order($guardian_id, $rx_source, $comment) {
     $category = 0;
 
   $result = db_run("SirumWeb_AddFindOrder '$guardian_id', '$category', '$comment'");
-  //debug_email("get_guardian_order *$source*", "SirumWeb_AddFindOrder '$guardian_id', '$category', '$comment'".print_r($result, true));
+  debug_email("get_guardian_order *$source*", "SirumWeb_AddFindOrder '$guardian_id', '$category', '$comment'".print_r($result, true));
   return $result;
 }
 

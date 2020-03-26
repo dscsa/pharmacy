@@ -58,12 +58,14 @@ button.menu-toggle {
   display:none
 }
 
-#birth_date_month_field, #birth_date_day_field, #birth_date_year_field  {
+#birth_date_month_field, #birth_date_day_field, #birth_date_year_field,
+#birth_date_month_login_field, #birth_date_day_login_field, #birth_date_year_login_field,
+#birth_date_month_register_field, #birth_date_day_register_field, #birth_date_year_register_field  {
   display:inline-block;
   width:auto;
 }
 
-#birth_date_month  {
+#birth_date_month, #birth_date_month_login, #birth_date_month_register  {
   display:inline-block;
   width:100px;
 }
