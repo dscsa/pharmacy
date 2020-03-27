@@ -68,7 +68,7 @@ function export_gd_publish_invoice($order) {
     'folder'   => INVOICE_PENDING_FOLDER_NAME,
   ];
 
-  $result = gdoc_post(GD_HELPER_URL, $args);
+  $result1 = gdoc_post(GD_HELPER_URL, $args);
 
   $args = [
     'method'   => 'publishFile',
@@ -76,31 +76,31 @@ function export_gd_publish_invoice($order) {
     'folder'   => 'Old',
   ];
 
-  $result = gdoc_post(GD_HELPER_URL, $args);
+  $result2 = gdoc_post(GD_HELPER_URL, $args);
 
   $args = [
-    'method'   => 'moveFile',
-    'file'     => 'Invoice #'.$order[0]['invoice_number'],
+    'method'     => 'moveFile',
+    'file'       => 'Invoice #'.$order[0]['invoice_number'],
     'fromFolder' => INVOICE_PENDING_FOLDER_NAME,
     'toFolder'   => INVOICE_PUBLISHED_FOLDER_NAME,
   ];
 
-  $result = gdoc_post(GD_HELPER_URL, $args);
+  $result3 = gdoc_post(GD_HELPER_URL, $args);
 
   /*Temp*/
   $args = [
-    'method'   => 'moveFile',
-    'file'     => 'Invoice #'.$order[0]['invoice_number'],
+    'method'     => 'moveFile',
+    'file'       => 'Invoice #'.$order[0]['invoice_number'],
     'fromFolder' => 'Old',
     'toFolder'   => INVOICE_PUBLISHED_FOLDER_NAME,
   ];
 
-  $result = gdoc_post(GD_HELPER_URL, $args);
+  $result4 = gdoc_post(GD_HELPER_URL, $args);
   /* End Temp */
 
   $time = ceil(microtime(true) - $start);
 
-  log_notice("export_gd_update_invoice $time seconds: ".$order[0]['invoice_number']);
+  log_notice("export_gd_update_invoice $time seconds: ".$order[0]['invoice_number'], [$result1, $result2, $result3, $result4]);
 }
 
 function export_gd_delete_invoice($order) {
