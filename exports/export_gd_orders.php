@@ -92,7 +92,7 @@ function export_gd_publish_invoice($order) {
 
   $time = ceil(microtime(true) - $start);
 
-  log_notice("export_gd_update_invoice $time seconds");
+  log_notice("export_gd_update_invoice $time seconds: ".$order[0]['invoice_number']);
 }
 
 function export_gd_delete_invoice($order) {
