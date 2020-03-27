@@ -1,7 +1,20 @@
-function testPost() {
-  var event = {parameter:{GD_KEY:GD_KEY}, postData:{contents:{method:'findValue', file:'Order Summary #20660', needle:'(Fee:|Amount Due:)'}}}
+function testMergeDoc() {
+
+  var contents = JSON.stringify({
+    method:'mergeDoc',
+    template:'Invoice Template v1',
+    file:'TEST Invoice #'+test_order[0]['invoice_number'],
+    folder: 'Pending',
+    order:test_order
+  })
+
+  Logger.log(contents)
+
+  var event = {parameter:{GD_KEY:GD_KEY}, postData:{contents:contents}}
+
   debugEmail(event, doPost(event))
 }
+
 
 function doPost(e) {
 

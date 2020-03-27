@@ -43,17 +43,9 @@ function parentByFile(file) {
 //This seems a lot of work to just not have multiple invoices, so skipping for right now but may be worth revisiting in the future
 function makeCopy(oldFile, copyName, copyFolder) {
    oldFile = DriveApp.getFileById(oldFile.getId()) //Class Document doesn't have makeCopy need Class File
-   var newFile = oldFile.makeCopy(copyName)
+
    var newFolder = folderByName(copyFolder)
-   var parents   = newFile.getParents()
-
-   while (parents.hasNext()) {
-     debugEmail('gdoc_merge makeCopy', parents.next().getId()+" -> "+copyFolder+" -> "+newFolder.getId())
-   }
-
-   //Call addFile before removeFile because file must always be in at least one folder
-   newFolder.addFile(newFile)
-   parentByFile(newFile).removeFile(newFile)
-
+   var newFile = oldFile.makeCopy(copyName, newFolder)
+  
    return DocumentApp.openById(newFile.getId())
 }
