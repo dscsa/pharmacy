@@ -83,8 +83,8 @@ function clean_sig($sig) {
   $sig = preg_replace('/(^| )(\.5|1\/2|1-half|1 half)\\b/i', ' 0.5', $sig);
 
   //Take Last (Max?) of Numeric Ranges
-  $sig = preg_replace('/\\b([0-9]*\.[0-9]+|[1-9][0-9]*) or ([0-9]*\.[0-9]+|[1-9][0-9]*)\\b/i', '$1', $sig, 1); //Take 1 or 2 every 3 or 4 hours. Let's convert that to Take 2 every 3 or 4 hours (no global flag).  CK approves of first substitution but not sure of the 2nd so the conservative answer is to leave it alone
-  $sig = preg_replace('/\\b([0-9]*\.[0-9]+|[1-9][0-9]*) to ([0-9]*\.[0-9]+|[1-9][0-9]*)\\b/i', '$1', $sig, 1); //Take 1 to 2 every 3 or 4 hours. Let's convert that to Take 2 every 3 or 4 hours (no global flag).  CK approves of first substitution but not sure of the 2nd so the conservative answer is to leave it alone
+  $sig = preg_replace('/\\b([0-9]*\.[0-9]+|[1-9][0-9]*) *or *([0-9]*\.[0-9]+|[1-9][0-9]*)\\b/i', '$1', $sig, 1); //Take 1 or 2 every 3 or 4 hours. Let's convert that to Take 2 every 3 or 4 hours (no global flag).  CK approves of first substitution but not sure of the 2nd so the conservative answer is to leave it alone
+  $sig = preg_replace('/\\b([0-9]*\.[0-9]+|[1-9][0-9]*) *to *([0-9]*\.[0-9]+|[1-9][0-9]*)\\b/i', '$1', $sig, 1); //Take 1 to 2 every 3 or 4 hours. Let's convert that to Take 2 every 3 or 4 hours (no global flag).  CK approves of first substitution but not sure of the 2nd so the conservative answer is to leave it alone
   $sig = preg_replace('/\\b([0-9]*\.[0-9]+|[1-9][0-9]*) *- *([0-9]*\.[0-9]+|[1-9][0-9]*)\\b/i', '$1', $sig, 1); //Take 1-2 every 3 or 4 hours. Let's convert that to Take 2 every 3 or 4 hours (no global flag).  CK approves of first substitution but not sure of the 2nd so the conservative answer is to leave it alone
 
   //Duration

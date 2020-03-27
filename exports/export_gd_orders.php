@@ -79,6 +79,17 @@ function export_gd_publish_invoice($order) {
 
   $result = gdoc_post(GD_HELPER_URL, $args);
 
+  /*Temp*/
+  $args = [
+    'method'   => 'moveFile',
+    'file'     => 'Invoice #'.$order[0]['invoice_number'],
+    'fromFolder' => 'Old',
+    'toFolder'   => INVOICE_PUBLISHED_FOLDER_NAME,
+  ];
+
+  $result = gdoc_post(GD_HELPER_URL, $args);
+  /* End Temp */
+
   $time = ceil(microtime(true) - $start);
 
   log_notice("export_gd_update_invoice $time seconds");
