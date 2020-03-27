@@ -45,12 +45,15 @@ function makeCopy(oldFile, copyName, copyFolder) {
    oldFile = DriveApp.getFileById(oldFile.getId()) //Class Document doesn't have makeCopy need Class File
    var newFile = oldFile.makeCopy(copyName)
    var newFolder = folderByName(copyFolder)
-   MailApp.sendEmail({
-      to: "adam@sirum.org",
-      subject: "gdoc_merge makeCopy()",
-      body:copyFolder+" -> "+newFolder.getId()+" "+newFolder.getName()
-   })
-   parentByFile(newFile).removeFile(newFile)
+   var parents   = newFile.getParents()
+
+   while (parents.hasNext()) {
+     debugEmail('gdoc_merge makeCopy', parents.next().getId()+" -> "+copyFolder+" -> "+newFolder.getId())
+   }
+
+   //Call addFile before removeFile because file must always be in at least one folder
    newFolder.addFile(newFile)
+   parentByFile(newFile).removeFile(newFile)
+
    return DocumentApp.openById(newFile.getId())
 }
