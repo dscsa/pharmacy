@@ -117,6 +117,9 @@ function publishFile(opts){
 function moveFile(opts) {
   var fromFolder = DriveApp.getFoldersByName(opts.fromFolder).next()
   var file = fromFolder.searchFiles('title contains "'+opts.file+'"').next()
+
+  debugEmail('gdoc_helpers moveFile', opts)
+  
   return moveToFolder(file, opts.toFolder)
 }
 
@@ -145,6 +148,7 @@ function moveToFolder(file, folder) {
   if ( ! folder ) return
   parentByFile(file).removeFile(file)
   folderByName(folder).addFile(file)
+
   return file
 }
 
