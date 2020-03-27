@@ -18,7 +18,7 @@ function watch_invoices() {
 
   $args = [
     'method'       => 'watchFiles',
-    'folder'       => INVOICE_FOLDER_NAME
+    'folder'       => INVOICE_PUBLISHED_FOLDER_NAME
   ];
 
   $invoices = json_decode(gdoc_post(GD_HELPER_URL, $args), true);

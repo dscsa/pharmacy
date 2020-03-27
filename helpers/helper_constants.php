@@ -10,7 +10,9 @@ const ADDED_MANUALLY = [
 ];
 
 const PICK_LIST_FOLDER_NAME = 'OLD';
-const INVOICE_FOLDER_NAME   = 'Published';  //Published
+const INVOICE_PUBLISHED_FOLDER_NAME = 'Published';  //Published
+const INVOICE_PENDING_FOLDER_NAME   = 'Pending';  //Published
+
 
 const PAYMENT_TOTAL_NEW_PATIENT = 6;
 

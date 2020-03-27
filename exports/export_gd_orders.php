@@ -17,7 +17,7 @@ function export_gd_update_invoice($order, $reason, $mysql) {
     'method'   => 'mergeDoc',
     'template' => 'Invoice Template v1',
     'file'     => 'Invoice #'.$order[0]['invoice_number'],
-    'folder'   => INVOICE_FOLDER_NAME,
+    'folder'   => INVOICE_PENDING_FOLDER_NAME,
     'order'    => $order
   ];
 
@@ -65,7 +65,16 @@ function export_gd_publish_invoice($order) {
   $args = [
     'method'   => 'publishFile',
     'file'     => 'Invoice #'.$order[0]['invoice_number'],
-    'folder'   => INVOICE_FOLDER_NAME,
+    'folder'   => INVOICE_PENDING_FOLDER_NAME,
+  ];
+
+  $result = gdoc_post(GD_HELPER_URL, $args);
+
+  $args = [
+    'method'   => 'moveFile',
+    'file'     => 'Invoice #'.$order[0]['invoice_number'],
+    'fromFolder' => INVOICE_PUBLISHED_FOLDER_NAME,
+    'toFolder'   => INVOICE_PENDING_FOLDER_NAME,
   ];
 
   $result = gdoc_post(GD_HELPER_URL, $args);
@@ -73,7 +82,6 @@ function export_gd_publish_invoice($order) {
   $time = ceil(microtime(true) - $start);
 
   log_notice("export_gd_update_invoice $time seconds");
-  log_info("export_gd_publish_invoice", get_defined_vars());
 }
 
 function export_gd_delete_invoice($order) {
@@ -81,7 +89,7 @@ function export_gd_delete_invoice($order) {
   $args = [
     'method'   => 'removeFiles',
     'file'     => 'Invoice #'.$order[0]['invoice_number'],
-    'folder'   => INVOICE_FOLDER_NAME
+    'folder'   => INVOICE_PENDING_FOLDER_NAME
   ];
 
   $result = gdoc_post(GD_HELPER_URL, $args);

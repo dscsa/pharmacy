@@ -114,6 +114,15 @@ function publishFile(opts){
   return resource
 }
 
+function moveFile(opts) {
+  var fromFolder = DriveApp.getFoldersByName(opts.fromFolder).next()
+  var toFolder = DriveApp.getFoldersByName(opts.toFolder).next()
+  var file = fromFolder.searchFiles('title contains "'+opts.file+'"').next()
+
+  toFolder.addFile(file)
+  fromFolder.removeFile(file)
+}
+
 function newSpreadsheet(opts) {
 
   var ss   = SpreadsheetApp.create(opts.file)

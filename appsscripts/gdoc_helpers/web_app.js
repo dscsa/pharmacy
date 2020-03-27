@@ -43,11 +43,14 @@ function doPost(e) {
     else if (contents.method == 'shortLinks')
       response = shortLinks(contents)
 
+    else if (contents.method == 'moveFile')
+      response = moveFile(contents)
+
     else
       debugEmail('web_app post no matching method', e)
 
     return ContentService
-      .createTextOutput(JSON.stringify(response))
+      .createTextOutput(JSON.stringify(response || 'gdoc_helper had not return value'))
       .setMimeType(ContentService.MimeType.JSON)
 
   } catch(err){
