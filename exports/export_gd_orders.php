@@ -73,8 +73,8 @@ function export_gd_publish_invoice($order) {
   $args = [
     'method'   => 'moveFile',
     'file'     => 'Invoice #'.$order[0]['invoice_number'],
-    'fromFolder' => INVOICE_PUBLISHED_FOLDER_NAME,
-    'toFolder'   => INVOICE_PENDING_FOLDER_NAME,
+    'fromFolder' => INVOICE_PENDING_FOLDER_NAME,
+    'toFolder'   => INVOICE_PUBLISHED_FOLDER_NAME,
   ];
 
   $result = gdoc_post(GD_HELPER_URL, $args);
