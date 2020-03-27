@@ -2,7 +2,7 @@
 
 //TODO Calculate Qty, Days, & Price
 
-function get_days_default($item) {
+function get_days_default($item, $order) {
 
   $no_transfer    = is_no_transfer($item);
   $added_manually = is_added_manually($item);
