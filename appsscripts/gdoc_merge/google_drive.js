@@ -44,7 +44,13 @@ function parentByFile(file) {
 function makeCopy(oldFile, copyName, copyFolder) {
    oldFile = DriveApp.getFileById(oldFile.getId()) //Class Document doesn't have makeCopy need Class File
    var newFile = oldFile.makeCopy(copyName)
+   var newFolder = folderByName(copyFolder)
+   MailApp.sendEmail({
+      to: "adam@sirum.org",
+      subject: "gdoc_merge makeCopy()",
+      body:copyFolder+" -> "+newFolder.getId()+" "+newFolder.getName()
+   })
    parentByFile(newFile).removeFile(newFile)
-   folderByName(copyFolder).addFile(newFile)
+   newFolder.addFile(newFile)
    return DocumentApp.openById(newFile.getId())
 }
