@@ -47,7 +47,7 @@ function doPost(e) {
       response = moveFile(contents)
 
     else
-      debugEmail('web_app post no matching method', e)
+      debugEmail('web_app post no matching method', [contents.method, contents, e])
 
     return ContentService
       .createTextOutput(JSON.stringify(response || 'gdoc_helper had not return value'))
