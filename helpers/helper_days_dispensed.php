@@ -125,7 +125,7 @@ function get_days_default($item, $order) {
   //TODO CHECK IF THIS IS A GUARDIAN ERROR OR WHETHER WE ARE IMPORTING WRONG.  SEEMS THAT IF REFILL_DATE_FIRST IS SET, THEN REFILL_DATE_DEFAULT should be set
   if (sync_to_order_missing_next($item, $order)) {
     log_info("WAS MISSING REFILL_DATE_NEXT SO WAS SYNCED TO ORDER", get_defined_vars());
-    return [$days_default, RX_MESSAGE['NO ACTION MISSING NEXT AND SYNC TO ORDER']];
+    return [$days_default, RX_MESSAGE['NO ACTION NO NEXT AND SYNC TO ORDER']];
   }
 
   //TODO and check if added by this program otherwise false positives
