@@ -57,7 +57,7 @@ function export_gd_update_invoice($order, $reason, $mysql) {
 
 function export_gd_print_invoice($order) {
 
-  log_error("export_gd_publish_invoice start: ".$order[0]['invoice_number'], $order);
+  log_error("export_gd_print_invoice start: ".$order[0]['invoice_number'], $order);
 
   $start = microtime(true);
 
