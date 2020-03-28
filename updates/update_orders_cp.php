@@ -247,7 +247,9 @@ function update_orders_cp() {
       }
 
       $groups = group_drugs($order, $mysql);
+      log_notice("export_gd_publish_invoice before ".$order[0]['invoice_number']);
       export_gd_publish_invoice($order);
+      log_notice("export_gd_publish_invoice after ".$order[0]['invoice_number']);
       send_dispensed_order_communications($groups);
       log_notice("Updated Order Dispensed", $order);
       continue;

@@ -58,6 +58,8 @@ function export_gd_update_invoice($order, $reason, $mysql) {
 //Cannot delete (with this account) once published
 function export_gd_publish_invoice($order) {
 
+  log_error("export_gd_publish_invoice start: ".$order[0]['invoice_number'], $order);
+
   if ( ! $order[0]['order_date_shipped']) return; //only publish if tracking number since we can't delete extra after this point
 
   $start = microtime(true);
@@ -70,6 +72,10 @@ function export_gd_publish_invoice($order) {
 
   $result1 = gdoc_post(GD_HELPER_URL, $args);
 
+  $time = ceil(microtime(true) - $start);
+
+  log_error("export_gd_publish_invoice $time seconds: ".$order[0]['invoice_number'], $result1);
+
   $args = [
     'method'   => 'publishFile',
     'file'     => 'Invoice #'.$order[0]['invoice_number'],
@@ -77,6 +83,10 @@ function export_gd_publish_invoice($order) {
   ];
 
   $result2 = gdoc_post(GD_HELPER_URL, $args);
+
+  $time = ceil(microtime(true) - $start);
+
+  log_error("export_gd_publish_invoice $time seconds: ".$order[0]['invoice_number'], $result2);
 
   $args = [
     'method'     => 'moveFile',
@@ -87,6 +97,10 @@ function export_gd_publish_invoice($order) {
 
   $result3 = gdoc_post(GD_HELPER_URL, $args);
 
+  $time = ceil(microtime(true) - $start);
+
+  log_error("export_gd_publish_invoice $time seconds: ".$order[0]['invoice_number'], $result3);
+
   /*Temp*/
   $args = [
     'method'     => 'moveFile',
@@ -96,6 +110,10 @@ function export_gd_publish_invoice($order) {
   ];
 
   $result4 = gdoc_post(GD_HELPER_URL, $args);
+
+  $time = ceil(microtime(true) - $start);
+
+  log_error("export_gd_publish_invoice $time seconds: ".$order[0]['invoice_number'], $result4);
   /* End Temp */
 
   $time = ceil(microtime(true) - $start);
