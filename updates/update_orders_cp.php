@@ -87,7 +87,7 @@ function update_orders_cp() {
     if ($synced['new_count_items'] <= 0) {
       $groups = group_drugs($order, $mysql);
       order_hold_notice($groups);
-      log_notice("update_orders_cp  helper_syncing is effectively removing order ".$order[0]['invoice_number'], ['order' => $order, 'synced' => $synced]);
+      log_notice("update_orders_cp sync_to_order is effectively removing order ".$order[0]['invoice_number'], ['order' => $order, 'synced' => $synced]);
     }
 
     if ($synced['items_to_sync']) {
