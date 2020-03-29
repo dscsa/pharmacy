@@ -58,10 +58,10 @@ function import_cp_rxs_single() {
       cprx_disp.rxdisp_id = last_rxdisp_id
 
     LEFT JOIN csct_code input_source ON
-      ct_id = 194 AND code_num = input_src_cn
+      input_source.ct_id = 194 AND input_source.code_num = input_src_cn
 
     LEFT JOIN csct_code rx_message ON
-      ct_id = 6400 AND code_num = priority_cn
+      rx_message.ct_id = 6400 AND rx_message.code_num = priority_cn
 
     LEFT JOIN (
 
