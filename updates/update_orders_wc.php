@@ -59,7 +59,7 @@ function update_orders_wc() {
       $gp_orders      = $mysql->run("SELECT * FROM gp_orders WHERE invoice_number = $created[invoice_number]");
       $gp_orders_cp   = $mysql->run("SELECT * FROM gp_orders_cp WHERE invoice_number = $created[invoice_number]");
 
-      log_error("update_orders_wc: created non-Webform order that is not in CP? Maybe it was deleted by Pharmacist in CP quickly before it was imported?", ['gp_orders_cp' => $gp_orders_cp, 'gp_orders' => $gp_orders, 'created' => $created]);//.print_r($item, true);
+      log_error("update_orders_wc: created non-Webform order that is not in CP? Most likely deleted by helper_syncing and will be readded, but maybe it was deleted by Pharmacist in CP quickly before it was imported?", ['gp_orders_cp' => $gp_orders_cp, 'gp_orders' => $gp_orders, 'created' => $created]);//.print_r($item, true);
 
       //log_notice("Guardian Order Deleted that should be deleted from WC later in this run or already deleted", $created);
     }
