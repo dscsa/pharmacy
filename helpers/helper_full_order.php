@@ -83,8 +83,9 @@ function add_gd_fields_to_order($order, $mysql) {
       log_notice('add_gd_fields_to_order: before', ['days' => $days, 'message' => $message, 'days_not_set' => $days_not_set,  'rx_message_key' => $order[$i]['rx_message_key']]);
 
       $order[$i] = set_days_default($order[$i], $days, $mysql);
-      $order[$i] = export_cp_set_rx_message($order[$i], $message, $mysql);
 
+      if ($days_not_set) //On a sync_to_order the rx_message_key will be set, but days will not yet be set since their was not an order_item until now.  But we don't want to override the original sync message
+        $order[$i] = export_cp_set_rx_message($order[$i], $message, $mysql);
 
       log_notice('add_gd_fields_to_order: after', ['item' => $order[$i]]);
 
