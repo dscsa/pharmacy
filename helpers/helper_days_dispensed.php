@@ -122,7 +122,7 @@ function get_days_default($item, $order) {
   }
 
   //TODO CHECK IF THIS IS A GUARDIAN ERROR OR WHETHER WE ARE IMPORTING WRONG.  SEEMS THAT IF REFILL_DATE_FIRST IS SET, THEN REFILL_DATE_DEFAULT should be set
-  if (sync_to_order_missing_next($item, $order)) {
+  if (sync_to_order_no_next($item, $order)) {
     log_info("WAS MISSING REFILL_DATE_NEXT SO WAS SYNCED TO ORDER", get_defined_vars());
     return [$days_default, RX_MESSAGE['NO ACTION NO NEXT AND SYNC TO ORDER']];
   }
@@ -304,7 +304,7 @@ function sync_to_order_past_due($item, $order) {
 }
 
 //Order 29017 had a refill_date_first and rx/pat_autofill ON but was missing a refill_date_default/refill_date_manual/refill_date_next
-function sync_to_order_missing_next($item, $order) {
+function sync_to_order_no_next($item, $order) {
   $eligible = ! $item['item_date_added'] AND $item['refills_total'] >= 0.1 AND $item['refill_date_first'] AND ! $item['refill_date_default'];
   return $eligible AND ! is_duplicate_gsn($item, $order);
 }
