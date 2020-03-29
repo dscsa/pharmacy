@@ -189,15 +189,11 @@ function set_sync_to_date($order, $target_date, $target_rxs, $mysql) {
       $order[$i]['days_dispensed']     = $new_days_default;
       $order[$i]['qty_dispensed']      = $new_days_default*$item['sig_qty_per_day'];
       $order[$i]['price_dispensed']    = ceil($item['price_dispensed'] * $new_days_default / $old_days_default); //Might be null
-      $order[$i]['rx_message_key']   = 'NO ACTION SYNC TO DATE';
-      $order[$i]['rx_message_text']  = message_text(RX_MESSAGE['NO ACTION SYNC TO DATE'], $order[$i]);
 
       $sql = "
         UPDATE
           gp_order_items
         SET
-          rx_message_key        = '".$order[$i]['rx_message_key']."',
-          rx_message_text       = '".$order[$i]['rx_message_text']."',
           refill_target_date      = '$target_date',
           refill_target_days      = ".($new_days_default - $old_days_default).",
           refill_target_rxs       = '$target_rxs',
@@ -211,6 +207,7 @@ function set_sync_to_date($order, $target_date, $target_rxs, $mysql) {
       $mysql->run($sql);
     }
 
+    export_cp_set_rx_message($order[$i], RX_MESSAGE['NO ACTION SYNC TO DATE'], $mysql);
     export_v2_add_pended($order[$i], $mysql); //Days should be finalized now
   }
 
