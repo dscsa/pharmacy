@@ -29,12 +29,12 @@ function export_cp_set_rx_message($item, $message, $mysql) {
 
   $sql2 = "
     UPDATE
-      gp_rxs_grouped
+      gp_rxs_single
     SET
       rx_message_key  = '$item[rx_message_key]',
       rx_message_text = '".@mysql_escape_string($item['rx_message_text'])."',
     WHERE
-      rx_numbers LIKE '%,$item[rx_number],%'
+      rx_number = $item[rx_number]
   ";
 
   log_error('export_cp_set_rx_message', [$sql1, $sql2]);

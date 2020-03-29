@@ -59,6 +59,7 @@ function update_rxs_single() {
       MAX(drug_brand) as drug_brand,
       MAX(drug_name) as drug_name,
       sig_qty_per_day,
+      GROUP_CONCAT(DISTINCT rx_message_key) as rx_message_keys,
 
       MAX(rx_gsn) as max_gsn,
       MAX(drug_gsns) as drug_gsns,
@@ -100,10 +101,15 @@ function update_rxs_single() {
       sig_qty_per_day
   ";
 
-  $mysql->run("START TRANSACTION");
+
+  $mysql->transaction();
   $mysql->run("DELETE FROM gp_rxs_grouped");
   $mysql->run($sql);
-  $mysql->run("COMMIT");
+  $mysql->run("SELECT * FROM gp_rxs_grouped")[0]
+    ? $mysql->commit()
+    : $mysql->rollback();
+
+
 
 
   //TODO if new Rx arrives and there is an active order where that Rx is not included because of "ACTION NO REFILLS" or "ACTION RX EXPIRED" or the like, then we should rerun the helper_days_dispensed on the order_item
