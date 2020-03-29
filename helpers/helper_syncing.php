@@ -15,7 +15,7 @@ function sync_to_order($order, $updated = null) {
       continue;
     }
 
-    if ($item['rx_message_key'] == 'NO ACTION PAST DUE AND SYNC TO ORDER') {
+    if ( ! $item['item_date_added'] AND $item['rx_message_key'] == 'NO ACTION PAST DUE AND SYNC TO ORDER') { //item_date_added because once we add it don't keep readding it
 
       if ($updated) {
         log_notice("sync_to_order adding item: updated so did not add 'NO ACTION PAST DUE AND SYNC TO ORDER' $item[invoice_number] $item[drug] $item[rx_message_key] refills last:$item[refill_date_last] next:$item[refill_date_next] total:$item[refills_total] left:$item[refills_left]", [$item, $updated]);
@@ -30,7 +30,7 @@ function sync_to_order($order, $updated = null) {
       continue;
     }
 
-    if ($item['rx_message_key'] == 'NO ACTION NO NEXT AND SYNC TO ORDER') {
+    if ( ! $item['item_date_added'] AND $item['rx_message_key'] == 'NO ACTION NO NEXT AND SYNC TO ORDER') { //item_date_added because once we add it don't keep readding it
 
       if ($updated) {
         log_notice("sync_to_order adding item: updated so did not add 'NO ACTION NO NEXT AND SYNC TO ORDER' $item[invoice_number] $item[drug] $item[rx_message_key] refills last:$item[refill_date_last] next:$item[refill_date_next] total:$item[refills_total] left:$item[refills_left]", [$item, $updated]);
@@ -45,7 +45,7 @@ function sync_to_order($order, $updated = null) {
       continue;
     }
 
-    if ($item['rx_message_key'] == 'NO ACTION DUE SOON AND SYNC TO ORDER') {
+    if ( ! $item['item_date_added'] AND $item['rx_message_key'] == 'NO ACTION DUE SOON AND SYNC TO ORDER') { //item_date_added because once we add it don't keep readding it
 
       if ($updated) {
         log_notice("sync_to_order adding item: updated so did not add 'NO ACTION DUE SOON AND SYNC TO ORDER' $item[invoice_number] $item[drug] $item[rx_message_key] refills last:$item[refill_date_last] next:$item[refill_date_next] total:$item[refills_total] left:$item[refills_left]", [$item, $updated]);
@@ -60,7 +60,7 @@ function sync_to_order($order, $updated = null) {
       continue;
     }
 
-    if ($item['rx_message_key'] == 'NO ACTION NEW RX SYNCED TO ORDER') {
+    if ( ! $item['item_date_added'] AND $item['rx_message_key'] == 'NO ACTION NEW RX SYNCED TO ORDER') { //item_date_added because once we add it don't keep readding it
 
       if ($updated) {
         if ($item['drug_gsns'])
