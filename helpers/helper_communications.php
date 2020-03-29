@@ -28,11 +28,11 @@ function group_drugs($order, $mysql) {
 
     $days = $item['days_dispensed'];
     $fill = $days ? 'FILLED_' : 'NOFILL_';
-    $msg  = $item['item_message_text'] ? ' '.str_replace(' **', '', $item['item_message_text']) : '';
+    $msg  = $item['rx_message_text'] ? ' '.str_replace(' **', '', $item['rx_message_text']) : '';
 
-    if (strpos($item['item_message_key'], 'NO ACTION') !== false)
+    if (strpos($item['rx_message_key'], 'NO ACTION') !== false)
       $action = 'NOACTION';
-    else if (strpos($item['item_message_key'], 'ACTION') !== false)
+    else if (strpos($item['rx_message_key'], 'ACTION') !== false)
       $action = 'ACTION';
     else
       $action = 'NOACTION';

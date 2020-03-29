@@ -9,7 +9,7 @@ function export_gd_transfer_fax($item) {
   return;
 
 
-  if ($item['item_message_key'] != 'NO ACTION WILL TRANSFER' AND $item['item_message_key'] != 'NO ACTION WILL TRANSFER CHECK BACK')
+  if ($item['rx_message_key'] != 'NO ACTION WILL TRANSFER' AND $item['rx_message_key'] != 'NO ACTION WILL TRANSFER CHECK BACK')
     return;
 
   $args = [

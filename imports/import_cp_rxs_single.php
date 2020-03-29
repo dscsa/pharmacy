@@ -39,7 +39,8 @@ function import_cp_rxs_single() {
 
       script_status_cn as rx_status,
       ISNULL(IVRCmt, 'Entered') as rx_stage,
-      csct_code.name as rx_source,
+      input_source.name as rx_source,
+      rx_message.name as rx_message_key,
       last_transfer_type_io as rx_transfer,
 
       provider_npi,
@@ -56,8 +57,11 @@ function import_cp_rxs_single() {
     LEFT JOIN cprx_disp ON
       cprx_disp.rxdisp_id = last_rxdisp_id
 
-    LEFT JOIN csct_code ON
+    LEFT JOIN csct_code input_source ON
       ct_id = 194 AND code_num = input_src_cn
+
+    LEFT JOIN csct_code rx_message ON
+      ct_id = 6400 AND code_num = priority_cn
 
     LEFT JOIN (
 

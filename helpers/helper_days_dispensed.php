@@ -1,5 +1,4 @@
 <?php
-
 //TODO Calculate Qty, Days, & Price
 
 function get_days_default($item, $order) {
@@ -189,21 +188,8 @@ function set_price_refills_actual($item, $mysql) {
   $mysql->run($sql);
 }
 
-function set_days_default($item, $days, $message, $mysql) {
+function set_days_default($item, $days, $mysql) {
 
-  $old_item_message_key  = $item['item_message_key'];
-  $old_item_message_text = $item['item_message_text'];
-
-  $item['item_message_key']  = array_search($message, RX_MESSAGE);
-  $item['item_message_text'] = message_text($message, $item);
-
-  if ( ! $item['item_message_key']) {
-    log_error("set_days_default could not get item_message_key ", get_defined_vars());
-    return $item;
-  }
-
-  if ( ! $days)
-    $item['item_message_text'] .= ' **'; //If not filling reference to backup pharmacy footnote on Invoices
 
   if (is_null($days)) {
     log_error("set_days_default days should not be NULL", get_defined_vars());
@@ -212,15 +198,6 @@ function set_days_default($item, $days, $message, $mysql) {
   //We can only save it if its an order_item that's not yet dispensed
   if ( ! $days AND ! $item['item_date_added'])
     return $item; //We can only save for items in order (order_items)
-
-  if ($days AND ! $item['item_date_added']) {
-
-    //TODO Still investigating Most likely we already sent out a patient communiction saying what was in the order and we didn't want to add this one in and retell the patient
-    if ( ! in_array($item['item_message_key'], ['NO ACTION PAST DUE AND SYNC TO ORDER', 'NO ACTION DUE SOON AND SYNC TO ORDER', 'NO ACTION NEW RX SYNCED TO ORDER'])) {
-      log_error("helper_days_dispensed set_days_default: $item[item_message_key]. days is being set to item that is not in order. Hopefully this synced to order later?", get_defined_vars());
-    }
-    return $item; //We can only save for items in order (order_items)
-  }
 
   if ($item['days_dispensed_actual']) {
     log_notice("set_days_default but it has actual days", get_defined_vars());
@@ -259,15 +236,12 @@ function set_days_default($item, $days, $message, $mysql) {
   $item['refills_dispensed_default'] = max(0, $item['refills_total'] - ($days ? 1 : 0));  //We want invoice to show refills after they are dispensed assuming we dispense items currently in order
   $item['stock_level_initial']       = $item['stock_level'];
 
-
   $sql = "
     UPDATE
       gp_order_items
     SET
       days_dispensed_default    = $days,
       qty_dispensed_default     = $item[qty_dispensed_default],
-      item_message_key          = '$item[item_message_key]',
-      item_message_text         = '".@mysql_escape_string($item['item_message_text'])."',
       price_dispensed_default   = $item[price_dispensed_default],
       refills_dispensed_default = $item[refills_dispensed_default],
       stock_level_initial       = '$item[stock_level_initial]',
@@ -399,7 +373,7 @@ function is_duplicate_gsn($item1, $order) {
   //Don't sync if an order with these instructions already exists in order
   foreach($order as $item2) {
     if ($item1 !== $item2 AND $item2['item_date_added'] AND $item1['drug_gsns'] == $item2['drug_gsns']) {
-      log_notice("helper_days_dispensed syncing item: matching drug_gsns so did not SYNC TO ORDER' $item1[invoice_number] $item1[drug] $item1[item_message_key] refills last:$item1[refill_date_last] next:$item1[refill_date_next] total:$item1[refills_total] left:$item1[refills_left]", ['item1' => $item1, 'item2' => $item2]);
+      log_notice("helper_days_dispensed syncing item: matching drug_gsns so did not SYNC TO ORDER' $item1[invoice_number] $item1[drug] $item1[rx_message_key] refills last:$item1[refill_date_last] next:$item1[refill_date_next] total:$item1[refills_total] left:$item1[refills_left]", ['item1' => $item1, 'item2' => $item2]);
       return true;
     }
   }

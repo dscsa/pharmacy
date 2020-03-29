@@ -15,56 +15,56 @@ function sync_to_order($order, $updated = null) {
       continue;
     }
 
-    if ($item['item_message_key'] == 'NO ACTION PAST DUE AND SYNC TO ORDER') {
+    if ($item['rx_message_key'] == 'NO ACTION PAST DUE AND SYNC TO ORDER') {
 
       if ($updated) {
-        log_notice("sync_to_order adding item: updated so did not add 'NO ACTION PAST DUE AND SYNC TO ORDER' $item[invoice_number] $item[drug] $item[item_message_key] refills last:$item[refill_date_last] next:$item[refill_date_next] total:$item[refills_total] left:$item[refills_left]", [$item, $updated]);
+        log_notice("sync_to_order adding item: updated so did not add 'NO ACTION PAST DUE AND SYNC TO ORDER' $item[invoice_number] $item[drug] $item[rx_message_key] refills last:$item[refill_date_last] next:$item[refill_date_next] total:$item[refills_total] left:$item[refills_left]", [$item, $updated]);
         continue;
       }
 
       $new_count_items++;
       $items_to_sync[] = ['ADD', 'NO ACTION PAST DUE AND SYNC TO ORDER', $item];
       $items_to_add [] = $item['best_rx_number'];
-      //log_notice('sync_to_order adding item: PAST DUE AND SYNC TO ORDER', "$item[invoice_number] $item[drug] $item[item_message_key] refills last:$item[refill_date_last] next:$item[refill_date_next] total:$item[refills_total] left:$item[refills_left]");
+      //log_notice('sync_to_order adding item: PAST DUE AND SYNC TO ORDER', "$item[invoice_number] $item[drug] $item[rx_message_key] refills last:$item[refill_date_last] next:$item[refill_date_next] total:$item[refills_total] left:$item[refills_left]");
 
       continue;
     }
 
-    if ($item['item_message_key'] == 'NO ACTION NO NEXT AND SYNC TO ORDER') {
+    if ($item['rx_message_key'] == 'NO ACTION NO NEXT AND SYNC TO ORDER') {
 
       if ($updated) {
-        log_notice("sync_to_order adding item: updated so did not add 'NO ACTION NO NEXT AND SYNC TO ORDER' $item[invoice_number] $item[drug] $item[item_message_key] refills last:$item[refill_date_last] next:$item[refill_date_next] total:$item[refills_total] left:$item[refills_left]", [$item, $updated]);
+        log_notice("sync_to_order adding item: updated so did not add 'NO ACTION NO NEXT AND SYNC TO ORDER' $item[invoice_number] $item[drug] $item[rx_message_key] refills last:$item[refill_date_last] next:$item[refill_date_next] total:$item[refills_total] left:$item[refills_left]", [$item, $updated]);
         continue;
       }
 
       $new_count_items++;
       $items_to_sync[] = ['ADD', 'NO ACTION NO NEXT AND SYNC TO ORDER', $item];
       $items_to_add [] = $item['best_rx_number'];
-      //log_notice('sync_to_order adding item: PAST DUE AND SYNC TO ORDER', "$item[invoice_number] $item[drug] $item[item_message_key] refills last:$item[refill_date_last] next:$item[refill_date_next] total:$item[refills_total] left:$item[refills_left]");
+      //log_notice('sync_to_order adding item: PAST DUE AND SYNC TO ORDER', "$item[invoice_number] $item[drug] $item[rx_message_key] refills last:$item[refill_date_last] next:$item[refill_date_next] total:$item[refills_total] left:$item[refills_left]");
 
       continue;
     }
 
-    if ($item['item_message_key'] == 'NO ACTION DUE SOON AND SYNC TO ORDER') {
+    if ($item['rx_message_key'] == 'NO ACTION DUE SOON AND SYNC TO ORDER') {
 
       if ($updated) {
-        log_notice("sync_to_order adding item: updated so did not add 'NO ACTION DUE SOON AND SYNC TO ORDER' $item[invoice_number] $item[drug] $item[item_message_key] refills last:$item[refill_date_last] next:$item[refill_date_next] total:$item[refills_total] left:$item[refills_left]", [$item, $updated]);
+        log_notice("sync_to_order adding item: updated so did not add 'NO ACTION DUE SOON AND SYNC TO ORDER' $item[invoice_number] $item[drug] $item[rx_message_key] refills last:$item[refill_date_last] next:$item[refill_date_next] total:$item[refills_total] left:$item[refills_left]", [$item, $updated]);
         continue;
       }
 
       $new_count_items++;
       $items_to_sync[] = ['ADD', 'NO ACTION DUE SOON AND SYNC TO ORDER', $item];
       $items_to_add [] = $item['best_rx_number'];
-      //log_notice('sync_to_order adding item: DUE SOON AND SYNC TO ORDER', "$item[invoice_number] $item[drug] $item[item_message_key] refills last:$item[refill_date_last] next:$item[refill_date_next] total:$item[refills_total] left:$item[refills_left]");
+      //log_notice('sync_to_order adding item: DUE SOON AND SYNC TO ORDER', "$item[invoice_number] $item[drug] $item[rx_message_key] refills last:$item[refill_date_last] next:$item[refill_date_next] total:$item[refills_total] left:$item[refills_left]");
 
       continue;
     }
 
-    if ($item['item_message_key'] == 'NO ACTION NEW RX SYNCED TO ORDER') {
+    if ($item['rx_message_key'] == 'NO ACTION NEW RX SYNCED TO ORDER') {
 
       if ($updated) {
         if ($item['drug_gsns'])
-          log_notice("sync_to_order adding item: updated so did not add 'NO ACTION NEW RX SYNCED TO ORDER' $item[invoice_number] $item[drug] $item[item_message_key] refills last:$item[refill_date_last] next:$item[refill_date_next] total:$item[refills_total] left:$item[refills_left]", [$item, $updated]);
+          log_notice("sync_to_order adding item: updated so did not add 'NO ACTION NEW RX SYNCED TO ORDER' $item[invoice_number] $item[drug] $item[rx_message_key] refills last:$item[refill_date_last] next:$item[refill_date_next] total:$item[refills_total] left:$item[refills_left]", [$item, $updated]);
 
         continue;
       }
@@ -80,7 +80,7 @@ function sync_to_order($order, $updated = null) {
     if ($item['item_date_added'] AND ! $item['days_dispensed'] AND $item['drug_gsns']) {
 
       //DEBUG CODE SHOULD NOT BE NEEDED
-      if ($item['item_message_key'] == 'ACTION NO REFILLS' AND $item['refills_total'] >= 0.1) {
+      if ($item['rx_message_key'] == 'ACTION NO REFILLS' AND $item['refills_total'] >= 0.1) {
         log_error('aborting helper_syncing because NO REFILLS has refills', $item);
         continue;
       }
@@ -91,9 +91,9 @@ function sync_to_order($order, $updated = null) {
       }
 
       $new_count_items--;
-      $items_to_sync[]   = ['REMOVE', $item['item_message_key'], $item];
+      $items_to_sync[]   = ['REMOVE', $item['rx_message_key'], $item];
       $items_to_remove[] = $item['rx_number'];
-      //log_notice('sync_to_order removing item', "$item[invoice_number] $item[rx_number] $item[drug], $item[stock_level], $item[item_message_key] refills last:$item[refill_date_last] next:$item[refill_date_next] total:$item[refills_total] left:$item[refills_left]");
+      //log_notice('sync_to_order removing item', "$item[invoice_number] $item[rx_number] $item[drug], $item[stock_level], $item[rx_message_key] refills last:$item[refill_date_last] next:$item[refill_date_next] total:$item[refills_total] left:$item[refills_left]");
 
       continue;
     }
@@ -108,7 +108,7 @@ function sync_to_order($order, $updated = null) {
       $items_to_sync[]   = ['SWITCH', 'RX_NUMBER != BEST_RX_NUMBER', $item];
       $items_to_add[]    = $item['best_rx_number'];
       $items_to_remove[] = $item['rx_number'];
-      //log_notice('sync_to_order switching items', "$item[invoice_number] $item[drug] $item[item_message_key] $item[rx_number] -> $item[best_rx_number]");
+      //log_notice('sync_to_order switching items', "$item[invoice_number] $item[drug] $item[rx_message_key] $item[rx_number] -> $item[best_rx_number]");
 
       continue;
     }
@@ -163,7 +163,7 @@ function set_sync_to_date($order, $target_date, $target_rxs, $mysql) {
     $old_days_default = $item['days_dispensed_default'];
 
     //TODO Skip syncing if the drug is OUT OF STOCK (or less than 500 qty?)
-    if ( ! $old_days_default OR ! $target_date OR $item['days_dispensed_actual'] OR $item['item_message_key'] == 'NO ACTION LOW STOCK') continue; //Don't add them to order if they are no already in it OR if already dispensed
+    if ( ! $old_days_default OR ! $target_date OR $item['days_dispensed_actual'] OR $item['rx_message_key'] == 'NO ACTION LOW STOCK') continue; //Don't add them to order if they are no already in it OR if already dispensed
 
     $time_refill = $item['refill_date_next'] ? strtotime($item['refill_date_next']) : strtotime($item['item_date_added']); //refill_date_next is sometimes null
     $days_extra  = (strtotime($target_date) - $time_refill)/60/60/24;
@@ -189,15 +189,15 @@ function set_sync_to_date($order, $target_date, $target_rxs, $mysql) {
       $order[$i]['days_dispensed']     = $new_days_default;
       $order[$i]['qty_dispensed']      = $new_days_default*$item['sig_qty_per_day'];
       $order[$i]['price_dispensed']    = ceil($item['price_dispensed'] * $new_days_default / $old_days_default); //Might be null
-      $order[$i]['item_message_key']   = 'NO ACTION SYNC TO DATE';
-      $order[$i]['item_message_text']  = message_text(RX_MESSAGE['NO ACTION SYNC TO DATE'], $order[$i]);
+      $order[$i]['rx_message_key']   = 'NO ACTION SYNC TO DATE';
+      $order[$i]['rx_message_text']  = message_text(RX_MESSAGE['NO ACTION SYNC TO DATE'], $order[$i]);
 
       $sql = "
         UPDATE
           gp_order_items
         SET
-          item_message_key        = '".$order[$i]['item_message_key']."',
-          item_message_text       = '".$order[$i]['item_message_text']."',
+          rx_message_key        = '".$order[$i]['rx_message_key']."',
+          rx_message_text       = '".$order[$i]['rx_message_text']."',
           refill_target_date      = '$target_date',
           refill_target_days      = ".($new_days_default - $old_days_default).",
           refill_target_rxs       = '$target_rxs',

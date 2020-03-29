@@ -1,5 +1,6 @@
 <?php
 //order created -> add any additional rxs to order -> import order items -> sync all drugs in order
+require_once 'exports/export_cp_rxs.php';
 
 function get_full_order($partial, $mysql, $suppress_error = false) {
 
@@ -69,14 +70,15 @@ function add_gd_fields_to_order($order, $mysql) {
   //Consolidate default and actual suffixes to avoid conditional overload in the invoice template and redundant code within communications
   foreach($order as $i => $dontuse) { //don't use val because order[$i] and $item will become out of sync as we set properties
 
-    if ($order[$i]['item_message_key'] == 'ACTION NO REFILLS' AND $order[$i]['rx_dispensed_id'] AND $order[$i]['refills_total'] >= .1) {
+    if ($order[$i]['rx_message_key'] == 'ACTION NO REFILLS' AND $order[$i]['rx_dispensed_id'] AND $order[$i]['refills_total'] >= .1) {
       log_error('add_gd_fields_to_order: status of ACTION NO REFILLS but has refills. Do we need to send updated communications?', $order[$i]);
-      $order[$i]['item_message_key'] = NULL;
+      $order[$i]['rx_message_key'] = NULL;
     }
 
-    if ( ! $order[$i]['item_message_key']) { //if not syncing to order lets provide a reason why we are not filling
+    if ( ! $order[$i]['rx_message_key']) { //if not syncing to order lets provide a reason why we are not filling
       list($days, $message) = get_days_default($order[$i], $order);
-      $order[$i] = set_days_default($order[$i], $days, $message, $mysql);
+      $order[$i] = set_days_default($order[$i], $days, $mysql);
+      $order[$i] = export_cp_set_rx_message($order[$i], $message, $mysql);
 
       if ($order[$i]['qty_original'] != $order[$i]['sig_qty'] * $order[$i]['refills_dispensed_default']) {
         log_notice("helper_full_order: sig qty doesn't match qty_original.  What is going on?", $order[$i]);
@@ -86,7 +88,7 @@ function add_gd_fields_to_order($order, $mysql) {
 
     }
 
-    if ( ! $order[$i]['item_message_key'] OR ! isset($order[$i]['item_message_text'])) {
+    if ( ! $order[$i]['rx_message_key'] OR ! isset($order[$i]['rx_message_text'])) {
       log_error('add_gd_fields_to_order: error item_message not set!', [$order[$i], $days, $message]);
     }
 
@@ -121,7 +123,7 @@ function sort_order_by_day($a, $b) {
   if ($a['days_dispensed'] > 0 AND $b['days_dispensed'] == 0) return -1;
   if ($b['item_date_added'] > 0 AND $a['item_date_added'] == 0) return 1;
   if ($a['item_date_added'] > 0 AND $b['item_date_added'] == 0) return -1;
-  return strcmp($a['item_message_text'].$a['drug'], $b['item_message_text'].$b['drug']);
+  return strcmp($a['rx_message_text'].$a['drug'], $b['rx_message_text'].$b['drug']);
 }
 
 /*
@@ -170,12 +172,12 @@ function get_order_stage_wc($order) {
   order_source: NULL, O Refills, Auto Refill v2, Webform eRX, Webform eRX Note, Webform Refill, Webform Refill Note, Webform Transfer, Webform Transfer Note
   */
 
-  if ( ! $count_filled AND $order[0]['item_message_key'] != 'ACTION NEEDS FORM')
+  if ( ! $count_filled AND $order[0]['rx_message_key'] != 'ACTION NEEDS FORM')
     log_notice('get_order_stage_wc: double check count_filled == 0', [
       'invoice_number' => $order[0]['invoice_number'],
       'order_stage_cp' => $order[0]['order_stage_cp'],
       'order_stage_wc' => $order[0]['order_stage_wc'],
-      'item_message_key' => $order[0]['item_message_key'],
+      'rx_message_key' => $order[0]['rx_message_key'],
       'tracking_number' => $order[0]['tracking_number']
     ]);
 

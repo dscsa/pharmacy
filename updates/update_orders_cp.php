@@ -108,7 +108,7 @@ function update_orders_cp() {
     // 1) Here.  update_orders_cp created (surescript came in and created a CP order)
     // 2) Same cycle: update_order_wc deleted (since WC doesn't have the new order yet)
     // 3) Next cycle: update_orders_cp deleted (not sure yet why it gets deleted from CP)
-    if ( ! $order[0]['pharmacy_name']) { //Can't test for item_message_key == 'ACTION NEEDS FORM' because other messages can take precedence
+    if ( ! $order[0]['pharmacy_name']) { //Can't test for rx_message_key == 'ACTION NEEDS FORM' because other messages can take precedence
       needs_form_notice($groups);
       log_notice("update_orders_cp created: Guardian Order Created But Patient Not Yet Registered in WC so not creating WC Order ".$order[0]['invoice_number'], $order);
       continue;

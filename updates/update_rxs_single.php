@@ -59,6 +59,7 @@ function update_rxs_single() {
       MAX(drug_brand) as drug_brand,
       MAX(drug_name) as drug_name,
       sig_qty_per_day,
+      MAX(rx_message_key) as rx_message_key,
 
       MAX(rx_gsn) as max_gsn,
       MAX(drug_gsns) as drug_gsns,
