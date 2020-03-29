@@ -21,12 +21,15 @@ function export_cp_set_rx_message($item, $message, $mysql) {
   if ( ! $item['days_dispensed_default'])
     $item['rx_message_text'] .= ' **'; //If not filling reference to backup pharmacy footnote on Invoices
 
-  $rx_numbers = substr($item['rx_numbers'], 1, -1);
+  $rx_numbers = str_replace(",", "','", substr($item['rx_numbers'], 1, -1));
 
   $sql1 = "
-    UPDATE cprx
-    SET priority_cn = $message[CP_CODE]
-    WHERE script_no IN ($rx_numbers)
+    UPDATE
+      cprx
+    SET
+      priority_cn = $message[CP_CODE]
+    WHERE
+      script_no IN ('$rx_numbers')
   ";
 
   $sql2 = "
@@ -34,15 +37,15 @@ function export_cp_set_rx_message($item, $message, $mysql) {
       gp_rxs_single
     SET
       rx_message_key  = '$item[rx_message_key]',
-      rx_message_text = '".@mysql_escape_string($item['rx_message_text'])."',
+      rx_message_text = '".@mysql_escape_string($item['rx_message_text'])."'
     WHERE
-      rx_number IN ($rx_numbers)
+      rx_number IN ('$rx_numbers')
   ";
 
   log_error('export_cp_set_rx_message', [$sql1, $sql2]);
 
-  //$mssql->run($sql1);
-  //$mysql->run($sql2);
+  $mssql->run($sql1);
+  $mysql->run($sql2);
 
   return $item;
 }
