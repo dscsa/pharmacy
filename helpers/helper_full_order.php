@@ -75,15 +75,19 @@ function add_gd_fields_to_order($order, $mysql) {
       $order[$i]['rx_message_key'] = NULL;
     }
 
-    $days_not_set = $item['item_date_added'] AND is_null($order[$i]['days_dispensed_default']);
+    $days_not_set = $order[$i]['item_date_added'] AND is_null($order[$i]['days_dispensed_default']);
 
     if ($days_not_set OR ! $order[$i]['rx_message_key']) {
       list($days, $message) = get_days_default($order[$i], $order);
 
-      log_notice('add_gd_fields_to_order: debug', ['item' => $order[$i], 'days' => $days, 'message' => $message, 'days_not_set' => $days_not_set,  'rx_message_key' => $order[$i]['rx_message_key']]);
+      log_notice('add_gd_fields_to_order: before', ['days' => $days, 'message' => $message, 'days_not_set' => $days_not_set,  'rx_message_key' => $order[$i]['rx_message_key']]);
 
       $order[$i] = set_days_default($order[$i], $days, $mysql);
       $order[$i] = export_cp_set_rx_message($order[$i], $message, $mysql);
+
+
+      log_notice('add_gd_fields_to_order: after', ['item' => $order[$i]]);
+
 
       if ($order[$i]['qty_original'] != $order[$i]['sig_qty'] * $order[$i]['refills_dispensed_default']) {
         log_notice("helper_full_order: sig qty doesn't match qty_original.  What is going on?", $order[$i]);
