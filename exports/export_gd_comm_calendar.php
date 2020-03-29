@@ -43,8 +43,8 @@ function order_shipped_notice($groups) {
   $text['message'] =
     $subject.
     $message.
-    (' View it at '.$links['invoice'].'. ' : '').
-    ('Track it at '.$links['tracking_url'].'. ');
+    ' View it at '.$links['invoice'].'. '.
+    'Track it at '.$links['tracking_url'].'. ';
 
   $email['subject'] = $subject;
   $email['message'] = implode('<br>', [
