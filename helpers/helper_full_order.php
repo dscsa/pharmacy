@@ -79,6 +79,9 @@ function add_gd_fields_to_order($order, $mysql) {
 
     if ($days_not_set OR ! $order[$i]['rx_message_key']) {
       list($days, $message) = get_days_default($order[$i], $order);
+
+      log_notice('add_gd_fields_to_order: debug', ['item' => $order[$i], 'days' => $days, 'message' => $message, 'days_not_set' => $days_not_set,  'rx_message_key' => $order[$i]['rx_message_key']]);
+
       $order[$i] = set_days_default($order[$i], $days, $mysql);
       $order[$i] = export_cp_set_rx_message($order[$i], $message, $mysql);
 
@@ -91,7 +94,7 @@ function add_gd_fields_to_order($order, $mysql) {
     }
 
     if ( ! $order[$i]['rx_message_key'] OR ! isset($order[$i]['rx_message_text'])) {
-      log_error('add_gd_fields_to_order: error item_message not set!', [$order[$i], $days, $message]);
+      log_error('add_gd_fields_to_order: error rx_message not set!', [$order[$i], $days, $message]);
     }
 
     $order[$i]['drug'] = $order[$i]['drug_name'] ?: $order[$i]['drug_generic'];
