@@ -75,7 +75,9 @@ function add_gd_fields_to_order($order, $mysql) {
       $order[$i]['rx_message_key'] = NULL;
     }
 
-    if ( ! $order[$i]['rx_message_key']) { //if not syncing to order lets provide a reason why we are not filling
+    $days_not_set = $item['item_date_added'] AND is_null($order[$i]['days_dispensed_default']);
+
+    if ($days_not_set OR ! $order[$i]['rx_message_key']) {
       list($days, $message) = get_days_default($order[$i], $order);
       $order[$i] = set_days_default($order[$i], $days, $mysql);
       $order[$i] = export_cp_set_rx_message($order[$i], $message, $mysql);
