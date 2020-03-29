@@ -78,22 +78,22 @@ const RX_MESSAGE = [
     'CP_CODE' => 200,
   ],
   'NO ACTION PAST DUE AND SYNC TO ORDER' => [
-    'EN' => 'is past due so synced to Order **',
+    'EN' => 'is past due so synced to Order',
     'ES' => '',
     'CP_CODE' => 201,
   ],
   'NO ACTION NO NEXT AND SYNC TO ORDER' => [
-    'EN' => 'was past due so synced to Order **',
+    'EN' => 'was past due so synced to Order',
     'ES' => '',
     'CP_CODE' => 202,
   ],
   'NO ACTION DUE SOON AND SYNC TO ORDER' => [
-    'EN' => 'is due soon so synced to Order **',
+    'EN' => 'is due soon so synced to Order',
     'ES' => '',
     'CP_CODE' => 203,
   ],
   'NO ACTION NEW RX SYNCED TO ORDER' => [
-    'EN' => 'is a new Rx synced to Order **',
+    'EN' => 'is a new Rx synced to Order',
     'ES' => '',
     'CP_CODE' => 204,
   ],
