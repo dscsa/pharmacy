@@ -75,8 +75,9 @@ function add_gd_fields_to_order($order, $mysql, $overwrite_rx_messages) {
       $order[$i]['rx_message_key'] = NULL;
     }
 
+    $message  = NULL;
     $set_days = $order[$i]['item_date_added'] AND is_null($order[$i]['days_dispensed_default']);
-    $set_msgs = $overwrite_rx_messages OR ! $order[$i]['rx_message_key'] OR ! isset($order[$i]['rx_message_text']);
+    $set_msgs = $overwrite_rx_messages OR ( ! $order[$i]['rx_message_key']) OR is_null($order[$i]['rx_message_text']);
 
     if ($set_days OR $set_msgs) {
       list($days, $message) = get_days_default($order[$i], $order);
@@ -99,8 +100,16 @@ function add_gd_fields_to_order($order, $mysql, $overwrite_rx_messages) {
 
     }
 
-    if ( ! $order[$i]['rx_message_key'] OR ! isset($order[$i]['rx_message_text'])) {
-      log_error('add_gd_fields_to_order: error rx_message not set!', [$order[$i], $days, $message, $set_days, $set_msgs]);
+    if ( ! $order[$i]['rx_message_key'] OR is_null($order[$i]['rx_message_text'])) {
+      log_error('add_gd_fields_to_order: error rx_message not set!', [
+        'item' => $order[$i],
+        'days' => $days,
+        'message' => $message,
+        'set_days' => $set_days,
+        'set_msgs' => $set_msgs,
+        '! order[$i][rx_message_key] '       => ! $order[$i]['rx_message_key'],
+        'is_null(order[$i][rx_message_text]' => is_null($order[$i]['rx_message_text']
+      ]);
     }
 
     $order[$i]['drug'] = $order[$i]['drug_name'] ?: $order[$i]['drug_generic'];
