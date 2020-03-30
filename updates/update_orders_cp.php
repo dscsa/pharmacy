@@ -59,7 +59,7 @@ function update_orders_cp() {
   //  - Find out any other rxs need to be added
   //  - Update invoice
   //  - Update wc order count/total
-  foreach($changes['created'] as $create
+  foreach($changes['created'] as $created) {
 
     //Overrite Rx Messages everytime a new order created otherwis same message would stay for the life of the Rx
     $order = get_full_order($created, $mysql, true);
