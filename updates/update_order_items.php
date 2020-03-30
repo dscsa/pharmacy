@@ -226,9 +226,6 @@ function update_order_items() {
 
     $old_refills_dispensed_default = max(0, $item['refills_total'] - ($item['days_dispensed_default'] ? 1 : 0));
 
-    if ($updated['rx_autofill'] != $updated['old_rx_autofill'])
-      log_error("update_order_items rx_autofill changed.  update rx_messages?", [$updated, $changed]);
-
     if ($item['days_dispensed_actual']) {
 
       set_price_refills_actual($item, $mysql);

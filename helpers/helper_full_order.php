@@ -26,8 +26,17 @@ function get_full_order($partial, $mysql, $overwrite_rx_messages = false) {
       gp_rxs_grouped.drug_generic = gp_stock_live.drug_generic -- this is for the helper_days_dispensed msgs for unordered drugs
     WHERE
       (CASE WHEN refills_total OR item_date_added THEN gp_rxs_grouped.rx_date_expired ELSE COALESCE(gp_rxs_grouped.rx_date_transferred, gp_rxs_grouped.refill_date_last) END) > CURDATE() - INTERVAL $month_interval MONTH AND
-      gp_orders.invoice_number = $partial[invoice_number]
   ";
+
+  if ($partial['invoice_number'])
+    $sql .= " gp_orders.invoice_number = $partial[invoice_number]";
+  else if ($partial['patient_id_cp'])
+    $sql .= " gp_patients.patient_id_cp = $partial[patient_id_cp]";
+  else {
+    log_error('ERROR! get_full_order: was not given an invoice number or a patient_id_cp', $partial);
+    return;
+  }
+
 
   $order = $mysql->run($sql)[0];
 

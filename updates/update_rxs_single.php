@@ -47,6 +47,16 @@ function update_rxs_single() {
     ");
   }
 
+  foreach($changes['updated'] as $updated) {
+
+    if ($updated['rx_autofill'] != $updated['old_rx_autofill']) {
+
+      $profile = get_full_order($updated, $mysql, false);
+
+      log_error("update_rxs_single rx_autofill changed.  update rx_messages?", [$profile, $updated]);
+    }
+  }
+
   //This is an expensive (6-8 seconds) group query.
   //TODO We should update rxs in this table individually on changes
   //TODO OR We should add indexed drug info fields to the gp_rxs_single above on created/updated so we don't need the join
