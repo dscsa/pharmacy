@@ -80,7 +80,7 @@ function add_gd_fields_to_order($order, $mysql) {
     if ($days_not_set OR ! $order[$i]['rx_message_key']) {
       list($days, $message) = get_days_default($order[$i], $order);
 
-      log_notice('add_gd_fields_to_order: before', ['days' => $days, 'message' => $message, 'days_not_set' => $days_not_set,  'rx_message_key' => $order[$i]['rx_message_key']]);
+      log_notice('add_gd_fields_to_order: before', ['drug_name' => $order[$i]['drug_name'], 'rx_numbers' => $order[$i]['rx_numbers'], 'days' => $days, 'message' => $message, 'days_not_set' => $days_not_set,  'rx_message_key' => $order[$i]['rx_message_key']]);
 
       $order[$i] = set_days_default($order[$i], $days, $mysql);
 
