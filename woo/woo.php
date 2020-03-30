@@ -902,6 +902,7 @@ function dscsa_admin_invoice($order) {
 add_filter('woocommerce_save_account_details_required_fields', 'dscsa_save_account_details_required_fields' );
 function dscsa_save_account_details_required_fields( $required_fields ){
     unset( $required_fields['account_display_name'] );
+    unset( $required_fields['account_email'] );
     return $required_fields;
 }
 
@@ -1252,7 +1253,7 @@ function dscsa_default_post_value() {
     if ($_POST['rx_source'] AND ! $_POST['email'])
       $_POST['email'] = $defaultEmail;
 
-    if ($_POST['save_addess'] AND ! $_POST['billing_email'])
+    if ($_POST['save_address'] AND ! $_POST['billing_email'])
       $_POST['billing_email'] = $defaultEmail;
 
     if ($_POST['save_account_details'] AND ! $_POST['account_email'])

@@ -52,6 +52,7 @@ function update_orders_cp() {
         log_error("sig parsing error '$item[sig_actual]' $item[sig_qty_per_day] (default) != $actual_sig_qty_per_day $item[qty_dispensed_actual]/$item[days_dispensed_actual] (actual)", $item);
     }
 
+    log_error("update_order_cp detect_dispensing_changes", ['order' => $order, 'day_changes' => $day_changes, 'qty_changes' => $qty_changes]);
     return ['day_changes' => $day_changes, 'qty_changes' => $qty_changes];
   }
 

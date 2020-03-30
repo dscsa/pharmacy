@@ -75,6 +75,7 @@ function add_gd_fields_to_order($order, $mysql, $overwrite_rx_messages) {
       $order[$i]['rx_message_key'] = NULL;
     }
 
+    $days     = NULL;
     $message  = NULL;
     $set_days = ($order[$i]['item_date_added'] AND is_null($order[$i]['days_dispensed_default']));
     $set_msgs = ($overwrite_rx_messages OR ! $order[$i]['rx_message_key'] OR is_null($order[$i]['rx_message_text']));
