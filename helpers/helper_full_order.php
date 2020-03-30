@@ -108,7 +108,7 @@ function add_gd_fields_to_order($order, $mysql, $overwrite_rx_messages) {
         'set_days' => $set_days,
         'set_msgs' => $set_msgs,
         '! order[$i][rx_message_key] '       => ! $order[$i]['rx_message_key'],
-        'is_null(order[$i][rx_message_text]' => is_null($order[$i]['rx_message_text']
+        'is_null(order[$i][rx_message_text]' => is_null($order[$i]['rx_message_text'])
       ]);
     }
 
