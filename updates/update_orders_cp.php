@@ -59,9 +59,10 @@ function update_orders_cp() {
   //  - Find out any other rxs need to be added
   //  - Update invoice
   //  - Update wc order count/total
-  foreach($changes['created'] as $created) {
+  foreach($changes['created'] as $create
 
-    $order = get_full_order($created, $mysql);
+    //Overrite Rx Messages everytime a new order created otherwis same message would stay for the life of the Rx
+    $order = get_full_order($created, $mysql, true);
 
     if ( ! $order) {
       log_error("Created Order Missing.  Most likely because cp order has liCount > 0 even though 0 items in order.  If correct, update liCount in CP to 0", $created);
@@ -167,16 +168,6 @@ function update_orders_cp() {
 
       continue;
     }
-
-    //START DEBUG this is getting called on a CP order that is not yet in WC
-    $order = get_full_order($deleted, $mysql, true);
-
-    //This will be true for returned packages
-    if ($order) {
-      log_error('update_orders_cp: cp order deleted (but still exists???)', [$order, $deleted]);
-      continue;
-    }
-    //END DEBUG
 
     export_gd_delete_invoice([$deleted], $mysql);
 

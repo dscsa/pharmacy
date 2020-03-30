@@ -2,7 +2,7 @@
 //order created -> add any additional rxs to order -> import order items -> sync all drugs in order
 require_once 'exports/export_cp_rxs.php';
 
-function get_full_order($partial, $mysql, $suppress_error = false) {
+function get_full_order($partial, $mysql, $overwrite_rx_messages = false) {
 
   $month_interval = 6;
 
@@ -32,11 +32,11 @@ function get_full_order($partial, $mysql, $suppress_error = false) {
   $order = $mysql->run($sql)[0];
 
   if ( ! $order OR ! $order[0]['invoice_number']) {
-    if ( ! $suppress_error) log_error('ERROR! get_full_order: no order with that invoice number or order does not have active patient', get_defined_vars());
+    log_error('ERROR! get_full_order: no order with that invoice number or order does not have active patient', get_defined_vars());
     return;
   }
 
-  $order = add_gd_fields_to_order($order, $mysql);
+  $order = add_gd_fields_to_order($order, $mysql, $overwrite_rx_messages);
   usort($order, 'sort_order_by_day'); //Put Rxs in order (with Rx_Source) at the top
   $order = add_wc_status_to_order($order);
 
@@ -63,7 +63,7 @@ function add_wc_status_to_order($order) {
 }
 
 //Simplify GDoc Invoice Logic by combining _actual
-function add_gd_fields_to_order($order, $mysql) {
+function add_gd_fields_to_order($order, $mysql, $overwrite_rx_messages) {
 
   $count_filled = 0;
 
@@ -75,16 +75,17 @@ function add_gd_fields_to_order($order, $mysql) {
       $order[$i]['rx_message_key'] = NULL;
     }
 
-    $days_not_set = $order[$i]['item_date_added'] AND is_null($order[$i]['days_dispensed_default']);
+    $set_days = $order[$i]['item_date_added'] AND is_null($order[$i]['days_dispensed_default']);
+    $set_msgs = $overwrite_rx_messages OR ! $order[$i]['rx_message_key'];
 
-    if ($days_not_set OR ! $order[$i]['rx_message_key']) {
+    if ($set_days OR $set_msgs) {
       list($days, $message) = get_days_default($order[$i], $order);
 
       log_notice('add_gd_fields_to_order: before', ['drug_name' => $order[$i]['drug_name'], 'rx_numbers' => $order[$i]['rx_numbers'], 'days' => $days, 'message' => $message, 'days_not_set' => $days_not_set,  'rx_message_key' => $order[$i]['rx_message_key']]);
 
       $order[$i] = set_days_default($order[$i], $days, $mysql);
 
-      if ( ! $order[$i]['rx_message_key']) //On a sync_to_order the rx_message_key will be set, but days will not yet be set since their was not an order_item until now.  But we don't want to override the original sync message
+      if ($set_msgs) //On a sync_to_order the rx_message_key will be set, but days will not yet be set since their was not an order_item until now.  But we don't want to override the original sync message
         $order[$i] = export_cp_set_rx_message($order[$i], $message, $mysql);
 
       log_notice('add_gd_fields_to_order: after', ['item' => $order[$i]]);

@@ -222,20 +222,22 @@ function update_order_items() {
       continue;
     }
 
-    $changed_fields = changed_fields($updated);
+    $changed = changed_fields($updated);
 
     $old_refills_dispensed_default = max(0, $item['refills_total'] - ($item['days_dispensed_default'] ? 1 : 0));
+
+    if ($updated['rx_autofill'] != $updated['old_rx_autofill'])
+      log_error("update_order_items rx_autofill changed.  update rx_messages?", [$updated, $changed]);
 
     if ($item['days_dispensed_actual']) {
 
       set_price_refills_actual($item, $mysql);
 
-
       if ($item['days_dispensed_actual'] == $item['days_dispensed_default']) {
-        log_info("days_dispensed_actual was set", [$updated, $changed_fields]);
+        log_info("days_dispensed_actual was set", [$updated, $changed]);
       } else {
         //This already picked up by dispensing_changes in update_orders_cp.php
-        //log_error("days_dispensed_default was wrong: $item[days_dispensed_default] >>> $item[days_dispensed_actual]", ['item' => $item, 'updated' => $updated, 'changed' => $changed_fields]);
+        //log_error("days_dispensed_default was wrong: $item[days_dispensed_default] >>> $item[days_dispensed_actual]", ['item' => $item, 'updated' => $updated, 'changed' => $changed]);
       }
 
       if ($item['refills_total'] != $item['refills_dispensed_default']) { //refills_dispensed_actual is not set yet, so use refills_total instead
@@ -244,11 +246,11 @@ function update_order_items() {
 
     } else if ($updated['refills_dispensed_default'] != $old_refills_dispensed_default) {
 
-      log_error('update_order_items: refills_total changed', [$item, $changed_fields]);
+      log_error('update_order_items: refills_total changed', [$item, $changed]);
 
     } else if ($updated['item_added_by'] == 'MANUAL' AND $updated['old_item_added_by'] != 'MANUAL') {
 
-      log_info("Cindy deleted and readded this item", [$updated, $changed_fields]);
+      log_info("Cindy deleted and readded this item", [$updated, $changed]);
 
     } else if ( ! $item['days_dispensed_default']) {
 
