@@ -57,7 +57,7 @@ function export_gd_update_invoice($order, $reason, $mysql) {
 
 function export_gd_print_invoice($order) {
 
-  //log_error("export_gd_print_invoice start: ".$order[0]['invoice_number'], $order);
+  log_notice("export_gd_print_invoice start: ".$order[0]['invoice_number'], $order);
 
   $start = microtime(true);
 
@@ -83,7 +83,7 @@ function export_gd_print_invoice($order) {
 
   $time = ceil(microtime(true) - $start);
 
-  //log_error("export_gd_print_invoice $time seconds: ".$order[0]['invoice_number'], [$result1, $result2]);
+  log_notice("export_gd_print_invoice $time seconds: ".$order[0]['invoice_number'], [$result1, $result2]);
 }
 
 //Cannot delete (with this account) once published
@@ -109,7 +109,7 @@ function export_gd_publish_invoice($order) {
 
   $time = ceil(microtime(true) - $start);
 
-  log_error("export_gd_publish_invoice $time seconds: ".$order[0]['invoice_number'], [$result1, $result2]);
+  log_notice("export_gd_publish_invoice $time seconds: ".$order[0]['invoice_number'], [$result1, $result2]);
 }
 
 function export_gd_delete_invoice($order) {

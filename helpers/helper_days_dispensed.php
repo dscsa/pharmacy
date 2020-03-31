@@ -209,11 +209,6 @@ function set_days_default($item, $days, $mysql) {
     return $item;
   }
 
-  if ($days AND $item['days_dispensed_default']) {
-    log_error('ERROR set_days_default. days_dispensed_default is already do not overwrite (unless with a 0)', get_defined_vars());
-    return $item;
-  }
-
   $exists = $mysql->run("
     SELECT *
     FROM
