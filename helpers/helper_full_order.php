@@ -28,9 +28,9 @@ function get_full_order($partial, $mysql, $overwrite_rx_messages = false) {
       (CASE WHEN refills_total OR item_date_added THEN gp_rxs_grouped.rx_date_expired ELSE COALESCE(gp_rxs_grouped.rx_date_transferred, gp_rxs_grouped.refill_date_last) END) > CURDATE() - INTERVAL $month_interval MONTH AND
   ";
 
-  if ($partial['invoice_number'])
+  if (isset($partial['invoice_number']))
     $sql .= " gp_orders.invoice_number = $partial[invoice_number]";
-  else if ($partial['patient_id_cp'])
+  else if (isset($partial['patient_id_cp']))
     $sql .= " gp_patients.patient_id_cp = $partial[patient_id_cp]";
   else {
     log_error('ERROR! get_full_order: was not given an invoice number or a patient_id_cp', $partial);
@@ -92,7 +92,7 @@ function add_gd_fields_to_order($order, $mysql, $overwrite_rx_messages) {
     if ($set_days OR $set_msgs) {
       list($days, $message) = get_days_default($order[$i], $order);
 
-      log_notice('add_gd_fields_to_order: before', ['drug_name' => $order[$i]['drug_name'], 'rx_numbers' => $order[$i]['rx_numbers'], 'days' => $days, 'message' => $message, 'days_not_set' => $days_not_set,  'rx_message_key' => $order[$i]['rx_message_key']]);
+      log_notice('add_gd_fields_to_order: before', ['drug_name' => $order[$i]['drug_name'], 'rx_numbers' => $order[$i]['rx_numbers'], 'days' => $days, 'message' => $message, 'set_msgs' => $set_msgs, 'set_days' => $set_days,  'rx_message_key' => $order[$i]['rx_message_key']]);
 
       if ($set_days)
         $order[$i] = set_days_default($order[$i], $days, $mysql);

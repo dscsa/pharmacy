@@ -42,7 +42,7 @@ function export_cp_set_rx_message($item, $message, $mysql) {
       rx_number IN ('$rx_numbers')
   ";
 
-  //log_error('export_cp_set_rx_message', [$sql1, $sql2]);
+  log_notice('export_cp_set_rx_message', [$sql1, $sql2]);
 
   $mssql->run($sql1);
   $mysql->run($sql2);
