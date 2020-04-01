@@ -19,44 +19,6 @@ function update_rxs_single() {
 
   $mysql = new Mysql_Wc();
 
-  foreach($changes['created'] as $rx) {
-
-    $parsed = parse_sig($rx['sig_actual'], $rx['drug_name']);
-
-    //TODO Eventually Save the Clean Script back into Guardian so that Cindy doesn't need to rewrite them
-
-    if ( ! $parsed['qty_per_day']) {
-      log_error("update_rxs_single created: sig could not be parsed", [$rx, $parsed]);
-      continue;
-    }
-
-    $mysql->run("
-      UPDATE gp_rxs_single SET
-        sig_initial                = '$parsed[sig_actual]',
-        sig_clean                  = '$parsed[sig_clean]',
-        sig_qty                    = $parsed[sig_qty],
-        sig_days                   = ".($parsed['sig_days'] ?: 'NULL').",
-        sig_qty_per_day            = $parsed[qty_per_day],
-        sig_durations              = ',".implode(',', $parsed['durations']).",',
-        sig_qtys_per_time          = ',".implode(',', $parsed['qtys_per_time']).",',
-        sig_frequencies            = ',".implode(',', $parsed['frequencies']).",',
-        sig_frequency_numerators   = ',".implode(',', $parsed['frequency_numerators']).",',
-        sig_frequency_denominators = ',".implode(',', $parsed['frequency_denominators']).",'
-      WHERE
-        rx_number = $rx[rx_number]
-    ");
-  }
-
-  foreach($changes['updated'] as $updated) {
-
-    if ($updated['rx_autofill'] != $updated['old_rx_autofill']) {
-
-      $profile = get_full_order($updated, $mysql, false);
-
-      log_error("update_rxs_single rx_autofill changed.  update rx_messages?", [$profile, $updated]);
-    }
-  }
-
   //This is an expensive (6-8 seconds) group query.
   //TODO We should update rxs in this table individually on changes
   //TODO OR We should add indexed drug info fields to the gp_rxs_single above on created/updated so we don't need the join
@@ -118,6 +80,44 @@ function update_rxs_single() {
   $mysql->run("SELECT * FROM gp_rxs_grouped")[0]
     ? $mysql->commit()
     : $mysql->rollback();
+
+  foreach($changes['created'] as $rx) {
+
+    $parsed = parse_sig($rx['sig_actual'], $rx['drug_name']);
+
+    //TODO Eventually Save the Clean Script back into Guardian so that Cindy doesn't need to rewrite them
+
+    if ( ! $parsed['qty_per_day']) {
+      log_error("update_rxs_single created: sig could not be parsed", [$rx, $parsed]);
+      continue;
+    }
+
+    $mysql->run("
+      UPDATE gp_rxs_single SET
+        sig_initial                = '$parsed[sig_actual]',
+        sig_clean                  = '$parsed[sig_clean]',
+        sig_qty                    = $parsed[sig_qty],
+        sig_days                   = ".($parsed['sig_days'] ?: 'NULL').",
+        sig_qty_per_day            = $parsed[qty_per_day],
+        sig_durations              = ',".implode(',', $parsed['durations']).",',
+        sig_qtys_per_time          = ',".implode(',', $parsed['qtys_per_time']).",',
+        sig_frequencies            = ',".implode(',', $parsed['frequencies']).",',
+        sig_frequency_numerators   = ',".implode(',', $parsed['frequency_numerators']).",',
+        sig_frequency_denominators = ',".implode(',', $parsed['frequency_denominators']).",'
+      WHERE
+        rx_number = $rx[rx_number]
+    ");
+  }
+
+  foreach($changes['updated'] as $updated) {
+
+    if ($updated['rx_autofill'] != $updated['old_rx_autofill']) {
+
+      $profile = get_full_order($updated, $mysql, false); //This updates & overwrites set_rx_messages
+
+      log_error("update_rxs_single rx_autofill changed.  update rx_messages?", [$profile, $updated]);
+    }
+  }
 
 
 
