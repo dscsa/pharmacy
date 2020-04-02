@@ -906,6 +906,14 @@ function dscsa_save_account_details_required_fields( $required_fields ){
     return $required_fields;
 }
 
+
+add_filter( 'bulk_actions-edit-shop_order', 'dscsa_shop_order_bulk_actions', 999 );
+function dscsa_shop_order_bulk_actions( $actions ) {
+    //Remove on hold and processing status from bulk actions
+    unset( $actions['mark_on-hold'], $actions['mark_processing'], $actions['mark_completed']);
+    return $actions;
+}
+
 add_action( 'woocommerce_edit_account_form_start', 'dscsa_user_edit_account');
 function dscsa_user_edit_account($user_id = null) {
 

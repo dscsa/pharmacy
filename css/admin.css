@@ -11,3 +11,13 @@
 
 /* This is for the iframe with the google doc invoice*/
 .order_data_column  { width:100% !important }
+
+li[id$="wc-pending"],
+li[id$="wc-processing"],
+li[id$="wc-on-hold"],
+li[id$="wc-completed"],
+li[id$="wc-cancelled"],
+li[id$="wc-refunded"],
+li[id$="wc-failed"] {
+  display:none;
+}
