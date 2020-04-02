@@ -113,7 +113,7 @@ function update_rxs_single() {
 
     if ($updated['rx_autofill'] != $updated['old_rx_autofill']) {
 
-      $profile = get_full_order($updated, $mysql, false); //This updates & overwrites set_rx_messages
+      $profile = get_full_order($updated, $mysql, true); //This updates & overwrites set_rx_messages
 
       log_error("update_rxs_single rx_autofill changed.  update rx_messages?", [$profile, $updated]);
     }

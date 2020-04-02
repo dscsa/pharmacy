@@ -157,6 +157,11 @@ const RX_MESSAGE = [
     'ES' => '',
     'CP_CODE' => 216,
   ],
+  'NO ACTION PATIENT OFF AUTOFILL' => [
+    'EN' => 'was requested',
+    'ES' => '',
+    'CP_CODE' => 217,
+  ],
 
   //ACTION BY USER REQUIRED BEFORE (RE)FILL
 

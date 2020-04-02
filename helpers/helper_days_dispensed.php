@@ -73,7 +73,7 @@ function get_days_default($item, $order) {
 
   if ( ! $item['patient_autofill'] AND $added_manually) {
     log_info("OVERRIDE PATIENT AUTOFILL OFF SINCE MANUALLY ADDED", get_defined_vars());
-    return [$days_default, RX_MESSAGE['NO ACTION RX OFF AUTOFILL']];
+    return [$days_default, RX_MESSAGE['NO ACTION PATIENT OFF AUTOFILL']];
   }
 
   if ((strtotime($item['refill_date_next']) - strtotime($item['order_date_added'])) > 15*24*60*60 AND ! $added_manually) {
