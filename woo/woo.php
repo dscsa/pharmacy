@@ -1066,9 +1066,9 @@ function dscsa_lostpassword_form() {
   $shared_fields['birth_date_month']['id'] = 'birth_date_month_lostpassword';
   $shared_fields['birth_date_day']['id'] = 'birth_date_day_lostpassword';
 
-  $shared_fields['birth_date']['custom_attributes']['disabled'] = false;
-  $shared_fields['birth_date']['custom_attributes']['disabled'] = false;
-  $shared_fields['birth_date']['custom_attributes']['disabled'] = false;
+  $shared_fields['birth_date_year']['custom_attributes']['disabled'] = false;
+  $shared_fields['birth_date_month']['custom_attributes']['disabled'] = false;
+  $shared_fields['birth_date_day']['custom_attributes']['disabled'] = false;
 
   echo woocommerce_form_field('birth_date_month', $shared_fields['birth_date_month']);
   echo woocommerce_form_field('birth_date_day', $shared_fields['birth_date_day']);
