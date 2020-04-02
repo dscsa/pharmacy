@@ -329,7 +329,7 @@ function days_left_in_refills($item) {
 
 function days_left_in_stock($item) {
 
-  if ( ! is_null($item['sig_qty_per_day']) AND $item['sig_qty_per_day'] <= 10)
+  if (is_null($item['sig_qty_per_day']) OR $item['sig_qty_per_day'] > 10)
     return;
 
   $days_left_in_stock = round($item['qty_inventory']/$item['sig_qty_per_day']);
