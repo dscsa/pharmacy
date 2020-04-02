@@ -705,7 +705,7 @@ if ($sig_index === false) {
 
   $mysql = new Mysql_Wc();
 
-  $rxs = $mysql->run("SELECT * FROM gp_rxs_single WHERE sig_initial IS NULL LIMIT 1000")[0];
+  $rxs = $mysql->run("SELECT * FROM gp_rxs_single WHERE sig_initial IS NULL OR sig_qty_per_day IS NULL LIMIT 1000")[0];
 
   //log_notice("parsing test sig database rxs", $rxs);
 

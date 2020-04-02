@@ -329,15 +329,19 @@ function days_left_in_refills($item) {
 
 function days_left_in_stock($item) {
 
+  if ( ! is_null($item['sig_qty_per_day']) AND $item['sig_qty_per_day'] <= 10)
+    return;
+
   $days_left_in_stock = round($item['qty_inventory']/$item['sig_qty_per_day']);
+  $stock_level = $item['stock_level_initial'] ?: $item['stock_level'];
 
-  if (($item['sig_qty_per_day'] <= 10 AND $days_left_in_stock < DAYS_STD) OR $item['qty_inventory'] < 500) {
+  if ($days_left_in_stock >= DAYS_STD OR $item['qty_inventory'] >= 500)
+    return;
 
-    if(($item['stock_level_initial'] ?: $item['stock_level']) == STOCK_LEVEL['HIGH SUPPLY'] AND $item['sig_qty_per_day'] != round(1/30, 3))
-      log_error("LOW STOCK ITEM IS MARKED HIGH SUPPLY $item[drug_generic] days_left_in_stock:$days_left_in_stock qty_inventory:$item[qty_inventory]", get_defined_vars());
+  if($stock_level == STOCK_LEVEL['HIGH SUPPLY'] AND $item['sig_qty_per_day'] != round(1/30, 3))
+    log_error("LOW STOCK ITEM IS MARKED HIGH SUPPLY $item[drug_generic] days_left_in_stock:$days_left_in_stock qty_inventory:$item[qty_inventory]", get_defined_vars());
 
-    return $item['sig_qty_per_day'] == round(1/30, 3) ? 60.6 : 45; //Dispensed 2 inhalers per time, since 1/30 is rounded to 3 decimals (.033), 2 month/.033 = 60.6 qty
-  }
+  return $item['sig_qty_per_day'] == round(1/30, 3) ? 60.6 : 45; //Dispensed 2 inhalers per time, since 1/30 is rounded to 3 decimals (.033), 2 month/.033 = 60.6 qty
 }
 
 function round15($days) {
