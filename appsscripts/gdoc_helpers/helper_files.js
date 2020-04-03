@@ -114,14 +114,19 @@ function publishFile(opts){
   return resource
 }
 
-function moveFile(opts) {
+function moveFile(opts, retry) {
   var fromFolder = DriveApp.getFoldersByName(opts.fromFolder).next()
   var file = fromFolder.searchFiles('title contains "'+opts.file+'"')
 
   if (file.hasNext())
     return moveToFolder(file.next(), opts.toFolder)
 
-  debugEmail('gdoc_helpers moveFile', opts)
+  if ( ! retry) {
+    Utilities.sleep(30000)
+    moveFile(opts, true)
+  }
+
+  debugEmail('gdoc_helpers moveFile NO FILE #'+(retry ? 2 : 1)+' of 2', opts)
 }
 
 function newSpreadsheet(opts) {

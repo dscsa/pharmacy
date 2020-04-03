@@ -2227,7 +2227,7 @@ function dscsa_translate($term, $raw, $domain) {
       'Lost your password? Please enter your username or email address. You will receive a link to create a new password via email.' => 'Lost your password? Before reseting, please note that new accounts use your phone number - e.g., 4701234567 - as a temporary password. To reset, you will receive a link to create a new password via text message and/or email. If you have trouble, call us at (888) 987-5187 for assistance.',
       'Please enter a valid account username.' => 'Please verify your name and date of birth are correct',
       'Username is required.' => 'Name and date of birth in mm/dd/yyyy format are required.',
-      'Invalid username or email.' => '<strong>Error</strong>: We cannot find an account with name and date of birth.',
+      'Invalid username or email.' => '<strong>Error</strong>: We cannot find an account with that name and date of birth.',
       '<strong>ERROR</strong>: Invalid username.' => '<strong>Error</strong>: We cannot find an account with that name and date of birth.',
       'An account is already registered with your email address. Please log in.' => substr($_POST['email'], -13) == '@goodpill.org' ? 'An account is already registered with that name and date of birth. Please login or use a different name and date of birth.' : 'Another account is already using that email address.  Please login, use another email, or leave this field blank',
       'Your order is on-hold until we confirm payment has been received. Your order details are shown below for your reference:' => $_POST['rx_source'] == 'pharmacy' ? 'We are currently requesting a transfer of your Rx(s) from your pharmacy' : 'We are currently waiting on Rx(s) to be sent from your doctor',
