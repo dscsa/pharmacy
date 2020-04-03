@@ -195,6 +195,13 @@ function qtys_per_time($durations, $drug_name, $correct) {
     $count = preg_match_all('/(?<!exceed |not to )([0-9]*\.[0-9]+|[1-9][0-9]*) ?(ml|tab|cap|pill|softgel|patch|injection|each)|(^|use +|take +|inhale +|chew +|inject +|oral +)([0-9]*\.[0-9]+|[1-9][0-9]*)(?!\d| *\.| *mg| *time)/i', $sig_part, $match);
 
     if ($count) {
+      //Avoid issues of dupliced Sigs. e.g Take 1 tablet by mouth 1 time a day Take 1 tablet per day
+      if (count($match[1]) == 2 AND $match[1][0] == $match[1][1])
+        unset($match[1][1]);
+
+      if (count($match[4]) == 2 AND $match[4][0] == $match[4][1])
+        unset($match[4][1]);
+
       $qtys_per_time[$sig_part] = array_sum($match[1])+array_sum($match[4]);
       continue;
     }
