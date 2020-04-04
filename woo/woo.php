@@ -1154,13 +1154,23 @@ function dscsa_login_form_acknowledgement() {
 
 add_action('woocommerce_register_form', 'dscsa_register_form_acknowledgement');
 function dscsa_register_form_acknowledgement() {
-  echo "<div id='verify_username_register'>Your login will be: ".verify_username('register')."</div>";
-  echo woocommerce_form_field('certify',[
-    'type'   	  => 'checkbox',
-    'label'     => __("I certify that<br>(1) I understand this program provides medications to those who cannot afford them.<br>(2) I am eligible because my co-pays and/or deductibles are too high to afford or I don't have health insurance.<br>(3) I agree to Good Pill's <a href='/gp-terms'>Terms of Use</a> including receiving and paying for my refills automatically"),
-    'required'  => true
+  echo woocommerce_form_field('eligibility',[
+    'type'   	  => 'select',
+    'label'     => __("I am eligible for this program because:"),
+    'required'  => true,
+    'options'   => [
+      ''      => 'Please select...',
+      'covid'        => "I've had my hours cut, was furloughed, or laid off due to COVID-19",
+      'underinsured' => "I have health insurance but my co-pays and/or deductibles are too high",
+      'public-pay'   => "I'm enrolled in public assistance program like Medicare, Medicaid, SNAP, etc.",
+      'unemployed'   => "I don't have health insurance because I recently lost my job.",
+      'uninsured'    => "I don't have health insurance (not job-related)."
+    ]
   ]);
-  //echo '<div style="margin-bottom:8px">'.__('By clicking "Register" below,').'</div>';
+
+  echo "<div id='verify_username_register'>Your login will be: ".verify_username('register')."</div>";
+
+  echo '<div style="margin-bottom:8px; font-size:10px">'.__("By registering, I agree to Good Pill's <a href='/gp-terms'>Terms of Use</a> including receiving and paying for my refills automatically").'</div>';
 }
 
 
@@ -1190,8 +1200,8 @@ function dscsa_register_post($username, $email, $validation_errors) {
         $validation_errors->add('phone_error', __('A valid 10-digit phone number is required!', 'text_domain'));
     }
 
-    if ( ! $_POST['certify']) {
-        $validation_errors->add('certify_error', __('Certification checkbox is required!', 'text_domain'));
+    if ( ! $_POST['eligibility']) {
+        $validation_errors->add('eligibility_error', __('Reason for eligibility is required!', 'text_domain'));
     }
 
     return $validation_errors;
@@ -1306,6 +1316,8 @@ function customer_created($user_id) {
     update_user_meta($user_id, $field.'first_name', $_POST['first_name']);
     update_user_meta($user_id, $field.'last_name', $_POST['last_name']);
   }
+
+  update_user_meta($user_id, 'eligibility', $_POST['eligibility']);
 
   update_user_meta($user_id, 'birth_date_year', $_POST['birth_date_year']);
   update_user_meta($user_id, 'birth_date_month', $_POST['birth_date_month']);
@@ -2039,6 +2051,22 @@ function dscsa_new_order($order_id) {
   }
 }
 
+add_action( 'edit_user_profile', 'dscsa_edit_user_profile' );
+function dscsa_edit_user_profile( $user ) {
+
+    $eligibility = get_meta('eligibility', $user->ID);
+
+    echo '
+    <table class="form-table">
+      <tr>
+          <th><label for="eligibility">Eligibility</label></th>
+          <td>
+              <div>'.$eligibility.'</div>
+          </td>
+      </tr>
+    </table>';
+}
+
 /**
  * Unhook and remove WooCommerce default emails.
  */
@@ -2235,7 +2263,9 @@ function dscsa_translate($term, $raw, $domain) {
       'Thanks for creating an account on %1$s. Your username is %2$s' => 'Thanks for completing Registration Step 1 of 2 on %1$s. Your username is %2$s',
       'Your password has been automatically generated: %s' => 'Your temporary password is your phone number: %s',
       'Add payment method' => strtok($_SERVER["REQUEST_URI"],'?') == '/account/add-payment/' ? 'Save autopay card' : 'Add a new debit/credit card',
-      'If you have a coupon code, please apply it below.' => 'By entering a coupon below, I authorize Good Pill to release my Personal Health Information (https://www.goodpill.org/gp-npp/) to members of the organization sponsoring this coupon.'
+      'If you have a coupon code, please apply it below.' => 'By entering a coupon below, I authorize Good Pill to release my Personal Health Information (https://www.goodpill.org/gp-npp/) to members of the organization sponsoring this coupon.',
+      'A password will be sent to your email address.' => '',
+      'Please provide a valid email address.' => 'Please fill out your first name, last name, and birth date'
     ];
   }
 
