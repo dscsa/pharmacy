@@ -147,6 +147,8 @@ function clean_sig($sig) {
   $sig = preg_replace('/\\b5 vials?\\b/i', '15ml', $sig); // vials for inhalation are 2.5 or 3ml, so use 3ml to be conservative
   $sig = preg_replace('/\\b6 vials?\\b/i', '18ml', $sig); // vials for inhalation are 2.5 or 3ml, so use 3ml to be conservative
 
+  $sig = preg_replace('/\\bInject \d+ units?\\b/i', 'Inject 1', $sig); //INJECT 18 UNITS
+
   //Cleanup
   $sig = preg_replace('/  +/i', ' ', $sig); //Remove double spaces for aesthetics
 
