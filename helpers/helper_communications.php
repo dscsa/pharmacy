@@ -121,9 +121,13 @@ function send_created_order_communications($groups) {
 
 function send_shipped_order_communications($groups) {
 
+  log_error("send_shipped_order_communications 1 of 4", $groups);
   order_shipped_notice($groups);
+  log_error("send_shipped_order_communications 2 of 4", $groups);
   confirm_shipment_notice($groups);
+  log_error("send_shipped_order_communications 3 of 4", $groups);
   refill_reminder_notice($groups);
+  log_error("send_shipped_order_communications 4 of 4", $groups);
 
   if ($groups['ALL'][0]['payment_method'] == PAYMENT_METHOD['AUTOPAY'])
     autopay_reminder_notice($groups);
