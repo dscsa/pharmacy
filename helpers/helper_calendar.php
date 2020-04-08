@@ -325,7 +325,7 @@ function short_links($links) {
 
   log_notice('short_links', get_defined_vars());
 
-  return json_decode($result);
+  return json_decode($result, true);
 }
 
 function tracking_url($tracking_number) {
