@@ -680,6 +680,7 @@ $test_sigs = [
   //"Take 1 tablet by mouth at bedtime Dr. Jonathan Williams NPI 1346391299
   //1 Capsule(s) PO QHS TAKE 1 CAPSULE BY MOUTH EVERYDAY AT BEDTIME
   //Take 1/2 TO 1 tablet by mouth once daily
+  //1 tab 1 time a day. Orally 90 days
 ];
 
 

@@ -170,7 +170,7 @@ function new_comm_arr($email, $text = '') {
 
   $comm_arr = [];
 
-  if (LIVE_MODE AND $email AND ! preg_match('/\d\d\d\d-\d\d-\d\d@goodpill\.org/', $email['email'])) {
+  if (LIVE_MODE AND $email AND $email['email'] AND ! preg_match('/\d\d\d\d-\d\d-\d\d@goodpill\.org/', $email['email'])) {
     $email['bcc']  = DEBUG_EMAIL;
     $email['from'] = 'Good Pill Pharmacy < support@goodpill.org >'; //spaces inside <> are so that google cal doesn't get rid of "HTML" if user edits description
     $comm_arr[] = $email;
