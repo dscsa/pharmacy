@@ -211,19 +211,12 @@ function update_orders_cp() {
       continue;
     }
 
-    log_error("Debug update order $updated[invoice_number]", $updated);
     if ($stage_change_cp AND $updated['order_date_shipped']) {
-      log_error("Debug update order $updated[invoice_number]: 1 of 6", $updated);
       $groups = group_drugs($order, $mysql);
-      log_error("Debug update order $updated[invoice_number]: 2 of 6", $updated);
       export_v2_unpend_order($order);
-      log_error("Debug update order $updated[invoice_number]: 3 of 6", $updated);
       export_wc_update_order_status($order); //Update status from prepare to shipped
-      log_error("Debug update order $updated[invoice_number]: 4 of 6", $updated);
       export_gd_publish_invoice($order);
-      log_error("Debug update order $updated[invoice_number]: 5 of 6", $updated);
       send_shipped_order_communications($groups);
-      log_error("Debug update order $updated[invoice_number]: 6 of 6", $updated);
       log_notice("Updated Order Shipped", $order);
       continue;
     }
