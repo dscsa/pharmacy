@@ -280,7 +280,7 @@ function create_event($event_title, $comm_arr, $hours_to_wait = 0, $hour_of_day 
     'cal_id'      => GD_CAL_ID,
     'start'       => $startTime,
     'hours'       => 0.5,
-    'title'       => "(NEW) $event_title",
+    'title'       => "(MDB1) $event_title",
     'description' => $comm_arr
   ];
 
