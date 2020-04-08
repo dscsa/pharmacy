@@ -211,16 +211,19 @@ function update_orders_cp() {
       continue;
     }
 
-    if ($order[0]['order_stage_wc'] == 'wc-processing')
-      log_error('Problem: cp order wc-processing updated', [$order[0], $changed_fields]);
-
-
+    log_error("Debug update order", $updated);
     if ($stage_change_cp AND $updated['order_date_shipped']) {
+      log_error("Debug update order 1 of 6", $updated);
       $groups = group_drugs($order, $mysql);
+      log_error("Debug update order 2 of 6", $updated);
       export_v2_unpend_order($order);
+      log_error("Debug update order 3 of 6", $updated);
       export_wc_update_order_status($order); //Update status from prepare to shipped
+      log_error("Debug update order 4 of 6", $updated);
       export_gd_publish_invoice($order);
+      log_error("Debug update order 5 of 6", $updated);
       send_shipped_order_communications($groups);
+      log_error("Debug update order 6 of 6", $updated);
       log_notice("Updated Order Shipped", $order);
       continue;
     }
