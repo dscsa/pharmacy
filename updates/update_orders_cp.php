@@ -93,7 +93,7 @@ function update_orders_cp() {
     }
 
     if ($synced['items_to_sync']) {
-      log_notice('update_orders_cp sync_to_order necessary on CREATE: deleting order for it to be readded', $synced['items_to_sync']);
+      log_notice('update_orders_cp sync_to_order necessary on CREATE: deleting order for it to be readded', $synced);
       $mysql->run('DELETE gp_orders FROM gp_orders WHERE invoice_number = '.$order[0]['invoice_number']); //Force created to run again after the changes take place
       continue; //DON'T CREATE THE ORDER UNTIL THESE ITEMS ARE SYNCED TO AVOID CONFLICTING COMMUNICATIONS!
     }

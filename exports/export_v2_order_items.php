@@ -4,7 +4,7 @@
 //TODO Pend v2 Inventory
 
 function export_v2_add_pended($item, $mysql) {
-  log_info("export_v2_add_pended", get_defined_vars());//.print_r($item, true);
+  log_notice("export_v2_add_pended", $item);//.print_r($item, true);
 
   if ( ! $item['days_dispensed_default']) return;
 
