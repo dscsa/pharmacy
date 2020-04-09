@@ -86,14 +86,14 @@ function print_pick_list($item, $vals) {
       "Count:$vals[count], ".
       "Days:$item[days_dispensed_default], ".
       "Qty:$item[qty_dispensed_default] ($vals[qty]), ".
-      "Stock:$item[stock_level_initial], ".
+      "Stock:$item[stock_level_initial] $item[rx_message_key], ".
       "Created:$item[item_date_added]", '', '', '', '', ''
     ],
     ['', '', '', '', '', ''],
     ['id', 'ndc', 'form', 'exp', 'qty', 'bin']
   ];
 
-  log_info("WebForm make_pick_list", compact('header')); //We don't need full shopping list cluttering logs
+  log_error("WebForm make_pick_list", $item); //We don't need full shopping list cluttering logs
 
   $args = [
     'method'   => 'newSpreadsheet',
