@@ -23,9 +23,9 @@ function update_patients_cp() {
 
     if ($updated['patient_autofill'] != $updated['old_patient_autofill']) {
 
-      $profile = get_full_order($updated, $mysql, false); //This updates & overwrites set_rx_messages
+      $profile = get_full_order($updated, $mysql, true); //This updates & overwrites set_rx_messages
 
-      log_error("update_patient_cp patient_autofill changed.  update rx_messages?", [$profile, $updated, $changed]);
+      log_error("update_patient_cp patient_autofill changed.  Confirm correct updated rx_messages", [$profile, $updated, $changed]);
     }
 
     if ($updated['refills_used'] == $updated['old_refills_used'])

@@ -24,10 +24,12 @@ function unpend_pick_list($item) {
 
   $pend_group_refill = pend_group_refill($item);
   $pend_group_new_rx = pend_group_new_rx($item);
+  $pend_group_manual = pend_group_manual($item);
 
   //Once order is deleted it not longer has items so its hard to determine if the items were New or Refills so just delete both
   $res_refill = v2_fetch("/account/8889875187/pend/$pend_group_refill", 'DELETE');
   $res_new_rx = v2_fetch("/account/8889875187/pend/$pend_group_new_rx", 'DELETE');
+  $res_manual = v2_fetch("/account/8889875187/pend/$pend_group_manual", 'DELETE');
 
   //Delete gdoc pick list
   $args = [
@@ -125,6 +127,11 @@ function pend_group_new_rx($item) {
 
    return "$pick_date $invoice";
 }
+
+function pend_group_manual($item) {
+   return $item['invoice_number'];
+}
+
 
 function pend_pick_list($item, $vals) {
 
