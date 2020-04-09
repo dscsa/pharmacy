@@ -81,8 +81,10 @@ function print_pick_list($item, $vals) {
 
   if ( ! $vals) return; //List could not be made
 
+  $pend_group = $item['refill_date_first'] ? pend_group_refill($item) : pend_group_new_rx($item);
+
   $header = [
-    ['Order #'.$item['invoice_number'].' '.$item['drug_generic'].' ('.$item['drug_name'].')', '', '' ,'', '', ''],
+    ['Pick List: Order #'.$pend_group.' '.$item['drug_generic'].' ('.$item['drug_name'].')', '', '' ,'', '', ''],
     [
       $vals['half_fill'].
       "Count:$vals[count], ".

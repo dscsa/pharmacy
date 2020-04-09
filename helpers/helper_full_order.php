@@ -92,7 +92,7 @@ function add_gd_fields_to_order($order, $mysql, $overwrite_rx_messages) {
     if ($set_days OR $set_msgs) {
       list($days, $message) = get_days_default($order[$i], $order);
 
-      log_notice('add_gd_fields_to_order: before', ['drug_name' => $order[$i]['drug_name'], 'rx_numbers' => $order[$i]['rx_numbers'], 'days' => $days, 'message' => $message, 'set_msgs' => $set_msgs, 'set_days' => $set_days,  'rx_message_key' => $order[$i]['rx_message_key']]);
+      //log_notice('add_gd_fields_to_order: before', ['drug_name' => $order[$i]['drug_name'], 'rx_numbers' => $order[$i]['rx_numbers'], 'days' => $days, 'message' => $message, 'set_msgs' => $set_msgs, 'set_days' => $set_days,  'rx_message_key' => $order[$i]['rx_message_key']]);
 
       if ($set_days)
         $order[$i] = set_days_default($order[$i], $days, $mysql);
@@ -100,7 +100,7 @@ function add_gd_fields_to_order($order, $mysql, $overwrite_rx_messages) {
       if ($set_msgs) //On a sync_to_order the rx_message_key will be set, but days will not yet be set since their was not an order_item until now.  But we don't want to override the original sync message
         $order[$i] = export_cp_set_rx_message($order[$i], $message, $mysql);
 
-      log_notice('add_gd_fields_to_order: after', ['item' => $order[$i]]);
+      //log_notice('add_gd_fields_to_order: after', ['item' => $order[$i]]);
 
       if ($order[$i]['qty_original'] != $order[$i]['sig_qty'] * $order[$i]['refills_dispensed_default']) {
         log_notice("helper_full_order: sig qty doesn't match qty_original.  What is going on?", $order[$i]);
