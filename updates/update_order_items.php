@@ -224,7 +224,7 @@ function update_order_items() {
 
     $changed = changed_fields($updated);
 
-    $old_refills_dispensed_default = max(0, $item['refills_total'] - ($item['days_dispensed_default'] ? 1 : 0));
+    $old_refills_dispensed_default = refills_dispensed_default($item);
 
     if ($item['days_dispensed_actual']) {
 

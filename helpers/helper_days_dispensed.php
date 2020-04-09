@@ -233,7 +233,7 @@ function set_days_default($item, $days, $mysql) {
   $item['days_dispensed_default']    = $days;
   $item['qty_dispensed_default']     = $days*$item['sig_qty_per_day'];
   $item['price_dispensed_default']   = ceil($days*$price/30);
-  $item['refills_dispensed_default'] = max(0, $item['refills_total'] - ($days ? 1 : 0));  //We want invoice to show refills after they are dispensed assuming we dispense items currently in order
+  $item['refills_dispensed_default'] = refills_dispensed_default($item);  //We want invoice to show refills after they are dispensed assuming we dispense items currently in order
   $item['stock_level_initial']       = $item['stock_level'];
 
   if ($item['days_dispensed_default'] AND ! $item['qty_dispensed_default'])
@@ -259,6 +259,15 @@ function set_days_default($item, $days, $mysql) {
   $mysql->run($sql);
 
   return $item;
+}
+
+function refills_dispensed_default($item) {
+
+  if ($item['refill_date_first'])
+    return max(0, $item['refills_total'] - ($item['days_dispensed_default'] ? 1 : 0));
+
+  //6028507 if Cindy hasn't adjusted the days/qty yet we need to calculate it ourselves
+  return $item['refills_total'] * (1 - $item['qty_dispensed_default']/$item['qty_left']);
 }
 
 //TODO OR IT'S AN OTC
