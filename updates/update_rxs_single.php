@@ -16,8 +16,36 @@ function update_rxs_single() {
 
   log_info("update_rxs_single: $count_deleted deleted, $count_created created, $count_updated updated.", get_defined_vars());
 
-
   $mysql = new Mysql_Wc();
+
+  //Run this before rx_grouped query to make sure all sig_qty_per_days are probably set before we group by them
+  foreach($changes['created'] as $rx) {
+
+    $parsed = parse_sig($rx['sig_actual'], $rx['drug_name']);
+
+    //TODO Eventually Save the Clean Script back into Guardian so that Cindy doesn't need to rewrite them
+
+    if ( ! $parsed['qty_per_day']) {
+      log_error("update_rxs_single created: sig could not be parsed", [$rx, $parsed]);
+      continue;
+    }
+
+    $mysql->run("
+      UPDATE gp_rxs_single SET
+        sig_initial                = '$parsed[sig_actual]',
+        sig_clean                  = '$parsed[sig_clean]',
+        sig_qty                    = $parsed[sig_qty],
+        sig_days                   = ".($parsed['sig_days'] ?: 'NULL').",
+        sig_qty_per_day            = $parsed[qty_per_day],
+        sig_durations              = ',".implode(',', $parsed['durations']).",',
+        sig_qtys_per_time          = ',".implode(',', $parsed['qtys_per_time']).",',
+        sig_frequencies            = ',".implode(',', $parsed['frequencies']).",',
+        sig_frequency_numerators   = ',".implode(',', $parsed['frequency_numerators']).",',
+        sig_frequency_denominators = ',".implode(',', $parsed['frequency_denominators']).",'
+      WHERE
+        rx_number = $rx[rx_number]
+    ");
+  }
 
   //This is an expensive (6-8 seconds) group query.
   //TODO We should update rxs in this table individually on changes
@@ -81,34 +109,7 @@ function update_rxs_single() {
     ? $mysql->commit()
     : $mysql->rollback();
 
-  foreach($changes['created'] as $rx) {
-
-    $parsed = parse_sig($rx['sig_actual'], $rx['drug_name']);
-
-    //TODO Eventually Save the Clean Script back into Guardian so that Cindy doesn't need to rewrite them
-
-    if ( ! $parsed['qty_per_day']) {
-      log_error("update_rxs_single created: sig could not be parsed", [$rx, $parsed]);
-      continue;
-    }
-
-    $mysql->run("
-      UPDATE gp_rxs_single SET
-        sig_initial                = '$parsed[sig_actual]',
-        sig_clean                  = '$parsed[sig_clean]',
-        sig_qty                    = $parsed[sig_qty],
-        sig_days                   = ".($parsed['sig_days'] ?: 'NULL').",
-        sig_qty_per_day            = $parsed[qty_per_day],
-        sig_durations              = ',".implode(',', $parsed['durations']).",',
-        sig_qtys_per_time          = ',".implode(',', $parsed['qtys_per_time']).",',
-        sig_frequencies            = ',".implode(',', $parsed['frequencies']).",',
-        sig_frequency_numerators   = ',".implode(',', $parsed['frequency_numerators']).",',
-        sig_frequency_denominators = ',".implode(',', $parsed['frequency_denominators']).",'
-      WHERE
-        rx_number = $rx[rx_number]
-    ");
-  }
-
+  //Run this after rx_grouped query to ensure get_full_order retrieves an accurate order profile
   foreach($changes['updated'] as $updated) {
 
     if ($updated['rx_autofill'] != $updated['old_rx_autofill']) {

@@ -68,22 +68,11 @@ function export_gd_print_invoice($order) {
     'toFolder'   => INVOICE_PUBLISHED_FOLDER_NAME,
   ];
 
-  $result1 = gdoc_post(GD_HELPER_URL, $args);
-
-  /*Temp*/
-  $args = [
-    'method'     => 'moveFile',
-    'file'       => 'Invoice #'.$order[0]['invoice_number'],
-    'fromFolder' => 'Old',
-    'toFolder'   => INVOICE_PUBLISHED_FOLDER_NAME,
-  ];
-
-  $result2 = gdoc_post(GD_HELPER_URL, $args);
-  /* End Temp */
+  $result = gdoc_post(GD_HELPER_URL, $args);
 
   $time = ceil(microtime(true) - $start);
 
-  log_notice("export_gd_print_invoice $time seconds: ".$order[0]['invoice_number'], [$result1, $result2]);
+  log_notice("export_gd_print_invoice $time seconds: ".$order[0]['invoice_number'], $result);
 }
 
 //Cannot delete (with this account) once published
@@ -97,19 +86,11 @@ function export_gd_publish_invoice($order) {
     'folder'   => INVOICE_PENDING_FOLDER_NAME,
   ];
 
-  $result1 = gdoc_post(GD_HELPER_URL, $args);
-
-  $args = [
-    'method'   => 'publishFile',
-    'file'     => 'Invoice #'.$order[0]['invoice_number'],
-    'folder'   => 'Old',
-  ];
-
-  $result2 = gdoc_post(GD_HELPER_URL, $args);
+  $result = gdoc_post(GD_HELPER_URL, $args);
 
   $time = ceil(microtime(true) - $start);
 
-  log_notice("export_gd_publish_invoice $time seconds: ".$order[0]['invoice_number'], [$result1, $result2]);
+  log_notice("export_gd_publish_invoice $time seconds: ".$order[0]['invoice_number'], $result);
 }
 
 function export_gd_delete_invoice($order) {
