@@ -681,6 +681,8 @@ $test_sigs = [
   //1 Capsule(s) PO QHS TAKE 1 CAPSULE BY MOUTH EVERYDAY AT BEDTIME
   //Take 1/2 TO 1 tablet by mouth once daily
   //1 tab 1 time a day. Orally 90 days
+  //Take 2 tablets by mouth as directed, then wait 1 hour and, if needed, take 1 additional tablet. May repeat in 48 hours if needed
+  //Take 9 mg ( 1.5 tablets) on Monday and Wednesday, and 6 mg ( 1 tablet) all other days or as dierected.
 ];
 
 
