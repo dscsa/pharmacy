@@ -268,7 +268,7 @@ function is_not_offered($item) {
   $not_offered = is_null($stock_level) OR ($stock_level == STOCK_LEVEL['NOT OFFERED']);
 
   if ($not_offered) //TODO Alert here is drug is not offered but has a qty_inventory > 500
-    log_notice('is_not_offered: true', [get_defined_vars(), "$stock_level == ".STOCK_LEVEL['NOT OFFERED']]);
+    log_notice('is_not_offered: true', [$item, $not_offered, "$stock_level == ".STOCK_LEVEL['NOT OFFERED']]);
   //else
   //  log_notice('is_not_offered: false', [get_defined_vars(), "$stock_level == ".STOCK_LEVEL['NOT OFFERED']]);
 

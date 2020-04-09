@@ -67,8 +67,8 @@ function vars_to_json($vars, $file) {
     if ($error == 'Inf and NaN cannot be JSON encoded')
       $error .= serialize($vars); //https://levels.io/inf-nan-json_encode/ json_encode(unserialize(str_replace(array(‘NAN;’,’INF;’),’0;’,serialize($reply))));
 
-    log_to_cli('ERROR', 'json_encode failed on get_defined_vars()', $file, $error);
-    log_to_email('ERROR', 'json_encode failed on get_defined_vars()', $file, $error);
+    log_to_cli('ERROR', 'json_encode failed for logging', $file, $error);
+    log_to_email('ERROR', 'json_encode failed for logging', $file, $error);
     $json = json_encode(utf8ize($diff), JSON_PRETTY_PRINT | JSON_PARTIAL_OUTPUT_ON_ERROR); //https://stackoverflow.com/questions/33377431/json-encode-inf-and-nan-cannot-be-json-encoded
   }
 
