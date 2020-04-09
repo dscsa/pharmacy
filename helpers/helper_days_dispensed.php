@@ -139,7 +139,12 @@ function get_days_default($item, $order) {
   }
 
   if ($days_left_in_refills == $days_default) {
-    log_info("WARN USERS IF DRUG IS ON LAST REFILL", get_defined_vars());
+
+    if ($item['refills_dispensed_default'] > 0)
+      log_error("MARKING LAST REFILL BUT REFILLS TOTAL REMAINING", get_defined_vars());
+    else
+      log_info("WARN USERS IF DRUG IS ON LAST REFILL", get_defined_vars());
+
     return [$days_default, RX_MESSAGE['ACTION LAST REFILL']];
   }
 
@@ -232,7 +237,7 @@ function set_days_default($item, $days, $mysql) {
   $item['stock_level_initial']       = $item['stock_level'];
 
   if ($item['days_dispensed_default'] AND ! $item['qty_dispensed_default'])
-    log_error('helper_days_dispensed: qty_dispensed_default is 0 but days_dispensed_default > 0', [$item]);
+    log_error('helper_days_dispensed: qty_dispensed_default is 0 but days_dispensed_default > 0', $item);
 
   $sql = "
     UPDATE
