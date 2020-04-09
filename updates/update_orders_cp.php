@@ -215,7 +215,6 @@ function update_orders_cp() {
       $groups = group_drugs($order, $mysql);
       export_v2_unpend_order($order);
       export_wc_update_order_status($order); //Update status from prepare to shipped
-      export_gd_publish_invoice($order);
       send_shipped_order_communications($groups);
       log_notice("Updated Order Shipped", $order);
       continue;
@@ -237,6 +236,7 @@ function update_orders_cp() {
 
       $groups = group_drugs($order, $mysql);
 
+      export_gd_publish_invoice($order);
       export_gd_print_invoice($order);
       send_dispensed_order_communications($groups);
       log_notice("Updated Order Dispensed", $order);
