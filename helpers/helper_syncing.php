@@ -204,6 +204,9 @@ function set_sync_to_date($order, $target_date, $target_rxs, $mysql) {
           rx_number = $item[rx_number]
       ";
 
+      if ($new_days_default AND ! $order[$i]['qty_dispensed'])
+        log_error('helper_syncing: qty_dispensed_default is 0 but days_dispensed_default > 0', [$order[$i], $new_days_default]);
+
       $mysql->run($sql);
 
       $order[$i] = export_cp_set_rx_message($order[$i], RX_MESSAGE['NO ACTION SYNC TO DATE'], $mysql);

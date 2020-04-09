@@ -231,6 +231,9 @@ function set_days_default($item, $days, $mysql) {
   $item['refills_dispensed_default'] = max(0, $item['refills_total'] - ($days ? 1 : 0));  //We want invoice to show refills after they are dispensed assuming we dispense items currently in order
   $item['stock_level_initial']       = $item['stock_level'];
 
+  if ($item['days_dispensed_default'] AND ! $item['qty_dispensed_default'])
+    log_error('helper_days_dispensed: qty_dispensed_default is 0 but days_dispensed_default > 0', [$item]);
+
   $sql = "
     UPDATE
       gp_order_items
