@@ -79,9 +79,11 @@ function pick_list_suffix($item) {
 
 function print_pick_list($item, $vals) {
 
-  if ( ! $vals) return; //List could not be made
-
   $pend_group = $item['refill_date_first'] ? pend_group_refill($item) : pend_group_new_rx($item);
+
+  log_error("WebForm make_pick_list $pend_group", $item); //We don't need full shopping list cluttering logs
+
+  if ( ! $vals) return; //List could not be made
 
   $header = [
     ['Pick List: Order #'.$pend_group.' '.$item['drug_generic'].' ('.$item['drug_name'].')', '', '' ,'', '', ''],
@@ -96,8 +98,6 @@ function print_pick_list($item, $vals) {
     ['', '', '', '', '', ''],
     ['id', 'ndc', 'form', 'exp', 'qty', 'bin']
   ];
-
-  log_error("WebForm make_pick_list", $item); //We don't need full shopping list cluttering logs
 
   $args = [
     'method'   => 'newSpreadsheet',

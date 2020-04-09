@@ -389,7 +389,7 @@ function is_duplicate_gsn($item1, $order) {
   //Don't sync if an order with these instructions already exists in order
   foreach($order as $item2) {
     if ($item1 !== $item2 AND $item2['item_date_added'] AND $item1['drug_gsns'] == $item2['drug_gsns']) {
-      log_notice("helper_days_dispensed syncing item: matching drug_gsns so did not SYNC TO ORDER' $item1[invoice_number] $item1[drug] $item1[rx_message_key] refills last:$item1[refill_date_last] next:$item1[refill_date_next] total:$item1[refills_total] left:$item1[refills_left]", ['item1' => $item1, 'item2' => $item2]);
+      log_notice("helper_days_dispensed syncing item: matching drug_gsns so did not SYNC TO ORDER' $item1[invoice_number] $item1[drug_name] $item1[rx_message_key] refills last:$item1[refill_date_last] next:$item1[refill_date_next] total:$item1[refills_total] left:$item1[refills_left]", ['item1' => $item1, 'item2' => $item2]);
       return true;
     }
   }
