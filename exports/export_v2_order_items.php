@@ -1,10 +1,13 @@
 <?php
 
 
-//TODO Pend v2 Inventory
+function export_v2_pend_order($order, $mysql) {
+  foreach($order as $i => $item) {
+    v2_pend_item($order[$i], $mysql);
+}
 
-function export_v2_add_pended($item, $mysql) {
-  log_notice("export_v2_add_pended", $item);//.print_r($item, true);
+function v2_pend_item($item, $mysql) {
+  log_notice("v2_pend_item", $item);//.print_r($item, true);
 
   if ( ! $item['days_dispensed_default']) return;
 

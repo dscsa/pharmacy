@@ -683,6 +683,7 @@ $test_sigs = [
   //1 tab 1 time a day. Orally 90 days
   //Take 2 tablets by mouth as directed, then wait 1 hour and, if needed, take 1 additional tablet. May repeat in 48 hours if needed
   //Take 9 mg ( 1.5 tablets) on Monday and Wednesday, and 6 mg ( 1 tablet) all other days or as dierected.
+  //Take 1 capsule by mouth in the morning and @ noon and 2 capsules at bedtime
 ];
 
 

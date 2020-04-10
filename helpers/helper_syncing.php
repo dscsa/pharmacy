@@ -211,8 +211,6 @@ function set_sync_to_date($order, $target_date, $target_rxs, $mysql) {
 
       $order[$i] = export_cp_set_rx_message($order[$i], RX_MESSAGE['NO ACTION SYNC TO DATE'], $mysql);
     }
-
-    export_v2_add_pended($order[$i], $mysql); //Days should be finalized now
   }
 
   return $order;

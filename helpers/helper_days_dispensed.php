@@ -298,6 +298,7 @@ function is_not_offered($item) {
 //tell them it is out of stock just because the sig changed
 function is_refill($item1, $order) {
 
+  $refill_date_first = null;
   foreach ($order as $item2) {
     if ($item1['drug_generic'] == $item2['drug_generic'])
       $refill_date_first = $refill_date_first ?: $item2['refill_date_first'];

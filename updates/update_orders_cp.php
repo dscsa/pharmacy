@@ -102,7 +102,9 @@ function update_orders_cp() {
     list($target_date, $target_rxs) = get_sync_to_date($order);
     $order  = set_sync_to_date($order, $target_date, $target_rxs, $mysql);
 
-    log_notice("Created Order", ['order' => $order, 'synced' => $synced]);
+    export_v2_pend_order($order, $mysql);
+
+    log_notice("Created & Pended Order", ['order' => $order, 'synced' => $synced]);
 
     $groups = group_drugs($order, $mysql);
 
@@ -268,6 +270,8 @@ function update_orders_cp() {
 
       list($target_date, $target_rxs) = get_sync_to_date($order);
       $order = set_sync_to_date($order, $target_date, $target_rxs, $mysql);
+
+      export_v2_pend_order($order, $mysql);
 
       $order = helper_update_payment($order,  "update_orders_cp: updated - count filled changes ".$order[0]['count_items']." (count items) != ".$order[0]['count_filled']." (count filled)", $mysql);
       export_wc_update_order($order);
