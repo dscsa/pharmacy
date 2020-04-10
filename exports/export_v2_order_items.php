@@ -2,7 +2,7 @@
 
 
 function export_v2_pend_order($order, $mysql) {
-  foreach($order as $i => $item) {
+  foreach($order as $i => $item)
     v2_pend_item($order[$i], $mysql);
 }
 
