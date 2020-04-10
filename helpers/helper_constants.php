@@ -9,7 +9,7 @@ const ADDED_MANUALLY = [
   "WEBFORM"
 ];
 
-const PICK_LIST_FOLDER_NAME = 'OLD';
+const PICK_LIST_FOLDER_NAME = 'Pick Lists';
 const INVOICE_PUBLISHED_FOLDER_NAME = 'Published';  //Published
 const INVOICE_PENDING_FOLDER_NAME   = 'Pending';  //Published
 

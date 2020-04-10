@@ -145,7 +145,7 @@ function pend_pick_list($item, $vals) {
   $pend_url = "/account/8889875187/pend/$pend_group?repackQty=$qty";
 
   //Pend after all forseeable errors are accounted for.
-  //$res = v2_fetch($pend_url, 'POST', $vals['pend']);
+  $res = v2_fetch($pend_url, 'POST', $vals['pend']);
 
   log_info("WebForm pend_pick_list", $pend_url);
 }
