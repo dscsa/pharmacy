@@ -143,7 +143,8 @@ function order_canceled_event($deleted, $email, $text, $hours_to_wait, $hour_of_
 
   $event_title   = $deleted['invoice_number'].' Order Canceled. Created:'.date('Y:m:d H:i:s');
 
-  //$cancel = cancel_events_by_person($order[0]['first_name'], $order[0]['last_name'], $order[0]['birth_date'], 'order_canceled_event', ['Order Dispensed']);
+  //Patient information not available
+  $cancel = cancel_events_by_order($deleted['invoice_number'], 'order_canceled_event', ['Order Created', 'Order Updated', 'Order Dispensed']);
 
   $comm_arr = new_comm_arr($email, $text);
 
@@ -157,11 +158,11 @@ function confirm_shipment_event($order, $email, $hours_to_wait, $hour_of_day = n
   $patient_label = get_patient_label($order);
   $event_title   = $order[0]['invoice_number'].' Confirm Shipment: '.$patient_label.'.  Created:'.date('Y:m:d H:i:s');
 
-  $cancel = cancel_events_by_person($order[0]['first_name'], $order[0]['last_name'], $order[0]['birth_date'], 'order_canceled_event', ['Order Dispensed', 'Order Created', 'Transfer Requested', 'Order Updated', 'Order Hold', 'No Rx', 'Needs Form', 'Order Canceled']);
+  $cancel = cancel_events_by_person($order[0]['first_name'], $order[0]['last_name'], $order[0]['birth_date'], 'confirm_shipment_event', ['Order Dispensed', 'Order Created', 'Transfer Requested', 'Order Updated', 'Order Hold', 'No Rx', 'Needs Form', 'Order Canceled']);
 
   $comm_arr = new_comm_arr($email);
 
-  log_info('confirmShipmentEvent', get_defined_vars());
+  log_info('confirm_shipment_event', get_defined_vars());
 
   create_event($event_title, $comm_arr, $hours_to_wait, $hour_of_day);
 }
@@ -391,7 +392,31 @@ function search_events_by_person($first_name, $last_name, $birth_date, $past = f
   $json = json_decode($result, true);
 
   if ($result != '[]')
-    log_notice('search_events', $json);
+    log_notice('search_events_by_person', $json);
+
+  return $json;
+}
+
+function search_events_by_order($invoice_number, $past = false, $types = []) {
+
+  $types = implode('|', $types);
+  $first_name = substr($first_name, 0, 3);
+
+  $args = [
+    'method'       => 'searchCalendarEvents',
+    'cal_id'       => GD_CAL_ID,
+    'hours'        => DAYS_STD*24,
+    'past'         => $past,
+    'word_search'  => "$last_name $birth_date",
+    'regex_search' => "/($types)/i"
+  ];
+
+  $result = gdoc_post(GD_HELPER_URL, $args);
+
+  $json = json_decode($result, true);
+
+  if ($result != '[]')
+    log_notice('search_events_by_order', $json);
 
   return $json;
 }
@@ -458,6 +483,33 @@ function cancel_events_by_person($first_name, $last_name, $birth_date, $caller, 
     cancel_events($cancel);
   } else {
     log_notice('cancel_events_by_person: no events', [$titles, $first_name, $last_name, $birth_date, $caller, $types]);
+  }
+
+  return $cancel;
+}
+
+function cancel_events_by_order($invoice_number, $caller, $types = []) {
+
+  if ( ! LIVE_MODE) return;
+
+  $cancel = [];
+  $titles = [];
+  $events = search_events_by_order($invoice_number, false, $types);
+
+  if ( ! is_array($events)) {
+    $events = [];
+  }
+
+  foreach ($events as $event) {
+    $cancel[] = $event['id'];
+    $titles[] = $event['title'];
+  }
+
+  if ($cancel) {
+    log_notice('cancel_events_by_order: has events', [$titles, $invoice_number, $caller, $types]);
+    cancel_events($cancel);
+  } else {
+    log_notice('cancel_events_by_order: no events', [$titles, $invoice_number, $caller, $types]);
   }
 
   return $cancel;
