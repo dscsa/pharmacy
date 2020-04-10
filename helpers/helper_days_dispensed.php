@@ -6,7 +6,8 @@ function get_days_default($item, $order) {
   $no_transfer    = is_no_transfer($item);
   $added_manually = is_added_manually($item);
   $not_offered    = is_not_offered($item);
-  $refills_only   = is_refill_only($item);
+  $is_refill      = is_refill($item, $order);
+  $refill_only    = is_refill_only($item);
 
   $days_left_in_expiration = days_left_in_expiration($item);
   $days_left_in_refills    = days_left_in_refills($item);
@@ -41,17 +42,17 @@ function get_days_default($item, $order) {
     return [0, RX_MESSAGE['NO ACTION WAS TRANSFERRED']];
   }
 
-  if ( ! $item['refill_date_first'] AND $not_offered) {
+  if ( ! $is_refill AND $not_offered) {
     log_info("TRANSFER OUT NEW RXS THAT WE DONT CARRY", get_defined_vars());
     return [0, RX_MESSAGE['NO ACTION WILL TRANSFER']];
   }
 
-  if ($no_transfer AND ! $item['refill_date_first'] AND $refills_only) {
+  if ($no_transfer AND ! $is_refill AND $refill_only) {
     log_info("CHECK BACK IF TRANSFER OUT IS NOT DESIRED", get_defined_vars());
     return [0, RX_MESSAGE['ACTION CHECK BACK']];
   }
 
-  if ( ! $no_transfer AND ! $item['refill_date_first'] AND $refills_only) {
+  if ( ! $no_transfer AND ! $is_refill AND $refill_only) {
     log_info("TRANSFER OUT NEW RXS THAT WE CANT FILL", get_defined_vars());
     return [0, RX_MESSAGE['NO ACTION WILL TRANSFER CHECK BACK']];
   }
@@ -105,7 +106,7 @@ function get_days_default($item, $order) {
     return [$days_default, RX_MESSAGE['NO ACTION RX OFF AUTOFILL']];
   }
 
-  if ($item['refill_date_first'] AND $not_offered) {
+  if ($is_refill AND $not_offered) {
     log_info("REFILLS SHOULD NOT HAVE A NOT OFFERED STATUS", get_defined_vars());
     return [$days_default, RX_MESSAGE['NO ACTION NEW GSN']];
   }
@@ -150,7 +151,7 @@ function get_days_default($item, $order) {
 
   if ($days_left_in_stock == $days_default) {
 
-    if ($item['refill_date_first'])
+    if ($is_refill)
       log_error("YIKES! IS REFILL RX IS OUT OF STOCK?", get_defined_vars());
     else
       log_notice("WARN USERS IF DRUG IS LOW QTY", get_defined_vars());
@@ -292,6 +293,19 @@ function is_not_offered($item) {
   return $not_offered;
 }
 
+//rxs_grouped includes drug name AND sig_qty_per_day.  If someone starts on Lipitor 20mg 1 time per day
+//and then moves to Lipitor 20mg 2 times per day, we still want to honor this Rx as a refill rather than
+//tell them it is out of stock just because the sig changed
+function is_refill($item1, $order) {
+
+  foreach ($order as $item2) {
+    if ($item1['drug_generic'] == $item2['drug_generic'])
+      $refill_date_first = $refill_date_first ?: $item2['refill_date_first'];
+  }
+
+  return !!$refill_date_first;
+}
+
 function is_refill_only($item) {
   return in_array($item['stock_level_initial'] ?: $item['stock_level'], [
     STOCK_LEVEL['OUT OF STOCK'],
@@ -304,9 +318,9 @@ function message_text($message, $item) {
 }
 
 function sync_to_order_new_rx($item, $order) {
-  $not_offered  = is_not_offered($item);
-  $refills_only = is_refill_only($item);
-  $eligible     = ! $item['item_date_added'] AND ($item['refills_total'] >= 0.1) AND ! $item['refill_date_first'] AND $item['rx_autofill'] AND ! $not_offered AND ! $refills_only;
+  $not_offered = is_not_offered($item);
+  $refill_only = is_refill_only($item);
+  $eligible    = ! $item['item_date_added'] AND ($item['refills_total'] >= 0.1) AND ! is_refill($item, $order) AND $item['rx_autofill'] AND ! $not_offered AND ! $refill_only;
   return $eligible AND ! is_duplicate_gsn($item, $order);
 }
 
@@ -317,7 +331,7 @@ function sync_to_order_past_due($item, $order) {
 
 //Order 29017 had a refill_date_first and rx/pat_autofill ON but was missing a refill_date_default/refill_date_manual/refill_date_next
 function sync_to_order_no_next($item, $order) {
-  $eligible = ! $item['item_date_added'] AND ($item['refills_total'] >= 0.1) AND $item['refill_date_first'] AND ! $item['refill_date_default'];
+  $eligible = ! $item['item_date_added'] AND ($item['refills_total'] >= 0.1) AND is_refill($item, $order) AND ! $item['refill_date_default'];
   return $eligible AND ! is_duplicate_gsn($item, $order);
 }
 
