@@ -2562,6 +2562,7 @@ function get_invoice_number($guardian_id) {
 function get_guardian_order($guardian_id, $rx_source, $comment) {
   if ( ! $guardian_id) return;
 
+  $enable_find = 0;
   $comment = str_replace("'", "''", $comment ?: '');
   // Categories can be found or added select * From csct_code where ct_id=5007, UPDATE csct_code SET code_num=2, code=2, user_owned_yn = 1 WHERE code_id = 100824
   // 0 Unspecified, 1 Webform Complete, 2 Webform eRX, 3 Webform Transfer, 6 Webform Refill, 7 Webform eRX with Note, 8 Webform Transfer with Note, 9 Webform Refill with Note,
@@ -2570,13 +2571,15 @@ function get_guardian_order($guardian_id, $rx_source, $comment) {
     $category = $comment ? 8 : 3;
   else if ($rx_source == 'refill')
     $category = $comment ? 9 : 6;
-  else if ($rx_source == 'erx')
+  else if ($rx_source == 'erx') {
+    $enable_find = 1; //Always add a new order EXCEPT if the person is registering and the Rxs have already arrived from the doctor
     $category = $comment ? 7 : 2;
+  }
   else
     $category = 0;
 
-  $result = db_run("SirumWeb_AddFindOrder '$guardian_id', '$category', '$comment'");
-  debug_email("get_guardian_order *$source*", "SirumWeb_AddFindOrder '$guardian_id', '$category', '$comment'".print_r($result, true));
+  $result = db_run("SirumWeb_AddOrder '$guardian_id', '$category', '$enable_find', '$comment'");
+  debug_email("get_guardian_order *$source*", "SirumWeb_AddOrder '$guardian_id', '$category', '$enable_find', '$comment'".print_r($result, true));
   return $result;
 }
 
