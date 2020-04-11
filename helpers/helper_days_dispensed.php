@@ -352,6 +352,8 @@ function days_left_in_expiration($item) {
 
 function days_left_in_refills($item) {
 
+  if ($item['refills_total'] != $item['refills_left']) return; //Just because we are out of refills on this script doesn't mean there isn't another script with refills
+
   $days_left_in_refills = $item['qty_left']/$item['sig_qty_per_day'];
 
   //Fill up to 30 days more to finish up an Rx if almost finished.

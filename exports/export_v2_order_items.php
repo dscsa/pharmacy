@@ -84,7 +84,7 @@ function print_pick_list($item, $vals) {
 
   $pend_group = $item['refill_date_first'] ? pend_group_refill($item) : pend_group_new_rx($item);
 
-  log_error("WebForm make_pick_list $pend_group", $item); //We don't need full shopping list cluttering logs
+  log_notice("WebForm make_pick_list $pend_group", $item); //We don't need full shopping list cluttering logs
 
   if ( ! $vals) return; //List could not be made
 
