@@ -17,8 +17,11 @@ function update_drugs() {
 
   foreach($changes['updated'] as $i => $updated) {
 
-    if ($updated['drug_ordered'] != $updated['old_drug_ordered'])
-      log_error("drug ordered changed", $updated);
+    if ($updated['drug_ordered'] && ! $updated['old_drug_ordered'])
+      log_error("new drug ordered", $updated);
+
+    if ( ! $updated['drug_ordered'] && $updated['old_drug_ordered'])
+      log_error("drug stopped being ordered", $updated);
 
     if ($updated['drug_gsns'] != $updated['old_drug_gsns'])
       log_error("drug gsns changed", $updated);
