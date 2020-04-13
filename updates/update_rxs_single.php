@@ -118,6 +118,13 @@ function update_rxs_single() {
 
       log_error("update_rxs_single rx_autofill changed.  Confirm correct updated rx_messages", [$profile, $updated]);
     }
+
+    if ($updated['rx_gsn'] AND ! $updated['old_rx_gsn']) {
+
+      $profile = get_full_order($updated, $mysql, true); //This updates & overwrites set_rx_messages
+
+      log_error("update_rxs_single rx_gsn no longer missing.  Confirm correct updated rx_messages", [$profile, $updated]);
+    }
   }
 
 
