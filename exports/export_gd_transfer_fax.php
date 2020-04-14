@@ -4,7 +4,7 @@ require_once 'helpers/helper_gdocs.php';
 
 function export_gd_transfer_fax($item) {
 
-  //log_info("export_gd_update_fax", $item);
+  log_notice("WebForm export_gd_transfer_fax CALLED", get_defined_vars());
 
   if ($item['rx_message_key'] != 'NO ACTION WILL TRANSFER' AND $item['rx_message_key'] != 'NO ACTION WILL TRANSFER CHECK BACK')
     return;
@@ -14,14 +14,14 @@ function export_gd_transfer_fax($item) {
   $args = [
     'method'   => 'mergeDoc',
     'template' => 'Transfer Out Template v1',
-    'file'     => 'Transfer Out #'.$order[0]['rx_number']." $to",
+    'file'     => 'Transfer Out #'.$item['rx_number']." $to",
     'folder'   => 'Test Transfers', //Transfer Outs
-    'order'    => $item
+    'order'    => [$item]
   ];
 
   $result = gdoc_post(GD_MERGE_URL, $args);
 
-  log_notice("WebForm export_gd_transfer_fax", get_defined_vars());
+  log_error("WebForm export_gd_transfer_fax SENT", get_defined_vars());
 }
 
 function getToken(){

@@ -4,7 +4,7 @@ require_once 'changes/changes_to_order_items.php';
 require_once 'helpers/helper_days_dispensed.php';
 require_once 'exports/export_cp_order_items.php';
 require_once 'exports/export_v2_order_items.php';
-//require_once 'exports/export_gd_transfer_fax.php';
+require_once 'exports/export_gd_transfer_fax.php';
 
 function update_order_items() {
 
@@ -206,6 +206,7 @@ function update_order_items() {
     $item = set_days_default($item, 0, '', $mysql);
 
     export_v2_remove_pended($item);
+    export_gd_transfer_fax($item);
 
     //TODO Update Salesforce Order Total & Order Count & Order Invoice using REST API or a MYSQL Zapier Integration
   }
