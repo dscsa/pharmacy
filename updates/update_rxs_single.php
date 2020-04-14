@@ -119,9 +119,11 @@ function update_rxs_single() {
       //SELECT patient_id_cp, rx_gsn, MAX(drug_name), MAX(CONCAT(rx_number, rx_autofill)), GROUP_CONCAT(rx_autofill), GROUP_CONCAT(rx_number) FROM gp_rxs_single GROUP BY patient_id_cp, rx_gsn HAVING AVG(rx_autofill) > 0 AND AVG(rx_autofill) < 1
       $sql = "UPDATE cprx SET autofill_yn = $updated[rx_autofill] WHERE pat_id = $updated[patient_id_cp] AND gcn_seqno = $updated[rx_gsn]";
 
+      $rxs = $mysql->run("SELECT * FROM gp_rxs_single WHERE patient_id_cp = $updated[patient_id_cp]");
+
       $profile = get_full_order($updated, $mysql, true); //This updates & overwrites set_rx_messages
 
-      log_error("update_rxs_single rx_autofill changed.  TODO update all Rx's with same GSN to be on/off Autofill. Confirm correct updated rx_messages", [$profile, $updated, $sql]);
+      log_error("update_rxs_single rx_autofill changed.  TODO update all Rx's with same GSN to be on/off Autofill. Confirm correct updated rx_messages", ['profile' => $profile, 'updated' => $updated, 'rxs' => $rxs, 'sql' => $sql]);
     }
 
     if ($updated['rx_gsn'] AND ! $updated['old_rx_gsn']) {
