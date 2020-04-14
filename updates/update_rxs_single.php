@@ -64,7 +64,7 @@ function update_rxs_single() {
       MAX(rx_gsn) as max_gsn,
       MAX(drug_gsns) as drug_gsns,
       SUM(refills_left) as refills_total,
-      MAX(rx_autofill) as rx_autofill,
+      MIN(rx_autofill) as rx_autofill, -- if one is taken off, then a new script will have it turned on but we need to go with the old one
 
       MIN(refill_date_first) as refill_date_first,
       MAX(refill_date_last) as refill_date_last,
@@ -114,9 +114,14 @@ function update_rxs_single() {
 
     if ($updated['rx_autofill'] != $updated['old_rx_autofill']) {
 
+      //We want all Rxs with the same GSN to share the same rx_autofill value, so when one changes we must change them all
+      //SQL to DETECT inconsistencies:
+      //SELECT patient_id_cp, rx_gsn, MAX(drug_name), MAX(CONCAT(rx_number, rx_autofill)), GROUP_CONCAT(rx_autofill), GROUP_CONCAT(rx_number) FROM gp_rxs_single GROUP BY patient_id_cp, rx_gsn HAVING AVG(rx_autofill) > 0 AND AVG(rx_autofill) < 1
+      $sql = "UPDATE cprx SET autofill_yn = $updated[rx_autofill] WHERE pat_id = $updated[patient_id_cp] AND gcn_seqno = $updated[rx_gsn]";
+
       $profile = get_full_order($updated, $mysql, true); //This updates & overwrites set_rx_messages
 
-      log_error("update_rxs_single rx_autofill changed.  TODO update all Rx's with same GSN to be on/off Autofill. Confirm correct updated rx_messages", [$profile, $updated]);
+      log_error("update_rxs_single rx_autofill changed.  TODO update all Rx's with same GSN to be on/off Autofill. Confirm correct updated rx_messages", [$profile, $updated, $sql]);
     }
 
     if ($updated['rx_gsn'] AND ! $updated['old_rx_gsn']) {
