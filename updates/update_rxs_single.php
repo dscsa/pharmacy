@@ -64,7 +64,7 @@ function update_rxs_single() {
       MAX(rx_gsn) as max_gsn,
       MAX(drug_gsns) as drug_gsns,
       SUM(refills_left) as refills_total,
-      MIN(rx_autofill) as rx_autofill,
+      MAX(rx_autofill) as rx_autofill,
 
       MIN(refill_date_first) as refill_date_first,
       MAX(refill_date_last) as refill_date_last,
@@ -116,7 +116,7 @@ function update_rxs_single() {
 
       $profile = get_full_order($updated, $mysql, true); //This updates & overwrites set_rx_messages
 
-      log_error("update_rxs_single rx_autofill changed.  Confirm correct updated rx_messages", [$profile, $updated]);
+      log_error("update_rxs_single rx_autofill changed.  TODO update all Rx's with same GSN to be on/off Autofill. Confirm correct updated rx_messages", [$profile, $updated]);
     }
 
     if ($updated['rx_gsn'] AND ! $updated['old_rx_gsn']) {

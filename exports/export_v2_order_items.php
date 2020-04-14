@@ -82,14 +82,14 @@ function pick_list_suffix($item) {
 
 function print_pick_list($item, $vals) {
 
-  $pend_group = $item['refill_date_first'] ? pend_group_refill($item) : pend_group_new_rx($item);
+  $pend_group_name = pend_group_name($item);
 
-  log_notice("WebForm make_pick_list $pend_group", $item); //We don't need full shopping list cluttering logs
+  log_notice("WebForm make_pick_list $pend_group_name", $item); //We don't need full shopping list cluttering logs
 
   if ( ! $vals) return; //List could not be made
 
   $header = [
-    ['Pick List: Order #'.$pend_group.' '.$item['drug_generic'].' ('.$item['drug_name'].')', '', '' ,'', '', ''],
+    ['Pick List: Order #'.$pend_group_name.' '.$item['drug_generic'].' ('.$item['drug_name'].')', '', '' ,'', '', ''],
     [
       $vals['half_fill'].
       "Count:$vals[count], ".
@@ -137,15 +137,19 @@ function pend_group_manual($item) {
    return $item['invoice_number'];
 }
 
+function pend_group_name($item) {
+   return $item['order_source'] == "Auto Refill v2" ? pend_group_refill($item) : pend_group_new_rx($item);
+}
+
 
 function pend_pick_list($item, $vals) {
 
   if ( ! $vals) return; //List could not be made
 
-  $pend_group = $item['refill_date_first'] ? pend_group_refill($item) : pend_group_new_rx($item);
+  $pend_group_name = pend_group_name($item);
   $qty = round($item['qty_dispensed_default']);
 
-  $pend_url = "/account/8889875187/pend/$pend_group?repackQty=$qty";
+  $pend_url = "/account/8889875187/pend/$pend_group_name?repackQty=$qty";
 
   //Pend after all forseeable errors are accounted for.
   $res = v2_fetch($pend_url, 'POST', $vals['pend']);
