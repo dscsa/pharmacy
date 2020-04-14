@@ -89,7 +89,7 @@ function print_pick_list($item, $vals) {
   if ( ! $vals) return; //List could not be made
 
   $header = [
-    ['Pick List: Order #'.$pend_group_name.' '.$item['drug_generic'].' ('.$item['drug_name'].')', '', '' ,'', '', ''],
+    ['Pick List: Order #'.$pend_group_name.' '.$item['drug_generic'].' ('.$item['drug_name'].') Rx '.$item['rx_number'], '', '' ,'', '', ''],
     [
       $vals['half_fill'].
       "Count:$vals[count], ".
