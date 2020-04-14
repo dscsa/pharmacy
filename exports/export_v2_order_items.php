@@ -379,8 +379,8 @@ function get_qty_needed($rows, $min_qty, $safety) {
 
 function sort_list($a, $b) {
 
-  $aBin = $a[4];
-  $bBin = $b[4];
+  $aBin = $a[5];
+  $bBin = $b[5];
 
   $aPack = $aBin AND strlen($aBin) == 3;
   $bPack = $bBin AND strlen($bBin) == 3;
