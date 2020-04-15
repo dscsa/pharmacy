@@ -18,6 +18,7 @@ function v2_pend_item($item, $mysql) {
 }
 
 function export_v2_unpend_order($order) {
+  log_notice("export_v2_unpend_order", $order[0]['invoice_number']);
   foreach($order as $item) {
     unpend_pick_list($item);
   }
@@ -154,7 +155,7 @@ function pend_pick_list($item, $vals) {
   //Pend after all forseeable errors are accounted for.
   $res = v2_fetch($pend_url, 'POST', $vals['pend']);
 
-  log_info("WebForm pend_pick_list", $pend_url);
+  log_notice("WebForm pend_pick_list", $pend_url);
 }
 
 function make_pick_list($item) {
