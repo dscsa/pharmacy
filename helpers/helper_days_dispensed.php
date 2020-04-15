@@ -134,9 +134,16 @@ function get_days_default($item, $order) {
     return [$days_default, RX_MESSAGE['NO ACTION DUE SOON AND SYNC TO ORDER']];
   }
 
+  if ($days_left_in_expiration AND $days_left_in_expiration < 45) {
+    log_info("RX IS ABOUT TO EXPIRE SO FILL IT FOR EVERYTHING LEFT", get_defined_vars());
+    $days_left = min(180, round15($item['days_left'])); //Cap it at 180 days
+    return [$days_left, RX_MESSAGE['ACTION EXPIRING']];
+  }
+
   if ($days_left_in_expiration) {
-    log_info("WARN USERS IF RX IS ABOUT TO EXPIRE", get_defined_vars());
-    return [$days_left_in_expiration, RX_MESSAGE['ACTION EXPIRING']];
+    log_info("RX WILL EXPIRE SOON SO FILL IT UNTIL RIGHT BEFORE EXPIRATION DATE", get_defined_vars());
+    $days_left = round15($days_left_in_expiration)-10;
+    return [$days_left, RX_MESSAGE['ACTION EXPIRING']];
   }
 
   if ($days_left_in_refills == $days_default) {
@@ -347,7 +354,7 @@ function days_left_in_expiration($item) {
 
   $days_left_in_expiration = (strtotime($item['rx_date_expired']) - strtotime($item['refill_date_next']))/60/60/24;
 
-  if ($days_left_in_expiration <= DAYS_STD) return round15($item['qty_left']/$item['sig_qty_per_day']);
+  if ($days_left_in_expiration <= DAYS_STD) return $days_left_in_expiration;
 }
 
 function days_left_in_refills($item) {
