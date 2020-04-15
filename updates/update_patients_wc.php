@@ -116,13 +116,16 @@ function update_patients_wc() {
         (strlen($updated['patient_zip']) == 5 AND $updated['patient_zip'] !== $updated['old_patient_zip'])
     ) {
 
+      $address1 = str_replace("'", "''", $updated['patient_address1']);
+      $address2 = str_replace("'", "''", $updated['patient_address2']);
+
       $address3 = 'NULL';
       if ($updated['patient_state'] != 'GA') {
         log_notice("$updated[first_name] $updated[last_name] $updated[birth_date]");
         $address3 = "'!!!! WARNING NON-GEORGIA ADDRESS !!!!'";
       }
 
-      upsert_patient_cp($mssql, "EXEC SirumWeb_AddUpdatePatHomeAddr '$updated[patient_id_cp]', '$updated[patient_address1]', '$updated[patient_address2]', $address3, '$updated[patient_city]', '$updated[patient_state]', '$updated[patient_zip]', 'US'");
+      upsert_patient_cp($mssql, "EXEC SirumWeb_AddUpdatePatHomeAddr '$updated[patient_id_cp]', '$address1', '$address2', $address3, '$updated[patient_city]', '$updated[patient_state]', '$updated[patient_zip]', 'US'");
     }
 
     //NOTE: Different/Reverse logic here. Deleting in CP should save back into WC
