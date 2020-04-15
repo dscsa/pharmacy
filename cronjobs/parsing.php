@@ -684,6 +684,7 @@ $test_sigs = [
   //Take 2 tablets by mouth as directed, then wait 1 hour and, if needed, take 1 additional tablet. May repeat in 48 hours if needed
   //Take 9 mg ( 1.5 tablets) on Monday and Wednesday, and 6 mg ( 1 tablet) all other days or as dierected.
   //Take 1 capsule by mouth in the morning and @ noon and 2 capsules at bedtime
+  //Take 1 tablet by mouth at bedtime after meals for cholesterol
 ];
 
 

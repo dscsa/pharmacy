@@ -234,7 +234,13 @@ function frequency_numerators($durations, $correct) {
 
   foreach ($durations as $sig_part => $duration) {
 
-    $default = preg_match('/\\b(before|with|after) meals\\b/i', $sig_part, $match) ? 3 : 1;
+    //"Take 1 tablet by mouth at bedtime after meals for cholesterol" should be 1 time per day not 3.
+    if (preg_match('/\\bat\\b/i', $sig_part))
+      $default = 1;
+    else if (preg_match('/\\b(before|with|after) meals\\b/i', $sig_part))
+      $default = 3;
+    else
+      $default = 1;
 
     preg_match('/([1-9]\\b|10|11|12) +time/i', $sig_part, $match);
     $frequency_numerators[$sig_part] = $match ? $match[1] : $default;
