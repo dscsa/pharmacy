@@ -1,5 +1,7 @@
 <?php
 
+require_once 'exports/export_gd_transfer_fax.php';
+
 //Remove Only flag so that once we communicate what's in an order to a patient we "lock" it, so that if new SureScript come in we remove them so we don't surprise a patient with new drugs
 function sync_to_order($order, $updated = null) {
 
@@ -93,6 +95,7 @@ function sync_to_order($order, $updated = null) {
       $new_count_items--;
       $items_to_sync[]   = ['REMOVE', $item['rx_message_key'], $item];
       $items_to_remove[] = $item['rx_number'];
+      export_gd_transfer_fax($item);
       //log_notice('sync_to_order removing item', "$item[invoice_number] $item[rx_number] $item[drug], $item[stock_level], $item[rx_message_key] refills last:$item[refill_date_last] next:$item[refill_date_next] total:$item[refills_total] left:$item[refills_left]");
 
       continue;
