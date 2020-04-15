@@ -7,7 +7,7 @@ function export_v2_pend_order($order, $mysql) {
 }
 
 function v2_pend_item($item, $mysql) {
-  log_notice("v2_pend_item", $item);//.print_r($item, true);
+  log_notice("v2_pend_item continue:".($item['days_dispensed_default'] ? 'Y' : 'No'), $item);//.print_r($item, true);
 
   if ( ! $item['days_dispensed_default']) return;
 
@@ -64,7 +64,7 @@ function save_pick_list($item, $vals, $mysql) {
       rx_number = $item[rx_number]
   ";
 
-  //log_info('save_pick_list', get_defined_vars());
+  log_notice('save_pick_list', get_defined_vars());
 
   $mysql->run($sql);
 }
@@ -84,8 +84,6 @@ function pick_list_suffix($item) {
 function print_pick_list($item, $vals) {
 
   $pend_group_name = pend_group_name($item);
-
-  log_notice("WebForm make_pick_list $pend_group_name", $item); //We don't need full shopping list cluttering logs
 
   if ( ! $vals) return; //List could not be made
 
@@ -112,6 +110,9 @@ function print_pick_list($item, $vals) {
   ];
 
   $result = gdoc_post(GD_HELPER_URL, $args);
+
+  log_notice("WebForm print_pick_list $pend_group_name", $item); //We don't need full shopping list cluttering logs
+
 }
 
 function pend_group_refill($item) {
@@ -175,7 +176,7 @@ function make_pick_list($item) {
   $start_key = rawurlencode('["8889875187","month","'.$min_exp[0].'","'.$min_exp[1].'","'.$generic.'"]');
   $end_key   = rawurlencode('["8889875187","month","'.$min_exp[0].'","'.$min_exp[1].'","'.$generic.'",{}]');
 
-  $url  = '/transaction/_design/inventory-by-generic/_view/inventory-by-generic?reduce=false&include_docs=true&limit=300&startkey='.$start_key.'&endkey='.$end_key;
+  $url  = '/transaction/_design/inventory-by-generic/_view/inventory-by-generic?reduce=false&include_docs=true&limit=500&startkey='.$start_key.'&endkey='.$end_key;
 
   try {
     $res = v2_fetch($url);
@@ -187,12 +188,14 @@ function make_pick_list($item) {
   $sorted_ndcs   = sort_by_ndc($unsorted_ndcs, $long_exp);
   $list          = get_qty_needed($sorted_ndcs, $min_qty, $safety);
 
+  log_notice("WebForm make_pick_list $item[invoice_number]", $item); //We don't need full shopping list cluttering logs
+
   if ($list) {
     $list['half_fill'] = '';
     return $list;
   }
 
-  log_info("Webform Shopping Error: Not enough qty found, trying half fill and no safety", ['count_inventory' => count($sorted_ndcs), 'item' => $item]);
+  log_notice("Webform Shopping Error: Not enough qty found, trying half fill and no safety", ['count_inventory' => count($sorted_ndcs), 'item' => $item]);
 
   $list = get_qty_needed($sorted_ndcs, $min_qty*0.5, 0);
 
