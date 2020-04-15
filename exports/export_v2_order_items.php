@@ -156,7 +156,7 @@ function pend_pick_list($item, $vals) {
   //Pend after all forseeable errors are accounted for.
   $res = v2_fetch($pend_url, 'POST', $vals['pend']);
 
-  log_error("WebForm pend_pick_list", ['pend' => $vals['pend'], 'item' => $item, 'pend_url' => $pend_url, 'count list' => count($vals['list']), 'count pend' => count($vals['pend'])]);
+  log_error("WebForm pend_pick_list", ['res' => $res, 'pend' => $vals['pend'], 'item' => $item, 'pend_url' => $pend_url, 'count list' => count($vals['list']), 'count pend' => count($vals['pend'])]);
 }
 
 function make_pick_list($item) {
