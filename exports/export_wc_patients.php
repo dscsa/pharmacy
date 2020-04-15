@@ -33,10 +33,6 @@ function upsert_patient_wc($mysql, $user_id, $meta_key, $meta_value) {
     $upsert = "INSERT wp_usermeta (umeta_id, user_id, meta_key, meta_value) VALUES (NULL, $user_id, '$wc_key', $wc_val)";
   }
 
-
-  //echo "
-  //$upsert";
-
   $mysql->run($upsert);
 }
 
@@ -85,11 +81,13 @@ function find_patient_wc($mysql, $patient) {
 }
 
 function update_wc_phone1($mysql, $patient_id_wc, $phone1) {
+  if ( ! $patient_id_wc) return;
   $mysql->run("UPDATE gp_patients_wc SET phone1 = ".($phone1 ?: 'NULL')." WHERE patient_id_wc = $patient_id_wc");
   return upsert_patient_wc($mysql, $patient_id_wc, 'phone',  $phone1);
 }
 
 function update_wc_phone2($mysql, $patient_id_wc, $phone2) {
+  if ( ! $patient_id_wc) return;
   $mysql->run("UPDATE gp_patients_wc SET phone2 = ".($phone2 ?: 'NULL')." WHERE patient_id_wc = $patient_id_wc");
   return upsert_patient_wc($mysql, $patient_id_wc, 'billing_phone', $phone2);
 }
