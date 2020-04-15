@@ -130,7 +130,7 @@ function update_rxs_single() {
 
       $profile = get_full_order($updated, $mysql, true); //This updates & overwrites set_rx_messages
 
-      log_error("update_rxs_single rx_gsn no longer missing.  Confirm correct updated rx_messages", [$profile, $updated]);
+      log_error("update_rxs_single rx_gsn no longer missing (but still might not be in v2 yet).  Confirm correct updated rx_messages", [$profile, $updated]);
     }
   }
 

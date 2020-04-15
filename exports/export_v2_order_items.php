@@ -111,7 +111,7 @@ function print_pick_list($item, $vals) {
 
   $result = gdoc_post(GD_HELPER_URL, $args);
 
-  log_notice("WebForm print_pick_list $pend_group_name", $item); //We don't need full shopping list cluttering logs
+  log_notice("WebForm print_pick_list $pend_group_name", ['list' => $vals['list'], 'item' => $item, 'count list' => count($vals['list']), 'count pend' => count($vals['pend'])]); //We don't need full shopping list cluttering logs
 
 }
 
@@ -156,7 +156,7 @@ function pend_pick_list($item, $vals) {
   //Pend after all forseeable errors are accounted for.
   $res = v2_fetch($pend_url, 'POST', $vals['pend']);
 
-  log_error("WebForm pend_pick_list", [$vals['pend'], $pend_url]);
+  log_error("WebForm pend_pick_list", ['pend' => $vals['pend'], 'item' => $item, 'pend_url' => $pend_url, 'count list' => count($vals['list']), 'count pend' => count($vals['pend'])]);
 }
 
 function make_pick_list($item) {
