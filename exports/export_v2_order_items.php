@@ -204,8 +204,8 @@ function make_pick_list($item) {
 function group_by_ndc($rows, $item) {
   //Organize by NDC since we don't want to mix them
   $ndcs = [];
-  $caps = preg_match('/ cap(?!l)s?| cps?\b| softgel| sfgl\b/i', $item['drug_name']); //include cap, caps, capsule but not caplet which is more like a tablet
-  $tabs = preg_match('/ tabs?| tbs?| capl\b/i', $item['drug_name']);  //include caplet which is like a tablet
+  $caps = preg_match('/ cap(?!l)s?| cps?\\b| softgel| sfgl\\b/i', $item['drug_name']); //include cap, caps, capsule but not caplet which is more like a tablet
+  $tabs = preg_match('/ tabs?| tbs?| capl\\b/i', $item['drug_name']);  //include caplet which is like a tablet
 
   foreach ($rows as $row) {
 
@@ -226,11 +226,11 @@ function group_by_ndc($rows, $item) {
     //Ignore Cindy's makeshift dispensed queue
     if (in_array($row['doc']['bin'], ['M00', 'T00', 'W00', 'R00', 'F00', 'X00', 'Y00', 'Z00'])) continue;
     //Only select the correct form even though v2 gives us both
-    if ($caps AND strpos('Tablet', $row['doc']['drug']['form']) !== false) {
+    if ($caps AND stripos($row['doc']['drug']['form'], 'Tablet') !== false) {
       $msg = 'may only be available in capsule form';
       continue;
     }
-    if ($tabs AND strpos('Capsule', $row['doc']['drug']['form']) !== false) {
+    if ($tabs AND stripos($row['doc']['drug']['form'], 'Capsule') !== false) {
       $msg = 'may only be available in tablet form';
       continue;
     }
