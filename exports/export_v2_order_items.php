@@ -88,14 +88,17 @@ function print_pick_list($item, $vals) {
   if ( ! $vals) return; //List could not be made
 
   $header = [
-    ['Pick List: Order #'.$pend_group_name.' '.$item['drug_generic'].' ('.$item['drug_name'].') Rx '.$item['rx_number'], '', '' ,'', '', ''],
+    [
+      "Pick List: Order #$pend_group_name $item[drug_generic] ($item[drug_name])", '', '' ,'', '', ''],
+    [
+      "Rx $item[rx_number]. $item[rx_message_key]. Item Added:$item[item_date_added]. Created ".date('Y:m:d H:i:s'), '', '' ,'', '', ''],
     [
       $vals['half_fill'].
       "Count:$vals[count], ".
       "Days:$item[days_dispensed_default], ".
       "Qty:$item[qty_dispensed_default] ($vals[qty]), ".
-      "Stock:$item[stock_level_initial], $item[rx_message_key], ".
-      "Created:$item[item_date_added]", '', '', '', '', ''
+      "Stock:$item[stock_level_initial], ",
+      '', '', '', '', ''
     ],
     ['', '', '', '', '', ''],
     ['id', 'ndc', 'form', 'exp', 'qty', 'bin']
@@ -181,6 +184,7 @@ function make_pick_list($item) {
   try {
     $res = v2_fetch($url);
   } catch (Error $e) {
+    log_error("WebForm make_pick_list fetch failed.  Retrying $item[invoice_number]", ['item' => $item, 'res' => $res, 'error' => $e]);
     $res = v2_fetch($url);
   }
 

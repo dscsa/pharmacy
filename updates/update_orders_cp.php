@@ -261,17 +261,19 @@ function update_orders_cp() {
 
       $items_not_filled = [];
       foreach ($order as $item) {
-        if ($item['item_date_added'] AND ! $item['days_dispensed']) {
-          $items_not_filled[] = ['item_added_by' => $item['item_added_by'], 'item' => $item];
+        if ($item['item_date_added'] AND ! $item['days_dispensed'] AND $item['rx_message_key'] != 'NO ACTION MISSING GSN') {
+          $items_not_filled[] = $item;
         }
       }
+
+      if ( ! $items_not_filled) continue;
 
       log_error("update_orders_cp: count filled updated ".$order[0]['count_items']." (count items) != ".$order[0]['count_filled']." (count filled)", [$order, $updated, $items_not_filled]);
 
       list($target_date, $target_rxs) = get_sync_to_date($order);
       $order = set_sync_to_date($order, $target_date, $target_rxs, $mysql);
 
-      export_v2_pend_order($order, $mysql);
+      export_v2_pend_order($items_not_filled, $mysql);
 
       $order = helper_update_payment($order,  "update_orders_cp: updated - count filled changes ".$order[0]['count_items']." (count items) != ".$order[0]['count_filled']." (count filled)", $mysql);
       export_wc_update_order($order);
