@@ -686,6 +686,7 @@ $test_sigs = [
   //Take 1 capsule by mouth in the morning and @ noon and 2 capsules at bedtime
   //Take 1 tablet by mouth at bedtime after meals for cholesterol
   //take 1 tablet by oral route 1 time per week in the morning, at least 30 min before first food, beverage, or medication of day
+  //Take 1 tablet by mouth once weekly every morning at least 30 minutes before first food,beverage, or mediacation of day
 ];
 
 global $argv;
