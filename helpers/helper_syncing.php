@@ -196,7 +196,7 @@ function set_sync_to_date($order, $target_date, $target_rxs, $mysql) {
     //TODO consider making these methods so that they always stay upto date and we don't have to recalcuate them
     $order[$i]['days_dispensed']  = $order[$i]['days_dispensed_actual'] ?: $order[$i]['days_dispensed_default'];
     $order[$i]['qty_dispensed']   = $order[$i]['qty_dispensed_actual'] ?: $order[$i]['qty_dispensed_default'];
-    $order[$i]['price_dispensed'] = $order[$i]['price_dispensed_actual'] ?: $order[$i]['price_dispensed_default']
+    $order[$i]['price_dispensed'] = $order[$i]['price_dispensed_actual'] ?: $order[$i]['price_dispensed_default'];
 
     $sql = "
       UPDATE
