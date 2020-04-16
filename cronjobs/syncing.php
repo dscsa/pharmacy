@@ -38,7 +38,7 @@ if ( ! flock($f, LOCK_EX | LOCK_NB))
   $email = '';
 
   //Imports
-  import_wc_orders();
+  import_wc_orders(); //TODO we can currently have a CP order without a matching WC order, in these cases the WC order will show up in the "deleted" feed
   $email .= timer("import_wc_orders", $time);
 
   import_cp_orders(); //Put this after wc_orders so that we never have an wc_order without a matching cp_order

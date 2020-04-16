@@ -103,7 +103,25 @@ function update_orders_wc() {
 
       log_notice("update_orders_wc: RXs created an order in CP but patient has not yet registered so there is no order in WC yet", [$order, $items_to_remove]);
 
-    } else if ($deleted['order_stage_cp'] != 'Shipped' AND $deleted['order_stage_cp'] != 'Dispensed') {
+    } else if ($deleted['order_stage_cp'] == 'Shipped' OR $deleted['order_stage_cp'] == 'Dispensed') {
+
+      $gp_orders_wc = $mysql->run("SELECT * FROM gp_orders_wc WHERE $deleted[invoice_number]")[0];
+      $gp_orders = $mysql->run("SELECT * FROM gp_orders WHERE $deleted[invoice_number]")[0];
+      $wc_orders = wc_get_post_id($deleted['invoice_number']);
+
+      $order = helper_update_payment($order, "update_orders_wc: deleted - unknown reason", $mysql);
+
+      export_wc_create_order($order,  "update_orders_wc: deleted - unknown reason");
+
+      export_gd_publish_invoice($order);
+
+      log_error("Readding Order that should not have been deleted. Not sure: WC Order Deleted not through trash?", [$order[0], $gp_orders_wc, $gp_orders, $wc_orders]);
+
+    } else if ((strtotime() - strtotime($item['order_date_added'])) < 1*60*60) {
+      //If less than an hour, this is likely because of our IMPORT ordering since we import WC Orders before CP some orders can show up in this deleted feed.
+      log_error("update_orders_wc: WC Order $deleted['invoice_number'] appears to be DELETED but likely because or the IMPORT ordering", $deleted);
+
+    } else {
 
       $wc_orders = wc_get_post_id($deleted['invoice_number'], true);
 
@@ -118,7 +136,7 @@ function update_orders_wc() {
       //Idea1:  Order had all items removed so it appeared to be deleted from CP, but when items were added back in the order 'reappeared'
       //Idea2: Failed when trying to be added to WC (e.g., in #28162 the patient could not be found)
       //Neither Idea1 or Idea2 seems to be the case for Order 29033
-      log_error("update_orders_wc: WC Order Appears to be DELETED (Possible Patient Name Mismatch?)", [
+      log_error("update_orders_wc: WC Order Appears to be DELETED (Likely because or the IMPORT ordering, but if repeated possible Patient Name Mismatch?)", [
         'order[0]' => $order[0],
         'deleted' => $deleted,
         'wc_post_id' => $wc_orders,
@@ -127,26 +145,6 @@ function update_orders_wc() {
         'gp_orders_cp' => $gp_orders_cp,
         'sql' => $sql
       ]);
-
-      $order = helper_update_payment($order,  "update_orders_wc: deleted - 0 items", $mysql);
-
-      export_wc_create_order($order,  "update_orders_wc: deleted - 0 items");
-
-      export_gd_publish_invoice($order);
-
-    } else {
-
-      $gp_orders_wc = $mysql->run("SELECT * FROM gp_orders_wc WHERE $deleted[invoice_number]")[0];
-      $gp_orders = $mysql->run("SELECT * FROM gp_orders WHERE $deleted[invoice_number]")[0];
-      $wc_orders = wc_get_post_id($deleted['invoice_number']);
-
-      $order = helper_update_payment($order, "update_orders_wc: deleted - unknown reason", $mysql);
-
-      export_wc_create_order($order,  "update_orders_wc: deleted - unknown reason");
-
-      export_gd_publish_invoice($order);
-
-      log_error("Readding Order that should not have been deleted. Not sure: WC Order Deleted not through trash?", [$order[0], $gp_orders_wc, $gp_orders, $wc_orders]);
     }
 
   }
