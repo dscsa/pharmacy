@@ -95,7 +95,6 @@ function sync_to_order($order, $updated = null) {
       $new_count_items--;
       $items_to_sync[]   = ['REMOVE', $item['rx_message_key'], $item];
       $items_to_remove[] = $item['rx_number'];
-      export_gd_transfer_fax($item);
       //log_notice('sync_to_order removing item', "$item[invoice_number] $item[rx_number] $item[drug], $item[stock_level], $item[rx_message_key] refills last:$item[refill_date_last] next:$item[refill_date_next] total:$item[refills_total] left:$item[refills_left]");
 
       continue;

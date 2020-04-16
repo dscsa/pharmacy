@@ -4,7 +4,7 @@ require_once 'helpers/helper_appsscripts.php';
 
 function export_gd_transfer_fax($item) {
 
-  log_notice("WebForm export_gd_transfer_fax CALLED", get_defined_vars());
+  log_notice("WebForm export_gd_transfer_fax CALLED $item[invoice_number]", get_defined_vars());
 
   if (
     $item['rx_message_key']  != 'NO ACTION WILL TRANSFER' AND
@@ -25,5 +25,5 @@ function export_gd_transfer_fax($item) {
 
   $result = gdoc_post(GD_MERGE_URL, $args);
 
-  log_error("WebForm export_gd_transfer_fax SENT", get_defined_vars());
+  log_error("WebForm export_gd_transfer_fax SENT $item[invoice_number]", get_defined_vars());
 }
