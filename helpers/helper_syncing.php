@@ -169,7 +169,7 @@ function set_sync_to_date($order, $target_date, $target_rxs, $mysql) {
 
     $time_refill = $item['refill_date_next'] ? strtotime($item['refill_date_next']) : strtotime($item['item_date_added']); //refill_date_next is sometimes null
     $days_extra  = (strtotime($target_date) - $time_refill)/60/60/24;
-    $days_synced = $old_days_default + round15($days_extra);
+    $days_synced = $old_days_default + roundDaysUnit($days_extra);
 
     $days_left_in_refills    = days_left_in_refills($item);
     $days_left_in_stock      = days_left_in_stock($item);
@@ -178,7 +178,7 @@ function set_sync_to_date($order, $target_date, $target_rxs, $mysql) {
     if ($new_days_default != $old_days_default)
       log_notice("set_sync_to_date", ['invoice_number' => $order[0]['invoice_number'], 'drug_generic' => $order[0]['drug_generic'], 'days_extra' => $days_extra, 'days_synced' => $days_synced, 'days_left_in_refills' => $days_left_in_refills, 'days_left_in_stock' => $days_left_in_stock, 'target_date' => "$item[refill_date_next] >>> $target_date", 'days_default' => "$old_days_default >>> $new_days_default"], $order[$i]);
 
-    if ($new_days_default < 15 OR $new_days_default > 120 OR $new_days_default == $old_days_default) //Limits to the amounts by which we are willing sync
+    if ($new_days_default < DAYS_UNIT OR $new_days_default > 120 OR $new_days_default == $old_days_default) //Limits to the amounts by which we are willing sync
       continue;
 
     if ($new_days_default <= 30) {

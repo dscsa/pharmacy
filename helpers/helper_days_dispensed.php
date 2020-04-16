@@ -77,15 +77,15 @@ function get_days_default($item, $order) {
     return [$days_default, RX_MESSAGE['NO ACTION PATIENT OFF AUTOFILL']];
   }
 
-  if ((strtotime($item['refill_date_next']) - strtotime($item['order_date_added'])) > 15*24*60*60 AND ! $added_manually) {
+  if ((strtotime($item['refill_date_next']) - strtotime($item['order_date_added'])) > DAYS_UNIT*24*60*60 AND ! $added_manually) {
 
     //DON'T STRICTLY NEED THIS TEST BUT IT GIVES A MORE SPECIFIC ERROR SO IT MIGHT BE HELPFUL
-    if ((strtotime($item['order_date_added']) - strtotime($item['refill_date_last'])) < 15*24*60*60 AND ! $added_manually) {
-      log_info("DON'T REFILL IF FILLED WITHIN LAST 15 DAYS UNLESS ADDED MANUALLY", get_defined_vars());
+    if ((strtotime($item['order_date_added']) - strtotime($item['refill_date_last'])) < DAYS_UNIT*24*60*60 AND ! $added_manually) {
+      log_info("DON'T REFILL IF FILLED WITHIN LAST ".DAYS_UNIT." DAYS UNLESS ADDED MANUALLY", get_defined_vars());
       return [0, RX_MESSAGE['NO ACTION RECENT FILL']];
     }
 
-    log_info("DON'T REFILL IF NOT DUE IN OVER 15 DAYS UNLESS ADDED MANUALLY", get_defined_vars());
+    log_info("DON'T REFILL IF NOT DUE IN OVER ".DAYS_UNIT." DAYS UNLESS ADDED MANUALLY", get_defined_vars());
     return [0, RX_MESSAGE['NO ACTION NOT DUE']];
   }
 
@@ -136,13 +136,13 @@ function get_days_default($item, $order) {
 
   if ($days_left_in_expiration AND $days_left_in_expiration < 45) {
     log_info("RX IS ABOUT TO EXPIRE SO FILL IT FOR EVERYTHING LEFT", get_defined_vars());
-    $days_left = min(180, round15($item['days_left'])); //Cap it at 180 days
+    $days_left = min(180, roundDaysUnit($item['days_left'])); //Cap it at 180 days
     return [$days_left, RX_MESSAGE['ACTION EXPIRING']];
   }
 
   if ($days_left_in_expiration) {
     log_info("RX WILL EXPIRE SOON SO FILL IT UNTIL RIGHT BEFORE EXPIRATION DATE", get_defined_vars());
-    $days_left = round15($days_left_in_expiration)-10;
+    $days_left = roundDaysUnit($days_left_in_expiration)-10;
     return [$days_left, RX_MESSAGE['ACTION EXPIRING']];
   }
 
@@ -344,7 +344,7 @@ function sync_to_order_no_next($item, $order) {
 }
 
 function sync_to_order_due_soon($item, $order) {
-  $eligible = ! $item['item_date_added'] AND ($item['refills_total'] >= 0.1) AND $item['refill_date_next'] AND (strtotime($item['refill_date_next'])  - strtotime($item['order_date_added'])) <= 15*24*60*60;
+  $eligible = ! $item['item_date_added'] AND ($item['refills_total'] >= 0.1) AND $item['refill_date_next'] AND (strtotime($item['refill_date_next'])  - strtotime($item['order_date_added'])) <= DAYS_UNIT*24*60*60;
   return $eligible AND ! is_duplicate_gsn($item, $order);
 }
 
@@ -365,7 +365,7 @@ function days_left_in_refills($item) {
 
   //Fill up to 30 days more to finish up an Rx if almost finished.
   //E.g., If 30 day script with 3 refills (4 fills total, 120 days total) then we want to 1x 120 and not 1x 90 + 1x30
-  if ($days_left_in_refills <= DAYS_STD+30) return round15($days_left_in_refills);
+  if ($days_left_in_refills <= DAYS_STD+30) return roundDaysUnit($days_left_in_refills);
 }
 
 function days_left_in_stock($item) {
@@ -385,8 +385,8 @@ function days_left_in_stock($item) {
   return $item['sig_qty_per_day'] == round(1/30, 3) ? 60.6 : 45; //Dispensed 2 inhalers per time, since 1/30 is rounded to 3 decimals (.033), 2 month/.033 = 60.6 qty
 }
 
-function round15($days) {
-  return floor($days/15)*15;
+function roundDaysUnit($days) {
+  return floor($days/DAYS_UNIT)*DAYS_UNIT;
 }
 
 //Days is basically the MIN(target_date ?: std_day, qty_left as days, inventory_left as days).
@@ -400,8 +400,12 @@ function days_default($days_left_in_refills, $days_left_in_stock, $days_default 
     $days_left_in_stock ?: $days_default
   );
 
-  if ($days_default % 15)
-    log_error("DEFAULT DAYS IS NOT A MULTIPLE OF 15! days_default:$days_default, days_left_in_stock:$days_left_in_stock, days_left_in_refills:$days_left_in_refills", get_defined_vars());
+  $remainder = $days_default % DAYS_UNIT;
+
+  if ($remainder == 10)
+    log_notice("DEFAULT DAYS IS NOT A MULTIPLE OF ".DAYS_UNIT."! LIKELY BECAUSE RX EXPIRING days_default:$days_default, days_left_in_stock:$days_left_in_stock, days_left_in_refills:$days_left_in_refills", get_defined_vars())
+  else if ($remainder)
+    log_error("DEFAULT DAYS IS NOT A MULTIPLE OF ".DAYS_UNIT."! days_default:$days_default, days_left_in_stock:$days_left_in_stock, days_left_in_refills:$days_left_in_refills", get_defined_vars());
   else
     log_info("days_default:$days_default, days_left_in_stock:$days_left_in_stock, days_left_in_refills:$days_left_in_refills", get_defined_vars());
 
