@@ -176,43 +176,48 @@ function set_sync_to_date($order, $target_date, $target_rxs, $mysql) {
     $new_days_default        = days_default($days_left_in_refills, $days_left_in_stock, $days_synced);
 
     if ($new_days_default != $old_days_default)
-      log_notice("set_sync_to_date", ['invoice_number' => $order[0]['invoice_number'], 'drug_generic' => $order[0]['drug_generic'], 'days_extra' => $days_extra, 'days_synced' => $days_synced, 'days_left_in_refills' => $days_left_in_refills, 'days_left_in_stock' => $days_left_in_stock, 'target_date' => "$item[refill_date_next] >>> $target_date", 'days_default' => "$old_days_default >>> $new_days_default"]);
+      log_notice("set_sync_to_date", ['invoice_number' => $order[0]['invoice_number'], 'drug_generic' => $order[0]['drug_generic'], 'days_extra' => $days_extra, 'days_synced' => $days_synced, 'days_left_in_refills' => $days_left_in_refills, 'days_left_in_stock' => $days_left_in_stock, 'target_date' => "$item[refill_date_next] >>> $target_date", 'days_default' => "$old_days_default >>> $new_days_default"], $order[$i]);
 
-    if ($new_days_default >= 15 AND $new_days_default <= 120 AND $new_days_default != $old_days_default) { //Limits to the amounts by which we are willing sync
+    if ($new_days_default < 15 OR $new_days_default > 120 OR $new_days_default == $old_days_default) //Limits to the amounts by which we are willing sync
+      continue;
 
-      if ($new_days_default <= 30) {
-        $new_days_default += DAYS_STD;
-        log_info('debug set_sync_to_date: extra time', get_defined_vars());
-      } else {
-        log_info('debug set_sync_to_date: std time', get_defined_vars());
-      }
-
-      $order[$i]['refill_target_date'] = $target_date;
-      $order[$i]['days_dispensed']     = $new_days_default;
-      $order[$i]['qty_dispensed']      = $new_days_default*$item['sig_qty_per_day'];
-      $order[$i]['price_dispensed']    = ceil($item['price_dispensed'] * $new_days_default / $old_days_default); //Might be null
-
-      $sql = "
-        UPDATE
-          gp_order_items
-        SET
-          refill_target_date      = '$target_date',
-          refill_target_days      = ".($new_days_default - $old_days_default).",
-          refill_target_rxs       = '$target_rxs',
-          days_dispensed_default  = $new_days_default,
-          qty_dispensed_default   = ".$order[$i]['qty_dispensed'].",
-          price_dispensed_default = ".$order[$i]['price_dispensed']."
-        WHERE
-          rx_number = $item[rx_number]
-      ";
-
-      if ($new_days_default AND ! $order[$i]['qty_dispensed'])
-        log_error('helper_syncing: qty_dispensed_default is 0 but days_dispensed_default > 0', [$order[$i], $new_days_default]);
-
-      $mysql->run($sql);
-
-      $order[$i] = export_cp_set_rx_message($order[$i], RX_MESSAGE['NO ACTION SYNC TO DATE'], $mysql);
+    if ($new_days_default <= 30) {
+      $new_days_default += DAYS_STD;
+      log_info('debug set_sync_to_date: extra time', get_defined_vars());
+    } else {
+      log_info('debug set_sync_to_date: std time', get_defined_vars());
     }
+
+    $order[$i]['refill_target_date']      = $target_date;
+    $order[$i]['days_dispensed_default']  = $new_days_default;
+    $order[$i]['qty_dispensed_default']   = $new_days_default*$item['sig_qty_per_day'];
+    $order[$i]['price_dispensed_default'] = ceil($item['price_dispensed'] * $new_days_default / $old_days_default); //Might be null
+
+    //TODO consider making these methods so that they always stay upto date and we don't have to recalcuate them
+    $order[$i]['days_dispensed']  = $order[$i]['days_dispensed_actual'] ?: $order[$i]['days_dispensed_default'];
+    $order[$i]['qty_dispensed']   = $order[$i]['qty_dispensed_actual'] ?: $order[$i]['qty_dispensed_default'];
+    $order[$i]['price_dispensed'] = $order[$i]['price_dispensed_actual'] ?: $order[$i]['price_dispensed_default']
+
+    $sql = "
+      UPDATE
+        gp_order_items
+      SET
+        refill_target_date      = '$target_date',
+        refill_target_days      = ".($new_days_default - $old_days_default).",
+        refill_target_rxs       = '$target_rxs',
+        days_dispensed_default  = $new_days_default,
+        qty_dispensed_default   = ".$order[$i]['qty_dispensed_default'].",
+        price_dispensed_default = ".$order[$i]['price_dispensed_default']."
+      WHERE
+        rx_number = $item[rx_number]
+    ";
+
+    if ($new_days_default AND ! $order[$i]['qty_dispensed'])
+      log_error('helper_syncing: qty_dispensed_default is 0 but days_dispensed_default > 0', [$order[$i], $new_days_default]);
+
+    $mysql->run($sql);
+
+    $order[$i] = export_cp_set_rx_message($order[$i], RX_MESSAGE['NO ACTION SYNC TO DATE'], $mysql);
   }
 
   return $order;

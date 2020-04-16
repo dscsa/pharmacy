@@ -124,6 +124,7 @@ function add_gd_fields_to_order($order, $mysql, $overwrite_rx_messages) {
       ]);
     }
 
+    //TODO consider making these methods so that they always stay upto date and we don't have to recalcuate them when things change
     $order[$i]['drug'] = $order[$i]['drug_name'] ?: $order[$i]['drug_generic'];
     $order[$i]['days_dispensed'] = $order[$i]['days_dispensed_actual'] ?: $order[$i]['days_dispensed_default'];
     $order[$i]['payment_method'] = $order[$i]['payment_method_actual'] ?: $order[$i]['payment_method_default'];
