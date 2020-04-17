@@ -403,7 +403,7 @@ function days_default($days_left_in_refills, $days_left_in_stock, $days_default 
   $remainder = $days_default % DAYS_UNIT;
 
   if ($remainder == 10)
-    log_notice("DEFAULT DAYS IS NOT A MULTIPLE OF ".DAYS_UNIT."! LIKELY BECAUSE RX EXPIRING days_default:$days_default, days_left_in_stock:$days_left_in_stock, days_left_in_refills:$days_left_in_refills", get_defined_vars())
+    log_notice("DEFAULT DAYS IS NOT A MULTIPLE OF ".DAYS_UNIT."! LIKELY BECAUSE RX EXPIRING days_default:$days_default, days_left_in_stock:$days_left_in_stock, days_left_in_refills:$days_left_in_refills", get_defined_vars());
   else if ($remainder)
     log_error("DEFAULT DAYS IS NOT A MULTIPLE OF ".DAYS_UNIT."! days_default:$days_default, days_left_in_stock:$days_left_in_stock, days_left_in_refills:$days_left_in_refills", get_defined_vars());
   else
