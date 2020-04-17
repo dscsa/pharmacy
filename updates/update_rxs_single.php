@@ -121,7 +121,7 @@ function update_rxs_single() {
       //SELECT patient_id_cp, rx_gsn, MAX(drug_name), MAX(CONCAT(rx_number, rx_autofill)), GROUP_CONCAT(rx_autofill), GROUP_CONCAT(rx_number) FROM gp_rxs_single GROUP BY patient_id_cp, rx_gsn HAVING AVG(rx_autofill) > 0 AND AVG(rx_autofill) < 1
       $sql = "UPDATE cprx SET autofill_yn = $updated[rx_autofill] WHERE pat_id = $updated[patient_id_cp] AND gcn_seqno = $updated[rx_gsn]";
 
-      $rxs = $mysql->run("SELECT * FROM gp_rxs_single WHERE patient_id_cp = $updated[patient_id_cp]");
+      $rxs = $mysql->run($sql);
 
       $profile = get_full_order($updated, $mysql, true); //This updates & overwrites set_rx_messages
 
