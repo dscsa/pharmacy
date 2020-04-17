@@ -119,7 +119,7 @@ function update_orders_wc() {
 
     } else if ((time() - strtotime($item['order_date_added'])) < 1*60*60) {
       //If less than an hour, this is likely because of our IMPORT ordering since we import WC Orders before CP some orders can show up in this deleted feed.
-      log_error("update_orders_wc: WC Order $deleted['invoice_number'] appears to be DELETED but likely because or the IMPORT ordering", $deleted);
+      log_error("update_orders_wc: WC Order $deleted[invoice_number] appears to be DELETED but likely because or the IMPORT ordering", $deleted);
 
     } else {
 
