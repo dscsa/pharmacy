@@ -13,6 +13,29 @@ Implement, Review, and Switch Fax Out Transfers
 
 # Helpful Queries
 ```
+Find Rxs with inconsistent rx_autofills
+  SELECT patient_id_cp, rx_gsn, MAX(drug_name), GROUP_CONCAT(CONCAT(rx_number, ' ', rx_autofill))
+  FROM `gp_rxs_single`
+  GROUP BY patient_id_cp, rx_gsn
+  HAVING
+    AVG(rx_autofill) > 0 AND
+    AVG(rx_autofill) < 1
+
+Fix Rxs with inconsistent rx_autofills (in CP)
+  UPDATE cprx
+  SET autofill_yn = 1
+  FROM cprx
+  JOIN (
+    SELECT pat_id, gcn_seqno, AVG(CAST(autofill_yn as float)) as average
+    FROM cprx
+    GROUP BY pat_id, gcn_seqno
+    HAVING
+      AVG(CAST(autofill_yn as float)) > 0 AND
+      AVG(CAST(autofill_yn as float)) < 1
+  ) grouped ON
+    grouped.pat_id = cprx.pat_id AND
+    grouped.gcn_seqno = cprx.gcn_seqno
+
 Update Order Created Date to be Shipped Date
   UPDATE wp_posts
   JOIN wp_postmeta ON post_id = ID
