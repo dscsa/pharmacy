@@ -86,6 +86,7 @@ function clean_sig($sig) {
   $sig = preg_replace('/\\b([0-9]*\.[0-9]+|[1-9][0-9]*) *or *([0-9]*\.[0-9]+|[1-9][0-9]*)\\b/i', '$1', $sig, 1); //Take 1 or 2 every 3 or 4 hours. Let's convert that to Take 2 every 3 or 4 hours (no global flag).  CK approves of first substitution but not sure of the 2nd so the conservative answer is to leave it alone
   $sig = preg_replace('/\\b([0-9]*\.[0-9]+|[1-9][0-9]*) *to *([0-9]*\.[0-9]+|[1-9][0-9]*)\\b/i', '$1', $sig, 1); //Take 1 to 2 every 3 or 4 hours. Let's convert that to Take 2 every 3 or 4 hours (no global flag).  CK approves of first substitution but not sure of the 2nd so the conservative answer is to leave it alone
   $sig = preg_replace('/\\b([0-9]*\.[0-9]+|[1-9][0-9]*) *- *([0-9]*\.[0-9]+|[1-9][0-9]*)\\b/i', '$1', $sig, 1); //Take 1-2 every 3 or 4 hours. Let's convert that to Take 2 every 3 or 4 hours (no global flag).  CK approves of first substitution but not sure of the 2nd so the conservative answer is to leave it alone
+  $sig = preg_replace('/\\b(exceed (more than )?|exceeding |not to |max(imum)? (of |per day (of )?|daily dose( |: ?))/i', 'max ', $sig);
 
   //Duration
   $sig = preg_replace('/\\bx ?(\d+)\\b/i', 'for $1', $sig); // X7 Days == for 7 days
@@ -195,7 +196,7 @@ function qtys_per_time($durations, $drug_name, $correct) {
 
   foreach ($durations as $sig_part => $duration) {
     //"Use daily with lantus"  won't match the RegEx below
-    $count = preg_match_all('/(?<!exceed |exceeding |not to |max(imum)? (of |per day (of )?|daily dose( |: ?)))([0-9]*\.[0-9]+|[1-9][0-9]*) ?(ml|tab|cap|pill|softgel|patch|injection|each)|(^|use +|take +|inhale +|chew +|inject +|oral +)([0-9]*\.[0-9]+|[1-9][0-9]*)(?!\d| *\.| *mg| *time)/i', $sig_part, $match);
+    $count = preg_match_all('/(?<!max )([0-9]*\.[0-9]+|[1-9][0-9]*) ?(ml|tab|cap|pill|softgel|patch|injection|each)|(^|use +|take +|inhale +|chew +|inject +|oral +)([0-9]*\.[0-9]+|[1-9][0-9]*)(?!\d| *\.| *mg| *time)/i', $sig_part, $match);
 
     if ($count) {
       //Avoid issues of dupliced Sigs. e.g Take 1 tablet by mouth 1 time a day Take 1 tablet per day
