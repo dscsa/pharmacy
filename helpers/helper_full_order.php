@@ -41,7 +41,7 @@ function get_full_order($partial, $mysql, $overwrite_rx_messages = false) {
   $order = $mysql->run($sql)[0];
 
   if ( ! $order OR ! $order[0]['invoice_number']) {
-    log_error('ERROR! get_full_order: no order with that invoice number or order does not have active patient', get_defined_vars());
+    log_error("ERROR! get_full_order: no order with invoice number $partial[invoice_number] or order does not have active patient", get_defined_vars());
     return;
   }
 

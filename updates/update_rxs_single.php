@@ -112,6 +112,8 @@ function update_rxs_single() {
   //Run this after rx_grouped query to ensure get_full_order retrieves an accurate order profile
   foreach($changes['updated'] as $updated) {
 
+    $changed = changed_fields($updated);
+
     if ($updated['rx_autofill'] != $updated['old_rx_autofill']) {
 
       //We want all Rxs with the same GSN to share the same rx_autofill value, so when one changes we must change them all
@@ -123,14 +125,14 @@ function update_rxs_single() {
 
       $profile = get_full_order($updated, $mysql, true); //This updates & overwrites set_rx_messages
 
-      log_error("update_rxs_single rx_autofill changed.  TODO update all Rx's with same GSN to be on/off Autofill. Confirm correct updated rx_messages", ['profile' => $profile, 'updated' => $updated, 'rxs' => $rxs, 'sql' => $sql]);
+      log_error("update_rxs_single rx_autofill changed.  TODO update all Rx's with same GSN to be on/off Autofill. Confirm correct updated rx_messages", ['profile' => $profile, 'updated' => $updated, 'rxs' => $rxs, 'sql' => $sql, 'changed' => $changed]);
     }
 
     if ($updated['rx_gsn'] AND ! $updated['old_rx_gsn']) {
 
       $profile = get_full_order($updated, $mysql, true); //This updates & overwrites set_rx_messages
 
-      log_error("update_rxs_single rx_gsn no longer missing (but still might not be in v2 yet).  Confirm correct updated rx_messages", [$profile, $updated]);
+      log_error("update_rxs_single rx_gsn no longer missing (but still might not be in v2 yet).  Confirm correct updated rx_messages", [$profile, $updated, $changed]);
     }
   }
 
