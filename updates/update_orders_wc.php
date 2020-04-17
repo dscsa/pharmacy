@@ -136,7 +136,7 @@ function update_orders_wc() {
       //Idea1:  Order had all items removed so it appeared to be deleted from CP, but when items were added back in the order 'reappeared'
       //Idea2: Failed when trying to be added to WC (e.g., in #28162 the patient could not be found)
       //Neither Idea1 or Idea2 seems to be the case for Order 29033
-      log_error("update_orders_wc: WC Order Appears to be DELETED (Likely because or the IMPORT ordering, but if repeated possible Patient Name Mismatch?)", [
+      log_error("update_orders_wc: WC Order Appears to be DELETED (If repeated possible Patient Name Mismatch?)", [
         'order[0]' => $order[0],
         'deleted' => $deleted,
         'wc_post_id' => $wc_orders,
