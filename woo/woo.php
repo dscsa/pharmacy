@@ -1376,7 +1376,7 @@ function dscsa_home_url($home_url) {
 add_filter ('wp_redirect', 'dscsa_wp_redirect');
 function dscsa_wp_redirect($location) {
 
-  debug_email('dscsa_wp_redirect', 'Current User Id: '.get_current_user_id().' REQUEST_URI: '.home_url($_SERVER['REQUEST_URI']).' Is Admin: '.is_admin().' Location: '.$location.' GET:'.print_r($_GET, true).' SERVER:'.print_r($_SERVER, true));
+  //debug_email('dscsa_wp_redirect', 'Current User Id: '.get_current_user_id().' REQUEST_URI: '.home_url($_SERVER['REQUEST_URI']).' Is Admin: '.is_admin().' Location: '.$location.' GET:'.print_r($_GET, true).' SERVER:'.print_r($_SERVER, true));
 
 
   //Not sure how or why domain changes to salesforce but need to revert it back

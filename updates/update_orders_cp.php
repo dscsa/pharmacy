@@ -118,12 +118,6 @@ function update_orders_cp() {
       continue;
     }
 
-    if ( ! $groups['COUNT_FILLED']) {
-      order_hold_notice($groups);
-      log_error("update_orders_cp SHOULD HAVE BEEN DELETED WITH SYNC CODE ABOVE: Created Order But Not Filling Any? Hopefully due to 'NO ACTION MISSING GSN' or Order had all items removed already", $groups);
-      continue;
-    }
-
     $order = helper_update_payment($order, "update_orders_cp: created", $mysql);
 
     //This is not necessary if order was created by webform, which then created the order in Guardian
@@ -131,7 +125,12 @@ function update_orders_cp() {
     if (strpos($order[0]['order_source'], 'Webform') === false)
       export_wc_create_order($order, "update_orders_cp: created");
 
-    send_created_order_communications($groups);
+    if ( ! $groups['COUNT_FILLED']) {
+      order_hold_notice($groups);
+      log_error("update_orders_cp: Order Hold hopefully due to 'NO ACTION MISSING GSN' otherwise should have been deleted with sync code above", $groups);
+    } else {
+      send_created_order_communications($groups);
+    }
 
     //TODO Update Salesforce Order Total & Order Count & Order Invoice using REST API or a MYSQL Zapier Integration
   }
