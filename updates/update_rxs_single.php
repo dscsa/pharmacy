@@ -17,6 +17,7 @@ function update_rxs_single() {
   log_info("update_rxs_single: $count_deleted deleted, $count_created created, $count_updated updated.", get_defined_vars());
 
   $mysql = new Mysql_Wc();
+  $mssql = new Mssql_Cp();
 
   //Run this before rx_grouped query to make sure all sig_qty_per_days are probably set before we group by them
   foreach($changes['created'] as $rx) {
@@ -121,11 +122,11 @@ function update_rxs_single() {
       //SELECT patient_id_cp, rx_gsn, MAX(drug_name), MAX(CONCAT(rx_number, rx_autofill)), GROUP_CONCAT(rx_autofill), GROUP_CONCAT(rx_number) FROM gp_rxs_single GROUP BY patient_id_cp, rx_gsn HAVING AVG(rx_autofill) > 0 AND AVG(rx_autofill) < 1
       $sql = "UPDATE cprx SET autofill_yn = $updated[rx_autofill] WHERE pat_id = $updated[patient_id_cp] AND gcn_seqno = $updated[rx_gsn]";
 
-      $rxs = $mysql->run($sql);
+      $mssql->run($sql);
 
       $profile = get_full_order($updated, $mysql, true); //This updates & overwrites set_rx_messages
 
-      log_error("update_rxs_single rx_autofill changed.  TODO update all Rx's with same GSN to be on/off Autofill. Confirm correct updated rx_messages", ['profile' => $profile, 'updated' => $updated, 'rxs' => $rxs, 'sql' => $sql, 'changed' => $changed]);
+      log_error("update_rxs_single rx_autofill changed.  TODO update all Rx's with same GSN to be on/off Autofill. Confirm correct updated rx_messages", ['profile' => $profile, 'updated' => $updated, 'sql' => $sql, 'changed' => $changed]);
     }
 
     if ($updated['rx_gsn'] AND ! $updated['old_rx_gsn']) {

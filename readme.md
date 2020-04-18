@@ -23,7 +23,9 @@ Find Rxs with inconsistent rx_autofills
 
 Fix Rxs with inconsistent rx_autofills (in CP)
   UPDATE cprx
-  SET autofill_yn = 1
+  SET
+    autofill_yn = 1,
+    chg_date = GETDATE() --This part is untested, but we want to trigger an update in the MDB as well
   FROM cprx
   JOIN (
     SELECT pat_id, gcn_seqno, AVG(CAST(autofill_yn as float)) as average
