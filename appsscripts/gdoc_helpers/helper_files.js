@@ -32,63 +32,90 @@ function watchFiles(opts) {
   var startTime = new Date(today.getTime() - minutes * 60 * 1000);
   var tooRecent = new Date(today.getTime() - 1 * 60 * 1000); //Don't call if we are still making edits
 
-  var files    = []
-  var folder   = DriveApp.getFoldersByName(opts.folder).next()
-  var iterator = folder.searchFiles('modifiedDate > "' + startTime.toJSON() + '" AND modifiedDate < "' + tooRecent.toJSON() + '"')
+  var parentFolder  = DriveApp.getFoldersByName(opts.folder).next()
+  var printedFolder = parent.getFoldersByName('Printed')
+  var faxedFolder   = parent.getFoldersByName("Faxed")
 
+  var query    = 'modifiedDate > "' + startTime.toJSON() + '" AND modifiedDate < "' + tooRecent.toJSON() + '"'
+  var iterator = parentFolder.searchFiles(query)
+
+  var parent = []
   while (iterator.hasNext()) {
-
-    var next = iterator.next()
-    var file = {
-      name:next.getName(),
-      id:next.getId(),
-      url:next.getUrl(),
-      date_modified:next.getLastUpdated(),
-      date_created:next.getDateCreated()
-    }
-
-    //If don't want watch to keep returning the same file with the same change multiple times
-    var lastEdit = file.name.split(' Modified:')
-
-    file.lastEdit = lastEdit[1]
-    file.newFile  = (file.date_modified - file.date_created) < 10 * 60 * 1000 //1 minute
-    file.newEdit  = file.newFile ? false : ( ! file.lastEdit || file.date_modified.toJSON().slice(0, 16) > file.lastEdit)
-
-    file.skip  = ! file.newEdit && ! (file.newFile && opts.includeNew)
-
-    Logger.log(JSON.stringify(['file', file], null, ' '))
-
-    if (file.skip) continue
-
-    //This makes last_watched logic work
-    next.setName(lastEdit[0]+' Modified:'+new Date().toJSON()) //This changes the modified date
-
-    if (next.getMimeType() != MimeType.GOOGLE_DOCS) continue
-
-    //getBody does not have headers or footers
-    try {
-      var doc = DocumentApp.openById(next.getId())
-    } catch (e) {
-      //In Trash or Permission Issue
-      debugEmail('watchFiles PERMISSION ERROR', next.getId())
-      continue
-    }
-
-    var documentElement = doc.getBody().getParent()
-    var numChildren = documentElement.getNumChildren()
-
-    for (var i = 0; i<numChildren; i++) {
-      var child = documentElement.getChild(i)
-      file['part'+i] = child.getText()
-      //file['table'+i] = child.getTables() http://ramblings.mcpher.com/Home/excelquirks/goinggas/arrayifytable
-    }
-
-    files.push(file)
+    var file = isModified(iterator.next())
+    if (file) parent.push(file)
   }
 
-  if (files.length) debugEmail('watchFiles', folder, files)
+  var printed = []
+  if (printedFolder.hasNext()) {
+    var iterator = printedFolder.next().searchFiles(query)
+    while (iterator.hasNext()) {
+      var file = isModified(iterator.next())
+      if (file) printed.push(file)
+    }
+  }
 
-  return files
+  var faxed = []
+  if (faxedFolder.hasNext()) {
+    var iterator = faxedFolder.next().searchFiles(query)
+    while (iterator.hasNext()) {
+      var file = isModified(iterator.next())
+      if (file) faxed.push(file)
+    }
+  }
+
+  if (parent.length || printed.length || faxed.length)
+    debugEmail('watchFiles', parent, parent, printed, faxed)
+
+  return ['parent' => parent, 'printed' => printed, 'faxed' => faxed]
+}
+
+function isModified(next) {
+
+  var file = {
+    name:next.getName(),
+    id:next.getId(),
+    url:next.getUrl(),
+    date_modified:next.getLastUpdated(),
+    date_created:next.getDateCreated()
+  }
+
+  //If don't want watch to keep returning the same file with the same change multiple times
+  var lastEdit = file.name.split(' Modified:')
+
+  file.lastEdit = lastEdit[1]
+  file.newFile  = (file.date_modified - file.date_created) < 10 * 60 * 1000 //1 minute
+  file.newEdit  = file.newFile ? false : ( ! file.lastEdit || file.date_modified.toJSON().slice(0, 16) > file.lastEdit)
+
+  file.skip  = ! file.newEdit && ! (file.newFile && opts.includeNew)
+
+  Logger.log(JSON.stringify(['file', file], null, ' '))
+
+  if (file.skip) return
+
+  //This makes last_watched logic work
+  next.setName(lastEdit[0]+' Modified:'+new Date().toJSON()) //This changes the modified date
+
+  if (next.getMimeType() != MimeType.GOOGLE_DOCS) return
+
+  //getBody does not have headers or footers
+  try {
+    var doc = DocumentApp.openById(next.getId())
+  } catch (e) {
+    //In Trash or Permission Issue
+    debugEmail('watchFiles PERMISSION ERROR', next.getId())
+    return
+  }
+
+  var documentElement = doc.getBody().getParent()
+  var numChildren = documentElement.getNumChildren()
+
+  for (var i = 0; i<numChildren; i++) {
+    var child = documentElement.getChild(i)
+    file['part'+i] = child.getText()
+    //file['table'+i] = child.getTables() http://ramblings.mcpher.com/Home/excelquirks/goinggas/arrayifytable
+  }
+
+  return file
 }
 
 //Drive (not DriveApp) must be turned on under Resources -> Advanced Google Services -> Drive
