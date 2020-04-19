@@ -99,7 +99,7 @@ function add_gd_fields_to_order($order, $mysql, $overwrite_rx_messages) {
 
       if ($set_msgs) { //On a sync_to_order the rx_message_key will be set, but days will not yet be set since their was not an order_item until now.  But we don't want to override the original sync message
         $order[$i] = export_cp_set_rx_message($order[$i], $message, $mysql);
-        export_gd_transfer_fax($order[$i]); //Internal logic determines if fax is necessary
+        export_gd_transfer_fax($order[$i], 'helper full order'); //Internal logic determines if fax is necessary
       }
 
       //log_notice('add_gd_fields_to_order: after', ['item' => $order[$i]]);
@@ -126,8 +126,9 @@ function add_gd_fields_to_order($order, $mysql, $overwrite_rx_messages) {
 
     //TODO consider making these methods so that they always stay upto date and we don't have to recalcuate them when things change
     $order[$i]['drug'] = $order[$i]['drug_name'] ?: $order[$i]['drug_generic'];
-    $order[$i]['days_dispensed'] = $order[$i]['days_dispensed_actual'] ?: $order[$i]['days_dispensed_default'];
-    $order[$i]['payment_method'] = $order[$i]['payment_method_actual'] ?: $order[$i]['payment_method_default'];
+    $order[$i]['days_dispensed']  = $order[$i]['days_dispensed_actual'] ?: $order[$i]['days_dispensed_default'];
+    $order[$i]['payment_method']  = $order[$i]['payment_method_actual'] ?: $order[$i]['payment_method_default'];
+    $order[$i]['rx_date_written'] = date('Y-m-d', strtotime($order[$i]['rx_date_expired'].' -1 year'));
 
     if ($order[$i]['days_dispensed']) {
       $count_filled++;

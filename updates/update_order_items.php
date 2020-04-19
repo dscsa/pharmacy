@@ -188,25 +188,14 @@ function update_order_items() {
     //TODO Update Salesforce Order Total & Order Count & Order Invoice using REST API or a MYSQL Zapier Integration
   }
 
-  //If just deleted from CP Order we need to
-  //  - set "days_dispensed_default" and "qty_dispensed_default" to 0
-  //  - unpend in v2 and save applicable fields
-  //  - if last line item in order, find out any other rxs need to be removed
-  //  - update invoice
-  //  - update wc order total
   foreach($changes['deleted'] as $deleted) {
 
-    $item = get_full_item($deleted, $mysql, $mssql);
 
-    if ( ! $item) {
-      log_error("Deleted Item Missing", get_defined_vars());
-      continue;
-    }
+    $item = get_full_item($created, $mysql, $mssql);
 
-    $item = set_days_default($item, 0, '', $mysql);
+    export_gd_transfer_fax($item, 'update_order_items deleted'); //Internal logic determines if fax is necessary
 
-    export_v2_remove_pended($item);
-    export_gd_transfer_fax($item);
+    //Count Items will go down, triggering a CP Order Change
 
     //TODO Update Salesforce Order Total & Order Count & Order Invoice using REST API or a MYSQL Zapier Integration
   }
