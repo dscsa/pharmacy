@@ -3,6 +3,8 @@
 const LIVE_MODE = true;
 
 const DAYS_STD  = 90;
+const DAYS_MIN  = 45;
+const DAYS_MAX  = 120;
 const DAYS_UNIT = 15;
 
 const ADDED_MANUALLY = [

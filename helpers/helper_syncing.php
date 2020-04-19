@@ -178,11 +178,11 @@ function set_sync_to_date($order, $target_date, $target_rxs, $mysql) {
     if ($new_days_default != $old_days_default)
       log_notice("set_sync_to_date", ['invoice_number' => $order[0]['invoice_number'], 'drug_generic' => $order[0]['drug_generic'], 'days_extra' => $days_extra, 'days_synced' => $days_synced, 'days_left_in_refills' => $days_left_in_refills, 'days_left_in_stock' => $days_left_in_stock, 'target_date' => "$item[refill_date_next] >>> $target_date", 'days_default' => "$old_days_default >>> $new_days_default"], $order[$i]);
 
-    if ($new_days_default < DAYS_UNIT OR $new_days_default > 120 OR $new_days_default == $old_days_default) //Limits to the amounts by which we are willing sync
+    if ($new_days_default < DAYS_UNIT OR $new_days_default > DAYS_MAX OR $new_days_default == $old_days_default) //Limits to the amounts by which we are willing sync
       continue;
 
-    if ($new_days_default <= 30) {
-      $new_days_default += DAYS_STD;
+    if ($new_days_default <= DAYS_MIN) {
+      $new_days_default += DAYS_MIN;
       log_info('debug set_sync_to_date: extra time', get_defined_vars());
     } else {
       log_info('debug set_sync_to_date: std time', get_defined_vars());

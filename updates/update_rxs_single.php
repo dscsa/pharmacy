@@ -77,7 +77,7 @@ function update_rxs_single() {
       MAX(refill_date_default) as refill_date_default,
 
       COALESCE(
-        MIN(CASE WHEN qty_left >= 45 AND days_left >= 45 THEN rx_number ELSE NULL END),
+        MIN(CASE WHEN qty_left >= ".DAYS_MIN." AND days_left >= ".DAYS_MIN." THEN rx_number ELSE NULL END),
         MIN(CASE WHEN qty_left > 0 AND days_left > 0 THEN rx_number ELSE NULL END),
     	  MAX(rx_number)
       ) as best_rx_number,

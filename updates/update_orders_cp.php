@@ -46,8 +46,8 @@ function update_orders_cp() {
       //! $updated['order_date_dispensed'] otherwise triggered twice, once one stage: Printed/Processed and again on stage:Dispensed
       $actual_sig_qty_per_day = $item['days_dispensed_actual'] ? round($item['qty_dispensed_actual']/$item['days_dispensed_actual'], 1) : 0;
 
-      if ($item['days_dispensed_actual'] AND ($item['days_dispensed_actual'] > 120 OR $item['days_dispensed_actual'] < 30))
-        log_error("check days dispensed is not within limits: 30 < $item[days_dispensed_actual] < 120", $item);
+      if ($item['days_dispensed_actual'] AND ($item['days_dispensed_actual'] > DAYS_MAX OR $item['days_dispensed_actual'] < DAYS_MIN))
+        log_error("check days dispensed is not within limits: ".DAYS_MIN." < $item[days_dispensed_actual] < ".DAYS_MAX, $item);
       else if ($actual_sig_qty_per_day AND $actual_sig_qty_per_day != round($item['sig_qty_per_day'], 1) AND $actual_sig_qty_per_day != round($item['sig_qty_per_day']*2, 1)) // *2 is a hack for "as needed" being different right now
         log_error("sig parsing error '$item[sig_actual]' $item[sig_qty_per_day] (default) != $actual_sig_qty_per_day $item[qty_dispensed_actual]/$item[days_dispensed_actual] (actual)", $item);
     }
