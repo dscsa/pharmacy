@@ -386,7 +386,7 @@ function days_left_in_stock($item) {
 }
 
 function roundDaysUnit($days) {
-  return floor($days/DAYS_UNIT)*DAYS_UNIT;
+  return floor($days/DAYS_UNIT+.1)*DAYS_UNIT; //+.1 because we had 18qty with .201 sig_qty_per_day which gave floor(5.97) -> 75 days instead of 90
 }
 
 //Days is basically the MIN(target_date ?: std_day, qty_left as days, inventory_left as days).
@@ -402,7 +402,7 @@ function days_default($days_left_in_refills, $days_left_in_stock, $days_default 
 
   $remainder = $days_default % DAYS_UNIT;
 
-  if ($remainder == 10)
+  if ($remainder == 5)
     log_notice("DEFAULT DAYS IS NOT A MULTIPLE OF ".DAYS_UNIT."! LIKELY BECAUSE RX EXPIRING days_default:$days_default, days_left_in_stock:$days_left_in_stock, days_left_in_refills:$days_left_in_refills", get_defined_vars());
   else if ($remainder)
     log_error("DEFAULT DAYS IS NOT A MULTIPLE OF ".DAYS_UNIT."! days_default:$days_default, days_left_in_stock:$days_left_in_stock, days_left_in_refills:$days_left_in_refills", get_defined_vars());
