@@ -18,7 +18,7 @@ function removeFiles(opts) {
 }
 
 function testWatch() {
-  var folder = DriveApp.getFoldersByName('OLD').next()
+  var folder = DriveApp.getFoldersByName('Published').next()
   var query  = 'modifiedDate > "2019-11-19T16:07:49.089Z"'
   var iterator = folder.searchFiles(query)
 
@@ -33,8 +33,8 @@ function watchFiles(opts) {
   var tooRecent = new Date(today.getTime() - 1 * 60 * 1000); //Don't call if we are still making edits
 
   var parentFolder  = DriveApp.getFoldersByName(opts.folder).next()
-  var printedFolder = parent.getFoldersByName('Printed')
-  var faxedFolder   = parent.getFoldersByName("Faxed")
+  var printedFolder = parentFolder.getFoldersByName('Printed')
+  var faxedFolder   = parentFolder.getFoldersByName("Faxed")
 
   var query    = 'modifiedDate > "' + startTime.toJSON() + '" AND modifiedDate < "' + tooRecent.toJSON() + '"'
   var iterator = parentFolder.searchFiles(query)
