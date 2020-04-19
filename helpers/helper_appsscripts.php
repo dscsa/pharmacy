@@ -24,7 +24,7 @@ function watch_invoices() {
   $invoices = json_decode(gdoc_post(GD_HELPER_URL, $args), true);
 
   if ( ! is_array($invoices) OR ! is_array($invoices['parent']) OR ! is_array($invoices['printed']) OR ! is_array($invoices['faxed']))
-    return log_error('ERROR watch_invoices', compact($invoices, $args), null);
+    return log_error('ERROR watch_invoices', [$invoices, $args]);
 
   $invoices = $invoices['parent'] + $invoices['printed'] + $invoices['faxed'];
 
