@@ -1,5 +1,5 @@
 function testPost() {
-  var event = {parameter:{GD_KEY:GD_KEY}, postData:{contents:'{"method":"watchFiles", "folder":"OLD"}'}}
+  var event = {parameter:{GD_KEY:GD_KEY}, postData:{contents:'{"method":"watchFiles", "folder":"Published"}'}}
   debugEmail(event, doPost(event))
 }
 

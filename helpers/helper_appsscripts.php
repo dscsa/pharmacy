@@ -50,17 +50,24 @@ function watch_invoices() {
       continue;
     }
 
+    $invoice_number = $invoice_number[0][0];
+
     $payment = [
+      'count_filled' => count($items[1]),
       'total' => array_sum($items[1]),
       'fee'   => $totals[2][0],
       'due'   => $totals[2][1]
     ];
 
-    //TODO LOG NOTICE IF COUNT_FILLED != len($items[1])
-    log_notice('watch_invoices', get_defined_vars());
+    $sql = "SELECT * FROM gp_orders WHERE invoice_number = $invoice_number";
 
-    set_payment_actual($invoice_number[0][0], $payment, $mysql);
-    export_wc_update_order_payment($invoice_number[0][0], $payment['fee']);
+    $order = $mysql->run($sql)[0][0];
+
+    $log = "$order[count_filled] -> $payment[count_filled], $order[payment_total_default] -> $payment[total], $order[payment_fee_default] -> $payment[fee], $order[payment_due_default] -> $payment[due]";
+    log_error('watch_invoices', $log));
+
+    set_payment_actual($invoice_number, $payment, $mysql);
+    export_wc_update_order_payment($invoice_number, $payment['fee']);
   }
 
   return $invoices;
