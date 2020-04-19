@@ -63,8 +63,12 @@ function watch_invoices() {
 
     $order = $mysql->run($sql)[0][0];
 
-    $log = "Filled:$order[count_filled] -> $payment[count_filled], Total:$order[payment_total_default] -> $payment[total], Fee:$order[payment_fee_default] -> $payment[fee], Due:$order[payment_due_default] -> $payment[due]";
-    log_error('watch_invoices', $log);
+    log_error('watch_invoices', "
+      Filled:$order[count_filled] -> $payment[count_filled],
+      Total:$order[payment_total_default] ($order[payment_total_actual]) -> $payment[total],
+      Fee:$order[payment_fee_default] ($order[payment_fee_actual]) -> $payment[fee],
+      Due:$order[payment_due_default] ($order[payment_due_actual]) -> $payment[due]
+    ");
 
     set_payment_actual($invoice_number, $payment, $mysql);
     export_wc_update_order_payment($invoice_number, $payment['fee']);
