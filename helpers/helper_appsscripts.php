@@ -55,7 +55,7 @@ function watch_invoices() {
     ];
 
     //TODO LOG NOTICE IF COUNT_FILLED != len($items[1])
-    log_info('watch_invoices', get_defined_vars());
+    log_notice('watch_invoices', get_defined_vars());
 
     set_payment_actual($invoice_number[0][0], $payment, $mysql);
     export_wc_update_order_payment($invoice_number[0][0], $payment['fee']);

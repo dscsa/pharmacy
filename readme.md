@@ -11,6 +11,21 @@ Review and Switch CommCalendar
 Review and Switch Invoices
 Implement, Review, and Switch Fax Out Transfers
 
+# Running
+```
+ sudo php /goodpill/webform/cronjobs/syncing.php log=notice
+
+ sudo php /goodpill/webform/cronjobs/parsing.php log=notice sig '<example sig>'
+
+ # Rerun blanks in the database
+ sudo php /goodpill/webform/cronjobs/parsing.php log=notice sig database
+
+ # Run the test suite of rx sigs
+ sudo php /goodpill/webform/cronjobs/parsing.php log=notice sig
+
+ 
+```
+
 # Helpful Queries
 ```
 Find Rxs with inconsistent rx_autofills
