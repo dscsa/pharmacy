@@ -63,7 +63,7 @@ function watch_invoices() {
 
     $order = $mysql->run($sql)[0][0];
 
-    $log = "$order[count_filled] -> $payment[count_filled], $order[payment_total_default] -> $payment[total], $order[payment_fee_default] -> $payment[fee], $order[payment_due_default] -> $payment[due]";
+    $log = "Filled:$order[count_filled] -> $payment[count_filled], Total:$order[payment_total_default] -> $payment[total], Fee:$order[payment_fee_default] -> $payment[fee], Due:$order[payment_due_default] -> $payment[due]";
     log_error('watch_invoices', $log);
 
     set_payment_actual($invoice_number, $payment, $mysql);
