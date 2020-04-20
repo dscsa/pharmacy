@@ -63,12 +63,22 @@ function watch_invoices() {
 
     $order = $mysql->run($sql)[0][0];
 
-    log_error('watch_invoices', "
+    $log = "
       Filled:$order[count_filled] -> $payment[count_filled],
       Total:$order[payment_total_default] ($order[payment_total_actual]) -> $payment[total],
       Fee:$order[payment_fee_default] ($order[payment_fee_actual]) -> $payment[fee],
       Due:$order[payment_due_default] ($order[payment_due_actual]) -> $payment[due]
-    ");
+    ";
+
+    if (
+      $order['count_filled'] == $payment['count_filled'] AND
+      $order['payment_total_actual'] ?: $order['payment_total_default'] == $payment['total'] AND
+      $order['payment_fee_actual'] ?: $order['payment_fee_default'] == $payment['fee'] AND
+      $order['payment_due_actual'] ?: $order['payment_due_default'] == $payment['due'])
+    )
+      return log_notice("watch_invoice $invoice_number", $log); //Most likely invoice was correct and just moved
+
+    log_error("watch_invoice $invoice_number", $log);
 
     set_payment_actual($invoice_number, $payment, $mysql);
     export_wc_update_order_payment($invoice_number, $payment['fee']);
