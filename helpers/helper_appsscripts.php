@@ -74,7 +74,7 @@ function watch_invoices() {
       $order['count_filled'] == $payment['count_filled'] AND
       $order['payment_total_actual'] ?: $order['payment_total_default'] == $payment['total'] AND
       $order['payment_fee_actual'] ?: $order['payment_fee_default'] == $payment['fee'] AND
-      $order['payment_due_actual'] ?: $order['payment_due_default'] == $payment['due'])
+      $order['payment_due_actual'] ?: $order['payment_due_default'] == $payment['due']
     )
       return log_notice("watch_invoice $invoice_number", $log); //Most likely invoice was correct and just moved
 
