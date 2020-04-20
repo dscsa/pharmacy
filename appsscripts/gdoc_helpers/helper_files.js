@@ -41,7 +41,7 @@ function watchFiles(opts) {
 
   var parent = []
   while (iterator.hasNext()) {
-    var file = isModified(iterator.next())
+    var file = isModified(iterator.next(), opts)
     if (file) parent.push(file)
   }
 
@@ -49,7 +49,7 @@ function watchFiles(opts) {
   if (printedFolder.hasNext()) {
     var iterator = printedFolder.next().searchFiles(query)
     while (iterator.hasNext()) {
-      var file = isModified(iterator.next())
+      var file = isModified(iterator.next(), opts)
       if (file) printed.push(file)
     }
   }
@@ -58,7 +58,7 @@ function watchFiles(opts) {
   if (faxedFolder.hasNext()) {
     var iterator = faxedFolder.next().searchFiles(query)
     while (iterator.hasNext()) {
-      var file = isModified(iterator.next())
+      var file = isModified(iterator.next(), opts)
       if (file) faxed.push(file)
     }
   }
@@ -69,7 +69,7 @@ function watchFiles(opts) {
   return {'parent':parent, 'printed':printed, 'faxed':faxed}
 }
 
-function isModified(next) {
+function isModified(next, opts) {
 
   var file = {
     name:next.getName(),
