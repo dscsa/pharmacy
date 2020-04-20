@@ -34,8 +34,14 @@ function get_days_default($item, $order) {
 
   if ($item['rx_date_transferred']) {
 
-    if(($item['stock_level_initial'] ?: $item['stock_level']) == STOCK_LEVEL['HIGH SUPPLY'])
-      log_error('HIGH STOCK ITEM WAS TRANSFERRED', get_defined_vars());
+    $stock_level = $item['stock_level_initial'] ?: $item['stock_level'];
+
+    if($stock_level == STOCK_LEVEL['HIGH SUPPLY'] AND strtotime($item['rx_date_transferred']) > strtotime('-1 month'))
+      log_error('HIGH STOCK ITEM WAS TRANSFERRED WITHIN THE MONTH', get_defined_vars());
+
+    else if($stock_level == STOCK_LEVEL['HIGH SUPPLY'])
+      log_notice('HIGH STOCK ITEM WAS TRANSFERRED IN THE PAST', get_defined_vars());
+
     else
       log_info("RX WAS ALREADY TRANSFERRED OUT", get_defined_vars());
 
