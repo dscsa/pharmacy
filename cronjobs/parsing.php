@@ -689,6 +689,8 @@ $test_sigs = [
   //Take 1 tablet by mouth once weekly every morning at least 30 minutes before first food,beverage, or mediacation of day
   //15 units at bedtime 1 time per day Subcutaneous 90 days
   //Take 5 Tablet with meals TID , max daily dose: 15 Tablet
+  //Take 1 tablet by mouth every 48 hours
+  //TAKE 3 CAPSULES BY MOUTH THREE TIMES A DAY WITH MEALS 1 with snacks
 ];
 
 global $argv;

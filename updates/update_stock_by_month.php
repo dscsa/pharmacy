@@ -31,7 +31,7 @@ function update_stock_by_month() {
       AVG(inventory_sum) as qty_inventory,
       AVG(entered_sum)*$month_interval as qty_entered, -- RATHER THAN SUM TO MAKE MORE ROBUST IF A ROW/MONTH IS DELETED AND WE ARE CALCULATING BASED ON PARTIAL DATA
       AVG(dispensed_sum)*$month_interval as qty_dispensed,
-      AVG(inventory_sum) / (100*POWER(GREATEST(COALESCE(AVG(dispensed_sum), 0)*$month_interval, 3*COALESCE(MAX(qty_repack), 135)), 1.1) / POWER(1+AVG(entered_sum)*$month_interval, .6)) as stock_threshold
+      AVG(inventory_sum) / (100*POWER(GREATEST(COALESCE(AVG(dispensed_sum), 0)*$month_interval, 2*COALESCE(MAX(qty_repack), 135)), 1.1) / POWER(1+AVG(entered_sum)*$month_interval, .6)) as stock_threshold
     FROM
       gp_stock_by_month
     JOIN gp_drugs ON

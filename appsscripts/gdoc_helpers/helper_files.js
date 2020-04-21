@@ -64,7 +64,7 @@ function watchFiles(opts) {
   }
 
   if (parent.length || printed.length || faxed.length)
-    debugEmail('watchFiles', parent, parent, printed, faxed)
+    infoEmail('watchFiles', parent, parent, printed, faxed)
 
   return {'parent':parent, 'printed':printed, 'faxed':faxed}
 }
