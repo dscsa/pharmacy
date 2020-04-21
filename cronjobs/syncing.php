@@ -92,7 +92,7 @@ if ( ! flock($f, LOCK_EX | LOCK_NB))
 
   if ($email) {
     log_notice("WebForm CRON Finished", $email);
-    mail(DEBUG_EMAIL, "Log Notices", log_notices(), "From: webform@goodpill.org\r\n");
+    //mail(DEBUG_EMAIL, "Log Notices", log_notices(), "From: webform@goodpill.org\r\n");
   }
 } catch (Exception $e) {
   log_error('Webform Cron Job Fatal Error', $e);

@@ -257,7 +257,7 @@ function update_orders_cp() {
 
     if ($updated['count_items'] != $updated['old_count_items']) {
 
-      $log = "update_orders_cp: count items changed: $updated[old_count_items] -> $updated[count_items]";
+      $log = "update_orders_cp: count items changed $updated[invoice_number]: $updated[old_count_items] -> $updated[count_items]";
       log_error($log, [$order, $updated]);
 
       foreach($order as $item) {
@@ -277,7 +277,7 @@ function update_orders_cp() {
     //Address Changes
     //Stage Change
     //Order_Source Change (now that we overwrite when saving webform)
-    log_notice("update_orders_cp updated: no action taken", [$order, $updated, $changed_fields]);
+    log_notice("update_orders_cp updated: no action taken $updated[invoice_number]", [$order, $updated, $changed_fields]);
 
     //TODO Update Salesforce Order Total & Order Count & Order Invoice using REST API or a MYSQL Zapier Integration
 
