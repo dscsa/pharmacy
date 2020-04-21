@@ -691,6 +691,7 @@ $test_sigs = [
   //Take 5 Tablet with meals TID , max daily dose: 15 Tablet
   //Take 1 tablet by mouth every 48 hours
   //TAKE 3 CAPSULES BY MOUTH THREE TIMES A DAY WITH MEALS 1 with snacks
+  //Take 1 capsule by mouth twice a day as needed Take one or two twice a day as needed for anxiety
 ];
 
 global $argv;
