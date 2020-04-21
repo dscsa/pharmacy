@@ -255,39 +255,32 @@ function update_orders_cp() {
       continue;
     }
 
-    if ($order[0]['count_items'] != $order[0]['count_filled']) {
-    //Do we need to update the order in WC or it's invoice?  Need to confirm but this is likely NOT caught (and remvoved) in helper_syncing because the item was added manually
+    if ($updated['count_items'] != $updated['old_count_items']) {
 
-      $items_not_filled = [];
-      foreach ($order as $item) {
-        if ($item['item_date_added'] AND ! $item['days_dispensed'] AND $item['rx_message_key'] != 'NO ACTION MISSING GSN') {
-          $items_not_filled[] = $item;
-        }
+      $log = "update_orders_cp: count items changed: $updated[old_count_items] -> $updated[count_items]";
+      log_error($log, [$order, $updated]);
+
+      foreach($order as $item) {
+
+        if ($item['count_pended_total'] AND ! $item['days_dispensed'])
+          unpend_pick_list($item);
+
+        if ( ! $item['count_pended_total'] AND $item['days_dispensed'])
+          v2_pend_item($item, $mysql)
       }
 
-      if ( ! $items_not_filled) continue;
-
-      log_error("update_orders_cp: count filled updated ".$order[0]['count_items']." (count items) != ".$order[0]['count_filled']." (count filled)", [$order, $updated, $items_not_filled]);
-
-      list($target_date, $target_rxs) = get_sync_to_date($order);
-      $order = set_sync_to_date($order, $target_date, $target_rxs, $mysql);
-
-      export_v2_pend_order($items_not_filled, $mysql);
-
-      $order = helper_update_payment($order,  "update_orders_cp: updated - count filled changes ".$order[0]['count_items']." (count items) != ".$order[0]['count_filled']." (count filled)", $mysql);
+      $order = helper_update_payment($order, $log, $mysql); //This also updates payment
       export_wc_update_order($order);
       continue;
     }
 
-    //Count Item Changes
     //Address Changes
     //Stage Change
     //Order_Source Change (now that we overwrite when saving webform)
-    log_notice("update_orders_cp updated: no action taken", [$updated, $changed_fields]);
+    log_notice("update_orders_cp updated: no action taken", [$order, $updated, $changed_fields]);
 
     //TODO Update Salesforce Order Total & Order Count & Order Invoice using REST API or a MYSQL Zapier Integration
 
   }
   //TODO Upsert Salseforce Order Status, Order Tracking
-
 }
