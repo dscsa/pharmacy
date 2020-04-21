@@ -135,6 +135,13 @@ function update_rxs_single() {
 
       log_error("update_rxs_single rx_gsn no longer missing (but still might not be in v2 yet).  Confirm correct updated rx_messages", [$profile, $updated, $changed]);
     }
+
+    if ($updated['rx_transfer'] AND ! $updated['old_rx_transfer']) {
+
+      $profile = get_full_order($updated, $mysql, true); //This updates & overwrites set_rx_messages
+
+      log_error("update_rxs_single rx was transferred out.  Confirm correct updated rx_messages", [$profile, $updated, $changed]);
+    }
   }
 
 

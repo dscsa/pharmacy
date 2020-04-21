@@ -13,7 +13,11 @@ function export_gd_transfer_fax($item, $source) {
   )
     return;
 
-  $to = $item['pharmacy_fax'] ?: '888-987-5187';
+  if ($item['rx_transfer']) {
+    return log_error("WebForm export_gd_transfer_fax NOT SENT, ALREADY TRANSFERRED $item[invoice_number] $source", get_defined_vars());
+  }
+
+  $to = $item['pharmacy_fax'] ?: '8889875187';
 
   $args = [
     'method'   => 'mergeDoc',
