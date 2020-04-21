@@ -266,7 +266,7 @@ function update_orders_cp() {
           unpend_pick_list($item);
 
         if ( ! $item['count_pended_total'] AND $item['days_dispensed'])
-          v2_pend_item($item, $mysql)
+          v2_pend_item($item, $mysql);
       }
 
       $order = helper_update_payment($order, $log, $mysql); //This also updates payment
