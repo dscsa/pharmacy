@@ -22,6 +22,11 @@ add_action('rest_api_init', function () {
     'methods' => 'GET',
     'callback' => 'dscsa_inventory_csv',
   ]);
+
+  register_rest_route( 'reports', 'orders.csv', [
+    'methods' => 'GET',
+    'callback' => 'dscsa_orders_csv',
+  ]);
 });
 
 function dscsa_update_payment_fee($params) {
@@ -78,6 +83,28 @@ function dscsa_inventory_csv($params) {
   ];
 
   $rows = $wpdb->get_results('SELECT '.implode(', ', $cols).' FROM gp_stock_live');
+
+  echo '"'.implode('","', $cols).'"';
+  foreach ($rows as $row) {
+    echo "\n".'"'.implode('","', (array) $row).'"';
+  }
+
+  exit; //otherwise wordpress will error trying to send json headers
+}
+
+function dscsa_orders_csv($params) {
+
+  global $wpdb;
+
+  $cols = [
+    'invoice_number',
+    'count_items',
+    'order_source',
+    'order_date_added',
+    'order_date_updated'
+  ];
+
+  $rows = $wpdb->get_results('SELECT '.implode(', ', $cols).' FROM gp_orders WHERE order_date_dispensed IS NULL');
 
   echo '"'.implode('","', $cols).'"';
   foreach ($rows as $row) {
