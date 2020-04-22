@@ -86,6 +86,9 @@ function add_gd_fields_to_order($order, $mysql, $overwrite_rx_messages) {
 
     $days     = NULL;
     $message  = NULL;
+
+    $order[$i]['rx_date_written'] = date('Y-m-d', strtotime($order[$i]['rx_date_expired'].' -1 year')); //Set before export_gd_transfer_fax()
+
     $set_days = ($order[$i]['item_date_added'] AND is_null($order[$i]['days_dispensed_default']));
     $set_msgs = ($overwrite_rx_messages OR ! $order[$i]['rx_message_key'] OR is_null($order[$i]['rx_message_text']));
 
@@ -128,7 +131,6 @@ function add_gd_fields_to_order($order, $mysql, $overwrite_rx_messages) {
     $order[$i]['drug'] = $order[$i]['drug_name'] ?: $order[$i]['drug_generic'];
     $order[$i]['days_dispensed']  = $order[$i]['days_dispensed_actual'] ?: $order[$i]['days_dispensed_default'];
     $order[$i]['payment_method']  = $order[$i]['payment_method_actual'] ?: $order[$i]['payment_method_default'];
-    $order[$i]['rx_date_written'] = date('Y-m-d', strtotime($order[$i]['rx_date_expired'].' -1 year'));
 
     if ($order[$i]['days_dispensed']) {
       $count_filled++;
