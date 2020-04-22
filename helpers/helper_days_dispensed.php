@@ -18,20 +18,6 @@ function get_days_default($item, $order) {
     log_error("helper_days_dispensed: RX WAS NEVER PARSED", $item);
   }
 
-  //#29005 was expired but never dispensed, so check "refill_date_first" so we asking doctors for new rxs that we never dispensed
-  if ($item['refill_date_first'] AND ! $item['rx_dispensed_id'] AND $days_left_in_expiration < 0) { // Can't do <= 0 because null <= 0 is true
-    log_info("DON'T FILL EXPIRED MEDICATIONS", get_defined_vars());
-    return [0, RX_MESSAGE['ACTION EXPIRED']];
-  }
-
-  if ( ! $item['drug_gsns']) {
-    $item['max_gsn']
-      ? log_error("GSN NEEDS TO BE ADDED TO V2", "rx:$item[rx_number] $item[drug_name] $item[drug_generic] rx_gsn:$item[rx_gsn] max_gsn:$item[max_gsn]")
-      : log_info("RX IS MISSING GSN", $item);
-
-    return [ $item['refill_date_first'] ? $days_default : 0, RX_MESSAGE['NO ACTION MISSING GSN']];
-  }
-
   if ($item['rx_date_transferred']) {
 
     $stock_level = $item['stock_level_initial'] ?: $item['stock_level'];
@@ -46,6 +32,20 @@ function get_days_default($item, $order) {
       log_info("RX WAS ALREADY TRANSFERRED OUT", get_defined_vars());
 
     return [0, RX_MESSAGE['NO ACTION WAS TRANSFERRED']];
+  }
+
+  //#29005 was expired but never dispensed, so check "refill_date_first" so we asking doctors for new rxs that we never dispensed
+  if ($item['refill_date_first'] AND ! $item['rx_dispensed_id'] AND $days_left_in_expiration < 0) { // Can't do <= 0 because null <= 0 is true
+    log_info("DON'T FILL EXPIRED MEDICATIONS", get_defined_vars());
+    return [0, RX_MESSAGE['ACTION EXPIRED']];
+  }
+
+  if ( ! $item['drug_gsns']) {
+    $item['max_gsn']
+      ? log_error("GSN NEEDS TO BE ADDED TO V2", "rx:$item[rx_number] $item[drug_name] $item[drug_generic] rx_gsn:$item[rx_gsn] max_gsn:$item[max_gsn]")
+      : log_info("RX IS MISSING GSN", $item);
+
+    return [ $item['refill_date_first'] ? $days_default : 0, RX_MESSAGE['NO ACTION MISSING GSN']];
   }
 
   if ( ! $is_refill AND $not_offered) {
