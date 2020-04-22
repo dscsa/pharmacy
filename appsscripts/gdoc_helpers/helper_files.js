@@ -63,8 +63,8 @@ function watchFiles(opts) {
     }
   }
 
-  if (parent.length || printed.length || faxed.length)
-    infoEmail('watchFiles', parent, parent, printed, faxed)
+  //if (parent.length || printed.length || faxed.length)
+  //  infoEmail('watchFiles', parent, printed, faxed)
 
   return {'parent':parent, 'printed':printed, 'faxed':faxed}
 }

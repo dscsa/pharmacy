@@ -263,7 +263,7 @@ function frequency_denominators($durations, $correct) {
 
   foreach ($durations as $sig_part => $duration) {
 
-    preg_match('/every ([1-9]\\b|10|11|12)(?! +time)/i', $sig_part, $match);
+    preg_match('/every ([1-9]\\b|10|11|12|24|48|72)(?! +time)/i', $sig_part, $match);
     $frequency_denominators[$sig_part] = $match ? $match[1] : 1;
   }
 
