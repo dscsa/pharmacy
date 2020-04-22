@@ -143,7 +143,7 @@ function get_days_default($item, $order) {
   if ($days_left_in_refills == $days_default) {
 
     if ($item['refills_dispensed_default'] > 0)
-      log_error("MARKING LAST REFILL BUT REFILLS TOTAL REMAINING", get_defined_vars());
+      log_error("MARKING LAST REFILL BUT REFILLS TOTAL REMAINING.  PROBABLY A SIG_QTY_PER_DAY error", get_defined_vars());
     else
       log_info("WARN USERS IF DRUG IS ON LAST REFILL", get_defined_vars());
 
