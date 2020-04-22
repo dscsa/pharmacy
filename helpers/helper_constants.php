@@ -105,7 +105,7 @@ const RX_MESSAGE = [
     'ES' => '',
     'CP_CODE' => 205,
   ],
-  'NO ACTION RX OFF AUTOFILL' => [
+  'NO ACTION RX REQUESTED' => [
     'EN' => 'was requested',
     'ES' => '',
     'CP_CODE' => 206,
@@ -160,7 +160,7 @@ const RX_MESSAGE = [
     'ES' => '',
     'CP_CODE' => 216,
   ],
-  'NO ACTION PATIENT OFF AUTOFILL' => [
+  'NO ACTION PATIENT REQUESTED' => [
     'EN' => 'was requested',
     'ES' => '',
     'CP_CODE' => 217,
