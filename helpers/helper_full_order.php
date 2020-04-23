@@ -29,19 +29,21 @@ function get_full_order($partial, $mysql, $overwrite_rx_messages = false) {
   ";
 
   if (isset($partial['invoice_number']))
-    $sql .= " gp_orders.invoice_number = $partial[invoice_number]";
+    $suffix = " gp_orders.invoice_number = $partial[invoice_number]";
   else if (isset($partial['patient_id_cp']))
-    $sql .= " gp_patients.patient_id_cp = $partial[patient_id_cp]";
+    $suffix = " gp_patients.patient_id_cp = $partial[patient_id_cp]";
   else {
     log_error('ERROR! get_full_order: was not given an invoice number or a patient_id_cp', $partial);
     return;
   }
 
 
-  $order = $mysql->run($sql)[0];
+  $order = $mysql->run($sql.$suffix)[0];
 
   if ( ! $order OR ! $order[0]['invoice_number']) {
-    log_error("ERROR! get_full_order: no order with invoice number $partial[invoice_number] or order does not have active patient", get_defined_vars());
+    $debug = "SELECT * FROM gp_orders OUTER JOIN gp_patients ON gp_patients.patient_id_cp = gp_orders.patient_id_cp WHERE ".$suffix
+    $exists = $mysql->run($debug)[0];
+    log_error("ERROR! get_full_order: no order with invoice number:$partial[invoice_number] or order does not have active patient:$partial[patient_id_cp]", get_defined_vars());
     return;
   }
 
