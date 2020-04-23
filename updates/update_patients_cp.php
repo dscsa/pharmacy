@@ -44,12 +44,12 @@ function update_patients_cp() {
 
     } else if ($updated['phone2'] !== $updated['old_phone2']) {
       $patient = find_patient_wc($mysql, $updated)[0];
-      log_error("Phone2 updated in CP", [$updated, $patient]);
+      log_notice("Phone2 updated in CP", [$updated, $patient]);
       update_wc_phone2($mysql, $patient['patient_id_wc'], $updated['phone2']);
     }
 
     if ($updated['phone1'] !== $updated['old_phone1']) {
-      log_error("Phone1 updated in CP. Was this handled correctly?", $updated);
+      log_notice("Phone1 updated in CP. Was this handled correctly?", $updated);
     }
 
   }
