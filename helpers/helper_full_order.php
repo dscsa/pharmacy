@@ -28,10 +28,14 @@ function get_full_order($partial, $mysql, $overwrite_rx_messages = false) {
       (CASE WHEN refills_total OR item_date_added THEN gp_rxs_grouped.rx_date_expired ELSE COALESCE(gp_rxs_grouped.rx_date_transferred, gp_rxs_grouped.refill_date_last) END) > CURDATE() - INTERVAL $month_interval MONTH AND
   ";
 
-  if (isset($partial['invoice_number']))
+  if (isset($partial['invoice_number'])) {
     $suffix = " gp_orders.invoice_number = $partial[invoice_number]";
-  else if (isset($partial['patient_id_cp']))
+    $debug  = "SELECT * FROM gp_orders LEFT JOIN gp_patients ON gp_patients.patient_id_cp = gp_orders.patient_id_cp WHERE ".$suffix;
+  }
+  else if (isset($partial['patient_id_cp'])) {
     $suffix = " gp_patients.patient_id_cp = $partial[patient_id_cp]";
+    $debug  = "SELECT * FROM gp_orders RIGHT JOIN gp_patients ON gp_patients.patient_id_cp = gp_orders.patient_id_cp WHERE ".$suffix;
+  }
   else {
     log_error('ERROR! get_full_order: was not given an invoice number or a patient_id_cp', $partial);
     return;
@@ -41,7 +45,6 @@ function get_full_order($partial, $mysql, $overwrite_rx_messages = false) {
   $order = $mysql->run($sql.$suffix)[0];
 
   if ( ! $order OR ! $order[0]['invoice_number']) {
-    $debug = "SELECT * FROM gp_orders OUTER JOIN gp_patients ON gp_patients.patient_id_cp = gp_orders.patient_id_cp WHERE ".$suffix;
     $exists = $mysql->run($debug)[0];
     log_error("ERROR! get_full_order: no order with invoice number:$partial[invoice_number] or order does not have active patient:$partial[patient_id_cp]", get_defined_vars());
     return;
