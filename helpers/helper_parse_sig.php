@@ -215,7 +215,9 @@ function qtys_per_time($durations, $drug_name, $correct) {
     preg_match($regex_match, $sig_part, $sig_match);
 
     if ( ! $drug_match OR ! $sig_match) {
-      $qtys_per_time[$sig_part] = 1;
+      //If its the first duration assume 1 qty per time, but if this is a 2nd sentence don't assume anything
+      //e.g ifgnore 2nd sentence within "Take 1 tablet by oral route every day swallowing whole with water. Do not crush, chew and\/or divide"
+      $qtys_per_time[$sig_part] = count($qtys_per_time) ? 0 : 1;
       continue;
     }
 

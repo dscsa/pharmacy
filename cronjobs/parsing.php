@@ -698,6 +698,7 @@ $test_sigs = [
   //1 tab(s) every 24 hours orally 90 days
   //Take 1 tablet by mouth every morning after meals
   //Take 1 capsule by mouth once a day Take 1 capsule by mouth once a day take 30 minutes before breakfast.
+  //Take 1 tablet by oral route every day swallowing whole with water. Do not crush, chew and\/or divide
 ];
 
 global $argv;
