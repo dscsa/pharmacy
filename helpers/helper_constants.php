@@ -15,6 +15,7 @@ const ADDED_MANUALLY = [
 const PICK_LIST_FOLDER_NAME = 'Pick Lists';
 const INVOICE_PUBLISHED_FOLDER_NAME = 'Published';  //Published
 const INVOICE_PENDING_FOLDER_NAME   = 'Pending';  //Published
+const TRANSFER_OUT_FOLDER_NAME = 'Transfer Outs'
 
 
 const PAYMENT_TOTAL_NEW_PATIENT = 6;
@@ -74,6 +75,8 @@ const STOCK_LEVEL = [
   'NOT OFFERED'  => 'NOT OFFERED'
 ];
 
+
+//in CP csct_code.ct_id == 6400, cp_code == csct_code.code_num
 const RX_MESSAGE = [
   'NO ACTION STANDARD FILL' => [
     'EN' => '',

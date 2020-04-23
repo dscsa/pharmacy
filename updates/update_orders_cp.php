@@ -184,7 +184,7 @@ function update_orders_cp() {
     $patient = $mysql->run($sql)[0];
 
     if ( ! $patient)
-      log_error('No patient associated with deleted order', ['deleted' => $deleted, 'sql' => $sql]);
+      log_error('No patient associated with deleted order (Patient Deactivated/Deceased/Moved out of State)', ['deleted' => $deleted, 'sql' => $sql]);
 
     //We should be able to delete wc-confirm-* from CP queue without triggering an order cancel notice
     if ($deleted['count_items'])
