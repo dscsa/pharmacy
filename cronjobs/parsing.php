@@ -696,6 +696,7 @@ $test_sigs = [
   //APPLY TO AFFECTED AREA OF PAIN 1 time per day IF NEEDED FOR PAIN. WEAR FOR 12 HOURS & REMOVE FOR 12 HOURS
   //Take 1 tablet by mouth twice a day 8 am and 3 pm
   //1 tab(s) every 24 hours orally 90 days
+  //Take 1 tablet by mouth every morning after meals
 ];
 
 global $argv;

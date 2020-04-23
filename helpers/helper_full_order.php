@@ -14,7 +14,7 @@ function get_full_order($partial, $mysql, $overwrite_rx_messages = false) {
       gp_rxs_grouped.* -- Need to put this first based on how we are joining, but make sure these grouped fields overwrite their single equivalents
     FROM
       gp_orders
-    JOIN gp_patients ON
+    RIGHT JOIN gp_patients ON
       gp_patients.patient_id_cp = gp_orders.patient_id_cp
     LEFT JOIN gp_rxs_grouped ON -- Show all Rxs on Invoice regardless if they are in order or not
       gp_rxs_grouped.patient_id_cp = gp_orders.patient_id_cp
@@ -44,7 +44,7 @@ function get_full_order($partial, $mysql, $overwrite_rx_messages = false) {
 
   $order = $mysql->run($sql.$suffix)[0];
 
-  if ( ! $order OR ! $order[0]['invoice_number']) {
+  if ( ! $order OR ! $order[0]['patient_id_cp']) {
     $exists = $mysql->run($debug)[0];
     log_error("ERROR! get_full_order: no order with invoice number:$partial[invoice_number] or order does not have active patient:$partial[patient_id_cp]", get_defined_vars());
     return;

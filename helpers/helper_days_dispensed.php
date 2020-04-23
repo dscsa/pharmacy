@@ -373,7 +373,8 @@ function days_left_in_refills($item) {
 
   //Fill up to 30 days more to finish up an Rx if almost finished.
   //E.g., If 30 day script with 3 refills (4 fills total, 120 days total) then we want to 1x 120 and not 1x 90 + 1x30
-  if ($days_left_in_refills <= DAYS_MAX) return roundDaysUnit($days_left_in_refills);
+  //Incorrect "LAST  REFILL", because rx was already dispensed so it was actuall the second to last refill ( "rx_dispensed_id": "90068",)
+  if ($days_left_in_refills <= DAYS_MAX AND ! $item['rx_dispensed_id']) return roundDaysUnit($days_left_in_refills);
 }
 
 function days_left_in_stock($item) {
