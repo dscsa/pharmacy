@@ -22,7 +22,7 @@ function export_gd_transfer_fax($item, $source) {
   $args = [
     'method'   => 'mergeDoc',
     'template' => 'Transfer Template v1',
-    'file'     => "Transfer Out #$item[invoice_number]-$item[best_rx_number] Fax:$to",
+    'file'     => "Transfer Out #$item[invoice_number] Rx:$item[best_rx_number] Fax:$to",
     'folder'   => TRANSFER_OUT_FOLDER_NAME,
     'order'    => [$item]
   ];
