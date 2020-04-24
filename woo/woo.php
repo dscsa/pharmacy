@@ -2457,7 +2457,7 @@ add_filter( 'woocommerce_valid_order_statuses_for_payment_complete', 'dscsa_vali
 add_filter( 'woocommerce_valid_order_statuses_for_payment', 'dscsa_valid_order_statuses_for_payment' );
 function dscsa_valid_order_statuses_for_payment($statuses) {
 
-  $statuses[] = 'processing';
+
 
   $statuses[] = 'shipped-mail-pay';
   $statuses[] = 'shipped-auto-pay';
@@ -2472,6 +2472,7 @@ function dscsa_valid_order_statuses_for_payment($statuses) {
   $statuses[] = 'late-payment-plan';
 
   //Old Deprecated Statuses
+  $statuses[] = 'processing';
   $statuses[] = 'shipped-unpaid';
   $statuses[] = 'shipped-overdue';
   $statuses[] = 'shipped-autopay';

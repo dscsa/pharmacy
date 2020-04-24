@@ -46,7 +46,11 @@ function get_full_order($partial, $mysql, $overwrite_rx_messages = false) {
 
   if ( ! $order OR ! $order[0]['patient_id_cp']) {
     $exists = $mysql->run($debug)[0];
-    log_error("ERROR! get_full_order: no order with invoice number:$partial[invoice_number] or order does not have active patient:$partial[patient_id_cp]", get_defined_vars());
+    if (isset($partial['patient_id_cp'])) {
+      $rxs_single  = $mysql->run("SELECT * FROM gp_rxs_single  WHERE patient_id_cp = $partial[patient_id_cp]")[0];
+      $rxs_grouped = $mysql->run("SELECT * FROM gp_rxs_grouped WHERE patient_id_cp = $partial[patient_id_cp]")[0];
+    }
+    log_error("ERROR! get_full_order: no order with invoice number:$partial[invoice_number] or order does not have active patient:$partial[patient_id_cp]. No Rxs? Patient just registered?", get_defined_vars());
     return;
   }
 
