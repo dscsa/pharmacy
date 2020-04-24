@@ -96,11 +96,6 @@ function clean_sig($sig) {
 
   //echo "4 $sig";
   //Duration
-  //$sig = preg_replace('/\\b24 hours?/i', '1 day', $sig);
-  //$sig = preg_replace('/\\b48 hours?/i', '2 days', $sig);
-  //$sig = preg_replace('/\\b72 hours?/i', '3 days', $sig);
-  //$sig = preg_replace('/\\b96 hours?/i', '4 days', $sig);
-
   $sig = preg_replace('/\\bx ?(\d+)\\b/i', 'for $1', $sig); // X7 Days == for 7 days
   $sig = preg_replace('/\\bfor 1 months?|months?\d+/i', 'for 30 days', $sig);
   $sig = preg_replace('/\\bfor 2 months?/i', 'for 60 days', $sig);
@@ -118,6 +113,12 @@ function clean_sig($sig) {
   $sig = preg_replace('/\\bfor 10 weeks?/i', 'for 70 days', $sig);
   $sig = preg_replace('/\\bfor 11 weeks?/i', 'for 77 days', $sig);
   $sig = preg_replace('/\\bfor 12 weeks?/i', 'for 84 days', $sig);
+
+  //Frequency Denominator
+  $sig = preg_replace('/\\b\/ *24 hours?/i', 'every day', $sig);
+  $sig = preg_replace('/\\b\/ *48 hours?/i', 'every 2 days', $sig);
+  $sig = preg_replace('/\\b\/ *72 hours?/i', 'every 3 days', $sig);
+  $sig = preg_replace('/\\b\/ *96 hours?/i', 'every 4 days', $sig);
 
   //echo "5 $sig";
   //Alternative frequency numerator wordings
@@ -286,7 +287,7 @@ function frequency_denominators($durations, $correct) {
 
   foreach ($durations as $sig_part => $duration) {
 
-    preg_match('/every ([1-9]\\b|10|11|12|24|48|72)(?! +time)/i', $sig_part, $match);
+    preg_match('/every ([1-9]\\b|10|11|12)(?! +time)/i', $sig_part, $match);
     $frequency_denominators[$sig_part] = $match ? $match[1] : 1;
   }
 
