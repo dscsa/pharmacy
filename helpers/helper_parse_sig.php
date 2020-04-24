@@ -2,8 +2,32 @@
 
 require_once 'helpers/helper_imports.php';
 
+function set_parsed_sig($rx_number, $parsed, $mysql) {
 
-function parse_sig($sig_actual, $drug_name, $correct = null) {
+  if ( ! $parsed['qty_per_day']) {
+    log_error("update_rxs_single created: sig could not be parsed", $parsed);
+    return;
+  }
+
+  $mysql->run("
+    UPDATE gp_rxs_single SET
+      sig_initial                = '$parsed[sig_actual]',
+      sig_clean                  = '$parsed[sig_clean]',
+      sig_qty                    = $parsed[sig_qty],
+      sig_days                   = ".($parsed['sig_days'] ?: 'NULL').",
+      sig_qty_per_day_default    = $parsed[qty_per_day],
+      sig_durations              = ',".implode(',', $parsed['durations']).",',
+      sig_qtys_per_time          = ',".implode(',', $parsed['qtys_per_time']).",',
+      sig_frequencies            = ',".implode(',', $parsed['frequencies']).",',
+      sig_frequency_numerators   = ',".implode(',', $parsed['frequency_numerators']).",',
+      sig_frequency_denominators = ',".implode(',', $parsed['frequency_denominators']).",'
+    WHERE
+      rx_number = $rx_number
+  ");
+}
+
+
+function get_parsed_sig($sig_actual, $drug_name, $correct = null) {
 
   //1 Clean sig
   //2 Split into Durations

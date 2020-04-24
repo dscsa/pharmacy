@@ -19,7 +19,7 @@ function changes_to_rxs_single($new) {
     NOT old.qty_original <=> new.qty_original OR
     NOT old.sig_actual <=> new.sig_actual OR
       -- Not in CP -- NOT old.sig_clean <=> new.sig_clean OR
-      -- Not in CP -- NOT old.sig_qty_per_day <=> new.sig_qty_per_day OR
+      -- Not in CP -- NOT old.sig_qty_per_day_deafult <=> new.sig_qty_per_day_default OR
       -- Not in CP -- NOT old.sig_qty_per_time <=> new.sig_qty_per_time OR
       -- Not in CP -- NOT old.sig_frequency <=> new.sig_frequency OR
       -- Not in CP -- NOT old.sig_frequency_numerator <=> new.sig_frequency_numerator OR

@@ -22,30 +22,10 @@ function update_rxs_single() {
   //Run this before rx_grouped query to make sure all sig_qty_per_days are probably set before we group by them
   foreach($changes['created'] as $rx) {
 
-    $parsed = parse_sig($rx['sig_actual'], $rx['drug_name']);
+    $parsed = get_parsed_sig($rx['sig_actual'], $rx['drug_name']);
 
     //TODO Eventually Save the Clean Script back into Guardian so that Cindy doesn't need to rewrite them
-
-    if ( ! $parsed['qty_per_day']) {
-      log_error("update_rxs_single created: sig could not be parsed", [$rx, $parsed]);
-      continue;
-    }
-
-    $mysql->run("
-      UPDATE gp_rxs_single SET
-        sig_initial                = '$parsed[sig_actual]',
-        sig_clean                  = '$parsed[sig_clean]',
-        sig_qty                    = $parsed[sig_qty],
-        sig_days                   = ".($parsed['sig_days'] ?: 'NULL').",
-        sig_qty_per_day            = $parsed[qty_per_day],
-        sig_durations              = ',".implode(',', $parsed['durations']).",',
-        sig_qtys_per_time          = ',".implode(',', $parsed['qtys_per_time']).",',
-        sig_frequencies            = ',".implode(',', $parsed['frequencies']).",',
-        sig_frequency_numerators   = ',".implode(',', $parsed['frequency_numerators']).",',
-        sig_frequency_denominators = ',".implode(',', $parsed['frequency_denominators']).",'
-      WHERE
-        rx_number = $rx[rx_number]
-    ");
+    set_parsed_sig($rx['rx_number'], $parsed, $mysql);
   }
 
   //This is an expensive (6-8 seconds) group query.
@@ -59,7 +39,7 @@ function update_rxs_single() {
       COALESCE(drug_generic, drug_name),
       MAX(drug_brand) as drug_brand,
       MAX(drug_name) as drug_name,
-      sig_qty_per_day,
+      COALESCE(sig_qty_per_day_actual, sig_qty_per_day_default) as sig_qty_per_day,
       GROUP_CONCAT(DISTINCT rx_message_key) as rx_message_keys,
 
       MAX(rx_gsn) as max_gsn,
@@ -99,7 +79,7 @@ function update_rxs_single() {
   	GROUP BY
       patient_id_cp,
       COALESCE(drug_generic, drug_name),
-      sig_qty_per_day
+      COALESCE(sig_qty_per_day_actual, sig_qty_per_day_default)
   ";
 
 

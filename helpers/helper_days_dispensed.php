@@ -14,7 +14,7 @@ function get_days_default($item, $order) {
   $days_left_in_stock      = days_left_in_stock($item);
   $days_default            = days_default($days_left_in_refills, $days_left_in_stock);
 
-  if ( ! $item['sig_qty_per_day'] AND $item['refills_original'] != $item['refills_left']) {
+  if ( ! $item['sig_qty_per_day_default'] AND $item['refills_original'] != $item['refills_left']) {
     log_error("helper_days_dispensed: RX WAS NEVER PARSED", $item);
   }
 
@@ -95,7 +95,7 @@ function get_days_default($item, $order) {
     return [0, RX_MESSAGE['NO ACTION NOT DUE']];
   }
 
-  if ( ! $item['refill_date_first'] AND $item['qty_inventory'] < 2000 AND ($item['sig_qty_per_day'] > 2.5*($item['qty_repack'] ?: 135)) AND ! $added_manually) {
+  if ( ! $item['refill_date_first'] AND $item['qty_inventory'] < 2000 AND ($item['sig_qty_per_day_default'] > 2.5*($item['qty_repack'] ?: 135)) AND ! $added_manually) {
     log_info("SIG SEEMS TO HAVE EXCESSIVE QTY", get_defined_vars());
     return [0, RX_MESSAGE['NO ACTION CHECK SIG']];
   }
@@ -143,7 +143,7 @@ function get_days_default($item, $order) {
   if ($days_left_in_refills == $days_default) {
 
     if ($item['refills_dispensed_default'] > 0)
-      log_error("MARKING LAST REFILL BUT REFILLS TOTAL REMAINING.  PROBABLY A SIG_QTY_PER_DAY error", get_defined_vars());
+      log_error("MARKING LAST REFILL BUT REFILLS TOTAL REMAINING.  PROBABLY A SIG_QTY_PER_DAY_DEAFULT error", get_defined_vars());
     else
       log_info("WARN USERS IF DRUG IS ON LAST REFILL", get_defined_vars());
 
@@ -247,7 +247,7 @@ function set_days_default($item, $days, $mysql) {
   $price = $item['price_per_month'] ?: 0; //Might be null
 
   $item['days_dispensed_default']    = $days;
-  $item['qty_dispensed_default']     = $days*$item['sig_qty_per_day'];
+  $item['qty_dispensed_default']     = $days*$item['sig_qty_per_day_default'];
   $item['price_dispensed_default']   = ceil($days*$price/30);
   $item['refills_dispensed_default'] = refills_dispensed_default($item);  //We want invoice to show refills after they are dispensed assuming we dispense items currently in order
   $item['stock_level_initial']       = $item['stock_level'];
@@ -308,7 +308,7 @@ function is_not_offered($item) {
   return $not_offered;
 }
 
-//rxs_grouped includes drug name AND sig_qty_per_day.  If someone starts on Lipitor 20mg 1 time per day
+//rxs_grouped includes drug name AND sig_qty_per_day_default.  If someone starts on Lipitor 20mg 1 time per day
 //and then moves to Lipitor 20mg 2 times per day, we still want to honor this Rx as a refill rather than
 //tell them it is out of stock just because the sig changed
 function is_refill($item1, $order) {
@@ -369,7 +369,7 @@ function days_left_in_refills($item) {
 
   if ($item['refills_total'] != $item['refills_left']) return; //Just because we are out of refills on this script doesn't mean there isn't another script with refills
 
-  $days_left_in_refills = $item['qty_left']/$item['sig_qty_per_day'];
+  $days_left_in_refills = $item['qty_left']/$item['sig_qty_per_day_default'];
 
   //Fill up to 30 days more to finish up an Rx if almost finished.
   //E.g., If 30 day script with 3 refills (4 fills total, 120 days total) then we want to 1x 120 and not 1x 90 + 1x30
@@ -379,19 +379,19 @@ function days_left_in_refills($item) {
 
 function days_left_in_stock($item) {
 
-  if (is_null($item['sig_qty_per_day']) OR $item['sig_qty_per_day'] > 10)
+  if (is_null($item['sig_qty_per_day_default']) OR $item['sig_qty_per_day_default'] > 10)
     return;
 
-  $days_left_in_stock = round($item['qty_inventory']/$item['sig_qty_per_day']);
+  $days_left_in_stock = round($item['qty_inventory']/$item['sig_qty_per_day_default']);
   $stock_level = $item['stock_level_initial'] ?: $item['stock_level'];
 
   if ($days_left_in_stock >= DAYS_STD OR $item['qty_inventory'] >= 500)
     return;
 
-  if($stock_level == STOCK_LEVEL['HIGH SUPPLY'] AND $item['sig_qty_per_day'] != round(1/30, 3))
+  if($stock_level == STOCK_LEVEL['HIGH SUPPLY'] AND $item['sig_qty_per_day_default'] != round(1/30, 3))
     log_error("LOW STOCK ITEM IS MARKED HIGH SUPPLY $item[drug_generic] days_left_in_stock:$days_left_in_stock qty_inventory:$item[qty_inventory]", get_defined_vars());
 
-  return $item['sig_qty_per_day'] == round(1/30, 3) ? 60.6 : DAYS_MIN; //Dispensed 2 inhalers per time, since 1/30 is rounded to 3 decimals (.033), 2 month/.033 = 60.6 qty
+  return $item['sig_qty_per_day_default'] == round(1/30, 3) ? 60.6 : DAYS_MIN; //Dispensed 2 inhalers per time, since 1/30 is rounded to 3 decimals (.033), 2 month/.033 = 60.6 qty
 }
 
 function roundDaysUnit($days) {

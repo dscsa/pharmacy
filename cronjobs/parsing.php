@@ -708,7 +708,7 @@ if ($sig_index === false) {
 
   foreach ($test_sigs as $sig => $correct) {
     $correct['sig_actual'] = $sig;
-    $parsed = parse_sig($sig, @$correct['drug_name'], $correct);
+    $parsed = get_parsed_sig($sig, @$correct['drug_name'], $correct);
   }
 
   log_notice("...sig testing complete...");
@@ -716,51 +716,26 @@ if ($sig_index === false) {
 } else if ($argv[$sig_index+1] != 'database') {
 
   $sig = $argv[$sig_index+1];
-  $parsed = parse_sig($sig, null);
+  $parsed = get_parsed_sig($sig, null);
   log_notice("parsing test sig specified: $sig", [$parsed, $sig]);
 
 } else {
 
   $mysql = new Mysql_Wc();
 
-  $rxs = $mysql->run("SELECT * FROM gp_rxs_single WHERE sig_initial IS NULL OR sig_qty_per_day IS NULL LIMIT 1000")[0];
+  $rxs = $mysql->run("SELECT * FROM gp_rxs_single WHERE sig_initial IS NULL OR sig_qty_per_day_default IS NULL LIMIT 1000")[0];
 
   //log_notice("parsing test sig database rxs", $rxs);
 
   foreach ($rxs as $rx) {
 
-    $parsed = parse_sig($rx['sig_actual'], $rx['drug_name']);
+    $parsed = get_parsed_sig($rx['sig_actual'], $rx['drug_name']);
 
-    if ($rx['sig_qty_per_day'] == $parsed['qty_per_day'])
+    if ($rx['sig_qty_per_day_default'] == $parsed['qty_per_day'])
       log_notice("parsing test sig database SAME: $rx[rx_number] qty_per_day $parsed[qty_per_day], $rx[drug_name], $rx[sig_actual]", $parsed);
     else
-      log_notice("parsing test sig database CHANGE: $rx[rx_number] sig_qty_per_day $rx[sig_qty_per_day] >>> $parsed[qty_per_day], $rx[drug_name], $rx[sig_actual]", $parsed);
+      log_notice("parsing test sig database CHANGE: $rx[rx_number] sig_qty_per_day_default $rx[sig_qty_per_day_default] >>> $parsed[qty_per_day], $rx[drug_name], $rx[sig_actual]", $parsed);
 
-    if ( ! $parsed['qty_per_day']) {
-      log_error("parsing database: sig could not be parsed");
-      continue;
-    }
-
-    $mysql->run("
-      UPDATE gp_rxs_single SET
-        sig_initial                = '$parsed[sig_actual]',
-        sig_clean                  = '$parsed[sig_clean]',
-        sig_qty                    = $parsed[sig_qty],
-        sig_days                   = ".($parsed['sig_days'] ?: 'NULL').",
-        sig_qty_per_day            = $parsed[qty_per_day],
-        sig_durations              = ',".implode(',', $parsed['durations']).",',
-        sig_qtys_per_time          = ',".implode(',', $parsed['qtys_per_time']).",',
-        sig_frequencies            = ',".implode(',', $parsed['frequencies']).",',
-        sig_frequency_numerators   = ',".implode(',', $parsed['frequency_numerators']).",',
-        sig_frequency_denominators = ',".implode(',', $parsed['frequency_denominators']).",'
-      WHERE
-        rx_number = $rx[rx_number]
-    ");
-
+    set_parsed_sig($rx['rx_number'], $parsed, $mysql);
   }
-
-
-
-
-
 }

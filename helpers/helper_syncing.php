@@ -188,6 +188,7 @@ function set_sync_to_date($order, $target_date, $target_rxs, $mysql) {
       log_info('debug set_sync_to_date: std time', get_defined_vars());
     }
 
+    $order[$i]['sig_qty_per_day']         = $order[$i]['sig_qty_per_day_actual'] ?: $order[$i]['sig_qty_per_day_default'];
     $order[$i]['refill_target_date']      = $target_date;
     $order[$i]['days_dispensed_default']  = $new_days_default;
     $order[$i]['qty_dispensed_default']   = $new_days_default*$item['sig_qty_per_day'];
