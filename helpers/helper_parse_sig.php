@@ -53,6 +53,9 @@ function clean_sig($sig) {
   $sig = preg_replace('/\\bcada\\b/i', 'each', $sig);
   $sig = preg_replace('/\\bhoras\\b/i', 'hours', $sig);
 
+  //If MAX then use max and ignore preceeding sig e.g TAKE 1 TABLET BY MOUTH AS NEEDED FOR MIGRAINE, MAY REPEAT IN 2 HRS IF NEEDED, MAX 2TABS\/24 HRS
+  $sig = preg_replace('/.*(exceed (more than )?|exceeding |not to |max(imum)? (of |per day (of )?|daily dose( |: ?))?)([0-9]*\.[0-9]+|[1-9][0-9]*)/i', 'Max $7', $sig); //Get rid of "max" qtys in sig because they are redundant and could accidentally be added in
+
   //Abreviations
   $sig = preg_replace('/\\bhrs\\b/i', 'hours', $sig);
   $sig = preg_replace('/\\b(prn|at onset|when)\\b/i', 'as needed', $sig);
@@ -90,10 +93,14 @@ function clean_sig($sig) {
   $sig = preg_replace('/\\b([0-9]*\.[0-9]+|[1-9][0-9]*) *or *([0-9]*\.[0-9]+|[1-9][0-9]*)\\b/i', '$1', $sig); //Take 1 or 2 every 3 or 4 hours. Let's convert that to Take 1 every 3 hours (no global flag).  //Take 1 capsule by mouth twice a day as needed Take one or two twice a day as needed for anxiety
   $sig = preg_replace('/\\b([0-9]*\.[0-9]+|[1-9][0-9]*) *to *([0-9]*\.[0-9]+|[1-9][0-9]*)\\b/i', '$1', $sig); //Take 1 to 2 every 3 or 4 hours. Let's convert that to Take 1 every 3 hours (no global flag).
   $sig = preg_replace('/\\b([0-9]*\.[0-9]+|[1-9][0-9]*) *- *([0-9]*\.[0-9]+|[1-9][0-9]*)\\b/i', '$1', $sig); //Take 1-2 every 3 or 4 hours. Let's convert that to Take 1 every 3 hours (no global flag).
-  $sig = preg_replace('/\\b(exceed (more than )?|exceeding |not to |max(imum)? (of |per day (of )?|daily dose( |: ?))?)([0-9]*\.[0-9]+|[1-9][0-9]*)/i', '', $sig); //Get rid of "max" qtys in sig because they are redundant and could accidentally be added in
 
   //echo "4 $sig";
   //Duration
+  //$sig = preg_replace('/\\b24 hours?/i', '1 day', $sig);
+  //$sig = preg_replace('/\\b48 hours?/i', '2 days', $sig);
+  //$sig = preg_replace('/\\b72 hours?/i', '3 days', $sig);
+  //$sig = preg_replace('/\\b96 hours?/i', '4 days', $sig);
+
   $sig = preg_replace('/\\bx ?(\d+)\\b/i', 'for $1', $sig); // X7 Days == for 7 days
   $sig = preg_replace('/\\bfor 1 months?|months?\d+/i', 'for 30 days', $sig);
   $sig = preg_replace('/\\bfor 2 months?/i', 'for 60 days', $sig);
