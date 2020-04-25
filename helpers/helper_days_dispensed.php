@@ -369,7 +369,7 @@ function days_left_in_refills($item) {
 
   if ($item['refills_total'] != $item['refills_left']) return; //Just because we are out of refills on this script doesn't mean there isn't another script with refills
 
-  $days_left_in_refills = $item['qty_left']/$item['sig_qty_per_day_default'];
+  $days_left_in_refills = $item['qty_left']/$item['sig_qty_per_day'];
 
   //Fill up to 30 days more to finish up an Rx if almost finished.
   //E.g., If 30 day script with 3 refills (4 fills total, 120 days total) then we want to 1x 120 and not 1x 90 + 1x30
@@ -379,10 +379,10 @@ function days_left_in_refills($item) {
 
 function days_left_in_stock($item) {
 
-  if (is_null($item['sig_qty_per_day_default']) OR $item['sig_qty_per_day_default'] > 10)
+  if (is_null($item['sig_qty_per_day']) OR $item['sig_qty_per_day'] > 10)
     return;
 
-  $days_left_in_stock = round($item['qty_inventory']/$item['sig_qty_per_day_default']);
+  $days_left_in_stock = round($item['qty_inventory']/$item['sig_qty_per_day']);
   $stock_level = $item['stock_level_initial'] ?: $item['stock_level'];
 
   if ($days_left_in_stock >= DAYS_STD OR $item['qty_inventory'] >= 500)
@@ -395,7 +395,7 @@ function days_left_in_stock($item) {
 }
 
 function roundDaysUnit($days) {
-  return floor($days/DAYS_UNIT+.1)*DAYS_UNIT; //+.1 because we had 18qty with .201 sig_qty_per_day which gave floor(5.97) -> 75 days instead of 90
+  return floor($days/DAYS_UNIT+.1)*DAYS_UNIT; //+.1 because we had 18qty with .201 sig_qty_per_day_default which gave floor(5.97) -> 75 days instead of 90
 }
 
 //Days is basically the MIN(target_date ?: std_day, qty_left as days, inventory_left as days).
