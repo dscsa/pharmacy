@@ -139,10 +139,10 @@ function clean_sig($sig) {
   $sig = preg_replace('/\\bfor 12 weeks?/i', 'for 84 days', $sig);
 
   //Frequency Denominator
-  $sig = preg_replace('/\/ *24 hours?/i', ' every day', $sig);
-  $sig = preg_replace('/\/ *48 hours?/i', ' every 2 days', $sig);
-  $sig = preg_replace('/\/ *72 hours?/i', ' every 3 days', $sig);
-  $sig = preg_replace('/\/ *96 hours?/i', ' every 4 days', $sig);
+  $sig = preg_replace('/ *24 hours?/i', ' 1 day', $sig);
+  $sig = preg_replace('/ *48 hours?/i', ' 2 days', $sig);
+  $sig = preg_replace('/ *72 hours?/i', ' 3 days', $sig);
+  $sig = preg_replace('/ *96 hours?/i', ' 4 days', $sig);
 
   //echo "5 $sig";
   //Alternative frequency numerator wordings
