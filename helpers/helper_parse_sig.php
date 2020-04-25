@@ -78,7 +78,7 @@ function clean_sig($sig) {
   $sig = preg_replace('/\\bhoras\\b/i', 'hours', $sig);
 
   //If MAX then use max and ignore preceeding sig e.g TAKE 1 TABLET BY MOUTH AS NEEDED FOR MIGRAINE, MAY REPEAT IN 2 HRS IF NEEDED, MAX 2TABS\/24 HRS
-  $sig = preg_replace('/.*(exceed (more than )?|exceeding |not to |max(imum)? (of |per day (of )?|daily dose( |: ?))?)([0-9]*\.[0-9]+|[1-9][0-9]*)/i', 'Max $7', $sig); //Get rid of "max" qtys in sig because they are redundant and could accidentally be added in
+  $sig = preg_replace('/.*(exceed (more than )?|exceeding |not to |max(imum)? (of |per day (of )?|per day dose( |: ?)|daily dose( |: ?))?)([0-9]*\.[0-9]+|[1-9][0-9]*)/i', 'Max $7', $sig); //Get rid of "max" qtys in sig because they are redundant and could accidentally be added in
 
   //Abreviations
   $sig = preg_replace('/\\bhrs\\b/i', 'hours', $sig);
