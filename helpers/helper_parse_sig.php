@@ -139,7 +139,7 @@ function clean_sig($sig) {
   $sig = preg_replace('/\\bfor 12 weeks?/i', 'for 84 days', $sig);
 
   //Frequency Denominator
-  $sig = preg_replace('/\\bq\\b/i', ' every', $sig); //take 1 tablet by oral route q 12 hrs
+  $sig = preg_replace('/\\bq\\b/i', 'every', $sig); //take 1 tablet by oral route q 12 hrs
   $sig = preg_replace('/ *24 hours?/i', ' 1 day', $sig);
   $sig = preg_replace('/ *48 hours?/i', ' 2 days', $sig);
   $sig = preg_replace('/ *72 hours?/i', ' 3 days', $sig);
@@ -172,6 +172,7 @@ function clean_sig($sig) {
 
   //echo "7 $sig";
   //Latin and Appreviations
+  $sig = preg_replace('/\\bSUB-Q\\b/i', 'subcutaneous', $sig);
   $sig = preg_replace('/\\bBID\\b/i', '2 times per day', $sig);
   $sig = preg_replace('/\\bTID\\b/i', '3 times per day', $sig);
   $sig = preg_replace('/\\b(QAM|QPM)\\b/i', '1 time per day', $sig);
@@ -198,8 +199,11 @@ function clean_sig($sig) {
 
   $sig = preg_replace('/\\bin (an|\d) hours?/i', '', $sig); //Don't catch "in an hour" from "Take 2 tablets by mouth as needed of gout & 1 more in an hour as needed"
   $sig = preg_replace('/\\bin \d+ minutes?/i', '', $sig);   //Don't use "in 10 minutes" for the frequency
+  $sig = preg_replace('/\\b(an|\d) hours? later/i', '', $sig); //Don't catch "in an hour" from "Take 2 tablets by mouth as needed of gout & 1 more in an hour as needed"
+  $sig = preg_replace('/\\b\d+ minutes? later/i', '', $sig);   //Don't use "in 10 minutes" for the frequency
+
   $sig = preg_replace('/\\bInject \d+ units?\\b/i', 'Inject 1', $sig); //INJECT 18 UNITS
-  $sig = preg_replace('/\\b\d+ units?(.*subcutan)\\b/i', 'Inject 1 $1', $sig); // "15 units at bedtime 1 time per day Subcutaneous 90 days":
+  $sig = preg_replace('/\\b\d+ units?(.*subcutan)\\b|\\b(subcutan.*)\d+ units?\\b/i', 'Inject 1 $1$2', $sig); // "15 units at bedtime 1 time per day Subcutaneous 90 days":
 
   //Cleanup
   $sig = preg_replace('/  +/i', ' ', $sig); //Remove double spaces for aesthetics
