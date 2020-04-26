@@ -146,6 +146,7 @@ function clean_sig($sig) {
 
   //echo "5 $sig";
   //Alternative frequency numerator wordings
+  $sig = preg_replace('/(?<!all )(other|otra)\\b/i', '2', $sig); //Exclude: Take 4mg 1 time per week, Wed; 2mg all other days or as directed.
   $sig = preg_replace('/\\bonce\\b/i', '1 time', $sig);
   $sig = preg_replace('/\\btwice\\b/i', '2 times', $sig);
   $sig = preg_replace('/\\bhourly\\b/i', 'per hour', $sig);
@@ -379,9 +380,9 @@ function sig_qty($parsed) {
     //"For 30 days" in "take 1 tablet by Oral route 4 times per day 1 hour before meals & at bedtime for 30 days"
     //was being applied to the 2nd duration but not the first, so now we default a 0 duration to the last element
     //of the array and only default it to DAYS_STD if the last element is also 0
-    print_r($parsed['durations']);
-    print_r($parsed['durations'][$i]);
-    print_r(end($parsed['durations']));
+    //print_r($parsed['durations']);
+    //print_r($parsed['durations'][$i]);
+    //print_r(end($parsed['durations']));
     $duration = $parsed['durations'][$i] ?: end($parsed['durations']);
     $qty += ($duration ?: DAYS_STD) * $parsed['qtys_per_time'][$i] * $parsed['frequency_numerators'][$i] / $parsed['frequency_denominators'][$i] / eval("return $frequency;");
   }
