@@ -379,6 +379,9 @@ function sig_qty($parsed) {
     //"For 30 days" in "take 1 tablet by Oral route 4 times per day 1 hour before meals & at bedtime for 30 days"
     //was being applied to the 2nd duration but not the first, so now we default a 0 duration to the last element
     //of the array and only default it to DAYS_STD if the last element is also 0
+    print_r($parsed['durations']);
+    print_r($parsed['durations'][$i]);
+    print_r(end($parsed['durations']);
     $duration = $parsed['durations'][$i] ?: end($parsed['durations']);
     $qty += ($duration ?: DAYS_STD) * $parsed['qtys_per_time'][$i] * $parsed['frequency_numerators'][$i] / $parsed['frequency_denominators'][$i] / eval("return $frequency;");
   }
