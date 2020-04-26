@@ -381,7 +381,7 @@ function sig_qty($parsed) {
     //of the array and only default it to DAYS_STD if the last element is also 0
     print_r($parsed['durations']);
     print_r($parsed['durations'][$i]);
-    print_r(end($parsed['durations']);
+    print_r(end($parsed['durations']));
     $duration = $parsed['durations'][$i] ?: end($parsed['durations']);
     $qty += ($duration ?: DAYS_STD) * $parsed['qtys_per_time'][$i] * $parsed['frequency_numerators'][$i] / $parsed['frequency_denominators'][$i] / eval("return $frequency;");
   }
