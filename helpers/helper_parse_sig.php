@@ -193,6 +193,10 @@ function clean_sig($sig) {
 
   //echo "9 $sig";
 
+  //Alternative Wordings
+
+  $sig = preg_replace('/\\bin (an|\d) hours?/i', '', $sig); //Don't catch "in an hour" from "Take 2 tablets by mouth as needed of gout & 1 more in an hour as needed"
+  $sig = preg_replace('/\\bin \d+ minutes?/i', '', $sig);   //Don't use "in 10 minutes" for the frequency
   $sig = preg_replace('/\\bInject \d+ units?\\b/i', 'Inject 1', $sig); //INJECT 18 UNITS
   $sig = preg_replace('/\\b\d+ units?(.*subcutaneous)\\b/i', 'Inject 1 $1', $sig); // "15 units at bedtime 1 time per day Subcutaneous 90 days":
 
@@ -244,7 +248,7 @@ function qtys_per_time($durations, $drug_name, $correct) {
     //"Use daily with lantus"  won't match the RegEx below
     $count = preg_match_all('/([0-9]*\.[0-9]+|[1-9][0-9]*) ?(ml|tab|cap|pill|softgel|patch|injection|each)|(^|use +|max +|maximum +|total +of +|take +|inhale +|chew +|inject +|oral +)([0-9]*\.[0-9]+|[1-9][0-9]*)(?!\d| *\.| *mg| *time| *min| *hour| *day| *week| *month)/i', $sig_part, $match);
 
-    print_r(['duration' => $duration, 'match' => $match, 'count' => $count]);
+    //print_r(['duration' => $duration, 'match' => $match, 'count' => $count]);
 
     if ($count) {
       //Avoid issues of dupliced Sigs. e.g Take 1 tablet by mouth 1 time a day Take 1 tablet per day
@@ -262,7 +266,7 @@ function qtys_per_time($durations, $drug_name, $correct) {
     preg_match($regex_match, $drug_name, $drug_match);
     preg_match($regex_match, $sig_part, $sig_match);
 
-    print_r(['duration' => $duration, 'drug_name' => $drug_name, 'drug_match' => $drug_match, 'sig_match' => $sig_match]);
+    //print_r(['duration' => $duration, 'drug_name' => $drug_name, 'drug_match' => $drug_match, 'sig_match' => $sig_match]);
 
     if ( ! $drug_match OR ! $sig_match) {
       //If its the first duration assume 1 qty per time, but if this is a 2nd sentence don't assume anything
