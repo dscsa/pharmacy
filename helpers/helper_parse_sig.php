@@ -244,6 +244,8 @@ function qtys_per_time($durations, $drug_name, $correct) {
     //"Use daily with lantus"  won't match the RegEx below
     $count = preg_match_all('/([0-9]*\.[0-9]+|[1-9][0-9]*) ?(ml|tab|cap|pill|softgel|patch|injection|each)|(^|use +|max +|maximum +|total +of +|take +|inhale +|chew +|inject +|oral +)([0-9]*\.[0-9]+|[1-9][0-9]*)(?!\d| *\.| *mg| *time| *min| *hour| *day| *week| *month)/i', $sig_part, $match);
 
+    print_r(['duration' => $duration, 'match' => $match, 'count' => $count]);
+
     if ($count) {
       //Avoid issues of dupliced Sigs. e.g Take 1 tablet by mouth 1 time a day Take 1 tablet per day
       if (count($match[1]) == 2 AND $match[1][0] == $match[1][1])
@@ -259,6 +261,8 @@ function qtys_per_time($durations, $drug_name, $correct) {
     $regex_match = '/([0-9]*\.[0-9]+|[1-9][0-9]*) ?mc?g\\b/i';
     preg_match($regex_match, $drug_name, $drug_match);
     preg_match($regex_match, $sig_part, $sig_match);
+
+    print_r(['duration' => $duration, 'drug_match' => $drug_match, 'sig_match' => $sig_match]);
 
     if ( ! $drug_match OR ! $sig_match) {
       //If its the first duration assume 1 qty per time, but if this is a 2nd sentence don't assume anything
