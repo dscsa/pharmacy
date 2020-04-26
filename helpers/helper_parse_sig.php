@@ -262,7 +262,7 @@ function qtys_per_time($durations, $drug_name, $correct) {
     preg_match($regex_match, $drug_name, $drug_match);
     preg_match($regex_match, $sig_part, $sig_match);
 
-    print_r(['duration' => $duration, 'drug_match' => $drug_match, 'sig_match' => $sig_match]);
+    print_r(['duration' => $duration, 'drug_name' => $drug_name, 'drug_match' => $drug_match, 'sig_match' => $sig_match]);
 
     if ( ! $drug_match OR ! $sig_match) {
       //If its the first duration assume 1 qty per time, but if this is a 2nd sentence don't assume anything
