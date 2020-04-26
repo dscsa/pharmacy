@@ -701,6 +701,7 @@ $test_sigs = [
   //Take 1 tablet by oral route every day swallowing whole with water. Do not crush, chew and\/or divide
   //3 Tablet with meals 3 times per day, 1 tablet with snack, max per day dose: 10 Tablet
   //Max 3 in 24 hours
+  //Take 3 tablets by mouth 3 times a day with meal & Take 1 tablet with a snack, for a total of 10 tablets per day
 ];
 
 global $argv;

@@ -78,7 +78,7 @@ function clean_sig($sig) {
   $sig = preg_replace('/\\bhoras\\b/i', 'hours', $sig);
 
   //If MAX then use max and ignore preceeding sig e.g TAKE 1 TABLET BY MOUTH AS NEEDED FOR MIGRAINE, MAY REPEAT IN 2 HRS IF NEEDED, MAX 2TABS\/24 HRS
-  $sig = preg_replace('/.*(exceed (more than )?|exceeding |not to |max(imum)? (of |per day (of )?|per day dose( |: ?)|daily dose( |: ?))?)([0-9]*\.[0-9]+|[1-9][0-9]*)/i', 'Max $8', $sig); //Get rid of "max" qtys in sig because they are redundant and could accidentally be added in
+  $sig = preg_replace('/.*(exceed (more than )?|exceeding |totaling |total of |not to |max(imum)? (of |per day (of )?|per day dose( |: ?)|daily dose( |: ?))?)([0-9]*\.[0-9]+|[1-9][0-9]*)/i', 'Max $8', $sig); //Get rid of "max" qtys in sig because they are redundant and could accidentally be added in
 
   //Abreviations
   $sig = preg_replace('/\\bhrs\\b/i', 'hours', $sig);
@@ -241,7 +241,7 @@ function qtys_per_time($durations, $drug_name, $correct) {
 
   foreach ($durations as $sig_part => $duration) {
     //"Use daily with lantus"  won't match the RegEx below
-    $count = preg_match_all('/([0-9]*\.[0-9]+|[1-9][0-9]*) ?(ml|tab|cap|pill|softgel|patch|injection|each)|(^|use +|max +|maximum +|take +|inhale +|chew +|inject +|oral +)([0-9]*\.[0-9]+|[1-9][0-9]*)(?!\d| *\.| *mg| *time| *min| *hour| *day| *week| *month)/i', $sig_part, $match);
+    $count = preg_match_all('/([0-9]*\.[0-9]+|[1-9][0-9]*) ?(ml|tab|cap|pill|softgel|patch|injection|each)|(^|use +|max +|maximum +|total +of +|take +|inhale +|chew +|inject +|oral +)([0-9]*\.[0-9]+|[1-9][0-9]*)(?!\d| *\.| *mg| *time| *min| *hour| *day| *week| *month)/i', $sig_part, $match);
 
     if ($count) {
       //Avoid issues of dupliced Sigs. e.g Take 1 tablet by mouth 1 time a day Take 1 tablet per day
