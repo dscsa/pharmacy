@@ -375,8 +375,13 @@ function sig_qty($parsed) {
   $qty = 0;
 
   //eval converts string fractions to decimals https://stackoverflow.com/questions/7142657/convert-fraction-string-to-decimal
-  foreach ($parsed['frequencies'] as $i => $frequency)
-    $qty += ($parsed['durations'][$i] ?: DAYS_STD) * $parsed['qtys_per_time'][$i] * $parsed['frequency_numerators'][$i] / $parsed['frequency_denominators'][$i] / eval("return $frequency;");
+  foreach ($parsed['frequencies'] as $i => $frequency) {
+    //"For 30 days" in "take 1 tablet by Oral route 4 times per day 1 hour before meals & at bedtime for 30 days"
+    //was being applied to the 2nd duration but not the first, so now we default a 0 duration to the last element
+    //of the array and only default it to DAYS_STD if the last element is also 0
+    $duration = $parsed['durations'][$i] ?: end($parsed['durations']);
+    $qty += ($duration ?: DAYS_STD) * $parsed['qtys_per_time'][$i] * $parsed['frequency_numerators'][$i] / $parsed['frequency_denominators'][$i] / eval("return $frequency;");
+  }
 
   return $qty;
 }
