@@ -44,7 +44,7 @@ function get_parsed_sig($sig_actual, $drug_name, $correct = null) {
   $parsed['frequency_denominators'] = frequency_denominators($parsed['durations'], $correct);
   $parsed['frequencies'] = frequencies($parsed['durations'], $correct);
 
-  if (strpos($drug_name, ' INH') === false) {
+  if (strpos($drug_name, ' INH') === false AND strpos($parsed['sig_clean'], ' puff') === false) {
     $parsed['sig_days']    = array_sum($parsed['durations']);
     $parsed['sig_qty']     = sig_qty($parsed);
     $parsed['qty_per_day'] = qty_per_day($parsed);

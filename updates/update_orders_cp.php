@@ -21,7 +21,6 @@ function update_orders_cp() {
 
   $mysql = new Mysql_Wc();
 
-
   //Usually we could just do old_days_dispensed_default != days_dispensed_default AND old_days_dispensed_actual != days_dispensed_actual
   //BUT those are on the order_item level.  We don't want to handle them in update_order_items.php because we need to batch the changes
   //so we don't need to rerun the invoice update on every call.  We only run this when the order is dispensed, otherwise it could detect
@@ -31,6 +30,7 @@ function update_orders_cp() {
 
     $day_changes     = [];
     $qty_changes     = [];
+    $mysql = new Mysql_Wc();
 
     //Normall would run this in the update_order_items.php but we want to wait for all the items to change so that we don't rerun multiple times
     foreach ($order as $item) {
