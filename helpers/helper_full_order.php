@@ -4,7 +4,21 @@ require_once 'exports/export_cp_rxs.php';
 
 function get_full_order($partial, $mysql, $overwrite_rx_messages = false) {
 
+  if (isset($partial['invoice_number'])) {
+    $where1 = " gp_orders.invoice_number = $partial[invoice_number]";
+  }
+  else if (isset($partial['patient_id_cp'])) {
+    $where1 = " gp_patients.patient_id_cp = $partial[patient_id_cp]";
+  }
+  else {
+    log_error('ERROR! get_full_order: was not given an invoice number or a patient_id_cp', $partial);
+    return;
+  }
+
   $month_interval = 6;
+  $where2 = "
+    AND (CASE WHEN refills_total OR item_date_added THEN gp_rxs_grouped.rx_date_expired ELSE COALESCE(gp_rxs_grouped.rx_date_transferred, gp_rxs_grouped.refill_date_last) END) > CURDATE() - INTERVAL $month_interval MONTH
+  ";
 
   //gp_orders.invoice_number and other fields at end because otherwise potentially null gp_order_items.invoice_number will override gp_orders.invoice_number
   $sql = "
@@ -16,36 +30,23 @@ function get_full_order($partial, $mysql, $overwrite_rx_messages = false) {
       gp_orders
     RIGHT JOIN gp_patients ON
       gp_patients.patient_id_cp = gp_orders.patient_id_cp
-    LEFT JOIN gp_rxs_grouped ON -- Show all Rxs on Invoice regardless if they are in order or not
+    RIGHT JOIN gp_rxs_grouped ON -- Show all Rxs on Invoice regardless if they are in order or not
       gp_rxs_grouped.patient_id_cp = gp_orders.patient_id_cp
-    LEFT JOIN gp_order_items ON
+    RIGHT JOIN gp_order_items ON
       gp_order_items.invoice_number = gp_orders.invoice_number AND rx_numbers LIKE CONCAT('%,', gp_order_items.rx_number, ',%') -- In case the rx is added in a different orders
-    LEFT JOIN gp_rxs_single ON -- Needed to know qty_left for sync-to-date
+    RIGHT JOIN gp_rxs_single ON -- Needed to know qty_left for sync-to-date
       COALESCE(gp_order_items.rx_number, gp_rxs_grouped.best_rx_number) = gp_rxs_single.rx_number
-    LEFT JOIN gp_stock_live ON -- might not have a match if no GSN match
+    RIGHT JOIN gp_stock_live ON -- might not have a match if no GSN match
       gp_rxs_grouped.drug_generic = gp_stock_live.drug_generic -- this is for the helper_days_dispensed msgs for unordered drugs
     WHERE
-      (CASE WHEN refills_total OR item_date_added THEN gp_rxs_grouped.rx_date_expired ELSE COALESCE(gp_rxs_grouped.rx_date_transferred, gp_rxs_grouped.refill_date_last) END) > CURDATE() - INTERVAL $month_interval MONTH AND
   ";
 
-  if (isset($partial['invoice_number'])) {
-    $suffix = " gp_orders.invoice_number = $partial[invoice_number]";
-    $debug  = "SELECT * FROM gp_orders LEFT JOIN gp_patients ON gp_patients.patient_id_cp = gp_orders.patient_id_cp WHERE ".$suffix;
-  }
-  else if (isset($partial['patient_id_cp'])) {
-    $suffix = " gp_patients.patient_id_cp = $partial[patient_id_cp]";
-    $debug  = "SELECT * FROM gp_orders RIGHT JOIN gp_patients ON gp_patients.patient_id_cp = gp_orders.patient_id_cp WHERE ".$suffix;
-  }
-  else {
-    log_error('ERROR! get_full_order: was not given an invoice number or a patient_id_cp', $partial);
-    return;
-  }
 
-
-  $order = $mysql->run($sql.$suffix)[0];
+  $order = $mysql->run($sql.$where1.$where2)[0];
 
   if ( ! $order OR ! $order[0]['patient_id_cp']) {
-    $exists = $mysql->run($debug)[0];
+    $exists = $mysql->run("SELECT * FROM gp_orders RIGHT JOIN gp_patients ON gp_patients.patient_id_cp = gp_orders.patient_id_cp WHERE ".$where1)[0];
+    $non_recent = $mysql->run($sql.$where1)[0];
     if (isset($partial['patient_id_cp'])) {
       $rxs_single  = $mysql->run("SELECT * FROM gp_rxs_single  WHERE patient_id_cp = $partial[patient_id_cp]")[0];
       $rxs_grouped = $mysql->run("SELECT * FROM gp_rxs_grouped WHERE patient_id_cp = $partial[patient_id_cp]")[0];

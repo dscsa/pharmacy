@@ -623,11 +623,10 @@ function birth_date_year($user_id) {
       'placeholder' => 'Year',
       'custom_attributes' => [
         'disabled' => true,
-        'pattern'  => implode('|', $regexs),
+        'pattern'  => '\s*'.implode('\s*|\s*', $regexs).'\s*', //Allow leading and trailing spaces as those might be hard for user to see
         'title' => "Please enter a year between $min_date-$max_date",
         'inputmode' => 'numeric',
         'minlength' => '2',
-        'maxlength' => '4',
         'user_id'  => $user_id
       ]
   ];
