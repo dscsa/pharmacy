@@ -21,6 +21,7 @@ function get_full_order($partial, $mysql, $overwrite_rx_messages = false) {
   ";
 
   //gp_orders.invoice_number and other fields at end because otherwise potentially null gp_order_items.invoice_number will override gp_orders.invoice_number
+  //Don't fully understand LEFT vs RIGHT Joins but experimented around on a missing full_order that had 0 results (#33374) until I got the max number of rows
   $sql = "
     SELECT
       *,
@@ -32,11 +33,11 @@ function get_full_order($partial, $mysql, $overwrite_rx_messages = false) {
       gp_patients.patient_id_cp = gp_orders.patient_id_cp
     RIGHT JOIN gp_rxs_grouped ON -- Show all Rxs on Invoice regardless if they are in order or not
       gp_rxs_grouped.patient_id_cp = gp_orders.patient_id_cp
-    RIGHT JOIN gp_order_items ON
+    LEFT JOIN gp_order_items ON
       gp_order_items.invoice_number = gp_orders.invoice_number AND rx_numbers LIKE CONCAT('%,', gp_order_items.rx_number, ',%') -- In case the rx is added in a different orders
     RIGHT JOIN gp_rxs_single ON -- Needed to know qty_left for sync-to-date
       COALESCE(gp_order_items.rx_number, gp_rxs_grouped.best_rx_number) = gp_rxs_single.rx_number
-    RIGHT JOIN gp_stock_live ON -- might not have a match if no GSN match
+    LEFT JOIN gp_stock_live ON -- might not have a match if no GSN match
       gp_rxs_grouped.drug_generic = gp_stock_live.drug_generic -- this is for the helper_days_dispensed msgs for unordered drugs
     WHERE
   ";
@@ -51,7 +52,7 @@ function get_full_order($partial, $mysql, $overwrite_rx_messages = false) {
       $rxs_single  = $mysql->run("SELECT * FROM gp_rxs_single  WHERE patient_id_cp = $partial[patient_id_cp]")[0];
       $rxs_grouped = $mysql->run("SELECT * FROM gp_rxs_grouped WHERE patient_id_cp = $partial[patient_id_cp]")[0];
     }
-    log_error("ERROR! get_full_order: no order with invoice number:$partial[invoice_number] or order does not have active patient:$partial[patient_id_cp]. No Rxs? Patient just registered?", get_defined_vars());
+    log_error("ERROR! get_full_order: no order with invoice number:$partial[invoice_number] or order does not have active patient:$partial[patient_id_cp]. No Rxs? Patient just registered (invoice number is set and used in query but no items so order not imported from CP)?", get_defined_vars());
     return;
   }
 
