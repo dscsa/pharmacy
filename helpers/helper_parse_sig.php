@@ -44,7 +44,7 @@ function get_parsed_sig($sig_actual, $drug_name, $correct = null) {
   $parsed['frequency_denominators'] = frequency_denominators($parsed['durations'], $correct);
   $parsed['frequencies'] = frequencies($parsed['durations'], $correct);
 
-  if (strpos($drug_name, ' INH') === false AND strpos($parsed['sig_clean'], ' puff') === false) {
+  if (stripos($drug_name, ' INH') === false AND stripos($drug_name, ' CREAM') === false AND stripos($parsed['sig_clean'], ' puff') === false) {
     $parsed['sig_days']    = array_sum($parsed['durations']);
     $parsed['sig_qty']     = sig_qty($parsed);
     $parsed['qty_per_day'] = qty_per_day($parsed);
@@ -113,10 +113,9 @@ function clean_sig($sig) {
   $sig = preg_replace('/\\b(\d+) (& )?(\.5|1\/2|1-half|1 half)\\b/i', '$1.5', $sig); //Take 1 1/2 tablets
   $sig = preg_replace('/(^| )(\.5|1\/2|1-half|1 half)\\b/i', ' 0.5', $sig);
 
-  //Take First (Min?) of Numeric Ranges
-  $sig = preg_replace('/\\b([0-9]*\.[0-9]+|[1-9][0-9]*) *or *([0-9]*\.[0-9]+|[1-9][0-9]*)\\b/i', '$1', $sig); //Take 1 or 2 every 3 or 4 hours. Let's convert that to Take 1 every 3 hours (no global flag).  //Take 1 capsule by mouth twice a day as needed Take one or two twice a day as needed for anxiety
-  $sig = preg_replace('/\\b([0-9]*\.[0-9]+|[1-9][0-9]*) *to *([0-9]*\.[0-9]+|[1-9][0-9]*)\\b/i', '$1', $sig); //Take 1 to 2 every 3 or 4 hours. Let's convert that to Take 1 every 3 hours (no global flag).
-  $sig = preg_replace('/\\b([0-9]*\.[0-9]+|[1-9][0-9]*) *- *([0-9]*\.[0-9]+|[1-9][0-9]*)\\b/i', '$1', $sig); //Take 1-2 every 3 or 4 hours. Let's convert that to Take 1 every 3 hours (no global flag).
+  //Take First (Min?) of Numeric Ranges, except 0.5 to 1 in which case we use 1
+  $sig = preg_replace('/\\b0.5 *(or|to|-) *1\\b/i', '1', $sig); //Special case of the below where we want to round up rather than down
+  $sig = preg_replace('/\\b([0-9]*\.[0-9]+|[1-9][0-9]*) *(or|to|-) *([0-9]*\.[0-9]+|[1-9][0-9]*)\\b/i', '$1', $sig); //Take 1 or 2 every 3 or 4 hours. Let's convert that to Take 1 every 3 hours (no global flag).  //Take 1 capsule by mouth twice a day as needed Take one or two twice a day as needed for anxiety
 
   //echo "4 $sig";
   //Duration
