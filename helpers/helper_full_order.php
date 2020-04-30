@@ -1,7 +1,7 @@
 <?php
 //order created -> add any additional rxs to order -> import order items -> sync all drugs in order
 require_once 'exports/export_cp_rxs.php';
-require_once 'helper/helper_full_fields.php';
+require_once 'helpers/helper_full_fields.php';
 
 
 function get_full_order($partial, $mysql, $overwrite_rx_messages = false) {
