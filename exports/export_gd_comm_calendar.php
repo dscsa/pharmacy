@@ -365,8 +365,8 @@ function no_rx_notice($deleted, $patient) {
     ? "We will attempt to transfer the Rxs you requested from your pharmacy."
     : "We haven't gotten any Rxs from your doctor yet but will notify you as soon as we do.";
 
-  $email = [ "email" => $patient['email'] ]; //TODO email is not actual a property on $deleted
-  $text  = [ "sms"   => get_phones([$patient]), $message => $subject.'. '.$message ];
+  $email = [ "email" => $patient[0]['email'] ]; //TODO email is not actual a property on $deleted
+  $text  = [ "sms"   => get_phones($patient), $message => $subject.'. '.$message ];
 
   $email['subject'] = $subject;
   $email['message']  = implode('<br>', [
@@ -394,8 +394,8 @@ function order_canceled_notice($deleted, $patient) {
   $subject = "We have canceled your Order #".$deleted['invoice_number'];
   $message = "We have canceled this order. Please call us at (888) 987-5187 if you believe this is in error.";
 
-  $email = [ "email" => $patient['email'] ]; //TODO email is not actual a property on $deleted
-  $text  = [ "sms" => get_phones([$patient]),  "message" => $subject.'. '.$message ];
+  $email = [ "email" => $patient[0]['email'] ]; //TODO email is not actual a property on $deleted
+  $text  = [ "sms" => get_phones($patient),  "message" => $subject.'. '.$message ];
 
   $email['subject'] = $subject;
   $email['message'] = implode('<br>', [
