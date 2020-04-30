@@ -90,19 +90,19 @@ function update_rxs_single() {
     ? $mysql->commit()
     : $mysql->rollback();
 
-  //Run this after rx_grouped query to ensure get_full_order retrieves an accurate order profile
+  //Run this after rx_grouped query to ensure get_full_patient retrieves an accurate order profile
   foreach($changes['updated'] as $updated) {
 
     $changed = changed_fields($updated);
 
     if ($updated['rx_autofill'] != $updated['old_rx_autofill']) {
 
-      $order = get_full_order($updated, $mysql, true); //This updates & overwrites set_rx_messages
+      $patient = get_full_patient($updated, $mysql, true); //This updates & overwrites set_rx_messages
 
       //We want all Rxs with the same GSN to share the same rx_autofill value, so when one changes we must change them all
       //SQL to DETECT inconsistencies:
       //SELECT patient_id_cp, rx_gsn, MAX(drug_name), MAX(CONCAT(rx_number, rx_autofill)), GROUP_CONCAT(rx_autofill), GROUP_CONCAT(rx_number) FROM gp_rxs_single GROUP BY patient_id_cp, rx_gsn HAVING AVG(rx_autofill) > 0 AND AVG(rx_autofill) < 1
-      foreach ($order as $item) {
+      foreach ($patient as $item) {
         if ($updated['rx_number'] == $item['rx_number']) {
           $in  = str_replace(',', "','", substr($item['drug_gsns'], 1, -1)); //use drugs_gsns instead of rx_gsn just in case there are multiple gsns for this drug
           $sql = "UPDATE cprx SET autofill_yn = $updated[rx_autofill] WHERE pat_id = $updated[patient_id_cp] AND gcn_seqno IN ('$in')";
@@ -110,26 +110,23 @@ function update_rxs_single() {
         }
       }
 
-      log_error("update_rxs_single rx_autofill changed.  Updating all Rx's with same GSN to be on/off Autofill. Confirm correct updated rx_messages", ['order' => $order, 'updated' => $updated, 'sql' => $sql, 'changed' => $changed]);
+      log_error("update_rxs_single rx_autofill changed.  Updating all Rx's with same GSN to be on/off Autofill. Confirm correct updated rx_messages", ['patient' => $patient, 'updated' => $updated, 'sql' => $sql, 'changed' => $changed]);
     }
 
     if ($updated['rx_gsn'] AND ! $updated['old_rx_gsn']) {
 
-      $profile = get_full_order($updated, $mysql, true); //This updates & overwrites set_rx_messages
+      $patient = get_full_patient($updated, $mysql, true); //This updates & overwrites set_rx_messages
 
-      log_error("update_rxs_single rx_gsn no longer missing (but still might not be in v2 yet).  Confirm correct updated rx_messages", [$profile, $updated, $changed]);
+      log_error("update_rxs_single rx_gsn no longer missing (but still might not be in v2 yet).  Confirm correct updated rx_messages", [$patient, $updated, $changed]);
     }
 
     if ($updated['rx_transfer'] AND ! $updated['old_rx_transfer']) {
 
-      $profile = get_full_order($updated, $mysql, true); //This updates & overwrites set_rx_messages
+      $patient = get_full_patient($updated, $mysql, true); //This updates & overwrites set_rx_messages
 
-      log_error("update_rxs_single rx was transferred out.  Confirm correct updated rx_messages", [$profile, $updated, $changed]);
+      log_error("update_rxs_single rx was transferred out.  Confirm correct updated rx_messages", [$patient, $updated, $changed]);
     }
   }
-
-
-
 
   //TODO if new Rx arrives and there is an active order where that Rx is not included because of "ACTION NO REFILLS" or "ACTION RX EXPIRED" or the like, then we should rerun the helper_days_dispensed on the order_item
 

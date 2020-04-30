@@ -4,7 +4,7 @@ require_once 'helpers/helper_appsscripts.php';
 
 function export_gd_transfer_fax($item, $source) {
 
-  log_notice("WebForm export_gd_transfer_fax CALLED $item[invoice_number] $source", get_defined_vars());
+  log_notice("WebForm export_gd_transfer_fax CALLED $item[invoice_number] $item[drug_name] $source", get_defined_vars());
 
   if (
     $item['rx_message_key']  != 'NO ACTION WILL TRANSFER' AND
@@ -14,7 +14,7 @@ function export_gd_transfer_fax($item, $source) {
     return;
 
   if ($item['rx_transfer']) {
-    return log_error("WebForm export_gd_transfer_fax NOT SENT, ALREADY TRANSFERRED $item[invoice_number] $source", get_defined_vars());
+    return log_error("WebForm export_gd_transfer_fax NOT SENT, ALREADY TRANSFERRED $item[invoice_number] $item[drug_name] $source", get_defined_vars());
   }
 
   $to = '8882987726'; //$item['pharmacy_fax'] ?: '8882987726';
@@ -29,5 +29,5 @@ function export_gd_transfer_fax($item, $source) {
 
   $result = gdoc_post(GD_MERGE_URL, $args);
 
-  log_error("WebForm export_gd_transfer_fax SENT $item[invoice_number] $source", get_defined_vars());
+  log_error("WebForm export_gd_transfer_fax SENT $item[invoice_number] $item[drug_name] $source", get_defined_vars());
 }

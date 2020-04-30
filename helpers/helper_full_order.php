@@ -1,22 +1,18 @@
 <?php
 //order created -> add any additional rxs to order -> import order items -> sync all drugs in order
 require_once 'exports/export_cp_rxs.php';
+require_once 'helper/helper_full_fields.php';
+
 
 function get_full_order($partial, $mysql, $overwrite_rx_messages = false) {
 
-  if (isset($partial['invoice_number'])) {
-    $where1 = " gp_orders.invoice_number = $partial[invoice_number]";
-  }
-  else if (isset($partial['patient_id_cp'])) {
-    $where1 = " gp_patients.patient_id_cp = $partial[patient_id_cp]";
-  }
-  else {
-    log_error('ERROR! get_full_order: was not given an invoice number or a patient_id_cp', $partial);
+  if ( ! isset($partial['invoice_number'])) {
+    log_error('ERROR! get_full_order: was not given an invoice number', $partial);
     return;
   }
 
   $month_interval = 6;
-  $where2 = "
+  $where = "
     AND (CASE WHEN refills_total OR item_date_added THEN gp_rxs_grouped.rx_date_expired ELSE COALESCE(gp_rxs_grouped.rx_date_transferred, gp_rxs_grouped.refill_date_last) END) > CURDATE() - INTERVAL $month_interval MONTH
   ";
 
@@ -29,34 +25,28 @@ function get_full_order($partial, $mysql, $overwrite_rx_messages = false) {
       gp_rxs_grouped.* -- Need to put this first based on how we are joining, but make sure these grouped fields overwrite their single equivalents
     FROM
       gp_orders
-    RIGHT JOIN gp_patients ON
+    LEFT JOIN gp_patients ON
       gp_patients.patient_id_cp = gp_orders.patient_id_cp
-    RIGHT JOIN gp_rxs_grouped ON -- Show all Rxs on Invoice regardless if they are in order or not
+    LEFT JOIN gp_rxs_grouped ON -- Show all Rxs on Invoice regardless if they are in order or not
       gp_rxs_grouped.patient_id_cp = gp_orders.patient_id_cp
     LEFT JOIN gp_order_items ON
       gp_order_items.invoice_number = gp_orders.invoice_number AND rx_numbers LIKE CONCAT('%,', gp_order_items.rx_number, ',%') -- In case the rx is added in a different orders
-    RIGHT JOIN gp_rxs_single ON -- Needed to know qty_left for sync-to-date
+    LEFT JOIN gp_rxs_single ON -- Needed to know qty_left for sync-to-date
       COALESCE(gp_order_items.rx_number, gp_rxs_grouped.best_rx_number) = gp_rxs_single.rx_number
     LEFT JOIN gp_stock_live ON -- might not have a match if no GSN match
       gp_rxs_grouped.drug_generic = gp_stock_live.drug_generic -- this is for the helper_days_dispensed msgs for unordered drugs
     WHERE
+      gp_orders.invoice_number = $partial[invoice_number]
   ";
 
+  $order = $mysql->run($sql.$where)[0];
 
-  $order = $mysql->run($sql.$where1.$where2)[0];
-
-  if ( ! $order OR ! $order[0]['patient_id_cp']) {
-    $exists = $mysql->run("SELECT * FROM gp_orders RIGHT JOIN gp_patients ON gp_patients.patient_id_cp = gp_orders.patient_id_cp WHERE ".$where1)[0];
-    $non_recent = $mysql->run($sql.$where1)[0];
-    if (isset($partial['patient_id_cp'])) {
-      $rxs_single  = $mysql->run("SELECT * FROM gp_rxs_single  WHERE patient_id_cp = $partial[patient_id_cp]")[0];
-      $rxs_grouped = $mysql->run("SELECT * FROM gp_rxs_grouped WHERE patient_id_cp = $partial[patient_id_cp]")[0];
-    }
-    log_error("ERROR! get_full_order: no order with invoice number:$partial[invoice_number] or order does not have active patient:$partial[patient_id_cp]. No Rxs? Patient just registered (invoice number is set and used in query but no items so order not imported from CP)?", get_defined_vars());
+  if ( ! $order OR ! $order[0]['invoice_number']) {
+    log_error("ERROR! get_full_order: no order with invoice number:$partial[invoice_number]. No Rxs? Patient just registered (invoice number is set and used in query but no items so order not imported from CP)?", get_defined_vars());
     return;
   }
 
-  $order = add_gd_fields_to_order($order, $mysql, $overwrite_rx_messages);
+  $order = add_full_fields($order, $mysql, $overwrite_rx_messages);
   usort($order, 'sort_order_by_day'); //Put Rxs in order (with Rx_Source) at the top
   $order = add_wc_status_to_order($order);
 
@@ -78,89 +68,6 @@ function add_wc_status_to_order($order) {
       $drug_names[$item['drug']] = $item['sig_qty_per_day'];
     }
   }
-
-  return $order;
-}
-
-//Simplify GDoc Invoice Logic by combining _actual
-function add_gd_fields_to_order($order, $mysql, $overwrite_rx_messages) {
-
-  $count_filled = 0;
-
-  //Consolidate default and actual suffixes to avoid conditional overload in the invoice template and redundant code within communications
-  foreach($order as $i => $dontuse) { //don't use val because order[$i] and $item will become out of sync as we set properties
-
-    if ($order[$i]['rx_message_key'] == 'ACTION NO REFILLS' AND $order[$i]['rx_dispensed_id'] AND $order[$i]['refills_total'] >= .1) {
-      log_error('add_gd_fields_to_order: status of ACTION NO REFILLS but has refills. Do we need to send updated communications?', $order[$i]);
-      $order[$i]['rx_message_key'] = NULL;
-    }
-
-    $days     = NULL;
-    $message  = NULL;
-
-    $order[$i]['rx_date_written'] = date('Y-m-d', strtotime($order[$i]['rx_date_expired'].' -1 year')); //Set before export_gd_transfer_fax()
-
-    $set_days = ($order[$i]['item_date_added'] AND is_null($order[$i]['days_dispensed_default']));
-    $set_msgs = ($overwrite_rx_messages OR ! $order[$i]['rx_message_key'] OR is_null($order[$i]['rx_message_text']));
-
-    if ($set_days OR $set_msgs) {
-      list($days, $message) = get_days_default($order[$i], $order);
-
-      //log_notice('add_gd_fields_to_order: before', ['drug_name' => $order[$i]['drug_name'], 'rx_numbers' => $order[$i]['rx_numbers'], 'days' => $days, 'message' => $message, 'set_msgs' => $set_msgs, 'set_days' => $set_days,  'rx_message_key' => $order[$i]['rx_message_key']]);
-
-      if ($set_days)
-        $order[$i] = set_days_default($order[$i], $days, $mysql);
-
-      if ($set_msgs) { //On a sync_to_order the rx_message_key will be set, but days will not yet be set since their was not an order_item until now.  But we don't want to override the original sync message
-        $order[$i] = export_cp_set_rx_message($order[$i], $message, $mysql);
-        export_gd_transfer_fax($order[$i], 'helper full order'); //Internal logic determines if fax is necessary
-      }
-
-      //log_notice('add_gd_fields_to_order: after', ['item' => $order[$i]]);
-
-      if ($order[$i]['qty_original'] != $order[$i]['sig_qty'] * $order[$i]['refills_dispensed_default']) {
-        log_notice("helper_full_order: sig qty doesn't match qty_original.  What is going on?", $order[$i]);
-      } else if ($order[$i]['sig_days'] AND $order[$i]['sig_days'] != 90) {
-        log_notice("helper_full_order: sig has days specified other than 90", $order[$i]);
-      }
-
-    }
-
-    if ( ! $order[$i]['rx_message_key'] OR is_null($order[$i]['rx_message_text'])) {
-      log_error('add_gd_fields_to_order: error rx_message not set!', [
-        'item' => $order[$i],
-        'days' => $days,
-        'message' => $message,
-        'set_days' => $set_days,
-        'set_msgs' => $set_msgs,
-        '! order[$i][rx_message_key] '       => ! $order[$i]['rx_message_key'],
-        'is_null(order[$i][rx_message_text]' => is_null($order[$i]['rx_message_text'])
-      ]);
-    }
-
-    //TODO consider making these methods so that they always stay upto date and we don't have to recalcuate them when things change
-    $order[$i]['drug'] = $order[$i]['drug_name'] ?: $order[$i]['drug_generic'];
-    $order[$i]['days_dispensed']  = $order[$i]['days_dispensed_actual'] ?: $order[$i]['days_dispensed_default'];
-    $order[$i]['payment_method']  = $order[$i]['payment_method_actual'] ?: $order[$i]['payment_method_default'];
-
-    if ($order[$i]['days_dispensed']) {
-      $count_filled++;
-    }
-
-    if ( ! $count_filled AND ($order[$i]['days_dispensed'] OR $order[$i]['days_dispensed_default'] OR $order[$i]['days_dispensed_actual'])) {
-      log_error('add_gd_fields_to_order: What going on here?', get_defined_vars());
-    }
-
-    //refills_dispensed_default/actual only exists as an order item.  But for grouping we need to know for items not in the order
-    $order[$i]['refills_dispensed'] = (float) ($order[$i]['refills_dispensed_actual'] ?: ($order[$i]['refills_dispensed_default'] ?: $order[$i]['refills_total']));
-    $order[$i]['qty_dispensed']     = (float) ($order[$i]['qty_dispensed_actual'] ?: $order[$i]['qty_dispensed_default']); //cast to float to get rid of .000 decimal
-    $order[$i]['price_dispensed']   = (float) ($order[$i]['price_dispensed_actual'] ?: ($order[$i]['price_dispensed_default'] ?: 0));
-  }
-
-  foreach($order as $i => $item)
-    $order[$i]['count_filled'] = $count_filled;
-
-  //log_info('get_full_order', get_defined_vars());
 
   return $order;
 }
