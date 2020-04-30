@@ -126,6 +126,13 @@ function update_rxs_single() {
 
       log_error("update_rxs_single rx was transferred out.  Confirm correct updated rx_messages", [$patient, $updated, $changed]);
     }
+
+    if ($updated['refills_left'] <= 0.1 AND $updated['refills_left'] > 0.1) {
+
+      $patient = get_full_patient($updated, $mysql, true); //This updates & overwrites set_rx_messages
+
+      remove_drugs_from_events($patient['first_name'], $patient['last_name'], $patient['birth_date'], ['Refill Reminder'], [$updated['drug_name']]);
+    }
   }
 
   //TODO if new Rx arrives and there is an active order where that Rx is not included because of "ACTION NO REFILLS" or "ACTION RX EXPIRED" or the like, then we should rerun the helper_days_dispensed on the order_item

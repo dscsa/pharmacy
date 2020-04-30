@@ -450,12 +450,12 @@ function remove_drugs_from_events($first_name, $last_name, $birth_date, $types, 
   }
 
   if (count($modify)) {
-    log_info('remove_drugs_from_events modifyEvent', get_defined_vars());
+    log_error('remove_drugs_from_events modifyEvent', get_defined_vars());
     modify_events($modify);
   }
 
   if (count($remove)) {
-    log_info('remove_drugs_from_events removeEvent', get_defined_vars());
+    log_error('remove_drugs_from_events removeEvent', get_defined_vars());
     cancel_events($remove);
   }
 }
