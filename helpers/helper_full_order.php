@@ -47,6 +47,10 @@ function get_full_order($partial, $mysql, $overwrite_rx_messages = false) {
   }
 
   $order = add_full_fields($order, $mysql, $overwrite_rx_messages);
+
+  if ( ! isset($order[0]['days_dispensed']))
+    log_error('days_dispensed not set for full order: What going on here?', $order);
+
   usort($order, 'sort_order_by_day'); //Put Rxs in order (with Rx_Source) at the top
   $order = add_wc_status_to_order($order);
 

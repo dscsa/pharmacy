@@ -61,9 +61,9 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages) {
     $patient_or_order[$i]['drug'] = $patient_or_order[$i]['drug_name'] ?: $patient_or_order[$i]['drug_generic'];
     $patient_or_order[$i]['payment_method']  = $patient_or_order[$i]['payment_method_actual'] ?: $patient_or_order[$i]['payment_method_default'];
 
-    if ( ! isset($patient_or_order[$i]['item_date_added'])) continue; //The rest of the fields are order specific and will not be available if this is a patient
+    if ( ! isset($patient_or_order[$i]['invoice_number'])) continue; //The rest of the fields are order specific and will not be available if this is a patient
 
-    $patient_or_order[$i]['days_dispensed']  = $patient_or_order[$i]['days_dispensed_actual'] ?: $patient_or_order[$i]['days_dispensed_default'];
+    $patient_or_order[$i]['days_dispensed'] = $patient_or_order[$i]['days_dispensed_actual'] ?: $patient_or_order[$i]['days_dispensed_default'];
     if ($patient_or_order[$i]['days_dispensed']) $count_filled++;
 
     if ( ! $count_filled AND ($patient_or_order[$i]['days_dispensed'] OR $patient_or_order[$i]['days_dispensed_default'] OR $patient_or_order[$i]['days_dispensed_actual'])) {

@@ -349,7 +349,7 @@ function tracking_link($tracking) {
 
 function get_phones($order) {
 
-  if ( ! isset($order[0])) {
+  if ( ! isset($order[0]) OR ! isset($order[0]['phone1'])) {
     log_error('get_phones', get_defined_vars());
     return '';
   }
@@ -400,14 +400,13 @@ function search_events_by_person($first_name, $last_name, $birth_date, $past = f
 function search_events_by_order($invoice_number, $past = false, $types = []) {
 
   $types = implode('|', $types);
-  $first_name = substr($first_name, 0, 3);
 
   $args = [
     'method'       => 'searchCalendarEvents',
     'cal_id'       => GD_CAL_ID,
     'hours'        => DAYS_STD*24,
     'past'         => $past,
-    'word_search'  => "$last_name $birth_date",
+    'word_search'  => "$invoice_number",
     'regex_search' => "/($types)/i"
   ];
 

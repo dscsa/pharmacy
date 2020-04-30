@@ -356,7 +356,7 @@ function needs_form_notice($groups) {
 
 //We are coording patient communication via sms, calls, emails, & faxes
 //by building commication arrays based on github.com/dscsa/communication-calendar
-function no_rx_notice($deleted) {
+function no_rx_notice($deleted, $patient) {
 
   log_info('no_rx_notice', get_defined_vars());
 
@@ -365,8 +365,8 @@ function no_rx_notice($deleted) {
     ? "We will attempt to transfer the Rxs you requested from your pharmacy."
     : "We haven't gotten any Rxs from your doctor yet but will notify you as soon as we do.";
 
-  $email = [ "email" => $deleted['email'] ]; //TODO email is not actual a property on $deleted
-  $text  = [ "sms"   => get_phones([$deleted]), $message => $subject.'. '.$message ];
+  $email = [ "email" => $patient['email'] ]; //TODO email is not actual a property on $deleted
+  $text  = [ "sms"   => get_phones([$patient]), $message => $subject.'. '.$message ];
 
   $email['subject'] = $subject;
   $email['message']  = implode('<br>', [
@@ -389,13 +389,13 @@ function no_rx_notice($deleted) {
 
 //NOTE: UNLIKE OTHER COMM FUNCTIONS THIS TAKES DELETED AND NOT GROUPS
 //THIS IS BECAUSE there is not an $order to make $groups
-function order_canceled_notice($deleted) {
+function order_canceled_notice($deleted, $patient) {
 
   $subject = "We have canceled your Order #".$deleted['invoice_number'];
   $message = "We have canceled this order. Please call us at (888) 987-5187 if you believe this is in error.";
 
-  $email = [ "email" => $deleted['email'] ]; //TODO email is not actual a property on $deleted
-  $text  = [ "sms" => get_phones([$deleted]),  "message" => $subject.'. '.$message ];
+  $email = [ "email" => $patient['email'] ]; //TODO email is not actual a property on $deleted
+  $text  = [ "sms" => get_phones([$patient]),  "message" => $subject.'. '.$message ];
 
   $email['subject'] = $subject;
   $email['message'] = implode('<br>', [
@@ -411,7 +411,7 @@ function order_canceled_notice($deleted) {
     ''
   ]);
 
-  log_notice("order_canceled_notice is this right?", [$deleted, $email]);
+  log_notice("order_canceled_notice is this right?", [$patient, $deleted, $email]);
   order_canceled_event($deleted, $email, $text, 15/60);
 }
 

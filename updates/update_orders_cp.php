@@ -192,9 +192,9 @@ function update_orders_cp() {
 
     //We should be able to delete wc-confirm-* from CP queue without triggering an order cancel notice
     if ($deleted['count_items'])
-      order_canceled_notice($deleted); //We passed in $deleted because there is not $order to make $groups
+      order_canceled_notice($deleted, $patient); //We passed in $deleted because there is not $order to make $groups
     else {
-      no_rx_notice($deleted);
+      no_rx_notice($deleted, $patient);
       log_error("update_orders_cp deleted: count_items == 0 so calling no_rx_notice() rather than order_canceled_notice()", $deleted);
     }
   }
