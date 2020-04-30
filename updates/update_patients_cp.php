@@ -1,6 +1,7 @@
 <?php
 
 require_once 'changes/changes_to_patients_cp.php';
+require_once 'helpers/helper_full_patient.php';
 
 function update_patients_cp() {
 
