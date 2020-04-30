@@ -32,7 +32,7 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages) {
 
       if ($set_msgs) { //On a sync_to_order the rx_message_key will be set, but days will not yet be set since their was not an order_item until now.  But we don't want to override the original sync message
         $patient_or_order[$i] = export_cp_set_rx_message($patient_or_order[$i], $message, $mysql);
-        export_gd_transfer_fax($patient_or_order[$i], 'helper full order'); //Internal logic determines if fax is necessary
+        export_gd_transfer_fax($patient_or_order[$i], 'helper full fields'); //Internal logic determines if fax is necessary
       }
 
       //log_notice('add_full_fields: after', ['item' => $patient_or_order[$i]]);

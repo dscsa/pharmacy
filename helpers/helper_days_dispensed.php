@@ -367,6 +367,9 @@ function days_left_in_expiration($item) {
 
 function days_left_in_refills($item) {
 
+  if ( ! $item['sig_qty_per_day'] OR $item['sig_qty_per_day'] > 10)
+    return;
+    
   if ($item['refills_total'] != $item['refills_left']) return; //Just because we are out of refills on this script doesn't mean there isn't another script with refills
 
   $days_left_in_refills = $item['qty_left']/$item['sig_qty_per_day'];
@@ -379,7 +382,7 @@ function days_left_in_refills($item) {
 
 function days_left_in_stock($item) {
 
-  if (is_null($item['sig_qty_per_day']) OR $item['sig_qty_per_day'] > 10)
+  if ( ! $item['sig_qty_per_day'] OR $item['sig_qty_per_day'] > 10)
     return;
 
   $days_left_in_stock = round($item['qty_inventory']/$item['sig_qty_per_day']);
