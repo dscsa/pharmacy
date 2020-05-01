@@ -34,7 +34,7 @@ foreach ($rxs as $i => $rx) {
     $mysql->run("UPDATE gp_rxs_single SET rx_message_key = 'NO ACTION FILL HIGH SUPPLY' WHERE rx_number = '$rx[rx_number]'");
 
     echo "
-    $i of $count, $rx[rx_message_key] $rx[stock_level_initial]";
+    $i of $count, $rx[rx_number] $rx[rx_message_key] $rx[stock_level_initial]";
   }
 
   if ($rx['stock_level_initial'] == 'LOW SUPPLY') {
@@ -42,7 +42,7 @@ foreach ($rxs as $i => $rx) {
     $mysql->run("UPDATE gp_rxs_single SET rx_message_key = 'NO ACTION FILL LOW SUPPLY' WHERE rx_number = '$rx[rx_number]'");
 
     echo "
-    $i of $count, $rx[rx_message_key] $rx[stock_level_initial]";
+    $i of $count, $rx[rx_number] $rx[rx_message_key] $rx[stock_level_initial]";
   }
 
   if ($rx['stock_level_initial'] == 'REFILL ONLY') {
@@ -50,7 +50,7 @@ foreach ($rxs as $i => $rx) {
     $mysql->run("UPDATE gp_rxs_single SET rx_message_key = 'NO ACTION FILL REFILL ONLY' WHERE rx_number = '$rx[rx_number]'");
 
     echo "
-    $i of $count, $rx[rx_message_key] $rx[stock_level_initial]";
+    $i of $count, $rx[rx_number] $rx[rx_message_key] $rx[stock_level_initial]";
   }
 
   if ($rx['stock_level_initial'] == 'OUT OF STOCK') {
@@ -58,7 +58,7 @@ foreach ($rxs as $i => $rx) {
     $mysql->run("UPDATE gp_rxs_single SET rx_message_key = 'NO ACTION FILL OUT OF STOCK' WHERE rx_number = '$rx[rx_number]'");
 
     echo "
-    $i of $count, $rx[rx_message_key] $rx[stock_level_initial]";
+    $i of $count, $rx[rx_number] $rx[rx_message_key] $rx[stock_level_initial]";
   }
 
   if ($rx['stock_level_initial'] == 'ONE TIME') {
@@ -66,6 +66,6 @@ foreach ($rxs as $i => $rx) {
     $mysql->run("UPDATE gp_rxs_single SET rx_message_key = 'NO ACTION FILL ONE TIME' WHERE rx_number = '$rx[rx_number]'");
 
     echo "
-    $i of $count, $rx[rx_message_key] $rx[stock_level_initial]";
+    $i of $count, $rx[rx_number] $rx[rx_message_key] $rx[stock_level_initial]";
   }
 }
