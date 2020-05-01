@@ -31,26 +31,31 @@ $count = count($rxs);
 foreach ($rxs as $i => $rx) {
   if ($rx['stock_level_initial'] == 'HIGH SUPPLY') {
     $mssql->run("UPDATE cprx SET priority_cn = 218 WHERE script_no = '$rx[rx_number]'");
-    echo "$i of $count, $rx[rx_message_key] $rx[stock_level_initial]";
+    echo "
+    $i of $count, $rx[rx_message_key] $rx[stock_level_initial]";
   }
 
   if ($rx['stock_level_initial'] == 'LOW SUPPLY') {
     $mssql->run("UPDATE cprx SET priority_cn = 219 WHERE script_no = '$rx[rx_number]'");
-    echo "$i of $count, $rx[rx_message_key] $rx[stock_level_initial]";
+    echo "
+    $i of $count, $rx[rx_message_key] $rx[stock_level_initial]";
   }
 
   if ($rx['stock_level_initial'] == 'REFILL ONLY') {
     $mssql->run("UPDATE cprx SET priority_cn = 220 WHERE script_no = '$rx[rx_number]'");
-    echo "$i of $count, $rx[rx_message_key] $rx[stock_level_initial]";
+    echo "
+    $i of $count, $rx[rx_message_key] $rx[stock_level_initial]";
   }
 
   if ($rx['stock_level_initial'] == 'OUT OF STOCK') {
     $mssql->run("UPDATE cprx SET priority_cn = 221 WHERE script_no = '$rx[rx_number]'");
-    echo "$i of $count, $rx[rx_message_key] $rx[stock_level_initial]";
+    echo "
+    $i of $count, $rx[rx_message_key] $rx[stock_level_initial]";
   }
 
   if ($rx['stock_level_initial'] == 'ONE TIME') {
     $mssql->run("UPDATE cprx SET priority_cn = 222 WHERE script_no = '$rx[rx_number]'");
-    echo "$i of $count, $rx[rx_message_key] $rx[stock_level_initial]";
+    echo "
+    $i of $count, $rx[rx_message_key] $rx[stock_level_initial]";
   }
 }
