@@ -78,17 +78,16 @@ const STOCK_LEVEL = [
 
 //in CP csct_code.ct_id == 6400, cp_code == csct_code.code_num
 const RX_MESSAGE = [
+  'UNUSED' => [
+    'EN' => 'this message is unassigned',
+    'ES' => '',
+    'CP_CODE' => 212,
+  ],
   'NO ACTION FILL UNKNOWN' => [ //'NO ACTION STANDARD FILL'
     'EN' => '',
     'ES' => '',
     'CP_CODE' => 200,
   ],
-  'NO ACTION LOW STOCK' => [
-    'EN' => 'is low in stock',
-    'ES' => '',
-    'CP_CODE' => 212,
-  ],
-
   'NO ACTION PAST DUE AND SYNC TO ORDER' => [
     'EN' => 'is past due so synced to Order',
     'ES' => '',

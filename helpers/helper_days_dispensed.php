@@ -164,15 +164,6 @@ function get_days_default($item, $order) {
     return [roundDaysUnit($item['days_left']), RX_MESSAGE['ACTION EXPIRING']];
   }
 
-  const STOCK_LEVEL = [
-  'HIGH SUPPLY'  => 'HIGH SUPPLY',
-  'LOW SUPPLY'   => 'LOW SUPPLY',
-  'ONE TIME'     => 'ONE TIME',
-  'REFILL ONLY'  => 'REFILL ONLY',
-  'OUT OF STOCK' => 'OUT OF STOCK',
-  'NOT OFFERED'  => 'NOT OFFERED'
-];
-
   if ($stock_level == STOCK_LEVEL['ONE TIME']) {
     return [$days_default, RX_MESSAGE['NO ACTION FILL ONE TIME']];
   }
