@@ -11,7 +11,7 @@ function get_full_patient($partial, $mysql, $overwrite_rx_messages = false) {
 
   $month_interval = 6;
   $where = "
-    AND (CASE WHEN refills_total OR item_date_added THEN gp_rxs_grouped.rx_date_expired ELSE COALESCE(gp_rxs_grouped.rx_date_transferred, gp_rxs_grouped.refill_date_last) END) > CURDATE() - INTERVAL $month_interval MONTH
+    AND (CASE WHEN refills_total THEN gp_rxs_grouped.rx_date_expired ELSE COALESCE(gp_rxs_grouped.rx_date_transferred, gp_rxs_grouped.refill_date_last) END) > CURDATE() - INTERVAL $month_interval MONTH
   ";
 
   $sql = "

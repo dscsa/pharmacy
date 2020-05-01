@@ -369,8 +369,9 @@ function days_left_in_refills($item) {
 
   if ( ! $item['sig_qty_per_day'] OR $item['sig_qty_per_day'] > 10)
     return;
-    
-  if ($item['refills_total'] != $item['refills_left']) return; //Just because we are out of refills on this script doesn't mean there isn't another script with refills
+
+  //Uncomment the line below if we are okay dispensign 2 bottles/rxs.  For now, we will just fill the most we can do with one Rx.
+  //if ($item['refills_total'] != $item['refills_left']) return; //Just because we are out of refills on this script doesn't mean there isn't another script with refills
 
   $days_left_in_refills = $item['qty_left']/$item['sig_qty_per_day'];
 
