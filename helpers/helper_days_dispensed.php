@@ -8,6 +8,7 @@ function get_days_default($item, $order) {
   $not_offered    = is_not_offered($item);
   $is_refill      = is_refill($item, $order);
   $refill_only    = is_refill_only($item);
+  $stock_level = $item['stock_level_initial'] ?: $item['stock_level'];
 
   $days_left_in_expiration = days_left_in_expiration($item);
   $days_left_in_refills    = days_left_in_refills($item);
@@ -19,8 +20,6 @@ function get_days_default($item, $order) {
   }
 
   if ($item['rx_date_transferred']) {
-
-    $stock_level = $item['stock_level_initial'] ?: $item['stock_level'];
 
     if($stock_level == STOCK_LEVEL['HIGH SUPPLY'] AND strtotime($item['rx_date_transferred']) > strtotime('-1 month'))
       log_error('HIGH STOCK ITEM WAS TRANSFERRED WITHIN THE MONTH', get_defined_vars());
@@ -383,7 +382,7 @@ function days_left_in_expiration($item) {
 
 function days_left_in_refills($item) {
 
-  if ( ! $item['sig_qty_per_day'] OR $item['sig_qty_per_day'] > 10)
+  if ( ! (float) $item['sig_qty_per_day'] OR $item['sig_qty_per_day'] > 10)
     return;
 
   //Uncomment the line below if we are okay dispensign 2 bottles/rxs.  For now, we will just fill the most we can do with one Rx.
@@ -399,7 +398,7 @@ function days_left_in_refills($item) {
 
 function days_left_in_stock($item) {
 
-  if ( ! $item['sig_qty_per_day'] OR $item['sig_qty_per_day'] > 10)
+  if ( ! (float) $item['sig_qty_per_day'] OR $item['sig_qty_per_day'] > 10)
     return;
 
   $days_left_in_stock = round($item['qty_inventory']/$item['sig_qty_per_day']);
