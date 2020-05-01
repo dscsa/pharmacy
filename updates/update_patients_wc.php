@@ -204,7 +204,10 @@ function update_patients_wc() {
 
     } else if ($updated['payment_method_default'] !== $updated['old_payment_method_default']) {
 
-      log_notice('update_patients_wc: updated payment_method_default', "$updated[payment_method_default] $updated[payment_card_type] $updated[payment_card_last4] $updated[payment_card_date_expired]");
+      log_error('update_patients_wc: updated payment_method_default. Deleting Autopay Reminders', "$updated[payment_method_default] $updated[payment_card_type] $updated[payment_card_last4] $updated[payment_card_date_expired]");
+
+      if ($updated['payment_method_default'] != PAYMENT_METHOD['AUTOPAY'])
+        cancel_events_by_person($updated['first_name'], $updated['last_name'], $updated['birth_date'], 'update_patients_wc: updated payment_method_default', ['Autopay Reminder']);
 
       if ($updated['old_payment_method_default'] == PAYMENT_METHOD['MAIL'])
         upsert_patient_wc($mysql, $updated['patient_id_wc'], 'payment_method_default', PAYMENT_METHOD['MAIL']);
@@ -222,8 +225,13 @@ function update_patients_wc() {
         upsert_patient_wc($mysql, $updated['patient_id_wc'], 'payment_method_default', PAYMENT_METHOD['CARD EXPIRED']);
 
       else
-        echo "
-        NOT SURE WHAT TO DO FOR PAYMENT METHOD $updated";
+        log_error("NOT SURE WHAT TO DO FOR PAYMENT METHOD $updated");
+
+    } else if ($updated['payment_card_last4'] !== $updated['old_payment_card_last4']) {
+
+      log_error('update_patients_wc: updated card_last4.  Need to replace Card Last4 in Autopay Reminder', "$updated[payment_method_default] $updated[old_payment_card_type] >>> $updated[payment_card_type] $updated['old_payment_card_last4'] >>> $updated[payment_card_last4] $updated[payment_card_date_expired]");
+      //Probably by generalizing the code the currently removes drugs from the refill reminders.
+      //TODO Autopay Reminders (Remove Card, Card Expired, Card Changed, Order Paid Manually)
     }
 
     if ( ! $updated['first_name'] OR ! $updated['first_name'] OR ! $updated['birth_date']) {

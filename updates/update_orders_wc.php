@@ -99,7 +99,7 @@ function update_orders_wc() {
           $items_to_remove[] = $item['rx_number'];
       }
 
-      export_cp_remove_items($item['invoice_number'], $items_to_remove);
+      export_cp_remove_items($order[0]['invoice_number'], $items_to_remove);
 
       log_notice("update_orders_wc: RXs created an order in CP but patient has not yet registered so there is no order in WC yet", [$order, $items_to_remove]);
 
@@ -117,7 +117,7 @@ function update_orders_wc() {
 
       log_error("Readding Order that should not have been deleted. Not sure: WC Order Deleted not through trash?", [$order[0], $gp_orders_wc, $gp_orders, $wc_orders]);
 
-    } else if ((time() - strtotime($item['order_date_added'])) < 1*60*60) {
+    } else if ((time() - strtotime($deleted['order_date_added'])) < 1*60*60) {
       //If less than an hour, this is likely because of our IMPORT ordering since we import WC Orders before CP some orders can show up in this deleted feed.
       log_error("update_orders_wc: WC Order $deleted[invoice_number] appears to be DELETED but likely because or the IMPORT ordering", $deleted);
 
