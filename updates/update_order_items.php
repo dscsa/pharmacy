@@ -191,7 +191,9 @@ function update_order_items() {
   foreach($changes['deleted'] as $deleted) {
 
 
-    $item = get_full_item($created, $mysql, $mssql);
+    $item = get_full_item($deleted, $mysql, $mssql);
+
+    unpend_pick_list($item);
 
     export_gd_transfer_fax($item, 'update_order_items deleted'); //Internal logic determines if fax is necessary
 

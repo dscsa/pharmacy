@@ -78,11 +78,17 @@ const STOCK_LEVEL = [
 
 //in CP csct_code.ct_id == 6400, cp_code == csct_code.code_num
 const RX_MESSAGE = [
-  'NO ACTION STANDARD FILL' => [
+  'NO ACTION FILL UNKNOWN' => [ //'NO ACTION STANDARD FILL'
     'EN' => '',
     'ES' => '',
     'CP_CODE' => 200,
   ],
+  'NO ACTION LOW STOCK' => [
+    'EN' => 'is low in stock',
+    'ES' => '',
+    'CP_CODE' => 212,
+  ],
+
   'NO ACTION PAST DUE AND SYNC TO ORDER' => [
     'EN' => 'is past due so synced to Order',
     'ES' => '',
@@ -138,11 +144,6 @@ const RX_MESSAGE = [
     'ES' => '',
     'CP_CODE' => 211,
   ],
-  'NO ACTION LOW STOCK' => [
-    'EN' => 'is low in stock',
-    'ES' => '',
-    'CP_CODE' => 212,
-  ],
   'NO ACTION LOW REFILL' => [
     'EN' => 'has limited refills',
     'ES' => '',
@@ -167,6 +168,31 @@ const RX_MESSAGE = [
     'EN' => 'was requested',
     'ES' => '',
     'CP_CODE' => 217,
+  ],
+  'NO ACTION FILL HIGH SUPPLY' => [
+    'EN' => '',
+    'ES' => '',
+    'CP_CODE' => 218,
+  ],
+  'NO ACTION FILL LOW SUPPLY' => [
+    'EN' => '',
+    'ES' => '',
+    'CP_CODE' => 219,
+  ],
+  'NO ACTION FILL REFILL ONLY' => [
+    'EN' => '',
+    'ES' => '',
+    'CP_CODE' => 220,
+  ],
+  'NO ACTION FILL OUT OF STOCK' => [
+    'EN' => 'is low in stock',
+    'ES' => '',
+    'CP_CODE' => 221,
+  ],
+  'NO ACTION FILL ONE TIME' => [
+    'EN' => 'is one-time only',
+    'ES' => '',
+    'CP_CODE' => 222,
   ],
 
   //ACTION BY USER REQUIRED BEFORE (RE)FILL

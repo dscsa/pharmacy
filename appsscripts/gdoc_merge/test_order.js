@@ -112,7 +112,7 @@ var test_order = [
            "qty_pended_repacks": null,
            "count_pended_total": null,
            "count_pended_repacks": null,
-           "rx_message_key": "NO ACTION STANDARD FILL",
+           "rx_message_key": "NO ACTION FILL HIGH SUPPLY",
            "rx_message_text": "",
            "item_type": null,
            "item_added_by": "HL7",

@@ -164,18 +164,43 @@ function get_days_default($item, $order) {
     return [roundDaysUnit($item['days_left']), RX_MESSAGE['ACTION EXPIRING']];
   }
 
-  if ($days_left_in_stock == $days_default) {
+  const STOCK_LEVEL = [
+  'HIGH SUPPLY'  => 'HIGH SUPPLY',
+  'LOW SUPPLY'   => 'LOW SUPPLY',
+  'ONE TIME'     => 'ONE TIME',
+  'REFILL ONLY'  => 'REFILL ONLY',
+  'OUT OF STOCK' => 'OUT OF STOCK',
+  'NOT OFFERED'  => 'NOT OFFERED'
+];
+
+  if ($stock_level == STOCK_LEVEL['ONE TIME']) {
+    return [$days_default, RX_MESSAGE['NO ACTION FILL ONE TIME']];
+  }
+
+  if ($stock_level == STOCK_LEVEL['OUT OF STOCK'] OR $days_left_in_stock == $days_default) {
 
     if ($is_refill)
       log_error("YIKES! IS REFILL RX IS OUT OF STOCK?", get_defined_vars());
     else
       log_notice("WARN USERS IF DRUG IS LOW QTY", get_defined_vars());
 
-    return [$days_default, RX_MESSAGE['NO ACTION LOW STOCK']];
+    return [$days_default, RX_MESSAGE['NO ACTION FILL OUT OF STOCK']];
+  }
+
+  if ($stock_level == STOCK_LEVEL['REFILL ONLY']) {
+    return [$days_default, RX_MESSAGE['NO ACTION FILL REFILL ONLY']];
+  }
+
+  if ($stock_level == STOCK_LEVEL['LOW SUPPLY']) {
+    return [$days_default, RX_MESSAGE['NO ACTION FILL LOW SUPPLY']];
+  }
+
+  if ($stock_level == STOCK_LEVEL['HIGH SUPPLY']) {
+    return [$days_default, RX_MESSAGE['NO ACTION FILL HIGH SUPPLY']];
   }
 
   log_info("NO SPECIAL RX_MESSAGE USING DEFAULTS", get_defined_vars());
-  return [$days_default, RX_MESSAGE['NO ACTION STANDARD FILL']];
+  return [$days_default, RX_MESSAGE['NO ACTION FILL UNKNOWN']];
   //TODO DON'T NO ACTION_PAST_DUE if ( ! drug.$InOrder AND drug.$DaysToRefill < 0)
   //TODO NO ACTION_LIVE_INVENTORY_ERROR if ( ! drug.$v2)
   //TODO ACTION_CHECK_BACK/NO ACTION_WILL_TRANSFER_CHECK_BACK
