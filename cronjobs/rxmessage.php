@@ -15,7 +15,8 @@ $mssql = new Mssql_Cp();
 $rxs = $mysql->run("
   SELECT
     gp_rxs_single.rx_number,
-    gp_order_items.stock_level_initial
+    rx_message_key,
+    stock_level_initial
   FROM
     gp_rxs_single
   JOIN
