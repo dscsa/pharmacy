@@ -479,12 +479,12 @@ function replace_text_in_events($first_name, $last_name, $birth_date, $types, $r
   }
 
   if (count($modify)) {
-    log_error('replace_text_in_events modifyEvent', get_defined_vars());
+    log_error('replace_text_in_events modifyEvent',[$first_name, $last_name, $birth_date, $types, $old_desc, $new_desc]);
     modify_events($modify);
   }
 
   if (count($remove)) {
-    log_error('replace_text_in_events removeEvent', get_defined_vars());
+    log_error('replace_text_in_events removeEvent', [$first_name, $last_name, $birth_date, $types, $old_desc, $new_desc]);
     cancel_events($remove);
   }
 }

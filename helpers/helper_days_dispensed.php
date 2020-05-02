@@ -139,13 +139,8 @@ function get_days_default($item, $order) {
     return [$days_default, RX_MESSAGE['NO ACTION DUE SOON AND SYNC TO ORDER']];
   }
 
-  if ($days_left_in_refills == $days_default) {
-
-    if ($item['refills_dispensed_default'] > 0)
-      log_error("MARKING LAST REFILL BUT REFILLS TOTAL REMAINING.  PROBABLY A SIG_QTY_PER_DAY_DEAFULT error", get_defined_vars());
-    else
-      log_info("WARN USERS IF DRUG IS ON LAST REFILL", get_defined_vars());
-
+  if (refills_dispensed_default($item) < .1) {
+    log_info("WARN USERS IF DRUG IS ON LAST REFILL", get_defined_vars());
     return [$days_default, RX_MESSAGE['ACTION LAST REFILL']];
   }
 
