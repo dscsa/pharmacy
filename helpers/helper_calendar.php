@@ -423,7 +423,36 @@ function search_events_by_order($invoice_number, $past = false, $types = []) {
 //NOTE: RELIES on the assumption that ALL drugs (and their associated messages) end with a semicolon (;) and
 //that NO other semicolons are used for any other reason. It removes everything between the drug name and the
 //semicolon, and if no semicolons are left in the communication, then the entire communication is deleted
-function remove_drugs_from_events($first_name, $last_name, $birth_date, $types, $drugs) {
+function remove_drugs_from_refill_reminders($first_name, $last_name, $birth_date, $drugs) {
+
+    $drugs = implode(';|', $drugs);
+
+    return replace_text_in_events(
+      $first_name,
+      $last_name,
+      $birth_date,
+      ['Refill Reminder'],
+      "/$drugs;/",
+      '',
+      '/^[^;]*$/'
+    );
+}
+
+function update_last4_in_autopay_reminders($first_name, $last_name, $birth_date, $new_last4) {
+
+    $new_last4 = implode(' ', str_split($new_last4));
+
+    return replace_text_in_events(
+      $first_name,
+      $last_name,
+      $birth_date,
+      ['Autopay Reminder'],
+      "/card \d \d \d \d for/",
+      "card $new_last4 for"
+    );
+}
+
+function replace_text_in_events($first_name, $last_name, $birth_date, $types, $replace_regex, $replace_string, $remove_regex = false) {
 
   if ( ! LIVE_MODE) return;
 
@@ -434,28 +463,28 @@ function remove_drugs_from_events($first_name, $last_name, $birth_date, $types, 
   foreach ($events as $event) {
     $old_desc = $event['description']; //This is still JSON.stringified
 
-    $new_desc = preg_replace('/'.implode(';|', $drugs).';/', '', $old_desc);
+    $new_desc = preg_replace($replace_regex, $replace_string, $old_desc);
 
     if ($old_desc == $new_desc) {
       continue;
     }
 
-    if (strpos($new_desc, ';') !== false) {
-      $event['description'] = $new_desc;
-      $modify[] = $event;
+    if ($remove_regex AND preg_match($remove_regex, $new_desc)) {
+      $remove[] = $event['id'];
     }
     else {
-      $remove[] = $event['id'];
+      $event['description'] = $new_desc;
+      $modify[] = $event;
     }
   }
 
   if (count($modify)) {
-    log_error('remove_drugs_from_events modifyEvent', get_defined_vars());
+    log_error('replace_text_in_events modifyEvent', get_defined_vars());
     modify_events($modify);
   }
 
   if (count($remove)) {
-    log_error('remove_drugs_from_events removeEvent', get_defined_vars());
+    log_error('replace_text_in_events removeEvent', get_defined_vars());
     cancel_events($remove);
   }
 }

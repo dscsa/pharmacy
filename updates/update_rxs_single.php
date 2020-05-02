@@ -131,7 +131,7 @@ function update_rxs_single() {
 
       $patient = get_full_patient($updated, $mysql, true); //This updates & overwrites set_rx_messages
 
-      remove_drugs_from_events($patient['first_name'], $patient['last_name'], $patient['birth_date'], ['Refill Reminder'], [$updated['drug_name']]);
+      remove_drugs_from_refill_reminders($patient['first_name'], $patient['last_name'], $patient['birth_date'], [$updated['drug_name']]);
     }
   }
 
