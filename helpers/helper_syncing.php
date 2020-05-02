@@ -82,7 +82,7 @@ function sync_to_order($order, $updated = null) {
     if ($item['item_date_added'] AND ! $item['days_dispensed'] AND $item['drug_gsns']) {
 
       //DEBUG CODE SHOULD NOT BE NEEDED
-      if ($item['rx_message_key'] == 'ACTION NO REFILLS' AND $item['refills_total'] >= 0.1) {
+      if ($item['rx_message_key'] == 'ACTION NO REFILLS' AND $item['refills_total'] > NO_REFILL) {
         log_error('aborting helper_syncing because NO REFILLS has refills', $item);
         continue;
       }
