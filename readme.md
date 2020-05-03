@@ -23,7 +23,7 @@ Implement, Review, and Switch Fax Out Transfers
  # Run the test suite of rx sigs
  sudo php /goodpill/webform/cronjobs/parsing.php log=notice sig
 
- 
+
 ```
 
 # Helpful Queries
@@ -139,7 +139,81 @@ WARNING THIS DELETED MORE ROWS THAN EXPECTED!!! TEST WITH SELECT ABOVE FIRST
     t1.meta_key = 'patient_id_cp' AND
     t1.meta_value = t2.meta_value AND
     t1.meta_value > 0
-*/
+
+CHURN BY DRUG
+  SELECT
+    *,
+    gp_rxs_grouped.*
+  FROM
+    gp_patients
+  JOIN (
+      SELECT
+      	patient_id_cp,
+        MIN(refill_date_first) as patient_first_refill,
+      	MAX(refill_date_last) as patient_last_refill,
+      	COUNT(best_rx_number) as number_of_drugs,
+        COUNT(CASE WHEN refills_total > .1 THEN 1 ELSE NULL END) as number_of_drugs_with_refills,
+        COUNT(CASE WHEN refills_total <= .1 THEN 1 ELSE NULL END) as number_of_drugs_without_refills,
+        COUNT(rx_date_transferred) as number_of_transfer_outs,
+        COUNT(CASE WHEN rx_sources LIKE '%Pharmacy%' THEN 1 ELSE NULL END) as number_of_transfers_ins,
+        COUNT(CASE WHEN rx_sources LIKE '%SureScripts%' THEN 1 ELSE NULL END) as number_of_surescripts,
+        COUNT(CASE WHEN rx_sources LIKE '%Fax%' THEN 1 ELSE NULL END) as number_of_faxed_rxs,
+        COUNT(CASE WHEN rx_sources LIKE '%Prescription%' THEN 1 ELSE NULL END) as number_of_written_rxs,
+        COUNT(CASE WHEN rx_sources LIKE '%Phone%' THEN 1 ELSE NULL END) as number_of_phone_rxs,
+        SUM((LENGTH(rx_numbers) - 1)/8) as number_of_rxs,
+        SUM(rx_autofill) as number_of_rxs_on_autofill,
+        SUM(1-rx_autofill) as number_of_rxs_off_autofill
+      FROM
+      	gp_rxs_grouped
+      GROUP BY
+      	patient_id_cp
+  ) as patients ON patients.patient_id_cp = gp_patients.patient_id_cp
+  LEFT JOIN gp_rxs_grouped ON
+    gp_rxs_grouped.patient_id_cp = gp_patients.patient_id_cp
+  LEFT JOIN gp_rxs_single ON
+    gp_rxs_grouped.best_rx_number = gp_rxs_single.rx_number
+  LEFT JOIN gp_stock_live ON
+    gp_rxs_grouped.drug_generic = gp_stock_live.drug_generic -- this is for the helper_days_dispensed msgs for unordered drugs
+  WHERE
+    patient_last_refill < CURRENT_DATE - INTERVAL 150 DAY
+
+CHURN BY PATIENT
+  SELECT
+    gp_patients.patient_id_cp,
+    first_name,
+    last_name,
+    birth_date,
+    YEAR(CURRENT_DATE) - YEAR(birth_date) as age,
+    DATEDIFF(MAX(gp_rxs_grouped.refill_date_last), MIN(gp_rxs_grouped.refill_date_first)) as days_active,
+    MIN(gp_rxs_grouped.refill_date_first) as patient_first_refill,
+    MAX(gp_rxs_grouped.refill_date_last) as patient_last_refill,
+    COUNT(DISTINCT provider_npi) as number_of_providers,
+    refills_used as number_of_fills,
+    COUNT(*) as number_of_drugs,
+    CAST(SUM((LENGTH(rx_numbers) - 1)/8) as UNSIGNED) as number_of_rxs,
+    SUM(gp_rxs_grouped.rx_autofill) as number_of_rxs_on_autofill,
+    SUM(1-gp_rxs_grouped.rx_autofill) as number_of_rxs_off_autofill,
+    COUNT(CASE WHEN refills_total > .1 THEN 1 ELSE NULL END) as number_of_drugs_with_refills,
+    COUNT(CASE WHEN refills_total <= .1 THEN 1 ELSE NULL END) as number_of_drugs_without_refills,
+    COUNT(rx_date_transferred) as number_of_transfer_outs,
+    COUNT(CASE WHEN rx_sources LIKE '%Pharmacy%' THEN 1 ELSE NULL END) as number_of_transfers_ins,
+    COUNT(CASE WHEN rx_sources LIKE '%SureScripts%' THEN 1 ELSE NULL END) as number_of_surescripts,
+    COUNT(CASE WHEN rx_sources LIKE '%Fax%' THEN 1 ELSE NULL END) as number_of_faxed_rxs,
+    COUNT(CASE WHEN rx_sources LIKE '%Prescription%' THEN 1 ELSE NULL END) as number_of_written_rxs,
+    COUNT(CASE WHEN rx_sources LIKE '%Phone%' THEN 1 ELSE NULL END) as number_of_phone_rxs,
+    COUNT(CASE WHEN rx_sources LIKE '%Refill%' THEN 1 ELSE NULL END) as number_of_refill_rxs
+  FROM
+    gp_patients
+  LEFT JOIN gp_rxs_grouped ON
+    gp_rxs_grouped.patient_id_cp = gp_patients.patient_id_cp
+  LEFT JOIN gp_rxs_single ON
+    gp_rxs_grouped.best_rx_number = gp_rxs_single.rx_number
+  LEFT JOIN gp_stock_live ON
+    gp_rxs_grouped.drug_generic = gp_stock_live.drug_generic -- this is for the helper_days_dispensed msgs for unordered drugs
+  GROUP BY
+    gp_patients.patient_id_cp
+  HAVING
+    MAX(gp_rxs_grouped.refill_date_last) < CURRENT_DATE - INTERVAL 150 DAY
 ```
 
 #To Expose Server Via Comcast
