@@ -49,8 +49,7 @@ function import_cp_patients() {
       MAX(CASE WHEN hic ='W1DH' AND ISNULL(cppat_alr.status_cn, 0) <> 3 THEN 'Azithromycin' ELSE NULL END) as allergies_azithromycin,
       MAX(CASE WHEN hic ='W1AU' AND ISNULL(cppat_alr.status_cn, 0) <> 3 THEN 'Amoxicillin' ELSE NULL END) as allergies_amoxicillin,
       MAX(CASE WHEN hic ='' AND Dam_agcsp = 0 AND ISNULL(cppat_alr.status_cn, 0) <> 3 THEN name ELSE NULL END) as allergies_other,
-
-      MAX(0, SUM(refills_orig + 1 - refills_left)) as refills_used, --potential to SUM(is_refill) but seems that GCNs churn enough that this is not accurate
+      SUM(CASE WHEN refills_orig + 1 - refills_left > 0 THEN refills_orig + 1 - refills_left ELSE 0 END) as refills_used, --potential to SUM(is_refill) but seems that GCNs churn enough that this is not accurate
       MAX(pat.pat_status_cn) as patient_status,
       MAX(ISNULL(primary_lang_cd, 'EN')) as language,
       CONVERT(varchar, MAX(pat.add_date), 20) as patient_date_added,

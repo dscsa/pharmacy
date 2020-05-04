@@ -193,6 +193,8 @@ CHURN BY PATIENT
     CAST(SUM((LENGTH(rx_numbers) - 1)/8) as UNSIGNED) as number_of_rxs,
     SUM(gp_rxs_grouped.rx_autofill) as number_of_rxs_on_autofill,
     SUM(1-gp_rxs_grouped.rx_autofill) as number_of_rxs_off_autofill,
+    COUNT(CASE WHEN gp_rxs_grouped.refill_date_first IS NULL THEN NULL ELSE 1 END) as number_of_drugs_filled,
+    COUNT(CASE WHEN gp_rxs_grouped.refill_date_first IS NULL THEN 1 ELSE NULL END) as number_of_drugs_not_filled,
     COUNT(CASE WHEN refills_total > .1 THEN 1 ELSE NULL END) as number_of_drugs_with_refills,
     COUNT(CASE WHEN refills_total <= .1 THEN 1 ELSE NULL END) as number_of_drugs_without_refills,
     COUNT(rx_date_transferred) as number_of_transfer_outs,
