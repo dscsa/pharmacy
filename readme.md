@@ -203,7 +203,8 @@ CHURN BY PATIENT
     COUNT(CASE WHEN rx_sources LIKE '%Fax%' THEN 1 ELSE NULL END) as number_of_faxed_rxs,
     COUNT(CASE WHEN rx_sources LIKE '%Prescription%' THEN 1 ELSE NULL END) as number_of_written_rxs,
     COUNT(CASE WHEN rx_sources LIKE '%Phone%' THEN 1 ELSE NULL END) as number_of_phone_rxs,
-    COUNT(CASE WHEN rx_sources LIKE '%Refill%' THEN 1 ELSE NULL END) as number_of_refill_rxs
+    COUNT(CASE WHEN rx_sources LIKE '%Refill%' THEN 1 ELSE NULL END) as number_of_refill_rxs,
+    medications_other
   FROM
     gp_patients
   LEFT JOIN gp_rxs_grouped ON
