@@ -394,7 +394,7 @@ function order_canceled_notice($deleted, $patient) {
   $subject = "We have canceled your Order #".$deleted['invoice_number'];
   $message = "We have canceled this order. Please call us at (888) 987-5187 if you believe this is in error.";
 
-  $email = [ "email" => $patient[0]['email'] ]; //TODO email is not actual a property on $deleted
+  $email = [ "email" => $patient[0]['email'], "raw" => json_encode($deleted) ]; //TODO email is not actual a property on $deleted
   $text  = [ "sms" => get_phones($patient),  "message" => $subject.'. '.$message ];
 
   $email['subject'] = $subject;
@@ -403,13 +403,12 @@ function order_canceled_notice($deleted, $patient) {
     '',
     $subject.'. '.$message,
     '',
-    json_encode($deleted),
-    '',
     'Thanks!',
     'The Good Pill Team',
     '',
     ''
   ]);
+
 
   log_notice("order_canceled_notice is this right?", [$patient, $deleted, $email]);
   order_canceled_event($deleted, $email, $text, 15/60);

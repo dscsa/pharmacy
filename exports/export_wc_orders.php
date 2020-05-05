@@ -214,7 +214,7 @@ function export_wc_create_order($order, $reason) {
 function export_wc_update_order($order) {
 
   if ($order[0]['rx_message_key'] == 'ACTION NEEDS FORM') {
-    log_error('export_wc_update_order: ACTION NEEDS FORM update order skipped because order not yet created in WC', $order[0]);
+    log_notice('export_wc_update_order: ACTION NEEDS FORM update order skipped because order not yet created in WC', $order[0]);
     return;
   }
 
