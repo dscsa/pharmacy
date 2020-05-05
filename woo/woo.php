@@ -1507,7 +1507,7 @@ function dscsa_validation($fields, $required) {
 
 function sanitize($data) {
   $sanitized = $data;
-  unset($sanitized['password_current'], $sanitized['password_1'], $sanitized['password_2']);
+  unset($sanitized['password_current'], $sanitized['password_1'], $sanitized['password_2'], $sanitized['PHP_AUTH_PW']);
   return $sanitized;
 }
 
@@ -2056,10 +2056,10 @@ function dscsa_update_order_status( $data) {
     }
     else { //Put rest in the unclassified status
       //$data['post_status'] = 'wc-processing';
-      debug_email("dscsa_update_order_status: Unclassified Order - ", print_r($data, true).print_r(sanitize($_POST), true).print_r(mssql_get_last_message(), true).print_r($_SERVER, true).print_r($_SESSION, true).print_r($_COOKIE, true));
+      debug_email("dscsa_update_order_status: Unclassified Order - ", print_r($data, true).print_r(sanitize($_POST), true).print_r(mssql_get_last_message(), true).print_r($_SERVER, true).print_r(sanitize($_SESSION), true).print_r($_COOKIE, true));
     }
 
-    debug_email("dscsa_update_order_status: New Order - ", print_r($data, true).print_r(sanitize($_POST), true).print_r(mssql_get_last_message(), true).print_r($_SERVER, true).print_r($_SESSION, true).print_r($_COOKIE, true));
+    debug_email("dscsa_update_order_status: New Order - ", print_r($data, true).print_r(sanitize($_POST), true).print_r(mssql_get_last_message(), true).print_r($_SERVER, true).print_r(sanitize($_SESSION), true).print_r($_COOKIE, true));
 
     //debug_email("dscsa_update_order_status 2", print_r($data, true));
     return $data;

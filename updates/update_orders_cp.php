@@ -191,7 +191,7 @@ function update_orders_cp() {
       log_error('No patient associated with deleted order (Patient Deactivated/Deceased/Moved out of State)', ['deleted' => $deleted, 'sql' => $sql]);
 
     //We should be able to delete wc-confirm-* from CP queue without triggering an order cancel notice
-    if ($deleted['count_items'])
+    if ($deleted['count_filled'] OR $deleted['count_nofill']) //count_items may already be 0 on a deleted order that had items e.g 33840
       order_canceled_notice($deleted, $patient); //We passed in $deleted because there is not $order to make $groups
     else {
       no_rx_notice($deleted, $patient);
