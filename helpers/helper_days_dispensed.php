@@ -8,7 +8,7 @@ function get_days_default($item, $order) {
   $not_offered    = is_not_offered($item);
   $is_refill      = is_refill($item, $order);
   $refill_only    = is_refill_only($item);
-  $stock_level = $item['stock_level_initial'] ?: $item['stock_level'];
+  $stock_level    = @$item['stock_level_initial'] ?: $item['stock_level'];
 
   $days_left_in_expiration = days_left_in_expiration($item);
   $days_left_in_refills    = days_left_in_refills($item);

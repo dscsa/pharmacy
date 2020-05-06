@@ -28,11 +28,11 @@ function export_gd_update_invoice($order, $reason, $mysql, $try2 = false) {
   if ( ! $invoice_doc_id) {
 
     if ( ! $try2) {
-      log_error("export_gd_update_invoice: invoice error #1 of 2", ['order' => $order, 'args' => $args, 'result' => $result]);
+      log_error("export_gd_update_invoice: invoice error #1 of 2", ['args' => $args, 'result' => $result]);
       return export_gd_update_invoice($order, $reason, $mysql, true);
     }
 
-    log_error("export_gd_update_invoice: invoice error #2 of 2", ['order' => $order, 'args' => $args, 'result' => $result]);
+    log_error("export_gd_update_invoice: invoice error #2 of 2", ['args' => $args, 'result' => $result]);
     return $order;
   }
 
