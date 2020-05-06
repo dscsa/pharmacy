@@ -130,7 +130,7 @@ function update_orders_cp() {
       export_wc_create_order($order, "update_orders_cp: created");
 
     if ( ! $groups['COUNT_FILLED']) {
-      order_hold_notice($groups);
+      order_hold_notice($groups, true);
       log_error("update_orders_cp: Order Hold hopefully due to 'NO ACTION MISSING GSN' otherwise should have been deleted with sync code above", $groups);
     } else {
       send_created_order_communications($groups);

@@ -252,7 +252,7 @@ function order_hold_notice($groups, $missing_gsn = false) {
     ? ''
     : [
       "subject" => "Order #".$groups['ALL'][0]['invoice_number']." ON HOLD because of missing GSN",
-      "body" => "Please change drug(s) ".implode(', ', $groups['FILLED'])." in Order #".$groups['ALL'][0]['invoice_number']. " to be ones that have a GSN number",
+      "body" => "Please change drug(s) ".implode(', ', $groups['FILLED'])." in Order #".$groups['ALL'][0]['invoice_number']. " to be ones that have a GSN number and/or add those GSNs to V2: ".json_encode($groups['ALL'], JSON_PRETTY_PRINT),
       "contact" => $groups['ALL'][0]['first_name'].' '.$groups['ALL'][0]['last_name'].' '.$groups['ALL'][0]['birth_date'],
       "assign_to" => "Adam",
       "due_date" => null
