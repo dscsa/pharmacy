@@ -124,7 +124,7 @@ function update_rxs_single() {
 
       $patient = get_full_patient($updated, $mysql, true); //This updates & overwrites set_rx_messages
 
-      log_error("update_rxs_single rx was transferred out.  Confirm correct updated rx_messages", [$patient, $updated, $changed]);
+      log_error("update_rxs_single rx was transferred out.  Confirm correct updated rxs_single.rx_message_key. rxs_grouped.rx_message_keys will be updated on next pass", [$patient, $updated, $changed]);
     }
 
     if ($updated['refills_left'] <= NO_REFILL AND $updated['refills_left'] > NO_REFILL) {

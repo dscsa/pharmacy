@@ -227,13 +227,6 @@ function update_patients_wc() {
       else
         log_error("NOT SURE WHAT TO DO FOR PAYMENT METHOD $updated");
 
-    } else if ($updated['payment_card_last4'] !== $updated['old_payment_card_last4']) {
-
-      log_error('update_patients_wc: updated card_last4.  Need to replace Card Last4 in Autopay Reminder', "$updated[payment_method_default] $updated[old_payment_card_type] >>> $updated[payment_card_type] $updated[old_payment_card_last4] >>> $updated[payment_card_last4] $updated[payment_card_date_expired]");
-
-      update_last4_in_autopay_reminders($updated['first_name'], $updated['last_name'], $updated['birth_date'], $updated['payment_card_last4']);
-      //Probably by generalizing the code the currently removes drugs from the refill reminders.
-      //TODO Autopay Reminders (Remove Card, Card Expired, Card Changed, Order Paid Manually)
     }
 
     if ( ! $updated['first_name'] OR ! $updated['first_name'] OR ! $updated['birth_date']) {

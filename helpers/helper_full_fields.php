@@ -37,9 +37,7 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages) {
 
       //log_notice('add_full_fields: after', ['item' => $patient_or_order[$i]]);
 
-      if (isset($patient_or_order[$i]['refills_dispensed_default']) AND $patient_or_order[$i]['qty_original'] != $patient_or_order[$i]['sig_qty'] * $patient_or_order[$i]['refills_dispensed_default']) {
-        log_notice("helper_full_order: sig qty doesn't match qty_original.  What is going on?", $patient_or_order[$i]);
-      } else if ($patient_or_order[$i]['sig_days'] AND $patient_or_order[$i]['sig_days'] != 90) {
+      if ($patient_or_order[$i]['sig_days'] AND $patient_or_order[$i]['sig_days'] != 90) {
         log_notice("helper_full_order: sig has days specified other than 90", $patient_or_order[$i]);
       }
 
