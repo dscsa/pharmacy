@@ -82,10 +82,10 @@ function get_days_default($item, $order) {
     return [$days_default, RX_MESSAGE['NO ACTION PATIENT REQUESTED']];
   }
 
-  if ((strtotime($item['refill_date_next']) - strtotime($item['order_date_added'])) > DAYS_UNIT*24*60*60 AND ! $added_manually) {
+  if ((strtotime($item['refill_date_next']) - strtotime(@$item['order_date_added'])) > DAYS_UNIT*24*60*60 AND ! $added_manually) {
 
     //DON'T STRICTLY NEED THIS TEST BUT IT GIVES A MORE SPECIFIC ERROR SO IT MIGHT BE HELPFUL
-    if ((strtotime($item['order_date_added']) - strtotime($item['refill_date_last'])) < DAYS_UNIT*24*60*60 AND ! $added_manually) {
+    if ((strtotime(@$item['order_date_added']) - strtotime($item['refill_date_last'])) < DAYS_UNIT*24*60*60 AND ! $added_manually) {
       log_info("DON'T REFILL IF FILLED WITHIN LAST ".DAYS_UNIT." DAYS UNLESS ADDED MANUALLY", get_defined_vars());
       return [0, RX_MESSAGE['NO ACTION RECENT FILL']];
     }
