@@ -196,7 +196,7 @@ function new_comm_arr($email, $text = '', $salesforce = '') {
     $comm_arr[] = $text;
   }
 
-  if ($salesforce AND $text['assign_to']) {
+  if ($salesforce AND $salesforce['assign_to']) {
     $comm_arr[] = $salesforce;
   }
 
