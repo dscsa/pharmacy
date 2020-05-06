@@ -18,7 +18,7 @@ function export_cp_set_rx_message($item, $message, $mysql) {
     return $item;
   }
 
-  if ( ! $item['days_dispensed_default'])
+  if ( ! @$item['days_dispensed_default'])
     $item['rx_message_text'] .= ' **'; //If not filling reference to backup pharmacy footnote on Invoices
 
   $rx_numbers = str_replace(",", "','", substr($item['rx_numbers'], 1, -1));

@@ -34,7 +34,7 @@ function get_days_default($item, $order) {
   }
 
   //#29005 was expired but never dispensed, so check "refill_date_first" so we asking doctors for new rxs that we never dispensed
-  if ($item['refill_date_first'] AND ! $item['rx_dispensed_id'] AND $days_left_in_expiration < 0) { // Can't do <= 0 because null <= 0 is true
+  if ($item['refill_date_first'] AND ! @$item['rx_dispensed_id'] AND $days_left_in_expiration < 0) { // Can't do <= 0 because null <= 0 is true
     log_info("DON'T FILL EXPIRED MEDICATIONS", get_defined_vars());
     return [0, RX_MESSAGE['ACTION EXPIRED']];
   }
@@ -62,7 +62,7 @@ function get_days_default($item, $order) {
     return [0, RX_MESSAGE['NO ACTION WILL TRANSFER CHECK BACK']];
   }
 
-  if ( ! $item['rx_dispensed_id'] AND $item['refills_total'] <= NO_REFILL) { //Unlike refills_dispensed_default/actual might not be set yet
+  if ( ! @$item['rx_dispensed_id'] AND $item['refills_total'] <= NO_REFILL) { //Unlike refills_dispensed_default/actual might not be set yet
     log_info("DON'T FILL MEDICATIONS WITHOUT REFILLS", $item);
     return [0, RX_MESSAGE['ACTION NO REFILLS']];
   }
@@ -302,11 +302,11 @@ function is_no_transfer($item) {
 }
 
 function is_added_manually($item) {
-  return in_array($item['item_added_by'], ADDED_MANUALLY);
+  return in_array(@$item['item_added_by'], ADDED_MANUALLY);
 }
 
 function is_not_offered($item) {
-  $stock_level = $item['stock_level_initial'] ?: $item['stock_level'];
+  $stock_level = @$item['stock_level_initial'] ?: $item['stock_level'];
 
   $not_offered = (is_null($stock_level) OR ($stock_level == STOCK_LEVEL['NOT OFFERED']));
 
@@ -333,7 +333,7 @@ function is_refill($item1, $order) {
 }
 
 function is_refill_only($item) {
-  return in_array($item['stock_level_initial'] ?: $item['stock_level'], [
+  return in_array(@$item['stock_level_initial'] ?: $item['stock_level'], [
     STOCK_LEVEL['OUT OF STOCK'],
     STOCK_LEVEL['REFILL ONLY']
   ]);
@@ -388,7 +388,7 @@ function days_left_in_refills($item) {
   //Fill up to 30 days more to finish up an Rx if almost finished.
   //E.g., If 30 day script with 3 refills (4 fills total, 120 days total) then we want to 1x 120 and not 1x 90 + 1x30
   //Incorrect "LAST  REFILL", because rx was already dispensed so it was actuall the second to last refill ( "rx_dispensed_id": "90068",)
-  if ($days_left_in_refills <= DAYS_MAX AND ! $item['rx_dispensed_id']) return roundDaysUnit($days_left_in_refills);
+  if ($days_left_in_refills <= DAYS_MAX AND ! @$item['rx_dispensed_id']) return roundDaysUnit($days_left_in_refills);
 }
 
 function days_left_in_stock($item) {
@@ -397,7 +397,7 @@ function days_left_in_stock($item) {
     return;
 
   $days_left_in_stock = round($item['qty_inventory']/$item['sig_qty_per_day']);
-  $stock_level = $item['stock_level_initial'] ?: $item['stock_level'];
+  $stock_level = @$item['stock_level_initial'] ?: $item['stock_level'];
 
   if ($days_left_in_stock >= DAYS_STD OR $item['qty_inventory'] >= 500)
     return;

@@ -8,7 +8,7 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages) {
   //Consolidate default and actual suffixes to avoid conditional overload in the invoice template and redundant code within communications
   foreach($patient_or_order as $i => $dontuse) { //don't use val because order[$i] and $item will become out of sync as we set properties
 
-    if ($patient_or_order[$i]['rx_message_key'] == 'ACTION NO REFILLS' AND $patient_or_order[$i]['rx_dispensed_id'] AND $patient_or_order[$i]['refills_total'] >= .1) {
+    if ($patient_or_order[$i]['rx_message_key'] == 'ACTION NO REFILLS' AND @$patient_or_order[$i]['rx_dispensed_id'] AND $patient_or_order[$i]['refills_total'] >= .1) {
       log_error('add_full_fields: status of ACTION NO REFILLS but has refills. Do we need to send updated communications?', $patient_or_order[$i]);
       $patient_or_order[$i]['rx_message_key'] = NULL;
     }
