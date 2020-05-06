@@ -1,10 +1,45 @@
-function testMergeDoc() {
+function testMergeInvoice() {
 
   var contents = JSON.stringify({
     method:'mergeDoc',
     template:'Invoice Template v1',
     file:'TEST Invoice #'+test_order[0]['invoice_number'],
     folder: 'Pending',
+    order:test_order
+  })
+
+  Logger.log(contents)
+
+  var event = {parameter:{GD_KEY:GD_KEY}, postData:{contents:contents}}
+
+  debugEmail('testMergeInvoice', event, doPost(event))
+}
+
+function testMergeInvoice2() {
+
+  var contents = JSON.stringify({
+    method:'mergeDoc',
+    template:'Invoice Template v1',
+    file:'TEST Invoice #'+test_order2[0]['invoice_number'],
+    folder: 'Pending',
+    order:test_order2
+  })
+
+  Logger.log(contents)
+
+  var event = {parameter:{GD_KEY:GD_KEY}, postData:{contents:contents}}
+
+  debugEmail('testMergeInvoice2', event, doPost(event))
+}
+
+
+function testMergeFax() {
+
+   var contents = JSON.stringify({
+    method:'mergeDoc',
+    template:'Transfer Out Fax v1',
+    file:'TEST Transfer #'+test_order[0]['pharmacy_phone'],
+    folder: 'Test Transfers',
     order:test_order
   })
 
@@ -40,6 +75,6 @@ function doPost(e) {
       .setMimeType(ContentService.MimeType.JSON)
 
   } catch(err){
-      debugEmail('gdoc_merge post error thrown', err, e)
+      debugEmail('gdoc_merge post error thrown', err, err.errorMessage, err.scriptStackTraceElements, e)
   }
 }

@@ -2,7 +2,7 @@
 
 require_once 'helpers/helper_appsscripts.php';
 
-function export_gd_update_invoice($order, $reason, $mysql) {
+function export_gd_update_invoice($order, $reason, $mysql, $try2 = false) {
 
   if ( ! count($order)) {
     log_error("export_gd_update_invoice: got malformed order", [$order, $reason]);
@@ -26,7 +26,13 @@ function export_gd_update_invoice($order, $reason, $mysql) {
   $invoice_doc_id = json_decode($result, true);
 
   if ( ! $invoice_doc_id) {
-    log_error("export_gd_update_invoice: invoice error", ['order' => $order, 'args' => $args, 'result' => $result]);
+
+    if ( ! $try2) {
+      log_error("export_gd_update_invoice: invoice error #1 of 2", ['order' => $order, 'args' => $args, 'result' => $result]);
+      return export_gd_update_invoice($order, $reason, $mysql, true);
+    }
+
+    log_error("export_gd_update_invoice: invoice error #2 of 2", ['order' => $order, 'args' => $args, 'result' => $result]);
     return $order;
   }
 
