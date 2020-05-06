@@ -77,9 +77,6 @@ function clean_sig($sig) {
   $sig = preg_replace('/\\bcada\\b/i', 'each', $sig);
   $sig = preg_replace('/\\bhoras\\b/i', 'hours', $sig);
 
-  //If MAX then use max and ignore preceeding sig e.g TAKE 1 TABLET BY MOUTH AS NEEDED FOR MIGRAINE, MAY REPEAT IN 2 HRS IF NEEDED, MAX 2TABS\/24 HRS
-  $sig = preg_replace('/.*(exceed (more than )?|exceeding |totaling |total of |not to |max(imum)? (of |per day (of )?|per day dose( |: ?)|daily dose( |: ?))?)([0-9]*\.[0-9]+|[1-9][0-9]*)/i', 'Max $8', $sig); //Get rid of "max" qtys in sig because they are redundant and could accidentally be added in
-
   //Abreviations
   $sig = preg_replace('/\\bhrs\\b/i', 'hours', $sig);
   $sig = preg_replace('/\\b(prn|at onset|when)\\b/i', 'as needed', $sig);
@@ -195,14 +192,17 @@ function clean_sig($sig) {
   //echo "9 $sig";
 
   //Alternative Wordings
-
   $sig = preg_replace('/\\bin (an|\d) hours?/i', '', $sig); //Don't catch "in an hour" from "Take 2 tablets by mouth as needed of gout & 1 more in an hour as needed"
   $sig = preg_replace('/\\bin \d+ minutes?/i', '', $sig);   //Don't use "in 10 minutes" for the frequency
   $sig = preg_replace('/\\b(an|\d) hours? later/i', '', $sig); //Don't catch "in an hour" from "Take 2 tablets by mouth as needed of gout & 1 more in an hour as needed"
   $sig = preg_replace('/\\b\d+ minutes? later/i', '', $sig);   //Don't use "in 10 minutes" for the frequency
 
   $sig = preg_replace('/\\bInject \d+ units?\\b/i', 'Inject 1', $sig); //INJECT 18 UNITS
-  $sig = preg_replace('/\\b\d+ units?(.*subcutan)|\\b(subcutan.*)\d+ units?\\b/i', 'Inject 1 $1$2', $sig); // "15 units at bedtime 1 time per day Subcutaneous 90 days":
+  $sig = preg_replace('/\\b\d+ units?(.*?subcutan)|\\b(subcutan.*?)\d+ units?\\b/i', 'Inject 1 $1$2', $sig); // "15 units at bedtime 1 time per day Subcutaneous 90 days":
+
+  //If MAX then use max and ignore preceeding sig e.g TAKE 1 TABLET BY MOUTH AS NEEDED FOR MIGRAINE, MAY REPEAT IN 2 HRS IF NEEDED, MAX 2TABS\/24 HRS
+  //Put this after inject because max 350 units may become 1 injection
+  $sig = preg_replace('/.*(exceed (more than )?|exceeding |totaling |total of |not to |max(imum)? (of |per day (of )?|per day dose( |: ?)|daily dose( |: ?))?)([0-9]*\.[0-9]+|[1-9][0-9]*)/i', 'Max $8', $sig); //Get rid of "max" qtys in sig because they are redundant and could accidentally be added in
 
   //Cleanup
   $sig = preg_replace('/  +/i', ' ', $sig); //Remove double spaces for aesthetics

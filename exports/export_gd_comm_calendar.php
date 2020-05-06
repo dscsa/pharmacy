@@ -207,7 +207,7 @@ function transfer_requested_notice($groups) {
 
 //We are coording patient communication via sms, calls, emails, & faxes
 //by building commication arrays based on github.com/dscsa/communication-calendar
-function order_hold_notice($groups) {
+function order_hold_notice($groups, $missing_gsn = false) {
 
   $subject = 'Good Pill is NOT filling your '.$groups['COUNT_NOFILL'].' items for Order #'.$groups['ALL'][0]['invoice_number'].'.';
   $message = '<u>We are NOT filling these Rxs:</u><br>'.implode(';<br>', array_merge($groups['NOFILL_NOACTION'], $groups['NOFILL_ACTION'])).';';
@@ -246,8 +246,20 @@ function order_hold_notice($groups) {
 
   log_info('order_hold_event', get_defined_vars());
 
+
+
+  $salesforce = ! $missing_gsn
+    ? ''
+    : {
+      "subject":"Order #".$groups['ALL'][0]['invoice_number']." ON HOLD because of missing GSN",
+      "body":"Please change drug(s) ".implode(', ', $groups['FILLED'])." in Order #".$groups['ALL'][0]['invoice_number']. " to be ones that have a GSN number",
+      "contact":$groups['ALL'][0]['first_name'].' '.$groups['ALL'][0]['last_name'].' '.$groups['ALL'][0]['birth_date'],
+      "assign_to":"Adam",
+      "due_date": null
+    };
+
   //Wait 15 minutes to hopefully batch staggered surescripts and manual rx entry and cindy updates
-  order_hold_event($groups['ALL'], $email, $text, 15/60);
+  order_hold_event($groups['ALL'], $email, $text, $salesforce, 15/60);
 }
 
 //We are coording patient communication via sms, calls, emails, & faxes

@@ -82,7 +82,7 @@ function transfer_requested_event($order, $email, $text, $hours_to_wait) {
   create_event($event_title, $comm_arr, $hours_to_wait);
 }
 
-function order_hold_event($order, $email, $text, $hours_to_wait) {
+function order_hold_event($order, $email, $text, $salesforce, $hours_to_wait) {
 
   if ( ! isset($order[0]['invoice_number']))
     log_error('ERROR order_hold_event: indexes not set', get_defined_vars());
@@ -92,7 +92,7 @@ function order_hold_event($order, $email, $text, $hours_to_wait) {
 
   $cancel = cancel_events_by_person($order[0]['first_name'], $order[0]['last_name'], $order[0]['birth_date'], 'order_hold_event', ['Order Created', 'Transfer Requested', 'Order Updated', 'Order Hold', 'No Rx']);
 
-  $comm_arr = new_comm_arr($email, $text);
+  $comm_arr = new_comm_arr($email, $text, $salesforce);
 
   log_info('order_hold_event', get_defined_vars());
 
@@ -167,17 +167,19 @@ function confirm_shipment_event($order, $email, $hours_to_wait, $hour_of_day = n
   create_event($event_title, $comm_arr, $hours_to_wait, $hour_of_day);
 }
 
-function new_comm_arr($email, $text = '') {
+function new_comm_arr($email, $text = '', $salesforce = '') {
 
   $comm_arr = [];
 
-  if (LIVE_MODE AND $email AND $email['email'] AND ! preg_match('/\d\d\d\d-\d\d-\d\d@goodpill\.org/', $email['email'])) {
+  if ( ! LIVE_MODE) return $comm_arr;
+
+  if ($email AND $email['email'] AND ! preg_match('/\d\d\d\d-\d\d-\d\d@goodpill\.org/', $email['email'])) {
     $email['bcc']  = DEBUG_EMAIL;
     $email['from'] = 'Good Pill Pharmacy < support@goodpill.org >'; //spaces inside <> are so that google cal doesn't get rid of "HTML" if user edits description
     $comm_arr[] = $email;
   }
 
-  if (LIVE_MODE AND $text AND $text['sms'] AND ! in_array($text['sms'], DO_NOT_SMS)) {
+  if ($text AND $text['sms'] AND ! in_array($text['sms'], DO_NOT_SMS)) {
     //addCallFallback
     $json = preg_replace('/ undefined/', '', json_encode($text));
 
@@ -192,6 +194,10 @@ function new_comm_arr($email, $text = '') {
 
     $text['fallbacks'] = [$call];
     $comm_arr[] = $text;
+  }
+
+  if ($salesforce AND $text['assign_to']) {
+    $comm_arr[] = $salesforce;
   }
 
   return $comm_arr; //just in case we were sloppy with undefined
