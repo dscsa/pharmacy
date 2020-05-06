@@ -204,7 +204,7 @@ function update_patients_wc() {
 
     } else if ($updated['payment_method_default'] !== $updated['old_payment_method_default']) {
 
-      log_error('update_patients_wc: updated payment_method_default. Deleting Autopay Reminders', "$updated[payment_method_default] $updated[payment_card_type] $updated[payment_card_last4] $updated[payment_card_date_expired]");
+      log_error('update_patients_wc: updated payment_method_default. Deleting Autopay Reminders', $updated);
 
       if ($updated['payment_method_default'] != PAYMENT_METHOD['AUTOPAY'])
         cancel_events_by_person($updated['first_name'], $updated['last_name'], $updated['birth_date'], 'update_patients_wc: updated payment_method_default', ['Autopay Reminder']);

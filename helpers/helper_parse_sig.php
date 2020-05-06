@@ -44,7 +44,8 @@ function get_parsed_sig($sig_actual, $drug_name, $correct = null) {
   $parsed['frequency_denominators'] = frequency_denominators($parsed['durations'], $correct);
   $parsed['frequencies'] = frequencies($parsed['durations'], $correct);
 
-  if (stripos($drug_name, ' INH') === false AND stripos($drug_name, ' CREAM') === false AND stripos($parsed['sig_clean'], ' puff') === false) {
+ $split, $match);
+  if ( ! preg_match('/ INH(?!.*SOLN|.*SOLUTION)/i', $drug_name) AND stripos($drug_name, ' CREAM') === false AND stripos($parsed['sig_clean'], ' puff') === false) {
     $parsed['sig_days']    = array_sum($parsed['durations']);
     $parsed['sig_qty']     = sig_qty($parsed);
     $parsed['qty_per_day'] = qty_per_day($parsed);

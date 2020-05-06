@@ -49,7 +49,7 @@ function update_orders_cp() {
         UPDATE gp_rxs_single SET sig_qty_per_day_actual = $sig_qty_per_day_actual WHERE rx_number = $item[rx_number]
       ");
 
-      if ($item['days_dispensed_actual'] AND $item['refills_dispensed'] AND ($item['days_dispensed_actual'] > DAYS_MAX OR $item['days_dispensed_actual'] < DAYS_MIN))
+      if ($item['days_dispensed_actual'] AND $item['refills_dispensed'] AND ! $item['qty_left'] AND ($item['days_dispensed_actual'] > DAYS_MAX OR $item['days_dispensed_actual'] < DAYS_MIN))
         log_error("check days dispensed is not within limits and it's not out of refills: ".DAYS_MIN." < $item[days_dispensed_actual] < ".DAYS_MAX, $item);
       else if ($sig_qty_per_day_actual AND $sig_qty_per_day_actual != round($item['sig_qty_per_day_default'], 1) AND $sig_qty_per_day_actual != round($item['sig_qty_per_day_default']*2, 1)) { // *2 is a hack for "as needed" being different right now
         log_error("sig parsing error Updating to Actual Qty_Per_Day '$item[sig_actual]' $item[sig_qty_per_day_default] (default) != $sig_qty_per_day_actual $item[qty_dispensed_actual]/$item[days_dispensed_actual] (actual)", $item);
