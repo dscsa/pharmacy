@@ -26,7 +26,7 @@ function export_gd_update_invoice($order, $reason, $mysql) {
   $invoice_doc_id = json_decode($result, true);
 
   if ( ! $invoice_doc_id) {
-    log_error("export_gd_update_invoice: invoice error", ['file' => $args['file'], 'result' => $result]);
+    log_error("export_gd_update_invoice: invoice error", ['order' => $order, 'args' => $args, 'result' => $result]);
     return $order;
   }
 

@@ -7,9 +7,9 @@ function export_v2_pend_order($order, $mysql) {
 }
 
 function v2_pend_item($item, $mysql) {
-  log_notice("v2_pend_item continue:".($item['days_dispensed_default'] ? 'Y' : 'No'), $item);//.print_r($item, true);
+  log_notice("v2_pend_item continue:".($item['days_dispensed_default'] ? 'Yes Days Dispensed Default' : 'No Days Dispensed Default'), "$item[rx_number]  $item['rx_dispensed_id'] $item[days_dispensed_default]");//.print_r($item, true);
 
-  if ( ! $item['days_dispensed_default']) return;
+  if ( ! $item['days_dispensed_default'] OR $item['rx_dispensed_id']) return;
 
   $vals = make_pick_list($item);
   print_pick_list($item, $vals);
@@ -64,7 +64,7 @@ function save_pick_list($item, $vals, $mysql) {
       rx_number = $item[rx_number]
   ";
 
-  log_notice('save_pick_list', get_defined_vars());
+  //log_notice('save_pick_list', get_defined_vars());
 
   $mysql->run($sql);
 }
@@ -114,7 +114,7 @@ function print_pick_list($item, $vals) {
 
   $result = gdoc_post(GD_HELPER_URL, $args);
 
-  log_notice("WebForm print_pick_list $pend_group_name", ['list' => $vals['list'], 'item' => $item, 'count list' => count($vals['list']), 'count pend' => count($vals['pend'])]); //We don't need full shopping list cluttering logs
+  log_notice("WebForm print_pick_list $pend_group_name", ['item' => $item, 'count list' => count($vals['list']), 'count pend' => count($vals['pend'])]); //We don't need full shopping list cluttering logs
 
 }
 
@@ -192,7 +192,7 @@ function make_pick_list($item) {
   $sorted_ndcs   = sort_by_ndc($unsorted_ndcs, $long_exp);
   $list          = get_qty_needed($sorted_ndcs, $min_qty, $safety);
 
-  log_notice("WebForm make_pick_list $item[invoice_number]", $item); //We don't need full shopping list cluttering logs
+  log_notice("WebForm make_pick_list $item[invoice_number]", $item['drug_name']); //We don't need full shopping list cluttering logs
 
   if ($list) {
     $list['half_fill'] = '';
