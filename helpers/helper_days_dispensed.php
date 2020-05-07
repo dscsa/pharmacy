@@ -69,7 +69,7 @@ function get_days_default($item, $order) {
 
   if ( ! $item['pharmacy_name']) {
     log_info("PATIENT NEEDS TO REGISTER", get_defined_vars());
-    return [$item['item_date_added'] ? $days_default : 0, RX_MESSAGE['ACTION NEEDS FORM']];
+    return [@$item['item_date_added'] ? $days_default : 0, RX_MESSAGE['ACTION NEEDS FORM']];
   }
 
   if ( ! $item['patient_autofill'] AND ! $added_manually) {
@@ -101,12 +101,12 @@ function get_days_default($item, $order) {
 
   //If SureScript comes in AND only *rx* is off autofill, we assume patients wants it.
   //This is different when *patient* is off autofill, then we assume they don't want it unless added_manually
-  if ( ! $item['rx_autofill'] AND ! $item['item_date_added']) {
+  if ( ! $item['rx_autofill'] AND ! @$item['item_date_added']) {
     log_info("DON'T FILL IF RX_AUTOFILL IS OFF AND NOT IN ORDER", get_defined_vars());
     return [0, RX_MESSAGE['ACTION RX OFF AUTOFILL']];
   }
 
-  if ( ! $item['rx_autofill'] AND $item['item_date_added']) {
+  if ( ! $item['rx_autofill'] AND @$item['item_date_added']) {
     log_info("OVERRIDE RX AUTOFILL OFF", get_defined_vars());
     return [$days_default, RX_MESSAGE['NO ACTION RX REQUESTED']];
   }
@@ -227,7 +227,7 @@ function set_days_default($item, $days, $mysql) {
   }
 
   //We can only save days if its currently an order_item
-  if ( ! $item['item_date_added'])
+  if ( ! @$item['item_date_added'])
     return $item;
 
   if ($item['days_dispensed_actual']) {
@@ -346,23 +346,23 @@ function message_text($message, $item) {
 function sync_to_order_new_rx($item, $order) {
   $not_offered = is_not_offered($item);
   $refill_only = is_refill_only($item);
-  $eligible    = ! $item['item_date_added'] AND ($item['refills_total'] > NO_REFILL) AND ! is_refill($item, $order) AND $item['rx_autofill'] AND ! $not_offered AND ! $refill_only;
+  $eligible    = ! @$item['item_date_added'] AND ($item['refills_total'] > NO_REFILL) AND ! is_refill($item, $order) AND $item['rx_autofill'] AND ! $not_offered AND ! $refill_only;
   return $eligible AND ! is_duplicate_gsn($item, $order);
 }
 
 function sync_to_order_past_due($item, $order) {
-  $eligible = ! $item['item_date_added'] AND ($item['refills_total'] > NO_REFILL) AND $item['refill_date_next'] AND (strtotime($item['refill_date_next']) - strtotime($item['order_date_added'])) < 0;
+  $eligible = ! @$item['item_date_added'] AND ($item['refills_total'] > NO_REFILL) AND $item['refill_date_next'] AND (strtotime($item['refill_date_next']) - strtotime($item['order_date_added'])) < 0;
   return $eligible AND ! is_duplicate_gsn($item, $order);
 }
 
 //Order 29017 had a refill_date_first and rx/pat_autofill ON but was missing a refill_date_default/refill_date_manual/refill_date_next
 function sync_to_order_no_next($item, $order) {
-  $eligible = ! $item['item_date_added'] AND ($item['refills_total'] > NO_REFILL) AND is_refill($item, $order) AND ! $item['refill_date_default'];
+  $eligible = ! @$item['item_date_added'] AND ($item['refills_total'] > NO_REFILL) AND is_refill($item, $order) AND ! $item['refill_date_default'];
   return $eligible AND ! is_duplicate_gsn($item, $order);
 }
 
 function sync_to_order_due_soon($item, $order) {
-  $eligible = ! $item['item_date_added'] AND ($item['refills_total'] > NO_REFILL) AND $item['refill_date_next'] AND (strtotime($item['refill_date_next'])  - strtotime($item['order_date_added'])) <= DAYS_UNIT*24*60*60;
+  $eligible = ! @$item['item_date_added'] AND ($item['refills_total'] > NO_REFILL) AND $item['refill_date_next'] AND (strtotime($item['refill_date_next'])  - strtotime($item['order_date_added'])) <= DAYS_UNIT*24*60*60;
   return $eligible AND ! is_duplicate_gsn($item, $order);
 }
 
@@ -439,7 +439,7 @@ function days_default($days_left_in_refills, $days_left_in_stock, $days_default 
 function is_duplicate_gsn($item1, $order) {
   //Don't sync if an order with these instructions already exists in order
   foreach($order as $item2) {
-    if ($item1 !== $item2 AND $item2['item_date_added'] AND $item1['drug_gsns'] == $item2['drug_gsns']) {
+    if ($item1 !== $item2 AND @$item2['item_date_added'] AND $item1['drug_gsns'] == $item2['drug_gsns']) {
       log_notice("helper_days_dispensed syncing item: matching drug_gsns so did not SYNC TO ORDER' $item1[invoice_number] $item1[drug_name] $item1[rx_message_key] refills last:$item1[refill_date_last] next:$item1[refill_date_next] total:$item1[refills_total] left:$item1[refills_left]", ['item1' => $item1, 'item2' => $item2]);
       return true;
     }
