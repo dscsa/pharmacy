@@ -6,7 +6,7 @@ function gdoc_post($url, $content) {
   $opts = [
     'http' => [
       'method'  => 'POST',
-      'content' => json_encode($content),
+      'content' => $content,
       'header'  => "Content-Type: application/json\r\n".
                    "Accept: application/json\r\n".
                    'Content-Length: '.strlen($content)."\r\n" //Apps Scripts seems to sometimes to require this e.g Invoice for 33701 or returns an HTTP 411 error
