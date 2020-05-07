@@ -379,6 +379,19 @@ Install PHPMyAdmin
 `sudo chmod o+w config/config.inc.php`
 `mysqladmin -u root create goodpill` or browse to `<public_ip>/wp-goodpill`, login, and create `goodpill` database
 
+Add 2nd Credential / PEM / USER
+```
+In EC2 console > Key Pairs > Create New Key Pair (should download the private key to downloads folder)
+chmod 600 ~/Downloads/XXXX_ec2_key.pem
+ssh-keygen -y -f ~/Downloads/XXX_ec2_key.pem
+login to the instance with old credentials
+nano ~/.ssh/authorized_keys
+paste the public key on the line below sirum_ec2_key using the same format:
+ssh-rsa public_key XXXX_ec2_key (after the pasted key put a space then the key name)
+exit out of ssh and try logging in with the new key (still using the ec2-user)
+https://aws.amazon.com/premiumsupport/knowledge-center/new-user-accounts-linux-instance/
+```
+
 Transfer Data
 - Exit out of ssh and then `scp -v -r -i /Volumes/EC2/sirum_ec2_key.pem /Users/adam/Downloads/<localSQL> ec2-user@<ip address>:`
 `sudo gunzip <filename>`

@@ -105,12 +105,12 @@ function update_rxs_single() {
       foreach ($patient as $item) {
         if ($updated['rx_number'] == $item['rx_number']) {
           $in  = str_replace(',', "','", substr($item['drug_gsns'], 1, -1)); //use drugs_gsns instead of rx_gsn just in case there are multiple gsns for this drug
-          $sql = "UPDATE cprx SET autofill_yn = $updated[rx_autofill] WHERE pat_id = $updated[patient_id_cp] AND gcn_seqno IN ('$in')";
+          $sql = "UPDATE cprx SET autofill_yn = $updated[rx_autofill], chg_date = GETDATE() WHERE pat_id = $updated[patient_id_cp] AND gcn_seqno IN ('$in')";
           $mssql->run($sql);
         }
       }
 
-      log_error("update_rxs_single rx_autofill changed.  Updating all Rx's with same GSN to be on/off Autofill. Confirm correct updated rx_messages", ['patient' => $patient, 'updated' => $updated, 'sql' => $sql, 'changed' => $changed]);
+      log_notice("update_rxs_single rx_autofill changed.  Updating all Rx's with same GSN to be on/off Autofill. Confirm correct updated rx_messages", ['patient' => $patient, 'updated' => $updated, 'sql' => $sql, 'changed' => $changed]);
     }
 
     if ($updated['rx_gsn'] AND ! $updated['old_rx_gsn']) {

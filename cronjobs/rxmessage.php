@@ -30,7 +30,7 @@ $count = count($rxs);
 
 foreach ($rxs as $i => $rx) {
   if ($rx['stock_level_initial'] == 'HIGH SUPPLY') {
-    $mssql->run("UPDATE cprx SET priority_cn = 218 WHERE script_no = '$rx[rx_number]'");
+    $mssql->run("UPDATE cprx SET priority_cn = 218, chg_date = GETDATE() WHERE script_no = '$rx[rx_number]'");
     $mysql->run("UPDATE gp_rxs_single SET rx_message_key = 'NO ACTION FILL HIGH SUPPLY' WHERE rx_number = '$rx[rx_number]'");
 
     echo "
@@ -38,7 +38,7 @@ foreach ($rxs as $i => $rx) {
   }
 
   if ($rx['stock_level_initial'] == 'LOW SUPPLY') {
-    $mssql->run("UPDATE cprx SET priority_cn = 219 WHERE script_no = '$rx[rx_number]'");
+    $mssql->run("UPDATE cprx SET priority_cn = 219, chg_date = GETDATE() WHERE script_no = '$rx[rx_number]'");
     $mysql->run("UPDATE gp_rxs_single SET rx_message_key = 'NO ACTION FILL LOW SUPPLY' WHERE rx_number = '$rx[rx_number]'");
 
     echo "
@@ -46,7 +46,7 @@ foreach ($rxs as $i => $rx) {
   }
 
   if ($rx['stock_level_initial'] == 'REFILL ONLY') {
-    $mssql->run("UPDATE cprx SET priority_cn = 220 WHERE script_no = '$rx[rx_number]'");
+    $mssql->run("UPDATE cprx SET priority_cn = 220, chg_date = GETDATE() WHERE script_no = '$rx[rx_number]'");
     $mysql->run("UPDATE gp_rxs_single SET rx_message_key = 'NO ACTION FILL REFILL ONLY' WHERE rx_number = '$rx[rx_number]'");
 
     echo "
@@ -54,7 +54,7 @@ foreach ($rxs as $i => $rx) {
   }
 
   if ($rx['stock_level_initial'] == 'OUT OF STOCK') {
-    $mssql->run("UPDATE cprx SET priority_cn = 221 WHERE script_no = '$rx[rx_number]'");
+    $mssql->run("UPDATE cprx SET priority_cn = 221, chg_date = GETDATE() WHERE script_no = '$rx[rx_number]'");
     $mysql->run("UPDATE gp_rxs_single SET rx_message_key = 'NO ACTION FILL OUT OF STOCK' WHERE rx_number = '$rx[rx_number]'");
 
     echo "
@@ -62,7 +62,7 @@ foreach ($rxs as $i => $rx) {
   }
 
   if ($rx['stock_level_initial'] == 'ONE TIME') {
-    $mssql->run("UPDATE cprx SET priority_cn = 222 WHERE script_no = '$rx[rx_number]'");
+    $mssql->run("UPDATE cprx SET priority_cn = 222, chg_date = GETDATE() WHERE script_no = '$rx[rx_number]'");
     $mysql->run("UPDATE gp_rxs_single SET rx_message_key = 'NO ACTION FILL ONE TIME' WHERE rx_number = '$rx[rx_number]'");
 
     echo "

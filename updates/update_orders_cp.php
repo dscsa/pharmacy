@@ -267,7 +267,7 @@ function update_orders_cp() {
     if ($updated['count_items'] != $updated['old_count_items']) {
 
       $log = "update_orders_cp: count items changed $updated[invoice_number]: $updated[old_count_items] -> $updated[count_items]";
-      log_error($log, [$order, $updated]);
+      log_notice($log, [$order, $updated]);
 
       foreach($order as $item) {
 
