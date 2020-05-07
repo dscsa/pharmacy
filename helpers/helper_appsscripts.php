@@ -2,7 +2,14 @@
 
 function gdoc_post($url, $content) {
 
-  $content = json_encode($content);
+  try {
+    $content = json_encode($content);
+  } catch (Exception $e) {
+    print_r($e);
+    $utf8 = mb_convert_encoding($content, 'UTF-8', 'UTF-8');
+    echo json_encode($utf8);
+  }
+
   $opts = [
     'http' => [
       'method'  => 'POST',
