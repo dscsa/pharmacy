@@ -59,7 +59,7 @@ function vars_to_json($vars, $file) {
 
   $vars = array_reverse($vars, true); //Put most recent variables at the top of the email
   $diff = array_diff_key($vars, array_flip($non_user_vars));
-  $json = json_encode(utf8ize($diff), JSON_PRETTY_PRINT); //| JSON_PARTIAL_OUTPUT_ON_ERROR
+  $json = json_encode(utf8ize($diff), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE); //| JSON_PARTIAL_OUTPUT_ON_ERROR
 
   if ( ! $json) {
     $error = json_last_error_msg();
@@ -75,6 +75,7 @@ function vars_to_json($vars, $file) {
 }
 
 //https://stackoverflow.com/questions/19361282/why-would-json-encode-return-an-empty-string
+//TODO in PHP 7.2+ use JSON_INVALID_UTF8_IGNORE instead
 function utf8ize($d) {
   if (is_array($d)) {
       foreach ($d as $k => $v) {
