@@ -3,11 +3,12 @@
 function gdoc_post($url, $content) {
 
   try {
-    $content = json_encode($content);
+    $content = json_encode(utf8ize($content));
   } catch (Exception $e) {
     print_r($e);
     $utf8 = mb_convert_encoding($content, 'UTF-8', 'UTF-8');
-    echo json_encode($utf8);
+    echo "mb_convert_encoding
+    ".json_encode($utf8);
   }
 
   $opts = [
