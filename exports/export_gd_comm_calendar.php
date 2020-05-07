@@ -244,10 +244,6 @@ function order_hold_notice($groups, $missing_gsn = false) {
     "Note: if this is correct, there is no need to do anything. If you think there is a mistake, please let us know as soon as possible."
   ]);
 
-  log_info('order_hold_event', get_defined_vars());
-
-
-
   $salesforce = ! $missing_gsn
     ? ''
     : [
@@ -257,6 +253,8 @@ function order_hold_notice($groups, $missing_gsn = false) {
       "assign_to" => "Adam",
       "due_date" => null
     ];
+
+  log_error('order_hold_event', get_defined_vars());
 
   //Wait 15 minutes to hopefully batch staggered surescripts and manual rx entry and cindy updates
   order_hold_event($groups['ALL'], $email, $text, $salesforce, 15/60);

@@ -94,7 +94,7 @@ function order_hold_event($order, $email, $text, $salesforce, $hours_to_wait) {
 
   $comm_arr = new_comm_arr($email, $text, $salesforce);
 
-  log_info('order_hold_event', get_defined_vars());
+  log_error('order_hold_event', get_defined_vars());
 
   create_event($event_title, $comm_arr, $hours_to_wait);
 }
