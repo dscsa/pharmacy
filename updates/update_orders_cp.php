@@ -120,7 +120,9 @@ function update_orders_cp() {
 
     $order = helper_update_payment($order, "update_orders_cp: created", $mysql);
 
-    if ($order[0]['rx_dispensed_id']) { //Can't test for rx_message_key == 'ACTION NEEDS FORM' because other messages can take precedence
+    if ($created['order_date_dispensed']) { //Can't test for rx_message_key == 'ACTION NEEDS FORM' because other messages can take precedence
+      export_gd_publish_invoice($order);
+      export_gd_print_invoice($order);
       log_notice("Created Order is being readded (and invoice recreated) even though already dispensed.  Was it deleted on purpose?".$order[0]['invoice_number'], $order);
       continue;
     }
