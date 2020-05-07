@@ -20,9 +20,9 @@ function testMergeInvoice2() {
   var contents = JSON.stringify({
     method:'mergeDoc',
     template:'Invoice Template v1',
-    file:'TEST Invoice #'+test_order2[0]['invoice_number'],
+    file:'TEST Invoice #'+test_order3[0]['invoice_number'],
     folder: 'Pending',
-    order:test_order2
+    order:test_order3
   })
 
   Logger.log(contents)
@@ -60,15 +60,22 @@ function doPost(e) {
 
     if ( ! e.postData || ! e.postData.contents)
       return debugEmail('gdoc_merge post not post data', e)
+      
+    //debugEmail('gdoc_merge called and will be run', e.postData.contents.length)
 
     var response
     var contents = JSON.parse(e.postData.contents)
 
     if (contents.method == 'mergeDoc')
       response = mergeDoc(contents)
-
+      
     else
       debugEmail('gdoc_merge post no matching method', e)
+      
+    if ( ! response)
+      debugEmail('gdoc_merge no response given', contents)
+    //else 
+    //  debugEmail('gdoc_merge response was', response)
 
     return ContentService
       .createTextOutput(JSON.stringify(response))
