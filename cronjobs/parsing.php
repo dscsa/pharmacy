@@ -704,6 +704,7 @@ $test_sigs = [
   //Take 3 tablets by mouth 3 times a day with meal & Take 1 tablet with a snack, for a total of 10 tablets per day
   //Ttake 1 tablet by Oral route 4 times per day 1 hour before meals & at bedtime for 30 days
   //Take 4mg 1 time per week, Wed; 2mg all other days or as directed. (Drug Name: Warfarin 2mg)
+  // 'Apply 1 patch topically once daily . Do not apply to same area more than once every 14 days. for 90 days'
 ];
 
 global $argv;

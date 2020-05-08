@@ -219,7 +219,7 @@ function durations($cleaned, $correct) {
     $splits = preg_split($complex_sig_regex, $cleaned);
 
     foreach ($splits as $split) {
-      preg_match('/(?<!every )(\d+) day/i', $split, $match);
+      preg_match('/(?<!every) (\d+) day/i', $split, $match);
 
       if ($match AND $match[1]) {
 
