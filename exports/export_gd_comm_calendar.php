@@ -248,13 +248,16 @@ function order_hold_notice($groups, $missing_gsn = false) {
     ? ''
     : [
       "subject" => "Order #".$groups['ALL'][0]['invoice_number']." ON HOLD because of missing GSN",
-      "body" => "Please change drug(s) ".implode(', ', $groups['FILLED'])." in Order #".$groups['ALL'][0]['invoice_number']. " to be ones that have a GSN number and/or add those GSNs to V2: ".json_encode($groups['ALL'], JSON_PRETTY_PRINT),
+      "body" => "Please change drug(s) ".implode(', ', $groups['FILLED_NOACTION']+$groups['NOFILL_NOACTION'])." in Order #".$groups['ALL'][0]['invoice_number']. " to be ones that have a GSN number and/or add those GSNs to V2",
       "contact" => $groups['ALL'][0]['first_name'].' '.$groups['ALL'][0]['last_name'].' '.$groups['ALL'][0]['birth_date'],
       "assign_to" => "Adam",
       "due_date" => null
     ];
 
-  log_error('order_hold_event', get_defined_vars());
+  if ($missing_gsn)
+    log_error('order_hold_notice: missing gsn', get_defined_vars());
+  else
+    log_notice('order_hold_notice: regular', get_defined_vars());
 
   //Wait 15 minutes to hopefully batch staggered surescripts and manual rx entry and cindy updates
   order_hold_event($groups['ALL'], $email, $text, $salesforce, 15/60);

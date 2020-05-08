@@ -206,9 +206,6 @@ function update_patients_wc() {
 
       log_error('update_patients_wc: updated payment_method_default. Deleting Autopay Reminders', $updated);
 
-      if ($updated['payment_method_default'] != PAYMENT_METHOD['AUTOPAY'])
-        cancel_events_by_person($updated['first_name'], $updated['last_name'], $updated['birth_date'], 'update_patients_wc: updated payment_method_default', ['Autopay Reminder']);
-
       if ($updated['old_payment_method_default'] == PAYMENT_METHOD['MAIL'])
         upsert_patient_wc($mysql, $updated['patient_id_wc'], 'payment_method_default', PAYMENT_METHOD['MAIL']);
 
