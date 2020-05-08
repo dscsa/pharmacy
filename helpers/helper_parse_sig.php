@@ -260,12 +260,15 @@ function qtys_per_time($durations, $drug_name, $correct) {
     if ($count) {
       //Avoid issues of dupliced Sigs. e.g Take 1 tablet by mouth 1 time a day Take 1 tablet per day
       if (count($match[1]) == 2 AND $match[1][0] == $match[1][1])
-        unset($match[1][1]);
+        unset($match[1][1]); //$starts_with_a_number
 
-      if (count($match[4]) == 2 AND $match[4][0] == $match[4][1])
-        unset($match[4][1]);
+      if (count($match[2]) == 2 AND $match[2][0] == $match[2][1])
+        unset($match[2][1]); //$includes_dosage_form
 
-      $qtys_per_time[$sig_part] = array_sum($match[1])+array_sum($match[4]);
+      if (count($match[5]) == 2 AND $match[5][0] == $match[5][1])
+        unset($match[5][1]); //$includes_active_verb
+
+      $qtys_per_time[$sig_part] = array_sum($match[1])+array_sum($match[2])+array_sum($match[5]);
       continue;
     }
 
