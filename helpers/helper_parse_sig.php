@@ -250,7 +250,10 @@ function qtys_per_time($durations, $drug_name, $correct) {
 
   foreach ($durations as $sig_part => $duration) {
     //"Use daily with lantus"  won't match the RegEx below
-    $count = preg_match_all('/([0-9]*\.[0-9]+|[1-9][0-9]*) ?(ml|tab|cap|pill|softgel|patch|injection|each|time)|(^|use +|max +|maximum +|total +of +|take +|inhale +|chew +|inject +|oral +)([0-9]*\.[0-9]+|[1-9][0-9]*)(?!\d| *\.| *mg| *time| *min| *hour| *day| *week| *month)/i', $sig_part, $match);
+    $starts_with_a_number = "^([0-9]*\.[0-9]+|[1-9][0-9]*)"; //Take 1 tablet by mouth  three times per day for 14 days then once daily for 16 days
+    $includes_dosage_form = "([0-9]*\.[0-9]+|[1-9][0-9]*) ?(ml|tab|cap|pill|softgel|patch|injection|each)";
+    $includes_active_verb = "(^|use +|max +|maximum +|total +of +|take +|inhale +|chew +|inject +|oral +)([0-9]*\.[0-9]+|[1-9][0-9]*)(?!\d| *\.| *mg| *time| *min| *hour| *day| *week| *month)";
+    $count = preg_match_all("/$starts_with_a_number|$includes_dosage_form|$includes_active_verb/i", $sig_part, $match);
 
     //print_r(['duration' => $duration, 'match' => $match, 'count' => $count]);
 
