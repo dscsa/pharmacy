@@ -146,8 +146,10 @@ function export_wc_create_order($order, $reason) {
   $url = "patient/$first_name $last_name $birth_date/order/$invoice_number";
   $res = wc_fetch($url);
 
-  if ( ! empty($res['error']) AND empty($res['order'])) //if order is set, then its just a this order already exists error
+  if ( ! empty($res['error']) OR empty($res['order'])) //if order is set, then its just a this order already exists error
     return log_error("export_wc_create_order: res[error] for $url", [$reason, $res, $first_item]);
+
+  log_notice("export_wc_create_order: success for $url", [$reason, $res, $first_item]);
 
   //These are the metadata that should NOT change
   //wc_upsert_meta($order_meta, 'shipping_method_id', ['31694']);
