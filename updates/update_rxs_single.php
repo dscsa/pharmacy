@@ -98,12 +98,13 @@ function update_rxs_single() {
     if ($updated['rx_autofill'] != $updated['old_rx_autofill']) {
 
       $patient = get_full_patient($updated, $mysql, true); //This updates & overwrites set_rx_messages
+      $sql     = ""; //Reset for logging
 
       //We want all Rxs with the same GSN to share the same rx_autofill value, so when one changes we must change them all
       //SQL to DETECT inconsistencies:
       //SELECT patient_id_cp, rx_gsn, MAX(drug_name), MAX(CONCAT(rx_number, rx_autofill)), GROUP_CONCAT(rx_autofill), GROUP_CONCAT(rx_number) FROM gp_rxs_single GROUP BY patient_id_cp, rx_gsn HAVING AVG(rx_autofill) > 0 AND AVG(rx_autofill) < 1
       foreach ($patient as $item) {
-        if ($updated['rx_number'] == $item['rx_number']) {
+        if (strpos($item['rx_numbers'], ",$updated[rx_number],") !== false) {
           $in  = str_replace(',', "','", substr($item['drug_gsns'], 1, -1)); //use drugs_gsns instead of rx_gsn just in case there are multiple gsns for this drug
           $sql = "UPDATE cprx SET autofill_yn = $updated[rx_autofill], chg_date = GETDATE() WHERE pat_id = $updated[patient_id_cp] AND gcn_seqno IN ('$in')";
           $mssql->run($sql);
