@@ -147,15 +147,15 @@ function get_days_default($item, $order) {
   //Since last refill check already ran, this means we have more days left in refill that we have in the expiration
   //to maximize the amount dispensed we dispense until 10 days before the expiration and then as much as we can for the last refill
   if ($days_left_in_expiration AND $days_left_in_expiration < DAYS_MIN) {
-    $days_left = min(180, $days_left_in_refills); //Cap it at 180 days
+    $days_left_of_qty = min(180, $item['qty_left']/$item['sig_qty_per_day']); //Cap it at 180 days
     log_error("RX IS ABOUT TO EXPIRE SO FILL IT FOR EVERYTHING LEFT", get_defined_vars());
-    return [$days_left, RX_MESSAGE['ACTION EXPIRING']];
+    return [$days_left_of_qty, RX_MESSAGE['ACTION EXPIRING']];
   }
 
-  if ($days_left_in_expiration) {
-    $days_left = roundDaysUnit($days_left_in_expiration)-10;
+  if ($days_left_in_expiration AND $days_left_in_expiration < $days_left_in_refills) {
+    $days_left_of_exp = roundDaysUnit($days_left_in_expiration)-10;
     log_error("RX WILL EXPIRE SOON SO FILL IT UNTIL RIGHT BEFORE EXPIRATION DATE", get_defined_vars());
-    return [$days_left, RX_MESSAGE['ACTION EXPIRING']];
+    return [$days_left_of_exp, RX_MESSAGE['ACTION EXPIRING']];
   }
 
   if ($stock_level == STOCK_LEVEL['ONE TIME']) {
@@ -387,8 +387,7 @@ function days_left_in_refills($item) {
 
   //Fill up to 30 days more to finish up an Rx if almost finished.
   //E.g., If 30 day script with 3 refills (4 fills total, 120 days total) then we want to 1x 120 and not 1x 90 + 1x30
-  //Incorrect "LAST  REFILL", because rx was already dispensed so it was actuall the second to last refill ( "rx_dispensed_id": "90068",)
-  if ($days_left_in_refills <= DAYS_MAX AND ! @$item['rx_dispensed_id']) return roundDaysUnit($days_left_in_refills);
+  if ($days_left_in_refills <= DAYS_MAX) return roundDaysUnit($days_left_in_refills);
 }
 
 function days_left_in_stock($item) {
