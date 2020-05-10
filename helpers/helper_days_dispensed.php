@@ -1,5 +1,5 @@
 <?php
-//TODO Calculate Qty, Days, & Price
+require_once 'helpers/helper_calendar.php';
 
 function get_days_default($item, $order) {
 
@@ -41,9 +41,30 @@ function get_days_default($item, $order) {
   }
 
   if ( ! $item['drug_gsns']) {
-    $item['max_gsn']
-      ? log_error("GSN NEEDS TO BE ADDED TO V2", "rx:$item[rx_number] $item[drug_name] $item[drug_generic] rx_gsn:$item[rx_gsn] max_gsn:$item[max_gsn]")
-      : log_info("RX IS MISSING GSN", $item);
+
+    $patient_label = get_patient_label($order);
+    $event_title   = $item['invoice_number'].' Missing GSN: '.$patient_label.'.  Created:'.date('Y:m:d H:i:s');
+
+    if ($item['max_gsn']) {
+      $body = "Drug $item[drug_name] in Order #$item[invoice_number] needs GSN $item[max_gsn] added to V2";
+      $assign = "Adam";
+      log_error($body, $item);
+
+    } else {
+      $body = "Drug $item[drug_name] in Order #$item[invoice_number] needs to be switched to a drug with a GSN in Guardian";
+      $assign = "Adam";
+      log_notice($body, $item);
+    }
+
+    $salesforce = [
+      "subject"   => "Order #$item[invoice_number] cannot be matched by GSN",
+      "body"      => $body,
+      "contact"   => "$item[first_name] $item[last_name] $item[birth_date]",
+      "assign_to" => "Adam",
+      "due_date"  => null
+    ];
+
+    create_event($event_title, [$salesforce]);
 
     return [ $item['refill_date_first'] ? $days_default : 0, RX_MESSAGE['NO ACTION MISSING GSN']];
   }
