@@ -45,6 +45,7 @@ function update_rxs_single() {
       MAX(rx_gsn) as max_gsn,
       MAX(drug_gsns) as drug_gsns,
       SUM(refills_left) as refills_total,
+      SUM(qty_left) as qty_total,
       MIN(rx_autofill) as rx_autofill, -- if one is taken off, then a new script will have it turned on but we need to go with the old one
 
       MIN(refill_date_first) as refill_date_first,

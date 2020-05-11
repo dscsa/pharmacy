@@ -195,8 +195,8 @@ function get_days_default($item, $order) {
     return [$days_left, RX_MESSAGE['ACTION LAST REFILL']];
   }
 
-  if ($days_left_in_refills) {
-    log_error("HAD ONLY $days_left_in_refills DAYS LEFT. WHY WAS THIS NOT CAUGHT BY refills_dispensed_default ABOVE?", get_defined_vars());
+  if ($days_left_in_refills AND $item['refills_left'] == $item['refills_total']) {
+    log_error("HAD ONLY $days_left_in_refills DAYS LEFT. refills_left:$item[refills_left] == refills_total:$item[refills_total]. WHY WAS THIS NOT CAUGHT BY refills_dispensed_default ABOVE?", get_defined_vars());
     return [$days_left_in_refills, RX_MESSAGE['ACTION LAST REFILL']];
   }
 
