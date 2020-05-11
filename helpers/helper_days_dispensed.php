@@ -314,8 +314,8 @@ function set_days_default($item, $days, $mysql) {
       days_dispensed_default    = $days,
       qty_dispensed_default     = $item[qty_dispensed_default],
       price_dispensed_default   = $item[price_dispensed_default],
-      refills_dispensed_default = $item[refills_dispensed_default],
       stock_level_initial       = '$item[stock_level_initial]',
+      refills_dispensed_default = ".(is_null($item['refills_dispensed_default']) ? 'NULL' : $item['refills_dispensed_default']).",
       refill_date_manual        = ".($item['refill_date_manual'] ? "'$item[refill_date_manual]'" : 'NULL').",
       refill_date_default       = ".($item['refill_date_default'] ? "'$item[refill_date_default]'" : 'NULL').",
       refill_date_last          = ".($item['refill_date_last'] ? "'$item[refill_date_last]'" : 'NULL')."
