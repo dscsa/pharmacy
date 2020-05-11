@@ -707,6 +707,7 @@ $test_sigs = [
   // 'Apply 1 patch topically once daily . Do not apply to same area more than once every 14 days. for 90 days'
   //Take 1 tablet by mouth  three times per day for 14 days then once daily for 16 days
   //place 1 tablet (0.4 mg) by sublingual route at 1st sign of attack; may repeat every 5 minutes up to 3 tabs; if no relief seek medical help
+  //take half a tablet twice daily
 ];
 
 global $argv;

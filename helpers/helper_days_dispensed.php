@@ -189,7 +189,7 @@ function get_days_default($item, $order) {
     return [$days_default, RX_MESSAGE['NO ACTION FILL OUT OF STOCK']];
   }
 
-  if ($refills_dispensed_default < .1) {
+  if ($refills_dispensed_default < NO_REFILLS) {
     $days_left = roundDaysUnit($item['qty_left']/$item['sig_qty_per_day']);
     log_notice("HAD LESS THAN 0.1 REFILLS LEFT", get_defined_vars());
     return [$days_left, RX_MESSAGE['ACTION LAST REFILL']];

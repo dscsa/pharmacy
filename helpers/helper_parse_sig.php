@@ -108,7 +108,7 @@ function clean_sig($sig) {
   //echo "3 $sig";
   //Substitute fractions
   $sig = preg_replace('/\\b(\d+) (& )?(\.5|1\/2|1-half|1 half)\\b/i', '$1.5', $sig); //Take 1 1/2 tablets
-  $sig = preg_replace('/(^| )(\.5|1\/2|1-half|1 half)\\b/i', ' 0.5', $sig);
+  $sig = preg_replace('/(^| )(\.5|1\/2|1-half|1 half|half a)\\b/i', ' 0.5', $sig);
 
   //Take First (Min?) of Numeric Ranges, except 0.5 to 1 in which case we use 1
   $sig = preg_replace('/\\b0.5 *(or|to|-) *1\\b/i', '1', $sig); //Special case of the below where we want to round up rather than down
