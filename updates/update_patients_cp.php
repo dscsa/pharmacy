@@ -56,7 +56,7 @@ function update_patients_cp() {
     if ($updated['payment_method_default'] != PAYMENT_METHOD['AUTOPAY'] AND $updated['old_payment_method_default'] ==  PAYMENT_METHOD['AUTOPAY'])
       cancel_events_by_person($updated['first_name'], $updated['last_name'], $updated['birth_date'], 'update_patients_wc: updated payment_method_default', ['Autopay Reminder']);
 
-    if ($updated['payment_card_last4'] AND $updated['payment_card_last4'] !== $updated['old_payment_card_last4']) {
+    if ($updated['payment_card_last4'] AND $updated['old_payment_card_last4'] AND $updated['payment_card_last4'] !== $updated['old_payment_card_last4']) {
 
       log_error("update_patients_wc: updated card_last4.  Need to replace Card Last4 in Autopay Reminder $updated[payment_method_default] $updated[old_payment_card_type] >>> $updated[payment_card_type] $updated[old_payment_card_last4] >>> $updated[payment_card_last4] $updated[payment_card_date_expired]", $updated);
 
