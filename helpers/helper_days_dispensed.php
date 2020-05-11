@@ -10,7 +10,6 @@ function get_days_default($item, $order) {
   $refill_only    = is_refill_only($item);
   $stock_level    = @$item['stock_level_initial'] ?: $item['stock_level'];
 
-  $refills_dispensed_default = refills_dispensed_default($item);
   $days_left_in_expiration = days_left_in_expiration($item);
   $days_left_in_refills    = days_left_in_refills($item);
   $days_left_in_stock      = days_left_in_stock($item);
@@ -186,6 +185,8 @@ function get_days_default($item, $order) {
 
     return [$days_default, RX_MESSAGE['NO ACTION FILL OUT OF STOCK']];
   }
+
+  $refills_dispensed_default = refills_dispensed_default($item);
 
   if ($refills_dispensed_default < NO_REFILLS) {
     $days_left = roundDaysUnit($item['qty_left']/$item['sig_qty_per_day']);
