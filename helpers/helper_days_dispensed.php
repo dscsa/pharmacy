@@ -188,14 +188,14 @@ function get_days_default($item, $order) {
 
   $refills_dispensed_default = refills_dispensed_default($item);
 
-  if ($refills_dispensed_default < NO_REFILLS) {
+  if ($refills_dispensed_default < NO_REFILL) {
     $days_left = roundDaysUnit($item['qty_left']/$item['sig_qty_per_day']);
-    log_notice("HAD LESS THAN ".NO_REFILLS." REFILLS LEFT", get_defined_vars());
+    log_notice("HAD LESS THAN ".NO_REFILL." REFILLS LEFT", get_defined_vars());
     return [$days_left, RX_MESSAGE['ACTION LAST REFILL']];
   }
 
   if ($days_left_in_refills AND $item['refills_left'] == $item['refills_total']) {
-    log_error("HAD ONLY $days_left_in_refills DAYS LEFT. refills_left:$item[refills_left] == refills_total:$item[refills_total]. $refills_dispensed_default < ".NO_REFILLS.": ".($refills_dispensed_default < NO_REFILLS)." WHY WAS THIS NOT CAUGHT BY refills_dispensed_default ABOVE?", get_defined_vars());
+    log_error("HAD ONLY $days_left_in_refills DAYS LEFT. refills_left:$item[refills_left] == refills_total:$item[refills_total]. $refills_dispensed_default < ".NO_REFILL.": ".($refills_dispensed_default < NO_REFILL)." WHY WAS THIS NOT CAUGHT BY refills_dispensed_default ABOVE?", get_defined_vars());
     return [$days_left_in_refills, RX_MESSAGE['ACTION LAST REFILL']];
   }
 
