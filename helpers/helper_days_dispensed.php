@@ -24,9 +24,6 @@ function get_days_default($item, $order) {
 
     if($stock_level == STOCK_LEVEL['HIGH SUPPLY'] AND strtotime($item['rx_date_transferred']) > strtotime('-1 month')) {
 
-      $patient_label = get_patient_label($order);
-      $event_title   = $item['invoice_number'].' High Stock Item Transferred: '.$patient_label.'.  Created:'.date('Y:m:d H:i:s');
-
       $salesforce = [
         "subject"   => "Order #$item[invoice_number] cannot be matched by GSN",
         "body"      => "Investigate why drug $item[drug_name] is high stock but was transferred recently",
@@ -34,6 +31,8 @@ function get_days_default($item, $order) {
         "assign_to" => "Adam",
         "due_date"  => null
       ];
+
+      $event_title = "$item[invoice_number] High Stock Item Transferred: $salesforce[contact] Created:".date('Y:m:d H:i:s');
 
       create_event($event_title, [$salesforce]);
       log_error('HIGH STOCK ITEM WAS TRANSFERRED WITHIN THE MONTH', get_defined_vars());
@@ -56,9 +55,6 @@ function get_days_default($item, $order) {
 
   if ( ! $item['drug_gsns']) {
 
-    $patient_label = get_patient_label($order);
-    $event_title   = $item['invoice_number'].' Missing GSN: '.$patient_label.'.  Created:'.date('Y:m:d H:i:s');
-
     if ($item['max_gsn']) {
       $body = "Drug $item[drug_name] in Order #$item[invoice_number] needs GSN $item[max_gsn] added to V2";
       $assign = "Adam";
@@ -77,6 +73,8 @@ function get_days_default($item, $order) {
       "assign_to" => $assign,
       "due_date"  => null
     ];
+
+    $event_title = "$item[invoice_number] Missing GSN: $salesforce[contact] Created:".date('Y:m:d H:i:s');
 
     create_event($event_title, [$salesforce]);
 
