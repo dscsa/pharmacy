@@ -708,6 +708,7 @@ $test_sigs = [
   //Take 1 tablet by mouth  three times per day for 14 days then once daily for 16 days
   //place 1 tablet (0.4 mg) by sublingual route at 1st sign of attack; may repeat every 5 minutes up to 3 tabs; if no relief seek medical help
   //take half a tablet twice daily
+  //Inject 0.4 mL (40 mg total) under the skin daily for 18 days.
 ];
 
 global $argv;
