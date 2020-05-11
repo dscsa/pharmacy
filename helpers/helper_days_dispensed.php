@@ -191,12 +191,12 @@ function get_days_default($item, $order) {
 
   if ($refills_dispensed_default < NO_REFILLS) {
     $days_left = roundDaysUnit($item['qty_left']/$item['sig_qty_per_day']);
-    log_notice("HAD LESS THAN 0.1 REFILLS LEFT", get_defined_vars());
+    log_notice("HAD LESS THAN ".NO_REFILLS." REFILLS LEFT", get_defined_vars());
     return [$days_left, RX_MESSAGE['ACTION LAST REFILL']];
   }
 
   if ($days_left_in_refills AND $item['refills_left'] == $item['refills_total']) {
-    log_error("HAD ONLY $days_left_in_refills DAYS LEFT. refills_left:$item[refills_left] == refills_total:$item[refills_total]. WHY WAS THIS NOT CAUGHT BY refills_dispensed_default ABOVE?", get_defined_vars());
+    log_error("HAD ONLY $days_left_in_refills DAYS LEFT. refills_left:$item[refills_left] == refills_total:$item[refills_total]. $refills_dispensed_default < ".NO_REFILLS.": ".($refills_dispensed_default < NO_REFILLS)." WHY WAS THIS NOT CAUGHT BY refills_dispensed_default ABOVE?", get_defined_vars());
     return [$days_left_in_refills, RX_MESSAGE['ACTION LAST REFILL']];
   }
 
@@ -331,8 +331,8 @@ function set_days_default($item, $days, $mysql) {
 
 function refills_dispensed_default($item) {
 
-  if ($item['refill_date_first'])
-    return max(0, $item['refills_total'] - ($item['days_dispensed_default'] ? 1 : 0));
+  if ($item['refill_date_first']) //This is initially called before days_dispensed_default is set, so assume a refill with null days is going to be filled (so subtract 1 from current refills)
+    return max(0, $item['refills_total'] - ($item['days_dispensed_default'] === 0 ? 0 : 1));
 
   //6028507 if Cindy hasn't adjusted the days/qty yet we need to calculate it ourselves
   return $item['refills_total'] * (1 - $item['qty_dispensed_default']/$item['qty_left']);
