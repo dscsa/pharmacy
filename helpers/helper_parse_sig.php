@@ -216,8 +216,16 @@ function durations($cleaned, $correct) {
 
     $durations = [];
     $remaining_days = DAYS_STD;
-    $complex_sig_regex = '/(may|can) increase(.*?\/ *(month|week))?|(?<=[a-z])[.;] *(?=\w)| then[ ,]+| & +at | &[ ,]+(?=\d|use +|take +|inhale +|chew +|inject +|oral +)/i';
-    $splits = preg_split($complex_sig_regex, $cleaned);
+
+    //Separate natural subclauses within the sig (so that we can parse them separetly  "add them up" later)
+    $increase = "(may|can) increase(.*?\/ *(month|week))?";
+    $sentence = "(?<=[a-z ])[.;\/] *(?=\w)";  //Sentence ending in . ; or / e.g. "Take 1 tablet by mouth once daily / take 1/2 tablet on sundays"
+    $then     = " then[ ,]+";
+    $and_at   = " & +at ";
+    $and_verb = " &[ ,]+(?=\d|use +|take +|inhale +|chew +|inject +|oral +)";
+
+    $durations_regex = "/$increase|$sentence|$then|$and_at|$and_verb/i";
+    $splits = preg_split($durations_regex, $cleaned);
 
     foreach ($splits as $split) {
       preg_match('/(?<!every) (\d+) day/i', $split, $match);

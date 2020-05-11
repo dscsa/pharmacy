@@ -335,7 +335,10 @@ function refills_dispensed_default($item) {
     return max(0, $item['refills_total'] - ($item['days_dispensed_default'] === 0 ? 0 : 1));
 
   //6028507 if Cindy hasn't adjusted the days/qty yet we need to calculate it ourselves
-  return $item['refills_total'] * (1 - $item['qty_dispensed_default']/$item['qty_left']);
+  if ($item['qty_dispensed_default'] != NULL)
+    return $item['refills_total'] * (1 - $item['qty_dispensed_default']/$item['qty_total']);
+
+  log_error("CANNOT ASSESS refills_dispensed_default AT THIS POINT", $item);
 }
 
 //TODO OR IT'S AN OTC
