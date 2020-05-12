@@ -175,6 +175,7 @@ function new_comm_arr($patient_label, $email, $text = '', $salesforce = '') {
   if ( ! LIVE_MODE) return $comm_arr;
 
   if ($email AND $email['email'] AND ! preg_match('/\d\d\d\d-\d\d-\d\d@goodpill\.org/', $email['email'])) {
+    $auto[] = "Email";
     $email['bcc']  = DEBUG_EMAIL;
     $email['from'] = 'Good Pill Pharmacy < support@goodpill.org >'; //spaces inside <> are so that google cal doesn't get rid of "HTML" if user edits description
     $comm_arr[] = $email;
@@ -182,6 +183,9 @@ function new_comm_arr($patient_label, $email, $text = '', $salesforce = '') {
 
   if ($text AND $text['sms'] AND ! in_array($text['sms'], DO_NOT_SMS)) {
     //addCallFallback
+
+    $auto[] = "Text/Call";
+
     $json = preg_replace('/ undefined/', '', json_encode($text));
 
     $text = format_text($json);
@@ -199,7 +203,7 @@ function new_comm_arr($patient_label, $email, $text = '', $salesforce = '') {
 
   if ($patient_label AND $comm_arr) {
     $comm_arr[] = [
-      "subject" => "Auto: ".($email['subject'] ?: "Text"),
+      "subject" => "Auto ".implode(', ', $auto).": ".($email['subject'] ?: "Text"),
       "body" => $text['message'] ?: $email['message'],
       "contact" => $patient_label,
       "assign_to" => null,
