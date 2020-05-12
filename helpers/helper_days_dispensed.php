@@ -339,7 +339,7 @@ function refills_dispensed_default($item) {
 
   //No much info to go on.  We could throw an error or just go based on whether the drug is in the order or not
   //log_error("CANNOT ASSESS refills_dispensed_default AT THIS POINT", $item);
-  return $item['refills_total'] - ($item['item_date_added'] ? 1 : 0));
+  return $item['refills_total'] - ($item['item_date_added'] ? 1 : 0);
 }
 
 //TODO OR IT'S AN OTC
