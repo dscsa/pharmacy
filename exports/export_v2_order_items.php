@@ -91,7 +91,7 @@ function print_pick_list($item, $vals) {
     [
       "Pick List: Order #$pend_group_name $item[drug_generic] ($item[drug_name])", '', '' ,'', '', ''],
     [
-      "Rx $item[rx_number]. $item[rx_message_key]. Item Added:$item[item_date_added]. Created ".date('Y:m:d H:i:s'), '', '' ,'', '', ''],
+      "Rx $item[rx_number]. $item[rx_message_key]. Item Added:$item[item_date_added]. Created ".date('Y-m-d H:i:s'), '', '' ,'', '', ''],
     [
       $vals['half_fill'].
       "Count:$vals[count], ".
@@ -213,10 +213,10 @@ function make_pick_list($item) {
     "body"      => "Determine if there is enough $item[drug_name] to pend qty:".$min_qty,
     "contact"   => "$item[first_name] $item[last_name] $item[birth_date]",
     "assign_to" => "Adam",
-    "due_date"  => null
+    "due_date"  => date('Y-m-d')
   ];
 
-  $event_title = "$item[invoice_number] Pending Error: $salesforce[contact] Created:".date('Y:m:d H:i:s');
+  $event_title = "$item[invoice_number] Pending Error: $salesforce[contact] Created:".date('Y-m-d H:i:s');
 
   create_event($event_title, [$salesforce]);
 

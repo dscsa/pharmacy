@@ -28,10 +28,10 @@ function get_days_default($item, $order) {
         "body"      => "Investigate why drug $item[drug_name] is high stock but was transferred recently",
         "contact"   => "$item[first_name] $item[last_name] $item[birth_date]",
         "assign_to" => "Adam",
-        "due_date"  => null
+        "due_date"  => date('Y-m-d')
       ];
 
-      $event_title = "$item[invoice_number] High Stock Item Transferred: $salesforce[contact] Created:".date('Y:m:d H:i:s');
+      $event_title = "$item[invoice_number] High Stock Item Transferred: $salesforce[contact] Created:".date('Y-m-d H:i:s');
 
       create_event($event_title, [$salesforce]);
       log_error('HIGH STOCK ITEM WAS TRANSFERRED WITHIN THE MONTH', get_defined_vars());
@@ -70,10 +70,10 @@ function get_days_default($item, $order) {
       "body"      => $body,
       "contact"   => "$item[first_name] $item[last_name] $item[birth_date]",
       "assign_to" => $assign,
-      "due_date"  => null
+      "due_date"  => date('Y-m-d')
     ];
 
-    $event_title = "$item[invoice_number] Missing GSN: $salesforce[contact] Created:".date('Y:m:d H:i:s');
+    $event_title = "$item[invoice_number] Missing GSN: $salesforce[contact] Created:".date('Y-m-d H:i:s');
 
     create_event($event_title, [$salesforce]);
 
