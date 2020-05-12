@@ -426,42 +426,48 @@ function order_canceled_notice($deleted, $patient) {
 
 function confirm_shipment_notice($groups) {
 
-    confirm_shipping_external($groups); //Existing customer just tell them it was delivered
+    $email = confirm_shipping_external($groups); //Existing customer just tell them it was delivered
+    $salesforce = confirm_shipping_internal($groups); //New customer tell them it was delivered and followup with a call
 
-    if ( ! $groups['ALL'][0]['refills_used'])
-      confirm_shipping_internal($groups); //New customer tell them it was delivered and followup with a call
+    $days_ago = 5;
+    confirm_shipment_event($groups['ALL'], $email, $salesforce, $days_ago*24, 13);
 }
 
 function confirm_shipping_internal($groups) {
 
+  if ( ! $groups['ALL'][0]['refills_used'])
+    return [];
+
   ///It's depressing to get updates if nothing is being filled
   $subject  = "Follow up on new patient's first order";
-  $days_ago = 6;
 
-  $email = [ "email" => 'support@goodpill.org' ];
+  $salesforce = [
+    "contact" => $groups['ALL'][0]['first_name'].' '.$groups['ALL'][0]['last_name'].' '.$groups['ALL'][0]['birth_date'],
+    "assign_to" => "Adam",
+    "due_date" => date('Y-m-d'),
+    "subject" => $subject,
+    "body" =>  implode('<br>', [
+      'Hello,',
+      '',
+      $groups['ALL'][0]['first_name'].' '.$groups['ALL'][0]['last_name'].' '.$groups['ALL'][0]['birth_date'].' is a new patient.  They were shipped Order #'.$groups['ALL'][0]['invoice_number'].' with '.$groups['COUNT_FILLED'].' items '.$days_ago.' days ago.',
+      '',
+      'Please call them at '.$groups['ALL'][0]['phone1'].', '.$groups['ALL'][0]['phone2'].' and check on the following:',
+      '- Order with tracking number '.tracking_link($groups['ALL'][0]['tracking_number']).' was delivered and that they received it',
+      '',
+      '- Make sure they got all '.$groups['COUNT_FILLED'].' of their medications, that we filled the correct number of pills, and answer any questions the patient has',
+      $groups['COUNT_NOFILL'] ? '<br>- Explain why we did NOT fill:<br>'.implode(';<br>', array_merge($groups['NOFILL_NOACTION'], $groups['NOFILL_ACTION'])).'<br>' : '',
+      '- Let them know they are currently set to pay via '.$groups['ALL'][0]['payment_method'].' and the cost of the '.$groups['COUNT_FILLED'].' items was $'.$groups['ALL'][0]['payment_fee_default'].' this time, but next time it will be $'.$groups['ALL'][0]['payment_total_default'],
+      '',
+      '- Review their current medication list and remind them which prescriptions we will be filling automatically and which ones they need to request 2 weeks in advance',
+      '',
+      'Thanks!',
+      'The Good Pill Team',
+      '',
+      ''
+    ])
+  ];
 
-  $email['subject'] = $subject;
-  $email['message'] = implode('<br>', [
-    'Hello,',
-    '',
-    $groups['ALL'][0]['first_name'].' '.$groups['ALL'][0]['last_name'].' '.$groups['ALL'][0]['birth_date'].' is a new patient.  They were shipped Order #'.$groups['ALL'][0]['invoice_number'].' with '.$groups['COUNT_FILLED'].' items '.$days_ago.' days ago.',
-    '',
-    'Please call them at '.$groups['ALL'][0]['phone1'].', '.$groups['ALL'][0]['phone2'].' and check on the following:',
-    '- Order with tracking number '.tracking_link($groups['ALL'][0]['tracking_number']).' was delivered and that they received it',
-    '',
-    '- Make sure they got all '.$groups['COUNT_FILLED'].' of their medications, that we filled the correct number of pills, and answer any questions the patient has',
-    $groups['COUNT_NOFILL'] ? '<br>- Explain why we did NOT fill:<br>'.implode(';<br>', array_merge($groups['NOFILL_NOACTION'], $groups['NOFILL_ACTION'])).'<br>' : '',
-    '- Let them know they are currently set to pay via '.$groups['ALL'][0]['payment_method'].' and the cost of the '.$groups['COUNT_FILLED'].' items was $'.$groups['ALL'][0]['payment_fee_default'].' this time, but next time it will be $'.$groups['ALL'][0]['payment_total_default'],
-    '',
-    '- Review their current medication list and remind them which prescriptions we will be filling automatically and which ones they need to request 2 weeks in advance',
-    '',
-    'Thanks!',
-    'The Good Pill Team',
-    '',
-    ''
-  ]);
-
-  confirm_shipment_event($groups['ALL'], $email, $days_ago*24, 13);
+  return $salesforce;
 }
 
 function confirm_shipping_external($groups) {
@@ -486,5 +492,5 @@ function confirm_shipping_external($groups) {
     ''
   ]);
 
-  confirm_shipment_event($groups['ALL'], $email, 5*24, 14);
+  return $email;
 }

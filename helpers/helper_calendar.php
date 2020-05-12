@@ -153,14 +153,14 @@ function order_canceled_event($deleted, $email, $text, $hours_to_wait, $hour_of_
   create_event($event_title, $comm_arr, $hours_to_wait, $hour_of_day);
 }
 
-function confirm_shipment_event($order, $email, $hours_to_wait, $hour_of_day = null) {
+function confirm_shipment_event($order, $email, $salesforce, $hours_to_wait, $hour_of_day = null) {
 
   $patient_label = get_patient_label($order);
   $event_title   = $order[0]['invoice_number'].' Confirm Shipment: '.$patient_label.'.  Created:'.date('Y-m-d H:i:s');
 
   $cancel = cancel_events_by_person($order[0]['first_name'], $order[0]['last_name'], $order[0]['birth_date'], 'confirm_shipment_event', ['Order Dispensed', 'Order Created', 'Transfer Requested', 'Order Updated', 'Order Hold', 'No Rx', 'Needs Form', 'Order Canceled']);
 
-  $comm_arr = new_comm_arr($patient_label, $email);
+  $comm_arr = new_comm_arr($patient_label, $email, '', $salesforce);
 
   log_info('confirm_shipment_event', get_defined_vars());
 
