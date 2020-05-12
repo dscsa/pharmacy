@@ -186,16 +186,8 @@ function get_days_default($item, $order) {
     return [$days_default, RX_MESSAGE['NO ACTION FILL OUT OF STOCK']];
   }
 
-  $refills_dispensed_default = refills_dispensed_default($item);
-
-  if ($refills_dispensed_default < NO_REFILL) {
-    $days_left = roundDaysUnit($item['qty_left']/$item['sig_qty_per_day']);
-    log_notice("HAD LESS THAN ".NO_REFILL." REFILLS LEFT", get_defined_vars());
-    return [$days_left, RX_MESSAGE['ACTION LAST REFILL']];
-  }
-
-  if ($days_left_in_refills AND $item['refills_left'] == $item['refills_total']) {
-    log_error("HAD ONLY $days_left_in_refills DAYS LEFT. refills_left:$item[refills_left] == refills_total:$item[refills_total]. $refills_dispensed_default < ".NO_REFILL.": ".($refills_dispensed_default < NO_REFILL)." WHY WAS THIS NOT CAUGHT BY refills_dispensed_default ABOVE?", get_defined_vars());
+  if ($days_left_in_refills AND $days_left_in_refills <= DAYS_MAX) {
+    log_notice("LESS THAN $days_left_in_refills < ".DAYS_MAX." DAYS LEFT", get_defined_vars());
     return [$days_left_in_refills, RX_MESSAGE['ACTION LAST REFILL']];
   }
 
@@ -338,7 +330,7 @@ function refills_dispensed_default($item) {
     return $item['refills_total'] * (1 - $item['qty_dispensed_default']/$item['qty_total']);
 
   //No much info to go on.  We could throw an error or just go based on whether the drug is in the order or not
-  //log_error("CANNOT ASSESS refills_dispensed_default AT THIS POINT", $item);
+  log_error("CANNOT ASSESS refills_dispensed_default AT THIS POINT", $item);
   return $item['refills_total'] - ($item['item_date_added'] ? 1 : 0);
 }
 
