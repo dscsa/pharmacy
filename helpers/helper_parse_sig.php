@@ -134,6 +134,10 @@ function clean_sig($sig) {
   $sig = preg_replace('/\\bfor 11 weeks?/i', 'for 77 days', $sig);
   $sig = preg_replace('/\\bfor 12 weeks?/i', 'for 84 days', $sig);
 
+  //Get rid of superflous "durations" e.g 'Take 1 tablet by mouth 2 times a day. Do not crush or chew.' -> 'Take 1 tablet by mouth 2 times a day do not crush or chew.'
+  //TODO probably need to add a lot more of these.  Eg ". For 90 days."
+  $sig = preg_replace('/\\b[.;\/] *(?=do not)/i', ' ', $sig);
+
   //Frequency Denominator
   $sig = preg_replace('/\\bq\\b/i', 'every', $sig); //take 1 tablet by oral route q 12 hrs
   $sig = preg_replace('/ *24 hours?/i', ' 1 day', $sig);

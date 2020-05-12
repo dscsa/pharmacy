@@ -710,6 +710,7 @@ $test_sigs = [
   //take half a tablet twice daily
   //Inject 0.4 mL (40 mg total) under the skin daily for 18 days.
   //Take 1 tablet by mouth once daily / take 1/2 tablet on sundays
+  //Take 1 tablet by mouth 2 times a day. Do not crush or chew.'
 ];
 
 global $argv;
