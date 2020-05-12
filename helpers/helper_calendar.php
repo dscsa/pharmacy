@@ -200,7 +200,7 @@ function new_comm_arr($patient_label, $email, $text = '', $salesforce = '') {
   if ($patient_label AND $comm_arr) {
     $comm_arr[] = [
       "subject" => "Auto: ".($email['subject'] ?: "Text"),
-      "body" => $text['message'] ? $email['message'],
+      "body" => $text['message'] ?: $email['message'],
       "contact" => $patient_label,
       "assign_to" => "Comm Calendar",
       "due_date" => null
