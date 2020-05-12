@@ -24,7 +24,7 @@ function get_days_default($item, $order) {
     if($stock_level == STOCK_LEVEL['HIGH SUPPLY'] AND strtotime($item['rx_date_transferred']) > strtotime('-1 month')) {
 
       $salesforce = [
-        "subject"   => "Order #$item[invoice_number] cannot be matched by GSN",
+        "subject"   => "$item[drug_name] was transferred even though it is high stock",
         "body"      => "Investigate why drug $item[drug_name] is high stock but was transferred recently",
         "contact"   => "$item[first_name] $item[last_name] $item[birth_date]",
         "assign_to" => "Adam",
@@ -337,7 +337,9 @@ function refills_dispensed_default($item) {
   if ( ! is_null($item['qty_dispensed_default']))
     return $item['refills_total'] * (1 - $item['qty_dispensed_default']/$item['qty_total']);
 
-  log_error("CANNOT ASSESS refills_dispensed_default AT THIS POINT", $item);
+  //No much info to go on.  We could throw an error or just go based on whether the drug is in the order or not
+  //log_error("CANNOT ASSESS refills_dispensed_default AT THIS POINT", $item);
+  return $item['refills_total'] - ($item['item_date_added'] ? 1 : 0));
 }
 
 //TODO OR IT'S AN OTC
