@@ -202,7 +202,7 @@ function new_comm_arr($patient_label, $email, $text = '', $salesforce = '') {
       "subject" => "Auto: ".($email['subject'] ?: "Text"),
       "body" => $text['message'] ?: $email['message'],
       "contact" => $patient_label,
-      "assign_to" => "Comm Calendar",
+      "assign_to" => null,
       "due_date" => null
     ];
   }
