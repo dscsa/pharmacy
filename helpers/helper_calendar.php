@@ -1,14 +1,14 @@
 <?php
 
 
-function order_dispensed_event($order, $email, $hours_to_wait) {
+function order_dispensed_event($order, $salesforce, $hours_to_wait) {
 
   $patient_label = get_patient_label($order);
   $event_title   = $order[0]['invoice_number'].' Order Dispensed: '.$patient_label.'.  Created:'.date('Y-m-d H:i:s');
 
   $cancel = cancel_events_by_person($order[0]['first_name'], $order[0]['last_name'], $order[0]['birth_date'], 'order_dispensed_event', ['Order Dispensed', 'Order Canceled', 'Needs Form']);
 
-  $comm_arr = new_comm_arr($patient_label, $email);
+  $comm_arr = new_comm_arr($patient_label, $salesforce);
 
   log_info('order_dispensed_event', get_defined_vars());
 

@@ -5,20 +5,17 @@ require_once 'helpers/helper_calendar.php';
 //Internal communication warning an order was shipped but not dispensed.  Gets erased when/if order is shipped
 function order_dispensed_notice($groups) {
 
-
   $days_ago = 2;
-  $email   = [
-    "email"   => PHARMACIST_EMAIL.','.DEBUG_EMAIL,
-    "subject" => 'Warning Order #'.$groups['ALL'][0]['invoice_number'].' dispensed but not shipped'
+
+  $salesforce = [
+    "subject" => 'Warning Order #'.$groups['ALL'][0]['invoice_number'].' dispensed but not shipped',
+    "body" => "If shipped, please add tracking number to Guardian Order.  If not shipped, check comm-calendar and see if we need to inform patient that order was delayed or canceled.",
+    "contact" => $groups['ALL'][0]['first_name'].' '.$groups['ALL'][0]['last_name'].' '.$groups['ALL'][0]['birth_date'],
+    "assign_to" => "Adam",
+    "due_date" => date('Y-m-d')
   ];
 
-  $email['message'] = implode('<br>', [
-
-    $email['subject'].' '.$days_ago.' day ago. Please add a tracking number.'
-
-  ]);
-
-  order_dispensed_event($groups['ALL'], $email, $days_ago*24);
+  order_dispensed_event($groups['ALL'], $salesforce, $days_ago*24);
 }
 
 //We are coording patient communication via sms, calls, emails, & faxes
@@ -251,7 +248,7 @@ function order_hold_notice($groups, $missing_gsn = false) {
       "body" => "Please change drug(s) ".implode(', ', $groups['FILLED_NOACTION']+$groups['NOFILL_NOACTION'])." in Order #".$groups['ALL'][0]['invoice_number']. " to be ones that have a GSN number and/or add those GSNs to V2",
       "contact" => $groups['ALL'][0]['first_name'].' '.$groups['ALL'][0]['last_name'].' '.$groups['ALL'][0]['birth_date'],
       "assign_to" => "Adam",
-      "due_date" => null
+      "due_date" => date('Y-m-d')
     ];
 
   if ($missing_gsn)
