@@ -178,8 +178,19 @@ function get_days_default($item, $order) {
 
   if ($stock_level == STOCK_LEVEL['OUT OF STOCK'] OR $days_left_in_stock == $days_default) {
 
-    if ($is_refill)
-      log_error("YIKES! IS REFILL RX IS OUT OF STOCK?", get_defined_vars());
+    if ($is_refill) {
+      $salesforce = [
+        "subject"   => "Refill for $item[drug_name] seems to be out-of-stock",
+        "body"      => "Refill for $item[drug_name] in Order #$item[invoice_number] seems to be out-of-stock with qty_inventory:$item[qty_inventory]",
+        "contact"   => "$item[first_name] $item[last_name] $item[birth_date]",
+        "assign_to" => "Adam",
+        "due_date"  => date('Y-m-d')
+      ];
+
+      $event_title = "$item[invoice_number] Refill Out Of Stock: $salesforce[contact] Created:".date('Y-m-d H:i:s');
+
+      create_event($event_title, [$salesforce]);
+    }
     else
       log_notice("WARN USERS IF DRUG IS LOW QTY", get_defined_vars());
 
