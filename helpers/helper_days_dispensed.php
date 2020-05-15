@@ -211,9 +211,9 @@ function get_days_default($item, $order) {
   }
 
   if ($days_left_in_expiration) {
-    $days_left_of_exp = roundDaysUnit($days_left_in_expiration)-10;
+    $days_left_in_exp_rounded_with_buffer = roundDaysUnit($days_left_in_expiration)-10;
     log_error("RX WILL EXPIRE SOON SO FILL IT UNTIL RIGHT BEFORE EXPIRATION DATE", get_defined_vars());
-    return [$days_left_of_exp, RX_MESSAGE['ACTION EXPIRING']];
+    return [$days_left_in_exp_rounded_with_buffer, RX_MESSAGE['ACTION EXPIRING']];
   }
 
   if ($stock_level == STOCK_LEVEL['REFILL ONLY']) {

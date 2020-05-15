@@ -711,6 +711,7 @@ $test_sigs = [
   //Inject 0.4 mL (40 mg total) under the skin daily for 18 days.
   //Take 1 tablet by mouth once daily / take 1/2 tablet on sundays
   //Take 1 tablet by mouth 2 times a day. Do not crush or chew.'
+  //Take 1 capsule by mouth once daily as needed for reflux
 ];
 
 global $argv;
