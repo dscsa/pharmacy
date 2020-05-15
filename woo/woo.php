@@ -2440,9 +2440,11 @@ function dscsa_show_payment_options($show_payment_options, $cart) {
 
   if ($coupon == 'removecoupon') return true;
 
-  //debug_email("woocommerce_cart_needs_payment", print_r($chosen_shipping_methods, true)."cart->get_shipping_total() ".$cart->get_shipping_total()." |||| get_totals ".print_r($cart->get_totals, true)." |||| coupon_discount_totals ".print_r($cart->coupon_discount_totals, true)." |||| coupon_discount_totals ".print_r($cart->coupon_discount_totals, true)." |||| coupon_discount_tax_totals ".print_r($cart->coupon_discount_tax_totals, true)." |||| applied_coupons ".print_r($cart->applied_coupons, true)." |||| ".print_r($show_payment_options, true)." |||| cart->get_cart() ".print_r($cart->get_cart(), true));
+  $is_pay_coupon = is_pay_coupon($coupon);
 
-  return ! is_pay_coupon($coupon);
+  //debug_email("woocommerce_cart_needs_payment", "coupon ".print_r($coupon, true)." |||| is_pay_coupon ".print_r($is_pay_coupon, true)." |||| show_payment_options ".print_r($show_payment_options, true)."cart->get_shipping_total() ".$cart->get_shipping_total()." |||| get_totals ".print_r($cart->get_totals, true)." |||| coupon_discount_totals ".print_r($cart->coupon_discount_totals, true)." |||| coupon_discount_totals ".print_r($cart->coupon_discount_totals, true)." |||| coupon_discount_tax_totals ".print_r($cart->coupon_discount_tax_totals, true)." |||| applied_coupons ".print_r($cart->applied_coupons, true)." |||| cart->get_cart() ".print_r($cart->get_cart(), true));
+
+  return ! $is_pay_coupon;
 }
 
 add_filter( 'wc_stripe_generate_payment_request', 'dscsa_stripe_generate_payment_request', 10, 3);

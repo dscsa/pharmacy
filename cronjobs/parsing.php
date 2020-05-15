@@ -712,6 +712,7 @@ $test_sigs = [
   //Take 1 tablet by mouth once daily / take 1/2 tablet on sundays
   //Take 1 tablet by mouth 2 times a day. Do not crush or chew.'
   //Take 1 capsule by mouth once daily as needed for reflux
+  //'Take 1 tablet by mouth once daily  TAKE WITH 2 MG TABLET..'
 ];
 
 global $argv;

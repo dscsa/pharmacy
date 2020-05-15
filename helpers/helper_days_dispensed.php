@@ -27,7 +27,7 @@ function get_days_default($item, $order) {
         "subject"   => "$item[drug_name] was transferred even though it is high stock",
         "body"      => "Investigate why drug $item[drug_name] is high stock but was transferred recently",
         "contact"   => "$item[first_name] $item[last_name] $item[birth_date]",
-        "assign_to" => "Adam",
+        "assign_to" => "Joseph",
         "due_date"  => date('Y-m-d')
       ];
 
@@ -56,12 +56,12 @@ function get_days_default($item, $order) {
 
     if ($item['max_gsn']) {
       $body = "Drug $item[drug_name] in Order #$item[invoice_number] needs GSN $item[max_gsn] added to V2";
-      $assign = "Adam";
+      $assign = "Joseph";
       log_error($body, $item);
 
     } else {
       $body = "Drug $item[drug_name] in Order #$item[invoice_number] needs to be switched to a drug with a GSN in Guardian";
-      $assign = "Adam";
+      $assign = "Cindy";
       log_notice($body, $item);
     }
 
@@ -183,7 +183,7 @@ function get_days_default($item, $order) {
         "subject"   => "Refill for $item[drug_name] seems to be out-of-stock",
         "body"      => "Refill for $item[drug_name] in Order #$item[invoice_number] seems to be out-of-stock with qty_inventory:$item[qty_inventory]",
         "contact"   => "$item[first_name] $item[last_name] $item[birth_date]",
-        "assign_to" => "Adam",
+        "assign_to" => "Joseph",
         "due_date"  => date('Y-m-d')
       ];
 
