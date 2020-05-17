@@ -55,12 +55,13 @@ function get_full_order($partial, $mysql, $overwrite_rx_messages = false) {
 
 function add_wc_status_to_order($order) {
 
-  $order_stage_wc = get_order_stage_wc($order);
-  log_notice("helper_full_order: add_wc_status_to_order $order_stage_wc ".$order[0]['invoice_number'], $order);
+  $old_order_stage_wc = $order[0]['order_stage_wc'];
+  $new_order_stage_wc = get_order_stage_wc($order);
+
   $drug_names     = []; //Append qty_per_day if multiple of same strength, do this after sorting
 
   foreach($order as $i => $item) {
-    $order[$i]['order_stage_wc'] = $order_stage_wc;
+    $order[$i]['order_stage_wc'] = $new_order_stage_wc;
 
     if (isset($drug_names[$item['drug']])) {
       $order[$i]['drug'] .= ' ('.( (float) $item['sig_qty_per_day'] ).' per day)';
@@ -68,6 +69,11 @@ function add_wc_status_to_order($order) {
     } else {
       $drug_names[$item['drug']] = $item['sig_qty_per_day'];
     }
+  }
+
+  if ($old_order_stage_wc != $new_order_stage_wc) {
+    log_notice("helper_full_order: add_wc_status_to_order. change in status: $old_order_stage_wc >>> $new_order_stage_wc ".$order[0]['invoice_number']);
+    //export_wc_update_order_status($order);
   }
 
   return $order;
