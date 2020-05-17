@@ -66,7 +66,7 @@ function get_days_default($item, $order) {
     }
 
     $salesforce = [
-      "subject"   => "Order #$item[invoice_number] cannot be matched by GSN",
+      "subject"   => "Missing GSN for $item[drug_name] in Order #$item[invoice_number]",
       "body"      => $body,
       "contact"   => "$item[first_name] $item[last_name] $item[birth_date]",
       "assign_to" => $assign,

@@ -426,14 +426,15 @@ function order_canceled_notice($deleted, $patient) {
 
 function confirm_shipment_notice($groups) {
 
-    $email = confirm_shipping_external($groups); //Existing customer just tell them it was delivered
-    $salesforce = confirm_shipping_internal($groups); //New customer tell them it was delivered and followup with a call
-
     $days_ago = 5;
+
+    $email = confirm_shipping_external($groups); //Existing customer just tell them it was delivered
+    $salesforce = confirm_shipping_internal($groups, $days_ago-1); //New customer tell them it was delivered and followup with a call
+
     confirm_shipment_event($groups['ALL'], $email, $salesforce, $days_ago*24, 13);
 }
 
-function confirm_shipping_internal($groups) {
+function confirm_shipping_internal($groups, $days_ago) {
 
   if ( ! $groups['ALL'][0]['refills_used'])
     return [];
@@ -444,7 +445,7 @@ function confirm_shipping_internal($groups) {
   $salesforce = [
     "contact" => $groups['ALL'][0]['first_name'].' '.$groups['ALL'][0]['last_name'].' '.$groups['ALL'][0]['birth_date'],
     "assign_to" => "Thunder",
-    "due_date" => date('Y-m-d'),
+    "due_date" => substr(get_start_time($days_ago*24), 0, 10),
     "subject" => $subject,
     "body" =>  implode('<br>', [
       'Hello,',

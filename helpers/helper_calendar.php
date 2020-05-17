@@ -204,7 +204,7 @@ function new_comm_arr($patient_label, $email, $text = '', $salesforce = '') {
   if ($patient_label AND $comm_arr) {
     $comm_arr[] = [
       "subject" => "Auto ".implode(', ', $auto).": ".($email['subject'] ?: "Text"),
-      "body" => $text['message'] ?: $email['message'],
+      "body" => $text['message'] ?: str_replace('<br>', '\n', $email['message']),
       "contact" => $patient_label,
       "assign_to" => null,
       "due_date" => null
@@ -500,7 +500,7 @@ function replace_text_in_events($first_name, $last_name, $birth_date, $types, $r
   }
 
   if (count($modify)) {
-    log_error('replace_text_in_events modifyEvent',[$first_name, $last_name, $birth_date, $types, $old_desc, $new_desc]);
+    log_error('replace_text_in_events modifyEvent', ['old' => $old_desc, 'new' => $new_desc, 'name' => "$first_name $last_name $birth_date", $replace_regex, $replace_string, $types]);
     modify_events($modify);
   }
 
