@@ -232,7 +232,7 @@ function export_wc_update_order_status($order) {
     //'post_except' => $order[0]['order_note']
   ];
 
-  log_info('export_wc_update_order_status: wc_update_order', [
+  log_notice('export_wc_update_order_status: wc_update_order', [
     'invoice_number' => $order[0]['invoice_number'],
     'order_stage_wc' => $order[0]['order_stage_wc'],
     'order_stage_cp' => $order[0]['order_stage_cp']

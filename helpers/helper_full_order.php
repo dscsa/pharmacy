@@ -56,6 +56,7 @@ function get_full_order($partial, $mysql, $overwrite_rx_messages = false) {
 function add_wc_status_to_order($order) {
 
   $order_stage_wc = get_order_stage_wc($order);
+  log_notice("helper_full_order: add_wc_status_to_order $order_stage_wc ".$order[0]['invoice_number'], $order);
   $drug_names     = []; //Append qty_per_day if multiple of same strength, do this after sorting
 
   foreach($order as $i => $item) {
