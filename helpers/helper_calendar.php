@@ -203,8 +203,8 @@ function new_comm_arr($patient_label, $email, $text = '', $salesforce = '') {
 
   if ($patient_label AND $comm_arr) {
     $comm_arr[] = [
-      "subject" => "Auto ".implode(', ', $auto).": ".($email['subject'] ?: "Text"),
-      "body" => $text['message'] ?: str_replace('<br>', '\n', $email['message']),
+      "subject" => "Auto ".implode(', ', $auto).": ".(@$email['subject'] ?: "Text"),
+      "body" => @$text['message'] ?: str_replace('<br>', '\n', $email['message']),
       "contact" => $patient_label,
       "assign_to" => null,
       "due_date" => null
@@ -379,7 +379,7 @@ function get_phones($order) {
 }
 
 //Return a copy of the date (or now) with the 24-hour set
-function get_start_time($hours_to_wait, $hour_of_day) {
+function get_start_time($hours_to_wait, $hour_of_day = null) {
 
   //PHP Issue of strtotime() with fractions https://stackoverflow.com/questions/11086022/can-strtotime-handle-fractions so convert to minutes and round
   $minutes_to_wait = round($hours_to_wait*60);
