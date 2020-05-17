@@ -26,7 +26,7 @@ function order_shipped_event($order, $email, $text) {
 
   log_info('order_shipped_event', get_defined_vars());
 
-  create_event($event_title, $comm_arr);
+  create_event($event_title, $comm_arr, 10/60);
 }
 
 function refill_reminder_event($order, $email, $text, $hours_to_wait, $hour_of_day = null) {
