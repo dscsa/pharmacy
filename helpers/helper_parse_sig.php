@@ -117,7 +117,9 @@ function clean_sig($sig) {
   //echo "4 $sig";
   //Duration
   $sig = preg_replace('/\\bx ?(\d+)\\b/i', 'for $1', $sig); // X7 Days == for 7 days
-  $sig = preg_replace('/\\bfor 1 months?|months?\d+/i', 'for 30 days', $sig);
+
+  $sig = preg_replace('/\\bon the (first|second|third|fourth|fifth|sixth|seventh) day/i', 'for 1 days', $sig);
+  $sig = preg_replace('/\\bfor 1 months?|months? \d+/i', 'for 30 days', $sig);
   $sig = preg_replace('/\\bfor 2 months?/i', 'for 60 days', $sig);
   $sig = preg_replace('/\\bfor 3 months?/i', 'for 90 days', $sig);
   $sig = preg_replace('/\\bfor 1 weeks?|weeks? \d+/i', 'for 7 days', $sig);

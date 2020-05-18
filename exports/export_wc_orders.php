@@ -87,11 +87,26 @@ function wc_update_order($invoice_number, $orderdata) {
 
     if ($res[0][0]['post_status'] != $orderdata['post_status']) {
       log_notice("wc_update_order: status change $old_status >>> $orderdata[post_status]");
-      wc_insert_meta($invoice_number, ['status_update' => "Webform $old_status >>> $orderdata[post_status] ".date('Y-m-d H:i:s')]);
+      wc_insert_meta($invoice_number, ['status_update' => date('Y-m-d H:i:s')." Webform $old_status >>> $orderdata[post_status]"]);
     }
   }
 
   $mysql->run($sql);
+}
+
+function export_wc_update_order_status($order) {
+  $orderdata = [
+    'post_status' => 'wc-'.$order[0]['order_stage_wc'] //,
+    //'post_except' => $order[0]['order_note']
+  ];
+
+  log_notice('export_wc_update_order_status: wc_update_order', [
+    'invoice_number' => $order[0]['invoice_number'],
+    'order_stage_wc' => $order[0]['order_stage_wc'],
+    'order_stage_cp' => $order[0]['order_stage_cp']
+  ]);
+
+  wc_update_order($order[0]['invoice_number'], $orderdata);
 }
 
 function export_wc_delete_order($invoice_number, $reason) {
@@ -224,21 +239,6 @@ function export_wc_update_order($order) {
   export_wc_update_order_metadata($order);
   export_wc_update_order_address($order);
   export_wc_update_order_payment($order[0]['invoice_number'], $order[0]['payment_fee_default']);
-}
-
-function export_wc_update_order_status($order) {
-  $orderdata = [
-    'post_status' => 'wc-'.$order[0]['order_stage_wc'] //,
-    //'post_except' => $order[0]['order_note']
-  ];
-
-  log_notice('export_wc_update_order_status: wc_update_order', [
-    'invoice_number' => $order[0]['invoice_number'],
-    'order_stage_wc' => $order[0]['order_stage_wc'],
-    'order_stage_cp' => $order[0]['order_stage_cp']
-  ]);
-
-  wc_update_order($order[0]['invoice_number'], $orderdata);
 }
 
 //These are the metadata that might change

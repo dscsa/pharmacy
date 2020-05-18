@@ -79,7 +79,8 @@ function add_wc_status_to_order($order) {
 
   if ($old_order_stage_wc != $new_order_stage_wc) {
     log_notice("helper_full_order: add_wc_status_to_order. change in status: $old_order_stage_wc >>> $new_order_stage_wc ".$order[0]['invoice_number']);
-    //export_wc_update_order_status($order);
+    //export_wc_update_order_metadata($order);
+
   }
 
   return $order;
