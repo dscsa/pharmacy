@@ -713,6 +713,8 @@ $test_sigs = [
   //Take 1 tablet by mouth 2 times a day. Do not crush or chew.'
   //Take 1 capsule by mouth once daily as needed for reflux
   //'Take 1 tablet by mouth once daily  TAKE WITH 2 MG TABLET..'
+  //Take 1 tablet by mouth daily. take 200 mg for one week then increase to 300 mg daily (Note: Allopurinol 300mg Drug)
+  //PLACE 1 tablet under the tongue EVERY 5 MINUTES for 3 doses FOR CHEST PAIN. If unchanged, call 911.
 ];
 
 global $argv;
