@@ -42,8 +42,14 @@ function get_full_order($partial, $mysql, $overwrite_rx_messages = false) {
   $order = $mysql->run($sql.$where)[0];
 
   if ( ! $order OR ! $order[0]['invoice_number']) {
-    log_error("ERROR! get_full_order: no order with invoice number:$partial[invoice_number]. No Rxs? Patient just registered (invoice number is set and used in query but no items so order not imported from CP)?", get_defined_vars());
-    return;
+    log_error("ERROR! get_full_order: no order with invoice number:$partial[invoice_number] #1 of 2. No Recent Rxs?", get_defined_vars());
+
+    $order = $mysql->run($sql)[0];
+
+    if ( ! $order OR ! $order[0]['invoice_number']) {
+      log_error("ERROR! get_full_order: no order with invoice number:$partial[invoice_number] #2 of 2. No Rxs? Patient just registered (invoice number is set and used in query but no items so order not imported from CP)?", get_defined_vars());
+      return;
+    }
   }
 
   $order = add_full_fields($order, $mysql, $overwrite_rx_messages);
