@@ -209,9 +209,11 @@ function clean_sig($sig) {
   $sig = preg_replace('/\\bInject [.\d]+ *ml?\\b/i', 'Inject 1', $sig); //Inject 0.4 mL (40 mg total) under the skin daily for 18 days.
   $sig = preg_replace('/\\b\d+ units?(.*?subcutan)|\\b(subcutan.*?)\d+ units?\\b/i', 'Inject 1 $1$2', $sig); // "15 units at bedtime 1 time per day Subcutaneous 90 days":
 
+
   //If MAX then use max and ignore preceeding sig e.g TAKE 1 TABLET BY MOUTH AS NEEDED FOR MIGRAINE, MAY REPEAT IN 2 HRS IF NEEDED, MAX 2TABS\/24 HRS
   //Put this after inject because max 350 units may become 1 injection
-  $sig = preg_replace('/.*(exceed (more than )?|every \d minutes? for |exceeding |totaling |up ?to |total of |not to |no more than |max(imum)? (of |per day (of )?|per day dose( |: ?)|daily dose( |: ?))?)([0-9]*\.[0-9]+|[1-9][0-9]*)/i', 'Max $8', $sig); //Get rid of "max" qtys in sig because they are redundant and could accidentally be added in
+  $sig = preg_replace('/\\bevery 5 minutes?/i', 'Max 3', $sig); //Nitroglycerin
+  $sig = preg_replace('/.*(exceed (more than )?|exceeding |totaling |up ?to |total of |not to |no more than |max(imum)? (of |per day (of )?|per day dose( |: ?)|daily dose( |: ?))?)([0-9]*\.[0-9]+|[1-9][0-9]*)/i', 'Max $8', $sig); //Get rid of "max" qtys in sig because they are redundant and could accidentally be added in
 
   //Cleanup
   $sig = preg_replace('/  +/i', ' ', $sig); //Remove double spaces for aesthetics
@@ -367,6 +369,9 @@ function frequencies($durations, $correct) {
 
     $as_needed = preg_match('/(^| )(prn|as needed)/i', $sig_part);
 
+    if (preg_match('/(@|at) (1st |first )?sign|when|at onset|(if|for) chest|(if|for) CP/i', $sig_part)) //CP is shorthand for Chest Pain
+      $freq = '90/25'; //Most common is Nitroglycerin: max 3 doses for chest pain.  Since comes in boxes of 25 each, Cindy likes dispensing 75 for 90 days (90*3/3.6 = 75)
+
     if (preg_match('/ week\\b/i', $sig_part))
       $freq = '30/4'; //rather than 7 days, calculate as 1/4th a month so we get 45/90 days rather than 42/84 days
 
@@ -378,9 +383,6 @@ function frequencies($durations, $correct) {
 
     else if (preg_match('/ hour(?!s? +before|s? +after|s? +prior to)/i', $sig_part)) //put this last so less likely to match thinks like "2 hours before (meals|bedtime) every day"
       $freq = $as_needed ? '2/24' : '1/24'; // One 24th of a day
-
-    else if (preg_match('/(@|at) (1st |first )?sign|when|at onset|(if|for) chest|(if|for) CP/i', $sig_part)) //CP is shorthand for Chest Pain
-      $freq = '90/25'; //Most common is Nitroglycerin: max 3 doses for chest pain.  Since comes in boxes of 25 each, Cindy likes dispensing 75 for 90 days (90*3/3.6 = 75)
 
     else if (preg_match('/ minute(?!s? +before|s? +after|s? +prior to)/i', $sig_part)) //put this last so less likely to match thinks like "2 hours before (meals|bedtime) every day"
       $freq = $as_needed ? '90/25/3/5' : '1/24/60'; //Most common is Nitroglycerin: 1 tab every 5 minutes for chest pain.  Since comes in boxes of 25 each, Cindy likes dispensing 75 for 90 days
