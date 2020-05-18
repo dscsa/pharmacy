@@ -116,7 +116,7 @@ function get_order_stage_wc($order) {
     : $order[0]['count_filled'];
 
   //Anything past shipped we just have to rely on WC
-  if ($order[0]['order_stage_wc'] AND in_array(explode('-', $order[0]['order_stage_wc'])[1], ['shipped', 'late', 'done', 'return'])) {
+  if ($order[0]['order_stage_wc'] AND preg_match('/shipped|late|done|return/i', $order[0]['order_stage_wc'])) {
 
     if ( ! $count_filled AND ! $order[0]['tracking_number'] AND ! $order[0]['payment_method_actual'])
       log_error('helper_full_order: get_order_stage_wc error', $order);
