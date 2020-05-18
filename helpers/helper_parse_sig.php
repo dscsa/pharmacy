@@ -266,7 +266,7 @@ function qtys_per_time($durations, $drug_name, $correct) {
   foreach ($durations as $sig_part => $duration) {
     //"Use daily with lantus"  won't match the RegEx below
     $starts_with_a_number = "^([0-9]*\.[0-9]+|[1-9][0-9]*)"; //Take 1 tablet by mouth  three times per day for 14 days then once daily for 16 days
-    $includes_dosage_form = "([0-9]*\.[0-9]+|[1-9][0-9]*) ?(ml|tab|cap|pill|softgel|patch|injection|each)";
+    $includes_dosage_form = "([0-9]*\.[0-9]+|[1-9][0-9]*) ?(ml|tab|cap|pill|softgel|patch|injection|each|dose)";
     $includes_active_verb = "(^|use +|take +|inhale +|chew +|inject +|oral +)([0-9]*\.[0-9]+|[1-9][0-9]*)(?!\d| *\.| *mg| *time| *min| *hour| *day| *week| *month)";
     $count = preg_match_all("/$starts_with_a_number|$includes_dosage_form|$includes_active_verb/i", $sig_part, $match);
 
@@ -363,7 +363,7 @@ function frequencies($durations, $correct) {
 
   foreach ($durations as $sig_part => $duration) {
 
-    $as_needed = preg_match('/(^| )(prn|as needed|at onset|when|at first sign)/i', $sig_part);
+    $as_needed = preg_match('/(^| )(prn|as needed|at onset|when|at first sign|for chest pain)/i', $sig_part);
 
     if (preg_match('/ week\\b/i', $sig_part))
       $freq = '30/4'; //rather than 7 days, calculate as 1/4th a month so we get 45/90 days rather than 42/84 days
