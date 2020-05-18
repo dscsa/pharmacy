@@ -198,7 +198,7 @@ function get_days_default($item, $order) {
   }
 
   if ($days_left_in_refills AND $days_left_in_refills <= DAYS_MAX) {
-    log_notice("LESS THAN $days_left_in_refills < ".DAYS_MAX." DAYS LEFT", get_defined_vars());
+    log_notice("$days_left_in_refills < ".DAYS_MAX." OF DAYS LEFT IN REFILLS", get_defined_vars());
     return [$days_left_in_refills, RX_MESSAGE['ACTION LAST REFILL']];
   }
 

@@ -177,19 +177,9 @@ function update_orders_wc() {
           continue;
         }
 
-        log_error('Why was this order trashed? It still exists in Guarduan.  Stop Removing from trash, as it might be a *duplicate* order that was trashed', [
-          'invoice_number' => $order[0]['invoice_number'],
-          'order_stage_wc' => $order[0]['order_stage_wc'],
-          'order_stage_cp' => $order[0]['order_stage_cp']
-        ]);
+        log_error("Why was Order #".$order[0]['invoice_number']." trashed? It still exists in Guarduan.  Moving Trash >>> ".$order[0]['order_stage_wc'].", but this is wrong if this is a *duplicate* order that was trashed", $order);
 
-        /*
-        $orderdata = [
-          'post_status' => 'wc-'.$order[0]['order_stage_wc']
-        ];
-
-        wc_update_order($order[0]['invoice_number'], $orderdata);
-        */
+        export_wc_update_order_status($order);
       }
 
     } else if (count($changed) == 1 AND $updated['order_stage_wc'] != $updated['old_order_stage_wc']) {
