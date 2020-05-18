@@ -365,10 +365,7 @@ function frequencies($durations, $correct) {
 
     $as_needed = preg_match('/(^| )(prn|as needed)/i', $sig_part);
 
-    if (preg_match('/at first sign|when|at onset|for chest pain/i', $sig_part))
-      $freq = '90/25'; //Most common is Nitroglycerin: max 3 doses for chest pain.  Since comes in boxes of 25 each, Cindy likes dispensing 75 for 90 days (90*3/3.6 = 75)
-
-    else if (preg_match('/ week\\b/i', $sig_part))
+    if (preg_match('/ week\\b/i', $sig_part))
       $freq = '30/4'; //rather than 7 days, calculate as 1/4th a month so we get 45/90 days rather than 42/84 days
 
     else if (preg_match('/ day\\b/i', $sig_part))
@@ -381,7 +378,10 @@ function frequencies($durations, $correct) {
       $freq = $as_needed ? '2/24' : '1/24'; // One 24th of a day
 
     else if (preg_match('/ minute(?!s? +before|s? +after|s? +prior to)/i', $sig_part)) //put this last so less likely to match thinks like "2 hours before (meals|bedtime) every day"
-      $freq = $as_needed ? '1/24/60' : '1/24/60'; // "Every 5mins as needed" becomes 5 (freq) / 5 (f-denominator) = 1 per day
+      $freq = $as_needed ? '90/25*3*5' : '1/24/60'; //Most common is Nitroglycerin: 1 tab every 5 minutes for chest pain.  Since comes in boxes of 25 each, Cindy likes dispensing 75 for 90 days
+
+    else if (preg_match('/at (1st|first) sign|when|at onset|(if|for) chest pain|(if|for) CP/i', $sig_part)) //CP is shorthand for Chest Pain
+      $freq = '90/25'; //Most common is Nitroglycerin: max 3 doses for chest pain.  Since comes in boxes of 25 each, Cindy likes dispensing 75 for 90 days (90*3/3.6 = 75)
 
     else
       $freq = $as_needed ? '2' : '1'; //defaults to daily if no matches
