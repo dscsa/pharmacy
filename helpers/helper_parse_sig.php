@@ -209,7 +209,7 @@ function clean_sig($sig) {
 
   //If MAX then use max and ignore preceeding sig e.g TAKE 1 TABLET BY MOUTH AS NEEDED FOR MIGRAINE, MAY REPEAT IN 2 HRS IF NEEDED, MAX 2TABS\/24 HRS
   //Put this after inject because max 350 units may become 1 injection
-  $sig = preg_replace('/.*(exceed (more than )?|exceeding |totaling |up ?to |total of |not to |max(imum)? (of |per day (of )?|per day dose( |: ?)|daily dose( |: ?))?)([0-9]*\.[0-9]+|[1-9][0-9]*)/i', 'Max $8', $sig); //Get rid of "max" qtys in sig because they are redundant and could accidentally be added in
+  $sig = preg_replace('/.*(exceed (more than )?|every \d minutes? for |exceeding |totaling |up ?to |total of |not to |max(imum)? (of |per day (of )?|per day dose( |: ?)|daily dose( |: ?))?)([0-9]*\.[0-9]+|[1-9][0-9]*)/i', 'Max $8', $sig); //Get rid of "max" qtys in sig because they are redundant and could accidentally be added in
 
   //Cleanup
   $sig = preg_replace('/  +/i', ' ', $sig); //Remove double spaces for aesthetics
@@ -363,9 +363,12 @@ function frequencies($durations, $correct) {
 
   foreach ($durations as $sig_part => $duration) {
 
-    $as_needed = preg_match('/(^| )(prn|as needed|at onset|when|at first sign|for chest pain)/i', $sig_part);
+    $as_needed = preg_match('/(^| )(prn|as needed)/i', $sig_part);
 
-    if (preg_match('/ week\\b/i', $sig_part))
+    if (preg_match('/(at first sign|when|at onset|for chest pain))/i', $sig_part))
+      $freq = '90/25'; //Most common is Nitroglycerin: max 3 doses for chest pain.  Since comes in boxes of 25 each, Cindy likes dispensing 75 for 90 days (90*3/3.6 = 75)
+
+    else if (preg_match('/ week\\b/i', $sig_part))
       $freq = '30/4'; //rather than 7 days, calculate as 1/4th a month so we get 45/90 days rather than 42/84 days
 
     else if (preg_match('/ day\\b/i', $sig_part))
@@ -378,7 +381,7 @@ function frequencies($durations, $correct) {
       $freq = $as_needed ? '2/24' : '1/24'; // One 24th of a day
 
     else if (preg_match('/ minute(?!s? +before|s? +after|s? +prior to)/i', $sig_part)) //put this last so less likely to match thinks like "2 hours before (meals|bedtime) every day"
-      $freq = $as_needed ? '5' : '1/24/60'; // "Every 5mins as needed" becomes 5 (freq) / 5 (f-denominator) = 1 per day
+      $freq = $as_needed ? '1/24/60' : '1/24/60'; // "Every 5mins as needed" becomes 5 (freq) / 5 (f-denominator) = 1 per day
 
     else
       $freq = $as_needed ? '2' : '1'; //defaults to daily if no matches
