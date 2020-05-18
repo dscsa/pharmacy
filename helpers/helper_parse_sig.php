@@ -212,8 +212,8 @@ function clean_sig($sig) {
 
   //If MAX then use max and ignore preceeding sig e.g TAKE 1 TABLET BY MOUTH AS NEEDED FOR MIGRAINE, MAY REPEAT IN 2 HRS IF NEEDED, MAX 2TABS\/24 HRS
   //Put this after inject because max 350 units may become 1 injection
-  $sig = preg_replace('/\\bevery 5 minutes?/i', 'Max 3 doses', $sig); //Nitroglycerin
-  $sig = preg_replace('/.*(exceed (more than )?|exceeding |totaling |up ?to |total of |not to |no more than |max(imum)? (of |per day (of )?|per day dose( |: ?)|daily dose( |: ?))?)([0-9]*\.[0-9]+|[1-9][0-9]*)/i', 'Max $8', $sig); //Get rid of "max" qtys in sig because they are redundant and could accidentally be added in
+  $sig = preg_replace('/\\bevery +5 +min\w*/i', 'Max 3 doses', $sig); //Nitroglycerin
+  $sig = preg_replace('/.*(exceed +(more +than +)?|exceeding +|totaling +|up *to +|total +of +|not +to +|no +more +than +|max(imum)? +(of +|per +day +(of +)?|per +day +dose( +|: *)|daily +dose( +|: *))?)([0-9]*\.[0-9]+|[1-9][0-9]*)/i', 'Max $8', $sig); //Get rid of "max" qtys in sig because they are redundant and could accidentally be added in
 
   //Cleanup
   $sig = preg_replace('/  +/i', ' ', $sig); //Remove double spaces for aesthetics
