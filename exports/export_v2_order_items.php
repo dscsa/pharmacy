@@ -411,8 +411,8 @@ function sort_list($a, $b) {
   if ($aPack < $bPack) return -1;
 
   //Flip columns and rows for sorting, since shopping is easier if you never move backwards
-  $aFlip = $aBin[0].$aBin[2].$aBin[1].($aBin[3] ?: '');
-  $bFlip = $bBin[0].$bBin[2].$bBin[1].($bBin[3] ?: '');
+  $aFlip = $aBin[0].$aBin[2].$aBin[1].(@$aBin[3] ?: '');
+  $bFlip = $bBin[0].$bBin[2].$bBin[1].(@$bBin[3] ?: '');
 
   if ($aFlip < $bFlip) return 1;
   if ($aFlip > $bFlip) return -1;

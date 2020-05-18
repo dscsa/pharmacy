@@ -173,7 +173,8 @@ function clean_sig($sig) {
   $sig = preg_replace('/\\b(1 (in|at) )?\d* ?(am|pm)[, &]*(1 (in|at) )?\d* ?(am|pm)\\b/i', '2 times per day', $sig); // Take 1 tablet by mouth twice a day 1 in am and 1 at 3pm was causing issues
   $sig = preg_replace('/\\b(in|at) \d\d\d\d?[, &]*(in|at)?\d\d\d\d?\\b/i', '2 times per day', $sig); //'Take 2 tablets by mouth twice a day at 0800 and 1700'
   $sig = preg_replace('/\\b(with)?in (a )?\d+ (minutes?|days?|weeks?|months?)\\b|/i', '', $sig); // Remove "in 5 days|hours|weeks" so that we don't confuse frequencies
-
+  $sig = preg_replace('/\\bevery +5 +min\w*/i', '3 times per day', $sig); //Nitroglycerin
+  
   //echo "7 $sig";
   //Latin and Appreviations
   $sig = preg_replace('/\\bSUB-Q\\b/i', 'subcutaneous', $sig);
@@ -208,12 +209,6 @@ function clean_sig($sig) {
   $sig = preg_replace('/\\bInject \d+ units?\\b/i', 'Inject 1', $sig); //INJECT 18 UNITS
   $sig = preg_replace('/\\bInject [.\d]+ *ml?\\b/i', 'Inject 1', $sig); //Inject 0.4 mL (40 mg total) under the skin daily for 18 days.
   $sig = preg_replace('/\\b\d+ units?(.*?subcutan)|\\b(subcutan.*?)\d+ units?\\b/i', 'Inject 1 $1$2', $sig); // "15 units at bedtime 1 time per day Subcutaneous 90 days":
-
-
-  //If MAX then use max and ignore preceeding sig e.g TAKE 1 TABLET BY MOUTH AS NEEDED FOR MIGRAINE, MAY REPEAT IN 2 HRS IF NEEDED, MAX 2TABS\/24 HRS
-  //Put this after inject because max 350 units may become 1 injection
-  $sig = preg_replace('/\\bevery +5 +min\w*/i', 'Max 3 doses', $sig); //Nitroglycerin
-  $sig = preg_replace('/.*(exceed +(more +than +)?|exceeding +|totaling +|up *to +|total +of +|not +to +|no +more +than +|max(imum)? +(of +|per +day +(of +)?|per +day +dose( +|: *)|daily +dose( +|: *))?)([0-9]*\.[0-9]+|[1-9][0-9]*)/i', 'Max $8', $sig); //Get rid of "max" qtys in sig because they are redundant and could accidentally be added in
 
   //Cleanup
   $sig = preg_replace('/  +/i', ' ', $sig); //Remove double spaces for aesthetics
@@ -268,6 +263,12 @@ function qtys_per_time($durations, $drug_name, $correct) {
   $qtys_per_time = [];
 
   foreach ($durations as $sig_part => $duration) {
+
+    //If MAX then use max and ignore preceeding sig e.g TAKE 1 TABLET BY MOUTH AS NEEDED FOR MIGRAINE, MAY REPEAT IN 2 HRS IF NEEDED, MAX 2TABS\/24 HRS
+    //Put this after inject because max 350 units may become 1 injection
+    //Get rid of "max" qtys in sig because they are redundant and could accidentally be added in.  Don't put in clean sig or it will get rid of "for chest pain" and the like which will mess up frequencies
+    $sig_part = preg_replace('/.*(exceed +(more +than +)?|exceeding +|totaling +|up *to +|total +of +|not +to +|no +more +than +|max(imum)? +(of +|per +day +(of +)?|per +day +dose( +|: *)|daily +dose( +|: *))?)([0-9]*\.[0-9]+|[1-9][0-9]*)/i', 'Max $8', $sig_part);
+
     //"Use daily with lantus"  won't match the RegEx below
     $starts_with_a_number = "^([0-9]*\.[0-9]+|[1-9][0-9]*)"; //Take 1 tablet by mouth  three times per day for 14 days then once daily for 16 days
     $includes_dosage_form = "([0-9]*\.[0-9]+|[1-9][0-9]*) ?(ml|tab|cap|pill|softgel|patch|injection|each|dose)";
