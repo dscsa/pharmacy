@@ -365,7 +365,7 @@ function frequencies($durations, $correct) {
 
     $as_needed = preg_match('/(^| )(prn|as needed)/i', $sig_part);
 
-    if (preg_match('/(at first sign|when|at onset|for chest pain))/i', $sig_part))
+    if (preg_match('/at first sign|when|at onset|for chest pain/i', $sig_part))
       $freq = '90/25'; //Most common is Nitroglycerin: max 3 doses for chest pain.  Since comes in boxes of 25 each, Cindy likes dispensing 75 for 90 days (90*3/3.6 = 75)
 
     else if (preg_match('/ week\\b/i', $sig_part))
