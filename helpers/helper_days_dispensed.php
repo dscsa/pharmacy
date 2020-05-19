@@ -24,8 +24,8 @@ function get_days_default($item, $order) {
     if($stock_level == STOCK_LEVEL['HIGH SUPPLY'] AND strtotime($item['rx_date_transferred']) > strtotime('-1 month')) {
 
       $salesforce = [
-        "subject"   => "$item[drug_name] was transferred even though it is high stock",
-        "body"      => "Investigate why drug $item[drug_name] is high stock but was transferred recently",
+        "subject"   => "$item[drug_name] was transferred although it's high stock",
+        "body"      => "Investigate why drug $item[drug_name] for Rx $item[rx_number] was transferred recently even thoough it's high stock",
         "contact"   => "$item[first_name] $item[last_name] $item[birth_date]",
         "assign_to" => "Joseph",
         "due_date"  => date('Y-m-d')
@@ -34,7 +34,7 @@ function get_days_default($item, $order) {
       $event_title = "$item[invoice_number] High Stock Item Transferred: $salesforce[contact] Created:".date('Y-m-d H:i:s');
 
       create_event($event_title, [$salesforce]);
-      log_error('HIGH STOCK ITEM WAS TRANSFERRED WITHIN THE MONTH', get_defined_vars());
+      log_error($event_title, get_defined_vars());
     }
 
     else if($stock_level == STOCK_LEVEL['HIGH SUPPLY'])
