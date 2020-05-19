@@ -98,7 +98,7 @@ function update_rxs_single() {
 
     if ($updated['rx_autofill'] != $updated['old_rx_autofill']) {
 
-      $patient = get_full_patient($updated, $mysql, $update['rx_number']);
+      $patient = @$patient ?: get_full_patient($updated, $mysql, $update['rx_number']);
       $sql     = ""; //Reset for logging
 
       //We want all Rxs with the same GSN to share the same rx_autofill value, so when one changes we must change them all
@@ -117,21 +117,21 @@ function update_rxs_single() {
 
     if ($updated['rx_gsn'] AND ! $updated['old_rx_gsn']) {
 
-      $patient = get_full_patient($updated, $mysql, $update['rx_number']); //This updates & overwrites set_rx_messages
+      $patient = @$patient ?: get_full_patient($updated, $mysql, $update['rx_number']); //This updates & overwrites set_rx_messages
 
       log_error("update_rxs_single rx_gsn no longer missing (but still might not be in v2 yet).  Confirm correct updated rx_messages", [$patient, $updated, $changed]);
     }
 
     if ($updated['rx_transfer'] AND ! $updated['old_rx_transfer']) {
 
-      $patient = get_full_patient($updated, $mysql, $update['rx_number']); //This updates & overwrites set_rx_messages
+      $patient = @$patient ?: get_full_patient($updated, $mysql, $update['rx_number']); //This updates & overwrites set_rx_messages
 
       log_error("update_rxs_single rx was transferred out.  Confirm correct updated rxs_single.rx_message_key. rxs_grouped.rx_message_keys will be updated on next pass", [$patient, $updated, $changed]);
     }
 
     if ($updated['refills_left'] <= NO_REFILL AND $updated['refills_left'] > NO_REFILL) {
 
-      $patient = get_full_patient($updated, $mysql, $update['rx_number']); //This updates & overwrites set_rx_messages
+      $patient = @$patient ?: get_full_patient($updated, $mysql, $update['rx_number']); //This updates & overwrites set_rx_messages
 
       remove_drugs_from_refill_reminders($patient['first_name'], $patient['last_name'], $patient['birth_date'], [$updated['drug_name']]);
     }
