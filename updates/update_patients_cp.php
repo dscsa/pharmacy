@@ -27,7 +27,7 @@ function update_patients_cp() {
 
       $patient = get_full_patient($updated, $mysql, true); //This updates & overwrites set_rx_messages
 
-      log_error("update_patient_cp patient_autofill changed.  Confirm correct updated rx_messages", [$patient, $updated, $changed, $updated['old_pharmacy_name'] ? 'Existing Patient' : 'New Patient']);
+      log_notice("update_patient_cp patient_autofill changed.  Confirm correct updated rx_messages", [$patient, $updated, $changed, $updated['old_pharmacy_name'] ? 'Existing Patient' : 'New Patient']);
     }
 
     if ($updated['refills_used'] == $updated['old_refills_used'])
