@@ -421,7 +421,7 @@ function days_left_in_expiration($item) {
 
   $days_left_in_expiration = (strtotime($item['rx_date_expired']) - strtotime($item['refill_date_next']))/60/60/24;
 
-  if ($days_left_in_expiration <= DAYS_STD) return $days_left_in_expiration;
+  if ($days_left_in_expiration > 0 AND $days_left_in_expiration <= DAYS_STD) return $days_left_in_expiration;
 }
 
 function days_left_in_refills($item) {
