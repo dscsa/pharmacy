@@ -715,6 +715,7 @@ $test_sigs = [
   //'Take 1 tablet by mouth once daily  TAKE WITH 2 MG TABLET..'
   //Take 1 tablet by mouth daily. take 200 mg for one week then increase to 300 mg daily (Note: Allopurinol 300mg Drug)
   //PLACE 1 tablet under the tongue EVERY 5 MINUTES for 3 doses FOR CHEST PAIN. If unchanged, call 911.
+  //20 mg PO qDay
 ];
 
 global $argv;

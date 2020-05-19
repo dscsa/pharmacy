@@ -174,7 +174,7 @@ function clean_sig($sig) {
   $sig = preg_replace('/\\b(in|at) \d\d\d\d?[, &]*(in|at)?\d\d\d\d?\\b/i', '2 times per day', $sig); //'Take 2 tablets by mouth twice a day at 0800 and 1700'
   $sig = preg_replace('/\\b(with)?in (a )?\d+ (minutes?|days?|weeks?|months?)\\b|/i', '', $sig); // Remove "in 5 days|hours|weeks" so that we don't confuse frequencies
   $sig = preg_replace('/\\bevery +5 +min\w*/i', '3 times per day', $sig); //Nitroglycerin
-  
+
   //echo "7 $sig";
   //Latin and Appreviations
   $sig = preg_replace('/\\bSUB-Q\\b/i', 'subcutaneous', $sig);
@@ -270,7 +270,7 @@ function qtys_per_time($durations, $drug_name, $correct) {
     $sig_part = preg_replace('/.*(exceed +(more +than +)?|exceeding +|totaling +|up *to +|total +of +|not +to +|no +more +than +|max(imum)? +(of +|per +day +(of +)?|per +day +dose( +|: *)|daily +dose( +|: *))?)([0-9]*\.[0-9]+|[1-9][0-9]*)/i', 'Max $8', $sig_part);
 
     //"Use daily with lantus"  won't match the RegEx below
-    $starts_with_a_number = "^([0-9]*\.[0-9]+|[1-9][0-9]*)"; //Take 1 tablet by mouth  three times per day for 14 days then once daily for 16 days
+    $starts_with_a_number = "^([0-9]*\.[0-9]+|[1-9][0-9]*)\\b"; //Take 1 tablet by mouth  three times per day for 14 days then once daily for 16 days. \\b due to "20 mg PO qDay"
     $includes_dosage_form = "([0-9]*\.[0-9]+|[1-9][0-9]*) ?(ml|tab|cap|pill|softgel|patch|injection|each|dose)";
     $includes_active_verb = "(^|use +|take +|inhale +|chew +|inject +|oral +)([0-9]*\.[0-9]+|[1-9][0-9]*)(?!\d| *\.| *mg| *time| *min| *hour| *day| *week| *month)";
     $count = preg_match_all("/$starts_with_a_number|$includes_dosage_form|$includes_active_verb/i", $sig_part, $match);
