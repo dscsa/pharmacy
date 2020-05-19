@@ -24,8 +24,8 @@ function get_days_default($item, $order) {
     if($stock_level == STOCK_LEVEL['HIGH SUPPLY'] AND strtotime($item['rx_date_transferred']) > strtotime('-1 month')) {
 
       $salesforce = [
-        "subject"   => "$item[drug_name] was transferred although it's high stock",
-        "body"      => "Investigate why drug $item[drug_name] for Rx $item[rx_number] was transferred recently even thoough it's high stock",
+        "subject"   => "$item[drug_name] was transferred recently although it's high stock",
+        "body"      => "Investigate why drug $item[drug_name] for Rx $item[rx_number] was transferred out on $item[rx_date_transferred] even though it's high stock",
         "contact"   => "$item[first_name] $item[last_name] $item[birth_date]",
         "assign_to" => "Joseph",
         "due_date"  => date('Y-m-d')

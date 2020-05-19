@@ -34,8 +34,14 @@ function get_full_patient($partial, $mysql, $overwrite_rx_messages = false) {
   $patient = $mysql->run($sql.$where)[0];
 
   if ( ! $patient OR ! $patient[0]['patient_id_cp']) {
-    log_error("ERROR! get_full_patient: no active patient with id:$partial[patient_id_cp]. No Rxs? Patient just registered?", get_defined_vars());
-    return;
+    log_error("ERROR! get_full_patient: no active patient with id:$partial[patient_id_cp] #1 of 2. No Recent Rxs?", get_defined_vars());
+
+    $patient = $mysql->run($sql)[0];
+
+    if ( ! $patient OR ! $patient[0]['patient_id_cp']) {
+      log_error("ERROR! get_full_patient: no active patient with id:$partial[patient_id_cp] #2 of 2. No Rxs? Patient just registered?", get_defined_vars());
+      return;
+    }
   }
 
   $patient = add_full_fields($patient, $mysql, $overwrite_rx_messages);
