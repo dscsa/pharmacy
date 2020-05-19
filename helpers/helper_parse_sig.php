@@ -67,7 +67,7 @@ function clean_sig($sig) {
   $sig = preg_replace('/\\band\\b/i', '&', $sig);   // & is easier tp search in regex than "and"
   $sig = preg_replace('/\\bDr\./i', '', $sig);   // The period in Dr. will mess up our split for durations
   $sig = preg_replace('/\\bthen call 911/i', '', $sig); //"then call 911" is not a duration
-
+  $sig = preg_replace('/\\bas directed/i', '', $sig); //< Diriection. As Directed was triggering a 2nd duration
 
   $sig = preg_replace('/ +(mc?g)\\b| +(ml)\\b/i', '$1$2', $sig);   //get rid of extra spaces
   $sig = preg_replace('/[\w ]*replaces[\w ]*/i', '$1', $sig); //Take 2 tablets (250 mcg total) by mouth daily. This medication REPLACES Levothyroxine 112 mcg",
