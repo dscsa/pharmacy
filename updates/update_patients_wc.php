@@ -248,7 +248,7 @@ function update_patients_wc() {
       $updated['language'] !== $updated['old_language']
     ) {
       $sp = "EXEC SirumWeb_AddUpdatePatient '$updated[first_name]', '$updated[last_name]', '$updated[birth_date]', '$updated[phone1]', '$updated[language]'";
-      log_error("Patient Name/Identity Updated.  If called repeatedly there is likely a two matching CP users", [$sp, $changed]);
+      log_notice("Patient Name/Identity Updated.  If called repeatedly there is likely a two matching CP users", [$sp, $changed]);
       upsert_patient_cp($mssql, $sp);
     }
 
