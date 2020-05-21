@@ -394,7 +394,7 @@ function no_rx_notice($deleted, $patient) {
   ]);
 
   //Wait 15 minutes to hopefully batch staggered surescripts and manual rx entry and cindy updates
-  no_rx_event($deleted, $email, $text, 15/60);
+  no_rx_event($deleted, $patient, $email, $text, 15/60);
 }
 
 //NOTE: UNLIKE OTHER COMM FUNCTIONS THIS TAKES DELETED AND NOT GROUPS
@@ -421,7 +421,7 @@ function order_canceled_notice($deleted, $patient) {
 
 
   log_notice("order_canceled_notice is this right?", [$patient, $deleted, $email]);
-  order_canceled_event($deleted, $email, $text, 15/60);
+  order_canceled_event($deleted, $patient, $email, $text, 15/60);
 }
 
 function confirm_shipment_notice($groups) {
