@@ -160,6 +160,7 @@ function clean_sig($sig) {
   $sig = preg_replace('/\\bweekly\\b/i', 'per week', $sig);
   $sig = preg_replace('/\\bmonthly\\b/i', 'per month', $sig);
 
+  $sig = preg_replace('/\\b(\d) days? a week\\b/i', '$1 times per week', $sig);
   $sig = preg_replace('/\\bon (tuesdays?|tu?e?s?)[, &]*(thursdays?|th?u?r?s?)\\b/i', '2 times per week', $sig);
   $sig = preg_replace('/\\bon (mondays?|mo?n?)[, &]*(wednesdays?|we?d?)[, &]*(fridays?|fr?i?)\\b/i', '3 times per week', $sig);
   $sig = preg_replace('/\\bon (sundays?|sun|mondays?|mon|tuesdays?|tues?|wednesdays?|wed|thursdays?|thur?s?|fridays?|fri|saturdays?|sat)\\b/i', '1 time per week', $sig);

@@ -717,6 +717,7 @@ $test_sigs = [
   //PLACE 1 tablet under the tongue EVERY 5 MINUTES for 3 doses FOR CHEST PAIN. If unchanged, call 911.
   //20 mg PO qDay
   //Take 4,000 mL by mouth once for 1 dose. As directed (PEG should be qty of 1)
+  //Take 1 tablet by mouth  6 DAYS A WEEK as directed
 ];
 
 global $argv;
