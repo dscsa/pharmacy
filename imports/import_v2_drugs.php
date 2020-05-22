@@ -11,6 +11,12 @@ function import_v2_drugs() {
   $order = v2_fetch('/account/8889875187');
   $drugs = v2_fetch('/drug/_design/by-generic-gsns/_view/by-generic-gsns?group_level=3');
 
+  if ( ! isset($order['ordered'], $order['default'], $drugs['rows']))
+    return log_error('Aborting Import V2 Drugs', $order);
+
+  $o = $order['ordered'];
+  $d = $order['default'];
+
   //log_info("
   //import_v2_drugs: rows ".count($drugs['rows']));
 
@@ -19,8 +25,6 @@ function import_v2_drugs() {
 
     list($drug_generic, $drug_gsns, $drug_brand) = $row['key'];
     list($price_goodrx, $price_nadac, $price_retail) = $row['value'];
-    $o = $order['ordered'];
-    $d = $order['default'];
 
     $val = [
       'drug_generic'      => "'$drug_generic'",
