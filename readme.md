@@ -263,6 +263,18 @@ If not using windows authentication:
 
 Good Reference:http://coenraets.org/blog/2012/01/setting-up-wordpress-on-amazon-ec2-in-5-minutes/
 
+
+```
+sudo amazon-linux-extras enable php7.4
+sudo yum install php
+sudo yum install php-mbstring
+* DEPRECATED * sudo yum install php-mssql
+sudo yum install php-gd
+* NOT WORKING * sudo yum install mysql-server
+sudo yum install php-mysqlnd
+
+```
+
 php 5.6 is last version that currently supports mssql:
 ```
 sudo yum update`

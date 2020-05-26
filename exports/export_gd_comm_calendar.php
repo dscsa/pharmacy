@@ -24,7 +24,7 @@ function order_shipped_notice($groups) {
 
   //autopayReminderNotice(order, groups)
 
-  $subject   = 'Your order '.($groups['COUNT_FILLED'] ? 'of '.$groups['COUNT_FILLED'].' items ' : '').'has shipped and should arrive in 3-5 days.';
+  $subject   = 'Good Pill shipped order '.($groups['COUNT_FILLED'] ? 'of '.$groups['COUNT_FILLED'].' items ' : '').' and it should arrive in 3-5 days.';
   $message   = '';
 
   $message .= '<br><u>These Rxs are on the way:</u><br>'.implode(';<br>', array_merge($groups['FILLED_ACTION'], $groups['FILLED_NOACTION'])).';';
@@ -270,7 +270,7 @@ function order_updated_notice($groups, $changed_fields) {
     return log_info('order_updated_notice NOT sent', get_defined_vars());
   }
 
-  $subject = 'Update for Order #'.$groups['ALL'][0]['invoice_number'].($groups['COUNT_FILLED'] ? ' of '.$groups['COUNT_FILLED'].' items.' : '');
+  $subject = 'Good Pill update for Order #'.$groups['ALL'][0]['invoice_number'].($groups['COUNT_FILLED'] ? ' of '.$groups['COUNT_FILLED'].' items.' : '');
   $message = '';
 
   if ($groups['COUNT_FILLED'] AND ! $groups['ALL'][0]['refills_used']) {
@@ -401,8 +401,8 @@ function no_rx_notice($deleted, $patient) {
 //THIS IS BECAUSE there is not an $order to make $groups
 function order_canceled_notice($deleted, $patient) {
 
-  $subject = "We have canceled your Order #".$deleted['invoice_number'];
-  $message = "We have canceled this order. Please call us at (888) 987-5187 if you believe this is in error.";
+  $subject = "Good Pill canceled your Order #".$deleted['invoice_number'];
+  $message = "We have canceled Order #".$deleted['invoice_number']." Please call us at (888) 987-5187 if you believe this is in error.";
 
   $email = [ "email" => $patient[0]['email'], "raw" => json_encode($deleted) ]; //TODO email is not actual a property on $deleted
   $text  = [ "sms" => get_phones($patient),  "message" => $subject.'. '.$message ];

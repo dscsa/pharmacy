@@ -718,6 +718,7 @@ $test_sigs = [
   //20 mg PO qDay
   //Take 4,000 mL by mouth once for 1 dose. As directed (PEG should be qty of 1)
   //Take 1 tablet by mouth  6 DAYS A WEEK as directed
+  //Take 1 capsule by mouth in the morning and noon then 2 capsules at bedtime
 ];
 
 global $argv;
