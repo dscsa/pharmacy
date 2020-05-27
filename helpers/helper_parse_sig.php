@@ -269,13 +269,13 @@ function qtys_per_time($durations, $drug_name, $correct) {
     //If MAX then use max and ignore preceeding sig e.g TAKE 1 TABLET BY MOUTH AS NEEDED FOR MIGRAINE, MAY REPEAT IN 2 HRS IF NEEDED, MAX 2TABS\/24 HRS
     //Put this after inject because max 350 units may become 1 injection
     //Get rid of "max" qtys in sig because they are redundant and could accidentally be added in.  Don't put in clean sig or it will get rid of "for chest pain" and the like which will mess up frequencies
-    $sig_part = preg_replace('/.*(exceed +(more +than +)?|exceeding +|totaling +|up *to +|total +of +|not +to +|no +more +than +|max(imum)? +(of +|per +day +(of +)?|per +day +dose( +|: *)|daily +dose( +|: *))?)([0-9]*\.[0-9]+|[1-9][0-9]*)/i', 'Max $8', $sig_part);
+    $cleaned_sig_part = preg_replace('/.*(exceed +(more +than +)?|exceeding +|totaling +|up *to +|total +of +|not +to +|no +more +than +|max(imum)? +(of +|per +day +(of +)?|per +day +dose( +|: *)|daily +dose( +|: *))?)([0-9]*\.[0-9]+|[1-9][0-9]*)/i', 'Max $8', $sig_part);
 
     //"Use daily with lantus"  won't match the RegEx below
     $starts_with_a_number = "^([0-9]*\.[0-9]+|[1-9][0-9]*)\\b"; //Take 1 tablet by mouth  three times per day for 14 days then once daily for 16 days. \\b due to "20 mg PO qDay"
     $includes_dosage_form = "([0-9]*\.[0-9]+|[1-9][0-9]*) ?(ml|tab|cap|pill|softgel|patch|injection|each|dose)";
     $includes_active_verb = "(^|use +|take +|inhale +|chew +|inject +|oral +)([0-9]*\.[0-9]+|[1-9][0-9]*)(?!\d| *\.| *mg| *time| *min| *hour| *day| *week| *month)";
-    $count = preg_match_all("/$starts_with_a_number|$includes_dosage_form|$includes_active_verb/i", $sig_part, $match);
+    $count = preg_match_all("/$starts_with_a_number|$includes_dosage_form|$includes_active_verb/i", $cleaned_sig_part, $match);
 
     //print_r(['duration' => $duration, 'match' => $match, 'count' => $count]);
 
@@ -296,7 +296,7 @@ function qtys_per_time($durations, $drug_name, $correct) {
 
     $regex_match = '/([0-9]*\.[0-9]+|[1-9][0-9]*) ?mc?g\\b/i';
     preg_match($regex_match, $drug_name, $drug_match);
-    preg_match($regex_match, $sig_part, $sig_match);
+    preg_match($regex_match, $cleaned_sig_part, $sig_match);
 
     //print_r(['duration' => $duration, 'drug_name' => $drug_name, 'drug_match' => $drug_match, 'sig_match' => $sig_match]);
 
