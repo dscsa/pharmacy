@@ -205,15 +205,45 @@ function get_days_default($item, $order) {
   //Since last refill check already ran, this means we have more days left in refill that we have in the expiration
   //to maximize the amount dispensed we dispense until 10 days before the expiration and then as much as we can for the last refill
   if ($days_left_in_expiration AND $days_left_in_expiration < DAYS_MIN) {
-    $days_left_of_qty = min(180, $item['qty_left']/$item['sig_qty_per_day']); //Cap it at 180 days
+
+    $days_left_of_qty = $item['qty_left']/$item['sig_qty_per_day']; //Cap it at 180 days
+    $days_left_of_qty_capped = min(180, $days_left_of_qty);
+
+    $sql = "
+      UPDATE
+        gp_order_items
+      SET
+        refill_target_date      = '$item[rx_date_expired]',
+        refill_target_days      = $days_left_of_qty
+      WHERE
+        rx_number = $item[rx_number]
+    ";
+
+    $mysql->run($sql);
+
     log_error("RX IS ABOUT TO EXPIRE SO FILL IT FOR EVERYTHING LEFT", get_defined_vars());
-    return [$days_left_of_qty, RX_MESSAGE['ACTION EXPIRING']];
+    return [$days_left_of_qty_capped, RX_MESSAGE['ACTION EXPIRING']];
   }
 
   if ($days_left_in_expiration) {
-    $days_left_in_exp_rounded_with_buffer = roundDaysUnit($days_left_in_expiration)-10;
+    
+    $days_left_in_exp_rounded = roundDaysUnit($days_left_in_expiration);
+    $days_left_in_exp_rounded_buffered = $days_left_in_exp_rounded-10;
+
+    $sql = "
+      UPDATE
+        gp_order_items
+      SET
+        refill_target_date      = '$item[rx_date_expired]',
+        refill_target_days      = "$days_left_in_exp_rounded"
+      WHERE
+        rx_number = $item[rx_number]
+    ";
+
+    $mysql->run($sql);
+
     log_error("RX WILL EXPIRE SOON SO FILL IT UNTIL RIGHT BEFORE EXPIRATION DATE", get_defined_vars());
-    return [$days_left_in_exp_rounded_with_buffer, RX_MESSAGE['ACTION EXPIRING']];
+    return [$days_left_in_exp_rounded_buffered, RX_MESSAGE['ACTION EXPIRING']];
   }
 
   if ($stock_level == STOCK_LEVEL['REFILL ONLY']) {

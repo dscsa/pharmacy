@@ -719,6 +719,8 @@ $test_sigs = [
   //Take 4,000 mL by mouth once for 1 dose. As directed (PEG should be qty of 1)
   //Take 1 tablet by mouth  6 DAYS A WEEK as directed
   //Take 1 capsule by mouth in the morning and noon then 2 capsules at bedtime
+  //Place 1 tablet under the tongue every 5 minutes as needed for chest pain Not to exceed 3 tablets per day
+  //Take 30ml by mouth as needed Take 30cc PO as needed for constipation
 ];
 
 global $argv;
