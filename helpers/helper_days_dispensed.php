@@ -226,7 +226,7 @@ function get_days_default($item, $order) {
   }
 
   if ($days_left_in_expiration) {
-    
+
     $days_left_in_exp_rounded = roundDaysUnit($days_left_in_expiration);
     $days_left_in_exp_rounded_buffered = $days_left_in_exp_rounded-10;
 
@@ -235,7 +235,7 @@ function get_days_default($item, $order) {
         gp_order_items
       SET
         refill_target_date      = '$item[rx_date_expired]',
-        refill_target_days      = "$days_left_in_exp_rounded"
+        refill_target_days      = $days_left_in_exp_rounded
       WHERE
         rx_number = $item[rx_number]
     ";
