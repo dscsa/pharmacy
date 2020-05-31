@@ -721,6 +721,7 @@ $test_sigs = [
   //Take 1 capsule by mouth in the morning and noon then 2 capsules at bedtime
   //Place 1 tablet under the tongue every 5 minutes as needed for chest pain Not to exceed 3 tablets per day
   //Take 30ml by mouth as needed Take 30cc PO as needed for constipation
+  //Take 1 tablet and dissolve in 2oz liquid before meals and at bedtime
 ];
 
 global $argv;
