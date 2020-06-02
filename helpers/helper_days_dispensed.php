@@ -209,18 +209,6 @@ function get_days_default($item, $order) {
     $days_left_of_qty = $item['qty_left']/$item['sig_qty_per_day']; //Cap it at 180 days
     $days_left_of_qty_capped = min(180, $days_left_of_qty);
 
-    $sql = "
-      UPDATE
-        gp_order_items
-      SET
-        refill_target_date      = '$item[rx_date_expired]',
-        refill_target_days      = $days_left_of_qty
-      WHERE
-        rx_number = $item[rx_number]
-    ";
-
-    $mysql->run($sql);
-
     log_error("RX IS ABOUT TO EXPIRE SO FILL IT FOR EVERYTHING LEFT", get_defined_vars());
     return [$days_left_of_qty_capped, RX_MESSAGE['ACTION EXPIRING']];
   }
@@ -229,18 +217,6 @@ function get_days_default($item, $order) {
 
     $days_left_in_exp_rounded = roundDaysUnit($days_left_in_expiration);
     $days_left_in_exp_rounded_buffered = $days_left_in_exp_rounded-10;
-
-    $sql = "
-      UPDATE
-        gp_order_items
-      SET
-        refill_target_date      = '$item[rx_date_expired]',
-        refill_target_days      = $days_left_in_exp_rounded
-      WHERE
-        rx_number = $item[rx_number]
-    ";
-
-    $mysql->run($sql);
 
     log_error("RX WILL EXPIRE SOON SO FILL IT UNTIL RIGHT BEFORE EXPIRATION DATE", get_defined_vars());
     return [$days_left_in_exp_rounded_buffered, RX_MESSAGE['ACTION EXPIRING']];
@@ -328,6 +304,19 @@ function set_days_default($item, $days, $mysql) {
     return $item;
   }
 
+
+  RX_MESSAGE['ACTION EXPIRING']
+     $sql = "
+       UPDATE
+         gp_order_items
+       SET
+
+       WHERE
+         rx_number = $item[rx_number]
+     ";
+
+     $mysql->run($sql);
+
   $price = $item['price_per_month'] ?: 0; //Might be null
 
   $item['days_dispensed_default']    = $days;
@@ -350,7 +339,9 @@ function set_days_default($item, $days, $mysql) {
       refills_dispensed_default = ".(is_null($item['refills_dispensed_default']) ? 'NULL' : $item['refills_dispensed_default']).",
       refill_date_manual        = ".($item['refill_date_manual'] ? "'$item[refill_date_manual]'" : 'NULL').",
       refill_date_default       = ".($item['refill_date_default'] ? "'$item[refill_date_default]'" : 'NULL').",
-      refill_date_last          = ".($item['refill_date_last'] ? "'$item[refill_date_last]'" : 'NULL')."
+      refill_date_last          = ".($item['refill_date_last'] ? "'$item[refill_date_last]'" : 'NULL').",
+      refill_target_date        = ".($item['rx_message_key'] == 'ACTION EXPIRING' ? "'$item[rx_date_expired]'" : 'NULL').",
+      refill_target_days        = ".($item['rx_message_key'] == 'ACTION EXPIRING' ? $days : 'NULL')."
     WHERE
       invoice_number = $item[invoice_number] AND
       rx_number = $item[rx_number]
