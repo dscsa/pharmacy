@@ -136,7 +136,7 @@ function update_orders_wc() {
       //Idea1:  Order had all items removed so it appeared to be deleted from CP, but when items were added back in the order 'reappeared'
       //Idea2: Failed when trying to be added to WC (e.g., in #28162 the patient could not be found)
       //Neither Idea1 or Idea2 seems to be the case for Order 29033
-      log_error("update_orders_wc: WC Order Appears to be DELETED (If repeated possible Patient Name Mismatch? Or Processing Invoice # needs to be Updated?)", [
+      log_error("update_orders_wc: WC Order Appears to be DELETED. RECREATING! (If repeated possible Patient Name Mismatch? Or Processing Invoice # needs to be Updated?)", [
         'order[0]' => $order[0],
         'deleted' => $deleted,
         'wc_post_id' => $wc_orders,
@@ -145,6 +145,12 @@ function update_orders_wc() {
         'gp_orders_cp' => $gp_orders_cp,
         'sql' => $sql
       ]);
+
+      $order = helper_update_payment($order, "update_orders_wc: deleted - not shipped but still recreating", $mysql);
+
+      export_wc_create_order($order,  "update_orders_wc: deleted - not shipped but still recreating");
+
+      export_gd_publish_invoice($order);
     }
 
   }
