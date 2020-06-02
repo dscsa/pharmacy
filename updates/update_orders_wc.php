@@ -179,7 +179,9 @@ function update_orders_wc() {
 
         log_error("Why was Order #".$order[0]['invoice_number']." trashed? It still exists in Guarduan.  Moving Trash >>> ".$order[0]['order_stage_wc'].", but this is wrong if this is a *duplicate* order that was trashed", $order);
 
-        export_wc_update_order_metadata($order); //Update status from prepare to shipped
+        export_wc_update_order_status($order); //Update to current status
+        export_wc_update_order_metadata($order);
+
       }
 
     } else if ($updated['order_stage_wc'] AND ! $updated['old_order_stage_wc']) {
@@ -187,8 +189,9 @@ function update_orders_wc() {
       $order = get_full_order($updated, $mysql);
 
       log_error("$updated[invoice_number]: WC Order Updating from NULL Status", [$new_stage, $old_stage, $updated, $order]);
-      
-      export_wc_update_order_metadata($order); //Update to current status
+
+      export_wc_update_order_status($order); //Update to current status
+      export_wc_update_order_metadata($order);
 
     } else if (count($changed) == 1 AND $updated['order_stage_wc'] != $updated['old_order_stage_wc']) {
 
