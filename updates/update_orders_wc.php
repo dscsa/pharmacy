@@ -182,6 +182,10 @@ function update_orders_wc() {
         export_wc_update_order_metadata($order); //Update status from prepare to shipped
       }
 
+    } else if ($updated['order_stage_wc'] AND ! $updated['old_order_stage_wc']) {
+      //Admin probably set order_stage_wc to NULL directly in database, hoping to refresh the order
+      export_wc_update_order_metadata($order); //Update to current status
+
     } else if (count($changed) == 1 AND $updated['order_stage_wc'] != $updated['old_order_stage_wc']) {
 
       if (
