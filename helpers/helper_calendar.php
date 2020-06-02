@@ -50,9 +50,9 @@ function autopay_reminder_event($order, $email, $text, $hours_to_wait, $hour_of_
 
   $comm_arr = new_comm_arr($patient_label, $email, $text);
 
-  log_info('autopay_reminder_event', get_defined_vars());
+  log_notice('autopay_reminder_event', get_defined_vars());
 
-  create_event($event_title, $comm_arr, $hours_to_wait, $hour_of_day);
+  //create_event($event_title, $comm_arr, $hours_to_wait, $hour_of_day);
 }
 
 function order_created_event($order, $email, $text, $hours_to_wait) {
