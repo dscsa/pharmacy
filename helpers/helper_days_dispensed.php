@@ -304,19 +304,6 @@ function set_days_default($item, $days, $mysql) {
     return $item;
   }
 
-
-  RX_MESSAGE['ACTION EXPIRING']
-     $sql = "
-       UPDATE
-         gp_order_items
-       SET
-
-       WHERE
-         rx_number = $item[rx_number]
-     ";
-
-     $mysql->run($sql);
-
   $price = $item['price_per_month'] ?: 0; //Might be null
 
   $item['days_dispensed_default']    = $days;
