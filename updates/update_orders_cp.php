@@ -40,7 +40,7 @@ function update_orders_cp() {
         $day_changes[] = "rx:$item[rx_number] qty:$item[qty_dispensed_default] >>> $item[qty_dispensed_actual] days:$item[days_dispensed_default] >>> $item[days_dispensed_actual] refills:$item[refills_dispensed_default] >>> $item[refills_dispensed_actual] item:".json_encode($item);
 
       //! $updated['order_date_dispensed'] otherwise triggered twice, once one stage: Printed/Processed and again on stage:Dispensed
-      if ($item['qty_dispensed_default'] != $item['qty_dispensed_actual'] OR (($item['refills_dispensed_default']+0) != $item['refills_dispensed_actual']))
+      if ($item['qty_dispensed_default'] != $item['qty_dispensed_actual'] OR (( ! is_null($item['refills_dispensed_actual']) AND $item['refills_dispensed_default']+0) != $item['refills_dispensed_actual']))
         $qty_changes[] = "rx:$item[rx_number] qty:$item[qty_dispensed_default] >>> $item[qty_dispensed_actual] days:$item[days_dispensed_default] >>> $item[days_dispensed_actual] refills:$item[refills_dispensed_default] >>> $item[refills_dispensed_actual] item:".json_encode($item);
 
       //! $updated['order_date_dispensed'] otherwise triggered twice, once one stage: Printed/Processed and again on stage:Dispensed
