@@ -46,20 +46,28 @@ function update_orders_wc() {
     } else if (in_array($created['order_source'], ["Webform Refill", "Webform Transfer", "Webform eRx"])) {
       //TODO Investigate #29187
 
-      $gp_orders_pend = $mysql->run("SELECT * FROM gp_orders WHERE patient_id_wc = $created[patient_id_wc] AND (order_stage_wc LIKE '%prepare' OR order_stage_wc LIKE '%confirm')");
+      $gp_orders_pend = $mysql->run("SELECT * FROM gp_orders WHERE patient_id_wc = $created[patient_id_wc] AND (order_stage_wc LIKE '%prepare%' OR order_stage_wc LIKE '%confirm%')");
       $gp_orders_all = $mysql->run("SELECT * FROM gp_orders WHERE patient_id_wc = $created[patient_id_wc]");
 
-      log_error("update_orders_wc: created Webform eRx/Refill/Transfer order that is not in CP? Most likely patient submitted two orders (e.g. 32121 & 32083 OR 32783 & 32709) and pharmacist deleted the 2nd one (or removed all items?) in CP", ['gp_orders_pend' => $gp_orders_pend, 'gp_orders_all' => $gp_orders_all, 'created' => $created]);//.print_r($item, true);
+      if ($gp_orders_pend[0]) {
+        export_gd_delete_invoice([$deleted], $mysql);
+        export_wc_delete_order($deleted['invoice_number'], "update_orders_wc: wc order 'created' but probably just not deleted when CP order was ".json_encode($created));
+        log_error("update_orders_wc: Deleting Webform eRx/Refill/Transfer order that was not in CP.  Most likely patient submitted two orders (e.g. 32121 & 32083 OR 32783 & 32709).  Why was this not deleted when CP Order was deleted?", ['gp_orders_pend' => $gp_orders_pend, 'gp_orders_all' => $gp_orders_all, 'created' => $created]);//.print_r($item, true);
+
+      }
+
+      log_error("update_orders_wc: created Webform eRx/Refill/Transfer order that is not in CP? Unknown reason", ['gp_orders_pend' => $gp_orders_pend, 'gp_orders_all' => $gp_orders_all, 'created' => $created]);//.print_r($item, true);
 
       //log_notice("New WC Order to Add Guadian", $created);
 
     } else {
       //TODO Investigate #29147
 
-      $gp_orders      = $mysql->run("SELECT * FROM gp_orders WHERE invoice_number = $created[invoice_number]");
-      $gp_orders_cp   = $mysql->run("SELECT * FROM gp_orders_cp WHERE invoice_number = $created[invoice_number]");
+      $gp_orders     = $mysql->run("SELECT * FROM gp_orders WHERE invoice_number = $created[invoice_number]");
+      $gp_orders_cp  = $mysql->run("SELECT * FROM gp_orders_cp WHERE invoice_number = $created[invoice_number]");
+      $gp_orders_all = $mysql->run("SELECT * FROM gp_orders WHERE patient_id_wc = $created[patient_id_wc]");
 
-      log_error("update_orders_wc: created non-Webform order that is not in CP? 1) One-Time: deleted by helper_syncing and will be readded, 2: Repeated: deleted by Pharmacist in CP and should be investigated (33287 maybe sig_qty_per_day grouping error)", ['gp_orders_cp' => $gp_orders_cp, 'gp_orders' => $gp_orders, 'created' => $created]);//.print_r($item, true);
+      log_error("update_orders_wc: created non-Webform order that is not in CP? 1) One-Time: deleted by helper_syncing and will be readded, 2: Repeated: deleted by Pharmacist in CP and should be investigated (33287 maybe sig_qty_per_day grouping error)", ['gp_orders_all' => $gp_orders_all, 'gp_orders_cp' => $gp_orders_cp, 'gp_orders' => $gp_orders, 'created' => $created]);//.print_r($item, true);
 
       //log_notice("Guardian Order Deleted that should be deleted from WC later in this run or already deleted", $created);
     }
