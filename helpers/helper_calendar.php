@@ -176,7 +176,7 @@ function new_comm_arr($patient_label, $email, $text = '', $salesforce = '') {
 
   if ( ! LIVE_MODE) return $comm_arr;
 
-  if ($email AND $email['email'] AND ! preg_match('/\d\d\d\d-\d\d-\d\d@goodpill\.org/', $email['email'])) {
+  if ($email AND @$email['email'] AND ! preg_match('/\d\d\d\d-\d\d-\d\d@goodpill\.org/', $email['email'])) {
     $auto[] = "Email";
     $email['bcc']  = DEBUG_EMAIL;
     $email['from'] = 'Good Pill Pharmacy < support@goodpill.org >'; //spaces inside <> are so that google cal doesn't get rid of "HTML" if user edits description
