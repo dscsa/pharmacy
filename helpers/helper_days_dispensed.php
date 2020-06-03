@@ -176,7 +176,7 @@ function get_days_default($item, $order) {
     return [$days_default, RX_MESSAGE['NO ACTION FILL ONE TIME']];
   }
 
-  if ($stock_level == STOCK_LEVEL['OUT OF STOCK'] OR $days_left_in_stock == $days_default) {
+  if ($stock_level == STOCK_LEVEL['OUT OF STOCK'] OR ($days_default AND $days_left_in_stock == $days_default)) {
 
     if ($item['qty_inventory'] > 500) {
 
