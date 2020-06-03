@@ -13,7 +13,7 @@ function get_days_default($item, $order) {
   $days_left_in_expiration = days_left_in_expiration($item);
   $days_left_in_refills    = days_left_in_refills($item);
   $days_left_in_stock      = days_left_in_stock($item);
-  $days_default            = days_default($days_left_in_refills, $days_left_in_stock, NULL, $item);
+  $days_default            = days_default($days_left_in_refills, $days_left_in_stock, DAYS_STD, $item);
 
   if ( ! $item['sig_qty_per_day_default'] AND $item['refills_original'] != $item['refills_left']) {
     log_error("helper_days_dispensed: RX WAS NEVER PARSED", $item);
