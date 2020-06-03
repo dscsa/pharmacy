@@ -2,8 +2,8 @@
 
 function get_full_item($item, $mysql, $mssql = NULL) {
 
-  if ( ! $item['invoice_number'] OR ! $item['rx_number']) {
-    log_error('ERROR get_full_item: missing invoice_number or rx_number', get_defined_vars());
+  if ( ! $item['rx_number']) {
+    log_error('ERROR get_full_item: missing rx_number', get_defined_vars());
     return [];
   }
 
@@ -25,7 +25,6 @@ function get_full_item($item, $mysql, $mssql = NULL) {
     LEFT JOIN gp_stock_live ON -- might not have a match if no GSN match
       gp_rxs_grouped.drug_generic = gp_stock_live.drug_generic
     WHERE
-      gp_order_items.invoice_number = $item[invoice_number] AND
       gp_order_items.rx_number = $item[rx_number]
   ";
 

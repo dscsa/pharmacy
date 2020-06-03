@@ -176,12 +176,16 @@ function get_days_default($item, $order) {
     return [$days_default, RX_MESSAGE['NO ACTION FILL ONE TIME']];
   }
 
-  if (is_out_of_stock($item)) {
+  if ($stock_level == STOCK_LEVEL['OUT OF STOCK'] OR $days_left_in_stock == $days_default) {
 
-    if ($is_refill) {
+    if ($item['qty_inventory'] > 500) {
+
+      log_error("helper_days_dispensed: LIKELY ERROR: 'out of stock' but inventory > 500", get_defined_vars());
+
+    } else if ($is_refill) {
       $salesforce = [
         "subject"   => "Refill for $item[drug_name] seems to be out-of-stock",
-        "body"      => "Refill for $item[drug_name] in Order #$item[invoice_number] seems to be out-of-stock with qty_inventory:$item[qty_inventory]",
+        "body"      => "Refill for $item[drug_name] in Order #$item[invoice_number] seems to be out-of-stock with days_left_in_stock:$days_left_in_stock, qty_inventory:$item[qty_inventory], sig:$item[sig]",
         "contact"   => "$item[first_name] $item[last_name] $item[birth_date]",
         "assign_to" => "Joseph",
         "due_date"  => date('Y-m-d')
@@ -403,8 +407,7 @@ function message_text($message, $item) {
 function sync_to_order_new_rx($item, $order) {
   $not_offered  = is_not_offered($item);
   $refill_only  = is_refill_only($item);
-  $out_of_stock = is_out_of_stock($item);
-  $eligible     = ! @$item['item_date_added'] AND ($item['refills_total'] > NO_REFILL) AND ! is_refill($item, $order) AND ! $out_of_stock AND $item['rx_autofill'] AND ! $not_offered AND ! $refill_only;
+  $eligible     = ! @$item['item_date_added'] AND ($item['refills_total'] > NO_REFILL) AND ! is_refill($item, $order) AND $item['rx_autofill'] AND ! $not_offered AND ! $refill_only;
   return $eligible AND ! is_duplicate_gsn($item, $order);
 }
 
@@ -463,17 +466,6 @@ function days_left_in_stock($item) {
     log_error("LOW STOCK ITEM IS MARKED HIGH SUPPLY $item[drug_generic] days_left_in_stock:$days_left_in_stock qty_inventory:$item[qty_inventory]", get_defined_vars());
 
   return $item['sig_qty_per_day_default'] == round(1/30, 3) ? 60.6 : DAYS_MIN; //Dispensed 2 inhalers per time, since 1/30 is rounded to 3 decimals (.033), 2 month/.033 = 60.6 qty
-}
-
-function is_out_of_stock($item) {
-
-  $stock_level = @$item['stock_level_initial'] ?: $item['stock_level'];
-
-  $days_left_in_stock   = days_left_in_stock($item);
-  $days_left_in_refills = days_left_in_refills($item);
-  $days_default         = days_default($days_left_in_refills, $days_left_in_stock, NULL, $item);
-
-  return $stock_level == STOCK_LEVEL['OUT OF STOCK'] OR $days_left_in_stock == $days_default;
 }
 
 function roundDaysUnit($days) {
