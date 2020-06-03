@@ -50,13 +50,14 @@ function update_orders_wc() {
       $gp_orders_all = $mysql->run("SELECT * FROM gp_orders WHERE patient_id_wc = $created[patient_id_wc]");
 
       if ($gp_orders_pend[0]) {
-        export_gd_delete_invoice([$deleted], $mysql);
-        export_wc_delete_order($deleted['invoice_number'], "update_orders_wc: wc order 'created' but probably just not deleted when CP order was ".json_encode($created));
+        export_gd_delete_invoice([$created], $mysql);
+        export_wc_delete_order($created['invoice_number'], "update_orders_wc: wc order 'created' but probably just not deleted when CP order was ".json_encode($created));
         log_error("update_orders_wc: Deleting Webform eRx/Refill/Transfer order that was not in CP.  Most likely patient submitted two orders (e.g. 32121 & 32083 OR 32783 & 32709).  Why was this not deleted when CP Order was deleted?", ['gp_orders_pend' => $gp_orders_pend, 'gp_orders_all' => $gp_orders_all, 'created' => $created]);//.print_r($item, true);
 
+      } else {
+        log_error("update_orders_wc: created Webform eRx/Refill/Transfer order that is not in CP? Unknown reason", ['gp_orders_pend' => $gp_orders_pend, 'gp_orders_all' => $gp_orders_all, 'created' => $created]);//.print_r($item, true);
       }
 
-      log_error("update_orders_wc: created Webform eRx/Refill/Transfer order that is not in CP? Unknown reason", ['gp_orders_pend' => $gp_orders_pend, 'gp_orders_all' => $gp_orders_all, 'created' => $created]);//.print_r($item, true);
 
       //log_notice("New WC Order to Add Guadian", $created);
 
