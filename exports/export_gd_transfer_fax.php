@@ -22,12 +22,12 @@ function export_gd_transfer_fax($item, $source) {
   $args = [
     'method'   => 'mergeDoc',
     'template' => 'Transfer Template v1',
-    'file'     => "Transfer Out #$item[invoice_number] Rx:$item[best_rx_number] Fax:$to",
+    'file'     => "Transfer Out #".(@$item['invoice_number'])." Rx:$item[best_rx_number] Fax:$to",
     'folder'   => TRANSFER_OUT_FOLDER_NAME,
     'order'    => [$item]
   ];
 
   $result = gdoc_post(GD_MERGE_URL, $args);
 
-  log_error("WebForm export_gd_transfer_fax SENT $item[invoice_number] $item[drug_name] $source", get_defined_vars());
+  log_notice("WebForm export_gd_transfer_fax SENT ".(@$item['invoice_number'])." $item[drug_name] $source", get_defined_vars());
 }

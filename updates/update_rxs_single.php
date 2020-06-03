@@ -119,6 +119,8 @@ function update_rxs_single() {
 
       $patient = @$patient ?: get_full_patient($updated, $mysql, $updated['rx_number']); //This updates & overwrites set_rx_messages
 
+      v2_pend_item($item, $mysql);
+
       log_error("update_rxs_single rx_gsn no longer missing (but still might not be in v2 yet).  Confirm correct updated rx_messages", [$patient, $updated, $changed]);
     }
 

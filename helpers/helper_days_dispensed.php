@@ -13,7 +13,7 @@ function get_days_default($item, $order) {
   $days_left_in_expiration = days_left_in_expiration($item);
   $days_left_in_refills    = days_left_in_refills($item);
   $days_left_in_stock      = days_left_in_stock($item);
-  $days_default            = days_default($days_left_in_refills, $days_left_in_stock);
+  $days_default            = days_default($days_left_in_refills, $days_left_in_stock, NULL, $item);
 
   if ( ! $item['sig_qty_per_day_default'] AND $item['refills_original'] != $item['refills_left']) {
     log_error("helper_days_dispensed: RX WAS NEVER PARSED", $item);
@@ -473,7 +473,7 @@ function roundDaysUnit($days) {
 //Days is basically the MIN(target_date ?: std_day, qty_left as days, inventory_left as days).
 //NOTE: We adjust bump up the days by upto 30 in order to finish up an Rx (we don't want partial fills left)
 //NOTE: We base this on the best_rx_number and NOT on the rx currently in the order
-function days_default($days_left_in_refills, $days_left_in_stock, $days_default = DAYS_STD) {
+function days_default($days_left_in_refills, $days_left_in_stock, $days_default, $item) {
 
   //Cannot have NULL inside of MIN()
   $days_default = min(

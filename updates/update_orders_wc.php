@@ -46,10 +46,9 @@ function update_orders_wc() {
     } else if (in_array($created['order_source'], ["Webform Refill", "Webform Transfer", "Webform eRx"])) {
       //TODO Investigate #29187
 
-      $gp_orders      = $mysql->run("SELECT * FROM gp_orders WHERE invoice_number = $created[invoice_number]");
-      $gp_orders_cp   = $mysql->run("SELECT * FROM gp_orders_cp WHERE invoice_number = $created[invoice_number]");
+      $gp_orders = $mysql->run("SELECT * FROM gp_orders WHERE patient_id_wc = $created[patient_id_wc] AND (order_stage_wc LIKE '%prepare' OR order_stage_wc LIKE '%confirm')");
 
-      log_error("update_orders_wc: created Webform eRx/Refill/Transfer order that is not in CP? Most likely patient submitted two orders (e.g. 32121 & 32083 OR 32783 & 32709) and pharmacist deleted the 2nd one (or removed all items?) in CP", ['gp_orders_cp' => $gp_orders_cp, 'gp_orders' => $gp_orders, 'created' => $created]);//.print_r($item, true);
+      log_error("update_orders_wc: created Webform eRx/Refill/Transfer order that is not in CP? Most likely patient submitted two orders (e.g. 32121 & 32083 OR 32783 & 32709) and pharmacist deleted the 2nd one (or removed all items?) in CP", ['gp_orders' => $gp_orders, 'created' => $created]);//.print_r($item, true);
 
       //log_notice("New WC Order to Add Guadian", $created);
 
@@ -190,11 +189,11 @@ function update_orders_wc() {
 
       }
 
-    } else if ($updated['order_stage_wc'] AND ! $updated['old_order_stage_wc']) {
+    } else if ($updated['order_stage_wc'] AND ! $updated['old_order_stage_wc'] AND $updated['old_patient_id_wc']) {
       //Admin probably set order_stage_wc to NULL directly in database, hoping to refresh the order
       $order = get_full_order($updated, $mysql);
 
-      log_error("$updated[invoice_number]: WC Order Updating from NULL Status", [$new_stage, $old_stage, $updated, $order]);
+      log_error("$updated[invoice_number]: WC Order Updating from NULL Status", [$order, $new_stage, $old_stage, $updated]);
 
       export_wc_update_order_status($order); //Update to current status
       export_wc_update_order_metadata($order);
