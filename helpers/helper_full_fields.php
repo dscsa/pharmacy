@@ -26,9 +26,9 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages) {
     if ($set_days OR $set_msgs) {
       list($days, $message) = get_days_default($patient_or_order[$i], $patient_or_order);
 
-      //log_notice('add_full_fields: before', ['drug_name' => $patient_or_order[$i]['drug_name'], 'rx_numbers' => $patient_or_order[$i]['rx_numbers'], 'days' => $days, 'message' => $message, 'set_msgs' => $set_msgs, 'set_days' => $set_days,  'rx_message_key' => $patient_or_order[$i]['rx_message_key']]);
-
-      if ($set_days)
+      if ($set_days AND is_null($days))
+        log_error("helper_full_fields set_days: days should not be NULL", get_defined_vars());
+      else if ($set_days)
         $patient_or_order[$i] = set_days_default($patient_or_order[$i], $days, $mysql);
 
       if ($set_msgs) { //On a sync_to_order the rx_message_key will be set, but days will not yet be set since their was not an order_item until now.  But we don't want to override the original sync message

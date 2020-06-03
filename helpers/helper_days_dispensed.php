@@ -185,7 +185,7 @@ function get_days_default($item, $order) {
     } else if ($is_refill) {
       $salesforce = [
         "subject"   => "Refill for $item[drug_name] seems to be out-of-stock",
-        "body"      => "Refill for $item[drug_name] in Order #$item[invoice_number] seems to be out-of-stock with days_left_in_stock:$days_left_in_stock, qty_inventory:$item[qty_inventory], sig:$item[sig]",
+        "body"      => "Refill for $item[drug_name] in Order #$item[invoice_number] seems to be out-of-stock with days_left_in_stock:$days_left_in_stock, qty_inventory:$item[qty_inventory], sig:$item[sig_actual]",
         "contact"   => "$item[first_name] $item[last_name] $item[birth_date]",
         "assign_to" => "Joseph",
         "due_date"  => date('Y-m-d')
@@ -274,11 +274,6 @@ function set_price_refills_actual($item, $mysql) {
 }
 
 function set_days_default($item, $days, $mysql) {
-
-
-  if (is_null($days)) {
-    log_error("set_days_default days should not be NULL", get_defined_vars());
-  }
 
   //We can only save days if its currently an order_item
   if ( ! @$item['item_date_added'])
