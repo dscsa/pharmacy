@@ -319,7 +319,7 @@ function set_days_default($item, $days, $mysql) {
     UPDATE
       gp_order_items
     SET
-      days_dispensed_default    = $days,
+      days_dispensed_default    = ".($days ?: 0).",
       qty_dispensed_default     = $item[qty_dispensed_default],
       price_dispensed_default   = $item[price_dispensed_default],
       stock_level_initial       = '$item[stock_level_initial]',
