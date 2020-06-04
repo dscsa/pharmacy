@@ -96,7 +96,7 @@ function update_orders_wc() {
 
         export_wc_create_order($order, "update_orders_wc: deleted - trash");
 
-        export_gd_publish_invoice($order);
+        export_gd_publish_invoice($order, $mysql);
       }
 
     } else if ( ! $order[0]['pharmacy_name']) {  //Can't do $order[0]['rx_message_key'] == 'ACTION NEEDS FORM' because other keys can take precedence even if form is needed
@@ -122,7 +122,7 @@ function update_orders_wc() {
 
       export_wc_create_order($order,  "update_orders_wc: deleted - unknown reason");
 
-      export_gd_publish_invoice($order);
+      export_gd_publish_invoice($order, $mysql);
 
       log_error("Readding Order that should not have been deleted. Not sure: WC Order Deleted not through trash?", [$order[0], $gp_orders_wc, $gp_orders, $wc_orders]);
 
@@ -159,7 +159,7 @@ function update_orders_wc() {
 
       export_wc_create_order($order,  "update_orders_wc: deleted - not shipped but still recreating");
 
-      export_gd_publish_invoice($order);
+      export_gd_publish_invoice($order, $mysql);
     }
 
   }

@@ -121,7 +121,7 @@ function update_orders_cp() {
     $order = helper_update_payment($order, "update_orders_cp: created", $mysql);
 
     if ($created['order_date_dispensed']) { //Can't test for rx_message_key == 'ACTION NEEDS FORM' because other messages can take precedence
-      export_gd_publish_invoice($order);
+      export_gd_publish_invoice($order, $mysql);
       export_gd_print_invoice($order);
       log_notice("Created Order is being readded (and invoice recreated) even though already dispensed.  Was it deleted on purpose?".$order[0]['invoice_number'], $order);
       continue;
@@ -248,7 +248,7 @@ function update_orders_cp() {
 
       $groups = group_drugs($order, $mysql);
 
-      export_gd_publish_invoice($order);
+      export_gd_publish_invoice($order, $mysql);
       export_gd_print_invoice($order);
       send_dispensed_order_communications($groups);
       log_notice("Updated Order Dispensed", $order);
