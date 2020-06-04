@@ -82,7 +82,7 @@ function export_gd_print_invoice($order) {
 }
 
 //Cannot delete (with this account) once published
-function export_gd_publish_invoice($order, $mysql, $retry) {
+function export_gd_publish_invoice($order, $mysql, $retry = false) {
 
   $start = microtime(true);
 
@@ -96,13 +96,14 @@ function export_gd_publish_invoice($order, $mysql, $retry) {
 
   $time = ceil(microtime(true) - $start);
 
-  log_notice("export_gd_publish_invoice $time seconds: ".$order[0]['invoice_number'], $result);
-
   $parsed = json_decode($result, true);
 
   if (@$parsed[0]['name'] == 'Exception' AND ! $retry) {
     export_gd_update_invoice($order, "export_gd_publish_invoice: invoice ".$order[0]['invoice_number']." didn't exist so trying to (re)make it", $mysql);
     export_gd_publish_invoice($order, $mysql, true);
+    log_error("export_gd_publish_invoice $time seconds: ".$order[0]['invoice_number'], $result);
+  } else {
+    log_notice("export_gd_publish_invoice $time seconds: ".$order[0]['invoice_number'], $result);
   }
 }
 
