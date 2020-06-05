@@ -20,12 +20,17 @@ function update_rxs_single() {
   $mssql = new Mssql_Cp();
 
   //Run this before rx_grouped query to make sure all sig_qty_per_days are probably set before we group by them
-  foreach($changes['created'] as $rx) {
+  foreach($changes['created'] as $created) {
 
-    $parsed = get_parsed_sig($rx['sig_actual'], $rx['drug_name']);
+    $parsed = get_parsed_sig($created['sig_actual'], $created['drug_name']);
 
     //TODO Eventually Save the Clean Script back into Guardian so that Cindy doesn't need to rewrite them
-    set_parsed_sig($rx['rx_number'], $parsed, $mysql);
+    set_parsed_sig($created['rx_number'], $parsed, $mysql);
+
+    $patient = get_full_patient($created, $mysql, $created['rx_number']); //This updates & overwrites set_rx_messages
+
+    remove_drugs_from_refill_reminders($patient['first_name'], $patient['last_name'], $patient['birth_date'], [$created['drug_name']]);
+
   }
 
   //This is an expensive (6-8 seconds) group query.
@@ -131,12 +136,6 @@ function update_rxs_single() {
       log_error("update_rxs_single rx was transferred out.  Confirm correct updated rxs_single.rx_message_key. rxs_grouped.rx_message_keys will be updated on next pass", [$patient, $updated, $changed]);
     }
 
-    if ($updated['refills_left'] <= NO_REFILL AND $updated['refills_left'] > NO_REFILL) {
-
-      $patient = @$patient ?: get_full_patient($updated, $mysql, $updated['rx_number']); //This updates & overwrites set_rx_messages
-
-      remove_drugs_from_refill_reminders($patient['first_name'], $patient['last_name'], $patient['birth_date'], [$updated['drug_name']]);
-    }
   }
 
   //TODO if new Rx arrives and there is an active order where that Rx is not included because of "ACTION NO REFILLS" or "ACTION RX EXPIRED" or the like, then we should rerun the helper_days_dispensed on the order_item
