@@ -27,7 +27,7 @@ function get_payment_default($order, $reason) {
     $update['payment_total_default'] += $item['price_dispensed'];
 
   //Defaults
-  $update['payment_fee_default'] = (int) $order[0]['refills_used'] ? $update['payment_total_default'] : PAYMENT_TOTAL_NEW_PATIENT;
+  $update['payment_fee_default'] = +$order[0]['refills_used'] ? $update['payment_total_default'] : PAYMENT_TOTAL_NEW_PATIENT;
   $update['payment_due_default'] = $update['payment_fee_default'];
   $update['payment_date_autopay'] = 'NULL';
 
