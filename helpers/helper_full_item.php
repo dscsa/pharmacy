@@ -58,7 +58,6 @@ function get_full_item($item, $mysql, $mssql = NULL) {
     LEFT JOIN gp_stock_live ON -- might not have a match if no GSN match
       gp_rxs_grouped.drug_generic = gp_stock_live.drug_generic
     WHERE
-      gp_order_items.invoice_number = $item[invoice_number] OR
       gp_order_items.rx_number = $item[rx_number]
   ";
 
