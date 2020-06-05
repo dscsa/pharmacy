@@ -404,26 +404,26 @@ function sync_to_order_new_rx($item, $order) {
   $refill_only  = is_refill_only($item);
   $is_refill    = is_refill($item, $order);
   $has_refills  = ($item['refills_total'] > NO_REFILL);
-  $eligible     = ! @$item['item_date_added'] AND $has_refills AND ! $is_refill AND $item['rx_autofill'] AND ! $not_offered AND ! $refill_only;
+  $eligible     = (! @$item['item_date_added'] AND $has_refills AND ! $is_refill AND $item['rx_autofill'] AND ! $not_offered AND ! $refill_only);
 
-  log_error("sync_to_order_new_rx", get_defined_vars());
+  log_notice("sync_to_order_new_rx", get_defined_vars());
 
   return $eligible AND ! is_duplicate_gsn($item, $order);
 }
 
 function sync_to_order_past_due($item, $order) {
-  $eligible = ! @$item['item_date_added'] AND ($item['refills_total'] > NO_REFILL) AND $item['refill_date_next'] AND (strtotime($item['refill_date_next']) - strtotime($item['order_date_added'])) < 0;
+  $eligible = (! @$item['item_date_added'] AND ($item['refills_total'] > NO_REFILL) AND $item['refill_date_next'] AND (strtotime($item['refill_date_next']) - strtotime($item['order_date_added'])) < 0);
   return $eligible AND ! is_duplicate_gsn($item, $order);
 }
 
 //Order 29017 had a refill_date_first and rx/pat_autofill ON but was missing a refill_date_default/refill_date_manual/refill_date_next
 function sync_to_order_no_next($item, $order) {
-  $eligible = ! @$item['item_date_added'] AND ($item['refills_total'] > NO_REFILL) AND is_refill($item, $order) AND ! $item['refill_date_default'];
+  $eligible = (! @$item['item_date_added'] AND ($item['refills_total'] > NO_REFILL) AND is_refill($item, $order) AND ! $item['refill_date_default']);
   return $eligible AND ! is_duplicate_gsn($item, $order);
 }
 
 function sync_to_order_due_soon($item, $order) {
-  $eligible = ! @$item['item_date_added'] AND ($item['refills_total'] > NO_REFILL) AND $item['refill_date_next'] AND (strtotime($item['refill_date_next'])  - strtotime($item['order_date_added'])) <= DAYS_UNIT*24*60*60;
+  $eligible = (! @$item['item_date_added'] AND ($item['refills_total'] > NO_REFILL) AND $item['refill_date_next'] AND (strtotime($item['refill_date_next'])  - strtotime($item['order_date_added'])) <= DAYS_UNIT*24*60*60);
   return $eligible AND ! is_duplicate_gsn($item, $order);
 }
 
