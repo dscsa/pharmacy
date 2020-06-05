@@ -459,7 +459,7 @@ function days_left_in_stock($item) {
   $days_left_in_stock = round($item['qty_inventory']/$item['sig_qty_per_day']);
   $stock_level = @$item['stock_level_initial'] ?: $item['stock_level'];
 
-  if ($days_left_in_stock >= DAYS_STD OR $item['qty_inventory'] >= 500)
+  if ($days_left_in_stock >= DAYS_STD OR $item['qty_inventory'] >= 3*$item['qty_repack'])
     return;
 
   if($stock_level == STOCK_LEVEL['HIGH SUPPLY'] AND $item['sig_qty_per_day_default'] != round(1/30, 3))

@@ -284,6 +284,8 @@ function update_patients_wc() {
         'allergies_other' => str_replace("'", "''", $updated['allergies_other']) ?: ''
       ]);
 
+      log_notice("update_patients_wc: EXEC SirumWeb_AddRemove_Allergies '$updated[patient_id_cp]', '$allergies'");
+
       upsert_patient_cp($mssql, "EXEC SirumWeb_AddRemove_Allergies '$updated[patient_id_cp]', '$allergies'");
     }
 

@@ -101,9 +101,9 @@ function export_gd_publish_invoice($order, $mysql, $retry = false) {
   if (@$parsed[0]['name'] == 'Exception' AND ! $retry) {
     export_gd_update_invoice($order, "export_gd_publish_invoice: invoice ".$order[0]['invoice_number']." didn't exist so trying to (re)make it", $mysql);
     export_gd_publish_invoice($order, $mysql, true);
-    log_error("export_gd_publish_invoice $time seconds: ".$order[0]['invoice_number'], $result);
+    log_error("export_gd_publish_invoice failed trying again: ".$order[0]['invoice_number'], $result);
   } else {
-    log_notice("export_gd_publish_invoice $time seconds: ".$order[0]['invoice_number'], $result);
+    log_notice("export_gd_publish_invoice success $time seconds: ".$order[0]['invoice_number'], $result);
   }
 }
 
