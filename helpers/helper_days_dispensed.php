@@ -379,7 +379,7 @@ function is_not_offered($item) {
 //tell them it is out of stock just because the sig changed
 function is_refill($item1, $order) {
 
-  $refill_date_first = $item1['refill_date_first'];
+  $refill_date_first = null;
   foreach ($order as $item2) {
     if ($item1['drug_generic'] == $item2['drug_generic'])
       $refill_date_first = $refill_date_first ?: $item2['refill_date_first'];
@@ -402,7 +402,12 @@ function message_text($message, $item) {
 function sync_to_order_new_rx($item, $order) {
   $not_offered  = is_not_offered($item);
   $refill_only  = is_refill_only($item);
-  $eligible     = ! @$item['item_date_added'] AND ($item['refills_total'] > NO_REFILL) AND ! is_refill($item, $order) AND $item['rx_autofill'] AND ! $not_offered AND ! $refill_only;
+  $is_refill    = is_refill($item, $order);
+  $has_refills  = ($item['refills_total'] > NO_REFILL);
+  $eligible     = ! @$item['item_date_added'] AND $has_refills AND ! $is_refill AND $item['rx_autofill'] AND ! $not_offered AND ! $refill_only;
+
+  log_error("sync_to_order_new_rx", get_defined_vars());
+
   return $eligible AND ! is_duplicate_gsn($item, $order);
 }
 
