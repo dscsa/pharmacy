@@ -169,7 +169,7 @@ function set_sync_to_date($order, $target_date, $target_rxs, $mysql) {
 
     $time_refill = $item['refill_date_next'] ? strtotime($item['refill_date_next']) : strtotime($item['item_date_added']); //refill_date_next is sometimes null
     $days_extra  = (strtotime($target_date) - $time_refill)/60/60/24;
-    $days_synced = $old_days_default + roundDaysUnit($days_extra);
+    $days_synced = roundDaysUnit($old_days_default + $days_extra);
 
     $days_left_in_refills    = days_left_in_refills($item);
     $days_left_in_stock      = days_left_in_stock($item);

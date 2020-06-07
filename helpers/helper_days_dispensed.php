@@ -480,21 +480,21 @@ function roundDaysUnit($days) {
 function days_default($days_left_in_refills, $days_left_in_stock, $days_default, $item) {
 
   //Cannot have NULL inside of MIN()
-  $days_default = min(
+  $days = min(
     $days_left_in_refills ?: $days_default,
     $days_left_in_stock ?: $days_default
   );
 
-  $remainder = $days_default % DAYS_UNIT;
+  $remainder = $days % DAYS_UNIT;
 
   if ($remainder == 5)
-    log_notice("DEFAULT DAYS IS NOT A MULTIPLE OF ".DAYS_UNIT."! LIKELY BECAUSE RX EXPIRING days_default:$days_default, days_left_in_stock:$days_left_in_stock, days_left_in_refills:$days_left_in_refills", get_defined_vars());
+    log_notice("DEFAULT DAYS IS NOT A MULTIPLE OF ".DAYS_UNIT."! LIKELY BECAUSE RX EXPIRING days:$days, days_left_in_stock:$days_left_in_stock, days_left_in_refills:$days_left_in_refills", get_defined_vars());
   else if ($remainder)
-    log_error("DEFAULT DAYS IS NOT A MULTIPLE OF ".DAYS_UNIT."! days_default:$days_default, days_left_in_stock:$days_left_in_stock, days_left_in_refills:$days_left_in_refills", get_defined_vars());
+    log_error("DEFAULT DAYS IS NOT A MULTIPLE OF ".DAYS_UNIT."! days:$days, days_left_in_stock:$days_left_in_stock, days_left_in_refills:$days_left_in_refills", get_defined_vars());
   else
-    log_info("days_default:$days_default, days_left_in_stock:$days_left_in_stock, days_left_in_refills:$days_left_in_refills", get_defined_vars());
+    log_info("days:$days, days_left_in_stock:$days_left_in_stock, days_left_in_refills:$days_left_in_refills", get_defined_vars());
 
-  return $days_default;
+  return $days;
 }
 
 //Don't sync if an order with these instructions already exists in order
