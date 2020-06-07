@@ -448,14 +448,15 @@ function search_events_by_order($invoice_number, $past = false, $types = []) {
 //semicolon, and if no semicolons are left in the communication, then the entire communication is deleted
 function remove_drugs_from_refill_reminders($first_name, $last_name, $birth_date, $drugs) {
 
-    $drugs = implode(';|', $drugs);
+    $email_regex = implode('[^;]*|', $drugs).'[^;]*';
+    $phone_regex = format_call($email_regex);
 
     return replace_text_in_events(
       $first_name,
       $last_name,
       $birth_date,
       ['Refill Reminder'],
-      "/$drugs;/",
+      "/$email_regex|$phone_regex/",
       '',
       '/^[^;]*$/'
     );
@@ -502,12 +503,12 @@ function replace_text_in_events($first_name, $last_name, $birth_date, $types, $r
   }
 
   if (count($modify)) {
-    log_error('replace_text_in_events modifyEvent', ['old' => $old_desc, 'new' => $new_desc, 'name' => "$first_name $last_name $birth_date", $replace_regex, $replace_string, $types]);
+    log_error('replace_text_in_events modifyEvent', ['old' => $old_desc, 'new' => $new_desc, 'name' => "$first_name $last_name $birth_date", 'replace_regex' => $replace_regex, 'remove_regex' => $remove_regex, 'types' => $types]);
     modify_events($modify);
   }
 
   if (count($remove)) {
-    log_error('replace_text_in_events removeEvent', [$first_name, $last_name, $birth_date, $types, $old_desc, $new_desc]);
+    log_error('replace_text_in_events removeEvent', ['old' => $old_desc, 'new' => $new_desc, 'name' => "$first_name $last_name $birth_date", 'replace_regex' => $replace_regex, 'remove_regex' => $remove_regex, 'types' => $types]);
     cancel_events($remove);
   }
 }
