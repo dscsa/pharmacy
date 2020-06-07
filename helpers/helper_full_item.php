@@ -28,6 +28,9 @@ function get_full_item($item, $mysql, $mssql = NULL) {
       gp_order_items.rx_number = $item[rx_number]
   ";
 
+  if ($item['invoice_number'])
+    $sql .= "AND gp_order_items.invoice_number = $item[invoice_number]";
+
   $query = $mysql->run($sql);
 
   if (isset($query[0][0])) {
