@@ -489,7 +489,8 @@ function replace_text_in_events($first_name, $last_name, $birth_date, $types, $r
 
     $new_desc = preg_replace($replace_regex, $replace_string, $old_desc);
 
-    if ($old_desc == $new_desc) {
+    if (strlen($old_desc) == strlen($new_desc)) { // == didn't seem to work but I couldn't eyeball why
+      log_notice('replace_text_in_events no changes', ['old' => $old_desc, 'new' => $new_desc, 'diff' => get_decorated_diff($old_desc, $new_desc), 'count_old' => strlen($old_desc), 'count_new' => strlen($new_desc), 'name' => "$first_name $last_name $birth_date", 'replace_regex' => $replace_regex, 'remove_regex' => $remove_regex, 'types' => $types]);
       continue;
     }
 
@@ -503,31 +504,14 @@ function replace_text_in_events($first_name, $last_name, $birth_date, $types, $r
   }
 
   if (count($modify)) {
-    log_error('replace_text_in_events modifyEvent', ['old' => $old_desc, 'new' => $new_desc, 'diff' => get_decorated_diff($old_desc, $new_desc), 'count_old' => strlen($old_desc), 'count_new' => strlen($new_desc), 'name' => "$first_name $last_name $birth_date", 'replace_regex' => $replace_regex, 'remove_regex' => $remove_regex, 'types' => $types]);
+    log_error('replace_text_in_events modifyEvent', ['old' => $old_desc, 'new' => $new_desc, 'count_old' => strlen($old_desc), 'count_new' => strlen($new_desc), 'name' => "$first_name $last_name $birth_date", 'replace_regex' => $replace_regex, 'remove_regex' => $remove_regex, 'types' => $types]);
     modify_events($modify);
   }
 
   if (count($remove)) {
-    log_error('replace_text_in_events removeEvent', ['old' => $old_desc, 'new' => $new_desc,  'diff' => get_decorated_diff($old_desc, $new_desc), 'count_old' => strlen($old_desc), 'count_new' => strlen($new_desc), 'name' => "$first_name $last_name $birth_date", 'replace_regex' => $replace_regex, 'remove_regex' => $remove_regex, 'types' => $types]);
+    log_error('replace_text_in_events removeEvent', ['old' => $old_desc, 'new' => $new_desc, 'count_old' => strlen($old_desc), 'count_new' => strlen($new_desc), 'name' => "$first_name $last_name $birth_date", 'replace_regex' => $replace_regex, 'remove_regex' => $remove_regex, 'types' => $types]);
     cancel_events($remove);
   }
-}
-
-function get_decorated_diff($old, $new){
-    $from_start = strspn($old ^ $new, "\0");
-    $from_end = strspn(strrev($old) ^ strrev($new), "\0");
-
-    $old_end = strlen($old) - $from_end;
-    $new_end = strlen($new) - $from_end;
-
-    $start = substr($new, 0, $from_start);
-    $end = substr($new, $new_end);
-    $new_diff = substr($new, $from_start, $new_end - $from_start);
-    $old_diff = substr($old, $from_start, $old_end - $from_start);
-
-    $new = "$start<ins style='background-color:#ccffcc'>$new_diff</ins>$end";
-    $old = "$start<del style='background-color:#ffcccc'>$old_diff</del>$end";
-    return array("old"=>$old, "new"=>$new);
 }
 
 function cancel_events_by_person($first_name, $last_name, $birth_date, $caller, $types = []) {
