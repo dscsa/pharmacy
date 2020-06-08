@@ -79,6 +79,8 @@ function import_cp_patients() {
   $keys = result_map($patients[0],
     function($row) {
 
+      $row['refills_used'] = +$row['refills_used']; //Turn string into number so that "0.00" is falsey instead of truthy
+
       $row['phone1'] = clean_phone($row['phone1']);
       $row['phone2'] = clean_phone($row['phone2']);
 
