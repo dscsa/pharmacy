@@ -503,7 +503,7 @@ function replace_text_in_events($first_name, $last_name, $birth_date, $types, $r
   }
 
   if (count($modify)) {
-    log_error('replace_text_in_events modifyEvent', ['old' => $old_desc, 'new' => $new_desc, 'count_old' => strlen($old_desc), 'count_new' => strlen($new_desc), 'name' => "$first_name $last_name $birth_date", 'replace_regex' => $replace_regex, 'remove_regex' => $remove_regex, 'types' => $types]);
+    log_error('replace_text_in_events modifyEvent', ['old' => $old_desc, 'new' => $new_desc, 'diff' => get_decorated_diff($old_desc, $new_desc), 'count_old' => strlen($old_desc), 'count_new' => strlen($new_desc), 'name' => "$first_name $last_name $birth_date", 'replace_regex' => $replace_regex, 'remove_regex' => $remove_regex, 'types' => $types]);
     modify_events($modify);
   }
 
