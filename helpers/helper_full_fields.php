@@ -16,6 +16,8 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages) {
     $days     = NULL;
     $message  = NULL;
 
+    $patient_or_order[$i]['refills_used'] = +$patient_or_order[$i]['refills_used']; //Turn string into number so that "0.00" is falsey instead of truthy
+
     $patient_or_order[$i]['rx_date_written'] = date('Y-m-d', strtotime($patient_or_order[$i]['rx_date_expired'].' -1 year')); //Set before export_gd_transfer_fax()
 
     //If this is full_patient was don't JOIN the order_items/order tables so those fields will not be set here
