@@ -19,18 +19,13 @@ function update_rxs_single() {
   $mysql = new Mysql_Wc();
   $mssql = new Mssql_Cp();
 
-  //Run this before rx_grouped query to make sure all sig_qty_per_days are probably set before we group by them
+  //Created Loop #1 of 2: Run this before rx_grouped query to make sure all sig_qty_per_days are probably set before we group by them
   foreach($changes['created'] as $created) {
 
     $parsed = get_parsed_sig($created['sig_actual'], $created['drug_name']);
 
     //TODO Eventually Save the Clean Script back into Guardian so that Cindy doesn't need to rewrite them
     set_parsed_sig($created['rx_number'], $parsed, $mysql);
-
-    $patient = get_full_patient($created, $mysql, $created['rx_number']); //This updates & overwrites set_rx_messages
-
-    remove_drugs_from_refill_reminders($patient['first_name'], $patient['last_name'], $patient['birth_date'], [$created['drug_name']]);
-
   }
 
   //This is an expensive (6-8 seconds) group query.
@@ -95,6 +90,14 @@ function update_rxs_single() {
   $mysql->run("SELECT * FROM gp_rxs_grouped")[0]
     ? $mysql->commit()
     : $mysql->rollback();
+
+  //Created Lopp #2 of 2: Run this After so that Rx_grouped is set when doing get_full_patient
+  foreach($changes['created'] as $created) {
+
+    $patient = get_full_patient($created, $mysql, $created['rx_number']); //This updates & overwrites set_rx_messages
+
+    remove_drugs_from_refill_reminders($patient['first_name'], $patient['last_name'], $patient['birth_date'], [$created['drug_name']]);
+  }
 
   //Run this after rx_grouped query to ensure get_full_patient retrieves an accurate order profile
   foreach($changes['updated'] as $updated) {
