@@ -376,7 +376,7 @@ function no_rx_notice($deleted, $patient) {
     : "We haven't gotten any Rxs from your doctor yet but will notify you as soon as we do.";
 
   $email = [ "email" => $patient[0]['email'] ]; //TODO email is not actual a property on $deleted
-  $text  = [ "sms"   => get_phones($patient), $message => $subject.'. '.$message ];
+  $text  = [ "sms"   => get_phones($patient), "message" => $subject.'. '.$message ];
 
   $email['subject'] = $subject;
   $email['message']  = implode('<br>', [
