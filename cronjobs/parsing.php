@@ -723,6 +723,7 @@ $test_sigs = [
   //Take 30ml by mouth as needed Take 30cc PO as needed for constipation
   //Take 1 tablet and dissolve in 2oz liquid before meals and at bedtime
   //PLACE 1 TABLET UNDER TONGUE 3 times per day FOR UP TO 3 DOSES AS NEEDED FOR CHEST PAIN
+  //Take 1& 1\/2 tablet by mouth once daily on Monday and Wednesday and Take 1 tablet once daily on all other days
 ];
 
 global $argv;

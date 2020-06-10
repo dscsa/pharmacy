@@ -402,7 +402,8 @@ function no_rx_notice($deleted, $patient) {
 function order_canceled_notice($deleted, $patient) {
 
   $subject = "Good Pill canceled your Order #".$deleted['invoice_number'];
-  $message = "We have canceled Order #".$deleted['invoice_number']." Please call us at (888) 987-5187 if you believe this is in error.";
+
+  $message = "Good Pill cancelled order $deleted[invoice_number]. We're sorry that we are unable to provide the reason for cancellation via text or email; if you believe this cancellation is an error, please give us a call at (888) 987-5187. Thank you.";
 
   $email = [ "email" => $patient[0]['email'], "raw" => json_encode($deleted) ]; //TODO email is not actual a property on $deleted
   $text  = [ "sms" => get_phones($patient),  "message" => $subject.'. '.$message ];

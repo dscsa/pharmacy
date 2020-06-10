@@ -198,12 +198,24 @@ function update_orders_cp() {
       log_error('No patient associated with deleted order (Patient Deactivated/Deceased/Moved out of State)', ['deleted' => $deleted, 'sql' => $sql]);
 
     //We should be able to delete wc-confirm-* from CP queue without triggering an order cancel notice
-    if ($deleted['count_filled'] OR $deleted['count_nofill']) //count_items may already be 0 on a deleted order that had items e.g 33840
-      order_canceled_notice($deleted, $patient); //We passed in $deleted because there is not $order to make $groups
-    else {
+    if ( ! $deleted['count_filled'] AND ! $deleted['count_nofill']) { //count_items may already be 0 on a deleted order that had items e.g 33840
       no_rx_notice($deleted, $patient);
-      log_error("update_orders_cp deleted: count_items == 0 so calling no_rx_notice() rather than order_canceled_notice()", $deleted);
+      log_error("update_orders_cp deleted: count_filled == 0 AND count_nofill == 0 so calling no_rx_notice() rather than order_canceled_notice()", $deleted);
+      return;
     }
+
+    $sql = "
+      SELECT * FROM gp_orders WHERE patient_id_cp = $deleted[patient_id_cp] AND order_stage_cp != 'Dispensed' AND order_stage_cp != 'Shipped'
+    ";
+
+    $replacement = $mysql->run($sql)[0];
+
+    if ($replacement)
+      log_error('order_canceled_notice BUT their appears to be a replacement', ['deleted' => $deleted, 'sql' => $sql, 'replacement' => $replacement]);
+
+    order_canceled_notice($deleted, $patient); //We passed in $deleted because there is not $order to make $groups
+
+
   }
 
   //If just updated we need to
