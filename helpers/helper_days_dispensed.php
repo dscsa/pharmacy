@@ -46,8 +46,7 @@ function get_days_default($item, $order) {
     return [0, RX_MESSAGE['NO ACTION WAS TRANSFERRED']];
   }
 
-  //#29005 was expired but never dispensed, so check "refill_date_first" so we asking doctors for new rxs that we never dispensed
-  if ($item['refill_date_first'] AND ! @$item['rx_dispensed_id'] AND $days_left_in_expiration < 0) { // Can't do <= 0 because null <= 0 is true
+  if ($days_left_in_expiration < 0) { // Can't do <= 0 because null <= 0 is true
     log_info("DON'T FILL EXPIRED MEDICATIONS", get_defined_vars());
     return [0, RX_MESSAGE['ACTION EXPIRED']];
   }
@@ -217,7 +216,7 @@ function get_days_default($item, $order) {
     return [$days_left_of_qty_capped, RX_MESSAGE['ACTION EXPIRING']];
   }
 
-  if ($days_left_in_expiration) {
+  if ($days_left_in_expiration AND $days_left_in_expiration < DAYS_STD) {
 
     $days_left_in_exp_rounded = roundDaysUnit($days_left_in_expiration);
     $days_left_in_exp_rounded_buffered = $days_left_in_exp_rounded-10;
@@ -433,7 +432,8 @@ function days_left_in_expiration($item) {
 
   $days_left_in_expiration = (strtotime($item['rx_date_expired']) - strtotime($item['refill_date_next']))/60/60/24;
 
-  if ($days_left_in_expiration > 0 AND $days_left_in_expiration <= DAYS_STD) return $days_left_in_expiration;
+  //#29005 was expired but never dispensed, so check "refill_date_first" so we asking doctors for new rxs that we never dispensed
+  if ($item['refill_date_first']) return $days_left_in_expiration;
 }
 
 function days_left_in_refills($item) {
