@@ -225,7 +225,7 @@ function update_orders_wc() {
         log_notice("$updated[invoice_number]: WC Order Normal Stage Change", $changed);
       } else {
         $order = get_full_order($updated, $mysql);
-        log_error("$updated[invoice_number]: WC Order Irregular Stage Change.  Updating WC: new:$new_stage >>> old:$old_stage", [$order, $updated]); //Yes, new >>> old on purpose since we are reverting
+        log_error("$updated[invoice_number]: WC Order Irregular Stage Change.  Updating WC: new:$updated[order_stage_wc] >>> $updated[old_order_stage_wc]", [$order, $updated]); //Yes, new >>> old on purpose since we are reverting
         export_wc_update_order_status($order); //Update to current status
         export_wc_update_order_metadata($order);
       }
