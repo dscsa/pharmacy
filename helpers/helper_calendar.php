@@ -450,15 +450,24 @@ function search_events_by_order($invoice_number, $past = false, $types = []) {
 //semicolon, and if no semicolons are left in the communication, then the entire communication is deleted
 function remove_drugs_from_refill_reminders($first_name, $last_name, $birth_date, $drugs) {
 
+    if ( ! $drugs) return;
+
     $email_regex = implode('[^;]*|', $drugs).'[^;]*';
     $phone_regex = format_call($email_regex);
+
+    if ($phone_regex)
+      $replace = "/$email_regex|$phone_regex/";
+     else {
+      $replace = "/$email_regex/";  //if phone_regex is empty and we end regex with | preg_replace will have error and return null
+      log_error("remove_drugs_from_refill_reminders has empty phone_regex", get_defined_vars());
+     }
 
     return replace_text_in_events(
       $first_name,
       $last_name,
       $birth_date,
       ['Refill Reminder'],
-      "/$email_regex|$phone_regex/",
+      $replace,
       '',
       '/^[^;]*$/'
     );
@@ -491,7 +500,7 @@ function replace_text_in_events($first_name, $last_name, $birth_date, $types, $r
 
     $new_desc = preg_replace($replace_regex, $replace_string, $old_desc);
 
-    if (strlen($old_desc) == strlen($new_desc)) { // == didn't seem to work but I couldn't eyeball why
+    if (is_null($new_desc) OR $old_desc == $new_desc) { // == didn't seem to work but I couldn't eyeball why
       log_notice('replace_text_in_events no changes', ['old' => $old_desc, 'new' => $new_desc, 'count_old' => strlen($old_desc), 'count_new' => strlen($new_desc), 'name' => "$first_name $last_name $birth_date", 'replace_regex' => $replace_regex, 'remove_regex' => $remove_regex, 'types' => $types]);
       continue;
     }
