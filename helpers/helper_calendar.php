@@ -500,7 +500,7 @@ function replace_text_in_events($first_name, $last_name, $birth_date, $types, $r
 
     $new_desc = preg_replace($replace_regex, $replace_string, $old_desc);
 
-    if (is_null($new_desc) OR $old_desc == $new_desc) { // == didn't seem to work but I couldn't eyeball why
+    if (is_null($new_desc) OR strlen($old_desc) == strlen($new_desc)) { // == didn't seem to work but I couldn't eyeball why
       log_notice('replace_text_in_events no changes', ['old' => $old_desc, 'new' => $new_desc, 'count_old' => strlen($old_desc), 'count_new' => strlen($new_desc), 'name' => "$first_name $last_name $birth_date", 'replace_regex' => $replace_regex, 'remove_regex' => $remove_regex, 'types' => $types]);
       continue;
     }
