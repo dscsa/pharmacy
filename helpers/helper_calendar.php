@@ -240,7 +240,8 @@ function format_call($call_json) {
     '/(www\.)?goodpill\.org/',
     '/(\w):(?!\/\/)/',
     '/;<br>/',
-    '/;|\./',
+    '/;/',
+    '/\./',
     '/(<br>)+/',
     '/\.(\d)(\d)?(\d)?/',
     '/ but /',
@@ -260,7 +261,8 @@ function format_call($call_json) {
     '8,,,,8,,,,8 <Pause />9,,,,8,,,,7 <Pause />5,,,,1,,,,8,,,,7',
     'w,,w,,w,,dot,,,,good,,,,pill,,,,dot,,,,org,,,,again that is g,,,,o,,,,o,,,d,,,,p,,,,i,,,,l,,,,l,,,,dot,,,,o,,,,r,,,,g',
     '$1<Pause />', //Don't capture JSON $text or URL links
-    '<Pause /> and <Pause />', //combine drug list with "and" since it sounds more natural
+    ';<Pause /> and <Pause />', //combine drug list with "and" since it sounds more natural.  Keep semicolon so regex can still find and remove.
+    ';<Pause />', //can't do commas without testing for inside quotes because that is part of json syntax. Keep semicolon so regex can still find and remove.
     ' <Pause />', //can't do commas without testing for inside quotes because that is part of json syntax
     ' <Pause length=\\"1\\" />',
     ' point $1,,$2,,$3', //skips pronouncing decimal points
