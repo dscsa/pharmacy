@@ -495,23 +495,24 @@ function replace_text_in_events($first_name, $last_name, $birth_date, $types, $r
     }
 
     if ($remove_regex AND preg_match($remove_regex, $new_desc)) {
+      log_error('replace_text_in_events removeEvent', ['old_desc' => $old_desc, 'new_desc' => $new_desc, 'name' => "$first_name $last_name $birth_date", 'replace_regex' => $replace_regex, 'remove_regex' => $remove_regex, 'types' => $types]);
+
       $remove[] = $event['id'];
     }
     else {
+      log_error('replace_text_in_events modifyEvent', ['old_desc' => $old_desc, 'new_desc' => $new_desc, 'name' => "$first_name $last_name $birth_date", 'replace_regex' => $replace_regex, 'remove_regex' => $remove_regex, 'types' => $types]);
+
       $event['description'] = $new_desc;
       $modify[] = $event;
     }
   }
 
-  if (count($modify)) {
-    log_error('replace_text_in_events modifyEvent', ['old' => $old_desc, 'new' => $new_desc, 'count_old' => strlen($old_desc), 'count_new' => strlen($new_desc), 'name' => "$first_name $last_name $birth_date", 'replace_regex' => $replace_regex, 'remove_regex' => $remove_regex, 'types' => $types]);
+  if (count($modify))
     modify_events($modify);
-  }
 
-  if (count($remove)) {
-    log_error('replace_text_in_events removeEvent', ['old' => $old_desc, 'new' => $new_desc, 'count_old' => strlen($old_desc), 'count_new' => strlen($new_desc), 'name' => "$first_name $last_name $birth_date", 'replace_regex' => $replace_regex, 'remove_regex' => $remove_regex, 'types' => $types]);
+
+  if (count($remove))
     cancel_events($remove);
-  }
 }
 
 function cancel_events_by_person($first_name, $last_name, $birth_date, $caller, $types = []) {
