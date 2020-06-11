@@ -238,7 +238,8 @@ function update_orders_cp() {
     if ($stage_change_cp AND $updated['order_date_shipped']) {
       $groups = group_drugs($order, $mysql);
       export_v2_unpend_order($order);
-      export_wc_update_order_metadata($order); //Update status from prepare to shipped
+      export_wc_update_order_status($order); //Update status from prepare to shipped
+      export_wc_update_order_metadata($order);
       send_shipped_order_communications($groups);
       log_notice("Updated Order Shipped", $order);
       continue;
