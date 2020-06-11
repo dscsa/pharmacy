@@ -37,7 +37,7 @@ function refill_reminder_event($order, $email, $text, $hours_to_wait, $hour_of_d
 
   $comm_arr = new_comm_arr($patient_label, $email, $text);
 
-  log_info('refill_reminder_event', get_defined_vars()); //$cancel
+  log_error('refill_reminder_event', get_defined_vars()); //$cancel
 
   create_event($event_title, $comm_arr, $hours_to_wait, $hour_of_day);
 }
