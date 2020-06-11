@@ -452,8 +452,9 @@ function remove_drugs_from_refill_reminders($first_name, $last_name, $birth_date
 
     if ( ! $drugs) return;
 
+    $phone_drugs = format_call(json_encode($drugs));
     $email_regex = implode('[^;]*|', $drugs).'[^;]*';
-    $phone_regex = format_call($email_regex);
+    $phone_regex = implode('[^;]*|', $phone_drugs).'[^;]*';
 
     if ($phone_regex)
       $replace = "/$email_regex|$phone_regex/";
