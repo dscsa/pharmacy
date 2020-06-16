@@ -53,26 +53,28 @@ function get_days_default($item, $order) {
 
   if ( ! $item['drug_gsns']) {
 
+    $in_order = @$item['invoice_number'] ? "In Order #$item[invoice_number]" : "";
+
     if ($item['max_gsn']) {
-      $body = "Drug $item[drug_name] in Order #$item[invoice_number] needs GSN $item[max_gsn] added to V2";
+      $body = "$in_order, drug $item[drug_name] needs GSN $item[max_gsn] added to V2";
       $assign = "Joseph";
       log_error($body, $item);
 
     } else {
-      $body = "Drug $item[drug_name] in Order #$item[invoice_number] needs to be switched to a drug with a GSN in Guardian";
+      $body = "$in_order, drug $item[drug_name] needs to be switched to a drug with a GSN in Guardian";
       $assign = "Cindy";
       log_notice($body, $item);
     }
 
     $salesforce = [
-      "subject"   => "Missing GSN for $item[drug_name] in Order #$item[invoice_number]",
+      "subject"   => "$in_order, missing GSN for $item[drug_name]",
       "body"      => $body,
       "contact"   => "$item[first_name] $item[last_name] $item[birth_date]",
       "assign_to" => $assign,
       "due_date"  => date('Y-m-d')
     ];
 
-    $event_title = "$item[invoice_number] Missing GSN: $salesforce[contact] Created:".date('Y-m-d H:i:s');
+    $event_title = @$item['invoice_number']." Missing GSN: $salesforce[contact] Created:".date('Y-m-d H:i:s');
 
     create_event($event_title, [$salesforce]);
 

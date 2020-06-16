@@ -457,9 +457,9 @@ function remove_drugs_from_refill_reminders($first_name, $last_name, $birth_date
     $phone_regex = implode('[^;]*|', $phone_drugs).'[^;]*';
 
     if ($phone_regex)
-      $replace = "/$email_regex|$phone_regex/";
+      $replace = "~$email_regex|$phone_regex~";
      else {
-      $replace = "/$email_regex/";  //if phone_regex is empty and we end regex with | preg_replace will have error and return null
+      $replace = "~$email_regex~";  //if phone_regex is empty and we end regex with | preg_replace will have error and return null
       log_error("remove_drugs_from_refill_reminders has empty phone_regex", get_defined_vars());
      }
 
@@ -483,7 +483,7 @@ function update_last4_in_autopay_reminders($first_name, $last_name, $birth_date,
       $last_name,
       $birth_date,
       ['Autopay Reminder'],
-      "/card \d \d \d \d for/",
+      "~card \d \d \d \d for~",
       "card $new_last4 for"
     );
 }

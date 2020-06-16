@@ -112,6 +112,20 @@ Review Orders that have a DUPLICATE invoice number:
   GROUP BY meta_value
   HAVING number > 1
 
+Ensure that Default Autopay Card is synced with Patient's payment method
+is_default == 1 AND payment_method_default == 'stripe-card-expired' IS OKAY, is_default doesn't matter for coupon
+  SELECT *
+  FROM (
+    SELECT user_id, MAX(is_default) as is_default
+    FROM wp_woocommerce_payment_tokens
+    GROUP BY user_id
+  ) as wc_tokens
+  JOIN gp_patients_wc ON patient_id_wc = user_id
+  WHERE
+    (is_default = 1  AND payment_method_default = 'cheque') OR
+    (is_default != 1 AND payment_method_default = 'stripe')
+
+
 Review Patients that have a DUPLICATE patient_id_cp:
   SELECT GROUP_CONCAT(user_login), GROUP_CONCAT(user_id), meta_key, meta_value, COUNT(*) as number
   FROM `wp_usermeta`

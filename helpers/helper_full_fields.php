@@ -62,6 +62,9 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages) {
     $patient_or_order[$i]['drug'] = $patient_or_order[$i]['drug_name'] ?: $patient_or_order[$i]['drug_generic'];
     $patient_or_order[$i]['payment_method']  = @$patient_or_order[$i]['payment_method_actual'] ?: @$patient_or_order[$i]['payment_method_default'];
 
+    if ($patient_or_order[$i]['payment_method'] != $patient_or_order[$i]['payment_method_default'])
+      log_error('add_full_fields: payment_method_actual is set but does not equal payment_method_default', get_defined_vars());
+
     if ( ! isset($patient_or_order[$i]['invoice_number'])) continue; //The rest of the fields are order specific and will not be available if this is a patient
 
     $patient_or_order[$i]['days_dispensed'] = $patient_or_order[$i]['days_dispensed_actual'] ?: $patient_or_order[$i]['days_dispensed_default'];

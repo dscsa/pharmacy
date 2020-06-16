@@ -96,7 +96,7 @@ function update_rxs_single() {
 
     $patient = get_full_patient($created, $mysql, $created['rx_number']); //This updates & overwrites set_rx_messages
 
-    remove_drugs_from_refill_reminders($patient['first_name'], $patient['last_name'], $patient['birth_date'], [$created['drug_name']]);
+    remove_drugs_from_refill_reminders($patient[0]['first_name'], $patient[0]['last_name'], $patient[0]['birth_date'], [$created['drug_name']]);
   }
 
   //Run this after rx_grouped query to ensure get_full_patient retrieves an accurate order profile
