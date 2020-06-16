@@ -132,7 +132,7 @@ function get_days_default($item, $order) {
 
     $salesforce = [
       "subject"   => "Investigate Early Refill",
-      "body"      => "Confirm if/why needs $item[drug_name] in Order #$item['invoice_number'] even though it's over ".DAYS_UNIT." days before it's due. If needed, add drug to order",
+      "body"      => "Confirm if/why needs $item[drug_name] in Order #$item[invoice_number] even though it's over ".DAYS_UNIT." days before it's due. If needed, add drug to order",
       "contact"   => "$item[first_name] $item[last_name] $item[birth_date]",
       "assign_to" => "Joseph",
       "due_date"  => date('Y-m-d')
