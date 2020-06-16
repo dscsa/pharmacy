@@ -422,7 +422,7 @@ function order_canceled_notice($deleted, $patient) {
 
 
   log_notice("order_canceled_notice is this right?", [$patient, $deleted, $email]);
-  order_canceled_event($deleted, $patient, $email, $text, 15/60);
+  //order_canceled_event($deleted, $patient, $email, $text, 15/60);
 }
 
 function confirm_shipment_notice($groups) {
