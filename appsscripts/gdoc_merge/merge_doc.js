@@ -6,7 +6,7 @@ var infoLog = []
 
 function mergeDoc(content) {
 
-   //debugEmail('mergeDoc start', content)
+   debugEmail('mergeDoc start', content)
 
    //debugEmail('mergeDoc', content)
    var order    = flattenOrder(content.order)
