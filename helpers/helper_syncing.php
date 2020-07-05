@@ -175,6 +175,9 @@ function set_sync_to_date($order, $target_date, $target_rxs, $mysql) {
     $days_left_in_stock      = days_left_in_stock($item);
     $new_days_default        = days_default($days_left_in_refills, $days_left_in_stock, $days_synced, $item);
 
+    if ($days_synced < 0)
+      log_error("DAYS SYNCED IS NEGATIVE! days_synced:$days_synced, new_days_default:$new_days_default, days_left_in_stock:$days_left_in_stock, days_left_in_refills:$days_left_in_refills", get_defined_vars());
+
     if ($new_days_default != $old_days_default)
       log_notice("set_sync_to_date", ['invoice_number' => $order[0]['invoice_number'], 'drug_generic' => $order[0]['drug_generic'], 'days_extra' => $days_extra, 'days_synced' => $days_synced, 'days_left_in_refills' => $days_left_in_refills, 'days_left_in_stock' => $days_left_in_stock, 'target_date' => "$item[refill_date_next] >>> $target_date", 'days_default' => "$old_days_default >>> $new_days_default"], $order[$i]);
 
