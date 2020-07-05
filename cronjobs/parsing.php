@@ -725,6 +725,7 @@ $test_sigs = [
   //PLACE 1 TABLET UNDER TONGUE 3 times per day FOR UP TO 3 DOSES AS NEEDED FOR CHEST PAIN
   //Take 1& 1\/2 tablet by mouth once daily on Monday and Wednesday and Take 1 tablet once daily on all other days
   //Take 1 tablet by mouth in the morning 1& 1/2 tablet in the evening
+  //Take 1 capsule by mouth ONCE ON DAY 1 THEN 2 CAPS ON DAY 2 THEN 1 capsule 3 times a day THEREAFTER
 ];
 
 global $argv;
