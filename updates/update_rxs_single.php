@@ -131,6 +131,8 @@ function update_rxs_single() {
 
       v2_pend_item($item, $mysql);
 
+      //TODO do we need to update the patient, that we are now including this drug if $item['days_dispensed_default'] AND ! $item['rx_dispensed_id']?
+
       log_error("update_rxs_single rx_gsn no longer missing (but still might not be in v2 yet).  Confirm correct updated rx_messages", [$item, $updated, $changed]);
     }
 
