@@ -63,16 +63,16 @@ function update_patients_wc() {
         "due_date"  => date('Y-m-d')
       ];
 
-      $event_title = "$item[invoice_number] $salesforce[subject]: $salesforce[contact] Created:".date('Y-m-d H:i:s');
+      $event_title = "$salesforce[subject]: $salesforce[contact] Created:".date('Y-m-d H:i:s');
 
       $secs = time() - strtotime($created['patient_date_updated']);
 
       if ($secs/60 < 19) { //Otherwise gets repeated every 10mins.
         create_event($event_title, [$salesforce]);
-        log_error($event_title, [$patient, $created]);
+        log_error("New $event_title", [$patient, $created]);
       }
       else if (date('h') == '11') { //Twice a day so use a lower case h for 12 hour clock instead of 24 hour.
-        log_error($event_title, [$patient, $created]);
+        log_error("Old $event_title", [$patient, $created]);
       }
     }
   }
