@@ -69,10 +69,10 @@ function update_patients_wc() {
 
       if ($secs/60 < 19) { //Otherwise gets repeated every 10mins.
         create_event($event_title, [$salesforce]);
-        log_error("New $event_title", [$patient, $created]);
+        log_error("New $event_title", [$secs, $patient, $created]);
       }
       else if (date('h') == '11') { //Twice a day so use a lower case h for 12 hour clock instead of 24 hour.
-        log_error("Old $event_title", [$patient, $created]);
+        log_error("Old $event_title", [$secs, $patient, $created]);
       }
     }
   }
