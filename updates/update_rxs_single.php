@@ -125,7 +125,9 @@ function update_rxs_single() {
 
     if ($updated['rx_gsn'] AND ! $updated['old_rx_gsn']) {
 
-      $item = get_full_item($updated, $mysql); //This updates & overwrites set_rx_messages
+      $patient = @$patient ?: get_full_patient($updated, $mysql, $updated['rx_number']); //This updates & overwrites set_rx_messages. TODO remove this once get_full_item updates rx_messages
+
+      $item = get_full_item($updated, $mysql); //TODO enable this to update and overwite rx_messages so we can avoid call above
 
       v2_pend_item($item, $mysql);
 
