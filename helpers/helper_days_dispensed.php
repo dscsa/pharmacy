@@ -448,7 +448,10 @@ function sync_to_order_due_soon($item, $order) {
 //as much of a Rx as possible, so if it will expire before  the standard dispense date than dispense everything left
 function days_left_in_expiration($item) {
 
-  $days_left_in_expiration = (strtotime($item['rx_date_expired']) - strtotime($item['refill_date_next']))/60/60/24;
+  //Usually don't like using time() because it can change, but in this case once it is marked as expired it will always be expired so there is no variability
+  $comparison_date = $item['refill_date_next'] ? strtotime($item['refill_date_next']) : time();
+
+  $days_left_in_expiration = (strtotime($item['rx_date_expired']) - $comparison_date)/60/60/24;
 
   //#29005 was expired but never dispensed, so check "refill_date_first" so we asking doctors for new rxs that we never dispensed
   if ($item['refill_date_first']) return $days_left_in_expiration;
