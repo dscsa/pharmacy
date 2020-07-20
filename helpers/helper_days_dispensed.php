@@ -116,7 +116,8 @@ function get_days_default($item, $order) {
     return [$days_default, RX_MESSAGE['NO ACTION PATIENT REQUESTED']];
   }
 
-  if ((strtotime($item['refill_date_next']) - strtotime(@$item['order_date_added'])) > DAYS_UNIT*24*60*60 AND ! $added_manually) {
+  //39652 don't refill surescripts early if rx is off autofill.  This means refill_date_next is null but refill_date_default may have a value
+  if ((strtotime($item['refill_date_default']) - strtotime(@$item['order_date_added'])) > DAYS_UNIT*24*60*60 AND ! $added_manually) {
 
     //DON'T STRICTLY NEED THIS TEST BUT IT GIVES A MORE SPECIFIC ERROR SO IT MIGHT BE HELPFUL
     if ((strtotime(@$item['order_date_added']) - strtotime($item['refill_date_last'])) < DAYS_UNIT*24*60*60 AND ! $added_manually) {
