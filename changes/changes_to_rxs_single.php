@@ -17,7 +17,7 @@ function rxs_single_set_deleted_sql($new, $old, $id) {
     WHERE
       new.$id IS NULL
     AND
-      old.chg_date > @today - ".DAYS_OF_RXS_TO_IMPORT;
+      old.rx_date_changed > @today - ".DAYS_OF_RXS_TO_IMPORT;
 }
 
 function changes_to_rxs_single($new) {
@@ -72,9 +72,8 @@ function changes_to_rxs_single($new) {
   $updated = $mysql->run(get_updated_sql($new, $old, $id, $where));
 
   //Save Deletes
-  //We are only importing recent rows to speed up the import process, so don't delete rows just because they are older.  However, still need to delete rows that are voided!
-  //$mysql->run(set_deleted_sql($new, $old, $id));
-  log_error("SET DELETED SQL ".rxs_single_set_deleted_sql($new, $old, $id));
+  //We are only importing recent rows to speed up the import process, so don't delete rows just because they are older.  However, still need to delete (recent?) rows that are voided!
+  $mysql->run(rxs_single_set_deleted_sql($new, $old, $id));
 
   //Save Inserts
   $mysql->run(set_created_sql($new, $old, $id, '('.$columns.')'));
