@@ -66,16 +66,16 @@ function update_stock_by_month() {
         drug_ordered IS NULL,
         IF(zscore > zhigh_threshold, 'ORDER DRUG', 'NOT OFFERED'),
         IF (
-          -- qty_dispensed_actual can be more than inventory because it is the sum over a 4 month period
-          qty_dispensed_default > qty_inventory,
+          -- total_dispensed_actual can be more than inventory because it is the sum over a 4 month period
+          COALESCE(total_dispensed_actual, total_dispensed_default) > avg_inventory + total_entered,
           -- Drugs that are recently ordered and never dispensed should not be labeled out of stock
-          IF(qty_dispensed_actual > 0, 'OUT OF STOCK', 'LOW SUPPLY'),
+          IF(total_dispensed_actual > 0, 'OUT OF STOCK', 'LOW SUPPLY'),
           IF(
             zlow_threshold IS NULL OR zhigh_threshold IS NULL,
             'PRICE ERROR',
             IF(
               zscore < zlow_threshold,
-              IF(qty_dispensed_actual < qty_inventory/10 AND qty_inventory > 1000, 'ONE TIME', 'REFILL ONLY'),
+              IF(total_dispensed_actual < qty_inventory/10 AND qty_inventory > 1000, 'ONE TIME', 'REFILL ONLY'),
               IF(
                 zscore < zhigh_threshold,
               	'LOW SUPPLY',
@@ -101,7 +101,7 @@ function update_stock_by_month() {
         IF(price_per_month = 20, 2.33, IF(price_per_month = 8, 1.64, IF(price_per_month = 2, 0.52, NULL))) as zhigh_threshold,
 
         -- https://www.dummies.com/education/math/statistics/creating-a-confidence-interval-for-the-difference-of-two-means-with-known-standard-deviations/
-        (qty_entered/$month_interval - COALESCE(qty_dispensed_actual, qty_dispensed_default)/$month_interval)/POWER(POWER(stddev_entered, 2)/$month_interval+POWER(COALESCE(stddev_dispensed_actual, stddev_dispensed_default), 2)/$month_interval, .5) as zscore
+        (qty_entered/$month_interval - COALESCE(total_dispensed_actual, total_dispensed_default)/$month_interval)/POWER(POWER(stddev_entered, 2)/$month_interval+POWER(COALESCE(stddev_dispensed_actual, stddev_dispensed_default), 2)/$month_interval, .5) as zscore
 
         FROM (
           SELECT
@@ -113,17 +113,17 @@ function update_stock_by_month() {
            MAX(COALESCE(price30, price90/3)) as price_per_month,
            MAX(drug_ordered) as drug_ordered,
            MAX(qty_repack) as qty_repack,
-           AVG(inventory_sum) as qty_inventory,
+           AVG(inventory_sum) as avg_inventory,
 
            GROUP_CONCAT(CONCAT(month, ' ', entered_sum)) as months_entered,
            STDDEV_SAMP(entered_sum) as stddev_entered,
-           SUM(entered_sum) as qty_entered,
+           SUM(entered_sum) as total_entered,
 
            GROUP_CONCAT(CONCAT(month, ' ', dispensed_sum)) as months_dipensed,
            IF(STDDEV_SAMP(dispensed_sum) > 0, STDDEV_SAMP(dispensed_sum), NULL) as stddev_dispensed_actual,
-           IF(SUM(dispensed_sum) > 0, SUM(dispensed_sum), NULL) as qty_dispensed_actual,
+           IF(SUM(dispensed_sum) > 0, SUM(dispensed_sum), NULL) as total_dispensed_actual,
 
-           2*COALESCE(MAX(qty_repack), 135) as qty_dispensed_default,
+           2*COALESCE(MAX(qty_repack), 135) as total_dispensed_default,
            2*COALESCE(MAX(qty_repack), 135)/POWER($month_interval, .5) as stddev_dispensed_default
 
            FROM
