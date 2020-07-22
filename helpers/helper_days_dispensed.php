@@ -382,7 +382,7 @@ function is_added_manually($item) {
 function is_not_offered($item) {
   $stock_level = @$item['stock_level_initial'] ?: $item['stock_level'];
 
-  $not_offered = (is_null($stock_level) OR ($stock_level == STOCK_LEVEL['NOT OFFERED']));
+  $not_offered = (is_null($stock_level) OR ($stock_level == STOCK_LEVEL['NOT OFFERED']) OR ($stock_level == STOCK_LEVEL['ORDER DRUG']));
 
   if ($not_offered) //TODO Alert here is drug is not offered but has a qty_inventory > 500
     log_notice('is_not_offered: true', [$item, $not_offered, "$stock_level == ".STOCK_LEVEL['NOT OFFERED']]);

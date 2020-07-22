@@ -17,6 +17,7 @@ function update_stock_by_month() {
 
   $mysql = new Mysql_Wc();
 
+
   $sql1 = "
     INSERT INTO gp_stock_live
     SELECT
@@ -55,10 +56,95 @@ function update_stock_by_month() {
     END
   ";
 
+  $sql3 = "
+    INSERT INTO gp_stock_live_new
+    SELECT
+
+      * ,
+
+      IF (
+        drug_ordered IS NULL,
+        IF(zscore > zhigh_threshold, 'ORDER DRUG', 'NOT OFFERED'),
+        IF (
+          -- qty_dispensed_actual can be more than inventory because it is the sum over a 4 month period
+          qty_dispensed_default > qty_inventory,
+          -- Drugs that are recently ordered and never dispensed should not be labeled out of stock
+          IF(qty_dispensed_actual > 0, 'OUT OF STOCK', 'LOW SUPPLY'),
+          IF(
+            zlow_threshold IS NULL OR zhigh_threshold IS NULL,
+            'PRICE ERROR',
+            IF(
+              zscore < zlow_threshold,
+              IF(qty_dispensed_actual < qty_inventory/10 AND qty_inventory > 1000, 'ONE TIME', 'REFILL ONLY'),
+              IF(
+                zscore < zhigh_threshold,
+              	'LOW SUPPLY',
+              	'HIGH SUPPLY'
+              )
+            )
+          )
+        )
+      ) as stock_level
+
+      FROM (
+        SELECT
+
+        *,
+
+        -- zscore >= 0.25 -- 60% Confidence will be in stock for this 4 month interval.  Since we have inventory for previous 4 months we think the chance of stock out is about 40%^2
+        -- zscore >= 0.52 -- 70% Confidence will be in stock for this 4 month interval.  Since we have inventory for previous 4 months we think the chance of stock out is about 30%^2
+        -- zscore >= 1.04 -- 85% Confidence will be in stock for this 4 month interval.  Since we have inventory for previous 4 months we think the chance of stock out is about 15%^2
+        -- zscore >= 1.64 -- 95% Confidence will be in stock for this 4 month interval.  Since we have inventory for previous 4 months we think the chance of stock out is about 5%^2
+        -- zscore >= 2.05 -- 98% Confidence will be in stock for this 4 month interval.  Since we have inventory for previous 4 months we think the chance of stock out is about 2%^2
+        -- zscore >= 2.33 -- 99% Confidence will be in stock for this 4 month interval.  Since we have inventory for previous 4 months we think the chance of stock out is about 1%^2
+        IF(price_per_month = 20, 2.05, IF(price_per_month = 8, 1.04, IF(price_per_month = 2, 0.25, NULL))) as zlow_threshold,
+        IF(price_per_month = 20, 2.33, IF(price_per_month = 8, 1.64, IF(price_per_month = 2, 0.52, NULL))) as zhigh_threshold,
+
+        -- https://www.dummies.com/education/math/statistics/creating-a-confidence-interval-for-the-difference-of-two-means-with-known-standard-deviations/
+        (qty_entered/$month_interval - COALESCE(qty_dispensed_actual, qty_dispensed_default)/$month_interval)/POWER(POWER(stddev_entered, 2)/$month_interval+POWER(COALESCE(stddev_dispensed_actual, stddev_dispensed_default), 2)/$month_interval, .5) as zscore
+
+        FROM (
+          SELECT
+           gp_stock_by_month.drug_generic,
+           MAX(drug_brand) as drug_brand,
+           MAX(drug_gsns) as drug_gsns,
+           MAX(message_display) as message_display,
+
+           MAX(COALESCE(price30, price90/3)) as price_per_month,
+           MAX(drug_ordered) as drug_ordered,
+           MAX(qty_repack) as qty_repack,
+           AVG(inventory_sum) as qty_inventory,
+
+           GROUP_CONCAT(CONCAT(month, ' ', entered_sum)) as months_entered,
+           STDDEV_SAMP(entered_sum) as stddev_entered,
+           SUM(entered_sum) as qty_entered,
+
+           GROUP_CONCAT(CONCAT(month, ' ', dispensed_sum)) as months_dipensed,
+           IF(STDDEV_SAMP(dispensed_sum) > 0, STDDEV_SAMP(dispensed_sum), NULL) as stddev_dispensed_actual,
+           IF(SUM(dispensed_sum) > 0, SUM(dispensed_sum), NULL) as qty_dispensed_actual,
+
+           2*COALESCE(MAX(qty_repack), 135) as qty_dispensed_default,
+           2*COALESCE(MAX(qty_repack), 135)/POWER($month_interval, .5) as stddev_dispensed_default
+
+           FROM
+            gp_stock_by_month
+           JOIN gp_drugs ON
+            gp_drugs.drug_generic = gp_stock_by_month.drug_generic
+
+           WHERE
+            month > (CURDATE() - INTERVAL 5 MONTH) AND
+            month <= (CURDATE() - INTERVAL 1 MONTH)
+           GROUP BY
+            gp_stock_by_month.drug_generic
+        ) as subsub
+     ) as sub
+  ";
+
   $mysql->run("START TRANSACTION");
   $mysql->run("DELETE FROM gp_stock_live");
   $mysql->run($sql1);
   $mysql->run($sql2);
+  $mysql->run($sql3);
   $mysql->run("COMMIT");
 
   $duplicate_gsns = $mysql->run("

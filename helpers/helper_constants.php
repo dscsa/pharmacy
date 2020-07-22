@@ -74,6 +74,7 @@ const STOCK_LEVEL = [
   'ONE TIME'     => 'ONE TIME',
   'REFILL ONLY'  => 'REFILL ONLY',
   'OUT OF STOCK' => 'OUT OF STOCK',
+  'ORDER DRUG'   => 'ORDER DRUG',
   'NOT OFFERED'  => 'NOT OFFERED'
 ];
 
