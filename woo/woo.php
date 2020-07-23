@@ -75,7 +75,7 @@ function dscsa_inventory_csv($params) {
     'price_per_month',
     'drug_ordered',
     'qty_repack',
-    'qty_inventory',
+    'avg_inventory',
     'qty_entered',
     'qty_dispensed',
     'stock_threshold',

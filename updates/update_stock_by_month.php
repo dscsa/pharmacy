@@ -18,8 +18,8 @@ function update_stock_by_month() {
   $mysql = new Mysql_Wc();
 
 
-  $sql1 = "
-    INSERT INTO gp_stock_live
+  /*$sql1 = "
+    INSERT INTO gp_stock_live_old
     SELECT
       gp_stock_by_month.drug_generic,
       MAX(drug_brand) as drug_brand,
@@ -29,7 +29,7 @@ function update_stock_by_month() {
       MAX(COALESCE(price30, price90/3)) as price_per_month,
       MAX(drug_ordered) as drug_ordered,
       MAX(qty_repack) as qty_repack,
-      AVG(inventory_sum) as qty_inventory,
+      AVG(inventory_sum) qty_inventory,
       AVG(entered_sum)*$month_interval as qty_entered, -- RATHER THAN SUM TO MAKE MORE ROBUST IF A ROW/MONTH IS DELETED AND WE ARE CALCULATING BASED ON PARTIAL DATA
       AVG(dispensed_sum)*$month_interval as qty_dispensed,
       AVG(inventory_sum) / (100*POWER(GREATEST(COALESCE(AVG(dispensed_sum), 0)*$month_interval, 1.5*COALESCE(MAX(qty_repack), 135)), 1.1) / POWER(1+AVG(entered_sum)*$month_interval, .6)) as stock_threshold
@@ -45,19 +45,19 @@ function update_stock_by_month() {
   ";
 
   $sql2 = "
-    UPDATE gp_stock_live
+    UPDATE gp_stock_live_old
     SET stock_level = CASE
       WHEN drug_ordered IS NULL THEN '".STOCK_LEVEL['NOT OFFERED']."'
       WHEN stock_threshold > 0.7 THEN '".STOCK_LEVEL['HIGH SUPPLY']."'
       WHEN stock_threshold > 0.4 THEN '".STOCK_LEVEL['LOW SUPPLY']."'
-      WHEN price_per_month >= 20 AND qty_dispensed = 0 AND qty_inventory > 5*qty_repack THEN '".STOCK_LEVEL['ONE TIME']."'
-      WHEN qty_inventory > IFNULL(qty_repack, 135) THEN '".STOCK_LEVEL['REFILL ONLY']."'
+      WHEN price_per_month >= 20 AND qty_dispensed = 0 AND avg_inventory > 5*qty_repack THEN '".STOCK_LEVEL['ONE TIME']."'
+      WHEN avg_inventory > IFNULL(qty_repack, 135) THEN '".STOCK_LEVEL['REFILL ONLY']."'
       ELSE '".STOCK_LEVEL['OUT OF STOCK']."'
     END
-  ";
+  ";*/
 
   $sql3 = "
-    INSERT INTO gp_stock_live_new
+    INSERT INTO gp_stock_live
     SELECT
 
       * ,
@@ -75,7 +75,7 @@ function update_stock_by_month() {
             'PRICE ERROR',
             IF(
               zscore < zlow_threshold,
-              IF(total_dispensed_actual < qty_inventory/10 AND qty_inventory > 1000, 'ONE TIME', 'REFILL ONLY'),
+              IF(total_dispensed_actual < avg_inventory/10 AND avg_inventory > 1000, 'ONE TIME', 'REFILL ONLY'),
               IF(
                 zscore < zhigh_threshold,
               	'LOW SUPPLY',
@@ -101,7 +101,7 @@ function update_stock_by_month() {
         IF(price_per_month = 20, 2.33, IF(price_per_month = 8, 1.64, IF(price_per_month = 2, 0.52, NULL))) as zhigh_threshold,
 
         -- https://www.dummies.com/education/math/statistics/creating-a-confidence-interval-for-the-difference-of-two-means-with-known-standard-deviations/
-        (qty_entered/$month_interval - COALESCE(total_dispensed_actual, total_dispensed_default)/$month_interval)/POWER(POWER(stddev_entered, 2)/$month_interval+POWER(COALESCE(stddev_dispensed_actual, stddev_dispensed_default), 2)/$month_interval, .5) as zscore
+        (total_entered/$month_interval - COALESCE(total_dispensed_actual, total_dispensed_default)/$month_interval)/POWER(POWER(stddev_entered, 2)/$month_interval+POWER(COALESCE(stddev_dispensed_actual, stddev_dispensed_default), 2)/$month_interval, .5) as zscore
 
         FROM (
           SELECT
@@ -142,8 +142,8 @@ function update_stock_by_month() {
 
   $mysql->run("START TRANSACTION");
   $mysql->run("DELETE FROM gp_stock_live");
-  $mysql->run($sql1);
-  $mysql->run($sql2);
+  //$mysql->run($sql1);
+  //$mysql->run($sql2);
   $mysql->run($sql3);
   $mysql->run("COMMIT");
 

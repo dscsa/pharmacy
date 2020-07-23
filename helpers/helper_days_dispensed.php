@@ -145,7 +145,7 @@ function get_days_default($item, $order) {
     return [0, RX_MESSAGE['NO ACTION NOT DUE']];
   }
 
-  if ( ! $item['refill_date_first'] AND $item['qty_inventory'] < 2000 AND ($item['sig_qty_per_day_default'] > 2.5*($item['qty_repack'] ?: 135)) AND ! $added_manually) {
+  if ( ! $item['refill_date_first'] AND $item['avg_inventory'] < 2000 AND ($item['sig_qty_per_day_default'] > 2.5*($item['qty_repack'] ?: 135)) AND ! $added_manually) {
     log_info("SIG SEEMS TO HAVE EXCESSIVE QTY", get_defined_vars());
     return [0, RX_MESSAGE['NO ACTION CHECK SIG']];
   }
@@ -196,14 +196,14 @@ function get_days_default($item, $order) {
 
   if ($stock_level == STOCK_LEVEL['OUT OF STOCK'] OR ($days_default AND $days_left_in_stock == $days_default)) {
 
-    if ($item['qty_inventory'] > 500) {
+    if ($item['avg_inventory'] > 500) {
 
       log_error("helper_days_dispensed: LIKELY ERROR: 'out of stock' but inventory > 500", get_defined_vars());
 
     } else if ($is_refill) {
       $salesforce = [
         "subject"   => "Refill for $item[drug_name] seems to be out-of-stock",
-        "body"      => "Refill for $item[drug_name] in Order #$item[invoice_number] seems to be out-of-stock with days_left_in_stock:$days_left_in_stock, qty_inventory:$item[qty_inventory], sig:$item[sig_actual]",
+        "body"      => "Refill for $item[drug_name] in Order #$item[invoice_number] seems to be out-of-stock with days_left_in_stock:$days_left_in_stock, avg_inventory:$item[avg_inventory], sig:$item[sig_actual]",
         "contact"   => "$item[first_name] $item[last_name] $item[birth_date]",
         "assign_to" => "Joseph",
         "due_date"  => date('Y-m-d')
@@ -384,7 +384,7 @@ function is_not_offered($item) {
 
   $not_offered = (is_null($stock_level) OR ($stock_level == STOCK_LEVEL['NOT OFFERED']) OR ($stock_level == STOCK_LEVEL['ORDER DRUG']));
 
-  if ($not_offered) //TODO Alert here is drug is not offered but has a qty_inventory > 500
+  if ($not_offered) //TODO Alert here is drug is not offered but has a avg_inventory > 500
     log_notice('is_not_offered: true', [$item, $not_offered, "$stock_level == ".STOCK_LEVEL['NOT OFFERED']]);
   //else
   //  log_notice('is_not_offered: false', [get_defined_vars(), "$stock_level == ".STOCK_LEVEL['NOT OFFERED']]);
@@ -478,14 +478,14 @@ function days_left_in_stock($item) {
   if ( ! (float) $item['sig_qty_per_day'] OR $item['sig_qty_per_day'] > 10)
     return;
 
-  $days_left_in_stock = round($item['qty_inventory']/$item['sig_qty_per_day']);
+  $days_left_in_stock = round($item['avg_inventory']/$item['sig_qty_per_day']);
   $stock_level = @$item['stock_level_initial'] ?: $item['stock_level'];
 
-  if ($days_left_in_stock >= DAYS_STD OR $item['qty_inventory'] >= 3*$item['qty_repack'])
+  if ($days_left_in_stock >= DAYS_STD OR $item['avg_inventory'] >= 3*$item['qty_repack'])
     return;
 
   if($stock_level == STOCK_LEVEL['HIGH SUPPLY'] AND $item['sig_qty_per_day_default'] != round(1/30, 3))
-    log_error("LOW STOCK ITEM IS MARKED HIGH SUPPLY $item[drug_generic] days_left_in_stock:$days_left_in_stock qty_inventory:$item[qty_inventory]", get_defined_vars());
+    log_error("LOW STOCK ITEM IS MARKED HIGH SUPPLY $item[drug_generic] days_left_in_stock:$days_left_in_stock avg_inventory:$item[avg_inventory]", get_defined_vars());
 
   return $item['sig_qty_per_day_default'] == round(1/30, 3) ? 60.6 : DAYS_MIN; //Dispensed 2 inhalers per time, since 1/30 is rounded to 3 decimals (.033), 2 month/.033 = 60.6 qty
 }
