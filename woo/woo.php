@@ -76,10 +76,18 @@ function dscsa_inventory_csv($params) {
     'drug_ordered',
     'qty_repack',
     'avg_inventory',
-    'qty_entered',
-    'qty_dispensed',
-    'stock_threshold',
-    'drug_gsns'
+    'total_entered',
+    'total_dispensed_actual',
+    'total_dispensed_default',
+    'drug_gsns',
+    'zscore',
+    'zlow_threshold',
+    'zhigh_threshold',
+    'months_entered',
+    'stddev_entered',
+    'months_dipensed',
+    'stddev_dispensed_actual',
+    'stddev_dispensed_default'
   ];
 
   $rows = $wpdb->get_results('SELECT '.implode(', ', $cols).' FROM gp_stock_live');
