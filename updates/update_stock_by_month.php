@@ -75,7 +75,7 @@ function update_stock_by_month() {
             'PRICE ERROR',
             IF(
               zscore < zlow_threshold,
-              IF(total_dispensed_actual < avg_inventory/10 AND avg_inventory > 1000, 'ONE TIME', 'REFILL ONLY'),
+              IF(total_dispensed_actual > avg_inventory/10 OR avg_inventory < 1000, 'REFILL ONLY', 'ONE TIME'),
               IF(
                 zscore < zhigh_threshold,
               	'LOW SUPPLY',
