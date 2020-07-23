@@ -6,7 +6,7 @@ function update_stock_by_month() {
 
   $changes = changes_to_stock_by_month("gp_stock_by_month_v2");
 
-  $month_interval = 3;
+  $month_interval = 4;
   $count_deleted  = count($changes['deleted']);
   $count_created  = count($changes['created']);
   $count_updated  = count($changes['updated']);
@@ -132,7 +132,7 @@ function update_stock_by_month() {
             gp_drugs.drug_generic = gp_stock_by_month.drug_generic
 
            WHERE
-            month > (CURDATE() - INTERVAL 5 MONTH) AND
+            month > (CURDATE() - INTERVAL ".($month_interval+1)." MONTH) AND
             month <= (CURDATE() - INTERVAL 1 MONTH)
            GROUP BY
             gp_stock_by_month.drug_generic
