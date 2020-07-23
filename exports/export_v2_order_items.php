@@ -328,10 +328,6 @@ function sort_inventory($inventory, $long_exp) {
       if ($aMonths < 0 AND $bMonths < 0 AND $aMonths > $bMonths) return -1;
       if ($aMonths < 0 AND $bMonths < 0 AND $bMonths > $aMonths) return 1;
 
-      //When choosing between two items of same type and same exp, choose the one with a higher quantity (less items to shop for).
-      if ($a['qty']['to'] > $b['qty']['to']) return -1;
-      if ($b['qty']['to'] > $a['qty']['to']) return 1;
-
       //keep sorting the same as the view (ascending NDCs) [doc.drug._id, doc.exp.to || doc.exp.from, sortedBin, doc.bin, doc._id]
       return 0;
     });
@@ -373,18 +369,13 @@ function get_qty_needed($rows, $min_qty, $safety) {
 
       $qty += $pend[0]['qty']['to'];
       $left -= $pend[0]['qty']['to'] * $usable;
-      $list[] = [
-        $pend[0]['_id'],
-        $pend[0]['drug']['_id'],
-        $pend[0]['drug']['form'],
-        substr($pend[0]['exp']['to'], 0, 7),
-        $pend[0]['qty']['to'],
-        $pend[0]['bin']
-      ];
+      $list = pend_to_list($list, $pend);
 
-      usort($list, 'sort_list');
+       //Shop for all matching medicine in the bin, its annoying and inefficient to pick some and leave the others
+      if ($left <= 0 AND $pend[0]['bin'] != @$inventory[$i+1]['bin']) {
 
-      if ($left <= 0) {
+        usort($list, 'sort_list');
+
         return [
           'list' => $list,
           'ndc' => $ndc,
@@ -397,6 +388,18 @@ function get_qty_needed($rows, $min_qty, $safety) {
       }
     }
   }
+}
+
+function pend_to_list($list, $pend) {
+  $list[] = [
+    $pend[0]['_id'],
+    $pend[0]['drug']['_id'],
+    $pend[0]['drug']['form'],
+    substr($pend[0]['exp']['to'], 0, 7),
+    $pend[0]['qty']['to'],
+    $pend[0]['bin']
+  ];
+  return $list;
 }
 
 function sort_list($a, $b) {

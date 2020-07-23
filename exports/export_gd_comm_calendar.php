@@ -100,7 +100,7 @@ function refill_reminder_notice($groups) {
     ''
   ]);
 
-  log_notice("refill_reminder_notice is this right?", [$groups, $email]);
+  log_error("refill_reminder_notice is this right?", [$groups, $email]);
   refill_reminder_event($groups['ALL'], $email, $text, $groups['MIN_DAYS']*24, 12);
 }
 
