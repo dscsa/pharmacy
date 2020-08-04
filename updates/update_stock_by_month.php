@@ -106,13 +106,13 @@ function update_stock_by_month() {
         FROM (
           SELECT
            gp_stock_by_month.drug_generic,
-           MAX(drug_brand) as drug_brand,
-           MAX(drug_gsns) as drug_gsns,
-           MAX(message_display) as message_display,
+           MAX(gp_drugs.drug_brand) as drug_brand,
+           MAX(gp_drugs.drug_gsns) as drug_gsns,
+           MAX(gp_drugs.message_display) as message_display,
 
            MAX(COALESCE(price30, price90/3)) as price_per_month,
-           MAX(drug_ordered) as drug_ordered,
-           MAX(qty_repack) as qty_repack,
+           MAX(gp_drugs.drug_ordered) as drug_ordered,
+           MAX(gp_drugs.qty_repack) as qty_repack,
            AVG(inventory_sum) as avg_inventory,
 
            GROUP_CONCAT(CONCAT(month, ' ', entered_sum)) as months_entered,
@@ -123,8 +123,8 @@ function update_stock_by_month() {
            IF(STDDEV_SAMP(dispensed_sum) > 0, STDDEV_SAMP(dispensed_sum), NULL) as stddev_dispensed_actual,
            IF(SUM(dispensed_sum) > 0, SUM(dispensed_sum), NULL) as total_dispensed_actual,
 
-           2*COALESCE(MAX(qty_repack), 135) as total_dispensed_default,
-           2*COALESCE(MAX(qty_repack), 135)/POWER($month_interval, .5) as stddev_dispensed_default
+           2*COALESCE(MAX(gp_drugs.qty_repack), 135) as total_dispensed_default,
+           2*COALESCE(MAX(gp_drugs.qty_repack), 135)/POWER($month_interval, .5) as stddev_dispensed_default
 
            FROM
             gp_stock_by_month
