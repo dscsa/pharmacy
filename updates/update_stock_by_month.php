@@ -147,6 +147,33 @@ function update_stock_by_month() {
   $mysql->run($sql3);
   $mysql->run("COMMIT");
 
+  UPDATE
+    gp_stock_by_month
+  JOIN
+    gp_stock_live ON gp_stock_live.drug_generic = gp_stock_by_month.drug_generic
+  SET
+    gp_stock_by_month.drug_brand = gp_stock_live.drug_brand,
+    gp_stock_by_month.drug_gsns = gp_stock_live.drug_gsns,
+    gp_stock_by_month.message_display = gp_stock_live.message_display,
+    gp_stock_by_month.price_per_month = gp_stock_live.price_per_month,
+    gp_stock_by_month.drug_ordered = gp_stock_live.drug_ordered,
+    gp_stock_by_month.qty_repack = gp_stock_live.qty_repack,
+    gp_stock_by_month.avg_inventory = gp_stock_live.avg_inventory,
+    gp_stock_by_month.months_entered = gp_stock_live.months_entered,
+    gp_stock_by_month.stddev_entered = gp_stock_live.stddev_entered,
+    gp_stock_by_month.total_entered = gp_stock_live.total_entered,
+    gp_stock_by_month.months_dispensed = gp_stock_live.months_dispensed,
+    gp_stock_by_month.stddev_dispensed_actual = gp_stock_live.stddev_dispensed_actual,
+    gp_stock_by_month.total_dispensed_actual = gp_stock_live.total_dispensed_actual,
+    gp_stock_by_month.total_dispensed_default = gp_stock_live.total_dispensed_default,
+    gp_stock_by_month.stddev_dispensed_default = gp_stock_live.stddev_dispensed_default,
+    gp_stock_by_month.zlow_threshold = gp_stock_live.zlow_threshold,
+    gp_stock_by_month.zhigh_threshold = gp_stock_live.zhigh_threshold,
+    gp_stock_by_month.zscore = gp_stock_live.zscore,
+    gp_stock_by_month.stock_level = gp_stock_live.stock_level
+  WHERE
+    month > (CURDATE() - INTERVAL 1 MONTH)
+
   $duplicate_gsns = $mysql->run("
     SELECT stock1.drug_generic, stock2.drug_generic, stock1.drug_gsns, stock2.drug_gsns FROM gp_stock_live stock1 JOIN gp_stock_live stock2 ON stock1.drug_gsns LIKE CONCAT('%', stock2.drug_gsns, '%') WHERE stock1.drug_generic != stock2.drug_generic
   ");

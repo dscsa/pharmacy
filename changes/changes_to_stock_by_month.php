@@ -46,6 +46,9 @@ function changes_to_stock_by_month($new) {
     NOT old.dispensed_sumsqr <=> new.dispensed_sumsqr
   ";
 
+  // 1st Result Set -> 1st Row -> 1st Column
+  $columns = $mysql->run(get_column_names($new))[0][0]['columns'];
+
   //Get Deleted - A lot of Turnover with a 3 month window so let's keep historic
   $deleted = [[]]; //$mysql->run(get_deleted_sql($new, $old, $id));
 
@@ -60,7 +63,7 @@ function changes_to_stock_by_month($new) {
   //$mysql->run(set_deleted_sql($new, $old, $id));
 
   //Save Inserts
-  $mysql->run(set_created_sql($new, $old, $id));
+  $mysql->run(set_created_sql($new, $old, $id, '('.$columns.')'));
   //email('changes_to_stock_by_month: set updated', set_created_sql($new, $old, $id));
 
   //Save Updates
