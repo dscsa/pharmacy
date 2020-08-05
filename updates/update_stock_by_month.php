@@ -80,7 +80,7 @@ function update_stock_by_month() {
            STDDEV_SAMP(entered_sum) as stddev_entered,
            SUM(entered_sum) as total_entered,
 
-           GROUP_CONCAT(CONCAT(month, ' ', dispensed_sum)) as months_dipensed,
+           GROUP_CONCAT(CONCAT(month, ' ', dispensed_sum)) as months_dispensed,
            IF(STDDEV_SAMP(dispensed_sum) > 0, STDDEV_SAMP(dispensed_sum), NULL) as stddev_dispensed_actual,
            IF(SUM(dispensed_sum) > 0, SUM(dispensed_sum), NULL) as total_dispensed_actual,
 
