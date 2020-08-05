@@ -85,7 +85,7 @@ function dscsa_inventory_csv($params) {
     'zhigh_threshold',
     'months_entered',
     'stddev_entered',
-    'months_dipensed',
+    'months_dispensed',
     'stddev_dispensed_actual',
     'stddev_dispensed_default'
   ];
