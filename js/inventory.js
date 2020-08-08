@@ -3,9 +3,28 @@ jQuery(load)
 //<select id="medication[]" data-placeholder="Search available medications" multiple></select>
 function load() {
   upgradeStock()
+  stickySidebar();
 
   if (window.sessionStorage)
     upgradePharmacy() //not needed on this page but fetch && cache the results for a quicker checkout page
+}
+
+function stickySidebar(){
+  let $sidebar = $('.medication-list__info'),
+      offset = $sidebar.offset(),
+      $parent = $sidebar.parent(),
+      tmp = $sidebar.find('nav').clone().attr('class', 'tmp').css('visibility', 'hidden');
+
+
+  window.addEventListener('scroll', function() {
+    if (window.pageYOffset > offset.top) {
+      $parent.append(tmp);
+      $sidebar.css({'position': 'fixed', 'top': 0});
+    } else {
+      $parent.find('.tmp').remove();
+      $sidebar.css({'position': 'absolute', 'top': 660});
+    }
+  });
 }
 
 function upgradeStock() {
@@ -18,7 +37,7 @@ function upgradeStock() {
     //Remove low stock (disabled) items
     data = disableInventory(data, {}).filter(function(drug) { return ! drug.disabled })
 
-    select.select2({closeOnSelect:false, data:data})
+    select.select2({closeOnSelect:false, data:data, dropdownParent:$('.medication-list')})
 
     open()
     //<IE9 subsitute for 100vh
@@ -29,7 +48,7 @@ function upgradeStock() {
     .on("select2:closing", preventDefault)
     .on("select2:selecting", preventDefault)
     .on("select2:closed", open)
-  })
+  });
 
   function open() {
     console.log('select2 open')
