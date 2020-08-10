@@ -78,8 +78,7 @@ function dscsa_update_payment_fee($params)
 
 }
 
-function dscsa_inventory_csv($params)
-{
+function dscsa_inventory_csv($params) {
 
     global $wpdb;
 
@@ -101,17 +100,16 @@ function dscsa_inventory_csv($params)
         'zhigh_threshold',
         'months_entered',
         'stddev_entered',
-        'months_dipensed',
+        'months_dispensed',
         'stddev_dispensed_actual',
         'stddev_dispensed_default'
     ];
 
-    $rows = $wpdb->get_results('SELECT ' . implode(', ', $cols) . ' FROM gp_stock_live');
+    $rows = $wpdb->get_results('SELECT '.implode(', ', $cols).' FROM gp_stock_live');
 
-    echo '"' . implode('","', $cols) . '"';
-    foreach ($rows as $row)
-    {
-        echo "\n" . '"' . implode('","', (array)$row) . '"';
+    echo '"'.implode('","', $cols).'"';
+    foreach ($rows as $row) {
+        echo "\n".'"'.implode('","', (array) $row).'"';
     }
 
     exit; //otherwise wordpress will error trying to send json headers

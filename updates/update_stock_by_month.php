@@ -17,46 +17,7 @@ function update_stock_by_month() {
 
   $mysql = new Mysql_Wc();
 
-
-  /*$sql1 = "
-    INSERT INTO gp_stock_live_old
-    SELECT
-      gp_stock_by_month.drug_generic,
-      MAX(drug_brand) as drug_brand,
-      MAX(drug_gsns) as drug_gsns,
-      MAX(message_display) as message_display,
-      NULL as stock_level,
-      MAX(COALESCE(price30, price90/3)) as price_per_month,
-      MAX(drug_ordered) as drug_ordered,
-      MAX(qty_repack) as qty_repack,
-      AVG(inventory_sum) qty_inventory,
-      AVG(entered_sum)*$month_interval as qty_entered, -- RATHER THAN SUM TO MAKE MORE ROBUST IF A ROW/MONTH IS DELETED AND WE ARE CALCULATING BASED ON PARTIAL DATA
-      AVG(dispensed_sum)*$month_interval as qty_dispensed,
-      AVG(inventory_sum) / (100*POWER(GREATEST(COALESCE(AVG(dispensed_sum), 0)*$month_interval, 1.5*COALESCE(MAX(qty_repack), 135)), 1.1) / POWER(1+AVG(entered_sum)*$month_interval, .6)) as stock_threshold
-    FROM
-      gp_stock_by_month
-    JOIN gp_drugs ON
-      gp_drugs.drug_generic = gp_stock_by_month.drug_generic
-    WHERE
-      month > (CURDATE() - INTERVAL ".($month_interval+1)." MONTH) AND
-      month <= (CURDATE() - INTERVAL 1 MONTH) -- Selecting in 2019-12 should select 2019-09, 2019-10, 2019-11 (2019-12 will not be made yet because not a full month of data).  Likewise in 2019-02-20 should select 2020-01, 2019-12, 2019-11
-    GROUP BY
-      gp_stock_by_month.drug_generic
-  ";
-
-  $sql2 = "
-    UPDATE gp_stock_live_old
-    SET stock_level = CASE
-      WHEN drug_ordered IS NULL THEN '".STOCK_LEVEL['NOT OFFERED']."'
-      WHEN stock_threshold > 0.7 THEN '".STOCK_LEVEL['HIGH SUPPLY']."'
-      WHEN stock_threshold > 0.4 THEN '".STOCK_LEVEL['LOW SUPPLY']."'
-      WHEN price_per_month >= 20 AND qty_dispensed = 0 AND avg_inventory > 5*qty_repack THEN '".STOCK_LEVEL['ONE TIME']."'
-      WHEN avg_inventory > IFNULL(qty_repack, 135) THEN '".STOCK_LEVEL['REFILL ONLY']."'
-      ELSE '".STOCK_LEVEL['OUT OF STOCK']."'
-    END
-  ";*/
-
-  $sql3 = "
+  $sql1 = "
     INSERT INTO gp_stock_live
     SELECT
 
@@ -119,7 +80,7 @@ function update_stock_by_month() {
            STDDEV_SAMP(entered_sum) as stddev_entered,
            SUM(entered_sum) as total_entered,
 
-           GROUP_CONCAT(CONCAT(month, ' ', dispensed_sum)) as months_dipensed,
+           GROUP_CONCAT(CONCAT(month, ' ', dispensed_sum)) as months_dispensed,
            IF(STDDEV_SAMP(dispensed_sum) > 0, STDDEV_SAMP(dispensed_sum), NULL) as stddev_dispensed_actual,
            IF(SUM(dispensed_sum) > 0, SUM(dispensed_sum), NULL) as total_dispensed_actual,
 
@@ -140,39 +101,40 @@ function update_stock_by_month() {
      ) as sub
   ";
 
+  $sql2 = "
+    UPDATE
+      gp_stock_by_month
+    JOIN
+      gp_stock_live ON gp_stock_live.drug_generic = gp_stock_by_month.drug_generic
+    SET
+      gp_stock_by_month.drug_brand = gp_stock_live.drug_brand,
+      gp_stock_by_month.drug_gsns = gp_stock_live.drug_gsns,
+      gp_stock_by_month.message_display = gp_stock_live.message_display,
+      gp_stock_by_month.price_per_month = gp_stock_live.price_per_month,
+      gp_stock_by_month.drug_ordered = gp_stock_live.drug_ordered,
+      gp_stock_by_month.qty_repack = gp_stock_live.qty_repack,
+      gp_stock_by_month.avg_inventory = gp_stock_live.avg_inventory,
+      gp_stock_by_month.months_entered = gp_stock_live.months_entered,
+      gp_stock_by_month.stddev_entered = gp_stock_live.stddev_entered,
+      gp_stock_by_month.total_entered = gp_stock_live.total_entered,
+      gp_stock_by_month.months_dispensed = gp_stock_live.months_dispensed,
+      gp_stock_by_month.stddev_dispensed_actual = gp_stock_live.stddev_dispensed_actual,
+      gp_stock_by_month.total_dispensed_actual = gp_stock_live.total_dispensed_actual,
+      gp_stock_by_month.total_dispensed_default = gp_stock_live.total_dispensed_default,
+      gp_stock_by_month.stddev_dispensed_default = gp_stock_live.stddev_dispensed_default,
+      gp_stock_by_month.zlow_threshold = gp_stock_live.zlow_threshold,
+      gp_stock_by_month.zhigh_threshold = gp_stock_live.zhigh_threshold,
+      gp_stock_by_month.zscore = gp_stock_live.zscore,
+      gp_stock_by_month.stock_level = gp_stock_live.stock_level
+    WHERE
+      month > (CURDATE() - INTERVAL 1 MONTH)
+  ";
+
   $mysql->run("START TRANSACTION");
   $mysql->run("DELETE FROM gp_stock_live");
-  //$mysql->run($sql1);
-  //$mysql->run($sql2);
-  $mysql->run($sql3);
+  $mysql->run($sql1);
+  $mysql->run($sql2);
   $mysql->run("COMMIT");
-
-  UPDATE
-    gp_stock_by_month
-  JOIN
-    gp_stock_live ON gp_stock_live.drug_generic = gp_stock_by_month.drug_generic
-  SET
-    gp_stock_by_month.drug_brand = gp_stock_live.drug_brand,
-    gp_stock_by_month.drug_gsns = gp_stock_live.drug_gsns,
-    gp_stock_by_month.message_display = gp_stock_live.message_display,
-    gp_stock_by_month.price_per_month = gp_stock_live.price_per_month,
-    gp_stock_by_month.drug_ordered = gp_stock_live.drug_ordered,
-    gp_stock_by_month.qty_repack = gp_stock_live.qty_repack,
-    gp_stock_by_month.avg_inventory = gp_stock_live.avg_inventory,
-    gp_stock_by_month.months_entered = gp_stock_live.months_entered,
-    gp_stock_by_month.stddev_entered = gp_stock_live.stddev_entered,
-    gp_stock_by_month.total_entered = gp_stock_live.total_entered,
-    gp_stock_by_month.months_dispensed = gp_stock_live.months_dispensed,
-    gp_stock_by_month.stddev_dispensed_actual = gp_stock_live.stddev_dispensed_actual,
-    gp_stock_by_month.total_dispensed_actual = gp_stock_live.total_dispensed_actual,
-    gp_stock_by_month.total_dispensed_default = gp_stock_live.total_dispensed_default,
-    gp_stock_by_month.stddev_dispensed_default = gp_stock_live.stddev_dispensed_default,
-    gp_stock_by_month.zlow_threshold = gp_stock_live.zlow_threshold,
-    gp_stock_by_month.zhigh_threshold = gp_stock_live.zhigh_threshold,
-    gp_stock_by_month.zscore = gp_stock_live.zscore,
-    gp_stock_by_month.stock_level = gp_stock_live.stock_level
-  WHERE
-    month > (CURDATE() - INTERVAL 1 MONTH)
 
   $duplicate_gsns = $mysql->run("
     SELECT stock1.drug_generic, stock2.drug_generic, stock1.drug_gsns, stock2.drug_gsns FROM gp_stock_live stock1 JOIN gp_stock_live stock2 ON stock1.drug_gsns LIKE CONCAT('%', stock2.drug_gsns, '%') WHERE stock1.drug_generic != stock2.drug_generic
