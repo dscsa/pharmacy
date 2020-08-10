@@ -341,7 +341,7 @@ function set_days_default($item, $days, $mysql) {
       price_dispensed_default   = $item[price_dispensed_default],
 
       stock_level_initial       = '$item[stock_level_initial]',
-      zscore_initial            = '$item[zscore_initial]',
+      zscore_initial            = '$item[zscore]',
 
       rx_message_keys_initial   = '$item[rx_message_keys]',
       pat_autofill_initial      = '$item[pat_autofill]',
