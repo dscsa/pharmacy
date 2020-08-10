@@ -339,7 +339,15 @@ function set_days_default($item, $days, $mysql) {
       days_dispensed_default    = ".($days ?: 0).",
       qty_dispensed_default     = $item[qty_dispensed_default],
       price_dispensed_default   = $item[price_dispensed_default],
+
       stock_level_initial       = '$item[stock_level_initial]',
+      zscore_initial            = '$item[zscore_initial]',
+
+      rx_message_keys_initial   = '$item[rx_message_keys]',
+      pat_autofill_initial      = '$item[pat_autofill]',
+      rx_autofill_initial       = '$item[rx_autofill]',
+      rx_numbers_initial        = '$item[rx_numbers]',
+
       refills_dispensed_default = ".(is_null($item['refills_dispensed_default']) ? 'NULL' : $item['refills_dispensed_default']).",
       refill_date_manual        = ".($item['refill_date_manual'] ? "'$item[refill_date_manual]'" : 'NULL').",
       refill_date_default       = ".($item['refill_date_default'] ? "'$item[refill_date_default]'" : 'NULL').",
