@@ -47,11 +47,11 @@ function group_drugs($order, $mysql) {
         UPDATE
           gp_order_items
         SET
-         `group` = CASE WHEN `group` is NULL THEN '$fill$action' ELSE concat('$fill$action < ', `group`) END
+          groups = CASE WHEN groups is NULL THEN '$fill$action' ELSE concat('$fill$action < ', groups) END
         WHERE
           invoice_number = $item[invoice_number] AND
           rx_number = $item[rx_number] AND
-          `group` != '$fill$action'
+          groups NOT LIKE '$fill$action%'
       ";
 
       $mysql->run($sql);
