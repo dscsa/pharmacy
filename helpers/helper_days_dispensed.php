@@ -344,7 +344,7 @@ function set_days_default($item, $days, $mysql) {
       zscore_initial            = '$item[zscore]',
 
       rx_message_keys_initial   = '$item[rx_message_keys]',
-      pat_autofill_initial      = ".(is_null($item['pat_autofill']) ? 'NULL' : $item['pat_autofill']).",
+      patient_autofill_initial  = ".(is_null($item['patient_autofill']) ? 'NULL' : $item['patient_autofill']).",
       rx_autofill_initial       = '$item[rx_autofill]',
       rx_numbers_initial        = '$item[rx_numbers]',
 
