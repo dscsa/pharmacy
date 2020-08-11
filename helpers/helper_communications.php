@@ -42,7 +42,7 @@ function group_drugs($order, $mysql) {
     $groups['ALL'][] = $item;
     $groups[$fill.$action][] = $item['drug'].$msg;
 
-    if ($item['rx_number']) { //Will be null drug is NOT in the order. "Group" is keyword so must have ``
+    if ($item['rx_number']) { //Will be null if drug is NOT in the order.
       $sql = "
         UPDATE
           gp_order_items
@@ -54,6 +54,7 @@ function group_drugs($order, $mysql) {
           groups NOT LIKE '$fill$action%'
       ";
 
+      log_error('Saving group into order_items:', [$item, $sql]);
       $mysql->run($sql);
     }
 

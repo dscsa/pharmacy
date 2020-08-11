@@ -341,9 +341,9 @@ function set_days_default($item, $days, $mysql) {
       price_dispensed_default   = $item[price_dispensed_default],
 
       stock_level_initial       = '$item[stock_level_initial]',
-      zscore_initial            = '$item[zscore]',
-
       rx_message_keys_initial   = '$item[rx_message_keys]',
+      
+      zscore_initial            = ".(is_null($item['zscore']) ? 'NULL' : $item['zscore']).",
       patient_autofill_initial  = ".(is_null($item['patient_autofill']) ? 'NULL' : $item['patient_autofill']).",
       rx_autofill_initial       = '$item[rx_autofill]',
       rx_numbers_initial        = '$item[rx_numbers]',
