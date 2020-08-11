@@ -51,7 +51,7 @@ function group_drugs($order, $mysql) {
         WHERE
           invoice_number = $item[invoice_number] AND
           rx_number = $item[rx_number] AND
-          groups NOT LIKE '$fill$action%'
+          (groups IS NULL OR groups NOT LIKE '$fill$action%')
       ";
 
       log_error('Saving group into order_items:', [$item, $sql]);
