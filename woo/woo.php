@@ -1,6 +1,9 @@
 <?php
-require_once('status_log.php');
-require_once('event_log.php');
+
+define('GLOBAL_PATH', dirname(__DIR__) . '/global');
+require_once(GLOBAL_PATH . '/status_log.php');
+require_once(GLOBAL_PATH . '/event_log.php');
+require_once(GLOBAL_PATH . '/theme_menu.php');
 
 $add_to_cart = '251';
 $event_log = new EventLog();
