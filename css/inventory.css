@@ -43,3 +43,48 @@
 .site-footer {
   display:none
 }
+
+@media only screen and (max-width: 1200px){
+
+  .medication-list__info{
+    right:0 !important;
+    left: auto !important;
+    width:26% !important;
+  }
+}
+
+@media only screen and (max-width: 768px){
+  .top-medication-list{
+    padding-bottom:0 !important;
+  }
+
+  .medication-list__info{
+    position:relative !important;
+    left:auto !important;
+    top:auto !important;
+    width:100% !important;
+    padding: 1rem !important;
+
+  }
+}
+
+
+
+.medication-list__content{
+  padding-bottom:2rem;
+  font-size:1rem;
+}
+.medication-list__loading{
+  display:block;
+  padding-top:2rem;
+  padding-bottom:2rem;
+  text-align:center;
+}
+
+.medication-list__loading svg{
+  height:2rem;
+}
+
+.medication-list--loaded .medication-list__loading{
+  display:none;
+}
