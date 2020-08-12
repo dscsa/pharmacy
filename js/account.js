@@ -1,17 +1,38 @@
-jQuery(load)
+jQuery(load);
+
+let goodpillBaseUrl = null;
+
 function load() {
+  signup2signout();
+  translate();
+  savePaymentCard();
 
-  signup2signout()
-  translate()
-  savePaymentCard()
-
-  if (window.location.pathname == '/account/details/') {
-    upgradeAutofill()
-    return account_page()
+  if (isPage('/account/details/')) {
+    upgradeAutofill();
+    return account_page();
   }
 
-  if (window.location.pathname == '/account/')
-    return account_page()
+  if (isPage('/account/'))
+    return account_page();
+}
+
+function getBaseUrl(){
+  if(!goodpillBaseUrl)
+    goodpillBaseUrl = jQuery('html').data('base-url');
+
+  return goodpillBaseUrl;
+}
+
+//allows page determination regardless of where the wordpress installation lives (i.e. in dev environments it might not
+//at the root but in a subfolder and therefore window.location.pathname will not have the correct value to compare
+//against.
+function isPage(pagePath){
+  //remove trailing slash from location and page
+  let location = window.location.href.replace(/\/$/, "");
+  let page = pagePath.replace(/\/$/, "");
+
+  //remove the base url from location to get the current page and then compare
+  return location.replace(getBaseUrl(), '') === page;
 }
 
 function account_page() {

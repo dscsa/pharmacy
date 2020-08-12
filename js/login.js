@@ -35,3 +35,4 @@ function register_page() {
   clearEmail() //just in case a registration reloads page with the default email populated
   translate()
 }
+console.log('hi');

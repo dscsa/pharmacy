@@ -1,6 +1,6 @@
 <?php
 
-define('GLOBAL_PATH', dirname(__DIR__) . '/global');
+define('GLOBAL_PATH',   dirname(__DIR__) . '/global');
 require_once(GLOBAL_PATH . '/status_log.php');
 require_once(GLOBAL_PATH . '/event_log.php');
 require_once(GLOBAL_PATH . '/theme_menu.php');
@@ -12,6 +12,11 @@ $event_log = new EventLog();
 
 function is_goodpill_page($page_url_part){
     return strpos($_SERVER['REQUEST_URI'], $page_url_part) !== false;
+}
+
+function webform_asset_url($path){
+    $base = ENVIRONMENT === 'DEV' ? str_replace('/html', '/webform/', home_url()) : 'https://dscsa.github.io/webform/';
+    return $base . $path;
 }
 
 /// Add endpoint for a "Remove as Default Payment" button: https://www.sitepoint.com/creating-custom-endpoints-for-the-wordpress-rest-api/
@@ -245,16 +250,16 @@ function dscsa_admin_scripts()
 {
     if (@$_GET['post'] AND @$_GET['action'] == 'edit')
     {
-        wp_enqueue_script('dscsa-common', 'https://dscsa.github.io/webform/js/common.js');
-        wp_enqueue_style('dscsa-select2', 'https://dscsa.github.io/webform/css/select2.css');
-        wp_enqueue_style('dscsa-admin', 'https://dscsa.github.io/webform/css/admin.css');
-        wp_enqueue_script('dscsa-admin', 'https://dscsa.github.io/webform/js/admin.js', ['jquery', 'dscsa-common']);
+        wp_enqueue_script('dscsa-common', webform_asset_url('js/common.js'));
+        wp_enqueue_style('dscsa-select2', webform_asset_url('css/select2.css'));
+        wp_enqueue_style('dscsa-admin', webform_asset_url('css/admin.css'));
+        wp_enqueue_script('dscsa-admin', webform_asset_url('js/admin.js'), ['jquery', 'dscsa-common']);
     }
 
     if (@$_GET['post_type'] == 'ticket')
     {
-        wp_enqueue_style('dscsa-support-css', 'https://dscsa.github.io/webform/css/support.css');
-        wp_enqueue_script('dscsa-support-js', 'https://dscsa.github.io/webform/js/support.js', ['jquery']);
+        wp_enqueue_style('dscsa-support-css', webform_asset_url('css/support.css'));
+        wp_enqueue_script('dscsa-support-js', webform_asset_url('js/support.js'), ['jquery']);
     }
 }
 
@@ -277,29 +282,29 @@ function dscsa_user_scripts()
     wp_enqueue_style('jquery-ui', 'https://code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.min.css');
     wp_enqueue_script('datepicker', '/wp-includes/js/jquery/ui/datepicker.min.js', ['jquery-ui']);
 
-    wp_enqueue_script('dscsa-common', 'https://dscsa.github.io/webform/js/common.js', ['datepicker', 'ie9ajax', 'select2']);
-    wp_enqueue_style('dscsa-common', 'https://dscsa.github.io/webform/css/common.css');
+    wp_enqueue_script('dscsa-common', webform_asset_url('js/common.js'), ['datepicker', 'ie9ajax', 'select2']);
+    wp_enqueue_style('dscsa-common', webform_asset_url('css/common.css'));
 
     if (is_goodpill_page('/gp-stock'))
     {
         wp_enqueue_script('select2', '/wp-content/plugins/woocommerce/assets/js/select2/select2.full.min.js'); //usually loaded by woocommerce but since this is independent page we need to load manually
         wp_enqueue_style('select2', '/wp-content/plugins/woocommerce/assets/css/select2.css?ver=3.0.7'); //usually loaded by woocommerce but since this is independent page we need to load manually
-        wp_enqueue_script('dscsa-inventory', 'http://localhost/goodpill-webform-dev/js/inventory.js', ['select2', 'jquery', 'ie9ajax']);
-        wp_enqueue_style('dscsa-inventory', 'https://dscsa.github.io/webform/css/inventory.css');
+        wp_enqueue_script('dscsa-inventory', webform_asset_url('js/inventory.js'), ['select2', 'jquery', 'ie9ajax']);
+        wp_enqueue_style('dscsa-inventory', webform_asset_url('css/inventory.css'));
     }
 
     if (substr($_SERVER['REQUEST_URI'], 0, 11) == '/gp-prices/')
     {
         wp_enqueue_script('select2', '/wp-content/plugins/woocommerce/assets/js/select2/select2.full.min.js'); //usually loaded by woocommerce but since this is independent page we need to load manually
         wp_enqueue_style('select2', '/wp-content/plugins/woocommerce/assets/css/select2.css?ver=3.0.7'); //usually loaded by woocommerce but since this is independent page we need to load manually
-        wp_enqueue_script('dscsa-prices', 'https://dscsa.github.io/webform/js/prices.js', ['jquery', 'ie9ajax']);
-        wp_enqueue_style('dscsa-prices', 'https://dscsa.github.io/webform/css/prices.css');
+        wp_enqueue_script('dscsa-prices', webform_asset_url('js/prices.js'), ['jquery', 'ie9ajax']);
+        wp_enqueue_style('dscsa-prices', webform_asset_url('css/prices.css'));
     }
 
     if (is_user_logged_in())
     {
-        wp_enqueue_script('dscsa-account', 'https://dscsa.github.io/webform/js/account.js', ['jquery', 'dscsa-common']);
-        wp_enqueue_style('dscsa-select2', 'https://dscsa.github.io/webform/css/select2.css');
+        wp_enqueue_script('dscsa-account', webform_asset_url('js/account.js'), ['jquery', 'dscsa-common']);
+        wp_enqueue_style('dscsa-select2', webform_asset_url('css/select2.css'));
 
         if (is_checkout() AND !is_wc_endpoint_url())
         { //hack to get wp_add_inline_style() to work. https://www.cssigniter.com/late-enqueue-inline-css-wordpress/
@@ -309,14 +314,14 @@ function dscsa_user_scripts()
                 wp_enqueue_style('hide-nav-for-new-users');
                 wp_add_inline_style('hide-nav-for-new-users', '.woocommerce-MyAccount-navigation { display:none }');
             }
-            wp_enqueue_style('dscsa-checkout', 'https://dscsa.github.io/webform/css/checkout.css');
-            wp_enqueue_script('dscsa-checkout', 'https://dscsa.github.io/webform/js/checkout.js', ['jquery', 'ie9ajax']);
+            wp_enqueue_style('dscsa-checkout', webform_asset_url('css/checkout.css'));
+            wp_enqueue_script('dscsa-checkout', webform_asset_url('js/checkout.js'), ['jquery', 'ie9ajax']);
         }
     }
-    else if (substr($_SERVER['REQUEST_URI'], 0, 9) == '/account/')
+    else if (is_goodpill_page('/account/'))
     {
-        wp_enqueue_style('dscsa-login', 'https://dscsa.github.io/webform/css/login.css');
-        wp_enqueue_script('dscsa-login', 'https://dscsa.github.io/webform/js/login.js', ['jquery', 'dscsa-common']);
+        wp_enqueue_style('dscsa-login', webform_asset_url('css/login.css'));
+        wp_enqueue_script('dscsa-login', webform_asset_url('js/login.js'), ['jquery', 'dscsa-common']);
     }
 }
 
@@ -1508,15 +1513,13 @@ function email_name()
 add_action('woocommerce_registration_redirect', 'dscsa_registration_redirect', 2);
 function dscsa_registration_redirect()
 {
-    global $add_to_cart;
-    return home_url("/account/?add-to-cart=$add_to_cart#/");
+    return home_url("/account/");
 }
 
 add_action('woocommerce_login_redirect', 'dscsa_login_redirect', 2);
 function dscsa_login_redirect()
 {
-    global $add_to_cart;
-    return home_url("/account/orders/?add-to-cart=$add_to_cart#/");
+    return home_url("/account/");
 }
 
 add_filter('site_url', 'dscsa_site_url', 10, 4);
@@ -3389,14 +3392,44 @@ function dscsa_after_order($order_id, $posted_data, $order)
 add_filter('woocommerce_checkout_order_processed', 'dscsa_after_order', 10, 3);
 
 
-
+//custom redirects
+add_action( 'template_redirect', 'force_goodpill_404' );
 function force_goodpill_404(){
     if( is_404() ){
         wp_enqueue_style('goodpill-css', '/wp-content/themes/goodpill/dist/style.css');
         include(ABSPATH . '/wp-content/themes/goodpill/404.php');
         exit;
-        // do stuff
     }
 }
 
-add_action( 'template_redirect', 'force_goodpill_404' );
+add_action( 'template_redirect', 'force_first_order_to_access_dashboard' );
+function force_first_order_to_access_dashboard(){
+    //redirect users with no orders
+    if( is_user_logged_in() && wc_get_customer_order_count(get_current_user_id() ) === 0){
+        global $wp;
+        //remove any query strings and trim trailing slash
+        $current_slug = trim(add_query_arg( array(), $wp->request ), '/');
+
+        //are we on an account page?
+        if(strpos($current_slug, 'account/') !== false){
+
+            //it's an account page, let's get the specific page within the account
+            $account_page = str_replace('account/', '', $current_slug);
+
+            //if we're on any page other than /account or /account/, redirect because the first order has
+            //not been completed
+            if(strlen($account_page) > 0){
+                wp_redirect(home_url("/account/"));
+            }
+        }
+    }
+}
+
+add_action('language_attributes', 'add_base_url', 100);
+function add_base_url($data){
+
+    echo 'data-base-url="' . home_url() . '"';
+
+    return $data;
+
+}

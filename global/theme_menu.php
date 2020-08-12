@@ -6,7 +6,7 @@ function goodpill_main_menu ( $items, $args ) {
     if($args->slug === 'footer')
         return null;
 
-    if($args->slug !== 'primary')
+    if($args->slug !== 'primary' && $args->slug !== 'primary-mobile')
         return $items;
     $items = [];
 
@@ -21,7 +21,6 @@ function goodpill_main_menu ( $items, $args ) {
     else{
         $items[] =  custom_nav_menu_item( 'Get Started', home_url('/account/?gp-register'), 4 );
         $items[] =  custom_nav_menu_item( 'Login', home_url('/account/?gp-login'), 5 );
-
     }
 
     return $items;
