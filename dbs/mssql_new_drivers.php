@@ -1,7 +1,8 @@
 <?php
 
-include('mssql_interface.php');
-include('mssql_status_log.php');
+require_once('mssql_interface.php');
+require_once('mssql_status_log.php');
+require_once(dirname(__DIR__) . '/helpers/helper_log.php');
 
 class Mssql_New_Drivers implements Mssql_Interface
 {
@@ -53,7 +54,7 @@ class Mssql_New_Drivers implements Mssql_Interface
     {
         try
         {
-            $conn = new PDO('sqlsrv:server=' . GUARDIAN_IP . ';database=cph', GUARDIAN_ID, GUARDIAN_PW);
+            $conn = new PDO('sqlsrv:server=' . $this->ipaddress . ';database=cph', $this->username, $this->password);
             $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
             Mssql_Status_Log::log('PDO connected');
             return $conn;
@@ -68,6 +69,10 @@ class Mssql_New_Drivers implements Mssql_Interface
     function run($sql, $debug = false)
     {
         $starttime = microtime(true);
+
+        if($this->connection === false){
+            $this->_emailError(['Unable to run sql, Unable to establish database connection', $sql]);
+        }
 
         try
         {
