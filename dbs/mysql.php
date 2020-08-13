@@ -124,7 +124,7 @@ class Mysql {
       }
 
       $rows = [];
-      while ($row = mysqli_fetch_array($stmt, MYSQL_ASSOC)) {
+      while ($row = mysqli_fetch_array($stmt, MYSQLI_ASSOC)) {
 
         if ($debug AND ! empty($row['Message'])) {
           $this->_emailError(['dbMessage', $row, $stmt, $sql, $data, $debug]);

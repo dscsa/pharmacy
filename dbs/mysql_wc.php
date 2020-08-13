@@ -6,7 +6,7 @@ require_once 'dbs/mysql.php';
 class Mysql_Wc extends Mysql {
 
    function __construct(){
-     parent::__construct(DB_IP, DB_USER, DB_PWD, 'goodpill');
+     parent::__construct(MYSQL_WC_IP, MYSQL_WC_USER, MYSQL_WC_PWD, 'goodpill');
    }
 
 }

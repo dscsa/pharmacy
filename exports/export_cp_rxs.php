@@ -37,7 +37,7 @@ function export_cp_set_rx_message($item, $message, $mysql) {
       gp_rxs_single
     SET
       rx_message_key  = '$item[rx_message_key]',
-      rx_message_text = '".@mysql_escape_string($item['rx_message_text'])."'
+      rx_message_text = '".@mysqli_escape_string($item['rx_message_text'])."'
     WHERE
       rx_number IN ('$rx_numbers')
   ";
