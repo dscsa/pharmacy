@@ -38,6 +38,8 @@ function changes_to_order_items($new) {
     NOT old.item_added_by <=> new.item_added_by
   ";
 
+  $columns = $mysql->run(get_column_names($new))[0][0]['columns'];
+
   //Get Deleted - A lot of Turnover with no shipped items so let's keep historic
   $deleted = [[]]; //$mysql->run(get_deleted_sql($new, $old, $id));
 
@@ -53,7 +55,7 @@ function changes_to_order_items($new) {
   $mysql->run(order_items_set_deleted_sql($new, $old, $id));
 
   //Save Inserts
-  $mysql->run(set_created_sql($new, $old, $id));
+  $mysql->run(set_created_sql($new, $old, $id, '('.$columns.')'));
 
   //Save Updates
   $mysql->run(set_updated_sql($new, $old, $id, $where));
