@@ -1,8 +1,8 @@
 <?php
 
-function escape_db_values($string) {
+function escape_db_values($raw) {
   //@mysql_escape_string(stripslashes(trim($clean))) is removed from php 7 and mysqli version requires db connection
-  return preg_replace("/([^'])'([^'])/i", "$1''$2", stripslashes(trim($clean)));
+  return preg_replace("/([^'])'([^'])/i", "$1''$2", stripslashes(trim($raw)));
 }
 
 // Convert empty string to null or CP's <Not Specified> to NULL
