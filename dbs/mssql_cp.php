@@ -6,7 +6,7 @@ require_once 'dbs/mssql.php';
 class Mssql_Cp extends Mssql {
 
    function __construct(){
-     parent::__construct(CP_IP, CP_USER, CP_PWD, 'cph');
+     parent::__construct(MSSQL_CP_IP, MSSQL_CP_USER, MSSQL_CP_PWD, 'cph');
    }
 
 }
