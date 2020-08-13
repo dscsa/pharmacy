@@ -134,7 +134,7 @@ function get_full_item($item, $mysql, $mssql = NULL) {
         ) as md ON
           cprx.md_id = md.md_id
 
-        WHERE cprx.script_no = $item[rx_number]
+        WHERE cprx.script_no = '$item[rx_number]'
     ");
 
   log_error("Missing Order Item!", get_defined_vars());
