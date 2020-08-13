@@ -21,7 +21,7 @@ function cp_to_wc_key($key) {
 function upsert_patient_wc($mysql, $user_id, $meta_key, $meta_value) {
 
   $wc_key = cp_to_wc_key($meta_key);
-  $wc_val = is_null($meta_value) ? 'NULL' : escape_db_values($meta_value);
+  $wc_val = is_null($meta_value) ? 'NULL' : "'".escape_db_values($meta_value)."'";
 
   $select = "SELECT * FROM wp_usermeta WHERE user_id = $user_id AND meta_key = '$wc_key'";
 
