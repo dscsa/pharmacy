@@ -1,5 +1,10 @@
 <?php
 
+function escape_db_values($string) {
+  //@mysql_escape_string(stripslashes(trim($clean))) is removed from php 7 and mysqli version requires db connection
+  return preg_replace("/([^'])'([^'])/i", "$1''$2", stripslashes(trim($clean)));
+}
+
 // Convert empty string to null or CP's <Not Specified> to NULL
 function clean_val(&$val, &$default = null) {
 
@@ -18,8 +23,8 @@ function clean_val(&$val, &$default = null) {
     return $clean;
 
   //StripSlashes meant to prevent double escaping string
-  $clean = @mysqli_escape_string(stripslashes(trim($clean))); //preg_replace("/([^'])'([^'])/i", "$1''$2", trim($clean));
-  //
+
+  $clean = escape_db_values($clean);
 
   return "'$clean'";
 }
