@@ -290,7 +290,7 @@ function update_patients_wc() {
       $updated['allergies_other'] !== $updated['old_allergies_other']
     ) {
 
-      $allergies = json_encode([
+      $allergy_array = [
         'allergies_none' => $updated['allergies_none'] ?: '',
         'allergies_aspirin' => $updated['allergies_aspirin'] ?: '',
         'allergies_amoxicillin' => $updated['allergies_amoxicillin'] ?: '',
@@ -304,12 +304,14 @@ function update_patients_wc() {
         'allergies_sulfa' => $updated['allergies_sulfa'] ?: '',
         'allergies_tetracycline' => $updated['allergies_tetracycline'] ?: '',
         'allergies_other' => escape_db_values($updated['allergies_other'])
-      ]);
+      ];
+
+      $allergies = json_encode($allergy_array);
 
       if ($allergies)
         $res = upsert_patient_cp($mssql, "EXEC SirumWeb_AddRemove_Allergies '$updated[patient_id_cp]', '$allergies'");
       else
-        log_error("update_patients_wc: EXEC SirumWeb_AddRemove_Allergies '$updated[patient_id_cp]', '$allergies'", $res, json_last_error_msg());
+        log_error("update_patients_wc: EXEC SirumWeb_AddRemove_Allergies '$updated[patient_id_cp]', '$allergies'", [$res, json_last_error_msg(), $allergy_array]);
     }
 
     if ($updated['medications_other'] !== $updated['old_medications_other']) {
