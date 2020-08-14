@@ -3,7 +3,8 @@
 function escape_db_values($raw) {
   //@mysql_escape_string(stripslashes(trim($clean))) is removed from php 7 and mysqli version requires db connection
   //stripslashes only remove one slash so \\1 become \1 and we want to remove all
-  return preg_replace("/(^|[^'])'([^']|$)/i", "$1''$2", str_replace('\\', '', trim($raw)));
+
+  return preg_replace("/(^|[^'])'([^']|$)/i", "$1''$2", str_replace(['\\', 'â€™'], ['',"'"], trim($raw)));
 }
 
 // Convert empty string to null or CP's <Not Specified> to NULL
