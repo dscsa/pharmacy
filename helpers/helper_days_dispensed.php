@@ -51,7 +51,7 @@ function get_days_default($item, $order) {
     return [0, RX_MESSAGE['ACTION EXPIRED']];
   }
 
-  if ( ! $item['drug_gsns']) {
+  if ( ! $item['drug_gsns'] AND $item['drug_name']) {
 
     $in_order = @$item['invoice_number'] ? "In Order #$item[invoice_number]" : "";
 
@@ -342,7 +342,7 @@ function set_days_default($item, $days, $mysql) {
 
       stock_level_initial       = '$item[stock_level_initial]',
       rx_message_keys_initial   = '$item[rx_message_keys]',
-      
+
       zscore_initial            = ".(is_null($item['zscore']) ? 'NULL' : $item['zscore']).",
       patient_autofill_initial  = ".(is_null($item['patient_autofill']) ? 'NULL' : $item['patient_autofill']).",
       rx_autofill_initial       = '$item[rx_autofill]',
