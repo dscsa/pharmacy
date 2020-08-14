@@ -63,8 +63,8 @@ function match_patient_wc($mysql, $patient, $patient_id_cp) {
 function find_patient_wc($mysql, $patient) {
   $first_name_prefix = explode(' ', $patient['first_name']);
   $last_name_prefix  = explode(' ', $patient['last_name']);
-  $first_name_prefix = str_replace("'", "''", substr(array_shift($first_name_prefix), 0, 3));
-  $last_name_prefix  = str_replace("'", "''", array_pop($last_name_prefix));
+  $first_name_prefix = escape_db_values(substr(array_shift($first_name_prefix), 0, 3));
+  $last_name_prefix  = escape_db_values(array_pop($last_name_prefix));
 
   $sql = "
     SELECT *

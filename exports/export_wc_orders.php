@@ -186,8 +186,8 @@ function export_wc_create_order($order, $reason) {
   export_wc_update_order_address($order, 'wc_insert_meta');
   export_wc_update_order_payment($invoice_number, $first_item['payment_fee_default']);
 
-  $address1 = str_replace("'", "''", $first_item['order_address1']);
-  $address2 = str_replace("'", "''", $first_item['order_address2']);
+  $address1 = escape_db_values($first_item['order_address1']);
+  $address2 = escape_db_values($first_item['order_address2']);
 
   //This function call will happen AFTER the wc_order import happened, so we need to add this order to gp_orders_wc table or it might still appear as "deleted" in the wc_order changes feeds
   $sql = "

@@ -137,9 +137,9 @@ function update_patients_wc() {
         (strlen($updated['patient_zip']) == 5 AND $updated['patient_zip'] !== $updated['old_patient_zip'])
     ) {
 
-      $address1 = str_replace("'", "''", $updated['patient_address1']);
-      $address2 = str_replace("'", "''", $updated['patient_address2']);
-      $city = str_replace("'", "''", $updated['patient_city']);
+      $address1 = escape_db_values($updated['patient_address1']);
+      $address2 = escape_db_values($updated['patient_address2']);
+      $city = escape_db_values($updated['patient_city']);
 
       $address3 = 'NULL';
       if ($updated['patient_state'] != 'GA') {
@@ -199,7 +199,7 @@ function update_patients_wc() {
     //If pharmacy name changes then trust WC over CP
     if ($updated['pharmacy_name'] AND $updated['pharmacy_name'] !== $updated['old_pharmacy_name']) {
 
-      $user_def1 = str_replace("'", "''", $updated['pharmacy_name']);
+      $user_def1 = escape_db_values($updated['pharmacy_name']);
       $user_def2 = substr("$updated[pharmacy_npi],$updated[pharmacy_fax],$updated[pharmacy_phone],$updated[pharmacy_address]", 0, 50);
 
       upsert_patient_cp($mssql, "EXEC SirumWeb_AddUpdatePatientUD '$updated[patient_id_cp]', '1', '$user_def1'");
@@ -212,7 +212,7 @@ function update_patients_wc() {
     ) {
 
       upsert_patient_wc($mysql, $updated['patient_id_wc'], 'backup_pharmacy', json_encode([
-        'name' => str_replace("'", "''", $updated['old_pharmacy_name']),
+        'name' => escape_db_values($updated['old_pharmacy_name']),
         'npi' => $updated['old_pharmacy_npi'],
         'fax' => $updated['old_pharmacy_fax'],
         'phone' => $updated['old_pharmacy_phone'],
@@ -303,12 +303,13 @@ function update_patients_wc() {
         'allergies_salicylates' => $updated['allergies_salicylates'] ?: '',
         'allergies_sulfa' => $updated['allergies_sulfa'] ?: '',
         'allergies_tetracycline' => $updated['allergies_tetracycline'] ?: '',
-        'allergies_other' => str_replace("'", "''", $updated['allergies_other']) ?: ''
+        'allergies_other' => escape_db_values($updated['allergies_other'])
       ]);
 
-      $res = upsert_patient_cp($mssql, "EXEC SirumWeb_AddRemove_Allergies '$updated[patient_id_cp]', '$allergies'");
-
-      log_notice("update_patients_wc: EXEC SirumWeb_AddRemove_Allergies '$updated[patient_id_cp]', '$allergies'", $res);
+      if ($allergies)
+        $res = upsert_patient_cp($mssql, "EXEC SirumWeb_AddRemove_Allergies '$updated[patient_id_cp]', '$allergies'");
+      else
+        log_error("update_patients_wc: EXEC SirumWeb_AddRemove_Allergies '$updated[patient_id_cp]', '$allergies'", $res, json_last_error_msg());
     }
 
     if ($updated['medications_other'] !== $updated['old_medications_other']) {
