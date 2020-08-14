@@ -306,7 +306,7 @@ function update_patients_wc() {
         'allergies_other' => escape_db_values($updated['allergies_other'])
       ];
 
-      $allergies = json_encode($allergy_array);
+      $allergies = json_encode(utf8ize($allergy_array), JSON_UNESCAPED_UNICODE);
 
       if ($allergies)
         $res = upsert_patient_cp($mssql, "EXEC SirumWeb_AddRemove_Allergies '$updated[patient_id_cp]', '$allergies'");
