@@ -97,6 +97,7 @@ function import_cp_patients() {
       $row['pharmacy_fax']     = clean_phone($val1[1]);
       $row['pharmacy_phone']   = clean_phone($val1[2]);
       $row['pharmacy_address'] = clean_val($val1[3]);
+      $row['allergies_other']  = clean_val($row['allergies_other']); //Might have a single quote
 
       $row['payment_card_last4']        = clean_val($val2[0]);
       $row['payment_card_date_expired'] = clean_val($val2[1]);
