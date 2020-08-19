@@ -368,7 +368,7 @@ function needs_form_notice($groups) {
 //by building commication arrays based on github.com/dscsa/communication-calendar
 function no_rx_notice($deleted, $patient) {
 
-  log_info('no_rx_notice', get_defined_vars());
+  log_error('no_rx_notice. Does patient truly not have Rxs?', get_defined_vars());
 
   $subject = 'Good Pill received Order #'.$deleted['invoice_number'].' but is waiting for your prescriptions';
   $message  = ($deleted['order_source'] == 'Webform Transfer' OR $deleted['order_source'] == 'Transfer w/ Note')

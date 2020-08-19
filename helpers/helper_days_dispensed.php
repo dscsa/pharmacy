@@ -203,7 +203,7 @@ function get_days_default($item, $order) {
     } else if ($is_refill) {
       $salesforce = [
         "subject"   => "Refill for $item[drug_name] seems to be out-of-stock",
-        "body"      => "Refill for $item[drug_name] in Order #$item[invoice_number] seems to be out-of-stock with days_left_in_stock:$days_left_in_stock, avg_inventory:$item[avg_inventory], sig:$item[sig_actual]",
+        "body"      => "Refill for $item[drug_generic] $item[drug_gsns] ($item[drug_name]) in Order #$item[invoice_number] seems to be out-of-stock with days_left_in_stock:$days_left_in_stock, avg_inventory:$item[avg_inventory], sig:$item[sig_actual]",
         "contact"   => "$item[first_name] $item[last_name] $item[birth_date]",
         "assign_to" => "Joseph",
         "due_date"  => date('Y-m-d')

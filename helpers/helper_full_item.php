@@ -137,7 +137,7 @@ function get_full_item($item, $mysql, $mssql = NULL) {
         WHERE cprx.script_no = '$item[rx_number]'
     ");
 
-  log_error("Missing Order Item!", get_defined_vars());
+  log_error("MISSING ORDER ITEM! MOST LIKELY WILL NOT BE PENDED IN V2", get_defined_vars());
 
   //log_info("Get Full Item", get_defined_vars());
 }

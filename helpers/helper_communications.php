@@ -54,7 +54,7 @@ function group_drugs($order, $mysql) {
           (groups IS NULL OR groups NOT LIKE '$fill$action%')
       ";
 
-      log_error('Saving group into order_items:', [$item, $sql]);
+      log_notice('Saving group into order_items:', [$item, $sql]);
       $mysql->run($sql);
     }
 
