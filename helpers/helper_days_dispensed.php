@@ -211,7 +211,7 @@ function get_days_default($item, $order) {
 
       $event_title = "$item[invoice_number] Refill Out Of Stock: $salesforce[contact] Created:".date('Y-m-d H:i:s');
 
-      if (stripos($item['first_name'], 'TEST') == FALSE AND stripos($item['last_name'], 'TEST') == FALSE)
+      if (stripos($item['first_name'], 'TEST') === FALSE AND stripos($item['last_name'], 'TEST') === FALSE)
         create_event($event_title, [$salesforce]);
     }
     else
