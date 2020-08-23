@@ -163,7 +163,7 @@ function export_wc_create_order($order, $reason) {
 
   if ( ! empty($res['error']) OR empty($res['order'])) {//if order is set, then its just a this order already exists error
 
-    if (stripos($order['first_name'], 'TEST') === FALSE AND stripos($order['last_name'], 'TEST') === FALSE)
+    if (stripos($first_item['first_name'], 'TEST') === FALSE AND stripos($first_item['last_name'], 'TEST') === FALSE)
       log_error("export_wc_create_order: res[error] for $url", [$reason, $res, $first_item]);
 
     return;
