@@ -161,8 +161,13 @@ function export_wc_create_order($order, $reason) {
   $url = "patient/$first_name $last_name $birth_date/order/$invoice_number";
   $res = wc_fetch($url);
 
-  if ( ! empty($res['error']) OR empty($res['order'])) //if order is set, then its just a this order already exists error
-    return log_error("export_wc_create_order: res[error] for $url", [$reason, $res, $first_item]);
+  if ( ! empty($res['error']) OR empty($res['order'])) {//if order is set, then its just a this order already exists error
+
+    if (stripos($order['first_name'], 'TEST') === FALSE AND stripos($order['last_name'], 'TEST') === FALSE)
+      log_error("export_wc_create_order: res[error] for $url", [$reason, $res, $first_item]);
+
+    return;
+  }
 
   log_notice("export_wc_create_order: success for $url", [$reason, $res, $first_item]);
 
