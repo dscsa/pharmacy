@@ -372,7 +372,8 @@ function get_qty_needed($rows, $min_qty, $safety) {
       $list = pend_to_list($list, $pend);
 
        //Shop for all matching medicine in the bin, its annoying and inefficient to pick some and leave the others
-      if ($left <= 0 AND $pend[0]['bin'] != @$inventory[$i+1]['bin']) {
+       //Update: Don't do the above if we are in a prepack bin, otherwise way will way overshop (eg Order #42107)
+      if ($left <= 0 AND ($pend[0]['bin'] != @$inventory[$i+1]['bin'] OR strlen($pend[0]['bin']) == 3)) {
 
         usort($list, 'sort_list');
 
