@@ -210,18 +210,36 @@ function order_hold_notice($groups, $missing_gsn = false) {
   $message = '<u>We are NOT filling these Rxs:</u><br>'.implode(';<br>', array_merge($groups['NOFILL_NOACTION'], $groups['NOFILL_ACTION'])).';';
 
   //[NULL, 'Webform Complete', 'Webform eRx', 'Webform Transfer', 'Auto Refill', '0 Refills', 'Webform Refill', 'eRx /w Note', 'Transfer /w Note', 'Refill w/ Note']
+  //Unsure but "Null" seems to come from SureScript Orders OR Hand Entered Orders (Fax, Pharmacy Transfer, Hard Copy, Phone)
+  /*SELECT rx_source, MAX(gp_orders.invoice_number), COUNT(*) FROM `gp_orders` JOIN gp_order_items ON gp_order_items.invoice_number = gp_orders.invoice_number JOIN gp_rxs_single ON gp_rxs_single.rx_number = gp_order_items.rx_number WHERE order_source IS NULL GROUP BY rx_source ORDER BY `gp_orders`.`order_source` DESC*/
   $trigger = '';
 
-  if (in_array($groups['ALL'][0]['order_source'], [NULL, "SureScripts", "Fax", "Phone"]))
-    $trigger = 'We got Rxs from your doctor via '.$groups['ALL'][0]['rx_source'].' but';
-  else if (in_array($groups['ALL'][0]['order_source'], ["Webform eRx", "eRx /w Note"]))
-    $trigger = 'You successfully registered but';
-  else if (in_array($groups['ALL'][0]['order_source'], ["0 Refills"]))
-    $trigger = 'We requested refills from your doctor but have not heard back so';
-  else if (in_array($groups['ALL'][0]['order_source'], ["Webform Refill", "Refill w/ Note"]))
-    $trigger = 'We received your refill request but';
-  else if (in_array($groups['ALL'][0]['order_source'], ['Webform Transfer', 'Transfer /w Note']))
+  if ($groups['ALL'][0]['order_source'] == 'Auto Refill v2') {
+    $trigger = 'Your Rx is due for a refill but';
+    log_error('order_hold_notice: Not filling Auto Refill?', $groups);
+  }
+  //TRANSFERS
+  else if (in_array($groups['ALL'][0]['order_source'], ['Webform Transfer', 'Webform Transfer Note']))
     $trigger = 'We received your transfer request but';
+  else if ($groups['ALL'][0]['order_source'] == NULL AND $groups['ALL'][0]['rx_source'] == 'Pharmacy')
+    $trigger = 'We received your transfer but';
+
+  //WEBFORM
+  else if (in_array($groups['ALL'][0]['order_source'], ["Webform eRx", "Webform eRx Note"]))
+    $trigger = 'You successfully registered but';
+  else if (in_array($groups['ALL'][0]['order_source'], ["Webform Refill", "Webform Refill Note"]))
+    $trigger = 'We received your refill request but';
+
+  //DOCTOR
+  else if ($groups['ALL'][0]['order_source'] == NULL AND in_array($groups['ALL'][0]['order_source'], ["SureScripts", "Fax", "Phone"]))
+    $trigger = 'We got Rxs from your doctor via '.$groups['ALL'][0]['rx_source'].' but';
+
+  //HARDCOPY RX
+  else if ($groups['ALL'][0]['order_source'] == NULL AND $groups['ALL'][0]['order_source'] == 'Prescription')
+    $trigger = 'We got your Rx in the mail '.$groups['ALL'][0]['rx_source'].' but';
+
+  else
+    log_error('order_hold_notice: unknown order/rx_source', $groups);
 
   $email = [ "email" => $groups['ALL'][0]['email'] ];
   $text  = [ "sms" => get_phones($groups['ALL']), "message" => $trigger.' '.$subject.' '.$message ];
