@@ -28,7 +28,7 @@ function update_stock_by_month() {
         IF(zscore > zhigh_threshold, 'ORDER DRUG', 'NOT OFFERED'),
         IF (
           -- total_dispensed_actual can be more than inventory because it is the sum over a 4 month period
-         total_dispensed_default > avg_inventory,
+         total_dispensed_default > last_inventory,
           -- Drugs that are recently ordered and never dispensed should not be labeled out of stock
           IF(total_dispensed_actual > 0, 'OUT OF STOCK', 'LOW SUPPLY'),
           IF(
@@ -36,7 +36,7 @@ function update_stock_by_month() {
             'PRICE ERROR',
             IF(
               zscore < zlow_threshold,
-              IF(total_dispensed_actual > avg_inventory/10 OR avg_inventory < 1000, 'REFILL ONLY', 'ONE TIME'),
+              IF(total_dispensed_actual > last_inventory/10 OR last_inventory < 1000, 'REFILL ONLY', 'ONE TIME'),
               IF(
                 zscore < zhigh_threshold,
               	'LOW SUPPLY',
@@ -74,7 +74,10 @@ function update_stock_by_month() {
            MAX(COALESCE(price30, price90/3)) as price_per_month,
            MAX(gp_drugs.drug_ordered) as drug_ordered,
            MAX(gp_drugs.qty_repack) as qty_repack,
+
+           GROUP_CONCAT(CONCAT(month, ' ', inventory_sum)) as months_inventory,
            AVG(inventory_sum) as avg_inventory,
+           SUBSTRING_INDEX(GROUP_CONCAT(inventory_sum), ',', -1) as last_inventory,
 
            GROUP_CONCAT(CONCAT(month, ' ', entered_sum)) as months_entered,
            STDDEV_SAMP(entered_sum) as stddev_entered,
@@ -113,7 +116,9 @@ function update_stock_by_month() {
       gp_stock_by_month.price_per_month = gp_stock_live.price_per_month,
       gp_stock_by_month.drug_ordered = gp_stock_live.drug_ordered,
       gp_stock_by_month.qty_repack = gp_stock_live.qty_repack,
+      gp_stock_by_month.months_inventory = gp_stock_live.months_inventory,
       gp_stock_by_month.avg_inventory = gp_stock_live.avg_inventory,
+      gp_stock_by_month.last_inventory = gp_stock_live.last_inventory,
       gp_stock_by_month.months_entered = gp_stock_live.months_entered,
       gp_stock_by_month.stddev_entered = gp_stock_live.stddev_entered,
       gp_stock_by_month.total_entered = gp_stock_live.total_entered,
