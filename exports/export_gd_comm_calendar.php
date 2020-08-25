@@ -209,10 +209,10 @@ function order_hold_notice($groups, $missing_gsn = false) {
   $subject = 'Good Pill is NOT filling your '.$groups['COUNT_NOFILL'].' items for Order #'.$groups['ALL'][0]['invoice_number'].'.';
   $message = '<u>We are NOT filling these Rxs:</u><br>'.implode(';<br>', array_merge($groups['NOFILL_NOACTION'], $groups['NOFILL_ACTION'])).';';
 
-  //['Not Specified', 'Webform Complete', 'Webform eRx', 'Webform Transfer', 'Auto Refill', '0 Refills', 'Webform Refill', 'eRx /w Note', 'Transfer /w Note', 'Refill w/ Note']
+  //[NULL, 'Webform Complete', 'Webform eRx', 'Webform Transfer', 'Auto Refill', '0 Refills', 'Webform Refill', 'eRx /w Note', 'Transfer /w Note', 'Refill w/ Note']
   $trigger = '';
 
-  if (in_array($groups['ALL'][0]['order_source'], ["Not Specified", "SureScripts", "Fax", "Phone"]))
+  if (in_array($groups['ALL'][0]['order_source'], [NULL, "SureScripts", "Fax", "Phone"]))
     $trigger = 'We got Rxs from your doctor via '.$groups['ALL'][0]['rx_source'].' but';
   else if (in_array($groups['ALL'][0]['order_source'], ["Webform eRx", "eRx /w Note"]))
     $trigger = 'You successfully registered but';
