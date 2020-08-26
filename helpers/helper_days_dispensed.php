@@ -284,8 +284,8 @@ function freeze_invoice_data($item, $mysql) {
       -- Other Fields Should Already Be Set Above (And May have Been Sent to Patient) so don't change
       price_dispensed_actual   = $price_actual,
       refills_dispensed_actual = $item[refills_total],
-      rx_message_keys          = '$item[rx_message_keys]',
-      rx_message_text          = '$item[rx_message_text]'
+      item_message_keys        = '$item[rx_message_keys]',
+      item_message_text        = '$item[rx_message_text]'
     WHERE
       invoice_number = $item[invoice_number] AND
       rx_number = $item[rx_number]
