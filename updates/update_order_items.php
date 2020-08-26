@@ -41,7 +41,7 @@ function update_order_items() {
 
       log_error("order_item created but days_dispensed_actual already set.  Most likely an new rx but not part of a new order (days actual is from a previously shipped order) or an item added to order and dispensed all within the time between cron jobs", [$item, $created]);
 
-      set_price_refills_actual($item, $mysql);
+      freeze_invoice_data($item, $mysql);
       continue;
     }
 
@@ -80,7 +80,7 @@ function update_order_items() {
 
     if ($item['days_dispensed_actual']) {
 
-      set_price_refills_actual($item, $mysql);
+      freeze_invoice_data($item, $mysql);
 
       if ($item['days_dispensed_actual'] == $item['days_dispensed_default']) {
         log_info("days_dispensed_actual was set", [$updated, $changed]);
