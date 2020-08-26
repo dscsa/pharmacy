@@ -114,8 +114,8 @@ function update_orders_wc() {
 
     } else if ($deleted['order_stage_cp'] == 'Shipped' OR $deleted['order_stage_cp'] == 'Dispensed') {
 
-      $gp_orders_wc = $mysql->run("SELECT * FROM gp_orders_wc WHERE $deleted[invoice_number]")[0];
-      $gp_orders = $mysql->run("SELECT * FROM gp_orders WHERE $deleted[invoice_number]")[0];
+      $gp_orders_wc = $mysql->run("SELECT * FROM gp_orders_wc WHERE invoice_number = $deleted[invoice_number]")[0];
+      $gp_orders = $mysql->run("SELECT * FROM gp_orders WHERE invoice_number = $deleted[invoice_number]")[0];
       $wc_orders = wc_get_post_id($deleted['invoice_number']);
 
       $order = helper_update_payment($order, "update_orders_wc: deleted - unknown reason", $mysql);
