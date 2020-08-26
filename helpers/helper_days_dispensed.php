@@ -266,16 +266,16 @@ function get_days_default($item, $order) {
   //if (drug.$NoTransfer)
 }
 
-function set_price_refills_actual($item, $mysql) {
+function freeze_invoice_data($item, $mysql) {
 
   if ( ! $item['days_dispensed_actual'])
-    return log_error("set_price_refills_actual has no actual days", get_defined_vars());
+    return log_error("freeze_invoice_data has no actual days", get_defined_vars());
 
   $price_per_month = $item['price_per_month'] ?: 0; //Might be null
   $price_actual    = ceil($item['days_dispensed_actual']*$price_per_month/30);
 
   if ($price_actual > 80)
-    return log_error("set_price_refills_actual: too high", get_defined_vars());
+    return log_error("freeze_invoice_data: price too high, $$price_actual", get_defined_vars());
 
   $sql = "
     UPDATE
@@ -283,7 +283,9 @@ function set_price_refills_actual($item, $mysql) {
     SET
       -- Other Fields Should Already Be Set Above (And May have Been Sent to Patient) so don't change
       price_dispensed_actual   = $price_actual,
-      refills_dispensed_actual = $item[refills_total]
+      refills_dispensed_actual = $item[refills_total],
+      rx_message_keys          = '$item[rx_message_keys]',
+      rx_message_text          = '$item[rx_message_text]'
     WHERE
       invoice_number = $item[invoice_number] AND
       rx_number = $item[rx_number]

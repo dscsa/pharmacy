@@ -728,6 +728,7 @@ $test_sigs = [
   //Take 1 capsule by mouth ONCE ON DAY 1 THEN 2 CAPS ON DAY 2 THEN 1 capsule 3 times a day THEREAFTER
   //Take 1 tablet (40 mg total) by mouth daily as needed (weight gain)  If >3 lb in one day or >5 lb over a week
   //Take 4 tablets by mouth 3 times a day AND 1 TABLET WITH SNACKS //(14 per day)
+  //Take 1 tablet by mouth once daily on empty stomach WITH NO OTHER MEDS AND 30-45 MINUTES BEFORE BREAKFAST
 ];
 
 global $argv;
