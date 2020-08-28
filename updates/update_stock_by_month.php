@@ -27,10 +27,11 @@ function update_stock_by_month() {
         drug_ordered IS NULL,
         IF(zscore > zhigh_threshold, 'ORDER DRUG', 'NOT OFFERED'),
         IF (
-          -- total_dispensed_actual can be more than inventory because it is the sum over a 4 month period
-         total_dispensed_default > last_inventory,
+          -- if we are already dispensing, we want 2 weeks of inventory on hand before listing high supply
+          -- if we are not already dispensing, we want 2 prescriptions of inventory on hand before listing high supply
+          IF(total_dispensed_actual > 0, total_dispensed_actual/$month_interval/2, 2*total_dispensed_default) > last_inventory,
           -- Drugs that are recently ordered and never dispensed should not be labeled out of stock
-          IF(total_dispensed_actual > 0, 'OUT OF STOCK', 'LOW SUPPLY'),
+          IF(total_dispensed_default > last_inventory, 'OUT OF STOCK', 'LOW SUPPLY'),
           IF(
             zlow_threshold IS NULL OR zhigh_threshold IS NULL,
             'PRICE ERROR',
