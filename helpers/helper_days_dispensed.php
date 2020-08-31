@@ -285,7 +285,7 @@ function freeze_invoice_data($item, $mysql) {
       price_dispensed_actual   = $price_actual,
       refills_dispensed_actual = $item[refills_total],
       item_message_keys        = '$item[rx_message_keys]',
-      item_message_text        = '$item[rx_message_text]'
+      item_message_text        = '".escape_db_values($item['rx_message_text'])."'
     WHERE
       invoice_number = $item[invoice_number] AND
       rx_number = $item[rx_number]

@@ -6,7 +6,9 @@ function update_stock_by_month() {
 
   $changes = changes_to_stock_by_month("gp_stock_by_month_v2");
 
-  $month_interval = 4;
+  $month_interval  = 4;
+  $default_rxs_min = 2;
+
   $count_deleted  = count($changes['deleted']);
   $count_created  = count($changes['created']);
   $count_updated  = count($changes['updated']);
@@ -29,7 +31,7 @@ function update_stock_by_month() {
         IF (
           -- if we are already dispensing, we want 4 weeks (1 month) of inventory on hand before listing high supply
           -- if we are not already dispensing, we want 2 prescriptions of inventory on hand before listing high supply
-          IF(total_dispensed_actual > 0, total_dispensed_actual/$month_interval, 2*total_dispensed_default) > last_inventory,
+          IF(total_dispensed_actual > 0, total_dispensed_actual/$month_interval, total_dispensed_default) > last_inventory,
           -- Drugs that are recently ordered and never dispensed should not be labeled out of stock
           -- Drugs that are being dispensed but have less than 2 week of inventory on hand should be out of stock
           IF(total_dispensed_actual/$month_interval/2 > last_inventory, 'OUT OF STOCK', 'LOW SUPPLY'),
@@ -91,8 +93,8 @@ function update_stock_by_month() {
            IF(STDDEV_SAMP(IF(month <= (CURDATE() - INTERVAL 1 MONTH), dispensed_sum, NULL)) > 0, STDDEV_SAMP(IF(month <= (CURDATE() - INTERVAL 1 MONTH), dispensed_sum, NULL)), NULL) as stddev_dispensed_actual,
            IF(SUM(dispensed_sum) > 0, SUM(dispensed_sum), NULL) as total_dispensed_actual,
 
-           2*COALESCE(MAX(gp_drugs.qty_repack), 135) as total_dispensed_default,
-           2*COALESCE(MAX(gp_drugs.qty_repack), 135)/POWER($month_interval, .5) as stddev_dispensed_default
+           $default_rxs_min*COALESCE(MAX(gp_drugs.qty_repack), 135) as total_dispensed_default,
+           $default_rxs_min*COALESCE(MAX(gp_drugs.qty_repack), 135)/POWER($month_interval, .5) as stddev_dispensed_default
 
            FROM
             gp_stock_by_month
