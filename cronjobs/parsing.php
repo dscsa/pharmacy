@@ -729,6 +729,10 @@ $test_sigs = [
   //Take 1 tablet (40 mg total) by mouth daily as needed (weight gain)  If >3 lb in one day or >5 lb over a week
   //Take 4 tablets by mouth 3 times a day AND 1 TABLET WITH SNACKS //(14 per day)
   //Take 1 tablet by mouth once daily on empty stomach WITH NO OTHER MEDS AND 30-45 MINUTES BEFORE BREAKFAST
+  //Take 2 tablet by mouth every 8 hours as needed for mild pain (1 - 3) with food.
+  //Take 1 tablet by mouth once daily
+  //Apply to affected areas, leave on 5 - 10 minutes then rinse. Repeat  twice weekly  x 4 weeks
+  //Place 1 tablet (0.4 mg total) under the tongue every 5 (five) minutes as needed for chest pain  Not to exceed 3 tablets per day
 ];
 
 global $argv;

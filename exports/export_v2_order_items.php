@@ -265,7 +265,7 @@ function group_by_ndc($rows, $item) {
     if (strlen($row['doc']['bin']) == 3) {
       $ndcs[$ndc]['prepack_qty'] += $row['doc']['qty']['to'];
 
-      if (isset($ndcs[$ndc]['prepack_exp']) AND $row['doc']['exp']['to'] < $ndcs[$ndc]['prepack_exp'])
+      if ( ! isset($ndcs[$ndc]['prepack_exp']) OR $row['doc']['exp']['to'] < $ndcs[$ndc]['prepack_exp'])
         $ndcs[$ndc]['prepack_exp'] = $row['doc']['exp']['to'];
     }
 
@@ -282,12 +282,17 @@ function sort_by_ndc($ndcs, $long_exp) {
   foreach ($ndcs as $ndc => $val) {
     $sorted_ndcs[] = ['ndc' => $ndc, 'prepack_qty' => $val['prepack_qty'], 'inventory' => sort_inventory($val['rows'], $long_exp)];
   }
-  //Sort in descending order of prepack_qty. TODO should we look Exp date as well?
+  //Sort in descending order of prepack_qty with Exp limits.  If Exp is not included
+  //then purchased stock gets used before anything else
   usort($sorted_ndcs, function($a, $b) use ($sorted_ndcs) {
 
     if ( ! isset($a['prepack_qty']) OR ! isset($b['prepack_qty'])) {
       log_error('ERROR: sort_by_ndc but prepack_qty is not set', get_defined_vars());
     } else {
+
+      //Return shortest prepack expiration date, if a tie use one with greater quantity
+      if ($a['prepack_exp'] > $b['prepack_exp']) return 1;
+      if ($a['prepack_exp'] < $b['prepack_exp']) return -1;
       return $b['prepack_qty'] - $a['prepack_qty'];
     }
   });
