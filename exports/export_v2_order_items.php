@@ -188,6 +188,9 @@ function make_pick_list($item) {
     $res = v2_fetch($url);
   }
 
+  if (count($res['rows']) < 10)
+    log_error("Webform Pending Error: Not enough qty found for $item[drug_generic] #0 of 2", ['count_inventory' => count($res['rows']), 'res' => $res]);
+
   $unsorted_ndcs = group_by_ndc($res['rows'], $item);
   $sorted_ndcs   = sort_by_ndc($unsorted_ndcs, $long_exp);
   $list          = get_qty_needed($sorted_ndcs, $min_qty, $safety);
@@ -199,7 +202,7 @@ function make_pick_list($item) {
     return $list;
   }
 
-  log_error("Webform Pending Error: Not enough qty found #1 of 2, trying half fill and no safety", ['count_inventory' => count($sorted_ndcs), 'item' => $item]);
+  log_error("Webform Pending Error: Not enough qty found for $item[drug_generic] #1 of 2, trying half fill and no safety", ['count_inventory' => count($sorted_ndcs), 'item' => $item]);
 
   $list = get_qty_needed($sorted_ndcs, $min_qty*0.5, 0);
 
@@ -220,7 +223,7 @@ function make_pick_list($item) {
 
   create_event($event_title, [$salesforce]);
 
-  log_error("Webform Pending Error: Not enough qty found #2 of 2, half fill with no safety failed", ['count_inventory' => count($sorted_ndcs), 'item' => $item]);
+  log_error("Webform Pending Error: Not enough qty found for $item[drug_generic] #2 of 2, half fill with no safety failed", ['count_inventory' => count($sorted_ndcs), 'item' => $item]);
 }
 
 function group_by_ndc($rows, $item) {
