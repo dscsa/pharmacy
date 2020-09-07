@@ -67,11 +67,7 @@ function import_stock_for_month($month_index, $mysql) {
   if (
     ! count($dbs['inventory']) OR
     ! count($dbs['entered']) OR
-    ! count($dbs['verified']) OR
-    ! count($dbs['refused']) OR
-    ! count($dbs['expired']) OR
-    ! count($dbs['disposed']) OR
-    ! count($dbs['dispensed'])
+    ! count($dbs['verified'])
   ) {
     if ($month_index === 0) log_error(
       'No v2 Stock to Import'.
