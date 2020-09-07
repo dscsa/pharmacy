@@ -167,7 +167,7 @@ function make_pick_list($item) {
   if ( ! isset($item['stock_level_initial']) AND $item['rx_gsn']) //If missing GSN then stock level won't be set
     log_error("ERROR make_pick_list: stock_level_initial is not set", get_defined_vars());
 
-  $safety   = 0.15;
+  $safety   = 0.05;
   $generic  = $item['drug_generic'];
   $min_days = $item['days_dispensed_default'];
   $min_qty  = $item['qty_dispensed_default'];
