@@ -73,7 +73,17 @@ function import_stock_for_month($month_index, $mysql) {
     ! count($dbs['disposed']) OR
     ! count($dbs['dispensed'])
   ) {
-    if ($month_index === 0) log_error('No v2 Stock to Import', get_defined_vars());
+    if ($month_index === 0) log_error(
+      'No v2 Stock to Import'.
+      ': inventory '.count($dbs['inventory']).
+      ', entered '.count($dbs['entered']).
+      ', verified '.count($dbs['verified']).
+      ', refused '.count($dbs['refused']).
+      ', expired '.count($dbs['expired']).
+      ', disposed '.count($dbs['disposed']).
+      ', dispensed '.count($dbs['dispensed']),
+      get_defined_vars()
+    );
     return;
   }
 
