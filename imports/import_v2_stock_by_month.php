@@ -41,14 +41,19 @@ function import_stock_for_month($month_index, $mysql) {
   $last_query = "?start_key=[\"8889875187\",\"month\",\"$last[year]\",\"$last[month]\"]&end_key=[\"8889875187\",\"month\",\"$last[year]\",\"$last[month]\",{}]&group_level=5";
   $next_query = "?start_key=[\"8889875187\",\"month\",\"$next[year]\",\"$next[month]\"]&end_key=[\"8889875187\",\"month\",\"$next[year]\",\"$next[month]\",{}]&group_level=5";
 
+  $inventory_url = V2_IP.':8443/transaction/_design/inventory-by-generic/_view/inventory-by-generic'.$next_query;
+  $entered_url = V2_IP.':8443/transaction/_design/entered-by-generic/_view/entered-by-generic'.$last_query;
+  $verified_url = V2_IP.':8443/transaction/_design/verified-by-generic/_view/verified-by-generic'.$last_query;
+  $refused_url = V2_IP.':8443/transaction/_design/refused-by-generic/_view/refused-by-generic'.$last_query;
+  $expired_url = V2_IP.':8443/transaction/_design/expired-by-generic/_view/expired-by-generic'.$last_query;
   $disposed_url = V2_IP.':8443/transaction/_design/disposed-by-generic/_view/disposed-by-generic'.$last_query;
   $dispensed_url = V2_IP.':8443/transaction/_design/dispensed-by-generic/_view/dispensed-by-generic'.$last_query;
 
-  $inventory = file_get_contents(V2_IP.':8443/transaction/_design/inventory-by-generic/_view/inventory-by-generic'.$next_query, false, $context);
-  $entered  = file_get_contents(V2_IP.':8443/transaction/_design/entered-by-generic/_view/entered-by-generic'.$last_query, false, $context);
-  $verified = file_get_contents(V2_IP.':8443/transaction/_design/verified-by-generic/_view/verified-by-generic'.$last_query, false, $context);
-  $refused = file_get_contents(V2_IP.':8443/transaction/_design/refused-by-generic/_view/refused-by-generic'.$last_query, false, $context);
-  $expired = file_get_contents(V2_IP.':8443/transaction/_design/expired-by-generic/_view/expired-by-generic'.$last_query, false, $context);
+  $inventory = file_get_contents($inventory_url, false, $context);
+  $entered  = file_get_contents($entered_url, false, $context);
+  $verified = file_get_contents($verified_url, false, $context);
+  $refused = file_get_contents($refused_url, false, $context);
+  $expired = file_get_contents($expired_url, false, $context);
   $disposed = file_get_contents($disposed_url, false, $context);
   $dispensed = file_get_contents($dispensed_url, false, $context);
 
@@ -78,7 +83,7 @@ function import_stock_for_month($month_index, $mysql) {
       ', expired '.count($dbs['expired']).
       ', disposed '.count($dbs['disposed']).
       ', dispensed '.count($dbs['dispensed']),
-      get_defined_vars()
+      ['inventory' => $inventory, 'entered' => $entered, 'verified' => $verified]
     );
     return;
   }
