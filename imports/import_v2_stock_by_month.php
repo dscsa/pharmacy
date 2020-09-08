@@ -121,17 +121,18 @@ function import_stock_for_month($month_index, $mysql) {
     }
 
     //Rather than separate tables put into one table using ON DUPLICATE KEY UPDATE
-    $mysql->run("
-      INSERT INTO
-        gp_stock_by_month_v2 (".implode(', ', array_keys($val)).")
-      VALUES
-        ".implode(', ', $vals)."
-      ON DUPLICATE KEY UPDATE
-        {$key}_sum    = VALUES({$key}_sum),
-        {$key}_count  = VALUES({$key}_count),
-        {$key}_min    = VALUES({$key}_min),
-        {$key}_max    = VALUES({$key}_max),
-        {$key}_sumsqr = VALUES({$key}_sumsqr)
-    ");
+    if ($vals)
+      $mysql->run("
+        INSERT INTO
+          gp_stock_by_month_v2 (".implode(', ', array_keys($val)).")
+        VALUES
+          ".implode(', ', $vals)."
+        ON DUPLICATE KEY UPDATE
+          {$key}_sum    = VALUES({$key}_sum),
+          {$key}_count  = VALUES({$key}_count),
+          {$key}_min    = VALUES({$key}_min),
+          {$key}_max    = VALUES({$key}_max),
+          {$key}_sumsqr = VALUES({$key}_sumsqr)
+      ");
   }
 }
