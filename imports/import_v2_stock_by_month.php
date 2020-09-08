@@ -57,6 +57,18 @@ function import_stock_for_month($month_index, $mysql) {
   $disposed = file_get_contents($disposed_url, false, $context);
   $dispensed = file_get_contents($dispensed_url, false, $context);
 
+  if ( ! $inventory)
+    return log_error('v2 Import Error: Inventory', $inventory_url);
+
+  if ( ! $entered)
+    return log_error('v2 Import Error: Entered', $entered_url);
+
+  if ( ! $verified)
+    return log_error('v2 Import Error: Verified', $verified_url);
+
+  if ( ! $refused OR ! $expired OR ! $disposed OR ! $dispensed)
+    return;
+
   //email('import_v2_stock_by_month', V2_IP.'/transaction/_design/entered.qty-by-generic/_view/entered.qty-by-generic'.$last_query, $entered);
 
   $dbs = [
@@ -68,25 +80,6 @@ function import_stock_for_month($month_index, $mysql) {
     'disposed' => json_decode($disposed, true)['rows'],
     'dispensed' => json_decode($dispensed, true)['rows']
   ];
-
-  if (
-    ! count($dbs['inventory']) OR
-    ! count($dbs['entered']) OR
-    ! count($dbs['verified'])
-  ) {
-    if ($month_index === 0) log_error(
-      'No v2 Stock to Import'.
-      ': inventory '.count($dbs['inventory']).
-      ', entered '.count($dbs['entered']).
-      ', verified '.count($dbs['verified']).
-      ', refused '.count($dbs['refused']).
-      ', expired '.count($dbs['expired']).
-      ', disposed '.count($dbs['disposed']).
-      ', dispensed '.count($dbs['dispensed']),
-      ['inventory' => $inventory, 'entered' => $entered, 'verified' => $verified]
-    );
-    return;
-  }
 
   foreach($dbs as $key => $rows) {
 
