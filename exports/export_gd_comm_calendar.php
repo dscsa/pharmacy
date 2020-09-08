@@ -231,11 +231,11 @@ function order_hold_notice($groups, $missing_gsn = false) {
     $trigger = 'We received your refill request but';
 
   //DOCTOR
-  else if ($groups['ALL'][0]['order_source'] == NULL AND in_array($groups['ALL'][0]['order_source'], ["SureScripts", "Fax", "Phone"]))
+  else if ($groups['ALL'][0]['order_source'] == NULL AND in_array($groups['ALL'][0]['rx_source'], ["SureScripts", "Fax", "Phone"]))
     $trigger = 'We got Rxs from your doctor via '.$groups['ALL'][0]['rx_source'].' but';
 
   //HARDCOPY RX
-  else if ($groups['ALL'][0]['order_source'] == NULL AND $groups['ALL'][0]['order_source'] == 'Prescription')
+  else if ($groups['ALL'][0]['order_source'] == NULL AND $groups['ALL'][0]['rx_source'] == 'Prescription')
     $trigger = 'We got your Rx in the mail '.$groups['ALL'][0]['rx_source'].' but';
 
   else
