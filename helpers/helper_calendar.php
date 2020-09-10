@@ -312,6 +312,8 @@ function create_event($event_title, $comm_arr, $hours_to_wait = 0, $hour_of_day 
 
   $result = gdoc_post(GD_HELPER_URL, $args);
 
+  if ($hour_of_day == 12) //Debug Refill Reminders getting created with NO TITLE OR DESCRIPTION, just blank events
+    log_error('DEBUG REFILL REMINDER create_event', [$args, $result]);
 }
 
 function cancel_events($ids) {

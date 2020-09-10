@@ -733,6 +733,7 @@ $test_sigs = [
   //Take 1 tablet by mouth once daily
   //Apply to affected areas, leave on 5 - 10 minutes then rinse. Repeat  twice weekly  x 4 weeks
   //Place 1 tablet (0.4 mg total) under the tongue every 5 (five) minutes as needed for chest pain  Not to exceed 3 tablets per day
+  //Take 1 tablet by mouth 1 HOUR PRIOR TO BEDTIME. AFTER 2 DAYS INCREASE TO 2 TABLETS
 ];
 
 global $argv;
