@@ -79,6 +79,9 @@ function update_orders_cp() {
 
     if ($order[0]['order_date_shipped']) {
       log_error("Shipped Order Being Readded", $order);
+      export_wc_create_order($order, "update_orders_cp: shipped order being readded");
+      export_gd_publish_invoice($order, $mysql);
+      export_gd_print_invoice($order);
       continue;
     }
 
@@ -123,7 +126,7 @@ function update_orders_cp() {
     if ($created['order_date_dispensed']) { //Can't test for rx_message_key == 'ACTION NEEDS FORM' because other messages can take precedence
       export_gd_publish_invoice($order, $mysql);
       export_gd_print_invoice($order);
-      log_notice("Created Order is being readded (and invoice recreated) even though already dispensed.  Was it deleted on purpose?".$order[0]['invoice_number'], $order);
+      log_error("Created Order is being readded (and invoice recreated) even though already dispensed.  Was it deleted on purpose?".$order[0]['invoice_number'], $order);
       continue;
     }
 
