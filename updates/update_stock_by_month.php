@@ -7,7 +7,7 @@ function update_stock_by_month() {
   $changes = changes_to_stock_by_month("gp_stock_by_month_v2");
 
   $month_interval  = 4;
-  $default_rxs_min = 2;
+  $default_rxs_min = 3;
 
   $count_deleted  = count($changes['deleted']);
   $count_created  = count($changes['created']);

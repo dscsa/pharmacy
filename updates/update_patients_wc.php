@@ -37,7 +37,7 @@ function update_patients_wc() {
 
     if ( ! empty($patient[0]['patient_id_wc'])) {
       $created_mismatched++;
-      log_error('update_patients_wc: mismatched patient_id_wc?', [$created, $patient[0]]);
+      log_error('update_patients_wc: mismatched patient_id_wc or duplicate wc patient registration?', [$created, $patient[0]]);
     }
     else if ( ! empty($patient[0]['patient_id_cp'])) {
       $created_matched++;
