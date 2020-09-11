@@ -36,7 +36,7 @@ function update_orders_wc() {
       'wc-shipped-refused',
       'wc-done-card-pay',
       'wc-done-mail-pay',
-      'wc-done-clinic-pay',
+      'wc-done-coupon-pay',
       'wc-done-auto-pay'
     ])) {
 

@@ -53,7 +53,7 @@ const ORDER_STATUS_WC = [
   'done-mail-pay'    => 'Completed (Paid by Mail)',
   'done-finaid'      => 'Completed (Financial Aid)',
   'done-fee-waived'  => 'Completed (Fee Waived)',
-  'done-clinic-pay'  => 'Completed (Paid by Clinic)',
+  'done-coupon-pay'  => 'Completed (Paid by Coupon)',
   'done-auto-pay'    => 'Completed (Paid by Autopay)',
   'done-refused-pay' => 'Completed (Refused to Pay)',
 

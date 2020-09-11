@@ -229,7 +229,7 @@ function get_order_stage_wc($order) {
     return 'shipped-web-pay';
 
   if ($order[0]['payment_method'] == PAYMENT_METHOD['COUPON'])
-    return 'done-clinic-pay';
+    return 'done-coupon-pay';
 
   if ($order[0]['payment_method'] == PAYMENT_METHOD['CARD EXPIRED'])
     return 'late-card-expired';
