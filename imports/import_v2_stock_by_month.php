@@ -57,16 +57,10 @@ function import_stock_for_month($month_index, $mysql) {
   $disposed = file_get_contents($disposed_url, false, $context);
   $dispensed = file_get_contents($dispensed_url, false, $context);
 
-  if ( ! $inventory)
-    return log_error('v2 Import Error: Inventory', $inventory_url);
+  if ( ! $inventory AND ! $entered AND ! $verified)
+    return log_error('v2 Import Error: Inventory, Entered, & Verified', [$inventory_url, $entered_url, $verified_url]);
 
-  if ( ! $entered)
-    return log_error('v2 Import Error: Entered', $entered_url);
-
-  if ( ! $verified)
-    return log_error('v2 Import Error: Verified', $verified_url);
-
-  if ( ! $refused OR ! $expired OR ! $disposed OR ! $dispensed)
+  if ( ! $inventory OR ! $entered OR ! $verified OR ! $refused OR ! $expired OR ! $disposed OR ! $dispensed)
     return;
 
   //email('import_v2_stock_by_month', V2_IP.'/transaction/_design/entered.qty-by-generic/_view/entered.qty-by-generic'.$last_query, $entered);
