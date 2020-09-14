@@ -223,7 +223,7 @@ function make_pick_list($item) {
 
   create_event($event_title, [$salesforce]);
 
-  log_error("Webform Pending Error: Not enough qty found for $item[drug_generic] #2 of 2, half fill with no safety failed", ['count_inventory' => count($sorted_ndcs), 'item' => $item]);
+  log_error("Webform Pending Error: Not enough qty found for $item[drug_generic] #2 of 2, half fill with no safety failed", ['inventory' => $sorted_ndcs, 'count_inventory' => count($sorted_ndcs), 'item' => $item]);
 }
 
 function group_by_ndc($rows, $item) {
