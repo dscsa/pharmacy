@@ -78,7 +78,7 @@ function get_days_default($item, $order) {
 
     strtotime($item['rx_date_changed']) > strtotime('-10 minutes')
       ? create_event($event_title, [$salesforce])
-      : log_error("CONFIRM DIDN'T CREATE DUPLICATED SALESFORCE TASK $event_title", $salesforce);
+      : log_error("CONFIRM DIDN'T CREATE DUPLICATED SALESFORCE TASK $event_title", [$item, $salesforce]);
 
     return [ $item['refill_date_first'] ? $days_default : 0, RX_MESSAGE['NO ACTION MISSING GSN']];
   }
