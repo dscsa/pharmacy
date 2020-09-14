@@ -76,7 +76,9 @@ function get_days_default($item, $order) {
 
     $event_title = @$item['invoice_number']." Missing GSN: $salesforce[contact] Created:".date('Y-m-d H:i:s');
 
-    create_event($event_title, [$salesforce]);
+    strtotime($item['rx_date_changed']) > strtotime('-10 minutes')
+      ? create_event($event_title, [$salesforce])
+      : log_error("CONFIRM DIDN'T CREATE DUPLICATED SALESFORCE TASK $event_title", $salesforce);
 
     return [ $item['refill_date_first'] ? $days_default : 0, RX_MESSAGE['NO ACTION MISSING GSN']];
   }
