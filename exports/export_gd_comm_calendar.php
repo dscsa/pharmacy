@@ -332,12 +332,12 @@ function needs_form_notice($groups) {
   if ($groups['FILLED']) {
     $subject = 'Welcome to Good Pill!  We are excited to fill your prescriptions.';
     $message = 'Your first order, #'.$groups['ALL'][0]['invoice_number'].", will cost $6, paid after you receive your medications. Please take 5mins to register so that we can fill the Rxs we got from your doctor as soon as possible. Once you register it will take 5-7 business days before you receive your order. You can register online at www.goodpill.org or by calling us at (888) 987-5187.<br><br><u>The drugs in your first order will be:</u><br>".implode(';<br>', $groups['FILLED_ACTION']).';';
-    log_error("NEEDS FORM NOTICE DOES NOT HAVE DRUGS LISTED", [$groups, $message, $subject]);
+    //log_error("NEEDS FORM NOTICE DOES NOT HAVE DRUGS LISTED", [$groups, $message, $subject]);
   }
   else {
-    log_error('NEEDS_FORM HOLD.  IS THIS EVER CALLED OR DOES IT GOTO ORDER_HOLD TEMPLATE', $groups);
+    //log_error('NEEDS_FORM HOLD.  IS THIS EVER CALLED OR DOES IT GOTO ORDER_HOLD TEMPLATE', $groups);
     $subject = "Welcome to Good Pill. Unfortunately we can't complete your 1st Order";
-    $message = "We are very sorry for the inconvenience but we can't fill the Rx(s) in Order #".$groups['ALL'][0]['invoice_number']." that we received from your doctor. Please ask your local pharmacy to contact us to get the prescription OR register online or over the phone and let us know to which pharmacy we should transfer the Rx(s).<br><br>Because we rely on donated medicine, we can only fill medications that are listed here www.goodpill.org/gp-stock";
+    $message = "We are very sorry for the inconvenience but we can't fill the Rx(s) in Order #".$groups['ALL'][0]['invoice_number']." that we received from your doctor. Please ask your local pharmacy to contact us to get the prescription OR register online or over the phone and let us know to which pharmacy we should transfer the Rx(s).<br><br><u>The drugs we could not fill are:</u><br>".implode(';<br>', $groups['NOFILL_NOACTION']).";<br><br>Because we rely on donated medicine, we can only fill medications that are listed here www.goodpill.org/gp-stock";
   }
 
   $email = [ "email" => $groups['ALL'][0]['email'] ];
