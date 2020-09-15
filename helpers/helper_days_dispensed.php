@@ -23,15 +23,17 @@ function get_days_default($item, $order) {
 
     if($stock_level == STOCK_LEVEL['HIGH SUPPLY'] AND strtotime($item['rx_date_transferred']) > strtotime('-1 month')) {
 
+      $created = "Created:".date('Y-m-d H:i:s');
+
       $salesforce = [
         "subject"   => "$item[drug_name] was transferred recently although it's high stock",
-        "body"      => "Investigate why drug $item[drug_name] for Rx $item[rx_number] was transferred out on $item[rx_date_transferred] even though it's high stock",
+        "body"      => "Investigate why drug $item[drug_name] for Rx $item[rx_number] was transferred out on $item[rx_date_transferred] even though it's high stock $created",
         "contact"   => "$item[first_name] $item[last_name] $item[birth_date]",
         "assign_to" => "Joseph",
         "due_date"  => date('Y-m-d')
       ];
 
-      $event_title = "$item[invoice_number] High Stock Item Transferred: $salesforce[contact] Created:".date('Y-m-d H:i:s');
+      $event_title = "$item[invoice_number] High Stock Item Transferred: $salesforce[contact] $created";
 
       create_event($event_title, [$salesforce]);
       log_error($event_title, get_defined_vars());
@@ -51,34 +53,42 @@ function get_days_default($item, $order) {
     return [0, RX_MESSAGE['ACTION EXPIRED']];
   }
 
+
   if ( ! $item['drug_gsns'] AND $item['drug_name']) {
 
-    $in_order = @$item['invoice_number'] ? "In Order #$item[invoice_number]," : "";
+    //Check for invoice number otherwise, seemed that SF tasks were being triplicated.  Unsure reason, maybe called by order_items and not just orders?
+    if (@$item['invoice_number']) {
+      $in_order = @$item['invoice_number'] ? "In Order #$item[invoice_number]," : "";
+      $created = "Created:".date('Y-m-d H:i:s');
 
-    if ($item['max_gsn']) {
-      $body = "$in_order drug $item[drug_name] needs GSN $item[max_gsn] added to V2";
-      $assign = "Joseph";
-      log_error($body, $item);
+      if ($item['max_gsn']) {
+        $body = "$in_order drug $item[drug_name] needs GSN $item[max_gsn] added to V2";
+        $assign = "Joseph";
+        log_error($body, $item);
 
-    } else {
-      $body = "$in_order drug $item[drug_name] needs to be switched to a drug with a GSN in Guardian";
-      $assign = "Cindy";
-      log_notice($body, $item);
-    }
+      } else {
+        $body = "$in_order drug $item[drug_name] needs to be switched to a drug with a GSN in Guardian";
+        $assign = "Cindy";
+        log_notice($body, $item);
+      }
 
-    $salesforce = [
-      "subject"   => "$in_order missing GSN for $item[drug_name]",
-      "body"      => $body,
-      "contact"   => "$item[first_name] $item[last_name] $item[birth_date]",
-      "assign_to" => $assign,
-      "due_date"  => date('Y-m-d')
-    ];
+      $salesforce = [
+        "subject"   => "$in_order missing GSN for $item[drug_name]",
+        "body"      => "$body $created",
+        "contact"   => "$item[first_name] $item[last_name] $item[birth_date]",
+        "assign_to" => $assign,
+        "due_date"  => date('Y-m-d')
+      ];
 
-    $event_title = @$item['invoice_number']." Missing GSN: $salesforce[contact] Created:".date('Y-m-d H:i:s');
+      $event_title = @$item['invoice_number']." Missing GSN: $salesforce[contact] $created";
 
-    strtotime($item['rx_date_changed']) > strtotime('-10 minutes')
-      ? create_event($event_title, [$salesforce])
-      : log_error("CONFIRM DIDN'T CREATE DUPLICATED SALESFORCE TASK $event_title", [$item, $salesforce]);
+      strtotime($item['rx_date_changed']) > strtotime('-10 minutes')
+        ? create_event($event_title, [$salesforce])
+        : log_error("CONFIRM DIDN'T CREATE SALESFORCE TASK - DUPLICATE $event_title", [$item, $salesforce]);
+        
+      } else {
+        log_error("CONFIRM DIDN'T CREATE SALESFORCE TASK - ORDER ITEMS NOT ORDER", $item);
+      }
 
     return [ $item['refill_date_first'] ? $days_default : 0, RX_MESSAGE['NO ACTION MISSING GSN']];
   }
@@ -133,15 +143,17 @@ function get_days_default($item, $order) {
 
   if ((strtotime($item['refill_date_default']) - strtotime($item['refill_date_manual'])) > DAYS_UNIT*24*60*60 AND $item['refill_date_manual'] AND ! $added_manually) {
 
+    $created = "Created:".date('Y-m-d H:i:s');
+
     $salesforce = [
       "subject"   => "Investigate Early Refill",
-      "body"      => "Confirm if/why needs $item[drug_name] in Order #$item[invoice_number] even though it's over ".DAYS_UNIT." days before it's due. If needed, add drug to order",
+      "body"      => "Confirm if/why needs $item[drug_name] in Order #$item[invoice_number] even though it's over ".DAYS_UNIT." days before it's due. If needed, add drug to order. $created",
       "contact"   => "$item[first_name] $item[last_name] $item[birth_date]",
       "assign_to" => "Joseph",
       "due_date"  => date('Y-m-d')
     ];
 
-    $event_title = "$item[invoice_number] $salesforce[subject]: $salesforce[contact] Created:".date('Y-m-d H:i:s');
+    $event_title = "$item[invoice_number] $salesforce[subject]: $salesforce[contact] $created";
 
     create_event($event_title, [$salesforce]);
     return [0, RX_MESSAGE['NO ACTION NOT DUE']];
@@ -203,15 +215,18 @@ function get_days_default($item, $order) {
       log_error("helper_days_dispensed: LIKELY ERROR: 'out of stock' but inventory > 500", get_defined_vars());
 
     } else if ($is_refill) {
+
+      $created = "Created:".date('Y-m-d H:i:s');
+
       $salesforce = [
         "subject"   => "Refill for $item[drug_name] seems to be out-of-stock",
-        "body"      => "Refill for $item[drug_generic] $item[drug_gsns] ($item[drug_name]) in Order #$item[invoice_number] seems to be out-of-stock with days_left_in_stock:$days_left_in_stock, last_inventory:$item[last_inventory], sig:$item[sig_actual]",
+        "body"      => "Refill for $item[drug_generic] $item[drug_gsns] ($item[drug_name]) in Order #$item[invoice_number] seems to be out-of-stock with days_left_in_stock:$days_left_in_stock, last_inventory:$item[last_inventory], sig:$item[sig_actual], $created",
         "contact"   => "$item[first_name] $item[last_name] $item[birth_date]",
         "assign_to" => "Joseph",
         "due_date"  => date('Y-m-d')
       ];
 
-      $event_title = "$item[invoice_number] Refill Out Of Stock: $salesforce[contact] Created:".date('Y-m-d H:i:s');
+      $event_title = "$item[invoice_number] Refill Out Of Stock: $salesforce[contact] $created";
 
       if (stripos($item['first_name'], 'TEST') === FALSE AND stripos($item['last_name'], 'TEST') === FALSE)
         create_event($event_title, [$salesforce]);

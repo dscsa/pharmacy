@@ -211,15 +211,17 @@ function make_pick_list($item) {
     return $list;
   }
 
+  $created = "Created:".date('Y-m-d H:i:s');
+
   $salesforce = [
     "subject"   => "Order #$item[invoice_number] cannot pend enough $item[drug_name]",
-    "body"      => "Determine if there is enough $item[drug_name] to pend for '$item[sig_actual]'. Tried & failed to pend a qty of ".$min_qty,
+    "body"      => "Determine if there is enough $item[drug_name] to pend for '$item[sig_actual]'. Tried & failed to pend a qty of ".$min_qty." $created",
     "contact"   => "$item[first_name] $item[last_name] $item[birth_date]",
     "assign_to" => "Cindy",
     "due_date"  => date('Y-m-d')
   ];
 
-  $event_title = "$item[invoice_number] Pending Error: $salesforce[contact] Created:".date('Y-m-d H:i:s');
+  $event_title = "$item[invoice_number] Pending Error: $salesforce[contact] $created";
 
   create_event($event_title, [$salesforce]);
 
