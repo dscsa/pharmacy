@@ -162,36 +162,18 @@ function pend_pick_list($item, $vals) {
   log_notice("WebForm pend_pick_list", ['res' => $res, 'pend' => $vals['pend'], 'item' => $item, 'pend_url' => $pend_url, 'count list' => count($vals['list']), 'count pend' => count($vals['pend'])]);
 }
 
-function make_pick_list($item) {
+//Getting all inventory of a drug can be thousands of items.  Let's start with a low limit that we increase as needed
+function make_pick_list($item, $limit = 500) {
 
   if ( ! isset($item['stock_level_initial']) AND $item['rx_gsn']) //If missing GSN then stock level won't be set
     log_error("ERROR make_pick_list: stock_level_initial is not set", get_defined_vars());
 
-  $safety   = 0.05;
-  $generic  = $item['drug_generic'];
-  $min_days = $item['days_dispensed_default'];
+  $safety   = 0.05; //Percent qty to overshop
   $min_qty  = $item['qty_dispensed_default'];
-  $stock    = $item['stock_level_initial'];
+  $long_exp = date('Y-m-01', strtotime("+".($item['days_dispensed_default']+6*7)." days")); //2015-05-13 We want any surplus from packing fast movers to be usable for ~6 weeks.  Otherwise a lot of prepacks expire on the shelf
 
-  $min_exp   = explode('-', date('Y-m', strtotime("+".($min_days-2*7)." days"))); //Used to use +14 days rather than -14 days as a buffer for dispensing and shipping. But since lots of prepacks expiring I am going to let almost expired things be prepacked
-  $long_exp  = date('Y-m-01', strtotime("+".($min_days+6*7)." days")); //2015-05-13 We want any surplus from packing fast movers to be usable for ~6 weeks.  Otherwise a lot of prepacks expire on the shelf
-
-  $start_key = rawurlencode('["8889875187","month","'.$min_exp[0].'","'.$min_exp[1].'","'.$generic.'"]');
-  $end_key   = rawurlencode('["8889875187","month","'.$min_exp[0].'","'.$min_exp[1].'","'.$generic.'",{}]');
-
-  $url  = '/transaction/_design/inventory-by-generic/_view/inventory-by-generic?reduce=false&include_docs=true&limit=500&startkey='.$start_key.'&endkey='.$end_key;
-
-  try {
-    $res = v2_fetch($url);
-  } catch (Error $e) {
-    log_error("WebForm make_pick_list fetch failed.  Retrying $item[invoice_number]", ['item' => $item, 'res' => $res, 'error' => $e]);
-    $res = v2_fetch($url);
-  }
-
-  if (count($res['rows']) < 10)
-    log_error("Webform Pending Error: Not enough qty found for $item[drug_generic] #0 of 2", ['count_inventory' => count($res['rows']), 'res' => $res]);
-
-  $unsorted_ndcs = group_by_ndc($res['rows'], $item);
+  $inventory     = get_v2_inventory($item, $limit);
+  $unsorted_ndcs = group_by_ndc($inventory, $item);
   $sorted_ndcs   = sort_by_ndc($unsorted_ndcs, $long_exp);
   $list          = get_qty_needed($sorted_ndcs, $min_qty, $safety);
 
@@ -202,7 +184,12 @@ function make_pick_list($item) {
     return $list;
   }
 
-  log_error("Webform Pending Error: Not enough qty found for $item[drug_generic] #1 of 2, trying half fill and no safety", ['count_inventory' => count($sorted_ndcs), 'item' => $item]);
+  if (count($inventory) == $limit) {  //We didn't make the list but there are more drugs that we can scan
+    log_error("Webform Pending Error: Not enough qty found for $item[drug_generic]. Increasing limit from $limit to ".($limit*2), ['count_inventory' => count($inventory), 'item' => $item]);
+    return make_pick_list($item, $limit*2);
+  }
+
+  log_error("Webform Pending Error: Not enough qty found for $item[drug_generic] (limit $limit) #1 of 2, trying half fill and no safety", ['count_inventory' => count($inventory), 'item' => $item]);
 
   $list = get_qty_needed($sorted_ndcs, $min_qty*0.5, 0);
 
@@ -225,7 +212,30 @@ function make_pick_list($item) {
 
   create_event($event_title, [$salesforce]);
 
-  log_error("Webform Pending Error: Not enough qty found for $item[drug_generic] #2 of 2, half fill with no safety failed", ['inventory' => $sorted_ndcs, 'count_inventory' => count($sorted_ndcs), 'item' => $item]);
+  log_error("Webform Pending Error: Not enough qty found for $item[drug_generic] (limit $limit) #2 of 2, half fill with no safety failed", ['inventory' => $sorted_ndcs, 'count_inventory' => count($sorted_ndcs), 'item' => $item]);
+}
+
+function get_v2_inventory($item, $limit) {
+
+  $generic  = $item['drug_generic'];
+  $min_days = $item['days_dispensed_default'];
+  $stock    = $item['stock_level_initial'];
+
+  $min_exp   = explode('-', date('Y-m', strtotime("+".($min_days-2*7)." days"))); //Used to use +14 days rather than -14 days as a buffer for dispensing and shipping. But since lots of prepacks expiring I am going to let almost expired things be prepacked
+
+  $start_key = rawurlencode('["8889875187","month","'.$min_exp[0].'","'.$min_exp[1].'","'.$generic.'"]');
+  $end_key   = rawurlencode('["8889875187","month","'.$min_exp[0].'","'.$min_exp[1].'","'.$generic.'",{}]');
+
+  $url  = "/transaction/_design/inventory-by-generic/_view/inventory-by-generic?reduce=false&include_docs=true&limit=$limit&startkey=$start_key&endkey=$end_key";
+
+  try {
+    $res = v2_fetch($url);
+  } catch (Error $e) {
+    log_error("WebForm make_pick_list fetch failed.  Retrying $item[invoice_number]", ['item' => $item, 'res' => $res, 'error' => $e]);
+    $res = v2_fetch($url);
+  }
+
+  return $res['rows'];
 }
 
 function group_by_ndc($rows, $item) {
