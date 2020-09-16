@@ -31,7 +31,7 @@ function update_stock_by_month() {
         IF (
           -- if we are already dispensing, we want 4 weeks (1 month) of inventory on hand before listing high supply
           -- if we are not already dispensing, we want 2 prescriptions of inventory on hand before listing high supply
-          IF(total_dispensed_actual > 0, total_dispensed_actual/$month_interval, total_dispensed_default) > last_inventory,
+          GREATEST(COALESCE(total_dispensed_actual/$month_interval, 0), COALESCE(total_dispensed_default, 0)) > last_inventory,
           -- Drugs that are recently ordered and never dispensed should not be labeled out of stock
           -- Drugs that are being dispensed but have less than 2 week of inventory on hand should be out of stock
           IF(total_dispensed_actual/$month_interval/2 > last_inventory, 'OUT OF STOCK', 'LOW SUPPLY'),
