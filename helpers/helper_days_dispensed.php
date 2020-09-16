@@ -82,10 +82,10 @@ function get_days_default($item, $order) {
 
       $event_title = @$item['invoice_number']." Missing GSN: $salesforce[contact] $created";
 
-      strtotime($item['rx_date_changed']) > strtotime('-10 minutes')
+      strtotime(max($item['rx_date_changed'], $item['order_date_changed'])) > strtotime('-15 minutes')
         ? create_event($event_title, [$salesforce])
         : log_error("CONFIRM DIDN'T CREATE SALESFORCE TASK - DUPLICATE $event_title", [$item, $salesforce]);
-        
+
       } else {
         log_error("CONFIRM DIDN'T CREATE SALESFORCE TASK - ORDER ITEMS NOT ORDER", $item);
       }
