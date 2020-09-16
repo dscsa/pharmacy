@@ -205,7 +205,7 @@ function get_order_stage_wc($order) {
   /*
 
     const PAYMENT_METHOD = [
-      'COUPON'       => 'coupon',
+      'COUPON'       => 'goodpill_wc_coupons_payment_gateway',
       'MAIL'         => 'cheque',
       'ONLINE'       => 'cash',
       'AUTOPAY'      => 'stripe',
