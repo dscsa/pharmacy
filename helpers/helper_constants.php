@@ -23,7 +23,7 @@ const TRANSFER_OUT_FOLDER_NAME = 'Transfer Outs';
 const PAYMENT_TOTAL_NEW_PATIENT = 6;
 
 const PAYMENT_METHOD = [
-  'COUPON'       => 'goodpill_wc_coupons_payment_gateway',
+  'COUPON'       => 'coupon',
   'MAIL'         => 'cheque',
   'ONLINE'       => 'cod',
   'AUTOPAY'      => 'stripe',

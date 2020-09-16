@@ -74,6 +74,15 @@ function import_wc_orders() {
 
   if ( ! count($orders[0])) return log_error('No Wc Orders to Import', get_defined_vars());
 
-  $keys = result_map($orders[0]);
+  $keys = result_map($orders[0],
+    function($row) {
+
+      if ($row['payment_method_actual'] == 'goodpill_wc_coupons_payment_gateway')
+        $row['payment_method_actual'] = PAYMENT_METHOD['COUPON'];
+
+      return $row;
+    }
+  );
+
   $mysql->replace_table("gp_orders_wc", $keys, $orders[0]);
 }
