@@ -42,6 +42,7 @@ function import_cp_rxs_single() {
       input_source.name as rx_source,
       rx_message.name as rx_message_key,
       last_transfer_type_io as rx_transfer,
+      cprx_trans_hx.add_date as rx_date_transferred,
 
       provider_npi,
       provider_first_name,
@@ -56,6 +57,9 @@ function import_cp_rxs_single() {
 
     LEFT JOIN cprx_disp ON
       cprx_disp.rxdisp_id = last_rxdisp_id
+
+    LEFT JOIN cprx_trans_hx ON
+		  cprx_trans_hx.rx_id = cprx.rx_id
 
     LEFT JOIN csct_code input_source ON
       input_source.ct_id = 194 AND input_source.code_num = input_src_cn
