@@ -736,6 +736,8 @@ $test_sigs = [
   //Take 1 tablet by mouth 1 HOUR PRIOR TO BEDTIME. AFTER 2 DAYS INCREASE TO 2 TABLETS
   //Take 2 tablets every morning and Take 1 tablet every evening;  Double if ill with fever\/ needs 190 tablets for 60 days
   //Take 1 capsule by mouth ONCE ON DAY 1 THEN 2 CAPS ON DAY 2 THEN 1 capsule 3 times a day THEREAFTER
+  //Inject 1 syringe under the skin 1 time per day for 14 doses
+  //Take 2 tablets by mouth once daily
 ];
 
 global $argv;

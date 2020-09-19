@@ -410,9 +410,6 @@ function qty_per_day($parsed) {
 
   $qty_per_day = $parsed['sig_qty']/($parsed['sig_days'] ?: DAYS_STD);
 
-  if ($qty_per_day > 10)
-    log_error("qty_per_day $qty_per_day > 10", $parsed);
-
   return round($qty_per_day, 3);
 }
 
