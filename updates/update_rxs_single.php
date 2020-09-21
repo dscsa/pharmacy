@@ -26,17 +26,17 @@ function update_rxs_single() {
 
     if ($parsed['qty_per_day'] > 8) {
 
-      $created = "Created:".date('Y-m-d H:i:s');
+      $created_date = "Created:".date('Y-m-d H:i:s');
 
       $salesforce = [
         "subject"   => "Verify qty pended for $item[drug_name] in Order #$item[invoice_number]",
-        "body"      => "In Order #$item[invoice_number], $item[drug_name] with sig '$item[sig_actual]' was parsed as $parsed[qty_per_day] qty per day, which is very high. $created",
+        "body"      => "In Order #$item[invoice_number], $item[drug_name] with sig '$item[sig_actual]' was parsed as $parsed[qty_per_day] qty per day, which is very high. $created_date",
         "contact"   => "$item[first_name] $item[last_name] $item[birth_date]",
         "assign_to" => "Cindy",
         "due_date"  => date('Y-m-d')
       ];
 
-      $event_title = "$item[invoice_number] Sig Parsing Error: $salesforce[contact] $created";
+      $event_title = "$item[invoice_number] Sig Parsing Error: $salesforce[contact] $created_date";
 
       create_event($event_title, [$salesforce]);
 

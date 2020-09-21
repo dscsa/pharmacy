@@ -54,17 +54,17 @@ function update_patients_wc() {
     else {
 
       $created_new_to_cp++;
-      $created = "Created:".date('Y-m-d H:i:s');
+      $created_date = "Created:".date('Y-m-d H:i:s');
 
       $salesforce = [
         "subject"   => "Fix Duplicate Patient",
-        "body"      => "Patient $created[first_name] $created[last_name] $created[birth_date] (WC user_id:$created[patient_id_wc]) in WC but not in CP. Fix and notify patient if necessary. Likely #1 a duplicate user in WC (forgot login so reregistered with slightly different name or DOB), #2 patient inactivated in CP (remove their birthday in WC to deactivate there), or #3 inconsistent birth_date between Rx in CP and Registration in WC. $created",
+        "body"      => "Patient $created[first_name] $created[last_name] $created[birth_date] (WC user_id:$created[patient_id_wc]) in WC but not in CP. Fix and notify patient if necessary. Likely #1 a duplicate user in WC (forgot login so reregistered with slightly different name or DOB), #2 patient inactivated in CP (remove their birthday in WC to deactivate there), or #3 inconsistent birth_date between Rx in CP and Registration in WC. $created_date",
         "contact"   => "$created[first_name] $created[last_name] $created[birth_date]",
         "assign_to" => "Joseph",
         "due_date"  => date('Y-m-d')
       ];
 
-      $event_title = "$salesforce[subject]: $salesforce[contact] $created";
+      $event_title = "$salesforce[subject]: $salesforce[contact] $created_date";
 
       $secs = time() - strtotime($created['patient_date_updated']);
 
