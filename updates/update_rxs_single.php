@@ -29,8 +29,8 @@ function update_rxs_single() {
       $created_date = "Created:".date('Y-m-d H:i:s');
 
       $salesforce = [
-        "subject"   => "Verify qty pended for $created[drug_name] in Order #$created[invoice_number]",
-        "body"      => "In Order #$created[invoice_number], $created[drug_name] with sig '$created[sig_actual]' was parsed as $parsed[qty_per_day] qty per day, which is very high. $created_date",
+        "subject"   => "Verify qty pended for $created[drug_name] in Order #$created[rx_number]",
+        "body"      => "For Rx #$created[rx_number], $created[drug_name] with sig '$created[sig_actual]' was parsed as $parsed[qty_per_day] qty per day, which is very high. $created_date",
         "contact"   => "$created[first_name] $created[last_name] $created[birth_date]",
         "assign_to" => "Cindy",
         "due_date"  => date('Y-m-d')
