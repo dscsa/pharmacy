@@ -57,7 +57,7 @@ function import_wc_patients() {
     MAX(CASE WHEN wp_usermeta.meta_key = 'allergies_amoxicillin' AND wp_usermeta.meta_value > '' then 'Amoxicillin' ELSE NULL END) as allergies_amoxicillin,
     MAX(CASE WHEN wp_usermeta.meta_key = 'allergies_other' AND wp_usermeta.meta_value > '' then LEFT(wp_usermeta.meta_value, 60) ELSE NULL END) as allergies_other, -- cppat_alr name field has a max of 60 characters
 
-    MAX(user_registered as patient_date_registered
+    MAX(user_registered) as patient_date_registered
 
   FROM
     wp_users
