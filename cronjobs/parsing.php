@@ -738,6 +738,10 @@ $test_sigs = [
   //Take 1 capsule by mouth ONCE ON DAY 1 THEN 2 CAPS ON DAY 2 THEN 1 capsule 3 times a day THEREAFTER
   //Inject 1 syringe under the skin 1 time per day for 14 doses
   //Take 2 tablets by mouth once daily
+  //Take 1 tablet by mouth twice a day for blood pressure
+  //Take 2 tablets by mouth once daily at bedtime for cholesterol
+  //'Take 1 tablet by mouth once daily ALONG WITH COMBO LISINOPRIL/HCTZ
+  //Take 1 capsule by mouth once every 2 weeks
 ];
 
 global $argv;
