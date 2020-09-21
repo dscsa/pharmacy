@@ -66,9 +66,11 @@ function update_patients_wc() {
 
       $event_title = "$salesforce[subject]: $salesforce[contact] $created_date";
 
-      $secs = time() - strtotime($created['patient_date_updated']);
+      //In WC Patient Changes we don't have the "patient_date_added" or "patient_date_changed" CP fields,
+      //"patient_date_updated" will always be within past 10mins, so use "patient_date_registered"
+      $secs = time() - strtotime($created['patient_date_registered']);
 
-      if ($secs/60 < 19) { //Otherwise gets repeated every 10mins.
+      if ($secs/60 < 30) { //Otherwise gets repeated every 10mins.
         create_event($event_title, [$salesforce]);
         log_error("New $event_title", [$secs, $patient, $created]);
       }
