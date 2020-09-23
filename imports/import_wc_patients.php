@@ -92,6 +92,11 @@ function import_wc_patients() {
 
       $row['language'] = $row['language'] == 'NULL' ? "'EN'" : $row['language'];
 
+      if ($row['payment_method_default'] == 'goodpill_wc_coupons_payment_gateway') {
+        log_error('payment_method_default goodpill_wc_coupons_payment_gateway >>> coupon', $row);
+        $row['payment_method_default'] = PAYMENT_METHOD['COUPON'];
+      }
+
       unset($row['backup_pharmacy']);
 
       return $row;
