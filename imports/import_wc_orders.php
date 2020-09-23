@@ -77,8 +77,10 @@ function import_wc_orders() {
   $keys = result_map($orders[0],
     function($row) {
 
-      if ($row['payment_method_actual'] == 'goodpill_wc_coupons_payment_gateway')
+      if ($row['payment_method_actual'] == 'goodpill_wc_coupons_payment_gateway') {
+        log_error('payment_method_actual goodpill_wc_coupons_payment_gateway >>> coupon', $row);
         $row['payment_method_actual'] = PAYMENT_METHOD['COUPON'];
+      }
 
       return $row;
     }
