@@ -82,7 +82,7 @@ function get_days_default($item, $order) {
 
       $event_title = @$item['invoice_number']." Missing GSN: $salesforce[contact] $created";
 
-      $mins_ago = (time() - strtotime(max($item['rx_date_changed'], $item['order_date_changed'])))/60;
+      $mins_ago = (time() - strtotime(max($item['rx_date_changed'], $item['order_date_changed'], $item['item_date_added'])))/60;
 
       $mins_ago <= 30
         ? create_event($event_title, [$salesforce])
