@@ -29,12 +29,10 @@ function update_stock_by_month() {
         drug_ordered IS NULL,
         IF(zscore > zhigh_threshold, 'ORDER DRUG', 'NOT OFFERED'),
         IF (
-          -- if we are already dispensing, we want 4 weeks (1 month) of inventory on hand before listing high supply
-          -- if we are not already dispensing, we want 2 prescriptions of inventory on hand before listing high supply
-          GREATEST(COALESCE(total_dispensed_actual/$month_interval, 0), COALESCE(total_dispensed_default, 0)) > last_inventory,
-          -- Drugs that are recently ordered and never dispensed should not be labeled out of stock
-          -- Drugs that are being dispensed but have less than 2 week of inventory on hand should be out of stock
-          IF(total_dispensed_actual/$month_interval/2 > last_inventory, 'OUT OF STOCK', 'LOW SUPPLY'),
+
+          last_inv_high_threshold > last_inventory,
+          IF(last_inv_low_threshold > last_inventory, 'OUT OF STOCK', 'LOW SUPPLY'),
+          
           IF(
             zlow_threshold IS NULL OR zhigh_threshold IS NULL,
             'PRICE ERROR',
@@ -55,6 +53,14 @@ function update_stock_by_month() {
         SELECT
 
         *,
+
+        -- if we are already dispensing, we want 4 weeks (1 month) of inventory on hand before listing high supply
+        -- if we are not already dispensing, we want 2 prescriptions of inventory on hand before listing high supply
+        GREATEST(COALESCE(total_dispensed_actual/$month_interval, 0), COALESCE(total_dispensed_default, 0)) as last_inv_high_threshold,
+
+        -- Drugs that are recently ordered and never dispensed should not be labeled out of stock
+        -- Drugs that are being dispensed but have less than 2 week of inventory on hand should be out of stock
+        GREATEST(COALESCE(total_dispensed_actual/$month_interval/2, 0), COALESCE(total_dispensed_default/2, 0)) as last_inv_low_threshold,
 
         -- zscore >= 0.25 -- 60% Confidence will be in stock for this 4 month interval.  Since we have inventory for previous 4 months we think the chance of stock out is about 40%^2
         -- zscore >= 0.52 -- 70% Confidence will be in stock for this 4 month interval.  Since we have inventory for previous 4 months we think the chance of stock out is about 30%^2
