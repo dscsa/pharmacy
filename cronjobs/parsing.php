@@ -740,10 +740,16 @@ $test_sigs = [
   //Take 2 tablets by mouth once daily
   //Take 1 tablet by mouth twice a day for blood pressure
   //Take 2 tablets by mouth once daily at bedtime for cholesterol
-  //'Take 1 tablet by mouth once daily ALONG WITH COMBO LISINOPRIL/HCTZ
+  //Take 1 tablet by mouth once daily ALONG WITH COMBO LISINOPRIL/HCTZ
   //Take 1 capsule by mouth once every 2 weeks
   //Place 1 tablet (0.4 mg total) under the tongue every 5 (five) minutes as needed for chest pain  Not to exceed 3 tablets per day
   //Take 2 tablets every morning and Take 1 tablet every evening;  Double if ill with fever\/ needs 190 tablets for 60 days
+  //TAKE 1 CAPSULE(S) 3 TIMES A DAY BY ORAL ROUTE AS NEEDED. 90 days
+  //Take 1 tablet by mouth twice a day in the morning and in the afternoon
+  //Take 1 tablet by mouth in the morning AND 2 tablets at bedtime
+  //Take 1 tablet by mouth 3 times a day as needed  for nausea
+  //Take 1 tablet by mouth every 6 hours as needed FOR nausea/vomiting
+  //Take 1/2 tablet by mouth twice a day
 ];
 
 global $argv;
