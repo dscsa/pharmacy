@@ -130,8 +130,7 @@ function get_days_default($item, $order) {
     return [$days_default, RX_MESSAGE['NO ACTION PATIENT REQUESTED']];
   }
 
-  //39652 don't refill surescripts early if rx is off autofill.  This means refill_date_next is null but refill_date_default may have a value
-  if ((strtotime($item['refill_date_default']) - strtotime(@$item['order_date_added'])) > DAYS_UNIT*24*60*60 AND ! $added_manually) {
+  if ((strtotime($item['refill_date_next']) - strtotime(@$item['order_date_added'])) > DAYS_UNIT*24*60*60 AND ! $added_manually) {
 
     //DON'T STRICTLY NEED THIS TEST BUT IT GIVES A MORE SPECIFIC ERROR SO IT MIGHT BE HELPFUL
     if ((strtotime(@$item['order_date_added']) - strtotime($item['refill_date_last'])) < DAYS_UNIT*24*60*60 AND ! $added_manually) {
@@ -171,6 +170,19 @@ function get_days_default($item, $order) {
   if ( ! $item['rx_autofill'] AND ! @$item['item_date_added']) {
     log_info("DON'T FILL IF RX_AUTOFILL IS OFF AND NOT IN ORDER", get_defined_vars());
     return [0, RX_MESSAGE['ACTION RX OFF AUTOFILL']];
+  }
+
+
+
+  if ( ! $item['rx_autofill'] AND @$item['item_date_added']) {
+
+    //39652 don't refill surescripts early if rx is off autofill.  This means refill_date_next is null but refill_date_default may have a value
+    if ((strtotime($item['refill_date_default']) - strtotime(@$item['order_date_added'])) > DAYS_UNIT*24*60*60 AND ! $added_manually) {
+      return [0, RX_MESSAGE['ACTION RX OFF AUTOFILL']];
+    }
+
+    log_info("OVERRIDE RX AUTOFILL OFF", get_defined_vars());
+    return [$days_default, RX_MESSAGE['NO ACTION RX REQUESTED']];
   }
 
   if ( ! $item['rx_autofill'] AND @$item['item_date_added']) {
