@@ -72,6 +72,9 @@ function clean_sig($sig) {
   $sig = preg_replace('/ +(mc?g)\\b| +(ml)\\b/i', '$1$2', $sig);   //get rid of extra spaces
   $sig = preg_replace('/[\w ]*replaces[\w ]*/i', '$1', $sig); //Take 2 tablets (250 mcg total) by mouth daily. This medication REPLACES Levothyroxine 112 mcg",
 
+  //Interpretting as 93 qty per day. Not sure if its best to just get rid of it here or fix the issue further down
+  $sig = preg_replace('/ 90 days?$/i', '$1', $sig); //TAKE 1 CAPSULE(S) 3 TIMES A DAY BY ORAL ROUTE AS NEEDED. 90 days
+
   //echo "1 $sig";
 
   //Spanish
