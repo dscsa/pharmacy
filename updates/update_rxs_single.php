@@ -118,23 +118,27 @@ function update_rxs_single() {
     remove_drugs_from_refill_reminders($patient[0]['first_name'], $patient[0]['last_name'], $patient[0]['birth_date'], [$created['drug_name']]);
   }
 
+  $patients = [];
+
   //Run this after rx_grouped query to ensure get_full_patient retrieves an accurate order profile
   foreach($changes['updated'] as $updated) {
 
     $changed = changed_fields($updated);
+    $cp_id   = $updated['patient_id_cp'];
+
 
     if ($updated['rx_autofill'] != $updated['old_rx_autofill']) {
 
-      $patient = @$patient ?: get_full_patient($updated, $mysql, $updated['rx_number']);
+      $patients[$cp_id] = @$patients[$cp_id] ?: get_full_patient($updated, $mysql, $updated['rx_number']);
       $sql     = ""; //Reset for logging
 
       //We want all Rxs with the same GSN to share the same rx_autofill value, so when one changes we must change them all
       //SQL to DETECT inconsistencies:
       //SELECT patient_id_cp, rx_gsn, MAX(drug_name), MAX(CONCAT(rx_number, rx_autofill)), GROUP_CONCAT(rx_autofill), GROUP_CONCAT(rx_number) FROM gp_rxs_single GROUP BY patient_id_cp, rx_gsn HAVING AVG(rx_autofill) > 0 AND AVG(rx_autofill) < 1
-      foreach ($patient as $item) {
+      foreach ($patients[$cp_id] as $item) {
         if (strpos($item['rx_numbers'], ",$updated[rx_number],") !== false) {
           $in  = str_replace(',', "','", substr($item['drug_gsns'], 1, -1)); //use drugs_gsns instead of rx_gsn just in case there are multiple gsns for this drug
-          $sql = "UPDATE cprx SET autofill_yn = $updated[rx_autofill], chg_date = GETDATE() WHERE pat_id = $updated[patient_id_cp] AND gcn_seqno IN ('$in')";
+          $sql = "UPDATE cprx SET autofill_yn = $updated[rx_autofill], chg_date = GETDATE() WHERE pat_id = $cp_id AND gcn_seqno IN ('$in')";
           $mssql->run($sql);
         }
       }
@@ -144,7 +148,7 @@ function update_rxs_single() {
 
     if ($updated['rx_gsn'] AND ! $updated['old_rx_gsn']) {
 
-      $patient = @$patient ?: get_full_patient($updated, $mysql, $updated['rx_number']); //This updates & overwrites set_rx_messages. TODO remove this once get_full_item updates rx_messages
+      $patients[$cp_id] = @$patients[$cp_id] ?: get_full_patient($updated, $mysql, $updated['rx_number']); //This updates & overwrites set_rx_messages. TODO remove this once get_full_item updates rx_messages
 
       $item = get_full_item($updated, $mysql); //TODO enable this to update and overwite rx_messages so we can avoid call above
 
@@ -157,12 +161,30 @@ function update_rxs_single() {
 
     if ($updated['rx_transfer'] AND ! $updated['old_rx_transfer']) {
 
-      $patient = @$patient ?: get_full_patient($updated, $mysql, $updated['rx_number']); //This updates & overwrites set_rx_messages
+      $patients[$cp_id] = @$patients[$cp_id] ?: get_full_patient($updated, $mysql, $updated['rx_number']); //This updates & overwrites set_rx_messages
 
       log_error("update_rxs_single rx was transferred out.  Confirm correct updated rxs_single.rx_message_key. rxs_grouped.rx_message_keys will be updated on next pass", [$patient, $updated, $changed]);
     }
 
   }
+
+  //Ensure that all Rxs have an associated message
+  $empty_messages = $mysql->run("SELECT * FROM gp_rxs_single WHERE rx_message_key IS NULL");
+
+  foreach($empty_messages[0] as $empty_message) {
+
+    $cp_id = $empty_message['patient_id_cp'];
+
+    if ($cp_id != '7366') continue; //Test only one patient for now
+
+    log_error("rx had an empty message, so setting it now", $empty_message);
+
+
+    $patients[$cp_id] = @$patients[$cp_id] ?: get_full_patient($empty_message, $mysql, $empty_message['rx_number']); //This updates & overwrites set_rx_messages
+  }
+
+
+
 
   //TODO if new Rx arrives and there is an active order where that Rx is not included because of "ACTION NO REFILLS" or "ACTION RX EXPIRED" or the like, then we should rerun the helper_days_dispensed on the order_item
 
