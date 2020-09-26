@@ -5,6 +5,8 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages) {
 
   $count_filled = 0;
 
+  log_notice("helper_full_fields", [$patient_or_order[0], count($patient_or_order), $overwrite_rx_messages]);
+
   //Consolidate default and actual suffixes to avoid conditional overload in the invoice template and redundant code within communications
   foreach($patient_or_order as $i => $dontuse) { //don't use val because order[$i] and $item will become out of sync as we set properties
 
