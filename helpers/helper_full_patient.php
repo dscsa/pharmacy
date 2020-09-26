@@ -34,12 +34,12 @@ function get_full_patient($partial, $mysql, $overwrite_rx_messages = false) {
   $patient = $mysql->run($sql.$where)[0];
 
   if ( ! $patient OR ! $patient[0]['patient_id_cp']) {
-    log_error("ERROR! get_full_patient: no active patient with id:$partial[patient_id_cp] #1 of 2. Import Order Error or No Recent Rxs?", get_defined_vars());
+    //log_error("ERROR! get_full_patient: no active patient with id:$partial[patient_id_cp] #1 of 2. Import Order Error or No Recent Rxs?", get_defined_vars());
 
     $patient = $mysql->run($sql)[0];
 
     if ( ! $patient OR ! $patient[0]['patient_id_cp']) {
-      log_error("ERROR! get_full_patient: no active patient with id:$partial[patient_id_cp] #2 of 2. Import Order Error or No Recent Rxs?", get_defined_vars());
+      log_error("ERROR! get_full_patient: no active patient with id:$partial[patient_id_cp] #2 of 2. Import Order Error, Deceased or Inactive Patient?", get_defined_vars());
       return;
     }
   }

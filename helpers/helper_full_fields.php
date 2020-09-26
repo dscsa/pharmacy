@@ -21,12 +21,16 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages) {
     $patient_or_order[$i]['rx_date_written'] = date('Y-m-d', strtotime($patient_or_order[$i]['rx_date_expired'].' -1 year')); //Set before export_gd_transfer_fax()
 
     //If this is full_patient was don't JOIN the order_items/order tables so those fields will not be set here
-    $overwrite = ($overwrite_rx_messages === true OR $overwrite_rx_messages == $patient_or_order[$i]['rx_number']);
-    $set_days  = (@$patient_or_order[$i]['item_date_added'] AND is_null($patient_or_order[$i]['days_dispensed_default']));
-    $set_msgs  = ($overwrite OR ! $patient_or_order[$i]['rx_message_key'] OR is_null($patient_or_order[$i]['rx_message_text']));
+    $overwrite   = ($overwrite_rx_messages === true OR $overwrite_rx_messages == $patient_or_order[$i]['rx_number']);
+    $missing_msg = (! $patient_or_order[$i]['rx_message_key'] OR is_null($patient_or_order[$i]['rx_message_text']));
+    $set_days    = (@$patient_or_order[$i]['item_date_added'] AND is_null($patient_or_order[$i]['days_dispensed_default']));
+    $set_msgs    = ($overwrite OR $missing_msg);
 
     if ($set_days OR $set_msgs) {
       list($days, $message) = get_days_default($patient_or_order[$i], $patient_or_order);
+
+      if ($missing_msg)
+        log_error("helper_full_fields: rx had an empty message, so setting it now", [$patient_or_order[$i], $message]);
 
       if ($set_days AND is_null($days))
         log_error("helper_full_fields set_days: days should not be NULL", get_defined_vars());

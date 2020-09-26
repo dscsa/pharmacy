@@ -161,15 +161,14 @@ function update_rxs_single() {
 
   //Ensure that all Rxs have an associated message
   $rx_singles = $mysql->run("SELECT * FROM gp_rxs_single WHERE rx_message_key IS NULL");
-  $patients   = [];
 
   foreach($rx_singles[0] as $rx_single) {
 
     $cp_id = $rx_single['patient_id_cp'];
 
-    $patients[$cp_id] = @$patients[$cp_id] ?: get_full_patient($rx_single, $mysql); //This updates & overwrites set_rx_messages
+    $patient = get_full_patient($rx_single, $mysql); //This updates & overwrites set_rx_messages
 
-    //log_error("rx had an empty message, so setting it now", [$patients[$cp_id], $rx_single]);
+    log_notice("update_rxs_single: rx had an empty message, so just set it", [$patient, $rx_single]);
   }
 
 
