@@ -175,7 +175,7 @@ function update_rxs_single() {
 
     $cp_id = $empty_message['patient_id_cp'];
 
-    if ($cp_id != '7366') continue; //Test only one patient for now
+    if ($cp_id > '6000100') continue; //Test only a few patients for now
 
     log_error("rx had an empty message, so setting it now", $empty_message);
 
