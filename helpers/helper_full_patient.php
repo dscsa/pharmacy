@@ -30,8 +30,8 @@ function get_full_patient($partial, $mysql, $overwrite_rx_messages = false) {
       gp_patients.patient_id_cp = $partial[patient_id_cp]
   ";
 
-
-  $patient = $mysql->run($sql.$where)[0];
+  //If we are not overwritting messages just get recent scripts, otherwise make sure we get all the rxs so we can overwrite them
+  $patient = $overwrite_rx_messages ? $mysql->run($sql)[0] : $mysql->run($sql.$where)[0];
 
   if ( ! $patient OR ! $patient[0]['patient_id_cp']) {
     //log_error("ERROR! get_full_patient: no active patient with id:$partial[patient_id_cp] #1 of 2. Import Order Error or No Recent Rxs?", get_defined_vars());
