@@ -750,6 +750,8 @@ $test_sigs = [
   //Take 1 tablet by mouth 3 times a day as needed  for nausea
   //Take 1 tablet by mouth every 6 hours as needed FOR nausea/vomiting
   //Take 1/2 tablet by mouth twice a day
+  //Take 1 capsule by mouth once daily
+  //Take 2 tablets (360 mg total) by mouth daily. Take 2 tablets by mouth once a day.
 ];
 
 global $argv;

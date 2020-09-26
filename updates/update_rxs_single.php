@@ -91,7 +91,7 @@ function update_rxs_single() {
 
       MAX(rx_date_changed) as rx_date_changed,
       MAX(rx_date_expired) as rx_date_expired,
-      NULLIF(MIN(CASE WHEN rx_transfer = 'O' THEN rx_date_transferred ELSE '0' END), '0') as rx_date_transferred -- Only mark as transferred if ALL Rxs are transferred out
+      NULLIF(MIN(CASE WHEN rx_transfer = 'O' THEN COALESCE(rx_date_transferred, rx_date_changed) ELSE '0' END), '0') as rx_date_transferred -- Only mark as transferred if ALL Rxs are transferred out
 
   	FROM gp_rxs_single
   	LEFT JOIN gp_drugs ON
