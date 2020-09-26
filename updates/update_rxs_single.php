@@ -113,7 +113,7 @@ function update_rxs_single() {
   //Created Lopp #2 of 2: Run this After so that Rx_grouped is set when doing get_full_patient
   foreach($changes['created'] as $created) {
 
-    $patient = get_full_patient($created, $mysql, $created['rx_number']); //This updates & overwrites set_rx_messages
+    $patient = get_full_patient($created, $mysql, true); //This updates & overwrites set_rx_messages.  TRUE because this one Rx might update many other Rxs for the same drug
 
     remove_drugs_from_refill_reminders($patient[0]['first_name'], $patient[0]['last_name'], $patient[0]['birth_date'], [$created['drug_name']]);
   }
