@@ -10,7 +10,8 @@ function update_rxs_single() {
   $mssql = new Mssql_Cp();
 
   //Ensure that all Rxs have an associated message even if there are no Rx Changes
-  $rx_singles = $mysql->run("SELECT * FROM gp_rxs_single WHERE rx_message_key IS NULL");
+  //Use JOIN to exclude Rxs associated with patients that are inactive or deceased
+  $rx_singles = $mysql->run("SELECT * FROM gp_rxs_single JOIN gp_patients ON gp_patients.patient_id_cp = gp_rxs_single.patient_id_cp WHERE rx_message_key IS NULL");
 
   foreach($rx_singles[0] as $rx_single) {
 
