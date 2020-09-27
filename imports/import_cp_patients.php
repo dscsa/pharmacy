@@ -64,9 +64,11 @@ function import_cp_patients() {
     LEFT JOIN cprx ON cprx.pat_id = pat.pat_id AND orig_disp_date < GETDATE() - 4
     LEFT JOIN cppat_alr ON cppat_alr.pat_id = pat.pat_id
     WHERE
-      birth_date IS NOT NULL AND -- pat.pat_id = 5869
-      pat_status_cn <> 2 -- Patient Inactive in Guardian
+      birth_date IS NOT NULL -- pat.pat_id = 5869
     GROUP BY pat.pat_id -- because cppat_phone had a duplicate entry for pat_id 5130 we got two rows so need a groupby.  This also removes refills_used from needing to be a subquery
+     -- Patient Deleted/Merged in Guardian 0 Not Specified, 1 Active, 2 Inactive, 3 Deceased (won't show up in patient search but will with Rx number)
+    HAVING
+      MAX(pat_status_cn) < 2 OR COUNT(rx_id) > 0 -- Eliminate inactive/deceased patients if there are no Rxs associate with that patient
 
   ");
 
