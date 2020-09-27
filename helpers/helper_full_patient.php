@@ -10,9 +10,6 @@ function get_full_patient($partial, $mysql, $overwrite_rx_messages = false) {
   }
 
   $month_interval = 6;
-  $where = "
-    AND (CASE WHEN refills_total THEN gp_rxs_grouped.rx_date_expired ELSE COALESCE(gp_rxs_grouped.rx_date_transferred, gp_rxs_grouped.refill_date_last) END) > CURDATE() - INTERVAL $month_interval MONTH
-  ";
 
   $sql = "
     SELECT
@@ -30,18 +27,17 @@ function get_full_patient($partial, $mysql, $overwrite_rx_messages = false) {
       gp_patients.patient_id_cp = $partial[patient_id_cp]
   ";
 
+  if ( ! $overwrite_rx_messages)
+    $sql .= "
+      AND (CASE WHEN refills_total THEN gp_rxs_grouped.rx_date_expired ELSE COALESCE(gp_rxs_grouped.rx_date_transferred, gp_rxs_grouped.refill_date_last) END) > CURDATE() - INTERVAL $month_interval MONTH
+    ";
+
   //If we are not overwritting messages just get recent scripts, otherwise make sure we get all the rxs so we can overwrite them
-  $patient = $overwrite_rx_messages ? $mysql->run($sql)[0] : $mysql->run($sql.$where)[0];
+  $patient = $mysql->run($sql)[0];
 
   if ( ! $patient OR ! $patient[0]['patient_id_cp']) {
-    //log_error("ERROR! get_full_patient: no active patient with id:$partial[patient_id_cp] #1 of 2. Import Order Error or No Recent Rxs?", get_defined_vars());
-
-    $patient = $mysql->run($sql)[0];
-
-    if ( ! $patient OR ! $patient[0]['patient_id_cp']) {
-      log_error("ERROR! get_full_patient: no active patient with id:$partial[patient_id_cp] #2 of 2. Deceased or Inactive Patient with Rxs", get_defined_vars());
+      log_error("ERROR! get_full_patient: no active patient with id:$partial[patient_id_cp]. Deceased or Inactive Patient with Rxs", get_defined_vars());
       return;
-    }
   }
 
   $patient = add_full_fields($patient, $mysql, $overwrite_rx_messages);
