@@ -6,6 +6,19 @@ require_once 'dbs/mysql_wc.php';
 
 function update_rxs_single() {
 
+  $mysql = new Mysql_Wc();
+  $mssql = new Mssql_Cp();
+
+  //Ensure that all Rxs have an associated message even if there are no Rx Changes
+  $rx_singles = $mysql->run("SELECT * FROM gp_rxs_single WHERE rx_message_key IS NULL");
+
+  foreach($rx_singles[0] as $rx_single) {
+
+    $patient = get_full_patient($rx_single, $mysql, $rx_single['rx_number']); //This updates & overwrites set_rx_messages
+
+    log_notice("update_rxs_single: rx had an empty message, so just set it", [$patient, $rx_single]);
+  }
+
   $changes = changes_to_rxs_single("gp_rxs_single_cp");
 
   $count_deleted = count($changes['deleted']);
@@ -15,9 +28,6 @@ function update_rxs_single() {
   if ( ! $count_deleted AND ! $count_created AND ! $count_updated) return;
 
   log_info("update_rxs_single: $count_deleted deleted, $count_created created, $count_updated updated.", get_defined_vars());
-
-  $mysql = new Mysql_Wc();
-  $mssql = new Mssql_Cp();
 
   //Created Loop #1 of 2: Run this before rx_grouped query to make sure all sig_qty_per_days are probably set before we group by them
   foreach($changes['created'] as $created) {
@@ -157,16 +167,6 @@ function update_rxs_single() {
       log_error("update_rxs_single rx was transferred out.  Confirm correct updated rxs_single.rx_message_key. rxs_grouped.rx_message_keys will be updated on next pass", [$patient, $updated, $changed]);
     }
 
-  }
-
-  //Ensure that all Rxs have an associated message
-  $rx_singles = $mysql->run("SELECT * FROM gp_rxs_single WHERE rx_message_key IS NULL");
-
-  foreach($rx_singles[0] as $rx_single) {
-
-    $patient = get_full_patient($rx_single, $mysql, $rx_single['rx_number']); //This updates & overwrites set_rx_messages
-
-    log_notice("update_rxs_single: rx had an empty message, so just set it", [$patient, $rx_single]);
   }
 
 
