@@ -49,7 +49,7 @@ function import_cp_patients() {
       MAX(CASE WHEN hic ='W1DH' AND ISNULL(cppat_alr.status_cn, 0) <> 3 THEN 'Azithromycin' ELSE NULL END) as allergies_azithromycin,
       MAX(CASE WHEN hic ='W1AU' AND ISNULL(cppat_alr.status_cn, 0) <> 3 THEN 'Amoxicillin' ELSE NULL END) as allergies_amoxicillin,
       MAX(CASE WHEN hic ='' AND Dam_agcsp = 0 AND ISNULL(cppat_alr.status_cn, 0) <> 3 THEN name ELSE NULL END) as allergies_other,
-      SUM(CASE WHEN refills_orig + 1 - refills_left > 0 THEN refills_orig + 1 - refills_left ELSE 0 END) as refills_used, --potential to SUM(is_refill) but seems that GCNs churn enough that this is not accurate
+      SUM(CASE WHEN refills_orig + 1 - refills_left > 0 AND orig_disp_date < GETDATE() - 4 THEN refills_orig + 1 - refills_left ELSE 0 END) as refills_used, --Although not identical, simplify to SUM(refills_used)? Potential to SUM(is_refill) but seems that GCNs churn enough that this is not accurate
       MAX(pat.pat_status_cn) as patient_status,
       MAX(ISNULL(primary_lang_cd, 'EN')) as language,
       CONVERT(varchar, MAX(pat.add_date), 20) as patient_date_added,
@@ -61,14 +61,14 @@ function import_cp_patients() {
     LEFT JOIN csphone ph2 (nolock) ON pp2.phone_id = ph2.phone_id
     LEFT JOIN cppat_addr pa  (nolock) ON (pat.pat_id = pa.pat_id and pa.addr_type_cn=2)
     LEFT JOIN csaddr a (nolock) ON pa.addr_id=a.addr_id
-    LEFT JOIN cprx ON cprx.pat_id = pat.pat_id AND orig_disp_date < GETDATE() - 4
+    LEFT JOIN cprx ON cprx.pat_id = pat.pat_id
     LEFT JOIN cppat_alr ON cppat_alr.pat_id = pat.pat_id
     WHERE
       birth_date IS NOT NULL -- pat.pat_id = 5869
     GROUP BY pat.pat_id -- because cppat_phone had a duplicate entry for pat_id 5130 we got two rows so need a groupby.  This also removes refills_used from needing to be a subquery
      -- Patient Deleted/Merged in Guardian 0 Not Specified, 1 Active, 2 Inactive, 3 Deceased (won't show up in patient search but will with Rx number)
     HAVING
-      MAX(pat_status_cn) < 2 OR COUNT(rx_id) > 0 -- Eliminate inactive/deceased patients if there are no Rxs associate with that patient
+      MAX(pat_status_cn) < 2 OR SUM(rx_id) > 0 -- Eliminate inactive/deceased patients if there are no Rxs associate with that patient
 
   ");
 
