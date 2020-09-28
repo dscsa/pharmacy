@@ -400,9 +400,9 @@ function set_days_default($item, $days, $mysql) {
 
 function refills_dispensed_default($item) {
 
-  if ( ! $item['qty_total'])
+  if ($item['qty_total'] <= 0) //Not sure if decimal 0.00 evaluates to falsey in PHP
     return 0;
-    
+
   if ($item['refill_date_first']) //This is initially called before days_dispensed_default is set, so assume a refill with null days is going to be filled (so subtract 1 from current refills)
     return max(0, $item['refills_total'] - ($item['days_dispensed_default'] === 0 ? 0 : 1));
 
