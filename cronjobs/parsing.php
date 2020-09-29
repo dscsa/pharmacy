@@ -754,6 +754,8 @@ $test_sigs = [
   //Take 2 tablets (360 mg total) by mouth daily. Take 2 tablets by mouth once a day.
   //Take 1 tablet (500 mg total) by mouth 2 (two) times a day as needed for muscle spasms for up to 120 doses.
   //Take 1 tablet (150 mg total) by mouth every night at bedtime. Take 1 tablet by mouth at bedtime
+  //Take 1 capsule (500 mg total) by mouth 3 (three) times a day for 2 doses
+  //Take 1 tablet by mouth at bedtime after meals for cholesterol
 ];
 
 global $argv;

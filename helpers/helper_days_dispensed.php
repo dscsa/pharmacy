@@ -21,7 +21,7 @@ function get_days_default($item, $order) {
 
   if ($item['rx_date_transferred']) {
 
-    if($stock_level == STOCK_LEVEL['HIGH SUPPLY'] AND strtotime($item['rx_date_transferred']) > strtotime('-1 month')) {
+    if($stock_level == STOCK_LEVEL['HIGH SUPPLY'] AND strtotime($item['rx_date_transferred']) > strtotime('-2 day')) {
 
       $created = "Created:".date('Y-m-d H:i:s');
 
@@ -33,7 +33,7 @@ function get_days_default($item, $order) {
         "due_date"  => date('Y-m-d')
       ];
 
-      $event_title = "$item[invoice_number] High Stock Item Transferred: $salesforce[contact] $created";
+      $event_title = "$item[invoice_number] $item[drug_name] Is High Stock But Was Transferred: $salesforce[contact] $created";
 
       create_event($event_title, [$salesforce]);
       log_error($event_title, get_defined_vars());
