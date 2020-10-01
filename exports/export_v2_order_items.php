@@ -9,7 +9,7 @@ function export_v2_pend_order($order, $mysql) {
 function v2_pend_item($item, $mysql) {
   log_notice("v2_pend_item continue:".($item['days_dispensed_default'] ? 'Yes Days Dispensed Default' : 'No Days Dispensed Default'), "$item[rx_number]  $item[rx_dispensed_id] $item[days_dispensed_default]");//.print_r($item, true);
 
-  if ( ! $item['days_dispensed_default'] OR $item['rx_dispensed_id']) return;
+  if ( ! $item['days_dispensed_default'] OR $item['rx_dispensed_id'] OR is_null($item['last_inventory'])) return; //last_inventory is null if GCN match could not be made
 
   $vals = make_pick_list($item);
   print_pick_list($item, $vals);
