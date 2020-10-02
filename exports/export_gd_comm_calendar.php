@@ -27,7 +27,7 @@ function order_shipped_notice($groups) {
   $subject   = 'Good Pill shipped order '.($groups['COUNT_FILLED'] ? 'of '.$groups['COUNT_FILLED'].' items ' : '').' and it should arrive in 3-5 days.';
   $message   = '';
 
-  $message .= '<br><u>These Rxs are on the way:</u><br>'.implode(';<br>', array_merge($groups['FILLED_ACTION'], $groups['FILLED_NOACTION'])).';';
+  $message .= '<br><u>These Rxs are on the way:</u><br>'.implode(';<br>', $groups['FILLED']).';';
 
   $email = [ "email" => $groups['ALL'][0]['email'] ];
   $text  = [ "sms"   => get_phones($groups['ALL']) ];

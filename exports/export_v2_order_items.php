@@ -189,7 +189,7 @@ function make_pick_list($item, $limit = 500) {
     return make_pick_list($item, $limit*2);
   }
 
-  log_error("Webform Pending Error: Not enough qty found for $item[drug_generic] (limit $limit) #1 of 2, trying half fill and no safety", ['count_inventory' => count($inventory), 'item' => $item]);
+  log_error("Webform Pending Error: Not enough qty found for $item[drug_generic].  Looking for $min_qty with last_inventory of $item[last_inventory] (limit $limit) #1 of 2, trying half fill and no safety", ['count_inventory' => count($inventory), 'item' => $item]);
 
   $list = get_qty_needed($sorted_ndcs, $min_qty*0.5, 0);
 

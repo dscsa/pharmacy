@@ -757,6 +757,8 @@ $test_sigs = [
   //Take 1 capsule (500 mg total) by mouth 3 (three) times a day for 2 doses
   //Take 1 tablet by mouth at bedtime after meals for cholesterol
   //Take 5 tablets by mouth 3 times a day  max 15 tabs per day'
+  //Take 1 tablet by mouth every evening with meals
+  //Take 1 tablet by mouth every morning with meals
 ];
 
 global $argv;
