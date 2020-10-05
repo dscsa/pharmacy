@@ -8,7 +8,7 @@ function order_dispensed_event($order, $salesforce, $hours_to_wait) {
 
   $cancel = cancel_events_by_person($order[0]['first_name'], $order[0]['last_name'], $order[0]['birth_date'], 'order_dispensed_event', ['Order Dispensed', 'Order Canceled', 'Needs Form']);
 
-  $comm_arr = new_comm_arr($patient_label, $salesforce);
+  $comm_arr = new_comm_arr($patient_label, '', '', $salesforce);
 
   log_info('order_dispensed_event', get_defined_vars());
 
@@ -169,7 +169,7 @@ function confirm_shipment_event($order, $email, $salesforce, $hours_to_wait, $ho
   create_event($event_title, $comm_arr, $hours_to_wait, $hour_of_day);
 }
 
-function new_comm_arr($patient_label, $email, $text = '', $salesforce = '') {
+function new_comm_arr($patient_label, $email = '', $text = '', $salesforce = '') {
 
   $comm_arr = [];
   $auto     = [];

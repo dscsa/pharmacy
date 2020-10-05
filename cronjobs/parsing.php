@@ -759,6 +759,11 @@ $test_sigs = [
   //Take 5 tablets by mouth 3 times a day  max 15 tabs per day'
   //Take 1 tablet by mouth every evening with meals
   //Take 1 tablet by mouth every morning with meals
+  //Take 4 tablets by mouth 3 times a day with meal AND 2 TABS twice a day WITH SNACKS/ MAX 16 TABS/DAY
+  //Take 1 tablet by mouth twice a day with meal and take morning dose with vitamin c 500 mg
+  //Take 2 tablets (10 mg) on Sun, Tue, Thur, Sat; or as directed
+  //Take 1 tablet by mouth daily MAY take extra 20 mg for HF symptoms as needed.
+  //Take 1 tablet by mouth 1 time per day then 2 times a day thereafter
 ];
 
 global $argv;
