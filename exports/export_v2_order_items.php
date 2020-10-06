@@ -393,8 +393,13 @@ function get_qty_needed($rows, $min_qty, $safety) {
       $list = pend_to_list($list, $pend);
 
        //Shop for all matching medicine in the bin, its annoying and inefficient to pick some and leave the others
-       //Update: Don't do the above if we are in a prepack bin, otherwise way will way overshop (eg Order #42107)
-      if ($left <= 0 AND ($pend[0]['bin'] != @$inventory[$i+1]['bin'] OR strlen($pend[0]['bin']) == 3)) {
+       //Update 1: Don't do the above if we are in a prepack bin, otherwise way will way overshop (eg Order #42107)
+       //Udpdate 2: Don't do if they are manufacturer bottles otherwise we get way too much
+       $different_bin = ($pend[0]['bin'] != @$inventory[$i+1]['bin']);
+       $is_prepack    = (strlen($pend[0]['bin']) == 3);
+       $is_mfg_bottle = ($pend[0]['qty']['to'] >= 90);
+
+      if ($left <= 0 AND ($different_bin OR $is_prepack OR $is_mfg_bottle)) {
 
         usort($list, 'sort_list');
 

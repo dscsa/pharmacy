@@ -764,6 +764,9 @@ $test_sigs = [
   //Take 2 tablets (10 mg) on Sun, Tue, Thur, Sat; or as directed
   //Take 1 tablet by mouth daily MAY take extra 20 mg for HF symptoms as needed.
   //Take 1 tablet by mouth 1 time per day then 2 times a day thereafter
+  //Four tablets in AM and 4 Tablets in PM. #720 tablets every 90 days. 3 refills
+  //1000 mcg every 2 weeks //CYANOCOBALAMIN 1,000MCG/ML
+  
 ];
 
 global $argv;
