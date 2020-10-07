@@ -85,7 +85,10 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages) {
     }
 
     //refills_dispensed_default/actual only exists as an order item.  But for grouping we need to know for items not in the order
-    $patient_or_order[$i]['refills_dispensed'] = (float) ($patient_or_order[$i]['refills_dispensed_actual'] ?: ($patient_or_order[$i]['refills_dispensed_default'] ?: $patient_or_order[$i]['refills_total']));
+    $patient_or_order[$i]['refills_dispensed'] = round(
+                                                        (float) ($patient_or_order[$i]['refills_dispensed_actual'] ?: ($patient_or_order[$i]['refills_dispensed_default'] ?: $patient_or_order[$i]['refills_total'])),
+                                                        2
+                                                      );
     $patient_or_order[$i]['qty_dispensed']     = (float) ($patient_or_order[$i]['qty_dispensed_actual'] ?: $patient_or_order[$i]['qty_dispensed_default']); //cast to float to get rid of .000 decimal
     $patient_or_order[$i]['price_dispensed']   = (float) ($patient_or_order[$i]['price_dispensed_actual'] ?: ($patient_or_order[$i]['price_dispensed_default'] ?: 0));
   }
