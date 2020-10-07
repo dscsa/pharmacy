@@ -29,5 +29,5 @@ function export_gd_transfer_fax($item, $source) {
 
   $result = gdoc_post(GD_MERGE_URL, $args);
 
-  log_notice("WebForm export_gd_transfer_fax SENT ".(@$item['invoice_number'])." $item[drug_name] $source", get_defined_vars());
+  log_error("WebForm export_gd_transfer_fax SENT ".(@$item['invoice_number'])." $item[drug_name] $source", get_defined_vars());
 }
