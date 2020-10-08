@@ -179,8 +179,10 @@ function newSpreadsheet(opts) {
 
 function moveToFolder(file, folder) {
   if ( ! folder ) return
-  parentByFile(file).removeFile(file)
-  folderByName(folder).addFile(file)
+
+  file.moveTo(folder)
+  //parentByFile(file).removeFile(file)
+  //folderByName(folder).addFile(file)
 
   return file
 }
