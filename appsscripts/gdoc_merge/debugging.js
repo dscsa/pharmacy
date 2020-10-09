@@ -64,7 +64,7 @@ function sendEmail(to, subject, body, attachments) {
   var bcc = ''
 
   if ( ! to) {
-    bcc = 'adam@sirum.org'
+    bcc = 'tech@sirum.org'
   }
   else if ( ~ to.indexOf('@')) {
 
@@ -84,17 +84,17 @@ function sendEmail(to, subject, body, attachments) {
       return debugEmail('Stop email spam', 'to', to, msgHistory)
 
     if ( ! LIVE_MODE) to = ''
-    bcc = 'adam@sirum.org'
+    bcc = 'tech@sirum.org'
   }
   else {
     attachments = body
     body    = subject
     subject = to
-    to      = 'adam@sirum.org'
+    to      = 'tech@sirum.org'
   }
 
   var opts = {
-      from:'support@goodpill.org',
+      from:'webform@goodpill.org',
       name:'Good Pill Pharmacy',
       to:to,
       cc:cc,
