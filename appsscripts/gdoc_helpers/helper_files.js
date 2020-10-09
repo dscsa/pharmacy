@@ -145,8 +145,11 @@ function moveFile(opts, retry) {
   var fromFolder = DriveApp.getFoldersByName(opts.fromFolder).next()
   var file = fromFolder.searchFiles('title contains "'+opts.file+'"')
 
-  if (file.hasNext())
-    return moveToFolder(file.next(), opts.toFolder)
+  if (file.hasNext()) {
+    file = file.next()
+    debugEmail('gdoc_helpers moveFile CALLED', file.getName(), opts)
+    return moveToFolder(file, opts.toFolder)
+  }
 
   if ( ! retry) {
     Utilities.sleep(30000)
@@ -180,7 +183,7 @@ function newSpreadsheet(opts) {
 function moveToFolder(file, folder) {
   if ( ! folder ) return
 
-  file.moveTo(folder)
+  file.moveTo(folderByName(folder))
   //parentByFile(file).removeFile(file)
   //folderByName(folder).addFile(file)
 
