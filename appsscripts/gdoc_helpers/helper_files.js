@@ -125,8 +125,11 @@ function publishFile(opts){
   var folder = DriveApp.getFoldersByName(opts.folder).next()
   var file   = folder.searchFiles('title contains "'+opts.file+'"').next()
   var fileId = file.getId()
+  
+  console.log('publishFile '+file.getName())
+  
   //Side effect of this is that this account can no longer delete/trash/remove this file since must be done by owner
-  file.setOwner('admin@sirum.org') //support@goodpill.org can only publish files that require sirum sign in
+  file.setOwner('webform@sirum.org') //support@goodpill.org can only publish files that require sirum sign in
 
   var revisions = Drive.Revisions.list(fileId);
   var items = revisions.items;
@@ -144,6 +147,8 @@ function publishFile(opts){
 function moveFile(opts, retry) {
   var fromFolder = DriveApp.getFoldersByName(opts.fromFolder).next()
   var file = fromFolder.searchFiles('title contains "'+opts.file+'"')
+  
+  console.log('moveFile '+opts.file+' '+file.hasNext())
 
   if (file.hasNext()) {
     file = file.next()
@@ -183,6 +188,7 @@ function newSpreadsheet(opts) {
 function moveToFolder(file, folder) {
   if ( ! folder ) return
 
+  console.log('moveToFolder '+folder+'/'+file.getName())
   file.moveTo(folderByName(folder))
   //parentByFile(file).removeFile(file)
   //folderByName(folder).addFile(file)
