@@ -50,19 +50,56 @@ if ( ! flock($f, LOCK_EX | LOCK_NB))
   import_cp_patients(); //Put this after orders so that we never have an order without a matching patient
   $email .= timer("import_cp_patients", $time);
 
-  import_wc_patients(); //Put this after cp_patients so that we always import all new cp_patients first, so that out wc_patient created feed does not give false positives
+  /**
+   * Pull all the patiens/users out of woocommerce and put them into the mysql tables
+   *
+   * TABLE gp_patients_wc
+   *
+   * NOTE We get all users, but spcificlly we pull out users that have birthdates
+   *      below 1900 and above 2100. Assuming these are invalid birthdates
+   *      and not usable?
+   *
+   * NOTE Put this after cp_patients so that we always import all new cp_patients
+   *      first, so that out wc_patient created feed does not give false positives
+   */
+  import_wc_patients();
   $email .= timer("import_wc_patients", $time);
 
-  import_cp_rxs_single(); //Put this after order_items so that we never have an order item without a matching rx
+  /**
+   * Get the RX details out of CarePoint and put into the mysql table
+   *
+   * TABLE gp_rxs_single_cp
+   *
+   * NOTE Put this after order_items so that we never have an order item without a matching rx
+   */
+  import_cp_rxs_single();
   $email .= timer("import_cp_rxs_single", $time);
 
-  import_v2_stock_by_month(); //Put this after rxs so that we never have a rxs without a matching stock level
+  /**
+   * Import stock levels for this month and the 2 previous months.  Store this in
+   *
+   * TABLE gp_stock_by_month_v2
+   *
+   * NOTE Put this after rxs so that we never have a rxs without a matching stock level
+   */
+  import_v2_stock_by_month();
   $email .= timer("import_v2_stock_by_month", $time);
 
-  import_v2_drugs(); //Put this after rxs so that we never have a rxs without a matching drug
+  /**
+   * Get all the possible drugs from v2 and put them into
+   *
+   * TABLE gp_drugs_v2
+   *
+   * NOTE Put this after rxs so that we never have a rxs without a matching drug
+   */
+  import_v2_drugs();
   $email .= timer("import_v2_drugs", $time);
 
-  //Updates (Mirror Ordering of the above - not sure how necessary this is)
+  /**
+   * Retrieve all the drugs and CRUD the changes from v2 to the gp database
+   *
+   * NOTE Updates (Mirror Ordering of the above - not sure how necessary this is)
+   */
   update_drugs();
   $email .= timer("update_drugs", $time);
 

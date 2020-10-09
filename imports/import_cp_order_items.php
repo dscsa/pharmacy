@@ -1,5 +1,8 @@
 <?php
-
+/**
+ * Pull in the CarePoint order items
+ * @return void
+ */
 function import_cp_order_items() {
 
   $mssql = new Mssql_Cp();

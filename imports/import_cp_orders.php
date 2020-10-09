@@ -4,6 +4,10 @@ require_once 'dbs/mssql_cp.php';
 require_once 'dbs/mysql_wc.php';
 require_once 'helpers/helper_imports.php';
 
+/**
+ * Import all the orders for CarePoint (Guardian or cp)
+ * @return void
+ */
 function import_cp_orders() {
 
   $mssql = new Mssql_Cp();
@@ -48,6 +52,7 @@ function import_cp_orders() {
 }
 
 /*
+ * QUESTION: Do we need to keep this comment in the code?
 Cast(CASE WHEN script_status_cn = 0 AND rx.expire_date > @today THEN rx.refills_left ELSE 0 END as float) as refills_left,
 refills_total,
 Cast(rx.refills_orig + 1 as float) as refills_orig,
