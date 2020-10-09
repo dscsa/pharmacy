@@ -31,18 +31,18 @@ function update_stock_by_month() {
         IF(
           drug_ordered IS NULL,
           IF(zscore > zhigh_threshold, 'ORDER DRUG', 'NOT OFFERED'),
-          IF (
 
-            last_inv_high_threshold > last_inventory,
-
-            IF(last_inv_low_threshold > last_inventory, 'OUT OF STOCK', IF(zscore < zlow_threshold, 'REFILL ONLY', 'LOW SUPPLY')),
+          IF(
+            last_inv_low_threshold > last_inventory,
+            'OUT OF STOCK',
 
             IF(
               zscore < zlow_threshold,
               IF(total_dispensed_actual > last_inventory/10 OR last_inventory < 1000, 'REFILL ONLY', 'ONE TIME'),
+
               IF(
-                zscore < zhigh_threshold,
-              	'LOW SUPPLY',
+               last_inventory < last_inv_high_threshold OR zscore < zhigh_threshold,
+                'LOW SUPPLY',
               	'HIGH SUPPLY'
               )
             )
