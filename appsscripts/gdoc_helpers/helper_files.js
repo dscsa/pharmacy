@@ -13,7 +13,7 @@ function removeFiles(opts) {
     }
   }
 
-  infoEmail('removeFiles', opts, res)
+  //infoEmail('removeFiles', opts, res)
   return ['removeFiles', opts, res]
 }
 
@@ -129,8 +129,12 @@ function publishFile(opts){
   console.log('publishFile '+file.getName())
   
   //Side effect of this is that this account can no longer delete/trash/remove this file since must be done by owner
-  file.setOwner('webform@sirum.org') //support@goodpill.org can only publish files that require sirum sign in
-
+  
+  if (file.getOwner().getEmail() != 'webform@sirum.org') {
+    debugEmail('publishFile WRONG OWNER', 'File', file.getName(), 'Active User', Session.getActiveUser().getEmail(),'Effective User', Session.getEffectiveUser().getEmail(), 'File Owner', file.getOwner().getEmail())    
+    file.setOwner('webform@sirum.org') //support@goodpill.org can only publish files that require sirum sign in
+  }
+ 
   var revisions = Drive.Revisions.list(fileId);
   var items = revisions.items;
   var revisionId = items[items.length-1].id;

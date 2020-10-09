@@ -1,4 +1,10 @@
 function testCalendarEvent() {
+  
+  var cal = CalendarApp.getCalendarById('support@goodpill.org')
+  Logger.log(cal)
+  
+  return 
+  
   createCalendarEvent({
     cal_id:'sirum.org_k8j983q66k1t6gvgg59t0amq0k@group.calendar.google.com',
     start: '2019-11-27T13:00:00',
@@ -8,12 +14,19 @@ function testCalendarEvent() {
   })
 }
 
+//FOR THIS TO WORK THE CALENDAR HAS TO BE SHARED WITH THE SCRIPT USER (CURRENTLY WEBFORM@GOODPILL.ORG)
+//**AND** THE CALENDAR HAS TO BE ADDED TO THE SCRIPT USERS PROFILE (I.E. BE VIEWABLE ON CALENDAR.GOOGLE.COM)
 function createCalendarEvent(event) {
   event.stopDate  = addHours(event.hours, event.start)
   event.startDate = new Date(event.start)
-  infoEmail('createCalendarEvent', event)
-  return CalendarApp
-    .getCalendarById(event.cal_id)
+  //infoEmail('createCalendarEvent', event)
+  
+  var calendar =  CalendarApp.getCalendarById(event.cal_id)
+  
+  if ( ! calendar)
+    return debugEmail('createCalendarEvent ERROR NO CALENDAR WITH CAL_ID', event)
+  
+  return calendar
     .createEvent(
       event.title,
       event.startDate,
