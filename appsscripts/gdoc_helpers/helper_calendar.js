@@ -46,9 +46,10 @@ function removeCalendarEvents(opts) {
 
   for (var i in opts.events) {
     var event = opts.events[i]
-    var title = event.getTitle()+' Deleted:'+new Date()
+    
+    event.title = event.getTitle()+' Deleted:'+new Date() //So that logging has access to the title
 
-    event.setTitle(title)
+    event.setTitle(event.title)
 
     try { //We're sorry, a server error occurred. Please wait a bit and try again."
       event.deleteEvent()
@@ -58,7 +59,8 @@ function removeCalendarEvents(opts) {
     }
   }
 
-  infoEmail('removeCalendarEvents', opts)
+  if (opts.events.length)
+    infoEmail('removeCalendarEvents', opts)
 }
 
 function modifyCalendarEvents(opts) {
