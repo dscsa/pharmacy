@@ -3,7 +3,6 @@
 require_once 'dbs/mysql_wc.php';
 require_once 'helpers/helper_imports.php';
 
-
 /**
  * Pull all the patiens/users out of woocommerce and put them into the mysql tables
  *

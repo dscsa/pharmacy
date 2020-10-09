@@ -1,13 +1,27 @@
 <?php
+/*
+ TODO We will want to come up with a better solution than the replace table.
+       This is going to hit memory limits fairly frequently.  A better solution
+       would be a queue based system that we can create a ladder pattern of jobs
+       and process quickly and near realtime.
+ */
 
 ini_set('memory_limit', '1024M');
 ini_set('include_path', '/goodpill/webform');
 date_default_timezone_set('America/New_York');
 
+/*
+  General Requires
+ */
+
 require_once 'keys.php';
 require_once 'helpers/helper_log.php';
 require_once 'helpers/helper_constants.php';
 
+/*
+  Import Functions - Used to pull data into summary tables
+  with normalized formatting
+ */
 require_once 'imports/import_v2_drugs.php';
 require_once 'imports/import_v2_stock_by_month.php';
 require_once 'imports/import_cp_rxs_single.php';
@@ -17,6 +31,10 @@ require_once 'imports/import_cp_order_items.php';
 require_once 'imports/import_wc_orders.php';
 require_once 'imports/import_cp_orders.php';
 
+/*
+  Export Functions - used to push aggregate data out and to notify
+  users of interactions
+ */
 require_once 'updates/update_drugs.php';
 require_once 'updates/update_stock_by_month.php';
 require_once 'updates/update_rxs_single.php';
@@ -26,28 +44,66 @@ require_once 'updates/update_order_items.php';
 require_once 'updates/update_orders_wc.php';
 require_once 'updates/update_orders_cp.php';
 
-//Don't run next cron job if previous one is still running!!! Webform Log Notices 2020-02-29 04:47pm
-//https://stackoverflow.com/questions/10552016/how-to-prevent-the-cron-job-execution-if-it-is-already-running
+/**
+ * Sometimes the job can run too long and overlap with the next execution.
+ * We should log this error so we can keep track of how frequently it happens
+ *
+ * NOTE https://stackoverflow.com/questions/10552016/how-to-prevent-the-cron-job-execution-if-it-is-already-running
+ */
 $f = fopen('readme.md', 'w') or log_error('Webform Cron Job Cannot Create Lock File');
 
-if ( ! flock($f, LOCK_EX | LOCK_NB))
+if ( ! flock($f, LOCK_EX | LOCK_NB)) {
   return log_error('Skipping Webform Cron Job Because Previous One Is Still Running');
+}
 
-  try {
+try {
   timer("", $time);
   $email = '';
 
-  //Imports
-  import_wc_orders(); //TODO we can currently have a CP order without a matching WC order, in these cases the WC order will show up in the "deleted" feed
+  /**
+   * Import Orders from WooCommerce (an actual shippment) and store it in
+   * a summary table
+   *
+   * TABLE
+   *
+   * TODO we can currently have a CP order without a matching WC order,
+   *      in these cases the WC order will show up in the "deleted" feed
+   */
+  import_wc_orders();
   $email .= timer("import_wc_orders", $time);
 
-  import_cp_orders(); //Put this after wc_orders so that we never have an wc_order without a matching cp_order
+  /**
+   * Pull a list of the CarePoint Orders (an actual shipment) and store it in mysql
+   *
+   * TABLE gp_orders_cp
+   *
+   * NOTE Put this after wc_orders so that we never have an wc_order
+   *      without a matching cp_order
+   */
+  import_cp_orders(); //
   $email .= timer("import_cp_orders", $time);
 
-  import_cp_order_items(); //Put this after orders so that we never have an order without a matching order_item
+  /**
+   * Pull all the ordered items(perscribed medication) from CarePoint
+   * and put it into a table in mysql
+   *
+   * TABLE gp_order_items_cp
+   *
+   * NOTE Put this after orders so that we never have an order without a
+   *      matching order_item
+   */
+  import_cp_order_items(); //
   $email .= timer("import_cp_order_items", $time);
 
-  import_cp_patients(); //Put this after orders so that we never have an order without a matching patient
+  /**
+   *
+   * Copies all the patient data out of sharepoint and into the mysql table
+   *
+   * TABLE gp_patients_cp
+   *
+   * NOTE Put this after orders so that we never have an order without a matching patient
+   */
+  import_cp_patients();
   $email .= timer("import_cp_patients", $time);
 
   /**
@@ -94,6 +150,11 @@ if ( ! flock($f, LOCK_EX | LOCK_NB))
    */
   import_v2_drugs();
   $email .= timer("import_v2_drugs", $time);
+
+  /*
+    Importing and Normalizing are done.  Now we will start to push data
+    and communications
+   */
 
   /**
    * Retrieve all the drugs and CRUD the changes from v2 to the gp database
