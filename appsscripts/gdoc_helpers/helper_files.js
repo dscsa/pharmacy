@@ -123,7 +123,13 @@ function isModified(next, opts) {
 function publishFile(opts){
 
   var folder = DriveApp.getFoldersByName(opts.folder).next()
-  var file   = folder.searchFiles('title contains "'+opts.file+'"').next()
+  var file   = folder.searchFiles('title contains "'+opts.file+'"')
+  
+  if ( ! file.hasNext()) {
+    return debugEmail('publishFile NO SUCH FILE', 'File', opts)
+  }
+  
+  file = file.next()
   var fileId = file.getId()
   
   console.log('publishFile '+file.getName())
@@ -156,7 +162,7 @@ function moveFile(opts, retry) {
 
   if (file.hasNext()) {
     file = file.next()
-    debugEmail('gdoc_helpers moveFile CALLED', file.getName(), opts)
+    //debugEmail('gdoc_helpers moveFile CALLED', file.getName(), opts)
     return moveToFolder(file, opts.toFolder)
   }
 
