@@ -130,7 +130,7 @@ function publishFile(opts){
   
   //Side effect of this is that this account can no longer delete/trash/remove this file since must be done by owner
   
-  if (file.getOwner().getEmail() != 'webform@sirum.org') {
+  if (file.getOwner().getEmail() != 'webform@goodpill.org') {
     debugEmail('publishFile WRONG OWNER', 'File', file.getName(), 'Active User', Session.getActiveUser().getEmail(),'Effective User', Session.getEffectiveUser().getEmail(), 'File Owner', file.getOwner().getEmail())    
     file.setOwner('webform@sirum.org') //support@goodpill.org can only publish files that require sirum sign in
   }
