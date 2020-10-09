@@ -90,7 +90,8 @@ function searchCalendarEvents(opts) {
   var events   = calendar.getEvents(start, stop, config) //Can't put in name because can't google cal doesn't seem to support a partial word search e.g, "greg" will not show results for gregory
   //TODO Remove if/when Calendar support partial word searches
 
-  var matches = []
+  var matches   = []
+  var haystacks = []
 
   if (opts.regex_search) {
     var slash = opts.regex_search.lastIndexOf("/")
@@ -109,14 +110,14 @@ function searchCalendarEvents(opts) {
 
     if ( ! opts.past && (~ event.title.indexOf('CALLED') ||  ~ event.title.indexOf('EMAILED') ||  ~ event.title.indexOf('TEXTED'))) continue;
 
-    var haystack = (event.title+' '+event.description).toLowerCase()
+    haystacks.unshift((event.title+' '+event.description).toLowerCase())
 
-    if ( ! regex || haystack.match(regex))
+    if ( ! regex || haystacks[0].match(regex))
       matches.push(event)
   }
 
   if (events.length)
-    infoEmail('searchCalendarEvents', start, stop, matches ? matches.length : events.length, 'of '+events.length+' of the events below match the following:', opts)
+    infoEmail('searchCalendarEvents', start, stop, (matches ? matches.length : events.length)+' of '+events.length+' of the events match the following:', opts, haystacks)
 
   return matches
 }
