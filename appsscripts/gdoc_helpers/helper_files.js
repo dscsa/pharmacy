@@ -13,7 +13,7 @@ function removeFiles(opts) {
     }
   }
 
-  infoEmail('removeFiles', opts, res)
+  //infoEmail('removeFiles', opts, res)
   return ['removeFiles', opts, res]
 }
 
@@ -123,11 +123,24 @@ function isModified(next, opts) {
 function publishFile(opts){
 
   var folder = DriveApp.getFoldersByName(opts.folder).next()
-  var file   = folder.searchFiles('title contains "'+opts.file+'"').next()
+  var file   = folder.searchFiles('title contains "'+opts.file+'"')
+  
+  if ( ! file.hasNext()) {
+    return debugEmail('publishFile NO SUCH FILE', 'File', opts)
+  }
+  
+  file = file.next()
   var fileId = file.getId()
+  
+  console.log('publishFile '+file.getName())
+  
   //Side effect of this is that this account can no longer delete/trash/remove this file since must be done by owner
-  file.setOwner('admin@sirum.org') //support@goodpill.org can only publish files that require sirum sign in
-
+  
+  if (file.getOwner().getEmail() != 'webform@goodpill.org') {
+    debugEmail('publishFile WRONG OWNER', 'File', file.getName(), 'Active User', Session.getActiveUser().getEmail(),'Effective User', Session.getEffectiveUser().getEmail(), 'File Owner', file.getOwner().getEmail())    
+    file.setOwner('webform@sirum.org') //support@goodpill.org can only publish files that require sirum sign in
+  }
+ 
   var revisions = Drive.Revisions.list(fileId);
   var items = revisions.items;
   var revisionId = items[items.length-1].id;
@@ -144,9 +157,14 @@ function publishFile(opts){
 function moveFile(opts, retry) {
   var fromFolder = DriveApp.getFoldersByName(opts.fromFolder).next()
   var file = fromFolder.searchFiles('title contains "'+opts.file+'"')
+  
+  console.log('moveFile '+opts.file+' '+file.hasNext())
 
-  if (file.hasNext())
-    return moveToFolder(file.next(), opts.toFolder)
+  if (file.hasNext()) {
+    file = file.next()
+    //debugEmail('gdoc_helpers moveFile CALLED', file.getName(), opts)
+    return moveToFolder(file, opts.toFolder)
+  }
 
   if ( ! retry) {
     Utilities.sleep(30000)
@@ -179,8 +197,11 @@ function newSpreadsheet(opts) {
 
 function moveToFolder(file, folder) {
   if ( ! folder ) return
-  parentByFile(file).removeFile(file)
-  folderByName(folder).addFile(file)
+
+  console.log('moveToFolder '+folder+'/'+file.getName())
+  file.moveTo(folderByName(folder))
+  //parentByFile(file).removeFile(file)
+  //folderByName(folder).addFile(file)
 
   return file
 }

@@ -33,23 +33,24 @@ function update_stock_by_month() {
 
       * ,
 
-      IF (
-        drug_ordered IS NULL,
-        IF(zscore > zhigh_threshold, 'ORDER DRUG', 'NOT OFFERED'),
-        IF (
-
-          last_inv_high_threshold > last_inventory,
-          IF(last_inv_low_threshold > last_inventory, 'OUT OF STOCK', 'LOW SUPPLY'),
+      IF(
+        zlow_threshold IS NULL OR zhigh_threshold IS NULL,
+        'PRICE ERROR',
+        IF(
+          drug_ordered IS NULL,
+          IF(zscore > zhigh_threshold, 'ORDER DRUG', 'NOT OFFERED'),
 
           IF(
-            zlow_threshold IS NULL OR zhigh_threshold IS NULL,
-            'PRICE ERROR',
+            last_inventory < last_inv_low_threshold,
+            'OUT OF STOCK',
+
             IF(
               zscore < zlow_threshold,
               IF(total_dispensed_actual > last_inventory/10 OR last_inventory < 1000, 'REFILL ONLY', 'ONE TIME'),
+
               IF(
-                zscore < zhigh_threshold,
-              	'LOW SUPPLY',
+               last_inventory < last_inv_high_threshold OR zscore < zhigh_threshold,
+                'LOW SUPPLY',
               	'HIGH SUPPLY'
               )
             )
@@ -101,12 +102,12 @@ function update_stock_by_month() {
 
            GROUP_CONCAT(CONCAT(month, ' ', entered_sum) ORDER BY month ASC) as months_entered,
            -- Exclude current (partial) month from STD_DEV as it will look very different from full months
-           STDDEV_SAMP(IF(month <= (CURDATE() - INTERVAL 1 MONTH), entered_sum, NULL)) as stddev_entered,
+           STDDEV_SAMP(IF(month <= CURDATE(), entered_sum, NULL)) as stddev_entered,
            SUM(entered_sum) as total_entered,
 
            GROUP_CONCAT(CONCAT(month, ' ', dispensed_sum) ORDER BY month ASC) as months_dispensed,
            -- Exclude current (partial) month from STD_DEV as it will look very different from full months
-           IF(STDDEV_SAMP(IF(month <= (CURDATE() - INTERVAL 1 MONTH), dispensed_sum, NULL)) > 0, STDDEV_SAMP(IF(month <= (CURDATE() - INTERVAL 1 MONTH), dispensed_sum, NULL)), NULL) as stddev_dispensed_actual,
+           IF(STDDEV_SAMP(IF(month <= CURDATE(), dispensed_sum, NULL)) > 0, STDDEV_SAMP(IF(month <= CURDATE(), dispensed_sum, NULL)), NULL) as stddev_dispensed_actual,
            IF(SUM(dispensed_sum) > 0, SUM(dispensed_sum), NULL) as total_dispensed_actual,
 
            $default_rxs_min*COALESCE(MAX(gp_drugs.qty_repack), 135) as total_dispensed_default,
@@ -118,8 +119,8 @@ function update_stock_by_month() {
             gp_drugs.drug_generic = gp_stock_by_month.drug_generic
 
            WHERE
-            month > (CURDATE() - INTERVAL ".($month_interval+1)." MONTH) AND
-            month <= (CURDATE() - INTERVAL 0 MONTH)
+            month > (CURDATE() - INTERVAL $month_interval MONTH) AND
+            month <= (CURDATE() + INTERVAL 1 MONTH)
            GROUP BY
             gp_stock_by_month.drug_generic
         ) as subsub

@@ -15,8 +15,16 @@ function log_to_db($severity, $text, $file, $vars) {
    //$mysql->run("INSERT INTO gp_logs (severity, text, file, vars) VALUES ('$severity', '$text', '$file', '$vars')");
 }
 
+function email($email, $subject, $body) {
+
+   if ( ! is_string($body))
+    $body = json_safe_encode($body);
+
+   mail($email, $subject, $body, "From: webform@goodpill.org\r\n");
+}
+
 function log_to_email($severity, $text, $file, $vars) {
-   mail(DEBUG_EMAIL, "$severity: $text", "$severity: $text. $file vars: $vars", "From: webform@goodpill.org\r\n");
+   email(DEBUG_EMAIL, "$severity: $text", "$severity: $text. $file vars: $vars");
 }
 
 function log_to_cli($severity, $text, $file, $vars) {
@@ -70,9 +78,15 @@ function vars_to_json($vars, $file) {
 
   $vars = array_reverse($vars, true); //Put most recent variables at the top of the email
   $diff = array_diff_key($vars, array_flip($non_user_vars));
-  $json = json_encode(utf8ize($diff), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE); //| JSON_PARTIAL_OUTPUT_ON_ERROR
+  return json_safe_encode($diff);
+}
+
+function json_safe_encode($raw, $file = NULL) {
+
+  $json = json_encode(utf8ize($raw), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE); //| JSON_PARTIAL_OUTPUT_ON_ERROR
 
   if ( ! $json) {
+    $json  = '{}';
     $error = json_last_error_msg();
 
     $gp_logger->error("json_encode failed for logging {$error} : {$file}", $vars);
@@ -80,11 +94,12 @@ function vars_to_json($vars, $file) {
     if ($error == 'Inf and NaN cannot be JSON encoded')
       $error .= serialize($vars); //https://levels.io/inf-nan-json_encode/ json_encode(unserialize(str_replace(array(‘NAN;’,’INF;’),’0;’,serialize($reply))));
 
+    $file = $file ?: get_file();
     log_to_cli('ERROR', 'json_encode failed for logging', $file, $error);
     log_to_email('ERROR', 'json_encode failed for logging', $file, $error);
   }
 
-  return $json ? str_replace('\n', '', $json) : '{}';
+  return str_replace('\n', '', $json);
 }
 
 

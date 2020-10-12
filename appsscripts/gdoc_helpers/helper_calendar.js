@@ -1,4 +1,10 @@
 function testCalendarEvent() {
+  
+  var cal = CalendarApp.getCalendarById('support@goodpill.org')
+  Logger.log(cal)
+  
+  return 
+  
   createCalendarEvent({
     cal_id:'sirum.org_k8j983q66k1t6gvgg59t0amq0k@group.calendar.google.com',
     start: '2019-11-27T13:00:00',
@@ -8,12 +14,19 @@ function testCalendarEvent() {
   })
 }
 
+//FOR THIS TO WORK THE CALENDAR HAS TO BE SHARED WITH THE SCRIPT USER (CURRENTLY WEBFORM@GOODPILL.ORG)
+//**AND** THE CALENDAR HAS TO BE ADDED TO THE SCRIPT USERS PROFILE (I.E. BE VIEWABLE ON CALENDAR.GOOGLE.COM)
 function createCalendarEvent(event) {
   event.stopDate  = addHours(event.hours, event.start)
   event.startDate = new Date(event.start)
-  infoEmail('createCalendarEvent', event)
-  return CalendarApp
-    .getCalendarById(event.cal_id)
+  //infoEmail('createCalendarEvent', event)
+  
+  var calendar =  CalendarApp.getCalendarById(event.cal_id)
+  
+  if ( ! calendar)
+    return debugEmail('createCalendarEvent ERROR NO CALENDAR WITH CAL_ID', event)
+  
+  return calendar
     .createEvent(
       event.title,
       event.startDate,
@@ -33,9 +46,10 @@ function removeCalendarEvents(opts) {
 
   for (var i in opts.events) {
     var event = opts.events[i]
-    var title = event.getTitle()+' Deleted:'+new Date()
+    
+    event.title = event.getTitle()+' Deleted:'+new Date() //So that logging has access to the title
 
-    event.setTitle(title)
+    event.setTitle(event.title)
 
     try { //We're sorry, a server error occurred. Please wait a bit and try again."
       event.deleteEvent()
@@ -45,7 +59,8 @@ function removeCalendarEvents(opts) {
     }
   }
 
-  infoEmail('removeCalendarEvents', opts)
+  if (opts.events.length)
+    infoEmail('removeCalendarEvents', opts)
 }
 
 function modifyCalendarEvents(opts) {
@@ -77,7 +92,8 @@ function searchCalendarEvents(opts) {
   var events   = calendar.getEvents(start, stop, config) //Can't put in name because can't google cal doesn't seem to support a partial word search e.g, "greg" will not show results for gregory
   //TODO Remove if/when Calendar support partial word searches
 
-  var matches = []
+  var matches   = []
+  var haystacks = []
 
   if (opts.regex_search) {
     var slash = opts.regex_search.lastIndexOf("/")
@@ -96,14 +112,14 @@ function searchCalendarEvents(opts) {
 
     if ( ! opts.past && (~ event.title.indexOf('CALLED') ||  ~ event.title.indexOf('EMAILED') ||  ~ event.title.indexOf('TEXTED'))) continue;
 
-    var haystack = (event.title+' '+event.description).toLowerCase()
+    haystacks.unshift((event.title+' '+event.description).toLowerCase())
 
-    if ( ! regex || haystack.match(regex))
+    if ( ! regex || haystacks[0].match(regex))
       matches.push(event)
   }
 
   if (events.length)
-    infoEmail('searchCalendarEvents', start, stop, matches ? matches.length : events.length, 'of '+events.length+' of the events below match the following:', opts)
+    infoEmail('searchCalendarEvents', start, stop, (matches ? matches.length : events.length)+' of '+events.length+' of the events match the following:', opts, haystacks)
 
   return matches
 }
