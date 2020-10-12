@@ -25,9 +25,9 @@ function import_stock_for_month($month_index, $mysql) {
 
   //In 2019-12, we will store a row for the date 2019-12-01 with the entered qty for 2019-11 and the unexpired inventory for 2019-03.
   //This is a 4 month gap because we dispensed in 3 months with a 1 month buffer
-  $curr = $month_index;
+  $curr = $month_index+1;
   $next = $month_index+3;
-  $last = $month_index-1; //Current month is partial month and can throw off an average
+  $last = $month_index; //Current month is partial month and can throw off an average, but this is fixed in update_stock_by_month rather than here
 
   //https://stackoverflow.com/questions/1889758/getting-last-months-date-in-php
   $curr = strtotime("first day of ".($curr > 0 ? "+$curr" : $curr)." months");
@@ -38,8 +38,9 @@ function import_stock_for_month($month_index, $mysql) {
   $next = ["year" => date('Y', $next), "month" => date('m', $next)];
   $last = ["year" => date('Y', $last), "month" => date('m', $last)];
 
-  $last_query = "?start_key=[\"8889875187\",\"month\",\"$last[year]\",\"$last[month]\"]&end_key=[\"8889875187\",\"month\",\"$last[year]\",\"$last[month]\",{}]&group_level=5";
+  $curr_query = "?start_key=[\"8889875187\",\"month\",\"$curr[year]\",\"$curr[month]\"]&end_key=[\"8889875187\",\"month\",\"$curr[year]\",\"$curr[month]\",{}]&group_level=5";
   $next_query = "?start_key=[\"8889875187\",\"month\",\"$next[year]\",\"$next[month]\"]&end_key=[\"8889875187\",\"month\",\"$next[year]\",\"$next[month]\",{}]&group_level=5";
+  $last_query = "?start_key=[\"8889875187\",\"month\",\"$last[year]\",\"$last[month]\"]&end_key=[\"8889875187\",\"month\",\"$last[year]\",\"$last[month]\",{}]&group_level=5";
 
   $inventory_url = V2_IP.':8443/transaction/_design/inventory-by-generic/_view/inventory-by-generic'.$next_query;
   $entered_url = V2_IP.':8443/transaction/_design/entered-by-generic/_view/entered-by-generic'.$last_query;
@@ -85,7 +86,7 @@ function import_stock_for_month($month_index, $mysql) {
 
       $val = [
         'drug_generic'  => "'$drug_generic'",
-        'month'         => "'$curr[year]-$curr[month]-01'",
+        'month'         => "'$curr[year]-$curr[month]-01'",  //First day of next month is proxy for last day of current month
         $key.'_sum'     => clean_val($row['value'][0]['sum']),
         $key.'_count'   => clean_val($row['value'][0]['count']),
         $key.'_min'     => clean_val($row['value'][0]['min']),
