@@ -94,12 +94,12 @@ function update_stock_by_month() {
 
            GROUP_CONCAT(CONCAT(month, ' ', entered_sum) ORDER BY month ASC) as months_entered,
            -- Exclude current (partial) month from STD_DEV as it will look very different from full months
-           STDDEV_SAMP(IF(month <= (CURDATE() - INTERVAL 1 MONTH), entered_sum, NULL)) as stddev_entered,
+           STDDEV_SAMP(IF(month <= CURDATE(), entered_sum, NULL)) as stddev_entered,
            SUM(entered_sum) as total_entered,
 
            GROUP_CONCAT(CONCAT(month, ' ', dispensed_sum) ORDER BY month ASC) as months_dispensed,
            -- Exclude current (partial) month from STD_DEV as it will look very different from full months
-           IF(STDDEV_SAMP(IF(month <= (CURDATE() - INTERVAL 1 MONTH), dispensed_sum, NULL)) > 0, STDDEV_SAMP(IF(month <= (CURDATE() - INTERVAL 1 MONTH), dispensed_sum, NULL)), NULL) as stddev_dispensed_actual,
+           IF(STDDEV_SAMP(IF(month <= CURDATE(), dispensed_sum, NULL)) > 0, STDDEV_SAMP(IF(month <= CURDATE(), dispensed_sum, NULL)), NULL) as stddev_dispensed_actual,
            IF(SUM(dispensed_sum) > 0, SUM(dispensed_sum), NULL) as total_dispensed_actual,
 
            $default_rxs_min*COALESCE(MAX(gp_drugs.qty_repack), 135) as total_dispensed_default,
