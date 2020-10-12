@@ -111,8 +111,8 @@ function update_stock_by_month() {
             gp_drugs.drug_generic = gp_stock_by_month.drug_generic
 
            WHERE
-            month > (CURDATE() - INTERVAL ".($month_interval+1)." MONTH) AND
-            month <= (CURDATE() - INTERVAL 0 MONTH)
+            month > (CURDATE() - INTERVAL $month_interval MONTH) AND
+            month <= (CURDATE() + INTERVAL 1 MONTH)
            GROUP BY
             gp_stock_by_month.drug_generic
         ) as subsub
