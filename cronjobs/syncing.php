@@ -10,6 +10,8 @@ ini_set('memory_limit', '1024M');
 ini_set('include_path', '/goodpill/webform');
 date_default_timezone_set('America/New_York');
 
+require_once 'vendor/autoload.php';
+
 /*
   General Requires
  */
@@ -126,7 +128,8 @@ try {
    *
    * TABLE gp_rxs_single_cp
    *
-   * NOTE Put this after order_items so that we never have an order item without a matching rx
+   * NOTE Put this after order_items so that we never have an order item without
+   *  a matching rx
    */
   import_cp_rxs_single();
   $email .= timer("import_cp_rxs_single", $time);
@@ -164,9 +167,21 @@ try {
   update_drugs();
   $email .= timer("update_drugs", $time);
 
+  /**
+   * Bring in the inventory and put it into the live stock table
+   * then update the monthly stock table with those metrics
+   *
+   * TABLE gp_stock_live
+   * TABLE gp_stock_by_month
+   *
+   */
   update_stock_by_month();
   $email .= timer("update_stock_by_month", $time);
 
+  /**
+   * [update_rxs_single description]
+   * @var [type]
+   */
   update_rxs_single();
   $email .= timer("update_rxs_single", $time);
 

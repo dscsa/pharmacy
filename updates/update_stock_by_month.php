@@ -2,6 +2,14 @@
 require_once 'changes/changes_to_stock_by_month.php';
 require_once 'dbs/mysql_wc.php';
 
+/**
+ * Use a transaction to update the the current stock levels.  This DELETES all
+ * records from the table then repopulates everything with a query.  Finally
+ * logs an error if duplicate GSNs are found.
+ *
+ * @return void
+ */
+
 function update_stock_by_month() {
 
   $changes = changes_to_stock_by_month("gp_stock_by_month_v2");
