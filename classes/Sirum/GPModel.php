@@ -19,7 +19,7 @@ class GPModel
      * The list of fields that are allowed as properties
      * @var array
      */
-    protected $fieldNames = [];
+    protected $field_names = [];
 
     /**
      * I'm not dead yet.  I feel happy.
@@ -111,7 +111,7 @@ class GPModel
 
         // Check to see if the property is a persistable field
         // and make sure it's not an object
-        if (in_array($name, $this->fieldNames)) {
+        if (in_array($name, $this->field_names)) {
             $this->data[$name] = $value;
         }
     }
@@ -128,7 +128,7 @@ class GPModel
     public function setDataArray($data = [])
     {
         foreach ($data as $name => $value) {
-            if (in_array($name, $this->fieldNames)) {
+            if (in_array($name, $this->field_names)) {
                 // use the setter so we take adavantage
                 // of all features
                 $this->__set($name, $value);
@@ -143,27 +143,27 @@ class GPModel
      *
      * @param  string  $name The property to check
      *
-     * @return boolean  Return true if the Name is defined in the $fieldNames array
+     * @return boolean  Return true if the Name is defined in the $field_names array
      */
     public function isDefinedName($name)
     {
-        return in_array($property, $this->$fieldNames);
+        return in_array($property, $this->$field_names);
     }
 
     /**
      * An easy method for accessing the data in the array
      *
-     * @param array $fieldNames (Optional) A list of fieldnames that you can use
+     * @param array $field_names (Optional) A list of field_names that you can use
      *    to filter the returned array
      *
      * @return array
      */
-    public function toArray($fieldNames = [])
+    public function toArray($field_names = [])
     {
-        if (empty($fieldNames) || !is_array($fieldNames)) {
+        if (empty($field_names) || !is_array($field_names)) {
             return $this->data;
         } else {
-            return array_intersect_key($this->data, array_flip($fieldNames));
+            return array_intersect_key($this->data, array_flip($field_names));
         }
     }
 }
