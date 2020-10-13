@@ -89,7 +89,14 @@ function json_safe_encode($raw, $file = NULL) {
     $json  = '{}';
     $error = json_last_error_msg();
 
-    $gp_logger->error("json_encode failed for logging {$error} : {$file}", $vars);
+
+    if (is_array($vars)) {
+      $log_context = $vars;
+    } else {
+      $log_context = ["vars" => $vars];
+    }
+
+    $gp_logger->error("json_encode failed for logging {$error} : {$file}", $log_context);
 
     if ($error == 'Inf and NaN cannot be JSON encoded')
       $error .= serialize($vars); //https://levels.io/inf-nan-json_encode/ json_encode(unserialize(str_replace(array(‘NAN;’,’INF;’),’0;’,serialize($reply))));
@@ -145,8 +152,14 @@ function log_info($text, $vars = '') {
 
   $file   = get_file();
 
+  if (is_array($vars)) {
+    $log_context = $vars;
+  } else {
+    $log_context = ["vars" => $vars];
+  }
+
   // Log it before we make a string of the vars
-  $gp_logger->info("{$text} : {$file}", $vars);
+  $gp_logger->info("{$text} : {$file}", $log_context);
 
   $vars   = $vars ? vars_to_json($vars, $file) : '';
 
@@ -172,8 +185,14 @@ function log_error($text, $vars = '') {
 
   $file   = get_file();
 
+  if (is_array($vars)) {
+    $log_context = $vars;
+  } else {
+    $log_context = ["vars" => $vars];
+  }
+
   // Log it before we make a string of the vars
-  $gp_logger->error("{$text} : {$file}", $vars);
+  $gp_logger->error("{$text} : {$file}", $log_context);
 
   $vars   = $vars ? vars_to_json($vars, $file) : '';
 
@@ -212,7 +231,13 @@ function log_notice($text, $vars = '') {
   $file   = get_file();
 
   // Log it before we make a string of the vars
-  $gp_logger->notice("{$text} : {$file}", $vars);
+  if (is_array($vars)) {
+    $log_context = $vars;
+  } else {
+    $log_context = ["vars" => $vars];
+  }
+
+  $gp_logger->notice("{$text} : {$file}", $log_context);
 
   $vars   = $vars ? vars_to_json($vars, $file) : '';
 
