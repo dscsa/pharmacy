@@ -1,6 +1,7 @@
 <?php
 
 require_once 'dbs/mysql_wc.php';
+require_once 'helper_logger.php';
 
 global $mysql;
 $log_notices = [];
@@ -32,8 +33,18 @@ function log_to_cli($severity, $text, $file, $vars) {
    $severity: $text. $file vars: $vars";
 }
 
+/**
+ * Sanitize the vars so we don't expose server level details.  Convert the
+ * passed in data to a JSON string
+ *
+ * @param  array $vars  The data to sanitize
+ * @param  string $file The file calling the function
+ *
+ * @return string       The cleaned up string
+ */
 function vars_to_json($vars, $file) {
 
+   global $gp_logger;
    $non_user_vars = [
     "_COOKIE",
     "_ENV",
@@ -78,6 +89,8 @@ function json_safe_encode($raw, $file = NULL) {
     $json  = '{}';
     $error = json_last_error_msg();
 
+    $gp_logger->error("json_encode failed for logging {$error} : {$file}", $vars);
+
     if ($error == 'Inf and NaN cannot be JSON encoded')
       $error .= serialize($vars); //https://levels.io/inf-nan-json_encode/ json_encode(unserialize(str_replace(array(‘NAN;’,’INF;’),’0;’,serialize($reply))));
 
@@ -89,8 +102,17 @@ function json_safe_encode($raw, $file = NULL) {
   return str_replace('\n', '', $json);
 }
 
-//https://stackoverflow.com/questions/19361282/why-would-json-encode-return-an-empty-string
-//TODO in PHP 7.2+ use JSON_INVALID_UTF8_IGNORE instead
+
+/**
+ * Clean up a string so it is utf8 complient
+ *
+ * @param  string|array $d The item to sanitize
+ *
+ * @return mixed The sanitized item
+ *
+ * SOURCE https://stackoverflow.com/questions/19361282/why-would-json-encode-return-an-empty-string
+ * TODO in PHP 7.2+ use JSON_INVALID_UTF8_IGNORE instead
+ */
 function utf8ize($d) {
   if (is_array($d)) {
       foreach ($d as $k => $v) {
@@ -102,23 +124,57 @@ function utf8ize($d) {
   return $d;
 }
 
+/**
+ * Log an info.  Right now we are using This to store data in
+ * the database and stackdriver.  Eventually we should be able to
+ * strip that back to just stackdriver
+ *
+ * @param  string $text The Message for the alert
+ * @param  array $vars  The context vars for the alert
+ * @return void
+ *
+ * TODO Move this over so it uses logging levels instead of CLI switch
+ */
 function log_info($text, $vars = '') {
 
   global $argv;
 
+  global $gp_logger;
+
   if ( ! in_array('log=info', $argv)) return;
 
   $file   = get_file();
+
+  // Log it before we make a string of the vars
+  $gp_logger->info("{$text} : {$file}", $vars);
+
   $vars   = $vars ? vars_to_json($vars, $file) : '';
+
   log_to_cli(date('Y-m-d H:i:s').' INFO', $text, $file, $vars);
   log_to_db('INFO', $text, $file, $vars);
 }
 
+/**
+ * Log an error.  Right now we are using This to store data in
+ * the database and email and stackdriver.  Eventually we should be able to
+ * strip that back to just stackdriver
+ *
+ * @param  string $text The Message for the alert
+ * @param  array $vars  The context vars for the alert
+ * @return void
+ *
+ * TODO Move this over so it uses logging levels instead of CLI switch
+ */
 function log_error($text, $vars = '') {
 
   global $log_notices;
+  global $gp_logger;
 
   $file   = get_file();
+
+  // Log it before we make a string of the vars
+  $gp_logger->error("{$text} : {$file}", $vars);
+
   $vars   = $vars ? vars_to_json($vars, $file) : '';
 
   $log_notices[] = date('Y-m-d H:i:s')." ERROR $text, file:$file, vars:$vars";
@@ -134,14 +190,30 @@ function log_notices() {
   ", $log_notices);
 }
 
+/**
+ * Log a notice.  Right now we are using This to store data in
+ * the database and email and stackdriver.  Eventually we should be able to
+ * strip that back to just stackdriver
+ *
+ * @param  string $text The Message for the alert
+ * @param  array $vars  The context vars for the alert
+ * @return void
+ *
+ * TODO Move this over so it uses logging levels instead of CLI switch
+ */
 function log_notice($text, $vars = '') {
 
   global $argv;
   global $log_notices;
+  global $gp_logger;
 
   if ( ! in_array('log=notice', $argv) AND ! in_array('log=info', $argv)) return;
 
   $file   = get_file();
+
+  // Log it before we make a string of the vars
+  $gp_logger->notice("{$text} : {$file}", $vars);
+
   $vars   = $vars ? vars_to_json($vars, $file) : '';
 
   $log_notices[] = date('Y-m-d H:i:s')." NOTICE $text, file:$file, vars:$vars";
@@ -151,12 +223,24 @@ function log_notice($text, $vars = '') {
   log_to_db('NOTICE', $text, $file, $vars);
 }
 
+/**
+ * Find the filename of the currently leve of include
+ *
+ * @return string The name of the file that ran this function
+ */
 function get_file() {
   $trace = debug_backtrace(2, 3); //1st arge: exlude ["object"] AND ["args"], 2nd arg is a limit to how far back
   $index = count($trace) - 1;
   return $trace[$index]['function']."($index) in ".$trace[$index-1]['file']." on line #".$trace[$index-1]['line'];
 }
 
+/**
+ * A simple timer object to keep track of elapsed time
+ * @param  string $label A label to add to the timer
+ * @param  int    $start A microtime that signifies whene the timeer started
+ *
+ * @return int    The number of Milliseconds that have passed since the timer was created
+ */
 function timer($label, &$start) {
   $start = $start ?: [microtime(true), microtime(true)];
   $stop  = microtime(true);

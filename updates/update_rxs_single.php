@@ -9,16 +9,28 @@ function update_rxs_single() {
   $mysql = new Mysql_Wc();
   $mssql = new Mssql_Cp();
 
-  //Ensure that all Rxs have an associated message even if there are no Rx Changes
-  //Use JOIN to exclude Rxs associated with patients that are inactive or deceased
-  $rx_singles = $mysql->run("SELECT * FROM gp_rxs_single JOIN gp_patients ON gp_patients.patient_id_cp = gp_rxs_single.patient_id_cp WHERE rx_message_key IS NULL");
+
+  /**
+   * All RX should have a rx_message set.  We are going to query the database
+   * and look for any with a NULL rx_message_key.  If we dint one, get_full_patient()
+   * will fetch the user and update the message?
+   *
+   *  NOTE Use JOIN to exclude Rxs associated with patients that are inactive or deceased
+   */
+  $rx_singles = $mysql->run(
+    "SELECT *
+      FROM gp_rxs_single
+        JOIN gp_patients ON gp_patients.patient_id_cp = gp_rxs_single.patient_id_cp
+      WHERE rx_message_key IS NULL"
+  );
 
   foreach($rx_singles[0] as $rx_single) {
-
-    $patient = get_full_patient($rx_single, $mysql, $rx_single['rx_number']); //This updates & overwrites set_rx_messages
-
+    //This updates & overwrites set_rx_messages
+    $patient = get_full_patient($rx_single, $mysql, $rx_single['rx_number']);
     log_notice("update_rxs_single: rx had an empty message, so just set it", [$patient, $rx_single]);
   }
+
+  /* Now to do some work */
 
   $changes = changes_to_rxs_single("gp_rxs_single_cp");
 
@@ -30,16 +42,18 @@ function update_rxs_single() {
 
   log_info("update_rxs_single: $count_deleted deleted, $count_created created, $count_updated updated.", get_defined_vars());
 
-  //Created Loop #1 of 2: Run this before rx_grouped query to make sure all sig_qty_per_days are probably set before we group by them
+  /*
+   * Created Loop #1 First loop accross new items. Run this before rx_grouped query to make
+   * sure all sig_qty_per_days are properly set before we group by them
+   */
   foreach($changes['created'] as $created) {
-
+    // Get the signature
     $parsed = get_parsed_sig($created['sig_actual'], $created['drug_name']);
 
+    // If we have more than 8 a day, lets have a human verify the signature
     if ($parsed['qty_per_day'] > 8) {
-
       $created_date = "Created:".date('Y-m-d H:i:s');
-
-      $salesforce = [
+      $salesforce   = [
         "subject"   => "Verify qty pended for $created[drug_name] in Order #$created[rx_number]",
         "body"      => "For Rx #$created[rx_number], $created[drug_name] with sig '$created[sig_actual]' was parsed as $parsed[qty_per_day] qty per day, which is very high. $created_date",
         "contact"   => "$created[first_name] $created[last_name] $created[birth_date]",
@@ -51,16 +65,31 @@ function update_rxs_single() {
 
       create_event($event_title, [$salesforce]);
 
-      log_error($salesforce['body'], ['salesforce' => $salesforce, 'created' => $created, 'parsed' => $parsed]);
+      // TODO make this a warning not an error
+      log_error(
+        $salesforce['body'],
+        [
+          'salesforce' => $salesforce,
+          'created' => $created,
+          'parsed' => $parsed
+        ]
+      );
     }
 
     //TODO Eventually Save the Clean Script back into Guardian so that Cindy doesn't need to rewrite them
     set_parsed_sig($created['rx_number'], $parsed, $mysql);
   }
 
-  //This is an expensive (6-8 seconds) group query.
-  //TODO We should update rxs in this table individually on changes
-  //TODO OR We should add indexed drug info fields to the gp_rxs_single above on created/updated so we don't need the join
+  /* Finishe Loop Created Loop  #1 */
+
+  /*
+   * This work is to create the perscription groups.
+   *
+   * This is an expensive (6-8 seconds) group query.
+   * TODO We should update rxs in this table individually on changes
+   * TODO OR We should add indexed drug info fields to the gp_rxs_single above on
+   *      created/updated so we don't need the join
+   */
 
   $sql = "
     INSERT INTO gp_rxs_grouped
@@ -113,22 +142,43 @@ function update_rxs_single() {
       COALESCE(sig_qty_per_day_actual, sig_qty_per_day_default)
   ";
 
-
   $mysql->transaction();
   $mysql->run("DELETE FROM gp_rxs_grouped");
   $mysql->run($sql);
+
+  // QUESTION Do we need to get everthing or would a LIMIT 1 be fine?
   $mysql->run("SELECT * FROM gp_rxs_grouped")[0]
     ? $mysql->commit()
     : $mysql->rollback();
 
-  //Created Lopp #2 of 2: Run this After so that Rx_grouped is set when doing get_full_patient
+
+  /*
+   * Created Loop #2 We are now assigning the rx group to the new patients
+   * from created list.  We ae allso removing any drug refils.
+   *
+   * QUESTION Do new users have drug refils?
+   *
+   * Run this After so that Rx_grouped is set when doing get_full_patient
+   */
   foreach($changes['created'] as $created) {
+    // This updates & overwrites set_rx_messages.  TRUE because this one
+    // Rx might update many other Rxs for the same drug.
+    $patient = get_full_patient($created, $mysql, true);
 
-    $patient = get_full_patient($created, $mysql, true); //This updates & overwrites set_rx_messages.  TRUE because this one Rx might update many other Rxs for the same drug
-
-    remove_drugs_from_refill_reminders($patient[0]['first_name'], $patient[0]['last_name'], $patient[0]['birth_date'], [$created['drug_name']]);
+    remove_drugs_from_refill_reminders(
+      $patient[0]['first_name'],
+      $patient[0]['last_name'],
+      $patient[0]['birth_date'],
+      [$created['drug_name']]
+    );
   }
 
+  /* Finish Created Loop #2 */
+
+
+  /*
+   * Updated Loop
+   */
   //Run this after rx_grouped query to ensure get_full_patient retrieves an accurate order profile
   foreach($changes['updated'] as $updated) {
 
@@ -184,5 +234,5 @@ function update_rxs_single() {
   //TODO Add Group by "Qty per Day" so its GROUP BY Pat Id, Drug Name,
 
   //TODO GCN Updates Here Should Update Any Order Item That is has not GCN match
-  
+
 }

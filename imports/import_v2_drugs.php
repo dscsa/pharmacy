@@ -23,7 +23,7 @@ function import_v2_drugs() {
   $vals = [];
   foreach($drugs['rows'] as $row) {
 
-    list($drug_generic, $drug_gsns, $drug_brand) = $row['key'];
+    list($drug_generic, $drug_gsns, $drug_brand)     = $row['key'];
     list($price_goodrx, $price_nadac, $price_retail) = $row['value'];
 
     $val = [

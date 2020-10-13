@@ -4,6 +4,11 @@ require_once 'dbs/mssql_cp.php';
 require_once 'dbs/mysql_wc.php';
 require_once 'helpers/helper_imports.php';
 
+/**
+ * Pull the patient details out of CarePoint
+ *
+ * @return void
+ */
 function import_cp_patients() {
 
   $mssql = new Mssql_Cp();
@@ -78,6 +83,11 @@ function import_cp_patients() {
   //log_info("
   //import_cp_patients: rows ".count($patients[0]));
 
+  /**
+   * This map uses  closure to format the data around the patient.  Most of it is
+   * simple cleaning.
+   * @var [type]
+   */
   $keys = result_map($patients[0],
     function($row) {
 
@@ -86,29 +96,29 @@ function import_cp_patients() {
 
       //This is hard todo in MSSQL so doing it in PHP instead
       //These were single quoted by clean_val() already so need to have quotes striped
-      $val1 = $row['pharmacy_info'] == 'NULL' ? 'NULL' : substr($row['pharmacy_info'], 1, -1);
-      $val2 = $row['billing_info']  == 'NULL' ? 'NULL' : substr($row['billing_info'], 1, -1);
+      $pharm_info   = $row['pharmacy_info'] == 'NULL' ? 'NULL' : substr($row['pharmacy_info'], 1, -1);
+      $billing_info = $row['billing_info']  == 'NULL' ? 'NULL' : substr($row['billing_info'], 1, -1);
 
-      $val1 = explode(',', $val1) + ['', '', '', ''];
-      $val2 = explode(',', $val2) + ['', '', '', ''];
+      $pharm_info = explode(',', $pharm_info) + ['', '', '', ''];
+      $billing_info = explode(',', $billing_info) + ['', '', '', ''];
 
-      //log('result_map: '.print_r($val1, true).' '.print_r($val2, true));
+      //log('result_map: '.print_r($pharm_info, true).' '.print_r($billing_info, true));
 
       $row['pharmacy_name']    = $row['pharmacy_name'] == "''" ? 'NULL' : $row['pharmacy_name']; //Not sure how this happens
-      $row['pharmacy_npi']     = clean_val($val1[0]);
-      $row['pharmacy_fax']     = clean_phone($val1[1]);
-      $row['pharmacy_phone']   = clean_phone($val1[2]);
-      $row['pharmacy_address'] = clean_val($val1[3]);
+      $row['pharmacy_npi']     = clean_val($pharm_info[0]);
+      $row['pharmacy_fax']     = clean_phone($pharm_info[1]);
+      $row['pharmacy_phone']   = clean_phone($pharm_info[2]);
+      $row['pharmacy_address'] = clean_val($pharm_info[3]);
 
-      $row['payment_card_last4']        = clean_val($val2[0]);
-      $row['payment_card_date_expired'] = clean_val($val2[1]);
-      $row['payment_card_type']         = clean_val($val2[2]);
+      $row['payment_card_last4']        = clean_val($billing_info[0]);
+      $row['payment_card_date_expired'] = clean_val($billing_info[1]);
+      $row['payment_card_type']         = clean_val($billing_info[2]);
 
-      if ($val2[1]) {
-        if ($val2[1] == "/") {
+      if ($billing_info[1]) {
+        if ($billing_info[1] == "/") {
           $row['payment_card_date_expired'] = 'NULL';
         } else {
-          $date_expired = date_create_from_format("m/y", $val2[1]);
+          $date_expired = date_create_from_format("m/y", $billing_info[1]);
 
           if ($date_expired) {
             $row['payment_card_date_expired'] = date_format($date_expired, "'Y-m-t'"); //t give last day of month.  d was givign current day
@@ -121,19 +131,19 @@ function import_cp_patients() {
         }
       }
 
-      if ( ! $val2[3]) {
+      if ( ! $billing_info[3]) {
         $row['tracking_coupon'] = 'NULL';
         $row['payment_coupon']  = 'NULL';
       }
-      else if (substr($val2[3], 0, 6) == "track_") {
+      else if (substr($billing_info[3], 0, 6) == "track_") {
         log_info("Really Tracking Coupon???", get_defined_vars());
         $row['payment_coupon']  = 'NULL';
-        $row['tracking_coupon'] = clean_val($val2[3]);
+        $row['tracking_coupon'] = clean_val($billing_info[3]);
         assert_length($row, 'tracking_coupon', 5, 40); //with single quotes
       }
       else {
         $row['tracking_coupon'] = 'NULL';
-        $row['payment_coupon']  = clean_val($val2[3]);
+        $row['payment_coupon']  = clean_val($billing_info[3]);
         assert_length($row, 'payment_coupon', 5, 40); //with single quotes
       }
 

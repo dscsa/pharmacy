@@ -3,9 +3,15 @@
 require_once 'dbs/mysql_wc.php';
 require_once 'helpers/helper_imports.php';
 
-//DETECT DUPLICATES
-//SELECT invoice_number, COUNT(*) as counts FROM gp_orders_wc GROUP BY invoice_number HAVING counts > 1
-
+/**
+ * Pull all the patiens/users out of woocommerce and put them into the mysql tables
+ *
+ * QUESTION Why do we limit to users with birthdates < 2100 instead of < YEAR(NOW())?
+ *
+ * QUESTION Old code left in place.  Is this needed?
+ *  DETECT DUPLICATES
+ *  SELECT invoice_number, COUNT(*) as counts FROM gp_orders_wc GROUP BY invoice_number HAVING counts > 1
+ */
 function import_wc_patients() {
 
   $mysql = new Mysql_Wc();
