@@ -14,6 +14,10 @@ class ComposerStaticInit54659efd329fa3a958f5cddec29d1420
     );
 
     public static $prefixLengthsPsr4 = array (
+        'S' => 
+        array (
+            'Sirum\\' => 6,
+        ),
         'P' => 
         array (
             'Psr\\Log\\' => 8,
@@ -50,6 +54,10 @@ class ComposerStaticInit54659efd329fa3a958f5cddec29d1420
     );
 
     public static $prefixDirsPsr4 = array (
+        'Sirum\\' => 
+        array (
+            0 => __DIR__ . '/../..' . '/classes/Sirum',
+        ),
         'Psr\\Log\\' => 
         array (
             0 => __DIR__ . '/..' . '/psr/log/Psr/Log',

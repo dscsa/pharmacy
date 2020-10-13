@@ -7,7 +7,7 @@ use PDO;
 /**
  * Class for Database Access
  */
-class Goodpill extends MySQL
+class Goodpill
 {
 
   /**
@@ -15,13 +15,18 @@ class Goodpill extends MySQL
    * can use the MySQL originating class to load multiple databases
    * @var PDO
    */
-  private static $mysql;
+  private static $goodpill;
 
   /**
    * Create a MySQL PDO object that is connected to the goodpill Database
-   * @return [type] [description]
+   * @return PDO
    */
   public static function getConnection() {
-    return parent::getConnection(MYSQL_WC_IP, 'goodpill', MYSQL_WC_USER, MYSQL_WC_PWD);
+
+    if (!(self::$goodpill instanceof PDO)) {
+        self::$goodpill = Mysql::getPDO(MYSQL_WC_IP, 'goodpill', MYSQL_WC_USER, MYSQL_WC_PWD);
+    }
+
+    return self::$goodpill;
   }
 }

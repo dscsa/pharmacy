@@ -3,17 +3,14 @@
 namespace Sirum\Notifications;
 
 use Sirum\Storage\Goodpill;
+use Sirum\GPModel;
 
-require_once 'dbs/mysql_wc.php';
-
-class Notification {
+class Notification extends GPModel {
 
   protected $type = 'unkonwn';
 
-  protected $gpdb;
-
   public function __construct($hash = null) {
-    $this->$gpdb = Goodpill::getConnection();
+    parent::__construct();
   }
 
   public function load($hash, $token) {
