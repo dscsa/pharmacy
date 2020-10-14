@@ -18,6 +18,7 @@ require_once 'vendor/autoload.php';
 
 require_once 'keys.php';
 require_once 'helpers/helper_log.php';
+require_once 'helpers/helper_logger.php';
 require_once 'helpers/helper_constants.php';
 
 /*
@@ -55,6 +56,7 @@ require_once 'updates/update_orders_cp.php';
 $f = fopen('readme.md', 'w') or log_error('Webform Cron Job Cannot Create Lock File');
 
 if ( ! flock($f, LOCK_EX | LOCK_NB)) {
+  $gp_logger->error('Skipping Webform Cron Job Because Previous One Is Still Running');
   return log_error('Skipping Webform Cron Job Because Previous One Is Still Running');
 }
 
