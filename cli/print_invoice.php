@@ -17,9 +17,8 @@ if (!isset($arrOptions['i']) || isset($arrOptions['h'])) {
 }
 
 $invoice_number = $arrOptions['i'];
-//mysql          = new Mysql_Wc();
-// Grab the order details
-// push the order over to the print
+$mysql          = new Mysql_Wc();
+
 if (isset($arrOptions['d'])) {
   // Check for script running.
   $f = fopen('readme.md', 'w') or log_error('Cannot Create Lock File');
