@@ -6,8 +6,9 @@ date_default_timezone_set('America/New_York');
 
 require_once 'vendor/autoload.php';
 
-//require_once 'exports/export_gd_orders.php';
-//require_once 'dbs/mysql_wc.php';
+require_once 'exports/export_gd_orders.php';
+require_once 'dbs/mysql_wc.php';
+require_once 'update/update_orders_cp.php';
 
 $arrOptions   = getopt("i:hd", array());
 
