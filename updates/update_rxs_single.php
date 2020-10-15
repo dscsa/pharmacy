@@ -27,7 +27,16 @@ function update_rxs_single() {
   foreach($rx_singles[0] as $rx_single) {
     //This updates & overwrites set_rx_messages
     $patient = get_full_patient($rx_single, $mysql, $rx_single['rx_number']);
-    log_notice("update_rxs_single: rx had an empty message, so just set it", [$patient, $rx_single]);
+
+    SirumLog::debug(
+        "rx had an empty message, so just set it",
+        [
+          "patient_id_cp" => $patient[0]['patient_id_cp'],
+          "patient_id_wc" => $patient[0]['patient_id_wc'],
+          "rx_single"     => $rx_single,
+          "method"        => "update_rxs_single"
+        ]
+      );
   }
 
   /* Now to do some work */
