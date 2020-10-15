@@ -3,6 +3,10 @@
 require_once 'dbs/mysql_wc.php';
 require_once 'helpers/helper_imports.php';
 
+/**
+ * IMport the last 3 months of stock
+ * @return void
+ */
 function import_v2_stock_by_month() {
 
   $mysql = new Mysql_Wc();
@@ -15,6 +19,20 @@ function import_v2_stock_by_month() {
 }
 
 //$month_index is 0 for current month, -1 for last month, +1 for next month, etc.
+/**
+ * Pull in the stock from a specific month in the past.  The data will be added
+ * to the database and nothing will be returned
+ *
+ * @param  int $month_index The number of month to start import.  Number is case
+ *    sensative.
+ *        * < 0 is past month
+ *        * 0 is current monty
+ *        * > 0 is future month
+ *
+ * @param   Mysql_Wc $mysql       A MySql connection object
+ *
+ * @return void
+ */
 function import_stock_for_month($month_index, $mysql) {
 
   $context = stream_context_create([
@@ -30,33 +48,33 @@ function import_stock_for_month($month_index, $mysql) {
   $last = $month_index; //Current month is partial month and can throw off an average, but this is fixed in update_stock_by_month rather than here
 
   //https://stackoverflow.com/questions/1889758/getting-last-months-date-in-php
-  $curr = strtotime("first day of ".($curr > 0 ? "+$curr" : $curr)." months");
-  $next = strtotime("first day of ".($next > 0 ? "+$next" : $next)." months");
-  $last = strtotime("first day of ".($last > 0 ? "+$last" : $last)." months");
+  $curr          = strtotime("first day of ".($curr > 0 ? "+$curr" : $curr)." months");
+  $next          = strtotime("first day of ".($next > 0 ? "+$next" : $next)." months");
+  $last          = strtotime("first day of ".($last > 0 ? "+$last" : $last)." months");
 
-  $curr = ["year" => date('Y', $curr), "month" => date('m', $curr)];
-  $next = ["year" => date('Y', $next), "month" => date('m', $next)];
-  $last = ["year" => date('Y', $last), "month" => date('m', $last)];
+  $curr          = ["year" => date('Y', $curr), "month" => date('m', $curr)];
+  $next          = ["year" => date('Y', $next), "month" => date('m', $next)];
+  $last          = ["year" => date('Y', $last), "month" => date('m', $last)];
 
   $curr_query = "?start_key=[\"8889875187\",\"month\",\"$curr[year]\",\"$curr[month]\"]&end_key=[\"8889875187\",\"month\",\"$curr[year]\",\"$curr[month]\",{}]&group_level=5";
   $next_query = "?start_key=[\"8889875187\",\"month\",\"$next[year]\",\"$next[month]\"]&end_key=[\"8889875187\",\"month\",\"$next[year]\",\"$next[month]\",{}]&group_level=5";
   $last_query = "?start_key=[\"8889875187\",\"month\",\"$last[year]\",\"$last[month]\"]&end_key=[\"8889875187\",\"month\",\"$last[year]\",\"$last[month]\",{}]&group_level=5";
 
   $inventory_url = V2_IP.':8443/transaction/_design/inventory-by-generic/_view/inventory-by-generic'.$next_query;
-  $entered_url = V2_IP.':8443/transaction/_design/entered-by-generic/_view/entered-by-generic'.$last_query;
-  $verified_url = V2_IP.':8443/transaction/_design/verified-by-generic/_view/verified-by-generic'.$last_query;
-  $refused_url = V2_IP.':8443/transaction/_design/refused-by-generic/_view/refused-by-generic'.$last_query;
-  $expired_url = V2_IP.':8443/transaction/_design/expired-by-generic/_view/expired-by-generic'.$last_query;
-  $disposed_url = V2_IP.':8443/transaction/_design/disposed-by-generic/_view/disposed-by-generic'.$last_query;
+  $entered_url   = V2_IP.':8443/transaction/_design/entered-by-generic/_view/entered-by-generic'.$last_query;
+  $verified_url  = V2_IP.':8443/transaction/_design/verified-by-generic/_view/verified-by-generic'.$last_query;
+  $refused_url   = V2_IP.':8443/transaction/_design/refused-by-generic/_view/refused-by-generic'.$last_query;
+  $expired_url   = V2_IP.':8443/transaction/_design/expired-by-generic/_view/expired-by-generic'.$last_query;
+  $disposed_url  = V2_IP.':8443/transaction/_design/disposed-by-generic/_view/disposed-by-generic'.$last_query;
   $dispensed_url = V2_IP.':8443/transaction/_design/dispensed-by-generic/_view/dispensed-by-generic'.$last_query;
 
-  $inventory = file_get_contents($inventory_url, false, $context);
-  $entered  = file_get_contents($entered_url, false, $context);
-  $verified = file_get_contents($verified_url, false, $context);
-  $refused = file_get_contents($refused_url, false, $context);
-  $expired = file_get_contents($expired_url, false, $context);
-  $disposed = file_get_contents($disposed_url, false, $context);
-  $dispensed = file_get_contents($dispensed_url, false, $context);
+  $inventory     = file_get_contents($inventory_url, false, $context);
+  $entered       = file_get_contents($entered_url, false, $context);
+  $verified      = file_get_contents($verified_url, false, $context);
+  $refused       = file_get_contents($refused_url, false, $context);
+  $expired       = file_get_contents($expired_url, false, $context);
+  $disposed      = file_get_contents($disposed_url, false, $context);
+  $dispensed     = file_get_contents($dispensed_url, false, $context);
 
   if ( ! $inventory AND ! $entered AND ! $verified)
     return log_error('v2 Import Error: Inventory, Entered, & Verified', [$inventory_url, $entered_url, $verified_url]);
@@ -68,11 +86,11 @@ function import_stock_for_month($month_index, $mysql) {
 
   $dbs = [
     'inventory' => json_decode($inventory, true)['rows'],
-    'entered' => json_decode($entered, true)['rows'],
-    'verified' => json_decode($verified, true)['rows'],
-    'refused' => json_decode($refused, true)['rows'],
-    'expired' => json_decode($expired, true)['rows'],
-    'disposed' => json_decode($disposed, true)['rows'],
+    'entered'   => json_decode($entered, true)['rows'],
+    'verified'  => json_decode($verified, true)['rows'],
+    'refused'   => json_decode($refused, true)['rows'],
+    'expired'   => json_decode($expired, true)['rows'],
+    'disposed'  => json_decode($disposed, true)['rows'],
     'dispensed' => json_decode($dispensed, true)['rows']
   ];
 

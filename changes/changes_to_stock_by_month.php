@@ -3,6 +3,15 @@
 require_once 'dbs/mysql_wc.php';
 require_once 'helpers/helper_changes.php';
 
+/**
+ * Find all the changes in the drug stock.
+ *
+ * @param  string $new The new table name.  Althought this is variable, I'm
+ *  not sure it every changes.
+ *
+ * @return Array     An array of the items, created, deleted,
+ *  and updated since the last complete run.
+ */
 function changes_to_stock_by_month($new) {
   $mysql = new Mysql_Wc();
 

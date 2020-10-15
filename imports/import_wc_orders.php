@@ -3,9 +3,18 @@
 require_once 'dbs/mysql_wc.php';
 require_once 'helpers/helper_imports.php';
 
-//DETECT DUPLICATES
-//SELECT invoice_number, COUNT(*) as counts FROM gp_orders_wc GROUP BY invoice_number HAVING counts > 1
+/**
+ * QUESTION: Old code for finding duplicates.  Do we need this anymore?
+ * DETECT DUPLICATES
+ * SELECT invoice_number, COUNT(*) as counts FROM gp_orders_wc GROUP BY invoice_number HAVING counts > 1
+ */
 
+
+/**
+ * Pull all the details from woocommerce into a table.  We will use this table
+ * to compare to the last execution and find changes
+ * @return void
+ **/
 function import_wc_orders() {
 
   $mysql = new Mysql_Wc();
@@ -24,11 +33,21 @@ function import_wc_orders() {
     HAVING number > 1
   ");
 
+  /* Make sure that there aren't any duplicates.
+   * If there are duplicate invoices, its a major error and
+   * QUESTION: How do we actually get duplicates needs to stop execution
+   */
   if (count($duplicates[0])) {
     log_error('WARNING Duplicate Invoice Numbers in WC. Stopping Cron Until Fixed', $duplicates[0]);
     exit;
   }
 
+
+  /*
+   * Grab all the orders out of woocommerce to create a snapshot
+   * of the current invoices We will compare these with the last time the
+   * script ran to find the differences
+   */
   $orders = $mysql->run("
 
   SELECT
@@ -72,11 +91,24 @@ function import_wc_orders() {
     invoice_number > 0
   ");
 
+  /*
+   * No reason to continue if there aren't any orders.
+   * QUESTION:  When would this ever return no values?
+   */
   if ( ! count($orders[0])) return log_error('No Wc Orders to Import', get_defined_vars());
 
+  /*
+   * We are looping over everything to change the coupon code
+   * to the correct value
+   */
   $keys = result_map($orders[0],
     function($row) {
 
+      /*
+       * QUESTION: What is goodpill_wc_coupons_payment_gateway?  is this a valid "error"
+       * or should it be a lower level like notice or debug.  Since we do so
+       * much data formatting in the SQL query, why don't we handle this there?
+       */
       if ($row['payment_method_actual'] == 'goodpill_wc_coupons_payment_gateway') {
         log_error('payment_method_actual goodpill_wc_coupons_payment_gateway >>> coupon', $row);
         $row['payment_method_actual'] = PAYMENT_METHOD['COUPON'];
@@ -86,5 +118,9 @@ function import_wc_orders() {
     }
   );
 
+  /*
+   * Replace the currently existing table
+   * TODO: Need to look for a more efficient way to handle this
+   */
   $mysql->replace_table("gp_orders_wc", $keys, $orders[0]);
 }
