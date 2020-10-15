@@ -6,15 +6,6 @@ require_once 'helper_logger.php';
 global $mysql;
 $log_notices = [];
 
-function log_to_db($severity, $text, $file, $vars) {
-   global $mysql;
-   $text  = substr($text, 0, 255);
-   $mysql = $mysql ?: new Mysql_Wc();
-   $text  = $mysql->escape($text);
-   $vars  = $mysql->escape($vars) ?: '[]';
-   //$mysql->run("INSERT INTO gp_logs (severity, text, file, vars) VALUES ('$severity', '$text', '$file', '$vars')");
-}
-
 function email($email, $subject, $body) {
 
    if ( ! is_string($body))
@@ -23,14 +14,8 @@ function email($email, $subject, $body) {
    mail($email, $subject, $body, "From: webform@goodpill.org\r\n");
 }
 
-function log_to_email($severity, $text, $file, $vars) {
-   email(DEBUG_EMAIL, "$severity: $text", "$severity: $text. $file vars: $vars");
-}
-
 function log_to_cli($severity, $text, $file, $vars) {
-   echo "
-
-   $severity: $text. $file vars: $vars";
+   echo "$severity: $text. $file vars: $vars\n";
 }
 
 /**
@@ -43,8 +28,6 @@ function log_to_cli($severity, $text, $file, $vars) {
  * @return string       The cleaned up string
  */
 function vars_to_json($vars, $file) {
-
-   global $gp_logger;
    $non_user_vars = [
     "_COOKIE",
     "_ENV",
@@ -96,14 +79,13 @@ function json_safe_encode($raw, $file = NULL) {
       $log_context = ["vars" => $vars];
     }
 
-    $gp_logger->error("json_encode failed for logging {$error} : {$file}", $log_context);
+    SirumLog::error("json_encode failed for logging {$error} : {$file}", $log_context);
 
     if ($error == 'Inf and NaN cannot be JSON encoded')
       $error .= serialize($vars); //https://levels.io/inf-nan-json_encode/ json_encode(unserialize(str_replace(array(‘NAN;’,’INF;’),’0;’,serialize($reply))));
 
     $file = $file ?: get_file();
     log_to_cli('ERROR', 'json_encode failed for logging', $file, $error);
-    log_to_email('ERROR', 'json_encode failed for logging', $file, $error);
   }
 
   return str_replace('\n', '', $json);
@@ -146,8 +128,6 @@ function log_info($text, $vars = '') {
 
   global $argv;
 
-  global $gp_logger;
-
   if ( ! in_array('log=info', $argv)) return;
 
   $file   = get_file();
@@ -159,12 +139,11 @@ function log_info($text, $vars = '') {
   }
 
   // Log it before we make a string of the vars
-  $gp_logger->info("{$text} : {$file}", $log_context);
+  SirumLog::info("{$text} : {$file}", $log_context);
 
   $vars   = $vars ? vars_to_json($vars, $file) : '';
 
   log_to_cli(date('Y-m-d H:i:s').' INFO', $text, $file, $vars);
-  log_to_db('INFO', $text, $file, $vars);
 }
 
 /**
@@ -181,7 +160,6 @@ function log_info($text, $vars = '') {
 function log_error($text, $vars = '') {
 
   global $log_notices;
-  global $gp_logger;
 
   $file   = get_file();
 
@@ -192,15 +170,13 @@ function log_error($text, $vars = '') {
   }
 
   // Log it before we make a string of the vars
-  $gp_logger->error("{$text} : {$file}", $log_context);
+  SirumLog::error("{$text} : {$file}", $log_context);
 
   $vars   = $vars ? vars_to_json($vars, $file) : '';
 
   $log_notices[] = date('Y-m-d H:i:s')." ERROR $text, file:$file, vars:$vars";
 
   log_to_cli(date('Y-m-d H:i:s').' ERROR', $text, $file, $vars);
-  log_to_email('ERROR', $text, $file, $vars);
-  log_to_db('ERROR', $text, $file, $vars);
 }
 
 function log_notices() {
@@ -224,7 +200,6 @@ function log_notice($text, $vars = '') {
 
   global $argv;
   global $log_notices;
-  global $gp_logger;
 
   if ( ! in_array('log=notice', $argv) AND ! in_array('log=info', $argv)) return;
 
@@ -237,15 +212,13 @@ function log_notice($text, $vars = '') {
     $log_context = ["vars" => $vars];
   }
 
-  $gp_logger->notice("{$text} : {$file}", $log_context);
+  SirumLog::notice("{$text} : {$file}", $log_context);
 
   $vars   = $vars ? vars_to_json($vars, $file) : '';
 
   $log_notices[] = date('Y-m-d H:i:s')." NOTICE $text, file:$file, vars:$vars";
 
   log_to_cli(date('Y-m-d H:i:s').' NOTICE', $text, $file, $vars);
-  //log_to_email('NOTICE', $text, $file, $vars);
-  log_to_db('NOTICE', $text, $file, $vars);
 }
 
 /**
@@ -257,24 +230,4 @@ function get_file() {
   $trace = debug_backtrace(2, 3); //1st arge: exlude ["object"] AND ["args"], 2nd arg is a limit to how far back
   $index = count($trace) - 1;
   return $trace[$index]['function']."($index) in ".$trace[$index-1]['file']." on line #".$trace[$index-1]['line'];
-}
-
-/**
- * A simple timer object to keep track of elapsed time
- * @param  string $label A label to add to the timer
- * @param  int    $start A microtime that signifies whene the timeer started
- *
- * @return int    The number of Milliseconds that have passed since the timer was created
- */
-function timer($label, &$start) {
-  $start = $start ?: [microtime(true), microtime(true)];
-  $stop  = microtime(true);
-
-  $diff = "
-  $label: ".ceil($stop-$start[0])." seconds of ".ceil($stop-$start[1])." total
-  ";
-
-  $start[0] = $stop;
-
-  return $diff;
 }

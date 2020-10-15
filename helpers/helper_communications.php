@@ -54,7 +54,15 @@ function group_drugs($order, $mysql) {
           (groups IS NULL OR groups NOT LIKE '$fill$action%')
       ";
 
-      log_notice('Saving group into order_items:', [$item, $sql]);
+      SirumLog::debug(
+        "Saving group into order_items",
+        [
+          "item"   => $item,
+          "sql"    => $sql,
+          "method" => "group_drugs"
+        ]
+      );
+
       $mysql->run($sql);
     }
 
