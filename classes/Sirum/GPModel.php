@@ -1,4 +1,7 @@
 <?php
+namespace Sirum;
+
+use Sirum\Storage\Goodpill;
 
 class GPModel
 {
@@ -147,7 +150,7 @@ class GPModel
      */
     public function isDefinedName($name)
     {
-        return in_array($property, $this->$field_names);
+        return in_array($name, $this->field_names);
     }
 
     /**

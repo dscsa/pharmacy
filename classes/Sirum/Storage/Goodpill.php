@@ -2,7 +2,7 @@
 
 namespace  Sirum\Storage;
 
-use PDO;
+use \PDO;
 
 /**
  * Class for Database Access

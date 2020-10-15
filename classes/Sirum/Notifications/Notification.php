@@ -5,6 +5,9 @@ namespace Sirum\Notifications;
 use Sirum\Storage\Goodpill;
 use Sirum\GPModel;
 
+use \PDO;
+use \Exception;
+
 class Notification extends GPModel
 {
     protected $field_names = [
@@ -34,7 +37,7 @@ class Notification extends GPModel
     {
         $pdo = $this->gpdb->prepare(
             "SELECT *
-          FROM {$this->$table_name}
+          FROM {$this->table_name}
           WHERE hash = :hash"
         );
 
@@ -49,9 +52,14 @@ class Notification extends GPModel
 
     public function create()
     {
+
+        if (!isset($this->token) || !isset($this->hash)) {
+            throw new Exception("token and hash are required fields");
+        }
+
         if (!$this->isStored()) {
             $pdo = $this->gpdb->prepare(
-                "INSERT INTO {$this->$table_name}
+                "INSERT INTO {$this->table_name}
                   (hash, token, details, type)
                   VALUES
                   (:hash, :token, :details, :type)"
@@ -79,16 +87,16 @@ class Notification extends GPModel
     public function increment()
     {
         // Make sure we have something set
-        $this->attempted_sends += 1;
+        $this->attempted_sends = $this->attempted_sends + 1;
 
         if ($this->isStored()) {
             $pdo = $this->gpdb->prepare(
-                "UPDATE {$this->$table_name}
+                "UPDATE {$this->table_name}
                   SET attempted_sends = :attempted_sends
                   WHERE hash = :hash"
             );
 
-            $pdo->bindParam(':attempted_sends', $this->attempted_send, PDO::PARAM_STR);
+            $pdo->bindParam(':attempted_sends', $this->attempted_sends, PDO::PARAM_STR);
             $pdo->bindParam(':hash', $this->hash, PDO::PARAM_STR);
             $pdo->execute();
         }
