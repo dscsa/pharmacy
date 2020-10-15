@@ -145,15 +145,19 @@ function update_orders_wc() {
       //Idea1:  Order had all items removed so it appeared to be deleted from CP, but when items were added back in the order 'reappeared'
       //Idea2: Failed when trying to be added to WC (e.g., in #28162 the patient could not be found)
       //Neither Idea1 or Idea2 seems to be the case for Order 29033
-      log_error("update_orders_wc: WC Order Appears to be DELETED. RECREATING! (If repeated possible Patient Name Mismatch? Or Processing Invoice # needs to be Updated?)", [
-        'order[0]' => $order[0],
-        'deleted' => $deleted,
-        'wc_post_id' => $wc_orders,
-        'gp_orders' => $gp_orders,
-        'gp_orders_wc' => $gp_orders_wc,
-        'gp_orders_cp' => $gp_orders_cp,
-        'sql' => $sql
-      ]);
+      SirumLog::error(
+        "WC Order Appears to be DELETED. RECREATING! (If repeated possible Patient Name Mismatch? Or Processing Invoice # needs to be Updated?",
+        [
+          'invoice_number' => $deleted['invoice_number'],
+          'order[0]'       => $order[0],
+          'deleted'        => $deleted,
+          'wc_post_id'     => $wc_orders,
+          'gp_orders'      => $gp_orders,
+          'gp_orders_wc'   => $gp_orders_wc,
+          'gp_orders_cp'   => $gp_orders_cp,
+          'sql'            => $sql
+        ]
+      );
 
       $order = helper_update_payment($order, "update_orders_wc: deleted - not shipped but still recreating", $mysql);
 
@@ -172,9 +176,14 @@ function update_orders_wc() {
     $old_stage = explode('-', $updated['old_order_stage_wc']);
 
     if ($old_stage[0] == 'trash' AND $updated['patient_id_wc'] == $updated['old_patient_id_wc']) {
-
-      log_error('WC Order was removed from trash OR a duplicate order exists and the trashed order needs to be permanently deleted', $updated);
-
+      SirumLog::debug(
+        "WC Order was removed from trash OR a duplicate order exists and the trashed order needs to be permanently deleted",
+        [
+          "invoice_number" => $updated['invoice_number'],
+          "updated"        => $updated,
+          "method"         => "update_orders_wc"
+        ]
+      );
     } else if ($old_stage[0] == 'trash' AND $updated['patient_id_wc'] != $updated['old_patient_id_wc']) {
 
       //log_error('WC Order was recreated with correct patient id', $updated);
@@ -182,17 +191,41 @@ function update_orders_wc() {
     } else if ($new_stage[0] == 'trash') {
 
       if ($old_stage[1] == 'shipped' OR $old_stage[1] == 'done' OR $old_stage[1] == 'late' OR $old_stage[1] == 'return')
-        log_error("$updated[invoice_number]: Shipped Order trashed in WC. Are you sure you wanted to do this?", $updated);
+        SirumLog::notice(
+          "Shipped Order trashed in WC. Are you sure you wanted to do this?",
+          [
+            "invoice_number" => $updated['invoice_number'],
+            "updated"        => $updated,
+            "method"         => "update_orders_wc"
+          ]
+        );
       else {
 
         $order = get_full_order($updated, $mysql);
 
         if ( ! $order) {
-          log_notice("$updated[invoice_number]: Non-Shipped Order trashed in WC", $updated);
+          SirumLog::notice(
+              "Non-Shipped Order trashed in WC",
+              [
+                "invoice_number" => $updated['invoice_number'],
+                "updated"        => $updated,
+                "method"         => "update_orders_wc"
+              ]
+            );
+
           continue;
         }
 
-        log_error("Why was Order #".$order[0]['invoice_number']." trashed? It still exists in Guarduan.  Moving Trash >>> ".$order[0]['order_stage_wc'].", but this is wrong if this is a *duplicate* order that was trashed", $order);
+        SirumLog::error(
+            "Guardian order marked trashed.",
+            [
+              "old_stage"      => $order[0]['order_stage_wc'],
+              "invoice_number" => $order[0]['invoice_number'],
+              "order"          => $order,
+              "method"         => "update_orders_wc"
+            ]
+          );
+
 
         export_wc_update_order_status($order); //Update to current status
         export_wc_update_order_metadata($order);
@@ -203,7 +236,18 @@ function update_orders_wc() {
       //Admin probably set order_stage_wc to NULL directly in database, hoping to refresh the order
       $order = get_full_order($updated, $mysql);
 
-      log_error("$updated[invoice_number]: WC Order Updating from NULL Status", [$order, $new_stage, $old_stage, $updated]);
+      SirumLog::notice(
+          "WC Order Updating from NULL Status",
+          [
+            "old_stage"      => $old_stag,
+            "new_stage"      => $new_stage,
+            "invoice_number" => $updated['invoice_number'],
+            "order"          => $order,
+            "updated"        => $updated,
+            "method"         => "update_orders_wc"
+          ]
+        );
+
 
       export_wc_update_order_status($order); //Update to current status
       export_wc_update_order_metadata($order);
@@ -224,33 +268,63 @@ function update_orders_wc() {
         ($old_stage[1] == 'shipped' AND $new_stage[1] == 'returned') OR
         ($old_stage[1] == 'shipped' AND $new_stage[1] == 'shipped') //TODO Enable change of preferred payment method
       ) {
-        log_notice("$updated[invoice_number]: WC Order Normal Stage Change", $changed);
+        SirumLog::debug(
+            "WC Order Normal Stage Change",
+            [
+              "invoice_number" => $updated[invoice_number],
+              "changed"        => $changed,
+              "method"         => "update_orders_wc"
+            ]
+          );
       } else {
         $order = get_full_order($updated, $mysql);
-        log_error("$updated[invoice_number]: WC Order Irregular Stage Change.  Updating WC: new:$updated[order_stage_wc] >>> $updated[old_order_stage_wc]", [$order, $updated]); //Yes, new >>> old on purpose since we are reverting
+        SirumLog::error(
+            "WC Order Irregular Stage Change.",
+            [
+              "old_stage"      => $updated['old_order_stage_wc'],
+              "new_stage"      => $updated['order_stage_wc'],
+              "invoice_number" => $updated[invoice_number],
+              "changed"        => $changed,
+              "method"         => "update_orders_wc"
+            ]
+          );
+
         export_wc_update_order_status($order); //Update to current status
         export_wc_update_order_metadata($order);
       }
 
-    }
-    else if ( ! $updated['patient_id_wc'] AND $updated['old_patient_id_wc']) {
+    } else if ( ! $updated['patient_id_wc'] AND $updated['old_patient_id_wc']) {
 
       //26214, 26509
-      log_error("$updated[invoice_number]: WC Patient Id Removed from Order.  Likely a patient was deleted from WC that still had an order", [$changed, $updated]);
-
-
-    }
-    else if ($updated['patient_id_wc'] AND ! $updated['old_patient_id_wc']) {
-
-
+      SirumLog::error(
+          "WC Patient Id Removed from Order.  Likely a patient was deleted from WC that still had an order",
+          [
+            "invoice_number" => $updated[invoice_number],
+            "changed"        => $changed,
+            "updated"        => $updated,
+            "method"         => "update_orders_wc"
+          ]
+        );
+    } else if ($updated['patient_id_wc'] AND ! $updated['old_patient_id_wc']) {
       //26214, 26509
-      log_notice("$updated[invoice_number]: WC Order was created on last run and now patient_id_wc can be added", $changed);
-
-
+      SirumLog::debug(
+          "WC Order was created on last run and now patient_id_wc can be added",
+          [
+            "invoice_number" => $updated[invoice_number],
+            "changed"        => $changed,
+            "method"         => "update_orders_wc"
+          ]
+        );
     } else {
-
-      log_notice("$updated[invoice_number]: Order updated in WC", [$changed, $updated]);
-
+      SirumLog::debug(
+          "WC Order was created on last run and now patient_id_wc can be added",
+          [
+            "invoice_number" => $updated[invoice_number],
+            "changed"        => $changed,
+            "updated"        => $updated,
+            "method"         => "update_orders_wc"
+          ]
+        );
     }
 
   }
