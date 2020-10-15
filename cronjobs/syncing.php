@@ -55,7 +55,7 @@ require_once 'updates/update_orders_cp.php';
  */
 
 
-$execution_details = ['execution' => uniqid(), 'start' => date('c')];
+$execution_details = ['start' => date('c')];
 
 $f = fopen('readme.md', 'w') or log_error('Webform Cron Job Cannot Create Lock File');
 
@@ -208,10 +208,13 @@ try {
   watch_invoices();
   $execution_details['timers']['watch_invoices'] = ceil(microtime(true) - $start);
 
+
   $execution_details['timers']['total'] = array_sum($execution_details['timers']);
+  $execution_details                    = ['end' => date('c')];
 
   SirumLog::info('Pharmacy Automation Complete', $execution_details);
 
 } catch (Exception $e) {
-  log_error('Webform Cron Job Fatal Error', $e);
+  $execution_details['e'] = $e;
+  SirumLog::alet('Webform Cron Job Fatal Error', $execution_details);
 }
