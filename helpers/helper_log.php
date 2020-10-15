@@ -231,23 +231,3 @@ function get_file() {
   $index = count($trace) - 1;
   return $trace[$index]['function']."($index) in ".$trace[$index-1]['file']." on line #".$trace[$index-1]['line'];
 }
-
-/**
- * A simple timer object to keep track of elapsed time
- * @param  string $label A label to add to the timer
- * @param  int    $start A microtime that signifies whene the timeer started
- *
- * @return int    The number of Milliseconds that have passed since the timer was created
- */
-function timer($label, &$start) {
-  $start = $start ?: [microtime(true), microtime(true)];
-  $stop  = microtime(true);
-
-  $diff = "
-  $label: ".ceil($stop-$start[0])." seconds of ".ceil($stop-$start[1])." total
-  ";
-
-  $start[0] = $stop;
-
-  return $diff;
-}
