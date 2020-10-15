@@ -210,7 +210,7 @@ try {
 
 
     $execution_details['timers']['total'] = array_sum($execution_details['timers']);
-    $execution_details                    = ['end' => date('c')];
+    $execution_details['end']             = date('c');
 
     SirumLog::info('Pharmacy Automation Complete', $execution_details);
 } catch (Exception $e) {
