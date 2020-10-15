@@ -24,12 +24,15 @@ class Notification extends GPModel
 
     protected $table_name = "gp_notifications";
 
-    public function __construct($hash = null)
+    public function __construct($hash, $token)
     {
         parent::__construct();
 
-        if (! is_null($hash)) {
-            $this->load($hash);
+        $this->load($hash);
+
+        if (!$this->isStored()) {
+            $this->token = $token;
+            $this->hash  = $hash;
         }
     }
 
@@ -86,20 +89,23 @@ class Notification extends GPModel
 
     public function increment()
     {
+
+        if (!$this->isStored()) {
+            $this->create();
+        }
+
         // Make sure we have something set
         $this->attempted_sends = $this->attempted_sends + 1;
 
-        if ($this->isStored()) {
-            $pdo = $this->gpdb->prepare(
-                "UPDATE {$this->table_name}
-                  SET attempted_sends = :attempted_sends
-                  WHERE hash = :hash"
-            );
+        $pdo = $this->gpdb->prepare(
+            "UPDATE {$this->table_name}
+              SET attempted_sends = :attempted_sends
+              WHERE hash = :hash"
+        );
 
-            $pdo->bindParam(':attempted_sends', $this->attempted_sends, PDO::PARAM_STR);
-            $pdo->bindParam(':hash', $this->hash, PDO::PARAM_STR);
-            $pdo->execute();
-        }
+        $pdo->bindParam(':attempted_sends', $this->attempted_sends, PDO::PARAM_STR);
+        $pdo->bindParam(':hash', $this->hash, PDO::PARAM_STR);
+        $pdo->execute();
     }
 
     public function isStored()
