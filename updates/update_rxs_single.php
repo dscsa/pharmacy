@@ -119,7 +119,12 @@ function update_rxs_single() {
       MIN(refill_date_first) as refill_date_first,
       MAX(refill_date_last) as refill_date_last,
       CASE
-        WHEN MIN(rx_autofill) > 0 THEN COALESCE(MAX(refill_date_manual), MAX(refill_date_default))
+        WHEN MIN(rx_autofill) > 0 THEN (
+          CASE
+            WHEN MAX(refill_date_manual) > NOW()
+            THEN MAX(refill_date_manual)
+            ELSE MAX(refill_date_default)
+          END)
         ELSE NULL
       END as refill_date_next,
       MAX(refill_date_manual) as refill_date_manual,
