@@ -4,6 +4,8 @@ require_once 'helpers/helper_parse_sig.php';
 require_once 'helpers/helper_imports.php';
 require_once 'dbs/mysql_wc.php';
 
+use Sirum\Logging\SirumLog;
+
 function update_rxs_single() {
 
   $mysql = new Mysql_Wc();
@@ -27,9 +29,6 @@ function update_rxs_single() {
   foreach($rx_singles[0] as $rx_single) {
     //This updates & overwrites set_rx_messages
     $patient = get_full_patient($rx_single, $mysql, $rx_single['rx_number']);
-<<<<<<< HEAD
-    log_notice("update_rxs_single: rx had an empty message, so just set it", [$patient, $rx_single]);
-=======
 
     SirumLog::debug(
         "rx had an empty message, so just set it",
@@ -40,7 +39,6 @@ function update_rxs_single() {
           "method"        => "update_rxs_single"
         ]
       );
->>>>>>> origin/master
   }
 
   /* Now to do some work */
@@ -67,14 +65,8 @@ function update_rxs_single() {
     if ($parsed['qty_per_day'] > 8) {
       $created_date = "Created:".date('Y-m-d H:i:s');
       $salesforce   = [
-<<<<<<< HEAD
-        "subject"   => "Verify qty pended for {$created[drug_name]} in Order #{$created[rx_number]}",
-        "body"      => "For Rx #{$created[rx_number]}, {$created[drug_name]} with sig '{$created[sig_actual]}' " .
-                       "was parsed as {$parsed[qty_per_day]} qty per day, which is very high. {$created_date}",
-=======
         "subject"   => "Verify qty pended for $created[drug_name] in Order #$created[rx_number]",
         "body"      => "For Rx #$created[rx_number], $created[drug_name] with sig '$created[sig_actual]' was parsed as $parsed[qty_per_day] qty per day, which is very high. $created_date",
->>>>>>> origin/master
         "contact"   => "$created[first_name] $created[last_name] $created[birth_date]",
         "assign_to" => "Cindy",
         "due_date"  => date('Y-m-d')
@@ -164,41 +156,6 @@ function update_rxs_single() {
   $mysql->transaction();
   $mysql->run("DELETE FROM gp_rxs_grouped");
   $mysql->run($sql);
-<<<<<<< HEAD
-
-  // QUESTION Do we need to get everthing or would a LIMIT 1 be fine?
-  if ($mysql->run("SELECT * FROM gp_rxs_grouped")[0]) {
-    $mysql->commit();
-  } else {
-    $mysql->rollback();
-  }
-
-
-  /*
-   * Created Loop #2 We are now assigning the rx group to the new patients
-   * from created list.  We ae allso removing any drug refils.
-   *
-   * QUESTION Do new users have drug refils?
-   *
-   * Run this After so that Rx_grouped is set when doing get_full_patient
-   */
-  foreach($changes['created'] as $created) {
-    // This updates & overwrites set_rx_messages.  TRUE because this one
-    // Rx might update many other Rxs for the same drug.
-    $patient = get_full_patient($created, $mysql, true);
-
-    remove_drugs_from_refill_reminders(
-      $patient[0]['first_name'],
-      $patient[0]['last_name'],
-      $patient[0]['birth_date'],
-      [$created['drug_name']]
-    );
-  }
-
-  /* Finish Created Loop #2 */
-
-
-=======
 
   // QUESTION Do we need to get everthing or would a LIMIT 1 be fine?
   $mysql->run("SELECT * FROM gp_rxs_grouped")[0]
@@ -230,7 +187,6 @@ function update_rxs_single() {
   /* Finish Created Loop #2 */
 
 
->>>>>>> origin/master
   /*
    * Updated Loop
    */

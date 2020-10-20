@@ -2,6 +2,8 @@
 
 require_once 'helpers/helper_appsscripts.php';
 
+use Sirum\Logging\SirumLog;
+
 function export_gd_transfer_fax($item, $source) {
 
   //log_notice("WebForm export_gd_transfer_fax CALLED $item[invoice_number] $item[drug_name] $source", get_defined_vars());

@@ -3,6 +3,8 @@
 require_once 'dbs/mysql_wc.php';
 require_once 'helper_logger.php';
 
+use Sirum\Logging\SirumLog;
+
 global $mysql;
 $log_notices = [];
 
