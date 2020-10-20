@@ -3,19 +3,23 @@
 require_once 'dbs/mysql_wc.php';
 require_once 'helper_logger.php';
 
+use Sirum\Logging\SirumLog;
+
 global $mysql;
 $log_notices = [];
 
-function email($email, $subject, $body) {
+function email($email, $subject, $body)
+{
+    if (! is_string($body)) {
+        $body = json_safe_encode($body);
+    }
 
-   if ( ! is_string($body))
-    $body = json_safe_encode($body);
-
-   mail($email, $subject, $body, "From: webform@goodpill.org\r\n");
+    mail($email, $subject, $body, "From: webform@goodpill.org\r\n");
 }
 
-function log_to_cli($severity, $text, $file, $vars) {
-   echo "$severity: $text. $file vars: $vars\n";
+function log_to_cli($severity, $text, $file, $vars)
+{
+    echo "$severity: $text. $file vars: $vars\n";
 }
 
 /**
@@ -27,68 +31,80 @@ function log_to_cli($severity, $text, $file, $vars) {
  *
  * @return string       The cleaned up string
  */
-function vars_to_json($vars, $file) {
-   $non_user_vars = [
-    "_COOKIE",
-    "_ENV",
-    "_FILES",
-    "_GET",
-    "_POST",
-    "_REQUEST",
-    "_SERVER",
-    "_SESSION",
-    "argc",
-    "argv",
-    "GLOBALS",
-    "HTTP_RAW_POST_DATA",
-    "HTTP_ENV_VARS",
-    "HTTP_POST_VARS",
-    "HTTP_GET_VARS",
-    "HTTP_COOKIE_VARS",
-    "HTTP_SERVER_VARS",
-    "HTTP_POST_FILES",
-    "http_response_header",
-    "ignore",
-    "php_errormsg",
-    "context",
-    "mysql",
-    "mssql"
-  ];
+function vars_to_json($vars, $file)
+{
+    $non_user_vars = [
+                        "_COOKIE",
+                        "_ENV",
+                        "_FILES",
+                        "_GET",
+                        "_POST",
+                        "_REQUEST",
+                        "_SERVER",
+                        "_SESSION",
+                        "argc",
+                        "argv",
+                        "GLOBALS",
+                        "HTTP_RAW_POST_DATA",
+                        "HTTP_ENV_VARS",
+                        "HTTP_POST_VARS",
+                        "HTTP_GET_VARS",
+                        "HTTP_COOKIE_VARS",
+                        "HTTP_SERVER_VARS",
+                        "HTTP_POST_FILES",
+                        "http_response_header",
+                        "ignore",
+                        "php_errormsg",
+                        "context",
+                        "mysql",
+                        "mssql"
+                      ];
 
-  if ( ! is_array($vars)) { //MySQl json does not accept plain strings
-    $vars = [$vars];
-  }
-
-  $vars = array_reverse($vars, true); //Put most recent variables at the top of the email
-  $diff = array_diff_key($vars, array_flip($non_user_vars));
-  return json_safe_encode($diff);
-}
-
-function json_safe_encode($raw, $file = NULL) {
-
-  $json = json_encode(utf8ize($raw), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE); //| JSON_PARTIAL_OUTPUT_ON_ERROR
-
-  if ( ! $json) {
-    $json  = '{}';
-    $error = json_last_error_msg();
-
-
-    if (is_array($vars)) {
-      $log_context = $vars;
-    } else {
-      $log_context = ["vars" => $vars];
+    if (! is_array($vars)) { //MySQl json does not accept plain strings
+        $vars = [$vars];
     }
 
-    SirumLog::error("json_encode failed for logging {$error} : {$file}", $log_context);
+    $vars = array_reverse($vars, true); //Put most recent variables at the top of the email
+    $diff = array_diff_key($vars, array_flip($non_user_vars));
+    return json_safe_encode($diff);
+}
 
-    if ($error == 'Inf and NaN cannot be JSON encoded')
-      $error .= serialize($vars); //https://levels.io/inf-nan-json_encode/ json_encode(unserialize(str_replace(array(‘NAN;’,’INF;’),’0;’,serialize($reply))));
+function json_safe_encode($raw, $file = null)
+{
+    $json = json_encode(utf8ize($raw), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE); //| JSON_PARTIAL_OUTPUT_ON_ERROR
 
-    $file = $file ?: get_file();
-    log_to_cli('ERROR', 'json_encode failed for logging', $file, $error);
-  }
+    if (! $json) {
+        $json  = '{}';
+        $error = json_last_error_msg();
 
-  return str_replace('\n', '', $json);
+
+        if (is_array($vars)) {
+            $log_context = $vars;
+        } else {
+            $log_context = ["vars" => $vars];
+        }
+
+        SirumLog::error("json_encode failed for logging {$error} : {$file}", $log_context);
+
+        /*
+         * https://levels.io/inf-nan-json_encode/
+         * json_encode(
+         *    unserialize(
+         *        str_replace(
+         *            array(‘NAN;’,’INF;’),
+         *            ’0;’,
+         *           serialize($reply))));
+         */
+
+        if ($error == 'Inf and NaN cannot be JSON encoded') {
+            $error .= serialize($vars);
+        }
+
+        $file = $file ?: get_file();
+        log_to_cli('ERROR', 'json_encode failed for logging', $file, $error);
+    }
+
+    return str_replace('\n', '', $json);
 }
 
 
@@ -102,15 +118,16 @@ function json_safe_encode($raw, $file = NULL) {
  * SOURCE https://stackoverflow.com/questions/19361282/why-would-json-encode-return-an-empty-string
  * TODO in PHP 7.2+ use JSON_INVALID_UTF8_IGNORE instead
  */
-function utf8ize($d) {
-  if (is_array($d)) {
-      foreach ($d as $k => $v) {
-          $d[$k] = utf8ize($v);
-      }
-  } else if (is_string ($d)) {
-      return utf8_encode($d);
-  }
-  return $d;
+function utf8ize($d)
+{
+    if (is_array($d)) {
+        foreach ($d as $k => $v) {
+            $d[$k] = utf8ize($v);
+        }
+    } elseif (is_string($d)) {
+        return utf8_encode($d);
+    }
+    return $d;
 }
 
 /**
@@ -124,26 +141,30 @@ function utf8ize($d) {
  *
  * TODO Move this over so it uses logging levels instead of CLI switch
  */
-function log_info($text, $vars = '') {
+function log_info($text, $vars = '')
+{
+    global $argv;
 
-  global $argv;
+    global $gp_logger;
 
-  if ( ! in_array('log=info', $argv)) return;
+    if (! in_array('log=info', $argv)) {
+        return;
+    }
 
-  $file   = get_file();
+    $file   = get_file();
 
-  if (is_array($vars)) {
-    $log_context = $vars;
-  } else {
-    $log_context = ["vars" => $vars];
-  }
+    if (is_array($vars)) {
+        $log_context = $vars;
+    } else {
+        $log_context = ["vars" => $vars];
+    }
 
-  // Log it before we make a string of the vars
-  SirumLog::info("{$text} : {$file}", $log_context);
+    // Log it before we make a string of the vars
+    SirumLog::info("{$text} : {$file}", $log_context);
 
-  $vars   = $vars ? vars_to_json($vars, $file) : '';
+    $vars   = $vars ? vars_to_json($vars, $file) : '';
 
-  log_to_cli(date('Y-m-d H:i:s').' INFO', $text, $file, $vars);
+    log_to_cli(date('Y-m-d H:i:s').' INFO', $text, $file, $vars);
 }
 
 /**
@@ -157,31 +178,33 @@ function log_info($text, $vars = '') {
  *
  * TODO Move this over so it uses logging levels instead of CLI switch
  */
-function log_error($text, $vars = '') {
+function log_error($text, $vars = '')
+{
+    global $log_notices;
+    global $gp_logger;
 
-  global $log_notices;
+    $file   = get_file();
 
-  $file   = get_file();
+    if (is_array($vars)) {
+        $log_context = $vars;
+    } else {
+        $log_context = ["vars" => $vars];
+    }
 
-  if (is_array($vars)) {
-    $log_context = $vars;
-  } else {
-    $log_context = ["vars" => $vars];
-  }
+    // Log it before we make a string of the vars
+    SirumLog::error("{$text} : {$file}", $log_context);
 
-  // Log it before we make a string of the vars
-  SirumLog::error("{$text} : {$file}", $log_context);
+    $vars   = $vars ? vars_to_json($vars, $file) : '';
 
-  $vars   = $vars ? vars_to_json($vars, $file) : '';
+    $log_notices[] = date('Y-m-d H:i:s')." ERROR $text, file:$file, vars:$vars";
 
-  $log_notices[] = date('Y-m-d H:i:s')." ERROR $text, file:$file, vars:$vars";
-
-  log_to_cli(date('Y-m-d H:i:s').' ERROR', $text, $file, $vars);
+    log_to_cli(date('Y-m-d H:i:s').' ERROR', $text, $file, $vars);
 }
 
-function log_notices() {
-  global $log_notices;
-  return implode(",
+function log_notices()
+{
+    global $log_notices;
+    return implode(",
   ", $log_notices);
 }
 
@@ -196,29 +219,32 @@ function log_notices() {
  *
  * TODO Move this over so it uses logging levels instead of CLI switch
  */
-function log_notice($text, $vars = '') {
+function log_notice($text, $vars = '')
+{
+    global $argv;
+    global $log_notices;
+    global $gp_logger;
 
-  global $argv;
-  global $log_notices;
+    if (! in_array('log=notice', $argv) and ! in_array('log=info', $argv)) {
+        return;
+    }
 
-  if ( ! in_array('log=notice', $argv) AND ! in_array('log=info', $argv)) return;
+    $file   = get_file();
 
-  $file   = get_file();
+    // Log it before we make a string of the vars
+    if (is_array($vars)) {
+        $log_context = $vars;
+    } else {
+        $log_context = ["vars" => $vars];
+    }
 
-  // Log it before we make a string of the vars
-  if (is_array($vars)) {
-    $log_context = $vars;
-  } else {
-    $log_context = ["vars" => $vars];
-  }
+    SirumLog::notice("{$text} : {$file}", $log_context);
 
-  SirumLog::notice("{$text} : {$file}", $log_context);
+    $vars   = $vars ? vars_to_json($vars, $file) : '';
 
-  $vars   = $vars ? vars_to_json($vars, $file) : '';
+    $log_notices[] = date('Y-m-d H:i:s')." NOTICE $text, file:$file, vars:$vars";
 
-  $log_notices[] = date('Y-m-d H:i:s')." NOTICE $text, file:$file, vars:$vars";
-
-  log_to_cli(date('Y-m-d H:i:s').' NOTICE', $text, $file, $vars);
+    log_to_cli(date('Y-m-d H:i:s').' NOTICE', $text, $file, $vars);
 }
 
 /**
@@ -226,8 +252,9 @@ function log_notice($text, $vars = '') {
  *
  * @return string The name of the file that ran this function
  */
-function get_file() {
-  $trace = debug_backtrace(2, 3); //1st arge: exlude ["object"] AND ["args"], 2nd arg is a limit to how far back
-  $index = count($trace) - 1;
-  return $trace[$index]['function']."($index) in ".$trace[$index-1]['file']." on line #".$trace[$index-1]['line'];
+function get_file()
+{
+    $trace = debug_backtrace(2, 3); //1st arge: exlude ["object"] AND ["args"], 2nd arg is a limit to how far back
+    $index = count($trace) - 1;
+    return $trace[$index]['function']."($index) in ".$trace[$index-1]['file']." on line #".$trace[$index-1]['line'];
 }
