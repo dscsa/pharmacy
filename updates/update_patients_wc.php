@@ -4,6 +4,7 @@ require_once 'changes/changes_to_patients_wc.php';
 require_once 'exports/export_wc_patients.php';
 require_once 'exports/export_cp_patients.php';
 
+use Sirum\Logging\SirumLog;
 
 function update_patients_wc() {
 

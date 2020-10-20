@@ -1,5 +1,8 @@
 {
     "require": {
         "google/cloud-logging": "^1.21"
-    }
+    },
+    "autoload": {
+       "psr-4": {"Sirum\\": "classes/Sirum"}
+     }
 }

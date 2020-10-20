@@ -12,11 +12,14 @@ date_default_timezone_set('America/New_York');
 
 require_once 'vendor/autoload.php';
 
+use Sirum\Logging\SirumLog;
+
 /*
   General Requires
  */
 
 require_once 'keys.php';
+require_once 'helpers/helper_logger.php';
 require_once 'helpers/helper_log.php';
 require_once 'helpers/helper_logger.php';
 require_once 'helpers/helper_constants.php';

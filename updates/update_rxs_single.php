@@ -4,6 +4,8 @@ require_once 'helpers/helper_parse_sig.php';
 require_once 'helpers/helper_imports.php';
 require_once 'dbs/mysql_wc.php';
 
+use Sirum\Logging\SirumLog;
+
 function update_rxs_single() {
 
   $mysql = new Mysql_Wc();
