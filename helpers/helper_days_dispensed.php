@@ -195,25 +195,25 @@ function get_days_default($item, $order) {
     return [$days_default, RX_MESSAGE['NO ACTION NEW GSN']];
   }
 
-  if (sync_to_order_new_rx($item, $order)) {
+  if ( ! $added_manually AND sync_to_order_new_rx($item, $order)) {
     log_info('NO ACTION NEW RX SYNCED TO ORDER', get_defined_vars());
     return [$days_default, RX_MESSAGE['NO ACTION NEW RX SYNCED TO ORDER']];
   }
 
   //TODO and check if added by this program otherwise false positives
-  if (sync_to_order_past_due($item, $order)) {
+  if ( ! $added_manually AND sync_to_order_past_due($item, $order)) {
     log_info("WAS PAST DUE SO WAS SYNCED TO ORDER", get_defined_vars());
     return [$days_default, RX_MESSAGE['NO ACTION PAST DUE AND SYNC TO ORDER']];
   }
 
   //TODO CHECK IF THIS IS A GUARDIAN ERROR OR WHETHER WE ARE IMPORTING WRONG.  SEEMS THAT IF REFILL_DATE_FIRST IS SET, THEN REFILL_DATE_DEFAULT should be set
-  if (sync_to_order_no_next($item, $order)) {
+  if ( ! $added_manually AND sync_to_order_no_next($item, $order)) {
     log_info("WAS MISSING REFILL_DATE_NEXT SO WAS SYNCED TO ORDER", get_defined_vars());
     return [$days_default, RX_MESSAGE['NO ACTION NO NEXT AND SYNC TO ORDER']];
   }
 
   //TODO and check if added by this program otherwise false positives
-  if (sync_to_order_due_soon($item, $order)) {
+  if ( ! $added_manually AND sync_to_order_due_soon($item, $order)) {
     log_info("WAS DUE SOON SO WAS SYNCED TO ORDER", get_defined_vars());
     return [$days_default, RX_MESSAGE['NO ACTION DUE SOON AND SYNC TO ORDER']];
   }
@@ -481,7 +481,7 @@ function sync_to_order_past_due($item, $order) {
 
 //Order 29017 had a refill_date_first and rx/pat_autofill ON but was missing a refill_date_default/refill_date_manual/refill_date_next
 function sync_to_order_no_next($item, $order) {
-  $eligible = (! @$item['item_date_added'] AND ($item['refills_total'] > NO_REFILL) AND is_refill($item, $order) AND ! $item['refill_date_default']);
+  $eligible = (! @$item['item_date_added'] AND ($item['refills_total'] > NO_REFILL) AND is_refill($item, $order) AND ! $item['refill_date_next']);
   return $eligible AND ! is_duplicate_gsn($item, $order);
 }
 
