@@ -273,7 +273,7 @@ function update_orders_wc() {
         SirumLog::debug(
             "WC Order Normal Stage Change",
             [
-              "invoice_number" => $updated[invoice_number],
+              "invoice_number" => $updated['invoice_number'],
               "changed"        => $changed,
               "method"         => "update_orders_wc"
             ]
@@ -301,7 +301,7 @@ function update_orders_wc() {
       SirumLog::error(
           "WC Patient Id Removed from Order.  Likely a patient was deleted from WC that still had an order",
           [
-            "invoice_number" => $updated[invoice_number],
+            "invoice_number" => $updated['invoice_number'],
             "changed"        => $changed,
             "updated"        => $updated,
             "method"         => "update_orders_wc"
@@ -312,7 +312,7 @@ function update_orders_wc() {
       SirumLog::debug(
           "WC Order was created on last run and now patient_id_wc can be added",
           [
-            "invoice_number" => $updated[invoice_number],
+            "invoice_number" => $updated['invoice_number'],
             "changed"        => $changed,
             "method"         => "update_orders_wc"
           ]
@@ -321,7 +321,7 @@ function update_orders_wc() {
       SirumLog::debug(
           "WC Order was created on last run and now patient_id_wc can be added",
           [
-            "invoice_number" => $updated[invoice_number],
+            "invoice_number" => $updated['invoice_number'],
             "changed"        => $changed,
             "updated"        => $updated,
             "method"         => "update_orders_wc"

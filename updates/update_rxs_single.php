@@ -65,7 +65,7 @@ function update_rxs_single() {
     if ($parsed['qty_per_day'] > 8) {
       $created_date = "Created:".date('Y-m-d H:i:s');
       $salesforce   = [
-        "subject"   => "Verify qty pended for $created[drug_name] in Order #$created[rx_number]",
+        "subject"   => "Verify qty pended for $created[drug_name] for Rx #$created[rx_number]",
         "body"      => "For Rx #$created[rx_number], $created[drug_name] with sig '$created[sig_actual]' was parsed as $parsed[qty_per_day] qty per day, which is very high. $created_date",
         "contact"   => "$created[first_name] $created[last_name] $created[birth_date]",
         "assign_to" => "Cindy",
