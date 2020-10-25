@@ -1,66 +1,73 @@
 <?php
 
-function export_cp_patient_save_medications_other($mssql, $patient, $live = false) {
 
-  $medications_other = escape_db_values($patient['medications_other']);
+/**
+ * Update Carepoint patients  I'm not sure why we do this, but we do
+ * @param  Mssql_Cp  $mssql   The connection to the database
+ * @param  array     $patient A bunch of patient data
+ * @param  boolean   $live    (Optional) (Deprectated) No longer in use
+ * @return void
+ */
+function export_cp_patient_save_medications_other($mssql, $patient, $live = false)
+{
+    $medications_other = escape_db_values($patient['medications_other']);
 
-  /*
-  $select = "
-    SELECT
-      DATALENGTH(cmt) as cmt_length,
-      CHARINDEX(CHAR(10), cmt) as char10_index,
-      CHARINDEX(CHAR(13), cmt) as char13_index,
-      CHARINDEX(CHAR(10)+'___', cmt) as divider_index,
-      LEN(SUBSTRING(cmt, 0, ISNULL(NULLIF(CHARINDEX(CHAR(10)+'___', cmt), 0), 9999))) as first_length,
-      SUBSTRING(cmt, 0, ISNULL(NULLIF(CHARINDEX(CHAR(10)+'___', cmt), 0), 9999)) as first,
-      cmt
-    FROM cppat
-    WHERE pat_id = $patient[patient_id_cp]
-  ";
-  */
+    $sql = "UPDATE cppat
+            SET cmt =
+              SUBSTRING(cmt, 0, ISNULL(NULLIF(CHARINDEX(CHAR(10)+'___', cmt), 0), 9999))+
+              CHAR(10)+'______________________________________________'+CHAR(13)+
+              '$medications_other'
+            WHERE pat_id = {$patient['patient_id_cp']}";
 
-  $sql = "
-    UPDATE cppat
-    SET cmt =
-      SUBSTRING(cmt, 0, ISNULL(NULLIF(CHARINDEX(CHAR(10)+'___', cmt), 0), 9999))+
-      CHAR(10)+'______________________________________________'+CHAR(13)+
-      '$medications_other'
-    WHERE pat_id = $patient[patient_id_cp]
-  ";
-
-  //$res1 = $mssql->run("$select");
-  $mssql->run("$sql");
-  //$res2 = $mssql->run("$select");
-
-  //echo "
-  //live:$live $patient[first_name] $patient[last_name] $sql ".json_encode($res1, JSON_PRETTY_PRINT)." ".json_encode($res2, JSON_PRETTY_PRINT);
+    if (ENVIRONMENT == 'PRODUCTION') {
+        $mssql->run("$sql");
+    }
 }
 
-function export_cp_patient_save_patient_note($mssql, $patient, $live = false) {
-
-  $sql = "NOT IMPLEMENTED";
-
-  echo "
-  live:$live $sql";
-
-  //$mssql->run("$sql");
+/**
+ * Update the patient note
+ * @deprecated
+ * @return void
+ */
+function export_cp_patient_save_patient_note($mssql, $patient, $live = false)
+{
+    // Intentionally Left Blank
 }
 
-function upsert_patient_cp($mssql, $sql) {
-  //echo "
-  //$sql";
-
-  return $mssql->run("$sql");
+/**
+ * Execute the SQL on the  Carepoint Server
+ *
+ * @param  Mssql_Cp $mssql The Carepoint Connection
+ * @param  string $sql    The SQL to executed
+ *
+ * @return mixed  The resultes of the execution
+ */
+function upsert_patient_cp($mssql, $sql)
+{
+    if (ENVIRONMENT == 'PRODUCTION') {
+        return $mssql->run("$sql");
+    }
 }
 
-//EXEC SirumWeb_AddUpdatePatHomePhone only inserts new phone numbers
-//6 is Phone1 and 9 is Phone2
-function delete_cp_phone($mssql, $patient_id_cp, $phone_type_cn) {
-  return upsert_patient_cp($mssql, "
-    UPDATE ph
-    SET area_code = NULL, phone_no = NULL
-    FROM cppat_phone pp
-    JOIN csphone ph ON pp.phone_id = ph.phone_id
-    WHERE pp.pat_id = $patient_id_cp AND pp.phone_type_cn = $phone_type_cn
-  ");
+/**
+ * Delete a phone number from carepoint
+ *
+ * @param  Mssql_Cp $mssql         The carepoint databse connection
+ * @param  int      $patient_id_cp The carepoint patient id
+ * @param  string   $phone_type_cn the type of of phone number to delted
+ *
+ * @return mixed
+ */
+function delete_cp_phone($mssql, $patient_id_cp, $phone_type_cn)
+{
+    return upsert_patient_cp(
+        $mssql,
+        "UPDATE ph
+          SET area_code = NULL,
+              phone_no = NULL
+          FROM cppat_phone pp
+          JOIN csphone ph ON pp.phone_id = ph.phone_id
+          WHERE pp.pat_id = $patient_id_cp
+            AND pp.phone_type_cn = $phone_type_cn"
+    );
 }
