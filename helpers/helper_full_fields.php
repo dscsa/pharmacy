@@ -10,7 +10,9 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages) {
   //Consolidate default and actual suffixes to avoid conditional overload in the invoice template and redundant code within communications
   foreach($patient_or_order as $i => $dontuse) { //don't use val because order[$i] and $item will become out of sync as we set properties
 
-    if ($patient_or_order[$i]['rx_message_key'] == 'ACTION NO REFILLS' AND @$patient_or_order[$i]['rx_dispensed_id'] AND $patient_or_order[$i]['refills_total'] >= .1) {
+    if ($patient_or_order[$i]['rx_message_key'] == 'ACTION NO REFILLS'
+            AND @$patient_or_order[$i]['rx_dispensed_id']
+            AND $patient_or_order[$i]['refills_total'] >= .1) {
       log_error('add_full_fields: status of ACTION NO REFILLS but has refills. Do we need to send updated communications?', $patient_or_order[$i]);
       $patient_or_order[$i]['rx_message_key'] = NULL;
     }
@@ -39,9 +41,28 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages) {
       else if ($set_days)
         $patient_or_order[$i] = set_days_default($patient_or_order[$i], $days, $mysql);
 
-      if ($set_msgs) { //On a sync_to_order the rx_message_key will be set, but days will not yet be set since their was not an order_item until now.  But we don't want to override the original sync message
+     /*
+      * On a sync_to_order the rx_message_key will be set, but days will not yet
+      *  be set since their was not an order_item until now.  But we don't want
+      *  to override the original sync message
+      */
+      if ($set_msgs) {
         $patient_or_order[$i] = export_cp_set_rx_message($patient_or_order[$i], $message, $mysql);
-        export_gd_transfer_fax($patient_or_order[$i], 'helper full fields'); //Internal logic determines if fax is necessary
+        SirumLog::notice(
+            "Fax fansfer fired Make sure logic is sound",
+            [
+                "overwrite_rx_messages"  => $overwrite_rx_messages,
+                "rx_number"              => $patient_or_order[$i]['rx_number'],
+                "rx_message_key"         => $patient_or_order[$i]['rx_message_key'],
+                "rx_message_text"        => $patient_or_order[$i]['rx_message_text'],
+                "item_date_added"        => $patient_or_order[$i]['item_date_added'],
+                "days_dispensed_default" => $patient_or_order[$i]['days_dispensed_default']
+            ]
+
+        );
+
+        //Internal logic determines if fax is necessary
+        export_gd_transfer_fax($patient_or_order[$i], 'helper full fields');
       }
 
       //log_notice('add_full_fields: after', ['item' => $patient_or_order[$i]]);
@@ -84,17 +105,41 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages) {
       log_error('add_full_fields: What going on here?', get_defined_vars());
     }
 
+    /*
+     * Create some variables with appropriate values
+     */
+    if ($patient_or_order[$i]['refills_dispensed_actual']) {
+        $refils_dispensed = (float) $patient_or_order[$i]['refills_dispensed_actual'];
+    } elseif ($patient_or_order[$i]['refills_dispensed_default']) {
+        $refils_dispensed = (float) $patient_or_order[$i]['refills_dispensed_default'];
+    } else {
+        $refils_dispensed = (float) $patient_or_order[$i]['refills_total'];
+    }
+
+    if ($patient_or_order[$i]['qty_dispensed_actual']) {
+        $qty_dsipensed = (float) $patient_or_order[$i]['qty_dispensed_actual'];
+    } else {
+        $qty_dsipensed = (float) $patient_or_order[$i]['qty_dispensed_default'];
+    }
+
+    if ($patient_or_order[$i]['price_dispensed_actual']) {
+        $price_dispensed = (float) $patient_or_order[$i]['price_dispensed_actual'];
+    } elseif ($patient_or_order[$i]['price_dispensed_default']) {
+        $price_dispensed = (float) $patient_or_order[$i]['price_dispensed_default'];
+    } else {
+        $price_dispensed = 0;
+    }
+
     //refills_dispensed_default/actual only exists as an order item.  But for grouping we need to know for items not in the order
-    $patient_or_order[$i]['refills_dispensed'] = round(
-                                                        (float) ($patient_or_order[$i]['refills_dispensed_actual'] ?: ($patient_or_order[$i]['refills_dispensed_default'] ?: $patient_or_order[$i]['refills_total'])),
-                                                        2
-                                                      );
-    $patient_or_order[$i]['qty_dispensed']     = (float) ($patient_or_order[$i]['qty_dispensed_actual'] ?: $patient_or_order[$i]['qty_dispensed_default']); //cast to float to get rid of .000 decimal
-    $patient_or_order[$i]['price_dispensed']   = (float) ($patient_or_order[$i]['price_dispensed_actual'] ?: ($patient_or_order[$i]['price_dispensed_default'] ?: 0));
+    $patient_or_order[$i]['refills_dispensed'] = round($refils_dispensed, 2);
+    $patient_or_order[$i]['qty_dispensed']     = $qty_dsipensed;
+    $patient_or_order[$i]['price_dispensed']   = $price_dispensed;
   }
 
-  foreach($patient_or_order as $i => $item)
+  foreach($patient_or_order as $i => $item) {
     $patient_or_order[$i]['count_filled'] = $count_filled;
+  }
+
 
   return $patient_or_order;
 }

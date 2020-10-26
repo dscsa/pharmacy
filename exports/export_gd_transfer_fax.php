@@ -47,7 +47,7 @@ function export_gd_transfer_fax($item, $source) {
             'rx_transfer'    => $item['rx_transfer'],
             'rx_message_key' => $item['rx_message_key'],
             'source'         => $source,
-            'context'        => get_defined_vars()
+            'item'           => $item
         ]
     );
   } else {
@@ -59,7 +59,7 @@ function export_gd_transfer_fax($item, $source) {
               'source'         => $source,
               'rx_transfer'    => $item['rx_transfer'],
               'rx_message_key' => $item['rx_message_key'],
-              'context'        => get_defined_vars()
+              'item'           => $item
           ]
       );
   }
