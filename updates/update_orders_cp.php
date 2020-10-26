@@ -15,9 +15,32 @@ function update_orders_cp() {
   $count_created = count($changes['created']);
   $count_updated = count($changes['updated']);
 
-  if ( ! $count_deleted AND ! $count_created AND ! $count_updated) return;
+  if ( ! $count_deleted AND ! $count_created AND ! $count_updated) {
+    SirumLog::notice(
+      'No changes found, leaving update_order_cp',
+      [
+        'deleted' => $changes['deleted'],
+        'created' => $changes['created'],
+        'updated' => $changes['updated'],
+        'deleted_count' => $count_deleted,
+        'created_count' => $count_created,
+        'updated_count' => $count_updated
+      ]
+    );
+    return;
+  }
 
-  log_notice("update_orders_cp: $count_deleted deleted, $count_created created, $count_updated updated.");
+  SirumLog::debug(
+    'Changes found',
+    [
+      'deleted' => $changes['deleted'],
+      'created' => $changes['created'],
+      'updated' => $changes['updated'],
+      'deleted_count' => $count_deleted,
+      'created_count' => $count_created,
+      'updated_count' => $count_updated
+    ]
+  );
 
   $mysql = new Mysql_Wc();
 
@@ -70,7 +93,12 @@ function update_orders_cp() {
     $order = get_full_order($created, $mysql, true);
 
     if ( ! $order) {
-      log_error("Created Order Missing.  Most likely because cp order has liCount > 0 even though 0 items in order.  If correct, update liCount in CP to 0", $created);
+      SirumLog::debug(
+        'Created Order Missing.  Most likely because cp order has liCount > 0 even though 0 items in order.  If correct, update liCount in CP to 0',
+        [
+          'order' => $order
+        ]
+      );
       continue;
     }
 
@@ -78,10 +106,17 @@ function update_orders_cp() {
       log_error('Problem: cp order wc-processing created', $order[0]);
 
     if ($order[0]['order_date_shipped']) {
-      log_error("Shipped Order Being Readded", $order);
       export_wc_create_order($order, "update_orders_cp: shipped order being readded");
       export_gd_publish_invoice($order, $mysql);
       export_gd_print_invoice($order);
+      SirumLog::debug(
+        'Shipped order is missing and is being added back to the wc and gp tables',
+        [
+          'invoice_number' => $order[0]['invoice_number'],
+          'order'          => $order
+        ]
+      );
+
       continue;
     }
 
@@ -96,6 +131,7 @@ function update_orders_cp() {
     if ($synced['new_count_items'] <= 0) {
       $groups = group_drugs($order, $mysql);
       order_hold_notice($groups);
+
       SirumLog::debug(
         'update_orders_cp sync_to_order is effectively removing order',
         [
@@ -130,7 +166,14 @@ function update_orders_cp() {
     // 3) Next cycle: update_orders_cp deleted (not sure yet why it gets deleted from CP)
     if ( ! $order[0]['pharmacy_name']) { //Can't test for rx_message_key == 'ACTION NEEDS FORM' because other messages can take precedence
       needs_form_notice($groups);
-      log_notice("update_orders_cp created: Guardian Order Created But Patient Not Yet Registered in WC so not creating WC Order ".$order[0]['invoice_number'], $order);
+      SirumLog::notice(
+        "update_orders_cp created: Guardian Order Created But" .
+          " Patient Not Yet Registered in WC so not creating WC Order",
+        [
+          'invoice_number' => $order[0]['invoice_number'],
+          'order' => $order
+        ]
+      );
       continue;
     }
 
@@ -139,22 +182,64 @@ function update_orders_cp() {
     if ($created['order_date_dispensed']) { //Can't test for rx_message_key == 'ACTION NEEDS FORM' because other messages can take precedence
       export_gd_publish_invoice($order, $mysql);
       export_gd_print_invoice($order);
-      log_error("Created Order is being readded (and invoice recreated) even though already dispensed.  Was it deleted on purpose?".$order[0]['invoice_number'], $order);
+
+      SirumLog::notice(
+        "update_orders_cp Created Order is being readded (and invoice " .
+          "recreated) even though already dispensed.  Was it deleted on purpose?",
+        [
+          'invoice_number' => $order[0]['invoice_number'],
+          'order' => $order
+        ]
+      );
+
       continue;
     }
 
     export_v2_pend_order($order, $mysql);
 
-    log_notice("Created & Pended Order", ['order' => $order, 'synced' => $synced]);
+    SirumLog::debug(
+      "Order Pended",
+      [
+        'invoice_number' => $order[0]['invoice_number'],
+        'order' => $order,
+        'synced' => $synced
+      ]
+    );
 
     //This is not necessary if order was created by webform, which then created the order in Guardian
     //"order_source": "Webform eRX/Transfer/Refill [w/ Note]"
-    if (strpos($order[0]['order_source'], 'Webform') === false)
+    if (strpos($order[0]['order_source'], 'Webform') === false) {
       export_wc_create_order($order, "update_orders_cp: created");
+      SirumLog::debug(
+        "Created & Pended Order",
+        [
+          'invoice_number' => $order[0]['invoice_number'],
+          'order' => $order,
+          'synced' => $synced
+        ]
+      );
+    } else {
+      SirumLog::notice(
+        "Order creation skipped because source not webform",
+        [
+          'invoice_number' => $order[0]['invoice_number'],
+          'source'         => $order[0]['order_source'],
+          'order'          => $order,
+          'synced'         => $synced
+        ]
+      );
+    }
 
     if ( ! $groups['COUNT_FILLED']) {
       order_hold_notice($groups, true);
-      log_error("update_orders_cp: Order Hold hopefully due to 'NO ACTION MISSING GSN' otherwise should have been deleted with sync code above", $groups);
+      SirumLog::debug(
+        "update_orders_cp: Order Hold hopefully due to 'NO ACTION MISSING GSN' otherwise should have been deleted with sync code above",
+        [
+          'invoice_number' => $order[0]['invoice_number'],
+          'order' => $order,
+          'groups' => $groups
+        ]
+      );
     } else {
       send_created_order_communications($groups);
     }

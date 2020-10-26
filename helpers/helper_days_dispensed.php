@@ -583,4 +583,6 @@ function is_duplicate_gsn($item1, $order) {
       return true;
     }
   }
+
+  return false;
 }
