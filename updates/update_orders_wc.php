@@ -13,9 +13,32 @@ function update_orders_wc() {
   $count_created = count($changes['created']);
   $count_updated = count($changes['updated']);
 
-  if ( ! $count_deleted AND ! $count_created AND ! $count_updated) return;
+  if ( ! $count_deleted AND ! $count_created AND ! $count_updated) {
+      SirumLog::notice(
+        'No changes found, leaving update_orders_wc',
+        [
+          'deleted' => $changes['deleted'],
+          'created' => $changes['created'],
+          'updated' => $changes['updated'],
+          'deleted_count' => $count_deleted,
+          'created_count' => $count_created,
+          'updated_count' => $count_updated
+        ]
+      );
+      return;
+  }
 
-  log_notice("update_orders_wc: $count_deleted deleted, $count_created created, $count_updated updated.");
+  SirumLog::debug(
+    'WooCommerce Changes found',
+    [
+      'deleted' => $changes['deleted'],
+      'created' => $changes['created'],
+      'updated' => $changes['updated'],
+      'deleted_count' => $count_deleted,
+      'created_count' => $count_created,
+      'updated_count' => $count_updated
+    ]
+  );
 
   $mysql = new Mysql_Wc();
 
@@ -23,7 +46,11 @@ function update_orders_wc() {
   //1) A user/tech created an order in WC and we need to add it to Guardian
   //2) An order is incorrectly saved in WC even though it should be gone (tech bug)
   foreach($changes['created'] as $created) {
-
+      SirumLog::$subroutine_id = sha1(serialize($created));
+      SirumLog::debug(
+            "get_full_order: WooCommerce Created",
+            ['created' => $created]
+          );
     $new_stage = explode('-', $created['order_stage_wc']);
 
     if ($created['order_stage_wc'] == 'trash' OR $new_stage[1] == 'awaiting' OR $new_stage[1] == 'confirm') {
@@ -81,7 +108,7 @@ function update_orders_wc() {
   //1) An order is in WC and CP but then is deleted in WC, probably because wp-admin deleted it (look for Update with order_stage_wc == 'trash')
   //2) An order is in CP but not in (never added to) WC, probably because of a tech bug.
   foreach($changes['deleted'] as $deleted) {
-
+    SirumLog::$subroutine_id = sha1(serialize($deleted));
     SirumLog::debug(
           "get_full_order: WooCommerce Deleted",
           ['deleted' => $deleted]
@@ -176,6 +203,8 @@ function update_orders_wc() {
   }
 
   foreach($changes['updated'] as $updated) {
+    SirumLog::$subroutine_id = sha1(serialize($updated));
+
 
     $changed = changed_fields($updated);
 
@@ -350,5 +379,6 @@ function update_orders_wc() {
         );
     }
 
-  }
+  } // End Changes Loop
+  SirumLog::resetSubroutineId();
 }
