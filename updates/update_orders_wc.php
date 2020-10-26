@@ -82,6 +82,11 @@ function update_orders_wc() {
   //2) An order is in CP but not in (never added to) WC, probably because of a tech bug.
   foreach($changes['deleted'] as $deleted) {
 
+    SirumLog::debug(
+          "get_full_order: WooCommerce Deleted",
+          ['deleted' => $deleted]
+        );
+
     $order = get_full_order($deleted, $mysql);
 
     /* TODO Investigate if/why this is needed */
@@ -203,6 +208,11 @@ function update_orders_wc() {
         );
       else {
 
+        SirumLog::debug(
+              "get_full_order: WooCommerce Updated",
+              ['updated' => $updated]
+            );
+
         $order = get_full_order($updated, $mysql);
 
         if ( ! $order) {
@@ -236,6 +246,11 @@ function update_orders_wc() {
 
     } else if ($updated['order_stage_wc'] AND ! $updated['old_order_stage_wc'] AND $updated['old_patient_id_wc']) {
       //Admin probably set order_stage_wc to NULL directly in database, hoping to refresh the order
+      SirumLog::debug(
+          "get_full_order: WooCommerce updated",
+          ['updated' => $updated]
+        );
+
       $order = get_full_order($updated, $mysql);
 
       SirumLog::notice(
@@ -279,6 +294,12 @@ function update_orders_wc() {
             ]
           );
       } else {
+
+        SirumLog::debug(
+          "get_full_order: WooCommerce Updated",
+          ['updated' => $updated]
+        );
+
         $order = get_full_order($updated, $mysql);
         SirumLog::error(
             "WC Order Irregular Stage Change.",
