@@ -31,7 +31,10 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
         $patient_or_order[$i]['refills_used'] = +$patient_or_order[$i]['refills_used'];
 
         //Set before export_gd_transfer_fax()
-        $patient_or_order[$i]['rx_date_written'] = date('Y-m-d', strtotime($patient_or_order[$i]['rx_date_expired'].' -1 year'));
+        $patient_or_order[$i]['rx_date_written'] = date(
+            'Y-m-d',
+            strtotime($patient_or_order[$i]['rx_date_expired'] . ' -1 year')
+        );
 
         //If this is full_patient was don't JOIN the order_items/order tables so those fields will not be set here
         $overwrite   = ($overwrite_rx_messages === true
@@ -105,27 +108,55 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
 
         //TODO consider making these methods so that they always stay upto
         //TODO date and we don't have to recalcuate them when things change
-        $patient_or_order[$i]['drug'] = $patient_or_order[$i]['drug_name'] ?: $patient_or_order[$i]['drug_generic'];
-        $patient_or_order[$i]['payment_method']  = @$patient_or_order[$i]['payment_method_actual'] ?: @$patient_or_order[$i]['payment_method_default'];
+        $patient_or_order[$i]['drug'] = $patient_or_order[$i]['drug_generic'];
+        if ($patient_or_order[$i]['drug_name']) {
+            $patient_or_order[$i]['drug'] = $patient_or_order[$i]['drug_name'];
+        }
+
+        $patient_or_order[$i]['payment_method'] = @$patient_or_order[$i]['payment_method_default'];
+        if (@$patient_or_order[$i]['payment_method_actual']) {
+            $patient_or_order[$i]['payment_method']  = @$patient_or_order[$i]['payment_method_actual'];
+        }
+
 
         if ($patient_or_order[$i]['payment_method'] != $patient_or_order[$i]['payment_method_default']) {
-            log_error('add_full_fields: payment_method_actual is set but does not equal payment_method_default. Was coupon removed?', get_defined_vars());
+            log_error(
+                'add_full_fields: payment_method_actual is set but does not equal'.
+                'payment_method_default. Was coupon removed?',
+                get_defined_vars()
+            );
 
-            if ($patient_or_order[$i]['payment_method_actual'] == PAYMENT_METHOD['COUPON']) { //Order 39025.  Ideally this would be removed since if we remove coupon from patient it should remove it from order as well
+            /*
+             * Order 39025.  Ideally this would be removed since if we remove
+             * coupon from patient it should remove it from order as well
+             */
+            if ($patient_or_order[$i]['payment_method_actual'] == PAYMENT_METHOD['COUPON']) {
                 $patient_or_order[$i]['payment_method'] = @$patient_or_order[$i]['payment_method_default'];
             }
         }
 
         if (! isset($patient_or_order[$i]['invoice_number'])) {
+            /*
+             * The rest of the fields are order specific and will not be
+             * available if this is a patient
+             */
             continue;
-        } //The rest of the fields are order specific and will not be available if this is a patient
+        }
 
-        $patient_or_order[$i]['days_dispensed'] = $patient_or_order[$i]['days_dispensed_actual'] ?: $patient_or_order[$i]['days_dispensed_default'];
+        $patient_or_order[$i]['days_dispensed'] = $patient_or_order[$i]['days_dispensed_default'];
+        if ($patient_or_order[$i]['days_dispensed_actual']) {
+            $patient_or_order[$i]['days_dispensed'] = $patient_or_order[$i]['days_dispensed_actual'];
+        }
+
         if ($patient_or_order[$i]['days_dispensed']) {
             $count_filled++;
         }
 
-        if (! $count_filled and ($patient_or_order[$i]['days_dispensed'] or $patient_or_order[$i]['days_dispensed_default'] or $patient_or_order[$i]['days_dispensed_actual'])) {
+        if (!$count_filled
+                and ($patient_or_order[$i]['days_dispensed']
+                        or $patient_or_order[$i]['days_dispensed_default']
+                        or $patient_or_order[$i]['days_dispensed_actual'])
+            ) {
             log_error('add_full_fields: What going on here?', get_defined_vars());
         }
 
