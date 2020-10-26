@@ -90,9 +90,15 @@ function update_orders_cp() {
   foreach($changes['created'] as $created) {
 
       //Overrite Rx Messages everytime a new order created otherwis same message would stay for the life of the Rx
+
+        SirumLog::debug(
+          "get_full_order: Carpoint created",
+          ['created' => $created]
+        );
+
         $order = get_full_order($created, $mysql, true);
 
-        if ( ! $order) {
+        if (!$order) {
             SirumLog::debug(
                 "Created Order Missing.  Most likely because cp order has liCount >
                   0 even though 0 items in order.  If correct, update liCount in CP to 0",
@@ -100,6 +106,15 @@ function update_orders_cp() {
             );
             continue;
         }
+
+        SirumLog::debug(
+          "Order found for created order",
+          [
+            'invoice_number' => $order[0]['invoice_number'],
+            'order'          => $order,
+            'created'        => $created
+          ]
+        );
 
         if ($order[0]['order_stage_wc'] == 'wc-processing') {
             SirumLog::debug(
@@ -362,12 +377,33 @@ function update_orders_cp() {
 
         log_notice("Updated Orders Cp: $updated[invoice_number] ".($i+1)." of ".count($changes['updated']), $changed_fields);
 
+        SirumLog::debug(
+          "get_full_order: Carpoint updated",
+          ['updated' => $updated]
+        );
+
         $order = get_full_order($updated, $mysql);
 
         if (!$order) {
+            SirumLog::notice(
+                "Order not found",
+                [
+                  'order'          => $order,
+                  'created'        => $updated
+                ]
+            );
             log_error("Updated Order Missing", $order);
             continue;
         }
+
+        SirumLog::debug(
+          "Order found for created order",
+          [
+            'invoice_number' => $order[0]['invoice_number'],
+            'order'          => $order,
+            'created'        => $created
+          ]
+        );
 
         if ($stage_change_cp AND $updated['order_date_shipped']) {
             $groups = group_drugs($order, $mysql);
