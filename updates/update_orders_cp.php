@@ -89,95 +89,113 @@ function update_orders_cp() {
   //  - Update wc order count/total
   foreach($changes['created'] as $created) {
 
-    //Overrite Rx Messages everytime a new order created otherwis same message would stay for the life of the Rx
-    $order = get_full_order($created, $mysql, true);
+      //Overrite Rx Messages everytime a new order created otherwis same message would stay for the life of the Rx
+        $order = get_full_order($created, $mysql, true);
 
-    if ( ! $order) {
-      SirumLog::debug(
-        'Created Order Missing.  Most likely because cp order has liCount > 0 even though 0 items in order.  If correct, update liCount in CP to 0',
-        [
-          'order' => $order
-        ]
-      );
-      continue;
-    }
+        if ( ! $order) {
+            SirumLog::debug(
+                "Created Order Missing.  Most likely because cp order has liCount >
+                  0 even though 0 items in order.  If correct, update liCount in CP to 0",
+                ['order' => $order]
+            );
+            continue;
+        }
 
-    if ($order[0]['order_stage_wc'] == 'wc-processing')
-      log_error('Problem: cp order wc-processing created', $order[0]);
+        if ($order[0]['order_stage_wc'] == 'wc-processing') {
+            SirumLog::debug(
+                'Problem: cp order wc-processing created',
+                [
+                  'invoice_number' => $order[0]['invoice_number'],
+                  'order'          => $order
+                ]
+            );
+        }
 
-    if ($order[0]['order_date_shipped']) {
-      export_wc_create_order($order, "update_orders_cp: shipped order being readded");
-      export_gd_publish_invoice($order, $mysql);
-      export_gd_print_invoice($order);
-      SirumLog::debug(
-        'Shipped order is missing and is being added back to the wc and gp tables',
-        [
-          'invoice_number' => $order[0]['invoice_number'],
-          'order'          => $order
-        ]
-      );
+        if ($order[0]['order_date_shipped']) {
+            export_wc_create_order($order, "update_orders_cp: shipped order being readded");
+            export_gd_publish_invoice($order, $mysql);
+            export_gd_print_invoice($order);
+            SirumLog::debug(
+                'Shipped order is missing and is being added back to the wc and gp tables',
+                [
+                  'invoice_number' => $order[0]['invoice_number'],
+                  'order'          => $order
+                ]
+            );
 
-      continue;
-    }
+            continue;
+        }
 
-    //1) Add Drugs to Guardian that should be in the order
-    //2) Remove drug from guardian that should not be in the order
-    //3) Create a fax out transfer for anything removed that is not offered
-    //ACTION PATIENT OFF AUTOFILL Notice
-    $synced = sync_to_order($order);
+        /*
+         * 1) Add Drugs to Guardian that should be in the order
+         * 2) Remove drug from guardian that should not be in the order
+         * 3) Create a fax out transfer for anything removed that is not offered
+         * ACTION PATIENT OFF AUTOFILL Notice
+         */
+        $synced = sync_to_order($order);
 
-    //Patient communication that we are cancelling their order examples include:
-    //NEEDS FORM, TRANSFER OUT OF ALL ITEMS, ACTION PATIENT OFF AUTOFILL
-    if ($synced['new_count_items'] <= 0) {
-      $groups = group_drugs($order, $mysql);
-      order_hold_notice($groups);
+        //Patient communication that we are cancelling their order examples include:
+        //NEEDS FORM, TRANSFER OUT OF ALL ITEMS, ACTION PATIENT OFF AUTOFILL
+        if ($synced['new_count_items'] <= 0) {
+            $groups = group_drugs($order, $mysql);
+            order_hold_notice($groups);
 
-      SirumLog::debug(
-        'update_orders_cp sync_to_order is effectively removing order',
-        [
-          'invoice_number' => $order[0]['invoice_number'],
-          'order'          => $order,
-          'synced'         => $synced
-        ]
-      );
-    }
+            SirumLog::debug(
+                'update_orders_cp sync_to_order is effectively removing order',
+                [
+                  'invoice_number' => $order[0]['invoice_number'],
+                  'order'          => $order,
+                  'synced'         => $synced
+                ]
+            );
+        }
 
-    if ($synced['items_to_sync']) {
-      SirumLog::debug(
-          'update_orders_cp sync_to_order necessary on CREATE: deleting order for it to be readded',
-          [
-            'invoice_number' => $order[0]['invoice_number'],
-            'sync_results'   => $synced
-          ]
-      );
-      $mysql->run('DELETE gp_orders FROM gp_orders WHERE invoice_number = '.$order[0]['invoice_number']); //Force created to run again after the changes take place
-      continue; //DON'T CREATE THE ORDER UNTIL THESE ITEMS ARE SYNCED TO AVOID CONFLICTING COMMUNICATIONS!
-    }
+        if ($synced['items_to_sync']) {
+            SirumLog::debug(
+                'update_orders_cp sync_to_order necessary on CREATE: deleting order for it to be readded',
+                [
+                  'invoice_number' => $order[0]['invoice_number'],
+                  'sync_results'   => $synced
+                ]
+            );
 
-    //Needs to be called before "$groups" is set
-    list($target_date, $target_rxs) = get_sync_to_date($order);
-    $order  = set_sync_to_date($order, $target_date, $target_rxs, $mysql);
+            //Force created to run again after the changes take place
+            $mysql->run("DELETE gp_orders
+                          FROM gp_orders
+                          WHERE invoice_number = {$order[0]['invoice_number']}");
 
-    $groups = group_drugs($order, $mysql);
+            //DON'T CREATE THE ORDER UNTIL THESE ITEMS ARE SYNCED TO AVOID CONFLICTING COMMUNICATIONS!
+            continue;
+        }
 
-    // 3 Steps of ACTION NEEDS FORM:
-    // 1) Here.  update_orders_cp created (surescript came in and created a CP order)
-    // 2) Same cycle: update_order_wc deleted (since WC doesn't have the new order yet)
-    // 3) Next cycle: update_orders_cp deleted (not sure yet why it gets deleted from CP)
-    if ( ! $order[0]['pharmacy_name']) { //Can't test for rx_message_key == 'ACTION NEEDS FORM' because other messages can take precedence
-      needs_form_notice($groups);
-      SirumLog::notice(
-        "update_orders_cp created: Guardian Order Created But" .
-          " Patient Not Yet Registered in WC so not creating WC Order",
-        [
-          'invoice_number' => $order[0]['invoice_number'],
-          'order' => $order
-        ]
-      );
-      continue;
-    }
+        //Needs to be called before "$groups" is set
+        list($target_date, $target_rxs) = get_sync_to_date($order);
+        $order  = set_sync_to_date($order, $target_date, $target_rxs, $mysql);
 
-    $order = helper_update_payment($order, "update_orders_cp: created", $mysql);
+        $groups = group_drugs($order, $mysql);
+
+        /*
+         * 3 Steps of ACTION NEEDS FORM:
+         * 1) Here.  update_orders_cp created (surescript came in and created a CP order)
+         * 2) Same cycle: update_order_wc deleted (since WC doesn't have the new order yet)
+         * 3) Next cycle: update_orders_cp deleted (not sure yet why it gets deleted from CP)
+         * Can't test for rx_message_key == 'ACTION NEEDS FORM' because other messages can take precedence
+         */
+
+        if (!$order[0]['pharmacy_name']) {
+            needs_form_notice($groups);
+            SirumLog::notice(
+                "update_orders_cp created: Guardian Order Created But
+                  Patient Not Yet Registered in WC so not creating WC Order",
+                [
+                  'invoice_number' => $order[0]['invoice_number'],
+                  'order' => $order
+                ]
+            );
+            continue;
+        }
+
+        $order = helper_update_payment($order, "update_orders_cp: created", $mysql);
 
     if ($created['order_date_dispensed']) { //Can't test for rx_message_key == 'ACTION NEEDS FORM' because other messages can take precedence
       export_gd_publish_invoice($order, $mysql);
@@ -220,7 +238,7 @@ function update_orders_cp() {
       );
     } else {
       SirumLog::notice(
-        "Order creation skipped because source not webform",
+        "Order creation skipped because source not Webform",
         [
           'invoice_number' => $order[0]['invoice_number'],
           'source'         => $order[0]['order_source'],
@@ -245,26 +263,34 @@ function update_orders_cp() {
     }
 
     //TODO Update Salesforce Order Total & Order Count & Order Invoice using REST API or a MYSQL Zapier Integration
-  }
+    } // END created loop
 
-  //If just deleted from CP Order we need to
-  //  - set "days_dispensed_default" and "qty_dispensed_default" to 0
-  //  - unpend in v2 and save applicable fields
-  //  - if last line item in order, find out any other rxs need to be removed
-  //  - update invoice
-  //  - update wc order total
-  foreach($changes['deleted'] as $deleted) {
+    /*
+     * If just deleted from CP Order we need to
+     *  - set "days_dispensed_default" and "qty_dispensed_default" to 0
+     *  - unpend in v2 and save applicable fields
+     *  - if last line item in order, find out any other rxs need to be removed
+     *  - update invoice
+     *  - update wc order total
+     */
+    foreach ($changes['deleted'] as $deleted) {
+        SirumLog::debug(
+            'Carepoint Order has ben deleted',
+            [
+              'invoice_number' => $deleted['invoice_number'],
+              'deleted'        => $deleted
+            ]
+        );
 
-
-    //Order #28984, #29121, #29105
-    if ( ! $deleted['patient_id_wc']) {
-      //Likely
-      //  (1) Guardian Order Was Created But Patient Was Not Yet Registered in WC so never created WC Order (and No Need To Delete It)
-      //  (2) OR Guardian Order had items synced to/from it, so was deleted and readded, which effectively erases the patient_id_wc
-      log_error('update_orders_cp: cp order deleted - no patient_id_wc', $deleted);
-    } else {
-      log_notice('update_orders_cp: cp order deleted so deleting wc order as well', $deleted);
-    }
+      //Order #28984, #29121, #29105
+        if (!$deleted['patient_id_wc']) {
+          //Likely
+          //  (1) Guardian Order Was Created But Patient Was Not Yet Registered in WC so never created WC Order (and No Need To Delete It)
+          //  (2) OR Guardian Order had items synced to/from it, so was deleted and readded, which effectively erases the patient_id_wc
+            log_error('update_orders_cp: cp order deleted - no patient_id_wc', $deleted);
+        } else {
+            log_notice('update_orders_cp: cp order deleted so deleting wc order as well', $deleted);
+        }
 
     //Order was Returned to Sender and not logged yet
     if ($deleted['tracking_number'] AND ! $deleted['order_date_returned']) {
@@ -272,9 +298,9 @@ function update_orders_cp() {
       set_payment_actual($deleted['invoice_number'], ['total' => 0, 'fee' => 0, 'due' => 0], $mysql);
       //export_wc_update_order_payment($deleted['invoice_number'], 0); //Don't need this because we are deleting the WC order later
 
-      $update_sql = "
-        UPDATE gp_orders SET order_date_returned = NOW() WHERE invoice_number = $deleted[invoice_number]
-      ";
+      $update_sql = "UPDATE gp_orders
+                      SET order_date_returned = NOW()
+                      WHERE invoice_number = $deleted[invoice_number]";
 
       $mysql->run($update_sql);
 
@@ -322,90 +348,100 @@ function update_orders_cp() {
   //If just updated we need to
   //  - see which fields changed
   //  - think about what needs to be updated based on changes
-  foreach($changes['updated'] as $i => $updated) {
+    foreach ($changes['updated'] as $i => $updated) {
+        SirumLog::debug(
+            'Carepoint Order has ben updated',
+            [
+              'invoice_number' => $updated['invoice_number'],
+              'updated'        => $updated
+            ]
+        );
 
-    $changed_fields  = changed_fields($updated);
-    $stage_change_cp = $updated['order_stage_cp'] != $updated['old_order_stage_cp'];
+        $changed_fields  = changed_fields($updated);
+        $stage_change_cp = $updated['order_stage_cp'] != $updated['old_order_stage_cp'];
 
-    log_notice("Updated Orders Cp: $updated[invoice_number] ".($i+1)." of ".count($changes['updated']), $changed_fields);
+        log_notice("Updated Orders Cp: $updated[invoice_number] ".($i+1)." of ".count($changes['updated']), $changed_fields);
 
-    $order = get_full_order($updated, $mysql);
+        $order = get_full_order($updated, $mysql);
 
-    if ( ! $order) {
-      log_error("Updated Order Missing", $order);
-      continue;
+        if (!$order) {
+            log_error("Updated Order Missing", $order);
+            continue;
+        }
+
+        if ($stage_change_cp AND $updated['order_date_shipped']) {
+            $groups = group_drugs($order, $mysql);
+            export_v2_unpend_order($order);
+            export_wc_update_order_status($order); //Update status from prepare to shipped
+            export_wc_update_order_metadata($order);
+            send_shipped_order_communications($groups);
+            log_notice("Updated Order Shipped", $order);
+            continue;
+        }
+
+        if ($stage_change_cp AND $updated['order_date_dispensed']) {
+
+            $dispensing_changes = detect_dispensing_changes($order);
+
+            if ($dispensing_changes['day_changes']) {
+                //Updates invoice with new days/price/qty/refills.
+                $order = helper_update_payment($order, "update_orders_cp: updated - dispensing day changes ".implode(', ', $dispensing_changes['day_changes']), $mysql);
+                export_wc_update_order($order); //Price will also have changed
+
+            } elseif ($dispensing_changes['qty_changes']) {
+              //Updates invoice with new qty/refills.  Prices should not have changed so no need to update WC
+                $order = export_gd_update_invoice($order, "update_orders_cp: updated - dispensing qty changes ".implode(', ', $dispensing_changes['qty_changes']), $mysql);
+            }
+
+            $groups = group_drugs($order, $mysql);
+
+            export_gd_publish_invoice($order, $mysql);
+            export_gd_print_invoice($order);
+            send_dispensed_order_communications($groups);
+            log_notice("Updated Order Dispensed", $order);
+            continue;
+        }
+
+
+        //We won't sync new drugs to the order, but if a new drug comes in that we are not filling, we will remove it
+        $synced = sync_to_order($order, $updated);
+
+        if ($synced['items_to_sync']) {
+            //Force updated to run again after the changes take place
+            log_error("update_orders_cp sync_to_order necessary on UPDATE:", [$updated, $synced['items_to_sync']]);
+            $mysql->run("UPDATE gp_orders
+                          SET count_items = 0
+                          WHERE invoice_number = {$order[0]['invoice_number']}");
+            continue;
+        }
+
+        if ($updated['count_items'] != $updated['old_count_items']) {
+            $log = "update_orders_cp: count items changed $updated[invoice_number]: $updated[old_count_items] -> $updated[count_items]";
+            log_notice($log, [$order, $updated]);
+
+            foreach ($order as $item) {
+
+                if ($item['count_pended_total'] AND ! $item['days_dispensed']) {
+                    unpend_pick_list($item);
+                }
+
+                if (!$item['count_pended_total'] AND $item['days_dispensed']) {
+                    v2_pend_item($item, $mysql);
+                }
+            }
+
+            $order = helper_update_payment($order, $log, $mysql); //This also updates payment
+            export_wc_update_order($order);
+            continue;
+        }
+
+          //Address Changes
+          //Stage Change
+          //Order_Source Change (now that we overwrite when saving webform)
+          log_notice("update_orders_cp updated: no action taken $updated[invoice_number]", [$order, $updated, $changed_fields]);
+
+          //TODO Update Salesforce Order Total & Order Count & Order Invoice using REST API or a MYSQL Zapier Integration
+
     }
-
-    if ($stage_change_cp AND $updated['order_date_shipped']) {
-      $groups = group_drugs($order, $mysql);
-      export_v2_unpend_order($order);
-      export_wc_update_order_status($order); //Update status from prepare to shipped
-      export_wc_update_order_metadata($order);
-      send_shipped_order_communications($groups);
-      log_notice("Updated Order Shipped", $order);
-      continue;
-    }
-
-    if ($stage_change_cp AND $updated['order_date_dispensed']) {
-
-      $dispensing_changes = detect_dispensing_changes($order);
-
-      if ($dispensing_changes['day_changes']) {
-        //Updates invoice with new days/price/qty/refills.
-        $order = helper_update_payment($order,  "update_orders_cp: updated - dispensing day changes ".implode(', ', $dispensing_changes['day_changes']), $mysql);
-        export_wc_update_order($order); //Price will also have changed
-
-      } else if ($dispensing_changes['qty_changes']) {
-        //Updates invoice with new qty/refills.  Prices should not have changed so no need to update WC
-        $order = export_gd_update_invoice($order, "update_orders_cp: updated - dispensing qty changes ".implode(', ', $dispensing_changes['qty_changes']), $mysql);
-      }
-
-      $groups = group_drugs($order, $mysql);
-
-      export_gd_publish_invoice($order, $mysql);
-      export_gd_print_invoice($order);
-      send_dispensed_order_communications($groups);
-      log_notice("Updated Order Dispensed", $order);
-      continue;
-    }
-
-
-    //We won't sync new drugs to the order, but if a new drug comes in that we are not filling, we will remove it
-    $synced = sync_to_order($order, $updated);
-
-    if ($synced['items_to_sync']) {
-
-      log_error("update_orders_cp sync_to_order necessary on UPDATE:", [$updated, $synced['items_to_sync']]);
-      $mysql->run("UPDATE gp_orders SET count_items = 0 WHERE invoice_number = {$order[0]['invoice_number']}"); //Force updated to run again after the changes take place
-      continue;
-    }
-
-    if ($updated['count_items'] != $updated['old_count_items']) {
-
-      $log = "update_orders_cp: count items changed $updated[invoice_number]: $updated[old_count_items] -> $updated[count_items]";
-      log_notice($log, [$order, $updated]);
-
-      foreach($order as $item) {
-
-        if ($item['count_pended_total'] AND ! $item['days_dispensed'])
-          unpend_pick_list($item);
-
-        if ( ! $item['count_pended_total'] AND $item['days_dispensed'])
-          v2_pend_item($item, $mysql);
-      }
-
-      $order = helper_update_payment($order, $log, $mysql); //This also updates payment
-      export_wc_update_order($order);
-      continue;
-    }
-
-    //Address Changes
-    //Stage Change
-    //Order_Source Change (now that we overwrite when saving webform)
-    log_notice("update_orders_cp updated: no action taken $updated[invoice_number]", [$order, $updated, $changed_fields]);
-
-    //TODO Update Salesforce Order Total & Order Count & Order Invoice using REST API or a MYSQL Zapier Integration
-
-  }
   //TODO Upsert Salseforce Order Status, Order Tracking
 }
