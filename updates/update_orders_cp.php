@@ -7,6 +7,8 @@ require_once 'helpers/helper_syncing.php';
 require_once 'helpers/helper_communications.php';
 require_once 'exports/export_wc_orders.php';
 
+use Sirum\Logging\SirumLog;
+
 function update_orders_cp() {
 
   $changes = changes_to_orders_cp("gp_orders_cp");
