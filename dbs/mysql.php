@@ -1,4 +1,5 @@
 <?php
+use Sirum\Logging\SirumLog;
 
 class Mysql {
 

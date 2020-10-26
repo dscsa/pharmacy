@@ -1,12 +1,17 @@
 <?php
 
 global $mysql;
+use Sirum\Logging\SirumLog;
 
 function wc_get_post_id($invoice_number, $full_order = false) {
   global $mysql;
   $mysql = $mysql ?: new Mysql_Wc();
 
-  $sql = "SELECT * FROM wp_posts JOIN wp_postmeta ON wp_posts.id = wp_postmeta.post_id WHERE wp_postmeta.meta_key='invoice_number' AND wp_postmeta.meta_value = '$invoice_number'";
+  $sql = "SELECT *
+            FROM wp_posts
+              JOIN wp_postmeta ON wp_posts.id = wp_postmeta.post_id
+            WHERE wp_postmeta.meta_key='invoice_number'
+              AND wp_postmeta.meta_value = '{$invoice_number}'";
   $res = $mysql->run($sql);
 
   if (isset($res[0][0]))
@@ -132,20 +137,27 @@ function export_wc_delete_order($invoice_number, $reason) {
 
   $mysql->run($sql3);
 
-  log_notice("export_wc_delete_order", ['invoice_number' => $invoice_number, 'reason' => $reason, 'post_id' => $post_id]);//.print_r($item, true);
+  SirumLog::debug(
+    "export_wc_delete_order",
+    [
+        'invoice_number' => $invoice_number,
+        'reason' => $reason,
+        'post_id' => $post_id
+    ]
+  );
 }
 
 function export_wc_create_order($order, $reason) {
 
   global $mysql;
-  $mysql = $mysql ?: new Mysql_Wc();
+  $mysql          = $mysql ?: new Mysql_Wc();
 
-  $first_item = $order[0];
+  $first_item     = $order[0];
 
   $invoice_number = $first_item['invoice_number'];
-  $first_name = str_replace(["'", '*'], ['',''], $first_item['first_name']); //Ignore Cindy's internal marking
-  $last_name = str_replace(["'", '*'], ['',''], $first_item['last_name']); //Ignore Cindy's internal marking
-  $birth_date = str_replace('*', '', $first_item['birth_date']); //Ignore Cindy's internal marking
+  $first_name     = str_replace(["'", '*'], ['',''], $first_item['first_name']); //Ignore Cindy's internal marking
+  $last_name      = str_replace(["'", '*'], ['',''], $first_item['last_name']); //Ignore Cindy's internal marking
+  $birth_date     = str_replace('*', '', $first_item['birth_date']); //Ignore Cindy's internal marking
 
   //START DEBUG
   $wc_order = wc_get_post_id($invoice_number, true);

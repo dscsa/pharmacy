@@ -1,6 +1,8 @@
 <?php
 require_once 'helpers/helper_calendar.php';
 
+use Sirum\Logging\SirumLog;
+
 function get_days_default($item, $order) {
 
   $no_transfer    = is_no_transfer($item);
@@ -469,7 +471,15 @@ function sync_to_order_new_rx($item, $order) {
   $has_refills  = ($item['refills_total'] > NO_REFILL);
   $eligible     = (! @$item['item_date_added'] AND $has_refills AND ! $is_refill AND $item['rx_autofill'] AND ! $not_offered AND ! $refill_only);
 
-  log_notice("sync_to_order_new_rx", get_defined_vars());
+  $vars = get_defined_vars();
+
+  SirumLog::debug(
+      "sync_to_order_new_rx",
+      [
+          'invoice_number' => $order[0]['invoice_number'],
+          'vars' => $vars
+      ]
+  );
 
   return $eligible AND ! is_duplicate_gsn($item, $order);
 }
@@ -573,4 +583,6 @@ function is_duplicate_gsn($item1, $order) {
       return true;
     }
   }
+
+  return false;
 }
