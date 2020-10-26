@@ -114,6 +114,11 @@ function update_orders_wc() {
           ['deleted' => $deleted]
         );
 
+    SirumLog::debug(
+          "get_full_order: WooCommerce Deleted",
+          ['deleted' => $deleted]
+        );
+
     $order = get_full_order($deleted, $mysql);
 
     /* TODO Investigate if/why this is needed */
