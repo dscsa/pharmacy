@@ -23,6 +23,12 @@ class SirumLog
     public static $exec_id;
 
     /**
+     * Stores the execution id so logs from a single run can be consolidated
+     * @var string
+     */
+    public static $subroutine_id = null;
+
+    /**
      * Overide the static funciton and pass unknow methos into the logger.
      * We will do some cleanup to make sure the data is an array and we will add
      * the execution id so we can group the log message
@@ -45,7 +51,19 @@ class SirumLog
 
         $context['execution_id'] = self::$exec_id;
 
+        if (!is_null(self::$subroutine_id)) {
+            $context['subroutine_id'] = self::$subroutine_id;
+        }
+
         self::$logger->$method($message, $context);
+    }
+
+    /**
+     * Set the subroutine ID to null
+     * @return void
+     */
+    public static function resetSubroutineId() {
+        self::$subroutine_id = null;
     }
 
     /**

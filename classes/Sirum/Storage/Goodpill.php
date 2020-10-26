@@ -24,7 +24,7 @@ class Goodpill
   public static function getConnection() {
 
     if (!(self::$goodpill instanceof PDO)) {
-        self::$goodpill = Mysql::getPDO(MYSQL_WC_IP, 'goodpill', MYSQL_WC_USER, MYSQL_WC_PWD);
+        self::$goodpill = MySQL::getPDO(MYSQL_WC_IP, 'goodpill', MYSQL_WC_USER, MYSQL_WC_PWD);
     }
 
     return self::$goodpill;

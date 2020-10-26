@@ -33,7 +33,7 @@ function update_orders_cp() {
   }
 
   SirumLog::debug(
-    'Changes found',
+    'Carepoint Changes found',
     [
       'deleted' => $changes['deleted'],
       'created' => $changes['created'],
@@ -89,9 +89,11 @@ function update_orders_cp() {
   //  - Find out any other rxs need to be added
   //  - Update invoice
   //  - Update wc order count/total
-  foreach($changes['created'] as $created) {
+    foreach($changes['created'] as $created) {
 
-      //Overrite Rx Messages everytime a new order created otherwis same message would stay for the life of the Rx
+        SirumLog::$subroutine_id = sha1(serialize($created));
+
+        //Overrite Rx Messages everytime a new order created otherwis same message would stay for the life of the Rx
 
         SirumLog::debug(
           "get_full_order: Carpoint created",
@@ -291,6 +293,8 @@ function update_orders_cp() {
      *  - update wc order total
      */
     foreach ($changes['deleted'] as $deleted) {
+        SirumLog::$subroutine_id = sha1(serialize($deleted));
+
         SirumLog::debug(
             'Carepoint Order has ben deleted',
             [
@@ -366,6 +370,8 @@ function update_orders_cp() {
   //  - see which fields changed
   //  - think about what needs to be updated based on changes
     foreach ($changes['updated'] as $i => $updated) {
+        SirumLog::$subroutine_id = sha1(serialize($updated));
+
         SirumLog::debug(
             'Carepoint Order has ben updated',
             [
@@ -481,5 +487,7 @@ function update_orders_cp() {
           //TODO Update Salesforce Order Total & Order Count & Order Invoice using REST API or a MYSQL Zapier Integration
 
     }
+
+    SirumLog::resetSubroutineId();
   //TODO Upsert Salseforce Order Status, Order Tracking
 }
