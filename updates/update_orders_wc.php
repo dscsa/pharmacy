@@ -48,8 +48,12 @@ function update_orders_wc() {
   foreach($changes['created'] as $created) {
       SirumLog::$subroutine_id = sha1(serialize($created));
       SirumLog::debug(
-            "get_full_order: WooCommerce Created",
-            ['created' => $created]
+            "WooCommerce Created",
+            [
+                'source'  => 'WooCommerce',
+                'event'   => 'created',
+                'created' => $created
+            ]
           );
     $new_stage = explode('-', $created['order_stage_wc']);
 
@@ -109,19 +113,14 @@ function update_orders_wc() {
   //2) An order is in CP but not in (never added to) WC, probably because of a tech bug.
   foreach($changes['deleted'] as $deleted) {
     SirumLog::$subroutine_id = sha1(serialize($deleted));
-    SirumLog::debug(
-          "get_full_order: WooCommerce Deleted",
-          ['deleted' => $deleted]
-        );
 
     SirumLog::debug(
-          "get_full_order: WooCommerce Deleted",
-          ['deleted' => $deleted]
-        );
-
-    SirumLog::debug(
-          "get_full_order: WooCommerce Deleted",
-          ['deleted' => $deleted]
+          "WooCommerce Deleted",
+          [
+              'source'  => 'WooCommerce',
+              'event'   => 'deleted',
+              'deleted' => $deleted
+          ]
         );
 
     $order = get_full_order($deleted, $mysql);
@@ -215,6 +214,14 @@ function update_orders_wc() {
   foreach($changes['updated'] as $updated) {
     SirumLog::$subroutine_id = sha1(serialize($updated));
 
+    SirumLog::debug(
+          "WooCommerce Updated",
+          [
+              'source'  => 'WooCommerce',
+              'event'   => 'updated',
+              'deleted' => $deleted
+          ]
+        );
 
     $changed = changed_fields($updated);
 
