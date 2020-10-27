@@ -1,5 +1,7 @@
 <?php
 
+use Sirum\Logging\SirumLog;
+
 //Simplify GDoc Invoice Logic by combining _actual
 function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
 {
