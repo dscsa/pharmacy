@@ -23,7 +23,7 @@ function export_cp_set_rx_message($item, $message, $mysql)
     $item['rx_message_text'] = message_text($message, $item);
 
     // There isn't a perscription message so lets bugout
-    if (! $item['rx_message_key']) {
+    if (!$item['rx_message_key']) {
         log_error("set_days_default could not get rx_message_key ", get_defined_vars());
         return $item;
     }
