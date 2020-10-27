@@ -97,7 +97,11 @@ function update_orders_cp() {
 
         SirumLog::debug(
           "get_full_order: Carpoint created",
-          ['created' => $created]
+          [
+              'created' => $created,
+              'source'  => 'Guardian',
+              'event'   => 'created'
+          ]
         );
 
         $order = get_full_order($created, $mysql, true);
@@ -298,6 +302,8 @@ function update_orders_cp() {
         SirumLog::debug(
             'Carepoint Order has ben deleted',
             [
+              'source'         => 'Guardian',
+              'event'          => 'deleted',
               'invoice_number' => $deleted['invoice_number'],
               'deleted'        => $deleted
             ]
@@ -375,6 +381,8 @@ function update_orders_cp() {
         SirumLog::debug(
             'Carepoint Order has ben updated',
             [
+              'source'         => 'Guardian',
+              'event'          => 'updated',
               'invoice_number' => $updated['invoice_number'],
               'updated'        => $updated
             ]
