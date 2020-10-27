@@ -307,8 +307,8 @@ function sort_by_ndc($ndcs, $long_exp) {
     } else {
 
       //Return shortest prepack expiration date, if a tie use one with greater quantity
-      if ($a['prepack_exp'] > $b['prepack_exp']) return 1;
-      if ($a['prepack_exp'] < $b['prepack_exp']) return -1;
+      if (@$a['prepack_exp'] > @$b['prepack_exp']) return 1;
+      if (@$a['prepack_exp'] < @$b['prepack_exp']) return -1;
       return $b['prepack_qty'] - $a['prepack_qty'];
     }
   });

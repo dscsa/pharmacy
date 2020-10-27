@@ -1,4 +1,5 @@
 <?php
+use Sirum\Logging\SirumLog;
 
 class Mysql {
 
@@ -140,6 +141,6 @@ class Mysql {
       //$mysqli_error = isset($this->connection) ? mysqli_connect_errno($this->connection).': '.mysqli_error($this->connection) : mysqli_connect_errno().': '.mysqli_connect_error();
       //Don't do database logging here as this could cause an infinite loop
       log_to_cli('ERROR', "Debug MYSQL", '', print_r($error, true));
-      log_to_email('ERROR', "Debug MYSQL", '', print_r($error, true));
+      SirumLog::alert("Debug MYSQL", $error);
     }
 }

@@ -10,6 +10,8 @@ require_once 'exports/export_gd_orders.php';
 require_once 'dbs/mysql_wc.php';
 require_once 'update/update_orders_cp.php';
 
+use Sirum\Logging\SirumLog;
+
 $arrOptions   = getopt("i:hd", array());
 
 if (!isset($arrOptions['i']) || isset($arrOptions['h'])) {
@@ -39,6 +41,12 @@ if (isset($arrOptions['d'])) {
   update_orders_cp();
 
 } else {
+
+	SirumLog::debug(
+		"get_full_order: Invoice Creation",
+		["invoice_number" => $invoice_number]
+	);
+
   $order = get_full_order(["invoice_number" => $invoice_number], $mysql);
   export_gd_publish_invoice($order, $mysql);
   export_gd_print_invoice($order);

@@ -124,7 +124,7 @@ class Notification extends GPModel
      * @return boolean Returns true if the notification is in the DB
      *    and the attempted_sends count is > 0
      */
-    public function hasSent()
+    public function isSent()
     {
         return($this->isStored() && $this->attempted_sends > 0);
     }
