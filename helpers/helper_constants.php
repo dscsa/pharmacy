@@ -14,12 +14,6 @@ const ADDED_MANUALLY = [
   "WEBFORM"
 ];
 
-const PICK_LIST_FOLDER_NAME = 'Pick Lists';
-const INVOICE_PUBLISHED_FOLDER_NAME = 'Published';
-const INVOICE_PENDING_FOLDER_NAME   = 'Pending';
-const TRANSFER_OUT_FOLDER_NAME = 'Transfer Outs';
-
-
 const PAYMENT_TOTAL_NEW_PATIENT = 6;
 
 const PAYMENT_METHOD = [
