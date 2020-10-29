@@ -1,5 +1,6 @@
 <?php
 
+use Sirum\Logging\SirumLog;
 
 function order_dispensed_event($order, $salesforce, $hours_to_wait)
 {
@@ -304,6 +305,14 @@ function get_patient_label($order)
     return $order[0]['first_name'].' '.$order[0]['last_name'].' '.$order[0]['birth_date'];
 }
 
+/**
+ * Create an event on the communication calendar
+ * @param  string  $event_title    The title of the event
+ * @param  array   $comm_arr       An array of the details for the event
+ * @param  integer $hours_to_wait  (Optional) How long to wait till it gets sent
+ * @param  integer $hour_of_day    The hour of the day to attempt to send
+ * @return void
+ */
 function create_event($event_title, $comm_arr, $hours_to_wait = 0, $hour_of_day = null)
 {
     $startTime = get_start_time($hours_to_wait, $hour_of_day);
@@ -319,9 +328,24 @@ function create_event($event_title, $comm_arr, $hours_to_wait = 0, $hour_of_day 
 
     $result = gdoc_post(GD_HELPER_URL, $args);
 
-    //Debug Refill Reminders getting created with NO TITLE OR DESCRIPTION, just blank events
+    SirumLog::debug(
+        "Communication Calendar event created",
+        [
+            "message" => $args,
+            "result"  => $result
+        ]
+    );
+
+    // Debug Refill Reminders getting created with NO TITLE OR DESCRIPTION,
+    // just blank events
     if ($hour_of_day == 12) {
-        log_error('DEBUG REFILL REMINDER create_event', [$args, $result]);
+        SirumLog::notice(
+            "DEBUG REFILL REMINDER create_event",
+            [
+                "message" => $args,
+                "result"  => $result
+            ]
+        );
     }
 }
 
