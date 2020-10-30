@@ -29,6 +29,12 @@ class SirumLog
     public static $subroutine_id = null;
 
     /**
+     * The application ID for the google logger
+     * @var string
+     */
+    public static $application_id;
+
+    /**
      * Overide the static funciton and pass unknow methos into the logger.
      * We will do some cleanup to make sure the data is an array and we will add
      * the execution id so we can group the log message
@@ -58,6 +64,8 @@ class SirumLog
         try{
             self::$logger->$method($message, $context);
         } catch(Exception $e) {
+            // The logger is broken.  We need to recycle it.
+            self::resetLogger();
             self::$logger->alert($message, $e->getMessage());
             self::$logger->$method($message);
         }
@@ -67,8 +75,22 @@ class SirumLog
      * Set the subroutine ID to null
      * @return void
      */
-    public static function resetSubroutineId() {
+    public static function resetSubroutineId()
+    {
         self::$subroutine_id = null;
+    }
+
+    /**
+     * Rebuild the logger.  Sometimes an error can cause the logger
+     * to stop working.  This should trash the current logger and crated a new
+     * logger object
+     *
+     * @return void
+     */
+    public static function resetLogger() {
+        self::$logger->flush();
+        unset(self::$logger);
+        return self::getLogger(self::$application_id, self::$exec_id);
     }
 
     /**
@@ -84,18 +106,22 @@ class SirumLog
     public static function getLogger($application = 'pharmacy-automation', $execution = null)
     {
         if (!isset(self::$logger)) {
+            self::$application_id = $application;
+
             $logging  = new LoggingClient(['projectId' => 'unified-logging-292316']);
 
-            self::$logger = $logging->psrLogger($application);
+            self::$logger = $logging->psrLogger(self::$application_id);
 
             if (is_null($execution)) {
                 $execution = uniqid();
             }
 
             self::$exec_id = $execution;
+
+            self::$application_id = $application;
         }
 
-        self::$logger = LoggingClient::psrBatchLogger($application);
+        self::$logger = LoggingClient::psrBatchLogger(self::$application_id);
 
         return self::$logger;
     }
