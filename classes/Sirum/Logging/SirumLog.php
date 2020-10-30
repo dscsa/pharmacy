@@ -58,7 +58,7 @@ class SirumLog
         try{
             self::$logger->$method($message, $context);
         } catch(Exception $e) {
-            self::$logger->alert($message, $e->getMessage());
+            self::$logger->alert($message, ["error" => $e->getMessage()]);
             self::$logger->$method($message);
         }
     }
