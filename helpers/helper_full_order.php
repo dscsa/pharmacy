@@ -243,5 +243,7 @@ function get_order_stage_wc($order) {
     return 'late-card-expired';
 
   log_error('get_order_stage_wc error: shipped-* unknown payment_method', get_defined_vars());
-  return $order[0]['order_stage_wc'];
+
+  // Strip on the wc- so we don't get duplicates
+  return str_replace('wc-', '', $order[0]['order_stage_wc']);
 }

@@ -144,7 +144,11 @@ function get_days_default($item, $order) {
     return [0, RX_MESSAGE['NO ACTION NOT DUE']];
   }
 
-  if ((strtotime($item['refill_date_default']) - strtotime($item['refill_date_manual'])) > DAYS_UNIT*24*60*60 AND $item['refill_date_manual'] AND ! $added_manually) {
+  /*
+   * DAYS_UNIT has been replaced by hardcoded 28 at Pharmacy's request.  We
+   * should evaluate if this needs to change to a constant.  Asana
+   */
+  if ((strtotime($item['refill_date_default']) - strtotime($item['refill_date_manual'])) > 28*24*60*60 AND $item['refill_date_manual'] AND ! $added_manually) {
 
     $created = "Created:".date('Y-m-d H:i:s');
 
