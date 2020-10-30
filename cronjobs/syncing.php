@@ -217,6 +217,9 @@ try {
 
     SirumLog::info('Pharmacy Automation Complete', $execution_details);
 } catch (Exception $e) {
-    $execution_details['e'] = $e;
+    $execution_details['error_message'] = $e->getMessage;
     SirumLog::alert('Webform Cron Job Fatal Error', $execution_details);
+    throw $e;
 }
+
+echo "Pharmacy Automation Success in {$execution_details['timers']['total']} milliseconds.";

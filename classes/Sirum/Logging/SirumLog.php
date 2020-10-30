@@ -55,7 +55,12 @@ class SirumLog
             $context['subroutine_id'] = self::$subroutine_id;
         }
 
-        self::$logger->$method($message, $context);
+        try{
+            self::$logger->$method($message, $context);
+        } catch(Exception $e) {
+            self::$logger->alert($message, $e->getMessage());
+            self::$logger->$method($message);
+        }
     }
 
     /**
