@@ -228,16 +228,12 @@ try {
     SirumLog::info('Pharmacy Automation Complete', $execution_details);
     echo "All data processed {$execution_details['end']}\n";
 } catch (Exception $e) {
-    $execution_details['error_message'] = $e->getMessage;
+    $execution_details['error_message'] = $e->getMessage();
     SirumLog::alert('Webform Cron Job Fatal Error', $execution_details);
     throw $e;
 }
 
-<<<<<<< HEAD
 echo "\nPharmacy Automation Success in {$execution_details['timers']['total']} milliseconds.\n";
-=======
+
 // Push any lagging logs to google Cloud
 SirumLog::flush();
-
-echo "Pharmacy Automation Success in {$execution_details['timers']['total']} milliseconds.\n";
->>>>>>> origin/master

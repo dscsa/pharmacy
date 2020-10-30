@@ -14,6 +14,8 @@ function gdoc_post($url, $content) {
     ]
   ];
 
+  print_r($opts);
+
   $context = stream_context_create($opts);
   return file_get_contents($url.'?GD_KEY='.GD_KEY, false, $context);
 }
