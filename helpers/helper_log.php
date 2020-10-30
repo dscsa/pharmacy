@@ -19,7 +19,7 @@ function email($email, $subject, $body)
 
 function log_to_cli($severity, $text, $file, $vars)
 {
-    echo "$severity: $text. $file vars: $vars\n";
+    // echo "$severity: $text. $file vars: $vars\n";
 }
 
 /**

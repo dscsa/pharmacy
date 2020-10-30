@@ -99,10 +99,14 @@ function wc_update_order($invoice_number, $orderdata) {
   $mysql->run($sql);
 }
 
+/**
+ * Update WooCommerce with the new orders status
+ * @param  array $order An updated order
+ * @return void
+ */
 function export_wc_update_order_status($order) {
   $orderdata = [
-    'post_status' => 'wc-'.$order[0]['order_stage_wc'] //,
-    //'post_except' => $order[0]['order_note']
+    'post_status' => 'wc-' .  str_replace('wc-', '', $order[0]['order_stage_wc'])
   ];
 
   log_notice('export_wc_update_order_status: wc_update_order', [
