@@ -64,6 +64,8 @@ $f = fopen('readme.md', 'w') or log_error('Webform Cron Job Cannot Create Lock F
 
 if (! flock($f, LOCK_EX | LOCK_NB)) {
     SirumLog::error('Skipping Webform Cron Job Because Previous One Is Still Running', $execution_details);
+    // Push any lagging logs to google Cloud
+    SirumLog::flush();
     exit;
 }
 
