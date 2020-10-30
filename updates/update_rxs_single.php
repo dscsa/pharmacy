@@ -98,6 +98,7 @@ function update_rxs_single()
 
         // If we have more than 8 a day, lets have a human verify the signature
         if ($parsed['qty_per_day'] > 8) {
+
             $created_date = "Created:".date('Y-m-d H:i:s');
             $salesforce   = [
                 "subject"   => "Verify qty pended for $created[drug_name] for Rx #$created[rx_number]",
@@ -107,7 +108,51 @@ function update_rxs_single()
                 "due_date"  => date('Y-m-d')
              ];
 
-            $event_title = "$item[invoice_number] Sig Parsing Error: $salesforce[contact] $created_date";
+            $event_title  = "$item[invoice_number] Sig Parsing Error: $salesforce[contact] $created_date";
+
+            $token = implode(
+                '_',
+                [
+                    'verify sig parse',
+                    $item['patient_id_cp'],
+                    $item['patient_id_wc'],
+                    $item['invoice_number'],
+                    $created['drug_name'],
+                    $created['rx_number'],
+                    $created['sig_actual']
+                ]
+            );
+
+            // Create a hash for quicker compares
+            $hash         = sha1($token);
+            $notification = new Sirum\Notifications\Salesforce($hash, $token);
+
+            if (!$notification->isSent()) {
+                SirumLog::debug(
+                    "Sig parsing error assigned",
+                    [
+                        'event_title'    => $event_title,
+                        'salesforce'     => $salesforce,
+                        'created'        => $created,
+                        'parsed'         => $parsed,
+                        'invoice_number' => $item['invoice_number']
+                    ]
+                );
+            } else {
+                SirumLog::warning(
+                    "Sig parsing error assigned multiple times",
+                    [
+                        'event_title'    => $event_title,
+                        'salesforce'     => $salesforce,
+                        'created'        => $created,
+                        'parsed'         => $parsed,
+                        'invoice_number' => $item['invoice_number']
+                    ]
+                );
+            }
+
+            $notification->increment();
+
 
             create_event($event_title, [$salesforce]);
 

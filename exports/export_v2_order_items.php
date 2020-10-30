@@ -211,6 +211,47 @@ function make_pick_list($item, $limit = 500) {
 
   $event_title = "$item[invoice_number] Pending Error: $salesforce[contact] $created";
 
+  $token = implode(
+      '_',
+      [
+          'cannot pend',
+          $item['patient_id_cp'],
+          $item['patient_id_wc'],
+          $item['invoice_number'],
+          $item['drug_name'],
+          $item['rx_number'],
+          $item['sig_actual']
+      ]
+  );
+
+  // Create a hash for quicker compares
+  $hash         = sha1($token);
+  $notification = new Sirum\Notifications\Salesforce($hash, $token);
+
+  if (!$notification->isSent()) {
+      SirumLog::debug(
+          "Pending error assigned",
+          [
+              'event_title'    => $event_title,
+              'salesforce'     => $salesforce,
+              'item'           => $item,
+              'invoice_number' => $item['invoice_number']
+          ]
+      );
+  } else {
+      SirumLog::warning(
+          "Pending error assigned multiple times",
+          [
+              'event_title'    => $event_title,
+              'salesforce'     => $salesforce,
+              'item'           => $item,
+              'invoice_number' => $item['invoice_number']
+          ]
+      );
+  }
+
+  $notification->increment();
+
   create_event($event_title, [$salesforce]);
 
   log_error("Webform Pending Error: Not enough qty found for $item[drug_generic]. Looking for $min_qty with last_inventory of $item[last_inventory] (limit $limit) #2 of 2, half fill with no safety failed", ['inventory' => $sorted_ndcs, 'count_inventory' => count($sorted_ndcs), 'item' => $item]);
