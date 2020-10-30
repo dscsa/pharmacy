@@ -233,9 +233,6 @@ try {
     throw $e;
 }
 
-<<<<<<< HEAD
-echo "\nPharmacy Automation Success in {$execution_details['timers']['total']} milliseconds.\n";
-=======
 // Push any lagging logs to google Cloud
 SirumLog::flush();
 
