@@ -237,4 +237,3 @@ try {
 SirumLog::flush();
 
 echo "Pharmacy Automation Success in {$execution_details['timers']['total']} milliseconds.\n";
->>>>>>> origin/master
