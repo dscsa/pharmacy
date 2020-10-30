@@ -164,6 +164,7 @@ try {
     import_v2_drugs();
     $execution_details['timers']['import_v2_drugs'] = ceil(microtime(true) - $start);
 
+    echo "All Data Imported.  Starting Updates.\n";
     /*
       Importing and Normalizing are done.  Now we will start to push data
       and communications
@@ -176,6 +177,7 @@ try {
      */
     update_drugs();
     $execution_details['timers']['update_drugs'] = ceil(microtime(true) - $start);
+    echo "Update Drugs Complete\n";
 
     /**
      * Bring in the inventory and put it into the live stock table
@@ -187,37 +189,44 @@ try {
      */
     update_stock_by_month();
     $execution_details['timers']['update_stock_by_month'] = ceil(microtime(true) - $start);
-
+    echo "Update Stock By Month Complete\n";
     /**
      * [update_rxs_single description]
      * @var [type]
      */
     update_rxs_single();
     $execution_details['timers']['update_rxs_single'] = ceil(microtime(true) - $start);
+    echo "Update RXs Complete\n";
 
     update_patients_cp();
     $execution_details['timers']['update_patients_cp'] = ceil(microtime(true) - $start);
+    echo "Update CP Patients Complete\n";
 
     update_patients_wc();
     $execution_details['timers']['update_patients_wc'] = ceil(microtime(true) - $start);
+    echo "Update WC Patients Complete\n";
 
     update_order_items();
     $execution_details['timers']['update_order_items'] = ceil(microtime(true) - $start);
+    echo "Update Orders Items Complete\n";
 
     update_orders_cp();
     $execution_details['timers']['update_orders_cp'] = ceil(microtime(true) - $start);
+    echo "Update CP Orders Complete\n";
 
     update_orders_wc();
     $execution_details['timers']['update_orders_wc'] = ceil(microtime(true) - $start);
+    echo "Update WC Orders Complete\n";
 
     watch_invoices();
     $execution_details['timers']['watch_invoices'] = ceil(microtime(true) - $start);
-
+    echo "Watch Invoices Complete\n";
 
     $execution_details['timers']['total'] = array_sum($execution_details['timers']);
     $execution_details['end']             = date('c');
 
     SirumLog::info('Pharmacy Automation Complete', $execution_details);
+    echo "All data processed {$execution_details['end']}\n";
 } catch (Exception $e) {
     $execution_details['error_message'] = $e->getMessage;
     SirumLog::alert('Webform Cron Job Fatal Error', $execution_details);
