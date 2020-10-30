@@ -222,4 +222,7 @@ try {
     throw $e;
 }
 
-echo "Pharmacy Automation Success in {$execution_details['timers']['total']} milliseconds.";
+// Push any lagging logs to google Cloud
+SirumLog::flush();
+
+echo "Pharmacy Automation Success in {$execution_details['timers']['total']} milliseconds.\n";
