@@ -153,7 +153,6 @@ function update_rxs_single()
 
             $notification->increment();
 
-
             create_event($event_title, [$salesforce]);
 
             // TODO make this a warning not an error
@@ -313,7 +312,9 @@ function update_rxs_single()
                         chg_date = GETDATE()
                     WHERE pat_id = {$cp_id}
                         AND gcn_seqno IN ('{$in}')";
-                    $mssql->run($sql);
+                    if (ENVIRONMENT == 'PRODUCTION') {
+                        $mssql->run($sql);
+                    }
                 }
             }
 

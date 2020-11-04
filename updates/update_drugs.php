@@ -14,7 +14,6 @@ function update_drugs() {
 
   log_info("update_drugs: $count_deleted deleted, $count_created created, $count_updated updated.", get_defined_vars());
 
-
   foreach($changes['updated'] as $i => $updated) {
 
     if ($updated['drug_ordered'] && ! $updated['old_drug_ordered'])

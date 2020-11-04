@@ -17,12 +17,14 @@ function v2_fetch($url, $method = 'GET', $content = []) {
       ]
   ];
 
-  if (ENVIRONMENT != "PRODUCTION" && strtolower($method) != 'get') {
-    echo "skipping v2 writes";
+  // Skip POST/PUT/DELETE
+  if (ENVIRONMENT != "PRODUCTION"
+        && strtolower($method) != 'get') {
+    echo "Skipping writes to v2 in development\n";
     return false;
   }
 
-  $context = stream_context_create($opts);
+  $context  = stream_context_create($opts);
   $response = file_get_contents(V2_IP.$url, false, $context);
 
   return json_decode($response, true);

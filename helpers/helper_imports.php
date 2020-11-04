@@ -33,7 +33,7 @@ function clean_val(&$val, &$default = null) {
   }
 
   //Don't escape or wrap JSON
-  if($clean[0] == '{' AND $clean[strlen($clean) - 1] == '}')
+  if(is_string($clean) && $clean[0] == '{' AND $clean[strlen($clean) - 1] == '}')
     return $clean;
 
   //StripSlashes meant to prevent double escaping string

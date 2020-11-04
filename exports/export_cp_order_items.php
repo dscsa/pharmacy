@@ -41,6 +41,8 @@ function export_cp_remove_items($invoice_number, $script_nos)
     if (ENVIRONMENT == 'PRODUCTION') {
         $res = $mssql->run($sql1);
         $res = $mssql->run($sql2);
+    } else {
+        echo "Skipping Guardian Writes in Development\n";
     }
 }
 
@@ -66,5 +68,7 @@ function export_cp_add_items($invoice_number, $script_nos)
 
     if (ENVIRONMENT == 'PRODUCTION') {
         $res = $mssql->run($sql);
+    } else {
+        echo "Skipping Guardian Writes in Development\n";
     }
 }

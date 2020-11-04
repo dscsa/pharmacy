@@ -21,6 +21,8 @@ function export_cp_patient_save_medications_other($mssql, $patient, $live = fals
 
     if (ENVIRONMENT == 'PRODUCTION') {
         $mssql->run("$sql");
+    } else {
+        echo "Skipping Guardian Writes in Development\n";
     }
 }
 
@@ -46,6 +48,8 @@ function upsert_patient_cp($mssql, $sql)
 {
     if (ENVIRONMENT == 'PRODUCTION') {
         return $mssql->run("$sql");
+    } else {
+        echo "Skipping Guardian Writes in Development\n";
     }
 }
 

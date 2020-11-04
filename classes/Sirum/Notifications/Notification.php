@@ -151,8 +151,11 @@ class Notification extends GPModel
               WHERE hash = :hash"
         );
 
-        $pdo->bindParam(':attempted_sends', $this->attempted_sends, PDO::PARAM_STR);
-        $pdo->bindParam(':hash', $this->hash, PDO::PARAM_STR);
+        $hash  = $this->hash;
+        $sends = $this->attempted_sends;
+
+        $pdo->bindParam(':attempted_sends', $sends, PDO::PARAM_STR);
+        $pdo->bindParam(':hash', $hash, PDO::PARAM_STR);
         $pdo->execute();
     }
 

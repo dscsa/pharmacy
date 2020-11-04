@@ -275,7 +275,7 @@ function update_patients_wc()
             }
         }
 
-        if (! $updated['first_name'] or ! $updated['lastt_name'] or ! $updated['birth_date']) {
+        if (! $updated['first_name'] or ! $updated['last_name'] or ! $updated['birth_date']) {
             SirumLog::alert(
                 'Patient Set Incorrectly, missing first_name or last_name or birthdate',
                 [

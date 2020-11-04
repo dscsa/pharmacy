@@ -480,7 +480,6 @@ function sync_to_order_new_rx($item, $order) {
   SirumLog::debug(
       "sync_to_order_new_rx",
       [
-          'invoice_number' => $order[0]['invoice_number'],
           'vars' => $vars
       ]
   );

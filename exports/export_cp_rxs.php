@@ -53,6 +53,8 @@ function export_cp_set_rx_message($item, $message, $mysql)
     if (ENVIRONMENT == 'PRODUCTION') {
         $mssql->run($sql1);
         $mysql->run($sql2);
+    } else {
+        echo "Skipping Guardian Writes in Development\n";
     }
     return $item;
 }
