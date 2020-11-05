@@ -235,5 +235,5 @@ try {
 
 // Push any lagging logs to google Cloud
 SirumLog::flush();
-
+file_put_contents('/goodpill/webform/pharmacy-run.txt', mktime());
 echo "Pharmacy Automation Success in {$execution_details['timers']['total']} milliseconds.\n";
