@@ -61,12 +61,19 @@ class SirumLog
             $context['subroutine_id'] = self::$subroutine_id;
         }
 
-        try{
+        try {
             self::$logger->$method($message, $context);
-        } catch(Exception $e) {
+        } catch (\Exception $e) {
             // The logger is broken.  We need to recycle it.
             self::resetLogger();
-            self::$logger->alert($message, $e->getMessage());
+            self::$logger->warning(
+                'Logging Generated error',
+                [
+                     'message' => $message,
+                     'level' => $methond,
+                     'error' => $e->getMessage()
+                ]
+            );
             self::$logger->$method($message);
         }
     }
@@ -87,9 +94,9 @@ class SirumLog
      *
      * @return void
      */
-    public static function resetLogger() {
-        self::$logger->flush();
-        unset(self::$logger);
+    public static function resetLogger()
+    {
+        self::$logger = null;
         return self::getLogger(self::$application_id, self::$exec_id);
     }
 
@@ -105,7 +112,7 @@ class SirumLog
      */
     public static function getLogger($application = 'pharmacy-automation', $execution = null)
     {
-        if (!isset(self::$logger)) {
+        if (!isset(self::$logger) or is_null(self::$logger)) {
             self::$application_id = $application;
 
             $logging  = new LoggingClient(['projectId' => 'unified-logging-292316']);
