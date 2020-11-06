@@ -44,10 +44,10 @@ function wc_insert_meta($invoice_number, $metadata)
     }
 
     SirumLog::debug(
-        "Some meta didn't exist, so we are going to insert instead",
+        "Inserting Meta data",
         [
             "invoice_number" => $invoice_number,
-            "meta_values"    => $meta_to_insert
+            "meta_values"    => $metadata
         ]
     );
 }
