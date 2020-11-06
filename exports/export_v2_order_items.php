@@ -158,7 +158,7 @@ function pend_pick_list($item, $vals) {
 
   //Pend after all forseeable errors are accounted for.
   $res = v2_fetch($pend_url, 'POST', $vals['pend']);
-  die();
+
   log_notice("WebForm pend_pick_list", ['res' => $res, 'pend' => $vals['pend'], 'item' => $item, 'pend_url' => $pend_url, 'count list' => count($vals['list']), 'count pend' => count($vals['pend'])]);
 }
 
