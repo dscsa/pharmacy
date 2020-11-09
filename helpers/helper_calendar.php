@@ -1,5 +1,6 @@
 <?php
 
+use Sirum\Logging\SirumLog;
 
 function order_dispensed_event($order, $salesforce, $hours_to_wait) {
 
@@ -297,6 +298,14 @@ function get_patient_label($order) {
   return $order[0]['first_name'].' '.$order[0]['last_name'].' '.$order[0]['birth_date'];
 }
 
+/**
+ * Create an event on the communication Calender
+ * @param  string  $event_title   The ttitle of the event
+ * @param  array   $comm_arr      The array to put on the calendar
+ * @param  integer $hours_to_wait The number of hours to wait for the alert
+ * @param  integer $hour_of_day   The safe hour of days to send
+ * @return void
+ */
 function create_event($event_title, $comm_arr, $hours_to_wait = 0, $hour_of_day = null) {
 
   $startTime = get_start_time($hours_to_wait, $hour_of_day);
@@ -309,6 +318,11 @@ function create_event($event_title, $comm_arr, $hours_to_wait = 0, $hour_of_day 
     'title'       => "(MDB1) $event_title",
     'description' => $comm_arr
   ];
+
+  SirumLog::debug(
+    'Creating Communication Event'
+    ['event' => $args]
+  );
 
   $result = gdoc_post(GD_HELPER_URL, $args);
 
