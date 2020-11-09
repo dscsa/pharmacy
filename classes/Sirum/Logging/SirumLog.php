@@ -70,7 +70,7 @@ class SirumLog
                 'Logging Generated error',
                 [
                      'message' => $message,
-                     'level' => $methond,
+                     'level' => $method,
                      'error' => $e->getMessage()
                 ]
             );
