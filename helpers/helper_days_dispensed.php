@@ -31,7 +31,7 @@ function get_days_default($item, $order) {
         "subject"   => "$item[drug_name] was transferred recently although it's high stock",
         "body"      => "Investigate why drug $item[drug_name] for Rx $item[rx_number] was transferred out on $item[rx_date_transferred] even though it's high stock $created",
         "contact"   => "$item[first_name] $item[last_name] $item[birth_date]",
-        "assign_to" => "Joseph",
+        "assign_to" => ".Transfer Out - RPh",
         "due_date"  => date('Y-m-d')
       ];
 
@@ -70,7 +70,7 @@ function get_days_default($item, $order) {
 
       } else {
         $body = "$in_order drug $item[drug_name] needs to be switched to a drug with a GSN in Guardian";
-        $assign = "Cindy";
+        $assign = ".Delay/Expedite Order - RPh";
         log_notice($body, $item);
       }
 
@@ -154,9 +154,9 @@ function get_days_default($item, $order) {
 
     $salesforce = [
       "subject"   => "Investigate Early Refill",
-      "body"      => "Confirm if/why needs $item[drug_name] in Order #$item[invoice_number] even though it's over ".DAYS_UNIT." days before it's due. If needed, add drug to order. $created",
+      "body"      => "Confirm if/why needs $item[drug_name] in Order #$item[invoice_number] even though it's over "."28"." days before it's due. If needed, add drug to order. $created",
       "contact"   => "$item[first_name] $item[last_name] $item[birth_date]",
-      "assign_to" => "Joseph",
+      "assign_to" => ".Add/Remove Drug - RPh",
       "due_date"  => date('Y-m-d')
     ];
 
@@ -240,7 +240,7 @@ function get_days_default($item, $order) {
 
       $salesforce = [
         "subject"   => "Refill for $item[drug_name] seems to be out-of-stock",
-        "body"      => "Refill for $item[drug_generic] $item[drug_gsns] ($item[drug_name]) in Order #$item[invoice_number] seems to be out-of-stock with days_left_in_stock:$days_left_in_stock, last_inventory:$item[last_inventory], sig:$item[sig_actual], $created",
+        "body"      => "Refill for $item[drug_generic] $item[drug_gsns] ($item[drug_name]) in Order #$item[invoice_number] seems to be out-of-stock.  Is a substitution or purchase necessary? Details - days_left_in_stock:$days_left_in_stock, last_inventory:$item[last_inventory], sig:$item[sig_actual], $created",
         "contact"   => "$item[first_name] $item[last_name] $item[birth_date]",
         "assign_to" => "Joseph",
         "due_date"  => date('Y-m-d')
