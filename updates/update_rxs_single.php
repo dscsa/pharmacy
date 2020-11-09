@@ -68,7 +68,7 @@ function update_rxs_single() {
         "subject"   => "Verify qty pended for $created[drug_name] for Rx #$created[rx_number]",
         "body"      => "For Rx #$created[rx_number], $created[drug_name] with sig '$created[sig_actual]' was parsed as $parsed[qty_per_day] qty per day, which is very high. $created_date",
         "contact"   => "$created[first_name] $created[last_name] $created[birth_date]",
-        "assign_to" => "Cindy",
+        "assign_to" => ".DDx/Sig Issue - RPh",
         "due_date"  => date('Y-m-d')
       ];
 

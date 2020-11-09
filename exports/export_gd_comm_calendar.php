@@ -11,7 +11,7 @@ function order_dispensed_notice($groups) {
     "subject" => 'Warning Order #'.$groups['ALL'][0]['invoice_number'].' dispensed but not shipped',
     "body" => "If shipped, please add tracking number to Guardian Order.  If not shipped, check comm-calendar and see if we need to inform patient that order was delayed or canceled.",
     "contact" => $groups['ALL'][0]['first_name'].' '.$groups['ALL'][0]['last_name'].' '.$groups['ALL'][0]['birth_date'],
-    "assign_to" => "Cindy",
+    "assign_to" => ".Delay/Expedite Order - RPh",
     "due_date" => date('Y-m-d')
   ];
 
@@ -265,7 +265,7 @@ function order_hold_notice($groups, $missing_gsn = false) {
       "subject" => "Order #".$groups['ALL'][0]['invoice_number']." ON HOLD because of missing GSN",
       "body" => "Please change drug(s) ".implode(', ', $groups['FILLED_NOACTION']+$groups['NOFILL_NOACTION'])." in Order #".$groups['ALL'][0]['invoice_number']. " to be ones that have a GSN number and/or add those GSNs to V2",
       "contact" => $groups['ALL'][0]['first_name'].' '.$groups['ALL'][0]['last_name'].' '.$groups['ALL'][0]['birth_date'],
-      "assign_to" => "Cindy",
+      "assign_to" => ".Add/Remove Drug - RPh",
       "due_date" => date('Y-m-d')
     ];
 
@@ -450,7 +450,7 @@ function confirm_shipment_notice($groups) {
     $days_ago = 5;
 
     $email = confirm_shipping_external($groups); //Existing customer just tell them it was delivered
-    $salesforce = confirm_shipping_internal($groups, $days_ago-1); //New customer tell them it was delivered and followup with a call
+    $salesforce = confirm_shipping_internal($groups, $days_ago+1); //New customer tell them it was delivered and followup with a call
 
     confirm_shipment_event($groups['ALL'], $email, $salesforce, $days_ago*24, 13);
 }
@@ -465,7 +465,7 @@ function confirm_shipping_internal($groups, $days_ago) {
 
   $salesforce = [
     "contact" => $groups['ALL'][0]['first_name'].' '.$groups['ALL'][0]['last_name'].' '.$groups['ALL'][0]['birth_date'],
-    "assign_to" => "Thunder",
+    "assign_to" => ".Confirm Delivery - Tech",
     "due_date" => substr(get_start_time($days_ago*24), 0, 10),
     "subject" => $subject,
     "body" =>  implode('<br>', [
