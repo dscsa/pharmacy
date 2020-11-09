@@ -44,10 +44,10 @@ function wc_insert_meta($invoice_number, $metadata)
     }
 
     SirumLog::debug(
-        "Some meta didn't exist, so we are going to insert instead",
+        "Inserting Meta data",
         [
             "invoice_number" => $invoice_number,
-            "meta_values"    => $meta_to_insert
+            "meta_values"    => $metadata
         ]
     );
 }
@@ -101,7 +101,8 @@ function wc_update_meta($invoice_number, $metadata)
 
         $meta_value = clean_val($meta_value);
 
-        //mysql->run() does mysqli_query and not mysqli_multi_query so we cannot concatentate the inserts and run all at once
+        // mysql->run() does mysqli_query and not mysqli_multi_query so we cannot
+        // concatentate the inserts and run all at once
         $mysql->run("UPDATE wp_postmeta
                         SET meta_value = $meta_value
                         WHERE post_id = $post_id
@@ -195,7 +196,7 @@ function export_wc_delete_order($invoice_number, $reason)
 
     if (! $post_id) {
         return log_error("export_wc_delete_order: cannot delete if no post_id", get_defined_vars());
-    }//.print_r($item, true);
+    }
 
     $sql1 = "DELETE FROM wp_postmeta WHERE post_id = $post_id";
 
@@ -205,7 +206,11 @@ function export_wc_delete_order($invoice_number, $reason)
 
     $mysql->run($sql2);
 
-    //This function call will happen AFTER the wc_order import happened, so we need to remove this order from the gp_orders_wc table or it might still appear as "created" in the wc_order changes feeds
+    /*
+     * This function call will happen AFTER the wc_order import happened,
+     * so we need to remove this order from the gp_orders_wc table or it
+     * might still appear as "created" in the wc_order changes feeds
+     */
     $sql3 = "DELETE FROM gp_orders_wc WHERE invoice_number = $invoice_number";
 
     $mysql->run($sql3);
@@ -251,7 +256,8 @@ function export_wc_create_order($order, $reason)
 
     //if order is set, then its just a this order already exists error
     if (! empty($res['error']) or empty($res['order'])) {
-        if (stripos($first_item['first_name'], 'TEST') === false and stripos($first_item['last_name'], 'TEST') === false) {
+        if (stripos($first_item['first_name'], 'TEST') === false
+                and stripos($first_item['last_name'], 'TEST') === false) {
             log_error("export_wc_create_order: res[error] for $url", [$reason, $res, $first_item]);
         }
 
@@ -283,7 +289,11 @@ function export_wc_create_order($order, $reason)
     $address1 = escape_db_values($first_item['order_address1']);
     $address2 = escape_db_values($first_item['order_address2']);
 
-    //This function call will happen AFTER the wc_order import happened, so we need to add this order to gp_orders_wc table or it might still appear as "deleted" in the wc_order changes feeds
+    /*
+     * This function call will happen AFTER the wc_order import happened,
+     * so we need to add this order to gp_orders_wc table or it might still
+     * appear as "deleted" in the wc_order changes feeds
+     */
     $sql = "INSERT INTO gp_orders_wc (
                 invoice_number,
                 patient_id_wc,
@@ -422,20 +432,15 @@ function export_wc_update_order_payment($invoice_number, $payment_fee)
 function wc_fetch($path, $method = 'GET', $content = null, $retry = false)
 {
     $opts = [
-      /*
-      "socket"  => [
-        'bindto' => "0:$port",
-      ],
-      */
-      'http' => [
-        'method'  => $method,
-        'ignore_errors' => true,
-        'timeout' => 2*60, //Seconds
-        'header'  => "Content-Type: application/json\r\n".
-                     "Accept: application/json\r\n".
-                     "Authorization: Basic ".base64_encode(WC_USER.':'.WC_PWD)
-      ]
-  ];
+        'http' => [
+            'method'        => $method,
+            'ignore_errors' => true,
+            'timeout'       => 2*60, //Seconds
+            'header'        => "Content-Type: application/json\r\n".
+                               "Accept: application/json\r\n".
+                               "Authorization: Basic ".base64_encode(WC_USER.':'.WC_PWD)
+        ]
+    ];
 
     if ($content) {
         $opts['http']['content'] = json_encode($content);
@@ -451,12 +456,29 @@ function wc_fetch($path, $method = 'GET', $content = null, $retry = false)
     if (! $json and ! $retry) {
         file_get_contents("https://postb.in/1579126559674-7982679251581?url=$url", false, $context);
 
-        //CloudFlare sometimes returns a 400 Bad Request error even on valid url.  Tried Cloud Flare Page Rules but still having issues
+        /*
+         * CloudFlare sometimes returns a 400 Bad Request error even on valid
+         * url.  Tried Cloud Flare Page Rules but still having issues
+         */
         sleep(5);
-        log_error("wc_fetch: no response attempt 1 of 2", ['url' => $url, 'res' => $res, 'http_code' => $http_response_header]);
+        log_error(
+            "wc_fetch: no response attempt 1 of 2",
+            [
+                'url' => $url,
+                'res' => $res,
+                'http_code' => $http_response_header
+            ]
+        );
         return wc_fetch($path, $method, $content, true);
     } elseif (! $json) {
-        log_error("wc_fetch: no response attempt 2 of 2", ['url' => $url, 'res' => $res, 'http_code' => $http_response_header]);
+        log_error(
+            "wc_fetch: no response attempt 2 of 2",
+            [
+                'url'       => $url,
+                'res'       => $res,
+                'http_code' => $http_response_header
+            ]
+        );
         return ['error' => "no response from wc_fetch"];
     }
 
