@@ -74,7 +74,13 @@ function wc_update_meta($invoice_number, $metadata)
 
     //find fields that are in not in the second array but are in the first array.
     // Should end up with 2 arrays.  one are the fields to update one are the fields to insert.
+    // Get the values
+    $existing_meta = array_column($existing_meta, 'meta_key');
+    // Make them keys
+    $existing_meta = array_flip($existing_meta);
+    // Find missing keys
     $meta_to_insert = array_diff_key($metadata, $existing_meta);
+    // Find Existing Keys
     $meta_to_update = array_intersect_key($metadata, $existing_meta);
 
     if (count($meta_to_insert) > 0) {
