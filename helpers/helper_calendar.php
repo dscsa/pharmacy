@@ -318,7 +318,7 @@ function create_event($event_title, $comm_arr, $hours_to_wait = 0, $hour_of_day 
   ];
 
   SirumLog::debug(
-    'Creating Communication Event'
+    'Creating Communication Event',
     ['event' => $args]
   );
 
