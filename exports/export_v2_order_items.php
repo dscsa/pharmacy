@@ -205,7 +205,7 @@ function make_pick_list($item, $limit = 500) {
     "subject"   => "Order #$item[invoice_number] cannot pend enough $item[drug_name]",
     "body"      => "Determine if there is enough $item[drug_name] to pend for '$item[sig_actual]'. Tried & failed to pend a qty of ".$min_qty." $created",
     "contact"   => "$item[first_name] $item[last_name] $item[birth_date]",
-    "assign_to" => "Cindy",
+    "assign_to" => ".Add/Remove Drug - RPh",
     "due_date"  => date('Y-m-d')
   ];
 

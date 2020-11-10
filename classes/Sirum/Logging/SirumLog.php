@@ -61,16 +61,16 @@ class SirumLog
             $context['subroutine_id'] = self::$subroutine_id;
         }
 
-        try{
+        try {
             self::$logger->$method($message, $context);
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
             // The logger is broken.  We need to recycle it.
             self::resetLogger();
             self::$logger->warning(
                 'Logging Generated error',
                 [
                      'message' => $message,
-                     'level' => $methond,
+                     'level' => $method,
                      'error' => $e->getMessage()
                 ]
             );

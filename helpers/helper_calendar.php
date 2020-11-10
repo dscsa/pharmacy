@@ -123,9 +123,13 @@ function needs_form_event($order, $email, $text, $hours_to_wait, $hour_of_day = 
     $patient_label = get_patient_label($order);
     $event_title   = $order[0]['invoice_number'].' Needs Form: '.$patient_label.'.  Created:'.date('Y-m-d H:i:s');
 
+<<<<<<< HEAD
     $cancel = cancel_events_by_person($order[0]['first_name'], $order[0]['last_name'], $order[0]['birth_date'], 'needs_form_event', ['Needs Form']);
 
     $comm_arr = new_comm_arr($patient_label, $email, $text);
+=======
+  $comm_arr = new_comm_arr($patient_label, $email, $text);
+>>>>>>> origin/develop
 
     log_info('needs_form_event', get_defined_vars());
 
@@ -306,6 +310,7 @@ function get_patient_label($order)
 }
 
 /**
+<<<<<<< HEAD
  * Create an event on the communication calendar
  * @param  string  $event_title    The title of the event
  * @param  array   $comm_arr       An array of the details for the event
@@ -325,9 +330,22 @@ function create_event($event_title, $comm_arr, $hours_to_wait = 0, $hour_of_day 
       'title'       => "(MDB1) $event_title",
       'description' => $comm_arr
     ];
+=======
+ * Create an event on the communication Calender
+ * @param  string  $event_title   The ttitle of the event
+ * @param  array   $comm_arr      The array to put on the calendar
+ * @param  integer $hours_to_wait The number of hours to wait for the alert
+ * @param  integer $hour_of_day   The safe hour of days to send
+ * @return void
+ */
+function create_event($event_title, $comm_arr, $hours_to_wait = 0, $hour_of_day = null) {
+
+  $startTime = get_start_time($hours_to_wait, $hour_of_day);
+>>>>>>> origin/develop
 
     $result = gdoc_post(GD_HELPER_URL, $args);
 
+<<<<<<< HEAD
     SirumLog::debug(
         "Communication Calendar event created",
         [
@@ -335,6 +353,14 @@ function create_event($event_title, $comm_arr, $hours_to_wait = 0, $hour_of_day 
             "result"  => $result
         ]
     );
+=======
+  SirumLog::debug(
+    'Creating Communication Event'
+    ['event' => $args]
+  );
+
+  $result = gdoc_post(GD_HELPER_URL, $args);
+>>>>>>> origin/develop
 
     // Debug Refill Reminders getting created with NO TITLE OR DESCRIPTION,
     // just blank events
