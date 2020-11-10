@@ -117,8 +117,6 @@ function needs_form_event($order, $email, $text, $hours_to_wait, $hour_of_day = 
   $patient_label = get_patient_label($order);
   $event_title   = $order[0]['invoice_number'].' Needs Form: '.$patient_label.'.  Created:'.date('Y-m-d H:i:s');
 
-  $cancel = cancel_events_by_person($order[0]['first_name'], $order[0]['last_name'], $order[0]['birth_date'], 'needs_form_event', ['Needs Form']);
-
   $comm_arr = new_comm_arr($patient_label, $email, $text);
 
   log_info('needs_form_event', get_defined_vars());

@@ -375,6 +375,9 @@ function needs_form_notice($groups) {
   }
 
   log_notice("needs_form_notice is this right?", [$groups, $email]);
+
+  $cancel = cancel_events_by_person($groups['ALL'][0]['first_name'], $groups['ALL'][0]['last_name'], $groups['ALL'][0]['birth_date'], 'needs_form_event', ['Needs Form']);
+
   needs_form_event($groups['ALL'], $email, $text, $hours_to_wait[0], $hour_of_day[0]);
 
   if ( ! $groups['COUNT_FILLED']) return; //Don't hassle folks if we aren't filling anything
