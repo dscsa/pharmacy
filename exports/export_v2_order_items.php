@@ -121,7 +121,7 @@ function print_pick_list($item, $vals) {
 function pend_group_refill($item) {
 
    $pick_time = strtotime($item['order_date_added'].' +2 days'); //Used to be +3 days
-   $invoice   = "N$item[invoice_number]"; //N < R so new scripts will appear first on shopping list
+   $invoice   = "R$item[invoice_number]"; //N < R so new scripts will appear first on shopping list
 
    $pick_date = date('Y-m-d', $pick_time);
 
@@ -131,7 +131,7 @@ function pend_group_refill($item) {
 function pend_group_new_rx($item) {
 
    $pick_time = strtotime($item['order_date_added'].' +0 days'); //Used to be +1 days
-   $invoice   = "R$item[invoice_number]";
+   $invoice   = "N$item[invoice_number]";
 
    $pick_date = date('Y-m-d', $pick_time);
 
