@@ -219,7 +219,7 @@ function update_orders_wc() {
           [
               'source'  => 'WooCommerce',
               'event'   => 'updated',
-              'deleted' => $deleted
+              'updated' => $updated
           ]
         );
 

@@ -28,9 +28,9 @@ function testWatch() {
 function watchFiles(opts) {
 
   var today     = new Date();
-  var minutes   = opts.minutes || 10
+  var minutes   = opts.minutes || 20
   var startTime = new Date(today.getTime() - minutes * 60 * 1000);
-  var tooRecent = new Date(today.getTime() - 1 * 60 * 1000); //Don't call if we are still making edits
+  var tooRecent = new Date(today.getTime()); //Don't call if we are still making edits
 
   var parentFolder  = DriveApp.getFoldersByName(opts.folder).next()
   var printedFolder = parentFolder.getFoldersByName('Printed')
@@ -38,6 +38,8 @@ function watchFiles(opts) {
 
   var query    = 'modifiedDate > "' + startTime.toJSON() + '" AND modifiedDate < "' + tooRecent.toJSON() + '"'
   var iterator = parentFolder.searchFiles(query)
+
+  console.log('Searching for fils in %s with params %s', opts.folder, query);
 
   var parent = []
   while (iterator.hasNext()) {
@@ -124,23 +126,23 @@ function publishFile(opts){
 
   var folder = DriveApp.getFoldersByName(opts.folder).next()
   var file   = folder.searchFiles('title contains "'+opts.file+'"')
-  
+
   if ( ! file.hasNext()) {
     return debugEmail('publishFile NO SUCH FILE', 'File', opts)
   }
-  
+
   file = file.next()
   var fileId = file.getId()
-  
+
   console.log('publishFile '+file.getName())
-  
+
   //Side effect of this is that this account can no longer delete/trash/remove this file since must be done by owner
-  
+
   if (file.getOwner().getEmail() != 'webform@goodpill.org') {
-    debugEmail('publishFile WRONG OWNER', 'File', file.getName(), 'Active User', Session.getActiveUser().getEmail(),'Effective User', Session.getEffectiveUser().getEmail(), 'File Owner', file.getOwner().getEmail())    
+    debugEmail('publishFile WRONG OWNER', 'File', file.getName(), 'Active User', Session.getActiveUser().getEmail(),'Effective User', Session.getEffectiveUser().getEmail(), 'File Owner', file.getOwner().getEmail())
     file.setOwner('webform@sirum.org') //support@goodpill.org can only publish files that require sirum sign in
   }
- 
+
   var revisions = Drive.Revisions.list(fileId);
   var items = revisions.items;
   var revisionId = items[items.length-1].id;
@@ -157,7 +159,7 @@ function publishFile(opts){
 function moveFile(opts, retry) {
   var fromFolder = DriveApp.getFoldersByName(opts.fromFolder).next()
   var file = fromFolder.searchFiles('title contains "'+opts.file+'"')
-  
+
   console.log('moveFile '+opts.file+' '+file.hasNext())
 
   if (file.hasNext()) {
