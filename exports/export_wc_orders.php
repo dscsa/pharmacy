@@ -410,22 +410,71 @@ function export_wc_update_order_address($order, $meta_fn = 'wc_update_meta')
 }
 
 //Use REST API because direct DB calls to order_items and order_itemsmeta tables seemed messy/brittle
-function export_wc_update_order_payment($invoice_number, $payment_fee)
+/**
+ * Push over the invoice changes to WooCommerce.
+ *
+ * @param  int $invoice_number The invoice number we want to update, we will
+ *       look for a propper post number in wordpress
+ * @param  int $payment_fee    The total fee for the invoice
+ * @param  int $payment_due    The amount still due on the invoice
+ *
+ * @return void
+ *
+ * @todo Convert the returns to Exceptions so they can be handled
+ */
+function export_wc_update_order_payment($invoice_number, $payment_fee, $payment_due = null)
 {
     $post_id = wc_get_post_id($invoice_number);
 
-    if (! $post_id) {
-        return log_error('export_wc_update_order_payment: order missing', get_defined_vars());
+    if (!$post_id) {
+        SirumLog::warn(
+            'Could not find a Wordpress Post for Invoice',
+            [
+                "invoice"     => $invoice_number,
+                "payment_fee" => $payment_fee,
+                "payment_due" => $payment_due
+            ]
+        );
+
+        return;
     }
 
-    $response = wc_fetch("order/$post_id/payment_fee/$payment_fee");
+    $urlToFetch = "order/{$post_id}/payment_fee/{$payment_fee}";
 
-    if (! $response) {
-        return log_error('export_wc_update_order_payment: failed', get_defined_vars());
+    if (!is_null($payment_due)) {
+        $urlToFetch .= "/payment_due/{$payment_due}";
+    }
+
+    $response = wc_fetch($urlToFetch);
+
+    if (!$response) {
+        SirumLog::warn(
+            'Failed to load Wordpress URL',
+            [
+                "invoice"     => $invoice_number,
+                "payment_fee" => $payment_fee,
+                "payment_due" => $payment_due,
+                "url"         => $url,
+                "response"    => $response
+            ]
+        );
+
+        return;
     }
 
     if (! empty($response['error'])) {
-        return log_error('export_wc_update_order_payment: error', get_defined_vars());
+        SirumLog::warn(
+            'Received error from wordpress',
+            [
+                "invoice"     => $invoice_number,
+                "payment_fee" => $payment_fee,
+                "payment_due" => $payment_due,
+                "url"         => $url,
+                "response"    => $response
+            ]
+        );
+
+        return;
     }
 }
 

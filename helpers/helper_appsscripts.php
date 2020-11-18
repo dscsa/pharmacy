@@ -67,8 +67,6 @@ function watch_invoices()
             continue;
         }
 
-        echo "Updating Invoice {$invoice_number}\n";
-
         $invoice_number = $invoice_number[0][0];
 
         $payment = [
@@ -87,7 +85,6 @@ function watch_invoices()
                 Fee:$order[payment_fee_default] ($order[payment_fee_actual]) -> $payment[fee],
                 Due:$order[payment_due_default] ($order[payment_due_actual]) -> $payment[due]\n\n";
 
-        echo $log;
 
         if ($order['count_filled'] == $payment['count_filled'] &&
                 ($order['payment_total_actual'] ?: $order['payment_total_default']) == $payment['total'] &&
@@ -95,7 +92,6 @@ function watch_invoices()
                 ($order['payment_due_actual'] ?: $order['payment_due_default']) == $payment['due']
         ) {
 
-            echo "Skipping because something hasn't changed";
             log_notice("watch_invoice $invoice_number", $log);
             continue;
         } //Most likely invoice was correct and just moved
@@ -103,7 +99,7 @@ function watch_invoices()
         log_error("watch_invoice $invoice_number", $log);
 
         set_payment_actual($invoice_number, $payment, $mysql);
-        export_wc_update_order_payment($invoice_number, $payment['fee']);
+        export_wc_update_order_payment($invoice_number, $payment['fee'], $payment['due']);
     }
 
     return $invoices;
