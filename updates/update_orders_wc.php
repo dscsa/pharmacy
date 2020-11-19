@@ -48,10 +48,11 @@ function update_orders_wc() {
   foreach($changes['created'] as $created) {
       SirumLog::$subroutine_id = sha1(serialize($created));
       SirumLog::debug(
-            "WooCommerce Created",
+            "update_orders_wc: WooCommerce Order Created",
             [
                 'source'  => 'WooCommerce',
                 'event'   => 'created',
+                'type'    => 'order',
                 'created' => $created
             ]
           );
@@ -115,10 +116,11 @@ function update_orders_wc() {
     SirumLog::$subroutine_id = sha1(serialize($deleted));
 
     SirumLog::debug(
-          "WooCommerce Deleted",
+          "update_orders_wc: WooCommerce Order Deleted",
           [
               'source'  => 'WooCommerce',
               'event'   => 'deleted',
+              'type'    => 'order',
               'deleted' => $deleted
           ]
         );
@@ -215,10 +217,11 @@ function update_orders_wc() {
     SirumLog::$subroutine_id = sha1(serialize($updated));
 
     SirumLog::debug(
-          "WooCommerce Updated",
+          "update_orders_wc: WooCommerce Order Updated",
           [
               'source'  => 'WooCommerce',
               'event'   => 'updated',
+              'type'    => 'order',
               'updated' => $updated
           ]
         );
