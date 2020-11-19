@@ -20,43 +20,35 @@ function wc_get_post_id($invoice_number, $full_order = false)
     }
 }
 
+/**
+ * Insert meta data
+ *
+ * @deprecated This logic has been moved into wc_update_meta.  I'm leaving this
+ *      function to cover any old code and not require large changes
+ *
+ * @param  int   $invoice_number The invoice we are working with
+ * @param  array $metadata       A array of key => values to store
+ *
+ * @return void               [description]
+ */
 function wc_insert_meta($invoice_number, $metadata)
 {
-    global $mysql;
-    $mysql = $mysql ?: new Mysql_Wc();
-
-    $post_id = wc_get_post_id($invoice_number);
-
-    if (! $post_id) {
-        return log_notice('wc_insert_meta: no post id', get_defined_vars());
-    }
-
-    foreach ($metadata as $meta_key => $meta_value) {
-        if (is_array($meta_value)) {
-            $meta_value = json_encode($meta_value);
-        }
-
-        $meta_value = clean_val($meta_value);
-
-        //mysql->run() does mysqli_query and not mysqli_multi_query so we cannot concatentate the inserts and run all at once
-        $mysql->run("INSERT INTO wp_postmeta (meta_id, post_id, meta_key, meta_value)
-                     VALUES (NULL, '{$post_id}', '{$meta_key}', {$meta_value})");
-    }
-
-    SirumLog::debug(
-        "Inserting Meta data",
-        [
-            "invoice_number" => $invoice_number,
-            "meta_values"    => $metadata
-        ]
-    );
+    // Send all these updates through the update functionality so
+    // we don't end up with duplicates
+    return wc_update_meta($invoice_number, $metadata);
 }
 
 /**
- * Update the meta values.  If the fields don't exist, we want to remove
- * them and send them throught the wc_insert_meta function.
+ * Update/Insert the meta values.
+ *
+ * This funciton combines the Insert and Update into a single function.  Before
+ * we do anything, we pull out what meta fields are available.  Then we break the
+ * passed in data into 2 arrays, 1 for meta that alread exists and 1 for meta
+ * that needs to be inserted.
+ *
  * @param  int   $invoice_number The invoice we are working with
  * @param  array $metadata       A array of key => values to store
+ *
  * @return void
  */
 function wc_update_meta($invoice_number, $metadata)
@@ -65,6 +57,16 @@ function wc_update_meta($invoice_number, $metadata)
     $mysql = $mysql ?: new Mysql_Wc();
 
     $post_id = wc_get_post_id($invoice_number);
+
+    if (! $post_id) {
+        return SirumLog::warning(
+            "wc_update_meta: no post id",
+            [
+                "invoice_number" => $invoice_number,
+                "meta_values"    => $metadata
+            ]
+        );
+    }
 
     $existing_meta = $mysql->run(
         "SELECT meta_key
@@ -85,16 +87,37 @@ function wc_update_meta($invoice_number, $metadata)
 
     if (count($meta_to_insert) > 0) {
         SirumLog::debug(
-            "Some meta didn't exist, so we are going to insert instead",
+            "Inserting Meta data",
             [
                 "invoice_number" => $invoice_number,
-                "meta_values"    => $meta_to_insert
+                "meta_values"    => $metadata,
+                "post_id"        => $post_id
             ]
         );
-        wc_insert_meta($invoice_number, $meta_to_insert);
+
+        foreach ($meta_to_insert as $meta_key => $meta_value) {
+            if (is_array($meta_value)) {
+                $meta_value = json_encode($meta_value);
+            }
+
+            $meta_value = clean_val($meta_value);
+
+            //mysql->run() does mysqli_query and not mysqli_multi_query so we cannot concatentate the inserts and run all at once
+            $mysql->run("INSERT INTO wp_postmeta (meta_id, post_id, meta_key, meta_value)
+                         VALUES (NULL, '{$post_id}', '{$meta_key}', {$meta_value})");
+        }
     }
 
     foreach ($meta_to_update as $meta_key => $meta_value) {
+        SirumLog::debug(
+            "Update WC Meta",
+            [
+                "invoice_number" => $invoice_number,
+                "meta_values"    => $meta_to_update,
+                "post_id"        => $post_id
+            ]
+        );
+
         if (is_array($meta_value)) {
             $meta_value = json_encode($meta_value);
         }
