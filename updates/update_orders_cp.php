@@ -96,10 +96,11 @@ function update_orders_cp() {
         //Overrite Rx Messages everytime a new order created otherwis same message would stay for the life of the Rx
 
         SirumLog::debug(
-          "get_full_order: Carpoint created",
+          "get_full_order: Carpoint Order created",
           [
               'created' => $created,
               'source'  => 'Guardian',
+              'type'    => 'order',
               'event'   => 'created'
           ]
         );
@@ -239,7 +240,7 @@ function update_orders_cp() {
     export_v2_pend_order($order, $mysql);
 
     SirumLog::debug(
-      "Order Pended",
+      "update_orders_cp: Order Pended",
       [
         'invoice_number' => $order[0]['invoice_number'],
         'order' => $order,
@@ -300,10 +301,11 @@ function update_orders_cp() {
         SirumLog::$subroutine_id = sha1(serialize($deleted));
 
         SirumLog::debug(
-            'Carepoint Order has ben deleted',
+            'Carepoint Order has been deleted',
             [
               'source'         => 'Guardian',
               'event'          => 'deleted',
+              'type'           => 'order',
               'invoice_number' => $deleted['invoice_number'],
               'deleted'        => $deleted
             ]
@@ -384,6 +386,7 @@ function update_orders_cp() {
               'source'         => 'Guardian',
               'event'          => 'updated',
               'invoice_number' => $updated['invoice_number'],
+              'type'           => 'order',
               'updated'        => $updated
             ]
         );
