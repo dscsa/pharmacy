@@ -100,6 +100,7 @@ function update_orders_cp() {
           [
               'created' => $created,
               'source'  => 'Guardian',
+              'type'    => 'order',
               'event'   => 'created'
           ]
         );
@@ -300,10 +301,11 @@ function update_orders_cp() {
         SirumLog::$subroutine_id = sha1(serialize($deleted));
 
         SirumLog::debug(
-            'Carepoint Order has ben deleted',
+            'Carepoint Order has been deleted',
             [
               'source'         => 'Guardian',
               'event'          => 'deleted',
+              'type'           => 'order',
               'invoice_number' => $deleted['invoice_number'],
               'deleted'        => $deleted
             ]
@@ -384,6 +386,7 @@ function update_orders_cp() {
               'source'         => 'Guardian',
               'event'          => 'updated',
               'invoice_number' => $updated['invoice_number'],
+              'type'           => 'order',
               'updated'        => $updated
             ]
         );

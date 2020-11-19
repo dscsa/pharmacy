@@ -52,6 +52,7 @@ function update_orders_wc() {
             [
                 'source'  => 'WooCommerce',
                 'event'   => 'created',
+                'type'    => 'order',
                 'created' => $created
             ]
           );
@@ -119,6 +120,7 @@ function update_orders_wc() {
           [
               'source'  => 'WooCommerce',
               'event'   => 'deleted',
+              'type'    => 'order',
               'deleted' => $deleted
           ]
         );
@@ -219,6 +221,7 @@ function update_orders_wc() {
           [
               'source'  => 'WooCommerce',
               'event'   => 'updated',
+              'type'    => 'order',
               'deleted' => $deleted
           ]
         );
