@@ -25,6 +25,7 @@ function watch_invoices()
         'folder'       => INVOICE_PUBLISHED_FOLDER_NAME
     ];
 
+
     $invoices = json_decode(gdoc_post(GD_HELPER_URL, $args), true);
 
     if (! is_array($invoices)
@@ -48,7 +49,6 @@ function watch_invoices()
 
     foreach ($invoices as $invoice) {
 
-        print_r($invoice);
         preg_match_all('/(Total:? +|Due:? +)\$(\d+)/', $invoice['part0'], $totals);
 
         //Table columns seem to be divided by table breaks
