@@ -14,6 +14,18 @@ function update_patients_wc() {
   $count_created = count($changes['created']);
   $count_updated = count($changes['updated']);
 
+  SirumLog::debug(
+    'Woocommerce Patien Changes found',
+    [
+      'deleted' => $changes['deleted'],
+      'created' => $changes['created'],
+      'updated' => $changes['updated'],
+      'deleted_count' => $count_deleted,
+      'created_count' => $count_created,
+      'updated_count' => $count_updated
+    ]
+  );
+
   if ( ! $count_deleted AND ! $count_created AND ! $count_updated) return;
 
   log_notice("update_patients_wc: $count_deleted deleted, $count_created created, $count_updated updated.");
@@ -33,6 +45,19 @@ function update_patients_wc() {
   $created_new_to_cp = 0;
 
   foreach($changes['created'] as $created) {
+    SirumLog::$subroutine_id = sha1(serialize($created));
+
+      //Overrite Rx Messages everytime a new order created otherwis same message would stay for the life of the Rx
+
+      SirumLog::debug(
+        "update_patients_wc: WooCommerce PATIENT Created",
+        [
+            'created' => $created,
+            'source'  => 'WooCommerce',
+            'type'    => 'patient',
+            'event'   => 'created'
+        ]
+      );
 
     $patient = find_patient_wc($mysql, $created);
 
@@ -86,6 +111,7 @@ function update_patients_wc() {
         log_error("Old $event_title", [$secs, $patient, $created]);
       }
     }
+    SirumLog::resetSubroutineId();
   }
 
   log_notice('created counts', [
@@ -97,6 +123,18 @@ function update_patients_wc() {
 
   foreach($changes['deleted'] as $i => $deleted) {
 
+      SirumLog::$subroutine_id = sha1(serialize($deleted));
+
+      SirumLog::debug(
+        "update_patients_wc: WooCommerce PATIENT deleted",
+        [
+            'deleted' => $deleted,
+            'source'  => 'WooCommerce',
+            'type'    => 'patient',
+            'event'   => 'deleted'
+        ]
+      );
+
     //Dummy accounts that have been cleared out of WC
     if (stripos($deleted['first_name'], 'Test') !== false OR stripos($deleted['first_name'], 'User') !== false OR stripos($deleted['email'], 'user') !== false OR stripos($deleted['email'], 'test') !== false)
       continue;
@@ -105,10 +143,22 @@ function update_patients_wc() {
       log_error('update_patients_wc deleted: patient was just deleted from WC', $deleted);
     //else
     //  log_error('update_patients_wc: never added', $deleted);
-
+    SirumLog::resetSubroutineId();
   }
 
   foreach($changes['updated'] as $i => $updated) {
+
+      SirumLog::$subroutine_id = sha1(serialize($updated));
+
+      SirumLog::debug(
+        "update_patients_wc: WooCommerce PATIENT updated",
+        [
+            'updated' => $updated,
+            'source'  => 'WooCommerce',
+            'type'    => 'patient',
+            'event'   => 'updated'
+        ]
+      );
 
     if ( ! $updated['patient_id_cp']) {
       $patient = find_patient_wc($mysql, $updated);
@@ -339,5 +389,6 @@ function update_patients_wc() {
 
       export_cp_patient_save_medications_other($mssql, $updated);
     }
+    SirumLog::resetSubroutineId();
   }
 }
