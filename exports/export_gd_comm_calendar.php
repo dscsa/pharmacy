@@ -460,8 +460,23 @@ function confirm_shipment_notice($groups) {
 
 function confirm_shipping_internal($groups, $days_ago) {
 
-  if ( ! $groups['ALL'][0]['refills_used'])
-    return [];
+  $mysql = new Sirum\Storage\Goodpill();
+  $pdo   = $mysql->prepare(
+              "SELECT count(*) as past_order_count
+        	     FROM gp_orders o
+        	        JOIN gp_orders p ON o.patient_id_cp = p.patient_id_cp
+                        AND p.invoice_number = :invoice_number
+        	     WHERE o.invoice_number != 49563
+        		       AND o.order_stage_cp = 'Shipped';");
+
+  $pdo->bindParam(':invoice_number', $groups['ALL'][0]['invoice_number'], \PDO::PARAM_INT);
+  $pdo->execute();
+  
+  $results = $pdo->fetch();
+
+  if ( $results['past_order_count'] > 0) {
+      return [];
+  }
 
   ///It's depressing to get updates if nothing is being filled
   $subject  = "Follow up on new patient's first order";
