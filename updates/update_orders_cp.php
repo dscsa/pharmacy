@@ -96,7 +96,7 @@ function update_orders_cp() {
         //Overrite Rx Messages everytime a new order created otherwis same message would stay for the life of the Rx
 
         SirumLog::debug(
-          "get_full_order: Carpoint created",
+          "get_full_order: Carpoint Order created",
           [
               'created' => $created,
               'source'  => 'Guardian',
@@ -239,7 +239,7 @@ function update_orders_cp() {
     export_v2_pend_order($order, $mysql);
 
     SirumLog::debug(
-      "Order Pended",
+      "update_orders_cp: Order Pended",
       [
         'invoice_number' => $order[0]['invoice_number'],
         'order' => $order,
