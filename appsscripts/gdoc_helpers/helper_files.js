@@ -30,7 +30,7 @@ function watchFiles(opts) {
   var today     = new Date();
   var minutes   = opts.minutes || 20
   var startTime = new Date(today.getTime() - minutes * 60 * 1000);
-  var tooRecent = new Date(today.getTime()); //Don't call if we are still making edits
+  var tooRecent = new Date(today.getTime() - 1 * 60 * 1000); //Don't call if we are still making edits
 
   var parentFolder  = DriveApp.getFoldersByName(opts.folder).next()
   var printedFolder = parentFolder.getFoldersByName('Printed')
