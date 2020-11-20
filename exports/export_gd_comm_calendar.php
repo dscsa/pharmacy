@@ -1,5 +1,7 @@
 <?php
 
+use Sirum\Logging\SirumLog();
+
 require_once 'helpers/helper_calendar.php';
 
 //Internal communication warning an order was shipped but not dispensed.  Gets erased when/if order is shipped
@@ -460,9 +462,10 @@ function confirm_shipment_notice($groups) {
 
 function confirm_shipping_internal($groups, $days_ago) {
 
-  if ( ! $groups['ALL'][0]['refills_used'])
+  if ((float) $groups['ALL'][0]['refills_used'] > 0) {
     return [];
-
+  }
+  
   ///It's depressing to get updates if nothing is being filled
   $subject  = "Follow up on new patient's first order";
 
@@ -491,6 +494,13 @@ function confirm_shipping_internal($groups, $days_ago) {
       ''
     ])
   ];
+
+  SirumLog::debug(
+      'Attaching Newpatient Com Event'
+      [
+         "initial_rx_group" => $groups['ALL'][0]
+      ]
+  );
 
   return $salesforce;
 }
