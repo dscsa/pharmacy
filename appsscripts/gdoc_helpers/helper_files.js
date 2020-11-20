@@ -39,7 +39,7 @@ function watchFiles(opts) {
   var query    = 'modifiedDate > "' + startTime.toJSON() + '" AND modifiedDate < "' + tooRecent.toJSON() + '"'
   var iterator = parentFolder.searchFiles(query)
 
-  Logger.log('Searching for fils in %s with params %s', opts.folder, query);
+  Logger.log('Searching for files in %s with params %s', opts.folder, query);
 
   var parent = []
   while (iterator.hasNext()) {
