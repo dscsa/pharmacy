@@ -1,6 +1,6 @@
 <?php
 
-use Sirum\Logging\SirumLog();
+use Sirum\Logging\SirumLog;
 
 require_once 'helpers/helper_calendar.php';
 
@@ -465,7 +465,7 @@ function confirm_shipping_internal($groups, $days_ago) {
   if ((float) $groups['ALL'][0]['refills_used'] > 0) {
     return [];
   }
-  
+
   ///It's depressing to get updates if nothing is being filled
   $subject  = "Follow up on new patient's first order";
 
