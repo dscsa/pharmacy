@@ -496,7 +496,7 @@ function confirm_shipping_internal($groups, $days_ago) {
   ];
 
   SirumLog::debug(
-      'Attaching Newpatient Com Event'
+      'Attaching Newpatient Com Event',
       [
          "initial_rx_group" => $groups['ALL'][0]
       ]
