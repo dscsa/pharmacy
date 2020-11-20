@@ -39,7 +39,7 @@ function watchFiles(opts) {
   var query    = 'modifiedDate > "' + startTime.toJSON() + '" AND modifiedDate < "' + tooRecent.toJSON() + '"'
   var iterator = parentFolder.searchFiles(query)
 
-  console.log('Searching for fils in %s with params %s', opts.folder, query);
+  Logger.log('Searching for fils in %s with params %s', opts.folder, query);
 
   var parent = []
   while (iterator.hasNext()) {
@@ -134,7 +134,7 @@ function publishFile(opts){
   file = file.next()
   var fileId = file.getId()
 
-  console.log('publishFile '+file.getName())
+  Logger.log('publishFile '+file.getName())
 
   //Side effect of this is that this account can no longer delete/trash/remove this file since must be done by owner
 
@@ -160,7 +160,7 @@ function moveFile(opts, retry) {
   var fromFolder = DriveApp.getFoldersByName(opts.fromFolder).next()
   var file = fromFolder.searchFiles('title contains "'+opts.file+'"')
 
-  console.log('moveFile '+opts.file+' '+file.hasNext())
+  Logger.log('moveFile '+opts.file+' '+file.hasNext())
 
   if (file.hasNext()) {
     file = file.next()
@@ -200,7 +200,7 @@ function newSpreadsheet(opts) {
 function moveToFolder(file, folder) {
   if ( ! folder ) return
 
-  console.log('moveToFolder '+folder+'/'+file.getName())
+  Logger.log('moveToFolder '+folder+'/'+file.getName())
   file.moveTo(folderByName(folder))
   //parentByFile(file).removeFile(file)
   //folderByName(folder).addFile(file)
