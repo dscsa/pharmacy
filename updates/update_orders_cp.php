@@ -33,7 +33,7 @@ function update_orders_cp() {
   }
 
   SirumLog::debug(
-    'Carepoint Changes found',
+    'Carepoint Order Changes found',
     [
       'deleted' => $changes['deleted'],
       'created' => $changes['created'],
@@ -397,7 +397,7 @@ function update_orders_cp() {
         log_notice("Updated Orders Cp: $updated[invoice_number] ".($i+1)." of ".count($changes['updated']), $changed_fields);
 
         SirumLog::debug(
-          "get_full_order: Carpoint updated",
+          "get_full_order: Carepoint Order Updated",
           ['updated' => $updated]
         );
 
@@ -408,7 +408,7 @@ function update_orders_cp() {
                 "Order not found",
                 [
                   'order'          => $order,
-                  'created'        => $updated
+                  'updated'        => $updated
                 ]
             );
             log_error("Updated Order Missing", $order);
@@ -416,11 +416,11 @@ function update_orders_cp() {
         }
 
         SirumLog::debug(
-          "Order found for created order",
+          "Order found for updated order",
           [
             'invoice_number' => $order[0]['invoice_number'],
             'order'          => $order,
-            'created'        => $created
+            'updated'        => $updated
           ]
         );
 

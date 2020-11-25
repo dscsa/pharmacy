@@ -15,7 +15,7 @@ function update_patients_wc() {
   $count_updated = count($changes['updated']);
 
   SirumLog::debug(
-    'Woocommerce Patien Changes found',
+    'Woocommerce Patient Changes found',
     [
       'deleted' => $changes['deleted'],
       'created' => $changes['created'],

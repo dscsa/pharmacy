@@ -13,7 +13,7 @@ function update_drugs() {
   $count_updated = count($changes['updated']);
 
   SirumLog::debug(
-    'v2 RX Changes found',
+    'v2 Drug Changes found',
     [
       'deleted' => $changes['deleted'],
       'created' => $changes['created'],
