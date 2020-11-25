@@ -62,8 +62,12 @@ class Mysql {
       $this->run("DELETE FROM $table");
       $this->run($sql);
 
-      if ($this->run("SELECT * FROM $table")[0])
+      $success = $this->run("SELECT * FROM $table")[0];
+
+      if ($success) {
+        log_info("$table import was imported successfully", ['success' => $success]);
         return $this->commit();
+      }
 
       $this->rollback();
       log_error("$table import was ABORTED", ['vals' => $vals, 'keys' => $keys]);
