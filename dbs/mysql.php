@@ -64,10 +64,6 @@ class Mysql {
 
       $success = $this->run("SELECT * FROM $table")[0];
 
-      if ($table == 'gp_patients_wc') {
-        print_r(['success' => $success, 'sql' => $sql]);
-      }
-
       if ($success) {
         log_info("$table import was imported successfully", ['success' => array_slice($success, 0, 100, true)]);
         return $this->commit();
