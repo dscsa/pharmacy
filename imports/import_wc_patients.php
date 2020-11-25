@@ -113,5 +113,5 @@ function import_wc_patients() {
 
   $mysql->replace_table("gp_patients_wc", $keys, $patients[0]);
 
-  //log_error("import_wc_patients: ", $sql);
+  log_error("import_wc_patients: ", $sql);
 }

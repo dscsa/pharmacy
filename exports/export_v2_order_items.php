@@ -26,14 +26,16 @@ function export_v2_unpend_order($order) {
 
 function unpend_pick_list($item) {
 
-  $pend_group_refill = pend_group_refill($item);
-  $pend_group_new_rx = pend_group_new_rx($item);
-  $pend_group_manual = pend_group_manual($item);
+  $pend_group_refill  = pend_group_refill($item);
+  $pend_group_webform = pend_group_webform($item);
+  $pend_group_manual  = pend_group_manual($item);
+  $pend_group_new_patient = pend_group_new_patient($item);
 
   //Once order is deleted it not longer has items so its hard to determine if the items were New or Refills so just delete both
-  $res_refill = v2_fetch("/account/8889875187/pend/$pend_group_refill", 'DELETE');
-  $res_new_rx = v2_fetch("/account/8889875187/pend/$pend_group_new_rx", 'DELETE');
-  $res_manual = v2_fetch("/account/8889875187/pend/$pend_group_manual", 'DELETE');
+  $res_refill  = v2_fetch("/account/8889875187/pend/$pend_group_refill", 'DELETE');
+  $res_webform = v2_fetch("/account/8889875187/pend/$pend_group_webform", 'DELETE');
+  $res_manual  = v2_fetch("/account/8889875187/pend/$pend_group_manual", 'DELETE');
+  $res_new_patient = v2_fetch("/account/8889875187/pend/$pend_group_new_patient", 'DELETE');
 
   //Delete gdoc pick list
   $args = [
@@ -128,10 +130,20 @@ function pend_group_refill($item) {
    return "$pick_date $invoice";
 }
 
-function pend_group_new_rx($item) {
+function pend_group_webform($item) {
 
    $pick_time = strtotime($item['order_date_added'].' +0 days'); //Used to be +1 days
-   $invoice   = "N$item[invoice_number]";
+   $invoice   = "W$item[invoice_number]";
+
+   $pick_date = date('Y-m-d', $pick_time);
+
+   return "$pick_date $invoice";
+}
+
+function pend_group_new_patient($item) {
+
+   $pick_time = strtotime($item['patient_date_added'].' +0 days'); //Used to be +1 days
+   $invoice   = "P$item[invoice_number]";
 
    $pick_date = date('Y-m-d', $pick_time);
 
@@ -143,7 +155,14 @@ function pend_group_manual($item) {
 }
 
 function pend_group_name($item) {
-   return $item['order_source'] == "Auto Refill v2" ? pend_group_refill($item) : pend_group_new_rx($item);
+
+    if ($item['order_source'] == "Auto Refill v2")
+        return pend_group_refill($item);
+
+    if ($item['refills_used'] > 0)
+        return pend_group_webform($item);
+
+    return pend_group_new_patient($item);
 }
 
 
