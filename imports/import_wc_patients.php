@@ -78,7 +78,7 @@ function import_wc_patients() {
 
   log_error("import_wc_patients start: ", ['vals' => array_slice($patients[0], 0, 100, true)]);
 
-  if ( ! count($patients[0])) return log_error('No Wc Patients to Import', get_defined_vars());
+  if ( ! count($patients[0])) return log_error('No Wc Patients to Import', array_slice($patients[0], 0, 100, true));
 
   $keys = result_map($patients[0],
     function($row) {
