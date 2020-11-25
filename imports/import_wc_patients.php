@@ -76,7 +76,7 @@ function import_wc_patients() {
      wp_users.ID
   ");
 
-  log_error("import_wc_patients start: ", $patients[0]);
+  log_error("import_wc_patients start: ", ['vals' => $patients[0]]);
 
   if ( ! count($patients[0])) return log_error('No Wc Patients to Import', get_defined_vars());
 
@@ -113,9 +113,9 @@ function import_wc_patients() {
     }
   );
 
-  log_error("import_wc_patients cleaned: ", [$keys, $patients[0]]);
+  log_error("import_wc_patients cleaned: ", ['keys' => $keys, 'vals' => $patients[0]]);
 
   $mysql->replace_table("gp_patients_wc", $keys, $patients[0]);
 
-  log_error("import_wc_patients finish: ", $sql);
+  log_error("import_wc_patients finish: ", ['keys' => $keys, 'vals' => $patients[0]]);
 }
