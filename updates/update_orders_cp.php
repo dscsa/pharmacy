@@ -221,82 +221,82 @@ function update_orders_cp() {
 
         $order = helper_update_payment($order, "update_orders_cp: created", $mysql);
 
-    if ($created['order_date_dispensed']) { //Can't test for rx_message_key == 'ACTION NEEDS FORM' because other messages can take precedence
-      export_gd_publish_invoice($order, $mysql);
-      export_gd_print_invoice($order);
+        if ($created['order_date_dispensed']) { //Can't test for rx_message_key == 'ACTION NEEDS FORM' because other messages can take precedence
+          export_gd_publish_invoice($order, $mysql);
+          export_gd_print_invoice($order);
 
-      SirumLog::notice(
-        "update_orders_cp Created Order is being readded (and invoice " .
-          "recreated) even though already dispensed.  Was it deleted on purpose?",
-        [
-          'invoice_number' => $order[0]['invoice_number'],
-          'order' => $order
-        ]
-      );
+          SirumLog::notice(
+            "update_orders_cp Created Order is being readded (and invoice " .
+              "recreated) even though already dispensed.  Was it deleted on purpose?",
+            [
+              'invoice_number' => $order[0]['invoice_number'],
+              'order' => $order
+            ]
+          );
 
-      continue;
-    }
+          continue;
+        }
 
-    export_v2_pend_order($order, $mysql);
+        export_v2_pend_order($order, $mysql);
 
-    SirumLog::debug(
-      "update_orders_cp: Order Pended",
-      [
-        'invoice_number' => $order[0]['invoice_number'],
-        'order' => $order,
-        'synced' => $synced
-      ]
-    );
+        SirumLog::debug(
+          "update_orders_cp: Order Pended",
+          [
+            'invoice_number' => $order[0]['invoice_number'],
+            'order' => $order,
+            'synced' => $synced
+          ]
+        );
 
-    //This is not necessary if order was created by webform, which then created the order in Guardian
-    //"order_source": "Webform eRX/Transfer/Refill [w/ Note]"
-    if (strpos($order[0]['order_source'], 'Webform') === false) {
-      export_wc_create_order($order, "update_orders_cp: created");
-      SirumLog::debug(
-        "Created & Pended Order",
-        [
-          'invoice_number' => $order[0]['invoice_number'],
-          'order' => $order,
-          'synced' => $synced
-        ]
-      );
-    } else {
-      SirumLog::notice(
-        "Order creation skipped because source not Webform",
-        [
-          'invoice_number' => $order[0]['invoice_number'],
-          'source'         => $order[0]['order_source'],
-          'order'          => $order,
-          'synced'         => $synced
-        ]
-      );
-    }
+        //This is not necessary if order was created by webform, which then created the order in Guardian
+        //"order_source": "Webform eRX/Transfer/Refill [w/ Note]"
+        if (strpos($order[0]['order_source'], 'Webform') === false) {
+          export_wc_create_order($order, "update_orders_cp: created");
+          SirumLog::debug(
+            "Created & Pended Order",
+            [
+              'invoice_number' => $order[0]['invoice_number'],
+              'order' => $order,
+              'synced' => $synced
+            ]
+          );
+        } else {
+          SirumLog::notice(
+            "Order creation skipped because source not Webform",
+            [
+              'invoice_number' => $order[0]['invoice_number'],
+              'source'         => $order[0]['order_source'],
+              'order'          => $order,
+              'synced'         => $synced
+            ]
+          );
+        }
 
-    if ( ! $groups['COUNT_FILLED']) {
-      order_hold_notice($groups, true);
-      SirumLog::debug(
-        "update_orders_cp: Order Hold hopefully due to 'NO ACTION MISSING GSN' otherwise should have been deleted with sync code above",
-        [
-          'invoice_number' => $order[0]['invoice_number'],
-          'order' => $order,
-          'groups' => $groups
-        ]
-      );
-    } else {
-      send_created_order_communications($groups);
-    }
+        if ( ! $groups['COUNT_FILLED']) {
+          order_hold_notice($groups, true);
+          SirumLog::debug(
+            "update_orders_cp: Order Hold hopefully due to 'NO ACTION MISSING GSN' otherwise should have been deleted with sync code above",
+            [
+              'invoice_number' => $order[0]['invoice_number'],
+              'order' => $order,
+              'groups' => $groups
+            ]
+          );
+        } else {
+          send_created_order_communications($groups);
+        }
 
-    //TODO Update Salesforce Order Total & Order Count & Order Invoice using REST API or a MYSQL Zapier Integration
+        //TODO Update Salesforce Order Total & Order Count & Order Invoice using REST API or a MYSQL Zapier Integration
     } // END created loop
 
-    /*
-     * If just deleted from CP Order we need to
-     *  - set "days_dispensed_default" and "qty_dispensed_default" to 0
-     *  - unpend in v2 and save applicable fields
-     *  - if last line item in order, find out any other rxs need to be removed
-     *  - update invoice
-     *  - update wc order total
-     */
+        /*
+         * If just deleted from CP Order we need to
+         *  - set "days_dispensed_default" and "qty_dispensed_default" to 0
+         *  - unpend in v2 and save applicable fields
+         *  - if last line item in order, find out any other rxs need to be removed
+         *  - update invoice
+         *  - update wc order total
+         */
     foreach ($changes['deleted'] as $deleted) {
         SirumLog::$subroutine_id = sha1(serialize($deleted));
 
@@ -321,58 +321,58 @@ function update_orders_cp() {
             log_notice('update_orders_cp: cp order deleted so deleting wc order as well', $deleted);
         }
 
-    //Order was Returned to Sender and not logged yet
-    if ($deleted['tracking_number'] AND ! $deleted['order_date_returned']) {
+        //Order was Returned to Sender and not logged yet
+        if ($deleted['tracking_number'] AND ! $deleted['order_date_returned']) {
 
-      set_payment_actual($deleted['invoice_number'], ['total' => 0, 'fee' => 0, 'due' => 0], $mysql);
-      //export_wc_update_order_payment($deleted['invoice_number'], 0); //Don't need this because we are deleting the WC order later
+          set_payment_actual($deleted['invoice_number'], ['total' => 0, 'fee' => 0, 'due' => 0], $mysql);
+          //export_wc_update_order_payment($deleted['invoice_number'], 0); //Don't need this because we are deleting the WC order later
 
-      $update_sql = "UPDATE gp_orders
-                      SET order_date_returned = NOW()
-                      WHERE invoice_number = $deleted[invoice_number]";
+          $update_sql = "UPDATE gp_orders
+                          SET order_date_returned = NOW()
+                          WHERE invoice_number = $deleted[invoice_number]";
 
-      $mysql->run($update_sql);
+          $mysql->run($update_sql);
 
-      log_notice('Confirm this order was returned! Order with tracking number was deleted', $deleted);
+          log_notice('Confirm this order was returned! Order with tracking number was deleted', $deleted);
 
-      continue;
+          continue;
+        }
+
+        export_gd_delete_invoice([$deleted], $mysql);
+
+        export_wc_delete_order($deleted['invoice_number'], "update_orders_cp: cp order deleted $deleted[invoice_number] $deleted[order_stage_cp] $deleted[order_stage_wc] $deleted[order_source] ".json_encode($deleted));
+
+        export_v2_unpend_order([$deleted]);
+
+        $sql = "
+          SELECT * FROM gp_patients WHERE patient_id_cp = $deleted[patient_id_cp]
+        ";
+
+        $patient = $mysql->run($sql)[0];
+
+        if ( ! $patient)
+          log_error('No patient associated with deleted order (Patient Deactivated/Deceased/Moved out of State)', ['deleted' => $deleted, 'sql' => $sql]);
+
+        //We should be able to delete wc-confirm-* from CP queue without triggering an order cancel notice
+        if ( ! $deleted['count_filled'] AND ! $deleted['count_nofill']) { //count_items may already be 0 on a deleted order that had items e.g 33840
+          no_rx_notice($deleted, $patient);
+          log_error("update_orders_cp deleted: count_filled == 0 AND count_nofill == 0 so calling no_rx_notice() rather than order_canceled_notice()", $deleted);
+          return;
+        }
+
+        $sql = "
+          SELECT * FROM gp_orders WHERE patient_id_cp = $deleted[patient_id_cp] AND order_stage_cp != 'Dispensed' AND order_stage_cp != 'Shipped'
+        ";
+
+        $replacement = $mysql->run($sql)[0];
+
+        if ($replacement)
+          log_error('order_canceled_notice BUT their appears to be a replacement', ['deleted' => $deleted, 'sql' => $sql, 'replacement' => $replacement]);
+
+        order_canceled_notice($deleted, $patient); //We passed in $deleted because there is not $order to make $groups
+
+
     }
-
-    export_gd_delete_invoice([$deleted], $mysql);
-
-    export_wc_delete_order($deleted['invoice_number'], "update_orders_cp: cp order deleted $deleted[invoice_number] $deleted[order_stage_cp] $deleted[order_stage_wc] $deleted[order_source] ".json_encode($deleted));
-
-    export_v2_unpend_order([$deleted]);
-
-    $sql = "
-      SELECT * FROM gp_patients WHERE patient_id_cp = $deleted[patient_id_cp]
-    ";
-
-    $patient = $mysql->run($sql)[0];
-
-    if ( ! $patient)
-      log_error('No patient associated with deleted order (Patient Deactivated/Deceased/Moved out of State)', ['deleted' => $deleted, 'sql' => $sql]);
-
-    //We should be able to delete wc-confirm-* from CP queue without triggering an order cancel notice
-    if ( ! $deleted['count_filled'] AND ! $deleted['count_nofill']) { //count_items may already be 0 on a deleted order that had items e.g 33840
-      no_rx_notice($deleted, $patient);
-      log_error("update_orders_cp deleted: count_filled == 0 AND count_nofill == 0 so calling no_rx_notice() rather than order_canceled_notice()", $deleted);
-      return;
-    }
-
-    $sql = "
-      SELECT * FROM gp_orders WHERE patient_id_cp = $deleted[patient_id_cp] AND order_stage_cp != 'Dispensed' AND order_stage_cp != 'Shipped'
-    ";
-
-    $replacement = $mysql->run($sql)[0];
-
-    if ($replacement)
-      log_error('order_canceled_notice BUT their appears to be a replacement', ['deleted' => $deleted, 'sql' => $sql, 'replacement' => $replacement]);
-
-    order_canceled_notice($deleted, $patient); //We passed in $deleted because there is not $order to make $groups
-
-
-  }
 
   //If just updated we need to
   //  - see which fields changed

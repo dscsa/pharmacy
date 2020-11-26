@@ -71,7 +71,7 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
             if ($set_msgs) {
                 $patient_or_order[$i] = export_cp_set_rx_message($patient_or_order[$i], $message, $mysql);
                 SirumLog::notice(
-                    "Fax fansfer fired Make sure logic is sound",
+                    "Rx Messages were set",
                     [
                         "overwrite_rx_messages"  => $overwrite_rx_messages,
                         "rx_number"              => $patient_or_order[$i]['rx_number'],
