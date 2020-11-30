@@ -772,6 +772,8 @@ $test_sigs = [
 global $argv;
 $sig_index = array_search('sig', $argv);
 
+print_r(['argv', $argv, 'sig_index', $sig_index]);
+
 if ($sig_index === false) {
 
   foreach ($test_sigs as $sig => $correct) {
