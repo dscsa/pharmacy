@@ -132,23 +132,19 @@ function get_days_default($item, $order) {
     return [$days_default, RX_MESSAGE['NO ACTION PATIENT REQUESTED']];
   }
 
-  if ((strtotime($item['refill_date_next']) - strtotime(@$item['order_date_added'])) > DAYS_UNIT*24*60*60 AND ! $added_manually) {
+  if ((strtotime($item['refill_date_next']) - strtotime(@$item['order_date_added'])) > DAYS_EARLY*24*60*60 AND ! $added_manually) {
 
     //DON'T STRICTLY NEED THIS TEST BUT IT GIVES A MORE SPECIFIC ERROR SO IT MIGHT BE HELPFUL
-    if ((strtotime(@$item['order_date_added']) - strtotime($item['refill_date_last'])) < DAYS_UNIT*24*60*60 AND ! $added_manually) {
-      log_info("DON'T REFILL IF FILLED WITHIN LAST ".DAYS_UNIT." DAYS UNLESS ADDED MANUALLY", get_defined_vars());
+    if ((strtotime(@$item['order_date_added']) - strtotime($item['refill_date_last'])) < DAYS_EARLY*24*60*60 AND ! $added_manually) {
+      log_info("DON'T REFILL IF FILLED WITHIN LAST ".DAYS_EARLY." DAYS UNLESS ADDED MANUALLY", get_defined_vars());
       return [0, RX_MESSAGE['NO ACTION RECENT FILL']];
     }
 
-    log_info("DON'T REFILL IF NOT DUE IN OVER ".DAYS_UNIT." DAYS UNLESS ADDED MANUALLY", get_defined_vars());
+    log_info("DON'T REFILL IF NOT DUE IN OVER ".DAYS_EARLY." DAYS UNLESS ADDED MANUALLY", get_defined_vars());
     return [0, RX_MESSAGE['NO ACTION NOT DUE']];
   }
 
-  /*
-   * DAYS_UNIT has been replaced by hardcoded 28 at Pharmacy's request.  We
-   * should evaluate if this needs to change to a constant.  Asana
-   */
-  if ((strtotime($item['refill_date_default']) - strtotime($item['refill_date_manual'])) > 28*24*60*60 AND $item['refill_date_manual'] AND ! $added_manually) {
+  if ((strtotime($item['refill_date_default']) - strtotime($item['refill_date_manual'])) > DAYS_EARLY*24*60*60 AND $item['refill_date_manual'] AND ! $added_manually) {
 
     $created = "Created:".date('Y-m-d H:i:s');
 
@@ -183,7 +179,7 @@ function get_days_default($item, $order) {
   if ( ! $item['rx_autofill'] AND @$item['item_date_added']) {
 
     //39652 don't refill surescripts early if rx is off autofill.  This means refill_date_next is null but refill_date_default may have a value
-    if ((strtotime($item['refill_date_default']) - strtotime(@$item['order_date_added'])) > DAYS_UNIT*24*60*60 AND ! $added_manually) {
+    if ((strtotime($item['refill_date_default']) - strtotime(@$item['order_date_added'])) > DAYS_EARLY*24*60*60 AND ! $added_manually) {
       return [0, RX_MESSAGE['ACTION RX OFF AUTOFILL']];
     }
 
@@ -500,7 +496,7 @@ function sync_to_order_no_next($item, $order) {
 }
 
 function sync_to_order_due_soon($item, $order) {
-  $eligible = (! @$item['item_date_added'] AND ($item['refills_total'] > NO_REFILL) AND $item['refill_date_next'] AND (strtotime($item['refill_date_next'])  - strtotime($item['order_date_added'])) <= DAYS_UNIT*24*60*60);
+  $eligible = (! @$item['item_date_added'] AND ($item['refills_total'] > NO_REFILL) AND $item['refill_date_next'] AND (strtotime($item['refill_date_next'])  - strtotime($item['order_date_added'])) <= DAYS_EARLY*24*60*60);
   return $eligible AND ! is_duplicate_gsn($item, $order);
 }
 
