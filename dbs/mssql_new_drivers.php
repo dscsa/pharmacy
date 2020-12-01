@@ -4,6 +4,8 @@ require_once('mssql_interface.php');
 require_once('mssql_status_log.php');
 require_once(dirname(__DIR__) . '/helpers/helper_log.php');
 
+use Sirum\Logging\SirumLog;
+
 class Mssql_New_Drivers implements Mssql_Interface
 {
 
