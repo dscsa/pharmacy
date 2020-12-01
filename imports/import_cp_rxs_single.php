@@ -96,11 +96,12 @@ function import_cp_rxs_single() {
 
   ");
 
+  log_error("gp_rxs_single_cp import start: ", ['keys' => array_slice($keys, 0, 100, true), 'vals' => array_slice($rxs[0], 0, 100, true)]);
+
   //log_info("
   //import_cp_rxs_single: rows ".count($rxs[0]));
 
-  if ( ! count($rxs[0])) return log_error('No Cp RXs to Import', get_defined_vars());
-
+  if ( ! count($rxs[0])) return log_error('gp_rxs_single_cp import no rows', ['keys' => array_slice($keys, 0, 100, true), 'vals' => array_slice($rxs[0], 0, 100, true)]);
 
   $keys = result_map($rxs[0],
     function($row) {
@@ -145,6 +146,8 @@ function import_cp_rxs_single() {
       return $row;
     }
   );
+
+  log_error("gp_rxs_single_cp import: ", ['keys' => array_slice($keys, 0, 100, true), 'vals' => array_slice($rxs[0], 0, 100, true)]);
 
   $mysql->replace_table("gp_rxs_single_cp", $keys, $rxs[0]);
 }
