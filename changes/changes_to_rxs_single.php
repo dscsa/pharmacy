@@ -50,7 +50,7 @@ function changes_to_rxs_single($new) {
     NOT old.rx_stage <=> new.rx_stage OR
     NOT old.rx_source <=> new.rx_source OR
     NOT old.rx_transfer <=> new.rx_transfer OR
-    NOT old.rx_date_transferred <=> new.rx_date_transferred OR
+      -- NOT old.rx_date_transferred <=> new.rx_date_transferred OR
     NOT old.provider_npi <=> new.provider_npi OR
     NOT old.provider_first_name <=> new.provider_first_name OR
     NOT old.provider_last_name <=> new.provider_last_name OR
