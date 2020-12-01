@@ -73,6 +73,8 @@ class Mysql {
 
       $this->rollback();
       $this->_emailError(["$table import was ABORTED", $error, count($vals), array_slice($vals, 0, 100, true), array_slice($keys, 0, 100, true)]);
+      echo "TABLE IMPORT ERROR";
+      echo $sql;
     }
 
     function run($sql, $debug = false) {
