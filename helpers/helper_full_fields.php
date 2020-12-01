@@ -50,6 +50,20 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
         if ($set_days or $set_msgs) {
             list($days, $message) = get_days_default($patient_or_order[$i], $patient_or_order);
 
+            SirumLog::notice(
+              "Get Rx Messages",
+              [
+                "days"                   => $days,
+                "message"                => $message,
+                "overwrite_rx_messages"  => $overwrite_rx_messages,
+                "rx_number"              => $patient_or_order[$i]['rx_number'],
+                "rx_message_key"         => $patient_or_order[$i]['rx_message_key'],
+                "rx_message_text"        => $patient_or_order[$i]['rx_message_text'],
+                "item_date_added"        => $patient_or_order[$i]['item_date_added'],
+                "days_dispensed_default" => $patient_or_order[$i]['days_dispensed_default']
+              ]
+            );
+
             if ($missing_msg) {
                 log_error(
                     "helper_full_fields: rx had an empty message, so setting it now",
@@ -71,7 +85,7 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
             if ($set_msgs) {
                 $patient_or_order[$i] = export_cp_set_rx_message($patient_or_order[$i], $message, $mysql);
                 SirumLog::notice(
-                    "Rx Messages were set",
+                    "Set Rx Messages",
                     [
                         "overwrite_rx_messages"  => $overwrite_rx_messages,
                         "rx_number"              => $patient_or_order[$i]['rx_number'],

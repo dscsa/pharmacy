@@ -40,7 +40,28 @@ function get_full_patient($partial, $mysql, $overwrite_rx_messages = false) {
       return;
   }
 
+  SirumLog::notice(
+    "helper_full_patient before helper_full_fields",
+    [
+      "patient_id_cp" => $patient[0]['patient_id_cp'],
+      "patient_id_wc" => $patient[0]['patient_id_wc'],
+      "message"       => $overwrite_rx_messages,
+      "patient"       => $patient
+    ]
+  );
+
   $patient = add_full_fields($patient, $mysql, $overwrite_rx_messages);
+
+  SirumLog::notice(
+    "helper_full_patient after helper_full_fields",
+    [
+      "patient_id_cp" => $patient[0]['patient_id_cp'],
+      "patient_id_wc" => $patient[0]['patient_id_wc'],
+      "message"       => $overwrite_rx_messages,
+      "patient"       => $patient
+    ]
+  );
+
   usort($patient, 'sort_patient_by_drug'); //Put Rxs in order (with Rx_Source) at the top
   $patient = add_sig_differences($patient);
 
