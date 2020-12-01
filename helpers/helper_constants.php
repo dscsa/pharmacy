@@ -163,7 +163,7 @@ const RX_MESSAGE = [
     'CP_CODE' => 215,
   ],
   'NO ACTION WAS TRANSFERRED' => [
-    'EN' => 'was transferred out to your local pharmacy on rx_date_changed',
+    'EN' => 'was transferred out to your local pharmacy on rx_date_transferred',
     'ES' => '',
     'CP_CODE' => 216,
   ],

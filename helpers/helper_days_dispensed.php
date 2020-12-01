@@ -21,9 +21,13 @@ function get_days_default($item, $order) {
     log_error("helper_days_dispensed: RX WAS NEVER PARSED", $item);
   }
 
-  if ($item['rx_date_transferred']) {
+  if ($item['rx_transfer']) {
 
-    if($stock_level == STOCK_LEVEL['HIGH SUPPLY'] AND strtotime($item['rx_date_transferred']) > strtotime('-2 day')) {
+    if ( ! $item['rx_date_transferred']) {
+      log_error("rx_transfer is set, but rx_date_transferred is not", get_defined_vars());
+    }
+
+    else if($stock_level == STOCK_LEVEL['HIGH SUPPLY'] AND strtotime($item['rx_date_transferred']) > strtotime('-2 day')) {
 
       $created = "Created:".date('Y-m-d H:i:s');
 
