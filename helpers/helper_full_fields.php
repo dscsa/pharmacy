@@ -47,6 +47,19 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
                             and is_null($patient_or_order[$i]['days_dispensed_default']));
         $set_msgs    = ($overwrite or $missing_msg);
 
+        SirumLog::notice(
+          "add_full_fields",
+          [
+            "set_days"               => $set_days,
+            "set_msgs"               => $set_msgs,
+            "overwrite"              => $overwrite,
+            "missing_msg"            => $missing_msg,
+            "overwrite_rx_messages"  => $overwrite_rx_messages,
+            "rx_number"              => $patient_or_order[$i]['rx_number'],
+            "patient_or_order[i]"    => $patient_or_order[$i]
+          ]
+        );
+
         if ($set_days or $set_msgs) {
             list($days, $message) = get_days_default($patient_or_order[$i], $patient_or_order);
 
