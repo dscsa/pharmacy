@@ -62,15 +62,17 @@ class Mysql {
       $this->run("DELETE FROM $table");
       $this->run($sql);
 
+      $error = mysqli_error($this->connection);
+
       $success = $this->run("SELECT * FROM $table")[0];
 
       if ($success) {
-        log_info("$table import was imported successfully", ['success' => array_slice($success, 0, 100, true)]);
+        log_info("$table import was SUCCESSFUL", ['vals' => array_slice($vals, 0, 100, true), 'keys' => array_slice($keys, 0, 100, true)]);
         return $this->commit();
       }
 
       $this->rollback();
-      log_error("$table import was ABORTED", ['vals' => array_slice($vals, 0, 100, true), 'keys' => array_slice($keys, 0, 100, true)]);
+      $this->_emailError(["$table import was ABORTED", $error, array_slice($vals, 0, 100, true), array_slice($keys, 0, 100, true)]);
     }
 
     function run($sql, $debug = false) {
