@@ -67,12 +67,12 @@ class Mysql {
       $success = $this->run("SELECT * FROM $table")[0];
 
       if ($success) {
-        log_info("$table import was SUCCESSFUL", ['vals' => array_slice($vals, 0, 100, true), 'keys' => array_slice($keys, 0, 100, true)]);
+        log_info("$table import was SUCCESSFUL", ['count' => count($vals), 'vals' => array_slice($vals, 0, 100, true), 'keys' => array_slice($keys, 0, 100, true)]);
         return $this->commit();
       }
 
       $this->rollback();
-      $this->_emailError(["$table import was ABORTED", $error, array_slice($vals, 0, 100, true), array_slice($keys, 0, 100, true)]);
+      $this->_emailError(["$table import was ABORTED", $error, count($vals), array_slice($vals, 0, 100, true), array_slice($keys, 0, 100, true)]);
     }
 
     function run($sql, $debug = false) {
