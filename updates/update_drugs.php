@@ -30,17 +30,18 @@ function update_drugs() {
 
 
   foreach($changes['updated'] as $i => $updated) {
+
     SirumLog::$subroutine_id = sha1(serialize($updated));
 
-      SirumLog::debug(
-        "update_drugs: RX Updated",
-        [
-            'updated' => $updated,
-            'source'  => 'v2',
-            'type'    => 'Rx',
-            'event'   => 'updated'
-        ]
-      );
+    SirumLog::debug(
+      "update_drugs: RX Updated",
+      [
+          'updated' => $updated,
+          'source'  => 'v2',
+          'type'    => 'Rx',
+          'event'   => 'updated'
+      ]
+    );
 
     if ($updated['drug_ordered'] && ! $updated['old_drug_ordered'])
       log_error("new drug ordered", $updated);

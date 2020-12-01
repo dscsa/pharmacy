@@ -17,7 +17,7 @@ function update_rxs_single() {
    * and look for any with a NULL rx_message_key.  If we dint one, get_full_patient()
    * will fetch the user and update the message?
    *
-   *  NOTE Use JOIN to exclude Rxs associated with patients that are inactive or deceased
+   *  NOTE Using an INNER JOIN to exclude Rxs associated with patients that are inactive or deceased
    */
   $rx_singles = $mysql->run(
     "SELECT *
@@ -27,11 +27,15 @@ function update_rxs_single() {
   );
 
   foreach($rx_singles[0] as $rx_single) {
+
+    SirumLog::$subroutine_id = sha1(serialize($rx_single));
+
     //This updates & overwrites set_rx_messages
     $patient = get_full_patient($rx_single, $mysql, $rx_single['rx_number']);
 
-    SirumLog::debug(
-        "rx had an empty message, so just set it",
+    //These should have been given an rx_message upon creation.  Why was it missing?
+    SirumLog::error(
+        "rx had an empty message, so just set it.  Why was it missing?",
         [
           "patient_id_cp" => $patient[0]['patient_id_cp'],
           "patient_id_wc" => $patient[0]['patient_id_wc'],
@@ -58,6 +62,9 @@ function update_rxs_single() {
    * sure all sig_qty_per_days are properly set before we group by them
    */
   foreach($changes['created'] as $created) {
+
+    SirumLog::$subroutine_id = sha1(serialize($created));
+
     // Get the signature
     $parsed = get_parsed_sig($created['sig_actual'], $created['drug_name']);
 
@@ -177,6 +184,9 @@ function update_rxs_single() {
    * Run this After so that Rx_grouped is set when doing get_full_patient
    */
   foreach($changes['created'] as $created) {
+
+    SirumLog::$subroutine_id = sha1(serialize($created));
+
     // This updates & overwrites set_rx_messages.  TRUE because this one
     // Rx might update many other Rxs for the same drug.
     $patient = get_full_patient($created, $mysql, true);
@@ -197,6 +207,8 @@ function update_rxs_single() {
    */
   //Run this after rx_grouped query to ensure get_full_patient retrieves an accurate order profile
   foreach($changes['updated'] as $updated) {
+
+    SirumLog::$subroutine_id = sha1(serialize($updated));
 
     $changed = changed_fields($updated);
     $cp_id   = $updated['patient_id_cp'];

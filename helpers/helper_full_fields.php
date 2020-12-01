@@ -166,11 +166,11 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
          * Create some variables with appropriate values
          */
         if ($patient_or_order[$i]['refills_dispensed_actual']) {
-            $refils_dispensed = (float) $patient_or_order[$i]['refills_dispensed_actual'];
+            $refills_dispensed = (float) $patient_or_order[$i]['refills_dispensed_actual'];
         } elseif ($patient_or_order[$i]['refills_dispensed_default']) {
-            $refils_dispensed = (float) $patient_or_order[$i]['refills_dispensed_default'];
+            $refills_dispensed = (float) $patient_or_order[$i]['refills_dispensed_default'];
         } else {
-            $refils_dispensed = (float) $patient_or_order[$i]['refills_total'];
+            $refills_dispensed = (float) $patient_or_order[$i]['refills_total'];
         }
 
         if ($patient_or_order[$i]['qty_dispensed_actual']) {
@@ -189,7 +189,7 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
 
         // refills_dispensed_default/actual only exists as an order item.
         // But for grouping we need to know for items not in the order
-        $patient_or_order[$i]['refills_dispensed'] = round($refils_dispensed, 2);
+        $patient_or_order[$i]['refills_dispensed'] = round($refills_dispensed, 2);
         $patient_or_order[$i]['qty_dispensed']     = $qty_dsipensed;
         $patient_or_order[$i]['price_dispensed']   = $price_dispensed;
     }
