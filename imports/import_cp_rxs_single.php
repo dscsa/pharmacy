@@ -104,12 +104,12 @@ function import_cp_rxs_single() {
 
   ");
 
-  log_error("gp_rxs_single_cp import start: ", ['keys' => array_slice($keys, 0, 100, true), 'count' => count($rxs[0]), 'vals' => array_slice($rxs[0], 0, 100, true)]);
+  log_error("gp_rxs_single_cp import start: ", ['count' => count($rxs[0]), 'vals' => array_slice($rxs[0], 0, 100, true)]);
 
   //log_info("
   //import_cp_rxs_single: rows ".count($rxs[0]));
 
-  if ( ! count($rxs[0])) return log_error('gp_rxs_single_cp import no rows', ['keys' => array_slice($keys, 0, 100, true), 'count' => count($rxs[0]), 'vals' => array_slice($rxs[0], 0, 100, true)]);
+  if ( ! count($rxs[0])) return log_error('gp_rxs_single_cp import no rows', ['count' => count($rxs[0]), 'vals' => array_slice($rxs[0], 0, 100, true)]);
 
   $keys = result_map($rxs[0],
     function($row) {

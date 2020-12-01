@@ -35,8 +35,6 @@ function watch_invoices()
         return log_error('ERROR watch_invoices', [$invoices, $args]);
     }
 
-    $invoices = array_merge($invoices['parent'], $invoices['printed'], $invoices['faxed']);
-
     printf(
         "Total Invoices %d, Parent %d, Printed %d, Faxed %d\n",
         count($invoices),
@@ -44,6 +42,8 @@ function watch_invoices()
         count($invoices['printed']),
         count($invoices['faxed'])
     );
+
+    $invoices = array_merge($invoices['parent'], $invoices['printed'], $invoices['faxed']);
 
     $mysql = new Mysql_Wc();
 

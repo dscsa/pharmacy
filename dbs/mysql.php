@@ -67,7 +67,7 @@ class Mysql {
       $success = $this->run("SELECT * FROM $table")[0];
 
       if ($success) {
-        log_info("$table import was SUCCESSFUL", ['count' => count($vals), 'vals' => array_slice($vals, 0, 100, true), 'keys' => array_slice($keys, 0, 100, true)]);
+        log_info("$table import was SUCCESSFUL", ['count' => count($vals), 'vals' => substr($vals, 0, 100, true), 'keys' => array_slice($keys, 0, 100, true)]);
         return $this->commit();
       }
 

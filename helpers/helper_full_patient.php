@@ -2,6 +2,8 @@
 require_once 'exports/export_cp_rxs.php';
 require_once 'helpers/helper_full_fields.php';
 
+use Sirum\Logging\SirumLog;
+
 function get_full_patient($partial, $mysql, $overwrite_rx_messages = false) {
 
   if ( ! isset($partial['patient_id_cp'])) {

@@ -317,27 +317,27 @@ function create_event($event_title, $comm_arr, $hours_to_wait = 0, $hour_of_day 
     'description' => $comm_arr
   ];
 
-    SirumLog::debug(
-        "Communication Calendar event created",
-        [
-            "message" => $args,
-            "result"  => $result
-        ]
-    );
+  $result = gdoc_post(GD_HELPER_URL, $args);
 
-    $result = gdoc_post(GD_HELPER_URL, $args);
+  SirumLog::debug(
+      "Communication Calendar event created",
+      [
+          "message" => $args,
+          "result"  => $result
+      ]
+  );
 
-    // Debug Refill Reminders getting created with NO TITLE OR DESCRIPTION,
-    // just blank events
-    if ($hour_of_day == 12) {
-        SirumLog::notice(
-            "DEBUG REFILL REMINDER create_event",
-            [
-                "message" => $args,
-                "result"  => $result
-            ]
-        );
-    }
+  // Debug Refill Reminders getting created with NO TITLE OR DESCRIPTION,
+  // just blank events
+  if ($hour_of_day == 12) {
+      SirumLog::notice(
+          "DEBUG REFILL REMINDER create_event",
+          [
+              "message" => $args,
+              "result"  => $result
+          ]
+      );
+  }
 }
 
 function cancel_events($ids) {
