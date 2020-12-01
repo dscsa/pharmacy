@@ -47,7 +47,7 @@ function get_full_patient($partial, $mysql, $overwrite_rx_messages = false) {
     [
       "patient_id_cp" => $patient[0]['patient_id_cp'],
       "patient_id_wc" => $patient[0]['patient_id_wc'],
-      "message"       => $overwrite_rx_messages,
+      "overwrite_rx_messages"       => $overwrite_rx_messages,
       "patient"       => $patient
     ]
   );
@@ -59,7 +59,7 @@ function get_full_patient($partial, $mysql, $overwrite_rx_messages = false) {
     [
       "patient_id_cp" => $patient[0]['patient_id_cp'],
       "patient_id_wc" => $patient[0]['patient_id_wc'],
-      "message"       => $overwrite_rx_messages,
+      "overwrite_rx_messages"       => $overwrite_rx_messages,
       "patient"       => $patient
     ]
   );

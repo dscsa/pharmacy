@@ -40,7 +40,7 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
 
         //If this is full_patient was don't JOIN the order_items/order tables so those fields will not be set here
         $overwrite   = ($overwrite_rx_messages === true
-                            or $overwrite_rx_messages == $patient_or_order[$i]['rx_number']);
+                            or strpos($overwrite_rx_messages, $patient_or_order[$i]['rx_numbers']) !== false);
         $missing_msg = (! $patient_or_order[$i]['rx_message_key']
                             or is_null($patient_or_order[$i]['rx_message_text']));
         $set_days    = (@$patient_or_order[$i]['item_date_added']
