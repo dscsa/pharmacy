@@ -89,7 +89,8 @@ class Mysql {
             $this->run($sql, $debug); //Recursive
           }
 
-          $this->_emailError(['No Resource', $stmt, $message, $sql, $debug]);
+          $this->_emailError(['SQL No Resource Meta', $stmt, $message, $debug]);
+          $this->_emailError(['SQL No Resource Query', $sql]); //Character limit so this might not be logged
 
           return;
         }
@@ -102,7 +103,8 @@ class Mysql {
         return $results;
       }
       catch (Exception $e) {
-        $this->_emailError(['SQL Error', $e->getMessage(), $sql, $debug]);
+        $this->_emailError(['SQL Error Message', $e->getMessage(), $sql, $debug]);
+        $this->_emailError(['SQL Error Query', $sql]); //Character limit so this might not be logged
       }
     }
 
