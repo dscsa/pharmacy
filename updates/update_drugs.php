@@ -66,7 +66,7 @@ function update_drugs() {
 
       $results = $mysql->run($sql)[0];
 
-      log_error("drug gsns changed.  deleting order_item(s) for them to be recreated and matched", [$results, $updated]);
+      log_error("drug gsns changed.  deleting order_item(s) for them to be recreated and matched", [$sql, $results, $updated]);
     }
   }
 
