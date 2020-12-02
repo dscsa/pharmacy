@@ -23,6 +23,20 @@ function update_stock_by_month() {
 
   if ( ! $count_deleted AND ! $count_created AND ! $count_updated) return;
 
+  SirumLog::$subroutine_id = "stock-v2-".sha1(serialize($created));
+
+  //Overrite Rx Messages everytime a new order created otherwis same message would stay for the life of the Rx
+
+  SirumLog::debug(
+    "update_stock_by_month: updating gp_stock_live",
+    [
+        'created' => $created,
+        'source'  => 'v2',
+        'type'    => 'stock',
+        'event'   => 'created, updated, or deleted'
+    ]
+  );
+
   //log_info("update_stock_by_month: $count_deleted deleted, $count_created created, $count_updated updated.", get_defined_vars());
 
   $mysql = new Mysql_Wc();
@@ -171,6 +185,8 @@ function update_stock_by_month() {
   if (isset($duplicate_gsns[0][0])) {
     log_error('Duplicate GSNs in V2', $duplicate_gsns[0]);
   }
+
+  SirumLog::resetSubroutineId();
 
 
   //TODO Calculate Qty Per Day from Sig and save in database

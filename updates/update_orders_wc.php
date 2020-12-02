@@ -47,6 +47,7 @@ function update_orders_wc()
     //2) An order is incorrectly saved in WC even though it should be gone (tech bug)
     foreach ($changes['created'] as $created) {
         SirumLog::$subroutine_id = "orders-wc-created-".sha1(serialize($created));
+
         SirumLog::debug(
             "update_orders_wc: WooCommerce Order Created",
             [

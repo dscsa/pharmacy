@@ -35,16 +35,16 @@ function update_rxs_single() {
 
     //These should have been given an rx_message upon creation.  Why was it missing?
     SirumLog::error(
-        "rx had an empty message, so just set it.  Why was it missing?",
-        [
-          "patient_id_cp" => $patient[0]['patient_id_cp'],
-          "patient_id_wc" => $patient[0]['patient_id_wc'],
-          "rx_single"     => $rx_single,
-          "source"        => "CarePoint",
-          "type"          => "rxs-single",
-          "event"         => "null-message"
-        ]
-      );
+      "rx had an empty message, so just set it.  Why was it missing?",
+      [
+        "patient_id_cp" => $patient[0]['patient_id_cp'],
+        "patient_id_wc" => $patient[0]['patient_id_wc'],
+        "rx_single"     => $rx_single,
+        "source"        => "CarePoint",
+        "type"          => "rxs-single",
+        "event"         => "null-message"
+      ]
+    );
   }
 
   /* Now to do some work */
@@ -66,6 +66,16 @@ function update_rxs_single() {
   foreach($changes['created'] as $created) {
 
     SirumLog::$subroutine_id = "rxs-single-created1-".sha1(serialize($created));
+
+    SirumLog::debug(
+      "update_rxs_single: rx created1",
+      [
+          'created' => $created,
+          'source'  => 'CarePoint',
+          'type'    => 'rxs-single',
+          'event'   => 'created1'
+      ]
+    );
 
     // Get the signature
     $parsed = get_parsed_sig($created['sig_actual'], $created['drug_name']);
@@ -189,6 +199,16 @@ function update_rxs_single() {
 
     SirumLog::$subroutine_id = "rxs-single-created2-".sha1(serialize($created));
 
+    SirumLog::debug(
+      "update_rxs_single: rx created2",
+      [
+          'created' => $created,
+          'source'  => 'CarePoint',
+          'type'    => 'rxs-single',
+          'event'   => 'created2'
+      ]
+    );
+
     // This updates & overwrites set_rx_messages.  TRUE because this one
     // Rx might update many other Rxs for the same drug.
     $patient = get_full_patient($created, $mysql, true);
@@ -211,6 +231,16 @@ function update_rxs_single() {
   foreach($changes['updated'] as $updated) {
 
     SirumLog::$subroutine_id = "rxs-single-updated-".sha1(serialize($updated));
+
+    SirumLog::debug(
+      "update_rxs_single: rx updated",
+      [
+          'updated' => $updated,
+          'source'  => 'CarePoint',
+          'type'    => 'rxs-single',
+          'event'   => 'updated'
+      ]
+    );
 
     $changed = changed_fields($updated);
     $cp_id   = $updated['patient_id_cp'];

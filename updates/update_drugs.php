@@ -35,7 +35,7 @@ function update_drugs() {
     SirumLog::$subroutine_id = "drugs-updated-".sha1(serialize($updated));
 
     SirumLog::debug(
-      "update_drugs: RX Updated",
+      "update_drugs: Drugs Updated",
       [
           'updated' => $updated,
           'source'  => 'v2',
