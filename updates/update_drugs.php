@@ -28,6 +28,7 @@ function update_drugs() {
 
   log_info("update_drugs: $count_deleted deleted, $count_created created, $count_updated updated.", get_defined_vars());
 
+  $mysql = new Mysql_Wc();
 
   foreach($changes['updated'] as $i => $updated) {
 
@@ -49,8 +50,24 @@ function update_drugs() {
     if ( ! $updated['drug_ordered'] && $updated['old_drug_ordered'])
       log_error("drug stopped being ordered", $updated);
 
-    if ($updated['drug_gsns'] != $updated['old_drug_gsns'])
-      log_error("drug gsns changed", $updated);
+    if ($updated['drug_gsns'] != $updated['old_drug_gsns']) {
+
+      //TODO Once we are sure this works, replace it with a DELETE.  We want
+      //Order item(s) to be (re)created now that the GSN numbers will match
+      $sql = "
+        SELECT *
+        FROM `gp_order_items`
+        JOIN gp_rxs_single
+          ON gp_rxs_single.rx_number = gp_order_items.rx_number
+        WHERE
+          rx_dispensed_id IS NULL
+          AND CONCAT(',', rx_gsn, ',') LIKE '%$updated[drug_gsns]%'
+      ";
+
+      $results = $mysql->run($sql)[0];
+
+      log_error("drug gsns changed.  deleting order_item(s) for them to be recreated and matched", [$results, $updated]);
+    }
 
   }
 
