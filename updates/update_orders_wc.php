@@ -60,7 +60,7 @@ function update_orders_wc()
 
         if ($created['order_stage_wc'] == 'trash' or $new_stage[1] == 'awaiting' or $new_stage[1] == 'confirm') {
             log_info("Empty Orders are intentially not imported into Guardian", "$created[invoice_number] $created[order_stage_wc]");
-        } elseif (in_array(
+        } else if (in_array(
             $created['order_stage_wc'],
             [
               'wc-shipped-unpaid',
@@ -77,7 +77,7 @@ function update_orders_wc()
             log_error("Shipped/Paid WC not in Guardian. Delete/Refund?", $created);
 
         //This comes from import_wc_orders so we don't need the "w/ Note" counterpart sources
-        } elseif (in_array($created['order_source'], ["Webform Refill", "Webform Transfer", "Webform eRx"])) {
+        } else if (in_array($created['order_source'], ["Webform Refill", "Webform Transfer", "Webform eRx"])) {
             //TODO Investigate #29187
 
             $gp_orders_pend = $mysql->run("SELECT * FROM gp_orders WHERE patient_id_wc = $created[patient_id_wc] AND (order_stage_wc LIKE '%prepare%' OR order_stage_wc LIKE '%confirm%')");
