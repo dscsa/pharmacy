@@ -11,7 +11,7 @@ function get_days_default($item, $patient_or_order) {
   $is_refill      = is_refill($item, $patient_or_order);
   $refill_only    = is_refill_only($item);
   $stock_level    = @$item['stock_level_initial'] ?: $item['stock_level'];
-  $is_order       = $patient_or_order[0]['invoice_number'];
+  $is_order       = @$patient_or_order[0]['invoice_number'];
 
 
   $days_left_in_expiration = days_left_in_expiration($item);
