@@ -55,8 +55,8 @@ function update_drugs() {
       //TODO Once we are sure this works, replace it with a DELETE.  We want
       //Order item(s) to be (re)created now that the GSN numbers will match
       $sql = "
-        SELECT *
-        FROM `gp_order_items`
+        DELETE gp_order_items
+        FROM gp_order_items
         JOIN gp_rxs_single
           ON gp_rxs_single.rx_number = gp_order_items.rx_number
         WHERE
