@@ -26,24 +26,24 @@ function watch_invoices()
     ];
 
 
-    $invoices = json_decode(gdoc_post(GD_HELPER_URL, $args), true);
+    $response = json_decode(gdoc_post(GD_HELPER_URL, $args), true);
 
-    if (! is_array($invoices)
-            or ! is_array($invoices['parent'])
-            or ! is_array($invoices['printed'])
-            or ! is_array($invoices['faxed'])) {
-        return log_error('ERROR watch_invoices', [$invoices, $args]);
+    if (! is_array($response)
+            or ! is_array($response['parent'])
+            or ! is_array($response['printed'])
+            or ! is_array($response['faxed'])) {
+        return log_error('ERROR watch_invoices', [$response, $args]);
     }
+
+    $invoices = array_merge($response['parent'], $response['printed'], $response['faxed']);
 
     printf(
         "Total Invoices %d, Parent %d, Printed %d, Faxed %d\n",
         count($invoices),
-        count($invoices['parent']),
-        count($invoices['printed']),
-        count($invoices['faxed'])
+        count($response['parent']),
+        count($response['printed']),
+        count($response['faxed'])
     );
-
-    $invoices = array_merge($invoices['parent'], $invoices['printed'], $invoices['faxed']);
 
     $mysql = new Mysql_Wc();
 
