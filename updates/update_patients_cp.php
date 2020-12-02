@@ -39,7 +39,7 @@ function update_patients_cp() {
       //Overrite Rx Messages everytime a new order created otherwis same message would stay for the life of the Rx
 
       SirumLog::debug(
-        "update_patients_cp: Carpoint PATIENT Updated",
+        "update_patients_cp: Carepoint PATIENT Updated",
         [
             'Updated' => $updated,
             'source'  => 'Guardian',

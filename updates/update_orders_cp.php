@@ -100,7 +100,7 @@ function update_orders_cp() {
         //Overrite Rx Messages everytime a new order created otherwis same message would stay for the life of the Rx
 
         SirumLog::debug(
-          "get_full_order: Carpoint Order created",
+          "get_full_order: Carepoint Order created",
           [
               'created' => $created,
               'source'  => 'Guardian',
@@ -385,7 +385,7 @@ function update_orders_cp() {
         SirumLog::$subroutine_id = sha1(serialize($updated));
 
         SirumLog::debug(
-            'Carepoint Order has ben updated',
+            'Carepoint Order has been updated',
             [
               'source'         => 'Guardian',
               'event'          => 'updated',
