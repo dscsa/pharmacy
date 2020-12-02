@@ -46,13 +46,13 @@ function update_orders_wc()
     //1) A user/tech created an order in WC and we need to add it to Guardian
     //2) An order is incorrectly saved in WC even though it should be gone (tech bug)
     foreach ($changes['created'] as $created) {
-        SirumLog::$subroutine_id = sha1(serialize($created));
+        SirumLog::$subroutine_id = "orders-wc-created-".sha1(serialize($created));
         SirumLog::debug(
             "update_orders_wc: WooCommerce Order Created",
             [
                 'source'  => 'WooCommerce',
                 'event'   => 'created',
-                'type'    => 'order',
+                'type'    => 'orders',
                 'created' => $created
             ]
         );
@@ -110,14 +110,14 @@ function update_orders_wc()
     //1) An order is in WC and CP but then is deleted in WC, probably because wp-admin deleted it (look for Update with order_stage_wc == 'trash')
     //2) An order is in CP but not in (never added to) WC, probably because of a tech bug.
     foreach ($changes['deleted'] as $deleted) {
-        SirumLog::$subroutine_id = sha1(serialize($deleted));
+        SirumLog::$subroutine_id = "orders-wc-deleted-".sha1(serialize($deleted));
 
         SirumLog::debug(
             "update_orders_wc: WooCommerce Order Deleted",
             [
               'source'  => 'WooCommerce',
               'event'   => 'deleted',
-              'type'    => 'order',
+              'type'    => 'orders',
               'deleted' => $deleted
             ]
         );
@@ -202,14 +202,14 @@ function update_orders_wc()
     }
 
     foreach ($changes['updated'] as $updated) {
-        SirumLog::$subroutine_id = sha1(serialize($updated));
+        SirumLog::$subroutine_id = "orders-wc-updated-".sha1(serialize($updated));
 
         SirumLog::debug(
             "update_orders_wc: WooCommerce Order Updated",
             [
               'source'  => 'WooCommerce',
               'event'   => 'updated',
-              'type'    => 'order',
+              'type'    => 'orders',
               'updated' => $updated
             ]
         );

@@ -32,14 +32,14 @@ function update_drugs() {
 
   foreach($changes['updated'] as $i => $updated) {
 
-    SirumLog::$subroutine_id = sha1(serialize($updated));
+    SirumLog::$subroutine_id = "drugs-updated-".sha1(serialize($updated));
 
     SirumLog::debug(
       "update_drugs: RX Updated",
       [
           'updated' => $updated,
           'source'  => 'v2',
-          'type'    => 'Rx',
+          'type'    => 'drugs',
           'event'   => 'updated'
       ]
     );
@@ -68,8 +68,9 @@ function update_drugs() {
 
       log_error("drug gsns changed.  deleting order_item(s) for them to be recreated and matched", [$results, $updated]);
     }
-
   }
+
+  SirumLog::resetSubroutineId();
 
 
   //TODO Upsert WooCommerce Patient Info

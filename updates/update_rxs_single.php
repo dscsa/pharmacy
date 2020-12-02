@@ -28,7 +28,7 @@ function update_rxs_single() {
 
   foreach($rx_singles[0] as $rx_single) {
 
-    SirumLog::$subroutine_id = sha1(serialize($rx_single));
+    SirumLog::$subroutine_id = "rxs-single-null-message-".sha1(serialize($rx_single));
 
     //This updates & overwrites set_rx_messages
     $patient = get_full_patient($rx_single, $mysql, $rx_single['rx_number']);
@@ -40,7 +40,9 @@ function update_rxs_single() {
           "patient_id_cp" => $patient[0]['patient_id_cp'],
           "patient_id_wc" => $patient[0]['patient_id_wc'],
           "rx_single"     => $rx_single,
-          "method"        => "update_rxs_single"
+          "source"        => "CarePoint",
+          "type"          => "rxs-single",
+          "event"         => "null-message"
         ]
       );
   }
@@ -63,7 +65,7 @@ function update_rxs_single() {
    */
   foreach($changes['created'] as $created) {
 
-    SirumLog::$subroutine_id = sha1(serialize($created));
+    SirumLog::$subroutine_id = "rxs-single-created1-".sha1(serialize($created));
 
     // Get the signature
     $parsed = get_parsed_sig($created['sig_actual'], $created['drug_name']);
@@ -185,7 +187,7 @@ function update_rxs_single() {
    */
   foreach($changes['created'] as $created) {
 
-    SirumLog::$subroutine_id = sha1(serialize($created));
+    SirumLog::$subroutine_id = "rxs-single-created2-".sha1(serialize($created));
 
     // This updates & overwrites set_rx_messages.  TRUE because this one
     // Rx might update many other Rxs for the same drug.
@@ -208,7 +210,7 @@ function update_rxs_single() {
   //Run this after rx_grouped query to ensure get_full_patient retrieves an accurate order profile
   foreach($changes['updated'] as $updated) {
 
-    SirumLog::$subroutine_id = sha1(serialize($updated));
+    SirumLog::$subroutine_id = "rxs-single-updated-".sha1(serialize($updated));
 
     $changed = changed_fields($updated);
     $cp_id   = $updated['patient_id_cp'];
@@ -247,6 +249,8 @@ function update_rxs_single() {
     }
 
   }
+
+  SirumLog::resetSubroutineId();
 
 
 

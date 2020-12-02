@@ -44,13 +44,14 @@ function update_order_items() {
   //  - update wc order total
   foreach($changes['created'] as $created) {
 
-      SirumLog::$subroutine_id = sha1(serialize($created));
+      SirumLog::$subroutine_id = "order-items-created-".sha1(serialize($created));
 
       SirumLog::debug(
         "update_order_items: Order Item created",
         [
             'created' => $created,
-            'type'    => 'order',
+            'source'  => 'CarePoint',
+            'type'    => 'order-items',
             'event'   => 'created'
         ]
       );
@@ -71,18 +72,18 @@ function update_order_items() {
     }
 
     //TODO Update Salesforce Order Total & Order Count & Order Invoice using REST API or a MYSQL Zapier Integration
-    SirumLog::resetSubroutineId();
   }
 
   foreach($changes['deleted'] as $deleted) {
 
-      SirumLog::$subroutine_id = sha1(serialize($deleted));
+      SirumLog::$subroutine_id = "order-items-deleted-".sha1(serialize($deleted));
 
       SirumLog::debug(
         "update_order_items: Order Item deleted",
         [
             'deleted' => $deleted,
-            'type'    => 'order',
+            'source'  => 'CarePoint',
+            'type'    => 'order-items',
             'event'   => 'deleted'
         ]
       );
@@ -96,7 +97,6 @@ function update_order_items() {
     //Count Items will go down, triggering a CP Order Change
 
     //TODO Update Salesforce Order Total & Order Count & Order Invoice using REST API or a MYSQL Zapier Integration
-    SirumLog::resetSubroutineId();
   }
 
   //If just updated we need to
@@ -104,13 +104,14 @@ function update_order_items() {
   //  - think about what needs to be updated based on changes
   foreach($changes['updated'] as $updated) {
 
-     SirumLog::$subroutine_id = sha1(serialize($updated));
+     SirumLog::$subroutine_id = "order-items-updated-".sha1(serialize($updated));
 
       SirumLog::debug(
         "update_order_items: Order Item updated",
         [
             'updated' => $updated,
-            'type'    => 'order',
+            'source'  => 'CarePoint',
+            'type'    => 'order-items',
             'event'   => 'updated'
         ]
       );
@@ -160,7 +161,7 @@ function update_order_items() {
     log_info("update_order_items", get_defined_vars());
 
     //TODO Update Salesforce Order Total & Order Count & Order Invoice using REST API or a MYSQL Zapier Integration
-
-    SirumLog::resetSubroutineId();
   }
+
+  SirumLog::resetSubroutineId();
 }

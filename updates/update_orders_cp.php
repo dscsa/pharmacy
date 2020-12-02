@@ -95,7 +95,7 @@ function update_orders_cp() {
   //  - Update wc order count/total
     foreach($changes['created'] as $created) {
 
-        SirumLog::$subroutine_id = sha1(serialize($created));
+        SirumLog::$subroutine_id = "orders-cp-created-".sha1(serialize($created));
 
         //Overrite Rx Messages everytime a new order created otherwis same message would stay for the life of the Rx
 
@@ -103,8 +103,8 @@ function update_orders_cp() {
           "get_full_order: Carepoint Order created",
           [
               'created' => $created,
-              'source'  => 'Guardian',
-              'type'    => 'order',
+              'source'  => 'CarePoint',
+              'type'    => 'orders',
               'event'   => 'created'
           ]
         );
@@ -289,7 +289,6 @@ function update_orders_cp() {
         } else {
           send_created_order_communications($groups);
         }
-
         //TODO Update Salesforce Order Total & Order Count & Order Invoice using REST API or a MYSQL Zapier Integration
     } // END created loop
 
@@ -302,14 +301,14 @@ function update_orders_cp() {
          *  - update wc order total
          */
     foreach ($changes['deleted'] as $deleted) {
-        SirumLog::$subroutine_id = sha1(serialize($deleted));
+        SirumLog::$subroutine_id = "orders-cp-deleted-".sha1(serialize($deleted));
 
         SirumLog::debug(
             'Carepoint Order has been deleted',
             [
-              'source'         => 'Guardian',
+              'source'         => 'CarePoint',
               'event'          => 'deleted',
-              'type'           => 'order',
+              'type'           => 'orders',
               'invoice_number' => $deleted['invoice_number'],
               'deleted'        => $deleted
             ]
@@ -375,22 +374,21 @@ function update_orders_cp() {
 
         order_canceled_notice($deleted, $patient); //We passed in $deleted because there is not $order to make $groups
 
-
     }
 
   //If just updated we need to
   //  - see which fields changed
   //  - think about what needs to be updated based on changes
     foreach ($changes['updated'] as $i => $updated) {
-        SirumLog::$subroutine_id = sha1(serialize($updated));
+        SirumLog::$subroutine_id = "orders-cp-updated-".sha1(serialize($updated));
 
         SirumLog::debug(
             'Carepoint Order has been updated',
             [
-              'source'         => 'Guardian',
+              'source'         => 'CarePoint',
               'event'          => 'updated',
               'invoice_number' => $updated['invoice_number'],
-              'type'           => 'order',
+              'type'           => 'orders',
               'updated'        => $updated
             ]
         );
@@ -494,15 +492,13 @@ function update_orders_cp() {
             continue;
         }
 
-          //Address Changes
-          //Stage Change
-          //Order_Source Change (now that we overwrite when saving webform)
-          log_notice("update_orders_cp updated: no action taken $updated[invoice_number]", [$order, $updated, $changed_fields]);
+        //Address Changes
+        //Stage Change
+        //Order_Source Change (now that we overwrite when saving webform)
+        log_notice("update_orders_cp updated: no action taken $updated[invoice_number]", [$order, $updated, $changed_fields]);
 
-          //TODO Update Salesforce Order Total & Order Count & Order Invoice using REST API or a MYSQL Zapier Integration
-
+        //TODO Update Salesforce Order Total & Order Count & Order Invoice using REST API or a MYSQL Zapier Integration
     }
-
-    SirumLog::resetSubroutineId();
   //TODO Upsert Salseforce Order Status, Order Tracking
+  SirumLog::resetSubroutineId();
 }

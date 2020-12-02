@@ -34,7 +34,7 @@ function update_patients_cp() {
 
   foreach($changes['updated'] as $i => $updated) {
 
-      SirumLog::$subroutine_id = sha1(serialize($updated));
+      SirumLog::$subroutine_id = "patients-cp-updated-".sha1(serialize($updated));
 
       //Overrite Rx Messages everytime a new order created otherwis same message would stay for the life of the Rx
 
@@ -42,8 +42,8 @@ function update_patients_cp() {
         "update_patients_cp: Carepoint PATIENT Updated",
         [
             'Updated' => $updated,
-            'source'  => 'Guardian',
-            'type'    => 'patient',
+            'source'  => 'CarePoint',
+            'type'    => 'patients',
             'event'   => 'updated'
         ]
       );
@@ -92,10 +92,9 @@ function update_patients_cp() {
       //Probably by generalizing the code the currently removes drugs from the refill reminders.
       //TODO Autopay Reminders (Remove Card, Card Expired, Card Changed, Order Paid Manually)
     }
-
-    SirumLog::resetSubroutineId();
-
   }
+
+  SirumLog::resetSubroutineId();
   //TODO Upsert WooCommerce Patient Info
 
   //TODO Upsert Salseforce Patient Info
