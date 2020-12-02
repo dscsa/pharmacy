@@ -2,6 +2,8 @@
 require_once 'changes/changes_to_stock_by_month.php';
 require_once 'dbs/mysql_wc.php';
 
+use Sirum\Logging\SirumLog;
+
 /**
  * Use a transaction to update the the current stock levels.  This DELETES all
  * records from the table then repopulates everything with a query.  Finally
@@ -23,14 +25,14 @@ function update_stock_by_month() {
 
   if ( ! $count_deleted AND ! $count_created AND ! $count_updated) return;
 
-  SirumLog::$subroutine_id = "stock-v2-".sha1(serialize($created));
+  SirumLog::$subroutine_id = "stock-v2-".sha1(serialize($changes));
 
   //Overrite Rx Messages everytime a new order created otherwis same message would stay for the life of the Rx
 
   SirumLog::debug(
     "update_stock_by_month: updating gp_stock_live",
     [
-        'created' => $created,
+        'changes' => $changes,
         'source'  => 'v2',
         'type'    => 'stock',
         'event'   => 'created, updated, or deleted'
