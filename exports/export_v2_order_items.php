@@ -241,7 +241,11 @@ function get_v2_inventory($item, $limit) {
   $min_days = $item['days_dispensed_default'];
   $stock    = $item['stock_level_initial'];
 
-  $min_exp   = explode('-', date('Y-m', strtotime("+".($min_days-2*7)." days"))); //Used to use +14 days rather than -14 days as a buffer for dispensing and shipping. But since lots of prepacks expiring I am going to let almost expired things be prepacked
+  //Used to use +14 days rather than -14 days as a buffer for dispensing and shipping.
+  //But since lots of prepacks expiring I am going to let almost expired things be prepacked.
+  //Update on 2020-12-03, -14 days is causing issues when we are behind on filling (on 12/1/2020 a 90 day Rx was pended for exp 01/2021)
+  $days_adjustment = 0; //-14 //+14
+  $min_exp   = explode('-', date('Y-m', strtotime("+".($min_days+$days_adjustment)." days")));
 
   $start_key = rawurlencode('["8889875187","month","'.$min_exp[0].'","'.$min_exp[1].'","'.$generic.'"]');
   $end_key   = rawurlencode('["8889875187","month","'.$min_exp[0].'","'.$min_exp[1].'","'.$generic.'",{}]');

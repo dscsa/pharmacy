@@ -20,6 +20,11 @@ function export_gd_transfer_fax($item, $source)
         return log_error("WebForm export_gd_transfer_fax NOT SENT, ALREADY TRANSFERRED $item[invoice_number] $item[drug_name] $source", get_defined_vars());
     }
 
+    if ( ! $item['pharmacy_name']) {
+        //If we don't have Pharmacy Fax, still send it and Rph can look it up. But if no pharmacy_name than an unregistered user so we don't know where to send it
+        return log_notice("WebForm export_gd_transfer_fax NOT SENT, NOT REGISTERED $item[invoice_number] $item[drug_name] $source", get_defined_vars());
+    }
+
     $to = '8882987726'; //$item['pharmacy_fax'] ?: '8882987726';
 
 
