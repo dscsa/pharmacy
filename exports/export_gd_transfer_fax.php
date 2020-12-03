@@ -71,7 +71,7 @@ function export_gd_transfer_fax($item, $source)
             "Duplicate Transfer Fax Sent",
             [
                 'invoice_number' => @$item['invoice_number'],
-                'drug_number'    => $item[drug_name],
+                'drug_number'    => $item['drug_name'],
                 'source'         => $source,
                 'rx_transfer'    => $item['rx_transfer'],
                 'rx_message_key' => $item['rx_message_key'],
