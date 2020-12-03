@@ -435,14 +435,23 @@ function is_added_manually($item) {
 function is_not_offered($item) {
   $stock_level = @$item['stock_level_initial'] ?: $item['stock_level'];
 
-  $not_offered = (is_null($stock_level) OR ($stock_level == STOCK_LEVEL['NOT OFFERED']) OR ($stock_level == STOCK_LEVEL['ORDER DRUG']));
+  if (is_null($stock_level)) {
+    log_notice('is_not_offered: stock level null', [$item, $stock_level]);
+    return true;
+  }
 
-  if ($not_offered) //TODO Alert here is drug is not offered but has a last_inventory > 500
-    log_notice('is_not_offered: true', [$item, $not_offered, "$stock_level == ".STOCK_LEVEL['NOT OFFERED']]);
-  //else
-  //  log_notice('is_not_offered: false', [get_defined_vars(), "$stock_level == ".STOCK_LEVEL['NOT OFFERED']]);
+  if ($stock_level == STOCK_LEVEL['NOT OFFERED']) {
+    log_notice('is_not_offered: stock level not offered', [$item, $stock_level]);
+    return true;
+  }
 
-  return $not_offered;
+  if ($stock_level == STOCK_LEVEL['ORDER DRUG']) {
+    log_notice('is_not_offered: stock level order drug', [$item, $stock_level]);
+    return true;
+  }
+
+  log_notice('is_not_offered: false', [$item, $stock_level]);
+  return false;
 }
 
 //rxs_grouped includes drug name AND sig_qty_per_day_default.  If someone starts on Lipitor 20mg 1 time per day
