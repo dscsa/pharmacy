@@ -484,7 +484,7 @@ function sync_to_order_new_rx($item, $patient_or_order) {
   $refill_only  = is_refill_only($item);
   $is_refill    = is_refill($item, $patient_or_order);
   $has_refills  = ($item['refills_total'] > NO_REFILL);
-  $eligible     = (! @$item['item_date_added'] AND $has_refills AND ! $is_refill AND $item['rx_autofill'] AND ! $not_offered AND ! $refill_only);
+  $eligible     = (! @$item['item_date_added'] AND $has_refills AND ! $is_refill AND $item['rx_autofill'] AND ! $not_offered AND ! $refill_only AND ! $item['refill_date_manual']);
 
   $vars = get_defined_vars();
 
