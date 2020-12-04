@@ -69,6 +69,14 @@ if (! flock($f, LOCK_EX | LOCK_NB)) {
     exit;
 }
 
+//This is used to invalidate cache for patient portal BUT since this cron job can take several minutes to run
+//where we create the timestamp (before import, after imports, after updates) can make a difference and potentially
+//cause data inconsistency between guardian, gp_tables, and the patient portal.  For example if the patient portal
+//makes a change to guardian while cronjob is running - the pharmacy app import will have already happened
+//this means the gp_tables will get old data AND the cache will be invlidated if the timestamp is not created until the end of the script
+//For this reason AK on 2020-12-04 thinks the timestamp should be at beginning of script
+file_put_contents('/goodpill/webform/pharmacy-run.txt', mktime());
+
 try {
     $start = microtime(true);
     $execution_details['timers'] = [];
@@ -235,5 +243,4 @@ try {
 
 // Push any lagging logs to google Cloud
 SirumLog::flush();
-file_put_contents('/goodpill/webform/pharmacy-run.txt', mktime());
 echo "Pharmacy Automation Success in {$execution_details['timers']['total']} milliseconds.\n";
