@@ -116,11 +116,12 @@ function update_rxs_single() {
    * This work is to create the perscription groups.
    *
    * This is an expensive (6-8 seconds) group query.
-   * TODO We should update rxs in this table individually on changes
+   * TODO We should update rxs in this table individually on changes (AK OR USE THE SAME CHANGE MECHANISM ON THE OTHER TABLES TO DETECT/UPDATE CHANGES)
    * TODO OR We should add indexed drug info fields to the gp_rxs_single above on
    *      created/updated so we don't need the join
    */
 
+  //This Group By Clause must be kept consistent with the grouping with the export_cp_set_rx_message query
   $sql = "
     INSERT INTO gp_rxs_grouped
     SELECT

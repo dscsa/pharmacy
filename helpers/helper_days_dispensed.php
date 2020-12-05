@@ -150,7 +150,7 @@ function get_days_default($item, $patient_or_order) {
     return [0, RX_MESSAGE['NO ACTION NOT DUE']];
   }
 
-  if ((strtotime($item['refill_date_default']) - strtotime($item['refill_date_manual'])) > DAYS_EARLY*24*60*60 AND $item['refill_date_manual'] AND ! $added_manually) {
+  if ($item['refill_date_manual'] AND (strtotime($item['refill_date_default']) - strtotime($item['refill_date_manual'])) > DAYS_EARLY*24*60*60 AND ! $added_manually) {
 
     $created = "Created:".date('Y-m-d H:i:s');
 

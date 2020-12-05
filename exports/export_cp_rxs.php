@@ -42,10 +42,31 @@ function export_cp_set_rx_message($item, $message, $mysql) {
       rx_number IN ('$rx_numbers')
   ";
 
-  //log_notice('export_cp_set_rx_message', [$sql1, $sql2]);
+  //This Group By Clause must be kept consistent with the grouping with the update_rxs_single.php query
+  $sql3 = "
+    UPDATE
+      gp_rxs_grouped
+    SET
+      rx_message_keys = (
+        SELECT
+          GROUP_CONCAT(DISTINCT rx_message_key) as rx_message_keys
+        FROM gp_rxs_single
+        WHERE
+          rx_number IN ('$rx_numbers')
+        GROUP BY
+          patient_id_cp,
+          COALESCE(drug_generic, drug_name),
+          COALESCE(sig_qty_per_day_actual, sig_qty_per_day_default)
+      )
+    WHERE
+      rx_numbers = '$rx_numbers'
+  ";
+
+  log_notice('export_cp_set_rx_message', [$sql1, $sql2, $sql3]);
 
   $mssql->run($sql1);
   $mysql->run($sql2);
+  $mysql->run($sql3);
 
   return $item;
 }
