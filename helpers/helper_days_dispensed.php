@@ -11,7 +11,7 @@ function get_days_default($item, $patient_or_order) {
   $is_refill      = is_refill($item, $patient_or_order);
   $refill_only    = is_refill_only($item);
   $stock_level    = @$item['stock_level_initial'] ?: $item['stock_level'];
-  $is_order       = @$patient_or_order[0]['invoice_number'];
+  $is_order       = @$patient_or_order[0]['order_date_added']; //invoice_number seems like it may be present even if not an order
 
 
   $days_left_in_expiration = days_left_in_expiration($item);
@@ -629,11 +629,13 @@ function days_default($days_left_in_refills, $days_left_in_stock, $days_default,
   $remainder = $days % DAYS_UNIT;
 
   if ($remainder == 5)
-    log_notice("DEFAULT DAYS IS NOT A MULTIPLE OF ".DAYS_UNIT."! LIKELY BECAUSE RX EXPIRING days:$days, days_left_in_stock:$days_left_in_stock, days_left_in_refills:$days_left_in_refills", get_defined_vars());
+    log_notice("DEFAULT DAYS IS NOT A MULTIPLE OF ".DAYS_UNIT."! LIKELY BECAUSE RX EXPIRING days:$days, days_default:$days_default, days_left_in_stock:$days_left_in_stock, days_left_in_refills:$days_left_in_refills", ['item' => $item]);
   else if ($remainder)
-    log_error("DEFAULT DAYS IS NOT A MULTIPLE OF ".DAYS_UNIT."! days:$days, days_left_in_stock:$days_left_in_stock, days_left_in_refills:$days_left_in_refills", get_defined_vars());
+    log_error("DEFAULT DAYS IS NOT A MULTIPLE OF ".DAYS_UNIT."! days:$days, days_default:$days_default, days_left_in_stock:$days_left_in_stock, days_left_in_refills:$days_left_in_refills", ['item' => $item]);
+  else if ( ! $days)
+    log_error("DEFAULT DAYS IS 0! days:$days, days_default:$days_default, days_left_in_stock:$days_left_in_stock, days_left_in_refills:$days_left_in_refills", ['item' => $item]);
   else
-    log_info("days:$days, days_left_in_stock:$days_left_in_stock, days_left_in_refills:$days_left_in_refills", get_defined_vars());
+    log_info("days:$days, days_left_in_stock:$days_left_in_stock, days_left_in_refills:$days_left_in_refills", ['item' => $item]);
 
   return $days;
 }
