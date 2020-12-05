@@ -56,7 +56,7 @@ function update_order_items() {
         ]
       );
 
-    $item = get_full_item($created, $mysql);
+    $item = get_full_item($created, $mysql, true);
 
     if ( ! $item) {
       log_error("Created Item Missing", $created);
@@ -88,7 +88,7 @@ function update_order_items() {
         ]
       );
 
-    $item = get_full_item($deleted, $mysql);
+    $item = get_full_item($deleted, $mysql, true);
 
     unpend_pick_list($item);
 
@@ -116,7 +116,7 @@ function update_order_items() {
         ]
       );
 
-    $item = get_full_item($updated, $mysql);
+    $item = get_full_item($updated, $mysql, true);
 
     if ( ! $item) {
       log_error("Updated Item Missing", get_defined_vars());
