@@ -165,8 +165,6 @@ function update_orders_cp() {
         //Patient communication that we are cancelling their order examples include:
         //NEEDS FORM, TRANSFER OUT OF ALL ITEMS, ACTION PATIENT OFF AUTOFILL
         if ($synced['new_count_items'] <= 0) {
-            $groups = group_drugs($order, $mysql);
-            order_hold_notice($groups);
 
             SirumLog::debug(
                 'update_orders_cp sync_to_order is effectively removing order',
@@ -176,6 +174,10 @@ function update_orders_cp() {
                   'synced'         => $synced
                 ]
             );
+
+            $groups = group_drugs($order, $mysql);
+            order_hold_notice($groups);
+
         }
 
         if ($synced['items_to_sync']) {

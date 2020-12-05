@@ -138,10 +138,10 @@ function get_days_default($item, $patient_or_order) {
     return [$days_default, RX_MESSAGE['NO ACTION PATIENT REQUESTED']];
   }
 
-  if ((strtotime($item['refill_date_next']) - strtotime(@$item['order_date_added'])) > DAYS_EARLY*24*60*60 AND ! $added_manually) {
+  if ($is_order AND (strtotime($item['refill_date_next']) - strtotime($item['order_date_added'])) > DAYS_EARLY*24*60*60 AND ! $added_manually) {
 
     //DON'T STRICTLY NEED THIS TEST BUT IT GIVES A MORE SPECIFIC ERROR SO IT MIGHT BE HELPFUL
-    if ((strtotime(@$item['order_date_added']) - strtotime($item['refill_date_last'])) < DAYS_EARLY*24*60*60 AND ! $added_manually) {
+    if ((strtotime($item['order_date_added']) - strtotime($item['refill_date_last'])) < DAYS_EARLY*24*60*60 AND ! $added_manually) {
       log_info("DON'T REFILL IF FILLED WITHIN LAST ".DAYS_EARLY." DAYS UNLESS ADDED MANUALLY", get_defined_vars());
       return [0, RX_MESSAGE['NO ACTION RECENT FILL']];
     }
@@ -180,12 +180,10 @@ function get_days_default($item, $patient_or_order) {
     return [0, RX_MESSAGE['ACTION RX OFF AUTOFILL']];
   }
 
-
-
   if ( ! $item['rx_autofill'] AND @$item['item_date_added']) {
 
     //39652 don't refill surescripts early if rx is off autofill.  This means refill_date_next is null but refill_date_default may have a value
-    if ((strtotime($item['refill_date_default']) - strtotime(@$item['order_date_added'])) > DAYS_EARLY*24*60*60 AND ! $added_manually) {
+    if ((strtotime($item['refill_date_default']) - strtotime($item['order_date_added'])) > DAYS_EARLY*24*60*60 AND ! $added_manually) {
       return [0, RX_MESSAGE['ACTION RX OFF AUTOFILL']];
     }
 
@@ -436,21 +434,21 @@ function is_not_offered($item) {
   $stock_level = @$item['stock_level_initial'] ?: $item['stock_level'];
 
   if (is_null($stock_level)) {
-    log_notice('is_not_offered: stock level null', [$item, $stock_level]);
+    log_notice('is_not_offered: stock level null', ['item' => $item, 'stock_level' => $stock_level]);
     return true;
   }
 
   if ($stock_level == STOCK_LEVEL['NOT OFFERED']) {
-    log_notice('is_not_offered: stock level not offered', [$item, $stock_level]);
+    log_notice('is_not_offered: stock level not offered', ['item' => $item, 'stock_level' => $stock_level]);
     return true;
   }
 
   if ($stock_level == STOCK_LEVEL['ORDER DRUG']) {
-    log_notice('is_not_offered: stock level order drug', [$item, $stock_level]);
+    log_notice('is_not_offered: stock level order drug', ['item' => $item, 'stock_level' => $stock_level]);
     return true;
   }
 
-  log_notice('is_not_offered: false', [$item, $stock_level]);
+  log_notice('is_not_offered: false', ['item' => $item, 'stock_level' => $stock_level]);
   return false;
 }
 
@@ -513,11 +511,11 @@ function sync_to_order_past_due($item, $patient_or_order) {
   $toSync = ($eligible AND ! is_duplicate_gsn($item, $patient_or_order));
 
   SirumLog::debug(
-      "sync_to_order_past_due: $toSync",
-      [
-          'invoice_number' => $patient_or_order[0]['invoice_number'],
-          'vars' => get_defined_vars()
-      ]
+    "sync_to_order_past_due: $toSync",
+    [
+      'invoice_number' => $patient_or_order[0]['invoice_number'],
+      'vars' => get_defined_vars()
+    ]
   );
 
   return $toSync;

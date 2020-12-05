@@ -152,7 +152,8 @@ function get_order_stage_wc($order) {
       'order_stage_cp' => $order[0]['order_stage_cp'],
       'order_stage_wc' => $order[0]['order_stage_wc'],
       'rx_message_key' => $order[0]['rx_message_key'],
-      'tracking_number' => $order[0]['tracking_number']
+      'tracking_number' => $order[0]['tracking_number'],
+      'order' => $order
     ]);
 
   if ( ! $count_filled AND ! $order[0]['order_source'])

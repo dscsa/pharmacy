@@ -73,7 +73,9 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
                 "rx_message_key"         => $patient_or_order[$i]['rx_message_key'],
                 "rx_message_text"        => $patient_or_order[$i]['rx_message_text'],
                 "item_date_added"        => @$patient_or_order[$i]['item_date_added'], //Applicable for order but not for patient
-                "days_dispensed_default" => @$patient_or_order[$i]['days_dispensed_default'] //Applicable for order but not for patient
+                "order_date_added"       => @$patient_or_order[$i]['order_date_added'], //Applicable for order but not for patient
+                "days_dispensed_default" => @$patient_or_order[$i]['days_dispensed_default'], //Applicable for order but not for patient
+                "patient_or_order"       => $patient_or_order[$i]
               ]
             );
 

@@ -148,9 +148,18 @@ function update_orders_wc()
                 }
             }
 
+            SirumLog::notice(
+              "update_orders_wc deleted: export_cp_remove_items",
+              [
+                'invoice_number' => $order[0]['invoice_number'],
+                'reason' => 'update_orders_wc: RXs created an order in CP but patient has not yet registered so there is no order in WC yet',
+                'items_to_remove' => $items_to_remove,
+                'order' => $order
+              ]
+            );
+
             export_cp_remove_items($order[0]['invoice_number'], $items_to_remove);
 
-            log_notice("update_orders_wc: RXs created an order in CP but patient has not yet registered so there is no order in WC yet", [$order, $items_to_remove]);
         } elseif ($deleted['order_stage_cp'] == 'Shipped' or $deleted['order_stage_cp'] == 'Dispensed') {
             $gp_orders_wc = $mysql->run("SELECT * FROM gp_orders_wc WHERE invoice_number = $deleted[invoice_number]")[0];
             $gp_orders = $mysql->run("SELECT * FROM gp_orders WHERE invoice_number = $deleted[invoice_number]")[0];
