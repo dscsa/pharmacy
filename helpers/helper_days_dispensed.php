@@ -201,25 +201,25 @@ function get_days_default($item, $patient_or_order) {
     return [$days_default, RX_MESSAGE['NO ACTION NEW GSN']];
   }
 
-  if ( ! $added_manually AND sync_to_order_new_rx($item, $patient_or_order)) {
+  if ($is_order AND ! $added_manually AND sync_to_order_new_rx($item, $patient_or_order)) {
     log_info('NO ACTION NEW RX SYNCED TO ORDER', get_defined_vars());
     return [$days_default, RX_MESSAGE['NO ACTION NEW RX SYNCED TO ORDER']];
   }
 
   //TODO and check if added by this program otherwise false positives
-  if ( ! $added_manually AND sync_to_order_past_due($item, $patient_or_order)) {
+  if ($is_order AND ! $added_manually AND sync_to_order_past_due($item, $patient_or_order)) {
     log_info("WAS PAST DUE SO WAS SYNCED TO ORDER", get_defined_vars());
     return [$days_default, RX_MESSAGE['NO ACTION PAST DUE AND SYNC TO ORDER']];
   }
 
   //TODO CHECK IF THIS IS A GUARDIAN ERROR OR WHETHER WE ARE IMPORTING WRONG.  SEEMS THAT IF REFILL_DATE_FIRST IS SET, THEN REFILL_DATE_DEFAULT should be set
-  if ( ! $added_manually AND sync_to_order_no_next($item, $patient_or_order)) {
+  if ($is_order AND ! $added_manually AND sync_to_order_no_next($item, $patient_or_order)) {
     log_info("WAS MISSING REFILL_DATE_NEXT SO WAS SYNCED TO ORDER", get_defined_vars());
     return [$days_default, RX_MESSAGE['NO ACTION NO NEXT AND SYNC TO ORDER']];
   }
 
   //TODO and check if added by this program otherwise false positives
-  if ( ! $added_manually AND sync_to_order_due_soon($item, $patient_or_order)) {
+  if ($is_order AND ! $added_manually AND sync_to_order_due_soon($item, $patient_or_order)) {
     log_info("WAS DUE SOON SO WAS SYNCED TO ORDER", get_defined_vars());
     return [$days_default, RX_MESSAGE['NO ACTION DUE SOON AND SYNC TO ORDER']];
   }
