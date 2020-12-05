@@ -166,7 +166,7 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
             }
         }
 
-        if (! isset($patient_or_order[$i]['invoice_number'])) {
+        if (! isset($patient_or_order[$i]['order_date_added'])) {
             /*
              * The rest of the fields are order specific and will not be
              * available if this is a patient
