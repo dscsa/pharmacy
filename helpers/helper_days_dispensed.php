@@ -427,7 +427,7 @@ function is_no_transfer($item) {
 }
 
 function is_added_manually($item) {
-  return in_array(@$item['item_added_by'], ADDED_MANUALLY);
+  return in_array(@$item['item_added_by'], ADDED_MANUALLY) OR ($item['item_date_added'] AND $item['refill_date_manual']);
 }
 
 function is_not_offered($item) {
