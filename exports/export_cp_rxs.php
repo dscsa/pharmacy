@@ -51,10 +51,10 @@ function export_cp_set_rx_message($item, $message, $mysql) {
         SELECT
           GROUP_CONCAT(DISTINCT rx_message_key) as rx_message_keys
         FROM gp_rxs_single
-        WHERE
-          rx_number IN ('$rx_numbers')
         LEFT JOIN gp_drugs ON
           drug_gsns LIKE CONCAT('%,', rx_gsn, ',%')
+        WHERE
+          rx_number IN ('$rx_numbers')
         GROUP BY
           patient_id_cp,
           COALESCE(drug_generic, drug_name),
