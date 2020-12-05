@@ -187,6 +187,26 @@ function update_rxs_single() {
     ? $mysql->commit()
     : $mysql->rollback();
 
+  //TODO should we put a UNIQUE contstaint on the rxs_grouped table for bestrx_number and rx_numbers, so that it fails hard
+  $duplicate_gsns = $mysql->run("
+    SELECT
+      best_rx_number,
+      GROUP_CONCAT(drug_generic),
+      GROUP_CONCAT(drug_gsns),
+      COUNT(rx_numbers)
+    FROM `gp_rxs_grouped`
+    GROUP BY best_rx_number
+    HAVING COUNT(rx_numbers) > 1
+  ")[0];
+
+  if (isset($duplicate_gsns[0][0])) {
+    SirumLog::alert(
+      "update_rxs_single: duplicate gsns detected",
+      [
+          'duplicate_gsns' => $duplicate_gsns,
+      ]
+    );
+  }
 
   /*
    * Created Loop #2 We are now assigning the rx group to the new patients

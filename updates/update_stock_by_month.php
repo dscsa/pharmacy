@@ -185,7 +185,7 @@ function update_stock_by_month() {
   ");
 
   if (isset($duplicate_gsns[0][0])) {
-    log_error('Duplicate GSNs in V2', $duplicate_gsns[0]);
+    SirumLog::alert('update_stock_by_month: Duplicate GSNs in V2', $duplicate_gsns[0]);
   }
 
   SirumLog::resetSubroutineId();
