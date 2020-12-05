@@ -53,13 +53,15 @@ function export_cp_set_rx_message($item, $message, $mysql) {
         FROM gp_rxs_single
         WHERE
           rx_number IN ('$rx_numbers')
+        LEFT JOIN gp_drugs ON
+          drug_gsns LIKE CONCAT('%,', rx_gsn, ',%')
         GROUP BY
           patient_id_cp,
           COALESCE(drug_generic, drug_name),
           COALESCE(sig_qty_per_day_actual, sig_qty_per_day_default)
       )
     WHERE
-      rx_numbers = '$rx_numbers'
+      best_rx_number IN ('$rx_numbers')
   ";
 
   log_notice('export_cp_set_rx_message', [$sql1, $sql2, $sql3]);
