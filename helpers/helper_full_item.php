@@ -1,5 +1,7 @@
 <?php
 
+use Sirum\Logging\SirumLog;
+
 function get_full_item($item, $mysql, $overwrite_rx_messages = false) {
 
   if ( ! $item['rx_number']) {
@@ -7,29 +9,24 @@ function get_full_item($item, $mysql, $overwrite_rx_messages = false) {
     return [];
   }
 
-  /* ORDER MAY HAVE NOT BEEN ADDED YET
-  JOIN gp_orders ON
-    gp_orders.invoice_number = gp_order_items.invoice_number
-  */
-
   $sql = "
     SELECT *
     FROM
-      gp_order_items
-    JOIN gp_rxs_single ON
-      gp_order_items.rx_number = gp_rxs_single.rx_number
-    JOIN gp_rxs_grouped ON
-      rx_numbers LIKE CONCAT('%,', gp_order_items.rx_number, ',%')
+      gp_rxs_single
     JOIN gp_patients ON
-      gp_rxs_grouped.patient_id_cp = gp_patients.patient_id_cp
+      gp_rxs_single.patient_id_cp = gp_patients.patient_id_cp
+    JOIN gp_rxs_grouped ON
+      rx_numbers LIKE CONCAT('%,', gp_rxs_single.rx_number, ',%')
     LEFT JOIN gp_stock_live ON -- might not have a match if no GSN match
       gp_rxs_grouped.drug_generic = gp_stock_live.drug_generic
+    LEFT JOIN gp_order_items ON
+      gp_order_items.rx_dispensed_id IS NULL AND
+      rx_numbers LIKE CONCAT('%,', gp_order_items.rx_number, ',%')
+    LEFT JOIN gp_orders ON -- ORDER MAY HAVE NOT BEEN ADDED YET
+      gp_orders.invoice_number = gp_order_items.invoice_number
     WHERE
-      gp_order_items.rx_number = $item[rx_number]
+      gp_rxs_single.rx_number = $item[rx_number]
   ";
-
-  if ($item['invoice_number'])
-    $sql .= "AND gp_order_items.invoice_number = $item[invoice_number]";
 
   $query = $mysql->run($sql);
 
@@ -39,7 +36,7 @@ function get_full_item($item, $mysql, $overwrite_rx_messages = false) {
     if ( ! $full_item['drug_generic']) {
       log_error(($full_item['rx_gsn'] ? 'get_full_item: Add GSN to V2!' : 'get_full_item: Missing GSN!')." Invoice Number:$full_item[invoice_number] Drug:$full_item[drug_name] Rx:$full_item[rx_number] GSN:$full_item[rx_gsn] GSNS:$full_item[drug_gsns]", ['full_item' => $full_item, 'item' => $item]);
     }
-    
+
     $item = add_full_fields([$full_item], $mysql, $overwrite_rx_messages)[0];
 
     return $full_item;
@@ -60,7 +57,7 @@ function get_full_item($item, $mysql, $overwrite_rx_messages = false) {
     LEFT JOIN gp_rxs_single ON
       gp_order_items.rx_number = gp_rxs_single.rx_number
     LEFT JOIN gp_patients ON
-      gp_rxs_grouped.patient_id_cp = gp_patients.patient_id_cp
+      gp_rxs_single.patient_id_cp = gp_patients.patient_id_cp
     LEFT JOIN gp_stock_live ON -- might not have a match if no GSN match
       gp_rxs_grouped.drug_generic = gp_stock_live.drug_generic
     WHERE
@@ -141,7 +138,14 @@ function get_full_item($item, $mysql, $overwrite_rx_messages = false) {
       WHERE cprx.script_no = '$item[rx_number]'
   ");
 
-  log_error("MISSING ORDER ITEM! MOST LIKELY WILL NOT BE PENDED IN V2", get_defined_vars());
-
+  SirumLog::alert(
+    "CANNOT GET FULL_ITEM! MOST LIKELY WILL NOT BE PENDED IN V2",
+    [
+      'overwrite_rx_messages' => $overwrite_rx_messages,
+      'item' => $item,
+      'missing_table' => $missing_table,
+      'rx_in_cp' => $rx_in_cp
+    ]
+  );
   //log_info("Get Full Item", get_defined_vars());
 }
