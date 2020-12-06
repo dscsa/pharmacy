@@ -2,6 +2,7 @@
 require_once 'changes/changes_to_rxs_single.php';
 require_once 'helpers/helper_parse_sig.php';
 require_once 'helpers/helper_imports.php';
+require_once 'exports/export_cp_rxs.php';
 require_once 'dbs/mysql_wc.php';
 
 use Sirum\Logging\SirumLog;
@@ -264,29 +265,33 @@ function update_rxs_single() {
     );
 
     $changed = changed_fields($updated);
-    $cp_id   = $updated['patient_id_cp'];
-    $patient = get_full_patient($updated, $mysql, $updated['rx_number']);
 
     if ($updated['rx_autofill'] != $updated['old_rx_autofill']) {
-      $sql     = ""; //Reset for logging
 
-      //We want all Rxs with the same GSN to share the same rx_autofill value, so when one changes we must change them all
-      //SQL to DETECT inconsistencies:
-      //SELECT patient_id_cp, rx_gsn, MAX(drug_name), MAX(CONCAT(rx_number, rx_autofill)), GROUP_CONCAT(rx_autofill), GROUP_CONCAT(rx_number) FROM gp_rxs_single GROUP BY patient_id_cp, rx_gsn HAVING AVG(rx_autofill) > 0 AND AVG(rx_autofill) < 1
-      foreach ($patient as $item) {
-        if (strpos($item['rx_numbers'], ",$updated[rx_number],") !== false) {
-          $in  = str_replace(',', "','", substr($item['drug_gsns'], 1, -1)); //use drugs_gsns instead of rx_gsn just in case there are multiple gsns for this drug
-          $sql = "UPDATE cprx SET autofill_yn = $updated[rx_autofill], chg_date = GETDATE() WHERE pat_id = $cp_id AND gcn_seqno IN ('$in')";
-          $mssql->run($sql);
-        }
-      }
+      $item = get_full_item($updated, $mysql, true);
 
-      log_notice("update_rxs_single rx_autofill changed.  Updating all Rx's with same GSN to be on/off Autofill. Confirm correct updated rx_messages", ['patient' => $patient, 'updated' => $updated, 'sql' => $sql, 'changed' => $changed]);
+      export_cp_rx_autofill($item);
+
+      $status  = $updated['rx_autofill'] ? 'ON' : 'OFF';
+      $created = "Created:".date('Y-m-d H:i:s');
+
+      $salesforce = [
+        "subject"   => "Autofill turned $status for $item[drug_name]",
+        "body"      => "$item[drug_name] autofill turned $status for $item['rx_numbers']$created",
+        "contact"   => "$item[first_name] $item[last_name] $item[birth_date]",
+        "due_date"  => date('Y-m-d')
+      ];
+
+      $event_title = @$item['drug_name']." Autofill $status $salesforce[contact] $created";
+
+      create_event($event_title, [$salesforce]);
+
+      log_notice("update_rxs_single rx_autofill changed.  Updating all Rx's with same GSN to be on/off Autofill. Confirm correct updated rx_messages", ['updated' => $updated, 'changed' => $changed, 'item' => $item]);
     }
 
     if ($updated['rx_gsn'] AND ! $updated['old_rx_gsn']) {
 
-      $item = get_full_item($updated, $mysql); //TODO enable this to update and overwite rx_messages so we can avoid call above
+      $item = get_full_item($updated, $mysql, true);
 
       v2_pend_item($item, $mysql);
 
