@@ -78,7 +78,7 @@ if (! flock($f, LOCK_EX | LOCK_NB)) {
 file_put_contents('/goodpill/webform/pharmacy-run.txt', mktime());
 
 try {
-    $start = microtime(true);
+
     $execution_details['timers'] = [];
     /**
      * Import Orders from WooCommerce (an actual shippment) and store it in
@@ -89,8 +89,12 @@ try {
      * TODO we can currently have a CP order without a matching WC order,
      *      in these cases the WC order will show up in the "deleted" feed
      */
+    echo "Import WC Orders ";
+    $start = microtime(true);
     import_wc_orders();
     $execution_details['timers']['import_wc_orders'] = ceil(microtime(true) - $start);
+    echo "completed in ".$execution_details['timers']['import_wc_orders']."\n";
+
 
     /**
      * Pull a list of the CarePoint Orders (an actual shipment) and store it in mysql
@@ -100,8 +104,11 @@ try {
      * NOTE Put this after wc_orders so that we never have an wc_order
      *      without a matching cp_order
      */
+    echo "Import CP Orders ";
+    $start = microtime(true);
     import_cp_orders(); //
     $execution_details['timers']['import_cp_orders'] = ceil(microtime(true) - $start);
+    echo "completed in ".$execution_details['timers']['import_cp_orders']."\n";
 
     /**
      * Pull all the ordered items(perscribed medication) from CarePoint
@@ -112,8 +119,11 @@ try {
      * NOTE Put this after orders so that we never have an order without a
      *      matching order_item
      */
+    echo "Import CP Order Items ";
+    $start = microtime(true);
     import_cp_order_items(); //
     $execution_details['timers']['import_cp_order_items'] = ceil(microtime(true) - $start);
+    echo "completed in ".$execution_details['timers']['import_cp_order_items']."\n";
 
     /**
      *
@@ -123,8 +133,11 @@ try {
      *
      * NOTE Put this after orders so that we never have an order without a matching patient
      */
+    echo "Import CP Patients ";
+    $start = microtime(true);
     import_cp_patients();
     $execution_details['timers']['import_cp_patients'] = ceil(microtime(true) - $start);
+    echo "completed in ".$execution_details['timers']['import_cp_patients']."\n";
 
     /**
      * Pull all the patiens/users out of woocommerce and put them into the mysql tables
@@ -138,8 +151,11 @@ try {
      * NOTE Put this after cp_patients so that we always import all new cp_patients
      *      first, so that out wc_patient created feed does not give false positives
      */
+    echo "Import WC Patients ";
+    $start = microtime(true);
     import_wc_patients();
     $execution_details['timers']['import_wc_patients'] = ceil(microtime(true) - $start);
+    echo "completed in ".$execution_details['timers']['import_wc_patients']."\n";
 
     /**
      * Get the RX details out of CarePoint and put into the mysql table
@@ -149,8 +165,11 @@ try {
      * NOTE Put this after order_items so that we never have an order item without
      *  a matching rx
      */
+    echo "Import Rxs Single ";
+    $start = microtime(true);
     import_cp_rxs_single();
     $execution_details['timers']['import_cp_rxs_single'] = ceil(microtime(true) - $start);
+    echo "completed in ".$execution_details['timers']['import_cp_rxs_single']."\n";
 
     /**
      * Import stock levels for this month and the 2 previous months.  Store this in
@@ -159,8 +178,11 @@ try {
      *
      * NOTE Put this after rxs so that we never have a rxs without a matching stock level
      */
+    echo "Import v2 Stock by Month ";
+    $start = microtime(true);
     import_v2_stock_by_month();
     $execution_details['timers']['import_v2_stock_by_month'] = ceil(microtime(true) - $start);
+    echo "completed in ".$execution_details['timers']['import_v2_stock_by_month']."\n";
 
     /**
      * Get all the possible drugs from v2 and put them into
@@ -169,8 +191,11 @@ try {
      *
      * NOTE Put this after rxs so that we never have a rxs without a matching drug
      */
+    echo "Import v2 Drugs ";
+    $start = microtime(true);
     import_v2_drugs();
     $execution_details['timers']['import_v2_drugs'] = ceil(microtime(true) - $start);
+    echo "completed in ".$execution_details['timers']['import_v2_drugs']."\n";
 
     echo "All Data Imported.  Starting Updates.\n";
     /*
@@ -183,9 +208,11 @@ try {
      *
      * NOTE Updates (Mirror Ordering of the above - not sure how necessary this is)
      */
+    echo "Update Drugs ";
+    $start = microtime(true);
     update_drugs();
     $execution_details['timers']['update_drugs'] = ceil(microtime(true) - $start);
-    echo "Update Drugs Complete\n";
+    echo "completed in ".$execution_details['timers']['update_drugs']."\n";
 
     /**
      * Bring in the inventory and put it into the live stock table
@@ -195,40 +222,56 @@ try {
      * TABLE gp_stock_by_month
      *
      */
+    echo "Update Stock by Month ";
+    $start = microtime(true);
     update_stock_by_month();
     $execution_details['timers']['update_stock_by_month'] = ceil(microtime(true) - $start);
-    echo "Update Stock By Month Complete\n";
+    echo "completed in ".$execution_details['timers']['update_stock_by_month']."\n";
     /**
      * [update_rxs_single description]
      * @var [type]
      */
+    echo "Update Rxs Single ";
+    $start = microtime(true);
     update_rxs_single();
     $execution_details['timers']['update_rxs_single'] = ceil(microtime(true) - $start);
-    echo "Update RXs Complete\n";
+    echo "completed in ".$execution_details['timers']['update_rxs_single']."\n";
 
+    echo "Update CP Patients ";
+    $start = microtime(true);
     update_patients_cp();
     $execution_details['timers']['update_patients_cp'] = ceil(microtime(true) - $start);
-    echo "Update CP Patients Complete\n";
+    echo "completed in ".$execution_details['timers']['update_patients_cp']."\n";
 
+    echo "Update WC Patients ";
+    $start = microtime(true);
     update_patients_wc();
     $execution_details['timers']['update_patients_wc'] = ceil(microtime(true) - $start);
-    echo "Update WC Patients Complete\n";
+    echo "completed in ".$execution_details['timers']['update_patients_wc']."\n";
 
+    echo "Update Order Items ";
+    $start = microtime(true);
     update_order_items();
     $execution_details['timers']['update_order_items'] = ceil(microtime(true) - $start);
-    echo "Update Orders Items Complete\n";
+    echo "completed in ".$execution_details['timers']['update_order_items']."\n";
 
+    echo "Update CP Orders ";
+    $start = microtime(true);
     update_orders_cp();
     $execution_details['timers']['update_orders_cp'] = ceil(microtime(true) - $start);
-    echo "Update CP Orders Complete\n";
+    echo "completed in ".$execution_details['timers']['update_orders_cp']."\n";
 
+    echo "Update WC Orders ";
+    $start = microtime(true);
     update_orders_wc();
     $execution_details['timers']['update_orders_wc'] = ceil(microtime(true) - $start);
-    echo "Update WC Orders Complete\n";
+    echo "completed in ".$execution_details['timers']['update_orders_wc']."\n";
 
+    echo "Watch Invoices ";
+    $start = microtime(true);
     watch_invoices();
     $execution_details['timers']['watch_invoices'] = ceil(microtime(true) - $start);
-    echo "Watch Invoices Complete\n";
+    echo "completed in ".$execution_details['timers']['watch_invoices']."\n";
 
     $execution_details['timers']['total'] = array_sum($execution_details['timers']);
     $execution_details['end']             = date('c');
