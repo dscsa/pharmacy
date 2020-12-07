@@ -104,7 +104,7 @@ function import_cp_rxs_single() {
 
   ");
 
-  log_error("gp_rxs_single_cp import start: ", ['count' => count($rxs[0]), 'vals' => array_slice($rxs[0], 0, 100, true)]);
+  //log_error("gp_rxs_single_cp import start: ", ['count' => count($rxs[0]), 'vals' => array_slice($rxs[0], 0, 100, true)]);
 
   //log_info("
   //import_cp_rxs_single: rows ".count($rxs[0]));
@@ -155,7 +155,7 @@ function import_cp_rxs_single() {
     }
   );
 
-  log_error("gp_rxs_single_cp import: ", ['keys' => array_slice($keys, 0, 100, true), 'count' => count($rxs[0]), 'vals' => array_slice($rxs[0], 0, 100, true)]);
+  //log_error("gp_rxs_single_cp import: ", ['keys' => array_slice($keys, 0, 100, true), 'count' => count($rxs[0]), 'vals' => array_slice($rxs[0], 0, 100, true)]);
 
   $mysql->replace_table("gp_rxs_single_cp", $keys, $rxs[0]);
 }
