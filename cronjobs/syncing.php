@@ -93,7 +93,7 @@ try {
     $start = microtime(true);
     import_wc_orders();
     $execution_details['timers']['import_wc_orders'] = ceil(microtime(true) - $start);
-    echo "completed in ".$execution_details['timers']['import_wc_orders']."\n";
+    echo "completed in ".$execution_details['timers']['import_wc_orders']."seconds\n";
 
 
     /**
@@ -108,7 +108,7 @@ try {
     $start = microtime(true);
     import_cp_orders(); //
     $execution_details['timers']['import_cp_orders'] = ceil(microtime(true) - $start);
-    echo "completed in ".$execution_details['timers']['import_cp_orders']."\n";
+    echo "completed in ".$execution_details['timers']['import_cp_orders']."seconds\n";
 
     /**
      * Pull all the ordered items(perscribed medication) from CarePoint
@@ -123,7 +123,7 @@ try {
     $start = microtime(true);
     import_cp_order_items(); //
     $execution_details['timers']['import_cp_order_items'] = ceil(microtime(true) - $start);
-    echo "completed in ".$execution_details['timers']['import_cp_order_items']."\n";
+    echo "completed in ".$execution_details['timers']['import_cp_order_items']."seconds\n";
 
     /**
      *
@@ -137,7 +137,7 @@ try {
     $start = microtime(true);
     import_cp_patients();
     $execution_details['timers']['import_cp_patients'] = ceil(microtime(true) - $start);
-    echo "completed in ".$execution_details['timers']['import_cp_patients']."\n";
+    echo "completed in ".$execution_details['timers']['import_cp_patients']."seconds\n";
 
     /**
      * Pull all the patiens/users out of woocommerce and put them into the mysql tables
@@ -155,7 +155,7 @@ try {
     $start = microtime(true);
     import_wc_patients();
     $execution_details['timers']['import_wc_patients'] = ceil(microtime(true) - $start);
-    echo "completed in ".$execution_details['timers']['import_wc_patients']."\n";
+    echo "completed in ".$execution_details['timers']['import_wc_patients']."seconds\n";
 
     /**
      * Get the RX details out of CarePoint and put into the mysql table
@@ -169,7 +169,7 @@ try {
     $start = microtime(true);
     import_cp_rxs_single();
     $execution_details['timers']['import_cp_rxs_single'] = ceil(microtime(true) - $start);
-    echo "completed in ".$execution_details['timers']['import_cp_rxs_single']."\n";
+    echo "completed in ".$execution_details['timers']['import_cp_rxs_single']."seconds\n";
 
     /**
      * Import stock levels for this month and the 2 previous months.  Store this in
@@ -182,7 +182,7 @@ try {
     $start = microtime(true);
     import_v2_stock_by_month();
     $execution_details['timers']['import_v2_stock_by_month'] = ceil(microtime(true) - $start);
-    echo "completed in ".$execution_details['timers']['import_v2_stock_by_month']."\n";
+    echo "completed in ".$execution_details['timers']['import_v2_stock_by_month']."seconds\n";
 
     /**
      * Get all the possible drugs from v2 and put them into
@@ -195,7 +195,7 @@ try {
     $start = microtime(true);
     import_v2_drugs();
     $execution_details['timers']['import_v2_drugs'] = ceil(microtime(true) - $start);
-    echo "completed in ".$execution_details['timers']['import_v2_drugs']."\n";
+    echo "completed in ".$execution_details['timers']['import_v2_drugs']."seconds\n";
 
     echo "All Data Imported.  Starting Updates.\n";
     /*
@@ -212,7 +212,7 @@ try {
     $start = microtime(true);
     update_drugs();
     $execution_details['timers']['update_drugs'] = ceil(microtime(true) - $start);
-    echo "completed in ".$execution_details['timers']['update_drugs']."\n";
+    echo "completed in ".$execution_details['timers']['update_drugs']."seconds\n";
 
     /**
      * Bring in the inventory and put it into the live stock table
@@ -226,7 +226,7 @@ try {
     $start = microtime(true);
     update_stock_by_month();
     $execution_details['timers']['update_stock_by_month'] = ceil(microtime(true) - $start);
-    echo "completed in ".$execution_details['timers']['update_stock_by_month']."\n";
+    echo "completed in ".$execution_details['timers']['update_stock_by_month']."seconds\n";
     /**
      * [update_rxs_single description]
      * @var [type]
@@ -235,43 +235,43 @@ try {
     $start = microtime(true);
     update_rxs_single();
     $execution_details['timers']['update_rxs_single'] = ceil(microtime(true) - $start);
-    echo "completed in ".$execution_details['timers']['update_rxs_single']."\n";
+    echo "completed in ".$execution_details['timers']['update_rxs_single']."seconds\n";
 
     echo "Update CP Patients ";
     $start = microtime(true);
     update_patients_cp();
     $execution_details['timers']['update_patients_cp'] = ceil(microtime(true) - $start);
-    echo "completed in ".$execution_details['timers']['update_patients_cp']."\n";
+    echo "completed in ".$execution_details['timers']['update_patients_cp']."seconds\n";
 
     echo "Update WC Patients ";
     $start = microtime(true);
     update_patients_wc();
     $execution_details['timers']['update_patients_wc'] = ceil(microtime(true) - $start);
-    echo "completed in ".$execution_details['timers']['update_patients_wc']."\n";
+    echo "completed in ".$execution_details['timers']['update_patients_wc']."seconds\n";
 
     echo "Update Order Items ";
     $start = microtime(true);
     update_order_items();
     $execution_details['timers']['update_order_items'] = ceil(microtime(true) - $start);
-    echo "completed in ".$execution_details['timers']['update_order_items']."\n";
+    echo "completed in ".$execution_details['timers']['update_order_items']."seconds\n";
 
     echo "Update CP Orders ";
     $start = microtime(true);
     update_orders_cp();
     $execution_details['timers']['update_orders_cp'] = ceil(microtime(true) - $start);
-    echo "completed in ".$execution_details['timers']['update_orders_cp']."\n";
+    echo "completed in ".$execution_details['timers']['update_orders_cp']."seconds\n";
 
     echo "Update WC Orders ";
     $start = microtime(true);
     update_orders_wc();
     $execution_details['timers']['update_orders_wc'] = ceil(microtime(true) - $start);
-    echo "completed in ".$execution_details['timers']['update_orders_wc']."\n";
+    echo "completed in ".$execution_details['timers']['update_orders_wc']."seconds\n";
 
     echo "Watch Invoices ";
     $start = microtime(true);
     watch_invoices();
     $execution_details['timers']['watch_invoices'] = ceil(microtime(true) - $start);
-    echo "completed in ".$execution_details['timers']['watch_invoices']."\n";
+    echo "completed in ".$execution_details['timers']['watch_invoices']."seconds\n";
 
     $execution_details['timers']['total'] = array_sum($execution_details['timers']);
     $execution_details['end']             = date('c');
@@ -286,4 +286,4 @@ try {
 
 // Push any lagging logs to google Cloud
 SirumLog::flush();
-echo "Pharmacy Automation Success in {$execution_details['timers']['total']} milliseconds.\n";
+echo "Pharmacy Automation Success in {$execution_details['timers']['total']} seconds\n";
