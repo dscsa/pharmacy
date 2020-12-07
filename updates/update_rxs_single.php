@@ -279,8 +279,7 @@ function update_rxs_single() {
       $salesforce = [
         "subject"   => "Autofill turned $status for $item[drug_name]",
         "body"      => "$item[drug_name] autofill turned $status for $item[rx_numbers] $created",
-        "contact"   => "$item[first_name] $item[last_name] $item[birth_date]",
-        "due_date"  => date('Y-m-d')
+        "contact"   => "$item[first_name] $item[last_name] $item[birth_date]"
       ];
 
       $event_title = @$item['drug_name']." Autofill $status $salesforce[contact] $created";

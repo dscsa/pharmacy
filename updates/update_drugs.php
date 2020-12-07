@@ -44,6 +44,22 @@ function update_drugs() {
       ]
     );
 
+    if ($updated['price30'] != $updated['old_price30'] OR $updated['price90'] != $updated['old_price90']) {
+
+      $created = "Created:".date('Y-m-d H:i:s');
+
+      $salesforce = [
+        "subject"   => "Drug Price Change for $updated[drug_name]",
+        "body"      => "$item[drug_name] price $updated[old_price30] >>> $updated[price30], $updated[old_price90] >>> $updated[price90] $created",
+        "assign_to" => "Kiah",
+        "due_date"  => date('Y-m-d')
+      ];
+
+      $event_title = @$item['drug_name']." Drug Price Change $created";
+
+      create_event($event_title, [$salesforce]);
+    }
+
     if ($updated['drug_ordered'] && ! $updated['old_drug_ordered'])
       log_error("new drug ordered", $updated);
 
@@ -52,8 +68,7 @@ function update_drugs() {
 
     if ($updated['drug_gsns'] != $updated['old_drug_gsns']) {
 
-      //TODO Once we are sure this works, replace it with a DELETE.  We want
-      //Order item(s) to be (re)created now that the GSN numbers will match
+      //Delete Order item(s) so they are (re)created now that the GSN numbers will match
       $sql = "
         DELETE gp_order_items
         FROM gp_order_items
