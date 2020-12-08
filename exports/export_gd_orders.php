@@ -2,6 +2,8 @@
 
 require_once 'helpers/helper_appsscripts.php';
 
+use Sirum\Logging\SirumLog;
+
 function export_gd_update_invoice($order, $reason, $mysql, $try2 = false) {
 
   SirumLog::notice(

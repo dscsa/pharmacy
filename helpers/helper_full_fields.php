@@ -177,7 +177,7 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
         if ($patient_or_order[$i]['days_dispensed_actual']) {
           $days_dispensed = $patient_or_order[$i]['days_dispensed_actual'];
 
-          $price_per_month = $item['price_per_month'] ?: 0; //Might be null
+          $price_per_month = $patient_or_order[$i]['price_per_month'] ?: 0; //Might be null
           $price_dispensed = $patient_or_order[$i]['price_dispensed_actual'] = ceil($days_dispensed*$price_per_month/30);
 
           if ($price_dispensed > 80)
