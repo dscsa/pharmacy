@@ -461,7 +461,10 @@ function update_orders_cp() {
             continue;
         }
 
-
+        /*
+         * TODO Do we want to sync orders upon updates?  On all updates (manual changes, new surescripts, new faxes/transfers).
+         * Do we need to send patients updates on these changes?
+         *
         //We won't sync new drugs to the order, but if a new drug comes in that we are not filling, we will remove it
         $synced = sync_to_order($order, $updated);
 
@@ -473,10 +476,11 @@ function update_orders_cp() {
                           WHERE invoice_number = {$order[0]['invoice_number']}");
             continue;
         }
+        */
 
         if ($updated['count_items'] != $updated['old_count_items']) {
             $log = "update_orders_cp: count items changed $updated[invoice_number]: $updated[old_count_items] -> $updated[count_items]";
-            log_notice($log, [$order, $updated]);
+            log_error($log, [$order, $updated]); //How do we want to handle changes to orders since we are not notifying patients on changes.
 
             foreach ($order as $item) {
 
