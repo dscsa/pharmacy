@@ -231,13 +231,13 @@ function get_days_default($item, $patient_or_order) {
     return [$days_default, RX_MESSAGE['NO ACTION FILL ONE TIME']];
   }
 
-  if ($stock_level == STOCK_LEVEL['OUT OF STOCK'] OR ($days_default AND $days_left_in_stock == $days_default)) {
+  if ($stock_level == STOCK_LEVEL['OUT OF STOCK']) {
 
     if ($item['last_inventory'] > 500) {
 
       log_error("helper_days_dispensed: LIKELY ERROR: 'out of stock' but inventory > 500", get_defined_vars());
 
-    } else if ($is_refill) {
+    } else if ($is_refill AND $days_default < DAYS_MIN) {
 
       $created = "Created:".date('Y-m-d H:i:s');
 
@@ -254,8 +254,11 @@ function get_days_default($item, $patient_or_order) {
       if (stripos($item['first_name'], 'TEST') === FALSE AND stripos($item['last_name'], 'TEST') === FALSE)
         create_event($event_title, [$salesforce]);
     }
+    else if ($is_refill) {
+      log_notice("WARN USERS IF REFILL RX IS LOW QTY", get_defined_vars());
+    }
     else
-      log_notice("WARN USERS IF DRUG IS LOW QTY", get_defined_vars());
+      log_notice("WARN USERS IF NEW RX IS LOW QTY", get_defined_vars());
 
     return [$days_default, RX_MESSAGE['NO ACTION FILL OUT OF STOCK']];
   }
@@ -603,6 +606,9 @@ function days_left_in_stock($item) {
   if($stock_level == STOCK_LEVEL['HIGH SUPPLY'] AND $item['sig_qty_per_day_default'] != round(1/30, 3))
     log_error("LOW STOCK ITEM IS MARKED HIGH SUPPLY $item[drug_generic] days_left_in_stock:$days_left_in_stock last_inventory:$item[last_inventory]", get_defined_vars());
 
+  if($item['refill_date_first'] AND $stock_level == STOCK_LEVEL['OUT OF STOCK'])
+    log_error("REFILL ITEM IS MARKED OUT OF STOCK $item[drug_generic] days_left_in_stock:$days_left_in_stock last_inventory:$item[last_inventory]", get_defined_vars());
+
   return $item['sig_qty_per_day_default'] == round(1/30, 3) ? 60.6 : DAYS_MIN; //Dispensed 2 inhalers per time, since 1/30 is rounded to 3 decimals (.033), 2 month/.033 = 60.6 qty
 }
 
@@ -625,12 +631,10 @@ function days_default($days_left_in_refills, $days_left_in_stock, $days_default,
 
   $remainder = $days % DAYS_UNIT;
 
-  if ($remainder == 5)
-    log_notice("DEFAULT DAYS IS NOT A MULTIPLE OF ".DAYS_UNIT."! LIKELY BECAUSE RX EXPIRING days:$days, days_default:$days_default, days_left_in_stock:$days_left_in_stock, days_left_in_refills:$days_left_in_refills", ['item' => $item]);
+  if ( ! $days)
+    log_error("DEFAULT DAYS IS 0! days:$days, days_default:$days_default, days_left_in_stock:$days_left_in_stock, days_left_in_refills:$days_left_in_refills", ['item' => $item]);
   else if ($remainder)
     log_error("DEFAULT DAYS IS NOT A MULTIPLE OF ".DAYS_UNIT."! days:$days, days_default:$days_default, days_left_in_stock:$days_left_in_stock, days_left_in_refills:$days_left_in_refills", ['item' => $item]);
-  else if ( ! $days)
-    log_error("DEFAULT DAYS IS 0! days:$days, days_default:$days_default, days_left_in_stock:$days_left_in_stock, days_left_in_refills:$days_left_in_refills", ['item' => $item]);
   else
     log_info("days:$days, days_left_in_stock:$days_left_in_stock, days_left_in_refills:$days_left_in_refills", ['item' => $item]);
 
