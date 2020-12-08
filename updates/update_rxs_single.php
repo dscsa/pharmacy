@@ -3,6 +3,7 @@ require_once 'changes/changes_to_rxs_single.php';
 require_once 'helpers/helper_parse_sig.php';
 require_once 'helpers/helper_imports.php';
 require_once 'exports/export_cp_rxs.php';
+require_once 'exports/export_gd_transfer_fax.php'; //is_will_transfer()
 require_once 'dbs/mysql_wc.php';
 
 use Sirum\Logging\SirumLog;
@@ -301,7 +302,13 @@ function update_rxs_single() {
     }
 
     if ($updated['rx_transfer'] AND ! $updated['old_rx_transfer']) {
-      log_error("update_rxs_single rx was transferred out.  Confirm correct updated rxs_single.rx_message_key. rxs_grouped.rx_message_keys will be updated on next pass", [$patient, $updated, $changed]);
+      $is_will_transfer = is_will_transfer($item);
+      log_error("update_rxs_single rx was transferred out.  Confirm correct is_will_transfer updated rxs_single.rx_message_key. rxs_grouped.rx_message_keys will be updated on next pass", [
+        'is_will_transfer' => $is_will_transfer,
+        'patient' => $patient,
+        'updated' => $updated,
+        'changed' => $changed
+      ]);
     }
 
   }
