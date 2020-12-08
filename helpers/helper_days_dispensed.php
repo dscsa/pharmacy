@@ -311,18 +311,12 @@ function freeze_invoice_data($item, $mysql) {
   if ( ! $item['days_dispensed_actual'])
     return log_error("freeze_invoice_data has no actual days", get_defined_vars());
 
-  $price_per_month = $item['price_per_month'] ?: 0; //Might be null
-  $price_actual    = ceil($item['days_dispensed_actual']*$price_per_month/30);
-
-  if ($price_actual > 80)
-    return log_error("freeze_invoice_data: price too high, $$price_actual", get_defined_vars());
-
   $sql = "
     UPDATE
       gp_order_items
     SET
       -- Other Fields Should Already Be Set Above (And May have Been Sent to Patient) so don't change
-      price_dispensed_actual   = $price_actual,
+      price_dispensed_actual   = $item[price_dispensed_actual],
       refills_dispensed_actual = $item[refills_total],
       item_message_keys        = '$item[rx_message_keys]',
       item_message_text        = '".escape_db_values($item['rx_message_text'])."'

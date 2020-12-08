@@ -443,13 +443,13 @@ function update_orders_cp() {
             $dispensing_changes = detect_dispensing_changes($order);
 
             if ($dispensing_changes['day_changes']) {
-                //Updates invoice with new days/price/qty/refills.
-                $order = helper_update_payment($order, "update_orders_cp: updated - dispensing day changes ".implode(', ', $dispensing_changes['day_changes']), $mysql);
-                export_wc_update_order($order); //Price will also have changed
+              //Updates invoice with new days/price/qty/refills.
+              $order = helper_update_payment($order, "update_orders_cp: updated - dispensing day changes ".implode(', ', $dispensing_changes['day_changes']), $mysql);
+              export_wc_update_order($order); //Price will also have changed
 
             } elseif ($dispensing_changes['qty_changes']) {
               //Updates invoice with new qty/refills.  Prices should not have changed so no need to update WC
-                $order = export_gd_update_invoice($order, "update_orders_cp: updated - dispensing qty changes ".implode(', ', $dispensing_changes['qty_changes']), $mysql);
+              $order = export_gd_update_invoice($order, "update_orders_cp: updated - dispensing qty changes ".implode(', ', $dispensing_changes['qty_changes']), $mysql);
             }
 
             $groups = group_drugs($order, $mysql);
@@ -457,7 +457,7 @@ function update_orders_cp() {
             export_gd_publish_invoice($order, $mysql);
             export_gd_print_invoice($order);
             send_dispensed_order_communications($groups);
-            log_notice("Updated Order Dispensed", $order);
+            log_notice("update_orders_cp updated: Updated Order Dispensed", $order);
             continue;
         }
 

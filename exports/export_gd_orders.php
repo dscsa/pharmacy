@@ -4,6 +4,16 @@ require_once 'helpers/helper_appsscripts.php';
 
 function export_gd_update_invoice($order, $reason, $mysql, $try2 = false) {
 
+  SirumLog::notice(
+    'export_gd_update_invoice: called',
+    [
+      "invoice" => $order[0]['invoice_number'],
+      "order"   => $order,
+      "reason"  => $reason,
+      "try2"    => $try2
+    ]
+  );
+
   if ( ! count($order)) {
     log_error("export_gd_update_invoice: got malformed order", [$order, $reason]);
     return $order;

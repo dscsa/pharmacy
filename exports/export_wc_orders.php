@@ -447,58 +447,68 @@ function export_wc_update_order_address($order, $meta_fn = 'wc_update_meta')
  */
 function export_wc_update_order_payment($invoice_number, $payment_fee, $payment_due = null)
 {
-    $post_id = wc_get_post_id($invoice_number);
 
-    if (!$post_id) {
-        SirumLog::warn(
-            'Could not find a Wordpress Post for Invoice',
-            [
-                "invoice"     => $invoice_number,
-                "payment_fee" => $payment_fee,
-                "payment_due" => $payment_due
-            ]
-        );
+  SirumLog::notice(
+    'export_wc_update_order_payment: called',
+    [
+      "invoice"     => $invoice_number,
+      "payment_fee" => $payment_fee,
+      "payment_due" => $payment_due
+    ]
+  );
 
-        return;
-    }
+  $post_id = wc_get_post_id($invoice_number);
 
-    $urlToFetch = "order/{$post_id}/payment_fee/{$payment_fee}";
+  if (!$post_id) {
+    SirumLog::warn(
+      'export_wc_update_order_payment: Could not find a Wordpress Post for Invoice',
+      [
+        "invoice"     => $invoice_number,
+        "payment_fee" => $payment_fee,
+        "payment_due" => $payment_due
+      ]
+    );
 
-    if (!is_null($payment_due)) {
-        $urlToFetch .= "/payment_due/{$payment_due}";
-    }
+    return;
+  }
 
-    $response = wc_fetch($urlToFetch);
+  $urlToFetch = "order/{$post_id}/payment_fee/{$payment_fee}";
 
-    if (!$response) {
-        SirumLog::warn(
-            'Failed to load Wordpress URL',
-            [
-                "invoice"     => $invoice_number,
-                "payment_fee" => $payment_fee,
-                "payment_due" => $payment_due,
-                "url"         => $url,
-                "response"    => $response
-            ]
-        );
+  if (!is_null($payment_due)) {
+      $urlToFetch .= "/payment_due/{$payment_due}";
+  }
 
-        return;
-    }
+  $response = wc_fetch($urlToFetch);
 
-    if (! empty($response['error'])) {
-        SirumLog::warn(
-            'Received error from wordpress',
-            [
-                "invoice"     => $invoice_number,
-                "payment_fee" => $payment_fee,
-                "payment_due" => $payment_due,
-                "url"         => $url,
-                "response"    => $response
-            ]
-        );
+  if (!$response) {
+      SirumLog::warn(
+          'export_wc_update_order_payment: Failed to load Wordpress URL',
+          [
+              "invoice"     => $invoice_number,
+              "payment_fee" => $payment_fee,
+              "payment_due" => $payment_due,
+              "url"         => $url,
+              "response"    => $response
+          ]
+      );
 
-        return;
-    }
+      return;
+  }
+
+  if (! empty($response['error'])) {
+      SirumLog::warn(
+          'export_wc_update_order_payment: Received error from wordpress',
+          [
+              "invoice"     => $invoice_number,
+              "payment_fee" => $payment_fee,
+              "payment_due" => $payment_due,
+              "url"         => $url,
+              "response"    => $response
+          ]
+      );
+
+      return;
+  }
 }
 
 function wc_fetch($path, $method = 'GET', $content = null, $retry = false)

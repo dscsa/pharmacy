@@ -174,19 +174,33 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
             continue;
         }
 
-        $patient_or_order[$i]['days_dispensed'] = $patient_or_order[$i]['days_dispensed_default'];
         if ($patient_or_order[$i]['days_dispensed_actual']) {
-            $patient_or_order[$i]['days_dispensed'] = $patient_or_order[$i]['days_dispensed_actual'];
+          $days_dispensed = $patient_or_order[$i]['days_dispensed_actual'];
+
+          $price_per_month = $item['price_per_month'] ?: 0; //Might be null
+          $price_dispensed = $patient_or_order[$i]['price_dispensed_actual'] = ceil($days_dispensed*$price_per_month/30);
+
+          if ($price_dispensed > 80)
+            log_error("helper_full_fields: price too high, $$price_dispensed", get_defined_vars());
+
+        } else {
+          $days_dispensed = $patient_or_order[$i]['days_dispensed_default'];
+          //Ensure defaults are Numbers and not NULL because String will turn addition into concat and if NULL is summed with other valied prices then result is still NULL
+          $price_dispensed = $patient_or_order[$i]['price_dispensed_default'] ?: 0;
         }
+
+        $patient_or_order[$i]['days_dispensed'] = (float) $days_dispensed;
+        $patient_or_order[$i]['price_dispensed'] = (float) $price_dispensed;
 
         if ($patient_or_order[$i]['days_dispensed']) {
             $count_filled++;
         }
 
-        if (!$count_filled
-                and ($patient_or_order[$i]['days_dispensed']
-                        or $patient_or_order[$i]['days_dispensed_default']
-                        or $patient_or_order[$i]['days_dispensed_actual'])
+        if  (!$count_filled and (
+                $patient_or_order[$i]['days_dispensed']
+                or $patient_or_order[$i]['days_dispensed_default']
+                or $patient_or_order[$i]['days_dispensed_actual']
+              )
             ) {
             log_error('add_full_fields: What going on here?', get_defined_vars());
         }
@@ -195,38 +209,27 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
          * Create some variables with appropriate values
          */
         if ($patient_or_order[$i]['refills_dispensed_actual']) {
-            $refills_dispensed = (float) $patient_or_order[$i]['refills_dispensed_actual'];
+          $refills_dispensed = $patient_or_order[$i]['refills_dispensed_actual'];
         } elseif ($patient_or_order[$i]['refills_dispensed_default']) {
-            $refills_dispensed = (float) $patient_or_order[$i]['refills_dispensed_default'];
+          $refills_dispensed = $patient_or_order[$i]['refills_dispensed_default'];
         } else {
-            $refills_dispensed = (float) $patient_or_order[$i]['refills_total'];
+          $refills_dispensed = $patient_or_order[$i]['refills_total'];
         }
+
+        $patient_or_order[$i]['refills_dispensed'] = round($refills_dispensed, 2);
 
         if ($patient_or_order[$i]['qty_dispensed_actual']) {
-            $qty_dsipensed = (float) $patient_or_order[$i]['qty_dispensed_actual'];
+          $qty_dispensed = $patient_or_order[$i]['qty_dispensed_actual'];
         } else {
-            $qty_dsipensed = (float) $patient_or_order[$i]['qty_dispensed_default'];
+          $qty_dispensed = $patient_or_order[$i]['qty_dispensed_default'];
         }
 
-        if ($patient_or_order[$i]['price_dispensed_actual']) {
-            $price_dispensed = (float) $patient_or_order[$i]['price_dispensed_actual'];
-        } elseif ($patient_or_order[$i]['price_dispensed_default']) {
-            $price_dispensed = (float) $patient_or_order[$i]['price_dispensed_default'];
-        } else {
-            $price_dispensed = 0;
-        }
-
-        // refills_dispensed_default/actual only exists as an order item.
-        // But for grouping we need to know for items not in the order
-        $patient_or_order[$i]['refills_dispensed'] = round($refills_dispensed, 2);
-        $patient_or_order[$i]['qty_dispensed']     = $qty_dsipensed;
-        $patient_or_order[$i]['price_dispensed']   = $price_dispensed;
+        $patient_or_order[$i]['qty_dispensed'] = (float) $qty_dispensed;
     }
 
     foreach ($patient_or_order as $i => $item) {
         $patient_or_order[$i]['count_filled'] = $count_filled;
     }
-
 
     return $patient_or_order;
 }
