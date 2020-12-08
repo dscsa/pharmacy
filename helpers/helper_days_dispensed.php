@@ -62,10 +62,15 @@ function get_days_default($item, $patient_or_order) {
   }
 
 
+
   if ( ! $item['drug_gsns'] AND $item['drug_name']) {
 
     //Check for invoice number otherwise, seemed that SF tasks were being triplicated.  Unsure reason, maybe called by order_items and not just orders?
-    if (@$item['order_date_added']) {
+    if ( ! @$item['order_date_added']) {
+      log_notice("Confirm didn't create salesforce task for GSN - order items not order", $item);
+    } else if ($item['refill_date_first']) {
+      log_error("Confirm didn't create salesforce task for GSN - refills cannot be changed", $item);
+    } else  {
       $in_order = "In Order #$item[invoice_number],";
       $created = "Created:".date('Y-m-d H:i:s');
 
@@ -96,9 +101,7 @@ function get_days_default($item, $patient_or_order) {
         ? create_event($event_title, [$salesforce])
         : log_error("CONFIRM DIDN'T CREATE SALESFORCE TASK - DUPLICATE mins_ago:$mins_ago $event_title", [$item, $salesforce]);
 
-      } else {
-        log_error("CONFIRM DIDN'T CREATE SALESFORCE TASK - ORDER ITEMS NOT ORDER", $item);
-      }
+    }
 
     return [ $item['refill_date_first'] ? $days_default : 0, RX_MESSAGE['NO ACTION MISSING GSN']];
   }
