@@ -272,6 +272,17 @@ function update_rxs_single() {
 
       $item = get_full_item($updated, $mysql, true);
 
+      SirumLog::debug(
+        "update_rxs_single: about to call export_cp_rx_autofill()",
+        [
+            'item'    => $item,
+            'updated' => $updated,
+            'source'  => 'CarePoint',
+            'type'    => 'rxs-single',
+            'event'   => 'updated'
+        ]
+      );
+
       export_cp_rx_autofill($item, $mssql);
 
       $status  = $updated['rx_autofill'] ? 'ON' : 'OFF';
