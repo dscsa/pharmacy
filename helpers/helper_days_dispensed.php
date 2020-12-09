@@ -371,8 +371,11 @@ function set_days_default($item, $days, $mysql) {
 
   if ($item['days_dispensed_default'] AND ! $item['qty_dispensed_default'])
     log_error('helper_days_dispensed: qty_dispensed_default is 0 but days_dispensed_default > 0', $item);
+
+  if (is_null($item['rx_message_keys']) OR is_null($item['refills_dispensed_default']))
+    log_error('helper_days_dispensed: is rx_message_keys_initial being set correctly? - NULL', $item);
   else
-    log_notice('helper_days_dispensed: is rx_message_keys_initial being set correctly?', $item);
+    log_notice('helper_days_dispensed: is rx_message_keys_initial being set correctly? - NOT NULL', $item);
 
   $sql = "
     UPDATE
