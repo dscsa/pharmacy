@@ -10,7 +10,9 @@ function get_full_item($item, $mysql, $overwrite_rx_messages = false) {
   }
 
   $sql = "
-    SELECT *
+    SELECT
+      *,
+      gp_rxs_grouped.*,
     FROM
       gp_rxs_single
     JOIN gp_patients ON
