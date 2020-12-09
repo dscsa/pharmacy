@@ -125,8 +125,6 @@ function update_order_items() {
 
     $changed = changed_fields($updated);
 
-    $old_refills_dispensed_default = refills_dispensed_default($item);
-
     if ($item['days_dispensed_actual']) {
 
       freeze_invoice_data($item, $mysql);
@@ -141,10 +139,6 @@ function update_order_items() {
       if ($item['refills_total'] != $item['refills_dispensed_default']) { //refills_dispensed_actual is not set yet, so use refills_total instead
         log_notice('update_order_items: refills_dispensed changed', $item);
       }
-
-    } else if ($updated['refills_dispensed_default'] != $old_refills_dispensed_default) {
-
-      log_error('update_order_items: refills_total changed', [$item, $changed]);
 
     } else if ($updated['item_added_by'] == 'MANUAL' AND $updated['old_item_added_by'] != 'MANUAL') {
 
