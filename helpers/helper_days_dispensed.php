@@ -371,6 +371,8 @@ function set_days_default($item, $days, $mysql) {
 
   if ($item['days_dispensed_default'] AND ! $item['qty_dispensed_default'])
     log_error('helper_days_dispensed: qty_dispensed_default is 0 but days_dispensed_default > 0', $item);
+  else
+    log_notice('helper_days_dispensed: is rx_message_keys_initial being set correctly?', $item);
 
   $sql = "
     UPDATE
@@ -380,13 +382,13 @@ function set_days_default($item, $days, $mysql) {
       qty_dispensed_default     = $item[qty_dispensed_default],
       price_dispensed_default   = $item[price_dispensed_default],
 
-      stock_level_initial       = '$item[stock_level_initial]',
-      rx_message_keys_initial   = '$item[rx_message_keys]',
+      stock_level_initial       = COALESCE(stock_level_initial, '$item[stock_level_initial]'),
+      rx_message_keys_initial   = COALESCE(rx_message_keys_initial, '$item[rx_message_keys]'),
 
-      zscore_initial            = ".(is_null($item['zscore']) ? 'NULL' : $item['zscore']).",
-      patient_autofill_initial  = ".(is_null($item['patient_autofill']) ? 'NULL' : $item['patient_autofill']).",
-      rx_autofill_initial       = '$item[rx_autofill]',
-      rx_numbers_initial        = '$item[rx_numbers]',
+      zscore_initial            = COALESCE(zscore_initial, ".(is_null($item['zscore']) ? 'NULL' : $item['zscore'])."),
+      patient_autofill_initial  = COALESCE(patient_autofill_initial, ".(is_null($item['patient_autofill']) ? 'NULL' : $item['patient_autofill'])."),
+      rx_autofill_initial       = COALESCE(rx_autofill_initial, '$item[rx_autofill]'),
+      rx_numbers_initial        = COALESCE(rx_numbers_initial, '$item[rx_numbers]'),
 
       refills_dispensed_default = ".(is_null($item['refills_dispensed_default']) ? 'NULL' : $item['refills_dispensed_default']).",
       refill_date_manual        = ".($item['refill_date_manual'] ? "'$item[refill_date_manual]'" : 'NULL').",
