@@ -272,7 +272,7 @@ function update_rxs_single() {
 
       $item = get_full_item($updated, $mysql, true);
 
-      export_cp_rx_autofill($item);
+      export_cp_rx_autofill($item, $mssql);
 
       $status  = $updated['rx_autofill'] ? 'ON' : 'OFF';
       $created = "Created:".date('Y-m-d H:i:s');
