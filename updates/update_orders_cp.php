@@ -485,12 +485,11 @@ function update_orders_cp() {
             foreach ($order as $item) {
 
                 if ($item['count_pended_total'] AND ! $item['days_dispensed']) {
-                    log_error("update_orders_cp: count items reduced.  this should have been handled in update_order_items", [$order, $updated]);
-                    v2_unpend_item($item, $mysql);
+                  v2_unpend_item($item, $mysql);
                 }
 
                 if (!$item['count_pended_total'] AND $item['days_dispensed']) {
-                    v2_pend_item($item, $mysql);
+                  v2_pend_item($item, $mysql);
                 }
             }
 
