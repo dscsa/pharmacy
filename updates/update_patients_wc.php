@@ -47,17 +47,17 @@ function update_patients_wc() {
   foreach($changes['created'] as $created) {
     SirumLog::$subroutine_id = "patients-wc-created-".sha1(serialize($created));
 
-      //Overrite Rx Messages everytime a new order created otherwis same message would stay for the life of the Rx
+    //Overrite Rx Messages everytime a new order created otherwis same message would stay for the life of the Rx
 
-      SirumLog::debug(
-        "update_patients_wc: WooCommerce PATIENT Created",
-        [
-            'created' => $created,
-            'source'  => 'WooCommerce',
-            'type'    => 'patients',
-            'event'   => 'created'
-        ]
-      );
+    SirumLog::debug(
+      "update_patients_wc: WooCommerce PATIENT Created",
+      [
+          'created' => $created,
+          'source'  => 'WooCommerce',
+          'type'    => 'patients',
+          'event'   => 'created'
+      ]
+    );
 
     $patient = find_patient_wc($mysql, $created);
 

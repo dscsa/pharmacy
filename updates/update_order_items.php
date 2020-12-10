@@ -1,7 +1,7 @@
 <?php
 
 require_once 'changes/changes_to_order_items.php';
-require_once 'helpers/helper_days_dispensed.php';
+require_once 'helpers/helper_days_and_message.php';
 require_once 'helpers/helper_full_item.php';
 require_once 'exports/export_cp_order_items.php';
 require_once 'exports/export_v2_order_items.php';
@@ -46,9 +46,12 @@ function update_order_items() {
 
     SirumLog::$subroutine_id = "order-items-created-".sha1(serialize($created));
 
+    $item = get_full_item($created, $mysql, true);
+
     SirumLog::debug(
       "update_order_items: Order Item created",
       [
+          'item'    => $item,
           'created' => $created,
           'source'  => 'CarePoint',
           'type'    => 'order-items',
@@ -56,12 +59,12 @@ function update_order_items() {
       ]
     );
 
-    $item = get_full_item($created, $mysql, true);
-
     if ( ! $item) {
       log_error("Created Item Missing", $created);
       continue;
     }
+
+    //We don't pend inventory in v2 here (v2_pend_item), but at the order level, in case we want to sync any drugs to the order, or vary the days to sync drugs to a date
 
     if ($item['days_dispensed_actual']) {
 

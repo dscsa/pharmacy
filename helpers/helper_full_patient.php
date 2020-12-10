@@ -24,7 +24,7 @@ function get_full_patient($partial, $mysql, $overwrite_rx_messages = false) {
     LEFT JOIN gp_rxs_single ON -- Needed to know qty_left for sync-to-date
       gp_rxs_grouped.best_rx_number = gp_rxs_single.rx_number
     LEFT JOIN gp_stock_live ON -- might not have a match if no GSN match
-      gp_rxs_grouped.drug_generic = gp_stock_live.drug_generic -- this is for the helper_days_dispensed msgs for unordered drugs
+      gp_rxs_grouped.drug_generic = gp_stock_live.drug_generic -- this is for the helper_days_and_message msgs for unordered drugs
     WHERE
       gp_patients.patient_id_cp = $partial[patient_id_cp]
   ";

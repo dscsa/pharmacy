@@ -35,7 +35,7 @@ function get_full_order($partial, $mysql, $overwrite_rx_messages = false) {
     LEFT JOIN gp_rxs_single ON -- Needed to know qty_left for sync-to-date
       COALESCE(gp_order_items.rx_number, gp_rxs_grouped.best_rx_number) = gp_rxs_single.rx_number
     LEFT JOIN gp_stock_live ON -- might not have a match if no GSN match
-      gp_rxs_grouped.drug_generic = gp_stock_live.drug_generic -- this is for the helper_days_dispensed msgs for unordered drugs
+      gp_rxs_grouped.drug_generic = gp_stock_live.drug_generic -- this is for the helper_days_and_message msgs for unordered drugs
     WHERE
       gp_orders.invoice_number = $partial[invoice_number]
   ";
@@ -79,16 +79,15 @@ function add_wc_status_to_order($order) {
   }
 
   if ($old_order_stage_wc != $new_order_stage_wc) {
-        SirumLog::debug(
-            "helper_full_order: add_wc_status_to_order. change in status",
-            [
-              'old_status_wc'  => $old_order_stage_wc,
-              'new_status_wc'  => $new_order_stage_wc,
-              'invoice_number' => $order[0]['invoice_number']
-            ]
-        );
+    SirumLog::debug(
+        "helper_full_order: add_wc_status_to_order. change in status",
+        [
+          'old_status_wc'  => $old_order_stage_wc,
+          'new_status_wc'  => $new_order_stage_wc,
+          'invoice_number' => $order[0]['invoice_number']
+        ]
+    );
     //export_wc_update_order_metadata($order);
-
   }
 
   return $order;

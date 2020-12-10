@@ -329,7 +329,7 @@ function update_rxs_single() {
 
 
 
-  //TODO if new Rx arrives and there is an active order where that Rx is not included because of "ACTION NO REFILLS" or "ACTION RX EXPIRED" or the like, then we should rerun the helper_days_dispensed on the order_item
+  //TODO if new Rx arrives and there is an active order where that Rx is not included because of "ACTION NO REFILLS" or "ACTION RX EXPIRED" or the like, then we should rerun the helper_days_and_message on the order_item
 
   //TODO Implement rx_status logic that was in MSSQL Query and Save in Database
 
