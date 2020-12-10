@@ -480,18 +480,22 @@ function update_orders_cp() {
 
         if ($updated['count_items'] != $updated['old_count_items']) {
             $log = "update_orders_cp: count items changed $updated[invoice_number]: $updated[old_count_items] -> $updated[count_items]";
-            log_error($log, [$order, $updated]); //How do we want to handle changes to orders since we are not notifying patients on changes.
+            $changes = [];
 
             foreach ($order as $item) {
 
-                if ($item['count_pended_total'] AND ! $item['days_dispensed']) {
-                  v2_unpend_item($item, $mysql);
-                }
+              $changes[] = "$item[drug_name] item_date_added:$item[item_date_added] count_pended_total:$item[count_pended_total] days_dispensed_default:$item[days_dispensed_default] days_dispensed_actual:$item[days_dispensed_actual]";
 
-                if (!$item['count_pended_total'] AND $item['days_dispensed']) {
-                  v2_pend_item($item, $mysql);
-                }
+              if ($item['count_pended_total'] AND ! $item['days_dispensed']) {
+                v2_unpend_item($item, $mysql);
+              }
+
+              if (!$item['count_pended_total'] AND $item['days_dispensed']) {
+                v2_pend_item($item, $mysql);
+              }
             }
+
+            log_error($log, ['changes' => $changes, 'order' => $order, 'updated' => $updated]); //How do we want to handle changes to orders since we are not notifying patients on changes.
 
             $order = helper_update_payment($order, $log, $mysql); //This also updates payment
             export_wc_update_order($order);
