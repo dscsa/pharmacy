@@ -148,7 +148,7 @@ function update_order_items() {
 
     } else if ( ! $item['days_dispensed_default']) {
 
-      log_error("Updated Item has no days_dispensed_default.  Was GSN added?", get_defined_vars());
+      log_error("Updated Item has no days_dispensed_default.  Why no days_dispensed_default? GSN added?", get_defined_vars());
 
     } else {
       log_info("Updated Item No Action", get_defined_vars());
