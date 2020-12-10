@@ -334,35 +334,7 @@ function freeze_invoice_data($item, $mysql) {
 function set_days_and_message($item, $days, $message, $mysql) {
 
   if (is_null($days) OR is_null($message)) {
-    SirumLog::alert("helper_full_fields set_days: days/message should not be NULL", get_defined_vars());
-    return $item;
-  }
-
-  //We can only save days if its currently an order_item
-  if ( ! @$item['item_date_added'])
-    return $item;
-
-  if ( ! $item['rx_number'] OR ! $item['invoice_number']) {
-    log_error("set_days_and_message without a rx_number AND invoice_number ", get_defined_vars());
-    return $item;
-  }
-
-  if ($item['days_dispensed_actual']) {
-    log_notice("set_days_and_message but it has actual days", get_defined_vars());
-    return $item;
-  }
-
-  $exists = $mysql->run("
-    SELECT *
-    FROM
-      gp_order_items
-    WHERE
-      invoice_number = $item[invoice_number] AND
-      rx_number = $item[rx_number]
-  ");
-
-  if ( ! count($exists[0])) {
-    log_error("set_days_and_message cannot set days for invoice_number = $item[invoice_number] AND rx_number = $item[rx_number]", get_defined_vars());
+    SirumLog::alert("set_days_and_message set_days: days/message should not be NULL", get_defined_vars());
     return $item;
   }
 
@@ -370,60 +342,99 @@ function set_days_and_message($item, $days, $message, $mysql) {
   $new_rx_message_text = message_text($message, $item);
 
   if ( ! $new_rx_message_key) {
-    log_error("set_days_and_message could not get rx_message_key ", get_defined_vars());
+    SirumLog::alert("set_days_and_message could not get rx_message_key ", get_defined_vars());
     return $item;
   }
 
   $item['rx_message_key']  = $new_rx_message_key;
-  $item['rx_message_text'] = $new_rx_message_text;
+  $item['rx_message_text'] = $new_rx_message_text.($days ? '' : ' **' ); //If not filling reference to backup pharmacy footnote on Invoices
 
-  if ( ! @$item['days_dispensed_default'])
-    $item['rx_message_text'] .= ' **'; //If not filling reference to backup pharmacy footnote on Invoices
+  $rx_numbers = str_replace(",", "','", substr($item['rx_numbers'], 1, -1));
+
+  $rx_single_sql = "
+    UPDATE
+      gp_rxs_single
+    SET
+      rx_message_key  = '$item[rx_message_key]',
+      rx_message_text = '".escape_db_values($item['rx_message_text'])."'
+    WHERE
+      rx_number IN ('$rx_numbers')
+  ";
+
+  $rx_grouped_sql = "
+    UPDATE
+      gp_rxs_grouped
+    SET
+      rx_message_keys = $item[rx_message_key] -- Don't need GROUP_CONCAT() since last query to gp_rxs_single made all they keys the same
+    WHERE
+      best_rx_number IN ('$rx_numbers')
+  ";
+
+  $mysql->run($rx_single_sql);
+  $mysql->run($rx_grouped_sql);
+
+  //We only continue to update gp_order_items IF this is an order_item and not just an rx on the patient's profile
+  if ( ! @$item['item_date_added'] OR $item['days_dispensed_default'] OR $item['rx_message_keys_initial'])
+    return $item;
+
+  if ( ! $item['rx_number'] OR ! $item['invoice_number']) {
+    log_error("set_days_and_message without a rx_number AND invoice_number ", get_defined_vars());
+    return $item;
+  }
 
   $price = $item['price_per_month'] ?: 0; //Might be null
 
   $item['days_dispensed_default']    = $days;
   $item['qty_dispensed_default']     = $days*$item['sig_qty_per_day_default'];
   $item['price_dispensed_default']   = ceil($days*$price/30);
-  $item['refills_dispensed_default'] = refills_dispensed_default($item);  //We want invoice to show refills after they are dispensed assuming we dispense items currently in order
+
   $item['stock_level_initial']       = $item['stock_level'];
+  $item['rx_message_keys_initial']   = $item['rx_message_key'];
 
-  if ($item['days_dispensed_default'] AND ! $item['qty_dispensed_default'])
-    log_error('helper_days_and_message: qty_dispensed_default is 0 but days_dispensed_default > 0', $item);
+  $item['zscore_initial']            = $item['zscore'];
+  $item['patient_autofill_initial']  = $item['patient_autofill'];
+  $item['rx_autofill_initial']       = $item['rx_autofill'];
+  $item['rx_numbers_initial']        = $item['rx_numbers'];
 
-  if (is_null($item['rx_message_keys']) OR is_null($item['refills_dispensed_default']))
+  $item['refills_dispensed_default'] = refills_dispensed_default($item);  //We want invoice to show refills after they are dispensed assuming we dispense items currently in order
+
+  if ($item['days_dispensed_actual']) {
+    log_notice("set_days_and_message but it has actual days. Why is this?", get_defined_vars());
+  }
+
+  if (is_null($item['rx_message_key']) OR is_null($item['refills_dispensed_default']))
     log_error('helper_days_and_message: is rx_message_keys_initial being set correctly? - NULL', $item);
   else
     log_notice('helper_days_and_message: is rx_message_keys_initial being set correctly? - NOT NULL', $item);
 
-  $sql = "
+  $order_item_sql = "
     UPDATE
       gp_order_items
     SET
-      days_dispensed_default    = COALESCE(days_dispensed_default, ".($days ?: 0)."),
-      qty_dispensed_default     = COALESCE(qty_dispensed_default, $item[qty_dispensed_default]),
-      price_dispensed_default   = COALESCE(price_dispensed_default, $item[price_dispensed_default]),
+      days_dispensed_default    = $item[days_dispensed_default],
+      qty_dispensed_default     = $item[qty_dispensed_default],
+      price_dispensed_default   = $item[price_dispensed_default],
 
-      stock_level_initial       = COALESCE(stock_level_initial, '$item[stock_level_initial]'),
-      rx_message_keys_initial   = COALESCE(rx_message_keys_initial, '$item[rx_message_keys]'),
+      stock_level_initial       = $item[stock_level_initial],
+      rx_message_keys_initial   = $item[rx_message_keys_initial],
 
-      zscore_initial            = COALESCE(zscore_initial, ".(is_null($item['zscore']) ? 'NULL' : $item['zscore'])."),
-      patient_autofill_initial  = COALESCE(patient_autofill_initial, ".(is_null($item['patient_autofill']) ? 'NULL' : $item['patient_autofill'])."),
-      rx_autofill_initial       = COALESCE(rx_autofill_initial, '$item[rx_autofill]'),
-      rx_numbers_initial        = COALESCE(rx_numbers_initial, '$item[rx_numbers]'),
+      zscore_initial            = ".(is_null($item['zscore']) ? 'NULL' : $item['zscore']).",
+      patient_autofill_initial  = ".(is_null($item['patient_autofill']) ? 'NULL' : $item['patient_autofill']).",
+      rx_autofill_initial       = '$item[rx_autofill]',
+      rx_numbers_initial        = '$item[rx_numbers]',
 
-      refills_dispensed_default = COALESCE(refills_dispensed_default, ".(is_null($item['refills_dispensed_default']) ? 'NULL' : $item['refills_dispensed_default'])."),
-      refill_date_manual        = COALESCE(refill_date_manual, ".($item['refill_date_manual'] ? "'$item[refill_date_manual]'" : 'NULL')."),
-      refill_date_default       = COALESCE(refill_date_default, ".($item['refill_date_default'] ? "'$item[refill_date_default]'" : 'NULL')."),
-      refill_date_last          = COALESCE(refill_date_last, ".($item['refill_date_last'] ? "'$item[refill_date_last]'" : 'NULL')."),
-      refill_target_date        = COALESCE(refill_target_date, ".($item['rx_message_key'] == 'ACTION EXPIRING' ? "'$item[rx_date_expired]'" : 'NULL')."),
-      refill_target_days        = COALESCE(refill_target_days, ".($item['rx_message_key'] == 'ACTION EXPIRING' ? $days : 'NULL').")
+      refills_dispensed_default = ".(is_null($item['refills_dispensed_default']) ? 'NULL' : $item['refills_dispensed_default']).",
+      refill_date_manual        = ".(is_null($item['refill_date_manual']) ?  'NULL' : "'$item[refill_date_manual]'").",
+      refill_date_default       = ".(is_null($item['refill_date_default']) ? 'NULL' : "'$item[refill_date_default]'").",
+      refill_date_last          = ".(is_null($item['refill_date_last']) ? 'NULL' : "'$item[refill_date_last]'").",
+      refill_target_date        = ".(is_null($item['refill_target_date']) ? 'NULL' : "'$item[refill_target_date]'").",
+      refill_target_days        = ".(is_null($item['refill_target_days']) ? 'NULL' : $item['refill_target_days'])."
     WHERE
       invoice_number = $item[invoice_number] AND
       rx_number = $item[rx_number]
   ";
 
-  $mysql->run($sql);
+  $mysql->run($order_item_sql);
 
   return $item;
 }

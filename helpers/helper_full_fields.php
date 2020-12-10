@@ -82,7 +82,7 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
             //Internal logic keeps initial values on order_items if they exist (don't want to contradict patient comms)
             $patient_or_order[$i] = set_days_and_message($patient_or_order[$i], $days, $message, $mysql);
 
-            export_cp_set_rx_message($patient_or_order[$i], $message, $mysql);
+            export_cp_set_rx_message($patient_or_order[$i], $message);
 
             //Internal logic determines if fax is necessary
             export_gd_transfer_fax($patient_or_order[$i], 'helper full fields');
