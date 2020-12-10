@@ -415,8 +415,8 @@ function set_days_and_message($item, $days, $message, $mysql) {
       qty_dispensed_default     = $item[qty_dispensed_default],
       price_dispensed_default   = $item[price_dispensed_default],
 
-      stock_level_initial       = $item[stock_level_initial],
-      rx_message_keys_initial   = $item[rx_message_keys_initial],
+      stock_level_initial       = '$item[stock_level_initial]',
+      rx_message_keys_initial   = '$item[rx_message_keys_initial]',
 
       zscore_initial            = ".(is_null($item['zscore']) ? 'NULL' : $item['zscore']).",
       patient_autofill_initial  = ".(is_null($item['patient_autofill']) ? 'NULL' : $item['patient_autofill']).",
