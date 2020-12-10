@@ -63,13 +63,19 @@ function update_patients_wc() {
 
     if ( ! empty($patient[0]['patient_id_wc'])) {
       $created_mismatched++;
-      SirumLog::alert(
-        'mismatched patient_id_wc or duplicate wc patient registration',
-        [
-          "created" => $created,
-          "patient" => $patient[0]
-        ]
-      );
+
+      if (
+        stripos($patient[0]['first_name'], 'TEST') === false
+        and stripos($patient[0]['last_name'], 'TEST') === false) {
+        SirumLog::alert(
+          'mismatched patient_id_wc or duplicate wc patient registration',
+          [
+            "created" => $created,
+            "patient" => $patient[0]
+          ]
+        );
+      }
+
       log_error('update_patients_wc: mismatched patient_id_wc or duplicate wc patient registration?', [$created, $patient[0]]);
     }
     else if ( ! empty($patient[0]['patient_id_cp'])) {
@@ -318,10 +324,14 @@ function update_patients_wc() {
         name_mismatch($updated['last_name'],  $updated['old_last_name'])
     ) {
 
-      SirumLog::alert(
-        'Patient Name Misspelled or Identity Changed?',
-        ["patient" => $updated]
-      );
+      if (
+        stripos($patient[0]['first_name'], 'TEST') === false
+        and stripos($patient[0]['last_name'], 'TEST') === false) {
+        SirumLog::alert(
+          'Patient Name Misspelled or Identity Changed?',
+          ["patient" => $updated]
+        );
+      }
 
       log_error("Patient Name Misspelled or Identity Changed?", $updated);
       //upsert_patient_wc($mysql, $updated['patient_id_wc'], 'first_name', $updated['old_first_name']);
