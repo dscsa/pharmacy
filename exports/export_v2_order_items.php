@@ -188,7 +188,7 @@ function pend_pick_list($item, $list) {
   //Pend after all forseeable errors are accounted for.
   $res = v2_fetch($pend_url, 'POST', $list['pend']);
 
-  log_notice("WebForm pend_pick_list", ['res' => $res, 'pend' => $list['pend'], 'item' => $item, 'pend_url' => $pend_url, 'count list' => count($list['list']), 'count pend' => count($list['pend'])]);
+  log_notice("WebForm pend_pick_list", get_defined_vars());
 }
 
 //Getting all inventory of a drug can be thousands of items.  Let's start with a low limit that we increase as needed
