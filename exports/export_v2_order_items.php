@@ -40,7 +40,6 @@ function v2_pend_item($item, $mysql) {
   save_pick_list($item, $list, $mysql);
 }
 
-//WARNING THIS UNPENDS AN ENTIRE ORDER.  NEEDS TO BE REFACTORED ALONG WITH v2 API TO BE DRUG/ITEM SPECIFIC
 function v2_unpend_item($item, $mysql) {
   log_notice("v2_unpend_item:".($item['days_dispensed_default'] ? 'Yes Days Dispensed Default' : 'No Days Dispensed Default'), "$item[rx_number]  $item[rx_dispensed_id] $item[days_dispensed_default]", $item);//.print_r($item, true);
 
@@ -54,7 +53,6 @@ function v2_unpend_item($item, $mysql) {
   save_pick_list($item, null, $mysql);
 }
 
-//WARNING THIS UNPENDS AN ENTIRE ORDER.  NEEDS TO BE REFACTORED ALONG WITH v2 API TO BE DRUG/ITEM SPECIFIC
 function unpend_pick_list($item) {
 
   $pend_group_refill  = pend_group_refill($item);
@@ -62,13 +60,13 @@ function unpend_pick_list($item) {
   $pend_group_manual  = pend_group_manual($item);
   $pend_group_new_patient = pend_group_new_patient($item);
 
-  echo "unpending orders $pend_group_refill, $pend_group_webform, $pend_group_manual, $pend_group_new_patient\n";
+  echo "unpending item $item[drug_generic] in $pend_group_refill, $pend_group_webform, $pend_group_manual, $pend_group_new_patient\n";
 
   //Once order is deleted it not longer has items so its hard to determine if the items were New or Refills so just delete both
-  $res_refill  = v2_fetch("/account/8889875187/pend/$pend_group_refill", 'DELETE');
-  $res_webform = v2_fetch("/account/8889875187/pend/$pend_group_webform", 'DELETE');
-  $res_manual  = v2_fetch("/account/8889875187/pend/$pend_group_manual", 'DELETE');
-  $res_new_patient = v2_fetch("/account/8889875187/pend/$pend_group_new_patient", 'DELETE');
+  $res_refill  = v2_fetch("/account/8889875187/pend/$pend_group_refill/$item[drug_generic]", 'DELETE');
+  $res_webform = v2_fetch("/account/8889875187/pend/$pend_group_webform/$item[drug_generic]", 'DELETE');
+  $res_manual  = v2_fetch("/account/8889875187/pend/$pend_group_manual/$item[drug_generic]", 'DELETE');
+  $res_new_patient = v2_fetch("/account/8889875187/pend/$pend_group_new_patient/$item[drug_generic]", 'DELETE');
 
   //Delete gdoc pick list
   $args = [
@@ -213,7 +211,7 @@ function pend_pick_list($item, $list) {
   $pend_group_name = pend_group_name($item);
   $qty = round($item['qty_dispensed_default']);
 
-  echo "pending item $pend_group_name:$item[drug_generic] - $qty";
+  echo "pending item $pend_group_name:$item[drug_generic] - $qty\n";
 
   $pend_url = "/account/8889875187/pend/$pend_group_name?repackQty=$qty";
 

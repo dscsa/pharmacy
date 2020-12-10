@@ -93,7 +93,7 @@ function update_order_items() {
 
     $item = get_full_item($deleted, $mysql, true);
 
-    //v2_unpend_item($item, $mysql);
+    v2_unpend_item($item, $mysql);
 
     export_gd_transfer_fax($item, 'update_order_items deleted'); //Internal logic determines if fax is necessary
 
