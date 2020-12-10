@@ -365,7 +365,7 @@ function set_days_and_message($item, $days, $message, $mysql) {
     UPDATE
       gp_rxs_grouped
     SET
-      rx_message_keys = $item[rx_message_key] -- Don't need GROUP_CONCAT() since last query to gp_rxs_single made all they keys the same
+      rx_message_keys = '$item[rx_message_key]' -- Don't need GROUP_CONCAT() since last query to gp_rxs_single made all they keys the same
     WHERE
       best_rx_number IN ('$rx_numbers')
   ";
