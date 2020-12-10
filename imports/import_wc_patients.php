@@ -113,9 +113,9 @@ function import_wc_patients() {
     }
   );
 
-  log_error("import_wc_patients cleaned: ", ['keys' => array_slice($keys, 0, 100, true), 'vals' => array_slice($patients[0], 0, 100, true)]);
+  log_notice("import_wc_patients cleaned: ", ['keys' => array_slice($keys, 0, 100, true), 'vals' => array_slice($patients[0], 0, 100, true)]);
 
   $mysql->replace_table("gp_patients_wc", $keys, $patients[0]);
 
-  log_error("import_wc_patients finish: ", ['keys' => array_slice($keys, 0, 100, true), 'vals' => array_slice($patients[0], 0, 100, true)]);
+  log_notice("import_wc_patients finish: ", ['keys' => array_slice($keys, 0, 100, true), 'vals' => array_slice($patients[0], 0, 100, true)]);
 }
