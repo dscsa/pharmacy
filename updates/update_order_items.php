@@ -96,8 +96,6 @@ function update_order_items() {
     //Don't Unpend here.  This is handled by count_item changes in update_orders_cp
     //Count Items will go down, triggering a CP Order Change
 
-    export_gd_transfer_fax($item, 'update_order_items deleted'); //Internal logic determines if fax is necessary
-
     //TODO Update Salesforce Order Total & Order Count & Order Invoice using REST API or a MYSQL Zapier Integration
   }
 
