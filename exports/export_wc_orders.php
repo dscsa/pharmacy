@@ -279,12 +279,21 @@ function export_wc_create_order($order, $reason)
 
     //if order is set, then its just a this order already exists error
     if (! empty($res['error']) or empty($res['order'])) {
-        if (stripos($first_item['first_name'], 'TEST') === false
-                and stripos($first_item['last_name'], 'TEST') === false) {
-            log_error("export_wc_create_order: res[error] for $url", [$reason, $res, $first_item]);
-        }
+      if (
+        stripos($first_item['first_name'], 'TEST') === false
+        and stripos($first_item['last_name'], 'TEST') === false) {
 
-        return;
+        SirumLog::alert(
+          "export_wc_create_order: res[error] for $url: need to create/rename WC patient",
+          [
+            'reason' => $reason,
+            'res' => $res,
+            'first_item' => $first_item
+          ]
+        );
+      }
+
+      return;
     }
 
     log_notice("export_wc_create_order: success for $url", [$reason, $res, $first_item]);

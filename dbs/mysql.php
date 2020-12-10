@@ -101,7 +101,7 @@ class Mysql {
           }
 
           $this->_emailError(['SQL No Resource Meta', $stmt, $message, $debug]);
-          $this->_emailError(['SQL No Resource Query', $sql]); //Character limit so this might not be logged
+          $this->_emailError(['SQL No Resource Query', $message, $sql]); //Character limit so this might not be logged
 
           return;
         }
