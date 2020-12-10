@@ -40,7 +40,7 @@ function v2_pend_item($item, $mysql) {
   save_pick_list($item, $list, $mysql);
 }
 
-
+//WARNING THIS UNPENDS AN ENTIRE ORDER.  NEEDS TO BE REFACTORED ALONG WITH v2 API TO BE DRUG/ITEM SPECIFIC
 function v2_unpend_item($item, $mysql) {
   log_notice("v2_unpend_item:".($item['days_dispensed_default'] ? 'Yes Days Dispensed Default' : 'No Days Dispensed Default'), "$item[rx_number]  $item[rx_dispensed_id] $item[days_dispensed_default]", $item);//.print_r($item, true);
 
@@ -54,6 +54,7 @@ function v2_unpend_item($item, $mysql) {
   save_pick_list($item, null, $mysql);
 }
 
+//WARNING THIS UNPENDS AN ENTIRE ORDER.  NEEDS TO BE REFACTORED ALONG WITH v2 API TO BE DRUG/ITEM SPECIFIC
 function unpend_pick_list($item) {
 
   $pend_group_refill  = pend_group_refill($item);

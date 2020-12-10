@@ -485,7 +485,7 @@ function update_orders_cp() {
             foreach ($order as $item) {
 
                 if ($item['count_pended_total'] AND ! $item['days_dispensed']) {
-                    v2_unpend_item($item, $mysql);
+                    //v2_unpend_item($item, $mysql);
                 }
 
                 if (!$item['count_pended_total'] AND $item['days_dispensed']) {
