@@ -38,12 +38,12 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
             strtotime($patient_or_order[$i]['rx_date_expired'] . ' -1 year')
         );
 
-        //If this is full_patient was don't JOIN the order_items/order tables so those fields will not be set here
-        $overwrite   = ($overwrite_rx_messages === true
+        //Overwrite refers to the rx_single and rx_grouped table not the order_items table which deliberitely keeps its initial values
+        $overwrite = ($overwrite_rx_messages === true
                             or strpos($patient_or_order[$i]['rx_numbers'], $overwrite_rx_messages) !== false);
-        $set_msgs    = (! $patient_or_order[$i]['rx_message_key']
+        $set_msgs  = (! $patient_or_order[$i]['rx_message_key']
                             or is_null($patient_or_order[$i]['rx_message_text']));
-        $set_days    = (@$patient_or_order[$i]['item_date_added']
+        $set_days  = (@$patient_or_order[$i]['item_date_added']
                             and is_null($patient_or_order[$i]['days_dispensed_default']));
 
         SirumLog::notice(

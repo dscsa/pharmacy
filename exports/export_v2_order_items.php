@@ -59,24 +59,24 @@ function unpend_pick_list($item) {
   log_notice("unpend_pick_list", get_defined_vars());
 }
 
-function save_pick_list($item, $vals, $mysql) {
+function save_pick_list($item, $list, $mysql) {
 
-  if ( ! $vals) return; //List could not be made
+  log_notice('save_pick_list', get_defined_vars());
+
+  if ( ! $list) return; //List could not be made
 
   $sql = "
     UPDATE
       gp_order_items
     SET
-      qty_pended_total = $vals[qty],
-      qty_pended_repacks = $vals[qty_repacks],
-      count_pended_total = $vals[count],
-      count_pended_repacks = $vals[count_repacks]
+      qty_pended_total = $list[qty],
+      qty_pended_repacks = $list[qty_repacks],
+      count_pended_total = $list[count],
+      count_pended_repacks = $list[count_repacks]
     WHERE
       invoice_number = $item[invoice_number] AND
       rx_number = $item[rx_number]
   ";
-
-  //log_notice('save_pick_list', get_defined_vars());
 
   $mysql->run($sql);
 }
@@ -93,11 +93,11 @@ function pick_list_suffix($item) {
   return $item['drug_generic'];
 }
 
-function print_pick_list($item, $vals) {
+function print_pick_list($item, $list) {
 
   $pend_group_name = pend_group_name($item);
 
-  if ( ! $vals) return; //List could not be made
+  if ( ! $list) return; //List could not be made
 
   $header = [
     [
@@ -105,10 +105,10 @@ function print_pick_list($item, $vals) {
     [
       "Rx $item[rx_number]. $item[rx_message_key]. Item Added:$item[item_date_added]. Created ".date('Y-m-d H:i:s'), '', '' ,'', '', ''],
     [
-      $vals['half_fill'].
-      "Count:$vals[count], ".
+      $list['half_fill'].
+      "Count:$list[count], ".
       "Days:$item[days_dispensed_default], ".
-      "Qty:$item[qty_dispensed_default] ($vals[qty]), ".
+      "Qty:$item[qty_dispensed_default] ($list[qty]), ".
       "Stock:$item[stock_level_initial], ",
       '', '', '', '', ''
     ],
@@ -120,13 +120,13 @@ function print_pick_list($item, $vals) {
     'method'   => 'newSpreadsheet',
     'file'     => pick_list_name($item),
     'folder'   => PICK_LIST_FOLDER_NAME,
-    'vals'     => array_merge($header, $vals['list']), //merge arrays, make sure array is not associative or json will turn to object
+    'vals'     => array_merge($header, $list['list']), //merge arrays, make sure array is not associative or json will turn to object
     'widths'   => [1 => 243] //show the full id when it prints
   ];
 
   $result = gdoc_post(GD_HELPER_URL, $args);
 
-  log_notice("WebForm print_pick_list $pend_group_name", ['item' => $item, 'count list' => count($vals['list']), 'count pend' => count($vals['pend'])]); //We don't need full shopping list cluttering logs
+  log_notice("WebForm print_pick_list $pend_group_name", ['item' => $item, 'count list' => count($list['list']), 'count pend' => count($list['pend'])]); //We don't need full shopping list cluttering logs
 
 }
 
@@ -176,9 +176,9 @@ function pend_group_name($item) {
 }
 
 
-function pend_pick_list($item, $vals) {
+function pend_pick_list($item, $list) {
 
-  if ( ! $vals) return; //List could not be made
+  if ( ! $list) return; //List could not be made
 
   $pend_group_name = pend_group_name($item);
   $qty = round($item['qty_dispensed_default']);
@@ -186,9 +186,9 @@ function pend_pick_list($item, $vals) {
   $pend_url = "/account/8889875187/pend/$pend_group_name?repackQty=$qty";
 
   //Pend after all forseeable errors are accounted for.
-  $res = v2_fetch($pend_url, 'POST', $vals['pend']);
+  $res = v2_fetch($pend_url, 'POST', $list['pend']);
 
-  log_notice("WebForm pend_pick_list", ['res' => $res, 'pend' => $vals['pend'], 'item' => $item, 'pend_url' => $pend_url, 'count list' => count($vals['list']), 'count pend' => count($vals['pend'])]);
+  log_notice("WebForm pend_pick_list", ['res' => $res, 'pend' => $list['pend'], 'item' => $item, 'pend_url' => $pend_url, 'count list' => count($list['list']), 'count pend' => count($list['pend'])]);
 }
 
 //Getting all inventory of a drug can be thousands of items.  Let's start with a low limit that we increase as needed
