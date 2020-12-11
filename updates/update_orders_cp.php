@@ -484,13 +484,17 @@ function update_orders_cp() {
 
             foreach ($order as $item) {
 
-              $changes[] = "$item[drug_name] item_date_added:$item[item_date_added] count_pended_total:$item[count_pended_total] days_dispensed_default:$item[days_dispensed_default] days_dispensed_actual:$item[days_dispensed_actual]";
+              $match  = ($updated['rx_number'] == $item['rx_number']);
+              $unpend = $item['count_pended_total'] AND ! $item['days_dispensed'];
+              $pend   = ! $item['count_pended_total'] AND $item['days_dispensed'];
 
-              if ($item['count_pended_total'] AND ! $item['days_dispensed']) {
+              $changes[] = "$item[drug_name] match:$match unpend:$unpend pend:$pend item_date_added:$item[item_date_added] count_pended_total:$item[count_pended_total] days_dispensed_default:$item[days_dispensed_default] days_dispensed_actual:$item[days_dispensed_actual]";
+
+              if ($unpend) {
                 v2_unpend_item($item, $mysql);
               }
 
-              if (!$item['count_pended_total'] AND $item['days_dispensed']) {
+              if ($pend) {
                 v2_pend_item($item, $mysql);
               }
             }
