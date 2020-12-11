@@ -272,6 +272,10 @@ function update_rxs_single() {
 
       $item = get_full_item($updated, $mysql, true);
 
+      if ( ! $item['refills_used'] AND $updated['rx_autofill']) {
+        continue; //Don't log when a patient first registers
+      }
+
       SirumLog::debug(
         "update_rxs_single: about to call export_cp_rx_autofill()",
         [
