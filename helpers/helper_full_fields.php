@@ -85,7 +85,8 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
             export_cp_set_rx_message($patient_or_order[$i], $message);
 
             //Internal logic determines if fax is necessary
-            export_gd_transfer_fax($patient_or_order[$i], 'helper full fields');
+            if ($set_days or $set_msgs) //Sending because of overwrite may cause multiple faxes for same item
+              export_gd_transfer_fax($patient_or_order[$i], 'helper full fields');
 
             if ($patient_or_order[$i]['sig_days'] and $patient_or_order[$i]['sig_days'] != 90) {
               log_notice("helper_full_order: sig has days specified other than 90", $patient_or_order[$i]);
