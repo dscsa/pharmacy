@@ -3,7 +3,7 @@
 require_once 'dbs/mysql_wc.php';
 require_once 'helpers/helper_changes.php';
 
-//We don't import "Returned" orders from CP but we don't want that to trigger a delete
+//This was left over from importing liCount > 0.  Not sure if its needed anymore.  Might be needed again if we only import recent orders
 function cp_orders_get_deleted_sql($new, $old, $id) {
 
   $join = join_clause($id);
@@ -18,11 +18,11 @@ function cp_orders_get_deleted_sql($new, $old, $id) {
     WHERE
       new.$id IS NULL
     AND
-      old.order_date_returned IS NULL
+      old.tracking_number IS NULL
   ";
 }
 
-//Only auto-delete orders without tracking numbers
+//This was left over from importing liCount > 0.  Not sure if its needed anymore.  Might be needed again if we only import recent orders
 function cp_orders_set_deleted_sql($new, $old, $id) {
 
   $join = join_clause($id);

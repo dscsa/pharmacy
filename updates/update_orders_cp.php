@@ -306,7 +306,7 @@ function update_orders_cp() {
         SirumLog::$subroutine_id = "orders-cp-deleted-".sha1(serialize($deleted));
 
         SirumLog::debug(
-            'Carepoint Order has been deleted',
+            'update_orders_cp: carepoint order has been deleted',
             [
               'source'         => 'CarePoint',
               'event'          => 'deleted',
@@ -349,11 +349,23 @@ function update_orders_cp() {
 
         export_v2_unpend_order([$deleted]);
 
-        $sql = "
+        $delete_items_sql = "
+          DELETE gp_order_items
+          FROM gp_order_items
+          JOIN gp_rxs_single
+            ON gp_rxs_single.rx_number = gp_order_items.rx_number
+          WHERE
+            rx_dispensed_id IS NULL AND
+            invoice_number = $deleted[invoice_number]
+        ";
+
+        $mysql->run($delete_items_sql);
+
+        $patient_exists_sql = "
           SELECT * FROM gp_patients WHERE patient_id_cp = $deleted[patient_id_cp]
         ";
 
-        $patient = $mysql->run($sql)[0];
+        $patient = $mysql->run($patient_exists_sql)[0];
 
         if ( ! $patient)
           log_error('No patient associated with deleted order (Patient Deactivated/Deceased/Moved out of State)', ['deleted' => $deleted, 'sql' => $sql]);
