@@ -41,8 +41,9 @@ function import_cp_orders() {
       LEFT JOIN csom_ship ON csom.order_id = csom_ship.order_id -- CsOmShipUpdate won't have tracking numbers that Cindy inputted manually
     WHERE
       ISNULL(status_cn, 0) <> 3
+      AND pat_id IS NOT NULL -- Some GRX orders link 1170, 32968 have no patient
+
       -- AND liCount > 0 -- SureScript Authorization Denied, Webform eRx (before Rxs arrive), Webform Transfer (before transfer made)
-      -- AND pat_id IS NOT NULL -- Some GRX orders link 1170 have no patient (now removed so now commented this out)!?
   ");
 
   if ( ! count($orders[0])) return log_error('No Cp Orders to Import', get_defined_vars());
