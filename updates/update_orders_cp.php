@@ -498,7 +498,8 @@ function update_orders_cp() {
 
         if ($updated['count_items'] != $updated['old_count_items']) {
             $log = "update_orders_cp: count items changed $updated[invoice_number]: $updated[old_count_items] -> $updated[count_items]";
-            $changes = [];
+            $changes    = [];
+            $duplicates = [];
 
             foreach ($order as $item) {
 
@@ -506,18 +507,36 @@ function update_orders_cp() {
               $unpend = $item['count_pended_total'] AND ! $item['days_dispensed'];
               $pend   = ! $item['count_pended_total'] AND $item['days_dispensed'];
 
-              $changes[] = "$item[drug_name] match:$match unpend:$unpend pend:$pend item_date_added:$item[item_date_added] count_pended_total:$item[count_pended_total] days_dispensed_default:$item[days_dispensed_default] days_dispensed_actual:$item[days_dispensed_actual]";
+              $changes[] = "$updated[invoice_number] $item[drug_name] match:$match unpend:$unpend pend:$pend item_date_added:$item[item_date_added] count_pended_total:$item[count_pended_total] days_dispensed_default:$item[days_dispensed_default] days_dispensed_actual:$item[days_dispensed_actual]";
 
               if ($unpend) {
+                //TODO remove item from order too?  Do that here or somewhere else?
                 v2_unpend_item($item, $mysql);
               }
 
               if ($pend) {
                 v2_pend_item($item, $mysql);
               }
+
+              //Make sure order doesn't have more than 1 item per rx_group (SureScripts could have added a duplicate Rx to the order)
+              //TODO should we put a UNIQUE contstaint on the rxs_grouped table for bestrx_number and rx_numbers, so that it fails hard
+              if ( ! $duplicates[$item['best_rx_number']])
+                $duplicates[$item['best_rx_number']] = [$item];
+              else {
+                $duplicates[$item['best_rx_number']][] = $item;
+
+                SirumLog::alert(
+                  "DUPLICATE RX GROUPED WITHIN THIS ORDER",
+                  [
+                    'invoice_number' => $updated['invoice_number'],
+                    'duplicates'     => $duplicates[$item['best_rx_number']],
+                    'best_rx_number' => $item['best_rx_number']
+                  ]
+                );
+              }
             }
 
-            log_error($log, ['changes' => $changes, 'order' => $order, 'updated' => $updated]); //How do we want to handle changes to orders since we are not notifying patients on changes.
+            log_error($log, ['changes' => $changes, 'order' => $order, 'updated' => $updated, 'duplicates' => $duplicates]); //How do we want to handle changes to orders since we are not notifying patients on changes.
 
             $order = helper_update_payment($order, $log, $mysql); //This also updates payment
             export_wc_update_order($order);

@@ -33,6 +33,7 @@ function get_full_item($item, $mysql, $overwrite_rx_messages = false) {
   $query = $mysql->run($sql);
 
   if (isset($query[0][0])) {
+
     $full_item = $query[0][0];
 
     if ( ! $full_item['drug_generic']) {
