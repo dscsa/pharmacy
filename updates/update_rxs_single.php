@@ -247,7 +247,7 @@ function update_rxs_single() {
 
   /* Finish Created Loop #2 */
 
-
+  $sf_cache = [];
   /*
    * Updated Loop
    */
@@ -287,22 +287,36 @@ function update_rxs_single() {
         ]
       );
 
+      //We need this because even if we change all rxs at the same time, pharmacists might just switch one Rx in CP so we need this to maintain consistency
       export_cp_rx_autofill($item, $mssql);
 
       $status  = $updated['rx_autofill'] ? 'ON' : 'OFF';
+      $body    = "$item[drug_name] autofill turned $status for $item[rx_numbers]"; //Used as cache key
       $created = "Created:".date('Y-m-d H:i:s');
 
-      $salesforce = [
-        "subject"   => "Autofill turned $status for $item[drug_name]",
-        "body"      => "$item[drug_name] autofill turned $status for $item[rx_numbers] $created",
-        "contact"   => "$item[first_name] $item[last_name] $item[birth_date]"
-      ];
+      log_notice("update_rxs_single rx_autofill changed.  Updating all Rx's with same GSN to be on/off Autofill. Confirm correct updated rx_messages", [
+        'cache_key' => $body,
+        'sf_cache' => $sf_cache,
+        'updated' => $updated,
+        'changed' => $changed,
+        'item' => $item
+      ]);
 
-      $event_title = @$item['drug_name']." Autofill $status $salesforce[contact] $created";
+      if ( ! $sf_cache[$body]) {
 
-      create_event($event_title, [$salesforce]);
+        $sf_cache[$body] = true; //This caches it by body and for this one run (currently 10mins)
 
-      log_notice("update_rxs_single rx_autofill changed.  Updating all Rx's with same GSN to be on/off Autofill. Confirm correct updated rx_messages", ['updated' => $updated, 'changed' => $changed, 'item' => $item]);
+        $salesforce = [
+          "subject"   => "Autofill turned $status for $item[drug_name]",
+          "body"      => "$body $created",
+          "contact"   => "$item[first_name] $item[last_name] $item[birth_date]"
+        ];
+
+        $event_title = @$item['drug_name']." Autofill $status $salesforce[contact] $created";
+
+        create_event($event_title, [$salesforce]);
+
+      }
     }
 
     if ($updated['rx_gsn'] AND ! $updated['old_rx_gsn']) {
