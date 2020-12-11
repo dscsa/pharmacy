@@ -41,16 +41,20 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
         //Overwrite refers to the rx_single and rx_grouped table not the order_items table which deliberitely keeps its initial values
         $overwrite = ($overwrite_rx_messages === true
                             or strpos($patient_or_order[$i]['rx_numbers'], $overwrite_rx_messages) !== false);
-        $set_msgs  = (! $patient_or_order[$i]['rx_message_key']
-                            or is_null($patient_or_order[$i]['rx_message_text']));
-        $set_days  = (@$patient_or_order[$i]['item_date_added']
-                            and is_null($patient_or_order[$i]['days_dispensed_default']));
+
+        $set_days_and_msgs  = (
+          ! $patient_or_order[$i]['rx_message_key']
+          or is_null($patient_or_order[$i]['rx_message_text']));
+          or (
+            @$patient_or_order[$i]['item_date_added']
+            and is_null($patient_or_order[$i]['days_dispensed_default']
+          )
+        );
 
         SirumLog::notice(
           "add_full_fields",
           [
-            "set_days"               => $set_days,
-            "set_msgs"               => $set_msgs,
+            "set_days_and_msgs"      => $set_days_and_msgs,
             "overwrite"              => $overwrite,
             "missing_msg"            => $missing_msg,
             "overwrite_rx_messages"  => $overwrite_rx_messages,
@@ -59,7 +63,7 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
           ]
         );
 
-        if ($set_days or $set_msgs or $overwrite) {
+        if ($set_days_and_msgs or $overwrite) {
 
             list($days, $message) = get_days_and_message($patient_or_order[$i], $patient_or_order);
 
@@ -85,7 +89,7 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
             export_cp_set_rx_message($patient_or_order[$i], $message);
 
             //Internal logic determines if fax is necessary
-            if ($set_days or $set_msgs) //Sending because of overwrite may cause multiple faxes for same item
+            if ($set_days_and_msgs) //Sending because of overwrite may cause multiple faxes for same item
               export_gd_transfer_fax($patient_or_order[$i], 'helper full fields');
 
             if ($patient_or_order[$i]['sig_days'] and $patient_or_order[$i]['sig_days'] != 90) {
@@ -100,8 +104,7 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
               'item' => $patient_or_order[$i],
               'days' => $days,
               'message' => $message,
-              'set_days' => $set_days,
-              'set_msgs' => $set_msgs,
+              'set_days_and_msgs' => $set_days_and_msgs,
               '! order[$i][rx_message_key] '       => ! $patient_or_order[$i]['rx_message_key'],
               'is_null(order[$i][rx_message_text]' => is_null($patient_or_order[$i]['rx_message_text'])
             ]

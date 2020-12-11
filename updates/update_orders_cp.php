@@ -474,6 +474,12 @@ function update_orders_cp() {
         }
 
         /*
+         * TODO This is a footgun.  Detecting count_item changes will miss any order_item changes that are NET 0 eg if one
+         * order_item is added to the order and one order_item is removed from the order within the same 10mins span.
+         * Consider refactoring this to rely on order_item changes directly.  Or using a the order change date to determine
+         * if the above footgun is true by exclusion (the change_date updates and its not a status change and its not X, Y, Z so it must be that the order_items changed. )
+         *
+         *
          * TODO Do we want to sync orders upon updates?  On all updates (manual changes, new surescripts, new faxes/transfers).
          * Do we need to send patients updates on these changes?
          *
