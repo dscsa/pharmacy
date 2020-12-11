@@ -44,10 +44,10 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
 
         $set_days_and_msgs  = (
           ! $patient_or_order[$i]['rx_message_key']
-          or is_null($patient_or_order[$i]['rx_message_text']))
+          or is_null($patient_or_order[$i]['rx_message_text'])
           or (
             @$patient_or_order[$i]['item_date_added']
-            and is_null($patient_or_order[$i]['days_dispensed_default']
+            and is_null($patient_or_order[$i]['days_dispensed_default'])
           )
         );
 
