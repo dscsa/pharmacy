@@ -109,7 +109,8 @@ function update_orders_cp() {
           ]
         );
 
-        if ($created['order_status'] == "Surescripts Authorization Denied")
+        //TODO Add Webform Transfer [w/ Note] here as well
+        if ($created['order_status'] == "Surescripts Authorization Denied") {
           SirumLog::error(
             "Surescripts Authorization Denied. Created. What to do here?  Resend?  Retrieve Reason?  Delete Order?",
             [
@@ -119,6 +120,9 @@ function update_orders_cp() {
               'event'   => 'created'
             ]
           );
+
+          continue; //Not sure what we should do here
+        }
 
         $order = get_full_order($created, $mysql, true);
 
