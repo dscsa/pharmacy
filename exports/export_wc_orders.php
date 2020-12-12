@@ -158,25 +158,23 @@ function wc_update_order($invoice_number, $orderdata)
 
     $set = [];
 
-    $post_id = wc_get_post_id($invoice_number);
+    $wc_order = wc_get_post_id($invoice_number, true);
 
     foreach ($orderdata as $order_key => $order_value) {
-        if (is_array($order_value)) {
-            $order_value = json_encode($order_value);
-        }
+      if (is_array($order_value)) {
+          $order_value = json_encode($order_value);
+      }
 
-        $order_value = clean_val($order_value);
+      $order_value = clean_val($order_value);
 
-        $set[] = "$order_key = $order_value";
+      $set[] = "$order_key = $order_value";
     }
 
     $sql = "UPDATE wp_posts
                 SET ".implode(', ', $set)."
-                WHERE ID = $post_id;";
+                WHERE ID =  $wc_order[post_id];";
 
     if (@$orderdata['post_status']) {
-
-        $wc_order = wc_get_post_id($invoice_number, true);
 
         $old_status = $wc_order['post_status'];
 
