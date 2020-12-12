@@ -121,7 +121,7 @@ function update_orders_cp() {
             ]
           );
 
-          continue; //Not sure what we should do here
+          continue; //Not sure what we should do here.  Process them?  Patient communication?
         }
 
         $order = get_full_order($created, $mysql, true);
@@ -565,6 +565,8 @@ function update_orders_cp() {
               }
 
               if ($pend) {
+                //Don't pend.  It could be a new surcript that came in, creating a new order_item.  But we alraeady contact patient
+                //How should we handle this?
                 v2_pend_item($item, $mysql);
               }
 

@@ -131,8 +131,8 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
             AND $patient_or_order[$i]['payment_method_default'] != PAYMENT_METHOD['CARD EXPIRED']
         ) {
           log_error(
-            'add_full_fields: payment_method_actual is set but does not equal'.
-            'payment_method_default. Was coupon removed?',
+            'add_full_fields: payment_method_actual ('.$patient_or_order[$i]['payment_method'].') is set but does not equal '.
+            'payment_method_default ('.$patient_or_order[$i]['payment_method_default'].'). Did customer click on wrong payment type? Was coupon removed?',
             get_defined_vars()
           );
 
