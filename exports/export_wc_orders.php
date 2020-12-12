@@ -3,7 +3,7 @@
 global $mysql;
 use Sirum\Logging\SirumLog;
 
-function wc_get_post_id($invoice_number, $full_order = false)
+function wc_get_post($invoice_number, $wc_order_key = null)
 {
     global $mysql;
     $mysql = $mysql ?: new Mysql_Wc();
@@ -16,14 +16,14 @@ function wc_get_post_id($invoice_number, $full_order = false)
     $res = $mysql->run($sql);
 
     if (isset($res[0][0])) {
-        return $full_order ? $res[0][0] : $res[0][0]['post_id'];
+        return $wc_order_key ? $res[0][0][$wc_order_key] : $res[0][0];
     }
 
     SirumLog::alert(
       "Order $invoice_number doesn't seem to exist in wp_posts",
       [
         "invoice_number" => $invoice_number,
-        "meta_values"    => $metadata,
+        "wc_order_key"   => $wc_order_key,
         "res"            => $res,
         "sql"            => $sql
       ]
@@ -66,7 +66,7 @@ function wc_update_meta($invoice_number, $metadata)
     global $mysql;
     $mysql = $mysql ?: new Mysql_Wc();
 
-    $post_id = wc_get_post_id($invoice_number);
+    $post_id = wc_get_post($invoice_number, 'post_id');
 
     if (! $post_id) {
         return SirumLog::warning(
@@ -158,7 +158,7 @@ function wc_update_order($invoice_number, $orderdata)
 
     $set = [];
 
-    $wc_order = wc_get_post_id($invoice_number, true);
+    $wc_order = wc_get_post($invoice_number);
 
     foreach ($orderdata as $order_key => $order_value) {
       if (is_array($order_value)) {
@@ -220,9 +220,9 @@ function export_wc_delete_order($invoice_number, $reason)
     global $mysql;
     $mysql = $mysql ?: new Mysql_Wc();
 
-    $post_id = wc_get_post_id($invoice_number);
+    $post_id = wc_get_post($invoice_number, 'post_id');
 
-    if (! $post_id) {
+    if ( ! $post_id) {
         return log_error("export_wc_delete_order: cannot delete if no post_id", get_defined_vars());
     }
 
@@ -266,12 +266,12 @@ function export_wc_create_order($order, $reason)
     $birth_date     = str_replace('*', '', $first_item['birth_date']); //Ignore Cindy's internal marking
 
     //START DEBUG
-    $wc_order = wc_get_post_id($invoice_number, true);
+    $post_id = wc_get_post($invoice_number, 'post_id');
 
-    if ($wc_order) {
+    if ($post_id) {
         log_error(
             "export_wc_create_order: aborting create WC order because it already exists",
-            [$first_item, $wc_order, $reason]
+            [$first_item, $post_id, $reason]
         );
         return $order;
     }
@@ -385,13 +385,13 @@ function export_wc_update_order($order)
 function export_wc_update_order_metadata($order, $meta_fn = 'wc_update_meta')
 {
     if (! $order[0]['order_stage_wc']) {
-        return log_error('export_wc_update_order_metadata: no order_stage_wc', get_defined_vars());
+      return log_error('export_wc_update_order_metadata: no order_stage_wc', get_defined_vars());
     }
 
-    $post_id = wc_get_post_id($order[0]['invoice_number']);
+    $post_id = wc_get_post($order[0]['invoice_number'], 'post_id');
 
-    if (! $post_id) {
-        return log_error('export_wc_update_order_metadata: order missing', get_defined_vars());
+    if ( ! $post_id) {
+      return log_error('export_wc_update_order_metadata: order missing', get_defined_vars());
     }
 
     $metadata = [
@@ -423,9 +423,9 @@ function export_wc_update_order_metadata($order, $meta_fn = 'wc_update_meta')
 
 function export_wc_update_order_address($order, $meta_fn = 'wc_update_meta')
 {
-    $post_id = wc_get_post_id($order[0]['invoice_number']);
+    $post_id = wc_get_post($order[0]['invoice_number'], 'post_id');
 
-    if (! $post_id) {
+    if ( ! $post_id) {
         return log_error('export_wc_update_order_shipping: order missing', get_defined_vars());
     }
 
@@ -471,7 +471,7 @@ function export_wc_update_order_payment($invoice_number, $payment_fee, $payment_
     ]
   );
 
-  $post_id = wc_get_post_id($invoice_number);
+  $post_id = wc_get_post($invoice_number, 'post_id');
 
   if (!$post_id) {
     SirumLog::warn(

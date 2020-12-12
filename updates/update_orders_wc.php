@@ -163,7 +163,7 @@ function update_orders_wc()
         } elseif ($deleted['order_stage_cp'] == 'Shipped' or $deleted['order_stage_cp'] == 'Dispensed') {
             $gp_orders_wc = $mysql->run("SELECT * FROM gp_orders_wc WHERE invoice_number = $deleted[invoice_number]")[0];
             $gp_orders = $mysql->run("SELECT * FROM gp_orders WHERE invoice_number = $deleted[invoice_number]")[0];
-            $wc_orders = wc_get_post_id($deleted['invoice_number']);
+            $wc_orders = wc_get_post($deleted['invoice_number']);
 
             $order = helper_update_payment($order, "update_orders_wc: deleted - unknown reason", $mysql);
 
@@ -176,7 +176,7 @@ function update_orders_wc()
             //If less than an hour, this is likely because of our IMPORT ordering since we import WC Orders before CP some orders can show up in this deleted feed.
             log_error("update_orders_wc: WC Order $deleted[invoice_number] appears to be DELETED but likely because or the IMPORT ordering", $deleted);
         } else {
-            $wc_orders = wc_get_post_id($deleted['invoice_number'], true);
+            $wc_orders = wc_get_post($deleted['invoice_number']);
 
             $sql = get_deleted_sql("gp_orders_wc", "gp_orders", "invoice_number");
 
