@@ -172,7 +172,7 @@ function wc_update_order($invoice_number, $orderdata)
 
     $sql = "UPDATE wp_posts
                 SET ".implode(', ', $set)."
-                WHERE ID =  $wc_order[post_id];";
+                WHERE ID = $wc_order[post_id];";
 
     if (@$orderdata['post_status']) {
 

@@ -102,16 +102,27 @@ function update_orders_cp() {
         SirumLog::debug(
           "get_full_order: Carepoint Order created",
           [
+            'created' => $created,
+            'source'  => 'CarePoint',
+            'type'    => 'orders',
+            'event'   => 'created'
+          ]
+        );
+
+        if ($created['order_status'] == "Surescripts Authorization Denied")
+          SirumLog::error(
+            "Surescripts Authorization Denied. Created. What to do here?  Resend?  Retrieve Reason?  Delete Order?",
+            [
               'created' => $created,
               'source'  => 'CarePoint',
               'type'    => 'orders',
               'event'   => 'created'
-          ]
-        );
+            ]
+          );
 
         $order = get_full_order($created, $mysql, true);
 
-        if (!$order) {
+        if ( ! $order) {
             SirumLog::debug(
                 "Created Order Missing.  Most likely because cp order has liCount >
                   0 even though 0 items in order.  If correct, update liCount in CP to 0",
@@ -128,6 +139,18 @@ function update_orders_cp() {
             'created'        => $created
           ]
         );
+
+        if ($order[0]['order_status'] == "Surescripts Authorization Approved")
+          SirumLog::error(
+            "Surescripts Authorization Approved. Created.  What to do here?  Keep Order? Delete Order? Depends on Autofill settings?",
+            [
+              'invoice_number'   => $order[0]['invoice_number'],
+              'count_items'      => count($order)." / ".$order['count_items'],
+              'patient_autofill' => $order[0]['patient_autofill'],
+              'rx_autofill'      => $order[0]['rx_autofill'],
+              'order'            => $order
+            ]
+          );
 
         if ($order[0]['order_stage_wc'] == 'wc-processing') {
             SirumLog::debug(
@@ -315,6 +338,27 @@ function update_orders_cp() {
               'deleted'        => $deleted
             ]
         );
+
+        if ($deleted['order_status'] == "Surescripts Authorization Denied")
+          SirumLog::error(
+            "Surescripts Authorization Denied. Deleted. What to do here?  Resend?  Retrieve Reason?  Delete Order?",
+            [
+              'deleted' => $deleted,
+              'source'  => 'CarePoint',
+              'type'    => 'orders',
+              'event'   => 'deleted'
+            ]
+          );
+
+        if ($deleted['order_status'] == "Surescripts Authorization Approved")
+          SirumLog::error(
+            "Surescripts Authorization Approved. Created.  What to do here?  Keep Order? Delete Order? Depends on Autofill settings?",
+            [
+              'invoice_number'   => $deleted['invoice_number'],
+              'count_items'      => $deleted['count_items'],
+              'deleted'            => $deleted
+            ]
+          );
 
       //Order #28984, #29121, #29105
         if (!$deleted['patient_id_wc']) {
