@@ -12,7 +12,9 @@ function get_full_item($item, $mysql, $overwrite_rx_messages = false) {
   $sql = "
     SELECT
       *,
-      gp_rxs_grouped.*
+      gp_rxs_grouped.*,
+      gp_order_items.invoice_number as dontuse_item_invoice,
+      gp_orders.invoice_number as dontuse_order_invoice
     FROM
       gp_rxs_single
     JOIN gp_patients ON
