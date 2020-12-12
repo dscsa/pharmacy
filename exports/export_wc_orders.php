@@ -18,6 +18,16 @@ function wc_get_post_id($invoice_number, $full_order = false)
     if (isset($res[0][0])) {
         return $full_order ? $res[0][0] : $res[0][0]['post_id'];
     }
+
+    SirumLog::alert(
+      "Order $invoice_number doesn't seem to exist in wp_posts",
+      [
+        "invoice_number" => $invoice_number,
+        "meta_values"    => $metadata,
+        "res"            => $res,
+        "sql"            => $sql
+      ]
+    );
 }
 
 /**
@@ -165,20 +175,17 @@ function wc_update_order($invoice_number, $orderdata)
                 WHERE ID = $post_id;";
 
     if (@$orderdata['post_status']) {
-        $res = $mysql->run("SELECT *
-                                FROM wp_posts
-                                JOIN wp_postmeta ON wp_posts.id = wp_postmeta.post_id
-                                WHERE wp_postmeta.meta_key='invoice_number'
-                                    AND wp_postmeta.meta_value = '{$invoice_number}'");
 
-        $old_status = $res[0][0]['post_status'];
+        $wc_order = wc_get_post_id($invoice_number, true);
 
-        if ($res[0][0]['post_status'] != $orderdata['post_status']) {
+        $old_status = $wc_order['post_status'];
+
+        if ($wc_order['post_status'] != $orderdata['post_status']) {
             log_notice("wc_update_order: status change $old_status >>> $orderdata[post_status]");
             wc_insert_meta(
                 $invoice_number,
                 [
-                    'status_update' => date('Y-m-d H:i:s')." Webform $old_status >>> $orderdata[post_status]"
+                  'status_update' => date('Y-m-d H:i:s')." Webform $old_status >>> $orderdata[post_status]"
                 ]
             );
         }
