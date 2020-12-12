@@ -44,6 +44,10 @@ function get_full_item($item, $mysql, $overwrite_rx_messages = false) {
       log_error("get_full_item: item_date_added but no invoice number?  small chance that order has not been imported yet", ['full_item' => $full_item, 'item' => $item, 'sql' => $sql]);
     }
 
+    if ( ! $full_item['item_date_added'] AND $full_item['invoice_number']) {
+      log_error("get_full_item: no item_date_added but invoice number?  is this an old invoice_number from order_items", ['full_item' => $full_item, 'item' => $item, 'sql' => $sql]);
+    }
+
     $item = add_full_fields([$full_item], $mysql, $overwrite_rx_messages)[0];
 
     return $full_item;
