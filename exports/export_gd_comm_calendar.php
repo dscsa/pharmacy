@@ -208,7 +208,7 @@ function transfer_requested_notice($groups) {
 //by building commication arrays based on github.com/dscsa/communication-calendar
 function order_hold_notice($groups, $missing_gsn = false) {
 
-  if ($groups['ALL']) {
+  if ($groups['COUNT_NOFILL']) {
     $subject = 'Good Pill is NOT filling your '.$groups['COUNT_NOFILL'].' items for Order #'.$groups['ALL'][0]['invoice_number'].'.';
     $message = '<u>We are NOT filling these Rxs:</u><br>'.implode(';<br>', array_merge($groups['NOFILL_NOACTION'], $groups['NOFILL_ACTION'])).';';
   } else {
@@ -223,7 +223,7 @@ function order_hold_notice($groups, $missing_gsn = false) {
   $trigger = '';
 
   //Empty Rx Profile
-  if ( ! $groups['ALL']) {
+  if ( ! $groups['COUNT_NOFILL']) {
     $trigger = 'We got your Order but';
   }
   //AUTOREFILL
