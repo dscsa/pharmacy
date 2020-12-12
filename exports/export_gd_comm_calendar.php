@@ -208,15 +208,26 @@ function transfer_requested_notice($groups) {
 //by building commication arrays based on github.com/dscsa/communication-calendar
 function order_hold_notice($groups, $missing_gsn = false) {
 
-  $subject = 'Good Pill is NOT filling your '.$groups['COUNT_NOFILL'].' items for Order #'.$groups['ALL'][0]['invoice_number'].'.';
-  $message = '<u>We are NOT filling these Rxs:</u><br>'.implode(';<br>', array_merge($groups['NOFILL_NOACTION'], $groups['NOFILL_ACTION'])).';';
+  if ($groups['ALL']) {
+    $subject = 'Good Pill is NOT filling your '.$groups['COUNT_NOFILL'].' items for Order #'.$groups['ALL'][0]['invoice_number'].'.';
+    $message = '<u>We are NOT filling these Rxs:</u><br>'.implode(';<br>', array_merge($groups['NOFILL_NOACTION'], $groups['NOFILL_ACTION'])).';';
+  } else {
+    //If patients have no Rxs on their profile then this will be empty.
+    $subject = 'Good Pill has not yet gotten your prescriptions.';
+    $message = 'We are still waiting on your doctor or pharmacy to send us your prescriptions';
+  }
 
   //[NULL, 'Webform Complete', 'Webform eRx', 'Webform Transfer', 'Auto Refill', '0 Refills', 'Webform Refill', 'eRx /w Note', 'Transfer /w Note', 'Refill w/ Note']
   //Unsure but "Null" seems to come from SureScript Orders OR Hand Entered Orders (Fax, Pharmacy Transfer, Hard Copy, Phone)
   /*SELECT rx_source, MAX(gp_orders.invoice_number), COUNT(*) FROM `gp_orders` JOIN gp_order_items ON gp_order_items.invoice_number = gp_orders.invoice_number JOIN gp_rxs_single ON gp_rxs_single.rx_number = gp_order_items.rx_number WHERE order_source IS NULL GROUP BY rx_source ORDER BY `gp_orders`.`order_source` DESC*/
   $trigger = '';
 
-  if ($groups['ALL'][0]['order_source'] == 'Auto Refill v2') {
+  //Empty Rx Profile
+  if ( ! $groups['ALL']) {
+    $trigger = 'We got your Order but';
+  }
+  //AUTOREFILL
+  else if ($groups['ALL'][0]['order_source'] == 'Auto Refill v2') {
     $trigger = 'Your Rx is due for a refill but';
     log_error('order_hold_notice: Not filling Auto Refill?', $groups);
   }

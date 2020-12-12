@@ -285,8 +285,9 @@ function update_orders_cp() {
             "Created & Pended Order",
             [
               'invoice_number' => $order[0]['invoice_number'],
-              'order' => $order,
-              'synced' => $synced
+              'order'  => $order,
+              'synced' => $synced,
+              'group'  => $group
             ]
           );
         } else {
@@ -296,6 +297,7 @@ function update_orders_cp() {
               'invoice_number' => $order[0]['invoice_number'],
               'source'         => $order[0]['order_source'],
               'order'          => $order,
+              'group'          => $group,
               'synced'         => $synced
             ]
           );
@@ -580,7 +582,7 @@ function update_orders_cp() {
               }
             }
 
-            log_error($log, ['changes' => $changes, 'order' => $order, 'updated' => $updated, 'duplicates' => $duplicates]); //How do we want to handle changes to orders since we are not notifying patients on changes.
+            log_notice($log, ['changes' => $changes, 'order' => $order, 'updated' => $updated, 'duplicates' => $duplicates]); //How do we want to handle changes to orders since we are not notifying patients on changes.
 
             $order = helper_update_payment($order, $log, $mysql); //This also updates payment
             export_wc_update_order($order);

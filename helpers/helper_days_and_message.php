@@ -233,9 +233,9 @@ function get_days_and_message($item, $patient_or_order) {
 
   if ($stock_level == STOCK_LEVEL['OUT OF STOCK']) {
 
-    if ($item['last_inventory'] > 500) {
+    if ($item['last_inventory'] > 750) {
 
-      log_error("helper_days_and_message: LIKELY ERROR: 'out of stock' but inventory > 500", get_defined_vars());
+      log_notice("helper_days_and_message: 'out of stock' but inventory > 750", get_defined_vars());
 
     } else if ($is_refill AND $days_default < DAYS_MIN) {
 

@@ -51,8 +51,10 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
           )
         );
 
+        $log_suffix = $patient_or_order[$i]['invoice_number'].' '.$patient_or_order[$i]['first_name'].' '.$patient_or_order[$i]['last_name'].' '.$patient_or_order[$i]['drug_generic'];
+
         SirumLog::notice(
-          "add_full_fields",
+          "add_full_fields $log_suffix",
           [
             "set_days_and_msgs"      => $set_days_and_msgs,
             "overwrite"              => $overwrite,
@@ -68,7 +70,7 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
             list($days, $message) = get_days_and_message($patient_or_order[$i], $patient_or_order);
 
             SirumLog::notice(
-              "get_days_and_message",
+              "get_days_and_message $log_suffix",
               [
                 "overwrite_rx_messages"      => $overwrite_rx_messages,
                 "rx_number"                  => $patient_or_order[$i]['rx_number'],
@@ -99,7 +101,7 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
 
         if ( ! $patient_or_order[$i]['rx_message_key'] or is_null($patient_or_order[$i]['rx_message_text'])) {
           log_error(
-            'add_full_fields: error rx_message not set!',
+            "add_full_fields: error rx_message not set! $log_suffix",
             [
               'item' => $patient_or_order[$i],
               'days' => $days,
@@ -171,14 +173,6 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
 
         if ($patient_or_order[$i]['days_dispensed']) {
           $count_filled++;
-        }
-
-        if (!$count_filled and (
-          $patient_or_order[$i]['days_dispensed']
-          or $patient_or_order[$i]['days_dispensed_default']
-          or $patient_or_order[$i]['days_dispensed_actual']
-        )) {
-          log_error('add_full_fields: What going on here?', get_defined_vars());
         }
 
         /*
