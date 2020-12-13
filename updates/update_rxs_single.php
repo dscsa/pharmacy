@@ -83,7 +83,7 @@ function update_rxs_single() {
     $parsed = get_parsed_sig($created['sig_actual'], $created['drug_name']);
 
     // If we have more than 8 a day, lets have a human verify the signature
-    if ($parsed['qty_per_day'] > 8) {
+    if ($parsed['qty_per_day'] > MAX_QTY_PER_DAY) {
       $created_date = "Created:".date('Y-m-d H:i:s');
       $salesforce   = [
         "subject"   => "Verify qty pended for $created[drug_name] for Rx #$created[rx_number]",

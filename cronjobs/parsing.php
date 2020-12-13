@@ -766,6 +766,7 @@ $test_sigs = [
   //Take 1 tablet by mouth 1 time per day then 2 times a day thereafter
   //Four tablets in AM and 4 Tablets in PM. #720 tablets every 90 days. 3 refills
   //1000 mcg every 2 weeks //CYANOCOBALAMIN 1,000MCG/ML
+  //"Take 1 tablet by mouth once daily on empty stomach WITH NO OTHER MEDS AND 30-45 MINUTES BEFORE BREAKFAST"
 
 ];
 

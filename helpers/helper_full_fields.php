@@ -127,7 +127,8 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
 
 
         if (
-            $patient_or_order[$i]['payment_method'] != $patient_or_order[$i]['payment_method_default']
+            $i == 0 //Same for every item in order
+            AND $patient_or_order[$i]['payment_method'] != $patient_or_order[$i]['payment_method_default']
             AND $patient_or_order[$i]['payment_method_default'] != PAYMENT_METHOD['CARD EXPIRED']
         ) {
           log_error(

@@ -9,6 +9,7 @@ const DAYS_MAX   = 120;
 const DAYS_UNIT  = 15;
 const DAYS_EARLY = 28;
 const NO_REFILL  = 0.1;
+const MAX_QTY_PER_DAY = 8;
 
 const ADDED_MANUALLY = [
   "MANUAL",
