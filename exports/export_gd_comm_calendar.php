@@ -145,9 +145,11 @@ function order_created_notice($groups) {
   $drug_list = '<br><br><u>These Rxs will be included once we confirm their availability:</u><br>';
 
   if ( ! $groups['ALL'][0]['refills_used']) {
+    $days = 0;
     $message   .= ' Your first order will only be $6 total for all of your medications.';
     $drug_list .= implode(';<br>', array_merge($groups['FILLED_ACTION'], $groups['FILLED_NOACTION'])).';';
   } else {
+    $days = $item['order_source'] == "Auto Refill v2" ? 10 : 7;  //TODO Remove.  This is a temp measure so people don't know if or how far we are behind
     $drug_list .= implode(';<br>', $groups['FILLED_WITH_PRICES']).';';
   }
 
@@ -177,7 +179,7 @@ function order_created_notice($groups) {
   remove_drugs_from_refill_reminders($groups['ALL'][0]['first_name'], $groups['ALL'][0]['last_name'], $groups['ALL'][0]['birth_date'], $groups['FILLED']);
 
   //Wait 15 minutes to hopefully batch staggered surescripts and manual rx entry and cindy updates
-  order_created_event($groups['ALL'], $email, $text, 15/60);
+  order_created_event($groups['ALL'], $email, $text, $days*24+15/60);
 }
 
 function transfer_requested_notice($groups) {
