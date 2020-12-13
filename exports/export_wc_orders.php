@@ -278,7 +278,7 @@ function export_wc_create_order($order, $reason)
   $birth_date     = str_replace('*', '', $first_item['birth_date']); //Ignore Cindy's internal marking
 
   //START DEBUG
-  $post_id = wc_get_post($invoice_number, 'post_id', $suppress_alert);
+  $post_id = wc_get_post($invoice_number, 'post_id', true);
 
   if ($post_id) {
     log_error(
