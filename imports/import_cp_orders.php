@@ -30,7 +30,7 @@ function import_cp_orders() {
       csom_ship.tracking_code as tracking_number,
       CONVERT(varchar, add_date, 20) as order_date_added,
       CONVERT(varchar, csom.ship_date, 20) as order_date_dispensed,
-      CONVERT(varchar, ship.ship_date, 20) as order_date_shipped,
+      CASE WHEN csom_ship.tracking_code IS NULL THEN ship.ship_date ELSE CONVERT(varchar, COALESCE(ship.ship_date, csom.ship_date), 20) END as order_date_shipped,
       CONVERT(varchar, chg_date, 20) as order_date_changed
     FROM csom
       LEFT JOIN cp_acct ON cp_acct.id = csom.acct_id

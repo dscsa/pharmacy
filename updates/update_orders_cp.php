@@ -450,14 +450,14 @@ function update_orders_cp() {
         SirumLog::$subroutine_id = "orders-cp-updated-".sha1(serialize($updated));
 
         SirumLog::debug(
-            'Carepoint Order has been updated',
-            [
-              'source'         => 'CarePoint',
-              'event'          => 'updated',
-              'invoice_number' => $updated['invoice_number'],
-              'type'           => 'orders',
-              'updated'        => $updated
-            ]
+          'Carepoint Order has been updated',
+          [
+            'source'         => 'CarePoint',
+            'event'          => 'updated',
+            'invoice_number' => $updated['invoice_number'],
+            'type'           => 'orders',
+            'updated'        => $updated
+          ]
         );
 
         $changed_fields  = changed_fields($updated);
@@ -473,15 +473,15 @@ function update_orders_cp() {
         $order = get_full_order($updated, $mysql);
 
         if (!$order) {
-            SirumLog::notice(
-                "Order not found",
-                [
-                  'order'          => $order,
-                  'updated'        => $updated
-                ]
-            );
-            log_error("Updated Order Missing", $order);
-            continue;
+          SirumLog::notice(
+            "Order not found",
+            [
+              'order'          => $order,
+              'updated'        => $updated
+            ]
+          );
+          log_error("Updated Order Missing", $order);
+          continue;
         }
 
         SirumLog::debug(
