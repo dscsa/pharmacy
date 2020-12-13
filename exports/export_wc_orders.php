@@ -278,7 +278,7 @@ function export_wc_create_order($order, $reason)
   $birth_date     = str_replace('*', '', $first_item['birth_date']); //Ignore Cindy's internal marking
 
   //START DEBUG
-  $post_id = wc_get_post($invoice_number, 'post_id');
+  $post_id = wc_get_post($invoice_number, 'post_id', $suppress_alert);
 
   if ($post_id) {
     log_error(
@@ -577,7 +577,7 @@ function wc_fetch($path, $method = 'GET', $content = null, $retry = false)
       ]
     );
     return wc_fetch($path, $method, $content, true);
-    
+
   } elseif (! $json) {
     log_error(
       "wc_fetch: no response attempt 2 of 2",
