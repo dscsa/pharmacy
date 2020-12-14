@@ -151,7 +151,7 @@ function update_orders_cp() {
             "Surescripts Authorization Approved. Created.  What to do here?  Keep Order? Delete Order? Depends on Autofill settings?",
             [
               'invoice_number'   => $order[0]['invoice_number'],
-              'count_items'      => count($order)." / ".$order['count_items'],
+              'count_items'      => count($order)." / ".@$order['count_items'],
               'patient_autofill' => $order[0]['patient_autofill'],
               'rx_autofill'      => $order[0]['rx_autofill'],
               'order'            => $order
@@ -293,7 +293,7 @@ function update_orders_cp() {
               'invoice_number' => $order[0]['invoice_number'],
               'order'  => $order,
               'synced' => $synced,
-              'group'  => $group
+              'groups' => $groups
             ]
           );
         } else {
@@ -303,7 +303,7 @@ function update_orders_cp() {
               'invoice_number' => $order[0]['invoice_number'],
               'source'         => $order[0]['order_source'],
               'order'          => $order,
-              'group'          => $group,
+              'groups'         => $groups,
               'synced'         => $synced
             ]
           );
@@ -400,7 +400,7 @@ function update_orders_cp() {
 
         export_wc_delete_order($deleted['invoice_number'], "update_orders_cp: cp order deleted $deleted[invoice_number] $deleted[order_stage_cp] $deleted[order_stage_wc] $deleted[order_source] ".json_encode($deleted));
 
-        export_v2_unpend_order([$deleted]);
+        export_v2_unpend_order([$deleted], $mysql);
 
         $delete_items_sql = "
           DELETE gp_order_items
@@ -487,20 +487,27 @@ function update_orders_cp() {
         SirumLog::debug(
           "Order found for updated order",
           [
-            'invoice_number' => $order[0]['invoice_number'],
-            'order'          => $order,
-            'updated'        => $updated
+            'invoice_number'     => $order[0]['invoice_number'],
+            'order'              => $order,
+            'updated'            => $updated,
+            'order_date_shipped' => $updated['order_date_shipped'],
+            'stage_change_cp'    => $stage_change_cp
           ]
         );
 
         if ($stage_change_cp AND $updated['order_date_shipped']) {
-            $groups = group_drugs($order, $mysql);
-            export_v2_unpend_order($order);
-            export_wc_update_order_status($order); //Update status from prepare to shipped
-            export_wc_update_order_metadata($order);
-            send_shipped_order_communications($groups);
-            log_notice("Updated Order Shipped", $order);
-            continue;
+          log_notice("Updated Order Shipped Started", $order);
+          $groups = group_drugs($order, $mysql);
+          log_notice("Updated Order Shipped 1", $order);
+          export_v2_unpend_order($order, $mysql);
+          log_notice("Updated Order Shipped 2", $order);
+          export_wc_update_order_status($order); //Update status from prepare to shipped
+          log_notice("Updated Order Shipped 3", $order);
+          export_wc_update_order_metadata($order);
+          log_notice("Updated Order Shipped 4", $order);
+          send_shipped_order_communications($groups);
+          log_notice("Updated Order Shipped Finished", $order);
+          continue;
         }
 
         if ($stage_change_cp AND $updated['order_date_dispensed']) {
