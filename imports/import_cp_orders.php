@@ -30,7 +30,7 @@ function import_cp_orders() {
       csom_ship.tracking_code as tracking_number,
       CONVERT(varchar, add_date, 20) as order_date_added,
       CONVERT(varchar, csom.ship_date, 20) as order_date_dispensed,
-      CONVERT(varchar, ship.ship_date, 20) as order_date_shipped,
+      CASE WHEN csom_ship.tracking_code IS NULL THEN ship.ship_date ELSE CONVERT(varchar, COALESCE(ship.ship_date, csom.ship_date), 20) END as order_date_shipped,
       CONVERT(varchar, chg_date, 20) as order_date_changed
     FROM csom
       LEFT JOIN cp_acct ON cp_acct.id = csom.acct_id
@@ -40,9 +40,10 @@ function import_cp_orders() {
       LEFT JOIN (SELECT order_id, MAX(ship_date) as ship_date FROM CsOmShipUpdate GROUP BY order_id) ship ON csom.order_id = ship.order_id -- CSOM_SHIP didn't always? update the tracking number within the day so use CsOmShipUpdate which is what endicia writes
       LEFT JOIN csom_ship ON csom.order_id = csom_ship.order_id -- CsOmShipUpdate won't have tracking numbers that Cindy inputted manually
     WHERE
-      --pat_id IS NOT NULL AND -- Some GRX orders link 1170 have no patient (now removed so now commented this out)!?
-      ISNULL(status_cn, 0) <> 3 AND
-      liCount > 0 --SureScript Authorization Denied, Webform eRx (before Rxs arrive), Webform Transfer (before transfer made)
+      ISNULL(status_cn, 0) <> 3
+      AND pat_id IS NOT NULL -- Some GRX orders link 1170, 32968 have no patient
+
+      -- AND liCount > 0 -- SureScript Authorization Denied, Webform eRx (before Rxs arrive), Webform Transfer (before transfer made)
   ");
 
   if ( ! count($orders[0])) return log_error('No Cp Orders to Import', get_defined_vars());

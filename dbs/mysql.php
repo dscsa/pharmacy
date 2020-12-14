@@ -50,10 +50,10 @@ class Mysql {
     function replace_table($table, $keys, $vals) {
 
       if ( ! $vals OR ! count($vals))
-        return log_error("No $table vals to Import", ['vals' => $vals, 'keys' => $keys]);
+        return log_error("No $table vals to Import", ['vals' => array_slice($vals, 0, 100, true), 'keys' => array_slice($keys, 0, 100, true)]);
 
       if ( ! $keys OR ! count($keys))
-        return log_error("No $table keys to Import", ['vals' => $vals, 'keys' => $keys]);
+        return log_error("No $table keys to Import", ['vals' => array_slice($vals, 0, 100, true), 'keys' => array_slice($keys, 0, 100, true)]);
 
       $keys = implode(', ', $keys);
       $sql  = "INSERT INTO $table ($keys) VALUES ".implode(', ', $vals);
@@ -62,11 +62,26 @@ class Mysql {
       $this->run("DELETE FROM $table");
       $this->run($sql);
 
-      if ($this->run("SELECT * FROM $table")[0])
+      $error = mysqli_error($this->connection);
+
+      $success = $this->run("SELECT * FROM $table")[0];
+
+      if ($success) {
+        log_info("$table import was SUCCESSFUL", ['count' => count($vals), 'vals' => array_slice($vals, 0, 100, true), 'keys' => $keys]);
         return $this->commit();
+      }
 
       $this->rollback();
-      log_error("$table import was ABORTED", ['vals' => $vals, 'keys' => $keys]);
+      $this->_emailError(["$table import was ABORTED", $error, count($vals), array_slice($vals, 0, 100, true), array_slice($keys, 0, 100, true)]);
+      echo "
+
+
+      TABLE IMPORT ERROR
+      $error
+
+      ";
+
+      echo $sql;
     }
 
     function run($sql, $debug = false) {
@@ -85,7 +100,8 @@ class Mysql {
             $this->run($sql, $debug); //Recursive
           }
 
-          $this->_emailError(['No Resource', $stmt, $message, $sql, $debug]);
+          $this->_emailError(['SQL No Resource Meta', $stmt, $message, $debug]);
+          $this->_emailError(['SQL No Resource Query', $message, $sql]); //Character limit so this might not be logged
 
           return;
         }
@@ -98,7 +114,8 @@ class Mysql {
         return $results;
       }
       catch (Exception $e) {
-        $this->_emailError(['SQL Error', $e->getMessage(), $sql, $debug]);
+        $this->_emailError(['SQL Error Message', $e->getMessage(), $sql, $debug]);
+        $this->_emailError(['SQL Error Query', $sql]); //Character limit so this might not be logged
       }
     }
 

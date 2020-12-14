@@ -187,7 +187,7 @@ CHURN BY DRUG
   LEFT JOIN gp_rxs_single ON
     gp_rxs_grouped.best_rx_number = gp_rxs_single.rx_number
   LEFT JOIN gp_stock_live ON
-    gp_rxs_grouped.drug_generic = gp_stock_live.drug_generic -- this is for the helper_days_dispensed msgs for unordered drugs
+    gp_rxs_grouped.drug_generic = gp_stock_live.drug_generic -- this is for the helper_days_and_message msgs for unordered drugs
   WHERE
     patient_last_refill < CURRENT_DATE - INTERVAL 150 DAY
 
@@ -226,7 +226,7 @@ CHURN BY PATIENT
   LEFT JOIN gp_rxs_single ON
     gp_rxs_grouped.best_rx_number = gp_rxs_single.rx_number
   LEFT JOIN gp_stock_live ON
-    gp_rxs_grouped.drug_generic = gp_stock_live.drug_generic -- this is for the helper_days_dispensed msgs for unordered drugs
+    gp_rxs_grouped.drug_generic = gp_stock_live.drug_generic -- this is for the helper_days_and_message msgs for unordered drugs
   GROUP BY
     gp_patients.patient_id_cp
   HAVING

@@ -15,7 +15,7 @@ function update_patients_wc() {
   $count_updated = count($changes['updated']);
 
   SirumLog::debug(
-    'Woocommerce Patien Changes found',
+    'Woocommerce Patient Changes found',
     [
       'deleted' => $changes['deleted'],
       'created' => $changes['created'],
@@ -45,31 +45,37 @@ function update_patients_wc() {
   $created_new_to_cp = 0;
 
   foreach($changes['created'] as $created) {
-    SirumLog::$subroutine_id = sha1(serialize($created));
+    SirumLog::$subroutine_id = "patients-wc-created-".sha1(serialize($created));
 
-      //Overrite Rx Messages everytime a new order created otherwis same message would stay for the life of the Rx
+    //Overrite Rx Messages everytime a new order created otherwis same message would stay for the life of the Rx
 
-      SirumLog::debug(
-        "update_patients_wc: WooCommerce PATIENT Created",
-        [
-            'created' => $created,
-            'source'  => 'WooCommerce',
-            'type'    => 'patient',
-            'event'   => 'created'
-        ]
-      );
+    SirumLog::debug(
+      "update_patients_wc: WooCommerce PATIENT Created",
+      [
+          'created' => $created,
+          'source'  => 'WooCommerce',
+          'type'    => 'patients',
+          'event'   => 'created'
+      ]
+    );
 
     $patient = find_patient_wc($mysql, $created);
 
     if ( ! empty($patient[0]['patient_id_wc'])) {
       $created_mismatched++;
-      SirumLog::alert(
-        'mismatched patient_id_wc or duplicate wc patient registration',
-        [
-          "created" => $created,
-          "patient" => $patient[0]
-        ]
-      );
+
+      if (
+        stripos($patient[0]['first_name'], 'TEST') === false
+        and stripos($patient[0]['last_name'], 'TEST') === false) {
+        SirumLog::alert(
+          'mismatched patient_id_wc or duplicate wc patient registration',
+          [
+            "created" => $created,
+            "patient" => $patient[0]
+          ]
+        );
+      }
+
       log_error('update_patients_wc: mismatched patient_id_wc or duplicate wc patient registration?', [$created, $patient[0]]);
     }
     else if ( ! empty($patient[0]['patient_id_cp'])) {
@@ -123,14 +129,14 @@ function update_patients_wc() {
 
   foreach($changes['deleted'] as $i => $deleted) {
 
-      SirumLog::$subroutine_id = sha1(serialize($deleted));
+      SirumLog::$subroutine_id = "patients-wc-deleted-".sha1(serialize($deleted));
 
       SirumLog::debug(
         "update_patients_wc: WooCommerce PATIENT deleted",
         [
             'deleted' => $deleted,
             'source'  => 'WooCommerce',
-            'type'    => 'patient',
+            'type'    => 'patients',
             'event'   => 'deleted'
         ]
       );
@@ -148,14 +154,14 @@ function update_patients_wc() {
 
   foreach($changes['updated'] as $i => $updated) {
 
-      SirumLog::$subroutine_id = sha1(serialize($updated));
+      SirumLog::$subroutine_id = "patients-wc-updated-".sha1(serialize($updated));
 
       SirumLog::debug(
         "update_patients_wc: WooCommerce PATIENT updated",
         [
             'updated' => $updated,
             'source'  => 'WooCommerce',
-            'type'    => 'patient',
+            'type'    => 'patients',
             'event'   => 'updated'
         ]
       );
@@ -318,10 +324,14 @@ function update_patients_wc() {
         name_mismatch($updated['last_name'],  $updated['old_last_name'])
     ) {
 
-      SirumLog::alert(
-        'Patient Name Misspelled or Identity Changed?',
-        ["patient" => $updated]
-      );
+      if (
+        stripos($patient[0]['first_name'], 'TEST') === false
+        and stripos($patient[0]['last_name'], 'TEST') === false) {
+        SirumLog::alert(
+          'Patient Name Misspelled or Identity Changed?',
+          ["patient" => $updated]
+        );
+      }
 
       log_error("Patient Name Misspelled or Identity Changed?", $updated);
       //upsert_patient_wc($mysql, $updated['patient_id_wc'], 'first_name', $updated['old_first_name']);
@@ -389,6 +399,7 @@ function update_patients_wc() {
 
       export_cp_patient_save_medications_other($mssql, $updated);
     }
-    SirumLog::resetSubroutineId();
   }
+
+  SirumLog::resetSubroutineId();
 }

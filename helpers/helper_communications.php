@@ -26,6 +26,8 @@ function group_drugs($order, $mysql) {
 
   foreach ($order as $item) {
 
+    $groups['ALL'][] = $item; //Want patient contact_info even if an emoty order
+
     if ( ! $item['drug_name']) continue; //Might be an empty order
 
     $days = $item['days_dispensed'];
@@ -41,7 +43,6 @@ function group_drugs($order, $mysql) {
 
     $price = ($days AND $item['price_dispensed']) ? ', $'.((float) $item['price_dispensed']).' for '.$days.' days' : '';
 
-    $groups['ALL'][] = $item;
     $groups[$fill.$action][] = $item['drug'].$msg;
 
     if ($item['rx_number']) { //Will be null if drug is NOT in the order.
@@ -73,7 +74,7 @@ function group_drugs($order, $mysql) {
       $groups['FILLED_WITH_PRICES'][] = $item['drug'].$price;
     }
 
-    if ( ! $item['refills_dispensed'] AND ! $item['rx_date_transferred'])
+    if ( ! $item['refills_dispensed'] AND ! $item['rx_transfer'])
       $groups['NO_REFILLS'][] = $item['drug'].$msg;
 
     if ($days AND ! $item['rx_autofill'])

@@ -19,24 +19,28 @@ function get_full_order($partial, $mysql, $overwrite_rx_messages = false) {
 
   //gp_orders.invoice_number and other fields at end because otherwise potentially null gp_order_items.invoice_number will override gp_orders.invoice_number
   //Don't fully understand LEFT vs RIGHT Joins but experimented around on a missing full_order that had 0 results (#33374) until I got the max number of rows
-  $sql = "SELECT
-            *,
-            gp_orders.invoice_number,
-            gp_rxs_grouped.* -- Need to put this first based on how we are joining, but make sure these grouped fields overwrite their single equivalents
-          FROM
-            gp_orders
-          LEFT JOIN gp_patients ON
-            gp_patients.patient_id_cp = gp_orders.patient_id_cp
-          LEFT JOIN gp_rxs_grouped ON -- Show all Rxs on Invoice regardless if they are in order or not
-            gp_rxs_grouped.patient_id_cp = gp_orders.patient_id_cp
-          LEFT JOIN gp_order_items ON
-            gp_order_items.invoice_number = gp_orders.invoice_number AND rx_numbers LIKE CONCAT('%,', gp_order_items.rx_number, ',%') -- In case the rx is added in a different orders
-          LEFT JOIN gp_rxs_single ON -- Needed to know qty_left for sync-to-date
-            COALESCE(gp_order_items.rx_number, gp_rxs_grouped.best_rx_number) = gp_rxs_single.rx_number
-          LEFT JOIN gp_stock_live ON -- might not have a match if no GSN match
-            gp_rxs_grouped.drug_generic = gp_stock_live.drug_generic -- this is for the helper_days_dispensed msgs for unordered drugs
-          WHERE
-            gp_orders.invoice_number = {$partial['invoice_number']}";
+  $sql = "
+    SELECT
+      *,
+      gp_orders.invoice_number,
+      gp_order_items.invoice_number as dontuse_item_invoice,
+      gp_orders.invoice_number as dontuse_order_invoice,
+      gp_rxs_grouped.* -- Need to put this first based on how we are joining, but make sure these grouped fields overwrite their single equivalents
+    FROM
+      gp_orders
+    LEFT JOIN gp_patients ON
+      gp_patients.patient_id_cp = gp_orders.patient_id_cp
+    LEFT JOIN gp_rxs_grouped ON -- Show all Rxs on Invoice regardless if they are in order or not
+      gp_rxs_grouped.patient_id_cp = gp_orders.patient_id_cp
+    LEFT JOIN gp_order_items ON
+      gp_order_items.invoice_number = gp_orders.invoice_number AND rx_numbers LIKE CONCAT('%,', gp_order_items.rx_number, ',%') -- In case the rx is added in a different orders
+    LEFT JOIN gp_rxs_single ON -- Needed to know qty_left for sync-to-date
+      COALESCE(gp_order_items.rx_number, gp_rxs_grouped.best_rx_number) = gp_rxs_single.rx_number
+    LEFT JOIN gp_stock_live ON -- might not have a match if no GSN match
+      gp_rxs_grouped.drug_generic = gp_stock_live.drug_generic -- this is for the helper_days_and_message msgs for unordered drugs
+    WHERE
+      gp_orders.invoice_number = $partial[invoice_number]
+  ";
 
   $order = $mysql->run($sql.$where)[0];
 
@@ -77,16 +81,15 @@ function add_wc_status_to_order($order) {
   }
 
   if ($old_order_stage_wc != $new_order_stage_wc) {
-        SirumLog::debug(
-            "helper_full_order: add_wc_status_to_order. change in status",
-            [
-              'old_status_wc'  => $old_order_stage_wc,
-              'new_status_wc'  => $new_order_stage_wc,
-              'invoice_number' => $order[0]['invoice_number']
-            ]
-        );
+    SirumLog::debug(
+        "helper_full_order: add_wc_status_to_order. change in status",
+        [
+          'old_status_wc'  => $old_order_stage_wc,
+          'new_status_wc'  => $new_order_stage_wc,
+          'invoice_number' => $order[0]['invoice_number']
+        ]
+    );
     //export_wc_update_order_metadata($order);
-
   }
 
   return $order;
@@ -152,7 +155,8 @@ function get_order_stage_wc($order) {
       'order_stage_cp' => $order[0]['order_stage_cp'],
       'order_stage_wc' => $order[0]['order_stage_wc'],
       'rx_message_key' => $order[0]['rx_message_key'],
-      'tracking_number' => $order[0]['tracking_number']
+      'tracking_number' => $order[0]['tracking_number'],
+      'order' => $order
     ]);
 
   if ( ! $count_filled AND ! $order[0]['order_source'])

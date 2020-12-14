@@ -2,6 +2,8 @@
 require_once 'changes/changes_to_rxs_single.php';
 require_once 'helpers/helper_parse_sig.php';
 require_once 'helpers/helper_imports.php';
+require_once 'exports/export_cp_rxs.php';
+require_once 'exports/export_gd_transfer_fax.php'; //is_will_transfer()
 require_once 'dbs/mysql_wc.php';
 
 use Sirum\Logging\SirumLog;
@@ -17,7 +19,7 @@ function update_rxs_single() {
    * and look for any with a NULL rx_message_key.  If we dint one, get_full_patient()
    * will fetch the user and update the message?
    *
-   *  NOTE Use JOIN to exclude Rxs associated with patients that are inactive or deceased
+   *  NOTE Using an INNER JOIN to exclude Rxs associated with patients that are inactive or deceased
    */
   $rx_singles = $mysql->run(
     "SELECT *
@@ -27,18 +29,24 @@ function update_rxs_single() {
   );
 
   foreach($rx_singles[0] as $rx_single) {
+
+    SirumLog::$subroutine_id = "rxs-single-null-message-".sha1(serialize($rx_single));
+
     //This updates & overwrites set_rx_messages
     $patient = get_full_patient($rx_single, $mysql, $rx_single['rx_number']);
 
-    SirumLog::debug(
-        "rx had an empty message, so just set it",
-        [
-          "patient_id_cp" => $patient[0]['patient_id_cp'],
-          "patient_id_wc" => $patient[0]['patient_id_wc'],
-          "rx_single"     => $rx_single,
-          "method"        => "update_rxs_single"
-        ]
-      );
+    //These should have been given an rx_message upon creation.  Why was it missing?
+    SirumLog::error(
+      "rx had an empty message, so just set it.  Why was it missing?",
+      [
+        "patient_id_cp" => $patient[0]['patient_id_cp'],
+        "patient_id_wc" => $patient[0]['patient_id_wc'],
+        "rx_single"     => $rx_single,
+        "source"        => "CarePoint",
+        "type"          => "rxs-single",
+        "event"         => "null-message"
+      ]
+    );
   }
 
   /* Now to do some work */
@@ -58,11 +66,24 @@ function update_rxs_single() {
    * sure all sig_qty_per_days are properly set before we group by them
    */
   foreach($changes['created'] as $created) {
+
+    SirumLog::$subroutine_id = "rxs-single-created1-".sha1(serialize($created));
+
+    SirumLog::debug(
+      "update_rxs_single: rx created1",
+      [
+          'created' => $created,
+          'source'  => 'CarePoint',
+          'type'    => 'rxs-single',
+          'event'   => 'created1'
+      ]
+    );
+
     // Get the signature
     $parsed = get_parsed_sig($created['sig_actual'], $created['drug_name']);
 
     // If we have more than 8 a day, lets have a human verify the signature
-    if ($parsed['qty_per_day'] > 8) {
+    if ($parsed['qty_per_day'] > MAX_QTY_PER_DAY) {
       $created_date = "Created:".date('Y-m-d H:i:s');
       $salesforce   = [
         "subject"   => "Verify qty pended for $created[drug_name] for Rx #$created[rx_number]",
@@ -97,11 +118,13 @@ function update_rxs_single() {
    * This work is to create the perscription groups.
    *
    * This is an expensive (6-8 seconds) group query.
-   * TODO We should update rxs in this table individually on changes
+   * TODO We should update rxs in this table individually on changes (
+   * TOD AK: ABOVE CHANGE WOULD ENABLE US TO HAVE AUTOINCREMENT IDS FOR RX_GROUPED - WHICH WE SAVE BACK INTO RXS_SINGLE or a LOOKUP TABLE - THIS WILL HELP QUERY SPEED BY REPLACE LIKE %% AND FIND_IN_SET)
    * TODO OR We should add indexed drug info fields to the gp_rxs_single above on
    *      created/updated so we don't need the join
    */
 
+  //This Group By Clause must be kept consistent with the grouping with the export_cp_set_rx_message query
   $sql = "
     INSERT INTO gp_rxs_grouped
     SELECT
@@ -147,7 +170,7 @@ function update_rxs_single() {
 
       MAX(rx_date_changed) as rx_date_changed,
       MAX(rx_date_expired) as rx_date_expired,
-      NULLIF(MIN(CASE WHEN rx_transfer = 'O' THEN COALESCE(rx_date_transferred, rx_date_changed) ELSE '0' END), '0') as rx_date_transferred -- Only mark as transferred if ALL Rxs are transferred out
+      NULLIF(MIN(COALESCE(rx_date_transferred, '0')), '0') as rx_date_transferred -- Only mark as transferred if ALL Rxs are transferred out
 
   	FROM gp_rxs_single
   	LEFT JOIN gp_drugs ON
@@ -167,6 +190,26 @@ function update_rxs_single() {
     ? $mysql->commit()
     : $mysql->rollback();
 
+  //TODO should we put a UNIQUE contstaint on the rxs_grouped table for bestrx_number and rx_numbers, so that it fails hard
+  $duplicate_gsns = $mysql->run("
+    SELECT
+      best_rx_number,
+      GROUP_CONCAT(drug_generic),
+      GROUP_CONCAT(drug_gsns),
+      COUNT(rx_numbers)
+    FROM `gp_rxs_grouped`
+    GROUP BY best_rx_number
+    HAVING COUNT(rx_numbers) > 1
+  ")[0];
+
+  if (isset($duplicate_gsns[0][0])) {
+    SirumLog::alert(
+      "update_rxs_single: duplicate gsns detected",
+      [
+          'duplicate_gsns' => $duplicate_gsns,
+      ]
+    );
+  }
 
   /*
    * Created Loop #2 We are now assigning the rx group to the new patients
@@ -177,6 +220,19 @@ function update_rxs_single() {
    * Run this After so that Rx_grouped is set when doing get_full_patient
    */
   foreach($changes['created'] as $created) {
+
+    SirumLog::$subroutine_id = "rxs-single-created2-".sha1(serialize($created));
+
+    SirumLog::debug(
+      "update_rxs_single: rx created2",
+      [
+          'created' => $created,
+          'source'  => 'CarePoint',
+          'type'    => 'rxs-single',
+          'event'   => 'created2'
+      ]
+    );
+
     // This updates & overwrites set_rx_messages.  TRUE because this one
     // Rx might update many other Rxs for the same drug.
     $patient = get_full_patient($created, $mysql, true);
@@ -191,37 +247,81 @@ function update_rxs_single() {
 
   /* Finish Created Loop #2 */
 
-
+  $sf_cache = [];
   /*
    * Updated Loop
    */
   //Run this after rx_grouped query to ensure get_full_patient retrieves an accurate order profile
   foreach($changes['updated'] as $updated) {
 
+    SirumLog::$subroutine_id = "rxs-single-updated-".sha1(serialize($updated));
+
+    SirumLog::debug(
+      "update_rxs_single: rx updated",
+      [
+          'updated' => $updated,
+          'source'  => 'CarePoint',
+          'type'    => 'rxs-single',
+          'event'   => 'updated'
+      ]
+    );
+
     $changed = changed_fields($updated);
-    $cp_id   = $updated['patient_id_cp'];
-    $patient = get_full_patient($updated, $mysql, $updated['rx_number']);
 
     if ($updated['rx_autofill'] != $updated['old_rx_autofill']) {
-      $sql     = ""; //Reset for logging
 
-      //We want all Rxs with the same GSN to share the same rx_autofill value, so when one changes we must change them all
-      //SQL to DETECT inconsistencies:
-      //SELECT patient_id_cp, rx_gsn, MAX(drug_name), MAX(CONCAT(rx_number, rx_autofill)), GROUP_CONCAT(rx_autofill), GROUP_CONCAT(rx_number) FROM gp_rxs_single GROUP BY patient_id_cp, rx_gsn HAVING AVG(rx_autofill) > 0 AND AVG(rx_autofill) < 1
-      foreach ($patient as $item) {
-        if (strpos($item['rx_numbers'], ",$updated[rx_number],") !== false) {
-          $in  = str_replace(',', "','", substr($item['drug_gsns'], 1, -1)); //use drugs_gsns instead of rx_gsn just in case there are multiple gsns for this drug
-          $sql = "UPDATE cprx SET autofill_yn = $updated[rx_autofill], chg_date = GETDATE() WHERE pat_id = $cp_id AND gcn_seqno IN ('$in')";
-          $mssql->run($sql);
-        }
+      $item = get_full_item($updated, $mysql, true);
+
+      if ( ! $item['refills_used'] AND $updated['rx_autofill']) {
+        continue; //Don't log when a patient first registers
       }
 
-      log_notice("update_rxs_single rx_autofill changed.  Updating all Rx's with same GSN to be on/off Autofill. Confirm correct updated rx_messages", ['patient' => $patient, 'updated' => $updated, 'sql' => $sql, 'changed' => $changed]);
+      SirumLog::debug(
+        "update_rxs_single: about to call export_cp_rx_autofill()",
+        [
+            'item'    => $item,
+            'updated' => $updated,
+            'source'  => 'CarePoint',
+            'type'    => 'rxs-single',
+            'event'   => 'updated'
+        ]
+      );
+
+      //We need this because even if we change all rxs at the same time, pharmacists might just switch one Rx in CP so we need this to maintain consistency
+      export_cp_rx_autofill($item, $mssql);
+
+      $status  = $updated['rx_autofill'] ? 'ON' : 'OFF';
+      $body    = "$item[drug_name] autofill turned $status for $item[rx_numbers]"; //Used as cache key
+      $created = "Created:".date('Y-m-d H:i:s');
+
+      log_notice("update_rxs_single rx_autofill changed.  Updating all Rx's with same GSN to be on/off Autofill. Confirm correct updated rx_messages", [
+        'cache_key' => $body,
+        'sf_cache' => $sf_cache,
+        'updated' => $updated,
+        'changed' => $changed,
+        'item' => $item
+      ]);
+
+      if ( ! $sf_cache[$body]) {
+
+        $sf_cache[$body] = true; //This caches it by body and for this one run (currently 10mins)
+
+        $salesforce = [
+          "subject"   => "Autofill turned $status for $item[drug_name]",
+          "body"      => "$body $created",
+          "contact"   => "$item[first_name] $item[last_name] $item[birth_date]"
+        ];
+
+        $event_title = @$item['drug_name']." Autofill $status $salesforce[contact] $created";
+
+        create_event($event_title, [$salesforce]);
+
+      }
     }
 
     if ($updated['rx_gsn'] AND ! $updated['old_rx_gsn']) {
 
-      $item = get_full_item($updated, $mysql); //TODO enable this to update and overwite rx_messages so we can avoid call above
+      $item = get_full_item($updated, $mysql, true);
 
       v2_pend_item($item, $mysql);
 
@@ -231,15 +331,23 @@ function update_rxs_single() {
     }
 
     if ($updated['rx_transfer'] AND ! $updated['old_rx_transfer']) {
-      log_error("update_rxs_single rx was transferred out.  Confirm correct updated rxs_single.rx_message_key. rxs_grouped.rx_message_keys will be updated on next pass", [$patient, $updated, $changed]);
+      $is_will_transfer = is_will_transfer($item);
+      log_error("update_rxs_single rx was transferred out.  Confirm correct is_will_transfer updated rxs_single.rx_message_key. rxs_grouped.rx_message_keys will be updated on next pass", [
+        'is_will_transfer' => $is_will_transfer,
+        'patient' => $patient,
+        'updated' => $updated,
+        'changed' => $changed
+      ]);
     }
 
   }
 
+  SirumLog::resetSubroutineId();
 
 
 
-  //TODO if new Rx arrives and there is an active order where that Rx is not included because of "ACTION NO REFILLS" or "ACTION RX EXPIRED" or the like, then we should rerun the helper_days_dispensed on the order_item
+
+  //TODO if new Rx arrives and there is an active order where that Rx is not included because of "ACTION NO REFILLS" or "ACTION RX EXPIRED" or the like, then we should rerun the helper_days_and_message on the order_item
 
   //TODO Implement rx_status logic that was in MSSQL Query and Save in Database
 

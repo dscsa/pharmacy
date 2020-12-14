@@ -4,6 +4,8 @@ require_once('mssql_interface.php');
 require_once('mssql_status_log.php');
 require_once(dirname(__DIR__) . '/helpers/helper_log.php');
 
+use Sirum\Logging\SirumLog;
+
 class Mssql_New_Drivers implements Mssql_Interface
 {
 
@@ -154,9 +156,8 @@ class Mssql_New_Drivers implements Mssql_Interface
 
     function _emailError($error)
     {
-        echo "Debug MSSQL " . print_r($error, true);
-        log_to_cli('ERROR', "CRON: Debug MSSQL", '', print_r($error, true));
-        log_to_email('ERROR', "CRON: Debug MSSQL", '', print_r($error, true));
+        log_to_cli('ERROR', "Debug MSSQL", '', print_r($error, true));
+        SirumLog::alert("Debug MSSQL", $error);
     }
 
 
@@ -178,4 +179,3 @@ class Mssql_New_Drivers implements Mssql_Interface
         return $statement;
     }
 }
-

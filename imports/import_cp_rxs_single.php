@@ -42,7 +42,7 @@ function import_cp_rxs_single() {
       input_source.name as rx_source,
       rx_message.name as rx_message_key,
       last_transfer_type_io as rx_transfer,
-      cprx_trans_hx.add_date as rx_date_transferred,
+      transfer_out.add_date as rx_date_transferred,
 
       provider_npi,
       provider_first_name,
@@ -58,8 +58,17 @@ function import_cp_rxs_single() {
     LEFT JOIN cprx_disp ON
       cprx_disp.rxdisp_id = last_rxdisp_id
 
-    LEFT JOIN cprx_trans_hx ON
-		  cprx_trans_hx.rx_id = cprx.rx_id
+    LEFT JOIN (
+
+      SELECT
+        -- Rare but there are some duplicates in this table
+        rx_id,
+        min(add_date) as add_date
+      FROM cprx_trans_hx
+      GROUP BY rx_id
+
+    ) as transfer_out ON
+		  transfer_out.rx_id = cprx.rx_id
 
     LEFT JOIN csct_code input_source ON
       input_source.ct_id = 194 AND input_source.code_num = input_src_cn
@@ -70,7 +79,7 @@ function import_cp_rxs_single() {
     LEFT JOIN (
 
       SELECT
-  			--Service Level MOD 2 = 1 means accepts SureScript Refill Reques
+  			-- Service Level MOD 2 = 1 means accepts SureScript Refill Reques
   			-- STUFF == MSSQL HACK TO GET MOST RECENTLY UPDATED ROW THAT ACCEPTS SURESCRIPTS
   			md_id,
         STUFF(MAX(CONCAT(ServiceLevel % 2, last_modified_date, npi)), 1, 23, '') as provider_npi,
@@ -95,11 +104,12 @@ function import_cp_rxs_single() {
 
   ");
 
+  //log_error("gp_rxs_single_cp import start: ", ['count' => count($rxs[0]), 'vals' => array_slice($rxs[0], 0, 100, true)]);
+
   //log_info("
   //import_cp_rxs_single: rows ".count($rxs[0]));
 
-  if ( ! count($rxs[0])) return log_error('No Cp RXs to Import', get_defined_vars());
-
+  if ( ! count($rxs[0])) return log_error('gp_rxs_single_cp import no rows', ['count' => count($rxs[0]), 'vals' => array_slice($rxs[0], 0, 100, true)]);
 
   $keys = result_map($rxs[0],
     function($row) {
@@ -135,7 +145,7 @@ function import_cp_rxs_single() {
             ],
             $row['drug_name']
           );
-          
+
       $row['provider_phone'] = clean_phone($row['provider_phone']);
 
       //Some validations
@@ -144,6 +154,8 @@ function import_cp_rxs_single() {
       return $row;
     }
   );
+
+  //log_error("gp_rxs_single_cp import: ", ['keys' => array_slice($keys, 0, 100, true), 'count' => count($rxs[0]), 'vals' => array_slice($rxs[0], 0, 100, true)]);
 
   $mysql->replace_table("gp_rxs_single_cp", $keys, $rxs[0]);
 }
