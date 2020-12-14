@@ -766,11 +766,14 @@ $test_sigs = [
   //Take 1 tablet by mouth 1 time per day then 2 times a day thereafter
   //Four tablets in AM and 4 Tablets in PM. #720 tablets every 90 days. 3 refills
   //1000 mcg every 2 weeks //CYANOCOBALAMIN 1,000MCG/ML
-  
+  //"Take 1 tablet by mouth once daily on empty stomach WITH NO OTHER MEDS AND 30-45 MINUTES BEFORE BREAKFAST"
+
 ];
 
 global $argv;
 $sig_index = array_search('sig', $argv);
+
+print_r(['argv', $argv, 'sig_index', $sig_index]);
 
 if ($sig_index === false) {
 
@@ -779,13 +782,18 @@ if ($sig_index === false) {
     $parsed = get_parsed_sig($sig, @$correct['drug_name'], $correct);
   }
 
-  log_notice("...sig testing complete...");
+  $done = "...sig testing complete...";
+  print_r($done);
+  log_notice($done);
 
 } else if ($argv[$sig_index+1] != 'database') {
 
   $sig = $argv[$sig_index+1];
   $parsed = get_parsed_sig($sig, null);
-  log_notice("parsing test sig specified: $sig", [$parsed, $sig]);
+
+  $done = [$parsed, $sig];
+  print_r($done);
+  log_notice("parsing test sig specified: $sig", $done);
 
 } else {
 
@@ -800,9 +808,12 @@ if ($sig_index === false) {
     $parsed = get_parsed_sig($rx['sig_actual'], $rx['drug_name']);
 
     if ($rx['sig_qty_per_day_default'] == $parsed['qty_per_day'])
-      log_notice("parsing test sig database SAME: $rx[rx_number] qty_per_day $parsed[qty_per_day], $rx[drug_name], $rx[sig_actual]", $parsed);
+      $done = "parsing test sig database SAME: $rx[rx_number] qty_per_day $parsed[qty_per_day], $rx[drug_name], $rx[sig_actual]";
     else
-      log_notice("parsing test sig database CHANGE: $rx[rx_number] sig_qty_per_day_default $rx[sig_qty_per_day_default] >>> $parsed[qty_per_day], $rx[drug_name], $rx[sig_actual]", $parsed);
+      $done = "parsing test sig database CHANGE: $rx[rx_number] sig_qty_per_day_default $rx[sig_qty_per_day_default] >>> $parsed[qty_per_day], $rx[drug_name], $rx[sig_actual]";
+
+    print_r([$done, $parsed]);
+    log_notice($done, $parsed);
 
     set_parsed_sig($rx['rx_number'], $parsed, $mysql);
   }

@@ -7,6 +7,25 @@ require_once 'helpers/helper_changes.php';
 //Rather than import all of them, we only import unshipped ones.
 //We want to detect deletions of "unshipped" ones (Cindy adjusting the order)
 //BUT leave "shipped" ones alone (although these will appear to have been deleted since they are not imported)
+function order_items_get_deleted_sql($new, $old, $id) {
+
+  $join = join_clause($id);
+
+  return "
+    SELECT
+      old.*
+    FROM
+      $new as new
+    RIGHT JOIN $old as old ON
+      $join
+    WHERE
+      new.$id IS NULL
+    AND
+      old.days_dispensed_actual IS NULL
+  ";
+}
+
+//See NOTE Above
 function order_items_set_deleted_sql($new, $old, $id) {
 
   $join = join_clause($id);
@@ -41,7 +60,7 @@ function changes_to_order_items($new) {
   $columns = $mysql->run(get_column_names($new))[0][0]['columns'];
 
   //Get Deleted - A lot of Turnover with no shipped items so let's keep historic
-  $deleted = [[]]; //$mysql->run(get_deleted_sql($new, $old, $id));
+  $deleted = $mysql->run(order_items_get_deleted_sql($new, $old, $id));
 
   //Get Inserted
   $created = $mysql->run(get_created_sql($new, $old, $id));

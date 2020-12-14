@@ -413,7 +413,9 @@ function qty_per_day($parsed) {
 
   $qty_per_day = $parsed['sig_qty']/($parsed['sig_days'] ?: DAYS_STD);
 
-  return round($qty_per_day, 3);
+  $qty_per_day = round($qty_per_day, 3);
+
+  return $qty_per_day > MAX_QTY_PER_DAY ? 1 : $qty_per_day; //Until we get more accurate let's only shop/pack a max of 8 per day (90*8 = ~720)
 }
 
 function sig_qty($parsed) {

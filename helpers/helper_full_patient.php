@@ -2,6 +2,8 @@
 require_once 'exports/export_cp_rxs.php';
 require_once 'helpers/helper_full_fields.php';
 
+use Sirum\Logging\SirumLog;
+
 function get_full_patient($partial, $mysql, $overwrite_rx_messages = false) {
 
   if ( ! isset($partial['patient_id_cp'])) {
@@ -22,7 +24,7 @@ function get_full_patient($partial, $mysql, $overwrite_rx_messages = false) {
     LEFT JOIN gp_rxs_single ON -- Needed to know qty_left for sync-to-date
       gp_rxs_grouped.best_rx_number = gp_rxs_single.rx_number
     LEFT JOIN gp_stock_live ON -- might not have a match if no GSN match
-      gp_rxs_grouped.drug_generic = gp_stock_live.drug_generic -- this is for the helper_days_dispensed msgs for unordered drugs
+      gp_rxs_grouped.drug_generic = gp_stock_live.drug_generic -- this is for the helper_days_and_message msgs for unordered drugs
     WHERE
       gp_patients.patient_id_cp = $partial[patient_id_cp]
   ";
@@ -40,7 +42,28 @@ function get_full_patient($partial, $mysql, $overwrite_rx_messages = false) {
       return;
   }
 
+  SirumLog::notice(
+    "helper_full_patient before helper_full_fields",
+    [
+      "patient_id_cp" => $patient[0]['patient_id_cp'],
+      "patient_id_wc" => $patient[0]['patient_id_wc'],
+      "overwrite_rx_messages"       => $overwrite_rx_messages,
+      "patient"       => $patient
+    ]
+  );
+
   $patient = add_full_fields($patient, $mysql, $overwrite_rx_messages);
+
+  SirumLog::notice(
+    "helper_full_patient after helper_full_fields",
+    [
+      "patient_id_cp" => $patient[0]['patient_id_cp'],
+      "patient_id_wc" => $patient[0]['patient_id_wc'],
+      "overwrite_rx_messages"       => $overwrite_rx_messages,
+      "patient"       => $patient
+    ]
+  );
+
   usort($patient, 'sort_patient_by_drug'); //Put Rxs in order (with Rx_Source) at the top
   $patient = add_sig_differences($patient);
 

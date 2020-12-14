@@ -1,5 +1,7 @@
 <?php
 
+use Sirum\Logging\SirumLog;
+
 require_once 'helpers/helper_calendar.php';
 
 //Internal communication warning an order was shipped but not dispensed.  Gets erased when/if order is shipped
@@ -143,9 +145,11 @@ function order_created_notice($groups) {
   $drug_list = '<br><br><u>These Rxs will be included once we confirm their availability:</u><br>';
 
   if ( ! $groups['ALL'][0]['refills_used']) {
+    $days = 0;
     $message   .= ' Your first order will only be $6 total for all of your medications.';
     $drug_list .= implode(';<br>', array_merge($groups['FILLED_ACTION'], $groups['FILLED_NOACTION'])).';';
   } else {
+    $days = $item['order_source'] == "Auto Refill v2" ? 10 : 7;  //TODO Remove.  This is a temp measure so people don't know if or how far we are behind
     $drug_list .= implode(';<br>', $groups['FILLED_WITH_PRICES']).';';
   }
 
@@ -175,7 +179,7 @@ function order_created_notice($groups) {
   remove_drugs_from_refill_reminders($groups['ALL'][0]['first_name'], $groups['ALL'][0]['last_name'], $groups['ALL'][0]['birth_date'], $groups['FILLED']);
 
   //Wait 15 minutes to hopefully batch staggered surescripts and manual rx entry and cindy updates
-  order_created_event($groups['ALL'], $email, $text, 15/60);
+  order_created_event($groups['ALL'], $email, $text, $days*24+15/60);
 }
 
 function transfer_requested_notice($groups) {
@@ -206,15 +210,26 @@ function transfer_requested_notice($groups) {
 //by building commication arrays based on github.com/dscsa/communication-calendar
 function order_hold_notice($groups, $missing_gsn = false) {
 
-  $subject = 'Good Pill is NOT filling your '.$groups['COUNT_NOFILL'].' items for Order #'.$groups['ALL'][0]['invoice_number'].'.';
-  $message = '<u>We are NOT filling these Rxs:</u><br>'.implode(';<br>', array_merge($groups['NOFILL_NOACTION'], $groups['NOFILL_ACTION'])).';';
+  if ($groups['COUNT_NOFILL']) {
+    $subject = 'Good Pill is NOT filling your '.$groups['COUNT_NOFILL'].' items for Order #'.$groups['ALL'][0]['invoice_number'].'.';
+    $message = '<u>We are NOT filling these Rxs:</u><br>'.implode(';<br>', array_merge($groups['NOFILL_NOACTION'], $groups['NOFILL_ACTION'])).';';
+  } else {
+    //If patients have no Rxs on their profile then this will be empty.
+    $subject = 'Good Pill has not yet gotten your prescriptions.';
+    $message = 'We are still waiting on your doctor or pharmacy to send us your prescriptions';
+  }
 
   //[NULL, 'Webform Complete', 'Webform eRx', 'Webform Transfer', 'Auto Refill', '0 Refills', 'Webform Refill', 'eRx /w Note', 'Transfer /w Note', 'Refill w/ Note']
   //Unsure but "Null" seems to come from SureScript Orders OR Hand Entered Orders (Fax, Pharmacy Transfer, Hard Copy, Phone)
   /*SELECT rx_source, MAX(gp_orders.invoice_number), COUNT(*) FROM `gp_orders` JOIN gp_order_items ON gp_order_items.invoice_number = gp_orders.invoice_number JOIN gp_rxs_single ON gp_rxs_single.rx_number = gp_order_items.rx_number WHERE order_source IS NULL GROUP BY rx_source ORDER BY `gp_orders`.`order_source` DESC*/
   $trigger = '';
 
-  if ($groups['ALL'][0]['order_source'] == 'Auto Refill v2') {
+  //Empty Rx Profile
+  if ( ! $groups['COUNT_NOFILL']) {
+    $trigger = 'We got your Order but';
+  }
+  //AUTOREFILL
+  else if ($groups['ALL'][0]['order_source'] == 'Auto Refill v2') {
     $trigger = 'Your Rx is due for a refill but';
     log_error('order_hold_notice: Not filling Auto Refill?', $groups);
   }
@@ -460,8 +475,9 @@ function confirm_shipment_notice($groups) {
 
 function confirm_shipping_internal($groups, $days_ago) {
 
-  if ( ! $groups['ALL'][0]['refills_used'])
+  if ((float) $groups['ALL'][0]['refills_used'] > 0) {
     return [];
+  }
 
   ///It's depressing to get updates if nothing is being filled
   $subject  = "Follow up on new patient's first order";
@@ -491,6 +507,13 @@ function confirm_shipping_internal($groups, $days_ago) {
       ''
     ])
   ];
+
+  SirumLog::debug(
+      'Attaching Newpatient Com Event',
+      [
+         "initial_rx_group" => $groups['ALL'][0]
+      ]
+  );
 
   return $salesforce;
 }

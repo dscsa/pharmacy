@@ -2,6 +2,8 @@
 
 require_once 'exports/export_gd_transfer_fax.php';
 
+use Sirum\Logging\SirumLog;
+
 //Remove Only flag so that once we communicate what's in an order to a patient we "lock" it, so that if new SureScript come in we remove them so we don't surprise a patient with new drugs
 function sync_to_order($order, $updated = null) {
 
@@ -87,7 +89,7 @@ function sync_to_order($order, $updated = null) {
         continue;
       }
 
-      if ($item['item_added_by'] == 'MANUAL') {
+      if (is_added_manually($item)) {
         log_notice('aborting helper_syncing because item to be REMOVED was added MANUALLY', $item);
         continue;
       }
@@ -116,11 +118,37 @@ function sync_to_order($order, $updated = null) {
     }
   }
 
-  if ($items_to_remove)
-    export_cp_remove_items($item['invoice_number'], $items_to_remove);
+  if ($items_to_remove) {
 
-  if ($items_to_add)
+    SirumLog::notice(
+      "helper_syncing: items_to_remove (export_cp_remove_items)",
+      [
+        'new_count_items' => $new_count_items,
+        'items_to_remove' => $items_to_remove,
+        'items_to_sync' => $items_to_sync,
+        'item' => $item,
+        'order' => $order
+      ]
+    );
+
+    export_cp_remove_items($item['invoice_number'], $items_to_remove);
+  }
+
+  if ($items_to_add) {
+
+    SirumLog::notice(
+      "helper_syncing: items_to_remove (export_cp_remove_items)",
+      [
+        'new_count_items' => $new_count_items,
+        'items_to_add' => $items_to_add,
+        'items_to_sync' => $items_to_sync,
+        'item' => $item,
+        'order' => $order
+      ]
+    );
+
     export_cp_add_items($item['invoice_number'], $items_to_add);
+  }
 
   return ['new_count_items' => $new_count_items, 'items_to_sync' => $items_to_sync];
 }

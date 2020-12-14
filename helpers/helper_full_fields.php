@@ -38,106 +38,115 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
             strtotime($patient_or_order[$i]['rx_date_expired'] . ' -1 year')
         );
 
-        //If this is full_patient was don't JOIN the order_items/order tables so those fields will not be set here
-        $overwrite   = ($overwrite_rx_messages === true
-                            or $overwrite_rx_messages == $patient_or_order[$i]['rx_number']);
-        $missing_msg = (! $patient_or_order[$i]['rx_message_key']
-                            or is_null($patient_or_order[$i]['rx_message_text']));
-        $set_days    = (@$patient_or_order[$i]['item_date_added']
-                            and is_null($patient_or_order[$i]['days_dispensed_default']));
-        $set_msgs    = ($overwrite or $missing_msg);
+        //Overwrite refers to the rx_single and rx_grouped table not the order_items table which deliberitely keeps its initial values
+        $overwrite = ($overwrite_rx_messages === true
+                            or strpos($patient_or_order[$i]['rx_numbers'], $overwrite_rx_messages) !== false);
 
-        if ($set_days or $set_msgs) {
-            list($days, $message) = get_days_default($patient_or_order[$i], $patient_or_order);
+        $set_days_and_msgs  = (
+          ! $patient_or_order[$i]['rx_message_key']
+          or is_null($patient_or_order[$i]['rx_message_text'])
+          or (
+            @$patient_or_order[$i]['item_date_added']
+            and is_null($patient_or_order[$i]['days_dispensed_default'])
+          )
+        );
 
-            if ($missing_msg) {
-                log_error(
-                    "helper_full_fields: rx had an empty message, so setting it now",
-                    [$patient_or_order[$i], $message]
-                );
-            }
+        $log_suffix = $patient_or_order[$i]['invoice_number'].' '.$patient_or_order[$i]['first_name'].' '.$patient_or_order[$i]['last_name'].' '.$patient_or_order[$i]['drug_generic'];
 
-            if ($set_days and is_null($days)) {
-                log_error("helper_full_fields set_days: days should not be NULL", get_defined_vars());
-            } elseif ($set_days) {
-                $patient_or_order[$i] = set_days_default($patient_or_order[$i], $days, $mysql);
-            }
+        SirumLog::notice(
+          "add_full_fields $log_suffix",
+          [
+            "set_days_and_msgs"      => $set_days_and_msgs,
+            "overwrite"              => $overwrite,
+            "missing_msg"            => $missing_msg,
+            "overwrite_rx_messages"  => $overwrite_rx_messages,
+            "rx_number"              => $patient_or_order[$i]['rx_number'],
+            "patient_or_order[i]"    => $patient_or_order[$i]
+          ]
+        );
 
-            /*
-             * On a sync_to_order the rx_message_key will be set, but days will not yet
-             *  be set since their was not an order_item until now.  But we don't want
-             *  to override the original sync message
-             */
-            if ($set_msgs) {
-                $patient_or_order[$i] = export_cp_set_rx_message($patient_or_order[$i], $message, $mysql);
-                SirumLog::notice(
-                    "Fax fansfer fired Make sure logic is sound",
-                    [
-                        "overwrite_rx_messages"  => $overwrite_rx_messages,
-                        "rx_number"              => $patient_or_order[$i]['rx_number'],
-                        "rx_message_key"         => $patient_or_order[$i]['rx_message_key'],
-                        "rx_message_text"        => $patient_or_order[$i]['rx_message_text'],
-                        "item_date_added"        => @$patient_or_order[$i]['item_date_added'],
-                        "days_dispensed_default" => @$patient_or_order[$i]['days_dispensed_default']
-                    ]
-                );
+        if ($set_days_and_msgs or $overwrite) {
 
-                //Internal logic determines if fax is necessary
-                export_gd_transfer_fax($patient_or_order[$i], 'helper full fields');
-            }
+            list($days, $message) = get_days_and_message($patient_or_order[$i], $patient_or_order);
 
-            //log_notice('add_full_fields: after', ['item' => $patient_or_order[$i]]);
+            SirumLog::notice(
+              "get_days_and_message $log_suffix",
+              [
+                "overwrite_rx_messages"      => $overwrite_rx_messages,
+                "rx_number"                  => $patient_or_order[$i]['rx_number'],
+
+                "new_days_dispensed_default" => $days,
+                "old_days_dispensed_default" => @$patient_or_order[$i]['days_dispensed_default'], //Applicable for order but not for patient
+
+                "new_rx_message_text"        => $message['EN'],
+                "old_rx_message_text"        => $patient_or_order[$i]['rx_message_text'],
+
+                "patient_or_order"           => $patient_or_order[$i]
+              ]
+            );
+
+            //Internal logic keeps initial values on order_items if they exist (don't want to contradict patient comms)
+            $patient_or_order[$i] = set_days_and_message($patient_or_order[$i], $days, $message, $mysql);
+
+            export_cp_set_rx_message($patient_or_order[$i], $message);
+
+            //Internal logic determines if fax is necessary
+            if ($set_days_and_msgs) //Sending because of overwrite may cause multiple faxes for same item
+              export_gd_transfer_fax($patient_or_order[$i], 'helper full fields');
 
             if ($patient_or_order[$i]['sig_days'] and $patient_or_order[$i]['sig_days'] != 90) {
-                log_notice("helper_full_order: sig has days specified other than 90", $patient_or_order[$i]);
+              log_notice("helper_full_order: sig has days specified other than 90", $patient_or_order[$i]);
             }
         }
 
-        if (! $patient_or_order[$i]['rx_message_key'] or is_null($patient_or_order[$i]['rx_message_text'])) {
-            log_error(
-                'add_full_fields: error rx_message not set!',
-                [
-                    'item' => $patient_or_order[$i],
-                    'days' => $days,
-                    'message' => $message,
-                    'set_days' => $set_days,
-                    'set_msgs' => $set_msgs,
-                    '! order[$i][rx_message_key] '       => ! $patient_or_order[$i]['rx_message_key'],
-                    'is_null(order[$i][rx_message_text]' => is_null($patient_or_order[$i]['rx_message_text'])
-                ]
-            );
+        if ( ! $patient_or_order[$i]['rx_message_key'] or is_null($patient_or_order[$i]['rx_message_text'])) {
+          log_error(
+            "add_full_fields: error rx_message not set! $log_suffix",
+            [
+              'item' => $patient_or_order[$i],
+              'days' => $days,
+              'message' => $message,
+              'set_days_and_msgs' => $set_days_and_msgs,
+              '! order[$i][rx_message_key] '       => ! $patient_or_order[$i]['rx_message_key'],
+              'is_null(order[$i][rx_message_text]' => is_null($patient_or_order[$i]['rx_message_text'])
+            ]
+          );
         }
 
         //TODO consider making these methods so that they always stay upto
         //TODO date and we don't have to recalcuate them when things change
         $patient_or_order[$i]['drug'] = $patient_or_order[$i]['drug_generic'];
         if ($patient_or_order[$i]['drug_name']) {
-            $patient_or_order[$i]['drug'] = $patient_or_order[$i]['drug_name'];
+          $patient_or_order[$i]['drug'] = $patient_or_order[$i]['drug_name'];
         }
 
         $patient_or_order[$i]['payment_method'] = @$patient_or_order[$i]['payment_method_default'];
         if (@$patient_or_order[$i]['payment_method_actual']) {
-            $patient_or_order[$i]['payment_method']  = @$patient_or_order[$i]['payment_method_actual'];
+          $patient_or_order[$i]['payment_method']  = @$patient_or_order[$i]['payment_method_actual'];
         }
 
 
-        if ($patient_or_order[$i]['payment_method'] != $patient_or_order[$i]['payment_method_default']) {
-            log_error(
-                'add_full_fields: payment_method_actual is set but does not equal'.
-                'payment_method_default. Was coupon removed?',
-                get_defined_vars()
-            );
+        if (
+            $i == 0 //Same for every item in order
+            AND $patient_or_order[$i]['payment_method'] != $patient_or_order[$i]['payment_method_default']
+            AND $patient_or_order[$i]['payment_method_default'] != PAYMENT_METHOD['CARD EXPIRED']
+        ) {
+          log_error(
+            'add_full_fields: payment_method_actual ('.$patient_or_order[$i]['payment_method'].') is set but does not equal '.
+            'payment_method_default ('.$patient_or_order[$i]['payment_method_default'].'). Did customer click on wrong payment type? Was coupon removed?',
+            get_defined_vars()
+          );
 
-            /*
-             * Order 39025.  Ideally this would be removed since if we remove
-             * coupon from patient it should remove it from order as well
-             */
-            if ($patient_or_order[$i]['payment_method_actual'] == PAYMENT_METHOD['COUPON']) {
-                $patient_or_order[$i]['payment_method'] = @$patient_or_order[$i]['payment_method_default'];
-            }
+          /*
+           * Order 39025.  Ideally this would be removed since if we remove
+           * coupon from patient it should remove it from order as well
+           */
+          if ($patient_or_order[$i]['payment_method_actual'] == PAYMENT_METHOD['COUPON']) {
+            $patient_or_order[$i]['payment_method'] = @$patient_or_order[$i]['payment_method_default'];
+          }
         }
 
-        if (! isset($patient_or_order[$i]['invoice_number'])) {
+        if (! isset($patient_or_order[$i]['order_date_added'])) {
             /*
              * The rest of the fields are order specific and will not be
              * available if this is a patient
@@ -145,59 +154,53 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
             continue;
         }
 
-        $patient_or_order[$i]['days_dispensed'] = $patient_or_order[$i]['days_dispensed_default'];
         if ($patient_or_order[$i]['days_dispensed_actual']) {
-            $patient_or_order[$i]['days_dispensed'] = $patient_or_order[$i]['days_dispensed_actual'];
+          $days_dispensed = $patient_or_order[$i]['days_dispensed_actual'];
+
+          $price_per_month = $patient_or_order[$i]['price_per_month'] ?: 0; //Might be null
+          $price_dispensed = $patient_or_order[$i]['price_dispensed_actual'] = ceil($days_dispensed*$price_per_month/30);
+
+          if ($price_dispensed > 80)
+            log_error("helper_full_fields: price too high, $$price_dispensed", get_defined_vars());
+
+        } else {
+          $days_dispensed = $patient_or_order[$i]['days_dispensed_default'];
+          //Ensure defaults are Numbers and not NULL because String will turn addition into concat and if NULL is summed with other valied prices then result is still NULL
+          $price_dispensed = $patient_or_order[$i]['price_dispensed_default'] ?: 0;
         }
+
+        $patient_or_order[$i]['days_dispensed'] = (float) $days_dispensed;
+        $patient_or_order[$i]['price_dispensed'] = (float) $price_dispensed;
 
         if ($patient_or_order[$i]['days_dispensed']) {
-            $count_filled++;
-        }
-
-        if (!$count_filled
-                and ($patient_or_order[$i]['days_dispensed']
-                        or $patient_or_order[$i]['days_dispensed_default']
-                        or $patient_or_order[$i]['days_dispensed_actual'])
-            ) {
-            log_error('add_full_fields: What going on here?', get_defined_vars());
+          $count_filled++;
         }
 
         /*
          * Create some variables with appropriate values
          */
         if ($patient_or_order[$i]['refills_dispensed_actual']) {
-            $refils_dispensed = (float) $patient_or_order[$i]['refills_dispensed_actual'];
+          $refills_dispensed = $patient_or_order[$i]['refills_dispensed_actual'];
         } elseif ($patient_or_order[$i]['refills_dispensed_default']) {
-            $refils_dispensed = (float) $patient_or_order[$i]['refills_dispensed_default'];
+          $refills_dispensed = $patient_or_order[$i]['refills_dispensed_default'];
         } else {
-            $refils_dispensed = (float) $patient_or_order[$i]['refills_total'];
+          $refills_dispensed = $patient_or_order[$i]['refills_total'];
         }
+
+        $patient_or_order[$i]['refills_dispensed'] = round($refills_dispensed, 2);
 
         if ($patient_or_order[$i]['qty_dispensed_actual']) {
-            $qty_dsipensed = (float) $patient_or_order[$i]['qty_dispensed_actual'];
+          $qty_dispensed = $patient_or_order[$i]['qty_dispensed_actual'];
         } else {
-            $qty_dsipensed = (float) $patient_or_order[$i]['qty_dispensed_default'];
+          $qty_dispensed = $patient_or_order[$i]['qty_dispensed_default'];
         }
 
-        if ($patient_or_order[$i]['price_dispensed_actual']) {
-            $price_dispensed = (float) $patient_or_order[$i]['price_dispensed_actual'];
-        } elseif ($patient_or_order[$i]['price_dispensed_default']) {
-            $price_dispensed = (float) $patient_or_order[$i]['price_dispensed_default'];
-        } else {
-            $price_dispensed = 0;
-        }
-
-        // refills_dispensed_default/actual only exists as an order item.
-        // But for grouping we need to know for items not in the order
-        $patient_or_order[$i]['refills_dispensed'] = round($refils_dispensed, 2);
-        $patient_or_order[$i]['qty_dispensed']     = $qty_dsipensed;
-        $patient_or_order[$i]['price_dispensed']   = $price_dispensed;
+        $patient_or_order[$i]['qty_dispensed'] = (float) $qty_dispensed;
     }
 
     foreach ($patient_or_order as $i => $item) {
-        $patient_or_order[$i]['count_filled'] = $count_filled;
+      $patient_or_order[$i]['count_filled'] = $count_filled;
     }
-
 
     return $patient_or_order;
 }

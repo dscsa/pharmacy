@@ -3,11 +3,13 @@
 const LIVE_MODE = true;
 const DAYS_OF_RXS_TO_IMPORT = 7;
 
-const DAYS_STD  = 90;
-const DAYS_MIN  = 45;
-const DAYS_MAX  = 120;
-const DAYS_UNIT = 15;
-const NO_REFILL = 0.1;
+const DAYS_STD   = 90;
+const DAYS_MIN   = 45;
+const DAYS_MAX   = 120;
+const DAYS_UNIT  = 15;
+const DAYS_EARLY = 28;
+const NO_REFILL  = 0.1;
+const MAX_QTY_PER_DAY = 8;
 
 const ADDED_MANUALLY = [
   "MANUAL",
@@ -156,7 +158,7 @@ const RX_MESSAGE = [
     'CP_CODE' => 215,
   ],
   'NO ACTION WAS TRANSFERRED' => [
-    'EN' => 'was transferred out to your local pharmacy on rx_date_changed',
+    'EN' => 'was transferred out to your local pharmacy on rx_date_transferred',
     'ES' => '',
     'CP_CODE' => 216,
   ],

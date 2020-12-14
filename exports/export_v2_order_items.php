@@ -2,38 +2,71 @@
 
 
 function export_v2_pend_order($order, $mysql) {
-  foreach($order as $i => $item)
+
+  log_notice("export_v2_pend_order", $order);
+
+  //export_v2_unpend_order($order, $mysql) //TODO remove once we stop pending the same order items multiple times (2020-12-09)
+
+  foreach($order as $i => $item) {
     v2_pend_item($order[$i], $mysql);
+  }
 }
 
+function export_v2_unpend_order($order, $mysql) {
+
+  log_notice("export_v2_unpend_order", $order);
+
+  foreach($order as $item) {
+    v2_unpend_item($item, $mysql);
+  }
+}
+
+
 function v2_pend_item($item, $mysql) {
-  log_notice("v2_pend_item continue:".($item['days_dispensed_default'] ? 'Yes Days Dispensed Default' : 'No Days Dispensed Default'), "$item[rx_number]  $item[rx_dispensed_id] $item[days_dispensed_default]");//.print_r($item, true);
+  log_notice("v2_pend_item:".($item['days_dispensed_default'] ? 'Yes Days Dispensed Default' : 'No Days Dispensed Default'), "$item[rx_number]  $item[rx_dispensed_id] $item[days_dispensed_default]", $item);//.print_r($item, true);
 
   if ( ! $item['days_dispensed_default'] OR $item['rx_dispensed_id'] OR is_null($item['last_inventory'])) return; //last_inventory is null if GCN match could not be made
 
-  $vals = make_pick_list($item);
-  print_pick_list($item, $vals);
-  pend_pick_list($item, $vals);
-  save_pick_list($item, $vals, $mysql);
+  if ($item['count_pended_total'] OR $item['qty_pended_total']) {
+    return log_error("v2_pend_item: trying to repend item", $item);
+  }
+
+  $list = make_pick_list($item);
+
+  log_notice("v2_pend_item: made_pick_list", ['success' => !!$list, 'item' => $item, 'list' => $list]);
+
+  print_pick_list($item, $list);
+  pend_pick_list($item, $list);
+  save_pick_list($item, $list, $mysql);
 }
 
-function export_v2_unpend_order($order) {
-  log_notice("export_v2_unpend_order", $order[0]['invoice_number']);
-  foreach($order as $item) {
-    unpend_pick_list($item);
+function v2_unpend_item($item, $mysql) {
+  log_notice("v2_unpend_item:".($item['days_dispensed_default'] ? 'Yes Days Dispensed Default' : 'No Days Dispensed Default'), "$item[rx_number]  $item[rx_dispensed_id] $item[days_dispensed_default]", $item);//.print_r($item, true);
+
+  if ($item['rx_dispensed_id'] OR is_null($item['last_inventory'])) return; //last_inventory is null if GCN match could not be made
+
+  if ( ! $item['count_pended_total'] OR ! $item['qty_pended_total']) {
+    return log_error("v2_unpend_item: trying to (re)unpend item", $item);
   }
+
+  unpend_pick_list($item);
+  save_pick_list($item, null, $mysql);
 }
 
 function unpend_pick_list($item) {
 
-  $pend_group_refill = pend_group_refill($item);
-  $pend_group_new_rx = pend_group_new_rx($item);
-  $pend_group_manual = pend_group_manual($item);
+  $pend_group_refill  = pend_group_refill($item);
+  $pend_group_webform = pend_group_webform($item);
+  $pend_group_manual  = pend_group_manual($item);
+  $pend_group_new_patient = pend_group_new_patient($item);
+
+  echo "unpending item $item[drug_generic] in $pend_group_refill, $pend_group_webform, $pend_group_manual, $pend_group_new_patient\n";
 
   //Once order is deleted it not longer has items so its hard to determine if the items were New or Refills so just delete both
-  $res_refill = v2_fetch("/account/8889875187/pend/$pend_group_refill", 'DELETE');
-  $res_new_rx = v2_fetch("/account/8889875187/pend/$pend_group_new_rx", 'DELETE');
-  $res_manual = v2_fetch("/account/8889875187/pend/$pend_group_manual", 'DELETE');
+  $res_refill  = v2_fetch("/account/8889875187/pend/$pend_group_refill/$item[drug_generic]", 'DELETE');
+  $res_webform = v2_fetch("/account/8889875187/pend/$pend_group_webform/$item[drug_generic]", 'DELETE');
+  $res_manual  = v2_fetch("/account/8889875187/pend/$pend_group_manual/$item[drug_generic]", 'DELETE');
+  $res_new_patient = v2_fetch("/account/8889875187/pend/$pend_group_new_patient/$item[drug_generic]", 'DELETE');
 
   //Delete gdoc pick list
   $args = [
@@ -47,24 +80,31 @@ function unpend_pick_list($item) {
   log_notice("unpend_pick_list", get_defined_vars());
 }
 
-function save_pick_list($item, $vals, $mysql) {
+function save_pick_list($item, $list, $mysql) {
 
-  if ( ! $vals) return; //List could not be made
+  log_notice('save_pick_list', get_defined_vars());
+
+  if ( ! $list) {
+    $list = [
+      'qty'           => 0,
+      'qty_repacks'   => 0,
+      'count'         => 0,
+      'count_repacks' => 0
+    ];
+  }
 
   $sql = "
     UPDATE
       gp_order_items
     SET
-      qty_pended_total = $vals[qty],
-      qty_pended_repacks = $vals[qty_repacks],
-      count_pended_total = $vals[count],
-      count_pended_repacks = $vals[count_repacks]
+      qty_pended_total = $list[qty],
+      qty_pended_repacks = $list[qty_repacks],
+      count_pended_total = $list[count],
+      count_pended_repacks = $list[count_repacks]
     WHERE
       invoice_number = $item[invoice_number] AND
       rx_number = $item[rx_number]
   ";
-
-  //log_notice('save_pick_list', get_defined_vars());
 
   $mysql->run($sql);
 }
@@ -81,11 +121,11 @@ function pick_list_suffix($item) {
   return $item['drug_generic'];
 }
 
-function print_pick_list($item, $vals) {
+function print_pick_list($item, $list) {
 
   $pend_group_name = pend_group_name($item);
 
-  if ( ! $vals) return; //List could not be made
+  if ( ! $list) return; //List could not be made
 
   $header = [
     [
@@ -93,10 +133,10 @@ function print_pick_list($item, $vals) {
     [
       "Rx $item[rx_number]. $item[rx_message_key]. Item Added:$item[item_date_added]. Created ".date('Y-m-d H:i:s'), '', '' ,'', '', ''],
     [
-      $vals['half_fill'].
-      "Count:$vals[count], ".
+      $list['half_fill'].
+      "Count:$list[count], ".
       "Days:$item[days_dispensed_default], ".
-      "Qty:$item[qty_dispensed_default] ($vals[qty]), ".
+      "Qty:$item[qty_dispensed_default] ($list[qty]), ".
       "Stock:$item[stock_level_initial], ",
       '', '', '', '', ''
     ],
@@ -108,13 +148,13 @@ function print_pick_list($item, $vals) {
     'method'   => 'newSpreadsheet',
     'file'     => pick_list_name($item),
     'folder'   => PICK_LIST_FOLDER_NAME,
-    'vals'     => array_merge($header, $vals['list']), //merge arrays, make sure array is not associative or json will turn to object
+    'vals'     => array_merge($header, $list['list']), //merge arrays, make sure array is not associative or json will turn to object
     'widths'   => [1 => 243] //show the full id when it prints
   ];
 
   $result = gdoc_post(GD_HELPER_URL, $args);
 
-  log_notice("WebForm print_pick_list $pend_group_name", ['item' => $item, 'count list' => count($vals['list']), 'count pend' => count($vals['pend'])]); //We don't need full shopping list cluttering logs
+  log_notice("WebForm print_pick_list $pend_group_name", ['item' => $item, 'count list' => count($list['list']), 'count pend' => count($list['pend'])]); //We don't need full shopping list cluttering logs
 
 }
 
@@ -128,10 +168,20 @@ function pend_group_refill($item) {
    return "$pick_date $invoice";
 }
 
-function pend_group_new_rx($item) {
+function pend_group_webform($item) {
 
    $pick_time = strtotime($item['order_date_added'].' +0 days'); //Used to be +1 days
-   $invoice   = "N$item[invoice_number]";
+   $invoice   = "W$item[invoice_number]";
+
+   $pick_date = date('Y-m-d', $pick_time);
+
+   return "$pick_date $invoice";
+}
+
+function pend_group_new_patient($item) {
+
+   $pick_time = strtotime($item['patient_date_added'].' +0 days'); //Used to be +1 days
+   $invoice   = "P$item[invoice_number]";
 
    $pick_date = date('Y-m-d', $pick_time);
 
@@ -143,23 +193,32 @@ function pend_group_manual($item) {
 }
 
 function pend_group_name($item) {
-   return $item['order_source'] == "Auto Refill v2" ? pend_group_refill($item) : pend_group_new_rx($item);
+
+    if ($item['order_source'] == "Auto Refill v2")
+        return pend_group_refill($item);
+
+    if ($item['refills_used'] > 0)
+        return pend_group_webform($item);
+
+    return pend_group_new_patient($item);
 }
 
 
-function pend_pick_list($item, $vals) {
+function pend_pick_list($item, $list) {
 
-  if ( ! $vals) return; //List could not be made
+  if ( ! $list) return; //List could not be made
 
   $pend_group_name = pend_group_name($item);
   $qty = round($item['qty_dispensed_default']);
 
+  echo "pending item $pend_group_name:$item[drug_generic] - $qty\n";
+
   $pend_url = "/account/8889875187/pend/$pend_group_name?repackQty=$qty";
 
   //Pend after all forseeable errors are accounted for.
-  $res = v2_fetch($pend_url, 'POST', $vals['pend']);
+  $res = v2_fetch($pend_url, 'POST', $list['pend']);
 
-  log_notice("WebForm pend_pick_list", ['res' => $res, 'pend' => $vals['pend'], 'item' => $item, 'pend_url' => $pend_url, 'count list' => count($vals['list']), 'count pend' => count($vals['pend'])]);
+  log_notice("WebForm pend_pick_list", get_defined_vars());
 }
 
 //Getting all inventory of a drug can be thousands of items.  Let's start with a low limit that we increase as needed
@@ -263,7 +322,11 @@ function get_v2_inventory($item, $limit) {
   $min_days = $item['days_dispensed_default'];
   $stock    = $item['stock_level_initial'];
 
-  $min_exp   = explode('-', date('Y-m', strtotime("+".($min_days-2*7)." days"))); //Used to use +14 days rather than -14 days as a buffer for dispensing and shipping. But since lots of prepacks expiring I am going to let almost expired things be prepacked
+  //Used to use +14 days rather than -14 days as a buffer for dispensing and shipping.
+  //But since lots of prepacks expiring I am going to let almost expired things be prepacked.
+  //Update on 2020-12-03, -14 days is causing issues when we are behind on filling (on 12/1/2020 a 90 day Rx was pended for exp 01/2021)
+  $days_adjustment = 0; //-14 //+14
+  $min_exp   = explode('-', date('Y-m', strtotime("+".($min_days+$days_adjustment)." days")));
 
   $start_key = rawurlencode('["8889875187","month","'.$min_exp[0].'","'.$min_exp[1].'","'.$generic.'"]');
   $end_key   = rawurlencode('["8889875187","month","'.$min_exp[0].'","'.$min_exp[1].'","'.$generic.'",{}]');

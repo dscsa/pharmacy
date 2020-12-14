@@ -3,14 +3,16 @@ require_once 'helpers/helper_calendar.php';
 
 use Sirum\Logging\SirumLog;
 
-function get_days_default($item, $order) {
+function get_days_and_message($item, $patient_or_order) {
 
   $no_transfer    = is_no_transfer($item);
   $added_manually = is_added_manually($item);
   $not_offered    = is_not_offered($item);
-  $is_refill      = is_refill($item, $order);
+  $is_refill      = is_refill($item, $patient_or_order);
   $refill_only    = is_refill_only($item);
   $stock_level    = @$item['stock_level_initial'] ?: $item['stock_level'];
+  $is_order       = @$patient_or_order[0]['order_date_added']; //invoice_number seems like it may be present even if not an order
+
 
   $days_left_in_expiration = days_left_in_expiration($item);
   $days_left_in_refills    = days_left_in_refills($item);
@@ -18,12 +20,16 @@ function get_days_default($item, $order) {
   $days_default            = days_default($days_left_in_refills, $days_left_in_stock, DAYS_STD, $item);
 
   if ( ! $item['sig_qty_per_day_default'] AND $item['refills_original'] != $item['refills_left']) {
-    log_error("helper_days_dispensed: RX WAS NEVER PARSED", $item);
+    log_error("helper_days_and_message: RX WAS NEVER PARSED", $item);
   }
 
-  if ($item['rx_date_transferred']) {
+  if ($item['rx_transfer']) {
 
-    if($stock_level == STOCK_LEVEL['HIGH SUPPLY'] AND strtotime($item['rx_date_transferred']) > strtotime('-2 day')) {
+    if ( ! $item['rx_date_transferred']) {
+      log_error("rx_transfer is set, but rx_date_transferred is not", get_defined_vars());
+    }
+
+    else if($stock_level == STOCK_LEVEL['HIGH SUPPLY'] AND strtotime($item['rx_date_transferred']) > strtotime('-2 day')) {
 
       $created = "Created:".date('Y-m-d H:i:s');
 
@@ -56,11 +62,16 @@ function get_days_default($item, $order) {
   }
 
 
+
   if ( ! $item['drug_gsns'] AND $item['drug_name']) {
 
     //Check for invoice number otherwise, seemed that SF tasks were being triplicated.  Unsure reason, maybe called by order_items and not just orders?
-    if (@$item['invoice_number']) {
-      $in_order = @$item['invoice_number'] ? "In Order #$item[invoice_number]," : "";
+    if ( ! @$item['order_date_added']) {
+      log_notice("Confirm didn't create salesforce task for GSN - order items not order", $item);
+    } else if ($item['refill_date_first']) {
+      log_error("Confirm didn't create salesforce task for GSN - refills cannot be changed", $item);
+    } else  {
+      $in_order = "In Order #$item[invoice_number],";
       $created = "Created:".date('Y-m-d H:i:s');
 
       if ($item['max_gsn']) {
@@ -90,9 +101,7 @@ function get_days_default($item, $order) {
         ? create_event($event_title, [$salesforce])
         : log_error("CONFIRM DIDN'T CREATE SALESFORCE TASK - DUPLICATE mins_ago:$mins_ago $event_title", [$item, $salesforce]);
 
-      } else {
-        log_error("CONFIRM DIDN'T CREATE SALESFORCE TASK - ORDER ITEMS NOT ORDER", $item);
-      }
+    }
 
     return [ $item['refill_date_first'] ? $days_default : 0, RX_MESSAGE['NO ACTION MISSING GSN']];
   }
@@ -132,23 +141,19 @@ function get_days_default($item, $order) {
     return [$days_default, RX_MESSAGE['NO ACTION PATIENT REQUESTED']];
   }
 
-  if ((strtotime($item['refill_date_next']) - strtotime(@$item['order_date_added'])) > DAYS_UNIT*24*60*60 AND ! $added_manually) {
+  if ($is_order AND (strtotime($item['refill_date_default']) - strtotime($item['order_date_added'])) > DAYS_EARLY*24*60*60 AND ! $added_manually) {
 
     //DON'T STRICTLY NEED THIS TEST BUT IT GIVES A MORE SPECIFIC ERROR SO IT MIGHT BE HELPFUL
-    if ((strtotime(@$item['order_date_added']) - strtotime($item['refill_date_last'])) < DAYS_UNIT*24*60*60 AND ! $added_manually) {
-      log_info("DON'T REFILL IF FILLED WITHIN LAST ".DAYS_UNIT." DAYS UNLESS ADDED MANUALLY", get_defined_vars());
+    if ((strtotime($item['order_date_added']) - strtotime($item['refill_date_last'])) < DAYS_EARLY*24*60*60 AND ! $added_manually) {
+      log_info("DON'T REFILL IF FILLED WITHIN LAST ".DAYS_EARLY." DAYS UNLESS ADDED MANUALLY", get_defined_vars());
       return [0, RX_MESSAGE['NO ACTION RECENT FILL']];
     }
 
-    log_info("DON'T REFILL IF NOT DUE IN OVER ".DAYS_UNIT." DAYS UNLESS ADDED MANUALLY", get_defined_vars());
+    log_info("DON'T REFILL IF NOT DUE IN OVER ".DAYS_EARLY." DAYS UNLESS ADDED MANUALLY", get_defined_vars());
     return [0, RX_MESSAGE['NO ACTION NOT DUE']];
   }
 
-  /*
-   * DAYS_UNIT has been replaced by hardcoded 28 at Pharmacy's request.  We
-   * should evaluate if this needs to change to a constant.  Asana
-   */
-  if ((strtotime($item['refill_date_default']) - strtotime($item['refill_date_manual'])) > 28*24*60*60 AND $item['refill_date_manual'] AND ! $added_manually) {
+  if ($item['refill_date_manual'] AND (strtotime($item['refill_date_default']) - strtotime($item['refill_date_manual'])) > DAYS_EARLY*24*60*60 AND ! $added_manually) {
 
     $created = "Created:".date('Y-m-d H:i:s');
 
@@ -178,12 +183,10 @@ function get_days_default($item, $order) {
     return [0, RX_MESSAGE['ACTION RX OFF AUTOFILL']];
   }
 
-
-
   if ( ! $item['rx_autofill'] AND @$item['item_date_added']) {
 
     //39652 don't refill surescripts early if rx is off autofill.  This means refill_date_next is null but refill_date_default may have a value
-    if ((strtotime($item['refill_date_default']) - strtotime(@$item['order_date_added'])) > DAYS_UNIT*24*60*60 AND ! $added_manually) {
+    if ((strtotime($item['refill_date_default']) - strtotime($item['order_date_added'])) > DAYS_EARLY*24*60*60 AND ! $added_manually) {
       return [0, RX_MESSAGE['ACTION RX OFF AUTOFILL']];
     }
 
@@ -201,25 +204,25 @@ function get_days_default($item, $order) {
     return [$days_default, RX_MESSAGE['NO ACTION NEW GSN']];
   }
 
-  if ( ! $added_manually AND sync_to_order_new_rx($item, $order)) {
+  if ($is_order AND ! $added_manually AND sync_to_order_new_rx($item, $patient_or_order)) {
     log_info('NO ACTION NEW RX SYNCED TO ORDER', get_defined_vars());
     return [$days_default, RX_MESSAGE['NO ACTION NEW RX SYNCED TO ORDER']];
   }
 
   //TODO and check if added by this program otherwise false positives
-  if ( ! $added_manually AND sync_to_order_past_due($item, $order)) {
+  if ($is_order AND ! $added_manually AND sync_to_order_past_due($item, $patient_or_order)) {
     log_info("WAS PAST DUE SO WAS SYNCED TO ORDER", get_defined_vars());
     return [$days_default, RX_MESSAGE['NO ACTION PAST DUE AND SYNC TO ORDER']];
   }
 
   //TODO CHECK IF THIS IS A GUARDIAN ERROR OR WHETHER WE ARE IMPORTING WRONG.  SEEMS THAT IF REFILL_DATE_FIRST IS SET, THEN REFILL_DATE_DEFAULT should be set
-  if ( ! $added_manually AND sync_to_order_no_next($item, $order)) {
+  if ($is_order AND ! $added_manually AND sync_to_order_no_next($item, $patient_or_order)) {
     log_info("WAS MISSING REFILL_DATE_NEXT SO WAS SYNCED TO ORDER", get_defined_vars());
     return [$days_default, RX_MESSAGE['NO ACTION NO NEXT AND SYNC TO ORDER']];
   }
 
   //TODO and check if added by this program otherwise false positives
-  if ( ! $added_manually AND sync_to_order_due_soon($item, $order)) {
+  if ($is_order AND ! $added_manually AND sync_to_order_due_soon($item, $patient_or_order)) {
     log_info("WAS DUE SOON SO WAS SYNCED TO ORDER", get_defined_vars());
     return [$days_default, RX_MESSAGE['NO ACTION DUE SOON AND SYNC TO ORDER']];
   }
@@ -228,13 +231,13 @@ function get_days_default($item, $order) {
     return [$days_default, RX_MESSAGE['NO ACTION FILL ONE TIME']];
   }
 
-  if ($stock_level == STOCK_LEVEL['OUT OF STOCK'] OR ($days_default AND $days_left_in_stock == $days_default)) {
+  if ($stock_level == STOCK_LEVEL['OUT OF STOCK']) {
 
-    if ($item['last_inventory'] > 500) {
+    if ($item['last_inventory'] > 750) {
 
-      log_error("helper_days_dispensed: LIKELY ERROR: 'out of stock' but inventory > 500", get_defined_vars());
+      log_notice("helper_days_and_message: 'out of stock' but inventory > 750", get_defined_vars());
 
-    } else if ($is_refill) {
+    } else if ($is_refill AND $days_default < DAYS_MIN) {
 
       $created = "Created:".date('Y-m-d H:i:s');
 
@@ -251,8 +254,11 @@ function get_days_default($item, $order) {
       if (stripos($item['first_name'], 'TEST') === FALSE AND stripos($item['last_name'], 'TEST') === FALSE)
         create_event($event_title, [$salesforce]);
     }
+    else if ($is_refill) {
+      log_notice("WARN USERS IF REFILL RX IS LOW QTY", get_defined_vars());
+    }
     else
-      log_notice("WARN USERS IF DRUG IS LOW QTY", get_defined_vars());
+      log_notice("WARN USERS IF NEW RX IS LOW QTY", get_defined_vars());
 
     return [$days_default, RX_MESSAGE['NO ACTION FILL OUT OF STOCK']];
   }
@@ -308,18 +314,12 @@ function freeze_invoice_data($item, $mysql) {
   if ( ! $item['days_dispensed_actual'])
     return log_error("freeze_invoice_data has no actual days", get_defined_vars());
 
-  $price_per_month = $item['price_per_month'] ?: 0; //Might be null
-  $price_actual    = ceil($item['days_dispensed_actual']*$price_per_month/30);
-
-  if ($price_actual > 80)
-    return log_error("freeze_invoice_data: price too high, $$price_actual", get_defined_vars());
-
   $sql = "
     UPDATE
       gp_order_items
     SET
       -- Other Fields Should Already Be Set Above (And May have Been Sent to Patient) so don't change
-      price_dispensed_actual   = $price_actual,
+      price_dispensed_actual   = $item[price_dispensed_actual],
       refills_dispensed_actual = $item[refills_total],
       item_message_keys        = '$item[rx_message_keys]',
       item_message_text        = '".escape_db_values($item['rx_message_text'])."'
@@ -331,33 +331,54 @@ function freeze_invoice_data($item, $mysql) {
   $mysql->run($sql);
 }
 
-function set_days_default($item, $days, $mysql) {
+function set_days_and_message($item, $days, $message, $mysql) {
 
-  //We can only save days if its currently an order_item
-  if ( ! @$item['item_date_added'])
-    return $item;
-
-  if ($item['days_dispensed_actual']) {
-    log_notice("set_days_default but it has actual days", get_defined_vars());
+  if (is_null($days) OR is_null($message)) {
+    SirumLog::alert("set_days_and_message set_days: days/message should not be NULL", get_defined_vars());
     return $item;
   }
+
+  $new_rx_message_key  = array_search($message, RX_MESSAGE);
+  $new_rx_message_text = message_text($message, $item);
+
+  if ( ! $new_rx_message_key) {
+    SirumLog::alert("set_days_and_message could not get rx_message_key ", get_defined_vars());
+    return $item;
+  }
+
+  $item['rx_message_key']  = $new_rx_message_key;
+  $item['rx_message_text'] = $new_rx_message_text.($days ? '' : ' **' ); //If not filling reference to backup pharmacy footnote on Invoices
+
+  $rx_numbers = str_replace(",", "','", substr($item['rx_numbers'], 1, -1));
+
+  $rx_single_sql = "
+    UPDATE
+      gp_rxs_single
+    SET
+      rx_message_key  = '$item[rx_message_key]',
+      rx_message_text = '".escape_db_values($item['rx_message_text'])."'
+    WHERE
+      rx_number IN ('$rx_numbers')
+  ";
+
+  $rx_grouped_sql = "
+    UPDATE
+      gp_rxs_grouped
+    SET
+      rx_message_keys = '$item[rx_message_key]' -- Don't need GROUP_CONCAT() since last query to gp_rxs_single made all they keys the same
+    WHERE
+      best_rx_number IN ('$rx_numbers')
+  ";
+
+  $mysql->run($rx_single_sql);
+  $mysql->run($rx_grouped_sql);
+
+  //We only continue to update gp_order_items IF this is an order_item and not just an rx on the patient's profile
+  if ( ! @$item['item_date_added'] OR $item['days_dispensed_default'] OR $item['rx_message_keys_initial'])
+    return $item;
 
   if ( ! $item['rx_number'] OR ! $item['invoice_number']) {
-    log_error("set_days_default without a rx_number AND invoice_number ", get_defined_vars());
-    return $item;
-  }
-
-  $exists = $mysql->run("
-    SELECT *
-    FROM
-      gp_order_items
-    WHERE
-      invoice_number = $item[invoice_number] AND
-      rx_number = $item[rx_number]
-  ");
-
-  if ( ! count($exists[0])) {
-    log_error("set_days_default cannot set days for invoice_number = $item[invoice_number] AND rx_number = $item[rx_number]", get_defined_vars());
+    log_error("set_days_and_message without a rx_number AND invoice_number. rx on patient profile OR maybe order_item before order was imported OR (likely) maybe order was deleted in past 10mins and order items have not yet been deleted?", get_defined_vars());
     return $item;
   }
 
@@ -366,22 +387,36 @@ function set_days_default($item, $days, $mysql) {
   $item['days_dispensed_default']    = $days;
   $item['qty_dispensed_default']     = $days*$item['sig_qty_per_day_default'];
   $item['price_dispensed_default']   = ceil($days*$price/30);
-  $item['refills_dispensed_default'] = refills_dispensed_default($item);  //We want invoice to show refills after they are dispensed assuming we dispense items currently in order
+
   $item['stock_level_initial']       = $item['stock_level'];
+  $item['rx_message_keys_initial']   = $item['rx_message_key'];
 
-  if ($item['days_dispensed_default'] AND ! $item['qty_dispensed_default'])
-    log_error('helper_days_dispensed: qty_dispensed_default is 0 but days_dispensed_default > 0', $item);
+  $item['zscore_initial']            = $item['zscore'];
+  $item['patient_autofill_initial']  = $item['patient_autofill'];
+  $item['rx_autofill_initial']       = $item['rx_autofill'];
+  $item['rx_numbers_initial']        = $item['rx_numbers'];
 
-  $sql = "
+  $item['refills_dispensed_default'] = refills_dispensed_default($item);  //We want invoice to show refills after they are dispensed assuming we dispense items currently in order
+
+  if ($item['days_dispensed_actual']) {
+    log_notice("set_days_and_message but it has actual days. Why is this?", get_defined_vars());
+  }
+
+  if (is_null($item['rx_message_key']) OR is_null($item['refills_dispensed_default']))
+    log_error('helper_days_and_message: is rx_message_keys_initial being set correctly? - NULL', $item);
+  else
+    log_notice('helper_days_and_message: is rx_message_keys_initial being set correctly? - NOT NULL', $item);
+
+  $order_item_sql = "
     UPDATE
       gp_order_items
     SET
-      days_dispensed_default    = ".($days ?: 0).",
+      days_dispensed_default    = $item[days_dispensed_default],
       qty_dispensed_default     = $item[qty_dispensed_default],
       price_dispensed_default   = $item[price_dispensed_default],
 
       stock_level_initial       = '$item[stock_level_initial]',
-      rx_message_keys_initial   = '$item[rx_message_keys]',
+      rx_message_keys_initial   = '$item[rx_message_keys_initial]',
 
       zscore_initial            = ".(is_null($item['zscore']) ? 'NULL' : $item['zscore']).",
       patient_autofill_initial  = ".(is_null($item['patient_autofill']) ? 'NULL' : $item['patient_autofill']).",
@@ -389,17 +424,17 @@ function set_days_default($item, $days, $mysql) {
       rx_numbers_initial        = '$item[rx_numbers]',
 
       refills_dispensed_default = ".(is_null($item['refills_dispensed_default']) ? 'NULL' : $item['refills_dispensed_default']).",
-      refill_date_manual        = ".($item['refill_date_manual'] ? "'$item[refill_date_manual]'" : 'NULL').",
-      refill_date_default       = ".($item['refill_date_default'] ? "'$item[refill_date_default]'" : 'NULL').",
-      refill_date_last          = ".($item['refill_date_last'] ? "'$item[refill_date_last]'" : 'NULL').",
-      refill_target_date        = ".($item['rx_message_key'] == 'ACTION EXPIRING' ? "'$item[rx_date_expired]'" : 'NULL').",
-      refill_target_days        = ".($item['rx_message_key'] == 'ACTION EXPIRING' ? $days : 'NULL')."
+      refill_date_manual        = ".(is_null($item['refill_date_manual']) ?  'NULL' : "'$item[refill_date_manual]'").",
+      refill_date_default       = ".(is_null($item['refill_date_default']) ? 'NULL' : "'$item[refill_date_default]'").",
+      refill_date_last          = ".(is_null($item['refill_date_last']) ? 'NULL' : "'$item[refill_date_last]'").",
+      refill_target_date        = ".(is_null($item['refill_target_date']) ? 'NULL' : "'$item[refill_target_date]'").",
+      refill_target_days        = ".(is_null($item['refill_target_days']) ? 'NULL' : $item['refill_target_days'])."
     WHERE
       invoice_number = $item[invoice_number] AND
       rx_number = $item[rx_number]
   ";
 
-  $mysql->run($sql);
+  $mysql->run($order_item_sql);
 
   return $item;
 }
@@ -427,29 +462,38 @@ function is_no_transfer($item) {
 }
 
 function is_added_manually($item) {
-  return in_array(@$item['item_added_by'], ADDED_MANUALLY);
+  return in_array(@$item['item_added_by'], ADDED_MANUALLY) OR (@$item['item_date_added'] AND $item['refill_date_manual']);
 }
 
 function is_not_offered($item) {
   $stock_level = @$item['stock_level_initial'] ?: $item['stock_level'];
 
-  $not_offered = (is_null($stock_level) OR ($stock_level == STOCK_LEVEL['NOT OFFERED']) OR ($stock_level == STOCK_LEVEL['ORDER DRUG']));
+  if (is_null($stock_level)) {
+    log_notice('is_not_offered: stock level null', ['item' => $item, 'stock_level' => $stock_level]);
+    return true;
+  }
 
-  if ($not_offered) //TODO Alert here is drug is not offered but has a last_inventory > 500
-    log_notice('is_not_offered: true', [$item, $not_offered, "$stock_level == ".STOCK_LEVEL['NOT OFFERED']]);
-  //else
-  //  log_notice('is_not_offered: false', [get_defined_vars(), "$stock_level == ".STOCK_LEVEL['NOT OFFERED']]);
+  if ($stock_level == STOCK_LEVEL['NOT OFFERED']) {
+    log_notice('is_not_offered: stock level not offered', ['item' => $item, 'stock_level' => $stock_level]);
+    return true;
+  }
 
-  return $not_offered;
+  if ($stock_level == STOCK_LEVEL['ORDER DRUG']) {
+    log_notice('is_not_offered: stock level order drug', ['item' => $item, 'stock_level' => $stock_level]);
+    return true;
+  }
+
+  log_notice('is_not_offered: false', ['item' => $item, 'stock_level' => $stock_level]);
+  return false;
 }
 
 //rxs_grouped includes drug name AND sig_qty_per_day_default.  If someone starts on Lipitor 20mg 1 time per day
 //and then moves to Lipitor 20mg 2 times per day, we still want to honor this Rx as a refill rather than
 //tell them it is out of stock just because the sig changed
-function is_refill($item1, $order) {
+function is_refill($item1, $patient_or_order) {
 
   $refill_date_first = null;
-  foreach ($order as $item2) {
+  foreach ($patient_or_order as $item2) {
     if ($item1['drug_generic'] == $item2['drug_generic'])
       $refill_date_first = $refill_date_first ?: $item2['refill_date_first'];
   }
@@ -468,39 +512,91 @@ function message_text($message, $item) {
   return str_replace(array_keys($item), array_values($item), $message[$item['language']]);
 }
 
-function sync_to_order_new_rx($item, $order) {
+function sync_to_order_new_rx($item, $patient_or_order) {
+
+  if (@$item['item_date_added']) return false;  //Cannot sync if already in order!
+
   $not_offered  = is_not_offered($item);
   $refill_only  = is_refill_only($item);
-  $is_refill    = is_refill($item, $order);
+  $is_refill    = is_refill($item, $patient_or_order);
   $has_refills  = ($item['refills_total'] > NO_REFILL);
-  $eligible     = (! @$item['item_date_added'] AND $has_refills AND ! $is_refill AND $item['rx_autofill'] AND ! $not_offered AND ! $refill_only);
+  $eligible     = ($has_refills AND ! $is_refill AND $item['rx_autofill'] AND ! $not_offered AND ! $refill_only AND ! $item['refill_date_manual']);
 
-  $vars = get_defined_vars();
+  $toSync = ($eligible AND ! is_duplicate_gsn($item, $patient_or_order));
 
   SirumLog::debug(
-      "sync_to_order_new_rx",
+      "sync_to_order_new_rx: $toSync",
       [
-          'vars' => $vars
+          'invoice_number' => $patient_or_order[0]['invoice_number'],
+          'vars' => get_defined_vars()
       ]
   );
 
-  return $eligible AND ! is_duplicate_gsn($item, $order);
+  return $toSync;
 }
 
-function sync_to_order_past_due($item, $order) {
-  $eligible = (! @$item['item_date_added'] AND ($item['refills_total'] > NO_REFILL) AND $item['refill_date_next'] AND (strtotime($item['refill_date_next']) - strtotime($item['order_date_added'])) < 0);
-  return $eligible AND ! is_duplicate_gsn($item, $order);
+function sync_to_order_past_due($item, $patient_or_order) {
+
+  if (@$item['item_date_added']) return false;  //Cannot sync if already in order!
+
+  $has_refills  = ($item['refills_total'] > NO_REFILL);
+
+  $eligible = ($has_refills AND $item['refill_date_next'] AND (strtotime($item['refill_date_next']) - strtotime($item['order_date_added'])) < 0);
+
+  $toSync = ($eligible AND ! is_duplicate_gsn($item, $patient_or_order));
+
+  SirumLog::debug(
+    "sync_to_order_past_due: $toSync",
+    [
+      'invoice_number' => $patient_or_order[0]['invoice_number'],
+      'vars' => get_defined_vars()
+    ]
+  );
+
+  return $toSync;
 }
 
 //Order 29017 had a refill_date_first and rx/pat_autofill ON but was missing a refill_date_default/refill_date_manual/refill_date_next
-function sync_to_order_no_next($item, $order) {
-  $eligible = (! @$item['item_date_added'] AND ($item['refills_total'] > NO_REFILL) AND is_refill($item, $order) AND ! $item['refill_date_next']);
-  return $eligible AND ! is_duplicate_gsn($item, $order);
+function sync_to_order_no_next($item, $patient_or_order) {
+
+  if (@$item['item_date_added']) return false;  //Cannot sync if already in order!
+
+  $has_refills  = ($item['refills_total'] > NO_REFILL);
+
+  $eligible = ($has_refills AND is_refill($item, $patient_or_order) AND ! $item['refill_date_next']);
+
+  $toSync = ($eligible AND ! is_duplicate_gsn($item, $patient_or_order));
+
+  SirumLog::debug(
+      "sync_to_order_no_next: $toSync",
+      [
+          'invoice_number' => $patient_or_order[0]['invoice_number'],
+          'vars' => get_defined_vars()
+      ]
+  );
+
+  return $toSync;
 }
 
-function sync_to_order_due_soon($item, $order) {
-  $eligible = (! @$item['item_date_added'] AND ($item['refills_total'] > NO_REFILL) AND $item['refill_date_next'] AND (strtotime($item['refill_date_next'])  - strtotime($item['order_date_added'])) <= DAYS_UNIT*24*60*60);
-  return $eligible AND ! is_duplicate_gsn($item, $order);
+function sync_to_order_due_soon($item, $patient_or_order) {
+
+  if (@$item['item_date_added']) return false;  //Cannot sync if already in order!
+
+  $has_refills  = ($item['refills_total'] > NO_REFILL);
+
+  $eligible = ($has_refills AND $item['refill_date_next'] AND (strtotime($item['refill_date_next'])  - strtotime($item['order_date_added'])) <= DAYS_EARLY*24*60*60);
+
+  $toSync = ($eligible AND ! is_duplicate_gsn($item, $patient_or_order));
+
+  SirumLog::debug(
+      "sync_to_order_due_soon: $toSync",
+      [
+          'invoice_number' => $patient_or_order[0]['invoice_number'],
+          'vars' => get_defined_vars()
+      ]
+  );
+
+  return $toSync;
 }
 
 //Although you can dispense up until an Rx expires (so refill_date_next is well past rx_date_expired) we want to use
@@ -545,6 +641,9 @@ function days_left_in_stock($item) {
   if($stock_level == STOCK_LEVEL['HIGH SUPPLY'] AND $item['sig_qty_per_day_default'] != round(1/30, 3))
     log_error("LOW STOCK ITEM IS MARKED HIGH SUPPLY $item[drug_generic] days_left_in_stock:$days_left_in_stock last_inventory:$item[last_inventory]", get_defined_vars());
 
+  if($item['refill_date_first'] AND $stock_level == STOCK_LEVEL['OUT OF STOCK'])
+    log_error("REFILL ITEM IS MARKED OUT OF STOCK $item[drug_generic] days_left_in_stock:$days_left_in_stock last_inventory:$item[last_inventory]", get_defined_vars());
+
   return $item['sig_qty_per_day_default'] == round(1/30, 3) ? 60.6 : DAYS_MIN; //Dispensed 2 inhalers per time, since 1/30 is rounded to 3 decimals (.033), 2 month/.033 = 60.6 qty
 }
 
@@ -567,22 +666,22 @@ function days_default($days_left_in_refills, $days_left_in_stock, $days_default,
 
   $remainder = $days % DAYS_UNIT;
 
-  if ($remainder == 5)
-    log_notice("DEFAULT DAYS IS NOT A MULTIPLE OF ".DAYS_UNIT."! LIKELY BECAUSE RX EXPIRING days:$days, days_left_in_stock:$days_left_in_stock, days_left_in_refills:$days_left_in_refills", get_defined_vars());
+  if ( ! $days)
+    log_error("DEFAULT DAYS IS 0! days:$days, days_default:$days_default, days_left_in_stock:$days_left_in_stock, days_left_in_refills:$days_left_in_refills", ['item' => $item]);
   else if ($remainder)
-    log_error("DEFAULT DAYS IS NOT A MULTIPLE OF ".DAYS_UNIT."! days:$days, days_left_in_stock:$days_left_in_stock, days_left_in_refills:$days_left_in_refills", get_defined_vars());
+    log_notice("DEFAULT DAYS IS NOT A MULTIPLE OF ".DAYS_UNIT."! days:$days, days_default:$days_default, days_left_in_stock:$days_left_in_stock, days_left_in_refills:$days_left_in_refills", ['item' => $item]);
   else
-    log_info("days:$days, days_left_in_stock:$days_left_in_stock, days_left_in_refills:$days_left_in_refills", get_defined_vars());
+    log_info("days:$days, days_left_in_stock:$days_left_in_stock, days_left_in_refills:$days_left_in_refills", ['item' => $item]);
 
   return $days;
 }
 
 //Don't sync if an order with these instructions already exists in order
-function is_duplicate_gsn($item1, $order) {
+function is_duplicate_gsn($item1, $patient_or_order) {
   //Don't sync if an order with these instructions already exists in order
-  foreach($order as $item2) {
+  foreach($patient_or_order as $item2) {
     if ($item1 !== $item2 AND @$item2['item_date_added'] AND $item1['drug_gsns'] == $item2['drug_gsns']) {
-      log_notice("helper_days_dispensed syncing item: matching drug_gsns so did not SYNC TO ORDER' $item1[invoice_number] $item1[drug_name] $item1[rx_message_key] refills last:$item1[refill_date_last] next:$item1[refill_date_next] total:$item1[refills_total] left:$item1[refills_left]", ['item1' => $item1, 'item2' => $item2]);
+      log_notice("helper_days_and_message syncing item: matching drug_gsns so did not SYNC TO ORDER' $item1[invoice_number] $item1[drug_name] $item1[rx_message_key] refills last:$item1[refill_date_last] next:$item1[refill_date_next] total:$item1[refills_total] left:$item1[refills_left]", ['item1' => $item1, 'item2' => $item2]);
       return true;
     }
   }

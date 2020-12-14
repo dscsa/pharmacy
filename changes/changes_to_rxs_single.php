@@ -3,6 +3,23 @@
 require_once 'dbs/mysql_wc.php';
 require_once 'helpers/helper_changes.php';
 
+function rxs_single_get_deleted_sql($new, $old, $id) {
+
+  $join = join_clause($id);
+
+  return "
+    SELECT
+      old.*
+    FROM
+      $new as new
+    RIGHT JOIN $old as old ON
+      $join
+    WHERE
+      new.$id IS NULL
+    AND
+      old.rx_date_changed > @today - ".DAYS_OF_RXS_TO_IMPORT;
+}
+
 function rxs_single_set_deleted_sql($new, $old, $id) {
 
   $join = join_clause($id);
@@ -50,6 +67,7 @@ function changes_to_rxs_single($new) {
     NOT old.rx_stage <=> new.rx_stage OR
     NOT old.rx_source <=> new.rx_source OR
     NOT old.rx_transfer <=> new.rx_transfer OR
+    NOT old.rx_date_transferred <=> new.rx_date_transferred OR
     NOT old.provider_npi <=> new.provider_npi OR
     NOT old.provider_first_name <=> new.provider_first_name OR
     NOT old.provider_last_name <=> new.provider_last_name OR
@@ -63,7 +81,7 @@ function changes_to_rxs_single($new) {
   $columns = $mysql->run(get_column_names($new))[0][0]['columns'];
 
   //Get Deleted
-  //$deleted = $mysql->run(get_deleted_sql($new, $old, $id));
+  $deleted = $mysql->run(rxs_single_get_deleted_sql($new, $old, $id));
 
   //Get Inserted
   $created = $mysql->run(get_created_sql($new, $old, $id));

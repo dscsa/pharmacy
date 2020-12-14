@@ -3,58 +3,52 @@
 global $mssql;
 
 /**
- * Copy the perscription message over to the CarePoint database
- *
- * @param array    $item    The item and it's details
- * @param string   $message The perscription messages
- * @param Mssql_Cp $mysql   The CarePoint databse object
- *
- * @return void
+ * We want all Rxs within a group to share the same rx_autofill value,
+ * so when one changes we must change them all
+ * @param  array $item  The rx_numbers to update
+ * @param  array $mssql The RX message
+ * @return array the original item
  */
-function export_cp_set_rx_message($item, $message, $mysql)
+function export_cp_set_rx_message($item, $message)
 {
     global $mssql;
     $mssql = $mssql ?: new Mssql_Cp();
 
-    $old_rx_message_key  = $item['rx_message_key'];
-    $old_rx_message_text = $item['rx_message_text'];
-
-    $item['rx_message_key']  = array_search($message, RX_MESSAGE);
-    $item['rx_message_text'] = message_text($message, $item);
-
-    // There isn't a perscription message so lets bugout
-    if (!$item['rx_message_key']) {
-        log_error("set_days_default could not get rx_message_key ", get_defined_vars());
-        return $item;
-    }
-
-    //If not filling reference to backup pharmacy footnote on Invoices
-    if (!isset($item['days_dispensed_default']) || !$item['days_dispensed_default']) {
-        $item['rx_message_text'] .= ' **';
-    }
-
     $rx_numbers = str_replace(",", "','", substr($item['rx_numbers'], 1, -1));
 
-    $sql1 = "UPDATE
-                cprx
-              SET
-                priority_cn = $message[CP_CODE]
-              WHERE
-                script_no IN ('{$rx_numbers}')";
+    $sql1 = "
+    UPDATE
+      cprx
+    SET
+      priority_cn = $message[CP_CODE]
+    WHERE
+      script_no IN ('$rx_numbers')
+  ";
 
-    $sql2 = "UPDATE
-                gp_rxs_single
-              SET
-                rx_message_key  = '{$item['rx_message_key']}',
-                rx_message_text = '" . escape_db_values($item['rx_message_text']) . "'
-              WHERE
-                rx_number IN ('{$rx_numbers}')";
-
+    log_notice('export_cp_set_rx_message', [$sql1]);
     if (ENVIRONMENT == 'PRODUCTION') {
         $mssql->run($sql1);
-        $mysql->run($sql2);
     } else {
         echo "Skipping Guardian Writes in Development\n";
     }
+
     return $item;
+}
+
+/**
+ * We want all Rxs within a group to share the same rx_autofill value,
+ * so when one changes we must change them all
+ * @param  array    $item  The rx_numbers to update
+ * @param  Mssql_Cp $mssql Carepoint Database Connection
+ * @return void
+ */
+function export_cp_rx_autofill($item, $mssql)
+{
+    if (ENVIRONMENT == 'PRODUCTION') {
+        $rx_numbers  = str_replace(',', "','", substr($item['rx_numbers'], 1, -1)); //use drugs_gsns instead of rx_gsn just in case there are multiple gsns for this drug
+        $sql = "UPDATE cprx SET autofill_yn = $item[rx_autofill], chg_date = GETDATE() WHERE script_no IN ('$rx_numbers')";
+        $mssql->run($sql);
+    } else {
+        echo "Skipping Guardian Writes in Development\n";
+    }
 }

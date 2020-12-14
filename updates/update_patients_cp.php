@@ -3,6 +3,8 @@
 require_once 'changes/changes_to_patients_cp.php';
 require_once 'helpers/helper_full_patient.php';
 
+use Sirum\Logging\SirumLog;
+
 function update_patients_cp() {
 
   $changes = changes_to_patients_cp("gp_patients_cp");
@@ -10,6 +12,18 @@ function update_patients_cp() {
   $count_deleted = count($changes['deleted']);
   $count_created = count($changes['created']);
   $count_updated = count($changes['updated']);
+
+  SirumLog::debug(
+    'Carepoint Patient Changes found',
+    [
+      'deleted' => $changes['deleted'],
+      'created' => $changes['created'],
+      'updated' => $changes['updated'],
+      'deleted_count' => $count_deleted,
+      'created_count' => $count_created,
+      'updated_count' => $count_updated
+    ]
+  );
 
   if ( ! $count_deleted AND ! $count_created AND ! $count_updated) return;
 
@@ -19,6 +33,20 @@ function update_patients_cp() {
   $mssql = new Mssql_Cp();
 
   foreach($changes['updated'] as $i => $updated) {
+
+      SirumLog::$subroutine_id = "patients-cp-updated-".sha1(serialize($updated));
+
+      //Overrite Rx Messages everytime a new order created otherwis same message would stay for the life of the Rx
+
+      SirumLog::debug(
+        "update_patients_cp: Carepoint PATIENT Updated",
+        [
+            'Updated' => $updated,
+            'source'  => 'CarePoint',
+            'type'    => 'patients',
+            'event'   => 'updated'
+        ]
+      );
 
     $changed = changed_fields($updated);
 
@@ -64,8 +92,9 @@ function update_patients_cp() {
       //Probably by generalizing the code the currently removes drugs from the refill reminders.
       //TODO Autopay Reminders (Remove Card, Card Expired, Card Changed, Order Paid Manually)
     }
-
   }
+
+  SirumLog::resetSubroutineId();
   //TODO Upsert WooCommerce Patient Info
 
   //TODO Upsert Salseforce Patient Info
