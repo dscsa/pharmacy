@@ -4,6 +4,8 @@ use Sirum\Logging\SirumLog;
 
 require_once 'helpers/helper_calendar.php';
 
+use Sirum\Logging\SirumLog;
+
 //Internal communication warning an order was shipped but not dispensed.  Gets erased when/if order is shipped
 function order_dispensed_notice($groups) {
 
@@ -467,13 +469,39 @@ function confirm_shipment_notice($groups) {
 
     $days_ago = 5;
 
-    $email = confirm_shipping_external($groups); //Existing customer just tell them it was delivered
-    $salesforce = confirm_shipping_internal($groups, $days_ago+1); //New customer tell them it was delivered and followup with a call
+    //Existing customer just tell them it was delivered
+    $email = confirm_shipping_external($groups);
+
+    //New customer tell them it was delivered and followup with a call
+    $salesforce = confirm_shipping_internal($groups, $days_ago+1);
 
     confirm_shipment_event($groups['ALL'], $email, $salesforce, $days_ago*24, 13);
 }
 
 function confirm_shipping_internal($groups, $days_ago) {
+    
+  $mysql = new Sirum\Storage\Goodpill();
+  $pdo   = $mysql->prepare(
+              "SELECT count(*) as past_order_count
+        	     FROM gp_orders o
+        	        JOIN gp_orders p ON o.patient_id_cp = p.patient_id_cp
+                        AND p.invoice_number = :invoice_number
+        	     WHERE o.invoice_number != :invoice_number
+        		       AND o.order_stage_cp = 'Shipped';");
+
+  $pdo->bindParam(':invoice_number', $groups['ALL'][0]['invoice_number'], \PDO::PARAM_INT);
+  $pdo->execute();
+
+  $results = $pdo->fetch();
+
+  SirumLog::notice(
+      'Should we attach new patient events in SF?',
+      [
+          'past_order_count' => $results['past_order_count'],
+          'refills_used'     => $groups['ALL'][0]['refills_used'],
+          'invoice_number'   => $groups['ALL'][0]['invoice_number']
+      ]
+  );
 
   if ((float) $groups['ALL'][0]['refills_used'] > 0) {
     return [];
