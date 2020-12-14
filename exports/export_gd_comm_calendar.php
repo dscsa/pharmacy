@@ -456,7 +456,7 @@ function confirm_shipment_notice($groups) {
 
     //Existing customer just tell them it was delivered
     $email = confirm_shipping_external($groups);
-    
+
     //New customer tell them it was delivered and followup with a call
     $salesforce = confirm_shipping_internal($groups, $days_ago+1);
 
@@ -488,7 +488,7 @@ function confirm_shipping_internal($groups, $days_ago) {
       ]
   );
 
-  if (!$groups['ALL'][0]['refills_used']) {
+  if ((float) $groups['ALL'][0]['refills_used'] > 0) {
     return [];
   }
 
