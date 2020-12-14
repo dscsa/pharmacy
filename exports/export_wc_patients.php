@@ -36,26 +36,32 @@ function upsert_patient_wc($mysql, $user_id, $meta_key, $meta_value) {
   $mysql->run($upsert);
 }
 
+/**
+ * Create the association between the wp and the cp patient
+ * @param  Mysql_Wc $mysql         The GP Mysql Connection
+ * @param  array    $patient       The patient data
+ * @param  int      $patient_id_cp The CP id for the patient
+ * @return void
+ */
 function match_patient_wc($mysql, $patient, $patient_id_cp) {
-  $sql1 = "
-    INSERT INTO
-      wp_usermeta (umeta_id, user_id, meta_key, meta_value)
-    VALUES
-      (NULL, $patient[patient_id_wc], 'patient_id_cp', '$patient_id_cp')
-  ";
+  // Update the patientes table
+  $mysql->run(
+      "UPDATE
+          gp_patients
+        SET
+          patient_id_wc = {$patient['patient_id_wc']}
+        WHERE
+          patient_id_wc IS NULL AND
+          patient_id_cp = '{$patient_id_cp}'
+  ");
 
-  $sql2 = "
-    UPDATE
-      gp_patients
-    SET
-      patient_id_wc = $patient[patient_id_wc]
-    WHERE
-      patient_id_wc IS NULL AND
-      patient_id_cp = '$patient_id_cp'
-  ";
-
-  $mysql->run($sql1);
-  $mysql->run($sql2);
+  // Insert the patient_id_cp if it deosnt' already exist
+  upsert_patient_wc(
+      $mysql,
+      $patient['patient_id_wc'],
+      'patient_id_cp',
+      $patient_id_cp
+  );
 
   log_notice("update_patients_wc: matched $patient[first_name] $patient[last_name]");
 }
