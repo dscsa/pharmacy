@@ -566,11 +566,10 @@ function update_orders_cp() {
 
             foreach ($order as $item) {
 
-              $match  = ($updated['rx_number'] == $item['rx_number']);
               $unpend = ($item['count_pended_total'] AND ! $item['days_dispensed']);
               $pend   = (! $item['count_pended_total'] AND $item['days_dispensed']);
 
-              $changes[] = "$updated[invoice_number] $item[drug_name] match:$match unpend:$unpend pend:$pend item_date_added:$item[item_date_added] item_added_by:$item[item_added_by] count_pended_total:$item[count_pended_total] days_dispensed_default:$item[days_dispensed_default] days_dispensed_actual:$item[days_dispensed_actual]";
+              $changes[] = "$updated[invoice_number] $item[drug_name] unpend:$unpend pend:$pend item_date_added:$item[item_date_added] item_added_by:$item[item_added_by] count_pended_total:$item[count_pended_total] days_dispensed_default:$item[days_dispensed_default] days_dispensed_actual:$item[days_dispensed_actual]";
 
               if ($unpend) {
                 //TODO remove item from order too?  Do that here or somewhere else?
@@ -585,7 +584,7 @@ function update_orders_cp() {
 
               //Make sure order doesn't have more than 1 item per rx_group (SureScripts could have added a duplicate Rx to the order)
               //TODO should we put a UNIQUE contstaint on the rxs_grouped table for bestrx_number and rx_numbers, so that it fails hard
-              if ( ! $duplicates[$item['best_rx_number']])
+              if ( ! @$duplicates[$item['best_rx_number']])
                 $duplicates[$item['best_rx_number']] = [$item];
               else {
                 $duplicates[$item['best_rx_number']][] = $item;
