@@ -345,7 +345,7 @@ function update_orders_wc()
                     [
                       "old_stage"      => $updated['old_order_stage_wc'],
                       "new_stage"      => $updated['order_stage_wc'],
-                      "invoice_number" => $updated[invoice_number],
+                      "invoice_number" => $updated['invoice_number'],
                       "changed"        => $changed,
                       "method"         => "update_orders_wc"
                     ]
