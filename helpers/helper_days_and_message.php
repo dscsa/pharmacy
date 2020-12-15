@@ -389,7 +389,7 @@ function set_days_and_message($item, $days, $message, $mysql) {
   $item['price_dispensed_default']   = ceil($days*$price/30);
 
   $item['stock_level_initial']       = $item['stock_level'];
-  $item['rx_message_keys_initial']   = $item['rx_message_key'];
+  $item['rx_message_keys_initial']   = $item['rx_message_key'];  //Don't need GROUP_CONCAT() since last query to gp_rxs_single made all they keys the same
 
   $item['zscore_initial']            = $item['zscore'];
   $item['patient_autofill_initial']  = $item['patient_autofill'];
@@ -562,8 +562,9 @@ function sync_to_order_no_next($item, $patient_or_order) {
   if (@$item['item_date_added']) return false;  //Cannot sync if already in order!
 
   $has_refills  = ($item['refills_total'] > NO_REFILL);
+  $is_refill  = $item['refill_date_first']; //Unlink others don't use is_refill (which checks all matching drugs / ignoring sig_qty_per day differences).  This might be an Rx the pharmacists are intentionally not activating.  See the 2x "Bumetanide 1mg" in Order 52129
 
-  $eligible = ($has_refills AND is_refill($item, $patient_or_order) AND ! $item['refill_date_next']);
+  $eligible = ($has_refills AND $is_refill AND ! $item['refill_date_next']);
 
   $toSync = ($eligible AND ! is_duplicate_gsn($item, $patient_or_order));
 
