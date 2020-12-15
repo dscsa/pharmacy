@@ -564,8 +564,8 @@ function update_orders_cp() {
             foreach ($order as $item) {
 
               $match  = ($updated['rx_number'] == $item['rx_number']);
-              $unpend = $item['count_pended_total'] AND ! $item['days_dispensed'];
-              $pend   = ! $item['count_pended_total'] AND $item['days_dispensed'];
+              $unpend = ($item['count_pended_total'] AND ! $item['days_dispensed']);
+              $pend   = (! $item['count_pended_total'] AND $item['days_dispensed']);
 
               $changes[] = "$updated[invoice_number] $item[drug_name] match:$match unpend:$unpend pend:$pend item_date_added:$item[item_date_added] count_pended_total:$item[count_pended_total] days_dispensed_default:$item[days_dispensed_default] days_dispensed_actual:$item[days_dispensed_actual]";
 
@@ -599,6 +599,21 @@ function update_orders_cp() {
             }
 
             log_notice($log, ['changes' => $changes, 'order' => $order, 'updated' => $updated, 'duplicates' => $duplicates]); //How do we want to handle changes to orders since we are not notifying patients on changes.
+
+
+            if ($changes) {
+              $salesforce   = [
+                "subject"   => $log,
+                "body"      => implode(',', $changes),
+                "contact"   => $order[0]['first_name'].' '.$order[0]['last_name'].' '.$order[0]['birth_date'],
+                "assign_to" => ".Add/Remove Drug - RPh",
+                "due_date"  => date('Y-m-d')
+              ];
+
+              $event_title = "$log $salesforce[due_date]";
+
+              create_event($event_title, [$salesforce]);
+            }
 
             $order = helper_update_payment($order, $log, $mysql); //This also updates payment
             export_wc_update_order($order);
