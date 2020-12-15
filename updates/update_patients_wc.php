@@ -324,16 +324,20 @@ function update_patients_wc() {
         name_mismatch($updated['last_name'],  $updated['old_last_name'])
     ) {
 
+      $error = [
+        "updated" => $updated,
+        "changed" => $changed
+      ];
+
       if (
-        stripos($patient[0]['first_name'], 'TEST') === false
-        and stripos($patient[0]['last_name'], 'TEST') === false) {
-        SirumLog::alert(
-          'Patient Name Misspelled or Identity Changed?',
-          ["patient" => $updated]
-        );
+        stripos($updated['first_name'], 'TEST') === false
+        and stripos($updated['last_name'], 'TEST') === false) {
+        SirumLog::alert('Patient Name Misspelled or Identity Changed?', $error);
+      } else {
+        log_error("Patient Name Misspelled or Identity Changed?", $error);
       }
 
-      log_error("Patient Name Misspelled or Identity Changed?", $updated);
+
       //upsert_patient_wc($mysql, $updated['patient_id_wc'], 'first_name', $updated['old_first_name']);
       //upsert_patient_wc($mysql, $updated['patient_id_wc'], 'last_name', $updated['old_last_name']);
       //upsert_patient_wc($mysql, $updated['patient_id_wc'], 'birth_date', $updated['old_birth_date']);
