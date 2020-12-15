@@ -51,14 +51,13 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
           )
         );
 
-        $log_suffix = $patient_or_order[$i]['invoice_number'].' '.$patient_or_order[$i]['first_name'].' '.$patient_or_order[$i]['last_name'].' '.$patient_or_order[$i]['drug_generic'];
+        $log_suffix = @$patient_or_order[$i]['invoice_number'].' '.$patient_or_order[$i]['first_name'].' '.$patient_or_order[$i]['last_name'].' '.$patient_or_order[$i]['drug_generic'];
 
         SirumLog::notice(
           "add_full_fields $log_suffix",
           [
             "set_days_and_msgs"      => $set_days_and_msgs,
             "overwrite"              => $overwrite,
-            "missing_msg"            => $missing_msg,
             "overwrite_rx_messages"  => $overwrite_rx_messages,
             "rx_number"              => $patient_or_order[$i]['rx_number'],
             "patient_or_order[i]"    => $patient_or_order[$i]

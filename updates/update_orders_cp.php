@@ -151,7 +151,7 @@ function update_orders_cp() {
             "Surescripts Authorization Approved. Created.  What to do here?  Keep Order? Delete Order? Depends on Autofill settings?",
             [
               'invoice_number'   => $order[0]['invoice_number'],
-              'count_items'      => count($order)." / ".$order['count_items'],
+              'count_items'      => count($order)." / ".@$order['count_items'],
               'patient_autofill' => $order[0]['patient_autofill'],
               'rx_autofill'      => $order[0]['rx_autofill'],
               'order'            => $order
@@ -293,7 +293,7 @@ function update_orders_cp() {
               'invoice_number' => $order[0]['invoice_number'],
               'order'  => $order,
               'synced' => $synced,
-              'group'  => $group
+              'groups' => $groups
             ]
           );
         } else {
@@ -303,7 +303,7 @@ function update_orders_cp() {
               'invoice_number' => $order[0]['invoice_number'],
               'source'         => $order[0]['order_source'],
               'order'          => $order,
-              'group'          => $group,
+              'groups'         => $groups,
               'synced'         => $synced
             ]
           );
@@ -400,7 +400,7 @@ function update_orders_cp() {
 
         export_wc_delete_order($deleted['invoice_number'], "update_orders_cp: cp order deleted $deleted[invoice_number] $deleted[order_stage_cp] $deleted[order_stage_wc] $deleted[order_source] ".json_encode($deleted));
 
-        export_v2_unpend_order([$deleted]);
+        export_v2_unpend_order([$deleted], $mysql);
 
         $delete_items_sql = "
           DELETE gp_order_items
@@ -487,20 +487,27 @@ function update_orders_cp() {
         SirumLog::debug(
           "Order found for updated order",
           [
-            'invoice_number' => $order[0]['invoice_number'],
-            'order'          => $order,
-            'updated'        => $updated
+            'invoice_number'     => $order[0]['invoice_number'],
+            'order'              => $order,
+            'updated'            => $updated,
+            'order_date_shipped' => $updated['order_date_shipped'],
+            'stage_change_cp'    => $stage_change_cp
           ]
         );
 
         if ($stage_change_cp AND $updated['order_date_shipped']) {
-            $groups = group_drugs($order, $mysql);
-            export_v2_unpend_order($order);
-            export_wc_update_order_status($order); //Update status from prepare to shipped
-            export_wc_update_order_metadata($order);
-            send_shipped_order_communications($groups);
-            log_notice("Updated Order Shipped", $order);
-            continue;
+          log_notice("Updated Order Shipped Started", $order);
+          $groups = group_drugs($order, $mysql);
+          log_notice("Updated Order Shipped 1", $order);
+          export_v2_unpend_order($order, $mysql);
+          log_notice("Updated Order Shipped 2", $order);
+          export_wc_update_order_status($order); //Update status from prepare to shipped
+          log_notice("Updated Order Shipped 3", $order);
+          export_wc_update_order_metadata($order);
+          log_notice("Updated Order Shipped 4", $order);
+          send_shipped_order_communications($groups);
+          log_notice("Updated Order Shipped Finished", $order);
+          continue;
         }
 
         if ($stage_change_cp AND $updated['order_date_dispensed']) {
@@ -536,9 +543,11 @@ function update_orders_cp() {
          * TODO Do we want to sync orders upon updates?  On all updates (manual changes, new surescripts, new faxes/transfers).
          * Do we need to send patients updates on these changes?
          *
+         */
         //We won't sync new drugs to the order, but if a new drug comes in that we are not filling, we will remove it
-        $synced = sync_to_order($order, $updated);
+        $synced = sync_to_order($order, true);
 
+        /*
         if ($synced['items_to_sync']) {
             //Force updated to run again after the changes take place
             log_error("update_orders_cp sync_to_order necessary on UPDATE:", [$updated, $synced['items_to_sync']]);
@@ -549,6 +558,7 @@ function update_orders_cp() {
         }
         */
 
+
         if ($updated['count_items'] != $updated['old_count_items']) {
             $log = "update_orders_cp: count items changed $updated[invoice_number]: $updated[old_count_items] -> $updated[count_items]";
             $changes    = [];
@@ -557,10 +567,10 @@ function update_orders_cp() {
             foreach ($order as $item) {
 
               $match  = ($updated['rx_number'] == $item['rx_number']);
-              $unpend = $item['count_pended_total'] AND ! $item['days_dispensed'];
-              $pend   = ! $item['count_pended_total'] AND $item['days_dispensed'];
+              $unpend = ($item['count_pended_total'] AND ! $item['days_dispensed']);
+              $pend   = (! $item['count_pended_total'] AND $item['days_dispensed']);
 
-              $changes[] = "$updated[invoice_number] $item[drug_name] match:$match unpend:$unpend pend:$pend item_date_added:$item[item_date_added] count_pended_total:$item[count_pended_total] days_dispensed_default:$item[days_dispensed_default] days_dispensed_actual:$item[days_dispensed_actual]";
+              $changes[] = "$updated[invoice_number] $item[drug_name] match:$match unpend:$unpend pend:$pend item_date_added:$item[item_date_added] item_added_by:$item[item_added_by] count_pended_total:$item[count_pended_total] days_dispensed_default:$item[days_dispensed_default] days_dispensed_actual:$item[days_dispensed_actual]";
 
               if ($unpend) {
                 //TODO remove item from order too?  Do that here or somewhere else?
@@ -592,6 +602,21 @@ function update_orders_cp() {
             }
 
             log_notice($log, ['changes' => $changes, 'order' => $order, 'updated' => $updated, 'duplicates' => $duplicates]); //How do we want to handle changes to orders since we are not notifying patients on changes.
+
+
+            if ($changes) {
+              $salesforce   = [
+                "subject"   => $log,
+                "body"      => implode(',', $changes),
+                "contact"   => $order[0]['first_name'].' '.$order[0]['last_name'].' '.$order[0]['birth_date'],
+                "assign_to" => ".Add/Remove Drug - RPh",
+                "due_date"  => date('Y-m-d')
+              ];
+
+              $event_title = "$log $salesforce[due_date]";
+
+              create_event($event_title, [$salesforce]);
+            }
 
             $order = helper_update_payment($order, $log, $mysql); //This also updates payment
             export_wc_update_order($order);

@@ -7,6 +7,7 @@ use Sirum\Logging\SirumLog;
 //Remove Only flag so that once we communicate what's in an order to a patient we "lock" it, so that if new SureScript come in we remove them so we don't surprise a patient with new drugs
 function sync_to_order($order, $updated = null) {
 
+  $notices         = [];
   $items_to_sync   = [];
   $items_to_add    = [];
   $items_to_remove = [];
@@ -22,7 +23,7 @@ function sync_to_order($order, $updated = null) {
     if ( ! $item['item_date_added'] AND $item['rx_message_key'] == 'NO ACTION PAST DUE AND SYNC TO ORDER') { //item_date_added because once we add it don't keep readding it
 
       if ($updated) {
-        log_notice("sync_to_order adding item: updated so did not add 'NO ACTION PAST DUE AND SYNC TO ORDER' $item[invoice_number] $item[drug] $item[rx_message_key] refills last:$item[refill_date_last] next:$item[refill_date_next] total:$item[refills_total] left:$item[refills_left]", [$item, $updated]);
+        $notices[] = ["sync_to_order adding item: updated so did not add 'NO ACTION PAST DUE AND SYNC TO ORDER' $item[invoice_number] $item[drug] $item[rx_message_key] refills last:$item[refill_date_last] next:$item[refill_date_next] total:$item[refills_total] left:$item[refills_left]", $item];
         continue;
       }
 
@@ -37,7 +38,7 @@ function sync_to_order($order, $updated = null) {
     if ( ! $item['item_date_added'] AND $item['rx_message_key'] == 'NO ACTION NO NEXT AND SYNC TO ORDER') { //item_date_added because once we add it don't keep readding it
 
       if ($updated) {
-        log_notice("sync_to_order adding item: updated so did not add 'NO ACTION NO NEXT AND SYNC TO ORDER' $item[invoice_number] $item[drug] $item[rx_message_key] refills last:$item[refill_date_last] next:$item[refill_date_next] total:$item[refills_total] left:$item[refills_left]", [$item, $updated]);
+        $notices[] = ["sync_to_order adding item: updated so did not add 'NO ACTION NO NEXT AND SYNC TO ORDER' $item[invoice_number] $item[drug] $item[rx_message_key] refills last:$item[refill_date_last] next:$item[refill_date_next] total:$item[refills_total] left:$item[refills_left]", $item];
         continue;
       }
 
@@ -52,7 +53,7 @@ function sync_to_order($order, $updated = null) {
     if ( ! $item['item_date_added'] AND $item['rx_message_key'] == 'NO ACTION DUE SOON AND SYNC TO ORDER') { //item_date_added because once we add it don't keep readding it
 
       if ($updated) {
-        log_notice("sync_to_order adding item: updated so did not add 'NO ACTION DUE SOON AND SYNC TO ORDER' $item[invoice_number] $item[drug] $item[rx_message_key] refills last:$item[refill_date_last] next:$item[refill_date_next] total:$item[refills_total] left:$item[refills_left]", [$item, $updated]);
+        $notices[] = ["sync_to_order adding item: updated so did not add 'NO ACTION DUE SOON AND SYNC TO ORDER' $item[invoice_number] $item[drug] $item[rx_message_key] refills last:$item[refill_date_last] next:$item[refill_date_next] total:$item[refills_total] left:$item[refills_left]", $item];
         continue;
       }
 
@@ -67,9 +68,7 @@ function sync_to_order($order, $updated = null) {
     if ( ! $item['item_date_added'] AND $item['rx_message_key'] == 'NO ACTION NEW RX SYNCED TO ORDER') { //item_date_added because once we add it don't keep readding it
 
       if ($updated) {
-        if ($item['drug_gsns'])
-          log_notice("sync_to_order adding item: updated so did not add 'NO ACTION NEW RX SYNCED TO ORDER' $item[invoice_number] $item[drug] $item[rx_message_key] refills last:$item[refill_date_last] next:$item[refill_date_next] total:$item[refills_total] left:$item[refills_left]", [$item, $updated]);
-
+        $notices[] = ["sync_to_order adding item: updated so did not add 'NO ACTION NEW RX SYNCED TO ORDER' $item[invoice_number] $item[drug] $item[rx_message_key] refills last:$item[refill_date_last] next:$item[refill_date_next] total:$item[refills_total] left:$item[refills_left]", $item];
         continue;
       }
 
@@ -83,14 +82,8 @@ function sync_to_order($order, $updated = null) {
     //Don't remove items with a missing GSN as this is something we need to do
     if ($item['item_date_added'] AND ! $item['days_dispensed'] AND $item['drug_gsns']) {
 
-      //DEBUG CODE SHOULD NOT BE NEEDED
-      if ($item['rx_message_key'] == 'ACTION NO REFILLS' AND $item['refills_total'] > NO_REFILL) {
-        log_error('aborting helper_syncing because NO REFILLS has refills', $item);
-        continue;
-      }
-
-      if (is_added_manually($item)) {
-        log_notice('aborting helper_syncing because item to be REMOVED was added MANUALLY', $item);
+      if ($updated OR is_added_manually($item)) {
+        $notices[] = ['aborting helper_syncing because updated OR item to be REMOVED was added MANUALLY', $item];
         continue;
       }
 
@@ -104,8 +97,8 @@ function sync_to_order($order, $updated = null) {
 
     if ($item['item_date_added'] AND $item['rx_number'] != $item['best_rx_number']) {
 
-      if ($item['item_added_by'] == 'MANUAL') {
-        log_notice('aborting helper_syncing because item to be SWITCHED was added MANUALLY', $item);
+      if ($updated OR is_added_manually($item)) {
+        $notices[] = ['aborting helper_syncing because updated OR item to be SWITCHED was added MANUALLY', $item];
         continue;
       }
 
@@ -116,6 +109,24 @@ function sync_to_order($order, $updated = null) {
 
       continue;
     }
+  }
+
+  if ($notices)
+    log_notice("helper_syncing: notices", $notices);
+    
+  if ($updated AND $notices) {
+
+    $salesforce   = [
+      "subject"   => "Ignoring changes to an existing order ".$order[0]['invoice_number'],
+      "body"      => implode(',', $notices),
+      "contact"   => $order[0]['first_name'].' '.$order[0]['last_name'].' '.$order[0]['birth_date'],
+      "assign_to" => ".Add/Remove Drug - RPh",
+      "due_date"  => date('Y-m-d')
+    ];
+
+    $event_title = "$salesforce[subject] $salesforce[due_date]";
+
+    create_event($event_title, [$salesforce]);
   }
 
   if ($items_to_remove) {
