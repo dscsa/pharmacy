@@ -1,7 +1,5 @@
 <?php
 
-use Sirum\Logging\SirumLog;
-
 require_once 'helpers/helper_calendar.php';
 
 use Sirum\Logging\SirumLog;
@@ -479,7 +477,7 @@ function confirm_shipment_notice($groups) {
 }
 
 function confirm_shipping_internal($groups, $days_ago) {
-    
+
   $mysql = new Sirum\Storage\Goodpill();
   $pdo   = $mysql->prepare(
               "SELECT count(*) as past_order_count
