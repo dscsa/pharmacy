@@ -10,14 +10,12 @@ use Sirum\Logging\SirumLog;
 
 function update_order_items($changes) {
 
-  $changes = changes_to_order_items('gp_order_items_cp');
-
   $count_deleted = count($changes['deleted']);
   $count_created = count($changes['created']);
   $count_updated = count($changes['updated']);
 
   SirumLog::debug(
-    'Order items changes found',
+    'Order items changes found: '+($count_deleted + $count_created + $count_updated),
     [
       'deleted' => $changes['deleted'],
       'created' => $changes['created'],
