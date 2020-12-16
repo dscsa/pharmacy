@@ -5,16 +5,19 @@ var getEnd  = '}'
 var infoLog = []
 
 function mergeDoc(content) {
+   Logger.log("Creating a new document " + content.file + " in " + content.folder);
 
    debugEmail('mergeDoc start', content)
 
    //debugEmail('mergeDoc', content)
    var order    = flattenOrder(content.order)
    var template = fileByName(content.template)
-
+  
    //debugEmail('flatten order', orderID, order)
    var newDoc = makeCopy(template, content.file, content.folder)
 
+   Logger.log("New document created" + newDoc.getId())
+   
    //We should be able to do replaceText on invoice but we use differing headers footers for the first page
    //which don't get picked up so we need to make our replacements on every https://issuetracker.google.com/issues/36763014
    var documentElement = newDoc.getBody().getParent()

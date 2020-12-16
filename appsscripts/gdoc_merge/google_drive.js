@@ -3,8 +3,8 @@ var fileCache = {}
 function fileByName(name) {
   if (fileCache[name]) return fileCache[name]
   var file = DriveApp.getFilesByName(name).next()
-  fileCache[name] = DocumentApp.openById(file.getId());
-  return fileCache[name]
+  fileCache[name] = DocumentApp.openById(file.getId())
+  return fileCache[name];
 }
 
 var filesCache = {}
@@ -46,6 +46,6 @@ function makeCopy(oldFile, copyName, copyFolder) {
 
    var newFolder = folderByName(copyFolder)
    var newFile = oldFile.makeCopy(copyName, newFolder)
-  
+ 
    return DocumentApp.openById(newFile.getId())
 }
