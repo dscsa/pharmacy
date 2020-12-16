@@ -13,8 +13,9 @@ function export_cp_remove_order($invoice_number) {
   $new_count_items = export_cp_remove_items($invoice_number);
 
   if ( ! $new_count_items) {
+    $date = date('Y-m-d H:i:s');
     $sql = "
-      UPDATE csom SET status_cn = 3 WHERE invoice_nbr = $invoice_number -- chg_user_id = @user_id, chg_date = @today
+      UPDATE csom SET status_cn = 3, comments = CONCAT(comments, ' Deleted by Pharmacy App on $date') WHERE invoice_nbr = $invoice_number -- chg_user_id = @user_id, chg_date = @today
     ";
 
     $res = $mssql->run($sql);

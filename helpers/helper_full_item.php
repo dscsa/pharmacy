@@ -43,8 +43,23 @@ function get_full_item($item, $mysql, $overwrite_rx_messages = false) {
       log_error(($full_item['rx_gsn'] ? 'get_full_item: Add GSN to V2!' : 'get_full_item: Missing GSN!')." Invoice Number:$full_item[invoice_number] Drug:$full_item[drug_name] Rx:$full_item[rx_number] GSN:$full_item[rx_gsn] GSNS:$full_item[drug_gsns]", ['full_item' => $full_item, 'item' => $item, 'sql' => $sql]);
     }
 
+    if ($item['invoice_number'] != $full_item['invoice_number']) {
+
+      $debug = $mysql->run("
+        SELECT * FROM gp_orders WHERE invoice_number = $item[invoice_number]
+      ");
+
+      SirumLog::alert(
+        "helper_full_item: invoice_number retrieved ($full_item[invoice_number]) != invoice_number provided ($item[invoice_number])",
+        ['full_item' => $full_item, 'item' => $item, 'sql' => $sql, 'debug' => $debug]
+      );
+    }
+
     if ($full_item['item_date_added'] AND ! $full_item['invoice_number']) {
-      log_error("get_full_item: item_date_added but no invoice number?  small chance that order has not been imported yet", ['full_item' => $full_item, 'item' => $item, 'sql' => $sql]);
+      $debug = $mysql->run("
+        SELECT * FROM gp_orders WHERE invoice_number = $item[invoice_number]
+      ");
+      log_error("get_full_item: item_date_added but no invoice number?  small chance that order has not been imported yet", ['full_item' => $full_item, 'item' => $item, 'sql' => $sql, 'debug' => $debug]);
     }
 
     if ( ! $full_item['item_date_added'] AND $full_item['invoice_number']) {
