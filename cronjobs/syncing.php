@@ -213,7 +213,7 @@ try {
     $execution_details['timers']['import_v2_drugs'] = ceil(microtime(true) - $start);
     echo "completed in {$execution_details['timers']['import_v2_drugs']} seconds\n";
 
-    echo "All Data Imported.  Starting Change Detection.\n";
+    echo "\nAll Data Imported.  Starting Change Detection.\n";
     /*
       Now we will update tables to new data and determine change feeds
      */
@@ -257,6 +257,7 @@ try {
      echo "Changes CP Orders ";
      $start = microtime(true);
      $changes_to_orders_cp = changes_to_orders_cp("gp_orders_cp");
+     print_r($changes_to_orders_cp);
      $execution_details['timers']['changes_orders_cp'] = ceil(microtime(true) - $start);
      echo "completed in {$execution_details['timers']['changes_orders_cp']} seconds\n";
 
@@ -266,7 +267,7 @@ try {
      $execution_details['timers']['changes_orders_wc'] = ceil(microtime(true) - $start);
      echo "completed in {$execution_details['timers']['changes_orders_wc']} seconds\n";
 
-     echo "All Changes Detected & Tables Updated.  Starting Updates.\n";
+     echo "\nAll Changes Detected & Tables Updated.  Starting Updates.\n";
      /*
       Now we will to trigger side effects based on changes
     */
@@ -345,7 +346,7 @@ try {
     $execution_details['end']             = date('c');
 
     SirumLog::info('Pharmacy Automation Complete', $execution_details);
-    echo "All data processed {$execution_details['end']}\n";
+    echo "\nAll data processed {$execution_details['end']}\n";
 } catch (Exception $e) {
     $execution_details['error_message'] = $e->getMessage;
     SirumLog::alert('Webform Cron Job Fatal Error', $execution_details);
