@@ -20,6 +20,16 @@ function export_cp_remove_order($invoice_number) {
 
     $res = $mssql->run($sql);
 
+    SirumLog::notice(
+      "export_cp_remove_order: Order $invoice_number could only be partially deleted",
+      [
+        'invoice_number'  => $invoice_number,
+        'new_count_items' => $new_count_items,
+        'sql'             => $sql,
+        'res'             => $res
+      ]
+    );
+
   } else {
 
     SirumLog::alert(

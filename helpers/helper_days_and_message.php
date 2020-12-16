@@ -474,16 +474,16 @@ function is_not_offered($item) {
   }
 
   if ($stock_level == STOCK_LEVEL['NOT OFFERED']) {
-    log_notice('is_not_offered: stock level not offered', ['item' => $item, 'stock_level' => $stock_level]);
+    log_notice("is_not_offered: stock level $stock_level", ['item' => $item, 'stock_level' => $stock_level]);
     return true;
   }
 
   if ($stock_level == STOCK_LEVEL['ORDER DRUG']) {
-    log_notice('is_not_offered: stock level order drug', ['item' => $item, 'stock_level' => $stock_level]);
+    log_notice("is_not_offered: stock level $stock_level", ['item' => $item, 'stock_level' => $stock_level]);
     return true;
   }
 
-  log_notice('is_not_offered: false', ['item' => $item, 'stock_level' => $stock_level]);
+  log_notice("is_not_offered:  stock level $stock_level", ['item' => $item, 'stock_level' => $stock_level]);
   return false;
 }
 
