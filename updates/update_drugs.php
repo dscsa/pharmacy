@@ -1,10 +1,9 @@
 <?php
 
-require_once 'changes/changes_to_drugs.php';
 
 use Sirum\Logging\SirumLog;
 
-function update_drugs() {
+function update_drugs($changes) {
 
   $changes = changes_to_drugs("gp_drugs_v2");
 

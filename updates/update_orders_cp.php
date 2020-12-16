@@ -1,6 +1,5 @@
 <?php
 
-require_once 'changes/changes_to_orders_cp.php';
 require_once 'helpers/helper_full_order.php';
 require_once 'helpers/helper_payment.php';
 require_once 'helpers/helper_syncing.php';
@@ -10,7 +9,7 @@ require_once 'exports/export_cp_order_items.php';
 
 use Sirum\Logging\SirumLog;
 
-function update_orders_cp() {
+function update_orders_cp($changes) {
 
   $changes = changes_to_orders_cp("gp_orders_cp");
 

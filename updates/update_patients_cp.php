@@ -1,13 +1,10 @@
 <?php
 
-require_once 'changes/changes_to_patients_cp.php';
 require_once 'helpers/helper_full_patient.php';
 
 use Sirum\Logging\SirumLog;
 
-function update_patients_cp() {
-
-  $changes = changes_to_patients_cp("gp_patients_cp");
+function update_patients_cp($changes) {
 
   $count_deleted = count($changes['deleted']);
   $count_created = count($changes['created']);

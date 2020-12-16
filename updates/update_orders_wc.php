@@ -1,14 +1,11 @@
 <?php
 
-require_once 'changes/changes_to_orders_wc.php';
 require_once 'helpers/helper_full_order.php';
 
 use Sirum\Logging\SirumLog;
 
-function update_orders_wc()
-{
-    $changes = changes_to_orders_wc("gp_orders_wc");
-
+function update_orders_wc($changes) {
+  
     $count_deleted = count($changes['deleted']);
     $count_created = count($changes['created']);
     $count_updated = count($changes['updated']);

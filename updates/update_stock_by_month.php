@@ -1,5 +1,4 @@
 <?php
-require_once 'changes/changes_to_stock_by_month.php';
 require_once 'dbs/mysql_wc.php';
 
 use Sirum\Logging\SirumLog;
@@ -12,7 +11,7 @@ use Sirum\Logging\SirumLog;
  * @return void
  */
 
-function update_stock_by_month() {
+function update_stock_by_month($changes) {
 
   $changes = changes_to_stock_by_month("gp_stock_by_month_v2");
 

@@ -1,6 +1,5 @@
 <?php
 
-require_once 'changes/changes_to_order_items.php';
 require_once 'helpers/helper_days_and_message.php';
 require_once 'helpers/helper_full_item.php';
 require_once 'exports/export_cp_order_items.php';
@@ -9,7 +8,7 @@ require_once 'exports/export_gd_transfer_fax.php';
 
 use Sirum\Logging\SirumLog;
 
-function update_order_items() {
+function update_order_items($changes) {
 
   $changes = changes_to_order_items('gp_order_items_cp');
 

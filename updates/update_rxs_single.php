@@ -1,5 +1,4 @@
 <?php
-require_once 'changes/changes_to_rxs_single.php';
 require_once 'helpers/helper_parse_sig.php';
 require_once 'helpers/helper_imports.php';
 require_once 'exports/export_cp_rxs.php';
@@ -8,7 +7,7 @@ require_once 'dbs/mysql_wc.php';
 
 use Sirum\Logging\SirumLog;
 
-function update_rxs_single() {
+function update_rxs_single($changes) {
 
   $mysql = new Mysql_Wc();
   $mssql = new Mssql_Cp();

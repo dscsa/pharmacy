@@ -37,6 +37,20 @@ require_once 'imports/import_cp_order_items.php';
 require_once 'imports/import_wc_orders.php';
 require_once 'imports/import_cp_orders.php';
 
+
+/*
+  Change Functions - Used to compared new tables with current tables
+  return an [created, updated, deleted] and set current tables to be same as new tables
+ */
+ require_once 'changes/changes_to_drugs.php';
+ require_once 'changes/changes_to_stock_by_month.php';
+ require_once 'changes/changes_to_rxs_single.php';
+ require_once 'changes/changes_to_patients_wc.php';
+ require_once 'changes/changes_to_patients_cp.php';
+ require_once 'changes/changes_to_order_items.php';
+ require_once 'changes/changes_to_orders_wc.php';
+ require_once 'changes/changes_to_orders_cp.php';
+
 /*
   Export Functions - used to push aggregate data out and to notify
   users of interactions
@@ -199,11 +213,63 @@ try {
     $execution_details['timers']['import_v2_drugs'] = ceil(microtime(true) - $start);
     echo "completed in {$execution_details['timers']['import_v2_drugs']} seconds\n";
 
-    echo "All Data Imported.  Starting Updates.\n";
+    echo "All Data Imported.  Starting Change Detection.\n";
     /*
-      Importing and Normalizing are done.  Now we will start to push data
-      and communications
+      Now we will update tables to new data and determine change feeds
      */
+
+     echo "Changes Drugs ";
+     $start = microtime(true);
+     $changes_to_drugs = changes_to_drugs("gp_drugs_v2");
+     $execution_details['timers']['changes_drugs'] = ceil(microtime(true) - $start);
+     echo "completed in {$execution_details['timers']['changes_drugs']} seconds\n";
+
+     echo "Changes Stock by Month ";
+     $start = microtime(true);
+     $changes_to_stock_by_month = changes_to_stock_by_month("gp_stock_by_month_v2");
+     $execution_details['timers']['changes_stock_by_month'] = ceil(microtime(true) - $start);
+     echo "completed in {$execution_details['timers']['changes_stock_by_month']} seconds\n";
+
+     echo "Changes Rxs Single ";
+     $start = microtime(true);
+     $changes_to_rxs_single = changes_to_rxs_single("gp_rxs_single_cp");
+     $execution_details['timers']['changes_rxs_single'] = ceil(microtime(true) - $start);
+     echo "completed in {$execution_details['timers']['changes_rxs_single']} seconds\n";
+
+     echo "Changes CP Patients ";
+     $start = microtime(true);
+     $changes_to_patients_cp = changes_to_patients_cp("gp_patients_cp");
+     $execution_details['timers']['changes_patients_cp'] = ceil(microtime(true) - $start);
+     echo "completed in {$execution_details['timers']['changes_patients_cp']} seconds\n";
+
+     echo "Changes WC Patients ";
+     $start = microtime(true);
+     $changes_to_patients_wc = changes_to_patients_wc("gp_patients_wc");
+     $execution_details['timers']['changes_patients_wc'] = ceil(microtime(true) - $start);
+     echo "completed in {$execution_details['timers']['changes_patients_wc']} seconds\n";
+
+     echo "Changes Order Items ";
+     $start = microtime(true);
+     $changes_to_order_items = changes_to_order_items('gp_order_items_cp');
+     $execution_details['timers']['changes_order_items'] = ceil(microtime(true) - $start);
+     echo "completed in {$execution_details['timers']['changes_order_items']} seconds\n";
+
+     echo "Changes CP Orders ";
+     $start = microtime(true);
+     $changes_to_orders_cp = changes_to_orders_cp("gp_orders_cp");
+     $execution_details['timers']['changes_orders_cp'] = ceil(microtime(true) - $start);
+     echo "completed in {$execution_details['timers']['changes_orders_cp']} seconds\n";
+
+     echo "Changes WC Orders ";
+     $start = microtime(true);
+     $changes_to_orders_wc = changes_to_orders_wc("gp_orders_wc");
+     $execution_details['timers']['changes_orders_wc'] = ceil(microtime(true) - $start);
+     echo "completed in {$execution_details['timers']['changes_orders_wc']} seconds\n";
+
+     echo "All Changes Detected & Tables Updated.  Starting Updates.\n";
+     /*
+      Now we will to trigger side effects based on changes
+    */
 
     /**
      * Retrieve all the drugs and CRUD the changes from v2 to the gp database
@@ -212,7 +278,7 @@ try {
      */
     echo "Update Drugs ";
     $start = microtime(true);
-    update_drugs();
+    update_drugs($changes_to_drugs);
     $execution_details['timers']['update_drugs'] = ceil(microtime(true) - $start);
     echo "completed in {$execution_details['timers']['update_drugs']} seconds\n";
 
@@ -226,7 +292,7 @@ try {
      */
     echo "Update Stock by Month ";
     $start = microtime(true);
-    update_stock_by_month();
+    update_stock_by_month($changes_to_stock_by_month);
     $execution_details['timers']['update_stock_by_month'] = ceil(microtime(true) - $start);
     echo "completed in {$execution_details['timers']['update_stock_by_month']} seconds\n";
     /**
@@ -235,37 +301,37 @@ try {
      */
     echo "Update Rxs Single ";
     $start = microtime(true);
-    update_rxs_single();
+    update_rxs_single($changes_to_rxs_single);
     $execution_details['timers']['update_rxs_single'] = ceil(microtime(true) - $start);
     echo "completed in {$execution_details['timers']['update_rxs_single']} seconds\n";
 
     echo "Update CP Patients ";
     $start = microtime(true);
-    update_patients_cp();
+    update_patients_cp($changes_to_patients_cp);
     $execution_details['timers']['update_patients_cp'] = ceil(microtime(true) - $start);
     echo "completed in {$execution_details['timers']['update_patients_cp']} seconds\n";
 
     echo "Update WC Patients ";
     $start = microtime(true);
-    update_patients_wc();
+    update_patients_wc($changes_to_patients_wc);
     $execution_details['timers']['update_patients_wc'] = ceil(microtime(true) - $start);
     echo "completed in {$execution_details['timers']['update_patients_wc']} seconds\n";
 
     echo "Update Order Items ";
     $start = microtime(true);
-    update_order_items();
+    update_order_items($changes_to_order_items);
     $execution_details['timers']['update_order_items'] = ceil(microtime(true) - $start);
     echo "completed in {$execution_details['timers']['update_order_items']} seconds\n";
 
     echo "Update CP Orders ";
     $start = microtime(true);
-    update_orders_cp();
+    update_orders_cp($changes_to_orders_cp);
     $execution_details['timers']['update_orders_cp'] = ceil(microtime(true) - $start);
     echo "completed in {$execution_details['timers']['update_orders_cp']} seconds\n";
 
     echo "Update WC Orders ";
     $start = microtime(true);
-    update_orders_wc();
+    update_orders_wc($changes_to_orders_wc);
     $execution_details['timers']['update_orders_wc'] = ceil(microtime(true) - $start);
     echo "completed in {$execution_details['timers']['update_orders_wc']} seconds\n";
 
