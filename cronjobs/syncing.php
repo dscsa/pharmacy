@@ -257,7 +257,6 @@ try {
      echo "Changes CP Orders ";
      $start = microtime(true);
      $changes_to_orders_cp = changes_to_orders_cp("gp_orders_cp");
-     print_r($changes_to_orders_cp);
      $execution_details['timers']['changes_orders_cp'] = ceil(microtime(true) - $start);
      echo "completed in {$execution_details['timers']['changes_orders_cp']} seconds\n";
 
@@ -326,6 +325,7 @@ try {
 
     echo "Update CP Orders ";
     $start = microtime(true);
+    print_r($changes_to_orders_cp);
     update_orders_cp($changes_to_orders_cp);
     $execution_details['timers']['update_orders_cp'] = ceil(microtime(true) - $start);
     echo "completed in {$execution_details['timers']['update_orders_cp']} seconds\n";

@@ -11,11 +11,11 @@ use Sirum\Logging\SirumLog;
 
 function update_orders_cp($changes) {
 
-  $changes = changes_to_orders_cp("gp_orders_cp");
-
   $count_deleted = count($changes['deleted']);
   $count_created = count($changes['created']);
   $count_updated = count($changes['updated']);
+
+  print_r([$count_deleted, $count_created, $count_updated, $changes]);
 
   if ( ! $count_deleted AND ! $count_created AND ! $count_updated) {
     SirumLog::notice(
