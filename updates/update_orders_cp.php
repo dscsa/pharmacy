@@ -6,6 +6,7 @@ require_once 'helpers/helper_payment.php';
 require_once 'helpers/helper_syncing.php';
 require_once 'helpers/helper_communications.php';
 require_once 'exports/export_wc_orders.php';
+require_once 'exports/export_cp_order_items.php';
 
 use Sirum\Logging\SirumLog;
 
@@ -192,21 +193,36 @@ function update_orders_cp() {
         $synced = sync_to_order($order);
 
         //Patient communication that we are cancelling their order examples include:
-        //NEEDS FORM, TRANSFER OUT OF ALL ITEMS, ACTION PATIENT OFF AUTOFILL
+        //NEEDS FORM, ORDER HOLD WAITING FOR RXS, TRANSFER OUT OF ALL ITEMS, ACTION PATIENT OFF AUTOFILL
         if ($synced['new_count_items'] <= 0) {
 
+          SirumLog::debug(
+            'update_orders_cp sync_to_order is effectively removing order',
+            [
+              'invoice_number' => $order[0]['invoice_number'],
+              'order'          => $order,
+              'synced'         => $synced
+            ]
+          );
+
+          $groups = group_drugs($order, $mysql);
+          order_hold_notice($groups);
+
+          if ( ! $order[0]['count_items']) { //Remove this if when confident that syncing is working correctly
+
             SirumLog::debug(
-                'update_orders_cp sync_to_order is effectively removing order',
-                [
-                  'invoice_number' => $order[0]['invoice_number'],
-                  'order'          => $order,
-                  'synced'         => $synced
-                ]
+              'update_orders_cp sync_to_order is actually removing order',
+              [
+                'invoice_number' => $order[0]['invoice_number'],
+                'order'          => $order,
+                'synced'         => $synced,
+                'groups'         => $groups
+              ]
             );
 
-            $groups = group_drugs($order, $mysql);
-            order_hold_notice($groups);
-
+            export_cp_remove_order($order[0]['invoice_number']); //No items
+            continue;
+          }
         }
 
         if ($synced['items_to_sync']) {
