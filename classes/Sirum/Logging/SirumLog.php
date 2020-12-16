@@ -53,7 +53,7 @@ class SirumLog
 
         list($message, $context) = $args;
 
-        $context = $this->sortContext($context);
+        $context = self::sortContext($context);
 
         $context = ["context" => $context];
 
@@ -91,13 +91,13 @@ class SirumLog
      *     of the recursion.
      * @return array  The sorted array
      */
-    protected function sortContext($context, $depth = 4, $level = 0)
+    public static function sortContext($context, $depth = 4, $level = 0)
     {
         if (is_array($context)) {
             ksort($context);
             if ($level < $depth) {
                 foreach ($context as $key => $item) {
-                    $context[$key] = $this->sortContext($item, $depth, $level + 1);
+                    $context[$key] = self::sortContext($item, $depth, $level + 1);
                 }
             }
         }
