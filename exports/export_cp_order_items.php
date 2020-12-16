@@ -28,7 +28,7 @@ function export_cp_remove_order($invoice_number) {
         'new_count_items' => $new_count_items
       ]
     );
-    
+
   }
 }
 
@@ -41,9 +41,6 @@ function export_cp_remove_items($invoice_number, $script_nos = []) {
   $mssql = $mssql ?: new Mssql_Cp();
 
   $order_id   = $invoice_number - 2; //TODO SUPER HACKY
-
-
-  //$sql = "SirumWeb_RemoveScriptNosFromOrder '$invoice_number', '$script_nos'";
 
   $sql1 = "
     DELETE csomline
@@ -74,6 +71,20 @@ function export_cp_remove_items($invoice_number, $script_nos = []) {
   ";
 
   $res3 = $mssql->run($sql3);
+
+  SirumLog::debug(
+    "export_cp_remove_items: $invoice_number",
+    [
+      'invoice_number'  => $invoice_number,
+      'new_count_items' => $new_count_items,
+      'script_nos'      => $script_nos,
+      'sql1'            => $sql1,
+      'sql2'            => $sql2,
+      'sql3'            => $sql3,
+      'res1'            => $res1,
+      'res3'            => $res3,
+    ]
+  );
 
   return $new_count_items;
 }
