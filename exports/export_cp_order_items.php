@@ -20,6 +20,16 @@ function export_cp_remove_order($invoice_number) {
 
     $res = $mssql->run($sql);
 
+    SirumLog::notice(
+      "export_cp_remove_order: Order $invoice_number was deleted",
+      [
+        'invoice_number'  => $invoice_number,
+        'new_count_items' => $new_count_items,
+        'sql'             => $sql,
+        'res'             => $res
+      ]
+    );
+
   } else {
 
     SirumLog::alert(
@@ -63,7 +73,7 @@ function export_cp_remove_items($invoice_number, $script_nos = []) {
     SELECT COUNT(*) as count_items FROM csomline WHERE order_id = '$order_id'
   ";
 
-  $new_count_items = $mssql->run($sql2)[0][0]['count_items'];
+  $new_count_items = (int) $mssql->run($sql2)[0][0]['count_items'];
 
   $sql3 = "
     UPDATE csom

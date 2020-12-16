@@ -113,7 +113,7 @@ function sync_to_order($order, $updated = null) {
 
   if ($notices)
     log_notice("helper_syncing: notices", $notices);
-    
+
   if ($updated AND $notices) {
 
     $salesforce   = [
@@ -148,7 +148,7 @@ function sync_to_order($order, $updated = null) {
   if ($items_to_add) {
 
     SirumLog::notice(
-      "helper_syncing: items_to_remove (export_cp_remove_items)",
+      "helper_syncing: items_to_add (export_cp_add_items)",
       [
         'new_count_items' => $new_count_items,
         'items_to_add' => $items_to_add,
