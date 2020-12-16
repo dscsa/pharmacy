@@ -73,7 +73,7 @@ function export_cp_remove_items($invoice_number, $script_nos = []) {
     SELECT COUNT(*) as count_items FROM csomline WHERE order_id = '$order_id'
   ";
 
-  $new_count_items = $mssql->run($sql2)[0][0]['count_items'];
+  $new_count_items = (int) $mssql->run($sql2)[0][0]['count_items'];
 
   $sql3 = "
     UPDATE csom
