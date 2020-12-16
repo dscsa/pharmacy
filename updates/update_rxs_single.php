@@ -34,6 +34,8 @@ function update_rxs_single($changes) {
     //This updates & overwrites set_rx_messages
     $patient = get_full_patient($rx_single, $mysql, $rx_single['rx_number']);
 
+    print_r(['rxs-single-null-message', $patient]);
+
     //These should have been given an rx_message upon creation.  Why was it missing?
     SirumLog::error(
       "rx had an empty message, so just set it.  Why was it missing?",
@@ -50,8 +52,6 @@ function update_rxs_single($changes) {
 
   /* Now to do some work */
 
-  $changes = changes_to_rxs_single("gp_rxs_single_cp");
-
   $count_deleted = count($changes['deleted']);
   $count_created = count($changes['created']);
   $count_updated = count($changes['updated']);
@@ -59,6 +59,9 @@ function update_rxs_single($changes) {
   if ( ! $count_deleted AND ! $count_created AND ! $count_updated) return;
 
   log_info("update_rxs_single: $count_deleted deleted, $count_created created, $count_updated updated.", get_defined_vars());
+
+  print_r(['update_rxs_single', $changes]);
+
 
   /*
    * Created Loop #1 First loop accross new items. Run this before rx_grouped query to make
@@ -80,6 +83,9 @@ function update_rxs_single($changes) {
 
     // Get the signature
     $parsed = get_parsed_sig($created['sig_actual'], $created['drug_name']);
+
+    print_r(['update_rxs_single: created', $created, $parsed]);
+
 
     // If we have more than 8 a day, lets have a human verify the signature
     if ($parsed['qty_per_day'] > MAX_QTY_PER_DAY) {
