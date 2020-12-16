@@ -34,8 +34,6 @@ function update_rxs_single($changes) {
     //This updates & overwrites set_rx_messages
     $patient = get_full_patient($rx_single, $mysql, $rx_single['rx_number']);
 
-    print_r(['rxs-single-null-message', $patient]);
-
     //These should have been given an rx_message upon creation.  Why was it missing?
     SirumLog::error(
       "rx had an empty message, so just set it.  Why was it missing?",
@@ -60,9 +58,6 @@ function update_rxs_single($changes) {
 
   log_info("update_rxs_single: $count_deleted deleted, $count_created created, $count_updated updated.", get_defined_vars());
 
-  print_r(['update_rxs_single', $changes]);
-
-
   /*
    * Created Loop #1 First loop accross new items. Run this before rx_grouped query to make
    * sure all sig_qty_per_days are properly set before we group by them
@@ -83,9 +78,6 @@ function update_rxs_single($changes) {
 
     // Get the signature
     $parsed = get_parsed_sig($created['sig_actual'], $created['drug_name']);
-
-    print_r(['update_rxs_single: created', $created, $parsed]);
-
 
     // If we have more than 8 a day, lets have a human verify the signature
     if ($parsed['qty_per_day'] > MAX_QTY_PER_DAY) {
@@ -186,8 +178,6 @@ function update_rxs_single($changes) {
       COALESCE(sig_qty_per_day_actual, sig_qty_per_day_default)
   ";
 
-  print_r(['update_rxs_single: group start']);
-
   $mysql->transaction();
   $mysql->run("DELETE FROM gp_rxs_grouped");
   $mysql->run($sql);
@@ -196,9 +186,6 @@ function update_rxs_single($changes) {
   $mysql->run("SELECT * FROM gp_rxs_grouped")[0]
     ? $mysql->commit()
     : $mysql->rollback();
-
-  print_r(['update_rxs_single: group stop']);
-
 
   //TODO should we put a UNIQUE contstaint on the rxs_grouped table for bestrx_number and rx_numbers, so that it fails hard
   $duplicate_gsns = $mysql->run("

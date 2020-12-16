@@ -96,6 +96,9 @@ file_put_contents('/goodpill/webform/pharmacy-run.txt', mktime());
 try {
 
     $execution_details['timers'] = [];
+
+    echo "\nStarting syncing.php  Importing data from sources:\n";
+
     /**
      * Import Orders from WooCommerce (an actual shippment) and store it in
      * a summary table
@@ -213,7 +216,7 @@ try {
     $execution_details['timers']['import_v2_drugs'] = ceil(microtime(true) - $start);
     echo "completed in {$execution_details['timers']['import_v2_drugs']} seconds\n";
 
-    echo "\nAll Data Imported.  Starting Change Detection.\n";
+    echo "\nAll Data Imported.  Starting Change Detection:\n";
     /*
       Now we will update tables to new data and determine change feeds
      */
@@ -266,7 +269,7 @@ try {
      $execution_details['timers']['changes_orders_wc'] = ceil(microtime(true) - $start);
      echo "completed in {$execution_details['timers']['changes_orders_wc']} seconds\n";
 
-     echo "\nAll Changes Detected & Tables Updated.  Starting Updates.\n";
+     echo "\nAll Changes Detected & Tables Updated.  Starting Updates:\n";
      /*
       Now we will to trigger side effects based on changes
     */
@@ -325,7 +328,6 @@ try {
 
     echo "Update CP Orders ";
     $start = microtime(true);
-    print_r($changes_to_orders_cp);
     update_orders_cp($changes_to_orders_cp);
     $execution_details['timers']['update_orders_cp'] = ceil(microtime(true) - $start);
     echo "completed in {$execution_details['timers']['update_orders_cp']} seconds\n";
