@@ -186,6 +186,8 @@ function update_rxs_single($changes) {
       COALESCE(sig_qty_per_day_actual, sig_qty_per_day_default)
   ";
 
+  print_r(['update_rxs_single: group start']);
+
   $mysql->transaction();
   $mysql->run("DELETE FROM gp_rxs_grouped");
   $mysql->run($sql);
@@ -194,6 +196,9 @@ function update_rxs_single($changes) {
   $mysql->run("SELECT * FROM gp_rxs_grouped")[0]
     ? $mysql->commit()
     : $mysql->rollback();
+
+  print_r(['update_rxs_single: group stop']);
+
 
   //TODO should we put a UNIQUE contstaint on the rxs_grouped table for bestrx_number and rx_numbers, so that it fails hard
   $duplicate_gsns = $mysql->run("
