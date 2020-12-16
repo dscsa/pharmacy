@@ -53,6 +53,8 @@ class SirumLog
 
         list($message, $context) = $args;
 
+        $context = $this->sortContext($context);
+
         $context = ["context" => $context];
 
         $context['execution_id'] = self::$exec_id;
@@ -76,6 +78,31 @@ class SirumLog
             );
             self::$logger->$method($message);
         }
+    }
+
+    /**
+     * sortContext will order by key the items in the context.  It will descend
+     * into sub arrays to the specified level.  It will recursivly sort subarrays
+     * until the specified depth.
+     * @param  array   $context The context array
+     * @param  integer $depth   (Optional) How many level deep to sort
+     * @param  integer $level   (Optional)  The current level for tracking depth
+     *     This should almost never be manually passed.  It is used to keep track
+     *     of the recursion.
+     * @return array  The sorted array
+     */
+    protected function sortContext($context, $depth = 4, $level = 0)
+    {
+        if (is_array($context)) {
+            ksort($context);
+            if ($level < $depth) {
+                foreach ($context as $key => $item) {
+                    $context[$key] = $this->sortContext($item, $depth, $level + 1);
+                }
+            }
+        }
+
+        return $context;
     }
 
     /**
