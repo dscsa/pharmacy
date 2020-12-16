@@ -478,7 +478,7 @@ function confirm_shipment_notice($groups) {
 
 function confirm_shipping_internal($groups, $days_ago) {
 
-  $mysql = new Sirum\Storage\Goodpill();
+  $mysql = Sirum\Storage\Goodpill::getConnection();
   $pdo   = $mysql->prepare(
               "SELECT count(*) as past_order_count
         	     FROM gp_orders o
