@@ -28,6 +28,7 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
 
         $days     = null;
         $message  = null;
+        $update_payment = false;
 
         //Turn string into number so that "0.00" is falsey instead of truthy
         $patient_or_order[$i]['refills_used'] = +$patient_or_order[$i]['refills_used'];
@@ -68,8 +69,10 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
 
             list($days, $message) = get_days_and_message($patient_or_order[$i], $patient_or_order);
 
-            $needs_pending   = @$patient_or_order[$i]['item_date_added'] AND $days AND ! @$item['count_pended_total'];
-            $needs_unpending = @$patient_or_order[$i]['item_date_added'] AND ! $days AND @$item['count_pended_total'];
+            $needs_pending   = (@$patient_or_order[$i]['item_date_added'] AND $days AND ! @$patient_or_order[$i]['count_pended_total']);
+            $needs_unpending = (@$patient_or_order[$i]['item_date_added'] AND ! $days AND @$patient_or_order[$i]['count_pended_total']);
+            $needs_repending = (@$patient_or_order[$i]['item_date_added'] AND $days != @$patient_or_order[$i]['days_dispensed_default']);
+            $pending_changed = ($needs_pending OR $needs_unpending OR $needs_repending);
 
             SirumLog::notice(
               "get_days_and_message $log_suffix",
@@ -89,18 +92,45 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
               ]
             );
 
+            if($needs_pending) {
+              v2_pend_item($patient_or_order[$i], $mysql);
+            }
+
+            if($needs_unpending) {
+              v2_unpend_item($patient_or_order[$i], $mysql);
+            }
+
+            if ($needs_repending) {
+              v2_unpend_item($patient_or_order[$i], $mysql);
+              v2_pend_item($patient_or_order[$i], $mysql);
+            }
+
+            if ($pending_changed) {
+
+              $update_payment = true;
+
+              $log = "helper_full_fields: pending changes ".$patient_or_order[$i]['invoice_number'].": ".$patient_or_order[$i]['days_dispensed_default']." -> $days";
+
+              $salesforce   = [
+                "subject"   => $log,
+                "body"      => print_r($patient_or_order[$i], true),
+                "contact"   => $patient_or_order[$i]['first_name'].' '.$patient_or_order[$i]['last_name'].' '.$patient_or_order[$i]['birth_date'],
+                "assign_to" => ".Add/Remove Drug - RPh",
+                "due_date"  => date('Y-m-d')
+              ];
+
+              SirumLog::notice($log, ['salesforce' => $salesforce, 'item' => $patient_or_order[$i]]);
+
+              $event_title = "$log $salesforce[due_date]";
+
+              if ( ! $set_days_and_msgs) //this is an update
+                create_event($event_title, [$salesforce]);
+            }
+
             //Internal logic keeps initial values on order_items if they exist (don't want to contradict patient comms)
             $patient_or_order[$i] = set_days_and_message($patient_or_order[$i], $days, $message, $mysql);
 
             export_cp_set_rx_message($patient_or_order[$i], $message);
-
-            if($needs_pending) {
-              v2_pend_item($item, $mysql);
-            }
-
-            if($needs_unpending) {
-              v2_unpend_item($item, $mysql);
-            }
 
             //Internal logic determines if fax is necessary
             if ($set_days_and_msgs) //Sending because of overwrite may cause multiple faxes for same item
@@ -212,6 +242,11 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
 
     foreach ($patient_or_order as $i => $item) {
       $patient_or_order[$i]['count_filled'] = $count_filled;
+    }
+
+    if ($update_payment) {
+      $patient_or_order = helper_update_payment($patient_or_order, $log, $mysql); //This also updates payment
+      export_wc_update_order_payment($patient_or_order[0]['invoice_number'], $patient_or_order[0]['payment_fee_default']);
     }
 
     return $patient_or_order;
