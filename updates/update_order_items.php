@@ -201,5 +201,5 @@ function deduplicate_order_items($item, $mssql) {
     log_notice(['deduplicate_order_item', $sql2, $sq1, $res, $duplicate]);
   }
 
-  export_cp_recount_items($invoice_number)
+  export_cp_recount_items($invoice_number);
 }
