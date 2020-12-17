@@ -268,8 +268,6 @@ function update_orders_cp($changes) {
             continue;
         }
 
-        $order = helper_update_payment($order, "update_orders_cp: created", $mysql);
-
         if ($created['order_date_dispensed']) { //Can't test for rx_message_key == 'ACTION NEEDS FORM' because other messages can take precedence
           export_gd_publish_invoice($order, $mysql);
           export_gd_print_invoice($order);
@@ -285,17 +283,6 @@ function update_orders_cp($changes) {
 
           continue;
         }
-
-        export_v2_pend_order($order, $mysql);
-
-        SirumLog::debug(
-          "update_orders_cp: Order Pended",
-          [
-            'invoice_number' => $order[0]['invoice_number'],
-            'order' => $order,
-            'synced' => $synced
-          ]
-        );
 
         //This is not necessary if order was created by webform, which then created the order in Guardian
         //"order_source": "Webform eRX/Transfer/Refill [w/ Note]"
