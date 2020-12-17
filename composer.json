@@ -1,6 +1,7 @@
 {
     "require": {
-        "google/cloud-logging": "^1.21"
+        "google/cloud-logging": "^1.21",
+        "adilbaig/pagerduty": "^3.2"
     },
     "autoload": {
        "psr-4": {"Sirum\\": "classes/Sirum"}

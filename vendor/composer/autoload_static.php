@@ -152,6 +152,13 @@ class ComposerStaticInit54659efd329fa3a958f5cddec29d1420
                 0 => __DIR__ . '/..' . '/rize/uri-template/src',
             ),
         ),
+        'P' => 
+        array (
+            'PagerDuty' => 
+            array (
+                0 => __DIR__ . '/..' . '/adilbaig/pagerduty/src',
+            ),
+        ),
     );
 
     public static $classMap = array (
