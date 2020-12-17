@@ -25,7 +25,7 @@ function get_days_and_message($item, $patient_or_order) {
   }
 
   if ($item['item_date_added'] AND $is_duplicate_gsn) {
-    log_error("helper_days_and_message: $item[drug_generic] is duplicated.  Likely Mistake. Different sig_qty_per_day?", $item);
+    log_error("helper_days_and_message: $item[drug_generic] is duplicated.  Likely Mistake. Different sig_qty_per_day?", ['item' => $item, 'order' => $patient_or_order]);
   }
 
   if ($item['rx_transfer']) {
