@@ -61,6 +61,12 @@ function update_order_items($changes) {
       continue;
     }
 
+    if ($created['count_lines'] > 1) {
+      $error = ["$item[invoice_number] $item[drug_generic] is a duplicate line", 'created' => $created, 'item' => $item];
+      print_r($error);
+      SirumLog::alert($error[0], $error);
+    }
+
     //We don't pend inventory in v2 here (v2_pend_item), but at the order level, in case we want to sync any drugs to the order, or vary the days to sync drugs to a date
 
     if ($item['days_dispensed_actual']) {
@@ -121,6 +127,12 @@ function update_order_items($changes) {
     }
 
     $changed = changed_fields($updated);
+
+    if ($updated['count_lines'] > 1) {
+      $error = ["$item[invoice_number] $item[drug_generic] is a duplicate line", 'updated' => $updated, 'changed' => $changed, 'item' => $item];
+      print_r($error);
+      SirumLog::alert($error[0], $error);
+    }
 
     if ($item['days_dispensed_actual']) {
 
