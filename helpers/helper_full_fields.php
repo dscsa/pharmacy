@@ -74,23 +74,24 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
             $needs_repending = (@$patient_or_order[$i]['item_date_added'] AND $days != @$patient_or_order[$i]['days_dispensed_default']);
             $pending_changed = ($needs_pending OR $needs_unpending OR $needs_repending);
 
-            SirumLog::notice(
-              "get_days_and_message $log_suffix",
-              [
-                "overwrite_rx_messages"      => $overwrite_rx_messages,
-                "rx_number"                  => $patient_or_order[$i]['rx_number'],
+            $get_days_and_message = [
+              "overwrite_rx_messages"      => $overwrite_rx_messages,
+              "rx_number"                  => $patient_or_order[$i]['rx_number'],
 
-                "new_days_dispensed_default" => $days,
-                "old_days_dispensed_default" => @$patient_or_order[$i]['days_dispensed_default'], //Applicable for order but not for patient
+              "new_days_dispensed_default" => $days,
+              "old_days_dispensed_default" => @$patient_or_order[$i]['days_dispensed_default'], //Applicable for order but not for patient
 
-                "new_rx_message_text"        => $message['EN'],
-                "old_rx_message_text"        => $patient_or_order[$i]['rx_message_text'],
+              "new_rx_message_text"        => $message['EN'],
+              "old_rx_message_text"        => $patient_or_order[$i]['rx_message_text'],
 
-                "patient_or_order"           => $patient_or_order[$i],
-                "needs_pending"              => $needs_pending,
-                "needs_unpending"            => $needs_unpending
-              ]
-            );
+              "patient_or_order"           => $patient_or_order[$i],
+              "needs_pending"              => $needs_pending,
+              "needs_unpending"            => $needs_unpending,
+              "needs_repending"            => $needs_repending,
+              "pending_changed"            => $pending_changed
+            ];
+
+            SirumLog::notice("get_days_and_message $log_suffix", $get_days_and_message);
 
             if($needs_pending) {
               v2_pend_item($patient_or_order[$i], $mysql);
@@ -119,7 +120,11 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
                 "due_date"  => date('Y-m-d')
               ];
 
-              SirumLog::notice($log, ['salesforce' => $salesforce, 'item' => $patient_or_order[$i]]);
+              SirumLog::notice($log, [
+                'get_days_and_message' => $get_days_and_message,
+                'salesforce' => $salesforce,
+                'item' => $patient_or_order[$i]
+              ]);
 
               $event_title = "$log $salesforce[due_date]";
 
