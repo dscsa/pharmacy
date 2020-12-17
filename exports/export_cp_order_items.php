@@ -53,7 +53,7 @@ function export_cp_remove_items($invoice_number, $script_nos = []) {
 
   $order_id   = $invoice_number - 2; //TODO SUPER HACKY
 
-  $sql1 = "
+  $sql = "
     DELETE csomline
     FROM csomline
     JOIN cprx ON cprx.rx_id = csomline.rx_id
@@ -62,26 +62,14 @@ function export_cp_remove_items($invoice_number, $script_nos = []) {
   ";
 
   if ($script_nos) {
-    $sql1 .= "
+    $sql .= "
       AND script_no IN ('".implode("', '", $script_nos)."')
     ";
   }
 
-  $res1 = $mssql->run($sql1);
+  $res = $mssql->run($sql);
 
-  $sql2 = "
-    SELECT COUNT(*) as count_items FROM csomline WHERE order_id = '$order_id'
-  ";
-
-  $new_count_items = (int) $mssql->run($sql2)[0][0]['count_items'];
-
-  $sql3 = "
-    UPDATE csom
-    SET csom.liCount = $new_count_items
-    WHERE order_id = '$order_id'
-  ";
-
-  $res3 = $mssql->run($sql3);
+  $new_count_items = export_cp_recount_items($invoice_number);
 
   SirumLog::debug(
     "export_cp_remove_items: $invoice_number",
@@ -89,11 +77,40 @@ function export_cp_remove_items($invoice_number, $script_nos = []) {
       'invoice_number'  => $invoice_number,
       'new_count_items' => $new_count_items,
       'script_nos'      => $script_nos,
+      'sql'            => $sql,
+      'res'            => $res
+    ]
+  );
+
+  return $new_count_items;
+}
+
+function export_cp_recount_items($invoice_number) {
+
+  $order_id = $invoice_number - 2; //TODO SUPER HACKY
+
+  $sql1 = "
+    SELECT COUNT(*) as count_items FROM csomline WHERE order_id = '$order_id'
+  ";
+
+  $new_count_items = (int) $mssql->run($sql1)[0][0]['count_items'];
+
+  $sql2 = "
+    UPDATE csom
+    SET csom.liCount = $new_count_items
+    WHERE order_id = '$order_id'
+  ";
+
+  $res = $mssql->run($sql2);
+
+  SirumLog::debug(
+    "export_cp_recount_items: $invoice_number",
+    [
+      'invoice_number'  => $invoice_number,
+      'new_count_items' => $new_count_items,
       'sql1'            => $sql1,
       'sql2'            => $sql2,
-      'sql3'            => $sql3,
-      'res1'            => $res1,
-      'res3'            => $res3,
+      'res'             => $res
     ]
   );
 

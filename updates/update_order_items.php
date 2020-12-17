@@ -174,7 +174,7 @@ function update_order_items($changes) {
 function deduplicate_order_items($item, $mssql) {
 
   //DELETE doesn't work with offset so do it in two separate queries
-  $sql = "
+  $sql1 = "
     SELECT
       *
     FROM
@@ -193,13 +193,13 @@ function deduplicate_order_items($item, $mssql) {
     OFFSET 1 ROWS
   ";
 
-  print_r(['deduplicate_order_items', $sql]);
-
-  $duplicates = $mssql->run($sql)[0];
+  $duplicates = $mssql->run($sql1)[0];
 
   foreach($duplicates as $duplicate) {
-    $sql = "SELECT * FROM csomline WHERE line_id = $duplicate[line_id]";
-    $res = $mssql->run($sql)[0];
-    print_r(['deduplicate_order_item', $sql, $res, $duplicate]);
+    $sql2 = "DELETE FROM csomline WHERE line_id = $duplicate[line_id]";
+    $res = $mssql->run($sql2)[0];
+    log_notice(['deduplicate_order_item', $sql2, $sq1, $res, $duplicate]);
   }
+
+  export_cp_recount_items($invoice_number)
 }
