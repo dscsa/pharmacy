@@ -64,7 +64,7 @@ function update_order_items($changes) {
     if ($created['count_lines'] > 1) {
       $error = ["$item[invoice_number] $item[drug_generic] is a duplicate line", 'created' => $created, 'item' => $item];
       print_r($error);
-      deduplicate_order_items($item, $mssql);
+      $item = deduplicate_order_items($item, $mssql, $mysql);
       SirumLog::alert($error[0], $error);
     }
 
@@ -132,7 +132,7 @@ function update_order_items($changes) {
     if ($updated['count_lines'] > 1) {
       $error = ["$item[invoice_number] $item[drug_generic] is a duplicate line", 'updated' => $updated, 'changed' => $changed, 'item' => $item];
       print_r($error);
-      deduplicate_order_items($item, $mssql);
+      $item = deduplicate_order_items($item, $mssql, $mysql);
       SirumLog::alert($error[0], $error);
     }
 
@@ -171,10 +171,18 @@ function update_order_items($changes) {
   SirumLog::resetSubroutineId();
 }
 
-function deduplicate_order_items($item, $mssql) {
+function deduplicate_order_items($item, $mssql, $mysql) {
+
+  $item['count_lines'] = 1;
+
+  $sql1 = "
+    UPDATE gp_order_items SET count_lines = 1 WHERE invoice_number = $item[invoice_number] AND rx_number = $item[rx_number]
+  ";
+
+  $res1 = $mysql->run($sql1)[0];
 
   //DELETE doesn't work with offset so do it in two separate queries
-  $sql1 = "
+  $sql2 = "
     SELECT
       *
     FROM
@@ -193,13 +201,15 @@ function deduplicate_order_items($item, $mssql) {
     OFFSET 1 ROWS
   ";
 
-  $duplicates = $mssql->run($sql1)[0];
+  $res2 = $mssql->run($sql2)[0];
 
-  foreach($duplicates as $duplicate) {
-    $sql2 = "DELETE FROM csomline WHERE line_id = $duplicate[line_id]";
-    $res = $mssql->run($sql2)[0];
-    log_notice(['deduplicate_order_item', $sql2, $sq1, $res, $duplicate]);
+  foreach($res2 as $duplicate) {
+    $mssql->run("DELETE FROM csomline WHERE line_id = $duplicate[line_id]")[0];
   }
 
-  export_cp_recount_items($invoice_number);
+  $new_count_items = export_cp_recount_items($invoice_number);
+
+  log_notice(['deduplicate_order_item', $sq1, $res1, $sql2, $res2, $new_count_items]);
+
+  return $item;
 }
