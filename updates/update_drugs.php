@@ -5,8 +5,6 @@ use Sirum\Logging\SirumLog;
 
 function update_drugs($changes) {
 
-  $changes = changes_to_drugs("gp_drugs_v2");
-
   $count_deleted = count($changes['deleted']);
   $count_created = count($changes['created']);
   $count_updated = count($changes['updated']);

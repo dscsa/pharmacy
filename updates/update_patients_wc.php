@@ -7,8 +7,6 @@ use Sirum\Logging\SirumLog;
 
 function update_patients_wc($changes) {
 
-  $changes = changes_to_patients_wc("gp_patients_wc");
-
   $count_deleted = count($changes['deleted']);
   $count_created = count($changes['created']);
   $count_updated = count($changes['updated']);

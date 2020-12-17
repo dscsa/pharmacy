@@ -68,6 +68,9 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
 
             list($days, $message) = get_days_and_message($patient_or_order[$i], $patient_or_order);
 
+            $needs_pending   = @$patient_or_order[$i]['item_date_added'] AND $days AND ! @$item['count_pended_total'];
+            $needs_unpending = @$patient_or_order[$i]['item_date_added'] AND ! $days AND @$item['count_pended_total'];
+
             SirumLog::notice(
               "get_days_and_message $log_suffix",
               [
@@ -80,7 +83,9 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
                 "new_rx_message_text"        => $message['EN'],
                 "old_rx_message_text"        => $patient_or_order[$i]['rx_message_text'],
 
-                "patient_or_order"           => $patient_or_order[$i]
+                "patient_or_order"           => $patient_or_order[$i],
+                "needs_pending"              => $needs_pending,
+                "needs_unpending"            => $needs_unpending
               ]
             );
 
@@ -88,6 +93,14 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
             $patient_or_order[$i] = set_days_and_message($patient_or_order[$i], $days, $message, $mysql);
 
             export_cp_set_rx_message($patient_or_order[$i], $message);
+
+            if($needs_pending) {
+              v2_pend_item($item, $mysql);
+            }
+
+            if($needs_unpending) {
+              v2_unpend_item($item, $mysql);
+            }
 
             //Internal logic determines if fax is necessary
             if ($set_days_and_msgs) //Sending because of overwrite may cause multiple faxes for same item
