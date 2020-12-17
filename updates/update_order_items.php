@@ -61,6 +61,12 @@ function update_order_items($changes) {
       continue;
     }
 
+    if ($created['count_lines'] > 1) {
+      $error = ["$item[invoice_number] $item[drug_generic] is a duplicate line", 'created' => $created, 'item' => $item];
+      $item = deduplicate_order_items($item, $mssql, $mysql);
+      SirumLog::alert($error[0], $error);
+    }
+
     //We don't pend inventory in v2 here (v2_pend_item), but at the order level, in case we want to sync any drugs to the order, or vary the days to sync drugs to a date
 
     if ($item['days_dispensed_actual']) {
@@ -122,6 +128,12 @@ function update_order_items($changes) {
 
     $changed = changed_fields($updated);
 
+    if ($updated['count_lines'] > 1) {
+      $error = ["$item[invoice_number] $item[drug_generic] is a duplicate line", 'updated' => $updated, 'changed' => $changed, 'item' => $item];
+      $item = deduplicate_order_items($item, $mssql, $mysql);
+      SirumLog::alert($error[0], $error);
+    }
+
     if ($item['days_dispensed_actual']) {
 
       freeze_invoice_data($item, $mysql);
@@ -155,4 +167,47 @@ function update_order_items($changes) {
   }
 
   SirumLog::resetSubroutineId();
+}
+
+function deduplicate_order_items($item, $mssql, $mysql) {
+
+  $item['count_lines'] = 1;
+
+  $sql1 = "
+    UPDATE gp_order_items SET count_lines = 1 WHERE invoice_number = $item[invoice_number] AND rx_number = $item[rx_number]
+  ";
+
+  $res1 = $mysql->run($sql1)[0];
+
+  //DELETE doesn't work with offset so do it in two separate queries
+  $sql2 = "
+    SELECT
+      *
+    FROM
+      csomline
+    JOIN
+      cprx ON cprx.rx_id = csomline.rx_id
+    WHERE
+      order_id  = ".($item['invoice_number']-2)."
+      AND rxdisp_id = 0
+      AND (
+        script_no = $item[rx_number]
+        OR CONCAT(',', gcn_seqno, ',') LIKE '%$item[drug_gsns]%'
+      )
+    ORDER BY
+      csomline.add_date ASC
+    OFFSET 1 ROWS
+  ";
+
+  $res2 = $mssql->run($sql2)[0];
+
+  foreach($res2 as $duplicate) {
+    $mssql->run("DELETE FROM csomline WHERE line_id = $duplicate[line_id]")[0];
+  }
+
+  $new_count_items = export_cp_recount_items($invoice_number, $mssql);
+
+  log_notice(['deduplicate_order_item', $sq1, $res1, $sql2, $res2, $new_count_items]);
+
+  return $item;
 }

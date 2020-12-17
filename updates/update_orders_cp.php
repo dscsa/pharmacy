@@ -15,8 +15,6 @@ function update_orders_cp($changes) {
   $count_created = count($changes['created']);
   $count_updated = count($changes['updated']);
 
-  print_r([$count_deleted, $count_created, $count_updated, $changes]);
-
   if ( ! $count_deleted AND ! $count_created AND ! $count_updated) {
     SirumLog::notice(
       'No changes found, leaving update_order_cp',
@@ -29,6 +27,7 @@ function update_orders_cp($changes) {
         'updated_count' => $count_updated
       ]
     );
+
     return;
   }
 
@@ -349,6 +348,7 @@ function update_orders_cp($changes) {
          *  - update wc order total
          */
     foreach ($changes['deleted'] as $deleted) {
+
         SirumLog::$subroutine_id = "orders-cp-deleted-".sha1(serialize($deleted));
 
         SirumLog::debug(
@@ -462,6 +462,7 @@ function update_orders_cp($changes) {
   //  - see which fields changed
   //  - think about what needs to be updated based on changes
     foreach ($changes['updated'] as $i => $updated) {
+
         SirumLog::$subroutine_id = "orders-cp-updated-".sha1(serialize($updated));
 
         SirumLog::debug(
