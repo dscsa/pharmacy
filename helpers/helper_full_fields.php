@@ -71,7 +71,7 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
 
             $needs_pending   = (@$patient_or_order[$i]['item_date_added'] AND $days AND ! @$patient_or_order[$i]['count_pended_total']);
             $needs_unpending = (@$patient_or_order[$i]['item_date_added'] AND ! $days AND @$patient_or_order[$i]['count_pended_total']);
-            $needs_repending = (@$patient_or_order[$i]['item_date_added'] AND $days != @$patient_or_order[$i]['days_dispensed_default']);
+            $needs_repending = (@$patient_or_order[$i]['item_date_added'] AND $days != @$patient_or_order[$i]['days_dispensed_default'] AND ! @$patient_or_order[$i]['refill_target_date']);
             $pending_changed = ($needs_pending OR $needs_unpending OR $needs_repending);
 
             $get_days_and_message = [
@@ -88,7 +88,8 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
               "needs_pending"              => $needs_pending,
               "needs_unpending"            => $needs_unpending,
               "needs_repending"            => $needs_repending,
-              "pending_changed"            => $pending_changed
+              "pending_changed"            => $pending_changed,
+              "refill_target_date"         => @$patient_or_order[$i]['refill_target_date']
             ];
 
             SirumLog::notice("get_days_and_message $log_suffix", $get_days_and_message);
