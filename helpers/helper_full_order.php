@@ -59,6 +59,9 @@ function get_full_order($partial, $mysql, $overwrite_rx_messages = false) {
   usort($order, 'sort_order_by_day'); //Put Rxs in order (with Rx_Source) at the top
   $order = add_wc_status_to_order($order);
 
+  die();
+
+
   return $order;
 }
 
