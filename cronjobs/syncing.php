@@ -74,7 +74,7 @@ require_once 'updates/update_orders_cp.php';
 
 $execution_details = ['start' => date('c')];
 
-$f = fopen('readme.md', 'w') or log_error('Webform Cron Job Cannot Create Lock File');
+$f = fopen('/tmp/pharmacy.lock', 'w') or log_error('Webform Cron Job Cannot Create Lock File');
 
 if (! flock($f, LOCK_EX | LOCK_NB)) {
     $still_running = 'Skipping Webform Cron Job Because Previous One Is Still Running';
