@@ -64,7 +64,7 @@ function update_order_items($changes) {
     if ($created['count_lines'] > 1) {
       $error = ["$item[invoice_number] $item[drug_generic] is a duplicate line", 'created' => $created, 'item' => $item];
       print_r($error);
-      deduplicate_order_items($partial, $mssql);
+      deduplicate_order_items($created, $mssql);
       SirumLog::alert($error[0], $error);
     }
 
@@ -132,7 +132,7 @@ function update_order_items($changes) {
     if ($updated['count_lines'] > 1) {
       $error = ["$item[invoice_number] $item[drug_generic] is a duplicate line", 'updated' => $updated, 'changed' => $changed, 'item' => $item];
       print_r($error);
-      deduplicate_order_items($partial, $mssql);
+      deduplicate_order_items($updated, $mssql);
       SirumLog::alert($error[0], $error);
     }
 
@@ -191,5 +191,5 @@ function deduplicate_order_items($partial, $mssql) {
 
   $duplicates = $mssql->run($sql);
 
-  print_r(['deduplicate_order_items', $sql, $duplicates]);
+  print_r(['deduplicate_order_items', $sql, $partial, $duplicates]);
 }
