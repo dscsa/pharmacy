@@ -53,8 +53,6 @@ class SirumLog
 
         list($message, $context) = $args;
 
-        $context = self::sortContext($context);
-
         $context = ["context" => $context];
 
         $context['execution_id'] = self::$exec_id;
@@ -78,31 +76,6 @@ class SirumLog
             );
             self::$logger->$method($message);
         }
-    }
-
-    /**
-     * sortContext will order by key the items in the context.  It will descend
-     * into sub arrays to the specified level.  It will recursivly sort subarrays
-     * until the specified depth.
-     * @param  array   $context The context array
-     * @param  integer $depth   (Optional) How many level deep to sort
-     * @param  integer $level   (Optional)  The current level for tracking depth
-     *     This should almost never be manually passed.  It is used to keep track
-     *     of the recursion.
-     * @return array  The sorted array
-     */
-    public static function sortContext($context, $depth = 4, $level = 0)
-    {
-        if (is_array($context)) {
-            ksort($context);
-            if ($level < $depth) {
-                foreach ($context as $key => $item) {
-                    $context[$key] = self::sortContext($item, $depth, $level + 1);
-                }
-            }
-        }
-
-        return $context;
     }
 
     /**
@@ -144,7 +117,17 @@ class SirumLog
 
             $logging  = new LoggingClient(['projectId' => 'unified-logging-292316']);
 
-            self::$logger = $logging->psrLogger(self::$application_id);
+            self::$logger = $logging->psrLogger(
+                self::$application_id,
+                [
+                    'batchEnabled' => true,
+                    'batchOptions' => [
+                        'batchSize' => 50,
+                        'callPeriod' => 2.0,
+                        'numWorkers' => 4
+                    ]
+                ]
+            );
 
             if (is_null($execution)) {
                 $execution = uniqid();
@@ -154,8 +137,6 @@ class SirumLog
 
             self::$application_id = $application;
         }
-
-        self::$logger = LoggingClient::psrBatchLogger(self::$application_id);
 
         return self::$logger;
     }
