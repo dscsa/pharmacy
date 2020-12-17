@@ -11,4 +11,4 @@ use Sirum\Logging\SirumLog;
  * This shouldn't be here.  When this moves into a standalone class,
  * we will rework it.
  */
-SirumLog::getLogger('dev-pharmacy-automation');
+SirumLog::getLogger('pharmacy-automation');
