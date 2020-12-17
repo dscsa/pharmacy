@@ -486,7 +486,7 @@ function export_wc_update_order_payment($invoice_number, $payment_fee, $payment_
   $post_id = wc_get_post($invoice_number, 'post_id');
 
   if (!$post_id) {
-    SirumLog::warn(
+    SirumLog::warning(
       'export_wc_update_order_payment: Could not find a Wordpress Post for Invoice',
       [
         "invoice"     => $invoice_number,
@@ -507,7 +507,7 @@ function export_wc_update_order_payment($invoice_number, $payment_fee, $payment_
   $response = wc_fetch($urlToFetch);
 
   if (!$response) {
-    SirumLog::warn(
+    SirumLog::warning(
       'export_wc_update_order_payment: Failed to load Wordpress URL',
       [
         "invoice"     => $invoice_number,
@@ -522,7 +522,7 @@ function export_wc_update_order_payment($invoice_number, $payment_fee, $payment_
   }
 
   if (! empty($response['error'])) {
-    SirumLog::warn(
+    SirumLog::warning(
       'export_wc_update_order_payment: Received error from wordpress',
       [
         "invoice"     => $invoice_number,
