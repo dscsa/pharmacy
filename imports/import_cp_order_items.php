@@ -14,7 +14,7 @@ function import_cp_order_items() {
     SET @today = GETDATE()
 
     SELECT
-      csomline.order_id+2 as invoice_number, -- Important note the difference of 2 has been stable for a while (but maybe we should do a JOIN?) But for invoices <1976 the difference was 4 and for invoices 1976<=X<=2676 the difference was 3
+      MAX(csomline.order_id+2) as invoice_number, -- Important note the difference of 2 has been stable for a while (but maybe we should do a JOIN?) But for invoices <1976 the difference was 4 and for invoices 1976<=X<=2676 the difference was 3
       MAX(drug_name) as drug_name,
       MAX(cprx.pat_id) as patient_id_cp,
   		COALESCE(
