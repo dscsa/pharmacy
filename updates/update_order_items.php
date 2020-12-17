@@ -64,6 +64,7 @@ function update_order_items($changes) {
     if ($created['count_lines'] > 1) {
       $error = ["$item[invoice_number] $item[drug_generic] is a duplicate line", 'created' => $created, 'item' => $item];
       print_r($error);
+      deduplicate_order_items($partial, $mssql);
       SirumLog::alert($error[0], $error);
     }
 
@@ -131,6 +132,7 @@ function update_order_items($changes) {
     if ($updated['count_lines'] > 1) {
       $error = ["$item[invoice_number] $item[drug_generic] is a duplicate line", 'updated' => $updated, 'changed' => $changed, 'item' => $item];
       print_r($error);
+      deduplicate_order_items($partial, $mssql);
       SirumLog::alert($error[0], $error);
     }
 
@@ -167,4 +169,27 @@ function update_order_items($changes) {
   }
 
   SirumLog::resetSubroutineId();
+}
+
+function deduplicate_order_items($partial, $mssql) {
+  $sql = "
+    SELECT
+      *
+    FROM
+      csomline
+    JOIN
+      cprx ON cprx.rx_id = csomline.rx_id
+    WHERE
+      order_id  = {$partial['invoice_number']-2}
+      AND script_no = {$partial['rx_number']}
+      AND rxdisp_id = 0
+    GROUP BY
+      csomline.order_id,
+      (CASE WHEN gcn_seqno > 0 THEN gcn_seqno ELSE script_no END)
+    LIMIT 1, {$partial['count_lines']}
+  ";
+
+  $duplicates = $mssql->run($sql);
+
+  print_r(['deduplicate_order_items', $sql, $duplicates]);
 }
