@@ -205,7 +205,7 @@ function deduplicate_order_items($item, $mssql, $mysql) {
     $mssql->run("DELETE FROM csomline WHERE line_id = $duplicate[line_id]")[0];
   }
 
-  $new_count_items = export_cp_recount_items($invoice_number);
+  $new_count_items = export_cp_recount_items($invoice_number, $mssql);
 
   log_notice(['deduplicate_order_item', $sq1, $res1, $sql2, $res2, $new_count_items]);
 

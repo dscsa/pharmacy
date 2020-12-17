@@ -69,7 +69,7 @@ function export_cp_remove_items($invoice_number, $script_nos = []) {
 
   $res = $mssql->run($sql);
 
-  $new_count_items = export_cp_recount_items($invoice_number);
+  $new_count_items = export_cp_recount_items($invoice_number, $mssql);
 
   SirumLog::debug(
     "export_cp_remove_items: $invoice_number",
@@ -85,7 +85,7 @@ function export_cp_remove_items($invoice_number, $script_nos = []) {
   return $new_count_items;
 }
 
-function export_cp_recount_items($invoice_number) {
+function export_cp_recount_items($invoice_number, $mssql) {
 
   $order_id = $invoice_number - 2; //TODO SUPER HACKY
 
