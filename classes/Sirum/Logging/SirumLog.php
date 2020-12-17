@@ -122,9 +122,9 @@ class SirumLog
                 [
                     'batchEnabled' => true,
                     'batchOptions' => [
-                        'batchSize' => 50,
+                        'batchSize' => 15,
                         'callPeriod' => 2.0,
-                        'numWorkers' => 4
+                        'numWorkers' => 8
                     ]
                 ]
             );
