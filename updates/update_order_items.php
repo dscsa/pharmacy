@@ -186,7 +186,9 @@ function deduplicate_order_items($item, $mssql) {
         script_no = $item[rx_number]
         OR CONCAT(',', gcn_seqno, ',') LIKE '%$item[drug_gsns]%'
       )
-    LIMIT 1, $partial[count_lines]
+    ORDER BY
+      csomline.add_date ASC
+    OFFSET 1 ROWS
   ";
 
   $duplicates = $mssql->run($sql);
