@@ -35,6 +35,12 @@ function get_full_item($item, $mysql, $overwrite_rx_messages = false) {
 
   $query = $mysql->run($sql);
 
+  if (count($query[0]) > 1) {
+    $error = ["$item[invoice_number] $full_item[invoice_number] $item[drug_generic] is a duplicate", 'query' => $query, 'item' => $item, 'full_item' => $full_item];
+    print_r($error);
+    SirumLog::alert($error[0], $error);
+  }
+
   if (isset($query[0][0])) {
 
     $full_item = $query[0][0];
