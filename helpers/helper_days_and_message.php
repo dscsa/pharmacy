@@ -475,21 +475,21 @@ function is_not_offered($item) {
   $stock_level = @$item['stock_level_initial'] ?: $item['stock_level'];
 
   if (is_null($stock_level)) {
-    log_notice('is_not_offered: stock level null', ['item' => $item, 'stock_level' => $stock_level]);
+    log_notice('helper_days_and_message: stock level null', ['item' => $item, 'stock_level' => $stock_level]);
     return true;
   }
 
   if ($stock_level == STOCK_LEVEL['NOT OFFERED']) {
-    log_notice("is_not_offered: stock level $stock_level", ['item' => $item, 'stock_level' => $stock_level]);
+    log_notice("helper_days_and_message: stock level $stock_level", ['item' => $item, 'stock_level' => $stock_level]);
     return true;
   }
 
   if ($stock_level == STOCK_LEVEL['ORDER DRUG']) {
-    log_notice("is_not_offered: stock level $stock_level", ['item' => $item, 'stock_level' => $stock_level]);
+    log_notice("helper_days_and_message: stock level $stock_level", ['item' => $item, 'stock_level' => $stock_level]);
     return true;
   }
 
-  log_notice("is_not_offered:  stock level $stock_level", ['item' => $item, 'stock_level' => $stock_level]);
+  log_notice("helper_days_and_message:  stock level $stock_level", ['item' => $item, 'stock_level' => $stock_level]);
   return false;
 }
 

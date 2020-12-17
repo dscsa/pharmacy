@@ -15,7 +15,7 @@ function update_order_items($changes) {
   $count_updated = count($changes['updated']);
 
   SirumLog::debug(
-    'Order items changes found: '+($count_deleted + $count_created + $count_updated),
+    'Order items changes found: '.($count_deleted + $count_created + $count_updated),
     [
       'deleted' => $changes['deleted'],
       'created' => $changes['created'],
