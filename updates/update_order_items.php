@@ -180,13 +180,13 @@ function deduplicate_order_items($partial, $mssql) {
     JOIN
       cprx ON cprx.rx_id = csomline.rx_id
     WHERE
-      order_id  = {$partial['invoice_number']-2}
-      AND script_no = {$partial['rx_number']}
+      order_id  = ".($partial['invoice_number']-2)."
+      AND script_no = $partial[rx_number]
       AND rxdisp_id = 0
     GROUP BY
       csomline.order_id,
       (CASE WHEN gcn_seqno > 0 THEN gcn_seqno ELSE script_no END)
-    LIMIT 1, {$partial['count_lines']}
+    LIMIT 1, $partial[count_lines]
   ";
 
   $duplicates = $mssql->run($sql);
