@@ -432,9 +432,7 @@ function set_days_and_message($item, $days, $message, $mysql) {
       refills_dispensed_default = ".(is_null($item['refills_dispensed_default']) ? 'NULL' : $item['refills_dispensed_default']).",
       refill_date_manual        = ".(is_null($item['refill_date_manual']) ?  'NULL' : "'$item[refill_date_manual]'").",
       refill_date_default       = ".(is_null($item['refill_date_default']) ? 'NULL' : "'$item[refill_date_default]'").",
-      refill_date_last          = ".(is_null($item['refill_date_last']) ? 'NULL' : "'$item[refill_date_last]'").",
-      refill_target_date        = ".(is_null($item['refill_target_date']) ? 'NULL' : "'$item[refill_target_date]'").",
-      refill_target_days        = ".(is_null($item['refill_target_days']) ? 'NULL' : $item['refill_target_days'])."
+      refill_date_last          = ".(is_null($item['refill_date_last']) ? 'NULL' : "'$item[refill_date_last]'")."
     WHERE
       invoice_number = $item[invoice_number] AND
       rx_number = $item[rx_number]

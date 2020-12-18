@@ -242,9 +242,7 @@ function update_orders_cp($changes) {
         }
 
         //Needs to be called before "$groups" is set
-        list($target_date, $target_rxs) = get_sync_to_date($order);
-        $order  = set_sync_to_date($order, $target_date, $target_rxs, $mysql);
-
+        $order  = sync_to_date($order, $mysql);
         $groups = group_drugs($order, $mysql);
 
         /*

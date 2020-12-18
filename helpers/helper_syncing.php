@@ -164,91 +164,112 @@ function sync_to_order($order, $updated = null) {
   return ['new_count_items' => $new_count_items, 'items_to_sync' => $items_to_sync];
 }
 
-//Group all drugs by their next fill date and get the most popular date
-function get_sync_to_date($order) {
+function days_default($days_left_in_refills, $days_left_in_stock, $days_default, $item) {
 
-  $sync_dates = [];
+function sync_to_date($order, $mysql) {
+
+  //pick the max day of the Rxs in the order that can be filled by every rx in the order
+  $max_days_default = 0;
+  $min_days_refills = DAYS_MAX;
+  $min_days_stock   = DAYS_MAX;
+
+  $max_days_default_rxs = [];
+  $min_days_refills_rxs = [];
+  $min_days_stock_rxs   = [];
+
   foreach ($order as $item) {
-    if (isset($sync_dates[$item['refill_date_next']]))
-      $sync_dates[$item['refill_date_next']][] = $item['best_rx_number']; //rx_number only set if in the order?
-    else
-      $sync_dates[$item['refill_date_next']] = [];
-  }
 
-  $target_date = null;
-  $target_rxs  = [];
-
-  foreach($sync_dates as $date => $rx_numbers) {
-
-    $count = count($rx_numbers);
-    $target_count = count($target_rxs);
-
-    if ($count > $target_count) {
-      $target_date = $date;
-      $target_rxs  = $rx_numbers;
+    //Abort if any item in the order is already dispensed
+    if ($item['rx_dispensed_id']) {
+      log_notice("sync_to_date: not syncing, already dispensed", ['item' => $item]);
+      return $order;
     }
-    else if ($count == $target_count AND $date > $target_date) { //In case of tie, longest date wins
-      $target_date = $date;
-      $target_rxs  = $rx_numbers;
-    }
-  }
 
-  return [$target_date, ','.implode(',', $target_rxs).','];
-}
-
-//Sync any drug that has days to the new refill date
-function set_sync_to_date($order, $target_date, $target_rxs, $mysql) {
-
-  foreach($order as $i => $item) {
-
-    $old_days_default = $item['days_dispensed_default'];
-
-    //TODO Skip syncing if the drug is OUT OF STOCK (or less than 500 qty?)
-    if ( ! $old_days_default OR ! $target_date OR $item['days_dispensed_actual'] OR $item['rx_message_key'] == 'NO ACTION FILL OUT OF STOCK') continue; //Don't add them to order if they are no already in it OR if already dispensed
-
-    $time_refill = $item['refill_date_next'] ? strtotime($item['refill_date_next']) : strtotime($item['item_date_added']); //refill_date_next is sometimes null
-    $days_extra  = (strtotime($target_date) - $time_refill)/60/60/24;
-    $days_synced = roundDaysUnit($old_days_default + $days_extra);
-
-    $days_left_in_refills    = days_left_in_refills($item);
-    $days_left_in_stock      = days_left_in_stock($item);
-    $new_days_default        = days_default($days_left_in_refills, $days_left_in_stock, $days_synced, $item);
-
-    if ($days_synced < 0)
-      log_error("DAYS SYNCED IS NEGATIVE! days_synced:$days_synced, new_days_default:$new_days_default, days_left_in_stock:$days_left_in_stock, days_left_in_refills:$days_left_in_refills", get_defined_vars());
-
-    if ($new_days_default != $old_days_default)
-      log_notice("set_sync_to_date", ['invoice_number' => $order[0]['invoice_number'], 'drug_generic' => $order[0]['drug_generic'], 'days_extra' => $days_extra, 'days_synced' => $days_synced, 'days_left_in_refills' => $days_left_in_refills, 'days_left_in_stock' => $days_left_in_stock, 'target_date' => "$item[refill_date_next] >>> $target_date", 'days_default' => "$old_days_default >>> $new_days_default"], $order[$i]);
-
-    if ($new_days_default < DAYS_MIN OR $new_days_default > DAYS_MAX OR $new_days_default == $old_days_default) //Limits to the amounts by which we are willing sync
+    //Don't try to sync stuff not in order, just what's in the order
+    if ( ! $item['item_date_added'])
       continue;
 
-    $order[$i]['refill_target_date']      = $target_date;
-    $order[$i]['days_dispensed_default']  = $new_days_default;
-    $order[$i]['qty_dispensed_default']   = $new_days_default*$item['sig_qty_per_day'];
-    $order[$i]['price_dispensed_default'] = ceil($item['price_dispensed'] * $new_days_default / $old_days_default); //Might be null
+    if ($item['days_dispensed_default'] >= $max_days_default AND $item['days_dispensed_default'] <= DAYS_MAX) {
+      $max_days_default       = $item['days_dispensed_default'];
+      $max_days_default_rxs[] = $item['rx_number'];
+    }
 
-    //TODO consider making these methods so that they always stay upto date and we don't have to recalcuate them
-    $order[$i]['days_dispensed']  = $order[$i]['days_dispensed_actual'] ?: $order[$i]['days_dispensed_default'];
-    $order[$i]['qty_dispensed']   = $order[$i]['qty_dispensed_actual'] ?: $order[$i]['qty_dispensed_default'];
-    $order[$i]['price_dispensed'] = $order[$i]['price_dispensed_actual'] ?: $order[$i]['price_dispensed_default'];
+    $days_left_in_refills = days_left_in_refills($item);
+    if ($days_left_in_refills <= $min_days_refills AND $days_left_in_refills >= DAYS_MIN) {
+      $min_days_refills        = $days_left_in_refills;
+      $min_days_refills_rxs[]  = $item['rx_number'];
+    }
+
+    $days_left_in_stock = days_left_in_stock($item);
+    if ($days_left_in_stock <= $min_days_stock AND $days_left_in_stock >= DAYS_MIN) {
+      $min_days_stock        = $days_left_in_stock;
+      $min_days_stock_rxs[]  = $item['rx_number'];
+    }
+  }
+
+  $new_days_default = min($max_days_default, $min_days_refills, $min_days_stock);
+
+  log_notice($new_days_default == DAYS_STD ? "sync_to_date: not syncing, days_std" : "sync_to_date: syncing", [
+    'invoice_number'       => $order[0]['invoice_number'],
+    'max_days_sync'        => $max_days_sync,
+    'max_days_default'     => $max_days_default,
+    'min_days_refills'     => $min_days_refills,
+    'min_days_stock'       => $min_days_stock,
+    'max_days_default_rxs' => $max_days_default_rxs,
+    'min_days_refills_rxs' => $min_days_refills_rxs,
+    'min_days_stock_rxs'   => $min_days_stock_rxs,
+    'order'                => $order
+  ]);
+
+  if ($new_days_default == DAYS_STD)
+    return $order;
+
+  foreach ($order as $item) {
+
+    //Don't try to sync stuff not in order, just what's in the order
+    if ( ! $item['item_date_added'])
+      continue;
+
+    $sync_to_date_days_change = $new_days_default - $item['days_dispensed_default'];
+
+    //Don't label something as synced if there is no change
+    if ( ! $sync_to_date_days_change)
+      continue;
+
+    $order[$i]['days_dispensed']  = $order[$i]['days_dispensed_default']  = $new_days_default;
+    $order[$i]['qty_dispensed']   = $order[$i]['qty_dispensed_default']   = $new_days_default*$item['sig_qty_per_day'];
+    $order[$i]['price_dispensed'] = $order[$i]['price_dispensed_default'] = ceil($days*($item['price_per_month'] ?: 0)/30); //Might be null
+
+    //NOT CURRENTLY USED BUT FOR AUDITING PURPOSES
+    $order[$i]['sync_to_date_days_before']          = $item['days_dispensed_default'];
+    $order[$i]['sync_to_date_days_change']          = $sync_to_date_days_change;
+
+    $order[$i]['sync_to_date_max_days_default']     = $max_days_default;
+    $order[$i]['sync_to_date_max_days_default_rxs'] = implode(',', $max_days_default_rxs);
+
+    $order[$i]['sync_to_date_min_days_refills']     = $min_days_refills;
+    $order[$i]['sync_to_date_min_days_refills_rxs'] = implode(',', $min_days_refills_rxs);
+
+    $order[$i]['sync_to_date_min_days_stock']       = $min_days_stock;
+    $order[$i]['sync_to_date_min_days_stock_rxs']   = implode(',', $min_days_stock_rxs);
 
     $sql = "
       UPDATE
         gp_order_items
       SET
-        refill_target_date      = '$target_date',
-        refill_target_days      = ".($new_days_default - $old_days_default).",
-        refill_target_rxs       = '$target_rxs',
-        days_dispensed_default  = $new_days_default,
-        qty_dispensed_default   = ".$order[$i]['qty_dispensed_default'].",
-        price_dispensed_default = ".$order[$i]['price_dispensed_default']."
+        days_dispensed_default            = $new_days_default,
+        qty_dispensed_default             = ".$order[$i]['qty_dispensed_default'].",
+        price_dispensed_default           = ".$order[$i]['price_dispensed_default']."
+        sync_to_date_days_before          = $item[days_dispensed_default],
+        sync_to_date_max_days_default     = $max_days_default,
+        sync_to_date_max_days_default_rxs = '".implode(',', $max_days_default_rxs)."',
+        sync_to_date_min_days_refills     = $min_days_refills,
+        sync_to_date_min_days_refills_rxs = '".implode(',', $min_days_refills_rxs)."',
+        sync_to_date_min_days_stock       = $min_days_stock,
+        sync_to_date_min_days_stock_rxs   = '".implode(',', $min_days_stock_rxs)."'
       WHERE
         rx_number = $item[rx_number]
-    ";
-
-
-    log_notice('helper_syncing: set_sync_to_date and repending v2', [$order[$i], $new_days_default]);
+        AND invoice_number => ".$order[0]['invoice_number'];
 
     $mysql->run($sql);
 
@@ -256,6 +277,8 @@ function set_sync_to_date($order, $target_date, $target_rxs, $mysql) {
     v2_pend_item($order[$i], $mysql);
 
     $order[$i] = export_cp_set_rx_message($order[$i], RX_MESSAGE['NO ACTION SYNC TO DATE'], $mysql);
+
+    log_notice('helper_syncing: sync_to_date and repended in v2', ['item' => $order[$i], 'sql' => $sql]);
   }
 
   return $order;
