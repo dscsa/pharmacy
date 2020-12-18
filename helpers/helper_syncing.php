@@ -165,7 +165,6 @@ function sync_to_order($order, $updated = null) {
 }
 
 function days_default($days_left_in_refills, $days_left_in_stock, $days_default, $item) {
-
 function sync_to_date($order, $mysql) {
 
   //pick the max day of the Rxs in the order that can be filled by every rx in the order
