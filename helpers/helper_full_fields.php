@@ -116,9 +116,7 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
               $salesforce   = [
                 "subject"   => $log,
                 "body"      => print_r($patient_or_order[$i], true),
-                "contact"   => $patient_or_order[$i]['first_name'].' '.$patient_or_order[$i]['last_name'].' '.$patient_or_order[$i]['birth_date'],
-                "assign_to" => ".Add/Remove Drug - RPh",
-                "due_date"  => date('Y-m-d')
+                "contact"   => $patient_or_order[$i]['first_name'].' '.$patient_or_order[$i]['last_name'].' '.$patient_or_order[$i]['birth_date']
               ];
 
               SirumLog::notice($log, [
