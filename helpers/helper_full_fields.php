@@ -71,7 +71,14 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
 
             $needs_pending   = (@$patient_or_order[$i]['item_date_added'] AND $days AND ! @$patient_or_order[$i]['count_pended_total']);
             $needs_unpending = (@$patient_or_order[$i]['item_date_added'] AND ! $days AND @$patient_or_order[$i]['count_pended_total']);
-            $needs_repending = (@$patient_or_order[$i]['item_date_added'] AND $days != @$patient_or_order[$i]['days_dispensed_default'] AND ! @$patient_or_order[$i]['sync_to_date_days_before']);
+            $needs_repending = (
+              @$patient_or_order[$i]['item_date_added']
+              AND $days
+              AND @$patient_or_order[$i]['days_dispensed_default']
+              AND $days != @$patient_or_order[$i]['days_dispensed_default']
+              AND ! @$patient_or_order[$i]['sync_to_date_days_before']
+            );
+
             $pending_changed = ($needs_pending OR $needs_unpending OR $needs_repending);
 
             $get_days_and_message = [
