@@ -299,7 +299,7 @@ function update_rxs_single($changes) {
         'item' => $item
       ]);
 
-      if ( ! $sf_cache[$body]) {
+      if ( ! @$sf_cache[$body]) {
 
         $sf_cache[$body] = true; //This caches it by body and for this one run (currently 10mins)
 

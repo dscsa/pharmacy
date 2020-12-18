@@ -119,8 +119,8 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
                 [
                   'item'    => $patient_or_order[$i],
                   'items_to_remove' => $items_to_remove,
-                  'days'    => $items_to_remove,
-                  'message' => $items_to_sync
+                  'days'    => $days,
+                  'message' => $message
                 ]
               );
 
@@ -136,8 +136,8 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
                 [
                   'item'         => $patient_or_order[$i],
                   'items_to_add' => $items_to_add,
-                  'days'         => $items_to_remove,
-                  'message'      => $items_to_sync
+                  'days'         => $days,
+                  'message'      => $message
                 ]
               );
             }
@@ -173,7 +173,7 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
                 'item' => $patient_or_order[$i]
               ]);
 
-              $event_title = "$log $salesforce[due_date]";
+              $event_title = "$log $salesforce ".date('Y:m:d H:i:s');
 
               if ( ! $set_days_and_msgs) //this is an update
                 create_event($event_title, [$salesforce]);
