@@ -94,6 +94,11 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
 
             SirumLog::notice("get_days_and_message $log_suffix", $get_days_and_message);
 
+            //Internal logic keeps initial values on order_items if they exist (don't want to contradict patient comms)
+            $patient_or_order[$i] = set_days_and_message($patient_or_order[$i], $days, $message, $mysql);
+
+            export_cp_set_rx_message($patient_or_order[$i], $message);
+
             if($needs_pending) {
               v2_pend_item($patient_or_order[$i], $mysql);
             }
@@ -111,7 +116,7 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
 
               $update_payment = true;
 
-              $log = "helper_full_fields: pending changes ".$patient_or_order[$i]['invoice_number'].": ".$patient_or_order[$i]['days_dispensed_default']." -> $days";
+              $log = "helper_full_fields: pending changes ".$patient_or_order[$i]['invoice_number'].": $get_days_and_message[old_days_dispensed_default] -> $days";
 
               $salesforce   = [
                 "subject"   => $log,
@@ -130,11 +135,6 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
               if ( ! $set_days_and_msgs) //this is an update
                 create_event($event_title, [$salesforce]);
             }
-
-            //Internal logic keeps initial values on order_items if they exist (don't want to contradict patient comms)
-            $patient_or_order[$i] = set_days_and_message($patient_or_order[$i], $days, $message, $mysql);
-
-            export_cp_set_rx_message($patient_or_order[$i], $message);
 
             //Internal logic determines if fax is necessary
             if ($set_days_and_msgs) //Sending because of overwrite may cause multiple faxes for same item
