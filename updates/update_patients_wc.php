@@ -11,18 +11,15 @@ function update_patients_wc($changes) {
   $count_created = count($changes['created']);
   $count_updated = count($changes['updated']);
 
-  SirumLog::debug(
-    'Woocommerce Patient Changes found',
-    [
-      'deleted_count' => $count_deleted,
-      'created_count' => $count_created,
-      'updated_count' => $count_updated
-    ]
-  );
-
   if ( ! $count_deleted AND ! $count_created AND ! $count_updated) return;
 
-  log_notice("update_patients_wc: $count_deleted deleted, $count_created created, $count_updated updated.");
+  $msg = "update_patient_wc: all changes. $count_deleted deleted, $count_created created, $count_updated updated.";
+  echo "\n$msg\n";
+  log_info($msg, [
+    'deleted_count' => $count_deleted,
+    'created_count' => $count_created,
+    'updated_count' => $count_updated
+  ]);
 
   $mysql = new Mysql_Wc();
   $mssql = new Mssql_Cp();
