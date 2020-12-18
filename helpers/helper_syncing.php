@@ -217,7 +217,7 @@ function sync_to_date($order, $mysql) {
     'order'                => $order
   ]);
 
-  if ($new_days_default == DAYS_STD)
+  if ( ! $new_days_default OR $new_days_default == DAYS_STD)
     return $order;
 
   foreach ($order as $item) {
