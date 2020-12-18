@@ -65,6 +65,7 @@ class SirumLog
             self::$logger->$method($message, $context);
         } catch (\Exception $e) {
             // The logger is broken.  We need to recycle it.
+            self::$logger->flush();
             self::resetLogger();
             self::$logger->warning(
                 'Logging Generated error',
@@ -122,9 +123,9 @@ class SirumLog
                 [
                     'batchEnabled' => true,
                     'batchOptions' => [
-                        'batchSize' => 15,
+                        'batchSize' => 100,
                         'callPeriod' => 2.0,
-                        'numWorkers' => 8
+                        'numWorkers' => 1
                     ]
                 ]
             );
