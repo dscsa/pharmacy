@@ -119,9 +119,7 @@ function sync_to_order($order, $updated = null) {
     $salesforce   = [
       "subject"   => "Ignoring changes to an existing order ".$order[0]['invoice_number'],
       "body"      => implode(',', $notices),
-      "contact"   => $order[0]['first_name'].' '.$order[0]['last_name'].' '.$order[0]['birth_date'],
-      "assign_to" => ".Add/Remove Drug - RPh",
-      "due_date"  => date('Y-m-d')
+      "contact"   => $order[0]['first_name'].' '.$order[0]['last_name'].' '.$order[0]['birth_date']
     ];
 
     $event_title = "$salesforce[subject] $salesforce[due_date]";
@@ -230,7 +228,7 @@ function sync_to_date($order, $mysql) {
 
     $sync_to_date_days_change = $new_days_default - $item['days_dispensed_default'];
 
-    //Don't label something as synced if there is no change
+    //Don't set rx_message to something as being synced if it was the target and therefore didn't change
     if ( ! $sync_to_date_days_change)
       continue;
 
