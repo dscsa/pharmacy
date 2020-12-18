@@ -182,63 +182,45 @@ function update_orders_cp($changes) {
             continue;
         }
 
-        /*
-         * 1) Add Drugs to Guardian that should be in the order
-         * 2) Remove drug from guardian that should not be in the order
-         * 3) Create a fax out transfer for anything removed that is not offered
-         * ACTION PATIENT OFF AUTOFILL Notice
-         */
-        $synced = sync_to_order($order);
-
         //Patient communication that we are cancelling their order examples include:
         //NEEDS FORM, ORDER HOLD WAITING FOR RXS, TRANSFER OUT OF ALL ITEMS, ACTION PATIENT OFF AUTOFILL
-        if ($synced['new_count_items'] <= 0) {
+        if ($order[0]['count_filled'] == 0) {
 
           SirumLog::debug(
-            'update_orders_cp sync_to_order is effectively removing order',
+            'update_orders_cp: created. no drugs to fill. removing order',
             [
               'invoice_number' => $order[0]['invoice_number'],
-              'order'          => $order,
-              'synced'         => $synced
+              'count_filled'   => $order[0]['count_filled'],
+              'count_items'    => $order[0]['count_items'],
+              'order'          => $order
             ]
           );
 
           $groups = group_drugs($order, $mysql);
           order_hold_notice($groups);
 
-          if ( ! $order[0]['count_items']) { //Remove this if when confident that syncing is working correctly
+          //TODO Remove/Cancel WC Order Here
 
-            SirumLog::debug(
-              'update_orders_cp sync_to_order is actually removing order',
-              [
-                'invoice_number' => $order[0]['invoice_number'],
-                'order'          => $order,
-                'synced'         => $synced,
-                'groups'         => $groups
-              ]
-            );
-
-            export_cp_remove_order($order[0]['invoice_number']); //No items
-            continue;
-          }
+          export_cp_remove_order($order[0]['invoice_number']);
+          continue;
         }
 
-        if ($synced['items_to_sync']) {
-            SirumLog::debug(
-                'update_orders_cp sync_to_order necessary on CREATE: deleting order for it to be readded',
-                [
-                  'invoice_number' => $order[0]['invoice_number'],
-                  'sync_results'   => $synced
-                ]
-            );
+        if ($order[0]['count_items_to_remove'] > 0 OR $order[0]['count_items_to_add'] > 0) {
 
-            //Force created to run again after the changes take place
-            $mysql->run("DELETE gp_orders
-                          FROM gp_orders
-                          WHERE invoice_number = {$order[0]['invoice_number']}");
+          SirumLog::debug(
+            'update_orders_cp: created. skipping order because items still need to be removed/added',
+            [
+              'invoice_number'        => $order[0]['invoice_number'],
+              'count_filled'          => $order[0]['count_filled'],
+              'count_items'           => $order[0]['count_items'],
+              'count_items_to_remove' => $order[0]['count_items_to_remove'],
+              'count_items_to_add'    => $order[0]['count_items_to_add'],
+              'order'                 => $order
+            ]
+          );
 
-            //DON'T CREATE THE ORDER UNTIL THESE ITEMS ARE SYNCED TO AVOID CONFLICTING COMMUNICATIONS!
-            continue;
+          //DON'T CREATE THE ORDER UNTIL THESE ITEMS ARE SYNCED TO AVOID CONFLICTING COMMUNICATIONS!
+          continue;
         }
 
         //Needs to be called before "$groups" is set
@@ -534,30 +516,46 @@ function update_orders_cp($changes) {
             continue;
         }
 
-        /*
-         * TODO This is a footgun.  Detecting count_item changes will miss any order_item changes that are NET 0 eg if one
-         * order_item is added to the order and one order_item is removed from the order within the same 10mins span.
-         * Consider refactoring this to rely on order_item changes directly.  Or using a the order change date to determine
-         * if the above footgun is true by exclusion (the change_date updates and its not a status change and its not X, Y, Z so it must be that the order_items changed. )
-         *
-         *
-         * TODO Do we want to sync orders upon updates?  On all updates (manual changes, new surescripts, new faxes/transfers).
-         * Do we need to send patients updates on these changes?
-         *
-         */
-        //We won't sync new drugs to the order, but if a new drug comes in that we are not filling, we will remove it
-        $synced = sync_to_order($order, true);
+        //Patient communication that we are cancelling their order examples include:
+        //NEEDS FORM, ORDER HOLD WAITING FOR RXS, TRANSFER OUT OF ALL ITEMS, ACTION PATIENT OFF AUTOFILL
+        if ($order[0]['count_filled'] == 0) {
 
-        /*
-        if ($synced['items_to_sync']) {
-            //Force updated to run again after the changes take place
-            log_error("update_orders_cp sync_to_order necessary on UPDATE:", [$updated, $synced['items_to_sync']]);
-            $mysql->run("UPDATE gp_orders
-                          SET count_items = 0
-                          WHERE invoice_number = {$order[0]['invoice_number']}");
-            continue;
+          SirumLog::debug(
+            'update_orders_cp: updated. no drugs to fill. removing order',
+            [
+              'invoice_number' => $order[0]['invoice_number'],
+              'count_filled'   => $order[0]['count_filled'],
+              'count_items'    => $order[0]['count_items'],
+              'order'          => $order
+            ]
+          );
+
+          $groups = group_drugs($order, $mysql);
+          order_hold_notice($groups);
+
+          //TODO Remove/Cancel WC Order Here
+
+          export_cp_remove_order($order[0]['invoice_number']);
+          continue;
         }
-        */
+
+        if ($order[0]['count_items_to_remove'] > 0 OR $order[0]['count_items_to_add'] > 0) {
+
+          SirumLog::debug(
+            'update_orders_cp: updated. skipping order because items still need to be removed/added',
+            [
+              'invoice_number'        => $order[0]['invoice_number'],
+              'count_filled'          => $order[0]['count_filled'],
+              'count_items'           => $order[0]['count_items'],
+              'count_items_to_remove' => $order[0]['count_items_to_remove'],
+              'count_items_to_add'    => $order[0]['count_items_to_add'],
+              'order'                 => $order
+            ]
+          );
+
+          //DON'T CREATE THE ORDER UNTIL THESE ITEMS ARE SYNCED TO AVOID CONFLICTING COMMUNICATIONS!
+          continue;
+        }
 
         //Address Changes
         //Stage Change
