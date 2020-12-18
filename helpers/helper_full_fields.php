@@ -173,7 +173,7 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
                 'item' => $patient_or_order[$i]
               ]);
 
-              $event_title = "$log $salesforce ".date('Y:m:d H:i:s');
+              $event_title = $log."  ".date('Y:m:d H:i:s');
 
               if ( ! $set_days_and_msgs) //this is an update
                 create_event($event_title, [$salesforce]);
@@ -287,8 +287,10 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
         $patient_or_order[$i]['qty_dispensed'] = (float) $qty_dispensed;
     }
 
-    export_cp_remove_items($patient_or_order[0]['invoice_number'], $items_to_remove);
-    export_cp_add_items($patient_or_order[0]['invoice_number'], $items_to_add);
+    if (@$patient_or_order[0]['invoice_number']) {
+      export_cp_remove_items($patient_or_order[0]['invoice_number'], $items_to_remove);
+      export_cp_add_items($patient_or_order[0]['invoice_number'], $items_to_add);
+    }
 
     foreach ($patient_or_order as $i => $item) {
       $patient_or_order[$i]['count_filled']          = $count_filled;
