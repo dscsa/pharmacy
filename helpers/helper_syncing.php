@@ -209,7 +209,7 @@ function sync_to_date($order, $mysql) {
 
   log_notice($new_days_default == DAYS_STD ? "sync_to_date: not syncing, days_std" : "sync_to_date: syncing", [
     'invoice_number'       => $order[0]['invoice_number'],
-    'max_days_sync'        => $max_days_sync,
+    'new_days_default'     => $new_days_default,
     'max_days_default'     => $max_days_default,
     'min_days_refills'     => $min_days_refills,
     'min_days_stock'       => $min_days_stock,

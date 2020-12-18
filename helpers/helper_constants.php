@@ -114,7 +114,7 @@ const RX_MESSAGE = [
     'CP_CODE' => 204,
   ],
   'NO ACTION SYNC TO DATE' => [
-    'EN' => 'was synced to sync_to_date_days_change',
+    'EN' => 'was synced to sync_to_date_days_change days',
     'ES' => '',
     'CP_CODE' => 205,
   ],

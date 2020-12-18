@@ -24,7 +24,7 @@ function get_days_and_message($item, $patient_or_order) {
     log_error("helper_days_and_message: RX WAS NEVER PARSED", $item);
   }
 
-  if ($item['item_date_added'] AND $is_duplicate_gsn) {
+  if (@$item['item_date_added'] AND $is_duplicate_gsn) {
     log_error("helper_days_and_message: $item[drug_generic] is duplicated.  Likely Mistake. Different sig_qty_per_day?", ['item' => $item, 'order' => $patient_or_order]);
   }
 
