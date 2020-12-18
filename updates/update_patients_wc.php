@@ -217,7 +217,7 @@ function update_patients_wc($changes) {
     if ($updated['patient_date_registered'] != $updated['old_patient_date_registered']) {
 
       $sql = "
-        UPDATE gp_patients SET patient_date_registered = $updated[patient_date_registered] WHERE patient_id_wc = $updated[patient_id_wc]
+        UPDATE gp_patients SET patient_date_registered = '$updated[patient_date_registered]' WHERE patient_id_wc = $updated[patient_id_wc]
       ";
 
       $mysql->run($sql);
