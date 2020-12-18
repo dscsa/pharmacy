@@ -185,11 +185,15 @@ function update_patients_wc($changes) {
         (strlen($updated['patient_state']) != 2 AND strlen($updated['old_patient_state']) == 2) OR
         (strlen($updated['patient_zip']) != 5 AND strlen($updated['old_patient_zip']) == 5)
     ) {
+
+        log_notice("update_patients_wc: adding address. $updated[first_name] $updated[last_name] $updated[birth_date]", ['changed' => $change, 'updated' => $updated]);
+
         upsert_patient_wc($mysql, $updated['patient_id_wc'], 'patient_address1', $updated['old_patient_address1']);
         upsert_patient_wc($mysql, $updated['patient_id_wc'], 'patient_address2', $updated['old_patient_address2']);
         upsert_patient_wc($mysql, $updated['patient_id_wc'], 'patient_city', $updated['old_patient_city']);
         upsert_patient_wc($mysql, $updated['patient_id_wc'], 'patient_state', $updated['old_patient_state']);
         upsert_patient_wc($mysql, $updated['patient_id_wc'], 'patient_zip', $updated['old_patient_zip']);
+
     } else if (
         $updated['patient_address1'] !== $updated['old_patient_address1'] OR
         $updated['patient_address2'] !== $updated['old_patient_address2'] OR
@@ -210,7 +214,7 @@ function update_patients_wc($changes) {
 
       $sql = "EXEC SirumWeb_AddUpdatePatHomeAddr '$updated[patient_id_cp]', '$address1', '$address2', $address3, '$city', '$updated[patient_state]', '$updated[patient_zip]', 'US'";
 
-      log_notice("update_patients_wc: updated address-mismatch. $updated[first_name] $updated[last_name] $updated[birth_date]", ['sql' => $sql]);
+      log_notice("update_patients_wc: updated address-mismatch. $updated[first_name] $updated[last_name] $updated[birth_date]", ['sql' => $sql, 'changed' => $change, 'updated' => $updated]);
       upsert_patient_cp($mssql, $sql);
     }
 
