@@ -533,8 +533,8 @@ function update_orders_cp($changes) {
         //NEEDS FORM, ORDER HOLD WAITING FOR RXS, TRANSFER OUT OF ALL ITEMS, ACTION PATIENT OFF AUTOFILL
         if ($order[0]['count_filled'] == 0) {
 
-          SirumLog::debug(
-            'update_orders_cp: updated. no drugs to fill. removing order',
+          SirumLog::alert(
+            'update_orders_cp: updated. no drugs to fill. remove order?',
             [
               'invoice_number' => $order[0]['invoice_number'],
               'count_filled'   => $order[0]['count_filled'],
@@ -543,12 +543,12 @@ function update_orders_cp($changes) {
             ]
           );
 
-          $groups = group_drugs($order, $mysql);
-          order_hold_notice($groups);
+          //$groups = group_drugs($order, $mysql);
+          //order_hold_notice($groups);
 
           //TODO Remove/Cancel WC Order Here
 
-          export_cp_remove_order($order[0]['invoice_number']);
+          //export_cp_remove_order($order[0]['invoice_number']);
           continue;
         }
 
