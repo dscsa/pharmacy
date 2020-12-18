@@ -14,9 +14,6 @@ function update_patients_wc($changes) {
   SirumLog::debug(
     'Woocommerce Patient Changes found',
     [
-      'deleted' => $changes['deleted'],
-      'created' => $changes['created'],
-      'updated' => $changes['updated'],
       'deleted_count' => $count_deleted,
       'created_count' => $count_created,
       'updated_count' => $count_updated
@@ -131,10 +128,10 @@ function update_patients_wc($changes) {
       SirumLog::debug(
         "update_patients_wc: WooCommerce PATIENT deleted",
         [
-            'deleted' => $deleted,
-            'source'  => 'WooCommerce',
-            'type'    => 'patients',
-            'event'   => 'deleted'
+          'deleted' => $deleted,
+          'source'  => 'WooCommerce',
+          'type'    => 'patients',
+          'event'   => 'deleted'
         ]
       );
 
@@ -207,11 +204,26 @@ function update_patients_wc($changes) {
 
       $address3 = 'NULL';
       if ($updated['patient_state'] != 'GA') {
-        log_notice("$updated[first_name] $updated[last_name] $updated[birth_date]");
+        log_error("update_patients_wc: updated address-mismatch. $updated[first_name] $updated[last_name] $updated[birth_date]");
         $address3 = "'!!!! WARNING NON-GEORGIA ADDRESS !!!!'";
       }
 
-      upsert_patient_cp($mssql, "EXEC SirumWeb_AddUpdatePatHomeAddr '$updated[patient_id_cp]', '$address1', '$address2', $address3, '$city', '$updated[patient_state]', '$updated[patient_zip]', 'US'");
+      $sql = "EXEC SirumWeb_AddUpdatePatHomeAddr '$updated[patient_id_cp]', '$address1', '$address2', $address3, '$city', '$updated[patient_state]', '$updated[patient_zip]', 'US'";
+
+      log_notice("update_patients_wc: updated address-mismatch. $updated[first_name] $updated[last_name] $updated[birth_date]", ['sql' => $sql]);
+      upsert_patient_cp($mssql, $sql);
+    }
+
+    if ($updated['patient_date_registered'] != $updated['old_patient_date_registered']) {
+
+      $sql = "
+        UPDATE gp_patients SET patient_date_registered = $updated[patient_date_registered] WHERE patient_id_wc = $updated[patient_id_wc]
+      ";
+
+      $mysql->run($sql);
+
+      log_notice("update_patients_wc: patient_registered. $updated[first_name] $updated[last_name] $updated[birth_date]", ['sql' => $sql]);
+
     }
 
     //NOTE: Different/Reverse logic here. Deleting in CP should save back into WC
