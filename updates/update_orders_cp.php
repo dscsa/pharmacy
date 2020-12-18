@@ -374,9 +374,11 @@ function update_orders_cp($changes) {
           set_payment_actual($deleted['invoice_number'], ['total' => 0, 'fee' => 0, 'due' => 0], $mysql);
           //export_wc_update_order_payment($deleted['invoice_number'], 0); //Don't need this because we are deleting the WC order later
 
-          $update_sql = "UPDATE gp_orders
-                          SET order_date_returned = NOW()
-                          WHERE invoice_number = $deleted[invoice_number]";
+          $update_sql = "
+            UPDATE gp_orders
+            SET order_date_returned = NOW()
+            WHERE invoice_number = $deleted[invoice_number]
+          ";
 
           $mysql->run($update_sql);
 
@@ -387,7 +389,11 @@ function update_orders_cp($changes) {
 
         export_gd_delete_invoice([$deleted], $mysql);
 
-        export_wc_delete_order($deleted['invoice_number'], "update_orders_cp: cp order deleted $deleted[invoice_number] $deleted[order_stage_cp] $deleted[order_stage_wc] $deleted[order_source] ".json_encode($deleted));
+        //[NULL, 'Webform Complete', 'Webform eRx', 'Webform Transfer', 'Auto Refill', '0 Refills', 'Webform Refill', 'eRx /w Note', 'Transfer /w Note', 'Refill w/ Note']
+        if ($deleted['count_filled'] > 0 OR in_array($deleted['order_source'], ['Webform eRx', 'Webform Transfer', 'Webform Refill', 'eRx /w Note', 'Transfer /w Note', 'Refill w/ Note']))
+          export_wc_cancel_order($invoice_number, "update_orders_cp: cp order deleted $deleted[invoice_number] $deleted[order_stage_cp] $deleted[order_stage_wc] $deleted[order_source] ".json_encode($deleted));
+        else
+          export_wc_delete_order($deleted['invoice_number'], "update_orders_cp: cp order deleted $deleted[invoice_number] $deleted[order_stage_cp] $deleted[order_stage_wc] $deleted[order_source] ".json_encode($deleted));
 
         export_v2_unpend_order([$deleted], $mysql);
 

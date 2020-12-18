@@ -227,6 +227,21 @@ function export_wc_update_order_status($order)
   wc_update_order($order[0]['invoice_number'], $orderdata);
 }
 
+function export_wc_cancel_order($invoice_number, $reason) {
+
+  log_notice(
+    'export_wc_cancel_order',
+    [
+      'invoice_number' => $invoice_number,
+      'reason' => $reason
+    ]
+  );
+
+  wc_update_order($order[0]['invoice_number'], [
+    'post_status' => 'wc-cancelled'
+  ]);
+}
+
 function export_wc_delete_order($invoice_number, $reason)
 {
   global $mysql;
