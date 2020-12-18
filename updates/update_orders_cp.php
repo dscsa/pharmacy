@@ -219,6 +219,13 @@ function update_orders_cp($changes) {
             ]
           );
 
+          //Force created loop to run again so that patient gets "Order Created Communication" and not just an update one
+           $mysql->run("
+            DELETE gp_orders
+            FROM gp_orders
+            WHERE invoice_number = {$order[0]['invoice_number']}
+          ");
+
           //DON'T CREATE THE ORDER UNTIL THESE ITEMS ARE SYNCED TO AVOID CONFLICTING COMMUNICATIONS!
           continue;
         }
@@ -553,7 +560,7 @@ function update_orders_cp($changes) {
             ]
           );
 
-          //DON'T CREATE THE ORDER UNTIL THESE ITEMS ARE SYNCED TO AVOID CONFLICTING COMMUNICATIONS!
+          //On the next run the count_items will be updated to count_filled and this UPDATE LOOP will run again so no need to run it now
           continue;
         }
 
