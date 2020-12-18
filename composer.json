@@ -1,9 +1,18 @@
 {
     "require": {
         "google/cloud-logging": "^1.21",
-        "adilbaig/pagerduty": "^3.2"
+        "adilbaig/pagerduty": "^3.2",
+        "google/apiclient": "^2.7"
     },
     "autoload": {
        "psr-4": {"Sirum\\": "classes/Sirum"}
-     }
+    },
+   "scripts": {
+        "post-update-cmd": "Google\\Task\\Composer::cleanup"
+    },
+    "extra": {
+        "google/apiclient-services": [
+            "Drive"
+        ]
+    }
 }

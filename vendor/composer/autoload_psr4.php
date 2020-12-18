@@ -6,6 +6,7 @@ $vendorDir = dirname(dirname(__FILE__));
 $baseDir = dirname($vendorDir);
 
 return array(
+    'phpseclib\\' => array($vendorDir . '/phpseclib/phpseclib/phpseclib'),
     'Sirum\\' => array($baseDir . '/classes/Sirum'),
     'Psr\\Log\\' => array($vendorDir . '/psr/log/Psr/Log'),
     'Psr\\Http\\Message\\' => array($vendorDir . '/psr/http-message/src'),
@@ -22,7 +23,7 @@ return array(
     'Google\\Cloud\\Core\\' => array($vendorDir . '/google/cloud-core/src'),
     'Google\\Auth\\' => array($vendorDir . '/google/auth/src'),
     'Google\\ApiCore\\' => array($vendorDir . '/google/gax/src'),
-    'Google\\' => array($vendorDir . '/google/common-protos/src'),
+    'Google\\' => array($vendorDir . '/google/apiclient/src', $vendorDir . '/google/common-protos/src'),
     'GPBMetadata\\Google\\Protobuf\\' => array($vendorDir . '/google/protobuf/src/GPBMetadata/Google/Protobuf'),
     'GPBMetadata\\Google\\Logging\\' => array($vendorDir . '/google/cloud-logging/metadata'),
     'GPBMetadata\\Google\\' => array($vendorDir . '/google/common-protos/metadata'),
