@@ -202,7 +202,7 @@ function deduplicate_order_items($item, $mssql, $mysql) {
   $res2 = $mssql->run($sql2)[0];
 
   foreach($res2 as $duplicate) {
-    $mssql->run("DELETE FROM csomline WHERE line_id = $duplicate[line_id]")[0];
+    $mssql->run("DELETE FROM csomline WHERE line_id = $duplicate[line_id]");
   }
 
   log_notice(['deduplicate_order_item', $sql1, $res1, $sql2, $res2]);
