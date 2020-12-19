@@ -20,6 +20,14 @@ function update_stock_by_month($changes) {
   $count_created  = count($changes['created']);
   $count_updated  = count($changes['updated']);
 
+  $msg = " $count_deleted deleted, $count_created created, $count_updated updated.";
+  echo $msg;
+  log_info("update_stock_by_month: all changes. $msg", [
+    'deleted_count' => $count_deleted,
+    'created_count' => $count_created,
+    'updated_count' => $count_updated
+  ]);
+
   if ( ! $count_deleted AND ! $count_created AND ! $count_updated) return;
 
   SirumLog::$subroutine_id = "stock-v2-".sha1(serialize($changes));

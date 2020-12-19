@@ -15,33 +15,15 @@ function update_orders_cp($changes) {
   $count_created = count($changes['created']);
   $count_updated = count($changes['updated']);
 
-  if ( ! $count_deleted AND ! $count_created AND ! $count_updated) {
-    SirumLog::notice(
-      'No changes found, leaving update_order_cp',
-      [
-        'deleted' => $changes['deleted'],
-        'created' => $changes['created'],
-        'updated' => $changes['updated'],
-        'deleted_count' => $count_deleted,
-        'created_count' => $count_created,
-        'updated_count' => $count_updated
-      ]
-    );
+  $msg = " $count_deleted deleted, $count_created created, $count_updated updated.";
+  echo $msg;
+  log_info("update_orders_cp: all changes. $msg", [
+    'deleted_count' => $count_deleted,
+    'created_count' => $count_created,
+    'updated_count' => $count_updated
+  ]);
 
-    return;
-  }
-
-  SirumLog::debug(
-    'Carepoint Order Changes found',
-    [
-      'deleted' => $changes['deleted'],
-      'created' => $changes['created'],
-      'updated' => $changes['updated'],
-      'deleted_count' => $count_deleted,
-      'created_count' => $count_created,
-      'updated_count' => $count_updated
-    ]
-  );
+  if ( ! $count_deleted AND ! $count_created AND ! $count_updated) return;
 
   $mysql = new Mysql_Wc();
 

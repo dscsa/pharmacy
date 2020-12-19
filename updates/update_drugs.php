@@ -9,21 +9,15 @@ function update_drugs($changes) {
   $count_created = count($changes['created']);
   $count_updated = count($changes['updated']);
 
-  SirumLog::debug(
-    'v2 Drug Changes found',
-    [
-      'deleted' => $changes['deleted'],
-      'created' => $changes['created'],
-      'updated' => $changes['updated'],
-      'deleted_count' => $count_deleted,
-      'created_count' => $count_created,
-      'updated_count' => $count_updated
-    ]
-  );
+  $msg = " $count_deleted deleted, $count_created created, $count_updated updated.";
+  echo $msg;
+  log_info("update_drugs: all changes. $msg", [
+    'deleted_count' => $count_deleted,
+    'created_count' => $count_created,
+    'updated_count' => $count_updated
+  ]);
 
   if ( ! $count_deleted AND ! $count_created AND ! $count_updated) return;
-
-  log_info("update_drugs: $count_deleted deleted, $count_created created, $count_updated updated.", get_defined_vars());
 
   $mysql = new Mysql_Wc();
 

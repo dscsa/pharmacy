@@ -54,15 +54,15 @@ function update_rxs_single($changes) {
   $count_created = count($changes['created']);
   $count_updated = count($changes['updated']);
 
-  if ( ! $count_deleted AND ! $count_created AND ! $count_updated) return;
-
-  $msg = "update_rxs_single: all changes. $count_deleted deleted, $count_created created, $count_updated updated.";
-  echo "\n$msg\n";
-  log_info($msg, [
+  $msg = " $count_deleted deleted, $count_created created, $count_updated updated.";
+  echo $msg;
+  log_info("update_rxs_single: all changes. $msg", [
     'deleted_count' => $count_deleted,
     'created_count' => $count_created,
     'updated_count' => $count_updated
   ]);
+
+  if ( ! $count_deleted AND ! $count_created AND ! $count_updated) return;
 
   /*
    * Created Loop #1 First loop accross new items. Run this before rx_grouped query to make

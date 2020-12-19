@@ -10,27 +10,15 @@ function update_patients_cp($changes) {
   $count_created = count($changes['created']);
   $count_updated = count($changes['updated']);
 
-  SirumLog::debug(
-    'Carepoint Patient Changes found',
-    [
-      'deleted' => $changes['deleted'],
-      'created' => $changes['created'],
-      'updated' => $changes['updated'],
-      'deleted_count' => $count_deleted,
-      'created_count' => $count_created,
-      'updated_count' => $count_updated
-    ]
-  );
-
-  if ( ! $count_deleted AND ! $count_created AND ! $count_updated) return;
-
-  $msg = "update_patient_cp: all changes. $count_deleted deleted, $count_created created, $count_updated updated.";
-  echo "\n$msg\n";
-  log_info($msg, [
+  $msg = " $count_deleted deleted, $count_created created, $count_updated updated.";
+  echo $msg;
+  log_info("update_patients_cp: all changes. $msg", [
     'deleted_count' => $count_deleted,
     'created_count' => $count_created,
     'updated_count' => $count_updated
   ]);
+
+  if ( ! $count_deleted AND ! $count_created AND ! $count_updated) return;
 
   $mysql = new Mysql_Wc();
   $mssql = new Mssql_Cp();

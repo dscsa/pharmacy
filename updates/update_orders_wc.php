@@ -10,32 +10,15 @@ function update_orders_wc($changes) {
     $count_created = count($changes['created']);
     $count_updated = count($changes['updated']);
 
-    if (! $count_deleted and ! $count_created and ! $count_updated) {
-        SirumLog::notice(
-            'No changes found, leaving update_orders_wc',
-            [
-              'deleted' => $changes['deleted'],
-              'created' => $changes['created'],
-              'updated' => $changes['updated'],
-              'deleted_count' => $count_deleted,
-              'created_count' => $count_created,
-              'updated_count' => $count_updated
-            ]
-        );
-        return;
-    }
+    $msg = " $count_deleted deleted, $count_created created, $count_updated updated.";
+    echo $msg;
+    log_info("update_orders_wc: all changes. $msg", [
+      'deleted_count' => $count_deleted,
+      'created_count' => $count_created,
+      'updated_count' => $count_updated
+    ]);
 
-    SirumLog::debug(
-        'WooCommerce Changes found',
-        [
-          'deleted' => $changes['deleted'],
-          'created' => $changes['created'],
-          'updated' => $changes['updated'],
-          'deleted_count' => $count_deleted,
-          'created_count' => $count_created,
-          'updated_count' => $count_updated
-        ]
-    );
+    if ( ! $count_deleted and ! $count_created and ! $count_updated) return;
 
     $mysql = new Mysql_Wc();
 
