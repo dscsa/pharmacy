@@ -69,7 +69,7 @@ function unpend_pick_list($item) {
 
 function save_pick_list($item, $list, $mysql) {
 
-  log_notice('save_pick_list', get_defined_vars());
+  log_notice("save_pick_list: $item[invoice_number] ".@$item['drug_name']." ".@$item['rx_number'], get_defined_vars());
 
   if ( ! $list) {
     $list = [
@@ -143,7 +143,11 @@ function print_pick_list($item, $list) {
 
   $result = gdoc_post(GD_HELPER_URL, $args);
 
-  log_notice("WebForm print_pick_list $pend_group_name", ['item' => $item, 'count list' => count($list['list']), 'count pend' => count($list['pend'])]); //We don't need full shopping list cluttering logs
+  log_notice("print_pick_list: $item[invoice_number] ".@$item['drug_name']." ".@$item['rx_number'], [
+    'item' => $item,
+    'count list' => count($list['list']),
+    'count pend' => count($list['pend'])
+  ]); //We don't need full shopping list cluttering logs
 
 }
 
@@ -207,7 +211,7 @@ function pend_pick_list($item, $list) {
   //Pend after all forseeable errors are accounted for.
   $res = v2_fetch($pend_url, 'POST', $list['pend']);
 
-  log_notice("WebForm pend_pick_list", get_defined_vars());
+  log_notice("pend_pick_list: $item[invoice_number] ".@$item['drug_name']." ".@$item['rx_number'], get_defined_vars());
 }
 
 //Getting all inventory of a drug can be thousands of items.  Let's start with a low limit that we increase as needed
@@ -225,7 +229,7 @@ function make_pick_list($item, $limit = 500) {
   $sorted_ndcs   = sort_by_ndc($unsorted_ndcs, $long_exp);
   $list          = get_qty_needed($sorted_ndcs, $min_qty, $safety);
 
-  log_notice("WebForm make_pick_list $item[invoice_number]", $item['drug_name']); //We don't need full shopping list cluttering logs
+  log_notice("make_pick_list: $item[invoice_number] ".@$item['drug_name']." ".@$item['rx_number'], $item); //We don't need full shopping list cluttering logs
 
   if ($list) {
     $list['half_fill'] = '';
