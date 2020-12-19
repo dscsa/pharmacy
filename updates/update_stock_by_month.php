@@ -192,7 +192,19 @@ function update_stock_by_month($changes) {
   ");
 
   if (isset($duplicate_gsns[0][0])) {
-    SirumLog::alert('update_stock_by_month: Duplicate GSNs in V2', $duplicate_gsns[0]);
+
+    $salesforce   = [
+      "subject"   => 'Duplicate GSNs in V2',
+      "body"      => print_r($duplicate_gsns[0][0], true),
+      "assign"    => "Joseph",
+      "due_date"  => date('Y-m-d')
+    ];
+
+    $event_title = "$log $salesforce[due_date]";
+
+    create_event($event_title, [$salesforce]);
+
+    SirumLog::alert("update_stock_by_month: $salesforce", $duplicate_gsns[0]);
   }
 
   SirumLog::resetSubroutineId();
