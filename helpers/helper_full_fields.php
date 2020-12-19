@@ -71,7 +71,7 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
 
             list($days, $message) = get_days_and_message($patient_or_order[$i], $patient_or_order);
 
-            $days_changed    = (@$patient_or_order[$i]['days_dispensed_default'] AND @$patient_or_order[$i]['days_dispensed_default'] != $days)
+            $days_changed    = (@$patient_or_order[$i]['days_dispensed_default'] AND @$patient_or_order[$i]['days_dispensed_default'] != $days);
 
             $needs_adding    = ( ! @$patient_or_order[$i]['item_date_added'] AND $days > 0);
             $needs_removing  = (@$patient_or_order[$i]['item_date_added'] AND $days == 0);
@@ -112,7 +112,15 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
 
             if ($needs_removing) {
 
-              $items_to_remove[] = $patient_or_order[$i];
+              if (@$patient_or_order[0]['invoice_number']) {
+                $items_to_remove[] = $patient_or_order[$i];
+              } else {
+                SirumLog::alert("Item needs to be removed but NO Order?", [
+                  'days'    => $days,
+                  'message' => $message,
+                  'items'   => $patient_or_order[$i]
+                ]);
+              }
 
               SirumLog::notice(
                 "helper_full_fields: needs_removing (export_cp_remove_items) ".$patient_or_order[$i]['drug_name'],
@@ -123,13 +131,19 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
                   'message' => $message
                 ]
               );
-
-
             }
 
             if ($needs_adding) {
 
-              $items_to_add[] = $patient_or_order[$i];
+              if (@$patient_or_order[0]['invoice_number']) {
+                $items_to_add[] = $patient_or_order[$i];
+              } else {
+                SirumLog::alert("Item needs to be added but NO Order?", [
+                  'days'    => $days,
+                  'message' => $message,
+                  'items'   => $patient_or_order[$i]
+                ]);
+              }
 
               SirumLog::notice(
                 "helper_full_fields: needs_adding (export_cp_add_items) ".$patient_or_order[$i]['drug_name'],
