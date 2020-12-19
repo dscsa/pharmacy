@@ -178,7 +178,17 @@ function update_stock_by_month($changes) {
   $mysql->run("COMMIT");
 
   $duplicate_gsns = $mysql->run("
-    SELECT stock1.drug_generic, stock2.drug_generic, stock1.drug_gsns, stock2.drug_gsns FROM gp_stock_live stock1 JOIN gp_stock_live stock2 ON stock1.drug_gsns LIKE CONCAT('%', stock2.drug_gsns, '%') WHERE stock1.drug_generic != stock2.drug_generic
+    SELECT
+      stock1.drug_generic as drug_generic1,
+      stock2.drug_generic as drug_generic2,
+      stock1.drug_gsns as drug_gsns1,
+      stock2.drug_gsns as drug_gsns2
+    FROM
+      gp_stock_live stock1
+    JOIN
+      gp_stock_live stock2 ON stock1.drug_gsns LIKE CONCAT('%', stock2.drug_gsns, '%')
+    WHERE
+      stock1.drug_generic != stock2.drug_generic
   ");
 
   if (isset($duplicate_gsns[0][0])) {

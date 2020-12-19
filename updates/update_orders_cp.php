@@ -391,7 +391,7 @@ function update_orders_cp($changes) {
 
         //[NULL, 'Webform Complete', 'Webform eRx', 'Webform Transfer', 'Auto Refill', '0 Refills', 'Webform Refill', 'eRx /w Note', 'Transfer /w Note', 'Refill w/ Note']
         if ($deleted['count_filled'] > 0 OR in_array($deleted['order_source'], ['Webform eRx', 'Webform Transfer', 'Webform Refill', 'eRx /w Note', 'Transfer /w Note', 'Refill w/ Note']))
-          export_wc_cancel_order($invoice_number, "update_orders_cp: cp order deleted $deleted[invoice_number] $deleted[order_stage_cp] $deleted[order_stage_wc] $deleted[order_source] ".json_encode($deleted));
+          export_wc_cancel_order($deleted['invoice_number'], "update_orders_cp: cp order deleted $deleted[invoice_number] $deleted[order_stage_cp] $deleted[order_stage_wc] $deleted[order_source] ".json_encode($deleted));
         else
           export_wc_delete_order($deleted['invoice_number'], "update_orders_cp: cp order deleted $deleted[invoice_number] $deleted[order_stage_cp] $deleted[order_stage_wc] $deleted[order_source] ".json_encode($deleted));
 
@@ -546,9 +546,7 @@ function update_orders_cp($changes) {
           //$groups = group_drugs($order, $mysql);
           //order_hold_notice($groups);
 
-          //TODO Remove/Cancel WC Order Here
-
-          //export_cp_remove_order($order[0]['invoice_number']);
+          //export_cp_remove_order($updated['invoice_number']);
           continue;
         }
 

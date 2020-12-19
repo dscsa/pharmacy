@@ -16,7 +16,8 @@ function wc_get_post($invoice_number, $wc_order_key = null, $suppress_alert = fa
         AND wp_postmeta.meta_value = '{$invoice_number}'
     ";
 
-    $res = $mysql->run($sql);
+    if ($invoice_number)
+      $res = $mysql->run($sql);
 
     if (isset($res[0][0])) {
       return $wc_order_key ? $res[0][0][$wc_order_key] : $res[0][0];

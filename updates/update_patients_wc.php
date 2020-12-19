@@ -52,24 +52,7 @@ function update_patients_wc($changes) {
 
     $patient = find_patient_wc($mysql, $created);
 
-    if ( ! empty($patient[0]['patient_id_wc'])) {
-      $created_mismatched++;
-
-      if (
-        stripos($patient[0]['first_name'], 'TEST') === false
-        and stripos($patient[0]['last_name'], 'TEST') === false) {
-        SirumLog::alert(
-          'mismatched patient_id_wc or duplicate wc patient registration',
-          [
-            "created" => $created,
-            "patient" => $patient[0]
-          ]
-        );
-      }
-
-      log_error('update_patients_wc: mismatched patient_id_wc or duplicate wc patient registration?', [$created, $patient[0]]);
-    }
-    else if ( ! empty($patient[0]['patient_id_cp'])) {
+    if ( ! empty($patient[0]['patient_id_cp'])) {
       $created_matched++;
       match_patient_wc($mysql, $created, $patient[0]['patient_id_cp']);
     }

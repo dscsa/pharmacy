@@ -177,7 +177,7 @@ function sync_to_date($order, $mysql) {
       SET
         days_dispensed_default            = $new_days_default,
         qty_dispensed_default             = ".$order[$i]['qty_dispensed_default'].",
-        price_dispensed_default           = ".$order[$i]['price_dispensed_default']."
+        price_dispensed_default           = ".$order[$i]['price_dispensed_default'].",
         sync_to_date_days_before          = $item[days_dispensed_default],
         sync_to_date_max_days_default     = $max_days_default,
         sync_to_date_max_days_default_rxs = '".implode(',', $max_days_default_rxs)."',

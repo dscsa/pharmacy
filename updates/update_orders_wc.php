@@ -5,7 +5,7 @@ require_once 'helpers/helper_full_order.php';
 use Sirum\Logging\SirumLog;
 
 function update_orders_wc($changes) {
-  
+
     $count_deleted = count($changes['deleted']);
     $count_created = count($changes['created']);
     $count_updated = count($changes['updated']);
@@ -135,27 +135,19 @@ function update_orders_wc($changes) {
 
                 export_gd_publish_invoice($order, $mysql);
             }
-        } elseif (! $order[0]['pharmacy_name']) {  //Can't do $order[0]['rx_message_key'] == 'ACTION NEEDS FORM' because other keys can take precedence even if form is needed
-            //TODO eventually set registration comm-calendar event then delete order but right now just remove items from order
-            //If all items are removed, order will not be imported from CP
-            $items_to_remove = [];
-            foreach ($order as $item) {
-                if ($item['item_date_added'] and $item['item_added_by'] != 'MANUAL' and ! $item['rx_dispensed_id']) {
-                    $items_to_remove[] = $item['rx_number'];
-                }
-            }
+        } elseif ( ! $order[0]['pharmacy_name']) {  //Can't do $order[0]['rx_message_key'] == 'ACTION NEEDS FORM' because other keys can take precedence even if form is needed
 
             SirumLog::notice(
-              "update_orders_wc deleted: export_cp_remove_items",
+              "update_orders_wc deleted: export_cp_remove_order",
               [
                 'invoice_number' => $order[0]['invoice_number'],
-                'reason' => 'update_orders_wc: RXs created an order in CP but patient has not yet registered so there is no order in WC yet',
+                'reason' => 'update_orders_wc: Deleteing CP Order RXs created an order in CP but patient has not yet registered so there is no order in WC yet.',
                 'items_to_remove' => $items_to_remove,
                 'order' => $order
               ]
             );
 
-            export_cp_remove_items($order[0]['invoice_number'], $items_to_remove);
+            export_cp_remove_order($order[0]['invoice_number']);
 
         } elseif ($deleted['order_stage_cp'] == 'Shipped' or $deleted['order_stage_cp'] == 'Dispensed') {
             $gp_orders_wc = $mysql->run("SELECT * FROM gp_orders_wc WHERE invoice_number = $deleted[invoice_number]")[0];

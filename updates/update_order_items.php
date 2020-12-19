@@ -48,11 +48,11 @@ function update_order_items($changes) {
     SirumLog::debug(
       "update_order_items: Order Item created",
       [
-          'item'    => $item,
-          'created' => $created,
-          'source'  => 'CarePoint',
-          'type'    => 'order-items',
-          'event'   => 'created'
+        'item'    => $item,
+        'created' => $created,
+        'source'  => 'CarePoint',
+        'type'    => 'order-items',
+        'event'   => 'created'
       ]
     );
 
@@ -205,9 +205,9 @@ function deduplicate_order_items($item, $mssql, $mysql) {
     $mssql->run("DELETE FROM csomline WHERE line_id = $duplicate[line_id]")[0];
   }
 
-  $new_count_items = export_cp_recount_items($item['invoice_number'], $mssql);
+  log_notice(['deduplicate_order_item', $sql1, $res1, $sql2, $res2]);
 
-  log_notice(['deduplicate_order_item', $sql1, $res1, $sql2, $res2, $new_count_items]);
+  $new_count_items = export_cp_recount_items($item['invoice_number'], $mssql);
 
   return $item;
 }

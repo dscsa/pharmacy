@@ -10,6 +10,13 @@ function export_cp_remove_order($invoice_number) {
   global $mssql;
   $mssql = $mssql ?: new Mssql_Cp();
 
+  SirumLog::notice(
+    "export_cp_remove_order: Order deleting $invoice_number",
+    [
+      'invoice_number'  => $invoice_number
+    ]
+  );
+
   $new_count_items = export_cp_remove_items($invoice_number);
 
   if ( ! $new_count_items) {
@@ -69,18 +76,17 @@ function export_cp_remove_items($invoice_number, $script_nos = []) {
 
   $res = $mssql->run($sql);
 
-  $new_count_items = export_cp_recount_items($invoice_number, $mssql);
-
   SirumLog::debug(
     "export_cp_remove_items: $invoice_number",
     [
       'invoice_number'  => $invoice_number,
-      'new_count_items' => $new_count_items,
       'script_nos'      => $script_nos,
-      'sql'            => $sql,
-      'res'            => $res
+      'sql'             => $sql,
+      'res'             => $res
     ]
   );
+
+  $new_count_items = export_cp_recount_items($invoice_number, $mssql);
 
   return $new_count_items;
 }
@@ -118,17 +124,24 @@ function export_cp_recount_items($invoice_number, $mssql) {
 }
 
 //Example update_order::sync_to_order() wants to add another item to existing order because its due in 1 week
-function export_cp_add_items($invoice_number, $script_nos) {
+function export_cp_add_items($invoice_number, $items) {
 
-  if ($script_nos) $script_nos = json_encode($script_nos);
-  else return;
+  $rx_numbers = [];
+
+  foreach ($items as $item) {
+    $rx_numbers[] = $item['rx_number'];
+  }
+
+  if ( ! $rx_numbers) return;
+
+  $rx_numbers = json_encode($rx_numbers);
 
   global $mssql;
   $mssql = $mssql ?: new Mssql_Cp();
 
-  $sql = "SirumWeb_AddItemsToOrder '$invoice_number', '$script_nos'";
+  $sql = "SirumWeb_AddItemsToOrder '$invoice_number', '$rx_numbers'";
 
   $res = $mssql->run($sql);
 
-  log_notice("export_cp_add_items", ['sql' => $sql]);
+  log_notice("export_cp_add_items", ['invoice_number' => $invoice_number, 'sql' => $sql, 'items' => $items]);
 }
