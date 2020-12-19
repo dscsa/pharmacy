@@ -55,7 +55,7 @@ function changes_to_patients_wc($new) {
 
   //Get Deleted
   $sql = get_deleted_sql($new, $old, $id);
-  //log_error('changes_to_patients_wc: deleted', $sql);
+  echo "\n$sql\n";
   $deleted = $mysql->run($sql);
 
   //Get Inserted
