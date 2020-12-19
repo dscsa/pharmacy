@@ -187,7 +187,7 @@ function sync_to_date($order, $mysql) {
         sync_to_date_min_days_stock_rxs   = '".implode(',', $min_days_stock_rxs)."'
       WHERE
         rx_number = $item[rx_number]
-        AND invoice_number => ".$order[0]['invoice_number'];
+        AND invoice_number = ".$order[0]['invoice_number'];
 
     $mysql->run($sql);
 
