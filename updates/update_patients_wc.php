@@ -103,21 +103,30 @@ function update_patients_wc($changes) {
 
   foreach($changes['deleted'] as $i => $deleted) {
 
-      SirumLog::$subroutine_id = "patients-wc-deleted-".sha1(serialize($deleted));
+    SirumLog::$subroutine_id = "patients-wc-deleted-".sha1(serialize($deleted));
 
-      SirumLog::debug(
-        "update_patients_wc: WooCommerce PATIENT deleted",
-        [
-          'deleted' => $deleted,
-          'source'  => 'WooCommerce',
-          'type'    => 'patients',
-          'event'   => 'deleted'
-        ]
-      );
+    SirumLog::debug(
+      "update_patients_wc: WooCommerce PATIENT deleted",
+      [
+        'deleted' => $deleted,
+        'source'  => 'WooCommerce',
+        'type'    => 'patients',
+        'event'   => 'deleted'
+      ]
+    );
 
     //Dummy accounts that have been cleared out of WC
-    if (stripos($deleted['first_name'], 'Test') !== false OR stripos($deleted['first_name'], 'User') !== false OR stripos($deleted['email'], 'user') !== false OR stripos($deleted['email'], 'test') !== false)
+    if (stripos($deleted['first_name'], 'Test') !== false OR stripos($deleted['first_name'], 'User') !== false OR stripos($deleted['email'], 'user') !== false OR stripos($deleted['email'], 'test') !== false) {
+      echo "UPDATE cppat SET pat_status_cn = 2 WHERE pat_id = $deleted[patient_id_cp]";
+      //$mssql->run($sql);
       continue;
+    }
+
+    print_r([
+      "what's going on here?",
+      'patient_id_wc' => $deleted['patient_id_wc'],
+      'deleted' => $deleted
+    ]);
 
     if ($deleted['patient_id_wc'])
       log_error('update_patients_wc deleted: patient was just deleted from WC', $deleted);

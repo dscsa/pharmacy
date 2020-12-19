@@ -3,7 +3,7 @@
 require_once 'dbs/mysql_wc.php';
 require_once 'helpers/helper_changes.php';
 
-//This was left over from importing liCount > 0.  Not sure if its needed anymore.  Might be needed again if we only import recent orders
+//TODO This was left over from importing liCount > 0.  Not sure if its needed anymore.  Might be needed again if we only import recent orders
 function cp_orders_get_deleted_sql($new, $old, $id) {
 
   $join = join_clause($id);
@@ -22,7 +22,7 @@ function cp_orders_get_deleted_sql($new, $old, $id) {
   ";
 }
 
-//This was left over from importing liCount > 0.  Not sure if its needed anymore.  Might be needed again if we only import recent orders
+//TODO This was left over from importing liCount > 0.  Not sure if its needed anymore.  Might be needed again if we only import recent orders
 function cp_orders_set_deleted_sql($new, $old, $id) {
 
   $join = join_clause($id);

@@ -3,6 +3,25 @@
 require_once 'dbs/mysql_wc.php';
 require_once 'helpers/helper_changes.php';
 
+//
+function wc_patients_get_deleted_sql($new, $old, $id) {
+
+  $join = join_clause($id);
+
+  return "
+    SELECT
+      old.*
+    FROM
+      $new as new
+    RIGHT JOIN $old as old ON
+      $join
+    WHERE
+      new.$id IS NULL
+    AND
+      old.pharmacy IS NOT NULL -- We know that unregistered patients are not in WC yet
+  ";
+}
+
 function changes_to_patients_wc($new) {
   $mysql = new Mysql_Wc();
 
@@ -54,7 +73,7 @@ function changes_to_patients_wc($new) {
   ";
 
   //Get Deleted
-  $sql = get_deleted_sql($new, $old, $id);
+  $sql = wc_patients_get_deleted_sql($new, $old, $id);
   echo "\n$sql\n";
   $deleted = $mysql->run($sql);
 

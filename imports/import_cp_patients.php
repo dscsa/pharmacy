@@ -71,8 +71,8 @@ function import_cp_patients() {
     WHERE
       birth_date IS NOT NULL -- pat.pat_id = 5869
     GROUP BY pat.pat_id -- because cppat_phone had a duplicate entry for pat_id 5130 we got two rows so need a groupby.  This also removes refills_used from needing to be a subquery
-     -- Patient Deleted/Merged in Guardian 0 Not Specified, 1 Active, 2 Inactive, 3 Deceased (won't show up in patient search but will with Rx number)
     HAVING
+      -- Patient Deleted/Merged in Guardian 0 Not Specified, 1 Active, 2 Inactive, 3 Deceased (won't show up in patient search but will with Rx number)
       MAX(pat_status_cn) < 2 OR SUM(rx_id) > 0 -- Eliminate inactive/deceased patients if there are no Rxs associate with that patient
 
   ");
