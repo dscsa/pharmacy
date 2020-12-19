@@ -15,7 +15,7 @@ function export_cp_set_pend_name($item) {
   $expected_by     = substr($pend_group_name, 0, 10);
 
   $sql = "
-    UPDATE csom SET expected_by = $expected_by WHERE invoice_nbr = $invoice_number
+    UPDATE csom SET expected_by = '$expected_by' WHERE invoice_nbr = $item[invoice_number]
   ";
 
   SirumLog::notice(
@@ -23,7 +23,7 @@ function export_cp_set_pend_name($item) {
     [
       'expected_by'     => $expected_by,
       'pend_group_name' => $pend_group_name,
-      'invoice_number'  => $invoice_number,
+      'invoice_number'  => $item['invoice_number'],
       'sql'             => $sql
     ]
   );
