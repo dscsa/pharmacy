@@ -1,15 +1,6 @@
 <?php
 
-
-function export_v2_pend_order($order, $mysql) {
-
-  log_notice("export_v2_pend_order", $order);
-
-  //export_v2_unpend_order($order, $mysql) //TODO remove once we stop pending the same order items multiple times (2020-12-09)
-  foreach($order as $i => $item) {
-    v2_pend_item($order[$i], $mysql);
-  }
-}
+require_once 'exports/export_cp_orders.php';
 
 function export_v2_unpend_order($order, $mysql) {
 
@@ -19,7 +10,6 @@ function export_v2_unpend_order($order, $mysql) {
     v2_unpend_item($item, $mysql);
   }
 }
-
 
 function v2_pend_item($item, $mysql) {
 
@@ -104,6 +94,8 @@ function save_pick_list($item, $list, $mysql) {
   ";
 
   $mysql->run($sql);
+
+  export_cp_set_pend_name($item);
 }
 
 function pick_list_name($item) {

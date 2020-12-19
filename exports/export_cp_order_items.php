@@ -4,54 +4,6 @@ global $mssql;
 
 use Sirum\Logging\SirumLog;
 
-
-function export_cp_remove_order($invoice_number) {
-
-  global $mssql;
-  $mssql = $mssql ?: new Mssql_Cp();
-
-  SirumLog::notice(
-    "export_cp_remove_order: Order deleting $invoice_number",
-    [
-      'invoice_number'  => $invoice_number
-    ]
-  );
-
-  $new_count_items = export_cp_remove_items($invoice_number);
-
-  if ( ! $new_count_items) {
-    $date = date('Y-m-d H:i:s');
-    $sql = "
-      UPDATE csom SET status_cn = 3, comments = CONCAT(comments, ' Deleted by Pharmacy App on $date') WHERE invoice_nbr = $invoice_number -- chg_user_id = @user_id, chg_date = @today
-    ";
-
-    $res = $mssql->run($sql);
-
-    SirumLog::notice(
-      "export_cp_remove_order: Order $invoice_number was deleted",
-      [
-        'invoice_number'  => $invoice_number,
-        'new_count_items' => $new_count_items,
-        'sql'             => $sql,
-        'res'             => $res
-      ]
-    );
-
-  } else {
-
-    SirumLog::alert(
-      "export_cp_remove_order: Order $invoice_number could only be partially deleted",
-      [
-        'invoice_number'  => $invoice_number,
-        'new_count_items' => $new_count_items
-      ]
-    );
-
-  }
-}
-
-
-
 //Example New Surescript Comes in that we want to remove from Queue
 //WARNING EMPTY OR NULL ARRAY REMOVES ALL ITEMS
 function export_cp_remove_items($invoice_number, $rx_numbers = []) {

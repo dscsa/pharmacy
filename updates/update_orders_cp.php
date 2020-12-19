@@ -5,7 +5,7 @@ require_once 'helpers/helper_payment.php';
 require_once 'helpers/helper_syncing.php';
 require_once 'helpers/helper_communications.php';
 require_once 'exports/export_wc_orders.php';
-require_once 'exports/export_cp_order_items.php';
+require_once 'exports/export_cp_orders.php';
 
 use Sirum\Logging\SirumLog;
 
