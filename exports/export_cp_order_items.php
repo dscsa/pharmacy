@@ -53,7 +53,8 @@ function export_cp_remove_order($invoice_number) {
 
 
 //Example New Surescript Comes in that we want to remove from Queue
-function export_cp_remove_items($invoice_number, $script_nos = []) {
+//WARNING EMPTY OR NULL ARRAY REMOVES ALL ITEMS
+function export_cp_remove_items($invoice_number, $rx_numbers = []) {
 
   global $mssql;
   $mssql = $mssql ?: new Mssql_Cp();
@@ -68,9 +69,9 @@ function export_cp_remove_items($invoice_number, $script_nos = []) {
     AND rxdisp_id = 0 -- if the rxdisp_id is set on the line, you have to call CpOmVoidDispense first.
   ";
 
-  if ($script_nos) {
+  if ($rx_numbers) {
     $sql .= "
-      AND script_no IN ('".implode("', '", $script_nos)."')
+      AND script_no IN ('".implode("', '", $rx_numbers)."')
     ";
   }
 
@@ -80,7 +81,7 @@ function export_cp_remove_items($invoice_number, $script_nos = []) {
     "export_cp_remove_items: $invoice_number",
     [
       'invoice_number'  => $invoice_number,
-      'script_nos'      => $script_nos,
+      'rx_numbers'      => $rx_numbers,
       'sql'             => $sql,
       'res'             => $res
     ]
