@@ -3,7 +3,7 @@
 global $mysql;
 use Sirum\Logging\SirumLog;
 
-function wc_get_post($invoice_number, $wc_order_key = null, $suppress_alert = false)
+function wc_get_post($invoice_number, $wc_order_key = null, $suppress_error = false)
 {
     global $mysql;
     $mysql = $mysql ?: new Mysql_Wc();
@@ -23,8 +23,8 @@ function wc_get_post($invoice_number, $wc_order_key = null, $suppress_alert = fa
       return $wc_order_key ? $res[0][0][$wc_order_key] : $res[0][0];
     }
 
-  if ( ! $suppress_alert)
-    SirumLog::alert(
+  if ( ! $suppress_error)
+    SirumLog::error(
       "Order $invoice_number doesn't seem to exist in wp_posts",
       [
         "invoice_number" => $invoice_number,
