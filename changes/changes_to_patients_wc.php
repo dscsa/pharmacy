@@ -69,7 +69,7 @@ function changes_to_patients_wc($new) {
   $updated = $mysql->run($sql);
 
   //Save Deletes
-  $mysql->run(set_deleted_sql($new, $old, $id));
+  //$mysql->run(set_deleted_sql($new, $old, $id));
 
   //Save Inserts
   //$mysql->run(set_created_sql($new, $old, $id));
