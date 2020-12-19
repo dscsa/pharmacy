@@ -71,6 +71,8 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
 
             list($days, $message) = get_days_and_message($patient_or_order[$i], $patient_or_order);
 
+            $days_changed    = (@$patient_or_order[$i]['days_dispensed_default'] AND @$patient_or_order[$i]['days_dispensed_default'] != $days)
+
             $needs_adding    = ( ! @$patient_or_order[$i]['item_date_added'] AND $days > 0);
             $needs_removing  = (@$patient_or_order[$i]['item_date_added'] AND $days == 0);
             $needs_pending   = (@$patient_or_order[$i]['item_date_added'] AND $days > 0 AND ! @$patient_or_order[$i]['count_pended_total']);
@@ -82,8 +84,6 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
               AND $days != @$patient_or_order[$i]['days_dispensed_default']
               AND ! @$patient_or_order[$i]['sync_to_date_days_before']
             );
-
-            $pending_changed = ($needs_pending OR $needs_unpending OR $needs_repending);
 
             $get_days_and_message = [
               "overwrite_rx_messages"      => $overwrite_rx_messages,
@@ -99,7 +99,7 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
               "needs_pending"              => $needs_pending,
               "needs_unpending"            => $needs_unpending,
               "needs_repending"            => $needs_repending,
-              "pending_changed"            => $pending_changed,
+              "days_changed"               => $days_changed,
               "sync_to_date_days_before"   => @$patient_or_order[$i]['sync_to_date_days_before']
             ];
 
@@ -155,11 +155,11 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
               v2_pend_item($patient_or_order[$i], $mysql);
             }
 
-            if ($pending_changed) {
+            if ($days_changed OR $needs_adding OR $needs_removing) {
 
               $update_payment = true;
 
-              $log = "helper_full_fields: pending changes ".$patient_or_order[$i]['invoice_number'].": $get_days_and_message[old_days_dispensed_default] -> $days";
+              $log = "Order Updated ".$patient_or_order[$i]['invoice_number']."! days_changed:$days_changed OR needs_adding:$needs_adding OR needs_removing:$needs_removing. ".$patient_or_order[$i]['drug_name'].": $message $get_days_and_message[old_days_dispensed_default] -> $days";
 
               $salesforce   = [
                 "subject"   => $log,
@@ -167,7 +167,7 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
                 "contact"   => $patient_or_order[$i]['first_name'].' '.$patient_or_order[$i]['last_name'].' '.$patient_or_order[$i]['birth_date']
               ];
 
-              SirumLog::notice($log, [
+              SirumLog::notice("helper_full_fields $log", [
                 'get_days_and_message' => $get_days_and_message,
                 'salesforce' => $salesforce,
                 'item' => $patient_or_order[$i]
