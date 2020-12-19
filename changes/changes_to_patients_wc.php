@@ -18,7 +18,7 @@ function wc_patients_get_deleted_sql($new, $old, $id) {
     WHERE
       new.$id IS NULL
     AND
-      old.pharmacy IS NOT NULL -- We know that unregistered patients are not in WC yet
+      old.pharmacy_name IS NOT NULL -- We know that unregistered patients are not in WC yet
   ";
 }
 
