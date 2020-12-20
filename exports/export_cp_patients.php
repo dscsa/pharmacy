@@ -28,6 +28,8 @@ function export_cp_patient_save_medications_other($mssql, $patient, $live = fals
     WHERE pat_id = $patient[patient_id_cp]
   ";
 
+  echo "\n$sql";
+
   //$res1 = $mssql->run("$select");
   $mssql->run($sql);
   //$res2 = $mssql->run("$select");

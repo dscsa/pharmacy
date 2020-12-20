@@ -115,13 +115,6 @@ function update_patients_wc($changes) {
       ]
     );
 
-    if ( ! $updated['patient_id_cp']) {
-      echo "\nwc patient updated but no patient_id_cp. $updated[first_name] $updated[last_name] $updated[birth_date] cp:$updated[patient_id_cp] wc:$updated[patient_id_wc]";
-      $patient = find_patient_wc($mysql, $updated);
-      match_patient_wc($mysql, $updated, $patient[0]['patient_id_cp']);
-      continue;
-    }
-
     $changed = changed_fields($updated);
 
     echo "\nwc patient updated! $updated[first_name] $updated[last_name] $updated[birth_date] cp:$updated[patient_id_cp] wc:$updated[patient_id_wc] ".print_r($changed, true);
@@ -130,22 +123,20 @@ function update_patients_wc($changes) {
       ? log_notice("update_patients_wc: updated changed $updated[first_name] $updated[last_name] $updated[birth_date] cp:$updated[patient_id_cp] wc:$updated[patient_id_wc]", $changed)
       : log_error("update_patients_wc: updated no change? $updated[first_name] $updated[last_name] $updated[birth_date] cp:$updated[patient_id_cp] wc:$updated[patient_id_wc]", $updated);
 
-
     if ($updated['patient_inactive'] !== $updated['old_patient_inactive']) {
       $patient = find_patient_wc($mysql, $updated)[0];
+
       echo "\nWC Patient Inactive Status Changed $updated[first_name] $updated[last_name] $updated[birth_date] $updated[old_patient_inactive] >>> $updated[patient_inactive]";
 
-      //TEMP USE CP AS SOURCE OF TRUTH ON INITIAL SETUP.  TO BE REMOVED
-      update_wc_patient_active_status($mysql, $updated['patient_id_wc'], $updated['old_patient_inactive']);
+      update_cp_patient_active_status($mssql, $patient['patient_id_cp'], $updated['patient_inactive']);
 
-      //update_cp_patient_active_status($mysql, $patient['patient_id_cp'], $updated['patient_inactive']);
       log_notice("WC Patient Inactive Status Changed", $updated);
     }
 
-    if ( ! $updated['email'] AND $updated['old_email']) {
-      wc_upsert_patient_meta($mysql, $updated['patient_id_wc'], 'email', $updated['old_email']);
-    } else if ($updated['email'] !== $updated['old_email']) {
+    if ($updated['email'] !== $updated['old_email']) {
+
       upsert_patient_cp($mssql, "EXEC SirumWeb_AddUpdatePatEmail '$updated[patient_id_cp]', '$updated[email]'");
+
     }
 
     if (
@@ -370,20 +361,23 @@ function update_patients_wc($changes) {
       ];
 
       $allergies = json_encode(utf8ize($allergy_array), JSON_UNESCAPED_UNICODE);
+      $sql = "EXEC SirumWeb_AddRemove_Allergies '$updated[patient_id_cp]', '$allergies'";
 
-      if ($allergies)
-        $res = upsert_patient_cp($mssql, "EXEC SirumWeb_AddRemove_Allergies '$updated[patient_id_cp]', '$allergies'");
-      else
-        log_error("update_patients_wc: EXEC SirumWeb_AddRemove_Allergies '$updated[patient_id_cp]', '$allergies'", [$res, json_last_error_msg(), $allergy_array]);
+      if ($allergies) {
+
+        echo "\n$sql";
+        $res = upsert_patient_cp($mssql, $sql);
+
+      } else {
+
+        $err = [$sql, $res, json_last_error_msg(), $allergy_array];
+        print_r($err);
+        log_error("update_patients_wc: SirumWeb_AddRemove_Allergies failed", $err);
+
+      }
     }
 
     if ($updated['medications_other'] !== $updated['old_medications_other']) {
-      $patient = find_patient_wc($mysql, $updated);
-
-      if (@$patient['patient_note'])
-        echo "
-        Patient Note: $patient[patient_note]";
-
       export_cp_patient_save_medications_other($mssql, $updated);
     }
   }
