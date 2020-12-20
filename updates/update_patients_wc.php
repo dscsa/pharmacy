@@ -167,7 +167,7 @@ function update_patients_wc($changes) {
 
       $mysql->run($sql)[0];
 
-      print_r(['deleted patient matched', $salesforce, $sql]);
+      print_r(['deleted patient matched', $deleted]);
 
       continue;
     }
@@ -214,7 +214,7 @@ function update_patients_wc($changes) {
       $event_title = "$salesforce[subject]: $salesforce[contact] $created";
 
       create_event($event_title, [$salesforce]);
-      
+
       continue;
     }
 
@@ -229,7 +229,7 @@ function update_patients_wc($changes) {
       continue;
     }
 
-    if (count($rxs) > 0) {
+    if (count($rxs) == 0) {
 
       $counts['deleted_no_rx']++;
 
