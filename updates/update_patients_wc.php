@@ -30,10 +30,25 @@ function update_patients_wc($changes) {
     return stripos($new, $old) === false AND stripos($old, $new) === false;
   }
 
-  $created_mismatched = 0;
-  $created_matched = 0;
-  $created_needs_form = 0;
-  $created_new_to_cp = 0;
+  function is_test_user($patient) {
+    $test_user_regex = "/test|dummy|fake|user|patient/i";
+
+    if (preg_match($test_user_regex, $patient['first_name']))
+      return true;
+
+    if (preg_match($test_user_regex, $patient['last_name']))
+      return true;
+  }
+
+  $counts = [
+    'needs_form' => 0,
+    'needs_pharmacy' => 0,
+    'mismatched' => 0,
+    'matched' => 0,
+    'multimatched' => 0,
+    'test_user' => 0,
+    'default' => 0
+  ];
 
   foreach($changes['created'] as $created) {
     SirumLog::$subroutine_id = "patients-wc-created-".sha1(serialize($created));
@@ -50,56 +65,89 @@ function update_patients_wc($changes) {
       ]
     );
 
-    $patient = find_patient_wc($mysql, $created);
+    //Only registered first page,
+    if ( ! $created['first_name'] OR ! $created['last_name'] OR ! $created['birth_date']) {
 
-    if ( ! empty($patient[0]['patient_id_cp'])) {
-      $created_matched++;
-      match_patient_wc($mysql, $created, $patient[0]['patient_id_cp']);
+      $counts['needs_form']++;
+
+      //Delete Incomplete Registrations after 30mins
+      if ((time() - strtotime($created['patient_date_registered'])) > 30*60) {
+        //TODO Remind Patient to Register?
+        //echo "\ndelete incomplete registration";
+        //wc_delete_patient($mysql, $created['patient_id_wc']);
+      }
+
+      continue;
     }
-    else if ( ! $created['pharmacy_name']) {
-      $created_needs_form++;
+
+    if ( ! $created['pharmacy_name']) {
+
+      $counts['needs_pharmacy']++;
+
+      echo "\nincomplete registration but has name?";
       //Registration Started but Not Complete (first 1/2 of the registration form)
     }
-    else if ($created['patient_state'] != 'GA') {
-      //log_error("update_patients_wc: patient in WC but not in CP, because patient is not in GA $created[first_name] $created[last_name] wc:$created[patient_id_wc]", [$patient, $created]);
+
+    $patient_cp = find_patient_wc($mysql, $created);
+    $patient_wc = find_patient_wc($mysql, $created, 'gp_patients_wc');
+
+    if($created['patient_id_cp']) {
+      $counts['mismatched']++;
+      echo "\nmismatch between patient tables. cp:".print_r($patient_cp, true)." wc:".print_r($patient_wc, true);
+      continue;
     }
 
-    else {
-
-      $created_new_to_cp++;
-      $created_date = "Created:".date('Y-m-d H:i:s');
-
-      $salesforce = [
-        "subject"   => "Fix Duplicate Patient",
-        "body"      => "Patient $created[first_name] $created[last_name] $created[birth_date] (WC user_id:$created[patient_id_wc]) in WC but not in CP. Fix and notify patient if necessary. Likely #1 a duplicate user in WC (forgot login so reregistered with slightly different name or DOB), #2 patient inactivated in CP (remove their birthday in WC to deactivate there), or #3 inconsistent birth_date between Rx in CP and Registration in WC. $created_date",
-        "contact"   => "$created[first_name] $created[last_name] $created[birth_date]",
-        "assign_to" => ".Update Name/DOB - Admin",
-        "due_date"  => date('Y-m-d')
-      ];
-
-      $event_title = "$salesforce[subject]: $salesforce[contact] $created_date";
-
-      //In WC Patient Changes we don't have the "patient_date_added" or "patient_date_changed" CP fields,
-      //"patient_date_updated" will always be within past 10mins, so use "patient_date_registered"
-      $secs = time() - strtotime($created['patient_date_registered']);
-
-      if ($secs/60 < 30) { //Otherwise gets repeated every 10mins.
-        create_event($event_title, [$salesforce]);
-        log_error("New $event_title", [$secs, $patient, $created]);
-      }
-      else if (date('h') == '11') { //Twice a day so use a lower case h for 12 hour clock instead of 24 hour.
-        log_error("Old $event_title", [$secs, $patient, $created]);
-      }
+    if (count($patient_cp) == 1) {
+      $counts['matched']++;
+      match_patient_wc($mysql, $created, $patient[0]['patient_id_cp']);
+      continue;
     }
+
+    if (count($patient_cp) > 1) {
+      $counts['multimatched']++;
+      echo "\nmulti-match";
+      continue;
+    }
+
+    //Dummy accounts that have been cleared out of WC
+    if (is_test_user($created)) {
+
+      $counts['test_user']++;
+
+      echo "\ncreated test patient";
+
+      continue;
+    }
+
+    echo "\ndefault duplicate SF task";
+
+    $counts['default']++;
+    $created_date = "Created:".date('Y-m-d H:i:s');
+
+    $salesforce = [
+      "subject"   => "Fix Duplicate Patient",
+      "body"      => "Patient $created[first_name] $created[last_name] $created[birth_date] (WC user_id:$created[patient_id_wc]) in WC but not in CP. Fix and notify patient if necessary. Likely #1 a duplicate user in WC (forgot login so reregistered with slightly different name or DOB), #2 patient inactivated in CP (remove their birthday in WC to deactivate there), or #3 inconsistent birth_date between Rx in CP and Registration in WC. $created_date",
+      "contact"   => "$created[first_name] $created[last_name] $created[birth_date]",
+      "assign_to" => ".Update Name/DOB - Admin",
+      "due_date"  => date('Y-m-d')
+    ];
+
+    $event_title = "$salesforce[subject]: $salesforce[contact] $created_date";
+
+    //In WC Patient Changes we don't have the "patient_date_added" or "patient_date_changed" CP fields,
+    //"patient_date_updated" will always be within past 10mins, so use "patient_date_registered"
+    $secs = time() - strtotime($created['patient_date_registered']);
+
+    if ($secs/60 < 30) { //Otherwise gets repeated every 10mins.
+      create_event($event_title, [$salesforce]);
+      log_error("New $event_title", [$secs, $patient, $created]);
+    }
+    else if (date('h') == '11') { //Twice a day so use a lower case h for 12 hour clock instead of 24 hour.
+      log_error("Old $event_title", [$secs, $patient, $created]);
+    }
+
     SirumLog::resetSubroutineId();
   }
-
-  $counts = [
-    'created_mismatched' => $created_mismatched,
-    'created_matched' => $created_matched,
-    'created_needs_form' => $created_needs_form,
-    'created_new_to_cp' => $created_new_to_cp
-  ];
 
   log_notice('update_patients_wc: created counts', $counts);
 
@@ -132,10 +180,8 @@ function update_patients_wc($changes) {
       SELECT * FROM gp_rxs_single WHERE patient_id_cp = $deleted[patient_id_cp]
     ")[0];
 
-    $regex = "/test|dummy|fake|user|patient/i";
-
     //Dummy accounts that have been cleared out of WC
-    if (preg_match($regex, $deleted['first_name']) OR preg_match($regex, $deleted['last_name'])) {
+    if (is_test_user($deleted)) {
 
       $counts['deleted_test']++;
 

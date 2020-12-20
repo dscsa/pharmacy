@@ -18,6 +18,27 @@ function cp_to_wc_key($key) {
   return isset($cp_to_wc[$key]) ? $cp_to_wc[$key] : $key;
 }
 
+function wc_delete_patient($mysql, $patient_id_wc) {
+
+  $user = "
+    DELETE FROM
+      wp_users
+    WHERE
+      ID = $patient_id_wc
+  ";
+
+  $mysql->run($user);
+
+  $meta = "
+    DELETE FROM
+      wp_usermeta
+    WHERE
+      user_id = $patient_id_wc
+  ";
+
+  $mysql->run($meta);
+}
+
 function wc_create_patient($mysql, $patient) {
 
   $insert = "
@@ -113,7 +134,6 @@ function find_patient_wc($mysql, $patient, $table = 'gp_patients') {
   ";
 
   if ( ! $first_name_prefix OR ! $last_name_prefix OR ! $patient['birth_date']) {
-    print_r($patient);
     log_error('export_wc_patients: find_patient_wc. patient has no name!', [$sql, $patient]);
     return [];
   }
