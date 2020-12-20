@@ -23,7 +23,7 @@ function import_wc_patients() {
     wp_users.ID as patient_id_wc,
     user_email as email,
     RIGHT(user_login, 10) as birth_date,
-    MAX(user_registered) as patient_date_registered
+    MAX(user_registered) as patient_date_registered,
 
     MAX(CASE
       WHEN wp_usermeta.meta_key = 'wp_capabilities' AND wp_usermeta.meta_value = 'a:1:{s:8:\"customer\";b:1;}' THEN NULL
@@ -69,17 +69,20 @@ function import_wc_patients() {
     MAX(CASE WHEN wp_usermeta.meta_key = 'allergies_salicylates' AND wp_usermeta.meta_value > '' then 'Salicylates' ELSE NULL END) as allergies_salicylates,
     MAX(CASE WHEN wp_usermeta.meta_key = 'allergies_azithromycin' AND wp_usermeta.meta_value > '' then 'Azithromycin' ELSE NULL END) as allergies_azithromycin,
     MAX(CASE WHEN wp_usermeta.meta_key = 'allergies_amoxicillin' AND wp_usermeta.meta_value > '' then 'Amoxicillin' ELSE NULL END) as allergies_amoxicillin,
-    MAX(CASE WHEN wp_usermeta.meta_key = 'allergies_other' AND wp_usermeta.meta_value > '' then LEFT(wp_usermeta.meta_value, 60) ELSE NULL END) as allergies_other, -- cppat_alr name field has a max of 60 characters
+    MAX(CASE WHEN wp_usermeta.meta_key = 'allergies_other' AND wp_usermeta.meta_value > '' then LEFT(wp_usermeta.meta_value, 60) ELSE NULL END) as allergies_other -- cppat_alr name field has a max of 60 characters
 
   FROM
     wp_users
   LEFT JOIN
     wp_usermeta ON wp_usermeta.user_id = wp_users.ID
-  WHERE
-    MID(user_login, -10, 4) > 1900 AND -- validate birth_date in username so users with malformed birthdates or users like 'root'
-    MID(user_login, -10, 4) < 2100
   GROUP BY
      wp_users.ID
+  HAVING
+    MAX(CASE
+      WHEN wp_usermeta.meta_key = 'wp_capabilities' AND wp_usermeta.meta_value = 'a:1:{s:8:\"customer\";b:1;}' THEN 1
+      WHEN wp_usermeta.meta_key = 'wp_capabilities' AND wp_usermeta.meta_value = 'a:1:{s:8:\"inactive\";b:1;}' THEN 1
+      WHEN wp_usermeta.meta_key = 'wp_capabilities' AND wp_usermeta.meta_value = 'a:1:{s:8:\"deceased\";b:1;}' THEN 1
+    END) > 0
   ");
 
   //log_error("import_wc_patients start: ", ['vals' => array_slice($patients[0], 0, 100, true)]);

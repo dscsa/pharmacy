@@ -68,6 +68,9 @@ function wc_create_patient($mysql, $patient) {
   foreach($patient as $key => $val) {
     wc_upsert_patient_meta($mysql, $user_id[0]['ID'], $key, $val);
   }
+
+  update_wc_patient_active_status($mysql, $user_id[0]['ID'], null);
+  update_wc_backup_pharmacy($mysql, $patient_id_wc, $patient);
 }
 
 function wc_upsert_patient_meta($mysql, $user_id, $meta_key, $meta_value) {
@@ -148,6 +151,23 @@ function find_patient_wc($mysql, $patient, $table = 'gp_patients') {
   return $res;
 }
 
+function update_wc_backup_pharmacy($mysql, $patient_id_wc, $patient) {
+
+  if ( ! $patient_id_wc) return;
+
+  $wc_val = json_encode([
+    'name'   => $patient['pharmacy_name'],
+    'npi'    => $patient['pharmacy_npi'],
+    'street' => $patient['pharmacy_address'],
+    'fax'    => $patient['pharmacy_fax'],
+    'phone'  => $patient['pharmacy_phone']
+  ]);
+
+  echo "\nupdate_wc_patient_active_status $patient_id_wc, 'backup_pharmacy',  $wc_val";
+
+  //return wc_upsert_patient_meta($mysql, $patient_id_wc, 'backup_pharmacy',  $wc_val);
+}
+
 function update_wc_patient_active_status($mysql, $patient_id_wc, $inactive) {
 
   if ( ! $patient_id_wc) return;
@@ -164,7 +184,7 @@ function update_wc_patient_active_status($mysql, $patient_id_wc, $inactive) {
     $wc_val = 'a:1:{s:8:"customer";b:1;}';
   }
 
-  echo "\n$patient_id_wc, 'wp_capabilities',  $wc_val";
+  echo "\nupdate_wc_patient_active_status $patient_id_wc, 'wp_capabilities',  $wc_val";
 
   //return wc_upsert_patient_meta($mysql, $patient_id_wc, 'wp_capabilities',  $wc_val);
 }
