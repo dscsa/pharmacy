@@ -71,6 +71,7 @@ function import_cp_patients() {
     LEFT JOIN cppat_alr ON cppat_alr.pat_id = pat.pat_id
     WHERE
       birth_date IS NOT NULL -- pat.pat_id = 5869
+      AND pat.add_date IS NOT NULL -- pat.pat_id = 100 (Privacy Lock Patient)
     GROUP BY pat.pat_id -- because cppat_phone had a duplicate entry for pat_id 5130 we got two rows so need a groupby.  This also removes refills_used from needing to be a subquery
   ");
 
