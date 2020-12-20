@@ -40,16 +40,6 @@ function update_patients_wc($changes) {
       return true;
   }
 
-  $counts = [
-    'needs_form' => 0,
-    'needs_pharmacy' => 0,
-    'mismatched' => 0,
-    'matched' => 0,
-    'multimatched' => 0,
-    'test_user' => 0,
-    'default' => 0
-  ];
-
   foreach($changes['created'] as $created) {
     SirumLog::$subroutine_id = "patients-wc-created-".sha1(serialize($created));
 
@@ -66,8 +56,6 @@ function update_patients_wc($changes) {
     );
 
     if ( ! $created['pharmacy_name']) {
-
-      $counts['needs_pharmacy']++;
 
       //echo "\nincomplete registration but has name?";
 
@@ -96,10 +84,6 @@ function update_patients_wc($changes) {
 
     print_r($alert);
   }
-
-  log_notice('update_patients_wc: created counts', $counts);
-
-  print_r($counts);
 
   foreach($changes['deleted'] as $i => $deleted) {
 
