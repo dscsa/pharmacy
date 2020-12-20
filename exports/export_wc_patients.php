@@ -42,7 +42,7 @@ function wc_create_patient($mysql, $patient) {
     SELECT * FROM wp_users WHERE user_login = '$patient[first_name] $patient[last_name] $patient[birth_date]'
   ")[0];
 
-  echo "\n$insert\n".print_r($user_id);
+  echo "\n$insert\n".print_r($user_id, true);
 
   foreach($patient as $key => $val) {
     wc_upsert_patient_meta($mysql, $user_id[0]['ID'], $key, $val);
@@ -117,7 +117,7 @@ function find_patient_wc($mysql, $patient, $table = 'gp_patients') {
   $res = $mysql->run($sql)[0];
 
   if ($res)
-    echo "\n$patient[first_name] $patient[last_name] $patient[birth_date]\n$sql\ncount:".count($res)."\n".print_r($res);
+    echo "\npatient_id_cp:$patient[patient_id_cp] patient_id_wc:$patient[patient_id_wc]\n$patient[first_name] $patient[last_name] $patient[birth_date]\n$sql\ncount:".count($res)."\n".print_r($res, true);
 
   return $res;
 }
