@@ -383,6 +383,7 @@ function update_patients_wc($changes) {
         if (substr($updated['medications_other'], 0, i) != substr($updated['old_medications_other'], 0, i)) {
           echo "\n\n".substr($updated['medications_other'], 0, i);
           echo "\n".substr($updated['old_medications_other'], 0, i);
+          break;
         }
       }
 
