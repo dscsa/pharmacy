@@ -18,7 +18,33 @@ function cp_to_wc_key($key) {
   return isset($cp_to_wc[$key]) ? $cp_to_wc[$key] : $key;
 }
 
-function upsert_patient_wc($mysql, $user_id, $meta_key, $meta_value) {
+function wc_create_patient($mysql, $patient) {
+
+  $insert = "
+    INSERT wp_users (
+      user_login,
+      user_nicename,
+      user_email,
+      user_registered,
+      display_name
+    ) VALUES (
+      '$patient[first_name] $patient[last_name] $patient[birth_date]',
+      '$patient[first_name]-$patient[last_name]-$patient[birth_date]',
+      '$patient[email]',
+      '$patient[patient_date_added]',
+      '$patient[first_name] $patient[last_name] $patient[birth_date]'
+    )
+  ";
+
+  $user_id = $mysql->run($insert);
+
+  foreach($patient as $key => $val) {
+    print_r(["wc_create_patient", $user_id, $key, cp_to_wc_key($key), $val]);
+    //wc_upsert_patient_meta($mysql, $user_id, $meta_key, $meta_value);
+  }
+}
+
+function wc_upsert_patient_meta($mysql, $user_id, $meta_key, $meta_value) {
 
   $wc_key = cp_to_wc_key($meta_key);
   $wc_val = is_null($meta_value) ? 'NULL' : "'".escape_db_values($meta_value)."'";
@@ -56,7 +82,7 @@ function match_patient_wc($mysql, $patient, $patient_id_cp) {
   ");
 
   // Insert the patient_id_cp if it deosnt' already exist
-  upsert_patient_wc(
+  wc_upsert_patient_meta(
       $mysql,
       $patient['patient_id_wc'],
       'patient_id_cp',
@@ -89,11 +115,11 @@ function find_patient_wc($mysql, $patient, $table = 'gp_patients') {
 function update_wc_phone1($mysql, $patient_id_wc, $phone1) {
   if ( ! $patient_id_wc) return;
   $mysql->run("UPDATE gp_patients_wc SET phone1 = ".($phone1 ?: 'NULL')." WHERE patient_id_wc = $patient_id_wc");
-  return upsert_patient_wc($mysql, $patient_id_wc, 'phone',  $phone1);
+  return wc_upsert_patient_meta($mysql, $patient_id_wc, 'phone',  $phone1);
 }
 
 function update_wc_phone2($mysql, $patient_id_wc, $phone2) {
   if ( ! $patient_id_wc) return;
   $mysql->run("UPDATE gp_patients_wc SET phone2 = ".($phone2 ?: 'NULL')." WHERE patient_id_wc = $patient_id_wc");
-  return upsert_patient_wc($mysql, $patient_id_wc, 'billing_phone', $phone2);
+  return wc_upsert_patient_meta($mysql, $patient_id_wc, 'billing_phone', $phone2);
 }

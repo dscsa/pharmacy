@@ -161,7 +161,10 @@ function update_patients_wc($changes) {
 
     if (count($rxs) > 0) {
       $counts['deleted_with_rx']++;
-      print_r(['deleted patient no match but has rxs', $deleted, $rxs]);
+      if ($counts['deleted_with_rx'] < 2) {
+        print_r(['deleted patient no match but has rxs', $deleted, count($rxs)]);
+        wc_create_patient($mysql, $patient);
+      }
     }
 
     if (count($rxs) > 0) {
@@ -201,7 +204,7 @@ function update_patients_wc($changes) {
       : log_error("update_patients_wc: updated no change? $updated[first_name] $updated[last_name] $updated[birth_date] cp:$updated[patient_id_cp] wc:$updated[patient_id_wc]", $updated);
 
     if ( ! $updated['email'] AND $updated['old_email']) {
-      upsert_patient_wc($mysql, $updated['patient_id_wc'], 'email', $updated['old_email']);
+      wc_upsert_patient_meta($mysql, $updated['patient_id_wc'], 'email', $updated['old_email']);
     } else if ($updated['email'] !== $updated['old_email']) {
       upsert_patient_cp($mssql, "EXEC SirumWeb_AddUpdatePatEmail '$updated[patient_id_cp]', '$updated[email]'");
     }
@@ -216,11 +219,11 @@ function update_patients_wc($changes) {
 
         log_notice("update_patients_wc: adding address. $updated[first_name] $updated[last_name] $updated[birth_date]", ['changed' => $changed, 'updated' => $updated]);
 
-        upsert_patient_wc($mysql, $updated['patient_id_wc'], 'patient_address1', $updated['old_patient_address1']);
-        upsert_patient_wc($mysql, $updated['patient_id_wc'], 'patient_address2', $updated['old_patient_address2']);
-        upsert_patient_wc($mysql, $updated['patient_id_wc'], 'patient_city', $updated['old_patient_city']);
-        upsert_patient_wc($mysql, $updated['patient_id_wc'], 'patient_state', $updated['old_patient_state']);
-        upsert_patient_wc($mysql, $updated['patient_id_wc'], 'patient_zip', $updated['old_patient_zip']);
+        wc_upsert_patient_meta($mysql, $updated['patient_id_wc'], 'patient_address1', $updated['old_patient_address1']);
+        wc_upsert_patient_meta($mysql, $updated['patient_id_wc'], 'patient_address2', $updated['old_patient_address2']);
+        wc_upsert_patient_meta($mysql, $updated['patient_id_wc'], 'patient_city', $updated['old_patient_city']);
+        wc_upsert_patient_meta($mysql, $updated['patient_id_wc'], 'patient_state', $updated['old_patient_state']);
+        wc_upsert_patient_meta($mysql, $updated['patient_id_wc'], 'patient_zip', $updated['old_patient_zip']);
 
     } else if (
         $updated['patient_address1'] !== $updated['old_patient_address1'] OR
@@ -274,7 +277,7 @@ function update_patients_wc($changes) {
             $updated['payment_coupon'] !== $updated['old_payment_coupon'] OR //Still allow for deleteing coupons in CP
             $updated['tracking_coupon'] !== $updated['old_tracking_coupon'] //Still allow for deleteing coupons in CP
     ) {
-      upsert_patient_wc($mysql, $updated['patient_id_wc'], 'coupon', $updated['old_payment_coupon'] ?: $updated['old_tracking_coupon']);
+      wc_upsert_patient_meta($mysql, $updated['patient_id_wc'], 'coupon', $updated['old_payment_coupon'] ?: $updated['old_tracking_coupon']);
     }
 
     if ( ! $updated['phone1'] AND $updated['old_phone1']) {
@@ -319,7 +322,7 @@ function update_patients_wc($changes) {
         //$updated['pharmacy_address'] !== $updated['old_pharmacy_address'] // We only save a partial address in CP so will always differ
     ) {
 
-      upsert_patient_wc($mysql, $updated['patient_id_wc'], 'backup_pharmacy', json_encode([
+      wc_upsert_patient_meta($mysql, $updated['patient_id_wc'], 'backup_pharmacy', json_encode([
         'name' => escape_db_values($updated['old_pharmacy_name']),
         'npi' => $updated['old_pharmacy_npi'],
         'fax' => $updated['old_pharmacy_fax'],
@@ -337,19 +340,19 @@ function update_patients_wc($changes) {
       log_error('update_patients_wc: updated payment_method_default. Deleting Autopay Reminders', $updated);
 
       if ($updated['old_payment_method_default'] == PAYMENT_METHOD['MAIL'])
-        upsert_patient_wc($mysql, $updated['patient_id_wc'], 'payment_method_default', PAYMENT_METHOD['MAIL']);
+        wc_upsert_patient_meta($mysql, $updated['patient_id_wc'], 'payment_method_default', PAYMENT_METHOD['MAIL']);
 
       else if ($updated['old_payment_method_default'] == PAYMENT_METHOD['AUTOPAY'])
-        upsert_patient_wc($mysql, $updated['patient_id_wc'], 'payment_method_default', PAYMENT_METHOD['AUTOPAY']);
+        wc_upsert_patient_meta($mysql, $updated['patient_id_wc'], 'payment_method_default', PAYMENT_METHOD['AUTOPAY']);
 
       else if ($updated['old_payment_method_default'] == PAYMENT_METHOD['ONLINE'])
-        upsert_patient_wc($mysql, $updated['patient_id_wc'], 'payment_method_default', PAYMENT_METHOD['ONLINE']);
+        wc_upsert_patient_meta($mysql, $updated['patient_id_wc'], 'payment_method_default', PAYMENT_METHOD['ONLINE']);
 
       else if ($updated['old_payment_method_default'] == PAYMENT_METHOD['COUPON'])
-        upsert_patient_wc($mysql, $updated['patient_id_wc'], 'payment_method_default', PAYMENT_METHOD['COUPON']);
+        wc_upsert_patient_meta($mysql, $updated['patient_id_wc'], 'payment_method_default', PAYMENT_METHOD['COUPON']);
 
       else if ($updated['old_payment_method_default'] == PAYMENT_METHOD['CARD EXPIRED'])
-        upsert_patient_wc($mysql, $updated['patient_id_wc'], 'payment_method_default', PAYMENT_METHOD['CARD EXPIRED']);
+        wc_upsert_patient_meta($mysql, $updated['patient_id_wc'], 'payment_method_default', PAYMENT_METHOD['CARD EXPIRED']);
 
       else
         log_error("NOT SURE WHAT TO DO FOR PAYMENT METHOD $updated");
@@ -379,10 +382,10 @@ function update_patients_wc($changes) {
       }
 
 
-      //upsert_patient_wc($mysql, $updated['patient_id_wc'], 'first_name', $updated['old_first_name']);
-      //upsert_patient_wc($mysql, $updated['patient_id_wc'], 'last_name', $updated['old_last_name']);
-      //upsert_patient_wc($mysql, $updated['patient_id_wc'], 'birth_date', $updated['old_birth_date']);
-      //upsert_patient_wc($mysql, $updated['patient_id_wc'], 'language', $updated['old_language']);
+      //wc_upsert_patient_meta($mysql, $updated['patient_id_wc'], 'first_name', $updated['old_first_name']);
+      //wc_upsert_patient_meta($mysql, $updated['patient_id_wc'], 'last_name', $updated['old_last_name']);
+      //wc_upsert_patient_meta($mysql, $updated['patient_id_wc'], 'birth_date', $updated['old_birth_date']);
+      //wc_upsert_patient_meta($mysql, $updated['patient_id_wc'], 'language', $updated['old_language']);
 
     } else if (
       $updated['first_name'] !== $updated['old_first_name'] OR
