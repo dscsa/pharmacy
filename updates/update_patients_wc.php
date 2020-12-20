@@ -189,6 +189,9 @@ function update_patients_wc($changes) {
 
       //TODO Truly delete patient in CP instead?
 
+      //TEMP USE CP AS SOURCE OF TRUTH ON INITIAL SETUP.  TO BE REMOVED
+      update_wc_patient_active_status($mssql, $deleted['patient_id_wc'], $deleted['old_patient_inactive']);
+
       //update_cp_patient_active_status($mssql, $patient_id_cp, $deleted['patient_inactive']);
 
 
@@ -324,6 +327,10 @@ function update_patients_wc($changes) {
     if ($updated['patient_inactive'] !== $updated['old_patient_inactive']) {
       $patient = find_patient_wc($mysql, $updated)[0];
       echo "\nWC Patient Inactive Status Changed $updated[first_name] $updated[last_name] $updated[birth_date] $updated[old_patient_inactive] >>> $updated[patient_inactive]";
+
+      //TEMP USE CP AS SOURCE OF TRUTH ON INITIAL SETUP.  TO BE REMOVED
+      update_wc_patient_active_status($mssql, $updated['patient_id_wc'], $updated['old_patient_inactive']);
+
       //update_cp_patient_active_status($mysql, $patient['patient_id_cp'], $updated['patient_inactive']);
       log_notice("WC Patient Inactive Status Changed", $updated);
     }
