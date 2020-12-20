@@ -9,7 +9,7 @@ function update_drugs($changes) {
   $count_created = count($changes['created']);
   $count_updated = count($changes['updated']);
 
-  $msg = " $count_deleted deleted, $count_created created, $count_updated updated.";
+  $msg = "$count_deleted deleted, $count_created created, $count_updated updated ";
   echo $msg;
   log_info("update_drugs: all changes. $msg", [
     'deleted_count' => $count_deleted,

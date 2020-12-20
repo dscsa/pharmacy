@@ -11,7 +11,7 @@ function update_patients_wc($changes) {
   $count_created = count($changes['created']);
   $count_updated = count($changes['updated']);
 
-  $msg = " $count_deleted deleted, $count_created created, $count_updated updated.";
+  $msg = "$count_deleted deleted, $count_created created, $count_updated updated ";
   echo $msg;
   log_info("update_patients_wc: all changes. $msg", [
     'deleted_count' => $count_deleted,
@@ -94,12 +94,16 @@ function update_patients_wc($changes) {
     SirumLog::resetSubroutineId();
   }
 
-  log_notice('created counts', [
+  $counts = [
     '$created_mismatched' => $created_mismatched,
     '$created_matched' => $created_matched,
     '$created_needs_form' => $created_needs_form,
     '$created_new_to_cp' => $created_new_to_cp
-  ]);
+  ];
+
+  log_notice('created counts', $counts);
+
+  print_r($counts);
 
   foreach($changes['deleted'] as $i => $deleted) {
 
@@ -117,15 +121,16 @@ function update_patients_wc($changes) {
 
     //Dummy accounts that have been cleared out of WC
     if (stripos($deleted['first_name'], 'Test') !== false OR stripos($deleted['first_name'], 'User') !== false OR stripos($deleted['email'], 'user') !== false OR stripos($deleted['email'], 'test') !== false) {
-      echo "UPDATE cppat SET pat_status_cn = 2 WHERE pat_id = $deleted[patient_id_cp]";
-      //$mssql->run($sql);
+      export_cp_inactivate_patient($deleted['patient_id_cp'], $mssql)
       continue;
     }
 
+    $match = find_patient_wc($mysql, $deleted, 'gp_patients_wc');
     print_r([
       "what's going on here?",
       'patient_id_wc' => $deleted['patient_id_wc'],
-      'deleted' => $deleted
+      'deleted' => $deleted,
+      'match' => $match
     ]);
 
     if ($deleted['patient_id_wc'])

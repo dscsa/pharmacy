@@ -29,11 +29,25 @@ function export_cp_patient_save_medications_other($mssql, $patient, $live = fals
   ";
 
   //$res1 = $mssql->run("$select");
-  $mssql->run("$sql");
+  $mssql->run($sql);
   //$res2 = $mssql->run("$select");
 
   //echo "
   //live:$live $patient[first_name] $patient[last_name] $sql ".json_encode($res1, JSON_PRETTY_PRINT)." ".json_encode($res2, JSON_PRETTY_PRINT);
+}
+
+function export_cp_inactivate_patient($patient_id_cp, $mssql) {
+
+  $date = date('Y-m-d H:i:s');
+
+  $mssql->run("
+    UPDATE cppat
+    SET
+      pat_status_cn = 2,
+      cmt = CONCAT(cmt, ' Deleted by Pharmacy App on $date')
+    WHERE
+      pat_id = $patient_id_cp
+  ");
 }
 
 function export_cp_patient_save_patient_note($mssql, $patient, $live = false) {

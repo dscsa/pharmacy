@@ -14,7 +14,7 @@ function update_order_items($changes) {
   $count_created = count($changes['created']);
   $count_updated = count($changes['updated']);
 
-  $msg = " $count_deleted deleted, $count_created created, $count_updated updated.";
+  $msg = "$count_deleted deleted, $count_created created, $count_updated updated ";
   echo $msg;
   log_info("update_order_items: all changes. $msg", [
     'deleted_count' => $count_deleted,

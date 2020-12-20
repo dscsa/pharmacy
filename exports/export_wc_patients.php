@@ -66,7 +66,7 @@ function match_patient_wc($mysql, $patient, $patient_id_cp) {
   log_notice("update_patients_wc: matched $patient[first_name] $patient[last_name]");
 }
 
-function find_patient_wc($mysql, $patient) {
+function find_patient_wc($mysql, $patient, $table = 'gp_patients') {
   $first_name_prefix = explode(' ', $patient['first_name']);
   $last_name_prefix  = explode(' ', $patient['last_name']);
   $first_name_prefix = escape_db_values(substr(array_shift($first_name_prefix), 0, 3));
@@ -74,7 +74,7 @@ function find_patient_wc($mysql, $patient) {
 
   $sql = "
     SELECT *
-    FROM gp_patients
+    FROM $table
     WHERE
       first_name LIKE '$first_name_prefix%' AND
       REPLACE(last_name, '*', '') LIKE '%$last_name_prefix' AND
