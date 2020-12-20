@@ -147,12 +147,39 @@ function update_patients_wc($changes) {
 
     if (count($match) == 1) {
       $counts['deleted_match']++;
-      print_r(['deleted patient matched', $deleted, $match]);
+
+      $sql = "
+        UPDATE gp_patients SET patient_id_wc = {$match[0]['patient_id_wc']} WHERE patient_id_cp = $deleted[patient_id_cp] OR patient_id_cp = {$match[0]['patient_id_cp']}
+      ";
+
+      $mysql->run($sql)[0];
+
+      if ($deleted['patient_id_cp'] == $match[0]['patient_id_cp'])
+        continue;
+
+      $created = date('Y-m-d H:i:s');
+
+      $salesforce = [
+        "subject"   => "Duplicate Carepoint Patient Accounts",
+        "body"      => "Please merge the patients $deleted[first_name] $deleted[last_name] with {$match[0]['first_name']} {$match[0]['last_name']}",
+        "contact"   => "$deleted[first_name] $deleted[last_name] $deleted[birth_date]",
+        "assign_to" => "Cindy",
+        "due_date"  => date('Y-m-d')
+      ];
+
+      $event_title = "$salesforce[subject]: $salesforce[contact] $created";
+
+      create_event($event_title, [$salesforce]);
+
+      print_r(['deleted patient matched', $salesforce, $sql]);
+
+      continue;
     }
 
     if (count($match) > 1) {
       $counts['deleted_multi']++;
       print_r(['deleted patient multi-matched', $deleted, $match]);
+      continue;
     }
 
     $rxs = $mysql->run("
@@ -161,15 +188,17 @@ function update_patients_wc($changes) {
 
     if (count($rxs) > 0) {
       $counts['deleted_with_rx']++;
-      if ($counts['deleted_with_rx'] < 2) {
+      if ($counts['deleted_with_rx'] < 5) {
         print_r(['deleted patient no match but has rxs', $deleted, count($rxs)]);
         wc_create_patient($mysql, $patient);
       }
+      continue;
     }
 
     if (count($rxs) > 0) {
       $counts['deleted_no_rx']++;
       //print_r(['deleted patient no match with rxs', $deleted, $rxs]);
+      continue;
     }
   }
 
