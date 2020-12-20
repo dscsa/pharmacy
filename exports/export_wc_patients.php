@@ -62,6 +62,8 @@ function wc_upsert_patient_meta($mysql, $user_id, $meta_key, $meta_value) {
     $upsert = "INSERT wp_usermeta (umeta_id, user_id, meta_key, meta_value) VALUES (NULL, $user_id, '$wc_key', $wc_val)";
   }
 
+  echo "\n$upsert";
+
   $mysql->run($upsert);
 }
 
