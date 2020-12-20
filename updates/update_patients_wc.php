@@ -85,66 +85,16 @@ function update_patients_wc($changes) {
     $patient_cp = find_patient_wc($mysql, $created);
     $patient_wc = find_patient_wc($mysql, $created, 'gp_patients_wc');
 
-    if($created['patient_id_cp']) {
-      $counts['mismatched']++;
-      echo "\nmismatch between patient tables. cp:".print_r($patient_cp, true)." wc:".print_r($patient_wc, true);
-      continue;
-    }
-
-    if (count($patient_cp) == 1) {
-      $counts['matched']++;
-      match_patient_wc($mysql, $created, $patient[0]['patient_id_cp']);
-      continue;
-    }
-
-    if (count($patient_cp) > 1) {
-      $counts['multimatched']++;
-      echo "\nmulti-match";
-      continue;
-    }
-
-    //Dummy accounts that have been cleared out of WC
-    if (is_test_user($created)) {
-
-      $counts['test_user']++;
-
-      echo "\ncreated test patient";
-
-      continue;
-    }
-
-    echo "\ndefault wc_patient created. what's happening here? cp:".print_r($patient_cp, true)." wc:".print_r($patient_wc, true);
-
-    continue;
-
-    echo "\ndefault duplicate SF task";
-
-    $counts['default']++;
-    $created_date = "Created:".date('Y-m-d H:i:s');
-
-    $salesforce = [
-      "subject"   => "Fix Duplicate Patient",
-      "body"      => "Patient $created[first_name] $created[last_name] $created[birth_date] (WC user_id:$created[patient_id_wc]) in WC but not in CP. Fix and notify patient if necessary. Likely #1 a duplicate user in WC (forgot login so reregistered with slightly different name or DOB), #2 patient inactivated in CP (remove their birthday in WC to deactivate there), or #3 inconsistent birth_date between Rx in CP and Registration in WC. $created_date",
-      "contact"   => "$created[first_name] $created[last_name] $created[birth_date]",
-      "assign_to" => ".Update Name/DOB - Admin",
-      "due_date"  => date('Y-m-d')
+    $alert = [
+      'created' => $created,
+      'source'  => 'WooCommerce',
+      'type'    => 'patients',
+      'event'   => 'created'
     ];
 
-    $event_title = "$salesforce[subject]: $salesforce[contact] $created_date";
+    SirumLog::alert("update_patients_wc: WooCommerce PATIENT created $created[first_name] $created[last_name] $created[birth_date]", $alert);
 
-    //In WC Patient Changes we don't have the "patient_date_added" or "patient_date_changed" CP fields,
-    //"patient_date_updated" will always be within past 10mins, so use "patient_date_registered"
-    $secs = time() - strtotime($created['patient_date_registered']);
-
-    if ($secs/60 < 30) { //Otherwise gets repeated every 10mins.
-      create_event($event_title, [$salesforce]);
-      log_error("New $event_title", [$secs, $patient, $created]);
-    }
-    else if (date('h') == '11') { //Twice a day so use a lower case h for 12 hour clock instead of 24 hour.
-      log_error("Old $event_title", [$secs, $patient, $created]);
-    }
-
-    SirumLog::resetSubroutineId();
+    print_r($alert);
   }
 
   log_notice('update_patients_wc: created counts', $counts);
@@ -182,12 +132,15 @@ function update_patients_wc($changes) {
     );
 
     if ( ! $updated['patient_id_cp']) {
+      echo "\nwc patient updated but no patient_id_cp. $updated[first_name] $updated[last_name] $updated[birth_date] cp:$updated[patient_id_cp] wc:$updated[patient_id_wc]";
       $patient = find_patient_wc($mysql, $updated);
       match_patient_wc($mysql, $updated, $patient[0]['patient_id_cp']);
       continue;
     }
 
     $changed = changed_fields($updated);
+
+    echo "\nwc patient updated! $updated[first_name] $updated[last_name] $updated[birth_date] cp:$updated[patient_id_cp] wc:$updated[patient_id_wc] ".print_r($changed, true);
 
     $changed
       ? log_notice("update_patients_wc: updated changed $updated[first_name] $updated[last_name] $updated[birth_date] cp:$updated[patient_id_cp] wc:$updated[patient_id_wc]", $changed)

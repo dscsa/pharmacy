@@ -88,7 +88,7 @@ function wc_upsert_patient_meta($mysql, $user_id, $meta_key, $meta_value) {
     $upsert = "INSERT wp_usermeta (umeta_id, user_id, meta_key, meta_value) VALUES (NULL, $user_id, '$wc_key', $wc_val)";
   }
 
-  echo "\nwc_upsert_patient_meta $select $upsert";
+  //echo "\nwc_upsert_patient_meta $select $upsert";
 
   $mysql->run($upsert);
 }
@@ -165,7 +165,7 @@ function update_wc_backup_pharmacy($mysql, $patient_id_wc, $patient) {
     'phone'  => $patient['pharmacy_phone']
   ]);
 
-  echo "\nupdate_wc_patient_active_status $patient_id_wc, 'backup_pharmacy',  $wc_val";
+  echo "\nupdate_wc_backup_pharmacy $patient_id_wc, 'backup_pharmacy',  $wc_val";
 
   return wc_upsert_patient_meta($mysql, $patient_id_wc, 'backup_pharmacy',  $wc_val);
 }
