@@ -66,7 +66,7 @@ function update_cp_patient_active_status($mssql, $patient_id_cp, $inactive) {
       pat_id = $patient_id_cp
   ";
 
-  echo "\nupdate_cp_patient_active_status $sql";
+  echo "\nupdate_cp_patient_active_status $inactive -> $sql";
 
   //$mssql->run($sql);
 }

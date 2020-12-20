@@ -319,7 +319,7 @@ function update_patients_wc($changes) {
 
     if ($updated['patient_inactive'] !== $updated['old_patient_inactive']) {
       $patient = find_patient_wc($mysql, $updated)[0];
-      update_wc_patient_active_status($mysql, $patient['patient_id_wc'], $updated['patient_inactive']);
+      update_cp_patient_active_status($mysql, $patient['patient_id_wc'], $updated['patient_inactive']);
       log_notice("WC Patient Inactive Status Changed", $updated);
     }
 
