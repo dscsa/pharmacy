@@ -347,6 +347,9 @@ function update_patients_wc($changes) {
       var_dump($updated['allergies_other']);
       var_dump($updated['old_allergies_other']);
 
+      if (str_replace("\0", "", $updated['allergies_other']) === str_replace("\0", "", $updated['old_allergies_other']))
+        echo "\n NULL removal WORKED!";
+
       $allergy_array = [
         'allergies_none' => $updated['allergies_none'] ?: '',
         'allergies_aspirin' => $updated['allergies_aspirin'] ?: '',
@@ -383,6 +386,9 @@ function update_patients_wc($changes) {
 
       var_dump($updated['medications_other']);
       var_dump($updated['old_medications_other']);
+
+      if (str_replace("\0", "", $updated['medications_other']) === str_replace("\0", "", $updated['old_medications_other']))
+        echo "\n NULL removal WORKED!";
 
       if (utf8ize($updated['medications_other']) === utf8ize($updated['old_medications_other']))
         echo "\n utf8ize WORKED!";
