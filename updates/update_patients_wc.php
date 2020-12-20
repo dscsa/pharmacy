@@ -121,7 +121,7 @@ function update_patients_wc($changes) {
 
     //Dummy accounts that have been cleared out of WC
     if (stripos($deleted['first_name'], 'Test') !== false OR stripos($deleted['first_name'], 'User') !== false OR stripos($deleted['email'], 'user') !== false OR stripos($deleted['email'], 'test') !== false) {
-      export_cp_inactivate_patient($deleted['patient_id_cp'], $mssql)
+      export_cp_inactivate_patient($deleted['patient_id_cp'], $mssql);
       continue;
     }
 
