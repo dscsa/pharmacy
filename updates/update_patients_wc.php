@@ -387,6 +387,12 @@ function update_patients_wc($changes) {
       var_dump($updated['medications_other']);
       var_dump($updated['old_medications_other']);
 
+      echo "\n".mb_detect_encoding($updated['medications_other']);
+      echo "\n".mb_detect_encoding($updated['old_medications_other']);
+
+      echo "\n".bin2hex($updated['medications_other']);
+      echo "\n".bin2hex($updated['old_medications_other']);
+
       if (str_replace("\0", "", $updated['medications_other']) === str_replace("\0", "", $updated['old_medications_other']))
         echo "\n NULL removal WORKED!";
 
