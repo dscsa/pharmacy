@@ -45,8 +45,7 @@ function wc_create_patient($mysql, $patient) {
   ")[0][0]['ID'];
 
   foreach($patient as $key => $val) {
-    print_r(["wc_create_patient", $user_id, $key, cp_to_wc_key($key), $val]);
-    //wc_upsert_patient_meta($mysql, $user_id, $meta_key, $meta_value);
+    wc_upsert_patient_meta($mysql, $user_id, $key, $val);
   }
 }
 

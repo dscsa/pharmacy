@@ -209,16 +209,17 @@ function update_patients_wc($changes) {
 
     if (count($rxs) > 0) {
       $counts['deleted_with_rx']++;
-      if ($counts['deleted_with_rx'] < 5) {
-        print_r(['deleted patient no match but has rxs', $deleted, count($rxs)]);
-        wc_create_patient($mysql, $deleted);
-      }
+
+      print_r(['deleted patient no match but has rxs', $deleted, count($rxs)]);
+      wc_create_patient($mysql, $deleted);
+
       continue;
     }
 
     if (count($rxs) > 0) {
       $counts['deleted_no_rx']++;
-      //print_r(['deleted patient no match with rxs', $deleted, $rxs]);
+      if ($counts['deleted_no_rx'] < 5)
+        print_r(['deleted patient no match with rxs', $deleted, $rxs]);
       continue;
     }
   }
