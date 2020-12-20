@@ -141,7 +141,7 @@ function update_patients_wc($changes) {
 
       export_cp_inactivate_patient($deleted['patient_id_cp'], $mssql);
 
-      print_r(['deleted test patient', $deleted]);
+      //print_r(['deleted test patient', $deleted]);
 
       continue;
     }
@@ -167,7 +167,7 @@ function update_patients_wc($changes) {
 
       $mysql->run($sql)[0];
 
-      print_r(['deleted patient matched', $deleted]);
+      //print_r(['deleted patient matched', $deleted]);
 
       continue;
     }
@@ -176,7 +176,7 @@ function update_patients_wc($changes) {
 
       $counts['deleted_multi']++;
 
-      if (date('H') != '01') continue; //Don't flood Cindy with SF tasks
+      if (date('H') != '01' OR date('i') > '15') continue; //Don't flood Cindy with SF tasks
 
       $created = date('Y-m-d H:i:s');
 
@@ -199,7 +199,7 @@ function update_patients_wc($changes) {
 
       $counts['deleted_multi']++;
 
-      if (date('H') != '01') continue; //Don't flood Cindy with SF tasks
+      if (date('H') != '01' OR date('i') > '15') continue; //Don't flood Cindy with SF tasks
 
       $created = date('Y-m-d H:i:s');
 
@@ -223,7 +223,7 @@ function update_patients_wc($changes) {
       $counts['deleted_with_rx']++;
       wc_create_patient($mysql, $deleted);
 
-      if ($counts['deleted_no_rx'] < 5)
+      if ($counts['deleted_no_rx'] < 0)
         print_r(['deleted patient no match but has rxs', $deleted, count($rxs)]);
 
       continue;
@@ -233,8 +233,8 @@ function update_patients_wc($changes) {
 
       $counts['deleted_no_rx']++;
 
-      if ($counts['deleted_no_rx'] < 5)
-        print_r(['deleted patient no match with rxs', $deleted, $rxs]);
+      if ($counts['deleted_no_rx'] < 0)
+        print_r(['deleted patient no match and no rxs', $deleted, $rxs]);
 
       continue;
     }

@@ -40,10 +40,12 @@ function wc_create_patient($mysql, $patient) {
 
   $user_id = $mysql->run("
     SELECT * FROM wp_users WHERE user_login = '$patient[first_name] $patient[last_name] $patient[birth_date]'
-  ")[0][0]['ID'];
+  ")[0];
+
+  echo "\n$insert\n".print_r($user_id);
 
   foreach($patient as $key => $val) {
-    wc_upsert_patient_meta($mysql, $user_id, $key, $val);
+    wc_upsert_patient_meta($mysql, $user_id[0]['ID'], $key, $val);
   }
 }
 
@@ -61,8 +63,6 @@ function wc_upsert_patient_meta($mysql, $user_id, $meta_key, $meta_value) {
   } else {
     $upsert = "INSERT wp_usermeta (umeta_id, user_id, meta_key, meta_value) VALUES (NULL, $user_id, '$wc_key', $wc_val)";
   }
-
-  echo "\n$upsert";
 
   $mysql->run($upsert);
 }
@@ -114,7 +114,12 @@ function find_patient_wc($mysql, $patient, $table = 'gp_patients') {
 
   log_info('update_patients_wc: finding', [$sql, $patient]);
 
-  return $mysql->run($sql)[0];
+  $res = $mysql->run($sql)[0];
+
+  if ($res)
+    echo "\n$sql\n".print_r($patient);
+
+  return $res;
 }
 
 function update_wc_phone1($mysql, $patient_id_wc, $phone1) {
