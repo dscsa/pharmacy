@@ -48,9 +48,7 @@ function export_cp_inactivate_patient($patient_id_cp, $mssql) {
     WHERE
       pat_id = $patient_id_cp
   ";
-
-  echo $sql;
-
+  
   $mssql->run($sql);
 }
 

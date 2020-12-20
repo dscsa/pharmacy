@@ -136,21 +136,29 @@ function update_patients_wc($changes) {
 
     //Dummy accounts that have been cleared out of WC
     if (preg_match($regex, $deleted['first_name']) OR preg_match($regex, $deleted['last_name'])) {
+
       $counts['deleted_test']++;
+
       export_cp_inactivate_patient($deleted['patient_id_cp'], $mssql);
+
       print_r(['deleted test patient', $deleted]);
+
       continue;
     }
 
     if ($deleted['patient_id_wc']) {
+
       $counts['deleted_actual']++;
+
       log_error('update_patients_wc deleted: patient was just deleted from WC', $deleted);
+
       continue;
     }
 
     $match = find_patient_wc($mysql, $deleted, 'gp_patients_wc');
 
     if (count($match) == 1 AND $deleted['patient_id_cp'] == $match[0]['patient_id_cp']) {
+
       $counts['deleted_match']++;
 
       $sql = "
@@ -165,6 +173,7 @@ function update_patients_wc($changes) {
     }
 
     if (count($match) == 1 AND $deleted['patient_id_cp'] != $match[0]['patient_id_cp']) {
+
       $counts['deleted_multi']++;
 
       if (date('H') != '01') continue; //Don't flood Cindy with SF tasks
@@ -187,6 +196,7 @@ function update_patients_wc($changes) {
     }
 
     if (count($match) > 1) {
+
       $counts['deleted_multi']++;
 
       if (date('H') != '01') continue; //Don't flood Cindy with SF tasks
@@ -204,22 +214,28 @@ function update_patients_wc($changes) {
       $event_title = "$salesforce[subject]: $salesforce[contact] $created";
 
       create_event($event_title, [$salesforce]);
+      
       continue;
     }
 
     if (count($rxs) > 0) {
-      $counts['deleted_with_rx']++;
 
-      print_r(['deleted patient no match but has rxs', $deleted, count($rxs)]);
+      $counts['deleted_with_rx']++;
       wc_create_patient($mysql, $deleted);
 
+      if ($counts['deleted_no_rx'] < 5)
+        print_r(['deleted patient no match but has rxs', $deleted, count($rxs)]);
+
       continue;
     }
 
     if (count($rxs) > 0) {
+
       $counts['deleted_no_rx']++;
+
       if ($counts['deleted_no_rx'] < 5)
         print_r(['deleted patient no match with rxs', $deleted, $rxs]);
+
       continue;
     }
   }

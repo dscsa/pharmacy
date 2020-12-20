@@ -36,8 +36,6 @@ function wc_create_patient($mysql, $patient) {
     )
   ";
 
-  print_r(["wc_create_patient", $patient, $insert]);
-
   $mysql->run($insert);
 
   $user_id = $mysql->run("
