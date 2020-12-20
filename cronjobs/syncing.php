@@ -77,7 +77,7 @@ $execution_details = ['start' => date('c')];
 $f = fopen('/tmp/pharmacy.lock', 'w') or log_error('Webform Cron Job Cannot Create Lock File');
 
 if (! flock($f, LOCK_EX | LOCK_NB)) {
-    $still_running = 'Skipping Webform Cron Job Because Previous One Is Still Running';
+    $still_running = "\n\nSkipping Webform Cron Job Because Previous One Is Still Running\n\n";
     echo $still_running;
     SirumLog::error($still_running, $execution_details);
     // Push any lagging logs to google Cloud
