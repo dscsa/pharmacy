@@ -344,6 +344,9 @@ function update_patients_wc($changes) {
       $updated['allergies_other'] !== $updated['old_allergies_other']
     ) {
 
+      var_dump($updated['allergies_other']);
+      var_dump($updated['old_allergies_other']);
+
       $allergy_array = [
         'allergies_none' => $updated['allergies_none'] ?: '',
         'allergies_aspirin' => $updated['allergies_aspirin'] ?: '',
@@ -364,8 +367,7 @@ function update_patients_wc($changes) {
       $sql = "EXEC SirumWeb_AddRemove_Allergies '$updated[patient_id_cp]', '$allergies'";
 
       if ($allergies) {
-
-        echo "\n$sql";
+        //echo "\n$sql";
         $res = upsert_patient_cp($mssql, $sql);
 
       } else {
@@ -378,6 +380,9 @@ function update_patients_wc($changes) {
     }
 
     if ($updated['medications_other'] !== $updated['old_medications_other']) {
+
+      var_dump($updated['medications_other']);
+      var_dump($updated['old_medications_other']);
 
       if (utf8ize($updated['medications_other']) === utf8ize($updated['old_medications_other']))
         echo "\n utf8ize WORKED!";
