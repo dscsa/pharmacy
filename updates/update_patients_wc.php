@@ -128,13 +128,17 @@ function update_patients_wc($changes) {
       ]
     );
 
+    $rxs = $mysql->run("
+      SELECT * FROM gp_rxs_single WHERE patient_id_cp = $deleted[patient_id_cp]
+    ")[0];
+
     $regex = "/test|dummy|fake|user|patient/i";
 
     //Dummy accounts that have been cleared out of WC
     if (preg_match($regex, $deleted['first_name']) OR preg_match($regex, $deleted['last_name'])) {
       $counts['deleted_test']++;
       export_cp_inactivate_patient($deleted['patient_id_cp'], $mssql);
-      print_r(['deleted test patient', $salesforce, $sql]);
+      print_r(['deleted test patient', $deleted]);
       continue;
     }
 
@@ -202,10 +206,6 @@ function update_patients_wc($changes) {
       create_event($event_title, [$salesforce]);
       continue;
     }
-
-    $rxs = $mysql->run("
-      SELECT * FROM gp_rxs_single WHERE patient_id_cp = $deleted[patient_id_cp]
-    ")[0];
 
     if (count($rxs) > 0) {
       $counts['deleted_with_rx']++;

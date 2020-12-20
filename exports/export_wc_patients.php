@@ -38,7 +38,11 @@ function wc_create_patient($mysql, $patient) {
 
   print_r(["wc_create_patient", $patient, $insert]);
 
-  $user_id = $mysql->run($insert);
+  $mysql->run($insert);
+
+  $user_id = $mysql->run("
+    SELECT * FROM wp_users WHERE user_login = '$patient[first_name] $patient[last_name] $patient[birth_date]'
+  ")[0][0]['ID'];
 
   foreach($patient as $key => $val) {
     print_r(["wc_create_patient", $user_id, $key, cp_to_wc_key($key), $val]);
