@@ -95,15 +95,24 @@ function update_patients_wc($changes) {
   }
 
   $counts = [
-    '$created_mismatched' => $created_mismatched,
-    '$created_matched' => $created_matched,
-    '$created_needs_form' => $created_needs_form,
-    '$created_new_to_cp' => $created_new_to_cp
+    'created_mismatched' => $created_mismatched,
+    'created_matched' => $created_matched,
+    'created_needs_form' => $created_needs_form,
+    'created_new_to_cp' => $created_new_to_cp
   ];
 
-  log_notice('created counts', $counts);
+  log_notice('update_patients_wc: created counts', $counts);
 
   print_r($counts);
+
+  $counts = [
+    'deleted_test'    => 0,
+    'deleted_actual'  => 0,
+    'deleted_match'   => 0,
+    'deleted_multi'   => 0,
+    'deleted_no_rx'   => 0,
+    'deleted_with_rx' => 0
+  ];
 
   foreach($changes['deleted'] as $i => $deleted) {
 
@@ -119,26 +128,51 @@ function update_patients_wc($changes) {
       ]
     );
 
+    $regex = "/test|dummy|fake|user|patient/i";
+
     //Dummy accounts that have been cleared out of WC
-    if (stripos($deleted['first_name'], 'Test') !== false OR stripos($deleted['first_name'], 'User') !== false OR stripos($deleted['email'], 'user') !== false OR stripos($deleted['email'], 'test') !== false) {
+    if (preg_match($regex, $deleted['first_name']) OR preg_match($regex, $deleted['last_name'])) {
+      $counts['deleted_test']++;
       export_cp_inactivate_patient($deleted['patient_id_cp'], $mssql);
       continue;
     }
 
-    $match = find_patient_wc($mysql, $deleted, 'gp_patients_wc');
-    print_r([
-      "what's going on here?",
-      'patient_id_wc' => $deleted['patient_id_wc'],
-      'deleted' => $deleted,
-      'match' => $match
-    ]);
-
-    if ($deleted['patient_id_wc'])
+    if ($deleted['patient_id_wc']) {
+      $counts['deleted_actual']++;
       log_error('update_patients_wc deleted: patient was just deleted from WC', $deleted);
-    //else
-    //  log_error('update_patients_wc: never added', $deleted);
-    SirumLog::resetSubroutineId();
+      continue;
+    }
+
+    $match = find_patient_wc($mysql, $deleted, 'gp_patients_wc');
+
+    if (count($match) == 1) {
+      $counts['deleted_match']++;
+      print_r(['deleted patient matched', $deleted, $match]);
+    }
+
+    if (count($match) > 1) {
+      $counts['deleted_multi']++;
+      print_r(['deleted patient multi-matched', $deleted, $match]);
+    }
+
+    $rxs = $mysql-run("
+      SELECT * FROM gp_rxs_single WHERE patient_id_cp = $deleted[patient_id_cp]
+    ")[0];
+
+    if (count($rxs) > 0) {
+      $counts['deleted_with_rx']++;
+      print_r(['deleted patient no match but has rxs', $deleted, $rxs]);
+    }
+
+    if (count($rxs) > 0) {
+      $counts['deleted_no_rx']++;
+      //print_r(['deleted patient no match with rxs', $deleted, $rxs]);
+    }
   }
+
+  log_notice('update_patients_wc: deleted counts', $counts);
+
+  print_r($counts);
 
   foreach($changes['updated'] as $i => $updated) {
 
