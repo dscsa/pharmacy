@@ -20,17 +20,25 @@ function import_wc_patients() {
 
   SELECT
 
-    MAX(CASE WHEN wp_usermeta.meta_key = 'patient_id_cp' then wp_usermeta.meta_value ELSE NULL END) as patient_id_cp,
     wp_users.ID as patient_id_wc,
+    user_email as email,
+    RIGHT(user_login, 10) as birth_date,
+    MAX(user_registered) as patient_date_registered
+
+    MAX(CASE
+      WHEN wp_usermeta.meta_key = 'wp_capabilities' AND wp_usermeta.meta_value = 'a:1:{s:8:\"customer\";b:1;}' THEN NULL
+      WHEN wp_usermeta.meta_key = 'wp_capabilities' AND wp_usermeta.meta_value = 'a:1:{s:8:\"inactive\";b:1;}' THEN 'Inactive'
+      WHEN wp_usermeta.meta_key = 'wp_capabilities' AND wp_usermeta.meta_value = 'a:1:{s:8:\"deceased\";b:1;}' THEN 'Deceased'
+    END) as inactive,
+
+    MAX(CASE WHEN wp_usermeta.meta_key = 'patient_id_cp' then wp_usermeta.meta_value ELSE NULL END) as patient_id_cp,
     MAX(CASE WHEN wp_usermeta.meta_key = 'first_name' then wp_usermeta.meta_value ELSE NULL END) as first_name,
     MAX(CASE WHEN wp_usermeta.meta_key = 'last_name' then wp_usermeta.meta_value ELSE NULL END) as last_name,
-    RIGHT(user_login, 10) as birth_date,
     MAX(CASE WHEN wp_usermeta.meta_key = 'medications_other' then wp_usermeta.meta_value ELSE NULL END) as medications_other,
 
     -- https://stackoverflow.com/questions/37268248/how-to-get-only-digits-from-string-in-mysql
     RIGHT(0+MAX(CASE WHEN wp_usermeta.meta_key = 'phone' then wp_usermeta.meta_value ELSE NULL END), 10) as phone1,
     RIGHT(0+MAX(CASE WHEN wp_usermeta.meta_key = 'billing_phone' then wp_usermeta.meta_value ELSE NULL END), 10) as phone2,
-    user_email as email,
 
     MAX(CASE WHEN wp_usermeta.meta_key = 'patient_autofill' then wp_usermeta.meta_value ELSE NULL END) as patient_autofill,
     MAX(CASE WHEN wp_usermeta.meta_key = 'backup_pharmacy' then wp_usermeta.meta_value ELSE NULL END) as backup_pharmacy,
@@ -62,8 +70,6 @@ function import_wc_patients() {
     MAX(CASE WHEN wp_usermeta.meta_key = 'allergies_azithromycin' AND wp_usermeta.meta_value > '' then 'Azithromycin' ELSE NULL END) as allergies_azithromycin,
     MAX(CASE WHEN wp_usermeta.meta_key = 'allergies_amoxicillin' AND wp_usermeta.meta_value > '' then 'Amoxicillin' ELSE NULL END) as allergies_amoxicillin,
     MAX(CASE WHEN wp_usermeta.meta_key = 'allergies_other' AND wp_usermeta.meta_value > '' then LEFT(wp_usermeta.meta_value, 60) ELSE NULL END) as allergies_other, -- cppat_alr name field has a max of 60 characters
-
-    MAX(user_registered) as patient_date_registered
 
   FROM
     wp_users

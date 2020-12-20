@@ -35,7 +35,7 @@ function changes_to_patients_cp($new) {
     NOT old.patient_state <=> new.patient_state OR
     NOT old.patient_zip <=> new.patient_zip OR
     NOT old.refills_used <=> new.refills_used OR
-    NOT old.patient_status <=> new.patient_status OR
+    NOT old.inactive <=> new.inactive OR
     NOT old.language <=> new.language OR
 
     NOT old.allergies_tetracycline <=> new.allergies_tetracycline OR

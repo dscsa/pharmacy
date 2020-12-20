@@ -36,20 +36,39 @@ function export_cp_patient_save_medications_other($mssql, $patient, $live = fals
   //live:$live $patient[first_name] $patient[last_name] $sql ".json_encode($res1, JSON_PRETTY_PRINT)." ".json_encode($res2, JSON_PRETTY_PRINT);
 }
 
-function export_cp_inactivate_patient($patient_id_cp, $mssql) {
+function update_cp_patient_active_status($mssql, $patient_id_cp, $inactive) {
+
+  if ( ! $patient_id_cp) return;
+
+  if ($inactive == 'Inactive') {
+    $cp_key = 'Inactivated';
+    $cp_val = 2;
+  }
+
+  else if ($inactive == 'Deceased') {
+    $cp_key = 'Marked deceased';
+    $cp_val = 3;
+  }
+
+  else {
+    $cp_key = 'Reactivated';
+    $cp_val = 1;
+  }
 
   $date = date('Y-m-d H:i:s');
 
   $sql = "
     UPDATE cppat
     SET
-      pat_status_cn = 2,
-      cmt = CONCAT(cmt, ' Deleted by Pharmacy App on $date')
+      pat_status_cn = $cp_val,
+      cmt = CONCAT(cmt, ' $cp_key by Pharmacy App on $date')
     WHERE
       pat_id = $patient_id_cp
   ";
-  
-  $mssql->run($sql);
+
+  echo "\n$sql";
+
+  //$mssql->run($sql);
 }
 
 function export_cp_patient_save_patient_note($mssql, $patient, $live = false) {

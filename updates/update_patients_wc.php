@@ -185,9 +185,9 @@ function update_patients_wc($changes) {
 
       $counts['deleted_test']++;
 
-      export_cp_inactivate_patient($deleted['patient_id_cp'], $mssql);
+      update_cp_patient_active_status($mssql, $patient_id_cp, $deleted['inactive']);
 
-      //print_r(['deleted test patient', $deleted]);
+      print_r(['deleted test patient', $deleted]);
 
       continue;
     }
@@ -292,17 +292,17 @@ function update_patients_wc($changes) {
 
   foreach($changes['updated'] as $i => $updated) {
 
-      SirumLog::$subroutine_id = "patients-wc-updated-".sha1(serialize($updated));
+    SirumLog::$subroutine_id = "patients-wc-updated-".sha1(serialize($updated));
 
-      SirumLog::debug(
-        "update_patients_wc: WooCommerce PATIENT updated",
-        [
-            'updated' => $updated,
-            'source'  => 'WooCommerce',
-            'type'    => 'patients',
-            'event'   => 'updated'
-        ]
-      );
+    SirumLog::debug(
+      "update_patients_wc: WooCommerce PATIENT updated",
+      [
+          'updated' => $updated,
+          'source'  => 'WooCommerce',
+          'type'    => 'patients',
+          'event'   => 'updated'
+      ]
+    );
 
     if ( ! $updated['patient_id_cp']) {
       $patient = find_patient_wc($mysql, $updated);
@@ -315,6 +315,13 @@ function update_patients_wc($changes) {
     $changed
       ? log_notice("update_patients_wc: updated changed $updated[first_name] $updated[last_name] $updated[birth_date] cp:$updated[patient_id_cp] wc:$updated[patient_id_wc]", $changed)
       : log_error("update_patients_wc: updated no change? $updated[first_name] $updated[last_name] $updated[birth_date] cp:$updated[patient_id_cp] wc:$updated[patient_id_wc]", $updated);
+
+
+    if ($updated['inactive'] !== $updated['old_inactive']) {
+      $patient = find_patient_wc($mysql, $updated)[0];
+      update_wc_patient_active_status($mysql, $patient['patient_id_wc'], $updated['inactive']);
+      log_notice("WC Patient Inactive Status Changed", $updated);
+    }
 
     if ( ! $updated['email'] AND $updated['old_email']) {
       wc_upsert_patient_meta($mysql, $updated['patient_id_wc'], 'email', $updated['old_email']);

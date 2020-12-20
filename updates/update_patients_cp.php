@@ -72,6 +72,12 @@ function update_patients_cp($changes) {
       log_notice("Phone1 updated in CP. Was this handled correctly?", $updated);
     }
 
+    if ($updated['inactive'] !== $updated['old_inactive']) {
+      $patient = find_patient_wc($mysql, $updated)[0];
+      update_wc_patient_active_status($mysql, $patient['patient_id_cp'], $updated['inactive']);
+      log_notice("CP Patient Inactive Status Changed", $updated);
+    }
+
     if ($updated['payment_method_default'] != PAYMENT_METHOD['AUTOPAY'] AND $updated['old_payment_method_default'] ==  PAYMENT_METHOD['AUTOPAY'])
       cancel_events_by_person($updated['first_name'], $updated['last_name'], $updated['birth_date'], 'update_patients_wc: updated payment_method_default', ['Autopay Reminder']);
 

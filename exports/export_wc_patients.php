@@ -12,7 +12,7 @@ function cp_to_wc_key($key) {
     'tracking_coupon' => 'coupon',
     'phone2' => 'billing_phone',
     'phone1' => 'phone',
-    'patient_note' => 'medications_other'
+    'patient_note' => 'medications_other',
   ];
 
   return isset($cp_to_wc[$key]) ? $cp_to_wc[$key] : $key;
@@ -148,14 +148,33 @@ function find_patient_wc($mysql, $patient, $table = 'gp_patients') {
   return $res;
 }
 
+function update_wc_patient_active_status($mysql, $patient_id_wc, $inactive) {
+
+  if ( ! $patient_id_wc) return;
+
+  if ($inactive == 'Inactive') {
+    $wc_val = 'a:1:{s:8:"inactive";b:1;}';
+  }
+
+  else if ($inactive == 'Deceased') {
+    $wc_val = 'a:1:{s:8:"deceased";b:1;}';
+  }
+
+  else {
+    $wc_val = 'a:1:{s:8:"customer";b:1;}';
+  }
+
+  echo "\n$patient_id_wc, 'wp_capabilities',  $wc_val";
+
+  //return wc_upsert_patient_meta($mysql, $patient_id_wc, 'wp_capabilities',  $wc_val);
+}
+
 function update_wc_phone1($mysql, $patient_id_wc, $phone1) {
   if ( ! $patient_id_wc) return;
-  $mysql->run("UPDATE gp_patients_wc SET phone1 = ".($phone1 ?: 'NULL')." WHERE patient_id_wc = $patient_id_wc");
   return wc_upsert_patient_meta($mysql, $patient_id_wc, 'phone',  $phone1);
 }
 
 function update_wc_phone2($mysql, $patient_id_wc, $phone2) {
   if ( ! $patient_id_wc) return;
-  $mysql->run("UPDATE gp_patients_wc SET phone2 = ".($phone2 ?: 'NULL')." WHERE patient_id_wc = $patient_id_wc");
   return wc_upsert_patient_meta($mysql, $patient_id_wc, 'billing_phone', $phone2);
 }
