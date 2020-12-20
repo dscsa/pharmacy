@@ -117,7 +117,7 @@ function find_patient_wc($mysql, $patient, $table = 'gp_patients') {
   $res = $mysql->run($sql)[0];
 
   if ($res)
-    echo "\n$patient[first_name'] $patient[last_name] $patient[birth_date]\n$sql\ncount:".count($res)."\n".print_r($res);
+    echo "\n$patient[first_name] $patient[last_name] $patient[birth_date]\n$sql\ncount:".count($res)."\n".print_r($res);
 
   return $res;
 }
