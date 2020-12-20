@@ -186,7 +186,7 @@ function update_wc_patient_active_status($mysql, $patient_id_wc, $inactive) {
 
   echo "\nupdate_wc_patient_active_status $inactive -> $patient_id_wc, 'wp_capabilities',  $wc_val";
 
-  //return wc_upsert_patient_meta($mysql, $patient_id_wc, 'wp_capabilities',  $wc_val);
+  return wc_upsert_patient_meta($mysql, $patient_id_wc, 'wp_capabilities',  $wc_val);
 }
 
 function update_wc_phone1($mysql, $patient_id_wc, $phone1) {
