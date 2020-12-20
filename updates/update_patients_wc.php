@@ -134,6 +134,7 @@ function update_patients_wc($changes) {
     if (preg_match($regex, $deleted['first_name']) OR preg_match($regex, $deleted['last_name'])) {
       $counts['deleted_test']++;
       export_cp_inactivate_patient($deleted['patient_id_cp'], $mssql);
+      print_r(['deleted test patient', $salesforce, $sql]);
       continue;
     }
 
@@ -145,17 +146,24 @@ function update_patients_wc($changes) {
 
     $match = find_patient_wc($mysql, $deleted, 'gp_patients_wc');
 
-    if (count($match) == 1) {
+    if (count($match) == 1 AND $deleted['patient_id_cp'] == $match[0]['patient_id_cp']) {
       $counts['deleted_match']++;
 
       $sql = "
-        UPDATE gp_patients SET patient_id_wc = {$match[0]['patient_id_wc']} WHERE patient_id_cp = $deleted[patient_id_cp] OR patient_id_cp = {$match[0]['patient_id_cp']}
+        UPDATE gp_patients SET patient_id_wc = {$match[0]['patient_id_wc']} WHERE patient_id_cp = $deleted[patient_id_cp]
       ";
 
       $mysql->run($sql)[0];
 
-      if ($deleted['patient_id_cp'] == $match[0]['patient_id_cp'])
-        continue;
+      print_r(['deleted patient matched', $salesforce, $sql]);
+
+      continue;
+    }
+
+    if (count($match) == 1 AND $deleted['patient_id_cp'] != $match[0]['patient_id_cp']) {
+      $counts['deleted_multi']++;
+
+      if (date('H') != '01') continue; //Don't flood Cindy with SF tasks
 
       $created = date('Y-m-d H:i:s');
 
@@ -171,14 +179,27 @@ function update_patients_wc($changes) {
 
       create_event($event_title, [$salesforce]);
 
-      print_r(['deleted patient matched', $salesforce, $sql]);
-
       continue;
     }
 
     if (count($match) > 1) {
       $counts['deleted_multi']++;
-      print_r(['deleted patient multi-matched', $deleted, $match]);
+
+      if (date('H') != '01') continue; //Don't flood Cindy with SF tasks
+
+      $created = date('Y-m-d H:i:s');
+
+      $salesforce = [
+        "subject"   => "Duplicate WooCommerce Patient Accounts",
+        "body"      => "Please merge the patients {$match[0]['first_name']} {$match[0]['last_name']} and {$match[1]['first_name']} {$match[1]['last_name']}",
+        "contact"   => "$deleted[first_name] $deleted[last_name] $deleted[birth_date]",
+        "assign_to" => "Kiah",
+        "due_date"  => date('Y-m-d')
+      ];
+
+      $event_title = "$salesforce[subject]: $salesforce[contact] $created";
+
+      create_event($event_title, [$salesforce]);
       continue;
     }
 
@@ -190,7 +211,7 @@ function update_patients_wc($changes) {
       $counts['deleted_with_rx']++;
       if ($counts['deleted_with_rx'] < 5) {
         print_r(['deleted patient no match but has rxs', $deleted, count($rxs)]);
-        wc_create_patient($mysql, $patient);
+        wc_create_patient($mysql, $deleted);
       }
       continue;
     }

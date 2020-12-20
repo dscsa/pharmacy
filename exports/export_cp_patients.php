@@ -40,14 +40,18 @@ function export_cp_inactivate_patient($patient_id_cp, $mssql) {
 
   $date = date('Y-m-d H:i:s');
 
-  $mssql->run("
+  $sql = "
     UPDATE cppat
     SET
       pat_status_cn = 2,
       cmt = CONCAT(cmt, ' Deleted by Pharmacy App on $date')
     WHERE
       pat_id = $patient_id_cp
-  ");
+  ";
+
+  echo $sql;
+
+  $mssql->run($sql);
 }
 
 function export_cp_patient_save_patient_note($mssql, $patient, $live = false) {
