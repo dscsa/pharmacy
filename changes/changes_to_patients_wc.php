@@ -77,17 +77,17 @@ function changes_to_patients_wc($new) {
 
   //Get Deleted
   $sql = wc_patients_get_deleted_sql($new, $old, $id);
-  echo "\n$sql\n";
+  //echo "\n$sql\n";
   $deleted = $mysql->run($sql);
 
   //Get Inserted
   $sql = get_created_sql($new, $old, $id);
-  echo "\n$sql\n";
+  //echo "\n$sql\n";
   $created = $mysql->run($sql);
 
   //Get Updated
   $sql = get_updated_sql($new, $old, $id, $where);
-  echo "\n$sql\n"; //log_error('changes_to_patients_wc: updated', $sql);
+  //echo "\n$sql\n"; //log_error('changes_to_patients_wc: updated', $sql);
   $updated = $mysql->run($sql);
 
   //Save Deletes
