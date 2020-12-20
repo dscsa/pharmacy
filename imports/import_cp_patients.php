@@ -58,7 +58,7 @@ function import_cp_patients() {
       MAX(ISNULL(primary_lang_cd, 'EN')) as language,
       CONVERT(varchar, MAX(pat.add_date), 20) as patient_date_added,
       CONVERT(varchar, MAX(pat.chg_date), 20) as patient_date_changed,
-      CASE WHEN MAX(pat_status_cn) = 1 OR MAX(pat_status_cn) IS NULL THEN NULL WHEN MAX(pat_status_cn) = 2 THEN 'Inactive' WHEN MAX(pat_status_cn) = 3 THEN 'Deceased' END as inactive
+      CASE WHEN MAX(pat_status_cn) = 1 OR MAX(pat_status_cn) IS NULL THEN NULL WHEN MAX(pat_status_cn) = 2 THEN 'Inactive' WHEN MAX(pat_status_cn) = 3 THEN 'Deceased' END as patient_inactive
       -- Patient Deleted/Merged in Guardian 0 Not Specified, 1 Active, 2 Inactive, 3 Deceased (won't show up in patient search but will with Rx number)
     FROM cppat pat (nolock)
     LEFT JOIN cppat_phone pp1 (nolock) ON pat.pat_id = pp1.pat_id AND pp1.phone_type_cn = 6

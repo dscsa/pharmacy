@@ -29,7 +29,7 @@ function import_wc_patients() {
       WHEN wp_usermeta.meta_key = 'wp_capabilities' AND wp_usermeta.meta_value = 'a:1:{s:8:\"customer\";b:1;}' THEN NULL
       WHEN wp_usermeta.meta_key = 'wp_capabilities' AND wp_usermeta.meta_value = 'a:1:{s:8:\"inactive\";b:1;}' THEN 'Inactive'
       WHEN wp_usermeta.meta_key = 'wp_capabilities' AND wp_usermeta.meta_value = 'a:1:{s:8:\"deceased\";b:1;}' THEN 'Deceased'
-    END) as inactive,
+    END) as patient_inactive,
 
     MAX(CASE WHEN wp_usermeta.meta_key = 'patient_id_cp' then wp_usermeta.meta_value ELSE NULL END) as patient_id_cp,
     MAX(CASE WHEN wp_usermeta.meta_key = 'first_name' then wp_usermeta.meta_value ELSE NULL END) as first_name,
