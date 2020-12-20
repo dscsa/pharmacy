@@ -167,7 +167,7 @@ function update_wc_backup_pharmacy($mysql, $patient_id_wc, $patient) {
 
   echo "\nupdate_wc_patient_active_status $patient_id_wc, 'backup_pharmacy',  $wc_val";
 
-  //return wc_upsert_patient_meta($mysql, $patient_id_wc, 'backup_pharmacy',  $wc_val);
+  return wc_upsert_patient_meta($mysql, $patient_id_wc, 'backup_pharmacy',  $wc_val);
 }
 
 function update_wc_patient_active_status($mysql, $patient_id_wc, $inactive) {

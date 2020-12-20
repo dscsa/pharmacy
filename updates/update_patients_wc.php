@@ -65,10 +65,11 @@ function update_patients_wc($changes) {
       ]
     );
 
-    //Only registered first page,
-    if ( ! $created['first_name'] OR ! $created['last_name'] OR ! $created['birth_date']) {
+    if ( ! $created['pharmacy_name']) {
 
-      $counts['needs_form']++;
+      $counts['needs_pharmacy']++;
+
+      //echo "\nincomplete registration but has name?";
 
       //Delete Incomplete Registrations after 30mins
       if ((time() - strtotime($created['patient_date_registered'])) > 30*60) {
@@ -77,15 +78,8 @@ function update_patients_wc($changes) {
         //wc_delete_patient($mysql, $created['patient_id_wc']);
       }
 
-      continue;
-    }
-
-    if ( ! $created['pharmacy_name']) {
-
-      $counts['needs_pharmacy']++;
-
-      echo "\nincomplete registration but has name?";
       //Registration Started but Not Complete (first 1/2 of the registration form)
+      continue;
     }
 
     $patient_cp = find_patient_wc($mysql, $created);
@@ -118,6 +112,10 @@ function update_patients_wc($changes) {
 
       continue;
     }
+
+    echo "\ndefault wc_patient created. what's happening here? cp:".print_r($patient_cp, true)." wc:".print_r($patient_wc, true);
+
+    continue;
 
     echo "\ndefault duplicate SF task";
 
@@ -153,149 +151,21 @@ function update_patients_wc($changes) {
 
   print_r($counts);
 
-  $counts = [
-    'deleted_test'    => 0,
-    'deleted_actual'  => 0,
-    'deleted_match'   => 0,
-    'deleted_multi'   => 0,
-    'deleted_no_rx'   => 0,
-    'deleted_with_rx' => 0
-  ];
-
   foreach($changes['deleted'] as $i => $deleted) {
 
     SirumLog::$subroutine_id = "patients-wc-deleted-".sha1(serialize($deleted));
 
-    SirumLog::debug(
-      "update_patients_wc: WooCommerce PATIENT deleted",
-      [
-        'deleted' => $deleted,
-        'source'  => 'WooCommerce',
-        'type'    => 'patients',
-        'event'   => 'deleted'
-      ]
-    );
+    $alert = [
+      'deleted' => $deleted,
+      'source'  => 'WooCommerce',
+      'type'    => 'patients',
+      'event'   => 'deleted'
+    ];
 
-    $rxs = $mysql->run("
-      SELECT * FROM gp_rxs_single WHERE patient_id_cp = $deleted[patient_id_cp]
-    ")[0];
+    SirumLog::alert("update_patients_wc: WooCommerce PATIENT deleted $deleted[first_name] $deleted[last_name] $deleted[birth_date]", $alert);
 
-    //Dummy accounts that have been cleared out of WC
-    if (is_test_user($deleted)) {
-
-      $counts['deleted_test']++;
-
-      echo "\nWC Patient Deleted so changing CP Status $deleted[first_name] $deleted[last_name] $deleted[birth_date] $deleted[patient_inactive] >>> ???";
-
-      //TODO Truly delete patient in CP instead?
-
-      //TEMP USE CP AS SOURCE OF TRUTH ON INITIAL SETUP.  TO BE REMOVED
-      update_wc_patient_active_status($mysql, $deleted['patient_id_wc'], $deleted['old_patient_inactive']);
-
-      //update_cp_patient_active_status($mssql, $patient_id_cp, $deleted['patient_inactive']);
-
-
-
-      continue;
-    }
-
-    if ($deleted['patient_id_wc']) {
-
-      $counts['deleted_actual']++;
-
-      log_error('update_patients_wc deleted: patient was just deleted from WC', $deleted);
-
-      continue;
-    }
-
-    $match = find_patient_wc($mysql, $deleted, 'gp_patients_wc');
-
-    if (count($match) == 1 AND $deleted['patient_id_cp'] == $match[0]['patient_id_cp']) {
-
-      $counts['deleted_match']++;
-
-      $sql = "
-        UPDATE gp_patients SET patient_id_wc = {$match[0]['patient_id_wc']} WHERE patient_id_cp = $deleted[patient_id_cp]
-      ";
-
-      $mysql->run($sql)[0];
-
-      //print_r(['deleted patient matched', $deleted]);
-
-      continue;
-    }
-
-    if (count($match) == 1 AND $deleted['patient_id_cp'] != $match[0]['patient_id_cp']) {
-
-      $counts['deleted_multi']++;
-
-      if (date('H') != '01' OR date('i') > '15') continue; //Don't flood Cindy with SF tasks
-
-      $created = date('Y-m-d H:i:s');
-
-      $salesforce = [
-        "subject"   => "Duplicate Carepoint Patient Accounts",
-        "body"      => "Please merge the patients $deleted[first_name] $deleted[last_name] with {$match[0]['first_name']} {$match[0]['last_name']}",
-        "contact"   => "$deleted[first_name] $deleted[last_name] $deleted[birth_date]",
-        "assign_to" => "Cindy",
-        "due_date"  => date('Y-m-d')
-      ];
-
-      $event_title = "$salesforce[subject]: $salesforce[contact] $created";
-
-      create_event($event_title, [$salesforce]);
-
-      continue;
-    }
-
-    if (count($match) > 1) {
-
-      $counts['deleted_multi']++;
-
-      if (date('H') != '01' OR date('i') > '15') continue; //Don't flood Cindy with SF tasks
-
-      $created = date('Y-m-d H:i:s');
-
-      $salesforce = [
-        "subject"   => "Duplicate WooCommerce Patient Accounts",
-        "body"      => "Please merge the patients {$match[0]['first_name']} {$match[0]['last_name']} and {$match[1]['first_name']} {$match[1]['last_name']}",
-        "contact"   => "$deleted[first_name] $deleted[last_name] $deleted[birth_date]",
-        "assign_to" => "Kiah",
-        "due_date"  => date('Y-m-d')
-      ];
-
-      $event_title = "$salesforce[subject]: $salesforce[contact] $created";
-
-      create_event($event_title, [$salesforce]);
-
-      continue;
-    }
-
-    if (count($rxs) > 0) {
-
-      $counts['deleted_with_rx']++;
-      wc_create_patient($mysql, $deleted);
-
-      if ($counts['deleted_no_rx'] < 0)
-        print_r(['deleted patient no match but has rxs', $deleted, count($rxs)]);
-
-      continue;
-    }
-
-    if (count($rxs) == 0) {
-
-      $counts['deleted_no_rx']++;
-
-      if ($counts['deleted_no_rx'] < 0)
-        print_r(['deleted patient no match and no rxs', $deleted, $rxs]);
-
-      continue;
-    }
+    print_r($alert);
   }
-
-  log_notice('update_patients_wc: deleted counts', $counts);
-
-  print_r($counts);
 
   foreach($changes['updated'] as $i => $updated) {
 
