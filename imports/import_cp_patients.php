@@ -53,7 +53,7 @@ function import_cp_patients() {
       MAX(CASE WHEN Dam_agcsp = 270 AND ISNULL(cppat_alr.status_cn, 0) <> 3 THEN 'Salicylates' ELSE NULL END) as allergies_salicylates,
       MAX(CASE WHEN hic ='W1DH' AND ISNULL(cppat_alr.status_cn, 0) <> 3 THEN 'Azithromycin' ELSE NULL END) as allergies_azithromycin,
       MAX(CASE WHEN hic ='W1AU' AND ISNULL(cppat_alr.status_cn, 0) <> 3 THEN 'Amoxicillin' ELSE NULL END) as allergies_amoxicillin,
-      MAX(CASE WHEN hic ='' AND Dam_agcsp = 0 AND hicl_seqno IS NULL AND ISNULL(cppat_alr.status_cn, 0) <> 3 THEN name ELSE NULL END) as allergies_other,
+      MAX(CASE WHEN hic ='' AND Dam_agcsp = 0 AND hicl_seqno = 0 AND ISNULL(cppat_alr.status_cn, 0) <> 3 THEN name ELSE NULL END) as allergies_other,
       SUM(CASE WHEN refills_orig + 1 - refills_left > 0 AND orig_disp_date < GETDATE() - 4 THEN refills_orig + 1 - refills_left ELSE 0 END) as refills_used, --Although not identical, simplify to SUM(refills_used)? Potential to SUM(is_refill) but seems that GCNs churn enough that this is not accurate
       MAX(ISNULL(primary_lang_cd, 'EN')) as language,
       CONVERT(varchar, MAX(pat.add_date), 20) as patient_date_added,
