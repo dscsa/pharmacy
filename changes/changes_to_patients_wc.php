@@ -19,6 +19,8 @@ function wc_patients_get_deleted_sql($new, $old, $id) {
       new.$id IS NULL
     AND
       old.pharmacy_name IS NOT NULL -- We know that unregistered patients are not in WC yet
+    AND
+      old.patient_inactive != 'Inactive' -- Since hard to actually delete in CP, if we marked it inactive in CP count it as already deleted
   ";
 }
 
