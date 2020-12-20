@@ -378,6 +378,14 @@ function update_patients_wc($changes) {
     }
 
     if ($updated['medications_other'] !== $updated['old_medications_other']) {
+
+      for ($i = 0; $i <= 100; $i++) {
+        if (substr($updated['medications_other'], 0, i) != substr($updated['old_medications_other'], 0, i)) {
+          echo "\n\n".substr($updated['medications_other'], 0, i);
+          echo "\n".substr($updated['old_medications_other'], 0, i);
+        }
+      }
+
       export_cp_patient_save_medications_other($mssql, $updated);
     }
   }
