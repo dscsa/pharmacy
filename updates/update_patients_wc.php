@@ -379,15 +379,18 @@ function update_patients_wc($changes) {
 
     if ($updated['medications_other'] !== $updated['old_medications_other']) {
 
-      for ($i = 0; $i <= 100; $i++) {
-        if (substr($updated['medications_other'], 0, i) != substr($updated['old_medications_other'], 0, i)) {
+      if (utf8ize($updated['medications_other']) === utf8ize($updated['old_medications_other']))
+        echo "\n utf8ize WORKED!";
+
+      for ($i = 0; $i <= 1000; $i++) {
+        if (substr($updated['medications_other'], 0, i) !== substr($updated['old_medications_other'], 0, i)) {
           echo "\n\n".substr($updated['medications_other'], 0, i);
           echo "\n".substr($updated['old_medications_other'], 0, i);
           break;
         }
       }
 
-      export_cp_patient_save_medications_other($mssql, $updated);
+      //export_cp_patient_save_medications_other($mssql, $updated);
     }
   }
 
