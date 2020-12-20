@@ -155,7 +155,7 @@ function update_patients_wc($changes) {
       print_r(['deleted patient multi-matched', $deleted, $match]);
     }
 
-    $rxs = $mysql-run("
+    $rxs = $mysql->run("
       SELECT * FROM gp_rxs_single WHERE patient_id_cp = $deleted[patient_id_cp]
     ")[0];
 
