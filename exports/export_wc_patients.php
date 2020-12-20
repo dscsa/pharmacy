@@ -112,7 +112,13 @@ function find_patient_wc($mysql, $patient, $table = 'gp_patients') {
       birth_date = '$patient[birth_date]'
   ";
 
-  log_info('update_patients_wc: finding', [$sql, $patient]);
+  if ( ! $first_name_prefix OR ! $last_name_prefix OR ! $patient['birth_date']) {
+    print_r($patient);
+    log_error('export_wc_patients: find_patient_wc. patient has no name!', [$sql, $patient]);
+    return [];
+  }
+
+  log_info('export_wc_patients: find_patient_wc', [$sql, $patient]);
 
   $res = $mysql->run($sql)[0];
 
