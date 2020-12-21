@@ -13,14 +13,14 @@ $args   = getopt("s:e:hn", array());
 function printHelp()
 {
     echo <<<EOF
-    php check_invoices.php [-h] [-s '-1 Hour'] [-e '-30 Minutes']
-        -s start_date Any date expression that can be parsed by string to
-                      time.  Defaults to '-1 Hour'
-        -e end_date   Any date expression that can be parsed by string to
-                      time.  Defaults to '-30 Minutes' This time must be greater
-                      than the start_date.
-        -h            Print this message
-        -n            Don't alert pager duty
+php check_invoices.php [-h -n] -s '-1 Hour' -e '-30 Minutes'
+    -e end_date   Any date expression that can be parsed by string to
+                  time.  Defaults to '-30 Minutes' This time must be greater
+                  than the start_date.
+    -h            Print this message
+    -n            Don't alert pager duty
+    -s start_date Any date expression that can be parsed by string to
+                  time.  Defaults to '-1 Hour'
 
 EOF;
     exit;
