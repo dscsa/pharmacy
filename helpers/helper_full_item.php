@@ -2,7 +2,7 @@
 
 use Sirum\Logging\SirumLog;
 
-function get_full_item($item, $mysql, $overwrite_rx_messages = false) {
+function load_full_item($item, $mysql, $overwrite_rx_messages = false) {
 
   if ( ! $item['rx_number']) {
     log_error('ERROR get_full_item: missing rx_number', get_defined_vars());

@@ -107,7 +107,7 @@ function update_orders_cp($changes) {
           continue; //Not sure what we should do here.  Process them?  Patient communication?
         }
 
-        $order = get_full_order($created, $mysql, true);
+        $order = load_full_order($created, $mysql, true);
 
         if ( ! $order) {
             SirumLog::debug(
@@ -421,7 +421,7 @@ function update_orders_cp($changes) {
           ['updated' => $updated]
         );
 
-        $order = get_full_order($updated, $mysql);
+        $order = load_full_order($updated, $mysql);
 
         if (!$order) {
           SirumLog::notice(

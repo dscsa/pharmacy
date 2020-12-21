@@ -37,7 +37,7 @@ function update_order_items($changes) {
 
     SirumLog::$subroutine_id = "order-items-created-".sha1(serialize($created));
 
-    $item = get_full_item($created, $mysql, true);
+    $item = load_full_item($created, $mysql, true);
 
     SirumLog::debug(
       "update_order_items: Order Item created",
@@ -88,7 +88,7 @@ function update_order_items($changes) {
       ]
     );
 
-    $item = get_full_item($deleted, $mysql, true);
+    $item = load_full_item($deleted, $mysql, true);
 
     //Don't Unpend here.  This is handled by count_item changes in update_orders_cp
     //Count Items will go down, triggering a CP Order Change
@@ -113,7 +113,7 @@ function update_order_items($changes) {
       ]
     );
 
-    $item = get_full_item($updated, $mysql, true);
+    $item = load_full_item($updated, $mysql, true);
 
     if ( ! $item) {
       log_error("Updated Item Missing", get_defined_vars());

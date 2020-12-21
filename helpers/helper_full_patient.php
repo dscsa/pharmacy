@@ -4,7 +4,7 @@ require_once 'helpers/helper_full_fields.php';
 
 use Sirum\Logging\SirumLog;
 
-function get_full_patient($partial, $mysql, $overwrite_rx_messages = false) {
+function load_full_patient($partial, $mysql, $overwrite_rx_messages = false) {
 
   if ( ! isset($partial['patient_id_cp'])) {
     log_error('ERROR! get_full_patient: was not given a patient_id_cp', $partial);

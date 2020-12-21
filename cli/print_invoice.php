@@ -47,7 +47,7 @@ if (isset($arrOptions['d'])) {
 		["invoice_number" => $invoice_number]
 	);
 
-  $order = get_full_order(["invoice_number" => $invoice_number], $mysql);
+  $order = load_full_order(["invoice_number" => $invoice_number], $mysql);
   export_gd_publish_invoice($order, $mysql);
   export_gd_print_invoice($order);
   echo "Invoice {$invoice_number} queued to print";

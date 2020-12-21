@@ -5,7 +5,7 @@ require_once 'helpers/helper_full_fields.php';
 
 use Sirum\Logging\SirumLog;
 
-function get_full_order($partial, $mysql, $overwrite_rx_messages = false) {
+function load_full_order($partial, $mysql, $overwrite_rx_messages = false) {
 
   if ( ! isset($partial['invoice_number'])) {
     log_error('ERROR! get_full_order: was not given an invoice number', $partial);

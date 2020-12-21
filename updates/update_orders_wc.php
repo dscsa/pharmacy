@@ -95,7 +95,7 @@ function update_orders_wc($changes) {
             ]
         );
 
-        $order = get_full_order($deleted, $mysql);
+        $order = load_full_order($deleted, $mysql);
 
         /* TODO Investigate if/why this is needed */
         if (! $order) {
@@ -221,7 +221,7 @@ function update_orders_wc($changes) {
                     ['updated' => $updated]
                 );
 
-                $order = get_full_order($updated, $mysql);
+                $order = load_full_order($updated, $mysql);
 
                 if (! $order) {
                     SirumLog::notice(
@@ -257,7 +257,7 @@ function update_orders_wc($changes) {
                 ['updated' => $updated]
             );
 
-            $order = get_full_order($updated, $mysql);
+            $order = load_full_order($updated, $mysql);
 
             SirumLog::notice(
                 "WC Order Updating from NULL Status",
@@ -303,7 +303,7 @@ function update_orders_wc($changes) {
                     ['updated' => $updated]
                 );
 
-                $order = get_full_order($updated, $mysql);
+                $order = load_full_order($updated, $mysql);
                 SirumLog::error(
                     "WC Order Irregular Stage Change.",
                     [

@@ -15,7 +15,7 @@ function update_rxs_single($changes) {
 
   /**
    * All RX should have a rx_message set.  We are going to query the database
-   * and look for any with a NULL rx_message_key.  If we dint one, get_full_patient()
+   * and look for any with a NULL rx_message_key.  If we dint one, load_full_patient()
    * will fetch the user and update the message?
    *
    *  NOTE Using an INNER JOIN to exclude Rxs associated with patients that are inactive or deceased
@@ -32,7 +32,7 @@ function update_rxs_single($changes) {
     SirumLog::$subroutine_id = "rxs-single-null-message-".sha1(serialize($rx_single));
 
     //This updates & overwrites set_rx_messages
-    $patient = get_full_patient($rx_single, $mysql, $rx_single['rx_number']);
+    $patient = load_full_patient($rx_single, $mysql, $rx_single['rx_number']);
 
     //These should have been given an rx_message upon creation.  Why was it missing?
     SirumLog::error(
@@ -238,7 +238,7 @@ function update_rxs_single($changes) {
 
     // This updates & overwrites set_rx_messages.  TRUE because this one
     // Rx might update many other Rxs for the same drug.
-    $patient = get_full_patient($created, $mysql, true);
+    $patient = load_full_patient($created, $mysql, true);
 
     remove_drugs_from_refill_reminders(
       $patient[0]['first_name'],
@@ -273,7 +273,7 @@ function update_rxs_single($changes) {
 
     if ($updated['rx_autofill'] != $updated['old_rx_autofill']) {
 
-      $item = get_full_item($updated, $mysql, true);
+      $item = load_full_item($updated, $mysql, true);
 
       if ( ! $item['refills_used'] AND $updated['rx_autofill']) {
         continue; //Don't log when a patient first registers
@@ -324,7 +324,7 @@ function update_rxs_single($changes) {
 
     if ($updated['rx_gsn'] AND ! $updated['old_rx_gsn']) {
 
-      $item = get_full_item($updated, $mysql, true);
+      $item = load_full_item($updated, $mysql, true);
 
       //TODO do we need to update the patient, that we are now including this drug if $item['days_dispensed_default'] AND ! $item['rx_dispensed_id']?
 
