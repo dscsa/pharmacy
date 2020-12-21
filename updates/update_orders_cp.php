@@ -5,7 +5,7 @@ require_once 'helpers/helper_payment.php';
 require_once 'helpers/helper_syncing.php';
 require_once 'helpers/helper_communications.php';
 require_once 'exports/export_wc_orders.php';
-require_once 'exports/export_cp_order_items.php';
+require_once 'exports/export_cp_orders.php';
 
 use Sirum\Logging\SirumLog;
 
@@ -15,33 +15,15 @@ function update_orders_cp($changes) {
   $count_created = count($changes['created']);
   $count_updated = count($changes['updated']);
 
-  if ( ! $count_deleted AND ! $count_created AND ! $count_updated) {
-    SirumLog::notice(
-      'No changes found, leaving update_order_cp',
-      [
-        'deleted' => $changes['deleted'],
-        'created' => $changes['created'],
-        'updated' => $changes['updated'],
-        'deleted_count' => $count_deleted,
-        'created_count' => $count_created,
-        'updated_count' => $count_updated
-      ]
-    );
+  $msg = "$count_deleted deleted, $count_created created, $count_updated updated ";
+  echo $msg;
+  log_info("update_orders_cp: all changes. $msg", [
+    'deleted_count' => $count_deleted,
+    'created_count' => $count_created,
+    'updated_count' => $count_updated
+  ]);
 
-    return;
-  }
-
-  SirumLog::debug(
-    'Carepoint Order Changes found',
-    [
-      'deleted' => $changes['deleted'],
-      'created' => $changes['created'],
-      'updated' => $changes['updated'],
-      'deleted_count' => $count_deleted,
-      'created_count' => $count_created,
-      'updated_count' => $count_updated
-    ]
-  );
+  if ( ! $count_deleted AND ! $count_created AND ! $count_updated) return;
 
   $mysql = new Mysql_Wc();
 
@@ -125,7 +107,7 @@ function update_orders_cp($changes) {
           continue; //Not sure what we should do here.  Process them?  Patient communication?
         }
 
-        $order = get_full_order($created, $mysql, true);
+        $order = load_full_order($created, $mysql, true);
 
         if ( ! $order) {
             SirumLog::debug(
@@ -182,63 +164,52 @@ function update_orders_cp($changes) {
             continue;
         }
 
-        /*
-         * 1) Add Drugs to Guardian that should be in the order
-         * 2) Remove drug from guardian that should not be in the order
-         * 3) Create a fax out transfer for anything removed that is not offered
-         * ACTION PATIENT OFF AUTOFILL Notice
-         */
-        $synced = sync_to_order($order);
-
         //Patient communication that we are cancelling their order examples include:
         //NEEDS FORM, ORDER HOLD WAITING FOR RXS, TRANSFER OUT OF ALL ITEMS, ACTION PATIENT OFF AUTOFILL
-        if ($synced['new_count_items'] <= 0) {
+        if ($order[0]['count_filled'] == 0) {
 
           SirumLog::debug(
-            'update_orders_cp sync_to_order is effectively removing order',
+            'update_orders_cp: created. no drugs to fill. removing order',
             [
               'invoice_number' => $order[0]['invoice_number'],
-              'order'          => $order,
-              'synced'         => $synced
+              'count_filled'   => $order[0]['count_filled'],
+              'count_items'    => $order[0]['count_items'],
+              'order'          => $order
             ]
           );
 
           $groups = group_drugs($order, $mysql);
           order_hold_notice($groups);
 
-          if ( ! $order[0]['count_items']) { //Remove this if when confident that syncing is working correctly
+          //TODO Remove/Cancel WC Order Here
 
-            SirumLog::debug(
-              'update_orders_cp sync_to_order is actually removing order',
-              [
-                'invoice_number' => $order[0]['invoice_number'],
-                'order'          => $order,
-                'synced'         => $synced,
-                'groups'         => $groups
-              ]
-            );
-
-            export_cp_remove_order($order[0]['invoice_number']); //No items
-            continue;
-          }
+          export_cp_remove_order($order[0]['invoice_number']);
+          continue;
         }
 
-        if ($synced['items_to_sync']) {
-            SirumLog::debug(
-                'update_orders_cp sync_to_order necessary on CREATE: deleting order for it to be readded',
-                [
-                  'invoice_number' => $order[0]['invoice_number'],
-                  'sync_results'   => $synced
-                ]
-            );
+        if ($order[0]['count_items_to_remove'] > 0 OR $order[0]['count_items_to_add'] > 0) {
 
-            //Force created to run again after the changes take place
-            $mysql->run("DELETE gp_orders
-                          FROM gp_orders
-                          WHERE invoice_number = {$order[0]['invoice_number']}");
+          SirumLog::debug(
+            'update_orders_cp: created. skipping order because items still need to be removed/added',
+            [
+              'invoice_number'        => $order[0]['invoice_number'],
+              'count_filled'          => $order[0]['count_filled'],
+              'count_items'           => $order[0]['count_items'],
+              'count_items_to_remove' => $order[0]['count_items_to_remove'],
+              'count_items_to_add'    => $order[0]['count_items_to_add'],
+              'order'                 => $order
+            ]
+          );
 
-            //DON'T CREATE THE ORDER UNTIL THESE ITEMS ARE SYNCED TO AVOID CONFLICTING COMMUNICATIONS!
-            continue;
+          //Force created loop to run again so that patient gets "Order Created Communication" and not just an update one
+           $mysql->run("
+            DELETE gp_orders
+            FROM gp_orders
+            WHERE invoice_number = {$order[0]['invoice_number']}
+          ");
+
+          //DON'T CREATE THE ORDER UNTIL THESE ITEMS ARE SYNCED TO AVOID CONFLICTING COMMUNICATIONS!
+          continue;
         }
 
         //Needs to be called before "$groups" is set
@@ -334,113 +305,92 @@ function update_orders_cp($changes) {
          */
     foreach ($changes['deleted'] as $deleted) {
 
-        SirumLog::$subroutine_id = "orders-cp-deleted-".sha1(serialize($deleted));
+      SirumLog::$subroutine_id = "orders-cp-deleted-".sha1(serialize($deleted));
 
-        SirumLog::debug(
-            'update_orders_cp: carepoint order has been deleted',
-            [
-              'source'         => 'CarePoint',
-              'event'          => 'deleted',
-              'type'           => 'orders',
-              'invoice_number' => $deleted['invoice_number'],
-              'deleted'        => $deleted
-            ]
+      SirumLog::debug(
+          'update_orders_cp: carepoint order has been deleted',
+          [
+            'source'         => 'CarePoint',
+            'event'          => 'deleted',
+            'type'           => 'orders',
+            'invoice_number' => $deleted['invoice_number'],
+            'deleted'        => $deleted
+          ]
+      );
+
+      if ($deleted['order_status'] == "Surescripts Authorization Denied")
+        SirumLog::error(
+          "Surescripts Authorization Denied. Deleted. What to do here?",
+          [
+            'invoice_number' => $deleted['invoice_number'],
+            'deleted' => $deleted,
+            'source'  => 'CarePoint',
+            'type'    => 'orders',
+            'event'   => 'deleted'
+          ]
         );
 
-        if ($deleted['order_status'] == "Surescripts Authorization Denied")
-          SirumLog::error(
-            "Surescripts Authorization Denied. Deleted. What to do here?",
-            [
-              'invoice_number' => $deleted['invoice_number'],
-              'deleted' => $deleted,
-              'source'  => 'CarePoint',
-              'type'    => 'orders',
-              'event'   => 'deleted'
-            ]
-          );
+      if ($deleted['order_status'] == "Surescripts Authorization Approved")
+        SirumLog::error(
+          "Surescripts Authorization Approved. Deleted.  What to do here?",
+          [
+            'invoice_number'   => $deleted['invoice_number'],
+            'count_items'      => $deleted['count_items'],
+            'deleted'          => $deleted
+          ]
+        );
 
-        if ($deleted['order_status'] == "Surescripts Authorization Approved")
-          SirumLog::error(
-            "Surescripts Authorization Approved. Deleted.  What to do here?",
-            [
-              'invoice_number'   => $deleted['invoice_number'],
-              'count_items'      => $deleted['count_items'],
-              'deleted'          => $deleted
-            ]
-          );
+    //Order #28984, #29121, #29105
+      if ( ! $deleted['patient_id_wc']) {
+        //Likely
+        //  (1) Guardian Order Was Created But Patient Was Not Yet Registered in WC so never created WC Order (and No Need To Delete It)
+        //  (2) OR Guardian Order had items synced to/from it, so was deleted and readded, which effectively erases the patient_id_wc
+          log_error('update_orders_cp: cp order deleted - no patient_id_wc', $deleted);
+      } else {
+          log_notice('update_orders_cp: cp order deleted so deleting wc order as well', $deleted);
+      }
 
-      //Order #28984, #29121, #29105
-        if (!$deleted['patient_id_wc']) {
-          //Likely
-          //  (1) Guardian Order Was Created But Patient Was Not Yet Registered in WC so never created WC Order (and No Need To Delete It)
-          //  (2) OR Guardian Order had items synced to/from it, so was deleted and readded, which effectively erases the patient_id_wc
-            log_error('update_orders_cp: cp order deleted - no patient_id_wc', $deleted);
-        } else {
-            log_notice('update_orders_cp: cp order deleted so deleting wc order as well', $deleted);
-        }
+      //Order was Returned to Sender and not logged yet
+      if ($deleted['tracking_number'] AND ! $deleted['order_date_returned']) {
 
-        //Order was Returned to Sender and not logged yet
-        if ($deleted['tracking_number'] AND ! $deleted['order_date_returned']) {
+        log_notice('Confirm this order was returned! Order with tracking number was deleted', $deleted);
 
-          set_payment_actual($deleted['invoice_number'], ['total' => 0, 'fee' => 0, 'due' => 0], $mysql);
-          //export_wc_update_order_payment($deleted['invoice_number'], 0); //Don't need this because we are deleting the WC order later
+        export_wc_return_order($invoice_number);
 
-          $update_sql = "UPDATE gp_orders
-                          SET order_date_returned = NOW()
-                          WHERE invoice_number = $deleted[invoice_number]";
+        continue;
+      }
 
-          $mysql->run($update_sql);
+      export_gd_delete_invoice($deleted['invoice_number']);
 
-          log_notice('Confirm this order was returned! Order with tracking number was deleted', $deleted);
-
-          continue;
-        }
-
-        export_gd_delete_invoice([$deleted], $mysql);
-
+      //[NULL, 'Webform Complete', 'Webform eRx', 'Webform Transfer', 'Auto Refill', '0 Refills', 'Webform Refill', 'eRx /w Note', 'Transfer /w Note', 'Refill w/ Note']
+      if ($deleted['count_filled'] > 0 OR in_array($deleted['order_source'], ['Webform eRx', 'Webform Transfer', 'Webform Refill', 'eRx /w Note', 'Transfer /w Note', 'Refill w/ Note']))
+        export_wc_cancel_order($deleted['invoice_number'], "update_orders_cp: cp order canceled $deleted[invoice_number] $deleted[order_stage_cp] $deleted[order_stage_wc] $deleted[order_source] ".json_encode($deleted));
+      else
         export_wc_delete_order($deleted['invoice_number'], "update_orders_cp: cp order deleted $deleted[invoice_number] $deleted[order_stage_cp] $deleted[order_stage_wc] $deleted[order_source] ".json_encode($deleted));
 
-        export_v2_unpend_order([$deleted], $mysql);
+      export_v2_unpend_order([$deleted], $mysql);
 
-        $delete_items_sql = "
-          DELETE gp_order_items
-          FROM gp_order_items
-          JOIN gp_rxs_single
-            ON gp_rxs_single.rx_number = gp_order_items.rx_number
-          WHERE
-            rx_dispensed_id IS NULL AND
-            invoice_number = $deleted[invoice_number]
-        ";
+      export_cp_remove_items($deleted['invoice_number']);
 
-        $mysql->run($delete_items_sql);
+      $sql = "
+        SELECT * FROM gp_orders WHERE patient_id_cp = $deleted[patient_id_cp] AND order_stage_cp != 'Dispensed' AND order_stage_cp != 'Shipped'
+      ";
 
-        $patient_exists_sql = "
-          SELECT * FROM gp_patients WHERE patient_id_cp = $deleted[patient_id_cp]
-        ";
+      $replacement = $mysql->run($sql)[0];
 
-        $patient = $mysql->run($patient_exists_sql)[0];
+      if ($replacement) {
+        log_error('order_canceled_notice BUT their appears to be a replacement', ['deleted' => $deleted, 'sql' => $sql, 'replacement' => $replacement]);
+        continue;
+      }
 
-        if ( ! $patient)
-          log_error('No patient associated with deleted order (Patient Deactivated/Deceased/Moved out of State)', ['deleted' => $deleted, 'sql' => $sql]);
+      //We should be able to delete wc-confirm-* from CP queue without triggering an order cancel notice
+      if ( ! $deleted['count_filled'] AND ! $deleted['count_nofill']) { //count_items may already be 0 on a deleted order that had items e.g 33840
+        no_rx_notice($deleted, $patient);
+        log_error("update_orders_cp deleted: count_filled == 0 AND count_nofill == 0 so calling no_rx_notice() rather than order_canceled_notice()", $deleted);
+        continue;
+      }
 
-        //We should be able to delete wc-confirm-* from CP queue without triggering an order cancel notice
-        if ( ! $deleted['count_filled'] AND ! $deleted['count_nofill']) { //count_items may already be 0 on a deleted order that had items e.g 33840
-          no_rx_notice($deleted, $patient);
-          log_error("update_orders_cp deleted: count_filled == 0 AND count_nofill == 0 so calling no_rx_notice() rather than order_canceled_notice()", $deleted);
-          return;
-        }
-
-        $sql = "
-          SELECT * FROM gp_orders WHERE patient_id_cp = $deleted[patient_id_cp] AND order_stage_cp != 'Dispensed' AND order_stage_cp != 'Shipped'
-        ";
-
-        $replacement = $mysql->run($sql)[0];
-
-        if ($replacement)
-          log_error('order_canceled_notice BUT their appears to be a replacement', ['deleted' => $deleted, 'sql' => $sql, 'replacement' => $replacement]);
-
-        order_canceled_notice($deleted, $patient); //We passed in $deleted because there is not $order to make $groups
-
+      order_canceled_notice($deleted, $patient); //We passed in $deleted because there is not $order to make $groups
     }
 
   //If just updated we need to
@@ -471,7 +421,7 @@ function update_orders_cp($changes) {
           ['updated' => $updated]
         );
 
-        $order = get_full_order($updated, $mysql);
+        $order = load_full_order($updated, $mysql);
 
         if (!$order) {
           SirumLog::notice(
@@ -534,38 +484,58 @@ function update_orders_cp($changes) {
             continue;
         }
 
-        /*
-         * TODO This is a footgun.  Detecting count_item changes will miss any order_item changes that are NET 0 eg if one
-         * order_item is added to the order and one order_item is removed from the order within the same 10mins span.
-         * Consider refactoring this to rely on order_item changes directly.  Or using a the order change date to determine
-         * if the above footgun is true by exclusion (the change_date updates and its not a status change and its not X, Y, Z so it must be that the order_items changed. )
-         *
-         *
-         * TODO Do we want to sync orders upon updates?  On all updates (manual changes, new surescripts, new faxes/transfers).
-         * Do we need to send patients updates on these changes?
-         *
-         */
-        //We won't sync new drugs to the order, but if a new drug comes in that we are not filling, we will remove it
-        $synced = sync_to_order($order, true);
+        //Patient communication that we are cancelling their order examples include:
+        //NEEDS FORM, ORDER HOLD WAITING FOR RXS, TRANSFER OUT OF ALL ITEMS, ACTION PATIENT OFF AUTOFILL
+        if ($order[0]['count_filled'] == 0) {
 
-        /*
-        if ($synced['items_to_sync']) {
-            //Force updated to run again after the changes take place
-            log_error("update_orders_cp sync_to_order necessary on UPDATE:", [$updated, $synced['items_to_sync']]);
-            $mysql->run("UPDATE gp_orders
-                          SET count_items = 0
-                          WHERE invoice_number = {$order[0]['invoice_number']}");
-            continue;
+          SirumLog::alert(
+            'update_orders_cp: updated. no drugs to fill. remove order?',
+            [
+              'invoice_number' => $order[0]['invoice_number'],
+              'count_filled'   => $order[0]['count_filled'],
+              'count_items'    => $order[0]['count_items'],
+              'order'          => $order
+            ]
+          );
+
+          //$groups = group_drugs($order, $mysql);
+          //order_hold_notice($groups);
+
+          //export_cp_remove_order($updated['invoice_number']);
+          continue;
         }
-        */
+
+        if ($order[0]['count_items_to_remove'] > 0 OR $order[0]['count_items_to_add'] > 0) {
+
+          SirumLog::debug(
+            'update_orders_cp: updated. skipping order because items still need to be removed/added',
+            [
+              'invoice_number'        => $order[0]['invoice_number'],
+              'count_filled'          => $order[0]['count_filled'],
+              'count_items'           => $order[0]['count_items'],
+              'count_items_to_remove' => $order[0]['count_items_to_remove'],
+              'count_items_to_add'    => $order[0]['count_items_to_add'],
+              'order'                 => $order
+            ]
+          );
+
+          //On the next run the count_items will be updated to count_filled and this UPDATE LOOP will run again so no need to run it now
+          continue;
+        }
+
+        if ($updated['count_items'] != $updated['old_count_items']) {
+
+          $groups = group_drugs($order, $mysql);
+          send_updated_order_communications($groups, $changed_fields);
+
+          continue;
+        }
 
         //Address Changes
         //Stage Change
         //Order_Source Change (now that we overwrite when saving webform)
         log_notice("update_orders_cp updated: no action taken $updated[invoice_number]", [$order, $updated, $changed_fields]);
-
-        //TODO Update Salesforce Order Total & Order Count & Order Invoice using REST API or a MYSQL Zapier Integration
     }
-  //TODO Upsert Salseforce Order Status, Order Tracking
+
   SirumLog::resetSubroutineId();
 }

@@ -775,6 +775,7 @@ $sig_index = array_search('sig', $argv);
 
 print_r(['argv', $argv, 'sig_index', $sig_index]);
 
+// sudo php /goodpill/webform/cronjobs/parsing.php
 if ($sig_index === false) {
 
   foreach ($test_sigs as $sig => $correct) {
@@ -786,6 +787,7 @@ if ($sig_index === false) {
   print_r($done);
   log_notice($done);
 
+//sudo php /goodpill/webform/cronjobs/parsing.php sig 'Take 1 tab per day'
 } else if ($argv[$sig_index+1] != 'database') {
 
   $sig = $argv[$sig_index+1];
@@ -795,6 +797,7 @@ if ($sig_index === false) {
   print_r($done);
   log_notice("parsing test sig specified: $sig", $done);
 
+//sudo php /goodpill/webform/cronjobs/parsing.php sig database
 } else {
 
   $mysql = new Mysql_Wc();

@@ -77,7 +77,7 @@ $execution_details = ['start' => date('c')];
 $f = fopen('/tmp/pharmacy.lock', 'w') or log_error('Webform Cron Job Cannot Create Lock File');
 
 if (! flock($f, LOCK_EX | LOCK_NB)) {
-    $still_running = 'Skipping Webform Cron Job Because Previous One Is Still Running';
+    $still_running = "\n*** Skipping Webform Cron Job Because Previous One Is Still Running ***\n\n";
     echo $still_running;
     SirumLog::error($still_running, $execution_details);
     // Push any lagging logs to google Cloud
@@ -97,7 +97,7 @@ try {
 
     $execution_details['timers'] = [];
 
-    echo "\nStarting syncing.php  Importing data from sources:\n";
+    echo "\nStarting syncing.php. Importing data from sources:\n";
 
     /**
      * Import Orders from WooCommerce (an actual shippment) and store it in
@@ -216,7 +216,7 @@ try {
     $execution_details['timers']['import_v2_drugs'] = ceil(microtime(true) - $start);
     echo "completed in {$execution_details['timers']['import_v2_drugs']} seconds\n";
 
-    echo "\nAll Data Imported.  Starting Change Detection:\n";
+    echo "\nAll Data Imported. Starting Change Detection:\n";
     /*
       Now we will update tables to new data and determine change feeds
      */
@@ -269,7 +269,7 @@ try {
      $execution_details['timers']['changes_orders_wc'] = ceil(microtime(true) - $start);
      echo "completed in {$execution_details['timers']['changes_orders_wc']} seconds\n";
 
-     echo "\nAll Changes Detected & Tables Updated.  Starting Updates:\n";
+     echo "\nAll Changes Detected & Tables Updated. Starting Updates:\n";
      /*
       Now we will to trigger side effects based on changes
     */

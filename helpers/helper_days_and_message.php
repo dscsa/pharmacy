@@ -24,7 +24,7 @@ function get_days_and_message($item, $patient_or_order) {
     log_error("helper_days_and_message: RX WAS NEVER PARSED", $item);
   }
 
-  if ($item['item_date_added'] AND $is_duplicate_gsn) {
+  if (@$item['item_date_added'] AND $is_duplicate_gsn) {
     log_error("helper_days_and_message: $item[drug_generic] is duplicated.  Likely Mistake. Different sig_qty_per_day?", ['item' => $item, 'order' => $patient_or_order]);
   }
 
@@ -473,21 +473,21 @@ function is_not_offered($item) {
   $stock_level = @$item['stock_level_initial'] ?: $item['stock_level'];
 
   if (is_null($stock_level)) {
-    log_notice('helper_days_and_message: stock level null', ['item' => $item, 'stock_level' => $stock_level]);
+    log_notice("helper_days_and_message: $item[drug_name] level null", ['item' => $item, 'stock_level' => $stock_level]);
     return true;
   }
 
   if ($stock_level == STOCK_LEVEL['NOT OFFERED']) {
-    log_notice("helper_days_and_message: stock level $stock_level", ['item' => $item, 'stock_level' => $stock_level]);
+    log_notice("helper_days_and_message: $item[drug_name] stock level $stock_level", ['item' => $item, 'stock_level' => $stock_level]);
     return true;
   }
 
   if ($stock_level == STOCK_LEVEL['ORDER DRUG']) {
-    log_notice("helper_days_and_message: stock level $stock_level", ['item' => $item, 'stock_level' => $stock_level]);
+    log_notice("helper_days_and_message: $item[drug_name] stock level $stock_level", ['item' => $item, 'stock_level' => $stock_level]);
     return true;
   }
 
-  log_notice("helper_days_and_message:  stock level $stock_level", ['item' => $item, 'stock_level' => $stock_level]);
+  log_notice("helper_days_and_message: $item[drug_name]  stock level $stock_level", ['item' => $item, 'stock_level' => $stock_level]);
   return false;
 }
 
@@ -514,86 +514,6 @@ function is_refill_only($item) {
 
 function message_text($message, $item) {
   return str_replace(array_keys($item), array_values($item), $message[$item['language']]);
-}
-
-function sync_to_order_new_rx($item, $patient_or_order) {
-
-  if (@$item['item_date_added']) return false;  //Cannot sync if already in order!
-
-  $not_offered  = is_not_offered($item);
-  $refill_only  = is_refill_only($item);
-  $is_refill    = is_refill($item, $patient_or_order);
-  $has_refills  = ($item['refills_total'] > NO_REFILL);
-  $eligible     = ($has_refills AND ! $is_refill AND $item['rx_autofill'] AND ! $not_offered AND ! $refill_only AND ! $item['refill_date_manual']);
-
-  SirumLog::debug(
-      "sync_to_order_new_rx: $item[invoice_number] $item[drug_generic] ".($eligible ? 'Syncing' : 'Not Syncing'),
-      [
-          'invoice_number' => $patient_or_order[0]['invoice_number'],
-          'vars' => get_defined_vars()
-      ]
-  );
-
-  return $eligible;
-}
-
-function sync_to_order_past_due($item, $patient_or_order) {
-
-  if (@$item['item_date_added']) return false;  //Cannot sync if already in order!
-
-  $has_refills  = ($item['refills_total'] > NO_REFILL);
-
-  $eligible = ($has_refills AND $item['refill_date_next'] AND (strtotime($item['refill_date_next']) - strtotime($item['order_date_added'])) < 0);
-
-  SirumLog::debug(
-    "sync_to_order_past_due: $item[invoice_number] $item[drug_generic] ".($eligible ? 'Syncing' : 'Not Syncing'),
-    [
-      'invoice_number' => $patient_or_order[0]['invoice_number'],
-      'vars' => get_defined_vars()
-    ]
-  );
-
-  return $eligible;
-}
-
-//Order 29017 had a refill_date_first and rx/pat_autofill ON but was missing a refill_date_default/refill_date_manual/refill_date_next
-function sync_to_order_no_next($item, $patient_or_order) {
-
-  if (@$item['item_date_added']) return false;  //Cannot sync if already in order!
-
-  $has_refills  = ($item['refills_total'] > NO_REFILL);
-  $is_refill  = $item['refill_date_first']; //Unlink others don't use is_refill (which checks all matching drugs / ignoring sig_qty_per day differences).  This might be an Rx the pharmacists are intentionally not activating.  See the 2x "Bumetanide 1mg" in Order 52129
-
-  $eligible = ($has_refills AND $is_refill AND ! $item['refill_date_next']);
-
-  SirumLog::debug(
-      "sync_to_order_no_next: $item[invoice_number] $item[drug_generic] ".($eligible ? 'Syncing' : 'Not Syncing'),
-      [
-          'invoice_number' => $patient_or_order[0]['invoice_number'],
-          'vars' => get_defined_vars()
-      ]
-  );
-
-  return $eligible;
-}
-
-function sync_to_order_due_soon($item, $patient_or_order) {
-
-  if (@$item['item_date_added']) return false;  //Cannot sync if already in order!
-
-  $has_refills  = ($item['refills_total'] > NO_REFILL);
-
-  $eligible = ($has_refills AND $item['refill_date_next'] AND (strtotime($item['refill_date_next'])  - strtotime($item['order_date_added'])) <= DAYS_EARLY*24*60*60);
-
-  SirumLog::debug(
-      "sync_to_order_due_soon: $item[invoice_number] $item[drug_generic] ".($eligible ? 'Syncing' : 'Not Syncing'),
-      [
-          'invoice_number' => $patient_or_order[0]['invoice_number'],
-          'vars' => get_defined_vars()
-      ]
-  );
-
-  return $eligible;
 }
 
 //Although you can dispense up until an Rx expires (so refill_date_next is well past rx_date_expired) we want to use

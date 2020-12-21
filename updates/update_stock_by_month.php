@@ -20,6 +20,14 @@ function update_stock_by_month($changes) {
   $count_created  = count($changes['created']);
   $count_updated  = count($changes['updated']);
 
+  $msg = "$count_deleted deleted, $count_created created, $count_updated updated ";
+  echo $msg;
+  log_info("update_stock_by_month: all changes. $msg", [
+    'deleted_count' => $count_deleted,
+    'created_count' => $count_created,
+    'updated_count' => $count_updated
+  ]);
+
   if ( ! $count_deleted AND ! $count_created AND ! $count_updated) return;
 
   SirumLog::$subroutine_id = "stock-v2-".sha1(serialize($changes));
@@ -178,11 +186,33 @@ function update_stock_by_month($changes) {
   $mysql->run("COMMIT");
 
   $duplicate_gsns = $mysql->run("
-    SELECT stock1.drug_generic, stock2.drug_generic, stock1.drug_gsns, stock2.drug_gsns FROM gp_stock_live stock1 JOIN gp_stock_live stock2 ON stock1.drug_gsns LIKE CONCAT('%', stock2.drug_gsns, '%') WHERE stock1.drug_generic != stock2.drug_generic
+    SELECT
+      stock1.drug_generic as drug_generic1,
+      stock2.drug_generic as drug_generic2,
+      stock1.drug_gsns as drug_gsns1,
+      stock2.drug_gsns as drug_gsns2
+    FROM
+      gp_stock_live stock1
+    JOIN
+      gp_stock_live stock2 ON stock1.drug_gsns LIKE CONCAT('%', stock2.drug_gsns, '%')
+    WHERE
+      stock1.drug_generic != stock2.drug_generic
   ");
 
   if (isset($duplicate_gsns[0][0])) {
-    SirumLog::alert('update_stock_by_month: Duplicate GSNs in V2', $duplicate_gsns[0]);
+
+    $salesforce   = [
+      "subject"   => 'Duplicate GSNs in V2',
+      "body"      => print_r($duplicate_gsns[0][0], true),
+      "assign"    => "Joseph",
+      "due_date"  => date('Y-m-d')
+    ];
+
+    $event_title = "$log $salesforce[due_date]";
+
+    create_event($event_title, [$salesforce]);
+
+    SirumLog::alert("update_stock_by_month: $salesforce", $duplicate_gsns[0]);
   }
 
   SirumLog::resetSubroutineId();

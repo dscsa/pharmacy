@@ -2,7 +2,7 @@
 
 function export_cp_patient_save_medications_other($mssql, $patient, $live = false) {
 
-  $medications_other = escape_db_values($patient['medications_other']);
+  $medications_other = escape_db_values(utf8ize($patient['medications_other']));
 
   /*
   $select = "
@@ -28,12 +28,49 @@ function export_cp_patient_save_medications_other($mssql, $patient, $live = fals
     WHERE pat_id = $patient[patient_id_cp]
   ";
 
+  echo "\n$sql";
+
   //$res1 = $mssql->run("$select");
-  $mssql->run("$sql");
+  $mssql->run($sql);
   //$res2 = $mssql->run("$select");
 
   //echo "
   //live:$live $patient[first_name] $patient[last_name] $sql ".json_encode($res1, JSON_PRETTY_PRINT)." ".json_encode($res2, JSON_PRETTY_PRINT);
+}
+
+function update_cp_patient_active_status($mssql, $patient_id_cp, $inactive) {
+
+  if ( ! $patient_id_cp) return;
+
+  if ($inactive == 'Inactive') {
+    $cp_key = 'Inactivated';
+    $cp_val = 2;
+  }
+
+  else if ($inactive == 'Deceased') {
+    $cp_key = 'Marked deceased';
+    $cp_val = 3;
+  }
+
+  else {
+    $cp_key = 'Reactivated';
+    $cp_val = 1;
+  }
+
+  $date = date('Y-m-d H:i:s');
+
+  $sql = "
+    UPDATE cppat
+    SET
+      pat_status_cn = $cp_val,
+      cmt = CONCAT(cmt, ' $cp_key by Pharmacy App on $date')
+    WHERE
+      pat_id = $patient_id_cp
+  ";
+
+  echo "\nupdate_cp_patient_active_status $inactive -> $sql";
+
+  //$mssql->run($sql);
 }
 
 function export_cp_patient_save_patient_note($mssql, $patient, $live = false) {

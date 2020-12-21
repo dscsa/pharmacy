@@ -15,7 +15,7 @@ function update_rxs_single($changes) {
 
   /**
    * All RX should have a rx_message set.  We are going to query the database
-   * and look for any with a NULL rx_message_key.  If we dint one, get_full_patient()
+   * and look for any with a NULL rx_message_key.  If we dint one, load_full_patient()
    * will fetch the user and update the message?
    *
    *  NOTE Using an INNER JOIN to exclude Rxs associated with patients that are inactive or deceased
@@ -32,7 +32,7 @@ function update_rxs_single($changes) {
     SirumLog::$subroutine_id = "rxs-single-null-message-".sha1(serialize($rx_single));
 
     //This updates & overwrites set_rx_messages
-    $patient = get_full_patient($rx_single, $mysql, $rx_single['rx_number']);
+    $patient = load_full_patient($rx_single, $mysql, $rx_single['rx_number']);
 
     //These should have been given an rx_message upon creation.  Why was it missing?
     SirumLog::error(
@@ -54,9 +54,15 @@ function update_rxs_single($changes) {
   $count_created = count($changes['created']);
   $count_updated = count($changes['updated']);
 
-  if ( ! $count_deleted AND ! $count_created AND ! $count_updated) return;
+  $msg = "$count_deleted deleted, $count_created created, $count_updated updated ";
+  echo $msg;
+  log_info("update_rxs_single: all changes. $msg", [
+    'deleted_count' => $count_deleted,
+    'created_count' => $count_created,
+    'updated_count' => $count_updated
+  ]);
 
-  log_info("update_rxs_single: $count_deleted deleted, $count_created created, $count_updated updated.", get_defined_vars());
+  if ( ! $count_deleted AND ! $count_created AND ! $count_updated) return;
 
   /*
    * Created Loop #1 First loop accross new items. Run this before rx_grouped query to make
@@ -232,7 +238,7 @@ function update_rxs_single($changes) {
 
     // This updates & overwrites set_rx_messages.  TRUE because this one
     // Rx might update many other Rxs for the same drug.
-    $patient = get_full_patient($created, $mysql, true);
+    $patient = load_full_patient($created, $mysql, true);
 
     remove_drugs_from_refill_reminders(
       $patient[0]['first_name'],
@@ -267,7 +273,7 @@ function update_rxs_single($changes) {
 
     if ($updated['rx_autofill'] != $updated['old_rx_autofill']) {
 
-      $item = get_full_item($updated, $mysql, true);
+      $item = load_full_item($updated, $mysql, true);
 
       if ( ! $item['refills_used'] AND $updated['rx_autofill']) {
         continue; //Don't log when a patient first registers
@@ -299,7 +305,7 @@ function update_rxs_single($changes) {
         'item' => $item
       ]);
 
-      if ( ! $sf_cache[$body]) {
+      if ( ! @$sf_cache[$body]) {
 
         $sf_cache[$body] = true; //This caches it by body and for this one run (currently 10mins)
 
@@ -318,9 +324,7 @@ function update_rxs_single($changes) {
 
     if ($updated['rx_gsn'] AND ! $updated['old_rx_gsn']) {
 
-      $item = get_full_item($updated, $mysql, true);
-
-      v2_pend_item($item, $mysql);
+      $item = load_full_item($updated, $mysql, true);
 
       //TODO do we need to update the patient, that we are now including this drug if $item['days_dispensed_default'] AND ! $item['rx_dispensed_id']?
 

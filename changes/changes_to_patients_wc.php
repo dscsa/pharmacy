@@ -3,6 +3,27 @@
 require_once 'dbs/mysql_wc.php';
 require_once 'helpers/helper_changes.php';
 
+//
+function wc_patients_get_deleted_sql($new, $old, $id) {
+
+  $join = join_clause($id);
+
+  return "
+    SELECT
+      old.*
+    FROM
+      $new as new
+    RIGHT JOIN $old as old ON
+      $join
+    WHERE
+      new.$id IS NULL
+    AND
+      old.pharmacy_name IS NOT NULL -- We know that unregistered patients are not in WC yet
+    AND
+      old.patient_inactive != 'Inactive' -- Since hard to actually delete in CP, if we marked it inactive in CP count it as already deleted
+  ";
+}
+
 function changes_to_patients_wc($new) {
   $mysql = new Mysql_Wc();
 
@@ -13,6 +34,7 @@ function changes_to_patients_wc($new) {
     NOT old.first_name <=> new.first_name OR
     NOT REPLACE(old.last_name, '*', '') <=> new.last_name OR
     NOT old.birth_date <=> new.birth_date OR
+    NOT old.patient_inactive <=> new.patient_inactive OR
     NOT old.patient_date_registered <=> new.patient_date_registered OR
     NOT old.medications_other <=> new.medications_other OR
     NOT old.phone1 <=> new.phone1 OR
@@ -54,18 +76,18 @@ function changes_to_patients_wc($new) {
   ";
 
   //Get Deleted
-  $sql = get_deleted_sql($new, $old, $id);
-  //log_error('changes_to_patients_wc: deleted', $sql);
+  $sql = wc_patients_get_deleted_sql($new, $old, $id);
+  //echo "\n$sql\n";
   $deleted = $mysql->run($sql);
 
   //Get Inserted
   $sql = get_created_sql($new, $old, $id);
-  //log_error('changes_to_patients_wc: created', $sql);
+  //echo "\n$sql\n";
   $created = $mysql->run($sql);
 
   //Get Updated
   $sql = get_updated_sql($new, $old, $id, $where);
-  //log_error('changes_to_patients_wc: updated', $sql);
+  //echo "\n$sql\n"; //log_error('changes_to_patients_wc: updated', $sql);
   $updated = $mysql->run($sql);
 
   //Save Deletes

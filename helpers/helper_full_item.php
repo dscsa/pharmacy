@@ -2,12 +2,17 @@
 
 use Sirum\Logging\SirumLog;
 
-function get_full_item($item, $mysql, $overwrite_rx_messages = false) {
+function load_full_item($item, $mysql, $overwrite_rx_messages = false) {
 
   if ( ! $item['rx_number']) {
     log_error('ERROR get_full_item: missing rx_number', get_defined_vars());
     return [];
   }
+
+  if ($item['invoice_number']) //E.g. if changing days_dispensed_actual NULL >>> 90, then this will be true and order will be shipped
+    $past_orders = "gp_order_items.invoice_number = $item[invoice_number]";
+  else //If no invoice number specified only show current orders
+    $past_orders = "gp_order_items.rx_dispensed_id IS NULL";
 
   $sql = "
     SELECT
@@ -25,7 +30,7 @@ function get_full_item($item, $mysql, $overwrite_rx_messages = false) {
     LEFT JOIN gp_stock_live ON -- might not have a match if no GSN match
       gp_rxs_grouped.drug_generic = gp_stock_live.drug_generic
     LEFT JOIN gp_order_items ON -- choice to show any order_item from this rx_group and not just if this specific rx matches
-      gp_order_items.rx_dispensed_id IS NULL AND
+      $past_orders AND
       rx_numbers LIKE CONCAT('%,', gp_order_items.rx_number, ',%')
     LEFT JOIN gp_orders ON -- ORDER MAY HAVE NOT BEEN ADDED YET
       gp_orders.invoice_number = gp_order_items.invoice_number
@@ -43,7 +48,7 @@ function get_full_item($item, $mysql, $overwrite_rx_messages = false) {
       log_error(($full_item['rx_gsn'] ? 'get_full_item: Add GSN to V2!' : 'get_full_item: Missing GSN!')." Invoice Number:$full_item[invoice_number] Drug:$full_item[drug_name] Rx:$full_item[rx_number] GSN:$full_item[rx_gsn] GSNS:$full_item[drug_gsns]", ['full_item' => $full_item, 'item' => $item, 'sql' => $sql]);
     }
 
-    if ($item['invoice_number'] AND $item['invoice_number'] != $full_item['invoice_number']) { //$item[invoice_number] won't be set if called from update_rxs_single
+    if (@$item['invoice_number'] AND $item['invoice_number'] != $full_item['invoice_number']) { //$item[invoice_number] won't be set if called from update_rxs_single
 
       $debug = $mysql->run("
         SELECT * FROM gp_orders WHERE invoice_number = $item[invoice_number]
@@ -55,7 +60,7 @@ function get_full_item($item, $mysql, $overwrite_rx_messages = false) {
       );
     }
 
-    if ($full_item['item_date_added'] AND ! $full_item['invoice_number']) {
+    if (@$item['invoice_number'] AND $full_item['item_date_added'] AND ! $full_item['invoice_number']) {
       $debug = $mysql->run("
         SELECT * FROM gp_orders WHERE invoice_number = $item[invoice_number]
       ");

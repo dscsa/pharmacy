@@ -3,7 +3,7 @@
 global $mysql;
 use Sirum\Logging\SirumLog;
 
-function wc_get_post($invoice_number, $wc_order_key = null, $suppress_alert = false)
+function wc_get_post($invoice_number, $wc_order_key = null, $suppress_error = false)
 {
     global $mysql;
     $mysql = $mysql ?: new Mysql_Wc();
@@ -16,14 +16,15 @@ function wc_get_post($invoice_number, $wc_order_key = null, $suppress_alert = fa
         AND wp_postmeta.meta_value = '{$invoice_number}'
     ";
 
-    $res = $mysql->run($sql);
+    if ($invoice_number)
+      $res = $mysql->run($sql);
 
     if (isset($res[0][0])) {
       return $wc_order_key ? $res[0][0][$wc_order_key] : $res[0][0];
     }
 
-  if ( ! $suppress_alert)
-    SirumLog::alert(
+  if ( ! $suppress_error)
+    SirumLog::error(
       "Order $invoice_number doesn't seem to exist in wp_posts",
       [
         "invoice_number" => $invoice_number,
@@ -227,6 +228,50 @@ function export_wc_update_order_status($order)
   wc_update_order($order[0]['invoice_number'], $orderdata);
 }
 
+function export_wc_cancel_order($invoice_number, $reason) {
+
+  log_notice(
+    'export_wc_cancel_order',
+    [
+      'invoice_number' => $invoice_number,
+      'reason' => $reason
+    ]
+  );
+
+  wc_update_order($invoice_number, [
+    'post_status' => 'wc-cancelled'
+  ]);
+}
+
+function export_wc_return_order($invoice_number) {
+
+  global $mysql;
+  $mysql = $mysql ?: new Mysql_Wc();
+
+  log_notice(
+    'export_wc_return_order',
+    [
+      'invoice_number' => $invoice_number,
+      'customer_initiated' => $customer_initiated
+    ]
+  );
+  //we have know way of knowing it's a wc-return-customer so that would have to be set manually
+  wc_update_order($invoice_number, [
+    'post_status' => 'wc-return-usps'
+  ]);
+
+  set_payment_actual($invoice_number, ['total' => 0, 'fee' => 0, 'due' => 0], $mysql);
+  //export_wc_update_order_payment($deleted['invoice_number'], 0); //Don't need this because we are deleting the WC order later
+
+  $update_sql = "
+    UPDATE gp_orders
+    SET order_date_returned = NOW()
+    WHERE invoice_number = $invoice_number
+  ";
+
+  $mysql->run($update_sql);
+}
+
 function export_wc_delete_order($invoice_number, $reason)
 {
   global $mysql;
@@ -263,6 +308,8 @@ function export_wc_delete_order($invoice_number, $reason)
       'post_id'        => $post_id
     ]
   );
+
+  export_gd_delete_invoice($invoice_number);
 }
 
 function export_wc_create_order($order, $reason)
@@ -362,7 +409,7 @@ function export_wc_create_order($order, $reason)
               '{$first_item['patient_id_wc']}',
               '{$first_item['order_stage_wc']}',
               '{$first_item['order_source']}',
-              '{$first_item['invoice_doc_id']}',
+              NULLIF('{$first_item['invoice_doc_id']}', ''),
               '$address1',
               '$address2',
               '{$first_item['order_city']}',

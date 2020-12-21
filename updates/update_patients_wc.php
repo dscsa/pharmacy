@@ -11,21 +11,15 @@ function update_patients_wc($changes) {
   $count_created = count($changes['created']);
   $count_updated = count($changes['updated']);
 
-  SirumLog::debug(
-    'Woocommerce Patient Changes found',
-    [
-      'deleted' => $changes['deleted'],
-      'created' => $changes['created'],
-      'updated' => $changes['updated'],
-      'deleted_count' => $count_deleted,
-      'created_count' => $count_created,
-      'updated_count' => $count_updated
-    ]
-  );
+  $msg = "$count_deleted deleted, $count_created created, $count_updated updated ";
+  echo $msg;
+  log_info("update_patients_wc: all changes. $msg", [
+    'deleted_count' => $count_deleted,
+    'created_count' => $count_created,
+    'updated_count' => $count_updated
+  ]);
 
   if ( ! $count_deleted AND ! $count_created AND ! $count_updated) return;
-
-  log_notice("update_patients_wc: $count_deleted deleted, $count_created created, $count_updated updated.");
 
   $mysql = new Mysql_Wc();
   $mssql = new Mssql_Cp();
@@ -35,11 +29,6 @@ function update_patients_wc($changes) {
     $old = str_replace(['-'], [' '], $old);
     return stripos($new, $old) === false AND stripos($old, $new) === false;
   }
-
-  $created_mismatched = 0;
-  $created_matched = 0;
-  $created_needs_form = 0;
-  $created_new_to_cp = 0;
 
   foreach($changes['created'] as $created) {
     SirumLog::$subroutine_id = "patients-wc-created-".sha1(serialize($created));
@@ -56,129 +45,105 @@ function update_patients_wc($changes) {
       ]
     );
 
-    $patient = find_patient_wc($mysql, $created);
+    if ( ! $created['pharmacy_name']) {
 
-    if ( ! empty($patient[0]['patient_id_wc'])) {
-      $created_mismatched++;
+      //echo "\nincomplete registration but has name?";
 
-      if (
-        stripos($patient[0]['first_name'], 'TEST') === false
-        and stripos($patient[0]['last_name'], 'TEST') === false) {
-        SirumLog::alert(
-          'mismatched patient_id_wc or duplicate wc patient registration',
+      //Delete Incomplete Registrations after 30mins
+      if ((time() - strtotime($created['patient_date_registered'])) > 24*60*60) {
+        SirumLog::debug(
+          "update_patients_wc: deleting incomplete registration after 24 hours",
           [
-            "created" => $created,
-            "patient" => $patient[0]
+              'created' => $created,
+              'source'  => 'WooCommerce',
+              'type'    => 'patients',
+              'event'   => 'created'
           ]
         );
+
+        //Note we only do this because the registration was incomplete
+        //if completed we should move them to inactive or deceased
+        wc_delete_patient($mysql, $created['patient_id_wc']);
       }
 
-      log_error('update_patients_wc: mismatched patient_id_wc or duplicate wc patient registration?', [$created, $patient[0]]);
-    }
-    else if ( ! empty($patient[0]['patient_id_cp'])) {
-      $created_matched++;
-      match_patient_wc($mysql, $created, $patient[0]['patient_id_cp']);
-    }
-    else if ( ! $created['pharmacy_name']) {
-      $created_needs_form++;
       //Registration Started but Not Complete (first 1/2 of the registration form)
-    }
-    else if ($created['patient_state'] != 'GA') {
-      //log_error("update_patients_wc: patient in WC but not in CP, because patient is not in GA $created[first_name] $created[last_name] wc:$created[patient_id_wc]", [$patient, $created]);
+      continue;
     }
 
-    else {
+    $patient_cp = find_patient_wc($mysql, $created);
+    $patient_wc = find_patient_wc($mysql, $created, 'gp_patients_wc');
 
-      $created_new_to_cp++;
-      $created_date = "Created:".date('Y-m-d H:i:s');
+    //match_patient_wc($mysql, $patient, $patient_id_cp);
 
-      $salesforce = [
-        "subject"   => "Fix Duplicate Patient",
-        "body"      => "Patient $created[first_name] $created[last_name] $created[birth_date] (WC user_id:$created[patient_id_wc]) in WC but not in CP. Fix and notify patient if necessary. Likely #1 a duplicate user in WC (forgot login so reregistered with slightly different name or DOB), #2 patient inactivated in CP (remove their birthday in WC to deactivate there), or #3 inconsistent birth_date between Rx in CP and Registration in WC. $created_date",
-        "contact"   => "$created[first_name] $created[last_name] $created[birth_date]",
-        "assign_to" => ".Update Name/DOB - Admin",
-        "due_date"  => date('Y-m-d')
-      ];
+    $alert = [
+      'todo'       => "TODO Auto Delete Duplicate Patient AND Send Patient Comm of their login and password",
+      'created'    => $created,
+      'patient_cp' => $patient_cp,
+      'patient_wc' => $patient_wc,
+      'source'     => 'WooCommerce',
+      'type'       => 'patients',
+      'event'      => 'created'
+    ];
 
-      $event_title = "$salesforce[subject]: $salesforce[contact] $created_date";
+    //TODO Auto Delete Duplicate Patient AND Send Comm of their login and password
 
-      //In WC Patient Changes we don't have the "patient_date_added" or "patient_date_changed" CP fields,
-      //"patient_date_updated" will always be within past 10mins, so use "patient_date_registered"
-      $secs = time() - strtotime($created['patient_date_registered']);
+    SirumLog::alert("update_patients_wc: WooCommerce PATIENT created $created[first_name] $created[last_name] $created[birth_date]", $alert);
 
-      if ($secs/60 < 30) { //Otherwise gets repeated every 10mins.
-        create_event($event_title, [$salesforce]);
-        log_error("New $event_title", [$secs, $patient, $created]);
-      }
-      else if (date('h') == '11') { //Twice a day so use a lower case h for 12 hour clock instead of 24 hour.
-        log_error("Old $event_title", [$secs, $patient, $created]);
-      }
-    }
-    SirumLog::resetSubroutineId();
+    print_r($alert);
   }
-
-  log_notice('created counts', [
-    '$created_mismatched' => $created_mismatched,
-    '$created_matched' => $created_matched,
-    '$created_needs_form' => $created_needs_form,
-    '$created_new_to_cp' => $created_new_to_cp
-  ]);
 
   foreach($changes['deleted'] as $i => $deleted) {
 
-      SirumLog::$subroutine_id = "patients-wc-deleted-".sha1(serialize($deleted));
+    SirumLog::$subroutine_id = "patients-wc-deleted-".sha1(serialize($deleted));
 
-      SirumLog::debug(
-        "update_patients_wc: WooCommerce PATIENT deleted",
-        [
-            'deleted' => $deleted,
-            'source'  => 'WooCommerce',
-            'type'    => 'patients',
-            'event'   => 'deleted'
-        ]
-      );
+    $alert = [
+      'deleted' => $deleted,
+      'source'  => 'WooCommerce',
+      'type'    => 'patients',
+      'event'   => 'deleted'
+    ];
 
-    //Dummy accounts that have been cleared out of WC
-    if (stripos($deleted['first_name'], 'Test') !== false OR stripos($deleted['first_name'], 'User') !== false OR stripos($deleted['email'], 'user') !== false OR stripos($deleted['email'], 'test') !== false)
-      continue;
+    SirumLog::alert("update_patients_wc: WooCommerce PATIENT deleted $deleted[first_name] $deleted[last_name] $deleted[birth_date]", $alert);
 
-    if ($deleted['patient_id_wc'])
-      log_error('update_patients_wc deleted: patient was just deleted from WC', $deleted);
-    //else
-    //  log_error('update_patients_wc: never added', $deleted);
-    SirumLog::resetSubroutineId();
+    print_r($alert);
   }
 
   foreach($changes['updated'] as $i => $updated) {
 
-      SirumLog::$subroutine_id = "patients-wc-updated-".sha1(serialize($updated));
+    SirumLog::$subroutine_id = "patients-wc-updated-".sha1(serialize($updated));
 
-      SirumLog::debug(
-        "update_patients_wc: WooCommerce PATIENT updated",
-        [
-            'updated' => $updated,
-            'source'  => 'WooCommerce',
-            'type'    => 'patients',
-            'event'   => 'updated'
-        ]
-      );
-
-    if ( ! $updated['patient_id_cp']) {
-      $patient = find_patient_wc($mysql, $updated);
-      match_patient_wc($mysql, $updated, $patient[0]['patient_id_cp']);
-      continue;
-    }
+    SirumLog::debug(
+      "update_patients_wc: WooCommerce PATIENT updated",
+      [
+          'updated' => $updated,
+          'source'  => 'WooCommerce',
+          'type'    => 'patients',
+          'event'   => 'updated'
+      ]
+    );
 
     $changed = changed_fields($updated);
+
+    echo "\nwc patient updated! $updated[first_name] $updated[last_name] $updated[birth_date] cp:$updated[patient_id_cp] wc:$updated[patient_id_wc] ".print_r($changed, true);
 
     $changed
       ? log_notice("update_patients_wc: updated changed $updated[first_name] $updated[last_name] $updated[birth_date] cp:$updated[patient_id_cp] wc:$updated[patient_id_wc]", $changed)
       : log_error("update_patients_wc: updated no change? $updated[first_name] $updated[last_name] $updated[birth_date] cp:$updated[patient_id_cp] wc:$updated[patient_id_wc]", $updated);
 
-    if ( ! $updated['email'] AND $updated['old_email']) {
-      upsert_patient_wc($mysql, $updated['patient_id_wc'], 'email', $updated['old_email']);
-    } else if ($updated['email'] !== $updated['old_email']) {
+    if ($updated['patient_inactive'] !== $updated['old_patient_inactive']) {
+      $patient = find_patient_wc($mysql, $updated)[0];
+
+      echo "\nWC Patient Inactive Status Changed $updated[first_name] $updated[last_name] $updated[birth_date] $updated[old_patient_inactive] >>> $updated[patient_inactive]";
+
+      update_cp_patient_active_status($mssql, $patient['patient_id_cp'], $updated['patient_inactive']);
+
+      log_notice("WC Patient Inactive Status Changed", $updated);
+    }
+
+    if ($updated['email'] !== $updated['old_email']) {
+
       upsert_patient_cp($mssql, "EXEC SirumWeb_AddUpdatePatEmail '$updated[patient_id_cp]', '$updated[email]'");
+
     }
 
     if (
@@ -188,11 +153,15 @@ function update_patients_wc($changes) {
         (strlen($updated['patient_state']) != 2 AND strlen($updated['old_patient_state']) == 2) OR
         (strlen($updated['patient_zip']) != 5 AND strlen($updated['old_patient_zip']) == 5)
     ) {
-        upsert_patient_wc($mysql, $updated['patient_id_wc'], 'patient_address1', $updated['old_patient_address1']);
-        upsert_patient_wc($mysql, $updated['patient_id_wc'], 'patient_address2', $updated['old_patient_address2']);
-        upsert_patient_wc($mysql, $updated['patient_id_wc'], 'patient_city', $updated['old_patient_city']);
-        upsert_patient_wc($mysql, $updated['patient_id_wc'], 'patient_state', $updated['old_patient_state']);
-        upsert_patient_wc($mysql, $updated['patient_id_wc'], 'patient_zip', $updated['old_patient_zip']);
+
+        log_notice("update_patients_wc: adding address. $updated[first_name] $updated[last_name] $updated[birth_date]", ['changed' => $changed, 'updated' => $updated]);
+
+        wc_upsert_patient_meta($mysql, $updated['patient_id_wc'], 'patient_address1', $updated['old_patient_address1']);
+        wc_upsert_patient_meta($mysql, $updated['patient_id_wc'], 'patient_address2', $updated['old_patient_address2']);
+        wc_upsert_patient_meta($mysql, $updated['patient_id_wc'], 'patient_city', $updated['old_patient_city']);
+        wc_upsert_patient_meta($mysql, $updated['patient_id_wc'], 'patient_state', $updated['old_patient_state']);
+        wc_upsert_patient_meta($mysql, $updated['patient_id_wc'], 'patient_zip', $updated['old_patient_zip']);
+
     } else if (
         $updated['patient_address1'] !== $updated['old_patient_address1'] OR
         $updated['patient_address2'] !== $updated['old_patient_address2'] OR
@@ -207,11 +176,26 @@ function update_patients_wc($changes) {
 
       $address3 = 'NULL';
       if ($updated['patient_state'] != 'GA') {
-        log_notice("$updated[first_name] $updated[last_name] $updated[birth_date]");
+        log_error("update_patients_wc: updated address-mismatch. $updated[first_name] $updated[last_name] $updated[birth_date]");
         $address3 = "'!!!! WARNING NON-GEORGIA ADDRESS !!!!'";
       }
 
-      upsert_patient_cp($mssql, "EXEC SirumWeb_AddUpdatePatHomeAddr '$updated[patient_id_cp]', '$address1', '$address2', $address3, '$city', '$updated[patient_state]', '$updated[patient_zip]', 'US'");
+      $sql = "EXEC SirumWeb_AddUpdatePatHomeAddr '$updated[patient_id_cp]', '$address1', '$address2', $address3, '$city', '$updated[patient_state]', '$updated[patient_zip]', 'US'";
+
+      log_notice("update_patients_wc: updated address-mismatch. $updated[first_name] $updated[last_name] $updated[birth_date]", ['sql' => $sql, 'changed' => $changed, 'updated' => $updated]);
+      upsert_patient_cp($mssql, $sql);
+    }
+
+    if ($updated['patient_date_registered'] != $updated['old_patient_date_registered']) {
+
+      $sql = "
+        UPDATE gp_patients SET patient_date_registered = '$updated[patient_date_registered]' WHERE patient_id_wc = $updated[patient_id_wc]
+      ";
+
+      $mysql->run($sql);
+
+      log_notice("update_patients_wc: patient_registered. $updated[first_name] $updated[last_name] $updated[birth_date]", ['sql' => $sql]);
+
     }
 
     //NOTE: Different/Reverse logic here. Deleting in CP should save back into WC
@@ -230,7 +214,7 @@ function update_patients_wc($changes) {
             $updated['payment_coupon'] !== $updated['old_payment_coupon'] OR //Still allow for deleteing coupons in CP
             $updated['tracking_coupon'] !== $updated['old_tracking_coupon'] //Still allow for deleteing coupons in CP
     ) {
-      upsert_patient_wc($mysql, $updated['patient_id_wc'], 'coupon', $updated['old_payment_coupon'] ?: $updated['old_tracking_coupon']);
+      wc_upsert_patient_meta($mysql, $updated['patient_id_wc'], 'coupon', $updated['old_payment_coupon'] ?: $updated['old_tracking_coupon']);
     }
 
     if ( ! $updated['phone1'] AND $updated['old_phone1']) {
@@ -275,7 +259,7 @@ function update_patients_wc($changes) {
         //$updated['pharmacy_address'] !== $updated['old_pharmacy_address'] // We only save a partial address in CP so will always differ
     ) {
 
-      upsert_patient_wc($mysql, $updated['patient_id_wc'], 'backup_pharmacy', json_encode([
+      wc_upsert_patient_meta($mysql, $updated['patient_id_wc'], 'backup_pharmacy', json_encode([
         'name' => escape_db_values($updated['old_pharmacy_name']),
         'npi' => $updated['old_pharmacy_npi'],
         'fax' => $updated['old_pharmacy_fax'],
@@ -293,19 +277,19 @@ function update_patients_wc($changes) {
       log_error('update_patients_wc: updated payment_method_default. Deleting Autopay Reminders', $updated);
 
       if ($updated['old_payment_method_default'] == PAYMENT_METHOD['MAIL'])
-        upsert_patient_wc($mysql, $updated['patient_id_wc'], 'payment_method_default', PAYMENT_METHOD['MAIL']);
+        wc_upsert_patient_meta($mysql, $updated['patient_id_wc'], 'payment_method_default', PAYMENT_METHOD['MAIL']);
 
       else if ($updated['old_payment_method_default'] == PAYMENT_METHOD['AUTOPAY'])
-        upsert_patient_wc($mysql, $updated['patient_id_wc'], 'payment_method_default', PAYMENT_METHOD['AUTOPAY']);
+        wc_upsert_patient_meta($mysql, $updated['patient_id_wc'], 'payment_method_default', PAYMENT_METHOD['AUTOPAY']);
 
       else if ($updated['old_payment_method_default'] == PAYMENT_METHOD['ONLINE'])
-        upsert_patient_wc($mysql, $updated['patient_id_wc'], 'payment_method_default', PAYMENT_METHOD['ONLINE']);
+        wc_upsert_patient_meta($mysql, $updated['patient_id_wc'], 'payment_method_default', PAYMENT_METHOD['ONLINE']);
 
       else if ($updated['old_payment_method_default'] == PAYMENT_METHOD['COUPON'])
-        upsert_patient_wc($mysql, $updated['patient_id_wc'], 'payment_method_default', PAYMENT_METHOD['COUPON']);
+        wc_upsert_patient_meta($mysql, $updated['patient_id_wc'], 'payment_method_default', PAYMENT_METHOD['COUPON']);
 
       else if ($updated['old_payment_method_default'] == PAYMENT_METHOD['CARD EXPIRED'])
-        upsert_patient_wc($mysql, $updated['patient_id_wc'], 'payment_method_default', PAYMENT_METHOD['CARD EXPIRED']);
+        wc_upsert_patient_meta($mysql, $updated['patient_id_wc'], 'payment_method_default', PAYMENT_METHOD['CARD EXPIRED']);
 
       else
         log_error("NOT SURE WHAT TO DO FOR PAYMENT METHOD $updated");
@@ -335,10 +319,10 @@ function update_patients_wc($changes) {
       }
 
 
-      //upsert_patient_wc($mysql, $updated['patient_id_wc'], 'first_name', $updated['old_first_name']);
-      //upsert_patient_wc($mysql, $updated['patient_id_wc'], 'last_name', $updated['old_last_name']);
-      //upsert_patient_wc($mysql, $updated['patient_id_wc'], 'birth_date', $updated['old_birth_date']);
-      //upsert_patient_wc($mysql, $updated['patient_id_wc'], 'language', $updated['old_language']);
+      //wc_upsert_patient_meta($mysql, $updated['patient_id_wc'], 'first_name', $updated['old_first_name']);
+      //wc_upsert_patient_meta($mysql, $updated['patient_id_wc'], 'last_name', $updated['old_last_name']);
+      //wc_upsert_patient_meta($mysql, $updated['patient_id_wc'], 'birth_date', $updated['old_birth_date']);
+      //wc_upsert_patient_meta($mysql, $updated['patient_id_wc'], 'language', $updated['old_language']);
 
     } else if (
       $updated['first_name'] !== $updated['old_first_name'] OR
@@ -367,6 +351,13 @@ function update_patients_wc($changes) {
       $updated['allergies_other'] !== $updated['old_allergies_other']
     ) {
 
+      if (
+        $updated['allergies_other'] !== $updated['old_allergies_other'] AND
+        strlen($updated['allergies_other']) > 0 AND
+        strlen($updated['allergies_other']) == strlen($updated['old_allergies_other'])
+      )
+        SirumLog::alert('Trouble saving allergies_other.  Most likely an encoding issue', $changed);
+
       $allergy_array = [
         'allergies_none' => $updated['allergies_none'] ?: '',
         'allergies_aspirin' => $updated['allergies_aspirin'] ?: '',
@@ -384,19 +375,25 @@ function update_patients_wc($changes) {
       ];
 
       $allergies = json_encode(utf8ize($allergy_array), JSON_UNESCAPED_UNICODE);
+      $sql = "EXEC SirumWeb_AddRemove_Allergies '$updated[patient_id_cp]', '$allergies'";
 
-      if ($allergies)
-        $res = upsert_patient_cp($mssql, "EXEC SirumWeb_AddRemove_Allergies '$updated[patient_id_cp]', '$allergies'");
-      else
-        log_error("update_patients_wc: EXEC SirumWeb_AddRemove_Allergies '$updated[patient_id_cp]', '$allergies'", [$res, json_last_error_msg(), $allergy_array]);
+      if ($allergies) {
+        //echo "\n$sql";
+        $res = upsert_patient_cp($mssql, $sql);
+
+      } else {
+
+        $err = [$sql, $res, json_last_error_msg(), $allergy_array];
+        print_r($err);
+        log_error("update_patients_wc: SirumWeb_AddRemove_Allergies failed", $err);
+
+      }
     }
 
     if ($updated['medications_other'] !== $updated['old_medications_other']) {
-      $patient = find_patient_wc($mysql, $updated);
 
-      if (@$patient['patient_note'])
-        echo "
-        Patient Note: $patient[patient_note]";
+      if (strlen($updated['medications_other']) > 0 AND strlen($updated['medications_other']) == strlen($updated['old_medications_other']))
+        SirumLog::alert('Trouble saving medications_other.  Most likely an encoding issue', $changed);
 
       export_cp_patient_save_medications_other($mssql, $updated);
     }

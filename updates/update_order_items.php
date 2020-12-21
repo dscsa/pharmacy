@@ -14,21 +14,15 @@ function update_order_items($changes) {
   $count_created = count($changes['created']);
   $count_updated = count($changes['updated']);
 
-  SirumLog::debug(
-    'Order items changes found: '.($count_deleted + $count_created + $count_updated),
-    [
-      'deleted' => $changes['deleted'],
-      'created' => $changes['created'],
-      'updated' => $changes['updated'],
-      'deleted_count' => $count_deleted,
-      'created_count' => $count_created,
-      'updated_count' => $count_updated
-    ]
-  );
+  $msg = "$count_deleted deleted, $count_created created, $count_updated updated ";
+  echo $msg;
+  log_info("update_order_items: all changes. $msg", [
+    'deleted_count' => $count_deleted,
+    'created_count' => $count_created,
+    'updated_count' => $count_updated
+  ]);
 
   if ( ! $count_deleted AND ! $count_created AND ! $count_updated) return;
-
-  log_info("update_order_items: $count_deleted deleted, $count_created created, $count_updated updated.", get_defined_vars());
 
   $mysql = new Mysql_Wc();
   $mssql = new Mssql_Cp();
@@ -43,16 +37,16 @@ function update_order_items($changes) {
 
     SirumLog::$subroutine_id = "order-items-created-".sha1(serialize($created));
 
-    $item = get_full_item($created, $mysql, true);
+    $item = load_full_item($created, $mysql, true);
 
     SirumLog::debug(
       "update_order_items: Order Item created",
       [
-          'item'    => $item,
-          'created' => $created,
-          'source'  => 'CarePoint',
-          'type'    => 'order-items',
-          'event'   => 'created'
+        'item'    => $item,
+        'created' => $created,
+        'source'  => 'CarePoint',
+        'type'    => 'order-items',
+        'event'   => 'created'
       ]
     );
 
@@ -94,7 +88,7 @@ function update_order_items($changes) {
       ]
     );
 
-    $item = get_full_item($deleted, $mysql, true);
+    $item = load_full_item($deleted, $mysql, true);
 
     //Don't Unpend here.  This is handled by count_item changes in update_orders_cp
     //Count Items will go down, triggering a CP Order Change
@@ -119,7 +113,7 @@ function update_order_items($changes) {
       ]
     );
 
-    $item = get_full_item($updated, $mysql, true);
+    $item = load_full_item($updated, $mysql, true);
 
     if ( ! $item) {
       log_error("Updated Item Missing", get_defined_vars());
@@ -202,12 +196,12 @@ function deduplicate_order_items($item, $mssql, $mysql) {
   $res2 = $mssql->run($sql2)[0];
 
   foreach($res2 as $duplicate) {
-    $mssql->run("DELETE FROM csomline WHERE line_id = $duplicate[line_id]")[0];
+    $mssql->run("DELETE FROM csomline WHERE line_id = $duplicate[line_id]");
   }
 
-  $new_count_items = export_cp_recount_items($invoice_number, $mssql);
+  log_notice('deduplicate_order_item', [$sql1, $res1, $sql2, $res2]);
 
-  log_notice(['deduplicate_order_item', $sq1, $res1, $sql2, $res2, $new_count_items]);
+  $new_count_items = export_cp_recount_items($item['invoice_number'], $mssql);
 
   return $item;
 }

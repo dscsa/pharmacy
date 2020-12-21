@@ -1,16 +1,6 @@
 <?php
 
-
-function export_v2_pend_order($order, $mysql) {
-
-  log_notice("export_v2_pend_order", $order);
-
-  //export_v2_unpend_order($order, $mysql) //TODO remove once we stop pending the same order items multiple times (2020-12-09)
-
-  foreach($order as $i => $item) {
-    v2_pend_item($order[$i], $mysql);
-  }
-}
+require_once 'exports/export_cp_orders.php';
 
 function export_v2_unpend_order($order, $mysql) {
 
@@ -21,19 +11,17 @@ function export_v2_unpend_order($order, $mysql) {
   }
 }
 
-
 function v2_pend_item($item, $mysql) {
-  log_notice("v2_pend_item:".($item['days_dispensed_default'] ? 'Yes Days Dispensed Default' : 'No Days Dispensed Default'), "$item[rx_number]  $item[rx_dispensed_id] $item[days_dispensed_default]", $item);//.print_r($item, true);
 
-  if ( ! $item['days_dispensed_default'] OR $item['rx_dispensed_id'] OR is_null($item['last_inventory'])) return; //last_inventory is null if GCN match could not be made
+  log_notice("v2_pend_item: $item[invoice_number] ".@$item['drug_name']." ".@$item['rx_number'], ['item' => $item]);//.print_r($item, true);
 
-  if ($item['count_pended_total'] OR $item['qty_pended_total']) {
-    return log_error("v2_pend_item: trying to repend item", $item);
+  if ( ! $item['days_dispensed_default'] OR $item['rx_dispensed_id'] OR is_null($item['last_inventory']) OR @$item['count_pended_total'] > 0) {
+    return log_error("v2_pend_item: ABORTED! $item[invoice_number] ".@$item['drug_name']." ".@$item['rx_number'], ['item' => $item]);
   }
 
   $list = make_pick_list($item);
 
-  log_notice("v2_pend_item: made_pick_list", ['success' => !!$list, 'item' => $item, 'list' => $list]);
+  log_notice("v2_pend_item: made_pick_list $item[invoice_number] $item[drug_name] $item[rx_number]", ['success' => !!$list, 'item' => $item, 'list' => $list]);
 
   print_pick_list($item, $list);
   pend_pick_list($item, $list);
@@ -41,12 +29,11 @@ function v2_pend_item($item, $mysql) {
 }
 
 function v2_unpend_item($item, $mysql) {
-  log_notice("v2_unpend_item:".($item['days_dispensed_default'] ? 'Yes Days Dispensed Default' : 'No Days Dispensed Default'), "$item[rx_number]  $item[rx_dispensed_id] $item[days_dispensed_default]", $item);//.print_r($item, true);
 
-  if ($item['rx_dispensed_id'] OR is_null($item['last_inventory'])) return; //last_inventory is null if GCN match could not be made
+  log_notice("v2_unpend_item: $item[invoice_number] ".@$item['drug_name']." ".@$item['rx_number'], ['item' => $item]);//.print_r($item, true);
 
-  if ( ! $item['count_pended_total'] OR ! $item['qty_pended_total']) {
-    return log_error("v2_unpend_item: trying to (re)unpend item", $item);
+  if (@$item['count_pended_total'] == 0 OR $item['rx_dispensed_id'] OR is_null($item['last_inventory'])) {
+    return log_error("v2_unpend_item: ABORTED! $item[invoice_number] ".@$item['drug_name']." ".@$item['rx_number'], ['item' => $item]);
   }
 
   unpend_pick_list($item);
@@ -82,7 +69,7 @@ function unpend_pick_list($item) {
 
 function save_pick_list($item, $list, $mysql) {
 
-  log_notice('save_pick_list', get_defined_vars());
+  log_notice("save_pick_list: $item[invoice_number] ".@$item['drug_name']." ".@$item['rx_number'], get_defined_vars());
 
   if ( ! $list) {
     $list = [
@@ -107,6 +94,8 @@ function save_pick_list($item, $list, $mysql) {
   ";
 
   $mysql->run($sql);
+
+  export_cp_set_pend_name($item);
 }
 
 function pick_list_name($item) {
@@ -154,7 +143,11 @@ function print_pick_list($item, $list) {
 
   $result = gdoc_post(GD_HELPER_URL, $args);
 
-  log_notice("WebForm print_pick_list $pend_group_name", ['item' => $item, 'count list' => count($list['list']), 'count pend' => count($list['pend'])]); //We don't need full shopping list cluttering logs
+  log_notice("print_pick_list: $item[invoice_number] ".@$item['drug_name']." ".@$item['rx_number'], [
+    'item' => $item,
+    'count list' => count($list['list']),
+    'count pend' => count($list['pend'])
+  ]); //We don't need full shopping list cluttering logs
 
 }
 
@@ -218,7 +211,7 @@ function pend_pick_list($item, $list) {
   //Pend after all forseeable errors are accounted for.
   $res = v2_fetch($pend_url, 'POST', $list['pend']);
 
-  log_notice("WebForm pend_pick_list", get_defined_vars());
+  log_notice("pend_pick_list: $item[invoice_number] ".@$item['drug_name']." ".@$item['rx_number'], get_defined_vars());
 }
 
 //Getting all inventory of a drug can be thousands of items.  Let's start with a low limit that we increase as needed
@@ -236,7 +229,7 @@ function make_pick_list($item, $limit = 500) {
   $sorted_ndcs   = sort_by_ndc($unsorted_ndcs, $long_exp);
   $list          = get_qty_needed($sorted_ndcs, $min_qty, $safety);
 
-  log_notice("WebForm make_pick_list $item[invoice_number]", $item['drug_name']); //We don't need full shopping list cluttering logs
+  log_notice("make_pick_list: $item[invoice_number] ".@$item['drug_name']." ".@$item['rx_number'], $item); //We don't need full shopping list cluttering logs
 
   if ($list) {
     $list['half_fill'] = '';

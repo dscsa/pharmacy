@@ -4,164 +4,84 @@ require_once 'exports/export_gd_transfer_fax.php';
 
 use Sirum\Logging\SirumLog;
 
-//Remove Only flag so that once we communicate what's in an order to a patient we "lock" it, so that if new SureScript come in we remove them so we don't surprise a patient with new drugs
-function sync_to_order($order, $updated = null) {
+function sync_to_order_new_rx($item, $patient_or_order) {
 
-  $notices         = [];
-  $items_to_sync   = [];
-  $items_to_add    = [];
-  $items_to_remove = [];
-  $new_count_items = $order[0]['count_items'];
+  if (@$item['item_date_added']) return false;  //Cannot sync if already in order!
 
-  foreach($order as $item) {
+  $not_offered  = is_not_offered($item);
+  $refill_only  = is_refill_only($item);
+  $is_refill    = is_refill($item, $patient_or_order);
+  $has_refills  = ($item['refills_total'] > NO_REFILL);
+  $eligible     = ($has_refills AND ! $is_refill AND $item['rx_autofill'] AND ! $not_offered AND ! $refill_only AND ! $item['refill_date_manual']);
 
-    if ($item['rx_dispensed_id']) {
-      log_info('syncing item canceled because already dispensed', $item);
-      continue;
-    }
-
-    if ( ! $item['item_date_added'] AND $item['rx_message_key'] == 'NO ACTION PAST DUE AND SYNC TO ORDER') { //item_date_added because once we add it don't keep readding it
-
-      if ($updated) {
-        $notices[] = ["sync_to_order adding item: updated so did not add 'NO ACTION PAST DUE AND SYNC TO ORDER' $item[invoice_number] $item[drug] $item[rx_message_key] refills last:$item[refill_date_last] next:$item[refill_date_next] total:$item[refills_total] left:$item[refills_left]", $item];
-        continue;
-      }
-
-      $new_count_items++;
-      $items_to_sync[] = ['ADD', 'NO ACTION PAST DUE AND SYNC TO ORDER', $item];
-      $items_to_add [] = $item['best_rx_number'];
-      //log_notice('sync_to_order adding item: PAST DUE AND SYNC TO ORDER', "$item[invoice_number] $item[drug] $item[rx_message_key] refills last:$item[refill_date_last] next:$item[refill_date_next] total:$item[refills_total] left:$item[refills_left]");
-
-      continue;
-    }
-
-    if ( ! $item['item_date_added'] AND $item['rx_message_key'] == 'NO ACTION NO NEXT AND SYNC TO ORDER') { //item_date_added because once we add it don't keep readding it
-
-      if ($updated) {
-        $notices[] = ["sync_to_order adding item: updated so did not add 'NO ACTION NO NEXT AND SYNC TO ORDER' $item[invoice_number] $item[drug] $item[rx_message_key] refills last:$item[refill_date_last] next:$item[refill_date_next] total:$item[refills_total] left:$item[refills_left]", $item];
-        continue;
-      }
-
-      $new_count_items++;
-      $items_to_sync[] = ['ADD', 'NO ACTION NO NEXT AND SYNC TO ORDER', $item];
-      $items_to_add [] = $item['best_rx_number'];
-      //log_notice('sync_to_order adding item: PAST DUE AND SYNC TO ORDER', "$item[invoice_number] $item[drug] $item[rx_message_key] refills last:$item[refill_date_last] next:$item[refill_date_next] total:$item[refills_total] left:$item[refills_left]");
-
-      continue;
-    }
-
-    if ( ! $item['item_date_added'] AND $item['rx_message_key'] == 'NO ACTION DUE SOON AND SYNC TO ORDER') { //item_date_added because once we add it don't keep readding it
-
-      if ($updated) {
-        $notices[] = ["sync_to_order adding item: updated so did not add 'NO ACTION DUE SOON AND SYNC TO ORDER' $item[invoice_number] $item[drug] $item[rx_message_key] refills last:$item[refill_date_last] next:$item[refill_date_next] total:$item[refills_total] left:$item[refills_left]", $item];
-        continue;
-      }
-
-      $new_count_items++;
-      $items_to_sync[] = ['ADD', 'NO ACTION DUE SOON AND SYNC TO ORDER', $item];
-      $items_to_add [] = $item['best_rx_number'];
-      //log_notice('sync_to_order adding item: DUE SOON AND SYNC TO ORDER', "$item[invoice_number] $item[drug] $item[rx_message_key] refills last:$item[refill_date_last] next:$item[refill_date_next] total:$item[refills_total] left:$item[refills_left]");
-
-      continue;
-    }
-
-    if ( ! $item['item_date_added'] AND $item['rx_message_key'] == 'NO ACTION NEW RX SYNCED TO ORDER') { //item_date_added because once we add it don't keep readding it
-
-      if ($updated) {
-        $notices[] = ["sync_to_order adding item: updated so did not add 'NO ACTION NEW RX SYNCED TO ORDER' $item[invoice_number] $item[drug] $item[rx_message_key] refills last:$item[refill_date_last] next:$item[refill_date_next] total:$item[refills_total] left:$item[refills_left]", $item];
-        continue;
-      }
-
-      $new_count_items++;
-      $items_to_sync[] = ['ADD', 'NO ACTION NEW RX SYNCED TO ORDER', $item];
-      $items_to_add [] = $item['best_rx_number'];
-
-      continue;
-    }
-
-    //Don't remove items with a missing GSN as this is something we need to do
-    if ($item['item_date_added'] AND ! $item['days_dispensed'] AND $item['drug_gsns']) {
-
-      if ($updated OR is_added_manually($item)) {
-        $notices[] = ['aborting helper_syncing because updated OR item to be REMOVED was added MANUALLY', $item];
-        continue;
-      }
-
-      $new_count_items--;
-      $items_to_sync[]   = ['REMOVE', $item['rx_message_key'], $item];
-      $items_to_remove[] = $item['rx_number'];
-      //log_notice('sync_to_order removing item', "$item[invoice_number] $item[rx_number] $item[drug], $item[stock_level], $item[rx_message_key] refills last:$item[refill_date_last] next:$item[refill_date_next] total:$item[refills_total] left:$item[refills_left]");
-
-      continue;
-    }
-
-    if ($item['item_date_added'] AND $item['rx_number'] != $item['best_rx_number']) {
-
-      if ($updated OR is_added_manually($item)) {
-        $notices[] = ['aborting helper_syncing because updated OR item to be SWITCHED was added MANUALLY', $item];
-        continue;
-      }
-
-      $items_to_sync[]   = ['SWITCH', 'RX_NUMBER != BEST_RX_NUMBER', $item];
-      $items_to_add[]    = $item['best_rx_number'];
-      $items_to_remove[] = $item['rx_number'];
-      //log_notice('sync_to_order switching items', "$item[invoice_number] $item[drug] $item[rx_message_key] $item[rx_number] -> $item[best_rx_number]");
-
-      continue;
-    }
-  }
-
-  if ($notices)
-    log_notice("helper_syncing: notices", $notices);
-
-  if ($updated AND $notices) {
-
-    $salesforce   = [
-      "subject"   => "Ignoring changes to an existing order ".$order[0]['invoice_number'],
-      "body"      => implode(',', $notices),
-      "contact"   => $order[0]['first_name'].' '.$order[0]['last_name'].' '.$order[0]['birth_date'],
-      "assign_to" => ".Add/Remove Drug - RPh",
-      "due_date"  => date('Y-m-d')
-    ];
-
-    $event_title = "$salesforce[subject] $salesforce[due_date]";
-
-    create_event($event_title, [$salesforce]);
-  }
-
-  if ($items_to_remove) {
-
-    SirumLog::notice(
-      "helper_syncing: items_to_remove (export_cp_remove_items)",
+  SirumLog::debug(
+      "sync_to_order_new_rx: $item[invoice_number] $item[drug_generic] ".($eligible ? 'Syncing' : 'Not Syncing'),
       [
-        'new_count_items' => $new_count_items,
-        'items_to_remove' => $items_to_remove,
-        'items_to_sync' => $items_to_sync,
-        'item' => $item,
-        'order' => $order
+          'invoice_number' => $patient_or_order[0]['invoice_number'],
+          'vars' => get_defined_vars()
       ]
-    );
+  );
 
-    export_cp_remove_items($item['invoice_number'], $items_to_remove);
-  }
+  return $eligible;
+}
 
-  if ($items_to_add) {
+function sync_to_order_past_due($item, $patient_or_order) {
 
-    SirumLog::notice(
-      "helper_syncing: items_to_add (export_cp_add_items)",
+  if (@$item['item_date_added']) return false;  //Cannot sync if already in order!
+
+  $has_refills  = ($item['refills_total'] > NO_REFILL);
+
+  $eligible = ($has_refills AND $item['refill_date_next'] AND (strtotime($item['refill_date_next']) - strtotime($item['order_date_added'])) < 0);
+
+  SirumLog::debug(
+    "sync_to_order_past_due: $item[invoice_number] $item[drug_generic] ".($eligible ? 'Syncing' : 'Not Syncing'),
+    [
+      'invoice_number' => $patient_or_order[0]['invoice_number'],
+      'vars' => get_defined_vars()
+    ]
+  );
+
+  return $eligible;
+}
+
+//Order 29017 had a refill_date_first and rx/pat_autofill ON but was missing a refill_date_default/refill_date_manual/refill_date_next
+function sync_to_order_no_next($item, $patient_or_order) {
+
+  if (@$item['item_date_added']) return false;  //Cannot sync if already in order!
+
+  $has_refills  = ($item['refills_total'] > NO_REFILL);
+  $is_refill  = $item['refill_date_first']; //Unlink others don't use is_refill (which checks all matching drugs / ignoring sig_qty_per day differences).  This might be an Rx the pharmacists are intentionally not activating.  See the 2x "Bumetanide 1mg" in Order 52129
+
+  $eligible = ($has_refills AND $is_refill AND ! $item['refill_date_next']);
+
+  SirumLog::debug(
+      "sync_to_order_no_next: $item[invoice_number] $item[drug_generic] ".($eligible ? 'Syncing' : 'Not Syncing'),
       [
-        'new_count_items' => $new_count_items,
-        'items_to_add' => $items_to_add,
-        'items_to_sync' => $items_to_sync,
-        'item' => $item,
-        'order' => $order
+          'invoice_number' => $patient_or_order[0]['invoice_number'],
+          'vars' => get_defined_vars()
       ]
-    );
+  );
 
-    export_cp_add_items($item['invoice_number'], $items_to_add);
-  }
+  return $eligible;
+}
 
-  return ['new_count_items' => $new_count_items, 'items_to_sync' => $items_to_sync];
+function sync_to_order_due_soon($item, $patient_or_order) {
+
+  if (@$item['item_date_added']) return false;  //Cannot sync if already in order!
+
+  $has_refills  = ($item['refills_total'] > NO_REFILL);
+
+  $eligible = ($has_refills AND $item['refill_date_next'] AND (strtotime($item['refill_date_next'])  - strtotime($item['order_date_added'])) <= DAYS_EARLY*24*60*60);
+
+  SirumLog::debug(
+      "sync_to_order_due_soon: $item[invoice_number] $item[drug_generic] ".($eligible ? 'Syncing' : 'Not Syncing'),
+      [
+          'invoice_number' => $patient_or_order[0]['invoice_number'],
+          'vars' => get_defined_vars()
+      ]
+  );
+
+  return $eligible;
 }
 
 function sync_to_date($order, $mysql) {
@@ -209,7 +129,7 @@ function sync_to_date($order, $mysql) {
 
   log_notice($new_days_default == DAYS_STD ? "sync_to_date: not syncing, days_std" : "sync_to_date: syncing", [
     'invoice_number'       => $order[0]['invoice_number'],
-    'max_days_sync'        => $max_days_sync,
+    'new_days_default'     => $new_days_default,
     'max_days_default'     => $max_days_default,
     'min_days_refills'     => $min_days_refills,
     'min_days_stock'       => $min_days_stock,
@@ -219,7 +139,7 @@ function sync_to_date($order, $mysql) {
     'order'                => $order
   ]);
 
-  if ($new_days_default == DAYS_STD)
+  if ( ! $new_days_default OR $new_days_default == DAYS_STD)
     return $order;
 
   foreach ($order as $item) {
@@ -230,7 +150,7 @@ function sync_to_date($order, $mysql) {
 
     $sync_to_date_days_change = $new_days_default - $item['days_dispensed_default'];
 
-    //Don't label something as synced if there is no change
+    //Don't set rx_message to something as being synced if it was the target and therefore didn't change
     if ( ! $sync_to_date_days_change)
       continue;
 
@@ -257,7 +177,7 @@ function sync_to_date($order, $mysql) {
       SET
         days_dispensed_default            = $new_days_default,
         qty_dispensed_default             = ".$order[$i]['qty_dispensed_default'].",
-        price_dispensed_default           = ".$order[$i]['price_dispensed_default']."
+        price_dispensed_default           = ".$order[$i]['price_dispensed_default'].",
         sync_to_date_days_before          = $item[days_dispensed_default],
         sync_to_date_max_days_default     = $max_days_default,
         sync_to_date_max_days_default_rxs = '".implode(',', $max_days_default_rxs)."',
@@ -267,7 +187,7 @@ function sync_to_date($order, $mysql) {
         sync_to_date_min_days_stock_rxs   = '".implode(',', $min_days_stock_rxs)."'
       WHERE
         rx_number = $item[rx_number]
-        AND invoice_number => ".$order[0]['invoice_number'];
+        AND invoice_number = ".$order[0]['invoice_number'];
 
     $mysql->run($sql);
 

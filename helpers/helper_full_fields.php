@@ -5,7 +5,9 @@ use Sirum\Logging\SirumLog;
 //Simplify GDoc Invoice Logic by combining _actual
 function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
 {
-    $count_filled = 0;
+    $count_filled    = 0;
+    $items_to_add    = [];
+    $items_to_remove = [];
 
     /*
      * Consolidate default and actual suffixes to avoid conditional overload in
@@ -69,10 +71,19 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
 
             list($days, $message) = get_days_and_message($patient_or_order[$i], $patient_or_order);
 
-            $needs_pending   = (@$patient_or_order[$i]['item_date_added'] AND $days AND ! @$patient_or_order[$i]['count_pended_total']);
-            $needs_unpending = (@$patient_or_order[$i]['item_date_added'] AND ! $days AND @$patient_or_order[$i]['count_pended_total']);
-            $needs_repending = (@$patient_or_order[$i]['item_date_added'] AND $days != @$patient_or_order[$i]['days_dispensed_default'] AND ! @$patient_or_order[$i]['sync_to_date_days_before']);
-            $pending_changed = ($needs_pending OR $needs_unpending OR $needs_repending);
+            $days_changed    = (@$patient_or_order[$i]['days_dispensed_default'] AND @$patient_or_order[$i]['days_dispensed_default'] != $days);
+
+            $needs_adding    = ( ! @$patient_or_order[$i]['item_date_added'] AND $days > 0);
+            $needs_removing  = (@$patient_or_order[$i]['item_date_added'] AND $days == 0);
+            $needs_pending   = (@$patient_or_order[$i]['item_date_added'] AND $days > 0 AND ! @$patient_or_order[$i]['count_pended_total']);
+            $needs_unpending = (@$patient_or_order[$i]['item_date_added'] AND $days == 0 AND @$patient_or_order[$i]['count_pended_total']);
+            $needs_repending = (
+              @$patient_or_order[$i]['item_date_added']
+              AND $days
+              AND @$patient_or_order[$i]['days_dispensed_default']
+              AND $days != @$patient_or_order[$i]['days_dispensed_default']
+              AND ! @$patient_or_order[$i]['sync_to_date_days_before']
+            );
 
             $get_days_and_message = [
               "overwrite_rx_messages"      => $overwrite_rx_messages,
@@ -88,11 +99,65 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
               "needs_pending"              => $needs_pending,
               "needs_unpending"            => $needs_unpending,
               "needs_repending"            => $needs_repending,
-              "pending_changed"            => $pending_changed,
+              "days_changed"               => $days_changed,
               "sync_to_date_days_before"   => @$patient_or_order[$i]['sync_to_date_days_before']
             ];
 
             SirumLog::notice("get_days_and_message $log_suffix", $get_days_and_message);
+
+            //Internal logic keeps initial values on order_items if they exist (don't want to contradict patient comms)
+            $patient_or_order[$i] = set_days_and_message($patient_or_order[$i], $days, $message, $mysql);
+
+            export_cp_set_rx_message($patient_or_order[$i], $message);
+
+            if ($needs_removing) {
+
+              if (@$patient_or_order[0]['invoice_number']) {
+                $items_to_remove[] = $patient_or_order[$i];
+              } else {
+                SirumLog::alert("Item needs to be removed but NO Order?", [
+                  'days'    => $days,
+                  'message' => $message,
+                  'items'   => $patient_or_order[$i]
+                ]);
+              }
+
+              SirumLog::notice(
+                "helper_full_fields: needs_removing (export_cp_remove_items) ".$patient_or_order[$i]['drug_name'],
+                [
+                  'item'    => $patient_or_order[$i],
+                  'items_to_remove' => $items_to_remove,
+                  'days'    => $days,
+                  'message' => $message
+                ]
+              );
+            }
+
+            if ($needs_adding) {
+
+              if (@$patient_or_order[0]['invoice_number']) {
+                $items_to_add[] = $patient_or_order[$i];
+              } else {
+                SirumLog::alert("Item needs to be added but NO Order?  Start aborting since downstream MySQL Errors?"
+                ." invoice_number:".$patient_or_order[$i]['invoice_number']
+                ." item_invoice:".$patient_or_order[$i]['dontuse_item_invoice']
+                ." order_invoice:".$patient_or_order[$i]['dontuse_order_invoice'], [
+                  'days'    => $days,
+                  'message' => $message,
+                  'items'   => $patient_or_order[$i]
+                ]);
+              }
+
+              SirumLog::notice(
+                "helper_full_fields: needs_adding (export_cp_add_items) ".$patient_or_order[$i]['drug_name'],
+                [
+                  'item'         => $patient_or_order[$i],
+                  'items_to_add' => $items_to_add,
+                  'days'         => $days,
+                  'message'      => $message
+                ]
+              );
+            }
 
             if($needs_pending) {
               v2_pend_item($patient_or_order[$i], $mysql);
@@ -107,36 +172,29 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
               v2_pend_item($patient_or_order[$i], $mysql);
             }
 
-            if ($pending_changed) {
+            if ($days_changed OR $needs_adding OR $needs_removing) {
 
               $update_payment = true;
 
-              $log = "helper_full_fields: pending changes ".$patient_or_order[$i]['invoice_number'].": ".$patient_or_order[$i]['days_dispensed_default']." -> $days";
+              $log = "Order Updated ".@$patient_or_order[$i]['invoice_number']."! days_changed:$days_changed OR needs_adding:$needs_adding OR needs_removing:$needs_removing. ".$patient_or_order[$i]['drug_name'].": $message $get_days_and_message[old_days_dispensed_default] -> $days";
 
               $salesforce   = [
                 "subject"   => $log,
                 "body"      => print_r($patient_or_order[$i], true),
-                "contact"   => $patient_or_order[$i]['first_name'].' '.$patient_or_order[$i]['last_name'].' '.$patient_or_order[$i]['birth_date'],
-                "assign_to" => ".Add/Remove Drug - RPh",
-                "due_date"  => date('Y-m-d')
+                "contact"   => $patient_or_order[$i]['first_name'].' '.$patient_or_order[$i]['last_name'].' '.$patient_or_order[$i]['birth_date']
               ];
 
-              SirumLog::notice($log, [
+              SirumLog::notice("helper_full_fields $log", [
                 'get_days_and_message' => $get_days_and_message,
                 'salesforce' => $salesforce,
                 'item' => $patient_or_order[$i]
               ]);
 
-              $event_title = "$log $salesforce[due_date]";
+              $event_title = $log."  ".date('Y:m:d H:i:s');
 
               if ( ! $set_days_and_msgs) //this is an update
                 create_event($event_title, [$salesforce]);
             }
-
-            //Internal logic keeps initial values on order_items if they exist (don't want to contradict patient comms)
-            $patient_or_order[$i] = set_days_and_message($patient_or_order[$i], $days, $message, $mysql);
-
-            export_cp_set_rx_message($patient_or_order[$i], $message);
 
             //Internal logic determines if fax is necessary
             if ($set_days_and_msgs) //Sending because of overwrite may cause multiple faxes for same item
@@ -246,8 +304,18 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
         $patient_or_order[$i]['qty_dispensed'] = (float) $qty_dispensed;
     }
 
+    if ($items_to_remove) { //CHECK BECAUSE EMPTY OR NULL ARRAY WOULD REMOVE ALL ITEMS
+      export_cp_remove_items($patient_or_order[0]['invoice_number'], $items_to_remove);
+    }
+
+    if ($items_to_add) {
+      export_cp_add_items($patient_or_order[0]['invoice_number'], $items_to_add);
+    }
+
     foreach ($patient_or_order as $i => $item) {
-      $patient_or_order[$i]['count_filled'] = $count_filled;
+      $patient_or_order[$i]['count_filled']          = $count_filled;
+      $patient_or_order[$i]['count_items_to_remove'] = count($items_to_remove);
+      $patient_or_order[$i]['count_items_to_add']    = count($items_to_add);
     }
 
     if ($update_payment) {

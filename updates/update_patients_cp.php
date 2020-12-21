@@ -10,21 +10,15 @@ function update_patients_cp($changes) {
   $count_created = count($changes['created']);
   $count_updated = count($changes['updated']);
 
-  SirumLog::debug(
-    'Carepoint Patient Changes found',
-    [
-      'deleted' => $changes['deleted'],
-      'created' => $changes['created'],
-      'updated' => $changes['updated'],
-      'deleted_count' => $count_deleted,
-      'created_count' => $count_created,
-      'updated_count' => $count_updated
-    ]
-  );
+  $msg = "$count_deleted deleted, $count_created created, $count_updated updated ";
+  echo $msg;
+  log_info("update_patients_cp: all changes. $msg", [
+    'deleted_count' => $count_deleted,
+    'created_count' => $count_created,
+    'updated_count' => $count_updated
+  ]);
 
   if ( ! $count_deleted AND ! $count_created AND ! $count_updated) return;
-
-  log_info("update_patients_cp: $count_deleted deleted, $count_created created, $count_updated updated.", get_defined_vars());
 
   $mysql = new Mysql_Wc();
   $mssql = new Mssql_Cp();
@@ -50,7 +44,7 @@ function update_patients_cp($changes) {
     //Patient regististration will change it from 0 -> 1)
     if ($updated['patient_autofill'] != $updated['old_patient_autofill']) {
 
-      $patient = get_full_patient($updated, $mysql, true); //This updates & overwrites set_rx_messages
+      $patient = load_full_patient($updated, $mysql, true); //This updates & overwrites set_rx_messages
 
       log_notice("update_patient_cp patient_autofill changed.  Confirm correct updated rx_messages", [$patient, $updated, $changed, $updated['old_pharmacy_name'] ? 'Existing Patient' : 'New Patient']);
     }
@@ -76,6 +70,12 @@ function update_patients_cp($changes) {
 
     if ($updated['phone1'] !== $updated['old_phone1']) {
       log_notice("Phone1 updated in CP. Was this handled correctly?", $updated);
+    }
+
+    if ($updated['patient_inactive'] !== $updated['old_patient_inactive']) {
+      $patient = find_patient_wc($mysql, $updated)[0];
+      update_wc_patient_active_status($mysql, $updated['patient_id_wc'], $updated['patient_inactive']);
+      log_notice("CP Patient Inactive Status Changed", $updated);
     }
 
     if ($updated['payment_method_default'] != PAYMENT_METHOD['AUTOPAY'] AND $updated['old_payment_method_default'] ==  PAYMENT_METHOD['AUTOPAY'])

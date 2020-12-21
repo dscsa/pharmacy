@@ -54,7 +54,7 @@ function get_parsed_sig($sig_actual, $drug_name, $correct = null) {
     $parsed['qty_per_day'] = 2/60;
   }
 
-  //log_notice("parsed sig", $parsed);
+  log_notice("parsed sig", $parsed);
 
   return $parsed;
 }

@@ -24,7 +24,7 @@ function get_payment_default($order, $reason) {
   $update['payment_total_default'] = 0;
 
   foreach($order as $i => $item)
-    $update['payment_total_default'] += $item['price_dispensed'];
+    $update['payment_total_default'] += (@$item['price_dispensed'] ?: 0);
 
   //Defaults
   $update['payment_fee_default'] = +$order[0]['refills_used'] ? $update['payment_total_default'] : PAYMENT_TOTAL_NEW_PATIENT;
