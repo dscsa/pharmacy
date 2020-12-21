@@ -56,6 +56,7 @@ function load_full_item($item, $mysql, $overwrite_rx_messages = false) {
         gp_orders.invoice_number = gp_order_items.invoice_number
       WHERE
         gp_rxs_single.rx_number = $item[rx_number]
+    ";
 
   $query = $mysql->run($sql);
 
