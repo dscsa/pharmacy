@@ -73,11 +73,15 @@ function update_patients_wc($changes) {
     $patient_cp = find_patient_wc($mysql, $created);
     $patient_wc = find_patient_wc($mysql, $created, 'gp_patients_wc');
 
+    //match_patient_wc($mysql, $patient, $patient_id_cp);
+
     $alert = [
-      'created' => $created,
-      'source'  => 'WooCommerce',
-      'type'    => 'patients',
-      'event'   => 'created'
+      'created'    => $created,
+      'patient_cp' => $patient_cp,
+      'patient_wc' => $patient_wc,
+      'source'     => 'WooCommerce',
+      'type'       => 'patients',
+      'event'      => 'created'
     ];
 
     SirumLog::alert("update_patients_wc: WooCommerce PATIENT created $created[first_name] $created[last_name] $created[birth_date]", $alert);
