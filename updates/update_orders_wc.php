@@ -25,6 +25,15 @@ function update_orders_wc($changes) {
     //This captures 2 USE CASES:
     //1) A user/tech created an order in WC and we need to add it to Guardian
     //2) An order is incorrectly saved in WC even though it should be gone (tech bug)
+
+    $counts = [
+      'empty_orders' => 0,
+      'completed' => 0,
+      'webform_preparing' => 0,
+      'webform_other' => 0,
+      'other' => 0
+    ];
+
     foreach ($changes['created'] as $created) {
         SirumLog::$subroutine_id = "orders-wc-created-".sha1(serialize($created));
 
@@ -40,7 +49,8 @@ function update_orders_wc($changes) {
         $new_stage = explode('-', $created['order_stage_wc']);
 
         if ($created['order_stage_wc'] == 'trash' or $new_stage[1] == 'awaiting' or $new_stage[1] == 'confirm') {
-            log_info("Empty Orders are intentially not imported into Guardian", "$created[invoice_number] $created[order_stage_wc]");
+          $counts = ['empty_orders']++;
+          log_info("Empty Orders are intentially not imported into Guardian", "$created[invoice_number] $created[order_stage_wc]");
         } else if (in_array(
             $created['order_stage_wc'],
             [
@@ -55,6 +65,7 @@ function update_orders_wc($changes) {
               'wc-done-auto-pay'
              ]
         )) {
+            $counts = ['completed']++;
             log_error("Shipped/Paid WC not in Guardian. Delete/Refund?", $created);
 
         //This comes from import_wc_orders so we don't need the "w/ Note" counterpart sources
@@ -65,10 +76,12 @@ function update_orders_wc($changes) {
             $gp_orders_all = $mysql->run("SELECT * FROM gp_orders WHERE patient_id_wc = $created[patient_id_wc]");
 
             if ($gp_orders_pend[0]) {
+                $counts = ['webform_preparing']++;
                 export_gd_delete_invoice([$created], $mysql);
                 export_wc_delete_order($created['invoice_number'], "update_orders_wc: wc order 'created' but probably just not deleted when CP order was ".json_encode($created));
                 log_error("update_orders_wc: Deleting Webform eRx/Refill/Transfer order that was not in CP.  Most likely patient submitted two orders (e.g. 32121 & 32083 OR 32783 & 32709).  Why was this not deleted when CP Order was deleted?", ['gp_orders_pend' => $gp_orders_pend, 'gp_orders_all' => $gp_orders_all, 'created' => $created]);//.print_r($item, true);
             } else {
+                $counts = ['webform_other']++;
                 log_error("update_orders_wc: created Webform eRx/Refill/Transfer order that is not in CP? Unknown reason", ['gp_orders_pend' => $gp_orders_pend, 'gp_orders_all' => $gp_orders_all, 'created' => $created]);//.print_r($item, true);
             }
 
@@ -76,6 +89,8 @@ function update_orders_wc($changes) {
             //log_notice("New WC Order to Add Guadian", $created);
         } else {
             //TODO Investigate #29147
+
+            $counts = ['other']++;
 
             $gp_orders     = $mysql->run("SELECT * FROM gp_orders WHERE invoice_number = $created[invoice_number]");
             $gp_orders_cp  = $mysql->run("SELECT * FROM gp_orders_cp WHERE invoice_number = $created[invoice_number]");
@@ -86,6 +101,8 @@ function update_orders_wc($changes) {
       //log_notice("Guardian Order Deleted that should be deleted from WC later in this run or already deleted", $created);
         }
     }
+
+    print_r($counts);
 
     //This captures 2 USE CASES:
     //1) An order is in WC and CP but then is deleted in WC, probably because wp-admin deleted it (look for Update with order_stage_wc == 'trash')
