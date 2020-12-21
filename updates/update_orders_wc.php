@@ -71,16 +71,16 @@ function update_orders_wc($changes) {
         }
 
         //[NULL, 'Webform Complete', 'Webform eRx', 'Webform Transfer', 'Auto Refill', '0 Refills', 'Webform Refill', 'eRx /w Note', 'Transfer /w Note', 'Refill w/ Note']
-        if (stripos($created['order_stage_wc'], 'confirm')) {
+        if (stripos($created['order_stage_wc'], 'confirm') OR stripos($created['order_stage_wc'], 'trash')) {
           $counts['confirm_delete']++;
-          //export_wc_delete_order($created['invoice_number'], "update_orders_cp: cp order deleted $created[invoice_number] $created[order_stage_wc] $created[order_source] ".json_encode($created));
+          export_wc_delete_order($created['invoice_number'], "update_orders_cp: cp order deleted $created[invoice_number] $created[order_stage_wc] $created[order_source] ".json_encode($created));
           continue;
         }
 
         //[NULL, 'Webform Complete', 'Webform eRx', 'Webform Transfer', 'Auto Refill', '0 Refills', 'Webform Refill', 'eRx /w Note', 'Transfer /w Note', 'Refill w/ Note']
         if (stripos($created['order_stage_wc'], 'prepare')) {
           $counts['cancel_order']++;
-          //export_wc_delete_order($created['invoice_number'], "update_orders_cp: cp order deleted $created[invoice_number] $created[order_stage_wc] $created[order_source] ".json_encode($created));
+          export_wc_cancel_order($created['invoice_number'], "update_orders_cp: cp order canceled $created[invoice_number] $created[order_stage_wc] $created[order_source] ".json_encode($created));
           continue;
         }
 
