@@ -48,8 +48,6 @@ function update_orders_wc($changes) {
             *
           FROM
             gp_orders
-          JOIN
-            gp_patients USING(patient_id_cp)
           WHERE
             patient_id_wc = $created[patient_id_wc] AND
             order_stage_cp != 'Dispensed' AND
