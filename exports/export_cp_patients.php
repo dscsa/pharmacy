@@ -2,7 +2,7 @@
 
 function export_cp_patient_save_medications_other($mssql, $patient, $live = false) {
 
-  $medications_other = escape_db_values($patient['medications_other']);
+  $medications_other = escape_db_values(utf8ize($patient['medications_other']));
 
   /*
   $select = "
