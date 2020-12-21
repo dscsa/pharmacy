@@ -388,7 +388,7 @@ function update_patients_wc($changes) {
 
     if ($updated['medications_other'] !== $updated['old_medications_other']) {
 
-      if (strlen($updated['medications_other']) == strlen($updated['old_medications_other']))
+      if (strlen($updated['medications_other']) > 0 AND strlen($updated['medications_other']) == strlen($updated['old_medications_other']))
         SirumLog::alert('Trouble saving medications_other.  Most likely an encoding issue', $changed);
 
       export_cp_patient_save_medications_other($mssql, $updated);

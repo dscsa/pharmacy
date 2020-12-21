@@ -409,7 +409,7 @@ function export_wc_create_order($order, $reason)
               '{$first_item['patient_id_wc']}',
               '{$first_item['order_stage_wc']}',
               '{$first_item['order_source']}',
-              '{$first_item['invoice_doc_id']}',
+              NULLIF('{$first_item['invoice_doc_id']}', ''),
               '$address1',
               '$address2',
               '{$first_item['order_city']}',
