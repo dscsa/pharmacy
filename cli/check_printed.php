@@ -8,7 +8,7 @@ require_once 'vendor/autoload.php';
 require_once 'helpers/helper_pagerduty.php';
 require_once 'keys.php';
 
-$args   = getopt("s:e:h", array());
+$args   = getopt("s:e:hn", array());
 
 function printHelp()
 {
@@ -20,6 +20,7 @@ function printHelp()
                       time.  Defaults to '-30 Minutes' This time must be greater
                       than the start_date.
         -h            Print this message
+        -n            Don't alert pager duty
 
 EOF;
     exit;
@@ -70,6 +71,7 @@ $opts = [
       'header'  => "Accept: application/json\r\n"
     ]
 ];
+
 $context  = stream_context_create($opts);
 $base_url = "https://script.google.com/macros/s/AKfycbwL2Ct6grT3cCgaw27GrUSzznur"
             . "9W9xhDgs-YoZvqeepZjWYjR9/exec?GD_KEY=Patients1st!";
@@ -94,7 +96,9 @@ while ($invoice = $pdo->fetch()) {
                    . "invoice_doc_id.";
     }
     if (isset($message)) {
-        pd_low_priority($message, $incident_id);
+        if (!isset($args['n'])) {
+            pd_low_priority($message, $incident_id);
+        }
         echo $message . "\n";
         unset($message);
     }
