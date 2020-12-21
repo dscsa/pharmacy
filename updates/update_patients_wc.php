@@ -351,7 +351,11 @@ function update_patients_wc($changes) {
       $updated['allergies_other'] !== $updated['old_allergies_other']
     ) {
 
-      if ($updated['allergies_other'] !== $updated['old_allergies_other'] AND strlen($updated['allergies_other']) == strlen($updated['old_allergies_other']))
+      if (
+        $updated['allergies_other'] !== $updated['old_allergies_other'] AND
+        strlen($updated['allergies_other']) > 0 AND
+        strlen($updated['allergies_other']) == strlen($updated['old_allergies_other'])
+      )
         SirumLog::alert('Trouble saving allergies_other.  Most likely an encoding issue', $changed);
 
       $allergy_array = [
