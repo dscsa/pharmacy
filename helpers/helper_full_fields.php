@@ -139,9 +139,9 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
                 $items_to_add[] = $patient_or_order[$i];
               } else {
                 SirumLog::alert("Item needs to be added but NO Order?  Start aborting since downstream MySQL Errors?"
-                ." invoice_number:".$patient_or_order[$i]['invoice_number']
-                ." item_invoice:".$patient_or_order[$i]['dontuse_item_invoice']
-                ." order_invoice:".$patient_or_order[$i]['dontuse_order_invoice'], [
+                ." invoice_number:".@$patient_or_order[$i]['invoice_number']
+                ." item_invoice:".@$patient_or_order[$i]['dontuse_item_invoice']
+                ." order_invoice:".@$patient_or_order[$i]['dontuse_order_invoice'], [
                   'days'    => $days,
                   'message' => $message,
                   'items'   => $patient_or_order[$i]
@@ -176,7 +176,7 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
 
               $update_payment = true;
 
-              $log = "Order Updated ".@$patient_or_order[$i]['invoice_number']."! days_changed:$days_changed OR needs_adding:$needs_adding OR needs_removing:$needs_removing. ".$patient_or_order[$i]['drug_name'].": $message $get_days_and_message[old_days_dispensed_default] -> $days";
+              $log = "Order Updated ".@$patient_or_order[$i]['invoice_number']."! days_changed:$days_changed OR needs_adding:$needs_adding OR needs_removing:$needs_removing. ".$patient_or_order[$i]['drug_name'].": $message[EN] $get_days_and_message[old_days_dispensed_default] -> $days";
 
               $salesforce   = [
                 "subject"   => $log,
