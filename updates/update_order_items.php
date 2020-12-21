@@ -10,6 +10,9 @@ use Sirum\Logging\SirumLog;
 
 function update_order_items($changes) {
 
+    global $global_timer_details;
+    $section_timer_details = [];
+
   $count_deleted = count($changes['deleted']);
   $count_created = count($changes['created']);
   $count_updated = count($changes['updated']);
@@ -33,6 +36,7 @@ function update_order_items($changes) {
   //  - if first line item in order, find out any other rxs need to be added
   //  - update invoice
   //  - update wc order total
+  $loop_timer = microtime(true);
   foreach($changes['created'] as $created) {
 
     SirumLog::$subroutine_id = "order-items-created-".sha1(serialize($created));
@@ -73,7 +77,9 @@ function update_order_items($changes) {
 
     //TODO Update Salesforce Order Total & Order Count & Order Invoice using REST API or a MYSQL Zapier Integration
   }
+  $section_timer_details['created_order_items'] = ceil(microtime(true) - $loop_timer);
 
+  $loop_timer = microtime(true);
   foreach($changes['deleted'] as $deleted) {
 
     SirumLog::$subroutine_id = "order-items-deleted-".sha1(serialize($deleted));
@@ -95,7 +101,9 @@ function update_order_items($changes) {
 
     //TODO Update Salesforce Order Total & Order Count & Order Invoice using REST API or a MYSQL Zapier Integration
   }
+  $section_timer_details['deleted_order_items'] = ceil(microtime(true) - $loop_timer);
 
+  $loop_timer = microtime(true);
   //If just updated we need to
   //  - see which fields changed
   //  - think about what needs to be updated based on changes
@@ -162,6 +170,8 @@ function update_order_items($changes) {
 
   SirumLog::resetSubroutineId();
 }
+$section_timer_details['updated_order_items'] = ceil(microtime(true) - $loop_timer);
+$global_timer_details['update_order_items_loops'] = $section_timer_details;
 
 function deduplicate_order_items($item, $mssql, $mysql) {
 

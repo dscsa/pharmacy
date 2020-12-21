@@ -4,7 +4,18 @@ require_once 'helpers/helper_appsscripts.php';
 
 use Sirum\Logging\SirumLog;
 
+global $gd_merge_timers;
+$gd_merge_timers = [
+    'export_gd_update_invoice'  => 0,
+    'export_gd_delete_invoice'  => 0,
+    'export_gd_print_invoice'   => 0,
+    'export_gd_publish_invoice' => 0
+];
+
+
 function export_gd_update_invoice($order, $reason, $mysql, $try2 = false) {
+    global $gd_merge_timers;
+    $start = microtime(true);
 
   SirumLog::notice(
     'export_gd_update_invoice: called',
@@ -70,11 +81,16 @@ function export_gd_update_invoice($order, $reason, $mysql, $try2 = false) {
 
   $mysql->run($sql);
 
+  $gd_merge_timers['export_gd_update_invoice'] += ceil(microtime(true) - $start);
+
+  $loop_timer = microtime(true);
+
   return $order;
 }
 
 function export_gd_print_invoice($order) {
-
+    global $gd_merge_timers;
+    $start = microtime(true);
   log_notice("export_gd_print_invoice start: ".$order[0]['invoice_number'], $order);
 
   $start = microtime(true);
@@ -91,11 +107,14 @@ function export_gd_print_invoice($order) {
   $time = ceil(microtime(true) - $start);
 
   log_notice("export_gd_print_invoice $time seconds: ".$order[0]['invoice_number'], $result);
+
+  $gd_merge_timers['export_gd_print_invoice'] += ceil(microtime(true) - $start);
 }
 
 //Cannot delete (with this account) once published
 function export_gd_publish_invoice($order, $mysql, $retry = false) {
-
+    global $gd_merge_timers;
+    $start = microtime(true);
   $start = microtime(true);
 
   $args = [
@@ -117,10 +136,13 @@ function export_gd_publish_invoice($order, $mysql, $retry = false) {
   } else {
     log_notice("export_gd_publish_invoice success $time seconds: ".$order[0]['invoice_number'], $result);
   }
+
+  $gd_merge_timers['export_gd_publish_invoice'] += ceil(microtime(true) - $start);
 }
 
 function export_gd_delete_invoice($invoice_number) {
-
+    global $gd_merge_timers;
+    $start = microtime(true);
   $args = [
     'method'   => 'removeFiles',
     'file'     => 'Invoice #'.$invoice_number,
@@ -130,4 +152,6 @@ function export_gd_delete_invoice($invoice_number) {
   $result = gdoc_post(GD_HELPER_URL, $args);
 
   log_info("export_gd_delete_invoice", get_defined_vars());
+
+  $gd_merge_timers['export_gd_delete_invoice'] += ceil(microtime(true) - $start);
 }
