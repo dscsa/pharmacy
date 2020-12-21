@@ -325,8 +325,8 @@ function freeze_invoice_data($item, $mysql) {
   if ( ! $item['days_dispensed_actual'])
     return log_error("freeze_invoice_data has no actual days", get_defined_vars());
 
-  $price_dispensed_actual = ($item['price_dispensed_actual']) ?:0.0;
-  $refills_total          = ($item['refills_total']) ?:0.0;
+  $price_dispensed_actual = (@$item['price_dispensed_actual']) ?: 'NULL';
+  $refills_total          = $item['refills_total'];
   $rx_message_keys        = escape_db_values($item['rx_message_keys']);
   $rx_message_text        = escape_db_values($item['rx_message_text']);
 
