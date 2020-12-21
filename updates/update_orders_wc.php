@@ -73,7 +73,18 @@ function update_orders_wc($changes) {
           continue;
         }
 
-        echo "\n$created[invoice_number] $created[order_stage_wc]";
+        SirumLog::alert(
+            "update_orders_wc: WooCommerce Order Created. Needs Manual Intervention!",
+            [
+                'invoice_number' => $created['invoice_number'],
+                'order_stage_wc' => $created['order_stage_wc'],
+                'source'         => 'WooCommerce',
+                'event'          => 'created',
+                'type'           => 'orders',
+                'created'        => $created
+            ]
+        );
+
         //export_wc_cancel_order($created['invoice_number'], "update_orders_cp: cp order canceled $created[invoice_number] $created[order_stage_cp] $created[order_stage_wc] $created[order_source] ".json_encode($created));
     }
 
