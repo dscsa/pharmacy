@@ -27,13 +27,14 @@ function update_orders_wc($changes) {
     //2) An order is incorrectly saved in WC even though it should be gone (tech bug)
 
     $counts = [
-      'empty_orders' => 0,
-      'completed' => 0,
-      'webform_preparing' => 0,
-      'webform_other' => 0,
-      'other' => 0
+      'replacement' => 0,
+      'confirm_delete' => 0,
+      'cancel_order' => 0
     ];
 
+    //Since CP Order runs before this AND Webform automatically adds Orders into CP
+    //this loop should not have actual created orders.  They are all orders that were
+    //deleted in CP and were overlooked by the cp_order delete loop
     foreach ($changes['created'] as $created) {
         SirumLog::$subroutine_id = "orders-wc-created-".sha1(serialize($created));
 
@@ -46,60 +47,37 @@ function update_orders_wc($changes) {
                 'created' => $created
             ]
         );
-        $new_stage = explode('-', $created['order_stage_wc']);
 
-        if ($created['order_stage_wc'] == 'trash' or $new_stage[1] == 'awaiting' or $new_stage[1] == 'confirm') {
-          $counts['empty_orders']++;
-          log_info("Empty Orders are intentially not imported into Guardian", "$created[invoice_number] $created[order_stage_wc]");
-        } else if (in_array(
-            $created['order_stage_wc'],
-            [
-              'wc-shipped-unpaid',
-              'wc-shipped-paid',
-              'wc-shipped-paid-card',
-              'wc-shipped-paid-mail',
-              'wc-shipped-refused',
-              'wc-done-card-pay',
-              'wc-done-mail-pay',
-              'wc-done-coupon-pay',
-              'wc-done-auto-pay'
-             ]
-        )) {
-            $counts['completed']++;
-            log_error("Shipped/Paid WC not in Guardian. Delete/Refund?", $created);
+        $sql = "
+          SELECT
+            *
+          FROM
+            gp_orders
+          JOIN
+            gp_patients USING(patient_id_cp)
+          WHERE
+            patient_id_wc = $created[patient_id_wc] AND
+            order_stage_cp != 'Dispensed' AND
+            order_stage_cp != 'Shipped'
+        ";
 
-        //This comes from import_wc_orders so we don't need the "w/ Note" counterpart sources
-        } else if (in_array($created['order_source'], ["Webform Refill", "Webform Transfer", "Webform eRx"])) {
-            //TODO Investigate #29187
+        $replacement = $mysql->run($sql)[0];
 
-            $gp_orders_pend = $mysql->run("SELECT * FROM gp_orders WHERE patient_id_wc = $created[patient_id_wc] AND (order_stage_wc LIKE '%prepare%' OR order_stage_wc LIKE '%confirm%')");
-            $gp_orders_all = $mysql->run("SELECT * FROM gp_orders WHERE patient_id_wc = $created[patient_id_wc]");
-
-            if ($gp_orders_pend[0]) {
-                $counts['webform_preparing']++;
-                export_gd_delete_invoice([$created], $mysql);
-                export_wc_delete_order($created['invoice_number'], "update_orders_wc: wc order 'created' but probably just not deleted when CP order was ".json_encode($created));
-                log_error("update_orders_wc: Deleting Webform eRx/Refill/Transfer order that was not in CP.  Most likely patient submitted two orders (e.g. 32121 & 32083 OR 32783 & 32709).  Why was this not deleted when CP Order was deleted?", ['gp_orders_pend' => $gp_orders_pend, 'gp_orders_all' => $gp_orders_all, 'created' => $created]);//.print_r($item, true);
-            } else {
-                $counts['webform_other']++;
-                log_error("update_orders_wc: created Webform eRx/Refill/Transfer order that is not in CP? Unknown reason", ['gp_orders_pend' => $gp_orders_pend, 'gp_orders_all' => $gp_orders_all, 'created' => $created]);//.print_r($item, true);
-            }
-
-
-            //log_notice("New WC Order to Add Guadian", $created);
-        } else {
-            //TODO Investigate #29147
-
-            $counts['other']++;
-
-            $gp_orders     = $mysql->run("SELECT * FROM gp_orders WHERE invoice_number = $created[invoice_number]");
-            $gp_orders_cp  = $mysql->run("SELECT * FROM gp_orders_cp WHERE invoice_number = $created[invoice_number]");
-            $gp_orders_all = $mysql->run("SELECT * FROM gp_orders WHERE patient_id_wc = $created[patient_id_wc]");
-
-            log_error("update_orders_wc: created non-Webform order that is not in CP? 1) One-Time: deleted by helper_syncing and will be readded, 2: Repeated: deleted by Pharmacist in CP and should be investigated (33287 maybe sig_qty_per_day grouping error)", ['gp_orders_all' => $gp_orders_all, 'gp_orders_cp' => $gp_orders_cp, 'gp_orders' => $gp_orders, 'created' => $created]);//.print_r($item, true);
-
-      //log_notice("Guardian Order Deleted that should be deleted from WC later in this run or already deleted", $created);
+        if ($replacement) {
+          $counts['replacement']++;
+          log_error('order_canceled_notice BUT their appears to be a replacement', ['created' => $created, 'sql' => $sql, 'replacement' => $replacement]);
+          continue;
         }
+
+        //[NULL, 'Webform Complete', 'Webform eRx', 'Webform Transfer', 'Auto Refill', '0 Refills', 'Webform Refill', 'eRx /w Note', 'Transfer /w Note', 'Refill w/ Note']
+        if (stripos($created['order_stage_wc'], 'confirm')) {
+          $counts['confirm_delete']++;
+          //export_wc_delete_order($created['invoice_number'], "update_orders_cp: cp order deleted $created[invoice_number] $created[order_stage_wc] $created[order_source] ".json_encode($created));
+          continue;
+        }
+
+        $counts['cancel_order']++;
+        //export_wc_cancel_order($created['invoice_number'], "update_orders_cp: cp order canceled $created[invoice_number] $created[order_stage_cp] $created[order_stage_wc] $created[order_source] ".json_encode($created));
     }
 
     print_r($counts);

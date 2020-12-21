@@ -305,119 +305,92 @@ function update_orders_cp($changes) {
          */
     foreach ($changes['deleted'] as $deleted) {
 
-        SirumLog::$subroutine_id = "orders-cp-deleted-".sha1(serialize($deleted));
+      SirumLog::$subroutine_id = "orders-cp-deleted-".sha1(serialize($deleted));
 
-        SirumLog::debug(
-            'update_orders_cp: carepoint order has been deleted',
-            [
-              'source'         => 'CarePoint',
-              'event'          => 'deleted',
-              'type'           => 'orders',
-              'invoice_number' => $deleted['invoice_number'],
-              'deleted'        => $deleted
-            ]
+      SirumLog::debug(
+          'update_orders_cp: carepoint order has been deleted',
+          [
+            'source'         => 'CarePoint',
+            'event'          => 'deleted',
+            'type'           => 'orders',
+            'invoice_number' => $deleted['invoice_number'],
+            'deleted'        => $deleted
+          ]
+      );
+
+      if ($deleted['order_status'] == "Surescripts Authorization Denied")
+        SirumLog::error(
+          "Surescripts Authorization Denied. Deleted. What to do here?",
+          [
+            'invoice_number' => $deleted['invoice_number'],
+            'deleted' => $deleted,
+            'source'  => 'CarePoint',
+            'type'    => 'orders',
+            'event'   => 'deleted'
+          ]
         );
 
-        if ($deleted['order_status'] == "Surescripts Authorization Denied")
-          SirumLog::error(
-            "Surescripts Authorization Denied. Deleted. What to do here?",
-            [
-              'invoice_number' => $deleted['invoice_number'],
-              'deleted' => $deleted,
-              'source'  => 'CarePoint',
-              'type'    => 'orders',
-              'event'   => 'deleted'
-            ]
-          );
+      if ($deleted['order_status'] == "Surescripts Authorization Approved")
+        SirumLog::error(
+          "Surescripts Authorization Approved. Deleted.  What to do here?",
+          [
+            'invoice_number'   => $deleted['invoice_number'],
+            'count_items'      => $deleted['count_items'],
+            'deleted'          => $deleted
+          ]
+        );
 
-        if ($deleted['order_status'] == "Surescripts Authorization Approved")
-          SirumLog::error(
-            "Surescripts Authorization Approved. Deleted.  What to do here?",
-            [
-              'invoice_number'   => $deleted['invoice_number'],
-              'count_items'      => $deleted['count_items'],
-              'deleted'          => $deleted
-            ]
-          );
+    //Order #28984, #29121, #29105
+      if ( ! $deleted['patient_id_wc']) {
+        //Likely
+        //  (1) Guardian Order Was Created But Patient Was Not Yet Registered in WC so never created WC Order (and No Need To Delete It)
+        //  (2) OR Guardian Order had items synced to/from it, so was deleted and readded, which effectively erases the patient_id_wc
+          log_error('update_orders_cp: cp order deleted - no patient_id_wc', $deleted);
+      } else {
+          log_notice('update_orders_cp: cp order deleted so deleting wc order as well', $deleted);
+      }
 
-      //Order #28984, #29121, #29105
-        if (!$deleted['patient_id_wc']) {
-          //Likely
-          //  (1) Guardian Order Was Created But Patient Was Not Yet Registered in WC so never created WC Order (and No Need To Delete It)
-          //  (2) OR Guardian Order had items synced to/from it, so was deleted and readded, which effectively erases the patient_id_wc
-            log_error('update_orders_cp: cp order deleted - no patient_id_wc', $deleted);
-        } else {
-            log_notice('update_orders_cp: cp order deleted so deleting wc order as well', $deleted);
-        }
+      //Order was Returned to Sender and not logged yet
+      if ($deleted['tracking_number'] AND ! $deleted['order_date_returned']) {
 
-        //Order was Returned to Sender and not logged yet
-        if ($deleted['tracking_number'] AND ! $deleted['order_date_returned']) {
+        log_notice('Confirm this order was returned! Order with tracking number was deleted', $deleted);
 
-          set_payment_actual($deleted['invoice_number'], ['total' => 0, 'fee' => 0, 'due' => 0], $mysql);
-          //export_wc_update_order_payment($deleted['invoice_number'], 0); //Don't need this because we are deleting the WC order later
+        export_wc_return_order($invoice_number);
 
-          $update_sql = "
-            UPDATE gp_orders
-            SET order_date_returned = NOW()
-            WHERE invoice_number = $deleted[invoice_number]
-          ";
+        continue;
+      }
 
-          $mysql->run($update_sql);
+      export_gd_delete_invoice($deleted['invoice_number']);
 
-          log_notice('Confirm this order was returned! Order with tracking number was deleted', $deleted);
+      //[NULL, 'Webform Complete', 'Webform eRx', 'Webform Transfer', 'Auto Refill', '0 Refills', 'Webform Refill', 'eRx /w Note', 'Transfer /w Note', 'Refill w/ Note']
+      if ($deleted['count_filled'] > 0 OR in_array($deleted['order_source'], ['Webform eRx', 'Webform Transfer', 'Webform Refill', 'eRx /w Note', 'Transfer /w Note', 'Refill w/ Note']))
+        export_wc_cancel_order($deleted['invoice_number'], "update_orders_cp: cp order canceled $deleted[invoice_number] $deleted[order_stage_cp] $deleted[order_stage_wc] $deleted[order_source] ".json_encode($deleted));
+      else
+        export_wc_delete_order($deleted['invoice_number'], "update_orders_cp: cp order deleted $deleted[invoice_number] $deleted[order_stage_cp] $deleted[order_stage_wc] $deleted[order_source] ".json_encode($deleted));
 
-          continue;
-        }
+      export_v2_unpend_order([$deleted], $mysql);
 
-        export_gd_delete_invoice([$deleted], $mysql);
+      export_cp_remove_items($deleted['invoice_number']);
 
-        //[NULL, 'Webform Complete', 'Webform eRx', 'Webform Transfer', 'Auto Refill', '0 Refills', 'Webform Refill', 'eRx /w Note', 'Transfer /w Note', 'Refill w/ Note']
-        if ($deleted['count_filled'] > 0 OR in_array($deleted['order_source'], ['Webform eRx', 'Webform Transfer', 'Webform Refill', 'eRx /w Note', 'Transfer /w Note', 'Refill w/ Note']))
-          export_wc_cancel_order($deleted['invoice_number'], "update_orders_cp: cp order deleted $deleted[invoice_number] $deleted[order_stage_cp] $deleted[order_stage_wc] $deleted[order_source] ".json_encode($deleted));
-        else
-          export_wc_delete_order($deleted['invoice_number'], "update_orders_cp: cp order deleted $deleted[invoice_number] $deleted[order_stage_cp] $deleted[order_stage_wc] $deleted[order_source] ".json_encode($deleted));
+      $sql = "
+        SELECT * FROM gp_orders WHERE patient_id_cp = $deleted[patient_id_cp] AND order_stage_cp != 'Dispensed' AND order_stage_cp != 'Shipped'
+      ";
 
-        export_v2_unpend_order([$deleted], $mysql);
+      $replacement = $mysql->run($sql)[0];
 
-        $delete_items_sql = "
-          DELETE gp_order_items
-          FROM gp_order_items
-          JOIN gp_rxs_single
-            ON gp_rxs_single.rx_number = gp_order_items.rx_number
-          WHERE
-            rx_dispensed_id IS NULL AND
-            invoice_number = $deleted[invoice_number]
-        ";
+      if ($replacement) {
+        log_error('order_canceled_notice BUT their appears to be a replacement', ['deleted' => $deleted, 'sql' => $sql, 'replacement' => $replacement]);
+        continue;
+      }
 
-        $mysql->run($delete_items_sql);
+      //We should be able to delete wc-confirm-* from CP queue without triggering an order cancel notice
+      if ( ! $deleted['count_filled'] AND ! $deleted['count_nofill']) { //count_items may already be 0 on a deleted order that had items e.g 33840
+        no_rx_notice($deleted, $patient);
+        log_error("update_orders_cp deleted: count_filled == 0 AND count_nofill == 0 so calling no_rx_notice() rather than order_canceled_notice()", $deleted);
+        continue;
+      }
 
-        $patient_exists_sql = "
-          SELECT * FROM gp_patients WHERE patient_id_cp = $deleted[patient_id_cp]
-        ";
-
-        $patient = $mysql->run($patient_exists_sql)[0];
-
-        if ( ! $patient)
-          log_error('No patient associated with deleted order (Patient Deactivated/Deceased/Moved out of State)', ['deleted' => $deleted, 'sql' => $sql]);
-
-        //We should be able to delete wc-confirm-* from CP queue without triggering an order cancel notice
-        if ( ! $deleted['count_filled'] AND ! $deleted['count_nofill']) { //count_items may already be 0 on a deleted order that had items e.g 33840
-          no_rx_notice($deleted, $patient);
-          log_error("update_orders_cp deleted: count_filled == 0 AND count_nofill == 0 so calling no_rx_notice() rather than order_canceled_notice()", $deleted);
-          return;
-        }
-
-        $sql = "
-          SELECT * FROM gp_orders WHERE patient_id_cp = $deleted[patient_id_cp] AND order_stage_cp != 'Dispensed' AND order_stage_cp != 'Shipped'
-        ";
-
-        $replacement = $mysql->run($sql)[0];
-
-        if ($replacement)
-          log_error('order_canceled_notice BUT their appears to be a replacement', ['deleted' => $deleted, 'sql' => $sql, 'replacement' => $replacement]);
-
-        order_canceled_notice($deleted, $patient); //We passed in $deleted because there is not $order to make $groups
-
+      order_canceled_notice($deleted, $patient); //We passed in $deleted because there is not $order to make $groups
     }
 
   //If just updated we need to

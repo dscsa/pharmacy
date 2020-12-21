@@ -238,9 +238,38 @@ function export_wc_cancel_order($invoice_number, $reason) {
     ]
   );
 
-  wc_update_order($order[0]['invoice_number'], [
+  wc_update_order($invoice_number, [
     'post_status' => 'wc-cancelled'
   ]);
+}
+
+function export_wc_return_order($invoice_number) {
+
+  global $mysql;
+  $mysql = $mysql ?: new Mysql_Wc();
+
+  log_notice(
+    'export_wc_return_order',
+    [
+      'invoice_number' => $invoice_number,
+      'customer_initiated' => $customer_initiated
+    ]
+  );
+  //we have know way of knowing it's a wc-return-customer so that would have to be set manually
+  wc_update_order($invoice_number, [
+    'post_status' => 'wc-return-usps'
+  ]);
+
+  set_payment_actual($invoice_number, ['total' => 0, 'fee' => 0, 'due' => 0], $mysql);
+  //export_wc_update_order_payment($deleted['invoice_number'], 0); //Don't need this because we are deleting the WC order later
+
+  $update_sql = "
+    UPDATE gp_orders
+    SET order_date_returned = NOW()
+    WHERE invoice_number = $invoice_number
+  ";
+
+  $mysql->run($update_sql);
 }
 
 function export_wc_delete_order($invoice_number, $reason)
@@ -279,6 +308,8 @@ function export_wc_delete_order($invoice_number, $reason)
       'post_id'        => $post_id
     ]
   );
+
+  export_gd_delete_invoice($invoice_number);
 }
 
 function export_wc_create_order($order, $reason)

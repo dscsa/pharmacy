@@ -23,7 +23,7 @@ function export_gd_update_invoice($order, $reason, $mysql, $try2 = false) {
 
   $start = microtime(true);
 
-  export_gd_delete_invoice($order); //Avoid having multiple versions of same invoice
+  export_gd_delete_invoice($order[0]['invoice_number']); //Avoid having multiple versions of same invoice
 
   $args = [
     'method'   => 'mergeDoc',
@@ -119,11 +119,11 @@ function export_gd_publish_invoice($order, $mysql, $retry = false) {
   }
 }
 
-function export_gd_delete_invoice($order) {
+function export_gd_delete_invoice($invoice_number) {
 
   $args = [
     'method'   => 'removeFiles',
-    'file'     => 'Invoice #'.$order[0]['invoice_number'],
+    'file'     => 'Invoice #'.$invoice_number,
     'folder'   => INVOICE_PENDING_FOLDER_NAME
   ];
 
