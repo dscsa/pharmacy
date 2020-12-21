@@ -8,7 +8,7 @@ require_once 'vendor/autoload.php';
 require_once 'helpers/helper_pagerduty.php';
 require_once 'keys.php';
 
-$args   = getopt("s:e:hn", array());
+$args   = getopt("s:e:hnqv", array());
 
 function printHelp()
 {
@@ -21,6 +21,8 @@ php check_invoices.php [-h -n] -s '-1 Hour' -e '-30 Minutes'
     -n            Don't alert pager duty
     -s start_date Any date expression that can be parsed by string to
                   time.  Defaults to '-1 Hour'
+    -q            Print failed invoices as comma seperated list with no failure details
+    -v            Output success and failures.  Will automatically trigger -n option
 
 EOF;
     exit;
@@ -54,11 +56,9 @@ echo "Checking dispensed invoices between {$start} and {$end}\n";
 $mysql = Sirum\Storage\Goodpill::getConnection();
 $pdo   = $mysql->prepare(
     "SELECT invoice_number, order_date_dispensed, invoice_doc_id
-		        FROM gp_orders
-		        WHERE
-		                order_date_dispensed
-                        BETWEEN :oldest
-                            AND :newest;"
+        FROM gp_orders
+        WHERE order_date_dispensed BETWEEN :oldest AND :newest
+        ORDER BY invoice_number ASC;"
 );
 
 $pdo->bindParam(':oldest', $start, \PDO::PARAM_STR);
@@ -88,6 +88,8 @@ while ($invoice = $pdo->fetch()) {
             if ($results->trashed) {
                 $message .= "It has been moved to the trash and not recreated.";
             }
+        } else if(isset($args['v'])) {
+            $message = "Success {$invoice['invoice_number']} was printed";
         }
     } else {
         // Should create an alert because there should always be an invoice
@@ -96,10 +98,15 @@ while ($invoice = $pdo->fetch()) {
                    . "invoice_doc_id.";
     }
     if (isset($message)) {
-        if (!isset($args['n'])) {
+        if (!isset($args['n']) && !isset($args['v'])) {
             pd_low_priority($message, $incident_id);
         }
-        echo $message . "\n";
+        if (isset($args['q'])) {
+            $message = $invoice['invoice_number'] . ",";
+        } else {
+            $message .= "\n";
+        }
+        echo $message;
         unset($message);
     }
 }
