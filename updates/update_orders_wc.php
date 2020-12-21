@@ -29,7 +29,8 @@ function update_orders_wc($changes) {
     $counts = [
       'replacement' => 0,
       'confirm_delete' => 0,
-      'cancel_order' => 0
+      'cancel_order' => 0,
+      'other' => 0
     ];
 
     //Since CP Order runs before this AND Webform automatically adds Orders into CP
@@ -76,7 +77,15 @@ function update_orders_wc($changes) {
           continue;
         }
 
-        $counts['cancel_order']++;
+        //[NULL, 'Webform Complete', 'Webform eRx', 'Webform Transfer', 'Auto Refill', '0 Refills', 'Webform Refill', 'eRx /w Note', 'Transfer /w Note', 'Refill w/ Note']
+        if (stripos($created['order_stage_wc'], 'prepare')) {
+          $counts['cancel_order']++;
+          //export_wc_delete_order($created['invoice_number'], "update_orders_cp: cp order deleted $created[invoice_number] $created[order_stage_wc] $created[order_source] ".json_encode($created));
+          continue;
+        }
+
+        echo "\n$created[invoice_number] $created[order_stage_wc]";
+        $counts['other']++;
         //export_wc_cancel_order($created['invoice_number'], "update_orders_cp: cp order canceled $created[invoice_number] $created[order_stage_cp] $created[order_stage_wc] $created[order_source] ".json_encode($created));
     }
 
