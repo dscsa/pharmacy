@@ -344,11 +344,8 @@ function update_patients_wc($changes) {
       $updated['allergies_other'] !== $updated['old_allergies_other']
     ) {
 
-      var_dump($updated['allergies_other']);
-      var_dump($updated['old_allergies_other']);
-
-      if (str_replace("\0", "", $updated['allergies_other']) === str_replace("\0", "", $updated['old_allergies_other']))
-        echo "\n NULL removal WORKED!";
+      if ($updated['allergies_other'] !== $updated['old_allergies_other'] AND strlen($updated['allergies_other']) == strlen($updated['old_allergies_other']))
+        SirumLog::alert('Trouble saving allergies_other.  Most likely an encoding issue', $changed);
 
       $allergy_array = [
         'allergies_none' => $updated['allergies_none'] ?: '',
@@ -384,30 +381,10 @@ function update_patients_wc($changes) {
 
     if ($updated['medications_other'] !== $updated['old_medications_other']) {
 
-      var_dump($updated['medications_other']);
-      var_dump($updated['old_medications_other']);
+      if ($updated['medications_other'] !== $updated['old_medications_other'] AND strlen($updated['medications_other']) == strlen($updated['old_medications_other']))
+        SirumLog::alert('Trouble saving medications_other.  Most likely an encoding issue', $changed);
 
-      echo "\n".mb_detect_encoding($updated['medications_other']);
-      echo "\n".mb_detect_encoding($updated['old_medications_other']);
-
-      echo "\n".bin2hex($updated['medications_other']);
-      echo "\n".bin2hex($updated['old_medications_other']);
-
-      if (str_replace("\0", "", $updated['medications_other']) === str_replace("\0", "", $updated['old_medications_other']))
-        echo "\n NULL removal WORKED!";
-
-      if (utf8ize($updated['medications_other']) === utf8ize($updated['old_medications_other']))
-        echo "\n utf8ize WORKED!";
-
-      for ($i = 0; $i <= 1000; $i++) {
-        if (substr($updated['medications_other'], 0, i) !== substr($updated['old_medications_other'], 0, i)) {
-          echo "\n\n".substr($updated['medications_other'], 0, i);
-          echo "\n".substr($updated['old_medications_other'], 0, i);
-          break;
-        }
-      }
-
-      //export_cp_patient_save_medications_other($mssql, $updated);
+      export_cp_patient_save_medications_other($mssql, $updated);
     }
   }
 
