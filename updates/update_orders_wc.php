@@ -26,12 +26,6 @@ function update_orders_wc($changes) {
     //1) A user/tech created an order in WC and we need to add it to Guardian
     //2) An order is incorrectly saved in WC even though it should be gone (tech bug)
 
-    $counts = [
-      'replacement' => 0,
-      'confirm_delete' => 0,
-      'cancel_order' => 0,
-      'other' => 0
-    ];
 
     //Since CP Order runs before this AND Webform automatically adds Orders into CP
     //this loop should not have actual created orders.  They are all orders that were
@@ -65,31 +59,25 @@ function update_orders_wc($changes) {
         $replacement = $mysql->run($sql)[0];
 
         if ($replacement) {
-          $counts['replacement']++;
           log_error('order_canceled_notice BUT their appears to be a replacement', ['created' => $created, 'sql' => $sql, 'replacement' => $replacement]);
           continue;
         }
 
         //[NULL, 'Webform Complete', 'Webform eRx', 'Webform Transfer', 'Auto Refill', '0 Refills', 'Webform Refill', 'eRx /w Note', 'Transfer /w Note', 'Refill w/ Note']
         if (stripos($created['order_stage_wc'], 'confirm') !== false OR stripos($created['order_stage_wc'], 'trash') !== false) {
-          $counts['confirm_delete']++;
           export_wc_delete_order($created['invoice_number'], "update_orders_cp: cp order deleted $created[invoice_number] $created[order_stage_wc] $created[order_source] ".json_encode($created));
           continue;
         }
 
         //[NULL, 'Webform Complete', 'Webform eRx', 'Webform Transfer', 'Auto Refill', '0 Refills', 'Webform Refill', 'eRx /w Note', 'Transfer /w Note', 'Refill w/ Note']
         if (stripos($created['order_stage_wc'], 'prepare')) {
-          $counts['cancel_order']++;
           export_wc_cancel_order($created['invoice_number'], "update_orders_cp: cp order canceled $created[invoice_number] $created[order_stage_wc] $created[order_source] ".json_encode($created));
           continue;
         }
 
         echo "\n$created[invoice_number] $created[order_stage_wc]";
-        $counts['other']++;
         //export_wc_cancel_order($created['invoice_number'], "update_orders_cp: cp order canceled $created[invoice_number] $created[order_stage_cp] $created[order_stage_wc] $created[order_source] ".json_encode($created));
     }
-
-    print_r($counts);
 
     //This captures 2 USE CASES:
     //1) An order is in WC and CP but then is deleted in WC, probably because wp-admin deleted it (look for Update with order_stage_wc == 'trash')
