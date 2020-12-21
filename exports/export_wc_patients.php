@@ -18,6 +18,8 @@ function cp_to_wc_key($key) {
   return isset($cp_to_wc[$key]) ? $cp_to_wc[$key] : $key;
 }
 
+//Note we only do this because the registration was incomplete
+//if completed we should move them to inactive or deceased
 function wc_delete_patient($mysql, $patient_id_wc) {
 
   $user = "

@@ -30,16 +30,6 @@ function update_patients_wc($changes) {
     return stripos($new, $old) === false AND stripos($old, $new) === false;
   }
 
-  function is_test_user($patient) {
-    $test_user_regex = "/test|dummy|fake|user|patient/i";
-
-    if (preg_match($test_user_regex, $patient['first_name']))
-      return true;
-
-    if (preg_match($test_user_regex, $patient['last_name']))
-      return true;
-  }
-
   foreach($changes['created'] as $created) {
     SirumLog::$subroutine_id = "patients-wc-created-".sha1(serialize($created));
 
@@ -60,10 +50,20 @@ function update_patients_wc($changes) {
       //echo "\nincomplete registration but has name?";
 
       //Delete Incomplete Registrations after 30mins
-      if ((time() - strtotime($created['patient_date_registered'])) > 30*60) {
-        //TODO Remind Patient to Register?
-        //echo "\ndelete incomplete registration";
-        //wc_delete_patient($mysql, $created['patient_id_wc']);
+      if ((time() - strtotime($created['patient_date_registered'])) > 24*60*60) {
+        SirumLog::debug(
+          "update_patients_wc: deleting incomplete registration after 24 hours",
+          [
+              'created' => $created,
+              'source'  => 'WooCommerce',
+              'type'    => 'patients',
+              'event'   => 'created'
+          ]
+        );
+
+        //Note we only do this because the registration was incomplete
+        //if completed we should move them to inactive or deceased
+        wc_delete_patient($mysql, $created['patient_id_wc']);
       }
 
       //Registration Started but Not Complete (first 1/2 of the registration form)
