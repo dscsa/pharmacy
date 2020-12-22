@@ -40,8 +40,6 @@ function update_patients_wc($changes) {
       ]
     );
 
-    print_r(['wc patient created', $created]);
-
     if ( ! $created['pharmacy_name']) {
 
       //echo "\nincomplete registration but has name?";
@@ -291,6 +289,7 @@ function update_patients_wc($changes) {
       if (is_patient_match($mysql, $updated)) { //Make sure there is only one match on either side of the
 
         //TODO What is the source of truth if there is a mismatch?  Do we update CP to match WC or vice versa?
+        //For now, think patient should get to decide.  Provider having wrong/different name will be handled by name matching algorithm
 
         //Important for a "'" in names
         $first_name = escape_db_values($updated['first_name']);
@@ -299,7 +298,6 @@ function update_patients_wc($changes) {
         $sp = "EXEC SirumWeb_AddUpdatePatient '$first_name', '$last_name', '$updated[birth_date]', '$updated[phone1]', '$updated[language]'";
         log_notice("Patient Name/Identity Updated.  If called repeatedly there is likely a two matching CP users", [$sp, $changed]);
 
-        echo "\n$sp";
         upsert_patient_cp($mssql, $sp);
 
         //wc_upsert_patient_meta($mysql, $updated['patient_id_wc'], 'first_name', $updated['old_first_name']);

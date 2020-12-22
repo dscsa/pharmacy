@@ -8,13 +8,6 @@ function is_patient_match($mysql, $patient) {
   $patient_cp = find_patient($mysql, $patient);
   $patient_wc = find_patient($mysql, $patient, 'gp_patients_wc');
 
-  print_r([
-    'wc patient is_patient_match',
-    'patient'    => $patient,
-    'patient_cp' => $patient_cp,
-    'patient_wc' => $patient_wc
-  ]);
-
   if (count($patient_cp) == 1 AND count($patient_wc) == 1) {
     return [
       'patient_id_cp' => $patient_cp[0]['patient_id_cp'],
