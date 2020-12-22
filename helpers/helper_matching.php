@@ -1,6 +1,8 @@
 <?php
 require_once 'exports/export_wc_patients.php';
 
+use Sirum\Logging\SirumLog;
+
 function is_patient_match($mysql, $patient) {
   $patient_cp = find_patient($mysql, $patient);
   $patient_wc = find_patient($mysql, $patient, 'gp_patients_wc');
@@ -27,7 +29,7 @@ function is_patient_match($mysql, $patient) {
 function match_patient($mysql, $patient_id_cp, $patient_id_wc) {
 
   log_notice("update_patients_wc: matched patient_id_cp:$patient_id_cp with patient_id_wc:$patient_id_wc");
-  
+
   // Update the patientes table
   $mysql->run(
       "UPDATE
