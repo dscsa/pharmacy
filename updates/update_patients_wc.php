@@ -74,7 +74,7 @@ function update_patients_wc($changes) {
     $is_match = is_patient_match($mysql, $created);
 
     if ($is_match) {
-      match_patient_wc($mysql, $is_match['patient_id_cp'], $is_match['patient_id_wc']);
+      match_patient($mysql, $is_match['patient_id_cp'], $is_match['patient_id_wc']);
     }
   }
 
