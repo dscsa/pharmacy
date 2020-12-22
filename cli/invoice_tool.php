@@ -49,7 +49,7 @@ if (isset($args['o'])) {
 }
 
 if (count($orders) == 0) {
-    echo "You must specify at least one invoice to modify\n"
+    echo "You must specify at least one invoice to modify\n";
     printHelp();
 }
 
