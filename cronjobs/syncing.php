@@ -94,6 +94,10 @@ if (! flock($f, LOCK_EX | LOCK_NB)) {
 //For this reason AK on 2020-12-04 thinks the timestamp should be at beginning of script
 file_put_contents('/goodpill/webform/pharmacy-run.txt', mktime());
 
+global $global_gdoc_time, $gd_merge_timers;
+
+$global_gdoc_time = 0;
+
 try {
 
     $global_exec_details['timers'] = [];
@@ -349,7 +353,8 @@ try {
     $global_exec_details['timers']['total'] = array_sum($global_exec_details['timers']);
     $global_exec_details['end']             = date('c');
     $global_exec_details['gdoc_merge']      = $gd_merge_timers;
-    
+    $global_exec_details['total_gd_time']   = $global_gdoc_time;
+
     SirumLog::info('Pharmacy Automation Complete', $global_exec_details);
     echo "\nAll data processed {$global_exec_details['end']}\n";
 } catch (Exception $e) {
