@@ -2,7 +2,7 @@
 
 require_once 'exports/export_wc_patients.php';
 require_once 'exports/export_cp_patients.php';
-require_once 'helper/helper_matching.php';
+require_once 'helpers/helper_matching.php';
 
 use Sirum\Logging\SirumLog;
 
