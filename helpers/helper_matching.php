@@ -20,8 +20,8 @@ function is_patient_match($mysql, $patient) {
     'patient'           => $patient,
     'count(patient_cp)' => count($patient_cp),
     'count(patient_wc)' => count($patient_wc),
-    '$patient_cp'       => $patient_cp,
-    '$patient_wc'       => $patient_wc
+    'patient_cp'       => $patient_cp,
+    'patient_wc'       => $patient_wc
   ];
 
   //TODO Auto Delete Duplicate Patient AND Send Comm of their login and password
@@ -76,12 +76,11 @@ function match_patient($mysql, $patient_id_cp, $patient_id_wc) {
   );
 }
 
-
 //TODO Implement Full Matching Algorithm that's in Salesforce and CP's SP
 //Table can be gp_patients / gp_patients_wc / gp_patients_cp
 function find_patient($mysql, $patient, $table = 'gp_patients') {
-  $first_name_prefix = explode(' ', $patient['first_name']);
-  $last_name_prefix  = explode(' ', $patient['last_name']);
+  $first_name_prefix = preg_split('/ |-/', $patient['first_name']);
+  $last_name_prefix  = preg_split('/ |-/', $patient['last_name']); //Ignore first part of hypenated last names just like they are double last names
   $first_name_prefix = escape_db_values(substr(array_shift($first_name_prefix), 0, 3));
   $last_name_prefix  = escape_db_values(array_pop($last_name_prefix));
 
