@@ -90,23 +90,35 @@ function match_patient($mysql, $patient_id_cp, $patient_id_wc) {
 }
 
 //TODO Implement Full Matching Algorithm that's in Salesforce and CP's SP
+function name_tokens($first_name, $last_name) {
+  $first_name = preg_split('/ |-/', $first_name);
+  $last_name  = preg_split('/ |-/', $last_name); //Ignore first part of hypenated last names just like they are double last names
+
+  $first_name_token = substr(array_shift($first_name), 0, 3);
+  $last_name_token  = array_pop($last_name);
+
+  return ['first_name_token' => $first_name_token, 'last_name_token' => $last_name_token];
+}
+
+//TODO Implement Full Matching Algorithm that's in Salesforce and CP's SP
 //Table can be gp_patients / gp_patients_wc / gp_patients_cp
 function find_patient($mysql, $patient, $table = 'gp_patients') {
-  $first_name_prefix = preg_split('/ |-/', $patient['first_name']);
-  $last_name_prefix  = preg_split('/ |-/', $patient['last_name']); //Ignore first part of hypenated last names just like they are double last names
-  $first_name_prefix = escape_db_values(substr(array_shift($first_name_prefix), 0, 3));
-  $last_name_prefix  = escape_db_values(array_pop($last_name_prefix));
+
+  list($first_name_token, $last_name_token) = name_tokens($patient['first_name'], $patient['last_name']);
+
+  $first_name_token = escape_db_values($first_name_token);
+  $last_name_token  = escape_db_values($last_name_token);
 
   $sql = "
     SELECT *
     FROM $table
     WHERE
-      first_name LIKE '$first_name_prefix%' AND
-      REPLACE(last_name, '*', '') LIKE '%$last_name_prefix' AND
+      first_name LIKE '$first_name_token%' AND
+      REPLACE(last_name, '*', '') LIKE '%$last_name_token' AND
       birth_date = '$patient[birth_date]'
   ";
 
-  if ( ! $first_name_prefix OR ! $last_name_prefix OR ! $patient['birth_date']) {
+  if ( ! $first_name_token OR ! $last_name_token OR ! $patient['birth_date']) {
     log_error('export_wc_patients: find_patient. patient has no name!', [$sql, $patient]);
     return [];
   }

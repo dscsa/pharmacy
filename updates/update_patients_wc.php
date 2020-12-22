@@ -25,12 +25,6 @@ function update_patients_wc($changes) {
   $mysql = new Mysql_Wc();
   $mssql = new Mssql_Cp();
 
-  function name_mismatch($new, $old) {
-    $new = str_replace(['-'], [' '], $new);
-    $old = str_replace(['-'], [' '], $old);
-    return stripos($new, $old) === false AND stripos($old, $new) === false;
-  }
-
   foreach($changes['created'] as $created) {
     SirumLog::$subroutine_id = "patients-wc-created-".sha1(serialize($created));
 
@@ -52,7 +46,7 @@ function update_patients_wc($changes) {
 
       //echo "\nincomplete registration but has name?";
 
-      //Delete Incomplete Registrations after 30mins
+      //Delete Incomplete Registrations after 24 hours
       if ((time() - strtotime($created['patient_date_registered'])) > 24*60*60) {
         SirumLog::debug(
           "update_patients_wc: deleting incomplete registration after 24 hours",
@@ -281,36 +275,11 @@ function update_patients_wc($changes) {
 
       else
         log_error("NOT SURE WHAT TO DO FOR PAYMENT METHOD $updated");
-
     }
 
     if ( ! $updated['first_name'] OR ! $updated['first_name'] OR ! $updated['birth_date']) {
 
-       log_error("Patient Set Incorrectly", [$changed, $updated]);
-
-    } else if (
-        name_mismatch($updated['first_name'],  $updated['old_first_name']) OR
-        name_mismatch($updated['last_name'],  $updated['old_last_name'])
-    ) {
-
-      $error = [
-        "updated" => $updated,
-        "changed" => $changed
-      ];
-
-      if (
-        stripos($updated['first_name'], 'TEST') === false
-        and stripos($updated['last_name'], 'TEST') === false) {
-        SirumLog::alert('Patient Name Misspelled or Identity Changed?', $error);
-      } else {
-        log_error("Patient Name Misspelled or Identity Changed?", $error);
-      }
-
-
-      //wc_upsert_patient_meta($mysql, $updated['patient_id_wc'], 'first_name', $updated['old_first_name']);
-      //wc_upsert_patient_meta($mysql, $updated['patient_id_wc'], 'last_name', $updated['old_last_name']);
-      //wc_upsert_patient_meta($mysql, $updated['patient_id_wc'], 'birth_date', $updated['old_birth_date']);
-      //wc_upsert_patient_meta($mysql, $updated['patient_id_wc'], 'language', $updated['old_language']);
+      log_error("Patient Set Incorrectly", [$changed, $updated]);
 
     } else if (
       $updated['first_name'] !== $updated['old_first_name'] OR
@@ -318,9 +287,28 @@ function update_patients_wc($changes) {
       $updated['birth_date'] !== $updated['old_birth_date'] OR
       $updated['language'] !== $updated['old_language']
     ) {
-      $sp = "EXEC SirumWeb_AddUpdatePatient '$updated[first_name]', '$updated[last_name]', '$updated[birth_date]', '$updated[phone1]', '$updated[language]'";
-      log_notice("Patient Name/Identity Updated.  If called repeatedly there is likely a two matching CP users", [$sp, $changed]);
-      upsert_patient_cp($mssql, $sp);
+
+      if (is_patient_match($mysql, $updated)) { //Make sure there is only one match on either side of the
+
+        //TODO What is the source of truth if there is a mismatch?  Do we update CP to match WC or vice versa?
+
+        $sp = "EXEC SirumWeb_AddUpdatePatient '$updated[first_name]', '$updated[last_name]', '$updated[birth_date]', '$updated[phone1]', '$updated[language]'";
+        log_notice("Patient Name/Identity Updated.  If called repeatedly there is likely a two matching CP users", [$sp, $changed]);
+        upsert_patient_cp($mssql, $sp);
+
+        //wc_upsert_patient_meta($mysql, $updated['patient_id_wc'], 'first_name', $updated['old_first_name']);
+        //wc_upsert_patient_meta($mysql, $updated['patient_id_wc'], 'last_name', $updated['old_last_name']);
+        //wc_upsert_patient_meta($mysql, $updated['patient_id_wc'], 'birth_date', $updated['old_birth_date']);
+        //wc_upsert_patient_meta($mysql, $updated['patient_id_wc'], 'language', $updated['old_language']);
+      } else {
+        SirumLog::alert(
+          "update_patients_wc: patient name changed but now there are multiple matches",
+          [
+            'updated' => $updated,
+            'changed'  => $changed
+          ]
+        );
+      }
     }
 
     if (
