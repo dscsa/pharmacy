@@ -118,6 +118,8 @@ function find_patient($mysql, $patient, $table = 'gp_patients') {
       birth_date = '$patient[birth_date]'
   ";
 
+  echo "\n$sql";
+  
   if ( ! $first_name_token OR ! $last_name_token OR ! $patient['birth_date']) {
     log_error('export_wc_patients: find_patient. patient has no name!', [$sql, $patient]);
     return [];
