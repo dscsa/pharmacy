@@ -449,15 +449,10 @@ function update_orders_cp($changes) {
         if ($stage_change_cp AND $updated['order_date_shipped']) {
           log_notice("Updated Order Shipped Started", $order);
           $groups = group_drugs($order, $mysql);
-          log_notice("Updated Order Shipped 1", $order);
           export_v2_unpend_order($order, $mysql);
-          log_notice("Updated Order Shipped 2", $order);
           export_wc_update_order_status($order); //Update status from prepare to shipped
-          log_notice("Updated Order Shipped 3", $order);
           export_wc_update_order_metadata($order);
-          log_notice("Updated Order Shipped 4", $order);
           send_shipped_order_communications($groups);
-          log_notice("Updated Order Shipped Finished", $order);
           continue;
         }
 
