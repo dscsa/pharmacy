@@ -314,23 +314,34 @@ function get_days_and_message($item, $patient_or_order) {
   //if (drug.$NoTransfer)
 }
 
+/**
+ * Store the invoice data into the gp_tables for point in time.
+ * @param  array    $item  The details fo the order
+ * @param  Mysql_Wc $mysql The database connection
+ * @return void
+ */
 function freeze_invoice_data($item, $mysql) {
 
   if ( ! $item['days_dispensed_actual'])
     return log_error("freeze_invoice_data has no actual days", get_defined_vars());
+
+  $price_dispensed_actual = (@$item['price_dispensed_actual']) ?: 'NULL';
+  $refills_total          = $item['refills_total'];
+  $rx_message_keys        = escape_db_values($item['rx_message_keys']);
+  $rx_message_text        = escape_db_values($item['rx_message_text']);
 
   $sql = "
     UPDATE
       gp_order_items
     SET
       -- Other Fields Should Already Be Set Above (And May have Been Sent to Patient) so don't change
-      price_dispensed_actual   = $item[price_dispensed_actual],
-      refills_dispensed_actual = $item[refills_total],
-      item_message_keys        = '$item[rx_message_keys]',
-      item_message_text        = '".escape_db_values($item['rx_message_text'])."'
+      price_dispensed_actual   = {$price_dispensed_actual},
+      refills_dispensed_actual = {$refills_total},
+      item_message_keys        = '{$rx_message_keys}',
+      item_message_text        = '{$rx_message_text}'
     WHERE
-      invoice_number = $item[invoice_number] AND
-      rx_number = $item[rx_number]
+      invoice_number = {$item['invoice_number']} AND
+      rx_number = {$item['rx_number']}
   ";
 
   $mysql->run($sql);

@@ -67,6 +67,7 @@ function update_order_items($changes) {
 
       log_error("order_item created but days_dispensed_actual already set.  Most likely an new rx but not part of a new order (days actual is from a previously shipped order) or an item added to order and dispensed all within the time between cron jobs", [$item, $created]);
 
+      SirumLog::debug("Freezing Item as because it's dispensed", $item);
       freeze_invoice_data($item, $mysql);
       continue;
     }
@@ -129,7 +130,7 @@ function update_order_items($changes) {
     }
 
     if ($item['days_dispensed_actual']) {
-
+      SirumLog::debug("Freezing Item as because it's dispensed and updated", $item);
       freeze_invoice_data($item, $mysql);
 
       if ($item['days_dispensed_actual'] == $item['days_dispensed_default']) {

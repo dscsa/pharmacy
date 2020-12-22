@@ -55,7 +55,7 @@ if (count($orders) == 0) {
 
 foreach ($orders as $orderNumber) {
     if (!isset($args['d'])) {
-        $order = get_full_order(["invoice_number" => $orderNumber], $mysql);
+        $order = load_full_order(["invoice_number" => $orderNumber], $mysql);
     }
 
     if (isset($args['u'])) {
