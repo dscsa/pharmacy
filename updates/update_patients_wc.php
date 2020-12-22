@@ -70,19 +70,20 @@ function update_patients_wc($changes) {
       continue;
     }
 
-    $patient_cp = find_patient_wc($mysql, $created);
-    $patient_wc = find_patient_wc($mysql, $created, 'gp_patients_wc');
+    $is_match = is_patient_match($mysql, $created);
 
-    //match_patient_wc($mysql, $patient, $patient_id_cp);
+    if ($is_match) {
+      match_patient_wc($mysql, $is_match['patient_id_cp'], $is_match['patient_id_wc']);
+      continue;
+    }
 
     $alert = [
-      'todo'       => "TODO Auto Delete Duplicate Patient AND Send Patient Comm of their login and password",
-      'created'    => $created,
-      'patient_cp' => $patient_cp,
-      'patient_wc' => $patient_wc,
-      'source'     => 'WooCommerce',
-      'type'       => 'patients',
-      'event'      => 'created'
+      'todo'     => "TODO Auto Delete Duplicate Patient AND Send Patient Comm of their login and password",
+      'created'  => $created,
+      'is_match' => $is_match,
+      'source'   => 'WooCommerce',
+      'type'     => 'patients',
+      'event'    => 'created'
     ];
 
     //TODO Auto Delete Duplicate Patient AND Send Comm of their login and password

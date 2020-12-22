@@ -171,6 +171,17 @@ function wc_update_order($invoice_number, $orderdata)
 
   $wc_order = wc_get_post($invoice_number);
 
+  if ( ! $wc_order['post_id']) {
+    SirumLog::alert(
+      "export_wx_orders: wc_update_order Order $invoice_number has no WC POST_ID",
+      [
+        "invoice_number" => $invoice_number,
+        "orderdata"      => $orderdata,
+        "wc_order"       => $wc_order
+      ]
+    );
+  }
+
   foreach ($orderdata as $order_key => $order_value) {
     if (is_array($order_value)) {
       $order_value = json_encode($order_value);
