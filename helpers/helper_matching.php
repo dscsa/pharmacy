@@ -11,7 +11,7 @@ function is_patient_match($mysql, $patient) {
   if (count($patient_cp) == 1 AND count($patient_wc) == 1) {
     return [
       'patient_id_cp' => $patient_cp[0]['patient_id_cp'],
-      'patient_id_wc' => $patient_wc[0]['patient_id_wx']
+      'patient_id_wc' => $patient_wc[0]['patient_id_wc']
     ];
   }
 
@@ -44,35 +44,41 @@ function is_patient_match($mysql, $patient) {
 
 function match_patient($mysql, $patient_id_cp, $patient_id_wc) {
 
-  log_notice("update_patients_wc: matched patient_id_cp:$patient_id_cp with patient_id_wc:$patient_id_wc");
-
   // Update the patientes table
-  $mysql->run(
-      "UPDATE
-          gp_patients
-        SET
-          patient_id_wc = '{$patient_id_wc}'
-        WHERE
-          patient_id_cp = '{$patient_id_cp}'
-  ");
+  $sql_wc = "
+    UPDATE
+      gp_patients
+    SET
+      patient_id_wc = '{$patient_id_wc}'
+    WHERE
+      patient_id_cp = '{$patient_id_cp}'
+  ";
 
   //Don't think this will ever be the case (since patient portal saves patient into CP directly)
   //but better safe then sorry
-  $mysql->run(
-      "UPDATE
-          gp_patients
-        SET
-          patient_id_wc = '{$patient_id_cp}'
-        WHERE
-          patient_id_cp = '{$patient_id_wc}'
-  ");
+  $sql_cp = "
+    UPDATE
+      gp_patients
+    SET
+      patient_id_wc = '{$patient_id_cp}'
+    WHERE
+      patient_id_cp = '{$patient_id_wc}'
+  ";
+
+  $mysql->run($sql_wc);
+  $mysql->run($sql_cp);
+
+  log_notice("helper_matching: match_patient() matched patient_id_cp:$patient_id_cp with patient_id_wc:$patient_id_wc", [
+    'sql_wc' => $sql_wc,
+    'sql_cp' => $sql_cp
+  ]);
 
   // Insert the patient_id_cp if it deosnt' already exist
   wc_upsert_patient_meta(
-      $mysql,
-      $patient_id_wc,
-      'patient_id_cp',
-      $patient_id_cp
+    $mysql,
+    $patient_id_wc,
+    'patient_id_cp',
+    $patient_id_cp
   );
 }
 
