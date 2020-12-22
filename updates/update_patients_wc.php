@@ -46,6 +46,8 @@ function update_patients_wc($changes) {
       ]
     );
 
+    print_r(['wc patient created', $created]);
+
     if ( ! $created['pharmacy_name']) {
 
       //echo "\nincomplete registration but has name?";
