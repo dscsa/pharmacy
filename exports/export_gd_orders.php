@@ -21,7 +21,7 @@ function export_gd_update_invoice($order, $reason, $mysql, $try2 = false)
     SirumLog::notice(
         'export_gd_update_invoice: called',
         [
-              "invoice" => $order[0]['invoice_number'],
+              "invoice_number" => $order[0]['invoice_number'],
               "order"   => $order,
               "reason"  => $reason,
               "try2"    => $try2
@@ -132,7 +132,7 @@ function export_gd_update_invoice($order, $reason, $mysql, $try2 = false)
         SirumLog::notice(
             'export_gd_update_invoice: Took to long to process',
             [
-                "invoice" => $order[0]['invoice_number']
+                "invoice_number" => $order[0]['invoice_number']
             ]
         );
     }
