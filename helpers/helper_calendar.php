@@ -148,7 +148,7 @@ function order_updated_event($order, $email, $text, $hours_to_wait) {
   $patient_label = get_patient_label($order);
   $event_title   = $order[0]['invoice_number'].' Order Updated: '.$patient_label.'.  Created:'.date('Y-m-d H:i:s');
 
-  $cancel = cancel_events_by_person($order[0]['first_name'], $order[0]['last_name'], $order[0]['birth_date'], 'order_updated_event', ['Order Created', 'Transfer Requested', 'Order Updated', 'Order Hold', 'No Rx', 'Needs Form', 'Order Canceled']);
+  $cancel = cancel_events_by_person($order[0]['first_name'], $order[0]['last_name'], $order[0]['birth_date'], 'order_updated_event', ['Transfer Requested', 'Order Updated', 'Order Hold', 'No Rx', 'Needs Form', 'Order Canceled']);
 
   $comm_arr = new_comm_arr($patient_label, $email, $text);
 
@@ -227,9 +227,9 @@ function confirm_shipment_event($order, $email, $salesforce, $hours_to_wait, $ho
 
   $comm_arr = new_comm_arr($patient_label, $email, '', $salesforce);
 
-  log_info('confirm_shipment_event', get_defined_vars());
+  log_info('confirm_shipment_event INACTIVE', get_defined_vars());
 
-  create_event($event_title, $comm_arr, $hours_to_wait, $hour_of_day);
+  //create_event($event_title, $comm_arr, $hours_to_wait, $hour_of_day);
 }
 
 function new_comm_arr($patient_label, $email = '', $text = '', $salesforce = '') {

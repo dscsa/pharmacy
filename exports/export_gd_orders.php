@@ -4,6 +4,7 @@ require_once 'helpers/helper_appsscripts.php';
 
 use Sirum\Logging\SirumLog;
 
+<<<<<<< HEAD
 global $gd_merge_timers;
 $gd_merge_timers = [
     'export_gd_update_invoice'  => 0,
@@ -38,6 +39,46 @@ function export_gd_update_invoice($order, $reason, $mysql, $try2 = false)
         );
 
         return $order;
+=======
+function export_gd_update_invoice($order, $reason, $mysql, $try2 = false) {
+
+  SirumLog::notice(
+    'export_gd_update_invoice: called',
+    [
+      "invoice" => @$order[0]['invoice_number'],
+      "order"   => $order,
+      "reason"  => $reason,
+      "try2"    => $try2
+    ]
+  );
+
+  if ( ! @$order[0]['invoice_number']) {
+    log_error("export_gd_update_invoice: got malformed order", [$order, $reason]);
+    return $order;
+  }
+
+  $start = microtime(true);
+
+  export_gd_delete_invoice($order[0]['invoice_number']); //Avoid having multiple versions of same invoice
+
+  $args = [
+    'method'   => 'mergeDoc',
+    'template' => 'Invoice Template v1',
+    'file'     => 'Invoice #'.$order[0]['invoice_number'],
+    'folder'   => INVOICE_PENDING_FOLDER_NAME,
+    'order'    => $order
+  ];
+
+  $result = gdoc_post(GD_MERGE_URL, $args);
+
+  $invoice_doc_id = json_decode($result, true);
+
+  if ( ! $invoice_doc_id) {
+
+    if ( ! $try2) {
+      log_error("export_gd_update_invoice: invoice error #1 of 2", ['args' => $args, 'result' => $result]);
+      return export_gd_update_invoice($order, $reason, $mysql, true);
+>>>>>>> origin/develop
     }
 
     $start = microtime(true);
