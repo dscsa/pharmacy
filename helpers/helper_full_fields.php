@@ -9,6 +9,7 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
     $items_to_add    = [];
     $items_to_remove = [];
     $logging         = [];
+    $update_payment  = is_null($update['payment_total_default']);
 
     /*
      * Consolidate default and actual suffixes to avoid conditional overload in
@@ -31,7 +32,6 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
 
         $days     = null;
         $message  = null;
-        $update_payment = false;
 
         //Turn string into number so that "0.00" is falsey instead of truthy
         $patient_or_order[$i]['refills_used'] = +$patient_or_order[$i]['refills_used'];
@@ -98,6 +98,8 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
               "old_rx_message_text"        => $patient_or_order[$i]['rx_message_text'],
 
               "patient_or_order"           => $patient_or_order[$i],
+              'needs_adding'               => $needs_adding,
+              'needs_removing'             => $needs_removing,
               "needs_pending"              => $needs_pending,
               "needs_unpending"            => $needs_unpending,
               "needs_repending"            => $needs_repending,
