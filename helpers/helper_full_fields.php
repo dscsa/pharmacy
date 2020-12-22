@@ -180,7 +180,7 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
 
               $update_payment = true;
 
-              if ( ! $set_days_and_msgs) //Only log on updates, not when initially setting values
+              if ( ! $set_days_and_msgs AND ! $days_changed) //Only log on updates, not when initially setting values
                 $logging[] = $patient_or_order[$i]['drug_name'].": $message[EN] days_changed:$days_changed OR needs_adding:$needs_adding OR needs_removing:$needs_removing $get_days_and_message[old_days_dispensed_default] -> $days";
             }
 
@@ -292,9 +292,9 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
         $patient_or_order[$i]['qty_dispensed'] = (float) $qty_dispensed;
     } //END LARGE FOR LOOP
 
-    if ($logging) {
+    if (@$patient_or_order[0]['invoice_number'] AND $logging) {
 
-      $title = "Order Updated ".@$patient_or_order[0]['invoice_number']."!  ".date('Y:m:d H:i:s');
+      $title = "Order Updated ".$patient_or_order[0]['invoice_number']."!  ".date('Y:m:d H:i:s');
 
       $salesforce   = [
         "subject"   => $title,
@@ -302,12 +302,12 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
         "contact"   => $patient_or_order[0]['first_name'].' '.$patient_or_order[0]['last_name'].' '.$patient_or_order[0]['birth_date']
       ];
 
-      SirumLog::notice("helper_full_fields: $log", [
+      SirumLog::notice("helper_full_fields: $title", [
         'logging' => $logging,
         'patient_or_order' => $patient_or_order
       ]);
 
-      create_event($event_title, [$salesforce]);
+      create_event($title, [$salesforce]);
     }
 
     if ($items_to_remove) { //CHECK BECAUSE EMPTY OR NULL ARRAY WOULD REMOVE ALL ITEMS
