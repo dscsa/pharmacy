@@ -43,7 +43,7 @@ function export_gd_update_invoice($order, $reason, $mysql, $try2 = false)
 
     $start = microtime(true);
 
-    export_gd_delete_invoice($order[0]['invoice_number']); //Avoid having multiple versions of same invoice
+    export_gd_delete_invoice($order[0]['invoice_number'], $order[0]['invoice_doc_id']); //Avoid having multiple versions of same invoice
 
     $args = [
         'method'   => 'mergeDoc',
@@ -217,7 +217,7 @@ function export_gd_publish_invoice($order, $mysql, $retry = false)
     $gd_merge_timers['export_gd_publish_invoice'] += ceil(microtime(true) - $start);
 }
 
-function export_gd_delete_invoice($invoice_number)
+function export_gd_delete_invoice($invoice_number, $invoice_doc_id = null)
 {
     global $gd_merge_timers;
     $start = microtime(true);
@@ -226,6 +226,10 @@ function export_gd_delete_invoice($invoice_number)
         'file'     => 'Invoice #'.$invoice_number,
         'folder'   => INVOICE_PENDING_FOLDER_NAME
     ];
+
+    if ($invoice_doc_id) {
+        $args['fileId'] = $invoice_doc_id;
+    }
 
     $result = gdoc_post(GD_HELPER_URL, $args);
     $time   = ceil(microtime(true) - $start);
