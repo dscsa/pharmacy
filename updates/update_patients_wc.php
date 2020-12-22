@@ -294,6 +294,8 @@ function update_patients_wc($changes) {
 
         $sp = "EXEC SirumWeb_AddUpdatePatient '$updated[first_name]', '$updated[last_name]', '$updated[birth_date]', '$updated[phone1]', '$updated[language]'";
         log_notice("Patient Name/Identity Updated.  If called repeatedly there is likely a two matching CP users", [$sp, $changed]);
+
+        echo "\n$sp";
         upsert_patient_cp($mssql, $sp);
 
         //wc_upsert_patient_meta($mysql, $updated['patient_id_wc'], 'first_name', $updated['old_first_name']);
@@ -301,11 +303,13 @@ function update_patients_wc($changes) {
         //wc_upsert_patient_meta($mysql, $updated['patient_id_wc'], 'birth_date', $updated['old_birth_date']);
         //wc_upsert_patient_meta($mysql, $updated['patient_id_wc'], 'language', $updated['old_language']);
       } else {
+
+        echo "\nupdate_patients_wc: patient name changed but now there are multiple matches";
         SirumLog::alert(
           "update_patients_wc: patient name changed but now there are multiple matches",
           [
             'updated' => $updated,
-            'changed'  => $changed
+            'changed' => $changed
           ]
         );
       }

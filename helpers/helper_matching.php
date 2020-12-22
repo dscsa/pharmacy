@@ -118,8 +118,6 @@ function find_patient($mysql, $patient, $table = 'gp_patients') {
       birth_date = '$patient[birth_date]'
   ";
 
-  echo "\n$sql";
-
   if ( ! $first_name_token OR ! $last_name_token OR ! $patient['birth_date']) {
     log_error('export_wc_patients: find_patient. patient has no name!', [$sql, $patient]);
     return [];
@@ -128,9 +126,6 @@ function find_patient($mysql, $patient, $table = 'gp_patients') {
   log_info('export_wc_patients: find_patient', [$sql, $patient]);
 
   $res = $mysql->run($sql)[0];
-
-  //if ($res)
-  //  echo "\npatient_id_cp:$patient[patient_id_cp] patient_id_wc:$patient[patient_id_wc] $patient[first_name] $patient[last_name] $patient[birth_date]\npatient_id_cp:{$res[0]['patient_id_cp']} patient_id_wc:{$res[0]['patient_id_wc']} {$res[0]['first_name']} {$res[0]['last_name']} {$res[0]['birth_date']}\nresult count:".count($res)."\n";
 
   return $res;
 }
