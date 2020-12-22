@@ -47,7 +47,7 @@ function unpend_pick_list($item) {
   $pend_group_manual  = pend_group_manual($item);
   $pend_group_new_patient = pend_group_new_patient($item);
 
-  echo "unpending item $item[drug_generic] in $pend_group_refill, $pend_group_webform, $pend_group_manual, $pend_group_new_patient\n";
+  echo "\nunpending item $item[drug_generic] in $pend_group_refill, $pend_group_webform, $pend_group_manual, $pend_group_new_patient\n";
 
   //Once order is deleted it not longer has items so its hard to determine if the items were New or Refills so just delete both
   $res_refill  = v2_fetch("/account/8889875187/pend/$pend_group_refill/$item[drug_generic]", 'DELETE');
@@ -204,7 +204,7 @@ function pend_pick_list($item, $list) {
   $pend_group_name = pend_group_name($item);
   $qty = round($item['qty_dispensed_default']);
 
-  echo "pending item $pend_group_name:$item[drug_generic] - $qty\n";
+  echo "\npending item $pend_group_name:$item[drug_generic] - $qty\n";
 
   $pend_url = "/account/8889875187/pend/$pend_group_name?repackQty=$qty";
 

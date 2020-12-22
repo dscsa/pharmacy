@@ -47,7 +47,7 @@ function watch_invoices()
     $invoices = array_merge($response['parent'], $response['printed'], $response['faxed']);
 
     printf(
-        "Total Invoices %d, Parent %d, Printed %d, Faxed %d\n",
+        "Total Invoices %d, Parent %d, Printed %d, Faxed %d ",
         count($invoices),
         count($response['parent']),
         count($response['printed']),

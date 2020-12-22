@@ -2,6 +2,7 @@
 
 require_once 'exports/export_wc_patients.php';
 require_once 'exports/export_cp_patients.php';
+require_once 'helpers/helper_matching.php';
 
 use Sirum\Logging\SirumLog;
 
@@ -24,12 +25,6 @@ function update_patients_wc($changes) {
   $mysql = new Mysql_Wc();
   $mssql = new Mssql_Cp();
 
-  function name_mismatch($new, $old) {
-    $new = str_replace(['-'], [' '], $new);
-    $old = str_replace(['-'], [' '], $old);
-    return stripos($new, $old) === false AND stripos($old, $new) === false;
-  }
-
   foreach($changes['created'] as $created) {
     SirumLog::$subroutine_id = "patients-wc-created-".sha1(serialize($created));
 
@@ -49,10 +44,11 @@ function update_patients_wc($changes) {
 
       //echo "\nincomplete registration but has name?";
 
-      //Delete Incomplete Registrations after 30mins
-      if ((time() - strtotime($created['patient_date_registered'])) > 24*60*60) {
+      $hours = 24; //Delete Incomplete Registrations after 24 hours
+
+      if ((time() - strtotime($created['patient_date_registered'])) > $hours*60*60) {
         SirumLog::debug(
-          "update_patients_wc: deleting incomplete registration after 24 hours",
+          "update_patients_wc: deleting incomplete registration after $hours hours",
           [
               'created' => $created,
               'source'  => 'WooCommerce',
@@ -64,32 +60,29 @@ function update_patients_wc($changes) {
         //Note we only do this because the registration was incomplete
         //if completed we should move them to inactive or deceased
         wc_delete_patient($mysql, $created['patient_id_wc']);
+
+        $date = "Created:".date('Y-m-d H:i:s');
+
+        $salesforce = [
+          "subject"   => "$created[first_name] $created[last_name] $created[birth_date] started registration but did not finish in time",
+          "body"      => "Patient's initial registration was deleted because it was not finised within $hours hours.  Please call them to register! $date",
+          "contact"   => "$created[first_name] $created[last_name] $created[birth_date]",
+          "assign_to" => ".Register New Patient - Tech",
+          "due_date"  => date('Y-m-d')
+        ];
+
+        create_event($salesforce['subject'], [$salesforce]);
       }
 
       //Registration Started but Not Complete (first 1/2 of the registration form)
       continue;
     }
 
-    $patient_cp = find_patient_wc($mysql, $created);
-    $patient_wc = find_patient_wc($mysql, $created, 'gp_patients_wc');
+    $is_match = is_patient_match($mysql, $created);
 
-    //match_patient_wc($mysql, $patient, $patient_id_cp);
-
-    $alert = [
-      'todo'       => "TODO Auto Delete Duplicate Patient AND Send Patient Comm of their login and password",
-      'created'    => $created,
-      'patient_cp' => $patient_cp,
-      'patient_wc' => $patient_wc,
-      'source'     => 'WooCommerce',
-      'type'       => 'patients',
-      'event'      => 'created'
-    ];
-
-    //TODO Auto Delete Duplicate Patient AND Send Comm of their login and password
-
-    SirumLog::alert("update_patients_wc: WooCommerce PATIENT created $created[first_name] $created[last_name] $created[birth_date]", $alert);
-
-    print_r($alert);
+    if ($is_match) {
+      match_patient($mysql, $is_match['patient_id_cp'], $is_match['patient_id_wc']);
+    }
   }
 
   foreach($changes['deleted'] as $i => $deleted) {
@@ -293,36 +286,11 @@ function update_patients_wc($changes) {
 
       else
         log_error("NOT SURE WHAT TO DO FOR PAYMENT METHOD $updated");
-
     }
 
     if ( ! $updated['first_name'] OR ! $updated['first_name'] OR ! $updated['birth_date']) {
 
-       log_error("Patient Set Incorrectly", [$changed, $updated]);
-
-    } else if (
-        name_mismatch($updated['first_name'],  $updated['old_first_name']) OR
-        name_mismatch($updated['last_name'],  $updated['old_last_name'])
-    ) {
-
-      $error = [
-        "updated" => $updated,
-        "changed" => $changed
-      ];
-
-      if (
-        stripos($updated['first_name'], 'TEST') === false
-        and stripos($updated['last_name'], 'TEST') === false) {
-        SirumLog::alert('Patient Name Misspelled or Identity Changed?', $error);
-      } else {
-        log_error("Patient Name Misspelled or Identity Changed?", $error);
-      }
-
-
-      //wc_upsert_patient_meta($mysql, $updated['patient_id_wc'], 'first_name', $updated['old_first_name']);
-      //wc_upsert_patient_meta($mysql, $updated['patient_id_wc'], 'last_name', $updated['old_last_name']);
-      //wc_upsert_patient_meta($mysql, $updated['patient_id_wc'], 'birth_date', $updated['old_birth_date']);
-      //wc_upsert_patient_meta($mysql, $updated['patient_id_wc'], 'language', $updated['old_language']);
+      log_error("Patient Set Incorrectly", [$changed, $updated]);
 
     } else if (
       $updated['first_name'] !== $updated['old_first_name'] OR
@@ -330,9 +298,36 @@ function update_patients_wc($changes) {
       $updated['birth_date'] !== $updated['old_birth_date'] OR
       $updated['language'] !== $updated['old_language']
     ) {
-      $sp = "EXEC SirumWeb_AddUpdatePatient '$updated[first_name]', '$updated[last_name]', '$updated[birth_date]', '$updated[phone1]', '$updated[language]'";
-      log_notice("Patient Name/Identity Updated.  If called repeatedly there is likely a two matching CP users", [$sp, $changed]);
-      upsert_patient_cp($mssql, $sp);
+
+      if (is_patient_match($mysql, $updated)) { //Make sure there is only one match on either side of the
+
+        //TODO What is the source of truth if there is a mismatch?  Do we update CP to match WC or vice versa?
+        //For now, think patient should get to decide.  Provider having wrong/different name will be handled by name matching algorithm
+
+        //Important for a "'" in names
+        $first_name = escape_db_values($updated['first_name']);
+        $last_name  = escape_db_values($updated['last_name']);
+
+        $sp = "EXEC SirumWeb_AddUpdatePatient '$first_name', '$last_name', '$updated[birth_date]', '$updated[phone1]', '$updated[language]'";
+        log_notice("Patient Name/Identity Updated.  If called repeatedly there is likely a two matching CP users", [$sp, $changed]);
+
+        upsert_patient_cp($mssql, $sp);
+
+        //wc_upsert_patient_meta($mysql, $updated['patient_id_wc'], 'first_name', $updated['old_first_name']);
+        //wc_upsert_patient_meta($mysql, $updated['patient_id_wc'], 'last_name', $updated['old_last_name']);
+        //wc_upsert_patient_meta($mysql, $updated['patient_id_wc'], 'birth_date', $updated['old_birth_date']);
+        //wc_upsert_patient_meta($mysql, $updated['patient_id_wc'], 'language', $updated['old_language']);
+      } else {
+
+        echo "\nupdate_patients_wc: patient name changed but now there are multiple matches";
+        SirumLog::alert(
+          "update_patients_wc: patient name changed but now there are multiple matches",
+          [
+            'updated' => $updated,
+            'changed' => $changed
+          ]
+        );
+      }
     }
 
     if (
