@@ -81,9 +81,17 @@ function export_gd_update_invoice($order, $reason, $mysql, $try2 = false) {
 
   $mysql->run($sql);
 
-  $gd_merge_timers['export_gd_update_invoice'] += ceil(microtime(true) - $start);
+  $elapsed = ceil(microtime(true) - $start);
+  $gd_merge_timers['export_gd_update_invoice'] += $elapsed;
 
-  $loop_timer = microtime(true);
+  if ($elapsed > 20) {
+      SirumLog::notice(
+        'export_gd_update_invoice: Took to long to process',
+        [
+          "invoice" => $order[0]['invoice_number']
+        ]
+      );
+  }
 
   return $order;
 }
