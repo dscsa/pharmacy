@@ -9,14 +9,14 @@ function export_gd_update_invoice($order, $reason, $mysql, $try2 = false) {
   SirumLog::notice(
     'export_gd_update_invoice: called',
     [
-      "invoice" => $order[0]['invoice_number'],
+      "invoice" => @$order[0]['invoice_number'],
       "order"   => $order,
       "reason"  => $reason,
       "try2"    => $try2
     ]
   );
 
-  if ( ! count($order)) {
+  if ( ! @$order[0]['invoice_number']) {
     log_error("export_gd_update_invoice: got malformed order", [$order, $reason]);
     return $order;
   }

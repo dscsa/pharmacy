@@ -56,8 +56,14 @@ function get_payment_default($order, $reason) {
 
   }
 
+  log_notice("get_payment_default: Order ".$order[0]['invoice_number'], [
+    'order - before update merged' => $order,
+    'update' => $update,
+    'reason' => $reason
+  ]);
+
   foreach($order as $i => $item)
-    $order[$i] = $update + $item;
+    $order[$i] = array_merge($item, $update);
 
   return $order;
 }
