@@ -325,7 +325,7 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
     }
 
     if ($update_payment) {
-      $patient_or_order = helper_update_payment($patient_or_order, $log, $mysql); //This also updates payment
+      $patient_or_order = helper_update_payment($patient_or_order, $log, $mysql, false); //This also updates payment
       export_wc_update_order_payment($patient_or_order[0]['invoice_number'], $patient_or_order[0]['payment_fee_default']);
     }
 
