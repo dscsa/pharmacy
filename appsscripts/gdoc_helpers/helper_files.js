@@ -1,17 +1,31 @@
 function removeFiles(opts) {
-  var folder   = DriveApp.getFoldersByName(opts.folder).next()
-  var iterator = folder.searchFiles('title contains "'+opts.file+'"')
-  var res      = []
 
-  while (iterator.hasNext()) {
-    var file = iterator.next()
-    try {
-      file.setTrashed(true) //Prevent printing an old list that Cindy pended and shipped on her own
-      res.push(['success', file.getUrl(), file.getName(), file.getOwner()])
-    } catch (e) {
-      res.push(['error', file.getUrl(), file.getName(), file.getOwner()]) //e.g., Error: "Access denied: DriveApp."
-    }
+  var res      = []
+  
+  if (opts.fileId) {
+      var file = DriveApp.getFileByid(opts.fileId);
+      file.setTrashed(true);
+      try {
+        file.setTrashed(true) //Prevent printing an old list that Cindy pended and shipped on her own
+        res.push(['success', file.getUrl(), file.getName(), file.getOwner()])
+      } catch (e) {
+        res.push(['error', file.getUrl(), file.getName(), file.getOwner()]) //e.g., Error: "Access denied: DriveApp."
+      }
+  } else {
+      var folder   = DriveApp.getFoldersByName(opts.folder).next()
+      var iterator = folder.searchFiles('title contains "'+opts.file+'"')
+
+      while (iterator.hasNext()) {
+        var file = iterator.next()
+        try {
+          file.setTrashed(true) //Prevent printing an old list that Cindy pended and shipped on her own
+          res.push(['success', file.getUrl(), file.getName(), file.getOwner()])
+        } catch (e) {
+          res.push(['error', file.getUrl(), file.getName(), file.getOwner()]) //e.g., Error: "Access denied: DriveApp."
+        }
+      }
   }
+
 
   //infoEmail('removeFiles', opts, res)
   return ['removeFiles', opts, res]
