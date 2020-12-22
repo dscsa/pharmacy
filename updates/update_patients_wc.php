@@ -292,7 +292,11 @@ function update_patients_wc($changes) {
 
         //TODO What is the source of truth if there is a mismatch?  Do we update CP to match WC or vice versa?
 
-        $sp = "EXEC SirumWeb_AddUpdatePatient '$updated[first_name]', '$updated[last_name]', '$updated[birth_date]', '$updated[phone1]', '$updated[language]'";
+        //Important for a "'" in names
+        $first_name = escape_db_values($updated['first_name']);
+        $last_name  = escape_db_values($updated['last_name']);
+
+        $sp = "EXEC SirumWeb_AddUpdatePatient '$first_name', '$last_name', '$updated[birth_date]', '$updated[phone1]', '$updated[language]'";
         log_notice("Patient Name/Identity Updated.  If called repeatedly there is likely a two matching CP users", [$sp, $changed]);
 
         echo "\n$sp";
