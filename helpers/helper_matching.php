@@ -3,6 +3,7 @@ require_once 'exports/export_wc_patients.php';
 
 use Sirum\Logging\SirumLog;
 
+//TODO Implement Full Matching Algorithm that's in Salesforce and CP's SP
 function is_patient_match($mysql, $patient) {
   $patient_cp = find_patient($mysql, $patient);
   $patient_wc = find_patient($mysql, $patient, 'gp_patients_wc');
@@ -13,6 +14,21 @@ function is_patient_match($mysql, $patient) {
       'patient_id_wc' => $patient_wc[0]['patient_id_wx']
     ];
   }
+
+  $alert = [
+    'todo'              => "TODO Auto Delete Duplicate Patient AND Send Patient Comm of their login and password",
+    'patient'           => $patient,
+    'count(patient_cp)' => count($patient_cp),
+    'count(patient_wc)' => count($patient_wc),
+    '$patient_cp'       => $patient_cp,
+    '$patient_wc'       => $patient_wc
+  ];
+
+  //TODO Auto Delete Duplicate Patient AND Send Comm of their login and password
+
+  SirumLog::alert("update_patients_wc: WooCommerce PATIENT created $created[first_name] $created[last_name] $created[birth_date]", $alert);
+
+  print_r($alert);
 }
 
 /**

@@ -75,23 +75,7 @@ function update_patients_wc($changes) {
 
     if ($is_match) {
       match_patient_wc($mysql, $is_match['patient_id_cp'], $is_match['patient_id_wc']);
-      continue;
     }
-
-    $alert = [
-      'todo'     => "TODO Auto Delete Duplicate Patient AND Send Patient Comm of their login and password",
-      'created'  => $created,
-      'is_match' => $is_match,
-      'source'   => 'WooCommerce',
-      'type'     => 'patients',
-      'event'    => 'created'
-    ];
-
-    //TODO Auto Delete Duplicate Patient AND Send Comm of their login and password
-
-    SirumLog::alert("update_patients_wc: WooCommerce PATIENT created $created[first_name] $created[last_name] $created[birth_date]", $alert);
-
-    print_r($alert);
   }
 
   foreach($changes['deleted'] as $i => $deleted) {
