@@ -227,9 +227,9 @@ function confirm_shipment_event($order, $email, $salesforce, $hours_to_wait, $ho
 
   $comm_arr = new_comm_arr($patient_label, $email, '', $salesforce);
 
-  log_info('confirm_shipment_event', get_defined_vars());
+  log_info('confirm_shipment_event INACTIVE', get_defined_vars());
 
-  create_event($event_title, $comm_arr, $hours_to_wait, $hour_of_day);
+  //create_event($event_title, $comm_arr, $hours_to_wait, $hour_of_day);
 }
 
 function new_comm_arr($patient_label, $email = '', $text = '', $salesforce = '') {
