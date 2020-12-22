@@ -2,6 +2,7 @@
 
 require_once 'exports/export_gd_orders.php';
 
+use \Sirum\Logging\SirumLog;
 
 function helper_update_payment($order, $reason, $mysql) {
 
@@ -18,6 +19,7 @@ function helper_update_payment($order, $reason, $mysql) {
 }
 
 function get_payment_default($order, $reason) {
+  SirumLog::debug("get_payment_default", ['order'=>$order, 'reason' => $reason]);
 
   $update = [];
 

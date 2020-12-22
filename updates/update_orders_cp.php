@@ -10,6 +10,8 @@ require_once 'exports/export_cp_orders.php';
 use Sirum\Logging\SirumLog;
 
 function update_orders_cp($changes) {
+  global $global_timer_details;
+  $section_timer_details = [];
 
   $count_deleted = count($changes['deleted']);
   $count_created = count($changes['created']);
@@ -74,6 +76,7 @@ function update_orders_cp($changes) {
   //  - Find out any other rxs need to be added
   //  - Update invoice
   //  - Update wc order count/total
+    $loop_timer = microtime(true);
     foreach($changes['created'] as $created) {
 
         SirumLog::$subroutine_id = "orders-cp-created-".sha1(serialize($created));
@@ -294,15 +297,17 @@ function update_orders_cp($changes) {
         }
         //TODO Update Salesforce Order Total & Order Count & Order Invoice using REST API or a MYSQL Zapier Integration
     } // END created loop
+    $section_timer_details['created_orders'] = ceil(microtime(true) - $loop_timer);
 
-        /*
-         * If just deleted from CP Order we need to
-         *  - set "days_dispensed_default" and "qty_dispensed_default" to 0
-         *  - unpend in v2 and save applicable fields
-         *  - if last line item in order, find out any other rxs need to be removed
-         *  - update invoice
-         *  - update wc order total
-         */
+    /*
+     * If just deleted from CP Order we need to
+     *  - set "days_dispensed_default" and "qty_dispensed_default" to 0
+     *  - unpend in v2 and save applicable fields
+     *  - if last line item in order, find out any other rxs need to be removed
+     *  - update invoice
+     *  - update wc order total
+     */
+    $loop_timer = microtime(true);
     foreach ($changes['deleted'] as $deleted) {
 
       SirumLog::$subroutine_id = "orders-cp-deleted-".sha1(serialize($deleted));
@@ -392,10 +397,12 @@ function update_orders_cp($changes) {
 
       order_canceled_notice($deleted, $patient); //We passed in $deleted because there is not $order to make $groups
     }
+    $section_timer_details['deleted_orders'] = ceil(microtime(true) - $loop_timer);
 
-  //If just updated we need to
-  //  - see which fields changed
-  //  - think about what needs to be updated based on changes
+    //If just updated we need to
+    //  - see which fields changed
+    //  - think about what needs to be updated based on changes
+    $loop_timer = microtime(true);
     foreach ($changes['updated'] as $i => $updated) {
 
         SirumLog::$subroutine_id = "orders-cp-updated-".sha1(serialize($updated));
@@ -531,6 +538,7 @@ function update_orders_cp($changes) {
         //Order_Source Change (now that we overwrite when saving webform)
         log_notice("update_orders_cp updated: no action taken $updated[invoice_number]", [$order, $updated, $changed_fields]);
     }
-
-  SirumLog::resetSubroutineId();
+    $section_timer_details['updated_orders'] = ceil(microtime(true) - $loop_timer);
+    $global_timer_details['update_orders_cp_loops'] = $section_timer_details;
+    SirumLog::resetSubroutineId();
 }
