@@ -2,6 +2,10 @@
 
 function gdoc_post($url, $content)
 {
+    global $global_gdoc_time;
+
+    $start = microtime(true);
+
     $content = json_encode(utf8ize($content), JSON_UNESCAPED_UNICODE);
 
     $opts = [
@@ -15,7 +19,12 @@ function gdoc_post($url, $content)
     ];
 
     $context = stream_context_create($opts);
-    return file_get_contents($url.'?GD_KEY='.GD_KEY, false, $context);
+    $results = file_get_contents($url.'?GD_KEY='.GD_KEY, false, $context);
+
+    $elapsed = ceil(microtime(true) - $start);
+    $global_gdoc_time += $elapsed;
+
+    return $results;
 }
 
 function watch_invoices()
