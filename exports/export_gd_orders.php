@@ -5,6 +5,7 @@ require_once 'helpers/helper_appsscripts.php';
 use Sirum\Logging\SirumLog;
 
 global $gd_merge_timers;
+
 $gd_merge_timers = [
     'export_gd_update_invoice'  => 0,
     'export_gd_delete_invoice'  => 0,
