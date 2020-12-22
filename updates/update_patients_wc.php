@@ -44,10 +44,11 @@ function update_patients_wc($changes) {
 
       //echo "\nincomplete registration but has name?";
 
-      //Delete Incomplete Registrations after 24 hours
-      if ((time() - strtotime($created['patient_date_registered'])) > 24*60*60) {
+      $hours = 24; //Delete Incomplete Registrations after 24 hours
+
+      if ((time() - strtotime($created['patient_date_registered'])) > $hours*60*60) {
         SirumLog::debug(
-          "update_patients_wc: deleting incomplete registration after 24 hours",
+          "update_patients_wc: deleting incomplete registration after $hours hours",
           [
               'created' => $created,
               'source'  => 'WooCommerce',
@@ -59,6 +60,18 @@ function update_patients_wc($changes) {
         //Note we only do this because the registration was incomplete
         //if completed we should move them to inactive or deceased
         wc_delete_patient($mysql, $created['patient_id_wc']);
+
+        $date = "Created:".date('Y-m-d H:i:s');
+
+        $salesforce = [
+          "subject"   => "$created[first_name] $created[last_name] $created[birth_date] started registration but did not finish in time",
+          "body"      => "Patient's initial registration was deleted because it was not finised within $hours hours.  Please call them to register! $date",
+          "contact"   => "$created[first_name] $created[last_name] $created[birth_date]",
+          "assign_to" => ".Register New Patient - Tech",
+          "due_date"  => date('Y-m-d')
+        ];
+
+        create_event($salesforce['subject'], [$salesforce]);
       }
 
       //Registration Started but Not Complete (first 1/2 of the registration form)
