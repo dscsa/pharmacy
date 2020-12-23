@@ -13,7 +13,7 @@ function helper_update_payment($order, $reason, $mysql, $generate_invoice = true
 
   //We include this call in the helper because it MUST be called after get_payment_default or the totals will be wrong
   //If called manually from main thread it is likely that this ordering would not be honored and result in issues
-  if ($genrate_invoice) {
+  if ($generate_invoice) {
     $order = export_gd_update_invoice($order, $reason, $mysql);
   }
 
