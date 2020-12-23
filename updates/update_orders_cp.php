@@ -377,11 +377,7 @@ function update_orders_cp($changes) {
 
       export_cp_remove_items($deleted['invoice_number']);
 
-      $sql = "
-        SELECT * FROM gp_orders WHERE patient_id_cp = $deleted[patient_id_cp] AND order_stage_cp != 'Dispensed' AND order_stage_cp != 'Shipped'
-      ";
-
-      $replacement = $mysql->run($sql)[0];
+      $replacement = get_current_orders($mysql, ['patient_id_cp' => $deleted['patient_id_cp']]);
 
       if ($replacement) {
         log_error('order_canceled_notice BUT their appears to be a replacement', ['deleted' => $deleted, 'sql' => $sql, 'replacement' => $replacement]);

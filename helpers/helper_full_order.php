@@ -251,3 +251,23 @@ function get_order_stage_wc($order) {
   // Strip on the wc- so we don't get duplicates
   return str_replace('wc-', '', $order[0]['order_stage_wc']);
 }
+
+function get_current_orders($mysql, $conditions = []) {
+
+  $where = "";
+  foreach ($conditions as $key => $val) {
+    $where .= "$key = $val AND\n";
+  }
+
+  $sql = "
+    SELECT
+      *
+    FROM
+      gp_orders
+    WHERE
+      $where
+      order_date_dispensed IS NULL
+  ";
+
+  return $mysql->run($sql)[0];
+}

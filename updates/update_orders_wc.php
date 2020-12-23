@@ -43,18 +43,7 @@ function update_orders_wc($changes) {
             ]
         );
 
-        $sql = "
-          SELECT
-            *
-          FROM
-            gp_orders
-          WHERE
-            patient_id_wc = $created[patient_id_wc] AND
-            order_stage_cp != 'Dispensed' AND
-            order_stage_cp != 'Shipped'
-        ";
-
-        $replacement = $mysql->run($sql)[0];
+        $replacement = get_current_orders($mysql, ['patient_id_wc' => $created['patient_id_wc']]);
 
         if ($replacement) {
           log_error('order_canceled_notice BUT their appears to be a replacement', ['created' => $created, 'sql' => $sql, 'replacement' => $replacement]);
