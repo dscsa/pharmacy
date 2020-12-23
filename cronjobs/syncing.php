@@ -347,8 +347,10 @@ try {
     $global_exec_details['timers']['watch_invoices'] = ceil(microtime(true) - $start_time);
     echo "completed in {$global_exec_details['timers']['watch_invoices']} seconds\n";
 
+
     $global_exec_details['timers']['total']      = array_sum($global_exec_details['timers']);
     $global_exec_details['timers_gd']['total']   = array_sum($global_exec_details['timers_gd']);
+    $global_exec_details['timers_gd']['merge']   = $gd_merge_timers;
     $global_exec_details['timers_gd']['percent'] = ceil($global_exec_details['timers_gd']['total']/$global_exec_details['timers']['total']*100);
     $global_exec_details['end']                  = date('c');
 
