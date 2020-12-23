@@ -135,7 +135,7 @@ function update_patients_wc($changes) {
       : log_error("update_patients_wc: updated no change? $updated[first_name] $updated[last_name] $updated[birth_date] cp:$updated[patient_id_cp] wc:$updated[patient_id_wc]", $updated);
 
     if ($updated['patient_inactive'] !== $updated['old_patient_inactive']) {
-      $patient = find_patient_wc($mysql, $updated)[0];
+      $patient = find_patient($mysql, $updated)[0];
 
       echo "\nWC Patient Inactive Status Changed $updated[first_name] $updated[last_name] $updated[birth_date] $updated[old_patient_inactive] >>> $updated[patient_inactive]";
 

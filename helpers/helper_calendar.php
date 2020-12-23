@@ -140,7 +140,7 @@ function order_hold_event($order, $email, $text, $salesforce, $hours_to_wait) {
 
 function order_updated_event($order, $email, $text, $hours_to_wait) {
 
-  if ($order[0]['patient_active']) {
+  if ($order[0]['patient_inactive']) {
     log_error('order_updated_event canceled because patient inactive', get_defined_vars());
     return;
   }

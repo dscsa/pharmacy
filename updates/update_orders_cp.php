@@ -10,8 +10,6 @@ require_once 'exports/export_cp_orders.php';
 use Sirum\Logging\SirumLog;
 
 function update_orders_cp($changes) {
-  global $global_timer_details;
-  $section_timer_details = [];
 
   $count_deleted = count($changes['deleted']);
   $count_created = count($changes['created']);
@@ -280,7 +278,6 @@ function update_orders_cp($changes) {
             [
               'invoice_number' => $order[0]['invoice_number'],
               'order'  => $order,
-              'synced' => $synced,
               'groups' => $groups
             ]
           );
@@ -291,8 +288,7 @@ function update_orders_cp($changes) {
               'invoice_number' => $order[0]['invoice_number'],
               'source'         => $order[0]['order_source'],
               'order'          => $order,
-              'groups'         => $groups,
-              'synced'         => $synced
+              'groups'         => $groups
             ]
           );
         }

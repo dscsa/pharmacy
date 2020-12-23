@@ -9,7 +9,7 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
     $items_to_add    = [];
     $items_to_remove = [];
     $logging         = [];
-    $update_payment  = is_null($update['payment_total_default']);
+    $update_payment  = is_null($patient_or_order[0]['payment_total_default']);
 
     /*
      * Consolidate default and actual suffixes to avoid conditional overload in
@@ -315,7 +315,7 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
 
     //A patient profile may have an rx turn on autofill, causing a day change but we still don't have an order to update (yet anyway, items_to_add might trigger on next go-around)
     if (@$patient_or_order[0]['invoice_number'] AND $update_payment) {
-      $patient_or_order = helper_update_payment($patient_or_order, $log, $mysql, false); //This also updates payment
+      $patient_or_order = helper_update_payment($patient_or_order, implode(", ", $logging), $mysql, false); //This also updates payment
       export_wc_update_order_payment($patient_or_order[0]['invoice_number'], $patient_or_order[0]['payment_fee_default']);
     }
 
