@@ -59,7 +59,7 @@ function export_gd_update_invoice($order, $reason, $mysql, $try2 = false)
 
     $time = ceil(microtime(true) - $start);
 
-    echo "\ncreated invoice ".$order[0]['invoice_number']." in $time seconds";
+    echo "\ncreated invoice ".$order[0]['invoice_number']." (".$order[0]['order_stage_cp'].") in $time seconds";
 
     if ( ! $invoice_doc_id) {
         if (! $try2) {
