@@ -265,9 +265,9 @@ function log_timer($label, $start_time, $count) {
   $total_time   = ceil(microtime(true) - $start_time);
   $average_time = $count ? ceil($total_time/$count) : null;
 
-  $global_exec_details['timers']["$label-total"]   = $total_time;
-  $global_exec_details['timers']["$label-count"]   = $count;
-  $global_exec_details['timers']["$label-average"] = $average_time;
+  $global_exec_details['timers_loops']["$label-total"]   = $total_time;
+  $global_exec_details['timers_loops']["$label-count"]   = $count;
+  $global_exec_details['timers_loops']["$label-average"] = $average_time;
 
   if ($average_time > 30)
     SirumLog::alert(

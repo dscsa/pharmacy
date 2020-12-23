@@ -96,8 +96,9 @@ file_put_contents('/goodpill/webform/pharmacy-run.txt', mktime());
 
 try {
 
-    $global_exec_details['timers']    = [];
-    $global_exec_details['timers_gd'] = [];
+    $global_exec_details['timers']       = [];
+    $global_exec_details['timers_gd']    = [];
+    $global_exec_details['timers_loops'] = [];
 
     echo "\nStarting syncing.php. Importing data from sources:\n";
 
@@ -348,7 +349,7 @@ try {
 
     $global_exec_details['timers']['total']      = array_sum($global_exec_details['timers']);
     $global_exec_details['timers_gd']['total']   = array_sum($global_exec_details['timers_gd']);
-    $global_exec_details['timers_gd']['percent'] = $global_exec_details['timers_gd']['total']/$global_exec_details['timers']['total'];
+    $global_exec_details['timers_gd']['percent'] = ceil($global_exec_details['timers_gd']['total']/$global_exec_details['timers']['total']*100);
     $global_exec_details['end']                  = date('c');
 
     SirumLog::info('Pharmacy Automation Complete', $global_exec_details);
