@@ -57,7 +57,11 @@ function export_gd_update_invoice($order, $reason, $mysql, $try2 = false)
 
     $invoice_doc_id = json_decode($result, true);
 
-    if (! $invoice_doc_id) {
+    $time = ceil(microtime(true) - $start);
+
+    echo "\ncreated invoice ".$order[0]['invoice_number']." in $time seconds";
+
+    if ( ! $invoice_doc_id) {
         if (! $try2) {
             SirumLog::notice(
                 "export_gd_update_invoice: invoice error #1 of 2}",
@@ -84,8 +88,6 @@ function export_gd_update_invoice($order, $reason, $mysql, $try2 = false)
 
         return $order;
     }
-
-    $time = ceil(microtime(true) - $start);
 
     if ($order[0]['invoice_doc_id']) {
         SirumLog::notice(
@@ -242,6 +244,8 @@ function export_gd_delete_invoice($invoice_number, $invoice_doc_id = null)
             "time"           => $time
         ]
     );
+
+    echo "\ndeleted invoice ".$order[0]['invoice_number']." in $time seconds";
 
     $gd_merge_timers['export_gd_delete_invoice'] += ceil(microtime(true) - $start);
 }

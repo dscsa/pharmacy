@@ -2,7 +2,7 @@
 
 function gdoc_post($url, $content)
 {
-    global $global_gdoc_time;
+    global $global_exec_details;
 
     $start = microtime(true);
 
@@ -21,8 +21,7 @@ function gdoc_post($url, $content)
     $context = stream_context_create($opts);
     $results = file_get_contents($url.'?GD_KEY='.GD_KEY, false, $context);
 
-    $elapsed = ceil(microtime(true) - $start);
-    $global_gdoc_time += $elapsed;
+    $global_exec_details['timers_gd'][$content['method']] = ceil(microtime(true) - $start);
 
     return $results;
 }
