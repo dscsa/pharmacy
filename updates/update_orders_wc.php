@@ -47,7 +47,6 @@ function update_orders_wc($changes) {
 
         if ($replacement) {
           log_error('order_canceled_notice BUT their appears to be a replacement', ['created' => $created, 'sql' => $sql, 'replacement' => $replacement]);
-          continue;
         }
 
         //[NULL, 'Webform Complete', 'Webform eRx', 'Webform Transfer', 'Auto Refill', '0 Refills', 'Webform Refill', 'eRx /w Note', 'Transfer /w Note', 'Refill w/ Note']

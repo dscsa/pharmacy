@@ -94,6 +94,21 @@ function update_orders_cp($changes) {
           ]
         );
 
+        $duplicate = get_current_orders($mysql, ['patient_id_cp' => $created['patient_id_cp']]);
+
+        if (count($duplicate) > 1) {
+          SirumLog::alert(
+            "Created Carepoint Order Seems to be a duplicate",
+            [
+              'invoice_number' => $created['invoice_number'],
+              'created' => $created,
+              'duplicate' => $duplicate
+            ]
+          );
+
+          continue; //Not sure what we should do here. Delete it?
+        }
+
         //TODO Add Webform Transfer [w/ Note] here as well
         if ($created['order_status'] == "Surescripts Authorization Denied") {
           SirumLog::error(
