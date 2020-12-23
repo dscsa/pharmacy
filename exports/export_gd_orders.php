@@ -41,8 +41,6 @@ function export_gd_update_invoice($order, $reason, $mysql, $try2 = false)
         return $order;
     }
 
-    $start = microtime(true);
-
     export_gd_delete_invoice($order[0]['invoice_number'], $order[0]['invoice_doc_id']); //Avoid having multiple versions of same invoice
 
     $args = [
@@ -53,13 +51,17 @@ function export_gd_update_invoice($order, $reason, $mysql, $try2 = false)
         'order'    => $order
     ];
 
-    $result = gdoc_post(GD_MERGE_URL, $args);
+    echo "\ncreating invoice ".$order[0]['invoice_number']." (".$order[0]['order_stage_cp'].")";
 
-    $invoice_doc_id = json_decode($result, true);
+    $start = microtime(true);
+
+    $result = gdoc_post(GD_MERGE_URL, $args);
 
     $time = ceil(microtime(true) - $start);
 
-    echo "\ncreated invoice ".$order[0]['invoice_number']." (".$order[0]['order_stage_cp'].") in $time seconds";
+    echo " completed in $time seconds";
+
+    $invoice_doc_id = json_decode($result, true);
 
     if ( ! $invoice_doc_id) {
         if (! $try2) {
@@ -222,7 +224,7 @@ function export_gd_publish_invoice($order, $mysql, $retry = false)
 function export_gd_delete_invoice($invoice_number, $invoice_doc_id = null)
 {
     global $gd_merge_timers;
-    $start = microtime(true);
+
     $args = [
         'method'   => 'removeFiles',
         'file'     => 'Invoice #'.$invoice_number,
@@ -233,8 +235,14 @@ function export_gd_delete_invoice($invoice_number, $invoice_doc_id = null)
         $args['fileId'] = $invoice_doc_id;
     }
 
+    echo "\ndeleting invoice $invoice_number";
+    $start = microtime(true);
+
     $result = gdoc_post(GD_HELPER_URL, $args);
-    $time   = ceil(microtime(true) - $start);
+
+    $time = ceil(microtime(true) - $start);
+    echo " completed in $time seconds";
+
 
     SirumLog::debug(
         'export_gd_delete_invoice',
@@ -244,8 +252,6 @@ function export_gd_delete_invoice($invoice_number, $invoice_doc_id = null)
             "time"           => $time
         ]
     );
-
-    echo "\ndeleted invoice $invoice_number in $time seconds";
 
     $gd_merge_timers['export_gd_delete_invoice'] += ceil(microtime(true) - $start);
 }
