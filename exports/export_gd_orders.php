@@ -239,13 +239,13 @@ function export_gd_delete_invoice($invoice_number, $invoice_doc_id = null)
     SirumLog::debug(
         'export_gd_delete_invoice',
         [
-            "invoice_number" => $order[0]['invoice_number'],
+            "invoice_number" => $invoice_number,
             "result"         => $result,
             "time"           => $time
         ]
     );
 
-    echo "\ndeleted invoice ".$order[0]['invoice_number']." in $time seconds";
+    echo "\ndeleted invoice $invoice_number in $time seconds";
 
     $gd_merge_timers['export_gd_delete_invoice'] += ceil(microtime(true) - $start);
 }
