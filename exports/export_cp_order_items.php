@@ -6,7 +6,7 @@ use Sirum\Logging\SirumLog;
 
 //Example New Surescript Comes in that we want to remove from Queue
 //WARNING EMPTY OR NULL ARRAY REMOVES ALL ITEMS
-function export_cp_remove_items($invoice_number, $rx_numbers = []) {
+function export_cp_remove_items($invoice_number, $items = []) {
 
   global $mssql;
   $mssql = $mssql ?: new Mssql_Cp();
@@ -20,6 +20,12 @@ function export_cp_remove_items($invoice_number, $rx_numbers = []) {
     WHERE csomline.order_id = '$order_id'
     AND rxdisp_id = 0 -- if the rxdisp_id is set on the line, you have to call CpOmVoidDispense first.
   ";
+
+  $rx_numbers = [];
+
+  foreach ($items as $item) {
+    $rx_numbers[] = $item['rx_number'];
+  }
 
   if ($rx_numbers) {
     $sql .= "
