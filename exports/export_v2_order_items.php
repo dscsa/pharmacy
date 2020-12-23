@@ -37,7 +37,7 @@ function v2_unpend_item($item, $mysql) {
   }
 
   unpend_pick_list($item);
-  save_pick_list($item, null, $mysql);
+  save_pick_list($item, 0, $mysql);
 }
 
 function unpend_pick_list($item) {
@@ -69,9 +69,7 @@ function unpend_pick_list($item) {
 
 function save_pick_list($item, $list, $mysql) {
 
-  log_notice("save_pick_list: $item[invoice_number] ".@$item['drug_name']." ".@$item['rx_number'], get_defined_vars());
-
-  if ( ! $list) {
+  if ($list === 0) {
     $list = [
       'qty'           => 0,
       'qty_repacks'   => 0,
@@ -92,6 +90,9 @@ function save_pick_list($item, $list, $mysql) {
       invoice_number = $item[invoice_number] AND
       rx_number = $item[rx_number]
   ";
+
+  log_notice("save_pick_list: $item[invoice_number] ".@$item['drug_name']." ".@$item['rx_number'], ['item' => $item, 'list' => $list, 'sql' => $sql]);
+
 
   $mysql->run($sql);
 
