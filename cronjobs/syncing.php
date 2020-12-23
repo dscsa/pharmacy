@@ -78,12 +78,12 @@ $global_exec_details = ['start' => date('c')];
 $f = fopen('/tmp/pharmacy.lock', 'w') or log_error('Webform Cron Job Cannot Create Lock File');
 
 if (! flock($f, LOCK_EX | LOCK_NB)) {
-    $still_running = "\n*** Skipping Webform Cron Job Because Previous One Is Still Running ***\n\n";
+    $still_running = "\n*** Warning Webform Cron Job Because Previous One Is Still Running ***\n\n";
     echo $still_running;
     SirumLog::error($still_running, $global_exec_details);
     // Push any lagging logs to google Cloud
     SirumLog::flush();
-    exit;
+    //exit;
 }
 
 //This is used to invalidate cache for patient portal BUT since this cron job can take several minutes to run
