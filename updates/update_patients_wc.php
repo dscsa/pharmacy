@@ -25,6 +25,8 @@ function update_patients_wc($changes) {
   $mysql = new Mysql_Wc();
   $mssql = new Mssql_Cp();
 
+  $loop_timer = microtime(true);
+
   foreach($changes['created'] as $created) {
     SirumLog::$subroutine_id = "patients-wc-created-".sha1(serialize($created));
 
@@ -84,6 +86,10 @@ function update_patients_wc($changes) {
       match_patient($mysql, $is_match['patient_id_cp'], $is_match['patient_id_wc']);
     }
   }
+  log_timer('patients-wc-created', $loop_timer, $count_created);
+
+
+  $loop_timer = microtime(true);
 
   foreach($changes['deleted'] as $i => $deleted) {
 
@@ -100,6 +106,11 @@ function update_patients_wc($changes) {
 
     print_r($alert);
   }
+
+  log_timer('patients-wc-deleted', $loop_timer, $count_deleted);
+
+
+  $loop_timer = microtime(true);
 
   foreach($changes['updated'] as $i => $updated) {
 
@@ -393,6 +404,9 @@ function update_patients_wc($changes) {
       export_cp_patient_save_medications_other($mssql, $updated);
     }
   }
+
+  log_timer('patients-wc-updated', $loop_timer, $count_updated);
+
 
   SirumLog::resetSubroutineId();
 }

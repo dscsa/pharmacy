@@ -312,7 +312,8 @@ function update_orders_cp($changes) {
         }
         //TODO Update Salesforce Order Total & Order Count & Order Invoice using REST API or a MYSQL Zapier Integration
     } // END created loop
-    $section_timer_details['created_orders'] = ceil(microtime(true) - $loop_timer);
+    log_timer('orders-cp-created', $loop_timer, $count_created);
+
 
     /*
      * If just deleted from CP Order we need to
@@ -408,7 +409,8 @@ function update_orders_cp($changes) {
 
       order_canceled_notice($deleted, $patient); //We passed in $deleted because there is not $order to make $groups
     }
-    $section_timer_details['deleted_orders'] = ceil(microtime(true) - $loop_timer);
+    log_timer('orders-cp-deleted', $loop_timer, $count_deleted);
+
 
     //If just updated we need to
     //  - see which fields changed
@@ -549,7 +551,7 @@ function update_orders_cp($changes) {
         //Order_Source Change (now that we overwrite when saving webform)
         log_notice("update_orders_cp updated: no action taken $updated[invoice_number]", [$order, $updated, $changed_fields]);
     }
-    $section_timer_details['updated_orders'] = ceil(microtime(true) - $loop_timer);
-    $global_timer_details['update_orders_cp_loops'] = $section_timer_details;
+    log_timer('orders-cp-updated', $loop_timer, $count_updated);
+
     SirumLog::resetSubroutineId();
 }

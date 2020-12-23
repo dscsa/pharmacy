@@ -258,3 +258,26 @@ function get_file()
     $index = count($trace) - 1;
     return $trace[$index]['function']."($index) in ".$trace[$index-1]['file']." on line #".$trace[$index-1]['line'];
 }
+
+function log_timer($label, $start_time, $count) {
+  global $global_exec_details;
+
+  $total_time   = ceil(microtime(true) - $start_time);
+  $average_time = $count ? ceil($total_time/$count) : null;
+
+  $global_exec_details['timers']["$label-total"]   = $total_time;
+  $global_exec_details['timers']["$label-count"]   = $count;
+  $global_exec_details['timers']["$label-average"] = $average_time;
+
+  if ($average_time > 30)
+    SirumLog::alert(
+      "helper_log log_timer: $label has long average time loop time of $average_time seconds",
+      [
+        'start_time'          => $start_time,
+        'count'               => $count,
+        '$total_time'         => $total_time,
+        '$average_time'       => $average_time,
+        'global_exec_details' => $global_exec_details
+      ]
+    );
+}

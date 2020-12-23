@@ -23,6 +23,8 @@ function update_patients_cp($changes) {
   $mysql = new Mysql_Wc();
   $mssql = new Mssql_Cp();
 
+  $loop_timer = microtime(true);
+
   foreach($changes['updated'] as $i => $updated) {
 
       SirumLog::$subroutine_id = "patients-cp-updated-".sha1(serialize($updated));
@@ -90,6 +92,9 @@ function update_patients_cp($changes) {
       //TODO Autopay Reminders (Remove Card, Card Expired, Card Changed, Order Paid Manually)
     }
   }
+
+  log_timer('patients-cp-updated', $loop_timer, $count_updated);
+
 
   SirumLog::resetSubroutineId();
   //TODO Upsert WooCommerce Patient Info

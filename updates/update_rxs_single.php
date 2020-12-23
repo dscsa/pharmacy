@@ -68,6 +68,8 @@ function update_rxs_single($changes) {
    * Created Loop #1 First loop accross new items. Run this before rx_grouped query to make
    * sure all sig_qty_per_days are properly set before we group by them
    */
+  $loop_timer = microtime(true);
+
   foreach($changes['created'] as $created) {
 
     SirumLog::$subroutine_id = "rxs-single-created1-".sha1(serialize($created));
@@ -114,6 +116,9 @@ function update_rxs_single($changes) {
     //TODO Eventually Save the Clean Script back into Guardian so that Cindy doesn't need to rewrite them
     set_parsed_sig($created['rx_number'], $parsed, $mysql);
   }
+
+  log_timer('rx-singles-created1', $loop_timer, $count_created);
+
 
   /* Finishe Loop Created Loop  #1 */
 
@@ -222,6 +227,8 @@ function update_rxs_single($changes) {
    *
    * Run this After so that Rx_grouped is set when doing get_full_patient
    */
+   $loop_timer = microtime(true);
+
   foreach($changes['created'] as $created) {
 
     SirumLog::$subroutine_id = "rxs-single-created2-".sha1(serialize($created));
@@ -248,6 +255,9 @@ function update_rxs_single($changes) {
     );
   }
 
+  log_timer('rx-singles-created2', $loop_timer, $count_created);
+
+
   /* Finish Created Loop #2 */
 
   $sf_cache = [];
@@ -255,6 +265,8 @@ function update_rxs_single($changes) {
    * Updated Loop
    */
   //Run this after rx_grouped query to ensure get_full_patient retrieves an accurate order profile
+  $loop_timer = microtime(true);
+
   foreach($changes['updated'] as $updated) {
 
     SirumLog::$subroutine_id = "rxs-single-updated-".sha1(serialize($updated));
@@ -282,11 +294,11 @@ function update_rxs_single($changes) {
       SirumLog::debug(
         "update_rxs_single: about to call export_cp_rx_autofill()",
         [
-            'item'    => $item,
-            'updated' => $updated,
-            'source'  => 'CarePoint',
-            'type'    => 'rxs-single',
-            'event'   => 'updated'
+          'item'    => $item,
+          'updated' => $updated,
+          'source'  => 'CarePoint',
+          'type'    => 'rxs-single',
+          'event'   => 'updated'
         ]
       );
 
@@ -342,6 +354,9 @@ function update_rxs_single($changes) {
     }
 
   }
+
+  log_timer('rx-singles-updated', $loop_timer, $count_updated);
+
 
   SirumLog::resetSubroutineId();
 

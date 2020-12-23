@@ -333,7 +333,6 @@ try {
 
     echo "Update CP Orders ";
     $global_start_time = microtime(true);
-    $global_timer_details = [];
     update_orders_cp($changes_to_orders_cp);
     $global_exec_details['timers']['update_orders_cp'] = ceil(microtime(true) - $global_start_time);
     echo "completed in {$global_exec_details['timers']['update_orders_cp']} seconds\n";

@@ -30,6 +30,8 @@ function update_orders_wc($changes) {
     //Since CP Order runs before this AND Webform automatically adds Orders into CP
     //this loop should not have actual created orders.  They are all orders that were
     //deleted in CP and were overlooked by the cp_order delete loop
+    $loop_timer = microtime(true);
+
     foreach ($changes['created'] as $created) {
         SirumLog::$subroutine_id = "orders-wc-created-".sha1(serialize($created));
 
@@ -75,10 +77,14 @@ function update_orders_wc($changes) {
 
         //export_wc_cancel_order($created['invoice_number'], "update_orders_cp: cp order canceled $created[invoice_number] $created[order_stage_cp] $created[order_stage_wc] $created[order_source] ".json_encode($created));
     }
+    log_timer('orders-wc-created', $loop_timer, $count_created);
+
 
     //This captures 2 USE CASES:
     //1) An order is in WC and CP but then is deleted in WC, probably because wp-admin deleted it (look for Update with order_stage_wc == 'trash')
     //2) An order is in CP but not in (never added to) WC, probably because of a tech bug.
+    $loop_timer = microtime(true);
+
     foreach ($changes['deleted'] as $deleted) {
         SirumLog::$subroutine_id = "orders-wc-deleted-".sha1(serialize($deleted));
 
@@ -171,6 +177,9 @@ function update_orders_wc($changes) {
             export_gd_publish_invoice($order, $mysql);
         }
     }
+    log_timer('orders-wc-deleted', $loop_timer, $count_deleted);
+
+    $loop_timer = microtime(true);
 
     foreach ($changes['updated'] as $updated) {
         SirumLog::$subroutine_id = "orders-wc-updated-".sha1(serialize($updated));
@@ -349,5 +358,7 @@ function update_orders_wc($changes) {
             );
         }
     } // End Changes Loop
+    log_timer('orders-wc-updated', $loop_timer, $count_updated);
+
     SirumLog::resetSubroutineId();
 }

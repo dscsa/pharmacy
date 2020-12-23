@@ -21,6 +21,8 @@ function update_drugs($changes) {
 
   $mysql = new Mysql_Wc();
 
+  $loop_timer = microtime(true);
+
   foreach($changes['updated'] as $i => $updated) {
 
     SirumLog::$subroutine_id = "drugs-updated-".sha1(serialize($updated));
@@ -75,6 +77,8 @@ function update_drugs($changes) {
       log_error("drug gsns changed.  deleting order_item(s) for them to be recreated and matched", [$sql, $results, $updated]);
     }
   }
+  log_timer('drug-updated', $loop_timer, $count_updated);
+
 
   SirumLog::resetSubroutineId();
 
