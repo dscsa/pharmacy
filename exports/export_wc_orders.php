@@ -397,6 +397,7 @@ function export_wc_create_order($order, $reason)
 
   $address1 = escape_db_values($first_item['order_address1']);
   $address2 = escape_db_values($first_item['order_address2']);
+  $city     = escape_db_values($first_item['order_city']); //e.g. John's Creek
 
   /*
    * This function call will happen AFTER the wc_order import happened,
@@ -425,7 +426,7 @@ function export_wc_create_order($order, $reason)
               NULLIF('{$first_item['invoice_doc_id']}', ''),
               '$address1',
               '$address2',
-              '{$first_item['order_city']}',
+              '$city',
               '{$first_item['order_state']}',
               '{$first_item['order_zip']}',
               '{$first_item['payment_method_actual']}',
