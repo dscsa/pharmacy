@@ -114,7 +114,7 @@ function export_cp_add_items($invoice_number, $items) {
 
     $current_order = $mysql->run($sql)[0];
 
-    SirumLog::alert("Item needs to be added but NO Order? Confirm this is an updated Rx. Find current order if one exists.  Maybe even create a new order if one doesn't exist?"
+    SirumLog::alert("Item needs to be added but NO Order? Confirm this is always an rx-created2/updated or deleted order-item (i understand former but not latter). Find current order if one exists.  Maybe even create a new order if one doesn't exist?"
     ." invoice_number:".$items[0]['invoice_number']
     ." item_invoice:".$items[0]['dontuse_item_invoice']
     ." order_invoice:".$items[0]['dontuse_order_invoice'], [
