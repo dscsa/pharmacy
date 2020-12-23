@@ -36,6 +36,7 @@ function update_orders_cp($changes) {
 
     $day_changes     = [];
     $qty_changes     = [];
+    $refill_changes  = []
     $mysql = new Mysql_Wc();
 
     //Normall would run this in the update_order_items.php but we want to wait for all the items to change so that we don't rerun multiple times
@@ -493,7 +494,7 @@ function update_orders_cp($changes) {
               //Updates invoice with new qty/refills.  Prices should not have changed so no need to update WC
               $order = helper_update_payment($order, "update_orders_cp: updated - dispensing day changes ".implode(', ', $dispensing_changes['day_changes']), $mysql);
 
-              $order = export_gd_update_invoice($order, "update_orders_cp: updated - dispensing qty changes ".implode(', ', $dispensing_changes['qty_changes']), $mysql);
+              $order = export_gd_update_invoice($order, "update_orders_cp: updated - dispensing refill/qty changes ".implode(', ', $dispensing_changes['qty_changes']).implode(', ', $dispensing_changes['refill_changes']), $mysql);
             }
 
             $groups = group_drugs($order, $mysql);
