@@ -36,7 +36,7 @@ function update_orders_cp($changes) {
 
     $day_changes     = [];
     $qty_changes     = [];
-    $refill_changes  = []
+    $refill_changes  = [];
     $mysql = new Mysql_Wc();
 
     //Normall would run this in the update_order_items.php but we want to wait for all the items to change so that we don't rerun multiple times
@@ -51,7 +51,7 @@ function update_orders_cp($changes) {
         $qty_changes[] = "rx:$item[rx_number] qty:$item[qty_dispensed_default] >>> $item[qty_dispensed_actual] days:$item[days_dispensed_default] >>> $item[days_dispensed_actual] refills:$item[refills_dispensed_default] >>> $item[refills_dispensed_actual] item:".json_encode($item);
 
       //! $updated['order_date_dispensed'] otherwise triggered twice, once one stage: Printed/Processed and again on stage:Dispensed
-      if ( ! is_null($item['refills_dispensed_actual']) AND $item['refills_dispensed_default']+0) != $item['refills_dispensed_actual']+0)
+      if ( ! is_null($item['refills_dispensed_actual']) AND $item['refills_dispensed_default']+0 != $item['refills_dispensed_actual']+0)
         $refill_changes[] = "rx:$item[rx_number] qty:$item[qty_dispensed_default] >>> $item[qty_dispensed_actual] days:$item[days_dispensed_default] >>> $item[days_dispensed_actual] refills:$item[refills_dispensed_default] >>> $item[refills_dispensed_actual] item:".json_encode($item);
 
 
