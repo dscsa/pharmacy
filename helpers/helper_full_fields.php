@@ -139,18 +139,7 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
 
             if ($needs_adding) {
 
-              if (@$patient_or_order[0]['invoice_number']) {
-                $items_to_add[] = $patient_or_order[$i];
-              } else {
-                SirumLog::alert("Item needs to be added but NO Order?  Start aborting since downstream MySQL Errors?"
-                ." invoice_number:".@$patient_or_order[$i]['invoice_number']
-                ." item_invoice:".@$patient_or_order[$i]['dontuse_item_invoice']
-                ." order_invoice:".@$patient_or_order[$i]['dontuse_order_invoice'], [
-                  'days'    => $days,
-                  'message' => $message,
-                  'items'   => $patient_or_order[$i]
-                ]);
-              }
+              $items_to_add[] = $patient_or_order[$i];
 
               SirumLog::notice(
                 "helper_full_fields: needs_adding (export_cp_add_items) ".$patient_or_order[$i]['drug_name'],

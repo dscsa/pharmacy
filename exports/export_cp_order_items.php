@@ -90,7 +90,35 @@ function export_cp_add_items($invoice_number, $items) {
   $rx_numbers = json_encode($rx_numbers);
 
   global $mssql;
+  global $mysql;
+
   $mssql = $mssql ?: new Mssql_Cp();
+  $mysql = $mysql ?: new Mysql_Wc();
+
+  if ( ! $invoice_number) {
+    $sql = "
+      SELECT
+        invoice_number
+      FROM
+        gp_orders
+      WHERE
+        order_date_dispensed IS NULL AND
+        patient_id_cp = {$items[0]['patient_id_cp']}
+    ";
+
+    $current_order = $mysql->run($sql)[0];
+
+    SirumLog::alert("Item needs to be added but NO Order? Confirm this is an updated Rx. Find current order if one exists.  Maybe even create a new order if one doesn't exist?"
+    ." invoice_number:".$items[0]['invoice_number']
+    ." item_invoice:".$items[0]['dontuse_item_invoice']
+    ." order_invoice:".$items[0]['dontuse_order_invoice'], [
+      'sql'   => $sql,
+      'items' => $items,
+      'current_order' => $current_order
+    ]);
+
+    $invoice_number = $current_order[0]['invoice_number'];
+  }
 
   $sql = "SirumWeb_AddItemsToOrder '$invoice_number', '$rx_numbers'";
 

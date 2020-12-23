@@ -78,6 +78,8 @@ function save_pick_list($item, $list, $mysql) {
     ];
   }
 
+  if ( ! $list) return; //List could not be made
+
   $sql = "
     UPDATE
       gp_order_items
