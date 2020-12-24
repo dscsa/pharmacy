@@ -110,7 +110,11 @@ function update_orders_cp($changes) {
             ]
           );
 
-          continue; //Not sure what we should do here. Delete it?
+          //Not sure what we should do here. Delete it?
+          if ($created['count_items'] == 0)
+            export_cp_remove_order($created['invoice_number']);
+
+          continue;
         }
 
         $order = load_full_order($created, $mysql, true);
