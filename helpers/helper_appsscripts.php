@@ -21,7 +21,7 @@ function gdoc_post($url, $content)
     $context = stream_context_create($opts);
     $results = file_get_contents($url.'?GD_KEY='.GD_KEY, false, $context);
 
-    $global_exec_details['timers_gd']["$content[method] $content[file]"] = ceil(microtime(true) - $start);
+    $global_exec_details['timers_gd']["$content[method] $content[file]$content[word_search]"] = ceil(microtime(true) - $start);
 
     return $results;
 }

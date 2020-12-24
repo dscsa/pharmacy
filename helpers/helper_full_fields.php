@@ -287,7 +287,7 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
 
       $salesforce   = [
         "subject"   => $title,
-        "body"      => implode("\n", $logging),
+        "body"      => implode("\n", $logging).print_r($patient_or_order, true),
         "contact"   => $patient_or_order[0]['first_name'].' '.$patient_or_order[0]['last_name'].' '.$patient_or_order[0]['birth_date']
       ];
 

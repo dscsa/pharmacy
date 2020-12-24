@@ -113,22 +113,6 @@ function update_orders_cp($changes) {
           continue; //Not sure what we should do here. Delete it?
         }
 
-        //TODO Add Webform Transfer [w/ Note] here as well
-        if ($created['order_status'] == "Surescripts Authorization Denied") {
-          SirumLog::error(
-            "Surescripts Authorization Denied. Created. What to do here?  Resend?  Retrieve Reason?  Delete Order?",
-            [
-              'invoice_number' => $created['invoice_number'],
-              'created' => $created,
-              'source'  => 'CarePoint',
-              'type'    => 'orders',
-              'event'   => 'created'
-            ]
-          );
-
-          continue; //Not sure what we should do here.  Process them?  Patient communication?
-        }
-
         $order = load_full_order($created, $mysql, true);
 
         if ( ! $order) {
@@ -149,11 +133,47 @@ function update_orders_cp($changes) {
           ]
         );
 
-        if ($order[0]['order_status'] == "Surescripts Authorization Approved")
+        //TODO Add Special Case for Webform Transfer [w/ Note] here?
+
+        //Item would have already been pended from order-item-created::load_full_item
+        if ($created['order_status'] == "Surescripts Authorization Denied") {
+          SirumLog::error(
+            "Order CP Created - Deleting and Unpending Because Surescripts Authorization Denied.",
+            [
+              'invoice_number' => $created['invoice_number'],
+              'created' => $created,
+              'source'  => 'CarePoint',
+              'type'    => 'orders',
+              'event'   => 'created'
+            ]
+          );
+
+          $date = "Created:".date('Y-m-d H:i:s');
+
+          //Don't think we need this because CP doesn't combine multiple denials into one order
+          $drugs = [];
+          foreach($order as $item) {
+            $drugs[] = $item['drug_name'];
+          }
+
+          $salesforce = [
+            "subject"   => "SureScripts refill request denied for ".implode(', ', $drugs),
+            "body"      => "$created[invoice_number] deleted because provider denied SureScripts refill request for ".implode(', ', $drugs),
+            "contact"   => "$created[first_name] $created[last_name] $created[birth_date]"
+          ];
+
+          create_event($salesforce['subject'], [$salesforce]);
+
+          export_v2_unpend_order($order, $mysql);
+          export_cp_remove_order($created['invoice_number']);
+          continue; //Not sure what we should do here.  Process them?  Patient communication?
+        }
+
+        if ($created['order_status'] == "Surescripts Authorization Approved")
           SirumLog::error(
             "Surescripts Authorization Approved. Created.  What to do here?  Keep Order? Delete Order? Depends on Autofill settings?",
             [
-              'invoice_number'   => $order[0]['invoice_number'],
+              'invoice_number'   => $created['invoice_number'],
               'count_items'      => count($order)." / ".@$order['count_items'],
               'patient_autofill' => $order[0]['patient_autofill'],
               'rx_autofill'      => $order[0]['rx_autofill'],
@@ -208,6 +228,7 @@ function update_orders_cp($changes) {
 
           //TODO Remove/Cancel WC Order Here
 
+          export_v2_unpend_order($order, $mysql);
           export_cp_remove_order($order[0]['invoice_number']);
           continue;
         }

@@ -125,6 +125,7 @@ function update_orders_wc($changes) {
               ]
             );
 
+            export_v2_unpend_order($order);
             export_cp_remove_order($order[0]['invoice_number']);
 
         } elseif ($deleted['order_stage_cp'] == 'Shipped' or $deleted['order_stage_cp'] == 'Dispensed') {
