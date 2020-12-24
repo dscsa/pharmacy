@@ -116,7 +116,7 @@ function update_orders_wc($changes) {
         } elseif ( ! $order[0]['pharmacy_name']) {  //Can't do $order[0]['rx_message_key'] == 'ACTION NEEDS FORM' because other keys can take precedence even if form is needed
 
             SirumLog::notice(
-              "update_orders_wc deleted: export_cp_remove_order",
+              "update_orders_wc deleted: export_cp_remove_order.  Can we remove the v2_unpend_order because it get called on the next run?",
               [
                 'invoice_number' => $order[0]['invoice_number'],
                 'reason' => 'update_orders_wc: Deleteing CP Order RXs created an order in CP but patient has not yet registered so there is no order in WC yet.',
@@ -125,6 +125,8 @@ function update_orders_wc($changes) {
               ]
             );
 
+            //TODO Why do we need to explicitly unpend?  Deleting an order in CP should trigger the deleted loop on next run, which should unpend
+            //But it seemed that this didn't happen for Order 53684
             export_v2_unpend_order($order);
             export_cp_remove_order($order[0]['invoice_number']);
 

@@ -102,7 +102,7 @@ function wc_update_meta($invoice_number, $metadata)
 
     if (count($meta_to_insert) > 0) {
       SirumLog::debug(
-        "Inserting Meta data",
+        "Inserting Meta data ".print_r($meta_to_insert, true),
         [
           "invoice_number" => $invoice_number,
           "meta_values"    => $metadata,
@@ -129,7 +129,7 @@ function wc_update_meta($invoice_number, $metadata)
 
     foreach ($meta_to_update as $meta_key => $meta_value) {
       SirumLog::debug(
-        "Update WC Meta",
+        "Update WC Meta ".print_r($meta_to_update, true),
         [
           "invoice_number" => $invoice_number,
           "meta_values"    => $meta_to_update,
@@ -536,7 +536,7 @@ function export_wc_update_order_payment($invoice_number, $payment_fee, $payment_
 {
 
   SirumLog::notice(
-    'export_wc_update_order_payment: called',
+    "export_wc_update_order_payment: called $invoice_number",
     [
       "invoice"     => $invoice_number,
       "payment_fee" => $payment_fee,

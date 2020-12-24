@@ -45,32 +45,21 @@ function is_patient_match($mysql, $patient) {
 function match_patient($mysql, $patient_id_cp, $patient_id_wc) {
 
   // Update the patientes table
-  $sql_wc = "
+  $sql = "
     UPDATE
       gp_patients
     SET
+      patient_id_cp = '{$patient_id_cp}',
       patient_id_wc = '{$patient_id_wc}'
     WHERE
-      patient_id_cp = '{$patient_id_cp}'
+      patient_id_cp = '{$patient_id_cp}' OR
+      patient_id_wc = '{$patient_id_wc}'
   ";
 
-  //Don't think this will ever be the case (since patient portal saves patient into CP directly)
-  //but better safe then sorry
-  $sql_cp = "
-    UPDATE
-      gp_patients
-    SET
-      patient_id_wc = '{$patient_id_cp}'
-    WHERE
-      patient_id_cp = '{$patient_id_wc}'
-  ";
-
-  $mysql->run($sql_wc);
-  $mysql->run($sql_cp);
+  $mysql->run($sql);
 
   log_notice("helper_matching: match_patient() matched patient_id_cp:$patient_id_cp with patient_id_wc:$patient_id_wc", [
-    'sql_wc' => $sql_wc,
-    'sql_cp' => $sql_cp
+    'sql' => $sql,
   ]);
 
   // Insert the patient_id_cp if it deosnt' already exist

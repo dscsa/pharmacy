@@ -138,7 +138,7 @@ function update_orders_cp($changes) {
         //Item would have already been pended from order-item-created::load_full_item
         if ($created['order_status'] == "Surescripts Authorization Denied") {
           SirumLog::error(
-            "Order CP Created - Deleting and Unpending Because Surescripts Authorization Denied.",
+            "Order CP Created - Deleting and Unpending Because Surescripts Authorization Denied. Can we remove the v2_unpend_order below because it get called on the next run?",
             [
               'invoice_number' => $created['invoice_number'],
               'created' => $created,
@@ -164,6 +164,8 @@ function update_orders_cp($changes) {
 
           create_event($salesforce['subject'], [$salesforce]);
 
+          //TODO Why do we need to explicitly unpend?  Deleting an order in CP should trigger the deleted loop on next run, which should unpend
+          //But it seemed that this didn't happen for Order 53684
           export_v2_unpend_order($order, $mysql);
           export_cp_remove_order($created['invoice_number']);
           continue; //Not sure what we should do here.  Process them?  Patient communication?
@@ -214,7 +216,7 @@ function update_orders_cp($changes) {
         if ($order[0]['count_filled'] == 0) {
 
           SirumLog::debug(
-            'update_orders_cp: created. no drugs to fill. removing order',
+            'update_orders_cp: created. no drugs to fill. removing order. Can we remove the v2_unpend_order below because it get called on the next run?',
             [
               'invoice_number' => $order[0]['invoice_number'],
               'count_filled'   => $order[0]['count_filled'],
@@ -228,6 +230,8 @@ function update_orders_cp($changes) {
 
           //TODO Remove/Cancel WC Order Here
 
+          //TODO Why do we need to explicitly unpend?  Deleting an order in CP should trigger the deleted loop on next run, which should unpend
+          //But it seemed that this didn't happen for Order 53684
           export_v2_unpend_order($order, $mysql);
           export_cp_remove_order($order[0]['invoice_number']);
           continue;
@@ -355,7 +359,7 @@ function update_orders_cp($changes) {
       SirumLog::$subroutine_id = "orders-cp-deleted-".sha1(serialize($deleted));
 
       SirumLog::debug(
-          'update_orders_cp: carepoint order has been deleted',
+          "update_orders_cp: carepoint order $deleted[invoice_number] has been deleted",
           [
             'source'         => 'CarePoint',
             'event'          => 'deleted',
