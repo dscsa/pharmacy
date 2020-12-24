@@ -6,7 +6,7 @@ function export_v2_unpend_order($order, $mysql) {
 
   log_notice("export_v2_unpend_order", $order);
 
-  if ($order[0]['drug_name']) {
+  if ( ! $order[0]['drug_name']) {
     return log_error("export_v2_unpend_order: ABORTED! Order ".$order[0]['invoice_number']." doesn't seem to have any items", ['order' => $order]);
   }
 
