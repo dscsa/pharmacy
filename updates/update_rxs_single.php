@@ -272,7 +272,7 @@ function update_rxs_single($changes) {
     SirumLog::$subroutine_id = "rxs-single-updated-".sha1(serialize($updated));
 
     SirumLog::debug(
-      "update_rxs_single: rx updated",
+      "update_rxs_single: rx updated $item[drug_name] $item[rx_number]",
       [
           'updated' => $updated,
           'source'  => 'CarePoint',

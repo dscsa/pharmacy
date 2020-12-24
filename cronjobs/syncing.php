@@ -360,7 +360,7 @@ try {
     $global_exec_details['timers_gd']['percent'] = ceil($global_exec_details['timers_gd']['total']/$global_exec_details['timers']['total']*100);
     $global_exec_details['end']                  = date('c');
 
-    SirumLog::info('Pharmacy Automation Complete', $global_exec_details);
+    SirumLog::info("Pharmacy Automation Complete in {$global_exec_details['timers']['total']} seconds", $global_exec_details);
     echo "\nAll data processed {$global_exec_details['end']}\n";
 
     print_r($global_exec_details);

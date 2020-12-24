@@ -33,7 +33,7 @@ function update_patients_wc($changes) {
     //Overrite Rx Messages everytime a new order created otherwis same message would stay for the life of the Rx
 
     SirumLog::debug(
-      "update_patients_wc: WooCommerce PATIENT Created",
+      "update_patients_wc: WooCommerce PATIENT Created $created[first_name] $created[last_name] $created[birth_date]",
       [
           'created' => $created,
           'source'  => 'WooCommerce',
@@ -49,7 +49,7 @@ function update_patients_wc($changes) {
 
       if ($hours > $limit) {
         SirumLog::debug(
-          "update_patients_wc: deleting incomplete registration after $limit hours",
+          "update_patients_wc: deleting incomplete registration for $created[first_name] $created[last_name] $created[birth_date] after $limit hours",
           [
               'created' => $created,
               'limit'   => $limit,
