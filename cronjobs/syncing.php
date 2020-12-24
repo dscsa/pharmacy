@@ -77,13 +77,13 @@ $global_exec_details = ['start' => date('c')];
 
 $f = fopen('/tmp/pharmacy.lock', 'w') or log_error('Webform Cron Job Cannot Create Lock File');
 
-if (! flock($f, LOCK_EX | LOCK_NB)) {
+if ( ! flock($f, LOCK_EX | LOCK_NB)) {
     $still_running = "\n*** Warning Webform Cron Job Because Previous One Is Still Running ***\n\n";
     echo $still_running;
     SirumLog::error($still_running, $global_exec_details);
     // Push any lagging logs to google Cloud
     SirumLog::flush();
-    //exit;
+    exit;
 }
 
 //This is used to invalidate cache for patient portal BUT since this cron job can take several minutes to run
@@ -276,6 +276,12 @@ try {
      /*
       Now we will to trigger side effects based on changes
     */
+
+    //We can spin up a new PHP process now without conflicts, don't need to wait
+    //There are some DB changes after this point so there could be some undefined
+    //behavior from this.  BUT the update loops after this point are very slow
+    //so until we get everything faster it's worth the risk
+    flock($f, LOCK_UN | LOCK_NB);
 
     /**
      * Retrieve all the drugs and CRUD the changes from v2 to the gp database
