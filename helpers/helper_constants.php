@@ -80,7 +80,8 @@ const STOCK_LEVEL = [
   'NOT OFFERED'  => 'NOT OFFERED'
 ];
 
-
+//SELECT MAX(code_id) FROM csct_code;
+//INSERT INTO csct_code (code_id, ct_id, code_num, name) VALUES (9201465, 6400, 223, 'NO ACTION DUPLICATE GSN')
 //in CP csct_code.ct_id == 6400, cp_code == csct_code.code_num
 const RX_MESSAGE = [
   'UNUSED' => [
@@ -198,6 +199,11 @@ const RX_MESSAGE = [
     'ES' => '',
     'CP_CODE' => 222,
   ],
+  'NO ACTION DUPLICATE GSN' => [
+    'EN' => 'was replaced with new directions for use',
+    'ES' => '',
+    'CP_CODE' => 223,
+  ],
 
   //ACTION BY USER REQUIRED BEFORE (RE)FILL
 
@@ -240,5 +246,5 @@ const RX_MESSAGE = [
     'EN' => 'can be filled once you register',
     'ES' => '',
     'CP_CODE' => 107,
-  ]
+  ],
 ];

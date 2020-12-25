@@ -194,7 +194,7 @@ function deduplicate_order_items($item, $mssql, $mysql) {
       AND rxdisp_id = 0
       AND (
         script_no = $item[rx_number]
-        OR CONCAT(',', gcn_seqno, ',') LIKE '%$item[drug_gsns]%'
+        OR '$item[drug_gsns]' LIKE CONCAT('%,', gcn_seqno, ',%')
       )
     ORDER BY
       csomline.add_date ASC

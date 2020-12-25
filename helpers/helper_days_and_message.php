@@ -188,6 +188,11 @@ function get_days_and_message($item, $patient_or_order) {
     return [0, RX_MESSAGE['ACTION RX OFF AUTOFILL']];
   }
 
+  if ($is_duplicate_gsn AND ! @$item['item_date_added']) {
+    log_info("NOT ADDING DRUG BECAUSE DUPLICATE GSN DETECTED", get_defined_vars());
+    return [0, RX_MESSAGE['NO ACTION DUPLICATE GSN']];
+  }
+
   if ( ! $item['rx_autofill'] AND @$item['item_date_added']) {
 
     //39652 don't refill surescripts early if rx is off autofill.  This means refill_date_next is null but refill_date_default may have a value
