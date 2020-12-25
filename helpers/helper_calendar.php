@@ -389,7 +389,7 @@ function create_event($event_title, $comm_arr, $hours_to_wait = 0, $hour_of_day 
   $result = gdoc_post(GD_HELPER_URL, $args);
 
   SirumLog::debug(
-      "Communication Calendar event created",
+      "Communication Calendar event created: $event_title",
       [
           "message" => $args,
           "result"  => $result
@@ -400,7 +400,7 @@ function create_event($event_title, $comm_arr, $hours_to_wait = 0, $hour_of_day 
   // just blank events
   if ($hour_of_day == 12) {
       SirumLog::notice(
-          "DEBUG REFILL REMINDER create_event",
+          "DEBUG REFILL REMINDER create_event: $event_title",
           [
               "message" => $args,
               "result"  => $result
@@ -496,7 +496,7 @@ function get_start_time($hours_to_wait, $hour_of_day = null) {
 function search_events_by_person($first_name, $last_name, $birth_date, $past = false, $types = []) {
 
   $types = implode('|', $types);
-  $first_name = substr($first_name, 0, 3);
+  $first = substr($first_name, 0, 3);
 
   $args = [
     'method'       => 'searchCalendarEvents',
@@ -504,7 +504,7 @@ function search_events_by_person($first_name, $last_name, $birth_date, $past = f
     'hours'        => DAYS_STD*24,
     'past'         => $past,
     'word_search'  => "$last_name $birth_date",
-    'regex_search' => "/($types).+$first_name/i" //first name is partial which is not currently supported by gcal natively
+    'regex_search' => "/($types).+$first/i" //first name is partial which is not currently supported by gcal natively
   ];
 
   $result = gdoc_post(GD_HELPER_URL, $args);
@@ -512,7 +512,7 @@ function search_events_by_person($first_name, $last_name, $birth_date, $past = f
   $json = json_decode($result, true);
 
   if ($result != '[]')
-    log_notice('search_events_by_person', $json);
+    log_notice("search_events_by_person: $first_name $last_name $birth_date", $json);
 
   return $json;
 }
@@ -535,7 +535,7 @@ function search_events_by_order($invoice_number, $past = false, $types = []) {
   $json = json_decode($result, true);
 
   if ($result != '[]')
-    log_notice('search_events_by_order', $json);
+    log_notice("search_events_by_order: $invoice_number", $json);
 
   return $json;
 }
@@ -640,10 +640,10 @@ function cancel_events_by_person($first_name, $last_name, $birth_date, $caller, 
   }
 
   if ($cancel) {
-    log_notice('cancel_events_by_person: has events', [$titles, $first_name, $last_name, $birth_date, $caller, $types]);
+    log_notice("cancel_events_by_person: $first_name $last_name $birth_date has events", [$titles, $first_name, $last_name, $birth_date, $caller, $types]);
     cancel_events($cancel);
   } else {
-    log_notice('cancel_events_by_person: no events', [$titles, $first_name, $last_name, $birth_date, $caller, $types]);
+    log_notice("cancel_events_by_person:  $first_name $last_name $birth_date no events", [$titles, $first_name, $last_name, $birth_date, $caller, $types]);
   }
 
   return $cancel;
@@ -667,10 +667,10 @@ function cancel_events_by_order($invoice_number, $caller, $types = []) {
   }
 
   if ($cancel) {
-    log_notice('cancel_events_by_order: has events', [$titles, $invoice_number, $caller, $types]);
+    log_notice("cancel_events_by_order: order $invoice_number has events", [$titles, $invoice_number, $caller, $types]);
     cancel_events($cancel);
   } else {
-    log_notice('cancel_events_by_order: no events', [$titles, $invoice_number, $caller, $types]);
+    log_notice("cancel_events_by_order: order $invoice_number no events", [$titles, $invoice_number, $caller, $types]);
   }
 
   return $cancel;

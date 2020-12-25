@@ -283,7 +283,7 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
 
     if (@$patient_or_order[0]['invoice_number'] AND $logging) {
 
-      $title = "Order Updated ".$patient_or_order[0]['invoice_number']."!  ".date('Y:m:d H:i:s');
+      $title = "Order Created/Updated ".$patient_or_order[0]['invoice_number']."!  ".date('Y:m:d H:i:s');
 
       $salesforce   = [
         "subject"   => $title,
