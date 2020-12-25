@@ -45,7 +45,7 @@ function update_patients_wc($changes) {
     if ( ! $created['pharmacy_name']) {
 
       $limit = 24; //Delete Incomplete Registrations after 24 hours
-      $hours = (time() - strtotime($created['patient_date_registered']))/60/60;
+      $hours = round((time() - strtotime($created['patient_date_registered']))/60/60, 1);
 
       if ($hours > $limit) {
         SirumLog::debug(
