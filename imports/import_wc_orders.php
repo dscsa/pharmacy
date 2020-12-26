@@ -32,6 +32,7 @@ function import_wc_orders() {
     JOIN wp_posts ON post_id = wp_posts.ID
     WHERE meta_key = 'invoice_number'
     AND post_status != 'trash'
+    AND post_status != 'wc-cancelled'
     GROUP BY meta_value
     HAVING number > 1
   ");
@@ -93,7 +94,8 @@ function import_wc_orders() {
   LEFT JOIN wp_postmeta ON wp_postmeta.post_id = wp_posts.ID
   WHERE
     post_type = 'shop_order' AND
-    wp_posts.post_status != 'wc-cancelled'
+    wp_posts.post_status != 'wc-cancelled' AND
+    wp_posts.post_status != 'trash' 
   GROUP BY
      wp_posts.ID
   HAVING
