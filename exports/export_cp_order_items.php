@@ -132,7 +132,7 @@ function export_cp_add_items($invoice_number, $items) {
         return;
     }
 
-    SirumLog::warn("$log[subject] but using a different, current one", $log);
+    SirumLog::warning("$log[subject] but using a different, current one", $log);
   }
 
   $sql = "SirumWeb_AddItemsToOrder '$invoice_number', '$rx_numbers'";
