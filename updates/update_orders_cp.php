@@ -574,14 +574,6 @@ function update_orders_cp($changes) {
           continue;
         }
 
-        if ($updated['count_items'] != $updated['old_count_items']) {
-
-          $groups = group_drugs($order, $mysql);
-          send_updated_order_communications($groups, $changed_fields);
-
-          continue;
-        }
-
         //Address Changes
         //Stage Change
         //Order_Source Change (now that we overwrite when saving webform)

@@ -283,18 +283,23 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
 
     if (@$patient_or_order[0]['invoice_number'] AND $logging) {
 
-      $title = "Order Created/Updated ".$patient_or_order[0]['invoice_number']."!  ".date('Y:m:d H:i:s');
+      $contact = $patient_or_order[0]['first_name'].' '.$patient_or_order[0]['last_name'].' '.$patient_or_order[0]['birth_date'];
+
+      $title = "Order Created/Updated ".$patient_or_order[0]['invoice_number']." $contact!  Created:".date('Y-m-d H:i:s');
 
       $salesforce   = [
         "subject"   => $title,
-        "body"      => implode("\n", $logging).print_r($patient_or_order, true),
-        "contact"   => $patient_or_order[0]['first_name'].' '.$patient_or_order[0]['last_name'].' '.$patient_or_order[0]['birth_date']
+        "body"      => implode("; ", $logging),
+        "contact"   => $contact
       ];
 
       SirumLog::notice("helper_full_fields: $title", [
         'logging' => $logging,
         'patient_or_order' => $patient_or_order
       ]);
+
+      $groups = group_drugs($patient_or_order, $mysql);
+      send_updated_order_communications($groups, $changed_fields);
 
       create_event($title, [$salesforce]);
     }
