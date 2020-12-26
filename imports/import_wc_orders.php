@@ -41,7 +41,7 @@ function import_wc_orders() {
    * QUESTION: How do we actually get duplicates needs to stop execution
    */
   if (count($duplicates[0])) {
-    $duplicate_invoices = 'Duplicate Invoice Numbers in WC. Stopping Cron Until Fixed';
+    $duplicate_invoices = 'Duplicate Invoice Numbers in WC. Stopping Cron Until Fixed: '.$duplicates[0][0]['meta_value'];
     echo $duplicate_invoices;
     print_r($duplicates[0]);
     SirumLog::critical($duplicate_invoices, $duplicates[0]);
