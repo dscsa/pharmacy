@@ -120,17 +120,18 @@ function update_patients_wc($changes) {
 
     SirumLog::$subroutine_id = "patients-wc-updated-".sha1(serialize($updated));
 
+    $changed = changed_fields($updated);
+
     SirumLog::debug(
       "update_patients_wc: WooCommerce PATIENT updated",
       [
           'updated' => $updated,
+          'changed' => $changed,
           'source'  => 'WooCommerce',
           'type'    => 'patients',
           'event'   => 'updated'
       ]
     );
-
-    $changed = changed_fields($updated);
 
     echo "\nwc patient updated! $updated[first_name] $updated[last_name] $updated[birth_date] cp:$updated[patient_id_cp] wc:$updated[patient_id_wc] ".print_r($changed, true);
 
