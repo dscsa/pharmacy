@@ -144,8 +144,8 @@ function update_orders_wc($changes) {
       $new_stage = explode('-', $updated['order_stage_wc']);
       $old_stage = explode('-', $updated['old_order_stage_wc']);
 
-      if (( !
-          ($old_stage[1] == 'confirm' and $new_stage[1] == 'prepare') or
+      if ($updated['order_stage_wc'] != $updated['old_order_stage_wc'] and !
+          (($old_stage[1] == 'confirm' and $new_stage[1] == 'prepare') or
           ($old_stage[1] == 'confirm' and $new_stage[1] == 'shipped') or
           ($old_stage[1] == 'confirm' and $new_stage[1] == 'late') or
           ($old_stage[1] == 'prepare' and $new_stage[1] == 'prepare') or //User completes webform twice then prepare-refill will overwrite prepare-erx
@@ -156,8 +156,8 @@ function update_orders_wc($changes) {
           ($old_stage[1] == 'late'    and $new_stage[1] == 'done') or
           ($old_stage[1] == 'shipped' and $new_stage[1] == 'late') or
           ($old_stage[1] == 'shipped' and $new_stage[1] == 'returned') or
-          ($old_stage[1] == 'shipped' and $new_stage[1] == 'shipped')
-        )) {
+          ($old_stage[1] == 'shipped' and $new_stage[1] == 'shipped'))
+      ) {
 
         SirumLog::alert(
           "WC Order Irregular Stage Change.",
