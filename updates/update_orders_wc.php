@@ -144,29 +144,36 @@ function update_orders_wc($changes) {
       $new_stage = explode('-', $updated['order_stage_wc']);
       $old_stage = explode('-', $updated['old_order_stage_wc']);
 
-      if ($updated['order_stage_wc'] != $updated['old_order_stage_wc'] and !
-          (($old_stage[1] == 'confirm' and $new_stage[1] == 'prepare') or
-          ($old_stage[1] == 'confirm' and $new_stage[1] == 'shipped') or
-          ($old_stage[1] == 'confirm' and $new_stage[1] == 'late') or
-          ($old_stage[1] == 'prepare' and $new_stage[1] == 'prepare') or //User completes webform twice then prepare-refill will overwrite prepare-erx
-          ($old_stage[1] == 'prepare' and $new_stage[1] == 'shipped') or
-          ($old_stage[1] == 'prepare' and $new_stage[1] == 'late') or
-          ($old_stage[1] == 'prepare' and $new_stage[1] == 'done') or
-          ($old_stage[1] == 'shipped' and $new_stage[1] == 'done') or
-          ($old_stage[1] == 'late'    and $new_stage[1] == 'done') or
-          ($old_stage[1] == 'shipped' and $new_stage[1] == 'late') or
-          ($old_stage[1] == 'shipped' and $new_stage[1] == 'returned') or
-          ($old_stage[1] == 'shipped' and $new_stage[1] == 'shipped'))
+      if ($updated['order_stage_wc'] != $updated['old_order_stage_wc'] and
+          ! (
+            ($old_stage[1] == null      and $new_stage[1] == 'prepare') or
+            ($old_stage[1] == null      and $new_stage[1] == 'shipped') or
+            ($old_stage[1] == null      and $new_stage[1] == 'late') or
+            ($old_stage[1] == 'confirm' and $new_stage[1] == 'prepare') or
+            ($old_stage[1] == 'confirm' and $new_stage[1] == 'shipped') or
+            ($old_stage[1] == 'confirm' and $new_stage[1] == 'late') or
+            ($old_stage[1] == 'prepare' and $new_stage[1] == 'prepare') or //User completes webform twice then prepare-refill will overwrite prepare-erx
+            ($old_stage[1] == 'prepare' and $new_stage[1] == 'shipped') or
+            ($old_stage[1] == 'prepare' and $new_stage[1] == 'late') or
+            ($old_stage[1] == 'prepare' and $new_stage[1] == 'done') or
+            ($old_stage[1] == 'shipped' and $new_stage[1] == 'done') or
+            ($old_stage[1] == 'late'    and $new_stage[1] == 'done') or
+            ($old_stage[1] == 'shipped' and $new_stage[1] == 'late') or
+            ($old_stage[1] == 'shipped' and $new_stage[1] == 'returned') or
+            ($old_stage[1] == 'shipped' and $new_stage[1] == 'shipped')
+          )
       ) {
 
         SirumLog::alert(
           "WC Order Irregular Stage Change.",
           [
-            "old_stage"      => $updated['old_order_stage_wc'],
-            "new_stage"      => $updated['order_stage_wc'],
-            "invoice_number" => $updated['invoice_number'],
-            "changed"        => $changed,
-            "method"         => "update_orders_wc"
+            "invoice_number"  => $updated['invoice_number'],
+            "old_stage"       => $updated['old_order_stage_wc'],
+            "new_stage"       => $updated['order_stage_wc'],
+            'old_stage_array' => $old_stage,
+            'new_stage_array' => $new_stage,
+            "changed"         => $changed,
+            "method"          => "update_orders_wc"
           ]
         );
       }
