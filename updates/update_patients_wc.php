@@ -77,7 +77,7 @@ function update_patients_wc($changes) {
         create_event($salesforce['subject'], [$salesforce]);
 
       } else {
-        echo "\nincomplete registration for $created[first_name] $created[last_name] $created[birth_date] was started on $created[patient_date_registered] and is $hours hours old";
+        echo "\nincomplete registration for $created[first_name] $created[last_name] $created[birth_date] was started on $created[patient_date_registered] and is $hours hours old ";
       }
 
       //Registration Started but Not Complete (first 1/2 of the registration form)
