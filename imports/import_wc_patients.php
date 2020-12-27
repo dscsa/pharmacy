@@ -122,10 +122,6 @@ function import_wc_patients() {
     }
   );
 
-  log_notice("import_wc_patients cleaned: ", ['keys' => array_slice($keys, 0, 100, true), 'vals' => array_slice($patients[0], 0, 100, true)]);
-
   //If duplicates are causing trouble: SELECT *, GROUP_CONCAT(DISTINCT user_id) FROM `wp_usermeta` WHERE meta_key = 'patient_id_cp' GROUP BY meta_value HAVING COUNT(DISTINCT user_id) > 1
   $mysql->replace_table("gp_patients_wc", $keys, $patients[0]);
-
-  log_notice("import_wc_patients finish: ", ['keys' => array_slice($keys, 0, 100, true), 'vals' => array_slice($patients[0], 0, 100, true)]);
 }
