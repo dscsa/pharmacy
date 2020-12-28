@@ -147,7 +147,7 @@ function get_days_and_message($item, $patient_or_order) {
     return [$days_default, RX_MESSAGE['NO ACTION PATIENT REQUESTED']];
   }
 
-  if ( ! $item['patient_autofill'] AND $is_webform) {
+  if ( ! $item['patient_autofill'] AND @$item['item_date_added'] AND $is_webform) {
     log_info("OVERRIDE PATIENT AUTOFILL OFF SINCE WEBFORM ORDER", get_defined_vars());
     return [$days_default, RX_MESSAGE['NO ACTION PATIENT REQUESTED']];
   }
