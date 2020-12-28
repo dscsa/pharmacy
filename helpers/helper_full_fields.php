@@ -19,6 +19,12 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
      * sync as we set properties
      */
     foreach ($patient_or_order as $i => $dontuse) {
+
+        if ( ! $patient_or_order[$i]['drug_name']) {
+          log_notice("helper_full_fields: skipping item/rx because no drug name. likely an empty order", ['patient_or_order' => $patient_or_order]);
+          continue;
+        }
+
         if ($patient_or_order[$i]['rx_message_key'] == 'ACTION NO REFILLS'
                 and @$patient_or_order[$i]['rx_dispensed_id']
                 and $patient_or_order[$i]['refills_total'] >= .1) {
