@@ -1,5 +1,20 @@
 <?php
 
+function gdoc_details($fileId) {
+    $opts = [
+        'http' => [
+          'method'  => 'GET',
+          'header'  => "Accept: application/json\r\n"
+        ]
+    ];
+
+    $context  = stream_context_create($opts);
+    $base_url = GD_FILE_URL . "?GD_KEY=Patients1st!";
+    $base_url .= "&fileId={$fileId}";
+    $results  = json_decode(file_get_contents($url, false, $context));
+    return $results;
+}
+
 function gdoc_post($url, $content)
 {
     global $global_exec_details;
