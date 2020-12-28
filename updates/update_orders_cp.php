@@ -419,7 +419,7 @@ function update_orders_cp($changes) {
       export_gd_delete_invoice($deleted['invoice_number']);
 
       //[NULL, 'Webform Complete', 'Webform eRx', 'Webform Transfer', 'Auto Refill', '0 Refills', 'Webform Refill', 'eRx /w Note', 'Transfer /w Note', 'Refill w/ Note']
-      if ($deleted['count_filled'] > 0 OR in_array($deleted['order_source'], ['Webform eRx', 'Webform Transfer', 'Webform Refill', 'eRx /w Note', 'Transfer /w Note', 'Refill w/ Note']))
+      if ($deleted['count_filled'] > 0 OR is_webform($deleted))
         export_wc_cancel_order($deleted['invoice_number'], "update_orders_cp: cp order canceled $deleted[invoice_number] $deleted[order_stage_cp] $deleted[order_stage_wc] $deleted[order_source] ".json_encode($deleted));
       else
         export_wc_delete_order($deleted['invoice_number'], "update_orders_cp: cp order deleted $deleted[invoice_number] $deleted[order_stage_cp] $deleted[order_stage_wc] $deleted[order_source] ".json_encode($deleted));

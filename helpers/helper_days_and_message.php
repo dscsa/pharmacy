@@ -7,6 +7,7 @@ function get_days_and_message($item, $patient_or_order) {
 
   $no_transfer      = is_no_transfer($item);
   $added_manually   = is_added_manually($item);
+  $is_webform       = is_webform($item);
   $not_offered      = is_not_offered($item);
   $is_refill        = is_refill($item, $patient_or_order);
   $refill_only      = is_refill_only($item);
@@ -136,13 +137,18 @@ function get_days_and_message($item, $patient_or_order) {
     return [@$item['item_date_added'] ? $days_default : 0, RX_MESSAGE['ACTION NEEDS FORM']];
   }
 
-  if ( ! $item['patient_autofill'] AND ! $added_manually) {
+  if ( ! $item['patient_autofill'] AND ! $added_manually AND ! $is_webform) {
     log_info("DON'T FILL IF PATIENT AUTOFILL IS OFF AND NOT MANUALLY ADDED", get_defined_vars());
     return [0, RX_MESSAGE['ACTION PATIENT OFF AUTOFILL']];
   }
 
   if ( ! $item['patient_autofill'] AND $added_manually) {
     log_info("OVERRIDE PATIENT AUTOFILL OFF SINCE MANUALLY ADDED", get_defined_vars());
+    return [$days_default, RX_MESSAGE['NO ACTION PATIENT REQUESTED']];
+  }
+
+  if ( ! $item['patient_autofill'] AND $is_webform) {
+    log_info("OVERRIDE PATIENT AUTOFILL OFF SINCE WEBFORM ORDER", get_defined_vars());
     return [$days_default, RX_MESSAGE['NO ACTION PATIENT REQUESTED']];
   }
 
@@ -483,6 +489,10 @@ function is_no_transfer($item) {
 
 function is_added_manually($item) {
   return in_array(@$item['item_added_by'], ADDED_MANUALLY) OR (@$item['item_date_added'] AND $item['refill_date_manual']);
+}
+
+function is_webform($item) {
+  return in_array($item['order_source'], ['Webform eRx', 'Webform Transfer', 'Webform Refill', 'eRx /w Note', 'Transfer /w Note', 'Refill w/ Note']);
 }
 
 function is_not_offered($item) {
