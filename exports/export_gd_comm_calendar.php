@@ -234,15 +234,15 @@ function order_hold_notice($groups, $missing_gsn = false) {
     log_warning('order_hold_notice: Not filling Auto Refill?', $groups);
   }
   //TRANSFERS
-  else if (in_array($groups['ALL'][0]['order_source'], ['Webform Transfer', 'Webform Transfer Note']))
+  else if (is_webform_transfer($groups['ALL'][0]))
     $trigger = 'We received your transfer request but';
   else if ($groups['ALL'][0]['order_source'] == NULL AND $groups['ALL'][0]['rx_source'] == 'Pharmacy')
     $trigger = 'We received your transfer but';
 
   //WEBFORM
-  else if (in_array($groups['ALL'][0]['order_source'], ["Webform eRx", "Webform eRx Note"]))
+  else if (is_webform_erx($groups['ALL'][0]))
     $trigger = 'You successfully registered but';
-  else if (in_array($groups['ALL'][0]['order_source'], ["Webform Refill", "Webform Refill Note"]))
+  else if (is_webform_refill($groups['ALL'][0]))
     $trigger = 'We received your refill request but';
 
   //DOCTOR

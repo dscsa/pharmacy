@@ -332,19 +332,29 @@ function update_orders_cp($changes) {
           );
         }
 
-        if ( ! $groups['COUNT_FILLED']) {
-          order_hold_notice($groups, true);
-          SirumLog::debug(
-            "update_orders_cp: Order Hold hopefully due to 'NO ACTION MISSING GSN' otherwise should have been deleted with sync code above",
-            [
-              'invoice_number' => $order[0]['invoice_number'],
-              'order' => $order,
-              'groups' => $groups
-            ]
-          );
-        } else {
+        if ($order[0]['count_filled'] > 0) {
           send_created_order_communications($groups);
+          continue;
         }
+
+        if (is_webform_transfer($order[0])) {
+          continue; // order hold notice not necessary for transfers
+        }
+
+        if ($order[0]['count_items_to_add'] == 0) {
+          continue; // order hold notice not necessary if we are adding items on next go-around
+        }
+
+        order_hold_notice($groups, true);
+        SirumLog::debug(
+          "update_orders_cp: Order Hold hopefully due to 'NO ACTION MISSING GSN' otherwise should have been deleted with sync code above",
+          [
+            'invoice_number' => $order[0]['invoice_number'],
+            'order' => $order,
+            'groups' => $groups
+          ]
+        );
+
         //TODO Update Salesforce Order Total & Order Count & Order Invoice using REST API or a MYSQL Zapier Integration
     } // END created loop
     log_timer('orders-cp-created', $loop_timer, $count_created);
