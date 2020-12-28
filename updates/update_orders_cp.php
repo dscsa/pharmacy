@@ -424,8 +424,6 @@ function update_orders_cp($changes) {
       else
         export_wc_delete_order($deleted['invoice_number'], "update_orders_cp: cp order deleted $deleted[invoice_number] $deleted[order_stage_cp] $deleted[order_stage_wc] $deleted[order_source] ".json_encode($deleted));
 
-      export_v2_unpend_order([$deleted], $mysql);
-
       export_cp_remove_items($deleted['invoice_number']);
 
       $replacement = get_current_orders($mysql, ['patient_id_cp' => $deleted['patient_id_cp']]);
