@@ -24,8 +24,8 @@ function pd_alert_adam($message, $id, $data = [], $level = TriggerEvent::ERROR)
 {
 
     $event = get_pd_event(
-        $id,
         $message,
+        $id,
         ADAM_API_KEY,
         $data,
         $level
@@ -47,8 +47,8 @@ function pd_low_priority($message, $id, $data = [])
 {
 
     $event = get_pd_event(
-        $id,
         $message,
+        $id,
         PA_LOW_API_KEY,
         $data
     );
@@ -68,11 +68,13 @@ function pd_low_priority($message, $id, $data = [])
 function pd_high_priority($message, $id, $data = [])
 {
     $event = get_pd_event(
-        $id,
         $message,
+        $id,
         PA_HIGH_API_KEY,
         $data
     );
+
+    var_dump($event);
 
     return pd_alert($event);
 }
@@ -99,9 +101,9 @@ function get_pd_event(
 ) {
 
     $event = new TriggerEvent(
-        $id,
-        $message,
         $pdKey,
+        $message,
+        $id,
         $level,
         true
     );
@@ -130,4 +132,5 @@ function pd_alert(TriggerEvent $event)
     } catch (PagerDutyException $exception) {
         return false;
     }
+
 }

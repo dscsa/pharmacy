@@ -31,7 +31,9 @@ require_once 'helpers/helper_cp_test.php';
  */
 
 if (!cp_test()) {
-    SirumLog::alert('** Could not connect to Carepoint **');
+    $message = '** Could not connect to Carepoint **';
+    echo "{$message}\n";
+    SirumLog::alert($message);
     SirumLog::flush();
     exit;
 }
