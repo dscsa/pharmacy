@@ -92,10 +92,7 @@ function update_order_items($changes) {
       ]
     );
 
-    $item = load_full_item($deleted, $mysql, true);
-
-    //Don't Unpend here.  This is handled by count_item changes in update_orders_cp
-    //Count Items will go down, triggering a CP Order Change
+    v2_unpend_item($deleted, $mysql);
 
     //TODO Update Salesforce Order Total & Order Count & Order Invoice using REST API or a MYSQL Zapier Integration
   }
