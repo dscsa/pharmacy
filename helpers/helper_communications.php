@@ -90,7 +90,7 @@ function group_drugs($order, $mysql) {
   $groups['COUNT_NOFILL'] = count($groups['NOFILL_ACTION']) + count($groups['NOFILL_NOACTION']);
 
   if ($groups['COUNT_FILLED'] != $order[0]['count_filled']) {
-    log_error('group_drugs: wrong count_filled', get_defined_vars());
+    log_error("group_drugs: wrong count_filled $groups[COUNT_FILLED] != ".$order[0]['count_filled'], get_defined_vars());
   }
 
   if ($groups['COUNT_NOFILL'] != (count($order) - $order[0]['count_filled'])) {

@@ -281,6 +281,25 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
         $patient_or_order[$i]['qty_dispensed'] = (float) $qty_dispensed;
     } //END LARGE FOR LOOP
 
+    if ($items_to_remove) { //CHECK BECAUSE EMPTY OR NULL ARRAY WOULD REMOVE ALL ITEMS
+      export_cp_remove_items($patient_or_order[0]['invoice_number'], $items_to_remove);
+    }
+
+    if ($items_to_add) {
+      export_cp_add_items($patient_or_order[0]['invoice_number'], $items_to_add);
+    }
+
+    foreach ($patient_or_order as $i => $item) {
+      $patient_or_order[$i]['count_filled']          = $count_filled;
+      $patient_or_order[$i]['count_items_to_remove'] = count($items_to_remove);
+      $patient_or_order[$i]['count_items_to_add']    = count($items_to_add);
+    }
+
+    //A patient profile may have an rx turn on autofill, causing a day change but we still don't have an order to update (yet anyway, items_to_add might trigger on next go-around)
+    if (@$patient_or_order[0]['invoice_number'] AND $update_payment) {
+      $patient_or_order = helper_update_payment($patient_or_order, implode(", ", $logging), $mysql, false); //This also updates payment
+    }
+
     if (@$patient_or_order[0]['invoice_number'] AND $logging) {
 
       $contact = $patient_or_order[0]['first_name'].' '.$patient_or_order[0]['last_name'].' '.$patient_or_order[0]['birth_date'];
@@ -302,25 +321,6 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
       send_updated_order_communications($groups, $changed_fields);
 
       create_event($title, [$salesforce]);
-    }
-
-    if ($items_to_remove) { //CHECK BECAUSE EMPTY OR NULL ARRAY WOULD REMOVE ALL ITEMS
-      export_cp_remove_items($patient_or_order[0]['invoice_number'], $items_to_remove);
-    }
-
-    if ($items_to_add) {
-      export_cp_add_items($patient_or_order[0]['invoice_number'], $items_to_add);
-    }
-
-    foreach ($patient_or_order as $i => $item) {
-      $patient_or_order[$i]['count_filled']          = $count_filled;
-      $patient_or_order[$i]['count_items_to_remove'] = count($items_to_remove);
-      $patient_or_order[$i]['count_items_to_add']    = count($items_to_add);
-    }
-
-    //A patient profile may have an rx turn on autofill, causing a day change but we still don't have an order to update (yet anyway, items_to_add might trigger on next go-around)
-    if (@$patient_or_order[0]['invoice_number'] AND $update_payment) {
-      $patient_or_order = helper_update_payment($patient_or_order, implode(", ", $logging), $mysql, false); //This also updates payment
     }
 
     return $patient_or_order;
