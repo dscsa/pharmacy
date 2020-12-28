@@ -24,7 +24,7 @@ function pd_alert_adam($message, $id, $data = [], $level = TriggerEvent::ERROR)
 {
 
     $event = get_pd_event(
-        $key,
+        $id,
         $message,
         ADAM_API_KEY,
         $data,
@@ -47,7 +47,7 @@ function pd_low_priority($message, $id, $data = [])
 {
 
     $event = get_pd_event(
-        $key,
+        $id,
         $message,
         PA_LOW_API_KEY,
         $data
@@ -68,7 +68,7 @@ function pd_low_priority($message, $id, $data = [])
 function pd_high_priority($message, $id, $data = [])
 {
     $event = get_pd_event(
-        $key,
+        $id,
         $message,
         PA_HIGH_API_KEY,
         $data

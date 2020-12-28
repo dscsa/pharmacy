@@ -24,6 +24,17 @@ require_once 'helpers/helper_logger.php';
 require_once 'helpers/helper_log.php';
 require_once 'helpers/helper_logger.php';
 require_once 'helpers/helper_constants.php';
+require_once 'helpers/helper_cp_test.php';
+
+/*
+    Test the Carepoint connection and fail
+ */
+
+if (!cp_test()) {
+    SirumLog::alert('** Could not connect to Carepoint **');
+    SirumLog::flush();
+    exit;
+}
 
 /*
   Import Functions - Used to pull data into summary tables
