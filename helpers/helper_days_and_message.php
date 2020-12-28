@@ -49,7 +49,7 @@ function get_days_and_message($item, $patient_or_order) {
       $event_title = "$item[invoice_number] $item[drug_name] Is High Stock But Was Transferred: $salesforce[contact] $created";
 
       create_event($event_title, [$salesforce]);
-      log_error($event_title, get_defined_vars());
+      log_warning($event_title, get_defined_vars());
     }
 
     else if($stock_level == STOCK_LEVEL['HIGH SUPPLY'])
@@ -72,9 +72,9 @@ function get_days_and_message($item, $patient_or_order) {
 
     //Check for invoice number otherwise, seemed that SF tasks were being triplicated.  Unsure reason, maybe called by order_items and not just orders?
     if ( ! @$item['order_date_added']) {
-      log_notice("Confirm didn't create salesforce task for GSN - order items not order", $item);
+      log_warning("Confirm didn't create salesforce task for GSN - order items not order", $item);
     } else if ($item['refill_date_first']) {
-      log_error("Confirm didn't create salesforce task for GSN - refills cannot be changed", $item);
+      log_warning("Confirm didn't create salesforce task for GSN - refills cannot be changed", $item);
     } else  {
       $in_order = "In Order #$item[invoice_number],";
       $created = "Created:".date('Y-m-d H:i:s');
@@ -82,7 +82,7 @@ function get_days_and_message($item, $patient_or_order) {
       if ($item['max_gsn']) {
         $body = "$in_order drug $item[drug_name] needs GSN $item[max_gsn] added to V2";
         $assign = "Joseph";
-        log_error($body, $item);
+        log_warning($body, $item);
 
       } else {
         $body = "$in_order drug $item[drug_name] needs to be switched to a drug with a GSN in Guardian";
@@ -104,7 +104,7 @@ function get_days_and_message($item, $patient_or_order) {
 
       $mins_ago <= 30
         ? create_event($event_title, [$salesforce])
-        : log_error("CONFIRM DIDN'T CREATE SALESFORCE TASK - DUPLICATE mins_ago:$mins_ago $event_title", [$item, $salesforce]);
+        : log_warning("CONFIRM DIDN'T CREATE SALESFORCE TASK - DUPLICATE mins_ago:$mins_ago $event_title", [$item, $salesforce]);
 
     }
 
@@ -285,7 +285,7 @@ function get_days_and_message($item, $patient_or_order) {
     $days_left_of_qty = $item['qty_left']/$item['sig_qty_per_day']; //Cap it at 180 days
     $days_left_of_qty_capped = min(180, $days_left_of_qty);
 
-    log_error("RX IS ABOUT TO EXPIRE SO FILL IT FOR EVERYTHING LEFT", get_defined_vars());
+    log_notice("RX IS ABOUT TO EXPIRE SO FILL IT FOR EVERYTHING LEFT", get_defined_vars());
     return [$days_left_of_qty_capped, RX_MESSAGE['ACTION EXPIRING']];
   }
 
@@ -294,7 +294,7 @@ function get_days_and_message($item, $patient_or_order) {
     $days_left_in_exp_rounded = roundDaysUnit($days_left_in_expiration);
     $days_left_in_exp_rounded_buffered = $days_left_in_exp_rounded-10;
 
-    log_error("RX WILL EXPIRE SOON SO FILL IT UNTIL RIGHT BEFORE EXPIRATION DATE", get_defined_vars());
+    log_notice("RX WILL EXPIRE SOON SO FILL IT UNTIL RIGHT BEFORE EXPIRATION DATE", get_defined_vars());
     return [$days_left_in_exp_rounded_buffered, RX_MESSAGE['ACTION EXPIRING']];
   }
 
@@ -425,7 +425,7 @@ function set_days_and_message($item, $days, $message, $mysql) {
   }
 
   if (is_null($item['rx_message_key']) OR is_null($item['refills_dispensed_default']))
-    log_error('helper_days_and_message: is rx_message_keys_initial being set correctly? - NULL', $item);
+    log_warning('helper_days_and_message: is rx_message_keys_initial being set correctly? - NULL', $item);
   else
     log_notice('helper_days_and_message: is rx_message_keys_initial being set correctly? - NOT NULL', $item);
 
@@ -472,7 +472,7 @@ function refills_dispensed_default($item) {
     return $item['refills_total'] * (1 - $item['qty_dispensed_default']/$item['qty_total']);
 
   //No much info to go on.  We could throw an error or just go based on whether the drug is in the order or not
-  log_error("CANNOT ASSESS refills_dispensed_default AT THIS POINT", $item);
+  log_warning("CANNOT ASSESS refills_dispensed_default AT THIS POINT", $item);
   return $item['refills_total'] - ($item['item_date_added'] ? 1 : 0);
 }
 
@@ -572,10 +572,10 @@ function days_left_in_stock($item) {
     return;
 
   if($stock_level == STOCK_LEVEL['HIGH SUPPLY'] AND $item['sig_qty_per_day_default'] != round(1/30, 3))
-    log_error("LOW STOCK ITEM IS MARKED HIGH SUPPLY $item[drug_generic] days_left_in_stock:$days_left_in_stock last_inventory:$item[last_inventory]", get_defined_vars());
+    log_warning("LOW STOCK ITEM IS MARKED HIGH SUPPLY $item[drug_generic] days_left_in_stock:$days_left_in_stock last_inventory:$item[last_inventory]", get_defined_vars());
 
   if($item['refill_date_first'] AND $stock_level == STOCK_LEVEL['OUT OF STOCK'])
-    log_error("REFILL ITEM IS MARKED OUT OF STOCK $item[drug_generic] days_left_in_stock:$days_left_in_stock last_inventory:$item[last_inventory]", get_defined_vars());
+    log_warning("REFILL ITEM IS MARKED OUT OF STOCK $item[drug_generic] days_left_in_stock:$days_left_in_stock last_inventory:$item[last_inventory]", get_defined_vars());
 
   return $item['sig_qty_per_day_default'] == round(1/30, 3) ? 60.6 : DAYS_MIN; //Dispensed 2 inhalers per time, since 1/30 is rounded to 3 decimals (.033), 2 month/.033 = 60.6 qty
 }
@@ -600,7 +600,7 @@ function days_default($days_left_in_refills, $days_left_in_stock, $days_default,
   $remainder = $days % DAYS_UNIT;
 
   if ( ! $days)
-    log_error("DEFAULT DAYS IS 0! days:$days, days_default:$days_default, days_left_in_stock:$days_left_in_stock, days_left_in_refills:$days_left_in_refills", ['item' => $item]);
+    log_warning("DEFAULT DAYS IS 0! days:$days, days_default:$days_default, days_left_in_stock:$days_left_in_stock, days_left_in_refills:$days_left_in_refills", ['item' => $item]);
   else if ($remainder)
     log_notice("DEFAULT DAYS IS NOT A MULTIPLE OF ".DAYS_UNIT."! days:$days, days_default:$days_default, days_left_in_stock:$days_left_in_stock, days_left_in_refills:$days_left_in_refills", ['item' => $item]);
   else

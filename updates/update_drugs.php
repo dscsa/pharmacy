@@ -54,10 +54,10 @@ function update_drugs($changes) {
     }
 
     if ($updated['drug_ordered'] && ! $updated['old_drug_ordered'])
-      log_error("new drug ordered", $updated);
+      log_warning("new drug ordered", $updated);
 
     if ( ! $updated['drug_ordered'] && $updated['old_drug_ordered'])
-      log_error("drug stopped being ordered", $updated);
+      log_warning("drug stopped being ordered", $updated);
 
     if ($updated['drug_gsns'] != $updated['old_drug_gsns']) {
 
@@ -74,7 +74,7 @@ function update_drugs($changes) {
 
       $results = $mysql->run($sql)[0];
 
-      log_error("drug gsns changed.  deleting order_item(s) for them to be recreated and matched", [$sql, $results, $updated]);
+      log_warning("drug gsns changed.  deleting order_item(s) for them to be recreated and matched", [$sql, $results, $updated]);
     }
   }
   log_timer('drug-updated', $loop_timer, $count_updated);

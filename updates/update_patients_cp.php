@@ -57,7 +57,7 @@ function update_patients_cp($changes) {
     if ( ! $updated['phone2'] AND $updated['old_phone2']) {
       //Phone deleted in CP so delete in WC
       $patient = find_patient($mysql, $updated)[0];
-      log_error("Phone2 deleted in CP", [$updated, $patient]);
+      log_warning("Phone2 deleted in CP", [$updated, $patient]);
       update_wc_phone2($mysql, $patient['patient_id_wc'], NULL);
 
     } else if ($updated['phone2'] AND $updated['phone2'] == $updated['phone1']) {
@@ -85,7 +85,7 @@ function update_patients_cp($changes) {
 
     if ($updated['payment_card_last4'] AND $updated['old_payment_card_last4'] AND $updated['payment_card_last4'] !== $updated['old_payment_card_last4']) {
 
-      log_error("update_patients_wc: updated card_last4.  Need to replace Card Last4 in Autopay Reminder $updated[payment_method_default] $updated[old_payment_card_type] >>> $updated[payment_card_type] $updated[old_payment_card_last4] >>> $updated[payment_card_last4] $updated[payment_card_date_expired]", $updated);
+      log_warning("update_patients_wc: updated card_last4.  Need to replace Card Last4 in Autopay Reminder $updated[payment_method_default] $updated[old_payment_card_type] >>> $updated[payment_card_type] $updated[old_payment_card_last4] >>> $updated[payment_card_last4] $updated[payment_card_date_expired]", $updated);
 
       update_last4_in_autopay_reminders($updated['first_name'], $updated['last_name'], $updated['birth_date'], $updated['payment_card_last4']);
       //Probably by generalizing the code the currently removes drugs from the refill reminders.

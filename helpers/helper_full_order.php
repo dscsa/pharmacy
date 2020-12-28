@@ -188,7 +188,7 @@ function get_order_stage_wc($order) {
 
   if ( ! $order[0]['order_date_dispensed'] AND $elapsed_time > 7*24*60*60) {
     email(SUPPORT_EMAIL, "Order is late. Follow up with patient?", $order);
-    log_error('helper_full_order: order is '.floor($elapsed_time/60/60/24).' days old', $order[0]);
+    log_warning('helper_full_order: order is '.floor($elapsed_time/60/60/24).' days old', $order[0]);
   }
 
   if ( ! $order[0]['tracking_number'] AND in_array($order[0]['order_source'], ['Webform Refill', 'Webform Refill Note', 'Auto Refill v2', 'O Refills']))

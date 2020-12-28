@@ -185,7 +185,7 @@ function update_patients_wc($changes) {
 
       $address3 = 'NULL';
       if ($updated['patient_state'] != 'GA') {
-        log_error("update_patients_wc: updated address-mismatch. $updated[first_name] $updated[last_name] $updated[birth_date]");
+        log_warning("update_patients_wc: updated address-mismatch. $updated[first_name] $updated[last_name] $updated[birth_date]");
         $address3 = "'!!!! WARNING NON-GEORGIA ADDRESS !!!!'";
       }
 
@@ -249,7 +249,7 @@ function update_patients_wc($changes) {
       update_wc_phone2($mysql, $updated['patient_id_wc'], $updated['old_phone2']);
     } else if ($updated['phone2'] !== $updated['old_phone2']) {
       //Well-formed, non-duplicated phone added to WC so now add to CP
-      log_error("EXEC SirumWeb_AddUpdatePatHomePhone '$updated[patient_id_cp]', '$updated[phone2]', 9", $updated);
+      log_warning("EXEC SirumWeb_AddUpdatePatHomePhone '$updated[patient_id_cp]', '$updated[phone2]', 9", $updated);
       upsert_patient_cp($mssql, "EXEC SirumWeb_AddUpdatePatHomePhone '$updated[patient_id_cp]', '$updated[phone2]', 9");
     }
 
@@ -283,7 +283,7 @@ function update_patients_wc($changes) {
 
     } else if ($updated['payment_method_default'] !== $updated['old_payment_method_default']) {
 
-      log_error('update_patients_wc: updated payment_method_default. Deleting Autopay Reminders', $updated);
+      log_warning('update_patients_wc: updated payment_method_default. Deleting Autopay Reminders', $updated);
 
       if ($updated['old_payment_method_default'] == PAYMENT_METHOD['MAIL'])
         wc_upsert_patient_meta($mysql, $updated['patient_id_wc'], 'payment_method_default', PAYMENT_METHOD['MAIL']);

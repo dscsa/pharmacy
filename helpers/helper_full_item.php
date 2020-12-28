@@ -45,7 +45,7 @@ function load_full_item($partial, $mysql, $overwrite_rx_messages = false) {
     $item = $query[0][0];
 
     if ( ! $item['drug_generic']) {
-      log_error(($item['rx_gsn'] ? 'get_full_item: Add GSN to V2!' : 'get_full_item: Missing GSN!')." Invoice Number:$item[invoice_number] Drug:$item[drug_name] Rx:$item[rx_number] GSN:$item[rx_gsn] GSNS:$item[drug_gsns]", ['item' => $item, 'partial' => $partial, 'sql' => $sql]);
+      log_warning(($item['rx_gsn'] ? 'get_full_item: Add GSN to V2!' : 'get_full_item: Missing GSN!')." Invoice Number:$item[invoice_number] Drug:$item[drug_name] Rx:$item[rx_number] GSN:$item[rx_gsn] GSNS:$item[drug_gsns]", ['item' => $item, 'partial' => $partial, 'sql' => $sql]);
     }
 
     if (@$partial['invoice_number'] AND $partial['invoice_number'] != $item['invoice_number']) { //$partial[invoice_number] won't be set if called from update_rxs_single

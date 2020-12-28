@@ -102,7 +102,7 @@ function refill_reminder_notice($groups) {
     ''
   ]);
 
-  log_error("refill_reminder_notice is this right?", [$groups, $email]);
+  log_warning("refill_reminder_notice is this right?", [$groups, $email]);
   refill_reminder_event($groups['ALL'], $email, $text, $groups['MIN_DAYS']*24, 12);
 }
 
@@ -231,7 +231,7 @@ function order_hold_notice($groups, $missing_gsn = false) {
   //AUTOREFILL
   else if ($groups['ALL'][0]['order_source'] == 'Auto Refill v2') {
     $trigger = 'Your Rx is due for a refill but';
-    log_error('order_hold_notice: Not filling Auto Refill?', $groups);
+    log_warning('order_hold_notice: Not filling Auto Refill?', $groups);
   }
   //TRANSFERS
   else if (in_array($groups['ALL'][0]['order_source'], ['Webform Transfer', 'Webform Transfer Note']))
@@ -254,7 +254,7 @@ function order_hold_notice($groups, $missing_gsn = false) {
     $trigger = 'We got your Rx in the mail '.$groups['ALL'][0]['rx_source'].' but';
 
   else
-    log_error('order_hold_notice: unknown order/rx_source', $groups);
+    log_warning('order_hold_notice: unknown order/rx_source', $groups);
 
   $email = [ "email" => $groups['ALL'][0]['email'] ];
   $text  = [ "sms" => get_phones($groups['ALL']), "message" => $trigger.' '.$subject.' '.$message ];
@@ -285,7 +285,7 @@ function order_hold_notice($groups, $missing_gsn = false) {
     ];
 
   if ($missing_gsn)
-    log_error('order_hold_notice: missing gsn', get_defined_vars());
+    log_warning('order_hold_notice: missing gsn', get_defined_vars());
   else
     log_notice('order_hold_notice: regular', get_defined_vars());
 
@@ -406,7 +406,7 @@ function needs_form_notice($groups) {
 //by building commication arrays based on github.com/dscsa/communication-calendar
 function no_rx_notice($deleted, $patient) {
 
-  log_error('no_rx_notice. Does patient truly not have Rxs?', get_defined_vars());
+  log_warning('no_rx_notice. Does patient truly not have Rxs?', get_defined_vars());
 
   $subject = 'Good Pill received Order #'.$deleted['invoice_number'].' but is waiting for your prescriptions';
   $message  = ($deleted['order_source'] == 'Webform Transfer' OR $deleted['order_source'] == 'Transfer w/ Note')

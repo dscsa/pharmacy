@@ -430,14 +430,14 @@ function update_orders_cp($changes) {
       $replacement = get_current_orders($mysql, ['patient_id_cp' => $deleted['patient_id_cp']]);
 
       if ($replacement) {
-        log_error('order_canceled_notice BUT their appears to be a replacement', ['deleted' => $deleted, 'sql' => $sql, 'replacement' => $replacement]);
+        log_warning('order_canceled_notice BUT their appears to be a replacement', ['deleted' => $deleted, 'sql' => $sql, 'replacement' => $replacement]);
         continue;
       }
 
       //We should be able to delete wc-confirm-* from CP queue without triggering an order cancel notice
       if ( ! $deleted['count_filled'] AND ! $deleted['count_nofill']) { //count_items may already be 0 on a deleted order that had items e.g 33840
         no_rx_notice($deleted, $patient);
-        log_error("update_orders_cp deleted: count_filled == 0 AND count_nofill == 0 so calling no_rx_notice() rather than order_canceled_notice()", $deleted);
+        log_warning("update_orders_cp deleted: count_filled == 0 AND count_nofill == 0 so calling no_rx_notice() rather than order_canceled_notice()", $deleted);
         continue;
       }
 

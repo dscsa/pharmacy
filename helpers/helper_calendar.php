@@ -5,7 +5,7 @@ use Sirum\Logging\SirumLog;
 function order_dispensed_event($order, $salesforce, $hours_to_wait) {
 
   if ($order[0]['patient_active']) {
-    log_error('order_dispensed_event canceled because patient inactive', get_defined_vars());
+    log_warning('order_dispensed_event canceled because patient inactive', get_defined_vars());
     return;
   }
 
@@ -24,7 +24,7 @@ function order_dispensed_event($order, $salesforce, $hours_to_wait) {
 function order_shipped_event($order, $email, $text) {
 
   if ($order[0]['patient_active']) {
-    log_error('order_shipped_event canceled because patient inactive', get_defined_vars());
+    log_warning('order_shipped_event canceled because patient inactive', get_defined_vars());
     return;
   }
 
@@ -43,7 +43,7 @@ function order_shipped_event($order, $email, $text) {
 function refill_reminder_event($order, $email, $text, $hours_to_wait, $hour_of_day = null) {
 
   if ($order[0]['patient_active']) {
-    log_error('refill_reminder_event canceled because patient inactive', get_defined_vars());
+    log_warning('refill_reminder_event canceled because patient inactive', get_defined_vars());
     return;
   }
 
@@ -54,7 +54,7 @@ function refill_reminder_event($order, $email, $text, $hours_to_wait, $hour_of_d
 
   $comm_arr = new_comm_arr($patient_label, $email, $text);
 
-  log_error('refill_reminder_event', get_defined_vars()); //$cancel
+  log_warning('refill_reminder_event', get_defined_vars()); //$cancel
 
   create_event($event_title, $comm_arr, $hours_to_wait, $hour_of_day);
 }
@@ -62,7 +62,7 @@ function refill_reminder_event($order, $email, $text, $hours_to_wait, $hour_of_d
 function autopay_reminder_event($order, $email, $text, $hours_to_wait, $hour_of_day = null) {
 
   if ($order[0]['patient_active']) {
-    log_error('autopay_reminder_event canceled because patient inactive', get_defined_vars());
+    log_warning('autopay_reminder_event canceled because patient inactive', get_defined_vars());
     return;
   }
 
@@ -81,7 +81,7 @@ function autopay_reminder_event($order, $email, $text, $hours_to_wait, $hour_of_
 function order_created_event($order, $email, $text, $hours_to_wait) {
 
   if ($order[0]['patient_active']) {
-    log_error('order_created_event canceled because patient inactive', get_defined_vars());
+    log_warning('order_created_event canceled because patient inactive', get_defined_vars());
     return;
   }
 
@@ -100,7 +100,7 @@ function order_created_event($order, $email, $text, $hours_to_wait) {
 function transfer_requested_event($order, $email, $text, $hours_to_wait) {
 
   if ($order[0]['patient_active']) {
-    log_error('transfer_requested_event canceled because patient inactive', get_defined_vars());
+    log_warning('transfer_requested_event canceled because patient inactive', get_defined_vars());
     return;
   }
 
@@ -119,12 +119,12 @@ function transfer_requested_event($order, $email, $text, $hours_to_wait) {
 function order_hold_event($order, $email, $text, $salesforce, $hours_to_wait) {
 
   if ($order[0]['patient_active']) {
-    log_error('order_hold_event canceled because patient inactive', get_defined_vars());
+    log_warning('order_hold_event canceled because patient inactive', get_defined_vars());
     return;
   }
 
   if ( ! isset($order[0]['invoice_number']))
-    log_error('ERROR order_hold_event: indexes not set', get_defined_vars());
+    log_warning('ERROR order_hold_event: indexes not set', get_defined_vars());
 
   $patient_label = get_patient_label($order);
   $event_title   = $order[0]['invoice_number'].' Order Hold: '.$patient_label.'.  Created:'.date('Y-m-d H:i:s');
@@ -133,7 +133,7 @@ function order_hold_event($order, $email, $text, $salesforce, $hours_to_wait) {
 
   $comm_arr = new_comm_arr($patient_label, $email, $text, $salesforce);
 
-  log_error('order_hold_event', get_defined_vars());
+  log_warning('order_hold_event', get_defined_vars());
 
   create_event($event_title, $comm_arr, $hours_to_wait);
 }
@@ -141,7 +141,7 @@ function order_hold_event($order, $email, $text, $salesforce, $hours_to_wait) {
 function order_updated_event($order, $email, $text, $hours_to_wait) {
 
   if ($order[0]['patient_inactive']) {
-    log_error('order_updated_event canceled because patient inactive', get_defined_vars());
+    log_warning('order_updated_event canceled because patient inactive', get_defined_vars());
     return;
   }
 
@@ -160,7 +160,7 @@ function order_updated_event($order, $email, $text, $hours_to_wait) {
 function needs_form_event($order, $email, $text, $hours_to_wait, $hour_of_day = 0) {
 
   if ($order[0]['patient_active']) {
-    log_error('needs_form_event canceled because patient inactive', get_defined_vars());
+    log_warning('needs_form_event canceled because patient inactive', get_defined_vars());
     return;
   }
 
@@ -177,7 +177,7 @@ function needs_form_event($order, $email, $text, $hours_to_wait, $hour_of_day = 
 function no_rx_event($deleted, $patient, $email, $text, $hours_to_wait, $hour_of_day = null) {
 
   if ($order[0]['patient_active']) {
-    log_error('no_rx_event canceled because patient inactive', get_defined_vars());
+    log_warning('no_rx_event canceled because patient inactive', get_defined_vars());
     return;
   }
 
@@ -196,7 +196,7 @@ function no_rx_event($deleted, $patient, $email, $text, $hours_to_wait, $hour_of
 function order_canceled_event($deleted, $patient, $email, $text, $hours_to_wait, $hour_of_day  = null) {
 
   if ($order[0]['patient_active']) {
-    log_error('order_canceled_event canceled because patient inactive', get_defined_vars());
+    log_warning('order_canceled_event canceled because patient inactive', get_defined_vars());
     return;
   }
 
@@ -216,7 +216,7 @@ function order_canceled_event($deleted, $patient, $email, $text, $hours_to_wait,
 function confirm_shipment_event($order, $email, $salesforce, $hours_to_wait, $hour_of_day = null) {
 
   if ($order[0]['patient_active']) {
-    log_error('confirm_shipment_event canceled because patient inactive', get_defined_vars());
+    log_warning('confirm_shipment_event canceled because patient inactive', get_defined_vars());
     return;
   }
 

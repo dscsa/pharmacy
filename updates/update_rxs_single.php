@@ -102,8 +102,7 @@ function update_rxs_single($changes) {
 
       create_event($event_title, [$salesforce]);
 
-      // TODO make this a warning not an error
-      log_error(
+      log_warning(
         $salesforce['body'],
         [
           'salesforce' => $salesforce,
@@ -340,12 +339,12 @@ function update_rxs_single($changes) {
 
       //TODO do we need to update the patient, that we are now including this drug if $item['days_dispensed_default'] AND ! $item['rx_dispensed_id']?
 
-      log_error("update_rxs_single rx_gsn no longer missing (but still might not be in v2 yet).  Confirm correct updated rx_messages", [$item, $updated, $changed]);
+      log_warning("update_rxs_single rx_gsn no longer missing (but still might not be in v2 yet).  Confirm correct updated rx_messages", [$item, $updated, $changed]);
     }
 
     if ($updated['rx_transfer'] AND ! $updated['old_rx_transfer']) {
       $is_will_transfer = is_will_transfer($item);
-      log_error("update_rxs_single rx was transferred out.  Confirm correct is_will_transfer updated rxs_single.rx_message_key. rxs_grouped.rx_message_keys will be updated on next pass", [
+      log_warning("update_rxs_single rx was transferred out.  Confirm correct is_will_transfer updated rxs_single.rx_message_key. rxs_grouped.rx_message_keys will be updated on next pass", [
         'is_will_transfer' => $is_will_transfer,
         'patient' => $patient,
         'updated' => $updated,
