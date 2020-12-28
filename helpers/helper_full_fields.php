@@ -8,7 +8,6 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
     $count_filled    = 0;
     $items_to_add    = [];
     $items_to_remove = [];
-    $logging         = [];
     $update_payment  = is_null($patient_or_order[0]['payment_total_default']);
 
     /*
@@ -171,13 +170,8 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
               v2_pend_item($patient_or_order[$i], $mysql);
             }
 
-            if ($days_changed OR $needs_adding OR $needs_removing) {
-
+            if ($days_changed OR $needs_adding OR $needs_removing)
               $update_payment = true;
-
-              if ( ! $set_days_and_msgs AND ! $days_changed) //Only log on updates, not when initially setting values
-                $logging[] = $patient_or_order[$i]['drug_name'].": $message[EN] days_changed:$days_changed OR needs_adding:$needs_adding OR needs_removing:$needs_removing $get_days_and_message[old_days_dispensed_default] -> $days";
-            }
 
             //Internal logic determines if fax is necessary
             if ($set_days_and_msgs) //Sending because of overwrite may cause multiple faxes for same item
@@ -301,32 +295,15 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
       $patient_or_order[$i]['count_items_to_add']    = count($items_to_add);
     }
 
+
     //A patient profile may have an rx turn on autofill, causing a day change but we still don't have an order to update (yet anyway, items_to_add might trigger on next go-around)
     if (@$patient_or_order[0]['invoice_number'] AND $update_payment) {
-      $patient_or_order = helper_update_payment($patient_or_order, implode(", ", $logging), $mysql, false); //This also updates payment
+      $patient_or_order = helper_update_payment($patient_or_order, 'helper_full_fields: items_to_add:'.count($items_to_add)." items_to_remove:".count($items_to_remove), $mysql, false); //This also updates payment
     }
 
-    if (@$patient_or_order[0]['invoice_number'] AND $logging) {
-
-      $contact = $patient_or_order[0]['first_name'].' '.$patient_or_order[0]['last_name'].' '.$patient_or_order[0]['birth_date'];
-
-      $title = "Order Created/Updated ".$patient_or_order[0]['invoice_number']." $contact!  Created:".date('Y-m-d H:i:s');
-
-      $salesforce   = [
-        "subject"   => $title,
-        "body"      => implode("; ", $logging),
-        "contact"   => $contact
-      ];
-
-      SirumLog::notice("helper_full_fields: $title", [
-        'logging' => $logging,
-        'patient_or_order' => $patient_or_order
-      ]);
-
+    if (@$patient_or_order[0]['invoice_number'] AND ($items_to_remove OR $items_to_add)) {
       $groups = group_drugs($patient_or_order, $mysql);
-      send_updated_order_communications($groups, $changed_fields);
-
-      create_event($title, [$salesforce]);
+      send_updated_order_communications($groups, $items_to_remove, $items_to_add);
     }
 
     return $patient_or_order;

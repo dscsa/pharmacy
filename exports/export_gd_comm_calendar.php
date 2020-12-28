@@ -295,7 +295,7 @@ function order_hold_notice($groups, $missing_gsn = false) {
 
 //We are coording patient communication via sms, calls, emails, & faxes
 //by building commication arrays based on github.com/dscsa/communication-calendar
-function order_updated_notice($groups, $changed_fields) {
+function order_updated_notice($groups, $patient_updates) {
 
   //It's depressing to get updates if nothing is being filled.  So only send these if manually added and the order was just added (not just drugs changed)
   if ( ! $groups['COUNT_FILLED'] AND ! $groups['MANUALLY_ADDED']) {
@@ -303,13 +303,13 @@ function order_updated_notice($groups, $changed_fields) {
     return log_info('order_updated_notice NOT sent', get_defined_vars());
   }
 
-  $subject = 'Good Pill update for Order #'.$groups['ALL'][0]['invoice_number'].($groups['COUNT_FILLED'] ? ' of '.$groups['COUNT_FILLED'].' items.' : '');
-  $message = '';
+  $subject = 'Good Pill update for Order #'.$groups['ALL'][0]['invoice_number'];
+  $message = implode(' ', $patient_updates);
 
   if ($groups['COUNT_FILLED'] AND ! $groups['ALL'][0]['refills_used']) {
-    $message .= '<br><u>These Rxs will be included once we confirm their availability:</u><br>'.implode(';<br>', array_merge($groups['FILLED_ACTION'], $groups['FILLED_NOACTION'])).';';
+    $message .= '<br><u>Due to these changes, your new order will be:</u><br>'.implode(';<br>', array_merge($groups['FILLED_ACTION'], $groups['FILLED_NOACTION'])).';';
   } else if ($groups['COUNT_FILLED']) {
-    $message .= '<br><u>These Rxs will be included once we confirm their availability:</u><br>'.implode(';<br>', $groups['FILLED_WITH_PRICES']).';';
+    $message .= '<br><u>Due to these changes, your new order will be:</u><br>'.implode(';<br>', $groups['FILLED_WITH_PRICES']).';';
   }
 
   $suffix = implode('<br><br>', [
@@ -317,7 +317,7 @@ function order_updated_notice($groups, $changed_fields) {
   ]);
 
   $email = [ "email" => DEBUG_EMAIL]; //$groups['ALL'][0]['email'] ];
-  $text  = [ "sms" => DEBUG_PHONE, "message" => $subject.$message ]; //get_phones($groups['ALL'])
+  $text  = [ "sms"   => DEBUG_PHONE, "message" => $subject.$message ]; //get_phones($groups['ALL'])
 
   $email['subject'] = $subject;
   $email['message'] = implode('<br>', [
