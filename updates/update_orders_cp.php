@@ -218,7 +218,7 @@ function update_orders_cp($changes) {
 
         //Patient communication that we are cancelling their order examples include:
         //NEEDS FORM, ORDER HOLD WAITING FOR RXS, TRANSFER OUT OF ALL ITEMS, ACTION PATIENT OFF AUTOFILL
-        if ($order[0]['count_filled'] == 0) {
+        if ($order[0]['count_filled'] == 0 AND ! is_webform_transfer($order[0])) {
 
           SirumLog::debug(
             'update_orders_cp: created. no drugs to fill. removing order. Can we remove the v2_unpend_order below because it get called on the next run?',
@@ -536,7 +536,7 @@ function update_orders_cp($changes) {
 
         //Patient communication that we are cancelling their order examples include:
         //NEEDS FORM, ORDER HOLD WAITING FOR RXS, TRANSFER OUT OF ALL ITEMS, ACTION PATIENT OFF AUTOFILL
-        if ($order[0]['count_filled'] == 0) {
+        if ($order[0]['count_filled'] == 0 AND ! is_webform_transfer($order[0])) {
 
           SirumLog::alert(
             'update_orders_cp: updated. no drugs to fill. remove order '.$order[0]['invoice_number'].'?',

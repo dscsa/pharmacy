@@ -492,7 +492,19 @@ function is_added_manually($item) {
 }
 
 function is_webform($item) {
-  return in_array($item['order_source'], ['Webform eRx', 'Webform Transfer', 'Webform Refill', 'eRx /w Note', 'Transfer /w Note', 'Refill w/ Note']);
+  return is_webform_transfer($item) OR is_webform_erx($item) OR is_webform_refill($item);
+}
+
+function is_webform_transfer($item) {
+  return in_array($item['order_source'], ['Webform Transfer', 'Transfer /w Note']);
+}
+
+function is_webform_erx($item) {
+  return in_array($item['order_source'], ['Webform eRx', 'eRx /w Note']);
+}
+
+function is_webform_refill($item) {
+  return in_array($item['order_source'], ['Webform Refill', 'Refill w/ Note']);
 }
 
 function is_not_offered($item) {
