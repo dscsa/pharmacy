@@ -111,6 +111,7 @@ function update_orders_cp($changes) {
           );
 
           //Not sure what we should do here. Delete it?
+          //Instance where current order doesn't have all drugs, so patient/staff add a second order with the drug.  Merge orders?
           if ($created['count_items'] == 0)
             export_cp_remove_order($created['invoice_number']);
 
@@ -540,7 +541,7 @@ function update_orders_cp($changes) {
         if ($order[0]['count_filled'] == 0) {
 
           SirumLog::alert(
-            'update_orders_cp: updated. no drugs to fill. remove order?',
+            'update_orders_cp: updated. no drugs to fill. remove order '.$order[0]['invoice_number'].'?',
             [
               'invoice_number' => $order[0]['invoice_number'],
               'count_filled'   => $order[0]['count_filled'],
