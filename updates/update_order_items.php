@@ -91,7 +91,9 @@ function update_order_items($changes) {
       ]
     );
 
-    v2_unpend_item($deleted, $mysql);
+    $item = load_full_item($deleted, $mysql);
+
+    v2_unpend_item($item, $mysql);
 
     //TODO Update Salesforce Order Total & Order Count & Order Invoice using REST API or a MYSQL Zapier Integration
   }

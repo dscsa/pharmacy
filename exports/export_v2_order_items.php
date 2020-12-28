@@ -194,6 +194,9 @@ function pend_group_manual($item) {
 
 function pend_group_name($item) {
 
+    //TODO need a different flag here because "Auto Refill v2" can be overwritten by "Webform XXX"
+    //We need a flag that won't change otherwise items can be pended under different pending groups
+    //Probably need to have each "app" be a different "CP user" so that we can look at item_added_by
     if ($item['order_source'] == "Auto Refill v2")
         return pend_group_refill($item);
 
