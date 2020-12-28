@@ -311,18 +311,9 @@ function update_orders_cp($changes) {
         //This is not necessary if order was created by webform, which then created the order in Guardian
         //"order_source": "Webform eRX/Transfer/Refill [w/ Note]"
         if ( ! is_webform($order[0])) {
-          export_wc_create_order($order, "update_orders_cp: created");
+
           SirumLog::debug(
-            "Created & Pended Order",
-            [
-              'invoice_number' => $order[0]['invoice_number'],
-              'order'  => $order,
-              'groups' => $groups
-            ]
-          );
-        } else {
-          SirumLog::notice(
-            "Order creation skipped because source not Webform",
+            "Creating order in woocommerce because source is not the Webform",
             [
               'invoice_number' => $order[0]['invoice_number'],
               'source'         => $order[0]['order_source'],
@@ -330,6 +321,8 @@ function update_orders_cp($changes) {
               'groups'         => $groups
             ]
           );
+
+          export_wc_create_order($order, "update_orders_cp: created");
         }
 
         if ($order[0]['count_filled'] > 0) {
