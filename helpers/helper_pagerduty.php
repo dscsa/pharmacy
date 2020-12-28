@@ -14,13 +14,24 @@ const PA_LOW_API_KEY  = '62696f7ac2854a8284231a0c655d6503';
  * @param  string $message The message to display
  * @param  string $id      A human readable id.  This id will be used to group
  *      messages, so it should unique for individual alerts
+ * @param  array  $data    (Optional) A small batch of additional details to
+ *      be attached to the event
  * @param  int    $level   (Optional) One of the leves available in the
  *      TriggerEvent class
  * @return boolean  True if the message was succesfully sent
  */
-function pd_alert_adam($message, $id, $level = TriggerEvent::ERROR)
+function pd_alert_adam($message, $id, $data = [], $level = TriggerEvent::ERROR)
 {
-    return pd_alert($message, $id, ADAM_API_KEY, $level);
+
+    $event = get_pd_event(
+        $message,
+        $id,
+        ADAM_API_KEY,
+        $data,
+        $level
+    );
+
+    return pd_alert($event);
 }
 
 /**
@@ -28,11 +39,21 @@ function pd_alert_adam($message, $id, $level = TriggerEvent::ERROR)
  * @param  string $message The message to display
  * @param  string $id      A human readable id.  This id will be used to group
  *      messages, so it should unique for individual alerts
+ * @param  array  $data    (Optional) A small batch of additional details to
+ *      be attached to the event
  * @return boolean  True if the message was succesfully sent
  */
-function pd_low_priority($message, $id)
+function pd_low_priority($message, $id, $data = [])
 {
-    return pd_alert($message, $id, PA_LOW_API_KEY);
+
+    $event = get_pd_event(
+        $message,
+        $id,
+        PA_LOW_API_KEY,
+        $data
+    );
+
+    return pd_alert($event);
 }
 
 /**
@@ -40,39 +61,76 @@ function pd_low_priority($message, $id)
  * @param  string $message The message to display
  * @param  string $id      A human readable id.  This id will be used to group
  *      messages, so it should unique for individual alerts
+ * @param  array  $data    (Optional) A small batch of additional details to
+ *      be attached to the event
  * @return boolean  True if the message was succesfully sent
  */
-function pd_high_priority($message, $id)
+function pd_high_priority($message, $id, $data = [])
 {
-    return pd_alert($message, $id, PA_HIGH_API_KEY);
+    $event = get_pd_event(
+        $message,
+        $id,
+        PA_HIGH_API_KEY,
+        $data
+    );
+
+    var_dump($event);
+
+    return pd_alert($event);
+}
+
+/**
+ * Send an alert to the high urgency message service
+ * @param  string $message The message to display
+ * @param  string $id      A human readable id.  This id will be used to group
+ *      messages, so it should unique for individual alerts
+ * @param  array  $data    (Optional) A small batch of additional details to
+ *      be attached to the event
+ * @param  string $deDup   (Optional) A key used to identify this event so
+ *      duplicates will not trigger multiple alarms
+ * @param  int    $level   (Optional) On of the leves specified on the TriggerEvent Class
+ * @return TriggerEvent  A populated trigger event
+ */
+function get_pd_event(
+    $message,
+    $id,
+    $pdKey,
+    $data = [],
+    $deDup = null,
+    $level = TriggerEvent::ERROR
+) {
+
+    $event = new TriggerEvent(
+        $pdKey,
+        $message,
+        $id,
+        $level,
+        true
+    );
+
+    if (!is_null($deDup)) {
+        $event->setDeDupKey(md5($deDup));
+    }
+
+    if (!empty($data)) {
+        $event->setPayloadCustomDetails($data);
+    }
+
+    return $event;
 }
 
 /**
  * Send an alert to pagerduty
- * @param  string $message The message to display in pager duty
- * @param  string $id      A unique id that will be used to group messages.  The
- *      ID should be unique to the event.  if multiple messages with the same id
- *      are sent, they will be grouped together in a single incident.
- * @param  string $key     An API key for the specific pagerduty service
- * @param  int    $level   (Optional) The level of the event.  Should be one of
- *      the levels availabe inside ther TriggerEvent class
+ * @param  TriggerEvent $event The pagerduty event
  * @return boolean  True if the message was succesfully sent
  */
-function pd_alert($message, $id, $key, $level = TriggerEvent::ERROR)
+function pd_alert(TriggerEvent $event)
 {
     try {
-        $event = new TriggerEvent(
-            $key,
-            $message,
-            $id,
-            $level,
-            true
-        );
-
         $responseCode = $event->send();
-
         return ($responseCode == 200);
     } catch (PagerDutyException $exception) {
         return false;
     }
+
 }
