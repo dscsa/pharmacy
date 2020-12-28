@@ -118,7 +118,7 @@ function export_cp_add_items($invoice_number, $items) {
     $invoice_number = @$current_order[0]['invoice_number'];
 
     $log = [
-      "subject" => "Item needs to be added",
+      "subject" => "Item needs to be added to $invoice_number",
       "msg" => "Confirm this is always an rx-created2/updated or deleted order-item (i understand former but not latter). Find current order if one exists.  Maybe even create a new order if one doesn't exist?",
       "invoice_number" => $items[0]['invoice_number'],
       "item_invoice" => $items[0]['dontuse_item_invoice'],
@@ -140,5 +140,5 @@ function export_cp_add_items($invoice_number, $items) {
 
   $res = $mssql->run($sql);
 
-  log_notice("export_cp_add_items", ['invoice_number' => $invoice_number, 'sql' => $sql, 'items' => $items]);
+  log_notice("export_cp_add_items $invoice_number", ['invoice_number' => $invoice_number, 'sql' => $sql, 'items' => $items]);
 }

@@ -163,8 +163,8 @@ function update_orders_cp($changes) {
 
           $salesforce = [
             "subject"   => "SureScripts refill request denied for ".implode(', ', $drugs),
-            "body"      => "$created[invoice_number] deleted because provider denied SureScripts refill request for ".implode(', ', $drugs),
-            "contact"   => "$created[first_name] $created[last_name] $created[birth_date]"
+            "body"      => "Order $created[invoice_number] deleted because provider denied SureScripts refill request for ".implode(', ', $drugs),
+            "contact"   => "{$order[0]['first_name']} {$order[0]['last_name']} {$order[0]['birth_date']}"
           ];
 
           create_event($salesforce['subject'], [$salesforce]);
