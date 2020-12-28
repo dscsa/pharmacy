@@ -310,7 +310,7 @@ function update_orders_cp($changes) {
 
         //This is not necessary if order was created by webform, which then created the order in Guardian
         //"order_source": "Webform eRX/Transfer/Refill [w/ Note]"
-        if (strpos($order[0]['order_source'], 'Webform') === false) {
+        if ( ! is_webform($order[0])) {
           export_wc_create_order($order, "update_orders_cp: created");
           SirumLog::debug(
             "Created & Pended Order",
@@ -515,14 +515,12 @@ function update_orders_cp($changes) {
 
             if ($dispensing_changes['day_changes']) {
               //Updates invoice with new days/price/qty/refills.
-              $order = helper_update_payment($order, "update_orders_cp: updated - dispensing day changes ".implode(', ', $dispensing_changes['day_changes']), $mysql);
+              $order = helper_update_payment($order, "update_orders_cp: updated - dispensing day changes ".implode(', ', $dispensing_changes['day_changes']), $mysql, true);
               export_wc_update_order($order); //Price will also have changed
 
             } elseif ($dispensing_changes['qty_changes'] OR $dispensing_changes['refill_changes']) {
               //Updates invoice with new qty/refills.  Prices should not have changed so no need to update WC
-              $order = helper_update_payment($order, "update_orders_cp: updated - dispensing day changes ".implode(', ', $dispensing_changes['day_changes']), $mysql);
-
-              $order = export_gd_update_invoice($order, "update_orders_cp: updated - dispensing refill/qty changes ".implode(', ', $dispensing_changes['qty_changes']).implode(', ', $dispensing_changes['refill_changes']), $mysql);
+              $order = helper_update_payment($order, "update_orders_cp: updated - dispensing refill/qty changes ".implode(', ', $dispensing_changes['day_changes']), $mysql, true);
             }
 
             $groups = group_drugs($order, $mysql);

@@ -296,9 +296,10 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
     }
 
 
-    //A patient profile may have an rx turn on autofill, causing a day change but we still don't have an order to update (yet anyway, items_to_add might trigger on next go-around)
+    //A patient profile may have an rx turn on autofill, causing a day change but we still don't have an order to update
+    //Don't generate invoice if we are adding/removing drugs on next go-around, since invoice would need to be updated again
     if (@$patient_or_order[0]['invoice_number'] AND $update_payment) {
-      $patient_or_order = helper_update_payment($patient_or_order, 'helper_full_fields: items_to_add:'.count($items_to_add)." items_to_remove:".count($items_to_remove), $mysql, false); //This also updates payment
+      $patient_or_order = helper_update_payment($patient_or_order, 'helper_full_fields: items_to_add:'.count($items_to_add)." items_to_remove:".count($items_to_remove), $mysql, ! $needs_adding AND ! $needs_removing);
     }
 
     if (@$patient_or_order[0]['invoice_number'] AND ($items_to_remove OR $items_to_add)) {
