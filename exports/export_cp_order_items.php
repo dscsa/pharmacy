@@ -87,8 +87,9 @@ function export_cp_add_items($invoice_number, $items) {
 
   $rx_numbers = [];
 
+  //rx_number only set AFTER its added.  We need to choose which to add, so use best.
   foreach ($items as $item) {
-    $rx_numbers[] = $item['rx_number'];
+    $rx_numbers[] = $item['best_rx_number'];
   }
 
   if ( ! $rx_numbers) return;
