@@ -17,6 +17,8 @@ require_once 'helpers/helper_constants.php';
 require_once 'helpers/helper_days_and_message.php';
 require_once 'keys.php';
 
+error_reporting(E_ERROR);
+
 function printHelp() {
     echo <<<EOF
 php invoice_tool.php -m 123,456,789 -o 999 [-d -h -p -u]
