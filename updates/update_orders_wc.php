@@ -165,7 +165,7 @@ function update_orders_wc($changes) {
           )
       ) {
 
-        SirumLog::alert(
+        SirumLog::error(
           "WC Order Irregular Stage Change.",
           [
             "invoice_number"  => $updated['invoice_number'],
