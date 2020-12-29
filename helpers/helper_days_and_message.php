@@ -134,7 +134,7 @@ function get_days_and_message($item, $patient_or_order) {
 
   if ( ! $item['pharmacy_name']) {
     log_info("PATIENT NEEDS TO REGISTER", get_defined_vars());
-    return [@$item['item_date_added'] ? $days_default : 0, RX_MESSAGE['ACTION NEEDS FORM']];
+    return [0, RX_MESSAGE['ACTION NEEDS FORM']];
   }
 
   if ( ! $item['patient_autofill'] AND ! $added_manually AND ! $is_webform) {
