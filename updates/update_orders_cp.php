@@ -279,7 +279,7 @@ function update_orders_cp($changes) {
          * Can't test for rx_message_key == 'ACTION NEEDS FORM' because other messages can take precedence
          */
 
-        if (!$order[0]['pharmacy_name']) {
+        if ( ! $order[0]['pharmacy_name']) {
             needs_form_notice($groups);
             SirumLog::notice(
                 "update_orders_cp created: Guardian Order Created But
@@ -290,22 +290,6 @@ function update_orders_cp($changes) {
                 ]
             );
             continue;
-        }
-
-        if ($created['order_date_dispensed']) { //Can't test for rx_message_key == 'ACTION NEEDS FORM' because other messages can take precedence
-          export_gd_publish_invoice($order, $mysql);
-          export_gd_print_invoice($order);
-
-          SirumLog::notice(
-            "update_orders_cp Created Order is being readded (and invoice " .
-              "recreated) even though already dispensed.  Was it deleted on purpose?",
-            [
-              'invoice_number' => $order[0]['invoice_number'],
-              'order' => $order
-            ]
-          );
-
-          continue;
         }
 
         //This is not necessary if order was created by webform, which then created the order in Guardian

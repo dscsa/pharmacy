@@ -98,14 +98,24 @@ function update_orders_wc($changes) {
           ]
       );
 
+      $order = load_full_order($deleted, $mysql);
+
+      $order = helper_update_payment($order, "update_orders_wc: shipped order deleted from WC", $mysql);
+
+      export_wc_create_order($order, "update_orders_wc: shipped order deleted from WC");
+
+      log_alert("Order deleted from WC. Why?", [
+        'source'  => 'WooCommerce',
+        'event'   => 'deleted',
+        'type'    => 'orders',
+        'deleted' => $deleted,
+        'order'   => $order
+      ]);
+
       if ($deleted['tracking_number'] OR $deleted['order_stage_cp'] == 'Shipped' OR $deleted['order_stage_cp'] == 'Dispensed') {
 
-        log_alert("Shipped Order deleted from WC. Why?", $deleted);
-
-        $order = load_full_order($deleted, $mysql);
-
         SirumLog::alert(
-          "Shipped Order deleted from trash in WC. Why?",
+          "Shipped Order deleted from WC. Republishing Invoice",
           [
             'source'  => 'WooCommerce',
             'event'   => 'deleted',
@@ -115,20 +125,8 @@ function update_orders_wc($changes) {
           ]
         );
 
-        $order = helper_update_payment($order, "update_orders_wc: shipped order deleted from WC", $mysql);
-
-        export_wc_create_order($order, "update_orders_wc: shipped order deleted from WC");
-
         export_gd_publish_invoice($order, $mysql);
-
-        continue;
       }
-
-      $log = "Non-Shipped Order deleted from WC. Why?";
-      log_alert($log, $deleted);
-      echo "$log\n";
-      print_r($deleted);
-
     }
     log_timer('orders-wc-deleted', $loop_timer, $count_deleted);
 
