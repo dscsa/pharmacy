@@ -67,7 +67,7 @@ foreach ($orders as $orderNumber) {
 
     if (isset($args['p'])) {
         if (!isset($args['d'])) {
-            export_gd_publish_invoice($order, $mysql);
+            $order = export_gd_publish_invoice($order, $mysql);
             export_gd_print_invoice($order);
         }
         echo "Invoice {$orderNumber} queued to print\n";

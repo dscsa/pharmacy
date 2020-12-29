@@ -152,12 +152,14 @@ function export_gd_print_invoice($order)
     SirumLog::notice(
         "export_gd_print_invoice: start",
         [
-            "invoice_number" => $order[0]['invoice_number']
+            "invoice_number" => $order[0]['invoice_number'],
+            "invoice_doc_id" => $order[0]['invoice_doc_id']
         ]
     );
 
     $args = [
         'method'     => 'moveFile',
+        'fileId'     => $order[0]['invoice_doc_id'],
         'file'       => 'Invoice #'.$order[0]['invoice_number'],
         'fromFolder' => INVOICE_PENDING_FOLDER_NAME,
         'toFolder'   => INVOICE_PUBLISHED_FOLDER_NAME,
@@ -171,6 +173,7 @@ function export_gd_print_invoice($order)
         'export_gd_print_invoice',
         [
             "invoice_number" => $order[0]['invoice_number'],
+            "invoice_doc_id" => $order[0]['invoice_doc_id'],
             "result"         => $result,
             "time"           => $time
         ]
@@ -185,9 +188,30 @@ function export_gd_publish_invoice($order, $mysql, $retry = false)
     global $gd_merge_timers;
     $start = microtime(true);
 
+    // Check to see if the file we have exists
+    $meta = gdoc_details($order[0]['invoice_doc_id']);
+
+    if ($results->parent->name != INVOICE_PENDING_FOLDER_NAME || $results->trashed) {
+        // The current invoice is trash.  Make a new invoice
+        $update_reason = "export_gd_publish_invoice: invoice "
+                       . $order[0]['invoice_number']
+                       . " didn't exist so trying to (re)make it";
+
+        SirumLog::warning(
+            $update_reason,
+            [
+                'invoice_number' => $order[0]['invoice_number'],
+                'invoice_doc_id' => $order[0]['invoice_doc_id']
+            ]
+        );
+
+        $order = export_gd_update_invoice($order, $update_reason, $mysql);
+    }
+
     $args = [
         'method'   => 'publishFile',
-        'file'     => 'Invoice #'.$order[0]['invoice_number'],
+        'fileId'   => $order[0]['invoice_number'],
+        'file'     => 'Invoice #' . $order[0]['invoice_number'],
         'folder'   => INVOICE_PENDING_FOLDER_NAME,
     ];
 
@@ -195,30 +219,18 @@ function export_gd_publish_invoice($order, $mysql, $retry = false)
 
     $time = ceil(microtime(true) - $start);
 
-    $parsed = json_decode($result, true);
-
-    if (@$parsed[0]['name'] == 'Exception' and ! $retry) {
-        export_gd_update_invoice($order, "export_gd_publish_invoice: invoice ".$order[0]['invoice_number']." didn't exist so trying to (re)make it", $mysql);
-        export_gd_publish_invoice($order, $mysql, true);
-        SirumLog::error(
-            'export_gd_publish_invoice failed trying again',
-            [
-                "invoice_number" => $order[0]['invoice_number'],
-                "result"  => $result
-            ]
-        );
-    } else {
-        SirumLog::debug(
-            'export_gd_publish_invoice success',
-            [
-                "invoice_number" => $order[0]['invoice_number'],
-                "result"         => $result,
-                "time"           => $time
-            ]
-        );
-    }
+    SirumLog::debug(
+        'export_gd_publish_invoice success',
+        [
+            "invoice_number" => $order[0]['invoice_number'],
+            "result"         => $result,
+            "time"           => $time
+        ]
+    );
 
     $gd_merge_timers['export_gd_publish_invoice'] += ceil(microtime(true) - $start);
+
+    return $order;
 }
 
 function export_gd_delete_invoice($invoice_number, $invoice_doc_id = null)

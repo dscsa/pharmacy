@@ -119,7 +119,7 @@ function update_orders_wc($changes) {
 
         export_wc_create_order($order, "update_orders_wc: deleted - trash");
 
-        export_gd_publish_invoice($order, $mysql);
+        $order = export_gd_publish_invoice($order, $mysql);
       }
     }
     log_timer('orders-wc-deleted', $loop_timer, $count_deleted);
