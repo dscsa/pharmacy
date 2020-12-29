@@ -146,6 +146,7 @@ function update_orders_wc($changes) {
 
       if ($updated['order_stage_wc'] != $updated['old_order_stage_wc'] and
           ! (
+            ($old_stage[1] == null      and $new_stage[1] == 'confirm') or
             ($old_stage[1] == null      and $new_stage[1] == 'prepare') or
             ($old_stage[1] == null      and $new_stage[1] == 'shipped') or
             ($old_stage[1] == null      and $new_stage[1] == 'late') or
