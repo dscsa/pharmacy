@@ -123,7 +123,7 @@ function update_orders_wc($changes) {
           ]
         );
 
-        export_gd_publish_invoice($order, $mysql);
+        $order = export_gd_publish_invoice($order, $mysql);
       }
     }
     log_timer('orders-wc-deleted', $loop_timer, $count_deleted);

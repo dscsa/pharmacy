@@ -203,7 +203,7 @@ function update_orders_cp($changes) {
 
             $order = helper_update_payment($order, $reason, $mysql);
             export_wc_create_order($order, $reason);
-            export_gd_publish_invoice($order, $mysql);
+            $order = export_gd_publish_invoice($order, $mysql);
             export_gd_print_invoice($order);
             SirumLog::debug(
               'Dispensed/Shipped order is missing and is being added back to the wc and gp tables',
@@ -512,7 +512,7 @@ function update_orders_cp($changes) {
 
             $groups = group_drugs($order, $mysql);
 
-            export_gd_publish_invoice($order, $mysql);
+            $order = export_gd_publish_invoice($order, $mysql);
             export_gd_print_invoice($order);
             send_dispensed_order_communications($groups);
             log_notice("update_orders_cp updated: Updated Order Dispensed", $order);

@@ -1,5 +1,20 @@
 <?php
 
+function gdoc_details($fileId) {
+    $opts = [
+        'http' => [
+          'method'  => 'GET',
+          'header'  => "Accept: application/json\r\n"
+        ]
+    ];
+
+    $context  = stream_context_create($opts);
+    $url = GD_FILE_URL . "?GD_KEY=" . GD_KEY;
+    $url .= "&fileId={$fileId}";
+    $results  = json_decode(file_get_contents($url, false, $context));
+    return $results;
+}
+
 function gdoc_post($url, $content)
 {
     global $global_exec_details;
