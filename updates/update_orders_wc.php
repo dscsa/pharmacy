@@ -100,10 +100,6 @@ function update_orders_wc($changes) {
 
       $order = load_full_order($deleted, $mysql);
 
-      $order = helper_update_payment($order, "update_orders_wc: shipped order deleted from WC", $mysql);
-
-      export_wc_create_order($order, "update_orders_wc: shipped order deleted from WC");
-
       log_alert("Order deleted from WC. Why?", [
         'source'  => 'WooCommerce',
         'event'   => 'deleted',
@@ -111,6 +107,8 @@ function update_orders_wc($changes) {
         'deleted' => $deleted,
         'order'   => $order
       ]);
+
+      export_wc_create_order($order, "update_orders_wc: shipped order deleted from WC");
 
       if ($deleted['tracking_number'] OR $deleted['order_stage_cp'] == 'Shipped' OR $deleted['order_stage_cp'] == 'Dispensed') {
 
