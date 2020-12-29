@@ -161,11 +161,15 @@ function send_updated_order_communications($groups, $items_to_add, $items_to_rem
     $remove_item_names[] = $item['drug_name'];
   }
 
-  if ($add_item_names)
-    $patient_updates[] = implode(", ", $add_item_names)." were added to your order.";
+  if ($add_item_names) {
+    $verb = count($add_item_names) == 1 ? 'was' : 'were';
+    $patient_updates[] = implode(", ", $add_item_names)." $verb added to your order.";
+  }
 
-  if ($remove_item_names)
-    $patient_updates[] = implode(", ", $remove_item_names)." were removed from your order.";
+  if ($remove_item_names) {
+    $verb = count($remove_item_names) == 1 ? 'was' : 'were';
+    $patient_updates[] = implode(", ", $remove_item_names)." $verb removed from your order.";
+  }
 
   $title = "Order Created/Updated ".$groups['ALL'][0]['invoice_number']." $contact!  Created:".date('Y-m-d H:i:s');
 
@@ -175,9 +179,9 @@ function send_updated_order_communications($groups, $items_to_add, $items_to_rem
     "contact"   => $contact
   ];
 
-  create_event($title, [$salesforce]);
+  //create_event($title, [$salesforce]);
 
   order_updated_notice($groups, $patient_updates);
-  
-  log_info('order_updated_notice', get_defined_vars());
+
+  log_info('send_updated_order_communications', ['title' => $title, 'groups' => $groups]);
 }

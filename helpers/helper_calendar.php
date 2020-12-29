@@ -78,7 +78,9 @@ function autopay_reminder_event($order, $email, $text, $hours_to_wait, $hour_of_
   //create_event($event_title, $comm_arr, $hours_to_wait, $hour_of_day);
 }
 
-function order_created_event($order, $email, $text, $hours_to_wait) {
+function order_created_event($groups, $email, $text, $hours_to_wait) {
+
+  $order = $groups['ALL'];
 
   if ($order[0]['patient_active']) {
     log_warning('order_created_event canceled because patient inactive', get_defined_vars());
@@ -86,7 +88,7 @@ function order_created_event($order, $email, $text, $hours_to_wait) {
   }
 
   $patient_label = get_patient_label($order);
-  $event_title   = $order[0]['invoice_number'].' Order Created: '.$patient_label.'.  Created:'.date('Y-m-d H:i:s');
+  $event_title   = $order[0]['invoice_number'].' Order Created: '.count($groups['FILLED_WITH_PRICES']).' items. '.$patient_label.'.  Created:'.date('Y-m-d H:i:s');
 
   $cancel = cancel_events_by_person($order[0]['first_name'], $order[0]['last_name'], $order[0]['birth_date'], 'order_created_event', ['Order Created', 'Transfer Requested', 'Order Updated', 'Order Canceled', 'Order Hold', 'No Rx', 'Needs Form']);
 
@@ -138,7 +140,9 @@ function order_hold_event($order, $email, $text, $salesforce, $hours_to_wait) {
   create_event($event_title, $comm_arr, $hours_to_wait);
 }
 
-function order_updated_event($order, $email, $text, $hours_to_wait) {
+function order_updated_event($groups, $email, $text, $hours_to_wait) {
+
+  $order = $groups['ALL'];
 
   if ($order[0]['patient_inactive']) {
     log_warning('order_updated_event canceled because patient inactive', get_defined_vars());
@@ -146,7 +150,7 @@ function order_updated_event($order, $email, $text, $hours_to_wait) {
   }
 
   $patient_label = get_patient_label($order);
-  $event_title   = $order[0]['invoice_number'].' Order Updated: '.$patient_label.'.  Created:'.date('Y-m-d H:i:s');
+  $event_title   = $order[0]['invoice_number'].' Order Updated: '.count($groups['FILLED_WITH_PRICES']).' items. '.$patient_label.'.  Created:'.date('Y-m-d H:i:s');
 
   $cancel = cancel_events_by_person($order[0]['first_name'], $order[0]['last_name'], $order[0]['birth_date'], 'order_updated_event', ['Transfer Requested', 'Order Updated', 'Order Hold', 'No Rx', 'Needs Form', 'Order Canceled']);
 

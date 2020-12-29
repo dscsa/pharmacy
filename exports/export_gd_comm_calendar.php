@@ -179,7 +179,7 @@ function order_created_notice($groups) {
   remove_drugs_from_refill_reminders($groups['ALL'][0]['first_name'], $groups['ALL'][0]['last_name'], $groups['ALL'][0]['birth_date'], $groups['FILLED']);
 
   //Wait 15 minutes to hopefully batch staggered surescripts and manual rx entry and cindy updates
-  order_created_event($groups['ALL'], $email, $text, $days*24+15/60);
+  order_created_event($groups, $email, $text, $days*24+15/60);
 }
 
 function transfer_requested_notice($groups) {
@@ -338,7 +338,7 @@ function order_updated_notice($groups, $patient_updates) {
   ]);
 
   //Wait 15 minutes to hopefully batch staggered surescripts and manual rx entry and cindy updates
-  order_updated_event($groups['ALL'], $email, $text, 15/60);
+  order_updated_event($groups, $email, $text, 15/60);
 }
 
 function needs_form_notice($groups) {
