@@ -100,7 +100,7 @@ function update_orders_wc($changes) {
 
       if ($deleted['tracking_number'] OR $deleted['order_stage_cp'] == 'Shipped' OR $deleted['order_stage_cp'] == 'Dispensed') {
 
-        log_alert("Shipped Order deleted from trash in WC. Why?", $deleted);
+        log_alert("Shipped Order deleted from WC. Why?", $deleted);
 
         $order = load_full_order($deleted, $mysql);
 
@@ -120,7 +120,15 @@ function update_orders_wc($changes) {
         export_wc_create_order($order, "update_orders_wc: deleted - trash");
 
         export_gd_publish_invoice($order, $mysql);
+
+        continue;
       }
+
+      $log = "Non-Shipped Order deleted from WC. Why?";
+      log_alert($log, $deleted);
+      echo "$log\n";
+      print_r($deleted);
+
     }
     log_timer('orders-wc-deleted', $loop_timer, $count_deleted);
 
