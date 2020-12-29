@@ -149,7 +149,7 @@ function order_created_notice($groups) {
     $message   .= ' Your first order will only be $6 total for all of your medications.';
     $drug_list .= implode(';<br>', array_merge($groups['FILLED_ACTION'], $groups['FILLED_NOACTION'])).';';
   } else {
-    $days = $groups['ALL'][0]['order_source'] == "Auto Refill v2" ? 10 : 7;  //TODO Remove.  This is a temp measure so people don't know if or how far we are behind
+    $days = $groups['ALL'][0]['order_source'] == "Auto Refill v2" ? 8 : 5;  //TODO Remove.  This is a temp measure so people don't know if or how far we are behind
     $drug_list .= implode(';<br>', $groups['FILLED_WITH_PRICES']).';';
   }
 
