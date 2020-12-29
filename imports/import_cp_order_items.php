@@ -35,6 +35,7 @@ function import_cp_order_items() {
         WHEN CsOmLine.add_user_id = 1002 THEN 'AUTOFILL'
         WHEN CsOmLine.add_user_id = 1003 THEN 'WEBFORM'
         WHEN CsOmLine.add_user_id = 1004 THEN 'REFILL REQUEST'
+        -- cph.csuser: 1018 CK, 130 Admin
         ELSE 'MANUAL' END
       ) as item_added_by -- from csuser
   	FROM csomline

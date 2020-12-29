@@ -87,8 +87,9 @@ function export_cp_add_items($invoice_number, $items) {
 
   $rx_numbers = [];
 
+  //rx_number only set AFTER its added.  We need to choose which to add, so use best.
   foreach ($items as $item) {
-    $rx_numbers[] = $item['rx_number'];
+    $rx_numbers[] = $item['best_rx_number'];
   }
 
   if ( ! $rx_numbers) return;
@@ -117,7 +118,7 @@ function export_cp_add_items($invoice_number, $items) {
     $invoice_number = @$current_order[0]['invoice_number'];
 
     $log = [
-      "subject" => "Item needs to be added",
+      "subject" => "Item needs to be added but no order",
       "msg" => "Confirm this is always an rx-created2/updated or deleted order-item (i understand former but not latter). Find current order if one exists.  Maybe even create a new order if one doesn't exist?",
       "invoice_number" => $items[0]['invoice_number'],
       "item_invoice" => $items[0]['dontuse_item_invoice'],
@@ -128,16 +129,16 @@ function export_cp_add_items($invoice_number, $items) {
     ];
 
     if ( ! $invoice_number) {
-        SirumLog::alert("$log[subject] but no order, not even a current one", $log);
+        SirumLog::alert("$log[subject], not even a current one", $log);
         return;
     }
 
-    SirumLog::warning("$log[subject] but using a different, current one", $log);
+    SirumLog::warning("$log[subject], so adding to $invoice_number instead", $log);
   }
 
   $sql = "SirumWeb_AddItemsToOrder '$invoice_number', '$rx_numbers'";
 
   $res = $mssql->run($sql);
 
-  log_notice("export_cp_add_items", ['invoice_number' => $invoice_number, 'sql' => $sql, 'items' => $items]);
+  log_notice("export_cp_add_items $invoice_number", ['invoice_number' => $invoice_number, 'sql' => $sql, 'items' => $items]);
 }

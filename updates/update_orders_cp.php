@@ -163,8 +163,8 @@ function update_orders_cp($changes) {
 
           $salesforce = [
             "subject"   => "SureScripts refill request denied for ".implode(', ', $drugs),
-            "body"      => "$created[invoice_number] deleted because provider denied SureScripts refill request for ".implode(', ', $drugs),
-            "contact"   => "$created[first_name] $created[last_name] $created[birth_date]"
+            "body"      => "Order $created[invoice_number] deleted because provider denied SureScripts refill request for ".implode(', ', $drugs),
+            "contact"   => "{$order[0]['first_name']} {$order[0]['last_name']} {$order[0]['birth_date']}"
           ];
 
           create_event($salesforce['subject'], [$salesforce]);
@@ -218,7 +218,7 @@ function update_orders_cp($changes) {
 
         //Patient communication that we are cancelling their order examples include:
         //NEEDS FORM, ORDER HOLD WAITING FOR RXS, TRANSFER OUT OF ALL ITEMS, ACTION PATIENT OFF AUTOFILL
-        if ($order[0]['count_filled'] == 0) {
+        if ($order[0]['count_filled'] == 0 AND $order[0]['count_items_to_add'] == 0 AND ! is_webform_transfer($order[0])) {
 
           SirumLog::debug(
             'update_orders_cp: created. no drugs to fill. removing order. Can we remove the v2_unpend_order below because it get called on the next run?',
@@ -279,7 +279,7 @@ function update_orders_cp($changes) {
          * Can't test for rx_message_key == 'ACTION NEEDS FORM' because other messages can take precedence
          */
 
-        if (!$order[0]['pharmacy_name']) {
+        if ( ! $order[0]['pharmacy_name']) {
             needs_form_notice($groups);
             SirumLog::notice(
                 "update_orders_cp created: Guardian Order Created But
@@ -292,37 +292,12 @@ function update_orders_cp($changes) {
             continue;
         }
 
-        if ($created['order_date_dispensed']) { //Can't test for rx_message_key == 'ACTION NEEDS FORM' because other messages can take precedence
-          $order = export_gd_publish_invoice($order, $mysql);
-          export_gd_print_invoice($order);
-
-          SirumLog::notice(
-            "update_orders_cp Created Order is being readded (and invoice " .
-              "recreated) even though already dispensed.  Was it deleted on purpose?",
-            [
-              'invoice_number' => $order[0]['invoice_number'],
-              'order' => $order
-            ]
-          );
-
-          continue;
-        }
-
         //This is not necessary if order was created by webform, which then created the order in Guardian
         //"order_source": "Webform eRX/Transfer/Refill [w/ Note]"
-        if (strpos($order[0]['order_source'], 'Webform') === false) {
-          export_wc_create_order($order, "update_orders_cp: created");
+        if ( ! is_webform($order[0])) {
+
           SirumLog::debug(
-            "Created & Pended Order",
-            [
-              'invoice_number' => $order[0]['invoice_number'],
-              'order'  => $order,
-              'groups' => $groups
-            ]
-          );
-        } else {
-          SirumLog::notice(
-            "Order creation skipped because source not Webform",
+            "Creating order in woocommerce because source is not the Webform",
             [
               'invoice_number' => $order[0]['invoice_number'],
               'source'         => $order[0]['order_source'],
@@ -330,21 +305,33 @@ function update_orders_cp($changes) {
               'groups'         => $groups
             ]
           );
+
+          export_wc_create_order($order, "update_orders_cp: created");
         }
 
-        if ( ! $groups['COUNT_FILLED']) {
-          order_hold_notice($groups, true);
-          SirumLog::debug(
-            "update_orders_cp: Order Hold hopefully due to 'NO ACTION MISSING GSN' otherwise should have been deleted with sync code above",
-            [
-              'invoice_number' => $order[0]['invoice_number'],
-              'order' => $order,
-              'groups' => $groups
-            ]
-          );
-        } else {
+        if ($order[0]['count_filled'] > 0) {
           send_created_order_communications($groups);
+          continue;
         }
+
+        if (is_webform_transfer($order[0])) {
+          continue; // order hold notice not necessary for transfers
+        }
+
+        if ($order[0]['count_items_to_add'] == 0) {
+          continue; // order hold notice not necessary if we are adding items on next go-around
+        }
+
+        order_hold_notice($groups, true);
+        SirumLog::debug(
+          "update_orders_cp: Order Hold hopefully due to 'NO ACTION MISSING GSN' otherwise should have been deleted with sync code above",
+          [
+            'invoice_number' => $order[0]['invoice_number'],
+            'order' => $order,
+            'groups' => $groups
+          ]
+        );
+
         //TODO Update Salesforce Order Total & Order Count & Order Invoice using REST API or a MYSQL Zapier Integration
     } // END created loop
     log_timer('orders-cp-created', $loop_timer, $count_created);
@@ -419,7 +406,7 @@ function update_orders_cp($changes) {
       export_gd_delete_invoice($deleted['invoice_number']);
 
       //[NULL, 'Webform Complete', 'Webform eRx', 'Webform Transfer', 'Auto Refill', '0 Refills', 'Webform Refill', 'eRx /w Note', 'Transfer /w Note', 'Refill w/ Note']
-      if ($deleted['count_filled'] > 0 OR in_array($deleted['order_source'], ['Webform eRx', 'Webform Transfer', 'Webform Refill', 'eRx /w Note', 'Transfer /w Note', 'Refill w/ Note']))
+      if ($deleted['count_filled'] > 0 OR is_webform($deleted))
         export_wc_cancel_order($deleted['invoice_number'], "update_orders_cp: cp order canceled $deleted[invoice_number] $deleted[order_stage_cp] $deleted[order_stage_wc] $deleted[order_source] ".json_encode($deleted));
       else
         export_wc_delete_order($deleted['invoice_number'], "update_orders_cp: cp order deleted $deleted[invoice_number] $deleted[order_stage_cp] $deleted[order_stage_wc] $deleted[order_source] ".json_encode($deleted));
@@ -515,14 +502,12 @@ function update_orders_cp($changes) {
 
             if ($dispensing_changes['day_changes']) {
               //Updates invoice with new days/price/qty/refills.
-              $order = helper_update_payment($order, "update_orders_cp: updated - dispensing day changes ".implode(', ', $dispensing_changes['day_changes']), $mysql);
+              $order = helper_update_payment($order, "update_orders_cp: updated - dispensing day changes ".implode(', ', $dispensing_changes['day_changes']), $mysql, true);
               export_wc_update_order($order); //Price will also have changed
 
             } elseif ($dispensing_changes['qty_changes'] OR $dispensing_changes['refill_changes']) {
               //Updates invoice with new qty/refills.  Prices should not have changed so no need to update WC
-              $order = helper_update_payment($order, "update_orders_cp: updated - dispensing day changes ".implode(', ', $dispensing_changes['day_changes']), $mysql);
-
-              $order = export_gd_update_invoice($order, "update_orders_cp: updated - dispensing refill/qty changes ".implode(', ', $dispensing_changes['qty_changes']).implode(', ', $dispensing_changes['refill_changes']), $mysql);
+              $order = helper_update_payment($order, "update_orders_cp: updated - dispensing refill/qty changes ".implode(', ', $dispensing_changes['day_changes']), $mysql, true);
             }
 
             $groups = group_drugs($order, $mysql);
@@ -536,7 +521,7 @@ function update_orders_cp($changes) {
 
         //Patient communication that we are cancelling their order examples include:
         //NEEDS FORM, ORDER HOLD WAITING FOR RXS, TRANSFER OUT OF ALL ITEMS, ACTION PATIENT OFF AUTOFILL
-        if ($order[0]['count_filled'] == 0) {
+        if ($order[0]['count_filled'] == 0 AND $order[0]['count_items_to_add'] == 0 AND ! is_webform_transfer($order[0])) {
 
           SirumLog::alert(
             'update_orders_cp: updated. no drugs to fill. remove order '.$order[0]['invoice_number'].'?',

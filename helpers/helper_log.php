@@ -190,6 +190,43 @@ function log_warning($text, $vars = '')
 }
 
 /**
+ * Log an alert.  Right now we are using This to store data in
+ * the database and email and stackdriver.  Eventually we should be able to
+ * strip that back to just stackdriver
+ *
+ * @param  string $text The Message for the alert
+ * @param  array $vars  The context vars for the alert
+ * @return void
+ *
+ * TODO Move this over so it uses logging levels instead of CLI switch
+ */
+function log_alert($text, $vars = '')
+{
+    echo "$text\n";
+    print_r($vars);
+    
+    global $log_notices;
+    global $gp_logger;
+
+    $file   = get_file();
+
+    if (is_array($vars)) {
+        $log_context = $vars;
+    } else {
+        $log_context = ["vars" => $vars];
+    }
+
+    // Log it before we make a string of the vars
+    SirumLog::alert("{$text} : {$file}", $log_context);
+
+    $vars   = $vars ? vars_to_json($vars, $file) : '';
+
+    $log_notices[] = date('Y-m-d H:i:s')." ERROR $text, file:$file, vars:$vars";
+
+    log_to_cli(date('Y-m-d H:i:s').' ERROR', $text, $file, $vars);
+}
+
+/**
  * Log an error.  Right now we are using This to store data in
  * the database and email and stackdriver.  Eventually we should be able to
  * strip that back to just stackdriver

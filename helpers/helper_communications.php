@@ -145,7 +145,39 @@ function send_dispensed_order_communications($groups) {
   order_dispensed_notice($groups);
 }
 
-function send_updated_order_communications($groups, $changed_fields) {
-  order_updated_notice($groups, $changed_fields);
+function send_updated_order_communications($groups, $items_to_add, $items_to_remove) {
+
+  $contact = $groups['ALL'][0]['first_name'].' '.$groups['ALL'][0]['last_name'].' '.$groups['ALL'][0]['birth_date'];
+
+  $add_item_names    = [];
+  $remove_item_names = [];
+  $patient_updates   = [];
+
+  foreach ($items_to_add as $item) {
+    $add_item_names[] = $item['drug_name'];
+  }
+
+  foreach ($items_to_remove as $item) {
+    $remove_item_names[] = $item['drug_name'];
+  }
+
+  if ($add_item_names)
+    $patient_updates[] = implode(", ", $add_item_names)." were added to your order.";
+
+  if ($remove_item_names)
+    $patient_updates[] = implode(", ", $remove_item_names)." were removed from your order.";
+
+  $title = "Order Created/Updated ".$groups['ALL'][0]['invoice_number']." $contact!  Created:".date('Y-m-d H:i:s');
+
+  $salesforce   = [
+    "subject"   => $title,
+    "body"      => implode(' ', $patient_updates),
+    "contact"   => $contact
+  ];
+
+  create_event($title, [$salesforce]);
+
+  order_updated_notice($groups, $patient_updates);
+  
   log_info('order_updated_notice', get_defined_vars());
 }

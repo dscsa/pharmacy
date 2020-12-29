@@ -7,13 +7,14 @@ function get_days_and_message($item, $patient_or_order) {
 
   $no_transfer      = is_no_transfer($item);
   $added_manually   = is_added_manually($item);
+  $is_webform       = is_webform($item);
   $not_offered      = is_not_offered($item);
   $is_refill        = is_refill($item, $patient_or_order);
   $refill_only      = is_refill_only($item);
   $is_duplicate_gsn = is_duplicate_gsn($item, $patient_or_order);
+  $is_syncable      = is_syncable($item);
   $stock_level      = @$item['stock_level_initial'] ?: $item['stock_level'];
   $is_order         = @$patient_or_order[0]['order_date_added']; //invoice_number seems like it may be present even if not an order
-
 
   $days_left_in_expiration = days_left_in_expiration($item);
   $days_left_in_refills    = days_left_in_refills($item);
@@ -133,16 +134,21 @@ function get_days_and_message($item, $patient_or_order) {
 
   if ( ! $item['pharmacy_name']) {
     log_info("PATIENT NEEDS TO REGISTER", get_defined_vars());
-    return [@$item['item_date_added'] ? $days_default : 0, RX_MESSAGE['ACTION NEEDS FORM']];
+    return [0, RX_MESSAGE['ACTION NEEDS FORM']];
   }
 
-  if ( ! $item['patient_autofill'] AND ! $added_manually) {
+  if ( ! $item['patient_autofill'] AND ! $added_manually AND ! $is_webform) {
     log_info("DON'T FILL IF PATIENT AUTOFILL IS OFF AND NOT MANUALLY ADDED", get_defined_vars());
     return [0, RX_MESSAGE['ACTION PATIENT OFF AUTOFILL']];
   }
 
   if ( ! $item['patient_autofill'] AND $added_manually) {
     log_info("OVERRIDE PATIENT AUTOFILL OFF SINCE MANUALLY ADDED", get_defined_vars());
+    return [$days_default, RX_MESSAGE['NO ACTION PATIENT REQUESTED']];
+  }
+
+  if ( ! $item['patient_autofill'] AND @$item['item_date_added'] AND $is_webform) {
+    log_info("OVERRIDE PATIENT AUTOFILL OFF SINCE WEBFORM ORDER", get_defined_vars());
     return [$days_default, RX_MESSAGE['NO ACTION PATIENT REQUESTED']];
   }
 
@@ -214,25 +220,25 @@ function get_days_and_message($item, $patient_or_order) {
     return [$days_default, RX_MESSAGE['NO ACTION NEW GSN']];
   }
 
-  if ($is_order AND ! $added_manually AND ! $is_duplicate_gsn AND sync_to_order_new_rx($item, $patient_or_order)) {
+  if ($is_syncable AND ! $is_duplicate_gsn AND sync_to_order_new_rx($item, $patient_or_order)) {
     log_info('NO ACTION NEW RX SYNCED TO ORDER', get_defined_vars());
     return [$days_default, RX_MESSAGE['NO ACTION NEW RX SYNCED TO ORDER']];
   }
 
   //TODO and check if added by this program otherwise false positives
-  if ($is_order AND ! $added_manually AND ! $is_duplicate_gsn AND sync_to_order_past_due($item, $patient_or_order)) {
+  if ($is_syncable AND ! $is_duplicate_gsn AND sync_to_order_past_due($item, $patient_or_order)) {
     log_info("WAS PAST DUE SO WAS SYNCED TO ORDER", get_defined_vars());
     return [$days_default, RX_MESSAGE['NO ACTION PAST DUE AND SYNC TO ORDER']];
   }
 
   //TODO CHECK IF THIS IS A GUARDIAN ERROR OR WHETHER WE ARE IMPORTING WRONG.  SEEMS THAT IF REFILL_DATE_FIRST IS SET, THEN REFILL_DATE_DEFAULT should be set
-  if ($is_order AND ! $added_manually AND ! $is_duplicate_gsn AND sync_to_order_no_next($item, $patient_or_order)) {
+  if ($is_syncable AND ! $is_duplicate_gsn AND sync_to_order_no_next($item, $patient_or_order)) {
     log_info("WAS MISSING REFILL_DATE_NEXT SO WAS SYNCED TO ORDER", get_defined_vars());
     return [$days_default, RX_MESSAGE['NO ACTION NO NEXT AND SYNC TO ORDER']];
   }
 
   //TODO and check if added by this program otherwise false positives
-  if ($is_order AND ! $added_manually AND ! $is_duplicate_gsn AND sync_to_order_due_soon($item, $patient_or_order)) {
+  if ($is_syncable AND ! $is_duplicate_gsn AND sync_to_order_due_soon($item, $patient_or_order)) {
     log_info("WAS DUE SOON SO WAS SYNCED TO ORDER", get_defined_vars());
     return [$days_default, RX_MESSAGE['NO ACTION DUE SOON AND SYNC TO ORDER']];
   }
@@ -481,8 +487,28 @@ function is_no_transfer($item) {
   return $item['price_per_month'] >= 20 OR $item['pharmacy_phone'] == "8889875187";
 }
 
+function is_syncable($item) {
+  return @$item['order_date_added'] AND ! @$item['item_date_added'] AND ! @$item['order_date_dispensed'];
+}
+
 function is_added_manually($item) {
   return in_array(@$item['item_added_by'], ADDED_MANUALLY) OR (@$item['item_date_added'] AND $item['refill_date_manual']);
+}
+
+function is_webform($item) {
+  return is_webform_transfer($item) OR is_webform_erx($item) OR is_webform_refill($item);
+}
+
+function is_webform_transfer($item) {
+  return in_array($item['order_source'], ['Webform Transfer', 'Transfer /w Note']);
+}
+
+function is_webform_erx($item) {
+  return in_array($item['order_source'], ['Webform eRx', 'eRx /w Note']);
+}
+
+function is_webform_refill($item) {
+  return in_array($item['order_source'], ['Webform Refill', 'Refill w/ Note']);
 }
 
 function is_not_offered($item) {

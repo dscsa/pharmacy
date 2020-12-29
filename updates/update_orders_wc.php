@@ -98,14 +98,22 @@ function update_orders_wc($changes) {
           ]
       );
 
+      $order = load_full_order($deleted, $mysql);
+
+      log_alert("Order deleted from WC. Why?", [
+        'source'  => 'WooCommerce',
+        'event'   => 'deleted',
+        'type'    => 'orders',
+        'deleted' => $deleted,
+        'order'   => $order
+      ]);
+
+      export_wc_create_order($order, "update_orders_wc: shipped order deleted from WC");
+
       if ($deleted['tracking_number'] OR $deleted['order_stage_cp'] == 'Shipped' OR $deleted['order_stage_cp'] == 'Dispensed') {
 
-        log_alert("Shipped Order deleted from trash in WC. Why?", $deleted);
-
-        $order = load_full_order($deleted, $mysql);
-
         SirumLog::alert(
-          "Shipped Order deleted from trash in WC. Why?",
+          "Shipped Order deleted from WC. Republishing Invoice",
           [
             'source'  => 'WooCommerce',
             'event'   => 'deleted',
@@ -114,10 +122,6 @@ function update_orders_wc($changes) {
             'order'   => $order
           ]
         );
-
-        $order = helper_update_payment($order, "update_orders_wc: deleted - trash", $mysql);
-
-        export_wc_create_order($order, "update_orders_wc: deleted - trash");
 
         $order = export_gd_publish_invoice($order, $mysql);
       }
@@ -146,6 +150,7 @@ function update_orders_wc($changes) {
 
       if ($updated['order_stage_wc'] != $updated['old_order_stage_wc'] and
           ! (
+            ($old_stage[1] == null      and $new_stage[1] == 'confirm') or
             ($old_stage[1] == null      and $new_stage[1] == 'prepare') or
             ($old_stage[1] == null      and $new_stage[1] == 'shipped') or
             ($old_stage[1] == null      and $new_stage[1] == 'late') or
@@ -164,7 +169,7 @@ function update_orders_wc($changes) {
           )
       ) {
 
-        SirumLog::alert(
+        SirumLog::error(
           "WC Order Irregular Stage Change.",
           [
             "invoice_number"  => $updated['invoice_number'],
