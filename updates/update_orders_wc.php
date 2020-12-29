@@ -115,9 +115,9 @@ function update_orders_wc($changes) {
           ]
         );
 
-        $order = helper_update_payment($order, "update_orders_wc: deleted - trash", $mysql);
+        $order = helper_update_payment($order, "update_orders_wc: shipped order deleted from WC", $mysql);
 
-        export_wc_create_order($order, "update_orders_wc: deleted - trash");
+        export_wc_create_order($order, "update_orders_wc: shipped order deleted from WC");
 
         export_gd_publish_invoice($order, $mysql);
 
