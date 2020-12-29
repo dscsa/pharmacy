@@ -191,17 +191,16 @@ function export_gd_publish_invoice($order, $mysql, $retry = false)
     // Check to see if the file we have exists
     $meta = gdoc_details($order[0]['invoice_doc_id']);
 
-    if ($results->parent->name != INVOICE_PENDING_FOLDER_NAME || $results->trashed) {
+    if ($meta->parent->name != INVOICE_PENDING_FOLDER_NAME || $meta->trashed) {
         // The current invoice is trash.  Make a new invoice
-        $update_reason = "export_gd_publish_invoice: invoice "
-                       . $order[0]['invoice_number']
-                       . " didn't exist so trying to (re)make it";
+        $update_reason = "export_gd_publish_invoice: invoice didn't exist so trying to (re)make it";
 
         SirumLog::warning(
             $update_reason,
             [
                 'invoice_number' => $order[0]['invoice_number'],
-                'invoice_doc_id' => $order[0]['invoice_doc_id']
+                'invoice_doc_id' => $order[0]['invoice_doc_id'],
+                'meta'           => $meta
             ]
         );
 
