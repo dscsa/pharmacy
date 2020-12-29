@@ -9,8 +9,8 @@ function gdoc_details($fileId) {
     ];
 
     $context  = stream_context_create($opts);
-    $base_url = GD_FILE_URL . "?GD_KEY=Patients1st!";
-    $base_url .= "&fileId={$fileId}";
+    $url = GD_FILE_URL . "?GD_KEY=" . GD_KEY;
+    $url .= "&fileId={$fileId}";
     $results  = json_decode(file_get_contents($url, false, $context));
     return $results;
 }
