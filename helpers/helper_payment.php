@@ -25,14 +25,16 @@ function helper_update_payment($order, $reason, $mysql, $generate_invoice = true
     export_wc_update_order_payment($order[0]['invoice_number'], $order[0]['payment_fee_default'], $order[0]['payment_due_default']);
   }
 
+  //TODO Can we remove $generate_invoice flag
   if ($is_payment_change OR $generate_invoice) {
 
-    if ( ! $is_payment_change)
-      log_warning("get_payment_default: but no changes, should have just called export_gd_update_invoice(). Could be caused by (1) order failing to create in WC (patient not available) or (2) order_item having wrong days/qty so Pharmacist deletes it and adds a new one really quickly (see order_item created but days_dispensed_actual already set)".$order[0]['order_stage_cp'], [
+    if ( ! $is_payment_change) {
+      log_alert("get_payment_default: but no changes, should have just called export_gd_update_invoice() directly.", [
         'order' => $order,
         'reason' => $reason,
         'generate_invoice' => $generate_invoice
       ]);
+    }
 
     $order = export_gd_update_invoice($order, $reason, $mysql);
   }

@@ -186,7 +186,7 @@ function no_rx_event($order, $email, $text, $hours_to_wait, $hour_of_day = null)
   }
 
   $patient_label = get_patient_label($order);
-  $event_title   = $deleted['invoice_number'].' No Rx: '.$patient_label.'. Created:'.date('Y-m-d H:i:s');
+  $event_title   = $order[0]['invoice_number'].' No Rx: '.$patient_label.'. Created:'.date('Y-m-d H:i:s');
 
   $cancel = cancel_events_by_person($order[0]['first_name'], $order[0]['last_name'], $order[0]['birth_date'], 'no_rx_event', ['No Rx']);
 
