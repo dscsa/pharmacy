@@ -270,17 +270,18 @@ function update_rxs_single($changes) {
 
     SirumLog::$subroutine_id = "rxs-single-updated-".sha1(serialize($updated));
 
+    $changed = changed_fields($updated);
+
     SirumLog::debug(
-      "update_rxs_single: rx updated $item[drug_name] $item[rx_number]",
+      "update_rxs_single: rx updated $updated[drug_name] $updated[rx_number]",
       [
           'updated' => $updated,
+          'changed' => $changed,
           'source'  => 'CarePoint',
           'type'    => 'rxs-single',
           'event'   => 'updated'
       ]
     );
-
-    $changed = changed_fields($updated);
 
     if ($updated['rx_autofill'] != $updated['old_rx_autofill']) {
 

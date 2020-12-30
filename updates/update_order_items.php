@@ -107,10 +107,13 @@ function update_order_items($changes) {
 
    SirumLog::$subroutine_id = "order-items-updated-".sha1(serialize($updated));
 
+   $changed = changed_fields($updated);
+
     SirumLog::debug(
       "update_order_items: Order Item updated",
       [
           'updated' => $updated,
+          'changed' => $changed,
           'source'  => 'CarePoint',
           'type'    => 'order-items',
           'event'   => 'updated'
@@ -123,8 +126,6 @@ function update_order_items($changes) {
       log_error("Updated Item Missing", get_defined_vars());
       continue;
     }
-
-    $changed = changed_fields($updated);
 
     if ($updated['count_lines'] > 1) {
       $warn = ["$item[invoice_number] $item[drug_generic] is a duplicate line", 'updated' => $updated, 'changed' => $changed, 'item' => $item];
