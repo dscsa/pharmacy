@@ -322,7 +322,7 @@ function export_wc_delete_order($invoice_number, $reason)
     ]
   );
 
-  export_gd_delete_invoice($invoice_number);
+  export_gd_delete_invoice($invoice_number, false);
 }
 
 function export_wc_create_order($order, $reason)

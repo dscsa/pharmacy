@@ -403,20 +403,33 @@ function update_orders_cp($changes) {
         continue;
       }
 
-      export_gd_delete_invoice($deleted['invoice_number']);
+      // Delete the invoice if one is currently in use
+      if ($deleted['invoice_doc_id']) {
+          export_gd_delete_invoice($deleted['invoice_doc_id']);
+      }
 
-      //[NULL, 'Webform Complete', 'Webform eRx', 'Webform Transfer', 'Auto Refill', '0 Refills', 'Webform Refill', 'eRx /w Note', 'Transfer /w Note', 'Refill w/ Note']
-      if ($deleted['count_filled'] > 0 OR is_webform($deleted))
-        export_wc_cancel_order($deleted['invoice_number'], "update_orders_cp: cp order canceled $deleted[invoice_number] $deleted[order_stage_cp] $deleted[order_stage_wc] $deleted[order_source] ".json_encode($deleted));
-      else
-        export_wc_delete_order($deleted['invoice_number'], "update_orders_cp: cp order deleted $deleted[invoice_number] $deleted[order_stage_cp] $deleted[order_stage_wc] $deleted[order_source] ".json_encode($deleted));
+      // If we have alread filled the order or it came from woocommerce, we should delete it
+      if ($deleted['count_filled'] > 0 OR is_webform($deleted)) {
+        $reason = "update_orders_cp: cp order canceled {$deleted['invoice_number']}"
+                . " {$deleted['order_stage_cp']} {$deleted['order_stage_wc']}"
+                . " {$deleted[order_source]} " . json_encode($deleted);
+        export_wc_cancel_order($deleted['invoice_number'], $reason);
+      } else {
+        $reason = "update_orders_cp: cp order deleted {$deleted['invoice_number']} "
+                . " {$deleted['order_stage_cp']} {$deleted['order_stage_wc']} "
+                . " {$deleted['order_source']} " . json_encode($deleted)
+        export_wc_delete_order($deleted['invoice_number'], $reason);
+     }
 
       export_cp_remove_items($deleted['invoice_number']);
 
       $replacement = get_current_orders($mysql, ['patient_id_cp' => $deleted['patient_id_cp']]);
 
       if ($replacement) {
-        log_warning('order_canceled_notice BUT their appears to be a replacement', ['deleted' => $deleted, 'sql' => $sql, 'replacement' => $replacement]);
+        log_warning(
+            'order_canceled_notice BUT their appears to be a replacement',
+            ['deleted' => $deleted, 'sql' => $sql, 'replacement' => $replacement]
+        );
         continue;
       }
 

@@ -41,7 +41,9 @@ function export_gd_update_invoice($order, $reason, $mysql, $try2 = false)
         return $order;
     }
 
-    export_gd_delete_invoice($order[0]['invoice_number'], $order[0]['invoice_doc_id']); //Avoid having multiple versions of same invoice
+    if (@$order[0]['invoice_doc_id']) {
+        export_gd_delete_invoice($order[0]['invoice_doc_id']);
+    }
 
     $args = [
         'method'   => 'mergeDoc',
@@ -51,7 +53,7 @@ function export_gd_update_invoice($order, $reason, $mysql, $try2 = false)
         'order'    => $order
     ];
 
-    echo "\ncreating invoice ".$order[0]['invoice_number']." (".$order[0]['order_stage_cp'].")";
+    echo "\n creating invoice ".$order[0]['invoice_number']." (".$order[0]['order_stage_cp'].")";
 
     $start = microtime(true);
 
@@ -145,8 +147,63 @@ function export_gd_update_invoice($order, $reason, $mysql, $try2 = false)
     return $order;
 }
 
+
+
+//Cannot delete (with this account) once published
+function export_gd_publish_invoice($order, $mysql, $retry = false)
+{
+
+    // Check to see if current invoice is avaliable.
+    // If it isn't request and update of the invoice.
+    // Request to publish the invoice.
+    if ($order[0]['invoice_doc_id']) {
+        $meta = gdoc_details($order[0]['invoice_doc_id']);
+    }
+
+    // Check to see if the file we have exists
+    if ($meta->parent->name != INVOICE_PENDING_FOLDER_NAME || $meta->trashed) {
+        // The current invoice is trash.  Make a new invoice
+        $update_reason = "export_gd_publish_invoice: invoice didn't exist so trying to (re)make it";
+
+        SirumLog::warning(
+            $update_reason,
+            [
+                'invoice_number' => $order[0]['invoice_number'],
+                'invoice_doc_id' => $order[0]['invoice_doc_id'],
+                'meta'           => $meta
+            ]
+        );
+
+        $order = export_gd_update_invoice($order, $update_reason, $mysql);
+    }
+
+    // Publish the file by id not search
+    $args = [
+        'method'   => 'publishFile',
+        'fileId'   => $order[0]['invoice_number']
+    ];
+
+    $result = gdoc_post(GD_HELPER_URL, $args);
+
+    $time = ceil(microtime(true) - $start);
+
+    SirumLog::debug(
+        'export_gd_publish_invoice success',
+        [
+            "invoice_number" => $order[0]['invoice_number'],
+            "result"         => $result,
+            "time"           => $time
+        ]
+    );
+
+    $gd_merge_timers['export_gd_publish_invoice'] += ceil(microtime(true) - $start);
+
+    return $order;
+}
+
 function export_gd_print_invoice($order)
 {
+    // Rework this to put the item in the queue
     global $gd_merge_timers;
     $start = microtime(true);
     SirumLog::notice(
@@ -182,77 +239,37 @@ function export_gd_print_invoice($order)
     $gd_merge_timers['export_gd_print_invoice'] += ceil(microtime(true) - $start);
 }
 
-//Cannot delete (with this account) once published
-function export_gd_publish_invoice($order, $mysql, $retry = false)
+/**
+ * Delete a document from Google drive.
+ * @param  string  $identifier The identifier to use when removing files
+ * @param  boolean $is_doc_id  Is the identifier a specific file or is in a
+ *      string that we should use to search for files to delete
+ * @return void
+ */
+function export_gd_delete_invoice($identifier, $is_doc_id = true);
 {
-    global $gd_merge_timers;
-    $start = microtime(true);
 
-    // Check to see if the file we have exists
-    $meta = gdoc_details($order[0]['invoice_doc_id']);
-
-    if ($meta->parent->name != INVOICE_PENDING_FOLDER_NAME || $meta->trashed) {
-        // The current invoice is trash.  Make a new invoice
-        $update_reason = "export_gd_publish_invoice: invoice didn't exist so trying to (re)make it";
-
-        SirumLog::warning(
-            $update_reason,
-            [
-                'invoice_number' => $order[0]['invoice_number'],
-                'invoice_doc_id' => $order[0]['invoice_doc_id'],
-                'meta'           => $meta
-            ]
-        );
-
-        $order = export_gd_update_invoice($order, $update_reason, $mysql);
-    }
-
-    $args = [
-        'method'   => 'publishFile',
-        'fileId'   => $order[0]['invoice_number'],
-        'file'     => 'Invoice #' . $order[0]['invoice_number'],
-        'folder'   => INVOICE_PENDING_FOLDER_NAME,
-    ];
-
-    $result = gdoc_post(GD_HELPER_URL, $args);
-
-    $time = ceil(microtime(true) - $start);
-
-    SirumLog::debug(
-        'export_gd_publish_invoice success',
-        [
-            "invoice_number" => $order[0]['invoice_number'],
-            "result"         => $result,
-            "time"           => $time
-        ]
-    );
-
-    $gd_merge_timers['export_gd_publish_invoice'] += ceil(microtime(true) - $start);
-
-    return $order;
-}
-
-function export_gd_delete_invoice($invoice_number, $invoice_doc_id = null)
-{
+    // Rework to be asyncrounous
     global $gd_merge_timers;
 
     $args = [
         'method'   => 'removeFiles',
-        'file'     => 'Invoice #'.$invoice_number,
         'folder'   => INVOICE_PENDING_FOLDER_NAME
     ];
 
     if ($invoice_doc_id) {
-        $args['fileId'] = $invoice_doc_id;
+        $args['fileId'] = $identifier;
+    } else {
+        $args['file'] = 'Invoice #' . $identifier;
     }
 
-    echo "\ndeleting invoice $invoice_number";
-    $start = microtime(true);
+    echo "deleting invoice $invoice_number";
 
+    $start  = microtime(true);
     $result = gdoc_post(GD_HELPER_URL, $args);
+    $time   = ceil(microtime(true) - $start);
 
-    $time = ceil(microtime(true) - $start);
-    echo " completed in $time seconds";
+    echo " completed in $time seconds\n";
 
 
     SirumLog::debug(
