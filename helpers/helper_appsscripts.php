@@ -37,8 +37,19 @@ function gdoc_post($url, $content)
     $results = file_get_contents($url.'?GD_KEY='.GD_KEY, false, $context);
 
     $ids = @$content['ids'][0]; //to differentiate between removeCalendarEvents
+    // Lots of squelching so we don't need so many ifs
 
-    $global_exec_details['timers_gd']["$content[method] $content[file]$content[word_search]$content[title]$ids"] = ceil(microtime(true) - $start);
+    $key_fields = [
+        @$content['method'],
+        @$content['file'],
+        @$content['word_search'],
+        @$content[title],
+        @$content['ids'][0]
+    ];
+
+    $key = implode(' ', $key_fields);
+
+    $global_exec_details['timers_gd'][$key] = ceil(microtime(true) - $start);
 
     return $results;
 }
