@@ -170,7 +170,7 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
               v2_pend_item($patient_or_order[$i], $mysql);
             }
 
-            if ($days_changed OR $needs_adding OR $needs_removing)
+            if ($days_changed)
               $update_payment = true;
 
             //Internal logic determines if fax is necessary
@@ -281,7 +281,7 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
         $patient_or_order[$i]['qty_dispensed'] = (float) $qty_dispensed;
     } //END LARGE FOR LOOP
 
-    if ($items_to_remove) { //CHECK BECAUSE EMPTY OR NULL ARRAY WOULD REMOVE ALL ITEMS
+    if ($items_to_remove) { //WARNING EMPTY OR NULL ARRAY WOULD REMOVE ALL ITEMS
       export_cp_remove_items($patient_or_order[0]['invoice_number'], $items_to_remove);
     }
 

@@ -23,19 +23,6 @@ function helper_update_payment($order, $reason, $mysql) {
   if ($is_payment_change) {
     set_payment_default($order, $mysql);
     export_wc_update_order_payment($order[0]['invoice_number'], $order[0]['payment_fee_default'], $order[0]['payment_due_default']);
-  }
-
-  //TODO Can we remove $generate_invoice flag
-  if ($is_payment_change) {
-
-    if ( ! $is_payment_change) {
-      log_alert("get_payment_default: but no changes, should have just called export_gd_update_invoice() directly.", [
-        'order' => $order,
-        'reason' => $reason,
-        'generate_invoice' => $generate_invoice
-      ]);
-    }
-
     $order = export_gd_update_invoice($order, "helper_update_payment: $reason", $mysql);
   }
 
