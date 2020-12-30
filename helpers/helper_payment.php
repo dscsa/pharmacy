@@ -6,7 +6,7 @@ use \Sirum\Logging\SirumLog;
 
 function helper_update_payment($order, $reason, $mysql) {
 
-  log_notice('helper_update_payment', ['order_before' => $order, $reason]);
+  log_notice('helper_update_payment start', ['order_before' => $order, 'reason' => $reason]);
 
   $old_payment_total_default == $order[0]['payment_total_default'];
   $old_payment_fee_default   == $order[0]['payment_fee_default'];
@@ -21,10 +21,26 @@ function helper_update_payment($order, $reason, $mysql) {
   );
 
   if ($is_payment_change) {
+    log_warning('helper_update_payment is_payment_change:true', [
+      'order'                     => $order,
+      'reason'                    => $reason,
+      'old_payment_total_default' => $old_payment_total_default,
+      'old_payment_fee_default'   => $old_payment_fee_default,
+      'old_payment_due_default'   => $old_payment_due_default
+    ]);
     set_payment_default($order, $mysql);
     export_wc_update_order_payment($order[0]['invoice_number'], $order[0]['payment_fee_default'], $order[0]['payment_due_default']);
     $order = export_gd_update_invoice($order, "helper_update_payment: $reason", $mysql);
+    return $order;
   }
+
+  log_notice('helper_update_payment is_payment_change:false', [
+    'order'                     => $order,
+    'reason'                    => $reason,
+    'old_payment_total_default' => $old_payment_total_default,
+    'old_payment_fee_default'   => $old_payment_fee_default,
+    'old_payment_due_default'   => $old_payment_due_default
+  ]);
 
   return $order;
 }
