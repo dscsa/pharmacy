@@ -140,7 +140,7 @@ function update_patients_wc($changes) {
       : log_error("update_patients_wc: updated no change? $updated[first_name] $updated[last_name] $updated[birth_date] cp:$updated[patient_id_cp] wc:$updated[patient_id_wc]", $updated);
 
     if ( ! $updated['patient_id_cp'] ) {
-      
+
       $is_match = is_patient_match($mysql, $updated);
 
       if ($is_match) {
@@ -346,9 +346,9 @@ function update_patients_wc($changes) {
         //wc_upsert_patient_meta($mysql, $updated['patient_id_wc'], 'language', $updated['old_language']);
       } else {
 
-        echo "\nupdate_patients_wc: patient name changed but now there are multiple matches";
+        echo "\nupdate_patients_wc: patient name changed but now count(matches) !== 1";
         SirumLog::alert(
-          "update_patients_wc: patient name changed but now there are multiple matches",
+          "update_patients_wc: patient name changed but now count(matches) !== 1",
           [
             'updated' => $updated,
             'changed' => $changed
