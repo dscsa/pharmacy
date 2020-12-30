@@ -136,26 +136,29 @@ function update_order_items($changes) {
       SirumLog::debug("Freezing Item as because it's dispensed and updated", $item);
       freeze_invoice_data($item, $mysql);
 
+      //! $updated['order_date_dispensed'] otherwise triggered twice, once one stage: Printed/Processed and again on stage:Dispensed
+      $sig_qty_per_day_actual = round($item['qty_dispensed_actual']/$item['days_dispensed_actual'], 3);
+
+      $mysql->run("
+        UPDATE gp_rxs_single SET sig_qty_per_day_actual = $sig_qty_per_day_actual WHERE rx_number = $item[rx_number]
+      ");
+
       if ($item['days_dispensed_actual'] == $item['days_dispensed_default']) {
+
         log_info("days_dispensed_actual was set", [$updated, $changed]);
+
       } else {
 
-        log_error("days_dispensed_default was wrong: $item[days_dispensed_default] >>> $item[days_dispensed_actual]", [
+        log_warning("days_dispensed_default was wrong: $item[days_dispensed_default] >>> $item[days_dispensed_actual]", [
           'item' => $item,
           'updated' => $updated,
           'changed' => $changed
         ]);
-        //! $updated['order_date_dispensed'] otherwise triggered twice, once one stage: Printed/Processed and again on stage:Dispensed
-        $sig_qty_per_day_actual = round($item['qty_dispensed_actual']/$item['days_dispensed_actual'], 3);
-
-        $mysql->run("
-          UPDATE gp_rxs_single SET sig_qty_per_day_actual = $sig_qty_per_day_actual WHERE rx_number = $item[rx_number]
-        ");
 
         if ( ! $sig_qty_per_day_actual OR $item['sig_qty_per_day_default']*2 < $sig_qty_per_day_actual OR $item['sig_qty_per_day_default']/2 > $sig_qty_per_day_actual) {
           log_error("sig parsing error Updating to Actual Qty_Per_Day '$item[sig_actual]' $item[sig_qty_per_day_default] (default) != $sig_qty_per_day_actual $item[qty_dispensed_actual]/$item[days_dispensed_actual] (actual)", $item);
         }
-        
+
       }
 
       if ($item['refills_total'] != $item['refills_dispensed_default']) { //refills_dispensed_actual is not set yet, so use refills_total instead
