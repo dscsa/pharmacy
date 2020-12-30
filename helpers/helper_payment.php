@@ -36,7 +36,7 @@ function helper_update_payment($order, $reason, $mysql) {
       ]);
     }
 
-    $order = export_gd_update_invoice($order, $reason, $mysql);
+    $order = export_gd_update_invoice($order, "helper_update_payment: $reason", $mysql);
   }
 
   return $order;

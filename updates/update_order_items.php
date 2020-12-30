@@ -143,11 +143,8 @@ function update_order_items($changes) {
         UPDATE gp_rxs_single SET sig_qty_per_day_actual = $sig_qty_per_day_actual WHERE rx_number = $item[rx_number]
       ");
 
-      if ($item['days_dispensed_actual'] == $item['days_dispensed_default']) {
 
-        log_info("days_dispensed_actual was set", [$updated, $changed]);
-
-      } else {
+      if ($item['days_dispensed_actual'] != $item['days_dispensed_default']) {
 
         log_warning("days_dispensed_default was wrong: $item[days_dispensed_default] >>> $item[days_dispensed_actual]", [
           'item' => $item,
@@ -159,10 +156,18 @@ function update_order_items($changes) {
           log_error("sig parsing error Updating to Actual Qty_Per_Day '$item[sig_actual]' $item[sig_qty_per_day_default] (default) != $sig_qty_per_day_actual $item[qty_dispensed_actual]/$item[days_dispensed_actual] (actual)", $item);
         }
 
-      }
+      } else if (
+        $item['qty_dispensed_actual'] != $item['qty_dispensed_default'] OR
+        $item['refills_dispensed_actual'] != $item['refills_dispensed_default']
+      ) {
+        log_alert("days_dispensed_actual same as default but qty or refills changed so invoice needs to be updated", [
+          'item' => $item,
+          'updated' => $updated,
+          'changed' => $changed
+        ]);
 
-      if ($item['refills_total'] != $item['refills_dispensed_default']) { //refills_dispensed_actual is not set yet, so use refills_total instead
-        log_notice('update_order_items: refills_dispensed changed', $item);
+        //$order = load_full_order($updated);
+        //$order = export_gd_update_invoice($order, "update_order_items: refill/qty change upon dispensing", $mysql);
       }
 
     } else if ($updated['item_added_by'] == 'MANUAL' AND $updated['old_item_added_by'] != 'MANUAL') {
