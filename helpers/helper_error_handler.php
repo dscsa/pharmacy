@@ -38,6 +38,6 @@ function gpExceptionHandler($e) {
     exit(1);
 }
 
-set_error_handler("gpErrorHandler");
+set_error_handler("gpErrorHandler", E_ERROR|E_USER_ERROR|E_PARSE|E_COMPILE_ERROR);
 set_exception_handler('gpExceptionHandler');
 register_shutdown_function("gpShutdownHandler");
