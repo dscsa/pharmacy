@@ -73,7 +73,7 @@ function get_days_and_message($item, $patient_or_order) {
 
     //Check for invoice number otherwise, seemed that SF tasks were being triplicated.  Unsure reason, maybe called by order_items and not just orders?
     if ( ! @$item['order_date_added']) {
-      log_warning("Confirm didn't create salesforce task for GSN - order items not order", $item);
+      log_warning("Confirm didn't create salesforce task for GSN - items/rxs not order", $item);
     } else if ($item['refill_date_first']) {
       log_warning("Confirm didn't create salesforce task for GSN - refills cannot be changed", $item);
     } else  {
@@ -152,10 +152,12 @@ function get_days_and_message($item, $patient_or_order) {
     return [$days_default, RX_MESSAGE['NO ACTION PATIENT REQUESTED']];
   }
 
-  if ($is_order AND (strtotime($item['refill_date_default']) - strtotime($item['order_date_added'])) > DAYS_EARLY*24*60*60 AND ! $added_manually) {
+  //rx-created2 can call here and be too early even though it is not an order, we still need to catch it here
+  $date_added = @$item['order_date_added'] ?: $item['rx_date_written'];
+  if ((strtotime($item['refill_date_default']) - strtotime($date_added)) > DAYS_EARLY*24*60*60 AND ! $added_manually) {
 
     //DON'T STRICTLY NEED THIS TEST BUT IT GIVES A MORE SPECIFIC ERROR SO IT MIGHT BE HELPFUL
-    if ((strtotime($item['order_date_added']) - strtotime($item['refill_date_last'])) < DAYS_EARLY*24*60*60 AND ! $added_manually) {
+    if ((strtotime($date_added) - strtotime($item['refill_date_last'])) < DAYS_EARLY*24*60*60 AND ! $added_manually) {
       log_info("DON'T REFILL IF FILLED WITHIN LAST ".DAYS_EARLY." DAYS UNLESS ADDED MANUALLY", get_defined_vars());
       return [0, RX_MESSAGE['NO ACTION RECENT FILL']];
     }
