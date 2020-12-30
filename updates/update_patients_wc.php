@@ -139,6 +139,17 @@ function update_patients_wc($changes) {
       ? log_notice("update_patients_wc: updated changed $updated[first_name] $updated[last_name] $updated[birth_date] cp:$updated[patient_id_cp] wc:$updated[patient_id_wc]", $changed)
       : log_error("update_patients_wc: updated no change? $updated[first_name] $updated[last_name] $updated[birth_date] cp:$updated[patient_id_cp] wc:$updated[patient_id_wc]", $updated);
 
+    if ( ! $updated['patient_id_cp'] ) {
+      
+      $is_match = is_patient_match($mysql, $updated);
+
+      if ($is_match) {
+        match_patient($mysql, $is_match['patient_id_cp'], $is_match['patient_id_wc']);
+      }
+
+      continue;
+    }
+
     if ($updated['patient_inactive'] !== $updated['old_patient_inactive']) {
       $patient = find_patient($mysql, $updated)[0];
 
