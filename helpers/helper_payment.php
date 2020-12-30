@@ -8,9 +8,9 @@ function helper_update_payment($order, $reason, $mysql) {
 
   log_notice('helper_update_payment start', ['order_before' => $order, 'reason' => $reason]);
 
-  $old_payment_total_default == $order[0]['payment_total_default'];
-  $old_payment_fee_default   == $order[0]['payment_fee_default'];
-  $old_payment_due_default   == $order[0]['payment_due_default'];
+  $old_payment_total_default = $order[0]['payment_total_default'];
+  $old_payment_fee_default   = $order[0]['payment_fee_default'];
+  $old_payment_due_default   = $order[0]['payment_due_default'];
 
   $order = get_payment_default($order, $reason);
 

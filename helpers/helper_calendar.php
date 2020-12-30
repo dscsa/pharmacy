@@ -240,6 +240,7 @@ function new_comm_arr($patient_label, $email = '', $text = '', $salesforce = '')
 
   $comm_arr = [];
   $auto     = [];
+  $auto_salesforce = false;
 
   if ( ! LIVE_MODE) return $comm_arr;
 
