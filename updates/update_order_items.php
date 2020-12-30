@@ -186,10 +186,11 @@ function update_order_items($changes) {
 
     //TODO Update Salesforce Order Total & Order Count & Order Invoice using REST API or a MYSQL Zapier Integration
   }
+  log_timer('order-items-updated', $loop_timer, $count_updated);
 
   SirumLog::resetSubroutineId();
 }
-log_timer('order-items-updated', $loop_timer, $count_updated);
+
 
 
 function deduplicate_order_items($item, $mssql, $mysql) {

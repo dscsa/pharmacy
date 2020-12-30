@@ -51,7 +51,12 @@ class SirumLog
             self::getLogger();
         }
 
-        list($message, $context) = $args;
+        if (is_array($args)) {
+            list($message, $context) = $args;
+        } else {
+            $message = $args;
+            $context = [];
+        }
 
         $context = ["context" => $context];
 

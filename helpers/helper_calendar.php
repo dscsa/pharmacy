@@ -4,7 +4,7 @@ use Sirum\Logging\SirumLog;
 
 function order_dispensed_event($order, $salesforce, $hours_to_wait) {
 
-  if ($order[0]['patient_active']) {
+  if (@$order[0]['patient_active']) {
     log_warning('order_dispensed_event canceled because patient inactive', get_defined_vars());
     return;
   }
