@@ -218,7 +218,7 @@ function update_orders_cp($changes) {
 
         //Patient communication that we are cancelling their order examples include:
         //NEEDS FORM, ORDER HOLD WAITING FOR RXS, TRANSFER OUT OF ALL ITEMS, ACTION PATIENT OFF AUTOFILL
-        if ($order[0]['count_filled'] == 0 AND $order[0]['count_items_to_add'] == 0 AND ! is_webform_transfer($order[0])) {
+        if ($order[0]['count_filled'] == 0 AND ! $order[0]['items_to_add'] AND ! is_webform_transfer($order[0])) {
 
           SirumLog::debug(
             'update_orders_cp: created. no drugs to fill. removing order. Can we remove the v2_unpend_order below because it get called on the next run?',
@@ -242,17 +242,17 @@ function update_orders_cp($changes) {
           continue;
         }
 
-        if ($order[0]['count_items_to_remove'] > 0 OR $order[0]['count_items_to_add'] > 0) {
+        if ($order[0]['items_to_remove'] OR $order[0]['items_to_add']) {
 
           SirumLog::debug(
             'update_orders_cp: created. skipping order because items still need to be removed/added',
             [
-              'invoice_number'        => $order[0]['invoice_number'],
-              'count_filled'          => $order[0]['count_filled'],
-              'count_items'           => $order[0]['count_items'],
-              'count_items_to_remove' => $order[0]['count_items_to_remove'],
-              'count_items_to_add'    => $order[0]['count_items_to_add'],
-              'order'                 => $order
+              'invoice_number'  => $order[0]['invoice_number'],
+              'count_filled'    => $order[0]['count_filled'],
+              'count_items'     => $order[0]['count_items'],
+              'items_to_remove' => $order[0]['items_to_remove'],
+              'items_to_add'    => $order[0]['items_to_add'],
+              'order'           => $order
             ]
           );
 
@@ -318,7 +318,7 @@ function update_orders_cp($changes) {
           continue; // order hold notice not necessary for transfers
         }
 
-        if ($order[0]['count_items_to_add'] == 0) {
+        if ( ! $order[0]['items_to_add']) {
           continue; // order hold notice not necessary if we are adding items on next go-around
         }
 
@@ -521,7 +521,7 @@ function update_orders_cp($changes) {
 
         //Patient communication that we are cancelling their order examples include:
         //NEEDS FORM, ORDER HOLD WAITING FOR RXS, TRANSFER OUT OF ALL ITEMS, ACTION PATIENT OFF AUTOFILL
-        if ($order[0]['count_filled'] == 0 AND $order[0]['count_items_to_add'] == 0 AND ! is_webform_transfer($order[0])) {
+        if ($order[0]['count_filled'] == 0 AND ! $order[0]['items_to_add'] AND ! is_webform_transfer($order[0])) {
 
           SirumLog::alert(
             'update_orders_cp: updated. no drugs to fill. remove order '.$order[0]['invoice_number'].'?',
@@ -540,19 +540,22 @@ function update_orders_cp($changes) {
           continue;
         }
 
-        if ($order[0]['count_items_to_remove'] > 0 OR $order[0]['count_items_to_add'] > 0) {
+        if ($order[0]['items_to_remove'] OR $order[0]['items_to_add']) {
 
           SirumLog::debug(
-            'update_orders_cp: updated. skipping order because items still need to be removed/added',
+            'update_orders_cp: updated. send patient comm of updates and skipping rest of loop because items still need to be removed/added',
             [
-              'invoice_number'        => $order[0]['invoice_number'],
-              'count_filled'          => $order[0]['count_filled'],
-              'count_items'           => $order[0]['count_items'],
-              'count_items_to_remove' => $order[0]['count_items_to_remove'],
-              'count_items_to_add'    => $order[0]['count_items_to_add'],
-              'order'                 => $order
+              'invoice_number'  => $order[0]['invoice_number'],
+              'count_filled'    => $order[0]['count_filled'],
+              'count_items'     => $order[0]['count_items'],
+              'items_to_remove' => $order[0]['items_to_remove'],
+              'items_to_add'    => $order[0]['items_to_add'],
+              'order'           => $order
             ]
           );
+
+          $groups = group_drugs($order, $mysql);
+          send_updated_order_communications($groups);
 
           //On the next run the count_items will be updated to count_filled and this UPDATE LOOP will run again so no need to run it now
           continue;

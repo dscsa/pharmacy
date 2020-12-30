@@ -290,9 +290,9 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
     }
 
     foreach ($patient_or_order as $i => $item) {
-      $patient_or_order[$i]['count_filled']          = $count_filled;
-      $patient_or_order[$i]['count_items_to_remove'] = count($items_to_remove);
-      $patient_or_order[$i]['count_items_to_add']    = count($items_to_add);
+      $patient_or_order[$i]['count_filled']    = $count_filled;
+      $patient_or_order[$i]['items_to_remove'] = $items_to_remove;
+      $patient_or_order[$i]['items_to_add']    = $items_to_add;
     }
 
 
@@ -300,11 +300,6 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
     //Don't generate invoice if we are adding/removing drugs on next go-around, since invoice would need to be updated again
     if (@$patient_or_order[0]['invoice_number'] AND $update_payment) {
       $patient_or_order = helper_update_payment($patient_or_order, 'helper_full_fields: items_to_add:'.count($items_to_add)." items_to_remove:".count($items_to_remove), $mysql, ! $needs_adding AND ! $needs_removing);
-    }
-
-    if (@$patient_or_order[0]['invoice_number'] AND ($items_to_remove OR $items_to_add)) {
-      $groups = group_drugs($patient_or_order, $mysql);
-      send_updated_order_communications($groups, $items_to_remove, $items_to_add);
     }
 
     return $patient_or_order;

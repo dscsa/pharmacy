@@ -145,9 +145,10 @@ function send_dispensed_order_communications($groups) {
   order_dispensed_notice($groups);
 }
 
-function send_updated_order_communications($groups, $items_to_add, $items_to_remove) {
+function send_updated_order_communications($groups) {
 
-  $contact = $groups['ALL'][0]['first_name'].' '.$groups['ALL'][0]['last_name'].' '.$groups['ALL'][0]['birth_date'];
+  $items_to_add    = $groups['ALL'][0]['items_to_add'];
+  $items_to_remove = $groups['ALL'][0]['items_to_remove'];
 
   $add_item_names    = [];
   $remove_item_names = [];
@@ -170,16 +171,6 @@ function send_updated_order_communications($groups, $items_to_add, $items_to_rem
     $verb = count($remove_item_names) == 1 ? 'was' : 'were';
     $patient_updates[] = implode(", ", $remove_item_names)." $verb removed from your order.";
   }
-
-  $title = "Order Created/Updated ".$groups['ALL'][0]['invoice_number']." $contact!  Created:".date('Y-m-d H:i:s');
-
-  $salesforce   = [
-    "subject"   => $title,
-    "body"      => implode(' ', $patient_updates),
-    "contact"   => $contact
-  ];
-
-  //create_event($title, [$salesforce]);
 
   order_updated_notice($groups, $patient_updates);
 
