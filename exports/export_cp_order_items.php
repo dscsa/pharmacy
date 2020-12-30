@@ -42,7 +42,7 @@ function export_cp_remove_items($invoice_number, $items = []) {
 
   $date = date('Y-m-d H:i');
   $sql2 = "
-    UPDATE csom SET comments = CONCAT(comments, CHAR(10), '$date removed: $order_cmts') WHERE invoice_nbr = $invoice_number -- chg_user_id = @user_id, chg_date = @today
+    UPDATE csom SET comments = CONCAT(comments, CHAR(10), '$date auto removed: $order_cmts') WHERE invoice_nbr = $invoice_number -- chg_user_id = @user_id, chg_date = @today
   ";
 
   $res2 = $mssql->run($sql2);
@@ -159,7 +159,7 @@ function export_cp_add_items($invoice_number, $items) {
 
   $date = date('Y-m-d H:i');
   $sql2 = "
-    UPDATE csom SET comments = CONCAT(comments, CHAR(10), '$date added: $order_cmts') WHERE invoice_nbr = $invoice_number -- chg_user_id = @user_id, chg_date = @today
+    UPDATE csom SET comments = CONCAT(comments, CHAR(10), '$date auto added: $order_cmts') WHERE invoice_nbr = $invoice_number -- chg_user_id = @user_id, chg_date = @today
   ";
 
   $res2 = $mssql->run($sql2);
