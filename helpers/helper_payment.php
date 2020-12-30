@@ -8,12 +8,32 @@ function helper_update_payment($order, $reason, $mysql, $generate_invoice = true
 
   log_notice('helper_update_payment', ['order_before' => $order, $reason]);
 
-  $order = get_payment_default($order, $reason);
-  set_payment_default($order, $mysql);
+  $old_payment_total_default == $order[0]['payment_total_default'];
+  $old_payment_fee_default   == $order[0]['payment_fee_default'];
+  $old_payment_due_default   == $order[0]['payment_due_default'];
 
-  //We include this call in the helper because it MUST be called after get_payment_default or the totals will be wrong
-  //If called manually from main thread it is likely that this ordering would not be honored and result in issues
-  if ($generate_invoice) {
+  $order = get_payment_default($order, $reason);
+
+  $is_payment_change = (
+    $order[0]['payment_total_default'] != $old_payment_total_default OR
+    $order[0]['payment_fee_default']   != $old_payment_fee_default OR
+    $order[0]['payment_due_default']   != $old_payment_due_default
+  );
+
+  if ($is_payment_change) {
+    set_payment_default($order, $mysql);
+    export_wc_update_order_payment($order[0]['invoice_number'], $order[0]['payment_fee_default'], $order[0]['payment_due_default']);
+  }
+
+  if ($is_payment_change OR $generate_invoice) {
+
+    if ( ! $is_payment_change)
+      log_warning("get_payment_default: but no changes, should have just called export_gd_update_invoice(). Could be caused by (1) order failing to create in WC (patient not available) or (2) order_item having wrong days/qty so Pharmacist deletes it and adds a new one really quickly (see order_item created but days_dispensed_actual already set)".$order[0]['order_stage_cp'], [
+        'order' => $order,
+        'reason' => $reason,
+        'generate_invoice' => $generate_invoice
+      ]);
+
     $order = export_gd_update_invoice($order, $reason, $mysql);
   }
 
@@ -21,7 +41,7 @@ function helper_update_payment($order, $reason, $mysql, $generate_invoice = true
 }
 
 function get_payment_default($order, $reason) {
-  SirumLog::debug("get_payment_default", ['order'=>$order, 'reason' => $reason]);
+  SirumLog::debug("get_payment_default", ['order' => $order, 'reason' => $reason]);
 
   $update = [];
 
@@ -45,19 +65,6 @@ function get_payment_default($order, $reason) {
 
     $update['payment_date_autopay'] = "'$start - $stop'";
     $update['payment_due_default'] = 0;
-  }
-
-  if (
-    isset($order[0]['payment_total_default']) AND
-    isset($order[0]['payment_fee_default']) AND
-    isset($order[0]['payment_due_default']) AND
-    $order[0]['payment_total_default'] == $update['payment_total_default'] AND
-    $order[0]['payment_fee_default'] == $update['payment_fee_default'] AND
-    $order[0]['payment_due_default'] == $update['payment_due_default']
-  ) {
-
-    log_notice("get_payment_default: but no changes, should have just called export_gd_update_invoice(). Could be caused by (1) order failing to create in WC (patient not available) or (2) order_item having wrong days/qty so Pharmacist deletes it and adds a new one really quickly (see order_item created but days_dispensed_actual already set)".$order[0]['order_stage_cp'], [$order, $update, $reason]);
-
   }
 
   log_notice("get_payment_default: Order ".$order[0]['invoice_number'], [

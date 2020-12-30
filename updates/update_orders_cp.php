@@ -27,55 +27,6 @@ function update_orders_cp($changes) {
 
   $mysql = new Mysql_Wc();
 
-  //Usually we could just do old_days_dispensed_default != days_dispensed_default AND old_days_dispensed_actual != days_dispensed_actual
-  //BUT those are on the order_item level.  We don't want to handle them in update_order_items.php because we need to batch the changes
-  //so we don't need to rerun the invoice update on every call.  We only run this when the order is dispensed, otherwise it could detect
-  //the same change multiple times (days_dispensed_actual is first set on the Printed/Processed stage) and then would trigger a 2nd time
-  //when Dispensed and maybe a 3rd time when shipped.
-  function detect_dispensing_changes($order) {
-
-    $day_changes     = [];
-    $qty_changes     = [];
-    $refill_changes  = [];
-    $mysql = new Mysql_Wc();
-
-    //Normall would run this in the update_order_items.php but we want to wait for all the items to change so that we don't rerun multiple times
-    foreach ($order as $item) {
-
-      //! $updated['order_date_dispensed'] otherwise triggered twice, once one stage: Printed/Processed and again on stage:Dispensed
-      if ($item['days_dispensed_default'] != $item['days_dispensed_actual'])
-        $day_changes[] = "rx:$item[rx_number] qty:$item[qty_dispensed_default] >>> $item[qty_dispensed_actual] days:$item[days_dispensed_default] >>> $item[days_dispensed_actual] refills:$item[refills_dispensed_default] >>> $item[refills_dispensed_actual] item:".json_encode($item);
-
-      //! $updated['order_date_dispensed'] otherwise triggered twice, once one stage: Printed/Processed and again on stage:Dispensed
-      if ($item['qty_dispensed_default'] != $item['qty_dispensed_actual'])
-        $qty_changes[] = "rx:$item[rx_number] qty:$item[qty_dispensed_default] >>> $item[qty_dispensed_actual] days:$item[days_dispensed_default] >>> $item[days_dispensed_actual] refills:$item[refills_dispensed_default] >>> $item[refills_dispensed_actual] item:".json_encode($item);
-
-      //! $updated['order_date_dispensed'] otherwise triggered twice, once one stage: Printed/Processed and again on stage:Dispensed
-      if ( ! is_null($item['refills_dispensed_actual']) AND $item['refills_dispensed_default']+0 != $item['refills_dispensed_actual']+0)
-        $refill_changes[] = "rx:$item[rx_number] qty:$item[qty_dispensed_default] >>> $item[qty_dispensed_actual] days:$item[days_dispensed_default] >>> $item[days_dispensed_actual] refills:$item[refills_dispensed_default] >>> $item[refills_dispensed_actual] item:".json_encode($item);
-
-
-      //! $updated['order_date_dispensed'] otherwise triggered twice, once one stage: Printed/Processed and again on stage:Dispensed
-      $sig_qty_per_day_actual = $item['days_dispensed_actual'] ? round($item['qty_dispensed_actual']/$item['days_dispensed_actual'], 3) : 'NULL';
-      $mysql->run("
-        UPDATE gp_rxs_single SET sig_qty_per_day_actual = $sig_qty_per_day_actual WHERE rx_number = $item[rx_number]
-      ");
-
-      if ($item['days_dispensed_actual']) {
-        if ($item['refills_dispensed'] AND ! $item['qty_left'] AND ($item['days_dispensed_actual'] > DAYS_MAX OR $item['days_dispensed_actual'] < DAYS_MIN)) {
-          log_error("check days dispensed is not within limits and it's not out of refills: ".DAYS_MIN." < $item[days_dispensed_actual] < ".DAYS_MAX, $item);
-        }
-
-        if ( ! $sig_qty_per_day_actual OR $item['sig_qty_per_day_default']*2 < $sig_qty_per_day_actual OR $item['sig_qty_per_day_default']/2 > $sig_qty_per_day_actual) {
-          log_error("sig parsing error Updating to Actual Qty_Per_Day '$item[sig_actual]' $item[sig_qty_per_day_default] (default) != $sig_qty_per_day_actual $item[qty_dispensed_actual]/$item[days_dispensed_actual] (actual)", $item);
-        }
-      }
-    }
-
-    log_notice("update_order_cp detect_dispensing_changes", ['order' => $order, 'day_changes' => $day_changes, 'qty_changes' => $qty_changes]);
-    return ['day_changes' => $day_changes, 'qty_changes' => $qty_changes, 'refill_changes' => $refill_changes];
-  }
-
   //If just added to CP Order we need to
   //  - Find out any other rxs need to be added
   //  - Update invoice
@@ -201,7 +152,6 @@ function update_orders_cp($changes) {
         if ($order[0]['order_date_dispensed']) {
             $reason = "update_orders_cp: dispened/shipped order being readded";
 
-            $order = helper_update_payment($order, $reason, $mysql);
             export_wc_create_order($order, $reason);
             $order = export_gd_publish_invoice($order, $mysql);
             export_gd_print_invoice($order);
@@ -405,8 +355,10 @@ function update_orders_cp($changes) {
 
       export_gd_delete_invoice($deleted['invoice_number']);
 
+      $is_canceled = ($deleted['count_filled'] > 0 OR is_webform($deleted));
+
       //[NULL, 'Webform Complete', 'Webform eRx', 'Webform Transfer', 'Auto Refill', '0 Refills', 'Webform Refill', 'eRx /w Note', 'Transfer /w Note', 'Refill w/ Note']
-      if ($deleted['count_filled'] > 0 OR is_webform($deleted))
+      if ($is_canceled)
         export_wc_cancel_order($deleted['invoice_number'], "update_orders_cp: cp order canceled $deleted[invoice_number] $deleted[order_stage_cp] $deleted[order_stage_wc] $deleted[order_source] ".json_encode($deleted));
       else
         export_wc_delete_order($deleted['invoice_number'], "update_orders_cp: cp order deleted $deleted[invoice_number] $deleted[order_stage_cp] $deleted[order_stage_wc] $deleted[order_source] ".json_encode($deleted));
@@ -420,14 +372,22 @@ function update_orders_cp($changes) {
         continue;
       }
 
+      $order  = load_full_order($deleted);  //This will be an empty order (one row only with drug_name) because order_items already deleted
+      $groups = group_drugs($order, $mysql);
+
       //We should be able to delete wc-confirm-* from CP queue without triggering an order cancel notice
-      if ( ! $deleted['count_filled'] AND ! $deleted['count_nofill']) { //count_items may already be 0 on a deleted order that had items e.g 33840
-        no_rx_notice($deleted, $patient);
-        log_warning("update_orders_cp deleted: count_filled == 0 AND count_nofill == 0 so calling no_rx_notice() rather than order_canceled_notice()", $deleted);
+      if ($deleted['count_filled'] == 0 AND $deleted['count_nofill'] == 0) { //count_items may already be 0 on a deleted order that had items e.g 33840
+        log_warning("update_orders_cp deleted: no_rx_notice count_filled == 0 AND count_nofill == 0", ['deleted' => $deleted, 'groups' => $groups]);
+        no_rx_notice($groups);
         continue;
       }
 
-      order_canceled_notice($deleted, $patient); //We passed in $deleted because there is not $order to make $groups
+      if ($is_canceled) {
+        log_warning("update_orders_cp deleted: order_canceled_notice is this right?", ['deleted' => $deleted, 'groups' => $groups]);
+        order_canceled_notice($groups); //We passed in $deleted because there is not $order to make $groups
+        continue;
+      }
+
     }
     log_timer('orders-cp-deleted', $loop_timer, $count_deleted);
 
@@ -461,7 +421,8 @@ function update_orders_cp($changes) {
           ['updated' => $updated]
         );
 
-        $order = load_full_order($updated, $mysql);
+        $order  = load_full_order($updated, $mysql);
+        $groups = group_drugs($order, $mysql);
 
         if (!$order) {
           SirumLog::notice(
@@ -488,7 +449,6 @@ function update_orders_cp($changes) {
 
         if ($stage_change_cp AND $updated['order_date_shipped']) {
           log_notice("Updated Order Shipped Started", $order);
-          $groups = group_drugs($order, $mysql);
           export_v2_unpend_order($order, $mysql);
           export_wc_update_order_status($order); //Update status from prepare to shipped
           export_wc_update_order_metadata($order);
@@ -497,26 +457,18 @@ function update_orders_cp($changes) {
         }
 
         if ($stage_change_cp AND $updated['order_date_dispensed']) {
+          $order = export_gd_publish_invoice($order, $mysql);
+          export_gd_print_invoice($order);
+          send_dispensed_order_communications($groups);
+          log_notice("update_orders_cp updated: Updated Order Dispensed", $order);
+          continue;
+        }
 
-            $dispensing_changes = detect_dispensing_changes($order);
-
-            if ($dispensing_changes['day_changes']) {
-              //Updates invoice with new days/price/qty/refills.
-              $order = helper_update_payment($order, "update_orders_cp: updated - dispensing day changes ".implode(', ', $dispensing_changes['day_changes']), $mysql, true);
-              export_wc_update_order($order); //Price will also have changed
-
-            } elseif ($dispensing_changes['qty_changes'] OR $dispensing_changes['refill_changes']) {
-              //Updates invoice with new qty/refills.  Prices should not have changed so no need to update WC
-              $order = helper_update_payment($order, "update_orders_cp: updated - dispensing refill/qty changes ".implode(', ', $dispensing_changes['day_changes']), $mysql, true);
-            }
-
-            $groups = group_drugs($order, $mysql);
-
-            $order = export_gd_publish_invoice($order, $mysql);
-            export_gd_print_invoice($order);
-            send_dispensed_order_communications($groups);
-            log_notice("update_orders_cp updated: Updated Order Dispensed", $order);
-            continue;
+        //We should be able to delete wc-confirm-* from CP queue without triggering an order cancel notice
+        if ($order[0]['count_filled'] == 0 AND $order[0]['count_nofill'] == 0) { //count_items may already be 0 on a deleted order that had items e.g 33840
+          log_warning("update_orders_cp updated: no_rx_notice count_filled == 0 AND count_nofill == 0", ['deleted' => $deleted, 'groups' => $groups]);
+          no_rx_notice($groups);
+          continue;
         }
 
         //Patient communication that we are cancelling their order examples include:
@@ -533,10 +485,15 @@ function update_orders_cp($changes) {
             ]
           );
 
-          //$groups = group_drugs($order, $mysql);
-          //order_hold_notice($groups);
+          $groups = group_drugs($order, $mysql);
+          order_canceled_notice($groups); //We passed in $deleted because there is not $order to make $groups
 
-          //export_cp_remove_order($updated['invoice_number']);
+          //TODO Remove/Cancel WC Order Here
+
+          //TODO Why do we need to explicitly unpend?  Deleting an order in CP should trigger the deleted loop on next run, which should unpend
+          //But it seemed that this didn't happen for Order 53684
+          export_v2_unpend_order($order, $mysql);
+          export_cp_remove_order($order[0]['invoice_number']);
           continue;
         }
 

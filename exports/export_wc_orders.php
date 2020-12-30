@@ -274,7 +274,7 @@ function export_wc_return_order($invoice_number) {
   ]);
 
   set_payment_actual($invoice_number, ['total' => 0, 'fee' => 0, 'due' => 0], $mysql);
-  //export_wc_update_order_payment($deleted['invoice_number'], 0); //Don't need this because we are deleting the WC order later
+  //export_wc_update_order_payment($deleted['invoice_number'], 0, 0); //Don't need this because we are deleting the WC order later
 
   $update_sql = "
     UPDATE gp_orders
@@ -393,7 +393,7 @@ function export_wc_create_order($order, $reason)
   export_wc_update_order_status($order);
   export_wc_update_order_metadata($order, 'wc_insert_meta');
   export_wc_update_order_address($order, 'wc_insert_meta');
-  export_wc_update_order_payment($invoice_number, $first_item['payment_fee_default']);
+  export_wc_update_order_payment($invoice_number, $first_item['payment_fee_default'], $first_item['payment_due_default']);
 
   $address1 = escape_db_values($first_item['order_address1']);
   $address2 = escape_db_values($first_item['order_address2']);
@@ -451,7 +451,7 @@ function export_wc_update_order($order)
   export_wc_update_order_status($order);
   export_wc_update_order_metadata($order);
   export_wc_update_order_address($order);
-  export_wc_update_order_payment($order[0]['invoice_number'], $order[0]['payment_fee_default']);
+  export_wc_update_order_payment($order[0]['invoice_number'], $order[0]['payment_fee_default'], $order[0]['payment_due_default']);
 }
 
 //These are the metadata that might change
@@ -532,7 +532,7 @@ function export_wc_update_order_address($order, $meta_fn = 'wc_update_meta')
  *
  * @todo Convert the returns to Exceptions so they can be handled
  */
-function export_wc_update_order_payment($invoice_number, $payment_fee, $payment_due = null)
+function export_wc_update_order_payment($invoice_number, $payment_fee, $payment_due)
 {
 
   SirumLog::notice(
@@ -559,11 +559,7 @@ function export_wc_update_order_payment($invoice_number, $payment_fee, $payment_
     return;
   }
 
-  $urlToFetch = "order/{$post_id}/payment_fee/{$payment_fee}";
-
-  if (!is_null($payment_due)) {
-    $urlToFetch .= "/payment_due/{$payment_due}";
-  }
+  $urlToFetch = "order/{$post_id}/payment_fee/{$payment_fee}/payment_due/{$payment_due}";
 
   $response = wc_fetch($urlToFetch);
 

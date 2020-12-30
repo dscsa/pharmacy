@@ -295,7 +295,6 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
       $patient_or_order[$i]['items_to_add']    = $items_to_add;
     }
 
-
     //A patient profile may have an rx turn on autofill, causing a day change but we still don't have an order to update
     //Don't generate invoice if we are adding/removing drugs on next go-around, since invoice would need to be updated again
     if (@$patient_or_order[0]['invoice_number'] AND $update_payment) {

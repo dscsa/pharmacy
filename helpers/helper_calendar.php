@@ -178,17 +178,17 @@ function needs_form_event($order, $email, $text, $hours_to_wait, $hour_of_day = 
   create_event($event_title, $comm_arr, $hours_to_wait, $hour_of_day);
 }
 
-function no_rx_event($deleted, $patient, $email, $text, $hours_to_wait, $hour_of_day = null) {
+function no_rx_event($order, $email, $text, $hours_to_wait, $hour_of_day = null) {
 
   if ($order[0]['patient_active']) {
     log_warning('no_rx_event canceled because patient inactive', get_defined_vars());
     return;
   }
 
-  $patient_label = get_patient_label($patient);
+  $patient_label = get_patient_label($order);
   $event_title   = $deleted['invoice_number'].' No Rx: '.$patient_label.'. Created:'.date('Y-m-d H:i:s');
 
-  $cancel = cancel_events_by_person($patient[0]['first_name'], $patient[0]['last_name'], $patient[0]['birth_date'], 'no_rx_event', ['No Rx']);
+  $cancel = cancel_events_by_person($order[0]['first_name'], $order[0]['last_name'], $order[0]['birth_date'], 'no_rx_event', ['No Rx']);
 
   $comm_arr = new_comm_arr($patient_label, $email, $text);
 
@@ -197,18 +197,18 @@ function no_rx_event($deleted, $patient, $email, $text, $hours_to_wait, $hour_of
   create_event($event_title, $comm_arr, $hours_to_wait, $hour_of_day);
 }
 
-function order_canceled_event($deleted, $patient, $email, $text, $hours_to_wait, $hour_of_day  = null) {
+function order_canceled_event($order, $email, $text, $hours_to_wait, $hour_of_day  = null) {
 
   if ($order[0]['patient_active']) {
     log_warning('order_canceled_event canceled because patient inactive', get_defined_vars());
     return;
   }
 
-  $patient_label = get_patient_label($patient);
-  $event_title   = $deleted['invoice_number'].' Order Canceled: '.$patient_label.'. Created:'.date('Y-m-d H:i:s');
+  $patient_label = get_patient_label($order);
+  $event_title   = $order[0]['invoice_number'].' Order Canceled: '.$patient_label.'. Created:'.date('Y-m-d H:i:s');
 
   //Patient information not available
-  $cancel = cancel_events_by_order($deleted['invoice_number'], 'order_canceled_event', ['Order Created', 'Order Updated', 'Order Dispensed']);
+  $cancel = cancel_events_by_order($order[0]['invoice_number'], 'order_canceled_event', ['Order Created', 'Order Updated', 'Order Dispensed']);
 
   $comm_arr = new_comm_arr($patient_label, $email, $text);
 

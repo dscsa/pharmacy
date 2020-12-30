@@ -297,12 +297,6 @@ function order_hold_notice($groups, $missing_gsn = false) {
 //by building commication arrays based on github.com/dscsa/communication-calendar
 function order_updated_notice($groups, $patient_updates) {
 
-  //It's depressing to get updates if nothing is being filled.  So only send these if manually added and the order was just added (not just drugs changed)
-  if ( ! $groups['COUNT_FILLED'] AND ! $groups['MANUALLY_ADDED']) {
-    $cancel = cancel_events_by_person($groups['ALL'][0]['first_name'], $groups['ALL'][0]['last_name'], $groups['ALL'][0]['birth_date'], 'order_updated_notice', ['Order Created', 'Order Updated', 'Order Hold', 'No Rx', 'Needs Form']);
-    return log_info('order_updated_notice NOT sent', get_defined_vars());
-  }
-
   $subject = 'Good Pill update for Order #'.$groups['ALL'][0]['invoice_number'];
   $message = implode(' ', $patient_updates);
 
@@ -404,17 +398,15 @@ function needs_form_notice($groups) {
 
 //We are coording patient communication via sms, calls, emails, & faxes
 //by building commication arrays based on github.com/dscsa/communication-calendar
-function no_rx_notice($deleted, $patient) {
+function no_rx_notice($groups) {
 
-  log_warning('no_rx_notice. Does patient truly not have Rxs?', get_defined_vars());
-
-  $subject = 'Good Pill received Order #'.$deleted['invoice_number'].' but is waiting for your prescriptions';
-  $message  = ($deleted['order_source'] == 'Webform Transfer' OR $deleted['order_source'] == 'Transfer w/ Note')
+  $subject = 'Good Pill received Order #'.$groups['ALL'][0]['invoice_number'].' but is waiting for your prescriptions';
+  $message  = is_webform_transfer($groups['ALL'][0]['invoice_number'])
     ? "We will attempt to transfer the Rxs you requested from your pharmacy."
     : "We haven't gotten any Rxs from your doctor yet but will notify you as soon as we do.";
 
-  $email = [ "email" => $patient[0]['email'] ]; //TODO email is not actual a property on $deleted
-  $text  = [ "sms"   => get_phones($patient), "message" => $subject.'. '.$message ];
+  $email = [ "email" => DEBUG_EMAIL]; //$groups['ALL'][0]['email'] ];
+  $text  = [ "sms"   => DEBUG_PHONE, "message" => $subject.' '.$message ]; //get_phones($groups['ALL'])
 
   $email['subject'] = $subject;
   $email['message']  = implode('<br>', [
@@ -422,29 +414,29 @@ function no_rx_notice($deleted, $patient) {
     '',
     $subject.'. '.$message,
     '',
-    json_encode($deleted),
-    '',
     'Thanks,',
     'The Good Pill Team',
-    '',
-    '',
-    "Note: if this is correct, there is no need to do anything. If you think there is a mistake, please let us know as soon as possible."
+    ''
   ]);
 
   //Wait 15 minutes to hopefully batch staggered surescripts and manual rx entry and cindy updates
-  no_rx_event($deleted, $patient, $email, $text, 15/60);
+  no_rx_event($groups['ALL'], $email, $text, 15/60);
 }
 
-//NOTE: UNLIKE OTHER COMM FUNCTIONS THIS TAKES DELETED AND NOT GROUPS
-//THIS IS BECAUSE there is not an $order to make $groups
-function order_canceled_notice($deleted, $patient) {
+function order_canceled_notice($groups) {
 
-  $subject = "Good Pill canceled your Order #".$deleted['invoice_number'];
+  $subject = "Good Pill canceled your Order #".$groups['ALL'][0]['invoice_number'];
 
-  $message = "Good Pill cancelled order $deleted[invoice_number]. We're sorry that we are unable to provide the reason for cancellation via text or email; if you believe this cancellation is an error, please give us a call at (888) 987-5187. Thank you.";
+  $message = "Good Pill cancelled order ".$groups['ALL'][0]['invoice_number'].". ";
 
-  $email = [ "email" => $patient[0]['email'], "raw" => json_encode($deleted) ]; //TODO email is not actual a property on $deleted
-  $text  = [ "sms" => get_phones($patient),  "message" => $subject.'. '.$message ];
+  //called from an order-deleted loop with no order item info rather than a order-updated loop
+  if ( ! $groups['ALL'][0]['drug_name'])
+    $message .= " We're sorry that we are unable to provide the reason for cancellation via text or email; if you believe this cancellation is an error, please give us a call at (888) 987-5187. Thank you.";
+  else
+    $message .= '<br>'.implode(';<br>', $groups['ALL']).';';
+
+  $email = [ "email" => DEBUG_EMAIL]; //$groups['ALL'][0]['email'] ];
+  $text  = [ "sms"   => DEBUG_PHONE, "message" => $subject.' '.$message ]; //get_phones($groups['ALL'])
 
   $email['subject'] = $subject;
   $email['message'] = implode('<br>', [
@@ -458,9 +450,7 @@ function order_canceled_notice($deleted, $patient) {
     ''
   ]);
 
-
-  log_notice("order_canceled_notice is this right?", [$patient, $deleted, $email]);
-  //order_canceled_event($deleted, $patient, $email, $text, 15/60);
+  order_canceled_event($groups['ALL'], $email, $text, 15/60);
 }
 
 function confirm_shipment_notice($groups) {
