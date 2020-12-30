@@ -1,64 +1,69 @@
-function testPost() {
-  var event = {parameter:{GD_KEY:GD_KEY}, postData:{contents:'{"method":"watchFiles", "folder":"Published"}'}}
-  debugEmail(event, doPost(event))
-}
-
+/**
+ * The main post object
+ * @param  {object} e The event that is triggering the post
+ * @return {string}   The results of the requested endpoint
+ */
 function doPost(e) {
 
-  try{
+    try {
+        // Check the password.  This should really be something more secure
+        if (e.parameter.GD_KEY != GD_KEY) {
+            console.error("gdoc_helper: web_app supplied wrong password", e);
+        }
 
-    if (e.parameter.GD_KEY != GD_KEY)
-      return debugEmail('web_app post wrong password', e)
+        // Make sure there is post data
+        if (!e.postData || !e.postData.contents) {
+            console.error("gdoc_helper: web_app missing post data", e)
+        }
 
-    if ( ! e.postData || ! e.postData.contents)
-      return debugEmail('web_app post not post data', e)
+        var response
+        var contents = JSON.parse(e.postData.contents)
 
-    var response
-    var contents = JSON.parse(e.postData.contents)
+        switch(contents.method) {
+            case 'removeFiles':
+                response = removeFiles(contents);
+                break;
+            case 'watchFiles':
+                response = watchFiles(contents);
+                break;
+            case 'publishFile':
+                response = publishFile(contents);
+                break;
+            case 'moveFile':
+                response = moveFile(contents);
+                break;
+            case 'newSpreadsheet':
+                response = newSpreadsheet(contents);
+                break;
+            case 'createCalendarEvent':
+                response = createCalendarEvent(contents);
+                break;
+            case 'removeCalendarEvents':
+                response = removeCalendarEvents(contents);
+                break;
+            case 'searchCalendarEvents':
+                response = searchCalendarEvents(contents);
+                break;
+            case 'modifyCalendarEvents':
+                response = modifyCalendarEvents(contents);
+                break;
+            case 'shortLinks':
+                response = shortLinks(contents);
+                break;
+            default:
+                console.log("gdoc_helpers: no matching method", [contents.method, contents, e]);
+        }
 
-    if (contents.method == 'removeFiles')
-      response = removeFiles(contents)
+        return ContentService
+            .createTextOutput(JSON.stringify(response || 'gdoc_helper had not return value'))
+            .setMimeType(ContentService.MimeType.JSON)
 
-    else if (contents.method == 'watchFiles')
-      response = watchFiles(contents)
+    } catch (err) {
 
-    else if (contents.method == 'publishFile')
-      response = publishFile(contents)
+        console.error('gdoc_helper:  Error thrown from web_app', err);
 
-    else if (contents.method == 'newSpreadsheet')
-      response = newSpreadsheet(contents)
-
-    else if (contents.method == 'createCalendarEvent')
-      response = createCalendarEvent(contents)
-
-    else if (contents.method == 'removeCalendarEvents')
-      response = removeCalendarEvents(contents)
-
-    else if (contents.method == 'searchCalendarEvents')
-      response = searchCalendarEvents(contents)
-
-    else if (contents.method == 'modifyCalendarEvents')
-      response = modifyCalendarEvents(contents)
-
-    else if (contents.method == 'shortLinks')
-      response = shortLinks(contents)
-
-    else if (contents.method == 'moveFile')
-      response = moveFile(contents)
-
-    else
-      debugEmail('web_app post no matching method', [contents.method, contents, e])
-
-    return ContentService
-      .createTextOutput(JSON.stringify(response || 'gdoc_helper had not return value'))
-      .setMimeType(ContentService.MimeType.JSON)
-
-  } catch(err){
-
-    debugEmail('web_app post error thrown', err, e)
-
-    return ContentService
-      .createTextOutput(JSON.stringify([err, err.stack]))
-      .setMimeType(ContentService.MimeType.JSON)
-  }
+        return ContentService
+            .createTextOutput(JSON.stringify([err, err.stack]))
+            .setMimeType(ContentService.MimeType.JSON)
+    }
 }
