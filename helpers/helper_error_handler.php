@@ -15,7 +15,6 @@ function gpErrorHandler($errno, $errstr, $error_file, $error_line)
 function gpShutdownHandler()
 {
       $lasterror  = error_get_last();
-      print_r($lasterror);
       $errno      = $lasterror['type'];
       $errstr     = $lasterror['message'];
       $error_file = $lasterror['message'];
