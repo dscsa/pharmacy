@@ -189,9 +189,11 @@ function export_gd_publish_invoice($order, $mysql, $retry = false)
     $start = microtime(true);
 
     // Check to see if the file we have exists
-    $meta = gdoc_details($order[0]['invoice_doc_id']);
+    if (!empty($order[0]['invoice_doc_id'])) {
+        $meta = gdoc_details($order[0]['invoice_doc_id']);
+    }
 
-    if ($meta->parent->name != INVOICE_PENDING_FOLDER_NAME || $meta->trashed) {
+    if (!isset($meta) || $meta->parent->name != INVOICE_PENDING_FOLDER_NAME || $meta->trashed) {
         // The current invoice is trash.  Make a new invoice
         $update_reason = "export_gd_publish_invoice: invoice didn't exist so trying to (re)make it";
 
