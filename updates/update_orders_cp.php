@@ -372,7 +372,7 @@ function update_orders_cp($changes) {
         continue;
       }
 
-      $order  = load_full_order($deleted);  //This will be an empty order (one row only with drug_name) because order_items already deleted
+      $order  = load_full_order($deleted, $mysql);  //This will be an empty order (one row only with drug_name) because order_items already deleted
       $groups = group_drugs($order, $mysql);
 
       //We should be able to delete wc-confirm-* from CP queue without triggering an order cancel notice
