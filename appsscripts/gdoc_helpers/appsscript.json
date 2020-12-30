@@ -2,6 +2,10 @@
   "timeZone": "America/New_York",
   "dependencies": {
     "enabledAdvancedServices": [{
+      "userSymbol": "Tasks",
+      "serviceId": "tasks",
+      "version": "v1"
+    }, {
       "userSymbol": "Drive",
       "serviceId": "drive",
       "version": "v2"

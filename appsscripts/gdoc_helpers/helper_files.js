@@ -287,7 +287,7 @@ function newSpreadsheet(opts) {
 
    file.skip  = ! file.newEdit && ! (file.newFile && opts.includeNew)
 
-   Logger.log(JSON.stringify(['file', file], null, ' '))
+   console.log(JSON.stringify(['file', file], null, ' '))
 
    if (file.skip) return
 
@@ -301,8 +301,8 @@ function newSpreadsheet(opts) {
      var doc = DocumentApp.openById(next.getId())
    } catch (e) {
      //In Trash or Permission Issue
-     debugEmail('watchFiles PERMISSION ERROR', next.getId())
-     return
+     console.warn('watchFiles: PERMISSION ERROR FileId: %s', next.getId())
+     return;
    }
 
    var documentElement = doc.getBody().getParent()

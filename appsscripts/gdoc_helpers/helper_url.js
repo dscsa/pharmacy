@@ -21,12 +21,12 @@ function shortLink(link) {
   try {
     return JSON.parse(UrlFetchApp.fetch(apiUrl, opts).getContentText()).shortLink
   } catch (e) {
-    debugEmail('Could not shorten URL', e, link, opts)
+    console.warn('Could not shorten URL', e, link, opts);
   }
 }
 
 function testShortLink() {
   var link = shortLink('https://docs.google.com/document/d/1chab3rbma1w-6yTY9inwXgXB2hAd0PTObiz6KjH8VZw/pub?embedded=true')
-  Logger.log(link)
-  Logger.log(typeof link)
+  console.log(link)
+  console.log(typeof link)
 }

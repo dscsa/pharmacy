@@ -1,10 +1,10 @@
 function testCalendarEvent() {
-  
+
   var cal = CalendarApp.getCalendarById('support@goodpill.org')
-  Logger.log(cal)
-  
-  return 
-  
+  console.log(cal)
+
+  return
+
   createCalendarEvent({
     cal_id:'sirum.org_k8j983q66k1t6gvgg59t0amq0k@group.calendar.google.com',
     start: '2019-11-27T13:00:00',
@@ -19,13 +19,12 @@ function testCalendarEvent() {
 function createCalendarEvent(event) {
   event.stopDate  = addHours(event.hours, event.start)
   event.startDate = new Date(event.start)
-  //infoEmail('createCalendarEvent', event)
-  
+
   var calendar =  CalendarApp.getCalendarById(event.cal_id)
-  
-  if ( ! calendar)
-    return debugEmail('createCalendarEvent ERROR NO CALENDAR WITH CAL_ID', event)
-  
+
+  if (!calendar)
+    return console.log('createCalendarEvent ERROR NO CALENDAR WITH CAL_ID', event);
+
   return calendar
     .createEvent(
       event.title,
@@ -46,7 +45,7 @@ function removeCalendarEvents(opts) {
 
   for (var i in opts.events) {
     var event = opts.events[i]
-    
+
     event.title = event.getTitle()+' Deleted:'+new Date() //So that logging has access to the title
 
     event.setTitle(event.title)
@@ -60,7 +59,7 @@ function removeCalendarEvents(opts) {
   }
 
   if (opts.events.length)
-    infoEmail('removeCalendarEvents', opts)
+    console.log('removeCalendarEvents', opts);
 }
 
 function modifyCalendarEvents(opts) {
@@ -76,7 +75,7 @@ function modifyCalendarEvents(opts) {
     opts.events[i].setDescription(opts.events[i].description)
   }
 
-  infoEmail('modifyCalendarEvents', opts)
+  console.log('modifyCalendarEvents', opts)
 }
 
 function searchCalendarEvents(opts) {
@@ -84,7 +83,7 @@ function searchCalendarEvents(opts) {
   var calendar = CalendarApp.getCalendarById(opts.cal_id)
 
   if ( ! calendar)
-    debugEmail('ERROR searchCalendarEvents: cal_id or permission error', opts)
+    console.error('ERROR searchCalendarEvents: cal_id or permission error', opts)
 
   var start    = opts.start || new Date()
   var stop     = addHours(opts.hours, start) //stop date seems to be required by Google.  Everything should happen within 90 days
@@ -119,7 +118,13 @@ function searchCalendarEvents(opts) {
   }
 
   if (events.length)
-    infoEmail('searchCalendarEvents', start, stop, (matches ? matches.length : events.length)+' of '+events.length+' of the events match the following:', opts, haystacks)
+    console.log('searchCalendarEvents: Start: %s, Stop: %s, Matches: %s of %s of the events match the following:',
+                start,
+                stop,
+                (matches ? matches.length : events.length),
+                events.length,
+                opts,
+                haystacks);
 
   return matches
 }

@@ -3,7 +3,7 @@ function testWatch() {
     var query = 'modifiedDate > "2019-11-19T16:07:49.089Z"'
     var iterator = folder.searchFiles(query)
 
-    Logger.log(['testWatch', query, iterator.hasNext() ? iterator.next().getUrl() : 'No Files Modified'])
+    console.log(['testWatch', query, iterator.hasNext() ? iterator.next().getUrl() : 'No Files Modified'])
 }
 /**
  * Test the post capp of the web_app.js
@@ -18,5 +18,5 @@ function testPost() {
             contents: '{"method":"watchFiles", "folder":"Published"}'
         }
     }
-    debugEmail(event, doPost(event))
+    console.log(event, doPost(event));
 }
