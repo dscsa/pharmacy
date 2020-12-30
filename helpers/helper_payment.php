@@ -4,7 +4,7 @@ require_once 'exports/export_gd_orders.php';
 
 use \Sirum\Logging\SirumLog;
 
-function helper_update_payment($order, $reason, $mysql, $generate_invoice = true) {
+function helper_update_payment($order, $reason, $mysql) {
 
   log_notice('helper_update_payment', ['order_before' => $order, $reason]);
 
@@ -26,7 +26,7 @@ function helper_update_payment($order, $reason, $mysql, $generate_invoice = true
   }
 
   //TODO Can we remove $generate_invoice flag
-  if ($is_payment_change OR $generate_invoice) {
+  if ($is_payment_change) {
 
     if ( ! $is_payment_change) {
       log_alert("get_payment_default: but no changes, should have just called export_gd_update_invoice() directly.", [
