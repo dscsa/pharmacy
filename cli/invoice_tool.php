@@ -1,4 +1,4 @@
-i<?php
+<?php
 
 ini_set('memory_limit', '1024M');
 ini_set('include_path', '/goodpill/webform');
@@ -43,11 +43,11 @@ $mysql  = new Mysql_Wc();
 $orders = [];
 
 if (isset($args['m'])) {
-  $orders = array_merge($orders, explode(',', $args['m']));
+    $orders = array_merge($orders, explode(',', $args['m']));
 }
 
 if (isset($args['o'])) {
-  $orders[] = $args['o'];
+    $orders[] = $args['o'];
 }
 
 if (count($orders) == 0) {
@@ -62,7 +62,7 @@ foreach ($orders as $orderNumber) {
 
     if (isset($args['u'])) {
         if (!isset($args['d'])) {
-            export_gd_update_invoice($order, 're-print', $mysql, true);
+            $order = export_gd_update_invoice($order, 're-print', $mysql, true);
         }
         echo "Invoice {$orderNumber} Updated\n";
     }
