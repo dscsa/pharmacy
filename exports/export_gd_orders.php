@@ -51,7 +51,7 @@ function export_gd_update_invoice($order, $reason, $mysql, $try2 = false)
         'order'    => $order
     ];
 
-    echo "\ncreating invoice ".$order[0]['invoice_number']." (".$order[0]['order_stage_cp'].")";
+    echo "\ncreating invoice ".$order[0]['invoice_number']." (".$order[0]['order_stage_cp'].")\n";
 
     $start = microtime(true);
 
