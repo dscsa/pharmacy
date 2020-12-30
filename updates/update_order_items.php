@@ -162,16 +162,12 @@ function update_order_items($changes) {
         $item['refills_dispensed_actual'] != $item['refills_dispensed_default']
       ) {
 
-        $order = load_full_order($updated, $mysql);
-
         log_alert("days_dispensed_actual same as default but qty or refills changed, need to update invoice because this change would not be caught by helper_update_payment (since days and therefor payment did not change)", [
           'item'    => $item,
           'updated' => $updated,
-          'changed' => $changed,
-          'order'   => $order
+          'changed' => $changed
         ]);
 
-        $order = export_gd_update_invoice($order, "update_order_items: refill/qty change upon dispensing", $mysql);
       }
 
     } else if ($updated['item_added_by'] == 'MANUAL' AND $updated['old_item_added_by'] != 'MANUAL') {

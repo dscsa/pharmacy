@@ -457,10 +457,13 @@ function update_orders_cp($changes) {
         }
 
         if ($stage_change_cp AND $updated['order_date_dispensed']) {
+          $reason = "update_orders_cp updated: Updated Order Dispensed";
+          $order = helper_update_payment($order, $reason, $mysql);
+          $order = export_gd_update_invoice($order, $reason, $mysql);
           $order = export_gd_publish_invoice($order, $mysql);
           export_gd_print_invoice($order);
           send_dispensed_order_communications($groups);
-          log_notice("update_orders_cp updated: Updated Order Dispensed", $order);
+          log_notice($reason, $order);
           continue;
         }
 

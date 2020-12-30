@@ -30,7 +30,6 @@ function helper_update_payment($order, $reason, $mysql) {
     ]);
     set_payment_default($order, $mysql);
     export_wc_update_order_payment($order[0]['invoice_number'], $order[0]['payment_fee_default'], $order[0]['payment_due_default']);
-    $order = export_gd_update_invoice($order, "helper_update_payment: $reason", $mysql);
     return $order;
   }
 
