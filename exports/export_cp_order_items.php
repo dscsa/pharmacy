@@ -22,18 +22,30 @@ function export_cp_remove_items($invoice_number, $items = []) {
   ";
 
   $rx_numbers = [];
+  $order_cmts = [];
 
   foreach ($items as $item) {
     $rx_numbers[] = $item['rx_number'];
+    $order_cmts[] = "$item[drug_generic] - $item[item_message_key]";
   }
 
   if ($rx_numbers) {
     $sql .= "
       AND script_no IN ('".implode("', '", $rx_numbers)."')
     ";
+    $order_cmts = implode(', ', $order_cmts);
+  } else {
+    $order_cmts = "all drugs";
   }
 
   $res = $mssql->run($sql);
+
+  $date = date('Y-m-d H:i');
+  $sql2 = "
+    UPDATE csom SET comments = CONCAT(comments, CHAR(10), '$date removed: $order_cmts') WHERE invoice_nbr = $invoice_number -- chg_user_id = @user_id, chg_date = @today
+  ";
+
+  $res2 = $mssql->run($sql2);
 
   SirumLog::debug(
     "export_cp_remove_items: $invoice_number",
@@ -41,7 +53,9 @@ function export_cp_remove_items($invoice_number, $items = []) {
       'invoice_number'  => $invoice_number,
       'rx_numbers'      => $rx_numbers,
       'sql'             => $sql,
-      'res'             => $res
+      'res'             => $res,
+      'sql2'            => $sql2,
+      'res2'            => $res2
     ]
   );
 
@@ -86,15 +100,18 @@ function export_cp_recount_items($invoice_number, $mssql) {
 function export_cp_add_items($invoice_number, $items) {
 
   $rx_numbers = [];
+  $order_cmts = [];
 
   //rx_number only set AFTER its added.  We need to choose which to add, so use best.
   foreach ($items as $item) {
     $rx_numbers[] = $item['best_rx_number'];
+    $order_cmts[] = "$item[drug_generic] - $item[item_message_key]";
   }
 
   if ( ! $rx_numbers) return;
 
   $rx_numbers = json_encode($rx_numbers);
+  $order_cmts = implode(', ', $order_cmts);
 
   global $mssql;
   global $mysql;
@@ -140,5 +157,12 @@ function export_cp_add_items($invoice_number, $items) {
 
   $res = $mssql->run($sql);
 
-  log_notice("export_cp_add_items $invoice_number", ['invoice_number' => $invoice_number, 'sql' => $sql, 'items' => $items]);
+  $date = date('Y-m-d H:i');
+  $sql2 = "
+    UPDATE csom SET comments = CONCAT(comments, CHAR(10), '$date added: $order_cmts') WHERE invoice_nbr = $invoice_number -- chg_user_id = @user_id, chg_date = @today
+  ";
+
+  $res2 = $mssql->run($sql2);
+
+  log_notice("export_cp_add_items $invoice_number", ['invoice_number' => $invoice_number, 'sql' => $sql, 'sql2' => $sql2, 'items' => $items]);
 }
