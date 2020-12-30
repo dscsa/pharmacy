@@ -45,7 +45,7 @@ function export_cp_remove_items($invoice_number, $items = []) {
     UPDATE csom SET comments = RIGHT(CONCAT(comments, CHAR(10), '$date auto removed: $order_cmts'), 256) WHERE invoice_nbr = $invoice_number -- chg_user_id = @user_id, chg_date = @today
   ";
 
-  $res2 = $mssql->run($sql2);
+  //CK said too overwhelming $res2 = $mssql->run($sql2);
 
   SirumLog::debug(
     "export_cp_remove_items: $invoice_number",
@@ -162,7 +162,7 @@ function export_cp_add_items($invoice_number, $items) {
     UPDATE csom SET comments = RIGHT(CONCAT(comments, CHAR(10), '$date auto added: $order_cmts'), 256) WHERE invoice_nbr = $invoice_number -- chg_user_id = @user_id, chg_date = @today
   ";
 
-  $res2 = $mssql->run($sql2);
+  //CK said too overwhelming $res2 = $mssql->run($sql2);
 
   log_notice("export_cp_add_items $invoice_number", ['invoice_number' => $invoice_number, 'sql' => $sql, 'sql2' => $sql2, 'items' => $items]);
 }
