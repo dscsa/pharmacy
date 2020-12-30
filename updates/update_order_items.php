@@ -162,7 +162,7 @@ function update_order_items($changes) {
         $item['refills_dispensed_actual'] != $item['refills_dispensed_default']
       ) {
 
-        log_alert("days_dispensed_actual same as default but qty or refills changed, need to update invoice because this change would not be caught by helper_update_payment (since days and therefor payment did not change)", [
+        log_error("days_dispensed_actual same as default but qty or refills changed", [
           'item'    => $item,
           'updated' => $updated,
           'changed' => $changed
