@@ -8,7 +8,7 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
     $count_filled    = 0;
     $items_to_add    = [];
     $items_to_remove = [];
-    $update_payment  = is_null($patient_or_order[0]['payment_total_default']);
+    $update_payment  = is_null(@$patient_or_order[0]['payment_total_default']);
 
     /*
      * Consolidate default and actual suffixes to avoid conditional overload in
@@ -128,7 +128,7 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
                 SirumLog::alert("Item needs to be removed but NO Order?", [
                   'days'    => $days,
                   'message' => $message,
-                  'items'   => $patient_or_order[$i]
+                  'item'    => $patient_or_order[$i]
                 ]);
               }
 
@@ -145,7 +145,15 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
 
             if ($needs_adding) {
 
-              $items_to_add[] = $patient_or_order[$i];
+              if (@$patient_or_order[0]['invoice_number']) {
+                $items_to_add[] = $patient_or_order[$i];
+              } else {
+                SirumLog::alert("Item needs to be added but NO Order?", [
+                  'days'    => $days,
+                  'message' => $message,
+                  'item'    => $patient_or_order[$i]
+                ]);
+              }
 
               SirumLog::notice(
                 "helper_full_fields: needs_adding (export_cp_add_items) ".$patient_or_order[$i]['drug_name'],
@@ -299,7 +307,7 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
     //A patient profile may have an rx turn on autofill, causing a day change but we still don't have an order to update
     //Don't generate invoice if we are adding/removing drugs on next go-around, since invoice would need to be updated again
     if (@$patient_or_order[0]['invoice_number'] AND $update_payment) {
-      $patient_or_order = helper_update_payment($patient_or_order, "helper_full_fields: {$patient_or_order[0]['invoice_number']} items_to_add:{count($items_to_add)} items_to_remove:".count($items_to_remove), $mysql);
+      $patient_or_order = helper_update_payment($patient_or_order, "helper_full_fields: {$patient_or_order[0]['invoice_number']} items_to_add:".count($items_to_add)." items_to_remove:".count($items_to_remove), $mysql);
     }
 
     return $patient_or_order;

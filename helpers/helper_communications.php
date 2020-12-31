@@ -33,7 +33,7 @@ function group_drugs($order, $mysql) {
 
     $groups['ALL'][] = $item; //Want patient contact_info even if an emoty order
 
-    if ( ! $item['drug_name']) continue; //Might be an empty order
+    if ( ! @$item['drug_name']) continue; //Might be an empty order
 
     $days = $item['days_dispensed'];
     $fill = $days ? 'FILLED_' : 'NOFILL_';

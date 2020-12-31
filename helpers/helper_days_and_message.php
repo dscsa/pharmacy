@@ -502,15 +502,15 @@ function is_webform($item) {
 }
 
 function is_webform_transfer($item) {
-  return in_array($item['order_source'], ['Webform Transfer', 'Transfer /w Note']);
+  return in_array(@$item['order_source'], ['Webform Transfer', 'Transfer /w Note']);
 }
 
 function is_webform_erx($item) {
-  return in_array($item['order_source'], ['Webform eRx', 'eRx /w Note']);
+  return in_array(@$item['order_source'], ['Webform eRx', 'eRx /w Note']);
 }
 
 function is_webform_refill($item) {
-  return in_array($item['order_source'], ['Webform Refill', 'Refill w/ Note']);
+  return in_array(@$item['order_source'], ['Webform Refill', 'Refill w/ Note']);
 }
 
 function is_not_offered($item) {

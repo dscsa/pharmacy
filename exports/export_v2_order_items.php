@@ -17,10 +17,10 @@ function export_v2_unpend_order($order, $mysql) {
 
 function v2_pend_item($item, $mysql) {
 
-  log_notice("v2_pend_item: $item[invoice_number] ".@$item['drug_name']." ".@$item['rx_number'], ['item' => $item]);//.print_r($item, true);
+  log_notice("v2_pend_item: ".@$item['invoice_number']." ".@$item['drug_name']." ".@$item['rx_number'], ['item' => $item]);//.print_r($item, true);
 
   if ( ! $item['days_dispensed_default'] OR $item['rx_dispensed_id'] OR is_null($item['last_inventory']) OR @$item['count_pended_total'] > 0) {
-    return log_error("v2_pend_item: ABORTED! $item[invoice_number] ".@$item['drug_name']." ".@$item['rx_number'].". days_dispensed_default:$item[days_dispensed_default] rx_dispensed_id:$item[rx_dispensed_id] last_inventory:$item[last_inventory] count_pended_total:$item[count_pended_total]", ['item' => $item]);
+    return log_error("v2_pend_item: ABORTED! ".@$item['invoice_number']." ".@$item['drug_name']." ".@$item['rx_number'].". days_dispensed_default:".@$item['days_dispensed_default']." rx_dispensed_id:".@$item['rx_dispensed_id']." last_inventory:".@$item['last_inventory']." count_pended_total:".@$item['count_pended_total'], ['item' => $item]);
   }
 
   $list = make_pick_list($item);
@@ -34,10 +34,10 @@ function v2_pend_item($item, $mysql) {
 
 function v2_unpend_item($item, $mysql) {
 
-  log_notice("v2_unpend_item: $item[invoice_number] ".@$item['drug_name']." ".@$item['rx_number'], ['item' => $item]);//.print_r($item, true);
+  log_notice("v2_unpend_item: @$item[invoice_number] ".@$item['drug_name']." ".@$item['rx_number'], ['item' => $item]);//.print_r($item, true);
 
   if (@$item['count_pended_total'] == 0 OR $item['rx_dispensed_id'] OR is_null($item['last_inventory'])) {
-    return log_error("v2_unpend_item: ABORTED! $item[invoice_number] ".@$item['drug_name']." ".@$item['rx_number'].". rx_dispensed_id:$item[rx_dispensed_id] last_inventory:$item[last_inventory] count_pended_total:$item[count_pended_total]", ['item' => $item]);
+    return log_error("v2_unpend_item: ABORTED! ".@$item['invoice_number']." ".@$item['drug_name']." ".@$item['rx_number'].". rx_dispensed_id:".@$item['rx_dispensed_id']." last_inventory:".@$item['last_inventory']." count_pended_total:".@$item['count_pended_total'], ['item' => $item]);
   }
 
   unpend_pick_list($item);

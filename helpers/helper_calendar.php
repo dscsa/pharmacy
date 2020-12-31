@@ -82,7 +82,7 @@ function order_created_event($groups, $email, $text, $hours_to_wait) {
 
   $order = $groups['ALL'];
 
-  if ($order[0]['patient_active']) {
+  if ($order[0]['patient_inactive']) {
     log_warning('order_created_event canceled because patient inactive', get_defined_vars());
     return;
   }
