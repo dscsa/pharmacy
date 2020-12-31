@@ -121,7 +121,7 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
 
             if ($needs_removing) {
 
-              if (@$patient_or_order[0]['invoice_number']) {
+              if (is_order($patient_or_order)) {
                 $items_to_remove[] = $patient_or_order[$i];
                 $update_notice = true; //We need this because there is not equivalent of days_item_new for removed drugs.  This means order update notices will miss items that were removed manually
               } else {
@@ -145,7 +145,7 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
 
             if ($needs_adding) {
 
-              if (@$patient_or_order[0]['invoice_number']) {
+              if (is_order($patient_or_order)) {
                 $items_to_add[] = $patient_or_order[$i];
                 //$update_notice  = true; //Don't need this because will be caught by days_item_new on next go-around
               } else {
@@ -246,7 +246,7 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
           }
         }
 
-        if (! isset($patient_or_order[$i]['order_date_added'])) {
+        if ( ! is_order($patient_or_order)) {
             /*
              * The rest of the fields are order specific and will not be
              * available if this is a patient
@@ -315,7 +315,7 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
 
     //Check for invoice_number because a patient profile may have an rx turn on/off autofill, causing a day change but we still don't have an order to update
     //TODO Don't generate invoice if we are adding/removing drugs on next go-around, since invoice would need to be updated again?
-    if (@$patient_or_order[0]['invoice_number'] AND $update_payment) {
+    if (is_order($patient_or_order) AND $update_payment) {
 
       $reason = 'helper_full_fields: is_order and update_payment. ! payment_total_default OR $days_added OR $days_changed';
 
@@ -335,8 +335,9 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
       $patient_or_order = helper_update_payment($patient_or_order, $reason, $mysql);
     }
 
+
     //TODO Somehow bundle patients comms if we are adding/removing drugs on next go-around, since order_update_notice would need to be sent again?  This would be tricky to do!
-    if (@$patient_or_order[0]['invoice_number'] AND @$patient_or_order[0]['payment_total_default'] AND $update_notice) {
+    if (is_order($patient_or_order) AND @$patient_or_order[0]['payment_total_default'] AND $update_notice) {
 
       $reason = 'helper_full_fields: is_order and payment_total_default (i.e not a new order) and update_notice. $days_added OR $items_to_remove';
 

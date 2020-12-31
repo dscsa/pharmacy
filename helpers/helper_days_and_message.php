@@ -13,8 +13,9 @@ function get_days_and_message($item, $patient_or_order) {
   $refill_only      = is_refill_only($item);
   $is_duplicate_gsn = is_duplicate_gsn($item, $patient_or_order);
   $is_syncable      = is_syncable($item);
+  $is_order         = is_order($patient_or_order); //invoice_number seems like it may be present even if not an order
+
   $stock_level      = @$item['stock_level_initial'] ?: $item['stock_level'];
-  $is_order         = @$patient_or_order[0]['order_date_added']; //invoice_number seems like it may be present even if not an order
 
   $days_left_in_expiration = days_left_in_expiration($item);
   $days_left_in_refills    = days_left_in_refills($item);
@@ -62,7 +63,7 @@ function get_days_and_message($item, $patient_or_order) {
     return [0, RX_MESSAGE['NO ACTION WAS TRANSFERRED']];
   }
 
-  if ( ! is_null($days_left_in_expiration) AND $days_left_in_expiration < DAYS_BUFFER) { 
+  if ( ! is_null($days_left_in_expiration) AND $days_left_in_expiration < DAYS_BUFFER) {
     log_info("DON'T FILL EXPIRED MEDICATIONS", get_defined_vars());
     return [0, RX_MESSAGE['ACTION EXPIRED']];
   }
@@ -72,7 +73,7 @@ function get_days_and_message($item, $patient_or_order) {
   if ( ! $item['drug_gsns'] AND $item['drug_name']) {
 
     //Check for invoice number otherwise, seemed that SF tasks were being triplicated.  Unsure reason, maybe called by order_items and not just orders?
-    if ( ! @$item['order_date_added']) {
+    if ( ! is_order($patient_or_order)) {
       log_warning("Confirm didn't create salesforce task for GSN - items/rxs not order", $item);
     } else if ($item['refill_date_first']) {
       log_warning("Confirm didn't create salesforce task for GSN - refills cannot be changed", $item);
@@ -511,6 +512,10 @@ function is_webform_erx($item) {
 
 function is_webform_refill($item) {
   return in_array(@$item['order_source'], ['Webform Refill', 'Refill w/ Note']);
+}
+
+function is_order($patient_or_order) {
+  return @$patient_or_order[0] AND @$patient_or_order[0]['order_date_added']; //invoice_number is present on singular order-items
 }
 
 function is_not_offered($item) {
