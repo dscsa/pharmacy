@@ -327,7 +327,7 @@ function order_updated_notice($groups, $patient_updates) {
     '',
     ! $groups['COUNT_NOFILL'] ? '' : '<br><u>We are NOT filling these Rxs:</u><br>'.implode(';<br>', array_merge($groups['NOFILL_NOACTION'], $groups['NOFILL_ACTION'])).';',
     '',
-    json_encode($changed_fields),
+    json_encode($groups),
     ''
   ]);
 

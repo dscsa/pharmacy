@@ -35,7 +35,7 @@ function group_drugs($order, $mysql) {
 
     if ( ! @$item['drug_name']) continue; //Might be an empty order
 
-    $days = $item['days_dispensed'];
+    $days = @$item['days_dispensed'];
     $fill = $days ? 'FILLED_' : 'NOFILL_';
     $msg  = $item['rx_message_text'] ? ' '.str_replace(' **', '', $item['rx_message_text']) : '';
 
@@ -50,7 +50,7 @@ function group_drugs($order, $mysql) {
 
     $groups[$fill.$action][] = $item['drug'].$msg;
 
-    if ($item['rx_number']) { //Will be null if drug is NOT in the order.
+    if ($item['rx_number'] AND @$item['invoice_number']) { //Will be null if drug is NOT in the order.
       $sql = "
         UPDATE
           gp_order_items
@@ -79,16 +79,16 @@ function group_drugs($order, $mysql) {
       $groups['FILLED_WITH_PRICES'][] = $item['drug'].$price;
     }
 
-    if ( ! $item['refills_dispensed'] AND ! $item['rx_transfer'])
+    if ( ! @$item['refills_dispensed'] AND ! $item['rx_transfer'])
       $groups['NO_REFILLS'][] = $item['drug'].$msg;
 
     if ($days AND ! $item['rx_autofill'])
       $groups['NO_AUTOFILL'][] = $item['drug'].$msg;
 
-    if ( ! $item['refills_dispensed'] AND $days AND $days < $groups['MIN_DAYS'])
+    if ( ! @$item['refills_dispensed'] AND $days AND $days < $groups['MIN_DAYS'])
       $groups['MIN_DAYS'] = $days; //How many days before the first Rx to run out of refills
 
-    $groups['MANUALLY_ADDED'] = $item['item_added_by'] == 'MANUAL' OR $item['item_added_by'] == 'WEBFORM';
+    $groups['MANUALLY_ADDED'] = @$item['item_added_by'] == 'MANUAL' OR $item['item_added_by'] == 'WEBFORM';
   }
 
   $groups['COUNT_FILLED'] = count($groups['FILLED_ACTION']) + count($groups['FILLED_NOACTION']);
@@ -102,6 +102,7 @@ function group_drugs($order, $mysql) {
     log_error('group_drugs: wrong count_nofill', get_defined_vars());
   }
 
+  if (@$item['invoice_number'])
   $sql = "
     UPDATE
       gp_orders
@@ -173,5 +174,10 @@ function send_updated_order_communications($groups, $items_added, $items_to_remo
 
   order_updated_notice($groups, $patient_updates);
 
-  log_info('send_updated_order_communications', ['title' => $title, 'groups' => $groups, 'patient_updates' => $patient_updates]);
+  log_info('send_updated_order_communications', [
+    'groups' => $groups,
+    'items_added' => $items_added,
+    'items_to_remove' => $items_to_remove,
+    'patient_updates' => $patient_updates
+  ]);
 }
