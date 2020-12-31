@@ -94,7 +94,7 @@ function update_orders_cp($changes) {
         //Item would have already been pended from order-item-created::load_full_item
         if ($created['order_status'] == "Surescripts Authorization Denied") {
           SirumLog::error(
-            "Order CP Created - Deleting and Unpending Because Surescripts Authorization Denied. Can we remove the v2_unpend_order below because it get called on the next run?",
+            "Order CP Created - Deleting and Unpending Order $created[invoice_number] because Surescripts Authorization Denied. Can we remove the v2_unpend_order below because it get called on the next run?",
             [
               'invoice_number' => $created['invoice_number'],
               'created' => $created,
@@ -129,7 +129,7 @@ function update_orders_cp($changes) {
 
         if ($created['order_status'] == "Surescripts Authorization Approved")
           SirumLog::error(
-            "Surescripts Authorization Approved. Created.  What to do here?  Keep Order? Delete Order? Depends on Autofill settings?",
+            "Surescripts Authorization Approved. Created.  What to do here?  Keep Order $created[invoice_number]? Delete Order? Depends on Autofill settings?",
             [
               'invoice_number'   => $created['invoice_number'],
               'count_items'      => count($order)." / ".@$order['count_items'],
@@ -141,7 +141,7 @@ function update_orders_cp($changes) {
 
         if ($order[0]['order_stage_wc'] == 'wc-processing') {
             SirumLog::debug(
-                'Problem: cp order wc-processing created',
+                'Problem: cp order wc-processing created '.$order[0]['invoice_number'],
                 [
                   'invoice_number' => $order[0]['invoice_number'],
                   'order'          => $order
@@ -171,7 +171,7 @@ function update_orders_cp($changes) {
         if ($order[0]['count_filled'] == 0 AND ! $order[0]['items_to_add'] AND ! is_webform_transfer($order[0])) {
 
           SirumLog::debug(
-            'update_orders_cp: created. no drugs to fill. removing order. Can we remove the v2_unpend_order below because it get called on the next run?',
+            "update_orders_cp: created. no drugs to fill. removing order {$order[0]['invoice_number']}. Can we remove the v2_unpend_order below because it get called on the next run?",
             [
               'invoice_number' => $order[0]['invoice_number'],
               'count_filled'   => $order[0]['count_filled'],
