@@ -51,7 +51,8 @@ function unpend_pick_list($item) {
   $pend_group_manual  = pend_group_manual($item);
   $pend_group_new_patient = pend_group_new_patient($item);
 
-  echo "\nunpending item $item[drug_generic] in $pend_group_refill, $pend_group_webform, $pend_group_manual, $pend_group_new_patient\n";
+  $msg = "unpending item $item[drug_generic] in $pend_group_refill, $pend_group_webform, $pend_group_manual, $pend_group_new_patient";
+  echo "\n$msg\n";
 
   //Once order is deleted it not longer has items so its hard to determine if the items were New or Refills so just delete both
   $res_refill  = v2_fetch("/account/8889875187/pend/$pend_group_refill/$item[drug_generic]", 'DELETE');
@@ -68,7 +69,7 @@ function unpend_pick_list($item) {
 
   $result = gdoc_post(GD_HELPER_URL, $args);
 
-  log_notice("unpend_pick_list", get_defined_vars());
+  log_notice("unpend_pick_list: $msg", get_defined_vars());
 }
 
 function save_pick_list($item, $list, $mysql) {
@@ -275,7 +276,7 @@ function make_pick_list($item, $limit = 500) {
 
   create_event($event_title, [$salesforce]);
 
-  log_error("Webform Pending Error: Not enough qty found for $item[drug_generic]. Looking for $min_qty with last_inventory of $item[last_inventory] (limit $limit) #2 of 2, half fill with no safety failed", ['inventory' => $sorted_ndcs, 'count_inventory' => count($sorted_ndcs), 'item' => $item]);
+  log_error("Webform Pending Error: Not enough qty found for $item[drug_generic]. Looking for $min_qty with last_inventory of $item[last_inventory] (limit $limit) #2 of 2, half fill with no safety failed", ['inventory' => $inventory, 'sorted_ndcs' => $sorted_ndcs, 'count_inventory' => count($sorted_ndcs), 'item' => $item]);
 }
 
 function get_v2_inventory($item, $limit) {
@@ -297,8 +298,9 @@ function get_v2_inventory($item, $limit) {
 
   try {
     $res = v2_fetch($url);
+    log_info("WebForm make_pick_list fetch success.", ['url' => $url, 'item' => $item, 'res' => $res]);
   } catch (Error $e) {
-    log_error("WebForm make_pick_list fetch failed.  Retrying $item[invoice_number]", ['item' => $item, 'res' => $res, 'error' => $e]);
+    log_error("WebForm make_pick_list fetch failed.  Retrying $item[invoice_number]", ['url' => $url, 'item' => $item, 'res' => $res, 'error' => $e]);
     $res = v2_fetch($url);
   }
 
