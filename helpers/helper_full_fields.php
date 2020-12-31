@@ -325,8 +325,11 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
 
       $patient_or_order = helper_update_payment($patient_or_order, $reason, $mysql);
 
-      $groups = group_drugs($patient_or_order, $mysql);
-      send_updated_order_communications($groups);
+      //Don't send update comms on new order creation
+      if ( ! is_null(@$patient_or_order[0]['payment_total_default'])) {
+        $groups = group_drugs($patient_or_order, $mysql);
+        send_updated_order_communications($groups);
+      }
     }
 
     return $patient_or_order;
