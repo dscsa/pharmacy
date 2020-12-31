@@ -168,14 +168,17 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
             }
 
             if($needs_pending) {
+              SirumLog::notice("helper_full_fields: needs pending", ['get_days_and_message' => $get_days_and_message, 'item' => $patient_or_order[$i]]);
               v2_pend_item($patient_or_order[$i], $mysql);
             }
 
             if($needs_unpending) {
+              SirumLog::notice("helper_full_fields: needs unpending", ['get_days_and_message' => $get_days_and_message, 'item' => $patient_or_order[$i]]);
               v2_unpend_item($patient_or_order[$i], $mysql);
             }
 
             if ($needs_repending) {
+              SirumLog::notice("helper_full_fields: needs repending", ['get_days_and_message' => $get_days_and_message, 'item' => $patient_or_order[$i]]);
               v2_unpend_item($patient_or_order[$i], $mysql);
               v2_pend_item($patient_or_order[$i], $mysql);
             }

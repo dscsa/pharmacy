@@ -367,25 +367,30 @@ function update_orders_cp($changes) {
 
       export_cp_remove_items($deleted['invoice_number']);
 
-      $replacement = get_current_orders($mysql, ['patient_id_cp' => $deleted['patient_id_cp']]);
-
-      if ($replacement) {
-        log_warning('order_canceled_notice BUT their appears to be a replacement', ['deleted' => $deleted, 'replacement' => $replacement]);
-        continue;
-      }
-
       $patient = load_full_patient($deleted, $mysql, true);  //Cannot load order because it was already deleted in changes_orders_cp
       $groups  = group_drugs($patient, $mysql);
 
+      log_info('update_orders_cp deleted: unpending all items', ['deleted' => $deleted, 'groups' => $groups, 'patient' => $patient]);
+      foreach($patient as $item) {
+        v2_unpend_item(array_merge($item, $deleted), $mysql);
+      }
+
+      $replacement = get_current_orders($mysql, ['patient_id_cp' => $deleted['patient_id_cp']]);
+
+      if ($replacement) {
+        log_warning('update_orders_cp deleted: their appears to be a replacement', ['deleted' => $deleted, 'replacement' => $replacement, 'groups' => $groups, 'patient' => $patient]);
+        continue;
+      }
+
       //We should be able to delete wc-confirm-* from CP queue without triggering an order cancel notice
       if ($deleted['count_filled'] == 0 AND $deleted['count_nofill'] == 0) { //count_items may already be 0 on a deleted order that had items e.g 33840
-        log_warning("update_orders_cp deleted: no_rx_notice count_filled == 0 AND count_nofill == 0", ['deleted' => $deleted, 'groups' => $groups]);
+        log_warning("update_orders_cp deleted: no_rx_notice count_filled == 0 AND count_nofill == 0", ['deleted' => $deleted, 'groups' => $groups, 'patient' => $patient]);
         no_rx_notice($deleted, $groups);
         continue;
       }
 
       if ($is_canceled) {
-        log_warning("update_orders_cp deleted: order_canceled_notice is this right?", ['deleted' => $deleted, 'groups' => $groups]);
+        log_warning("update_orders_cp deleted: order_canceled_notice is this right?", ['deleted' => $deleted, 'groups' => $groups, 'patient' => $patient]);
         order_canceled_notice($deleted, $groups); //We passed in $deleted because there is not $order to make $groups
         continue;
       }
