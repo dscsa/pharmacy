@@ -169,7 +169,7 @@ function update_orders_cp($changes) {
         //Patient communication that we are cancelling their order examples include:
         //NEEDS FORM, ORDER HOLD WAITING FOR RXS, TRANSFER OUT OF ALL ITEMS, ACTION PATIENT OFF AUTOFILL
         //count_items instead of count_filled because it might be a manually added item, that we are not filling but that the pharmacist is using as a placeholder/reminder e.g 54732
-        if ($order[0]['count_items'] == 0 AND ! $order[0]['items_to_add'] AND ! is_webform_transfer($order[0])) {
+        if ($order[0]['count_items'] == 0 AND $order[0]['count_to_add'] == 0 AND ! is_webform_transfer($order[0])) {
 
           SirumLog::warning(
             "update_orders_cp: created. no drugs to fill. removing order {$order[0]['invoice_number']}. Can we remove the v2_unpend_order below because it get called on the next run?",
@@ -193,7 +193,7 @@ function update_orders_cp($changes) {
           continue;
         }
 
-        if ($order[0]['items_to_remove'] OR $order[0]['items_to_add']) {
+        if ($order[0]['count_to_remove'] > 0 OR $order[0]['count_to_add'] > 0) {
 
           SirumLog::debug(
             'update_orders_cp: created. skipping order because items still need to be removed/added',
@@ -201,8 +201,9 @@ function update_orders_cp($changes) {
               'invoice_number'  => $order[0]['invoice_number'],
               'count_filled'    => $order[0]['count_filled'],
               'count_items'     => $order[0]['count_items'],
-              'items_to_remove' => $order[0]['items_to_remove'],
-              'items_to_add'    => $order[0]['items_to_add'],
+              'count_to_remove' => $order[0]['count_to_remove'],
+              'count_to_add'    => $order[0]['count_to_add'],
+              'count_added'     => $order[0]['count_added'],
               'order'           => $order
             ]
           );
@@ -269,7 +270,7 @@ function update_orders_cp($changes) {
           continue; // order hold notice not necessary for transfers
         }
 
-        if ( ! $order[0]['items_to_add']) {
+        if ($order[0]['count_to_add'] == 0) {
           continue; // order hold notice not necessary if we are adding items on next go-around
         }
 
@@ -466,7 +467,7 @@ function update_orders_cp($changes) {
         //Patient communication that we are cancelling their order examples include:
         //NEEDS FORM, ORDER HOLD WAITING FOR RXS, TRANSFER OUT OF ALL ITEMS, ACTION PATIENT OFF AUTOFILL
         //count_items instead of count_filled because it might be a manually added item, that we are not filling but that the pharmacist is using as a placeholder/reminder e.g 54732
-        if ($order[0]['count_items'] == 0 AND ! $order[0]['items_to_add'] AND ! is_webform_transfer($order[0])) {
+        if ($order[0]['count_items'] == 0 AND $order[0]['count_to_add'] == 0 AND ! is_webform_transfer($order[0])) {
 
           SirumLog::alert(
             'update_orders_cp: updated. no drugs to fill. remove order '.$order[0]['invoice_number'].'?',

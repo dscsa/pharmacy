@@ -147,16 +147,13 @@ function send_dispensed_order_communications($groups) {
   order_dispensed_notice($groups);
 }
 
-function send_updated_order_communications($groups) {
-
-  $items_to_add    = $groups['ALL'][0]['items_to_add'];
-  $items_to_remove = $groups['ALL'][0]['items_to_remove'];
+function send_updated_order_communications($groups, $items_added, $items_to_remove) {
 
   $add_item_names    = [];
   $remove_item_names = [];
   $patient_updates   = [];
 
-  foreach ($items_to_add as $item) {
+  foreach ($items_added as $item) {
     $add_item_names[] = $item['drug_name'];
   }
 
@@ -176,5 +173,5 @@ function send_updated_order_communications($groups) {
 
   order_updated_notice($groups, $patient_updates);
 
-  log_info('send_updated_order_communications', ['title' => $title, 'groups' => $groups]);
+  log_info('send_updated_order_communications', ['title' => $title, 'groups' => $groups, 'patient_updates' => $patient_updates]);
 }
