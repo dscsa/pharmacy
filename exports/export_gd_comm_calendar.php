@@ -433,7 +433,7 @@ function order_canceled_notice($partial, $groups) {
   else
     $message = "Apologies we could not fill the RXs below at this time";
 
-  $message .= '<br>'.implode(';<br>', array_merge($groups['NOFILL_NOACTION'], $groups['NOFILL_ACTION'])).';';
+  $message .= '<br>'.implode(';<br>', $groups['IN_ORDER']).';';
 
   $email = [ "email" => DEBUG_EMAIL]; //$groups['ALL'][0]['email'] ];
   $text  = [ "sms"   => DEBUG_PHONE, "message" => $subject.'. '.$message ]; //get_phones($groups['ALL'])

@@ -24,6 +24,7 @@ function group_drugs($order, $mysql) {
     "NOFILL_NOACTION" => [],
     "FILLED" => [],
     "FILLED_WITH_PRICES" => [],
+    "IN_ORDER" => [],
     "NO_REFILLS" => [],
     "NO_AUTOFILL" => [],
     "MIN_DAYS" => 366 //Max Days of a Script
@@ -49,6 +50,9 @@ function group_drugs($order, $mysql) {
     $price = ($days AND $item['price_dispensed']) ? ', $'.((float) $item['price_dispensed']).' for '.$days.' days' : '';
 
     $groups[$fill.$action][] = $item['drug'].$msg;
+
+    if (@$item['item_date_added'])
+      $groups['IN_ORDER'][] = $item['drug'].$msg;
 
     if ($item['rx_number'] AND @$item['invoice_number']) { //Will be null if drug is NOT in the order.
       $sql = "
