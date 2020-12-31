@@ -82,7 +82,7 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
             list($days, $message) = get_days_and_message($patient_or_order[$i], $patient_or_order);
 
             //If days_actual are set, then $days will be 0 (because it will be a recent fill)
-            $days_added   = ($days AND ! @$patient_or_order[$i]['days_dispensed_default']);
+            $days_added      = ($days AND ! @$patient_or_order[$i]['days_dispensed_default']);
             $days_changed    = (@$patient_or_order[$i]['days_dispensed_default'] AND ! @$patient_or_order[$i]['days_dispensed_actual'] AND @$patient_or_order[$i]['days_dispensed_default'] != $days AND ! @$patient_or_order[$i]['sync_to_date_days_before']);
 
             $needs_adding    = ( ! @$patient_or_order[$i]['item_date_added'] AND $days > 0);
