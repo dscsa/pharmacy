@@ -489,10 +489,11 @@ function update_orders_cp($changes) {
           continue;
         }
 
-        if ($order[0]['items_to_remove'] OR $order[0]['items_to_add']) {
+        //NOTE $order[0]['items_to_remove'] OR $order[0]['items_to_add'] would catch "updates" by pharmacy app but not manual updates by staff or webform
+        if ($updated['count_items'] != $updated['old_count_items']) {
 
           SirumLog::debug(
-            'update_orders_cp: updated. send patient comm of updates and skipping rest of loop because items still need to be removed/added',
+            'update_orders_cp: updated. send_updated_order_communications',
             [
               'invoice_number'  => $order[0]['invoice_number'],
               'count_filled'    => $order[0]['count_filled'],
@@ -503,10 +504,8 @@ function update_orders_cp($changes) {
             ]
           );
 
-          $groups = group_drugs($order, $mysql);
           send_updated_order_communications($groups);
 
-          //On the next run the count_items will be updated to count_filled and this UPDATE LOOP will run again so no need to run it now
           continue;
         }
 
