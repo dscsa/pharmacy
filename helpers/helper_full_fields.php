@@ -103,7 +103,7 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
               "new_rx_message_text"        => "$message[EN] ($message[CP_CODE])",
               "old_rx_message_text"        => $patient_or_order[$i]['rx_message_text'],
 
-              "patient_or_order"           => $patient_or_order[$i],
+              "item"                       => $patient_or_order[$i],
               'needs_adding'               => $needs_adding,
               'needs_removing'             => $needs_removing,
               "needs_pending"              => $needs_pending,
