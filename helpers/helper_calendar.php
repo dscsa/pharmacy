@@ -152,7 +152,7 @@ function order_updated_event($groups, $email, $text, $hours_to_wait) {
   $patient_label = get_patient_label($order);
   $event_title   = $order[0]['invoice_number'].' Order Updated: '.count($groups['FILLED_WITH_PRICES']).' items. '.$patient_label.'.  Created:'.date('Y-m-d H:i:s');
 
-  $cancel = cancel_events_by_person($order[0]['first_name'], $order[0]['last_name'], $order[0]['birth_date'], 'order_updated_event', ['Transfer Requested', 'Order Updated', 'Order Hold', 'No Rx', 'Needs Form', 'Order Canceled']);
+  //$cancel = cancel_events_by_person($order[0]['first_name'], $order[0]['last_name'], $order[0]['birth_date'], 'order_updated_event', ['Transfer Requested', 'Order Updated', 'Order Hold', 'No Rx', 'Needs Form', 'Order Canceled']);
 
   $comm_arr = new_comm_arr($patient_label, $email, $text);
 
@@ -208,7 +208,7 @@ function order_canceled_event($order, $email, $text, $hours_to_wait, $hour_of_da
   $event_title   = $order[0]['invoice_number'].' Order Canceled: '.$patient_label.'. Created:'.date('Y-m-d H:i:s');
 
   //Patient information not available
-  $cancel = cancel_events_by_order($order[0]['invoice_number'], 'order_canceled_event', ['Order Created', 'Order Updated', 'Order Dispensed']);
+  //$cancel = cancel_events_by_order($order[0]['invoice_number'], 'order_canceled_event', ['Order Created', 'Order Updated', 'Order Dispensed']);
 
   $comm_arr = new_comm_arr($patient_label, $email, $text);
 
