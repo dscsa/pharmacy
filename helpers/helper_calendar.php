@@ -4,7 +4,7 @@ use Sirum\Logging\SirumLog;
 
 function order_dispensed_event($order, $salesforce, $hours_to_wait) {
 
-  if (@$order[0]['patient_active']) {
+  if (@$order[0]['patient_inactive']) {
     log_warning('order_dispensed_event canceled because patient inactive', get_defined_vars());
     return;
   }
@@ -23,7 +23,7 @@ function order_dispensed_event($order, $salesforce, $hours_to_wait) {
 
 function order_shipped_event($order, $email, $text) {
 
-  if ($order[0]['patient_active']) {
+  if ($order[0]['patient_inactive']) {
     log_warning('order_shipped_event canceled because patient inactive', get_defined_vars());
     return;
   }
@@ -42,7 +42,7 @@ function order_shipped_event($order, $email, $text) {
 
 function refill_reminder_event($order, $email, $text, $hours_to_wait, $hour_of_day = null) {
 
-  if ($order[0]['patient_active']) {
+  if ($order[0]['patient_inactive']) {
     log_warning('refill_reminder_event canceled because patient inactive', get_defined_vars());
     return;
   }
@@ -61,7 +61,7 @@ function refill_reminder_event($order, $email, $text, $hours_to_wait, $hour_of_d
 
 function autopay_reminder_event($order, $email, $text, $hours_to_wait, $hour_of_day = null) {
 
-  if ($order[0]['patient_active']) {
+  if ($order[0]['patient_inactive']) {
     log_warning('autopay_reminder_event canceled because patient inactive', get_defined_vars());
     return;
   }
@@ -101,7 +101,7 @@ function order_created_event($groups, $email, $text, $hours_to_wait) {
 
 function transfer_requested_event($order, $email, $text, $hours_to_wait) {
 
-  if ($order[0]['patient_active']) {
+  if ($order[0]['patient_inactive']) {
     log_warning('transfer_requested_event canceled because patient inactive', get_defined_vars());
     return;
   }
@@ -120,7 +120,7 @@ function transfer_requested_event($order, $email, $text, $hours_to_wait) {
 
 function order_hold_event($order, $email, $text, $salesforce, $hours_to_wait) {
 
-  if ($order[0]['patient_active']) {
+  if ($order[0]['patient_inactive']) {
     log_warning('order_hold_event canceled because patient inactive', get_defined_vars());
     return;
   }
@@ -163,7 +163,7 @@ function order_updated_event($groups, $email, $text, $hours_to_wait) {
 
 function needs_form_event($order, $email, $text, $hours_to_wait, $hour_of_day = 0) {
 
-  if ($order[0]['patient_active']) {
+  if ($order[0]['patient_inactive']) {
     log_warning('needs_form_event canceled because patient inactive', get_defined_vars());
     return;
   }
@@ -180,7 +180,7 @@ function needs_form_event($order, $email, $text, $hours_to_wait, $hour_of_day = 
 
 function no_rx_event($order, $email, $text, $hours_to_wait, $hour_of_day = null) {
 
-  if ($order[0]['patient_active']) {
+  if ($order[0]['patient_inactive']) {
     log_warning('no_rx_event canceled because patient inactive', get_defined_vars());
     return;
   }
@@ -199,7 +199,7 @@ function no_rx_event($order, $email, $text, $hours_to_wait, $hour_of_day = null)
 
 function order_canceled_event($order, $email, $text, $hours_to_wait, $hour_of_day  = null) {
 
-  if ($order[0]['patient_active']) {
+  if ($order[0]['patient_inactive']) {
     log_warning('order_canceled_event canceled because patient inactive', get_defined_vars());
     return;
   }
@@ -219,7 +219,7 @@ function order_canceled_event($order, $email, $text, $hours_to_wait, $hour_of_da
 
 function confirm_shipment_event($order, $email, $salesforce, $hours_to_wait, $hour_of_day = null) {
 
-  if ($order[0]['patient_active']) {
+  if ($order[0]['patient_inactive']) {
     log_warning('confirm_shipment_event canceled because patient inactive', get_defined_vars());
     return;
   }

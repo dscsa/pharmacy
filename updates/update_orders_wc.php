@@ -48,7 +48,7 @@ function update_orders_wc($changes) {
         $replacement = get_current_orders($mysql, ['patient_id_wc' => $created['patient_id_wc']]);
 
         if ($replacement) {
-          log_warning('order_canceled_notice BUT their appears to be a replacement', ['created' => $created, 'sql' => $sql, 'replacement' => $replacement]);
+          log_warning('order_canceled_notice BUT their appears to be a replacement', ['created' => $created, 'replacement' => $replacement]);
         }
 
         //[NULL, 'Webform Complete', 'Webform eRx', 'Webform Transfer', 'Auto Refill', '0 Refills', 'Webform Refill', 'eRx /w Note', 'Transfer /w Note', 'Refill w/ Note']

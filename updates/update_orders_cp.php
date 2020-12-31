@@ -369,7 +369,7 @@ function update_orders_cp($changes) {
       $replacement = get_current_orders($mysql, ['patient_id_cp' => $deleted['patient_id_cp']]);
 
       if ($replacement) {
-        log_warning('order_canceled_notice BUT their appears to be a replacement', ['deleted' => $deleted, 'sql' => $sql, 'replacement' => $replacement]);
+        log_warning('order_canceled_notice BUT their appears to be a replacement', ['deleted' => $deleted, 'replacement' => $replacement]);
         continue;
       }
 
