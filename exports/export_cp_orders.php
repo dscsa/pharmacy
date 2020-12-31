@@ -31,7 +31,7 @@ function export_cp_set_pend_name($item) {
   $res = $mssql->run($sql);
 }
 
-function export_cp_remove_order($invoice_number) {
+function export_cp_remove_order($invoice_number, $reason) {
 
   global $mssql;
   $mssql = $mssql ?: new Mssql_Cp();
@@ -39,7 +39,8 @@ function export_cp_remove_order($invoice_number) {
   SirumLog::notice(
     "export_cp_remove_order: Order deleting $invoice_number",
     [
-      'invoice_number'  => $invoice_number
+      'invoice_number'  => $invoice_number,
+      'reason'          => $reason
     ]
   );
 
@@ -48,7 +49,7 @@ function export_cp_remove_order($invoice_number) {
   if ( ! $new_count_items) {
     $date = date('y-m-d H:i');
     $sql = "
-      UPDATE csom SET status_cn = 3, comments = RIGHT(CONCAT(comments, CHAR(10), 'Auto Deleted $date'), 256) WHERE invoice_nbr = $invoice_number -- chg_user_id = @user_id, chg_date = @today
+      UPDATE csom SET status_cn = 3, comments = RIGHT(CONCAT(comments, CHAR(10), 'Auto Deleted $date. $reason'), 256) WHERE invoice_nbr = $invoice_number -- chg_user_id = @user_id, chg_date = @today
     ";
 
     $res = $mssql->run($sql);
@@ -57,6 +58,7 @@ function export_cp_remove_order($invoice_number) {
       "export_cp_remove_order: Order $invoice_number was deleted",
       [
         'invoice_number'  => $invoice_number,
+        'reason'          => $reason,
         'new_count_items' => $new_count_items,
         'sql'             => $sql,
         'res'             => $res
@@ -69,6 +71,7 @@ function export_cp_remove_order($invoice_number) {
       "export_cp_remove_order: Order $invoice_number could only be partially deleted",
       [
         'invoice_number'  => $invoice_number,
+        'reason'          => $reason,
         'new_count_items' => $new_count_items
       ]
     );

@@ -62,7 +62,7 @@ function get_days_and_message($item, $patient_or_order) {
     return [0, RX_MESSAGE['NO ACTION WAS TRANSFERRED']];
   }
 
-  if ($days_left_in_expiration < 0) { // Can't do <= 0 because null <= 0 is true
+  if ( ! is_null($days_left_in_expiration) AND $days_left_in_expiration < DAYS_BUFFER) { 
     log_info("DON'T FILL EXPIRED MEDICATIONS", get_defined_vars());
     return [0, RX_MESSAGE['ACTION EXPIRED']];
   }

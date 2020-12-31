@@ -64,7 +64,7 @@ function update_orders_cp($changes) {
           //Not sure what we should do here. Delete it?
           //Instance where current order doesn't have all drugs, so patient/staff add a second order with the drug.  Merge orders?
           if ($created['count_items'] == 0)
-            export_cp_remove_order($created['invoice_number']);
+            export_cp_remove_order($created['invoice_number'], "Duplicate of ".$duplicate[0]['invoice_number']);
 
           continue;
         }
@@ -123,7 +123,7 @@ function update_orders_cp($changes) {
           //TODO Why do we need to explicitly unpend?  Deleting an order in CP should trigger the deleted loop on next run, which should unpend
           //But it seemed that this didn't happen for Order 53684
           export_v2_unpend_order($order, $mysql);
-          export_cp_remove_order($created['invoice_number']);
+          export_cp_remove_order($created['invoice_number'], 'Surescripts Denied');
           continue; //Not sure what we should do here.  Process them?  Patient communication?
         }
 
@@ -189,7 +189,7 @@ function update_orders_cp($changes) {
           //TODO Why do we need to explicitly unpend?  Deleting an order in CP should trigger the deleted loop on next run, which should unpend
           //But it seemed that this didn't happen for Order 53684
           export_v2_unpend_order($order, $mysql);
-          export_cp_remove_order($order[0]['invoice_number']);
+          export_cp_remove_order($order[0]['invoice_number'], 'Created Empty');
           continue;
         }
 
@@ -503,7 +503,7 @@ function update_orders_cp($changes) {
           //TODO Why do we need to explicitly unpend?  Deleting an order in CP should trigger the deleted loop on next run, which should unpend
           //But it seemed that this didn't happen for Order 53684
           export_v2_unpend_order($order, $mysql);
-          export_cp_remove_order($order[0]['invoice_number']);
+          export_cp_remove_order($order[0]['invoice_number'], 'Updated Empty');
           continue;
         }
 

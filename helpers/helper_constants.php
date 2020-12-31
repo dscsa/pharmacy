@@ -3,12 +3,13 @@
 const LIVE_MODE = true;
 const DAYS_OF_RXS_TO_IMPORT = 7;
 
-const DAYS_STD   = 90;
-const DAYS_MIN   = 45;
-const DAYS_MAX   = 120;
-const DAYS_UNIT  = 15;
-const DAYS_EARLY = 28;
-const NO_REFILL  = 0.1;
+const DAYS_STD    = 90;
+const DAYS_MIN    = 45;
+const DAYS_MAX    = 120;
+const DAYS_UNIT   = 15;
+const DAYS_EARLY  = 28;
+const NO_REFILL   = 0.1;
+const DAYS_BUFFER = 4; //TODO Port of Autofill Script and use this constant
 const MAX_QTY_PER_DAY = 8;
 
 const ADDED_MANUALLY = [
