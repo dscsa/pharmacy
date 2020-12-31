@@ -308,7 +308,25 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
     //A patient profile may have an rx turn on autofill, causing a day change but we still don't have an order to update
     //Don't generate invoice if we are adding/removing drugs on next go-around, since invoice would need to be updated again
     if (@$patient_or_order[0]['invoice_number'] AND $update_payment) {
-      $patient_or_order = helper_update_payment($patient_or_order, "helper_full_fields: {$patient_or_order[0]['invoice_number']} items_to_add:".count($items_to_add)." items_to_remove:".count($items_to_remove), $mysql);
+
+      $reason = 'helper_full_fields: is_order and update_payment. is_null(payment_total_default) OR $days_new_item OR $days_changed';
+
+      SirumLog::debug(
+        $reason,
+        [
+          'invoice_number'  => $patient_or_order[0]['invoice_number'],
+          'count_filled'    => $patient_or_order[0]['count_filled'],
+          'count_items'     => $patient_or_order[0]['count_items'],
+          'items_to_remove' => $patient_or_order[0]['items_to_remove'],
+          'items_to_add'    => $patient_or_order[0]['items_to_add'],
+          'order'           => $patient_or_order
+        ]
+      );
+
+      $patient_or_order = helper_update_payment($patient_or_order, $reason, $mysql);
+
+      $groups = group_drugs($patient_or_order, $mysql);
+      send_updated_order_communications($groups);
     }
 
     return $patient_or_order;

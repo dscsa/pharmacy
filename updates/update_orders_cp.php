@@ -489,26 +489,6 @@ function update_orders_cp($changes) {
           continue;
         }
 
-        //NOTE $order[0]['items_to_remove'] OR $order[0]['items_to_add'] would catch "updates" by pharmacy app but not manual updates by staff or webform
-        if ($updated['count_items'] != $updated['old_count_items']) {
-
-          SirumLog::debug(
-            'update_orders_cp: updated. send_updated_order_communications',
-            [
-              'invoice_number'  => $order[0]['invoice_number'],
-              'count_filled'    => $order[0]['count_filled'],
-              'count_items'     => $order[0]['count_items'],
-              'items_to_remove' => $order[0]['items_to_remove'],
-              'items_to_add'    => $order[0]['items_to_add'],
-              'order'           => $order
-            ]
-          );
-
-          send_updated_order_communications($groups);
-
-          continue;
-        }
-
         //Address Changes
         //Stage Change
         //Order_Source Change (now that we overwrite when saving webform)
