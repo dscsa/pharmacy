@@ -11,6 +11,11 @@ use Sirum\Logging\SirumLog;
 //4) NOT FILLING NO ACTION
 function group_drugs($order, $mysql) {
 
+  if ( ! $order) {
+    log_error('GROUP_DRUGS did not get an order', get_defined_vars());
+    return;
+  }
+
   $groups = [
     "ALL" => [],
     "FILLED_ACTION" => [],
@@ -107,10 +112,7 @@ function group_drugs($order, $mysql) {
       invoice_number = {$order[0]['invoice_number']}
   ";
 
-  if ($order[0]['invoice_number'])
-    $mysql->run($sql);
-  else
-    log_error('GROUP_DRUGS has no invoice number', get_defined_vars());
+  $mysql->run($sql);
 
   log_info('GROUP_DRUGS', get_defined_vars());
 

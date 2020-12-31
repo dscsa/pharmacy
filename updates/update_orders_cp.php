@@ -372,7 +372,24 @@ function update_orders_cp($changes) {
         continue;
       }
 
-      $order  = load_full_order($deleted, $mysql);  //This will be an empty order (one row only with drug_name) because order_items already deleted
+      $order = load_full_order($deleted, $mysql);  //This will be an empty order (one row only with drug_name) because order_items already deleted
+
+      if ($order) {
+        log_warning("update_orders_cp deleted: load_full_order SUCCESS", [
+          'deleted' => $deleted,
+          'order' => $order
+        ]);
+      } else {
+        $patient = load_full_patient($deleted, $mysql);
+        $groups = group_drugs($patient, $mysql);
+        log_alert("update_orders_cp deleted: load_full_order FAILURE", [
+          'deleted' => $deleted,
+          'patient' => $patient,
+          'groups' => $groups
+        ]);
+        continue;
+      }
+
       $groups = group_drugs($order, $mysql);
 
       //We should be able to delete wc-confirm-* from CP queue without triggering an order cancel notice
@@ -401,7 +418,7 @@ function update_orders_cp($changes) {
         SirumLog::$subroutine_id = "orders-cp-updated-".sha1(serialize($updated));
 
         SirumLog::debug(
-          'Carepoint Order has been updated',
+          "Carepoint Order $updated[invoice_number] has been updated",
           [
             'source'         => 'CarePoint',
             'event'          => 'updated',
@@ -416,22 +433,10 @@ function update_orders_cp($changes) {
 
         log_notice("Updated Orders Cp: $updated[invoice_number] ".($i+1)." of ".count($changes['updated']), $changed_fields);
 
-        SirumLog::debug(
-          "get_full_order: Carepoint Order Updated",
-          ['updated' => $updated]
-        );
-
         $order  = load_full_order($updated, $mysql);
         $groups = group_drugs($order, $mysql);
 
         if (!$order) {
-          SirumLog::notice(
-            "Order not found",
-            [
-              'order'          => $order,
-              'updated'        => $updated
-            ]
-          );
           log_error("Updated Order Missing", $order);
           continue;
         }

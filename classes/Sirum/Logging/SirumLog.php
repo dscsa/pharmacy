@@ -52,7 +52,8 @@ class SirumLog
         }
 
         if (is_array($args)) {
-            list($message, $context) = $args;
+            $message = @$args[0];
+            $context = @$args[1];
         } else {
             $message = $args;
             $context = [];
