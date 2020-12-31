@@ -82,7 +82,7 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
             list($days, $message) = get_days_and_message($patient_or_order[$i], $patient_or_order);
 
             //If days_actual are set, then $days will be 0 (because it will be a recent fill)
-            $days_new_item   = ($days AND ! @$patient_or_order[$i]['days_dispensed_default']);
+            $days_added   = ($days AND ! @$patient_or_order[$i]['days_dispensed_default']);
             $days_changed    = (@$patient_or_order[$i]['days_dispensed_default'] AND ! @$patient_or_order[$i]['days_dispensed_actual'] AND @$patient_or_order[$i]['days_dispensed_default'] != $days AND ! @$patient_or_order[$i]['sync_to_date_days_before']);
 
             $needs_adding    = ( ! @$patient_or_order[$i]['item_date_added'] AND $days > 0);
@@ -180,7 +180,7 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
               v2_pend_item($patient_or_order[$i], $mysql);
             }
 
-            if ($days_new_item) {
+            if ($days_added) {
               $items_added[] = $patient_or_order[$i];
               $update_payment = true; //Too bad there is not a calculation for $items_removed and we instead have to use the proxy items_to_remove which won't detect manual changes
               $update_notice  = true;
@@ -317,7 +317,7 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
     //TODO Don't generate invoice if we are adding/removing drugs on next go-around, since invoice would need to be updated again?
     if (@$patient_or_order[0]['invoice_number'] AND $update_payment) {
 
-      $reason = 'helper_full_fields: is_order and update_payment. ! payment_total_default OR $days_new_item OR $days_changed';
+      $reason = 'helper_full_fields: is_order and update_payment. ! payment_total_default OR $days_added OR $days_changed';
 
       SirumLog::debug(
         $reason,
@@ -338,7 +338,7 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
     //TODO Somehow bundle patients comms if we are adding/removing drugs on next go-around, since order_update_notice would need to be sent again?  This would be tricky to do!
     if (@$patient_or_order[0]['invoice_number'] AND @$patient_or_order[0]['payment_total_default'] AND $update_notice) {
 
-      $reason = 'helper_full_fields: is_order and payment_total_default (i.e not a new order) and update_notice. $days_new_item OR $items_to_remove';
+      $reason = 'helper_full_fields: is_order and payment_total_default (i.e not a new order) and update_notice. $days_added OR $items_to_remove';
 
       SirumLog::debug(
         $reason,
