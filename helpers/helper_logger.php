@@ -12,3 +12,4 @@ use Sirum\Logging\SirumLog;
  * we will rework it.
  */
 SirumLog::getLogger('pharmacy-automation');
+AuditLog::getLogger();
