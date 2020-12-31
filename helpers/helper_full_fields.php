@@ -207,7 +207,11 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
 
         //TODO consider making these methods so that they always stay upto
         //TODO date and we don't have to recalcuate them when things change
-        
+        $patient_or_order[$i]['drug'] = $patient_or_order[$i]['drug_generic'];
+        if ($patient_or_order[$i]['drug_name']) {
+          $patient_or_order[$i]['drug'] = $patient_or_order[$i]['drug_name'];
+        }
+
         $patient_or_order[$i]['payment_method'] = @$patient_or_order[$i]['payment_method_default'];
         if (@$patient_or_order[$i]['payment_method_actual']) {
           $patient_or_order[$i]['payment_method']  = @$patient_or_order[$i]['payment_method_actual'];
