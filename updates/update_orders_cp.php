@@ -373,36 +373,19 @@ function update_orders_cp($changes) {
         continue;
       }
 
-      $order = load_full_order($deleted, $mysql);  //This will be an empty order (one row only with drug_name) because order_items already deleted
-
-      if ($order) {
-        log_warning("update_orders_cp deleted: load_full_order SUCCESS", [
-          'deleted' => $deleted,
-          'order' => $order
-        ]);
-      } else {
-        $patient = load_full_patient($deleted, $mysql);
-        $groups = group_drugs($patient, $mysql);
-        log_alert("update_orders_cp deleted: load_full_order FAILURE", [
-          'deleted' => $deleted,
-          'patient' => $patient,
-          'groups' => $groups
-        ]);
-        continue;
-      }
-
-      $groups = group_drugs($order, $mysql);
+      $patient = load_full_patient($deleted, $mysql, true);  //Cannot load order because it was already deleted in changes_orders_cp
+      $groups  = group_drugs($patient, $mysql);
 
       //We should be able to delete wc-confirm-* from CP queue without triggering an order cancel notice
       if ($deleted['count_filled'] == 0 AND $deleted['count_nofill'] == 0) { //count_items may already be 0 on a deleted order that had items e.g 33840
         log_warning("update_orders_cp deleted: no_rx_notice count_filled == 0 AND count_nofill == 0", ['deleted' => $deleted, 'groups' => $groups]);
-        no_rx_notice($groups);
+        no_rx_notice($deleted, $groups);
         continue;
       }
 
       if ($is_canceled) {
         log_warning("update_orders_cp deleted: order_canceled_notice is this right?", ['deleted' => $deleted, 'groups' => $groups]);
-        order_canceled_notice($groups); //We passed in $deleted because there is not $order to make $groups
+        order_canceled_notice($deleted, $groups); //We passed in $deleted because there is not $order to make $groups
         continue;
       }
 
@@ -475,8 +458,8 @@ function update_orders_cp($changes) {
 
         //We should be able to delete wc-confirm-* from CP queue without triggering an order cancel notice
         if ($order[0]['count_filled'] == 0 AND $order[0]['count_nofill'] == 0) { //count_items may already be 0 on a deleted order that had items e.g 33840
-          log_warning("update_orders_cp updated: no_rx_notice count_filled == 0 AND count_nofill == 0", ['deleted' => $deleted, 'groups' => $groups]);
-          no_rx_notice($groups);
+          log_warning("update_orders_cp updated: no_rx_notice count_filled == 0 AND count_nofill == 0", ['updated' => $updated, 'groups' => $groups]);
+          no_rx_notice($updated, $groups);
           continue;
         }
 
@@ -495,10 +478,9 @@ function update_orders_cp($changes) {
             ]
           );
 
-          $groups = group_drugs($order, $mysql);
-          order_canceled_notice($groups); //We passed in $deleted because there is not $order to make $groups
+          order_canceled_notice($updated, $groups); //We passed in $deleted because there is not $order to make $groups
 
-          //TODO Remove/Cancel WC Order Here
+          //TODO Necessary to Remove/Cancel WC Order Here?
 
           //TODO Why do we need to explicitly unpend?  Deleting an order in CP should trigger the deleted loop on next run, which should unpend
           //But it seemed that this didn't happen for Order 53684

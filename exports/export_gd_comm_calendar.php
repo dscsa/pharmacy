@@ -398,10 +398,10 @@ function needs_form_notice($groups) {
 
 //We are coording patient communication via sms, calls, emails, & faxes
 //by building commication arrays based on github.com/dscsa/communication-calendar
-function no_rx_notice($groups) {
+function no_rx_notice($partial, $groups) {
 
-  $subject = 'Good Pill received Order #'.$groups['ALL'][0]['invoice_number'].' but is waiting for your prescriptions';
-  $message  = is_webform_transfer($groups['ALL'][0]['invoice_number'])
+  $subject = "Good Pill received Order #$partial[invoice_number] but is waiting for your prescriptions";
+  $message  = is_webform_transfer($partial)
     ? "We will attempt to transfer the Rxs you requested from your pharmacy."
     : "We haven't gotten any Rxs from your doctor yet but will notify you as soon as we do.";
 
@@ -423,26 +423,28 @@ function no_rx_notice($groups) {
   no_rx_event($groups['ALL'], $email, $text, 15/60);
 }
 
-function order_canceled_notice($groups) {
+function order_canceled_notice($partial, $groups) {
 
-  $subject = "Good Pill canceled your Order #".$groups['ALL'][0]['invoice_number'];
+  $subject = "Good Pill canceled your Order #$partial[invoice_number]";
 
-  $message = "Good Pill cancelled order ".$groups['ALL'][0]['invoice_number'].". ";
-
-  //called from an order-deleted loop with no order item info rather than a order-updated loop
-  if ( ! $groups['ALL'][0]['drug_name'])
-    $message .= " We're sorry that we are unable to provide the reason for cancellation via text or email; if you believe this cancellation is an error, please give us a call at (888) 987-5187. Thank you.";
+  //called from an order-updated loop which has order item info rather than a order-deleted loop
+  if ($groups['ALL'][0]['invoice_number'])
+    $message = "Your order was canceled at your request";
   else
-    $message .= '<br>'.implode(';<br>', $groups['ALL']).';';
+    $message = "Apologies we could not fill the RXs below at this time";
+
+  $message .= '<br>'.implode(';<br>', array_merge($groups['NOFILL_NOACTION'], $groups['NOFILL_ACTION'])).';';
 
   $email = [ "email" => DEBUG_EMAIL]; //$groups['ALL'][0]['email'] ];
-  $text  = [ "sms"   => DEBUG_PHONE, "message" => $subject.' '.$message ]; //get_phones($groups['ALL'])
+  $text  = [ "sms"   => DEBUG_PHONE, "message" => $subject.'. '.$message ]; //get_phones($groups['ALL'])
 
   $email['subject'] = $subject;
   $email['message'] = implode('<br>', [
     'Hello,',
     '',
     $subject.'. '.$message,
+    '',
+    "If you believe this cancellation was in error, please give us a call at (888) 987-5187. Thank you.",
     '',
     'Thanks!',
     'The Good Pill Team',
