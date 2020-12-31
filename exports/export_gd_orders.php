@@ -149,8 +149,13 @@ function export_gd_update_invoice($order, $reason, $mysql, $try2 = false)
 
 
 
-//Cannot delete (with this account) once published
-function export_gd_publish_invoice($order, $mysql, $retry = false)
+/**
+ * Set an invoice as published so it can't be modified any longer
+ * @param  array    $order The order to be published
+ * @param  Mysql_Wc $mysql The Mysql connection
+ * @return void
+ */
+function export_gd_publish_invoice($order, $mysql)
 {
 
     // Check to see if current invoice is avaliable.
@@ -161,7 +166,7 @@ function export_gd_publish_invoice($order, $mysql, $retry = false)
     }
 
     // Check to see if the file we have exists
-    if ($meta->parent->name != INVOICE_PENDING_FOLDER_NAME || $meta->trashed) {
+    if (!isset($meta) || $meta->parent->name != INVOICE_PENDING_FOLDER_NAME || $meta->trashed) {
         // The current invoice is trash.  Make a new invoice
         $update_reason = "export_gd_publish_invoice: invoice didn't exist so trying to (re)make it";
 
@@ -201,11 +206,14 @@ function export_gd_publish_invoice($order, $mysql, $retry = false)
     return $order;
 }
 
+/**
+ * Move an invoice to the published folder so it will print
+ * @param  array $order An order that needs to be printed
+ * @return void
+ */
 function export_gd_print_invoice($order)
 {
     // Rework this to put the item in the queue
-    global $gd_merge_timers;
-    $start = microtime(true);
     SirumLog::notice(
         "export_gd_print_invoice: start",
         [
@@ -217,14 +225,11 @@ function export_gd_print_invoice($order)
     $args = [
         'method'     => 'moveFile',
         'fileId'     => $order[0]['invoice_doc_id'],
-        'file'       => 'Invoice #'.$order[0]['invoice_number'],
         'fromFolder' => INVOICE_PENDING_FOLDER_NAME,
         'toFolder'   => INVOICE_PUBLISHED_FOLDER_NAME,
     ];
 
     $result = gdoc_post(GD_HELPER_URL, $args);
-
-    $time = ceil(microtime(true) - $start);
 
     SirumLog::debug(
         'export_gd_print_invoice',
@@ -232,11 +237,8 @@ function export_gd_print_invoice($order)
             "invoice_number" => $order[0]['invoice_number'],
             "invoice_doc_id" => $order[0]['invoice_doc_id'],
             "result"         => $result,
-            "time"           => $time
         ]
     );
-
-    $gd_merge_timers['export_gd_print_invoice'] += ceil(microtime(true) - $start);
 }
 
 /**
@@ -249,9 +251,6 @@ function export_gd_print_invoice($order)
 function export_gd_delete_invoice($identifier, $is_doc_id = true);
 {
 
-    // Rework to be asyncrounous
-    global $gd_merge_timers;
-
     $args = [
         'method'   => 'removeFiles',
         'folder'   => INVOICE_PENDING_FOLDER_NAME
@@ -263,23 +262,14 @@ function export_gd_delete_invoice($identifier, $is_doc_id = true);
         $args['file'] = 'Invoice #' . $identifier;
     }
 
-    echo "deleting invoice $invoice_number";
-
-    $start  = microtime(true);
-    $result = gdoc_post(GD_HELPER_URL, $args);
-    $time   = ceil(microtime(true) - $start);
-
-    echo " completed in $time seconds\n";
-
-
     SirumLog::debug(
         'export_gd_delete_invoice',
         [
-            "invoice_number" => $invoice_number,
+            "identifier"     => $identifier,
+            "is_doc_id"      => $is_doc_id,
             "result"         => $result,
             "time"           => $time
         ]
     );
 
-    $gd_merge_timers['export_gd_delete_invoice'] += ceil(microtime(true) - $start);
 }
