@@ -36,6 +36,10 @@ function v2_unpend_item($item, $mysql) {
 
   log_notice("v2_unpend_item: @$item[invoice_number] ".@$item['drug_name']." ".@$item['rx_number'], ['item' => $item]);//.print_r($item, true);
 
+  if ( ! @$item['invoice_number']) {
+    log_alert("v2_unpend_item: NO INVOICE NUMBER! ".@$item['invoice_number']." ".@$item['drug_name']." ".@$item['rx_number'].". rx_dispensed_id:".@$item['rx_dispensed_id']." last_inventory:".@$item['last_inventory']." count_pended_total:".@$item['count_pended_total'], ['item' => $item]);
+  }
+
   if (@$item['count_pended_total'] == 0 OR $item['rx_dispensed_id'] OR is_null($item['last_inventory'])) {
     log_error("v2_unpend_item: ERROR! ".@$item['invoice_number']." ".@$item['drug_name']." ".@$item['rx_number'].". rx_dispensed_id:".@$item['rx_dispensed_id']." last_inventory:".@$item['last_inventory']." count_pended_total:".@$item['count_pended_total'], ['item' => $item]);
   }

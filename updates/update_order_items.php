@@ -81,19 +81,20 @@ function update_order_items($changes) {
 
     SirumLog::$subroutine_id = "order-items-deleted-".sha1(serialize($deleted));
 
+    $item = load_full_item($deleted, $mysql);
+
     SirumLog::debug(
       "update_order_items: Order Item deleted",
       [
           'deleted' => $deleted,
+          'item'    => $item,
           'source'  => 'CarePoint',
           'type'    => 'order-items',
           'event'   => 'deleted'
       ]
     );
 
-    $item = load_full_item($deleted, $mysql);
-
-    v2_unpend_item($item, $mysql);
+    v2_unpend_item(array_merge($item, $deleted), $mysql);
 
     //TODO Update Salesforce Order Total & Order Count & Order Invoice using REST API or a MYSQL Zapier Integration
   }
