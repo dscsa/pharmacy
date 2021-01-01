@@ -98,6 +98,10 @@ function update_orders_wc($changes) {
           ]
       );
 
+      //A orders-cp-created that was deleted in the created loop (Surescript Denied)
+      if ($deleted['order_status'] == "Surescripts Authorization Denied")
+        continue;
+
       $order = load_full_order($deleted, $mysql);
 
       log_alert("Order deleted from WC. Why?", [
