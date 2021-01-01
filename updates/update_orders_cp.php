@@ -51,7 +51,7 @@ function update_orders_cp($changes) {
 
         $duplicate = get_current_orders($mysql, ['patient_id_cp' => $created['patient_id_cp']]);
 
-        if (count($duplicate) > 1) {
+        if (count($duplicate) > 1 AND $duplicate[0]['invoice_number'] != $created['invoice_number']) {
           SirumLog::alert(
             "Created Carepoint Order Seems to be a duplicate",
             [
