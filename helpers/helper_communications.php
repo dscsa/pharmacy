@@ -42,9 +42,9 @@ function group_drugs($order, $mysql) {
     $msg  = @$item['item_message_text'] ?: $item['rx_message_text'];
     $msg  = $msg ? ' '.str_replace(' **', '', $msg) : '';
 
-    if (strpos($item['rx_message_key'], 'NO ACTION') !== false)
+    if (strpos($msg, 'NO ACTION') !== false)
       $action = 'NOACTION';
-    else if (strpos($item['rx_message_key'], 'ACTION') !== false)
+    else if (strpos($msg, 'ACTION') !== false)
       $action = 'ACTION';
     else
       $action = 'NOACTION';
