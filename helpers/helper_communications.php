@@ -9,6 +9,7 @@ use Sirum\Logging\SirumLog;
 //2) FILLING ACTION
 //3) NOT FILLING ACTION
 //4) NOT FILLING NO ACTION
+//TODO Much Better if this was a set of methods on an Order Object.  Like order->count_filled(filled = true/false), order->items_action(action = true/false), order->items_in_order(in_order = true/false), order->items_filled(filled = true/false, template = "{{name}} {{price}} {{item_message_key}}")
 function group_drugs($order, $mysql) {
 
   if ( ! $order) {
