@@ -26,14 +26,14 @@ function export_cp_remove_items($invoice_number, $items = []) {
 
   foreach ($items as $item) {
     if ( ! @$item['item_message_key'])
-      SirumLog::debug(
+      SirumLog::error(
         "export_cp_remove_items: $invoice_number item_message_key is not set",
         [
           'invoice_number'  => $invoice_number,
           'item' => $item
         ]
       );
-    
+
     $rx_numbers[] = $item['rx_number'];
     $order_cmts[] = "$item[drug_generic] - $item[item_message_key]";
   }
