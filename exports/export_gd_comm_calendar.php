@@ -421,7 +421,7 @@ function no_rx_notice($partial, $groups) {
   ]);
 
   //Wait 15 minutes to hopefully batch staggered surescripts and manual rx entry and cindy updates
-  no_rx_event($groups['ALL'], $email, $text, 15/60);
+  no_rx_event($partial, $groups['ALL'], $email, $text, 15/60);
 }
 
 function order_canceled_notice($partial, $groups) {
@@ -453,7 +453,7 @@ function order_canceled_notice($partial, $groups) {
     ''
   ]);
 
-  order_canceled_event($groups['ALL'], $email, $text, 15/60);
+  order_canceled_event($partial, $groups['ALL'], $email, $text, 15/60);
 }
 
 function confirm_shipment_notice($groups) {
