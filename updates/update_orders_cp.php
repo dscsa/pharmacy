@@ -196,7 +196,7 @@ function update_orders_cp($changes) {
         if ($order[0]['count_to_remove'] > 0 OR $order[0]['count_to_add'] > 0) {
 
           SirumLog::debug(
-            'update_orders_cp: created. skipping order because items still need to be removed/added',
+            'update_orders_cp: created. adding wc-order then skipping order '.$order[0]['invoice_number'].' because items still need to be removed/added',
             [
               'invoice_number'  => $order[0]['invoice_number'],
               'count_filled'    => $order[0]['count_filled'],
@@ -214,6 +214,8 @@ function update_orders_cp($changes) {
             FROM gp_orders
             WHERE invoice_number = {$order[0]['invoice_number']}
           ");
+
+          export_wc_create_order($order, "update_orders_cp: skipped cp because items still need to be removed/added");
 
           //DON'T CREATE THE ORDER UNTIL THESE ITEMS ARE SYNCED TO AVOID CONFLICTING COMMUNICATIONS!
           continue;
@@ -249,7 +251,7 @@ function update_orders_cp($changes) {
         if ( ! is_webform($order[0])) {
 
           SirumLog::debug(
-            "Creating order in woocommerce because source is not the Webform",
+            "Creating order ".$order[0]['invoice_number']." in woocommerce because source is not the Webform",
             [
               'invoice_number' => $order[0]['invoice_number'],
               'source'         => $order[0]['order_source'],

@@ -318,7 +318,7 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
 
     //Check for invoice_number because a patient profile may have an rx turn on/off autofill, causing a day change but we still don't have an order to update
     //TODO Don't generate invoice if we are adding/removing drugs on next go-around, since invoice would need to be updated again?
-    if (is_order($patient_or_order) AND $update_payment) {
+    if (is_order($patient_or_order) AND $update_payment AND ! $items_to_remove AND ! $items_to_add) {
 
       $reason = 'helper_full_fields: is_order and update_payment. ! payment_total_default OR $days_added OR $days_changed';
 
