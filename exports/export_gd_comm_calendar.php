@@ -428,10 +428,10 @@ function order_canceled_notice($partial, $groups) {
   $subject = "Good Pill canceled your Order #$partial[invoice_number]";
 
   //called from an order-updated loop which has order item info rather than a order-deleted loop
-  if ($groups['ALL'][0]['invoice_number'])
+  if (@$groups['ALL'][0]['invoice_number'])
     $message = "Your order was canceled at your request";
   else
-    $message = "Apologies we could not fill the RXs below at this time";
+    $message = "We canceled your order for";
 
   $message .= '<br>'.implode(';<br>', $groups['IN_ORDER']).';';
 

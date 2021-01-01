@@ -38,7 +38,9 @@ function group_drugs($order, $mysql) {
 
     $days = @$item['days_dispensed'];
     $fill = $days ? 'FILLED_' : 'NOFILL_';
-    $msg  = $item['rx_message_text'] ? ' '.str_replace(' **', '', $item['rx_message_text']) : '';
+
+    $msg  = @$item['item_message_text'] ?: $item['rx_message_text'];
+    $msg  = $msg ? ' '.str_replace(' **', '', $msg) : '';
 
     if (strpos($item['rx_message_key'], 'NO ACTION') !== false)
       $action = 'NOACTION';
@@ -92,7 +94,7 @@ function group_drugs($order, $mysql) {
     if ( ! @$item['refills_dispensed'] AND $days AND $days < $groups['MIN_DAYS'])
       $groups['MIN_DAYS'] = $days; //How many days before the first Rx to run out of refills
 
-    $groups['MANUALLY_ADDED'] = @$item['item_added_by'] == 'MANUAL' OR $item['item_added_by'] == 'WEBFORM';
+    $groups['MANUALLY_ADDED'] = is_added_manually($item);
   }
 
   $groups['COUNT_FILLED'] = count($groups['FILLED_ACTION']) + count($groups['FILLED_NOACTION']);
@@ -106,18 +108,18 @@ function group_drugs($order, $mysql) {
     log_error('group_drugs: wrong count_nofill', get_defined_vars());
   }
 
-  if (@$item['invoice_number'])
-  $sql = "
-    UPDATE
-      gp_orders
-    SET
-      count_filled = '$groups[COUNT_FILLED]',
-      count_nofill = '$groups[COUNT_NOFILL]'
-    WHERE
-      invoice_number = {$order[0]['invoice_number']}
-  ";
-
-  $mysql->run($sql);
+  if (@$item['invoice_number']) {
+    $sql = "
+      UPDATE
+        gp_orders
+      SET
+        count_filled = '$groups[COUNT_FILLED]',
+        count_nofill = '$groups[COUNT_NOFILL]'
+      WHERE
+        invoice_number = {$order[0]['invoice_number']}
+    ";
+    $mysql->run($sql);
+  }
 
   log_info('GROUP_DRUGS', get_defined_vars());
 

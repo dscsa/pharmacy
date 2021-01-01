@@ -42,8 +42,8 @@ function update_drugs($changes) {
       $created = "Created:".date('Y-m-d H:i:s');
 
       $salesforce = [
-        "subject"   => "Drug Price Change for $updated[drug_name]",
-        "body"      => "$item[drug_name] price $updated[old_price30] >>> $updated[price30], $updated[old_price90] >>> $updated[price90] $created",
+        "subject"   => "Drug Price Change for $updated[drug_generic]",
+        "body"      => "$updated[drug_generic] price $updated[old_price30] >>> $updated[price30], $updated[old_price90] >>> $updated[price90] $created",
         "assign_to" => "Kiah",
         "due_date"  => date('Y-m-d')
       ];

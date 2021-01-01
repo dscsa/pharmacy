@@ -33,6 +33,7 @@ function export_cp_remove_items($invoice_number, $items = []) {
           'item' => $item
         ]
       );
+    
     $rx_numbers[] = $item['rx_number'];
     $order_cmts[] = "$item[drug_generic] - $item[item_message_key]";
   }
@@ -113,9 +114,9 @@ function export_cp_add_items($invoice_number, $items) {
 
   //rx_number only set AFTER its added.  We need to choose which to add, so use best.
   foreach ($items as $item) {
-    if ( ! @$item['item_message_key'])
+    if ( ! @$item['rx_message_key'])
       SirumLog::debug(
-        "export_cp_add_items: $invoice_number item_message_key is not set",
+        "export_cp_add_items: $invoice_number rx_message_key is not set",
         [
           'invoice_number'  => $invoice_number,
           'item' => $item
@@ -123,7 +124,7 @@ function export_cp_add_items($invoice_number, $items) {
       );
 
     $rx_numbers[] = $item['best_rx_number'];
-    $order_cmts[] = "$item[drug_generic] - $item[item_message_key]";
+    $order_cmts[] = "$item[drug_generic] - $item[rx_message_key]";
   }
 
   if ( ! $rx_numbers) return;
