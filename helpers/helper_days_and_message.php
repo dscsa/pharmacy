@@ -491,7 +491,7 @@ function is_no_transfer($item) {
 }
 
 function is_syncable($item) {
-  return @$item['order_date_added'] AND ! @$item['item_date_added'] AND ! @$item['order_date_dispensed'];
+  return @$item['is_order'] AND ! @$item['item_date_added'] AND ! @$item['order_date_dispensed'];
 }
 
 function is_added_manually($item) {
@@ -515,7 +515,7 @@ function is_webform_refill($item) {
 }
 
 function is_order($patient_or_order) {
-  return @$patient_or_order[0] AND @$patient_or_order[0]['order_date_added']; //invoice_number is present on singular order-items
+  return @$patient_or_order[0]['is_order']; //invoice_number is present on singular order-items
 }
 
 function is_not_offered($item) {

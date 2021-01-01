@@ -25,7 +25,10 @@ function load_full_order($partial, $mysql, $overwrite_rx_messages = false) {
       gp_orders.invoice_number,
       gp_order_items.invoice_number as dontuse_item_invoice,
       gp_orders.invoice_number as dontuse_order_invoice,
-      gp_rxs_grouped.* -- Need to put this first based on how we are joining, but make sure these grouped fields overwrite their single equivalents
+      gp_rxs_grouped.*, -- Need to put this first based on how we are joining, but make sure these grouped fields overwrite their single equivalents
+      1 as is_order,
+      0 as is_patient,
+      0 as is_item
     FROM
       gp_orders
     LEFT JOIN gp_patients ON

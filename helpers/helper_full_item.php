@@ -20,7 +20,10 @@ function load_full_item($partial, $mysql, $overwrite_rx_messages = false) {
       gp_rxs_grouped.*,
       gp_orders.invoice_number,
       gp_order_items.invoice_number as dontuse_item_invoice,
-      gp_orders.invoice_number as dontuse_order_invoice
+      gp_orders.invoice_number as dontuse_order_invoice,
+      0 as is_order,
+      0 as is_patient,
+      1 as is_item
     FROM
       gp_rxs_single
     JOIN gp_patients ON
@@ -73,7 +76,7 @@ function load_full_item($partial, $mysql, $overwrite_rx_messages = false) {
     }
 
     if ( ! $item['item_date_added'] AND $item['invoice_number']) {
-      log_error("get_full_item: no item_date_added but invoice number?  is this an old invoice_number from order_items", ['item' => $item, 'partial' => $partial, 'sql' => $sql]);
+      log_notice("get_full_item: no item_date_added but invoice number? likely a surescript denied which we don't set item_date_added during import", ['item' => $item, 'partial' => $partial, 'sql' => $sql]);
     }
 
     $full_item = add_full_fields([$item], $mysql, $overwrite_rx_messages)[0];
