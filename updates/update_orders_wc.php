@@ -98,8 +98,9 @@ function update_orders_wc($changes) {
           ]
       );
 
-      //A orders-cp-created that was deleted in the created loop (Surescript Denied)
-      if ($deleted['order_status'] == "Surescripts Authorization Denied")
+      //For non-webform orders, on the first run of orders-cp-created wc-order will not have yet been created
+      //so WC wasn't "deleted" it just wasn't created yet.  But once order_stage_wc is set, then it is a true deletion
+      if (is_null($deleted['order_stage_wc']))
         continue;
 
       $order = load_full_order($deleted, $mysql);
