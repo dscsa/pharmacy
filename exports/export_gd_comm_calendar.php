@@ -407,7 +407,7 @@ function no_rx_notice($partial, $groups) {
     : "We haven't gotten any Rxs from your doctor yet but will notify you as soon as we do.";
 
   $email = [ "email" => DEBUG_EMAIL]; //$groups['ALL'][0]['email'] ];
-  $text  = [ "sms"   => DEBUG_PHONE, "message" => $subject.' '.$message ]; //get_phones($groups['ALL'])
+  $text  = [ "sms"   => DEBUG_PHONE, "message" => $subject.'. '.$message ]; //get_phones($groups['ALL'])
 
   $email['subject'] = $subject;
   $email['message']  = implode('<br>', [
@@ -432,9 +432,10 @@ function order_canceled_notice($partial, $groups) {
   if (@$groups['ALL'][0]['invoice_number'])
     $message = "Your order was canceled at your request";
   else
-    $message = "We canceled your order for";
+    $message = "We canceled your order";
 
-  $message .= '<br>'.implode(';<br>', $groups['IN_ORDER']).';';
+  if ($groups['IN_ORDER'])
+    $message .= ' for<br>'.implode(';<br>', $groups['IN_ORDER']).';';
 
   $email = [ "email" => DEBUG_EMAIL]; //$groups['ALL'][0]['email'] ];
   $text  = [ "sms"   => DEBUG_PHONE, "message" => $subject.'. '.$message ]; //get_phones($groups['ALL'])
