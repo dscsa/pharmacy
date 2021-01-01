@@ -409,6 +409,8 @@ function update_orders_cp($changes) {
 
         SirumLog::$subroutine_id = "orders-cp-updated-".sha1(serialize($updated));
 
+        $changed_fields  = changed_fields($updated);
+
         SirumLog::debug(
           "Carepoint Order $updated[invoice_number] has been updated",
           [
@@ -416,11 +418,12 @@ function update_orders_cp($changes) {
             'event'          => 'updated',
             'invoice_number' => $updated['invoice_number'],
             'type'           => 'orders',
-            'updated'        => $updated
+            'updated'        => $updated,
+            'changed'        => $changed
           ]
         );
 
-        $changed_fields  = changed_fields($updated);
+
         $stage_change_cp = $updated['order_stage_cp'] != $updated['old_order_stage_cp'];
 
         log_notice("Updated Orders Cp: $updated[invoice_number] ".($i+1)." of ".count($changes['updated']), $changed_fields);

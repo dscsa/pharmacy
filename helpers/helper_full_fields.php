@@ -311,10 +311,24 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
     }
 
     foreach ($patient_or_order as $i => $item) {
+      $patient_or_order[$i]['count_nofill']    = count($patient_or_order) - $count_filled;
       $patient_or_order[$i]['count_filled']    = $count_filled;
       $patient_or_order[$i]['count_to_remove'] = count($items_to_remove);
       $patient_or_order[$i]['count_to_add']    = count($items_to_add);
       $patient_or_order[$i]['count_added']     = count($items_added);
+    }
+
+    if (is_order($patient_or_order)) {
+      $sql = "
+        UPDATE
+          gp_orders
+        SET
+          count_filled = '{$patient_or_order[0]['count_filled']}',
+          count_nofill = '{$patient_or_order[0]['count_nofill']}'
+        WHERE
+          invoice_number = {$patient_or_order[0]['invoice_number']}
+      ";
+      $mysql->run($sql);
     }
 
     //Check for invoice_number because a patient profile may have an rx turn on/off autofill, causing a day change but we still don't have an order to update
@@ -327,6 +341,7 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
         $reason,
         [
           'invoice_number'  => $patient_or_order[0]['invoice_number'],
+          'count_nofill'    => $patient_or_order[0]['count_nofill'],
           'count_filled'    => $patient_or_order[0]['count_filled'],
           'count_items'     => $patient_or_order[0]['count_items'],
           'count_to_remove' => $patient_or_order[0]['count_to_remove'],
@@ -349,6 +364,7 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
         $reason,
         [
           'invoice_number'  => $patient_or_order[0]['invoice_number'],
+          'count_nofill'    => $patient_or_order[0]['count_nofill'],
           'count_filled'    => $patient_or_order[0]['count_filled'],
           'count_items'     => $patient_or_order[0]['count_items'],
           'count_to_remove' => $patient_or_order[0]['count_to_remove'],

@@ -98,28 +98,15 @@ function group_drugs($order, $mysql) {
     $groups['MANUALLY_ADDED'] = is_added_manually($item);
   }
 
-  $groups['COUNT_FILLED'] = count($groups['FILLED_ACTION']) + count($groups['FILLED_NOACTION']);
-  $groups['COUNT_NOFILL'] = count($groups['NOFILL_ACTION']) + count($groups['NOFILL_NOACTION']);
+  $count_filled = count($groups['FILLED_ACTION']) + count($groups['FILLED_NOACTION']);
+  $count_nofill = count($groups['NOFILL_ACTION']) + count($groups['NOFILL_NOACTION']);
 
-  if ($groups['COUNT_FILLED'] != $order[0]['count_filled']) {
-    log_error("group_drugs: wrong count_filled $groups[COUNT_FILLED] != ".$order[0]['count_filled'], get_defined_vars());
+  if ($count_filled != $order[0]['count_filled']) {
+    log_error("group_drugs: wrong count_filled $count_filled != ".$order[0]['count_filled'], get_defined_vars());
   }
 
-  if ($groups['COUNT_NOFILL'] != (count($order) - $order[0]['count_filled'])) {
-    log_error('group_drugs: wrong count_nofill', get_defined_vars());
-  }
-
-  if (@$item['invoice_number']) {
-    $sql = "
-      UPDATE
-        gp_orders
-      SET
-        count_filled = '$groups[COUNT_FILLED]',
-        count_nofill = '$groups[COUNT_NOFILL]'
-      WHERE
-        invoice_number = {$order[0]['invoice_number']}
-    ";
-    $mysql->run($sql);
+  if ($count_nofill != $order[0]['count_nofill']) {
+    log_error("group_drugs: wrong count_nofill $count_nofill != ".$order[0]['count_nofill'], get_defined_vars());
   }
 
   log_info('GROUP_DRUGS', get_defined_vars());
@@ -129,7 +116,7 @@ function group_drugs($order, $mysql) {
 
 function send_created_order_communications($groups) {
 
-  if ( ! $groups['COUNT_NOFILL'] AND ! $groups['COUNT_FILLED']) {
+  if ( ! $groups['ALL'][0]['count_nofill'] AND ! $groups['ALL'][0]['count_filled']) {
     log_error("send_created_order_communications: ! count_nofill and ! count_filled. What to do?", $groups);
   }
 
