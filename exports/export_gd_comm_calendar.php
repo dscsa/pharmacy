@@ -432,10 +432,10 @@ function order_canceled_notice($partial, $groups) {
   if (@$groups['ALL'][0]['invoice_number'])
     $message = "Your order was canceled at your request";
   else
-    $message = "We canceled your order";
+    $message = "If you believe this cancellation was in error, call us (888) 987-5187";
 
   if ($groups['IN_ORDER'])
-    $message .= ' for<br>'.implode(';<br>', $groups['IN_ORDER']).';';
+    $message .= '. We canceled your order for<br>'.implode(';<br>', $groups['IN_ORDER']).';';
 
   $email = [ "email" => DEBUG_EMAIL]; //$groups['ALL'][0]['email'] ];
   $text  = [ "sms"   => DEBUG_PHONE, "message" => $subject.'. '.$message ]; //get_phones($groups['ALL'])
@@ -445,8 +445,6 @@ function order_canceled_notice($partial, $groups) {
     'Hello,',
     '',
     $subject.'. '.$message,
-    '',
-    "If you believe this cancellation was in error, please give us a call at (888) 987-5187. Thank you.",
     '',
     'Thanks!',
     'The Good Pill Team',
