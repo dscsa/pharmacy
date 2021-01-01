@@ -34,7 +34,7 @@ function v2_pend_item($item, $mysql) {
 
 function v2_unpend_item($item, $mysql) {
 
-  log_notice("v2_unpend_item: @$item[invoice_number] ".@$item['drug_name']." ".@$item['rx_number'], ['item' => $item]);//.print_r($item, true);
+  log_notice("v2_unpend_item: ".@$item['invoice_number']." ".@$item['drug_name']." ".@$item['rx_number'], ['item' => $item]);//.print_r($item, true);
 
   if ( ! @$item['invoice_number'] OR ! @$item['order_date_added'] OR ! @$item['patient_date_added']) {
     log_alert("v2_unpend_item: NO INVOICE NUMBER, ORDER DATE ADDED, OR PATIENT DATE ADDED! ".@$item['invoice_number']." ".@$item['drug_name']." ".@$item['rx_number'].". rx_dispensed_id:".@$item['rx_dispensed_id']." last_inventory:".@$item['last_inventory']." count_pended_total:".@$item['count_pended_total'], ['item' => $item]);
