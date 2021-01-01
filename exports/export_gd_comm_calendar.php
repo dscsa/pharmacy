@@ -210,13 +210,16 @@ function transfer_requested_notice($groups) {
 //by building commication arrays based on github.com/dscsa/communication-calendar
 function order_hold_notice($groups, $missing_gsn = false) {
 
-  if ($groups['COUNT_NOFILL']) {
-    $subject = 'Good Pill is NOT filling your '.$groups['COUNT_NOFILL'].' items for Order #'.$groups['ALL'][0]['invoice_number'].'.';
-    $message = '<u>We are NOT filling these Rxs:</u><br>'.implode(';<br>', array_merge($groups['NOFILL_NOACTION'], $groups['NOFILL_ACTION'])).';';
-  } else {
+  if ($groups['COUNT_FILLED'] == 0 AND $groups['COUNT_NOFILL'] == 0) {
     //If patients have no Rxs on their profile then this will be empty.
     $subject = 'Good Pill has not yet gotten your prescriptions.';
     $message = 'We are still waiting on your doctor or pharmacy to send us your prescriptions';
+
+  } else {
+
+    $subject = 'Good Pill is NOT filling your '.$groups['COUNT_NOFILL'].' items for Order #'.$groups['ALL'][0]['invoice_number'].'.';
+    $message = '<u>We are NOT filling these Rxs:</u><br>'.implode(';<br>', array_merge($groups['NOFILL_NOACTION'], $groups['NOFILL_ACTION'])).';';
+
   }
 
   //[NULL, 'Webform Complete', 'Webform eRx', 'Webform Transfer', 'Auto Refill', '0 Refills', 'Webform Refill', 'eRx /w Note', 'Transfer /w Note', 'Refill w/ Note']

@@ -169,7 +169,7 @@ function update_orders_cp($changes) {
         //Patient communication that we are cancelling their order examples include:
         //NEEDS FORM, ORDER HOLD WAITING FOR RXS, TRANSFER OUT OF ALL ITEMS, ACTION PATIENT OFF AUTOFILL
         //count_items instead of count_filled because it might be a manually added item, that we are not filling but that the pharmacist is using as a placeholder/reminder e.g 54732
-        if ($order[0]['count_items'] == 0 AND $order[0]['count_to_add'] == 0 AND ! is_webform_transfer($order[0])) {
+        if ($order[0]['count_items'] == 0 AND $order[0]['count_filled'] == 0 AND $order[0]['count_to_add'] == 0 AND ! is_webform_transfer($order[0])) {
 
           SirumLog::warning(
             "update_orders_cp: created. no drugs to fill. removing order {$order[0]['invoice_number']}. Can we remove the v2_unpend_order below because it get called on the next run?",
@@ -474,7 +474,7 @@ function update_orders_cp($changes) {
         //Patient communication that we are cancelling their order examples include:
         //NEEDS FORM, ORDER HOLD WAITING FOR RXS, TRANSFER OUT OF ALL ITEMS, ACTION PATIENT OFF AUTOFILL
         //count_items instead of count_filled because it might be a manually added item, that we are not filling but that the pharmacist is using as a placeholder/reminder e.g 54732
-        if ($order[0]['count_items'] == 0 AND $order[0]['count_to_add'] == 0 AND ! is_webform_transfer($order[0])) {
+        if ($order[0]['count_items'] == 0 AND $order[0]['count_filled'] == 0 AND $order[0]['count_to_add'] == 0 AND ! is_webform_transfer($order[0])) {
 
           SirumLog::alert(
             'update_orders_cp: updated. no drugs to fill. remove order '.$order[0]['invoice_number'].'?',

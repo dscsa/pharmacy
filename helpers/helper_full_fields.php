@@ -125,7 +125,7 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
                 $items_to_remove[] = $patient_or_order[$i];
                 $update_notice = true; //We need this because there is not equivalent of days_item_new for removed drugs.  This means order update notices will miss items that were removed manually
               } else {
-                SirumLog::alert("Item needs to be removed but NO Order?", [
+                SirumLog::alert("Item needs to be removed but IS_PATIENT? This doesn't seem possible", [
                   'days'    => $days,
                   'message' => $message,
                   'item'    => $patient_or_order[$i]
@@ -149,10 +149,11 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
                 $items_to_add[] = $patient_or_order[$i];
                 //$update_notice  = true; //Don't need this because will be caught by days_item_new on next go-around
               } else {
-                SirumLog::alert("Item needs to be added but NO Order?", [
+                SirumLog::warning("Item needs to be added but IS_PATIENT? Likely IS_ORDER or IS_ITEM will run shortly", [
                   'days'    => $days,
                   'message' => $message,
-                  'item'    => $patient_or_order[$i]
+                  'item'    => $patient_or_order[$i],
+                  'todo'    => "If IS_ORDER or IS_ITEM is not run, should we create an order here so that we can add this item?"
                 ]);
               }
 
