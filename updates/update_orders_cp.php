@@ -36,20 +36,19 @@ function update_orders_cp($changes) {
 
         SirumLog::$subroutine_id = "orders-cp-created-".sha1(serialize($created));
 
-        //Overrite Rx Messages everytime a new order created otherwis same message would stay for the life of the Rx
+        $duplicate = get_current_orders($mysql, ['patient_id_cp' => $created['patient_id_cp']]);
 
         SirumLog::debug(
           "get_full_order: Carepoint Order created",
           [
             'invoice_number' => $created['invoice_number'],
-            'created' => $created,
-            'source'  => 'CarePoint',
-            'type'    => 'orders',
-            'event'   => 'created'
+            'created'   => $created,
+            'duplicate' => $duplicate,
+            'source'    => 'CarePoint',
+            'type'      => 'orders',
+            'event'     => 'created'
           ]
         );
-
-        $duplicate = get_current_orders($mysql, ['patient_id_cp' => $created['patient_id_cp']]);
 
         if (count($duplicate) > 1 AND $duplicate[0]['invoice_number'] != $created['invoice_number']) {
           SirumLog::alert(
@@ -63,12 +62,12 @@ function update_orders_cp($changes) {
 
           //Not sure what we should do here. Delete it?
           //Instance where current order doesn't have all drugs, so patient/staff add a second order with the drug.  Merge orders?
-          if ($created['count_items'] == 0)
-            export_cp_remove_order($created['invoice_number'], "Duplicate of ".$duplicate[0]['invoice_number']);
+          export_cp_remove_order($created['invoice_number'], "Duplicate of ".$duplicate[0]['invoice_number']);
 
           continue;
         }
 
+        //Overrite Rx Messages everytime a new order created otherwis same message would stay for the life of the Rx
         $order = load_full_order($created, $mysql, true);
 
         if ( ! $order) {
