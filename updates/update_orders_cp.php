@@ -314,7 +314,7 @@ function update_orders_cp($changes) {
           ]
       );
 
-      if ($deleted['order_status'] == "Surescripts Authorization Denied")
+      if ($deleted['order_status'] == "Surescripts Authorization Denied") {
         SirumLog::error(
           "Surescripts Authorization Denied. Deleted. What to do here?",
           [
@@ -325,6 +325,8 @@ function update_orders_cp($changes) {
             'event'   => 'deleted'
           ]
         );
+        continue; //These are deleted automatically (before having any side effects) so we don't want to trigger any side effects here either
+      }
 
       if ($deleted['order_status'] == "Surescripts Authorization Approved")
         SirumLog::error(
