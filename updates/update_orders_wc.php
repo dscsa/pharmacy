@@ -155,22 +155,22 @@ function update_orders_wc($changes) {
 
       if ($updated['order_stage_wc'] != $updated['old_order_stage_wc'] and
           ! (
-            (empty($old_stage[1])       and $new_stage[1] == 'confirm') or
-            (empty($old_stage[1])       and $new_stage[1] == 'prepare') or
-            (empty($old_stage[1])       and $new_stage[1] == 'shipped') or
-            (empty($old_stage[1])       and $new_stage[1] == 'late') or
-            ($old_stage[1] == 'confirm' and $new_stage[1] == 'prepare') or
-            ($old_stage[1] == 'confirm' and $new_stage[1] == 'shipped') or
-            ($old_stage[1] == 'confirm' and $new_stage[1] == 'late') or
-            ($old_stage[1] == 'prepare' and $new_stage[1] == 'prepare') or //User completes webform twice then prepare-refill will overwrite prepare-erx
-            ($old_stage[1] == 'prepare' and $new_stage[1] == 'shipped') or
-            ($old_stage[1] == 'prepare' and $new_stage[1] == 'late') or
-            ($old_stage[1] == 'prepare' and $new_stage[1] == 'done') or
-            ($old_stage[1] == 'shipped' and $new_stage[1] == 'done') or
-            ($old_stage[1] == 'late'    and $new_stage[1] == 'done') or
-            ($old_stage[1] == 'shipped' and $new_stage[1] == 'late') or
-            ($old_stage[1] == 'shipped' and $new_stage[1] == 'returned') or
-            ($old_stage[1] == 'shipped' and $new_stage[1] == 'shipped')
+            (empty($old_stage[1])        and $new_stage[1] == 'confirm') or
+            (empty($old_stage[1])        and $new_stage[1] == 'prepare') or
+            (empty($old_stage[1])        and $new_stage[1] == 'shipped') or
+            (empty($old_stage[1])        and $new_stage[1] == 'late') or
+            (@$old_stage[1] == 'confirm' and $new_stage[1] == 'prepare') or
+            (@$old_stage[1] == 'confirm' and $new_stage[1] == 'shipped') or
+            (@$old_stage[1] == 'confirm' and $new_stage[1] == 'late') or
+            (@$old_stage[1] == 'prepare' and $new_stage[1] == 'prepare') or //User completes webform twice then prepare-refill will overwrite prepare-erx
+            (@$old_stage[1] == 'prepare' and $new_stage[1] == 'shipped') or
+            (@$old_stage[1] == 'prepare' and $new_stage[1] == 'late') or
+            (@$old_stage[1] == 'prepare' and $new_stage[1] == 'done') or
+            (@$old_stage[1] == 'shipped' and $new_stage[1] == 'done') or
+            (@$old_stage[1] == 'late'    and $new_stage[1] == 'done') or
+            (@$old_stage[1] == 'shipped' and $new_stage[1] == 'late') or
+            (@$old_stage[1] == 'shipped' and $new_stage[1] == 'returned') or
+            (@$old_stage[1] == 'shipped' and $new_stage[1] == 'shipped')
           )
       ) {
 

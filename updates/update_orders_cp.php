@@ -414,7 +414,7 @@ function update_orders_cp($changes) {
 
         SirumLog::$subroutine_id = "orders-cp-updated-".sha1(serialize($updated));
 
-        $changed_fields  = changed_fields($updated);
+        $changed  = changed_fields($updated);
 
         SirumLog::debug(
           "Carepoint Order $updated[invoice_number] has been updated",
@@ -431,7 +431,7 @@ function update_orders_cp($changes) {
 
         $stage_change_cp = $updated['order_stage_cp'] != $updated['old_order_stage_cp'];
 
-        log_notice("Updated Orders Cp: $updated[invoice_number] ".($i+1)." of ".count($changes['updated']), $changed_fields);
+        log_notice("Updated Orders Cp: $updated[invoice_number] ".($i+1)." of ".count($changes['updated']), $changed);
 
         $order  = load_full_order($updated, $mysql);
         $groups = group_drugs($order, $mysql);
@@ -508,7 +508,7 @@ function update_orders_cp($changes) {
         //Address Changes
         //Stage Change
         //Order_Source Change (now that we overwrite when saving webform)
-        log_notice("update_orders_cp updated: no action taken $updated[invoice_number]", [$order, $updated, $changed_fields]);
+        log_notice("update_orders_cp updated: no action taken $updated[invoice_number]", [$order, $updated, $changed]);
     }
     log_timer('orders-cp-updated', $loop_timer, $count_updated);
 
