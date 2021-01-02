@@ -57,7 +57,7 @@ function load_full_item($partial, $mysql, $overwrite_rx_messages = false) {
         SELECT * FROM gp_orders WHERE invoice_number = $partial[invoice_number]
       ");
 
-      SirumLog::error(
+      SirumLog::info(
         "helper_full_item: invoice_number retrieved ($item[invoice_number]) != invoice_number provided ($partial[invoice_number])", [
           'item' => $item,
           'partial' => $partial,
