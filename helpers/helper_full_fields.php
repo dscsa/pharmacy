@@ -121,7 +121,7 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
 
             if ($needs_removing) {
 
-              if (is_order($patient_or_order)) {
+              if ( ! is_patient($patient_or_order)) { //item or order
                 $items_to_remove[] = $patient_or_order[$i];
                 $update_notice = true; //We need this because there is not equivalent of days_item_new for removed drugs.  This means order update notices will miss items that were removed manually
               } else {
@@ -145,7 +145,7 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
 
             if ($needs_adding) {
 
-              if (is_order($patient_or_order)) {
+              if ( ! is_patient($patient_or_order)) { //item or order
                 $items_to_add[] = $patient_or_order[$i];
                 //$update_notice  = true; //Don't need this because will be caught by days_item_new on next go-around
               } else {
@@ -250,7 +250,7 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
           }
         }
 
-        if ( ! is_order($patient_or_order)) {
+        if (is_patient($patient_or_order)) {
             /*
              * The rest of the fields are order specific and will not be
              * available if this is a patient

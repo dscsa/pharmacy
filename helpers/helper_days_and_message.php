@@ -73,8 +73,8 @@ function get_days_and_message($item, $patient_or_order) {
   if ( ! $item['drug_gsns'] AND $item['drug_name']) {
 
     //Check for invoice number otherwise, seemed that SF tasks were being triplicated.  Unsure reason, maybe called by order_items and not just orders?
-    if ( ! is_order($patient_or_order)) {
-      log_warning("Confirm didn't create salesforce task for GSN - items/rxs not order", $item);
+    if ( ! is_item($patient_or_order)) {
+      log_warning("Confirm didn't create salesforce task for GSN - patients/orders would cause duplicates", $item);
     } else if ($item['refill_date_first']) {
       log_warning("Confirm didn't create salesforce task for GSN - refills cannot be changed", $item);
     } else  {
@@ -516,6 +516,14 @@ function is_webform_refill($item) {
 
 function is_order($patient_or_order) {
   return @$patient_or_order[0]['is_order']; //invoice_number is present on singular order-items
+}
+
+function is_patient($patient_or_order) {
+  return @$patient_or_order[0]['is_patient']; //invoice_number is present on singular order-items
+}
+
+function is_item($patient_or_order) {
+  return @$patient_or_order[0]['is_item']; //invoice_number is present on singular order-items
 }
 
 function is_not_offered($item) {

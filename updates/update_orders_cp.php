@@ -51,7 +51,7 @@ function update_orders_cp($changes) {
         );
 
         if (count($duplicate) > 1 AND $duplicate[0]['invoice_number'] != $created['invoice_number']) {
-          SirumLog::alert(
+          SirumLog::warning(
             "Created Carepoint Order Seems to be a duplicate",
             [
               'invoice_number' => $created['invoice_number'],
@@ -59,6 +59,10 @@ function update_orders_cp($changes) {
               'duplicate' => $duplicate
             ]
           );
+
+          //In case there is an order_note move it to the first order so we don't lose it, when we delete this order
+          if ($created['order_note'])
+            export_cp_append_order_note($duplicate[0]['invoice_number'], $created['order_note']);
 
           //Not sure what we should do here. Delete it?
           //Instance where current order doesn't have all drugs, so patient/staff add a second order with the drug.  Merge orders?
