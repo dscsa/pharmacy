@@ -76,7 +76,7 @@ function load_full_item($partial, $mysql, $overwrite_rx_messages = false) {
     }
 
     if ( ! $item['item_date_added'] AND $item['invoice_number']) {
-      log_notice("get_full_item: no item_date_added but invoice number? likely a surescript denied which we don't set item_date_added during import", ['item' => $item, 'partial' => $partial, 'sql' => $sql]);
+      log_notice("get_full_item: no item_date_added but invoice number $item[invoice_number]? this happens for order-items-deleted", ['item' => $item, 'partial' => $partial, 'sql' => $sql]);
     }
 
     $full_item = add_full_fields([$item], $mysql, $overwrite_rx_messages)[0];

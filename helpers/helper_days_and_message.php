@@ -138,19 +138,26 @@ function get_days_and_message($item, $patient_or_order) {
     return [0, RX_MESSAGE['ACTION NEEDS FORM']];
   }
 
-  if ( ! $item['patient_autofill'] AND ! $added_manually AND ! $is_webform) {
-    log_info("DON'T FILL IF PATIENT AUTOFILL IS OFF AND NOT MANUALLY ADDED", get_defined_vars());
-    return [0, RX_MESSAGE['ACTION PATIENT OFF AUTOFILL']];
-  }
-
   if ( ! $item['patient_autofill'] AND $added_manually) {
     log_info("OVERRIDE PATIENT AUTOFILL OFF SINCE MANUALLY ADDED", get_defined_vars());
     return [$days_default, RX_MESSAGE['NO ACTION PATIENT REQUESTED']];
   }
 
-  if ( ! $item['patient_autofill'] AND @$item['item_date_added'] AND $is_webform) {
-    log_info("OVERRIDE PATIENT AUTOFILL OFF SINCE WEBFORM ORDER", get_defined_vars());
-    return [$days_default, RX_MESSAGE['NO ACTION PATIENT REQUESTED']];
+  if ( ! $item['patient_autofill'] AND ! $is_webform) {
+    log_info("DON'T FILL IF PATIENT AUTOFILL IS OFF AND NOT MANUALLY ADDED AND NOT WEBFORM", get_defined_vars());
+    return [0, RX_MESSAGE['ACTION PATIENT OFF AUTOFILL']];
+  }
+
+  if ( ! $item['patient_autofill'] AND $is_webform) {
+
+    //If patient is off autofill, allow them to request via the webform. But ignore refill authorization approved/denied message
+    if (@$item['item_date_added'] AND @$item['item_added_by'] != 'AUT') {
+      log_info("OVERRIDE PATIENT AUTOFILL OFF SINCE SELECT AS PART OF WEBFORM ORDER", get_defined_vars());
+      return [$days_default, RX_MESSAGE['NO ACTION PATIENT REQUESTED']];
+    }
+
+    log_info("DON'T FILL IF PATIENT AUTOFILL IS OFF SINCE NOT SELECTED AS PART OF WEBFORM ORDER", get_defined_vars());
+    return [0, RX_MESSAGE['ACTION PATIENT OFF AUTOFILL']];
   }
 
   //rx-created2 can call here and be too early even though it is not an order, we still need to catch it here
