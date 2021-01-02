@@ -149,7 +149,7 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
                 $items_to_add[] = $patient_or_order[$i];
                 //$update_notice  = true; //Don't need this because will be caught by days_item_new on next go-around
               } else {
-                SirumLog::warning("Item needs to be added but IS_PATIENT? Likely IS_ORDER or IS_ITEM will run shortly", [
+                SirumLog::warning("Item needs to be added but IS_PATIENT (rxs-single-created2)? Likely IS_ORDER or IS_ITEM will run shortly", [
                   'days'    => $days,
                   'message' => $message,
                   'item'    => $patient_or_order[$i],
