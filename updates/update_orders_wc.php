@@ -102,7 +102,7 @@ function update_orders_wc($changes) {
       //so WC wasn't "deleted" it just wasn't created yet.  But once order_stage_wc is set, then it is a true deletion
       if (is_null($deleted['order_stage_wc'])) {
         print_r($deleted);
-        continue;
+        //continue;
       }
 
       $order = load_full_order($deleted, $mysql);
