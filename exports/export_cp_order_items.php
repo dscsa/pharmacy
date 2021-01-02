@@ -51,7 +51,7 @@ function export_cp_remove_items($invoice_number, $items = []) {
 
   $date = date('y-m-d H:i');
   //Removing CK said too overwhelming
-  //export_cp_append_order_note($invoice_number, "$date auto removed: $order_cmts");
+  //export_cp_append_order_note($mssql, $invoice_number, "$date auto removed: $order_cmts");
 
   SirumLog::debug(
     "export_cp_remove_items: $invoice_number",
@@ -60,9 +60,7 @@ function export_cp_remove_items($invoice_number, $items = []) {
       'rx_numbers'      => $rx_numbers,
       'items'           => $items,
       'sql'             => $sql,
-      'res'             => $res,
-      'sql2'            => $sql2
-      //'res2'            => $res2
+      'res'             => $res
     ]
   );
 
@@ -175,7 +173,7 @@ function export_cp_add_items($invoice_number, $items) {
 
   $date = date('y-m-d H:i');
   //Removing CK said too overwhelming
-  //export_cp_append_order_note($invoice_number, "$date auto added: $order_cmts");
+  //export_cp_append_order_note($mssql, $invoice_number, "$date auto added: $order_cmts");
 
-  log_notice("export_cp_add_items $invoice_number", ['invoice_number' => $invoice_number, 'sql' => $sql, 'sql2' => $sql2, 'items' => $items]);
+  log_notice("export_cp_add_items $invoice_number", ['invoice_number' => $invoice_number, 'sql' => $sql, 'items' => $items]);
 }

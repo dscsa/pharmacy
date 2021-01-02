@@ -55,7 +55,7 @@ function export_cp_remove_order($invoice_number, $reason) {
     $res = $mssql->run($sql);
 
     $date = date('y-m-d H:i');
-    export_cp_append_order_note($invoice_number, "Auto Deleted $date. $reason");
+    export_cp_append_order_note($mssql, $invoice_number, "Auto Deleted $date. $reason");
 
     SirumLog::notice(
       "export_cp_remove_order: Order $invoice_number was deleted",
@@ -82,7 +82,7 @@ function export_cp_remove_order($invoice_number, $reason) {
   }
 }
 
-function export_cp_append_order_note($invoice_number, $note) {
+function export_cp_append_order_note($mssql, $invoice_number, $note) {
 
     $sql = "
       UPDATE csom SET comments = RIGHT(CONCAT(comments, CHAR(10), '$note'), 256) WHERE invoice_nbr = $invoice_number -- chg_user_id = @user_id, chg_date = @today
