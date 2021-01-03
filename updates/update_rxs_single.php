@@ -6,6 +6,7 @@ require_once 'exports/export_gd_transfer_fax.php'; //is_will_transfer()
 require_once 'dbs/mysql_wc.php';
 
 use Sirum\Logging\SirumLog;
+use Sirum\Logging\AudiLog;
 
 function update_rxs_single($changes) {
 
@@ -73,6 +74,8 @@ function update_rxs_single($changes) {
   foreach($changes['created'] as $created) {
 
     SirumLog::$subroutine_id = "rxs-single-created1-".sha1(serialize($created));
+
+    AuditLog::log("New Rx#{$created['rx_number']} for {$created['drug_name']} created via carepoint", $created);
 
     SirumLog::debug(
       "update_rxs_single: rx created1",
@@ -272,6 +275,8 @@ function update_rxs_single($changes) {
 
     $changed = changed_fields($updated);
 
+    AuditLog::log("Rx#{$updated['rx_number']} for {$updated['drug_name']} updated", $updated);
+
     SirumLog::debug(
       "update_rxs_single: rx updated $updated[drug_name] $updated[rx_number]",
       [
@@ -302,14 +307,27 @@ function update_rxs_single($changes) {
         ]
       );
 
-      //We need this because even if we change all rxs at the same time, pharmacists might just switch one Rx in CP so we need this to maintain consistency
+      //We need this because even if we change all rxs at the same time, pharmacists
+      //Wmight just switch one Rx in CP so we need this to maintain consistency
       export_cp_rx_autofill($item, $mssql);
+
 
       $status  = $updated['rx_autofill'] ? 'ON' : 'OFF';
       $body    = "$item[drug_name] autofill turned $status for $item[rx_numbers]"; //Used as cache key
       $created = "Created:".date('Y-m-d H:i:s');
 
-      log_notice("update_rxs_single rx_autofill changed.  Updating all Rx's with same GSN to be on/off Autofill. Confirm correct updated rx_messages", [
+
+      $log_mesage = sprintf(
+          "Autofill for #%s for %s changed to %s",
+          $updated['rx_number'],
+          $updated['drug_name'],
+          $updated['rx_autofill']
+      );
+
+      AuditLog::log($log_mesage, $updated);
+
+      log_notice("update_rxs_single rx_autofill changed.  Updating all Rx's with
+                 same GSN to be on/off Autofill. Confirm correct updated rx_messages", [
         'cache_key' => $body,
         'sf_cache' => $sf_cache,
         'updated' => $updated,
@@ -345,6 +363,17 @@ function update_rxs_single($changes) {
 
     if ($updated['rx_transfer'] AND ! $updated['old_rx_transfer']) {
       $is_will_transfer = is_will_transfer($item);
+
+      $log_mesage = sprintf(
+          "Rx# %s for %s was marked to be transfered.  It %s be transfered because %s",
+          $updated['rx_number'],
+          $updated['drug_name'],
+          ($is_will_transfer) ? 'will' : 'will NOT',
+          $item['rx_message_key']
+      );
+
+      AuditLog::log($log_mesage, $updated);
+
       log_warning("update_rxs_single rx was transferred out.  Confirm correct is_will_transfer updated rxs_single.rx_message_key. rxs_grouped.rx_message_keys will be updated on next pass", [
         'is_will_transfer' => $is_will_transfer,
         'patient' => $patient,

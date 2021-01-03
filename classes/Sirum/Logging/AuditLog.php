@@ -3,6 +3,7 @@
 namespace Sirum\Logging;
 
 use Sirum\Logging\SirumLog;
+use Google\Cloud\Logging\LoggingClient;
 
 /**
  * This is a simple logger that maintains a single instance of the cloud $logger
@@ -30,7 +31,8 @@ class AuditLog
      *      and error
      * @return void
      */
-    public static function log($message, $orderitem_or_patient) {
+    public static function log($message, $orderitem_or_patient)
+    {
 
         // Make sure we have a logger
         if (!isset(self::$logger)) {

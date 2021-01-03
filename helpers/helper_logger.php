@@ -6,6 +6,7 @@ require_once 'vendor/autoload.php';
 putenv('GOOGLE_APPLICATION_CREDENTIALS=/etc/google/unified-logging.json');
 
 use Sirum\Logging\SirumLog;
+use Sirum\Logging\AuditLog;
 
 /*
  * This shouldn't be here.  When this moves into a standalone class,
