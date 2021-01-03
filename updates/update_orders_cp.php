@@ -125,7 +125,7 @@ function update_orders_cp($changes) {
 
           //TODO Why do we need to explicitly unpend?  Deleting an order in CP should trigger the deleted loop on next run, which should unpend
           //But it seemed that this didn't happen for Order 53684
-          export_v2_unpend_order($order, $mysql, "Surescripts Authorization Denied");
+          $order = export_v2_unpend_order($order, $mysql, "Surescripts Authorization Denied");
           export_cp_remove_order($created['invoice_number'], 'Surescripts Denied');
           continue; //Not sure what we should do here.  Process them?  Patient communication?
         }
@@ -191,7 +191,7 @@ function update_orders_cp($changes) {
 
           //TODO Why do we need to explicitly unpend?  Deleting an order in CP should trigger the deleted loop on next run, which should unpend
           //But it seemed that this didn't happen for Order 53684
-          export_v2_unpend_order($order, $mysql, 'Created Empty');
+          $order = export_v2_unpend_order($order, $mysql, 'Created Empty');
           export_cp_remove_order($order[0]['invoice_number'], 'Created Empty');
           continue;
         }
@@ -456,7 +456,7 @@ function update_orders_cp($changes) {
 
         if ($stage_change_cp AND $updated['order_date_shipped']) {
           log_notice("Updated Order Shipped Started", $order);
-          export_v2_unpend_order($order, $mysql, "Order Shipped");
+          $order = export_v2_unpend_order($order, $mysql, "Order Shipped");
           export_wc_update_order_status($order); //Update status from prepare to shipped
           export_wc_update_order_metadata($order);
           send_shipped_order_communications($groups);
@@ -502,7 +502,7 @@ function update_orders_cp($changes) {
 
           //TODO Why do we need to explicitly unpend?  Deleting an order in CP should trigger the deleted loop on next run, which should unpend
           //But it seemed that this didn't happen for Order 53684
-          export_v2_unpend_order($order, $mysql, 'Updated Empty');
+          $order = export_v2_unpend_order($order, $mysql, 'Updated Empty');
           export_cp_remove_order($order[0]['invoice_number'], 'Updated Empty');
           continue;
         }
