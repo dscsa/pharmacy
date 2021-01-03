@@ -3,105 +3,175 @@
 require_once 'helpers/helper_full_patient.php';
 
 use Sirum\Logging\SirumLog;
+use Sirum\Logging\AuditLog;
 
-function update_patients_cp($changes) {
+function update_patients_cp($changes)
+{
+    $count_deleted = count($changes['deleted']);
+    $count_created = count($changes['created']);
+    $count_updated = count($changes['updated']);
 
-  $count_deleted = count($changes['deleted']);
-  $count_created = count($changes['created']);
-  $count_updated = count($changes['updated']);
+    $msg = "$count_deleted deleted, $count_created created, $count_updated updated ";
+    echo $msg;
 
-  $msg = "$count_deleted deleted, $count_created created, $count_updated updated ";
-  echo $msg;
-  log_info("update_patients_cp: all changes. $msg", [
-    'deleted_count' => $count_deleted,
-    'created_count' => $count_created,
-    'updated_count' => $count_updated
-  ]);
-
-  if ( ! $count_deleted AND ! $count_created AND ! $count_updated) return;
-
-  $mysql = new Mysql_Wc();
-  $mssql = new Mssql_Cp();
-
-  $loop_timer = microtime(true);
-
-  foreach($changes['updated'] as $i => $updated) {
-
-      SirumLog::$subroutine_id = "patients-cp-updated-".sha1(serialize($updated));
-
-      //Overrite Rx Messages everytime a new order created otherwis same message would stay for the life of the Rx
-
-      SirumLog::debug(
-        "update_patients_cp: Carepoint PATIENT Updated",
+    SirumLog::notice(
+        "update_patients_cp: all changes. {$msg}",
         [
-            'Updated' => $updated,
-            'source'  => 'CarePoint',
-            'type'    => 'patients',
-            'event'   => 'updated'
+            'deleted_count' => $count_deleted,
+            'created_count' => $count_created,
+            'updated_count' => $count_updated
         ]
-      );
+    );
 
-    $changed = changed_fields($updated);
-
-    //Patient regististration will change it from 0 -> 1)
-    if ($updated['patient_autofill'] != $updated['old_patient_autofill']) {
-
-      $patient = load_full_patient($updated, $mysql, true); //This updates & overwrites set_rx_messages
-
-      log_notice("update_patient_cp patient_autofill changed.  Confirm correct updated rx_messages", [$patient, $updated, $changed, $updated['old_pharmacy_name'] ? 'Existing Patient' : 'New Patient']);
+    if (! $count_deleted and ! $count_created and ! $count_updated) {
+        return;
     }
 
-    if ($updated['refills_used'] == $updated['old_refills_used'])
-      log_notice("Patient updated in CP", [$updated, $changed]);
+    $mysql = new Mysql_Wc();
+    $mssql = new Mssql_Cp();
 
-    if ( ! $updated['phone2'] AND $updated['old_phone2']) {
-      //Phone deleted in CP so delete in WC
-      $patient = find_patient($mysql, $updated)[0];
-      log_warning("Phone2 deleted in CP", [$updated, $patient]);
-      update_wc_phone2($mysql, $patient['patient_id_wc'], NULL);
+    $loop_timer = microtime(true);
 
-    } else if ($updated['phone2'] AND $updated['phone2'] == $updated['phone1']) {
-      //EXEC SirumWeb_AddUpdatePatHomePhone only inserts new phone numbers
-      delete_cp_phone($mssql, $updated['patient_id_cp'], 9);
+    foreach ($changes['updated'] as $i => $updated) {
+        SirumLog::$subroutine_id = "patients-cp-updated-".sha1(serialize($updated));
 
-    } else if ($updated['phone2'] !== $updated['old_phone2']) {
-      $patient = find_patient($mysql, $updated)[0];
-      log_notice("Phone2 updated in CP", [$updated, $patient]);
-      update_wc_phone2($mysql, $patient['patient_id_wc'], $updated['phone2']);
+        //Overrite Rx Messages everytime a new order created otherwis same
+        //Omessage would stay for the life of the Rx
+        SirumLog::debug(
+            "update_patients_cp: Carepoint PATIENT Updated",
+            [
+                'Updated' => $updated,
+                'source'  => 'CarePoint',
+                'type'    => 'patients',
+                'event'   => 'updated'
+            ]
+        );
+
+        $changed = changed_fields($updated);
+
+        //Patient regististration will change it from 0 -> 1)
+        if ($updated['patient_autofill'] != $updated['old_patient_autofill']) {
+            $patient = load_full_patient($updated, $mysql, true); //This updates & overwrites set_rx_messages
+
+            $log_mesage = sprintf(
+                "An %s patient autofill setting has changed to %s",
+                ($updated['old_pharmacy_name']) ? 'Existing Patient' : 'New Patient',
+                $updated['patient_autofill']
+            );
+
+            AuditLog::log($log_mesage, $updated);
+
+            SirumLog::notice(
+                "update_patient_cp patient_autofill changed.  Confirm correct updated rx_messages",
+                [
+                    'patient' => $patient,
+                    'updated' => $updated,
+                    'changed' => $changed,
+                    'is_new'  => ($updated['old_pharmacy_name']) ? 'Existing Patient' : 'New Patient'
+                ]
+            );
+        }
+
+        if ($updated['refills_used'] == $updated['old_refills_used']) {
+            SirumLog::notice(
+                "Patient updated in CP",
+                [
+                   'updated' => $updated,
+                   'patient' => $patient
+                ]
+            );
+        }
+
+        // The patients secondary phone numbe has changed or bee deleted
+        if (! $updated['phone2'] and $updated['old_phone2']) {
+            //Phone deleted in CP so delete in WC
+            $patient = find_patient($mysql, $updated)[0];
+            AuditLog::log("Phone2 deleted for patient", $patient);
+            SirumLog::warning(
+                "Phone2 deleted in CP",
+                [
+                    'updated' => $updated,
+                    'patient' => $patient
+                ]
+            );
+            update_wc_phone2($mysql, $patient['patient_id_wc'], null);
+        } elseif ($updated['phone2'] and $updated['phone2'] == $updated['phone1']) {
+            AuditLog::log("Phone2 deleted for patient", $patient);
+            //EXEC SirumWeb_AddUpdatePatHomePhone only inserts new phone numbers
+            delete_cp_phone($mssql, $updated['patient_id_cp'], 9);
+        } elseif ($updated['phone2'] !== $updated['old_phone2']) {
+            $patient = find_patient($mysql, $updated)[0];
+            SirumLog::notice(
+                "Phone2 updated in CP",
+                [
+                   'updated' => $updated,
+                   'patient' => $patient
+                ]
+            );
+            AuditLog::log("Phone2 changed for patient", $patient);
+            update_wc_phone2($mysql, $patient['patient_id_wc'], $updated['phone2']);
+        }
+
+        //  The primary phone number for the patient has changed
+        if ($updated['phone1'] !== $updated['old_phone1']) {
+            AuditLog::log("Phone1 changed for patient", $patient);
+            SirumLog::notice(
+                "Phone1 updated in CP. Was this handled correctly?",
+                ['updated' => $updated]
+            );
+        }
+
+        // The patient status has changed
+        if ($updated['patient_inactive'] !== $updated['old_patient_inactive']) {
+            $patient = find_patient($mysql, $updated)[0];
+            AuditLog::log("Patient status changed to {$updated['patient_inactive']}", $patient);
+            update_wc_patient_active_status($mysql, $updated['patient_id_wc'], $updated['patient_inactive']);
+            SirumLog::notice("CP Patient Inactive Status Changed", ['updated' => $updated]);
+        }
+
+        if ($updated['payment_method_default'] != PAYMENT_METHOD['AUTOPAY']
+        and $updated['old_payment_method_default'] ==  PAYMENT_METHOD['AUTOPAY']) {
+            AuditLog::log("Autopay has been disabled", $updated);
+            cancel_events_by_person($updated['first_name'], $updated['last_name'], $updated['birth_date'], 'update_patients_wc: updated payment_method_default', ['Autopay Reminder']);
+        }
+
+        if ($updated['payment_card_last4'] and $updated['old_payment_card_last4'] and $updated['payment_card_last4'] !== $updated['old_payment_card_last4']) {
+            AuditLog::log("Patient has updated credit card details", $updated);
+
+            SirumLog::warning(
+                sprintf(
+                    "update_patients_wc: updated card_last4.  Need to replace Card"
+                    . "Last4 in Autopay Reminder %s %s >>> %s, %s >>> %s %s",
+                    $updated['payment_method_default'],
+                    $updated['old_payment_card_type'],
+                    $updated['payment_card_type'],
+                    $updated['old_payment_card_last4'],
+                    $updated['payment_card_last4'],
+                    $updated['payment_card_date_expired']
+                ),
+                ['updated' => $updated]
+            );
+
+            update_last4_in_autopay_reminders(
+                $updated['first_name'],
+                $updated['last_name'],
+                $updated['birth_date'],
+                $updated['payment_card_last4']
+            );
+
+            // Probably by generalizing the code the currently removes drugs from the refill reminders.
+            // TODO Autopay Reminders (Remove Card, Card Expired, Card Changed, Order Paid Manually)
+        }
     }
 
-    if ($updated['phone1'] !== $updated['old_phone1']) {
-      log_notice("Phone1 updated in CP. Was this handled correctly?", $updated);
-    }
+    log_timer('patients-cp-updated', $loop_timer, $count_updated);
 
-    if ($updated['patient_inactive'] !== $updated['old_patient_inactive']) {
-      $patient = find_patient($mysql, $updated)[0];
-      update_wc_patient_active_status($mysql, $updated['patient_id_wc'], $updated['patient_inactive']);
-      log_notice("CP Patient Inactive Status Changed", $updated);
-    }
+    SirumLog::resetSubroutineId();
 
-    if ($updated['payment_method_default'] != PAYMENT_METHOD['AUTOPAY'] AND $updated['old_payment_method_default'] ==  PAYMENT_METHOD['AUTOPAY'])
-      cancel_events_by_person($updated['first_name'], $updated['last_name'], $updated['birth_date'], 'update_patients_wc: updated payment_method_default', ['Autopay Reminder']);
-
-    if ($updated['payment_card_last4'] AND $updated['old_payment_card_last4'] AND $updated['payment_card_last4'] !== $updated['old_payment_card_last4']) {
-
-      log_warning("update_patients_wc: updated card_last4.  Need to replace Card Last4 in Autopay Reminder $updated[payment_method_default] $updated[old_payment_card_type] >>> $updated[payment_card_type] $updated[old_payment_card_last4] >>> $updated[payment_card_last4] $updated[payment_card_date_expired]", $updated);
-
-      update_last4_in_autopay_reminders($updated['first_name'], $updated['last_name'], $updated['birth_date'], $updated['payment_card_last4']);
-      //Probably by generalizing the code the currently removes drugs from the refill reminders.
-      //TODO Autopay Reminders (Remove Card, Card Expired, Card Changed, Order Paid Manually)
-    }
-  }
-
-  log_timer('patients-cp-updated', $loop_timer, $count_updated);
-
-
-  SirumLog::resetSubroutineId();
-  //TODO Upsert WooCommerce Patient Info
-
-  //TODO Upsert Salseforce Patient Info
-
-  //TODO Consider Pat_Autofill Implications
-
-  //TODO Consider Changing of Payment Method
+    /*
+     TODO Upsert WooCommerce Patient Info
+     TODO Upsert Salseforce Patient Info
+     TODO Consider Pat_Autofill Implications
+     TODO Consider Changing of Payment Method
+    */
 }
