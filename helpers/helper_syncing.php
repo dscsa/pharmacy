@@ -151,7 +151,7 @@ function sync_to_date($order, $mysql) {
     $sync_to_date_days_change = $new_days_default - $item['days_dispensed_default'];
 
     //Don't set rx_message to something as being synced if it was the target and therefore didn't change
-    if ( ! $sync_to_date_days_change)
+    if ($sync_to_date_days_change > -5 AND $sync_to_date_days_change < 5)
       continue;
 
     $order[$i]['days_dispensed']  = $order[$i]['days_dispensed_default']  = $new_days_default;
