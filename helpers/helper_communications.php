@@ -9,7 +9,7 @@ use Sirum\Logging\SirumLog;
 //2) FILLING ACTION
 //3) NOT FILLING ACTION
 //4) NOT FILLING NO ACTION
-//TODO Much Better if this was a set of methods on an Order Object.  Like order->count_filled(filled = true/false), order->items_action(action = true/false), order->items_in_order(in_order = true/false), order->items_filled(filled = true/false, template = "{{name}} {{price}} {{item_message_key}}")
+//TODO Much Better if this was a set of methods on an Order Object.  Like order->count_filled(filled = true/false), order->items_action(action = true/false), order->items_in_order(in_order = true/false), order->items_filled(filled = true/false, template = "{{name}} {{price}} {{item_message_keys}}")
 function group_drugs($order, $mysql) {
 
   if ( ! $order) {
@@ -40,6 +40,7 @@ function group_drugs($order, $mysql) {
     $days = @$item['days_dispensed'];
     $fill = $days ? 'FILLED_' : 'NOFILL_';
 
+    //item_message_text is set in freeze_invoice_data once dispensed
     $msg  = @$item['item_message_text'] ?: $item['rx_message_text'];
     $msg  = $msg ? ' '.str_replace(' **', '', $msg) : '';
 
