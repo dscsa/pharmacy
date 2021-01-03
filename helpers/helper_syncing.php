@@ -191,8 +191,8 @@ function sync_to_date($order, $mysql) {
 
     $mysql->run($sql);
 
-    v2_unpend_item($item, $mysql);
-    v2_pend_item($item, $mysql);
+    $order[$i] = v2_unpend_item($item, $mysql);
+    $order[$i] = v2_pend_item($item, $mysql);
 
     $order[$i] = export_cp_set_rx_message($item, RX_MESSAGE['NO ACTION SYNC TO DATE'], $mysql);
 

@@ -378,8 +378,8 @@ function update_orders_cp($changes) {
       $groups  = group_drugs($patient, $mysql);
 
       log_info('update_orders_cp deleted: unpending all items', ['deleted' => $deleted, 'groups' => $groups, 'patient' => $patient]);
-      foreach($patient as $item) {
-        v2_unpend_item(array_merge($item, $deleted), $mysql);
+      foreach($patient as $i => $item) {
+        $patient[$i] = v2_unpend_item(array_merge($item, $deleted), $mysql);
       }
 
       $replacement = get_current_orders($mysql, ['patient_id_cp' => $deleted['patient_id_cp']]);

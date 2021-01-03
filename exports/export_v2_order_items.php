@@ -10,9 +10,11 @@ function export_v2_unpend_order($order, $mysql) {
     return log_error("export_v2_unpend_order: ABORTED! Order ".$order[0]['invoice_number']." doesn't seem to have any items", ['order' => $order]);
   }
 
-  foreach($order as $item) {
-    v2_unpend_item($item, $mysql);
+  foreach($order as $i => $item) {
+    $order[$i] = v2_unpend_item($item, $mysql);
   }
+
+  return $order;
 }
 
 function v2_pend_item($item, $mysql) {
@@ -25,11 +27,13 @@ function v2_pend_item($item, $mysql) {
 
   $list = make_pick_list($item);
 
-  log_notice("v2_pend_item: made_pick_list $item[invoice_number] $item[drug_name] $item[rx_number]", ['success' => !!$list, 'item' => $item, 'list' => $list]);
+  $success = !$list ? "ERROR" : "SUCCESS";
+  log_notice("v2_pend_item: make_pick_list $success $item[invoice_number] $item[drug_name] $item[rx_number]", ['success' => $success, 'item' => $item, 'list' => $list]);
 
   print_pick_list($item, $list);
   pend_pick_list($item, $list);
-  save_pick_list($item, $list, $mysql);
+  $item = save_pick_list($item, $list, $mysql);
+  return $item;
 }
 
 function v2_unpend_item($item, $mysql) {
@@ -41,7 +45,8 @@ function v2_unpend_item($item, $mysql) {
   }
 
   unpend_pick_list($item);
-  save_pick_list($item, 0, $mysql);
+  $item = save_pick_list($item, 0, $mysql);
+  return $item;
 }
 
 function unpend_pick_list($item) {
@@ -89,6 +94,11 @@ function save_pick_list($item, $list, $mysql) {
 
   if ( ! $list) return; //List could not be made
 
+  $item['qty_pended_total']     = $list['qty'];
+  $item['qty_pended_repacks']   = $list['qty_repacks'];
+  $item['count_pended_total']   = $list['count'];
+  $item['count_pended_repacks'] = $list['count_repacks'];
+
   $sql = "
     UPDATE
       gp_order_items
@@ -104,10 +114,11 @@ function save_pick_list($item, $list, $mysql) {
 
   log_notice("save_pick_list: $item[invoice_number] ".@$item['drug_name']." ".@$item['rx_number'], ['item' => $item, 'list' => $list, 'sql' => $sql]);
 
-
   $mysql->run($sql);
 
-  export_cp_set_pend_name($item);
+  export_cp_set_expected_by($item);
+
+  return $item;
 }
 
 function pick_list_name($item) {

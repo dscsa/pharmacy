@@ -6,7 +6,7 @@ require_once 'exports/export_cp_order_items.php';
 
 use Sirum\Logging\SirumLog;
 
-function export_cp_set_pend_name($item) {
+function export_cp_set_expected_by($item) {
 
   global $mssql;
   $mssql = $mssql ?: new Mssql_Cp();
@@ -19,7 +19,7 @@ function export_cp_set_pend_name($item) {
   ";
 
   SirumLog::notice(
-    "export_cp_set_pend_name: pend group name $pend_group_name $item[invoice_number]",
+    "export_cp_set_expected_by: pend group name $pend_group_name $item[invoice_number]",
     [
       'expected_by'     => $expected_by,
       'pend_group_name' => $pend_group_name,
