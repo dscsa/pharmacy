@@ -86,7 +86,7 @@ function update_patients_cp($changes)
         if (! $updated['phone2'] and $updated['old_phone2']) {
             //Phone deleted in CP so delete in WC
             $patient = find_patient($mysql, $updated)[0];
-            AuditLog::log("Phone2 deleted for patient", $patient);
+            AuditLog::log("Phone2 deleted for patient via CarePoint", $patient);
             SirumLog::warning(
                 "Phone2 deleted in CP",
                 [
@@ -96,25 +96,25 @@ function update_patients_cp($changes)
             );
             update_wc_phone2($mysql, $patient['patient_id_wc'], null);
         } elseif ($updated['phone2'] and $updated['phone2'] == $updated['phone1']) {
-            AuditLog::log("Phone2 deleted for patient", $patient);
+            AuditLog::log("Phone2 deleted for patient via CarePoint", $patient);
             //EXEC SirumWeb_AddUpdatePatHomePhone only inserts new phone numbers
             delete_cp_phone($mssql, $updated['patient_id_cp'], 9);
         } elseif ($updated['phone2'] !== $updated['old_phone2']) {
             $patient = find_patient($mysql, $updated)[0];
             SirumLog::notice(
-                "Phone2 updated in CP",
+                "Phone2 updated in CarePoint",
                 [
                    'updated' => $updated,
                    'patient' => $patient
                 ]
             );
-            AuditLog::log("Phone2 changed for patient", $patient);
+            AuditLog::log("Phone2 changed for patient via CarePoint", $patient);
             update_wc_phone2($mysql, $patient['patient_id_wc'], $updated['phone2']);
         }
 
         //  The primary phone number for the patient has changed
         if ($updated['phone1'] !== $updated['old_phone1']) {
-            AuditLog::log("Phone1 changed for patient", $patient);
+            AuditLog::log("Phone1 changed for patient via CarePoint", $patient);
             SirumLog::notice(
                 "Phone1 updated in CP. Was this handled correctly?",
                 ['updated' => $updated]
@@ -124,19 +124,19 @@ function update_patients_cp($changes)
         // The patient status has changed
         if ($updated['patient_inactive'] !== $updated['old_patient_inactive']) {
             $patient = find_patient($mysql, $updated)[0];
-            AuditLog::log("Patient status changed to {$updated['patient_inactive']}", $patient);
+            AuditLog::log("Patient status changed to {$updated['patient_inactive']} via CarePoint", $patient);
             update_wc_patient_active_status($mysql, $updated['patient_id_wc'], $updated['patient_inactive']);
             SirumLog::notice("CP Patient Inactive Status Changed", ['updated' => $updated]);
         }
 
         if ($updated['payment_method_default'] != PAYMENT_METHOD['AUTOPAY']
         and $updated['old_payment_method_default'] ==  PAYMENT_METHOD['AUTOPAY']) {
-            AuditLog::log("Autopay has been disabled", $updated);
+            AuditLog::log("Autopay has been disabled via CarePoint", $updated);
             cancel_events_by_person($updated['first_name'], $updated['last_name'], $updated['birth_date'], 'update_patients_wc: updated payment_method_default', ['Autopay Reminder']);
         }
 
         if ($updated['payment_card_last4'] and $updated['old_payment_card_last4'] and $updated['payment_card_last4'] !== $updated['old_payment_card_last4']) {
-            AuditLog::log("Patient has updated credit card details", $updated);
+            AuditLog::log("Patient has updated credit card details via CarePoint", $updated);
 
             SirumLog::warning(
                 sprintf(
