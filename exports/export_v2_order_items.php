@@ -96,7 +96,8 @@ function save_pick_list($item, $list, $mysql) {
     ];
   }
 
-  if ( ! $list) return; //List could not be made
+  if ( ! $list)
+    return $item; //List could not be made
 
   $item['qty_pended_total']     = $list['qty'];
   $item['qty_pended_repacks']   = $list['qty_repacks'];
