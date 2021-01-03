@@ -2,46 +2,55 @@
 
 require_once 'exports/export_cp_orders.php';
 
-function export_v2_unpend_order($order, $mysql) {
+function export_v2_unpend_order($order, $mysql, $reason) {
 
-  log_notice("export_v2_unpend_order ".$order[0]['invoice_number'], $order);
+  log_notice("export_v2_unpend_order $reason ".$order[0]['invoice_number'], $order);
 
   if ( ! $order[0]['drug_name']) {
-    return log_error("export_v2_unpend_order: ABORTED! Order ".$order[0]['invoice_number']." doesn't seem to have any items", ['order' => $order]);
+    log_error("export_v2_unpend_order: ABORTED! Order ".$order[0]['invoice_number']." doesn't seem to have any items. $reason", ['order' => $order]);
+    return $order;
   }
 
-  foreach($order as $item) {
-    v2_unpend_item($item, $mysql);
+  foreach($order as $i => $item) {
+    $order[$i] = v2_unpend_item($item, $mysql, $reason);
   }
+
+  return $order;
 }
 
-function v2_pend_item($item, $mysql) {
+function v2_pend_item($item, $mysql, $reason) {
 
-  log_notice("v2_pend_item: $item[invoice_number] ".@$item['drug_name']." ".@$item['rx_number'], ['item' => $item]);//.print_r($item, true);
+  log_notice("v2_pend_item: ".@$item['invoice_number']." ".@$item['drug_name']." $reason ".@$item['rx_number'], ['item' => $item]);//.print_r($item, true);
 
   if ( ! $item['days_dispensed_default'] OR $item['rx_dispensed_id'] OR is_null($item['last_inventory']) OR @$item['count_pended_total'] > 0) {
-    return log_error("v2_pend_item: ABORTED! $item[invoice_number] ".@$item['drug_name']." ".@$item['rx_number'].". days_dispensed_default:$item[days_dispensed_default] rx_dispensed_id:$item[rx_dispensed_id] last_inventory:$item[last_inventory] count_pended_total:$item[count_pended_total]", ['item' => $item]);
+    log_error("v2_pend_item: ABORTED! ".@$item['invoice_number']." ".@$item['drug_name']." $reason ".@$item['rx_number'].". days_dispensed_default:".@$item['days_dispensed_default']." rx_dispensed_id:".@$item['rx_dispensed_id']." last_inventory:".@$item['last_inventory']." count_pended_total:".@$item['count_pended_total'], ['item' => $item]);
+    return $item;
   }
 
   $list = make_pick_list($item);
 
-  log_notice("v2_pend_item: made_pick_list $item[invoice_number] $item[drug_name] $item[rx_number]", ['success' => !!$list, 'item' => $item, 'list' => $list]);
+  if ($list)
+    log_notice("v2_pend_item: make_pick_list SUCCESS $item[invoice_number] $item[drug_name] $reason $item[rx_number]", ['success' => true, 'item' => $item, 'list' => $list]);
+  else
+    log_error("v2_pend_item: make_pick_list ERROR $item[invoice_number] $item[drug_name] $reason $item[rx_number]", ['success' => false, 'item' => $item, 'list' => $list]);
 
   print_pick_list($item, $list);
   pend_pick_list($item, $list);
-  save_pick_list($item, $list, $mysql);
+  $item = save_pick_list($item, $list, $mysql);
+  return $item;
 }
 
-function v2_unpend_item($item, $mysql) {
+function v2_unpend_item($item, $mysql, $reason) {
 
-  log_notice("v2_unpend_item: $item[invoice_number] ".@$item['drug_name']." ".@$item['rx_number'], ['item' => $item]);//.print_r($item, true);
+  log_notice("v2_unpend_item: ".@$item['invoice_number']." ".@$item['drug_name']." $reason ".@$item['rx_number'], ['item' => $item]);//.print_r($item, true);
 
-  if (@$item['count_pended_total'] == 0 OR $item['rx_dispensed_id'] OR is_null($item['last_inventory'])) {
-    return log_error("v2_unpend_item: ABORTED! $item[invoice_number] ".@$item['drug_name']." ".@$item['rx_number'].". rx_dispensed_id:$item[rx_dispensed_id] last_inventory:$item[last_inventory] count_pended_total:$item[count_pended_total]", ['item' => $item]);
+  if ( ! @$item['invoice_number'] OR ! @$item['order_date_added'] OR ! @$item['patient_date_added']) {
+    log_alert("v2_unpend_item: NO INVOICE NUMBER, ORDER DATE ADDED, OR PATIENT DATE ADDED! ".@$item['invoice_number']." ".@$item['drug_name']." $reason ".@$item['rx_number'].". rx_dispensed_id:".@$item['rx_dispensed_id']." last_inventory:".@$item['last_inventory']." count_pended_total:".@$item['count_pended_total'], ['item' => $item]);
   }
 
   unpend_pick_list($item);
-  save_pick_list($item, 0, $mysql);
+  $item = save_pick_list($item, 0, $mysql);
+  return $item;
 }
 
 function unpend_pick_list($item) {
@@ -51,13 +60,18 @@ function unpend_pick_list($item) {
   $pend_group_manual  = pend_group_manual($item);
   $pend_group_new_patient = pend_group_new_patient($item);
 
-  echo "\nunpending item $item[drug_generic] in $pend_group_refill, $pend_group_webform, $pend_group_manual, $pend_group_new_patient\n";
+  $msg = "unpending item $item[drug_generic] in $pend_group_refill, $pend_group_webform, $pend_group_manual, $pend_group_new_patient";
+  echo "\n$msg\n";
 
   //Once order is deleted it not longer has items so its hard to determine if the items were New or Refills so just delete both
   $res_refill  = v2_fetch("/account/8889875187/pend/$pend_group_refill/$item[drug_generic]", 'DELETE');
   $res_webform = v2_fetch("/account/8889875187/pend/$pend_group_webform/$item[drug_generic]", 'DELETE');
   $res_manual  = v2_fetch("/account/8889875187/pend/$pend_group_manual/$item[drug_generic]", 'DELETE');
   $res_new_patient = v2_fetch("/account/8889875187/pend/$pend_group_new_patient/$item[drug_generic]", 'DELETE');
+
+  if ( ! $res_refill AND ! $res_webform AND ! $res_manual AND ! $res_new_patient) {
+    log_warning("v2_unpend_item: Nothing Unpened.  Call could have been avoided! ".@$item['invoice_number']." ".@$item['drug_name']." ".@$item['rx_number'].". rx_dispensed_id:".@$item['rx_dispensed_id']." last_inventory:".@$item['last_inventory']." count_pended_total:".@$item['count_pended_total'], get_defined_vars());
+  }
 
   //Delete gdoc pick list
   $args = [
@@ -68,7 +82,7 @@ function unpend_pick_list($item) {
 
   $result = gdoc_post(GD_HELPER_URL, $args);
 
-  log_notice("unpend_pick_list", get_defined_vars());
+  log_notice("unpend_pick_list: $msg", get_defined_vars());
 }
 
 function save_pick_list($item, $list, $mysql) {
@@ -82,7 +96,13 @@ function save_pick_list($item, $list, $mysql) {
     ];
   }
 
-  if ( ! $list) return; //List could not be made
+  if ( ! $list)
+    return $item; //List could not be made
+
+  $item['qty_pended_total']     = $list['qty'];
+  $item['qty_pended_repacks']   = $list['qty_repacks'];
+  $item['count_pended_total']   = $list['count'];
+  $item['count_pended_repacks'] = $list['count_repacks'];
 
   $sql = "
     UPDATE
@@ -99,10 +119,11 @@ function save_pick_list($item, $list, $mysql) {
 
   log_notice("save_pick_list: $item[invoice_number] ".@$item['drug_name']." ".@$item['rx_number'], ['item' => $item, 'list' => $list, 'sql' => $sql]);
 
-
   $mysql->run($sql);
 
-  export_cp_set_pend_name($item);
+  export_cp_set_expected_by($item);
+
+  return $item;
 }
 
 function pick_list_name($item) {
@@ -275,7 +296,7 @@ function make_pick_list($item, $limit = 500) {
 
   create_event($event_title, [$salesforce]);
 
-  log_error("Webform Pending Error: Not enough qty found for $item[drug_generic]. Looking for $min_qty with last_inventory of $item[last_inventory] (limit $limit) #2 of 2, half fill with no safety failed", ['inventory' => $sorted_ndcs, 'count_inventory' => count($sorted_ndcs), 'item' => $item]);
+  log_error("Webform Pending Error: Not enough qty found for $item[drug_generic]. Looking for $min_qty with last_inventory of $item[last_inventory] (limit $limit) #2 of 2, half fill with no safety failed", ['inventory' => $inventory, 'sorted_ndcs' => $sorted_ndcs, 'count_inventory' => count($sorted_ndcs), 'item' => $item]);
 }
 
 function get_v2_inventory($item, $limit) {
@@ -297,8 +318,9 @@ function get_v2_inventory($item, $limit) {
 
   try {
     $res = v2_fetch($url);
+    log_info("WebForm make_pick_list fetch success.", ['url' => $url, 'item' => $item, 'res' => $res]);
   } catch (Error $e) {
-    log_error("WebForm make_pick_list fetch failed.  Retrying $item[invoice_number]", ['item' => $item, 'res' => $res, 'error' => $e]);
+    log_error("WebForm make_pick_list fetch failed.  Retrying $item[invoice_number]", ['url' => $url, 'item' => $item, 'res' => $res, 'error' => $e]);
     $res = v2_fetch($url);
   }
 

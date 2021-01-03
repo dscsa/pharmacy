@@ -28,7 +28,7 @@ function import_cp_order_items() {
       MAX(dispense_qty) as qty_dispensed_actual,
       MAX(disp_days_supply) as days_dispensed_actual,
       COUNT(*) as count_lines,
-      CONVERT(varchar, MAX(CASE WHEN IVRCmt = 'Surescripts denied' THEN NULL ELSE csomline.add_date END), 20) as item_date_added,
+      CONVERT(varchar, MAX(csomline.add_date), 20) as item_date_added,
       MAX(CASE
         WHEN CsOmLine.add_user_id = 901  THEN 'HL7'
         WHEN CsOmLine.add_user_id = 902  THEN 'AUT'
@@ -45,7 +45,7 @@ function import_cp_order_items() {
     GROUP BY csomline.order_id, (CASE WHEN gcn_seqno > 0 THEN gcn_seqno ELSE script_no END) --This is because of Orders like 8660 where we had 4 duplicate Citalopram 40mg.  Two that were from Refills, One Denied Surescript Request, and One new Surescript.  We are only going to send one GCN so don't list it multiple times
   ");
 
-  if ( ! count($items[0])) return log_error('No Cp Order Items to Import', get_defined_vars());
+  if ( ! $items[0] OR ! count($items[0])) return log_alert('No Cp Order Items to Import', get_defined_vars());
 
   $keys = result_map($items[0]);
   $mysql->replace_table("gp_order_items_cp", $keys, $items[0]);

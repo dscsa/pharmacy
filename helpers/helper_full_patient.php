@@ -16,7 +16,10 @@ function load_full_patient($partial, $mysql, $overwrite_rx_messages = false) {
   $sql = "
     SELECT
       *,
-      gp_rxs_grouped.* -- Need to put this first based on how we are joining, but make sure these grouped fields overwrite their single equivalents
+      gp_rxs_grouped.*, -- Need to put this first based on how we are joining, but make sure these grouped fields overwrite their single equivalents
+      0 as is_order,
+      1 as is_patient,
+      0 as is_item
     FROM
       gp_patients
     LEFT JOIN gp_rxs_grouped ON -- Show all Rxs on Invoice regardless if they are in order or not

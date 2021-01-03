@@ -36,23 +36,22 @@ function update_orders_cp($changes) {
 
         SirumLog::$subroutine_id = "orders-cp-created-".sha1(serialize($created));
 
-        //Overrite Rx Messages everytime a new order created otherwis same message would stay for the life of the Rx
+        $duplicate = get_current_orders($mysql, ['patient_id_cp' => $created['patient_id_cp']]);
 
         SirumLog::debug(
           "get_full_order: Carepoint Order created",
           [
             'invoice_number' => $created['invoice_number'],
-            'created' => $created,
-            'source'  => 'CarePoint',
-            'type'    => 'orders',
-            'event'   => 'created'
+            'created'   => $created,
+            'duplicate' => $duplicate,
+            'source'    => 'CarePoint',
+            'type'      => 'orders',
+            'event'     => 'created'
           ]
         );
 
-        $duplicate = get_current_orders($mysql, ['patient_id_cp' => $created['patient_id_cp']]);
-
-        if (count($duplicate) > 1) {
-          SirumLog::alert(
+        if (count($duplicate) > 1 AND $duplicate[0]['invoice_number'] != $created['invoice_number']) {
+          SirumLog::warning(
             "Created Carepoint Order Seems to be a duplicate",
             [
               'invoice_number' => $created['invoice_number'],
@@ -61,14 +60,18 @@ function update_orders_cp($changes) {
             ]
           );
 
+          //In case there is an order_note move it to the first order so we don't lose it, when we delete this order
+          if ($created['order_note'])
+            export_cp_append_order_note($mssql, $duplicate[0]['invoice_number'], $created['order_note']);
+
           //Not sure what we should do here. Delete it?
           //Instance where current order doesn't have all drugs, so patient/staff add a second order with the drug.  Merge orders?
-          if ($created['count_items'] == 0)
-            export_cp_remove_order($created['invoice_number']);
+          export_cp_remove_order($created['invoice_number'], "Duplicate of ".$duplicate[0]['invoice_number']);
 
           continue;
         }
 
+        //Overrite Rx Messages everytime a new order created otherwis same message would stay for the life of the Rx
         $order = load_full_order($created, $mysql, true);
 
         if ( ! $order) {
@@ -94,7 +97,7 @@ function update_orders_cp($changes) {
         //Item would have already been pended from order-item-created::load_full_item
         if ($created['order_status'] == "Surescripts Authorization Denied") {
           SirumLog::error(
-            "Order CP Created - Deleting and Unpending Because Surescripts Authorization Denied. Can we remove the v2_unpend_order below because it get called on the next run?",
+            "Order CP Created - Deleting and Unpending Order $created[invoice_number] because Surescripts Authorization Denied. Can we remove the v2_unpend_order below because it get called on the next run?",
             [
               'invoice_number' => $created['invoice_number'],
               'created' => $created,
@@ -122,14 +125,14 @@ function update_orders_cp($changes) {
 
           //TODO Why do we need to explicitly unpend?  Deleting an order in CP should trigger the deleted loop on next run, which should unpend
           //But it seemed that this didn't happen for Order 53684
-          export_v2_unpend_order($order, $mysql);
-          export_cp_remove_order($created['invoice_number']);
+          $order = export_v2_unpend_order($order, $mysql, "Surescripts Authorization Denied");
+          export_cp_remove_order($created['invoice_number'], 'Surescripts Denied');
           continue; //Not sure what we should do here.  Process them?  Patient communication?
         }
 
         if ($created['order_status'] == "Surescripts Authorization Approved")
           SirumLog::error(
-            "Surescripts Authorization Approved. Created.  What to do here?  Keep Order? Delete Order? Depends on Autofill settings?",
+            "Surescripts Authorization Approved. Created.  What to do here?  Keep Order $created[invoice_number]? Delete Order? Depends on Autofill settings?",
             [
               'invoice_number'   => $created['invoice_number'],
               'count_items'      => count($order)." / ".@$order['count_items'],
@@ -141,7 +144,7 @@ function update_orders_cp($changes) {
 
         if ($order[0]['order_stage_wc'] == 'wc-processing') {
             SirumLog::debug(
-                'Problem: cp order wc-processing created',
+                'Problem: cp order wc-processing created '.$order[0]['invoice_number'],
                 [
                   'invoice_number' => $order[0]['invoice_number'],
                   'order'          => $order
@@ -168,10 +171,11 @@ function update_orders_cp($changes) {
 
         //Patient communication that we are cancelling their order examples include:
         //NEEDS FORM, ORDER HOLD WAITING FOR RXS, TRANSFER OUT OF ALL ITEMS, ACTION PATIENT OFF AUTOFILL
-        if ($order[0]['count_filled'] == 0 AND ! $order[0]['items_to_add'] AND ! is_webform_transfer($order[0])) {
+        //count_items instead of count_filled because it might be a manually added item, that we are not filling but that the pharmacist is using as a placeholder/reminder e.g 54732
+        if ($order[0]['count_items'] == 0 AND $order[0]['count_filled'] == 0 AND $order[0]['count_to_add'] == 0 AND ! is_webform_transfer($order[0])) {
 
-          SirumLog::debug(
-            'update_orders_cp: created. no drugs to fill. removing order. Can we remove the v2_unpend_order below because it get called on the next run?',
+          SirumLog::warning(
+            "update_orders_cp: created. no drugs to fill. removing order {$order[0]['invoice_number']}. Can we remove the v2_unpend_order below because it get called on the next run?",
             [
               'invoice_number' => $order[0]['invoice_number'],
               'count_filled'   => $order[0]['count_filled'],
@@ -187,21 +191,22 @@ function update_orders_cp($changes) {
 
           //TODO Why do we need to explicitly unpend?  Deleting an order in CP should trigger the deleted loop on next run, which should unpend
           //But it seemed that this didn't happen for Order 53684
-          export_v2_unpend_order($order, $mysql);
-          export_cp_remove_order($order[0]['invoice_number']);
+          $order = export_v2_unpend_order($order, $mysql, 'Created Empty');
+          export_cp_remove_order($order[0]['invoice_number'], 'Created Empty');
           continue;
         }
 
-        if ($order[0]['items_to_remove'] OR $order[0]['items_to_add']) {
+        if ($order[0]['count_to_remove'] > 0 OR $order[0]['count_to_add'] > 0) {
 
           SirumLog::debug(
-            'update_orders_cp: created. skipping order because items still need to be removed/added',
+            'update_orders_cp: created. adding wc-order then skipping order '.$order[0]['invoice_number'].' because items still need to be removed/added',
             [
               'invoice_number'  => $order[0]['invoice_number'],
               'count_filled'    => $order[0]['count_filled'],
               'count_items'     => $order[0]['count_items'],
-              'items_to_remove' => $order[0]['items_to_remove'],
-              'items_to_add'    => $order[0]['items_to_add'],
+              'count_to_remove' => $order[0]['count_to_remove'],
+              'count_to_add'    => $order[0]['count_to_add'],
+              'count_added'     => $order[0]['count_added'],
               'order'           => $order
             ]
           );
@@ -212,6 +217,8 @@ function update_orders_cp($changes) {
             FROM gp_orders
             WHERE invoice_number = {$order[0]['invoice_number']}
           ");
+
+          export_wc_create_order($order, "update_orders_cp: skipped cp because items still need to be removed/added");
 
           //DON'T CREATE THE ORDER UNTIL THESE ITEMS ARE SYNCED TO AVOID CONFLICTING COMMUNICATIONS!
           continue;
@@ -247,7 +254,7 @@ function update_orders_cp($changes) {
         if ( ! is_webform($order[0])) {
 
           SirumLog::debug(
-            "Creating order in woocommerce because source is not the Webform",
+            "Creating order ".$order[0]['invoice_number']." in woocommerce because source is not the Webform",
             [
               'invoice_number' => $order[0]['invoice_number'],
               'source'         => $order[0]['order_source'],
@@ -268,7 +275,7 @@ function update_orders_cp($changes) {
           continue; // order hold notice not necessary for transfers
         }
 
-        if ( ! $order[0]['items_to_add']) {
+        if ($order[0]['count_to_add'] == 0) {
           continue; // order hold notice not necessary if we are adding items on next go-around
         }
 
@@ -311,9 +318,9 @@ function update_orders_cp($changes) {
           ]
       );
 
-      if ($deleted['order_status'] == "Surescripts Authorization Denied")
+      if ($deleted['order_status'] == "Surescripts Authorization Denied") {
         SirumLog::error(
-          "Surescripts Authorization Denied. Deleted. What to do here?",
+          "Surescripts Authorization Denied for Order $deleted[invoice_number]. Deleted. Skipping for now.  What to do here? Unpend?",
           [
             'invoice_number' => $deleted['invoice_number'],
             'deleted' => $deleted,
@@ -322,6 +329,8 @@ function update_orders_cp($changes) {
             'event'   => 'deleted'
           ]
         );
+        continue; //These are deleted automatically (before having any side effects) so we don't want to trigger any side effects here either
+      }
 
       if ($deleted['order_status'] == "Surescripts Authorization Approved")
         SirumLog::error(
@@ -365,26 +374,33 @@ function update_orders_cp($changes) {
 
       export_cp_remove_items($deleted['invoice_number']);
 
+      $patient = load_full_patient($deleted, $mysql, true);  //Cannot load order because it was already deleted in changes_orders_cp
+      $groups  = group_drugs($patient, $mysql);
+
+      log_info('update_orders_cp deleted: unpending all items', ['deleted' => $deleted, 'groups' => $groups, 'patient' => $patient]);
+
+      //can't do export_v2_unpend_order because each item won't have an invoice number or order_added_date
+      foreach($patient as $i => $item) {
+        $patient[$i] = v2_unpend_item(array_merge($item, $deleted), $mysql, 'update_orders_cp deleted: unpending all items');
+      }
+
       $replacement = get_current_orders($mysql, ['patient_id_cp' => $deleted['patient_id_cp']]);
 
       if ($replacement) {
-        log_warning('order_canceled_notice BUT their appears to be a replacement', ['deleted' => $deleted, 'sql' => $sql, 'replacement' => $replacement]);
+        log_warning('update_orders_cp deleted: their appears to be a replacement', ['deleted' => $deleted, 'replacement' => $replacement, 'groups' => $groups, 'patient' => $patient]);
         continue;
       }
 
-      $order  = load_full_order($deleted, $mysql);  //This will be an empty order (one row only with drug_name) because order_items already deleted
-      $groups = group_drugs($order, $mysql);
-
       //We should be able to delete wc-confirm-* from CP queue without triggering an order cancel notice
       if ($deleted['count_filled'] == 0 AND $deleted['count_nofill'] == 0) { //count_items may already be 0 on a deleted order that had items e.g 33840
-        log_warning("update_orders_cp deleted: no_rx_notice count_filled == 0 AND count_nofill == 0", ['deleted' => $deleted, 'groups' => $groups]);
-        no_rx_notice($groups);
+        log_warning("update_orders_cp deleted: no_rx_notice count_filled == 0 AND count_nofill == 0", ['deleted' => $deleted, 'groups' => $groups, 'patient' => $patient]);
+        no_rx_notice($deleted, $groups);
         continue;
       }
 
       if ($is_canceled) {
-        log_warning("update_orders_cp deleted: order_canceled_notice is this right?", ['deleted' => $deleted, 'groups' => $groups]);
-        order_canceled_notice($groups); //We passed in $deleted because there is not $order to make $groups
+        log_warning("update_orders_cp deleted: order_canceled_notice is this right?", ['deleted' => $deleted, 'groups' => $groups, 'patient' => $patient]);
+        order_canceled_notice($deleted, $groups); //We passed in $deleted because there is not $order to make $groups
         continue;
       }
 
@@ -400,38 +416,29 @@ function update_orders_cp($changes) {
 
         SirumLog::$subroutine_id = "orders-cp-updated-".sha1(serialize($updated));
 
+        $changed  = changed_fields($updated);
+
         SirumLog::debug(
-          'Carepoint Order has been updated',
+          "Carepoint Order $updated[invoice_number] has been updated",
           [
             'source'         => 'CarePoint',
             'event'          => 'updated',
             'invoice_number' => $updated['invoice_number'],
             'type'           => 'orders',
-            'updated'        => $updated
+            'updated'        => $updated,
+            'changed'        => $changed
           ]
         );
 
-        $changed_fields  = changed_fields($updated);
+
         $stage_change_cp = $updated['order_stage_cp'] != $updated['old_order_stage_cp'];
 
-        log_notice("Updated Orders Cp: $updated[invoice_number] ".($i+1)." of ".count($changes['updated']), $changed_fields);
-
-        SirumLog::debug(
-          "get_full_order: Carepoint Order Updated",
-          ['updated' => $updated]
-        );
+        log_notice("Updated Orders Cp: $updated[invoice_number] ".($i+1)." of ".count($changes['updated']), $changed);
 
         $order  = load_full_order($updated, $mysql);
         $groups = group_drugs($order, $mysql);
 
         if (!$order) {
-          SirumLog::notice(
-            "Order not found",
-            [
-              'order'          => $order,
-              'updated'        => $updated
-            ]
-          );
           log_error("Updated Order Missing", $order);
           continue;
         }
@@ -449,7 +456,7 @@ function update_orders_cp($changes) {
 
         if ($stage_change_cp AND $updated['order_date_shipped']) {
           log_notice("Updated Order Shipped Started", $order);
-          export_v2_unpend_order($order, $mysql);
+          $order = export_v2_unpend_order($order, $mysql, "Order Shipped");
           export_wc_update_order_status($order); //Update status from prepare to shipped
           export_wc_update_order_metadata($order);
           send_shipped_order_communications($groups);
@@ -457,7 +464,7 @@ function update_orders_cp($changes) {
         }
 
         if ($stage_change_cp AND $updated['order_date_dispensed']) {
-          $reason = "update_orders_cp updated: Updated Order Dispensed";
+          $reason = "update_orders_cp updated: Updated Order Dispensed ".$updated['invoice_number'];
           $order = helper_update_payment($order, $reason, $mysql);
           $order = export_gd_update_invoice($order, $reason, $mysql);
           $order = export_gd_publish_invoice($order, $mysql);
@@ -469,14 +476,15 @@ function update_orders_cp($changes) {
 
         //We should be able to delete wc-confirm-* from CP queue without triggering an order cancel notice
         if ($order[0]['count_filled'] == 0 AND $order[0]['count_nofill'] == 0) { //count_items may already be 0 on a deleted order that had items e.g 33840
-          log_warning("update_orders_cp updated: no_rx_notice count_filled == 0 AND count_nofill == 0", ['deleted' => $deleted, 'groups' => $groups]);
-          no_rx_notice($groups);
+          log_warning("update_orders_cp updated: no_rx_notice count_filled == 0 AND count_nofill == 0", ['updated' => $updated, 'groups' => $groups]);
+          no_rx_notice($updated, $groups);
           continue;
         }
 
         //Patient communication that we are cancelling their order examples include:
         //NEEDS FORM, ORDER HOLD WAITING FOR RXS, TRANSFER OUT OF ALL ITEMS, ACTION PATIENT OFF AUTOFILL
-        if ($order[0]['count_filled'] == 0 AND ! $order[0]['items_to_add'] AND ! is_webform_transfer($order[0])) {
+        //count_items instead of count_filled because it might be a manually added item, that we are not filling but that the pharmacist is using as a placeholder/reminder e.g 54732
+        if ($order[0]['count_items'] == 0 AND $order[0]['count_filled'] == 0 AND $order[0]['count_to_add'] == 0 AND ! is_webform_transfer($order[0])) {
 
           SirumLog::alert(
             'update_orders_cp: updated. no drugs to fill. remove order '.$order[0]['invoice_number'].'?',
@@ -488,43 +496,21 @@ function update_orders_cp($changes) {
             ]
           );
 
-          $groups = group_drugs($order, $mysql);
-          order_canceled_notice($groups); //We passed in $deleted because there is not $order to make $groups
+          order_canceled_notice($updated, $groups); //We passed in $deleted because there is not $order to make $groups
 
-          //TODO Remove/Cancel WC Order Here
+          //TODO Necessary to Remove/Cancel WC Order Here?
 
           //TODO Why do we need to explicitly unpend?  Deleting an order in CP should trigger the deleted loop on next run, which should unpend
           //But it seemed that this didn't happen for Order 53684
-          export_v2_unpend_order($order, $mysql);
-          export_cp_remove_order($order[0]['invoice_number']);
-          continue;
-        }
-
-        if ($order[0]['items_to_remove'] OR $order[0]['items_to_add']) {
-
-          SirumLog::debug(
-            'update_orders_cp: updated. send patient comm of updates and skipping rest of loop because items still need to be removed/added',
-            [
-              'invoice_number'  => $order[0]['invoice_number'],
-              'count_filled'    => $order[0]['count_filled'],
-              'count_items'     => $order[0]['count_items'],
-              'items_to_remove' => $order[0]['items_to_remove'],
-              'items_to_add'    => $order[0]['items_to_add'],
-              'order'           => $order
-            ]
-          );
-
-          $groups = group_drugs($order, $mysql);
-          send_updated_order_communications($groups);
-
-          //On the next run the count_items will be updated to count_filled and this UPDATE LOOP will run again so no need to run it now
+          $order = export_v2_unpend_order($order, $mysql, 'Updated Empty');
+          export_cp_remove_order($order[0]['invoice_number'], 'Updated Empty');
           continue;
         }
 
         //Address Changes
         //Stage Change
         //Order_Source Change (now that we overwrite when saving webform)
-        log_notice("update_orders_cp updated: no action taken $updated[invoice_number]", [$order, $updated, $changed_fields]);
+        log_notice("update_orders_cp updated: no action taken $updated[invoice_number]", [$order, $updated, $changed]);
     }
     log_timer('orders-cp-updated', $loop_timer, $count_updated);
 

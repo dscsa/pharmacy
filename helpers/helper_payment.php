@@ -59,11 +59,11 @@ function get_payment_default($order, $reason) {
   $update['payment_due_default'] = $update['payment_fee_default'];
   $update['payment_date_autopay'] = 'NULL';
 
-  if ($order[0]['payment_method'] == PAYMENT_METHOD['COUPON']) {
+  if (@$order[0]['payment_method'] == PAYMENT_METHOD['COUPON']) {
     $update['payment_fee_default'] = $update['payment_total_default'];
     $update['payment_due_default'] = 0;
   }
-  else if ($order[0]['payment_method'] == PAYMENT_METHOD['AUTOPAY']) {
+  else if (@$order[0]['payment_method'] == PAYMENT_METHOD['AUTOPAY']) {
     $start = date('m/01', strtotime('+ 1 month'));
     $stop  = date('m/07/y', strtotime('+ 1 month'));
 

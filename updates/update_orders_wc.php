@@ -48,7 +48,7 @@ function update_orders_wc($changes) {
         $replacement = get_current_orders($mysql, ['patient_id_wc' => $created['patient_id_wc']]);
 
         if ($replacement) {
-          log_warning('order_canceled_notice BUT their appears to be a replacement', ['created' => $created, 'sql' => $sql, 'replacement' => $replacement]);
+          log_warning('order_canceled_notice BUT their appears to be a replacement', ['created' => $created, 'replacement' => $replacement]);
         }
 
         //[NULL, 'Webform Complete', 'Webform eRx', 'Webform Transfer', 'Auto Refill', '0 Refills', 'Webform Refill', 'eRx /w Note', 'Transfer /w Note', 'Refill w/ Note']
@@ -97,6 +97,13 @@ function update_orders_wc($changes) {
             'deleted' => $deleted
           ]
       );
+
+      //For non-webform orders, on the first run of orders-cp-created wc-order will not have yet been created
+      //so WC wasn't "deleted" it just wasn't created yet.  But once order_stage_wc is set, then it is a true deletion
+      if (is_null($deleted['order_stage_wc'])) {
+        print_r($deleted);
+        continue;
+      }
 
       $order = load_full_order($deleted, $mysql);
 
@@ -150,22 +157,22 @@ function update_orders_wc($changes) {
 
       if ($updated['order_stage_wc'] != $updated['old_order_stage_wc'] and
           ! (
-            ($old_stage[1] == null      and $new_stage[1] == 'confirm') or
-            ($old_stage[1] == null      and $new_stage[1] == 'prepare') or
-            ($old_stage[1] == null      and $new_stage[1] == 'shipped') or
-            ($old_stage[1] == null      and $new_stage[1] == 'late') or
-            ($old_stage[1] == 'confirm' and $new_stage[1] == 'prepare') or
-            ($old_stage[1] == 'confirm' and $new_stage[1] == 'shipped') or
-            ($old_stage[1] == 'confirm' and $new_stage[1] == 'late') or
-            ($old_stage[1] == 'prepare' and $new_stage[1] == 'prepare') or //User completes webform twice then prepare-refill will overwrite prepare-erx
-            ($old_stage[1] == 'prepare' and $new_stage[1] == 'shipped') or
-            ($old_stage[1] == 'prepare' and $new_stage[1] == 'late') or
-            ($old_stage[1] == 'prepare' and $new_stage[1] == 'done') or
-            ($old_stage[1] == 'shipped' and $new_stage[1] == 'done') or
-            ($old_stage[1] == 'late'    and $new_stage[1] == 'done') or
-            ($old_stage[1] == 'shipped' and $new_stage[1] == 'late') or
-            ($old_stage[1] == 'shipped' and $new_stage[1] == 'returned') or
-            ($old_stage[1] == 'shipped' and $new_stage[1] == 'shipped')
+            (empty($old_stage[1])        and $new_stage[1] == 'confirm') or
+            (empty($old_stage[1])        and $new_stage[1] == 'prepare') or
+            (empty($old_stage[1])        and $new_stage[1] == 'shipped') or
+            (empty($old_stage[1])        and $new_stage[1] == 'late') or
+            (@$old_stage[1] == 'confirm' and $new_stage[1] == 'prepare') or
+            (@$old_stage[1] == 'confirm' and $new_stage[1] == 'shipped') or
+            (@$old_stage[1] == 'confirm' and $new_stage[1] == 'late') or
+            (@$old_stage[1] == 'prepare' and $new_stage[1] == 'prepare') or //User completes webform twice then prepare-refill will overwrite prepare-erx
+            (@$old_stage[1] == 'prepare' and $new_stage[1] == 'shipped') or
+            (@$old_stage[1] == 'prepare' and $new_stage[1] == 'late') or
+            (@$old_stage[1] == 'prepare' and $new_stage[1] == 'done') or
+            (@$old_stage[1] == 'shipped' and $new_stage[1] == 'done') or
+            (@$old_stage[1] == 'late'    and $new_stage[1] == 'done') or
+            (@$old_stage[1] == 'shipped' and $new_stage[1] == 'late') or
+            (@$old_stage[1] == 'shipped' and $new_stage[1] == 'returned') or
+            (@$old_stage[1] == 'shipped' and $new_stage[1] == 'shipped')
           )
       ) {
 
