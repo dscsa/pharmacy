@@ -45,10 +45,15 @@ function update_orders_wc($changes) {
             ]
         );
 
-        $replacement = get_current_orders($mysql, ['patient_id_wc' => $created['patient_id_wc']]);
+        $duplicate = get_current_orders($mysql, ['patient_id_wc' => $created['patient_id_wc']]);
 
-        if ($replacement) {
-          log_warning('order_canceled_notice BUT their appears to be a replacement', ['created' => $created, 'replacement' => $replacement]);
+        if ($duplicate) {
+          log_warning('order_canceled_notice BUT their appears to be a replacement', ['created' => $created, 'duplicate' => $duplicate]);
+
+          //In case there is an order_note move it to the first order so we don't lose it, when we delete this order
+          if ($created['order_note'])
+            export_cp_append_order_note($mssql, $duplicate[0]['invoice_number'], $created['order_note']);
+
         }
 
         //[NULL, 'Webform Complete', 'Webform eRx', 'Webform Transfer', 'Auto Refill', '0 Refills', 'Webform Refill', 'eRx /w Note', 'Transfer /w Note', 'Refill w/ Note']
