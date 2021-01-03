@@ -60,10 +60,6 @@ function update_orders_cp($changes) {
             ]
           );
 
-          //In case there is an order_note move it to the first order so we don't lose it, when we delete this order
-          if ($created['order_note'])
-            export_cp_append_order_note($mssql, $duplicate[0]['invoice_number'], $created['order_note']);
-
           //Not sure what we should do here. Delete it?
           //Instance where current order doesn't have all drugs, so patient/staff add a second order with the drug.  Merge orders?
           export_cp_remove_order($created['invoice_number'], "Duplicate of ".$duplicate[0]['invoice_number']);
