@@ -9,7 +9,7 @@ function load_full_item($partial, $mysql, $overwrite_rx_messages = false) {
     return [];
   }
 
-  if ($partial['invoice_number']) //E.g. if changing days_dispensed_actual NULL >>> 90, then this will be true and order will be shipped
+  if (@$partial['invoice_number']) //E.g. if changing days_dispensed_actual NULL >>> 90, then this will be true and order will be shipped
     $past_orders = "gp_order_items.invoice_number = $partial[invoice_number]";
   else //If no invoice number specified only show current orders
     $past_orders = "gp_order_items.rx_dispensed_id IS NULL";
