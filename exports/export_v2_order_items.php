@@ -7,7 +7,8 @@ function export_v2_unpend_order($order, $mysql, $reason) {
   log_notice("export_v2_unpend_order $reason ".$order[0]['invoice_number'], $order);
 
   if ( ! $order[0]['drug_name']) {
-    return log_error("export_v2_unpend_order: ABORTED! Order ".$order[0]['invoice_number']." doesn't seem to have any items. $reason", ['order' => $order]);
+    log_error("export_v2_unpend_order: ABORTED! Order ".$order[0]['invoice_number']." doesn't seem to have any items. $reason", ['order' => $order]);
+    return $order;
   }
 
   foreach($order as $i => $item) {
@@ -22,7 +23,8 @@ function v2_pend_item($item, $mysql, $reason) {
   log_notice("v2_pend_item: ".@$item['invoice_number']." ".@$item['drug_name']." $reason ".@$item['rx_number'], ['item' => $item]);//.print_r($item, true);
 
   if ( ! $item['days_dispensed_default'] OR $item['rx_dispensed_id'] OR is_null($item['last_inventory']) OR @$item['count_pended_total'] > 0) {
-    return log_error("v2_pend_item: ABORTED! ".@$item['invoice_number']." ".@$item['drug_name']." $reason ".@$item['rx_number'].". days_dispensed_default:".@$item['days_dispensed_default']." rx_dispensed_id:".@$item['rx_dispensed_id']." last_inventory:".@$item['last_inventory']." count_pended_total:".@$item['count_pended_total'], ['item' => $item]);
+    log_error("v2_pend_item: ABORTED! ".@$item['invoice_number']." ".@$item['drug_name']." $reason ".@$item['rx_number'].". days_dispensed_default:".@$item['days_dispensed_default']." rx_dispensed_id:".@$item['rx_dispensed_id']." last_inventory:".@$item['last_inventory']." count_pended_total:".@$item['count_pended_total'], ['item' => $item]);
+    return $item;
   }
 
   $list = make_pick_list($item);
