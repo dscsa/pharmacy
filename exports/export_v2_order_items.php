@@ -27,8 +27,10 @@ function v2_pend_item($item, $mysql, $reason) {
 
   $list = make_pick_list($item);
 
-  $success = !$list ? "ERROR" : "SUCCESS";
-  log_notice("v2_pend_item: make_pick_list $success $item[invoice_number] $item[drug_name] $reason $item[rx_number]", ['success' => $success, 'item' => $item, 'list' => $list]);
+  if ($list)
+    log_notice("v2_pend_item: make_pick_list SUCCESS $item[invoice_number] $item[drug_name] $reason $item[rx_number]", ['success' => true, 'item' => $item, 'list' => $list]);
+  else
+    log_error("v2_pend_item: make_pick_list ERROR $item[invoice_number] $item[drug_name] $reason $item[rx_number]", ['success' => false, 'item' => $item, 'list' => $list]);
 
   print_pick_list($item, $list);
   pend_pick_list($item, $list);
