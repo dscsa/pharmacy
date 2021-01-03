@@ -98,7 +98,7 @@ function update_order_items($changes) {
     //are based on order_date_added, since the order is likely already deleted here, order_date_added is null
     //so you cannot deduce the correct pended group name to find and unpend
     if (@$deleted['order_date_added']) //Only available if item was deleted from an order that is still active
-      $item = v2_unpend_item(array_merge($item, $deleted), $mysql);
+      $item = v2_unpend_item(array_merge($item, $deleted), $mysql, "order-item-deleted and order still exists");
 
     //TODO Update Salesforce Order Total & Order Count & Order Invoice using REST API or a MYSQL Zapier Integration
   }
