@@ -315,8 +315,8 @@ function update_orders_cp($changes) {
       );
 
       if ($deleted['order_status'] == "Surescripts Authorization Denied") {
-        SirumLog::error(
-          "Surescripts Authorization Denied for Order $deleted[invoice_number]. Deleted. Skipping for now.  What to do here? Unpend?",
+        SirumLog::warning(
+          "Surescripts Authorization Denied for Order $deleted[invoice_number]. Deleted. Skipping for now. What to do here? Unpend?",
           [
             'invoice_number' => $deleted['invoice_number'],
             'deleted' => $deleted,
@@ -329,7 +329,7 @@ function update_orders_cp($changes) {
       }
 
       if ($deleted['order_status'] == "Surescripts Authorization Approved")
-        SirumLog::error(
+        SirumLog::warning(
           "Surescripts Authorization Approved. Deleted.  What to do here?",
           [
             'invoice_number'   => $deleted['invoice_number'],
