@@ -344,10 +344,11 @@ function update_rxs_single($changes) {
     }
 
     if ($updated['rx_transfer'] AND ! $updated['old_rx_transfer']) {
+      $item = load_full_item($updated, $mysql, true);
       $is_will_transfer = is_will_transfer($item);
       log_warning("update_rxs_single rx was transferred out.  Confirm correct is_will_transfer updated rxs_single.rx_message_key. rxs_grouped.rx_message_keys will be updated on next pass", [
         'is_will_transfer' => $is_will_transfer,
-        'patient' => $patient,
+        'item' => $item,
         'updated' => $updated,
         'changed' => $changed
       ]);
