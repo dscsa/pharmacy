@@ -143,7 +143,7 @@ function v2_unpend_item($item, $mysql, $reason) {
           @$item['invoice_number'],
           @$item['drug_name'],
           $reason,
-          @$item['rx_number'],
+          @$item['rx_number']
       ),
       [ 'item' => $item ]
   );
