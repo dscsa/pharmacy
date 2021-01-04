@@ -7,6 +7,10 @@ function export_cp_set_rx_message($item, $message) {
   global $mssql;
   $mssql = $mssql ?: new Mssql_Cp();
 
+  if ( ! @$item['rx_numbers']) {
+    log_alert("export_cp_set_rx_message: wrong arg passed", [$item, $message]);
+  }
+
   $rx_numbers = str_replace(",", "','", substr($item['rx_numbers'], 1, -1));
 
   $sql1 = "

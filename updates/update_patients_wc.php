@@ -326,7 +326,8 @@ function update_patients_wc($changes) {
       $updated['language'] !== $updated['old_language']
     ) {
 
-      if (is_patient_match($mysql, $updated)) { //Make sure there is only one match on either side of the
+      $is_patient_match = is_patient_match($mysql, $updated);
+      if ($is_patient_match) { //Make sure there is only one match on either side of the
 
         //TODO What is the source of truth if there is a mismatch?  Do we update CP to match WC or vice versa?
         //For now, think patient should get to decide.  Provider having wrong/different name will be handled by name matching algorithm
@@ -346,12 +347,14 @@ function update_patients_wc($changes) {
         //wc_upsert_patient_meta($mysql, $updated['patient_id_wc'], 'language', $updated['old_language']);
       } else {
 
-        echo "\nupdate_patients_wc: patient name changed but now count(matches) !== 1";
+        $msg = "update_patients_wc: patient name changed but now count(matches) !== 1";
+        echo "\n$msg";
         SirumLog::alert(
-          "update_patients_wc: patient name changed but now count(matches) !== 1",
+          $msg,
           [
-            'updated' => $updated,
-            'changed' => $changed
+            'updated'          => $updated,
+            'changed'          => $changed,
+            'is_patient_match' => $is_patient_match
           ]
         );
       }

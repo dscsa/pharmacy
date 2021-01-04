@@ -9,7 +9,7 @@ function load_full_item($partial, $mysql, $overwrite_rx_messages = false) {
     return [];
   }
 
-  if ($partial['invoice_number']) //E.g. if changing days_dispensed_actual NULL >>> 90, then this will be true and order will be shipped
+  if (@$partial['invoice_number']) //E.g. if changing days_dispensed_actual NULL >>> 90, then this will be true and order will be shipped
     $past_orders = "gp_order_items.invoice_number = $partial[invoice_number]";
   else //If no invoice number specified only show current orders
     $past_orders = "gp_order_items.rx_dispensed_id IS NULL";
@@ -20,7 +20,10 @@ function load_full_item($partial, $mysql, $overwrite_rx_messages = false) {
       gp_rxs_grouped.*,
       gp_orders.invoice_number,
       gp_order_items.invoice_number as dontuse_item_invoice,
-      gp_orders.invoice_number as dontuse_order_invoice
+      gp_orders.invoice_number as dontuse_order_invoice,
+      0 as is_order,
+      0 as is_patient,
+      1 as is_item
     FROM
       gp_rxs_single
     JOIN gp_patients ON
@@ -54,7 +57,7 @@ function load_full_item($partial, $mysql, $overwrite_rx_messages = false) {
         SELECT * FROM gp_orders WHERE invoice_number = $partial[invoice_number]
       ");
 
-      SirumLog::error(
+      SirumLog::info(
         "helper_full_item: invoice_number retrieved ($item[invoice_number]) != invoice_number provided ($partial[invoice_number])", [
           'item' => $item,
           'partial' => $partial,
@@ -73,7 +76,7 @@ function load_full_item($partial, $mysql, $overwrite_rx_messages = false) {
     }
 
     if ( ! $item['item_date_added'] AND $item['invoice_number']) {
-      log_error("get_full_item: no item_date_added but invoice number?  is this an old invoice_number from order_items", ['item' => $item, 'partial' => $partial, 'sql' => $sql]);
+      log_notice("get_full_item: no item_date_added but invoice number $item[invoice_number]? this happens for order-items-deleted", ['item' => $item, 'partial' => $partial, 'sql' => $sql]);
     }
 
     $full_item = add_full_fields([$item], $mysql, $overwrite_rx_messages)[0];

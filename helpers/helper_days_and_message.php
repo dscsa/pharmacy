@@ -46,7 +46,7 @@ function get_days_and_message($item, $patient_or_order) {
   // Checks to see that there is an order so we know its aorder
   // use order_date_added because invoice_number seems like it may be present
   // even if not an order
-  $is_order         = @$patient_or_order[0]['order_date_added'];
+  $is_order         = is_order($patient_or_order);
 
   // How long before our current stock expires
   $days_left_in_expiration = days_left_in_expiration($item);
@@ -106,11 +106,10 @@ function get_days_and_message($item, $patient_or_order) {
 
     return [0, RX_MESSAGE['NO ACTION WAS TRANSFERRED']];
   }
-
   /*
     Expired Medications
    */
-  if ($days_left_in_expiration < 0) { // Can't do <= 0 because null <= 0 is true
+  if ( ! is_null($days_left_in_expiration) AND $days_left_in_expiration < DAYS_BUFFER) {
     log_info("DON'T FILL EXPIRED MEDICATIONS", get_defined_vars());
     return [0, RX_MESSAGE['ACTION EXPIRED']];
   }
@@ -119,8 +118,8 @@ function get_days_and_message($item, $patient_or_order) {
 
   if ( ! $item['drug_gsns'] AND $item['drug_name']) {
     //Check for invoice number otherwise, seemed that SF tasks were being triplicated.  Unsure reason, maybe called by order_items and not just orders?
-    if ( ! @$item['order_date_added']) {
-      log_warning("Confirm didn't create salesforce task for GSN - items/rxs not order", $item);
+    if ( ! is_item($patient_or_order)) {
+      log_warning("Confirm didn't create salesforce task for GSN - patients/orders would cause duplicates", $item);
     } else if ($item['refill_date_first']) {
       log_warning("Confirm didn't create salesforce task for GSN - refills cannot be changed", $item);
     } else  {
@@ -187,19 +186,26 @@ function get_days_and_message($item, $patient_or_order) {
     return [0, RX_MESSAGE['ACTION NEEDS FORM']];
   }
 
-  if ( ! $item['patient_autofill'] AND ! $added_manually AND ! $is_webform) {
-    log_info("DON'T FILL IF PATIENT AUTOFILL IS OFF AND NOT MANUALLY ADDED", get_defined_vars());
-    return [0, RX_MESSAGE['ACTION PATIENT OFF AUTOFILL']];
-  }
-
   if ( ! $item['patient_autofill'] AND $added_manually) {
     log_info("OVERRIDE PATIENT AUTOFILL OFF SINCE MANUALLY ADDED", get_defined_vars());
     return [$days_default, RX_MESSAGE['NO ACTION PATIENT REQUESTED']];
   }
 
-  if ( ! $item['patient_autofill'] AND @$item['item_date_added'] AND $is_webform) {
-    log_info("OVERRIDE PATIENT AUTOFILL OFF SINCE WEBFORM ORDER", get_defined_vars());
-    return [$days_default, RX_MESSAGE['NO ACTION PATIENT REQUESTED']];
+  if ( ! $item['patient_autofill'] AND ! $is_webform) {
+    log_info("DON'T FILL IF PATIENT AUTOFILL IS OFF AND NOT MANUALLY ADDED AND NOT WEBFORM", get_defined_vars());
+    return [0, RX_MESSAGE['ACTION PATIENT OFF AUTOFILL']];
+  }
+
+  if ( ! $item['patient_autofill'] AND $is_webform) {
+
+    //If patient is off autofill, allow them to request via the webform. But ignore refill authorization approved/denied message
+    if (@$item['item_date_added'] AND @$item['item_added_by'] != 'AUT') {
+      log_info("OVERRIDE PATIENT AUTOFILL OFF SINCE SELECT AS PART OF WEBFORM ORDER", get_defined_vars());
+      return [$days_default, RX_MESSAGE['NO ACTION PATIENT REQUESTED']];
+    }
+
+    log_info("DON'T FILL IF PATIENT AUTOFILL IS OFF SINCE NOT SELECTED AS PART OF WEBFORM ORDER", get_defined_vars());
+    return [0, RX_MESSAGE['ACTION PATIENT OFF AUTOFILL']];
   }
 
   //rx-created2 can call here and be too early even though it is not an order, we still need to catch it here
@@ -222,13 +228,13 @@ function get_days_and_message($item, $patient_or_order) {
 
     $salesforce = [
       "subject"   => "Investigate Early Refill",
-      "body"      => "Confirm if/why needs $item[drug_name] in Order #$item[invoice_number] even though it's over "."28"." days before it's due. If needed, add drug to order. $created",
+      "body"      => "Confirm if/why needs $item[drug_name] in Order #".@$item['invoice_number']." even though it's over "."28"." days before it's due. If needed, add drug to order. $created",
       "contact"   => "$item[first_name] $item[last_name] $item[birth_date]",
       "assign_to" => ".Add/Remove Drug - RPh",
       "due_date"  => date('Y-m-d')
     ];
 
-    $event_title = "$item[invoice_number] $salesforce[subject]: $salesforce[contact] $created";
+    $event_title = @$item['invoice_number']." $salesforce[subject]: $salesforce[contact] $created";
 
     create_event($event_title, [$salesforce]);
     return [0, RX_MESSAGE['NO ACTION NOT DUE']];
@@ -383,10 +389,16 @@ function get_days_and_message($item, $patient_or_order) {
  * @param  Mysql_Wc $mysql The database connection
  * @return void
  */
-function freeze_invoice_data($item, $mysql) {
+function set_item_invoice_data($item, $mysql) {
 
-  if ( ! $item['days_dispensed_actual'])
-    return log_error("freeze_invoice_data has no actual days", get_defined_vars());
+  if ( ! $item['days_dispensed_actual']) {
+    log_error("set_item_invoice_data has no actual days", get_defined_vars());
+    return $item;
+  }
+
+  $item['refills_dispensed_actual'] = $item['refills_total'];
+  $item['item_message_keys'] = $item['rx_message_keys'];
+  $item['item_message_text'] = $item['rx_message_text'];
 
   $price_dispensed_actual = (@$item['price_dispensed_actual']) ?: 'NULL';
   $refills_total          = $item['refills_total'];
@@ -408,6 +420,8 @@ function freeze_invoice_data($item, $mysql) {
   ";
 
   $mysql->run($sql);
+
+  return $item;
 }
 
 function set_days_and_message($item, $days, $message, $mysql) {
@@ -540,7 +554,7 @@ function is_no_transfer($item) {
 }
 
 function is_syncable($item) {
-  return @$item['order_date_added'] AND ! @$item['item_date_added'] AND ! @$item['order_date_dispensed'];
+  return @$item['is_order'] AND ! @$item['item_date_added'] AND ! @$item['order_date_dispensed'];
 }
 
 /**
@@ -564,15 +578,27 @@ function is_webform($item) {
 }
 
 function is_webform_transfer($item) {
-  return in_array($item['order_source'], ['Webform Transfer', 'Transfer /w Note']);
+  return in_array(@$item['order_source'], ['Webform Transfer', 'Transfer /w Note']);
 }
 
 function is_webform_erx($item) {
-  return in_array($item['order_source'], ['Webform eRx', 'eRx /w Note']);
+  return in_array(@$item['order_source'], ['Webform eRx', 'eRx /w Note']);
 }
 
 function is_webform_refill($item) {
-  return in_array($item['order_source'], ['Webform Refill', 'Refill w/ Note']);
+  return in_array(@$item['order_source'], ['Webform Refill', 'Refill w/ Note']);
+}
+
+function is_order($patient_or_order) {
+  return @$patient_or_order[0]['is_order']; //invoice_number is present on singular order-items
+}
+
+function is_patient($patient_or_order) {
+  return @$patient_or_order[0]['is_patient']; //invoice_number is present on singular order-items
+}
+
+function is_item($patient_or_order) {
+  return @$patient_or_order[0]['is_item']; //invoice_number is present on singular order-items
 }
 
 

@@ -25,7 +25,10 @@ function load_full_order($partial, $mysql, $overwrite_rx_messages = false) {
       gp_orders.invoice_number,
       gp_order_items.invoice_number as dontuse_item_invoice,
       gp_orders.invoice_number as dontuse_order_invoice,
-      gp_rxs_grouped.* -- Need to put this first based on how we are joining, but make sure these grouped fields overwrite their single equivalents
+      gp_rxs_grouped.*, -- Need to put this first based on how we are joining, but make sure these grouped fields overwrite their single equivalents
+      1 as is_order,
+      0 as is_patient,
+      0 as is_item
     FROM
       gp_orders
     LEFT JOIN gp_patients ON
@@ -72,11 +75,11 @@ function add_wc_status_to_order($order) {
   foreach($order as $i => $item) {
     $order[$i]['order_stage_wc'] = $new_order_stage_wc;
 
-    if (isset($drug_names[$item['drug']])) {
-      $order[$i]['drug'] .= ' ('.( (float) $item['sig_qty_per_day'] ).' per day)';
+    if (isset($drug_names[$item['drug_name']])) {
+      $order[$i]['drug_name'] .= ' ('.( (float) $item['sig_qty_per_day'] ).' per day)';
       //log_notice("helper_full_order add_wc_status_to_order: appended sig_qty_per_day to duplicate drug ".$item['drug']." >>> ".$drug_names[$item['drug']], [$order, $item, $drug_names]);
     } else {
-      $drug_names[$item['drug']] = $item['sig_qty_per_day'];
+      $drug_names[$item['drug_name']] = $item['sig_qty_per_day'];
     }
   }
 
@@ -252,7 +255,11 @@ function get_order_stage_wc($order) {
   return str_replace('wc-', '', $order[0]['order_stage_wc']);
 }
 
-function get_current_orders($mysql, $conditions = []) {
+//TODO Eventually switch this back to gp_orders (not _cp) table
+//right now syncing deletes the current order in gp_orders (so that it will retrigger a change on the next sync)
+//but when that happens (55074-55079) this will not detect a duplicate for any order and so we will process all
+//the orders in full, wasting lots of time.
+function get_current_orders_cp($mysql, $conditions = []) {
 
   $where = "";
   foreach ($conditions as $key => $val) {
@@ -263,11 +270,39 @@ function get_current_orders($mysql, $conditions = []) {
     SELECT
       *
     FROM
-      gp_orders
+      gp_orders_cp
     WHERE
       $where
       order_date_dispensed IS NULL
+    ORDER BY
+      invoice_number ASC
   ";
+
+  log_error('get_current_orders', ['sql' => $sql, 'conditions' => $conditions]);
+
+  return $mysql->run($sql)[0];
+}
+
+function get_current_orders_wc($mysql, $conditions = []) {
+
+  $where = "";
+  foreach ($conditions as $key => $val) {
+    $where .= "$key = $val AND\n";
+  }
+
+  $sql = "
+    SELECT
+      *
+    FROM
+      gp_orders_wc
+    WHERE
+      $where
+      order_date_dispensed IS NULL
+    ORDER BY
+      invoice_number ASC
+  ";
+
+  log_error('get_current_orders', ['sql' => $sql, 'conditions' => $conditions]);
 
   return $mysql->run($sql)[0];
 }

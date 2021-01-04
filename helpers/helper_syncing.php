@@ -142,7 +142,7 @@ function sync_to_date($order, $mysql) {
   if ( ! $new_days_default OR $new_days_default == DAYS_STD)
     return $order;
 
-  foreach ($order as $item) {
+  foreach ($order as $i => $item) {
 
     //Don't try to sync stuff not in order, just what's in the order
     if ( ! $item['item_date_added'])
@@ -151,12 +151,12 @@ function sync_to_date($order, $mysql) {
     $sync_to_date_days_change = $new_days_default - $item['days_dispensed_default'];
 
     //Don't set rx_message to something as being synced if it was the target and therefore didn't change
-    if ( ! $sync_to_date_days_change)
+    if ($sync_to_date_days_change > -5 AND $sync_to_date_days_change < 5)
       continue;
 
     $order[$i]['days_dispensed']  = $order[$i]['days_dispensed_default']  = $new_days_default;
     $order[$i]['qty_dispensed']   = $order[$i]['qty_dispensed_default']   = $new_days_default*$item['sig_qty_per_day'];
-    $order[$i]['price_dispensed'] = $order[$i]['price_dispensed_default'] = ceil($days*($item['price_per_month'] ?: 0)/30); //Might be null
+    $order[$i]['price_dispensed'] = $order[$i]['price_dispensed_default'] = ceil($new_days_default*($item['price_per_month'] ?: 0)/30); //Might be null
 
     //NOT CURRENTLY USED BUT FOR AUDITING PURPOSES
     $order[$i]['sync_to_date_days_before']          = $item['days_dispensed_default'];
@@ -191,12 +191,12 @@ function sync_to_date($order, $mysql) {
 
     $mysql->run($sql);
 
-    v2_unpend_item($order[$i], $mysql);
-    v2_pend_item($order[$i], $mysql);
+    $order[$i] = v2_unpend_item($item, $mysql, "unpend for sync_to_date");
+    $order[$i] = v2_pend_item($item, $mysql,  "pend for sync_to_date");
 
-    $order[$i] = export_cp_set_rx_message($order[$i], RX_MESSAGE['NO ACTION SYNC TO DATE'], $mysql);
+    $order[$i] = export_cp_set_rx_message($item, RX_MESSAGE['NO ACTION SYNC TO DATE'], $mysql);
 
-    log_notice('helper_syncing: sync_to_date and repended in v2', ['item' => $order[$i], 'sql' => $sql]);
+    log_notice('helper_syncing: sync_to_date and repended in v2', ['item' => $item, 'sql' => $sql]);
   }
 
   return $order;

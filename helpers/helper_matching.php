@@ -26,7 +26,7 @@ function is_patient_match($mysql, $patient) {
 
   //TODO Auto Delete Duplicate Patient AND Send Comm of their login and password
 
-  SirumLog::alert("helper_matching: is_patient_match FALSE {$patient[0]['first_name']} {$patient[0]['last_name']} {$patient[0]['birth_date']}", $alert);
+  SirumLog::alert("helper_matching: is_patient_match FALSE ".@$patient[0]['first_name']." ".@$patient[0]['last_name']." ".@$patient[0]['birth_date'], $alert);
 
   print_r($alert);
 }

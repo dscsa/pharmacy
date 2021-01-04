@@ -4,7 +4,7 @@ use Sirum\Logging\SirumLog;
 
 function order_dispensed_event($order, $salesforce, $hours_to_wait) {
 
-  if (@$order[0]['patient_active']) {
+  if (@$order[0]['patient_inactive']) {
     log_warning('order_dispensed_event canceled because patient inactive', get_defined_vars());
     return;
   }
@@ -23,7 +23,7 @@ function order_dispensed_event($order, $salesforce, $hours_to_wait) {
 
 function order_shipped_event($order, $email, $text) {
 
-  if ($order[0]['patient_active']) {
+  if ($order[0]['patient_inactive']) {
     log_warning('order_shipped_event canceled because patient inactive', get_defined_vars());
     return;
   }
@@ -42,7 +42,7 @@ function order_shipped_event($order, $email, $text) {
 
 function refill_reminder_event($order, $email, $text, $hours_to_wait, $hour_of_day = null) {
 
-  if ($order[0]['patient_active']) {
+  if ($order[0]['patient_inactive']) {
     log_warning('refill_reminder_event canceled because patient inactive', get_defined_vars());
     return;
   }
@@ -61,7 +61,7 @@ function refill_reminder_event($order, $email, $text, $hours_to_wait, $hour_of_d
 
 function autopay_reminder_event($order, $email, $text, $hours_to_wait, $hour_of_day = null) {
 
-  if ($order[0]['patient_active']) {
+  if ($order[0]['patient_inactive']) {
     log_warning('autopay_reminder_event canceled because patient inactive', get_defined_vars());
     return;
   }
@@ -82,7 +82,7 @@ function order_created_event($groups, $email, $text, $hours_to_wait) {
 
   $order = $groups['ALL'];
 
-  if ($order[0]['patient_active']) {
+  if ($order[0]['patient_inactive']) {
     log_warning('order_created_event canceled because patient inactive', get_defined_vars());
     return;
   }
@@ -101,7 +101,7 @@ function order_created_event($groups, $email, $text, $hours_to_wait) {
 
 function transfer_requested_event($order, $email, $text, $hours_to_wait) {
 
-  if ($order[0]['patient_active']) {
+  if ($order[0]['patient_inactive']) {
     log_warning('transfer_requested_event canceled because patient inactive', get_defined_vars());
     return;
   }
@@ -120,7 +120,7 @@ function transfer_requested_event($order, $email, $text, $hours_to_wait) {
 
 function order_hold_event($order, $email, $text, $salesforce, $hours_to_wait) {
 
-  if ($order[0]['patient_active']) {
+  if ($order[0]['patient_inactive']) {
     log_warning('order_hold_event canceled because patient inactive', get_defined_vars());
     return;
   }
@@ -152,7 +152,7 @@ function order_updated_event($groups, $email, $text, $hours_to_wait) {
   $patient_label = get_patient_label($order);
   $event_title   = $order[0]['invoice_number'].' Order Updated: '.count($groups['FILLED_WITH_PRICES']).' items. '.$patient_label.'.  Created:'.date('Y-m-d H:i:s');
 
-  $cancel = cancel_events_by_person($order[0]['first_name'], $order[0]['last_name'], $order[0]['birth_date'], 'order_updated_event', ['Transfer Requested', 'Order Updated', 'Order Hold', 'No Rx', 'Needs Form', 'Order Canceled']);
+  //$cancel = cancel_events_by_person($order[0]['first_name'], $order[0]['last_name'], $order[0]['birth_date'], 'order_updated_event', ['Transfer Requested', 'Order Updated', 'Order Hold', 'No Rx', 'Needs Form', 'Order Canceled']);
 
   $comm_arr = new_comm_arr($patient_label, $email, $text);
 
@@ -163,7 +163,7 @@ function order_updated_event($groups, $email, $text, $hours_to_wait) {
 
 function needs_form_event($order, $email, $text, $hours_to_wait, $hour_of_day = 0) {
 
-  if ($order[0]['patient_active']) {
+  if ($order[0]['patient_inactive']) {
     log_warning('needs_form_event canceled because patient inactive', get_defined_vars());
     return;
   }
@@ -178,15 +178,15 @@ function needs_form_event($order, $email, $text, $hours_to_wait, $hour_of_day = 
   create_event($event_title, $comm_arr, $hours_to_wait, $hour_of_day);
 }
 
-function no_rx_event($order, $email, $text, $hours_to_wait, $hour_of_day = null) {
+function no_rx_event($partial, $order, $email, $text, $hours_to_wait, $hour_of_day = null) {
 
-  if ($order[0]['patient_active']) {
+  if ($order[0]['patient_inactive']) {
     log_warning('no_rx_event canceled because patient inactive', get_defined_vars());
     return;
   }
 
   $patient_label = get_patient_label($order);
-  $event_title   = $order[0]['invoice_number'].' No Rx: '.$patient_label.'. Created:'.date('Y-m-d H:i:s');
+  $event_title   = $partial['invoice_number'].' No Rx: '.$patient_label.'. Created:'.date('Y-m-d H:i:s');
 
   $cancel = cancel_events_by_person($order[0]['first_name'], $order[0]['last_name'], $order[0]['birth_date'], 'no_rx_event', ['No Rx']);
 
@@ -197,18 +197,17 @@ function no_rx_event($order, $email, $text, $hours_to_wait, $hour_of_day = null)
   create_event($event_title, $comm_arr, $hours_to_wait, $hour_of_day);
 }
 
-function order_canceled_event($order, $email, $text, $hours_to_wait, $hour_of_day  = null) {
+function order_canceled_event($partial, $order, $email, $text, $hours_to_wait, $hour_of_day  = null) {
 
-  if ($order[0]['patient_active']) {
+  if ($order[0]['patient_inactive']) {
     log_warning('order_canceled_event canceled because patient inactive', get_defined_vars());
     return;
   }
 
   $patient_label = get_patient_label($order);
-  $event_title   = $order[0]['invoice_number'].' Order Canceled: '.$patient_label.'. Created:'.date('Y-m-d H:i:s');
+  $event_title   = $partial['invoice_number'].' Order Canceled: '.$patient_label.'. Created:'.date('Y-m-d H:i:s');
 
-  //Patient information not available
-  $cancel = cancel_events_by_order($order[0]['invoice_number'], 'order_canceled_event', ['Order Created', 'Order Updated', 'Order Dispensed']);
+  //$cancel = cancel_events_by_order($partial['invoice_number'], 'order_canceled_event', ['Order Created', 'Order Updated', 'Order Dispensed']);
 
   $comm_arr = new_comm_arr($patient_label, $email, $text);
 
@@ -219,7 +218,7 @@ function order_canceled_event($order, $email, $text, $hours_to_wait, $hour_of_da
 
 function confirm_shipment_event($order, $email, $salesforce, $hours_to_wait, $hour_of_day = null) {
 
-  if ($order[0]['patient_active']) {
+  if ($order[0]['patient_inactive']) {
     log_warning('confirm_shipment_event canceled because patient inactive', get_defined_vars());
     return;
   }
