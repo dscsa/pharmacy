@@ -205,7 +205,7 @@ function update_order_items($changes)
                     $item['rx_number'],
                     $item['drug_gsns']
                 ),
-                $deleted
+                $updated
             );
 
             //! $updated['order_date_dispensed'] otherwise triggered twice, once one

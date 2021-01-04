@@ -1,6 +1,7 @@
 <?php
 require_once 'helpers/helper_parse_sig.php';
 require_once 'helpers/helper_imports.php';
+require_once 'helpers/helper_identifiers.php';
 require_once 'exports/export_cp_rxs.php';
 require_once 'exports/export_gd_transfer_fax.php'; //is_will_transfer()
 require_once 'dbs/mysql_wc.php';
@@ -78,8 +79,15 @@ function update_rxs_single($changes)
 
     foreach ($changes['created'] as $created) {
         SirumLog::$subroutine_id = "rxs-single-created1-".sha1(serialize($created));
-
-        AuditLog::log("New Rx#{$created['rx_number']} for {$created['drug_name']} created via carepoint", $created);
+        $patient = getPatientByRx($updated['rx_number']);
+        AuditLog::log(
+            sprintf(
+                "New Rx# %s for %s created via carepoint",
+                $created['rx_number'],
+                $created['drug_name']
+            ),
+            $patient
+        );
 
         SirumLog::debug(
             "update_rxs_single: rx created1",
@@ -274,8 +282,25 @@ function update_rxs_single($changes)
         SirumLog::$subroutine_id = "rxs-single-updated-".sha1(serialize($updated));
 
         $changed = changed_fields($updated);
-
-        AuditLog::log("Rx#{$updated['rx_number']} for {$updated['drug_name']} updated", $updated);
+        $patient = getPatientByRx($updated['rx_number']);
+        AuditLog::log(
+            sprintf(
+                "Rx# %s for %s updated: %s",
+                $updated['rx_number'],
+                $updated['drug_name'],
+                implode(
+                    ', ',
+                    array_map(
+                        function ($v, $k) {
+                            return sprintf("%s='%s'", $k, $v);
+                        },
+                        $changed,
+                        array_keys($changed)
+                    )
+                )
+            ),
+            $patient
+        );
 
         SirumLog::debug(
             "update_rxs_single: rx updated $updated[drug_name] $updated[rx_number]",
@@ -316,12 +341,13 @@ function update_rxs_single($changes)
 
             AuditLog::log(
                 sprintf(
-                    "Autofill for #%s for %s changed to %s",
+                    "Autofill for #%s for %s changed to %s.  Updating all Rx's with
+                     same GSN to be on/off Autofill.",
                     $updated['rx_number'],
                     $updated['drug_name'],
                     $updated['rx_autofill']
                 ),
-                $updated
+                $patient
             );
 
             SirumLog::notice(
@@ -379,7 +405,7 @@ function update_rxs_single($changes)
                     ($is_will_transfer) ? 'will' : 'will NOT',
                     $item['rx_message_key']
                 ),
-                $updated
+                $patient
             );
 
             SirumLog::warning(

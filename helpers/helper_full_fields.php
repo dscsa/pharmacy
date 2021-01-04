@@ -87,7 +87,13 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
 
             $needs_adding    = ( ! @$patient_or_order[$i]['item_date_added'] AND $days > 0);
             $needs_removing  = (@$patient_or_order[$i]['item_date_added'] AND $days == 0 AND ! is_added_manually($patient_or_order[$i]));
+
+            // The Rx has been added to an order, there are more than 0 days
+            // available and we haven't already pended any stock
             $needs_pending   = (@$patient_or_order[$i]['item_date_added'] AND $days > 0  AND ! @$patient_or_order[$i]['count_pended_total']);
+
+            // This item has been pended, but the patient no longer has days left.
+            // This is either because the order was filled or they are out of refills
             $needs_unpending = (@$patient_or_order[$i]['item_date_added'] AND $days == 0 AND @$patient_or_order[$i]['count_pended_total']);
             $needs_repending = (@$patient_or_order[$i]['item_date_added'] AND $days_changed AND ! $needs_pending);
 
@@ -169,13 +175,31 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
             }
 
             if($needs_pending) {
-              SirumLog::notice("helper_full_fields: needs pending", ['get_days_and_message' => $get_days_and_message, 'item' => $patient_or_order[$i]]);
-              $patient_or_order[$i] = v2_pend_item($patient_or_order[$i], $mysql, "helper_full_fields needs_pending");
+              SirumLog::notice(
+                  "helper_full_fields: needs pending",
+                  [
+                      'get_days_and_message' => $get_days_and_message,
+                      'item' => $patient_or_order[$i]
+                  ]
+              );
+              $patient_or_order[$i] = v2_pend_item(
+                  $patient_or_order[$i],
+                  $mysql,
+                  "Rx has been added to an order and scheduled for dispensing");
             }
 
             if($needs_unpending) {
-              SirumLog::notice("helper_full_fields: needs unpending", ['get_days_and_message' => $get_days_and_message, 'item' => $patient_or_order[$i]]);
-              $patient_or_order[$i] = v2_unpend_item($patient_or_order[$i], $mysql, "helper_full_fields needs_unpending");
+              SirumLog::notice(
+                  "helper_full_fields: needs UN-pending",
+                  [
+                      'get_days_and_message' => $get_days_and_message,
+                      'item' => $patient_or_order[$i]
+                  ]);
+              $patient_or_order[$i] = v2_unpend_item(
+                  $patient_or_order[$i],
+                  $mysql,
+                  "Item dispensed or refills have expired"
+              );
             }
 
             if ($needs_repending) {

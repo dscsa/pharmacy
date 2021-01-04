@@ -5,6 +5,8 @@ namespace Sirum\Logging;
 use Sirum\Logging\SirumLog;
 use Google\Cloud\Logging\LoggingClient;
 
+require_once 'helpers/helper_identifiers.php';
+
 /**
  * This is a simple logger that maintains a single instance of the cloud $logger
  * This should not be stored in other code, but for the short term it's here.
@@ -39,16 +41,35 @@ class AuditLog
             self::getLogger();
         }
 
-        // set the context from the $orderitem_or_patient
-        //
+        //If we have an invoice but not a patient, we want to get those details
+        if (@$orderitem_or_patient['invoice_number']
+            && !@$orderitem_or_patient['birth_date']) {
+
+        }
+
         $context = [
-            'birth_date' => $orderitem_or_patient['birth_date'],
-            'last_name'  => $orderitem_or_patient['last_name'],
-            'first_name' => $orderitem_or_patient['first_name']
+            'birth_date' => @$orderitem_or_patient['birth_date'],
+            'last_name'  => @$orderitem_or_patient['last_name'],
+            'first_name' => @$orderitem_or_patient['first_name']
         ];
+
 
         if (@$orderitem_or_patient['invoice_number']) {
             $context['invoice_number'] = @$orderitem_or_patient['invoice_number'];
+        }
+
+        //If we have an invoice but not a patient, we want to get those details
+        if (@$orderitem_or_patient['invoice_number']
+            && !@$orderitem_or_patient['birth_date']) {
+            $patient = getPatientByInvoice($orderitem_or_patient['invoice_number']);
+
+            if (!empty($patient)) {
+                $context = [
+                    'birth_date' => $patient['birth_date'],
+                    'last_name'  => $patient['last_name'],
+                    'first_name' => $patient['first_name']
+                ];
+            }
         }
 
         $context['execution_id'] = SirumLog::$exec_id;

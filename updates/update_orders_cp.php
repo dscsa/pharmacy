@@ -46,25 +46,30 @@ function update_orders_cp($changes)
         $duplicate = get_current_orders_cp($mysql, ['patient_id_cp' => $created['patient_id_cp']]);
 
         SirumLog::debug(
-          "get_full_order: Carepoint Order created ". $created['invoice_number'],
-          [
-            'invoice_number' => $created['invoice_number'],
-            'created'   => $created,
-            'duplicate' => $duplicate,
-            'source'    => 'CarePoint',
-            'type'      => 'orders',
-            'event'     => 'created'
-          ]
+            "get_full_order: Carepoint Order created ". $created['invoice_number'],
+            [
+                'invoice_number' => $created['invoice_number'],
+                'created'   => $created,
+                'duplicate' => $duplicate,
+                'source'    => 'CarePoint',
+                'type'      => 'orders',
+                'event'     => 'created'
+            ]
         );
 
-        if (count($duplicate) > 1 AND $duplicate[0]['invoice_number'] != $created['invoice_number']) {
-          SirumLog::warning(
-            "Created Carepoint Order Seems to be a duplicate ".$duplicate[0]['invoice_number']." >>> ".$created['invoice_number'],
-            [
-              'invoice_number' => $created['invoice_number'],
-              'created' => $created,
-              'duplicate' => $duplicate
-            ]
+        if (count($duplicate) > 1
+            and $duplicate[0]['invoice_number'] != $created['invoice_number']) {
+            SirumLog::warning(
+                sprintf(
+                    "Created Carepoint Order Seems to be a duplicate %s >>> %s"
+                    $duplicate[0]['invoice_number'],
+                    $created['invoice_number']
+                ),
+                [
+                    'invoice_number' => $created['invoice_number'],
+                    'created' => $created,
+                    'duplicate' => $duplicate
+                ]
             );
 
             AuditLog::log(
@@ -72,15 +77,31 @@ function update_orders_cp($changes)
                 $created
             );
 
-          //Not sure what we should do here. Delete it?
-          //Instance where current order doesn't have all drugs, so patient/staff add a second order with the drug.  Merge orders?
-          $order = export_v2_unpend_order($created, $mysql, "Duplicate Order ".$duplicate[0]['invoice_number']." >>> ".$created['invoice_number']);
-          export_cp_remove_order($created['invoice_number'], "Duplicate of ".$duplicate[0]['invoice_number']);
+            /*
+                Not sure what we should do here. Delete it? Instance where
+                current order doesn't have all drugs, so patient/staff add a
+                second order with the drug.  Merge orders?
+             */
+            $order = export_v2_unpend_order(
+                $created,
+                $mysql,
+                sprintf(
+                    "Duplicate order  %s >>> %s",
+                    $duplicate[0]['invoice_number'],
+                    $created['invoice_number']
+                )
+            );
+
+            export_cp_remove_order(
+                $created['invoice_number'],
+                "Duplicate of {$duplicate[0]['invoice_number']}"
+            );
 
             continue;
         }
 
-        //Overrite Rx Messages everytime a new order created otherwis same message would stay for the life of the Rx
+        // Overrite Rx Messages everytime a new order created otherwise
+        // same message would stay for the life of the Rx
         $order = load_full_order($created, $mysql, true);
 
         if (! $order) {
@@ -95,10 +116,10 @@ function update_orders_cp($changes)
         SirumLog::debug(
             "Order found for created order",
             [
-            'invoice_number' => $order[0]['invoice_number'],
-            'order'          => $order,
-            'created'        => $created
-          ]
+                'invoice_number' => $order[0]['invoice_number'],
+                'order'          => $order,
+                'created'        => $created
+            ]
         );
 
         //TODO Add Special Case for Webform Transfer [w/ Note] here?
@@ -114,14 +135,15 @@ function update_orders_cp($changes)
             );
 
             SirumLog::error(
-                "Order CP Created - Deleting and Unpending Order $created[invoice_number] because Surescripts Authorization Denied. Can we remove the v2_unpend_order below because it get called on the next run?",
+                "Order CP Created - Deleting and Unpending Order {$created['invoice_number']}
+                because Surescripts Authorization Denied. Can we remove the v2_unpend_order below because it get called on the next run?",
                 [
-              'invoice_number' => $created['invoice_number'],
-              'created' => $created,
-              'source'  => 'CarePoint',
-              'type'    => 'orders',
-              'event'   => 'created'
-            ]
+                    'invoice_number' => $created['invoice_number'],
+                    'created' => $created,
+                    'source'  => 'CarePoint',
+                    'type'    => 'orders',
+                    'event'   => 'created'
+                ]
             );
 
             $date = "Created:".date('Y-m-d H:i:s');
@@ -133,10 +155,10 @@ function update_orders_cp($changes)
             }
 
             $salesforce = [
-            "subject"   => "SureScripts refill request denied for ".implode(', ', $drugs),
-            "body"      => "Order $created[invoice_number] deleted because provider denied SureScripts refill request for ".implode(', ', $drugs),
-            "contact"   => "{$order[0]['first_name']} {$order[0]['last_name']} {$order[0]['birth_date']}"
-          ];
+                "subject"   => "SureScripts refill request denied for ".implode(', ', $drugs),
+                "body"      => "Order $created[invoice_number] deleted because provider denied SureScripts refill request for ".implode(', ', $drugs),
+                "contact"   => "{$order[0]['first_name']} {$order[0]['last_name']} {$order[0]['birth_date']}"
+            ];
 
             create_event($salesforce['subject'], [$salesforce]);
 
@@ -155,31 +177,31 @@ function update_orders_cp($changes)
         if ($created['order_status'] == "Surescripts Authorization Approved") {
             AuditLog::log(
                 sprintf(
-                      "SureScript authorization approved for invoice %s.",
-                      $created['invoice_number']
-                  ),
+                    "SureScript authorization approved for invoice %s.",
+                    $created['invoice_number']
+                ),
                 $created
             );
             SirumLog::error(
                 "Surescripts Authorization Approved. Created.  What to do here?
-            Keep Order {$created['invoice_number']}? Delete Order? Depends
-            on Autofill settings?",
+                Keep Order {$created['invoice_number']}? Delete Order? Depends
+                on Autofill settings?",
                 [
-              'invoice_number'   => $created['invoice_number'],
-              'count_items'      => count($order)." / ".@$order['count_items'],
-              'patient_autofill' => $order[0]['patient_autofill'],
-              'rx_autofill'      => $order[0]['rx_autofill'],
-              'order'            => $order
-            ]
+                  'invoice_number'   => $created['invoice_number'],
+                  'count_items'      => count($order)." / ".@$order['count_items'],
+                  'patient_autofill' => $order[0]['patient_autofill'],
+                  'rx_autofill'      => $order[0]['rx_autofill'],
+                  'order'            => $order
+                ]
             );
         }
 
         if ($order[0]['order_stage_wc'] == 'wc-processing') {
             AuditLog::log(
                 sprintf(
-                      "Order %s status set to wc-processing.",
-                      $created['invoice_number']
-                  ),
+                    "Order %s status set to wc-processing.",
+                    $created['invoice_number']
+                ),
                 $created
             );
             SirumLog::debug(
@@ -199,18 +221,18 @@ function update_orders_cp($changes)
             export_gd_print_invoice($order);
             AuditLog::log(
                 sprintf(
-                      "Order %s marked as dispensed",
-                      $created['invoice_number']
-                  ),
+                    "Order %s marked as dispensed",
+                    $created['invoice_number']
+                ),
                 $created
             );
 
             SirumLog::debug(
                 'Dispensed/Shipped order is missing and is being added back to the wc and gp tables',
                 [
-                'invoice_number' => $order[0]['invoice_number'],
-                'order'          => $order
-              ]
+                    'invoice_number' => $order[0]['invoice_number'],
+                    'order'          => $order
+                ]
             );
 
             continue;
@@ -230,12 +252,15 @@ function update_orders_cp($changes)
                 manually added item, that we are not filling but that the
                 pharmacist is using as a placeholder/reminder e.g 54732
          */
-        if ($order[0]['count_items'] == 0 and $order[0]['count_filled'] == 0 and $order[0]['count_to_add'] == 0 and ! is_webform_transfer($order[0])) {
+        if ($order[0]['count_items'] == 0
+            and $order[0]['count_filled'] == 0
+            and $order[0]['count_to_add'] == 0
+            and ! is_webform_transfer($order[0])) {
             AuditLog::log(
                 sprintf(
-                      "Order %s has no drugs to fill, so it will be removed",
-                      $created['invoice_number']
-                  ),
+                    "Order %s has no drugs to fill, so it will be removed",
+                    $created['invoice_number']
+                ),
                 $created
             );
 
@@ -244,11 +269,11 @@ function update_orders_cp($changes)
             {$order[0]['invoice_number']}. Can we remove the v2_unpend_order
             below because it get called on the next run?",
                 [
-              'invoice_number' => $order[0]['invoice_number'],
-              'count_filled'   => $order[0]['count_filled'],
-              'count_items'    => $order[0]['count_items'],
-              'order'          => $order
-            ]
+                    'invoice_number' => $order[0]['invoice_number'],
+                    'count_filled'   => $order[0]['count_filled'],
+                    'count_items'    => $order[0]['count_items'],
+                    'order'          => $order
+                ]
             );
 
             $groups = group_drugs($order, $mysql);
@@ -270,14 +295,14 @@ function update_orders_cp($changes)
             SirumLog::debug(
                 'update_orders_cp: created. adding wc-order then skipping order '.$order[0]['invoice_number'].' because items still need to be removed/added',
                 [
-              'invoice_number'  => $order[0]['invoice_number'],
-              'count_filled'    => $order[0]['count_filled'],
-              'count_items'     => $order[0]['count_items'],
-              'count_to_remove' => $order[0]['count_to_remove'],
-              'count_to_add'    => $order[0]['count_to_add'],
-              'count_added'     => $order[0]['count_added'],
-              'order'           => $order
-            ]
+                    'invoice_number'  => $order[0]['invoice_number'],
+                    'count_filled'    => $order[0]['count_filled'],
+                    'count_items'     => $order[0]['count_items'],
+                    'count_to_remove' => $order[0]['count_to_remove'],
+                    'count_to_add'    => $order[0]['count_to_add'],
+                    'count_added'     => $order[0]['count_added'],
+                    'order'           => $order
+                ]
             );
 
             /*
@@ -311,9 +336,9 @@ function update_orders_cp($changes)
         if (! $order[0]['pharmacy_name']) {
             AuditLog::log(
                 sprintf(
-                      "Order %s was created but patient hasn't yet registered in Patient Portal",
-                      $created['invoice_number']
-                  ),
+                    "Order %s was created but patient hasn't yet registered in Patient Portal",
+                    $created['invoice_number']
+                ),
                 $created
             );
             needs_form_notice($groups);
@@ -334,11 +359,11 @@ function update_orders_cp($changes)
             SirumLog::debug(
                 "Creating order ".$order[0]['invoice_number']." in woocommerce because source is not the Webform",
                 [
-              'invoice_number' => $order[0]['invoice_number'],
-              'source'         => $order[0]['order_source'],
-              'order'          => $order,
-              'groups'         => $groups
-            ]
+                    'invoice_number' => $order[0]['invoice_number'],
+                    'source'         => $order[0]['order_source'],
+                    'order'          => $order,
+                    'groups'         => $groups
+                ]
             );
 
             export_wc_create_order($order, "update_orders_cp: created");
@@ -712,7 +737,10 @@ function update_orders_cp($changes)
         // count_items instead of count_filled because it might be a manually
         //  added item, that we are not filling but that the pharmacist is using
         //  as a placeholder/reminder e.g 54732
-        if ($order[0]['count_items'] == 0 and $order[0]['count_filled'] == 0 and $order[0]['count_to_add'] == 0 and ! is_webform_transfer($order[0])) {
+        if ($order[0]['count_items'] == 0
+            and $order[0]['count_filled'] == 0
+            and $order[0]['count_to_add'] == 0 
+            and ! is_webform_transfer($order[0])) {
             AuditLog::log(
                 sprintf(
                     "Order %s has no Rx to fill so it will be cancelled",
