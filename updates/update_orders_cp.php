@@ -543,7 +543,7 @@ function update_orders_cp($changes)
             $deleted
         );
 
-        $replacement = get_current_orders_wc($mysql, ['patient_id_cp' => $deleted['patient_id_cp']]);
+        $replacement = get_current_orders_cp($mysql, ['patient_id_cp' => $deleted['patient_id_cp']]);
 
         if ($replacement) {
             AuditLog::log(
