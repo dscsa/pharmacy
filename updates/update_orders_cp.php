@@ -61,7 +61,7 @@ function update_orders_cp($changes)
             and $duplicate[0]['invoice_number'] != $created['invoice_number']) {
             SirumLog::warning(
                 sprintf(
-                    "Created Carepoint Order Seems to be a duplicate %s >>> %s"
+                    "Created Carepoint Order Seems to be a duplicate %s >>> %s",
                     $duplicate[0]['invoice_number'],
                     $created['invoice_number']
                 ),
