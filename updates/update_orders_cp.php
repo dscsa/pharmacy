@@ -39,7 +39,7 @@ function update_orders_cp($changes) {
         $duplicate = get_current_orders($mysql, ['patient_id_cp' => $created['patient_id_cp']]);
 
         SirumLog::debug(
-          "get_full_order: Carepoint Order created",
+          "get_full_order: Carepoint Order created ". $created['invoice_number'],
           [
             'invoice_number' => $created['invoice_number'],
             'created'   => $created,
@@ -52,7 +52,7 @@ function update_orders_cp($changes) {
 
         if (count($duplicate) > 1 AND $duplicate[0]['invoice_number'] != $created['invoice_number']) {
           SirumLog::warning(
-            "Created Carepoint Order Seems to be a duplicate",
+            "Created Carepoint Order Seems to be a duplicate ".$duplicate[0]['invoice_number']." >>> ".$created['invoice_number'],
             [
               'invoice_number' => $created['invoice_number'],
               'created' => $created,
@@ -62,6 +62,7 @@ function update_orders_cp($changes) {
 
           //Not sure what we should do here. Delete it?
           //Instance where current order doesn't have all drugs, so patient/staff add a second order with the drug.  Merge orders?
+          $order = export_v2_unpend_order($created, $mysql, "Duplicate Order ".$duplicate[0]['invoice_number']." >>> ".$created['invoice_number']);
           export_cp_remove_order($created['invoice_number'], "Duplicate of ".$duplicate[0]['invoice_number']);
 
           continue;

@@ -270,7 +270,11 @@ function get_current_orders($mysql, $conditions = []) {
     WHERE
       $where
       order_date_dispensed IS NULL
+    ORDER BY
+      invoice_number ASC
   ";
+
+  log_error('get_current_orders', ['sql' => $sql, 'conditions' => $conditions]);
 
   return $mysql->run($sql)[0];
 }
