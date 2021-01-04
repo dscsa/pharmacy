@@ -58,7 +58,7 @@ function update_order_items($changes)
         );
 
         if (!$item) {
-            log_error("Created Item Missing", $created);
+            SirumLog::error("Created Item Missing", [ 'created' => $created ]);
             continue;
         }
 
@@ -78,10 +78,15 @@ function update_order_items($changes)
         }
 
         if ($item['days_dispensed_actual']) {
-            log_error("order_item created but days_dispensed_actual already set.  Most likely an new rx but not part of a new order (days actual is from a previously shipped order) or an item added to order and dispensed all within the time between cron jobs", [$item, $created]);
-
+            SirumLog::error(
+                "order_item created but days_dispensed_actual already set.
+                    Most likely an new rx but not part of a new order (days actual
+                    is from a previously shipped order) or an item added to order and
+                    dispensed all within the time between cron jobs",
+                [ 'item' => $item, 'created' => $created]
+            );
             SirumLog::debug("Freezing Item as because it's dispensed", $item);
-            freeze_invoice_data($item, $mysql);
+            $item = set_item_invoice_data($item, $mysql);
             continue;
         }
 
@@ -112,7 +117,9 @@ function update_order_items($changes)
             since the order is likely already deleted here, order_date_added is null
             so you cannot deduce the correct pended group name to find and unpend
         */
-        if (@$deleted['order_date_added']) { //Only available if item was deleted from an order that is still active
+
+       //Only available if item was deleted from an order that is still active
+        if (@$deleted['order_date_added']) {
             AuditLog::log(
                 sprintf(
                     "Order item % deleted for Rx#%s GSN#%s, Unpending",
@@ -124,9 +131,16 @@ function update_order_items($changes)
             );
         }
 
-        $item = v2_unpend_item(array_merge($item, $deleted), $mysql, "order-item-deleted and order still exists");
+        $item = v2_unpend_item(
+            array_merge($item, $deleted),
+            $mysql,
+            "order-item-deleted and order still exists"
+        );
 
-        //TODO Update Salesforce Order Total & Order Count & Order Invoice using REST API or a MYSQL Zapier Integration
+        /*
+            TODO Update Salesforce Order Total & Order Count & Order Invoice
+            using REST API or a MYSQL Zapier Integration
+         */
     }
     log_timer('order-items-deleted', $loop_timer, $count_deleted);
 
@@ -182,7 +196,7 @@ function update_order_items($changes)
         if ($item['days_dispensed_actual']) {
             SirumLog::debug("Freezing Item as because it's dispensed and updated", $item);
 
-            freeze_invoice_data($item, $mysql);
+            $item = set_item_invoice_data($item, $mysql);
 
             AuditLog::log(
                 sprintf(
@@ -274,8 +288,6 @@ function update_order_items($changes)
                 ]
             );
         }
-
-        log_info("update_order_items", get_defined_vars());
 
         /* TODO Update Salesforce Order Total & Order Count & Order Invoice
            using REST API or a MYSQL Zapier Integration
