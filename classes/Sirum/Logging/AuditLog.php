@@ -67,7 +67,8 @@ class AuditLog
                 $context = [
                     'birth_date' => $patient['birth_date'],
                     'last_name'  => $patient['last_name'],
-                    'first_name' => $patient['first_name']
+                    'first_name' => $patient['first_name'],
+                    'invoice_number' => $orderitem_or_patient['invoice_number']
                 ];
             }
         }
