@@ -43,11 +43,11 @@ function update_orders_cp($changes)
     foreach ($changes['created'] as $created) {
         SirumLog::$subroutine_id = "orders-cp-created-".sha1(serialize($created));
 
-        $duplicate = get_current_orders($mysql, ['patient_id_cp' => $created['patient_id_cp']]);
+        $duplicate = get_current_orders_cp($mysql, ['patient_id_cp' => $created['patient_id_cp']]);
 
         SirumLog::debug(
-            "get_full_order: Carepoint Order created",
-            [
+          "get_full_order: Carepoint Order created ". $created['invoice_number'],
+          [
             'invoice_number' => $created['invoice_number'],
             'created'   => $created,
             'duplicate' => $duplicate,
@@ -57,10 +57,10 @@ function update_orders_cp($changes)
           ]
         );
 
-        if (count($duplicate) > 1 and $duplicate[0]['invoice_number'] != $created['invoice_number']) {
-            SirumLog::warning(
-                "Created Carepoint Order Seems to be a duplicate",
-                [
+        if (count($duplicate) > 1 AND $duplicate[0]['invoice_number'] != $created['invoice_number']) {
+          SirumLog::warning(
+            "Created Carepoint Order Seems to be a duplicate ".$duplicate[0]['invoice_number']." >>> ".$created['invoice_number'],
+            [
               'invoice_number' => $created['invoice_number'],
               'created' => $created,
               'duplicate' => $duplicate
@@ -72,9 +72,10 @@ function update_orders_cp($changes)
                 $created
             );
 
-            //Not sure what we should do here. Delete it?
-            //Instance where current order doesn't have all drugs, so patient/staff add a second order with the drug.  Merge orders?
-            export_cp_remove_order($created['invoice_number'], "Duplicate of ".$duplicate[0]['invoice_number']);
+          //Not sure what we should do here. Delete it?
+          //Instance where current order doesn't have all drugs, so patient/staff add a second order with the drug.  Merge orders?
+          $order = export_v2_unpend_order($created, $mysql, "Duplicate Order ".$duplicate[0]['invoice_number']." >>> ".$created['invoice_number']);
+          export_cp_remove_order($created['invoice_number'], "Duplicate of ".$duplicate[0]['invoice_number']);
 
             continue;
         }
@@ -542,7 +543,7 @@ function update_orders_cp($changes)
             $deleted
         );
 
-        $replacement = get_current_orders($mysql, ['patient_id_cp' => $deleted['patient_id_cp']]);
+        $replacement = get_current_orders_wc($mysql, ['patient_id_cp' => $deleted['patient_id_cp']]);
 
         if ($replacement) {
             AuditLog::log(
