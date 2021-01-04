@@ -17,16 +17,9 @@ function v2_fetch($url, $method = 'GET', $content = []) {
       ]
   ];
 
-
-  print_r($opts);
-
   $context = stream_context_create($opts);
 
   $response = file_get_contents(V2_IP.$url, false, $context);
-
-  print_r($response);
-
-  echo V2_IP . $url;
 
   return json_decode($response, true);
 }
