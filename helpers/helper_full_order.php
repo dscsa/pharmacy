@@ -283,6 +283,7 @@ function get_current_orders_cp($mysql, $conditions = []) {
   return $mysql->run($sql)[0];
 }
 
+//TODO Hacky see note above
 function get_current_orders_wc($mysql, $conditions = []) {
 
   $where = "";
