@@ -298,7 +298,7 @@ function get_current_orders_wc($mysql, $conditions = []) {
       gp_orders_wc
     WHERE
       $where
-      order_date_dispensed IS NULL
+      (order_stage_wc LIKE 'wc-confirm-%' OR order_stage_wc LIKE 'wc-prepare-%')
     ORDER BY
       invoice_number ASC
   ";
