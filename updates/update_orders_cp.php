@@ -36,7 +36,7 @@ function update_orders_cp($changes) {
 
         SirumLog::$subroutine_id = "orders-cp-created-".sha1(serialize($created));
 
-        $duplicate = get_current_orders($mysql, ['patient_id_cp' => $created['patient_id_cp']]);
+        $duplicate = get_current_orders_cp($mysql, ['patient_id_cp' => $created['patient_id_cp']]);
 
         SirumLog::debug(
           "get_full_order: Carepoint Order created ". $created['invoice_number'],
@@ -381,7 +381,7 @@ function update_orders_cp($changes) {
         $patient[$i] = v2_unpend_item(array_merge($item, $deleted), $mysql, 'update_orders_cp deleted: unpending all items');
       }
 
-      $replacement = get_current_orders($mysql, ['patient_id_cp' => $deleted['patient_id_cp']]);
+      $replacement = get_current_orders_cp($mysql, ['patient_id_cp' => $deleted['patient_id_cp']]);
 
       if ($replacement) {
         log_warning('update_orders_cp deleted: their appears to be a replacement', ['deleted' => $deleted, 'replacement' => $replacement, 'groups' => $groups, 'patient' => $patient]);

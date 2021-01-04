@@ -45,7 +45,7 @@ function update_orders_wc($changes) {
             ]
         );
 
-        $duplicate = get_current_orders($mysql, ['patient_id_wc' => $created['patient_id_wc']]);
+        $duplicate = get_current_orders_wc($mysql, ['patient_id_wc' => $created['patient_id_wc']]);
 
         if ($duplicate) {
           log_warning('order_canceled_notice BUT their appears to be a replacement', ['created' => $created, 'duplicate' => $duplicate]);
