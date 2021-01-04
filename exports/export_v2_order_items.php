@@ -1,5 +1,7 @@
 <?php
 
+use Sirum\Logging\AuditLog;
+
 require_once 'exports/export_cp_orders.php';
 
 function export_v2_unpend_order($order, $mysql, $reason) {
@@ -17,22 +19,108 @@ function export_v2_unpend_order($order, $mysql, $reason) {
 
   return $order;
 }
-
+/**
+ * UnPend(remove) an item in V2 for picking
+ * @param  array $item   The item details to be picked
+ * @param  Mysql_Wc $mysql  Mysql Object
+ * @param  string $reason The reason we are pending the item
+ * @return $item
+ */
 function v2_pend_item($item, $mysql, $reason) {
+  // Abort the pend if we are missing a key field
+  if (!$item['days_dispensed_default']
+      OR $item['rx_dispensed_id']
+      OR is_null($item['last_inventory'])
+      OR @$item['count_pended_total'] > 0) {
 
-  log_notice("v2_pend_item: ".@$item['invoice_number']." ".@$item['drug_name']." $reason ".@$item['rx_number'], ['item' => $item]);//.print_r($item, true);
+    AuditLog::log(
+        sprintf(
+            "ABORTED PEND Attempted to pend %s for Rx#%s on Invoice #%s for
+            the following reasons: Missing days dispensed default - %s,
+            The Rx hasn't been assigned - %s, There isn't inventory - %s,
+            The number of doses is invalid - %s",
+            @$item['drug_name'],
+            @$item['rx_number'],
+            @$item['invoice_number'],
+            (!$item['days_dispensed_default']) ? 'Y':'N',
+            ($item['rx_dispensed_id']) ? 'Y':'N',
+            (is_null($item['last_inventory'])) ? 'Y':'N',
+            (@$item['count_pended_total'] > 0) ? 'Y':'N'
+        ),
+        $item
+    );
 
-  if ( ! $item['days_dispensed_default'] OR $item['rx_dispensed_id'] OR is_null($item['last_inventory']) OR @$item['count_pended_total'] > 0) {
-    log_error("v2_pend_item: ABORTED! ".@$item['invoice_number']." ".@$item['drug_name']." $reason ".@$item['rx_number'].". days_dispensed_default:".@$item['days_dispensed_default']." rx_dispensed_id:".@$item['rx_dispensed_id']." last_inventory:".@$item['last_inventory']." count_pended_total:".@$item['count_pended_total'], ['item' => $item]);
+    SirumLog::error(
+        sprintf(
+            "v2_pend_item: ABORTED! %s %s %s %s days_dispensed_default:%s
+            rx_dispensed_id:%s last_inventory:%s count_pended_total:%s"
+            .@$item['invoice_number'],
+            @$item['drug_name'],
+            $reason,
+            @$item['rx_number'],
+            @$item['days_dispensed_default'],
+            @$item['rx_dispensed_id'],
+            @$item['last_inventory'],
+            @$item['count_pended_total']
+        ),
+        [ 'item' => $item ]
+    );
     return $item;
   }
 
+  // Make the picklist
   $list = make_pick_list($item);
 
-  if ($list)
-    log_notice("v2_pend_item: make_pick_list SUCCESS $item[invoice_number] $item[drug_name] $reason $item[rx_number]", ['success' => true, 'item' => $item, 'list' => $list]);
-  else
-    log_error("v2_pend_item: make_pick_list ERROR $item[invoice_number] $item[drug_name] $reason $item[rx_number]", ['success' => false, 'item' => $item, 'list' => $list]);
+  if ($list) {
+      AuditLog::log(
+          sprintf(
+              "Item %s for Rx#%s on Invoice #%s Pended because",
+              @$item['drug_name'],
+              @$item['rx_number'],
+              @$item['invoice_number'],
+              $reason
+          ),
+          $item
+      );
+    SirumLog::debug(
+        sprintf(
+            "v2_pend_item: make_pick_list SUCCESS %s %s %s %s",
+            $item['invoice_number'],
+            $item['drug_name'],
+            $reason,
+            $item['rx_number']
+        ),
+        [
+            'success' => true,
+            'item' => $item,
+            'list' => $list
+        ]
+    );
+  } else {
+      AuditLog::log(
+          sprintf(
+              "Item %s for Rx#%s on Invoice #%s FAILED to pend",
+              @$item['drug_name'],
+              @$item['rx_number'],
+              @$item['invoice_number']
+          ),
+          $item
+      );
+      SirumLog::error(
+          sprintf(
+              "v2_pend_item: make_pick_list ERROR %s %s %s %s",
+              $item['invoice_number'],
+              $item['drug_name'],
+              $reason,
+              $item['rx_number']
+          ),
+          [
+              'success' => false,
+              'item' => $item,
+              'list' => $list
+          ]
+      );
+  }
 
   print_pick_list($item, $list);
   pend_pick_list($item, $list);
@@ -40,11 +128,52 @@ function v2_pend_item($item, $mysql, $reason) {
   return $item;
 }
 
+/**
+ * UnPend(remove) an item in V2 for picking
+ * @param  array $item   The item details to be picked
+ * @param  Mysql_Wc $mysql  Mysql Object
+ * @param  string $reason The reason we are pending the item
+ * @return void
+ */
 function v2_unpend_item($item, $mysql, $reason) {
+  SirumLog::notice(
+      sprintf(
+          "v2_unpend_item: Invoice: %s Drug: %s Reason: %s Rx# %s",
+          @$item['invoice_number'],
+          @$item['drug_name'],
+          $reason,
+          @$item['rx_number'],
+      ),
+      [ 'item' => $item ]
+  );
 
-  log_notice("v2_unpend_item: ".@$item['invoice_number']." ".@$item['drug_name']." $reason ".@$item['rx_number'], ['item' => $item]);//.print_r($item, true);
+  AuditLog::log(
+      sprintf(
+          "Item %s for Rx#%s on Invoice #%s UN-Pended because %s",
+          @$item['drug_name'],
+          @$item['rx_number'],
+          @$item['invoice_number'],
+          $reason
+      ),
+      $item
+  );
 
-  if ( ! @$item['invoice_number'] OR ! @$item['order_date_added'] OR ! @$item['patient_date_added']) {
+  if ( !@$item['invoice_number']
+        OR !@$item['order_date_added']
+        OR !@$item['patient_date_added']) {
+      AuditLog::log(
+          sprintf(
+              "Item %s for Rx#%s on Invoice #%s UN-Pended is missing:
+               invoice number - %s, order date - %s, patient date - %s",
+              @$item['drug_name'],
+              @$item['rx_number'],
+              @$item['invoice_number'],
+              (!@$item['invoice_number']) ? 'Y':'N',
+              (!@$item['order_date_added']) ? 'Y':'N',
+              (!@$item['patient_date_added']) ? 'Y':'N'
+          ),
+          $item
+      );
     log_alert("v2_unpend_item: NO INVOICE NUMBER, ORDER DATE ADDED, OR PATIENT DATE ADDED! ".@$item['invoice_number']." ".@$item['drug_name']." $reason ".@$item['rx_number'].". rx_dispensed_id:".@$item['rx_dispensed_id']." last_inventory:".@$item['last_inventory']." count_pended_total:".@$item['count_pended_total'], ['item' => $item]);
   }
 
