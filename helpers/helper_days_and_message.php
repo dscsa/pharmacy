@@ -3,40 +3,86 @@ require_once 'helpers/helper_calendar.php';
 
 use Sirum\Logging\SirumLog;
 
+/**
+ * Returns the number of days of medicine available and a message
+ * describing the condition
+ * @param  array $item              A RX we are trying to fill
+ * @param  array $patient_or_order  The entire patien or order
+ * @return array                    [
+ *                                   number_of_days_available
+ *                                   message
+ *                                  ]
+ */
 function get_days_and_message($item, $patient_or_order) {
 
+  // Is this an item we will transfer
   $no_transfer      = is_no_transfer($item);
-  $added_manually   = is_added_manually($item);
-  $is_webform       = is_webform($item);
-  $not_offered      = is_not_offered($item);
-  $is_refill        = is_refill($item, $patient_or_order);
-  $refill_only      = is_refill_only($item);
-  $is_duplicate_gsn = is_duplicate_gsn($item, $patient_or_order);
-  $is_syncable      = is_syncable($item);
-  $is_order         = is_order($patient_or_order); //invoice_number seems like it may be present even if not an order
 
+  // What does this mean and is it significant
+  $added_manually   = is_added_manually($item);
+
+  // Origination of this item was carepoint not WooCommerce?
+  $is_webform       = is_webform($item);
+
+  // Not available for filling by Goodpill
+  $not_offered      = is_not_offered($item);
+
+  // Not the first time filling this Rx
+  $is_refill        = is_refill($item, $patient_or_order);
+
+  // Don't fil new perscriptions, Only fill refill
+  $refill_only      = is_refill_only($item);
+
+  // Does this item exist more than once in the current order
+  $is_duplicate_gsn = is_duplicate_gsn($item, $patient_or_order);
+
+  // What is the relevance of item_date_added?
+  // What does syncable mean ?
+  $is_syncable      = is_syncable($item);
+
+  // The current level for the item_message_keys
   $stock_level      = @$item['stock_level_initial'] ?: $item['stock_level'];
 
+  // Checks to see that there is an order so we know its aorder
+  // use order_date_added because invoice_number seems like it may be present
+  // even if not an order
+  $is_order         = is_order($patient_or_order);
+
+  // How long before our current stock expires
   $days_left_in_expiration = days_left_in_expiration($item);
+
+  // Days left on the current rx refill
   $days_left_in_refills    = days_left_in_refills($item);
+
+  // The number of days left in our current inventory
   $days_left_in_stock      = days_left_in_stock($item);
+
+  // This is the MIN of ($days_left_in_refills, $days_left_in_stock). If either
+  // value is 0, Use the DAY_STD in its place
   $days_default            = days_default($days_left_in_refills, $days_left_in_stock, DAYS_STD, $item);
 
+  /*
+    There was some error parsint the Rx
+   */
   if ( ! $item['sig_qty_per_day_default'] AND $item['refills_original'] != $item['refills_left']) {
     log_error("helper_days_and_message: RX WAS NEVER PARSED", $item);
   }
 
+  /*
+    We have multiple occurances of drugs on the same order
+   */
   if (@$item['item_date_added'] AND $is_duplicate_gsn) {
     log_error("helper_days_and_message: $item[drug_generic] is duplicated.  Likely Mistake. Different sig_qty_per_day?", ['item' => $item, 'order' => $patient_or_order]);
   }
 
+  /*
+     If the RX has transfered, we aren't going to fill it
+   */
   if ($item['rx_transfer']) {
 
     if ( ! $item['rx_date_transferred']) {
       log_error("rx_transfer is set, but rx_date_transferred is not", get_defined_vars());
-    }
-
-    else if($stock_level == STOCK_LEVEL['HIGH SUPPLY'] AND strtotime($item['rx_date_transferred']) > strtotime('-2 day')) {
+    } else if($stock_level == STOCK_LEVEL['HIGH SUPPLY'] AND strtotime($item['rx_date_transferred']) > strtotime('-2 day')) {
 
       $created = "Created:".date('Y-m-d H:i:s');
 
@@ -52,17 +98,17 @@ function get_days_and_message($item, $patient_or_order) {
 
       create_event($event_title, [$salesforce]);
       log_warning($event_title, get_defined_vars());
-    }
-
-    else if($stock_level == STOCK_LEVEL['HIGH SUPPLY'])
+    } else if($stock_level == STOCK_LEVEL['HIGH SUPPLY']) {
       log_notice('HIGH STOCK ITEM WAS TRANSFERRED IN THE PAST', get_defined_vars());
-
-    else
+    } else {
       log_info("RX WAS ALREADY TRANSFERRED OUT", get_defined_vars());
+    }
 
     return [0, RX_MESSAGE['NO ACTION WAS TRANSFERRED']];
   }
-
+  /*
+    Expired Medications
+   */
   if ( ! is_null($days_left_in_expiration) AND $days_left_in_expiration < DAYS_BUFFER) {
     log_info("DON'T FILL EXPIRED MEDICATIONS", get_defined_vars());
     return [0, RX_MESSAGE['ACTION EXPIRED']];
@@ -71,7 +117,6 @@ function get_days_and_message($item, $patient_or_order) {
 
 
   if ( ! $item['drug_gsns'] AND $item['drug_name']) {
-
     //Check for invoice number otherwise, seemed that SF tasks were being triplicated.  Unsure reason, maybe called by order_items and not just orders?
     if ( ! is_item($patient_or_order)) {
       log_warning("Confirm didn't create salesforce task for GSN - patients/orders would cause duplicates", $item);
@@ -113,12 +158,15 @@ function get_days_and_message($item, $patient_or_order) {
     return [ $item['refill_date_first'] ? $days_default : 0, RX_MESSAGE['NO ACTION MISSING GSN']];
   }
 
+  /*
+    Don't fill drugs we no longer offer
+   */
   if ( ! $is_refill AND $not_offered) {
     log_info("TRANSFER OUT NEW RXS THAT WE DONT CARRY", get_defined_vars());
     return [0, RX_MESSAGE['NO ACTION WILL TRANSFER']];
   }
 
-  if ($no_transfer AND ! $is_refill AND $refill_only) {
+ if ($no_transfer AND ! $is_refill AND $refill_only) {
     log_info("CHECK BACK IF TRANSFER OUT IS NOT DESIRED", get_defined_vars());
     return [0, RX_MESSAGE['ACTION CHECK BACK']];
   }
@@ -509,10 +557,22 @@ function is_syncable($item) {
   return @$item['is_order'] AND ! @$item['item_date_added'] AND ! @$item['order_date_dispensed'];
 }
 
+/**
+ * Was the item manually added via Webform or CarePoint
+ *   Returns true if ADDED_MANUALLY valuse are in the item_added_by array
+ *     OR
+ *   The item has a item_date_added and a refil_date_manual
+ * @param  array  $item  The item to check
+ * @return boolean
+ */
 function is_added_manually($item) {
   return in_array(@$item['item_added_by'], ADDED_MANUALLY) OR (@$item['item_date_added'] AND $item['refill_date_manual']);
 }
-
+/**
+ * Did the item come from a webform transfer, surefill or refill
+ * @param  array  $item  The item to check
+ * @return boolean
+ */
 function is_webform($item) {
   return is_webform_transfer($item) OR is_webform_erx($item) OR is_webform_refill($item);
 }
@@ -540,6 +600,8 @@ function is_patient($patient_or_order) {
 function is_item($patient_or_order) {
   return @$patient_or_order[0]['is_item']; //invoice_number is present on singular order-items
 }
+
+
 
 function is_not_offered($item) {
   $stock_level = @$item['stock_level_initial'] ?: $item['stock_level'];

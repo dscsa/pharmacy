@@ -2,13 +2,14 @@
 
 namespace Sirum\Logging;
 
+use Sirum\Logging\SirumLog;
 use Google\Cloud\Logging\LoggingClient;
 
 /**
  * This is a simple logger that maintains a single instance of the cloud $logger
  * This should not be stored in other code, but for the short term it's here.
  */
-class SirumLog
+class AuditLog
 {
 
   /**
@@ -17,80 +18,52 @@ class SirumLog
     public static $logger;
 
     /**
-     * Stores the execution id so logs from a single run can be consolidated
-     * @var string
-     */
-    public static $exec_id;
-
-    /**
-     * Stores the execution id so logs from a single run can be consolidated
-     * @var string
-     */
-    public static $subroutine_id = null;
-
-    /**
      * The application ID for the google logger
      * @var string
      */
-    public static $application_id;
+    public static $application_id = 'pa-audit';
 
     /**
-     * Overide the static funciton and pass unknow methos into the logger.
-     * We will do some cleanup to make sure the data is an array and we will add
-     * the execution id so we can group the log message
-     *
-     * @param  string $method  A message for the log entry
-     * @param  mixed  $args    Any context that needs to be passed into the log
+     * Function to add an item to the audit log in google cloud
+     * @param  string $message              The message to display
+     * @param  array  $orderitem_or_patient The item that the message is about
+     *      This can be an order item or a patien.  And entire order will cause
+     *      and error
      * @return void
      */
-    public static function __callStatic($method, $args)
+    public static function log($message, $orderitem_or_patient)
     {
-        global $execution_details;
 
+        // Make sure we have a logger
         if (!isset(self::$logger)) {
             self::getLogger();
         }
 
-        if (is_array($args)) {
-            list($message, $context) = $args;
-        } else {
-            $message = $args;
-            $context = [];
+        // set the context from the $orderitem_or_patient
+        //
+        $context = [
+            'birth_date' => $orderitem_or_patient['birth_date'],
+            'last_name'  => $orderitem_or_patient['last_name'],
+            'first_name' => $orderitem_or_patient['first_name']
+        ];
+
+        if (@$orderitem_or_patient['invoice_number']) {
+            $context['invoice_number'] = @$orderitem_or_patient['invoice_number'];
         }
 
-        $context = ["context" => $context];
+        $context['execution_id'] = SirumLog::$exec_id;
 
-        $context['execution_id'] = self::$exec_id;
-
-        if (!is_null(self::$subroutine_id)) {
-            $context['subroutine_id'] = self::$subroutine_id;
+        if (!is_null(SirumLog::$subroutine_id)) {
+            $context['subroutine_id'] = SirumLog::$subroutine_id;
         }
 
         try {
-            self::$logger->$method($message, $context);
+            self::$logger->info($message, $context);
         } catch (\Exception $e) {
             // The logger is broken.  We need to recycle it.
             self::$logger->flush();
             self::resetLogger();
-            self::$logger->warning(
-                'Logging Generated error',
-                [
-                     'message' => $message,
-                     'level' => $method,
-                     'error' => $e->getMessage()
-                ]
-            );
-            self::$logger->$method($message);
         }
-    }
-
-    /**
-     * Set the subroutine ID to null
-     * @return void
-     */
-    public static function resetSubroutineId()
-    {
-        self::$subroutine_id = null;
     }
 
     /**
@@ -116,11 +89,9 @@ class SirumLog
      *
      * @return LoggingClient  A PSR-3 compatible logger
      */
-    public static function getLogger($application = 'pharmacy-automation', $execution = null)
+    public static function getLogger()
     {
         if (!isset(self::$logger) or is_null(self::$logger)) {
-            self::$application_id = $application;
-
             $logging  = new LoggingClient(['projectId' => 'unified-logging-292316']);
 
             self::$logger = $logging->psrLogger(
@@ -134,14 +105,6 @@ class SirumLog
                     ]
                 ]
             );
-
-            if (is_null($execution)) {
-                $execution = uniqid();
-            }
-
-            self::$exec_id = $execution;
-
-            self::$application_id = $application;
         }
 
         return self::$logger;
