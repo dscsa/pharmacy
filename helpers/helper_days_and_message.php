@@ -180,13 +180,13 @@ function get_days_and_message($item, $patient_or_order) {
 
     $salesforce = [
       "subject"   => "Investigate Early Refill",
-      "body"      => "Confirm if/why needs $item[drug_name] in Order #$item[invoice_number] even though it's over "."28"." days before it's due. If needed, add drug to order. $created",
+      "body"      => "Confirm if/why needs $item[drug_name] in Order #".@$item['invoice_number']." even though it's over "."28"." days before it's due. If needed, add drug to order. $created",
       "contact"   => "$item[first_name] $item[last_name] $item[birth_date]",
       "assign_to" => ".Add/Remove Drug - RPh",
       "due_date"  => date('Y-m-d')
     ];
 
-    $event_title = "$item[invoice_number] $salesforce[subject]: $salesforce[contact] $created";
+    $event_title = @$item['invoice_number']." $salesforce[subject]: $salesforce[contact] $created";
 
     create_event($event_title, [$salesforce]);
     return [0, RX_MESSAGE['NO ACTION NOT DUE']];

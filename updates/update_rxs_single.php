@@ -310,20 +310,19 @@ function update_rxs_single($changes)
             //Wmight just switch one Rx in CP so we need this to maintain consistency
             export_cp_rx_autofill($item, $mssql);
 
-
             $status  = $updated['rx_autofill'] ? 'ON' : 'OFF';
             $body    = "$item[drug_name] autofill turned $status for $item[rx_numbers]"; //Used as cache key
             $created = "Created:".date('Y-m-d H:i:s');
 
-
-            $log_mesage = sprintf(
-                "Autofill for #%s for %s changed to %s",
-                $updated['rx_number'],
-                $updated['drug_name'],
-                $updated['rx_autofill']
+            AuditLog::log(
+                sprintf(
+                    "Autofill for #%s for %s changed to %s",
+                    $updated['rx_number'],
+                    $updated['drug_name'],
+                    $updated['rx_autofill']
+                ),
+                $updated
             );
-
-            AuditLog::log($log_mesage, $updated);
 
             SirumLog::notice(
                 "update_rxs_single rx_autofill changed.  Updating all Rx's with
@@ -369,26 +368,29 @@ function update_rxs_single($changes)
         }
 
         if ($updated['rx_transfer'] and ! $updated['old_rx_transfer']) {
+            $item = load_full_item($updated, $mysql, true);
             $is_will_transfer = is_will_transfer($item);
 
-            $log_mesage = sprintf(
-                "Rx# %s for %s was marked to be transfered.  It %s be transfered because %s",
-                $updated['rx_number'],
-                $updated['drug_name'],
-                ($is_will_transfer) ? 'will' : 'will NOT',
-                $item['rx_message_key']
+            AuditLog::log(
+                sprintf(
+                    "Rx# %s for %s was marked to be transfered.  It %s be transfered because %s",
+                    $updated['rx_number'],
+                    $updated['drug_name'],
+                    ($is_will_transfer) ? 'will' : 'will NOT',
+                    $item['rx_message_key']
+                ),
+                $updated
             );
 
-            AuditLog::log($log_mesage, $updated);
             SirumLog::warning(
                 "update_rxs_single rx was transferred out.  Confirm correct is_will_transfer
                 updated rxs_single.rx_message_key. rxs_grouped.rx_message_keys
                 will be updated on next pass",
                 [
                     'is_will_transfer' => $is_will_transfer,
-                    'patient' => $patient,
-                    'updated' => $updated,
-                    'changed' => $changed
+                    'item'             => $item,
+                    'updated'          => $updated,
+                    'changed'          => $changed
                 ]
             );
         }
