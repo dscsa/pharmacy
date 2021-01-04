@@ -40,7 +40,7 @@ function group_drugs($order, $mysql) {
     $days = @$item['days_dispensed'];
     $fill = $days ? 'FILLED_' : 'NOFILL_';
 
-    //item_message_text is set in freeze_invoice_data once dispensed
+    //item_message_text is set in set_item_invoice_data once dispensed
     $msg  = @$item['item_message_text'] ?: $item['rx_message_text'];
     $msg  = $msg ? ' '.str_replace(' **', '', $msg) : '';
 
