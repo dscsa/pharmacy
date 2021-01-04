@@ -676,10 +676,11 @@ function update_orders_cp($changes)
         if ($stage_change_cp and $updated['order_date_shipped']) {
             AuditLog::log(
                 sprintf(
-                    "Order %s was shipped",
-                    $updated['invoice_number']
+                    "Order %s was shipped.  Tracking number is %s",
+                    $updated['invoice_number'],
+                    $order[0]['tracking_number']
                 ),
-                $updated
+                $order
             );
 
             SirumLog::notice("Updated Order Shipped Started", [ 'order' => $order ]);
@@ -739,8 +740,8 @@ function update_orders_cp($changes)
         //  as a placeholder/reminder e.g 54732
         if ($order[0]['count_items'] == 0
             and $order[0]['count_filled'] == 0
-            and $order[0]['count_to_add'] == 0 
-            and ! is_webform_transfer($order[0])) {
+            and $order[0]['count_to_add'] == 0
+            and !is_webform_transfer($order[0])) {
             AuditLog::log(
                 sprintf(
                     "Order %s has no Rx to fill so it will be cancelled",
