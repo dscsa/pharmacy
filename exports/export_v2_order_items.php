@@ -1,6 +1,7 @@
 <?php
 
 use Sirum\Logging\AuditLog;
+use Sirum\Logging\SirumLog;
 
 require_once 'exports/export_cp_orders.php';
 
