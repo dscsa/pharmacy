@@ -129,8 +129,8 @@ function update_order_items($changes)
             ]
         );
 
-        //We are filling this item and this is an order UPDATE not an order CREATED
-        if ($deleted['days_dispensed_default'] > 0) {
+        //This item was going to be filled, and the whole order was not deleted
+        if ($deleted['days_dispensed_default'] > 0 AND @$deleted['order_date_added']) {
 
           if ( ! @$orders_updated[$invoice_number])
             $orders_updated[$invoice_number] = [
