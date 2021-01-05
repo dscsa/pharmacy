@@ -40,9 +40,7 @@ function group_drugs($order, $mysql) {
     $days = @$item['days_dispensed'];
     $fill = $days ? 'FILLED_' : 'NOFILL_';
 
-    //item_message_text is set in set_item_invoice_data once dispensed
-    $msg  = @$item['item_message_text'] ?: $item['rx_message_text'];
-    $msg  = $msg ? ' '.str_replace(' **', '', $msg) : '';
+    $msg = patient_message_text($item);
 
     if (strpos($msg, 'NO ACTION') !== false)
       $action = 'NOACTION';
@@ -51,7 +49,7 @@ function group_drugs($order, $mysql) {
     else
       $action = 'NOACTION';
 
-    $price = ($days AND $item['price_dispensed']) ? ', $'.((float) $item['price_dispensed']).' for '.$days.' days' : '';
+    $price = patient_pricing_text($item);
 
     $groups[$fill.$action][] = $item['drug'].$msg;
 
@@ -115,18 +113,42 @@ function group_drugs($order, $mysql) {
   return $groups;
 }
 
-function send_created_order_communications($groups) {
+function patient_message_text($item) {
+  //item_message_text is set in set_item_invoice_data once dispensed
+  $msg  = @$item['item_message_text'] ?: $item['rx_message_text'];
+  $msg  = $msg ? ' '.str_replace(' **', '', $msg) : '';
+  return $msg;
+}
 
-  if ( ! $groups['ALL'][0]['count_nofill'] AND ! $groups['ALL'][0]['count_filled']) {
-    log_error("send_created_order_communications: ! count_nofill and ! count_filled. What to do?", $groups);
+function patient_pricing_text($item) {
+  if ( ! @$item['days_dispensed'] OR ! $item['price_dispensed']))
+    return '';
+
+  return ', $'.((float) $item['price_dispensed']).' for '.$days.' days';
+}
+
+function send_created_order_communications($groups, $items_to_add) {
+
+  if (is_webform_transfer($groups['ALL'][0])
+    return transfer_requested_notice($groups);
+
+  if ( ! $groups['ALL'][0]['count_filled']) {
+    return log_error("send_created_order_communications: ! count_filled. What to do?", $groups);
   }
 
-  //['Not Specified', 'Webform Complete', 'Webform eRx', 'Webform Transfer', 'Auto Refill', '0 Refills', 'Webform Refill', 'eRx /w Note', 'Transfer /w Note', 'Refill w/ Note']
-  else if ($groups['ALL'][0]['order_source'] == 'Webform Transfer' OR $groups['ALL'][0]['order_source'] == 'Transfer /w Note')
-    transfer_requested_notice($groups);
+  foreach ($items_to_add as $item) {
+    $groups['ADDED'][] = $item['drug']; //Equivalent of FILLED
+    $groups['ADDED_WITH_PRICES'][] = $item['drug'].patient_pricing_text($item);  //Equivalent of FILLED_WITH_PRICES
+    $groups['ADDED_NOACTION'][] = $item['drug'].patient_message_text($item); //Equivalent of FILLED_NOACTION
+  }
 
-  else
-    order_created_notice($groups);
+  log_error('send_created_order_communications', [
+    'groups' => $groups,
+    'items_to_add' => $items_to_add,
+    'patient_updates' => $patient_updates
+  ]);
+
+  order_created_notice($groups);
 }
 
 function send_shipped_order_communications($groups) {
@@ -167,12 +189,12 @@ function send_updated_order_communications($groups, $items_added, $items_to_remo
     $patient_updates[] = implode(", ", $remove_item_names)." $verb removed from your order.";
   }
 
-  order_updated_notice($groups, $patient_updates);
-
-  log_info('send_updated_order_communications', [
+  log_error('send_updated_order_communications', [
     'groups' => $groups,
     'items_added' => $items_added,
     'items_to_remove' => $items_to_remove,
     'patient_updates' => $patient_updates
   ]);
+
+  order_updated_notice($groups, $patient_updates);
 }

@@ -140,17 +140,18 @@ function autopay_reminder_notice($groups) {
 //by building commication arrays based on github.com/dscsa/communication-calendar
 function order_created_notice($groups) {
 
-  $subject   = 'Good Pill is starting to prepare '.$groups['ALL'][0]['count_filled'].' items for Order #'.$groups['ALL'][0]['invoice_number'].'.';
+  $count     = count($groups['FILLED']) + count($groups['ADDED']);
+  $subject   = 'Good Pill is starting to prepare '.$count.' items for Order #'.$groups['ALL'][0]['invoice_number'].'.';
   $message   = 'If your address has recently changed please let us know right away.';
   $drug_list = '<br><br><u>These Rxs will be included once we confirm their availability:</u><br>';
 
   if ( ! $groups['ALL'][0]['refills_used']) {
     $days = 0;
     $message   .= ' Your first order will only be $6 total for all of your medications.';
-    $drug_list .= implode(';<br>', array_merge($groups['FILLED_ACTION'], $groups['FILLED_NOACTION'])).';';
+    $drug_list .= implode(';<br>', array_merge($groups['FILLED_ACTION'], $groups['FILLED_NOACTION'], $groups['ADDED_NOACTION'])).';';
   } else {
-    $days = $groups['ALL'][0]['order_source'] == "Auto Refill v2" ? 8 : 5;  //TODO Remove.  This is a temp measure so people don't know if or how far we are behind
-    $drug_list .= implode(';<br>', $groups['FILLED_WITH_PRICES']).';';
+    $days = $groups['ALL'][0]['order_source'] == "Auto Refill v2" ? 7 : 4;  //TODO Remove.  This is a temp measure so people don't know if or how far we are behind
+    $drug_list .= implode(';<br>',  array_merge($groups['FILLED_WITH_PRICES'], $groups['ADDED_WITH_PRICES'])).';';
   }
 
   $suffix = implode('<br><br>', [
@@ -166,7 +167,7 @@ function order_created_notice($groups) {
     '',
     $subject.' We will notify you again once it ships. '.$message.$drug_list,
     '',
-    ($groups['ALL'][0]['count_filled'] >= $groups['ALL'][0]['count_nofill']) ? 'Thanks for choosing Good Pill!' : 'Apologies for any inconvenience,',
+    ($count >= $groups['ALL'][0]['count_nofill']) ? 'Thanks for choosing Good Pill!' : 'Apologies for any inconvenience,',
     'The Good Pill Team',
     '',
     $suffix,
