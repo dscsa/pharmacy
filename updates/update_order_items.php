@@ -49,16 +49,19 @@ function update_order_items($changes)
         //This will add/remove and pend/unpend items from the order
         $item = load_full_item($created, $mysql);
 
+        //Hacky way to determine if this addition was already part of the order_created_notice (items_to_add) that went out on thelast go-around
+        $in_created_notice = strtotime($item['item_date_added']) - strtotime($item['order_date_added']) < 20*60;
 
         SirumLog::debug(
-            "update_order_items: Order Item created $invoice_number",
-            [
-                'item'    => $item,
-                'created' => $created,
-                'source'  => 'CarePoint',
-                'type'    => 'order-items',
-                'event'   => 'created'
-            ]
+          "update_order_items: Order Item created $invoice_number",
+          [
+            'item'    => $item,
+            'created' => $created,
+            'in_created_notice' => $in_created_notice,
+            'source'  => 'CarePoint',
+            'type'    => 'order-items',
+            'event'   => 'created'
+          ]
         );
 
         if (!$item) {
@@ -82,7 +85,7 @@ function update_order_items($changes)
         }
 
         //We are filling this item and this is an order UPDATE not an order CREATED
-        if ($item['days_dispensed_default'] > 0 AND @$item['count_filled'] > 0) {
+        if ($item['days_dispensed_default'] > 0 AND ! $in_created_notice) {
 
           if ( ! @$orders_updated[$invoice_number])
             $orders_updated[$invoice_number] = [
