@@ -10,25 +10,28 @@ abstract class Request
      * attempting to save it.
      * @var array
      */
-    protected $data = array();
+    protected $data = [];
 
     /**
      * The name of all allowed properties
      * @var array
      */
-    protected $properties = array();
+    protected $properties = [];
 
     /**
      * The list of the required properties
      * @var array
      */
-    protected $required = array();
+    protected $required = [];
 
     /**
      * I'm not dead yet.  I feel happy.
      */
-    public function __construct()
+    public function __construct($json_request = null)
     {
+        if (!is_null($json_request) && is_string($json_request)) {
+            $this->fromJSON($json_request);
+        }
     }
 
     /**

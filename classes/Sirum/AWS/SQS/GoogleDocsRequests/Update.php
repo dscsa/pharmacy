@@ -1,10 +1,10 @@
 <?php
 
-namespace  Sirum\AWS\SQS\GoogleDocRequests;
+namespace  Sirum\AWS\SQS\GoogleDocsRequests;
 
 /**
  * Base level class for all Google Doc requests
  */
-class Update extends GDRequest
+class Update extends BaseRequest
 {
 }

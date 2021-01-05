@@ -248,7 +248,7 @@ function export_gd_print_invoice($order)
  *      string that we should use to search for files to delete
  * @return void
  */
-function export_gd_delete_invoice($identifier, $is_doc_id = true);
+function export_gd_delete_invoice($identifier, $async = true, $is_doc_id = true)
 {
 
     $args = [
@@ -262,14 +262,32 @@ function export_gd_delete_invoice($identifier, $is_doc_id = true);
         $args['file'] = 'Invoice #' . $identifier;
     }
 
-    SirumLog::debug(
-        'export_gd_delete_invoice',
-        [
-            "identifier"     => $identifier,
-            "is_doc_id"      => $is_doc_id,
-            "result"         => $result,
-            "time"           => $time
-        ]
-    );
+    if ($async) {
+        // Add the command to the args
+        // Send it to the appropriate Google Queue
+        SirumLog::debug(
+            'export_gd_delete_invoice queued for later',
+            [
+                "identifier"     => $identifier,
+                "is_doc_id"      => $is_doc_id,
+                "result"         => $result,
+                "time"           => $time
+            ]
+        );
+    } else {
+        $result = gdoc_post(GD_HELPER_URL, $args);
+
+        SirumLog::debug(
+            'export_gd_delete_invoice',
+            [
+                "identifier"     => $identifier,
+                "is_doc_id"      => $is_doc_id,
+                "result"         => $result,
+                "time"           => $time
+            ]
+        );
+    }
+
+
 
 }

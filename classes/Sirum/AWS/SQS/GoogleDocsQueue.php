@@ -5,9 +5,10 @@ namespace  Sirum\Aws\SQS;
 /**
  * Class for access Amazon Simple Queuing Service
  */
-class GoogleDocdsQueue extends Queue
+class GoogleDocsQueue extends Queue
 {
-    public function __construct() {
-        parent::_construct('gdoc_requests.fifo');
+    public function __construct()
+    {
+        parent::__construct('gdoc_requests.fifo');
     }
 }

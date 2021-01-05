@@ -2,7 +2,7 @@
 use \Sirum\AWS\SQS\GoogleDocsQueue;
 
 // Grab and item out of the queue
-$gdq = new GoogleDocsQueue;
+$gdq = new GoogleDocsQueue();
 
 // Only loop so many times before we restart the script
 for ($l = 0; $l < 10000; $l++) {

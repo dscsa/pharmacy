@@ -1,8 +1,9 @@
 <?php
 
-namespace  Sirum\Aws\SQS;
+namespace  Sirum\AWS\SQS;
 
 use Aws\Sqs\SqsClient;
+use Sirum\AWS\SQS\Request;
 
 /**
  * Class for access Amazon Simple Queuing Service
@@ -65,17 +66,19 @@ class Queue
                 $this->aws_key    = AWS_KEY;
                 $this->aws_secret = AWS_SECRET;
             } else {
-                throw new Exception("AWS keys are required", 1);
+                throw new \Exception("You must pass AWS Key and Secret");
             }
         } else {
             $this->aws_key    = $aws_key;
             $this->aws_secret = $aws_secret;
         }
 
-        $this->sqs_client = SqsClient::factory(array(
-                        'region' => AWS_REGION,
-                        'key'    => $this->aws_key,
-                        'secret' => $this->aws_secret ));
+        $this->sqs_client = SqsClient::factory([
+            'region'  => AWS_REGION,
+            'key'     => $this->aws_key,
+            'secret'  => $this->aws_secret,
+            'version' => '2012-11-05']
+        );
 
         $this->setQueueName($queue_name);
     }
@@ -94,7 +97,7 @@ class Queue
     }
 
     /**
-     * Delete one or mor messages
+     * Delete one or more messages
      *
      * @param  array|string $receipt_handles   A single RecieptHandle or an array of Reciept handles
      *
@@ -104,11 +107,19 @@ class Queue
     public function delete($receipt_handles)
     {
         if (is_array($receipt_handles)) {
-            $results = $this->sqs_client->deleteMessageBatch(array('QueueUrl' => $this->queue_url,
-                                                                   'Entries'  => $receipt_handles));
+            $results = $this->sqs_client->deleteMessageBatch(
+                [
+                    'QueueUrl' => $this->queue_url,
+                    'Entries'  => $receipt_handles
+                ]
+            );
         } else {
-            $results = $this->sqs_client->deleteMessage(array('QueueUrl' 	   => $this->queue_url,
-                                                              'ReceiptHandle'  => $receipt_handles));
+            $results = $this->sqs_client->deleteMessage(
+                [
+                    'QueueUrl' 	   => $this->queue_url,
+                    'ReceiptHandle'  => $receipt_handles
+                ]
+            );
         }
 
         return $results;
@@ -146,33 +157,47 @@ class Queue
     public function send($messages, $delay = 0)
     {
         if (is_array($messages)) {
-            // if the first message doesn't have an Id assume that it is just a list of messages
+            // if the first message doesn't have an Id assume that
+            // it is just a list of messages
             if (!isset($messages[0]['Id'])) {
                 $messages = array_map(
                     function ($message, $delay) {
-                        return array(
+                        // If this is an object convert it to a Json string
+                        if ($message instanceof Request) {
+                            $message = $message->toJSON();
+                        }
+
+                        return [
                             'Id' => uniqid(),
                             'MessageBody' => $message,
                             'DelaySeconds' => $delay
-                        );
+                        ];
                     },
                     $messages,
                     array_fill(0, count($messages), $delay)
                 );
             }
 
-            $results = $this->sqs_client->sendMessageBatch(array('QueueUrl' => $this->queue_url,
-                                                                 'Entries'  => $messages));
+            $results = $this->sqs_client->sendMessageBatch(
+                [
+                    'QueueUrl' => $this->queue_url,
+                    'Entries'  => $messages
+                ]
+            );
         } else {
+            // If this is an object convert it to a Json string
+            if ($message instanceof Request) {
+                $message = $message->toJSON();
+            }
+
             $results = $this->sqs_client->sendMessage(
-                array(
+                [
                     'QueueUrl'     => $this->queue_url,
                     'MessageBody'  => $messages,
                     'DelaySeconds' => $delay
-                )
+                ]
             );
         }
-
 
         return $results;
     }
@@ -205,7 +230,7 @@ class Queue
      */
     protected function getQueueUrl()
     {
-        $results  = $this->sqs_client->getQueueUrl(array('QueueName' => $this->queue_name));
+        $results  = $this->sqs_client->getQueueUrl(['QueueName' => $this->queue_name]);
         $this->queue_url  = $results->get('QueueUrl');
     }
 }
