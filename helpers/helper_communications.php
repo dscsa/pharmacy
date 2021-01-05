@@ -21,10 +21,13 @@ function group_drugs($order, $mysql) {
     "ALL" => [],
     "FILLED_ACTION" => [],
     "FILLED_NOACTION" => [],
+    "ADDED_NOACTION" => [],
     "NOFILL_ACTION" => [],
     "NOFILL_NOACTION" => [],
     "FILLED" => [],
+    "ADDED" => [],
     "FILLED_WITH_PRICES" => [],
+    "ADDED_WITH_PRICES"  => [],
     "IN_ORDER" => [],
     "NO_REFILLS" => [],
     "NO_AUTOFILL" => [],
@@ -123,10 +126,10 @@ function patient_message_text($item) {
 }
 
 function patient_pricing_text($item) {
-  if ( ! @$item['days_dispensed'] OR ! $item['price_dispensed'])
+  if ( ! $item['days_dispensed'] OR ! $item['price_dispensed'])
     return '';
 
-  return ', $'.((float) $item['price_dispensed']).' for '.$days.' days';
+  return ", ${$item['price_dispensed']} for {$item['days_dispensed']} days";
 }
 
 function patient_drug_text($item) {

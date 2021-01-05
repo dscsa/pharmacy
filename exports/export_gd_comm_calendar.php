@@ -141,7 +141,7 @@ function autopay_reminder_notice($groups) {
 function order_created_notice($groups) {
 
   $count     = count($groups['FILLED']) + count($groups['ADDED']);
-  $subject   = 'Good Pill is starting to prepare '.$count.' items for Order #'.$groups['ALL'][0]['invoice_number'].'.';
+  $subject   = "Good Pill is starting to prepare $count items for Order #{$groups['ALL'][0]['invoice_number']}.";
   $message   = 'If your address has recently changed please let us know right away.';
   $drug_list = '<br><br><u>These Rxs will be included once we confirm their availability:</u><br>';
 
