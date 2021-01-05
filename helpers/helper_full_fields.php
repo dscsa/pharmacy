@@ -10,6 +10,8 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
     $items_to_add    = [];
     $items_to_remove = [];
     $update_payment  = ! @$patient_or_order[0]['payment_total_default']; //Default is to update payment for new orders
+    $is_order        = is_order($patient_or_order);
+    $is_new_order    = $is_order AND $update_payment;
     $patient_notice  = false;
 
     /*
@@ -99,6 +101,8 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
 
             $get_days_and_message = [
               "overwrite_rx_messages"      => $overwrite_rx_messages,
+              'is_order'                   => $is_order,
+              'is_new_order'               => $is_new_order,
               "rx_number"                  => $patient_or_order[$i]['rx_number'],
               "item_added"                 => @$patient_or_order[$i]['item_date_added'].' '.@$patient_or_order[$i]['item_added_by'],
 
@@ -336,15 +340,16 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
       export_cp_add_items($patient_or_order[0]['invoice_number'], $items_to_add);
     }
 
-    foreach ($patient_or_order as $i => $item) {
-      $patient_or_order[$i]['count_nofill']    = count($patient_or_order) - $count_filled;
-      $patient_or_order[$i]['count_filled']    = $count_filled;
-      $patient_or_order[$i]['count_to_remove'] = count($items_to_remove);
-      $patient_or_order[$i]['count_to_add']    = count($items_to_add);
-      $patient_or_order[$i]['count_added']     = count($items_added);
-    }
+    if ($is_order) {
 
-    if (is_order($patient_or_order)) {
+      foreach ($patient_or_order as $i => $item) {
+        $patient_or_order[$i]['count_nofill']    = count($patient_or_order) - $count_filled;
+        $patient_or_order[$i]['count_filled']    = $count_filled;
+        $patient_or_order[$i]['count_to_remove'] = count($items_to_remove);
+        $patient_or_order[$i]['count_to_add']    = count($items_to_add);
+        $patient_or_order[$i]['count_added']     = count($items_added);
+      }
+
       $sql = "
         UPDATE
           gp_orders
@@ -357,9 +362,64 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
       $mysql->run($sql);
     }
 
+    if ($is_new_order) {
+
+      $reason = "helper_full_fields: send_created_order_communications. Order {$patient_or_order[0]['invoice_number']}";
+
+      SirumLog::debug(
+        $reason,
+        [
+          'invoice_number'  => $patient_or_order[0]['invoice_number'],
+          'count_nofill'    => $patient_or_order[0]['count_nofill'],
+          'count_filled'    => $patient_or_order[0]['count_filled'],
+          'count_items'     => $patient_or_order[0]['count_items'],
+          'count_to_remove' => $patient_or_order[0]['count_to_remove'],
+          'count_to_add'    => $patient_or_order[0]['count_to_add'],
+          'count_added'     => $patient_or_order[0]['count_added'],
+          'is_order'        => $is_order,
+          'is_new_order'    => $is_new_order,
+          'items_added'     => $items_added,
+          'items_to_add'    => $items_to_add,
+          'items_to_remove' => $items_to_remove,
+          'order'           => $patient_or_order
+        ]
+      );
+
+      $groups = group_drugs($patient_or_order, $mysql);
+      send_created_order_communications($groups, $items_to_add); //items_added will already be in count_filled.  should we include removals?
+
+    } else if ($patient_notice) {
+
+      $reason = "helper_full_fields: send_updated_order_communications. Order {$patient_or_order[0]['invoice_number']}";
+
+      SirumLog::debug(
+        $reason,
+        [
+          'invoice_number'  => $patient_or_order[0]['invoice_number'],
+          'count_nofill'    => $patient_or_order[0]['count_nofill'],
+          'count_filled'    => $patient_or_order[0]['count_filled'],
+          'count_items'     => $patient_or_order[0]['count_items'],
+          'count_to_remove' => $patient_or_order[0]['count_to_remove'],
+          'count_to_add'    => $patient_or_order[0]['count_to_add'],
+          'count_added'     => $patient_or_order[0]['count_added'],
+          'is_order'        => $is_order,
+          'is_new_order'    => $is_new_order,
+          'items_added'     => $items_added,
+          'items_to_add'    => $items_to_add,
+          'items_to_remove' => $items_to_remove,
+          'order'           => $patient_or_order
+        ]
+      );
+
+      $groups = group_drugs($patient_or_order, $mysql);
+
+      send_updated_order_communications($groups, $items_added, $items_to_remove); //Have to use itema_added to get manual addtions, but if we do items_to_add here as well then they will become itemas_added on next go around, duplicating the update. TODO Somehow bundle patients comms if we are adding/removing drugs on next go-around, since order_update_notice would need to be sent again?  This would be tricky to do!
+
+    }
+
     //Check for invoice_number because a patient profile may have an rx turn on/off autofill, causing a day change but we still don't have an order to update
     //TODO Don't generate invoice if we are adding/removing drugs on next go-around, since invoice would need to be updated again?
-    if (is_order($patient_or_order) AND $update_payment AND ! $items_to_remove AND ! $items_to_add) {
+    if ($is_order AND $update_payment AND ! $items_to_remove AND ! $items_to_add) {
 
       $reason = 'helper_full_fields: is_order and update_payment. ! payment_total_default OR $days_added OR $days_changed';
 
@@ -378,54 +438,6 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
       );
 
       $patient_or_order = helper_update_payment($patient_or_order, $reason, $mysql);
-    }
-
-
-    if (is_order($patient_or_order) AND $patient_notice) {
-
-      $is_created_order = is_null($patient_or_order[0]['payment_total_default']);
-      $reason = "helper_full_fields: send_created/updated_order_communications. is_order:true, patient_notice:true, payment_total_default (i.e  new order?):$is_created_order";
-
-      SirumLog::debug(
-        $reason,
-        [
-          'invoice_number'  => $patient_or_order[0]['invoice_number'],
-          'count_nofill'    => $patient_or_order[0]['count_nofill'],
-          'count_filled'    => $patient_or_order[0]['count_filled'],
-          'count_items'     => $patient_or_order[0]['count_items'],
-          'count_to_remove' => $patient_or_order[0]['count_to_remove'],
-          'count_to_add'    => $patient_or_order[0]['count_to_add'],
-          'count_added'     => $patient_or_order[0]['count_added'],
-          'items_added'     => $items_added,
-          'items_to_add'    => $items_to_add,
-          'items_to_remove' => $items_to_remove,
-          'order'           => $patient_or_order
-        ]
-      );
-
-      $groups = group_drugs($patient_or_order, $mysql);
-
-      if ($is_created_order)
-        send_created_order_communications($groups, $items_to_add); //items_added will already be in count_filled.  should we include removals?
-      else if ($items_added OR $items_to_remove)
-        send_updated_order_communications($groups, $items_added, $items_to_remove); //Have to use itema_added to get manual addtions, but if we do items_to_add here as well then they will become itemas_added on next go around, duplicating the update. TODO Somehow bundle patients comms if we are adding/removing drugs on next go-around, since order_update_notice would need to be sent again?  This would be tricky to do!
-      else
-        SirumLog::alert(
-          "What patient communication to send here?",
-          [
-            'invoice_number'  => $patient_or_order[0]['invoice_number'],
-            'count_nofill'    => $patient_or_order[0]['count_nofill'],
-            'count_filled'    => $patient_or_order[0]['count_filled'],
-            'count_items'     => $patient_or_order[0]['count_items'],
-            'count_to_remove' => $patient_or_order[0]['count_to_remove'],
-            'count_to_add'    => $patient_or_order[0]['count_to_add'],
-            'count_added'     => $patient_or_order[0]['count_added'],
-            'items_added'     => $items_added,
-            'items_to_add'    => $items_to_add,
-            'items_to_remove' => $items_to_remove,
-            'order'           => $patient_or_order
-          ]
-        );
     }
 
     return $patient_or_order;

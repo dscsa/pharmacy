@@ -343,11 +343,12 @@ function update_orders_cp($changes)
             continue; // order hold notice not necessary for transfers
         }
 
-        if ($order[0]['count_to_add'] == 0) {
+        if ($order[0]['count_filled'] > 0 OR $order[0]['count_to_add'] > 0) {
             continue; // order hold notice not necessary if we are adding items on next go-around
         }
 
         order_hold_notice($groups, true);
+        
         AuditLog::log(
             sprintf(
                 "Order %s is on hold, likely because of 'NO ACTION MISSING GSN'",
