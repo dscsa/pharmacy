@@ -11,6 +11,8 @@ use Sirum\Logging\AuditLog;
 
 function update_rxs_single($changes)
 {
+
+    $start_time = microtime(true);
     $mysql = new Mysql_Wc();
     $mssql = new Mssql_Cp();
 
@@ -29,7 +31,10 @@ function update_rxs_single($changes)
       WHERE rx_message_key IS NULL"
     );
 
+    printf("%s: %s seconds\n", __LINE__, (microtime(true) - $start));
+
     foreach ($rx_singles[0] as $rx_single) {
+        printf("%s: %s seconds\n", __LINE__, (microtime(true) - $start));
         SirumLog::$subroutine_id = "rxs-single-null-message-".sha1(serialize($rx_single));
 
         //This updates & overwrites set_rx_messages
@@ -48,9 +53,9 @@ function update_rxs_single($changes)
               ]
         );
     }
+    printf("%s: %s seconds\n", __LINE__, (microtime(true) - $start));
 
     /* Now to do some work */
-
     $count_deleted = count($changes['deleted']);
     $count_created = count($changes['created']);
     $count_updated = count($changes['updated']);
@@ -76,7 +81,7 @@ function update_rxs_single($changes)
      * sure all sig_qty_per_days are properly set before we group by them
      */
     $loop_timer = microtime(true);
-
+    printf("%s: %s seconds\n", __LINE__, (microtime(true) - $start));
     foreach ($changes['created'] as $created) {
         SirumLog::$subroutine_id = "rxs-single-created1-".sha1(serialize($created));
         $patient = getPatientByRx($created['rx_number']);
@@ -267,7 +272,7 @@ function update_rxs_single($changes)
     }
 
     log_timer('rx-singles-created2', $loop_timer, $count_created);
-
+    printf("%s: %s seconds\n", __LINE__, (microtime(true) - $start));
 
     /* Finish Created Loop #2 */
 
@@ -423,14 +428,14 @@ function update_rxs_single($changes)
     }
 
     log_timer('rx-singles-updated', $loop_timer, $count_updated);
-
+    printf("%s: %s seconds\n", __LINE__, (microtime(true) - $start));
 
     SirumLog::resetSubroutineId();
 
 
 
 
-    //TODO if new Rx arrives and there is an active order where that Rx is not included because of "ACTION NO REFILLS" or "ACTION RX EXPIRED" or the like, then we should rerun the helper_days_and_message on the order_item
+  //TODO if new Rx arrives and there is an active order where that Rx is not included because of "ACTION NO REFILLS" or "ACTION RX EXPIRED" or the like, then we should rerun the helper_days_and_message on the order_item
 
   //TODO Implement rx_status logic that was in MSSQL Query and Save in Database
 
