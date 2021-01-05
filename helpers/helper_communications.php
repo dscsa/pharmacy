@@ -129,7 +129,7 @@ function patient_pricing_text($item) {
   if ( ! $item['days_dispensed'] OR ! $item['price_dispensed'])
     return '';
 
-  return ", ${$item['price_dispensed']} for {$item['days_dispensed']} days";
+  return ", \${$item['price_dispensed']} for {$item['days_dispensed']} days";
 }
 
 function patient_drug_text($item) {
@@ -243,7 +243,7 @@ function send_updated_order_communications($groups, $items_added, $items_removed
   log_error('send_updated_order_communications', [
     'groups' => $groups,
     'items_added' => $items_added,
-    'items_to_remove' => $items_to_remove,
+    'items_removed' => $items_removed,
     'patient_updates' => $patient_updates
   ]);
 
