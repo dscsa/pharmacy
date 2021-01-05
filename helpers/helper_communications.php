@@ -113,6 +113,8 @@ function group_drugs($order, $mysql) {
   return $groups;
 }
 
+//TODO consider making these methods so that they always stay upto
+//TODO date and we don't have to recalcuate them when things change
 function patient_message_text($item) {
   //item_message_text is set in set_item_invoice_data once dispensed
   $msg  = @$item['item_message_text'] ?: $item['rx_message_text'];
@@ -127,6 +129,47 @@ function patient_pricing_text($item) {
   return ', $'.((float) $item['price_dispensed']).' for '.$days.' days';
 }
 
+function patient_drug_text($item) {
+  return @$item['drug_name'] ?: $item['drug_generic'];
+}
+
+function patient_payment_method($item) {
+  return @$item['payment_method_actual'] ?: $item['payment_method_default'];
+}
+
+function patient_days_dispensed($item) {
+  return (float) (@$item['days_dispensed_actual'] ?: $item['days_dispensed_default']);
+}
+
+function patient_price_dispensed($item) {
+
+  $price_per_month = $item['price_per_month'] ?: 0; //Might be null
+  $price_dispensed = ceil($item['days_dispensed']*$price_per_month/30);
+
+  if ($price_dispensed > 80)
+    log_error("helper_full_fields: price too high, $$price_dispensed", get_defined_vars());
+
+  return (float) $price_dispensed;
+}
+
+function patient_refills_dispensed($item) {
+  /*
+   * Create some variables with appropriate values
+   */
+  if ($item['refills_dispensed_actual'])
+    return round($item['refills_dispensed_actual'], 2);
+
+  if ($item['refills_dispensed_default'])
+    return round($item['refills_dispensed_default'], 2);
+
+  if ($item['refills_total'])
+    return round($item['refills_total'], 2);
+}
+
+function patient_qty_dispensed($item) {
+  return (float) (@$item['qty_dispensed_actual'] ?: $item['qty_dispensed_default']);
+}
+
 function send_created_order_communications($groups, $items_to_add) {
 
   if (is_webform_transfer($groups['ALL'][0]))
@@ -137,9 +180,14 @@ function send_created_order_communications($groups, $items_to_add) {
   }
 
   foreach ($items_to_add as $item) {
-    $groups['ADDED'][] = $item['drug']; //Equivalent of FILLED
-    $groups['ADDED_WITH_PRICES'][] = $item['drug'].patient_pricing_text($item);  //Equivalent of FILLED_WITH_PRICES
-    $groups['ADDED_NOACTION'][] = $item['drug'].patient_message_text($item); //Equivalent of FILLED_NOACTION
+
+    $item['drug_name'] = patient_drug_text($item);
+    $item['days_dispensed'] = patient_days_dispensed($item);
+    $item['price_dispensed'] = patient_price_dispensed($item);
+
+    $groups['ADDED'][] = $item['drug_name']; //Equivalent of FILLED
+    $groups['ADDED_WITH_PRICES'][] = $item['drug_name'].patient_pricing_text($item);  //Equivalent of FILLED_WITH_PRICES
+    $groups['ADDED_NOACTION'][] = $item['drug_name'].patient_message_text($item); //Equivalent of FILLED_NOACTION
   }
 
   log_error('send_created_order_communications', [

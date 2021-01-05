@@ -247,38 +247,8 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
           );
         }
 
-        //TODO consider making these methods so that they always stay upto
-        //TODO date and we don't have to recalcuate them when things change
-        $patient_or_order[$i]['drug'] = $patient_or_order[$i]['drug_generic'];
-        if ($patient_or_order[$i]['drug_name']) {
-          $patient_or_order[$i]['drug'] = $patient_or_order[$i]['drug_name'];
-        }
-
-        $patient_or_order[$i]['payment_method'] = @$patient_or_order[$i]['payment_method_default'];
-        if (@$patient_or_order[$i]['payment_method_actual']) {
-          $patient_or_order[$i]['payment_method']  = @$patient_or_order[$i]['payment_method_actual'];
-        }
-
-
-        if (
-            $i == 0 //Same for every item in order
-            AND $patient_or_order[$i]['payment_method'] != $patient_or_order[$i]['payment_method_default']
-            AND $patient_or_order[$i]['payment_method_default'] != PAYMENT_METHOD['CARD EXPIRED']
-        ) {
-          log_error(
-            'add_full_fields: payment_method_actual ('.$patient_or_order[$i]['payment_method'].') is set but does not equal '.
-            'payment_method_default ('.$patient_or_order[$i]['payment_method_default'].'). Did customer click on wrong payment type? Was coupon removed?',
-            get_defined_vars()
-          );
-
-          /*
-           * Order 39025.  Ideally this would be removed since if we remove
-           * coupon from patient it should remove it from order as well
-           */
-          if ($patient_or_order[$i]['payment_method_actual'] == PAYMENT_METHOD['COUPON']) {
-            $patient_or_order[$i]['payment_method'] = @$patient_or_order[$i]['payment_method_default'];
-          }
-        }
+        $patient_or_order[$i]['drug']           = patient_drug_text($patient_or_order[$i]);
+        $patient_or_order[$i]['payment_method'] = patient_payment_method($patient_or_order[$i]);
 
         if (is_patient($patient_or_order)) {
             /*
@@ -288,48 +258,15 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
             continue;
         }
 
-        if ($patient_or_order[$i]['days_dispensed_actual']) {
-          $days_dispensed = $patient_or_order[$i]['days_dispensed_actual'];
-
-          $price_per_month = $patient_or_order[$i]['price_per_month'] ?: 0; //Might be null
-          $price_dispensed = $patient_or_order[$i]['price_dispensed_actual'] = ceil($days_dispensed*$price_per_month/30);
-
-          if ($price_dispensed > 80)
-            log_error("helper_full_fields: price too high, $$price_dispensed", get_defined_vars());
-
-        } else {
-          $days_dispensed = $patient_or_order[$i]['days_dispensed_default'];
-          //Ensure defaults are Numbers and not NULL because String will turn addition into concat and if NULL is summed with other valied prices then result is still NULL
-          $price_dispensed = $patient_or_order[$i]['price_dispensed_default'] ?: 0;
-        }
-
-        $patient_or_order[$i]['days_dispensed'] = (float) $days_dispensed;
-        $patient_or_order[$i]['price_dispensed'] = (float) $price_dispensed;
+        $patient_or_order[$i]['days_dispensed']    = patient_days_dispensed($patient_or_order[$i]);
+        $patient_or_order[$i]['price_dispensed']   = patient_price_dispensed($patient_or_order[$i]);
+        $patient_or_order[$i]['qty_dispensed']     = patient_qty_dispensed($patient_or_order[$i]);
+        $patient_or_order[$i]['refills_dispensed'] = patient_refills_dispensed($patient_or_order[$i]);
 
         if ($patient_or_order[$i]['days_dispensed']) { //this will not include items_to_add
           $count_filled++;
         }
-
-        /*
-         * Create some variables with appropriate values
-         */
-        if ($patient_or_order[$i]['refills_dispensed_actual']) {
-          $refills_dispensed = $patient_or_order[$i]['refills_dispensed_actual'];
-        } elseif ($patient_or_order[$i]['refills_dispensed_default']) {
-          $refills_dispensed = $patient_or_order[$i]['refills_dispensed_default'];
-        } else {
-          $refills_dispensed = $patient_or_order[$i]['refills_total'];
-        }
-
-        $patient_or_order[$i]['refills_dispensed'] = round($refills_dispensed, 2);
-
-        if ($patient_or_order[$i]['qty_dispensed_actual']) {
-          $qty_dispensed = $patient_or_order[$i]['qty_dispensed_actual'];
-        } else {
-          $qty_dispensed = $patient_or_order[$i]['qty_dispensed_default'];
-        }
-
-        $patient_or_order[$i]['qty_dispensed'] = (float) $qty_dispensed;
+        
     } //END LARGE FOR LOOP
 
     if ($items_to_remove) { //WARNING EMPTY OR NULL ARRAY WOULD REMOVE ALL ITEMS
