@@ -11,7 +11,7 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
     $items_to_remove = [];
     $update_payment  = ! @$patient_or_order[0]['payment_total_default']; //Default is to update payment for new orders
     $is_order        = is_order($patient_or_order);
-    $is_new_order    = $is_order AND $update_payment;
+    $is_new_order    = $is_order AND is_null($patient_or_order[0]['count_filled']);
     $patient_notice  = false;
 
     /*
@@ -266,7 +266,7 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
         if ($patient_or_order[$i]['days_dispensed']) { //this will not include items_to_add
           $count_filled++;
         }
-        
+
     } //END LARGE FOR LOOP
 
     if ($items_to_remove) { //WARNING EMPTY OR NULL ARRAY WOULD REMOVE ALL ITEMS

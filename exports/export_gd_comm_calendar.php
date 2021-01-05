@@ -170,10 +170,7 @@ function order_created_notice($groups) {
     ($count >= $groups['ALL'][0]['count_nofill']) ? 'Thanks for choosing Good Pill!' : 'Apologies for any inconvenience,',
     'The Good Pill Team',
     '',
-    $suffix,
-    '',
-    ! $groups['ALL'][0]['count_nofill'] ? '' : '<br><u>We are NOT filling these Rxs:</u><br>'.implode(';<br>', array_merge($groups['NOFILL_NOACTION'], $groups['NOFILL_ACTION'])).';',
-    ''
+    $suffix
   ]);
 
   //Remove Refill Reminders for new Rxs we just received Order #14512
