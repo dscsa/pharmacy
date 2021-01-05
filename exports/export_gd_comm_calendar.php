@@ -299,12 +299,12 @@ function order_hold_notice($groups, $missing_gsn = false) {
 function order_updated_notice($groups, $patient_updates) {
 
   $subject = 'Good Pill update for Order #'.$groups['ALL'][0]['invoice_number'];
-  $message = implode(' ', $patient_updates);
+  $updates = implode(' ', $patient_updates);
 
   if ($groups['ALL'][0]['count_filled'] AND ! $groups['ALL'][0]['refills_used']) {
-    $message .= '<br><br><u>Your new order will be:</u><br>'.implode(';<br>', array_merge($groups['FILLED_ACTION'], $groups['FILLED_NOACTION'])).';';
+    $message = '<br><br><u>Your new order will be:</u><br>'.implode(';<br>', array_merge($groups['FILLED_ACTION'], $groups['FILLED_NOACTION'])).';';
   } else if ($groups['ALL'][0]['count_filled']) {
-    $message .= '<br><br><u>Your new order will be:</u><br>'.implode(';<br>', $groups['FILLED_WITH_PRICES']).';';
+    $message = '<br><br><u>Your new order will be:</u><br>'.implode(';<br>', $groups['FILLED_WITH_PRICES']).';';
   }
 
   $suffix = implode('<br><br>', [
@@ -312,13 +312,13 @@ function order_updated_notice($groups, $patient_updates) {
   ]);
 
   $email = [ "email" => DEBUG_EMAIL]; //$groups['ALL'][0]['email'] ];
-  $text  = [ "sms"   => DEBUG_PHONE, "message" => $subject.': '.$message ]; //get_phones($groups['ALL'])
+  $text  = [ "sms"   => DEBUG_PHONE, "message" => "$subject $updates $message"]; //get_phones($groups['ALL'])
 
   $email['subject'] = $subject;
   $email['message'] = implode('<br>', [
     'Hello,',
     '',
-    $subject.' We will notify you again once it ships.',
+    "$subject $updates. We will notify you again once it ships.",
     $message,
     '',
     ($groups['ALL'][0]['count_filled'] >= $groups['ALL'][0]['count_nofill']) ? 'Thanks for choosing Good Pill!' : 'Apologies for any inconvenience,',
