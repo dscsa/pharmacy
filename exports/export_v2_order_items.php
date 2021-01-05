@@ -37,8 +37,10 @@ function v2_pend_item($item, $mysql, $reason) {
     AuditLog::log(
         sprintf(
             "ABORTED PEND Attempted to pend %s for Rx#%s on Invoice #%s for
-            the following reasons: Missing days dispensed default - %s,
-            The Rx hasn't been assigned - %s, There isn't inventory - %s,
+            the following reasons:
+            Missing days dispensed default - %s,
+            The Rx hasn't been assigned - %s,
+            There isn't inventory - %s,
             The number of doses is invalid - %s",
             @$item['drug_name'],
             @$item['rx_number'],
