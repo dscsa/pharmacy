@@ -329,8 +329,14 @@ function order_updated_notice($groups, $patient_updates) {
     $suffix
   ]);
 
+  if ( ! $groups['ALL'][0]['refills_used']) {
+    $days = 0;
+  } else {
+    $days = $groups['ALL'][0]['order_source'] == "Auto Refill v2" ? 7 : 4;  //TODO Remove.  This is a temp measure so people don't know if or how far we are behind
+  }
+
   //Wait 15 minutes to hopefully batch staggered surescripts and manual rx entry and cindy updates
-  order_updated_event($groups, $email, $text, 15/60);
+  order_updated_event($groups, $email, $text, $days*24+15/60);
 }
 
 function needs_form_notice($groups) {
