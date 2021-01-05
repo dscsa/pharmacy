@@ -43,7 +43,7 @@ function update_orders_cp($changes)
     foreach ($changes['created'] as $created) {
         SirumLog::$subroutine_id = "orders-cp-created-".sha1(serialize($created));
 
-        $duplicate = get_current_orders_cp($mysql, ['patient_id_cp' => $created['patient_id_cp']]);
+        $duplicate = get_current_orders($mysql, ['patient_id_cp' => $created['patient_id_cp']]);
 
         SirumLog::debug(
             "get_full_order: Carepoint Order created ". $created['invoice_number'],
@@ -140,6 +140,7 @@ function update_orders_cp($changes)
                 [
                     'invoice_number' => $created['invoice_number'],
                     'created' => $created,
+                    'order'   => $order,
                     'source'  => 'CarePoint',
                     'type'    => 'orders',
                     'event'   => 'created'
@@ -291,36 +292,6 @@ function update_orders_cp($changes)
             continue;
         }
 
-        if ($order[0]['count_to_remove'] > 0 or $order[0]['count_to_add'] > 0) {
-            SirumLog::debug(
-                'update_orders_cp: created. adding wc-order then skipping order '.$order[0]['invoice_number'].' because items still need to be removed/added',
-                [
-                    'invoice_number'  => $order[0]['invoice_number'],
-                    'count_filled'    => $order[0]['count_filled'],
-                    'count_items'     => $order[0]['count_items'],
-                    'count_to_remove' => $order[0]['count_to_remove'],
-                    'count_to_add'    => $order[0]['count_to_add'],
-                    'count_added'     => $order[0]['count_added'],
-                    'order'           => $order
-                ]
-            );
-
-            /*
-              Force created loop to run again so that patient gets "Order Created
-              Communication" and not just an update one
-             */
-            $mysql->run(
-                "DELETE gp_orders
-                FROM gp_orders
-                WHERE invoice_number = {$order[0]['invoice_number']}"
-            );
-
-            export_wc_create_order($order, "update_orders_cp: skipped cp because items still need to be removed/added");
-
-            //DON'T CREATE THE ORDER UNTIL THESE ITEMS ARE SYNCED TO AVOID CONFLICTING COMMUNICATIONS!
-            continue;
-        }
-
         //Needs to be called before "$groups" is set
         $order  = sync_to_date($order, $mysql);
         $groups = group_drugs($order, $mysql);
@@ -355,7 +326,7 @@ function update_orders_cp($changes)
 
         //This is not necessary if order was created by webform, which then created the order in Guardian
         //"order_source": "Webform eRX/Transfer/Refill [w/ Note]"
-        if (! is_webform($order[0])) {
+        if ( ! is_webform($order[0])) {
             SirumLog::debug(
                 "Creating order ".$order[0]['invoice_number']." in woocommerce because source is not the Webform",
                 [
@@ -369,20 +340,16 @@ function update_orders_cp($changes)
             export_wc_create_order($order, "update_orders_cp: created");
         }
 
-        if ($order[0]['count_filled'] > 0) {
-            send_created_order_communications($groups);
-            continue;
-        }
-
         if (is_webform_transfer($order[0])) {
             continue; // order hold notice not necessary for transfers
         }
 
-        if ($order[0]['count_to_add'] == 0) {
+        if ($order[0]['count_filled'] > 0 OR $order[0]['count_to_add'] > 0) {
             continue; // order hold notice not necessary if we are adding items on next go-around
         }
 
         order_hold_notice($groups, true);
+
         AuditLog::log(
             sprintf(
                 "Order %s is on hold, likely because of 'NO ACTION MISSING GSN'",
@@ -556,9 +523,10 @@ function update_orders_cp($changes)
         );
 
         //can't do export_v2_unpend_order because each item won't have an invoice number or order_added_date
-        foreach ($patient as $i => $item) {
+        if ($patient)
+          foreach ($patient as $i => $item) {
             $patient[$i] = v2_unpend_item(array_merge($item, $deleted), $mysql, 'update_orders_cp deleted: unpending all items');
-        }
+          }
 
         AuditLog::log(
             sprintf(
@@ -568,7 +536,7 @@ function update_orders_cp($changes)
             $deleted
         );
 
-        $replacement = get_current_orders_cp($mysql, ['patient_id_cp' => $deleted['patient_id_cp']]);
+        $replacement = get_current_orders($mysql, ['patient_id_cp' => $deleted['patient_id_cp']]);
 
         if ($replacement) {
             AuditLog::log(

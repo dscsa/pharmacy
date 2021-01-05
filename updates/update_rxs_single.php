@@ -79,7 +79,7 @@ function update_rxs_single($changes)
 
     foreach ($changes['created'] as $created) {
         SirumLog::$subroutine_id = "rxs-single-created1-".sha1(serialize($created));
-        $patient = getPatientByRx($updated['rx_number']);
+        $patient = getPatientByRx($created['rx_number']);
         AuditLog::log(
             sprintf(
                 "New Rx# %s for %s created via carepoint",

@@ -21,10 +21,13 @@ function group_drugs($order, $mysql) {
     "ALL" => [],
     "FILLED_ACTION" => [],
     "FILLED_NOACTION" => [],
+    "ADDED_NOACTION" => [],
     "NOFILL_ACTION" => [],
     "NOFILL_NOACTION" => [],
     "FILLED" => [],
+    "ADDED" => [],
     "FILLED_WITH_PRICES" => [],
+    "ADDED_WITH_PRICES"  => [],
     "IN_ORDER" => [],
     "NO_REFILLS" => [],
     "NO_AUTOFILL" => [],
@@ -40,9 +43,7 @@ function group_drugs($order, $mysql) {
     $days = @$item['days_dispensed'];
     $fill = $days ? 'FILLED_' : 'NOFILL_';
 
-    //item_message_text is set in set_item_invoice_data once dispensed
-    $msg  = @$item['item_message_text'] ?: $item['rx_message_text'];
-    $msg  = $msg ? ' '.str_replace(' **', '', $msg) : '';
+    $msg = patient_message_text($item);
 
     if (strpos($msg, 'NO ACTION') !== false)
       $action = 'NOACTION';
@@ -51,7 +52,7 @@ function group_drugs($order, $mysql) {
     else
       $action = 'NOACTION';
 
-    $price = ($days AND $item['price_dispensed']) ? ', $'.((float) $item['price_dispensed']).' for '.$days.' days' : '';
+    $price = patient_pricing_text($item);
 
     $groups[$fill.$action][] = $item['drug'].$msg;
 
@@ -115,18 +116,90 @@ function group_drugs($order, $mysql) {
   return $groups;
 }
 
-function send_created_order_communications($groups) {
+//TODO consider making these methods so that they always stay upto
+//TODO date and we don't have to recalcuate them when things change
+function patient_message_text($item) {
+  //item_message_text is set in set_item_invoice_data once dispensed
+  $msg  = @$item['item_message_text'] ?: $item['rx_message_text'];
+  $msg  = $msg ? ' '.str_replace(' **', '', $msg) : '';
+  return $msg;
+}
 
-  if ( ! $groups['ALL'][0]['count_nofill'] AND ! $groups['ALL'][0]['count_filled']) {
-    log_error("send_created_order_communications: ! count_nofill and ! count_filled. What to do?", $groups);
+function patient_pricing_text($item) {
+  if ( ! $item['days_dispensed'] OR ! $item['price_dispensed'])
+    return '';
+
+  return ", \${$item['price_dispensed']} for {$item['days_dispensed']} days";
+}
+
+function patient_drug_text($item) {
+  return @$item['drug_name'] ?: $item['drug_generic'];
+}
+
+function patient_payment_method($item) {
+  return @$item['payment_method_actual'] ?: $item['payment_method_default'];
+}
+
+function patient_days_dispensed($item) {
+  return (float) (@$item['days_dispensed_actual'] ?: $item['days_dispensed_default']);
+}
+
+function patient_price_dispensed($item) {
+
+  $price_per_month = $item['price_per_month'] ?: 0; //Might be null
+  $price_dispensed = ceil($item['days_dispensed']*$price_per_month/30);
+
+  if ($price_dispensed > 80)
+    log_error("helper_full_fields: price too high, $$price_dispensed", get_defined_vars());
+
+  return (float) $price_dispensed;
+}
+
+function patient_refills_dispensed($item) {
+  /*
+   * Create some variables with appropriate values
+   */
+  if ($item['refills_dispensed_actual'])
+    return round($item['refills_dispensed_actual'], 2);
+
+  if ($item['refills_dispensed_default'])
+    return round($item['refills_dispensed_default'], 2);
+
+  if ($item['refills_total'])
+    return round($item['refills_total'], 2);
+}
+
+function patient_qty_dispensed($item) {
+  return (float) (@$item['qty_dispensed_actual'] ?: $item['qty_dispensed_default']);
+}
+
+function send_created_order_communications($groups, $items_to_add) {
+
+  if (is_webform_transfer($groups['ALL'][0]))
+    return transfer_requested_notice($groups);
+
+  if ( ! $groups['ALL'][0]['count_filled']) {
+    return log_error("send_created_order_communications: ! count_filled. What to do?", $groups);
   }
 
-  //['Not Specified', 'Webform Complete', 'Webform eRx', 'Webform Transfer', 'Auto Refill', '0 Refills', 'Webform Refill', 'eRx /w Note', 'Transfer /w Note', 'Refill w/ Note']
-  else if ($groups['ALL'][0]['order_source'] == 'Webform Transfer' OR $groups['ALL'][0]['order_source'] == 'Transfer /w Note')
-    transfer_requested_notice($groups);
+  foreach ($items_to_add as $item) {
 
-  else
-    order_created_notice($groups);
+    $item['drug_name'] = patient_drug_text($item);
+    $item['days_dispensed'] = patient_days_dispensed($item);
+    $item['price_dispensed'] = patient_price_dispensed($item);
+
+    $groups['ADDED'][] = $item['drug_name']; //Equivalent of FILLED
+    $groups['ADDED_WITH_PRICES'][] = $item['drug_name'].patient_pricing_text($item);  //Equivalent of FILLED_WITH_PRICES
+    $groups['ADDED_NOACTION'][] = $item['drug_name'].patient_message_text($item); //Equivalent of FILLED_NOACTION
+  }
+
+  log_error('send_created_order_communications', [
+    'groups' => $groups,
+    'items_to_add' => $items_to_add,
+    'patient_updates' => $patient_updates
+  ]);
+
+  order_created_notice($groups);
 }
 
 function send_shipped_order_communications($groups) {
@@ -143,18 +216,18 @@ function send_dispensed_order_communications($groups) {
   order_dispensed_notice($groups);
 }
 
-function send_updated_order_communications($groups, $items_added, $items_to_remove) {
+function send_updated_order_communications($groups, $items_added, $items_removed) {
 
   $add_item_names    = [];
   $remove_item_names = [];
   $patient_updates   = [];
 
   foreach ($items_added as $item) {
-    $add_item_names[] = $item['drug_name'];
+    $add_item_names[] = $item['drug'];
   }
 
-  foreach ($items_to_remove as $item) {
-    $remove_item_names[] = $item['drug_name'];
+  foreach ($items_removed as $item) {
+    $remove_item_names[] = $item['drug'];
   }
 
   if ($add_item_names) {
@@ -167,12 +240,12 @@ function send_updated_order_communications($groups, $items_added, $items_to_remo
     $patient_updates[] = implode(", ", $remove_item_names)." $verb removed from your order.";
   }
 
-  order_updated_notice($groups, $patient_updates);
-
-  log_info('send_updated_order_communications', [
+  log_error('send_updated_order_communications', [
     'groups' => $groups,
     'items_added' => $items_added,
-    'items_to_remove' => $items_to_remove,
+    'items_removed' => $items_removed,
     'patient_updates' => $patient_updates
   ]);
+
+  order_updated_notice($groups, $patient_updates);
 }

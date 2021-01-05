@@ -32,6 +32,7 @@ function update_order_items($changes)
 
     $mysql = new Mysql_Wc();
     $mssql = new Mssql_Cp();
+    $orders_updated = [];
 
     //If just added to CP Order we need to
     //  - determine "days_dispensed_default" and "qty_dispensed_default"
@@ -43,11 +44,14 @@ function update_order_items($changes)
     foreach ($changes['created'] as $created) {
         SirumLog::$subroutine_id = "order-items-created-".sha1(serialize($created));
 
+        $invoice_number = $created['invoice_number'];
+
         //This will add/remove and pend/unpend items from the order
-        $item = load_full_item($created, $mysql, true);
+        $item = load_full_item($created, $mysql);
+
 
         SirumLog::debug(
-            "update_order_items: Order Item created",
+            "update_order_items: Order Item created $invoice_number",
             [
                 'item'    => $item,
                 'created' => $created,
@@ -67,7 +71,7 @@ function update_order_items($changes)
             SirumLog::warning(
                 sprintf(
                     "%s %s is a duplicate line",
-                    $item['invoice_number'],
+                    $invoice_number,
                     $item['drug_generic']
                 ),
                 [
@@ -75,6 +79,18 @@ function update_order_items($changes)
                     'item' => $item
                 ]
             );
+        }
+
+        //We are filling this item and this is an order UPDATE not an order CREATED
+        if ($item['days_dispensed_default'] > 0 AND @$item['count_filled'] > 0) {
+
+          if ( ! @$orders_updated[$invoice_number])
+            $orders_updated[$invoice_number] = [
+              'added'   => [],
+              'removed' => []
+            ];
+
+          $orders_updated[$invoice_number]['added'][] = $item;
         }
 
         if ($item['days_dispensed_actual']) {
@@ -98,10 +114,12 @@ function update_order_items($changes)
     foreach ($changes['deleted'] as $deleted) {
         SirumLog::$subroutine_id = "order-items-deleted-".sha1(serialize($deleted));
 
+        $invoice_number = $deleted['invoice_number'];
+
         $item = load_full_item($deleted, $mysql);
 
         SirumLog::debug(
-            "update_order_items: Order Item deleted",
+            "update_order_items: Order Item deleted $invoice_number",
             [
                 'deleted' => $deleted,
                 'item'    => $item,
@@ -110,6 +128,18 @@ function update_order_items($changes)
                 'event'   => 'deleted'
             ]
         );
+
+        //This item was going to be filled, and the whole order was not deleted
+        if ($deleted['days_dispensed_default'] > 0 AND @$deleted['order_date_added']) {
+
+          if ( ! @$orders_updated[$invoice_number])
+            $orders_updated[$invoice_number] = [
+              'added'   => [],
+              'removed' => []
+            ];
+
+          $orders_updated[$invoice_number]['removed'][] = array_merge($item, $deleted);
+        }
 
         /*
             WARNING Cannot unpend all items effectively in order-items-deleted loops
@@ -144,6 +174,30 @@ function update_order_items($changes)
     }
     log_timer('order-items-deleted', $loop_timer, $count_deleted);
 
+
+
+    //TODO Somehow bundle patients comms if we are adding/removing drugs on next go-around, since order_update_notice would need to be sent again?
+    //The above seems like would be tricky so skipping this for now
+    if ($orders_updated) {
+
+      $reason = "helper_full_fields: send_updated_order_communications for ".count($orders_updated)." orders";
+
+      SirumLog::debug(
+        $reason,
+        [
+          'orders_updated'  => $orders_updated,
+        ]
+      );
+
+      foreach($orders_updated as $invoice_number => $updates) {
+
+        $order  = load_full_order(['invoice_number' => $invoice_number], $mysql);
+        $groups = group_drugs($order, $mysql);
+
+        send_updated_order_communications($groups, $updates['added'], $updates['removed']);
+      }
+    }
+
     $loop_timer = microtime(true);
     //If just updated we need to
     //  - see which fields changed
@@ -164,7 +218,7 @@ function update_order_items($changes)
             ]
         );
 
-        $item = load_full_item($updated, $mysql, true);
+        $item = load_full_item($updated, $mysql);
 
         if (! $item) {
             SirumLog::error(
@@ -200,7 +254,7 @@ function update_order_items($changes)
 
             AuditLog::log(
                 sprintf(
-                    "Freezing item % for Rx#%s GSN#%s because it is dispensed and updated",
+                    "Freezing item %s for Rx#%s GSN#%s because it is dispensed and updated",
                     $item['drug_name'],
                     $item['rx_number'],
                     $item['drug_gsns']

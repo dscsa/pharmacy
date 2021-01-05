@@ -57,15 +57,26 @@ function load_full_item($partial, $mysql, $overwrite_rx_messages = false) {
         SELECT * FROM gp_orders WHERE invoice_number = $partial[invoice_number]
       ");
 
-      SirumLog::info(
-        "helper_full_item: invoice_number retrieved ($item[invoice_number]) != invoice_number provided ($partial[invoice_number])", [
-          'item' => $item,
-          'partial' => $partial,
-          'sql' => $sql,
-          'debug' => $debug,
-          'note' => "This can happen in order-items-deleted because the order_item used to have an Order but doesn't any longer"
-        ]
-      );
+      if (isset($partial['days_dispensed_default']))
+        SirumLog::info(
+          "helper_full_item: invoice_number retrieved ($item[invoice_number]) != invoice_number provided ($partial[invoice_number])", [
+            'item' => $item,
+            'partial' => $partial,
+            'sql' => $sql,
+            'debug' => $debug,
+            'note' => "This can happen in order-items-deleted (rxs-single-updated?) because the order_item used to have an Order but doesn't any longer"
+          ]
+        );
+      else
+        SirumLog::alert(
+          "helper_full_item: should not happen for order-items-created! invoice_number retrieved ($item[invoice_number]) != invoice_number provided ($partial[invoice_number])", [
+            'item' => $item,
+            'partial' => $partial,
+            'sql' => $sql,
+            'debug' => $debug,
+            'note' => "This should not happen for order-items-created"
+          ]
+        );
     }
 
     if (@$partial['invoice_number'] AND $item['item_date_added'] AND ! $item['invoice_number']) {

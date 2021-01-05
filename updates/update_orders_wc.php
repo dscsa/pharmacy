@@ -54,7 +54,7 @@ function update_orders_wc($changes)
             ]
         );
 
-        $duplicate = get_current_orders_wc($mysql, ['patient_id_wc' => $created['patient_id_wc']]);
+        $duplicate = get_current_orders($mysql, ['patient_id_wc' => $created['patient_id_wc']]);
 
         if ($duplicate) {
             AuditLog::log(

@@ -74,11 +74,12 @@ function update_patients_cp($changes)
 
         if ($updated['refills_used'] == $updated['old_refills_used']) {
             SirumLog::notice(
-                "Patient updated in CP",
-                [
-                   'updated' => $updated,
-                   'patient' => $patient
-                ]
+              "Patient updated in CP",
+              [
+                'updated' => $updated,
+                'changed' => $changed,
+                'is_new'  => ($updated['old_pharmacy_name']) ? 'Existing Patient' : 'New Patient'
+              ]
             );
         }
 

@@ -255,11 +255,7 @@ function get_order_stage_wc($order) {
   return str_replace('wc-', '', $order[0]['order_stage_wc']);
 }
 
-//TODO Eventually switch this back to gp_orders (not _cp) table
-//right now syncing deletes the current order in gp_orders (so that it will retrigger a change on the next sync)
-//but when that happens (55074-55079) this will not detect a duplicate for any order and so we will process all
-//the orders in full, wasting lots of time.
-function get_current_orders_cp($mysql, $conditions = []) {
+function get_current_orders($mysql, $conditions = []) {
 
   $where = "";
   foreach ($conditions as $key => $val) {
@@ -270,35 +266,10 @@ function get_current_orders_cp($mysql, $conditions = []) {
     SELECT
       *
     FROM
-      gp_orders_cp
+      gp_orders
     WHERE
       $where
       order_date_dispensed IS NULL
-    ORDER BY
-      invoice_number ASC
-  ";
-
-  log_error('get_current_orders', ['sql' => $sql, 'conditions' => $conditions]);
-
-  return $mysql->run($sql)[0];
-}
-
-//TODO Hacky see note above
-function get_current_orders_wc($mysql, $conditions = []) {
-
-  $where = "";
-  foreach ($conditions as $key => $val) {
-    $where .= "$key = $val AND\n";
-  }
-
-  $sql = "
-    SELECT
-      *
-    FROM
-      gp_orders_wc
-    WHERE
-      $where
-      (order_stage_wc LIKE 'wc-confirm-%' OR order_stage_wc LIKE 'wc-prepare-%')
     ORDER BY
       invoice_number ASC
   ";

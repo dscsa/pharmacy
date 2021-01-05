@@ -87,8 +87,10 @@ function order_created_event($groups, $email, $text, $hours_to_wait) {
     return;
   }
 
+  $count = count($groups['FILLED']) + count($groups['ADDED']);
+
   $patient_label = get_patient_label($order);
-  $event_title   = $order[0]['invoice_number'].' Order Created: '.count($groups['FILLED_WITH_PRICES']).' items. '.$patient_label.'.  Created:'.date('Y-m-d H:i:s');
+  $event_title   = "{$order[0]['invoice_number']}. Order Created: $count items. $patient_label.  Created:".date('Y-m-d H:i:s');
 
   $cancel = cancel_events_by_person($order[0]['first_name'], $order[0]['last_name'], $order[0]['birth_date'], 'order_created_event', ['Order Created', 'Transfer Requested', 'Order Updated', 'Order Canceled', 'Order Hold', 'No Rx', 'Needs Form']);
 
@@ -149,8 +151,10 @@ function order_updated_event($groups, $email, $text, $hours_to_wait) {
     return;
   }
 
+  $count = count($groups['FILLED']) + count($groups['ADDED']);
+
   $patient_label = get_patient_label($order);
-  $event_title   = $order[0]['invoice_number'].' Order Updated: '.count($groups['FILLED_WITH_PRICES']).' items. '.$patient_label.'.  Created:'.date('Y-m-d H:i:s');
+  $event_title   = "{$order[0]['invoice_number']} Order Updated: $count items. $patient_label.  Created:".date('Y-m-d H:i:s');
 
   //$cancel = cancel_events_by_person($order[0]['first_name'], $order[0]['last_name'], $order[0]['birth_date'], 'order_updated_event', ['Transfer Requested', 'Order Updated', 'Order Hold', 'No Rx', 'Needs Form', 'Order Canceled']);
 

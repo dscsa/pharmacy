@@ -52,7 +52,17 @@ class SirumLog
         }
 
         if (is_array($args)) {
-            list($message, $context) = $args;
+          if (empty($args[0]) OR empty($args[1]))
+            self::$logger->alert(
+              'Logging Malformed Arguments',
+              [
+                'method' => $method,
+                'args'   => $args
+              ]
+            );
+
+          $message = @$args[0];
+          $context = @$args[1];
         } else {
             $message = $args;
             $context = [];
@@ -72,7 +82,7 @@ class SirumLog
             // The logger is broken.  We need to recycle it.
             self::$logger->flush();
             self::resetLogger();
-            self::$logger->warning(
+            self::$logger->alert(
                 'Logging Generated error',
                 [
                      'message' => $message,

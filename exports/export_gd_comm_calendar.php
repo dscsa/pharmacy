@@ -140,17 +140,18 @@ function autopay_reminder_notice($groups) {
 //by building commication arrays based on github.com/dscsa/communication-calendar
 function order_created_notice($groups) {
 
-  $subject   = 'Good Pill is starting to prepare '.$groups['ALL'][0]['count_filled'].' items for Order #'.$groups['ALL'][0]['invoice_number'].'.';
+  $count     = count($groups['FILLED']) + count($groups['ADDED']);
+  $subject   = "Good Pill is starting to prepare $count items for Order #{$groups['ALL'][0]['invoice_number']}.";
   $message   = 'If your address has recently changed please let us know right away.';
   $drug_list = '<br><br><u>These Rxs will be included once we confirm their availability:</u><br>';
 
   if ( ! $groups['ALL'][0]['refills_used']) {
     $days = 0;
     $message   .= ' Your first order will only be $6 total for all of your medications.';
-    $drug_list .= implode(';<br>', array_merge($groups['FILLED_ACTION'], $groups['FILLED_NOACTION'])).';';
+    $drug_list .= implode(';<br>', array_merge($groups['FILLED_ACTION'], $groups['FILLED_NOACTION'], $groups['ADDED_NOACTION'])).';';
   } else {
-    $days = $groups['ALL'][0]['order_source'] == "Auto Refill v2" ? 8 : 5;  //TODO Remove.  This is a temp measure so people don't know if or how far we are behind
-    $drug_list .= implode(';<br>', $groups['FILLED_WITH_PRICES']).';';
+    $days = $groups['ALL'][0]['order_source'] == "Auto Refill v2" ? 7 : 4;  //TODO Remove.  This is a temp measure so people don't know if or how far we are behind
+    $drug_list .= implode(';<br>',  array_merge($groups['FILLED_WITH_PRICES'], $groups['ADDED_WITH_PRICES'])).';';
   }
 
   $suffix = implode('<br><br>', [
@@ -166,13 +167,10 @@ function order_created_notice($groups) {
     '',
     $subject.' We will notify you again once it ships. '.$message.$drug_list,
     '',
-    ($groups['ALL'][0]['count_filled'] >= $groups['ALL'][0]['count_nofill']) ? 'Thanks for choosing Good Pill!' : 'Apologies for any inconvenience,',
+    ($count >= $groups['ALL'][0]['count_nofill']) ? 'Thanks for choosing Good Pill!' : 'Apologies for any inconvenience,',
     'The Good Pill Team',
     '',
-    $suffix,
-    '',
-    ! $groups['ALL'][0]['count_nofill'] ? '' : '<br><u>We are NOT filling these Rxs:</u><br>'.implode(';<br>', array_merge($groups['NOFILL_NOACTION'], $groups['NOFILL_ACTION'])).';',
-    ''
+    $suffix
   ]);
 
   //Remove Refill Reminders for new Rxs we just received Order #14512
@@ -301,39 +299,44 @@ function order_hold_notice($groups, $missing_gsn = false) {
 function order_updated_notice($groups, $patient_updates) {
 
   $subject = 'Good Pill update for Order #'.$groups['ALL'][0]['invoice_number'];
-  $message = implode(' ', $patient_updates);
+  $updates = implode(' ', $patient_updates);
 
   if ($groups['ALL'][0]['count_filled'] AND ! $groups['ALL'][0]['refills_used']) {
-    $message .= '<br><br><u>Your new order will be:</u><br>'.implode(';<br>', array_merge($groups['FILLED_ACTION'], $groups['FILLED_NOACTION'])).';';
+    $message = '<br><u>Your new order will be:</u><br>'.implode(';<br>', array_merge($groups['FILLED_ACTION'], $groups['FILLED_NOACTION'])).';';
   } else if ($groups['ALL'][0]['count_filled']) {
-    $message .= '<br><br><u>Your new order will be:</u><br>'.implode(';<br>', $groups['FILLED_WITH_PRICES']).';';
+    $message = '<br><u>Your new order will be:</u><br>'.implode(';<br>', $groups['FILLED_WITH_PRICES']).';';
   }
+
+  $message .= '<br><br>We will notify you again once it ships.';
 
   $suffix = implode('<br><br>', [
     "Note: if this is correct, there is no need to do anything. If you want to change or delay this order, please let us know as soon as possible. If delaying, please specify the date on which you want it filled, otherwise if you don't, we will delay it 3 weeks by default."
   ]);
 
   $email = [ "email" => DEBUG_EMAIL]; //$groups['ALL'][0]['email'] ];
-  $text  = [ "sms"   => DEBUG_PHONE, "message" => $subject.': '.$message ]; //get_phones($groups['ALL'])
+  $text  = [ "sms"   => DEBUG_PHONE, "message" => "$subject: $updates $message"]; //get_phones($groups['ALL'])
 
   $email['subject'] = $subject;
   $email['message'] = implode('<br>', [
     'Hello,',
     '',
-    $subject.' We will notify you again once it ships.',
+    "$subject: $updates",
     $message,
     '',
     ($groups['ALL'][0]['count_filled'] >= $groups['ALL'][0]['count_nofill']) ? 'Thanks for choosing Good Pill!' : 'Apologies for any inconvenience,',
     'The Good Pill Team',
     '',
-    $suffix,
-    '',
-    ! $groups['ALL'][0]['count_nofill'] ? '' : '<br><u>We are NOT filling these Rxs:</u><br>'.implode(';<br>', array_merge($groups['NOFILL_NOACTION'], $groups['NOFILL_ACTION'])).';',
-    ''
+    $suffix
   ]);
 
+  if ( ! $groups['ALL'][0]['refills_used']) {
+    $days = 0;
+  } else {
+    $days = $groups['ALL'][0]['order_source'] == "Auto Refill v2" ? 7 : 4;  //TODO Remove.  This is a temp measure so people don't know if or how far we are behind
+  }
+
   //Wait 15 minutes to hopefully batch staggered surescripts and manual rx entry and cindy updates
-  order_updated_event($groups, $email, $text, 15/60);
+  order_updated_event($groups, $email, $text, $days*24+15/60);
 }
 
 function needs_form_notice($groups) {
