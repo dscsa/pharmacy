@@ -140,6 +140,7 @@ function update_orders_cp($changes)
                 [
                     'invoice_number' => $created['invoice_number'],
                     'created' => $created,
+                    'order'   => $order,
                     'source'  => 'CarePoint',
                     'type'    => 'orders',
                     'event'   => 'created'
