@@ -206,7 +206,7 @@ function transfer_requested_notice($groups) {
 
 //We are coording patient communication via sms, calls, emails, & faxes
 //by building commication arrays based on github.com/dscsa/communication-calendar
-function order_hold_notice($groups, $missing_gsn = false) {
+function order_hold_notice($groups) {
 
   if ($groups['ALL'][0]['count_filled'] == 0 AND $groups['ALL'][0]['count_nofill'] == 0) {
     //If patients have no Rxs on their profile then this will be empty.
@@ -275,7 +275,7 @@ function order_hold_notice($groups, $missing_gsn = false) {
     "Note: if this is correct, there is no need to do anything. If you think there is a mistake, please let us know as soon as possible."
   ]);
 
-  $salesforce = ! $missing_gsn
+  $salesforce = true //! $missing_gsn
     ? ''
     : [
       "subject" => "Order #".$groups['ALL'][0]['invoice_number']." ON HOLD because of missing GSN",
@@ -285,10 +285,8 @@ function order_hold_notice($groups, $missing_gsn = false) {
       "due_date" => date('Y-m-d')
     ];
 
-  if ($missing_gsn)
-    log_warning('order_hold_notice: missing gsn', get_defined_vars());
-  else
-    log_notice('order_hold_notice: regular', get_defined_vars());
+
+  log_alert('order_hold_notice: unknown reason', get_defined_vars());
 
   //Wait 15 minutes to hopefully batch staggered surescripts and manual rx entry and cindy updates
   order_hold_event($groups['ALL'], $email, $text, $salesforce, 15/60);
@@ -454,6 +452,8 @@ function order_canceled_notice($partial, $groups) {
     '',
     ''
   ]);
+
+  log_alert('order_canceled_notice: how to improve this message', get_defined_vars());
 
   order_canceled_event($partial, $groups['ALL'], $email, $text, 15/60);
 }

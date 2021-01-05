@@ -248,13 +248,7 @@ function update_orders_cp($changes)
                 ACTION PATIENT OFF AUTOFILL
          */
 
-        /*
-                count_items instead of count_filled because it might be a
-                manually added item, that we are not filling but that the
-                pharmacist is using as a placeholder/reminder e.g 54732
-         */
-        if ($order[0]['count_items'] == 0
-            and $order[0]['count_filled'] == 0
+        if ($order[0]['count_filled'] == 0
             and $order[0]['count_to_add'] == 0
             and ! is_webform_transfer($order[0])) {
             AuditLog::log(
@@ -267,8 +261,8 @@ function update_orders_cp($changes)
 
             SirumLog::warning(
                 "update_orders_cp: created. no drugs to fill. removing order
-            {$order[0]['invoice_number']}. Can we remove the v2_unpend_order
-            below because it get called on the next run?",
+                {$order[0]['invoice_number']}. Can we remove the v2_unpend_order
+                below because it get called on the next run?",
                 [
                     'invoice_number' => $order[0]['invoice_number'],
                     'count_filled'   => $order[0]['count_filled'],
@@ -277,10 +271,7 @@ function update_orders_cp($changes)
                 ]
             );
 
-            $groups = group_drugs($order, $mysql);
-            order_hold_notice($groups);
-
-            //TODO Remove/Cancel WC Order Here
+            //TODO Remove/Cancel WC Order Here Or Is this done on next go-around?
 
             /*
                TODO Why do we need to explicitly unpend?  Deleting an order in CP
@@ -290,6 +281,10 @@ function update_orders_cp($changes)
             $order = export_v2_unpend_order($order, $mysql, 'Created Empty');
             export_cp_remove_order($order[0]['invoice_number'], 'Created Empty');
             continue;
+        }
+
+        if (is_webform_transfer($order[0])) {
+            continue; // order hold notice not necessary for transfers
         }
 
         //Needs to be called before "$groups" is set
@@ -304,7 +299,7 @@ function update_orders_cp($changes)
          * Can't test for rx_message_key == 'ACTION NEEDS FORM' because other messages can take precedence
          */
 
-        if (! $order[0]['pharmacy_name']) {
+        if ( ! $order[0]['pharmacy_name']) {
             AuditLog::log(
                 sprintf(
                     "Order %s was created but patient hasn't yet registered in Patient Portal",
@@ -324,42 +319,39 @@ function update_orders_cp($changes)
             continue;
         }
 
-        //This is not necessary if order was created by webform, which then created the order in Guardian
-        //"order_source": "Webform eRX/Transfer/Refill [w/ Note]"
-        if ( ! is_webform($order[0])) {
-            SirumLog::debug(
-                "Creating order ".$order[0]['invoice_number']." in woocommerce because source is not the Webform",
-                [
-                    'invoice_number' => $order[0]['invoice_number'],
-                    'source'         => $order[0]['order_source'],
-                    'order'          => $order,
-                    'groups'         => $groups
-                ]
-            );
-
-            export_wc_create_order($order, "update_orders_cp: created");
-        }
-
-        if (is_webform_transfer($order[0])) {
-            continue; // order hold notice not necessary for transfers
-        }
-
         if ($order[0]['count_filled'] > 0 OR $order[0]['count_to_add'] > 0) {
-            continue; // order hold notice not necessary if we are adding items on next go-around
+
+          //This is not necessary if order was created by webform, which then created the order in Guardian
+          //"order_source": "Webform eRX/Transfer/Refill [w/ Note]"
+          if ( ! is_webform($order[0])) {
+              SirumLog::debug(
+                  "Creating order ".$order[0]['invoice_number']." in woocommerce because source is not the Webform and looks like there are items to fill",
+                  [
+                      'invoice_number' => $order[0]['invoice_number'],
+                      'source'         => $order[0]['order_source'],
+                      'order'          => $order,
+                      'groups'         => $groups
+                  ]
+              );
+
+              export_wc_create_order($order, "update_orders_cp: created");
+          }
+
+          continue; // order hold notice not necessary if we are adding items on next go-around
         }
 
-        order_hold_notice($groups, true);
+        order_hold_notice($groups);
 
         AuditLog::log(
             sprintf(
-                "Order %s is on hold, likely because of 'NO ACTION MISSING GSN'",
+                "Order %s is on hold, unknown reason",
                 $order[0]['invoice_number']
             ),
             $order[0]
         );
         SirumLog::debug(
-            "update_orders_cp: Order Hold hopefully due to 'NO ACTION MISSING GSN'
-             otherwise should have been deleted with sync code above",
+            "update_orders_cp: Order Hold, unknown reason
+            should have been deleted with sync code above",
             [
                 'invoice_number' => $order[0]['invoice_number'],
                 'order'          => $order,
@@ -727,7 +719,6 @@ function update_orders_cp($changes)
                 ]
             );
 
-            // We passed in $deleted because there is not $order to make $groups
             order_canceled_notice($updated, $groups);
 
             /*
