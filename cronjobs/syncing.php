@@ -34,7 +34,7 @@ if (!cp_test()) {
     $message = '** Could not connect to Carepoint **';
     echo "{$message}\n";
     SirumLog::alert($message);
-    SirumLog::flush();
+    SirumLog::getLogger()->flush();
     exit;
 }
 
@@ -94,8 +94,10 @@ if ( ! flock($f, LOCK_EX | LOCK_NB)) {
     $still_running = "\n*** Warning Webform Cron Job Because Previous One Is Still Running ***\n\n";
     echo $still_running;
     SirumLog::error($still_running, $global_exec_details);
+
     // Push any lagging logs to google Cloud
-    SirumLog::flush();
+    SirumLog::getLogger()->flush();
+
     exit;
 }
 
@@ -385,5 +387,5 @@ try {
 }
 
 // Push any lagging logs to google Cloud
-SirumLog::flush();
+SirumLog::getLogger()->flush();
 echo "Pharmacy Automation Success in {$global_exec_details['timers']['total']} seconds\n";
