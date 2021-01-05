@@ -84,7 +84,7 @@ function v2_pend_item($item, $mysql, $reason) {
           $item
       );
 
-      SirumLog::error(
+      SirumLog::alert(
           sprintf(
               "v2_pend_item: ABORTED! %s for %s appears to be already pended.  Please confirm.",
               @$item['drug_name'],
@@ -363,7 +363,7 @@ function is_v2_item_pended($item)
 
     if (!empty($results) &&
         @$results[0]['next'][0]['pended']) {
-        SirumLog::alert(
+        SirumLog::info(
             sprintf(
                 "pend_test: Attempted to pend %s for %s, but found already existing pend _id - %s",
                 $item['drug_generic'],
@@ -383,7 +383,7 @@ function is_v2_item_pended($item)
         return true;
     }
 
-    SirumLog::alert(
+    SirumLog::info(
         sprintf(
             "pend_test: %s for %s not pended",
             $item['drug_generic'],
