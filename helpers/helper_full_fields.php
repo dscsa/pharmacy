@@ -11,7 +11,7 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
     $items_to_remove = [];
     $update_payment  = ! @$patient_or_order[0]['payment_total_default']; //Default is to update payment for new orders
     $is_order        = is_order($patient_or_order);
-    $is_new_order    = $is_order AND is_null($patient_or_order[0]['count_filled']);
+    $is_new_order    = ($is_order AND is_null($patient_or_order[0]['count_filled']));
     $patient_notice  = false;
 
     /*
