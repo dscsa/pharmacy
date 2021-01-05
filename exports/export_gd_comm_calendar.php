@@ -324,10 +324,7 @@ function order_updated_notice($groups, $patient_updates) {
     ($groups['ALL'][0]['count_filled'] >= $groups['ALL'][0]['count_nofill']) ? 'Thanks for choosing Good Pill!' : 'Apologies for any inconvenience,',
     'The Good Pill Team',
     '',
-    $suffix,
-    '',
-    ! $groups['ALL'][0]['count_nofill'] ? '' : '<br><u>We are NOT filling these Rxs:</u><br>'.implode(';<br>', array_merge($groups['NOFILL_NOACTION'], $groups['NOFILL_ACTION'])).';',
-    ''
+    $suffix
   ]);
 
   //Wait 15 minutes to hopefully batch staggered surescripts and manual rx entry and cindy updates

@@ -216,18 +216,18 @@ function send_dispensed_order_communications($groups) {
   order_dispensed_notice($groups);
 }
 
-function send_updated_order_communications($groups, $items_added, $items_to_remove) {
+function send_updated_order_communications($groups, $items_added, $items_removed) {
 
   $add_item_names    = [];
   $remove_item_names = [];
   $patient_updates   = [];
 
   foreach ($items_added as $item) {
-    $add_item_names[] = $item['drug_name'];
+    $add_item_names[] = $item['drug'];
   }
 
-  foreach ($items_to_remove as $item) {
-    $remove_item_names[] = $item['drug_name'];
+  foreach ($items_removed as $item) {
+    $remove_item_names[] = $item['drug'];
   }
 
   if ($add_item_names) {
