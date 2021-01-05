@@ -121,7 +121,7 @@ function patient_message_text($item) {
 }
 
 function patient_pricing_text($item) {
-  if ( ! @$item['days_dispensed'] OR ! $item['price_dispensed']))
+  if ( ! @$item['days_dispensed'] OR ! $item['price_dispensed'])
     return '';
 
   return ', $'.((float) $item['price_dispensed']).' for '.$days.' days';

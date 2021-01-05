@@ -564,7 +564,7 @@ function update_patients_wc($changes)
             AuditLog::log(
                 sprintf(
                     "Patient other medications updated via Patient Portal to %s",
-                    implode(', ', $updated['medications_other'])
+                    $updated['medications_other']
                 ),
                 $updated
             );

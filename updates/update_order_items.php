@@ -200,7 +200,7 @@ function update_order_items($changes)
 
             AuditLog::log(
                 sprintf(
-                    "Freezing item % for Rx#%s GSN#%s because it is dispensed and updated",
+                    "Freezing item %s for Rx#%s GSN#%s because it is dispensed and updated",
                     $item['drug_name'],
                     $item['rx_number'],
                     $item['drug_gsns']
