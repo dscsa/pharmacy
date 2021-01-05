@@ -44,7 +44,7 @@ function update_order_items($changes)
         SirumLog::$subroutine_id = "order-items-created-".sha1(serialize($created));
 
         //This will add/remove and pend/unpend items from the order
-        $item = load_full_item($created, $mysql, true);
+        $item = load_full_item($created, $mysql);
 
         SirumLog::debug(
             "update_order_items: Order Item created",
@@ -164,7 +164,7 @@ function update_order_items($changes)
             ]
         );
 
-        $item = load_full_item($updated, $mysql, true);
+        $item = load_full_item($updated, $mysql);
 
         if (! $item) {
             SirumLog::error(

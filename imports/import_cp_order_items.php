@@ -39,10 +39,20 @@ function import_cp_order_items() {
         ELSE 'MANUAL' END
       ) as item_added_by -- from csuser
   	FROM csomline
-  	JOIN cprx ON cprx.rx_id = csomline.rx_id
-    LEFT JOIN cprx_disp disp ON csomline.rxdisp_id > 0 AND disp.rxdisp_id = csomline.rxdisp_id -- Rx might not yet be dispensed
-    WHERE dispense_date IS NULL OR dispense_date > @today - 7  --Undispensed and dispensed within the week only to cut down volume. i think this still enables qty/days_dispensed_actual to be set properly
-    GROUP BY csomline.order_id, (CASE WHEN gcn_seqno > 0 THEN gcn_seqno ELSE script_no END) --This is because of Orders like 8660 where we had 4 duplicate Citalopram 40mg.  Two that were from Refills, One Denied Surescript Request, and One new Surescript.  We are only going to send one GCN so don't list it multiple times
+  	JOIN cprx ON
+      cprx.rx_id = csomline.rx_id
+    JOIN csom ON
+      csom.order_id = csomline.order_id
+    LEFT JOIN cprx_disp disp ON
+      csomline.rxdisp_id > 0 AND disp.rxdisp_id = csomline.rxdisp_id -- Rx might not yet be dispensed
+    WHERE
+      ISNULL(csom.status_cn, 1) <> 3 AND ( --most of time guardian deletes order_items but sometimes it leaves them even if order is deleted?  join csom since doesn't seem to be reflected in csomline.line_status_cn or line_state_cn e.g. 55073-55079 (order_id 55071-55077)
+        dispense_date IS NULL OR
+        dispense_date > @today - 7  --Undispensed and dispensed within the week only to cut down volume. i think this still enables qty/days_dispensed_actual to be set properly
+      )
+    GROUP BY
+      csomline.order_id,
+      (CASE WHEN gcn_seqno > 0 THEN gcn_seqno ELSE script_no END) --This is because of Orders like 8660 where we had 4 duplicate Citalopram 40mg.  Two that were from Refills, One Denied Surescript Request, and One new Surescript.  We are only going to send one GCN so don't list it multiple times
   ");
 
   if ( ! $items[0] OR ! count($items[0])) return log_alert('No Cp Order Items to Import', get_defined_vars());
