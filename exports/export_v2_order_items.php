@@ -363,40 +363,8 @@ function is_v2_item_pended($item)
 
     if (!empty($results) &&
         @$results[0]['next'][0]['pended']) {
-        SirumLog::info(
-            sprintf(
-                "pend_test: Attempted to pend %s for %s, but found already existing pend _id - %s",
-                $item['drug_generic'],
-                $pend_group,
-                $results[0]['next'][0]['pended']
-            ),
-            $item
-        );
-
-        printf(
-            "pend_test: Attempted to pend %s for %s, but found already existing pend _id - %s\n",
-            $item['drug_generic'],
-            $pend_group,
-            $results[0]['next'][0]['pended']
-        );
-
         return true;
     }
-
-    SirumLog::info(
-        sprintf(
-            "pend_test: %s for %s not pended",
-            $item['drug_generic'],
-            $pend_group
-        ),
-        $item
-    );
-
-    printf(
-        "pend_test: %s for %s not pended\n",
-        $item['drug_generic'],
-        $pend_group
-    );
 
     return false;
 }
