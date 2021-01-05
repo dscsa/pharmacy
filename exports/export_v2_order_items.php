@@ -396,7 +396,7 @@ function is_v2_item_pended($item)
         "pend_test: %s for %s not pended\n",
         $item['drug_generic'],
         $pend_group
-    )
+    );
 
     return false;
 }
