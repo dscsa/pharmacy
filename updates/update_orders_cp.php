@@ -348,7 +348,7 @@ function update_orders_cp($changes)
         }
 
         order_hold_notice($groups, true);
-        
+
         AuditLog::log(
             sprintf(
                 "Order %s is on hold, likely because of 'NO ACTION MISSING GSN'",
@@ -522,9 +522,10 @@ function update_orders_cp($changes)
         );
 
         //can't do export_v2_unpend_order because each item won't have an invoice number or order_added_date
-        foreach ($patient as $i => $item) {
+        if ($patient)
+          foreach ($patient as $i => $item) {
             $patient[$i] = v2_unpend_item(array_merge($item, $deleted), $mysql, 'update_orders_cp deleted: unpending all items');
-        }
+          }
 
         AuditLog::log(
             sprintf(

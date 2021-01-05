@@ -274,7 +274,7 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
     if ($is_order) {
 
       $count_nofill = $patient_or_order[0]['drug_name'] //is this an empty order
-        ? count($patient_or_order) - $count_filled;
+        ? count($patient_or_order) - $count_filled
         : 0;
 
       foreach ($patient_or_order as $i => $item) {
