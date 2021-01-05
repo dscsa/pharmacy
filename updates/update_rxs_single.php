@@ -12,7 +12,7 @@ use Sirum\Logging\AuditLog;
 function update_rxs_single($changes)
 {
 
-    $start_time = microtime(true);
+    $start = microtime(true);
     $mysql = new Mysql_Wc();
     $mssql = new Mssql_Cp();
 
@@ -34,7 +34,6 @@ function update_rxs_single($changes)
     printf("%s: %s seconds\n", __LINE__, (microtime(true) - $start));
 
     foreach ($rx_singles[0] as $rx_single) {
-        printf("%s: %s seconds\n", __LINE__, (microtime(true) - $start));
         SirumLog::$subroutine_id = "rxs-single-null-message-".sha1(serialize($rx_single));
 
         //This updates & overwrites set_rx_messages
@@ -150,7 +149,7 @@ function update_rxs_single($changes)
      * TODO OR We should add indexed drug info fields to the gp_rxs_single above on
      *      created/updated so we don't need the join
      */
-
+    printf("%s: %s seconds\n", __LINE__, (microtime(true) - $start));
     //This Group By Clause must be kept consistent with the grouping with the export_cp_set_rx_message query
     $sql = "
     INSERT INTO gp_rxs_grouped
@@ -245,7 +244,7 @@ function update_rxs_single($changes)
      * Run this After so that Rx_grouped is set when doing get_full_patient
      */
     $loop_timer = microtime(true);
-
+    printf("%s: %s seconds\n", __LINE__, (microtime(true) - $start));
     foreach ($changes['created'] as $created) {
         SirumLog::$subroutine_id = "rxs-single-created2-".sha1(serialize($created));
 
