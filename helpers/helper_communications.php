@@ -185,12 +185,12 @@ function send_created_order_communications($groups, $items_to_add) {
   foreach ($items_to_add as $item) {
 
     $item['drug_name'] = patient_drug_text($item);
-    $item['days_dispensed'] = patient_days_dispensed($item);
+    $item['days_dispensed'] = (float) $item['days_to_add'];
     $item['price_dispensed'] = patient_price_dispensed($item);
 
     $groups['ADDED'][] = $item['drug_name']; //Equivalent of FILLED
     $groups['ADDED_WITH_PRICES'][] = $item['drug_name'].patient_pricing_text($item);  //Equivalent of FILLED_WITH_PRICES
-    $groups['ADDED_NOACTION'][] = $item['drug_name'].patient_message_text($item); //Equivalent of FILLED_NOACTION
+    $groups['ADDED_NOACTION'][] = $item['drug_name'].$item['message_to_add']['EN']; //Equivalent of FILLED_NOACTION
   }
 
   log_error('send_created_order_communications', [
