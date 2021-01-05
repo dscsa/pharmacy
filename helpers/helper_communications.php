@@ -129,7 +129,7 @@ function patient_pricing_text($item) {
 
 function send_created_order_communications($groups, $items_to_add) {
 
-  if (is_webform_transfer($groups['ALL'][0])
+  if (is_webform_transfer($groups['ALL'][0]))
     return transfer_requested_notice($groups);
 
   if ( ! $groups['ALL'][0]['count_filled']) {
