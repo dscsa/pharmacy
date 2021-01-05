@@ -54,3 +54,53 @@ function getPatientByRx($rx_number)
 
     return [];
 }
+
+/**
+ * Get The details need to for a patient ID from the database using the patient_id_cp
+ * @param  int $patient_id_cp The Carepoint Id
+ * @return array          Empty if no match found
+ */
+function getPatientByCpId($patient_id_cp)
+{
+    $mysql = Goodpill::getConnection();
+    $pdo   = $mysql->prepare(
+        "SELECT birth_date, first_name, last_name
+            FROM gp_patients
+            WHERE patient_id_cp = :patient_id_cp
+            LIMIT 1;"
+    );
+
+    $pdo->bindParam(':patient_id_cp', $patient_id_cp, \PDO::PARAM_INT);
+    $pdo->execute();
+
+    if ($patient = $pdo->fetch()) {
+        return $patient;
+    }
+
+    return [];
+}
+
+/**
+ * Get The details need to for a patient ID from the database using the patient_id_wc
+ * @param  int $patient_id_wc The WooCommerce id
+ * @return array          Empty if no match found
+ */
+function getPatientByWcId($patient_id_wc)
+{
+    $mysql = Goodpill::getConnection();
+    $pdo   = $mysql->prepare(
+        "SELECT birth_date, first_name, last_name
+            FROM gp_patients
+            WHERE patient_id_wc = :patient_id_wc
+            LIMIT 1;"
+    );
+
+    $pdo->bindParam(':patient_id_wc', $patient_id_wc, \PDO::PARAM_INT);
+    $pdo->execute();
+
+    if ($patient = $pdo->fetch()) {
+        return $patient;
+    }
+
+    return [];
+}

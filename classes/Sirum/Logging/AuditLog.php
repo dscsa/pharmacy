@@ -58,9 +58,11 @@ class AuditLog
             $context['invoice_number'] = @$orderitem_or_patient['invoice_number'];
         }
 
+
+
         //If we have an invoice but not a patient, we want to get those details
-        if (@$orderitem_or_patient['invoice_number']
-            && !@$orderitem_or_patient['birth_date']) {
+        if (empty($context['birth_date']) &&
+            @$orderitem_or_patient['invoice_number']) {
             $patient = getPatientByInvoice($orderitem_or_patient['invoice_number']);
 
             if (!empty($patient)) {
@@ -72,6 +74,38 @@ class AuditLog
                 ];
             }
         }
+
+        // If we still don't have a birthdate, try the Carepoint Id
+        if (empty($context['birth_date']) &&
+            @$orderitem_or_patient['patient_id_cp']) {
+            $patient = getPatientByCpId($orderitem_or_patient['patient_id_cp']);
+
+            if (!empty($patient)) {
+                $context = [
+                    'birth_date' => $patient['birth_date'],
+                    'last_name'  => $patient['last_name'],
+                    'first_name' => $patient['first_name'],
+                    'invoice_number' => @$orderitem_or_patient['invoice_number']
+                ];
+            }
+        }
+
+        // If we still don't have a birthdate, try the WooCmmerce Id
+        if (empty($context['birth_date']) &&
+            @$orderitem_or_patient['patient_id_cwc']) {
+            $patient = getPatientByWcId($orderitem_or_patient['patient_id_cp']);
+
+            if (!empty($patient)) {
+                $context = [
+                    'birth_date' => $patient['birth_date'],
+                    'last_name'  => $patient['last_name'],
+                    'first_name' => $patient['first_name'],
+                    'invoice_number' => @$orderitem_or_patient['invoice_number']
+                ];
+            }
+        }
+
+
 
         $context['execution_id'] = SirumLog::$exec_id;
 
