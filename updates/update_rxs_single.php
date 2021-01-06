@@ -150,7 +150,7 @@ function update_rxs_single($changes)
      *      created/updated so we don't need the join
      */
 
-    //TODO if we make this incremental updates, we need to think about the fields with NOW(), this doesn't easily translate
+    //TODO if we make this incremental updates, we need to think about the fields with NOW() & days_left, this doesn't easily translate
     //into an created/update/deleted type of update.
     printf("%s: %s seconds\n", __LINE__, (microtime(true) - $start));
     //This Group By Clause must be kept consistent with the grouping with the export_cp_set_rx_message query
