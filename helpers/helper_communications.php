@@ -103,11 +103,11 @@ function group_drugs($order, $mysql) {
   $count_filled = count($groups['FILLED_ACTION']) + count($groups['FILLED_NOACTION']);
   $count_nofill = count($groups['NOFILL_ACTION']) + count($groups['NOFILL_NOACTION']);
 
-  if ($count_filled != $order[0]['count_filled']) {
+  if (isset($order[0]['count_filled']) AND $count_filled != $order[0]['count_filled']) {
     log_error("group_drugs: wrong count_filled $count_filled != ".$order[0]['count_filled'], get_defined_vars());
   }
 
-  if ($count_nofill != $order[0]['count_nofill']) {
+  if (isset($order[0]['count_nofill']) AND $count_nofill != $order[0]['count_nofill']) {
     log_error("group_drugs: wrong count_nofill $count_nofill != ".$order[0]['count_nofill'], get_defined_vars());
   }
 
@@ -126,7 +126,7 @@ function patient_message_text($item) {
 }
 
 function patient_pricing_text($item) {
-  if ( ! $item['days_dispensed'] OR ! $item['price_dispensed'])
+  if ( ! @$item['days_dispensed'] OR ! @$item['price_dispensed'])
     return '';
 
   return ", \${$item['price_dispensed']} for {$item['days_dispensed']} days";
@@ -195,8 +195,7 @@ function send_created_order_communications($groups, $items_to_add) {
 
   log_error('send_created_order_communications', [
     'groups' => $groups,
-    'items_to_add' => $items_to_add,
-    'patient_updates' => $patient_updates
+    'items_to_add' => $items_to_add
   ]);
 
   order_created_notice($groups);

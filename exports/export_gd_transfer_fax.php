@@ -30,7 +30,7 @@ function export_gd_transfer_fax($item, $source)
         [
             $item['patient_id_cp'],
             $item['patient_id_wc'],
-            $item['invoice_number'],
+            @$item['invoice_number'],
             $item['drug_name'],
             $item['rx_transfer'],
             $source

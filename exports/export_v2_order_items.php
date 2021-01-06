@@ -7,10 +7,10 @@ require_once 'exports/export_cp_orders.php';
 
 function export_v2_unpend_order($order, $mysql, $reason) {
 
-  log_notice("export_v2_unpend_order $reason ".$order[0]['invoice_number'], $order);
+  log_notice("export_v2_unpend_order $reason ".@$order[0]['invoice_number'], $order);
 
-  if ( ! $order[0]['drug_name']) {
-    log_error("export_v2_unpend_order: ABORTED! Order ".$order[0]['invoice_number']." doesn't seem to have any items. $reason", ['order' => $order]);
+  if ( ! @$order[0]['drug_name']) {
+    log_error("export_v2_unpend_order: ABORTED! Order ".@$order[0]['invoice_number']." doesn't seem to have any items. $reason", ['order' => $order]);
     return $order;
   }
 

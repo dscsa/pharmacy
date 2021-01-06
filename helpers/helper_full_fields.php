@@ -309,7 +309,6 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
           'count_items'     => $patient_or_order[0]['count_items'],
           'count_to_remove' => $patient_or_order[0]['count_to_remove'],
           'count_to_add'    => $patient_or_order[0]['count_to_add'],
-          'count_added'     => $patient_or_order[0]['count_added'],
           'is_order'        => $is_order,
           'is_new_order'    => $is_new_order,
           'items_to_add'    => $items_to_add,
@@ -338,7 +337,6 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
           'count_items'     => $patient_or_order[0]['count_items'],
           'count_to_remove' => $patient_or_order[0]['count_to_remove'],
           'count_to_add'    => $patient_or_order[0]['count_to_add'],
-          'count_added'     => $patient_or_order[0]['count_added'],
           'order'           => $patient_or_order
         ]
       );

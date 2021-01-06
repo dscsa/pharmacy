@@ -49,7 +49,7 @@ function update_order_items($changes)
         //This will add/remove and pend/unpend items from the order
         $item = load_full_item($created, $mysql);
 
-        //Hacky way to determine if this addition was already part of the order_created_notice (items_to_add) that went out on thelast go-around
+        //TODO Less hacky way to determine if this addition was already part of the order_created_notice (items_to_add) that went out on thelast go-around
         $in_created_notice = strtotime($item['item_date_added']) - strtotime($item['order_date_added']) < 20*60;
 
         SirumLog::debug(
