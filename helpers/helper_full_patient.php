@@ -16,8 +16,8 @@ function load_full_patient($partial, $mysql, $overwrite_rx_messages = false) {
   $sql = "
     SELECT
       *,
-      gp_patients.patient_id_cp,
       gp_rxs_grouped.*, -- Need to put this first based on how we are joining, but make sure these grouped fields overwrite their single equivalents
+      gp_patients.patient_id_cp,
       0 as is_order,
       1 as is_patient,
       0 as is_item
