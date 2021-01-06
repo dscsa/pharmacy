@@ -149,6 +149,9 @@ function update_rxs_single($changes)
      * TODO OR We should add indexed drug info fields to the gp_rxs_single above on
      *      created/updated so we don't need the join
      */
+
+    //TODO if we make this incremental updates, we need to think about the fields with NOW(), this doesn't easily translate
+    //into an created/update/deleted type of update.
     printf("%s: %s seconds\n", __LINE__, (microtime(true) - $start));
     //This Group By Clause must be kept consistent with the grouping with the export_cp_set_rx_message query
     $sql = "
@@ -163,7 +166,11 @@ function update_rxs_single($changes)
 
       MAX(rx_gsn) as max_gsn,
       MAX(drug_gsns) as drug_gsns,
-      SUM(refills_left) as refills_total,
+      SUM(CASE
+        WHEN rx_date_expired > NOW() -- expiring does not trigger an update in the rxs_single page current so we have to watch the field here too although redundant with the check in import_cp_rxs_single
+        THEN refills_left
+        ELSE 0
+      END) as refills_total,
       SUM(qty_left) as qty_total,
       MIN(rx_autofill) as rx_autofill, -- if one is taken off, then a new script will have it turned on but we need to go with the old one
 
