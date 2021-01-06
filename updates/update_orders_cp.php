@@ -264,12 +264,18 @@ function update_orders_cp($changes)
                 {$order[0]['invoice_number']}. Can we remove the v2_unpend_order
                 below because it get called on the next run?",
                 [
-                    'invoice_number' => $order[0]['invoice_number'],
-                    'count_filled'   => $order[0]['count_filled'],
-                    'count_items'    => $order[0]['count_items'],
-                    'order'          => $order
+                    'invoice_number'  => $order[0]['invoice_number'],
+                    'count_filled'    => $order[0]['count_filled'],
+                    'count_items'     => $order[0]['count_items'],
+                    'count_to_add'    => $order[0]['count_to_add'],
+                    'count_to_remove' => $order[0]['count_to_remove'],
+                    'order'           => $order
                 ]
             );
+
+            if ($order[0]['count_items'] - $order[0]['count_to_remove']) {
+              SirumLog::alert("update_orders_cp: created. canceling order, but is their a manually added item that we should keep?");
+            }
 
             //TODO Remove/Cancel WC Order Here Or Is this done on next go-around?
 

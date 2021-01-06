@@ -178,8 +178,8 @@ function send_created_order_communications($groups, $items_to_add) {
   if (is_webform_transfer($groups['ALL'][0]))
     return transfer_requested_notice($groups);
 
-  if ( ! $groups['ALL'][0]['count_filled']) {
-    return log_error("send_created_order_communications: ! count_filled. What to do?", $groups);
+  if ( ! $groups['ALL'][0]['count_filled'] AND ! $groups['ALL'][0]['count_to_add']) {
+    return log_error("send_created_order_communications: ! count_filled AND ! count_to_add. What to do?", $groups);
   }
 
   foreach ($items_to_add as $item) {
