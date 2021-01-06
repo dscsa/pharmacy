@@ -20,7 +20,6 @@ function export_v2_unpend_order($order, $mysql, $reason) {
 
   return $order;
 }
-
 /**
  * UnPend(remove) an item in V2 for picking
  * @param  array $item   The item details to be picked
@@ -38,10 +37,8 @@ function v2_pend_item($item, $mysql, $reason) {
     AuditLog::log(
         sprintf(
             "ABORTED PEND Attempted to pend %s for Rx#%s on Invoice #%s for
-            the following reasons:
-            Missing days dispensed default - %s,
-            The Rx hasn't been assigned - %s,
-            There isn't inventory - %s,
+            the following reasons: Missing days dispensed default - %s,
+            The Rx hasn't been assigned - %s, There isn't inventory - %s,
             The number of doses is invalid - %s",
             @$item['drug_name'],
             @$item['rx_number'],
@@ -71,31 +68,6 @@ function v2_pend_item($item, $mysql, $reason) {
     );
     return $item;
   }
-
-
-  // See if this item is already pended, we should return before we pend it again
-  if (is_v2_item_pended($item)) {
-      AuditLog::log(
-          sprintf(
-              "ABORTED PEND! %s for %s appears to be already pended.  Please confirm.",
-              @$item['drug_name'],
-              @$item['invoice_number']
-          ),
-          $item
-      );
-
-      SirumLog::alert(
-          sprintf(
-              "v2_pend_item: ABORTED! %s for %s appears to be already pended.  Please confirm.",
-              @$item['drug_name'],
-              @$item['invoice_number']
-          ),
-          [ 'item' => $item ]
-      );
-
-      return $item;
-  }
-
 
   // Make the picklist
   $list = make_pick_list($item);
@@ -153,7 +125,7 @@ function v2_pend_item($item, $mysql, $reason) {
 
   print_pick_list($item, $list);
   pend_pick_list($item, $list);
-  $item = save_pick_list($item, $list, $mysql);
+  $item = save_pick_list($item, $list ?: 0, $mysql);
   return $item;
 }
 
@@ -211,11 +183,6 @@ function v2_unpend_item($item, $mysql, $reason) {
   return $item;
 }
 
-/**
- * [unpend_pick_list description]
- * @param  [type] $item [description]
- * @return [type]       [description]
- */
 function unpend_pick_list($item) {
 
   $pend_group_refill  = pend_group_refill($item);
@@ -342,38 +309,6 @@ function print_pick_list($item, $list) {
 
 }
 
-
-/*
-    Pend Groupfunctions
- */
-
-
-/**
- * Check to see if this specific item has already been pended
- * @param  array  $item  The data for an order item
- * @return boolean       False if the item is not pended in v2
- */
-function is_v2_item_pended($item)
-{
-
-    $pend_group = pend_group_name($item);
-
-    $pend_url = "/account/8889875187/pend/{$pend_group}/{$item['drug_generic']}";
-    $results  = v2_fetch($pend_url, 'GET');
-
-    if (!empty($results) &&
-        @$results[0]['next'][0]['pended']) {
-        return true;
-    }
-
-    return false;
-}
-
-/**
- * Get the pend group name for a Refill order
- * @param  array $item  The item data
- * @return string
- */
 function pend_group_refill($item) {
 
    $pick_time = strtotime($item['order_date_added'].' +2 days'); //Used to be +3 days
@@ -384,11 +319,6 @@ function pend_group_refill($item) {
    return "$pick_date $invoice";
 }
 
-/**
- * Get the pend group name for a Patient Portal user
- * @param  array $item  The item data
- * @return string
- */
 function pend_group_webform($item) {
 
    $pick_time = strtotime($item['order_date_added'].' +0 days'); //Used to be +1 days
@@ -399,11 +329,6 @@ function pend_group_webform($item) {
    return "$pick_date $invoice";
 }
 
-/**
- * Get the pend group name for a new patient
- * @param  array $item  The item data
- * @return string
- */
 function pend_group_new_patient($item) {
 
    $pick_time = strtotime($item['patient_date_added'].' +0 days'); //Used to be +1 days
@@ -414,28 +339,15 @@ function pend_group_new_patient($item) {
    return "$pick_date $invoice";
 }
 
-/**
- * Get the pend group name for a manully added invoice
- * @param  array $item  The item data
- * @return string
- */
 function pend_group_manual($item) {
    return $item['invoice_number'];
 }
 
-/**
- * Get the name for the pend_group
- * @param  array $item The Item to be test
- * @return string
- */
 function pend_group_name($item) {
 
-    /*
-        TODO need a different flag here because "Auto Refill v2" can be
-        overwritten by "Webform XXX" We need a flag that won't change otherwise
-        items can be pended under different pending groups Probably need to have
-        each "app" be a different "CP user" so that we can look at item_added_by
-     */
+    //TODO need a different flag here because "Auto Refill v2" can be overwritten by "Webform XXX"
+    //We need a flag that won't change otherwise items can be pended under different pending groups
+    //Probably need to have each "app" be a different "CP user" so that we can look at item_added_by
     if ($item['order_source'] == "Auto Refill v2")
         return pend_group_refill($item);
 
@@ -500,6 +412,13 @@ function make_pick_list($item, $limit = 500) {
     return $list;
   }
 
+  log_error("Webform Pending Error: Not enough qty found for $item[drug_generic]. Looking for $min_qty with last_inventory of $item[last_inventory] (limit $limit) #2 of 2, half fill with no safety failed", ['inventory' => $inventory, 'sorted_ndcs' => $sorted_ndcs, 'count_inventory' => count($sorted_ndcs), 'item' => $item]);
+
+  //otherwise could create upto 3 SF tasks. rxs-single-updated, orders-cp-created, sync-to-date
+  if ( ! is_null($item['count_pended_total'])) {
+    return;
+  }
+
   $created = "Created:".date('Y-m-d H:i:s');
 
   $salesforce = [
@@ -513,8 +432,6 @@ function make_pick_list($item, $limit = 500) {
   $event_title = "$item[invoice_number] Pending Error: $salesforce[contact] $created";
 
   create_event($event_title, [$salesforce]);
-
-  log_error("Webform Pending Error: Not enough qty found for $item[drug_generic]. Looking for $min_qty with last_inventory of $item[last_inventory] (limit $limit) #2 of 2, half fill with no safety failed", ['inventory' => $inventory, 'sorted_ndcs' => $sorted_ndcs, 'count_inventory' => count($sorted_ndcs), 'item' => $item]);
 }
 
 function get_v2_inventory($item, $limit) {

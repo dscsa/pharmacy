@@ -427,6 +427,9 @@ function no_rx_notice($partial, $groups) {
 
 function order_canceled_notice($partial, $groups) {
 
+  if ($groups['ALL'][0]['backup_pharmacy'])
+    return log_warning('order_canceled_notice: not sending because needs_form_notice should have already been sent', get_defined_vars());
+
   $subject = "Good Pill canceled your Order #$partial[invoice_number]";
 
   //called from an order-updated loop which has order item info rather than a order-deleted loop
