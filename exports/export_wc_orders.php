@@ -295,7 +295,7 @@ function export_wc_delete_order($invoice_number, $reason)
   if ( ! $post_id) {
     SirumLog::warning(
         "export_wc_delete_order: Requested delete, but post_id missing",
-        ['invoice_number' = >$invoice_number, 'reason' => $reason ]
+        ['invoice_number' => $invoice_number, 'reason' => $reason ]
     );
     return false;
   }
