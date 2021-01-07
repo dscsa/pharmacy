@@ -27,8 +27,6 @@ function is_patient_match($mysql, $patient) {
   //TODO Auto Delete Duplicate Patient AND Send Comm of their login and password
 
   SirumLog::alert("helper_matching: is_patient_match FALSE ".@$patient[0]['first_name']." ".@$patient[0]['last_name']." ".@$patient[0]['birth_date'], $alert);
-
-  print_r($alert);
 }
 
 /**
@@ -91,14 +89,12 @@ function find_patient($mysql, $patient, $table = 'gp_patients') {
   $first_name_token = escape_db_values($tokens['first_name_token']);
   $last_name_token  = escape_db_values($tokens['last_name_token']);
 
-  $sql = "
-    SELECT *
-    FROM $table
-    WHERE
-      first_name LIKE '$first_name_token%' AND
-      REPLACE(last_name, '*', '') LIKE '%$last_name_token' AND
-      birth_date = '$patient[birth_date]'
-  ";
+  $sql = "SELECT *
+            FROM {$table}
+            WHERE
+              first_name LIKE '{$first_name_token}%'
+              AND REPLACE(last_name, '*', '') LIKE '%{$last_name_token}'
+              AND birth_date = '{$patient['birth_date']}'";
 
   if ( ! $first_name_token OR ! $last_name_token OR ! $patient['birth_date']) {
     log_error('export_wc_patients: find_patient. patient has no name!', [$sql, $patient]);
