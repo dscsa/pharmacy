@@ -2,8 +2,13 @@
 
 require_once 'vendor/autoload.php';
 
-#putenv('GOOGLE_APPLICATION_CREDENTIALS=unified-logging.json');
-putenv('GOOGLE_APPLICATION_CREDENTIALS=/etc/google/unified-logging.json');
+
+if (file_exists('/etc/google/unified-logging.json')) {
+    putenv('GOOGLE_APPLICATION_CREDENTIALS=/etc/google/unified-logging.json');
+} else if (file_exists('/goodpill/webform/unified-logging.json')) {
+    putenv('GOOGLE_APPLICATION_CREDENTIALS=/goodpill/webform/unified-logging.json');
+}
+
 
 use Sirum\Logging\SirumLog;
 use Sirum\Logging\AuditLog;
