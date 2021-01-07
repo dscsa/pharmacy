@@ -2,6 +2,11 @@
 
 use Sirum\Storage\Goodpill;
 
+
+function digPatientIdentifiers($possibility) {
+
+}
+
 /**
  * Get The details need to for a patient ID from the database using the invoice_number
  * @param  int $invoice_number The gp invoice number

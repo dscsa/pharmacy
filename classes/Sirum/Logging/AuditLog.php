@@ -92,8 +92,8 @@ class AuditLog
 
         // If we still don't have a birthdate, try the WooCmmerce Id
         if (empty($context['birth_date']) &&
-            @$orderitem_or_patient['patient_id_cwc']) {
-            $patient = getPatientByWcId($orderitem_or_patient['patient_id_cp']);
+            @$orderitem_or_patient['patient_id_wc']) {
+            $patient = getPatientByWcId($orderitem_or_patient['patient_id_wc']);
 
             if (!empty($patient)) {
                 $context = [
