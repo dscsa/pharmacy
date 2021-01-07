@@ -175,7 +175,10 @@ function v2_unpend_item($item, $mysql, $reason) {
           ),
           $item
       );
-    log_alert("v2_unpend_item: NO INVOICE NUMBER, ORDER DATE ADDED, OR PATIENT DATE ADDED! ".@$item['invoice_number']." ".@$item['drug_name']." $reason ".@$item['rx_number'].". rx_dispensed_id:".@$item['rx_dispensed_id']." last_inventory:".@$item['last_inventory']." count_pended_total:".@$item['count_pended_total'], ['item' => $item]);
+    SirumLog::alert(
+        "v2_unpend_item: NO INVOICE NUMBER, ORDER DATE ADDED, OR PATIENT DATE ADDED! ",
+        ['item' => $item]
+    );
   }
 
   unpend_pick_list($item);

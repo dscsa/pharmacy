@@ -204,7 +204,7 @@ function log_alert($text, $vars = '')
 {
     echo "$text\n";
     print_r($vars);
-    
+
     global $log_notices;
     global $gp_logger;
 
@@ -328,10 +328,11 @@ function log_timer($label, $start_time, $count) {
   $global_exec_details['timers_loops']["$label-count"]   = $count;
   $global_exec_details['timers_loops']["$label-average"] = $average_time;
 
-  if ($average_time > 30)
+  if ($average_time > 90)
     SirumLog::alert(
-      "helper_log log_timer: $label has long average time loop time of $average_time seconds",
+      "helper_log log_timer: long runtime detected",
       [
+        'label'               => $label,
         'start_time'          => $start_time,
         'count'               => $count,
         '$total_time'         => $total_time,
