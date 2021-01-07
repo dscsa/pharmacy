@@ -165,16 +165,16 @@ function get_order_stage_wc($order) {
   if ( ! $count_filled AND ! $order[0]['order_source'])
     return 'confirm-new-rx'; //New SureScript(s) that we are not filling
 
-  if ( ! $count_filled AND in_array($order[0]['order_source'], ['Webform eRX', 'Webform eRX Note']))
+  if ( ! $count_filled AND is_webform_erx($order[0]))
     return 'confirm-new-rx'; //New SureScript(s) that we are not filling
 
-  if ( ! $count_filled AND in_array($order[0]['order_source'], ['Webform Transfer', 'Webform Transfer Note']))
+  if ( ! $count_filled AND is_webform_transfer($order[0]))
     return 'confirm-transfer';
 
-  if ( ! $count_filled AND in_array($order[0]['order_source'], ['Webform Refill', 'Webform Refill Note']))
+  if ( ! $count_filled AND is_webform_refill($order[0]))
     return 'confirm-refill';
 
-  if ( ! $count_filled AND in_array($order[0]['order_source'], ['Auto Refill v2', 'O Refills']))
+  if ( ! $count_filled AND is_auto_refill($order[0]))
     return 'confirm-autofill';
 
   if ( ! $count_filled) {
@@ -194,7 +194,7 @@ function get_order_stage_wc($order) {
     log_warning('helper_full_order: order is '.floor($elapsed_time/60/60/24).' days old', $order[0]);
   }
 
-  if ( ! $order[0]['tracking_number'] AND in_array($order[0]['order_source'], ['Webform Refill', 'Webform Refill Note', 'Auto Refill v2', 'O Refills']))
+  if ( ! $order[0]['tracking_number'] AND (is_webform_refill($order[0]) OR is_auto_refill($order[0])))
     return 'prepare-refill';
 
   if ( ! $order[0]['tracking_number'] AND $order[0]['rx_source'] == 'SureScripts')
@@ -255,54 +255,22 @@ function get_order_stage_wc($order) {
   return str_replace('wc-', '', $order[0]['order_stage_wc']);
 }
 
-//TODO Eventually switch this back to gp_orders (not _cp) table
-//right now syncing deletes the current order in gp_orders (so that it will retrigger a change on the next sync)
-//but when that happens (55074-55079) this will not detect a duplicate for any order and so we will process all
-//the orders in full, wasting lots of time.
-function get_current_orders_cp($mysql, $conditions = []) {
-
+function get_current_orders($mysql, $conditions = []) {
   $where = "";
+
   foreach ($conditions as $key => $val) {
     $where .= "$key = $val AND\n";
   }
 
-  $sql = "
-    SELECT
-      *
-    FROM
-      gp_orders_cp
-    WHERE
-      $where
-      order_date_dispensed IS NULL
-    ORDER BY
-      invoice_number ASC
-  ";
-
-  log_error('get_current_orders', ['sql' => $sql, 'conditions' => $conditions]);
-
-  return $mysql->run($sql)[0];
-}
-
-function get_current_orders_wc($mysql, $conditions = []) {
-
-  $where = "";
-  foreach ($conditions as $key => $val) {
-    $where .= "$key = $val AND\n";
-  }
-
-  $sql = "
-    SELECT
-      *
-    FROM
-      gp_orders_wc
-    WHERE
-      $where
-      order_date_dispensed IS NULL
-    ORDER BY
-      invoice_number ASC
-  ";
-
-  log_error('get_current_orders', ['sql' => $sql, 'conditions' => $conditions]);
+  $sql = "SELECT
+              *
+            FROM
+              gp_orders
+            WHERE
+              $where
+              order_date_dispensed IS NULL
+            ORDER BY
+              invoice_number ASC";
 
   return $mysql->run($sql)[0];
 }

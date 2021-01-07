@@ -7,10 +7,10 @@ require_once 'exports/export_cp_orders.php';
 
 function export_v2_unpend_order($order, $mysql, $reason) {
 
-  log_notice("export_v2_unpend_order $reason ".$order[0]['invoice_number'], $order);
+  log_notice("export_v2_unpend_order $reason ".@$order[0]['invoice_number'], $order);
 
-  if ( ! $order[0]['drug_name']) {
-    log_error("export_v2_unpend_order: ABORTED! Order ".$order[0]['invoice_number']." doesn't seem to have any items. $reason", ['order' => $order]);
+  if ( ! @$order[0]['drug_name']) {
+    log_error("export_v2_unpend_order: ABORTED! Order ".@$order[0]['invoice_number']." doesn't seem to have any items. $reason", ['order' => $order]);
     return $order;
   }
 
@@ -54,8 +54,8 @@ function v2_pend_item($item, $mysql, $reason) {
     SirumLog::error(
         sprintf(
             "v2_pend_item: ABORTED! %s %s %s %s days_dispensed_default:%s
-            rx_dispensed_id:%s last_inventory:%s count_pended_total:%s"
-            .@$item['invoice_number'],
+            rx_dispensed_id:%s last_inventory:%s count_pended_total:%s",
+            @$item['invoice_number'],
             @$item['drug_name'],
             $reason,
             @$item['rx_number'],
@@ -125,7 +125,7 @@ function v2_pend_item($item, $mysql, $reason) {
 
   print_pick_list($item, $list);
   pend_pick_list($item, $list);
-  $item = save_pick_list($item, $list, $mysql);
+  $item = save_pick_list($item, $list ?: 0, $mysql);
   return $item;
 }
 
@@ -348,7 +348,7 @@ function pend_group_name($item) {
     //TODO need a different flag here because "Auto Refill v2" can be overwritten by "Webform XXX"
     //We need a flag that won't change otherwise items can be pended under different pending groups
     //Probably need to have each "app" be a different "CP user" so that we can look at item_added_by
-    if ($item['order_source'] == "Auto Refill v2")
+    if (is_auto_refill($item))
         return pend_group_refill($item);
 
     if ($item['refills_used'] > 0)
@@ -412,6 +412,13 @@ function make_pick_list($item, $limit = 500) {
     return $list;
   }
 
+  log_error("Webform Pending Error: Not enough qty found for $item[drug_generic]. Looking for $min_qty with last_inventory of $item[last_inventory] (limit $limit) #2 of 2, half fill with no safety failed", ['inventory' => $inventory, 'sorted_ndcs' => $sorted_ndcs, 'count_inventory' => count($sorted_ndcs), 'item' => $item]);
+
+  //otherwise could create upto 3 SF tasks. rxs-single-updated, orders-cp-created, sync-to-date
+  if ( ! is_null($item['count_pended_total'])) {
+    return;
+  }
+
   $created = "Created:".date('Y-m-d H:i:s');
 
   $salesforce = [
@@ -425,8 +432,6 @@ function make_pick_list($item, $limit = 500) {
   $event_title = "$item[invoice_number] Pending Error: $salesforce[contact] $created";
 
   create_event($event_title, [$salesforce]);
-
-  log_error("Webform Pending Error: Not enough qty found for $item[drug_generic]. Looking for $min_qty with last_inventory of $item[last_inventory] (limit $limit) #2 of 2, half fill with no safety failed", ['inventory' => $inventory, 'sorted_ndcs' => $sorted_ndcs, 'count_inventory' => count($sorted_ndcs), 'item' => $item]);
 }
 
 function get_v2_inventory($item, $limit) {

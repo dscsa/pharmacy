@@ -44,9 +44,9 @@ function export_cp_remove_order($invoice_number, $reason) {
     ]
   );
 
-  $new_count_items = export_cp_remove_items($invoice_number);
+  $new_count_items = export_cp_remove_items($invoice_number); //since no 2nd argument this removes all undispensed items
 
-  if ( ! $new_count_items) {
+  if ( ! $new_count_items) { //if no items were dispensed yet, archive order
 
     $sql = "
       UPDATE csom SET status_cn = 3 WHERE invoice_nbr = $invoice_number -- chg_user_id = @user_id, chg_date = @today
@@ -71,7 +71,7 @@ function export_cp_remove_order($invoice_number, $reason) {
   } else {
 
     SirumLog::alert(
-      "export_cp_remove_order: Order $invoice_number could only be partially deleted",
+      "export_cp_remove_order: Order $invoice_number had dispensed items and could only be partially deleted",
       [
         'invoice_number'  => $invoice_number,
         'reason'          => $reason,
@@ -85,7 +85,7 @@ function export_cp_remove_order($invoice_number, $reason) {
 function export_cp_append_order_note($mssql, $invoice_number, $note) {
 
     $sql = "
-      UPDATE csom SET comments = RIGHT(CONCAT(comments, CHAR(10), '$note'), 256) WHERE invoice_nbr = $invoice_number -- chg_user_id = @user_id, chg_date = @today
+      UPDATE csom SET comments = RIGHT(CONCAT(comments, CHAR(10), '$note'), 255) WHERE invoice_nbr = $invoice_number -- chg_user_id = @user_id, chg_date = @today
     ";
 
     $res = $mssql->run($sql);

@@ -4,6 +4,8 @@ namespace Sirum\Logging;
 
 use Google\Cloud\Logging\LoggingClient;
 
+require_once 'helpers/helper_pagerduty.php';
+
 /**
  * This is a simple logger that maintains a single instance of the cloud $logger
  * This should not be stored in other code, but for the short term it's here.
@@ -35,6 +37,21 @@ class SirumLog
     public static $application_id;
 
     /**
+     * The available levels
+     * @var array
+     */
+    protected static $levels = [
+        'debug'     => 100,
+        'info'      => 200,
+        'notice'    => 300,
+        'warning'   => 400,
+        'error'     => 500,
+        'critical'  => 600,
+        'alert'     => 700,
+        'emergency' => 800
+    ];
+
+    /**
      * Overide the static funciton and pass unknow methos into the logger.
      * We will do some cleanup to make sure the data is an array and we will add
      * the execution id so we can group the log message
@@ -58,6 +75,36 @@ class SirumLog
             $context = [];
         }
 
+        $log_level = self::getLoggingLevelByString($method);
+
+
+        if ($log_level > 500) {
+            $pd_query = 'logName="projects/unified-logging-292316/logs/pharmacy-automation"';
+            $pd_data  = ['execution_id' => self::$exec_id];
+            $pd_query .= "\n" . 'jsonPayload.execution_id="' . self::$exec_id . '"';
+
+
+            if (!is_null(self::$subroutine_id)) {
+                $pd_data['subroutine_id'] = self::$subroutine_id;
+                $pd_query .= "\n" . 'jsonPayload.subroutine_id="' . self::$subroutine_id . '"';
+            }
+
+            $pd_query                = urlencode($pd_query);
+            $st_start                = gmdate('Y-m-d\TH:i:s.v', time() - 600);
+            $st_end                  = gmdate('Y-m-d\TH:i:s.v', time() + 600);
+            $pd_query                .= ";timeRange={$st_start}Z%2F{$st_end}Z";
+            $pd_url                  = "https://console.cloud.google.com/logs/query;query=";
+            $pd_url                  .= $pd_query;
+            $pd_data['incident_url'] = $pd_url;
+            $pd_data['level']        = $method;
+
+            if ($log_level == 800) {
+                pd_high_priority($message, 'pharmacy-app-emergency', $pd_data);
+            } elseif ($log_level >= 500 && $log_level < 800) {
+                pd_low_priority($message, 'pharmacy-app-urgent', $pd_data);
+            }
+        }
+
         $context = ["context" => $context];
 
         $context['execution_id'] = self::$exec_id;
@@ -72,7 +119,7 @@ class SirumLog
             // The logger is broken.  We need to recycle it.
             self::$logger->flush();
             self::resetLogger();
-            self::$logger->warning(
+            self::$logger->alert(
                 'Logging Generated error',
                 [
                      'message' => $message,
@@ -104,6 +151,16 @@ class SirumLog
     {
         self::$logger = null;
         return self::getLogger(self::$application_id, self::$exec_id);
+    }
+
+    /**
+     * Get the logging numeric level via a string
+     * @param  string $logging_level One ov the available levels
+     * @return int
+     */
+    protected static function getLoggingLevelByString($logging_level)
+    {
+        return self::$levels[strtolower($logging_level)];
     }
 
     /**

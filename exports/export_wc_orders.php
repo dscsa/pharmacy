@@ -293,7 +293,11 @@ function export_wc_delete_order($invoice_number, $reason)
   $post_id = wc_get_post($invoice_number, 'post_id');
 
   if ( ! $post_id) {
-    return log_error("export_wc_delete_order: cannot delete if no post_id", get_defined_vars());
+    SirumLog::warning(
+        "export_wc_delete_order: Requested delete, but post_id missing",
+        ['invoice_number' = >$invoice_number, 'reason' => $reason ]
+    );
+    return false;
   }
 
   $sql1 = "DELETE FROM wp_postmeta WHERE post_id = $post_id";

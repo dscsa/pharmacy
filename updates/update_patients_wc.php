@@ -470,6 +470,7 @@ function update_patients_wc($changes)
                     ),
                     $updated
                 );
+
                 //Important for a "'" in names
                 $first_name = escape_db_values($updated['first_name']);
                 $last_name  = escape_db_values($updated['last_name']);
@@ -564,7 +565,7 @@ function update_patients_wc($changes)
             AuditLog::log(
                 sprintf(
                     "Patient other medications updated via Patient Portal to %s",
-                    implode(', ', $updated['medications_other'])
+                    $updated['medications_other']
                 ),
                 $updated
             );

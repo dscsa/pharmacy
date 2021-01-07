@@ -17,6 +17,7 @@ function load_full_patient($partial, $mysql, $overwrite_rx_messages = false) {
     SELECT
       *,
       gp_rxs_grouped.*, -- Need to put this first based on how we are joining, but make sure these grouped fields overwrite their single equivalents
+      gp_patients.patient_id_cp,
       0 as is_order,
       1 as is_patient,
       0 as is_item
@@ -40,7 +41,7 @@ function load_full_patient($partial, $mysql, $overwrite_rx_messages = false) {
   //If we are not overwritting messages just get recent scripts, otherwise make sure we get all the rxs so we can overwrite them
   $patient = $mysql->run($sql)[0];
 
-  if ( ! $patient OR ! $patient[0]['patient_id_cp']) {
+  if ( ! @$patient[0]) {
       log_error("ERROR! get_full_patient: no active patient with id:$partial[patient_id_cp]. Deceased or Inactive Patient with Rxs", get_defined_vars());
       return;
   }

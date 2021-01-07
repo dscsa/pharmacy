@@ -140,17 +140,18 @@ function autopay_reminder_notice($groups) {
 //by building commication arrays based on github.com/dscsa/communication-calendar
 function order_created_notice($groups) {
 
-  $subject   = 'Good Pill is starting to prepare '.$groups['ALL'][0]['count_filled'].' items for Order #'.$groups['ALL'][0]['invoice_number'].'.';
+  $count     = count($groups['FILLED']) + count($groups['ADDED']);
+  $subject   = "Good Pill is starting to prepare $count items for Order #{$groups['ALL'][0]['invoice_number']}.";
   $message   = 'If your address has recently changed please let us know right away.';
   $drug_list = '<br><br><u>These Rxs will be included once we confirm their availability:</u><br>';
 
   if ( ! $groups['ALL'][0]['refills_used']) {
     $days = 0;
     $message   .= ' Your first order will only be $6 total for all of your medications.';
-    $drug_list .= implode(';<br>', array_merge($groups['FILLED_ACTION'], $groups['FILLED_NOACTION'])).';';
+    $drug_list .= implode(';<br>', array_merge($groups['FILLED_ACTION'], $groups['FILLED_NOACTION'], $groups['ADDED_NOACTION'])).';';
   } else {
-    $days = $groups['ALL'][0]['order_source'] == "Auto Refill v2" ? 8 : 5;  //TODO Remove.  This is a temp measure so people don't know if or how far we are behind
-    $drug_list .= implode(';<br>', $groups['FILLED_WITH_PRICES']).';';
+    $days = is_auto_refill($groups['ALL'][0]) ? 7 : 4;  //TODO Remove.  This is a temp measure so people don't know if or how far we are behind
+    $drug_list .= implode(';<br>',  array_merge($groups['FILLED_WITH_PRICES'], $groups['ADDED_WITH_PRICES'])).';';
   }
 
   $suffix = implode('<br><br>', [
@@ -166,13 +167,10 @@ function order_created_notice($groups) {
     '',
     $subject.' We will notify you again once it ships. '.$message.$drug_list,
     '',
-    ($groups['ALL'][0]['count_filled'] >= $groups['ALL'][0]['count_nofill']) ? 'Thanks for choosing Good Pill!' : 'Apologies for any inconvenience,',
+    ($count >= $groups['ALL'][0]['count_nofill']) ? 'Thanks for choosing Good Pill!' : 'Apologies for any inconvenience,',
     'The Good Pill Team',
     '',
-    $suffix,
-    '',
-    ! $groups['ALL'][0]['count_nofill'] ? '' : '<br><u>We are NOT filling these Rxs:</u><br>'.implode(';<br>', array_merge($groups['NOFILL_NOACTION'], $groups['NOFILL_ACTION'])).';',
-    ''
+    $suffix
   ]);
 
   //Remove Refill Reminders for new Rxs we just received Order #14512
@@ -208,7 +206,7 @@ function transfer_requested_notice($groups) {
 
 //We are coording patient communication via sms, calls, emails, & faxes
 //by building commication arrays based on github.com/dscsa/communication-calendar
-function order_hold_notice($groups, $missing_gsn = false) {
+function order_hold_notice($groups) {
 
   if ($groups['ALL'][0]['count_filled'] == 0 AND $groups['ALL'][0]['count_nofill'] == 0) {
     //If patients have no Rxs on their profile then this will be empty.
@@ -232,7 +230,7 @@ function order_hold_notice($groups, $missing_gsn = false) {
     $trigger = 'We got your Order but';
   }
   //AUTOREFILL
-  else if ($groups['ALL'][0]['order_source'] == 'Auto Refill v2') {
+  else if (is_auto_refill($groups['ALL'][0])) {
     $trigger = 'Your Rx is due for a refill but';
     log_warning('order_hold_notice: Not filling Auto Refill?', $groups);
   }
@@ -277,7 +275,7 @@ function order_hold_notice($groups, $missing_gsn = false) {
     "Note: if this is correct, there is no need to do anything. If you think there is a mistake, please let us know as soon as possible."
   ]);
 
-  $salesforce = ! $missing_gsn
+  $salesforce = true //! $missing_gsn
     ? ''
     : [
       "subject" => "Order #".$groups['ALL'][0]['invoice_number']." ON HOLD because of missing GSN",
@@ -287,10 +285,8 @@ function order_hold_notice($groups, $missing_gsn = false) {
       "due_date" => date('Y-m-d')
     ];
 
-  if ($missing_gsn)
-    log_warning('order_hold_notice: missing gsn', get_defined_vars());
-  else
-    log_notice('order_hold_notice: regular', get_defined_vars());
+
+  log_alert('order_hold_notice: unknown reason', get_defined_vars());
 
   //Wait 15 minutes to hopefully batch staggered surescripts and manual rx entry and cindy updates
   order_hold_event($groups['ALL'], $email, $text, $salesforce, 15/60);
@@ -301,39 +297,44 @@ function order_hold_notice($groups, $missing_gsn = false) {
 function order_updated_notice($groups, $patient_updates) {
 
   $subject = 'Good Pill update for Order #'.$groups['ALL'][0]['invoice_number'];
-  $message = implode(' ', $patient_updates);
+  $updates = implode(' ', $patient_updates);
 
   if ($groups['ALL'][0]['count_filled'] AND ! $groups['ALL'][0]['refills_used']) {
-    $message .= '<br><br><u>Your new order will be:</u><br>'.implode(';<br>', array_merge($groups['FILLED_ACTION'], $groups['FILLED_NOACTION'])).';';
+    $message = '<br><br><u>Your new order will be:</u><br>'.implode(';<br>', array_merge($groups['FILLED_ACTION'], $groups['FILLED_NOACTION'])).';';
   } else if ($groups['ALL'][0]['count_filled']) {
-    $message .= '<br><br><u>Your new order will be:</u><br>'.implode(';<br>', $groups['FILLED_WITH_PRICES']).';';
+    $message = '<br><br><u>Your new order will be:</u><br>'.implode(';<br>', $groups['FILLED_WITH_PRICES']).';';
   }
+
+  $message .= '<br><br>We will notify you again once it ships.';
 
   $suffix = implode('<br><br>', [
     "Note: if this is correct, there is no need to do anything. If you want to change or delay this order, please let us know as soon as possible. If delaying, please specify the date on which you want it filled, otherwise if you don't, we will delay it 3 weeks by default."
   ]);
 
   $email = [ "email" => DEBUG_EMAIL]; //$groups['ALL'][0]['email'] ];
-  $text  = [ "sms"   => DEBUG_PHONE, "message" => $subject.': '.$message ]; //get_phones($groups['ALL'])
+  $text  = [ "sms"   => DEBUG_PHONE, "message" => "$subject: $updates $message"]; //get_phones($groups['ALL'])
 
   $email['subject'] = $subject;
   $email['message'] = implode('<br>', [
     'Hello,',
     '',
-    $subject.' We will notify you again once it ships.',
+    "$subject: $updates",
     $message,
     '',
     ($groups['ALL'][0]['count_filled'] >= $groups['ALL'][0]['count_nofill']) ? 'Thanks for choosing Good Pill!' : 'Apologies for any inconvenience,',
     'The Good Pill Team',
     '',
-    $suffix,
-    '',
-    ! $groups['ALL'][0]['count_nofill'] ? '' : '<br><u>We are NOT filling these Rxs:</u><br>'.implode(';<br>', array_merge($groups['NOFILL_NOACTION'], $groups['NOFILL_ACTION'])).';',
-    ''
+    $suffix
   ]);
 
+  if ( ! $groups['ALL'][0]['refills_used']) {
+    $days = 0;
+  } else {
+    $days = is_auto_refill($groups['ALL'][0]) ? 7 : 4;  //TODO Remove.  This is a temp measure so people don't know if or how far we are behind
+  }
+
   //Wait 15 minutes to hopefully batch staggered surescripts and manual rx entry and cindy updates
-  order_updated_event($groups, $email, $text, 15/60);
+  order_updated_event($groups, $email, $text, $days*24+15/60);
 }
 
 function needs_form_notice($groups) {
@@ -426,16 +427,23 @@ function no_rx_notice($partial, $groups) {
 
 function order_canceled_notice($partial, $groups) {
 
+  if ( ! $groups['ALL'][0]['pharmacy_name'])
+    return log_alert('order_canceled_notice: not sending because needs_form_notice should be sent instead (was already sent?)', get_defined_vars());
+
+  if ( ! $groups['ALL'][0]['count_nofill'])
+    return log_alert('order_canceled_notice: not sending because no_rx_notice should be sent instead (was already sent?)', get_defined_vars());
+
   $subject = "Good Pill canceled your Order #$partial[invoice_number]";
 
+  if (is_webform_transfer($groups['ALL'][0]))
+    $message = "We attempted to transfer prescriptions from {$groups['ALL'][0]['pharmacy_name']} but they did not have an Rx for the requested drugs with refills remaining.  Could you please let us know your doctor's name and phone number so that we can reach out to them to get new prescription(s)";
+
   //called from an order-updated loop which has order item info rather than a order-deleted loop
-  if (@$groups['ALL'][0]['invoice_number'])
-    $message = "Your order was canceled at your request";
+  else if (@$groups['ALL'][0]['invoice_number'])
+    $message = "Your order was canceled because you have no prescriptions that we can currently fill";
+
   else
     $message = "If you believe this cancellation was in error, call us (888) 987-5187";
-
-  if ($groups['IN_ORDER'])
-    $message .= '. We canceled your order for<br>'.implode(';<br>', $groups['IN_ORDER']).';';
 
   $email = [ "email" => DEBUG_EMAIL]; //$groups['ALL'][0]['email'] ];
   $text  = [ "sms"   => DEBUG_PHONE, "message" => $subject.'. '.$message ]; //get_phones($groups['ALL'])
@@ -451,6 +459,8 @@ function order_canceled_notice($partial, $groups) {
     '',
     ''
   ]);
+
+  log_alert('order_canceled_notice: how to improve this message', get_defined_vars());
 
   order_canceled_event($partial, $groups['ALL'], $email, $text, 15/60);
 }

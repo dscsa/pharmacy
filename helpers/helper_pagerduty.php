@@ -74,8 +74,6 @@ function pd_high_priority($message, $id, $data = [])
         $data
     );
 
-    var_dump($event);
-
     return pd_alert($event);
 }
 
@@ -115,6 +113,8 @@ function get_pd_event(
     if (!empty($data)) {
         $event->setPayloadCustomDetails($data);
     }
+
+    // Lets set a URL if we have one
 
     return $event;
 }

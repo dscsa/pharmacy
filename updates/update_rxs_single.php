@@ -1,6 +1,7 @@
 <?php
 require_once 'helpers/helper_parse_sig.php';
 require_once 'helpers/helper_imports.php';
+require_once 'helpers/helper_identifiers.php';
 require_once 'exports/export_cp_rxs.php';
 require_once 'exports/export_gd_transfer_fax.php'; //is_will_transfer()
 require_once 'dbs/mysql_wc.php';
@@ -10,6 +11,8 @@ use Sirum\Logging\AuditLog;
 
 function update_rxs_single($changes)
 {
+
+    $start = microtime(true);
     $mysql = new Mysql_Wc();
     $mssql = new Mssql_Cp();
 
@@ -49,7 +52,6 @@ function update_rxs_single($changes)
     }
 
     /* Now to do some work */
-
     $count_deleted = count($changes['deleted']);
     $count_created = count($changes['created']);
     $count_updated = count($changes['updated']);
@@ -78,8 +80,15 @@ function update_rxs_single($changes)
 
     foreach ($changes['created'] as $created) {
         SirumLog::$subroutine_id = "rxs-single-created1-".sha1(serialize($created));
-
-        AuditLog::log("New Rx#{$created['rx_number']} for {$created['drug_name']} created via carepoint", $created);
+        $patient = getPatientByRx($created['rx_number']);
+        AuditLog::log(
+            sprintf(
+                "New Rx# %s for %s created via carepoint",
+                $created['rx_number'],
+                $created['drug_name']
+            ),
+            $patient
+        );
 
         SirumLog::debug(
             "update_rxs_single: rx created1",
@@ -138,6 +147,8 @@ function update_rxs_single($changes)
      *      created/updated so we don't need the join
      */
 
+    //TODO if we make this incremental updates, we need to think about the fields with NOW() & days_left, this doesn't easily translate
+    //into an created/update/deleted type of update.
     //This Group By Clause must be kept consistent with the grouping with the export_cp_set_rx_message query
     $sql = "
     INSERT INTO gp_rxs_grouped
@@ -151,7 +162,11 @@ function update_rxs_single($changes)
 
       MAX(rx_gsn) as max_gsn,
       MAX(drug_gsns) as drug_gsns,
-      SUM(refills_left) as refills_total,
+      SUM(CASE
+        WHEN rx_date_expired > NOW() -- expiring does not trigger an update in the rxs_single page current so we have to watch the field here too although redundant with the check in import_cp_rxs_single
+        THEN refills_left
+        ELSE 0
+      END) as refills_total,
       SUM(qty_left) as qty_total,
       MIN(rx_autofill) as rx_autofill, -- if one is taken off, then a new script will have it turned on but we need to go with the old one
 
@@ -232,7 +247,6 @@ function update_rxs_single($changes)
      * Run this After so that Rx_grouped is set when doing get_full_patient
      */
     $loop_timer = microtime(true);
-
     foreach ($changes['created'] as $created) {
         SirumLog::$subroutine_id = "rxs-single-created2-".sha1(serialize($created));
 
@@ -260,7 +274,6 @@ function update_rxs_single($changes)
 
     log_timer('rx-singles-created2', $loop_timer, $count_created);
 
-
     /* Finish Created Loop #2 */
 
     $sf_cache = [];
@@ -274,8 +287,25 @@ function update_rxs_single($changes)
         SirumLog::$subroutine_id = "rxs-single-updated-".sha1(serialize($updated));
 
         $changed = changed_fields($updated);
-
-        AuditLog::log("Rx#{$updated['rx_number']} for {$updated['drug_name']} updated", $updated);
+        $patient = getPatientByRx($updated['rx_number']);
+        AuditLog::log(
+            sprintf(
+                "Rx# %s for %s updated: %s",
+                $updated['rx_number'],
+                $updated['drug_name'],
+                implode(
+                    ', ',
+                    array_map(
+                        function ($v, $k) {
+                            return sprintf("%s='%s'", $k, $v);
+                        },
+                        $changed,
+                        array_keys($changed)
+                    )
+                )
+            ),
+            $patient
+        );
 
         SirumLog::debug(
             "update_rxs_single: rx updated $updated[drug_name] $updated[rx_number]",
@@ -316,12 +346,13 @@ function update_rxs_single($changes)
 
             AuditLog::log(
                 sprintf(
-                    "Autofill for #%s for %s changed to %s",
+                    "Autofill for #%s for %s changed to %s.  Updating all Rx's with
+                     same GSN to be on/off Autofill.",
                     $updated['rx_number'],
                     $updated['drug_name'],
                     $updated['rx_autofill']
                 ),
-                $updated
+                $patient
             );
 
             SirumLog::notice(
@@ -379,7 +410,7 @@ function update_rxs_single($changes)
                     ($is_will_transfer) ? 'will' : 'will NOT',
                     $item['rx_message_key']
                 ),
-                $updated
+                $patient
             );
 
             SirumLog::warning(
@@ -398,9 +429,7 @@ function update_rxs_single($changes)
 
     log_timer('rx-singles-updated', $loop_timer, $count_updated);
 
-
     SirumLog::resetSubroutineId();
-
 
 
 

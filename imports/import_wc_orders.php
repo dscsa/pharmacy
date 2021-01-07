@@ -42,12 +42,15 @@ function import_wc_orders() {
    * QUESTION: How do we actually get duplicates needs to stop execution
    */
   if (count($duplicates[0])) {
-    $duplicate_invoices = 'Duplicate Invoice Numbers in WC. Stopping Cron Until Fixed: '.$duplicates[0][0]['meta_value'];
-    echo $duplicate_invoices;
-    print_r($duplicates[0]);
+    $duplicate_invoices = 'EMERGENCY - Duplicate Invoice Numbers in WC. Stopping Cron Until Fixed: ' . $duplicates[0][0]['meta_value'];
+
+    error_log($duplicate_invoices);
+
     SirumLog::critical($duplicate_invoices, $duplicates[0]);
+
     // Push any lagging logs to google Cloud
-    SirumLog::flush();
+    SirumLog::getLogger()->flush();
+
     exit;
   }
 
@@ -95,7 +98,7 @@ function import_wc_orders() {
   WHERE
     post_type = 'shop_order' AND
     wp_posts.post_status != 'wc-cancelled' AND
-    wp_posts.post_status != 'trash' 
+    wp_posts.post_status != 'trash'
   GROUP BY
      wp_posts.ID
   HAVING
