@@ -1,5 +1,11 @@
 <?php
-use \Sirum\AWS\SQS\GoogleDocsQueue;
+
+ini_set('include_path', '/goodpill/webform');
+require_once 'vendor/autoload.php';
+require_once 'keys.php';
+
+use Sirum\AWS\SQS\GoogleDocsRequests\BaseRequest;
+use Sirum\AWS\SQS\GoogleDocsQueue;
 
 // Grab and item out of the queue
 $gdq = new GoogleDocsQueue();
@@ -19,6 +25,7 @@ for ($l = 0; $l < 10000; $l++) {
             // Figure out the type of message
             // Use the correct endpoint
             // Call the URL
+            print_r($message);
         }
     }
 

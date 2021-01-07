@@ -131,8 +131,7 @@ class Queue
      * Recieve messages from AWS SQS
      *
      * @param  array $params This can be an array of params as accepted by AWS.  The
-     * 						 array will be merged with the default values as defined
-     * 						 by this class
+     *      array will be merged with the default values as defined by this class
      *
      * @return \AWS\Sqs\SqsResults
      */
@@ -149,55 +148,62 @@ class Queue
      *
      * Send a message or multiple messages to AWS SQS
      *
-     * @param  array|string $messages Either a single message or an array of messages
-     * @param  int          $delay    Delay to send (in seconds)
+     * @param  Request $message       Either a single message or an array of messages
+     * @param  int     $delay    Delay to send (in seconds)
      *
      * @return \AWS\Sqs\SqsResults
      */
-    public function send($messages, $delay = 0)
+    public function send(Request $message, $delay = null)
     {
-        if (is_array($messages)) {
-            // if the first message doesn't have an Id assume that
-            // it is just a list of messages
-            if (!isset($messages[0]['Id'])) {
-                $messages = array_map(
-                    function ($message, $delay) {
-                        // If this is an object convert it to a Json string
-                        if ($message instanceof Request) {
-                            $message = $message->toJSON();
-                        }
+        $sqs_message             = $message->toSQS();
+        $sqs_message['QueueUrl'] = $this->queue_url;
 
-                        return [
-                            'Id' => uniqid(),
-                            'MessageBody' => $message,
-                            'DelaySeconds' => $delay
-                        ];
-                    },
-                    $messages,
-                    array_fill(0, count($messages), $delay)
-                );
-            }
-
-            $results = $this->sqs_client->sendMessageBatch(
-                [
-                    'QueueUrl' => $this->queue_url,
-                    'Entries'  => $messages
-                ]
-            );
-        } else {
-            // If this is an object convert it to a Json string
-            if ($message instanceof Request) {
-                $message = $message->toJSON();
-            }
-
-            $results = $this->sqs_client->sendMessage(
-                [
-                    'QueueUrl'     => $this->queue_url,
-                    'MessageBody'  => $messages,
-                    'DelaySeconds' => $delay
-                ]
-            );
+        // Set a delay if we don't have one.
+        if (!isset($sqs_message['DelaySeconds'])) {
+            $sqs_message['DelaySeconds'] = ((!is_null($delay)) ?:0);
         }
+
+        $results = $this->sqs_client->sendMessage($sqs_message);
+
+        if (@$results['MessageId']) {
+            $message->message_id = $results['MessageId'];
+            $message->receipt_handle = $results['RecieptHandle'];
+        }
+
+        return $results;
+    }
+
+    /**
+     *
+     * Send a batch of messages.  We can't send more than 10, so it'll
+     * need to be split down
+     *
+     * @param  array  $messages An array of Request objects
+     * @param  int    $delay    Delay to send (in seconds)
+     *
+     * @return \AWS\Sqs\SqsResults
+     */
+    public function sendBatch($messages, $delay = 0)
+    {
+
+        $messages = array_map(
+            function ($message, $delay) {
+                return $message->toSQS();
+            },
+            $messages,
+            array_fill(0, count($messages), $delay)
+        );
+
+        print_r($messages);
+
+        $results = $this->sqs_client->sendMessageBatch(
+            [
+                'QueueUrl' => $this->queue_url,
+                'Entries'  => $messages
+            ]
+        );
+
+        print_r($results);
 
         return $results;
     }

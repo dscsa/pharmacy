@@ -25,12 +25,33 @@ abstract class Request
     protected $required = [];
 
     /**
+     * A string that should represent a group so requests are proccessed
+     * in a specific order.  When this is
+     * @var string
+     */
+    protected $group_id;
+
+    /**
+     * dedupe_id
+     * @var [type]
+     */
+    protected $dedup_id;
+
+    protected $receipt_handle;
+
+    protected $message_id;
+
+    /**
      * I'm not dead yet.  I feel happy.
      */
-    public function __construct($json_request = null)
+    public function __construct($request = null)
     {
-        if (!is_null($json_request) && is_string($json_request)) {
-            $this->fromJSON($json_request);
+        $this->dedup_id = uniqid();
+
+        if (is_array($request)) {
+            $this->fromSQS($request);
+        } else if (is_string($request)) {
+            $this->fromJSON($request);
         }
     }
 
@@ -64,6 +85,13 @@ abstract class Request
      */
     public function __set($property, $value)
     {
+
+        var_dump(property_exists($this, $property));
+
+        if (property_exists($this, $property)) {
+            return $this->$property = $value;
+        }
+
         if (is_callable(array($this, 'set_'.$property))) {
             return $this->{'set_'.$property}($value);
         }
@@ -73,7 +101,7 @@ abstract class Request
             throw new \Exception("{$property} not an allowed property");
         }
 
-        $this->data[$property] = $value;
+        return $this->data[$property] = $value;
     }
 
     /**
@@ -165,5 +193,40 @@ abstract class Request
 
             $this->data[$strKey] = $mixValue;
         }
+    }
+
+    public function toSQS() {
+        if (isset($this->message_id)) {
+            throw new \Exception('This message has already been sent to SQS');
+        }
+
+        $SQSMessage = [
+            'Id'                     => uniqid(),
+            'MessageBody'            => $this->toJSON(),
+            'MessageDeduplicationId' => $this->dedup_id
+        ];
+
+        if (isset($this->group_id)) {
+            $SQSMessage['MessageGroupId'] = $this->group_id;
+        }
+
+        return $SQSMessage;
+    }
+
+    public function fromSQS($SQSMessage) {
+
+    }
+
+    public function SQSReceipt($message)
+    {
+
+        $this->receipt_handle = $message['ReceiptHandle'];
+        $this->message_id     = $message['MessageId'];
+
+        if (md5($message['Body']) != $message['MD5OfBody']) {
+            throw new \Exception('The message body is malformed');
+        }
+
+        $this->fromJSON($message['Body']);
     }
 }

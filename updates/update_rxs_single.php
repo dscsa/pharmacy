@@ -126,10 +126,13 @@ function update_rxs_single($changes) {
    *
    * This is an expensive (6-8 seconds) group query.
    * TODO We should update rxs in this table individually on changes (
-   * TOD AK: ABOVE CHANGE WOULD ENABLE US TO HAVE AUTOINCREMENT IDS FOR RX_GROUPED - WHICH WE SAVE BACK INTO RXS_SINGLE or a LOOKUP TABLE - THIS WILL HELP QUERY SPEED BY REPLACE LIKE %% AND FIND_IN_SET)
+   * TODO AK: ABOVE CHANGE WOULD ENABLE US TO HAVE AUTOINCREMENT IDS FOR
+   * RX_GROUPED - WHICH WE SAVE BACK INTO RXS_SINGLE or a LOOKUP TABLE - THIS
+   * WILL HELP QUERY SPEED BY REPLACE LIKE %% AND FIND_IN_SET)
    * TODO OR We should add indexed drug info fields to the gp_rxs_single above on
    *      created/updated so we don't need the join
    */
+
 
   //This Group By Clause must be kept consistent with the grouping with the export_cp_set_rx_message query
   $sql = "
