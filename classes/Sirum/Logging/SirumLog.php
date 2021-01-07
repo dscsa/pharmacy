@@ -82,7 +82,7 @@ class SirumLog
         if ($log_level >= 500) {
             $pd_query = 'logName="projects/unified-logging-292316/logs/pharmacy-automation"';
             $pd_data  = ['execution_id' => self::$exec_id];
-            $pd_query .= "\n" . 'jsonPayload.execution_id="' . '5ff7477176a68' . '"';
+            $pd_query .= "\n" . 'jsonPayload.execution_id="' . self::$exec_id . '"';
 
 
             if (!is_null(self::$subroutine_id)) {
