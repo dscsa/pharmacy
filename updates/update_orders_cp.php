@@ -701,7 +701,7 @@ function update_orders_cp($changes)
                 ACTION PATIENT OFF AUTOFILL
         */
 
-        // count_items instead of count_filled because it might be a manually
+        // count_items in addition to count_filled because it might be a manually
         //  added item, that we are not filling but that the pharmacist is using
         //  as a placeholder/reminder e.g 54732
         if ($order[0]['count_items'] == 0

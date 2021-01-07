@@ -300,9 +300,9 @@ function order_updated_notice($groups, $patient_updates) {
   $updates = implode(' ', $patient_updates);
 
   if ($groups['ALL'][0]['count_filled'] AND ! $groups['ALL'][0]['refills_used']) {
-    $message = '<br><u>Your new order will be:</u><br>'.implode(';<br>', array_merge($groups['FILLED_ACTION'], $groups['FILLED_NOACTION'])).';';
+    $message = '<br><br><u>Your new order will be:</u><br>'.implode(';<br>', array_merge($groups['FILLED_ACTION'], $groups['FILLED_NOACTION'])).';';
   } else if ($groups['ALL'][0]['count_filled']) {
-    $message = '<br><u>Your new order will be:</u><br>'.implode(';<br>', $groups['FILLED_WITH_PRICES']).';';
+    $message = '<br><br><u>Your new order will be:</u><br>'.implode(';<br>', $groups['FILLED_WITH_PRICES']).';';
   }
 
   $message .= '<br><br>We will notify you again once it ships.';
@@ -427,19 +427,23 @@ function no_rx_notice($partial, $groups) {
 
 function order_canceled_notice($partial, $groups) {
 
-  if ($groups['ALL'][0]['backup_pharmacy'])
-    return log_warning('order_canceled_notice: not sending because needs_form_notice should have already been sent', get_defined_vars());
+  if ( ! $groups['ALL'][0]['pharmacy_name'])
+    return log_alert('order_canceled_notice: not sending because needs_form_notice should be sent instead (was already sent?)', get_defined_vars());
+
+  if ( ! $groups['ALL'][0]['count_nofill'])
+    return log_alert('order_canceled_notice: not sending because no_rx_notice should be sent instead (was already sent?)', get_defined_vars());
 
   $subject = "Good Pill canceled your Order #$partial[invoice_number]";
 
+  if (is_webform_transfer($groups['ALL'][0]))
+    $message = "We attempted to transfer prescriptions from {$groups['ALL'][0]['pharmacy_name']} but they did not have an Rx for the requested drugs with refills remaining.  Could you please let us know your doctor's name and phone number so that we can reach out to them to get new prescription(s)";
+
   //called from an order-updated loop which has order item info rather than a order-deleted loop
-  if (@$groups['ALL'][0]['invoice_number'])
-    $message = "Your order was canceled at your request";
+  else if (@$groups['ALL'][0]['invoice_number'])
+    $message = "Your order was canceled because you have no prescriptions that we can currently fill";
+
   else
     $message = "If you believe this cancellation was in error, call us (888) 987-5187";
-
-  if ($groups['IN_ORDER'])
-    $message .= '. We canceled your order for<br>'.implode(';<br>', $groups['IN_ORDER']).';';
 
   $email = [ "email" => DEBUG_EMAIL]; //$groups['ALL'][0]['email'] ];
   $text  = [ "sms"   => DEBUG_PHONE, "message" => $subject.'. '.$message ]; //get_phones($groups['ALL'])
