@@ -51,8 +51,8 @@ function update_patients_cp($changes)
 
         //Patient regististration will change it from 0 -> 1)
         if ($updated['patient_autofill'] != $updated['old_patient_autofill']) {
-            $patient = load_full_patient($updated, $mysql, true); //This updates & overwrites set_rx_messages
-
+             //This updates & overwrites set_rx_messages
+             $patient = load_full_patient($updated, $mysql, true);
             $log_mesage = sprintf(
                 "An %s patient autofill setting has changed to %s",
                 ($updated['old_pharmacy_name']) ? 'Existing Patient' : 'New Patient',
@@ -74,8 +74,8 @@ function update_patients_cp($changes)
 
         if ($updated['refills_used'] == $updated['old_refills_used']) {
             SirumLog::notice(
-              "Patient updated in CP",
-              [
+                "Patient updated in CP",
+                [
                 'updated' => $updated,
                 'changed' => $changed,
                 'is_new'  => ($updated['old_pharmacy_name']) ? 'Existing Patient' : 'New Patient'
@@ -96,7 +96,8 @@ function update_patients_cp($changes)
                 ]
             );
             update_wc_phone2($mysql, $patient['patient_id_wc'], null);
-        } elseif ($updated['phone2'] and $updated['phone2'] == $updated['phone1']) {
+        } elseif (@$updated['phone2']
+                  && $updated['phone2'] == $updated['phone1']) {
             AuditLog::log("Phone2 deleted for patient via CarePoint", $patient);
             //EXEC SirumWeb_AddUpdatePatHomePhone only inserts new phone numbers
             delete_cp_phone($mssql, $updated['patient_id_cp'], 9);
@@ -131,12 +132,14 @@ function update_patients_cp($changes)
         }
 
         if ($updated['payment_method_default'] != PAYMENT_METHOD['AUTOPAY']
-        and $updated['old_payment_method_default'] ==  PAYMENT_METHOD['AUTOPAY']) {
+            && $updated['old_payment_method_default'] ==  PAYMENT_METHOD['AUTOPAY']) {
             AuditLog::log("Autopay has been disabled via CarePoint", $updated);
             cancel_events_by_person($updated['first_name'], $updated['last_name'], $updated['birth_date'], 'update_patients_wc: updated payment_method_default', ['Autopay Reminder']);
         }
 
-        if ($updated['payment_card_last4'] and $updated['old_payment_card_last4'] and $updated['payment_card_last4'] !== $updated['old_payment_card_last4']) {
+        if ($updated['payment_card_last4']
+            && $updated['old_payment_card_last4']
+            && $updated['payment_card_last4'] !== $updated['old_payment_card_last4']) {
             AuditLog::log("Patient has updated credit card details via CarePoint", $updated);
 
             SirumLog::warning(
@@ -162,6 +165,29 @@ function update_patients_cp($changes)
 
             // Probably by generalizing the code the currently removes drugs from the refill reminders.
             // TODO Autopay Reminders (Remove Card, Card Expired, Card Changed, Order Paid Manually)
+        }
+
+        if ($updated['first_name'] !== $updated['old_first_name']
+            || $updated['last_name'] !== $updated['old_last_name']
+            || $updated['birth_date'] !== $updated['old_birth_date']
+        ) {
+            $patient = load_full_patient($updated, $mysql);
+            if (isset($patient['patient_id_wc'])) {
+                wc_update_patient($patient);
+                AuditLog::log(
+                    sprintf(
+                        "Patient identifying fields have been updated to
+                         First Name: %s, Last name: %s, Birth Date: %s, Language %s",
+                        $updated['first_name'],
+                        $updated['last_name'],
+                        $updated['birth_date'],
+                        $updated['language']
+                    ),
+                    $updated
+                );
+            } else {
+
+            }
         }
     }
 
