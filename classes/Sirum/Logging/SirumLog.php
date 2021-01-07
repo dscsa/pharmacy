@@ -79,7 +79,7 @@ class SirumLog
         $log_level = self::getLoggingLevelByString($method);
 
 
-        if ($log_level >= 500) {
+        if ($log_level > 500) {
             $pd_query = 'logName="projects/unified-logging-292316/logs/pharmacy-automation"';
             $pd_data  = ['execution_id' => self::$exec_id];
             $pd_query .= "\n" . 'jsonPayload.execution_id="' . self::$exec_id . '"';
