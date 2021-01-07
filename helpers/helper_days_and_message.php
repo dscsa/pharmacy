@@ -589,6 +589,10 @@ function is_webform_refill($item) {
   return in_array(@$item['order_source'], ['Webform Refill', 'Refill w/ Note']);
 }
 
+function is_auto_refill($item) {
+  return in_array(@$item['order_source'], ['Auto Refill v2', 'O Refills']);
+}
+
 function is_order($patient_or_order) {
   return @$patient_or_order[0]['is_order']; //invoice_number is present on singular order-items
 }

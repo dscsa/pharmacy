@@ -165,16 +165,16 @@ function get_order_stage_wc($order) {
   if ( ! $count_filled AND ! $order[0]['order_source'])
     return 'confirm-new-rx'; //New SureScript(s) that we are not filling
 
-  if ( ! $count_filled AND in_array($order[0]['order_source'], ['Webform eRX', 'Webform eRX Note']))
+  if ( ! $count_filled AND is_webform_erx($order[0]))
     return 'confirm-new-rx'; //New SureScript(s) that we are not filling
 
-  if ( ! $count_filled AND in_array($order[0]['order_source'], ['Webform Transfer', 'Webform Transfer Note']))
+  if ( ! $count_filled AND is_webform_transfer($order[0]))
     return 'confirm-transfer';
 
-  if ( ! $count_filled AND in_array($order[0]['order_source'], ['Webform Refill', 'Webform Refill Note']))
+  if ( ! $count_filled AND is_webform_refill($order[0]))
     return 'confirm-refill';
 
-  if ( ! $count_filled AND in_array($order[0]['order_source'], ['Auto Refill v2', 'O Refills']))
+  if ( ! $count_filled AND is_auto_refill($order[0]))
     return 'confirm-autofill';
 
   if ( ! $count_filled) {
@@ -194,7 +194,7 @@ function get_order_stage_wc($order) {
     log_warning('helper_full_order: order is '.floor($elapsed_time/60/60/24).' days old', $order[0]);
   }
 
-  if ( ! $order[0]['tracking_number'] AND in_array($order[0]['order_source'], ['Webform Refill', 'Webform Refill Note', 'Auto Refill v2', 'O Refills']))
+  if ( ! $order[0]['tracking_number'] AND (is_webform_refill($order[0]) OR is_auto_refill($order[0])))
     return 'prepare-refill';
 
   if ( ! $order[0]['tracking_number'] AND $order[0]['rx_source'] == 'SureScripts')

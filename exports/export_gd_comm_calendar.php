@@ -150,7 +150,7 @@ function order_created_notice($groups) {
     $message   .= ' Your first order will only be $6 total for all of your medications.';
     $drug_list .= implode(';<br>', array_merge($groups['FILLED_ACTION'], $groups['FILLED_NOACTION'], $groups['ADDED_NOACTION'])).';';
   } else {
-    $days = $groups['ALL'][0]['order_source'] == "Auto Refill v2" ? 7 : 4;  //TODO Remove.  This is a temp measure so people don't know if or how far we are behind
+    $days = is_auto_refill($groups['ALL'][0]) ? 7 : 4;  //TODO Remove.  This is a temp measure so people don't know if or how far we are behind
     $drug_list .= implode(';<br>',  array_merge($groups['FILLED_WITH_PRICES'], $groups['ADDED_WITH_PRICES'])).';';
   }
 
@@ -230,7 +230,7 @@ function order_hold_notice($groups) {
     $trigger = 'We got your Order but';
   }
   //AUTOREFILL
-  else if ($groups['ALL'][0]['order_source'] == 'Auto Refill v2') {
+  else if (is_auto_refill($groups['ALL'][0])) {
     $trigger = 'Your Rx is due for a refill but';
     log_warning('order_hold_notice: Not filling Auto Refill?', $groups);
   }
@@ -330,7 +330,7 @@ function order_updated_notice($groups, $patient_updates) {
   if ( ! $groups['ALL'][0]['refills_used']) {
     $days = 0;
   } else {
-    $days = $groups['ALL'][0]['order_source'] == "Auto Refill v2" ? 7 : 4;  //TODO Remove.  This is a temp measure so people don't know if or how far we are behind
+    $days = is_auto_refill($groups['ALL'][0]) ? 7 : 4;  //TODO Remove.  This is a temp measure so people don't know if or how far we are behind
   }
 
   //Wait 15 minutes to hopefully batch staggered surescripts and manual rx entry and cindy updates
