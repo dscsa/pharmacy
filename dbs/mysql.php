@@ -73,6 +73,8 @@ class Mysql {
 
       $this->rollback();
       $this->_emailError(["$table import was ABORTED", $error, count($vals), array_slice($vals, 0, 100, true), array_slice($keys, 0, 100, true)]);
+
+      SirumLog::emergency("!!!TABLE IMPORT ERROR!!! {$table} {$error}");
       echo "
 
 
@@ -157,7 +159,6 @@ class Mysql {
     function _emailError($error) {
       //$mysqli_error = isset($this->connection) ? mysqli_connect_errno($this->connection).': '.mysqli_error($this->connection) : mysqli_connect_errno().': '.mysqli_connect_error();
       //Don't do database logging here as this could cause an infinite loop
-      log_to_cli('ERROR', "Debug MYSQL", '', print_r($error, true));
       SirumLog::alert("Debug MYSQL", $error);
     }
 }
