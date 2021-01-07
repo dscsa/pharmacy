@@ -256,25 +256,21 @@ function get_order_stage_wc($order) {
 }
 
 function get_current_orders($mysql, $conditions = []) {
-
   $where = "";
+
   foreach ($conditions as $key => $val) {
     $where .= "$key = $val AND\n";
   }
 
-  $sql = "
-    SELECT
-      *
-    FROM
-      gp_orders
-    WHERE
-      $where
-      order_date_dispensed IS NULL
-    ORDER BY
-      invoice_number ASC
-  ";
-
-  log_error('get_current_orders', ['sql' => $sql, 'conditions' => $conditions]);
+  $sql = "SELECT
+              *
+            FROM
+              gp_orders
+            WHERE
+              $where
+              order_date_dispensed IS NULL
+            ORDER BY
+              invoice_number ASC";
 
   return $mysql->run($sql)[0];
 }
