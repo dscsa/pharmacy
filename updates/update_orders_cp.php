@@ -556,21 +556,6 @@ function update_orders_cp($changes)
             continue;
         }
 
-        //We should be able to delete wc-confirm-* from CP queue without triggering an order cancel notice
-        //count_items may already be 0 on a deleted order that had items e.g 33840
-        if ($deleted['count_filled'] == 0 and $deleted['count_nofill'] == 0) {
-            SirumLog::warning(
-                "update_orders_cp deleted: no_rx_notice count_filled == 0 AND count_nofill == 0",
-                [
-                    'deleted' => $deleted,
-                    'groups'  => $groups,
-                    'patient' => $patient
-                ]
-            );
-            no_rx_notice($deleted, $groups);
-            continue;
-        }
-
         if ($is_canceled) {
             SirumLog::warning(
                 "update_orders_cp deleted: order_canceled_notice is this right?",
