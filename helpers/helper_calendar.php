@@ -230,7 +230,7 @@ function confirm_shipment_event($order, $email, $text, $salesforce, $hours_to_wa
   $patient_label = get_patient_label($order);
   $event_title   = $order[0]['invoice_number'].' Confirm Shipment: '.$patient_label.'.  Created:'.date('Y-m-d H:i:s');
 
-  $cancel = cancel_events_by_person($order[0]['first_name'], $order[0]['last_name'], $order[0]['birth_date'], 'confirm_shipment_event', ['Order Dispensed', 'Order Created', 'Transfer Requested', 'Order Updated', 'Order Hold', 'No Rx', 'Needs Form', 'Order Canceled']);
+  //$cancel = cancel_events_by_person($order[0]['first_name'], $order[0]['last_name'], $order[0]['birth_date'], 'confirm_shipment_event', ['Order Dispensed', 'Order Created', 'Transfer Requested', 'Order Updated', 'Order Hold', 'No Rx', 'Needs Form', 'Order Canceled']);
 
   $comm_arr = new_comm_arr($patient_label, $email, $text, $salesforce);
 
