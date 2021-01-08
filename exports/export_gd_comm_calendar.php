@@ -497,17 +497,18 @@ function confirm_shipment_internal($groups, $days_ago) {
 
   $results = $pdo->fetch();
 
-  SirumLog::notice(
+  if (((float) $groups['ALL'][0]['refills_used'] > 0) != ((float) $results['past_order_count'] > 0))
+    SirumLog::alert(
       'Should we attach new patient events in SF?',
       [
-          'past_order_count' => $results['past_order_count'],
-          'refills_used'     => $groups['ALL'][0]['refills_used'],
-          'invoice_number'   => $groups['ALL'][0]['invoice_number'],
-          'todo' => "TODO is this is a double check to see if past orders is 100% correlated with refills_used,
-           if not, we need to understand root cause of discrepancy and which one we want to use going foward
-           and to be consistent, remove the other property so that its not mis-used."
+        'past_order_count' => $results['past_order_count'],
+        'refills_used'     => $groups['ALL'][0]['refills_used'],
+        'invoice_number'   => $groups['ALL'][0]['invoice_number'],
+        'todo' => "TODO is this is a double check to see if past orders is 100% correlated with refills_used,
+         if not, we need to understand root cause of discrepancy and which one we want to use going foward
+         and to be consistent, remove the other property so that its not mis-used."
       ]
-  );
+    );
 
   if ((float) $groups['ALL'][0]['refills_used'] > 0) {
     return [];
