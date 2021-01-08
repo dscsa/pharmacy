@@ -220,7 +220,7 @@ function order_canceled_event($partial, $order, $email, $text, $hours_to_wait, $
   create_event($event_title, $comm_arr, $hours_to_wait, $hour_of_day);
 }
 
-function confirm_shipment_event($order, $email, $salesforce, $hours_to_wait, $hour_of_day = null) {
+function confirm_shipment_event($order, $email, $text, $salesforce, $hours_to_wait, $hour_of_day = null) {
 
   if ($order[0]['patient_inactive']) {
     log_warning('confirm_shipment_event canceled because patient inactive', get_defined_vars());
@@ -232,7 +232,7 @@ function confirm_shipment_event($order, $email, $salesforce, $hours_to_wait, $ho
 
   $cancel = cancel_events_by_person($order[0]['first_name'], $order[0]['last_name'], $order[0]['birth_date'], 'confirm_shipment_event', ['Order Dispensed', 'Order Created', 'Transfer Requested', 'Order Updated', 'Order Hold', 'No Rx', 'Needs Form', 'Order Canceled']);
 
-  $comm_arr = new_comm_arr($patient_label, $email, '', $salesforce);
+  $comm_arr = new_comm_arr($patient_label, $email, $text, $salesforce);
 
   log_info('confirm_shipment_event INACTIVE', get_defined_vars());
 
@@ -267,15 +267,18 @@ function new_comm_arr($patient_label, $email = '', $text = '', $salesforce = '')
     $json = preg_replace('/ undefined/', '', json_encode($text));
 
     $text = format_text($json);
-    $call = format_call($json);
 
-    $call['message'] = 'Hi, this is Good Pill Pharmacy <Pause />'.$call['message'].' <Pause length="2" />if you need to speak to someone please call us at 8,,,,8,,,,8 <Pause />9,,,,8,,,,7 <Pause />5,,,,1,,,,8,,,,7. <Pause length="2" /> Again our phone number is 8,,,,8,,,,8 <Pause />9,,,,8,,,,7 <Pause />5,,,,1,,,,8,,,,7. <Pause />';
-    $call['call']    = $call['sms'];
-    unset($call['sms']);
+    if ( ! @$text['fallbacks']) { //Default to a call fallback if SMS fails
 
-    log_info('comm_array', get_defined_vars());
+      $call = format_call($json);
 
-    $text['fallbacks'] = [$call];
+      $call['message'] = call_wrapper($call['message']);
+      $call['call']    = $call['sms'];
+      unset($call['sms']);
+
+      $text['fallbacks'] = [$call];
+    }
+
     $comm_arr[] = $text;
   }
 
@@ -292,6 +295,8 @@ function new_comm_arr($patient_label, $email = '', $text = '', $salesforce = '')
   if ($salesforce AND $salesforce['assign_to']) {
     $comm_arr[] = $salesforce;
   }
+
+  log_info('comm_array', get_defined_vars());
 
   return $comm_arr; //just in case we were sloppy with undefined
 }
@@ -361,6 +366,10 @@ function format_call($call_json) {
   } catch (Error $e) {
     log_error('format_call json.parse error', get_defined_vars());
   }
+}
+
+function call_wrapper($message) {
+  return 'Hi, this is Good Pill Pharmacy <Pause />'.$message.' <Pause length="2" />if you need to speak to someone please call us at 8,,,,8,,,,8 <Pause />9,,,,8,,,,7 <Pause />5,,,,1,,,,8,,,,7. <Pause length="2" /> Again our phone number is 8,,,,8,,,,8 <Pause />9,,,,8,,,,7 <Pause />5,,,,1,,,,8,,,,7. <Pause />';
 }
 
 function get_patient_label($order) {

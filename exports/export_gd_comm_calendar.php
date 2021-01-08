@@ -24,8 +24,6 @@ function order_dispensed_notice($groups) {
 //by building commication arrays based on github.com/dscsa/communication-calendar
 function order_shipped_notice($groups) {
 
-  //autopayReminderNotice(order, groups)
-
   $subject   = 'Good Pill shipped order '.($groups['ALL'][0]['count_filled'] ? 'of '.$groups['ALL'][0]['count_filled'].' items ' : '').' and it should arrive in 3-5 days.';
   $message   = '';
 
@@ -467,19 +465,24 @@ function order_canceled_notice($partial, $groups) {
 
 function confirm_shipment_notice($groups) {
 
-    $days_ago = 5;
+    $days_ago = 7;
 
     //Existing customer just tell them it was delivered
-    $email = confirm_shipping_external($groups);
+    $comms = confirm_shipment_external($groups);
 
     //New customer tell them it was delivered and followup with a call
-    $salesforce = confirm_shipping_internal($groups, $days_ago+1);
+    $salesforce = confirm_shipment_internal($groups, $days_ago+1);
 
-    confirm_shipment_event($groups['ALL'], $email, $salesforce, $days_ago*24, 13);
+    log_warning('confirm_shipment_notice: testing our language before rollout', get_defined_vars());
+
+    confirm_shipment_event($groups['ALL'], $comms['email'], $comms['text'], $salesforce, $days_ago*24, 13);
 }
 
-function confirm_shipping_internal($groups, $days_ago) {
+function confirm_shipment_internal($groups, $days_ago) {
 
+  //TODO is this is a double check to see if past orders is 100% correlated with refills_used,
+  //if not, we need to understand root cause of discrepancy and which one we want to use going foward
+  //and to be consistent, remove the other property so that its not mis-used.
   $mysql = Sirum\Storage\Goodpill::getConnection();
   $pdo   = $mysql->prepare(
               "SELECT count(*) as past_order_count
@@ -499,7 +502,10 @@ function confirm_shipping_internal($groups, $days_ago) {
       [
           'past_order_count' => $results['past_order_count'],
           'refills_used'     => $groups['ALL'][0]['refills_used'],
-          'invoice_number'   => $groups['ALL'][0]['invoice_number']
+          'invoice_number'   => $groups['ALL'][0]['invoice_number'],
+          'todo' => "TODO is this is a double check to see if past orders is 100% correlated with refills_used,
+           if not, we need to understand root cause of discrepancy and which one we want to use going foward
+           and to be consistent, remove the other property so that its not mis-used."
       ]
   );
 
@@ -546,21 +552,23 @@ function confirm_shipping_internal($groups, $days_ago) {
   return $salesforce;
 }
 
-function confirm_shipping_external($groups) {
+function confirm_shipment_external($groups) {
 
   $email = [ "email" => $groups['ALL'][0]['email'] ];
   $text  = [ "sms"   => get_phones($groups['ALL']) ];
+  $call  = [ "call"  => $text['sms']];
 
-  $subject = "Order #".$groups['ALL'][0]['invoice_number']." was delivered.";
-  $message = " should have been delivered within the past few days.  Please contact us at 888.987.5187 if you have not yet received your order.";
+  $subject = "Order #".$groups['ALL'][0]['invoice_number']." was shipped last week and should have arrived";
 
-  $text['message'] = $subject.' Your order with tracking number '.$groups['ALL'][0]['tracking_number'].$message;
+  $text['message'] = "$subject. If you haven’t received your order, please reply '1' or call us at 888-9875187 so we can help.";
+
+  $call['message'] =  call_wrapper(format_call("$subject. If you haven’t received your order, please call us so we can help."));
 
   $email['subject'] = $subject;
   $email['message'] = implode('<br>', [
     'Hello,',
     '',
-    $subject.' Your order with tracking number '.tracking_link($groups['ALL'][0]['tracking_number']).$message,
+    "$subject. If you haven’t received your order, please reply back to this email or call us at 888-9875187",
     '',
     'Thanks!',
     'The Good Pill Team',
@@ -568,5 +576,7 @@ function confirm_shipping_external($groups) {
     ''
   ]);
 
-  return $email;
+  $text['fallbacks'] = [$call];
+
+  return ['email' => $email, 'text' => $text];
 }
