@@ -99,10 +99,12 @@ class SirumLog
             $pd_data['incident_url'] = $pd_url;
             $pd_data['level']        = $method;
 
+            @list($pd_title, $pd_data['details']) = (explode('|*|*|', $message));
+
             if ($log_level == 800) {
-                pd_high_priority($message, 'pharmacy-app-emergency', $pd_data);
+                pd_high_priority($pd_title, 'pharmacy-app-emergency', $pd_data);
             } elseif ($log_level >= 500 && $log_level < 800) {
-                pd_low_priority($message, 'pharmacy-app-urgent', $pd_data);
+                pd_low_priority($pd_title, 'pharmacy-app-urgent', $pd_data);
             }
         }
 
@@ -194,7 +196,7 @@ class SirumLog
             );
 
             if (is_null($execution)) {
-                $execution = uniqid();
+                $execution = date('c') . '-' . uniqid();
             }
 
             self::$exec_id = $execution;
