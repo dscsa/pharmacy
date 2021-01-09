@@ -223,6 +223,7 @@ function update_orders_wc($changes)
             ]
         );
 
+        $order = helper_update_payment($order, "update_orders_wc: shipped order deleted from WC", $mysql);
         export_wc_create_order($order, "update_orders_wc: shipped order deleted from WC");
 
         if ($deleted['order_date_shipped'] or $deleted['order_date_returned']) {
@@ -246,7 +247,7 @@ function update_orders_wc($changes)
                 ]
             );
 
-            $order = export_gd_publish_invoice($order, $mysql);
+            //$order = export_gd_publish_invoice($order, $mysql);
         }
     }
 
