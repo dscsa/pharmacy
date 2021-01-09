@@ -289,7 +289,15 @@ function update_orders_cp($changes)
                should trigger the deleted loop on next run, which should unpend
                But it seemed that this didn't happen for Order 53684
              */
-            $reason = $order[0]['count_to_remove'] ? $order[0]['count_to_remove'].' Rxs Removed' : 'Created Empty';
+            if ( ! $order[0]['pharmacy_name'])
+              $reason = 'Needs Registration';
+
+            else if ($order[0]['count_to_remove'])
+              $reason = $order[0]['count_to_remove'].' Rxs Removed';
+
+            else
+              $reason = 'Created Empty';
+              
             $order  = export_v2_unpend_order($order, $mysql, $reason);
             export_cp_remove_order($order[0]['invoice_number'], $reason);
             continue;
