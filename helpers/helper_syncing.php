@@ -10,9 +10,8 @@ function sync_to_order_new_rx($item, $patient_or_order) {
 
   $not_offered  = is_not_offered($item);
   $refill_only  = is_refill_only($item);
-  $is_refill    = is_refill($item, $patient_or_order);
   $has_refills  = ($item['refills_total'] > NO_REFILL);
-  $eligible     = ($has_refills AND ! $is_refill AND $item['rx_autofill'] AND ! $not_offered AND ! $refill_only AND ! $item['refill_date_manual']);
+  $eligible     = ($has_refills AND $item['rx_autofill'] AND ! $not_offered AND ! $refill_only AND ! $item['refill_date_next']);
 
   SirumLog::debug(
       "sync_to_order_new_rx: $item[invoice_number] $item[drug_generic] ".($eligible ? 'Syncing' : 'Not Syncing'),
