@@ -63,8 +63,7 @@ function update_orders_cp($changes)
         }
 
         if (count($duplicate) > 1
-            and $duplicate[0]['invoice_number'] != $created['invoice_number']
-            and $duplicate[0]['order_status'] != "Surescripts Authorization Denied") {
+            and $duplicate[0]['invoice_number'] != $created['invoice_number']) {
             SirumLog::warning(
                 sprintf(
                     "Created Carepoint Order Seems to be a duplicate %s >>> %s",
@@ -130,57 +129,6 @@ function update_orders_cp($changes)
 
         //TODO Add Special Case for Webform Transfer [w/ Note] here?
 
-        //Item would have already been pended from order-item-created::load_full_item
-        if ($created['order_status'] == "Surescripts Authorization Denied") {
-            AuditLog::log(
-                sprintf(
-                    "SureScript authorization denied for invoice %s.  Deleting order and unpending items",
-                    $created['invoice_number']
-                ),
-                $created
-            );
-
-            SirumLog::error(
-                "Order CP Created - Deleting and Unpending Order {$created['invoice_number']}
-                because Surescripts Authorization Denied. Can we remove the v2_unpend_order below because it get called on the next run?",
-                [
-                    'invoice_number' => $created['invoice_number'],
-                    'created' => $created,
-                    'order'   => $order,
-                    'source'  => 'CarePoint',
-                    'type'    => 'orders',
-                    'event'   => 'created'
-                ]
-            );
-
-            $date = "Created:".date('Y-m-d H:i:s');
-
-            //Don't think we need this because CP doesn't combine multiple denials into one order
-            $drugs = [];
-            foreach ($order as $item) {
-                $drugs[] = $item['drug_name'];
-            }
-
-            $salesforce = [
-                "subject"   => "SureScripts refill request denied for ".implode(', ', $drugs),
-                "body"      => "Order $created[invoice_number] deleted because provider denied SureScripts refill request for ".implode(', ', $drugs),
-                "contact"   => "{$order[0]['first_name']} {$order[0]['last_name']} {$order[0]['birth_date']}"
-            ];
-
-            create_event($salesforce['subject'], [$salesforce]);
-
-            /*
-               TODO Why do we need to explicitly unpend?  Deleting an order in CP
-               should trigger the deleted loop on next run, which should unpend.
-               But it seemed that this didn't happen for Order 53684
-             */
-            $order = export_v2_unpend_order($order, $mysql, "Surescripts Authorization Denied");
-            export_cp_remove_order($created['invoice_number'], 'Surescripts Denied');
-
-            //Not sure what we should do here.  Process them?  Patient communication?
-            continue;
-        }
-
         if ($created['order_status'] == "Surescripts Authorization Approved") {
             AuditLog::log(
                 sprintf(
@@ -199,23 +147,6 @@ function update_orders_cp($changes)
                   'patient_autofill' => $order[0]['patient_autofill'],
                   'rx_autofill'      => $order[0]['rx_autofill'],
                   'order'            => $order
-                ]
-            );
-        }
-
-        if ($order[0]['order_stage_wc'] == 'wc-processing') {
-            AuditLog::log(
-                sprintf(
-                    "Order %s status set to wc-processing.",
-                    $created['invoice_number']
-                ),
-                $created
-            );
-            SirumLog::debug(
-                'Problem: cp order wc-processing created '.$order[0]['invoice_number'],
-                [
-                  'invoice_number' => $order[0]['invoice_number'],
-                  'order'          => $order
                 ]
             );
         }
@@ -292,6 +223,9 @@ function update_orders_cp($changes)
              */
             if ( ! $order[0]['pharmacy_name'])
               $reason = 'Needs Registration';
+
+            else if ($order[0]['order_status'] == "Surescripts Authorization Denied")
+              $reason = 'Surescripts Denied';
 
             else if ($order[0]['count_to_remove']) {
               $reason = $order[0]['count_to_remove'].' Rxs Removed';
