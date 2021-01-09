@@ -462,25 +462,6 @@ function update_orders_cp($changes)
             );
         }
 
-        //Order was Returned to Sender and not logged yet
-        if ($deleted['order_date_shipped'] and ! $deleted['order_date_returned']) {
-            AuditLog::log(
-                sprintf(
-                    "Order %s has been returned",
-                    $deleted['invoice_number']
-                ),
-                $deleted
-            );
-            SirumLog::notice(
-                'Confirm this order was returned! Order with tracking number was deleted',
-                [ 'deleted' => $deleted ]
-            );
-
-            export_wc_return_order($invoice_number);
-
-            continue;
-        }
-
         export_gd_delete_invoice($deleted['invoice_number']);
 
         $is_canceled = ($deleted['count_filled'] > 0 or is_webform($deleted));
@@ -623,6 +604,26 @@ function update_orders_cp($changes)
                 'stage_change_cp'    => $stage_change_cp
             ]
         );
+
+        if ($stage_change_cp and $updated['order_date_returned']) {
+            AuditLog::log(
+                sprintf(
+                    "Order %s has been returned",
+                    $updated['invoice_number']
+                ),
+                $updated
+            );
+            SirumLog::alert(
+                'Confirm this order was returned! cp_order with tracking number was deleted, but we keep it in gp_orders and in wc',
+                [ 'updated' => $updated ]
+            );
+
+            //TODO Patient Communication about the return?
+
+            export_wc_return_order($order[0]['invoice_number']);
+
+            continue;
+        }
 
         if ($stage_change_cp and $updated['order_date_shipped']) {
             AuditLog::log(

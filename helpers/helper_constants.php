@@ -3,6 +3,7 @@
 const LIVE_MODE = true;
 const DAYS_OF_RXS_TO_IMPORT = 7;
 const DAYS_OF_ITEMS_TO_IMPORT= 7;
+const DAYS_OF_ORDERS_TO_IMPORT = 7;
 
 const DAYS_STD    = 90;
 const DAYS_MIN    = 45;

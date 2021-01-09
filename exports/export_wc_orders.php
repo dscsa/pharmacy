@@ -264,8 +264,7 @@ function export_wc_return_order($invoice_number) {
   log_notice(
     'export_wc_return_order',
     [
-      'invoice_number' => $invoice_number,
-      'customer_initiated' => $customer_initiated
+      'invoice_number' => $invoice_number
     ]
   );
   //we have know way of knowing it's a wc-return-customer so that would have to be set manually
@@ -274,15 +273,6 @@ function export_wc_return_order($invoice_number) {
   ]);
 
   set_payment_actual($invoice_number, ['total' => 0, 'fee' => 0, 'due' => 0], $mysql);
-  //export_wc_update_order_payment($deleted['invoice_number'], 0, 0); //Don't need this because we are deleting the WC order later
-
-  $update_sql = "
-    UPDATE gp_orders
-    SET order_date_returned = NOW()
-    WHERE invoice_number = $invoice_number
-  ";
-
-  $mysql->run($update_sql);
 }
 
 function export_wc_delete_order($invoice_number, $reason)
