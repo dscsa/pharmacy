@@ -303,98 +303,8 @@ function update_orders_cp($changes)
             ]
         );
 
-        if ($deleted['order_status'] == "Surescripts Authorization Denied") {
-            AuditLog::log(
-                sprintf(
-                    "SureScript authorization denied for invoice %s.  Order will be deleted",
-                    $deleted['invoice_number']
-                ),
-                $deleted
-            );
-            SirumLog::warning(
-                "Surescripts Authorization Denied for Order {$deleted['invoice_number']}.
-                Deleted. Skipping for now. What to do here? Unpend?",
-                [
-                    'invoice_number' => $deleted['invoice_number'],
-                    'deleted' => $deleted,
-                    'source'  => 'CarePoint',
-                    'type'    => 'orders',
-                    'event'   => 'deleted'
-                ]
-            );
-            /*
-                These are deleted automatically (before having any side effects)
-                so we don't want to trigger any side effects here either
-             */
-            continue;
-        }
-
-        if ($deleted['order_status'] == "Surescripts Authorization Approved") {
-            AuditLog::log(
-                sprintf(
-                    "SureScript authorization was approved for invoice %s,
-                    but the order was deleted in CarePoint",
-                    $deleted['invoice_number']
-                ),
-                $deleted
-            );
-            SirumLog::warning(
-                "Surescripts Authorization Approved. Deleted.  What to do here?",
-                [
-                    'invoice_number'   => $deleted['invoice_number'],
-                    'count_items'      => $deleted['count_items'],
-                    'deleted'          => $deleted
-                ]
-            );
-        }
-
-
-        //Order #28984, #29121, #29105
-        if (! $deleted['patient_id_wc']) {
-            /*
-               Likely
-                    (1) Guardian Order Was Created But Patient Was Not Yet Registered
-                        in WC so never created WC Order (and No Need To Delete It)
-                    (2) OR Guardian Order had items synced to/from it, so was deleted
-                        and readded, which effectively erases the patient_id_wc
-            */
-            SirumLog::error(
-                'update_orders_cp: cp order deleted - no patient_id_wc',
-                [ 'deleted' => $deleted ]
-            );
-        } else {
-            SirumLog::notice(
-                'update_orders_cp: cp order deleted so deleting wc order as well',
-                [ 'deleted' => $deleted ]
-            );
-        }
-
-        export_gd_delete_invoice($deleted['invoice_number']);
-
-        $is_canceled = ($deleted['count_filled'] > 0 or is_webform($deleted));
-
-        //[NULL, 'Webform Complete', 'Webform eRx', 'Webform Transfer', 'Auto Refill', '0 Refills', 'Webform Refill', 'eRx /w Note', 'Transfer /w Note', 'Refill w/ Note']
-        if ($is_canceled) {
-            AuditLog::log(
-                sprintf(
-                    "Order %s was cancelled in CarePoint",
-                    $deleted['invoice_number']
-                ),
-                $deleted
-            );
-            export_wc_cancel_order($deleted['invoice_number'], "update_orders_cp: cp order canceled $deleted[invoice_number] $deleted[order_stage_cp] $deleted[order_stage_wc] $deleted[order_source] ".json_encode($deleted));
-        } else {
-            AuditLog::log(
-                sprintf(
-                    "Order %s was deleted in CarePoint",
-                    $deleted['invoice_number']
-                ),
-                $deleted
-            );
-            export_wc_delete_order($deleted['invoice_number'], "update_orders_cp: cp order deleted $deleted[invoice_number] $deleted[order_stage_cp] $deleted[order_stage_wc] $deleted[order_source] ".json_encode($deleted));
-        }
-
         export_cp_remove_items($deleted['invoice_number']);
+        export_gd_delete_invoice($deleted['invoice_number']);
 
         $patient = load_full_patient($deleted, $mysql, true);  //Cannot load order because it was already deleted in changes_orders_cp
         $groups  = group_drugs($patient, $mysql);
@@ -409,6 +319,7 @@ function update_orders_cp($changes)
         );
 
         //can't do export_v2_unpend_order because each item won't have an invoice number or order_added_date
+        //TODO make an unpend function that uses v2's REST endpoint WITHOUT the generic name so we can avoid this patient lookup and loop
         if ($patient)
           foreach ($patient as $i => $item) {
             $patient[$i] = v2_unpend_item(array_merge($item, $deleted), $mysql, 'update_orders_cp deleted: unpending all items');
@@ -427,11 +338,13 @@ function update_orders_cp($changes)
         if ($replacement) {
             AuditLog::log(
                 sprintf(
-                    "Order %s was deleted in CarePoint",
-                    $deleted['invoice_number']
+                    "Order %s was deleted in CarePoint but there is another Order %s",
+                    $deleted['invoice_number'],
+                    $replacement[0]['invoice_number']
                 ),
                 $deleted
             );
+
             SirumLog::warning(
                 'update_orders_cp deleted: their appears to be a replacement',
                 [
@@ -441,20 +354,49 @@ function update_orders_cp($changes)
                     'patient'     => $patient
                 ]
             );
+
+            export_wc_delete_order($deleted['invoice_number'], "update_orders_cp: cp order deleted but replacement");
+
             continue;
         }
 
-        if ($is_canceled) {
-            SirumLog::warning(
-                "update_orders_cp deleted: order_canceled_notice is this right?",
-                [
-                    'deleted' => $deleted,
-                    'groups'  => $groups,
-                    'patient' => $patient
-                ]
+        $reason = "$deleted[invoice_number] $deleted[order_stage_cp] $deleted[order_stage_wc] $deleted[order_source] $deleted[order_note]".json_encode($deleted);
+
+        if ($deleted['count_filled'] > 0) {
+
+            AuditLog::log(
+                sprintf(
+                    "Order %s was manually deleted in CarePoint and canceled in WooCommerce",
+                    $deleted['invoice_number']
+                ),
+                $deleted
             );
-            order_canceled_notice($deleted, $groups); //We passed in $deleted because there is not $order to make $groups
-            continue;
+
+            export_wc_cancel_order($deleted['invoice_number'], "update_orders_cp: cp order manually cancelled $reason");
+            order_cancelled_notice($deleted, $groups); //We passed in $deleted because there is not $order to make $groups
+
+        } else if (is_webform($deleted)) {
+
+            AuditLog::log(
+                sprintf(
+                    "Order %s was deleted in CarePoint and canceled in WooCommerce",
+                    $deleted['invoice_number']
+                ),
+                $deleted
+            );
+            export_wc_cancel_order($deleted['invoice_number'], "update_orders_cp: cp order webform cancelled $reason");
+            order_cancelled_notice($deleted, $groups); //We passed in $deleted because there is not $order to make $groups
+
+        } else {
+
+            AuditLog::log(
+                sprintf(
+                    "Order %s was deleted in CarePoint and WooCommerce",
+                    $deleted['invoice_number']
+                ),
+                $deleted
+            );
+            export_wc_delete_order($deleted['invoice_number'], "update_orders_cp: cp order deleted $reason");
         }
     }
     log_timer('orders-cp-deleted', $loop_timer, $count_deleted);
@@ -618,7 +560,7 @@ function update_orders_cp($changes)
                 ]
             );
 
-            order_canceled_notice($updated, $groups);
+            order_cancelled_notice($updated, $groups);
 
             /*
                 TODO Why do we need to explicitly unpend?  Deleting an order in

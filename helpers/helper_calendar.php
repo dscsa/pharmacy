@@ -201,21 +201,21 @@ function no_rx_event($partial, $order, $email, $text, $hours_to_wait, $hour_of_d
   create_event($event_title, $comm_arr, $hours_to_wait, $hour_of_day);
 }
 
-function order_canceled_event($partial, $order, $email, $text, $hours_to_wait, $hour_of_day  = null) {
+function order_cancelled_event($partial, $order, $email, $text, $hours_to_wait, $hour_of_day  = null) {
 
   if ($order[0]['patient_inactive']) {
-    log_warning('order_canceled_event canceled because patient inactive', get_defined_vars());
+    log_warning('order_cancelled_event canceled because patient inactive', get_defined_vars());
     return;
   }
 
   $patient_label = get_patient_label($order);
   $event_title   = $partial['invoice_number'].' Order Canceled: '.$patient_label.'. Created:'.date('Y-m-d H:i:s');
 
-  //$cancel = cancel_events_by_order($partial['invoice_number'], 'order_canceled_event', ['Order Created', 'Order Updated', 'Order Dispensed']);
+  //$cancel = cancel_events_by_order($partial['invoice_number'], 'order_cancelled_event', ['Order Created', 'Order Updated', 'Order Dispensed']);
 
   $comm_arr = new_comm_arr($patient_label, $email, $text);
 
-  log_info('order_canceled_event', get_defined_vars());
+  log_info('order_cancelled_event', get_defined_vars());
 
   create_event($event_title, $comm_arr, $hours_to_wait, $hour_of_day);
 }

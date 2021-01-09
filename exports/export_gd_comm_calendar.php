@@ -423,13 +423,13 @@ function no_rx_notice($partial, $groups) {
   no_rx_event($partial, $groups['ALL'], $email, $text, 15/60);
 }
 
-function order_canceled_notice($partial, $groups) {
+function order_cancelled_notice($partial, $groups) {
 
   if ( ! $groups['ALL'][0]['pharmacy_name'])
-    return log_alert('order_canceled_notice: not sending because needs_form_notice should be sent instead (was already sent?)', get_defined_vars());
+    return log_alert('order_cancelled_notice: not sending because needs_form_notice should be sent instead (was already sent?)', get_defined_vars());
 
   if ( ! $groups['ALL'][0]['count_nofill'])
-    return log_alert('order_canceled_notice: not sending because no_rx_notice should be sent instead (was already sent?)', get_defined_vars());
+    return log_alert('order_cancelled_notice: not sending because no_rx_notice should be sent instead (was already sent?)', get_defined_vars());
 
   $subject = "Good Pill canceled your Order #$partial[invoice_number]";
 
@@ -458,9 +458,9 @@ function order_canceled_notice($partial, $groups) {
     ''
   ]);
 
-  log_alert('order_canceled_notice: how to improve this message', get_defined_vars());
+  log_alert('order_cancelled_notice: how to improve this message', get_defined_vars());
 
-  order_canceled_event($partial, $groups['ALL'], $email, $text, 15/60);
+  order_cancelled_event($partial, $groups['ALL'], $email, $text, 15/60);
 }
 
 function confirm_shipment_notice($groups) {

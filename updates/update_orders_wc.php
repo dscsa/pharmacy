@@ -68,7 +68,7 @@ function update_orders_wc($changes)
             );
 
             SirumLog::warning(
-                'order_canceled_notice BUT their appears to be a replacement',
+                'order_cancelled_notice BUT their appears to be a replacement',
                 [
                     'created' => $created,
                     'duplicate' => $duplicate
