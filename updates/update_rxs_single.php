@@ -107,6 +107,10 @@ function update_rxs_single($changes)
               ]
         );
 
+        log_alert("update_rxs_single: rx created1. did the drug_generic/brand/gsns get added to rxs_single?", [
+          'created'  => $created
+        ]);
+
         //compliment method, update_order_item_drug, doesn't need to be called because order_item will be new and won't need to be updated
         update_rx_single_drug($mysql, $created['rx_number']);
 
