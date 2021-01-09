@@ -181,7 +181,7 @@ function update_order_item_drug($mysql, $rx_number) {
       AND rx_dispensed_id IS NULL
   ";
 
-  log_alert("update_order_item_drug: updated gp_order_item", [
+  log_alert("update_order_item_drug: updated gp_order_item BEFORE", [
     'sql_order_items' => $sql_order_items,
     'rx_number'       => $rx_number
   ]);
@@ -190,4 +190,10 @@ function update_order_item_drug($mysql, $rx_number) {
 
   //overwrite == true should force rx_messages, days_dispensed_default, and price_dispensed_default to all be recalculated
   $item = load_full_item(['rx_number' => $rx_number], $mysql, true);
+
+  log_alert("update_order_item_drug: updated gp_order_item AFTER", [
+    'sql_order_items' => $sql_order_items,
+    'rx_number'       => $rx_number,
+    'item'           => $item
+  ]);
 }

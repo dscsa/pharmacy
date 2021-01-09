@@ -156,5 +156,5 @@ function import_cp_rxs_single() {
 
   //log_error("gp_rxs_single_cp import: ", ['keys' => array_slice($keys, 0, 100, true), 'count' => count($rxs[0]), 'vals' => array_slice($rxs[0], 0, 100, true)]);
 
-  $mysql->replace_table("gp_rxs_single_cp", $keys, $rxs[0]);
+  //$mysql->replace_table("gp_rxs_single_cp", $keys, $rxs[0]);
 }
