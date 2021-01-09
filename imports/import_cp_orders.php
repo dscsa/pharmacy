@@ -54,7 +54,7 @@ function import_cp_orders() {
       (ISNULL(status_cn, 0) <> 3 OR order_state_cn = 60) -- active or returned
       AND pat_id IS NOT NULL -- Some GRX orders link 1170, 32968 have no patient
       AND (
-        order_state_cn < 50 OR
+        order_state_cn < 50 OR -- active, not yet shipped, orders that are still in the queue
         csom.chg_date > @today - ".DAYS_OF_ORDERS_TO_IMPORT." -- Only recent orders to cut down on the import time (30-60s as of 2021-01-08).
       )
   ");
