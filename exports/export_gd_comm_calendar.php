@@ -11,7 +11,7 @@ function order_dispensed_notice($groups) {
 
   $salesforce = [
     "subject" => 'Warning Order #'.$groups['ALL'][0]['invoice_number'].' dispensed but not shipped',
-    "body" => "If shipped, please add tracking number to Guardian Order.  If not shipped, check comm-calendar and see if we need to inform patient that order was delayed or canceled.",
+    "body" => "If shipped, please add tracking number to Guardian Order.  If not shipped, check comm-calendar and see if we need to inform patient that order was delayed or cancelled.",
     "contact" => $groups['ALL'][0]['first_name'].' '.$groups['ALL'][0]['last_name'].' '.$groups['ALL'][0]['birth_date'],
     "assign_to" => ".Delay/Expedite Order - RPh",
     "due_date" => date('Y-m-d')
@@ -431,14 +431,14 @@ function order_cancelled_notice($partial, $groups) {
   if ( ! $groups['ALL'][0]['count_nofill'])
     return log_alert('order_cancelled_notice: not sending because no_rx_notice should be sent instead (was already sent?)', get_defined_vars());
 
-  $subject = "Good Pill canceled your Order #$partial[invoice_number]";
+  $subject = "Good Pill cancelled your Order #$partial[invoice_number]";
 
   if (is_webform_transfer($groups['ALL'][0]))
     $message = "We attempted to transfer prescriptions from {$groups['ALL'][0]['pharmacy_name']} but they did not have an Rx for the requested drugs with refills remaining.  Could you please let us know your doctor's name and phone number so that we can reach out to them to get new prescription(s)";
 
   //called from an order-updated loop which has order item info rather than a order-deleted loop
   else if (@$groups['ALL'][0]['invoice_number'])
-    $message = "Your order was canceled because you have no prescriptions that we can currently fill";
+    $message = "Your order was cancelled because you have no prescriptions that we can currently fill";
 
   else
     $message = "If you believe this cancellation was in error, call us (888) 987-5187";

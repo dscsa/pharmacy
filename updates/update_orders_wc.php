@@ -145,7 +145,7 @@ function update_orders_wc($changes)
             export_wc_cancel_order(
                 $created['invoice_number'],
                 sprintf(
-                    "update_orders_cp: cp order canceled %s %s %s %s",
+                    "update_orders_cp: cp order cancelled %s %s %s %s",
                     $created['invoice_number'],
                     $created['order_stage_wc'],
                     $created['order_source'],

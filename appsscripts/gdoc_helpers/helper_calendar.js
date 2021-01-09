@@ -9,7 +9,7 @@ function testCalendarEvent() {
     cal_id:'sirum.org_k8j983q66k1t6gvgg59t0amq0k@group.calendar.google.com',
     start: '2019-11-27T13:00:00',
     hours: 0.5,
-    title: '22740 Order Canceled: Patient.  Created:2019:11:20 17:58:24',
+    title: '22740 Order Cancelled: Patient.  Created:2019:11:20 17:58:24',
     description:'Hello Test'
   })
 }
