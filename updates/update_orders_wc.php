@@ -198,7 +198,7 @@ function update_orders_wc($changes)
           will not have yet been created so WC wasn't "deleted" it just wasn't
           created yet.  But once order_stage_wc is set, then it is a true deletion
          */
-        if (is_null($deleted['order_stage_wc'])) {
+        if (is_null($deleted['order_stage_wc']) AND ! $deleted['order_date_returned']) {
             continue;
         }
 
@@ -225,9 +225,8 @@ function update_orders_wc($changes)
 
         export_wc_create_order($order, "update_orders_wc: shipped order deleted from WC");
 
-        if ($deleted['order_date_shipped']
-            or $deleted['order_stage_cp'] == 'Shipped'
-            or $deleted['order_stage_cp'] == 'Dispensed') {
+        if ($deleted['order_date_shipped'] or $deleted['order_date_returned']) {
+
             AuditLog::log(
                 sprintf(
                     "Order #%s has was shipped before being deleted",
