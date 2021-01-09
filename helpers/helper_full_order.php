@@ -141,6 +141,8 @@ function get_order_stage_wc($order) {
     return str_replace('wc-', '', $order[0]['order_stage_wc']);
   }
 
+  if ($order[0]['order_date_returned'])
+    return 'return-usps'; 
 
   if ($order[0]['order_stage_wc'] == 'wc-processing')
     log_error('Problem: get_order_stage_wc wc-processing', $order[0]);
