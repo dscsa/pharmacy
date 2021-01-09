@@ -59,7 +59,7 @@ function load_full_order($partial, $mysql, $overwrite_rx_messages = false) {
   }
 
   $order = add_full_fields($order, $mysql, $overwrite_rx_messages);
-  usort($order, 'sort_order_by_day'); //Put Rxs in order (with Rx_Source) at the top
+  usort($order, 'sort_drugs_by_inorder'); //Put Rxs in order (with Rx_Source) at the top
   $order = add_wc_status_to_order($order);
 
   return $order;
@@ -98,10 +98,10 @@ function add_wc_status_to_order($order) {
   return $order;
 }
 
-function sort_order_by_day($a, $b) {
+function sort_drugs_by_inorder($a, $b) {
   if ($b['item_date_added'] > 0 AND $a['item_date_added'] == 0) return 1;
   if ($a['item_date_added'] > 0 AND $b['item_date_added'] == 0) return -1;
-  return strcmp($a['drug'].$a['sig_qty_per_day'], $b['drug'].$b['sig_qty_per_day']);
+  return sort_drugs_by_name($a, $b);
 }
 
 /*

@@ -68,7 +68,7 @@ function load_full_patient($partial, $mysql, $overwrite_rx_messages = false) {
     ]
   );
 
-  usort($patient, 'sort_patient_by_drug'); //Put Rxs in order (with Rx_Source) at the top
+  usort($patient, 'sort_drugs_by_name'); //Put Rxs in order (with Rx_Source) at the top
   $patient = add_sig_differences($patient);
 
   return $patient;
@@ -90,8 +90,6 @@ function add_sig_differences($patient) {
   return $patient;
 }
 
-function sort_patient_by_drug($a, $b) {
-  if ($b['drug_generic'] > 0 AND $a['drug_generic'] == 0) return 1;
-  if ($a['drug_generic'] > 0 AND $b['drug_generic'] == 0) return -1;
-  return strcmp($a['rx_message_text'].$a['drug'], $b['rx_message_text'].$b['drug']);
+function sort_drugs_by_name($a, $b) {
+  return strcmp($a['drug'].$a['sig_qty_per_day'], $b['drug'].$b['sig_qty_per_day']);
 }
