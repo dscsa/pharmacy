@@ -115,6 +115,7 @@ function update_orders_wc($changes)
                     json_encode($created)
                 )
             );
+            export_gd_delete_invoice($created['invoice_number']);
             continue;
         }
         /*
