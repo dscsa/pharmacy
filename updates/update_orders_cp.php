@@ -63,7 +63,8 @@ function update_orders_cp($changes)
         }
 
         if (count($duplicate) > 1
-            and $duplicate[0]['invoice_number'] != $created['invoice_number']) {
+            and $duplicate[0]['invoice_number'] != $created['invoice_number']
+            and $duplicate[0]['order_status'] != "Surescripts Authorization Denied") {
             SirumLog::warning(
                 sprintf(
                     "Created Carepoint Order Seems to be a duplicate %s >>> %s",
@@ -295,7 +296,7 @@ function update_orders_cp($changes)
             else if ($order[0]['count_to_remove']) {
               $reason = $order[0]['count_to_remove'].' Rxs Removed';
 
-              if ($order[0]['count_items'] == 1) //Not enough space to put reason if >1 drug removed.  TODO this depends on the right sort order.
+              if ($order[0]['count_items'] == 1) //Not enough space to put reason if >1 drug removed. using 0-index depends on the current sort order based on item_date_added.
                 $reason .= " {$order[0]['drug_name']} {$order[0]['rx_number']} {$order[0]['rx_message_key']}";
             }
 
