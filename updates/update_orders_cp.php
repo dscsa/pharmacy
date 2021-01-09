@@ -199,9 +199,11 @@ function update_orders_cp($changes)
                should trigger the deleted loop on next run, which should unpend
                But it seemed that this didn't happen for Order 53684
              */
-            if ( ! $order[0]['pharmacy_name'])
+            if ( ! $order[0]['pharmacy_name']) {
               $reason = 'Needs Registration';
-
+              $groups = group_drugs($order, $mysql);
+              needs_form_notice($groups);
+            }
             else if ($order[0]['order_status'] == "Surescripts Authorization Approved")
               $reason = "Surescripts Approved {$order[0]['drug_name']} {$order[0]['rx_number']} {$order[0]['rx_message_key']}";
 
@@ -229,34 +231,6 @@ function update_orders_cp($changes)
         //Needs to be called before "$groups" is set
         $order  = sync_to_date($order, $mysql);
         $groups = group_drugs($order, $mysql);
-
-        /*
-         * 3 Steps of ACTION NEEDS FORM:
-         * 1) Here.  update_orders_cp created (surescript came in and created a CP order)
-         * 2) Same cycle: update_order_wc deleted (since WC doesn't have the new order yet)
-         * 3) Next cycle: update_orders_cp deleted (not sure yet why it gets deleted from CP)
-         * Can't test for rx_message_key == 'ACTION NEEDS FORM' because other messages can take precedence
-         */
-
-        if ( ! $order[0]['pharmacy_name']) {
-            AuditLog::log(
-                sprintf(
-                    "Order %s was created but patient hasn't yet registered in Patient Portal",
-                    $created['invoice_number']
-                ),
-                $created
-            );
-            needs_form_notice($groups);
-            SirumLog::notice(
-                "update_orders_cp created: Guardian Order Created But
-                  Patient Not Yet Registered in WC so not creating WC Order",
-                [
-                  'invoice_number' => $order[0]['invoice_number'],
-                  'order' => $order
-                ]
-            );
-            continue;
-        }
 
         if ($order[0]['count_filled'] > 0 OR $order[0]['count_to_add'] > 0) {
 
