@@ -57,6 +57,11 @@ function update_orders_cp($changes)
             ]
         );
 
+        if ($created['order_date_returned']) {
+          export_wc_return_order($created['invoice_number']);
+          continue;
+        }
+
         if (count($duplicate) > 1
             and $duplicate[0]['invoice_number'] != $created['invoice_number']) {
             SirumLog::warning(
