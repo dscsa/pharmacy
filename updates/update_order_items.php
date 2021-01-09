@@ -162,13 +162,13 @@ function update_order_items($changes)
                 ),
                 $deleted
             );
-        }
 
-        $item = v2_unpend_item(
-            array_merge($item, $deleted),
-            $mysql,
-            "order-item-deleted and order still exists"
-        );
+            $item = v2_unpend_item(
+                array_merge($item, $deleted),
+                $mysql,
+                "order-item-deleted and order still exists"
+            );
+        }
 
         /*
             TODO Update Salesforce Order Total & Order Count & Order Invoice
