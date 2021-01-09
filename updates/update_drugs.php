@@ -155,7 +155,7 @@ function update_rx_single_drug($mysql, $rx_number) {
     SET
       gp_rxs_single.drug_generic = gp_drugs.drug_generic,
       gp_rxs_single.drug_brand   = gp_drugs.drug_brand,
-      gp_rxs_single.drugs_gsns   = gp_drugs.drugs_gsns
+      gp_rxs_single.drug_gsns    = gp_drugs.drug_gsns
     WHERE
       gp_rxs_single.rx_number = '$rx_number'
   ";
