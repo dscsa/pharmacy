@@ -133,7 +133,7 @@ function update_order_items($changes)
         );
 
         //This item was going to be filled, and the whole order was not deleted
-        if ($deleted['days_dispensed_default'] > 0 AND @$deleted['order_date_added']) {
+        if ($deleted['days_dispensed_default'] > 0 AND @$item['order_date_added']) {
 
           if ( ! @$orders_updated[$invoice_number])
             $orders_updated[$invoice_number] = [
@@ -152,7 +152,7 @@ function update_order_items($changes)
         */
 
        //Only available if item was deleted from an order that is still active
-        if (@$deleted['order_date_added']) {
+        if (@$item['order_date_added']) {
             AuditLog::log(
                 sprintf(
                     "Order item % deleted for Rx#%s GSN#%s, Unpending",
