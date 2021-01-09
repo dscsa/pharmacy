@@ -195,7 +195,7 @@ function update_rxs_single($changes)
      *      created/updated so we don't need the wildcard join which is the slowest part
      */
 
-    //TODO if we make this incremental updates, we need to think about the fields with NOW() & days_left, this doesn't easily translate
+    //TODO if we make this incremental updates, we need to think about the fields with NOW(), this doesn't easily translate
     //into an created/update/deleted type of update.
 
     //NOTE This Group By Clause must be kept consistent with the grouping with the export_cp_set_rx_message query
@@ -203,14 +203,14 @@ function update_rxs_single($changes)
     INSERT INTO gp_rxs_grouped
     SELECT
   	  patient_id_cp,
-      COALESCE(drug_generic, drug_name),
+      COALESCE(drug_generic, drug_name) as drug_generic,
       MAX(drug_brand) as drug_brand,
       MAX(drug_name) as drug_name,
       COALESCE(sig_qty_per_day_actual, sig_qty_per_day_default) as sig_qty_per_day,
       GROUP_CONCAT(DISTINCT rx_message_key) as rx_message_keys,
 
       MAX(rx_gsn) as max_gsn, -- this is guardian-supplied rx field
-      MAX(drug_gsns) as drug_gsns, --this is a v2-supplied comma-delimited list of gsns for a drug
+      MAX(drug_gsns) as drug_gsns, -- this is a v2-supplied comma-delimited list of gsns for a drug
 
       SUM(CASE
         WHEN rx_date_expired > NOW() -- expiring does not trigger an update in the rxs_single page current so we have to watch the field here
