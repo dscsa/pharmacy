@@ -224,7 +224,7 @@ function update_orders_wc($changes)
 
         export_wc_create_order($order, "update_orders_wc: shipped order deleted from WC");
 
-        if ($deleted['tracking_number']
+        if ($deleted['order_date_shipped']
             or $deleted['order_stage_cp'] == 'Shipped'
             or $deleted['order_stage_cp'] == 'Dispensed') {
             AuditLog::log(

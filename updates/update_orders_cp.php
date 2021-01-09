@@ -100,7 +100,7 @@ function update_orders_cp($changes)
             continue;
         }
 
-        // Overrite Rx Messages everytime a new order created otherwise
+        // Overwrite Rx Messages everytime a new order created otherwise
         // same message would stay for the life of the Rx
         $order = load_full_order($created, $mysql, true);
 
@@ -463,7 +463,7 @@ function update_orders_cp($changes)
         }
 
         //Order was Returned to Sender and not logged yet
-        if ($deleted['tracking_number'] and ! $deleted['order_date_returned']) {
+        if ($deleted['order_date_shipped'] and ! $deleted['order_date_returned']) {
             AuditLog::log(
                 sprintf(
                     "Order %s has been returned",

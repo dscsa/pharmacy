@@ -490,7 +490,7 @@ function export_wc_update_order_metadata($order, $meta_fn = 'wc_update_meta')
     $metadata['count_nofill']         = $order[0]['count_nofill'];
   }
 
-  if ($order[0]['tracking_number']) { //Keep status the same until it is shipped
+  if ($order[0]['order_date_shipped']) { //Keep status the same until it is shipped
     $metadata['tracking_number']    = $order[0]['tracking_number'];
     $metadata['order_date_shipped'] = $order[0]['order_date_shipped'];
   }

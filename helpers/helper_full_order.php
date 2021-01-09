@@ -135,7 +135,7 @@ function get_order_stage_wc($order) {
   //Anything past shipped we just have to rely on WC
   if ($order[0]['order_stage_wc'] AND preg_match('/shipped|late|done|return/i', $order[0]['order_stage_wc'])) {
 
-    if ( ! $count_filled AND ! $order[0]['tracking_number'] AND ! $order[0]['payment_method_actual'])
+    if ( ! $count_filled AND ! $order[0]['order_date_shipped'] AND ! $order[0]['payment_method_actual'])
       log_error('helper_full_order: get_order_stage_wc error', $order);
 
     return str_replace('wc-', '', $order[0]['order_stage_wc']);
@@ -192,25 +192,25 @@ function get_order_stage_wc($order) {
     log_warning('helper_full_order: order is '.floor($elapsed_time/60/60/24).' days old', $order[0]);
   }
 
-  if ( ! $order[0]['tracking_number'] AND (is_webform_refill($order[0]) OR is_auto_refill($order[0])))
+  if ( ! $order[0]['order_date_shipped'] AND (is_webform_refill($order[0]) OR is_auto_refill($order[0])))
     return 'prepare-refill';
 
-  if ( ! $order[0]['tracking_number'] AND $order[0]['rx_source'] == 'SureScripts')
+  if ( ! $order[0]['order_date_shipped'] AND $order[0]['rx_source'] == 'SureScripts')
     return 'prepare-erx';
 
-  if ( ! $order[0]['tracking_number'] AND $order[0]['rx_source'] == 'Fax')
+  if ( ! $order[0]['order_date_shipped'] AND $order[0]['rx_source'] == 'Fax')
     return 'prepare-fax';
 
-  if ( ! $order[0]['tracking_number'] AND $order[0]['rx_source'] == 'Pharmacy')
+  if ( ! $order[0]['order_date_shipped'] AND $order[0]['rx_source'] == 'Pharmacy')
     return 'prepare-transfer';
 
-  if ( ! $order[0]['tracking_number'] AND $order[0]['rx_source'] == 'Phone')
+  if ( ! $order[0]['order_date_shipped'] AND $order[0]['rx_source'] == 'Phone')
     return 'prepare-phone';
 
-  if ( ! $order[0]['tracking_number'] AND $order[0]['rx_source'] == 'Prescription')
+  if ( ! $order[0]['order_date_shipped'] AND $order[0]['rx_source'] == 'Prescription')
     return 'prepare-mail';
 
-  if ( ! $order[0]['tracking_number']) {
+  if ( ! $order[0]['order_date_shipped']) {
     log_error('get_order_stage_wc error: prepare-* unknown rx_source', get_defined_vars());
     return 'on-hold';
   }
