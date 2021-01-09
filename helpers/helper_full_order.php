@@ -142,7 +142,7 @@ function get_order_stage_wc($order) {
   }
 
   if ($order[0]['order_date_returned'])
-    return 'return-usps'; 
+    return 'return-usps';
 
   if ($order[0]['order_stage_wc'] == 'wc-processing')
     log_error('Problem: get_order_stage_wc wc-processing', $order[0]);
@@ -252,7 +252,12 @@ function get_order_stage_wc($order) {
   log_error('get_order_stage_wc error: shipped-* unknown payment_method', get_defined_vars());
 
   // Strip on the wc- so we don't get duplicates
-  return str_replace('wc-', '', $order[0]['order_stage_wc']);
+  if ($order[0]['order_stage_wc'])
+    return str_replace('wc-', '', $order[0]['order_stage_wc']);
+
+  log_error('get_order_stage_wc error: no known stage', get_defined_vars());
+  
+  return 'on-hold';
 }
 
 function get_current_orders($mysql, $conditions = []) {
