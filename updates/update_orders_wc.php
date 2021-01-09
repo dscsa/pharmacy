@@ -223,6 +223,10 @@ function update_orders_wc($changes)
             ]
         );
 
+        //NOTE the below will fail if the order is wc-cancelled.  because it will show up as deleted here
+        //but if it was improperly cancelled and the cp order still exists then export_wc_create_order()
+        //will fail because it technically exists it just isn't being imported (deliberitely)
+
         $order = helper_update_payment($order, "update_orders_wc: shipped order deleted from WC", $mysql);
         export_wc_create_order($order, "update_orders_wc: shipped order deleted from WC");
 

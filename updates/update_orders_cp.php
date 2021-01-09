@@ -292,12 +292,16 @@ function update_orders_cp($changes)
             if ( ! $order[0]['pharmacy_name'])
               $reason = 'Needs Registration';
 
-            else if ($order[0]['count_to_remove'])
+            else if ($order[0]['count_to_remove']) {
               $reason = $order[0]['count_to_remove'].' Rxs Removed';
+
+              if ($order[0]['count_items'] == 1) //Not enough space to put reason if >1 drug removed.  TODO this depends on the right sort order.
+                $reason .= " {$order[0]['drug_name']} {$order[0]['rx_number']} {$order[0]['rx_message_key']}";
+            }
 
             else
               $reason = 'Created Empty';
-              
+
             $order  = export_v2_unpend_order($order, $mysql, $reason);
             export_cp_remove_order($order[0]['invoice_number'], $reason);
             continue;
