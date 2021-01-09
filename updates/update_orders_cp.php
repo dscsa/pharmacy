@@ -129,28 +129,6 @@ function update_orders_cp($changes)
 
         //TODO Add Special Case for Webform Transfer [w/ Note] here?
 
-        if ($created['order_status'] == "Surescripts Authorization Approved") {
-            AuditLog::log(
-                sprintf(
-                    "SureScript authorization approved for invoice %s.",
-                    $created['invoice_number']
-                ),
-                $created
-            );
-            SirumLog::error(
-                "Surescripts Authorization Approved. Created.  What to do here?
-                Keep Order {$created['invoice_number']}? Delete Order? Depends
-                on Autofill settings?",
-                [
-                  'invoice_number'   => $created['invoice_number'],
-                  'count_items'      => count($order)." / ".@$order['count_items'],
-                  'patient_autofill' => $order[0]['patient_autofill'],
-                  'rx_autofill'      => $order[0]['rx_autofill'],
-                  'order'            => $order
-                ]
-            );
-        }
-
         if ($order[0]['order_date_dispensed']) {
             $reason = "update_orders_cp: dispened/shipped/returned order being readded";
 
@@ -224,15 +202,17 @@ function update_orders_cp($changes)
             if ( ! $order[0]['pharmacy_name'])
               $reason = 'Needs Registration';
 
+            else if ($order[0]['order_status'] == "Surescripts Authorization Approved")
+              $reason = "Surescripts Approved {$order[0]['drug_name']} {$order[0]['rx_number']} {$order[0]['rx_message_key']}";
+
             else if ($order[0]['order_status'] == "Surescripts Authorization Denied")
-              $reason = 'Surescripts Denied';
+              $reason = "Surescripts Denied {$order[0]['drug_name']} {$order[0]['rx_number']} {$order[0]['rx_message_key']}";
 
-            else if ($order[0]['count_to_remove']) {
+            else if ($order[0]['count_items'] == 1)
+              $reason = "Rx Removed {$order[0]['drug_name']} {$order[0]['rx_number']} {$order[0]['rx_message_key']}";
+
+            else if ($order[0]['count_to_remove']) //Not enough space to put reason if >1 drug removed. using 0-index depends on the current sort order based on item_date_added.
               $reason = $order[0]['count_to_remove'].' Rxs Removed';
-
-              if ($order[0]['count_items'] == 1) //Not enough space to put reason if >1 drug removed. using 0-index depends on the current sort order based on item_date_added.
-                $reason .= " {$order[0]['drug_name']} {$order[0]['rx_number']} {$order[0]['rx_message_key']}";
-            }
 
             else
               $reason = 'Created Empty';
