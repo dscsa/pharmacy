@@ -199,7 +199,7 @@ function update_orders_wc($changes)
           created yet.  But once order_stage_wc is set, then it is a true deletion
          */
         if (is_null($deleted['order_stage_wc']) AND ! $deleted['order_date_dispensed']) {
-            continue;
+            //continue;
         }
 
         $order = load_full_order($deleted, $mysql);
