@@ -151,13 +151,13 @@ function update_rx_single_drug($mysql, $rx_number) {
   $sql_rxs_single = "
     UPDATE gp_rxs_single
     JOIN gp_drugs ON
-      drug_gsns LIKE CONCAT('%,', rx_gsn, ',%')
+      gp_drugs.drug_gsns LIKE CONCAT('%,', rx_gsn, ',%')
     SET
       gp_rxs_single.drug_generic = gp_drugs.drug_generic,
       gp_rxs_single.drug_brand   = gp_drugs.drug_brand,
       gp_rxs_single.drugs_gsns   = gp_drugs.drugs_gsns
     WHERE
-      gp_order_items.rx_number = '$rx_number'
+      gp_rxs_single.rx_number = '$rx_number'
   ";
 
   log_warning("update_rx_single_drug: updated gp_rx_single", [
