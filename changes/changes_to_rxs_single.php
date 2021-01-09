@@ -46,7 +46,6 @@ function changes_to_rxs_single($new) {
     NOT old.patient_id_cp <=> new.patient_id_cp OR
     NOT old.drug_name <=> new.drug_name OR
     NOT old.rx_gsn <=> new.rx_gsn OR
-    NOT old.days_left <=> new.days_left OR
     NOT old.refills_left <=> new.refills_left OR
     NOT old.refills_original <=> new.refills_original OR
     NOT old.qty_left <=> new.qty_left OR
