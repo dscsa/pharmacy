@@ -53,9 +53,10 @@ function import_cp_orders() {
     WHERE
       (ISNULL(status_cn, 0) <> 3 OR order_state_cn = 60) -- active or returned
       AND pat_id IS NOT NULL -- Some GRX orders link 1170, 32968 have no patient
-      AND csom.chg_date > @today - ".DAYS_OF_ORDERS_TO_IMPORT." -- Only recent orders to cut down on the import time (30-60s as of 2021-01-08).
-
-      -- AND liCount > 0 -- SureScript Authorization Denied, Webform eRx (before Rxs arrive), Webform Transfer (before transfer made)
+      AND (
+        order_state_cn < 50 OR
+        csom.chg_date > @today - ".DAYS_OF_ORDERS_TO_IMPORT." -- Only recent orders to cut down on the import time (30-60s as of 2021-01-08).
+      )
   ");
 
   if ( ! count($orders[0])) return log_error('No Cp Orders to Import', get_defined_vars());
