@@ -220,7 +220,7 @@ function update_orders_cp($changes)
         }
 
         if ($order[0]['order_date_dispensed']) {
-            $reason = "update_orders_cp: dispened/shipped order being readded";
+            $reason = "update_orders_cp: dispened/shipped/returned order being readded";
 
             export_wc_create_order($order, $reason);
             $order = export_gd_publish_invoice($order, $mysql);
@@ -234,7 +234,7 @@ function update_orders_cp($changes)
             );
 
             SirumLog::debug(
-                'Dispensed/Shipped order is missing and is being added back to the wc and gp tables',
+                'Dispensed/Shipped/Returned order is missing and is being added back to the wc and gp tables',
                 [
                     'invoice_number' => $order[0]['invoice_number'],
                     'order'          => $order

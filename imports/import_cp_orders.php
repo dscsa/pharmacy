@@ -14,6 +14,8 @@ function import_cp_orders() {
   $mysql = new Mysql_Wc();
 
   $orders = $mssql->run("
+    DECLARE @today as DATETIME
+    SET @today = GETDATE()
 
     SELECT
       invoice_nbr as invoice_number,
