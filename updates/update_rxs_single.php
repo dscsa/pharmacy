@@ -4,6 +4,7 @@ require_once 'helpers/helper_imports.php';
 require_once 'helpers/helper_identifiers.php';
 require_once 'exports/export_cp_rxs.php';
 require_once 'exports/export_gd_transfer_fax.php'; //is_will_transfer()
+require_once 'updates/update_drugs.php';
 require_once 'dbs/mysql_wc.php';
 
 use Sirum\Logging\SirumLog;
