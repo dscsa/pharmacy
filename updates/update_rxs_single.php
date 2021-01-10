@@ -16,46 +16,6 @@ function update_rxs_single($changes)
     $mysql = new Mysql_Wc();
     $mssql = new Mssql_Cp();
 
-
-    /**
-     * All RX should have a rx_message set.  We are going to query the database
-     * and look for any with a NULL rx_message_key.  If we dint one, load_full_patient()
-     * will fetch the user and update the message?
-     *
-     *  NOTE Using an INNER JOIN to exclude Rxs associated with patients that are inactive or deceased
-     */
-    $loop_timer = microtime(true);
-    $rx_singles = $mysql->run("
-      SELECT *
-      FROM
-        gp_rxs_single
-      JOIN gp_patients ON
-        gp_patients.patient_id_cp = gp_rxs_single.patient_id_cp
-      WHERE
-        rx_message_key IS NULL"
-    )[0];
-
-    foreach ($rx_singles as $rx_single) {
-        SirumLog::$subroutine_id = "rxs-single-null-message-".sha1(serialize($rx_single));
-
-        //This updates & overwrites set_rx_messages
-        $patient = load_full_patient($rx_single, $mysql, $rx_single['rx_number']);
-
-        //These should have been given an rx_message upon creation.  Why was it missing?
-        SirumLog::error(
-            "rx had an empty message, so just set it.  Why was it missing?",
-            [
-                "patient_id_cp" => $patient[0]['patient_id_cp'],
-                "patient_id_wc" => $patient[0]['patient_id_wc'],
-                "rx_single"     => $rx_single,
-                "source"        => "CarePoint",
-                "type"          => "rxs-single",
-                "event"         => "null-message"
-              ]
-        );
-    }
-    log_timer('rx-singles-empty-messages', $loop_timer, count($rx_singles));
-
     /* Now to do some work */
     $count_deleted = count($changes['deleted']);
     $count_created = count($changes['created']);
@@ -486,6 +446,47 @@ function update_rxs_single($changes)
         }
     }
     log_timer('rx-singles-updated2', $loop_timer, $count_updated);
+
+    /**
+     * All RX should have a rx_message set.  We are going to query the database
+     * and look for any with a NULL rx_message_key.  If we dint one, load_full_patient()
+     * will fetch the user and update the message?
+     *
+     *  NOTE Using an INNER JOIN to exclude Rxs associated with patients that are inactive or deceased
+     */
+    $loop_timer = microtime(true);
+    $rx_singles = $mysql->run("
+      SELECT *
+      FROM
+        gp_rxs_single
+      JOIN gp_patients ON
+        gp_patients.patient_id_cp = gp_rxs_single.patient_id_cp
+      WHERE
+        rx_message_key IS NULL"
+    )[0];
+
+    foreach ($rx_singles as $rx_single) {
+        SirumLog::$subroutine_id = "rxs-single-null-message-".sha1(serialize($rx_single));
+
+        //This updates & overwrites set_rx_messages
+        $item = load_full_item($rx_single, $mysql, $rx_single['rx_number']);
+
+        //These should have been given an rx_message upon creation.  Why was it missing?
+        SirumLog::error(
+            "rx had an empty message, so just set it.  Why was it missing?",
+            [
+                "patient_id_cp" => $item[0]['patient_id_cp'],
+                "patient_id_wc" => $item[0]['patient_id_wc'],
+                "rx_single"     => $rx_single,
+                "item"          => $item,
+                "source"        => "CarePoint",
+                "type"          => "rxs-single",
+                "event"         => "null-message"
+              ]
+        );
+    }
+    log_timer('rx-singles-empty-messages', $loop_timer, count($rx_singles));
+
 
     SirumLog::resetSubroutineId();
 
