@@ -270,19 +270,18 @@ function update_rxs_single($changes)
     foreach ($changes['created'] as $created) {
         SirumLog::$subroutine_id = "rxs-single-created2-".sha1(serialize($created));
 
+        $patient = getPatientByRx($created['rx_number']);
+
         SirumLog::debug(
             "update_rxs_single: rx created2",
             [
                   'created' => $created,
+                  'patient' => $patient,
                   'source'  => 'CarePoint',
                   'type'    => 'rxs-single',
                   'event'   => 'created2'
             ]
         );
-
-        // This updates & overwrites set_rx_messages.  TRUE because this one
-        // Rx might update many other Rxs for the same drug.
-        $patient = load_full_patient($created, $mysql, true);
 
         //TODO rather hackily editing calendar events, probably better to just delete and then recreate them
         remove_drugs_from_refill_reminders(
@@ -292,7 +291,6 @@ function update_rxs_single($changes)
             [$created['drug_name']]
         );
     }
-
     log_timer('rx-singles-created2', $loop_timer, $count_created);
 
     /* Finish Created Loop #2 */

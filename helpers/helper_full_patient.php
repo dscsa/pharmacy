@@ -29,6 +29,11 @@ function load_full_patient($partial, $mysql, $overwrite_rx_messages = false) {
       gp_rxs_grouped.best_rx_number = gp_rxs_single.rx_number
     LEFT JOIN gp_stock_live ON -- might not have a match if no GSN match
       gp_rxs_grouped.drug_generic = gp_stock_live.drug_generic -- this is for the helper_days_and_message msgs for unordered drugs
+    LEFT JOIN gp_order_items ON -- choice to show any order_item from this rx_group and not just if this specific rx matches
+      gp_order_items.rx_dispensed_id IS NULL AND
+      rx_numbers LIKE CONCAT('%,', gp_order_items.rx_number, ',%')
+    LEFT JOIN gp_orders ON -- ORDER MAY HAVE NOT BEEN ADDED YET
+      gp_orders.invoice_number = gp_order_items.invoice_number
     WHERE
       gp_patients.patient_id_cp = $partial[patient_id_cp]
   ";
