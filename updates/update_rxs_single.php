@@ -449,8 +449,8 @@ function update_rxs_single($changes)
 
     /**
      * All RX should have a rx_message set.  We are going to query the database
-     * and look for any with a NULL rx_message_key.  If we dint one, load_full_patient()
-     * will fetch the user and update the message?
+     * and look for any with a NULL rx_message_key.  If we find one, load_full_item()
+     * should retry updating the message?
      *
      *  NOTE Using an INNER JOIN to exclude Rxs associated with patients that are inactive or deceased
      */
@@ -468,9 +468,6 @@ function update_rxs_single($changes)
     foreach ($rx_singles as $rx_single) {
         SirumLog::$subroutine_id = "rxs-single-null-message-".sha1(serialize($rx_single));
 
-        //This updates & overwrites set_rx_messages
-        $item = load_full_item($rx_single, $mysql, $rx_single['rx_number']);
-
         //These should have been given an rx_message upon creation.  Why was it missing?
         SirumLog::error(
             "rx had an empty message, so just set it.  Why was it missing?",
@@ -484,6 +481,9 @@ function update_rxs_single($changes)
                 "event"         => "null-message"
               ]
         );
+
+        //This will retry setting the rx_messages
+        $item = load_full_item($rx_single, $mysql);
     }
     log_timer('rx-singles-empty-messages', $loop_timer, count($rx_singles));
 
