@@ -285,9 +285,9 @@ function update_rxs_single($changes)
 
         //TODO rather hackily editing calendar events, probably better to just delete and then recreate them
         remove_drugs_from_refill_reminders(
-            $patient[0]['first_name'],
-            $patient[0]['last_name'],
-            $patient[0]['birth_date'],
+            $patient['first_name'],
+            $patient['last_name'],
+            $patient['birth_date'],
             [$created['drug_name']]
         );
     }
