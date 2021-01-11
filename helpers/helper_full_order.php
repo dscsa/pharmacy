@@ -65,8 +65,7 @@ function get_full_order($mysql, $invoice_number) {
   if ($order AND @$order[0]['invoice_number'])
     return $order;
 
-  log_error("ERROR! get_full_order: no order with invoice number:$invoice_number #1 of 2. Order Was Temp Deleted to Add/Remove Items? No Recent Rxs?", get_defined_vars());
-
+  // Just get the order rgardless of old Rx
   $order = $mysql->run($sql)[0];
 
   if ($order AND @$order[0]['invoice_number'])
