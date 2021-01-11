@@ -60,15 +60,15 @@ function update_orders_wc($changes)
             AuditLog::log(
                 sprintf(
                     "Order #%s was created in Patient Portal,
-                    but it appears #%s is a replacement",
+                    but it appears #%s is a duplicate",
                     $created['invoice_number'],
-                    $duplicate['invoice_number']
+                    $duplicate[0]['invoice_number']
                 ),
                 $created
             );
 
             SirumLog::warning(
-                'order_cancelled_notice BUT their appears to be a replacement',
+                'Order #%s was created in Patient Portal, but it appears #%s is a duplicate',
                 [
                     'created' => $created,
                     'duplicate' => $duplicate
