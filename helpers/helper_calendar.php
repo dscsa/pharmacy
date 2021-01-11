@@ -165,7 +165,7 @@ function order_updated_event($groups, $email, $text, $hours_to_wait) {
   create_event($event_title, $comm_arr, $hours_to_wait);
 }
 
-function needs_form_event($order, $email, $text, $hours_to_wait, $hour_of_day = 0) {
+function needs_form_event($order, $email, $text, $salesforce, $hours_to_wait, $hour_of_day = 0) {
 
   if ($order[0]['patient_inactive']) {
     log_warning('needs_form_event cancelled because patient inactive', get_defined_vars());
@@ -175,7 +175,7 @@ function needs_form_event($order, $email, $text, $hours_to_wait, $hour_of_day = 
   $patient_label = get_patient_label($order);
   $event_title   = $order[0]['invoice_number'].' Needs Form: '.$patient_label.'.  Created:'.date('Y-m-d H:i:s');
 
-  $comm_arr = new_comm_arr($patient_label, $email, $text);
+  $comm_arr = new_comm_arr($patient_label, $email, $text, $salesforce);
 
   log_info('needs_form_event', get_defined_vars());
 

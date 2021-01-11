@@ -387,13 +387,28 @@ function needs_form_notice($groups) {
 
   $cancel = cancel_events_by_person($groups['ALL'][0]['first_name'], $groups['ALL'][0]['last_name'], $groups['ALL'][0]['birth_date'], 'needs_form_event', ['Needs Form']);
 
-  needs_form_event($groups['ALL'], $email, $text, $hours_to_wait[0], $hour_of_day[0]);
+  needs_form_event($groups['ALL'], $email, $text, null, $hours_to_wait[0], $hour_of_day[0]);
 
   if ( ! $groups['ALL'][0]['count_filled']) return; //Don't hassle folks if we aren't filling anything
 
-  needs_form_event($groups['ALL'], $email, $text, $hours_to_wait[1], $hour_of_day[1]);
-  needs_form_event($groups['ALL'], $email, $text, $hours_to_wait[2], $hour_of_day[2]);
-  needs_form_event($groups['ALL'], $email, $text, $hours_to_wait[3], $hour_of_day[3]);
+  needs_form_event($groups['ALL'], $email, $text, null, $hours_to_wait[1], $hour_of_day[1]);
+  needs_form_event($groups['ALL'], $email, $text, null, $hours_to_wait[2], $hour_of_day[2]);
+
+  $date = "Created:".date('Y-m-d H:i:s');
+
+  $salesforce = [
+      "subject"   => "$created[first_name] $created[last_name] $created[birth_date] has not registered yet",
+      "body"      => "Patient did not register from our automated outreach, please reach out and register them.  $date",
+      "contact"   => "$created[first_name] $created[last_name] $created[birth_date]",
+      "assign_to" => "Kiah", //".Register New Patient - Tech",
+      "due_date"  => substr(get_start_time($hours_to_wait[3], $hour_of_day[3]), 0, 10)
+  ];
+
+  needs_form_event($groups['ALL'], $email, $text, $salesforce, $hours_to_wait[3], $hour_of_day[3]);
+
+
+
+
 }
 
 //We are coording patient communication via sms, calls, emails, & faxes
