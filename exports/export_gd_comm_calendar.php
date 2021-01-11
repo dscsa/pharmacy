@@ -389,7 +389,7 @@ function needs_form_notice($groups) {
 
   needs_form_event($groups['ALL'], $email, $text, null, $hours_to_wait[0], $hour_of_day[0]);
 
-  if ( ! $groups['ALL'][0]['count_filled']) return; //Don't hassle folks if we aren't filling anything
+  if ( ! $groups['NOFILL_ACTION']) return; //Don't hassle folks if we aren't filling anything
 
   needs_form_event($groups['ALL'], $email, $text, null, $hours_to_wait[1], $hour_of_day[1]);
   needs_form_event($groups['ALL'], $email, $text, null, $hours_to_wait[2], $hour_of_day[2]);
