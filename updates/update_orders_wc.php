@@ -136,7 +136,7 @@ function update_orders_wc($changes)
                     "Order #%s was created in Patient Portal, but should be coming
                     from CarePoint since the new order has a status of %s it
                     will be CANCELLED",
-                    $created['invoice_number'],
+                    @$created['invoice_number'],
                     $duplicate['invoice_number'],
                     $created['order_stage_wc']
                 ),
@@ -146,7 +146,7 @@ function update_orders_wc($changes)
                 $created['invoice_number'],
                 sprintf(
                     "update_orders_cp: cp order cancelled %s %s %s %s",
-                    $created['invoice_number'],
+                    @$created['invoice_number'],
                     $created['order_stage_wc'],
                     $created['order_source'],
                     json_encode($created)

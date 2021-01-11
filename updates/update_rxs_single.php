@@ -470,10 +470,9 @@ function update_rxs_single($changes)
         SirumLog::error(
             "rx had an empty message, so just set it.  Why was it missing?",
             [
-                "patient_id_cp" => $item[0]['patient_id_cp'],
-                "patient_id_wc" => $item[0]['patient_id_wc'],
+                "patient_id_cp" => $rx_single['patient_id_cp'],
+                "patient_id_wc" => $rx_single['patient_id_wc'],
                 "rx_single"     => $rx_single,
-                "item"          => $item,
                 "source"        => "CarePoint",
                 "type"          => "rxs-single",
                 "event"         => "null-message"
