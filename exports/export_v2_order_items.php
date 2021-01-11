@@ -148,6 +148,9 @@ function v2_unpend_item($item, $mysql, $reason) {
       [ 'item' => $item ]
   );
 
+  if ( ! @$item['rx_number']) //Empty order will just cause a mysql error in save_pick_list
+    return $item;
+
   AuditLog::log(
       sprintf(
           "Item %s for Rx#%s on Invoice #%s UN-Pended because %s",
