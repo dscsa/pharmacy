@@ -428,7 +428,7 @@ function order_cancelled_notice($partial, $groups) {
   if ( ! $groups['ALL'][0]['pharmacy_name'])
     return log_alert('order_cancelled_notice: not sending because needs_form_notice should be sent instead (was already sent?)', get_defined_vars());
 
-  if ( ! $groups['ALL'][0]['count_nofill'])
+  if (is_order($groups['ALL']) AND ! $groups['ALL'][0]['count_nofill']) //can be passed a patient
     return log_alert('order_cancelled_notice: not sending because no_rx_notice should be sent instead (was already sent?)', get_defined_vars());
 
   $subject = "Good Pill cancelled your Order #$partial[invoice_number]";

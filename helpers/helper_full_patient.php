@@ -86,6 +86,12 @@ function add_sig_differences($patient) {
   $drug_names = []; //Append qty_per_day if multiple of same strength, do this after sorting
 
   foreach($patient as $i => $item) {
+
+    if ( ! @$item['drug']) {
+      log_error('add_sig_differences: why no "drug" property set?', ['item' => $item, 'patient' => $patient]);
+      continue;
+    }
+
     if (isset($drug_names[$item['drug']])) {
       $patient[$i]['drug'] .= ' ('.( (float) $item['sig_qty_per_day'] ).' per day)';
       //log_notice("helper_full_patient add_sig_differences: appended sig_qty_per_day to duplicate drug ".$item['drug']." >>> ".$drug_names[$item['drug']], [$order, $item, $drug_names]);
