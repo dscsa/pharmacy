@@ -153,7 +153,6 @@ function sync_to_date($order, $mysql) {
     if ($sync_to_date_days_change > -5 AND $sync_to_date_days_change < 5)
       continue;
 
-    $order[$i]['days_dispensed']  = $order[$i]['days_dispensed_default']  = $new_days_default;
     $order[$i]['qty_dispensed']   = $order[$i]['qty_dispensed_default']   = $new_days_default*$item['sig_qty_per_day'];
     $order[$i]['price_dispensed'] = $order[$i]['price_dispensed_default'] = ceil($new_days_default*($item['price_per_month'] ?: 0)/30); //Might be null
 
@@ -193,6 +192,7 @@ function sync_to_date($order, $mysql) {
     $order[$i] = v2_unpend_item($item, $mysql, "unpend for sync_to_date");
     $order[$i] = v2_pend_item($item, $mysql,  "pend for sync_to_date");
 
+    $order[$i]['days_dispensed'] = $order[$i]['days_dispensed_default']  = $new_days_default;
     $order[$i] = export_cp_set_rx_message($item, RX_MESSAGE['NO ACTION SYNC TO DATE'], $mysql);
 
     log_notice('helper_syncing: sync_to_date and repended in v2', ['item' => $item, 'sql' => $sql]);
