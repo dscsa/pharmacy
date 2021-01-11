@@ -273,7 +273,7 @@ function new_comm_arr($patient_label, $email = '', $text = '', $salesforce = '')
       log_error('format_call/text json.parse error', get_defined_vars());
     }
 
-    $text = format_text($text['message']);
+    $text['message'] = format_text($text['message']);
 
     if ( ! @$text['fallbacks']) { //Default to a call fallback if SMS fails
 
@@ -301,7 +301,13 @@ function new_comm_arr($patient_label, $email = '', $text = '', $salesforce = '')
     $comm_arr[] = $salesforce;
   }
 
-  log_info('comm_array', get_defined_vars());
+  log_info('comm_array', [
+    'patient_label' => $patient_label,
+    'email' => $email,
+    'text' => $text,
+    'salesforce' => $salesforce,
+    'comm_arr' => $comm_arr
+  ]);
 
   return $comm_arr; //just in case we were sloppy with undefined
 }
