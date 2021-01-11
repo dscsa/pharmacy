@@ -236,7 +236,7 @@ function confirm_shipment_event($order, $email, $text, $salesforce, $hours_to_wa
 
   log_info('confirm_shipment_event INACTIVE', get_defined_vars());
 
-  //create_event($event_title, $comm_arr, $hours_to_wait, $hour_of_day);
+  create_event($event_title, $comm_arr, $hours_to_wait, $hour_of_day);
 }
 
 function new_comm_arr($patient_label, $email = '', $text = '', $salesforce = '') {
@@ -264,15 +264,20 @@ function new_comm_arr($patient_label, $email = '', $text = '', $salesforce = '')
 
     $auto[] = "Text/Call";
 
-    $json = preg_replace('/ undefined/', '', json_encode($text));
+    /* Make a copy using JSON */
+    try {
+      $json = preg_replace('/ undefined/', '', json_encode($text));
+      $text = json_decode($json, true);
+      $call = json_decode($json, true);
+    } catch (Error $e) {
+      log_error('format_call/text json.parse error', get_defined_vars());
+    }
 
-    $text = format_text($json);
+    $text = format_text($text['message']);
 
     if ( ! @$text['fallbacks']) { //Default to a call fallback if SMS fails
 
-      $call = format_call($json);
-
-      $call['message'] = call_wrapper($call['message']);
+      $call['message'] = call_wrapper(format_call($call['message']));
       $call['call']    = $call['sms'];
       unset($call['sms']);
 
@@ -301,18 +306,11 @@ function new_comm_arr($patient_label, $email = '', $text = '', $salesforce = '')
   return $comm_arr; //just in case we were sloppy with undefined
 }
 
-function format_text($text_json) {
-
-  $text_json = preg_replace(['/<br>/', '/<.*?>/', '/#(\d{4,})/'], ['\\n', '', '$1'], $text_json);
-
-  try {
-    return json_decode($text_json, true);
-  } catch (Error $e) {
-    log_error('format_text json.parse error', get_defined_vars());
-  }
+function format_text($text_message) {
+  return preg_replace(['/<br>/', '/<.*?>/', '/#(\d{4,})/'], ['\\n', '', '$1'], $text_message);
 }
 
-function format_call($call_json) {
+function format_call($call_message) {
 
   $regex = [
     '/View it at [^ ]+ /',
@@ -359,13 +357,7 @@ function format_call($call_json) {
   ];
 
   //Improve Pronounciation
-  $call_json = preg_replace($regex, $replace, $call_json);
-
-  try {
-    return json_decode($call_json, true);
-  } catch (Error $e) {
-    log_error('format_call json.parse error', get_defined_vars());
-  }
+  return preg_replace($regex, $replace, $call_message);
 }
 
 function call_wrapper($message) {

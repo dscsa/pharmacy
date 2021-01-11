@@ -473,8 +473,6 @@ function confirm_shipment_notice($groups) {
     //New customer tell them it was delivered and followup with a call
     $salesforce = confirm_shipment_internal($groups, $days_ago+1);
 
-    log_warning('confirm_shipment_notice: testing our language before rollout', get_defined_vars());
-
     confirm_shipment_event($groups['ALL'], $comms['email'], $comms['text'], $salesforce, $days_ago*24, 13);
 }
 
