@@ -397,9 +397,9 @@ function needs_form_notice($groups) {
   $date = "Created:".date('Y-m-d H:i:s');
 
   $salesforce = [
-      "subject"   => "$created[first_name] $created[last_name] $created[birth_date] has not registered yet",
+      "subject"   => "{$groups['ALL'][0]['first_name']} {$groups['ALL'][0]['last_name']} {$groups['ALL'][0]['birth_date']} has not registered yet",
       "body"      => "Patient did not register from our automated outreach, please reach out and register them.  $date",
-      "contact"   => "$created[first_name] $created[last_name] $created[birth_date]",
+      "contact"   => "{$groups['ALL'][0]['first_name']} {$groups['ALL'][0]['last_name']} {$groups['ALL'][0]['birth_date']}",
       "assign_to" => "Kiah", //".Register New Patient - Tech",
       "due_date"  => substr(get_start_time($hours_to_wait[3], $hour_of_day[3]), 0, 10)
   ];
