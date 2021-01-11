@@ -104,25 +104,31 @@ class Queue
      * @return \AWS\Sqs\SqsResults|null If a single message is deleted, results are empty.  If multiple
      *                                  deletes are sent, results will be an array of success and failures.
      */
-    public function delete($receipt_handles)
+    public function deleteBatch($reqeust)
     {
-        if (is_array($receipt_handles)) {
-            $results = $this->sqs_client->deleteMessageBatch(
-                [
-                    'QueueUrl' => $this->queue_url,
-                    'Entries'  => $receipt_handles
-                ]
-            );
-        } else {
-            $results = $this->sqs_client->deleteMessage(
-                [
-                    'QueueUrl' 	   => $this->queue_url,
-                    'ReceiptHandle'  => $receipt_handles
-                ]
-            );
+
+        // Loop over all the messages,
+        // Get the receipt message
+        // delete
+        foreach ($reqeust as $request) {
+            $results =
         }
 
-        return $results;
+        return $this->sqs_client->deleteMessageBatch(
+            [
+                'QueueUrl' => $this->queue_url,
+                'Entries'  => $receipt_handles
+            ]
+        );;
+    }
+
+    public function delete(Request $request) {
+        return $this->sqs_client->deleteMessage(
+            [
+                'QueueUrl' 	    => $this->queue_url,
+                'ReceiptHandle' => $request->receipt_handle
+            ]
+        );
     }
 
 

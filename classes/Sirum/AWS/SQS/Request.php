@@ -44,14 +44,14 @@ abstract class Request
     /**
      * I'm not dead yet.  I feel happy.
      */
-    public function __construct($request = null)
+    public function __construct($initialize_date = null)
     {
         $this->dedup_id = uniqid();
 
-        if (is_array($request)) {
-            $this->fromSQS($request);
-        } else if (is_string($request)) {
-            $this->fromJSON($request);
+        if (is_array($initialize_date)) {
+            $this->fromSQS($initialize_date);
+        } else if (is_string($initialize_date)) {
+            $this->fromJSON($initialize_date);
         }
     }
 
@@ -85,9 +85,6 @@ abstract class Request
      */
     public function __set($property, $value)
     {
-
-        var_dump(property_exists($this, $property));
-
         if (property_exists($this, $property)) {
             return $this->$property = $value;
         }
@@ -117,6 +114,23 @@ abstract class Request
             }
         }
         return false;
+    }
+
+    /**
+     * An easy method for accessing the data in the array
+     *
+     * @param array $field_names (Optional) A list of field_names that you can use
+     *    to filter the returned array
+     *
+     * @return array
+     */
+    public function toArray($fields = [])
+    {
+        if (empty($fields) || !is_array($fields)) {
+            return $this->data;
+        } else {
+            return array_intersect_key($this->data, array_flip($fields));
+        }
     }
 
     /**

@@ -5,18 +5,17 @@ namespace  Sirum\AWS\SQS\GoogleDocsRequests;
 /**
  * Base level class for all Google Doc requests
  */
-class Delete extends BaseRequest
+class Delete extends HelperRequest
 {
     protected $properties = [
         'type',
         'method',
-        'folder',
+        'folderId',
         'fileId',
         'fileName'
     ];
 
     protected $required = [
-        'method',
-        'folder'
+        'method'
     ];
 }

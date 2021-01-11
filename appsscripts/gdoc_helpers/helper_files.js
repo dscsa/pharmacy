@@ -3,7 +3,7 @@ function removeFiles(opts) {
   var res      = []
   
   if (opts.fileId) {
-      var file = DriveApp.getFileByid(opts.fileId);
+      var file = DriveApp.getFileById(opts.fileId);
       file.setTrashed(true);
       try {
         file.setTrashed(true) //Prevent printing an old list that Cindy pended and shipped on her own
@@ -138,20 +138,24 @@ function isModified(next, opts) {
 //https://stackoverflow.com/questions/40476324/how-to-publish-to-the-web-a-spreadsheet-using-drive-api-and-gas
 function publishFile(opts){
 
-  var folder = DriveApp.getFoldersByName(opts.folder).next()
-  var file   = folder.searchFiles('title contains "'+opts.file+'"')
+  if (opts.fileId) {
+    var file = DriveApp.getByFileId(opts.fileId);
+  } else {
+    var folder = DriveApp.getFoldersByName(opts.folder).next()
+    var file   = folder.searchFiles('title contains "'+opts.file+'"')
 
-  if ( ! file.hasNext()) {
-    return debugEmail('publishFile NO SUCH FILE', 'File', opts)
+    if ( ! file.hasNext()) {
+      return debugEmail('publishFile NO SUCH FILE', 'File', opts)
+    }
+
+    file = file.next()
   }
-
-  file = file.next()
+  
   var fileId = file.getId()
 
   Logger.log('publishFile '+file.getName())
 
   //Side effect of this is that this account can no longer delete/trash/remove this file since must be done by owner
-
   if (file.getOwner().getEmail() != 'webform@goodpill.org') {
     debugEmail('publishFile WRONG OWNER', 'File', file.getName(), 'Active User', Session.getActiveUser().getEmail(),'Effective User', Session.getEffectiveUser().getEmail(), 'File Owner', file.getOwner().getEmail())
     file.setOwner('webform@sirum.org') //support@goodpill.org can only publish files that require sirum sign in

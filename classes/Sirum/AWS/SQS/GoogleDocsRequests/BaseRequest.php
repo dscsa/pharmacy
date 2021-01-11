@@ -7,27 +7,37 @@ use Sirum\AWS\SQS\Request;
 /**
  * Base level class for all Google Doc requests
  */
-class BaseRequest extends Request
+class BaseRequest extends \Sirum\AWS\SQS\Request
 {
-    static public function factory($request)
+    /**
+     * Function takes an array from SQS library.
+     * @var [type]
+     */
+    static public function factory($initialize_date)
     {
 
-        $request = json_decode($request);
-
-        if (!isset($request->type)) {
-            throw \Exception('Type is missing from message request');
+        if (is_array($initialize_date)) {
+            $body = $initialize_date['Body'];
+        } else if (is_string($initialize_date)) {
+            $body = $initialize_date;
         }
 
-        $type_name  = ucfirst(strtolower($request->type));
+        $body = json_decode($body);
+
+        if (!isset($body->type)) {
+            throw \Exception('Type is missing from message body');
+        }
+
+        $type_name  = ucfirst(strtolower($body->type));
         $class_name = "Sirum\\AWS\\SQS\\GoogleDocsRequests\\{$type_name}";
-        $request    = new $class_name(json_encode($request));
+        $request    = new $class_name($initialize_date);
 
         return $request;
     }
 
     public function __construct($json_request = null)
     {
-        $this->type = get_class($this);
+        $this->type = (new \ReflectionClass($this))->getShortName();
         parent::__construct($json_request);
     }
 }

@@ -2,6 +2,9 @@
 
 require_once 'helpers/helper_appsscripts.php';
 
+use Sirum\AWS\SQS\GoogleDocsRequests\Delete;
+use Sirum\AWS\SQS\GoogleDocsQueue;
+use Sirum\DataModels\Order;
 use Sirum\Logging\SirumLog;
 
 global $gd_merge_timers;
@@ -41,7 +44,7 @@ function export_gd_update_invoice($order, $reason, $mysql, $try2 = false)
         return $order;
     }
 
-    export_gd_delete_invoice($order[0]['invoice_number'], $order[0]['invoice_doc_id']); //Avoid having multiple versions of same invoice
+    export_gd_delete_invoice($order[0]['invoice_doc_id']); //Avoid having multiple versions of same invoice
 
     $args = [
         'method'   => 'mergeDoc',
@@ -234,37 +237,61 @@ function export_gd_publish_invoice($order, $mysql, $retry = false)
     return $order;
 }
 
-function export_gd_delete_invoice($invoice_number, $invoice_doc_id = null)
+/**
+ * Delete a specific Invoice by ID
+ *
+ * @param string $invoice_id    This should be the invoice_doc_id, but if the data
+ *      is an int < 10,000,000 we assum it is and invoice_number so we fetch the
+ *      invoice_doc_id
+ * @param boolean $async        (Optional) Should the request be sent to a queue
+ *      or should we wait while it runs
+ *
+ * @return boolean
+ */
+function export_gd_delete_invoice($invoice_id, $async = true)
 {
-    global $gd_merge_timers;
+    $invoice_doc_id = $invoice_id;
 
-    $args = [
-        'method'   => 'removeFiles',
-        'file'     => 'Invoice #'.$invoice_number,
-        'folder'   => INVOICE_PENDING_FOLDER_NAME
-    ];
-
-    if ($invoice_doc_id) {
-        $args['fileId'] = $invoice_doc_id;
+    // If it is a number less than 10,000,000 we can assume it's an
+    // invoice_number and not a doc_id.  We want the doc ID so we should get it
+    if (is_numeric($invoice_id) && strlen($invoice_id) < 10000000) {
+        // Go get the doc ID using a simple model
+        $order = new Order(['invoice_number' => $invoice_id]);
+        
+        if ($order->loaded
+            && isset($order->invoice_doc_id)) {
+                $invoice_doc_id = $order->invoice_doc_id;
+        } else {
+            return false;
+        }
     }
 
-    echo "\ndeleting invoice $invoice_number";
-    $start = microtime(true);
+    $delete_request            = new Delete();
+    $delete_request->method    = 'v2/removeFile';
+    $delete_request->fileId    = $invoice_doc_id;
+    $delete_request->group_id = $invoice_doc_id;
 
-    $result = gdoc_post(GD_HELPER_URL, $args);
+    if ($async) {
+        $gdq = new GoogleDocsQueue();
+        $gdq->send($delete_request);
+    } else {
+        $start  = microtime(true);
+        $args   = $delete_request->toArray();
+        //$result = gdoc_post(GD_HELPER_URL, $args);
+        $time   = ceil(microtime(true) - $start);
 
-    $time = ceil(microtime(true) - $start);
-    echo " completed in $time seconds";
+        SirumLog::debug(
+            'Invoice deleted while application waited',
+            [
+                "invoice_id" => $invoice_id,
+                "result"     => $result,
+                "time"       => $time
+            ]
+        );
 
+        global $gd_merge_timers;
+        $gd_merge_timers['export_gd_delete_invoice'] += ceil($time);
+    }
 
-    SirumLog::debug(
-        'export_gd_delete_invoice',
-        [
-            "invoice_number" => $invoice_number,
-            "result"         => $result,
-            "time"           => $time
-        ]
-    );
-
-    $gd_merge_timers['export_gd_delete_invoice'] += ceil(microtime(true) - $start);
+    return true;
 }
