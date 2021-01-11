@@ -8,9 +8,24 @@ use Sirum\Logging\SirumLog;
 function load_full_order($partial, $mysql, $overwrite_rx_messages = false) {
 
   if ( ! isset($partial['invoice_number'])) {
-    log_error('ERROR! get_full_order: was not given an invoice number', $partial);
+    log_error('ERROR! load_full_order: was not given an invoice number', $partial);
     return;
   }
+
+  $order = get_full_order($mysql, $partial['invoice_number']);
+
+  if ( ! $order)
+    return log_error("ERROR! load_full_order: no order with invoice number:$invoice_number #2 of 2. No Rxs? Patient just registered (invoice number is set and used in query but no items so order not imported from CP)?", get_defined_vars());
+
+  //WARNING THIS CALL HAS LOTS OF SIDE EFFECT
+  $order = add_full_fields($order, $mysql, $overwrite_rx_messages);
+  usort($order, 'sort_drugs_by_inorder'); //Put Rxs in order (with Rx_Source) at the top
+  $order = add_wc_status_to_order($order);
+
+  return $order;
+}
+
+function get_full_order($mysql, $invoice_number) {
 
   $month_interval = 6;
   $where = "
@@ -42,27 +57,20 @@ function load_full_order($partial, $mysql, $overwrite_rx_messages = false) {
     LEFT JOIN gp_stock_live ON -- might not have a match if no GSN match
       gp_rxs_grouped.drug_generic = gp_stock_live.drug_generic -- this is for the helper_days_and_message msgs for unordered drugs
     WHERE
-      gp_orders.invoice_number = $partial[invoice_number]
+      gp_orders.invoice_number = $invoice_number
   ";
 
   $order = $mysql->run($sql.$where)[0];
 
-  if ( ! $order OR ! $order[0]['invoice_number']) {
-    log_error("ERROR! get_full_order: no order with invoice number:$partial[invoice_number] #1 of 2. Order Was Temp Deleted to Add/Remove Items? No Recent Rxs?", get_defined_vars());
+  if ($order AND @$order[0]['invoice_number'])
+    return $order;
 
-    $order = $mysql->run($sql)[0];
+  log_error("ERROR! get_full_order: no order with invoice number:$invoice_number #1 of 2. Order Was Temp Deleted to Add/Remove Items? No Recent Rxs?", get_defined_vars());
 
-    if ( ! $order OR ! $order[0]['invoice_number']) {
-      log_error("ERROR! get_full_order: no order with invoice number:$partial[invoice_number] #2 of 2. No Rxs? Patient just registered (invoice number is set and used in query but no items so order not imported from CP)?", get_defined_vars());
-      return;
-    }
-  }
+  $order = $mysql->run($sql)[0];
 
-  $order = add_full_fields($order, $mysql, $overwrite_rx_messages);
-  usort($order, 'sort_drugs_by_inorder'); //Put Rxs in order (with Rx_Source) at the top
-  $order = add_wc_status_to_order($order);
-
-  return $order;
+  if ($order AND @$order[0]['invoice_number'])
+    return $order;
 }
 
 function add_wc_status_to_order($order) {
@@ -256,7 +264,7 @@ function get_order_stage_wc($order) {
     return str_replace('wc-', '', $order[0]['order_stage_wc']);
 
   log_error('get_order_stage_wc error: no known stage', get_defined_vars());
-  
+
   return 'on-hold';
 }
 
@@ -267,15 +275,17 @@ function get_current_orders($mysql, $conditions = []) {
     $where .= "$key = $val AND\n";
   }
 
-  $sql = "SELECT
-              *
-            FROM
-              gp_orders
-            WHERE
-              $where
-              order_date_dispensed IS NULL
-            ORDER BY
-              invoice_number ASC";
+  $sql = "
+    SELECT
+      *
+    FROM
+      gp_orders
+    WHERE
+      $where
+      order_date_dispensed IS NULL
+    ORDER BY
+      invoice_number ASC
+  ";
 
   return $mysql->run($sql)[0];
 }

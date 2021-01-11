@@ -11,44 +11,11 @@ function load_full_patient($partial, $mysql, $overwrite_rx_messages = false) {
     return;
   }
 
-  $month_interval = 6;
+  $patient = get_full_patient($mysql, $partial['patient_id_cp']);
 
-  $sql = "
-    SELECT
-      *,
-      gp_rxs_grouped.*, -- Need to put this first based on how we are joining, but make sure these grouped fields overwrite their single equivalents
-      gp_patients.patient_id_cp,
-      0 as is_order,
-      1 as is_patient,
-      0 as is_item
-    FROM
-      gp_patients
-    LEFT JOIN gp_rxs_grouped ON -- Show all Rxs on Invoice regardless if they are in order or not
-      gp_rxs_grouped.patient_id_cp = gp_patients.patient_id_cp
-    LEFT JOIN gp_rxs_single ON -- Needed to know qty_left for sync-to-date
-      gp_rxs_grouped.best_rx_number = gp_rxs_single.rx_number
-    LEFT JOIN gp_stock_live ON -- might not have a match if no GSN match
-      gp_rxs_grouped.drug_generic = gp_stock_live.drug_generic -- this is for the helper_days_and_message msgs for unordered drugs
-    LEFT JOIN gp_order_items ON -- choice to show any order_item from this rx_group and not just if this specific rx matches
-      gp_order_items.rx_dispensed_id IS NULL AND
-      rx_numbers LIKE CONCAT('%,', gp_order_items.rx_number, ',%')
-    LEFT JOIN gp_orders ON -- ORDER MAY HAVE NOT BEEN ADDED YET
-      gp_orders.invoice_number = gp_order_items.invoice_number
-    WHERE
-      gp_patients.patient_id_cp = $partial[patient_id_cp]
-  ";
-
-  if ( ! $overwrite_rx_messages)
-    $sql .= "
-      AND (CASE WHEN refills_total THEN gp_rxs_grouped.rx_date_expired ELSE COALESCE(gp_rxs_grouped.rx_date_transferred, gp_rxs_grouped.refill_date_last) END) > CURDATE() - INTERVAL $month_interval MONTH
-    ";
-
-  //If we are not overwritting messages just get recent scripts, otherwise make sure we get all the rxs so we can overwrite them
-  $patient = $mysql->run($sql)[0];
-
-  if ( ! @$patient[0]) {
-      log_error("ERROR! get_full_patient: no active patient with id:$partial[patient_id_cp]. Deceased or Inactive Patient with Rxs", get_defined_vars());
-      return;
+  if ( ! $patient) {
+    log_error("ERROR! load_full_patient: no active patient with id:$partial[patient_id_cp]. Deceased or Inactive Patient with Rxs", get_defined_vars());
+    return;
   }
 
   SirumLog::notice(
@@ -77,6 +44,41 @@ function load_full_patient($partial, $mysql, $overwrite_rx_messages = false) {
   $patient = add_sig_differences($patient);
 
   return $patient;
+}
+
+function get_full_patient($mysql, $patient_id_cp) {
+
+  $month_interval = 6;
+
+  $sql = "
+    SELECT
+      *,
+      gp_rxs_grouped.*, -- Need to put this first based on how we are joining, but make sure these grouped fields overwrite their single equivalents
+      gp_patients.patient_id_cp,
+      0 as is_order,
+      1 as is_patient,
+      0 as is_item
+    FROM
+      gp_patients
+    LEFT JOIN gp_rxs_grouped ON -- Show all Rxs on Invoice regardless if they are in order or not
+      gp_rxs_grouped.patient_id_cp = gp_patients.patient_id_cp
+    LEFT JOIN gp_rxs_single ON -- Needed to know qty_left for sync-to-date
+      gp_rxs_grouped.best_rx_number = gp_rxs_single.rx_number
+    LEFT JOIN gp_stock_live ON -- might not have a match if no GSN match
+      gp_rxs_grouped.drug_generic = gp_stock_live.drug_generic -- this is for the helper_days_and_message msgs for unordered drugs
+    LEFT JOIN gp_order_items ON -- choice to show any order_item from this rx_group and not just if this specific rx matches
+      gp_order_items.rx_dispensed_id IS NULL AND
+      rx_numbers LIKE CONCAT('%,', gp_order_items.rx_number, ',%')
+    LEFT JOIN gp_orders ON -- ORDER MAY HAVE NOT BEEN ADDED YET
+      gp_orders.invoice_number = gp_order_items.invoice_number
+    WHERE
+      gp_patients.patient_id_cp = $patient_id_cp
+  ";
+
+  $patient = $mysql->run($sql)[0];
+
+  if ($patient AND @$patient[0]['patient_id_cp'])
+    return $patient;
 }
 
 function add_sig_differences($patient) {

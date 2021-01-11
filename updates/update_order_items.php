@@ -104,7 +104,7 @@ function update_order_items($changes)
                     dispensed all within the time between cron jobs",
                 [ 'item' => $item, 'created' => $created]
             );
-            SirumLog::debug("Freezing Item as because it's dispensed", $item);
+            SirumLog::debug("Freezing Item because it's dispensed", $item);
             $item = set_item_invoice_data($item, $mysql);
             continue;
         }

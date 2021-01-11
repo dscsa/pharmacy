@@ -18,7 +18,9 @@ function get_days_and_message($item, $patient_or_order) {
   // Is this an item we will transfer
   $no_transfer      = is_no_transfer($item);
 
-  // What does this mean and is it significant
+  // Added by a person, rather than automation, either through CarePoint or Patient Portal
+  // we assume that this person knows what they are doing, so we don't want to override
+  //their preference if automation thinks something else should be done instead.
   $added_manually   = is_added_manually($item);
 
   // Origination of this item was carepoint not WooCommerce?
@@ -30,14 +32,16 @@ function get_days_and_message($item, $patient_or_order) {
   // Not the first time filling this Rx
   $is_refill        = is_refill($item, $patient_or_order);
 
-  // Don't fil new perscriptions, Only fill refill
+  // Don't fill new perscriptions, Only fill refill
   $refill_only      = is_refill_only($item);
 
-  // Does this item exist more than once in the current order
+  // 2+ Rxs of the same drug in the order (may be same or different sig_qty_per_day).  This is (almost?) always a mistake
+  // NOTE This won't detect properly if coming from get_full_item because patient_or_order is just mocked as [item] so
+  // the other items can't actually be checked to see if they have same gsn as the current item
   $is_duplicate_gsn = is_duplicate_gsn($item, $patient_or_order);
 
-  // What is the relevance of item_date_added?
-  // What does syncable mean ?
+  // syncable means that an item is not currently in an order but could/should be added to that order
+  // item_date_added is used to determine whether the item is in the order or not
   $is_syncable      = is_syncable($item);
 
   // The current level for the item_message_keys
