@@ -63,7 +63,11 @@ function update_orders_cp($changes)
         }
 
         if (count($duplicate) > 1
-            and $duplicate[0]['invoice_number'] != $created['invoice_number']) {
+            and $duplicate[0]['invoice_number'] != $created['invoice_number']
+            and (
+              ! is_webform_transfer($order[0]) OR
+              ! is_webform_transfer($duplicate[0]) 
+            )) {
             SirumLog::warning(
                 sprintf(
                     "Created Carepoint Order Seems to be a duplicate %s >>> %s",
