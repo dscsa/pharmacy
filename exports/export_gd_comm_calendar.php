@@ -574,15 +574,15 @@ function confirm_shipment_external($groups) {
 
   $subject = "Order #".$groups['ALL'][0]['invoice_number']." was shipped last week and should have arrived";
 
-  $text['message'] = "$subject. If you haven’t received your order, please reply '1' or call us at 888-9875187 so we can help.";
+  $text['message'] = "$subject. If you haven't received your order, please reply '1' or call us at 888-9875187 so we can help.";
 
-  $call['message'] =  call_wrapper(format_call("$subject. If you haven’t received your order, please call us so we can help."));
+  $call['message'] =  call_wrapper(format_call("$subject. If you haven't received your order, please call us so we can help."));
 
   $email['subject'] = $subject;
   $email['message'] = implode('<br>', [
     'Hello,',
     '',
-    "$subject. If you haven’t received your order, please reply back to this email or call us at 888-9875187",
+    "$subject. If you haven't received your order, please reply back to this email or call us at 888-9875187",
     '',
     'Thanks!',
     'The Good Pill Team',
