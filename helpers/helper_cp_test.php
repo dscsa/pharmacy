@@ -14,7 +14,7 @@ function cp_test() {
         $result = $results->fetch();
     } catch (Exception $e) {
         // notify PagerDuty
-        pd_high_priority('Carepoint database cannot be reached.  Possible Internet Outage at pharmacy', 'cp-outage');
+        pd_guardian('Carepoint database cannot be reached.  Possible Internet Outage at pharmacy', 'cp-outage');
         return false;
     }
 
