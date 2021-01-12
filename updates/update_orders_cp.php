@@ -106,8 +106,11 @@ function update_orders_cp($changes)
                 "Duplicate of {$duplicate[0]['invoice_number']}"
             );
 
-            if (is_webform($created) {
-                export_wc_cancel_order($created['invoice_number'], "Duplicate of {$duplicate[0]['invoice_number']}");
+            if (is_webform($created)) {
+                export_wc_cancel_order(
+                    $created['invoice_number'],
+                    "Duplicate of {$duplicate[0]['invoice_number']}"
+                );
             } else {
                 export_wc_delete_order($created['invoice_number'], "Duplicate of {$duplicate[0]['invoice_number']}");
             }
