@@ -141,23 +141,23 @@ function sync_to_date($order, $mysql) {
   if ( ! $new_days_default OR $new_days_default == DAYS_STD)
     return $order;
 
-  foreach ($order as $i => $item) {
+  foreach ($order as $i => $dontuse) {
 
     //Don't try to sync stuff not in order, just what's in the order
-    if ( ! $item['item_date_added'])
+    if ( ! $order[$i]['item_date_added'])
       continue;
 
-    $sync_to_date_days_change = $new_days_default - $item['days_dispensed_default'];
+    $sync_to_date_days_change = $new_days_default - $order[$i]['days_dispensed_default'];
 
     //Don't set rx_message to something as being synced if it was the target and therefore didn't change
     if ($sync_to_date_days_change > -5 AND $sync_to_date_days_change < 5)
       continue;
 
-    $order[$i]['qty_dispensed']   = $order[$i]['qty_dispensed_default']   = $new_days_default*$item['sig_qty_per_day'];
-    $order[$i]['price_dispensed'] = $order[$i]['price_dispensed_default'] = ceil($new_days_default*($item['price_per_month'] ?: 0)/30); //Might be null
+    $order[$i]['qty_dispensed']   = $order[$i]['qty_dispensed_default']   = $new_days_default*$order[$i]['sig_qty_per_day'];
+    $order[$i]['price_dispensed'] = $order[$i]['price_dispensed_default'] = ceil($new_days_default*($order[$i]['price_per_month'] ?: 0)/30); //Might be null
 
     //NOT CURRENTLY USED BUT FOR AUDITING PURPOSES
-    $order[$i]['sync_to_date_days_before']          = $item['days_dispensed_default'];
+    $order[$i]['sync_to_date_days_before']          = $order[$i]['days_dispensed_default'];
     $order[$i]['sync_to_date_days_change']          = $sync_to_date_days_change;
 
     $order[$i]['sync_to_date_max_days_default']     = $max_days_default;
@@ -174,9 +174,9 @@ function sync_to_date($order, $mysql) {
         gp_order_items
       SET
         days_dispensed_default            = $new_days_default,
-        qty_dispensed_default             = ".$order[$i]['qty_dispensed_default'].",
-        price_dispensed_default           = ".$order[$i]['price_dispensed_default'].",
-        sync_to_date_days_before          = $item[days_dispensed_default],
+        qty_dispensed_default             = {$order[$i]['qty_dispensed_default']},
+        price_dispensed_default           = {$order[$i]['price_dispensed_default']},
+        sync_to_date_days_before          = {$order[$i]['days_dispensed_default']},
         sync_to_date_max_days_default     = $max_days_default,
         sync_to_date_max_days_default_rxs = '".implode(',', $max_days_default_rxs)."',
         sync_to_date_min_days_refills     = $min_days_refills,
@@ -184,18 +184,19 @@ function sync_to_date($order, $mysql) {
         sync_to_date_min_days_stock       = $min_days_stock,
         sync_to_date_min_days_stock_rxs   = '".implode(',', $min_days_stock_rxs)."'
       WHERE
-        rx_number = $item[rx_number]
-        AND invoice_number = ".$order[0]['invoice_number'];
+        rx_number = {$order[$i]['rx_number']}
+        AND invoice_number = {$order[$i]['invoice_number']}
+      ";
 
     $mysql->run($sql);
 
-    $order[$i] = v2_unpend_item($item, $mysql, "unpend for sync_to_date");
-    $order[$i] = v2_pend_item($item, $mysql,  "pend for sync_to_date");
+    $order[$i] = v2_unpend_item($order[$i], $mysql, "unpend for sync_to_date");
+    $order[$i] = v2_pend_item($order[$i], $mysql,  "pend for sync_to_date");
 
     $order[$i]['days_dispensed'] = $order[$i]['days_dispensed_default']  = $new_days_default;
-    $order[$i] = export_cp_set_rx_message($item, RX_MESSAGE['NO ACTION SYNC TO DATE'], $mysql);
+    $order[$i] = export_cp_set_rx_message($order[$i], RX_MESSAGE['NO ACTION SYNC TO DATE'], $mysql);
 
-    log_notice('helper_syncing: sync_to_date and repended in v2', ['item' => $item, 'sql' => $sql]);
+    log_notice('helper_syncing: sync_to_date and repended in v2', ['order[i]' => $order[$i], 'sql' => $sql]);
   }
 
   return $order;
