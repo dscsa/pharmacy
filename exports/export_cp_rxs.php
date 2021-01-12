@@ -42,12 +42,12 @@ function export_cp_rx_autofill($item, $mssql) {
   if (!@$item['rx_autofill']) {
       return;
   }
-  
+
   //use drugs_gsns instead of rx_gsn just in case there are multiple gsns for this drug
   $rx_numbers  = str_replace(',', "','", substr($item['rx_numbers'], 1, -1));
 
   $sql = "UPDATE cprx
-            SET autofill_yn = {$item['rx_autofill'])},
+            SET autofill_yn = {$item['rx_autofill']},
                 chg_date = GETDATE()
             WHERE script_no IN ('{$rx_numbers}')";
 
