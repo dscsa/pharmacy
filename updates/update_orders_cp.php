@@ -102,6 +102,11 @@ function update_orders_cp($changes)
                 "Duplicate of {$duplicate[0]['invoice_number']}"
             );
 
+            export_gd_delete_invoice(
+                $created['invoice_number'],
+                "Duplicate of {$duplicate[0]['invoice_number']}"
+            );
+
             continue;
         }
 
@@ -221,6 +226,7 @@ function update_orders_cp($changes)
 
             $order  = export_v2_unpend_order($order, $mysql, $reason);
             export_cp_remove_order($order[0]['invoice_number'], $reason);
+            export_gd_delete_invoice($order[0]['invoice_number'],  $reason);
             continue;
         }
 
@@ -354,6 +360,8 @@ function update_orders_cp($changes)
                     'patient'     => $patient
                 ]
             );
+
+            // TODO:BEN Add an if here to see if we even have a wp to delete
 
             export_wc_delete_order($deleted['invoice_number'], "update_orders_cp: cp order deleted but replacement");
 
@@ -571,6 +579,7 @@ function update_orders_cp($changes)
              */
             $order = export_v2_unpend_order($order, $mysql, 'Updated Empty');
             export_cp_remove_order($order[0]['invoice_number'], 'Updated Empty');
+            export_gd_delete_invoice($order[0]['invoice_number'], 'Updated Empty');
             continue;
         }
 

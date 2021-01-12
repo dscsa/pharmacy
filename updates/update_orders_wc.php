@@ -68,7 +68,12 @@ function update_orders_wc($changes)
             );
 
             SirumLog::warning(
-                'Order #%s was created in Patient Portal, but it appears #%s is a duplicate',
+                sprintf(
+                    "Order #%s was created in Patient Portal,
+                    but it appears #%s is a duplicate",
+                    $created['invoice_number'],
+                    $duplicate[0]['invoice_number']
+                ),
                 [
                     'created' => $created,
                     'duplicate' => $duplicate
@@ -142,6 +147,7 @@ function update_orders_wc($changes)
                 ),
                 $created
             );
+            
             export_wc_cancel_order(
                 $created['invoice_number'],
                 sprintf(
