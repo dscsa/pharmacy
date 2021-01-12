@@ -43,16 +43,15 @@ function group_drugs($order, $mysql) {
     $days = @$item['days_dispensed'];
     $fill = $days ? 'FILLED_' : 'NOFILL_';
 
-    $msg = patient_message_text($item);
-
-    if (strpos($msg, 'NO ACTION') !== false)
+    if (strpos($item['rx_message_key'], 'NO ACTION') !== false)
       $action = 'NOACTION';
-    else if (strpos($msg, 'ACTION') !== false)
+    else if (strpos($item['rx_message_key'], 'ACTION') !== false)
       $action = 'ACTION';
     else
       $action = 'NOACTION';
 
     $price = patient_pricing_text($item);
+    $msg   = patient_message_text($item);
 
     $groups[$fill.$action][] = $item['drug'].$msg;
 

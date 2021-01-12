@@ -338,9 +338,9 @@ function order_updated_notice($groups, $patient_updates) {
 function needs_form_notice($groups) {
 
   ///It's depressing to get updates if nothing is being filled
-  if ($groups['FILLED']) {
+  if ($groups['NOFILL_ACTION']) {
     $subject = 'Welcome to Good Pill!  We are excited to fill your prescriptions.';
-    $message = 'Your first order, #'.$groups['ALL'][0]['invoice_number'].", will cost $6, paid after you receive your medications. Please take 5mins to register so that we can fill the Rxs we got from your doctor as soon as possible. Once you register it will take 5-7 business days before you receive your order. You can register online at www.goodpill.org or by calling us at (888) 987-5187.<br><br><u>The drugs in your first order will be:</u><br>".implode(';<br>', $groups['FILLED_ACTION']).';';
+    $message = 'Your first order, #'.$groups['ALL'][0]['invoice_number'].", will cost $6, paid after you receive your medications. Please take 5mins to register so that we can fill the Rxs we got from your doctor as soon as possible. Once you register it will take 5-7 business days before you receive your order. You can register online at www.goodpill.org or by calling us at (888) 987-5187.<br><br><u>The drugs in your first order will be:</u><br>".implode(';<br>', $groups['NOFILL_ACTION']).';';
     //log_error("NEEDS FORM NOTICE DOES NOT HAVE DRUGS LISTED", [$groups, $message, $subject]);
   }
   else {
@@ -389,7 +389,7 @@ function needs_form_notice($groups) {
 
   needs_form_event($groups['ALL'], $email, $text, null, $hours_to_wait[0], $hour_of_day[0]);
 
-  if ( ! $groups['ALL'][0]['count_filled']) return; //Don't hassle folks if we aren't filling anything
+  if ( ! $groups['NOFILL_ACTION']) return; //Don't hassle folks if we aren't filling anything
 
   needs_form_event($groups['ALL'], $email, $text, null, $hours_to_wait[1], $hour_of_day[1]);
   needs_form_event($groups['ALL'], $email, $text, null, $hours_to_wait[2], $hour_of_day[2]);
@@ -397,9 +397,9 @@ function needs_form_notice($groups) {
   $date = "Created:".date('Y-m-d H:i:s');
 
   $salesforce = [
-      "subject"   => "$created[first_name] $created[last_name] $created[birth_date] has not registered yet",
+      "subject"   => "{$groups['ALL'][0]['first_name']} {$groups['ALL'][0]['last_name']} {$groups['ALL'][0]['birth_date']} has not registered yet",
       "body"      => "Patient did not register from our automated outreach, please reach out and register them.  $date",
-      "contact"   => "$created[first_name] $created[last_name] $created[birth_date]",
+      "contact"   => "{$groups['ALL'][0]['first_name']} {$groups['ALL'][0]['last_name']} {$groups['ALL'][0]['birth_date']}",
       "assign_to" => "Kiah", //".Register New Patient - Tech",
       "due_date"  => substr(get_start_time($hours_to_wait[3], $hour_of_day[3]), 0, 10)
   ];
@@ -574,15 +574,15 @@ function confirm_shipment_external($groups) {
 
   $subject = "Order #".$groups['ALL'][0]['invoice_number']." was shipped last week and should have arrived";
 
-  $text['message'] = "$subject. If you haven’t received your order, please reply '1' or call us at 888-9875187 so we can help.";
+  $text['message'] = "$subject. If you haven't received your order, please reply '1' or call us at 888-9875187 so we can help.";
 
-  $call['message'] =  call_wrapper(format_call("$subject. If you haven’t received your order, please call us so we can help."));
+  $call['message'] =  call_wrapper(format_call("$subject. If you haven't received your order, please call us so we can help."));
 
   $email['subject'] = $subject;
   $email['message'] = implode('<br>', [
     'Hello,',
     '',
-    "$subject. If you haven’t received your order, please reply back to this email or call us at 888-9875187",
+    "$subject. If you haven't received your order, please reply back to this email or call us at 888-9875187",
     '',
     'Thanks!',
     'The Good Pill Team',
