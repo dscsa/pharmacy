@@ -74,21 +74,14 @@ function get_full_item($mysql, $rx_number, $invoice_number = null) {
 
 
   $sql = "SELECT
-              gp_rxs_single.rx_number,
-              gp_rxs_grouped.rx_numbers,
-              gp_rxs_single.patient_id_cp rx_patient_id_cp,
-              gp_patients.patient_id_cp
-            FROM
-              gp_rxs_single
-            LEFT JOIN gp_patients ON
-              gp_rxs_single.patient_id_cp = gp_patients.patient_id_cp
-            LEFT JOIN gp_rxs_grouped ON
-              rx_numbers LIKE CONCAT('%,', gp_rxs_single.rx_number, ',%')
+              gp_rxs_single.rx_number
             WHERE
               gp_rxs_single.rx_number = {$rx_number}";
 
   $query = $mysql->run($sql)[0];
   $debug_details  = $query;
+
+  SirumLog::alert("load_full_item:  Debug", ['debug' => $debug_details]);
 
   $sql = "SELECT
               *,
@@ -121,7 +114,6 @@ function get_full_item($mysql, $rx_number, $invoice_number = null) {
   $query = $mysql->run($sql)[0];
 
   if ( ! @$query[0][0]) {
-    SirumLog::alert("load_full_item:  Debug", ['debug' => $debug_details]);
     get_full_item_debug($mysql, $rx_number, $sql);
     return;
   }
