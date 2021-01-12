@@ -113,6 +113,10 @@ function get_full_item($mysql, $rx_number, $invoice_number = null) {
 
   $query = $mysql->run($sql)[0];
 
+
+  SirumLog::alert("load_full_item:  Query", ['debug' => $query]);
+
+
   if ( ! @$query[0][0]) {
     get_full_item_debug($mysql, $rx_number, $sql);
     return;
