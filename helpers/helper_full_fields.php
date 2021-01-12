@@ -120,8 +120,9 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
               "sync_to_date_days_before"   => @$patient_or_order[$i]['sync_to_date_days_before']
             ];
 
-            if (($days_added OR $needs_adding) AND @$patient_or_order[$i]['order_date_dispensed']) //54376 Sertraline. Probably should create a new order?
-              SirumLog::alert("get_days_and_message ADDING ITEMS RIGHT BEFORE DISPENSING ORDER? $log_suffix", $get_days_and_message);
+             //54376 Sertraline. Probably should create a new order?
+            if (($days_added OR $needs_adding) AND @$patient_or_order[$i]['order_date_dispensed'])
+              SirumLog::error("get_days_and_message ADDING ITEMS RIGHT BEFORE DISPENSING ORDER? $log_suffix", $get_days_and_message);
             else
               SirumLog::notice("get_days_and_message $log_suffix", $get_days_and_message);
 

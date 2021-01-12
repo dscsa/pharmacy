@@ -78,6 +78,7 @@ function update_orders_wc($changes)
             // In case there is an order_note move it to the first order so we
             // don't lose it, when we delete this order
             if ($created['order_note']) {
+                $mssql = $mssql ?: new Mssql_Cp();
                 export_cp_append_order_note($mssql, $duplicate[0]['invoice_number'], $created['order_note']);
             }
         }
