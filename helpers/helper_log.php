@@ -328,7 +328,7 @@ function log_timer($label, $start_time, $count) {
   $global_exec_details['timers_loops']["$label-count"]   = $count;
   $global_exec_details['timers_loops']["$label-average"] = $average_time;
 
-    if ($average_time > 75){
+    if ($average_time > 75) {
         $log_msg = "helper_log log_timer: $label has long average time loop time of $average_time seconds";
         $log_data = [
           'start_time'          => $start_time,
@@ -337,10 +337,11 @@ function log_timer($label, $start_time, $count) {
           '$average_time'       => $average_time,
           'global_exec_details' => $global_exec_details
         ];
-        if ($average_time <= 30) {
-            SirumLog::warning($log_msg, $log_data);
-        } else {
+
+        if ($average_time > 100) {
             SirumLog::alert($log_msg, $log_data);
+        } else {
+            SirumLog::error($log_msg, $log_data);
         }
     }
 }
