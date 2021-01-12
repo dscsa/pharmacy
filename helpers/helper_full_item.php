@@ -11,8 +11,38 @@ function load_full_item($partial, $mysql, $overwrite_rx_messages = false) {
 
   $item = get_full_item($mysql, $partial['rx_number'], @$partial['invoice_number']);
 
-  if ( ! $item)
+  if ( ! $item) {
+    $sql1 = "SELECT * FROM gp_rxs_single WHERE rx_number = $partial[rx_number]";
+    $res1 = $mysql->run($sql1)[0];
+
+    $sql2 = "SELECT * FROM gp_order_items WHERE rx_number = $partial[rx_number]";
+    $res2 = $mysql->run($sql2)[0];
+
+    $sql3 = "SELECT * FROM gp_order_items WHERE invoice_number = $partial[invoice_number]";
+    $res3 = $mysql->run($sql3)[0];
+
+    $sql4 = "SELECT * FROM gp_orders WHERE invoice_number = $partial[invoice_number]";
+    $res4 = $mysql->run($sql4)[0];
+
+    $sql5 = "SELECT * FROM gp_patients WHERE patient_id_cp = $partial[patient_id_cp]";
+    $res5 = $mysql->run($sql5)[0];
+
+    log_error("load_full_item: no item!", [
+      'sql1' => $sql1,
+      'res1' => $res1,
+      'sql2' => $sql2,
+      'res2' => $res2,
+      'sql3' => $sql3,
+      'res3' => $res3,
+      'sql4' => $sql4,
+      'res4' => $res4,
+      'sql5' => $sql5,
+      'res5' => $res5,
+      'partial' => $partial
+    ]);
+
     return;
+  }
 
   if (@$partial['invoice_number']) {
     $order = get_full_order($mysql, $partial['invoice_number']);
