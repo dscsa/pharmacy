@@ -79,6 +79,7 @@ function get_full_item_debug($mysql, $rx_number, $sql) {
   $debug = "
     SELECT
       *,
+      gp_orders.invoice_number as has_gp_orders,
       gp_order_items.rx_number as has_gp_order_items,
       gp_rxs_grouped.rx_numbers as has_gp_rxs_grouped,
       gp_rxs_single.rx_number as has_gp_rxs_single,
@@ -94,6 +95,8 @@ function get_full_item_debug($mysql, $rx_number, $sql) {
       gp_rxs_single.patient_id_cp = gp_patients.patient_id_cp
     LEFT JOIN gp_stock_live ON -- might not have a match if no GSN match
       gp_rxs_grouped.drug_generic = gp_stock_live.drug_generic
+    LEFT JOIN gp_orders ON -- ORDER MAY HAVE NOT BEEN ADDED YET
+      gp_orders.invoice_number = gp_order_items.invoice_number
     WHERE
       gp_order_items.rx_number = $rx_number
   ";
