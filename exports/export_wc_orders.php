@@ -282,7 +282,7 @@ function export_wc_return_order($invoice_number)
 
 function export_wc_remove_order($order, $reason, $ref = null) {
     if (!is_null($ref)){
-        
+
     }
 }
 
@@ -362,16 +362,17 @@ function export_wc_create_order($order, $reason)
 
     //if order is set, then its just a this order already exists error
     if (! empty($res['error']) or empty($res['order'])) {
-        if (
-      stripos($first_item['first_name'], 'TEST') === false
-      and stripos($first_item['last_name'], 'TEST') === false) {
+        if (stripos($first_item['first_name'], 'TEST') === false
+                && stripos($first_item['last_name'], 'TEST') === false) {
+
+            // This needs to be a task assigned to somebody to follow up
             SirumLog::alert(
                 "export_wc_create_order: res[error] for $url: need to create/rename WC patient",
                 [
-          'reason' => $reason,
-          'res' => $res,
-          'first_item' => $first_item
-        ]
+                  'reason' => $reason,
+                  'res' => $res,
+                  'first_item' => $first_item
+                ]
             );
         }
 
@@ -383,7 +384,6 @@ function export_wc_create_order($order, $reason)
     //These are the metadata that should NOT change
     //wc_upsert_meta($order_meta, 'shipping_method_id', ['31694']);
     //wc_upsert_meta($order_meta, 'shipping_method_title', ['31694' => 'Admin Fee']);
-
     $metadata = [
       'patient_id_cp'     => $first_item['patient_id_cp'],
       'patient_id_wc'     => $first_item['patient_id_wc'],

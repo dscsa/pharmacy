@@ -430,7 +430,7 @@ function update_orders_cp($changes)
     foreach ($changes['updated'] as $i => $updated) {
         SirumLog::$subroutine_id = "orders-cp-updated-".sha1(serialize($updated));
 
-        $changed  = changed_fields($updated);
+        $changed = changed_fields($updated);
 
         SirumLog::debug(
             "Carepoint Order {$updated['invoice_number']} has been updated",
@@ -450,7 +450,7 @@ function update_orders_cp($changes)
             sprintf(
                 "Updated Orders Cp: %s %s of %s",
                 $updated['invoice_number'],
-                ($i+1),
+                ($i + 1),
                 count($changes['updated'])
             ),
             [ 'changed' => $changed]
@@ -483,6 +483,7 @@ function update_orders_cp($changes)
                 ),
                 $updated
             );
+
             SirumLog::alert(
                 'Confirm this order was returned! cp_order with tracking number was deleted, but we keep it in gp_orders and in wc',
                 [ 'updated' => $updated ]
@@ -495,41 +496,49 @@ function update_orders_cp($changes)
             continue;
         }
 
-        if ($stage_change_cp and $updated['order_date_shipped']) {
-            AuditLog::log(
-                sprintf(
-                    "Order %s was shipped.  Tracking number is %s",
-                    $updated['invoice_number'],
-                    $order[0]['tracking_number']
-                ),
-                $order
-            );
+        if ($stage_change_cp
+            && ($updated['order_date_shipped'] || $updated['order_date_dispensed'])
+        ) {
+            if ($updated['order_date_dispensed'] != $updated['old_order_date_dispensed']) {
+                AuditLog::log(
+                    sprintf(
+                        "Order %s was dispensed at %s",
+                        $updated['invoice_number'],
+                        $updated['order_date_dispensed']
+                    ),
+                    $updated
+                );
+                $reason = "update_orders_cp updated: Updated Order Dispensed ".$updated['invoice_number'];
+                $order = helper_update_payment($order, $reason, $mysql);
+                $order = export_gd_update_invoice($order, $reason, $mysql);
+                $order = export_gd_publish_invoice($order, $mysql);
+                export_gd_print_invoice($order);
+                send_dispensed_order_communications($groups);
+                SirumLog::notice($reason, [ 'order' => $order ]);
+            }
 
-            SirumLog::notice("Updated Order Shipped Started", [ 'order' => $order ]);
-            $order = export_v2_unpend_order($order, $mysql, "Order Shipped");
-            export_wc_update_order_status($order); //Update status from prepare to shipped
-            export_wc_update_order_metadata($order);
-            send_shipped_order_communications($groups);
+            if ($updated['order_date_shipped'] != $updated['old_order_date_shipped']) {
+                AuditLog::log(
+                    sprintf(
+                        "Order %s was shipped at %s.  The tracking number is %s",
+                        $updated['order_date_shipped'],
+                        $updated['invoice_number'],
+                        $order[0]['tracking_number']
+                    ),
+                    $updated
+                );
+
+                SirumLog::notice("Updated Order Shipped Started", [ 'order' => $order ]);
+                $order = export_v2_unpend_order($order, $mysql, "Order Shipped");
+                export_wc_update_order_status($order); //Update status from prepare to shipped
+                export_wc_update_order_metadata($order);
+                send_shipped_order_communications($groups);
+            }
+
             continue;
         }
 
-        if ($stage_change_cp and $updated['order_date_dispensed']) {
-            AuditLog::log(
-                sprintf(
-                    "Order %s was dispensed",
-                    $updated['invoice_number']
-                ),
-                $updated
-            );
-            $reason = "update_orders_cp updated: Updated Order Dispensed ".$updated['invoice_number'];
-            $order = helper_update_payment($order, $reason, $mysql);
-            $order = export_gd_update_invoice($order, $reason, $mysql);
-            $order = export_gd_publish_invoice($order, $mysql);
-            export_gd_print_invoice($order);
-            send_dispensed_order_communications($groups);
-            SirumLog::notice($reason, [ 'order' => $order ]);
-            continue;
-        }
+
 
         /*
             We should be able to delete wc-confirm-* from CP queue without
