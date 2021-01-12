@@ -397,8 +397,14 @@ function needs_form_notice($groups) {
   $date = "Created:".date('Y-m-d H:i:s');
 
   $salesforce = [
-      "subject"   => "{$groups['ALL'][0]['first_name']} {$groups['ALL'][0]['last_name']} {$groups['ALL'][0]['birth_date']} has not registered yet",
-      "body"      => "Patient did not register from our automated outreach, please reach out and register them.  $date",
+      "subject"   => "Call Unregistered Patient",
+      "body"      => "Call Unregistered Patient
+        -If patient has a backup pharmacy in Salesforce, go to webform and check that there is an order number in their Account Details page! If not, place an order for the patient’s medications.
+        -If there’s no backup pharmacy, call the patient to register. Call script here: https://docs.google.com/document/d/1YUtdX-Mx-4jzngFLVrAR2-ams4yLst5Sc_zPZIadkTU/edit
+        -Attempt 2 calls/voicemails over two days. Even if the phone number is invalid or unavailable, attempt a second call.
+        -After 2 failed attempts, reassign this task to .Flag Clinic/Provider Issue - Admin.
+        $date
+      ",
       "contact"   => "{$groups['ALL'][0]['first_name']} {$groups['ALL'][0]['last_name']} {$groups['ALL'][0]['birth_date']}",
       "assign_to" => "Kiah", //".Register New Patient - Tech",
       "due_date"  => substr(get_start_time($hours_to_wait[3], $hour_of_day[3]), 0, 10)
