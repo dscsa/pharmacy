@@ -73,7 +73,65 @@ function wc_update_patient($patient) {
     $pdo->bindParam(':user_nicename', $nicename, \PDO::PARAM_STR);
     $pdo->bindParam(':user_email', $patient['email'], \PDO::PARAM_STR);
     $pdo->bindParam(':display_name', $login, \PDO::PARAM_STR);
-    $pdo->bindParam(':patient_id_wc', $user_login, \PDO::PARAM_INT);
+    $pdo->bindParam(':patient_id_wc', $patient['patient_id_wc'], \PDO::PARAM_INT);
+
+    $mysql = ($mysql) ?: new Mysql_Wc();
+
+    // update all the first_name meta
+    foreach ([
+                'first_name',
+                'billing_first_name',
+                'shipping_first_name'
+             ] as $meta_key) {
+        wc_upsert_patient_meta(
+            $mysql,
+            $patient['patient_id_wc'],
+            $meta_key,
+            $patient['first_name']
+        );
+    }
+
+    foreach ([
+                'last_name',
+                'billing_last_name',
+                'shipping_last_name'
+             ] as $meta_key) {
+        wc_upsert_patient_meta(
+            $mysql,
+            $patient['patient_id_wc'],
+            $meta_key,
+            $patient['last_name']
+        );
+    }
+
+
+    wc_upsert_patient_meta(
+        $mysql,
+        $patient['patient_id_wc'],
+        'birth_date',
+        $patient['birth_date']
+    );
+
+    wc_upsert_patient_meta(
+        $mysql,
+        $patient['patient_id_wc'],
+        'birth_date_month',
+        date('m', strtotime($patient['birth_date']))
+    );
+
+    wc_upsert_patient_meta(
+        $mysql,
+        $patient['patient_id_wc'],
+        'birth_date_day',
+        date('d', strtotime($patient['birth_date']))
+    );
+
+    wc_upsert_patient_meta(
+        $mysql,
+        $patient['patient_id_wc'],
+        'birth_date_year',
+        date('Y', strtotime($patient['birth_date']))
+    );
 
     return $pdo->exectue();
 }
