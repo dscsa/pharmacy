@@ -66,7 +66,7 @@ function wc_update_patient($patient) {
             WHERE id = :patient_id_wc"
     );
 
-    $login = "{$patient['first_name']} {$patient['last_name']} {$patient['birth_date']}";
+    $login    = "{$patient['first_name']} {$patient['last_name']} {$patient['birth_date']}";
     $nicename = "{$patient['first_name']}-{$patient['last_name']}-{$patient['birth_date']}";
 
     $pdo->bindParam(':user_login', $login, \PDO::PARAM_STR);
@@ -74,6 +74,7 @@ function wc_update_patient($patient) {
     $pdo->bindParam(':user_email', $patient['email'], \PDO::PARAM_STR);
     $pdo->bindParam(':display_name', $login, \PDO::PARAM_STR);
     $pdo->bindParam(':patient_id_wc', $patient['patient_id_wc'], \PDO::PARAM_INT);
+    $pdo->exectue();
 
     $mysql = ($mysql) ?: new Mysql_Wc();
 
@@ -132,8 +133,6 @@ function wc_update_patient($patient) {
         'birth_date_year',
         date('Y', strtotime($patient['birth_date']))
     );
-
-    return $pdo->exectue();
 }
 
 function wc_create_patient($mysql, $patient) {
