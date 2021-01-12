@@ -72,36 +72,56 @@ function get_full_item($mysql, $rx_number, $invoice_number = null) {
   else //If no invoice number specified only show current orders
     $past_orders = "gp_order_items.rx_dispensed_id IS NULL";
 
-  $sql = "
-    SELECT
-      *,
-      gp_rxs_grouped.*,
-      gp_orders.invoice_number,
-      gp_order_items.invoice_number as dontuse_item_invoice,
-      gp_orders.invoice_number as dontuse_order_invoice,
-      0 as is_order,
-      0 as is_patient,
-      1 as is_item
-    FROM
-      gp_rxs_single
-    JOIN gp_patients ON
-      gp_rxs_single.patient_id_cp = gp_patients.patient_id_cp
-    JOIN gp_rxs_grouped ON
-      rx_numbers LIKE CONCAT('%,', gp_rxs_single.rx_number, ',%')
-    LEFT JOIN gp_stock_live ON -- might not have a match if no GSN match
-      gp_rxs_grouped.drug_generic = gp_stock_live.drug_generic
-    LEFT JOIN gp_order_items ON -- choice to show any order_item from this rx_group and not just if this specific rx matches
-      $past_orders AND
-      rx_numbers LIKE CONCAT('%,', gp_order_items.rx_number, ',%')
-    LEFT JOIN gp_orders ON -- ORDER MAY HAVE NOT BEEN ADDED YET
-      gp_orders.invoice_number = gp_order_items.invoice_number
-    WHERE
-      gp_rxs_single.rx_number = $rx_number
-  ";
+
+  $sql = "SELECT
+              gp_rxs_single.rx_number,
+              gp_rxs_grouped.rx_numbers,
+              gp_rxs_single.patient_id_cp rx_patient_id_cp,
+              gp_patients.patient_id_cp
+            FROM
+              gp_rxs_single
+            LEFT JOIN gp_patients ON
+              gp_rxs_single.patient_id_cp = gp_patients.patient_id_cp
+            LEFT JOIN gp_rxs_grouped ON
+              rx_numbers LIKE CONCAT('%,', gp_rxs_single.rx_number, ',%')
+            WHERE
+              gp_rxs_single.rx_number = {$rx_number}";
+
+  $query = $mysql->run($sql)[0];
+  $debug_details  = $query[0][0];
+
+  $sql = "SELECT
+              *,
+              gp_rxs_grouped.*,
+              gp_orders.invoice_number,
+              gp_order_items.invoice_number as dontuse_item_invoice,
+              gp_orders.invoice_number as dontuse_order_invoice,
+              0 as is_order,
+              0 as is_patient,
+              1 as is_item
+            FROM
+              gp_rxs_single
+            JOIN gp_patients ON
+              gp_rxs_single.patient_id_cp = gp_patients.patient_id_cp
+            JOIN gp_rxs_grouped ON
+              rx_numbers LIKE CONCAT('%,', gp_rxs_single.rx_number, ',%')
+            -- might not have a match if no GSN match
+            LEFT JOIN gp_stock_live ON
+              gp_rxs_grouped.drug_generic = gp_stock_live.drug_generic
+            -- choice to show any order_item from this rx_group and not just if
+            -- this specific rx matches
+            LEFT JOIN gp_order_items ON
+              {$past_orders} AND
+              rx_numbers LIKE CONCAT('%,', gp_order_items.rx_number, ',%')
+            LEFT JOIN gp_orders ON -- ORDER MAY HAVE NOT BEEN ADDED YET
+              gp_orders.invoice_number = gp_order_items.invoice_number
+            WHERE
+              gp_rxs_single.rx_number = {$rx_number}";
 
   $query = $mysql->run($sql)[0];
 
   if ( ! @$query[0][0]) {
+    SirumLog::alert("load_full_item:  Debug", ['debug' => $debug_details]);
     get_full_item_debug($mysql, $rx_number, $sql);
     return;
   }
