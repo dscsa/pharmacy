@@ -27,6 +27,12 @@ function load_full_item($partial, $mysql, $overwrite_rx_messages = false) {
     $sql5 = "SELECT * FROM gp_patients WHERE patient_id_cp = $partial[patient_id_cp]";
     $res5 = $mysql->run($sql5)[0];
 
+    $sql6 = "SELECT * FROM gp_rxs_grouped WHERE patient_id_cp = $partial[patient_id_cp]";
+    $res6 = $mysql->run($sql6)[0];
+
+    $sql7 = "SELECT * FROM gp_rxs_grouped WHERE rx_numbers LIKE '%,$partial[rx_number],%'";
+    $res7 = $mysql->run($sql7)[0];
+
     log_error("load_full_item: no item!", [
       'sql1' => $sql1,
       'res1' => $res1,
@@ -38,6 +44,10 @@ function load_full_item($partial, $mysql, $overwrite_rx_messages = false) {
       'res4' => $res4,
       'sql5' => $sql5,
       'res5' => $res5,
+      'sql6' => $sql6,
+      'res6' => $res6,
+      'sql7' => $sql7,
+      'res7' => $res7,
       'partial' => $partial
     ]);
 
