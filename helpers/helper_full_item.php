@@ -88,7 +88,7 @@ function get_full_item($mysql, $rx_number, $invoice_number = null) {
               gp_rxs_single.rx_number = {$rx_number}";
 
   $query = $mysql->run($sql)[0];
-  $debug_details  = $query[0][0];
+  $debug_details  = $query;
 
   $sql = "SELECT
               *,
