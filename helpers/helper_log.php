@@ -337,10 +337,10 @@ function log_timer($label, $start_time, $count) {
           '$average_time'       => $average_time,
           'global_exec_details' => $global_exec_details
         ];
-        if ($average_time <= 30) {
-            SirumLog::warning($log_msg, $log_data);
-        } else {
+
+        if ($average_time > 100) {
             SirumLog::alert($log_msg, $log_data);
+        } else {
+            SirumLog::error($log_msg, $log_data);
         }
-    }
 }
