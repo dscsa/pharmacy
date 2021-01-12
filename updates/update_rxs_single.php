@@ -108,7 +108,7 @@ function update_rxs_single($changes)
     log_timer('rx-singles-created1', $loop_timer, $count_created);
 
 
-    /* Finishe Loop Created Loop  #1 */
+    /* Finish Loop Created Loop  #1 */
 
 
     $loop_timer = microtime(true);
@@ -360,7 +360,7 @@ function update_rxs_single($changes)
             export_cp_rx_autofill($item, $mssql);
 
             $status  = $updated['rx_autofill'] ? 'ON' : 'OFF';
-            $body    = "$item[drug_name] autofill turned $status for $item[rx_numbers]"; //Used as cache key
+            $body    = "$item[drug_name] autofill turned $status for $updated[rx_number]"; //Used as cache key
             $created = "Created:".date('Y-m-d H:i:s');
 
             AuditLog::log(
@@ -390,7 +390,7 @@ function update_rxs_single($changes)
                 $sf_cache[$body] = true; //This caches it by body and for this one run (currently 10mins)
 
                 $salesforce = [
-                  "subject"   => "Autofill turned $status for $item[drug_name]",
+                  "subject"   => "Autofill turned $status for $updated[drug_name]",
                   "body"      => "$body $created",
                   "contact"   => "$item[first_name] $item[last_name] $item[birth_date]"
                 ];
@@ -470,13 +470,13 @@ function update_rxs_single($changes)
         SirumLog::error(
             "rx had an empty message, so just set it.  Why was it missing?",
             [
-                "patient_id_cp" => $rx_single['patient_id_cp'],
-                "patient_id_wc" => $rx_single['patient_id_wc'],
-                "rx_single"     => $rx_single,
-                "source"        => "CarePoint",
-                "type"          => "rxs-single",
-                "event"         => "null-message"
-              ]
+              "patient_id_cp" => $rx_single['patient_id_cp'],
+              "patient_id_wc" => $rx_single['patient_id_wc'],
+              "rx_single"     => $rx_single,
+              "source"        => "CarePoint",
+              "type"          => "rxs-single",
+              "event"         => "null-message"
+            ]
         );
 
         //This will retry setting the rx_messages
