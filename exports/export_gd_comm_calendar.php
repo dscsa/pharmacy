@@ -24,7 +24,7 @@ function order_dispensed_notice($groups) {
 //by building commication arrays based on github.com/dscsa/communication-calendar
 function order_shipped_notice($groups) {
 
-  $subject   = 'Good Pill shipped order '.($groups['ALL'][0]['count_filled'] ? 'of '.$groups['ALL'][0]['count_filled'].' items ' : '').' and it should arrive in 3-5 days.';
+  $subject   = 'Good Pill shipped order '.($groups['ALL'][0]['count_filled'] ? 'of '.$groups['ALL'][0]['count_filled'].' items ' : '').'and it should arrive in 3-5 days.';
   $message   = '';
 
   $message .= '<br><u>These Rxs are on the way:</u><br>'.implode(';<br>', $groups['FILLED']).';';
@@ -411,10 +411,6 @@ function needs_form_notice($groups) {
   ];
 
   needs_form_event($groups['ALL'], $email, $text, $salesforce, $hours_to_wait[3], $hour_of_day[3]);
-
-
-
-
 }
 
 //We are coording patient communication via sms, calls, emails, & faxes
