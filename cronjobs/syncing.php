@@ -339,6 +339,13 @@ try {
     $global_exec_details['timers']['update_patients_wc'] = ceil(microtime(true) - $start_time);
     echo "completed in {$global_exec_details['timers']['update_patients_wc']} seconds\n";
 
+    //Run before cp-order and order-items to make sure that rx-grouped is upto date when doing load_full_order/item
+    echo "Update Rxs Single ";
+    $start_time = microtime(true);
+    update_rxs_single($changes_to_rxs_single);
+    $global_exec_details['timers']['update_rxs_single'] = ceil(microtime(true) - $start_time);
+    echo "completed in {$global_exec_details['timers']['update_rxs_single']} seconds\n";
+
     echo "Update CP Orders ";
     $start_time = microtime(true);
     update_orders_cp($changes_to_orders_cp);
@@ -358,15 +365,6 @@ try {
     update_order_items($changes_to_order_items);
     $global_exec_details['timers']['update_order_items'] = ceil(microtime(true) - $start_time);
     echo "completed in {$global_exec_details['timers']['update_order_items']} seconds\n";
-
-    //Run this after orders-cp/order-items loops so that they can set all rx-message and item-message at sametime,
-    //rather than us setting rx-message here and then having to rerun
-    //the get_days_and_message a 2nd time in order to get the rx message
-    echo "Update Rxs Single ";
-    $start_time = microtime(true);
-    update_rxs_single($changes_to_rxs_single);
-    $global_exec_details['timers']['update_rxs_single'] = ceil(microtime(true) - $start_time);
-    echo "completed in {$global_exec_details['timers']['update_rxs_single']} seconds\n";
 
     echo "Watch Invoices ";
     $start_time = microtime(true);
