@@ -17,7 +17,21 @@ function load_full_item($partial, $mysql, $overwrite_rx_messages = false) {
 
   if (@$partial['invoice_number']) {
     $order = get_full_order($mysql, $partial['invoice_number']);
-    log_warning("load_full_item: is_order?  can we replace [item] below", ['item' => $item, 'order' => $order]);
+    $match = false;
+
+    foreach ($order as $row) {
+      if ($row['rx_number'] == $item['rx_number']) {
+        $match = true;
+        log_warning("load_full_item: match found", [
+          'item' => $item,
+          'row' => $row,
+          'row not item' => array_diff_assoc($row, $item),
+          'item not row' => array_diff_assoc($item, $row)
+        ]);
+      }
+    }
+    if ( ! $match)
+      log_warning("load_full_item: no match!  can we still replace [item] below?", ['item' => $item, 'order' => $order]);
   }
 
   $full_item = add_full_fields([$item], $mysql, $overwrite_rx_messages)[0];
