@@ -50,7 +50,8 @@ function update_order_items($changes)
         $item = load_full_item($created, $mysql);
 
         //TODO Less hacky way to determine if this addition was already part of the order_created_notice (items_to_add) that went out on thelast go-around
-        $in_created_notice = strtotime($item['item_date_added']) - strtotime($item['order_date_added']) < 20*60;
+        //Minutes is just trial-and-error.  10 to detect a new order, 10 minutes to sync drugs to the order, 10 minutes for buffer if the script runs long and misses and cycles
+        $in_created_notice = strtotime($item['item_date_added']) - strtotime($item['order_date_added']) < 30*60;
 
         SirumLog::debug(
           "update_order_items: Order Item created $invoice_number",
