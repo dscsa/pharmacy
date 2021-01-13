@@ -313,7 +313,7 @@ function new_comm_arr($patient_label, $email = '', $text = '', $salesforce = '')
 }
 
 function format_text($text_message) {
-  return preg_replace(['/<br>/', '/<.*?>/', '/#(\d{4,})/'], ['\\n', '', '$1'], $text_message);
+  return preg_replace(['/<br>/', '/<.*?>/', '/#(\d{4,})/'], ['\n', '', '$1'], $text_message);
 }
 
 function format_call($call_message) {
