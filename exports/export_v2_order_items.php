@@ -192,8 +192,9 @@ function unpend_pick_list($item) {
   $pend_group_webform = pend_group_webform($item);
   $pend_group_manual  = pend_group_manual($item);
   $pend_group_new_patient = pend_group_new_patient($item);
+  $pend_group_new_patient_old = pend_group_new_patient_old($item);
 
-  $msg = "unpending item $item[drug_generic] in $pend_group_refill, $pend_group_webform, $pend_group_manual, $pend_group_new_patient";
+  $msg = "unpending item $item[drug_generic] in $pend_group_refill, $pend_group_webform, $pend_group_manual, $pend_group_new_patient $res_new_patient_old";
   echo "\n$msg\n";
 
   //Once order is deleted it not longer has items so its hard to determine if the items were New or Refills so just delete both
@@ -201,8 +202,9 @@ function unpend_pick_list($item) {
   $res_webform = v2_fetch("/account/8889875187/pend/$pend_group_webform/$item[drug_generic]", 'DELETE');
   $res_manual  = v2_fetch("/account/8889875187/pend/$pend_group_manual/$item[drug_generic]", 'DELETE');
   $res_new_patient = v2_fetch("/account/8889875187/pend/$pend_group_new_patient/$item[drug_generic]", 'DELETE');
+  $res_new_patient_old = v2_fetch("/account/8889875187/pend/$pend_group_new_patient_old/$item[drug_generic]", 'DELETE');
 
-  if ( ! $res_refill AND ! $res_webform AND ! $res_manual AND ! $res_new_patient) {
+  if ( ! $res_refill AND ! $res_webform AND ! $res_manual AND ! $res_new_patient AND ! $res_new_patient_old) {
     log_warning("v2_unpend_item: Nothing Unpened.  Call could have been avoided! ".@$item['invoice_number']." ".@$item['drug_name']." ".@$item['rx_number'].". rx_dispensed_id:".@$item['rx_dispensed_id']." last_inventory:".@$item['last_inventory']." count_pended_total:".@$item['count_pended_total'], get_defined_vars());
   }
 
@@ -334,7 +336,18 @@ function pend_group_webform($item) {
 
 function pend_group_new_patient($item) {
 
-   $pick_time = strtotime($item['patient_date_added'].' +0 days'); //Used to be +1 days
+   $pick_time = strtotime($item['patient_date_added'].' -8 days');
+   $invoice   = "P$item[invoice_number]";
+
+   $pick_date = date('Y-m-d', $pick_time);
+
+   return "$pick_date $invoice";
+}
+
+//This can be deleted once 2021-01-12 P55855 is dispensed
+function pend_group_new_patient_old($item) {
+
+   $pick_time = strtotime($item['patient_date_added'].' +0 days');
    $invoice   = "P$item[invoice_number]";
 
    $pick_date = date('Y-m-d', $pick_time);
