@@ -496,8 +496,21 @@ function update_orders_cp($changes)
             continue;
         }
 
-        if ($stage_change_cp
-            && ($updated['order_date_shipped'] || $updated['order_date_dispensed'])
+        SirumLog::notice(
+            "Order Changed.  Has it shipped or dispensed",
+            [
+                'State Changed' => $stage_change_cp,
+                'Dispensed'     => ($updated['order_date_dispensed'] != $updated['old_order_date_dispensed']),
+                'Shipped'       => ($updated['order_date_shipped'] != $updated['old_order_date_shipped'])
+            ]
+        );
+
+        if (
+            $stage_change_cp
+            && (
+                    $updated['order_date_shipped']
+                    || $updated['order_date_dispensed']
+               )
         ) {
             if ($updated['order_date_dispensed'] != $updated['old_order_date_dispensed']) {
                 AuditLog::log(

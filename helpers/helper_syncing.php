@@ -169,6 +169,8 @@ function sync_to_date($order, $mysql) {
     $order[$i]['sync_to_date_min_days_stock']       = $min_days_stock;
     $order[$i]['sync_to_date_min_days_stock_rxs']   = implode(',', $min_days_stock_rxs);
 
+    $sync_to_date_days_before = (!is_null(@$order[$i]['days_dispensed_default']))?:'NULL';
+
     $sql = "
       UPDATE
         gp_order_items
@@ -176,7 +178,7 @@ function sync_to_date($order, $mysql) {
         days_dispensed_default            = $new_days_default,
         qty_dispensed_default             = {$order[$i]['qty_dispensed_default']},
         price_dispensed_default           = {$order[$i]['price_dispensed_default']},
-        sync_to_date_days_before          = {$order[$i]['days_dispensed_default']},
+        sync_to_date_days_before          = {$sync_to_date_days_before},
         sync_to_date_max_days_default     = $max_days_default,
         sync_to_date_max_days_default_rxs = '".implode(',', $max_days_default_rxs)."',
         sync_to_date_min_days_refills     = $min_days_refills,

@@ -6,7 +6,8 @@ require_once 'helpers/helper_pagerduty.php';
  * Test the connection to carepoint.  Alert pagerduty if connection fails
  * @return boolean  True if connection successful
  */
-function cp_test() {
+function cp_test()
+{
     try {
         $conn = new PDO("sqlsrv:server=" . MSSQL_CP_IP . ";database=cph", MSSQL_CP_USER, MSSQL_CP_PWD);
         $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
