@@ -326,11 +326,6 @@ try {
      * [update_rxs_single description]
      * @var [type]
      */
-    echo "Update Rxs Single ";
-    $start_time = microtime(true);
-    update_rxs_single($changes_to_rxs_single);
-    $global_exec_details['timers']['update_rxs_single'] = ceil(microtime(true) - $start_time);
-    echo "completed in {$global_exec_details['timers']['update_rxs_single']} seconds\n";
 
     echo "Update CP Patients ";
     $start_time = microtime(true);
@@ -344,12 +339,6 @@ try {
     $global_exec_details['timers']['update_patients_wc'] = ceil(microtime(true) - $start_time);
     echo "completed in {$global_exec_details['timers']['update_patients_wc']} seconds\n";
 
-    echo "Update Order Items ";
-    $start_time = microtime(true);
-    update_order_items($changes_to_order_items);
-    $global_exec_details['timers']['update_order_items'] = ceil(microtime(true) - $start_time);
-    echo "completed in {$global_exec_details['timers']['update_order_items']} seconds\n";
-
     echo "Update CP Orders ";
     $start_time = microtime(true);
     update_orders_cp($changes_to_orders_cp);
@@ -361,6 +350,21 @@ try {
     update_orders_wc($changes_to_orders_wc);
     $global_exec_details['timers']['update_orders_wc'] = ceil(microtime(true) - $start_time);
     echo "completed in {$global_exec_details['timers']['update_orders_wc']} seconds\n";
+
+    //Run this after orders-cp loop so that we can sync items to the order and remove duplicate GSNs first, rather than doing stuff in this loop that we undo in the orders-cp loop
+    echo "Update Order Items ";
+    $start_time = microtime(true);
+    update_order_items($changes_to_order_items);
+    $global_exec_details['timers']['update_order_items'] = ceil(microtime(true) - $start_time);
+    echo "completed in {$global_exec_details['timers']['update_order_items']} seconds\n";
+
+    //Run this after orders-cp/order-items loops so that they can set all rx-message and item-message at sametime, rather than us setting rx-message here and then having to rerun
+    //the get_days_and_message a 2nd time in order to get the rx message
+    echo "Update Rxs Single ";
+    $start_time = microtime(true);
+    update_rxs_single($changes_to_rxs_single);
+    $global_exec_details['timers']['update_rxs_single'] = ceil(microtime(true) - $start_time);
+    echo "completed in {$global_exec_details['timers']['update_rxs_single']} seconds\n";
 
     echo "Watch Invoices ";
     $start_time = microtime(true);
