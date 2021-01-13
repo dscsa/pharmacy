@@ -132,7 +132,7 @@ function patient_pricing_text($item) {
 }
 
 function patient_drug_text($item) {
-  return @$item['drug_name'] ?: $item['drug_generic'];
+  return @$item['drug_generic'] ?: $item['drug_name'];
 }
 
 function patient_payment_method($item) {
