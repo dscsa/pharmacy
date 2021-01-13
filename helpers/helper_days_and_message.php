@@ -501,14 +501,10 @@ function set_days_and_message($item, $days, $message, $mysql) {
     log_notice("set_days_and_message but it has actual days. Why is this?", get_defined_vars());
   }
 
-  if (is_null($item['rx_message_key']) OR is_null($item['refills_dispensed_default']))
-    log_warning('helper_days_and_message: is rx_message_keys_initial being set correctly? - NULL', $item);
-  else
-    log_notice('helper_days_and_message: is rx_message_keys_initial being set correctly? - NOT NULL', $item);
-
   $order_item_sql = "
     UPDATE
       gp_order_items
+      
     SET
       days_dispensed_default    = $item[days_dispensed_default],
       qty_dispensed_default     = $item[qty_dispensed_default],
@@ -526,10 +522,14 @@ function set_days_and_message($item, $days, $message, $mysql) {
       refill_date_manual        = ".(is_null($item['refill_date_manual']) ?  'NULL' : "'$item[refill_date_manual]'").",
       refill_date_default       = ".(is_null($item['refill_date_default']) ? 'NULL' : "'$item[refill_date_default]'").",
       refill_date_last          = ".(is_null($item['refill_date_last']) ? 'NULL' : "'$item[refill_date_last]'")."
+
     WHERE
       invoice_number = $item[invoice_number] AND
       rx_number = $item[rx_number]
   ";
+
+  if (is_null($item['rx_message_key']) OR is_null($item['refills_dispensed_default']))
+    log_warning('helper_days_and_message: is rx_message_keys_initial being set correctly? rx_message_key or refills_dispensed_default IS NULL', ['item' => $item, 'sql' => $order_item_sql]);
 
   $mysql->run($order_item_sql);
 

@@ -266,7 +266,7 @@ function new_comm_arr($patient_label, $email = '', $text = '', $salesforce = '')
 
     /* Make a copy using JSON */
     try {
-      $json = preg_replace('/ undefined/', '', json_encode($text));
+      $json = preg_replace('/ undefined/', '', json_encode($text));  //just in case we were sloppy with undefined
       $text = json_decode($json, true);
       $call = json_decode($json, true);
     } catch (Error $e) {
@@ -289,11 +289,11 @@ function new_comm_arr($patient_label, $email = '', $text = '', $salesforce = '')
 
   if ( ! $salesforce AND $auto_salesforce AND $patient_label AND $comm_arr) {
     $comm_arr[] = [
-      "subject" => "Auto ".implode(', ', $auto).": ".(@$email['subject'] ?: "Text"),
-      "body" => @$text['message'] ?: str_replace('<br>', '\n', $email['message']),
-      "contact" => $patient_label,
+      "subject"   => "Auto ".implode(', ', $auto).": ".(@$email['subject'] ?: "Text"),
+      "body"      => @$text['message'] ?: format_text($email['message']),
+      "contact"   => $patient_label,
       "assign_to" => null,
-      "due_date" => null
+      "due_date"  => null
     ];
   }
 
@@ -309,11 +309,11 @@ function new_comm_arr($patient_label, $email = '', $text = '', $salesforce = '')
     'comm_arr' => $comm_arr
   ]);
 
-  return $comm_arr; //just in case we were sloppy with undefined
+  return $comm_arr;
 }
 
 function format_text($text_message) {
-  return preg_replace(['/<br>/', '/<.*?>/', '/#(\d{4,})/'], ['\n', '', '$1'], $text_message);
+  return preg_replace(['/<br>/', '/<.*?>/', '/#(\d{4,})/'], ["\n", '', '$1'], $text_message);
 }
 
 function format_call($call_message) {
