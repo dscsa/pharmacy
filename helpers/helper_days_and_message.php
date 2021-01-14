@@ -474,7 +474,7 @@ function set_days_and_message($item, $days, $message, $mysql) {
 
   //We only continue to update gp_order_items IF this is an order_item and not just an rx on the patient's profile
   //This gets called by rxs_single_created1 and rxs_single_created2 where this is not true
-  if ( ! @$item['item_date_added'] OR $days == $item['days_dispensed_default'])
+  if ( ! @$item['item_date_added'] OR $days === $item['days_dispensed_default'])
     log_notice("set_days_and_message: for rx or item with no change in days, skipping saving of order_item fields", compact('item', 'days', 'message', 'new_rx_message_key', 'new_rx_message_text', 'rx_single_sql', 'rx_grouped_sql'));
     return $item;
 
