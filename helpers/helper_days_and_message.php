@@ -431,12 +431,12 @@ function set_item_invoice_data($item, $mysql) {
 function set_days_and_message($item, $days, $message, $mysql) {
 
   log_notice("set_days_and_message: called", compact('item', 'days', 'message'));
-
+  echo "set_days_and_message 1\n";
   if (is_null($days) OR is_null($message)) {
     SirumLog::alert("set_days_and_message: days/message should not be NULL", compact('item', 'days', 'message'));
     return $item;
   }
-
+  echo "set_days_and_message 2\n";
   $new_rx_message_key  = array_search($message, RX_MESSAGE);
   $new_rx_message_text = message_text($message, $item);
 
@@ -444,7 +444,7 @@ function set_days_and_message($item, $days, $message, $mysql) {
     SirumLog::alert("set_days_and_message: could not get rx_message_key ", compact('item', 'days', 'message', 'new_rx_message_key', 'new_rx_message_text'));
     return $item;
   }
-
+  echo "set_days_and_message 3\n";
   $item['rx_message_key']  = $new_rx_message_key;
   $item['rx_message_text'] = $new_rx_message_text.($days ? '' : ' **' ); //If not filling reference to backup pharmacy footnote on Invoices
 
@@ -471,18 +471,18 @@ function set_days_and_message($item, $days, $message, $mysql) {
 
   $mysql->run($rx_single_sql);
   $mysql->run($rx_grouped_sql);
-
+echo "set_days_and_message 4\n";
   //We only continue to update gp_order_items IF this is an order_item and not just an rx on the patient's profile
   //This gets called by rxs_single_created1 and rxs_single_created2 where this is not true
   if ( ! @$item['item_date_added'] OR $days === $item['days_dispensed_default'])
     log_notice("set_days_and_message: for rx or item with no change in days, skipping saving of order_item fields", compact('item', 'days', 'message', 'new_rx_message_key', 'new_rx_message_text', 'rx_single_sql', 'rx_grouped_sql'));
     return $item;
-
+echo "set_days_and_message 5\n";
   if ( ! $item['rx_number'] OR ! $item['invoice_number']) {
     log_error("set_days_and_message: without a rx_number AND invoice_number. rx on patient profile OR maybe order_item before order was imported OR (likely) maybe order was deleted in past 10mins and order items have not yet been deleted?", compact('item', 'days', 'message', 'new_rx_message_key', 'new_rx_message_text', 'rx_single_sql', 'rx_grouped_sql'));
     return $item;
   }
-
+echo "set_days_and_message 6\n";
   $price = $item['price_per_month'] ?: 0; //Might be null
 
   $item['days_dispensed_default']    = $days;
@@ -502,7 +502,7 @@ function set_days_and_message($item, $days, $message, $mysql) {
   if ($item['days_dispensed_actual']) {
     log_notice("set_days_and_message: but it has actual days. Why is this?", compact('item', 'days', 'message', 'new_rx_message_key', 'new_rx_message_text', 'rx_single_sql', 'rx_grouped_sql'));
   }
-
+echo "set_days_and_message 7\n";
   $order_item_sql = "
     UPDATE
       gp_order_items
@@ -532,11 +532,11 @@ function set_days_and_message($item, $days, $message, $mysql) {
 
   if (is_null($item['rx_message_key']) OR is_null($item['refills_dispensed_default']))
     log_warning('set_days_and_message: is rx_message_keys_initial being set correctly? rx_message_key or refills_dispensed_default IS NULL', ['item' => $item, 'sql' => $order_item_sql]);
-
+echo "set_days_and_message 8\n";
   $mysql->run($order_item_sql);
-
+echo "set_days_and_message 9\n";
   log_notice("set_days_and_message: saved both rx and order_item fields", compact('item', 'order_item_sql',  'rx_single_sql', 'rx_grouped_sql'));
-
+print_r($item);
   return $item;
 }
 
