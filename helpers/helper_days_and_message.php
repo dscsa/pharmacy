@@ -432,6 +432,7 @@ function set_days_and_message($item, $days, $message, $mysql) {
 
   log_notice("set_days_and_message: called", compact('item', 'days', 'message'));
   echo "set_days_and_message 1\n";
+  print_r($item);
   if (is_null($days) OR is_null($message)) {
     SirumLog::alert("set_days_and_message: days/message should not be NULL", compact('item', 'days', 'message'));
     return $item;
@@ -474,12 +475,15 @@ function set_days_and_message($item, $days, $message, $mysql) {
 echo "set_days_and_message 4\n";
   //We only continue to update gp_order_items IF this is an order_item and not just an rx on the patient's profile
   //This gets called by rxs_single_created1 and rxs_single_created2 where this is not true
+  print_r($item);
   if ( ! @$item['item_date_added'] OR $days === $item['days_dispensed_default'])
-  echo  @$item['item_date_added']."\n";
-  echo  (! @$item['item_date_added'])."\n";
-  echo "$days === $item[days_dispensed_default]\n";
-  echo ($days === $item['days_dispensed_default'])."\n";
-  echo ( ! @$item['item_date_added'] OR $days === $item['days_dispensed_default'])."\n";
+  echo  is_null($item['item_date_added'])."1\n";
+  echo  is_null($item['days_dispensed_default'])."2\n";
+  echo  @$item['item_date_added']."3\n";
+  echo  (! @$item['item_date_added'])."4\n";
+  echo "$days === $item[days_dispensed_default]5\n";
+  echo ($days === $item['days_dispensed_default'])."6\n";
+  echo ( ! @$item['item_date_added'] OR $days === $item['days_dispensed_default'])."7\n";
     log_notice("set_days_and_message: for rx or item with no change in days, skipping saving of order_item fields", compact('item', 'days', 'message', 'new_rx_message_key', 'new_rx_message_text', 'rx_single_sql', 'rx_grouped_sql'));
     return $item;
 echo "set_days_and_message 5\n";
