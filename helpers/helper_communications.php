@@ -215,25 +215,7 @@ function send_dispensed_order_communications($groups) {
   order_dispensed_notice($groups);
 }
 
-function send_updated_order_communications($groups, $items_added, $items_removed) {
-
-  $add_item_names    = [];
-  $remove_item_names = [];
-  $patient_updates   = [];
-
-  foreach ($items_added as $item) {
-    $add_item_names[] = $item['drug'];
-  }
-
-  foreach ($items_removed as $item) {
-    $remove_item_names[] = $item['drug'];
-  }
-
-  //an rx_number was swapped (e.g best_rx_number used instead) same drug may have been added and removed
-  //at same time so we need to remove the intersection
-  $added_deduped    = array_diff($add_item_names, $remove_item_names);
-  $removed_deduped  = array_diff($remove_item_names, $add_item_names);
-
+function send_updated_order_communications($groups, $added_deduped, $removed_deduped) {
 
   if ($added_deduped) {
     $verb = count($added_deduped) == 1 ? 'was' : 'were';
