@@ -144,11 +144,9 @@ function order_created_notice($groups) {
   $drug_list = '<br><br><u>These Rxs will be included once we confirm their availability:</u><br>';
 
   if ( ! $groups['ALL'][0]['refills_used']) {
-    $days = 0;
     $message   .= ' Your first order will only be $6 total for all of your medications.';
     $drug_list .= implode(';<br>', array_merge($groups['FILLED_ACTION'], $groups['FILLED_NOACTION'], $groups['ADDED_NOACTION'])).';';
   } else {
-    $days = is_auto_refill($groups['ALL'][0]) ? 7 : 4;  //TODO Remove.  This is a temp measure so people don't know if or how far we are behind
     $drug_list .= implode(';<br>',  array_merge($groups['FILLED_WITH_PRICES'], $groups['ADDED_WITH_PRICES'])).';';
   }
 
@@ -175,7 +173,7 @@ function order_created_notice($groups) {
   remove_drugs_from_refill_reminders($groups['ALL'][0]['first_name'], $groups['ALL'][0]['last_name'], $groups['ALL'][0]['birth_date'], $groups['FILLED']);
 
   //Wait 15 minutes to hopefully batch staggered surescripts and manual rx entry and cindy updates
-  order_created_event($groups, $email, $text, $days*24+15/60);
+  order_created_event($groups, $email, $text, 15/60);
 }
 
 function transfer_requested_notice($groups) {
@@ -325,14 +323,8 @@ function order_updated_notice($groups, $patient_updates) {
     $suffix
   ]);
 
-  if ( ! $groups['ALL'][0]['refills_used']) {
-    $days = 0;
-  } else {
-    $days = is_auto_refill($groups['ALL'][0]) ? 7 : 4;  //TODO Remove.  This is a temp measure so people don't know if or how far we are behind
-  }
-
   //Wait 15 minutes to hopefully batch staggered surescripts and manual rx entry and cindy updates
-  order_updated_event($groups, $email, $text, $days*24+15/60);
+  order_updated_event($groups, $email, $text, 15/60);
 }
 
 function needs_form_notice($groups) {
