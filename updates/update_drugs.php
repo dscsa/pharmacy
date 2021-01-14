@@ -109,6 +109,9 @@ function update_mismatched_rxs_and_items($mysql, $partial) {
 
   $drug_gsns = @$partial['old_drug_gsns'] ?: $partial['drug_gsns']; //update_drugs::created doesn't have old_drug_gsns
 
+  // Strip all the  empty blanks off
+  $drug_gsns = trim($drug_gsns, ',');
+
   $sql = "
     SELECT *
     FROM gp_rxs_single

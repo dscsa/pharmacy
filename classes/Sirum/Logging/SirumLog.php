@@ -154,7 +154,8 @@ class SirumLog
                 @$context['updated'],
                 @$context['deleted'][0],
                 @$context['created'][0],
-                @$context['updated'][0]
+                @$context['updated'][0],
+                @$context['partial']
              ] as $possible
          ) {
             if (isset($possible['invoice_number'])) {

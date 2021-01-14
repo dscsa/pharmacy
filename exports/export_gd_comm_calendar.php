@@ -467,7 +467,10 @@ function order_cancelled_notice($partial, $groups) {
     ''
   ]);
 
-  log_alert('order_cancelled_notice: how to improve this message', get_defined_vars());
+  SirumLog::notice(
+      'order_cancelled_notice: how to improve this message',
+      get_defined_vars()
+  );
 
   order_cancelled_event($partial, $groups['ALL'], $email, $text, 15/60);
 }
@@ -514,7 +517,7 @@ function confirm_shipment_internal($groups, $days_ago) {
         'todo' => "TODO is this is a double check to see if past orders is 100% correlated with refills_used,
          if not, we need to understand root cause of discrepancy and which one we want to use going foward
          and to be consistent, remove the other property so that its not mis-used."
-      ]
+     ]
     );
 
   if ((float) $groups['ALL'][0]['refills_used'] > 0) {
