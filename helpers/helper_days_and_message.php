@@ -226,22 +226,26 @@ function get_days_and_message($item, $patient_or_order) {
     return [0, RX_MESSAGE['NO ACTION NOT DUE']];
   }
 
-  if ($item['refill_date_manual'] AND (strtotime($item['refill_date_default']) - strtotime($item['refill_date_manual'])) > DAYS_EARLY*24*60*60 AND ! $added_manually) {
+  if ($item['refill_date_manual'] AND (strtotime($item['refill_date_default']) - strtotime($item['refill_date_manual'])) > DAYS_EARLY*24*60*60) {
 
-    $created = "Created:".date('Y-m-d H:i:s');
+    if ( ! $added_manually) {
+        $created = "Created:".date('Y-m-d H:i:s');
 
-    $salesforce = [
-      "subject"   => "Investigate Early Refill",
-      "body"      => "Confirm if/why needs $item[drug_name] in Order #".@$item['invoice_number']." even though it's over "."28"." days before it's due. If needed, add drug to order. $created",
-      "contact"   => "$item[first_name] $item[last_name] $item[birth_date]",
-      "assign_to" => ".Add/Remove Drug - RPh",
-      "due_date"  => date('Y-m-d')
-    ];
+        $salesforce = [
+          "subject"   => "Investigate Early Refill",
+          "body"      => "Confirm if/why needs $item[drug_name] in Order #".@$item['invoice_number']." even though it's over "."28"." days before it's due. If needed, add drug to order. $created",
+          "contact"   => "$item[first_name] $item[last_name] $item[birth_date]",
+          "assign_to" => ".Add/Remove Drug - RPh",
+          "due_date"  => date('Y-m-d')
+        ];
 
-    $event_title = @$item['invoice_number']." $salesforce[subject]: $salesforce[contact] $created";
+        $event_title = @$item['invoice_number']." $salesforce[subject]: $salesforce[contact] $created";
 
-    create_event($event_title, [$salesforce]);
-    return [0, RX_MESSAGE['NO ACTION NOT DUE']];
+        create_event($event_title, [$salesforce]);
+        return [0, RX_MESSAGE['NO ACTION NOT DUE']];
+    }
+
+    log_alert('Before shipping, double check that we intentionally added items to an order with a future fill date', ['item' => $item]);
   }
 
   if ( ! $item['refill_date_first'] AND $item['last_inventory'] < 2000 AND ($item['sig_qty_per_day_default'] > 2.5*($item['qty_repack'] ?: 135)) AND ! $added_manually) {
