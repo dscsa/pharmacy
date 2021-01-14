@@ -202,7 +202,7 @@ function export_gd_publish_invoice($order, $mysql, $retry = false)
             [
                 'invoice_number' => $order[0]['invoice_number'],
                 'invoice_doc_id' => $order[0]['invoice_doc_id'],
-                'meta'           => $meta
+                'meta'           => @$meta
             ]
         );
 

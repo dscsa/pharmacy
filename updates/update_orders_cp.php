@@ -65,7 +65,7 @@ function update_orders_cp($changes)
         if (count($duplicate) > 1
             and $duplicate[0]['invoice_number'] != $created['invoice_number']
             and (
-              ! is_webform($order[0])
+              ! is_webform($created)
               OR is_webform($duplicate[0])
             )) {
             SirumLog::warning(
