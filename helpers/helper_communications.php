@@ -229,6 +229,12 @@ function send_updated_order_communications($groups, $items_added, $items_removed
     $remove_item_names[] = $item['drug'];
   }
 
+  //an rx_number was swapped (e.g best_rx_number used instead) same drug may have been added and removed
+  //at same time so we need to remove the intersection
+  $added_deduped     = array_diff($add_item_names, $remove_item_names);
+  $remove_item_names = array_diff($remove_item_names, $add_item_names);
+  $add_item_names    = $added_deduped;
+
   if ($add_item_names) {
     $verb = count($add_item_names) == 1 ? 'was' : 'were';
     $patient_updates[] = implode(", ", $add_item_names)." $verb added to your order.";
@@ -246,5 +252,6 @@ function send_updated_order_communications($groups, $items_added, $items_removed
     'patient_updates' => $patient_updates
   ]);
 
-  order_updated_notice($groups, $patient_updates);
+  if ($patient_updates) //in case all were removed by the deduping process
+    order_updated_notice($groups, $patient_updates);
 }
