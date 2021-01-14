@@ -1,6 +1,11 @@
 <?php
-
-function gdoc_details($fileId) {
+/**
+ * Get the details about a specific file to use for test.
+ * @param  string $fileId The filedId of the google doc
+ * @return object         The response from google converted to an object
+ */
+function gdoc_details($fileId)
+{
     $opts = [
         'http' => [
           'method'  => 'GET',
@@ -8,13 +13,26 @@ function gdoc_details($fileId) {
         ]
     ];
 
-    $context  = stream_context_create($opts);
-    $url = GD_FILE_URL . "?GD_KEY=" . GD_KEY;
-    $url .= "&fileId={$fileId}";
-    $results  = json_decode(file_get_contents($url, false, $context));
+    $context = stream_context_create($opts);
+    $url     = sprintf(
+        "%s?GD_KEY=%s&fileId=%s",
+        GD_FILE_URL,
+        GD_KEY,
+        $fileId
+    );
+
+    $results = json_decode(file_get_contents($url, false, $context));
+
     return $results;
 }
 
+/**
+ * Make a post to the gdoc url.
+ *
+ * @param  string $url     The url to request
+ * @param  array  $content The data to send to the request
+ * @return string          The response from Google
+ */
 function gdoc_post($url, $content)
 {
     global $global_exec_details;
@@ -29,21 +47,24 @@ function gdoc_post($url, $content)
           'content' => $json,
           'header'  => "Content-Type: application/json\r\n".
                        "Accept: application/json\r\n".
-                       'Content-Length: '.strlen($json)."\r\n" //Apps Scripts seems to sometimes to require this e.g Invoice for 33701 or returns an HTTP 411 error
+                       // Apps Scripts seems to sometimes to require this e.g
+                       // Invoice for 33701 or returns an HTTP 411 error
+                       'Content-Length: '.strlen($json)."\r\n"
         ]
     ];
 
     $context = stream_context_create($opts);
     $results = file_get_contents($url.'?GD_KEY='.GD_KEY, false, $context);
 
-    $ids = @$content['ids'][0]; //to differentiate between removeCalendarEvents
-    // Lots of squelching so we don't need so many ifs
+    // Differentiate between removeCalendarEvents
+    $ids = @$content['ids'][0];
 
+    // Lots of squelching so we don't need so many ifs
     $key_fields = [
         @$content['method'],
         @$content['file'],
         @$content['word_search'],
-        @$content[title],
+        @$content['title'],
         @$content['ids'][0]
     ];
 
@@ -54,6 +75,12 @@ function gdoc_post($url, $content)
     return $results;
 }
 
+/**
+ * Call the google app to look for invoices that have changed.  If we find any,
+ * we need to update the patient portal with the new details
+ *
+ * @return void
+ */
 function watch_invoices()
 {
     $args = [
@@ -84,7 +111,6 @@ function watch_invoices()
     $mysql = new Mysql_Wc();
 
     foreach ($invoices as $invoice) {
-
         preg_match_all('/(Total:? +|Due:? +)\$(\d+)/', $invoice['part0'], $totals);
 
         //Table columns seem to be divided by table breaks
@@ -112,25 +138,40 @@ function watch_invoices()
             'due'   => $totals[2][1]
         ];
 
-        $sql = "SELECT * FROM gp_orders WHERE invoice_number = $invoice_number";
+        $sql = "SELECT *
+                    FROM gp_orders
+                    WHERE invoice_number = {$invoice_number}";
 
         $order = $mysql->run($sql)[0][0];
 
-        $log = "Filled:$order[count_filled] -> $payment[count_filled],
-                Total:$order[payment_total_default] ($order[payment_total_actual]) -> $payment[total],
-                Fee:$order[payment_fee_default] ($order[payment_fee_actual]) -> $payment[fee],
-                Due:$order[payment_due_default] ($order[payment_due_actual]) -> $payment[due]\n\n";
+        $log = sprintf(
+            "Filled: %s -> %s,
+             Total: %s (%s) -> %s,
+             Fee:%s (%s) -> %s,
+             Due:%s (%s) -> %s\n\n",
+            $order['count_filled'],
+            $payment['count_filled'],
+            $order['payment_total_default'],
+            $order['payment_total_actual'],
+            $payment['total'],
+            $order['payment_fee_default'],
+            $order['payment_fee_actual'],
+            $payment['fee'],
+            $order['payment_due_default'],
+            $order['payment_due_actual'],
+            $payment['due']
+        );
 
-
-        if ($order['count_filled'] == $payment['count_filled'] &&
-                ($order['payment_total_actual'] ?: $order['payment_total_default']) == $payment['total'] &&
-                ($order['payment_fee_actual'] ?: $order['payment_fee_default']) == $payment['fee'] &&
-                ($order['payment_due_actual'] ?: $order['payment_due_default']) == $payment['due']
+        if (
+            $order['count_filled'] == $payment['count_filled']
+            && ($order['payment_total_actual'] ?: $order['payment_total_default']) == $payment['total']
+            && ($order['payment_fee_actual'] ?: $order['payment_fee_default']) == $payment['fee']
+            && ($order['payment_due_actual'] ?: $order['payment_due_default']) == $payment['due']
         ) {
-
+            //Most likely invoice was correct and just moved
             log_notice("watch_invoice $invoice_number", $log);
             continue;
-        } //Most likely invoice was correct and just moved
+        }
 
         log_error("watch_invoice $invoice_number", $log);
 

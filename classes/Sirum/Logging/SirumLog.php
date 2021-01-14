@@ -5,6 +5,7 @@ namespace Sirum\Logging;
 use Google\Cloud\Logging\LoggingClient;
 
 require_once 'helpers/helper_pagerduty.php';
+require_once 'helpers/helper_identifiers.php';
 
 /**
  * This is a simple logger that maintains a single instance of the cloud $logger
@@ -78,7 +79,6 @@ class SirumLog
 
         $log_level = self::getLoggingLevelByString($method);
 
-
         if ($log_level > 500) {
             $pd_query = 'logName="projects/unified-logging-292316/logs/pharmacy-automation"';
             $pd_data  = ['execution_id' => self::$exec_id];
@@ -108,8 +108,9 @@ class SirumLog
             }
         }
 
-        $context = ["context" => $context];
-
+        $ids                     = self::findCriticalId($context);
+        $context                 = ["context" => $context];
+        $context['ids']          = $ids;
         $context['execution_id'] = self::$exec_id;
 
         if (!is_null(self::$subroutine_id)) {
@@ -132,6 +133,63 @@ class SirumLog
             );
             self::$logger->$method($message);
         }
+    }
+
+    /**
+     * Do our best to find the 4 key fields
+     * @param  array $context Who Knows what it could be
+     * @return array          Empty if we couldn't find anything
+     */
+    protected static function findCriticalId($context) {
+
+        foreach (
+            [
+                @$context,
+                @$context[0],
+                @$context['order'],
+                @$context['order'][0],
+                @$context['item'],
+                @$context['deleted'],
+                @$context['created'],
+                @$context['updated'],
+                @$context['deleted'][0],
+                @$context['created'][0],
+                @$context['updated'][0]
+             ] as $possible
+         ) {
+            if (isset($possible['invoice_number'])) {
+                 $name_source = $possible;
+                 break;
+            }
+        }
+
+        // No need to continute.  There isn't a source of data
+        if (!isset($name_source)) {
+            return [];
+        }
+
+        $invoice_number = $name_source['invoice_number'];
+        $first_name     = $name_source['first_name'];
+        $last_name      = $name_source['last_name'];
+        $birth_date     = $name_source['birth_date'];
+
+        //If we have an invoice but not a patient, we want to get those details
+        if ( empty($birth_date) && !empty($invoice_number)) {
+            $patient = getPatientByInvoice($invoice_number);
+
+            if (!empty($patient)) {
+                $first_name     = $patient['first_name'];
+                $last_name      = $patient['last_name'];
+                $birth_date     = $patient['birth_date'];
+            }
+        }
+
+        return [
+            'invoice_number' => $invoice_number,
+            'first_name'     => $first_name,
+            'last_name'      => $last_name,
+            'birth_date'     => $birth_date
+        ];
     }
 
     /**
