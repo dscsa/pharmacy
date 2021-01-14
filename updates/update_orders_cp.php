@@ -58,15 +58,15 @@ function update_orders_cp($changes)
         );
 
         if ($created['order_date_returned']) {
-          export_wc_return_order($created['invoice_number']);
-          continue;
+            export_wc_return_order($created['invoice_number']);
+            continue;
         }
 
         if (count($duplicate) > 1
             and $duplicate[0]['invoice_number'] != $created['invoice_number']
             and (
               ! is_webform($created)
-              OR is_webform($duplicate[0])
+              or is_webform($duplicate[0])
             )) {
             SirumLog::warning(
                 sprintf(
@@ -202,7 +202,7 @@ function update_orders_cp($changes)
             );
 
             if ($order[0]['count_items'] - $order[0]['count_to_remove']) {
-              SirumLog::alert("update_orders_cp: created. canceling order, but is their a manually added item that we should keep?");
+                SirumLog::alert("update_orders_cp: created. canceling order, but is their a manually added item that we should keep?");
             }
 
             //TODO Remove/Cancel WC Order Here Or Is this done on next go-around?
@@ -212,29 +212,23 @@ function update_orders_cp($changes)
                should trigger the deleted loop on next run, which should unpend
                But it seemed that this didn't happen for Order 53684
              */
-            if ( ! $order[0]['pharmacy_name']) {
-              $reason = 'Needs Registration';
-              $groups = group_drugs($order, $mysql);
-              needs_form_notice($groups);
+            if (! $order[0]['pharmacy_name']) {
+                $reason = 'Needs Registration';
+                $groups = group_drugs($order, $mysql);
+                needs_form_notice($groups);
+            } elseif ($order[0]['order_status'] == "Surescripts Authorization Approved") {
+                $reason = "Surescripts Approved {$order[0]['drug_generic']} {$order[0]['rx_number']} {$order[0]['rx_message_key']}";
+            } elseif ($order[0]['order_status'] == "Surescripts Authorization Denied") {
+                $reason = "Surescripts Denied {$order[0]['drug_generic']} {$order[0]['rx_number']} {$order[0]['rx_message_key']}";
+            } elseif ($order[0]['count_items'] == 0) {
+                $reason = 'Created Empty';
+            } elseif ($order[0]['count_items'] == 1) {
+                $reason = "1 Rx Removed {$order[0]['drug_generic']} {$order[0]['rx_number']} {$order[0]['rx_message_key']}";
+            } elseif ($order[0]['count_items'] == 2) {
+                $reason = "2 Rxs Removed {$order[0]['drug_generic']} {$order[0]['rx_message_key']}; {$order[1]['drug_generic']} {$order[1]['rx_message_key']}";
+            } else { //Not enough space to put reason if >1 drug removed. using 0-index depends on the current sort order based on item_date_added.
+                $reason = $order[0]['count_items'].' Rxs Removed';
             }
-            else if ($order[0]['order_status'] == "Surescripts Authorization Approved")
-              $reason = "Surescripts Approved {$order[0]['drug_generic']} {$order[0]['rx_number']} {$order[0]['rx_message_key']}";
-
-            else if ($order[0]['order_status'] == "Surescripts Authorization Denied")
-              $reason = "Surescripts Denied {$order[0]['drug_generic']} {$order[0]['rx_number']} {$order[0]['rx_message_key']}";
-
-            else if ($order[0]['count_items'] == 0)
-              $reason = 'Created Empty';
-
-            else if ($order[0]['count_items'] == 1)
-              $reason = "1 Rx Removed {$order[0]['drug_generic']} {$order[0]['rx_number']} {$order[0]['rx_message_key']}";
-
-            else if ($order[0]['count_items'] == 2)
-              $reason = "2 Rxs Removed {$order[0]['drug_generic']} {$order[0]['rx_message_key']}; {$order[1]['drug_generic']} {$order[1]['rx_message_key']}";
-
-            else //Not enough space to put reason if >1 drug removed. using 0-index depends on the current sort order based on item_date_added.
-              $reason = $order[0]['count_items'].' Rxs Removed';
-
 
             $order  = export_v2_unpend_order($order, $mysql, $reason);
             export_cp_remove_order($order[0]['invoice_number'], $reason);
@@ -255,25 +249,25 @@ function update_orders_cp($changes)
         $order  = sync_to_date($order, $mysql);
         $groups = group_drugs($order, $mysql);
 
-        if ($order[0]['count_filled'] > 0 OR $order[0]['count_to_add'] > 0) {
+        if ($order[0]['count_filled'] > 0 or $order[0]['count_to_add'] > 0) {
 
           //This is not necessary if order was created by webform, which then created the order in Guardian
-          //"order_source": "Webform eRX/Transfer/Refill [w/ Note]"
-          if ( ! is_webform($order[0])) {
-              SirumLog::debug(
-                  "Creating order ".$order[0]['invoice_number']." in woocommerce because source is not the Webform and looks like there are items to fill",
-                  [
+            //"order_source": "Webform eRX/Transfer/Refill [w/ Note]"
+            if (! is_webform($order[0])) {
+                SirumLog::debug(
+                    "Creating order ".$order[0]['invoice_number']." in woocommerce because source is not the Webform and looks like there are items to fill",
+                    [
                       'invoice_number' => $order[0]['invoice_number'],
                       'source'         => $order[0]['order_source'],
                       'order'          => $order,
                       'groups'         => $groups
                   ]
-              );
+                );
 
-              export_wc_create_order($order, "update_orders_cp: created");
-          }
+                export_wc_create_order($order, "update_orders_cp: created");
+            }
 
-          continue; // order hold notice not necessary if we are adding items on next go-around
+            continue; // order hold notice not necessary if we are adding items on next go-around
         }
 
         order_hold_notice($groups);
@@ -343,10 +337,11 @@ function update_orders_cp($changes)
 
         //can't do export_v2_unpend_order because each item won't have an invoice number or order_added_date
         //TODO make an unpend function that uses v2's REST endpoint WITHOUT the generic name so we can avoid this patient lookup and loop
-        if ($patient)
-          foreach ($patient as $i => $item) {
-            $patient[$i] = v2_unpend_item(array_merge($item, $deleted), $mysql, 'update_orders_cp deleted: unpending all items');
-          }
+        if ($patient) {
+            foreach ($patient as $i => $item) {
+                $patient[$i] = v2_unpend_item(array_merge($item, $deleted), $mysql, 'update_orders_cp deleted: unpending all items');
+            }
+        }
 
         AuditLog::log(
             sprintf(
@@ -388,7 +383,6 @@ function update_orders_cp($changes)
         $reason = "$deleted[invoice_number] $deleted[order_stage_cp] $deleted[order_stage_wc] $deleted[order_source] $deleted[order_note]".json_encode($deleted);
 
         if ($deleted['count_filled'] > 0) {
-
             AuditLog::log(
                 sprintf(
                     "Order %s was manually deleted in CarePoint and canceled in WooCommerce",
@@ -399,9 +393,7 @@ function update_orders_cp($changes)
 
             export_wc_cancel_order($deleted['invoice_number'], "update_orders_cp: cp order manually cancelled $reason");
             order_cancelled_notice($deleted, $groups); //We passed in $deleted because there is not $order to make $groups
-
-        } else if (is_webform($deleted)) {
-
+        } elseif (is_webform($deleted)) {
             AuditLog::log(
                 sprintf(
                     "Order %s was deleted in CarePoint and canceled in WooCommerce",
@@ -411,9 +403,7 @@ function update_orders_cp($changes)
             );
             export_wc_cancel_order($deleted['invoice_number'], "update_orders_cp: cp order webform cancelled $reason");
             order_cancelled_notice($deleted, $groups); //We passed in $deleted because there is not $order to make $groups
-
         } else {
-
             AuditLog::log(
                 sprintf(
                     "Order %s was deleted in CarePoint and WooCommerce",
@@ -512,9 +502,9 @@ function update_orders_cp($changes)
         if (
             $stage_change_cp
             && (
-                    $updated['order_date_shipped']
+                $updated['order_date_shipped']
                     || $updated['order_date_dispensed']
-               )
+            )
         ) {
             if ($updated['order_date_dispensed'] != $updated['old_order_date_dispensed']) {
                 AuditLog::log(
