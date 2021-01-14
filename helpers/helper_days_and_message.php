@@ -430,8 +430,10 @@ function set_item_invoice_data($item, $mysql) {
 
 function set_days_and_message($item, $days, $message, $mysql) {
 
+  log_notice("set_days_and_message: called", compact('item', 'days', 'message'));
+
   if (is_null($days) OR is_null($message)) {
-    SirumLog::alert("set_days_and_message set_days: days/message should not be NULL", compact('item', 'days', 'message'));
+    SirumLog::alert("set_days_and_message: days/message should not be NULL", compact('item', 'days', 'message'));
     return $item;
   }
 
@@ -439,7 +441,7 @@ function set_days_and_message($item, $days, $message, $mysql) {
   $new_rx_message_text = message_text($message, $item);
 
   if ( ! $new_rx_message_key) {
-    SirumLog::alert("set_days_and_message could not get rx_message_key ", compact('item', 'days', 'message', 'new_rx_message_key', 'new_rx_message_text'));
+    SirumLog::alert("set_days_and_message: could not get rx_message_key ", compact('item', 'days', 'message', 'new_rx_message_key', 'new_rx_message_text'));
     return $item;
   }
 
@@ -473,11 +475,11 @@ function set_days_and_message($item, $days, $message, $mysql) {
   //We only continue to update gp_order_items IF this is an order_item and not just an rx on the patient's profile
   //This gets called by rxs_single_created1 and rxs_single_created2 where this is not true
   if ( ! @$item['item_date_added'] OR $days == $item['days_dispensed_default'])
-    log_notice("set_days_and_message for rx or item with no change in days, skipping saving of order_item fields", compact('item', 'days', 'message', 'new_rx_message_key', 'new_rx_message_text', 'rx_single_sql', 'rx_grouped_sql'));
+    log_notice("set_days_and_message: for rx or item with no change in days, skipping saving of order_item fields", compact('item', 'days', 'message', 'new_rx_message_key', 'new_rx_message_text', 'rx_single_sql', 'rx_grouped_sql'));
     return $item;
 
   if ( ! $item['rx_number'] OR ! $item['invoice_number']) {
-    log_error("set_days_and_message without a rx_number AND invoice_number. rx on patient profile OR maybe order_item before order was imported OR (likely) maybe order was deleted in past 10mins and order items have not yet been deleted?", compact('item', 'days', 'message', 'new_rx_message_key', 'new_rx_message_text', 'rx_single_sql', 'rx_grouped_sql'));
+    log_error("set_days_and_message: without a rx_number AND invoice_number. rx on patient profile OR maybe order_item before order was imported OR (likely) maybe order was deleted in past 10mins and order items have not yet been deleted?", compact('item', 'days', 'message', 'new_rx_message_key', 'new_rx_message_text', 'rx_single_sql', 'rx_grouped_sql'));
     return $item;
   }
 
@@ -498,7 +500,7 @@ function set_days_and_message($item, $days, $message, $mysql) {
   $item['refills_dispensed_default'] = refills_dispensed_default($item);  //We want invoice to show refills after they are dispensed assuming we dispense items currently in order
 
   if ($item['days_dispensed_actual']) {
-    log_notice("set_days_and_message but it has actual days. Why is this?", compact('item', 'days', 'message', 'new_rx_message_key', 'new_rx_message_text', 'rx_single_sql', 'rx_grouped_sql'));
+    log_notice("set_days_and_message: but it has actual days. Why is this?", compact('item', 'days', 'message', 'new_rx_message_key', 'new_rx_message_text', 'rx_single_sql', 'rx_grouped_sql'));
   }
 
   $order_item_sql = "
@@ -529,11 +531,11 @@ function set_days_and_message($item, $days, $message, $mysql) {
   ";
 
   if (is_null($item['rx_message_key']) OR is_null($item['refills_dispensed_default']))
-    log_warning('helper_days_and_message: is rx_message_keys_initial being set correctly? rx_message_key or refills_dispensed_default IS NULL', ['item' => $item, 'sql' => $order_item_sql]);
+    log_warning('set_days_and_message: is rx_message_keys_initial being set correctly? rx_message_key or refills_dispensed_default IS NULL', ['item' => $item, 'sql' => $order_item_sql]);
 
   $mysql->run($order_item_sql);
 
-  log_notice("set_days_and_message saved both rx and order_item fields", compact('item', 'order_item_sql',  'rx_single_sql', 'rx_grouped_sql'));
+  log_notice("set_days_and_message: saved both rx and order_item fields", compact('item', 'order_item_sql',  'rx_single_sql', 'rx_grouped_sql'));
 
   return $item;
 }
