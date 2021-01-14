@@ -231,24 +231,26 @@ function send_updated_order_communications($groups, $items_added, $items_removed
 
   //an rx_number was swapped (e.g best_rx_number used instead) same drug may have been added and removed
   //at same time so we need to remove the intersection
-  $added_deduped     = array_diff($add_item_names, $remove_item_names);
-  $remove_item_names = array_diff($remove_item_names, $add_item_names);
-  $add_item_names    = $added_deduped;
+  $added_deduped    = array_diff($add_item_names, $remove_item_names);
+  $removed_deduped  = array_diff($remove_item_names, $add_item_names);
 
-  if ($add_item_names) {
-    $verb = count($add_item_names) == 1 ? 'was' : 'were';
-    $patient_updates[] = implode(", ", $add_item_names)." $verb added to your order.";
+
+  if ($added_deduped) {
+    $verb = count($added_deduped) == 1 ? 'was' : 'were';
+    $patient_updates[] = implode(", ", $added_deduped)." $verb added to your order.";
   }
 
-  if ($remove_item_names) {
-    $verb = count($remove_item_names) == 1 ? 'was' : 'were';
-    $patient_updates[] = implode(", ", $remove_item_names)." $verb removed from your order.";
+  if ($removed_deduped) {
+    $verb = count($removed_deduped) == 1 ? 'was' : 'were';
+    $patient_updates[] = implode(", ", $removed_deduped)." $verb removed from your order.";
   }
 
   log_error('send_updated_order_communications', [
-    'groups' => $groups,
-    'items_added' => $items_added,
-    'items_removed' => $items_removed,
+    'groups'          => $groups,
+    'items_added'     => $items_added,
+    'items_removed'   => $items_removed,
+    'added_deduped'   => $added_deduped,
+    'removed_deduped' => $removed_deduped,
     'patient_updates' => $patient_updates
   ]);
 
