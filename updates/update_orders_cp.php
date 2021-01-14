@@ -218,19 +218,23 @@ function update_orders_cp($changes)
               needs_form_notice($groups);
             }
             else if ($order[0]['order_status'] == "Surescripts Authorization Approved")
-              $reason = "Surescripts Approved {$order[0]['drug_name']} {$order[0]['rx_number']} {$order[0]['rx_message_key']}";
+              $reason = "Surescripts Approved {$order[0]['drug_generic']} {$order[0]['rx_number']} {$order[0]['rx_message_key']}";
 
             else if ($order[0]['order_status'] == "Surescripts Authorization Denied")
-              $reason = "Surescripts Denied {$order[0]['drug_name']} {$order[0]['rx_number']} {$order[0]['rx_message_key']}";
+              $reason = "Surescripts Denied {$order[0]['drug_generic']} {$order[0]['rx_number']} {$order[0]['rx_message_key']}";
+
+            else if ($order[0]['count_items'] == 0)
+              $reason = 'Created Empty';
 
             else if ($order[0]['count_items'] == 1)
-              $reason = "Rx Removed {$order[0]['drug_name']} {$order[0]['rx_number']} {$order[0]['rx_message_key']}";
+              $reason = "1 Rx Removed {$order[0]['drug_generic']} {$order[0]['rx_number']} {$order[0]['rx_message_key']}";
 
-            else if ($order[0]['count_to_remove']) //Not enough space to put reason if >1 drug removed. using 0-index depends on the current sort order based on item_date_added.
-              $reason = $order[0]['count_to_remove'].' Rxs Removed';
+            else if ($order[0]['count_items'] == 2)
+              $reason = "2 Rxs Removed {$order[0]['drug_generic']} {$order[0]['rx_message_key']}; {$order[1]['drug_generic']} {$order[1]['rx_message_key']}";
 
-            else
-              $reason = 'Created Empty';
+            else //Not enough space to put reason if >1 drug removed. using 0-index depends on the current sort order based on item_date_added.
+              $reason = $order[0]['count_items'].' Rxs Removed';
+
 
             $order  = export_v2_unpend_order($order, $mysql, $reason);
             export_cp_remove_order($order[0]['invoice_number'], $reason);
