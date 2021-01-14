@@ -194,7 +194,7 @@ function unpend_pick_list($item) {
   $pend_group_new_patient = pend_group_new_patient($item);
   $pend_group_new_patient_old = pend_group_new_patient_old($item);
 
-  $msg = "unpending item $item[drug_generic] in $pend_group_refill, $pend_group_webform, $pend_group_manual, $pend_group_new_patient $res_new_patient_old";
+  $msg = "unpending item $item[drug_generic] in $pend_group_refill, $pend_group_webform, $pend_group_manual, $pend_group_new_patient $pend_group_new_patient_old";
   echo "\n$msg\n";
 
   //Once order is deleted it not longer has items so its hard to determine if the items were New or Refills so just delete both

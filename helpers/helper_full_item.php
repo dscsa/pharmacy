@@ -19,7 +19,7 @@ function load_full_item($partial, $mysql, $overwrite_rx_messages = false) {
     $order = get_full_order($mysql, $partial['invoice_number']);
     $match = false;
 
-    foreach ($order as $row) {
+    foreach ($order ?: [] as $row) {
       if ($row['rx_number'] == $item['rx_number']) {
         $match = true;
         log_warning("load_full_item: match found", [

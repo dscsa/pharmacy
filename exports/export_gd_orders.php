@@ -206,7 +206,7 @@ function export_gd_publish_invoice($order, $mysql, $retry = false)
             ]
         );
 
-        $order = helper_update_payment($order, $reason, $mysql);
+        $order = helper_update_payment($order, $update_reason, $mysql);
         $order = export_gd_update_invoice($order, $update_reason, $mysql);
     }
 
