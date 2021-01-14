@@ -92,17 +92,18 @@ function update_drugs($changes) {
 
   SirumLog::resetSubroutineId();
 
-  function update_field_rxs_single($mysql, $updated, $key) {
-    $sql = "
-      UPDATE gp_rxs_single
-      SET
-        $key = '{$updated[$key]}',
-      WHERE
-        gp_rxs_single.drug_generic = '{$updated['drug_generic']}'
-    ";
+}
 
-    $mysql->run($sql);
-  }
+function update_field_rxs_single($mysql, $updated, $key) {
+  $sql = "
+    UPDATE gp_rxs_single
+    SET
+      $key = '{$updated[$key]}',
+    WHERE
+      gp_rxs_single.drug_generic = '{$updated['drug_generic']}'
+  ";
+
+  $mysql->run($sql);
 }
 
 function update_mismatched_rxs_and_items($mysql, $partial) {
