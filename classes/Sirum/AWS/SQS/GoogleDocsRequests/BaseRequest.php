@@ -1,6 +1,6 @@
 <?php
 
-namespace  Sirum\AWS\SQS\GoogleDocsRequests;
+namespace  Sirum\AWS\SQS\GoogleAppRequest;
 
 use Sirum\AWS\SQS\Request;
 
@@ -29,15 +29,15 @@ class BaseRequest extends \Sirum\AWS\SQS\Request
         }
 
         $type_name  = ucfirst(strtolower($body->type));
-        $class_name = "Sirum\\AWS\\SQS\\GoogleDocsRequests\\{$type_name}";
+        $class_name = "Sirum\\AWS\\SQS\\GoogleAppRequest\\{$type_name}";
         $request    = new $class_name($initialize_date);
 
         return $request;
     }
 
-    public function __construct($json_request = null)
+    public function __construct($request = null)
     {
         $this->type = (new \ReflectionClass($this))->getShortName();
-        parent::__construct($json_request);
+        parent::__construct($request);
     }
 }

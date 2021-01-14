@@ -44,8 +44,10 @@ class Queue
     /**
      * Array of the default values for receive reqests
      */
-    protected $default_receive_params = array('MaxNumberOfMessages' => 10,
-                                              'WaitTimeSeconds'     => 20);
+    protected $default_receive_params = [
+        'MaxNumberOfMessages' => 10,
+        'WaitTimeSeconds'     => 20
+    ];
 
     /**
      * OU812!
@@ -97,31 +99,36 @@ class Queue
     }
 
     /**
-     * Delete one or more messages
+     * Delete multiple messages
      *
      * @param  array|string $receipt_handles   A single RecieptHandle or an array of Reciept handles
      *
-     * @return \AWS\Sqs\SqsResults|null If a single message is deleted, results are empty.  If multiple
-     *                                  deletes are sent, results will be an array of success and failures.
+     * @return \AWS\Sqs\SqsResults An array of success and failures.
      */
-    public function deleteBatch($reqeust)
+    public function deleteBatch(iterable $reqeusts)
     {
 
-        // Loop over all the messages,
-        // Get the receipt message
-        // delete
-        foreach ($reqeust as $request) {
-            $results =
+        $receipt_handles = [];
+
+        foreach ($reqeusts as $request) {
+            $receipt_handles[] = $request->toSQSDelete();
         }
+
+        print_r($receipt_handles);
 
         return $this->sqs_client->deleteMessageBatch(
             [
                 'QueueUrl' => $this->queue_url,
                 'Entries'  => $receipt_handles
             ]
-        );;
+        );
     }
 
+    /**
+     * Delete a single Request from a queu
+     * @param  Request $request The object of the reqeust
+     * @return null
+     */
     public function delete(Request $request) {
         return $this->sqs_client->deleteMessage(
             [
@@ -141,11 +148,11 @@ class Queue
      *
      * @return \AWS\Sqs\SqsResults
      */
-    public function receive($params = array())
+    public function receive($params = [])
     {
-        $sqs_params = $this->default_receive_params;
+        $sqs_params             = $this->default_receive_params;
         $sqs_params['QueueUrl'] = $this->queue_url;
-        $sqs_params = array_merge($sqs_params, $params);
+        $sqs_params             = array_merge($sqs_params, $params);
 
         return $this->sqs_client->receiveMessage($sqs_params);
     }
@@ -200,18 +207,12 @@ class Queue
             array_fill(0, count($messages), $delay)
         );
 
-        print_r($messages);
-
-        $results = $this->sqs_client->sendMessageBatch(
+        return $this->sqs_client->sendMessageBatch(
             [
                 'QueueUrl' => $this->queue_url,
                 'Entries'  => $messages
             ]
         );
-
-        print_r($results);
-
-        return $results;
     }
 
     /**
@@ -220,7 +221,7 @@ class Queue
      * @param      $parms array (Optional) The array of params to use as the default
      *
      */
-    public function setDefaultRecieveProperties($params = array())
+    public function setDefaultRecieveProperties($params = [])
     {
         if (!is_empty($params)) {
             $this->default_receive_params = $params;

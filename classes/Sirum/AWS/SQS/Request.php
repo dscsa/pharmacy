@@ -209,7 +209,26 @@ abstract class Request
         }
     }
 
-    public function toSQS() {
+    /**
+     * Create an array of the data needed to delete an SQS message
+     *
+     * @return array       ['Id', 'ReceiptHandle']
+     */
+    public function toSQSDelete()
+    {
+        return [
+            'Id'            => $this->message_id,
+            'ReceiptHandle' => $this->receipt_handle
+        ];
+    }
+
+    /**
+     * Creat an SQS message that can be added to an sys Queue
+     *
+     * @return array
+     */
+    public function toSQS()
+    {
         if (isset($this->message_id)) {
             throw new \Exception('This message has already been sent to SQS');
         }
@@ -227,11 +246,12 @@ abstract class Request
         return $SQSMessage;
     }
 
-    public function fromSQS($SQSMessage) {
-
-    }
-
-    public function SQSReceipt($message)
+    /**
+     * Populate the data for the object form a SQS message
+     * @param  array $message  A message from an SQS queue
+     * @return boolean
+     */
+    public function fromSQS($message)
     {
 
         $this->receipt_handle = $message['ReceiptHandle'];
@@ -241,6 +261,6 @@ abstract class Request
             throw new \Exception('The message body is malformed');
         }
 
-        $this->fromJSON($message['Body']);
+        return $this->fromJSON($message['Body']);
     }
 }

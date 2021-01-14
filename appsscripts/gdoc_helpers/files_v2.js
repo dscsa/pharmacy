@@ -173,3 +173,33 @@ function publishFile_v2(fileId) {
 
     return response;
 }
+
+/**
+ * Get the details about a file to confirm it's set properly
+ * @param  {string} fileId the doc id for a file
+ * @return {object}        the details for the file
+ */
+function fileDetails(fileId) {
+    try {
+        var file = DriveApp.getFileById(fileId);
+        var parent = file.getParents().next();
+        return {
+            name: file.getName(),
+            id: file.getId(),
+            trashed: file.isTrashed(),
+            parent: {
+                name: parent.getName(),
+                id: parent.getId()
+            }
+        };
+    } catch (e) {
+        response = {
+            "results": "error",
+            "message": "File not found.",
+            "fileId": fileId "error": e.message,
+        };
+
+        console.log(response);
+        return response;
+    }
+}

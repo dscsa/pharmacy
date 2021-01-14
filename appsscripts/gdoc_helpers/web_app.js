@@ -1,8 +1,26 @@
 /**
- * Handle a post request
-
+ * Handle a get request if needed.
  * @param  {object} e The data from the request
- *
+ * @return {ContentService}   A formed JSON respons
+ */
+function doGet(e) {
+    if (e.parameter.GD_KEY != 'Patients1st!') {
+      return ContentService
+        .createTextOutput("Access Denied")
+        .setMimeType(ContentService.MimeType.JSON)
+    }
+
+    var response = fileDetails(e.parameter.fileId);
+
+    return ContentService
+      .createTextOutput(JSON.stringify(response))
+      .setMimeType(ContentService.MimeType.JSON)
+
+}
+
+/**
+ * Handle a post request
+ * @param  {object} e The data from the request
  * @return {ContentService}   A formed JSON respons
  */
 function doPost(e) {
@@ -83,6 +101,8 @@ function v2_routes(contents) {
             return moveFile_v2(contents.fileId, contents.fromId, contents.toId);
         case 'v2/publishFile':
             return publishFile_v2(contents.fileId);
+        case 'v2/fileDetails':
+            return moveFile(contents);
         default:
             console.log('Could not find a match in v2 route', contents);
     }
