@@ -479,8 +479,6 @@ function set_days_and_message($item, $days, $message, $mysql) {
     return $item;
   }
 
-  print_r($item);
-
   if ( ! $item['rx_number'] OR ! $item['invoice_number']) {
     log_error("set_days_and_message: without a rx_number AND invoice_number. rx on patient profile OR maybe order_item before order was imported OR (likely) maybe order was deleted in past 10mins and order items have not yet been deleted?", compact('item', 'days', 'message', 'new_rx_message_key', 'new_rx_message_text', 'rx_single_sql', 'rx_grouped_sql'));
     return $item;
