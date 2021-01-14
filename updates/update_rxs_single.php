@@ -71,8 +71,37 @@ function update_rxs_single($changes)
           'created'  => $created
         ]);
 
-        //compliment method, update_order_item_drug, doesn't need to be called because order_item will be new and won't need to be updated
-        update_rx_single_drug($mysql, $created['rx_number']);
+        if ($created['rx_gsn'] AND is_gsn_in_v2($mysql, $created['rx_number'])) {
+            //compliment method, update_order_item_drug, doesn't need to be called because order_item will be new and won't need to be updated
+            update_rx_single_drug($mysql, $created['rx_number']);
+
+        } else {
+
+            $created_date = "Created:".date('Y-m-d H:i:s');
+
+            if ($created['rx_gsn']) {
+                $subject = "NEW {$created['rx_number']} still needs GSN {$created['rx_gsn']} added to V2";
+                $body    = "{$created['drug_name']} for $subject";
+                $assign  = "Joseph";
+                log_warning($body, $created);
+
+            } else {
+                $subject = "NEW {$created['rx_number']} still needs to be switched to a drug with a GSN";
+                $body    = "{$created['drug_name']} for $subject in CarePoint";
+                $assign  = ".Delay/Expedite Order - RPh";
+                log_notice($body, $created);
+            }
+
+            $salesforce = [
+              "subject"   => $subject,
+              "body"      => "$body $created_date",
+              "contact"   => "{$patient['first_name']} {$patient['last_name']} {$patient['birth_date']}",
+              "assign_to" => $assign,
+              "due_date"  => date('Y-m-d')
+            ];
+
+            $event_title = @$created['rx_number']." Missing GSN: {$salesforce['contact']} $created_date";
+        }
 
         // Get the signature
         $parsed = get_parsed_sig($created['sig_actual'], $created['drug_name']);
@@ -83,7 +112,7 @@ function update_rxs_single($changes)
             $salesforce   = [
                 "subject"   => "Verify qty pended for $created[drug_name] for Rx #$created[rx_number]",
                 "body"      => "For Rx #$created[rx_number], $created[drug_name] with sig '$created[sig_actual]' was parsed as $parsed[qty_per_day] qty per day, which is very high. $created_date",
-                "contact"   => "$created[first_name] $created[last_name] $created[birth_date]",
+                "contact"   => "$patient[first_name] $patient[last_name] $patient[birth_date]",
                 "assign_to" => ".DDx/Sig Issue - RPh",
                 "due_date"  => date('Y-m-d')
             ];
@@ -118,16 +147,23 @@ function update_rxs_single($changes)
 
       $changed = changed_fields($updated);
 
+      $patient = getPatientByRx($created['rx_number']);
+
       SirumLog::debug(
           "update_rxs_single1: rx updated $updated[drug_name] $updated[rx_number]",
           [
               'updated' => $updated,
               'changed' => $changed,
+              'patient' => $patient,
               'source'  => 'CarePoint',
               'type'    => 'rxs-single',
               'event'   => 'updated1'
           ]
       );
+
+      if ($updated['refill_date_first'] AND ! $updated['rx_gsn']) {
+        log_warning("RX is missing GSN but refill RXs cannot be changed", $updated);
+      }
 
       if ($updated['rx_gsn'] != $updated['old_rx_gsn']) {
 
@@ -139,8 +175,37 @@ function update_rxs_single($changes)
           ]
         );
 
-        //compliment method, update_order_item_drug, needs to be called after rx_grouped
-        update_rx_single_drug($mysql, $updated['rx_number']);
+        if ($updated['rx_gsn'] AND is_gsn_in_v2($mysql, $updated['rx_number'])) {
+            //compliment method, update_order_item_drug, doesn't need to be called because order_item will be new and won't need to be updated
+            update_rx_single_drug($mysql, $updated['rx_number']);
+
+        } else {
+
+            $created_date = "Created:".date('Y-m-d H:i:s');
+
+            if ($updated['rx_gsn']) {
+                $subject = "UPDATED {$updated['rx_number']} still needs GSN {$updated['rx_gsn']} added to V2";
+                $body    = "{$updated['drug_name']} for $subject";
+                $assign  = "Joseph";
+                log_warning($body, $updated);
+
+            } else {
+                $subject = "UPDATED {$updated['rx_number']} still needs to be switched to a drug with a GSN";
+                $body    = "{$updated['drug_name']} for $subject in CarePoint";
+                $assign  = ".Delay/Expedite Order - RPh";
+                log_notice($body, $updated);
+            }
+
+            $salesforce = [
+              "subject"   => $subject,
+              "body"      => "$body $created_date",
+              "contact"   => "{$patient['first_name']} {$patient['last_name']} {$patient['birth_date']}",
+              "assign_to" => $assign,
+              "due_date"  => date('Y-m-d')
+            ];
+
+            $event_title = @$updated['rx_number']." Missing GSN: {$salesforce['contact']} $created_date";
+        }
       }
     }
     log_timer('rx-singles-updated1', $loop_timer, $count_updated);

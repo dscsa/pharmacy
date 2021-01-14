@@ -146,9 +146,31 @@ function update_mismatched_rxs_and_items($mysql, $partial) {
   }
 }
 
+function is_gsn_in_v2($mysql, $rx_number) {
+
+    $sql_rxs_single = "
+    SELECT *
+    FROM gp_rxs_single
+    JOIN gp_drugs ON
+      gp_drugs.drug_gsns LIKE CONCAT('%,', rx_gsn, ',%')
+    WHERE
+      gp_rxs_single.rx_number = '$rx_number'
+    ";
+
+    $res = $mysql->run($sql_rxs_single);
+
+    log_warning("is_gsn_in_v2: ".count($res[0]), [
+        'sql_rxs_single'  => $sql_rxs_single,
+        'rx_number'       => $rx_number,
+        'res' => $res
+    ]);
+
+    return !!$res[0];
+}
+
 function update_rx_single_drug($mysql, $rx_number) {
 
-  $sql_rxs_single = "
+    $sql_rxs_single = "
     UPDATE gp_rxs_single
     JOIN gp_drugs ON
       gp_drugs.drug_gsns LIKE CONCAT('%,', rx_gsn, ',%')
@@ -158,14 +180,14 @@ function update_rx_single_drug($mysql, $rx_number) {
       gp_rxs_single.drug_gsns    = gp_drugs.drug_gsns
     WHERE
       gp_rxs_single.rx_number = '$rx_number'
-  ";
+    ";
 
-  log_warning("update_rx_single_drug: updated gp_rx_single", [
-    'sql_rxs_single'  => $sql_rxs_single,
-    'rx_number'       => $rx_number
-  ]);
+    log_warning("update_rx_single_drug: updated gp_rx_single", [
+        'sql_rxs_single'  => $sql_rxs_single,
+        'rx_number'       => $rx_number
+    ]);
 
-  $mysql->run($sql_rxs_single);
+    $mysql->run($sql_rxs_single);
 }
 
 function update_order_item_drug($mysql, $rx_number) {
