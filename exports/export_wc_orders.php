@@ -8,13 +8,11 @@ function wc_get_post($invoice_number, $wc_order_key = null, $suppress_error = fa
     global $mysql;
     $mysql = $mysql ?: new Mysql_Wc();
 
-    $sql = "
-      SELECT *
-      FROM wp_posts
-        JOIN wp_postmeta ON wp_posts.id = wp_postmeta.post_id
-      WHERE wp_postmeta.meta_key='invoice_number'
-        AND wp_postmeta.meta_value = '{$invoice_number}'
-    ";
+    $sql = "SELECT *
+              FROM wp_posts
+                JOIN wp_postmeta ON wp_posts.id = wp_postmeta.post_id
+              WHERE wp_postmeta.meta_key='invoice_number'
+                AND wp_postmeta.meta_value = '{$invoice_number}'";
 
     if ($invoice_number) {
         $res = $mysql->run($sql);
@@ -28,11 +26,11 @@ function wc_get_post($invoice_number, $wc_order_key = null, $suppress_error = fa
         SirumLog::error(
             "Order $invoice_number doesn't seem to exist in wp_posts",
             [
-        "invoice_number" => $invoice_number,
-        "wc_order_key"   => $wc_order_key,
-        "res"            => $res,
-        "sql"            => $sql
-      ]
+                "invoice_number" => $invoice_number,
+                "wc_order_key"   => $wc_order_key,
+                "res"            => $res,
+                "sql"            => $sql
+            ]
         );
     }
 
@@ -81,9 +79,9 @@ function wc_update_meta($invoice_number, $metadata)
         return SirumLog::warning(
             "wc_update_meta: no post id",
             [
-          "invoice_number" => $invoice_number,
-          "meta_values"    => $metadata
-        ]
+              "invoice_number" => $invoice_number,
+              "meta_values"    => $metadata
+            ]
         );
     }
 
@@ -108,10 +106,10 @@ function wc_update_meta($invoice_number, $metadata)
         SirumLog::debug(
             "Inserting Meta data ".print_r($meta_to_insert, true),
             [
-          "invoice_number" => $invoice_number,
-          "meta_values"    => $metadata,
-          "post_id"        => $post_id
-        ]
+                  "invoice_number" => $invoice_number,
+                  "meta_values"    => $metadata,
+                  "post_id"        => $post_id
+            ]
         );
 
         foreach ($meta_to_insert as $meta_key => $meta_value) {
@@ -121,7 +119,8 @@ function wc_update_meta($invoice_number, $metadata)
 
             $meta_value = clean_val($meta_value);
 
-            //mysql->run() does mysqli_query and not mysqli_multi_query so we cannot concatentate the inserts and run all at once
+            // mysql->run() does mysqli_query and not mysqli_multi_query so we
+            // cannot concatentate the inserts and run all at once
             $mysql->run("
           INSERT INTO wp_postmeta
             (meta_id, post_id, meta_key, meta_value)
@@ -135,10 +134,10 @@ function wc_update_meta($invoice_number, $metadata)
         SirumLog::debug(
             "Update WC Meta ".print_r($meta_to_update, true),
             [
-          "invoice_number" => $invoice_number,
-          "meta_values"    => $meta_to_update,
-          "post_id"        => $post_id
-        ]
+                  "invoice_number" => $invoice_number,
+                  "meta_values"    => $meta_to_update,
+                  "post_id"        => $post_id
+            ]
         );
 
         if (is_array($meta_value)) {
@@ -149,20 +148,18 @@ function wc_update_meta($invoice_number, $metadata)
 
         // mysql->run() does mysqli_query and not mysqli_multi_query so we cannot
         // concatentate the inserts and run all at once
-        $mysql->run("
-        UPDATE wp_postmeta
-        SET meta_value = $meta_value
-        WHERE post_id = $post_id
-        AND meta_key = '$meta_key'
-      ");
+        $mysql->run("UPDATE wp_postmeta
+                        SET meta_value = $meta_value
+                        WHERE post_id = $post_id
+                            AND meta_key = '$meta_key'");
     }
 
     SirumLog::debug(
         "Update WC Meta",
         [
-        "invoice_number" => $invoice_number,
-        "meta_values"    => $meta_to_update
-      ]
+            "invoice_number" => $invoice_number,
+            "meta_values"    => $meta_to_update
+        ]
     );
 }
 
@@ -179,10 +176,10 @@ function wc_update_order($invoice_number, $orderdata)
         SirumLog::alert(
             "export_wc_orders: wc_update_order FAILED! Order $invoice_number has no WC POST_ID",
             [
-        "invoice_number" => $invoice_number,
-        "orderdata"      => $orderdata,
-        "wc_order"       => $wc_order
-      ]
+                "invoice_number" => $invoice_number,
+                "orderdata"      => $orderdata,
+                "wc_order"       => $wc_order
+            ]
         );
 
         return;
@@ -198,11 +195,9 @@ function wc_update_order($invoice_number, $orderdata)
         $set[] = "$order_key = $order_value";
     }
 
-    $sql = "
-    UPDATE wp_posts
-    SET ".implode(', ', $set)."
-    WHERE ID = $wc_order[post_id];
-  ";
+    $sql = "UPDATE wp_posts
+                SET ".implode(', ', $set)."
+                WHERE ID = $wc_order[post_id];";
 
     if (@$orderdata['post_status']) {
         $old_status = $wc_order['post_status'];
@@ -212,8 +207,8 @@ function wc_update_order($invoice_number, $orderdata)
             wc_insert_meta(
                 $invoice_number,
                 [
-          'status_update' => date('Y-m-d H:i:s')." Webform $old_status >>> $orderdata[post_status]"
-        ]
+                  'status_update' => date('Y-m-d H:i:s')." Webform $old_status >>> $orderdata[post_status]"
+                ]
             );
         }
     }
@@ -229,16 +224,16 @@ function wc_update_order($invoice_number, $orderdata)
 function export_wc_update_order_status($order)
 {
     $orderdata = [
-    'post_status' => 'wc-' .  str_replace('wc-', '', $order[0]['order_stage_wc'])
-  ];
+        'post_status' => 'wc-' .  str_replace('wc-', '', $order[0]['order_stage_wc'])
+     ];
 
     log_notice(
         'export_wc_update_order_status: wc_update_order',
         [
-      'invoice_number' => $order[0]['invoice_number'],
-      'order_stage_wc' => $order[0]['order_stage_wc'],
-      'order_stage_cp' => $order[0]['order_stage_cp']
-    ]
+          'invoice_number' => $order[0]['invoice_number'],
+          'order_stage_wc' => $order[0]['order_stage_wc'],
+          'order_stage_cp' => $order[0]['order_stage_cp']
+        ]
     );
 
     wc_update_order($order[0]['invoice_number'], $orderdata);
@@ -249,14 +244,12 @@ function export_wc_cancel_order($invoice_number, $reason)
     log_notice(
         'export_wc_cancel_order',
         [
-      'invoice_number' => $invoice_number,
-      'reason' => $reason
-    ]
+          'invoice_number' => $invoice_number,
+          'reason' => $reason
+        ]
     );
 
-    wc_update_order($invoice_number, [
-    'post_status' => 'wc-cancelled'
-  ]);
+    wc_update_order($invoice_number, ['post_status' => 'wc-cancelled']);
 }
 
 function export_wc_return_order($invoice_number)
@@ -266,25 +259,15 @@ function export_wc_return_order($invoice_number)
 
     log_notice(
         'export_wc_return_order',
-        [
-      'invoice_number' => $invoice_number
-    ]
+        ['invoice_number' => $invoice_number]
     );
+
     //we have know way of knowing it's a wc-return-customer so that would have to be set manually
-    wc_update_order($invoice_number, [
-    'post_status' => 'wc-return-usps'
-  ]);
+    wc_update_order($invoice_number, ['post_status' => 'wc-return-usps']);
 
     set_payment_actual($invoice_number, ['total' => 0, 'fee' => 0, 'due' => 0], $mysql);
 }
 
-
-
-function export_wc_remove_order($order, $reason, $ref = null) {
-    if (!is_null($ref)){
-
-    }
-}
 
 
 function export_wc_delete_order($invoice_number, $reason)
@@ -322,10 +305,10 @@ function export_wc_delete_order($invoice_number, $reason)
     SirumLog::debug(
         "export_wc_delete_order",
         [
-      'invoice_number' => $invoice_number,
-      'reason'         => $reason,
-      'post_id'        => $post_id
-    ]
+          'invoice_number' => $invoice_number,
+          'reason'         => $reason,
+          'post_id'        => $post_id
+        ]
     );
 
     export_gd_delete_invoice($invoice_number);
@@ -340,20 +323,27 @@ function export_wc_create_order($order, $reason)
 
     $invoice_number = $first_item['invoice_number'];
     $first_name     = str_replace(["'", '*'], ['',''], $first_item['first_name']); //Ignore Cindy's internal marking
-  $last_name      = str_replace(["'", '*'], ['',''], $first_item['last_name']); //Ignore Cindy's internal marking
-  $birth_date     = str_replace('*', '', $first_item['birth_date']); //Ignore Cindy's internal marking
+    $last_name      = str_replace(["'", '*'], ['',''], $first_item['last_name']); //Ignore Cindy's internal marking
+    $birth_date     = str_replace('*', '', $first_item['birth_date']); //Ignore Cindy's internal marking
 
-  //START DEBUG
-    $post_id = wc_get_post($invoice_number, 'post_id', true);
-
-    if ($post_id) {
-        log_error(
-            "export_wc_create_order: aborting create WC order because it already exists",
-            [$first_item, $post_id, $reason]
-        );
-        return $order;
+    // See if there is already a post for this order, If there is and it is
+    // in the trash, delete it and create a new one.
+    if ($wc_post = wc_get_post($invoice_number, null, true)) {
+        if ($wc_post['post_status'] == 'trash') {
+            export_wc_delete_order($invoice_number, 'order has been trashed in WC');
+        } else {
+            log_error(
+                "export_wc_create_order: aborting create WC order because it
+                 already exists and post status is not trash",
+                [
+                    'first_item' => $first_item,
+                    'wp_post' => $post_id,
+                    'reason' => $reason
+                ]
+            );
+            return $order;
+        }
     }
-    //STOP DEBUG
 
     //This creates order and adds invoice number to metadata
     //We do this through REST API because direct database calls seemed messy
@@ -361,10 +351,11 @@ function export_wc_create_order($order, $reason)
     $res = wc_fetch($url);
 
     //if order is set, then its just a this order already exists error
-    if (! empty($res['error']) or empty($res['order'])) {
-        if (stripos($first_item['first_name'], 'TEST') === false
-                && stripos($first_item['last_name'], 'TEST') === false) {
-
+    if (!empty($res['error']) or empty($res['order'])) {
+        if (
+                stripos($first_item['first_name'], 'TEST') === false
+                && stripos($first_item['last_name'], 'TEST') === false
+        ) {
             // This needs to be a task assigned to somebody to follow up
             SirumLog::alert(
                 "export_wc_create_order: res[error] for $url: need to create/rename WC patient",
@@ -379,26 +370,37 @@ function export_wc_create_order($order, $reason)
         return;
     }
 
-    log_notice("export_wc_create_order: success for $url", [$reason, $res, $first_item]);
+    SirumLog::debug(
+        "export_wc_create_order: success for $url",
+        [
+            'reason' => $reason,
+            'results' => $res,
+            'first_item' => $first_item
+        ]
+    );
 
     //These are the metadata that should NOT change
     //wc_upsert_meta($order_meta, 'shipping_method_id', ['31694']);
     //wc_upsert_meta($order_meta, 'shipping_method_title', ['31694' => 'Admin Fee']);
     $metadata = [
-      'patient_id_cp'     => $first_item['patient_id_cp'],
-      'patient_id_wc'     => $first_item['patient_id_wc'],
-      'order_date_added'  => $first_item['order_date_added'],
-      'refills_used'      => $first_item['refills_used'],
-      'patient_autofill'  => $first_item['patient_autofill'],
-      'order_source'      => $first_item['order_source'],
-      'reason'            => $reason
-  ];
+        'patient_id_cp'     => $first_item['patient_id_cp'],
+        'patient_id_wc'     => $first_item['patient_id_wc'],
+        'order_date_added'  => $first_item['order_date_added'],
+        'refills_used'      => $first_item['refills_used'],
+        'patient_autofill'  => $first_item['patient_autofill'],
+        'order_source'      => $first_item['order_source'],
+        'reason'            => $reason
+    ];
 
     wc_insert_meta($invoice_number, $metadata);
     export_wc_update_order_status($order);
     export_wc_update_order_metadata($order, 'wc_insert_meta');
     export_wc_update_order_address($order, 'wc_insert_meta');
-    export_wc_update_order_payment($invoice_number, $first_item['payment_fee_default'], $first_item['payment_due_default']);
+    export_wc_update_order_payment(
+        $invoice_number,
+        $first_item['payment_fee_default'],
+        $first_item['payment_due_default']
+    );
 
     $address1 = escape_db_values($first_item['order_address1']);
     $address2 = escape_db_values($first_item['order_address2']);
@@ -441,7 +443,13 @@ function export_wc_create_order($order, $reason)
 
     $mysql->run($sql);
 
-    log_notice('export_wc_create_order: created new order', [$metadata, $sql, $invoice_number]);
+    SirumLog::notice(
+        'export_wc_create_order: created new order',
+        [
+            'metadata' => $metadata,
+            'invoice_number' => $invoice_number
+        ]
+    );
 
     return $order;
 }
@@ -449,14 +457,22 @@ function export_wc_create_order($order, $reason)
 function export_wc_update_order($order)
 {
     if ($order[0]['rx_message_key'] == 'ACTION NEEDS FORM') {
-        log_notice('export_wc_update_order: ACTION NEEDS FORM update order skipped because order not yet created in WC', $order[0]);
+        SirumLog::notice(
+            'export_wc_update_order: ACTION NEEDS FORM update order
+            skipped because order not yet created in WC',
+            ['order' => $order[0]]
+        );
         return;
     }
 
     export_wc_update_order_status($order);
     export_wc_update_order_metadata($order);
     export_wc_update_order_address($order);
-    export_wc_update_order_payment($order[0]['invoice_number'], $order[0]['payment_fee_default'], $order[0]['payment_due_default']);
+    export_wc_update_order_payment(
+        $order[0]['invoice_number'],
+        $order[0]['payment_fee_default'],
+        $order[0]['payment_due_default']
+    );
 }
 
 //These are the metadata that might change
@@ -473,11 +489,11 @@ function export_wc_update_order_metadata($order, $meta_fn = 'wc_update_meta')
     }
 
     $metadata = [
-    '_payment_method' => $order[0]['payment_method'],
-    'order_stage_cp'  => $order[0]['order_stage_cp'],
-    'order_status'    => $order[0]['order_status'],
-    'invoice_doc_id'  => $order[0]['invoice_doc_id']
-  ];
+        '_payment_method' => $order[0]['payment_method'],
+        'order_stage_cp'  => $order[0]['order_stage_cp'],
+        'order_status'    => $order[0]['order_status'],
+        'invoice_doc_id'  => $order[0]['invoice_doc_id']
+    ];
 
     if ($order[0]['payment_coupon']) {
         $metadata['_coupon_lines'] = [["code" => $order[0]['payment_coupon']]];
@@ -542,10 +558,10 @@ function export_wc_update_order_payment($invoice_number, $payment_fee, $payment_
     SirumLog::notice(
         "export_wc_update_order_payment: called $invoice_number",
         [
-      "invoice"     => $invoice_number,
-      "payment_fee" => $payment_fee,
-      "payment_due" => $payment_due
-    ]
+              "invoice"     => $invoice_number,
+              "payment_fee" => $payment_fee,
+              "payment_due" => $payment_due
+        ]
     );
 
     $post_id = wc_get_post($invoice_number, 'post_id');
@@ -554,10 +570,10 @@ function export_wc_update_order_payment($invoice_number, $payment_fee, $payment_
         SirumLog::warning(
             'export_wc_update_order_payment: Could not find a Wordpress Post for Invoice',
             [
-        "invoice"     => $invoice_number,
-        "payment_fee" => $payment_fee,
-        "payment_due" => $payment_due
-      ]
+                "invoice"     => $invoice_number,
+                "payment_fee" => $payment_fee,
+                "payment_due" => $payment_due
+            ]
         );
 
         return;
@@ -571,12 +587,12 @@ function export_wc_update_order_payment($invoice_number, $payment_fee, $payment_
         SirumLog::warning(
             'export_wc_update_order_payment: Failed to load Wordpress URL',
             [
-        "invoice"     => $invoice_number,
-        "payment_fee" => $payment_fee,
-        "payment_due" => $payment_due,
-        "url"         => $url,
-        "response"    => $response
-      ]
+                "invoice"     => $invoice_number,
+                "payment_fee" => $payment_fee,
+                "payment_due" => $payment_due,
+                "url"         => $url,
+                "response"    => $response
+            ]
         );
 
         return;
@@ -586,12 +602,12 @@ function export_wc_update_order_payment($invoice_number, $payment_fee, $payment_
         SirumLog::warning(
             'export_wc_update_order_payment: Received error from wordpress',
             [
-        "invoice"     => $invoice_number,
-        "payment_fee" => $payment_fee,
-        "payment_due" => $payment_due,
-        "url"         => $url,
-        "response"    => $response
-      ]
+                "invoice"     => $invoice_number,
+                "payment_fee" => $payment_fee,
+                "payment_due" => $payment_due,
+                "url"         => $url,
+                "response"    => $response
+            ]
         );
         return;
     }
@@ -601,14 +617,14 @@ function wc_fetch($path, $method = 'GET', $content = null, $retry = false)
 {
     $opts = [
     'http' => [
-      'method'        => $method,
-      'ignore_errors' => true,
-      'timeout'       => 2*60, //Seconds
-      'header'        => "Content-Type: application/json\r\n".
-                         "Accept: application/json\r\n".
-                         "Authorization: Basic ".base64_encode(WC_USER.':'.WC_PWD)
-      ]
-  ];
+            'method'        => $method,
+            'ignore_errors' => true,
+            'timeout'       => 2*60, //Seconds
+            'header'        => "Content-Type: application/json\r\n".
+                               "Accept: application/json\r\n".
+                               "Authorization: Basic ".base64_encode(WC_USER.':'.WC_PWD)
+        ]
+    ];
 
     if ($content) {
         $opts['http']['content'] = json_encode($content);
@@ -632,20 +648,20 @@ function wc_fetch($path, $method = 'GET', $content = null, $retry = false)
         log_error(
             "wc_fetch: no response attempt 1 of 2",
             [
-        'url' => $url,
-        'res' => $res,
-        'http_code' => $http_response_header
-      ]
+                'url' => $url,
+                'res' => $res,
+                'http_code' => $http_response_header
+            ]
         );
         return wc_fetch($path, $method, $content, true);
     } elseif (! $json) {
         log_error(
             "wc_fetch: no response attempt 2 of 2",
             [
-        'url'       => $url,
-        'res'       => $res,
-        'http_code' => $http_response_header
-      ]
+                'url'       => $url,
+                'res'       => $res,
+                'http_code' => $http_response_header
+             ]
         );
         return ['error' => "no response from wc_fetch"];
     }
