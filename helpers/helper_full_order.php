@@ -65,7 +65,7 @@ function get_full_order($mysql, $invoice_number) {
   if ($order AND @$order[0]['invoice_number'])
     return $order;
 
-  // Just get the order rgardless of old Rx
+  // Just get the order regardless of old Rx
   $order = $mysql->run($sql)[0];
 
   if ($order AND @$order[0]['invoice_number'])

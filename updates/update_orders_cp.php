@@ -594,7 +594,7 @@ function update_orders_cp($changes)
                 $updated
             );
             SirumLog::alert(
-                'update_orders_cp: updated. no drugs to fill. remove order '.$order[0]['invoice_number'].'?',
+                'update_orders_cp: updated. no drugs to fill. removing cp/wc order '.$order[0]['invoice_number'].'. Send order cancelled notice?',
                 [
                     'invoice_number' => $order[0]['invoice_number'],
                     'count_filled'   => $order[0]['count_filled'],
@@ -603,7 +603,9 @@ function update_orders_cp($changes)
                 ]
             );
 
-            order_cancelled_notice($updated, $groups);
+            //if no order_created_notice is sent then don't send a cancelled.
+            //how can we tell if this is the case?  30min timer like order_items?  old_* values?
+            //order_cancelled_notice($updated, $groups);
 
             /*
                 TODO Why do we need to explicitly unpend?  Deleting an order in
