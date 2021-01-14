@@ -349,7 +349,7 @@ function format_call($call_message) {
     ';<Pause /> and <Pause />', //combine drug list with "and" since it sounds more natural.  Keep semicolon so regex can still find and remove.
     ';<Pause />', //can't do commas without testing for inside quotes because that is part of json syntax. Keep semicolon so regex can still find and remove.
     ' <Pause />', //can't do commas without testing for inside quotes because that is part of json syntax
-    ' <Pause length=\\"1\\" />',
+    ' <Pause length=\"1\" />',
     ' point $1,,$2,,$3', //skips pronouncing decimal points
     ',,,,but,,,,',
     '<Pause />$1 milligrams',
