@@ -170,9 +170,9 @@ class SirumLog
         }
 
         $invoice_number = $name_source['invoice_number'];
-        $first_name     = $name_source['first_name'];
-        $last_name      = $name_source['last_name'];
-        $birth_date     = $name_source['birth_date'];
+        $first_name     = @$name_source['first_name'];
+        $last_name      = @$name_source['last_name'];
+        $birth_date     = @$name_source['birth_date'];
 
         //If we have an invoice but not a patient, we want to get those details
         if ( empty($birth_date) && !empty($invoice_number)) {
