@@ -67,9 +67,10 @@ function gdoc_post($url, $content)
             SirumLog::debug(
                 'Google Doc Request Success:',
                 [
-                    'data' => json_decode($json),
-                    'url'  => $url,
-                    'results' => $results
+                    'data'    => json_decode($json),
+                    'url'     => $url,
+                    'results' => $results,
+                    'try'     => $try
                 ]
             );
             break;
@@ -78,8 +79,9 @@ function gdoc_post($url, $content)
         SirumLog::error(
             'Google Doc Request Failed:',
             [
-                'data' => json_decode($json),
-                'url'  => $url,
+                'data'    => json_decode($json),
+                'url'     => $url,
+                'try'     => $try,
                 'results' => $results
             ]
         );
