@@ -48,6 +48,7 @@ function gdoc_post($url, $content)
         'http' => [
           'method'  => 'POST',
           'content' => $json,
+          'timeout' => 120,
           'header'  => "Content-Type: application/json\r\n".
                        "Accept: application/json\r\n".
                        // Apps Scripts seems to sometimes to require this e.g
@@ -67,10 +68,10 @@ function gdoc_post($url, $content)
             SirumLog::debug(
                 'Google Doc Request Success:',
                 [
-                    'data'    => json_decode($json),
-                    'url'     => $url,
+                    'data' => json_decode($json),
+                    'url'  => $url,
                     'results' => $results,
-                    'try'     => $try
+                    'try' => $try
                 ]
             );
             break;
