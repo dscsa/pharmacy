@@ -302,7 +302,7 @@ function update_patients_wc($changes)
         ) {
             AuditLog::log(
                 sprintf(
-                    "Patient payment updated via Patient Portal to  %s %s with payment coupon % and tracking coupon %s",
+                    "Patient payment updated via Patient Portal to  %s %s with payment coupon %s and tracking coupon %s",
                     $updated['payment_card_type'],
                     $updated['payment_card_last4'],
                     $updated['payment_coupon'],
@@ -317,7 +317,7 @@ function update_patients_wc($changes)
         ) {
             AuditLog::log(
                 sprintf(
-                    "Patient changed coupons via Patient Portal topayment coupon % and tracking coupon %s",
+                    "Patient changed coupons via Patient Portal topayment coupon %s and tracking coupon %s",
                     $updated['payment_coupon'],
                     $updated['tracking_coupon']
                 ),
