@@ -67,6 +67,14 @@ function gdoc_post($url, $content)
                 'url'  => $url
             ]
         );
+    } else {
+        SirumLog::debug(
+            'Google Doc Request Success:',
+            [
+                'data' => json_decode($json),
+                'url'  => $url
+            ]
+        );
     }
 
     // Differentiate between removeCalendarEvents
