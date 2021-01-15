@@ -162,8 +162,8 @@ function update_order_items($changes)
         SirumLog::debug(
             $reason,
             [
-          'orders_updated'  => $orders_updated,
-        ]
+              'orders_updated'  => $orders_updated,
+            ]
         );
 
         foreach ($orders_updated as $invoice_number => $updates) {
@@ -196,7 +196,8 @@ function update_order_items($changes)
                 NOTE Cannot unpend all items effectively in order-items-deleted loops
                 given the current pend group names which are based on order_date_added,
                 since the order is likely already deleted here, order_date_added is null
-                so you cannot deduce the correct pended group name to find and unpend
+                so you cannot deduce the correct pended group name to find and unpend.  this
+                conditional is currently handled when adding items to $updates['removed']
             */
 
             //Only available if item was deleted from an order that is still active

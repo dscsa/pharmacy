@@ -375,17 +375,6 @@ function needs_form_notice($groups) {
     $hour_of_day   = [11, 17, 11, 17, 17, 17];
   }
 
-  log_notice("needs_form_notice is this right?", [$groups, $email]);
-
-  $cancel = cancel_events_by_person($groups['ALL'][0]['first_name'], $groups['ALL'][0]['last_name'], $groups['ALL'][0]['birth_date'], 'needs_form_event', ['Needs Form']);
-
-  needs_form_event($groups['ALL'], $email, $text, null, $hours_to_wait[0], $hour_of_day[0]);
-
-  if ( ! $groups['NOFILL_ACTION']) return; //Don't hassle folks if we aren't filling anything
-
-  needs_form_event($groups['ALL'], $email, $text, null, $hours_to_wait[1], $hour_of_day[1]);
-  needs_form_event($groups['ALL'], $email, $text, null, $hours_to_wait[2], $hour_of_day[2]);
-
   $date = "Created:".date('Y-m-d H:i:s');
 
   $salesforce = [
@@ -402,7 +391,17 @@ function needs_form_notice($groups) {
       "due_date"  => substr(get_start_time($hours_to_wait[3], $hour_of_day[3]), 0, 10)
   ];
 
-  needs_form_event($groups['ALL'], $email, $text, $salesforce, $hours_to_wait[3], $hour_of_day[3]);
+  log_notice("needs_form_notice is this right?", [$groups, $email, $salesforce]);
+
+  $cancel = cancel_events_by_person($groups['ALL'][0]['first_name'], $groups['ALL'][0]['last_name'], $groups['ALL'][0]['birth_date'], 'needs_form_event', ['Needs Form']);
+
+  needs_form_event($groups['ALL'], $email, $text, $salesforce, $hours_to_wait[0], $hour_of_day[0]);
+
+  if ( ! $groups['NOFILL_ACTION']) return; //Don't hassle folks if we aren't filling anything
+
+  needs_form_event($groups['ALL'], $email, $text, null, $hours_to_wait[1], $hour_of_day[1]);
+  needs_form_event($groups['ALL'], $email, $text, null, $hours_to_wait[2], $hour_of_day[2]);
+  needs_form_event($groups['ALL'], $email, $text, null, $hours_to_wait[3], $hour_of_day[3]);
 }
 
 //We are coording patient communication via sms, calls, emails, & faxes
