@@ -333,26 +333,27 @@ function update_rxs_single($changes)
      */
     $loop_timer = microtime(true);
     foreach ($changes['created'] as $created) {
+
         SirumLog::$subroutine_id = "rxs-single-created2-".sha1(serialize($created));
 
-        $patient = getPatientByRx($created['rx_number']);
+        $item = load_full_item($created, $mysql);
 
         SirumLog::debug(
             "update_rxs_single: rx created2",
             [
-                  'created' => $created,
-                  'patient' => $patient,
-                  'source'  => 'CarePoint',
-                  'type'    => 'rxs-single',
-                  'event'   => 'created2'
+                'created' => $created,
+                'item'    => $item,
+                'source'  => 'CarePoint',
+                'type'    => 'rxs-single',
+                'event'   => 'created2'
             ]
         );
 
         //TODO rather hackily editing calendar events, probably better to just delete and then recreate them
         remove_drugs_from_refill_reminders(
-            $patient['first_name'],
-            $patient['last_name'],
-            $patient['birth_date'],
+            $item['first_name'],
+            $item['last_name'],
+            $item['birth_date'],
             [$created['drug_name']]
         );
     }
@@ -368,6 +369,7 @@ function update_rxs_single($changes)
     $loop_timer = microtime(true);
 
     foreach ($changes['updated'] as $updated) {
+
         SirumLog::$subroutine_id = "rxs-single-updated2-".sha1(serialize($updated));
 
         $changed = changed_fields($updated);

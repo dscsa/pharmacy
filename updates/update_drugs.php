@@ -186,7 +186,7 @@ function update_rx_single_drug($mysql, $rx_number) {
       gp_rxs_single.rx_number = '$rx_number'
     ";
 
-    log_warning("update_rx_single_drug: updated gp_rx_single", [
+    log_warning("update_drugs: update_rx_single_drug (saving v2 drug names in gp_rxs_single)", [
         'sql_rxs_single'  => $sql_rxs_single,
         'rx_number'       => $rx_number
     ]);
