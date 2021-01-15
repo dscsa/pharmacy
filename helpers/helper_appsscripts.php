@@ -57,24 +57,34 @@ function gdoc_post($url, $content)
     ];
 
     $context = stream_context_create($opts);
-    $results = @file_get_contents($url.'?GD_KEY='.GD_KEY, false, $context);
 
-    if ($results === false) {
+
+    for ($try = 1; $try <=2; $try++) {
+        $results = @file_get_contents($url.'?GD_KEY='.GD_KEY, false, $context);
+
+        // We have some results so let's leave
+        if ($results !== false) {
+            SirumLog::debug(
+                'Google Doc Request Success:',
+                [
+                    'data' => json_decode($json),
+                    'url'  => $url,
+                    'results' => $results
+                ]
+            );
+            break;
+        }
+
         SirumLog::error(
             'Google Doc Request Failed:',
             [
                 'data' => json_decode($json),
-                'url'  => $url
+                'url'  => $url,
+                'results' => $results
             ]
         );
-    } else {
-        SirumLog::debug(
-            'Google Doc Request Success:',
-            [
-                'data' => json_decode($json),
-                'url'  => $url
-            ]
-        );
+
+        sleep(3);
     }
 
     // Differentiate between removeCalendarEvents
