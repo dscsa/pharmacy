@@ -91,3 +91,30 @@ function get_full_item($mysql, $rx_number, $invoice_number = null) {
 
   return $item;
 }
+
+/* this will most commonly called with a set of rx_grouped.rx_numbers */
+function get_current_items($mysql, $conditions = []) {
+  $where = "";
+
+  foreach ($conditions as $key => $val) {
+    $where .= "$key = $val AND\n";
+  }
+
+  $sql = "
+    SELECT *
+    FROM gp_order_items
+    JOIN gp_rxs_grouped ON
+      gp_rxs_grouped.rx_numbers LIKE CONCAT('%,', gp_order_items.rx_number, ',%')
+    WHERE
+      $where
+      rx_dispensed_id IS NULL
+    ORDER BY
+      invoice_number ASC
+  ";
+
+   $res = $mysql->run($sql)[0];
+
+   log_notice('get_current_items', ['sql' => $sql, 'res' => $res]);
+
+   return $res;
+}
