@@ -6,10 +6,10 @@ require_once 'keys.php';
 
 use Sirum\AWS\SQS\GoogleAppRequest\BaseRequest;
 use Sirum\AWS\SQS\GoogleAppRequest\HelperRequest;
-use Sirum\AWS\SQS\GoogleDocsQueue;
+use Sirum\AWS\SQS\GoogleAppQueue;
 
 // Grab and item out of the queue
-$gdq = new GoogleDocsQueue();
+$gdq = new GoogleAppQueue();
 
 $executions = (ENVIRONMENT == 'PRODUCTION') ? 10000 : 2;
 

@@ -2,10 +2,13 @@
 
 require_once 'helpers/helper_appsscripts.php';
 
-use Sirum\AWS\SQS\GoogleAppRequest\Delete;
-use Sirum\AWS\SQS\GoogleAppRequest\Move;
-use Sirum\AWS\SQS\GoogleAppRequest\Publish;
-use Sirum\AWS\SQS\GoogleDocsQueue;
+use Sirum\AWS\SQS\GoogleAppRequest\Invoice\{
+    Delete,
+    Move,
+    Publish
+};
+
+use Sirum\AWS\SQS\GoogleAppQueue;
 use Sirum\DataModels\GoodPillOrder;
 use Sirum\Logging\SirumLog;
 
@@ -194,7 +197,7 @@ function export_gd_publish_invoice($order, $async = true)
     $publish_request->group_id   = "invoice-{$invoice_number}";
 
     if ($async) {
-        $gdq = new GoogleDocsQueue();
+        $gdq = new GoogleAppQueue();
         $gdq->send($publish_request);
         return $order;
     }
@@ -234,7 +237,7 @@ function export_gd_print_invoice($invoice_number, $async = true)
     $move_request->group_id   = "invoice-{$invoice_number}";
 
     if ($async) {
-        $gdq = new GoogleDocsQueue();
+        $gdq = new GoogleAppQueue();
         return $gdq->send($move_request);
     }
 
@@ -271,7 +274,7 @@ function export_gd_delete_invoice($invoice_number, $async = true)
     $delete_request->group_id  = "invoice-{$invoice_number}";
 
     if ($async) {
-        $gdq = new GoogleDocsQueue();
+        $gdq = new GoogleAppQueue();
         return $gdq->send($delete_request);
     }
 

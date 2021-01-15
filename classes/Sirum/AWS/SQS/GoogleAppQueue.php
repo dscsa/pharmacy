@@ -5,7 +5,7 @@ namespace  Sirum\Aws\SQS;
 /**
  * Class for access Amazon Simple Queuing Service
  */
-class GoogleDocsQueue extends Queue
+class GoogleAppQueue extends Queue
 {
     public function __construct()
     {

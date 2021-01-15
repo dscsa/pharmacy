@@ -120,7 +120,8 @@ function publishFile_v2(fileId) {
         response = {
             "results": "error",
             "message": "File not found.",
-            "fileId": fileId "error": e.message,
+            "fileId": fileId,
+            "error": e.message
         };
     }
 
@@ -196,7 +197,8 @@ function fileDetails(fileId) {
         response = {
             "results": "error",
             "message": "File not found.",
-            "fileId": fileId "error": e.message,
+            "fileId": fileId,
+            "error": e.message
         };
 
         console.log(response);

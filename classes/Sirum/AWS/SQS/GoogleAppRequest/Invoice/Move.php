@@ -1,11 +1,13 @@
 <?php
 
-namespace  Sirum\AWS\SQS\GoogleAppRequest;
+namespace  Sirum\AWS\SQS\GoogleAppRequest\Invoice;
+
+use Sirum\AWS\SQS\GoogleAppRequest\HelperRequest;
 
 /**
  * Base level class for all Google Doc requests
  */
-class Move extends BaseRequest
+class Move extends HelperRequest
 {
     protected $properties = [
         'type',
@@ -22,9 +24,9 @@ class Move extends BaseRequest
      * Set the method to the default value for a delete request
      * @param string $requests  (Optional) The initial data
      */
-    public function __construct($request = null) {
+    public function __construct($request = null)
+    {
         $this->method = 'v2/moveFile';
-
         parent::__construct($request);
     }
 }

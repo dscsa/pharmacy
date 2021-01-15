@@ -7,7 +7,7 @@ use Sirum\AWS\SQS\Request;
 /**
  * Base level class for all Google Doc requests
  */
-class BaseRequest extends \Sirum\AWS\SQS\Request
+class BaseRequest extends Request
 {
     /**
      * Function takes an array from SQS library.
@@ -37,7 +37,13 @@ class BaseRequest extends \Sirum\AWS\SQS\Request
 
     public function __construct($request = null)
     {
-        $this->type = (new \ReflectionClass($this))->getShortName();
+        $this->type = substr(
+            (new \ReflectionClass($this))->getClassName(),
+            strlen('Sirum\AWS\SQS\GoogleAppRequest')
+        );
+
+        var_dump($this);
+
         parent::__construct($request);
     }
 }
