@@ -270,6 +270,7 @@ function update_orders_cp($changes)
             continue; // order hold notice not necessary if we are adding items on next go-around
         }
 
+        //WARNING Can we get rid of this, doesn't seem to be triggered anymore 2021-01-14
         order_hold_notice($groups);
 
         AuditLog::log(

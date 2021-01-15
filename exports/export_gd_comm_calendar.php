@@ -200,6 +200,8 @@ function transfer_requested_notice($groups) {
   transfer_requested_event($groups['ALL'], $email, $text, 15/60);
 }
 
+/* WARNING Can we get rid of order_hold_notce, doesn't seem to be triggered anymore 2021-01-14 */
+
 //We are coording patient communication via sms, calls, emails, & faxes
 //by building commication arrays based on github.com/dscsa/communication-calendar
 function order_hold_notice($groups) {
