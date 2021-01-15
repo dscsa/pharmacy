@@ -157,7 +157,7 @@ function update_order_items($changes)
     //TODO Somehow bundle patients comms if we are adding/removing drugs on next go-around, since order_update_notice would need to be sent again?
     //The above seems like would be tricky so skipping this for now
     if ($orders_updated) {
-        $reason = "helper_full_fields: send_updated_order_communications for ".count($orders_updated)." orders";
+        $reason = "update_order_items: determining order updates for ".count($orders_updated)." orders";
 
         SirumLog::debug(
             $reason,
@@ -168,9 +168,11 @@ function update_order_items($changes)
 
         foreach ($orders_updated as $invoice_number => $updates) {
 
+            $order  = load_full_order(['invoice_number' => $invoice_number], $mysql);
+            $groups = group_drugs($order, $mysql);
+
             $add_item_names    = [];
             $remove_item_names = [];
-            $patient_updates   = [];
 
             foreach ($updates['added'] as $item) {
               $add_item_names[] = $item['drug'];
@@ -183,8 +185,23 @@ function update_order_items($changes)
             //an rx_number was swapped (e.g best_rx_number used instead) same drug may have been added and removed
             //at same time so we need to remove the intersection
             $added_deduped    = array_diff($add_item_names, $remove_item_names);
-            $removed_deduped  = array_diff($remove_item_names, $add_item_names);
 
+             //something might have been removed as a duplicate, but we don't want to say it was "removed"
+             //if drug is still in the order so we remove all FILLED (rather than just the added)
+            $removed_deduped  = array_diff($remove_item_names, $groups['FILLED']);
+
+            SirumLog::warning(
+                "update_order_items: order $invoice_number updated",
+                [
+                    'invoice_number'    => $invoice_number,
+                    'updates'           => $updates,
+                    'add_item_names'    => $add_item_names,
+                    'remove_item_names' => $remove_item_names,
+                    'added_deduped'     => $added_deduped,
+                    'removed_deduped'   => $removed_deduped,
+                    'groups'            => $groups
+                ]
+            );
 
             /*
                 We had issues in orders like 55256 Apixaban where the rx_number was swapped this
@@ -205,7 +222,7 @@ function update_order_items($changes)
 
                 AuditLog::log(
                     sprintf(
-                     "Order item % deleted for Rx#%s GSN#%s, Unpending",
+                     "Order item %s deleted for Rx#%s GSN#%s, Unpending",
                      $item['drug_name'],
                      $item['rx_number'],
                      $item['drug_gsns']
@@ -219,9 +236,6 @@ function update_order_items($changes)
                     "order-item-deleted and order still exists"
                 );
             }
-
-            $order  = load_full_order(['invoice_number' => $invoice_number], $mysql);
-            $groups = group_drugs($order, $mysql);
 
             send_updated_order_communications($groups, $added_deduped, $removed_deduped);
         }
