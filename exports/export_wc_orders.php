@@ -337,7 +337,7 @@ function export_wc_create_order($order, $reason)
                  already exists and post status is not trash",
                 [
                     'first_item' => $first_item,
-                    'wp_post' => $post_id,
+                    'wc_post' => $wc_post,
                     'reason' => $reason
                 ]
             );

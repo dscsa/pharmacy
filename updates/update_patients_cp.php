@@ -98,7 +98,7 @@ function update_patients_cp($changes)
             update_wc_phone2($mysql, $patient['patient_id_wc'], null);
         } elseif (@$updated['phone2']
                   && $updated['phone2'] == $updated['phone1']) {
-            AuditLog::log("Phone2 deleted for patient via CarePoint", $patient);
+            AuditLog::log("Phone2 deleted for patient via CarePoint", $changed);
             //EXEC SirumWeb_AddUpdatePatHomePhone only inserts new phone numbers
             delete_cp_phone($mssql, $updated['patient_id_cp'], 9);
         } elseif ($updated['phone2'] !== $updated['old_phone2']) {
@@ -116,7 +116,7 @@ function update_patients_cp($changes)
 
         //  The primary phone number for the patient has changed
         if ($updated['phone1'] !== $updated['old_phone1']) {
-            AuditLog::log("Phone1 changed for patient via CarePoint", $patient);
+            AuditLog::log("Phone1 changed for patient via CarePoint", $changed);
             SirumLog::notice(
                 "Phone1 updated in CP. Was this handled correctly?",
                 ['updated' => $updated]

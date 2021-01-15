@@ -147,7 +147,7 @@ function update_rxs_single($changes)
 
       $changed = changed_fields($updated);
 
-      $patient = getPatientByRx($created['rx_number']);
+      $patient = getPatientByRx($updated['rx_number']);
 
       SirumLog::debug(
           "update_rxs_single1: rx updated $updated[drug_name] $updated[rx_number]",
