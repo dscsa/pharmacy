@@ -118,46 +118,10 @@ function get_days_and_message($item, $patient_or_order) {
     return [0, RX_MESSAGE['ACTION EXPIRED']];
   }
 
-
-
+  //TODO Remove.  This logic was moved into update_rxs_single::created/updated
   if ( ! $item['drug_gsns'] AND $item['drug_name']) {
     //Check for invoice number otherwise, seemed that SF tasks were being triplicated.  Unsure reason, maybe called by order_items and not just orders?
-    if ( ! is_item($patient_or_order)) {
-      log_warning("Confirm didn't create salesforce task for GSN - patients/orders would cause duplicates", $item);
-    } else if ($item['refill_date_first']) {
-      log_warning("Confirm didn't create salesforce task for GSN - refills cannot be changed", $item);
-    } else  {
-      $in_order = "In Order #$item[invoice_number],";
-      $created = "Created:".date('Y-m-d H:i:s');
-
-      if ($item['max_gsn']) {
-        $body = "$in_order drug $item[drug_name] needs GSN $item[max_gsn] added to V2";
-        $assign = "Joseph";
-        log_warning($body, $item);
-
-      } else {
-        $body = "$in_order drug $item[drug_name] needs to be switched to a drug with a GSN in Guardian";
-        $assign = ".Delay/Expedite Order - RPh";
-        log_notice($body, $item);
-      }
-
-      $salesforce = [
-        "subject"   => "$in_order missing GSN for $item[drug_name]",
-        "body"      => "$body $created",
-        "contact"   => "$item[first_name] $item[last_name] $item[birth_date]",
-        "assign_to" => $assign,
-        "due_date"  => date('Y-m-d')
-      ];
-
-      $event_title = @$item['invoice_number']." Missing GSN: $salesforce[contact] $created";
-
-      $mins_ago = (time() - strtotime(max($item['rx_date_changed'], $item['order_date_changed'], $item['item_date_added'])))/60;
-
-      $mins_ago <= 30
-        ? create_event($event_title, [$salesforce])
-        : log_warning("CONFIRM DIDN'T CREATE SALESFORCE TASK - DUPLICATE mins_ago:$mins_ago $event_title", [$item, $salesforce]);
-
-    }
+    log_alert("Used to make missing GSN Salesforce Tasks Here.  Confirm SF Task Made in Rxs-Singles-Updated/Created Loop before downgarding or removing this log", $item);
 
     return [ $item['refill_date_first'] ? $days_default : 0, RX_MESSAGE['NO ACTION MISSING GSN']];
   }
