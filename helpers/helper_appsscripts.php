@@ -1,4 +1,7 @@
 <?php
+
+use Sirum\Logging\SirumLog;
+
 /**
  * Get the details about a specific file to use for test.
  * @param  string $fileId The filedId of the google doc
@@ -54,7 +57,17 @@ function gdoc_post($url, $content)
     ];
 
     $context = stream_context_create($opts);
-    $results = file_get_contents($url.'?GD_KEY='.GD_KEY, false, $context);
+    $results = @file_get_contents($url.'?GD_KEY='.GD_KEY, false, $context);
+
+    if ($results === false) {
+        SirumLog::error(
+            'Google Doc Request Failed:',
+            [
+                'data' => json_decode($json),
+                'url'  => $url
+            ]
+        );
+    }
 
     // Differentiate between removeCalendarEvents
     $ids = @$content['ids'][0];
