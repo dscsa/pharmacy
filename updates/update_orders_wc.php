@@ -143,7 +143,7 @@ function update_orders_wc($changes)
                     from CarePoint since the new order has a status of %s it
                     will be CANCELLED",
                     @$created['invoice_number'],
-                    $duplicate['invoice_number'],
+                    @$duplicate['invoice_number'],
                     $created['order_stage_wc']
                 ),
                 $created

@@ -217,6 +217,8 @@ function send_dispensed_order_communications($groups) {
 
 function send_updated_order_communications($groups, $added_deduped, $removed_deduped) {
 
+  $patient_updates = [];
+  
   if ($added_deduped) {
     $verb = count($added_deduped) == 1 ? 'was' : 'were';
     $patient_updates[] = implode(", ", $added_deduped)." $verb added to your order.";
@@ -229,8 +231,6 @@ function send_updated_order_communications($groups, $added_deduped, $removed_ded
 
   log_error('send_updated_order_communications', [
     'groups'          => $groups,
-    'items_added'     => $items_added,
-    'items_removed'   => $items_removed,
     'added_deduped'   => $added_deduped,
     'removed_deduped' => $removed_deduped,
     'patient_updates' => $patient_updates
