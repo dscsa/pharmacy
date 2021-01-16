@@ -709,8 +709,8 @@ function days_default($days_left_in_refills, $days_left_in_stock, $days_default,
     TODO
     These last two functions are the only two that depend on the ENTIRE order.  This is because
     they group by drug (GSN) and ignore sig_qty_per_day differences.  Can we handle this with SQL
-    groups in rxs-grouped table or someplace else?  If so, we can get rid of need to pass entire
-    order into the function rather than just the one item
+    groups in rxs-grouped table or someplace else?  Or maybe the load the full order themselves?
+    If so, we can get rid of need to pass entire order into the function rather than just the one item
 */
 
 //rxs_grouped includes drug name AND sig_qty_per_day_default.  If someone starts on Lipitor 20mg 1 time per day
