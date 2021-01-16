@@ -65,11 +65,6 @@ function get_days_and_message($item, $patient_or_order) {
   // value is 0, Use the DAY_STD in its place
   $days_default            = days_default($days_left_in_refills, $days_left_in_stock, DAYS_STD, $item);
 
-  //Issues were we have a duplicate webform order (we don't delete a duplicate order if its from webform)
-  //some of these orders have different items and so are "valid" but some have same item(s) that are
-  //pended multiple times
-  $duplicate_items        = get_current_items($mysql, ['rx_numbers' => $item['rx_numbers']]);
-
   /*
     There was some error parsint the Rx
    */
@@ -82,11 +77,6 @@ function get_days_and_message($item, $patient_or_order) {
    */
   if (@$item['item_date_added'] AND $is_duplicate_gsn) {
     log_error("helper_days_and_message: $item[drug_generic] is duplicate GSN.  Likely Mistake. Different sig_qty_per_day?", ['duplicate_items' => $duplicate_items, 'item' => $item, 'order' => $patient_or_order]);
-  }
-
-
-  if (count($duplicate_items) > 1) {
-    log_alert("helper_days_and_message: $item[drug_generic] is duplicate ITEM.  Likely Mistake. Two webform orders?", ['duplicate_items' => $duplicate_items, 'item' => $item, 'order' => $patient_or_order]);
   }
 
   /*
