@@ -82,7 +82,9 @@ function match_patient($mysql, $patient_id_cp, $patient_id_wc)
     // See if there is already a patient with the cp_id in WooCommerce.
     // If there is, we need to log an alert and skip this step.
     // Update the patientes table
-    if (!($patient_match = is_patient_matched_in_wc($patient_id_cp))) {
+    $patient_match = is_patient_matched_in_wc($patient_id_cp);
+
+    if ( ! $patient_match) {
         $sql = "UPDATE
           gp_patients
         SET
@@ -104,7 +106,7 @@ function match_patient($mysql, $patient_id_cp, $patient_id_wc)
             'patient_id_cp',
             $patient_id_cp
         );
-    } elseif ($patient['patient_id_wc'] != $patient_id_wc) {
+    } elseif (@$patient_match['patient_id_wc'] != $patient_id_wc) {
         SirumLog::alert(
             "Attempted to match a CP patient that was already matched in WC",
             [
