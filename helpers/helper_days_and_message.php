@@ -617,20 +617,6 @@ function is_not_offered($item) {
   return false;
 }
 
-//rxs_grouped includes drug name AND sig_qty_per_day_default.  If someone starts on Lipitor 20mg 1 time per day
-//and then moves to Lipitor 20mg 2 times per day, we still want to honor this Rx as a refill rather than
-//tell them it is out of stock just because the sig changed
-function is_refill($item1, $patient_or_order) {
-
-  $refill_date_first = null;
-  foreach ($patient_or_order as $item2) {
-    if ($item1['drug_generic'] == $item2['drug_generic'])
-      $refill_date_first = $refill_date_first ?: $item2['refill_date_first'];
-  }
-
-  return !!$refill_date_first;
-}
-
 function is_refill_only($item) {
   return in_array(@$item['stock_level_initial'] ?: $item['stock_level'], [
     STOCK_LEVEL['OUT OF STOCK'],
@@ -718,6 +704,29 @@ function days_default($days_left_in_refills, $days_left_in_stock, $days_default,
 
   return $days;
 }
+
+/*
+    TODO
+    These last two functions are the only two that depend on the ENTIRE order.  This is because
+    they group by drug (GSN) and ignore sig_qty_per_day differences.  Can we handle this with SQL
+    groups in rxs-grouped table or someplace else?  If so, we can get rid of need to pass entire
+    order into the function rather than just the one item
+*/
+
+//rxs_grouped includes drug name AND sig_qty_per_day_default.  If someone starts on Lipitor 20mg 1 time per day
+//and then moves to Lipitor 20mg 2 times per day, we still want to honor this Rx as a refill rather than
+//tell them it is out of stock just because the sig changed
+function is_refill($item1, $patient_or_order) {
+
+  $refill_date_first = null;
+  foreach ($patient_or_order as $item2) {
+    if ($item1['drug_generic'] == $item2['drug_generic'])
+      $refill_date_first = $refill_date_first ?: $item2['refill_date_first'];
+  }
+
+  return !!$refill_date_first;
+}
+
 
 //Don't sync if an order with these instructions already exists in order
 function is_duplicate_gsn($item1, $patient_or_order) {
