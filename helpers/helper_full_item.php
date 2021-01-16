@@ -33,7 +33,7 @@ function load_full_item($partial, $mysql, $overwrite_rx_messages = false) {
       return add_full_fields([$item], $mysql, $overwrite_rx_messages)[0];
     }
 
-    $full_order = add_full_fields($order, $mysql, $overwrite_rx_messages);
+    $full_order = add_full_fields($order, $mysql, $overwrite_rx_messages ? $item['rx_number'] : false);
 
     foreach ($full_order as $full_item) {
 
