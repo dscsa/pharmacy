@@ -4,40 +4,55 @@ use Sirum\Logging\SirumLog;
 
 function load_full_item($partial, $mysql, $overwrite_rx_messages = false) {
 
-  if ( ! $partial['rx_number']) {
-    log_error('ERROR get_full_item: missing rx_number', get_defined_vars());
-    return [];
-  }
+    if ( ! $partial['rx_number']) {
+        log_error('ERROR load_full_item: missing rx_number', get_defined_vars());
+        return [];
+    }
 
-  $item = get_full_item($mysql, $partial['rx_number'], @$partial['invoice_number']);
+    $item = get_full_item($mysql, $partial['rx_number'], @$partial['invoice_number']);
 
-  if ( ! $item) {
-    return;
-  }
+    if ( ! $item) {
+        log_error('ERROR load_full_item: get_full_item missing ', get_defined_vars());
+        return [];
+    }
 
-  if (@$partial['invoice_number']) {
+    //use [item] to mock an order, this won't be quite as good because is_refill and sync_to_order
+    //need the whole order in order to determine what to do but it will be directionally correct
+    if ( ! @$partial['invoice_number']) {
+        log_notice('load_full_item: rx only, no invoice_number ', get_defined_vars());
+        return add_full_fields([$item], $mysql, $overwrite_rx_messages)[0];
+    }
+
     $order = get_full_order($mysql, $partial['invoice_number']);
-    $match = false;
 
-    foreach ($order ?: [] as $row) {
-      if ($row['rx_number'] == $item['rx_number']) {
-        $match = true;
-        log_warning("load_full_item: match found", [
+    //order will be null for the order-items-deleted loop
+    //use [item] to mock an order, this won't be quite as good because is_refill and sync_to_order
+    //need the whole order in order to determine what to do but it will be directionally correct
+    if ( ! $order) {
+      log_notice("load_full_item: rx only, order {$partial['invoice_number']} deleted ", get_defined_vars());
+      return add_full_fields([$item], $mysql, $overwrite_rx_messages)[0];
+    }
+
+    $full_order = add_full_fields($order, $mysql, $overwrite_rx_messages);
+
+    foreach ($full_order as $full_item) {
+
+        if ($full_item['rx_number'] != $item['rx_number']) {
+            continue;
+        }
+
+        log_warning("load_full_item: matching order and item found", [
           'item' => $item,
-          'row' => $row,
+          'full_item' => $full_item,
           'row not item' => array_diff_assoc($row, $item),
           'item not row' => array_diff_assoc($item, $row)
         ]);
-      }
+
+        return $full_item;
     }
-    if ( ! $match)
-      log_warning("load_full_item: no match!  can we still replace [item] below?", ['item' => $item, 'order' => $order]);
-  }
 
-  $full_item = add_full_fields([$item], $mysql, $overwrite_rx_messages)[0];
-
-  return $full_item;
-  //log_info("Get Full Item", get_defined_vars());
+    log_alert("load_full_item: order found but matching item!", ['item' => $item, 'order' => $order]);
+    return [];
 }
 
 function get_full_item($mysql, $rx_number, $invoice_number = null) {

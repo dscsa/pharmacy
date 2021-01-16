@@ -531,6 +531,7 @@ function update_rxs_single($changes)
     )[0];
 
     foreach ($rx_singles as $rx_single) {
+        
         SirumLog::$subroutine_id = "rxs-single-null-message-".sha1(serialize($rx_single));
 
         //These should have been given an rx_message upon creation.  Why was it missing?
