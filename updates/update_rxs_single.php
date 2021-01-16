@@ -519,6 +519,8 @@ function update_rxs_single($changes)
      *
      *  NOTE Using an INNER JOIN to exclude Rxs associated with patients that are inactive or deceased
      */
+
+    /*
     $loop_timer = microtime(true);
     $rx_singles = $mysql->run("
       SELECT *
@@ -531,7 +533,7 @@ function update_rxs_single($changes)
     )[0];
 
     foreach ($rx_singles as $rx_single) {
-        
+
         SirumLog::$subroutine_id = "rxs-single-null-message-".sha1(serialize($rx_single));
 
         //These should have been given an rx_message upon creation.  Why was it missing?
@@ -551,7 +553,7 @@ function update_rxs_single($changes)
         $item = load_full_item($rx_single, $mysql);
     }
     log_timer('rx-singles-empty-messages', $loop_timer, count($rx_singles));
-
+    */
 
     SirumLog::resetSubroutineId();
 
