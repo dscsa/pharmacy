@@ -44,8 +44,8 @@ function load_full_item($partial, $mysql, $overwrite_rx_messages = false) {
         log_warning("load_full_item: matching order and item found", [
           'item' => $item,
           'full_item' => $full_item,
-          'row not item' => array_diff_assoc($row, $item),
-          'item not row' => array_diff_assoc($item, $row)
+          'full_item not item' => array_diff_assoc($full_item, $item),
+          'item not full_item' => array_diff_assoc($item, $full_item)
         ]);
 
         return $full_item;
