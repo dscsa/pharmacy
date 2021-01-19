@@ -18,7 +18,7 @@ function cp_orders_get_deleted_sql($new, $old, $id) {
     WHERE
       new.$id IS NULL
     AND
-      old.tracking_number IS NULL
+      old.order_date_shipped IS NULL
   ";
 }
 
@@ -37,7 +37,7 @@ function cp_orders_set_deleted_sql($new, $old, $id) {
     WHERE
       new.$id IS NULL
     AND
-      old.tracking_number IS NULL
+      old.order_date_shipped IS NULL
   ";
 }
 

@@ -11,7 +11,7 @@ function order_dispensed_notice($groups) {
 
   $salesforce = [
     "subject" => 'Warning Order #'.$groups['ALL'][0]['invoice_number'].' dispensed but not shipped',
-    "body" => "If shipped, please add tracking number to Guardian Order.  If not shipped, check comm-calendar and see if we need to inform patient that order was delayed or canceled.",
+    "body" => "If shipped, please add tracking number to Guardian Order.  If not shipped, check comm-calendar and see if we need to inform patient that order was delayed or cancelled.",
     "contact" => $groups['ALL'][0]['first_name'].' '.$groups['ALL'][0]['last_name'].' '.$groups['ALL'][0]['birth_date'],
     "assign_to" => ".Delay/Expedite Order - RPh",
     "due_date" => date('Y-m-d')
@@ -24,9 +24,7 @@ function order_dispensed_notice($groups) {
 //by building commication arrays based on github.com/dscsa/communication-calendar
 function order_shipped_notice($groups) {
 
-  //autopayReminderNotice(order, groups)
-
-  $subject   = 'Good Pill shipped order '.($groups['ALL'][0]['count_filled'] ? 'of '.$groups['ALL'][0]['count_filled'].' items ' : '').' and it should arrive in 3-5 days.';
+  $subject   = 'Good Pill shipped order '.($groups['ALL'][0]['count_filled'] ? 'of '.$groups['ALL'][0]['count_filled'].' items ' : '').'and it should arrive in 3-5 days.';
   $message   = '';
 
   $message .= '<br><u>These Rxs are on the way:</u><br>'.implode(';<br>', $groups['FILLED']).';';
@@ -146,11 +144,9 @@ function order_created_notice($groups) {
   $drug_list = '<br><br><u>These Rxs will be included once we confirm their availability:</u><br>';
 
   if ( ! $groups['ALL'][0]['refills_used']) {
-    $days = 0;
     $message   .= ' Your first order will only be $6 total for all of your medications.';
     $drug_list .= implode(';<br>', array_merge($groups['FILLED_ACTION'], $groups['FILLED_NOACTION'], $groups['ADDED_NOACTION'])).';';
   } else {
-    $days = is_auto_refill($groups['ALL'][0]) ? 7 : 4;  //TODO Remove.  This is a temp measure so people don't know if or how far we are behind
     $drug_list .= implode(';<br>',  array_merge($groups['FILLED_WITH_PRICES'], $groups['ADDED_WITH_PRICES'])).';';
   }
 
@@ -177,7 +173,7 @@ function order_created_notice($groups) {
   remove_drugs_from_refill_reminders($groups['ALL'][0]['first_name'], $groups['ALL'][0]['last_name'], $groups['ALL'][0]['birth_date'], $groups['FILLED']);
 
   //Wait 15 minutes to hopefully batch staggered surescripts and manual rx entry and cindy updates
-  order_created_event($groups, $email, $text, $days*24+15/60);
+  order_created_event($groups, $email, $text, 15/60);
 }
 
 function transfer_requested_notice($groups) {
@@ -203,6 +199,8 @@ function transfer_requested_notice($groups) {
   //Wait 15 minutes to hopefully batch staggered surescripts and manual rx entry and cindy updates
   transfer_requested_event($groups['ALL'], $email, $text, 15/60);
 }
+
+/* WARNING Can we get rid of order_hold_notce, doesn't seem to be triggered anymore 2021-01-14 */
 
 //We are coording patient communication via sms, calls, emails, & faxes
 //by building commication arrays based on github.com/dscsa/communication-calendar
@@ -327,22 +325,16 @@ function order_updated_notice($groups, $patient_updates) {
     $suffix
   ]);
 
-  if ( ! $groups['ALL'][0]['refills_used']) {
-    $days = 0;
-  } else {
-    $days = is_auto_refill($groups['ALL'][0]) ? 7 : 4;  //TODO Remove.  This is a temp measure so people don't know if or how far we are behind
-  }
-
   //Wait 15 minutes to hopefully batch staggered surescripts and manual rx entry and cindy updates
-  order_updated_event($groups, $email, $text, $days*24+15/60);
+  order_updated_event($groups, $email, $text, 15/60);
 }
 
 function needs_form_notice($groups) {
 
   ///It's depressing to get updates if nothing is being filled
-  if ($groups['FILLED']) {
+  if ($groups['NOFILL_ACTION']) {
     $subject = 'Welcome to Good Pill!  We are excited to fill your prescriptions.';
-    $message = 'Your first order, #'.$groups['ALL'][0]['invoice_number'].", will cost $6, paid after you receive your medications. Please take 5mins to register so that we can fill the Rxs we got from your doctor as soon as possible. Once you register it will take 5-7 business days before you receive your order. You can register online at www.goodpill.org or by calling us at (888) 987-5187.<br><br><u>The drugs in your first order will be:</u><br>".implode(';<br>', $groups['FILLED_ACTION']).';';
+    $message = 'Your first order, #'.$groups['ALL'][0]['invoice_number'].", will cost $6, paid after you receive your medications. Please take 5mins to register so that we can fill the Rxs we got from your doctor as soon as possible. Once you register it will take 5-7 business days before you receive your order. You can register online at www.goodpill.org or by calling us at (888) 987-5187.<br><br><u>The drugs in your first order will be:</u><br>".implode(';<br>', $groups['NOFILL_ACTION']).';';
     //log_error("NEEDS FORM NOTICE DOES NOT HAVE DRUGS LISTED", [$groups, $message, $subject]);
   }
   else {
@@ -385,17 +377,33 @@ function needs_form_notice($groups) {
     $hour_of_day   = [11, 17, 11, 17, 17, 17];
   }
 
-  log_notice("needs_form_notice is this right?", [$groups, $email]);
+  $date = "Created:".date('Y-m-d H:i:s');
+
+  $salesforce = [
+      "subject"   => "Call Unregistered Patient",
+      "body"      => "Call Unregistered Patient
+        -If patient has a backup pharmacy in Salesforce, go to webform and check that there is an order number in their Account Details page! If not, place an order for the patient’s medications.
+        -If there’s no backup pharmacy, call the patient to register. Call script here: https://docs.google.com/document/d/1YUtdX-Mx-4jzngFLVrAR2-ams4yLst5Sc_zPZIadkTU/edit
+        -Attempt 2 calls/voicemails over two days. Even if the phone number is invalid or unavailable, attempt a second call.
+        -After 2 failed attempts, reassign this task to .Flag Clinic/Provider Issue - Admin.
+        $date
+      ",
+      "contact"   => "{$groups['ALL'][0]['first_name']} {$groups['ALL'][0]['last_name']} {$groups['ALL'][0]['birth_date']}",
+      "assign_to" => "Kiah", //".Register New Patient - Tech",
+      "due_date"  => substr(get_start_time($hours_to_wait[3], $hour_of_day[3]), 0, 10)
+  ];
+
+  log_notice("needs_form_notice is this right?", [$groups, $email, $salesforce]);
 
   $cancel = cancel_events_by_person($groups['ALL'][0]['first_name'], $groups['ALL'][0]['last_name'], $groups['ALL'][0]['birth_date'], 'needs_form_event', ['Needs Form']);
 
-  needs_form_event($groups['ALL'], $email, $text, $hours_to_wait[0], $hour_of_day[0]);
+  needs_form_event($groups['ALL'], $email, $text, $salesforce, $hours_to_wait[0], $hour_of_day[0]);
 
-  if ( ! $groups['ALL'][0]['count_filled']) return; //Don't hassle folks if we aren't filling anything
+  if ( ! $groups['NOFILL_ACTION']) return; //Don't hassle folks if we aren't filling anything
 
-  needs_form_event($groups['ALL'], $email, $text, $hours_to_wait[1], $hour_of_day[1]);
-  needs_form_event($groups['ALL'], $email, $text, $hours_to_wait[2], $hour_of_day[2]);
-  needs_form_event($groups['ALL'], $email, $text, $hours_to_wait[3], $hour_of_day[3]);
+  needs_form_event($groups['ALL'], $email, $text, null, $hours_to_wait[1], $hour_of_day[1]);
+  needs_form_event($groups['ALL'], $email, $text, null, $hours_to_wait[2], $hour_of_day[2]);
+  needs_form_event($groups['ALL'], $email, $text, null, $hours_to_wait[3], $hour_of_day[3]);
 }
 
 //We are coording patient communication via sms, calls, emails, & faxes
@@ -425,22 +433,22 @@ function no_rx_notice($partial, $groups) {
   no_rx_event($partial, $groups['ALL'], $email, $text, 15/60);
 }
 
-function order_canceled_notice($partial, $groups) {
+function order_cancelled_notice($partial, $groups) {
 
   if ( ! $groups['ALL'][0]['pharmacy_name'])
-    return log_alert('order_canceled_notice: not sending because needs_form_notice should be sent instead (was already sent?)', get_defined_vars());
+    return log_alert('order_cancelled_notice: not sending because needs_form_notice should be sent instead (was already sent?)', get_defined_vars());
 
-  if ( ! $groups['ALL'][0]['count_nofill'])
-    return log_alert('order_canceled_notice: not sending because no_rx_notice should be sent instead (was already sent?)', get_defined_vars());
+  if (is_order($groups['ALL']) AND ! $groups['ALL'][0]['count_nofill']) //can be passed a patient
+    return log_alert('order_cancelled_notice: not sending because no_rx_notice should be sent instead (was already sent?)', get_defined_vars());
 
-  $subject = "Good Pill canceled your Order #$partial[invoice_number]";
+  $subject = "Good Pill cancelled your Order #$partial[invoice_number]";
 
   if (is_webform_transfer($groups['ALL'][0]))
     $message = "We attempted to transfer prescriptions from {$groups['ALL'][0]['pharmacy_name']} but they did not have an Rx for the requested drugs with refills remaining.  Could you please let us know your doctor's name and phone number so that we can reach out to them to get new prescription(s)";
 
   //called from an order-updated loop which has order item info rather than a order-deleted loop
   else if (@$groups['ALL'][0]['invoice_number'])
-    $message = "Your order was canceled because you have no prescriptions that we can currently fill";
+    $message = "Your order was cancelled because you have no prescriptions that we can currently fill";
 
   else
     $message = "If you believe this cancellation was in error, call us (888) 987-5187";
@@ -460,26 +468,32 @@ function order_canceled_notice($partial, $groups) {
     ''
   ]);
 
-  log_alert('order_canceled_notice: how to improve this message', get_defined_vars());
+  SirumLog::notice(
+      'order_cancelled_notice: how to improve this message',
+      get_defined_vars()
+  );
 
-  order_canceled_event($partial, $groups['ALL'], $email, $text, 15/60);
+  order_cancelled_event($partial, $groups['ALL'], $email, $text, 15/60);
 }
 
 function confirm_shipment_notice($groups) {
 
-    $days_ago = 5;
+    $days_ago = 7;
 
     //Existing customer just tell them it was delivered
-    $email = confirm_shipping_external($groups);
+    $comms = confirm_shipment_external($groups);
 
     //New customer tell them it was delivered and followup with a call
-    $salesforce = confirm_shipping_internal($groups, $days_ago+1);
+    $salesforce = confirm_shipment_internal($groups, $days_ago+1);
 
-    confirm_shipment_event($groups['ALL'], $email, $salesforce, $days_ago*24, 13);
+    confirm_shipment_event($groups['ALL'], $comms['email'], $comms['text'], $salesforce, $days_ago*24, 13);
 }
 
-function confirm_shipping_internal($groups, $days_ago) {
+function confirm_shipment_internal($groups, $days_ago) {
 
+  //TODO is this is a double check to see if past orders is 100% correlated with refills_used,
+  //if not, we need to understand root cause of discrepancy and which one we want to use going foward
+  //and to be consistent, remove the other property so that its not mis-used.
   $mysql = Sirum\Storage\Goodpill::getConnection();
   $pdo   = $mysql->prepare(
               "SELECT count(*) as past_order_count
@@ -494,14 +508,18 @@ function confirm_shipping_internal($groups, $days_ago) {
 
   $results = $pdo->fetch();
 
-  SirumLog::notice(
+  if (((float) $groups['ALL'][0]['refills_used'] > 0) != ((float) $results['past_order_count'] > 0))
+    SirumLog::alert(
       'Should we attach new patient events in SF?',
       [
-          'past_order_count' => $results['past_order_count'],
-          'refills_used'     => $groups['ALL'][0]['refills_used'],
-          'invoice_number'   => $groups['ALL'][0]['invoice_number']
-      ]
-  );
+        'past_order_count' => $results['past_order_count'],
+        'refills_used'     => $groups['ALL'][0]['refills_used'],
+        'invoice_number'   => $groups['ALL'][0]['invoice_number'],
+        'todo' => "TODO is this is a double check to see if past orders is 100% correlated with refills_used,
+         if not, we need to understand root cause of discrepancy and which one we want to use going foward
+         and to be consistent, remove the other property so that its not mis-used."
+     ]
+    );
 
   if ((float) $groups['ALL'][0]['refills_used'] > 0) {
     return [];
@@ -546,21 +564,23 @@ function confirm_shipping_internal($groups, $days_ago) {
   return $salesforce;
 }
 
-function confirm_shipping_external($groups) {
+function confirm_shipment_external($groups) {
 
   $email = [ "email" => $groups['ALL'][0]['email'] ];
   $text  = [ "sms"   => get_phones($groups['ALL']) ];
+  $call  = [ "call"  => $text['sms']];
 
-  $subject = "Order #".$groups['ALL'][0]['invoice_number']." was delivered.";
-  $message = " should have been delivered within the past few days.  Please contact us at 888.987.5187 if you have not yet received your order.";
+  $subject = "Order #".$groups['ALL'][0]['invoice_number']." was shipped last week and should have arrived";
 
-  $text['message'] = $subject.' Your order with tracking number '.$groups['ALL'][0]['tracking_number'].$message;
+  $text['message'] = "$subject. If you haven't received your order, please reply '1' or call us at 888-9875187 so we can help.";
+
+  $call['message'] =  call_wrapper(format_call("$subject. If you haven't received your order, please call us so we can help."));
 
   $email['subject'] = $subject;
   $email['message'] = implode('<br>', [
     'Hello,',
     '',
-    $subject.' Your order with tracking number '.tracking_link($groups['ALL'][0]['tracking_number']).$message,
+    "$subject. If you haven't received your order, please reply back to this email or call us at 888-9875187",
     '',
     'Thanks!',
     'The Good Pill Team',
@@ -568,5 +588,7 @@ function confirm_shipping_external($groups) {
     ''
   ]);
 
-  return $email;
+  $text['fallbacks'] = [$call];
+
+  return ['email' => $email, 'text' => $text];
 }

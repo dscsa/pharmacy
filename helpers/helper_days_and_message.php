@@ -18,7 +18,9 @@ function get_days_and_message($item, $patient_or_order) {
   // Is this an item we will transfer
   $no_transfer      = is_no_transfer($item);
 
-  // What does this mean and is it significant
+  // Added by a person, rather than automation, either through CarePoint or Patient Portal
+  // we assume that this person knows what they are doing, so we don't want to override
+  //their preference if automation thinks something else should be done instead.
   $added_manually   = is_added_manually($item);
 
   // Origination of this item was carepoint not WooCommerce?
@@ -30,14 +32,16 @@ function get_days_and_message($item, $patient_or_order) {
   // Not the first time filling this Rx
   $is_refill        = is_refill($item, $patient_or_order);
 
-  // Don't fil new perscriptions, Only fill refill
+  // Don't fill new perscriptions, Only fill refill
   $refill_only      = is_refill_only($item);
 
-  // Does this item exist more than once in the current order
+  // 2+ Rxs of the same drug in the order (may be same or different sig_qty_per_day).  This is (almost?) always a mistake
+  // NOTE This won't detect properly if coming from get_full_item because patient_or_order is just mocked as [item] so
+  // the other items can't actually be checked to see if they have same gsn as the current item
   $is_duplicate_gsn = is_duplicate_gsn($item, $patient_or_order);
 
-  // What is the relevance of item_date_added?
-  // What does syncable mean ?
+  // syncable means that an item is not currently in an order but could/should be added to that order
+  // item_date_added is used to determine whether the item is in the order or not
   $is_syncable      = is_syncable($item);
 
   // The current level for the item_message_keys
@@ -72,7 +76,7 @@ function get_days_and_message($item, $patient_or_order) {
     We have multiple occurances of drugs on the same order
    */
   if (@$item['item_date_added'] AND $is_duplicate_gsn) {
-    log_error("helper_days_and_message: $item[drug_generic] is duplicated.  Likely Mistake. Different sig_qty_per_day?", ['item' => $item, 'order' => $patient_or_order]);
+    log_error("helper_days_and_message: $item[drug_generic] is duplicate GSN.  Likely Mistake. Different sig_qty_per_day?", ['duplicate_items' => $duplicate_items, 'item' => $item, 'order' => $patient_or_order]);
   }
 
   /*
@@ -114,46 +118,10 @@ function get_days_and_message($item, $patient_or_order) {
     return [0, RX_MESSAGE['ACTION EXPIRED']];
   }
 
-
-
+  //TODO Remove.  This logic was moved into update_rxs_single::created/updated
   if ( ! $item['drug_gsns'] AND $item['drug_name']) {
     //Check for invoice number otherwise, seemed that SF tasks were being triplicated.  Unsure reason, maybe called by order_items and not just orders?
-    if ( ! is_item($patient_or_order)) {
-      log_warning("Confirm didn't create salesforce task for GSN - patients/orders would cause duplicates", $item);
-    } else if ($item['refill_date_first']) {
-      log_warning("Confirm didn't create salesforce task for GSN - refills cannot be changed", $item);
-    } else  {
-      $in_order = "In Order #$item[invoice_number],";
-      $created = "Created:".date('Y-m-d H:i:s');
-
-      if ($item['max_gsn']) {
-        $body = "$in_order drug $item[drug_name] needs GSN $item[max_gsn] added to V2";
-        $assign = "Joseph";
-        log_warning($body, $item);
-
-      } else {
-        $body = "$in_order drug $item[drug_name] needs to be switched to a drug with a GSN in Guardian";
-        $assign = ".Delay/Expedite Order - RPh";
-        log_notice($body, $item);
-      }
-
-      $salesforce = [
-        "subject"   => "$in_order missing GSN for $item[drug_name]",
-        "body"      => "$body $created",
-        "contact"   => "$item[first_name] $item[last_name] $item[birth_date]",
-        "assign_to" => $assign,
-        "due_date"  => date('Y-m-d')
-      ];
-
-      $event_title = @$item['invoice_number']." Missing GSN: $salesforce[contact] $created";
-
-      $mins_ago = (time() - strtotime(max($item['rx_date_changed'], $item['order_date_changed'], $item['item_date_added'])))/60;
-
-      $mins_ago <= 30
-        ? create_event($event_title, [$salesforce])
-        : log_warning("CONFIRM DIDN'T CREATE SALESFORCE TASK - DUPLICATE mins_ago:$mins_ago $event_title", [$item, $salesforce]);
-
-    }
+    log_alert("Used to make missing GSN Salesforce Tasks Here.  Confirm SF Task Made in Rxs-Singles-Updated/Created Loop before downgarding or removing this log", $item);
 
     return [ $item['refill_date_first'] ? $days_default : 0, RX_MESSAGE['NO ACTION MISSING GSN']];
   }
@@ -222,22 +190,26 @@ function get_days_and_message($item, $patient_or_order) {
     return [0, RX_MESSAGE['NO ACTION NOT DUE']];
   }
 
-  if ($item['refill_date_manual'] AND (strtotime($item['refill_date_default']) - strtotime($item['refill_date_manual'])) > DAYS_EARLY*24*60*60 AND ! $added_manually) {
+  if ($item['refill_date_manual'] AND (strtotime($item['refill_date_default']) - strtotime($item['refill_date_manual'])) > DAYS_EARLY*24*60*60) {
 
-    $created = "Created:".date('Y-m-d H:i:s');
+    if ( ! $added_manually) {
+        $created = "Created:".date('Y-m-d H:i:s');
 
-    $salesforce = [
-      "subject"   => "Investigate Early Refill",
-      "body"      => "Confirm if/why needs $item[drug_name] in Order #".@$item['invoice_number']." even though it's over "."28"." days before it's due. If needed, add drug to order. $created",
-      "contact"   => "$item[first_name] $item[last_name] $item[birth_date]",
-      "assign_to" => ".Add/Remove Drug - RPh",
-      "due_date"  => date('Y-m-d')
-    ];
+        $salesforce = [
+          "subject"   => "Investigate Early Refill",
+          "body"      => "Confirm if/why needs $item[drug_name] in Order #".@$item['invoice_number']." even though it's over "."28"." days before it's due. If needed, add drug to order. $created",
+          "contact"   => "$item[first_name] $item[last_name] $item[birth_date]",
+          "assign_to" => ".Add/Remove Drug - RPh",
+          "due_date"  => date('Y-m-d')
+        ];
 
-    $event_title = @$item['invoice_number']." $salesforce[subject]: $salesforce[contact] $created";
+        $event_title = @$item['invoice_number']." $salesforce[subject]: $salesforce[contact] $created";
 
-    create_event($event_title, [$salesforce]);
-    return [0, RX_MESSAGE['NO ACTION NOT DUE']];
+        create_event($event_title, [$salesforce]);
+        return [0, RX_MESSAGE['NO ACTION NOT DUE']];
+    }
+
+    log_alert('Before shipping, double check that we intentionally added items to an order with a future fill date', ['item' => $item]);
   }
 
   if ( ! $item['refill_date_first'] AND $item['last_inventory'] < 2000 AND ($item['sig_qty_per_day_default'] > 2.5*($item['qty_repack'] ?: 135)) AND ! $added_manually) {
@@ -426,8 +398,10 @@ function set_item_invoice_data($item, $mysql) {
 
 function set_days_and_message($item, $days, $message, $mysql) {
 
+  log_notice("set_days_and_message: called", compact('item', 'days', 'message'));
+
   if (is_null($days) OR is_null($message)) {
-    SirumLog::alert("set_days_and_message set_days: days/message should not be NULL", get_defined_vars());
+    SirumLog::alert("set_days_and_message: days/message should not be NULL", compact('item', 'days', 'message'));
     return $item;
   }
 
@@ -435,7 +409,7 @@ function set_days_and_message($item, $days, $message, $mysql) {
   $new_rx_message_text = message_text($message, $item);
 
   if ( ! $new_rx_message_key) {
-    SirumLog::alert("set_days_and_message could not get rx_message_key ", get_defined_vars());
+    SirumLog::alert("set_days_and_message: could not get rx_message_key ", compact('item', 'days', 'message', 'new_rx_message_key', 'new_rx_message_text'));
     return $item;
   }
 
@@ -468,11 +442,13 @@ function set_days_and_message($item, $days, $message, $mysql) {
 
   //We only continue to update gp_order_items IF this is an order_item and not just an rx on the patient's profile
   //This gets called by rxs_single_created1 and rxs_single_created2 where this is not true
-  if ( ! @$item['item_date_added'] OR $item['days_dispensed_default'] OR $item['rx_message_keys_initial'])
+  if ( ! @$item['item_date_added'] OR $days === $item['days_dispensed_default']) {
+    log_notice("set_days_and_message: for rx or item with no change in days, skipping saving of order_item fields", compact('item', 'days', 'message', 'new_rx_message_key', 'new_rx_message_text', 'rx_single_sql', 'rx_grouped_sql'));
     return $item;
+  }
 
   if ( ! $item['rx_number'] OR ! $item['invoice_number']) {
-    log_error("set_days_and_message without a rx_number AND invoice_number. rx on patient profile OR maybe order_item before order was imported OR (likely) maybe order was deleted in past 10mins and order items have not yet been deleted?", get_defined_vars());
+    log_error("set_days_and_message: without a rx_number AND invoice_number. rx on patient profile OR maybe order_item before order was imported OR (likely) maybe order was deleted in past 10mins and order items have not yet been deleted?", compact('item', 'days', 'message', 'new_rx_message_key', 'new_rx_message_text', 'rx_single_sql', 'rx_grouped_sql'));
     return $item;
   }
 
@@ -493,17 +469,13 @@ function set_days_and_message($item, $days, $message, $mysql) {
   $item['refills_dispensed_default'] = refills_dispensed_default($item);  //We want invoice to show refills after they are dispensed assuming we dispense items currently in order
 
   if ($item['days_dispensed_actual']) {
-    log_notice("set_days_and_message but it has actual days. Why is this?", get_defined_vars());
+    log_notice("set_days_and_message: but it has actual days. Why is this?", compact('item', 'days', 'message', 'new_rx_message_key', 'new_rx_message_text', 'rx_single_sql', 'rx_grouped_sql'));
   }
-
-  if (is_null($item['rx_message_key']) OR is_null($item['refills_dispensed_default']))
-    log_warning('helper_days_and_message: is rx_message_keys_initial being set correctly? - NULL', $item);
-  else
-    log_notice('helper_days_and_message: is rx_message_keys_initial being set correctly? - NOT NULL', $item);
 
   $order_item_sql = "
     UPDATE
       gp_order_items
+
     SET
       days_dispensed_default    = $item[days_dispensed_default],
       qty_dispensed_default     = $item[qty_dispensed_default],
@@ -521,12 +493,18 @@ function set_days_and_message($item, $days, $message, $mysql) {
       refill_date_manual        = ".(is_null($item['refill_date_manual']) ?  'NULL' : "'$item[refill_date_manual]'").",
       refill_date_default       = ".(is_null($item['refill_date_default']) ? 'NULL' : "'$item[refill_date_default]'").",
       refill_date_last          = ".(is_null($item['refill_date_last']) ? 'NULL' : "'$item[refill_date_last]'")."
+
     WHERE
       invoice_number = $item[invoice_number] AND
       rx_number = $item[rx_number]
   ";
 
+  if (is_null($item['rx_message_key']) OR is_null($item['refills_dispensed_default']))
+    log_warning('set_days_and_message: is rx_message_keys_initial being set correctly? rx_message_key or refills_dispensed_default IS NULL', ['item' => $item, 'sql' => $order_item_sql]);
+
   $mysql->run($order_item_sql);
+
+  log_notice("set_days_and_message: saved both rx and order_item fields", compact('item', 'order_item_sql',  'rx_single_sql', 'rx_grouped_sql'));
 
   return $item;
 }
@@ -629,20 +607,6 @@ function is_not_offered($item) {
   return false;
 }
 
-//rxs_grouped includes drug name AND sig_qty_per_day_default.  If someone starts on Lipitor 20mg 1 time per day
-//and then moves to Lipitor 20mg 2 times per day, we still want to honor this Rx as a refill rather than
-//tell them it is out of stock just because the sig changed
-function is_refill($item1, $patient_or_order) {
-
-  $refill_date_first = null;
-  foreach ($patient_or_order as $item2) {
-    if ($item1['drug_generic'] == $item2['drug_generic'])
-      $refill_date_first = $refill_date_first ?: $item2['refill_date_first'];
-  }
-
-  return !!$refill_date_first;
-}
-
 function is_refill_only($item) {
   return in_array(@$item['stock_level_initial'] ?: $item['stock_level'], [
     STOCK_LEVEL['OUT OF STOCK'],
@@ -730,6 +694,29 @@ function days_default($days_left_in_refills, $days_left_in_stock, $days_default,
 
   return $days;
 }
+
+/*
+    TODO
+    These last two functions are the only two that depend on the ENTIRE order.  This is because
+    they group by drug (GSN) and ignore sig_qty_per_day differences.  Can we handle this with SQL
+    groups in rxs-grouped table or someplace else?  Or maybe the load the full order themselves?
+    If so, we can get rid of need to pass entire order into the function rather than just the one item
+*/
+
+//rxs_grouped includes drug name AND sig_qty_per_day_default.  If someone starts on Lipitor 20mg 1 time per day
+//and then moves to Lipitor 20mg 2 times per day, we still want to honor this Rx as a refill rather than
+//tell them it is out of stock just because the sig changed
+function is_refill($item1, $patient_or_order) {
+
+  $refill_date_first = null;
+  foreach ($patient_or_order as $item2) {
+    if ($item1['drug_generic'] == $item2['drug_generic'])
+      $refill_date_first = $refill_date_first ?: $item2['refill_date_first'];
+  }
+
+  return !!$refill_date_first;
+}
+
 
 //Don't sync if an order with these instructions already exists in order
 function is_duplicate_gsn($item1, $patient_or_order) {

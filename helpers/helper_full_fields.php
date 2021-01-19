@@ -49,6 +49,18 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
             strtotime($patient_or_order[$i]['rx_date_expired'] . ' -1 year')
         );
 
+        //Issues were we have a duplicate webform order (we don't delete a duplicate order if its from webform)
+        //some of these orders have different items and so are "valid" but some have same item(s) that are
+        //pended multiple times.  Ideally (intuitivelly) this check would be placed in update_order_items analagous
+        //that duplicate orders are checked in update_orders_cp.  But order_items is called after orders_cp is run
+        //and so the duplicate items will have already assigned days and been pended, which would have to be undone
+        //instead putting it here so that it will be called from update_orders and update_order_items
+        $duplicate_items = get_current_items($mysql, ['rx_numbers' => "'{$patient_or_order[$i]['rx_numbers']}'"]);
+
+        if ($duplicate_items AND count($duplicate_items) > 1) {
+          log_alert("helper_full_fields: {$patient_or_order[$i]['drug_generic']} is duplicate ITEM.  Likely Mistake. Two webform orders?", ['duplicate_items' => $duplicate_items, 'item' => $patient_or_order[$i], 'order' => $patient_or_order]);
+        }
+
         //Overwrite refers to the rx_single and rx_grouped table not the order_items table which deliberitely keeps its initial values
         $overwrite = (
           $overwrite_rx_messages === true
@@ -83,7 +95,7 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
 
             //If days_actual are set, then $days will be 0 (because it will be a recent fill)
             $days_added      = (@$patient_or_order[$i]['item_date_added'] AND $days > 0 AND ! @$patient_or_order[$i]['days_dispensed_default']);
-            $days_changed    = (@$patient_or_order[$i]['days_dispensed_default'] AND ! @$patient_or_order[$i]['days_dispensed_actual'] AND @$patient_or_order[$i]['days_dispensed_default'] != $days AND ! @$patient_or_order[$i]['sync_to_date_days_before']);
+            $days_changed    = (@$patient_or_order[$i]['days_dispensed_default'] AND ! @$patient_or_order[$i]['days_dispensed_actual'] AND @$patient_or_order[$i]['days_dispensed_default'] != $days AND @$patient_or_order[$i]['sync_to_date_days_before'] != $days);
 
             $needs_adding    = ( ! @$patient_or_order[$i]['item_date_added'] AND $days > 0);
             $needs_removing  = (@$patient_or_order[$i]['item_date_added'] AND $days == 0 AND ! is_added_manually($patient_or_order[$i]));
@@ -120,8 +132,9 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
               "sync_to_date_days_before"   => @$patient_or_order[$i]['sync_to_date_days_before']
             ];
 
-            if (($days_added OR $needs_adding) AND @$patient_or_order[$i]['order_date_dispensed']) //54376 Sertraline. Probably should create a new order?
-              SirumLog::alert("get_days_and_message ADDING ITEMS RIGHT BEFORE DISPENSING ORDER? $log_suffix", $get_days_and_message);
+             //54376 Sertraline. Probably should create a new order?
+            if (($days_added OR $needs_adding) AND @$patient_or_order[$i]['order_date_dispensed'])
+              SirumLog::error("get_days_and_message ADDING ITEMS RIGHT BEFORE DISPENSING ORDER? $log_suffix", $get_days_and_message);
             else
               SirumLog::notice("get_days_and_message $log_suffix", $get_days_and_message);
 

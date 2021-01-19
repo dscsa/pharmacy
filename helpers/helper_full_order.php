@@ -8,9 +8,24 @@ use Sirum\Logging\SirumLog;
 function load_full_order($partial, $mysql, $overwrite_rx_messages = false) {
 
   if ( ! isset($partial['invoice_number'])) {
-    log_error('ERROR! get_full_order: was not given an invoice number', $partial);
+    log_error('ERROR! load_full_order: was not given an invoice number', $partial);
     return;
   }
+
+  $order = get_full_order($mysql, $partial['invoice_number']);
+
+  if ( ! $order)
+    return log_error("ERROR! load_full_order: no order with invoice number:$partial[invoice_number] #2 of 2. No Rxs? Patient just registered (invoice number is set and used in query but no items so order not imported from CP)?", get_defined_vars());
+
+  //WARNING THIS CALL HAS LOTS OF SIDE EFFECT
+  $order = add_full_fields($order, $mysql, $overwrite_rx_messages);
+  usort($order, 'sort_drugs_by_inorder'); //Put Rxs in order (with Rx_Source) at the top
+  $order = add_wc_status_to_order($order);
+
+  return $order;
+}
+
+function get_full_order($mysql, $invoice_number) {
 
   $month_interval = 6;
   $where = "
@@ -42,27 +57,19 @@ function load_full_order($partial, $mysql, $overwrite_rx_messages = false) {
     LEFT JOIN gp_stock_live ON -- might not have a match if no GSN match
       gp_rxs_grouped.drug_generic = gp_stock_live.drug_generic -- this is for the helper_days_and_message msgs for unordered drugs
     WHERE
-      gp_orders.invoice_number = $partial[invoice_number]
+      gp_orders.invoice_number = $invoice_number
   ";
 
   $order = $mysql->run($sql.$where)[0];
 
-  if ( ! $order OR ! $order[0]['invoice_number']) {
-    log_error("ERROR! get_full_order: no order with invoice number:$partial[invoice_number] #1 of 2. Order Was Temp Deleted to Add/Remove Items? No Recent Rxs?", get_defined_vars());
+  if ($order AND @$order[0]['invoice_number'])
+    return $order;
 
-    $order = $mysql->run($sql)[0];
+  // Just get the order regardless of old Rx
+  $order = $mysql->run($sql)[0];
 
-    if ( ! $order OR ! $order[0]['invoice_number']) {
-      log_error("ERROR! get_full_order: no order with invoice number:$partial[invoice_number] #2 of 2. No Rxs? Patient just registered (invoice number is set and used in query but no items so order not imported from CP)?", get_defined_vars());
-      return;
-    }
-  }
-
-  $order = add_full_fields($order, $mysql, $overwrite_rx_messages);
-  usort($order, 'sort_order_by_day'); //Put Rxs in order (with Rx_Source) at the top
-  $order = add_wc_status_to_order($order);
-
-  return $order;
+  if ($order AND @$order[0]['invoice_number'])
+    return $order;
 }
 
 function add_wc_status_to_order($order) {
@@ -98,12 +105,10 @@ function add_wc_status_to_order($order) {
   return $order;
 }
 
-function sort_order_by_day($a, $b) {
-  if ($b['days_dispensed'] > 0 AND $a['days_dispensed'] == 0) return 1;
-  if ($a['days_dispensed'] > 0 AND $b['days_dispensed'] == 0) return -1;
+function sort_drugs_by_inorder($a, $b) {
   if ($b['item_date_added'] > 0 AND $a['item_date_added'] == 0) return 1;
   if ($a['item_date_added'] > 0 AND $b['item_date_added'] == 0) return -1;
-  return strcmp($a['rx_message_text'].$a['drug'], $b['rx_message_text'].$b['drug']);
+  return sort_drugs_by_name($a, $b);
 }
 
 /*
@@ -137,12 +142,14 @@ function get_order_stage_wc($order) {
   //Anything past shipped we just have to rely on WC
   if ($order[0]['order_stage_wc'] AND preg_match('/shipped|late|done|return/i', $order[0]['order_stage_wc'])) {
 
-    if ( ! $count_filled AND ! $order[0]['tracking_number'] AND ! $order[0]['payment_method_actual'])
+    if ( ! $count_filled AND ! $order[0]['order_date_shipped'] AND ! $order[0]['payment_method_actual'])
       log_error('helper_full_order: get_order_stage_wc error', $order);
 
     return str_replace('wc-', '', $order[0]['order_stage_wc']);
   }
 
+  if ($order[0]['order_date_returned'])
+    return 'return-usps';
 
   if ($order[0]['order_stage_wc'] == 'wc-processing')
     log_error('Problem: get_order_stage_wc wc-processing', $order[0]);
@@ -194,25 +201,25 @@ function get_order_stage_wc($order) {
     log_warning('helper_full_order: order is '.floor($elapsed_time/60/60/24).' days old', $order[0]);
   }
 
-  if ( ! $order[0]['tracking_number'] AND (is_webform_refill($order[0]) OR is_auto_refill($order[0])))
+  if ( ! $order[0]['order_date_shipped'] AND (is_webform_refill($order[0]) OR is_auto_refill($order[0])))
     return 'prepare-refill';
 
-  if ( ! $order[0]['tracking_number'] AND $order[0]['rx_source'] == 'SureScripts')
+  if ( ! $order[0]['order_date_shipped'] AND $order[0]['rx_source'] == 'SureScripts')
     return 'prepare-erx';
 
-  if ( ! $order[0]['tracking_number'] AND $order[0]['rx_source'] == 'Fax')
+  if ( ! $order[0]['order_date_shipped'] AND $order[0]['rx_source'] == 'Fax')
     return 'prepare-fax';
 
-  if ( ! $order[0]['tracking_number'] AND $order[0]['rx_source'] == 'Pharmacy')
+  if ( ! $order[0]['order_date_shipped'] AND $order[0]['rx_source'] == 'Pharmacy')
     return 'prepare-transfer';
 
-  if ( ! $order[0]['tracking_number'] AND $order[0]['rx_source'] == 'Phone')
+  if ( ! $order[0]['order_date_shipped'] AND $order[0]['rx_source'] == 'Phone')
     return 'prepare-phone';
 
-  if ( ! $order[0]['tracking_number'] AND $order[0]['rx_source'] == 'Prescription')
+  if ( ! $order[0]['order_date_shipped'] AND $order[0]['rx_source'] == 'Prescription')
     return 'prepare-mail';
 
-  if ( ! $order[0]['tracking_number']) {
+  if ( ! $order[0]['order_date_shipped']) {
     log_error('get_order_stage_wc error: prepare-* unknown rx_source', get_defined_vars());
     return 'on-hold';
   }
@@ -252,7 +259,12 @@ function get_order_stage_wc($order) {
   log_error('get_order_stage_wc error: shipped-* unknown payment_method', get_defined_vars());
 
   // Strip on the wc- so we don't get duplicates
-  return str_replace('wc-', '', $order[0]['order_stage_wc']);
+  if ($order[0]['order_stage_wc'])
+    return str_replace('wc-', '', $order[0]['order_stage_wc']);
+
+  log_error('get_order_stage_wc error: no known stage', get_defined_vars());
+
+  return 'on-hold';
 }
 
 function get_current_orders($mysql, $conditions = []) {
@@ -262,15 +274,17 @@ function get_current_orders($mysql, $conditions = []) {
     $where .= "$key = $val AND\n";
   }
 
-  $sql = "SELECT
-              *
-            FROM
-              gp_orders
-            WHERE
-              $where
-              order_date_dispensed IS NULL
-            ORDER BY
-              invoice_number ASC";
+  $sql = "
+    SELECT
+      *
+    FROM
+      gp_orders
+    WHERE
+      $where
+      order_date_dispensed IS NULL
+    ORDER BY
+      invoice_number ASC
+  ";
 
   return $mysql->run($sql)[0];
 }

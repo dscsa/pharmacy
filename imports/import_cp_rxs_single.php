@@ -20,10 +20,9 @@ function import_cp_rxs_single() {
       drug_name as drug_name,
       cprx.gcn_seqno as rx_gsn,
 
-      DATEDIFF(day, @today, expire_date) as days_left,
-      (CASE WHEN script_status_cn = 0 AND expire_date > @today THEN refills_left ELSE 0 END) as refills_left,
+      (CASE WHEN script_status_cn = 0 THEN refills_left ELSE 0 END) as refills_left,
       refills_orig + 1 as refills_original,
-      (CASE WHEN script_status_cn = 0 AND expire_date > @today THEN written_qty * refills_left ELSE 0 END) as qty_left,
+      (CASE WHEN script_status_cn = 0 THEN written_qty * refills_left ELSE 0 END) as qty_left,
       written_qty * (refills_orig + 1) as qty_original,
       sig_text_english as sig_actual,
 
@@ -31,7 +30,7 @@ function import_cp_rxs_single() {
       CONVERT(varchar, COALESCE(orig_disp_date, dispense_date), 20) as refill_date_first,
       CONVERT(varchar, COALESCE(dispense_date, orig_disp_date), 20) as refill_date_last, -- Order #28647 had orig_disp_date but not dispense_date
       (CASE
-        WHEN script_status_cn = 0 AND autofill_resume_date >= @today
+        WHEN script_status_cn = 0
         THEN CONVERT(varchar, autofill_resume_date, 20)
         ELSE NULL END
       ) as refill_date_manual,

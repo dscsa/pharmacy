@@ -25,10 +25,12 @@ function export_cp_patient_save_medications_other($mssql, $patient, $live = fals
       SUBSTRING(cmt, 0, ISNULL(NULLIF(CHARINDEX(CHAR(10)+'___', cmt), 0), 9999))+
       CHAR(10)+'______________________________________________'+CHAR(13)+
       '$medications_other'
-    WHERE pat_id = $patient[patient_id_cp]
+    WHERE pat_id = {$patient['patient_id_cp']}
   ";
 
   echo "\n$sql";
+  echo "\nOld:{$patient['old_medications_other']}";
+  echo "\nNew:{$patient['medications_other']}";
 
   //$res1 = $mssql->run("$select");
   $mssql->run($sql);

@@ -50,11 +50,12 @@ function update_order_items($changes)
         $item = load_full_item($created, $mysql);
 
         //TODO Less hacky way to determine if this addition was already part of the order_created_notice (items_to_add) that went out on thelast go-around
-        $in_created_notice = strtotime($item['item_date_added']) - strtotime($item['order_date_added']) < 20*60;
+        //Minutes is just trial-and-error.  10 to detect a new order, 10 minutes to sync drugs to the order, 10 minutes for buffer if the script runs long and misses and cycles
+        $in_created_notice = strtotime($item['item_date_added']) - strtotime($item['order_date_added']) < 30*60;
 
         SirumLog::debug(
-          "update_order_items: Order Item created $invoice_number",
-          [
+            "update_order_items: Order Item created $invoice_number",
+            [
             'item'    => $item,
             'created' => $created,
             'in_created_notice' => $in_created_notice,
@@ -85,15 +86,15 @@ function update_order_items($changes)
         }
 
         //We are filling this item and this is an order UPDATE not an order CREATED
-        if ($item['days_dispensed_default'] > 0 AND ! $in_created_notice) {
-
-          if ( ! @$orders_updated[$invoice_number])
-            $orders_updated[$invoice_number] = [
+        if ($item['days_dispensed_default'] > 0 and ! $in_created_notice) {
+            if (! @$orders_updated[$invoice_number]) {
+                $orders_updated[$invoice_number] = [
               'added'   => [],
               'removed' => []
             ];
+            }
 
-          $orders_updated[$invoice_number]['added'][] = $item;
+            $orders_updated[$invoice_number]['added'][] = $item;
         }
 
         if ($item['days_dispensed_actual']) {
@@ -104,7 +105,7 @@ function update_order_items($changes)
                     dispensed all within the time between cron jobs",
                 [ 'item' => $item, 'created' => $created]
             );
-            SirumLog::debug("Freezing Item as because it's dispensed", $item);
+            SirumLog::debug("Freezing Item because it's dispensed", $item);
             $item = set_item_invoice_data($item, $mysql);
             continue;
         }
@@ -133,42 +134,16 @@ function update_order_items($changes)
         );
 
         //This item was going to be filled, and the whole order was not deleted
-        if ($deleted['days_dispensed_default'] > 0 AND @$deleted['order_date_added']) {
-
-          if ( ! @$orders_updated[$invoice_number])
-            $orders_updated[$invoice_number] = [
+        if ($deleted['days_dispensed_default'] > 0 and @$item['order_date_added']) {
+            if (! @$orders_updated[$invoice_number]) {
+                $orders_updated[$invoice_number] = [
               'added'   => [],
               'removed' => []
             ];
+            }
 
-          $orders_updated[$invoice_number]['removed'][] = array_merge($item, $deleted);
+            $orders_updated[$invoice_number]['removed'][] = array_merge($item, $deleted);
         }
-
-        /*
-            WARNING Cannot unpend all items effectively in order-items-deleted loops
-            given the current pend group names which are based on order_date_added,
-            since the order is likely already deleted here, order_date_added is null
-            so you cannot deduce the correct pended group name to find and unpend
-        */
-
-       //Only available if item was deleted from an order that is still active
-        if (@$deleted['order_date_added']) {
-            AuditLog::log(
-                sprintf(
-                    "Order item % deleted for Rx#%s GSN#%s, Unpending",
-                    $item['drug_name'],
-                    $item['rx_number'],
-                    $item['drug_gsns']
-                ),
-                $deleted
-            );
-        }
-
-        $item = v2_unpend_item(
-            array_merge($item, $deleted),
-            $mysql,
-            "order-item-deleted and order still exists"
-        );
 
         /*
             TODO Update Salesforce Order Total & Order Count & Order Invoice
@@ -182,23 +157,88 @@ function update_order_items($changes)
     //TODO Somehow bundle patients comms if we are adding/removing drugs on next go-around, since order_update_notice would need to be sent again?
     //The above seems like would be tricky so skipping this for now
     if ($orders_updated) {
+        $reason = "update_order_items: determining order updates for ".count($orders_updated)." orders";
 
-      $reason = "helper_full_fields: send_updated_order_communications for ".count($orders_updated)." orders";
+        SirumLog::debug(
+            $reason,
+            [
+              'orders_updated'  => $orders_updated,
+            ]
+        );
 
-      SirumLog::debug(
-        $reason,
-        [
-          'orders_updated'  => $orders_updated,
-        ]
-      );
+        foreach ($orders_updated as $invoice_number => $updates) {
 
-      foreach($orders_updated as $invoice_number => $updates) {
+            $order  = load_full_order(['invoice_number' => $invoice_number], $mysql);
+            $groups = group_drugs($order, $mysql);
 
-        $order  = load_full_order(['invoice_number' => $invoice_number], $mysql);
-        $groups = group_drugs($order, $mysql);
+            $add_item_names    = [];
+            $remove_item_names = [];
 
-        send_updated_order_communications($groups, $updates['added'], $updates['removed']);
-      }
+            foreach ($updates['added'] as $item) {
+              $add_item_names[] = $item['drug'];
+            }
+
+            foreach ($updates['removed'] as $item) {
+              $remove_item_names[] = $item['drug'];
+            }
+
+            //an rx_number was swapped (e.g best_rx_number used instead) same drug may have been added and removed
+            //at same time so we need to remove the intersection
+            $added_deduped    = array_diff($add_item_names, $remove_item_names);
+
+             //something might have been removed as a duplicate, but we don't want to say it was "removed"
+             //if drug is still in the order so we remove all FILLED (rather than just the added)
+            $removed_deduped  = array_diff($remove_item_names, $groups['FILLED']);
+
+            SirumLog::warning(
+                "update_order_items: order $invoice_number updated",
+                [
+                    'invoice_number'    => $invoice_number,
+                    'updates'           => $updates,
+                    'add_item_names'    => $add_item_names,
+                    'remove_item_names' => $remove_item_names,
+                    'added_deduped'     => $added_deduped,
+                    'removed_deduped'   => $removed_deduped,
+                    'groups'            => $groups
+                ]
+            );
+
+            /*
+                We had issues in orders like 55256 Apixaban where the rx_number was swapped this
+                pended items for the new rx in order-items-created BUT then unpended BOTH Rxs in order-items-deleted.  This is because v2 unpend
+                works by drug name, which was the same for the two Rxs.  So for rx_number swaps, let's only unpend removals that not in added
+             */
+
+            /*
+                NOTE Cannot unpend all items effectively in order-items-deleted loops
+                given the current pend group names which are based on order_date_added,
+                since the order is likely already deleted here, order_date_added is null
+                so you cannot deduce the correct pended group name to find and unpend.  this
+                conditional is currently handled when adding items to $updates['removed']
+            */
+
+            //Only available if item was deleted from an order that is still active
+            foreach ($removed_deduped as $item) {
+
+                AuditLog::log(
+                    sprintf(
+                     "Order item %s deleted for Rx#%s GSN#%s, Unpending",
+                     $item['drug_name'],
+                     $item['rx_number'],
+                     $item['drug_gsns']
+                 ),
+                    $item
+                );
+
+                $item = v2_unpend_item(
+                    array_merge($item, $deleted),
+                    $mysql,
+                    "order-item-deleted and order still exists"
+                );
+            }
+
+            send_updated_order_communications($groups, $added_deduped, $removed_deduped);
+        }
     }
 
     $loop_timer = microtime(true);

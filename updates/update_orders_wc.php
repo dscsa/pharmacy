@@ -60,15 +60,20 @@ function update_orders_wc($changes)
             AuditLog::log(
                 sprintf(
                     "Order #%s was created in Patient Portal,
-                    but it appears #%s is a replacement",
+                    but it appears to be a duplicate of #%s",
                     $created['invoice_number'],
-                    $duplicate['invoice_number']
+                    $duplicate[0]['invoice_number']
                 ),
                 $created
             );
 
             SirumLog::warning(
-                'order_canceled_notice BUT their appears to be a replacement',
+                sprintf(
+                    "Order #%s was created in Patient Portal,
+                    but it appears to be a duplicate of #%s",
+                    $created['invoice_number'],
+                    $duplicate[0]['invoice_number']
+                ),
                 [
                     'created' => $created,
                     'duplicate' => $duplicate
@@ -78,6 +83,7 @@ function update_orders_wc($changes)
             // In case there is an order_note move it to the first order so we
             // don't lose it, when we delete this order
             if ($created['order_note']) {
+                $mssql = $mssql ?: new Mssql_Cp();
                 export_cp_append_order_note($mssql, $duplicate[0]['invoice_number'], $created['order_note']);
             }
         }
@@ -115,6 +121,7 @@ function update_orders_wc($changes)
                     json_encode($created)
                 )
             );
+            export_gd_delete_invoice($created['invoice_number']);
             continue;
         }
         /*
@@ -135,17 +142,18 @@ function update_orders_wc($changes)
                     "Order #%s was created in Patient Portal, but should be coming
                     from CarePoint since the new order has a status of %s it
                     will be CANCELLED",
-                    $created['invoice_number'],
-                    $duplicate['invoice_number'],
+                    @$created['invoice_number'],
+                    @$duplicate['invoice_number'],
                     $created['order_stage_wc']
                 ),
                 $created
             );
+
             export_wc_cancel_order(
                 $created['invoice_number'],
                 sprintf(
-                    "update_orders_cp: cp order canceled %s %s %s %s",
-                    $created['invoice_number'],
+                    "update_orders_cp: cp order cancelled %s %s %s %s",
+                    @$created['invoice_number'],
                     $created['order_stage_wc'],
                     $created['order_source'],
                     json_encode($created)
@@ -197,8 +205,8 @@ function update_orders_wc($changes)
           will not have yet been created so WC wasn't "deleted" it just wasn't
           created yet.  But once order_stage_wc is set, then it is a true deletion
          */
-        if (is_null($deleted['order_stage_wc'])) {
-            continue;
+        if (is_null($deleted['order_stage_wc']) AND ! $deleted['order_date_dispensed']) {
+          continue;
         }
 
         $order = load_full_order($deleted, $mysql);
@@ -222,11 +230,15 @@ function update_orders_wc($changes)
             ]
         );
 
+        //NOTE the below will fail if the order is wc-cancelled.  because it will show up as deleted here
+        //but if it was improperly cancelled and the cp order still exists then export_wc_create_order()
+        //will fail because it technically exists it just isn't being imported (deliberitely)
+
+        $order = helper_update_payment($order, "update_orders_wc: shipped order deleted from WC", $mysql);
         export_wc_create_order($order, "update_orders_wc: shipped order deleted from WC");
 
-        if ($deleted['tracking_number']
-            or $deleted['order_stage_cp'] == 'Shipped'
-            or $deleted['order_stage_cp'] == 'Dispensed') {
+        if ($deleted['order_date_shipped'] or $deleted['order_date_returned']) {
+
             AuditLog::log(
                 sprintf(
                     "Order #%s has was shipped before being deleted",

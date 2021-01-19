@@ -148,6 +148,9 @@ function v2_unpend_item($item, $mysql, $reason) {
       [ 'item' => $item ]
   );
 
+  if ( ! @$item['rx_number']) //Empty order will just cause a mysql error in save_pick_list
+    return $item;
+
   AuditLog::log(
       sprintf(
           "Item %s for Rx#%s on Invoice #%s UN-Pended because %s",
@@ -189,8 +192,9 @@ function unpend_pick_list($item) {
   $pend_group_webform = pend_group_webform($item);
   $pend_group_manual  = pend_group_manual($item);
   $pend_group_new_patient = pend_group_new_patient($item);
+  $pend_group_new_patient_old = pend_group_new_patient_old($item);
 
-  $msg = "unpending item $item[drug_generic] in $pend_group_refill, $pend_group_webform, $pend_group_manual, $pend_group_new_patient";
+  $msg = "unpending item $item[drug_generic] in $pend_group_refill, $pend_group_webform, $pend_group_manual, $pend_group_new_patient $pend_group_new_patient_old";
   echo "\n$msg\n";
 
   //Once order is deleted it not longer has items so its hard to determine if the items were New or Refills so just delete both
@@ -198,8 +202,9 @@ function unpend_pick_list($item) {
   $res_webform = v2_fetch("/account/8889875187/pend/$pend_group_webform/$item[drug_generic]", 'DELETE');
   $res_manual  = v2_fetch("/account/8889875187/pend/$pend_group_manual/$item[drug_generic]", 'DELETE');
   $res_new_patient = v2_fetch("/account/8889875187/pend/$pend_group_new_patient/$item[drug_generic]", 'DELETE');
+  $res_new_patient_old = v2_fetch("/account/8889875187/pend/$pend_group_new_patient_old/$item[drug_generic]", 'DELETE');
 
-  if ( ! $res_refill AND ! $res_webform AND ! $res_manual AND ! $res_new_patient) {
+  if ( ! $res_refill AND ! $res_webform AND ! $res_manual AND ! $res_new_patient AND ! $res_new_patient_old) {
     log_warning("v2_unpend_item: Nothing Unpened.  Call could have been avoided! ".@$item['invoice_number']." ".@$item['drug_name']." ".@$item['rx_number'].". rx_dispensed_id:".@$item['rx_dispensed_id']." last_inventory:".@$item['last_inventory']." count_pended_total:".@$item['count_pended_total'], get_defined_vars());
   }
 
@@ -280,7 +285,7 @@ function print_pick_list($item, $list) {
     [
       "Rx $item[rx_number]. $item[rx_message_key]. Item Added:$item[item_date_added]. Created ".date('Y-m-d H:i:s'), '', '' ,'', '', ''],
     [
-      $list['half_fill'].
+      $list['partial_fill'].
       "Count:$list[count], ".
       "Days:$item[days_dispensed_default], ".
       "Qty:$item[qty_dispensed_default] ($list[qty]), ".
@@ -331,7 +336,18 @@ function pend_group_webform($item) {
 
 function pend_group_new_patient($item) {
 
-   $pick_time = strtotime($item['patient_date_added'].' +0 days'); //Used to be +1 days
+   $pick_time = strtotime($item['patient_date_added'].' -8 days');
+   $invoice   = "P$item[invoice_number]";
+
+   $pick_date = date('Y-m-d', $pick_time);
+
+   return "$pick_date $invoice";
+}
+
+//This can be deleted once 2021-01-12 P55855 is dispensed
+function pend_group_new_patient_old($item) {
+
+   $pick_time = strtotime($item['patient_date_added'].' +0 days');
    $invoice   = "P$item[invoice_number]";
 
    $pick_date = date('Y-m-d', $pick_time);
@@ -393,7 +409,7 @@ function make_pick_list($item, $limit = 500) {
   log_notice("make_pick_list: $item[invoice_number] ".@$item['drug_name']." ".@$item['rx_number'], $item); //We don't need full shopping list cluttering logs
 
   if ($list) {
-    $list['half_fill'] = '';
+    $list['partial_fill'] = '';
     return $list;
   }
 
@@ -403,16 +419,26 @@ function make_pick_list($item, $limit = 500) {
   }
 
   if ($item['stock_level'] != "OUT OF STOCK")
-    log_error("Webform Pending Error: Not enough qty found for $item[drug_generic] although it's not OUT OF STOCK.  Looking for $min_qty with last_inventory of $item[last_inventory] (limit $limit) #1 of 2, trying half fill and no safety", ['count_inventory' => count($inventory), 'item' => $item]);
+    log_error("Webform Pending Error: Not enough qty found for $item[drug_generic] although it's not OUT OF STOCK.  Looking for $min_qty with last_inventory of $item[last_inventory] (limit $limit) #1 of 3, trying half fill and no safety", ['count_inventory' => count($inventory), 'item' => $item]);
 
   $list = get_qty_needed($sorted_ndcs, $min_qty*0.5, 0);
 
   if ($list) {
-    $list['half_fill'] = 'HALF FILL - COULD NOT FIND ENOUGH QUANTITY, ';
+    $list['partial_fill'] = 'HALF FILL - COULD NOT FIND ENOUGH QUANTITY, ';
     return $list;
   }
 
-  log_error("Webform Pending Error: Not enough qty found for $item[drug_generic]. Looking for $min_qty with last_inventory of $item[last_inventory] (limit $limit) #2 of 2, half fill with no safety failed", ['inventory' => $inventory, 'sorted_ndcs' => $sorted_ndcs, 'count_inventory' => count($sorted_ndcs), 'item' => $item]);
+  log_error("Webform Pending Error: Not enough qty found for $item[drug_generic]. Looking for $min_qty with last_inventory of $item[last_inventory] (limit $limit) #2 of 3, half fill with no safety failed", ['inventory' => $inventory, 'sorted_ndcs' => $sorted_ndcs, 'count_inventory' => count($sorted_ndcs), 'item' => $item]);
+
+  $thirty_day_qty = $min_qty/$item['days_dispensed_default']*30;
+  $list = get_qty_needed($sorted_ndcs, $thirty_day_qty, 0);
+
+  if ($list) {
+    $list['partial_fill'] = '30 DAY FILL - COULD NOT FIND ENOUGH QUANTITY, ';
+    return $list;
+  }
+
+  log_error("Webform Pending Error: Not enough qty found for $item[drug_generic]. Looking for $min_qty with last_inventory of $item[last_inventory] (limit $limit) #3 of 3, 30 day with no safety failed", ['inventory' => $inventory, 'sorted_ndcs' => $sorted_ndcs, 'count_inventory' => count($sorted_ndcs), 'item' => $item]);
 
   //otherwise could create upto 3 SF tasks. rxs-single-updated, orders-cp-created, sync-to-date
   if ( ! is_null($item['count_pended_total'])) {

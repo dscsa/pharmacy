@@ -8,6 +8,7 @@ use \PagerDuty\Exceptions\PagerDutyException;
 const ADAM_API_KEY    = 'e3dc75a25b1b4d289a83a067a93f543e';
 const PA_HIGH_API_KEY = 'b5d70a71999d499f8a801aa08ce96fda';
 const PA_LOW_API_KEY  = '62696f7ac2854a8284231a0c655d6503';
+const GUARDIAN_API_KEY = '34ee14abee6345fea5dd390fa062b526';
 
 /**
  * Send an alert to just Adam
@@ -71,6 +72,27 @@ function pd_high_priority($message, $id, $data = [])
         $message,
         $id,
         PA_HIGH_API_KEY,
+        $data
+    );
+
+    return pd_alert($event);
+}
+
+/**
+ * Send an alert to the high urgency message service
+ * @param  string $message The message to display
+ * @param  string $id      A human readable id.  This id will be used to group
+ *      messages, so it should unique for individual alerts
+ * @param  array  $data    (Optional) A small batch of additional details to
+ *      be attached to the event
+ * @return boolean  True if the message was succesfully sent
+ */
+function pd_guardian($message, $id, $data = [])
+{
+    $event = get_pd_event(
+        $message,
+        $id,
+        GUARDIAN_API_KEY,
         $data
     );
 
