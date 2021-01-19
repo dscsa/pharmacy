@@ -419,7 +419,7 @@ function make_pick_list($item, $limit = 500) {
   }
 
   if ($item['stock_level'] != "OUT OF STOCK")
-    log_error("Webform Pending Error: Not enough qty found for $item[drug_generic] although it's not OUT OF STOCK.  Looking for $min_qty with last_inventory of $item[last_inventory] (limit $limit) #1 of 2, trying half fill and no safety", ['count_inventory' => count($inventory), 'item' => $item]);
+    log_error("Webform Pending Error: Not enough qty found for $item[drug_generic] although it's not OUT OF STOCK.  Looking for $min_qty with last_inventory of $item[last_inventory] (limit $limit) #1 of 3, trying half fill and no safety", ['count_inventory' => count($inventory), 'item' => $item]);
 
   $list = get_qty_needed($sorted_ndcs, $min_qty*0.5, 0);
 
@@ -428,7 +428,17 @@ function make_pick_list($item, $limit = 500) {
     return $list;
   }
 
-  log_error("Webform Pending Error: Not enough qty found for $item[drug_generic]. Looking for $min_qty with last_inventory of $item[last_inventory] (limit $limit) #2 of 2, half fill with no safety failed", ['inventory' => $inventory, 'sorted_ndcs' => $sorted_ndcs, 'count_inventory' => count($sorted_ndcs), 'item' => $item]);
+  log_error("Webform Pending Error: Not enough qty found for $item[drug_generic]. Looking for $min_qty with last_inventory of $item[last_inventory] (limit $limit) #2 of 3, half fill with no safety failed", ['inventory' => $inventory, 'sorted_ndcs' => $sorted_ndcs, 'count_inventory' => count($sorted_ndcs), 'item' => $item]);
+
+  $thirty_day_qty = $min_qty/$item['days_dispensed_default']*30;
+  $list = get_qty_needed($sorted_ndcs, $thirty_day_qty, 0);
+
+  if ($list) {
+    $list['half_fill'] = '30 DAY FILL - COULD NOT FIND ENOUGH QUANTITY, ';
+    return $list;
+  }
+
+  log_error("Webform Pending Error: Not enough qty found for $item[drug_generic]. Looking for $min_qty with last_inventory of $item[last_inventory] (limit $limit) #3 of 3, 30 day with no safety failed", ['inventory' => $inventory, 'sorted_ndcs' => $sorted_ndcs, 'count_inventory' => count($sorted_ndcs), 'item' => $item]);
 
   //otherwise could create upto 3 SF tasks. rxs-single-updated, orders-cp-created, sync-to-date
   if ( ! is_null($item['count_pended_total'])) {
