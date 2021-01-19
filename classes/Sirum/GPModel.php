@@ -211,30 +211,26 @@ class GPModel
         }
 
         $sql = 'SELECT ';
-        $sql .= implode(', ', $this->fields);
-        $sql .=  ' FROM ' . $this->table_name . ' WHERE ';
+        $sql .= implode(",\n", $this->fields);
+        $sql .=  " FROM {$this->table_name}\n WHERE ";
 
         foreach ($params as $property => $value) {
-            if (is_null($params[$property])) {
-                $sql .= $property . ' IS NULL AND ';
+            if (is_null($value)) {
+                $sql .= "{$property} IS NULL\nAND";
             } else {
-                $sql .= $property . ' = :' . $property . ' AND ';
+                $sql .= "{$property} = :{$property}\nAND";
             }
         }
 
-        $sql = trim($sql, 'AND ');
-
-        if (is_array($params)) {
-            asort($params);
-        }
+        $sql = trim($sql, 'AND');
 
         $stmt = $this->gpdb->prepare($sql);
 
-        foreach (array_keys($params) as $property) {
-            if (is_int($params[$property])) {
-                $stmt->bindParam(':'.$property, $params[$property], \PDO::PARAM_INT);
+        foreach ($params as $property => $value) {
+            if (is_int($value)) {
+                $stmt->bindParam(":{$property}", $value, \PDO::PARAM_INT);
             } else {
-                $stmt->bindParam(':'.$property, $params[$property], \PDO::PARAM_STR);
+                $stmt->bindParam(":{$property}", $value, \PDO::PARAM_STR);
             }
         }
 

@@ -31,6 +31,8 @@ class BaseRequest extends Request
         $type_name  = ucfirst(strtolower($body->type));
         $class_name = "Sirum\\AWS\\SQS\\GoogleAppRequest\\{$type_name}";
 
+        echo $class_name . "\n";
+
         if (!class_exists($class_name)) {
             throw new \Exception("Could not find class {$classname}");
         }

@@ -19,13 +19,12 @@ const ADDED_MANUALLY = [
   "WEBFORM"
 ];
 
-const PICK_LIST_FOLDER_NAME = 'Pick Lists';
+const PAYMENT_TOTAL_NEW_PATIENT = 6;
+
+const PICK_LIST_FOLDER_NAME         = 'Pick Lists';
 const INVOICE_PUBLISHED_FOLDER_NAME = 'Published';
 const INVOICE_PENDING_FOLDER_NAME   = 'Pending';
-const TRANSFER_OUT_FOLDER_NAME = 'Transfer Outs';
-
-
-const PAYMENT_TOTAL_NEW_PATIENT = 6;
+const TRANSFER_OUT_FOLDER_NAME      = 'Transfer Outs';
 
 const GD_FOLDER_IDS = [
     PICK_LIST_FOLDER_NAME         => '1PcDYKM_Ky-9zWmCNuBnTka3uCKjU3A0q',
@@ -33,11 +32,6 @@ const GD_FOLDER_IDS = [
     INVOICE_PENDING_FOLDER_NAME   => '1ZSog-fJ7HhWJfXU_rmsJaMCiNb2VlFfG',
     TRANSFER_OUT_FOLDER_NAME      => '1Lda6GkjIsEzTc1fwES6EbGcOHCJvlIZz'
 ];
-
-define('PICK_LIST_FOLDER_NAME', 'Pick Lists');
-define('INVOICE_PUBLISHED_FOLDER_NAME', 'Published');
-define('INVOICE_PENDING_FOLDER_NAME', 'Pending');
-define('TRANSFER_OUT_FOLDER_NAME', 'Transfer Outs');
 
 const PAYMENT_METHOD = [
   'COUPON'       => 'coupon',

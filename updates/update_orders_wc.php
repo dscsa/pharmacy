@@ -258,7 +258,7 @@ function update_orders_wc($changes)
                 ]
             );
 
-            $order = export_gd_publish_invoice($order, $mysql);
+            $order = export_gd_publish_invoice($order);
         }
     }
 

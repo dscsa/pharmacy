@@ -170,7 +170,7 @@ function export_gd_publish_invoice($order, $async = true)
 
     // Check to see if the file we have exists, and it is in the correct place
     // and not trashed
-    if (!empty($invoice_doc_id)) {
+    if (false && !empty($invoice_doc_id)) {
         $meta = gdoc_details($order[0]['invoice_doc_id']);
         if ($meta->parent->name != INVOICE_PENDING_FOLDER_NAME || $meta->trashed) {
             // The current invoice is trash.  Make a new invoice
@@ -193,7 +193,6 @@ function export_gd_publish_invoice($order, $async = true)
 
     $publish_request             = new Publish();
     $publish_request->fileId     = $invoice_doc_id;
-    $publish_request->toFolder   = INVOICE_PUBLISHED_FOLDER_NAME;
     $publish_request->group_id   = "invoice-{$invoice_number}";
 
     if ($async) {
@@ -233,7 +232,7 @@ function export_gd_print_invoice($invoice_number, $async = true)
 
     $move_request             = new Move();
     $move_request->fileId     = $invoice_doc_id;
-    $move_request->toFolder   = INVOICE_PUBLISHED_FOLDER_NAME;
+    $move_request->folderId   = GD_FOLDER_IDS[INVOICE_PUBLISHED_FOLDER_NAME];
     $move_request->group_id   = "invoice-{$invoice_number}";
 
     if ($async) {
@@ -306,7 +305,7 @@ function findInvoiceDocId($likely_invoice_number)
     // invoice_number and not a doc_id.  We want the doc ID so we should get it
     if (is_numeric($likely_invoice_number) && strlen($likely_invoice_number) < 10000000) {
         // Go get the doc ID using a simple model
-        $order = new GoodPillOrder(['invoice_number' => $invoice_id]);
+        $order = new GoodPillOrder(['invoice_number' => $likely_invoice_number]);
 
         if ($order->loaded
             && isset($order->invoice_doc_id)) {
