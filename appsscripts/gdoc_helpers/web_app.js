@@ -98,7 +98,7 @@ function v2_routes(contents) {
         case 'v2/removeFile':
             return removeFile_v2(contents.fileId);
         case 'v2/moveFile':
-            return moveFile_v2(contents.fileId, contents.fromId, contents.toId);
+            return moveFile_v2(contents.fileId, contents.folderId);
         case 'v2/publishFile':
             return publishFile_v2(contents.fileId);
         case 'v2/fileDetails':

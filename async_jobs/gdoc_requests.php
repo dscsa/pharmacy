@@ -2,6 +2,8 @@
 
 ini_set('include_path', '/goodpill/webform');
 require_once 'vendor/autoload.php';
+require_once 'helpers/helper_appsscripts.php';
+require_once 'helpers/helper_log.php';
 require_once 'keys.php';
 
 use Sirum\AWS\SQS\GoogleAppRequest\BaseRequest;
@@ -33,7 +35,9 @@ for ($l = 0; $l < $executions; $l++) {
                 $url = GD_MERGE_URL;
             }
 
-            $response = gdoc_post($url, $request->toArray());
+            $response = json_decode(gdoc_post($url, $request->toArray()));
+
+            var_dump($response);
 
             if ($response->results == 'success') {
                 $complete[] = $request;

@@ -67,6 +67,21 @@ function moveFile_v2(fileId, toFolderId) {
     try {
         var toFolder = DriveApp.getFolderById(toFolderId);
         var file = DriveApp.getFileById(fileId);
+        if (file && toFolder) {
+            try {
+                file.moveTo(toFolder)
+            } catch (e) {
+                response = {
+                    "results": "error",
+                    "message": "Could not move file",
+                    "fileName": file.getName(),
+                    "fileOwner": file.getOwner().getEmail(),
+                    "folderName": toFolder.getName(),
+                    "folderOwner": toFolder.getOwner().getEmail(),
+                    "error": e.message
+                };
+            }
+        }
     } catch (e) {
         response = {
             "results": "error",
@@ -75,21 +90,6 @@ function moveFile_v2(fileId, toFolderId) {
             "folderId": toFolderId,
             "error": e.message
         };
-    }
-
-    if (file && folder) {
-        try {
-            file.moveTo(toFolder)
-        } catch (e) {
-            response = {
-                "results": "error",
-                "message": "Could not move file",
-                "fileName": file.getName(),
-                "fileOwner": file.getOwner().getEmail(),
-                "folderName": toFolder.getName(),
-                "folderOwner": toFolder.getOwner().getEmail()
-            };
-        }
     }
 
     if (response.results == "success") {

@@ -12,12 +12,14 @@ class Move extends HelperRequest
     protected $properties = [
         'type',
         'method',
-        'fileId'
+        'fileId',
+        'folderId'
     ];
 
     protected $required = [
         'method',
-        'fileId'
+        'fileId',
+        'folderId'
     ];
 
     /**

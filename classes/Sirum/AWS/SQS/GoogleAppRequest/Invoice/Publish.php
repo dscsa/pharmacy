@@ -7,7 +7,7 @@ use Sirum\AWS\SQS\GoogleAppRequest\HelperRequest;
 /**
  * Base level class for all Google Doc requests
  */
-class Publish extends HelperRequest
+class Update extends MergeRequest
 {
     protected $properties = [
         'type',
@@ -17,7 +17,8 @@ class Publish extends HelperRequest
 
     protected $required = [
         'method',
-        'fileId'
+        'fileId',
+        'order'
     ];
 
     /**
@@ -26,7 +27,7 @@ class Publish extends HelperRequest
      */
     public function __construct($request = null)
     {
-        $this->method = 'v2/publishFile';
+        $this->method = 'v2/updateFile';
         parent::__construct($request);
     }
 }

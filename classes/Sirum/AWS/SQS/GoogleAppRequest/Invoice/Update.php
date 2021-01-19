@@ -7,7 +7,7 @@ use Sirum\AWS\SQS\GoogleAppRequest\HelperRequest;
 /**
  * Base level class for all Google Doc requests
  */
-class Update extends HelperRequest
+class Update extends MergeRequest
 {
     protected $properties = [
         'type',
