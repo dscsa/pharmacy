@@ -58,7 +58,15 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
         $duplicate_items = get_current_items($mysql, ['rx_numbers' => "'{$patient_or_order[$i]['rx_numbers']}'"]);
 
         if ($duplicate_items AND count($duplicate_items) > 1) {
-          log_alert("helper_full_fields: {$patient_or_order[$i]['drug_generic']} is duplicate ITEM.  Likely Mistake. Two webform orders?", ['duplicate_items' => $duplicate_items, 'item' => $patient_or_order[$i], 'order' => $patient_or_order]);
+          SirumLog::error(
+              "helper_full_fields: {$patient_or_order[$i]['drug_generic']} is duplicate
+              ITEM.  Likely Mistake. Two webform orders?",
+              [
+                  'duplicate_items' => $duplicate_items,
+                  'item' => $patient_or_order[$i],
+                  'order' => $patient_or_order
+              ]
+          );
         }
 
         //Overwrite refers to the rx_single and rx_grouped table not the order_items table which deliberitely keeps its initial values
