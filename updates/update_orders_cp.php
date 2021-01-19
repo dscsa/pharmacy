@@ -588,7 +588,7 @@ function update_orders_cp($changes)
                 ),
                 $updated
             );
-            SirumLog::alert(
+            SirumLog::error(
                 'update_orders_cp: updated. no drugs to fill. removing cp/wc order '.$order[0]['invoice_number'].'. Send order cancelled notice?',
                 [
                     'invoice_number' => $order[0]['invoice_number'],
