@@ -3,9 +3,11 @@
 require_once 'exports/export_wc_patients.php';
 require_once 'exports/export_cp_patients.php';
 require_once 'helpers/helper_matching.php';
+require_once 'helpers/helper_calendar.php';
 
 use Sirum\Logging\SirumLog;
 use Sirum\Logging\AuditLog;
+use Sirum\Storage\Goodpill;
 
 function update_patients_wc($changes)
 {
@@ -444,14 +446,20 @@ function update_patients_wc($changes)
                 "Patient Set Incorrectly",
                 ['changed' => $changed, 'updated' => $updated]
             );
-        } elseif ($updated['first_name'] !== $updated['old_first_name'] or
-          $updated['last_name'] !== $updated['old_last_name'] or
-          $updated['birth_date'] !== $updated['old_birth_date'] or
-          $updated['language'] !== $updated['old_language']
+        } elseif (
+            $updated['first_name'] !== $updated['old_first_name']
+            || $updated['last_name'] !== $updated['old_last_name']
+            || $updated['birth_date'] !== $updated['old_birth_date']
+            || $updated['language'] !== $updated['old_language']
         ) {
             $is_patient_match = is_patient_match($mysql, $updated);
             if ($is_patient_match) {
-                // Make sure there is only one match on either side of the
+                /*
+                    If we find a match, we should push this over to carepoint.
+                    Does this ever actually happen?  I don't think it does because
+                    at this point the users won't match
+                 */
+
                 /*
                     TODO What is the source of truth if there is a mismatch?
                     Do we update CP to match WC or vice versa? For now, think patient
@@ -482,6 +490,55 @@ function update_patients_wc($changes)
                 );
 
                 upsert_patient_cp($mssql, $sp);
+            } elseif (
+                $updated['patient_id_cp']
+                && $updated['patient_id_wc']
+            ) {
+                // This user has previously been matched, so we are going to
+                // copy data from CP to WC
+                $gpdb = new GoodPill();
+                $pdo = $gpdb->prepare(
+                    "SELECT first_name,
+                            last_name,
+                            birth_date,
+                            :patient_id_wc as patient_id_wc
+                        FROM gp_patints_cp
+                        WHERE patient_id_cp = :patient_id_cp
+                    "
+                );
+
+                $pdo->bindParam(':patient_id_cp', $updated['patient_id_cp'], \PDO::PARAM_STR);
+                $pdo->bindParam(':patient_id_wc', $updated['patient_id_wc'], \PDO::PARAM_STR);
+                $pdo->execute();
+
+                if ($cp_patient = $pdo->fetch) {
+                    wc_update_patient($cp_patient);
+                    create_event(
+                        "Changed patient name to match details from CarePoint",
+                        [
+                             [
+                                 "subject"   => "Changed patient name to match details from CarePoint",
+                                 "body"      => "We found a WooCommerce user that had previous been matched to Carepoint.
+                                                 Their WooCommerce identifiers didn't match, so we updated WooCommerce
+                                                 with the details from Carepoint.  Their previous WooCommerce ID was:
+                                                 {$updated['first_name']} {$updated['last_name']} {$updated['birth_date']}.
+                                                 Their WooCommerce id is {$updated['patient_id_wc']} and their
+                                                 Carepoint ID is {$updated['patient_id_cp']}",
+                                 "contact"   => "{$item['first_name']} {$item['last_name']} {$item['birth_date']}",
+                                 "assign_to" => "Kiah",
+                                 "due_date"  => date('Y-m-d')
+                             ]
+                        ]
+                    );
+                }
+                SirumLog::alert(
+                    "Forced Carepoint details onto WooCommerce user",
+                    [
+                        'updated'          => $updated,
+                        'changed'          => $changed,
+                        'is_patient_match' => $is_patient_match
+                      ]
+                );
             } else {
                 $msg = "update_patients_wc: patient name changed but now count(matches) !== 1";
                 SirumLog::alert(
@@ -493,7 +550,7 @@ function update_patients_wc($changes)
                       ]
                 );
             }
-        }
+        } // END If key fields have changes
 
         if ($updated['allergies_none'] !== $updated['old_allergies_none'] or
               $updated['allergies_aspirin'] !== $updated['old_allergies_aspirin'] or
