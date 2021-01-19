@@ -426,7 +426,7 @@ function export_wc_create_order($order, $reason)
               coupon_lines,
               order_note
             ) VALUES (
-              '$invoice_number',
+              {$invoice_number},
               '{$first_item['patient_id_wc']}',
               '{$first_item['order_stage_wc']}',
               '{$first_item['order_source']}',
