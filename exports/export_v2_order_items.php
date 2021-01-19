@@ -285,7 +285,7 @@ function print_pick_list($item, $list) {
     [
       "Rx $item[rx_number]. $item[rx_message_key]. Item Added:$item[item_date_added]. Created ".date('Y-m-d H:i:s'), '', '' ,'', '', ''],
     [
-      $list['half_fill'].
+      $list['partial_fill'].
       "Count:$list[count], ".
       "Days:$item[days_dispensed_default], ".
       "Qty:$item[qty_dispensed_default] ($list[qty]), ".
@@ -409,7 +409,7 @@ function make_pick_list($item, $limit = 500) {
   log_notice("make_pick_list: $item[invoice_number] ".@$item['drug_name']." ".@$item['rx_number'], $item); //We don't need full shopping list cluttering logs
 
   if ($list) {
-    $list['half_fill'] = '';
+    $list['partial_fill'] = '';
     return $list;
   }
 
@@ -424,7 +424,7 @@ function make_pick_list($item, $limit = 500) {
   $list = get_qty_needed($sorted_ndcs, $min_qty*0.5, 0);
 
   if ($list) {
-    $list['half_fill'] = 'HALF FILL - COULD NOT FIND ENOUGH QUANTITY, ';
+    $list['partial_fill'] = 'HALF FILL - COULD NOT FIND ENOUGH QUANTITY, ';
     return $list;
   }
 
@@ -434,7 +434,7 @@ function make_pick_list($item, $limit = 500) {
   $list = get_qty_needed($sorted_ndcs, $thirty_day_qty, 0);
 
   if ($list) {
-    $list['half_fill'] = '30 DAY FILL - COULD NOT FIND ENOUGH QUANTITY, ';
+    $list['partial_fill'] = '30 DAY FILL - COULD NOT FIND ENOUGH QUANTITY, ';
     return $list;
   }
 
