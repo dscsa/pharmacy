@@ -18,16 +18,6 @@ function removeFile_v2(fileId) {
 
     try {
         var file = DriveApp.getFileById(fileId);
-    } catch (e) {
-        response = {
-            "results": "error",
-            "message": "File not found.",
-            "fileId": fileId,
-            "error": e.message
-        };
-    }
-
-    if (file) {
         try {
             file.setTrashed(true);
         } catch (e) {
@@ -39,6 +29,13 @@ function removeFile_v2(fileId) {
                 "error": e.message
             };
         }
+    } catch (e) {
+        response = {
+            "results": "error",
+            "message": "File not found.",
+            "fileId": fileId,
+            "error": e.message
+        };
     }
 
     if (response.results == "success") {
@@ -48,7 +45,6 @@ function removeFile_v2(fileId) {
     }
 
     return response;
-
 }
 
 /**
@@ -116,16 +112,6 @@ function publishFile_v2(fileId) {
 
     try {
         var file = DriveApp.getFileById(fileId);
-    } catch (e) {
-        response = {
-            "results": "error",
-            "message": "File not found.",
-            "fileId": fileId,
-            "error": e.message
-        };
-    }
-
-    if (file) {
         try {
             var file = DriveApp.getFileById(fileId);
             // Side effect of this is that this account can no longer delete/trash/remove
@@ -160,10 +146,14 @@ function publishFile_v2(fileId) {
                 "fileOwner": file.getOwner().getEmail(),
                 "error": e.message
             };
-            console.error(response);
-            return response;
-
         }
+    } catch (e) {
+        response = {
+            "results": "error",
+            "message": "File not found.",
+            "fileId": fileId,
+            "error": e.message
+        };
     }
 
     if (response.results == "success") {

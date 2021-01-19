@@ -7,17 +7,19 @@ use Sirum\AWS\SQS\GoogleAppRequest\HelperRequest;
 /**
  * Base level class for all Google Doc requests
  */
-class Publish extends HelperRequest
+class DeleteMultiples extends HelperRequest
 {
     protected $properties = [
         'type',
         'method',
-        'fileId'
+        'folderId',
+        'fileName'
     ];
 
     protected $required = [
         'method',
-        'fileId'
+        'folderId',
+        'fileName'
     ];
 
     /**
@@ -26,7 +28,7 @@ class Publish extends HelperRequest
      */
     public function __construct($request = null)
     {
-        $this->method = 'v2/publishFile';
+        $this->method = 'v2/removeFile';
         parent::__construct($request);
     }
 }

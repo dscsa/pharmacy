@@ -19,7 +19,7 @@ $executions = (ENVIRONMENT == 'PRODUCTION') ? 10000 : 2;
 for ($l = 0; $l < $executions; $l++) {
     $results  = $gdq->receive(['MaxNumberOfMessages' => 10]);
     $messages = $results->get('Messages');
-    $complete = array();
+    $complete = [];
 
     // An array of messages that have
     // been proccessed and can be deleted
@@ -36,8 +36,6 @@ for ($l = 0; $l < $executions; $l++) {
             }
 
             $response = json_decode(gdoc_post($url, $request->toArray()));
-
-            var_dump($response);
 
             if ($response->results == 'success') {
                 $complete[] = $request;

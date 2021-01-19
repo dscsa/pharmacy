@@ -75,11 +75,13 @@ class Queue
             $this->aws_secret = $aws_secret;
         }
 
-        $this->sqs_client = SqsClient::factory([
-            'region'  => AWS_REGION,
-            'key'     => $this->aws_key,
-            'secret'  => $this->aws_secret,
-            'version' => '2012-11-05']
+        $this->sqs_client = SqsClient::factory(
+            [
+                'region'  => AWS_REGION,
+                'key'     => $this->aws_key,
+                'secret'  => $this->aws_secret,
+                'version' => '2012-11-05'
+            ]
         );
 
         $this->setQueueName($queue_name);
@@ -168,6 +170,13 @@ class Queue
      */
     public function send(Request $message, $delay = null)
     {
+        if (
+            substr($this->queue_name, -5) == '.fifo'
+            && ! $message->isFifo()
+        ) {
+            throw new \Exception('FIFO queues require a group_id on each request');
+        }
+
         $sqs_message             = $message->toSQS();
         $sqs_message['QueueUrl'] = $this->queue_url;
 
@@ -196,12 +205,20 @@ class Queue
      *
      * @return \AWS\Sqs\SqsResults
      */
-    public function sendBatch($messages, $delay = 0)
+    public function sendBatch($requests, $delay = 0)
     {
 
         $messages = array_map(
-            function ($message, $delay) {
-                return $message->toSQS();
+            function ($request, $delay) {
+                // Make sure we have a group_id if it's a fifo queue
+                if (
+                    substr($this->queue_name, -5) == '.fifo'
+                    && ! $message->isFifo()
+                ) {
+                    throw new \Exception('FIFO queues require a group_id on each request');
+                }
+
+                return $request->toSQS();
             },
             $messages,
             array_fill(0, count($messages), $delay)

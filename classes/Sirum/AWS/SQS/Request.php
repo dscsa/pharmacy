@@ -263,4 +263,13 @@ abstract class Request
 
         return $this->fromJSON($message['Body']);
     }
+
+    /**
+     * See if this message can be sent to a fifo Queue
+     * @return boolean Does it have attributes neccessary to be a fifo message
+     */
+    public function isFifo()
+    {
+        return isset($this->group_id);
+    }
 }
