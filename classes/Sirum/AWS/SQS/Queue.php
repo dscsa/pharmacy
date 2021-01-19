@@ -116,8 +116,6 @@ class Queue
             $receipt_handles[] = $request->toSQSDelete();
         }
 
-        print_r($receipt_handles);
-
         return $this->sqs_client->deleteMessageBatch(
             [
                 'QueueUrl' => $this->queue_url,
