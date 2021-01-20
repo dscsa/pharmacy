@@ -6,9 +6,13 @@ require_once 'helpers/helper_appsscripts.php';
 require_once 'helpers/helper_log.php';
 require_once 'keys.php';
 
-use Sirum\AWS\SQS\GoogleAppRequest\BaseRequest;
-use Sirum\AWS\SQS\GoogleAppRequest\HelperRequest;
-use Sirum\AWS\SQS\GoogleAppQueue;
+use Sirum\AWS\SQS\{
+    GoogleAppRequest\BaseRequest,
+    GoogleAppRequest\HelperRequest,
+    GoogleAppQueue
+};
+
+use Sirum\Logging\SirumLog;
 
 // Grab and item out of the queue
 $gdq = new GoogleAppQueue();
@@ -25,11 +29,19 @@ for ($l = 0; $l < $executions; $l++) {
     // been proccessed and can be deleted
     // If we've got something to work with, go for it
     if (is_array($messages) && count($messages) > 0) {
-        echo "Processing " . count($messages) . "messages\n";
+
+        $log_message = sprintf(
+            "[%s] Processing %s messages\n",
+            date('Y-m-d h:m:s'),
+            count($messages)
+        );
+
+        SirumLog::debug($log_message);
+        echo log_message;
+
         foreach ($messages as $message) {
             $request = BaseRequest::factory($message);
-
-            printf(
+            $log_message = sprintf(
                 "[%s] New request type: %s for file %s - ",
                 date('Y-m-d h:m:s'),
                 $request->type,
@@ -46,17 +58,28 @@ for ($l = 0; $l < $executions; $l++) {
             $response = json_decode(gdoc_post($url, $request->toArray()));
 
             if (@$response->results == 'success') {
-                echo "Success!\n";
+                $log_message .= "Success!";
                 $complete[] = $request;
             } else {
-                echo "FAILED\n";
-                echo "Message: {$request->error}\n";
+                $log_message .= "FAILED - Message: {$request->error}";
             }
+
+            SirumLog::debug($log_message);
+            echo $log_message . "\n";
         }
     }
 
     // Delete any complet messages
     if (!empty($complete)) {
+        $log_message = sprintf(
+            "[%s] Deleting %s messages\n",
+            date('Y-m-d h:m:s'),
+            count($complete)
+        );
+
+        SirumLog::debug($log_message);
+        echo $log_message . "\n";
+
         $gdq->deleteBatch($complete);
     }
 
