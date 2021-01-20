@@ -5,8 +5,7 @@ require_once 'helpers/helper_appsscripts.php';
 use Sirum\AWS\SQS\GoogleAppRequest\Invoice\{
     Delete,
     Move,
-    Publish,
-    Print
+    Publish
 };
 
 use Sirum\AWS\SQS\GoogleAppQueue;
@@ -231,7 +230,7 @@ function export_gd_print_invoice($invoice_number, $async = true)
         return false;
     };
 
-    $print_request             = new Print();
+    $print_request             = new Move();
     $print_request->fileId     = $invoice_doc_id;
     $print_request->folderId   = GD_FOLDER_IDS[INVOICE_PUBLISHED_FOLDER_NAME];
     $print_request->group_id   = "invoice-{$invoice_number}";
