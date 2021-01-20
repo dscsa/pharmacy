@@ -78,8 +78,10 @@ class Queue
         $this->sqs_client = SqsClient::factory(
             [
                 'region'  => AWS_REGION,
-                'key'     => $this->aws_key,
-                'secret'  => $this->aws_secret,
+                'credentials' => [
+                    'key'    => $this->aws_key,
+                    'secret' => $this->aws_secret,
+                ],
                 'version' => '2012-11-05'
             ]
         );

@@ -25,8 +25,16 @@ for ($l = 0; $l < $executions; $l++) {
     // been proccessed and can be deleted
     // If we've got something to work with, go for it
     if (is_array($messages) && count($messages) > 0) {
+        echo "Processing " . count($messages) . "messages\n";
         foreach ($messages as $message) {
             $request = BaseRequest::factory($message);
+
+            printf(
+                "[%s] New request type: %s for file %s - ",
+                date('Y-m-d h:m:s'),
+                $request->type,
+                $request->fileId
+            );
 
             // Figure out the type of message
             if ($request instanceof HelperRequest) {
@@ -37,8 +45,12 @@ for ($l = 0; $l < $executions; $l++) {
 
             $response = json_decode(gdoc_post($url, $request->toArray()));
 
-            if ($response->results == 'success') {
+            if (@$response->results == 'success') {
+                echo "Success!\n";
                 $complete[] = $request;
+            } else {
+                echo "FAILED\n";
+                echo "Message: {$request->error}\n";
             }
         }
     }
