@@ -21,6 +21,11 @@ const ADDED_MANUALLY = [
 
 const PAYMENT_TOTAL_NEW_PATIENT = 6;
 
+const PICK_LIST_FOLDER_NAME         = 'Pick Lists';
+const INVOICE_PUBLISHED_FOLDER_NAME = 'Published';
+const INVOICE_PENDING_FOLDER_NAME   = 'Pending';
+const TRANSFER_OUT_FOLDER_NAME      = 'Transfer Outs';
+
 const GD_FOLDER_IDS = [
     PICK_LIST_FOLDER_NAME         => '1PcDYKM_Ky-9zWmCNuBnTka3uCKjU3A0q',
     INVOICE_PUBLISHED_FOLDER_NAME => '1PngKqOhRJ2Dt75lX-U0EreXTOzaQf1Bg',
