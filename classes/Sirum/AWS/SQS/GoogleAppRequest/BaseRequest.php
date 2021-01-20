@@ -32,7 +32,7 @@ class BaseRequest extends Request
         $class_name = "Sirum\\AWS\\SQS\\GoogleAppRequest\\{$type_name}";
 
         if (!class_exists($class_name)) {
-            throw new \Exception("Could not find class {$classname}");
+            throw new \Exception("Could not find class {$class_name}");
         }
 
         $request = new $class_name($initialize_date);
