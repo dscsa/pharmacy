@@ -28,7 +28,7 @@ class BaseRequest extends Request
             throw \Exception('Type is missing from message body');
         }
 
-        $type_name  = ucfirst(strtolower($body->type));
+        $type_name  = $body->type;
         $class_name = "Sirum\\AWS\\SQS\\GoogleAppRequest\\{$type_name}";
 
         if (!class_exists($class_name)) {
