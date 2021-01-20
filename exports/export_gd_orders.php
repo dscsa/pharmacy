@@ -5,7 +5,8 @@ require_once 'helpers/helper_appsscripts.php';
 use Sirum\AWS\SQS\GoogleAppRequest\Invoice\{
     Delete,
     Move,
-    Publish
+    Publish,
+    Print
 };
 
 use Sirum\AWS\SQS\GoogleAppQueue;
@@ -201,7 +202,7 @@ function export_gd_publish_invoice($order, $async = true)
         return $order;
     }
 
-    $results = gdoc_post($url, $request->toArray());
+    $results = gdoc_post($url, $publish_request->toArray());
 
     SirumLog::debug(
         'export_gd_publish_invoice published while application waited',
@@ -230,17 +231,17 @@ function export_gd_print_invoice($invoice_number, $async = true)
         return false;
     };
 
-    $move_request             = new Move();
-    $move_request->fileId     = $invoice_doc_id;
-    $move_request->folderId   = GD_FOLDER_IDS[INVOICE_PUBLISHED_FOLDER_NAME];
-    $move_request->group_id   = "invoice-{$invoice_number}";
+    $print_request             = new Print();
+    $print_request->fileId     = $invoice_doc_id;
+    $print_request->folderId   = GD_FOLDER_IDS[INVOICE_PUBLISHED_FOLDER_NAME];
+    $print_request->group_id   = "invoice-{$invoice_number}";
 
     if ($async) {
         $gdq = new GoogleAppQueue();
-        return $gdq->send($move_request);
+        return $gdq->send($print_request);
     }
 
-    $results = gdoc_post($url, $request->toArray());
+    $results = gdoc_post($url, $print_request->toArray());
 
     SirumLog::debug(
         'export_gd_print_invoice while application waited',
@@ -278,7 +279,7 @@ function export_gd_delete_invoice($invoice_number, $async = true)
     }
 
     // Since we aren't async, lets do the work right nwo
-    $results = gdoc_post($url, $request->toArray());
+    $results = gdoc_post($url, $delete_request->toArray());
 
     SirumLog::debug(
         'Invoice printed while application waited',
