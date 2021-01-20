@@ -1,6 +1,6 @@
 <?php
 
-namespace  Sirum\Aws\SQS;
+namespace  Sirum\AWS\SQS;
 
 /**
  * Class for access Amazon Simple Queuing Service

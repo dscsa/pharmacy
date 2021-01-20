@@ -14,6 +14,7 @@ require_once 'updates/update_orders_cp.php';
 require_once 'helpers/helper_imports.php';
 require_once 'helpers/helper_log.php';
 require_once 'helpers/helper_constants.php';
+require_once 'helpers/helper_full_item.php';
 require_once 'helpers/helper_days_and_message.php';
 require_once 'keys.php';
 
