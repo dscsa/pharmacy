@@ -37,7 +37,7 @@ for ($l = 0; $l < $executions; $l++) {
         );
 
         SirumLog::debug($log_message);
-        echo log_message;
+        echo $log_message;
 
         foreach ($messages as $message) {
             $request = BaseRequest::factory($message);
@@ -72,7 +72,7 @@ for ($l = 0; $l < $executions; $l++) {
     // Delete any complet messages
     if (!empty($complete)) {
         $log_message = sprintf(
-            "[%s] Deleting %s messages\n",
+            "[%s] Deleting %s messages",
             date('Y-m-d h:m:s'),
             count($complete)
         );
