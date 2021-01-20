@@ -14,7 +14,7 @@ class Notification extends GPModel
      * List of possible properties names for this object
      * @var array
      */
-    protected $field_names = [
+    protected $fields = [
                                 "notification_id",
                                 "hash",
                                 "token",

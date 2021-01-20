@@ -19,13 +19,19 @@ const ADDED_MANUALLY = [
   "WEBFORM"
 ];
 
-const PICK_LIST_FOLDER_NAME = 'Pick Lists';
+const PAYMENT_TOTAL_NEW_PATIENT = 6;
+
+const PICK_LIST_FOLDER_NAME         = 'Pick Lists';
 const INVOICE_PUBLISHED_FOLDER_NAME = 'Published';
 const INVOICE_PENDING_FOLDER_NAME   = 'Pending';
-const TRANSFER_OUT_FOLDER_NAME = 'Transfer Outs';
+const TRANSFER_OUT_FOLDER_NAME      = 'Transfer Outs';
 
-
-const PAYMENT_TOTAL_NEW_PATIENT = 6;
+const GD_FOLDER_IDS = [
+    PICK_LIST_FOLDER_NAME         => '1PcDYKM_Ky-9zWmCNuBnTka3uCKjU3A0q',
+    INVOICE_PUBLISHED_FOLDER_NAME => '1PngKqOhRJ2Dt75lX-U0EreXTOzaQf1Bg',
+    INVOICE_PENDING_FOLDER_NAME   => '1ZSog-fJ7HhWJfXU_rmsJaMCiNb2VlFfG',
+    TRANSFER_OUT_FOLDER_NAME      => '1Lda6GkjIsEzTc1fwES6EbGcOHCJvlIZz'
+];
 
 const PAYMENT_METHOD = [
   'COUPON'       => 'coupon',

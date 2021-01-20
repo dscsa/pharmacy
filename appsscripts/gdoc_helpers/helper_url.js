@@ -21,7 +21,7 @@ function shortLink(link) {
   try {
     return JSON.parse(UrlFetchApp.fetch(apiUrl, opts).getContentText()).shortLink
   } catch (e) {
-    debugEmail('Could not shorten URL', e, link, opts)
+    console.error('Could not shorten URL', e, link, opts)
   }
 }
 

@@ -146,8 +146,8 @@ function update_orders_cp($changes)
             $reason = "update_orders_cp: dispened/shipped/returned order being readded";
 
             export_wc_create_order($order, $reason);
-            $order = export_gd_publish_invoice($order, $mysql);
-            export_gd_print_invoice($order);
+            $order = export_gd_publish_invoice($order);
+            export_gd_print_invoice($order[0]['invoice_number']);
             AuditLog::log(
                 sprintf(
                     "Order %s marked as dispensed",
@@ -519,8 +519,8 @@ function update_orders_cp($changes)
                 $reason = "update_orders_cp updated: Updated Order Dispensed ".$updated['invoice_number'];
                 $order = helper_update_payment($order, $reason, $mysql);
                 $order = export_gd_update_invoice($order, $reason, $mysql);
-                $order = export_gd_publish_invoice($order, $mysql);
-                export_gd_print_invoice($order);
+                $order = export_gd_publish_invoice($order);
+                export_gd_print_invoice($order[0]['invoice_number']);
                 send_dispensed_order_communications($groups);
                 SirumLog::notice($reason, [ 'order' => $order ]);
             }

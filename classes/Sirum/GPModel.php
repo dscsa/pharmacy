@@ -3,6 +3,11 @@ namespace Sirum;
 
 use Sirum\Storage\Goodpill;
 
+/**
+ * A simple model class for quickly accessing data.  Right now it only implements
+ * read opperations. Write operations currently have to be implemented on the
+ * individual classes
+ */
 class GPModel
 {
 
@@ -11,6 +16,7 @@ class GPModel
      * @var PDO
      */
     protected $gpdb;
+
     /**
        * An array to hold the data pulled from the database and set
        * by the user
@@ -22,14 +28,24 @@ class GPModel
      * The list of fields that are allowed as properties
      * @var array
      */
-    protected $field_names = [];
+    protected $fields = [];
+
+    /**
+     * Have we loaded any data from the database
+     * @var array
+     */
+    protected $loaded = false;
 
     /**
      * I'm not dead yet.  I feel happy.
      */
-    public function __construct()
+    public function __construct($params = [])
     {
         $this->gpdb = Goodpill::getConnection();
+
+        if (!empty($params)) {
+            $this->load($params);
+        }
     }
     /**
      * Check to see if the data isset using the magic issetter
@@ -73,6 +89,11 @@ class GPModel
      */
     public function __get($name)
     {
+
+        if (property_exists($this, $name)) {
+            return $this->$name;
+        }
+
         if (!$this->isDefinedName($name)) {
             throw new \Exception("{$name} is not defined");
         }
@@ -114,7 +135,7 @@ class GPModel
 
         // Check to see if the property is a persistable field
         // and make sure it's not an object
-        if (in_array($name, $this->field_names)) {
+        if (in_array($name, $this->fields)) {
             $this->data[$name] = $value;
         }
     }
@@ -131,7 +152,7 @@ class GPModel
     public function setDataArray($data = [])
     {
         foreach ($data as $name => $value) {
-            if (in_array($name, $this->field_names)) {
+            if (in_array($name, $this->fields)) {
                 // use the setter so we take adavantage
                 // of all features
                 $this->__set($name, $value);
@@ -150,7 +171,7 @@ class GPModel
      */
     public function isDefinedName($name)
     {
-        return in_array($name, $this->field_names);
+        return in_array($name, $this->fields);
     }
 
     /**
@@ -161,12 +182,69 @@ class GPModel
      *
      * @return array
      */
-    public function toArray($field_names = [])
+    public function toArray($fields = [])
     {
-        if (empty($field_names) || !is_array($field_names)) {
+        if (empty($fields) || !is_array($fields)) {
             return $this->data;
         } else {
-            return array_intersect_key($this->data, array_flip($field_names));
+            return array_intersect_key($this->data, array_flip($fields));
         }
+    }
+
+
+    /**
+     * Load all of the data via parameters
+     *
+     * @param   string|array    $params     The primary key value or an
+     *                                      array of property and values
+     * @return array | false                was a record found
+     */
+    public function load($params)
+    {
+        $this->loaded = true;
+
+        if (empty($this->table_name) || empty($this->fields)) {
+            $this->log->error('The properties {table_name}, and {fields}
+                must be defined before data can be loaded');
+            throw new Exception('The properties {table_name}, and {field_desc}
+                must be defined before data can be loaded');
+        }
+
+        $sql = 'SELECT ';
+        $sql .= implode(",\n", $this->fields);
+        $sql .=  " FROM {$this->table_name}\n WHERE ";
+
+        foreach ($params as $property => $value) {
+            if (is_null($value)) {
+                $sql .= "{$property} IS NULL\nAND";
+            } else {
+                $sql .= "{$property} = :{$property}\nAND";
+            }
+        }
+
+        $sql = trim($sql, 'AND');
+
+        $stmt = $this->gpdb->prepare($sql);
+
+        foreach ($params as $property => $value) {
+            if (is_int($value)) {
+                $stmt->bindParam(":{$property}", $value, \PDO::PARAM_INT);
+            } else {
+                $stmt->bindParam(":{$property}", $value, \PDO::PARAM_STR);
+            }
+        }
+
+        $stmt->execute();
+
+        if ($stmt->rowCount() > 1) {
+            throw new \Exception('Parameters can only match one record.  Your parameters matched ' . $stmt->rowCount());
+        }
+
+        if ($stmt->rowCount() > 0) {
+            $this->data = $stmt->fetch(\PDO::FETCH_ASSOC);
+            $this->loaded = true;
+        }
+
+        return ( !empty($this->data) );
     }
 }
