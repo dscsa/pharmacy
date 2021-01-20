@@ -13,19 +13,18 @@ function export_cp_remove_items($invoice_number, $items = [])
 
     $order_id   = $invoice_number - 2; //TODO SUPER HACKY
 
-    $sql = "
-    DELETE csomline
-    FROM csomline
-    JOIN cprx ON cprx.rx_id = csomline.rx_id
-    WHERE csomline.order_id = '$order_id'
-    AND rxdisp_id = 0 -- if the rxdisp_id is set on the line, you have to call CpOmVoidDispense first.
-  ";
+    $sql = "DELETE csomline
+                FROM csomline
+                    JOIN cprx ON cprx.rx_id = csomline.rx_id
+                WHERE csomline.order_id = '{$order_id}'
+                    -- if the rxdisp_id is set on the line, you have to
+                    -- call CpOmVoidDispense first.
+                    AND rxdisp_id = 0";
 
     $rx_numbers = [];
     $order_cmts = [];
 
     foreach ($items as $item) {
-
     //item_message_keys is not set until dispensed
         $order_cmts[] = "$item[drug_generic] - $item[rx_message_keys]";
         $rx_numbers[] = $item['rx_number'];
@@ -49,12 +48,12 @@ function export_cp_remove_items($invoice_number, $items = [])
     SirumLog::debug(
         "export_cp_remove_items: $invoice_number",
         [
-      'invoice_number'  => $invoice_number,
-      'rx_numbers'      => $rx_numbers,
-      'items'           => $items,
-      'sql'             => $sql,
-      'res'             => $res
-    ]
+          'invoice_number'  => $invoice_number,
+          'rx_numbers'      => $rx_numbers,
+          'items'           => $items,
+          'sql'             => $sql,
+          'res'             => $res
+        ]
     );
 
     $new_count_items = export_cp_recount_items($invoice_number, $mssql);
@@ -66,29 +65,27 @@ function export_cp_recount_items($invoice_number, $mssql)
 {
     $order_id = $invoice_number - 2; //TODO SUPER HACKY
 
-    $sql1 = "
-    SELECT COUNT(*) as count_items FROM csomline WHERE order_id = '$order_id'
-  ";
+    $sql1 = "SELECT COUNT(*) as count_items
+                FROM csomline
+                WHERE order_id = '{$order_id}'";
 
     $new_count_items = (int) $mssql->run($sql1)[0][0]['count_items'];
 
-    $sql2 = "
-    UPDATE csom
-    SET csom.liCount = $new_count_items
-    WHERE order_id = '$order_id'
-  ";
+    $sql2 = "UPDATE csom
+                SET csom.liCount = {$new_count_items}
+                WHERE order_id = '{$order_id}'";
 
     $res = $mssql->run($sql2);
 
     SirumLog::debug(
         "export_cp_recount_items: $invoice_number",
         [
-      'invoice_number'  => $invoice_number,
-      'new_count_items' => $new_count_items,
-      'sql1'            => $sql1,
-      'sql2'            => $sql2,
-      'res'             => $res
-    ]
+          'invoice_number'  => $invoice_number,
+          'new_count_items' => $new_count_items,
+          'sql1'            => $sql1,
+          'sql2'            => $sql2,
+          'res'             => $res
+        ]
     );
 
     return $new_count_items;
@@ -106,9 +103,9 @@ function export_cp_add_items($invoice_number, $items)
             SirumLog::debug(
                 "export_cp_add_items: $invoice_number rx_message_key is not set",
                 [
-          'invoice_number'  => $invoice_number,
-          'item' => $item
-        ]
+                    'invoice_number' => $invoice_number,
+                    'item'           => $item
+                ]
             );
         }
 
