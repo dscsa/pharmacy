@@ -382,11 +382,12 @@ function needs_form_notice($groups) {
   $salesforce = [
       "subject"   => "Call Unregistered Patient",
       "body"      => "Call Unregistered Patient
-        -If patient has a backup pharmacy in Salesforce, go to webform and check that there is an order number in their Account Details page! If not, place an order for the patient’s medications.
-        -If there’s no backup pharmacy, call the patient to register. Call script here: https://docs.google.com/document/d/1YUtdX-Mx-4jzngFLVrAR2-ams4yLst5Sc_zPZIadkTU/edit
-        -Attempt 2 calls/voicemails over two days. Even if the phone number is invalid or unavailable, attempt a second call.
-        -After 2 failed attempts, reassign this task to .Flag Clinic/Provider Issue - Admin.
-        $date
+      -If pt does not have a backup pharmacy in Salesforce, call them to register.
+      -Attempt 2 calls/voicemails over 2 days. Even if the phone number is invalid, attempt a 2nd call.
+      -After 2 failed attempts, reassign this task to .Flag Clinic/Provider Issue - Admin.
+      -Provider info: {$groups['ALL'][0]['provider_first_name']} {$groups['ALL'][0]['provider_last_name']}, {$groups['ALL'][0]['provider_clinic']}, {$groups['ALL'][0]['provider_phone']}
+      *** Once pt has registered, make sure an order has been created ***
+      $date
       ",
       "contact"   => "{$groups['ALL'][0]['first_name']} {$groups['ALL'][0]['last_name']} {$groups['ALL'][0]['birth_date']}",
       "assign_to" => "Kiah", //".Register New Patient - Tech",
@@ -510,7 +511,7 @@ function confirm_shipment_internal($groups, $days_ago) {
 
   if (((float) $groups['ALL'][0]['refills_used'] > 0) != ((float) $results['past_order_count'] > 0))
     SirumLog::alert(
-      'Should we attach new patient events in SF?',
+      'Past Orders <> Refills Used',
       [
         'past_order_count' => $results['past_order_count'],
         'refills_used'     => $groups['ALL'][0]['refills_used'],
