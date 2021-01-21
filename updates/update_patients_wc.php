@@ -496,7 +496,7 @@ function update_patients_wc($changes)
             ) {
                 // This user has previously been matched, so we are going to
                 // copy data from CP to WC
-                $gpdb = new GoodPill();
+                $gpdb = GoodPill::getConnection();
                 $pdo = $gpdb->prepare(
                     "SELECT first_name,
                             last_name,
