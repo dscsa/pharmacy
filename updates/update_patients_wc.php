@@ -502,7 +502,7 @@ function update_patients_wc($changes)
                             last_name,
                             birth_date,
                             :patient_id_wc as patient_id_wc
-                        FROM gp_patints_cp
+                        FROM gp_patients_cp
                         WHERE patient_id_cp = :patient_id_cp
                     "
                 );
