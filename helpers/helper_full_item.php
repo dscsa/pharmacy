@@ -99,10 +99,17 @@ function get_full_item($mysql, $rx_number, $invoice_number = null) {
   $item = $query[0];
 
   if ( ! $item['drug_generic']) {
-    log_warning(($item['rx_gsn'] ? 'get_full_item: Add GSN to V2!' : 'get_full_item: Missing GSN!')." Invoice Number:$item[invoice_number] Drug:$item[drug_name] Rx:$item[rx_number] GSN:$item[rx_gsn] GSNS:$item[drug_gsns]", ['item' => $item, 'partial' => $partial, 'sql' => $sql]);
+     SirumLog::warning(($item['rx_gsn'] ? 'get_full_item: Add GSN to V2!' : 'get_full_item: Missing GSN!')." Invoice Number:$item[invoice_number] Drug:$item[drug_name] Rx:$item[rx_number] GSN:$item[rx_gsn] GSNS:$item[drug_gsns]", ['item' => $item, 'partial' => $partial, 'sql' => $sql]);
   }
 
-  log_notice('get_full_item: success', ['sql' => $sql, 'query' => $query]);
+  SirumLog::notice(
+      'get_full_item: success',
+      [
+          'invoice_number' => $invoice_number,
+          'sql'   => $sql,
+          'query' => $query
+      ]
+  );
 
   return $item;
 }

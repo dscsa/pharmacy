@@ -77,36 +77,8 @@ class SirumLog
             $context = [];
         }
 
-        $log_level = self::getLoggingLevelByString($method);
 
-        if ($log_level > 500) {
-            $pd_query = 'logName="projects/unified-logging-292316/logs/pharmacy-automation"';
-            $pd_data  = ['execution_id' => self::$exec_id];
-            $pd_query .= "\n" . 'jsonPayload.execution_id="' . self::$exec_id . '"';
-
-
-            if (!is_null(self::$subroutine_id)) {
-                $pd_data['subroutine_id'] = self::$subroutine_id;
-                $pd_query .= "\n" . 'jsonPayload.subroutine_id="' . self::$subroutine_id . '"';
-            }
-
-            $pd_query                = urlencode($pd_query);
-            $st_start                = gmdate('Y-m-d\TH:i:s.v', time() - 600);
-            $st_end                  = gmdate('Y-m-d\TH:i:s.v', time() + 600);
-            $pd_query                .= ";timeRange={$st_start}Z%2F{$st_end}Z";
-            $pd_url                  = "https://console.cloud.google.com/logs/query;query=";
-            $pd_url                  .= $pd_query;
-            $pd_data['incident_url'] = $pd_url;
-            $pd_data['level']        = $method;
-
-            @list($pd_title, $pd_data['details']) = (explode('|*|*|', $message));
-
-            if ($log_level == 800) {
-                pd_high_priority($pd_title, 'pharmacy-app-emergency', $pd_data);
-            } elseif ($log_level >= 500 && $log_level < 800) {
-                pd_low_priority($pd_title, 'pharmacy-app-urgent', $pd_data);
-            }
-        }
+        self::alertPagerDuty($message, $method);
 
         $ids                     = self::findCriticalId($context);
         $context                 = ["context" => $context];
@@ -116,6 +88,13 @@ class SirumLog
         if (!is_null(self::$subroutine_id)) {
             $context['subroutine_id'] = self::$subroutine_id;
         }
+
+        // get the file location this was called from
+        $backtrace           = debug_backtrace();
+        $start               = reset($backtrace);
+        $end                 = end($backtrace);
+        $context['file']     = "{$start['file']} : {$start['line']}";
+        $context['function'] = $end['function'];
 
         try {
             self::$logger->$method($message, $context);
@@ -133,6 +112,42 @@ class SirumLog
             );
             self::$logger->$method($message);
         }
+    }
+
+    protected static function alertPagerDuty($message, $method)
+    {
+        $log_level = self::getLoggingLevelByString($method);
+
+        if ($log_level <= 500) {
+            return false;
+        }
+
+        $pd_query = 'logName="projects/unified-logging-292316/logs/pharmacy-automation"';
+        $pd_data  = ['execution_id' => self::$exec_id];
+        $pd_query .= "\n" . 'jsonPayload.execution_id="' . self::$exec_id . '"';
+
+
+        if (!is_null(self::$subroutine_id)) {
+            $pd_data['subroutine_id'] = self::$subroutine_id;
+            $pd_query .= "\n" . 'jsonPayload.subroutine_id="' . self::$subroutine_id . '"';
+        }
+
+        $pd_query                = urlencode($pd_query);
+        $st_start                = gmdate('Y-m-d\TH:i:s.v', time() - 600);
+        $st_end                  = gmdate('Y-m-d\TH:i:s.v', time() + 600);
+        $pd_query                .= ";timeRange={$st_start}Z%2F{$st_end}Z";
+        $pd_url                  = "https://console.cloud.google.com/logs/query;query=";
+        $pd_url                  .= $pd_query;
+        $pd_data['incident_url'] = $pd_url;
+        $pd_data['level']        = $method;
+
+        @list($pd_title, $pd_data['details']) = (explode('|*|*|', $message));
+
+        if ($log_level == 800) {
+            return pd_high_priority($pd_title, 'pharmacy-app-emergency', $pd_data);
+        }
+
+        return pd_low_priority($pd_title, 'pharmacy-app-urgent', $pd_data);
     }
 
     /**
@@ -155,7 +170,8 @@ class SirumLog
                 @$context['deleted'][0],
                 @$context['created'][0],
                 @$context['updated'][0],
-                @$context['partial']
+                @$context['partial'],
+                @$context['patient_or_order[i]']
              ] as $possible
          ) {
             if (isset($possible['invoice_number'])) {
