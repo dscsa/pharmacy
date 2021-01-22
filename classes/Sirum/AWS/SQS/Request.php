@@ -161,6 +161,7 @@ abstract class Request
     {
         foreach ($this->required as $strRequiredField) {
             if (! isset($this->data[$strRequiredField])) {
+                throw new \Exception($strRequiredField . 'Missing required fields');
                 return false;
             }
         }
