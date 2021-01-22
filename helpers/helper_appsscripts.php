@@ -77,6 +77,8 @@ function gdoc_post($url, $content)
             break;
         }
 
+        echo "failed $try\n";
+
         SirumLog::error(
             'Google Doc Request Failed:',
             [
@@ -87,7 +89,8 @@ function gdoc_post($url, $content)
             ]
         );
 
-        sleep(3);
+        // Exponetial sleep
+        usleep((300 - ($try * 50)) * pow(3, $try));
     }
 
     // Differentiate between removeCalendarEvents
