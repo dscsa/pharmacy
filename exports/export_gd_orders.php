@@ -175,7 +175,7 @@ function export_gd_publish_invoice($order, $async = true)
         if ($meta->parent->name != INVOICE_PENDING_FOLDER_NAME || $meta->trashed) {
             // The current invoice is trash.  Make a new invoice
             $update_reason = "export_gd_publish_invoice: invoice didn't exist so trying to (re)make it";
-            $order = export_gd_update_invoice($order, $update_reason, $mysql);
+            $order = export_gd_update_invoice($order, $update_reason, new Mysql_Wc());
 
             SirumLog::warning(
                 $update_reason,
