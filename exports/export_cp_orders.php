@@ -103,3 +103,46 @@ function export_cp_append_order_note($mssql, $invoice_number, $note) {
       ]
     );
 }
+
+/* When moving order_items, we want to maintain item_added_by because if "added_manually" that will affect get_days_and_message() */
+/* Moving order_items changes their primary key so in essence they are being deleted from one order and created in the other order
+/*
+    If called from orders-cp-created as expected, order_items will have a lot of changes: order_item_created when duplicate order is ,
+    created order_item deleted when removed from duplicate order, order_item_created when added to the original orders, and maybe
+    order_item deleted again if don't want to fill the item once it is moved to the original order.  Long term architecture question
+    whether we want to be able to delete or modify change feeds (in this case order_items) based on what we did in another change feed
+    (in the case orders_cp).  We should think threw the right design sooner rather than latter since this get harder and harder to fix
+*/
+function export_cp_merge_orders($from_invoice_number, $to_invoice_number) {
+
+    global $mssql;
+    $mssql = $mssql ?: new Mssql_Cp();
+
+    $from_order_id = $from_invoice_number - 2; //TODO SUPER HACKY
+    $to_order_id   = $to_invoice_number - 2; //TODO SUPER HACKY
+
+    //Update chg_user_id as well so we know the Pharmacy App made this change
+    $sql = "
+        UPDATE csomline
+        SET csomline.order_id = '{$to_order_id}'
+        FROM csomline
+        JOIN cprx ON cprx.rx_id = csomline.rx_id
+        WHERE csomline.order_id = '{$from_order_id}'
+        -- not sure how to handle if order_item is already dispensed so skip those for now
+        AND rxdisp_id = 0
+    ";
+
+    $res = $mssql->run($sql);
+
+    SirumLog::notice(
+      "export_cp_merge_orders: merging $from_invoice_number into $to_invoice_number",
+      [
+        'from_invoice_number' => $from_invoice_number,
+        'to_invoice_number'   => $to_invoice_number,
+        'sql' => $sql,
+        'res' => $res
+      ]
+    );
+
+    export_cp_remove_order($from_invoice_number, "Merged $from_invoice_number into $to_invoice_number");
+}

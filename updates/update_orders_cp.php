@@ -101,9 +101,9 @@ function update_orders_cp($changes)
                 )
             );
 
-            export_cp_remove_order(
+            export_cp_merge_orders(
                 $created['invoice_number'],
-                "Duplicate of {$duplicate[0]['invoice_number']}"
+                $duplicate[0]['invoice_number']
             );
 
             if (is_webform($created)) {
