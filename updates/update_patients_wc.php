@@ -511,7 +511,7 @@ function update_patients_wc($changes)
                 $pdo->bindParam(':patient_id_wc', $updated['patient_id_wc'], \PDO::PARAM_STR);
                 $pdo->execute();
 
-                if ($cp_patient = $pdo->fetch) {
+                if ($cp_patient = $pdo->fetch()) {
                     wc_update_patient($cp_patient);
                     create_event(
                         "Changed patient name to match details from CarePoint",

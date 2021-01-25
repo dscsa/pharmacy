@@ -245,7 +245,6 @@ function export_gd_print_invoice($invoice_number, $async = true)
     }
 
     $results = gdoc_post($url, $print_request->toArray());
-    var_dump($results);
 
     SirumLog::debug(
         'export_gd_print_invoice while application waited',

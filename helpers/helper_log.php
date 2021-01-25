@@ -203,7 +203,6 @@ function log_warning($text, $vars = '')
 function log_alert($text, $vars = '')
 {
     echo "$text\n";
-    print_r($vars);
 
     global $log_notices;
     global $gp_logger;
