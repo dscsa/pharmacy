@@ -37,7 +37,8 @@ function load_full_item($partial, $mysql, $overwrite_rx_messages = false) {
 
     foreach ($full_order as $full_item) {
 
-        if ($full_item['rx_number'] != $item['rx_number']) {
+        //$item might not have rx_number if not in order so need to use $partial
+        if ($full_item['rx_number'] != $partial['rx_number']) {
             continue;
         }
 
