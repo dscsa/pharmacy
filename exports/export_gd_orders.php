@@ -63,9 +63,6 @@ function export_gd_update_invoice($order, $reason, $mysql, $try2 = false)
 
     $start = microtime(true);
 
-    echo json_encode($args);
-    die();
-
     $result = gdoc_post(GD_MERGE_URL, $args);
 
     $time = ceil(microtime(true) - $start);
