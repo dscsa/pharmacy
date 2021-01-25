@@ -51,7 +51,7 @@ function load_full_item($partial, $mysql, $overwrite_rx_messages = false) {
         return $full_item;
     }
 
-    log_alert("load_full_item: order found but no matching item!", ['partial' => $partial, 'item' => $item, 'order' => $order]);
+    SirumLog::alert("load_full_item: order found but no matching item!", ['partial' => $partial, 'item' => $item, 'order' => $order]);
     return [];
 }
 

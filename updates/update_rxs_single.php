@@ -67,7 +67,7 @@ function update_rxs_single($changes)
               ]
         );
 
-        log_alert("update_rxs_single: rx created1. did the drug_generic/brand/gsns get added to rxs_single?", [
+        SirumLog::alert("update_rxs_single: rx created1. did the drug_generic/brand/gsns get added to rxs_single?", [
           'created'  => $created
         ]);
 

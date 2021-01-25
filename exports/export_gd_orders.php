@@ -63,6 +63,9 @@ function export_gd_update_invoice($order, $reason, $mysql, $try2 = false)
 
     $start = microtime(true);
 
+    echo json_encode($args);
+    die();
+
     $result = gdoc_post(GD_MERGE_URL, $args);
 
     $time = ceil(microtime(true) - $start);
@@ -242,6 +245,7 @@ function export_gd_print_invoice($invoice_number, $async = true)
     }
 
     $results = gdoc_post($url, $print_request->toArray());
+    var_dump($results);
 
     SirumLog::debug(
         'export_gd_print_invoice while application waited',
