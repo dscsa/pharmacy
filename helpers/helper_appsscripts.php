@@ -60,7 +60,7 @@ function gdoc_post($url, $content)
     $context = stream_context_create($opts);
 
 
-    for ($try = 1; $try <=2; $try++) {
+    for ($try = 1; $try <=3; $try++) {
         $results = @file_get_contents($url.'?GD_KEY='.GD_KEY, false, $context);
 
         // We have some results so let's leave

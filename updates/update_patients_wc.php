@@ -608,7 +608,6 @@ function update_patients_wc($changes)
                 $res = upsert_patient_cp($mssql, $sql);
             } else {
                 $err = [$sql, $res, json_last_error_msg(), $allergy_array];
-                print_r($err);
                 SirumLog::error("update_patients_wc: SirumWeb_AddRemove_Allergies failed", $err);
             }
         }
