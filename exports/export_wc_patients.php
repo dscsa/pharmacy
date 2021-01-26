@@ -52,7 +52,7 @@ function wc_delete_patient($mysql, $patient_id_wc) {
  */
 function wc_update_patient($patient) {
 
-    if (!$patient['patient_wc_id']) {
+    if ( ! $patient['patient_id_wc']) {
         return false;
     }
 
@@ -75,7 +75,7 @@ function wc_update_patient($patient) {
     $pdo->bindParam(':user_email', $patient['email'], \PDO::PARAM_STR);
     $pdo->bindParam(':display_name', $login, \PDO::PARAM_STR);
     $pdo->bindParam(':patient_id_wc', $patient['patient_id_wc'], \PDO::PARAM_INT);
-    $pdo->exectue();
+    $pdo->execute();
 
     $mysql = ($mysql) ?: new Mysql_Wc();
 
