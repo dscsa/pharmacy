@@ -100,7 +100,30 @@ function update_rxs_single($changes)
               "due_date"  => date('Y-m-d')
             ];
 
-            $event_title = @$created['rx_number']." Missing GSN: {$salesforce['contact']} $created_date";
+            $event_title  = @$created['rx_number']." Missing GSN: {$salesforce['contact']} $created_date";
+            $notification = new \Sirum\Notification\Salesforce(sha1($salesforce), $salesforce);
+
+            if (!$notification->isSent()) {
+                SirumLog::debug(
+                    $subject,
+                    [
+                        'created' => $created,
+                        'body'    => $body
+                    ]
+                );
+
+                create_event($event_title, [$salesforce]);
+            } else {
+                SirumLog::warning(
+                    "DUPLICATE Saleforce Message".$subject,
+                    [
+                        'created' => $created,
+                        'body'    => $body
+                    ]
+                );
+            }
+
+            $notification->increment();
         }
 
         // Get the signature
@@ -205,9 +228,34 @@ function update_rxs_single($changes)
             ];
 
             $event_title = @$updated['rx_number']." Missing GSN: {$salesforce['contact']} $created_date";
+
+            $notification = new \Sirum\Notification\Salesforce(sha1($salesforce), $salesforce);
+
+            if (!$notification->isSent()) {
+                SirumLog::debug(
+                    $subject,
+                    [
+                        'updated' => $updated,
+                        'body'    => $body
+                    ]
+                );
+
+                create_event($event_title, [$salesforce]);
+            } else {
+                SirumLog::warning(
+                    "DUPLICATE Saleforce Message".$subject,
+                    [
+                        'updated' => $updated,
+                        'body'    => $body
+                    ]
+                );
+            }
+
+            $notification->increment();
         }
       }
     }
+    
     log_timer('rx-singles-updated1', $loop_timer, $count_updated);
 
     /*

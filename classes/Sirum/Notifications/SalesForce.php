@@ -7,8 +7,7 @@ use Sirum\GPModel;
 /**
  * Class for a RX Transfer notifcation
  */
-class Transfer extends Notification
+class Salesforce extends Notification
 {
-  protected $type = 'transfer';
-
+    protected $type = 'salesforce';
 }
