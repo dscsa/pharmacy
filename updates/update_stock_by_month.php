@@ -1,7 +1,11 @@
 <?php
 require_once 'dbs/mysql_wc.php';
 
-use Sirum\Logging\SirumLog;
+use Sirum\Logging\{
+    SirumLog,
+    AuditLog,
+    CliLog
+};
 
 /**
  * Use a transaction to update the the current stock levels.  This DELETES all

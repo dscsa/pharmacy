@@ -10,7 +10,11 @@ use Sirum\AWS\SQS\GoogleAppRequest\Invoice\{
 
 use Sirum\AWS\SQS\GoogleAppQueue;
 use Sirum\DataModels\GoodPillOrder;
-use Sirum\Logging\SirumLog;
+use Sirum\Logging\{
+    SirumLog,
+    AuditLog,
+    CliLog
+};
 
 global $gd_merge_timers;
 

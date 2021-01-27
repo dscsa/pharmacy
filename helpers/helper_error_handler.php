@@ -2,7 +2,11 @@
 
 require_once 'helpers/helper_pagerduty.php';
 
-use Sirum\Logging\SirumLog;
+use Sirum\Logging\{
+    SirumLog,
+    AuditLog,
+    CliLog
+};
 
 /**
  * Handle an error by sending it to pagerduty, stackdriver and error_logs

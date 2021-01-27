@@ -1,6 +1,10 @@
 <?php
 
-use Sirum\Logging\SirumLog;
+use Sirum\Logging\{
+    SirumLog,
+    AuditLog,
+    CliLog
+};
 
 function load_full_item($partial, $mysql, $overwrite_rx_messages = false) {
 

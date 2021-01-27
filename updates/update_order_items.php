@@ -6,8 +6,11 @@ require_once 'exports/export_cp_order_items.php';
 require_once 'exports/export_v2_order_items.php';
 require_once 'exports/export_gd_transfer_fax.php';
 
-use Sirum\Logging\SirumLog;
-use Sirum\Logging\AuditLog;
+use Sirum\Logging\{
+    SirumLog,
+    AuditLog,
+    CliLog
+};
 
 function update_order_items($changes)
 {

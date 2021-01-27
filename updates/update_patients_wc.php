@@ -531,7 +531,7 @@ function update_patients_wc($changes)
                         ]
                     );
                 }
-                SirumLog::alert(
+                SirumLog::warning(
                     "Forced Carepoint details onto WooCommerce user",
                     [
                         'updated'          => $updated,

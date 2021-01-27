@@ -6,8 +6,11 @@ require_once 'exports/export_cp_rxs.php';
 require_once 'exports/export_gd_transfer_fax.php'; //is_will_transfer()
 require_once 'dbs/mysql_wc.php';
 
-use Sirum\Logging\SirumLog;
-use Sirum\Logging\AuditLog;
+use Sirum\Logging\{
+    SirumLog,
+    AuditLog,
+    CliLog
+};
 
 function update_rxs_single($changes)
 {

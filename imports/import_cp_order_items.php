@@ -1,6 +1,10 @@
 <?php
 
-use Sirum\Logging\SirumLog;
+use Sirum\Logging\{
+    SirumLog,
+    AuditLog,
+    CliLog
+};
 
 /**
  * Pull in the CarePoint order items

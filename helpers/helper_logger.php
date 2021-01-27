@@ -10,8 +10,11 @@ if (file_exists('/etc/google/unified-logging.json')) {
 }
 
 
-use Sirum\Logging\SirumLog;
-use Sirum\Logging\AuditLog;
+use Sirum\Logging\{
+    SirumLog,
+    AuditLog,
+    CliLog
+};
 
 /*
  * This shouldn't be here.  When this moves into a standalone class,
@@ -19,3 +22,4 @@ use Sirum\Logging\AuditLog;
  */
 SirumLog::getLogger('pharmacy-automation');
 AuditLog::getLogger();
+CliLog::getLogger();

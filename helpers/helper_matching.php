@@ -1,7 +1,11 @@
 <?php
 require_once 'exports/export_wc_patients.php';
 
-use Sirum\Logging\SirumLog;
+use Sirum\Logging\{
+    SirumLog,
+    AuditLog,
+    CliLog
+};
 
 //TODO Implement Full Matching Algorithm that's in Salesforce and CP's SP
 function is_patient_match($mysql, $patient) {

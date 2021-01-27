@@ -1,7 +1,11 @@
 <?php
 
 
-use Sirum\Logging\SirumLog;
+use Sirum\Logging\{
+    SirumLog,
+    AuditLog,
+    CliLog
+};
 
 function update_drugs($changes) {
 

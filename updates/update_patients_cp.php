@@ -2,8 +2,11 @@
 
 require_once 'helpers/helper_full_patient.php';
 
-use Sirum\Logging\SirumLog;
-use Sirum\Logging\AuditLog;
+use Sirum\Logging\{
+    SirumLog,
+    AuditLog,
+    CliLog
+};
 
 function update_patients_cp($changes)
 {

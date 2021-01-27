@@ -7,8 +7,11 @@ require_once 'helpers/helper_communications.php';
 require_once 'exports/export_wc_orders.php';
 require_once 'exports/export_cp_orders.php';
 
-use Sirum\Logging\SirumLog;
-use Sirum\Logging\AuditLog;
+use Sirum\Logging\{
+    SirumLog,
+    AuditLog,
+    CliLog
+};
 
 function update_orders_cp($changes)
 {
