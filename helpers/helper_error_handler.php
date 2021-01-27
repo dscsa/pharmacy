@@ -23,7 +23,7 @@ function gpErrorHandler($errno, $errstr, $error_file, $error_line)
             $error_line
         );
         pushToSirumLog($message);
-        pd_low_priority($message, 'php-error' . uniqid());
+        pd_high_priority($message, 'php-error' . uniqid());
         error_log($message);
         exit(1);
     }
@@ -60,7 +60,7 @@ function gpExceptionHandler($e)
     $message .= $e->getFile() . ":" . $e->getLine() . "\n";
     $message .= $e->getTraceAsString();
     pushToSirumLog($message);
-    pd_low_priority($message, 'php-exception' . uniqid());
+    pd_high_priority($message, 'php-exception' . uniqid());
     error_log($message);
     exit(1);
 }
