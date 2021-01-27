@@ -98,7 +98,7 @@ function update_field_rxs_single($mysql, $updated, $key) {
   $sql = "
     UPDATE gp_rxs_single
     SET
-      $key = '{$updated[$key]}',
+      $key = '{$updated[$key]}'
     WHERE
       gp_rxs_single.drug_generic = '{$updated['drug_generic']}'
   ";

@@ -170,7 +170,7 @@ function export_gd_publish_invoice($order, $async = true)
 
     // Check to see if the file we have exists, and it is in the correct place
     // and not trashed
-    if (!empty($invoice_doc_id) || ) {
+    if (!empty($invoice_doc_id)) {
         $meta = gdoc_details($order[0]['invoice_doc_id']);
     }
 
