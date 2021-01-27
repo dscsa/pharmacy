@@ -101,7 +101,7 @@ function update_rxs_single($changes)
             ];
 
             $event_title  = @$created['rx_number']." Missing GSN: {$salesforce['contact']} $created_date";
-            $notification = new \Sirum\Notification\Salesforce(sha1($salesforce), $salesforce);
+            $notification = new \Sirum\Notifications\Salesforce(sha1($salesforce), $salesforce);
 
             if (!$notification->isSent()) {
                 SirumLog::debug(
@@ -229,7 +229,7 @@ function update_rxs_single($changes)
 
             $event_title = @$updated['rx_number']." Missing GSN: {$salesforce['contact']} $created_date";
 
-            $notification = new \Sirum\Notification\Salesforce(sha1($salesforce), $salesforce);
+            $notification = new \Sirum\Notifications\Salesforce(sha1($salesforce), $salesforce);
 
             if (!$notification->isSent()) {
                 SirumLog::debug(
@@ -255,7 +255,7 @@ function update_rxs_single($changes)
         }
       }
     }
-    
+
     log_timer('rx-singles-updated1', $loop_timer, $count_updated);
 
     /*
