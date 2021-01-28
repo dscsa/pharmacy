@@ -56,7 +56,7 @@ function wc_update_patient($patient) {
         return false;
     }
 
-    $goodpilldb = new Sirum\Storage\Goodpill();
+    $goodpilldb = Sirum\Storage\Goodpill::getConnection();
 
     $pdo = $goodpilldb->prepare(
         "UPDATE wp_users
