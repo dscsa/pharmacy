@@ -73,7 +73,7 @@ function gpExceptionHandler($e)
 function pushToSirumLog($message)
 {
     try {
-        SirumLog::error();
+        SirumLog::error($message);
         SirumLog::getLogger()->flush();
     } catch (\Exception $e) {
     }
