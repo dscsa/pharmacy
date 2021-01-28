@@ -55,7 +55,7 @@ class Notification extends GPModel
 
         SirumLog::debug(
             'creating a Notification tracker',
-            ['token' => $token, 'hash' => $hash]
+            ['token' => $token, 'hash' => $hash, 'type' => $this->type]
         );
 
         if (!$this->isStored()) {
