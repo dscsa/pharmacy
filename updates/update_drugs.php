@@ -25,7 +25,7 @@ function update_drugs($changes) {
 
   foreach($changes['created'] as $i => $created) {
 
-    SirumLog::$subroutine_id = "drugs-created-".sha1(serialize($updated));
+    SirumLog::$subroutine_id = "drugs-created-".sha1(serialize($created));
 
     SirumLog::debug(
       "update_drugs: Drugs Created",
