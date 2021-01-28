@@ -157,8 +157,10 @@ class Mysql {
     }
 
     function _emailError($error) {
-      //$mysqli_error = isset($this->connection) ? mysqli_connect_errno($this->connection).': '.mysqli_error($this->connection) : mysqli_connect_errno().': '.mysqli_connect_error();
-      //Don't do database logging here as this could cause an infinite loop
       SirumLog::alert("Debug MYSQL", $error);
+    }
+
+    public function prepare($sql) {
+        return $this->connection->prepare($sql);
     }
 }

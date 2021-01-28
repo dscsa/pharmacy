@@ -39,6 +39,7 @@ function update_patients_wc($changes)
 
     foreach ($changes['created'] as $created) {
         SirumLog::$subroutine_id = "patients-wc-created-".sha1(serialize($created));
+        SirumLog::info("data-patients-wc-created", ['created' => $created]);
 
         // Overrite Rx Messages everytime a new order created otherwise
         // same message would stay for the life of the Rx
@@ -114,6 +115,7 @@ function update_patients_wc($changes)
 
     foreach ($changes['deleted'] as $i => $deleted) {
         SirumLog::$subroutine_id = "patients-wc-deleted-".sha1(serialize($deleted));
+        SirumLog::info("data-patients-wc-deleted", ['created' => $created]);
 
         $alert = [
           'deleted' => $deleted,
@@ -140,6 +142,7 @@ function update_patients_wc($changes)
 
     foreach ($changes['updated'] as $i => $updated) {
         SirumLog::$subroutine_id = "patients-wc-updated-".sha1(serialize($updated));
+        SirumLog::info("data-patients-wc-updated", ['created' => $created]);
 
         $changed = changed_fields($updated);
 

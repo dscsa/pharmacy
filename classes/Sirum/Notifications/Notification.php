@@ -4,6 +4,7 @@ namespace Sirum\Notifications;
 
 use Sirum\Storage\Goodpill;
 use Sirum\GPModel;
+use Sirum\Logging\SirumLog;
 
 use \PDO;
 use \Exception;
@@ -51,6 +52,11 @@ class Notification extends GPModel
         parent::__construct();
 
         $this->load($hash);
+
+        SirumLog::debug(
+            'creating a Notification tracker',
+            ['token' => $token, 'hash' => $hash]
+        );
 
         if (!$this->isStored()) {
             $this->token = $token;

@@ -43,6 +43,7 @@ function update_order_items($changes)
     $loop_timer = microtime(true);
     foreach ($changes['created'] as $created) {
         SirumLog::$subroutine_id = "order-items-created-".sha1(serialize($created));
+        SirumLog::info("data-order-items-created", ['created' => $created]);
 
         $invoice_number = $created['invoice_number'];
 
@@ -117,6 +118,7 @@ function update_order_items($changes)
     $loop_timer = microtime(true);
     foreach ($changes['deleted'] as $deleted) {
         SirumLog::$subroutine_id = "order-items-deleted-".sha1(serialize($deleted));
+        SirumLog::info("data-order-itmes-deleted", ['deleted' => $deleted]);
 
         $invoice_number = $deleted['invoice_number'];
 
@@ -252,6 +254,7 @@ function update_order_items($changes)
     //  - think about what needs to be updated based on changes
     foreach ($changes['updated'] as $updated) {
         SirumLog::$subroutine_id = "order-items-updated-".sha1(serialize($updated));
+        SirumLog::info("data-order-items-updated", ['updated' => $updated]);
 
         $changed = changed_fields($updated);
 

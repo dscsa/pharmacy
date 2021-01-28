@@ -46,6 +46,10 @@ function update_rxs_single($changes)
 
         SirumLog::$subroutine_id = "rxs-single-created1-".sha1(serialize($created));
 
+        // Put the created into a log so if we need to we can reconstruct the process
+        SirumLog::info('data-rxs-single-created', ['created' => $created]);
+
+
         $patient = getPatientByRx($created['rx_number']);
 
         AuditLog::log(
@@ -101,7 +105,7 @@ function update_rxs_single($changes)
             ];
 
             $event_title  = @$created['rx_number']." Missing GSN: {$salesforce['contact']} $created_date";
-            $notification = new \Sirum\Notifications\Salesforce(sha1($salesforce), $salesforce);
+            $notification = new \Sirum\Notifications\Salesforce(sha1($salesforce), implode('_', $salesforce));
 
             if (!$notification->isSent()) {
                 SirumLog::debug(
@@ -168,6 +172,9 @@ function update_rxs_single($changes)
     foreach ($changes['updated'] as $updated) {
       SirumLog::$subroutine_id = "rxs-single-updated1-".sha1(serialize($updated));
 
+      // Put the created into a log so if we need to we can reconstruct the process
+      SirumLog::info('data-rxs-single-updated', ['updated' => $updated]);
+
       $changed = changed_fields($updated);
 
       $patient = getPatientByRx($updated['rx_number']);
@@ -228,8 +235,7 @@ function update_rxs_single($changes)
             ];
 
             $event_title = @$updated['rx_number']." Missing GSN: {$salesforce['contact']} $created_date";
-
-            $notification = new \Sirum\Notifications\Salesforce(sha1($salesforce), $salesforce);
+            $notification = new \Sirum\Notifications\Salesforce(sha1($salesforce), implode('_', $salesforce));
 
             if (!$notification->isSent()) {
                 SirumLog::debug(
