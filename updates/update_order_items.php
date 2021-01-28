@@ -50,9 +50,14 @@ function update_order_items($changes)
         //This will add/remove and pend/unpend items from the order
         $item = load_full_item($created, $mysql);
 
-        //TODO Less hacky way to determine if this addition was already part of the order_created_notice (items_to_add) that went out on thelast go-around
-        //Minutes is just trial-and-error.  10 to detect a new order, 10 minutes to sync drugs to the order, 10 minutes for buffer if the script runs long and misses and cycles
-        $in_created_notice = strtotime($item['item_date_added']) - strtotime($item['order_date_added']) < 30*60;
+        /*
+            TODO Less hacky way to determine if this addition was already part of the order_created_notice (items_to_add) that went out on thelast go-around
+            One idea could be an patient_notice = UPDATED|REMOVED|CREATED on orders or order_items table that we could check to see if it was sent or not
+            Another idea would be to have the user_id be different for the drugs we added to a created order and only send an "update" if its not that user
+        */
+        //Minutes is just trial-and-error.  10 to detect a new order, 10 minutes to sync drugs to the order, 0-10 minutes for buffer if the script runs long and misses and cycles
+        //If its added by HL7 it is not a sync so you can subtract 10mins.  HL7 (0-20min), non HL7 (0-30min) 57258 should have sent updated and only took 22 minutes. 
+        $in_created_notice = strtotime($item['item_date_added']) - strtotime($item['order_date_added']) <= ($item['item_added_by'] == "HL7" ? 20 : 30) * 60;
 
         SirumLog::debug(
             "update_order_items: Order Item created $invoice_number",
