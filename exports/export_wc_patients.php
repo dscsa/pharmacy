@@ -62,7 +62,6 @@ function wc_update_patient($patient) {
         "UPDATE wp_users
             SET user_login = :user_login,
                 user_nicename = :user_nicename,
-                user_email = :user_email,
                 display_name = :display_name
             WHERE id = :patient_id_wc"
     );
@@ -72,7 +71,6 @@ function wc_update_patient($patient) {
 
     $pdo->bindParam(':user_login', $login, \PDO::PARAM_STR);
     $pdo->bindParam(':user_nicename', $nicename, \PDO::PARAM_STR);
-    $pdo->bindParam(':user_email', $patient['email'], \PDO::PARAM_STR);
     $pdo->bindParam(':display_name', $login, \PDO::PARAM_STR);
     $pdo->bindParam(':patient_id_wc', $patient['patient_id_wc'], \PDO::PARAM_INT);
     $pdo->execute();
