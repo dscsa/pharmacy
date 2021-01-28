@@ -27,7 +27,19 @@ function gpErrorHandler($errno, $errstr, $error_file, $error_line)
             $error_line
         );
         pushToSirumLog($message);
-        pd_low_priority($message, 'php-error' . uniqid());
+
+        $data = [];
+
+        try {
+            $data['execution_id'] = SirumLog::$exec_id;
+
+            if (!is_null(SirumLog::$subroutine_id)) {
+                $data['subroutine_id'] = SirumLog::$subroutine_id;
+            }
+        } catch (\Exception $e) {
+        }
+
+        pd_high_priority($message, 'php-error' . uniqid(), $data);
         error_log($message);
         exit(1);
     }
@@ -63,8 +75,22 @@ function gpExceptionHandler($e)
     $message .= $e->getCode() . " " . $e->getMessage() ." ";
     $message .= $e->getFile() . ":" . $e->getLine() . "\n";
     $message .= $e->getTraceAsString();
+
     pushToSirumLog($message);
-    pd_low_priority($message, 'php-exception' . uniqid());
+
+    $data = [];
+
+    try {
+        $data['execution_id'] = SirumLog::$exec_id;
+
+        if (!is_null(SirumLog::$subroutine_id)) {
+            $data['subroutine_id'] = SirumLog::$subroutine_id;
+        }
+    } catch (\Exception $e) {
+    }
+
+    pd_high_priority($message, 'php-exception' . uniqid(), $data);
+
     error_log($message);
     exit(1);
 }
@@ -77,7 +103,7 @@ function gpExceptionHandler($e)
 function pushToSirumLog($message)
 {
     try {
-        SirumLog::error();
+        SirumLog::error($message);
         SirumLog::getLogger()->flush();
     } catch (\Exception $e) {
     }

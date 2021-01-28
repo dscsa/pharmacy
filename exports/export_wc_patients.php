@@ -56,17 +56,16 @@ function wc_delete_patient($mysql, $patient_id_wc) {
  */
 function wc_update_patient($patient) {
 
-    if (!$patient['patient_wc_id']) {
+    if ( ! $patient['patient_id_wc']) {
         return false;
     }
 
-    $goodpilldb = new Sirum\Storage\Goodpill();
+    $goodpilldb = Sirum\Storage\Goodpill::getConnection();
 
     $pdo = $goodpilldb->prepare(
         "UPDATE wp_users
             SET user_login = :user_login,
                 user_nicename = :user_nicename,
-                user_email = :user_email,
                 display_name = :display_name
             WHERE id = :patient_id_wc"
     );
@@ -76,10 +75,9 @@ function wc_update_patient($patient) {
 
     $pdo->bindParam(':user_login', $login, \PDO::PARAM_STR);
     $pdo->bindParam(':user_nicename', $nicename, \PDO::PARAM_STR);
-    $pdo->bindParam(':user_email', $patient['email'], \PDO::PARAM_STR);
     $pdo->bindParam(':display_name', $login, \PDO::PARAM_STR);
     $pdo->bindParam(':patient_id_wc', $patient['patient_id_wc'], \PDO::PARAM_INT);
-    $pdo->exectue();
+    $pdo->execute();
 
     $mysql = ($mysql) ?: new Mysql_Wc();
 

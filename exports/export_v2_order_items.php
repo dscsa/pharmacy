@@ -324,16 +324,14 @@ function print_pick_list($item, $list)
  * @param  array  $item  The data for an order item
  * @return boolean       False if the item is not pended in v2
  */
-function get_item_pended_groups($item, $return_first_match = false)
+function get_item_pended_group($item)
 {
-    $pended_groups = [];
-
     $possible_pend_groups = [
         'refill'          => pend_group_refill($item),
         'webform'         => pend_group_webform($item),
-        'manual'          => pend_group_manual($item),
         'new_patient'     => pend_group_new_patient($item),
-        'new_patient_old' => pend_group_new_patient_old($item)
+        'new_patient_old' => pend_group_new_patient_old($item),
+        'manual'          => pend_group_manual($item)
     ];
 
     foreach ($possible_pend_groups as $type => $group) {
@@ -341,14 +339,11 @@ function get_item_pended_groups($item, $return_first_match = false)
         $results  = v2_fetch($pend_url, 'GET');
         if (!empty($results) &&
             @$results[0]['next'][0]['pended']) {
-            $pended_groups[] = $group;
-            if ($return_first_match) {
-                break;
-            }
+            return $group;
         }
     }
 
-    return $pended_groups;
+    return false;
 }
 
 /*
@@ -420,57 +415,53 @@ function pend_pick_list($item, $list)
         return;
     } //List could not be made
 
-    $pend_group_name = pend_group_name($item);
-
-    if ($pended_groups = get_item_pended_groups($item)) {
+    if ($pended_group = get_item_pended_group($item)) {
         // If we get a list of pendgroups, we should compare them to what we
         // are trying to pend and if the new pendgroup is different, unpend them
         // then repend them with the proper pend group
-        if (in_array($pended_groups, $pend_group_name)) {
-            AuditLog::log(
-                sprintf(
-                    "ABORTED PEND! %s for %s appears to be already pended.  Please confirm.",
-                    @$item['drug_name'],
-                    @$item['invoice_number']
-                ),
-                $item
-            );
+        AuditLog::log(
+            sprintf(
+                "ABORTED PEND! %s for %s appears to be already pended in pend group %s.  Please confirm.",
+                @$item['drug_name'],
+                @$item['invoice_number'],
+                reset($pended_groups)
+            ),
+            $item
+        );
 
-            SirumLog::alert(
-                sprintf(
-                    "v2_pend_item: ABORTED! %s for %s appears to be already pended.  Please confirm.",
-                    @$item['drug_name'],
-                    @$item['invoice_number']
-                ),
-                [ 'item' => $item ]
-            );
+        SirumLog::alert(
+            sprintf(
+                "v2_pend_item: ABORTED! %s for %s appears to be already pended in pend group %s.  Please confirm.",
+                @$item['drug_name'],
+                @$item['invoice_number'],
+                reset($pended_groups)
+            ),
+            [ 'item' => $item ]
+        );
 
-            array_filter(
-                $pended_groups,
-                function ($v) use ($pend_group_name) {
-                    return ($v == $pend_group_name);
-                }
-            );
-
-            // Unpend from anywhere else
-            if (count($pended_groups) > 0) {
-                unpend_pick_list($item, $pended_groups);
-            }
-        }
+        CliLog::alert(
+            sprintf(
+                "ABORTED PEND! %s for %s appears to be already pended in pend group %s",
+                @$item['drug_name'],
+                @$item['invoice_number'],
+                reset($pended_groups)
+            )
+        );
 
         return $item;
     }
 
-    $qty = round($item['qty_dispensed_default']);
+    $pend_group_name = pend_group_name($item);
+    $qty             = round($item['qty_dispensed_default']);
 
-    echo "\npending item $pend_group_name:$item[drug_generic] - $qty\n";
+    CliLog::debug("pending item {$pend_group_name}:{$item['drug_generic']} - $qty");
 
     $pend_url = "/account/8889875187/pend/$pend_group_name?repackQty=$qty";
 
     //Pend after all forseeable errors are accounted for.
     $res = v2_fetch($pend_url, 'POST', $list['pend']);
 
-    log_notice("pend_pick_list: $item[invoice_number] ".@$item['drug_name']." ".@$item['rx_number'], get_defined_vars());
+    CliLog::debug("pend_pick_list: {$item['invoice_number']} {$item['drug_name']} {$item['rx_number']}");
 }
 
 /**
@@ -481,16 +472,14 @@ function pend_pick_list($item, $list)
  *      remove the item from
  * @return [type]             [description]
  */
-function unpend_pick_list($item, $pendgroups = [])
+function unpend_pick_list($item)
 {
 
 // If we don't have specific pendgroups, then go get some
-    if (empty($pend_groups)) {
-        $pend_groups = get_item_pended_groups($item);
-    }
+    $pend_group = get_item_pended_group($item);
 
-    if (count($pend_groups) == 0) {
-        Sirum::warning(
+    if (!$pend_group) {
+        SirumLog::warning(
             sprintf(
                 "v2_unpend_item: Nothing Unpened.  Call could have been avoided! %s %s %s",
                 @$item['invoice_number'],
@@ -508,24 +497,22 @@ function unpend_pick_list($item, $pendgroups = [])
             ),
             ['invoice_number' => @$item['invoice_number']]
         );
-    }
-
-    foreach ($pend_groups as $type => $group) {
+    } else {
         CliLog::info(
             sprintf(
                 "unpending item %s in %s",
                 $item['drug_generic'],
-                $group
+                $pend_group
             )
         );
 
         for ($try = 1; $try <= 3; $try++) {
-            if ($results = v2_fetch("/account/8889875187/pend/{$group}/{$item['drug_generic']}", 'DELETE')) {
+            if ($results = v2_fetch("/account/8889875187/pend/{$pend_group}/{$item['drug_generic']}", 'DELETE')) {
                 CLiLog::info(
                     sprintf(
                         "succesfully unpended item %s in %s",
                         $item['drug_generic'],
-                        $group
+                        $pend_group
                     )
                 );
                 break;
@@ -534,7 +521,7 @@ function unpend_pick_list($item, $pendgroups = [])
             if ($try > 2) {
                 $error = sprintf(
                     "unpend %s/%s attempt #%s failed.  Giving up trying",
-                    $group,
+                    $pend_group,
                     $item['drug_generic'],
                     $try
                 );
@@ -545,7 +532,7 @@ function unpend_pick_list($item, $pendgroups = [])
                 CliLog::warning(
                     sprintf(
                         "Unpend %s/%s attempt #%s failed. Will try again",
-                        $group,
+                        $pend_group,
                         $item['drug_generic'],
                         $try
                     )

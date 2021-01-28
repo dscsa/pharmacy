@@ -46,6 +46,7 @@ function update_order_items($changes)
     $loop_timer = microtime(true);
     foreach ($changes['created'] as $created) {
         SirumLog::$subroutine_id = "order-items-created-".sha1(serialize($created));
+        SirumLog::info("data-order-items-created", ['created' => $created]);
 
         $invoice_number = $created['invoice_number'];
 
@@ -120,6 +121,7 @@ function update_order_items($changes)
     $loop_timer = microtime(true);
     foreach ($changes['deleted'] as $deleted) {
         SirumLog::$subroutine_id = "order-items-deleted-".sha1(serialize($deleted));
+        SirumLog::info("data-order-itmes-deleted", ['deleted' => $deleted]);
 
         $invoice_number = $deleted['invoice_number'];
 
@@ -174,14 +176,17 @@ function update_order_items($changes)
             $order  = load_full_order(['invoice_number' => $invoice_number], $mysql);
             $groups = group_drugs($order, $mysql);
 
+            $items = [];
             $add_item_names    = [];
             $remove_item_names = [];
 
             foreach ($updates['added'] as $item) {
+              $items[$item['drug']] = $item;
               $add_item_names[] = $item['drug'];
             }
 
             foreach ($updates['removed'] as $item) {
+              $items[$item['drug']] = $item;
               $remove_item_names[] = $item['drug'];
             }
 
@@ -221,14 +226,16 @@ function update_order_items($changes)
             */
 
             //Only available if item was deleted from an order that is still active
-            foreach ($removed_deduped as $item) {
+            foreach ($removed_deduped as $drug_name) {
+
+                $item = $items[$drug_name];
 
                 AuditLog::log(
                     sprintf(
-                     "Order item %s deleted for Rx#%s GSN#%s, Unpending",
-                     $item['drug_name'],
-                     $item['rx_number'],
-                     $item['drug_gsns']
+                    "Order item %s deleted for Rx#%s GSN#%s, Unpending",
+                    $item['drug_name'],
+                    $item['rx_number'],
+                    $item['drug_gsns']
                  ),
                     $item
                 );
@@ -250,6 +257,7 @@ function update_order_items($changes)
     //  - think about what needs to be updated based on changes
     foreach ($changes['updated'] as $updated) {
         SirumLog::$subroutine_id = "order-items-updated-".sha1(serialize($updated));
+        SirumLog::info("data-order-items-updated", ['updated' => $updated]);
 
         $changed = changed_fields($updated);
 

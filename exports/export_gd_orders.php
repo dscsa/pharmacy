@@ -176,24 +176,43 @@ function export_gd_publish_invoice($order, $async = true)
     // and not trashed
     if (!empty($invoice_doc_id)) {
         $meta = gdoc_details($order[0]['invoice_doc_id']);
-        if ($meta->parent->name != INVOICE_PENDING_FOLDER_NAME || $meta->trashed) {
-            // The current invoice is trash.  Make a new invoice
-            $update_reason = "export_gd_publish_invoice: invoice didn't exist so trying to (re)make it";
-            $mysql = new Mysql_Wc();
-            $order = export_gd_update_invoice($order, $update_reason, $mysql);
+    }
 
-            SirumLog::warning(
-                $update_reason,
-                [
-                    'invoice_number'     => $invoice_number,
-                    'old_invoice_doc_id' => $invoice_doc_id,
-                    'new_invoice_doc_id' =>  $order[0]['invoice_doc_id'],
-                    'meta'               => $meta
-                ]
-            );
+    if (
+        !isset($meta)
+        || (
+                $meta->parent->name != INVOICE_PENDING_FOLDER_NAME
+                || $meta->trashed
+           )
+    ) {
+        // The current invoice is trash.  Make a new invoice
+        $update_reason = "export_gd_publish_invoice: invoice didn't exist so trying to (re)make it";
+        $mysql = new Mysql_Wc();
+        $order = export_gd_update_invoice($order, $update_reason, $mysql);
 
-            $invoice_doc_id = $order[0]['invoice_doc_id'];
-        }
+        SirumLog::warning(
+            $update_reason,
+            [
+                'invoice_number'     => $invoice_number,
+                'old_invoice_doc_id' => $invoice_doc_id,
+                'new_invoice_doc_id' =>  $order[0]['invoice_doc_id'],
+                'meta'               => $meta
+            ]
+        );
+
+        $invoice_doc_id = $order[0]['invoice_doc_id'];
+    }
+
+    // Don't publis the file if we don't have a doc_id instead throw
+    // an error and return
+    if (!$invoice_doc_id) {
+        return $order;
+        SirumLog::warning(
+            "Could not find doc_id for invoice",
+            [
+                'invoice_number'     => $invoice_number
+            ]
+        );
     }
 
     $publish_request             = new Publish();

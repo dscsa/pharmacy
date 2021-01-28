@@ -45,6 +45,7 @@ function update_orders_cp($changes)
     $loop_timer = microtime(true);
     foreach ($changes['created'] as $created) {
         SirumLog::$subroutine_id = "orders-cp-created-".sha1(serialize($created));
+        SirumLog::info("data-orders-cp-created", ['created' => $created]);
 
         $duplicate = get_current_orders($mysql, ['patient_id_cp' => $created['patient_id_cp']]);
 
@@ -312,6 +313,7 @@ function update_orders_cp($changes)
     $loop_timer = microtime(true);
     foreach ($changes['deleted'] as $deleted) {
         SirumLog::$subroutine_id = "orders-cp-deleted-".sha1(serialize($deleted));
+        SirumLog::info("data-orders-cp-deleted", ['deleted' => $deleted]);
 
         SirumLog::debug(
             "update_orders_cp: carepoint order {$deleted['invoice_number']} has been deleted",
@@ -427,6 +429,7 @@ function update_orders_cp($changes)
     $loop_timer = microtime(true);
     foreach ($changes['updated'] as $i => $updated) {
         SirumLog::$subroutine_id = "orders-cp-updated-".sha1(serialize($updated));
+        SirumLog::info("data-orders-cp-updated", ['updated' => $updated]);
 
         $changed = changed_fields($updated);
 

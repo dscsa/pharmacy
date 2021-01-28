@@ -29,7 +29,8 @@ function update_drugs($changes) {
 
   foreach($changes['created'] as $i => $created) {
 
-    SirumLog::$subroutine_id = "drugs-created-".sha1(serialize($updated));
+    SirumLog::$subroutine_id = "drugs-created-".sha1(serialize($created));
+    SirumLog::info("data-drugs-created", ['created' => $created]);
 
     SirumLog::debug(
       "update_drugs: Drugs Created",
@@ -50,6 +51,7 @@ function update_drugs($changes) {
   foreach($changes['updated'] as $i => $updated) {
 
     SirumLog::$subroutine_id = "drugs-updated-".sha1(serialize($updated));
+    SirumLog::info("data-drugs-updated", ['updated' => $updated]);
 
     SirumLog::debug(
       "update_drugs: Drugs Updated",
@@ -102,7 +104,7 @@ function update_field_rxs_single($mysql, $updated, $key) {
   $sql = "
     UPDATE gp_rxs_single
     SET
-      $key = '{$updated[$key]}',
+      $key = '{$updated[$key]}'
     WHERE
       gp_rxs_single.drug_generic = '{$updated['drug_generic']}'
   ";

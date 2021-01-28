@@ -37,6 +37,7 @@ function update_patients_cp($changes)
 
     foreach ($changes['updated'] as $i => $updated) {
         SirumLog::$subroutine_id = "patients-cp-updated-".sha1(serialize($updated));
+        SirumLog::info("data-patients-cp-updated", ['updated' => $updated]);
 
         //Overrite Rx Messages everytime a new order created otherwis same
         //Omessage would stay for the life of the Rx

@@ -39,6 +39,7 @@ function update_patients_wc($changes)
 
     foreach ($changes['created'] as $created) {
         SirumLog::$subroutine_id = "patients-wc-created-".sha1(serialize($created));
+        SirumLog::info("data-patients-wc-created", ['created' => $created]);
 
         // Overrite Rx Messages everytime a new order created otherwise
         // same message would stay for the life of the Rx
@@ -114,6 +115,7 @@ function update_patients_wc($changes)
 
     foreach ($changes['deleted'] as $i => $deleted) {
         SirumLog::$subroutine_id = "patients-wc-deleted-".sha1(serialize($deleted));
+        SirumLog::info("data-patients-wc-deleted", ['created' => $created]);
 
         $alert = [
           'deleted' => $deleted,
@@ -140,6 +142,7 @@ function update_patients_wc($changes)
 
     foreach ($changes['updated'] as $i => $updated) {
         SirumLog::$subroutine_id = "patients-wc-updated-".sha1(serialize($updated));
+        SirumLog::info("data-patients-wc-updated", ['created' => $created]);
 
         $changed = changed_fields($updated);
 
@@ -512,33 +515,39 @@ function update_patients_wc($changes)
                 $pdo->execute();
 
                 if ($cp_patient = $pdo->fetch()) {
+
+                    SirumLog::notice(
+                        "Forced Carepoint details onto WooCommerce user",
+                        [
+                            'updated'          => $updated,
+                            'changed'          => $changed,
+                            'cp_patient'       => $cp_patient,
+                            'is_patient_match' => $is_patient_match
+                          ]
+                    );
+
                     wc_update_patient($cp_patient);
+                    $subject = "Changed patient name to match details from CarePoint";
                     create_event(
-                        "Changed patient name to match details from CarePoint",
+                        $subject,
                         [
                              [
-                                 "subject"   => "Changed patient name to match details from CarePoint",
+                                 "subject"   => $subject,
                                  "body"      => "We found a WooCommerce user that had previous been matched to Carepoint.
                                                  Their WooCommerce identifiers didn't match, so we updated WooCommerce
-                                                 with the details from Carepoint.  Their previous WooCommerce ID was:
+                                                 with the details from Carepoint.  Their previous WooCommerce username was:
+                                                 {$updated['old_first_name']} {$updated['old_last_name']} {$updated['old_birth_date']}.
+                                                 Their new WooCommerce username was:
                                                  {$updated['first_name']} {$updated['last_name']} {$updated['birth_date']}.
                                                  Their WooCommerce id is {$updated['patient_id_wc']} and their
                                                  Carepoint ID is {$updated['patient_id_cp']}",
-                                 "contact"   => "{$item['first_name']} {$item['last_name']} {$item['birth_date']}",
+                                 "contact"   => "{$updated['first_name']} {$updated['last_name']} {$updated['birth_date']}",
                                  "assign_to" => "Kiah",
                                  "due_date"  => date('Y-m-d')
                              ]
                         ]
                     );
                 }
-                SirumLog::warning(
-                    "Forced Carepoint details onto WooCommerce user",
-                    [
-                        'updated'          => $updated,
-                        'changed'          => $changed,
-                        'is_patient_match' => $is_patient_match
-                      ]
-                );
             } else {
                 $msg = "update_patients_wc: patient name changed but now count(matches) !== 1";
                 SirumLog::alert(

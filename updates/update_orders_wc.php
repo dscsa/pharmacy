@@ -46,6 +46,7 @@ function update_orders_wc($changes)
 
     foreach ($changes['created'] as $created) {
         SirumLog::$subroutine_id = "orders-wc-created-".sha1(serialize($created));
+        SirumLog::info("data-orders-wc-created", ['created' => $created]);
 
         SirumLog::debug(
             "update_orders_wc: WooCommerce Order Created",
@@ -192,6 +193,7 @@ function update_orders_wc($changes)
 
     foreach ($changes['deleted'] as $deleted) {
         SirumLog::$subroutine_id = "orders-wc-deleted-".sha1(serialize($deleted));
+        SirumLog::info("data-orders-wc-deleted", ['deleted' => $deleted]);
 
         SirumLog::debug(
             "update_orders_wc: WooCommerce Order Deleted",
@@ -271,6 +273,7 @@ function update_orders_wc($changes)
 
     foreach ($changes['updated'] as $updated) {
         SirumLog::$subroutine_id = "orders-wc-updated-".sha1(serialize($updated));
+        SirumLog::info("data-orders-wc-updated", ['updated' => $updated]);
 
         SirumLog::debug(
             "update_orders_wc: WooCommerce Order Updated",
