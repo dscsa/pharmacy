@@ -491,7 +491,7 @@ function order_cancelled_notice($partial, $groups)
         $drug_list = implode(';<br>', array_merge($groups['NOFILL_NOACTION'], $groups['NOFILL_ACTION']));
         $drug_list = str_replace('is being', 'was', $drug_list); //hacky way to change verb tense
         $message   = "<u>We are NOT filling:</u><br>$drug_list;";
-        $message  .= "<br>If you believe this cancellation was in error, call us (888) 987-5187";
+        $message  .= "<br><br>If you believe this cancellation was in error, call us (888) 987-5187";
     }
 
     $email = [ "email" => DEBUG_EMAIL]; //$groups['ALL'][0]['email'] ];
