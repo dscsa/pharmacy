@@ -69,6 +69,11 @@ function get_days_and_message($item, $patient_or_order) {
   // value is 0, Use the DAY_STD in its place
   $days_default            = days_default($days_left_in_refills, $days_left_in_stock, DAYS_STD, $item);
 
+  //rx-created2 can call here and be too early even though it is not an order, we still need to catch it here
+  $date_added = @$item['order_date_added'] ?: $item['rx_date_written'];
+  $days_early = strtotime($item['refill_date_next']) - strtotime($date_added);
+  $days_since = strtotime($date_added) - strtotime($item['refill_date_last']);
+
   /*
     There was some error parsint the Rx
    */
@@ -180,23 +185,11 @@ function get_days_and_message($item, $patient_or_order) {
     return [0, RX_MESSAGE['ACTION PATIENT OFF AUTOFILL']];
   }
 
-  //rx-created2 can call here and be too early even though it is not an order, we still need to catch it here
-  $date_added = @$item['order_date_added'] ?: $item['rx_date_written'];
-  if ((strtotime($item['refill_date_default']) - strtotime($date_added)) > DAYS_EARLY*24*60*60 AND ! $added_manually) {
+    //Patient set their refill date_manual earlier than they should have. TODO ensure webform validation doesn't allow this
+    //AND (strtotime($item['refill_date_default']) - strtotime($item['refill_date_manual'])) > DAYS_EARLY*24*60*60
+    if ($days_early > DAYS_EARLY*24*60*60 AND $item['refill_date_manual'] AND ! $added_manually) {
 
-    //DON'T STRICTLY NEED THIS TEST BUT IT GIVES A MORE SPECIFIC ERROR SO IT MIGHT BE HELPFUL
-    if ((strtotime($date_added) - strtotime($item['refill_date_last'])) < DAYS_EARLY*24*60*60 AND ! $added_manually) {
-      log_info("DON'T REFILL IF FILLED WITHIN LAST ".DAYS_EARLY." DAYS UNLESS ADDED MANUALLY", get_defined_vars());
-      return [0, RX_MESSAGE['NO ACTION RECENT FILL']];
-    }
 
-    log_info("DON'T REFILL IF NOT DUE IN OVER ".DAYS_EARLY." DAYS UNLESS ADDED MANUALLY", get_defined_vars());
-    return [0, RX_MESSAGE['NO ACTION NOT DUE']];
-  }
-
-  if ($item['refill_date_manual'] AND (strtotime($item['refill_date_default']) - strtotime($item['refill_date_manual'])) > DAYS_EARLY*24*60*60) {
-
-    if ( ! $added_manually) {
         $created = "Created:".date('Y-m-d H:i:s');
 
         $salesforce = [
@@ -213,7 +206,14 @@ function get_days_and_message($item, $patient_or_order) {
         return [0, RX_MESSAGE['NO ACTION NOT DUE']];
     }
 
-    SirumLog::alert('Before shipping, double check that we intentionally added items to an order with a future fill date', ['item' => $item]);
+  if ($days_early > DAYS_EARLY*24*60*60 AND $days_since < DAYS_EARLY*24*60*60 AND ! $added_manually) {
+    log_info("DON'T REFILL IF FILLED WITHIN LAST ".DAYS_EARLY." DAYS UNLESS ADDED MANUALLY", get_defined_vars());
+    return [0, RX_MESSAGE['NO ACTION RECENT FILL']];
+  }
+
+  if ($days_early > DAYS_EARLY*24*60*60 AND ! $added_manually) {
+    log_info("DON'T REFILL IF NOT DUE IN OVER ".DAYS_EARLY." DAYS UNLESS ADDED MANUALLY", get_defined_vars());
+    return [0, RX_MESSAGE['NO ACTION NOT DUE']];
   }
 
   if ( ! $item['refill_date_first'] AND $item['last_inventory'] < 2000 AND ($item['sig_qty_per_day_default'] > 2.5*($item['qty_repack'] ?: 135)) AND ! $added_manually) {
