@@ -275,30 +275,6 @@ function update_orders_cp($changes)
             continue; // order hold notice not necessary if we are adding items on next go-around
         }
 
-        //WARNING Can we get rid of this, doesn't seem to be triggered anymore 2021-01-14
-        order_hold_notice($groups);
-
-        AuditLog::log(
-            sprintf(
-                "Order %s is on hold, unknown reason",
-                $order[0]['invoice_number']
-            ),
-            $order[0]
-        );
-        SirumLog::debug(
-            "update_orders_cp: Order Hold, unknown reason
-            should have been deleted with sync code above",
-            [
-                'invoice_number' => $order[0]['invoice_number'],
-                'order'          => $order,
-                'groups'         => $groups
-            ]
-        );
-
-        /*
-           TODO Update Salesforce Order Total & Order Count & Order Invoice
-           using REST API or a MYSQL Zapier Integration
-         */
     } // END created loop
     log_timer('orders-cp-created', $loop_timer, $count_created);
 
@@ -604,10 +580,6 @@ function update_orders_cp($changes)
                     'order'          => $order
                 ]
             );
-
-            //if no order_created_notice is sent then don't send a cancelled.
-            //how can we tell if this is the case?  30min timer like order_items?  old_* values?
-            //order_cancelled_notice($updated, $groups);
 
             /*
                 TODO Why do we need to explicitly unpend?  Deleting an order in

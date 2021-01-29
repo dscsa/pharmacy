@@ -227,12 +227,18 @@ function transfer_requested_notice($groups)
     transfer_requested_event($groups['ALL'], $email, $text, 15/60);
 }
 
-/* WARNING Can we get rid of order_hold_notce, doesn't seem to be triggered anymore 2021-01-14 */
-
-//We are coording patient communication via sms, calls, emails, & faxes
-//by building commication arrays based on github.com/dscsa/communication-calendar
+/* Not Currently Used! What could we use order_hold_notice for?
+    - Automatically generated X days out for a no Rx order?
+    - If an Order has count_fill == 0 and at least one drug has a missing GSN
+    - Something about us still trying to get refills from the patient's doctor
+*/
 function order_hold_notice($groups)
 {
+
+    SirumLog::alert('order_hold_notice: called', get_defined_vars());
+
+    /*
+
     if ($groups['ALL'][0]['count_filled'] == 0 and $groups['ALL'][0]['count_nofill'] == 0) {
         //If patients have no Rxs on their profile then this will be empty.
         $subject = 'Good Pill has not yet gotten your prescriptions.';
@@ -244,7 +250,7 @@ function order_hold_notice($groups)
 
     //[NULL, 'Webform Complete', 'Webform eRx', 'Webform Transfer', 'Auto Refill', '0 Refills', 'Webform Refill', 'eRx /w Note', 'Transfer /w Note', 'Refill w/ Note']
     //Unsure but "Null" seems to come from SureScript Orders OR Hand Entered Orders (Fax, Pharmacy Transfer, Hard Copy, Phone)
-    /*SELECT rx_source, MAX(gp_orders.invoice_number), COUNT(*) FROM `gp_orders` JOIN gp_order_items ON gp_order_items.invoice_number = gp_orders.invoice_number JOIN gp_rxs_single ON gp_rxs_single.rx_number = gp_order_items.rx_number WHERE order_source IS NULL GROUP BY rx_source ORDER BY `gp_orders`.`order_source` DESC*/
+    //SELECT rx_source, MAX(gp_orders.invoice_number), COUNT(*) FROM `gp_orders` JOIN gp_order_items ON gp_order_items.invoice_number = gp_orders.invoice_number JOIN gp_rxs_single ON gp_rxs_single.rx_number = gp_order_items.rx_number WHERE order_source IS NULL GROUP BY rx_source ORDER BY `gp_orders`.`order_source` DESC
     $trigger = '';
 
     //Empty Rx Profile
@@ -287,18 +293,18 @@ function order_hold_notice($groups)
 
     $email['subject'] = $subject;
     $email['message'] = implode('<br>', [
-    'Hello,',
-    '',
-    $trigger.' '.$subject,
-    '',
-    $message,
-    '',
-    'Apologies for any inconvenience,',
-    'The Good Pill Team',
-    '',
-    '',
-    "Note: if this is correct, there is no need to do anything. If you think there is a mistake, please let us know as soon as possible."
-  ]);
+        'Hello,',
+        '',
+        $trigger.' '.$subject,
+        '',
+        $message,
+        '',
+        'Apologies for any inconvenience,',
+        'The Good Pill Team',
+        '',
+        '',
+        "Note: if this is correct, there is no need to do anything. If you think there is a mistake, please let us know as soon as possible."
+    ]);
 
     $salesforce = true //! $missing_gsn
     ? ''
@@ -315,6 +321,7 @@ function order_hold_notice($groups)
 
     //Wait 15 minutes to hopefully batch staggered surescripts and manual rx entry and cindy updates
     order_hold_event($groups['ALL'], $email, $text, $salesforce, 15/60);
+    */
 }
 
 //We are coording patient communication via sms, calls, emails, & faxes
@@ -329,8 +336,8 @@ function order_updated_notice($groups, $patient_updates)
     } elseif ($groups['ALL'][0]['count_filled']) {
         $message = '<br><br><u>Your new order will be:</u><br>'.implode(';<br>', $groups['FILLED_WITH_PRICES']).';';
     } else {
-        log_warning("order_updated_notice called but should have been", [$groups, $patient_updates]);
-        return order_hold_notice($groups);
+        log_warning("order_updated_notice called but order_cancelled_notice should have been called instead", [$groups, $patient_updates]);
+        return order_cancelled_notice($groups['ALL'][0], $groups);
     }
 
     $message .= '<br><br>We will notify you again once it ships.';
@@ -466,31 +473,30 @@ function no_rx_notice($partial, $groups)
 
 function order_cancelled_notice($partial, $groups)
 {
-    if (! $groups['ALL'][0]['pharmacy_name']) {
+    if ( ! $groups['ALL'][0]['pharmacy_name']) {
         return SirumLog::alert('order_cancelled_notice: not sending because needs_form_notice should be sent instead (was already sent?)', get_defined_vars());
     }
 
-    if (is_order($groups['ALL']) and ! $groups['ALL'][0]['count_nofill']) { //can be passed a patient
+    if ( ! $groups['ALL'][0]['count_nofill']) { //can be passed a patient
         return SirumLog::alert('order_cancelled_notice: not sending because no_rx_notice should be sent instead (was already sent?)', get_defined_vars());
     }
 
     $subject = "Good Pill cancelled your Order #$partial[invoice_number]";
 
-    if (is_webform_transfer($groups['ALL'][0])) {
-        $message = "We attempted to transfer prescriptions from {$groups['ALL'][0]['pharmacy_name']} but they did not have an Rx for the requested drugs with refills remaining.  Could you please let us know your doctor's name and phone number so that we can reach out to them to get new prescription(s)";
-    }
+    if (is_webform_transfer($partial)) {
 
-    //called from an order-updated loop which has order item info rather than a order-deleted loop
-    elseif (@$groups['ALL'][0]['invoice_number']) {
-        $message = "Your order was cancelled because you have no prescriptions that we can currently fill";
+        $message = "We attempted to transfer prescriptions from {$groups['ALL'][0]['pharmacy_name']} but they did not have an Rx for the requested drugs with refills remaining.  Could you please let us know your doctor's name and phone number so that we can reach out to them to get new prescription(s)";
+
     } else {
-        $message = "If you believe this cancellation was in error, call us (888) 987-5187";
+
+        $message  = '<u>We are NOT filling:</u><br>'.implode(';<br>', array_merge($groups['NOFILL_NOACTION'], $groups['NOFILL_ACTION'])).';';
+        $message .= "<br>If you believe this cancellation was in error, call us (888) 987-5187";
     }
 
     $email = [ "email" => DEBUG_EMAIL]; //$groups['ALL'][0]['email'] ];
-  $text  = [ "sms"   => DEBUG_PHONE, "message" => $subject.'. '.$message ]; //get_phones($groups['ALL'])
+    $text  = [ "sms"   => DEBUG_PHONE, "message" => $subject.'. '.$message ]; //get_phones($groups['ALL'])
 
-  $email['subject'] = $subject;
+    $email['subject'] = $subject;
     $email['message'] = implode('<br>', [
     'Hello,',
     '',
