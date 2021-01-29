@@ -2,7 +2,11 @@
 
 require_once 'exports/export_gd_comm_calendar.php';
 
-use Sirum\Logging\SirumLog;
+use Sirum\Logging\{
+    SirumLog,
+    AuditLog,
+    CliLog
+};
 
 //All Communication should group drugs into 4 Categories based on ACTION/NOACTION and FILL/NOFILL
 //1) FILLING NO ACTION

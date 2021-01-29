@@ -1,7 +1,11 @@
 <?php
 require_once 'helpers/helper_calendar.php';
 
-use Sirum\Logging\SirumLog;
+use Sirum\Logging\{
+    SirumLog,
+    AuditLog,
+    CliLog
+};
 
 /**
  * Returns the number of days of medicine available and a message

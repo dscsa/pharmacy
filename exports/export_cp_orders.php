@@ -4,7 +4,11 @@ global $mssql;
 
 require_once 'exports/export_cp_order_items.php';
 
-use Sirum\Logging\SirumLog;
+use Sirum\Logging\{
+    SirumLog,
+    AuditLog,
+    CliLog
+};
 
 function export_cp_set_expected_by($item) {
 

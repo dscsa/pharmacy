@@ -3,7 +3,11 @@
 require_once 'dbs/mysql_wc.php';
 require_once 'helpers/helper_imports.php';
 
-use Sirum\Logging\SirumLog;
+use Sirum\Logging\{
+    SirumLog,
+    AuditLog,
+    CliLog
+};
 
 
 /**

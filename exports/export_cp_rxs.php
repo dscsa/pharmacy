@@ -2,7 +2,11 @@
 
 global $mssql;
 
-use Sirum\Logging\SirumLog;
+use Sirum\Logging\{
+    SirumLog,
+    AuditLog,
+    CliLog
+};
 
 function export_cp_set_rx_message($item, $message) {
 

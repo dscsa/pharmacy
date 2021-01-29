@@ -12,7 +12,11 @@ use Sirum\AWS\SQS\{
     GoogleAppQueue
 };
 
-use Sirum\Logging\SirumLog;
+use Sirum\Logging\{
+    SirumLog,
+    AuditLog,
+    CliLog
+};
 
 // Grab and item out of the queue
 $gdq = new GoogleAppQueue();
