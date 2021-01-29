@@ -499,15 +499,15 @@ function order_cancelled_notice($partial, $groups)
 
     $email['subject'] = $subject;
     $email['message'] = implode('<br>', [
-    'Hello,',
-    '',
-    $subject.'. '.$message,
-    '',
-    'Thanks!',
-    'The Good Pill Team',
-    '',
-    ''
-  ]);
+        'Hello,',
+        '',
+        $subject.'. '.$message,
+        '',
+        'Thanks!',
+        'The Good Pill Team',
+        '',
+        ''
+    ]);
 
     SirumLog::notice(
         'order_cancelled_notice: how to improve this message',
