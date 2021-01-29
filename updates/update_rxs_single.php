@@ -412,12 +412,14 @@ function update_rxs_single($changes)
         );
 
         //TODO rather hackily editing calendar events, probably better to just delete and then recreate them
-        remove_drugs_from_refill_reminders(
-            $item['first_name'],
-            $item['last_name'],
-            $item['birth_date'],
-            [$created['drug_name']]
-        );
+        if ($item) {
+            remove_drugs_from_refill_reminders(
+                $item['first_name'],
+                $item['last_name'],
+                $item['birth_date'],
+                [$created['drug_name']]
+            );
+        }
     }
     log_timer('rx-singles-created2', $loop_timer, $count_created);
 
