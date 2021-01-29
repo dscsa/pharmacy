@@ -68,7 +68,7 @@ function gdoc_post($url, $content)
         $results = @file_get_contents($url.'?GD_KEY='.GD_KEY, false, $context);
 
         // We have some results so let's leave
-        if ($results !== false) {
+        if ($results !== false && !empty($results)) {
             SirumLog::debug(
                 'Google Doc Request Success:',
                 [
