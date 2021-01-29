@@ -27,6 +27,16 @@ function createCalendarEvent(event) {
         return;
     }
 
+    if (! event.description) {
+        console.error(
+            'Trying to create a calendar event with an empty array : ',
+            event.title,
+            event.startDate,
+            event.stopDate,
+            JSON.stringify(event.description, null, '  ')
+        );
+    }
+
     return calendar
         .createEvent(
             event.title,

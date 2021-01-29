@@ -124,10 +124,12 @@ function get_days_and_message($item, $patient_or_order) {
 
   //TODO Remove.  This logic was moved into update_rxs_single::created/updated
   if ( ! $item['drug_gsns'] AND $item['drug_name']) {
-    //Check for invoice number otherwise, seemed that SF tasks were being triplicated.  Unsure reason, maybe called by order_items and not just orders?
-    SirumLog::alert("Used to make missing GSN Salesforce Tasks Here.  Confirm SF Task Made in Rxs-Singles-Updated/Created Loop before downgarding or removing this log", $item);
-
-    return [ $item['refill_date_first'] ? $days_default : 0, RX_MESSAGE['NO ACTION MISSING GSN']];
+    // Check for invoice number otherwise, seemed that SF tasks were being triplicated.
+    // Unsure reason, maybe called by order_items and not just orders?
+    return [
+        ($item['refill_date_first'] ? $days_default : 0),
+        RX_MESSAGE['NO ACTION MISSING GSN']
+    ];
   }
 
   /*

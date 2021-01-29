@@ -430,7 +430,7 @@ function pend_pick_list($item, $list)
             $item
         );
 
-        SirumLog::alert(
+        SirumLog::notice(
             sprintf(
                 "v2_pend_item: ABORTED! %s for %s appears to be already pended in pend group %s.  Please confirm.",
                 @$item['drug_name'],
@@ -440,7 +440,7 @@ function pend_pick_list($item, $list)
             [ 'item' => $item ]
         );
 
-        CliLog::alert(
+        CliLog::notice(
             sprintf(
                 "ABORTED PEND! %s for %s appears to be already pended in pend group %s",
                 @$item['drug_name'],
@@ -517,10 +517,18 @@ function unpend_pick_list($item)
                         $loop_count
                     )
                 );
+                SirumLog::info(
+                    sprintf(
+                        "succesfully unpended item %s in %s, unpend attempt #%s",
+                        $item['drug_generic'],
+                        $pend_group,
+                        $loop_count
+                    ),
+                    ['invoice_number' => $item['invoice_number']]
+                );
                 break;
             }
-
-        } while ($pend_group = get_item_pended_group($item) && $loop_count < 5);
+        } while ($pend_group = get_item_pended_group($item) && $loop_count <= 5);
     }
 
     //Delete gdoc pick list
