@@ -9,6 +9,8 @@ use Sirum\Logging\{
 
 function update_drugs($changes) {
 
+  SirumLog::notice('data-update-drugs', $changes);
+
   $count_deleted = count($changes['deleted']);
   $count_created = count($changes['created']);
   $count_updated = count($changes['updated']);

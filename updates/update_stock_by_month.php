@@ -17,6 +17,8 @@ use Sirum\Logging\{
 
 function update_stock_by_month($changes) {
 
+  SirumLog::notice('data-update-stock-by-month', $changes);
+
   $month_interval  = 4; //This is full months, excluding the current partial month that is included, so on average it will be 0.5 months more than this number
   $default_rxs_min = 3;
 

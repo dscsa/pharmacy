@@ -14,6 +14,9 @@ use Sirum\Logging\{
 
 function update_order_items($changes)
 {
+
+    SirumLog::notice('data-update-order-items', $changes);
+
     $count_deleted = count($changes['deleted']);
     $count_created = count($changes['created']);
     $count_updated = count($changes['updated']);

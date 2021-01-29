@@ -14,6 +14,7 @@ use Sirum\Logging\{
 
 function update_rxs_single($changes)
 {
+    SirumLog::notice('data-update-rxs-single', $changes);
 
     $start = microtime(true);
     $mysql = new Mysql_Wc();

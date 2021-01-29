@@ -321,10 +321,11 @@ function print_pick_list($item, $list)
 
 /**
  * Check to see if this specific item has already been pended
- * @param  array  $item  The data for an order item
+ * @param  array   $item           The data for an order item
+ * @param  boolean $include_picked (Optional) Should we check for pended and picked
  * @return boolean       False if the item is not pended in v2
  */
-function get_item_pended_group($item)
+function get_item_pended_group($item, $include_picked = false)
 {
     $possible_pend_groups = [
         'refill'          => pend_group_refill($item),
@@ -505,40 +506,21 @@ function unpend_pick_list($item)
                 $pend_group
             )
         );
-
-        for ($try = 1; $try <= 3; $try++) {
+        do { // Keep doing until we can't find a pended item
+            $loop_count = (isset($loop_count) ? ++$loop_count : 1);
             if ($results = v2_fetch("/account/8889875187/pend/{$pend_group}/{$item['drug_generic']}", 'DELETE')) {
                 CLiLog::info(
                     sprintf(
-                        "succesfully unpended item %s in %s",
+                        "succesfully unpended item %s in %s, unpend attempt #%s",
                         $item['drug_generic'],
-                        $pend_group
+                        $pend_group,
+                        $loop_count
                     )
                 );
                 break;
             }
 
-            if ($try > 2) {
-                $error = sprintf(
-                    "unpend %s/%s attempt #%s failed.  Giving up trying",
-                    $pend_group,
-                    $item['drug_generic'],
-                    $try
-                );
-
-                CLiLog::error($error);
-                SirumLog::error($error, ['item' => $item]);
-            } else {
-                CliLog::warning(
-                    sprintf(
-                        "Unpend %s/%s attempt #%s failed. Will try again",
-                        $pend_group,
-                        $item['drug_generic'],
-                        $try
-                    )
-                );
-            }
-        }
+        } while ($pend_group = get_item_pended_group($item) && $loop_count < 5);
     }
 
     //Delete gdoc pick list
