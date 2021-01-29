@@ -199,7 +199,7 @@ const RX_MESSAGE = [
     'CP_CODE' => 220,
   ],
   'NO ACTION FILL OUT OF STOCK' => [
-    'EN' => 'is low in stock',
+    'EN' => '',
     'ES' => '',
     'CP_CODE' => 221,
   ],

@@ -481,16 +481,17 @@ function order_cancelled_notice($partial, $groups)
         return SirumLog::alert('order_cancelled_notice: not sending because no_rx_notice should be sent instead (was already sent?)', get_defined_vars());
     }
 
-    $subject = "Good Pill cancelled your Order #$partial[invoice_number]";
+    $subject = "Good Pill Order #$partial[invoice_number] has been cancelled";
 
     if (is_webform_transfer($partial)) {
 
         $message = "We attempted to transfer prescriptions from {$groups['ALL'][0]['pharmacy_name']} but they did not have an Rx for the requested drugs with refills remaining.  Could you please let us know your doctor's name and phone number so that we can reach out to them to get new prescription(s)";
 
     } else {
-
-        $message  = '<u>We are NOT filling:</u><br>'.implode(';<br>', array_merge($groups['NOFILL_NOACTION'], $groups['NOFILL_ACTION'])).';';
-        $message .= "<br>If you believe this cancellation was in error, call us (888) 987-5187";
+        $drug_list = implode(';<br>', array_merge($groups['NOFILL_NOACTION'], $groups['NOFILL_ACTION']));
+        $drug_list = str_replace('is being', 'was', $drug_list); //hacky way to change verb tense
+        $message   = "<u>We are NOT filling:</u><br>$drug_list;";
+        $message  .= "<br><br>If you believe this cancellation was in error, call us (888) 987-5187";
     }
 
     $email = [ "email" => DEBUG_EMAIL]; //$groups['ALL'][0]['email'] ];
@@ -498,15 +499,15 @@ function order_cancelled_notice($partial, $groups)
 
     $email['subject'] = $subject;
     $email['message'] = implode('<br>', [
-    'Hello,',
-    '',
-    $subject.'. '.$message,
-    '',
-    'Thanks!',
-    'The Good Pill Team',
-    '',
-    ''
-  ]);
+        'Hello,',
+        '',
+        $subject.'. '.$message,
+        '',
+        'Thanks!',
+        'The Good Pill Team',
+        '',
+        ''
+    ]);
 
     SirumLog::notice(
         'order_cancelled_notice: how to improve this message',
