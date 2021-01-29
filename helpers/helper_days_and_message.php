@@ -1,7 +1,11 @@
 <?php
 require_once 'helpers/helper_calendar.php';
 
-use Sirum\Logging\SirumLog;
+use Sirum\Logging\{
+    SirumLog,
+    AuditLog,
+    CliLog
+};
 
 /**
  * Returns the number of days of medicine available and a message
@@ -76,7 +80,7 @@ function get_days_and_message($item, $patient_or_order) {
     We have multiple occurances of drugs on the same order
    */
   if (@$item['item_date_added'] AND $is_duplicate_gsn) {
-    log_error("helper_days_and_message: $item[drug_generic] is duplicate GSN.  Likely Mistake. Different sig_qty_per_day?", ['duplicate_items' => $duplicate_items, 'item' => $item, 'order' => $patient_or_order]);
+    log_error("helper_days_and_message: $item[drug_generic] is duplicate GSN.  Likely Mistake. Different sig_qty_per_day?", ['item' => $item, 'order' => $patient_or_order]);
   }
 
   /*

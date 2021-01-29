@@ -3,6 +3,8 @@
 namespace Sirum\Logging;
 
 use Google\Cloud\Logging\LoggingClient;
+use Monolog\Logger;
+use Monolog\Handler\StreamHandler;
 
 require_once 'helpers/helper_pagerduty.php';
 require_once 'helpers/helper_identifiers.php';
@@ -256,19 +258,23 @@ class SirumLog
         if (!isset(self::$logger) or is_null(self::$logger)) {
             self::$application_id = $application;
 
-            $logging  = new LoggingClient(['projectId' => 'unified-logging-292316']);
-
-            self::$logger = $logging->psrLogger(
-                self::$application_id,
-                [
-                    'batchEnabled' => true,
-                    'batchOptions' => [
-                        'batchSize' => 100,
-                        'callPeriod' => 2.0,
-                        'numWorkers' => 2
+            if (defined('CONSOLE_LOGGING')) {
+                self::$logger = new Logger('pharmacy-app-console');
+                self::$logger->pushHandler(new StreamHandler('php://stdout', Logger::DEBUG));
+            } else {
+                $logging  = new LoggingClient(['projectId' => 'unified-logging-292316']);
+                self::$logger = $logging->psrLogger(
+                    self::$application_id,
+                    [
+                        'batchEnabled' => true,
+                        'batchOptions' => [
+                            'batchSize' => 100,
+                            'callPeriod' => 2.0,
+                            'numWorkers' => 2
+                        ]
                     ]
-                ]
-            );
+                );
+            }
 
             if (is_null($execution)) {
                 $execution = date('c') . '-' . uniqid();

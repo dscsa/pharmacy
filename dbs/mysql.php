@@ -1,5 +1,9 @@
 <?php
-use Sirum\Logging\SirumLog;
+use Sirum\Logging\{
+    SirumLog,
+    AuditLog,
+    CliLog
+};
 
 class Mysql {
 

@@ -1,6 +1,10 @@
 <?php
 
-use Sirum\Logging\SirumLog;
+use Sirum\Logging\{
+    SirumLog,
+    AuditLog,
+    CliLog
+};
 
 /**
  * Get the details about a specific file to use for test.

@@ -11,6 +11,8 @@ use Sirum\Storage\Goodpill;
 
 function update_patients_wc($changes)
 {
+    SirumLog::notice('data-update-patients-wc', $changes);
+
     $count_deleted = count($changes['deleted']);
     $count_created = count($changes['created']);
     $count_updated = count($changes['updated']);
@@ -516,7 +518,7 @@ function update_patients_wc($changes)
 
                 if ($cp_patient = $pdo->fetch()) {
 
-                    SirumLog::alert(
+                    SirumLog::notice(
                         "Forced Carepoint details onto WooCommerce user",
                         [
                             'updated'          => $updated,

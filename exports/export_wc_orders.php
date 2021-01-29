@@ -1,7 +1,11 @@
 <?php
 
 global $mysql;
-use Sirum\Logging\SirumLog;
+use Sirum\Logging\{
+    SirumLog,
+    AuditLog,
+    CliLog
+};
 
 function wc_get_post($invoice_number, $wc_order_key = null, $suppress_error = false)
 {

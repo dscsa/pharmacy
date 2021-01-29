@@ -2,11 +2,17 @@
 
 require_once 'helpers/helper_full_order.php';
 
-use Sirum\Logging\SirumLog;
-use Sirum\Logging\AuditLog;
+use Sirum\Logging\{
+    SirumLog,
+    AuditLog,
+    CliLog
+};
 
 function update_orders_wc($changes)
 {
+
+    SirumLog::notice('data-update-orders-wc', $changes);
+
     $count_deleted = count($changes['deleted']);
     $count_created = count($changes['created']);
     $count_updated = count($changes['updated']);

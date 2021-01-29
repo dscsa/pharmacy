@@ -3,7 +3,11 @@
 require_once 'exports/export_cp_rxs.php';
 require_once 'helpers/helper_full_fields.php';
 
-use Sirum\Logging\SirumLog;
+use Sirum\Logging\{
+    SirumLog,
+    AuditLog,
+    CliLog
+};
 
 function load_full_order($partial, $mysql, $overwrite_rx_messages = false) {
 

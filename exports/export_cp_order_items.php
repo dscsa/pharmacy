@@ -2,7 +2,11 @@
 
 global $mssql;
 
-use Sirum\Logging\SirumLog;
+use Sirum\Logging\{
+    SirumLog,
+    AuditLog,
+    CliLog
+};
 
 //Example New Surescript Comes in that we want to remove from Queue
 //WARNING EMPTY OR NULL ARRAY REMOVES ALL ITEMS

@@ -2,7 +2,11 @@
 
 require_once 'helpers/helper_appsscripts.php';
 
-use Sirum\Logging\SirumLog;
+use Sirum\Logging\{
+    SirumLog,
+    AuditLog,
+    CliLog
+};
 use Sirum\Notifications\Transfer;
 
 function export_gd_transfer_fax($item, $source)

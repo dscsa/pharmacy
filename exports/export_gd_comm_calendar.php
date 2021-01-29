@@ -2,7 +2,11 @@
 
 require_once 'helpers/helper_calendar.php';
 
-use Sirum\Logging\SirumLog;
+use Sirum\Logging\{
+    SirumLog,
+    AuditLog,
+    CliLog
+};
 
 //Internal communication warning an order was shipped but not dispensed.  Gets erased when/if order is shipped
 function order_dispensed_notice($groups)
@@ -324,18 +328,21 @@ function order_updated_notice($groups, $patient_updates)
         $message = '<br><br><u>Your new order will be:</u><br>'.implode(';<br>', array_merge($groups['FILLED_ACTION'], $groups['FILLED_NOACTION'])).';';
     } elseif ($groups['ALL'][0]['count_filled']) {
         $message = '<br><br><u>Your new order will be:</u><br>'.implode(';<br>', $groups['FILLED_WITH_PRICES']).';';
+    } else {
+        log_warning("order_updated_notice called but should have been", [$groups, $patient_updates]);
+        return order_hold_notice($groups);
     }
 
     $message .= '<br><br>We will notify you again once it ships.';
 
     $suffix = implode('<br><br>', [
-    "Note: if this is correct, there is no need to do anything. If you want to change or delay this order, please let us know as soon as possible. If delaying, please specify the date on which you want it filled, otherwise if you don't, we will delay it 3 weeks by default."
-  ]);
+        "Note: if this is correct, there is no need to do anything. If you want to change or delay this order, please let us know as soon as possible. If delaying, please specify the date on which you want it filled, otherwise if you don't, we will delay it 3 weeks by default."
+    ]);
 
     $email = [ "email" => DEBUG_EMAIL]; //$groups['ALL'][0]['email'] ];
-  $text  = [ "sms"   => DEBUG_PHONE, "message" => "$subject: $updates $message"]; //get_phones($groups['ALL'])
+    $text  = [ "sms"   => DEBUG_PHONE, "message" => "$subject: $updates $message"]; //get_phones($groups['ALL'])
 
-  $email['subject'] = $subject;
+    $email['subject'] = $subject;
     $email['message'] = implode('<br>', [
     'Hello,',
     '',

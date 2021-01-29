@@ -1,5 +1,9 @@
 <?php
-use Sirum\Logging\SirumLog;
+use Sirum\Logging\{
+    SirumLog,
+    AuditLog,
+    CliLog
+};
 
 function export_cp_patient_save_medications_other($mssql, $patient, $live = false)
 {

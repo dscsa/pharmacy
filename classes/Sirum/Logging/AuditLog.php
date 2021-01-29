@@ -2,7 +2,11 @@
 
 namespace Sirum\Logging;
 
-use Sirum\Logging\SirumLog;
+use Sirum\Logging\{
+    SirumLog,
+    AuditLog,
+    CliLog
+};
 use Google\Cloud\Logging\LoggingClient;
 
 require_once 'helpers/helper_identifiers.php';

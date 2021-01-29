@@ -1,6 +1,10 @@
 <?php
 
-use Sirum\Logging\SirumLog;
+use Sirum\Logging\{
+    SirumLog,
+    AuditLog,
+    CliLog
+};
 
 function order_dispensed_event($order, $salesforce, $hours_to_wait) {
 

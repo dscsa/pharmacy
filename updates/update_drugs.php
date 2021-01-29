@@ -1,9 +1,15 @@
 <?php
 
 
-use Sirum\Logging\SirumLog;
+use Sirum\Logging\{
+    SirumLog,
+    AuditLog,
+    CliLog
+};
 
 function update_drugs($changes) {
+
+  SirumLog::notice('data-update-drugs', $changes);
 
   $count_deleted = count($changes['deleted']);
   $count_created = count($changes['created']);
