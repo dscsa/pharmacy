@@ -532,7 +532,7 @@ function unpend_pick_list($item)
 
     $result = gdoc_post(GD_HELPER_URL, $args);
 
-    SirumLog::notice("unpend_pick_list: $msg", get_defined_vars());
+    SirumLog::notice("unpend_pick_list", get_defined_vars());
 }
 
 //Getting all inventory of a drug can be thousands of items.  Let's start with a low limit that we increase as needed
