@@ -2,7 +2,8 @@
     "require": {
         "google/cloud-logging": "^1.21",
         "adilbaig/pagerduty": "^3.2",
-        "aws/aws-sdk-php": "^3.171"
+        "aws/aws-sdk-php": "^3.171",
+        "ayesh/php-timer": "^2.2"
     },
     "autoload": {
        "psr-4": {"Sirum\\": "classes/Sirum"}

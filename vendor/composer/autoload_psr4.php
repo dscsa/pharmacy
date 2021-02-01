@@ -30,5 +30,6 @@ return array(
     'GPBMetadata\\Google\\' => array($vendorDir . '/google/common-protos/metadata'),
     'GPBMetadata\\ApiCore\\' => array($vendorDir . '/google/gax/metadata/ApiCore'),
     'Firebase\\JWT\\' => array($vendorDir . '/firebase/php-jwt/src'),
+    'Ayesh\\PHP_Timer\\' => array($vendorDir . '/ayesh/php-timer/src'),
     'Aws\\' => array($vendorDir . '/aws/aws-sdk-php/src'),
 );

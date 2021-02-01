@@ -61,6 +61,7 @@ class ComposerStaticInit54659efd329fa3a958f5cddec29d1420
         ),
         'A' => 
         array (
+            'Ayesh\\PHP_Timer\\' => 16,
             'Aws\\' => 4,
         ),
     );
@@ -161,6 +162,10 @@ class ComposerStaticInit54659efd329fa3a958f5cddec29d1420
         'Firebase\\JWT\\' => 
         array (
             0 => __DIR__ . '/..' . '/firebase/php-jwt/src',
+        ),
+        'Ayesh\\PHP_Timer\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/ayesh/php-timer/src',
         ),
         'Aws\\' => 
         array (

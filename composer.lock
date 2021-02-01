@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "d4a62ce4a391cf960300259616c5caeb",
+    "content-hash": "3172c22f3ff23cd1db7878f74b51ff2a",
     "packages": [
         {
             "name": "adilbaig/pagerduty",
@@ -135,6 +135,56 @@
                 "sdk"
             ],
             "time": "2020-12-30T19:11:22+00:00"
+        },
+        {
+            "name": "ayesh/php-timer",
+            "version": "v2.2.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/Ayesh/php-timer.git",
+                "reference": "82677af155eb3b7083ffcdad58c80a66fbbec8a1"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/Ayesh/php-timer/zipball/82677af155eb3b7083ffcdad58c80a66fbbec8a1",
+                "reference": "82677af155eb3b7083ffcdad58c80a66fbbec8a1",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^7.3 || ^8.0"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^9.0",
+                "symfony/phpunit-bridge": "^4.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Ayesh\\PHP_Timer\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Ayesh Karunaratne",
+                    "email": "ayesh@ayesh.me",
+                    "homepage": "https://ayesh.me",
+                    "role": "Author"
+                }
+            ],
+            "description": "High-resolution and monotonic stop-watch for all your needs. Supports timer start, pause, resume, stop, read, and minimal conversion.",
+            "homepage": "https://github.com/ayesh/php-timer",
+            "keywords": [
+                "benchmark",
+                "performance",
+                "stopwatch",
+                "time",
+                "timer"
+            ],
+            "time": "2020-12-18T11:37:14+00:00"
         },
         {
             "name": "firebase/php-jwt",
