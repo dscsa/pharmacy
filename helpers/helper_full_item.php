@@ -141,7 +141,5 @@ function get_current_items($mysql, $conditions = []) {
 
    $res = $mysql->run($sql)[0];
 
-   log_notice('get_current_items', ['sql' => $sql, 'res' => $res]);
-
    return $res;
 }
