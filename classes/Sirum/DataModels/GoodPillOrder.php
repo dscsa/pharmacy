@@ -5,6 +5,7 @@ namespace Sirum\DataModels;
 use Sirum\Storage\Goodpill;
 use Sirum\GPModel;
 
+
 use \PDO;
 use \Exception;
 
@@ -53,9 +54,38 @@ class GoodPillOrder extends GPModel
         'order_note'
     ];
 
+    private $patient;
+
     /**
      * The table name to store the notifications
      * @var string
      */
     protected $table_name = "gp_orders";
+
+    /**
+     * Get a patient based on the patient_id_cp
+     * @return null|GoodPillPatient
+     */
+    public function getPatient() : ?GoodPillPatient
+    {
+
+        if ($this->patient instanceof GoodPillPatient) {
+            return $this->patient;
+        }
+
+        if ($this->loaded) {
+            $patient = new GoodPillPatient(['patient_id_cp' => $this->patient_id_cp]);
+
+            if ($patient->loaded) {
+                $this->patient = $patient;
+                return $this->patient;
+            }
+        }
+
+        return null;
+    }
+
+    public function getPendGroup() {
+        
+    }
 }

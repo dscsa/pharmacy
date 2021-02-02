@@ -6,6 +6,7 @@ require_once 'helpers/helper_syncing.php';
 require_once 'helpers/helper_communications.php';
 require_once 'exports/export_wc_orders.php';
 require_once 'exports/export_cp_orders.php';
+require_once 'exports/export_v2_order.php';
 
 use Sirum\Logging\{
     SirumLog,
@@ -352,29 +353,12 @@ function cp_order_deleted(array $deleted) : ?array
     export_cp_remove_items($deleted['invoice_number']);
     export_gd_delete_invoice($deleted['invoice_number']);
 
-    $mysql   = new Mysql_Wc();
-    $patient = load_full_patient($deleted, $mysql, true);  //Cannot load order because it was already deleted in changes_orders_cp
-    $groups  = group_drugs($patient, $mysql);
-
     SirumLog::info(
         'update_orders_cp deleted: unpending all items',
-        [
-            'deleted' => $deleted,
-            'groups' => $groups,
-            'patient' => $patient
-        ]
+        [ 'deleted' => $deleted ]
     );
 
-    // can't do export_v2_unpend_order because each item won't have an invoice
-    // number or order_added_date
-    //
-    // TODO make an unpend function that uses v2's REST endpoint WITHOUT the
-    // generic name so we can avoid this patient lookup and loop
-    if ($patient) {
-        foreach ($patient as $i => $item) {
-            $patient[$i] = v2_unpend_item(array_merge($item, $deleted), $mysql, 'update_orders_cp deleted: unpending all items');
-        }
-    }
+    v2_unpend_order_by_invoice($deleted['invoice_number']);
 
     AuditLog::log(
         sprintf(
@@ -384,7 +368,7 @@ function cp_order_deleted(array $deleted) : ?array
         $deleted
     );
 
-    $replacement = get_current_orders($mysql, ['patient_id_cp' => $deleted['patient_id_cp']]);
+    $replacement = get_current_orders((new Mysql_Wc()), ['patient_id_cp' => $deleted['patient_id_cp']]);
 
     if ($replacement) {
         AuditLog::log(
@@ -470,9 +454,8 @@ function cp_order_deleted(array $deleted) : ?array
         );
     }
 
-    return $deleted;
-
     SirumLog::resetSubroutineId();
+    return $deleted;
 }
 
 /**

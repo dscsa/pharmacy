@@ -90,16 +90,16 @@ class GPModel
     public function __get($name)
     {
 
+        if (is_callable(array($this, 'get'.ucfirst($name)))) {
+            return $this->{'get'.ucfirst($name)}();
+        }
+
         if (property_exists($this, $name)) {
             return $this->$name;
         }
 
         if (!$this->isDefinedName($name)) {
             throw new \Exception("{$name} is not defined");
-        }
-
-        if (is_callable(array($this, 'get_'.$name))) {
-            return $this->{'get_'.$name}();
         }
 
         if (isset($this->data) && isset($this->data[$name])) {
@@ -123,14 +123,15 @@ class GPModel
      *
      * @return void
      */
-    public function __set($name, $value)
+    public function __set($name, $value) : void
     {
-        if (!$this->isDefinedName($name)) {
-            throw new \Exception("{$name} is not defined");
+
+        if (is_callable(array($this, 'set'.ucfirst($name)))) {
+            $this->{'set'.ucfirst($name)}($value);
         }
 
-        if (is_callable(array($this, 'set_'.$name))) {
-            return $this->{'set_'.$name}($value);
+        if (!$this->isDefinedName($name)) {
+            throw new \Exception("{$name} is not defined");
         }
 
         // Check to see if the property is a persistable field
@@ -149,7 +150,7 @@ class GPModel
      * @return bool Did we set any values at all
      *
      */
-    public function setDataArray($data = [])
+    public function setDataArray(array $data = []) : bool
     {
         foreach ($data as $name => $value) {
             if (in_array($name, $this->fields)) {
@@ -169,7 +170,7 @@ class GPModel
      *
      * @return boolean  Return true if the Name is defined in the $field_names array
      */
-    public function isDefinedName($name)
+    public function isDefinedName(string $name) : bool
     {
         return in_array($name, $this->fields);
     }
@@ -182,7 +183,7 @@ class GPModel
      *
      * @return array
      */
-    public function toArray($fields = [])
+    public function toArray(array $fields = []) : array
     {
         if (empty($fields) || !is_array($fields)) {
             return $this->data;
@@ -197,9 +198,9 @@ class GPModel
      *
      * @param   string|array    $params     The primary key value or an
      *                                      array of property and values
-     * @return array | false                was a record found
+     * @return boolean                was a record found
      */
-    public function load($params)
+    public function load(array $params) : bool
     {
         $this->loaded = false;
 
