@@ -549,8 +549,6 @@ function deduplicate_order_items(array $item) : array
     $pdo->bindParam(':rx_number', $item['rx_number'], \PDO::PARAM_INT);
     $pdo->execute();
 
-    $res1 = $pdo->fetchAll();
-
     //DELETE doesn't work with offset so do it in two separate queries
     $sql2 = "SELECT
                   *
@@ -579,7 +577,6 @@ function deduplicate_order_items(array $item) : array
         'deduplicate_order_item',
         [
             'sql'  => $sql1,
-            'res1' => $res1,
             'sql2' => $sql2,
             'res2' => $res2
         ]
