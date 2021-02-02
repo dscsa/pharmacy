@@ -12,6 +12,89 @@ use Sirum\Logging\{
     CliLog
 };
 
+use Sirum\Utilities\Timer;
+
+
+/**
+ * Handle all the possible Item updates.  it will go through each type of change
+ * and proccess the individual change.
+ * @param  array $changes  The array should have 3 different elements,  deleted,
+ *      updated, created. Each element will be an array with those items.
+ *
+ * @return void
+ */
+function update_order_items($changes) : void
+{
+
+    $count_deleted  = count($changes['deleted']);
+    $count_created  = count($changes['created']);
+    $count_updated  = count($changes['updated']);
+    $orders_updated = [];
+
+    $msg = "$count_deleted deleted, $count_created created, $count_updated updated ";
+    SirumLog::info(
+        "update_order_items: all changes. {$msg}",
+        [
+            'deleted_count' => $count_deleted,
+            'created_count' => $count_created,
+            'updated_count' => $count_updated
+        ]
+    );
+
+    CliLog::info("update_order_items: all changes. {$msg}");
+
+    if ($count_deleted + $count_created + $count_updated == 0) {
+        return;
+    }
+    Timer::start('Order Items Changes');
+
+    SirumLog::notice('data-update-order-items', $changes);
+
+    Timer::start('Order Items Created');
+    foreach ($changes['created'] as $created) {
+        order_item_created($created, $orders_updated);
+    }
+    Timer::stop('Order Items Created');
+
+    Timer::start('Order Items Deleted');
+    foreach ($changes['deleted'] as $deleted) {
+        order_item_deleted($deleted, $orders_updated);
+    }
+    Timer::stop('Order Items Deleted');
+
+    if (! empty($orders_updated)) {
+        //TODO Somehow bundle patients comms if we are adding/removing drugs on next
+        //TODO  go-around, since order_update_notice would need to be sent again?
+        //The above seems like would be tricky so skipping this for now
+        $reason = "update_order_items: determining order updates for ".count($orders_updated)." orders";
+
+        SirumLog::debug(
+            $reason,
+            [
+              'orders_updated'  => $orders_updated,
+            ]
+        );
+
+        handle_adds_and_removes($orders_updated);
+    }
+
+    Timer::start('Order Items Updated');
+    foreach ($changes['updated'] as $updated) {
+        order_item_updated($updated);
+    }
+    Timer::stop('Order Items Updated');
+
+    Timer::stop('Order Items Changes');
+}
+
+
+/*
+
+    Change Handlers
+
+ */
+
+
 /**
  * Proccess an and item that has been added to an order.
  *
@@ -339,78 +422,11 @@ function order_item_updated(array $updated) : ?array
 }
 
 
-/**
- * Handle all the possible Item updates.  it will go through each type of change
- * and proccess the individual change.
- * @param  array $changes  The array should have 3 different elements,  deleted,
- *      updated, created. Each element will be an array with those items.
- *
- * @return void
+/*
+
+    Supporting functions
+
  */
-function update_order_items($changes) : void
-{
-
-    $count_deleted  = count($changes['deleted']);
-    $count_created  = count($changes['created']);
-    $count_updated  = count($changes['updated']);
-    $orders_updated = [];
-
-    $msg = "$count_deleted deleted, $count_created created, $count_updated updated ";
-    SirumLog::info(
-        "update_order_items: all changes. {$msg}",
-        [
-            'deleted_count' => $count_deleted,
-            'created_count' => $count_created,
-            'updated_count' => $count_updated
-        ]
-    );
-
-    CliLog::info("update_order_items: all changes. {$msg}");
-
-    if ($count_deleted + $count_created + $count_updated == 0) {
-        return;
-    }
-
-    SirumLog::notice('data-update-order-items', $changes);
-
-    Timer::start('create order items');
-    foreach ($changes['created'] as $created) {
-        order_item_created($created, $orders_updated);
-    }
-    Timer::start('create order items');
-
-    Timer::start('delete order items');
-    foreach ($changes['deleted'] as $deleted) {
-        order_item_deleted($deleted, $orders_updated);
-    }
-    Timer::stop('delete order items');
-
-    //TODO Somehow bundle patients comms if we are adding/removing drugs on next
-    //TODO  go-around, since order_update_notice would need to be sent again?
-    //The above seems like would be tricky so skipping this for now
-
-    if (! empty($orders_updated)) {
-        $reason = "update_order_items: determining order updates for ".count($orders_updated)." orders";
-
-        SirumLog::debug(
-            $reason,
-            [
-              'orders_updated'  => $orders_updated,
-            ]
-        );
-
-        handle_adds_and_removes($orders_updated);
-    }
-
-    //If just updated we need to
-    //  - see which fields changed
-    //  - think about what needs to be updated based on changes
-    Timer::start('update order items');
-    foreach ($changes['updated'] as $updated) {
-        order_item_updated($updated);
-    }
-    Timer::stop('update order items');
-}
 
 /**
  * Proccess all the add and remove items so we don't overwhelm the patient

@@ -13,11 +13,11 @@ date_default_timezone_set('America/New_York');
 require_once 'vendor/autoload.php';
 require_once 'helpers/helper_error_handler.php';
 
-use Sirum\Logging\{
-    SirumLog,
-    AuditLog,
-    CliLog
-};
+use Sirum\Logging\SirumLog;
+use Sirum\Logging\AuditLog;
+use Sirum\Logging\CliLog;
+
+use Sirum\Utilities\Timer;
 
 /*
   General Requires
@@ -38,6 +38,7 @@ if (!cp_test()) {
     $message = '** Could not connect to Carepoint **';
     echo "{$message}\n";
     SirumLog::alert($message);
+    CliLog::alert($message);
     SirumLog::getLogger()->flush();
     exit;
 }
@@ -98,6 +99,7 @@ if (!flock($f, LOCK_EX | LOCK_NB)) {
     $still_running = "\n*** Warning Webform Cron Job Because Previous One Is Still Running ***\n\n";
     echo $still_running;
     SirumLog::notice($still_running, $global_exec_details);
+    CliLog::notice($still_running);
 
     // Push any lagging logs to google Cloud
     SirumLog::getLogger()->flush();
@@ -114,12 +116,11 @@ if (!flock($f, LOCK_EX | LOCK_NB)) {
 file_put_contents('/goodpill/webform/pharmacy-run.txt', mktime());
 
 try {
-
     $global_exec_details['timers']       = [];
     $global_exec_details['timers_gd']    = [];
     $global_exec_details['timers_loops'] = [];
 
-    echo "\nStarting syncing.php. Importing data from sources:\n";
+    CliLog::info("Starting syncing.php. Importing data from sources:");
 
     /**
      * Import Orders from WooCommerce (an actual shippment) and store it in
@@ -130,11 +131,12 @@ try {
      * TODO we can currently have a CP order without a matching WC order,
      *      in these cases the WC order will show up in the "deleted" feed
      */
-    echo "Import WC Orders ";
-    $start_time = microtime(true);
+    CliLog::info("Start importing WooCommerce orders");
+    CliLog::info("Import WC Orders started");
+    Timer::start("Import WC Orders");
     import_wc_orders();
-    $global_exec_details['timers']['import_wc_orders'] = ceil(microtime(true) - $start_time);
-    echo "completed in {$global_exec_details['timers']['import_wc_orders']} seconds\n";
+    Timer::stop("Import WC Orders");
+    CliLog::info("Completed in " . Timer::read('Import WC Orders', Timer::FORMAT_HUMAN));
 
 
     /**
@@ -145,11 +147,11 @@ try {
      * NOTE Put this after wc_orders so that we never have an wc_order
      *      without a matching cp_order
      */
-    echo "Import CP Orders ";
-    $start_time = microtime(true);
+    CliLog::info("Import CP Orders started");
+    Timer::start("Import CP Orders");
     import_cp_orders(); //
-    $global_exec_details['timers']['import_cp_orders'] = ceil(microtime(true) - $start_time);
-    echo "completed in {$global_exec_details['timers']['import_cp_orders']} seconds\n";
+    Timer::stop("Import CP Orders");
+    CliLog::info("Completed in " . Timer::read('Import CP Orders', Timer::FORMAT_HUMAN));
 
     /**
      * Pull all the ordered items(perscribed medication) from CarePoint
@@ -160,11 +162,11 @@ try {
      * NOTE Put this after orders so that we never have an order without a
      *      matching order_item
      */
-    echo "Import CP Order Items ";
-    $start_time = microtime(true);
+    CliLog::info("Import CP Order Items started");
+    Timer::start("Import CP Order Items");
     import_cp_order_items(); //
-    $global_exec_details['timers']['import_cp_order_items'] = ceil(microtime(true) - $start_time);
-    echo "completed in {$global_exec_details['timers']['import_cp_order_items']} seconds\n";
+    Timer::stop("Import CP Order Items");
+    CliLog::info("Completed in " . Timer::read('Import CP Order Items', Timer::FORMAT_HUMAN));
 
     /**
      *
@@ -174,11 +176,11 @@ try {
      *
      * NOTE Put this after orders so that we never have an order without a matching patient
      */
-    echo "Import CP Patients ";
-    $start_time = microtime(true);
+    CliLog::info("Import CP Patients started");
+    Timer::start("Import CP Patients");
     import_cp_patients();
-    $global_exec_details['timers']['import_cp_patients'] = ceil(microtime(true) - $start_time);
-    echo "completed in {$global_exec_details['timers']['import_cp_patients']} seconds\n";
+    Timer::stop("Import CP Patients");
+    CliLog::info("Completed in " . Timer::read('Import CP Patients', Timer::FORMAT_HUMAN));
 
     /**
      * Pull all the patiens/users out of woocommerce and put them into the mysql tables
@@ -192,11 +194,11 @@ try {
      * NOTE Put this after cp_patients so that we always import all new cp_patients
      *      first, so that out wc_patient created feed does not give false positives
      */
-    echo "Import WC Patients ";
-    $start_time = microtime(true);
+    CliLog::info("Import WC Patients started");
+    Timer::start("Import WC Patients");
     import_wc_patients();
-    $global_exec_details['timers']['import_wc_patients'] = ceil(microtime(true) - $start_time);
-    echo "completed in {$global_exec_details['timers']['import_wc_patients']} seconds\n";
+    Timer::stop("Import WC Patients");
+    CliLog::info("Completed in " . Timer::read('Import WC Patients', Timer::FORMAT_HUMAN));
 
     /**
      * Get the RX details out of CarePoint and put into the mysql table
@@ -206,11 +208,11 @@ try {
      * NOTE Put this after order_items so that we never have an order item without
      *  a matching rx
      */
-    echo "Import Rxs Single ";
-    $start_time = microtime(true);
+    CliLog::info("Import Rxs Single started");
+    Timer::start("Import Rxs Single");
     import_cp_rxs_single();
-    $global_exec_details['timers']['import_cp_rxs_single'] = ceil(microtime(true) - $start_time);
-    echo "completed in {$global_exec_details['timers']['import_cp_rxs_single']} seconds\n";
+    Timer::stop("Import Rxs Single");
+    CliLog::info("Completed in " . Timer::read('Import Rxs Single', Timer::FORMAT_HUMAN));
 
     /**
      * Import stock levels for this month and the 2 previous months.  Store this in
@@ -219,11 +221,11 @@ try {
      *
      * NOTE Put this after rxs so that we never have a rxs without a matching stock level
      */
-    echo "Import v2 Stock by Month ";
-    $start_time = microtime(true);
+    CliLog::info("Import v2 Stock by Month started");
+    Timer::start("Import v2 Stock by Month");
     import_v2_stock_by_month();
-    $global_exec_details['timers']['import_v2_stock_by_month'] = ceil(microtime(true) - $start_time);
-    echo "completed in {$global_exec_details['timers']['import_v2_stock_by_month']} seconds\n";
+    Timer::stop("Import v2 Stock by Month");
+    CliLog::info("Completed in " . Timer::read('Import v2 Stock by Month', Timer::FORMAT_HUMAN));
 
     /**
      * Get all the possible drugs from v2 and put them into
@@ -232,68 +234,68 @@ try {
      *
      * NOTE Put this after rxs so that we never have a rxs without a matching drug
      */
-    echo "Import v2 Drugs ";
-    $start_time = microtime(true);
+    CliLog::info("Import v2 Drugs started");
+    Timer::start("Import v2 Drugs");
     import_v2_drugs();
-    $global_exec_details['timers']['import_v2_drugs'] = ceil(microtime(true) - $start_time);
-    echo "completed in {$global_exec_details['timers']['import_v2_drugs']} seconds\n";
+    Timer::stop("Import v2 Drugs");
+    CliLog::info("Completed in " . Timer::read('Import v2 Drugs', Timer::FORMAT_HUMAN));
 
     echo "\nAll Data Imported. Starting Change Detection:\n";
     /*
       Now we will update tables to new data and determine change feeds
      */
 
-     echo "Changes Drugs ";
-     $start_time = microtime(true);
-     $changes_to_drugs = changes_to_drugs("gp_drugs_v2");
-     $global_exec_details['timers']['changes_drugs'] = ceil(microtime(true) - $start_time);
-     echo "completed in {$global_exec_details['timers']['changes_drugs']} seconds\n";
+    CliLog::info("Changes Drugs started");
+    Timer::start("Changes Drugs");
+    $changes_to_drugs = changes_to_drugs("gp_drugs_v2");
+    Timer::stop("Changes Drugs");
+    CliLog::info("Completed in " . Timer::read('Changes Drugs', Timer::FORMAT_HUMAN));
 
-     echo "Changes Stock by Month ";
-     $start_time = microtime(true);
-     $changes_to_stock_by_month = changes_to_stock_by_month("gp_stock_by_month_v2");
-     $global_exec_details['timers']['changes_stock_by_month'] = ceil(microtime(true) - $start_time);
-     echo "completed in {$global_exec_details['timers']['changes_stock_by_month']} seconds\n";
+    CliLog::info("Changes Stock by Month started");
+    Timer::start("Changes Stock by Month");
+    $changes_to_stock_by_month = changes_to_stock_by_month("gp_stock_by_month_v2");
+    Timer::stop("Changes Stock by Month");
+    CliLog::info("Completed in " . Timer::read('Changes Stock by Month', Timer::FORMAT_HUMAN));
 
-     echo "Changes Rxs Single ";
-     $start_time = microtime(true);
-     $changes_to_rxs_single = changes_to_rxs_single("gp_rxs_single_cp");
-     $global_exec_details['timers']['changes_rxs_single'] = ceil(microtime(true) - $start_time);
-     echo "completed in {$global_exec_details['timers']['changes_rxs_single']} seconds\n";
+    CliLog::info("Changes Rxs Single started");
+    Timer::start("Changes Rxs Single");
+    $changes_to_rxs_single = changes_to_rxs_single("gp_rxs_single_cp");
+    Timer::stop("Changes Rxs Single");
+    CliLog::info("Completed in " . Timer::read('Changes Rxs Single', Timer::FORMAT_HUMAN));
 
-     echo "Changes CP Patients ";
-     $start_time = microtime(true);
-     $changes_to_patients_cp = changes_to_patients_cp("gp_patients_cp");
-     $global_exec_details['timers']['changes_patients_cp'] = ceil(microtime(true) - $start_time);
-     echo "completed in {$global_exec_details['timers']['changes_patients_cp']} seconds\n";
+    CliLog::info("Changes CP Patients started");
+    Timer::start("Changes CP Patients");
+    $changes_to_patients_cp = changes_to_patients_cp("gp_patients_cp");
+    Timer::stop("Changes CP Patients");
+    CliLog::info("Completed in " . Timer::read('Changes CP Patients', Timer::FORMAT_HUMAN));
 
-     echo "Changes WC Patients ";
-     $start_time = microtime(true);
-     $changes_to_patients_wc = changes_to_patients_wc("gp_patients_wc");
-     $global_exec_details['timers']['changes_patients_wc'] = ceil(microtime(true) - $start_time);
-     echo "completed in {$global_exec_details['timers']['changes_patients_wc']} seconds\n";
+    CliLog::info("Changes WC Patients started");
+    Timer::start("Changes WC Patients");
+    $changes_to_patients_wc = changes_to_patients_wc("gp_patients_wc");
+    Timer::stop("Changes WC Patients");
+    CliLog::info("Completed in " . Timer::read('Changes WC Patients', Timer::FORMAT_HUMAN));
 
-     echo "Changes Order Items ";
-     $start_time = microtime(true);
-     $changes_to_order_items = changes_to_order_items('gp_order_items_cp');
-     $global_exec_details['timers']['changes_order_items'] = ceil(microtime(true) - $start_time);
-     echo "completed in {$global_exec_details['timers']['changes_order_items']} seconds\n";
+    CliLog::info("Changes Order Items started");
+    Timer::start("Changes Order Items");
+    $changes_to_order_items = changes_to_order_items('gp_order_items_cp');
+    Timer::stop("Changes Order Items");
+    CliLog::info("Completed in " . Timer::read('Changes Order Items', Timer::FORMAT_HUMAN));
 
-     echo "Changes CP Orders ";
-     $start_time = microtime(true);
-     $changes_to_orders_cp = changes_to_orders_cp("gp_orders_cp");
-     $global_exec_details['timers']['changes_orders_cp'] = ceil(microtime(true) - $start_time);
-     echo "completed in {$global_exec_details['timers']['changes_orders_cp']} seconds\n";
+    CliLog::info("Changes CP Orders started");
+    Timer::start("Changes CP Orders");
+    $changes_to_orders_cp = changes_to_orders_cp("gp_orders_cp");
+    Timer::stop("Changes CP Orders");
+    CliLog::info("Completed in " . Timer::read('Changes CP Orders', Timer::FORMAT_HUMAN));
 
-     echo "Changes WC Orders ";
-     $start_time = microtime(true);
-     $changes_to_orders_wc = changes_to_orders_wc("gp_orders_wc");
-     $global_exec_details['timers']['changes_orders_wc'] = ceil(microtime(true) - $start_time);
-     echo "completed in {$global_exec_details['timers']['changes_orders_wc']} seconds\n";
+    CliLog::info("Changes WC Orders started");
+    Timer::start("Changes WC Orders");
+    $changes_to_orders_wc = changes_to_orders_wc("gp_orders_wc");
+    Timer::stop("Changes WC Orders");
+    CliLog::info("Completed in " . Timer::read('Changes WC Orders', Timer::FORMAT_HUMAN));
 
-     echo "\nAll Changes Detected & Tables Updated. Starting Updates:\n";
-     /*
-      Now we will to trigger side effects based on changes
+    echo "\nAll Changes Detected & Tables Updated. Starting Updates:\n";
+    /*
+     Now we will to trigger side effects based on changes
     */
 
     //We can spin up a new PHP process now without conflicts, don't need to wait
@@ -307,11 +309,11 @@ try {
      *
      * NOTE Updates (Mirror Ordering of the above - not sure how necessary this is)
      */
-    echo "Update Drugs ";
-    $start_time = microtime(true);
+    CliLog::info("Update Drugs started");
+    Timer::start("Update Drugs");
     update_drugs($changes_to_drugs);
-    $global_exec_details['timers']['update_drugs'] = ceil(microtime(true) - $start_time);
-    echo "completed in {$global_exec_details['timers']['update_drugs']} seconds\n";
+    Timer::stop("Update Drugs");
+    CliLog::info("Completed in " . Timer::read('Update Drugs', Timer::FORMAT_HUMAN));
 
     /**
      * Bring in the inventory and put it into the live stock table
@@ -321,60 +323,60 @@ try {
      * TABLE gp_stock_by_month
      *
      */
-    echo "Update Stock by Month ";
-    $start_time = microtime(true);
+    CliLog::info("Update Stock by Month started");
+    Timer::start("Update Stock by Month");
     update_stock_by_month($changes_to_stock_by_month);
-    $global_exec_details['timers']['update_stock_by_month'] = ceil(microtime(true) - $start_time);
-    echo "completed in {$global_exec_details['timers']['update_stock_by_month']} seconds\n";
+    Timer::stop("Update Stock by Month");
+    CliLog::info("Completed in " . Timer::read('Update Stock by Month', Timer::FORMAT_HUMAN));
     /**
      * [update_rxs_single description]
      * @var [type]
      */
 
-    echo "Update CP Patients ";
-    $start_time = microtime(true);
+    CliLog::info("Update CP Patients started");
+    Timer::start("Update CP Patients");
     update_patients_cp($changes_to_patients_cp);
-    $global_exec_details['timers']['update_patients_cp'] = ceil(microtime(true) - $start_time);
-    echo "completed in {$global_exec_details['timers']['update_patients_cp']} seconds\n";
+    Timer::stop("Update CP Patients");
+    CliLog::info("Completed in " . Timer::read('Update CP Patients', Timer::FORMAT_HUMAN));
 
-    echo "Update WC Patients ";
-    $start_time = microtime(true);
+    CliLog::info("Update WC Patients started");
+    Timer::start("Update WC Patients");
     update_patients_wc($changes_to_patients_wc);
-    $global_exec_details['timers']['update_patients_wc'] = ceil(microtime(true) - $start_time);
-    echo "completed in {$global_exec_details['timers']['update_patients_wc']} seconds\n";
+    Timer::stop("Update WC Patients");
+    CliLog::info("Completed in " . Timer::read('Update WC Patients', Timer::FORMAT_HUMAN));
 
     //Run before cp-order and order-items to make sure that rx-grouped is upto date when doing load_full_order/item
-    echo "Update Rxs Single ";
-    $start_time = microtime(true);
+    CliLog::info("Update Rxs Single started");
+    Timer::start("Update Rxs Single");
     update_rxs_single($changes_to_rxs_single);
-    $global_exec_details['timers']['update_rxs_single'] = ceil(microtime(true) - $start_time);
-    echo "completed in {$global_exec_details['timers']['update_rxs_single']} seconds\n";
+    Timer::stop("Update Rxs Single");
+    CliLog::info("Completed in " . Timer::read('Update Rxs Single', Timer::FORMAT_HUMAN));
 
-    echo "Update CP Orders ";
-    $start_time = microtime(true);
+    CliLog::info("Update CP Orders started");
+    Timer::start("Update CP Orders");
     update_orders_cp($changes_to_orders_cp);
-    $global_exec_details['timers']['update_orders_cp'] = ceil(microtime(true) - $start_time);
-    echo "completed in {$global_exec_details['timers']['update_orders_cp']} seconds\n";
+    Timer::stop("Update CP Orders");
+    CliLog::info("Completed in " . Timer::read('Update CP Orders', Timer::FORMAT_HUMAN));
 
-    echo "Update WC Orders ";
-    $start_time = microtime(true);
+    CliLog::info("Update WC Orders started");
+    Timer::start("Update WC Orders");
     update_orders_wc($changes_to_orders_wc);
-    $global_exec_details['timers']['update_orders_wc'] = ceil(microtime(true) - $start_time);
-    echo "completed in {$global_exec_details['timers']['update_orders_wc']} seconds\n";
+    Timer::stop("Update WC Orders");
+    CliLog::info("Completed in " . Timer::read('Update WC Orders', Timer::FORMAT_HUMAN));
 
     //Run this after orders-cp loop so that we can sync items to the order and remove duplicate GSNs first,
     //rather than doing stuff in this loop that we undo in the orders-cp loop
-    echo "Update Order Items ";
-    $start_time = microtime(true);
+    CliLog::info("Update Order Items started");
+    Timer::start("Update Order Items");
     update_order_items($changes_to_order_items);
-    $global_exec_details['timers']['update_order_items'] = ceil(microtime(true) - $start_time);
-    echo "completed in {$global_exec_details['timers']['update_order_items']} seconds\n";
+    Timer::stop("Update Order Items");
+    CliLog::info("Completed in " . Timer::read('Update Order Items', Timer::FORMAT_HUMAN));
 
     echo "Watch Invoices ";
-    $start_time = microtime(true);
+    Timer::start('Watch Invoices');
     watch_invoices();
-    $global_exec_details['timers']['watch_invoices'] = ceil(microtime(true) - $start_time);
-    echo "completed in {$global_exec_details['timers']['watch_invoices']} seconds\n";
+    Timer::stop('Watch Invoices');
+    CliLog::info("Completed in " . Timer::read('Watch Invoices', Timer::FORMAT_HUMAN));
 
 
     $global_exec_details['timers']['total']      = array_sum($global_exec_details['timers']);
@@ -398,15 +400,25 @@ try {
     }
 
 
-    echo "\nAll data processed {$global_exec_details['end']}\n";
+    CliLog::info("All data processed {$global_exec_details['end']}");
 
     print_r($global_exec_details);
-
 } catch (Exception $e) {
     $global_exec_details['error_message'] = $e->getMessage;
     SirumLog::alert('Webform Cron Job Fatal Error', $global_exec_details);
     throw $e;
 }
+
+$timers = Timer::getTimers();
+
+foreach ($timers as $timer) {
+    printf(
+        "%s: %d\n",
+        $timer,
+        Timer::read($timer, Timer::FORMAT_HUMAN)
+    );
+}
+
 
 // Push any lagging logs to google Cloud
 SirumLog::getLogger()->flush();
