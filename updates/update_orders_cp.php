@@ -15,6 +15,65 @@ use Sirum\Logging\{
 
 use Sirum\Utilities\Timer;
 
+/**
+ * The general main function to proccess the individual change arrays
+ * @param  array $changes [description]
+ * @return void
+ */
+function update_orders_cp(array $changes) : void
+{
+    $count_deleted = count($changes['deleted']);
+    $count_created = count($changes['created']);
+    $count_updated = count($changes['updated']);
+
+    $msg = "$count_deleted deleted, $count_created created, $count_updated updated ";
+
+    SirumLog::info(
+        "update_orders_cp: all changes. {$msg}",
+        [
+            'deleted_count' => $count_deleted,
+            'created_count' => $count_created,
+            'updated_count' => $count_updated
+        ]
+    );
+
+    CliLog::info($msg);
+
+    if ($count_deleted + $count_created + $count_updated == 0) {
+        return;
+    }
+
+    SirumLog::notice('data-update-orders-cp', $changes);
+    Timer::start("Carepoint Orders Changes");
+    $mysql = new Mysql_Wc();
+
+    Timer::start("Carepoint Orders Created");
+    foreach ($changes['created'] as $created) {
+        cp_order_created($created);
+    }
+    Timer::stop("Carepoint Orders Created");
+
+    Timer::start("Carepoint Orders Deleted");
+    foreach ($changes['deleted'] as $deleted) {
+        cp_order_deleted($deleted);
+    }
+    Timer::stop("Carepoint Orders Deleted");
+
+    Timer::start("Carepoint Orders Updated");
+    foreach ($changes['updated'] as $i => $updated) {
+        cp_order_updated($updated);
+    }
+    Timer::stop("Carepoint Orders Updated");
+
+    Timer::stop("Carepoint Orders Changes");
+    SirumLog::resetSubroutineId();
+}
+
+/*
+
+    Change Handlers
+
+ */
 
 /**
  * Handle a Carepoint order that was created
@@ -633,58 +692,4 @@ function cp_order_updated(array $updated) : ?array
 
     SirumLog::resetSubroutineId();
     return $updated;
-}
-
-/**
- * The general main function to proccess the individual change arrays
- * @param  array $changes [description]
- * @return void
- */
-function update_orders_cp(array $changes) : void
-{
-    $count_deleted = count($changes['deleted']);
-    $count_created = count($changes['created']);
-    $count_updated = count($changes['updated']);
-
-    $msg = "$count_deleted deleted, $count_created created, $count_updated updated ";
-
-    SirumLog::info(
-        "update_orders_cp: all changes. {$msg}",
-        [
-            'deleted_count' => $count_deleted,
-            'created_count' => $count_created,
-            'updated_count' => $count_updated
-        ]
-    );
-
-    CliLog::info($msg);
-
-    if ($count_deleted + $count_created + $count_updated == 0) {
-        return;
-    }
-
-    SirumLog::notice('data-update-orders-cp', $changes);
-    Timer::start("Carepoint Orders Changes");
-    $mysql = new Mysql_Wc();
-
-    Timer::start("Carepoint Orders Created");
-    foreach ($changes['created'] as $created) {
-        cp_order_created($created);
-    }
-    Timer::stop("Carepoint Orders Created");
-
-    Timer::start("Carepoint Orders Deleted");
-    foreach ($changes['deleted'] as $deleted) {
-        cp_order_deleted($deleted);
-    }
-    Timer::stop("Carepoint Orders Deleted");
-
-    Timer::start("Carepoint Orders Updated");
-    foreach ($changes['updated'] as $i => $updated) {
-        cp_order_updated($updated);
-    }
-    Timer::stop("Carepoint Orders Updated");
-
-    Timer::stop("Carepoint Orders Changes");
-    SirumLog::resetSubroutineId();
 }

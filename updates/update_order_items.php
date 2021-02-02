@@ -544,7 +544,7 @@ function deduplicate_order_items(array $item) : array
                 WHERE invoice_number = :invoice_number
                     AND rx_number = :rx_number";
 
-    $pdo = $goodpill_db->prepare($sql);
+    $pdo = $goodpill_db->prepare($sql1);
     $pdo->bindParam(':invoice_number', $item['invoice_number'], \PDO::PARAM_INT);
     $pdo->bindParam(':rx_number', $item['rx_number'], \PDO::PARAM_INT);
     $pdo->execute();
