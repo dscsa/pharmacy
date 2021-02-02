@@ -447,7 +447,7 @@ function pend_group_name($item)
  * @param  array  $list A v2 compatible picklist
  * @return boolean      False if the list was already pended or was not there.
  */
-function pend_pick_list($item, $list) : boolean
+function pend_pick_list($item, $list)
 {
     if (!$list) {
         return false;
