@@ -402,6 +402,7 @@ try {
 
     CliLog::info("All data processed {$global_exec_details['end']}");
 
+    $global_exec_details['timers']['total'] = ceil(microtime(true) - $start_time);
     print_r($global_exec_details);
 } catch (Exception $e) {
     $global_exec_details['error_message'] = $e->getMessage;
@@ -418,7 +419,6 @@ foreach ($timers as $timer) {
         Timer::read($timer, Timer::FORMAT_HUMAN)
     );
 }
-
 
 // Push any lagging logs to google Cloud
 SirumLog::getLogger()->flush();
