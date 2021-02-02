@@ -441,10 +441,16 @@ function pend_group_name($item)
     return pend_group_new_patient($item);
 }
 
-function pend_pick_list($item, $list)
+/**
+ * Send a picklist to v2 so it is pended
+ * @param  array  $item An item to pend
+ * @param  array  $list A v2 compatible picklist
+ * @return boolean      False if the list was already pended or was not there.
+ */
+function pend_pick_list($item, $list) : boolean
 {
-    if (! $list) {
-        return;
+    if (!$list) {
+        return false;
     } //List could not be made
 
     if ($pended_group = get_item_pended_group($item)) {
@@ -456,7 +462,7 @@ function pend_pick_list($item, $list)
                 "ABORTED PEND! %s for %s appears to be already pended in pend group %s.  Please confirm.",
                 @$item['drug_name'],
                 @$item['invoice_number'],
-                reset($pended_groups)
+                $pended_group
             ),
             $item
         );
@@ -466,7 +472,7 @@ function pend_pick_list($item, $list)
                 "v2_pend_item: ABORTED! %s for %s appears to be already pended in pend group %s.  Please confirm.",
                 @$item['drug_name'],
                 @$item['invoice_number'],
-                reset($pended_groups)
+                $pended_group
             ),
             [ 'item' => $item ]
         );
@@ -476,11 +482,11 @@ function pend_pick_list($item, $list)
                 "ABORTED PEND! %s for %s appears to be already pended in pend group %s",
                 @$item['drug_name'],
                 @$item['invoice_number'],
-                reset($pended_groups)
+                $pended_group
             )
         );
 
-        return $item;
+        return false;
     }
 
     $pend_group_name = pend_group_name($item);
@@ -494,6 +500,14 @@ function pend_pick_list($item, $list)
     $res = v2_fetch($pend_url, 'POST', $list['pend']);
 
     CliLog::debug("pend_pick_list: {$item['invoice_number']} {$item['drug_name']} {$item['rx_number']}");
+
+    SirumLog::alert(
+        'Look at the data from v2 pend and make sure it happened',
+        [ 'item' => $item, 'results' => $res, 'list' => $list ]
+    );
+
+    // TODO put in logic to actuall see if it happened
+    return true;
 }
 
 /**
