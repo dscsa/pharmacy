@@ -404,8 +404,6 @@ function set_item_invoice_data($item, $mysql) {
 
 function set_days_and_message($item, $days, $message, $mysql) {
 
-  log_notice("set_days_and_message: called", compact('item', 'days', 'message'));
-
   if (is_null($days) OR is_null($message)) {
     SirumLog::alert("set_days_and_message: days/message should not be NULL", compact('item', 'days', 'message'));
     return $item;
