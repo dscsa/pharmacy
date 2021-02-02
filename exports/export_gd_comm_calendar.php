@@ -481,16 +481,16 @@ function order_cancelled_notice($partial, $groups)
         return SirumLog::alert('order_cancelled_notice: not sending because no_rx_notice should be sent instead (was already sent?)', get_defined_vars());
     }
 
-    $subject = "Good Pill Order #$partial[invoice_number] has been cancelled";
+    $subject = "Order #$partial[invoice_number] has been cancelled";
 
     if (is_webform_transfer($partial)) {
 
-        $message = "We attempted to transfer prescriptions from {$groups['ALL'][0]['pharmacy_name']} but they did not have an Rx for the requested drugs with refills remaining.  Could you please let us know your doctor's name and phone number so that we can reach out to them to get new prescription(s)";
+        $message = "Good Pill attempted to transfer prescriptions from {$groups['ALL'][0]['pharmacy_name']} but they did not have an Rx for the requested drugs with refills remaining.  Could you please let us know your doctor's name and phone number so that we can reach out to them to get new prescription(s)";
 
     } else {
         $drug_list = implode(';<br>', array_merge($groups['NOFILL_NOACTION'], $groups['NOFILL_ACTION']));
         $drug_list = str_replace('is being', 'was', $drug_list); //hacky way to change verb tense
-        $message   = "<u>We are NOT filling:</u><br>$drug_list;";
+        $message   = "<u>Good Pill is NOT filling:</u><br>$drug_list;";
         $message  .= "<br><br>If you believe this cancellation was in error, call us (888) 987-5187";
     }
 
