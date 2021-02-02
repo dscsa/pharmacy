@@ -410,6 +410,9 @@ function cp_order_deleted(array $deleted) : ?array
             "update_orders_cp: cp order deleted $reason"
         );
     }
+
+    return $deleted;
+
     SirumLog::resetSubroutineId();
 }
 
@@ -445,10 +448,8 @@ function cp_order_updated(array $updated) : ?array
 
     SirumLog::notice(
         sprintf(
-            "Updated Orders Cp: %s %s of %s",
-            $updated['invoice_number'],
-            ($i + 1),
-            count($changes['updated'])
+            "Updated Orders Cp: %s",
+            $updated['invoice_number']
         ),
         [ 'changed' => $changed]
     );
