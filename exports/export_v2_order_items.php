@@ -6,6 +6,8 @@ use Sirum\Logging\{
     CLiLog
 };
 
+use \Sirum\DataModels\GoodPillOrder;
+
 require_once 'exports/export_cp_orders.php';
 
 function export_v2_unpend_order($order, $mysql, $reason)
@@ -32,6 +34,35 @@ function export_v2_unpend_order($order, $mysql, $reason)
  */
 function v2_pend_item($item, $mysql, $reason)
 {
+    // Make sure there is an order before we Pend.  If there isn't one skip the
+    // pend and put in an alert.
+    $gp_order = new GoodPillOrder(['invoice_number' => $item['invoice_number']]);
+    if (!$gp_order->loaded) {
+        AuditLog::log(
+            sprintf(
+                "ABORTED PEND Attempted to pend %s for Rx#%s on Invoice #%s. This
+                order doesn't exist in the Database",
+                @$item['drug_name'],
+                @$item['rx_number'],
+                @$item['invoice_number']
+            ),
+            $item
+        );
+
+        SirumLog::error(
+            sprintf(
+                "ABORTED PEND Attempted to pend %s for Rx#%s on Invoice #%s. This
+                order doesn't exist in the Database",
+                @$item['drug_name'],
+                @$item['rx_number'],
+                @$item['invoice_number']
+            ),
+            [ 'item' => $item ]
+        );
+
+        return $item;
+    }
+
     // Abort the pend if we are missing a key field
     if (!$item['days_dispensed_default']
       or $item['rx_dispensed_id']
