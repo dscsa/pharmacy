@@ -6,6 +6,8 @@ use Sirum\Logging\{
     CLiLog
 };
 
+use \Sirum\DataModels\GoodPillOrder;
+
 require_once 'exports/export_cp_orders.php';
 
 function export_v2_unpend_order($order, $mysql, $reason)
@@ -32,6 +34,35 @@ function export_v2_unpend_order($order, $mysql, $reason)
  */
 function v2_pend_item($item, $mysql, $reason)
 {
+    // Make sure there is an order before we Pend.  If there isn't one skip the
+    // pend and put in an alert.
+    $gp_order = new GoodPillOrder(['invoice_number' => $item['invoice_number']]);
+    if (!$gp_order->loaded) {
+        AuditLog::log(
+            sprintf(
+                "ABORTED PEND Attempted to pend %s for Rx#%s on Invoice #%s. This
+                order doesn't exist in the Database",
+                @$item['drug_name'],
+                @$item['rx_number'],
+                @$item['invoice_number']
+            ),
+            $item
+        );
+
+        SirumLog::error(
+            sprintf(
+                "ABORTED PEND Attempted to pend %s for Rx#%s on Invoice #%s. This
+                order doesn't exist in the Database",
+                @$item['drug_name'],
+                @$item['rx_number'],
+                @$item['invoice_number']
+            ),
+            [ 'item' => $item ]
+        );
+
+        return $item;
+    }
+
     // Abort the pend if we are missing a key field
     if (!$item['days_dispensed_default']
       or $item['rx_dispensed_id']
@@ -410,10 +441,16 @@ function pend_group_name($item)
     return pend_group_new_patient($item);
 }
 
+/**
+ * Send a picklist to v2 so it is pended
+ * @param  array  $item An item to pend
+ * @param  array  $list A v2 compatible picklist
+ * @return boolean      False if the list was already pended or was not there.
+ */
 function pend_pick_list($item, $list)
 {
-    if (! $list) {
-        return;
+    if (!$list) {
+        return false;
     } //List could not be made
 
     if ($pended_group = get_item_pended_group($item)) {
@@ -425,7 +462,7 @@ function pend_pick_list($item, $list)
                 "ABORTED PEND! %s for %s appears to be already pended in pend group %s.  Please confirm.",
                 @$item['drug_name'],
                 @$item['invoice_number'],
-                reset($pended_groups)
+                $pended_group
             ),
             $item
         );
@@ -435,7 +472,7 @@ function pend_pick_list($item, $list)
                 "v2_pend_item: ABORTED! %s for %s appears to be already pended in pend group %s.  Please confirm.",
                 @$item['drug_name'],
                 @$item['invoice_number'],
-                reset($pended_groups)
+                $pended_group
             ),
             [ 'item' => $item ]
         );
@@ -445,11 +482,11 @@ function pend_pick_list($item, $list)
                 "ABORTED PEND! %s for %s appears to be already pended in pend group %s",
                 @$item['drug_name'],
                 @$item['invoice_number'],
-                reset($pended_groups)
+                $pended_group
             )
         );
 
-        return $item;
+        return false;
     }
 
     $pend_group_name = pend_group_name($item);
@@ -463,6 +500,14 @@ function pend_pick_list($item, $list)
     $res = v2_fetch($pend_url, 'POST', $list['pend']);
 
     CliLog::debug("pend_pick_list: {$item['invoice_number']} {$item['drug_name']} {$item['rx_number']}");
+
+    SirumLog::alert(
+        'Look at the data from v2 pend and make sure it happened',
+        [ 'item' => $item, 'results' => $res, 'list' => $list ]
+    );
+
+    // TODO put in logic to actuall see if it happened
+    return true;
 }
 
 /**

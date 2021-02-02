@@ -201,7 +201,7 @@ class GPModel
      */
     public function load($params)
     {
-        $this->loaded = true;
+        $this->loaded = false;
 
         if (empty($this->table_name) || empty($this->fields)) {
             $this->log->error('The properties {table_name}, and {fields}
