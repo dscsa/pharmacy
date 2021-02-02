@@ -350,6 +350,7 @@ function print_pick_list($item, $list)
     ); //We don't need full shopping list cluttering logs
 }
 
+
 /**
  * Check to see if this specific item has already been pended
  * @param  array   $item           The data for an order item
@@ -499,15 +500,23 @@ function pend_pick_list($item, $list)
     //Pend after all forseeable errors are accounted for.
     $res = v2_fetch($pend_url, 'POST', $list['pend']);
 
-    CliLog::debug("pend_pick_list: {$item['invoice_number']} {$item['drug_name']} {$item['rx_number']}");
+    if (isset($res) && $list['pend'][0]['_rev'] != $res[0]['rev']) {
+        SirumLog::debug("pend_pick_list: SUCCESS!! {$item['invoice_number']} {$item['drug_name']} {$item['rx_number']}");
+        return true;
+    }
 
-    SirumLog::alert(
-        'Look at the data from v2 pend and make sure it happened',
-        [ 'item' => $item, 'results' => $res, 'list' => $list ]
+    AuditLog::log(
+        sprintf(
+            "PEND Failed %s for %s failed to pend.   %s.  Please manually pend if needed.",
+            @$item['drug_name'],
+            @$item['invoice_number'],
+            $pended_group
+        ),
+        $item
     );
 
-    // TODO put in logic to actuall see if it happened
-    return true;
+    SirumLog::warning("pend_pick_list: FAILURE!! {$item['invoice_number']} {$item['drug_name']} {$item['rx_number']}");
+    return false;
 }
 
 /**
@@ -521,7 +530,7 @@ function pend_pick_list($item, $list)
 function unpend_pick_list($item)
 {
 
-// If we don't have specific pendgroups, then go get some
+    // If we don't have specific pendgroups, then go get some
     $pend_group = get_item_pended_group($item);
 
     if (!$pend_group) {
