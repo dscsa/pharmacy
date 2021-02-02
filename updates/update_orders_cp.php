@@ -453,6 +453,7 @@ function cp_order_updated(array $updated) : ?array
         [ 'changed' => $changed]
     );
 
+    $mysql  = new Mysql_Wc();
     $order  = load_full_order($updated, $mysql);
     $groups = group_drugs($order, $mysql);
 
