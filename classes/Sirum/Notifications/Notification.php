@@ -92,7 +92,7 @@ class Notification extends GPModel
             $pdo->execute();
 
             // Fresh load the data
-            $this->load($this->hash);
+            $this->load(['hash' => $this->hash]);
         }
 
         return $this->isStored();
