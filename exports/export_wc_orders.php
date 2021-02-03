@@ -562,7 +562,7 @@ function export_wc_update_order_payment($invoice_number, $payment_fee, $payment_
     SirumLog::notice(
         "export_wc_update_order_payment: called $invoice_number",
         [
-              "invoice"     => $invoice_number,
+              "invoice_number"     => $invoice_number,
               "payment_fee" => $payment_fee,
               "payment_due" => $payment_due
         ]

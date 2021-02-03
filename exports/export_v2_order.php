@@ -5,6 +5,8 @@ use \Sirum\Logging\SirumLog;
 
 function v2_unpend_order_by_invoice(int $invoice_number) : bool
 {
+
+    SirumLog::debug("Unpending entire order via V2 {$invoice_number}");
     while ($pend_group = find_order_pend_group($invoice_number)) { // Keep doing until we can't find a pended item
         $loop_count = (isset($loop_count) ? ++$loop_count : 1);
         if ($results = v2_fetch("/account/8889875187/pend/{$pend_group}", 'DELETE')) {
@@ -19,7 +21,7 @@ function v2_unpend_order_by_invoice(int $invoice_number) : bool
             return false;
         }
     }
-
+    SirumLog::debug("No drugs pended under order #{$invoice_number}");
     return false;
 }
 
