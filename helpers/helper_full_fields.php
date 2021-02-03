@@ -74,7 +74,11 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
               ]
           );
 
-          export_cp_remove_items($patient_or_order[$i]['invoice_number'], $duplicate_items);
+          foreach($duplicate_items as $i => $duplicate_item) {
+              if ($i == 0) continue; //keep the oldest item
+              export_cp_remove_items($duplicate_item['invoice_number'], [$duplicate_item]);
+          }
+
         }
 
         //Overwrite refers to the rx_single and rx_grouped table not the order_items table which deliberitely keeps its initial values
