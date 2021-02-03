@@ -16,14 +16,14 @@ class Notification extends GPModel
      * @var array
      */
     protected $fields = [
-                                "notification_id",
-                                "hash",
-                                "token",
-                                "attempted_sends",
-                                "details",
-                                "initial_send",
-                                "type"
-                             ];
+        "notification_id",
+        "hash",
+        "token",
+        "attempted_sends",
+        "details",
+        "initial_send",
+        "type"
+     ];
 
     /**
      * The default type of the notification
@@ -49,9 +49,7 @@ class Notification extends GPModel
      */
     public function __construct($hash, $token)
     {
-        parent::__construct();
-
-        $this->load($hash);
+        parent::__construct(['hash' => $hash]);
 
         SirumLog::debug(
             'creating a Notification tracker',
@@ -61,30 +59,6 @@ class Notification extends GPModel
         if (!$this->isStored()) {
             $this->token = $token;
             $this->hash  = $hash;
-        }
-    }
-
-    /**
-     * Load the data out of the database based on the has
-     *
-     * @param  string $hash The uniq hash for the notfication.  64 character limit
-     *
-     * @return void
-     */
-    public function load($hash)
-    {
-        $pdo = $this->gpdb->prepare(
-            "SELECT *
-          FROM {$this->table_name}
-          WHERE hash = :hash"
-        );
-
-        $pdo->bindParam(':hash', $hash, PDO::PARAM_STR);
-
-        $pdo->execute();
-
-        if ($notification = $pdo->fetch()) {
-            $this->setDataArray($notification);
         }
     }
 
