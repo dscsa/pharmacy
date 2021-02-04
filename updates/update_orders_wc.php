@@ -64,7 +64,7 @@ function update_orders_wc(array $changes) : void
      */
     Timer::start("update.orders.wc.deleted");
     foreach ($changes['deleted'] as $deleted) {
-        wc_order_deleted($delted);
+        wc_order_deleted($deleted);
     }
     Timer::stop("update.orders.wc.deleted");
 
