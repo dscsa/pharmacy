@@ -22,10 +22,7 @@ class MySQL
     {
         try {
             $objPdo = new PDO(
-                "mysql:host=" . $host
-                 . ";dbname=" . $db
-                 . ";port=3306"
-                 . ";charset=utf8",
+                "mysql:host={$host};dbname={$db};port=3306;charset=utf8",
                 $user,
                 $pass
             );
@@ -33,7 +30,6 @@ class MySQL
             $objPdo->setAttribute(PDO::ATTR_TIMEOUT, 5);
             $objPdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
             $objPdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
-
         } catch (\PDOException $e) {
             throw new \PDOException($e->getMessage(), (int)$e->getCode());
         }

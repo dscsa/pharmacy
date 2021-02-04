@@ -43,7 +43,7 @@ function update_patients_wc(array $changes) : void
     CliLog::notice($msg);
 
     if ($count_deleted + $count_created + $count_updated == 0) {
-        return null;
+        return;
     }
 
 

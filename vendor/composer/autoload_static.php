@@ -28,6 +28,7 @@ class ComposerStaticInit54659efd329fa3a958f5cddec29d1420
             'Psr\\Http\\Message\\' => 17,
             'Psr\\Http\\Client\\' => 16,
             'Psr\\Cache\\' => 10,
+            'Predis\\' => 7,
         ),
         'M' => 
         array (
@@ -90,6 +91,10 @@ class ComposerStaticInit54659efd329fa3a958f5cddec29d1420
         'Psr\\Cache\\' => 
         array (
             0 => __DIR__ . '/..' . '/psr/cache/src',
+        ),
+        'Predis\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/predis/predis/src',
         ),
         'Monolog\\' => 
         array (
