@@ -4,6 +4,7 @@ use Sirum\Logging\{
     AuditLog,
     CliLog
 };
+use Sirum\Utilities\Timer;
 /**
  * Update all drug changes
  * @param  array $changes  An array of arrays with deledted, created, and

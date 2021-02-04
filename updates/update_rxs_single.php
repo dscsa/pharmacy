@@ -11,6 +11,7 @@ use Sirum\Logging\{
     AuditLog,
     CliLog
 };
+use Sirum\Utilities\Timer;
 
 function update_rxs_single($changes)
 {

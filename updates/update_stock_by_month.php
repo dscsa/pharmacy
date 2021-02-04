@@ -6,7 +6,7 @@ use Sirum\Logging\{
     AuditLog,
     CliLog
 };
-
+use Sirum\Utilities\Timer;
 /**
  * Use a transaction to update the the current stock levels.  This DELETES all
  * records from the table then repopulates everything with a query.  Finally

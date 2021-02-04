@@ -5,6 +5,7 @@ require_once 'helpers/helper_full_order.php';
 use Sirum\Logging\SirumLog;
 use Sirum\Logging\AuditLog;
 use Sirum\Logging\CliLog;
+use Sirum\Utilities\Timer;
 
 /**
  * Proccess all the updates to WooCommerce Orders
