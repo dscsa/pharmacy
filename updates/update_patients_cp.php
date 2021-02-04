@@ -38,7 +38,7 @@ function update_patients_cp(array $changes) : void
     CliLog::notice($msg);
 
     if ($count_deleted + $count_created + $count_updated == 0) {
-        return null;
+        return;
     }
 
     Timer::start('update.patients.cp.updated');
