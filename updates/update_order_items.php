@@ -212,7 +212,7 @@ function order_item_deleted(array $deleted, array &$orders_updated) : ?array
     $mssql = new Mssql_Cp();
 
     SirumLog::$subroutine_id = "order-items-deleted-".sha1(serialize($deleted));
-    SirumLog::info("data-order-itmes-deleted", ['deleted' => $deleted]);
+    SirumLog::info("data-order-items-deleted", ['deleted' => $deleted]);
 
     $invoice_number = $deleted['invoice_number'];
 
