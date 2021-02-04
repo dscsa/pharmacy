@@ -12,10 +12,11 @@ use Sirum\Utilities\Timer;
 
 /**
  * Handle all the possible changes to Carepoint Patiemnts
- * @param array $changes A list of created, updated and deleted
+ * @param  array $changes  An array of arrays with deledted, created, and
+ *      updated elements
  * @return void
  */
-function update_patients_cp(array $changes)
+function update_patients_cp(array $changes) : void
 {
     SirumLog::notice('data-update-patients-cp', $changes);
 
@@ -40,11 +41,11 @@ function update_patients_cp(array $changes)
         return null;
     }
 
-    Timer::start('Carepoint Patients Updated');
+    Timer::start('update.patients.cp.updated');
     foreach ($changes['updated'] as $i => $updated) {
         cp_patient_updated($updated);
     }
-    Timer::stop('Carepoint Patients Updated');
+    Timer::stop('update.patients.cp.updated');
 
 
     /*
