@@ -315,7 +315,7 @@ try {
     Timer::start("update.drugs");
     update_drugs($changes_to_drugs);
     Timer::stop("update.drugs");
-    CliLog::info("Completed in " . Timer::read('Update Drugs', Timer::FORMAT_HUMAN));
+    CliLog::info("Completed in " . Timer::read('update.drugs', Timer::FORMAT_HUMAN));
 
     /**
      * Bring in the inventory and put it into the live stock table
@@ -329,7 +329,7 @@ try {
     Timer::start("update.stock.month");
     update_stock_by_month($changes_to_stock_by_month);
     Timer::stop("update.stock.month");
-    CliLog::info("Completed in " . Timer::read('Update Stock by Month', Timer::FORMAT_HUMAN));
+    CliLog::info("Completed in " . Timer::read('update.stock.month', Timer::FORMAT_HUMAN));
     /**
      * [update_rxs_single description]
      * @var [type]
@@ -339,32 +339,32 @@ try {
     Timer::start("update.patients.cp");
     update_patients_cp($changes_to_patients_cp);
     Timer::stop("update.patients.cp");
-    CliLog::info("Completed in " . Timer::read('Update CP Patients', Timer::FORMAT_HUMAN));
+    CliLog::info("Completed in " . Timer::read('update.patients.cp', Timer::FORMAT_HUMAN));
 
     CliLog::info("Update WC Patients started");
     Timer::start("update.patients.wc");
     update_patients_wc($changes_to_patients_wc);
     Timer::stop("update.patients.wc");
-    CliLog::info("Completed in " . Timer::read('Update WC Patients', Timer::FORMAT_HUMAN));
+    CliLog::info("Completed in " . Timer::read('update.patients.wc', Timer::FORMAT_HUMAN));
 
     //Run before cp-order and order-items to make sure that rx-grouped is upto date when doing load_full_order/item
     CliLog::info("Update Rxs Single started");
     Timer::start("update.rxs");
     update_rxs_single($changes_to_rxs_single);
     Timer::stop("update.rxs");
-    CliLog::info("Completed in " . Timer::read('Update Rxs Single', Timer::FORMAT_HUMAN));
+    CliLog::info("Completed in " . Timer::read('update.rxs', Timer::FORMAT_HUMAN));
 
     CliLog::info("Update CP Orders started");
     Timer::start("update.patients.cp");
     update_orders_cp($changes_to_orders_cp);
     Timer::stop("update.patients.cp");
-    CliLog::info("Completed in " . Timer::read('Update CP Orders', Timer::FORMAT_HUMAN));
+    CliLog::info("Completed in " . Timer::read('update.patients.cp', Timer::FORMAT_HUMAN));
 
     CliLog::info("Update WC Orders started");
     Timer::start("update.orders.wc");
     update_orders_wc($changes_to_orders_wc);
     Timer::stop("update.orders.wc");
-    CliLog::info("Completed in " . Timer::read('Update WC Orders', Timer::FORMAT_HUMAN));
+    CliLog::info("Completed in " . Timer::read('update.orders.wc', Timer::FORMAT_HUMAN));
 
     //Run this after orders-cp loop so that we can sync items to the order and remove duplicate GSNs first,
     //rather than doing stuff in this loop that we undo in the orders-cp loop
@@ -372,7 +372,7 @@ try {
     Timer::start("update.order.items");
     update_order_items($changes_to_order_items);
     Timer::stop("update.order.items");
-    CliLog::info("Completed in " . Timer::read('Update Order Items', Timer::FORMAT_HUMAN));
+    CliLog::info("Completed in " . Timer::read('update.order.items', Timer::FORMAT_HUMAN));
 
     echo "Watch Invoices ";
     Timer::start('Watch Invoices');
