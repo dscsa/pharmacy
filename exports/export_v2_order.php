@@ -36,34 +36,35 @@ function find_order_pend_group(int $invoice_number) : ?string
 
     $order = new GoodPillOrder(['invoice_number' => $invoice_number]);
 
-    $order_based = [
-        'invoice_number'   => $order->invoice_number,
-        'order_date_added' => $order->order_date_added
-    ];
+    if ($order->loaded) {
+        $order_based = [
+            'invoice_number'   => $order->invoice_number,
+            'order_date_added' => $order->order_date_added
+        ];
 
-    $patient_based = [
-        'invoice_number'   => $order->invoice_number,
-        'patient_date_added' => $order->patient->patient_date_added
-    ];
+        $patient_based = [
+            'invoice_number'   => $order->invoice_number,
+            'patient_date_added' => $order->patient->patient_date_added
+        ];
 
-    $possible_pend_groups = [
-        'refill'          => pend_group_refill($order_based),
-        'webform'         => pend_group_webform($order_based),
-        'new_patient'     => pend_group_new_patient($patient_based),
-        'new_patient_old' => pend_group_new_patient_old($patient_based),
-        'manual'          => pend_group_manual($order_based)
-    ];
+        $possible_pend_groups = [
+            'refill'          => pend_group_refill($order_based),
+            'webform'         => pend_group_webform($order_based),
+            'new_patient'     => pend_group_new_patient($patient_based),
+            'new_patient_old' => pend_group_new_patient_old($patient_based),
+            'manual'          => pend_group_manual($order_based)
+        ];
 
-    foreach ($possible_pend_groups as $type => $group) {
-        $pend_url = "/account/8889875187/pend/{$group}";
-        $results  = v2_fetch($pend_url, 'GET');
-        if (
-            !empty($results)
-            && @$results[0]['next'][0]['pended']
-        ) {
-            return $group;
+        foreach ($possible_pend_groups as $type => $group) {
+            $pend_url = "/account/8889875187/pend/{$group}";
+            $results  = v2_fetch($pend_url, 'GET');
+            if (
+                !empty($results)
+                && @$results[0]['next'][0]['pended']
+            ) {
+                return $group;
+            }
         }
     }
-
     return null;
 }
