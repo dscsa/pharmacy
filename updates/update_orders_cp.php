@@ -18,7 +18,8 @@ use Sirum\Utilities\Timer;
 
 /**
  * The general main function to proccess the individual change arrays
- * @param  array $changes [description]
+ * @param  array $changes  An array of arrays with deledted, created, and
+ *      updated elements
  * @return void
  */
 function update_orders_cp(array $changes) : void
@@ -45,28 +46,26 @@ function update_orders_cp(array $changes) : void
     }
 
     SirumLog::notice('data-update-orders-cp', $changes);
-    Timer::start("Carepoint Orders Changes");
+
     $mysql = new Mysql_Wc();
 
-    Timer::start("Carepoint Orders Created");
+    Timer::start("update.patients.cp.created");
     foreach ($changes['created'] as $created) {
         cp_order_created($created);
     }
-    Timer::stop("Carepoint Orders Created");
+    Timer::stop("update.patients.cp.created");
 
-    Timer::start("Carepoint Orders Deleted");
+    Timer::start("update.patients.cp.deleted");
     foreach ($changes['deleted'] as $deleted) {
         cp_order_deleted($deleted);
     }
-    Timer::stop("Carepoint Orders Deleted");
+    Timer::stop("update.patients.cp.deleted");
 
-    Timer::start("Carepoint Orders Updated");
+    Timer::start("update.patients.cp.updated");
     foreach ($changes['updated'] as $i => $updated) {
         cp_order_updated($updated);
     }
-    Timer::stop("Carepoint Orders Updated");
-
-    Timer::stop("Carepoint Orders Changes");
+    Timer::stop("update.patients.cp.updated");
     SirumLog::resetSubroutineId();
 }
 

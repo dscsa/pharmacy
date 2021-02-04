@@ -10,6 +10,8 @@ ini_set('memory_limit', '1024M');
 ini_set('include_path', '/goodpill/webform');
 date_default_timezone_set('America/New_York');
 
+$start_time = microtime(true);
+
 require_once 'vendor/autoload.php';
 require_once 'helpers/helper_error_handler.php';
 
@@ -310,9 +312,9 @@ try {
      * NOTE Updates (Mirror Ordering of the above - not sure how necessary this is)
      */
     CliLog::info("Update Drugs started");
-    Timer::start("Update Drugs");
+    Timer::start("update.drugs");
     update_drugs($changes_to_drugs);
-    Timer::stop("Update Drugs");
+    Timer::stop("update.drugs");
     CliLog::info("Completed in " . Timer::read('Update Drugs', Timer::FORMAT_HUMAN));
 
     /**
@@ -324,9 +326,9 @@ try {
      *
      */
     CliLog::info("Update Stock by Month started");
-    Timer::start("Update Stock by Month");
+    Timer::start("update.stock.month");
     update_stock_by_month($changes_to_stock_by_month);
-    Timer::stop("Update Stock by Month");
+    Timer::stop("update.stock.month");
     CliLog::info("Completed in " . Timer::read('Update Stock by Month', Timer::FORMAT_HUMAN));
     /**
      * [update_rxs_single description]
@@ -334,42 +336,42 @@ try {
      */
 
     CliLog::info("Update CP Patients started");
-    Timer::start("Update CP Patients");
+    Timer::start("update.patients.cp");
     update_patients_cp($changes_to_patients_cp);
-    Timer::stop("Update CP Patients");
+    Timer::stop("update.patients.cp");
     CliLog::info("Completed in " . Timer::read('Update CP Patients', Timer::FORMAT_HUMAN));
 
     CliLog::info("Update WC Patients started");
-    Timer::start("Update WC Patients");
+    Timer::start("update.patients.wc");
     update_patients_wc($changes_to_patients_wc);
-    Timer::stop("Update WC Patients");
+    Timer::stop("update.patients.wc");
     CliLog::info("Completed in " . Timer::read('Update WC Patients', Timer::FORMAT_HUMAN));
 
     //Run before cp-order and order-items to make sure that rx-grouped is upto date when doing load_full_order/item
     CliLog::info("Update Rxs Single started");
-    Timer::start("Update Rxs Single");
+    Timer::start("update.rxs");
     update_rxs_single($changes_to_rxs_single);
-    Timer::stop("Update Rxs Single");
+    Timer::stop("update.rxs");
     CliLog::info("Completed in " . Timer::read('Update Rxs Single', Timer::FORMAT_HUMAN));
 
     CliLog::info("Update CP Orders started");
-    Timer::start("Update CP Orders");
+    Timer::start("update.patients.cp");
     update_orders_cp($changes_to_orders_cp);
-    Timer::stop("Update CP Orders");
+    Timer::stop("update.patients.cp");
     CliLog::info("Completed in " . Timer::read('Update CP Orders', Timer::FORMAT_HUMAN));
 
     CliLog::info("Update WC Orders started");
-    Timer::start("Update WC Orders");
+    Timer::start("update.orders.wc");
     update_orders_wc($changes_to_orders_wc);
-    Timer::stop("Update WC Orders");
+    Timer::stop("update.orders.wc");
     CliLog::info("Completed in " . Timer::read('Update WC Orders', Timer::FORMAT_HUMAN));
 
     //Run this after orders-cp loop so that we can sync items to the order and remove duplicate GSNs first,
     //rather than doing stuff in this loop that we undo in the orders-cp loop
     CliLog::info("Update Order Items started");
-    Timer::start("Update Order Items");
+    Timer::start("update.order.items");
     update_order_items($changes_to_order_items);
-    Timer::stop("Update Order Items");
+    Timer::stop("update.order.items");
     CliLog::info("Completed in " . Timer::read('Update Order Items', Timer::FORMAT_HUMAN));
 
     echo "Watch Invoices ";
@@ -412,9 +414,10 @@ try {
 
 $timers = Timer::getTimers();
 
+CliLog::debug("Timers");
 foreach ($timers as $timer) {
     printf(
-        "%s: %d\n",
+        "    %s: %s\n",
         $timer,
         Timer::read($timer, Timer::FORMAT_HUMAN)
     );

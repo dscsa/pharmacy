@@ -18,9 +18,8 @@ use Sirum\Utilities\Timer;
 /**
  * Handle all the possible Item updates.  it will go through each type of change
  * and proccess the individual change.
- * @param  array $changes  The array should have 3 different elements,  deleted,
- *      updated, created. Each element will be an array with those items.
- *
+ * @param  array $changes  An array of arrays with deledted, created, and
+ *      updated elements
  * @return void
  */
 function update_order_items($changes) : void
@@ -46,21 +45,20 @@ function update_order_items($changes) : void
     if ($count_deleted + $count_created + $count_updated == 0) {
         return;
     }
-    Timer::start('Order Items Changes');
 
     SirumLog::notice('data-update-order-items', $changes);
 
-    Timer::start('Order Items Created');
+    Timer::start('update.order.items.created');
     foreach ($changes['created'] as $created) {
         order_item_created($created, $orders_updated);
     }
-    Timer::stop('Order Items Created');
+    Timer::stop('update.order.items.created');
 
-    Timer::start('Order Items Deleted');
+    Timer::start('update.order.items.deleted');
     foreach ($changes['deleted'] as $deleted) {
         order_item_deleted($deleted, $orders_updated);
     }
-    Timer::stop('Order Items Deleted');
+    Timer::stop('update.order.items.deleted');
 
     if (! empty($orders_updated)) {
         //TODO Somehow bundle patients comms if we are adding/removing drugs on next
@@ -78,13 +76,11 @@ function update_order_items($changes) : void
         handle_adds_and_removes($orders_updated);
     }
 
-    Timer::start('Order Items Updated');
+    Timer::start('update.order.items.updated');
     foreach ($changes['updated'] as $updated) {
         order_item_updated($updated);
     }
-    Timer::stop('Order Items Updated');
-
-    Timer::stop('Order Items Changes');
+    Timer::stop('update.order.items.updated');
 }
 
 

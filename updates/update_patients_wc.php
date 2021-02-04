@@ -17,10 +17,11 @@ use Sirum\Utilities\Timer;
 
 /**
  * Handle all the possible changes to WooCommerce Patiemnts
- * @param array $changes A list of created, updated and deleted
+ * @param  array $changes  An array of arrays with deledted, created, and
+ *      updated elements
  * @return void
  */
-function update_patients_wc($changes)
+function update_patients_wc(array $changes) : void
 {
     SirumLog::notice('data-update-patients-wc', $changes);
 
@@ -46,24 +47,23 @@ function update_patients_wc($changes)
     }
 
 
-    Timer::start('WooCommerce Patients Created');
+    Timer::start('update.patients.wc.created');
     foreach ($changes['created'] as $created) {
         wc_patient_created($created);
     }
-    Timer::stop('WooCommerce Patients Created');
+    Timer::stop('update.patients.wc.created');
 
-    Timer::start('WooCommerce Patients Deleted');
+    Timer::start('update.patients.wc.deleted');
     foreach ($changes['deleted'] as $i => $deleted) {
         wc_patient_deleted($deleted);
     }
-    Timer::stop('WooCommerce Patients Deleted');
+    Timer::stop('update.patients.wc.deleted');
 
-    Timer::start('WooCommerce Patients Updated');
+    Timer::start('update.patients.wc.updated');
     foreach ($changes['updated'] as $i => $updated) {
         wc_patient_updated($updated);
     }
-    Timer::stop('WooCommerce Patients Updated');
-
+    Timer::stop('update.patients.wc.updated');
 }
 
 /*
