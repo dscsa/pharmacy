@@ -412,7 +412,7 @@ try {
     throw $e;
 }
 
-$timers = Timer::getTimers();
+$timers = asort(Timer::getTimers());
 
 CliLog::debug("Timers");
 foreach ($timers as $timer) {
