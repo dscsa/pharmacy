@@ -119,7 +119,7 @@ function order_item_created(array $created, array &$orders_updated) : ?array
     $item = load_full_item($created, $mysql);
 
     if (!$item) {
-        SirumLog::error("Created Item Missing", [ 'created' => $created ]);
+        SirumLog::critical("Created Item Missing", [ 'created' => $created ]);
         return null;
     }
 
@@ -281,7 +281,7 @@ function order_item_updated(array $updated) : ?array
     $item = load_full_item($updated, $mysql);
 
     if (! $item) {
-        SirumLog::error(
+        SirumLog::critical(
             "Updated Item Missing",
             [
                 'updated' => $updated,

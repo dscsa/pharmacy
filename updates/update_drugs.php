@@ -271,7 +271,7 @@ function update_order_item_drug($mysql, $rx_number)
                               gp_order_items.rx_number  = '{$rx_number}'
                               AND rx_dispensed_id IS NULL";
 
-    SirumLog::critical(
+    SirumLog::debug(
         "update_order_item_drug: updated gp_order_item BEFORE",
         [
             'sql_order_items' => $sql_order_items,
@@ -285,7 +285,7 @@ function update_order_item_drug($mysql, $rx_number)
     //price_dispensed_default to all be recalculated
     $item = load_full_item(['rx_number' => $rx_number], $mysql, true);
 
-    SirumLog::critical(
+    SirumLog::debug(
         "update_order_item_drug: updated gp_order_item AFTER",
         [
             'sql_order_items' => $sql_order_items,

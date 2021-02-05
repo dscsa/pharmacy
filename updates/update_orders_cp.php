@@ -249,7 +249,12 @@ function cp_order_created(array $created) : ?array
         );
 
         if ($order[0]['count_items'] - $order[0]['count_to_remove']) {
-            SirumLog::critical("update_orders_cp: created. canceling order, but is their a manually added item that we should keep?");
+            // Find the item that wasn't removed, but we aren't filling
+            // These values are transient and
+            // TODO Why is this happening
+            SirumLog::critical(
+                "update_orders_cp: created. canceling order, but is their a manually added item that we should keep?"
+            );
         }
 
         // TODO Remove/Cancel WC Order Here Or Is this done on next go-around?
@@ -524,7 +529,7 @@ function cp_order_updated(array $updated) : ?array
             $updated
         );
 
-        SirumLog::critical(
+        SirumLog::warning(
             'Confirm this order was returned! cp_order with tracking number was deleted, but we keep it in gp_orders and in wc',
             [ 'updated' => $updated ]
         );
