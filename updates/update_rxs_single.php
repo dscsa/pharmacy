@@ -179,7 +179,7 @@ function update_rxs_single($changes)
                 "due_date"  => date('Y-m-d')
             ];
 
-            $event_title = "$item['invoice_number'] 0 or null dosage Sig Parsing Error: $salesforce[contact] $created_date";
+            $event_title = "{$item['invoice_number']} 0 or null dosage Sig Parsing Error: {$salesforce['contact']} {$created_date}";
 
             create_event($event_title, [$salesforce]);
 
