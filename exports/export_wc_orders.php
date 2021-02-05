@@ -7,6 +7,8 @@ use Sirum\Logging\{
     CliLog
 };
 
+use Sirum\DataModels\GoodPillOrder;
+
 function wc_get_post($invoice_number, $wc_order_key = null, $suppress_error = false)
 {
     global $mysql;
@@ -27,15 +29,19 @@ function wc_get_post($invoice_number, $wc_order_key = null, $suppress_error = fa
     }
 
     if (! $suppress_error) {
-        SirumLog::error(
-            "Order $invoice_number doesn't seem to exist in wp_posts",
-            [
-                "invoice_number" => $invoice_number,
-                "wc_order_key"   => $wc_order_key,
-                "res"            => $res,
-                "sql"            => $sql
-            ]
-        );
+        // Make sure this order hasn't been deleted before we yell about it
+        $order = new GoodPillOrder(['invoice_number' => $invoice_number]);
+        if ($order->loaded) {
+            SirumLog::error(
+                "Order $invoice_number doesn't seem to exist in wp_posts",
+                [
+                    "invoice_number" => $invoice_number,
+                    "wc_order_key"   => $wc_order_key,
+                    "res"            => $res,
+                    "sql"            => $sql
+                ]
+            );
+        }
     }
 
     return false;
@@ -169,6 +175,7 @@ function wc_update_meta($invoice_number, $metadata)
 
 function wc_update_order($invoice_number, $orderdata)
 {
+
     global $mysql;
     $mysql = $mysql ?: new Mysql_Wc();
 
@@ -177,14 +184,19 @@ function wc_update_order($invoice_number, $orderdata)
     $wc_order = wc_get_post($invoice_number);
 
     if (! $wc_order['post_id']) {
-        SirumLog::alert(
-            "export_wc_orders: wc_update_order FAILED! Order $invoice_number has no WC POST_ID",
-            [
-                "invoice_number" => $invoice_number,
-                "orderdata"      => $orderdata,
-                "wc_order"       => $wc_order
-            ]
-        );
+        // Make sure the order still exists before yelling about it
+        $order = new GoodPillOrder(['invoice_number' => $invoice_number]);
+
+        if ($order->loaded) {
+            SirumLog::alert(
+                "export_wc_orders: wc_update_order FAILED! Order $invoice_number has no WC POST_ID",
+                [
+                    "invoice_number" => $invoice_number,
+                    "orderdata"      => $orderdata,
+                    "wc_order"       => $wc_order
+                ]
+            );
+        }
 
         return;
     }
