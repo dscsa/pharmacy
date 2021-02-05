@@ -237,10 +237,10 @@ try {
      * NOTE Put this after rxs so that we never have a rxs without a matching drug
      */
     CliLog::info("Import v2 Drugs started");
-    Timer::start("Import v2 Drugs");
+    Timer::start("import.v2.drugs");
     import_v2_drugs();
-    Timer::stop("Import v2 Drugs");
-    CliLog::info("Completed in " . Timer::read('Import v2 Drugs', Timer::FORMAT_HUMAN));
+    Timer::stop("import.v2.drugs");
+    CliLog::info("Completed in " . Timer::read('import.v2.drugs', Timer::FORMAT_HUMAN));
 
     echo "\nAll Data Imported. Starting Change Detection:\n";
     /*
@@ -248,52 +248,52 @@ try {
      */
 
     CliLog::info("Changes Drugs started");
-    Timer::start("Changes Drugs");
+    Timer::start("changes.drugs");
     $changes_to_drugs = changes_to_drugs("gp_drugs_v2");
-    Timer::stop("Changes Drugs");
-    CliLog::info("Completed in " . Timer::read('Changes Drugs', Timer::FORMAT_HUMAN));
+    Timer::stop("changes.drugs");
+    CliLog::info("Completed in " . Timer::read('changes.drugs', Timer::FORMAT_HUMAN));
 
     CliLog::info("Changes Stock by Month started");
-    Timer::start("Changes Stock by Month");
+    Timer::start("changes.stock.month");
     $changes_to_stock_by_month = changes_to_stock_by_month("gp_stock_by_month_v2");
-    Timer::stop("Changes Stock by Month");
-    CliLog::info("Completed in " . Timer::read('Changes Stock by Month', Timer::FORMAT_HUMAN));
+    Timer::stop("changes.stock.month");
+    CliLog::info("Completed in " . Timer::read('changes.stock.month', Timer::FORMAT_HUMAN));
 
     CliLog::info("Changes Rxs Single started");
-    Timer::start("Changes Rxs Single");
+    Timer::start("changes.rxs");
     $changes_to_rxs_single = changes_to_rxs_single("gp_rxs_single_cp");
-    Timer::stop("Changes Rxs Single");
-    CliLog::info("Completed in " . Timer::read('Changes Rxs Single', Timer::FORMAT_HUMAN));
+    Timer::stop("changes.rxs");
+    CliLog::info("Completed in " . Timer::read('changes.rxs', Timer::FORMAT_HUMAN));
 
     CliLog::info("Changes CP Patients started");
-    Timer::start("Changes CP Patients");
+    Timer::start("changes.patients.cp");
     $changes_to_patients_cp = changes_to_patients_cp("gp_patients_cp");
-    Timer::stop("Changes CP Patients");
-    CliLog::info("Completed in " . Timer::read('Changes CP Patients', Timer::FORMAT_HUMAN));
+    Timer::stop("changes.patients.cp");
+    CliLog::info("Completed in " . Timer::read('changes.patients.cp', Timer::FORMAT_HUMAN));
 
     CliLog::info("Changes WC Patients started");
-    Timer::start("Changes WC Patients");
+    Timer::start("changes.patients.wc");
     $changes_to_patients_wc = changes_to_patients_wc("gp_patients_wc");
-    Timer::stop("Changes WC Patients");
-    CliLog::info("Completed in " . Timer::read('Changes WC Patients', Timer::FORMAT_HUMAN));
+    Timer::stop("changes.patients.wc");
+    CliLog::info("Completed in " . Timer::read('changes.patients.wc', Timer::FORMAT_HUMAN));
 
     CliLog::info("Changes Order Items started");
-    Timer::start("Changes Order Items");
+    Timer::start("changes.orders.items");
     $changes_to_order_items = changes_to_order_items('gp_order_items_cp');
-    Timer::stop("Changes Order Items");
-    CliLog::info("Completed in " . Timer::read('Changes Order Items', Timer::FORMAT_HUMAN));
+    Timer::stop("changes.orders.items");
+    CliLog::info("Completed in " . Timer::read('changes.orders.items', Timer::FORMAT_HUMAN));
 
     CliLog::info("Changes CP Orders started");
-    Timer::start("Changes CP Orders");
+    Timer::start("changes.orders.cp");
     $changes_to_orders_cp = changes_to_orders_cp("gp_orders_cp");
-    Timer::stop("Changes CP Orders");
-    CliLog::info("Completed in " . Timer::read('Changes CP Orders', Timer::FORMAT_HUMAN));
+    Timer::stop("changes.orders.cp");
+    CliLog::info("Completed in " . Timer::read('changes.orders.cp', Timer::FORMAT_HUMAN));
 
     CliLog::info("Changes WC Orders started");
-    Timer::start("Changes WC Orders");
+    Timer::start("changes.orders.wc");
     $changes_to_orders_wc = changes_to_orders_wc("gp_orders_wc");
-    Timer::stop("Changes WC Orders");
-    CliLog::info("Completed in " . Timer::read('Changes WC Orders', Timer::FORMAT_HUMAN));
+    Timer::stop("changes.orders.wc");
+    CliLog::info("Completed in " . Timer::read('changes.orders.wc', Timer::FORMAT_HUMAN));
 
     echo "\nAll Changes Detected & Tables Updated. Starting Updates:\n";
     /*
