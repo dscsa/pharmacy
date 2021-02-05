@@ -87,7 +87,7 @@ function drug_created(array $created) : void
  * @param array $updated The data for the updated drug
  * @return void
  */
-function drugs_updated(array $updated) : void
+function drug_updated(array $updated) : void
 {
     SirumLog::$subroutine_id = "drugs-updated-".sha1(serialize($updated));
     SirumLog::info("data-drugs-updated", ['updated' => $updated]);
