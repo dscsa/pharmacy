@@ -165,6 +165,34 @@ function update_rxs_single($changes)
             );
         }
 
+        if (!$parsed['sig_qty']) {
+            $created_date = "Created:".date('Y-m-d H:i:s');
+            $salesforce   = [
+                "subject"   => "Error: 0 or null dosage for {$created['drug_name']} in "
+                               . "Order {$item['invoice_number']}. Verify qty pended for"
+                               . "for Rx #{$created['rx_number']}",
+                "body"      => "For Rx #{$created['rx_number']}, {$created['drug_name']} with "
+                                . "sig '{$created['sig_actual']}' was parsed as 0 or NULL quantity."
+                                . "  This will result in zero items pended. $created_date",
+                "contact"   => "$patient[first_name] $patient[last_name] $patient[birth_date]",
+                "assign_to" => ".Add/Remove - RPh",
+                "due_date"  => date('Y-m-d')
+            ];
+
+            $event_title = "$item['invoice_number'] 0 or null dosage Sig Parsing Error: $salesforce[contact] $created_date";
+
+            create_event($event_title, [$salesforce]);
+
+            SirumLog::warning(
+                $salesforce['body'],
+                [
+                  'salesforce' => $salesforce,
+                  'created' => $created,
+                  'parsed' => $parsed
+                ]
+            );
+        }
+
         //TODO Eventually Save the Clean Script back into Guardian so that Cindy doesn't need to rewrite them
         set_parsed_sig($created['rx_number'], $parsed, $mysql);
     }
