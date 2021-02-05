@@ -211,7 +211,7 @@ function wc_order_created(array $created) : bool
         return false;
     }
 
-    SirumLog::alert(
+    SirumLog::critical(
         "update_orders_wc: WooCommerce Order Created. Needs Manual Intervention!",
         [
             'invoice_number' => $created['invoice_number'],
@@ -268,7 +268,7 @@ function wc_order_deleted(array $deleted) : bool
         $deleted
     );
 
-    SirumLog::alert(
+    SirumLog::critical(
         "Order deleted from WC. Why?",
         [
             'source'  => 'WooCommerce',
@@ -295,7 +295,7 @@ function wc_order_deleted(array $deleted) : bool
             $deleted
         );
 
-        SirumLog::alert(
+        SirumLog::critical(
             "Shipped Order deleted from WC. Republishing Invoice",
             [
                 'source'  => 'WooCommerce',

@@ -225,7 +225,7 @@ function update_wc_patient_active_status($mysql, $patient_id_wc, $inactive) {
     $wc_val = 'a:1:{s:8:"customer";b:1;}';
   }
 
-  SirumLog::alert("update_wc_patient_active_status $inactive -> $patient_id_wc, 'wp_capabilities',  $wc_val");
+  SirumLog::critical("update_wc_patient_active_status $inactive -> $patient_id_wc, 'wp_capabilities',  $wc_val");
 
   return wc_upsert_patient_meta($mysql, $patient_id_wc, 'wp_capabilities',  $wc_val);
 }

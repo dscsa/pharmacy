@@ -405,7 +405,7 @@ function set_item_invoice_data($item, $mysql) {
 function set_days_and_message($item, $days, $message, $mysql) {
 
   if (is_null($days) OR is_null($message)) {
-    SirumLog::alert("set_days_and_message: days/message should not be NULL", compact('item', 'days', 'message'));
+    SirumLog::critical("set_days_and_message: days/message should not be NULL", compact('item', 'days', 'message'));
     return $item;
   }
 
@@ -413,7 +413,7 @@ function set_days_and_message($item, $days, $message, $mysql) {
   $new_rx_message_text = message_text($message, $item);
 
   if ( ! $new_rx_message_key) {
-    SirumLog::alert("set_days_and_message: could not get rx_message_key ", compact('item', 'days', 'message', 'new_rx_message_key', 'new_rx_message_text'));
+    SirumLog::critical("set_days_and_message: could not get rx_message_key ", compact('item', 'days', 'message', 'new_rx_message_key', 'new_rx_message_text'));
     return $item;
   }
 

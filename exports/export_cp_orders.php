@@ -77,7 +77,7 @@ function export_cp_remove_order($invoice_number, $reason) {
 
   } else {
 
-    SirumLog::alert(
+    SirumLog::critical(
       "export_cp_remove_order: Order $invoice_number had dispensed items and could only be partially deleted",
       [
         'invoice_number'  => $invoice_number,

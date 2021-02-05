@@ -171,7 +171,7 @@ function export_cp_add_items($invoice_number, $items)
 
             $log['has_cp_order'] = (@$cp_invoice_number) ? 'Y' : 'N';
 
-            SirumLog::alert("{$log['subject']}, not even a current one", $log);
+            SirumLog::critical("{$log['subject']}, not even a current one", $log);
             return;
         }
 

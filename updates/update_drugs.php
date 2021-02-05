@@ -194,7 +194,7 @@ function update_mismatched_rxs_and_items($mysql, $partial)
     //have the wrong price,
     //have the wrong initial stock level,
     //have the wrong days (due to the above), etc
-    SirumLog::alert(
+    SirumLog::critical(
         "update_mismatched_rxs_and_items_by_drug_gsns: updating rxs_single(s) and undispensed order_item(s)",
         [
             'partial' => $partial,
@@ -271,7 +271,7 @@ function update_order_item_drug($mysql, $rx_number)
                               gp_order_items.rx_number  = '{$rx_number}'
                               AND rx_dispensed_id IS NULL";
 
-    SirumLog::alert(
+    SirumLog::critical(
         "update_order_item_drug: updated gp_order_item BEFORE",
         [
             'sql_order_items' => $sql_order_items,
@@ -285,7 +285,7 @@ function update_order_item_drug($mysql, $rx_number)
     //price_dispensed_default to all be recalculated
     $item = load_full_item(['rx_number' => $rx_number], $mysql, true);
 
-    SirumLog::alert(
+    SirumLog::critical(
         "update_order_item_drug: updated gp_order_item AFTER",
         [
             'sql_order_items' => $sql_order_items,

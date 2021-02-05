@@ -188,7 +188,7 @@ function wc_update_order($invoice_number, $orderdata)
         $order = new GoodPillOrder(['invoice_number' => $invoice_number]);
 
         if ($order->loaded) {
-            SirumLog::alert(
+            SirumLog::critical(
                 "export_wc_orders: wc_update_order FAILED! Order $invoice_number has no WC POST_ID",
                 [
                     "invoice_number" => $invoice_number,
@@ -374,7 +374,7 @@ function export_wc_create_order($order, $reason)
         ) {
             // This needs to be a task assigned to somebody to follow up
             SirumLog::alert(
-                "export_wc_create_order: res[error] for $url: need to create/rename WC patient",
+                "export_wc_create_order: {$res['error']} for $url: need to create/rename WC patient",
                 [
                   'reason' => $reason,
                   'res' => $res,

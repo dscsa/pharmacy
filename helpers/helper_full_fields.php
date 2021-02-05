@@ -168,7 +168,7 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
               if ( ! is_patient($patient_or_order)) { //item or order
                 $items_to_remove[] = $patient_or_order[$i];
               } else {
-                SirumLog::alert("Item needs to be removed but IS_PATIENT? This doesn't seem possible", [
+                SirumLog::critical("Item needs to be removed but IS_PATIENT? This doesn't seem possible", [
                   'days'    => $days,
                   'message' => $message,
                   'item'    => $patient_or_order[$i]

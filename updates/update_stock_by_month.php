@@ -218,7 +218,7 @@ function update_stock_by_month($changes) {
 
     create_event($event_title, [$salesforce]);
 
-    SirumLog::alert("update_stock_by_month: $salesforce", $duplicate_gsns[0]);
+    SirumLog::critical("update_stock_by_month: $salesforce", $duplicate_gsns[0]);
   }
 
   SirumLog::resetSubroutineId();

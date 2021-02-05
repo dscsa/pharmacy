@@ -235,7 +235,7 @@ function transfer_requested_notice($groups)
 function order_hold_notice($groups)
 {
 
-    SirumLog::alert('order_hold_notice: called', get_defined_vars());
+    SirumLog::critical('order_hold_notice: called', get_defined_vars());
 
     /*
 
@@ -317,7 +317,7 @@ function order_hold_notice($groups)
     ];
 
 
-    SirumLog::alert('order_hold_notice: unknown reason', get_defined_vars());
+    SirumLog::critical('order_hold_notice: unknown reason', get_defined_vars());
 
     //Wait 15 minutes to hopefully batch staggered surescripts and manual rx entry and cindy updates
     order_hold_event($groups['ALL'], $email, $text, $salesforce, 15/60);
@@ -474,11 +474,11 @@ function no_rx_notice($partial, $groups)
 function order_cancelled_notice($partial, $groups)
 {
     if ( ! $groups['ALL'][0]['pharmacy_name']) {
-        return SirumLog::alert('order_cancelled_notice: not sending because needs_form_notice should be sent instead (was already sent?)', get_defined_vars());
+        return SirumLog::critical('order_cancelled_notice: not sending because needs_form_notice should be sent instead (was already sent?)', get_defined_vars());
     }
 
     if ( ! $groups['ALL'][0]['count_nofill']) { //can be passed a patient
-        return SirumLog::alert('order_cancelled_notice: not sending because no_rx_notice should be sent instead (was already sent?)', get_defined_vars());
+        return SirumLog::critical('order_cancelled_notice: not sending because no_rx_notice should be sent instead (was already sent?)', get_defined_vars());
     }
 
     $subject = "Order #$partial[invoice_number] has been cancelled";
@@ -552,7 +552,7 @@ function confirm_shipment_internal($groups, $days_ago)
     $results = $pdo->fetch();
 
     if (((float) $groups['ALL'][0]['refills_used'] > 0) != ((float) $results['past_order_count'] > 0)) {
-        SirumLog::alert(
+        SirumLog::critical(
             'Past Orders <> Refills Used',
             [
         'past_order_count' => $results['past_order_count'],

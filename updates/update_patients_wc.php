@@ -574,7 +574,7 @@ function wc_patient_updated(array $updated)
             }
         } else {
             $msg = "update_patients_wc: patient name changed but now count(matches) !== 1";
-            SirumLog::alert(
+            SirumLog::critical(
                 $msg,
                 [
                     'updated'          => $updated,
@@ -608,7 +608,7 @@ function wc_patient_updated(array $updated)
                 $updated
             );
 
-            SirumLog::alert('Trouble saving allergies_other.  Most likely an encoding issue', $updated);
+            SirumLog::critical('Trouble saving allergies_other.  Most likely an encoding issue', $updated);
         }
 
         $allergy_array = [
@@ -647,7 +647,7 @@ function wc_patient_updated(array $updated)
 
     if ($updated['medications_other'] !== $updated['old_medications_other']) {
         if (strlen($updated['medications_other']) > 0 and strlen($updated['medications_other']) == strlen($updated['old_medications_other'])) {
-            SirumLog::alert('Trouble saving medications_other.  Most likely an encoding issue', $changed);
+            SirumLog::critical('Trouble saving medications_other.  Most likely an encoding issue', $changed);
         }
 
         AuditLog::log(
@@ -690,7 +690,7 @@ function wc_patient_deleted(array $deleted)
         $deleted
     );
 
-    SirumLog::alert(
+    SirumLog::critical(
         "update_patients_wc: WooCommerce PATIENT deleted
         $deleted[first_name] $deleted[last_name] $deleted[birth_date]",
         ['alert' => $alert]

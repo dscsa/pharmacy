@@ -76,7 +76,7 @@ function update_rxs_single($changes)
               ]
         );
 
-        SirumLog::alert("update_rxs_single: rx created1. did the drug_generic/brand/gsns get added to rxs_single?", [
+        SirumLog::critical("update_rxs_single: rx created1. did the drug_generic/brand/gsns get added to rxs_single?", [
           'created'  => $created
         ]);
 
@@ -380,7 +380,7 @@ function update_rxs_single($changes)
     ")[0];
 
     if (isset($duplicate_gsns[0][0])) {
-      SirumLog::alert(
+      SirumLog::critical(
         "update_rxs_single: duplicate gsns detected",
         ['duplicate_gsns' => $duplicate_gsns]
       );

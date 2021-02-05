@@ -161,7 +161,7 @@ class Mssql_New_Drivers implements Mssql_Interface
     function _emailError($error)
     {
         log_to_cli('ERROR', "Debug MSSQL", '', print_r($error, true));
-        SirumLog::alert("Debug MSSQL", $error);
+        SirumLog::critical("Debug MSSQL", $error);
     }
 
 

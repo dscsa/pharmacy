@@ -145,7 +145,7 @@ class SirumLog
 
         @list($pd_title, $pd_data['details']) = (explode('|*|*|', $message));
 
-        if ($log_level == 800) {
+        if ($log_level > 800) {
             return pd_high_priority($pd_title, 'pharmacy-app-emergency', $pd_data);
         }
 

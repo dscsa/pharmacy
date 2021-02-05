@@ -220,7 +220,7 @@ function log_alert($text, $vars = '')
     }
 
     // Log it before we make a string of the vars
-    SirumLog::alert("{$text} : {$file}", $log_context);
+    SirumLog::critical("{$text} : {$file}", $log_context);
 
     $vars   = $vars ? vars_to_json($vars, $file) : '';
 
@@ -342,7 +342,7 @@ function log_timer($label, $start_time, $count) {
         ];
 
         if ($average_time > 100) {
-            SirumLog::alert($log_msg, $log_data);
+            SirumLog::critical($log_msg, $log_data);
         } else {
             SirumLog::error($log_msg, $log_data);
         }
