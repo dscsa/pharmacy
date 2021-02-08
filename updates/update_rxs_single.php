@@ -165,7 +165,7 @@ function update_rxs_single($changes)
             );
         }
 
-        if (!$parsed['sig_qty']) {
+        if (!$parsed['sig_qty_per_day']) {
             $created_date = "Created:".date('Y-m-d H:i:s');
             $salesforce   = [
                 "subject"   => "Error: 0 or null dosage for {$created['drug_name']} in "
