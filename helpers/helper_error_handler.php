@@ -2,8 +2,8 @@
 
 require_once 'helpers/helper_pagerduty.php';
 
-use Sirum\Logging\{
-    SirumLog,
+use GoodPill\Logging\{
+    GPLog,
     AuditLog,
     CliLog
 };
@@ -26,15 +26,15 @@ function gpErrorHandler($errno, $errstr, $error_file, $error_line)
             $error_file,
             $error_line
         );
-        pushToSirumLog($message);
+        pushToGPLog($message);
 
         $data = [];
 
         try {
-            $data['execution_id'] = SirumLog::$exec_id;
+            $data['execution_id'] = GPLog::$exec_id;
 
-            if (!is_null(SirumLog::$subroutine_id)) {
-                $data['subroutine_id'] = SirumLog::$subroutine_id;
+            if (!is_null(GPLog::$subroutine_id)) {
+                $data['subroutine_id'] = GPLog::$subroutine_id;
             }
         } catch (\Exception $e) {
         }
@@ -76,15 +76,15 @@ function gpExceptionHandler($e)
     $message .= $e->getFile() . ":" . $e->getLine() . "\n";
     $message .= $e->getTraceAsString();
 
-    pushToSirumLog($message);
+    pushToGPLog($message);
 
     $data = [];
 
     try {
-        $data['execution_id'] = SirumLog::$exec_id;
+        $data['execution_id'] = GPLog::$exec_id;
 
-        if (!is_null(SirumLog::$subroutine_id)) {
-            $data['subroutine_id'] = SirumLog::$subroutine_id;
+        if (!is_null(GPLog::$subroutine_id)) {
+            $data['subroutine_id'] = GPLog::$subroutine_id;
         }
     } catch (\Exception $e) {
     }
@@ -96,15 +96,15 @@ function gpExceptionHandler($e)
 }
 
 /**
- * A utility function for trying to push to SirumLog
+ * A utility function for trying to push to GPLog
  * @param  string $message The message to send
  * @return
  */
-function pushToSirumLog($message)
+function pushToGPLog($message)
 {
     try {
-        SirumLog::error($message);
-        SirumLog::getLogger()->flush();
+        GPLog::error($message);
+        GPLog::getLogger()->flush();
     } catch (\Exception $e) {
     }
 }

@@ -5,14 +5,14 @@ require_once 'exports/export_cp_patients.php';
 require_once 'helpers/helper_matching.php';
 require_once 'helpers/helper_calendar.php';
 
-use Sirum\Logging\{
-    SirumLog,
+use GoodPill\Logging\{
+    GPLog,
     AuditLog,
     CliLog
 };
 
-use Sirum\Storage\Goodpill;
-use Sirum\Utilities\Timer;
+use GoodPill\Storage\Goodpill;
+use GoodPill\Utilities\Timer;
 
 
 /**
@@ -23,7 +23,7 @@ use Sirum\Utilities\Timer;
  */
 function update_patients_wc(array $changes) : void
 {
-    SirumLog::notice('data-update-patients-wc', $changes);
+    GPLog::notice('data-update-patients-wc', $changes);
 
     $count_deleted = count($changes['deleted']);
     $count_created = count($changes['created']);
@@ -31,7 +31,7 @@ function update_patients_wc(array $changes) : void
 
     $msg = "$count_deleted deleted, $count_created created, $count_updated updated ";
 
-    SirumLog::notice(
+    GPLog::notice(
         "update_patients_wc: all changes. {$msg}",
         [
             'deleted_count' => $count_deleted,
@@ -82,14 +82,14 @@ function wc_patient_created(array $created)
     $mysql = new Mysql_Wc();
     $mssql = new Mssql_Cp();
 
-    SirumLog::$subroutine_id = "patients-wc-created-".sha1(serialize($created));
-    SirumLog::info("data-patients-wc-created", ['created' => $created]);
+    GPLog::$subroutine_id = "patients-wc-created-".sha1(serialize($created));
+    GPLog::info("data-patients-wc-created", ['created' => $created]);
 
     // Overrite Rx Messages everytime a new order created otherwise
     // same message would stay for the life of the Rx
 
     AuditLog::log("Patient created via Patient Portal", $created);
-    SirumLog::debug(
+    GPLog::debug(
         "update_patients_wc: WooCommerce PATIENT Created $created[first_name] $created[last_name] $created[birth_date]",
         [
             'created' => $created,
@@ -109,7 +109,7 @@ function wc_patient_created(array $created)
                 is older than {$limit} hours",
                 $created
             );
-            SirumLog::debug(
+            GPLog::debug(
                 "update_patients_wc: deleting incomplete registration
                  for $created[first_name] $created[last_name] $created[birth_date]
                  after $limit hours ",
@@ -152,7 +152,7 @@ function wc_patient_created(array $created)
         match_patient($mysql, $is_match['patient_id_cp'], $is_match['patient_id_wc']);
     }
 
-    SirumLog::resetSubroutineId();
+    GPLog::resetSubroutineId();
     return $created;
 }
 
@@ -166,8 +166,8 @@ function wc_patient_updated(array $updated)
     $mysql = new Mysql_Wc();
     $mssql = new Mssql_Cp();
 
-    SirumLog::$subroutine_id = "patients-wc-updated-".sha1(serialize($updated));
-    SirumLog::info("data-patients-wc-updated", ['created' => $created]);
+    GPLog::$subroutine_id = "patients-wc-updated-".sha1(serialize($updated));
+    GPLog::info("data-patients-wc-updated", ['created' => $created]);
 
     $changed = changed_fields($updated);
 
@@ -176,7 +176,7 @@ function wc_patient_updated(array $updated)
         $updated
     );
 
-    SirumLog::debug(
+    GPLog::debug(
         "update_patients_wc: WooCommerce PATIENT updated",
         [
               'updated' => $updated,
@@ -198,9 +198,9 @@ function wc_patient_updated(array $updated)
     );
 
     if ($changed) {
-        SirumLog::debug($update_message, [ 'changed' => $changed ]);
+        GPLog::debug($update_message, [ 'changed' => $changed ]);
     } else {
-        SirumLog::error($update_message, [ 'updated' => $updated ]);
+        GPLog::error($update_message, [ 'updated' => $updated ]);
     }
 
     if (! $updated['patient_id_cp']) {
@@ -224,7 +224,7 @@ function wc_patient_updated(array $updated)
 
         update_cp_patient_active_status($mssql, $patient['patient_id_cp'], $updated['patient_inactive']);
 
-        SirumLog::notice("WC Patient Inactive Status Changed", ['updated' => $updated]);
+        GPLog::notice("WC Patient Inactive Status Changed", ['updated' => $updated]);
     }
 
     if ($updated['email'] !== $updated['old_email']) {
@@ -249,7 +249,7 @@ function wc_patient_updated(array $updated)
             $updated
         );
 
-        SirumLog::notice(
+        GPLog::notice(
             "update_patients_wc: adding address. $updated[first_name] $updated[last_name] $updated[birth_date]",
             ['changed' => $changed, 'updated' => $updated]
         );
@@ -278,7 +278,7 @@ function wc_patient_updated(array $updated)
                 ),
                 $updated
             );
-            SirumLog::warning(
+            GPLog::warning(
                 "update_patients_wc: updated address-mismatch.
                 $updated[first_name] $updated[last_name] $updated[birth_date]",
                 [ 'updated' => $updated ]
@@ -300,7 +300,7 @@ function wc_patient_updated(array $updated)
             $updated
         );
 
-        SirumLog::notice(
+        GPLog::notice(
             "update_patients_wc: updated address-mismatch. $updated[first_name]
             $updated[last_name] $updated[birth_date]",
             [
@@ -319,7 +319,7 @@ function wc_patient_updated(array $updated)
 
         $mysql->run($sql);
 
-        SirumLog::notice(
+        GPLog::notice(
             "update_patients_wc: patient_registered. $updated[first_name]
             $updated[last_name] $updated[birth_date]",
             [ 'sql' => $sql ]
@@ -440,7 +440,7 @@ function wc_patient_updated(array $updated)
         AuditLog::log("Patient add payment method via Patient Portal", $updated);
         upsert_patient_cp($mssql, "EXEC SirumWeb_AddUpdatePatientUD '$updated[patient_id_cp]', '3', '$updated[payment_method_default]'");
     } elseif ($updated['payment_method_default'] !== $updated['old_payment_method_default']) {
-        SirumLog::warning(
+        GPLog::warning(
             'update_patients_wc: updated payment_method_default. Deleting Autopay Reminders',
             ['updated' => $updated]
         );
@@ -462,7 +462,7 @@ function wc_patient_updated(array $updated)
             wc_upsert_patient_meta($mysql, $updated['patient_id_wc'], 'payment_method_default', PAYMENT_METHOD['CARD EXPIRED']);
         } else {
             AuditLog::log("Patient  payment method set to UNKNOWN via Patient Portal", $updated);
-            SirumLog::error(
+            GPLog::error(
                 "NOT SURE WHAT TO DO FOR PAYMENT METHOD",
                 ['updated' => $updated]
             );
@@ -470,7 +470,7 @@ function wc_patient_updated(array $updated)
     }
 
     if (!$updated['first_name'] or ! $updated['first_name'] or ! $updated['birth_date']) {
-        SirumLog::error(
+        GPLog::error(
             "Patient Set Incorrectly",
             ['changed' => $changed, 'updated' => $updated]
         );
@@ -511,7 +511,7 @@ function wc_patient_updated(array $updated)
             $last_name  = escape_db_values($updated['last_name']);
 
             $sp = "EXEC SirumWeb_AddUpdatePatient '$first_name', '$last_name', '$updated[birth_date]', '$updated[phone1]', '$updated[language]'";
-            SirumLog::notice(
+            GPLog::notice(
                 "Patient Name/Identity Updated.  If called repeatedly
                 there is likely a two matching CP users",
                 [ 'sp' => $sp, 'changed' => $changed ]
@@ -540,7 +540,7 @@ function wc_patient_updated(array $updated)
             $pdo->execute();
 
             if ($cp_patient = $pdo->fetch()) {
-                SirumLog::notice(
+                GPLog::notice(
                     "Forced Carepoint details onto WooCommerce user",
                     [
                         'updated'          => $updated,
@@ -574,7 +574,7 @@ function wc_patient_updated(array $updated)
             }
         } else {
             $msg = "update_patients_wc: patient name changed but now count(matches) !== 1";
-            SirumLog::critical(
+            GPLog::critical(
                 $msg,
                 [
                     'updated'          => $updated,
@@ -608,7 +608,7 @@ function wc_patient_updated(array $updated)
                 $updated
             );
 
-            SirumLog::critical('Trouble saving allergies_other.  Most likely an encoding issue', $updated);
+            GPLog::critical('Trouble saving allergies_other.  Most likely an encoding issue', $updated);
         }
 
         $allergy_array = [
@@ -641,13 +641,13 @@ function wc_patient_updated(array $updated)
             $res = upsert_patient_cp($mssql, $sql);
         } else {
             $err = [$sql, $res, json_last_error_msg(), $allergy_array];
-            SirumLog::error("update_patients_wc: SirumWeb_AddRemove_Allergies failed", $err);
+            GPLog::error("update_patients_wc: SirumWeb_AddRemove_Allergies failed", $err);
         }
     }
 
     if ($updated['medications_other'] !== $updated['old_medications_other']) {
         if (strlen($updated['medications_other']) > 0 and strlen($updated['medications_other']) == strlen($updated['old_medications_other'])) {
-            SirumLog::critical('Trouble saving medications_other.  Most likely an encoding issue', $changed);
+            GPLog::critical('Trouble saving medications_other.  Most likely an encoding issue', $changed);
         }
 
         AuditLog::log(
@@ -661,7 +661,7 @@ function wc_patient_updated(array $updated)
         export_cp_patient_save_medications_other($mssql, $updated);
     }
 
-    SirumLog::resetSubroutineId();
+    GPLog::resetSubroutineId();
     return $updated;
 }
 
@@ -675,8 +675,8 @@ function wc_patient_deleted(array $deleted)
     $mysql = new Mysql_Wc();
     $mssql = new Mssql_Cp();
 
-    SirumLog::$subroutine_id = "patients-wc-deleted-".sha1(serialize($deleted));
-    SirumLog::info("data-patients-wc-deleted", ['created' => $created]);
+    GPLog::$subroutine_id = "patients-wc-deleted-".sha1(serialize($deleted));
+    GPLog::info("data-patients-wc-deleted", ['created' => $created]);
 
     $alert = [
       'deleted' => $deleted,
@@ -690,12 +690,12 @@ function wc_patient_deleted(array $deleted)
         $deleted
     );
 
-    SirumLog::critical(
+    GPLog::critical(
         "update_patients_wc: WooCommerce PATIENT deleted
         $deleted[first_name] $deleted[last_name] $deleted[birth_date]",
         ['alert' => $alert]
     );
 
-    SirumLog::resetSubroutineId();
+    GPLog::resetSubroutineId();
     return $deleted;
 }

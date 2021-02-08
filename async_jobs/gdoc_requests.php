@@ -6,14 +6,14 @@ require_once 'helpers/helper_appsscripts.php';
 require_once 'helpers/helper_log.php';
 require_once 'keys.php';
 
-use Sirum\AWS\SQS\{
+use GoodPill\AWS\SQS\{
     GoogleAppRequest\BaseRequest,
     GoogleAppRequest\HelperRequest,
     GoogleAppQueue
 };
 
-use Sirum\Logging\{
-    SirumLog,
+use GoodPill\Logging\{
+    GPLog,
     AuditLog,
     CliLog
 };
@@ -40,7 +40,7 @@ for ($l = 0; $l < $executions; $l++) {
             count($messages)
         );
 
-        SirumLog::debug($log_message);
+        GPLog::debug($log_message);
         echo $log_message;
 
         foreach ($messages as $message) {
@@ -68,7 +68,7 @@ for ($l = 0; $l < $executions; $l++) {
                 $log_message .= "FAILED - Message: {$request->error}";
             }
 
-            SirumLog::debug($log_message);
+            GPLog::debug($log_message);
             echo $log_message . "\n";
         }
     }
@@ -81,7 +81,7 @@ for ($l = 0; $l < $executions; $l++) {
             count($complete)
         );
 
-        SirumLog::debug($log_message);
+        GPLog::debug($log_message);
         echo $log_message . "\n";
 
         $gdq->deleteBatch($complete);

@@ -2,11 +2,11 @@
 
 require_once 'exports/export_gd_orders.php';
 
-use \Sirum\Logging\SirumLog;
+use \GoodPill\Logging\GPLog;
 
 function helper_update_payment($order, $reason, $mysql)
 {
-    SirumLog::notice(
+    GPLog::notice(
         'helper_update_payment start',
         [
           'order_before' => $order,
@@ -28,7 +28,7 @@ function helper_update_payment($order, $reason, $mysql)
     );
 
     if ($is_payment_change) {
-        SirumLog::warning(
+        GPLog::warning(
             'helper_update_payment is_payment_change:true',
             [
               'order'                     => $order,
@@ -44,7 +44,7 @@ function helper_update_payment($order, $reason, $mysql)
         return $order;
     }
 
-    SirumLog::notice(
+    GPLog::notice(
         'helper_update_payment is_payment_change:false',
         [
             'order'                     => $order,
@@ -61,7 +61,7 @@ function helper_update_payment($order, $reason, $mysql)
 
 function get_payment_default($order, $reason)
 {
-    SirumLog::debug("get_payment_default", ['order' => $order, 'reason' => $reason]);
+    GPLog::debug("get_payment_default", ['order' => $order, 'reason' => $reason]);
 
     $update = [];
 
@@ -87,7 +87,7 @@ function get_payment_default($order, $reason)
         $update['payment_due_default'] = 0;
     }
 
-    SirumLog::notice(
+    GPLog::notice(
         "get_payment_default: Order ".$order[0]['invoice_number'],
         [
             'order - before update merged' => $order,

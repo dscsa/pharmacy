@@ -1,7 +1,7 @@
 <?php
 
-use Sirum\Logging\{
-    SirumLog,
+use GoodPill\Logging\{
+    GPLog,
     AuditLog,
     CliLog
 };
@@ -69,7 +69,7 @@ function gdoc_post($url, $content)
 
         // We have some results so let's leave
         if ($results !== false && !empty($results)) {
-            SirumLog::debug(
+            GPLog::debug(
                 'Google Doc Request Success:',
                 [
                     'data' => json_decode($json),
@@ -83,7 +83,7 @@ function gdoc_post($url, $content)
 
         echo "failed $try\n";
 
-        SirumLog::error(
+        GPLog::error(
             'Google Doc Request Failed:',
             [
                 'data'    => json_decode($json),

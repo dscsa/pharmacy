@@ -2,16 +2,17 @@
 
 require_once 'helpers/helper_appsscripts.php';
 
-use Sirum\AWS\SQS\GoogleAppRequest\Invoice\{
+use GoodPill\AWS\SQS\GoogleAppRequest\Invoice\{
+    Complete,
     Delete,
     Move,
     Publish
 };
 
-use Sirum\AWS\SQS\GoogleAppQueue;
-use Sirum\DataModels\GoodPillOrder;
-use Sirum\Logging\{
-    SirumLog,
+use GoodPill\AWS\SQS\GoogleAppQueue;
+use GoodPill\DataModels\GoodPillOrder;
+use GoodPill\Logging\{
+    GPLog,
     AuditLog,
     CliLog
 };
@@ -26,12 +27,97 @@ $gd_merge_timers = [
 ];
 
 
+function export_gd_create_invoice(int $invoice_number, bool $async = true) : ?string
+{
+    // If there is a current invoice, delete it before moving on
+    $order = new GoodPillOrder(['invoice_number' => $invoice_number]);
+
+    // No order so nothing to do
+    if (!$order->loaded) {
+        return null;
+    }
+
+    if (isset($order->invoice_number)) {
+        export_gd_delete_invoice($invoice_number);
+    }
+
+    $args = [
+        'method'   => 'createInvoice',
+        'template' => 'Invoice Template v1',
+        'fileName' => "Invoice #{$invoice_number}",
+        'folder'   => INVOICE_PENDING_FOLDER_NAME,
+    ];
+
+    $result         = json_decode(gdoc_post(GD_HELPER_URL, $args));
+
+    if (isset($result->invoice_doc_id)) {
+        $invoice_doc_id = json_decode($result, true);
+
+
+        $gpdb           = Goodpill::getConnection();
+        $pdo            = $gpdb->prepare(
+            "UPDATE gp_orders
+                SET invoice_doc_id = :invoice_doc_id
+                WHERE invoice_number = :invoice_number"
+        );
+
+        $pdo->bindParam(':invoice_doc_id', $invoice_doc_id, \PDO::PARAM_STR);
+        $pdo->bindParam(':invoice_number', $invoice_number, \PDO::PARAM_INT);
+        $pdo->execute();
+
+        $results = export_gd_complete_invoice($invoice_number, $async);
+
+        // If we weren't async, we should return null if the gd_complete step
+        // failed to proccess
+        if (!$async && !$results) {
+            return null;
+        }
+
+        return $invoice_doc_id;
+    }
+
+    // We failed to get an id, so we should handle that
+    return null;
+}
+
+function export_gd_complete_invoice(int $invoice_number, bool $async = true) : bool
+{
+    // Get full orders
+    $order = new GoodPillOrder(['invoice_number' => $invoice_number]);
+    $legacy_order = $order->getLegacyOrder();
+
+    $args = [
+        'method'       => 'completeInvoice',
+        'fileId'       => $order->invoice_doc_id,
+        'orderDetails' => $legacy_order
+    ];
+
+    $complete_request                = new Complete();
+    $complete_request->fileId        = $order->invoice_doc_id;
+    $complete_request->group_id      = "invoice-{$order->$invoice_number}";
+    $complete_request->orderDetails = $legacy_order;
+
+    if ($async) {
+        $gdq = new GoogleAppQueue();
+        $gdq->send($publish_request);
+        return $order;
+    }
+
+    if ($async) {
+
+        return true;
+    }
+
+    $result = gdoc_post(GD_MERGE_URL, $args);
+    $time   = ceil(microtime(true) - $start);
+}
+
 function export_gd_update_invoice($order, $reason, $mysql, $try2 = false)
 {
     global $gd_merge_timers;
     $start = microtime(true);
 
-    SirumLog::notice(
+    GPLog::notice(
         'export_gd_update_invoice: called',
         [
               "invoice_number" => $order[0]['invoice_number'],
@@ -42,7 +128,7 @@ function export_gd_update_invoice($order, $reason, $mysql, $try2 = false)
     );
 
     if (! count($order)) {
-        SirumLog::error(
+        GPLog::error(
             "export_gd_update_invoice: invoice error #2 of 2}",
             [
                 "order"  => $order,
@@ -77,7 +163,7 @@ function export_gd_update_invoice($order, $reason, $mysql, $try2 = false)
 
     if ( ! $invoice_doc_id) {
         if (! $try2) {
-            SirumLog::notice(
+            GPLog::notice(
                 "export_gd_update_invoice: invoice error #1 of 2}",
                 [
                     "invoice_number" => $order[0]['invoice_number'],
@@ -90,7 +176,7 @@ function export_gd_update_invoice($order, $reason, $mysql, $try2 = false)
             return export_gd_update_invoice($order, $reason, $mysql, true);
         }
 
-        SirumLog::notice(
+        GPLog::notice(
             "export_gd_update_invoice: invoice error #2 of 2}",
             [
                 "invoice_number" => $order[0]['invoice_number'],
@@ -104,7 +190,7 @@ function export_gd_update_invoice($order, $reason, $mysql, $try2 = false)
     }
 
     if ($order[0]['invoice_doc_id']) {
-        SirumLog::notice(
+        GPLog::notice(
             "export_gd_update_invoice: UPDATED invoice for Order #{$order[0]['invoice_number']}",
             [
                 "invoice_number"     => $order[0]['invoice_number'],
@@ -116,7 +202,7 @@ function export_gd_update_invoice($order, $reason, $mysql, $try2 = false)
             ]
         );
     } else {
-        SirumLog::notice(
+        GPLog::notice(
             "export_gd_update_invoice: CREATED invoice for Order #{$order[0]['invoice_number']}",
             [
                 "invoice_number" => $order[0]['invoice_number'],
@@ -146,7 +232,7 @@ function export_gd_update_invoice($order, $reason, $mysql, $try2 = false)
     $gd_merge_timers['export_gd_update_invoice'] += $elapsed;
 
     if ($elapsed > 20) {
-        SirumLog::notice(
+        GPLog::notice(
             'export_gd_update_invoice: Took to long to process',
             [
                 "invoice_number" => $order[0]['invoice_number']
@@ -190,7 +276,7 @@ function export_gd_publish_invoice($order, $async = true)
         $mysql = new Mysql_Wc();
         $order = export_gd_update_invoice($order, $update_reason, $mysql);
 
-        SirumLog::warning(
+        GPLog::warning(
             $update_reason,
             [
                 'invoice_number'     => $invoice_number,
@@ -207,7 +293,7 @@ function export_gd_publish_invoice($order, $async = true)
     // an error and return
     if (!$invoice_doc_id) {
         return $order;
-        SirumLog::warning(
+        GPLog::warning(
             "Could not find doc_id for invoice",
             [
                 'invoice_number'     => $invoice_number
@@ -227,7 +313,7 @@ function export_gd_publish_invoice($order, $async = true)
 
     $results = gdoc_post($url, $publish_request->toArray());
 
-    SirumLog::debug(
+    GPLog::debug(
         'export_gd_publish_invoice published while application waited',
         [
             "invoice_number" => $order[0]['invoice_number'],
@@ -266,7 +352,7 @@ function export_gd_print_invoice($invoice_number, $async = true)
 
     $results = gdoc_post($url, $print_request->toArray());
 
-    SirumLog::debug(
+    GPLog::debug(
         'export_gd_print_invoice while application waited',
         [
             "invoice_number" => $invoice_number,
@@ -304,7 +390,7 @@ function export_gd_delete_invoice($invoice_number, $async = true)
     // Since we aren't async, lets do the work right nwo
     $results = gdoc_post($url, $delete_request->toArray());
 
-    SirumLog::debug(
+    GPLog::debug(
         'Invoice printed while application waited',
         [
             "invoice_id" => $invoice_id,

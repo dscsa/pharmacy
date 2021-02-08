@@ -2,8 +2,8 @@
 
 require_once 'exports/export_gd_comm_calendar.php';
 
-use Sirum\Logging\{
-    SirumLog,
+use GoodPill\Logging\{
+    GPLog,
     AuditLog,
     CliLog
 };
@@ -74,7 +74,7 @@ function group_drugs($order, $mysql) {
           (groups IS NULL OR groups NOT LIKE '$fill$action%')
       ";
 
-      SirumLog::debug(
+      GPLog::debug(
         "Saving group into order_items",
         [
           "item"   => $item,

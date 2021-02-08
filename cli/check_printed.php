@@ -54,7 +54,7 @@ if ($start > $end) {
 
 echo "Checking dispensed invoices between {$start} and {$end}\n";
 
-$mysql = Sirum\Storage\Goodpill::getConnection();
+$mysql = GoodPill\Storage\Goodpill::getConnection();
 $pdo   = $mysql->prepare(
     "SELECT invoice_number, order_date_dispensed, invoice_doc_id
         FROM gp_orders

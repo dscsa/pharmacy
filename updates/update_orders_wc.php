@@ -2,10 +2,10 @@
 
 require_once 'helpers/helper_full_order.php';
 
-use Sirum\Logging\SirumLog;
-use Sirum\Logging\AuditLog;
-use Sirum\Logging\CliLog;
-use Sirum\Utilities\Timer;
+use GoodPill\Logging\GPLog;
+use GoodPill\Logging\AuditLog;
+use GoodPill\Logging\CliLog;
+use GoodPill\Utilities\Timer;
 
 /**
  * Proccess all the updates to WooCommerce Orders
@@ -15,7 +15,7 @@ use Sirum\Utilities\Timer;
  */
 function update_orders_wc(array $changes) : void
 {
-    SirumLog::notice('data-update-orders-wc', $changes);
+    GPLog::notice('data-update-orders-wc', $changes);
 
     $count_deleted = count($changes['deleted']);
     $count_created = count($changes['created']);
@@ -23,7 +23,7 @@ function update_orders_wc(array $changes) : void
 
     $msg = "$count_deleted deleted, $count_created created, $count_updated updated ";
 
-    SirumLog::info(
+    GPLog::info(
         "update_orders_wc: all changes. {$msg}",
         [
           'deleted_count' => $count_deleted,
@@ -89,9 +89,9 @@ function update_orders_wc(array $changes) : void
  */
 function wc_order_created(array $created) : bool
 {
-    SirumLog::$subroutine_id = "orders-wc-created-".sha1(serialize($created));
-    SirumLog::info("data-orders-wc-created", ['created' => $created]);
-    SirumLog::debug(
+    GPLog::$subroutine_id = "orders-wc-created-".sha1(serialize($created));
+    GPLog::info("data-orders-wc-created", ['created' => $created]);
+    GPLog::debug(
         "update_orders_wc: WooCommerce Order Created",
         [
             'source'  => 'WooCommerce',
@@ -116,7 +116,7 @@ function wc_order_created(array $created) : bool
             $created
         );
 
-        SirumLog::warning(
+        GPLog::warning(
             sprintf(
                 "Order #%s was created in Patient Portal,
                 but it appears to be a duplicate of #%s",
@@ -211,7 +211,7 @@ function wc_order_created(array $created) : bool
         return false;
     }
 
-    SirumLog::critical(
+    GPLog::critical(
         "update_orders_wc: WooCommerce Order Created. Needs Manual Intervention!",
         [
             'invoice_number' => $created['invoice_number'],
@@ -223,7 +223,7 @@ function wc_order_created(array $created) : bool
         ]
     );
 
-    SirumLog::resetSubroutineId();
+    GPLog::resetSubroutineId();
     return true;
 }
 
@@ -235,9 +235,9 @@ function wc_order_created(array $created) : bool
  */
 function wc_order_deleted(array $deleted) : bool
 {
-    SirumLog::$subroutine_id = "orders-wc-deleted-".sha1(serialize($deleted));
-    SirumLog::info("data-orders-wc-deleted", ['deleted' => $deleted]);
-    SirumLog::debug(
+    GPLog::$subroutine_id = "orders-wc-deleted-".sha1(serialize($deleted));
+    GPLog::info("data-orders-wc-deleted", ['deleted' => $deleted]);
+    GPLog::debug(
         "update_orders_wc: WooCommerce Order Deleted",
         [
             'source'  => 'WooCommerce',
@@ -268,7 +268,7 @@ function wc_order_deleted(array $deleted) : bool
         $deleted
     );
 
-    SirumLog::critical(
+    GPLog::critical(
         "Order deleted from WC. Why?",
         [
             'source'  => 'WooCommerce',
@@ -295,7 +295,7 @@ function wc_order_deleted(array $deleted) : bool
             $deleted
         );
 
-        SirumLog::critical(
+        GPLog::critical(
             "Shipped Order deleted from WC. Republishing Invoice",
             [
                 'source'  => 'WooCommerce',
@@ -309,7 +309,7 @@ function wc_order_deleted(array $deleted) : bool
         $order = export_gd_publish_invoice($order);
     }
 
-    SirumLog::resetSubroutineId();
+    GPLog::resetSubroutineId();
     return true;
 }
 
@@ -320,9 +320,9 @@ function wc_order_deleted(array $deleted) : bool
  */
 function wc_order_updated(array $updated) : bool
 {
-    SirumLog::$subroutine_id = "orders-wc-updated-".sha1(serialize($updated));
-    SirumLog::info("data-orders-wc-updated", ['updated' => $updated]);
-    SirumLog::debug(
+    GPLog::$subroutine_id = "orders-wc-updated-".sha1(serialize($updated));
+    GPLog::info("data-orders-wc-updated", ['updated' => $updated]);
+    GPLog::debug(
         "update_orders_wc: WooCommerce Order Updated",
         [
             'source'  => 'WooCommerce',
@@ -369,7 +369,7 @@ function wc_order_updated(array $updated) : bool
             (@$old_stage[1] == 'shipped' and $new_stage[1] == 'shipped')
       )
     ) {
-        SirumLog::error(
+        GPLog::error(
             "WC Order Irregular Stage Change.",
             [
                 "invoice_number"  => $updated['invoice_number'],
@@ -382,6 +382,6 @@ function wc_order_updated(array $updated) : bool
             ]
         );
     }
-    SirumLog::resetSubroutineId();
+    GPLog::resetSubroutineId();
     return true;
 }

@@ -1,7 +1,7 @@
 <?php
 
-use Sirum\Logging\{
-    SirumLog,
+use GoodPill\Logging\{
+    GPLog,
     AuditLog,
     CliLog
 };
@@ -407,7 +407,7 @@ function create_event($event_title, $comm_arr, $hours_to_wait = 0, $hour_of_day 
 
   $result = gdoc_post(GD_HELPER_URL, $args);
 
-  SirumLog::debug(
+  GPLog::debug(
       "Communication Calendar event created: $event_title",
       [
           "message" => $args,
@@ -418,7 +418,7 @@ function create_event($event_title, $comm_arr, $hours_to_wait = 0, $hour_of_day 
   // Debug Refill Reminders getting created with NO TITLE OR DESCRIPTION,
   // just blank events
   if ($hour_of_day == 12) {
-      SirumLog::notice(
+      GPLog::notice(
           "DEBUG REFILL REMINDER create_event: $event_title",
           [
               "message" => $args,

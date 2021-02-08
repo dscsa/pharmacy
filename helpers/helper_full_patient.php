@@ -2,8 +2,8 @@
 require_once 'exports/export_cp_rxs.php';
 require_once 'helpers/helper_full_fields.php';
 
-use Sirum\Logging\{
-    SirumLog,
+use GoodPill\Logging\{
+    GPLog,
     AuditLog,
     CliLog
 };
@@ -22,7 +22,7 @@ function load_full_patient($partial, $mysql, $overwrite_rx_messages = false) {
     return;
   }
 
-  SirumLog::notice(
+  GPLog::notice(
     "helper_full_patient before helper_full_fields",
     [
       "patient_id_cp" => $patient[0]['patient_id_cp'],
@@ -34,7 +34,7 @@ function load_full_patient($partial, $mysql, $overwrite_rx_messages = false) {
 
   $patient = add_full_fields($patient, $mysql, $overwrite_rx_messages);
 
-  SirumLog::notice(
+  GPLog::notice(
     "helper_full_patient after helper_full_fields",
     [
       "patient_id_cp" => $patient[0]['patient_id_cp'],

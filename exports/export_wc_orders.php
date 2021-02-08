@@ -1,13 +1,13 @@
 <?php
 
 global $mysql;
-use Sirum\Logging\{
-    SirumLog,
+use GoodPill\Logging\{
+    GPLog,
     AuditLog,
     CliLog
 };
 
-use Sirum\DataModels\GoodPillOrder;
+use GoodPill\DataModels\GoodPillOrder;
 
 function wc_get_post($invoice_number, $wc_order_key = null, $suppress_error = false)
 {
@@ -32,7 +32,7 @@ function wc_get_post($invoice_number, $wc_order_key = null, $suppress_error = fa
         // Make sure this order hasn't been deleted before we yell about it
         $order = new GoodPillOrder(['invoice_number' => $invoice_number]);
         if ($order->loaded) {
-            SirumLog::error(
+            GPLog::error(
                 "Order $invoice_number doesn't seem to exist in wp_posts",
                 [
                     "invoice_number" => $invoice_number,
@@ -86,7 +86,7 @@ function wc_update_meta($invoice_number, $metadata)
     $post_id = wc_get_post($invoice_number, 'post_id');
 
     if (! $post_id) {
-        return SirumLog::warning(
+        return GPLog::warning(
             "wc_update_meta: no post id",
             [
               "invoice_number" => $invoice_number,
@@ -113,7 +113,7 @@ function wc_update_meta($invoice_number, $metadata)
     $meta_to_update = array_intersect_key($metadata, $existing_meta);
 
     if (count($meta_to_insert) > 0) {
-        SirumLog::debug(
+        GPLog::debug(
             "Inserting Meta data ",
             [
                   "invoice_number" => $invoice_number,
@@ -141,7 +141,7 @@ function wc_update_meta($invoice_number, $metadata)
     }
 
     foreach ($meta_to_update as $meta_key => $meta_value) {
-        SirumLog::debug(
+        GPLog::debug(
             "Update WC Meta ",
             [
                   "invoice_number" => $invoice_number,
@@ -164,7 +164,7 @@ function wc_update_meta($invoice_number, $metadata)
                             AND meta_key = '$meta_key'");
     }
 
-    SirumLog::debug(
+    GPLog::debug(
         "Update WC Meta",
         [
             "invoice_number" => $invoice_number,
@@ -188,7 +188,7 @@ function wc_update_order($invoice_number, $orderdata)
         $order = new GoodPillOrder(['invoice_number' => $invoice_number]);
 
         if ($order->loaded) {
-            SirumLog::critical(
+            GPLog::critical(
                 "export_wc_orders: wc_update_order FAILED! Order $invoice_number has no WC POST_ID",
                 [
                     "invoice_number" => $invoice_number,
@@ -294,7 +294,7 @@ function export_wc_delete_order($invoice_number, $reason)
     $post_id = wc_get_post($invoice_number, 'post_id');
 
     if (! $post_id) {
-        SirumLog::warning(
+        GPLog::warning(
             "export_wc_delete_order: Requested delete, but post_id missing",
             ['invoice_number' => $invoice_number, 'reason' => $reason ]
         );
@@ -318,7 +318,7 @@ function export_wc_delete_order($invoice_number, $reason)
 
     $mysql->run($sql3);
 
-    SirumLog::debug(
+    GPLog::debug(
         "export_wc_delete_order",
         [
           'invoice_number' => $invoice_number,
@@ -373,7 +373,7 @@ function export_wc_create_order($order, $reason)
                 && stripos($first_item['last_name'], 'TEST') === false
         ) {
             // This needs to be a task assigned to somebody to follow up
-            SirumLog::alert(
+            GPLog::alert(
                 "export_wc_create_order: {$res['error']} for $url: need to create/rename WC patient",
                 [
                   'reason' => $reason,
@@ -386,7 +386,7 @@ function export_wc_create_order($order, $reason)
         return;
     }
 
-    SirumLog::debug(
+    GPLog::debug(
         "export_wc_create_order: success for $url",
         [
             'reason' => $reason,
@@ -459,7 +459,7 @@ function export_wc_create_order($order, $reason)
 
     $mysql->run($sql);
 
-    SirumLog::notice(
+    GPLog::notice(
         'export_wc_create_order: created new order',
         [
             'metadata' => $metadata,
@@ -473,7 +473,7 @@ function export_wc_create_order($order, $reason)
 function export_wc_update_order($order)
 {
     if ($order[0]['rx_message_key'] == 'ACTION NEEDS FORM') {
-        SirumLog::notice(
+        GPLog::notice(
             'export_wc_update_order: ACTION NEEDS FORM update order
             skipped because order not yet created in WC',
             ['order' => $order[0]]
@@ -571,7 +571,7 @@ function export_wc_update_order_address($order, $meta_fn = 'wc_update_meta')
  */
 function export_wc_update_order_payment($invoice_number, $payment_fee, $payment_due)
 {
-    SirumLog::notice(
+    GPLog::notice(
         "export_wc_update_order_payment: called $invoice_number",
         [
               "invoice_number"     => $invoice_number,
@@ -583,7 +583,7 @@ function export_wc_update_order_payment($invoice_number, $payment_fee, $payment_
     $post_id = wc_get_post($invoice_number, 'post_id');
 
     if (!$post_id) {
-        SirumLog::warning(
+        GPLog::warning(
             'export_wc_update_order_payment: Could not find a Wordpress Post for Invoice',
             [
                 "invoice"     => $invoice_number,
@@ -600,7 +600,7 @@ function export_wc_update_order_payment($invoice_number, $payment_fee, $payment_
     $response = wc_fetch($urlToFetch);
 
     if (!$response) {
-        SirumLog::warning(
+        GPLog::warning(
             'export_wc_update_order_payment: Failed to load Wordpress URL',
             [
                 "invoice"     => $invoice_number,
@@ -615,7 +615,7 @@ function export_wc_update_order_payment($invoice_number, $payment_fee, $payment_
     }
 
     if (! empty($response['error'])) {
-        SirumLog::warning(
+        GPLog::warning(
             'export_wc_update_order_payment: Received error from wordpress',
             [
                 "invoice"     => $invoice_number,

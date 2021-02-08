@@ -15,11 +15,11 @@ $start_time = microtime(true);
 require_once 'vendor/autoload.php';
 require_once 'helpers/helper_error_handler.php';
 
-use Sirum\Logging\SirumLog;
-use Sirum\Logging\AuditLog;
-use Sirum\Logging\CliLog;
+use GoodPill\Logging\GPLog;
+use GoodPill\Logging\AuditLog;
+use GoodPill\Logging\CliLog;
 
-use Sirum\Utilities\Timer;
+use GoodPill\Utilities\Timer;
 
 /*
   General Requires
@@ -39,9 +39,9 @@ require_once 'helpers/helper_cp_test.php';
 if (!cp_test()) {
     $message = '** Could not connect to Carepoint **';
     echo "{$message}\n";
-    SirumLog::alert($message);
+    GPLog::alert($message);
     CliLog::alert($message);
-    SirumLog::getLogger()->flush();
+    GPLog::getLogger()->flush();
     exit;
 }
 
@@ -100,11 +100,11 @@ $f = fopen('/tmp/pharmacy.lock', 'w') or log_error('Webform Cron Job Cannot Crea
 if (!flock($f, LOCK_EX | LOCK_NB)) {
     $still_running = "\n*** Warning Webform Cron Job Because Previous One Is Still Running ***\n\n";
     echo $still_running;
-    SirumLog::notice($still_running, $global_exec_details);
+    GPLog::notice($still_running, $global_exec_details);
     CliLog::notice($still_running);
 
     // Push any lagging logs to google Cloud
-    SirumLog::getLogger()->flush();
+    GPLog::getLogger()->flush();
 
     exit;
 }
@@ -396,9 +396,9 @@ try {
     // If the script takes more than 10 minutes,
     // then we are taking too long and it needs to be an error
     if ($global_exec_details['timers']['total'] > 600) {
-        SirumLog::error($exec_message, $global_exec_details);
+        GPLog::error($exec_message, $global_exec_details);
     } else {
-        SirumLog::info($exec_message, $global_exec_details);
+        GPLog::info($exec_message, $global_exec_details);
     }
 
 
@@ -408,7 +408,7 @@ try {
     print_r($global_exec_details);
 } catch (Exception $e) {
     $global_exec_details['error_message'] = $e->getMessage;
-    SirumLog::alert('Webform Cron Job Fatal Error', $global_exec_details);
+    GPLog::alert('Webform Cron Job Fatal Error', $global_exec_details);
     throw $e;
 }
 
@@ -424,5 +424,5 @@ foreach ($timers as $timer) {
 }
 
 // Push any lagging logs to google Cloud
-SirumLog::getLogger()->flush();
+GPLog::getLogger()->flush();
 echo "Pharmacy Automation Success in {$global_exec_details['timers']['total']} seconds\n";

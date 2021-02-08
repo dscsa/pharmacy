@@ -1,7 +1,7 @@
 <?php
-use Sirum\Logging\SirumLog;
-use Sirum\Logging\AuditLog;
-use Sirum\Logging\CliLog;
+use GoodPill\Logging\GPLog;
+use GoodPill\Logging\AuditLog;
+use GoodPill\Logging\CliLog;
 
 class Mysql
 {
@@ -97,7 +97,7 @@ class Mysql
         $this->rollback();
         $this->logError(["$table import was ABORTED", $error, count($vals), array_slice($vals, 0, 100, true), array_slice($keys, 0, 100, true)]);
 
-        SirumLog::emergency("!!!TABLE IMPORT ERROR!!! {$table} {$error}");
+        GPLog::emergency("!!!TABLE IMPORT ERROR!!! {$table} {$error}");
         echo "
 
 
@@ -180,7 +180,7 @@ class Mysql
 
     public function logError($error)
     {
-        SirumLog::alert("Debug MYSQL", $error);
+        GPLog::alert("Debug MYSQL", $error);
     }
 
     public function prepare($sql)

@@ -3,8 +3,8 @@
 require_once 'exports/export_cp_rxs.php';
 require_once 'helpers/helper_full_fields.php';
 
-use Sirum\Logging\{
-    SirumLog,
+use GoodPill\Logging\{
+    GPLog,
     AuditLog,
     CliLog
 };
@@ -95,7 +95,7 @@ function add_wc_status_to_order($order) {
   }
 
   if ($old_order_stage_wc != $new_order_stage_wc) {
-    SirumLog::debug(
+    GPLog::debug(
         "helper_full_order: add_wc_status_to_order. change in status",
         [
           'old_status_wc'  => $old_order_stage_wc,

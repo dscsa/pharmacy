@@ -4,8 +4,8 @@ global $mssql;
 
 require_once 'exports/export_cp_order_items.php';
 
-use Sirum\Logging\{
-    SirumLog,
+use GoodPill\Logging\{
+    GPLog,
     AuditLog,
     CliLog
 };
@@ -25,7 +25,7 @@ function export_cp_set_expected_by($item) {
     UPDATE csom SET expected_by = '$expected_by' WHERE invoice_nbr = $item[invoice_number]
   ";
 
-  SirumLog::notice(
+  GPLog::notice(
     "export_cp_set_expected_by: pend group name $pend_group_name $item[invoice_number]",
     [
       'expected_by'     => $expected_by,
@@ -43,7 +43,7 @@ function export_cp_remove_order($invoice_number, $reason) {
   global $mssql;
   $mssql = $mssql ?: new Mssql_Cp();
 
-  SirumLog::notice(
+  GPLog::notice(
     "export_cp_remove_order: Order deleting $invoice_number",
     [
       'invoice_number'  => $invoice_number,
@@ -64,7 +64,7 @@ function export_cp_remove_order($invoice_number, $reason) {
     $date = date('y-m-d H:i');
     export_cp_append_order_note($mssql, $invoice_number, "Auto Deleted $date. $reason");
 
-    SirumLog::notice(
+    GPLog::notice(
       "export_cp_remove_order: Order $invoice_number was deleted",
       [
         'invoice_number'  => $invoice_number,
@@ -77,7 +77,7 @@ function export_cp_remove_order($invoice_number, $reason) {
 
   } else {
 
-    SirumLog::critical(
+    GPLog::critical(
       "export_cp_remove_order: Order $invoice_number had dispensed items and could only be partially deleted",
       [
         'invoice_number'  => $invoice_number,
@@ -97,7 +97,7 @@ function export_cp_append_order_note($mssql, $invoice_number, $note) {
 
     $res = $mssql->run($sql);
 
-    SirumLog::notice(
+    GPLog::notice(
       "export_cp_append_order_note: Order $invoice_number had note appended: $note",
       [
         'invoice_number'  => $invoice_number,
@@ -138,7 +138,7 @@ function export_cp_merge_orders($from_invoice_number, $to_invoice_number) {
 
     $res = $mssql->run($sql);
 
-    SirumLog::notice(
+    GPLog::notice(
       "export_cp_merge_orders: merging $from_invoice_number into $to_invoice_number",
       [
         'from_invoice_number' => $from_invoice_number,

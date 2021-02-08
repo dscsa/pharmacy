@@ -1,12 +1,12 @@
 <?php
 
-use Sirum\Logging\{
-    SirumLog,
+use GoodPill\Logging\{
+    GPLog,
     AuditLog,
     CLiLog
 };
 
-use \Sirum\DataModels\GoodPillOrder;
+use \GoodPill\DataModels\GoodPillOrder;
 
 require_once 'exports/export_cp_orders.php';
 
@@ -49,7 +49,7 @@ function v2_pend_item($item, $mysql, $reason)
             $item
         );
 
-        SirumLog::error(
+        GPLog::error(
             sprintf(
                 "ABORTED PEND Attempted to pend %s for Rx#%s on Invoice #%s. This
                 order doesn't exist in the Database",
@@ -85,7 +85,7 @@ function v2_pend_item($item, $mysql, $reason)
             $item
         );
 
-        SirumLog::error(
+        GPLog::error(
             sprintf(
             "v2_pend_item: ABORTED! %s %s %s %s days_dispensed_default:%s
             rx_dispensed_id:%s last_inventory:%s count_pended_total:%s",
@@ -117,7 +117,7 @@ function v2_pend_item($item, $mysql, $reason)
           ),
             $item
         );
-        SirumLog::debug(
+        GPLog::debug(
             sprintf(
             "v2_pend_item: make_pick_list SUCCESS %s %s %s %s",
             $item['invoice_number'],
@@ -141,7 +141,7 @@ function v2_pend_item($item, $mysql, $reason)
           ),
             $item
         );
-        SirumLog::error(
+        GPLog::error(
             sprintf(
               "v2_pend_item: make_pick_list ERROR %s %s %s %s",
               $item['invoice_number'],
@@ -172,7 +172,7 @@ function v2_pend_item($item, $mysql, $reason)
  */
 function v2_unpend_item($item, $mysql, $reason)
 {
-    SirumLog::notice(
+    GPLog::notice(
         sprintf(
           "v2_unpend_item: Invoice: %s Drug: %s Reason: %s Rx# %s",
           @$item['invoice_number'],
@@ -214,7 +214,7 @@ function v2_unpend_item($item, $mysql, $reason)
           ),
             $item
         );
-        SirumLog::critical("v2_unpend_item: NO INVOICE NUMBER, ORDER DATE ADDED, OR PATIENT DATE ADDED! ".@$item['invoice_number']." ".@$item['drug_name']." $reason ".@$item['rx_number'].". rx_dispensed_id:".@$item['rx_dispensed_id']." last_inventory:".@$item['last_inventory']." count_pended_total:".@$item['count_pended_total'], ['item' => $item]);
+        GPLog::critical("v2_unpend_item: NO INVOICE NUMBER, ORDER DATE ADDED, OR PATIENT DATE ADDED! ".@$item['invoice_number']." ".@$item['drug_name']." $reason ".@$item['rx_number'].". rx_dispensed_id:".@$item['rx_dispensed_id']." last_inventory:".@$item['last_inventory']." count_pended_total:".@$item['count_pended_total'], ['item' => $item]);
     }
 
     unpend_pick_list($item);
@@ -340,7 +340,7 @@ function print_pick_list($item, $list)
 
     $result = gdoc_post(GD_HELPER_URL, $args);
 
-    SirumLog::notice(
+    GPLog::notice(
         "print_pick_list: $item[invoice_number] ".@$item['drug_name']." ".@$item['rx_number'],
         [
             'item' => $item,
@@ -468,7 +468,7 @@ function pend_pick_list($item, $list)
             $item
         );
 
-        SirumLog::notice(
+        GPLog::notice(
             sprintf(
                 "v2_pend_item: ABORTED! %s for %s appears to be already pended in pend group %s.  Please confirm.",
                 @$item['drug_name'],
@@ -501,7 +501,7 @@ function pend_pick_list($item, $list)
     $res = v2_fetch($pend_url, 'POST', $list['pend']);
 
     if (isset($res) && $list['pend'][0]['_rev'] != $res[0]['rev']) {
-        SirumLog::debug("pend_pick_list: SUCCESS!! {$item['invoice_number']} {$item['drug_name']} {$item['rx_number']}");
+        GPLog::debug("pend_pick_list: SUCCESS!! {$item['invoice_number']} {$item['drug_name']} {$item['rx_number']}");
         return true;
     }
 
@@ -515,7 +515,7 @@ function pend_pick_list($item, $list)
         $item
     );
 
-    SirumLog::warning("pend_pick_list: FAILURE!! {$item['invoice_number']} {$item['drug_name']} {$item['rx_number']}");
+    GPLog::warning("pend_pick_list: FAILURE!! {$item['invoice_number']} {$item['drug_name']} {$item['rx_number']}");
     return false;
 }
 
@@ -534,7 +534,7 @@ function unpend_pick_list($item)
     $pend_group = get_item_pended_group($item);
 
     if (!$pend_group) {
-        SirumLog::warning(
+        GPLog::warning(
             sprintf(
                 "v2_unpend_item: Nothing Unpened.  Call could have been avoided! %s %s %s",
                 @$item['invoice_number'],
@@ -571,7 +571,7 @@ function unpend_pick_list($item)
                         $loop_count
                     )
                 );
-                SirumLog::info(
+                GPLog::info(
                     sprintf(
                         "succesfully unpended item %s in %s, unpend attempt #%s",
                         $item['drug_generic'],
@@ -594,7 +594,7 @@ function unpend_pick_list($item)
 
     $result = gdoc_post(GD_HELPER_URL, $args);
 
-    SirumLog::notice("unpend_pick_list", get_defined_vars());
+    GPLog::notice("unpend_pick_list", get_defined_vars());
 }
 
 //Getting all inventory of a drug can be thousands of items.  Let's start with a low limit that we increase as needed

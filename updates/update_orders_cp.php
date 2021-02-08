@@ -8,13 +8,13 @@ require_once 'exports/export_wc_orders.php';
 require_once 'exports/export_cp_orders.php';
 require_once 'exports/export_v2_order.php';
 
-use Sirum\Logging\{
-    SirumLog,
+use GoodPill\Logging\{
+    GPLog,
     AuditLog,
     CliLog
 };
 
-use Sirum\Utilities\Timer;
+use GoodPill\Utilities\Timer;
 
 /**
  * The general main function to proccess the individual change arrays
@@ -30,7 +30,7 @@ function update_orders_cp(array $changes) : void
 
     $msg = "$count_deleted deleted, $count_created created, $count_updated updated ";
 
-    SirumLog::info(
+    GPLog::info(
         "update_orders_cp: all changes. {$msg}",
         [
             'deleted_count' => $count_deleted,
@@ -45,7 +45,7 @@ function update_orders_cp(array $changes) : void
         return;
     }
 
-    SirumLog::notice('data-update-orders-cp', $changes);
+    GPLog::notice('data-update-orders-cp', $changes);
 
     $mysql = new Mysql_Wc();
 
@@ -66,7 +66,7 @@ function update_orders_cp(array $changes) : void
         cp_order_updated($updated);
     }
     Timer::stop("update.patients.cp.updated");
-    SirumLog::resetSubroutineId();
+    GPLog::resetSubroutineId();
 }
 
 /*
@@ -83,13 +83,13 @@ function update_orders_cp(array $changes) : void
  */
 function cp_order_created(array $created) : ?array
 {
-    SirumLog::$subroutine_id = "orders-cp-created-".sha1(serialize($created));
-    SirumLog::info("data-orders-cp-created", ['created' => $created]);
+    GPLog::$subroutine_id = "orders-cp-created-".sha1(serialize($created));
+    GPLog::info("data-orders-cp-created", ['created' => $created]);
 
     $mysql     = new Mysql_Wc();
     $duplicate = get_current_orders($mysql, ['patient_id_cp' => $created['patient_id_cp']]);
 
-    SirumLog::debug(
+    GPLog::debug(
         "get_full_order: Carepoint Order created ". $created['invoice_number'],
         [
             'invoice_number' => $created['invoice_number'],
@@ -112,7 +112,7 @@ function cp_order_created(array $created) : ?array
           ! is_webform($created)
           || is_webform($duplicate[0])
         )) {
-        SirumLog::warning(
+        GPLog::warning(
             sprintf(
                 "Created Carepoint Order Seems to be a duplicate %s >>> %s",
                 $duplicate[0]['invoice_number'],
@@ -170,7 +170,7 @@ function cp_order_created(array $created) : ?array
     $order = load_full_order($created, $mysql, true);
 
     if (! $order) {
-        SirumLog::debug(
+        GPLog::debug(
             "Created Order Missing.  Most likely because cp order has liCount >
               0 even though 0 items in order.  If correct, update liCount in CP to 0",
             ['order' => $order]
@@ -178,7 +178,7 @@ function cp_order_created(array $created) : ?array
         return null;
     }
 
-    SirumLog::debug(
+    GPLog::debug(
         "Order found for created order",
         [
             'invoice_number' => $order[0]['invoice_number'],
@@ -203,7 +203,7 @@ function cp_order_created(array $created) : ?array
             $created
         );
 
-        SirumLog::debug(
+        GPLog::debug(
             'Dispensed/Shipped/Returned order is missing and is being added back to the wc and gp tables',
             [
                 'invoice_number' => $order[0]['invoice_number'],
@@ -234,7 +234,7 @@ function cp_order_created(array $created) : ?array
             $created
         );
 
-        SirumLog::warning(
+        GPLog::warning(
             "update_orders_cp: created. no drugs to fill. removing order
             {$order[0]['invoice_number']}. Can we remove the v2_unpend_order
             below because it get called on the next run?",
@@ -252,7 +252,7 @@ function cp_order_created(array $created) : ?array
             // Find the item that wasn't removed, but we aren't filling
             // These values are transient and
             // TODO Why is this happening
-            SirumLog::critical(
+            GPLog::critical(
                 "update_orders_cp: created. canceling order, but is their a manually added item that we should keep?"
             );
         }
@@ -307,7 +307,7 @@ function cp_order_created(array $created) : ?array
         // created the order in Guardian
         // "order_source": "Webform eRX/Transfer/Refill [w/ Note]"
         if (! is_webform($order[0])) {
-            SirumLog::debug(
+            GPLog::debug(
                 "Creating order ".$order[0]['invoice_number']." in woocommerce because source is not the Webform and looks like there are items to fill",
                 [
                   'invoice_number' => $order[0]['invoice_number'],
@@ -322,7 +322,7 @@ function cp_order_created(array $created) : ?array
     }
 
     return $created;
-    SirumLog::resetSubroutineId();
+    GPLog::resetSubroutineId();
 }
 
 /**
@@ -340,10 +340,10 @@ function cp_order_deleted(array $deleted) : ?array
      *  - update invoice
      *  - update wc order total
      */
-    SirumLog::$subroutine_id = "orders-cp-deleted-".sha1(serialize($deleted));
-    SirumLog::info("data-orders-cp-deleted", ['deleted' => $deleted]);
+    GPLog::$subroutine_id = "orders-cp-deleted-".sha1(serialize($deleted));
+    GPLog::info("data-orders-cp-deleted", ['deleted' => $deleted]);
 
-    SirumLog::debug(
+    GPLog::debug(
         "update_orders_cp: carepoint order {$deleted['invoice_number']} has been deleted",
         [
             'source'         => 'CarePoint',
@@ -357,7 +357,7 @@ function cp_order_deleted(array $deleted) : ?array
     export_cp_remove_items($deleted['invoice_number']);
     export_gd_delete_invoice($deleted['invoice_number']);
 
-    SirumLog::info(
+    GPLog::info(
         'update_orders_cp deleted: unpending all items',
         [ 'deleted' => $deleted ]
     );
@@ -384,7 +384,7 @@ function cp_order_deleted(array $deleted) : ?array
             $deleted
         );
 
-        SirumLog::warning(
+        GPLog::warning(
             'update_orders_cp deleted: their appears to be a replacement',
             [
                 'deleted'     => $deleted,
@@ -458,7 +458,7 @@ function cp_order_deleted(array $deleted) : ?array
         );
     }
 
-    SirumLog::resetSubroutineId();
+    GPLog::resetSubroutineId();
     return $deleted;
 }
 
@@ -473,12 +473,12 @@ function cp_order_updated(array $updated) : ?array
     //If just updated we need to
     //  - see which fields changed
     //  - think about what needs to be updated based on changes
-    SirumLog::$subroutine_id = "orders-cp-updated-".sha1(serialize($updated));
-    SirumLog::info("data-orders-cp-updated", ['updated' => $updated]);
+    GPLog::$subroutine_id = "orders-cp-updated-".sha1(serialize($updated));
+    GPLog::info("data-orders-cp-updated", ['updated' => $updated]);
 
     $changed = changed_fields($updated);
 
-    SirumLog::debug(
+    GPLog::debug(
         "Carepoint Order {$updated['invoice_number']} has been updated",
         [
             'source'         => 'CarePoint',
@@ -492,7 +492,7 @@ function cp_order_updated(array $updated) : ?array
 
     $stage_change_cp = $updated['order_stage_cp'] != $updated['old_order_stage_cp'];
 
-    SirumLog::notice(
+    GPLog::notice(
         sprintf(
             "Updated Orders Cp: %s",
             $updated['invoice_number']
@@ -505,11 +505,11 @@ function cp_order_updated(array $updated) : ?array
     $groups = group_drugs($order, $mysql);
 
     if (!$order) {
-        SirumLog::error("Updated Order Missing", [ 'order' => $order ]);
+        GPLog::error("Updated Order Missing", [ 'order' => $order ]);
         return null;
     }
 
-    SirumLog::debug(
+    GPLog::debug(
         "Order found for updated order",
         [
             'invoice_number'     => $order[0]['invoice_number'],
@@ -529,7 +529,7 @@ function cp_order_updated(array $updated) : ?array
             $updated
         );
 
-        SirumLog::warning(
+        GPLog::warning(
             'Confirm this order was returned! cp_order with tracking number was deleted, but we keep it in gp_orders and in wc',
             [ 'updated' => $updated ]
         );
@@ -541,7 +541,7 @@ function cp_order_updated(array $updated) : ?array
         return null;
     }
 
-    SirumLog::notice(
+    GPLog::notice(
         "Order Changed.  Has it shipped or dispensed",
         [
             'State Changed' => $stage_change_cp,
@@ -572,7 +572,7 @@ function cp_order_updated(array $updated) : ?array
             $order = export_gd_publish_invoice($order);
             export_gd_print_invoice($order[0]['invoice_number']);
             send_dispensed_order_communications($groups);
-            SirumLog::notice($reason, [ 'order' => $order ]);
+            GPLog::notice($reason, [ 'order' => $order ]);
         }
 
         if ($updated['order_date_shipped'] != $updated['old_order_date_shipped']) {
@@ -586,7 +586,7 @@ function cp_order_updated(array $updated) : ?array
                 $updated
             );
 
-            SirumLog::notice("Updated Order Shipped Started", [ 'order' => $order ]);
+            GPLog::notice("Updated Order Shipped Started", [ 'order' => $order ]);
             $order = export_v2_unpend_order($order, $mysql, "Order Shipped");
             export_wc_update_order_status($order); //Update status from prepare to shipped
             export_wc_update_order_metadata($order);
@@ -602,7 +602,7 @@ function cp_order_updated(array $updated) : ?array
     */
     // count_items may already be 0 on a deleted order that had items e.g 33840
     if ($order[0]['count_filled'] == 0 and $order[0]['count_nofill'] == 0) {
-        SirumLog::warning(
+        GPLog::warning(
             "update_orders_cp updated: no_rx_notice count_filled == 0 AND count_nofill == 0",
             [
                 'updated' => $updated,
@@ -636,7 +636,7 @@ function cp_order_updated(array $updated) : ?array
             ),
             $updated
         );
-        SirumLog::error(
+        GPLog::error(
             'update_orders_cp: updated. no drugs to fill. removing cp/wc order '.$order[0]['invoice_number'].'. Send order cancelled notice?',
             [
                 'invoice_number' => $order[0]['invoice_number'],
@@ -668,7 +668,7 @@ function cp_order_updated(array $updated) : ?array
     //Address Changes
     //Stage Change
     //Order_Source Change (now that we overwrite when saving webform)
-    SirumLog::notice(
+    GPLog::notice(
         "update_orders_cp updated: no action taken {$updated['invoice_number']}",
         [
             'order'   => $order,
@@ -677,6 +677,6 @@ function cp_order_updated(array $updated) : ?array
         ]
     );
 
-    SirumLog::resetSubroutineId();
+    GPLog::resetSubroutineId();
     return $updated;
 }

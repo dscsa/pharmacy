@@ -1,12 +1,12 @@
 <?php
 require_once 'dbs/mysql_wc.php';
 
-use Sirum\Logging\{
-    SirumLog,
+use GoodPill\Logging\{
+    GPLog,
     AuditLog,
     CliLog
 };
-use Sirum\Utilities\Timer;
+use GoodPill\Utilities\Timer;
 /**
  * Use a transaction to update the the current stock levels.  This DELETES all
  * records from the table then repopulates everything with a query.  Finally
@@ -17,7 +17,7 @@ use Sirum\Utilities\Timer;
 
 function update_stock_by_month($changes) {
 
-  SirumLog::notice('data-update-stock-by-month', $changes);
+  GPLog::notice('data-update-stock-by-month', $changes);
 
   $month_interval  = 4; //This is full months, excluding the current partial month that is included, so on average it will be 0.5 months more than this number
   $default_rxs_min = 3;
@@ -36,11 +36,11 @@ function update_stock_by_month($changes) {
 
   if ( ! $count_deleted AND ! $count_created AND ! $count_updated) return;
 
-  SirumLog::$subroutine_id = "stock-v2-".sha1(serialize($changes));
+  GPLog::$subroutine_id = "stock-v2-".sha1(serialize($changes));
 
   //Overrite Rx Messages everytime a new order created otherwis same message would stay for the life of the Rx
 
-  SirumLog::debug(
+  GPLog::debug(
     "update_stock_by_month: updating gp_stock_live",
     [
         'changes' => $changes,
@@ -218,10 +218,10 @@ function update_stock_by_month($changes) {
 
     create_event($event_title, [$salesforce]);
 
-    SirumLog::critical("update_stock_by_month: $salesforce", $duplicate_gsns[0]);
+    GPLog::critical("update_stock_by_month: $salesforce", $duplicate_gsns[0]);
   }
 
-  SirumLog::resetSubroutineId();
+  GPLog::resetSubroutineId();
 
 
   //TODO Calculate Qty Per Day from Sig and save in database
