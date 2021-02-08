@@ -167,7 +167,7 @@ function wc_patient_updated(array $updated)
     $mssql = new Mssql_Cp();
 
     SirumLog::$subroutine_id = "patients-wc-updated-".sha1(serialize($updated));
-    SirumLog::info("data-patients-wc-updated", ['created' => $created]);
+    SirumLog::info("data-patients-wc-updated", ['updated' => $updated]);
 
     $changed = changed_fields($updated);
 

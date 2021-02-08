@@ -442,8 +442,9 @@ function cp_order_deleted(array $deleted) : ?array
             $deleted['invoice_number'],
             "update_orders_cp: cp order webform cancelled $reason"
         );
+
         // We passed in $deleted because there is not $order to make $groups
-        order_cancelled_notice($deleted, $groups);
+        order_cancelled_notice($deleted, []);
     } else {
         AuditLog::log(
             sprintf(
