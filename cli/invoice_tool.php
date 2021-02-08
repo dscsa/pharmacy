@@ -64,9 +64,18 @@ foreach ($orders as $orderNumber) {
 
     if (isset($args['u'])) {
         if (!isset($args['d'])) {
-            $order = export_gd_update_invoice($order, 're-print', $mysql, true);
+            $invoice_doc_id = export_gd_create_invoice($order[0]['invoice_number'], $async);
+
+            if (!$invoice_doc_id) {
+                echo "Invoice {$orderNumber} Updated\n";
+            } else {
+                echo "Invoice {$orderNumber} Failed to Updated\n";
+            }
+
+            for ($i = 0; $i < count($order); $i++) {
+                $order[$i]['invoice_doc_id'] = $invoice_doc_id;
+            }
         }
-        echo "Invoice {$orderNumber} Updated\n";
     }
 
     if (isset($args['p'])) {

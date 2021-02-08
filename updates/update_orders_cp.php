@@ -568,9 +568,21 @@ function cp_order_updated(array $updated) : ?array
             );
             $reason = "update_orders_cp updated: Updated Order Dispensed ".$updated['invoice_number'];
             $order = helper_update_payment($order, $reason, $mysql);
-            $order = export_gd_update_invoice($order, $reason, $mysql);
-            $order = export_gd_publish_invoice($order);
-            export_gd_print_invoice($order[0]['invoice_number']);
+            $invoice_doc_id = export_gd_create_invoice($order[0]["invoice_number"]);
+
+            // If we have an invoice, lets finish printing it
+            if ($invoice_doc_id) {
+                // We didn't get a new doc_id so we need to run away
+                for ($i = 0; $i < count($order); $i++) {
+                    $order[$i]['invoice_doc_id'] = $invoice_doc_id;
+                }
+
+                $order = export_gd_publish_invoice($order[0]["invoice_number"]);
+                export_gd_print_invoice($order[0]['invoice_number']);
+            } else {
+                GPLog::error("Failed to generate a google invoice for {$order[0]['invoice_number']}");
+            }
+
             send_dispensed_order_communications($groups);
             GPLog::notice($reason, [ 'order' => $order ]);
         }

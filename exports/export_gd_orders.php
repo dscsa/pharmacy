@@ -134,148 +134,16 @@ function export_gd_complete_invoice(int $invoice_number, bool $async = true) : b
     return false;
 }
 
-function export_gd_update_invoice($order, $reason, $mysql, $try2 = false)
-{
-    global $gd_merge_timers;
-    $start = microtime(true);
-
-    GPLog::notice(
-        'export_gd_update_invoice: called',
-        [
-              "invoice_number" => $order[0]['invoice_number'],
-              "order"   => $order,
-              "reason"  => $reason,
-              "try2"    => $try2
-        ]
-    );
-
-    if (! count($order)) {
-        GPLog::error(
-            "export_gd_update_invoice: invoice error #2 of 2}",
-            [
-                "order"  => $order,
-                "reason" => $reason
-            ]
-        );
-
-        return $order;
-    }
-
-    export_gd_delete_invoice($order[0]['invoice_doc_id']); //Avoid having multiple versions of same invoice
-
-    $args = [
-        'method'   => 'mergeDoc',
-        'template' => 'Invoice Template v1',
-        'file'     => 'Invoice #'.$order[0]['invoice_number'],
-        'folder'   => INVOICE_PENDING_FOLDER_NAME,
-        'order'    => $order
-    ];
-
-    echo "\ncreating invoice ".$order[0]['invoice_number']." (".$order[0]['order_stage_cp'].")\n";
-
-    $start = microtime(true);
-
-    $result = gdoc_post(GD_MERGE_URL, $args);
-
-    $time = ceil(microtime(true) - $start);
-
-    echo " completed in $time seconds";
-
-    $invoice_doc_id = json_decode($result, true);
-
-    if ( ! $invoice_doc_id) {
-        if (! $try2) {
-            GPLog::notice(
-                "export_gd_update_invoice: invoice error #1 of 2}",
-                [
-                    "invoice_number" => $order[0]['invoice_number'],
-                    "args"           => $args,
-                    "results"        => $result,
-                    "attempt"        => 1
-                ]
-            );
-
-            return export_gd_update_invoice($order, $reason, $mysql, true);
-        }
-
-        GPLog::notice(
-            "export_gd_update_invoice: invoice error #2 of 2}",
-            [
-                "invoice_number" => $order[0]['invoice_number'],
-                "args"           => $args,
-                "results"        => $result,
-                "attempt"        => 2
-            ]
-        );
-
-        return $order;
-    }
-
-    if ($order[0]['invoice_doc_id']) {
-        GPLog::notice(
-            "export_gd_update_invoice: UPDATED invoice for Order #{$order[0]['invoice_number']}",
-            [
-                "invoice_number"     => $order[0]['invoice_number'],
-                "stage"              => $order[0]['order_stage_cp'],
-                "new_invoice_doc_id" => $invoice_doc_id,
-                "old_invoice_doc_id" => $order[0]['invoice_doc_id'],
-                "reason"             => $reason,
-                "time"               => $time
-            ]
-        );
-    } else {
-        GPLog::notice(
-            "export_gd_update_invoice: CREATED invoice for Order #{$order[0]['invoice_number']}",
-            [
-                "invoice_number" => $order[0]['invoice_number'],
-                "stage"          => $order[0]['order_stage_cp'],
-                "invoice_doc_id" => $invoice_doc_id,
-                "reason"         => $reason,
-                "time"           => $time
-            ]
-        );
-    }
-
-    //Need to make a second loop to now update the invoice number
-    foreach ($order as $i => $item) {
-        $order[$i]['invoice_doc_id'] = $invoice_doc_id;
-    }
-
-    $sql = "UPDATE
-      gp_orders
-    SET
-      invoice_doc_id = ".($invoice_doc_id ? "'$invoice_doc_id'" : 'NULL')." -- Unique Index forces us to use NULL rather than ''
-    WHERE
-      invoice_number = {$order[0]['invoice_number']}";
-
-    $mysql->run($sql);
-
-    $elapsed = ceil(microtime(true) - $start);
-    $gd_merge_timers['export_gd_update_invoice'] += $elapsed;
-
-    if ($elapsed > 20) {
-        GPLog::notice(
-            'export_gd_update_invoice: Took to long to process',
-            [
-                "invoice_number" => $order[0]['invoice_number']
-            ]
-        );
-    }
-
-    return $order;
-}
-
-
-
 /**
  * Publish an order.  This will make the order not editable.  We need to pass back
  * the full order because we could modify the order by doing an update request
  *
- * @param  array   $order
- * @param  boolean $async [description]
- * @return [type]         [description]
+ * @param  array   $order  An array of all the order items
+ * @param  boolean $async  Should we wait on the publish request or should it
+ *      be a queued request
+ * @return array  The order including any changes
  */
-function export_gd_publish_invoice($order, $async = true)
+function export_gd_publish_invoice(array $order, bool $async = true) : array
 {
     $invoice_doc_id = $order[0]['invoice_doc_id'];
     $invoice_number = $order[0]['invoice_number'];
@@ -293,34 +161,24 @@ function export_gd_publish_invoice($order, $async = true)
                 || $meta->trashed
            )
     ) {
-        // The current invoice is trash.  Make a new invoice
-        $update_reason = "export_gd_publish_invoice: invoice didn't exist so trying to (re)make it";
-        $mysql = new Mysql_Wc();
-        $order = export_gd_update_invoice($order, $update_reason, $mysql);
+        $invoice_doc_id = export_gd_create_invoice($order[0]['invoice_number'], $async);
 
-        GPLog::warning(
-            $update_reason,
-            [
-                'invoice_number'     => $invoice_number,
-                'old_invoice_doc_id' => $invoice_doc_id,
-                'new_invoice_doc_id' =>  $order[0]['invoice_doc_id'],
-                'meta'               => $meta
-            ]
-        );
+        if (!$invoice_doc_id) {
+            // We failed to create the invoice, so we need to log an error and leave
+            GPLog::error(
+                "Faile to create missing invoice",
+                [
+                    'invoice_number'     => $invoice_number,
+                    'order'              => $order,
+                    'meta'               => $meta
+                ]
+            );
+            return $order;
+        }
 
-        $invoice_doc_id = $order[0]['invoice_doc_id'];
-    }
-
-    // Don't publis the file if we don't have a doc_id instead throw
-    // an error and return
-    if (!$invoice_doc_id) {
-        return $order;
-        GPLog::warning(
-            "Could not find doc_id for invoice",
-            [
-                'invoice_number'     => $invoice_number
-            ]
-        );
+        for ($i = 0; $i < count($order); $i++) {
+            $order[$i]['invoice_doc_id'] = $invoice_doc_id;
+        }
     }
 
     $publish_request             = new Publish();
