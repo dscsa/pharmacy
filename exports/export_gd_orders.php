@@ -27,6 +27,17 @@ $gd_merge_timers = [
 ];
 
 
+/**
+ * Create in invoice from a template.  Also update the database with the new
+ * invoice_doc_id.  After the doc ID is complete a complete/merge request will
+ * be processed or queued
+ *
+ * @param  int     $invoice_number The invoice number for teh gp_orders table
+ * @param  boolean $async          Should we wait on the script to finish or
+ *      send the request to a queue
+ * @return null|string             null if the document wasn't generate or the
+ *      invoice_doc_id if it was successvful
+ */
 function export_gd_create_invoice(int $invoice_number, bool $async = true) : ?string
 {
     // If there is a current invoice, delete it before moving on
@@ -42,18 +53,16 @@ function export_gd_create_invoice(int $invoice_number, bool $async = true) : ?st
     }
 
     $args = [
-        'method'   => 'createInvoice',
-        'template' => 'Invoice Template v1',
+        'method'   => 'v2/createInvoice',
+        'templateId' => 'Invoice Template v1',
         'fileName' => "Invoice #{$invoice_number}",
-        'folder'   => INVOICE_PENDING_FOLDER_NAME,
+        'folderId' => GD_FOLDER_IDS[INVOICE_PENDING_FOLDER_NAME],
     ];
 
-    $result         = json_decode(gdoc_post(GD_HELPER_URL, $args));
+    $result = json_decode(gdoc_post(GD_MERGE_URL, $args));
 
     if (isset($result->invoice_doc_id)) {
-        $invoice_doc_id = json_decode($result, true);
-
-
+        $invoice_doc_id = $result->invoice_doc_id;
         $gpdb           = Goodpill::getConnection();
         $pdo            = $gpdb->prepare(
             "UPDATE gp_orders
@@ -80,6 +89,14 @@ function export_gd_create_invoice(int $invoice_number, bool $async = true) : ?st
     return null;
 }
 
+/**
+ * Send the order data to google Docs to render the invoice.
+ *
+ * @param  int     $invoice_number The invoice number fromt eh gp_orders table
+ * @param  boolean $async          Should we wait for it to complete or send it
+ *      to a queue
+ * @return bool                    True if the item was queued or completed
+ */
 function export_gd_complete_invoice(int $invoice_number, bool $async = true) : bool
 {
     // Get full orders
@@ -95,21 +112,26 @@ function export_gd_complete_invoice(int $invoice_number, bool $async = true) : b
     $complete_request                = new Complete();
     $complete_request->fileId        = $order->invoice_doc_id;
     $complete_request->group_id      = "invoice-{$order->$invoice_number}";
-    $complete_request->orderDetails = $legacy_order;
+    $complete_request->orderDetails  = $legacy_order;
 
     if ($async) {
         $gdq = new GoogleAppQueue();
         $gdq->send($publish_request);
-        return $order;
-    }
-
-    if ($async) {
-
         return true;
     }
 
     $result = gdoc_post(GD_MERGE_URL, $args);
-    $time   = ceil(microtime(true) - $start);
+
+    if ($results->results == 'success') {
+        return true;
+    }
+
+    GPLog::error(
+        "Failed to complete invoice {$invoice_number}",
+        [ 'results' => $result ]
+    );
+
+    return false;
 }
 
 function export_gd_update_invoice($order, $reason, $mysql, $try2 = false)
