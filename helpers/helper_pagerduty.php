@@ -125,11 +125,13 @@ function get_pd_event(
         $message,
         $id,
         $level,
-        true
+        false
     );
 
     if (!is_null($deDup)) {
         $event->setDeDupKey(md5($deDup));
+    } else {
+        $event->setDeDupKey(md5($message.$id.json_encode($data)));
     }
 
     if (!empty($data)) {

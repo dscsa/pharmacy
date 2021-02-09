@@ -29,7 +29,6 @@ function is_patient_match($mysql, $patient) {
   ];
 
   //TODO Auto Delete Duplicate Patient AND Send Comm of their login and password
-
   SirumLog::critical("helper_matching: is_patient_match FALSE ".@$patient[0]['first_name']." ".@$patient[0]['last_name']." ".@$patient[0]['birth_date'], $alert);
 }
 
@@ -115,7 +114,8 @@ function match_patient($mysql, $patient_id_cp, $patient_id_wc)
             "Attempted to match a CP patient that was already matched in WC",
             [
                 'patient_id_cp' => $patient_id_cp,
-                'patient_id_wc' => $patient_id_wc
+                'patient_id_wc' => $patient_id_wc,
+                'proposed_patient_id_wc' => @$patient_match['patient_id_wc']
             ]
         );
     }
