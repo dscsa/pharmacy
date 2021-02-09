@@ -131,7 +131,8 @@ function get_pd_event(
     if (!is_null($deDup)) {
         $event->setDeDupKey(md5($deDup));
     } else {
-        $event->setDeDupKey(md5($message.$id.json_encode($data)));
+        // Set the dedup key to repeat every 3 hours
+        $event->setDeDupKey("md5-" . md5($message . date('z') . '-' . floor(date('G')/3)));
     }
 
     if (!empty($data)) {
