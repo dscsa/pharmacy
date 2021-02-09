@@ -85,7 +85,7 @@ function update_rxs_single($changes)
             update_rx_single_drug($mysql, $created['rx_number']);
 
             $rx_single = new GoodPillRxSingle(['rx_number' => $created['rx_number']]);
-            if (!$rx_single->loaded || !$rx_single->drugs_gsns) {
+            if (!$rx_single->loaded || !$rx_single->drug_gsns) {
                 SirumLog::notice(
                     "update_rxs_single: rx created but drug_gsns is empty",
                     [ 'created'  => $created]
