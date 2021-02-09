@@ -67,6 +67,6 @@ class GoodPillRxSingle extends GPModel
      * The table name to store the notifications
      * @var string
      */
-    protected $table_name = "gp_rx_single";
+    protected $table_name = "gp_rxs_single";
 
 }
