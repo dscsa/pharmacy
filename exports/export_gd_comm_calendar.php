@@ -346,8 +346,8 @@ function order_updated_notice($groups, $patient_updates)
         "Note: if this is correct, there is no need to do anything. If you want to change or delay this order, please let us know as soon as possible. If delaying, please specify the date on which you want it filled, otherwise if you don't, we will delay it 3 weeks by default."
     ]);
 
-    $email = [ "email" => DEBUG_EMAIL]; //$groups['ALL'][0]['email'] ];
-    $text  = [ "sms"   => DEBUG_PHONE, "message" => "$subject: $updates $message"]; //get_phones($groups['ALL'])
+    $email = [ "email" => $groups['ALL'][0]['email']]; //$groups['ALL'][0]['email'] ];
+    $text  = [ "sms"   => get_phones($groups['ALL']), "message" => "$subject: $updates $message"]; //get_phones($groups['ALL'])
 
     $email['subject'] = $subject;
     $email['message'] = implode('<br>', [
@@ -453,8 +453,8 @@ function no_rx_notice($partial, $groups)
     ? "We will attempt to transfer the Rxs you requested from your pharmacy."
     : "We haven't gotten any Rxs from your doctor yet but will notify you as soon as we do.";
 
-    $email = [ "email" => DEBUG_EMAIL]; //$groups['ALL'][0]['email'] ];
-  $text  = [ "sms"   => DEBUG_PHONE, "message" => $subject.'. '.$message ]; //get_phones($groups['ALL'])
+    $email = [ "email" => $groups['ALL'][0]['email']]; //$groups['ALL'][0]['email'] ];
+  $text  = [ "sms"   => get_phones($groups['ALL']), "message" => $subject.'. '.$message ]; //get_phones($groups['ALL'])
 
   $email['subject'] = $subject;
     $email['message']  = implode('<br>', [
@@ -494,8 +494,8 @@ function order_cancelled_notice($partial, $groups)
         $message  .= "<br><br>If you believe this cancellation was in error, call us (888) 987-5187";
     }
 
-    $email = [ "email" => DEBUG_EMAIL]; //$groups['ALL'][0]['email'] ];
-    $text  = [ "sms"   => DEBUG_PHONE, "message" => $subject.'. '.$message ]; //get_phones($groups['ALL'])
+    $email = [ "email" => $groups['ALL'][0]['email']]; //$groups['ALL'][0]['email'] ];
+    $text  = [ "sms"   => get_phones($groups['ALL']), "message" => $subject.'. '.$message ]; //get_phones($groups['ALL'])
 
     $email['subject'] = $subject;
     $email['message'] = implode('<br>', [

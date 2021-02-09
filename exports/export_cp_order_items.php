@@ -171,11 +171,11 @@ function export_cp_add_items($invoice_number, $items)
 
             $log['has_cp_order'] = (@$cp_invoice_number) ? 'Y' : 'N';
 
-            SirumLog::critical("{$log['subject']}, not even a current one", $log);
+            SirumLog::warning("{$log['subject']}, why are the RX importing before the actual order?<--BB", $log);
             return;
         }
 
-        SirumLog::warning("{$log['subject']}, so adding to ${invoice_number} instead", $log);
+        SirumLog::notice("{$log['subject']}, so adding to ${invoice_number} instead", $log);
     }
 
     $sql  = "SirumWeb_AddItemsToOrder '{$invoice_number}', '{$rx_numbers}'";
