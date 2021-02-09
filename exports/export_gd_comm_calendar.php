@@ -453,8 +453,8 @@ function no_rx_notice($partial, $groups)
     ? "We will attempt to transfer the Rxs you requested from your pharmacy."
     : "We haven't gotten any Rxs from your doctor yet but will notify you as soon as we do.";
 
-    $email = [ "email" => $groups['ALL'][0]['email']]; //$groups['ALL'][0]['email'] ];
-  $text  = [ "sms"   => get_phones($groups['ALL']), "message" => $subject.'. '.$message ]; //get_phones($groups['ALL'])
+    $email = [ "email" => DEBUG_EMAIL]; //$groups['ALL'][0]['email'] ];
+  $text  = [ "sms"   => DEBUG_SMS, "message" => $subject.'. '.$message ]; //get_phones($groups['ALL'])
 
   $email['subject'] = $subject;
     $email['message']  = implode('<br>', [
