@@ -125,11 +125,14 @@ function get_pd_event(
         $message,
         $id,
         $level,
-        true
+        false
     );
 
     if (!is_null($deDup)) {
         $event->setDeDupKey(md5($deDup));
+    } else {
+        // Set the dedup key to repeat every 3 hours
+        $event->setDeDupKey("md5-" . md5($message . date('z') . '-' . floor(date('G')/3)));
     }
 
     if (!empty($data)) {

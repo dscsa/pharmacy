@@ -115,7 +115,8 @@ function match_patient($mysql, $patient_id_cp, $patient_id_wc)
             "Attempted to match a CP patient that was already matched in WC",
             [
                 'patient_id_cp' => $patient_id_cp,
-                'patient_id_wc' => $patient_id_wc
+                'patient_id_wc' => $patient_id_wc,
+                'proposed_patient_id_wc' => @$patient_match['patient_id_wc']
             ]
         );
     }

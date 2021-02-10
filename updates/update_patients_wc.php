@@ -167,7 +167,7 @@ function wc_patient_updated(array $updated)
     $mssql = new Mssql_Cp();
 
     GPLog::$subroutine_id = "patients-wc-updated-".sha1(serialize($updated));
-    GPLog::info("data-patients-wc-updated", ['created' => $created]);
+    GPLog::info("data-patients-wc-updated", ['updated' => $updated]);
 
     $changed = changed_fields($updated);
 

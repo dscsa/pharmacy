@@ -13,6 +13,8 @@ use GoodPill\Logging\{
 };
 use GoodPill\Utilities\Timer;
 
+use Sirum\DataModels\GoodPillRxSingle;
+
 function update_rxs_single($changes)
 {
     GPLog::notice('data-update-rxs-single', $changes);
@@ -76,16 +78,21 @@ function update_rxs_single($changes)
               ]
         );
 
-        GPLog::critical("update_rxs_single: rx created1. did the drug_generic/brand/gsns get added to rxs_single?", [
-          'created'  => $created
-        ]);
+
 
         if ($created['rx_gsn'] AND is_gsn_in_v2($mysql, $created['rx_number'])) {
             //compliment method, update_order_item_drug, doesn't need to be called because order_item will be new and won't need to be updated
             update_rx_single_drug($mysql, $created['rx_number']);
 
-        } else {
+            $rx_single = new GoodPillRxSingle(['rx_number' => $created['rx_number']]);
+            if (!$rx_single->loaded || !$rx_single->drug_gsns) {
+                SirumLog::notice(
+                    "update_rxs_single: rx created but drug_gsns is empty",
+                    [ 'created'  => $created]
+                );
+            }
 
+        } else {
             $created_date = "Created:".date('Y-m-d H:i:s');
 
             if ($created['rx_gsn']) {
@@ -93,7 +100,6 @@ function update_rxs_single($changes)
                 $body    = "{$created['drug_name']} for $subject";
                 $assign  = "Joseph";
                 log_warning($body, $created);
-
             } else {
                 $subject = "NEW {$created['rx_number']} still needs to be switched to a drug with a GSN";
                 $body    = "{$created['drug_name']} for $subject in CarePoint";
@@ -165,7 +171,7 @@ function update_rxs_single($changes)
             );
         }
 
-        if (!$parsed['sig_qty_per_day']) {
+        if (!$parsed['qty_per_day']) {
             $created_date = "Created:".date('Y-m-d H:i:s');
             $salesforce   = [
                 "subject"   => "Error: 0 or null dosage for {$created['drug_name']} in "

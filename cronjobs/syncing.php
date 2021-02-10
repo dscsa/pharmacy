@@ -384,7 +384,6 @@ try {
     $global_exec_details['timers']['total']      = array_sum($global_exec_details['timers']);
     $global_exec_details['timers_gd']['total']   = array_sum($global_exec_details['timers_gd']);
     $global_exec_details['timers_gd']['merge']   = $gd_merge_timers;
-    $global_exec_details['timers_gd']['percent'] = ceil($global_exec_details['timers_gd']['total']/$global_exec_details['timers']['total']*100);
     $global_exec_details['end']                  = date('c');
 
     $exec_message = sprintf(
@@ -412,7 +411,8 @@ try {
     throw $e;
 }
 
-$timers = asort(Timer::getTimers());
+$timers = Timer::getTimers();
+asort($timers);
 
 CliLog::debug("Timers");
 foreach ($timers as $timer) {
