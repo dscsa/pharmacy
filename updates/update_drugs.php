@@ -1,9 +1,13 @@
 <?php
+
+require_once 'helpers/helper_try_catch_log.php';
+
 use Sirum\Logging\{
     SirumLog,
     AuditLog,
     CliLog
 };
+
 use Sirum\Utilities\Timer;
 /**
  * Update all drug changes
@@ -38,13 +42,13 @@ function update_drugs(array $changes) : void
 
     Timer::start("update.drugs.created");
     foreach ($changes['created'] as $i => $created) {
-        drug_created($created);
+        helper_try_catch_log('drug_created', $created);
     }
     Timer::start("update.drugs.created");
 
     Timer::start("update.drugs.updated");
     foreach ($changes['updated'] as $i => $updated) {
-        drug_updated($updated);
+        helper_try_catch_log('drug_updated', $updated);
     }
     Timer::start("update.drugs.updated");
 }

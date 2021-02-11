@@ -4,6 +4,7 @@ require_once 'exports/export_wc_patients.php';
 require_once 'exports/export_cp_patients.php';
 require_once 'helpers/helper_matching.php';
 require_once 'helpers/helper_calendar.php';
+require_once 'helpers/helper_try_catch_log.php';
 
 use Sirum\Logging\{
     SirumLog,
@@ -49,19 +50,19 @@ function update_patients_wc(array $changes) : void
 
     Timer::start('update.patients.wc.created');
     foreach ($changes['created'] as $created) {
-        wc_patient_created($created);
+        helper_try_catch_log('wc_patient_created', $created);
     }
     Timer::stop('update.patients.wc.created');
 
     Timer::start('update.patients.wc.deleted');
     foreach ($changes['deleted'] as $i => $deleted) {
-        wc_patient_deleted($deleted);
+        helper_try_catch_log('wc_patient_deleted', $deleted);
     }
     Timer::stop('update.patients.wc.deleted');
 
     Timer::start('update.patients.wc.updated');
     foreach ($changes['updated'] as $i => $updated) {
-        wc_patient_updated($updated);
+        helper_try_catch_log('wc_patient_updated', $updated);
     }
     Timer::stop('update.patients.wc.updated');
 }

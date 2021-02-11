@@ -1,6 +1,7 @@
 <?php
 
 require_once 'helpers/helper_full_patient.php';
+require_once 'helpers/helper_try_catch_log.php';
 
 use Sirum\Logging\{
     SirumLog,
@@ -43,7 +44,7 @@ function update_patients_cp(array $changes) : void
 
     Timer::start('update.patients.cp.updated');
     foreach ($changes['updated'] as $i => $updated) {
-        cp_patient_updated($updated);
+        helper_try_catch_log('cp_patient_updated', $updated);
     }
     Timer::stop('update.patients.cp.updated');
 
