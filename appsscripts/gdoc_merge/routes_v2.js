@@ -1,3 +1,7 @@
+function test_v2_create() {
+    createInvoice_v2('1SFW3_J1f3dVahFddqsz2YZY_G1I5dFDA8nVj6KKVfTg', '1ZSog-fJ7HhWJfXU_rmsJaMCiNb2VlFfG', 'Ben Test');
+}
+
 /**
  * Create make a copy of a template and return the doc_id
  * @param  {string} templateId Google Doc_Id of the templates
@@ -12,8 +16,9 @@ function createInvoice_v2(templateId, folderId, fileName) {
         var newFile     = template.makeCopy(fileName, destination);
         var response = {
             "results": "success",
-            "doc_id": newFile.getId();
+            "doc_id": newFile.getId()
         };
+        console.debug(fileName + ' created with id' + newFile.getId() + 'in folder' + folderId);
     } catch (e) {
         var response = {
             "results": "error",

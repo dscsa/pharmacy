@@ -54,12 +54,15 @@ function export_gd_create_invoice(int $invoice_number, bool $async = true) : ?st
 
     $args = [
         'method'   => 'v2/createInvoice',
-        'templateId' => 'Invoice Template v1',
+        'templateId' => INVOICE_TEMPLATE_ID,
         'fileName' => "Invoice #{$invoice_number}",
         'folderId' => GD_FOLDER_IDS[INVOICE_PENDING_FOLDER_NAME],
     ];
 
     $result = json_decode(gdoc_post(GD_MERGE_URL, $args));
+
+    var_dump($results);
+    exit;
 
     if (isset($result->invoice_doc_id)) {
         $invoice_doc_id = $result->invoice_doc_id;
@@ -72,7 +75,7 @@ function export_gd_create_invoice(int $invoice_number, bool $async = true) : ?st
 
         $pdo->bindParam(':invoice_doc_id', $invoice_doc_id, \PDO::PARAM_STR);
         $pdo->bindParam(':invoice_number', $invoice_number, \PDO::PARAM_INT);
-        $pdo->execute();
+        //$pdo->execute();
 
         $results = export_gd_complete_invoice($invoice_number, $async);
 
@@ -111,12 +114,12 @@ function export_gd_complete_invoice(int $invoice_number, bool $async = true) : b
 
     $complete_request                = new Complete();
     $complete_request->fileId        = $order->invoice_doc_id;
-    $complete_request->group_id      = "invoice-{$order->$invoice_number}";
+    $complete_request->group_id      = "invoice-{$order->invoice_number}";
     $complete_request->orderDetails  = $legacy_order;
 
     if ($async) {
         $gdq = new GoogleAppQueue();
-        $gdq->send($publish_request);
+        $gdq->send($complete_request);
         return true;
     }
 
@@ -190,6 +193,8 @@ function export_gd_publish_invoice(array $order, bool $async = true) : array
         $gdq->send($publish_request);
         return $order;
     }
+
+    var_dump($publish_request->toArray());
 
     $results = gdoc_post($url, $publish_request->toArray());
 

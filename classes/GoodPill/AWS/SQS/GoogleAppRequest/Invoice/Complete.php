@@ -2,7 +2,7 @@
 
 namespace  GoodPill\AWS\SQS\GoogleAppRequest\Invoice;
 
-use GoodPill\AWS\SQS\GoogleAppRequest\HelperRequest;
+use GoodPill\AWS\SQS\GoogleAppRequest\MergeRequest;
 
 /**
  * Base level class for all Google Doc requests

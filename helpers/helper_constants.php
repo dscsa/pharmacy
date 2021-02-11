@@ -33,6 +33,8 @@ const GD_FOLDER_IDS = [
     TRANSFER_OUT_FOLDER_NAME      => '1Lda6GkjIsEzTc1fwES6EbGcOHCJvlIZz'
 ];
 
+const INVOICE_TEMPLATE_ID = '1SFW3_J1f3dVahFddqsz2YZY_G1I5dFDA8nVj6KKVfTg';
+
 const PAYMENT_METHOD = [
   'COUPON'       => 'coupon',
   'MAIL'         => 'cheque',

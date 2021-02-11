@@ -5,9 +5,10 @@ namespace GoodPill\DataModels;
 use GoodPill\Storage\Goodpill;
 use GoodPill\GPModel;
 
-
 use \PDO;
 use \Exception;
+
+require_once "helpers/helper_full_order.php";
 
 /**
  * A class for loading Order data.  Right now we only have a few fields defined
@@ -85,7 +86,18 @@ class GoodPillOrder extends GPModel
         return null;
     }
 
-    public function getPendGroup() {
-        
+    /**
+     * Get to old order array
+     * @return null|array
+     */
+    public function getLegacyOrder() : ?array {
+        if ($this->loaded) {
+            return get_full_order(
+                (new \Mysql_Wc()),
+                $this->invoice_number
+            );
+        }
+
+        return null;
     }
 }

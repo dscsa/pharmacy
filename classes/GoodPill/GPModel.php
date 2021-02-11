@@ -1,5 +1,5 @@
 <?php
-namespace Sirum;
+namespace GoodPill;
 
 use GoodPill\Storage\Goodpill;
 

@@ -9,7 +9,7 @@ function debugEmail() {
   }
 
   var subject = 'gdoc_merge Debug '+getCaller()+" "+(1501 - quota)+" of 1500. Elapsed secs "+Math.floor((new Date() - scriptStart)/1000)
-  var body = '<pre>activeUser:'+Session.getActiveUser().getEmail()+' effectiveUser:'+Session.getEffectiveUser().getEmail()+' '+argArray(arguments).join('\n\n')+'</pre>'
+  var body = '<pre>effectiveUser:'+Session.getEffectiveUser().getEmail()+' '+argArray(arguments).join('\n\n')+'</pre>'
   sendEmail(subject, body.split('\n'))
 }
 
