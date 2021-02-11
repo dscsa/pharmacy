@@ -1,6 +1,7 @@
 <?php
 
 require_once 'helpers/helper_full_order.php';
+require_once 'helpers/helper_try_catch_log.php';
 
 use Sirum\Logging\SirumLog;
 use Sirum\Logging\AuditLog;
