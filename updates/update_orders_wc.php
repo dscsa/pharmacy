@@ -50,7 +50,7 @@ function update_orders_wc(array $changes) : void
         delete loop
      */
     foreach ($changes['created'] as $created) {
-        wc_order_created($created);
+        helper_try_catch_log('wc_order_created', $created);
     }
     Timer::stop("update.orders.wc.created");
 
@@ -64,13 +64,13 @@ function update_orders_wc(array $changes) : void
      */
     Timer::start("update.orders.wc.deleted");
     foreach ($changes['deleted'] as $deleted) {
-        wc_order_deleted($deleted);
+        helper_try_catch_log('wc_order_deleted', $deleted);
     }
     Timer::stop("update.orders.wc.deleted");
 
     Timer::start("update.orders.wc.updated");
     foreach ($changes['updated'] as $updated) {
-        wc_order_updated($updated);
+        helper_try_catch_log('wc_order_updated', $updated);
     } // End Changes Loop
     Timer::stop("update.orders.wc.updated");
 }
