@@ -7,6 +7,7 @@ require_once 'helpers/helper_communications.php';
 require_once 'exports/export_wc_orders.php';
 require_once 'exports/export_cp_orders.php';
 require_once 'exports/export_v2_order.php';
+require_once 'helpers/helper_try_catch_log.php';
 
 use GoodPill\Logging\{
     GPLog,
@@ -51,19 +52,19 @@ function update_orders_cp(array $changes) : void
 
     Timer::start("update.patients.cp.created");
     foreach ($changes['created'] as $created) {
-        cp_order_created($created);
+        helper_try_catch_log('cp_order_created', $created);
     }
     Timer::stop("update.patients.cp.created");
 
     Timer::start("update.patients.cp.deleted");
     foreach ($changes['deleted'] as $deleted) {
-        cp_order_deleted($deleted);
+        helper_try_catch_log('cp_order_deleted', $deleted);
     }
     Timer::stop("update.patients.cp.deleted");
 
     Timer::start("update.patients.cp.updated");
     foreach ($changes['updated'] as $i => $updated) {
-        cp_order_updated($updated);
+        helper_try_catch_log('cp_order_updated', $updated);
     }
     Timer::stop("update.patients.cp.updated");
     GPLog::resetSubroutineId();

@@ -191,13 +191,12 @@ function get_days_and_message($item, $patient_or_order)
     }
 
     //Patient set their refill date_manual earlier than they should have. TODO ensure webform validation doesn't allow this
-    //AND (strtotime($item['refill_date_default']) - strtotime($item['refill_date_manual'])) > DAYS_EARLY*24*60*60
-    if ($days_early > DAYS_EARLY*24*60*60 and $item['refill_date_manual'] and ! $added_manually) {
+    if (@$item['item_date_added'] AND $item['refill_date_manual'] AND (strtotime($item['refill_date_default']) - strtotime($date_added)) > DAYS_EARLY*24*60*60 AND ! $added_manually) {
         $created = "Created:".date('Y-m-d H:i:s');
 
         $salesforce = [
           "subject"   => "Investigate Early Refill",
-          "body"      => "Confirm if/why needs $item[drug_name] in Order #".@$item['invoice_number']." even though it's over "."28"." days before it's due. If needed, add drug to order. $created",
+          "body"      => "Confirm if/why needs $item[drug_name] in Order #".@$item['invoice_number']." even though it's over ".DAYS_EARLY." days before it's due. Add drug to order or contact patient to explain why we are not filling. $created",
           "contact"   => "$item[first_name] $item[last_name] $item[birth_date]",
           "assign_to" => ".Add/Remove Drug - RPh",
           "due_date"  => date('Y-m-d')

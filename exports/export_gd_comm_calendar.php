@@ -616,7 +616,7 @@ function confirm_shipment_external($groups)
 
     $subject = "Order #".$groups['ALL'][0]['invoice_number']." was shipped last week and should have arrived";
 
-    $text['message'] = "$subject.\n\nIf you have NOT received your order, please reply '1' or call us at 888-987-5187 so we can help.";
+    $text['message'] = $subject;
 
     $call['message'] =  call_wrapper(format_call("$subject."));
 
