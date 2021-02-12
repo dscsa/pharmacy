@@ -9,6 +9,8 @@ use GoodPill\AWS\SQS\GoogleAppRequest\Invoice\{
     Publish
 };
 
+use GoodPill\Storage\Goodpill;
+
 use GoodPill\AWS\SQS\GoogleAppQueue;
 use GoodPill\DataModels\GoodPillOrder;
 use GoodPill\Logging\{
@@ -59,13 +61,11 @@ function export_gd_create_invoice(int $invoice_number, bool $async = true) : ?st
         'folderId' => GD_FOLDER_IDS[INVOICE_PENDING_FOLDER_NAME],
     ];
 
-    $result = json_decode(gdoc_post(GD_MERGE_URL, $args));
+    $response = json_decode(gdoc_post(GD_MERGE_URL, $args));
+    $results  = $response->results;
 
-    var_dump($results);
-    exit;
-
-    if (isset($result->invoice_doc_id)) {
-        $invoice_doc_id = $result->invoice_doc_id;
+    if ($response->results == 'success') {
+        $invoice_doc_id = $response->doc_id;
         $gpdb           = Goodpill::getConnection();
         $pdo            = $gpdb->prepare(
             "UPDATE gp_orders
@@ -75,7 +75,7 @@ function export_gd_create_invoice(int $invoice_number, bool $async = true) : ?st
 
         $pdo->bindParam(':invoice_doc_id', $invoice_doc_id, \PDO::PARAM_STR);
         $pdo->bindParam(':invoice_number', $invoice_number, \PDO::PARAM_INT);
-        //$pdo->execute();
+        $pdo->execute();
 
         $results = export_gd_complete_invoice($invoice_number, $async);
 
@@ -106,16 +106,10 @@ function export_gd_complete_invoice(int $invoice_number, bool $async = true) : b
     $order = new GoodPillOrder(['invoice_number' => $invoice_number]);
     $legacy_order = $order->getLegacyOrder();
 
-    $args = [
-        'method'       => 'completeInvoice',
-        'fileId'       => $order->invoice_doc_id,
-        'orderDetails' => $legacy_order
-    ];
-
     $complete_request                = new Complete();
     $complete_request->fileId        = $order->invoice_doc_id;
     $complete_request->group_id      = "invoice-{$order->invoice_number}";
-    $complete_request->orderDetails  = $legacy_order;
+    $complete_request->orderData  = $legacy_order;
 
     if ($async) {
         $gdq = new GoogleAppQueue();
@@ -123,15 +117,15 @@ function export_gd_complete_invoice(int $invoice_number, bool $async = true) : b
         return true;
     }
 
-    $result = gdoc_post(GD_MERGE_URL, $args);
+    $response = json_decode(gdoc_post(GD_MERGE_URL, $complete_request->toArray()));
 
-    if ($results->results == 'success') {
+    if ($response->results == 'success') {
         return true;
     }
 
     GPLog::error(
         "Failed to complete invoice {$invoice_number}",
-        [ 'results' => $result ]
+        [ 'results' => $response ]
     );
 
     return false;

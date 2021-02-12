@@ -13,13 +13,13 @@ class Complete extends MergeRequest
         'type',
         'method',
         'fileId',
-        'orderDetails'
+        'orderData'
     ];
 
     protected $required = [
         'method',
         'fileId',
-        'orderDetails'
+        'orderData'
     ];
 
     /**

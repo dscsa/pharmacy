@@ -18,7 +18,7 @@ function createInvoice_v2(templateId, folderId, fileName) {
             "results": "success",
             "doc_id": newFile.getId()
         };
-        console.debug(fileName + ' created with id' + newFile.getId() + 'in folder' + folderId);
+        console.log(fileName + ' created with id: ' + newFile.getId() + ' in folder: ' + folderId);
     } catch (e) {
         var response = {
             "results": "error",
@@ -42,36 +42,37 @@ function createInvoice_v2(templateId, folderId, fileName) {
  * @return {object}           A JSON object that represents teh results of the command
  */
 function completeInvoice_v2(fileId, orderData) {
-    try {
+    //try {
         var invoice = DriveApp.getFileById(fileId);
+        var invoiceDoc = DocumentApp.openById(fileId)
         var descObj = JSON.parse(invoice.getDescription());
 
-        if (!descObj.rendered) {
+        if (descObj && descObj.rendered) {
             throw 'Already Rendered';
         }
 
         var order   = flattenOrder(orderData)
-        var documentElement = invoice.getBody().getParent()
+        var documentElement = invoiceDoc.getBody().getParent()
         var numChildren = documentElement.getNumChildren()
 
         for (var i = 0; i<numChildren; i++) {
           interpolate(documentElement.getChild(i), order)
         }
 
-        invoice.saveAndClose()
+        invoiceDoc.saveAndClose()
         invoice.setDescription(JSON.stringify({'rendered':1}));
 
         var response = {
             "results": "success"
         };
-    } catch (e) {
-        var response = {
-            "results": "error",
-            "message": "Error Completing File the file",
-            "fileId": fileId,
-            "error": e.message
-        };
-    }
+    // } catch (e) {
+    //     var response = {
+    //         "results": "error",
+    //         "message": "Error Completing File the file",
+    //         "fileId": fileId,
+    //         "error": e.message
+    //     };
+    // }
 
     return response;
 }
