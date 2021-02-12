@@ -63,8 +63,6 @@ function gdoc_post($url, $content)
 
     $context = stream_context_create($opts);
 
-    echo $url.'?GD_KEY='.GD_KEY;
-    var_dump($json);
     for ($try = 1; $try <=3; $try++) {
         $results = @file_get_contents($url.'?GD_KEY='.GD_KEY, false, $context);
 
@@ -81,8 +79,6 @@ function gdoc_post($url, $content)
             );
             break;
         }
-
-        echo "failed $try\n";
 
         GPLog::error(
             'Google Doc Request Failed:',

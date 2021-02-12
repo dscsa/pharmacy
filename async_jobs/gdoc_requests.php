@@ -9,6 +9,7 @@ require_once 'keys.php';
 use GoodPill\AWS\SQS\{
     GoogleAppRequest\BaseRequest,
     GoogleAppRequest\HelperRequest,
+    GoogleAppRequest\MergeRequest,
     GoogleAppQueue
 };
 
@@ -33,7 +34,6 @@ for ($l = 0; $l < $executions; $l++) {
     // been proccessed and can be deleted
     // If we've got something to work with, go for it
     if (is_array($messages) && count($messages) > 0) {
-
         $log_message = sprintf(
             "[%s] Processing %s messages\n",
             date('Y-m-d h:m:s'),
@@ -41,7 +41,7 @@ for ($l = 0; $l < $executions; $l++) {
         );
 
         GPLog::debug($log_message);
-        echo $log_message;
+        CliLog::debug($log_message);
 
         foreach ($messages as $message) {
             $request = BaseRequest::factory($message);
@@ -69,7 +69,7 @@ for ($l = 0; $l < $executions; $l++) {
             }
 
             GPLog::debug($log_message);
-            echo $log_message . "\n";
+            CliLog::notice($log_message);
         }
     }
 
@@ -82,7 +82,7 @@ for ($l = 0; $l < $executions; $l++) {
         );
 
         GPLog::debug($log_message);
-        echo $log_message . "\n";
+        CliLog::notice($log_message);
 
         $gdq->deleteBatch($complete);
     }
