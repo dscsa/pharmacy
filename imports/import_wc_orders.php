@@ -50,7 +50,7 @@ function import_wc_orders() {
 
     error_log($duplicate_invoices);
 
-    SirumLog::critical($duplicate_invoices, $duplicates[0]);
+    SirumLog::emergency($duplicate_invoices, $duplicates[0]);
 
     // Push any lagging logs to google Cloud
     SirumLog::getLogger()->flush();
