@@ -21,18 +21,15 @@ class MySQL
     public static function getPDO($host, $db, $user, $pass)
     {
         try {
-            $objPdo = new PDO(
+            $objPdo = new PDOWrap(
                 "mysql:host={$host};dbname={$db};port=3306;charset=utf8",
                 $user,
                 $pass
             );
-
-            $objPdo->setAttribute(PDO::ATTR_TIMEOUT, 5);
-            $objPdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-            $objPdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
         } catch (\PDOException $e) {
             throw new \PDOException($e->getMessage(), (int)$e->getCode());
         }
+
         return $objPdo;
     }
 }
