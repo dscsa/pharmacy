@@ -12,15 +12,26 @@ require_once 'exports/export_cp_orders.php';
 
 function export_v2_unpend_order($order, $mysql, $reason)
 {
-    log_notice("export_v2_unpend_order $reason ".@$order[0]['invoice_number'], $order);
+    GPLog::notice(
+        "export_v2_unpend_order $reason " . @$order[0]['invoice_number'],
+        ['order' => $order]
+    );
 
     if (! @$order[0]['drug_name']) {
-        log_error("export_v2_unpend_order: ABORTED! Order ".@$order[0]['invoice_number']." doesn't seem to have any items. $reason", ['order' => $order]);
+        GPLog::error(
+            "export_v2_unpend_order: ABORTED! Order " . @$order[0]['invoice_number']
+            . " doesn't seem to have any items. $reason",
+            ['order' => $order]
+        );
         return $order;
     }
 
+    // Unpend the entire order
+    v2_unpend_order_by_invoice($order[0]['invoice_number']);
+
+    // save a blank picklist for each item
     foreach ($order as $i => $item) {
-        $order[$i] = v2_unpend_item($item, $mysql, $reason);
+        $order[$i] = save_pick_list($item, 0, $mysql);
     }
 
     return $order;
@@ -70,34 +81,34 @@ function v2_pend_item($item, $mysql, $reason)
       or @$item['count_pended_total'] > 0) {
         AuditLog::log(
             sprintf(
-            "ABORTED PEND Attempted to pend %s for Rx#%s on Invoice #%s for
-            the following reasons: Missing days dispensed default - %s,
-            The Rx hasn't been assigned - %s, There isn't inventory - %s,
-            The number of doses is invalid - %s",
-            @$item['drug_name'],
-            @$item['rx_number'],
-            @$item['invoice_number'],
-            (!$item['days_dispensed_default']) ? 'Y':'N',
-            ($item['rx_dispensed_id']) ? 'Y':'N',
-            (is_null($item['last_inventory'])) ? 'Y':'N',
-            (@$item['count_pended_total'] > 0) ? 'Y':'N'
-        ),
+                "ABORTED PEND Attempted to pend %s for Rx#%s on Invoice #%s for
+                the following reasons: Missing days dispensed default - %s,
+                The Rx hasn't been assigned - %s, There isn't inventory - %s,
+                The number of doses is invalid - %s",
+                @$item['drug_name'],
+                @$item['rx_number'],
+                @$item['invoice_number'],
+                (!$item['days_dispensed_default']) ? 'Y':'N',
+                ($item['rx_dispensed_id']) ? 'Y':'N',
+                (is_null($item['last_inventory'])) ? 'Y':'N',
+                (@$item['count_pended_total'] > 0) ? 'Y':'N'
+            ),
             $item
         );
 
         GPLog::error(
             sprintf(
-            "v2_pend_item: ABORTED! %s %s %s %s days_dispensed_default:%s
-            rx_dispensed_id:%s last_inventory:%s count_pended_total:%s",
-            @$item['invoice_number'],
-            @$item['drug_name'],
-            $reason,
-            @$item['rx_number'],
-            @$item['days_dispensed_default'],
-            @$item['rx_dispensed_id'],
-            @$item['last_inventory'],
-            @$item['count_pended_total']
-        ),
+                "v2_pend_item: ABORTED! %s %s %s %s days_dispensed_default:%s
+                rx_dispensed_id:%s last_inventory:%s count_pended_total:%s",
+                @$item['invoice_number'],
+                @$item['drug_name'],
+                $reason,
+                @$item['rx_number'],
+                @$item['days_dispensed_default'],
+                @$item['rx_dispensed_id'],
+                @$item['last_inventory'],
+                @$item['count_pended_total']
+            ),
             [ 'item' => $item ]
         );
         return $item;
@@ -109,51 +120,51 @@ function v2_pend_item($item, $mysql, $reason)
     if ($list) {
         AuditLog::log(
             sprintf(
-              "Item %s for Rx#%s on Invoice #%s Pended because",
-              @$item['drug_name'],
-              @$item['rx_number'],
-              @$item['invoice_number'],
-              $reason
-          ),
+                "Item %s for Rx#%s on Invoice #%s Pended because",
+                @$item['drug_name'],
+                @$item['rx_number'],
+                @$item['invoice_number'],
+                $reason
+            ),
             $item
         );
         GPLog::debug(
             sprintf(
-            "v2_pend_item: make_pick_list SUCCESS %s %s %s %s",
-            $item['invoice_number'],
-            $item['drug_name'],
-            $reason,
-            $item['rx_number']
-        ),
+                "v2_pend_item: make_pick_list SUCCESS %s %s %s %s",
+                $item['invoice_number'],
+                $item['drug_name'],
+                $reason,
+                $item['rx_number']
+            ),
             [
-            'success' => true,
-            'item' => $item,
-            'list' => $list
-        ]
+                'success' => true,
+                'item' => $item,
+                'list' => $list
+            ]
         );
     } else {
         AuditLog::log(
             sprintf(
-              "Item %s for Rx#%s on Invoice #%s FAILED to pend",
-              @$item['drug_name'],
-              @$item['rx_number'],
-              @$item['invoice_number']
-          ),
+                "Item %s for Rx#%s on Invoice #%s FAILED to pend",
+                @$item['drug_name'],
+                @$item['rx_number'],
+                @$item['invoice_number']
+            ),
             $item
         );
         GPLog::error(
             sprintf(
-              "v2_pend_item: make_pick_list ERROR %s %s %s %s",
-              $item['invoice_number'],
-              $item['drug_name'],
-              $reason,
-              $item['rx_number']
-          ),
+                "v2_pend_item: make_pick_list ERROR %s %s %s %s",
+                $item['invoice_number'],
+                $item['drug_name'],
+                $reason,
+                $item['rx_number']
+            ),
             [
               'success' => false,
               'item' => $item,
               'list' => $list
-          ]
+            ]
         );
     }
 
@@ -174,12 +185,12 @@ function v2_unpend_item($item, $mysql, $reason)
 {
     GPLog::notice(
         sprintf(
-          "v2_unpend_item: Invoice: %s Drug: %s Reason: %s Rx# %s",
-          @$item['invoice_number'],
-          @$item['drug_name'],
-          $reason,
-          @$item['rx_number']
-      ),
+            "v2_unpend_item: Invoice: %s Drug: %s Reason: %s Rx# %s",
+            @$item['invoice_number'],
+            @$item['drug_name'],
+            $reason,
+            @$item['rx_number']
+        ),
         [ 'item' => $item ]
     );
 
@@ -189,12 +200,12 @@ function v2_unpend_item($item, $mysql, $reason)
 
     AuditLog::log(
         sprintf(
-          "Item %s for Rx#%s on Invoice #%s UN-Pended because %s",
-          @$item['drug_name'],
-          @$item['rx_number'],
-          @$item['invoice_number'],
-          $reason
-      ),
+            "Item %s for Rx#%s on Invoice #%s UN-Pended because %s",
+            @$item['drug_name'],
+            @$item['rx_number'],
+            @$item['invoice_number'],
+            $reason
+        ),
         $item
     );
 
@@ -203,18 +214,25 @@ function v2_unpend_item($item, $mysql, $reason)
         or !@$item['patient_date_added']) {
         AuditLog::log(
             sprintf(
-              "Item %s for Rx#%s on Invoice #%s UN-Pended is missing:
-               invoice number - %s, order date - %s, patient date - %s",
-              @$item['drug_name'],
-              @$item['rx_number'],
-              @$item['invoice_number'],
-              (!@$item['invoice_number']) ? 'Y':'N',
-              (!@$item['order_date_added']) ? 'Y':'N',
-              (!@$item['patient_date_added']) ? 'Y':'N'
-          ),
+                "Item %s for Rx#%s on Invoice #%s UN-Pended is missing:
+                invoice number - %s, order date - %s, patient date - %s",
+                @$item['drug_name'],
+                @$item['rx_number'],
+                @$item['invoice_number'],
+                (!@$item['invoice_number']) ? 'Y':'N',
+                (!@$item['order_date_added']) ? 'Y':'N',
+                (!@$item['patient_date_added']) ? 'Y':'N'
+            ),
             $item
         );
-        GPLog::critical("v2_unpend_item: NO INVOICE NUMBER, ORDER DATE ADDED, OR PATIENT DATE ADDED! ".@$item['invoice_number']." ".@$item['drug_name']." $reason ".@$item['rx_number'].". rx_dispensed_id:".@$item['rx_dispensed_id']." last_inventory:".@$item['last_inventory']." count_pended_total:".@$item['count_pended_total'], ['item' => $item]);
+        GPLog::critical(
+            "v2_unpend_item: NO INVOICE NUMBER, ORDER DATE ADDED, OR PATIENT DATE ADDED! "
+                . @$item['invoice_number'] . " " . @$item['drug_name'] . " $reason "
+                . @$item['rx_number'] . ". rx_dispensed_id:" . @$item['rx_dispensed_id']
+                . " last_inventory:" . @$item['last_inventory'] . " count_pended_total:"
+                . @$item['count_pended_total'],
+            ['item' => $item]
+        );
     }
 
     unpend_pick_list($item);
@@ -226,11 +244,11 @@ function save_pick_list($item, $list, $mysql)
 {
     if ($list === 0) {
         $list = [
-      'qty'           => 0,
-      'qty_repacks'   => 0,
-      'count'         => 0,
-      'count_repacks' => 0
-    ];
+          'qty'           => 0,
+          'qty_repacks'   => 0,
+          'count'         => 0,
+          'count_repacks' => 0
+        ];
     }
 
     if (! $list) {
@@ -255,7 +273,11 @@ function save_pick_list($item, $list, $mysql)
       rx_number = $item[rx_number]
   ";
 
-    log_notice("save_pick_list: $item[invoice_number] ".@$item['drug_name']." ".@$item['rx_number'], ['item' => $item, 'list' => $list, 'sql' => $sql]);
+    GPLog::notice(
+        "save_pick_list: $item[invoice_number] " . @$item['drug_name'] . " "
+            . @$item['rx_number'],
+        [ 'item' => $item, 'list' => $list, 'sql' => $sql ]
+    );
 
     $mysql->run($sql);
 
@@ -601,19 +623,26 @@ function unpend_pick_list($item)
 function make_pick_list($item, $limit = 500)
 {
     if (! isset($item['stock_level_initial']) and $item['rx_gsn']) { //If missing GSN then stock level won't be set
-        log_error("ERROR make_pick_list: stock_level_initial is not set", get_defined_vars());
+        GPLog::error("ERROR make_pick_list: stock_level_initial is not set", get_defined_vars());
     }
 
     $safety   = 0.05; //Percent qty to overshop
     $min_qty  = $item['qty_dispensed_default'];
-    $long_exp = date('Y-m-01', strtotime("+".($item['days_dispensed_default']+6*7)." days")); //2015-05-13 We want any surplus from packing fast movers to be usable for ~6 weeks.  Otherwise a lot of prepacks expire on the shelf
+
+    // 2015-05-13 We want any surplus from packing fast movers to be usable for
+    // ~6 weeks.  Otherwise a lot of prepacks expire on the shelf
+    $long_exp = date('Y-m-01', strtotime("+".($item['days_dispensed_default']+6*7)." days"));
 
     $inventory     = get_v2_inventory($item, $limit);
     $unsorted_ndcs = group_by_ndc($inventory, $item);
     $sorted_ndcs   = sort_by_ndc($unsorted_ndcs, $long_exp);
     $list          = get_qty_needed($sorted_ndcs, $min_qty, $safety);
 
-    log_notice("make_pick_list: $item[invoice_number] ".@$item['drug_name']." ".@$item['rx_number'], $item); //We don't need full shopping list cluttering logs
+    GPLog::notice(
+        "make_pick_list: $item[invoice_number] " .@ $item['drug_name']
+            . " " . @$item['rx_number'],
+        [ 'item' => $item ]
+    ); //We don't need full shopping list cluttering logs
 
     if ($list) {
         $list['partial_fill'] = '';
@@ -621,12 +650,22 @@ function make_pick_list($item, $limit = 500)
     }
 
     if (count($inventory) == $limit) {  //We didn't make the list but there are more drugs that we can scan
-        log_error("Webform Pending Error: Not enough qty found for $item[drug_generic]. Increasing limit from $limit to ".($limit*2), ['count_inventory' => count($inventory), 'item' => $item]);
+        GPLog::error(
+            "Webform Pending Error: Not enough qty found for {$item['drug_generic']}."
+                . " Increasing limit from {$limit} to " . ($limit*2),
+            [ 'count_inventory' => count($inventory), 'item' => $item]
+        );
         return make_pick_list($item, $limit*2);
     }
 
     if ($item['stock_level'] != "OUT OF STOCK") {
-        log_error("Webform Pending Error: Not enough qty found for $item[drug_generic] although it's not OUT OF STOCK.  Looking for $min_qty with last_inventory of $item[last_inventory] (limit $limit) #1 of 3, trying half fill and no safety", ['count_inventory' => count($inventory), 'item' => $item]);
+        GPLog::error(
+            "Webform Pending Error: Not enough qty found for {$item['drug_generic']} "
+                . "although it's not OUT OF STOCK.  Looking for {$min_qty} with "
+                . "last_inventory of {$item['last_inventory']} (limit {$limit}) #1 of 3, "
+                . "trying half fill and no safety",
+            [ 'count_inventory' => count($inventory), 'item' => $item ]
+        );
     }
 
     $list = get_qty_needed($sorted_ndcs, $min_qty*0.5, 0);
@@ -636,7 +675,17 @@ function make_pick_list($item, $limit = 500)
         return $list;
     }
 
-    log_error("Webform Pending Error: Not enough qty found for $item[drug_generic]. Looking for $min_qty with last_inventory of $item[last_inventory] (limit $limit) #2 of 3, half fill with no safety failed", ['inventory' => $inventory, 'sorted_ndcs' => $sorted_ndcs, 'count_inventory' => count($sorted_ndcs), 'item' => $item]);
+    GPLog::error(
+        "Webform Pending Error: Not enough qty found for {$item['drug_generic']}. "
+            . "Looking for {$min_qty} with last_inventory of {$item['last_inventory']} "
+            . " (limit {$limit}) #2 of 3, half fill with no safety failed",
+        [
+            'inventory'       => $inventory,
+            'sorted_ndcs'     => $sorted_ndcs,
+            'count_inventory' => count($sorted_ndcs),
+            'item'            => $item
+        ]
+    );
 
     $thirty_day_qty = $min_qty/$item['days_dispensed_default']*30;
     $list = get_qty_needed($sorted_ndcs, $thirty_day_qty, 0);
@@ -646,7 +695,17 @@ function make_pick_list($item, $limit = 500)
         return $list;
     }
 
-    log_error("Webform Pending Error: Not enough qty found for $item[drug_generic]. Looking for $min_qty with last_inventory of $item[last_inventory] (limit $limit) #3 of 3, 30 day with no safety failed", ['inventory' => $inventory, 'sorted_ndcs' => $sorted_ndcs, 'count_inventory' => count($sorted_ndcs), 'item' => $item]);
+    GPLog::error(
+        "Webform Pending Error: Not enough qty found for {$item['drug_generic']}."
+            . " Looking for {$min_qty} with last_inventory of {$item['last_inventory']} "
+            . " (limit $limit) #3 of 3, 30 day with no safety failed",
+        [
+            'inventory' => $inventory,
+            'sorted_ndcs' => $sorted_ndcs,
+            'count_inventory' => count($sorted_ndcs),
+            'item' => $item
+        ]
+    );
 
     //otherwise could create upto 3 SF tasks. rxs-single-updated, orders-cp-created, sync-to-date
     if (! is_null($item['count_pended_total'])) {
@@ -656,12 +715,13 @@ function make_pick_list($item, $limit = 500)
     $created = "Created:".date('Y-m-d H:i:s');
 
     $salesforce = [
-    "subject"   => "Order #$item[invoice_number] cannot pend enough $item[drug_name]",
-    "body"      => "Determine if there is enough $item[drug_name] to pend for '$item[sig_actual]'. Tried & failed to pend a qty of ".$min_qty." $created",
-    "contact"   => "$item[first_name] $item[last_name] $item[birth_date]",
-    "assign_to" => ".Add/Remove Drug - RPh",
-    "due_date"  => date('Y-m-d')
-  ];
+        "subject"   => "Order #$item[invoice_number] cannot pend enough $item[drug_name]",
+        "body"      => "Determine if there is enough $item[drug_name] to pend for "
+                       ."'{$item['sig_actual']}'. Tried & failed to pend a qty of ".$min_qty." $created",
+        "contact"   => "$item[first_name] $item[last_name] $item[birth_date]",
+        "assign_to" => ".Add/Remove Drug - RPh",
+        "due_date"  => date('Y-m-d')
+    ];
 
     $event_title = "$item[invoice_number] Pending Error: $salesforce[contact] $created";
 
@@ -689,7 +749,7 @@ function get_v2_inventory($item, $limit)
         $res = v2_fetch($url);
         log_info("WebForm make_pick_list fetch success.", ['url' => $url, 'item' => $item, 'res' => $res]);
     } catch (Error $e) {
-        log_error("WebForm make_pick_list fetch failed.  Retrying $item[invoice_number]", ['url' => $url, 'item' => $item, 'res' => $res, 'error' => $e]);
+        GPLog::error("WebForm make_pick_list fetch failed.  Retrying $item[invoice_number]", ['url' => $url, 'item' => $item, 'res' => $res, 'error' => $e]);
         $res = v2_fetch($url);
     }
 
@@ -701,54 +761,54 @@ function group_by_ndc($rows, $item)
     //Organize by NDC since we don't want to mix them
     $ndcs = [];
     $caps = preg_match('/ cap(?!l)s?| cps?\\b| softgel| sfgl\\b/i', $item['drug_name']); //include cap, caps, capsule but not caplet which is more like a tablet
-  $tabs = preg_match('/ tabs?| tbs?| capl\\b/i', $item['drug_name']);  //include caplet which is like a tablet
+    $tabs = preg_match('/ tabs?| tbs?| capl\\b/i', $item['drug_name']);  //include caplet which is like a tablet
 
-  foreach ($rows as $row) {
-      if (
-        isset($row['doc']['next'][0]) and
-        (
-          count($row['doc']['next'][0]) > 1 or
-          (
-            count($row['doc']['next'][0]) == 1 and
-            ! isset($row['doc']['next'][0]['picked'])
-          )
-        )
-    ) {
-          log_error('Shopping list pulled inventory in which "next" is set!', $row, $item);
-          if (! empty($row['doc']['next']['dispensed'])) {
-              continue;
-          }
-      }
+    foreach ($rows as $row) {
+        if (
+            isset($row['doc']['next'][0])
+            && (
+                 count($row['doc']['next'][0]) > 1
+                 || (
+                        count($row['doc']['next'][0]) == 1
+                        && ! isset($row['doc']['next'][0]['picked'])
+                )
+            )
+        ) {
+            GPLog::error('Shopping list pulled inventory in which "next" is set!', $row, $item);
+            if (! empty($row['doc']['next']['dispensed'])) {
+                continue;
+            }
+        }
 
-      //Ignore Cindy's makeshift dispensed queue
-      if (in_array($row['doc']['bin'], ['M00', 'T00', 'W00', 'R00', 'F00', 'X00', 'Y00', 'Z00'])) {
-          continue;
-      }
-      //Only select the correct form even though v2 gives us both
-      if ($caps and stripos($row['doc']['drug']['form'], 'Tablet') !== false) {
-          $msg = 'may only be available in capsule form';
-          continue;
-      }
-      if ($tabs and stripos($row['doc']['drug']['form'], 'Capsule') !== false) {
-          $msg = 'may only be available in tablet form';
-          continue;
-      }
+        //Ignore Cindy's makeshift dispensed queue
+        if (in_array($row['doc']['bin'], ['M00', 'T00', 'W00', 'R00', 'F00', 'X00', 'Y00', 'Z00'])) {
+            continue;
+        }
+        //Only select the correct form even though v2 gives us both
+        if ($caps and stripos($row['doc']['drug']['form'], 'Tablet') !== false) {
+            $msg = 'may only be available in capsule form';
+            continue;
+        }
+        if ($tabs and stripos($row['doc']['drug']['form'], 'Capsule') !== false) {
+            $msg = 'may only be available in tablet form';
+            continue;
+        }
 
-      $ndc = $row['doc']['drug']['_id'];
-      $ndcs[$ndc] = isset($ndcs[$ndc]) ? $ndcs[$ndc] : [];
-      $ndcs[$ndc]['rows'] = isset($ndcs[$ndc]['rows']) ? $ndcs[$ndc]['rows'] : [];
-      $ndcs[$ndc]['prepack_qty'] = isset($ndcs[$ndc]['prepack_qty']) ? $ndcs[$ndc]['prepack_qty'] : 0; //Hacky to set property on an array
+        $ndc = $row['doc']['drug']['_id'];
+        $ndcs[$ndc] = isset($ndcs[$ndc]) ? $ndcs[$ndc] : [];
+        $ndcs[$ndc]['rows'] = isset($ndcs[$ndc]['rows']) ? $ndcs[$ndc]['rows'] : [];
+        $ndcs[$ndc]['prepack_qty'] = isset($ndcs[$ndc]['prepack_qty']) ? $ndcs[$ndc]['prepack_qty'] : 0; //Hacky to set property on an array
 
-      if (strlen($row['doc']['bin']) == 3) {
-          $ndcs[$ndc]['prepack_qty'] += $row['doc']['qty']['to'];
+        if (strlen($row['doc']['bin']) == 3) {
+            $ndcs[$ndc]['prepack_qty'] += $row['doc']['qty']['to'];
 
-          if (! isset($ndcs[$ndc]['prepack_exp']) or $row['doc']['exp']['to'] < $ndcs[$ndc]['prepack_exp']) {
-              $ndcs[$ndc]['prepack_exp'] = $row['doc']['exp']['to'];
-          }
-      }
+            if (! isset($ndcs[$ndc]['prepack_exp']) or $row['doc']['exp']['to'] < $ndcs[$ndc]['prepack_exp']) {
+                $ndcs[$ndc]['prepack_exp'] = $row['doc']['exp']['to'];
+            }
+        }
 
-      $ndcs[$ndc]['rows'][] = $row['doc'];
-  }
+        $ndcs[$ndc]['rows'][] = $row['doc'];
+    }
 
     return $ndcs;
 }
@@ -758,22 +818,27 @@ function sort_by_ndc($ndcs, $long_exp)
     $sorted_ndcs = [];
     //Sort the highest prepack qty first
     foreach ($ndcs as $ndc => $val) {
-        $sorted_ndcs[] = ['ndc' => $ndc, 'prepack_qty' => $val['prepack_qty'], 'inventory' => sort_inventory($val['rows'], $long_exp)];
+        $sorted_ndcs[] = [
+            'ndc'         => $ndc,
+            'prepack_qty' => $val['prepack_qty'],
+            'inventory'   => sort_inventory($val['rows'], $long_exp)
+        ];
     }
     //Sort in descending order of prepack_qty with Exp limits.  If Exp is not included
     //then purchased stock gets used before anything else
     usort($sorted_ndcs, function ($a, $b) use ($sorted_ndcs) {
         if (! isset($a['prepack_qty']) or ! isset($b['prepack_qty'])) {
-            log_error('ERROR: sort_by_ndc but prepack_qty is not set', get_defined_vars());
+            GPLog::error('ERROR: sort_by_ndc but prepack_qty is not set', get_defined_vars());
         } else {
-
-      //Return shortest prepack expiration date, if a tie use one with greater quantity
+        //Return shortest prepack expiration date, if a tie use one with greater quantity
             if (@$a['prepack_exp'] > @$b['prepack_exp']) {
                 return 1;
             }
+
             if (@$a['prepack_exp'] < @$b['prepack_exp']) {
                 return -1;
             }
+
             return $b['prepack_qty'] - $a['prepack_qty'];
         }
     });
@@ -784,8 +849,9 @@ function sort_by_ndc($ndcs, $long_exp)
 function sort_inventory($inventory, $long_exp)
 {
 
-    //Lots of prepacks were expiring because pulled stock with long exp was being paired with short prepack exp making the surplus shortdated
-    //Default to longExp since that simplifies sort() if there are no prepacks
+    // Lots of prepacks were expiring because pulled stock with long exp was being
+    // paired with short prepack exp making the surplus shortdated
+    // Default to longExp since that simplifies sort() if there are no prepacks
     usort($inventory, function ($a, $b) use ($inventory, $long_exp) {
 
       //Deprioritize ones that are missing data
@@ -806,20 +872,34 @@ function sort_inventory($inventory, $long_exp)
             return 1;
         }
 
-        //Let's shop for non-prepacks that are closest (but not less than) to our min prepack exp date in order to avoid waste
-      $aMonths = months_between(isset($inventory['prepack_exp']) ? $inventory['prepack_exp'] : $long_exp, substr($a['exp']['to'], 0, 10)); // >0 if minPrepackExp < a.doc.exp.to (which is what we prefer)
-      $bMonths = months_between(isset($inventory['prepack_exp']) ? $inventory['prepack_exp'] : $long_exp, substr($b['exp']['to'], 0, 10)); // >0 if minPrepackExp < b.doc.exp.to (which is what we prefer)
+        // Let's shop for non-prepacks that are closest (but not less than) to
+        // our min prepack exp date in order to avoid waste
 
-      //Deprioritize anything with a closer exp date than the min prepack exp date.  This - by definition - can only be non-prepack stock
+        // >0 if minPrepackExp < a.doc.exp.to (which is what we prefer)
+        $aMonths = months_between(
+            (isset($inventory['prepack_exp']) ? $inventory['prepack_exp'] : $long_exp),
+            substr($a['exp']['to'], 0, 10)
+        );
+
+        // >0 if minPrepackExp < b.doc.exp.to (which is what we prefer)
+        $bMonths = months_between(
+            (isset($inventory['prepack_exp']) ? $inventory['prepack_exp'] : $long_exp),
+            substr($b['exp']['to'], 0, 10)
+        );
+
+        // Deprioritize anything with a closer exp date than the min prepack exp
+        // date.  This - by definition - can only be non-prepack stock
         if ($aMonths >= 0 and $bMonths < 0) {
             return -1;
         }
+
         if ($bMonths >= 0 and $aMonths < 0) {
             return 1;
         }
 
-        //Priorize anything that is closer to - but not under - our min prepack exp
-        //If there is no prepack this is set to 3 months out so that any surplus has time to sit on our shelf
+        // Priorize anything that is closer to - but not under - our min prepack exp
+        // If there is no prepack this is set to 3 months out so that any surplus
+        // has time to sit on our shelf
         if ($aMonths >= 0 and $bMonths >= 0 and $aMonths < $bMonths) {
             return -1;
         }
@@ -835,7 +915,8 @@ function sort_inventory($inventory, $long_exp)
             return 1;
         }
 
-        //keep sorting the same as the view (ascending NDCs) [doc.drug._id, doc.exp.to || doc.exp.from, sortedBin, doc.bin, doc._id]
+        // keep sorting the same as the view (ascending NDCs) [doc.drug._id,
+        // doc.exp.to || doc.exp.from, sortedBin, doc.bin, doc._id]
         return 0;
     });
 

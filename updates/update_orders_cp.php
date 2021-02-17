@@ -363,7 +363,7 @@ function cp_order_deleted(array $deleted) : ?array
         [ 'deleted' => $deleted ]
     );
 
-    v2_unpend_order_by_invoice($deleted['invoice_number']);
+    v2_unpend_order_by_invoice($deleted['invoice_number'], $deleted);
 
     AuditLog::log(
         sprintf(

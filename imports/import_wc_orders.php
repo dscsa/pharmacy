@@ -50,7 +50,7 @@ function import_wc_orders() {
 
     error_log($duplicate_invoices);
 
-    GPLog::critical($duplicate_invoices, $duplicates[0]);
+    GPLog::emergency($duplicate_invoices, $duplicates[0]);
 
     // Push any lagging logs to google Cloud
     GPLog::getLogger()->flush();
