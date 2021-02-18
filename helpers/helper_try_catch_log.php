@@ -1,6 +1,6 @@
 <?php
 
-use Sirum\Logging\SirumLog;
+use GoodPill\Logging\GPLog;
 
 function helper_try_catch_log($function, $data)
 {
@@ -8,7 +8,7 @@ function helper_try_catch_log($function, $data)
         call_user_func($function, $data);
     } catch (Exception $e) {
         // Log As an error
-        SirumLog::emergency(
+        GPLog::emergency(
             "The loop function {$function} failed to proccess",
             [
                 'data'  => $data,

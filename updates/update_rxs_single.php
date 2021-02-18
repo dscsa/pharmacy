@@ -13,7 +13,7 @@ use GoodPill\Logging\{
 };
 use GoodPill\Utilities\Timer;
 
-use Sirum\DataModels\GoodPillRxSingle;
+use GoodPill\DataModels\GoodPillRxSingle;
 
 function update_rxs_single($changes)
 {
@@ -86,7 +86,7 @@ function update_rxs_single($changes)
 
             $rx_single = new GoodPillRxSingle(['rx_number' => $created['rx_number']]);
             if (!$rx_single->loaded || !$rx_single->drug_gsns) {
-                SirumLog::notice(
+                GPLog::notice(
                     "update_rxs_single: rx created but drug_gsns is empty",
                     [ 'created'  => $created]
                 );
