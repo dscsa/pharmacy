@@ -30,6 +30,142 @@ $gd_merge_timers = [
 
 
 /**
+ * Deprecated
+ */
+function export_gd_update_invoice($order, $reason, $mysql, $try2 = false)
+{
+    global $gd_merge_timers;
+    $start = microtime(true);
+
+    GPLog::notice(
+        'export_gd_update_invoice: called',
+        [
+              "invoice_number" => $order[0]['invoice_number'],
+              "order"   => $order,
+              "reason"  => $reason,
+              "try2"    => $try2
+        ]
+    );
+
+    if (! count($order)) {
+        GPLog::error(
+            "export_gd_update_invoice: invoice error #2 of 2}",
+            [
+                "order"  => $order,
+                "reason" => $reason
+            ]
+        );
+
+        return false;
+    }
+
+    export_gd_delete_invoice($order[0]['invoice_doc_id']); //Avoid having multiple versions of same invoice
+
+    $args = [
+        'method'   => 'mergeDoc',
+        'template' => 'Invoice Template v1',
+        'file'     => 'Invoice #'.$order[0]['invoice_number'],
+        'folder'   => INVOICE_PENDING_FOLDER_NAME,
+        'order'    => $order
+    ];
+
+    echo "\ncreating invoice ".$order[0]['invoice_number']." (".$order[0]['order_stage_cp'].")\n";
+
+    $start = microtime(true);
+
+    $result = gdoc_post(GD_MERGE_URL, $args);
+
+    $time = ceil(microtime(true) - $start);
+
+    echo " completed in $time seconds";
+
+    $invoice_doc_id = json_decode($result, true);
+
+    if ( ! $invoice_doc_id) {
+        if (! $try2) {
+            GPLog::notice(
+                "export_gd_update_invoice: invoice error #1 of 2}",
+                [
+                    "invoice_number" => $order[0]['invoice_number'],
+                    "args"           => $args,
+                    "results"        => $result,
+                    "attempt"        => 1
+                ]
+            );
+
+            return export_gd_update_invoice($order, $reason, $mysql, true);
+        }
+
+        GPLog::notice(
+            "export_gd_update_invoice: invoice error #2 of 2}",
+            [
+                "invoice_number" => $order[0]['invoice_number'],
+                "args"           => $args,
+                "results"        => $result,
+                "attempt"        => 2
+            ]
+        );
+
+        return $false;
+    }
+
+    if ($order[0]['invoice_doc_id']) {
+        GPLog::notice(
+            "export_gd_update_invoice: UPDATED invoice for Order #{$order[0]['invoice_number']}",
+            [
+                "invoice_number"     => $order[0]['invoice_number'],
+                "stage"              => $order[0]['order_stage_cp'],
+                "new_invoice_doc_id" => $invoice_doc_id,
+                "old_invoice_doc_id" => $order[0]['invoice_doc_id'],
+                "reason"             => $reason,
+                "time"               => $time
+            ]
+        );
+    } else {
+        GPLog::notice(
+            "export_gd_update_invoice: CREATED invoice for Order #{$order[0]['invoice_number']}",
+            [
+                "invoice_number" => $order[0]['invoice_number'],
+                "stage"          => $order[0]['order_stage_cp'],
+                "invoice_doc_id" => $invoice_doc_id,
+                "reason"         => $reason,
+                "time"           => $time
+            ]
+        );
+    }
+
+    //Need to make a second loop to now update the invoice number
+    foreach ($order as $i => $item) {
+        $order[$i]['invoice_doc_id'] = $invoice_doc_id;
+    }
+
+    $sql = "UPDATE
+      gp_orders
+    SET
+      invoice_doc_id = ".($invoice_doc_id ? "'$invoice_doc_id'" : 'NULL')." -- Unique Index forces us to use NULL rather than ''
+    WHERE
+      invoice_number = {$order[0]['invoice_number']}";
+
+    $mysql->run($sql);
+
+    $elapsed = ceil(microtime(true) - $start);
+    $gd_merge_timers['export_gd_update_invoice'] += $elapsed;
+
+    if ($elapsed > 20) {
+        GPLog::notice(
+            'export_gd_update_invoice: Took to long to process',
+            [
+                "invoice_number" => $order[0]['invoice_number']
+            ]
+        );
+    }
+
+    return $invoice_doc_id;
+}
+
+
+
+/**
  * Create in invoice from a template.  Also update the database with the new
  * invoice_doc_id.  After the doc ID is complete a complete/merge request will
  * be processed or queued
@@ -50,7 +186,7 @@ function export_gd_create_invoice(int $invoice_number, ?bool $async = true) : ?s
         return null;
     }
 
-    if (isset($order->invoice_number)) {
+    if (isset($order->invoice_doc_id)) {
         export_gd_delete_invoice($invoice_number);
     }
 
@@ -158,7 +294,7 @@ function export_gd_publish_invoice(array $order, ?bool $async = true) : array
                 || $meta->trashed
            )
     ) {
-        $invoice_doc_id = export_gd_create_invoice($order[0]['invoice_number'], $async);
+        $invoice_doc_id = export_gd_update_invoice($order, 'publishing', (new Mysql_Wc()));
 
         if (!$invoice_doc_id) {
             // We failed to create the invoice, so we need to log an error and leave

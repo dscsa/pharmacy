@@ -92,9 +92,10 @@ class GoodPillOrder extends GPModel
      */
     public function getLegacyOrder() : ?array {
         if ($this->loaded) {
-            return get_full_order(
-                (new \Mysql_Wc()),
-                $this->invoice_number
+            return load_full_order(
+                ['invoice_number' => $this->invoice_number ],
+                (new \Mysql_Wc())
+
             );
         }
 

@@ -64,9 +64,9 @@ foreach ($orders as $orderNumber) {
 
     if (isset($args['u'])) {
         if (!isset($args['d'])) {
-            $invoice_doc_id = export_gd_create_invoice($order[0]['invoice_number'], $async);
+            $invoice_doc_id = export_gd_create_invoice($order[0]['invoice_number'], false);
 
-            if (!$invoice_doc_id) {
+            if ($invoice_doc_id) {
                 echo "Invoice {$orderNumber} Updated\n";
             } else {
                 echo "Invoice {$orderNumber} Failed to Updated\n";
