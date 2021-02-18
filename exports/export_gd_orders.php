@@ -40,7 +40,7 @@ $gd_merge_timers = [
  * @return null|string             null if the document wasn't generate or the
  *      invoice_doc_id if it was successvful
  */
-function export_gd_create_invoice(int $invoice_number, bool $async = true) : ?string
+function export_gd_create_invoice(int $invoice_number, ?bool $async = true) : ?string
 {
     // If there is a current invoice, delete it before moving on
     $order = new GoodPillOrder(['invoice_number' => $invoice_number]);
