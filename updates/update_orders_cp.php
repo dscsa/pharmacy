@@ -579,7 +579,7 @@ function cp_order_updated(array $updated) : ?array
                     $order[$i]['invoice_doc_id'] = $invoice_doc_id;
                 }
 
-                $order = export_gd_publish_invoice($order[0]["invoice_number"]);
+                $order = export_gd_publish_invoice($order);
                 export_gd_print_invoice($order[0]['invoice_number']);
             } else {
                 GPLog::error("Failed to generate a google invoice for {$order[0]['invoice_number']}");
