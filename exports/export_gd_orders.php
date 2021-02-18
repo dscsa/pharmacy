@@ -140,7 +140,7 @@ function export_gd_complete_invoice(int $invoice_number, bool $async = true) : b
  *      be a queued request
  * @return array  The order including any changes
  */
-function export_gd_publish_invoice(array $order, bool $async = true) : array
+function export_gd_publish_invoice(array $order, ?bool $async = true) : array
 {
     $invoice_doc_id = $order[0]['invoice_doc_id'];
     $invoice_number = $order[0]['invoice_number'];
