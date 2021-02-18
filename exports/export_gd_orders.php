@@ -100,7 +100,7 @@ function export_gd_create_invoice(int $invoice_number, ?bool $async = true) : ?s
  *      to a queue
  * @return bool                    True if the item was queued or completed
  */
-function export_gd_complete_invoice(int $invoice_number, bool $async = true) : bool
+function export_gd_complete_invoice(int $invoice_number, ?bool $async = true) : bool
 {
     // Get full orders
     $order = new GoodPillOrder(['invoice_number' => $invoice_number]);
