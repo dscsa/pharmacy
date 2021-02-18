@@ -7,6 +7,6 @@
         "predis/predis": "^1.1"
     },
     "autoload": {
-       "psr-4": {"Sirum\\": "classes/Sirum"}
+       "psr-4": {"GoodPill\\": "classes/GoodPill"}
      }
 }

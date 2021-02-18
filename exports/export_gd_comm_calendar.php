@@ -2,8 +2,8 @@
 
 require_once 'helpers/helper_calendar.php';
 
-use Sirum\Logging\{
-    SirumLog,
+use GoodPill\Logging\{
+    GPLog,
     AuditLog,
     CliLog
 };
@@ -235,7 +235,7 @@ function transfer_requested_notice($groups)
 function order_hold_notice($groups)
 {
 
-    SirumLog::critical('order_hold_notice: called', get_defined_vars());
+    GPLog::critical('order_hold_notice: called', get_defined_vars());
 
     /*
 
@@ -317,7 +317,7 @@ function order_hold_notice($groups)
     ];
 
 
-    SirumLog::critical('order_hold_notice: unknown reason', get_defined_vars());
+    GPLog::critical('order_hold_notice: unknown reason', get_defined_vars());
 
     //Wait 15 minutes to hopefully batch staggered surescripts and manual rx entry and cindy updates
     order_hold_event($groups['ALL'], $email, $text, $salesforce, 15/60);
@@ -474,11 +474,11 @@ function no_rx_notice($partial, $groups)
 function order_cancelled_notice($partial, $groups)
 {
     if ( ! $groups['ALL'][0]['pharmacy_name']) {
-        return SirumLog::critical('order_cancelled_notice: not sending because needs_form_notice should be sent instead (was already sent?)', get_defined_vars());
+        return GPLog::critical('order_cancelled_notice: not sending because needs_form_notice should be sent instead (was already sent?)', get_defined_vars());
     }
 
     if ( ! $groups['ALL'][0]['count_nofill']) { //can be passed a patient
-        return SirumLog::critical('order_cancelled_notice: not sending because no_rx_notice should be sent instead (was already sent?)', get_defined_vars());
+        return GPLog::critical('order_cancelled_notice: not sending because no_rx_notice should be sent instead (was already sent?)', get_defined_vars());
     }
 
     $subject = "Order #$partial[invoice_number] has been cancelled";
@@ -509,7 +509,7 @@ function order_cancelled_notice($partial, $groups)
         ''
     ]);
 
-    SirumLog::notice(
+    GPLog::notice(
         'order_cancelled_notice: how to improve this message',
         get_defined_vars()
     );
@@ -536,7 +536,7 @@ function confirm_shipment_internal($groups, $days_ago)
   //TODO is this is a double check to see if past orders is 100% correlated with refills_used,
     //if not, we need to understand root cause of discrepancy and which one we want to use going foward
     //and to be consistent, remove the other property so that its not mis-used.
-    $mysql = Sirum\Storage\Goodpill::getConnection();
+    $mysql = GoodPill\Storage\Goodpill::getConnection();
     $pdo   = $mysql->prepare(
         "SELECT count(*) as past_order_count
         	     FROM gp_orders o
@@ -552,7 +552,7 @@ function confirm_shipment_internal($groups, $days_ago)
     $results = $pdo->fetch();
 
     if (((float) $groups['ALL'][0]['refills_used'] > 0) != ((float) $results['past_order_count'] > 0)) {
-        SirumLog::critical(
+        GPLog::critical(
             'Past Orders <> Refills Used',
             [
         'past_order_count' => $results['past_order_count'],
@@ -598,7 +598,7 @@ function confirm_shipment_internal($groups, $days_ago)
     ])
   ];
 
-    SirumLog::debug(
+    GPLog::debug(
         'Attaching Newpatient Com Event',
         [
          "initial_rx_group" => $groups['ALL'][0]

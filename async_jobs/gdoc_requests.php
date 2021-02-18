@@ -6,14 +6,15 @@ require_once 'helpers/helper_appsscripts.php';
 require_once 'helpers/helper_log.php';
 require_once 'keys.php';
 
-use Sirum\AWS\SQS\{
+use GoodPill\AWS\SQS\{
     GoogleAppRequest\BaseRequest,
     GoogleAppRequest\HelperRequest,
+    GoogleAppRequest\MergeRequest,
     GoogleAppQueue
 };
 
-use Sirum\Logging\{
-    SirumLog,
+use GoodPill\Logging\{
+    GPLog,
     AuditLog,
     CliLog
 };
@@ -33,15 +34,14 @@ for ($l = 0; $l < $executions; $l++) {
     // been proccessed and can be deleted
     // If we've got something to work with, go for it
     if (is_array($messages) && count($messages) > 0) {
-
         $log_message = sprintf(
             "[%s] Processing %s messages\n",
             date('Y-m-d h:m:s'),
             count($messages)
         );
 
-        SirumLog::debug($log_message);
-        echo $log_message;
+        GPLog::debug($log_message);
+        CliLog::debug($log_message);
 
         foreach ($messages as $message) {
             $request = BaseRequest::factory($message);
@@ -68,8 +68,8 @@ for ($l = 0; $l < $executions; $l++) {
                 $log_message .= "FAILED - Message: {$request->error}";
             }
 
-            SirumLog::debug($log_message);
-            echo $log_message . "\n";
+            GPLog::debug($log_message);
+            CliLog::notice($log_message);
         }
     }
 
@@ -81,8 +81,8 @@ for ($l = 0; $l < $executions; $l++) {
             count($complete)
         );
 
-        SirumLog::debug($log_message);
-        echo $log_message . "\n";
+        GPLog::debug($log_message);
+        CliLog::notice($log_message);
 
         $gdq->deleteBatch($complete);
     }

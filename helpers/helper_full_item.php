@@ -1,7 +1,7 @@
 <?php
 
-use Sirum\Logging\{
-    SirumLog,
+use GoodPill\Logging\{
+    GPLog,
     AuditLog,
     CliLog
 };
@@ -56,7 +56,7 @@ function load_full_item($partial, $mysql, $overwrite_rx_messages = false) {
         return $full_item;
     }
 
-    SirumLog::warning(
+    GPLog::warning(
         "load_full_item: order found but no matching item!",
         ['partial' => $partial, 'item' => $item, 'order' => $order]
     );
@@ -108,10 +108,10 @@ function get_full_item($mysql, $rx_number, $invoice_number = null) {
   $item = $query[0];
 
   if ( ! $item['drug_generic']) {
-     SirumLog::warning(($item['rx_gsn'] ? 'get_full_item: Add GSN to V2!' : 'get_full_item: Missing GSN!')." Invoice Number:$item[invoice_number] Drug:$item[drug_name] Rx:$item[rx_number] GSN:$item[rx_gsn] GSNS:$item[drug_gsns]", ['item' => $item, 'partial' => $partial, 'sql' => $sql]);
+     GPLog::warning(($item['rx_gsn'] ? 'get_full_item: Add GSN to V2!' : 'get_full_item: Missing GSN!')." Invoice Number:$item[invoice_number] Drug:$item[drug_name] Rx:$item[rx_number] GSN:$item[rx_gsn] GSNS:$item[drug_gsns]", ['item' => $item, 'partial' => $partial, 'sql' => $sql]);
   }
 
-  SirumLog::notice(
+  GPLog::notice(
       'get_full_item: success',
       [
           'invoice_number' => $invoice_number,

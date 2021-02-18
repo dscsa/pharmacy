@@ -1,9 +1,11 @@
 <?php
 require_once 'helpers/helper_calendar.php';
 
-use Sirum\Logging\SirumLog;
-use Sirum\Logging\AuditLog;
-use Sirum\Logging\CliLog;
+use GoodPill\Logging\{
+    GPLog,
+    AuditLog,
+    CliLog
+};
 
 /**
  * Returns the number of days of medicine available and a message
@@ -394,20 +396,20 @@ function set_item_invoice_data($item, $mysql)
     return $item;
 }
 
-function set_days_and_message($item, $days, $message, $mysql)
-{
-    if (is_null($days) or is_null($message)) {
-        SirumLog::critical("set_days_and_message: days/message should not be NULL", compact('item', 'days', 'message'));
-        return $item;
-    }
+function set_days_and_message($item, $days, $message, $mysql) {
+
+  if (is_null($days) OR is_null($message)) {
+    GPLog::critical("set_days_and_message: days/message should not be NULL", compact('item', 'days', 'message'));
+    return $item;
+  }
 
     $new_rx_message_key  = array_search($message, RX_MESSAGE);
     $new_rx_message_text = message_text($message, $item);
 
-    if (! $new_rx_message_key) {
-        SirumLog::critical("set_days_and_message: could not get rx_message_key ", compact('item', 'days', 'message', 'new_rx_message_key', 'new_rx_message_text'));
-        return $item;
-    }
+  if ( ! $new_rx_message_key) {
+    GPLog::critical("set_days_and_message: could not get rx_message_key ", compact('item', 'days', 'message', 'new_rx_message_key', 'new_rx_message_text'));
+    return $item;
+  }
 
     $item['rx_message_key']  = $new_rx_message_key;
     $item['rx_message_text'] = $new_rx_message_text.($days ? '' : ' **'); //If not filling reference to backup pharmacy footnote on Invoices

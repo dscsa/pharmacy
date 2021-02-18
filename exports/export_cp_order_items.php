@@ -2,8 +2,8 @@
 
 global $mssql;
 
-use Sirum\Logging\{
-    SirumLog,
+use GoodPill\Logging\{
+    GPLog,
     AuditLog,
     CliLog
 };
@@ -49,7 +49,7 @@ function export_cp_remove_items($invoice_number, $items = [])
     //Removing CK said too overwhelming
     //export_cp_append_order_note($mssql, $invoice_number, "$date auto removed: $order_cmts");
 
-    SirumLog::debug(
+    GPLog::debug(
         "export_cp_remove_items: $invoice_number",
         [
           'invoice_number'  => $invoice_number,
@@ -81,7 +81,7 @@ function export_cp_recount_items($invoice_number, $mssql)
 
     $res = $mssql->run($sql2);
 
-    SirumLog::debug(
+    GPLog::debug(
         "export_cp_recount_items: $invoice_number",
         [
           'invoice_number'  => $invoice_number,
@@ -104,7 +104,7 @@ function export_cp_add_items($invoice_number, $items)
     //rx_number only set AFTER its added.  We need to choose which to add, so use best.
     foreach ($items as $item) {
         if (! @$item['rx_message_key']) {
-            SirumLog::debug(
+            GPLog::debug(
                 "export_cp_add_items: $invoice_number rx_message_key is not set",
                 [
                     'invoice_number' => $invoice_number,
@@ -171,18 +171,18 @@ function export_cp_add_items($invoice_number, $items)
 
             $log['has_cp_order'] = (@$cp_invoice_number) ? 'Y' : 'N';
 
-            SirumLog::warning("{$log['subject']}, why are the RX importing before the actual order?<--BB", $log);
+            GPLog::warning("{$log['subject']}, why are the RX importing before the actual order?<--BB", $log);
             return;
         }
 
-        SirumLog::notice("{$log['subject']}, so adding to ${invoice_number} instead", $log);
+        GPLog::notice("{$log['subject']}, so adding to ${invoice_number} instead", $log);
     }
 
     $sql  = "SirumWeb_AddItemsToOrder '{$invoice_number}', '{$rx_numbers}'";
     $res  = $mssql->run($sql);
     $date = date('y-m-d H:i');
 
-    SirumLog::warning(
+    GPLog::warning(
         "export_cp_add_items $invoice_number",
         [
             'invoice_number' => $invoice_number,

@@ -6,13 +6,13 @@ require_once 'exports/export_cp_order_items.php';
 require_once 'exports/export_v2_order_items.php';
 require_once 'exports/export_gd_transfer_fax.php';
 
-use Sirum\Logging\{
-    SirumLog,
+use GoodPill\Logging\{
+    GPLog,
     AuditLog,
     CliLog
 };
 
-use Sirum\Utilities\Timer;
+use GoodPill\Utilities\Timer;
 
 
 /**
@@ -31,7 +31,7 @@ function update_order_items($changes) : void
     $orders_updated = [];
 
     $msg = "$count_deleted deleted, $count_created created, $count_updated updated ";
-    SirumLog::info(
+    GPLog::info(
         "update_order_items: all changes. {$msg}",
         [
             'deleted_count' => $count_deleted,
@@ -46,7 +46,7 @@ function update_order_items($changes) : void
         return;
     }
 
-    SirumLog::notice('data-update-order-items', $changes);
+    GPLog::notice('data-update-order-items', $changes);
 
     Timer::start('update.order.items.created');
     foreach ($changes['created'] as $created) {
@@ -66,7 +66,7 @@ function update_order_items($changes) : void
         //The above seems like would be tricky so skipping this for now
         $reason = "update_order_items: determining order updates for ".count($orders_updated)." orders";
 
-        SirumLog::debug(
+        GPLog::debug(
             $reason,
             [
               'orders_updated'  => $orders_updated,
@@ -110,8 +110,8 @@ function order_item_created(array $created, array &$orders_updated) : ?array
     $mysql = new Mysql_Wc();
     $mssql = new Mssql_Cp();
 
-    SirumLog::$subroutine_id = "order-items-created-".sha1(serialize($created));
-    SirumLog::info("data-order-items-created", ['created' => $created]);
+    GPLog::$subroutine_id = "order-items-created-".sha1(serialize($created));
+    GPLog::info("data-order-items-created", ['created' => $created]);
 
     $invoice_number = $created['invoice_number'];
 
@@ -119,7 +119,7 @@ function order_item_created(array $created, array &$orders_updated) : ?array
     $item = load_full_item($created, $mysql);
 
     if (!$item) {
-        SirumLog::critical("Created Item Missing", [ 'created' => $created ]);
+        GPLog::critical("Created Item Missing", [ 'created' => $created ]);
         return null;
     }
 
@@ -142,7 +142,7 @@ function order_item_created(array $created, array &$orders_updated) : ?array
     $allowable_time        = ($item['item_added_by'] == "HL7" ? 20 : 30) * 60;
     $in_created_notice     = $minutes_between_added <= $allowable_time;
 
-    SirumLog::debug(
+    GPLog::debug(
         "update_order_items: Order Item created $invoice_number",
         [
             'item'    => $item,
@@ -156,7 +156,7 @@ function order_item_created(array $created, array &$orders_updated) : ?array
 
     if ($created['count_lines'] > 1) {
         $item = deduplicate_order_items($item);
-        SirumLog::warning(
+        GPLog::warning(
             sprintf(
                 "%s %s is a duplicate line",
                 $invoice_number,
@@ -182,19 +182,19 @@ function order_item_created(array $created, array &$orders_updated) : ?array
     }
 
     if ($item['days_dispensed_actual']) {
-        SirumLog::error(
+        GPLog::error(
             "order_item created but days_dispensed_actual already set.
                 Most likely an new rx but not part of a new order (days actual
                 is from a previously shipped order) or an item added to order and
                 dispensed all within the time between cron jobs",
             [ 'item' => $item, 'created' => $created]
         );
-        SirumLog::debug("Freezing Item because it's dispensed", $item);
+        GPLog::debug("Freezing Item because it's dispensed", $item);
         $item = set_item_invoice_data($item, $mysql);
         return null;
     }
 
-    SirumLog::resetSubroutineId();
+    GPLog::resetSubroutineId();
 
     return $created;
 }
@@ -211,14 +211,14 @@ function order_item_deleted(array $deleted, array &$orders_updated) : ?array
     $mysql = new Mysql_Wc();
     $mssql = new Mssql_Cp();
 
-    SirumLog::$subroutine_id = "order-items-deleted-".sha1(serialize($deleted));
-    SirumLog::info("data-order-items-deleted", ['deleted' => $deleted]);
+    GPLog::$subroutine_id = "order-items-deleted-".sha1(serialize($deleted));
+    GPLog::info("data-order-items-deleted", ['deleted' => $deleted]);
 
     $invoice_number = $deleted['invoice_number'];
 
     $item = load_full_item($deleted, $mysql);
 
-    SirumLog::debug(
+    GPLog::debug(
         "update_order_items: Order Item deleted $invoice_number",
         [
             'deleted' => $deleted,
@@ -246,7 +246,7 @@ function order_item_deleted(array $deleted, array &$orders_updated) : ?array
         using REST API or a MYSQL Zapier Integration
      */
 
-    SirumLog::resetSubroutineId();
+    GPLog::resetSubroutineId();
     return $deleted;
 }
 
@@ -262,12 +262,12 @@ function order_item_updated(array $updated) : ?array
     $mysql = new Mysql_Wc();
     $mssql = new Mssql_Cp();
 
-    SirumLog::$subroutine_id = "order-items-updated-".sha1(serialize($updated));
-    SirumLog::info("data-order-items-updated", ['updated' => $updated]);
+    GPLog::$subroutine_id = "order-items-updated-".sha1(serialize($updated));
+    GPLog::info("data-order-items-updated", ['updated' => $updated]);
 
     $changed = changed_fields($updated);
 
-    SirumLog::debug(
+    GPLog::debug(
         "update_order_items: Order Item updated",
         [
             'updated' => $updated,
@@ -281,7 +281,7 @@ function order_item_updated(array $updated) : ?array
     $item = load_full_item($updated, $mysql);
 
     if (! $item) {
-        SirumLog::critical(
+        GPLog::critical(
             "Updated Item Missing",
             [
                 'updated' => $updated,
@@ -292,7 +292,7 @@ function order_item_updated(array $updated) : ?array
     }
 
     if ($updated['count_lines'] > 1) {
-        SirumLog::warning(
+        GPLog::warning(
             sprintf(
                 "%s %s is a duplicate line",
                 $item['invoice_number'],
@@ -308,7 +308,7 @@ function order_item_updated(array $updated) : ?array
     }
 
     if ($item['days_dispensed_actual']) {
-        SirumLog::debug("Freezing Item as because it's dispensed and updated", $item);
+        GPLog::debug("Freezing Item as because it's dispensed and updated", $item);
 
         $item = set_item_invoice_data($item, $mysql);
 
@@ -335,7 +335,7 @@ function order_item_updated(array $updated) : ?array
             or $item['sig_qty_per_day_default']*2 < $sig_qty_per_day_actual
             or $item['sig_qty_per_day_default']/2 > $sig_qty_per_day_actual
         ) {
-            SirumLog::error(
+            GPLog::error(
                 sprintf(
                     "sig parsing error Updating to Actual Qty_Per_Day '%s' %s (default) != %s %s/%s (actual)",
                     $item['sig_actual'],
@@ -349,7 +349,7 @@ function order_item_updated(array $updated) : ?array
         }
 
         if ($item['days_dispensed_actual'] != $item['days_dispensed_default']) {
-            SirumLog::warning(
+            GPLog::warning(
                 sprintf(
                     "days_dispensed_default was wrong: %s >>> %s",
                     $item['days_dispensed_default'],
@@ -365,7 +365,7 @@ function order_item_updated(array $updated) : ?array
             $item['qty_dispensed_actual'] != $item['qty_dispensed_default']
             || $item['refills_dispensed_actual'] != $item['refills_dispensed_default']
         ) {
-            SirumLog::warning(
+            GPLog::warning(
                 sprintf(
                     "days_dispensed_actual same as default but qty or refills changed",
                     $item['days_dispensed_default'],
@@ -382,7 +382,7 @@ function order_item_updated(array $updated) : ?array
         $updated['item_added_by'] == 'MANUAL'
         && $updated['old_item_added_by'] != 'MANUAL'
     ) {
-        SirumLog::info(
+        GPLog::info(
             "Cindy deleted and readded this item",
             [
                 'updated' => $updated,
@@ -390,7 +390,7 @@ function order_item_updated(array $updated) : ?array
             ]
         );
     } elseif (! $item['days_dispensed_default']) {
-        SirumLog::warning(
+        GPLog::warning(
             "Updated Item has no days_dispensed_default.  Why no days_dispensed_default? GSN added?",
             [
                 'item'    => $item,
@@ -399,7 +399,7 @@ function order_item_updated(array $updated) : ?array
             ]
         );
     } else {
-        SirumLog::info(
+        GPLog::info(
             "Updated Item No Action",
             [
                 'item'    => $item,
@@ -413,7 +413,7 @@ function order_item_updated(array $updated) : ?array
        using REST API or a MYSQL Zapier Integration
      */
 
-    SirumLog::resetSubroutineId();
+    GPLog::resetSubroutineId();
     return $updated;
 }
 
@@ -466,7 +466,7 @@ function handle_adds_and_removes(array $orders_updated) : void
          */
         $removed_deduped  = array_diff($remove_item_names, $groups['FILLED']);
 
-        SirumLog::warning(
+        GPLog::warning(
             "update_order_items: order $invoice_number updated",
             [
                 'invoice_number'    => $invoice_number,
@@ -529,7 +529,7 @@ function handle_adds_and_removes(array $orders_updated) : void
  */
 function deduplicate_order_items(array $item) : array
 {
-    $goodpill_db = Sirum\Storage\GoodPill::getConnection();
+    $goodpill_db = GoodPill\Storage\GoodPill::getConnection();
     $mssql       = new Mssql_Cp();
 
     $item['count_lines'] = 1;
@@ -569,7 +569,7 @@ function deduplicate_order_items(array $item) : array
         $mssql->run("DELETE FROM csomline WHERE line_id = {$duplicate['line_id']}");
     }
 
-    SirumLog::notice(
+    GPLog::notice(
         'deduplicate_order_item',
         [
             'sql'  => $sql1,
