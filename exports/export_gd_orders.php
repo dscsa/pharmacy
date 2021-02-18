@@ -294,7 +294,7 @@ function export_gd_publish_invoice(array $order, ?bool $async = true) : array
                 || $meta->trashed
            )
     ) {
-        $invoice_doc_id = export_gd_update_invoice($order, 'publishing', (new Mysql_Wc()));
+        $invoice_doc_id = export_gd_create_invoice($order[0]['invoice_number']);
 
         if (!$invoice_doc_id) {
             // We failed to create the invoice, so we need to log an error and leave
