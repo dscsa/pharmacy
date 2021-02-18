@@ -1,0 +1,4 @@
+MAILTO=tech@sirum.org
+*/10 * * * * root /usr/bin/php /goodpill/webform/cronjobs/syncing.php log=notice > /var/log/pharmacy-cron.log
+0 */4 * * *  root rm -f /tmp/batch-daemon-failure/*
+*/30 * * * * root /usr/bin/php /home/ec2-user/check_printed.php >>  /var/log/check_invoices.log
