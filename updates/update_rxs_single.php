@@ -461,6 +461,7 @@ function update_rxs_single($changes)
     /* Finish Created Loop #2 */
 
     $sf_cache = [];
+    $orders_updated = [];
     /*
      * Updated Loop
      */
@@ -569,47 +570,89 @@ function update_rxs_single($changes)
 
         if ($updated['rx_gsn'] != $updated['old_rx_gsn']) {
 
-          GPLog::warning(
-            "update_rxs_single2 rx_gsn updated (after rxs_grouped)",
-            [
-              'updated' => $updated,
-              'changed' => $changed
-            ]
-          );
+            /*
+                Missing GSNs are not included in Order Created Message (unless its a refill)
+                so we need to send patient an update if/when the Rx is changed to have a GSN.
+                There are also quite a few instances where the GSN wasn't missing but was wrong.
+                Not sure what to do on these so leaving them out for now
+            */
+            //get full patient so we can send an order_update notice if needed
+            $item = load_full_item($updated, $mysql, true);
 
-          //compliment method, update_rxs_single_drug, was already called before rx_grouped
-          update_order_item_drug($mysql, $updated['rx_number']);
+            $invoice_number = $item['invoice_number'];
+
+            if ($updated['old_rx_gsn'] == 0 AND $invoice_number) {
+
+                if (! isset($orders_updated[$invoice_number])) {
+                    $orders_updated[$invoice_number] = [];
+                }
+
+                $orders_updated[$invoice_number][] = $item;
+            }
+
+
+            GPLog::warning(
+                "update_rxs_single2 rx_gsn updated (after rxs_grouped)",
+                [
+                    'item'           => $item,
+                    'orders_updated' => $orders_updated,
+                    'updated'        => $updated,
+                    'changed'        => $changed
+                ]
+            );
+
+            //compliment method, update_rxs_single_drug, was already called before rx_grouped
+            update_order_item_drug($mysql, $updated['rx_number']);
         }
 
         if ($updated['rx_transfer'] and ! $updated['old_rx_transfer']) {
             $item = load_full_item($updated, $mysql, true);
             $is_will_transfer = is_will_transfer($item);
+            $was_transferred  = was_transferred($item);
 
             AuditLog::log(
                 sprintf(
                     "Rx# %s for %s was marked to be transfered.  It %s be transfered because %s",
                     $updated['rx_number'],
                     $updated['drug_name'],
-                    ($is_will_transfer) ? 'will' : 'will NOT',
+                    $was_transferred ? 'was' : ($is_will_transfer ? 'will' : 'will NOT'),
                     $item['rx_message_key']
                 ),
                 $patient
             );
 
             GPLog::warning(
-                "update_rxs_single2 rx was transferred out.  Confirm correct is_will_transfer
+                "update_rxs_single2 rx was transferred out.  Confirm correct is_will_transfer and was_transferred
                 updated rxs_single.rx_message_key. rxs_grouped.rx_message_keys
                 will be updated on next pass",
                 [
                     'is_will_transfer' => $is_will_transfer,
+                    'was_transferred'  => $was_transferred,
                     'item'             => $item,
                     'updated'          => $updated,
                     'changed'          => $changed
                 ]
             );
+
+            transfer_out_notice($item);
         }
     }
     log_timer('rx-singles-updated2', $loop_timer, $count_updated);
+
+    if ($orders_updated) {
+
+        foreach ($orders_updated as $invoice_number => $updates) {
+
+            $order  = load_full_order(['invoice_number' => $invoice_number], $mysql);
+            $groups = group_drugs($order, $mysql);
+
+            foreach ($updates as $item) {
+                $add_item_names[] = $item['drug'];
+            }
+
+            send_updated_order_communications($groups, $add_item_names, []);
+        }
+    }
 
     /**
      * All RX should have a rx_message set.  We are going to query the database

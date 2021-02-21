@@ -129,14 +129,13 @@ function get_days_and_message($item, $patient_or_order)
         return [0, RX_MESSAGE['ACTION EXPIRED']];
     }
 
-    //TODO Remove.  This logic was moved into update_rxs_single::created/updated
     if (! $item['drug_gsns'] and $item['drug_name']) {
         // Check for invoice number otherwise, seemed that SF tasks were being triplicated.
         // Unsure reason, maybe called by order_items and not just orders?
         return [
-        ($item['refill_date_first'] ? $days_default : 0),
-        RX_MESSAGE['NO ACTION MISSING GSN']
-    ];
+            ($item['refill_date_first'] ? $days_default : 0),
+            RX_MESSAGE['NO ACTION MISSING GSN']
+        ];
     }
 
     /*
@@ -148,6 +147,21 @@ function get_days_and_message($item, $patient_or_order)
     }
 
     if ($no_transfer and ! $is_refill and $refill_only) {
+
+        $created = "Created:".date('Y-m-d H:i:s');
+
+        $salesforce = [
+            "subject"   => "$item[drug_name] will not be transferred automatically because it is >=20/month or backup pharmacy is listed as GoodPill",
+            "body"      => "Call patient to ask whether they want drug $item[drug_name] to be transferred out or not $created",
+            "contact"   => "$item[first_name] $item[last_name] $item[birth_date]",
+            "assign_to" => "Claire",
+            "due_date"  => date('Y-m-d')
+        ];
+
+        $event_title = "$item[invoice_number] $item[drug_name] Was NOT Transferred: $salesforce[contact] $created";
+
+        create_event($event_title, [$salesforce]);
+
         log_info("CHECK BACK IF TRANSFER OUT IS NOT DESIRED", get_defined_vars());
         return [0, RX_MESSAGE['ACTION CHECK BACK']];
     }
@@ -600,22 +614,27 @@ function is_not_offered($item)
 {
     $stock_level = @$item['stock_level_initial'] ?: $item['stock_level'];
 
-    if (is_null($stock_level)) {
-        log_notice("helper_days_and_message: $item[drug_name] level null", ['item' => $item, 'stock_level' => $stock_level]);
+    if ( ! $item) {
+        log_error("helper_days_and_message: $item[drug_name], is_not_offered:true, ERROR no item", ['item' => $item, 'stock_level' => $stock_level]);
+        return true;
+    }
+
+    if (is_null($stock_level) AND $item['rx_gsn'] > 0) {
+        log_notice("helper_days_and_message: $item[drug_name], is_not_offered:true, stock level null", ['item' => $item, 'stock_level' => $stock_level]);
         return true;
     }
 
     if ($stock_level == STOCK_LEVEL['NOT OFFERED']) {
-        log_notice("helper_days_and_message: $item[drug_name] stock level $stock_level", ['item' => $item, 'stock_level' => $stock_level]);
+        log_notice("helper_days_and_message: $item[drug_name], is_not_offered:true, stock level $stock_level", ['item' => $item, 'stock_level' => $stock_level]);
         return true;
     }
 
     if ($stock_level == STOCK_LEVEL['ORDER DRUG']) {
-        log_notice("helper_days_and_message: $item[drug_name] stock level $stock_level", ['item' => $item, 'stock_level' => $stock_level]);
+        log_notice("helper_days_and_message: $item[drug_name], is_not_offered:true, stock level $stock_level", ['item' => $item, 'stock_level' => $stock_level]);
         return true;
     }
 
-    log_notice("helper_days_and_message: $item[drug_name]  stock level $stock_level", ['item' => $item, 'stock_level' => $stock_level]);
+    log_notice("helper_days_and_message: $item[drug_name], is_not_offered:false, stock level $stock_level", ['item' => $item, 'stock_level' => $stock_level]);
     return false;
 }
 

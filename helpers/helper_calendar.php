@@ -124,6 +124,20 @@ function transfer_requested_event($order, $email, $text, $hours_to_wait)
     create_event($event_title, $comm_arr, $hours_to_wait);
 }
 
+function transfer_out_event($order, $email, $text, $hours_to_wait)
+{
+    $patient_label = get_patient_label($order);
+    $event_title   = $order[0]['invoice_number'].' Transfer Out: '.$patient_label.'.  Created:'.date('Y-m-d H:i:s');
+
+    //$cancel = cancel_events_by_person($order[0]['first_name'], $order[0]['last_name'], $order[0]['birth_date'], 'transfer_out_event', []);
+
+    $comm_arr = new_comm_arr($patient_label, $email, $text);
+
+    GPLog::info('transfer_out_event', get_defined_vars());
+
+    create_event($event_title, $comm_arr, $hours_to_wait);
+}
+
 function order_hold_event($order, $email, $text, $salesforce, $hours_to_wait)
 {
     if ($order[0]['patient_inactive']) {
