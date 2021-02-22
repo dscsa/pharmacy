@@ -79,8 +79,13 @@ class GPLog
             $context = [];
         }
 
+        if (isset($context['pd_data'])) {
+            $pd_data = $context['pd_data'];
+        } else {
+            $pd_data = [];
+        }
 
-        self::alertPagerDuty($message, $method);
+        self::alertPagerDuty($message, $method, $pd_data);
 
         $ids                     = self::findCriticalId($context);
         $context                 = ["context" => $context];
@@ -116,7 +121,7 @@ class GPLog
         }
     }
 
-    protected static function alertPagerDuty($message, $method)
+    protected static function alertPagerDuty($message, $method, $pd_data = [])
     {
         $log_level = self::getLoggingLevelByString($method);
 
@@ -125,9 +130,9 @@ class GPLog
         }
 
         $pd_query = 'logName="projects/unified-logging-292316/logs/pharmacy-automation"';
-        $pd_data  = ['execution_id' => self::$exec_id];
-        $pd_query .= "\n" . 'jsonPayload.execution_id="' . self::$exec_id . '"';
+        $pd_data['execution_id'] = self::$exec_id;
 
+        $pd_query .= "\n" . 'jsonPayload.execution_id="' . self::$exec_id . '"';
 
         if (!is_null(self::$subroutine_id)) {
             $pd_data['subroutine_id'] = self::$subroutine_id;

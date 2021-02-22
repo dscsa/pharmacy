@@ -54,7 +54,7 @@ function refill_reminder_event($order, $email, $text, $hours_to_wait, $hour_of_d
     $patient_label = get_patient_label($order);
     $event_title   = $order[0]['invoice_number'].' Refill Reminder: '.$patient_label.'.  Created:'.date('Y-m-d H:i:s');
 
-    //$cancel = cancel_events_by_person($order['first_name'], $order['last_name'], $order['birth_date'], 'refill_reminder_event', ['Refill Reminder'])
+    $cancel = cancel_events_by_order($order[0]['invoice_number'], 'refill_reminder_event', ['Refill Reminder']);
 
     $comm_arr = new_comm_arr($patient_label, $email, $text);
 

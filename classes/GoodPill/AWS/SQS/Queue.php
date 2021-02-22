@@ -109,21 +109,27 @@ class Queue
      *
      * @return \AWS\Sqs\SqsResults An array of success and failures.
      */
-    public function deleteBatch(iterable $reqeusts)
+    public function deleteBatch(iterable $requests)
     {
 
         $receipt_handles = [];
 
-        foreach ($reqeusts as $request) {
+        foreach ($requests as $request) {
             $receipt_handles[] = $request->toSQSDelete();
         }
 
-        return $this->sqs_client->deleteMessageBatch(
-            [
-                'QueueUrl' => $this->queue_url,
-                'Entries'  => $receipt_handles
-            ]
-        );
+        $recipt_handle_chunks = array_chunk($receipt_handles, 10);
+
+        foreach ($recipt_handle_chunks as $chunk) {
+            $return = $this->sqs_client->deleteMessageBatch(
+                [
+                    'QueueUrl' => $this->queue_url,
+                    'Entries'  => $chunk
+                ]
+            );
+        }
+
+        return empty($return);
     }
 
     /**
@@ -208,28 +214,36 @@ class Queue
     public function sendBatch($requests, $delay = 0)
     {
 
-        $messages = array_map(
-            function ($request, $delay) {
+        $requests = array_map(
+            function (Request $request, $delay) {
                 // Make sure we have a group_id if it's a fifo queue
                 if (
                     substr($this->queue_name, -5) == '.fifo'
-                    && ! $message->isFifo()
+                    && ! $request->isFifo()
                 ) {
                     throw new \Exception('FIFO queues require a group_id on each request');
                 }
 
                 return $request->toSQS();
             },
-            $messages,
-            array_fill(0, count($messages), $delay)
+            $requests,
+            array_fill(0, count($requests), $delay)
         );
 
-        return $this->sqs_client->sendMessageBatch(
-            [
-                'QueueUrl' => $this->queue_url,
-                'Entries'  => $messages
-            ]
-        );
+        $requests_chunks = array_chunk($requests, 10);
+
+        foreach ($requests_chunks as $chunk) {
+            var_dump(count($chunk));
+            var_dump($chunk);
+            $results = $this->sqs_client->sendMessageBatch(
+                [
+                    'QueueUrl' => $this->queue_url,
+                    'Entries'  => $chunk
+                ]
+            );
+        }
+
+        return empty($results);
     }
 
     /**
