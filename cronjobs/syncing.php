@@ -20,6 +20,32 @@ use GoodPill\Logging\AuditLog;
 use GoodPill\Logging\CliLog;
 
 use GoodPill\Utilities\Timer;
+use GoodPill\AWS\SQS\FullChangeQueue;
+
+/**
+ * Defining this here as a temporary.  Ultimatly this will move out somewhere else,
+ * but not sure yet where
+ * @param  string $changes_to   What Changes are being made
+ * @param  array  $change_types An array of the changes to include in the request
+ *      example: ['deleted']
+ *      example: ['created', 'updated']
+ * @param  array  $changes      The full array of the changes
+ * @return PharmacySyncRequest
+ */
+function get_sync_request(string $changes_to, array $change_types, array $changes)
+{
+    $syncing_request               = new PharmacySyncRequest();
+    $syncing_request->changes_to   = $changes_to;
+
+    $included_changes = array_intersect_key(
+        $changes,
+        array_flip($change_types)
+    );
+
+    $syncing_request->changes  = $included_changes;
+    $syncing_request->group_id = 'linear-sync';
+    return $syncing_request;
+}
 
 /*
   General Requires
@@ -306,6 +332,132 @@ try {
     //so until we get everything faster it's worth the risk
     flock($f, LOCK_UN | LOCK_NB);
 
+    /*
+        WARNING - Order of operations is important.
+        Do not change the order things are queued
+        Wrap these in a try catch so they don't break anything
+     */
+    try {
+         $changes_sqs_messages = [];
+
+         // Drugs
+         $changes_sqs_messages[] = get_sync_request(
+             'drugs',
+             ['created'],
+             $changes_to_drugs
+         );
+
+         $changes_sqs_messages[] = get_sync_request(
+             'drugs',
+             ['updated'],
+             $changes_to_drugs
+         );
+
+         // $changes_to_stock_by_month
+         $changes_sqs_messages[] = get_sync_request(
+             'stock_by_month',
+             ['created', 'deleted', 'updated'],
+             $changes_to_stock_by_month
+         );
+
+         // Patient CP
+         $changes_sqs_messages[] = get_sync_request(
+             'patients_cp',
+             ['updated'],
+             $changes_to_patients_cp
+         );
+
+         // Patient WC
+         $changes_sqs_messages[] = get_sync_request(
+             'patients_wc',
+             ['created'],
+             $changes_to_patients_wc
+         );
+         $changes_sqs_messages[] = get_sync_request(
+             'patients_wc',
+             ['deleted'],
+             $changes_to_patients_wc
+         );
+         $changes_sqs_messages[] = get_sync_request(
+             'patients_wc',
+             ['updated'],
+             $changes_to_patients_wc
+         );
+
+         // Rxs Single
+         $changes_sqs_messages[] = get_sync_request(
+             'rxs_single',
+             ['created', 'updated'],
+             $changes_to_rxs_single
+         );
+         $changes_sqs_messages[] = get_sync_request(
+             'rxs_single',
+             ['deleted'],
+             $changes_to_rxs_single
+         );
+
+         // Orders CP
+         $changes_sqs_messages[] = get_sync_request(
+             'orders_cp',
+             ['created'],
+             $changes_to_orders_cp
+         );
+         $changes_sqs_messages[] = get_sync_request(
+             'orders_cp',
+             ['deleted'],
+             $changes_to_orders_cp
+         );
+         $changes_sqs_messages[] = get_sync_request(
+             'orders_cp',
+             ['updated'],
+             $changes_to_orders_cp
+         );
+
+         // Orders WC
+         $changes_sqs_messages[] = get_sync_request(
+             'orders_wc',
+             ['created'],
+             $changes_to_orders_wc
+         );
+         $changes_sqs_messages[] = get_sync_request(
+             'orders_wc',
+             ['deleted'],
+             $changes_to_orders_wc
+         );
+         $changes_sqs_messages[] = get_sync_request(
+             'orders_wc',
+             ['updated'],
+             $changes_to_orders_wc
+         );
+
+         // Orders WC
+         $changes_sqs_messages[] = get_sync_request(
+             'order_items',
+             ['created'],
+             $changes_to_order_items
+         );
+         $changes_sqs_messages[] = get_sync_request(
+             'order_items',
+             ['deleted'],
+             $changes_to_order_items
+         );
+         $changes_sqs_messages[] = get_sync_request(
+             'order_items',
+             ['updated'],
+             $changes_to_order_items
+         );
+
+         $changeq = new PharmacySyncQueue();
+         $changeq->sendBatch($changes_sqs_messages);
+    } catch (\Exception $e) {
+         $message = "Pharmacy App - PHP Uncaught Exception ";
+         $message .= $e->getCode() . " " . $e->getMessage() ." ";
+         $message .= $e->getFile() . ":" . $e->getLine() . "\n";
+         $message .= $e->getTraceAsString();
+         echo "$message";
+         GPLog::critical($message);
+    }
+
     /**
      * Retrieve all the drugs and CRUD the changes from v2 to the gp database
      *
@@ -330,6 +482,8 @@ try {
     update_stock_by_month($changes_to_stock_by_month);
     Timer::stop("update.stock.month");
     CliLog::info("Completed in " . Timer::read('update.stock.month', Timer::FORMAT_HUMAN));
+
+
     /**
      * [update_rxs_single description]
      * @var [type]
