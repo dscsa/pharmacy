@@ -242,6 +242,16 @@ function v2_unpend_item($item, $mysql, $reason)
 
 function save_pick_list($item, $list, $mysql)
 {
+    // Check to see if the items has an invoice number and a rx_number
+    // If those are missing, we should thorw an alert and return
+    if (empty($item['rx_number'])) {
+        GPLog::critical(
+            'Trying to save a picklist but th item is missing the rx_number',
+            [ 'item' => $item ]
+        );
+        return $item;
+    }
+
     if ($list === 0) {
         $list = [
           'qty'           => 0,
@@ -260,18 +270,16 @@ function save_pick_list($item, $list, $mysql)
     $item['count_pended_total']   = $list['count'];
     $item['count_pended_repacks'] = $list['count_repacks'];
 
-    $sql = "
-    UPDATE
-      gp_order_items
-    SET
-      qty_pended_total = $list[qty],
-      qty_pended_repacks = $list[qty_repacks],
-      count_pended_total = $list[count],
-      count_pended_repacks = $list[count_repacks]
-    WHERE
-      invoice_number = $item[invoice_number] AND
-      rx_number = $item[rx_number]
-  ";
+    $sql = "UPDATE
+              gp_order_items
+            SET
+              qty_pended_total = {$list['qty']},
+              qty_pended_repacks = {$list['qty_repacks']},
+              count_pended_total = {$list['count']},
+              count_pended_repacks = {$list['count_repacks']}
+            WHERE
+              invoice_number = {$item['invoice_number']} AND
+              rx_number = {$item['rx_number']}";
 
     GPLog::notice(
         "save_pick_list: $item[invoice_number] " . @$item['drug_name'] . " "
