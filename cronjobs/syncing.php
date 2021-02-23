@@ -338,6 +338,7 @@ try {
         Do not change the order things are queued
         Wrap these in a try catch so they don't break anything
      */
+    Timer::start("queue.changes");
     try {
          $changes_sqs_messages = [];
 
@@ -451,19 +452,23 @@ try {
          $changeq = new PharmacySyncQueue();
          $changeq->sendBatch($changes_sqs_messages);
     } catch (\Exception $e) {
-         $message = "Pharmacy App - PHP Uncaught Exception ";
+         $message = "Pharmacy App - Exception caught while Queueing items ";
          $message .= $e->getCode() . " " . $e->getMessage() ." ";
          $message .= $e->getFile() . ":" . $e->getLine() . "\n";
          $message .= $e->getTraceAsString();
-         echo "$message";
+         CliLog::critical($message);
          GPLog::critical($message);
     }
 
-    echo "Watch Invoices ";
-    Timer::start('Watch Invoices');
+    CliLog::debug("Queued ". count($changes_sqs_messages) . "messages");
+    Timer::stop("queue.changes");
+    CliLog::info("Completed in " . Timer::read('queue.changes', Timer::FORMAT_HUMAN));
+
+    CliLog::info("Watch Invoices");
+    Timer::start('invoices.watch');
     watch_invoices();
-    Timer::stop('Watch Invoices');
-    CliLog::info("Completed in " . Timer::read('Watch Invoices', Timer::FORMAT_HUMAN));
+    Timer::stop('invoices.watch');
+    CliLog::info("Completed in " . Timer::read('invoices.watch', Timer::FORMAT_HUMAN));
 
     $global_exec_details['timers']['total']      = ceil(microtime(true) - $start_time);
     $global_exec_details['end']                  = date('c');
