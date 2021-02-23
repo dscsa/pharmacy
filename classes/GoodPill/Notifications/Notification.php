@@ -85,10 +85,10 @@ class Notification extends GPModel
                   (:hash, :token, :details, :type)"
             );
 
-            $pdo->bindParam(':token', $this->token, PDO::PARAM_STR);
-            $pdo->bindParam(':hash', $this->hash, PDO::PARAM_STR);
-            $pdo->bindParam(':details', $this->details, PDO::PARAM_STR);
-            $pdo->bindParam(':type', $this->type, PDO::PARAM_STR);
+            $pdo->bindValue(':token', $this->token, PDO::PARAM_STR);
+            $pdo->bindValue(':hash', $this->hash, PDO::PARAM_STR);
+            $pdo->bindValue(':details', $this->details, PDO::PARAM_STR);
+            $pdo->bindValue(':type', $this->type, PDO::PARAM_STR);
             $pdo->execute();
 
             // Fresh load the data

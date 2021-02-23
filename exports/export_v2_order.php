@@ -66,7 +66,7 @@ function find_order_pend_group(int $invoice_number, ?array $pend_params = null) 
     ];
 
     GPLog::debug(
-        "Trying to find Pended Rx for #{$invoice_nuber}",
+        "Trying to find Pended Rx for #{$invoice_number}",
         [
             'invoice_number' => $invoice_number,
             'pend_groups'    => $possible_pend_groups
@@ -95,7 +95,7 @@ function find_order_pend_group(int $invoice_number, ?array $pend_params = null) 
         }
     }
     GPLog::debug(
-        "NO Pend Group found with pended RX found for #{$invoice_nuber}",
+        "NO Pend Group found with pended RX found for #{$invoice_number}",
         [
             'invoice_number'   => $invoice_number
         ]
