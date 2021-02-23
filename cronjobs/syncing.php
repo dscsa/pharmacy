@@ -20,7 +20,8 @@ use GoodPill\Logging\AuditLog;
 use GoodPill\Logging\CliLog;
 
 use GoodPill\Utilities\Timer;
-use GoodPill\AWS\SQS\FullChangeQueue;
+use GoodPill\AWS\SQS\PharmacySyncQueue;
+use GoodPill\AWS\SQS\PharmacySyncRequest;
 
 /**
  * Defining this here as a temporary.  Ultimatly this will move out somewhere else,
