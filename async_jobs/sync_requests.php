@@ -36,6 +36,17 @@ if (!cp_test()) {
     exit;
 }
 
+/* Logic to give us a way to figure out if we should quit working */
+$stopRequested = false;
+pcntl_signal(
+    SIGTERM,
+    function ($signo, $signinfo) {
+        global $stopRequested, $log;
+        $stopRequested = true;
+        CliLog::warning("SIGTERM caught");
+    }
+);
+
 /*
   Export Functions - used to push aggregate data out and to notify
   users of interactions
@@ -152,6 +163,14 @@ for ($l = 0; $l < $executions; $l++) {
                         update_order_items($changes);
                         break;
                 }
+
+                /* Check to see if we've requeted to stop */
+                pcntl_signal_dispatch();
+
+                if ($stopRequested) {
+                    CLiLog::warning('Finishing current Message then terminating');
+                    break;
+                }
             } catch (\Exception $e) {
                 // Log the error
                 $message = "SYNC JOB - ERROR ";
@@ -188,4 +207,9 @@ for ($l = 0; $l < $executions; $l++) {
     unset($response);
     unset($messages);
     unset($complete);
+
+    if ($stopRequested) {
+        CLiLog::warning('Terminating execution from SIGTERM request');
+        exit;
+    }
 }
