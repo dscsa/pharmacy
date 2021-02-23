@@ -31,7 +31,7 @@ function update_order_items($changes) : void
     }
 
     if (array_sum($change_counts) == 0) {
-       return;
+        return;
     }
 
     GPLog::info(
@@ -43,17 +43,21 @@ function update_order_items($changes) : void
 
     GPLog::notice('data-update-order-items', $changes);
 
-    Timer::start('update.order.items.created');
-    foreach ($changes['created'] as $created) {
-        order_item_created($created, $orders_updated);
+    if (isset($changes['created'])) {
+        Timer::start('update.order.items.created');
+        foreach ($changes['created'] as $created) {
+            order_item_created($created, $orders_updated);
+        }
+        Timer::stop('update.order.items.created');
     }
-    Timer::stop('update.order.items.created');
 
-    Timer::start('update.order.items.deleted');
-    foreach ($changes['deleted'] as $deleted) {
-        order_item_deleted($deleted, $orders_updated);
+    if (isset($changes['deleted'])) {
+        Timer::start('update.order.items.deleted');
+        foreach ($changes['deleted'] as $deleted) {
+            order_item_deleted($deleted, $orders_updated);
+        }
+        Timer::stop('update.order.items.deleted');
     }
-    Timer::stop('update.order.items.deleted');
 
     if (! empty($orders_updated)) {
         //TODO Somehow bundle patients comms if we are adding/removing drugs on next
@@ -71,11 +75,13 @@ function update_order_items($changes) : void
         handle_adds_and_removes($orders_updated);
     }
 
-    Timer::start('update.order.items.updated');
-    foreach ($changes['updated'] as $updated) {
-        order_item_updated($updated);
+    if (isset($changes['updated'])) {
+        Timer::start('update.order.items.updated');
+        foreach ($changes['updated'] as $updated) {
+            order_item_updated($updated);
+        }
+        Timer::stop('update.order.items.updated');
     }
-    Timer::stop('update.order.items.updated');
 }
 
 
