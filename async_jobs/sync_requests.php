@@ -40,14 +40,45 @@ if (!cp_test()) {
   Export Functions - used to push aggregate data out and to notify
   users of interactions
  */
-require_once 'updates/update_drugs.php';
-require_once 'updates/update_stock_by_month.php';
-require_once 'updates/update_rxs_single.php';
-require_once 'updates/update_patients_wc.php';
-require_once 'updates/update_patients_cp.php';
-require_once 'updates/update_order_items.php';
-require_once 'updates/update_orders_wc.php';
-require_once 'updates/update_orders_cp.php';
+ /*
+   Import Functions - Used to pull data into summary tables
+   with normalized formatting
+  */
+ require_once 'imports/import_v2_drugs.php';
+ require_once 'imports/import_v2_stock_by_month.php';
+ require_once 'imports/import_cp_rxs_single.php';
+ require_once 'imports/import_wc_patients.php';
+ require_once 'imports/import_cp_patients.php';
+ require_once 'imports/import_cp_order_items.php';
+ require_once 'imports/import_wc_orders.php';
+ require_once 'imports/import_cp_orders.php';
+
+
+ /*
+   Change Functions - Used to compared new tables with current tables
+   return an [created, updated, deleted] and set current tables to be same as new tables
+  */
+  require_once 'changes/changes_to_drugs.php';
+  require_once 'changes/changes_to_stock_by_month.php';
+  require_once 'changes/changes_to_rxs_single.php';
+  require_once 'changes/changes_to_patients_wc.php';
+  require_once 'changes/changes_to_patients_cp.php';
+  require_once 'changes/changes_to_order_items.php';
+  require_once 'changes/changes_to_orders_wc.php';
+  require_once 'changes/changes_to_orders_cp.php';
+
+ /*
+   Export Functions - used to push aggregate data out and to notify
+   users of interactions
+  */
+ require_once 'updates/update_drugs.php';
+ require_once 'updates/update_stock_by_month.php';
+ require_once 'updates/update_rxs_single.php';
+ require_once 'updates/update_patients_wc.php';
+ require_once 'updates/update_patients_cp.php';
+ require_once 'updates/update_order_items.php';
+ require_once 'updates/update_orders_wc.php';
+ require_once 'updates/update_orders_cp.php';
 
 // Grab and item out of the queue
 $syncq = new PharmacySyncQueue();
