@@ -2,9 +2,6 @@
 
 ini_set('include_path', '/goodpill/webform');
 require_once 'vendor/autoload.php';
-require_once 'helpers/helper_appsscripts.php';
-require_once 'helpers/helper_log.php';
-require_once 'keys.php';
 
 use GoodPill\AWS\SQS\{
     PharmacySyncQueue,
@@ -16,6 +13,37 @@ use GoodPill\Logging\{
     AuditLog,
     CliLog
 };
+
+require_once 'keys.php';
+require_once 'helpers/helper_logger.php';
+require_once 'helpers/helper_log.php';
+require_once 'helpers/helper_logger.php';
+require_once 'helpers/helper_constants.php';
+require_once 'helpers/helper_cp_test.php';
+require_once 'helpers/helper_appsscripts.php';
+require_once 'helpers/helper_log.php';
+
+if (!cp_test()) {
+    $message = '** Could not connect to Carepoint **';
+    echo "{$message}\n";
+    GPLog::alert($message);
+    CliLog::alert($message);
+    GPLog::getLogger()->flush();
+    exit;
+}
+
+/*
+  Export Functions - used to push aggregate data out and to notify
+  users of interactions
+ */
+require_once 'updates/update_drugs.php';
+require_once 'updates/update_stock_by_month.php';
+require_once 'updates/update_rxs_single.php';
+require_once 'updates/update_patients_wc.php';
+require_once 'updates/update_patients_cp.php';
+require_once 'updates/update_order_items.php';
+require_once 'updates/update_orders_wc.php';
+require_once 'updates/update_orders_cp.php';
 
 // Grab and item out of the queue
 $syncq = new PharmacySyncQueue();
