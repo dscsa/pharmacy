@@ -600,31 +600,32 @@ function is_not_offered($item)
 {
     $stock_level = @$item['stock_level_initial'] ?: $item['stock_level'];
 
-    if (is_null($stock_level)) {
-        log_notice("helper_days_and_message: $item[drug_name] level null", ['item' => $item, 'stock_level' => $stock_level]);
-        return true;
+    switch ($stock_level) {
+        case null:
+        case STOCK_LEVEL['NOT OFFERED']:
+        case STOCK_LEVEL['ORDER DRUG']:
+            $stock_message = "is_not_offered: {$item['drug_name']} stock level '{$stock_level}'";
+            $return = true;
+            break;
+        default:
+            $stock_message = "is_offered: {$item['drug_name']} stock level '{$stock_level}'";
+            $return = false;
     }
 
-    if ($stock_level == STOCK_LEVEL['NOT OFFERED']) {
-        log_notice("helper_days_and_message: $item[drug_name] stock level $stock_level", ['item' => $item, 'stock_level' => $stock_level]);
-        return true;
-    }
-
-    if ($stock_level == STOCK_LEVEL['ORDER DRUG']) {
-        log_notice("helper_days_and_message: $item[drug_name] stock level $stock_level", ['item' => $item, 'stock_level' => $stock_level]);
-        return true;
-    }
-
-    log_notice("helper_days_and_message: $item[drug_name]  stock level $stock_level", ['item' => $item, 'stock_level' => $stock_level]);
-    return false;
+    GPLog::debug($stock_message, ['item' => $item]);
+    return $return;
 }
 
 function is_refill_only($item)
 {
-    return in_array(@$item['stock_level_initial'] ?: $item['stock_level'], [
-    STOCK_LEVEL['OUT OF STOCK'],
-    STOCK_LEVEL['REFILL ONLY']
-  ]);
+    $stock_level = @$item['stock_level_initial'] ?: $item['stock_level'];
+    return in_array(
+        $stock_level,
+        [
+            STOCK_LEVEL['OUT OF STOCK'],
+            STOCK_LEVEL['REFILL ONLY']
+        ]
+    );
 }
 
 function message_text($message, $item)
