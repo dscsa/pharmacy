@@ -84,7 +84,7 @@ if (!cp_test()) {
 $syncq = new PharmacySyncQueue();
 
 // TODO up this execution count so we aren't restarting the thread so often
-$executions = (ENVIRONMENT == 'PRODUCTION') ? 5 : 5;
+$executions = (ENVIRONMENT == 'PRODUCTION') ? 1000 : 5;
 
 // Only loop so many times before we restart the script
 for ($l = 0; $l < $executions; $l++) {
