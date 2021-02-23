@@ -16,10 +16,15 @@ class Mysql
         $this->connection = $this->connect();
     }
 
+    public function getConnectionObj() {
+        return self::$static_conn_object;
+    }
+
     protected function connect()
     {
-        if (!isset(self::$static_conn_object)) {
-            //sqlsrv_configure("WarningsReturnAsErrors", 0);
+        if (!isset(self::$static_conn_object) || !self::$static_conn_object->ping()) {
+            // test that it is there with a show status, if it's not
+            // sqlsrv_configure("WarningsReturnAsErrors", 0);
             self::$static_conn_object = mysqli_connect(
                 $this->ipaddress,
                 $this->username,
