@@ -16,30 +16,26 @@ use GoodPill\Utilities\Timer;
  */
 
 function update_stock_by_month($changes) {
-
-  GPLog::notice('data-update-stock-by-month', $changes);
-
   $month_interval  = 4; //This is full months, excluding the current partial month that is included, so on average it will be 0.5 months more than this number
   $default_rxs_min = 3;
 
-  $count_deleted  = count($changes['deleted']);
-  $count_created  = count($changes['created']);
-  $count_updated  = count($changes['updated']);
+  // Make sure we have some data
+  $change_counts = [];
+  foreach (array_keys($changes) as $change_type) {
+      $change_counts[$change_type] = count($changes[$change_type]);
+  }
 
-  $msg = "$count_deleted deleted, $count_created created, $count_updated updated ";
-  echo $msg;
-  log_info("update_stock_by_month: all changes. $msg", [
-    'deleted_count' => $count_deleted,
-    'created_count' => $count_created,
-    'updated_count' => $count_updated
-  ]);
+  if (array_sum($change_counts) == 0) {
+     return;
+  }
 
-  if ( ! $count_deleted AND ! $count_created AND ! $count_updated) return;
+  GPLog::info(
+      "update_stock_by_month: changes",
+      $change_counts
+  );
 
+  GPLog::notice('data-update-stock-by-month', $changes);
   GPLog::$subroutine_id = "stock-v2-".sha1(serialize($changes));
-
-  //Overrite Rx Messages everytime a new order created otherwis same message would stay for the life of the Rx
-
   GPLog::debug(
     "update_stock_by_month: updating gp_stock_live",
     [
@@ -49,8 +45,6 @@ function update_stock_by_month($changes) {
         'event'   => 'created, updated, or deleted'
     ]
   );
-
-  //log_info("update_stock_by_month: $count_deleted deleted, $count_created created, $count_updated updated.", get_defined_vars());
 
   $mysql = new Mysql_Wc();
 

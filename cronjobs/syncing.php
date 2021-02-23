@@ -458,86 +458,13 @@ try {
          GPLog::critical($message);
     }
 
-    /**
-     * Retrieve all the drugs and CRUD the changes from v2 to the gp database
-     *
-     * NOTE Updates (Mirror Ordering of the above - not sure how necessary this is)
-     */
-    CliLog::info("Update Drugs started");
-    Timer::start("update.drugs");
-    update_drugs($changes_to_drugs);
-    Timer::stop("update.drugs");
-    CliLog::info("Completed in " . Timer::read('update.drugs', Timer::FORMAT_HUMAN));
-
-    /**
-     * Bring in the inventory and put it into the live stock table
-     * then update the monthly stock table with those metrics
-     *
-     * TABLE gp_stock_live
-     * TABLE gp_stock_by_month
-     *
-     */
-    CliLog::info("Update Stock by Month started");
-    Timer::start("update.stock.month");
-    update_stock_by_month($changes_to_stock_by_month);
-    Timer::stop("update.stock.month");
-    CliLog::info("Completed in " . Timer::read('update.stock.month', Timer::FORMAT_HUMAN));
-
-
-    /**
-     * [update_rxs_single description]
-     * @var [type]
-     */
-
-    CliLog::info("Update CP Patients started");
-    Timer::start("update.patients.cp");
-    update_patients_cp($changes_to_patients_cp);
-    Timer::stop("update.patients.cp");
-    CliLog::info("Completed in " . Timer::read('update.patients.cp', Timer::FORMAT_HUMAN));
-
-    CliLog::info("Update WC Patients started");
-    Timer::start("update.patients.wc");
-    update_patients_wc($changes_to_patients_wc);
-    Timer::stop("update.patients.wc");
-    CliLog::info("Completed in " . Timer::read('update.patients.wc', Timer::FORMAT_HUMAN));
-
-    //Run before cp-order and order-items to make sure that rx-grouped is upto date when doing load_full_order/item
-    CliLog::info("Update Rxs Single started");
-    Timer::start("update.rxs");
-    update_rxs_single($changes_to_rxs_single);
-    Timer::stop("update.rxs");
-    CliLog::info("Completed in " . Timer::read('update.rxs', Timer::FORMAT_HUMAN));
-
-    CliLog::info("Update CP Orders started");
-    Timer::start("update.patients.cp");
-    update_orders_cp($changes_to_orders_cp);
-    Timer::stop("update.patients.cp");
-    CliLog::info("Completed in " . Timer::read('update.patients.cp', Timer::FORMAT_HUMAN));
-
-    CliLog::info("Update WC Orders started");
-    Timer::start("update.orders.wc");
-    update_orders_wc($changes_to_orders_wc);
-    Timer::stop("update.orders.wc");
-    CliLog::info("Completed in " . Timer::read('update.orders.wc', Timer::FORMAT_HUMAN));
-
-    //Run this after orders-cp loop so that we can sync items to the order and remove duplicate GSNs first,
-    //rather than doing stuff in this loop that we undo in the orders-cp loop
-    CliLog::info("Update Order Items started");
-    Timer::start("update.order.items");
-    update_order_items($changes_to_order_items);
-    Timer::stop("update.order.items");
-    CliLog::info("Completed in " . Timer::read('update.order.items', Timer::FORMAT_HUMAN));
-
     echo "Watch Invoices ";
     Timer::start('Watch Invoices');
     watch_invoices();
     Timer::stop('Watch Invoices');
     CliLog::info("Completed in " . Timer::read('Watch Invoices', Timer::FORMAT_HUMAN));
 
-
-    $global_exec_details['timers']['total']      = array_sum($global_exec_details['timers']);
-    $global_exec_details['timers_gd']['total']   = array_sum($global_exec_details['timers_gd']);
-    $global_exec_details['timers_gd']['merge']   = $gd_merge_timers;
+    $global_exec_details['timers']['total']      = ceil(microtime(true) - $start_time);
     $global_exec_details['end']                  = date('c');
 
     $exec_message = sprintf(
@@ -553,12 +480,6 @@ try {
     } else {
         GPLog::info($exec_message, $global_exec_details);
     }
-
-
-    CliLog::info("All data processed {$global_exec_details['end']}");
-
-    $global_exec_details['timers']['total'] = ceil(microtime(true) - $start_time);
-    print_r($global_exec_details);
 } catch (Exception $e) {
     $global_exec_details['error_message'] = $e->getMessage;
     GPLog::alert('Webform Cron Job Fatal Error', $global_exec_details);

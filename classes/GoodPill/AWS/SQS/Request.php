@@ -68,8 +68,9 @@ abstract class Request
     {
 
         if (is_callable(array($this, 'get' . ucfirst($property)))) {
-            $func_name ='get' . ucfirst($property);
-            return $this->$func_name();
+            $func_name   ='get' . ucfirst($property);
+            $func_return = $this->$func_name();
+            return $func_return;
         }
 
         if (!isset($this->data[$property])) {
@@ -208,6 +209,7 @@ abstract class Request
      */
     public function fromArray($arrData)
     {
+
         foreach ($arrData as $strKey => $mixValue) {
             if (! in_array($strKey, $this->properties)) {
                 throw new \Exception("{$strKey} not an allowed property");

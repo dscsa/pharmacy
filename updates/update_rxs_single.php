@@ -17,32 +17,25 @@ use GoodPill\DataModels\GoodPillRxSingle;
 
 function update_rxs_single($changes)
 {
-    GPLog::notice('data-update-rxs-single', $changes);
+    // Make sure we have some data
+    $change_counts = [];
+    foreach (array_keys($changes) as $change_type) {
+        $change_counts[$change_type] = count($changes[$change_type]);
+    }
 
-    $start = microtime(true);
-    $mysql = new Mysql_Wc();
-    $mssql = new Mssql_Cp();
-
-    /* Now to do some work */
-    $count_deleted = count($changes['deleted']);
-    $count_created = count($changes['created']);
-    $count_updated = count($changes['updated']);
-
-    $msg = "$count_deleted deleted, $count_created created, $count_updated updated ";
-    echo $msg;
+    if (array_sum($change_counts) == 0) {
+       return;
+    }
 
     GPLog::info(
-        "update_rxs_single: all changes. {$msg}",
-        [
-            'deleted_count' => $count_deleted,
-            'created_count' => $count_created,
-            'updated_count' => $count_updated
-        ]
+        "update_rxs_single: changes",
+        $change_counts
     );
 
-    if ( ! $count_deleted and ! $count_created and ! $count_updated) {
-      return;
-    }
+    GPLog::notice('data-update-rxs-single', $changes);
+
+    $mysql = new Mysql_Wc();
+    $mssql = new Mssql_Cp();
 
     /*
      * Created Loop #1 First loop accross new items. Run this before rx_grouped query to make

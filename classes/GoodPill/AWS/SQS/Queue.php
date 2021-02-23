@@ -233,8 +233,6 @@ class Queue
         $requests_chunks = array_chunk($requests, 10);
 
         foreach ($requests_chunks as $chunk) {
-            var_dump(count($chunk));
-            var_dump($chunk);
             $results = $this->sqs_client->sendMessageBatch(
                 [
                     'QueueUrl' => $this->queue_url,

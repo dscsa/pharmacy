@@ -25,26 +25,20 @@ use GoodPill\Utilities\Timer;
  */
 function update_orders_cp(array $changes) : void
 {
-    $count_deleted = count($changes['deleted']);
-    $count_created = count($changes['created']);
-    $count_updated = count($changes['updated']);
+    // Make sure we have some data
+    $change_counts = [];
+    foreach (array_keys($changes) as $change_type) {
+        $change_counts[$change_type] = count($changes[$change_type]);
+    }
 
-    $msg = "$count_deleted deleted, $count_created created, $count_updated updated ";
+    if (array_sum($change_counts) == 0) {
+       return;
+    }
 
     GPLog::info(
-        "update_orders_cp: all changes. {$msg}",
-        [
-            'deleted_count' => $count_deleted,
-            'created_count' => $count_created,
-            'updated_count' => $count_updated
-        ]
+        "update_orders_cp: changes",
+        $change_counts
     );
-
-    CliLog::info($msg);
-
-    if ($count_deleted + $count_created + $count_updated == 0) {
-        return;
-    }
 
     GPLog::notice('data-update-orders-cp', $changes);
 

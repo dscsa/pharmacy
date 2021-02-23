@@ -24,29 +24,23 @@ use GoodPill\Utilities\Timer;
  */
 function update_patients_wc(array $changes) : void
 {
-    GPLog::notice('data-update-patients-wc', $changes);
 
-    $count_deleted = count($changes['deleted']);
-    $count_created = count($changes['created']);
-    $count_updated = count($changes['updated']);
-
-    $msg = "$count_deleted deleted, $count_created created, $count_updated updated ";
-
-    GPLog::notice(
-        "update_patients_wc: all changes. {$msg}",
-        [
-            'deleted_count' => $count_deleted,
-            'created_count' => $count_created,
-            'updated_count' => $count_updated
-        ]
-    );
-
-    CliLog::notice($msg);
-
-    if ($count_deleted + $count_created + $count_updated == 0) {
-        return;
+    // Make sure we have some data
+    $change_counts = [];
+    foreach (array_keys($changes) as $change_type) {
+        $change_counts[$change_type] = count($changes[$change_type]);
     }
 
+    if (array_sum($change_counts) == 0) {
+       return;
+    }
+
+    GPLog::info(
+        "update_patients_wc: changes",
+        $change_counts
+    );
+
+    GPLog::notice('data-update-patients-wc', $changes);
 
     Timer::start('update.patients.wc.created');
     foreach ($changes['created'] as $created) {
