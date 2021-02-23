@@ -116,6 +116,9 @@ for ($l = 0; $l < $executions; $l++) {
     // been proccessed and can be deleted
     // If we've got something to work with, go for it
     if (is_array($messages) && count($messages) >= 1) {
+        // This object is only here to make sure the Mysql connection hasnt' died while we
+        // were waiting for a sqs message
+        $mysql       = new Mysql_Wc();
         $log_message = sprintf(
             "Processing %s messages\n",
             count($messages)
