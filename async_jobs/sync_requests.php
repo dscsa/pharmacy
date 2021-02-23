@@ -45,20 +45,19 @@ for ($l = 0; $l < $executions; $l++) {
 
         GPLog::debug($log_message);
         CliLog::debug($log_message);
-        try{
-            foreach ($messages as $message) {
-                $request = new PharmacySyncRequest($message);
-                $changes = $request->changes;
+        foreach ($messages as $message) {
+            $request = new PharmacySyncRequest($message);
+            $changes = $request->changes;
 
-                $log_message = sprintf(
-                    "New sync for %s changes to %s",
-                    implode(',', array_keys($changes)),
-                    $request->changes_to
-                );
+            $log_message = sprintf(
+                "New sync for %s changes to %s",
+                implode(',', array_keys($changes)),
+                $request->changes_to
+            );
 
-                GPLog::debug($log_message);
-                CliLog::notice($log_message);
-
+            GPLog::debug($log_message);
+            CliLog::notice($log_message);
+            try {
                 switch ($request->changes_to) {
                     case 'drugs':
                         update_drugs($changes);
