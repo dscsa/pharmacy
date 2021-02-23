@@ -24,7 +24,7 @@ require_once 'helpers/helper_log.php';
 require_once 'helpers/helper_appsscripts.php';
 require_once 'helpers/helper_constants.php';
 require_once 'helpers/helper_cp_test.php';
-require_once 'helpers/helper_changes';
+require_once 'helpers/helper_changes.php';
 
 if (!cp_test()) {
     $message = '** Could not connect to Carepoint **';
