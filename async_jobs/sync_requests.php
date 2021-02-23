@@ -72,7 +72,7 @@ for ($l = 0; $l < $executions; $l++) {
     // An array of messages that have
     // been proccessed and can be deleted
     // If we've got something to work with, go for it
-    if (is_array($messages) && count($messages) > 1) {
+    if (is_array($messages) && count($messages) >= 1) {
         $log_message = sprintf(
             "Processing %s messages\n",
             count($messages)
