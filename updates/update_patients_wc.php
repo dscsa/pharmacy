@@ -42,23 +42,29 @@ function update_patients_wc(array $changes) : void
 
     GPLog::notice('data-update-patients-wc', $changes);
 
-    Timer::start('update.patients.wc.created');
-    foreach ($changes['created'] as $created) {
-        helper_try_catch_log('wc_patient_created', $created);
+    if (isset($changes['created'])) {
+        Timer::start('update.patients.wc.created');
+        foreach ($changes['created'] as $created) {
+            helper_try_catch_log('wc_patient_created', $created);
+        }
+        Timer::stop('update.patients.wc.created');
     }
-    Timer::stop('update.patients.wc.created');
 
-    Timer::start('update.patients.wc.deleted');
-    foreach ($changes['deleted'] as $i => $deleted) {
-        helper_try_catch_log('wc_patient_deleted', $deleted);
+    if (isset($changes['deleted'])) {
+        Timer::start('update.patients.wc.deleted');
+        foreach ($changes['deleted'] as $i => $deleted) {
+            helper_try_catch_log('wc_patient_deleted', $deleted);
+        }
+        Timer::stop('update.patients.wc.deleted');
     }
-    Timer::stop('update.patients.wc.deleted');
 
-    Timer::start('update.patients.wc.updated');
-    foreach ($changes['updated'] as $i => $updated) {
-        helper_try_catch_log('wc_patient_updated', $updated);
+    if (isset($changes['updated'])) {
+        Timer::start('update.patients.wc.updated');
+        foreach ($changes['updated'] as $i => $updated) {
+            helper_try_catch_log('wc_patient_updated', $updated);
+        }
+        Timer::stop('update.patients.wc.updated');
     }
-    Timer::stop('update.patients.wc.updated');
 }
 
 /*

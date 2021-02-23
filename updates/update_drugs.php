@@ -33,17 +33,21 @@ function update_drugs(array $changes) : void
 
     GPLog::notice('data-update-drugs', $changes);
 
-    Timer::start("update.drugs.created");
-    foreach ($changes['created'] as $i => $created) {
-        helper_try_catch_log('drug_created', $created);
+    if (isset($changes['created'])) {
+        Timer::start("update.drugs.created");
+        foreach ($changes['created'] as $i => $created) {
+            helper_try_catch_log('drug_created', $created);
+        }
+        Timer::start("update.drugs.created");
     }
-    Timer::start("update.drugs.created");
 
-    Timer::start("update.drugs.updated");
-    foreach ($changes['updated'] as $i => $updated) {
-        helper_try_catch_log('drug_updated', $updated);
+    if (isset($changes['updated'])) {
+        Timer::start("update.drugs.updated");
+        foreach ($changes['updated'] as $i => $updated) {
+            helper_try_catch_log('drug_updated', $updated);
+        }
+        Timer::start("update.drugs.updated");
     }
-    Timer::start("update.drugs.updated");
 }
 
 /*

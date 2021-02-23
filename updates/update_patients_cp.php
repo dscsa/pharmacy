@@ -36,12 +36,13 @@ function update_patients_cp(array $changes) : void
     );
 
     GPLog::notice('data-update-patients-cp', $changes);
-
-    Timer::start('update.patients.cp.updated');
-    foreach ($changes['updated'] as $i => $updated) {
-        helper_try_catch_log('cp_patient_updated', $updated);
+    if (isset($changes['updated'])) {
+        Timer::start('update.patients.cp.updated');
+        foreach ($changes['updated'] as $i => $updated) {
+            helper_try_catch_log('cp_patient_updated', $updated);
+        }
+        Timer::stop('update.patients.cp.updated');
     }
-    Timer::stop('update.patients.cp.updated');
 
 
     /*

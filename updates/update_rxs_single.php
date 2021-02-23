@@ -195,7 +195,6 @@ function update_rxs_single($changes)
         //TODO Eventually Save the Clean Script back into Guardian so that Cindy doesn't need to rewrite them
         set_parsed_sig($created['rx_number'], $parsed, $mysql);
     }
-    log_timer('rx-singles-created1', $loop_timer, $count_created);
 
 
     /* Finish Loop Created Loop  #1 */
@@ -297,8 +296,6 @@ function update_rxs_single($changes)
         }
       }
     }
-
-    log_timer('rx-singles-updated1', $loop_timer, $count_updated);
 
     /*
      * This work is to create the perscription groups.
@@ -449,7 +446,6 @@ function update_rxs_single($changes)
             );
         }
     }
-    log_timer('rx-singles-created2', $loop_timer, $count_created);
 
     /* Finish Created Loop #2 */
 
@@ -602,7 +598,6 @@ function update_rxs_single($changes)
             );
         }
     }
-    log_timer('rx-singles-updated2', $loop_timer, $count_updated);
 
     /**
      * All RX should have a rx_message set.  We are going to query the database

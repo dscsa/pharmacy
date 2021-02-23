@@ -61,6 +61,7 @@ for ($l = 0; $l < $executions; $l++) {
         contine;
     }
 
+    // TODO Change this number to 10 when we start havnig multiple groups
     $results  = $syncq->receive(['MaxNumberOfMessages' => 1]);
     $messages = $results->get('Messages');
     $complete = [];
@@ -68,7 +69,7 @@ for ($l = 0; $l < $executions; $l++) {
     // An array of messages that have
     // been proccessed and can be deleted
     // If we've got something to work with, go for it
-    if (is_array($messages) && count($messages) > 0) {
+    if (is_array($messages) && count($messages) > 1) {
         $log_message = sprintf(
             "Processing %s messages\n",
             count($messages)
@@ -86,8 +87,9 @@ for ($l = 0; $l < $executions; $l++) {
                 $request->changes_to
             );
 
-            GPLog::debug($log_message);
-            CliLog::notice($log_message);
+            GPLog::debug($log_message, $changes);
+            CliLog::notice($log_message, $changes);
+
             try {
                 switch ($request->changes_to) {
                     case 'drugs':
@@ -141,8 +143,8 @@ for ($l = 0; $l < $executions; $l++) {
             count($complete)
         );
 
-        GPLog::debug("Deleting %s messages");
-        CliLog::notice("Deleting %s messages");
+        GPLog::debug($log_message);
+        CliLog::notice($log_message);
 
         $syncq->deleteBatch($complete);
     }

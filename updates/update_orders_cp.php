@@ -43,25 +43,30 @@ function update_orders_cp(array $changes) : void
     GPLog::notice('data-update-orders-cp', $changes);
 
     $mysql = new Mysql_Wc();
-
-    Timer::start("update.patients.cp.created");
-    foreach ($changes['created'] as $created) {
-        helper_try_catch_log('cp_order_created', $created);
+    if (isset($changes['created'])) {
+        Timer::start("update.patients.cp.created");
+        foreach ($changes['created'] as $created) {
+            helper_try_catch_log('cp_order_created', $created);
+        }
+        Timer::stop("update.patients.cp.created");
     }
-    Timer::stop("update.patients.cp.created");
 
-    Timer::start("update.patients.cp.deleted");
-    foreach ($changes['deleted'] as $deleted) {
-        helper_try_catch_log('cp_order_deleted', $deleted);
+    if (isset($changes['deleted'])) {
+        Timer::start("update.patients.cp.deleted");
+        foreach ($changes['deleted'] as $deleted) {
+            helper_try_catch_log('cp_order_deleted', $deleted);
+        }
+        Timer::stop("update.patients.cp.deleted");
     }
-    Timer::stop("update.patients.cp.deleted");
 
-    Timer::start("update.patients.cp.updated");
-    foreach ($changes['updated'] as $i => $updated) {
-        helper_try_catch_log('cp_order_updated', $updated);
+    if (isset($changes['updated'])) {
+        Timer::start("update.patients.cp.updated");
+        foreach ($changes['updated'] as $i => $updated) {
+            helper_try_catch_log('cp_order_updated', $updated);
+        }
+        Timer::stop("update.patients.cp.updated");
+        GPLog::resetSubroutineId();
     }
-    Timer::stop("update.patients.cp.updated");
-    GPLog::resetSubroutineId();
 }
 
 /*

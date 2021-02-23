@@ -33,21 +33,23 @@ function update_orders_wc(array $changes) : void
 
     GPLog::notice('data-update-orders-wc', $changes);
 
-    Timer::start("update.orders.wc.created");
-    //This captures 2 USE CASES:
-    //1) A user/tech created an order in WC and we need to add it to Guardian
-    //2) An order is incorrectly saved in WC even though it should be gone (tech bug)
+    if (isset($changes['created'])) {
+        Timer::start("update.orders.wc.created");
+        //This captures 2 USE CASES:
+        //1) A user/tech created an order in WC and we need to add it to Guardian
+        //2) An order is incorrectly saved in WC even though it should be gone (tech bug)
 
-    /*
-        Since CP Order runs before this AND Webform automatically adds Orders
-        into CP this loop should not have actual created orders.  They are all
-        orders that were deleted in CP and were overlooked by the cp_order
-        delete loop
-     */
-    foreach ($changes['created'] as $created) {
-        helper_try_catch_log('wc_order_created', $created);
+        /*
+            Since CP Order runs before this AND Webform automatically adds Orders
+            into CP this loop should not have actual created orders.  They are all
+            orders that were deleted in CP and were overlooked by the cp_order
+            delete loop
+         */
+        foreach ($changes['created'] as $created) {
+            helper_try_catch_log('wc_order_created', $created);
+        }
+        Timer::stop("update.orders.wc.created");
     }
-    Timer::stop("update.orders.wc.created");
 
     /*
         This captures 2 USE CASES:
@@ -57,17 +59,21 @@ function update_orders_wc(array $changes) : void
             2) An order is in CP but not in (never added to) WC, probably
             because of a tech bug.
      */
-    Timer::start("update.orders.wc.deleted");
-    foreach ($changes['deleted'] as $deleted) {
-        helper_try_catch_log('wc_order_deleted', $deleted);
+    if (isset($changes['deleted'])) {
+        Timer::start("update.orders.wc.deleted");
+        foreach ($changes['deleted'] as $deleted) {
+            helper_try_catch_log('wc_order_deleted', $deleted);
+        }
+        Timer::stop("update.orders.wc.deleted");
     }
-    Timer::stop("update.orders.wc.deleted");
 
-    Timer::start("update.orders.wc.updated");
-    foreach ($changes['updated'] as $updated) {
-        helper_try_catch_log('wc_order_updated', $updated);
-    } // End Changes Loop
-    Timer::stop("update.orders.wc.updated");
+    if (isset($changes['updated'])) {
+        Timer::start("update.orders.wc.updated");
+        foreach ($changes['updated'] as $updated) {
+            helper_try_catch_log('wc_order_updated', $updated);
+        } // End Changes Loop
+        Timer::stop("update.orders.wc.updated");
+    }
 }
 
 /*
