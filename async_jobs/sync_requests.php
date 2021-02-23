@@ -26,6 +26,7 @@ require_once 'helpers/helper_constants.php';
 require_once 'helpers/helper_cp_test.php';
 require_once 'helpers/helper_changes.php';
 
+CliLog::debug("Testing Carepoint DB connection");
 if (!cp_test()) {
     $message = '** Could not connect to Carepoint **';
     echo "{$message}\n";
@@ -55,6 +56,8 @@ $executions = (ENVIRONMENT == 'PRODUCTION') ? 10000 : 20;
 
 // Only loop so many times before we restart the script
 for ($l = 0; $l < $executions; $l++) {
+    CliLog::debug("All includes imported waiting for message");
+
     if (file_exists('/tmp/block-sync.txt')) {
         sleep(30);
         CliLog::error('Sync Job blocked by /tmp/block-sync.txt');
