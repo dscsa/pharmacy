@@ -26,15 +26,30 @@ require_once 'helpers/helper_constants.php';
 require_once 'helpers/helper_cp_test.php';
 require_once 'helpers/helper_changes.php';
 
-CliLog::debug("Testing Carepoint DB connection");
-if (!cp_test()) {
-    $message = '** Could not connect to Carepoint **';
-    echo "{$message}\n";
-    GPLog::alert($message);
-    CliLog::alert($message);
-    GPLog::getLogger()->flush();
-    exit;
+
+// TODO Remove this once we have mssql duplicating the Database
+if (ENVIRONMENT == 'PRODUCTION') {
+    CliLog::debug("Testing Carepoint DB connection");
+    if (!cp_test()) {
+        $message = '** Could not connect to Carepoint **';
+        echo "{$message}\n";
+        GPLog::alert($message);
+        CliLog::alert($message);
+        GPLog::getLogger()->flush();
+        exit;
+    }
 }
+
+/* Logic to give us a way to figure out if we should quit working */
+$stopRequested = false;
+pcntl_signal(
+    SIGTERM,
+    function ($signo, $signinfo) {
+        global $stopRequested, $log;
+        $stopRequested = true;
+        CliLog::warning("SIGTERM caught");
+    }
+);
 
 /*
   Export Functions - used to push aggregate data out and to notify
@@ -105,6 +120,9 @@ for ($l = 0; $l < $executions; $l++) {
     // been proccessed and can be deleted
     // If we've got something to work with, go for it
     if (is_array($messages) && count($messages) >= 1) {
+        // This object is only here to make sure the Mysql connection hasnt' died while we
+        // were waiting for a sqs message
+        $mysql       = new Mysql_Wc();
         $log_message = sprintf(
             "Processing %s messages\n",
             count($messages)
@@ -152,6 +170,14 @@ for ($l = 0; $l < $executions; $l++) {
                         update_order_items($changes);
                         break;
                 }
+
+                /* Check to see if we've requeted to stop */
+                pcntl_signal_dispatch();
+
+                if ($stopRequested) {
+                    CLiLog::warning('Finishing current Message then terminating');
+                    break;
+                }
             } catch (\Exception $e) {
                 // Log the error
                 $message = "SYNC JOB - ERROR ";
@@ -188,4 +214,9 @@ for ($l = 0; $l < $executions; $l++) {
     unset($response);
     unset($messages);
     unset($complete);
+
+    if ($stopRequested) {
+        CLiLog::warning('Terminating execution from SIGTERM request');
+        exit;
+    }
 }

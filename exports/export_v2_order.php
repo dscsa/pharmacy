@@ -81,7 +81,7 @@ function find_order_pend_group(int $invoice_number, ?array $pend_params = null) 
         ) {
             // This order has already been picked, we need to quit trying
             if (@$results[0]['next'][0]['picked']) {
-                GPLog::alert("We are trying to unpend a picked order: {$group}");
+                GPLog::critical("We are trying to unpend a picked order: {$group}");
                 return null;
             }
             GPLog::debug(
