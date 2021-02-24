@@ -26,14 +26,18 @@ require_once 'helpers/helper_constants.php';
 require_once 'helpers/helper_cp_test.php';
 require_once 'helpers/helper_changes.php';
 
-CliLog::debug("Testing Carepoint DB connection");
-if (!cp_test()) {
-    $message = '** Could not connect to Carepoint **';
-    echo "{$message}\n";
-    GPLog::alert($message);
-    CliLog::alert($message);
-    GPLog::getLogger()->flush();
-    exit;
+
+// TODO Remove this once we have mssql duplicating the Database
+if (ENVIRONMENT == 'PRODUCTION') {
+    CliLog::debug("Testing Carepoint DB connection");
+    if (!cp_test()) {
+        $message = '** Could not connect to Carepoint **';
+        echo "{$message}\n";
+        GPLog::alert($message);
+        CliLog::alert($message);
+        GPLog::getLogger()->flush();
+        exit;
+    }
 }
 
 /* Logic to give us a way to figure out if we should quit working */

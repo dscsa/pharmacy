@@ -543,11 +543,12 @@ function cp_order_updated(array $updated) : ?array
     }
 
     GPLog::notice(
-        "Order Changed.  Has it shipped or dispensed",
+        "Order Changed. Has it shipped or dispensed",
         [
             'State Changed' => $stage_change_cp,
             'Dispensed'     => ($updated['order_date_dispensed'] != $updated['old_order_date_dispensed']),
-            'Shipped'       => ($updated['order_date_shipped'] != $updated['old_order_date_shipped'])
+            'Shipped'       => ($updated['order_date_shipped'] != $updated['old_order_date_shipped']),
+            'invoice_number' => $updated['invoice_number']
         ]
     );
 

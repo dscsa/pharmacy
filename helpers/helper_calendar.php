@@ -438,7 +438,8 @@ function create_event($event_title, $comm_arr, $hours_to_wait = 0, $hour_of_day 
       "Communication Calendar event created: $event_title",
       [
           "message" => $args,
-          "result"  => $result
+          "result"  => $result,
+          "invoice_number" => substr($event_title, 0, stripos($event_title, ' '))
       ]
   );
 
@@ -584,7 +585,10 @@ function search_events_by_order($invoice_number, $past = false, $types = [])
     $json = json_decode($result, true);
 
     if ($result != '[]') {
-        GPLog::notice("search_events_by_order: $invoice_number", $json);
+        GPLog::notice(
+            "search_events_by_order: $invoice_number",
+            ['invoice_number' => $invoice_number, 'json' => $json]
+        );
     }
 
     return $json;
@@ -748,10 +752,16 @@ function cancel_events_by_order($invoice_number, $caller, $types = [])
     }
 
     if ($cancel) {
-        GPLog::notice("cancel_events_by_order: order $invoice_number has events", [$titles, $invoice_number, $caller, $types]);
+        GPLog::notice(
+            "cancel_events_by_order: order $invoice_number has events",
+            ['titles' => $titles, 'invoice_number' => $invoice_number, 'caller' => $caller, 'types' => $types]
+        );
         cancel_events($cancel);
     } else {
-        GPLog::notice("cancel_events_by_order: order $invoice_number no events", [$titles, $invoice_number, $caller, $types]);
+        GPLog::notice(
+            "cancel_events_by_order: order $invoice_number no events",
+            ['titles' => $titles, 'invoice_number' => $invoice_number, 'caller' => $caller, 'types' => $types]
+        );
     }
 
     return $cancel;
