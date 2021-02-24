@@ -99,7 +99,7 @@ pcntl_signal(
 $syncq = new PharmacySyncQueue();
 
 // TODO up this execution count so we aren't restarting the thread so often
-$executions = (ENVIRONMENT == 'PRODUCTION') ? 1000 : 5;
+$executions = (ENVIRONMENT == 'PRODUCTION') ? 20 : 2;
 
 // Only loop so many times before we restart the script
 for ($l = 0; $l < $executions; $l++) {
@@ -135,7 +135,8 @@ for ($l = 0; $l < $executions; $l++) {
             $changes = $request->changes;
 
             $log_message = sprintf(
-                "New sync for %s changes to %s",
+                "New sync for %s total %s in %s",
+                array_sum(array_map("count", $changes)),
                 implode(',', array_keys($changes)),
                 $request->changes_to
             );
@@ -185,7 +186,10 @@ for ($l = 0; $l < $executions; $l++) {
                 $message .= $e->getFile() . ":" . $e->getLine() . "\n";
                 $message .= $e->getTraceAsString();
 
-                GPLog::alert($message);
+                GPLog::emergency(
+                    $message . "
+                    Remove /tmp/block-sync.txt and restart supervisord to restart the process"
+                );
 
                 // Create the block file
                 file_put_contents('/tmp/block-sync.txt', date('c'));
@@ -207,7 +211,15 @@ for ($l = 0; $l < $executions; $l++) {
         GPLog::debug($log_message);
         CliLog::notice($log_message);
 
-        $syncq->deleteBatch($complete);
+        if (!$syncq->deleteBatch($complete)) {
+            GPLog::emergency(
+                "A Sync Message failed to delete.  This could result in stuck syncs.
+                 Remove /tmp/block-sync.txt and restart supervisord to restart the process"
+            );
+
+            // Create the block file
+            file_put_contents('/tmp/block-sync.txt', date('c'));
+        }
     }
 
     unset($changes);

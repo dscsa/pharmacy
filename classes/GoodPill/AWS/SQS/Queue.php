@@ -127,9 +127,14 @@ class Queue
                     'Entries'  => $chunk
                 ]
             );
+
+            // If anything fails, we should return false
+            if (isset($return['Failed']) && count($return['Failed']) > 0) {
+                return false;
+            }
         }
 
-        return empty($return);
+        return true;
     }
 
     /**
