@@ -314,129 +314,129 @@ try {
      */
     Timer::start("queue.changes");
     try {
-         $changes_sqs_messages = [];
+        $changes_sqs_messages = [];
 
-         if ($has_changes = get_sync_request('drugs', ['created'], $changes_to_drugs)) {
-             $changes_sqs_messages[] = $has_changes;
-         } else {
-             CliLog::notice(Nothing to Queue drugs.created);
-         }
+        if ($has_changes = get_sync_request('drugs', ['created'], $changes_to_drugs)) {
+            $changes_sqs_messages[] = $has_changes;
+        } else {
+            CliLog::notice('Nothing to Queue drugs.created');
+        }
 
-         if ($has_changes = get_sync_request('drugs', ['deleted'], $changes_to_drugs)) {
-             $changes_sqs_messages[] = $has_changes;
-         } else {
-             CliLog::notice(Nothing to Queue drugs.deleted);
-         }
+        if ($has_changes = get_sync_request('drugs', ['deleted'], $changes_to_drugs)) {
+            $changes_sqs_messages[] = $has_changes;
+        } else {
+            CliLog::notice('Nothing to Queue drugs.deleted');
+        }
 
-         if ($has_changes = get_sync_request('stock_by_month', ['created', 'deleted', 'updated'], $changes_to_stock_by_month)) {
-             $changes_sqs_messages[] = $has_changes;
-         } else {
-             CliLog::notice(Nothing to Queue stock_by_month.all);
-         }
+        if ($has_changes = get_sync_request('stock_by_month', ['created', 'deleted', 'updated'], $changes_to_stock_by_month)) {
+            $changes_sqs_messages[] = $has_changes;
+        } else {
+            CliLog::notice('Nothing to Queue stock_by_month.all');
+        }
 
-         if ($has_changes = get_sync_request('patients_cp', ['updated'], $changes_to_patients_cp)) {
-             $changes_sqs_messages[] = $has_changes;
-         } else {
-             CliLog::notice(Nothing to Queue patients_cp.updated);
-         }
+        if ($has_changes = get_sync_request('patients_cp', ['updated'], $changes_to_patients_cp)) {
+            $changes_sqs_messages[] = $has_changes;
+        } else {
+            CliLog::notice('Nothing to Queue patients_cp.updated');
+        }
 
-         if ($has_changes = get_sync_request('patients_wc', ['created'], $changes_to_patients_wc)) {
-             $changes_sqs_messages[] = $has_changes;
-         } else {
-             CliLog::notice(Nothing to Queue patients_wc.created);
-         }
-         if ($has_changes = get_sync_request('patients_wc', ['deleted'], $changes_to_patients_wc)) {
-             $changes_sqs_messages[] = $has_changes;
-         } else {
-             CliLog::notice(Nothing to Queue patients_wc.deleted);
-         }
-         if ($has_changes = get_sync_request('patients_wc', ['updated'], $changes_to_patients_wc)) {
-             $changes_sqs_messages[] = $has_changes;
-         } else {
-             CliLog::notice(Nothing to Queue patients_wc.updated);
-         }
-
-
-
-         if ($has_changes = get_sync_request('rxs_single', ['created', 'updated'], $changes_to_rxs_single)) {
-             $changes_sqs_messages[] = $has_changes;
-         } else {
-             CliLog::notice(Nothing to Queue rxs_single.create/updated);
-         }
-         if ($has_changes = get_sync_request('rxs_single', ['deleted'], $changes_to_rxs_single)) {
-             $changes_sqs_messages[] = $has_changes;
-         } else {
-             CliLog::notice(Nothing to Queue rxs_single.deleted);
-         }
+        if ($has_changes = get_sync_request('patients_wc', ['created'], $changes_to_patients_wc)) {
+            $changes_sqs_messages[] = $has_changes;
+        } else {
+            CliLog::notice('Nothing to Queue patients_wc.created');
+        }
+        if ($has_changes = get_sync_request('patients_wc', ['deleted'], $changes_to_patients_wc)) {
+            $changes_sqs_messages[] = $has_changes;
+        } else {
+            CliLog::notice('Nothing to Queue patients_wc.deleted');
+        }
+        if ($has_changes = get_sync_request('patients_wc', ['updated'], $changes_to_patients_wc)) {
+            $changes_sqs_messages[] = $has_changes;
+        } else {
+            CliLog::notice('Nothing to Queue patients_wc.updated');
+        }
 
 
-         if ($has_changes = get_sync_request('orders_cp', ['created'], $changes_to_orders_cp)) {
-             $changes_sqs_messages[] = $has_changes;
-         } else {
-             CliLog::notice(Nothing to Queue orders_cp.created);
-         }
-         if ($has_changes = get_sync_request('orders_cp', ['deleted'], $changes_to_orders_cp)) {
-             $changes_sqs_messages[] = $has_changes;
-         } else {
-             CliLog::notice(Nothing to Queue orders_cp.deleted);
-         }
-         if ($has_changes = get_sync_request('orders_cp', ['updated'], $changes_to_orders_cp)) {
-             $changes_sqs_messages[] = $has_changes;
-         } else {
-             CliLog::notice(Nothing to Queue orders_cp.updated);
-         }
+
+        if ($has_changes = get_sync_request('rxs_single', ['created', 'updated'], $changes_to_rxs_single)) {
+            $changes_sqs_messages[] = $has_changes;
+        } else {
+            CliLog::notice('Nothing to Queue rxs_single.create/updated');
+        }
+        if ($has_changes = get_sync_request('rxs_single', ['deleted'], $changes_to_rxs_single)) {
+            $changes_sqs_messages[] = $has_changes;
+        } else {
+            CliLog::notice('Nothing to Queue rxs_single.deleted');
+        }
 
 
-         // Orders WC
-         if ($has_changes = get_sync_request('orders_wc', ['created'], $changes_to_orders_wc)) {
-             $changes_sqs_messages[] = $has_changes;
-         } else {
-             CliLog::notice(Nothing to Queue orders_wc.created);
-         }
-         if ($has_changes = get_sync_request('orders_wc', ['deleted'], $changes_to_orders_wc)) {
-             $changes_sqs_messages[] = $has_changes;
-         } else {
-             CliLog::notice(Nothing to Queue orders_wc.deleted);
-         }
-         if ($has_changes = get_sync_request('orders_wc', ['updated'], $changes_to_orders_wc)) {
-             $changes_sqs_messages[] = $has_changes;
-         } else {
-             CliLog::notice(Nothing to Queue orders_wc.updated);
-         }
+        if ($has_changes = get_sync_request('orders_cp', ['created'], $changes_to_orders_cp)) {
+            $changes_sqs_messages[] = $has_changes;
+        } else {
+            CliLog::notice('Nothing to Queue orders_cp.created');
+        }
+        if ($has_changes = get_sync_request('orders_cp', ['deleted'], $changes_to_orders_cp)) {
+            $changes_sqs_messages[] = $has_changes;
+        } else {
+            CliLog::notice('Nothing to Queue orders_cp.deleted');
+        }
+        if ($has_changes = get_sync_request('orders_cp', ['updated'], $changes_to_orders_cp)) {
+            $changes_sqs_messages[] = $has_changes;
+        } else {
+            CliLog::notice('Nothing to Queue orders_cp.updated');
+        }
 
 
-         // Orders WC
-         if ($has_changes = get_sync_request('order_items', ['created'], $changes_to_order_items)) {
-             $changes_sqs_messages[] = $has_changes;
-         } else {
-             CliLog::notice(Nothing to Queue order_items.created);
-         }
+        // Orders WC
+        if ($has_changes = get_sync_request('orders_wc', ['created'], $changes_to_orders_wc)) {
+            $changes_sqs_messages[] = $has_changes;
+        } else {
+            CliLog::notice('Nothing to Queue orders_wc.created');
+        }
+        if ($has_changes = get_sync_request('orders_wc', ['deleted'], $changes_to_orders_wc)) {
+            $changes_sqs_messages[] = $has_changes;
+        } else {
+            CliLog::notice('Nothing to Queue orders_wc.deleted');
+        }
+        if ($has_changes = get_sync_request('orders_wc', ['updated'], $changes_to_orders_wc)) {
+            $changes_sqs_messages[] = $has_changes;
+        } else {
+            CliLog::notice('Nothing to Queue orders_wc.updated');
+        }
 
-         if ($has_changes = get_sync_request('order_items', ['deleted'], $changes_to_order_items)) {
-             $changes_sqs_messages[] = $has_changes;
-         } else {
-             CliLog::notice(Nothing to Queue order_items.deleted);
-         }
 
-         if ($has_changes = get_sync_request('order_items', ['updated'], $changes_to_order_items)) {
-             $changes_sqs_messages[] = $has_changes;
-         } else {
-             CliLog::notice(Nothing to Queue order_items.updated);
-         }
+        // Orders WC
+        if ($has_changes = get_sync_request('order_items', ['created'], $changes_to_order_items)) {
+            $changes_sqs_messages[] = $has_changes;
+        } else {
+            CliLog::notice('Nothing to Queue order_items.created');
+        }
 
-         if (count($changes_sqs_messages) > 0) {
-             $changeq = new PharmacySyncQueue();
-             $changeq->sendBatch($changes_sqs_messages);
-         } else {
-             CliLog::warning('No changes to Queue');
-         }
+        if ($has_changes = get_sync_request('order_items', ['deleted'], $changes_to_order_items)) {
+            $changes_sqs_messages[] = $has_changes;
+        } else {
+            CliLog::notice('Nothing to Queue order_items.deleted');
+        }
+
+        if ($has_changes = get_sync_request('order_items', ['updated'], $changes_to_order_items)) {
+            $changes_sqs_messages[] = $has_changes;
+        } else {
+            CliLog::notice('Nothing to Queue order_items.updated');
+        }
+
+        if (count($changes_sqs_messages) > 0) {
+            $changeq = new PharmacySyncQueue();
+            $changeq->sendBatch($changes_sqs_messages);
+        } else {
+            CliLog::warning('No changes to Queue');
+        }
     } catch (\Exception $e) {
-         $message = "Pharmacy App - Exception caught while Queueing items ";
-         $message .= $e->getCode() . " " . $e->getMessage() ." ";
-         $message .= $e->getFile() . ":" . $e->getLine() . "\n";
-         $message .= $e->getTraceAsString();
-         CliLog::critical($message);
-         GPLog::critical($message);
+        $message = "Pharmacy App - Exception caught while Queueing items ";
+        $message .= $e->getCode() . " " . $e->getMessage() ." ";
+        $message .= $e->getFile() . ":" . $e->getLine() . "\n";
+        $message .= $e->getTraceAsString();
+        CliLog::critical($message);
+        GPLog::critical($message);
     }
 
     CliLog::debug("Queued ". count($changes_sqs_messages) . "messages");
