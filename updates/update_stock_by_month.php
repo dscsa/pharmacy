@@ -39,7 +39,6 @@ function update_stock_by_month($changes) {
   GPLog::debug(
     "update_stock_by_month: updating gp_stock_live",
     [
-        'changes' => $changes,
         'source'  => 'v2',
         'type'    => 'stock',
         'event'   => 'created, updated, or deleted'
