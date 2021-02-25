@@ -533,6 +533,11 @@ function deduplicate_order_items(array $item) : array
     $goodpill_db = GoodPill\Storage\GoodPill::getConnection();
     $mssql       = new Mssql_Cp();
 
+    if (empty($item['rx_number'])) {
+        return $item;
+    }
+
+
     $item['count_lines'] = 1;
 
 
