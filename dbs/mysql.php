@@ -75,6 +75,7 @@ class Mysql
 
     public function replace_table($table, $keys, $vals)
     {
+        $this->testConnection();
         if (! $vals or ! count($vals)) {
             return log_error("No $table vals to Import", ['vals' => array_slice($vals, 0, 100, true), 'keys' => array_slice($keys, 0, 100, true)]);
         }
@@ -116,6 +117,8 @@ class Mysql
 
     public function run($sql, $debug = false)
     {
+
+        $this->testConnection();
         $starttime = microtime(true);
 
         try {
@@ -191,5 +194,12 @@ class Mysql
     public function prepare($sql)
     {
         return $this->connection->prepare($sql);
+    }
+
+
+    public function testConnection() {
+        if (!self::$static_conn_object->ping()) {
+            $this->connect();
+        }
     }
 }
