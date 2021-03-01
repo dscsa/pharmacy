@@ -31,5 +31,10 @@ class GoodPillPendGroup extends GPModel
      */
     protected $table_name = "gp_pend_group";
 
+
+    /**
+     * Name of the primary key or an array oc fields to make key
+     * @var string|array
+     */
     protected $primary_key = 'invoice_number';
 }

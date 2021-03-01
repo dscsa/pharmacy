@@ -448,18 +448,32 @@ function pend_group_manual($item)
 
 function pend_group_name($item)
 {
+
+    // See if there is already a pend group for this order
+    $pend_group = new GoodPillPendGroup(
+        ['invoice_number' => $item['invoice_number']]
+    );
+
+    if ($pend_group->loaded) {
+        return $pend_group->pend_group;
+    }
+
     //TODO need a different flag here because "Auto Refill v2" can be overwritten by "Webform XXX"
     //We need a flag that won't change otherwise items can be pended under different pending groups
     //Probably need to have each "app" be a different "CP user" so that we can look at item_added_by
     if (is_auto_refill($item)) {
-        return pend_group_refill($item);
+        $pend_group_name = pend_group_refill($item);
+    } elseif (!isset($pend_group_name) && $item['refills_used'] > 0) {
+        $pend_group_name = pend_group_webform($item);
+    } else {
+        $pend_group_name = pend_group_new_patient($item);
     }
 
-    if ($item['refills_used'] > 0) {
-        return pend_group_webform($item);
-    }
+    $pend_group->invoice_number = $item['invoice_number'];
+    $pend_group->pend_group = $pend_group_name;
+    $pend_group->create();
 
-    return pend_group_new_patient($item);
+    return $pend_group_name;
 }
 
 /**
@@ -510,6 +524,7 @@ function pend_pick_list($item, $list)
         return false;
     }
 
+    // TODO PEND
     $pend_group_name = pend_group_name($item);
     $qty             = round($item['qty_dispensed_default']);
 
@@ -550,6 +565,8 @@ function pend_pick_list($item, $list)
 function unpend_pick_list($item)
 {
 
+    // TODO PEND
+    //
     // If we don't have specific pendgroups, then go get some
     $pend_group = get_item_pended_group($item);
 
