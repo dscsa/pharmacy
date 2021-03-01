@@ -2,7 +2,11 @@
 
 require_once 'helpers/helper_pagerduty.php';
 
-use Sirum\Logging\SirumLog;
+use GoodPill\Logging\{
+    GPLog,
+    AuditLog,
+    CliLog
+};
 
 /**
  * Handle an error by sending it to pagerduty, stackdriver and error_logs
@@ -22,8 +26,20 @@ function gpErrorHandler($errno, $errstr, $error_file, $error_line)
             $error_file,
             $error_line
         );
-        pushToSirumLog($message);
-        pd_low_priority($message, 'php-error' . uniqid());
+        pushToGPLog($message);
+
+        $data = [];
+
+        try {
+            $data['execution_id'] = GPLog::$exec_id;
+
+            if (!is_null(GPLog::$subroutine_id)) {
+                $data['subroutine_id'] = GPLog::$subroutine_id;
+            }
+        } catch (\Exception $e) {
+        }
+
+        pd_high_priority($message, 'php-error' . uniqid(), $data);
         error_log($message);
         exit(1);
     }
@@ -38,7 +54,10 @@ function gpShutdownHandler()
 {
     $lasterror  = error_get_last();
 
-    if (in_array($lasterror['type'], [E_ERROR, E_USER_ERROR, E_PARSE, E_COMPILE_ERROR])) {
+    if (
+        !empty($lasterror)
+        && in_array($lasterror['type'], [E_ERROR, E_USER_ERROR, E_PARSE, E_COMPILE_ERROR])
+    ) {
         gpErrorHandler(
             $lasterror['type'],
             $lasterror['message'],
@@ -59,22 +78,36 @@ function gpExceptionHandler($e)
     $message .= $e->getCode() . " " . $e->getMessage() ." ";
     $message .= $e->getFile() . ":" . $e->getLine() . "\n";
     $message .= $e->getTraceAsString();
-    pushToSirumLog($message);
-    pd_low_priority($message, 'php-exception' . uniqid());
+
+    pushToGPLog($message);
+
+    $data = [];
+
+    try {
+        $data['execution_id'] = GPLog::$exec_id;
+
+        if (!is_null(GPLog::$subroutine_id)) {
+            $data['subroutine_id'] = GPLog::$subroutine_id;
+        }
+    } catch (\Exception $e) {
+    }
+
+    pd_high_priority($message, 'php-exception' . uniqid(), $data);
+
     error_log($message);
     exit(1);
 }
 
 /**
- * A utility function for trying to push to SirumLog
+ * A utility function for trying to push to GPLog
  * @param  string $message The message to send
  * @return
  */
-function pushToSirumLog($message)
+function pushToGPLog($message)
 {
     try {
-        SirumLog::error();
-        SirumLog::getLogger()->flush();
+        GPLog::error($message);
+        GPLog::getLogger()->flush();
     } catch (\Exception $e) {
     }
 }

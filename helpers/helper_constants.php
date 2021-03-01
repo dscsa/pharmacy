@@ -2,6 +2,8 @@
 
 const LIVE_MODE = true;
 const DAYS_OF_RXS_TO_IMPORT = 7;
+const DAYS_OF_ITEMS_TO_IMPORT= 7;
+const DAYS_OF_ORDERS_TO_IMPORT = 7;
 
 const DAYS_STD    = 90;
 const DAYS_MIN    = 45;
@@ -17,13 +19,21 @@ const ADDED_MANUALLY = [
   "WEBFORM"
 ];
 
-const PICK_LIST_FOLDER_NAME = 'Pick Lists';
+const PAYMENT_TOTAL_NEW_PATIENT = 6;
+
+const PICK_LIST_FOLDER_NAME         = 'Pick Lists';
 const INVOICE_PUBLISHED_FOLDER_NAME = 'Published';
 const INVOICE_PENDING_FOLDER_NAME   = 'Pending';
-const TRANSFER_OUT_FOLDER_NAME = 'Transfer Outs';
+const TRANSFER_OUT_FOLDER_NAME      = 'Transfer Outs';
 
+const GD_FOLDER_IDS = [
+    PICK_LIST_FOLDER_NAME         => '1PcDYKM_Ky-9zWmCNuBnTka3uCKjU3A0q',
+    INVOICE_PUBLISHED_FOLDER_NAME => '1PngKqOhRJ2Dt75lX-U0EreXTOzaQf1Bg',
+    INVOICE_PENDING_FOLDER_NAME   => '1ZSog-fJ7HhWJfXU_rmsJaMCiNb2VlFfG',
+    TRANSFER_OUT_FOLDER_NAME      => '1Lda6GkjIsEzTc1fwES6EbGcOHCJvlIZz'
+];
 
-const PAYMENT_TOTAL_NEW_PATIENT = 6;
+const INVOICE_TEMPLATE_ID = '1SFW3_J1f3dVahFddqsz2YZY_G1I5dFDA8nVj6KKVfTg';
 
 const PAYMENT_METHOD = [
   'COUPON'       => 'coupon',
@@ -191,7 +201,7 @@ const RX_MESSAGE = [
     'CP_CODE' => 220,
   ],
   'NO ACTION FILL OUT OF STOCK' => [
-    'EN' => 'is low in stock',
+    'EN' => '',
     'ES' => '',
     'CP_CODE' => 221,
   ],

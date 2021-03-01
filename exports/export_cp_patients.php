@@ -1,98 +1,102 @@
 <?php
+use GoodPill\Logging\{
+    GPLog,
+    AuditLog,
+    CliLog
+};
 
-function export_cp_patient_save_medications_other($mssql, $patient, $live = false) {
+function export_cp_patient_save_medications_other($mssql, $patient, $live = false)
+{
+    $medications_other = escape_db_values(utf8ize($patient['medications_other']));
 
-  $medications_other = escape_db_values(utf8ize($patient['medications_other']));
+    /*
+    $select = "
+      SELECT
+        DATALENGTH(cmt) as cmt_length,
+        CHARINDEX(CHAR(10), cmt) as char10_index,
+        CHARINDEX(CHAR(13), cmt) as char13_index,
+        CHARINDEX(CHAR(10)+'___', cmt) as divider_index,
+        LEN(SUBSTRING(cmt, 0, ISNULL(NULLIF(CHARINDEX(CHAR(10)+'___', cmt), 0), 9999))) as first_length,
+        SUBSTRING(cmt, 0, ISNULL(NULLIF(CHARINDEX(CHAR(10)+'___', cmt), 0), 9999)) as first,
+        cmt
+      FROM cppat
+      WHERE pat_id = $patient[patient_id_cp]
+    ";
+    */
 
-  /*
-  $select = "
-    SELECT
-      DATALENGTH(cmt) as cmt_length,
-      CHARINDEX(CHAR(10), cmt) as char10_index,
-      CHARINDEX(CHAR(13), cmt) as char13_index,
-      CHARINDEX(CHAR(10)+'___', cmt) as divider_index,
-      LEN(SUBSTRING(cmt, 0, ISNULL(NULLIF(CHARINDEX(CHAR(10)+'___', cmt), 0), 9999))) as first_length,
-      SUBSTRING(cmt, 0, ISNULL(NULLIF(CHARINDEX(CHAR(10)+'___', cmt), 0), 9999)) as first,
-      cmt
-    FROM cppat
-    WHERE pat_id = $patient[patient_id_cp]
-  ";
-  */
-
-  $sql = "
+    $sql = "
     UPDATE cppat
     SET cmt =
       SUBSTRING(cmt, 0, ISNULL(NULLIF(CHARINDEX(CHAR(10)+'___', cmt), 0), 9999))+
       CHAR(10)+'______________________________________________'+CHAR(13)+
       '$medications_other'
-    WHERE pat_id = $patient[patient_id_cp]
+    WHERE pat_id = {$patient['patient_id_cp']}
   ";
 
-  echo "\n$sql";
+    echo "\n$sql";
+    echo "\nOld:{$patient['old_medications_other']}";
+    echo "\nNew:{$patient['medications_other']}";
 
-  //$res1 = $mssql->run("$select");
-  $mssql->run($sql);
-  //$res2 = $mssql->run("$select");
+    //$res1 = $mssql->run("$select");
+    $mssql->run($sql);
+    //$res2 = $mssql->run("$select");
 
   //echo "
   //live:$live $patient[first_name] $patient[last_name] $sql ".json_encode($res1, JSON_PRETTY_PRINT)." ".json_encode($res2, JSON_PRETTY_PRINT);
 }
 
-function update_cp_patient_active_status($mssql, $patient_id_cp, $inactive) {
+function update_cp_patient_active_status($mssql, $patient_id_cp, $inactive)
+{
+    if (! $patient_id_cp) {
+        return;
+    }
 
-  if ( ! $patient_id_cp) return;
+    if ($inactive == 'Inactive') {
+        $cp_key = 'Inactivated';
+        $cp_val = 2;
+    } elseif ($inactive == 'Deceased') {
+        $cp_key = 'Marked deceased';
+        $cp_val = 3;
+    } else {
+        $cp_key = 'Reactivated';
+        $cp_val = 1;
+    }
 
-  if ($inactive == 'Inactive') {
-    $cp_key = 'Inactivated';
-    $cp_val = 2;
-  }
+    $date = date('Y-m-d H:i:s');
 
-  else if ($inactive == 'Deceased') {
-    $cp_key = 'Marked deceased';
-    $cp_val = 3;
-  }
+    $sql = "UPDATE cppat
+            SET
+              pat_status_cn = $cp_val,
+              cmt = CONCAT(cmt, ' $cp_key by Pharmacy App on $date')
+            WHERE
+              pat_id = $patient_id_cp";
 
-  else {
-    $cp_key = 'Reactivated';
-    $cp_val = 1;
-  }
-
-  $date = date('Y-m-d H:i:s');
-
-  $sql = "
-    UPDATE cppat
-    SET
-      pat_status_cn = $cp_val,
-      cmt = CONCAT(cmt, ' $cp_key by Pharmacy App on $date')
-    WHERE
-      pat_id = $patient_id_cp
-  ";
-
-  log_alert("activate patient changes? update_cp_patient_active_status $inactive -> $sql");
-  //$mssql->run($sql);
+    $mssql->run($sql);
 }
 
-function export_cp_patient_save_patient_note($mssql, $patient, $live = false) {
+function export_cp_patient_save_patient_note($mssql, $patient, $live = false)
+{
+    $sql = "NOT IMPLEMENTED";
 
-  $sql = "NOT IMPLEMENTED";
-
-  echo "
+    echo "
   live:$live $sql";
 
-  //$mssql->run("$sql");
+    //$mssql->run("$sql");
 }
 
-function upsert_patient_cp($mssql, $sql) {
-  //echo "
-  //$sql";
+function upsert_patient_cp($mssql, $sql)
+{
+    //echo "
+    //$sql";
 
-  return $mssql->run("$sql");
+    return $mssql->run("$sql");
 }
 
 //EXEC SirumWeb_AddUpdatePatHomePhone only inserts new phone numbers
 //6 is Phone1 and 9 is Phone2
-function delete_cp_phone($mssql, $patient_id_cp, $phone_type_cn) {
-  return upsert_patient_cp($mssql, "
+function delete_cp_phone($mssql, $patient_id_cp, $phone_type_cn)
+{
+    return upsert_patient_cp($mssql, "
     UPDATE ph
     SET area_code = NULL, phone_no = NULL
     FROM cppat_phone pp

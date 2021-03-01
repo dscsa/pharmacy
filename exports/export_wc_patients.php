@@ -1,4 +1,9 @@
 <?php
+use GoodPill\Logging\{
+    GPLog,
+    AuditLog,
+    CliLog
+};
 
 function cp_to_wc_key($key) {
 
@@ -41,6 +46,98 @@ function wc_delete_patient($mysql, $patient_id_wc) {
   $mysql->run($meta);
 }
 
+/**
+ * Update woocommerce with patient changes from CarePoint
+ *
+ * @param  array $patient  The data for the patient.  Needs to include firstname,
+ *      lastname, birthdate, and patient_wc_id
+ *
+ * @return boolean
+ */
+function wc_update_patient($patient) {
+
+    if ( ! $patient['patient_id_wc']) {
+        return false;
+    }
+
+    $goodpilldb = GoodPill\Storage\Goodpill::getConnection();
+
+    $pdo = $goodpilldb->prepare(
+        "UPDATE wp_users
+            SET user_login = :user_login,
+                user_nicename = :user_nicename,
+                display_name = :display_name
+            WHERE id = :patient_id_wc"
+    );
+
+    $login    = "{$patient['first_name']} {$patient['last_name']} {$patient['birth_date']}";
+    $nicename = "{$patient['first_name']}-{$patient['last_name']}-{$patient['birth_date']}";
+
+    $pdo->bindParam(':user_login', $login, \PDO::PARAM_STR);
+    $pdo->bindParam(':user_nicename', $nicename, \PDO::PARAM_STR);
+    $pdo->bindParam(':display_name', $login, \PDO::PARAM_STR);
+    $pdo->bindParam(':patient_id_wc', $patient['patient_id_wc'], \PDO::PARAM_INT);
+    $pdo->execute();
+
+    $mysql = ($mysql) ?: new Mysql_Wc();
+
+    // update all the first_name meta
+    foreach ([
+                'first_name',
+                'billing_first_name',
+                'shipping_first_name'
+             ] as $meta_key) {
+        wc_upsert_patient_meta(
+            $mysql,
+            $patient['patient_id_wc'],
+            $meta_key,
+            $patient['first_name']
+        );
+    }
+
+    foreach ([
+                'last_name',
+                'billing_last_name',
+                'shipping_last_name'
+             ] as $meta_key) {
+        wc_upsert_patient_meta(
+            $mysql,
+            $patient['patient_id_wc'],
+            $meta_key,
+            $patient['last_name']
+        );
+    }
+
+
+    wc_upsert_patient_meta(
+        $mysql,
+        $patient['patient_id_wc'],
+        'birth_date',
+        $patient['birth_date']
+    );
+
+    wc_upsert_patient_meta(
+        $mysql,
+        $patient['patient_id_wc'],
+        'birth_date_month',
+        date('m', strtotime($patient['birth_date']))
+    );
+
+    wc_upsert_patient_meta(
+        $mysql,
+        $patient['patient_id_wc'],
+        'birth_date_day',
+        date('d', strtotime($patient['birth_date']))
+    );
+
+    wc_upsert_patient_meta(
+        $mysql,
+        $patient['patient_id_wc'],
+        'birth_date_year',
+        date('Y', strtotime($patient['birth_date']))
+    );
+}
+
 function wc_create_patient($mysql, $patient) {
 
   $insert = "
@@ -65,8 +162,6 @@ function wc_create_patient($mysql, $patient) {
     SELECT * FROM wp_users WHERE user_login = '$patient[first_name] $patient[last_name] $patient[birth_date]'
   ")[0];
 
-  echo "\n$insert\n".print_r($user_id, true);
-
   foreach($patient as $key => $val) {
     wc_upsert_patient_meta($mysql, $user_id[0]['ID'], $key, $val);
   }
@@ -80,7 +175,10 @@ function wc_upsert_patient_meta($mysql, $user_id, $meta_key, $meta_value) {
   $wc_key = cp_to_wc_key($meta_key);
   $wc_val = is_null($meta_value) ? 'NULL' : "'".escape_db_values($meta_value)."'";
 
-  $select = "SELECT * FROM wp_usermeta WHERE user_id = $user_id AND meta_key = '$wc_key'";
+  $select = "SELECT *
+                FROM wp_usermeta
+                    WHERE user_id = $user_id
+                        AND meta_key = '$wc_key'";
 
   $exists = $mysql->run($select);
 
@@ -90,10 +188,9 @@ function wc_upsert_patient_meta($mysql, $user_id, $meta_key, $meta_value) {
     $upsert = "INSERT wp_usermeta (umeta_id, user_id, meta_key, meta_value) VALUES (NULL, $user_id, '$wc_key', $wc_val)";
   }
 
-  //echo "\nwc_upsert_patient_meta $select $upsert";
-
   $mysql->run($upsert);
 }
+
 
 function update_wc_backup_pharmacy($mysql, $patient_id_wc, $patient) {
 
@@ -128,7 +225,7 @@ function update_wc_patient_active_status($mysql, $patient_id_wc, $inactive) {
     $wc_val = 'a:1:{s:8:"customer";b:1;}';
   }
 
-  log_alert("update_wc_patient_active_status $inactive -> $patient_id_wc, 'wp_capabilities',  $wc_val");
+  GPLog::critical("update_wc_patient_active_status $inactive -> $patient_id_wc, 'wp_capabilities',  $wc_val");
 
   return wc_upsert_patient_meta($mysql, $patient_id_wc, 'wp_capabilities',  $wc_val);
 }

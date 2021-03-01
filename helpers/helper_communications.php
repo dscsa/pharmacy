@@ -2,7 +2,11 @@
 
 require_once 'exports/export_gd_comm_calendar.php';
 
-use Sirum\Logging\SirumLog;
+use GoodPill\Logging\{
+    GPLog,
+    AuditLog,
+    CliLog
+};
 
 //All Communication should group drugs into 4 Categories based on ACTION/NOACTION and FILL/NOFILL
 //1) FILLING NO ACTION
@@ -43,16 +47,15 @@ function group_drugs($order, $mysql) {
     $days = @$item['days_dispensed'];
     $fill = $days ? 'FILLED_' : 'NOFILL_';
 
-    $msg = patient_message_text($item);
-
-    if (strpos($msg, 'NO ACTION') !== false)
+    if (strpos($item['rx_message_key'], 'NO ACTION') !== false)
       $action = 'NOACTION';
-    else if (strpos($msg, 'ACTION') !== false)
+    else if (strpos($item['rx_message_key'], 'ACTION') !== false)
       $action = 'ACTION';
     else
       $action = 'NOACTION';
 
     $price = patient_pricing_text($item);
+    $msg   = patient_message_text($item);
 
     $groups[$fill.$action][] = $item['drug'].$msg;
 
@@ -64,14 +67,14 @@ function group_drugs($order, $mysql) {
         UPDATE
           gp_order_items
         SET
-          groups = CASE WHEN groups is NULL THEN '$fill$action' ELSE concat('$fill$action < ', groups) END
+          groups = CASE WHEN groups is NULL THEN '$fill$action' ELSE LEFT(concat('$fill$action < ', groups), 255) END
         WHERE
           invoice_number = $item[invoice_number] AND
           rx_number = $item[rx_number] AND
           (groups IS NULL OR groups NOT LIKE '$fill$action%')
       ";
 
-      SirumLog::debug(
+      GPLog::debug(
         "Saving group into order_items",
         [
           "item"   => $item,
@@ -133,7 +136,7 @@ function patient_pricing_text($item) {
 }
 
 function patient_drug_text($item) {
-  return @$item['drug_name'] ?: $item['drug_generic'];
+  return @$item['drug_generic'] ?: $item['drug_name'];
 }
 
 function patient_payment_method($item) {
@@ -206,6 +209,7 @@ function send_shipped_order_communications($groups) {
   order_shipped_notice($groups);
   confirm_shipment_notice($groups);
   refill_reminder_notice($groups);
+  //autopayReminderNotice(order, groups)
 
   if ($groups['ALL'][0]['payment_method'] == PAYMENT_METHOD['AUTOPAY'])
     autopay_reminder_notice($groups);
@@ -215,36 +219,27 @@ function send_dispensed_order_communications($groups) {
   order_dispensed_notice($groups);
 }
 
-function send_updated_order_communications($groups, $items_added, $items_removed) {
+function send_updated_order_communications($groups, $added_deduped, $removed_deduped) {
 
-  $add_item_names    = [];
-  $remove_item_names = [];
-  $patient_updates   = [];
+  $patient_updates = [];
 
-  foreach ($items_added as $item) {
-    $add_item_names[] = $item['drug'];
+  if ($added_deduped) {
+    $verb = count($added_deduped) == 1 ? 'was' : 'were';
+    $patient_updates[] = implode(", ", $added_deduped)." $verb added to your order.";
   }
 
-  foreach ($items_removed as $item) {
-    $remove_item_names[] = $item['drug'];
-  }
-
-  if ($add_item_names) {
-    $verb = count($add_item_names) == 1 ? 'was' : 'were';
-    $patient_updates[] = implode(", ", $add_item_names)." $verb added to your order.";
-  }
-
-  if ($remove_item_names) {
-    $verb = count($remove_item_names) == 1 ? 'was' : 'were';
-    $patient_updates[] = implode(", ", $remove_item_names)." $verb removed from your order.";
+  if ($removed_deduped) {
+    $verb = count($removed_deduped) == 1 ? 'was' : 'were';
+    $patient_updates[] = implode(", ", $removed_deduped)." $verb removed from your order.";
   }
 
   log_error('send_updated_order_communications', [
-    'groups' => $groups,
-    'items_added' => $items_added,
-    'items_removed' => $items_removed,
+    'groups'          => $groups,
+    'added_deduped'   => $added_deduped,
+    'removed_deduped' => $removed_deduped,
     'patient_updates' => $patient_updates
   ]);
 
-  order_updated_notice($groups, $patient_updates);
+  if ($patient_updates) //in case all were removed by the deduping process
+    order_updated_notice($groups, $patient_updates);
 }

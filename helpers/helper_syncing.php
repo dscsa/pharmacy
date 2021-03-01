@@ -2,7 +2,11 @@
 
 require_once 'exports/export_gd_transfer_fax.php';
 
-use Sirum\Logging\SirumLog;
+use GoodPill\Logging\{
+    GPLog,
+    AuditLog,
+    CliLog
+};
 
 function sync_to_order_new_rx($item, $patient_or_order) {
 
@@ -10,11 +14,10 @@ function sync_to_order_new_rx($item, $patient_or_order) {
 
   $not_offered  = is_not_offered($item);
   $refill_only  = is_refill_only($item);
-  $is_refill    = is_refill($item, $patient_or_order);
   $has_refills  = ($item['refills_total'] > NO_REFILL);
-  $eligible     = ($has_refills AND ! $is_refill AND $item['rx_autofill'] AND ! $not_offered AND ! $refill_only AND ! $item['refill_date_manual']);
+  $eligible     = ($has_refills AND $item['rx_autofill'] AND ! $not_offered AND ! $refill_only AND ! $item['refill_date_next']);
 
-  SirumLog::debug(
+  GPLog::debug(
       "sync_to_order_new_rx: $item[invoice_number] $item[drug_generic] ".($eligible ? 'Syncing' : 'Not Syncing'),
       [
           'invoice_number' => $patient_or_order[0]['invoice_number'],
@@ -33,7 +36,7 @@ function sync_to_order_past_due($item, $patient_or_order) {
 
   $eligible = ($has_refills AND $item['refill_date_next'] AND (strtotime($item['refill_date_next']) - strtotime($item['order_date_added'])) < 0);
 
-  SirumLog::debug(
+  GPLog::debug(
     "sync_to_order_past_due: $item[invoice_number] $item[drug_generic] ".($eligible ? 'Syncing' : 'Not Syncing'),
     [
       'invoice_number' => $patient_or_order[0]['invoice_number'],
@@ -54,7 +57,7 @@ function sync_to_order_no_next($item, $patient_or_order) {
 
   $eligible = ($has_refills AND $is_refill AND ! $item['refill_date_next']);
 
-  SirumLog::debug(
+  GPLog::debug(
       "sync_to_order_no_next: $item[invoice_number] $item[drug_generic] ".($eligible ? 'Syncing' : 'Not Syncing'),
       [
           'invoice_number' => $patient_or_order[0]['invoice_number'],
@@ -73,7 +76,7 @@ function sync_to_order_due_soon($item, $patient_or_order) {
 
   $eligible = ($has_refills AND $item['refill_date_next'] AND (strtotime($item['refill_date_next'])  - strtotime($item['order_date_added'])) <= DAYS_EARLY*24*60*60);
 
-  SirumLog::debug(
+  GPLog::debug(
       "sync_to_order_due_soon: $item[invoice_number] $item[drug_generic] ".($eligible ? 'Syncing' : 'Not Syncing'),
       [
           'invoice_number' => $patient_or_order[0]['invoice_number'],
@@ -142,24 +145,23 @@ function sync_to_date($order, $mysql) {
   if ( ! $new_days_default OR $new_days_default == DAYS_STD)
     return $order;
 
-  foreach ($order as $i => $item) {
+  foreach ($order as $i => $dontuse) {
 
     //Don't try to sync stuff not in order, just what's in the order
-    if ( ! $item['item_date_added'])
+    if ( ! $order[$i]['item_date_added'])
       continue;
 
-    $sync_to_date_days_change = $new_days_default - $item['days_dispensed_default'];
+    $sync_to_date_days_change = $new_days_default - $order[$i]['days_dispensed_default'];
 
     //Don't set rx_message to something as being synced if it was the target and therefore didn't change
     if ($sync_to_date_days_change > -5 AND $sync_to_date_days_change < 5)
       continue;
 
-    $order[$i]['days_dispensed']  = $order[$i]['days_dispensed_default']  = $new_days_default;
-    $order[$i]['qty_dispensed']   = $order[$i]['qty_dispensed_default']   = $new_days_default*$item['sig_qty_per_day'];
-    $order[$i]['price_dispensed'] = $order[$i]['price_dispensed_default'] = ceil($new_days_default*($item['price_per_month'] ?: 0)/30); //Might be null
+    $order[$i]['qty_dispensed']   = $order[$i]['qty_dispensed_default']   = $new_days_default*$order[$i]['sig_qty_per_day'];
+    $order[$i]['price_dispensed'] = $order[$i]['price_dispensed_default'] = ceil($new_days_default*($order[$i]['price_per_month'] ?: 0)/30); //Might be null
 
     //NOT CURRENTLY USED BUT FOR AUDITING PURPOSES
-    $order[$i]['sync_to_date_days_before']          = $item['days_dispensed_default'];
+    $order[$i]['sync_to_date_days_before']          = $order[$i]['days_dispensed_default'];
     $order[$i]['sync_to_date_days_change']          = $sync_to_date_days_change;
 
     $order[$i]['sync_to_date_max_days_default']     = $max_days_default;
@@ -171,14 +173,16 @@ function sync_to_date($order, $mysql) {
     $order[$i]['sync_to_date_min_days_stock']       = $min_days_stock;
     $order[$i]['sync_to_date_min_days_stock_rxs']   = implode(',', $min_days_stock_rxs);
 
+    $sync_to_date_days_before = (!is_null(@$order[$i]['days_dispensed_default']))?:'NULL';
+
     $sql = "
       UPDATE
         gp_order_items
       SET
         days_dispensed_default            = $new_days_default,
-        qty_dispensed_default             = ".$order[$i]['qty_dispensed_default'].",
-        price_dispensed_default           = ".$order[$i]['price_dispensed_default'].",
-        sync_to_date_days_before          = $item[days_dispensed_default],
+        qty_dispensed_default             = {$order[$i]['qty_dispensed_default']},
+        price_dispensed_default           = {$order[$i]['price_dispensed_default']},
+        sync_to_date_days_before          = {$sync_to_date_days_before},
         sync_to_date_max_days_default     = $max_days_default,
         sync_to_date_max_days_default_rxs = '".implode(',', $max_days_default_rxs)."',
         sync_to_date_min_days_refills     = $min_days_refills,
@@ -186,17 +190,19 @@ function sync_to_date($order, $mysql) {
         sync_to_date_min_days_stock       = $min_days_stock,
         sync_to_date_min_days_stock_rxs   = '".implode(',', $min_days_stock_rxs)."'
       WHERE
-        rx_number = $item[rx_number]
-        AND invoice_number = ".$order[0]['invoice_number'];
+        rx_number = {$order[$i]['rx_number']}
+        AND invoice_number = {$order[$i]['invoice_number']}
+      ";
 
     $mysql->run($sql);
 
-    $order[$i] = v2_unpend_item($item, $mysql, "unpend for sync_to_date");
-    $order[$i] = v2_pend_item($item, $mysql,  "pend for sync_to_date");
+    $order[$i] = v2_unpend_item($order[$i], $mysql, "unpend for sync_to_date");
+    $order[$i] = v2_pend_item($order[$i], $mysql,  "pend for sync_to_date");
 
-    $order[$i] = export_cp_set_rx_message($item, RX_MESSAGE['NO ACTION SYNC TO DATE'], $mysql);
+    $order[$i]['days_dispensed'] = $order[$i]['days_dispensed_default']  = $new_days_default;
+    $order[$i] = export_cp_set_rx_message($order[$i], RX_MESSAGE['NO ACTION SYNC TO DATE'], $mysql);
 
-    log_notice('helper_syncing: sync_to_date and repended in v2', ['item' => $item, 'sql' => $sql]);
+    log_notice('helper_syncing: sync_to_date and repended in v2', ['order[i]' => $order[$i], 'sql' => $sql]);
   }
 
   return $order;

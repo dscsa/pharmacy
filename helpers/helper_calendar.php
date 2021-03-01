@@ -1,376 +1,414 @@
 <?php
 
-use Sirum\Logging\SirumLog;
+use GoodPill\Logging\{
+    GPLog,
+    AuditLog,
+    CliLog
+};
 
 function order_dispensed_event($order, $salesforce, $hours_to_wait) {
 
   if (@$order[0]['patient_inactive']) {
-    log_warning('order_dispensed_event canceled because patient inactive', get_defined_vars());
+    GPLog::warning('order_dispensed_event cancelled because patient inactive', get_defined_vars());
     return;
   }
 
-  $patient_label = get_patient_label($order);
-  $event_title   = $order[0]['invoice_number'].' Order Dispensed: '.$patient_label.'.  Created:'.date('Y-m-d H:i:s');
+    $patient_label = get_patient_label($order);
+    $event_title   = $order[0]['invoice_number'].' Order Dispensed: '.$patient_label.'.  Created:'.date('Y-m-d H:i:s');
 
-  $cancel = cancel_events_by_person($order[0]['first_name'], $order[0]['last_name'], $order[0]['birth_date'], 'order_dispensed_event', ['Order Dispensed', 'Order Canceled', 'Needs Form']);
+    $cancel = cancel_events_by_person($order[0]['first_name'], $order[0]['last_name'], $order[0]['birth_date'], 'order_dispensed_event', ['Order Dispensed', 'Order Cancelled', 'Needs Form']);
 
-  $comm_arr = new_comm_arr($patient_label, '', '', $salesforce);
+    $comm_arr = new_comm_arr($patient_label, '', '', $salesforce);
 
-  log_info('order_dispensed_event', get_defined_vars());
+    GPLog::info('order_dispensed_event', get_defined_vars());
 
-  create_event($event_title, $comm_arr, $hours_to_wait);
+    create_event($event_title, $comm_arr, $hours_to_wait);
 }
 
-function order_shipped_event($order, $email, $text) {
+function order_shipped_event($order, $email, $text)
+{
+    if ($order[0]['patient_inactive']) {
+        GPLog::warning('order_shipped_event cancelled because patient inactive', get_defined_vars());
+        return;
+    }
 
-  if ($order[0]['patient_inactive']) {
-    log_warning('order_shipped_event canceled because patient inactive', get_defined_vars());
-    return;
-  }
+    $patient_label = get_patient_label($order);
+    $event_title   = $order[0]['invoice_number'].' Order Shipped: '.$patient_label.'.  Created:'.date('Y-m-d H:i:s');
 
-  $patient_label = get_patient_label($order);
-  $event_title   = $order[0]['invoice_number'].' Order Shipped: '.$patient_label.'.  Created:'.date('Y-m-d H:i:s');
+    $cancel = cancel_events_by_person($order[0]['first_name'], $order[0]['last_name'], $order[0]['birth_date'], 'order_shipped_event', ['Order Shipped', 'Order Dispensed', 'Order Cancelled', 'Needs Form']);
 
-  $cancel = cancel_events_by_person($order[0]['first_name'], $order[0]['last_name'], $order[0]['birth_date'], 'order_shipped_event', ['Order Shipped', 'Order Dispensed', 'Order Canceled', 'Needs Form']);
+    $comm_arr = new_comm_arr($patient_label, $email, $text);
 
-  $comm_arr = new_comm_arr($patient_label, $email, $text);
+    GPLog::info('order_shipped_event', get_defined_vars());
 
-  log_info('order_shipped_event', get_defined_vars());
-
-  create_event($event_title, $comm_arr, 10/60);
+    create_event($event_title, $comm_arr, 10/60);
 }
 
-function refill_reminder_event($order, $email, $text, $hours_to_wait, $hour_of_day = null) {
+function refill_reminder_event($order, $email, $text, $hours_to_wait, $hour_of_day = null)
+{
+    if ($order[0]['patient_inactive']) {
+        GPLog::warning('refill_reminder_event cancelled because patient inactive', get_defined_vars());
+        return;
+    }
 
-  if ($order[0]['patient_inactive']) {
-    log_warning('refill_reminder_event canceled because patient inactive', get_defined_vars());
-    return;
-  }
+    $patient_label = get_patient_label($order);
+    $event_title   = $order[0]['invoice_number'].' Refill Reminder: '.$patient_label.'.  Created:'.date('Y-m-d H:i:s');
 
-  $patient_label = get_patient_label($order);
-  $event_title   = $order[0]['invoice_number'].' Refill Reminder: '.$patient_label.'.  Created:'.date('Y-m-d H:i:s');
+    $cancel = cancel_events_by_order($order[0]['invoice_number'], 'refill_reminder_event', ['Refill Reminder']);
 
-  //$cancel = cancel_events_by_person($order['first_name'], $order['last_name'], $order['birth_date'], 'refill_reminder_event', ['Refill Reminder'])
+    $comm_arr = new_comm_arr($patient_label, $email, $text);
 
-  $comm_arr = new_comm_arr($patient_label, $email, $text);
+    GPLog::warning('refill_reminder_event', get_defined_vars()); //$cancel
 
-  log_warning('refill_reminder_event', get_defined_vars()); //$cancel
-
-  create_event($event_title, $comm_arr, $hours_to_wait, $hour_of_day);
+    create_event($event_title, $comm_arr, $hours_to_wait, $hour_of_day);
 }
 
-function autopay_reminder_event($order, $email, $text, $hours_to_wait, $hour_of_day = null) {
+function autopay_reminder_event($order, $email, $text, $hours_to_wait, $hour_of_day = null)
+{
+    if ($order[0]['patient_inactive']) {
+        GPLog::warning('autopay_reminder_event cancelled because patient inactive', get_defined_vars());
+        return;
+    }
 
-  if ($order[0]['patient_inactive']) {
-    log_warning('autopay_reminder_event canceled because patient inactive', get_defined_vars());
-    return;
-  }
+    $patient_label = get_patient_label($order);
+    $event_title   = $order[0]['invoice_number'].' Autopay Reminder: '.$patient_label.'.  Created:'.date('Y-m-d H:i:s');
 
-  $patient_label = get_patient_label($order);
-  $event_title   = $order[0]['invoice_number'].' Autopay Reminder: '.$patient_label.'.  Created:'.date('Y-m-d H:i:s');
+    $cancel = cancel_events_by_person($order[0]['first_name'], $order[0]['last_name'], $order[0]['birth_date'], 'autopay_reminder_event', ['Autopay Reminder']);
 
-  $cancel = cancel_events_by_person($order[0]['first_name'], $order[0]['last_name'], $order[0]['birth_date'], 'autopay_reminder_event', ['Autopay Reminder']);
+    $comm_arr = new_comm_arr($patient_label, $email, $text);
 
-  $comm_arr = new_comm_arr($patient_label, $email, $text);
+    GPLog::notice('autopay_reminder_event', get_defined_vars());
 
-  log_notice('autopay_reminder_event', get_defined_vars());
-
-  //create_event($event_title, $comm_arr, $hours_to_wait, $hour_of_day);
+    //create_event($event_title, $comm_arr, $hours_to_wait, $hour_of_day);
 }
 
-function order_created_event($groups, $email, $text, $hours_to_wait) {
+function order_created_event($groups, $email, $text, $hours_to_wait)
+{
+    $order = $groups['ALL'];
 
-  $order = $groups['ALL'];
+    if ($order[0]['patient_inactive']) {
+        GPLog::warning('order_created_event cancelled because patient inactive', get_defined_vars());
+        return;
+    }
 
-  if ($order[0]['patient_inactive']) {
-    log_warning('order_created_event canceled because patient inactive', get_defined_vars());
-    return;
-  }
+    $count = count($groups['FILLED']) + count($groups['ADDED']);
 
-  $count = count($groups['FILLED']) + count($groups['ADDED']);
+    $patient_label = get_patient_label($order);
+    $event_title   = "{$order[0]['invoice_number']}. Order Created: $count items. $patient_label.  Created:".date('Y-m-d H:i:s');
 
-  $patient_label = get_patient_label($order);
-  $event_title   = "{$order[0]['invoice_number']}. Order Created: $count items. $patient_label.  Created:".date('Y-m-d H:i:s');
+    $cancel = cancel_events_by_person($order[0]['first_name'], $order[0]['last_name'], $order[0]['birth_date'], 'order_created_event', ['Order Created', 'Transfer Requested', 'Order Updated', 'Order Cancelled', 'Order Hold', 'No Rx', 'Needs Form']);
 
-  $cancel = cancel_events_by_person($order[0]['first_name'], $order[0]['last_name'], $order[0]['birth_date'], 'order_created_event', ['Order Created', 'Transfer Requested', 'Order Updated', 'Order Canceled', 'Order Hold', 'No Rx', 'Needs Form']);
+    $comm_arr = new_comm_arr($patient_label, $email, $text);
 
-  $comm_arr = new_comm_arr($patient_label, $email, $text);
+    GPLog::info('order_created_event', get_defined_vars());
 
-  log_info('order_created_event', get_defined_vars());
-
-  create_event($event_title, $comm_arr, $hours_to_wait);
+    create_event($event_title, $comm_arr, $hours_to_wait);
 }
 
-function transfer_requested_event($order, $email, $text, $hours_to_wait) {
+function transfer_requested_event($order, $email, $text, $hours_to_wait)
+{
+    if ($order[0]['patient_inactive']) {
+        GPLog::warning('transfer_requested_event cancelled because patient inactive', get_defined_vars());
+        return;
+    }
 
-  if ($order[0]['patient_inactive']) {
-    log_warning('transfer_requested_event canceled because patient inactive', get_defined_vars());
-    return;
-  }
+    $patient_label = get_patient_label($order);
+    $event_title   = $order[0]['invoice_number'].' Transfer Requested: '.$patient_label.'.  Created:'.date('Y-m-d H:i:s');
 
-  $patient_label = get_patient_label($order);
-  $event_title   = $order[0]['invoice_number'].' Transfer Requested: '.$patient_label.'.  Created:'.date('Y-m-d H:i:s');
+    $cancel = cancel_events_by_person($order[0]['first_name'], $order[0]['last_name'], $order[0]['birth_date'], 'transfer_requested_event', ['Order Created', 'Transfer Requested', 'Order Updated', 'Order Hold', 'No Rx']);
 
-  $cancel = cancel_events_by_person($order[0]['first_name'], $order[0]['last_name'], $order[0]['birth_date'], 'transfer_requested_event', ['Order Created', 'Transfer Requested', 'Order Updated', 'Order Hold', 'No Rx']);
+    $comm_arr = new_comm_arr($patient_label, $email, $text);
 
-  $comm_arr = new_comm_arr($patient_label, $email, $text);
+    GPLog::info('transfer_requested_event', get_defined_vars());
 
-  log_info('transfer_requested_event', get_defined_vars());
-
-  create_event($event_title, $comm_arr, $hours_to_wait);
+    create_event($event_title, $comm_arr, $hours_to_wait);
 }
 
-function order_hold_event($order, $email, $text, $salesforce, $hours_to_wait) {
+function order_hold_event($order, $email, $text, $salesforce, $hours_to_wait)
+{
+    if ($order[0]['patient_inactive']) {
+        GPLog::warning('order_hold_event cancelled because patient inactive', get_defined_vars());
+        return;
+    }
 
-  if ($order[0]['patient_inactive']) {
-    log_warning('order_hold_event canceled because patient inactive', get_defined_vars());
-    return;
-  }
+    if (! isset($order[0]['invoice_number'])) {
+        GPLog::warning('ERROR order_hold_event: indexes not set', get_defined_vars());
+    }
 
-  if ( ! isset($order[0]['invoice_number']))
-    log_warning('ERROR order_hold_event: indexes not set', get_defined_vars());
+    $patient_label = get_patient_label($order);
+    $event_title   = $order[0]['invoice_number'].' Order Hold: '.$patient_label.'.  Created:'.date('Y-m-d H:i:s');
 
-  $patient_label = get_patient_label($order);
-  $event_title   = $order[0]['invoice_number'].' Order Hold: '.$patient_label.'.  Created:'.date('Y-m-d H:i:s');
+    $cancel = cancel_events_by_person($order[0]['first_name'], $order[0]['last_name'], $order[0]['birth_date'], 'order_hold_event', ['Order Created', 'Transfer Requested', 'Order Updated', 'Order Hold', 'No Rx']);
 
-  $cancel = cancel_events_by_person($order[0]['first_name'], $order[0]['last_name'], $order[0]['birth_date'], 'order_hold_event', ['Order Created', 'Transfer Requested', 'Order Updated', 'Order Hold', 'No Rx']);
+    $comm_arr = new_comm_arr($patient_label, $email, $text, $salesforce);
 
-  $comm_arr = new_comm_arr($patient_label, $email, $text, $salesforce);
+    GPLog::warning('order_hold_event', get_defined_vars());
 
-  log_warning('order_hold_event', get_defined_vars());
-
-  create_event($event_title, $comm_arr, $hours_to_wait);
+    create_event($event_title, $comm_arr, $hours_to_wait);
 }
 
-function order_updated_event($groups, $email, $text, $hours_to_wait) {
+function order_updated_event($groups, $email, $text, $hours_to_wait)
+{
+    $order = $groups['ALL'];
 
-  $order = $groups['ALL'];
+    if ($order[0]['patient_inactive']) {
+        GPLog::warning('order_updated_event cancelled because patient inactive', get_defined_vars());
+        return;
+    }
 
-  if ($order[0]['patient_inactive']) {
-    log_warning('order_updated_event canceled because patient inactive', get_defined_vars());
-    return;
-  }
+    $count = count($groups['FILLED']) + count($groups['ADDED']);
 
-  $count = count($groups['FILLED']) + count($groups['ADDED']);
+    $patient_label = get_patient_label($order);
+    $event_title   = "{$order[0]['invoice_number']} Order Updated: $count items. $patient_label.  Created:".date('Y-m-d H:i:s');
 
-  $patient_label = get_patient_label($order);
-  $event_title   = "{$order[0]['invoice_number']} Order Updated: $count items. $patient_label.  Created:".date('Y-m-d H:i:s');
+    //$cancel = cancel_events_by_person($order[0]['first_name'], $order[0]['last_name'], $order[0]['birth_date'], 'order_updated_event', ['Transfer Requested', 'Order Updated', 'Order Hold', 'No Rx', 'Needs Form', 'Order Cancelled']);
 
-  //$cancel = cancel_events_by_person($order[0]['first_name'], $order[0]['last_name'], $order[0]['birth_date'], 'order_updated_event', ['Transfer Requested', 'Order Updated', 'Order Hold', 'No Rx', 'Needs Form', 'Order Canceled']);
+    $comm_arr = new_comm_arr($patient_label, $email, $text);
 
-  $comm_arr = new_comm_arr($patient_label, $email, $text);
+    GPLog::info('order_updated_event', get_defined_vars());
 
-  log_info('order_updated_event', get_defined_vars());
-
-  create_event($event_title, $comm_arr, $hours_to_wait);
+    create_event($event_title, $comm_arr, $hours_to_wait);
 }
 
-function needs_form_event($order, $email, $text, $hours_to_wait, $hour_of_day = 0) {
+function needs_form_event($order, $email, $text, $salesforce, $hours_to_wait, $hour_of_day = 0)
+{
+    if ($order[0]['patient_inactive']) {
+        GPLog::warning('needs_form_event cancelled because patient inactive', get_defined_vars());
+        return;
+    }
 
-  if ($order[0]['patient_inactive']) {
-    log_warning('needs_form_event canceled because patient inactive', get_defined_vars());
-    return;
-  }
+    $patient_label = get_patient_label($order);
+    $event_title   = $order[0]['invoice_number'].' Needs Form: '.$patient_label.'.  Created:'.date('Y-m-d H:i:s');
 
-  $patient_label = get_patient_label($order);
-  $event_title   = $order[0]['invoice_number'].' Needs Form: '.$patient_label.'.  Created:'.date('Y-m-d H:i:s');
+    $comm_arr = new_comm_arr($patient_label, $email, $text, $salesforce);
 
-  $comm_arr = new_comm_arr($patient_label, $email, $text);
+    GPLog::info('needs_form_event', get_defined_vars());
 
-  log_info('needs_form_event', get_defined_vars());
-
-  create_event($event_title, $comm_arr, $hours_to_wait, $hour_of_day);
+    create_event($event_title, $comm_arr, $hours_to_wait, $hour_of_day);
 }
 
-function no_rx_event($partial, $order, $email, $text, $hours_to_wait, $hour_of_day = null) {
+function no_rx_event($partial, $order, $email, $text, $hours_to_wait, $hour_of_day = null)
+{
+    if ($order[0]['patient_inactive']) {
+        GPLog::warning('no_rx_event cancelled because patient inactive', get_defined_vars());
+        return;
+    }
 
-  if ($order[0]['patient_inactive']) {
-    log_warning('no_rx_event canceled because patient inactive', get_defined_vars());
-    return;
-  }
+    $patient_label = get_patient_label($order);
+    $event_title   = $partial['invoice_number'].' No Rx: '.$patient_label.'. Created:'.date('Y-m-d H:i:s');
 
-  $patient_label = get_patient_label($order);
-  $event_title   = $partial['invoice_number'].' No Rx: '.$patient_label.'. Created:'.date('Y-m-d H:i:s');
+    $cancel = cancel_events_by_person($order[0]['first_name'], $order[0]['last_name'], $order[0]['birth_date'], 'no_rx_event', ['No Rx']);
 
-  $cancel = cancel_events_by_person($order[0]['first_name'], $order[0]['last_name'], $order[0]['birth_date'], 'no_rx_event', ['No Rx']);
+    $comm_arr = new_comm_arr($patient_label, $email, $text);
 
-  $comm_arr = new_comm_arr($patient_label, $email, $text);
+    GPLog::info('no_rx_event', get_defined_vars());
 
-  log_info('no_rx_event', get_defined_vars());
-
-  create_event($event_title, $comm_arr, $hours_to_wait, $hour_of_day);
+    create_event($event_title, $comm_arr, $hours_to_wait, $hour_of_day);
 }
 
-function order_canceled_event($partial, $order, $email, $text, $hours_to_wait, $hour_of_day  = null) {
+function order_cancelled_event($partial, $order, $email, $text, $hours_to_wait, $hour_of_day  = null)
+{
+    if ($order[0]['patient_inactive']) {
+        GPLog::warning('order_cancelled_event cancelled because patient inactive', get_defined_vars());
+        return;
+    }
 
-  if ($order[0]['patient_inactive']) {
-    log_warning('order_canceled_event canceled because patient inactive', get_defined_vars());
-    return;
-  }
+    $patient_label = get_patient_label($order);
+    $event_title   = $partial['invoice_number'].' Order Cancelled: '.$patient_label.'. Created:'.date('Y-m-d H:i:s');
 
-  $patient_label = get_patient_label($order);
-  $event_title   = $partial['invoice_number'].' Order Canceled: '.$patient_label.'. Created:'.date('Y-m-d H:i:s');
+    $cancel = cancel_events_by_order(
+        $partial['invoice_number'],
+        'order_cancelled_event',
+        [
+            'Order Created',
+            'Order Updated',
+            'Order Dispensed'
+        ]
+    );
 
-  //$cancel = cancel_events_by_order($partial['invoice_number'], 'order_canceled_event', ['Order Created', 'Order Updated', 'Order Dispensed']);
+    $comm_arr = new_comm_arr($patient_label, $email, $text);
 
-  $comm_arr = new_comm_arr($patient_label, $email, $text);
+    GPLog::info('order_cancelled_event', get_defined_vars());
 
-  log_info('order_canceled_event', get_defined_vars());
-
-  create_event($event_title, $comm_arr, $hours_to_wait, $hour_of_day);
+    create_event($event_title, $comm_arr, $hours_to_wait, $hour_of_day);
 }
 
-function confirm_shipment_event($order, $email, $salesforce, $hours_to_wait, $hour_of_day = null) {
+function confirm_shipment_event($order, $email, $text, $salesforce, $hours_to_wait, $hour_of_day = null)
+{
+    if ($order[0]['patient_inactive']) {
+        GPLog::warning('confirm_shipment_event cancelled because patient inactive', get_defined_vars());
+        return;
+    }
 
-  if ($order[0]['patient_inactive']) {
-    log_warning('confirm_shipment_event canceled because patient inactive', get_defined_vars());
-    return;
-  }
+    $patient_label = get_patient_label($order);
+    $event_title   = $order[0]['invoice_number'].' Confirm Shipment: '.$patient_label.'.  Created:'.date('Y-m-d H:i:s');
 
-  $patient_label = get_patient_label($order);
-  $event_title   = $order[0]['invoice_number'].' Confirm Shipment: '.$patient_label.'.  Created:'.date('Y-m-d H:i:s');
+    $cancel = cancel_events_by_order(
+        $order[0]['invoice_number'],
+        'confirm_shipment_event',
+        [
+            'Order Dispensed',
+            'Order Created',
+            'Transfer Requested',
+            'Order Updated',
+            'Order Hold',
+            'No Rx',
+            'Needs Form',
+            'Order Cancelled',
+            'Confirm Shipment'
+        ]
+    );
 
-  $cancel = cancel_events_by_person($order[0]['first_name'], $order[0]['last_name'], $order[0]['birth_date'], 'confirm_shipment_event', ['Order Dispensed', 'Order Created', 'Transfer Requested', 'Order Updated', 'Order Hold', 'No Rx', 'Needs Form', 'Order Canceled']);
+    $comm_arr = new_comm_arr($patient_label, $email, $text, $salesforce);
 
-  $comm_arr = new_comm_arr($patient_label, $email, '', $salesforce);
+    GPLog::info('confirm_shipment_event INACTIVE', get_defined_vars());
 
-  log_info('confirm_shipment_event INACTIVE', get_defined_vars());
-
-  //create_event($event_title, $comm_arr, $hours_to_wait, $hour_of_day);
+    create_event($event_title, $comm_arr, $hours_to_wait, $hour_of_day);
 }
 
-function new_comm_arr($patient_label, $email = '', $text = '', $salesforce = '') {
+function new_comm_arr($patient_label, $email = '', $text = '', $salesforce = '')
+{
+    $comm_arr = [];
+    $auto     = [];
+    $auto_salesforce = false;
 
-  $comm_arr = [];
-  $auto     = [];
-  $auto_salesforce = false;
+    if (! LIVE_MODE) {
+        return $comm_arr;
+    }
 
-  if ( ! LIVE_MODE) return $comm_arr;
+    if ($email and @$email['email'] and ! preg_match('/\d\d\d\d-\d\d-\d\d@goodpill\.org/', $email['email'])) {
+        $auto_salesforce = ($auto_salesforce or $email['email'] != DEBUG_EMAIL);
 
-  if ($email AND @$email['email'] AND ! preg_match('/\d\d\d\d-\d\d-\d\d@goodpill\.org/', $email['email'])) {
+        $auto[] = "Email";
+        $email['bcc']  = DEBUG_EMAIL;
+        $email['from'] = 'Good Pill Pharmacy < support@goodpill.org >'; //spaces inside <> are so that google cal doesn't get rid of "HTML" if user edits description
+        $comm_arr[] = $email;
+    }
 
-    $auto_salesforce = ($auto_salesforce OR $email['email'] != DEBUG_EMAIL);
+    if ($text and $text['sms'] and ! in_array($text['sms'], DO_NOT_SMS)) {
+        //addCallFallback
 
-    $auto[] = "Email";
-    $email['bcc']  = DEBUG_EMAIL;
-    $email['from'] = 'Good Pill Pharmacy < support@goodpill.org >'; //spaces inside <> are so that google cal doesn't get rid of "HTML" if user edits description
-    $comm_arr[] = $email;
-  }
+        $auto_salesforce = ($auto_salesforce or $text['sms'] != DEBUG_PHONE);
 
-  if ($text AND $text['sms'] AND ! in_array($text['sms'], DO_NOT_SMS)) {
-    //addCallFallback
+        $auto[] = "Text/Call";
 
-    $auto_salesforce = ($auto_salesforce OR $text['sms'] != DEBUG_PHONE);
+        /* Make a copy using JSON */
+        try {
+             //just in case we were sloppy with undefined
+            $json = preg_replace('/ undefined/', '', json_encode($text));
+            $text = json_decode($json, true);
+            $call = json_decode($json, true);
+        } catch (Error $e) {
+            GPLog::error('format_call/text json.parse error', get_defined_vars());
+        }
 
-    $auto[] = "Text/Call";
+        $text['message'] = format_text($text['message']);
 
-    $json = preg_replace('/ undefined/', '', json_encode($text));
+        if (! @$text['fallbacks']) { //Default to a call fallback if SMS fails
 
-    $text = format_text($json);
-    $call = format_call($json);
+            $call['message'] = call_wrapper(format_call($call['message']));
+            $call['call']    = $call['sms'];
+            unset($call['sms']);
 
-    $call['message'] = 'Hi, this is Good Pill Pharmacy <Pause />'.$call['message'].' <Pause length="2" />if you need to speak to someone please call us at 8,,,,8,,,,8 <Pause />9,,,,8,,,,7 <Pause />5,,,,1,,,,8,,,,7. <Pause length="2" /> Again our phone number is 8,,,,8,,,,8 <Pause />9,,,,8,,,,7 <Pause />5,,,,1,,,,8,,,,7. <Pause />';
-    $call['call']    = $call['sms'];
-    unset($call['sms']);
+            $text['fallbacks'] = [$call];
+        }
 
-    log_info('comm_array', get_defined_vars());
+        $comm_arr[] = $text;
+    }
 
-    $text['fallbacks'] = [$call];
-    $comm_arr[] = $text;
-  }
+    if (! $salesforce and $auto_salesforce and $patient_label and $comm_arr) {
+        $comm_arr[] = [
+          "subject"   => "Auto ".implode(', ', $auto).": ".(@$email['subject'] ?: "Text"),
+          "body"      => @$text['message'] ?: format_text($email['message']),
+          "contact"   => $patient_label,
+          "assign_to" => null,
+          "due_date"  => null
+        ];
+    }
 
-  if ( ! $salesforce AND $auto_salesforce AND $patient_label AND $comm_arr) {
-    $comm_arr[] = [
-      "subject" => "Auto ".implode(', ', $auto).": ".(@$email['subject'] ?: "Text"),
-      "body" => @$text['message'] ?: str_replace('<br>', '\n', $email['message']),
-      "contact" => $patient_label,
-      "assign_to" => null,
-      "due_date" => null
-    ];
-  }
+    if ($salesforce and $salesforce['assign_to']) {
+        $comm_arr[] = $salesforce;
+    }
 
-  if ($salesforce AND $salesforce['assign_to']) {
-    $comm_arr[] = $salesforce;
-  }
+    GPLog::info('comm_array', [
+        'patient_label' => $patient_label,
+        'email' => $email,
+        'text' => $text,
+        'salesforce' => $salesforce,
+        'comm_arr' => $comm_arr
+      ]);
 
-  return $comm_arr; //just in case we were sloppy with undefined
+    return $comm_arr;
 }
 
-function format_text($text_json) {
-
-  $text_json = preg_replace(['/<br>/', '/<.*?>/', '/#(\d{4,})/'], ['\\n', '', '$1'], $text_json);
-
-  try {
-    return json_decode($text_json, true);
-  } catch (Error $e) {
-    log_error('format_text json.parse error', get_defined_vars());
-  }
+function format_text($text_message)
+{
+    return preg_replace(['/<br>/', '/<.*?>/', '/#(\d{4,})/'], ["\n", '', '$1'], $text_message);
 }
 
-function format_call($call_json) {
+function format_call($call_message)
+{
+    $regex = [
+        '/View it at [^ ]+ /',
+        '/Track it at [^ ]+ /',
+        '/\(?888[)-.]? ?987[.-]?5187/',
+        '/(www\.)?goodpill\.org/',
+        '/(\w):(?!\/\/)/',
+        '/;<br>/',
+        '/;/',
+        '/\./',
+        '/(<br>)+/',
+        '/\.(\d)(\d)?(\d)?/',
+        '/ but /',
+        '/(\d+)MG/',
+        '/(\d+)MCG/',
+        '/(\d+)MCG/',
+        '/ Rxs/i',
+        '/ ER /i',
+        '/ DR /i',
+        '/ TAB| CAP/i',
+        '/\#(\d)(\d)(\d)(\d)(\d)(\d)?/'
+      ];
 
-  $regex = [
-    '/View it at [^ ]+ /',
-    '/Track it at [^ ]+ /',
-    '/\(?888[)-.]? ?987[.-]?5187/',
-    '/(www\.)?goodpill\.org/',
-    '/(\w):(?!\/\/)/',
-    '/;<br>/',
-    '/;/',
-    '/\./',
-    '/(<br>)+/',
-    '/\.(\d)(\d)?(\d)?/',
-    '/ but /',
-    '/(\d+)MG/',
-    '/(\d+)MCG/',
-    '/(\d+)MCG/',
-    '/ Rxs/i',
-    '/ ER /i',
-    '/ DR /i',
-    '/ TAB| CAP/i',
-    '/\#(\d)(\d)(\d)(\d)(\d)(\d)?/'
-  ];
+    $replace = [
+        "",
+        "View and track your order online at www.goodpill.org",
+        '8,,,,8,,,,8 <Pause />9,,,,8,,,,7 <Pause />5,,,,1,,,,8,,,,7',
+        'w,,w,,w,,dot,,,,good,,,,pill,,,,dot,,,,org,,,,again that is g,,,,o,,,,o,,,d,,,,p,,,,i,,,,l,,,,l,,,,dot,,,,o,,,,r,,,,g',
+        '$1<Pause />', //Don't capture JSON $text or URL links
+        ';<Pause /> and <Pause />', //combine drug list with "and" since it sounds more natural.  Keep semicolon so regex can still find and remove.
+        ';<Pause />', //can't do commas without testing for inside quotes because that is part of json syntax. Keep semicolon so regex can still find and remove.
+        ' <Pause />', //can't do commas without testing for inside quotes because that is part of json syntax
+        ' <Pause length="1" />',
+        ' point $1,,$2,,$3', //skips pronouncing decimal points
+        ',,,,but,,,,',
+        '<Pause />$1 milligrams',
+        '<Pause />$1 micrograms',
+        '<Pause />$1 micrograms',
+        ' prescriptions',
+        ' extended release ',
+        ' delayed release ',
+        ' <Pause />',
+        'number,,,,$1,,$2,,$3,,$4,,$5,,$6' //<Pause /> again that is $order number <Pause />$1,,$2,,$3,,$4,,$5,,$6
+      ];
 
-  $replace = [
-    "",
-    "View and track your order online at www.goodpill.org",
-    '8,,,,8,,,,8 <Pause />9,,,,8,,,,7 <Pause />5,,,,1,,,,8,,,,7',
-    'w,,w,,w,,dot,,,,good,,,,pill,,,,dot,,,,org,,,,again that is g,,,,o,,,,o,,,d,,,,p,,,,i,,,,l,,,,l,,,,dot,,,,o,,,,r,,,,g',
-    '$1<Pause />', //Don't capture JSON $text or URL links
-    ';<Pause /> and <Pause />', //combine drug list with "and" since it sounds more natural.  Keep semicolon so regex can still find and remove.
-    ';<Pause />', //can't do commas without testing for inside quotes because that is part of json syntax. Keep semicolon so regex can still find and remove.
-    ' <Pause />', //can't do commas without testing for inside quotes because that is part of json syntax
-    ' <Pause length=\\"1\\" />',
-    ' point $1,,$2,,$3', //skips pronouncing decimal points
-    ',,,,but,,,,',
-    '<Pause />$1 milligrams',
-    '<Pause />$1 micrograms',
-    '<Pause />$1 micrograms',
-    ' prescriptions',
-    ' extended release ',
-    ' delayed release ',
-    ' <Pause />',
-    'number,,,,$1,,$2,,$3,,$4,,$5,,$6' //<Pause /> again that is $order number <Pause />$1,,$2,,$3,,$4,,$5,,$6
-  ];
-
-  //Improve Pronounciation
-  $call_json = preg_replace($regex, $replace, $call_json);
-
-  try {
-    return json_decode($call_json, true);
-  } catch (Error $e) {
-    log_error('format_call json.parse error', get_defined_vars());
-  }
+    //Improve Pronounciation
+    return preg_replace($regex, $replace, $call_message);
 }
 
-function get_patient_label($order) {
+function call_wrapper($message)
+{
+    return 'Hi, this is Good Pill Pharmacy <Pause />' . $message . ' <Pause length="2" />if you need to speak to someone please call us at 8,,,,8,,,,8 <Pause />9,,,,8,,,,7 <Pause />5,,,,1,,,,8,,,,7. <Pause length="2" /> Again our phone number is 8,,,,8,,,,8 <Pause />9,,,,8,,,,7 <Pause />5,,,,1,,,,8,,,,7. <Pause />';
+}
 
-  if ( ! isset($order[0])) {
-    log_error('ERROR: get_patient_label', get_defined_vars());
-    return '';
-  }
+function get_patient_label($order)
+{
+    if (! isset($order[0])) {
+        GPLog::error('ERROR: get_patient_label', get_defined_vars());
+        return '';
+    }
 
-  return $order[0]['first_name'].' '.$order[0]['last_name'].' '.$order[0]['birth_date'];
+    return $order[0]['first_name'].' '.$order[0]['last_name'].' '.$order[0]['birth_date'];
 }
 
 /**
@@ -381,11 +419,11 @@ function get_patient_label($order) {
  * @param  integer $hour_of_day   The safe hour of days to send
  * @return void
  */
-function create_event($event_title, $comm_arr, $hours_to_wait = 0, $hour_of_day = null) {
+function create_event($event_title, $comm_arr, $hours_to_wait = 0, $hour_of_day = null)
+{
+    $startTime = get_start_time($hours_to_wait, $hour_of_day);
 
-  $startTime = get_start_time($hours_to_wait, $hour_of_day);
-
-  $args = [
+    $args = [
     'method'      => 'createCalendarEvent',
     'cal_id'      => GD_CAL_ID,
     'start'       => $startTime,
@@ -394,119 +432,122 @@ function create_event($event_title, $comm_arr, $hours_to_wait = 0, $hour_of_day 
     'description' => $comm_arr
   ];
 
-  $result = gdoc_post(GD_HELPER_URL, $args);
+    $result = gdoc_post(GD_HELPER_URL, $args);
 
-  SirumLog::debug(
+  GPLog::debug(
       "Communication Calendar event created: $event_title",
       [
           "message" => $args,
-          "result"  => $result
+          "result"  => $result,
+          "invoice_number" => substr($event_title, 0, stripos($event_title, ' '))
       ]
   );
 
   // Debug Refill Reminders getting created with NO TITLE OR DESCRIPTION,
   // just blank events
   if ($hour_of_day == 12) {
-      SirumLog::notice(
+      GPLog::notice(
           "DEBUG REFILL REMINDER create_event: $event_title",
           [
               "message" => $args,
               "result"  => $result
-          ]
-      );
-  }
+            ]
+        );
+    }
 }
 
-function cancel_events($ids) {
-
-  $args = [
+function cancel_events($ids)
+{
+    $args = [
     'method'      => 'removeCalendarEvents',
     'cal_id'      => GD_CAL_ID,
     'ids'         => $ids
   ];
 
-  $result = gdoc_post(GD_HELPER_URL, $args);
+    $result = gdoc_post(GD_HELPER_URL, $args);
 
-  log_notice('cancel_events', get_defined_vars());
+    GPLog::notice('cancel_events', get_defined_vars());
 }
 
-function modify_events($modify) {
-
-  $args = [
+function modify_events($modify)
+{
+    $args = [
     'method'  => 'modifyCalendarEvents',
     'cal_id'  => GD_CAL_ID,
     'events'  => $modify
   ];
 
-  $result = gdoc_post(GD_HELPER_URL, $args);
+    $result = gdoc_post(GD_HELPER_URL, $args);
 
-  log_info('modify_events', get_defined_vars());
+    GPLog::info('modify_events', get_defined_vars());
 }
 
-function short_links($links) {
-
-  $args = [
+function short_links($links)
+{
+    $args = [
     'method'  => 'shortLinks',
     'links'  => $links
   ];
 
-  $result = gdoc_post(GD_HELPER_URL, $args);
+    $result = gdoc_post(GD_HELPER_URL, $args);
 
-  log_notice('short_links', get_defined_vars());
+    GPLog::notice('short_links', get_defined_vars());
 
-  return json_decode($result, true);
+    return json_decode($result, true);
 }
 
-function tracking_url($tracking_number) {
+function tracking_url($tracking_number)
+{
+    $url = '#';
 
-  $url = '#';
+    if (strlen($tracking_number) == 22) {
+        $url = 'https://tools.usps.com/go/TrackConfirmAction?tLabels=';
+    } elseif (strlen($tracking_number) == 15 or strlen($tracking_number) == 12) { //Ground or Express
+        $url = 'https://www.fedex.com/apps/fedextrack/?tracknumbers=';
+    }
 
-  if (strlen($tracking_number) == 22) {
-    $url = 'https://tools.usps.com/go/TrackConfirmAction?tLabels=';
-  } else if (strlen($tracking_number) == 15 OR strlen($tracking_number) == 12) { //Ground or Express
-    $url = 'https://www.fedex.com/apps/fedextrack/?tracknumbers=';
-  }
-
-  return $url.$tracking_number;
+    return $url.$tracking_number;
 }
 
 //Convert gsheet hyperlink formula to an html link
-function tracking_link($tracking) {
-  return '<a href="'.tracking_url($tracking).'">'.$tracking.'</a>';
+function tracking_link($tracking)
+{
+    return '<a href="'.tracking_url($tracking).'">'.$tracking.'</a>';
 }
 
-function get_phones($order) {
-
-  if ( ! isset($order[0]) OR ! isset($order[0]['phone1'])) {
-    log_error('get_phones', get_defined_vars());
-    return '';
-  }
-  //email('get_phones', $order);
-  return $order[0]['phone1'].($order[0]['phone2'] ? ','.$order[0]['phone2'] : '');
+function get_phones($order)
+{
+    if (! isset($order[0]) or ! isset($order[0]['phone1'])) {
+        GPLog::error('get_phones', get_defined_vars());
+        return '';
+    }
+    //email('get_phones', $order);
+    return $order[0]['phone1'].($order[0]['phone2'] ? ','.$order[0]['phone2'] : '');
 }
 
 //Return a copy of the date (or now) with the 24-hour set
-function get_start_time($hours_to_wait, $hour_of_day = null) {
+function get_start_time($hours_to_wait, $hour_of_day = null)
+{
 
   //PHP Issue of strtotime() with fractions https://stackoverflow.com/questions/11086022/can-strtotime-handle-fractions so convert to minutes and round
-  $minutes_to_wait = round($hours_to_wait*60);
+    $minutes_to_wait = round($hours_to_wait*60);
 
-  $start = date('Y-m-d\TH:i:s', strtotime("+$minutes_to_wait minutes"));
+    $start = date('Y-m-d\TH:i:s', strtotime("+$minutes_to_wait minutes"));
 
-  if ($hour_of_day) {
-    $start = substr($start, 0, 11)."$hour_of_day:00:00";
-  }
+    if ($hour_of_day) {
+        $start = substr($start, 0, 11)."$hour_of_day:00:00";
+    }
 
-  return $start;
+    return $start;
 }
 
 //TODO exactly replicate Guardian's patient matching function
-function search_events_by_person($first_name, $last_name, $birth_date, $past = false, $types = []) {
+function search_events_by_person($first_name, $last_name, $birth_date, $past = false, $types = [])
+{
+    $types = implode('|', $types);
+    $first = substr($first_name, 0, 3);
 
-  $types = implode('|', $types);
-  $first = substr($first_name, 0, 3);
-
-  $args = [
+    $args = [
     'method'       => 'searchCalendarEvents',
     'cal_id'       => GD_CAL_ID,
     'hours'        => DAYS_STD*24,
@@ -515,21 +556,22 @@ function search_events_by_person($first_name, $last_name, $birth_date, $past = f
     'regex_search' => "/($types).+$first/i" //first name is partial which is not currently supported by gcal natively
   ];
 
-  $result = gdoc_post(GD_HELPER_URL, $args);
+    $result = gdoc_post(GD_HELPER_URL, $args);
 
-  $json = json_decode($result, true);
+    $json = json_decode($result, true);
 
-  if ($result != '[]')
-    log_notice("search_events_by_person: $first_name $last_name $birth_date", $json);
+    if ($result != '[]') {
+        GPLog::notice("search_events_by_person: $first_name $last_name $birth_date", $json);
+    }
 
-  return $json;
+    return $json;
 }
 
-function search_events_by_order($invoice_number, $past = false, $types = []) {
+function search_events_by_order($invoice_number, $past = false, $types = [])
+{
+    $types = implode('|', $types);
 
-  $types = implode('|', $types);
-
-  $args = [
+    $args = [
     'method'       => 'searchCalendarEvents',
     'cal_id'       => GD_CAL_ID,
     'hours'        => DAYS_STD*24,
@@ -538,148 +580,189 @@ function search_events_by_order($invoice_number, $past = false, $types = []) {
     'regex_search' => "/($types)/i"
   ];
 
-  $result = gdoc_post(GD_HELPER_URL, $args);
+    $result = gdoc_post(GD_HELPER_URL, $args);
 
-  $json = json_decode($result, true);
+    $json = json_decode($result, true);
 
-  if ($result != '[]')
-    log_notice("search_events_by_order: $invoice_number", $json);
+    if ($result != '[]') {
+        GPLog::notice(
+            "search_events_by_order: $invoice_number",
+            ['invoice_number' => $invoice_number, 'json' => $json]
+        );
+    }
 
-  return $json;
+    return $json;
 }
 
 //NOTE: RELIES on the assumption that ALL drugs (and their associated messages) end with a semicolon (;) and
 //that NO other semicolons are used for any other reason. It removes everything between the drug name and the
 //semicolon, and if no semicolons are left in the communication, then the entire communication is deleted
-function remove_drugs_from_refill_reminders($first_name, $last_name, $birth_date, $drugs) {
+function remove_drugs_from_refill_reminders($first_name, $last_name, $birth_date, $drugs)
+{
+    if (! $drugs) {
+        return;
+    }
 
-    if ( ! $drugs) return;
-
-    $phone_drugs = format_call(json_encode($drugs));
-    $email_regex = implode('[^;]*|', $drugs).'[^;]*';
+    $phone_drugs = json_decode(format_call(json_encode($drugs)), true);
     $phone_regex = implode('[^;]*|', $phone_drugs).'[^;]*';
 
-    if ($phone_regex)
-      $replace = "~$email_regex|$phone_regex~";
-     else {
-      $replace = "~$email_regex~";  //if phone_regex is empty and we end regex with | preg_replace will have error and return null
-      log_error("remove_drugs_from_refill_reminders has empty phone_regex", get_defined_vars());
-     }
+    $email_regex = implode('[^;]*|', $drugs).'[^;]*';
+
+    if ($phone_regex) {
+        $replace = "~$email_regex|$phone_regex~";
+    } else {
+        $replace = "~$email_regex~";  //if phone_regex is empty and we end regex with | preg_replace will have error and return null
+        GPLog::error("remove_drugs_from_refill_reminders has empty phone_regex", get_defined_vars());
+    }
 
     return replace_text_in_events(
-      $first_name,
-      $last_name,
-      $birth_date,
-      ['Refill Reminder'],
-      $replace,
-      '',
-      '/^[^;]*$/'
+        $first_name,
+        $last_name,
+        $birth_date,
+        ['Refill Reminder'],
+        $replace,
+        '',
+        '/^[^;]*$/'
     );
 }
 
-function update_last4_in_autopay_reminders($first_name, $last_name, $birth_date, $new_last4) {
-
+function update_last4_in_autopay_reminders($first_name, $last_name, $birth_date, $new_last4)
+{
     $new_last4 = implode(' ', str_split($new_last4));
 
     return replace_text_in_events(
-      $first_name,
-      $last_name,
-      $birth_date,
-      ['Autopay Reminder'],
-      "~card \d \d \d \d for~",
-      "card $new_last4 for"
+        $first_name,
+        $last_name,
+        $birth_date,
+        ['Autopay Reminder'],
+        "~card \d \d \d \d for~",
+        "card $new_last4 for"
     );
 }
 
-function replace_text_in_events($first_name, $last_name, $birth_date, $types, $replace_regex, $replace_string, $remove_regex = false) {
-
-  if ( ! LIVE_MODE) return;
-
-  $modify = [];
-  $remove = [];
-  $events = search_events_by_person($first_name, $last_name, $birth_date, false, $types);
-
-  foreach ($events as $event) {
-    $old_desc = $event['description']; //This is still JSON.stringified
-
-    $new_desc = preg_replace($replace_regex, $replace_string, $old_desc);
-
-    if (is_null($new_desc) OR strlen($old_desc) == strlen($new_desc)) { // == didn't seem to work but I couldn't eyeball why
-      log_notice('replace_text_in_events no changes', ['old' => $old_desc, 'new' => $new_desc, 'count_old' => strlen($old_desc), 'count_new' => strlen($new_desc), 'name' => "$first_name $last_name $birth_date", 'replace_regex' => $replace_regex, 'remove_regex' => $remove_regex, 'types' => $types]);
-      continue;
+function replace_text_in_events($first_name, $last_name, $birth_date, $types, $replace_regex, $replace_string, $remove_regex = false)
+{
+    if (! LIVE_MODE) {
+        return;
     }
 
-    if ($remove_regex AND preg_match($remove_regex, $new_desc)) {
-      log_notice('replace_text_in_events removeEvent', ['old_desc' => $old_desc, 'new_desc' => $new_desc, 'name' => "$first_name $last_name $birth_date", 'replace_regex' => $replace_regex, 'remove_regex' => $remove_regex, 'types' => $types]);
+    $modify = [];
+    $remove = [];
+    $events = search_events_by_person($first_name, $last_name, $birth_date, false, $types);
 
-      $remove[] = $event['id'];
+    foreach ($events as $event) {
+        $old_desc = $event['description']; //This is still JSON.stringified
+
+        $new_desc = preg_replace($replace_regex, $replace_string, $old_desc);
+
+        if (is_null($new_desc) or strlen($old_desc) == strlen($new_desc)) { // == didn't seem to work but I couldn't eyeball why
+            GPLog::notice('replace_text_in_events no changes', ['old' => $old_desc, 'new' => $new_desc, 'count_old' => strlen($old_desc), 'count_new' => strlen($new_desc), 'name' => "$first_name $last_name $birth_date", 'replace_regex' => $replace_regex, 'remove_regex' => $remove_regex, 'types' => $types]);
+            continue;
+        }
+
+        if ($remove_regex and preg_match($remove_regex, $new_desc)) {
+            GPLog::notice('replace_text_in_events removeEvent', ['old_desc' => $old_desc, 'new_desc' => $new_desc, 'name' => "$first_name $last_name $birth_date", 'replace_regex' => $replace_regex, 'remove_regex' => $remove_regex, 'types' => $types]);
+
+            $remove[] = $event['id'];
+        } else {
+            GPLog::notice('replace_text_in_events modifyEvent', ['old_desc' => $old_desc, 'new_desc' => $new_desc, 'name' => "$first_name $last_name $birth_date", 'replace_regex' => $replace_regex, 'remove_regex' => $remove_regex, 'types' => $types]);
+
+            $event['description'] = $new_desc;
+            $modify[] = $event;
+        }
     }
-    else {
-      log_notice('replace_text_in_events modifyEvent', ['old_desc' => $old_desc, 'new_desc' => $new_desc, 'name' => "$first_name $last_name $birth_date", 'replace_regex' => $replace_regex, 'remove_regex' => $remove_regex, 'types' => $types]);
 
-      $event['description'] = $new_desc;
-      $modify[] = $event;
+    if (count($modify)) {
+        modify_events($modify);
     }
-  }
-
-  if (count($modify))
-    modify_events($modify);
 
 
-  if (count($remove))
-    cancel_events($remove);
+    if (count($remove)) {
+        cancel_events($remove);
+    }
 }
 
-function cancel_events_by_person($first_name, $last_name, $birth_date, $caller, $types = []) {
+function cancel_events_by_person($first_name, $last_name, $birth_date, $caller, $types = [])
+{
+    if (! LIVE_MODE) {
+        return;
+    }
 
-  if ( ! LIVE_MODE) return;
+    $cancel = [];
+    $titles = [];
+    $events = search_events_by_person($first_name, $last_name, $birth_date, false, $types);
 
-  $cancel = [];
-  $titles = [];
-  $events = search_events_by_person($first_name, $last_name, $birth_date, false, $types);
+    if (! is_array($events)) {
+        $events = [];
+    }
 
-  if ( ! is_array($events)) {
-    $events = [];
-  }
+    foreach ($events as $event) {
+        $cancel[] = $event['id'];
+        $titles[] = $event['title'];
+    }
 
-  foreach ($events as $event) {
-    $cancel[] = $event['id'];
-    $titles[] = $event['title'];
-  }
+    if ($cancel) {
+        GPLog::notice(
+            "cancel_events_by_person: $first_name $last_name $birth_date has events",
+            [
+                'titles' => $titles,
+                'first_name' => $first_name,
+                'last_name' => $last_name,
+                'birth_date' => $birth_date,
+                'caller' => $caller,
+                'types' => $types
+            ]
+        );
 
-  if ($cancel) {
-    log_notice("cancel_events_by_person: $first_name $last_name $birth_date has events", [$titles, $first_name, $last_name, $birth_date, $caller, $types]);
-    cancel_events($cancel);
-  } else {
-    log_notice("cancel_events_by_person:  $first_name $last_name $birth_date no events", [$titles, $first_name, $last_name, $birth_date, $caller, $types]);
-  }
+        cancel_events($cancel);
+    } else {
+        GPLog::notice(
+            "cancel_events_by_person:  $first_name $last_name $birth_date no events",
+            [
+                'titles' => $titles,
+                'first_name' => $first_name,
+                'last_name' => $last_name,
+                'birth_date' => $birth_date,
+                'caller' => $caller,
+                'types' => $types
+            ]
+        );
+    }
 
-  return $cancel;
+    return $cancel;
 }
 
-function cancel_events_by_order($invoice_number, $caller, $types = []) {
+function cancel_events_by_order($invoice_number, $caller, $types = [])
+{
+    if (! LIVE_MODE) {
+        return;
+    }
 
-  if ( ! LIVE_MODE) return;
+    $cancel = [];
+    $titles = [];
+    $events = search_events_by_order($invoice_number, false, $types);
 
-  $cancel = [];
-  $titles = [];
-  $events = search_events_by_order($invoice_number, false, $types);
+    if (! is_array($events)) {
+        $events = [];
+    }
 
-  if ( ! is_array($events)) {
-    $events = [];
-  }
+    foreach ($events as $event) {
+        $cancel[] = $event['id'];
+        $titles[] = $event['title'];
+    }
 
-  foreach ($events as $event) {
-    $cancel[] = $event['id'];
-    $titles[] = $event['title'];
-  }
+    if ($cancel) {
+        GPLog::notice(
+            "cancel_events_by_order: order $invoice_number has events",
+            ['titles' => $titles, 'invoice_number' => $invoice_number, 'caller' => $caller, 'types' => $types]
+        );
+        cancel_events($cancel);
+    } else {
+        GPLog::notice(
+            "cancel_events_by_order: order $invoice_number no events",
+            ['titles' => $titles, 'invoice_number' => $invoice_number, 'caller' => $caller, 'types' => $types]
+        );
+    }
 
-  if ($cancel) {
-    log_notice("cancel_events_by_order: order $invoice_number has events", [$titles, $invoice_number, $caller, $types]);
-    cancel_events($cancel);
-  } else {
-    log_notice("cancel_events_by_order: order $invoice_number no events", [$titles, $invoice_number, $caller, $types]);
-  }
-
-  return $cancel;
+    return $cancel;
 }

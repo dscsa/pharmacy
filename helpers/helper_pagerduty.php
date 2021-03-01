@@ -8,6 +8,7 @@ use \PagerDuty\Exceptions\PagerDutyException;
 const ADAM_API_KEY    = 'e3dc75a25b1b4d289a83a067a93f543e';
 const PA_HIGH_API_KEY = 'b5d70a71999d499f8a801aa08ce96fda';
 const PA_LOW_API_KEY  = '62696f7ac2854a8284231a0c655d6503';
+const GUARDIAN_API_KEY = '34ee14abee6345fea5dd390fa062b526';
 
 /**
  * Send an alert to just Adam
@@ -84,6 +85,27 @@ function pd_high_priority($message, $id, $data = [])
  *      messages, so it should unique for individual alerts
  * @param  array  $data    (Optional) A small batch of additional details to
  *      be attached to the event
+ * @return boolean  True if the message was succesfully sent
+ */
+function pd_guardian($message, $id, $data = [])
+{
+    $event = get_pd_event(
+        $message,
+        $id,
+        GUARDIAN_API_KEY,
+        $data
+    );
+
+    return pd_alert($event);
+}
+
+/**
+ * Send an alert to the high urgency message service
+ * @param  string $message The message to display
+ * @param  string $id      A human readable id.  This id will be used to group
+ *      messages, so it should unique for individual alerts
+ * @param  array  $data    (Optional) A small batch of additional details to
+ *      be attached to the event
  * @param  string $deDup   (Optional) A key used to identify this event so
  *      duplicates will not trigger multiple alarms
  * @param  int    $level   (Optional) On of the leves specified on the TriggerEvent Class
@@ -103,11 +125,14 @@ function get_pd_event(
         $message,
         $id,
         $level,
-        true
+        false
     );
 
     if (!is_null($deDup)) {
         $event->setDeDupKey(md5($deDup));
+    } else {
+        // Set the dedup key to repeat every 3 hours
+        $event->setDeDupKey("md5-" . md5($message . date('z') . '-' . floor(date('G')/3)));
     }
 
     if (!empty($data)) {
@@ -126,6 +151,11 @@ function get_pd_event(
  */
 function pd_alert(TriggerEvent $event)
 {
+
+    if (ENVIRONMENT != 'PRODUCTION') {
+        return true;
+    }
+
     try {
         $responseCode = $event->send();
         return ($responseCode == 200);

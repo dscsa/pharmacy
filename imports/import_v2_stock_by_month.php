@@ -37,7 +37,8 @@ function import_stock_for_month($month_index, $mysql) {
 
   $context = stream_context_create([
       "http" => [
-          "header" => "Authorization: Basic ".base64_encode(V2_USER.':'.V2_PWD)
+          "header" => "Authorization: Basic ".base64_encode(V2_USER.':'.V2_PWD),
+          "ignore_errors" => true //not sure if we should do this but error log is filling up with HTTP 400 bad request PHP warnings  
       ]
   ]);
 

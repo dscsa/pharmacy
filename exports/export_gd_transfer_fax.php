@@ -2,8 +2,12 @@
 
 require_once 'helpers/helper_appsscripts.php';
 
-use Sirum\Logging\SirumLog;
-use Sirum\Notifications\Transfer;
+use GoodPill\Logging\{
+    GPLog,
+    AuditLog,
+    CliLog
+};
+use GoodPill\Notifications\Transfer;
 
 function export_gd_transfer_fax($item, $source)
 {
@@ -42,7 +46,7 @@ function export_gd_transfer_fax($item, $source)
     $notification = new Transfer($hash, $token);
 
     if (!$notification->isSent()) {
-        SirumLog::debug(
+        GPLog::debug(
             "Transfer Fax Sent",
             [
                 'invoice_number' => @$item['invoice_number'],
@@ -64,7 +68,7 @@ function export_gd_transfer_fax($item, $source)
 
         $result = gdoc_post(GD_MERGE_URL, $args);
     } else {
-        SirumLog::warning(
+        GPLog::warning(
             "Duplicate Transfer Fax Sent",
             [
                 'invoice_number' => @$item['invoice_number'],

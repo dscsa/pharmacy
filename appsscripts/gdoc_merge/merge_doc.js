@@ -26,7 +26,8 @@ function mergeDoc(content) {
    for (var i = 0; i<numChildren; i++) {
      interpolate(documentElement.getChild(i), order)
    }
-
+  
+   console.log('Doc Merged, saving now');
    newDoc.saveAndClose()
 
    //debugEmail('mergeDoc end', content.order, order, infoLog)
@@ -132,9 +133,9 @@ function parseIfs(section) {
      var end   = section.findText(getEnd, body)
 
      if ( ! body || ! end) {
-       Log('Error: if statement syntax is not complete')
-       Log(hasIf.getText())
-       Log(section.getText())
+       console.error('Error: if statement syntax is not complete')
+       console.error(hasIf.getText())
+       console.error(section.getText())
        break
      }
 

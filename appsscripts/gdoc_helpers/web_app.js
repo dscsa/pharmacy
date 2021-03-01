@@ -1,64 +1,109 @@
-function testPost() {
-  var event = {parameter:{GD_KEY:GD_KEY}, postData:{contents:'{"method":"watchFiles", "folder":"Published"}'}}
-  debugEmail(event, doPost(event))
+/**
+ * Handle a get request if needed.
+ * @param  {object} e The data from the request
+ * @return {ContentService}   A formed JSON respons
+ */
+function doGet(e) {
+    if (e.parameter.GD_KEY != 'Patients1st!') {
+      return ContentService
+        .createTextOutput("Access Denied")
+        .setMimeType(ContentService.MimeType.JSON)
+    }
+
+    var response = fileDetails(e.parameter.fileId);
+
+    return ContentService
+      .createTextOutput(JSON.stringify(response))
+      .setMimeType(ContentService.MimeType.JSON)
+
 }
 
+/**
+ * Handle a post request
+ * @param  {object} e The data from the request
+ * @return {ContentService}   A formed JSON respons
+ */
 function doPost(e) {
 
-  try{
+    try {
 
-    if (e.parameter.GD_KEY != GD_KEY)
-      return debugEmail('web_app post wrong password', e)
+        if (e.parameter.GD_KEY != GD_KEY)
+            return console.error('web_app post wrong password', e)
 
-    if ( ! e.postData || ! e.postData.contents)
-      return debugEmail('web_app post not post data', e)
+        if (!e.postData || !e.postData.contents)
+            return console.error('web_app post not post data', e)
 
-    var response
-    var contents = JSON.parse(e.postData.contents)
+        var response
+        var contents = JSON.parse(e.postData.contents)
 
-    if (contents.method == 'removeFiles')
-      response = removeFiles(contents)
+        if (contents.method.includes('v2')) {
+            response = v2_routes(contents);
+        } else {
+            response = v1_routes(contents);
+        }
 
-    else if (contents.method == 'watchFiles')
-      response = watchFiles(contents)
+        return ContentService
+            .createTextOutput(JSON.stringify(response || 'gdoc_helper had not return value'))
+            .setMimeType(ContentService.MimeType.JSON)
 
-    else if (contents.method == 'publishFile')
-      response = publishFile(contents)
+    } catch (err) {
 
-    else if (contents.method == 'newSpreadsheet')
-      response = newSpreadsheet(contents)
+        console.error('web_app post error thrown', err, e)
 
-    else if (contents.method == 'createCalendarEvent')
-      response = createCalendarEvent(contents)
+        return ContentService
+            .createTextOutput(JSON.stringify([err, err.stack]))
+            .setMimeType(ContentService.MimeType.JSON)
+    }
+}
 
-    else if (contents.method == 'removeCalendarEvents')
-      response = removeCalendarEvents(contents)
+/**
+ * handle any older v1 routes
+ * @param  {object} contents All data that was sent to the request
+ * @return {object}          Data to represent the results
+ */
+function v1_routes(contents) {
+    switch (contents.method) {
+        case 'removeFiles':
+            return removeFiles(contents);
+        case 'watchFiles':
+            return watchFiles(contents);
+        case 'publishFile':
+            return publishFile(contents);
+        case 'newSpreadsheet':
+            return newSpreadsheet(contents);
+        case 'createCalendarEvent':
+            return createCalendarEvent(contents);
+        case 'removeCalendarEvents':
+            return removeCalendarEvents(contents);
+        case 'searchCalendarEvents':
+            return searchCalendarEvents(contents);
+        case 'modifyCalendarEvents':
+            return modifyCalendarEvents(contents);
+        case 'shortLinks':
+            return shortLinks(contents);
+        case 'moveFile':
+            return moveFile(contents);
+        default:
+            console.log('Could not find a match in v1 route', contents);
+    }
+}
 
-    else if (contents.method == 'searchCalendarEvents')
-      response = searchCalendarEvents(contents)
-
-    else if (contents.method == 'modifyCalendarEvents')
-      response = modifyCalendarEvents(contents)
-
-    else if (contents.method == 'shortLinks')
-      response = shortLinks(contents)
-
-    else if (contents.method == 'moveFile')
-      response = moveFile(contents)
-
-    else
-      debugEmail('web_app post no matching method', [contents.method, contents, e])
-
-    return ContentService
-      .createTextOutput(JSON.stringify(response || 'gdoc_helper had not return value'))
-      .setMimeType(ContentService.MimeType.JSON)
-
-  } catch(err){
-
-    debugEmail('web_app post error thrown', err, e)
-
-    return ContentService
-      .createTextOutput(JSON.stringify([err, err.stack]))
-      .setMimeType(ContentService.MimeType.JSON)
-  }
+/**
+ * Handle any routes that have a v2/ in them
+ * @param  {object} contents All data that was sent to the request
+ * @return {object}          Date to represent the results
+ */
+function v2_routes(contents) {
+    switch (contents.method) {
+        case 'v2/removeFile':
+            return removeFile_v2(contents.fileId);
+        case 'v2/moveFile':
+            return moveFile_v2(contents.fileId, contents.folderId);
+        case 'v2/publishFile':
+            return publishFile_v2(contents.fileId);
+        case 'v2/fileDetails':
+            return moveFile(contents);
+        default:
+            console.log('Could not find a match in v2 route', contents);
+    }
 }

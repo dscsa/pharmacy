@@ -1,6 +1,6 @@
 <?php
 
-use Sirum\Storage\Goodpill;
+use GoodPill\Storage\Goodpill;
 
 
 function digPatientIdentifiers($possibility) {

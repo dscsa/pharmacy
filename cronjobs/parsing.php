@@ -769,6 +769,10 @@ $test_sigs = [
   //Take 1 tablet by mouth once daily on empty stomach WITH NO OTHER MEDS AND 30-45 MINUTES BEFORE BREAKFAST
   //Take 1 tablet by mouth in the morning AND 2 tablets at bedtime
   //Take 1 tablet in the morning and 1 tablet in the afternoon
+  //Take 137 mcg by mouth daily with breakfast
+  //Take 1 capsule oral as directed as needed Take 1 tab by mouth after each loose stool with a max of 4 tabs in a 2 hour period.
+  //32 units Subcutaneous BID(AC),x90 days
+  //Day 1- 6 tabs, Day 2- 5 tabs, Day 3- 4 tabs, Day 4- 3 tabs, Day 5- 2 tabs, Day 6- 1 tab.
 
 ];
 

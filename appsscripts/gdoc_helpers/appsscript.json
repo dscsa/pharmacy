@@ -5,6 +5,10 @@
       "userSymbol": "Drive",
       "serviceId": "drive",
       "version": "v2"
+    }, {
+      "userSymbol": "Tasks",
+      "serviceId": "tasks",
+      "version": "v1"
     }]
   },
   "webapp": {

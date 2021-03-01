@@ -2,7 +2,11 @@
 require_once 'exports/export_cp_rxs.php';
 require_once 'helpers/helper_full_fields.php';
 
-use Sirum\Logging\SirumLog;
+use GoodPill\Logging\{
+    GPLog,
+    AuditLog,
+    CliLog
+};
 
 function load_full_patient($partial, $mysql, $overwrite_rx_messages = false) {
 
@@ -10,6 +14,43 @@ function load_full_patient($partial, $mysql, $overwrite_rx_messages = false) {
     log_error('ERROR! get_full_patient: was not given a patient_id_cp', $partial);
     return;
   }
+
+  $patient = get_full_patient($mysql, $partial['patient_id_cp']);
+
+  if ( ! $patient) {
+    log_error("ERROR! load_full_patient: no active patient with id:$partial[patient_id_cp]. Deceased or Inactive Patient with Rxs", get_defined_vars());
+    return;
+  }
+
+  GPLog::notice(
+    "helper_full_patient before helper_full_fields",
+    [
+      "patient_id_cp" => $patient[0]['patient_id_cp'],
+      "patient_id_wc" => $patient[0]['patient_id_wc'],
+      "overwrite_rx_messages"       => $overwrite_rx_messages,
+      "patient"       => $patient
+    ]
+  );
+
+  $patient = add_full_fields($patient, $mysql, $overwrite_rx_messages);
+
+  GPLog::notice(
+    "helper_full_patient after helper_full_fields",
+    [
+      "patient_id_cp" => $patient[0]['patient_id_cp'],
+      "patient_id_wc" => $patient[0]['patient_id_wc'],
+      "overwrite_rx_messages"       => $overwrite_rx_messages,
+      "patient"       => $patient
+    ]
+  );
+
+  usort($patient, 'sort_drugs_by_name'); //Put Rxs in order (with Rx_Source) at the top
+  $patient = add_sig_differences($patient);
+
+  return $patient;
+}
+
+function get_full_patient($mysql, $patient_id_cp) {
 
   $month_interval = 6;
 
@@ -29,49 +70,19 @@ function load_full_patient($partial, $mysql, $overwrite_rx_messages = false) {
       gp_rxs_grouped.best_rx_number = gp_rxs_single.rx_number
     LEFT JOIN gp_stock_live ON -- might not have a match if no GSN match
       gp_rxs_grouped.drug_generic = gp_stock_live.drug_generic -- this is for the helper_days_and_message msgs for unordered drugs
+    LEFT JOIN gp_order_items ON -- choice to show any order_item from this rx_group and not just if this specific rx matches
+      gp_order_items.rx_dispensed_id IS NULL AND
+      rx_numbers LIKE CONCAT('%,', gp_order_items.rx_number, ',%')
+    LEFT JOIN gp_orders ON -- ORDER MAY HAVE NOT BEEN ADDED YET
+      gp_orders.invoice_number = gp_order_items.invoice_number
     WHERE
-      gp_patients.patient_id_cp = $partial[patient_id_cp]
+      gp_patients.patient_id_cp = $patient_id_cp
   ";
 
-  if ( ! $overwrite_rx_messages)
-    $sql .= "
-      AND (CASE WHEN refills_total THEN gp_rxs_grouped.rx_date_expired ELSE COALESCE(gp_rxs_grouped.rx_date_transferred, gp_rxs_grouped.refill_date_last) END) > CURDATE() - INTERVAL $month_interval MONTH
-    ";
-
-  //If we are not overwritting messages just get recent scripts, otherwise make sure we get all the rxs so we can overwrite them
   $patient = $mysql->run($sql)[0];
 
-  if ( ! @$patient[0]) {
-      log_error("ERROR! get_full_patient: no active patient with id:$partial[patient_id_cp]. Deceased or Inactive Patient with Rxs", get_defined_vars());
-      return;
-  }
-
-  SirumLog::notice(
-    "helper_full_patient before helper_full_fields",
-    [
-      "patient_id_cp" => $patient[0]['patient_id_cp'],
-      "patient_id_wc" => $patient[0]['patient_id_wc'],
-      "overwrite_rx_messages"       => $overwrite_rx_messages,
-      "patient"       => $patient
-    ]
-  );
-
-  $patient = add_full_fields($patient, $mysql, $overwrite_rx_messages);
-
-  SirumLog::notice(
-    "helper_full_patient after helper_full_fields",
-    [
-      "patient_id_cp" => $patient[0]['patient_id_cp'],
-      "patient_id_wc" => $patient[0]['patient_id_wc'],
-      "overwrite_rx_messages"       => $overwrite_rx_messages,
-      "patient"       => $patient
-    ]
-  );
-
-  usort($patient, 'sort_patient_by_drug'); //Put Rxs in order (with Rx_Source) at the top
-  $patient = add_sig_differences($patient);
-
-  return $patient;
+  if ($patient AND @$patient[0]['patient_id_cp'])
+    return $patient;
 }
 
 function add_sig_differences($patient) {
@@ -79,6 +90,12 @@ function add_sig_differences($patient) {
   $drug_names = []; //Append qty_per_day if multiple of same strength, do this after sorting
 
   foreach($patient as $i => $item) {
+
+    if ( ! @$item['drug']) {
+      log_error('add_sig_differences: why no "drug" property set?', ['item' => $item, 'patient' => $patient]);
+      continue;
+    }
+
     if (isset($drug_names[$item['drug']])) {
       $patient[$i]['drug'] .= ' ('.( (float) $item['sig_qty_per_day'] ).' per day)';
       //log_notice("helper_full_patient add_sig_differences: appended sig_qty_per_day to duplicate drug ".$item['drug']." >>> ".$drug_names[$item['drug']], [$order, $item, $drug_names]);
@@ -90,8 +107,6 @@ function add_sig_differences($patient) {
   return $patient;
 }
 
-function sort_patient_by_drug($a, $b) {
-  if ($b['drug_generic'] > 0 AND $a['drug_generic'] == 0) return 1;
-  if ($a['drug_generic'] > 0 AND $b['drug_generic'] == 0) return -1;
-  return strcmp($a['rx_message_text'].$a['drug'], $b['rx_message_text'].$b['drug']);
+function sort_drugs_by_name($a, $b) {
+  return strcmp($a['drug'].$a['sig_qty_per_day'], $b['drug'].$b['sig_qty_per_day']);
 }

@@ -8,7 +8,7 @@ require_once 'vendor/autoload.php';
 require_once 'helpers/helper_pagerduty.php';
 require_once 'keys.php';
 
-$args   = getopt("s:e:hnqv", array());
+$args   = getopt("s:e:hnqvr", array());
 
 function printHelp()
 {
@@ -23,6 +23,7 @@ php check_invoices.php [-h -n] -s '-1 Hour' -e '-30 Minutes'
                   time.  Defaults to '-1 Hour'
     -q            Print failed invoices as comma seperated list with no failure details
     -v            Output success and failures.  Will automatically trigger -n option
+    -r            Trigger a reprint
 
 EOF;
     exit;
@@ -53,7 +54,7 @@ if ($start > $end) {
 
 echo "Checking dispensed invoices between {$start} and {$end}\n";
 
-$mysql = Sirum\Storage\Goodpill::getConnection();
+$mysql = GoodPill\Storage\Goodpill::getConnection();
 $pdo   = $mysql->prepare(
     "SELECT invoice_number, order_date_dispensed, invoice_doc_id
         FROM gp_orders
@@ -65,50 +66,53 @@ $pdo->bindParam(':oldest', $start, \PDO::PARAM_STR);
 $pdo->bindParam(':newest', $end, \PDO::PARAM_STR);
 $pdo->execute();
 
-$opts = [
-    'http' => [
-      'method'  => 'GET',
-      'header'  => "Accept: application/json\r\n"
-    ]
-];
-
-$context  = stream_context_create($opts);
-$base_url = "https://script.google.com/macros/s/AKfycbwL2Ct6grT3cCgaw27GrUSzznur"
-            . "9W9xhDgs-YoZvqeepZjWYjR9/exec?GD_KEY=Patients1st!";
-
+$printed = [];
+$failed  = [];
 
 while ($invoice = $pdo->fetch()) {
     if ($invoice['invoice_doc_id']) {
-        $url      = $base_url . '&fileId=' . $invoice['invoice_doc_id'];
-        $results  = json_decode(file_get_contents($url, false, $context));
-        if ($results->parent->name != 'Printed') {
-            // Should create an alert because the invoice should be printed
-            $message = "Invoice {$invoice['invoice_number']} was dispensed at "
-                       . "{$invoice['order_date_dispensed']} but hasn't been printed.  ";
-            if ($results->trashed) {
-                $message .= "It has been moved to the trash and not recreated.";
-            }
-        } else if(isset($args['v'])) {
-            $message = "Success {$invoice['invoice_number']} was printed";
+        $results  = gdoc_details($invoice['invoice_doc_id']);
+        if (isset($results->parent) && $results->parent->name != 'Printed') {
+            $failed[$invoice['invoice_number']] = [
+                'dispensed' => $invoice['order_date_dispensed'],
+                'trashed' => (bool) $results->trashed
+            ];
+            printf(
+                "Invoice %s FAILED to move to print.  It was dispensed on %s and isTrashed = %s\n",
+                $invoice['invoice_number'],
+                $invoice['order_date_dispensed'],
+                (bool) $results->trashed
+            );
+        } elseif (isset($args['v'])) {
+            $printed[] = $invoice['invoice_number'];
+            printf(
+                "Invoice %s printed Successfully.\n",
+                $invoice['invoice_number']
+            );
         }
     } else {
-        // Should create an alert because there should always be an invoice
-        $message = "Invoice {$invoice['invoice_number']} was dispensed at "
-                   . "{$invoice['order_date_dispensed']} but it doesn't have an "
-                   . "invoice_doc_id.";
-    }
-    if (isset($message)) {
-        if (!isset($args['n']) && !isset($args['v'])) {
-            pd_low_priority($message, $incident_id);
-        }
-        if (isset($args['q'])) {
-            $message = $invoice['invoice_number'] . ",";
-        } else {
-            $message .= "\n";
-        }
-        echo $message;
-        unset($message);
+        $failed[$invoice['invoice_number']] = [
+            'dispensed' => $invoice['order_date_dispensed'],
+            'doc_id' => (bool) $invoice['invoice_doc_id']
+        ];
+        printf(
+            "Invoice %s FAILED was dispensed %s but never created or the database wasn't updated\n",
+            $invoice['invoice_number'],
+            $invoice['order_date_dispensed']
+        );
     }
 }
 
-echo "\n";
+if (!isset($args['n']) && count($failed) > 0) {
+    pd_low_priority("Invoices failed to print", $incident_id, $failed);
+}
+
+if (isset($args['q'])) {
+    echo implode(',', array_keys($failed));
+}
+
+if (isset($args['r'])) {
+    echo "Reprinting failed invoices: ";
+    $command = "php invoice_tool.php -up -m " . implode(',', array_keys($failed));
+    echo shell_exec($command);
+}

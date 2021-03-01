@@ -11,25 +11,34 @@ class ComposerStaticInit54659efd329fa3a958f5cddec29d1420
         'c964ee0ededf28c96ebd9db5099ef910' => __DIR__ . '/..' . '/guzzlehttp/promises/src/functions_include.php',
         'a0edc8309cc5e1d60e3047b5df6b7052' => __DIR__ . '/..' . '/guzzlehttp/psr7/src/functions_include.php',
         '37a3dc5111fe8f707ab4c132ef1dbc62' => __DIR__ . '/..' . '/guzzlehttp/guzzle/src/functions_include.php',
+        '0e6d7bf4a5811bfa5cf40c5ccd6fae6a' => __DIR__ . '/..' . '/symfony/polyfill-mbstring/bootstrap.php',
+        'b067bc7112e384b61c701452d53a14a8' => __DIR__ . '/..' . '/mtdowling/jmespath.php/src/JmesPath.php',
+        '8a9dc1de0ca7e01f3e08231539562f61' => __DIR__ . '/..' . '/aws/aws-sdk-php/src/functions.php',
     );
 
     public static $prefixLengthsPsr4 = array (
-        'S' => 
+        'S' =>
         array (
-            'Sirum\\' => 6,
+            'Symfony\\Polyfill\\Mbstring\\' => 26,
+            'GoodPill\\' => 6,
         ),
-        'P' => 
+        'P' =>
         array (
             'Psr\\Log\\' => 8,
             'Psr\\Http\\Message\\' => 17,
             'Psr\\Http\\Client\\' => 16,
             'Psr\\Cache\\' => 10,
+            'Predis\\' => 7,
         ),
-        'M' => 
+        'M' =>
         array (
             'Monolog\\' => 8,
         ),
-        'G' => 
+        'J' =>
+        array (
+            'JmesPath\\' => 9,
+        ),
+        'G' =>
         array (
             'GuzzleHttp\\Psr7\\' => 16,
             'GuzzleHttp\\Promise\\' => 19,
@@ -47,114 +56,139 @@ class ComposerStaticInit54659efd329fa3a958f5cddec29d1420
             'GPBMetadata\\Google\\' => 19,
             'GPBMetadata\\ApiCore\\' => 20,
         ),
-        'F' => 
+        'F' =>
         array (
             'Firebase\\JWT\\' => 13,
+        ),
+        'A' =>
+        array (
+            'Ayesh\\PHP_Timer\\' => 16,
+            'Aws\\' => 4,
         ),
     );
 
     public static $prefixDirsPsr4 = array (
-        'Sirum\\' => 
+        'Symfony\\Polyfill\\Mbstring\\' =>
         array (
-            0 => __DIR__ . '/../..' . '/classes/Sirum',
+            0 => __DIR__ . '/..' . '/symfony/polyfill-mbstring',
         ),
-        'Psr\\Log\\' => 
+        'GoodPill\\' =>
+        array (
+            0 => __DIR__ . '/../..' . '/classes/GoodPill',
+        ),
+        'Psr\\Log\\' =>
         array (
             0 => __DIR__ . '/..' . '/psr/log/Psr/Log',
         ),
-        'Psr\\Http\\Message\\' => 
+        'Psr\\Http\\Message\\' =>
         array (
             0 => __DIR__ . '/..' . '/psr/http-message/src',
         ),
-        'Psr\\Http\\Client\\' => 
+        'Psr\\Http\\Client\\' =>
         array (
             0 => __DIR__ . '/..' . '/psr/http-client/src',
         ),
-        'Psr\\Cache\\' => 
+        'Psr\\Cache\\' =>
         array (
             0 => __DIR__ . '/..' . '/psr/cache/src',
         ),
-        'Monolog\\' => 
+        'Predis\\' =>
+        array (
+            0 => __DIR__ . '/..' . '/predis/predis/src',
+        ),
+        'Monolog\\' =>
         array (
             0 => __DIR__ . '/..' . '/monolog/monolog/src/Monolog',
         ),
-        'GuzzleHttp\\Psr7\\' => 
+        'JmesPath\\' =>
+        array (
+            0 => __DIR__ . '/..' . '/mtdowling/jmespath.php/src',
+        ),
+        'GuzzleHttp\\Psr7\\' =>
         array (
             0 => __DIR__ . '/..' . '/guzzlehttp/psr7/src',
         ),
-        'GuzzleHttp\\Promise\\' => 
+        'GuzzleHttp\\Promise\\' =>
         array (
             0 => __DIR__ . '/..' . '/guzzlehttp/promises/src',
         ),
-        'GuzzleHttp\\' => 
+        'GuzzleHttp\\' =>
         array (
             0 => __DIR__ . '/..' . '/guzzlehttp/guzzle/src',
         ),
-        'Grpc\\Gcp\\' => 
+        'Grpc\\Gcp\\' =>
         array (
             0 => __DIR__ . '/..' . '/google/grpc-gcp/src',
         ),
-        'Grpc\\' => 
+        'Grpc\\' =>
         array (
             0 => __DIR__ . '/..' . '/grpc/grpc/src/lib',
         ),
-        'Google\\Protobuf\\' => 
+        'Google\\Protobuf\\' =>
         array (
             0 => __DIR__ . '/..' . '/google/protobuf/src/Google/Protobuf',
         ),
-        'Google\\Cloud\\Logging\\' => 
+        'Google\\Cloud\\Logging\\' =>
         array (
             0 => __DIR__ . '/..' . '/google/cloud-logging/src',
         ),
-        'Google\\Cloud\\Core\\' => 
+        'Google\\Cloud\\Core\\' =>
         array (
             0 => __DIR__ . '/..' . '/google/cloud-core/src',
         ),
-        'Google\\Auth\\' => 
+        'Google\\Auth\\' =>
         array (
             0 => __DIR__ . '/..' . '/google/auth/src',
         ),
-        'Google\\ApiCore\\' => 
+        'Google\\ApiCore\\' =>
         array (
             0 => __DIR__ . '/..' . '/google/gax/src',
         ),
-        'Google\\' => 
+        'Google\\' =>
         array (
             0 => __DIR__ . '/..' . '/google/common-protos/src',
         ),
-        'GPBMetadata\\Google\\Protobuf\\' => 
+        'GPBMetadata\\Google\\Protobuf\\' =>
         array (
             0 => __DIR__ . '/..' . '/google/protobuf/src/GPBMetadata/Google/Protobuf',
         ),
-        'GPBMetadata\\Google\\Logging\\' => 
+        'GPBMetadata\\Google\\Logging\\' =>
         array (
             0 => __DIR__ . '/..' . '/google/cloud-logging/metadata',
         ),
-        'GPBMetadata\\Google\\' => 
+        'GPBMetadata\\Google\\' =>
         array (
             0 => __DIR__ . '/..' . '/google/common-protos/metadata',
         ),
-        'GPBMetadata\\ApiCore\\' => 
+        'GPBMetadata\\ApiCore\\' =>
         array (
             0 => __DIR__ . '/..' . '/google/gax/metadata/ApiCore',
         ),
-        'Firebase\\JWT\\' => 
+        'Firebase\\JWT\\' =>
         array (
             0 => __DIR__ . '/..' . '/firebase/php-jwt/src',
+        ),
+        'Ayesh\\PHP_Timer\\' =>
+        array (
+            0 => __DIR__ . '/..' . '/ayesh/php-timer/src',
+        ),
+        'Aws\\' =>
+        array (
+            0 => __DIR__ . '/..' . '/aws/aws-sdk-php/src',
         ),
     );
 
     public static $prefixesPsr0 = array (
-        'R' => 
+        'R' =>
         array (
-            'Rize\\UriTemplate' => 
+            'Rize\\UriTemplate' =>
             array (
                 0 => __DIR__ . '/..' . '/rize/uri-template/src',
             ),
         ),
-        'P' => 
+        'P' =>
         array (
-            'PagerDuty' => 
+            'PagerDuty' =>
             array (
                 0 => __DIR__ . '/..' . '/adilbaig/pagerduty/src',
             ),

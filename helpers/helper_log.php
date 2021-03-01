@@ -1,9 +1,13 @@
 <?php
 
 require_once 'dbs/mysql_wc.php';
-require_once 'helper_logger.php';
+require_once 'helpers/helper_logger.php';
 
-use Sirum\Logging\SirumLog;
+use GoodPill\Logging\{
+    GPLog,
+    AuditLog,
+    CliLog
+};
 
 global $mysql;
 $log_notices = [];
@@ -84,7 +88,7 @@ function json_safe_encode($raw, $file = null)
             $log_context = ["vars" => $vars];
         }
 
-        SirumLog::error("json_encode failed for logging {$error} : {$file}", $log_context);
+        GPLog::error("json_encode failed for logging {$error} : {$file}", $log_context);
 
         /*
          * https://levels.io/inf-nan-json_encode/
@@ -160,7 +164,7 @@ function log_info($text, $vars = '')
     }
 
     // Log it before we make a string of the vars
-    SirumLog::info("{$text} : {$file}", $log_context);
+    GPLog::info("{$text} : {$file}", $log_context);
 
     $vars   = $vars ? vars_to_json($vars, $file) : '';
 
@@ -182,7 +186,7 @@ function log_warning($text, $vars = '')
     }
 
     // Log it before we make a string of the vars
-    SirumLog::warning("{$text} : {$file}", $log_context);
+    GPLog::warning("{$text} : {$file}", $log_context);
 
     $vars   = $vars ? vars_to_json($vars, $file) : '';
 
@@ -203,7 +207,6 @@ function log_warning($text, $vars = '')
 function log_alert($text, $vars = '')
 {
     echo "$text\n";
-    print_r($vars);
 
     global $log_notices;
     global $gp_logger;
@@ -217,7 +220,7 @@ function log_alert($text, $vars = '')
     }
 
     // Log it before we make a string of the vars
-    SirumLog::alert("{$text} : {$file}", $log_context);
+    GPLog::critical("{$text} : {$file}", $log_context);
 
     $vars   = $vars ? vars_to_json($vars, $file) : '';
 
@@ -251,7 +254,7 @@ function log_error($text, $vars = '')
     }
 
     // Log it before we make a string of the vars
-    SirumLog::error("{$text} : {$file}", $log_context);
+    GPLog::error("{$text} : {$file}", $log_context);
 
     $vars   = $vars ? vars_to_json($vars, $file) : '';
 
@@ -297,7 +300,7 @@ function log_notice($text, $vars = '')
         $log_context = ["vars" => $vars];
     }
 
-    SirumLog::notice("{$text} : {$file}", $log_context);
+    GPLog::notice("{$text} : {$file}", $log_context);
 
     $vars   = $vars ? vars_to_json($vars, $file) : '';
 
@@ -328,7 +331,7 @@ function log_timer($label, $start_time, $count) {
   $global_exec_details['timers_loops']["$label-count"]   = $count;
   $global_exec_details['timers_loops']["$label-average"] = $average_time;
 
-    if ($average_time > 75){
+    if ($average_time > 75) {
         $log_msg = "helper_log log_timer: $label has long average time loop time of $average_time seconds";
         $log_data = [
           'start_time'          => $start_time,
@@ -337,10 +340,11 @@ function log_timer($label, $start_time, $count) {
           '$average_time'       => $average_time,
           'global_exec_details' => $global_exec_details
         ];
-        if ($average_time <= 30) {
-            SirumLog::warning($log_msg, $log_data);
+
+        if ($average_time > 100) {
+            GPLog::critical($log_msg, $log_data);
         } else {
-            SirumLog::alert($log_msg, $log_data);
+            GPLog::error($log_msg, $log_data);
         }
     }
 }

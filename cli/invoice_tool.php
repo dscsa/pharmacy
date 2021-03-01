@@ -14,6 +14,8 @@ require_once 'updates/update_orders_cp.php';
 require_once 'helpers/helper_imports.php';
 require_once 'helpers/helper_log.php';
 require_once 'helpers/helper_constants.php';
+require_once 'helpers/helper_full_item.php';
+require_once 'helpers/helper_full_patient.php';
 require_once 'helpers/helper_days_and_message.php';
 require_once 'keys.php';
 
@@ -62,15 +64,24 @@ foreach ($orders as $orderNumber) {
 
     if (isset($args['u'])) {
         if (!isset($args['d'])) {
-            $order = export_gd_update_invoice($order, 're-print', $mysql, true);
+            $invoice_doc_id = export_gd_create_invoice($order[0]['invoice_number'], false);
+
+            if ($invoice_doc_id) {
+                echo "Invoice {$orderNumber} Updated\n";
+            } else {
+                echo "Invoice {$orderNumber} Failed to Updated\n";
+            }
+
+            for ($i = 0; $i < count($order); $i++) {
+                $order[$i]['invoice_doc_id'] = $invoice_doc_id;
+            }
         }
-        echo "Invoice {$orderNumber} Updated\n";
     }
 
     if (isset($args['p'])) {
         if (!isset($args['d'])) {
-            $order = export_gd_publish_invoice($order, $mysql);
-            export_gd_print_invoice($order);
+            $order = export_gd_publish_invoice($order);
+            export_gd_print_invoice($order[0]['invoice_number']);
         }
         echo "Invoice {$orderNumber} queued to print\n";
     }

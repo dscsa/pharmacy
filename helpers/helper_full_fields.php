@@ -1,6 +1,11 @@
+
 <?php
 
-use Sirum\Logging\SirumLog;
+use GoodPill\Logging\{
+    GPLog,
+    AuditLog,
+    CliLog
+};
 
 //Simplify GDoc Invoice Logic by combining _actual
 function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
@@ -49,6 +54,33 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
             strtotime($patient_or_order[$i]['rx_date_expired'] . ' -1 year')
         );
 
+        //Issues were we have a duplicate webform order (we don't delete a duplicate order if its from webform)
+        //some of these orders have different items and so are "valid" but some have same item(s) that are
+        //pended multiple times.  Ideally (intuitivelly) this check would be placed in update_order_items analagous
+        //that duplicate orders are checked in update_orders_cp.  But order_items is called after orders_cp is run
+        //and so the duplicate items will have already assigned days and been pended, which would have to be undone
+        //instead putting it here so that it will be called from update_orders and update_order_items
+        $duplicate_items = get_current_items($mysql, ['rx_numbers' => "'{$patient_or_order[$i]['rx_numbers']}'"]);
+
+        if ($duplicate_items && count($duplicate_items) > 1) {
+          GPLog::error(
+              "helper_full_fields: {$patient_or_order[$i]['drug_generic']} is duplicate
+              ITEM.  Likely Mistake. Two webform orders?",
+              [
+                  'duplicate_items' => $duplicate_items,
+                  'item' => $patient_or_order[$i],
+                  'order' => $patient_or_order,
+                  'invoice_number' => $patient_or_order[$i]['invoice_number']
+              ]
+          );
+
+          foreach($duplicate_items as $i => $duplicate_item) {
+              if ($i == 0) continue; //keep the oldest item
+              export_cp_remove_items($duplicate_item['invoice_number'], [$duplicate_item]);
+          }
+
+        }
+
         //Overwrite refers to the rx_single and rx_grouped table not the order_items table which deliberitely keeps its initial values
         $overwrite = (
           $overwrite_rx_messages === true
@@ -66,7 +98,7 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
 
         $log_suffix = @$patient_or_order[$i]['invoice_number'].' '.$patient_or_order[$i]['first_name'].' '.$patient_or_order[$i]['last_name'].' '.$patient_or_order[$i]['drug_generic'];
 
-        SirumLog::notice(
+        GPLog::notice(
           "add_full_fields $log_suffix",
           [
             "set_days_and_msgs"      => $set_days_and_msgs,
@@ -83,7 +115,7 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
 
             //If days_actual are set, then $days will be 0 (because it will be a recent fill)
             $days_added      = (@$patient_or_order[$i]['item_date_added'] AND $days > 0 AND ! @$patient_or_order[$i]['days_dispensed_default']);
-            $days_changed    = (@$patient_or_order[$i]['days_dispensed_default'] AND ! @$patient_or_order[$i]['days_dispensed_actual'] AND @$patient_or_order[$i]['days_dispensed_default'] != $days AND ! @$patient_or_order[$i]['sync_to_date_days_before']);
+            $days_changed    = (@$patient_or_order[$i]['days_dispensed_default'] AND ! @$patient_or_order[$i]['days_dispensed_actual'] AND @$patient_or_order[$i]['days_dispensed_default'] != $days AND @$patient_or_order[$i]['sync_to_date_days_before'] != $days);
 
             $needs_adding    = ( ! @$patient_or_order[$i]['item_date_added'] AND $days > 0);
             $needs_removing  = (@$patient_or_order[$i]['item_date_added'] AND $days == 0 AND ! is_added_manually($patient_or_order[$i]));
@@ -120,10 +152,11 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
               "sync_to_date_days_before"   => @$patient_or_order[$i]['sync_to_date_days_before']
             ];
 
-            if (($days_added OR $needs_adding) AND @$patient_or_order[$i]['order_date_dispensed']) //54376 Sertraline. Probably should create a new order?
-              SirumLog::alert("get_days_and_message ADDING ITEMS RIGHT BEFORE DISPENSING ORDER? $log_suffix", $get_days_and_message);
+             //54376 Sertraline. Probably should create a new order?
+            if (($days_added OR $needs_adding) AND @$patient_or_order[$i]['order_date_dispensed'])
+              GPLog::error("get_days_and_message ADDING ITEMS RIGHT BEFORE DISPENSING ORDER? $log_suffix", $get_days_and_message);
             else
-              SirumLog::notice("get_days_and_message $log_suffix", $get_days_and_message);
+              GPLog::notice("get_days_and_message $log_suffix", $get_days_and_message);
 
             //Internal logic keeps initial values on order_items if they exist (don't want to contradict patient comms)
             $patient_or_order[$i] = set_days_and_message($patient_or_order[$i], $days, $message, $mysql);
@@ -135,14 +168,14 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
               if ( ! is_patient($patient_or_order)) { //item or order
                 $items_to_remove[] = $patient_or_order[$i];
               } else {
-                SirumLog::alert("Item needs to be removed but IS_PATIENT? This doesn't seem possible", [
+                GPLog::critical("Item needs to be removed but IS_PATIENT? This doesn't seem possible", [
                   'days'    => $days,
                   'message' => $message,
                   'item'    => $patient_or_order[$i]
                 ]);
               }
 
-              SirumLog::notice(
+              GPLog::notice(
                 "helper_full_fields: needs_removing (export_cp_remove_items) ".$patient_or_order[$i]['drug_name'],
                 [
                   'item'    => $patient_or_order[$i],
@@ -160,7 +193,7 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
                 $patient_or_order[$i]['message_to_add'] = $message;
                 $items_to_add[] = $patient_or_order[$i];
               } else {
-                SirumLog::warning("Item needs to be added but IS_PATIENT (rxs-single-created2)? Likely IS_ORDER or IS_ITEM will run shortly", [
+                GPLog::warning("Item needs to be added but IS_PATIENT (rxs-single-created2)? Likely IS_ORDER or IS_ITEM will run shortly", [
                   'days'    => $days,
                   'message' => $message,
                   'item'    => $patient_or_order[$i],
@@ -168,7 +201,7 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
                 ]);
               }
 
-              SirumLog::notice(
+              GPLog::notice(
                 "helper_full_fields: needs_adding (export_cp_add_items) ".$patient_or_order[$i]['drug_name'],
                 [
                   'item'         => $patient_or_order[$i],
@@ -180,7 +213,7 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
             }
 
             if($needs_pending) {
-              SirumLog::notice(
+              GPLog::notice(
                   "helper_full_fields: needs pending",
                   [
                       'get_days_and_message' => $get_days_and_message,
@@ -194,7 +227,7 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
             }
 
             if($needs_unpending) {
-              SirumLog::notice(
+              GPLog::notice(
                   "helper_full_fields: needs UN-pending",
                   [
                       'get_days_and_message' => $get_days_and_message,
@@ -208,7 +241,7 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
             }
 
             if ($needs_repending) {
-              SirumLog::notice("helper_full_fields: needs repending", ['get_days_and_message' => $get_days_and_message, 'item' => $patient_or_order[$i]]);
+              GPLog::notice("helper_full_fields: needs repending", ['get_days_and_message' => $get_days_and_message, 'item' => $patient_or_order[$i]]);
               $patient_or_order[$i] = v2_unpend_item($patient_or_order[$i], $mysql, "helper_full_fields needs_repending");
               $patient_or_order[$i] = v2_pend_item($patient_or_order[$i], $mysql, "helper_full_fields needs_repending");
             }
@@ -303,7 +336,7 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
 
       $reason = "helper_full_fields: send_created_order_communications. Order {$patient_or_order[0]['invoice_number']}";
 
-      SirumLog::debug(
+      GPLog::debug(
         $reason,
         [
           'invoice_number'  => $patient_or_order[0]['invoice_number'],
@@ -331,7 +364,7 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
 
       $reason = "helper_full_fields: is_order and update_payment. Order {$patient_or_order[0]['invoice_number']}";
 
-      SirumLog::debug(
+      GPLog::debug(
         $reason,
         [
           'invoice_number'  => $patient_or_order[0]['invoice_number'],

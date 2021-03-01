@@ -1,7 +1,11 @@
 <?php
 require_once 'exports/export_wc_patients.php';
 
-use Sirum\Logging\SirumLog;
+use GoodPill\Logging\{
+    GPLog,
+    AuditLog,
+    CliLog
+};
 
 //TODO Implement Full Matching Algorithm that's in Salesforce and CP's SP
 function is_patient_match($mysql, $patient) {
@@ -26,47 +30,7 @@ function is_patient_match($mysql, $patient) {
 
   //TODO Auto Delete Duplicate Patient AND Send Comm of their login and password
 
-  SirumLog::alert("helper_matching: is_patient_match FALSE ".@$patient[0]['first_name']." ".@$patient[0]['last_name']." ".@$patient[0]['birth_date'], $alert);
-}
-
-/**
- * Create the association between the wp and the cp patient
- * this will overwrite a current association if it exists
- *
- * @param  Mysql_Wc $mysql         The GP Mysql Connection
- * @param  array    $patient       The patient data
- * @param  int      $patient_id_cp The CP id for the patient
- * @return void
- */
-
-
-function match_patient($mysql, $patient_id_cp, $patient_id_wc) {
-
-  // Update the patientes table
-  $sql = "
-    UPDATE
-      gp_patients
-    SET
-      patient_id_cp = '{$patient_id_cp}',
-      patient_id_wc = '{$patient_id_wc}'
-    WHERE
-      patient_id_cp = '{$patient_id_cp}' OR
-      patient_id_wc = '{$patient_id_wc}'
-  ";
-
-  $mysql->run($sql);
-
-  log_notice("helper_matching: match_patient() matched patient_id_cp:$patient_id_cp with patient_id_wc:$patient_id_wc", [
-    'sql' => $sql,
-  ]);
-
-  // Insert the patient_id_cp if it deosnt' already exist
-  wc_upsert_patient_meta(
-    $mysql,
-    $patient_id_wc,
-    'patient_id_cp',
-    $patient_id_cp
-  );
+  GPLog::critical("helper_matching: is_patient_match FALSE ".@$patient[0]['first_name']." ".@$patient[0]['last_name']." ".@$patient[0]['birth_date'], $alert);
 }
 
 //TODO Implement Full Matching Algorithm that's in Salesforce and CP's SP
@@ -106,4 +70,83 @@ function find_patient($mysql, $patient, $table = 'gp_patients') {
   $res = $mysql->run($sql)[0];
 
   return $res;
+}
+
+/**
+ * Create the association between the wp and the cp patient
+ * this will overwrite a current association if it exists
+ *
+ * @param  Mysql_Wc $mysql         The GP Mysql Connection
+ * @param  array    $patient       The patient data
+ * @param  int      $patient_id_cp The CP id for the patient
+ * @return void
+ */
+function match_patient($mysql, $patient_id_cp, $patient_id_wc)
+{
+    // See if there is already a patient with the cp_id in WooCommerce.
+    // If there is, we need to log an alert and skip this step.
+    // Update the patientes table
+    $patient_match = is_patient_matched_in_wc($patient_id_cp);
+
+    if ( ! $patient_match) {
+        $sql = "UPDATE
+          gp_patients
+        SET
+          patient_id_cp = '{$patient_id_cp}',
+          patient_id_wc = '{$patient_id_wc}'
+        WHERE
+          patient_id_cp = '{$patient_id_cp}' OR
+          patient_id_wc = '{$patient_id_wc}'";
+
+        $mysql->run($sql);
+
+        GPLog::notice("helper_matching: match_patient() matched patient_id_cp:$patient_id_cp
+                         with patient_id_wc:$patient_id_wc");
+
+        // Insert the patient_id_cp if it deosnt' already exist
+        wc_upsert_patient_meta(
+            $mysql,
+            $patient_id_wc,
+            'patient_id_cp',
+            $patient_id_cp
+        );
+    } elseif (@$patient_match['patient_id_wc'] != $patient_id_wc) {
+        GPLog::critical(
+            "Attempted to match a CP patient that was already matched in WC",
+            [
+                'patient_id_cp' => $patient_id_cp,
+                'patient_id_wc' => $patient_id_wc,
+                'proposed_patient_id_wc' => @$patient_match['patient_id_wc']
+            ]
+        );
+    }
+}
+
+/**
+ * Looks to see if there is already a patient matched for this cp id.
+ * If a match is found return the matched ids
+ *
+ * @param  int  $patinent_cp_id Carepoint Patient ID
+ * @return boolean|array                  Array of ids on matche, false on no match
+ */
+function is_patient_matched_in_wc($patient_id_cp)
+{
+    $mysql = GoodPill\Storage\Goodpill::getConnection();
+    $pdo   = $mysql->prepare(
+        "SELECT *
+             FROM wp_usermeta
+             WHERE meta_key = 'patient_id_cp'
+                AND meta_value = :patient_id_cp"
+    );
+    $pdo->bindParam(':patient_id_cp', $patient_id_cp, \PDO::PARAM_INT);
+    $pdo->execute();
+
+    if ($meta = $pdo->fetch()) {
+        return [
+            'patient_id_cp' => $patient_id_cp,
+            'patient_id_wc' => $meta['user_id']
+          ];
+    }
+
+    return false;
 }
