@@ -248,12 +248,29 @@ function cp_order_created(array $created) : ?array
             ]
         );
 
-        if ($order[0]['count_items'] - $order[0]['count_to_remove']) {
+        if (
+            (
+                $order[0]['order_status'] == "Surescripts Authorization Denied"
+                && $order[0]['count_items'] - $order[0]['count_to_remove'] > 0
+            )
+            || (
+                $order[0]['order_status'] != "Surescripts Authorization Denied"
+                && $order[0]['count_items'] - $order[0]['count_to_remove'] != 0
+            )
+        ) {
             // Find the item that wasn't removed, but we aren't filling
             // These values are transient and
             // TODO Why is this happening
             GPLog::critical(
-                "update_orders_cp: created. canceling order, but is their a manually added item that we should keep?"
+                "update_orders_cp: created. canceling order, but is their a manually added item that we should keep?",
+                [
+                    'invoice_number'  => $order[0]['invoice_number'],
+                    'count_filled'    => $order[0]['count_filled'],
+                    'count_items'     => $order[0]['count_items'],
+                    'count_to_add'    => $order[0]['count_to_add'],
+                    'count_to_remove' => $order[0]['count_to_remove'],
+                    'order'           => $order
+                ]
             );
         }
 
