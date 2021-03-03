@@ -72,4 +72,15 @@ class GoodPillPatient extends GPModel
      * @var string
      */
     protected $table_name = "gp_patients";
+
+    /**
+     * Test to see if the patient has both wc and cp ids
+     * @return boolean
+     */
+    public function isMatched()
+    {
+        return ($this->loaded
+                && !empty($this->patient_id_cp)
+                && !empty($this->patient_id_wc));
+    }
 }
