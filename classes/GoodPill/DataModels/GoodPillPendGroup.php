@@ -1,9 +1,9 @@
 <?php
 
-namespace Sirum\DataModels;
+namespace GoodPill\DataModels;
 
-use Sirum\Storage\Goodpill;
-use Sirum\GPModel;
+use GoodPill\Storage\Goodpill;
+use GoodPill\GPModel;
 
 
 use \PDO;

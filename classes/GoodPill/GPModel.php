@@ -332,12 +332,15 @@ class GPModel
 
         $sql .= " WHERE ";
 
-        foreach ($primary_keys as $key) {
-            $sql .= "{$key} = :{$key} AND";
-        }
-
-        // Remove the extra ' AND'
-        $sql = trim($sql, ' AND');
+        $sql .= implode(
+            ' AND',
+            array_map(
+                function ($key) {
+                    return "{$key} = :{$key}";
+                },
+                $primary_keys
+            )
+        );
 
         $stmt = $this->gpdb->prepare($sql);
 
@@ -474,6 +477,54 @@ class GPModel
             $this->load([$this->primary_key => $stmt->lastInsertId()]);
         }
 
+        return ($stmt->rowCount() == 1);
+    }
+
+    /**
+     * Remove the data for this object from the database and reset the data fields
+     * @return boolean
+     */
+    public function delete()
+    {
+        if (!$this->loaded) {
+            throw new \Exception('A Model must be loaded before it can be deleted');
+        }
+
+        $primary_keys = (is_array($this->primary_key) ? $this->primary_key : [ $this->primary_key ]);
+
+        $sql = " DELETE
+                    FROM {$this->table_name}
+                    WHERE ";
+
+        $sql .= implode(
+            ' AND',
+            array_map(
+                function ($key) {
+                    return "{$key} = :{$key}";
+                },
+                $primary_keys
+            )
+        );
+
+        $stmt = $this->gpdb->prepare($sql);
+
+        // Bind all the params including the primary keys
+        foreach ($primary_keys as $field) {
+            $value     = $this->data[$field];
+            $bind_type = \PDO::PARAM_STR;
+
+            // Check to see if it is an int, otherwise assume it is a string
+            if (is_numeric($value)
+                && $value == (int) $value) {
+                $bind_type = \PDO::PARAM_INT;
+            }
+
+            $stmt->bindValue(":{$field}", $value, $bind_type);
+        }
+
+        $stmt->execute();
+        unset($this->data);
+        $this->loaded = false;
         return ($stmt->rowCount() == 1);
     }
 }

@@ -7,6 +7,7 @@ use GoodPill\Logging\{
 };
 
 use \GoodPill\DataModels\GoodPillOrder;
+use \GoodPill\DataModels\GoodPillPendGroup;
 
 require_once 'exports/export_cp_orders.php';
 
@@ -390,6 +391,7 @@ function print_pick_list($item, $list)
 function get_item_pended_group($item, $include_picked = false)
 {
     $possible_pend_groups = [
+        'expected'        => pend_group_name($item),
         'refill'          => pend_group_refill($item),
         'webform'         => pend_group_webform($item),
         'new_patient'     => pend_group_new_patient($item),
@@ -402,6 +404,16 @@ function get_item_pended_group($item, $include_picked = false)
         $results  = v2_fetch($pend_url, 'GET');
         if (!empty($results) &&
             @$results[0]['next'][0]['pended']) {
+            if ($type != 'expected') {
+                GPLog::debug(
+                    'Drugs pended under unexpected pend group',
+                    [
+                        'expected' => $possible_pend_groups['expected'],
+                        'found_as' => $group
+                    ]
+                );
+            }
+
             return $group;
         }
     }
@@ -607,7 +619,7 @@ function unpend_pick_list($item)
                 $pend_group
             )
         );
-        do { // Keep doing until we can't find a pended item
+        do { // Keep doing until we can't find a pended items
             $loop_count = (isset($loop_count) ? ++$loop_count : 1);
             if ($results = v2_fetch("/account/8889875187/pend/{$pend_group}/{$item['drug_generic']}", 'DELETE')) {
                 CLiLog::info(
@@ -629,7 +641,7 @@ function unpend_pick_list($item)
                 );
                 break;
             }
-        } while ($pend_group = get_item_pended_group($item) && $loop_count <= 5);
+        } while (($pend_group = get_item_pended_group($item)) && $loop_count <= 5);
     }
 
     //Delete gdoc pick list

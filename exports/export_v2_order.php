@@ -1,6 +1,7 @@
 <?php
 
 use \GoodPill\DataModels\GoodPillOrder;
+use \GoodPill\DataModels\GoodPillPendGroup;
 use \GoodPill\Logging\GPLog;
 
 function v2_unpend_order_by_invoice(int $invoice_number, ?array $pend_params = null) : bool
@@ -58,6 +59,7 @@ function find_order_pend_group(int $invoice_number, ?array $pend_params = null) 
     }
 
     $possible_pend_groups = [
+        'expected'        => pend_group_name($order_based),
         'refill'          => pend_group_refill($order_based),
         'webform'         => pend_group_webform($order_based),
         'new_patient'     => pend_group_new_patient($patient_based),
@@ -79,6 +81,13 @@ function find_order_pend_group(int $invoice_number, ?array $pend_params = null) 
             !empty($results)
             && @$results[0]['next'][0]['pended']
         ) {
+            GPLog::debug(
+                'Drugs pended under unexpected pend group',
+                [
+                    'expected' => $possible_pend_groups['expected'],
+                    'found_as' => $group
+                ]
+            );
             // This order has already been picked, we need to quit trying
             if (@$results[0]['next'][0]['picked']) {
                 GPLog::critical("We are trying to unpend a picked order: {$group}");
