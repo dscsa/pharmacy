@@ -15,6 +15,16 @@ function v2_unpend_order_by_invoice(int $invoice_number, ?array $pend_params = n
                 "succesfully unpended all items from {$pend_group}",
                 ['invoice_number' => $invoice_number]
             );
+
+            // Remove the Pendgroup record incase we need to pend i as a new group
+            $pend_group = new GoodPillPendGroup(
+                ['invoice_number' => $invoice_number]
+            );
+
+            if ($pend_group->loaded) {
+                $pend_group->delete();
+            }
+
             return true;
         }
 
@@ -81,13 +91,15 @@ function find_order_pend_group(int $invoice_number, ?array $pend_params = null) 
             !empty($results)
             && @$results[0]['next'][0]['pended']
         ) {
-            GPLog::debug(
-                'Drugs pended under unexpected pend group',
-                [
-                    'expected' => $possible_pend_groups['expected'],
-                    'found_as' => $group
-                ]
-            );
+            if ($type != 'expected') {
+                GPLog::debug(
+                    'Drugs pended under unexpected pend group',
+                    [
+                        'expected' => $possible_pend_groups['expected'],
+                        'found_as' => $group
+                    ]
+                );
+            }
             // This order has already been picked, we need to quit trying
             if (@$results[0]['next'][0]['picked']) {
                 GPLog::critical("We are trying to unpend a picked order: {$group}");
