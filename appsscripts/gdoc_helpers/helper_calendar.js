@@ -99,7 +99,13 @@ function searchCalendarEvents(opts) {
         console.error('ERROR searchCalendarEvents: cal_id or permission error', opts)
     }
 
-    var start = opts.start || new Date()
+
+    var start = new Date();
+
+    if (opts.start) {
+      start = new Date(opts.start);
+    }
+
     var stop = addHours(opts.hours, start) //stop date seems to be required by Google.  Everything should happen within 90 days
     var config = {
         search: opts.word_search

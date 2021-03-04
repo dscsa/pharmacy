@@ -3,13 +3,13 @@
 require_once 'helpers/helper_full_patient.php';
 require_once 'helpers/helper_try_catch_log.php';
 
-use Sirum\Logging\{
-    SirumLog,
+use GoodPill\Logging\{
+    GPLog,
     AuditLog,
     CliLog
 };
 
-use Sirum\Utilities\Timer;
+use GoodPill\Utilities\Timer;
 
 /**
  * Handle all the possible changes to Carepoint Patiemnts
@@ -19,34 +19,30 @@ use Sirum\Utilities\Timer;
  */
 function update_patients_cp(array $changes) : void
 {
-    SirumLog::notice('data-update-patients-cp', $changes);
 
-    $count_deleted = count($changes['deleted']);
-    $count_created = count($changes['created']);
-    $count_updated = count($changes['updated']);
+    // Make sure we have some data
+    $change_counts = [];
+    foreach (array_keys($changes) as $change_type) {
+        $change_counts[$change_type] = count($changes[$change_type]);
+    }
 
-    $msg = "$count_deleted deleted, $count_created created, $count_updated updated ";
+    if (array_sum($change_counts) == 0) {
+       return;
+    }
 
-    SirumLog::notice(
-        "update_patients_cp: all changes. {$msg}",
-        [
-            'deleted_count' => $count_deleted,
-            'created_count' => $count_created,
-            'updated_count' => $count_updated
-        ]
+    GPLog::info(
+        "update_patients_cp: changes",
+        $change_counts
     );
 
-    CliLog::notice($msg);
-
-    if ($count_deleted + $count_created + $count_updated == 0) {
-        return;
+    GPLog::notice('data-update-patients-cp', $changes);
+    if (isset($changes['updated'])) {
+        Timer::start('update.patients.cp.updated');
+        foreach ($changes['updated'] as $i => $updated) {
+            helper_try_catch_log('cp_patient_updated', $updated);
+        }
+        Timer::stop('update.patients.cp.updated');
     }
-
-    Timer::start('update.patients.cp.updated');
-    foreach ($changes['updated'] as $i => $updated) {
-        helper_try_catch_log('cp_patient_updated', $updated);
-    }
-    Timer::stop('update.patients.cp.updated');
 
 
     /*
@@ -72,12 +68,12 @@ function update_patients_cp(array $changes) : void
  */
 function cp_patient_updated(array $updated) : ?array
 {
-    SirumLog::$subroutine_id = "patients-cp-updated-".sha1(serialize($updated));
-    SirumLog::info("data-patients-cp-updated", ['updated' => $updated]);
+    GPLog::$subroutine_id = "patients-cp-updated-".sha1(serialize($updated));
+    GPLog::info("data-patients-cp-updated", ['updated' => $updated]);
 
     //Overrite Rx Messages everytime a new order created otherwis same
     //Omessage would stay for the life of the Rx
-    SirumLog::debug(
+    GPLog::debug(
         "update_patients_cp: Carepoint PATIENT Updated",
         [
              'Updated' => $updated,
@@ -103,7 +99,7 @@ function cp_patient_updated(array $updated) : ?array
 
         AuditLog::log($log_mesage, $updated);
 
-        SirumLog::notice(
+        GPLog::notice(
             "update_patient_cp patient_autofill changed.  Confirm correct updated rx_messages",
             [
                  'patient' => $patient,
@@ -115,7 +111,7 @@ function cp_patient_updated(array $updated) : ?array
     }
 
     if ($updated['refills_used'] == $updated['old_refills_used']) {
-        SirumLog::notice(
+        GPLog::notice(
             "Patient updated in CP",
             [
                  'updated' => $updated,
@@ -130,7 +126,7 @@ function cp_patient_updated(array $updated) : ?array
         //Phone deleted in CP so delete in WC
         $patient = find_patient($mysql, $updated)[0];
         AuditLog::log("Phone2 deleted for patient via CarePoint", $patient);
-        SirumLog::warning(
+        GPLog::warning(
             "Phone2 deleted in CP",
             [
                  'updated' => $updated,
@@ -145,7 +141,7 @@ function cp_patient_updated(array $updated) : ?array
         delete_cp_phone($mssql, $updated['patient_id_cp'], 9);
     } elseif ($updated['phone2'] !== $updated['old_phone2']) {
         $patient = find_patient($mysql, $updated)[0];
-        SirumLog::notice(
+        GPLog::notice(
             "Phone2 updated in CarePoint",
             [
                 'updated' => $updated,
@@ -159,7 +155,7 @@ function cp_patient_updated(array $updated) : ?array
     //  The primary phone number for the patient has changed
     if ($updated['phone1'] !== $updated['old_phone1']) {
         AuditLog::log("Phone1 changed for patient via CarePoint", $changed);
-        SirumLog::notice(
+        GPLog::notice(
             "Phone1 updated in CP. Was this handled correctly?",
             ['updated' => $updated]
         );
@@ -170,7 +166,7 @@ function cp_patient_updated(array $updated) : ?array
         $patient = find_patient($mysql, $updated)[0];
         AuditLog::log("Patient status changed to {$updated['patient_inactive']} via CarePoint", $patient);
         update_wc_patient_active_status($mysql, $updated['patient_id_wc'], $updated['patient_inactive']);
-        SirumLog::notice("CP Patient Inactive Status Changed", ['updated' => $updated]);
+        GPLog::notice("CP Patient Inactive Status Changed", ['updated' => $updated]);
     }
 
     if ($updated['payment_method_default'] != PAYMENT_METHOD['AUTOPAY']
@@ -184,7 +180,7 @@ function cp_patient_updated(array $updated) : ?array
          && $updated['payment_card_last4'] !== $updated['old_payment_card_last4']) {
         AuditLog::log("Patient has updated credit card details via CarePoint", $updated);
 
-        SirumLog::warning(
+        GPLog::warning(
             sprintf(
                 "update_patients_wc: updated card_last4.  Need to replace Card"
                 . "Last4 in Autopay Reminder %s %s >>> %s, %s >>> %s %s",
@@ -231,6 +227,6 @@ function cp_patient_updated(array $updated) : ?array
         }
     }
 
-    SirumLog::resetSubroutineId();
+    GPLog::resetSubroutineId();
     return $updated;
 }

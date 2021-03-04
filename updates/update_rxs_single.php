@@ -6,43 +6,36 @@ require_once 'exports/export_cp_rxs.php';
 require_once 'exports/export_gd_transfer_fax.php'; //is_will_transfer()
 require_once 'dbs/mysql_wc.php';
 
-use Sirum\Logging\{
-    SirumLog,
+use GoodPill\Logging\{
+    GPLog,
     AuditLog,
     CliLog
 };
-use Sirum\Utilities\Timer;
+use GoodPill\Utilities\Timer;
 
-use Sirum\DataModels\GoodPillRxSingle;
+use GoodPill\DataModels\GoodPillRxSingle;
 
 function update_rxs_single($changes)
 {
-    SirumLog::notice('data-update-rxs-single', $changes);
+    // Make sure we have some data
+    $change_counts = [];
+    foreach (array_keys($changes) as $change_type) {
+        $change_counts[$change_type] = count($changes[$change_type]);
+    }
 
-    $start = microtime(true);
-    $mysql = new Mysql_Wc();
-    $mssql = new Mssql_Cp();
+    if (array_sum($change_counts) == 0) {
+       return;
+    }
 
-    /* Now to do some work */
-    $count_deleted = count($changes['deleted']);
-    $count_created = count($changes['created']);
-    $count_updated = count($changes['updated']);
-
-    $msg = "$count_deleted deleted, $count_created created, $count_updated updated ";
-    echo $msg;
-
-    SirumLog::info(
-        "update_rxs_single: all changes. {$msg}",
-        [
-            'deleted_count' => $count_deleted,
-            'created_count' => $count_created,
-            'updated_count' => $count_updated
-        ]
+    GPLog::info(
+        "update_rxs_single: changes",
+        $change_counts
     );
 
-    if ( ! $count_deleted and ! $count_created and ! $count_updated) {
-      return;
-    }
+    GPLog::notice('data-update-rxs-single', $changes);
+
+    $mysql = new Mysql_Wc();
+    $mssql = new Mssql_Cp();
 
     /*
      * Created Loop #1 First loop accross new items. Run this before rx_grouped query to make
@@ -51,10 +44,10 @@ function update_rxs_single($changes)
     $loop_timer = microtime(true);
     foreach ($changes['created'] as $created) {
 
-        SirumLog::$subroutine_id = "rxs-single-created1-".sha1(serialize($created));
+        GPLog::$subroutine_id = "rxs-single-created1-".sha1(serialize($created));
 
         // Put the created into a log so if we need to we can reconstruct the process
-        SirumLog::info('data-rxs-single-created', ['created' => $created]);
+        GPLog::info('data-rxs-single-created', ['created' => $created]);
 
 
         $patient = getPatientByRx($created['rx_number']);
@@ -68,7 +61,7 @@ function update_rxs_single($changes)
             $patient
         );
 
-        SirumLog::debug(
+        GPLog::debug(
             "update_rxs_single: rx created1. Set denormalized data needed for the rxs_grouped table",
             [
                   'created' => $created,
@@ -86,7 +79,7 @@ function update_rxs_single($changes)
 
             $rx_single = new GoodPillRxSingle(['rx_number' => $created['rx_number']]);
             if (!$rx_single->loaded || !$rx_single->drug_gsns) {
-                SirumLog::notice(
+                GPLog::notice(
                     "update_rxs_single: rx created but drug_gsns is empty",
                     [ 'created'  => $created]
                 );
@@ -118,10 +111,10 @@ function update_rxs_single($changes)
             $event_title  = @$created['rx_number']." Missing GSN: {$salesforce['contact']} $created_date";
 
             $message_as_string = implode('_', $salesforce);
-            $notification = new \Sirum\Notifications\Salesforce(sha1($message_as_string), $message_as_string);
+            $notification = new \GoodPill\Notifications\Salesforce(sha1($message_as_string), $message_as_string);
 
             if (!$notification->isSent()) {
-                SirumLog::debug(
+                GPLog::debug(
                     $subject,
                     [
                         'created' => $created,
@@ -131,7 +124,7 @@ function update_rxs_single($changes)
 
                 create_event($event_title, [$salesforce]);
             } else {
-                SirumLog::warning(
+                GPLog::warning(
                     "DUPLICATE Saleforce Message".$subject,
                     [
                         'created' => $created,
@@ -161,7 +154,7 @@ function update_rxs_single($changes)
 
             create_event($event_title, [$salesforce]);
 
-            SirumLog::warning(
+            GPLog::warning(
                 $salesforce['body'],
                 [
                   'salesforce' => $salesforce,
@@ -189,7 +182,7 @@ function update_rxs_single($changes)
 
             create_event($event_title, [$salesforce]);
 
-            SirumLog::warning(
+            GPLog::warning(
                 $salesforce['body'],
                 [
                   'salesforce' => $salesforce,
@@ -202,7 +195,6 @@ function update_rxs_single($changes)
         //TODO Eventually Save the Clean Script back into Guardian so that Cindy doesn't need to rewrite them
         set_parsed_sig($created['rx_number'], $parsed, $mysql);
     }
-    log_timer('rx-singles-created1', $loop_timer, $count_created);
 
 
     /* Finish Loop Created Loop  #1 */
@@ -211,16 +203,16 @@ function update_rxs_single($changes)
     $loop_timer = microtime(true);
 
     foreach ($changes['updated'] as $updated) {
-      SirumLog::$subroutine_id = "rxs-single-updated1-".sha1(serialize($updated));
+      GPLog::$subroutine_id = "rxs-single-updated1-".sha1(serialize($updated));
 
       // Put the created into a log so if we need to we can reconstruct the process
-      SirumLog::info('data-rxs-single-updated', ['updated' => $updated]);
+      GPLog::info('data-rxs-single-updated', ['updated' => $updated]);
 
       $changed = changed_fields($updated);
 
       $patient = getPatientByRx($updated['rx_number']);
 
-      SirumLog::debug(
+      GPLog::debug(
           "update_rxs_single1: rx updated $updated[drug_name] $updated[rx_number]",
           [
               'updated' => $updated,
@@ -238,7 +230,7 @@ function update_rxs_single($changes)
 
       if ($updated['rx_gsn'] != $updated['old_rx_gsn']) {
 
-        SirumLog::warning(
+        GPLog::warning(
           "update_rxs_single1 rx_gsn updated (before rxs_grouped)",
           [
             'updated' => $updated,
@@ -278,10 +270,10 @@ function update_rxs_single($changes)
             $event_title = @$updated['rx_number']." Missing GSN: {$salesforce['contact']} $created_date";
 
             $message_as_string = implode('_', $salesforce);
-            $notification = new \Sirum\Notifications\Salesforce(sha1($message_as_string), $message_as_string);
+            $notification = new \GoodPill\Notifications\Salesforce(sha1($message_as_string), $message_as_string);
 
             if (!$notification->isSent()) {
-                SirumLog::debug(
+                GPLog::debug(
                     $subject,
                     [
                         'updated' => $updated,
@@ -291,7 +283,7 @@ function update_rxs_single($changes)
 
                 create_event($event_title, [$salesforce]);
             } else {
-                SirumLog::warning(
+                GPLog::warning(
                     "DUPLICATE Saleforce Message".$subject,
                     [
                         'updated' => $updated,
@@ -304,8 +296,6 @@ function update_rxs_single($changes)
         }
       }
     }
-
-    log_timer('rx-singles-updated1', $loop_timer, $count_updated);
 
     /*
      * This work is to create the perscription groups.
@@ -414,7 +404,7 @@ function update_rxs_single($changes)
     ")[0];
 
     if (isset($duplicate_gsns[0][0])) {
-      SirumLog::critical(
+      GPLog::critical(
         "update_rxs_single: duplicate gsns detected",
         ['duplicate_gsns' => $duplicate_gsns]
       );
@@ -431,11 +421,11 @@ function update_rxs_single($changes)
     $loop_timer = microtime(true);
     foreach ($changes['created'] as $created) {
 
-        SirumLog::$subroutine_id = "rxs-single-created2-".sha1(serialize($created));
+        GPLog::$subroutine_id = "rxs-single-created2-".sha1(serialize($created));
 
         $item = load_full_item($created, $mysql);
 
-        SirumLog::debug(
+        GPLog::debug(
             "update_rxs_single: rx created2",
             [
                 'created' => $created,
@@ -456,7 +446,6 @@ function update_rxs_single($changes)
             );
         }
     }
-    log_timer('rx-singles-created2', $loop_timer, $count_created);
 
     /* Finish Created Loop #2 */
 
@@ -469,7 +458,7 @@ function update_rxs_single($changes)
 
     foreach ($changes['updated'] as $updated) {
 
-        SirumLog::$subroutine_id = "rxs-single-updated2-".sha1(serialize($updated));
+        GPLog::$subroutine_id = "rxs-single-updated2-".sha1(serialize($updated));
 
         $changed = changed_fields($updated);
         $patient = getPatientByRx($updated['rx_number']);
@@ -492,7 +481,7 @@ function update_rxs_single($changes)
             $patient
         );
 
-        SirumLog::debug(
+        GPLog::debug(
             "update_rxs_single2: rx updated $updated[drug_name] $updated[rx_number]",
             [
                 'updated' => $updated,
@@ -510,7 +499,7 @@ function update_rxs_single($changes)
                 continue; //Don't log when a patient first registers
             }
 
-            SirumLog::debug(
+            GPLog::debug(
                 "update_rxs_single2: about to call export_cp_rx_autofill()",
                 [
                     'item'    => $item,
@@ -540,7 +529,7 @@ function update_rxs_single($changes)
                 $patient
             );
 
-            SirumLog::notice(
+            GPLog::notice(
                 "update_rxs_single2 rx_autofill changed.  Updating all Rx's with
                  same GSN to be on/off Autofill. Confirm correct updated rx_messages",
                 [
@@ -569,7 +558,7 @@ function update_rxs_single($changes)
 
         if ($updated['rx_gsn'] != $updated['old_rx_gsn']) {
 
-          SirumLog::warning(
+          GPLog::warning(
             "update_rxs_single2 rx_gsn updated (after rxs_grouped)",
             [
               'updated' => $updated,
@@ -596,7 +585,7 @@ function update_rxs_single($changes)
                 $patient
             );
 
-            SirumLog::warning(
+            GPLog::warning(
                 "update_rxs_single2 rx was transferred out.  Confirm correct is_will_transfer
                 updated rxs_single.rx_message_key. rxs_grouped.rx_message_keys
                 will be updated on next pass",
@@ -609,7 +598,6 @@ function update_rxs_single($changes)
             );
         }
     }
-    log_timer('rx-singles-updated2', $loop_timer, $count_updated);
 
     /**
      * All RX should have a rx_message set.  We are going to query the database
@@ -633,10 +621,10 @@ function update_rxs_single($changes)
 
     foreach ($rx_singles as $rx_single) {
 
-        SirumLog::$subroutine_id = "rxs-single-null-message-".sha1(serialize($rx_single));
+        GPLog::$subroutine_id = "rxs-single-null-message-".sha1(serialize($rx_single));
 
         //These should have been given an rx_message upon creation.  Why was it missing?
-        SirumLog::error(
+        GPLog::error(
             "rx had an empty message, so just set it.  Why was it missing?",
             [
               "patient_id_cp" => $rx_single['patient_id_cp'],
@@ -654,7 +642,7 @@ function update_rxs_single($changes)
     log_timer('rx-singles-empty-messages', $loop_timer, count($rx_singles));
     */
 
-    SirumLog::resetSubroutineId();
+    GPLog::resetSubroutineId();
 
   //TODO if new Rx arrives and there is an active order where that Rx is not included because of "ACTION NO REFILLS" or "ACTION RX EXPIRED" or the like, then we should rerun the helper_days_and_message on the order_item
 

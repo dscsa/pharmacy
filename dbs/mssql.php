@@ -119,7 +119,7 @@ class Mssql
 
     public function logError($error)
     {
-        SirumLog::alert("Debug MSSQL", print_r($error, true));
+        GPLog::alert("Debug MSSQL", print_r($error, true));
     }
 
     public function prepare($sql)

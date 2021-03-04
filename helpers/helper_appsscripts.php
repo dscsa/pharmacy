@@ -1,7 +1,7 @@
 <?php
 
-use Sirum\Logging\{
-    SirumLog,
+use GoodPill\Logging\{
+    GPLog,
     AuditLog,
     CliLog
 };
@@ -28,9 +28,36 @@ function gdoc_details($fileId)
         $fileId
     );
 
-    $results = json_decode(file_get_contents($url, false, $context));
+    for ($try = 1; $try <=3; $try++) {
+        $results = @file_get_contents($url, false, $context);
 
-    return $results;
+        // We have some results so let's leave
+        if ($results !== false && !empty($results)) {
+            GPLog::debug(
+                'Google Doc Request Success:',
+                [
+                    'url'  => $url,
+                    'results' => $results,
+                    'try' => $try
+                ]
+            );
+            break;
+        }
+
+        GPLog::error(
+            'Google Doc Request Failed:',
+            [
+                'url'     => $url,
+                'try'     => $try,
+                'results' => $results
+            ]
+        );
+
+        // Exponetial sleep
+        usleep((300 - ($try * 50)) * pow(3, $try));
+    }
+
+    return json_decode($results);
 }
 
 /**
@@ -63,13 +90,12 @@ function gdoc_post($url, $content)
 
     $context = stream_context_create($opts);
 
-
     for ($try = 1; $try <=3; $try++) {
         $results = @file_get_contents($url.'?GD_KEY='.GD_KEY, false, $context);
 
         // We have some results so let's leave
         if ($results !== false && !empty($results)) {
-            SirumLog::debug(
+            GPLog::debug(
                 'Google Doc Request Success:',
                 [
                     'data' => json_decode($json),
@@ -81,9 +107,7 @@ function gdoc_post($url, $content)
             break;
         }
 
-        echo "failed $try\n";
-
-        SirumLog::error(
+        GPLog::error(
             'Google Doc Request Failed:',
             [
                 'data'    => json_decode($json),

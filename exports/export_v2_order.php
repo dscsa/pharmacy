@@ -1,17 +1,16 @@
 <?php
 
-use \Sirum\DataModels\GoodPillOrder;
-use \Sirum\Logging\SirumLog;
+use \GoodPill\DataModels\GoodPillOrder;
+use \GoodPill\Logging\GPLog;
 
 function v2_unpend_order_by_invoice(int $invoice_number, ?array $pend_params = null) : bool
 {
-    SirumLog::debug("Unpending entire order via V2 {$invoice_number}");
+
+    GPLog::debug("Unpending entire order via V2 {$invoice_number}", ['invoice_number' => $invoice_number]);
     while ($pend_group = find_order_pend_group($invoice_number, $pend_params)) { // Keep doing until we can't find a pended item
-        SirumLog::debug($pend_group);
-        SirumLog::debug("/account/8889875187/pend/{$pend_group}");
         $loop_count = (isset($loop_count) ? ++$loop_count : 1);
         if ($results = v2_fetch("/account/8889875187/pend/{$pend_group}", 'DELETE')) {
-            SirumLog::info(
+            GPLog::info(
                 "succesfully unpended all items from {$pend_group}",
                 ['invoice_number' => $invoice_number]
             );
@@ -22,7 +21,7 @@ function v2_unpend_order_by_invoice(int $invoice_number, ?array $pend_params = n
             return false;
         }
     }
-    SirumLog::debug("No drugs pended under order #{$invoice_number}");
+    GPLog::debug("No drugs pended under order #{$invoice_number}", ['invoice_number' => $invoice_number]);
     return false;
 }
 
@@ -66,6 +65,13 @@ function find_order_pend_group(int $invoice_number, ?array $pend_params = null) 
         'manual'          => pend_group_manual($order_based)
     ];
 
+    GPLog::debug(
+        "Trying to find Pended Rx for #{$invoice_number}",
+        [
+            'invoice_number' => $invoice_number,
+            'pend_groups'    => $possible_pend_groups
+        ]
+    );
     foreach ($possible_pend_groups as $type => $group) {
         $pend_url = "/account/8889875187/pend/{$group}";
         $results  = v2_fetch($pend_url, 'GET');
@@ -75,13 +81,24 @@ function find_order_pend_group(int $invoice_number, ?array $pend_params = null) 
         ) {
             // This order has already been picked, we need to quit trying
             if (@$results[0]['next'][0]['picked']) {
-                SirumLog::alert("We are trying to unpend a picked order: {$group}");
+                GPLog::critical("We are trying to unpend a picked order: {$group}");
                 return null;
             }
-
+            GPLog::debug(
+                "Pend Group with pended RX found for #{$invoice_nuber}",
+                [
+                    'invoice_number'   => $invoice_number,
+                    'valid_pend_group' => $group
+                ]
+            );
             return $group;
         }
     }
-
+    GPLog::debug(
+        "NO Pend Group found with pended RX found for #{$invoice_number}",
+        [
+            'invoice_number'   => $invoice_number
+        ]
+    );
     return null;
 }

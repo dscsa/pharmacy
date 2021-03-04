@@ -54,7 +54,7 @@ if ($start > $end) {
 
 echo "Checking dispensed invoices between {$start} and {$end}\n";
 
-$mysql = Sirum\Storage\Goodpill::getConnection();
+$mysql = GoodPill\Storage\Goodpill::getConnection();
 $pdo   = $mysql->prepare(
     "SELECT invoice_number, order_date_dispensed, invoice_doc_id
         FROM gp_orders
@@ -66,37 +66,40 @@ $pdo->bindParam(':oldest', $start, \PDO::PARAM_STR);
 $pdo->bindParam(':newest', $end, \PDO::PARAM_STR);
 $pdo->execute();
 
-$opts = [
-    'http' => [
-      'method'  => 'GET',
-      'header'  => "Accept: application/json\r\n"
-    ]
-];
-
-$context  = stream_context_create($opts);
-$base_url = "https://script.google.com/macros/s/AKfycbwL2Ct6grT3cCgaw27GrUSzznur"
-            . "9W9xhDgs-YoZvqeepZjWYjR9/exec?GD_KEY=Patients1st!";
-
 $printed = [];
 $failed  = [];
 
 while ($invoice = $pdo->fetch()) {
     if ($invoice['invoice_doc_id']) {
-        $url      = $base_url . '&fileId=' . $invoice['invoice_doc_id'];
-        $results  = json_decode(file_get_contents($url, false, $context));
-        if ($results->parent->name != 'Printed') {
+        $results  = gdoc_details($invoice['invoice_doc_id']);
+        if (isset($results->parent) && $results->parent->name != 'Printed') {
             $failed[$invoice['invoice_number']] = [
                 'dispensed' => $invoice['order_date_dispensed'],
                 'trashed' => (bool) $results->trashed
             ];
+            printf(
+                "Invoice %s FAILED to move to print.  It was dispensed on %s and isTrashed = %s\n",
+                $invoice['invoice_number'],
+                $invoice['order_date_dispensed'],
+                (bool) $results->trashed
+            );
         } elseif (isset($args['v'])) {
             $printed[] = $invoice['invoice_number'];
+            printf(
+                "Invoice %s printed Successfully.\n",
+                $invoice['invoice_number']
+            );
         }
     } else {
         $failed[$invoice['invoice_number']] = [
             'dispensed' => $invoice['order_date_dispensed'],
             'doc_id' => (bool) $invoice['invoice_doc_id']
         ];
+        printf(
+            "Invoice %s FAILED was dispensed %s but never created or the database wasn't updated\n",
+            $invoice['invoice_number'],
+            $invoice['order_date_dispensed']
+        );
     }
 }
 
@@ -106,19 +109,10 @@ if (!isset($args['n']) && count($failed) > 0) {
 
 if (isset($args['q'])) {
     echo implode(',', array_keys($failed));
-} else {
-    if (count($printed) > 0 && isset($args['v'])) {
-        echo "The following invoices printed successfully\n" . implode(',', $printed) . "\n";
-    }
-
-    if (count($failed) > 0) {
-        echo "The following invoices FAILED to print\n" . implode(',', array_keys($failed)) . "\n";
-    }
 }
 
 if (isset($args['r'])) {
     echo "Reprinting failed invoices: ";
     $command = "php invoice_tool.php -up -m " . implode(',', array_keys($failed));
-    echo $command . "\n";
-    shell_exec($command);
+    echo shell_exec($command);
 }

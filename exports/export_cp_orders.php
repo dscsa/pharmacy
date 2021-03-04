@@ -4,8 +4,8 @@ global $mssql;
 
 require_once 'exports/export_cp_order_items.php';
 
-use Sirum\Logging\{
-    SirumLog,
+use GoodPill\Logging\{
+    GPLog,
     AuditLog,
     CliLog
 };
@@ -13,19 +13,33 @@ use Sirum\Logging\{
 function export_cp_set_expected_by($item) {
 
   global $mssql;
-  $mssql = $mssql ?: new Mssql_Cp();
 
+  // this should happen if it does, throw an error and return.
+  if (empty($item['invoice_number'])) {
+      GPLog::critical(
+          'Trying to update CP Expected date, but missing invoice_nbr',
+          [ 'item' => $item ]
+      );
+      return;
+  }
+
+  $mssql           = $mssql ?: new Mssql_Cp();
   $pend_group_name = pend_group_name($item);
 
-  //Last part of order_date_added isn't "necessary" but CP doesn't display full timestamp in "date order added" field
-  //in the F9 queue.  If you know about this trick, you can find the timestamp in the expected by date.
+  /*
+
+    Last part of order_date_added isn't "necessary" but CP doesn't display full
+    timestamp in "date order added" field /in the F9 queue.  If you know about
+    this trick, you can find the timestamp in the expected by date.
+
+   */
   $expected_by = substr($pend_group_name, 0, 10).' '. substr($item['order_date_added'], -8);
 
-  $sql = "
-    UPDATE csom SET expected_by = '$expected_by' WHERE invoice_nbr = $item[invoice_number]
-  ";
+  $sql = "UPDATE csom
+            SET expected_by = '{$expected_by}'
+             WHERE invoice_nbr = {$item['invoice_number']}";
 
-  SirumLog::notice(
+  GPLog::notice(
     "export_cp_set_expected_by: pend group name $pend_group_name $item[invoice_number]",
     [
       'expected_by'     => $expected_by,
@@ -43,7 +57,7 @@ function export_cp_remove_order($invoice_number, $reason) {
   global $mssql;
   $mssql = $mssql ?: new Mssql_Cp();
 
-  SirumLog::notice(
+  GPLog::notice(
     "export_cp_remove_order: Order deleting $invoice_number",
     [
       'invoice_number'  => $invoice_number,
@@ -64,7 +78,7 @@ function export_cp_remove_order($invoice_number, $reason) {
     $date = date('y-m-d H:i');
     export_cp_append_order_note($mssql, $invoice_number, "Auto Deleted $date. $reason");
 
-    SirumLog::notice(
+    GPLog::notice(
       "export_cp_remove_order: Order $invoice_number was deleted",
       [
         'invoice_number'  => $invoice_number,
@@ -77,7 +91,7 @@ function export_cp_remove_order($invoice_number, $reason) {
 
   } else {
 
-    SirumLog::critical(
+    GPLog::critical(
       "export_cp_remove_order: Order $invoice_number had dispensed items and could only be partially deleted",
       [
         'invoice_number'  => $invoice_number,
@@ -97,7 +111,7 @@ function export_cp_append_order_note($mssql, $invoice_number, $note) {
 
     $res = $mssql->run($sql);
 
-    SirumLog::notice(
+    GPLog::notice(
       "export_cp_append_order_note: Order $invoice_number had note appended: $note",
       [
         'invoice_number'  => $invoice_number,
@@ -138,7 +152,7 @@ function export_cp_merge_orders($from_invoice_number, $to_invoice_number) {
 
     $res = $mssql->run($sql);
 
-    SirumLog::notice(
+    GPLog::notice(
       "export_cp_merge_orders: merging $from_invoice_number into $to_invoice_number",
       [
         'from_invoice_number' => $from_invoice_number,

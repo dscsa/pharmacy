@@ -2,8 +2,8 @@
 
 require_once 'exports/export_gd_transfer_fax.php';
 
-use Sirum\Logging\{
-    SirumLog,
+use GoodPill\Logging\{
+    GPLog,
     AuditLog,
     CliLog
 };
@@ -17,7 +17,7 @@ function sync_to_order_new_rx($item, $patient_or_order) {
   $has_refills  = ($item['refills_total'] > NO_REFILL);
   $eligible     = ($has_refills AND $item['rx_autofill'] AND ! $not_offered AND ! $refill_only AND ! $item['refill_date_next']);
 
-  SirumLog::debug(
+  GPLog::debug(
       "sync_to_order_new_rx: $item[invoice_number] $item[drug_generic] ".($eligible ? 'Syncing' : 'Not Syncing'),
       [
           'invoice_number' => $patient_or_order[0]['invoice_number'],
@@ -36,7 +36,7 @@ function sync_to_order_past_due($item, $patient_or_order) {
 
   $eligible = ($has_refills AND $item['refill_date_next'] AND (strtotime($item['refill_date_next']) - strtotime($item['order_date_added'])) < 0);
 
-  SirumLog::debug(
+  GPLog::debug(
     "sync_to_order_past_due: $item[invoice_number] $item[drug_generic] ".($eligible ? 'Syncing' : 'Not Syncing'),
     [
       'invoice_number' => $patient_or_order[0]['invoice_number'],
@@ -57,7 +57,7 @@ function sync_to_order_no_next($item, $patient_or_order) {
 
   $eligible = ($has_refills AND $is_refill AND ! $item['refill_date_next']);
 
-  SirumLog::debug(
+  GPLog::debug(
       "sync_to_order_no_next: $item[invoice_number] $item[drug_generic] ".($eligible ? 'Syncing' : 'Not Syncing'),
       [
           'invoice_number' => $patient_or_order[0]['invoice_number'],
@@ -76,7 +76,7 @@ function sync_to_order_due_soon($item, $patient_or_order) {
 
   $eligible = ($has_refills AND $item['refill_date_next'] AND (strtotime($item['refill_date_next'])  - strtotime($item['order_date_added'])) <= DAYS_EARLY*24*60*60);
 
-  SirumLog::debug(
+  GPLog::debug(
       "sync_to_order_due_soon: $item[invoice_number] $item[drug_generic] ".($eligible ? 'Syncing' : 'Not Syncing'),
       [
           'invoice_number' => $patient_or_order[0]['invoice_number'],

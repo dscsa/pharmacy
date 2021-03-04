@@ -6,17 +6,30 @@ require_once 'helpers/helper_appsscripts.php';
 require_once 'helpers/helper_log.php';
 require_once 'keys.php';
 
-use Sirum\AWS\SQS\{
+use GoodPill\AWS\SQS\{
     GoogleAppRequest\BaseRequest,
     GoogleAppRequest\HelperRequest,
+    GoogleAppRequest\MergeRequest,
     GoogleAppQueue
 };
 
-use Sirum\Logging\{
-    SirumLog,
+use GoodPill\Logging\{
+    GPLog,
     AuditLog,
     CliLog
 };
+
+/* Logic to give us a way to figure out if we should quit working */
+$stopRequested = false;
+
+pcntl_signal(
+    SIGTERM,
+    function ($signo, $signinfo) {
+        global $stopRequested, $log;
+        $stopRequested = true;
+        CliLog::warning("SIGTERM caught");
+    }
+);
 
 // Grab and item out of the queue
 $gdq = new GoogleAppQueue();
@@ -33,15 +46,14 @@ for ($l = 0; $l < $executions; $l++) {
     // been proccessed and can be deleted
     // If we've got something to work with, go for it
     if (is_array($messages) && count($messages) > 0) {
-
         $log_message = sprintf(
             "[%s] Processing %s messages\n",
             date('Y-m-d h:m:s'),
             count($messages)
         );
 
-        SirumLog::debug($log_message);
-        echo $log_message;
+        GPLog::debug($log_message);
+        CliLog::debug($log_message);
 
         foreach ($messages as $message) {
             $request = BaseRequest::factory($message);
@@ -68,8 +80,16 @@ for ($l = 0; $l < $executions; $l++) {
                 $log_message .= "FAILED - Message: {$request->error}";
             }
 
-            SirumLog::debug($log_message);
-            echo $log_message . "\n";
+            GPLog::debug($log_message);
+            CliLog::notice($log_message);
+
+            /* Check to see if we've requeted to stop */
+            pcntl_signal_dispatch();
+
+            if ($stopRequested) {
+                CLiLog::warning('Finishing current Message then terminating');
+                break;
+            }
         }
     }
 
@@ -81,8 +101,8 @@ for ($l = 0; $l < $executions; $l++) {
             count($complete)
         );
 
-        SirumLog::debug($log_message);
-        echo $log_message . "\n";
+        GPLog::debug($log_message);
+        CliLog::notice($log_message);
 
         $gdq->deleteBatch($complete);
     }
@@ -90,4 +110,9 @@ for ($l = 0; $l < $executions; $l++) {
     unset($response);
     unset($messages);
     unset($complete);
+
+    if ($stopRequested) {
+        CLiLog::warning('Terminating execution from SIGTERM request');
+        exit;
+    }
 }

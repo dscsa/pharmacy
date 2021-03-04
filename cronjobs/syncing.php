@@ -14,12 +14,15 @@ $start_time = microtime(true);
 
 require_once 'vendor/autoload.php';
 require_once 'helpers/helper_error_handler.php';
+require_once 'helpers/helper_sqs.php';
 
-use Sirum\Logging\SirumLog;
-use Sirum\Logging\AuditLog;
-use Sirum\Logging\CliLog;
+use GoodPill\Logging\GPLog;
+use GoodPill\Logging\AuditLog;
+use GoodPill\Logging\CliLog;
 
-use Sirum\Utilities\Timer;
+use GoodPill\Utilities\Timer;
+use GoodPill\AWS\SQS\PharmacySyncQueue;
+use GoodPill\AWS\SQS\PharmacySyncRequest;
 
 /*
   General Requires
@@ -38,10 +41,9 @@ require_once 'helpers/helper_cp_test.php';
 
 if (!cp_test()) {
     $message = '** Could not connect to Carepoint **';
-    echo "{$message}\n";
-    SirumLog::alert($message);
+    GPLog::alert($message);
     CliLog::alert($message);
-    SirumLog::getLogger()->flush();
+    GPLog::getLogger()->flush();
     exit;
 }
 
@@ -98,13 +100,12 @@ $global_exec_details = ['start' => date('c')];
 $f = fopen('/tmp/pharmacy.lock', 'w') or log_error('Webform Cron Job Cannot Create Lock File');
 
 if (!flock($f, LOCK_EX | LOCK_NB)) {
-    $still_running = "\n*** Warning Webform Cron Job Because Previous One Is Still Running ***\n\n";
-    echo $still_running;
-    SirumLog::notice($still_running, $global_exec_details);
+    $still_running = "***** Warning Webform Cron Job Because Previous One Is Still Running *****";
+    GPLog::notice($still_running, $global_exec_details);
     CliLog::notice($still_running);
 
     // Push any lagging logs to google Cloud
-    SirumLog::getLogger()->flush();
+    GPLog::getLogger()->flush();
 
     exit;
 }
@@ -122,7 +123,7 @@ try {
     $global_exec_details['timers_gd']    = [];
     $global_exec_details['timers_loops'] = [];
 
-    CliLog::info("Starting syncing.php. Importing data from sources:");
+    CliLog::info("***** Starting syncing.php. Importing data from sources. *****");
 
     /**
      * Import Orders from WooCommerce (an actual shippment) and store it in
@@ -135,10 +136,10 @@ try {
      */
     CliLog::info("Start importing WooCommerce orders");
     CliLog::info("Import WC Orders started");
-    Timer::start("Import WC Orders");
+    Timer::start("import.orders.wc");
     import_wc_orders();
-    Timer::stop("Import WC Orders");
-    CliLog::info("Completed in " . Timer::read('Import WC Orders', Timer::FORMAT_HUMAN));
+    Timer::stop("import.orders.wc");
+    CliLog::info("Completed in " . Timer::read('import.orders.wc', Timer::FORMAT_HUMAN));
 
 
     /**
@@ -150,10 +151,10 @@ try {
      *      without a matching cp_order
      */
     CliLog::info("Import CP Orders started");
-    Timer::start("Import CP Orders");
+    Timer::start("import.order.cp");
     import_cp_orders(); //
-    Timer::stop("Import CP Orders");
-    CliLog::info("Completed in " . Timer::read('Import CP Orders', Timer::FORMAT_HUMAN));
+    Timer::stop("import.order.cp");
+    CliLog::info("Completed in " . Timer::read('import.order.cp', Timer::FORMAT_HUMAN));
 
     /**
      * Pull all the ordered items(perscribed medication) from CarePoint
@@ -165,10 +166,10 @@ try {
      *      matching order_item
      */
     CliLog::info("Import CP Order Items started");
-    Timer::start("Import CP Order Items");
+    Timer::start("import.order_items.cp");
     import_cp_order_items(); //
-    Timer::stop("Import CP Order Items");
-    CliLog::info("Completed in " . Timer::read('Import CP Order Items', Timer::FORMAT_HUMAN));
+    Timer::stop("import.order_items.cp");
+    CliLog::info("Completed in " . Timer::read('import.order_items.cp', Timer::FORMAT_HUMAN));
 
     /**
      *
@@ -179,10 +180,10 @@ try {
      * NOTE Put this after orders so that we never have an order without a matching patient
      */
     CliLog::info("Import CP Patients started");
-    Timer::start("Import CP Patients");
+    Timer::start("import.patients.cp");
     import_cp_patients();
-    Timer::stop("Import CP Patients");
-    CliLog::info("Completed in " . Timer::read('Import CP Patients', Timer::FORMAT_HUMAN));
+    Timer::stop("import.patients.cp");
+    CliLog::info("Completed in " . Timer::read('import.patients.cp', Timer::FORMAT_HUMAN));
 
     /**
      * Pull all the patiens/users out of woocommerce and put them into the mysql tables
@@ -197,10 +198,10 @@ try {
      *      first, so that out wc_patient created feed does not give false positives
      */
     CliLog::info("Import WC Patients started");
-    Timer::start("Import WC Patients");
+    Timer::start("import.patients.wc");
     import_wc_patients();
-    Timer::stop("Import WC Patients");
-    CliLog::info("Completed in " . Timer::read('Import WC Patients', Timer::FORMAT_HUMAN));
+    Timer::stop("import.patients.wc");
+    CliLog::info("Completed in " . Timer::read('import.patients.wc', Timer::FORMAT_HUMAN));
 
     /**
      * Get the RX details out of CarePoint and put into the mysql table
@@ -211,10 +212,10 @@ try {
      *  a matching rx
      */
     CliLog::info("Import Rxs Single started");
-    Timer::start("Import Rxs Single");
+    Timer::start("import.rxs_single");
     import_cp_rxs_single();
-    Timer::stop("Import Rxs Single");
-    CliLog::info("Completed in " . Timer::read('Import Rxs Single', Timer::FORMAT_HUMAN));
+    Timer::stop("import.rxs_single");
+    CliLog::info("Completed in " . Timer::read('import.rxs_single', Timer::FORMAT_HUMAN));
 
     /**
      * Import stock levels for this month and the 2 previous months.  Store this in
@@ -224,10 +225,10 @@ try {
      * NOTE Put this after rxs so that we never have a rxs without a matching stock level
      */
     CliLog::info("Import v2 Stock by Month started");
-    Timer::start("Import v2 Stock by Month");
+    Timer::start("import.v2.stock");
     import_v2_stock_by_month();
-    Timer::stop("Import v2 Stock by Month");
-    CliLog::info("Completed in " . Timer::read('Import v2 Stock by Month', Timer::FORMAT_HUMAN));
+    Timer::stop("import.v2.stock");
+    CliLog::info("Completed in " . Timer::read('import.v2.stock', Timer::FORMAT_HUMAN));
 
     /**
      * Get all the possible drugs from v2 and put them into
@@ -242,7 +243,7 @@ try {
     Timer::stop("import.v2.drugs");
     CliLog::info("Completed in " . Timer::read('import.v2.drugs', Timer::FORMAT_HUMAN));
 
-    echo "\nAll Data Imported. Starting Change Detection:\n";
+    CliLog::notice("***** All Data Imported. Starting Change Detection: *****");
     /*
       Now we will update tables to new data and determine change feeds
      */
@@ -295,7 +296,7 @@ try {
     Timer::stop("changes.orders.wc");
     CliLog::info("Completed in " . Timer::read('changes.orders.wc', Timer::FORMAT_HUMAN));
 
-    echo "\nAll Changes Detected & Tables Updated. Starting Updates:\n";
+    CliLog::notice("***** All Changes Detected & Tables Updated. Starting Updates *****");
     /*
      Now we will to trigger side effects based on changes
     */
@@ -306,88 +307,153 @@ try {
     //so until we get everything faster it's worth the risk
     flock($f, LOCK_UN | LOCK_NB);
 
-    /**
-     * Retrieve all the drugs and CRUD the changes from v2 to the gp database
-     *
-     * NOTE Updates (Mirror Ordering of the above - not sure how necessary this is)
+    /*
+        WARNING - Order of operations is important.
+        Do not change the order things are queued
+        Wrap these in a try catch so they don't break anything
      */
-    CliLog::info("Update Drugs started");
-    Timer::start("update.drugs");
-    update_drugs($changes_to_drugs);
-    Timer::stop("update.drugs");
-    CliLog::info("Completed in " . Timer::read('update.drugs', Timer::FORMAT_HUMAN));
+    Timer::start("queue.changes");
+    try {
+        $changes_sqs_messages = [];
 
-    /**
-     * Bring in the inventory and put it into the live stock table
-     * then update the monthly stock table with those metrics
-     *
-     * TABLE gp_stock_live
-     * TABLE gp_stock_by_month
-     *
-     */
-    CliLog::info("Update Stock by Month started");
-    Timer::start("update.stock.month");
-    update_stock_by_month($changes_to_stock_by_month);
-    Timer::stop("update.stock.month");
-    CliLog::info("Completed in " . Timer::read('update.stock.month', Timer::FORMAT_HUMAN));
-    /**
-     * [update_rxs_single description]
-     * @var [type]
-     */
+        if ($has_changes = get_sync_request('drugs', ['created'], $changes_to_drugs)) {
+            $changes_sqs_messages[] = $has_changes;
+        } else {
+            CliLog::notice('Nothing to Queue drugs.created');
+        }
 
-    CliLog::info("Update CP Patients started");
-    Timer::start("update.patients.cp");
-    update_patients_cp($changes_to_patients_cp);
-    Timer::stop("update.patients.cp");
-    CliLog::info("Completed in " . Timer::read('update.patients.cp', Timer::FORMAT_HUMAN));
+        if ($has_changes = get_sync_request('drugs', ['deleted'], $changes_to_drugs)) {
+            $changes_sqs_messages[] = $has_changes;
+        } else {
+            CliLog::notice('Nothing to Queue drugs.deleted');
+        }
 
-    CliLog::info("Update WC Patients started");
-    Timer::start("update.patients.wc");
-    update_patients_wc($changes_to_patients_wc);
-    Timer::stop("update.patients.wc");
-    CliLog::info("Completed in " . Timer::read('update.patients.wc', Timer::FORMAT_HUMAN));
+        if ($has_changes = get_sync_request('stock_by_month', ['created', 'deleted', 'updated'], $changes_to_stock_by_month)) {
+            $changes_sqs_messages[] = $has_changes;
+        } else {
+            CliLog::notice('Nothing to Queue stock_by_month.all');
+        }
 
-    //Run before cp-order and order-items to make sure that rx-grouped is upto date when doing load_full_order/item
-    CliLog::info("Update Rxs Single started");
-    Timer::start("update.rxs");
-    update_rxs_single($changes_to_rxs_single);
-    Timer::stop("update.rxs");
-    CliLog::info("Completed in " . Timer::read('update.rxs', Timer::FORMAT_HUMAN));
+        if ($has_changes = get_sync_request('patients_cp', ['updated'], $changes_to_patients_cp)) {
+            $changes_sqs_messages[] = $has_changes;
+        } else {
+            CliLog::notice('Nothing to Queue patients_cp.updated');
+        }
 
-    CliLog::info("Update CP Orders started");
-    Timer::start("update.patients.cp");
-    update_orders_cp($changes_to_orders_cp);
-    Timer::stop("update.patients.cp");
-    CliLog::info("Completed in " . Timer::read('update.patients.cp', Timer::FORMAT_HUMAN));
+        if ($has_changes = get_sync_request('patients_wc', ['created'], $changes_to_patients_wc)) {
+            $changes_sqs_messages[] = $has_changes;
+        } else {
+            CliLog::notice('Nothing to Queue patients_wc.created');
+        }
+        if ($has_changes = get_sync_request('patients_wc', ['deleted'], $changes_to_patients_wc)) {
+            $changes_sqs_messages[] = $has_changes;
+        } else {
+            CliLog::notice('Nothing to Queue patients_wc.deleted');
+        }
+        if ($has_changes = get_sync_request('patients_wc', ['updated'], $changes_to_patients_wc)) {
+            $changes_sqs_messages[] = $has_changes;
+        } else {
+            CliLog::notice('Nothing to Queue patients_wc.updated');
+        }
 
-    CliLog::info("Update WC Orders started");
-    Timer::start("update.orders.wc");
-    update_orders_wc($changes_to_orders_wc);
-    Timer::stop("update.orders.wc");
-    CliLog::info("Completed in " . Timer::read('update.orders.wc', Timer::FORMAT_HUMAN));
 
-    //Run this after orders-cp loop so that we can sync items to the order and remove duplicate GSNs first,
-    //rather than doing stuff in this loop that we undo in the orders-cp loop
-    CliLog::info("Update Order Items started");
-    Timer::start("update.order.items");
-    update_order_items($changes_to_order_items);
-    Timer::stop("update.order.items");
-    CliLog::info("Completed in " . Timer::read('update.order.items', Timer::FORMAT_HUMAN));
 
-    echo "Watch Invoices ";
-    Timer::start('Watch Invoices');
+        if ($has_changes = get_sync_request('rxs_single', ['created', 'updated'], $changes_to_rxs_single)) {
+            $changes_sqs_messages[] = $has_changes;
+        } else {
+            CliLog::notice('Nothing to Queue rxs_single.create/updated');
+        }
+        if ($has_changes = get_sync_request('rxs_single', ['deleted'], $changes_to_rxs_single)) {
+            $changes_sqs_messages[] = $has_changes;
+        } else {
+            CliLog::notice('Nothing to Queue rxs_single.deleted');
+        }
+
+
+        if ($has_changes = get_sync_request('orders_cp', ['created'], $changes_to_orders_cp)) {
+            $changes_sqs_messages[] = $has_changes;
+        } else {
+            CliLog::notice('Nothing to Queue orders_cp.created');
+        }
+        if ($has_changes = get_sync_request('orders_cp', ['deleted'], $changes_to_orders_cp)) {
+            $changes_sqs_messages[] = $has_changes;
+        } else {
+            CliLog::notice('Nothing to Queue orders_cp.deleted');
+        }
+        if ($has_changes = get_sync_request('orders_cp', ['updated'], $changes_to_orders_cp)) {
+            $changes_sqs_messages[] = $has_changes;
+        } else {
+            CliLog::notice('Nothing to Queue orders_cp.updated');
+        }
+
+
+        // Orders WC
+        if ($has_changes = get_sync_request('orders_wc', ['created'], $changes_to_orders_wc)) {
+            $changes_sqs_messages[] = $has_changes;
+        } else {
+            CliLog::notice('Nothing to Queue orders_wc.created');
+        }
+        if ($has_changes = get_sync_request('orders_wc', ['deleted'], $changes_to_orders_wc)) {
+            $changes_sqs_messages[] = $has_changes;
+        } else {
+            CliLog::notice('Nothing to Queue orders_wc.deleted');
+        }
+        if ($has_changes = get_sync_request('orders_wc', ['updated'], $changes_to_orders_wc)) {
+            $changes_sqs_messages[] = $has_changes;
+        } else {
+            CliLog::notice('Nothing to Queue orders_wc.updated');
+        }
+
+
+        // Orders WC
+        if ($has_changes = get_sync_request('order_items', ['created'], $changes_to_order_items)) {
+            $changes_sqs_messages[] = $has_changes;
+        } else {
+            CliLog::notice('Nothing to Queue order_items.created');
+        }
+
+        if ($has_changes = get_sync_request('order_items', ['deleted'], $changes_to_order_items)) {
+            $changes_sqs_messages[] = $has_changes;
+        } else {
+            CliLog::notice('Nothing to Queue order_items.deleted');
+        }
+
+        if ($has_changes = get_sync_request('order_items', ['updated'], $changes_to_order_items)) {
+            $changes_sqs_messages[] = $has_changes;
+        } else {
+            CliLog::notice('Nothing to Queue order_items.updated');
+        }
+
+        if (count($changes_sqs_messages) > 0) {
+            $changeq = new PharmacySyncQueue();
+            $changeq->sendBatch($changes_sqs_messages);
+        } else {
+            CliLog::warning('No changes to Queue');
+        }
+    } catch (\Exception $e) {
+        $message = "Pharmacy App - Exception caught while Queueing items ";
+        $message .= $e->getCode() . " " . $e->getMessage() ." ";
+        $message .= $e->getFile() . ":" . $e->getLine() . "\n";
+        $message .= $e->getTraceAsString();
+        CliLog::critical($message);
+        GPLog::critical($message);
+    }
+
+    CliLog::debug("Queued ". count($changes_sqs_messages) . "messages");
+    Timer::stop("queue.changes");
+    CliLog::info("Completed in " . Timer::read('queue.changes', Timer::FORMAT_HUMAN));
+
+    CliLog::info("Watch Invoices");
+    Timer::start('invoices.watch');
     watch_invoices();
-    Timer::stop('Watch Invoices');
-    CliLog::info("Completed in " . Timer::read('Watch Invoices', Timer::FORMAT_HUMAN));
+    Timer::stop('invoices.watch');
+    CliLog::info("Completed in " . Timer::read('invoices.watch', Timer::FORMAT_HUMAN));
 
-
-    $global_exec_details['timers']['total']      = array_sum($global_exec_details['timers']);
-    $global_exec_details['timers_gd']['total']   = array_sum($global_exec_details['timers_gd']);
-    $global_exec_details['timers_gd']['merge']   = $gd_merge_timers;
+    $global_exec_details['timers']['total']      = ceil(microtime(true) - $start_time);
     $global_exec_details['end']                  = date('c');
 
     $exec_message = sprintf(
-        "Pharmacy Automation Complete in %s seconds starting at %s",
+        "***** Pharmacy Automation Complete in %s seconds starting at %s *****",
         $global_exec_details['timers']['total'],
         date('c', $start_time)
     );
@@ -395,19 +461,13 @@ try {
     // If the script takes more than 10 minutes,
     // then we are taking too long and it needs to be an error
     if ($global_exec_details['timers']['total'] > 600) {
-        SirumLog::error($exec_message, $global_exec_details);
+        GPLog::error($exec_message, $global_exec_details);
     } else {
-        SirumLog::info($exec_message, $global_exec_details);
+        GPLog::info($exec_message, $global_exec_details);
     }
-
-
-    CliLog::info("All data processed {$global_exec_details['end']}");
-
-    $global_exec_details['timers']['total'] = ceil(microtime(true) - $start_time);
-    print_r($global_exec_details);
 } catch (Exception $e) {
     $global_exec_details['error_message'] = $e->getMessage;
-    SirumLog::alert('Webform Cron Job Fatal Error', $global_exec_details);
+    GPLog::alert('Webform Cron Job Fatal Error', $global_exec_details);
     throw $e;
 }
 
@@ -424,5 +484,5 @@ foreach ($timers as $timer) {
 }
 
 // Push any lagging logs to google Cloud
-SirumLog::getLogger()->flush();
-echo "Pharmacy Automation Success in {$global_exec_details['timers']['total']} seconds\n";
+GPLog::getLogger()->flush();
+CliLog::notice("***** Pharmacy Automation Success in {$global_exec_details['timers']['total']} seconds *****");

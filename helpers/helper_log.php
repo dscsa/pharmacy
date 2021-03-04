@@ -3,8 +3,8 @@
 require_once 'dbs/mysql_wc.php';
 require_once 'helpers/helper_logger.php';
 
-use Sirum\Logging\{
-    SirumLog,
+use GoodPill\Logging\{
+    GPLog,
     AuditLog,
     CliLog
 };
@@ -88,7 +88,7 @@ function json_safe_encode($raw, $file = null)
             $log_context = ["vars" => $vars];
         }
 
-        SirumLog::error("json_encode failed for logging {$error} : {$file}", $log_context);
+        GPLog::error("json_encode failed for logging {$error} : {$file}", $log_context);
 
         /*
          * https://levels.io/inf-nan-json_encode/
@@ -164,7 +164,7 @@ function log_info($text, $vars = '')
     }
 
     // Log it before we make a string of the vars
-    SirumLog::info("{$text} : {$file}", $log_context);
+    GPLog::info("{$text} : {$file}", $log_context);
 
     $vars   = $vars ? vars_to_json($vars, $file) : '';
 
@@ -186,7 +186,7 @@ function log_warning($text, $vars = '')
     }
 
     // Log it before we make a string of the vars
-    SirumLog::warning("{$text} : {$file}", $log_context);
+    GPLog::warning("{$text} : {$file}", $log_context);
 
     $vars   = $vars ? vars_to_json($vars, $file) : '';
 
@@ -220,7 +220,7 @@ function log_alert($text, $vars = '')
     }
 
     // Log it before we make a string of the vars
-    SirumLog::critical("{$text} : {$file}", $log_context);
+    GPLog::critical("{$text} : {$file}", $log_context);
 
     $vars   = $vars ? vars_to_json($vars, $file) : '';
 
@@ -254,7 +254,7 @@ function log_error($text, $vars = '')
     }
 
     // Log it before we make a string of the vars
-    SirumLog::error("{$text} : {$file}", $log_context);
+    GPLog::error("{$text} : {$file}", $log_context);
 
     $vars   = $vars ? vars_to_json($vars, $file) : '';
 
@@ -300,7 +300,7 @@ function log_notice($text, $vars = '')
         $log_context = ["vars" => $vars];
     }
 
-    SirumLog::notice("{$text} : {$file}", $log_context);
+    GPLog::notice("{$text} : {$file}", $log_context);
 
     $vars   = $vars ? vars_to_json($vars, $file) : '';
 
@@ -342,9 +342,9 @@ function log_timer($label, $start_time, $count) {
         ];
 
         if ($average_time > 100) {
-            SirumLog::critical($log_msg, $log_data);
+            GPLog::critical($log_msg, $log_data);
         } else {
-            SirumLog::error($log_msg, $log_data);
+            GPLog::error($log_msg, $log_data);
         }
     }
 }

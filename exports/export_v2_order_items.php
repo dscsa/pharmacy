@@ -1,22 +1,24 @@
 <?php
 
-use Sirum\Logging\SirumLog;
-use Sirum\Logging\AuditLog;
-use Sirum\Logging\CLiLog;
+use GoodPill\Logging\{
+    GPLog,
+    AuditLog,
+    CLiLog
+};
 
-use \Sirum\DataModels\GoodPillOrder;
+use \GoodPill\DataModels\GoodPillOrder;
 
 require_once 'exports/export_cp_orders.php';
 
 function export_v2_unpend_order($order, $mysql, $reason)
 {
-    SirumLog::notice(
+    GPLog::notice(
         "export_v2_unpend_order $reason " . @$order[0]['invoice_number'],
         ['order' => $order]
     );
 
     if (! @$order[0]['drug_name']) {
-        SirumLog::error(
+        GPLog::error(
             "export_v2_unpend_order: ABORTED! Order " . @$order[0]['invoice_number']
             . " doesn't seem to have any items. $reason",
             ['order' => $order]
@@ -58,7 +60,7 @@ function v2_pend_item($item, $mysql, $reason)
             $item
         );
 
-        SirumLog::error(
+        GPLog::error(
             sprintf(
                 "ABORTED PEND Attempted to pend %s for Rx#%s on Invoice #%s. This
                 order doesn't exist in the Database",
@@ -94,7 +96,7 @@ function v2_pend_item($item, $mysql, $reason)
             $item
         );
 
-        SirumLog::error(
+        GPLog::error(
             sprintf(
                 "v2_pend_item: ABORTED! %s %s %s %s days_dispensed_default:%s
                 rx_dispensed_id:%s last_inventory:%s count_pended_total:%s",
@@ -126,7 +128,7 @@ function v2_pend_item($item, $mysql, $reason)
             ),
             $item
         );
-        SirumLog::debug(
+        GPLog::debug(
             sprintf(
                 "v2_pend_item: make_pick_list SUCCESS %s %s %s %s",
                 $item['invoice_number'],
@@ -150,7 +152,7 @@ function v2_pend_item($item, $mysql, $reason)
             ),
             $item
         );
-        SirumLog::error(
+        GPLog::error(
             sprintf(
                 "v2_pend_item: make_pick_list ERROR %s %s %s %s",
                 $item['invoice_number'],
@@ -181,7 +183,7 @@ function v2_pend_item($item, $mysql, $reason)
  */
 function v2_unpend_item($item, $mysql, $reason)
 {
-    SirumLog::notice(
+    GPLog::notice(
         sprintf(
             "v2_unpend_item: Invoice: %s Drug: %s Reason: %s Rx# %s",
             @$item['invoice_number'],
@@ -223,7 +225,7 @@ function v2_unpend_item($item, $mysql, $reason)
             ),
             $item
         );
-        SirumLog::critical(
+        GPLog::critical(
             "v2_unpend_item: NO INVOICE NUMBER, ORDER DATE ADDED, OR PATIENT DATE ADDED! "
                 . @$item['invoice_number'] . " " . @$item['drug_name'] . " $reason "
                 . @$item['rx_number'] . ". rx_dispensed_id:" . @$item['rx_dispensed_id']
@@ -240,6 +242,16 @@ function v2_unpend_item($item, $mysql, $reason)
 
 function save_pick_list($item, $list, $mysql)
 {
+    // Check to see if the items has an invoice number and a rx_number
+    // If those are missing, we should thorw an alert and return
+    if (empty($item['rx_number'])) {
+        GPLog::critical(
+            'Trying to save a picklist but th item is missing the rx_number',
+            [ 'item' => $item ]
+        );
+        return $item;
+    }
+
     if ($list === 0) {
         $list = [
           'qty'           => 0,
@@ -258,20 +270,18 @@ function save_pick_list($item, $list, $mysql)
     $item['count_pended_total']   = $list['count'];
     $item['count_pended_repacks'] = $list['count_repacks'];
 
-    $sql = "
-    UPDATE
-      gp_order_items
-    SET
-      qty_pended_total = $list[qty],
-      qty_pended_repacks = $list[qty_repacks],
-      count_pended_total = $list[count],
-      count_pended_repacks = $list[count_repacks]
-    WHERE
-      invoice_number = $item[invoice_number] AND
-      rx_number = $item[rx_number]
-  ";
+    $sql = "UPDATE
+              gp_order_items
+            SET
+              qty_pended_total = {$list['qty']},
+              qty_pended_repacks = {$list['qty_repacks']},
+              count_pended_total = {$list['count']},
+              count_pended_repacks = {$list['count_repacks']}
+            WHERE
+              invoice_number = {$item['invoice_number']} AND
+              rx_number = {$item['rx_number']}";
 
-    SirumLog::notice(
+    GPLog::notice(
         "save_pick_list: $item[invoice_number] " . @$item['drug_name'] . " "
             . @$item['rx_number'],
         [ 'item' => $item, 'list' => $list, 'sql' => $sql ]
@@ -360,7 +370,7 @@ function print_pick_list($item, $list)
 
     $result = gdoc_post(GD_HELPER_URL, $args);
 
-    SirumLog::notice(
+    GPLog::notice(
         "print_pick_list: $item[invoice_number] ".@$item['drug_name']." ".@$item['rx_number'],
         [
             'item' => $item,
@@ -502,7 +512,7 @@ function pend_pick_list($item, $list)
             $item
         );
 
-        SirumLog::notice(
+        GPLog::notice(
             sprintf(
                 "v2_pend_item: ABORTED! %s for %s appears to be already pended in pend group %s.  Please confirm.",
                 @$item['drug_name'],
@@ -536,7 +546,7 @@ function pend_pick_list($item, $list)
     $res = v2_fetch($pend_url, 'POST', $list['pend']);
 
     if (isset($res) && $list['pend'][0]['_rev'] != $res[0]['rev']) {
-        SirumLog::debug("pend_pick_list: SUCCESS!! {$item['invoice_number']} {$item['drug_name']} {$item['rx_number']}");
+        GPLog::debug("pend_pick_list: SUCCESS!! {$item['invoice_number']} {$item['drug_name']} {$item['rx_number']}");
         return true;
     }
 
@@ -550,7 +560,7 @@ function pend_pick_list($item, $list)
         $item
     );
 
-    SirumLog::warning("pend_pick_list: FAILURE!! {$item['invoice_number']} {$item['drug_name']} {$item['rx_number']}");
+    GPLog::warning("pend_pick_list: FAILURE!! {$item['invoice_number']} {$item['drug_name']} {$item['rx_number']}");
     return false;
 }
 
@@ -571,7 +581,7 @@ function unpend_pick_list($item)
     $pend_group = get_item_pended_group($item);
 
     if (!$pend_group) {
-        SirumLog::warning(
+        GPLog::warning(
             sprintf(
                 "v2_unpend_item: Nothing Unpened.  Call could have been avoided! %s %s %s",
                 @$item['invoice_number'],
@@ -608,7 +618,7 @@ function unpend_pick_list($item)
                         $loop_count
                     )
                 );
-                SirumLog::info(
+                GPLog::info(
                     sprintf(
                         "succesfully unpended item %s in %s, unpend attempt #%s",
                         $item['drug_generic'],
@@ -631,14 +641,14 @@ function unpend_pick_list($item)
 
     $result = gdoc_post(GD_HELPER_URL, $args);
 
-    SirumLog::notice("unpend_pick_list", get_defined_vars());
+    GPLog::notice("unpend_pick_list", get_defined_vars());
 }
 
 //Getting all inventory of a drug can be thousands of items.  Let's start with a low limit that we increase as needed
 function make_pick_list($item, $limit = 500)
 {
     if (! isset($item['stock_level_initial']) and $item['rx_gsn']) { //If missing GSN then stock level won't be set
-        SirumLog::error("ERROR make_pick_list: stock_level_initial is not set", get_defined_vars());
+        GPLog::error("ERROR make_pick_list: stock_level_initial is not set", get_defined_vars());
     }
 
     $safety   = 0.05; //Percent qty to overshop
@@ -653,7 +663,7 @@ function make_pick_list($item, $limit = 500)
     $sorted_ndcs   = sort_by_ndc($unsorted_ndcs, $long_exp);
     $list          = get_qty_needed($sorted_ndcs, $min_qty, $safety);
 
-    SirumLog::notice(
+    GPLog::notice(
         "make_pick_list: $item[invoice_number] " .@ $item['drug_name']
             . " " . @$item['rx_number'],
         [ 'item' => $item ]
@@ -665,7 +675,7 @@ function make_pick_list($item, $limit = 500)
     }
 
     if (count($inventory) == $limit) {  //We didn't make the list but there are more drugs that we can scan
-        SirumLog::error(
+        GPLog::error(
             "Webform Pending Error: Not enough qty found for {$item['drug_generic']}."
                 . " Increasing limit from {$limit} to " . ($limit*2),
             [ 'count_inventory' => count($inventory), 'item' => $item]
@@ -674,7 +684,7 @@ function make_pick_list($item, $limit = 500)
     }
 
     if ($item['stock_level'] != "OUT OF STOCK") {
-        SirumLog::error(
+        GPLog::error(
             "Webform Pending Error: Not enough qty found for {$item['drug_generic']} "
                 . "although it's not OUT OF STOCK.  Looking for {$min_qty} with "
                 . "last_inventory of {$item['last_inventory']} (limit {$limit}) #1 of 3, "
@@ -690,7 +700,7 @@ function make_pick_list($item, $limit = 500)
         return $list;
     }
 
-    SirumLog::error(
+    GPLog::error(
         "Webform Pending Error: Not enough qty found for {$item['drug_generic']}. "
             . "Looking for {$min_qty} with last_inventory of {$item['last_inventory']} "
             . " (limit {$limit}) #2 of 3, half fill with no safety failed",
@@ -710,7 +720,7 @@ function make_pick_list($item, $limit = 500)
         return $list;
     }
 
-    SirumLog::error(
+    GPLog::error(
         "Webform Pending Error: Not enough qty found for {$item['drug_generic']}."
             . " Looking for {$min_qty} with last_inventory of {$item['last_inventory']} "
             . " (limit $limit) #3 of 3, 30 day with no safety failed",
@@ -764,7 +774,7 @@ function get_v2_inventory($item, $limit)
         $res = v2_fetch($url);
         log_info("WebForm make_pick_list fetch success.", ['url' => $url, 'item' => $item, 'res' => $res]);
     } catch (Error $e) {
-        SirumLog::error("WebForm make_pick_list fetch failed.  Retrying $item[invoice_number]", ['url' => $url, 'item' => $item, 'res' => $res, 'error' => $e]);
+        GPLog::error("WebForm make_pick_list fetch failed.  Retrying $item[invoice_number]", ['url' => $url, 'item' => $item, 'res' => $res, 'error' => $e]);
         $res = v2_fetch($url);
     }
 
@@ -789,7 +799,7 @@ function group_by_ndc($rows, $item)
                 )
             )
         ) {
-            SirumLog::error('Shopping list pulled inventory in which "next" is set!', $row, $item);
+            GPLog::error('Shopping list pulled inventory in which "next" is set!', $row, $item);
             if (! empty($row['doc']['next']['dispensed'])) {
                 continue;
             }
@@ -843,7 +853,7 @@ function sort_by_ndc($ndcs, $long_exp)
     //then purchased stock gets used before anything else
     usort($sorted_ndcs, function ($a, $b) use ($sorted_ndcs) {
         if (! isset($a['prepack_qty']) or ! isset($b['prepack_qty'])) {
-            SirumLog::error('ERROR: sort_by_ndc but prepack_qty is not set', get_defined_vars());
+            GPLog::error('ERROR: sort_by_ndc but prepack_qty is not set', get_defined_vars());
         } else {
         //Return shortest prepack expiration date, if a tie use one with greater quantity
             if (@$a['prepack_exp'] > @$b['prepack_exp']) {

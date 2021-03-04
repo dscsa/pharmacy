@@ -1,14 +1,12 @@
 <?php
-
 require_once 'helpers/helper_try_catch_log.php';
 
-use Sirum\Logging\{
-    SirumLog,
+use GoodPill\Logging\{
+    GPLog,
     AuditLog,
     CliLog
 };
-
-use Sirum\Utilities\Timer;
+use GoodPill\Utilities\Timer;
 /**
  * Update all drug changes
  * @param  array $changes  An array of arrays with deledted, created, and
@@ -17,40 +15,39 @@ use Sirum\Utilities\Timer;
  */
 function update_drugs(array $changes) : void
 {
-    SirumLog::notice('data-update-drugs', $changes);
 
-    $count_deleted = count($changes['deleted']);
-    $count_created = count($changes['created']);
-    $count_updated = count($changes['updated']);
+    // Make sure we have some data
+    $change_counts = [];
+    foreach (array_keys($changes) as $change_type) {
+        $change_counts[$change_type] = count($changes[$change_type]);
+    }
 
-    $msg = "$count_deleted deleted, $count_created created, $count_updated updated ";
+    if (array_sum($change_counts) == 0) {
+       return;
+    }
 
-    SirumLog::info(
-        "update_drugs: all changes. $msg",
-        [
-            'deleted_count' => $count_deleted,
-            'created_count' => $count_created,
-            'updated_count' => $count_updated
-        ]
+    GPLog::info(
+        "update_drugs: changes",
+        $change_counts
     );
 
-    CliLog::info("Drugs Updates: {$msg}");
+    GPLog::notice('data-update-drugs', $changes);
 
-    if ($count_deleted + $count_created + $count_updated == 0) {
-        return;
+    if (isset($changes['created'])) {
+        Timer::start("update.drugs.created");
+        foreach ($changes['created'] as $i => $created) {
+            helper_try_catch_log('drug_created', $created);
+        }
+        Timer::start("update.drugs.created");
     }
 
-    Timer::start("update.drugs.created");
-    foreach ($changes['created'] as $i => $created) {
-        helper_try_catch_log('drug_created', $created);
+    if (isset($changes['updated'])) {
+        Timer::start("update.drugs.updated");
+        foreach ($changes['updated'] as $i => $updated) {
+            helper_try_catch_log('drug_updated', $updated);
+        }
+        Timer::start("update.drugs.updated");
     }
-    Timer::start("update.drugs.created");
-
-    Timer::start("update.drugs.updated");
-    foreach ($changes['updated'] as $i => $updated) {
-        helper_try_catch_log('drug_updated', $updated);
-    }
-    Timer::start("update.drugs.updated");
 }
 
 /*
@@ -66,9 +63,9 @@ function update_drugs(array $changes) : void
  */
 function drug_created(array $created) : void
 {
-    SirumLog::$subroutine_id = "drugs-created-".sha1(serialize($created));
-    SirumLog::info("data-drugs-created", ['created' => $created]);
-    SirumLog::debug(
+    GPLog::$subroutine_id = "drugs-created-".sha1(serialize($created));
+    GPLog::info("data-drugs-created", ['created' => $created]);
+    GPLog::debug(
         "update_drugs: Drugs Created",
         [
           'updated' => $created,
@@ -84,7 +81,7 @@ function drug_created(array $created) : void
         update_field_rxs_single($mysql, $updated, 'drug_gsns'); //Now that everything is matched, we can update all rxs_single to the new gsn
     }
 
-    SirumLog::resetSubroutineId();
+    GPLog::resetSubroutineId();
 }
 /**
  * Handle drug updated
@@ -93,9 +90,9 @@ function drug_created(array $created) : void
  */
 function drug_updated(array $updated) : void
 {
-    SirumLog::$subroutine_id = "drugs-updated-".sha1(serialize($updated));
-    SirumLog::info("data-drugs-updated", ['updated' => $updated]);
-    SirumLog::debug(
+    GPLog::$subroutine_id = "drugs-updated-".sha1(serialize($updated));
+    GPLog::info("data-drugs-updated", ['updated' => $updated]);
+    GPLog::debug(
         "update_drugs: Drugs Updated",
         [
           'updated' => $updated,
@@ -124,11 +121,11 @@ function drug_updated(array $updated) : void
     }
 
     if ($updated['drug_ordered'] && ! $updated['old_drug_ordered']) {
-        SirumLog::warning("new drug ordered", [ 'updated' => $updated ]);
+        GPLog::warning("new drug ordered", [ 'updated' => $updated ]);
     }
 
     if (! $updated['drug_ordered'] && $updated['old_drug_ordered']) {
-        SirumLog::warning("drug stopped being ordered", [ 'updated' => $updated ]);
+        GPLog::warning("drug stopped being ordered", [ 'updated' => $updated ]);
     }
 
     if ($updated['drug_gsns'] != $updated['old_drug_gsns']) {
@@ -142,7 +139,7 @@ function drug_updated(array $updated) : void
         update_field_rxs_single($mysql, $updated, 'drug_brand');
     }
 
-    SirumLog::resetSubroutineId();
+    GPLog::resetSubroutineId();
 }
 
 /*
@@ -183,7 +180,7 @@ function update_mismatched_rxs_and_items($mysql, $partial)
     $rxs = $mysql->run($sql)[0];
 
     if (! $rxs) {
-        return SirumLog::warning(
+        return GPLog::warning(
             "update_mismatched_rxs_and_items_by_drug_gsns: no rxs_single or order_items to update",
             [
               'partial' => $partial,
@@ -198,7 +195,7 @@ function update_mismatched_rxs_and_items($mysql, $partial)
     //have the wrong price,
     //have the wrong initial stock level,
     //have the wrong days (due to the above), etc
-    SirumLog::critical(
+    GPLog::critical(
         "update_mismatched_rxs_and_items_by_drug_gsns: updating rxs_single(s) and undispensed order_item(s)",
         [
             'partial' => $partial,
@@ -226,7 +223,7 @@ function is_gsn_in_v2($mysql, $rx_number)
 
     $res = $mysql->run($sql_rxs_single);
 
-    SirumLog::warning("is_gsn_in_v2: ".count($res[0]), [
+    GPLog::warning("is_gsn_in_v2: ".count($res[0]), [
         'sql_rxs_single'  => $sql_rxs_single,
         'rx_number'       => $rx_number,
         'res' => $res
@@ -249,7 +246,7 @@ function update_rx_single_drug($mysql, $rx_number)
       gp_rxs_single.rx_number = '$rx_number'
     ";
 
-    SirumLog::warning("update_drugs: update_rx_single_drug (saving v2 drug names in gp_rxs_single)", [
+    GPLog::warning("update_drugs: update_rx_single_drug (saving v2 drug names in gp_rxs_single)", [
         'sql_rxs_single'  => $sql_rxs_single,
         'rx_number'       => $rx_number
     ]);
@@ -275,7 +272,7 @@ function update_order_item_drug($mysql, $rx_number)
                               gp_order_items.rx_number  = '{$rx_number}'
                               AND rx_dispensed_id IS NULL";
 
-    SirumLog::debug(
+    GPLog::debug(
         "update_order_item_drug: updated gp_order_item BEFORE",
         [
             'sql_order_items' => $sql_order_items,
@@ -289,7 +286,7 @@ function update_order_item_drug($mysql, $rx_number)
     //price_dispensed_default to all be recalculated
     $item = load_full_item(['rx_number' => $rx_number], $mysql, true);
 
-    SirumLog::debug(
+    GPLog::debug(
         "update_order_item_drug: updated gp_order_item AFTER",
         [
             'sql_order_items' => $sql_order_items,

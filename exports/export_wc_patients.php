@@ -1,6 +1,6 @@
 <?php
-use Sirum\Logging\{
-    SirumLog,
+use GoodPill\Logging\{
+    GPLog,
     AuditLog,
     CliLog
 };
@@ -60,7 +60,7 @@ function wc_update_patient($patient) {
         return false;
     }
 
-    $goodpilldb = Sirum\Storage\Goodpill::getConnection();
+    $goodpilldb = GoodPill\Storage\Goodpill::getConnection();
 
     $pdo = $goodpilldb->prepare(
         "UPDATE wp_users
@@ -225,7 +225,7 @@ function update_wc_patient_active_status($mysql, $patient_id_wc, $inactive) {
     $wc_val = 'a:1:{s:8:"customer";b:1;}';
   }
 
-  SirumLog::critical("update_wc_patient_active_status $inactive -> $patient_id_wc, 'wp_capabilities',  $wc_val");
+  GPLog::critical("update_wc_patient_active_status $inactive -> $patient_id_wc, 'wp_capabilities',  $wc_val");
 
   return wc_upsert_patient_meta($mysql, $patient_id_wc, 'wp_capabilities',  $wc_val);
 }
