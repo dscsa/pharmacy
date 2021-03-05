@@ -4,6 +4,7 @@ require_once 'exports/export_wc_patients.php';
 use GoodPill\Logging\GPLog;
 use GoodPill\Logging\AuditLog;
 use GoodPill\Logging\CliLog;
+use GoodPill\DataModels\GoodPillPatient;
 
 //TODO Implement Full Matching Algorithm that's in Salesforce and CP's SP
 function is_patient_match($mysql, $patient)
@@ -43,11 +44,10 @@ function is_patient_match($mysql, $patient)
     $patient_cp = find_patient($mysql, $patient);
     $patient_wc = find_patient($mysql, $patient, 'gp_patients_wc');
 
-
     // There was only one of each one, so we can match these patients
     if (count($patient_cp) == 1 and count($patient_wc) == 1) {
         GPLog::critical(
-            "is_patient_match:  Found 2 patients that need to be matched",
+            "is_patient_match:  Found a patient match",
             [
                 'patient_id_cp' => $patient_cp[0]['patient_id_cp'],
                 'patient_id_wc' => $patient_wc[0]['patient_id_wc'],
@@ -80,11 +80,16 @@ function is_patient_match($mysql, $patient)
         }
     }
 
+    $patient_cp = array_values($patient_cp);
+    $patient_wc = array_values($patient_wc);
+
     // There is only one of each one, so we can match these patients
     if (count($patient_cp) == 1 and count($patient_wc) == 1) {
-        GPLog::critical(
+        GPLog::alert(
             sprintf(
-                "is_patient_match: Found multiple patients that matche criteria %s %s %s",
+                "is_patient_match: Found multiple patients that matche criteria %s %s %s,
+                    but only one that wasn't matched.  We are using it, but the match may
+                    be in error",
                 @$patient[0]['first_name'],
                 @$patient[0]['last_name'],
                 @$patient[0]['birth_date']
@@ -115,7 +120,7 @@ function is_patient_match($mysql, $patient)
 
     //TODO Auto Delete Duplicate Patient AND Send Comm of their login and password
 
-    GPLog::critical(
+    GPLog::alert(
         sprintf(
             "helper_matching: is_patient_match FALSE %s %s %s",
             @$patient[0]['first_name'],
@@ -172,11 +177,11 @@ function find_patient($mysql, $patient, $table = 'gp_patients')
     if (count($res) > 1) {
         foreach ($res as $possible_match) {
             if (
-                $patient['first_name'] == $possible_match['first_name']
-                && $patient['last_name'] == $possible_match['last_name']
+                strtolower($patient['first_name']) == strtolower($possible_match['first_name'])
+                && strtolower($patient['last_name']) == strtolower($possible_match['last_name'])
                 && $patient['birth_date'] == $possible_match['birth_date']
             ) {
-                $exact_matches[]  = $patient;
+                $exact_matches[]  = $possible_match;
             }
         }
     }
