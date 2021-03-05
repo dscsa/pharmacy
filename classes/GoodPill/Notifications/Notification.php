@@ -70,7 +70,7 @@ class Notification extends GPModel
      * @throws Exception The token and the hash fields have to
      *    be set prior to calling create
      */
-    public function create()
+    public function create() : bool
     {
 
         if (!isset($this->token) || !isset($this->hash)) {
