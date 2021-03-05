@@ -23,7 +23,7 @@ function update_drugs(array $changes) : void
     }
 
     if (array_sum($change_counts) == 0) {
-       return;
+        return;
     }
 
     GPLog::info(
