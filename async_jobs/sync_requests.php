@@ -141,7 +141,10 @@ for ($l = 0; $l < $executions; $l++) {
                 $request->changes_to
             );
 
-            GPLog::$exec_id = $request->execution_id;
+            if (isset($request->execution_id)) {
+                GPLog::$exec_id = $request->execution_id;
+            }
+
             GPLog::debug($log_message, $changes);
             CliLog::notice($log_message, $changes);
 
