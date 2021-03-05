@@ -36,7 +36,7 @@ function update_drugs(array $changes) : void
     if (isset($changes['created'])) {
         Timer::start("update.drugs.created");
         foreach ($changes['created'] as $i => $created) {
-            helper_try_catch_log('drug_created', $created);
+            drug_created($created);
         }
         Timer::start("update.drugs.created");
     }
@@ -44,7 +44,7 @@ function update_drugs(array $changes) : void
     if (isset($changes['updated'])) {
         Timer::start("update.drugs.updated");
         foreach ($changes['updated'] as $i => $updated) {
-            helper_try_catch_log('drug_updated', $updated);
+            drug_updated($updated);
         }
         Timer::start("update.drugs.updated");
     }

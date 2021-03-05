@@ -39,7 +39,7 @@ function update_patients_cp(array $changes) : void
     if (isset($changes['updated'])) {
         Timer::start('update.patients.cp.updated');
         foreach ($changes['updated'] as $i => $updated) {
-            helper_try_catch_log('cp_patient_updated', $updated);
+            cp_patient_updated($updated);
         }
         Timer::stop('update.patients.cp.updated');
     }
