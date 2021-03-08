@@ -46,7 +46,7 @@ function update_orders_cp(array $changes) : void
     if (isset($changes['created'])) {
         Timer::start("update.patients.cp.created");
         foreach ($changes['created'] as $created) {
-            helper_try_catch_log('cp_order_created', $created);
+            cp_order_created($created);
         }
         Timer::stop("update.patients.cp.created");
     }
@@ -54,7 +54,7 @@ function update_orders_cp(array $changes) : void
     if (isset($changes['deleted'])) {
         Timer::start("update.patients.cp.deleted");
         foreach ($changes['deleted'] as $deleted) {
-            helper_try_catch_log('cp_order_deleted', $deleted);
+            cp_order_deleted($deleted);
         }
         Timer::stop("update.patients.cp.deleted");
     }
@@ -62,7 +62,7 @@ function update_orders_cp(array $changes) : void
     if (isset($changes['updated'])) {
         Timer::start("update.patients.cp.updated");
         foreach ($changes['updated'] as $i => $updated) {
-            helper_try_catch_log('cp_order_updated', $updated);
+            cp_order_updated($updated);
         }
         Timer::stop("update.patients.cp.updated");
         GPLog::resetSubroutineId();

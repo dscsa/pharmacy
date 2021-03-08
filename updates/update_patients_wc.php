@@ -45,7 +45,7 @@ function update_patients_wc(array $changes) : void
     if (isset($changes['created'])) {
         Timer::start('update.patients.wc.created');
         foreach ($changes['created'] as $created) {
-            helper_try_catch_log('wc_patient_created', $created);
+            wc_patient_created($created);
         }
         Timer::stop('update.patients.wc.created');
     }
@@ -53,7 +53,7 @@ function update_patients_wc(array $changes) : void
     if (isset($changes['deleted'])) {
         Timer::start('update.patients.wc.deleted');
         foreach ($changes['deleted'] as $i => $deleted) {
-            helper_try_catch_log('wc_patient_deleted', $deleted);
+            wc_patient_deleted($deleted);
         }
         Timer::stop('update.patients.wc.deleted');
     }
@@ -61,7 +61,7 @@ function update_patients_wc(array $changes) : void
     if (isset($changes['updated'])) {
         Timer::start('update.patients.wc.updated');
         foreach ($changes['updated'] as $i => $updated) {
-            helper_try_catch_log('wc_patient_updated', $updated);
+            wc_patient_updated($updated);
         }
         Timer::stop('update.patients.wc.updated');
     }
