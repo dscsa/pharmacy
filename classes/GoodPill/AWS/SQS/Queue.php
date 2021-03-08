@@ -143,10 +143,11 @@ class Queue
      * @return null
      */
     public function delete(Request $request) {
+        $message = $request->toSQSDelete();
         return $this->sqs_client->deleteMessage(
             [
-                'QueueUrl' 	    => $this->queue_url,
-                'ReceiptHandle' => $request->receipt_handle
+                'QueueUrl'      => $this->queue_url,
+                'ReceiptHandle' => $message["ReceiptHandle"]
             ]
         );
     }
