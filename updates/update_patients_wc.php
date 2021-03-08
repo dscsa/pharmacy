@@ -552,26 +552,26 @@ function wc_patient_updated(array $updated)
                 );
 
                 wc_update_patient($cp_patient);
-                $subject = "Changed patient name to match details from CarePoint";
-                create_event(
-                    $subject,
-                    [
-                         [
-                             "subject"   => $subject,
-                             "body"      => "We found a WooCommerce user that had previous been matched to Carepoint.
-                                             Their WooCommerce identifiers didn't match, so we updated WooCommerce
-                                             with the details from Carepoint.  Their previous WooCommerce username was:
-                                             {$updated['old_first_name']} {$updated['old_last_name']} {$updated['old_birth_date']}.
-                                             Their new WooCommerce username was:
-                                             {$updated['first_name']} {$updated['last_name']} {$updated['birth_date']}.
-                                             Their WooCommerce id is {$updated['patient_id_wc']} and their
-                                             Carepoint ID is {$updated['patient_id_cp']}",
-                             "contact"   => "{$updated['first_name']} {$updated['last_name']} {$updated['birth_date']}",
-                             "assign_to" => "Kiah",
-                             "due_date"  => date('Y-m-d')
-                         ]
-                    ]
-                );
+                // $subject = "Changed patient name to match details from CarePoint";
+                // create_event(
+                //     $subject,
+                //     [
+                //          [
+                //              "subject"   => $subject,
+                //              "body"      => "We found a WooCommerce user that had previous been matched to Carepoint.
+                //                              Their WooCommerce identifiers didn't match, so we updated WooCommerce
+                //                              with the details from Carepoint.  Their previous WooCommerce username was:
+                //                              {$updated['old_first_name']} {$updated['old_last_name']} {$updated['old_birth_date']}.
+                //                              Their new WooCommerce username was:
+                //                              {$updated['first_name']} {$updated['last_name']} {$updated['birth_date']}.
+                //                              Their WooCommerce id is {$updated['patient_id_wc']} and their
+                //                              Carepoint ID is {$updated['patient_id_cp']}",
+                //              "contact"   => "{$updated['first_name']} {$updated['last_name']} {$updated['birth_date']}",
+                //              "assign_to" => "Kiah",
+                //              "due_date"  => date('Y-m-d')
+                //          ]
+                //     ]
+                // );
             }
         } else {
             $msg = "update_patients_wc: patient name changed but now count(matches) !== 1";
