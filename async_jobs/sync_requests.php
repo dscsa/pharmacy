@@ -131,6 +131,14 @@ for ($l = 0; $l < $executions; $l++) {
         GPLog::debug($log_message);
         CliLog::debug($log_message);
         foreach ($messages as $message) {
+
+            GPLog::debug(
+                'SQS Message Id',
+                [
+                    'Id'            => $message['MessagId'],
+                    'ReceiptHandle' => $message['ReceiptHandle']
+                ]
+            );
             $request = new PharmacySyncRequest($message);
             $changes = $request->changes;
 
