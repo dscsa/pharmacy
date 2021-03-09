@@ -1,6 +1,9 @@
 <?php
 
+ini_set('memory_limit', '512M');
 ini_set('include_path', '/goodpill/webform');
+date_default_timezone_set('America/New_York');
+
 require_once 'vendor/autoload.php';
 
 use GoodPill\AWS\SQS\{
