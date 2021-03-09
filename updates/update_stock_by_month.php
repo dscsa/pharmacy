@@ -211,7 +211,7 @@ function update_stock_by_month($changes) {
 
     create_event($event_title, [$salesforce]);
 
-    GPLog::critical("update_stock_by_month: {$$event_title}", $duplicate_gsns[0]);
+    GPLog::critical("update_stock_by_month: {$event_title}", ['duplicate_gsn' => $duplicate_gsns[0]]);
   }
 
   GPLog::resetSubroutineId();
