@@ -227,15 +227,22 @@ class GPModel
         $sql .= implode(",\n", $this->fields);
         $sql .=  " FROM {$this->table_name}\n WHERE ";
 
-        foreach ($params as $property => $value) {
-            if (is_null($value)) {
-                $sql .= "{$property} IS NULL\nAND";
-            } else {
-                $sql .= "{$property} = :{$property}\nAND";
+        $where_conditions = $params;
+        array_walk(
+            $where_conditions,
+            function (&$value, $property) {
+                if (is_null($value)) {
+                    $value = "{$property} IS NULL";
+                } else {
+                    $value = "{$property} = :{$property}";
+                }
             }
-        }
+        );
 
-        $sql = trim($sql, 'AND');
+        $sql .= implode(
+            ' AND ',
+            $where_conditions
+        );
 
         $stmt = $this->gpdb->prepare($sql);
 
