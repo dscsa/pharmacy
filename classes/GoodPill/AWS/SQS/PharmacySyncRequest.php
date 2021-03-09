@@ -11,7 +11,8 @@ class PharmacySyncRequest extends Request
 {
     protected $properties = [
         'changes_to',
-        'changes'
+        'changes',
+        'execution_id'
     ];
 
     protected $required = [

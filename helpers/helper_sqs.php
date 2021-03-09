@@ -12,7 +12,8 @@ use GoodPill\AWS\SQS\PharmacySyncRequest;
 function get_sync_request(
     string $changes_to,
     array $change_types,
-    array $changes
+    array $changes,
+    string $execution = null
 ) : ?PharmacySyncRequest {
     $included_changes = array_intersect_key(
         $changes,
@@ -29,5 +30,6 @@ function get_sync_request(
     $syncing_request->changes_to = $changes_to;
     $syncing_request->changes    = $included_changes;
     $syncing_request->group_id   = 'linear-sync';
+    $syncing_request->execution_id = $execution;
     return $syncing_request;
 }
