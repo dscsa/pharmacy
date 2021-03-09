@@ -244,11 +244,6 @@ class GPModel
             $where_conditions
         );
 
-        var_dump($where_conditions);
-        var_dump($params);
-
-        var_dump($sql);
-
         $stmt = $this->gpdb->prepare($sql);
 
         foreach ($params as $field => $value) {
