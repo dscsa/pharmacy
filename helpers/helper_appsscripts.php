@@ -34,7 +34,7 @@ function gdoc_details($fileId)
         // We have some results so let's leave
         if ($results !== false && !empty($results)) {
             GPLog::debug(
-                'Google Doc Request Success:',
+                'Google Doc Details Request Success',
                 [
                     'url'  => $url,
                     'results' => $results,
@@ -96,7 +96,7 @@ function gdoc_post($url, $content)
         // We have some results so let's leave
         if ($results !== false && !empty($results)) {
             GPLog::debug(
-                'Google Doc Request Success:',
+                'Google Doc Request Success: ' . $content['method'],
                 [
                     'data' => json_decode($json),
                     'url'  => $url,
