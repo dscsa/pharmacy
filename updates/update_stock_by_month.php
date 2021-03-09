@@ -207,11 +207,11 @@ function update_stock_by_month($changes) {
       "due_date"  => date('Y-m-d')
     ];
 
-    $event_title = "$log $salesforce[due_date]";
+    $event_title = "GSN Error: {$salesforce['subject']} {$salesforce['due_date']}";
 
     create_event($event_title, [$salesforce]);
 
-    GPLog::critical("update_stock_by_month: {$event_title}", ['duplicate_gsn' => $duplicate_gsns[0]]);
+    GPLog::warning("update_stock_by_month: {$event_title}", ['duplicate_gsn' => $duplicate_gsns[0]]);
   }
 
   GPLog::resetSubroutineId();
