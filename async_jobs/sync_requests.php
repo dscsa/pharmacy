@@ -138,7 +138,7 @@ for ($l = 0; $l < $executions; $l++) {
             GPLog::debug(
                 'SQS Message Id',
                 [
-                    'Id'            => $message['MessagId'],
+                    'Id'            => $message['MessageId'],
                     'ReceiptHandle' => $message['ReceiptHandle']
                 ]
             );
