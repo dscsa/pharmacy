@@ -6,3 +6,5 @@ appsscripts/gdoc_helpers/keys.js
 unified-logging.json
 cli/full_env.php
 webform
+.phpintel/
+.DS_STORE
