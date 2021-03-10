@@ -203,6 +203,30 @@ function order_created_notice($groups)
     order_created_event($groups, $email, $text, 15/60);
 }
 
+function transfer_out_notice($item)
+{
+    $subject = "Good Pill transferred out your prescription.";
+    $message = "{$item['drug']} was transferred to your backup pharmacy, {$item['pharmacy_name']} at {$item['pharmacy_address']}";
+
+    $email = [ "email" => DEBUG_EMAIL ]; //$item['email']
+    $text  = [ "sms" => DEBUG_PHONE, "message" => $subject.' '.$message ]; //get_phones([item])
+
+    $email['subject'] = $subject;
+    $email['message'] = implode('<br>', [
+        'Hello,',
+        '',
+        $subject,
+        '',
+        $message,
+        '',
+        'Thanks!',
+        'The Good Pill Team'
+    ]);
+
+    //Wait 15 minutes to hopefully batch staggered surescripts and manual rx entry and cindy updates
+    transfer_out_event([$item], $email, $text, 15/60);
+}
+
 function transfer_requested_notice($groups)
 {
     $subject = 'Good Pill recieved your transfer request for Order #'.$groups['ALL'][0]['invoice_number'].'.';

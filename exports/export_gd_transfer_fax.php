@@ -84,6 +84,11 @@ function export_gd_transfer_fax($item, $source)
     $notification->increment();
 }
 
+function was_transferred($item) {
+  if ($item['rx_message_key']  == 'NO ACTION WAS TRANSFERRED')
+    return true;
+}
+
 function is_will_transfer($item) {
   if ($item['rx_message_key']  == 'NO ACTION WILL TRANSFER')
     return true;
@@ -91,6 +96,6 @@ function is_will_transfer($item) {
   if ($item['rx_message_key'] == 'NO ACTION WILL TRANSFER CHECK BACK')
     return true;
 
-  if($item['rx_message_key'] == 'NO ACTION MISSING GSN')
+  if($item['rx_message_key'] == 'NO ACTION NEW GSN')
     return true;
 }
