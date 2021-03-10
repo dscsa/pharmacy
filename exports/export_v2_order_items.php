@@ -7,6 +7,7 @@ use GoodPill\Logging\{
 };
 
 use \GoodPill\DataModels\GoodPillOrder;
+use \GoodPill\DataModels\GoodPillPendGroup;
 
 require_once 'exports/export_cp_orders.php';
 
@@ -242,6 +243,16 @@ function v2_unpend_item($item, $mysql, $reason)
 
 function save_pick_list($item, $list, $mysql)
 {
+    // Check to see if the items has an invoice number and a rx_number
+    // If those are missing, we should thorw an alert and return
+    if (empty($item['rx_number'])) {
+        GPLog::critical(
+            'Trying to save a picklist but th item is missing the rx_number',
+            [ 'item' => $item ]
+        );
+        return $item;
+    }
+
     if ($list === 0) {
         $list = [
           'qty'           => 0,
@@ -260,18 +271,16 @@ function save_pick_list($item, $list, $mysql)
     $item['count_pended_total']   = $list['count'];
     $item['count_pended_repacks'] = $list['count_repacks'];
 
-    $sql = "
-    UPDATE
-      gp_order_items
-    SET
-      qty_pended_total = $list[qty],
-      qty_pended_repacks = $list[qty_repacks],
-      count_pended_total = $list[count],
-      count_pended_repacks = $list[count_repacks]
-    WHERE
-      invoice_number = $item[invoice_number] AND
-      rx_number = $item[rx_number]
-  ";
+    $sql = "UPDATE
+              gp_order_items
+            SET
+              qty_pended_total = {$list['qty']},
+              qty_pended_repacks = {$list['qty_repacks']},
+              count_pended_total = {$list['count']},
+              count_pended_repacks = {$list['count_repacks']}
+            WHERE
+              invoice_number = {$item['invoice_number']} AND
+              rx_number = {$item['rx_number']}";
 
     GPLog::notice(
         "save_pick_list: $item[invoice_number] " . @$item['drug_name'] . " "
@@ -382,6 +391,7 @@ function print_pick_list($item, $list)
 function get_item_pended_group($item, $include_picked = false)
 {
     $possible_pend_groups = [
+        'expected'        => pend_group_name($item),
         'refill'          => pend_group_refill($item),
         'webform'         => pend_group_webform($item),
         'new_patient'     => pend_group_new_patient($item),
@@ -394,6 +404,16 @@ function get_item_pended_group($item, $include_picked = false)
         $results  = v2_fetch($pend_url, 'GET');
         if (!empty($results) &&
             @$results[0]['next'][0]['pended']) {
+            if ($type != 'expected') {
+                GPLog::debug(
+                    'Drugs pended under unexpected pend group',
+                    [
+                        'expected' => $possible_pend_groups['expected'],
+                        'found_as' => $group
+                    ]
+                );
+            }
+
             return $group;
         }
     }
@@ -450,18 +470,32 @@ function pend_group_manual($item)
 
 function pend_group_name($item)
 {
+
+    // See if there is already a pend group for this order
+    $pend_group = new GoodPillPendGroup(
+        ['invoice_number' => $item['invoice_number']]
+    );
+
+    if ($pend_group->loaded) {
+        return $pend_group->pend_group;
+    }
+
     //TODO need a different flag here because "Auto Refill v2" can be overwritten by "Webform XXX"
     //We need a flag that won't change otherwise items can be pended under different pending groups
     //Probably need to have each "app" be a different "CP user" so that we can look at item_added_by
     if (is_auto_refill($item)) {
-        return pend_group_refill($item);
+        $pend_group_name = pend_group_refill($item);
+    } elseif (!isset($pend_group_name) && $item['refills_used'] > 0) {
+        $pend_group_name = pend_group_webform($item);
+    } else {
+        $pend_group_name = pend_group_new_patient($item);
     }
 
-    if ($item['refills_used'] > 0) {
-        return pend_group_webform($item);
-    }
+    $pend_group->invoice_number = $item['invoice_number'];
+    $pend_group->pend_group = $pend_group_name;
+    $pend_group->create();
 
-    return pend_group_new_patient($item);
+    return $pend_group_name;
 }
 
 /**
@@ -512,6 +546,7 @@ function pend_pick_list($item, $list)
         return false;
     }
 
+    // TODO PEND
     $pend_group_name = pend_group_name($item);
     $qty             = round($item['qty_dispensed_default']);
 
@@ -552,6 +587,8 @@ function pend_pick_list($item, $list)
 function unpend_pick_list($item)
 {
 
+    // TODO PEND
+    //
     // If we don't have specific pendgroups, then go get some
     $pend_group = get_item_pended_group($item);
 
@@ -582,7 +619,7 @@ function unpend_pick_list($item)
                 $pend_group
             )
         );
-        do { // Keep doing until we can't find a pended item
+        do { // Keep doing until we can't find a pended items
             $loop_count = (isset($loop_count) ? ++$loop_count : 1);
             if ($results = v2_fetch("/account/8889875187/pend/{$pend_group}/{$item['drug_generic']}", 'DELETE')) {
                 CLiLog::info(
@@ -604,7 +641,7 @@ function unpend_pick_list($item)
                 );
                 break;
             }
-        } while ($pend_group = get_item_pended_group($item) && $loop_count <= 5);
+        } while (($pend_group = get_item_pended_group($item)) && $loop_count <= 5);
     }
 
     //Delete gdoc pick list

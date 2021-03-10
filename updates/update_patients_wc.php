@@ -24,47 +24,47 @@ use GoodPill\Utilities\Timer;
  */
 function update_patients_wc(array $changes) : void
 {
-    GPLog::notice('data-update-patients-wc', $changes);
 
-    $count_deleted = count($changes['deleted']);
-    $count_created = count($changes['created']);
-    $count_updated = count($changes['updated']);
+    // Make sure we have some data
+    $change_counts = [];
+    foreach (array_keys($changes) as $change_type) {
+        $change_counts[$change_type] = count($changes[$change_type]);
+    }
 
-    $msg = "$count_deleted deleted, $count_created created, $count_updated updated ";
+    if (array_sum($change_counts) == 0) {
+       return;
+    }
 
-    GPLog::notice(
-        "update_patients_wc: all changes. {$msg}",
-        [
-            'deleted_count' => $count_deleted,
-            'created_count' => $count_created,
-            'updated_count' => $count_updated
-        ]
+    GPLog::info(
+        "update_patients_wc: changes",
+        $change_counts
     );
 
-    CliLog::notice($msg);
+    GPLog::notice('data-update-patients-wc', $changes);
 
-    if ($count_deleted + $count_created + $count_updated == 0) {
-        return;
+    if (isset($changes['created'])) {
+        Timer::start('update.patients.wc.created');
+        foreach ($changes['created'] as $created) {
+            wc_patient_created($created);
+        }
+        Timer::stop('update.patients.wc.created');
     }
 
-
-    Timer::start('update.patients.wc.created');
-    foreach ($changes['created'] as $created) {
-        helper_try_catch_log('wc_patient_created', $created);
+    if (isset($changes['deleted'])) {
+        Timer::start('update.patients.wc.deleted');
+        foreach ($changes['deleted'] as $i => $deleted) {
+            wc_patient_deleted($deleted);
+        }
+        Timer::stop('update.patients.wc.deleted');
     }
-    Timer::stop('update.patients.wc.created');
 
-    Timer::start('update.patients.wc.deleted');
-    foreach ($changes['deleted'] as $i => $deleted) {
-        helper_try_catch_log('wc_patient_deleted', $deleted);
+    if (isset($changes['updated'])) {
+        Timer::start('update.patients.wc.updated');
+        foreach ($changes['updated'] as $i => $updated) {
+            wc_patient_updated($updated);
+        }
+        Timer::stop('update.patients.wc.updated');
     }
-    Timer::stop('update.patients.wc.deleted');
-
-    Timer::start('update.patients.wc.updated');
-    foreach ($changes['updated'] as $i => $updated) {
-        helper_try_catch_log('wc_patient_updated', $updated);
-    }
-    Timer::stop('update.patients.wc.updated');
 }
 
 /*
@@ -552,26 +552,26 @@ function wc_patient_updated(array $updated)
                 );
 
                 wc_update_patient($cp_patient);
-                $subject = "Changed patient name to match details from CarePoint";
-                create_event(
-                    $subject,
-                    [
-                         [
-                             "subject"   => $subject,
-                             "body"      => "We found a WooCommerce user that had previous been matched to Carepoint.
-                                             Their WooCommerce identifiers didn't match, so we updated WooCommerce
-                                             with the details from Carepoint.  Their previous WooCommerce username was:
-                                             {$updated['old_first_name']} {$updated['old_last_name']} {$updated['old_birth_date']}.
-                                             Their new WooCommerce username was:
-                                             {$updated['first_name']} {$updated['last_name']} {$updated['birth_date']}.
-                                             Their WooCommerce id is {$updated['patient_id_wc']} and their
-                                             Carepoint ID is {$updated['patient_id_cp']}",
-                             "contact"   => "{$updated['first_name']} {$updated['last_name']} {$updated['birth_date']}",
-                             "assign_to" => "Kiah",
-                             "due_date"  => date('Y-m-d')
-                         ]
-                    ]
-                );
+                // $subject = "Changed patient name to match details from CarePoint";
+                // create_event(
+                //     $subject,
+                //     [
+                //          [
+                //              "subject"   => $subject,
+                //              "body"      => "We found a WooCommerce user that had previous been matched to Carepoint.
+                //                              Their WooCommerce identifiers didn't match, so we updated WooCommerce
+                //                              with the details from Carepoint.  Their previous WooCommerce username was:
+                //                              {$updated['old_first_name']} {$updated['old_last_name']} {$updated['old_birth_date']}.
+                //                              Their new WooCommerce username was:
+                //                              {$updated['first_name']} {$updated['last_name']} {$updated['birth_date']}.
+                //                              Their WooCommerce id is {$updated['patient_id_wc']} and their
+                //                              Carepoint ID is {$updated['patient_id_cp']}",
+                //              "contact"   => "{$updated['first_name']} {$updated['last_name']} {$updated['birth_date']}",
+                //              "assign_to" => "Kiah",
+                //              "due_date"  => date('Y-m-d')
+                //          ]
+                //     ]
+                // );
             }
         } else {
             $msg = "update_patients_wc: patient name changed but now count(matches) !== 1";

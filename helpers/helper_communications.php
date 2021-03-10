@@ -67,7 +67,7 @@ function group_drugs($order, $mysql) {
         UPDATE
           gp_order_items
         SET
-          groups = CASE WHEN groups is NULL THEN '$fill$action' ELSE concat('$fill$action < ', groups) END
+          groups = CASE WHEN groups is NULL THEN '$fill$action' ELSE LEFT(concat('$fill$action < ', groups), 255) END
         WHERE
           invoice_number = $item[invoice_number] AND
           rx_number = $item[rx_number] AND
@@ -222,7 +222,7 @@ function send_dispensed_order_communications($groups) {
 function send_updated_order_communications($groups, $added_deduped, $removed_deduped) {
 
   $patient_updates = [];
-  
+
   if ($added_deduped) {
     $verb = count($added_deduped) == 1 ? 'was' : 'were';
     $patient_updates[] = implode(", ", $added_deduped)." $verb added to your order.";

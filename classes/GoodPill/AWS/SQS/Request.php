@@ -66,6 +66,13 @@ abstract class Request
      */
     public function &__get($property)
     {
+
+        if (is_callable(array($this, 'get' . ucfirst($property)))) {
+            $func_name   ='get' . ucfirst($property);
+            $func_return = $this->$func_name();
+            return $func_return;
+        }
+
         if (!isset($this->data[$property])) {
             $this->data[$property] = null;
         }
@@ -89,8 +96,9 @@ abstract class Request
             return $this->$property = $value;
         }
 
-        if (is_callable(array($this, 'set_'.$property))) {
-            return $this->{'set_'.$property}($value);
+        if (is_callable(array($this, 'set' . ucfirst($property)))) {
+            $func_name ='set' . ucfirst($property);
+            return $this->$func_name($value);
         }
 
         // Check to see if the property is a persistable field
@@ -201,6 +209,7 @@ abstract class Request
      */
     public function fromArray($arrData)
     {
+
         foreach ($arrData as $strKey => $mixValue) {
             if (! in_array($strKey, $this->properties)) {
                 throw new \Exception("{$strKey} not an allowed property");

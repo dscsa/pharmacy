@@ -54,7 +54,7 @@ function refill_reminder_event($order, $email, $text, $hours_to_wait, $hour_of_d
     $patient_label = get_patient_label($order);
     $event_title   = $order[0]['invoice_number'].' Refill Reminder: '.$patient_label.'.  Created:'.date('Y-m-d H:i:s');
 
-    //$cancel = cancel_events_by_person($order['first_name'], $order['last_name'], $order['birth_date'], 'refill_reminder_event', ['Refill Reminder'])
+    $cancel = cancel_events_by_order($order[0]['invoice_number'], 'refill_reminder_event', ['Refill Reminder']);
 
     $comm_arr = new_comm_arr($patient_label, $email, $text);
 
@@ -452,7 +452,8 @@ function create_event($event_title, $comm_arr, $hours_to_wait = 0, $hour_of_day 
       "Communication Calendar event created: $event_title",
       [
           "message" => $args,
-          "result"  => $result
+          "result"  => $result,
+          "invoice_number" => substr($event_title, 0, stripos($event_title, ' '))
       ]
   );
 
@@ -598,7 +599,10 @@ function search_events_by_order($invoice_number, $past = false, $types = [])
     $json = json_decode($result, true);
 
     if ($result != '[]') {
-        GPLog::notice("search_events_by_order: $invoice_number", $json);
+        GPLog::notice(
+            "search_events_by_order: $invoice_number",
+            ['invoice_number' => $invoice_number, 'json' => $json]
+        );
     }
 
     return $json;
@@ -762,10 +766,16 @@ function cancel_events_by_order($invoice_number, $caller, $types = [])
     }
 
     if ($cancel) {
-        GPLog::notice("cancel_events_by_order: order $invoice_number has events", [$titles, $invoice_number, $caller, $types]);
+        GPLog::notice(
+            "cancel_events_by_order: order $invoice_number has events",
+            ['titles' => $titles, 'invoice_number' => $invoice_number, 'caller' => $caller, 'types' => $types]
+        );
         cancel_events($cancel);
     } else {
-        GPLog::notice("cancel_events_by_order: order $invoice_number no events", [$titles, $invoice_number, $caller, $types]);
+        GPLog::notice(
+            "cancel_events_by_order: order $invoice_number no events",
+            ['titles' => $titles, 'invoice_number' => $invoice_number, 'caller' => $caller, 'types' => $types]
+        );
     }
 
     return $cancel;

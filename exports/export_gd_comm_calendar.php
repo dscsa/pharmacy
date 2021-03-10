@@ -497,20 +497,34 @@ function no_rx_notice($partial, $groups)
 
 function order_cancelled_notice($partial, $groups)
 {
+
+    if (empty($groups)) {
+        return GPLog::notice(
+            'order_cancelled_notice: There were not groups, so there is nobody to notify',
+            get_defined_vars()
+        );
+    }
+
     if ( ! $groups['ALL'][0]['pharmacy_name']) {
-        return GPLog::critical('order_cancelled_notice: not sending because needs_form_notice should be sent instead (was already sent?)', get_defined_vars());
+        return GPLog::critical(
+            'order_cancelled_notice: not sending because needs_form_notice '
+            . 'should be sent instead (was already sent?)',
+            get_defined_vars()
+        );
     }
 
     if ( ! $groups['ALL'][0]['count_nofill']) { //can be passed a patient
-        return GPLog::critical('order_cancelled_notice: not sending because no_rx_notice should be sent instead (was already sent?)', get_defined_vars());
+        return GPLog::critical(
+            'order_cancelled_notice: not sending because no_rx_notice should '
+            . 'be sent instead (was already sent?)',
+            get_defined_vars()
+        );
     }
 
-    $subject = "Order #$partial[invoice_number] has been cancelled";
+    $subject = "Order #{$partial['invoice_number']} has been cancelled";
 
     if (is_webform_transfer($partial)) {
-
         $message = "Good Pill attempted to transfer prescriptions from {$groups['ALL'][0]['pharmacy_name']} but they did not have an Rx for the requested drugs with refills remaining.  Could you please let us know your doctor's name and phone number so that we can reach out to them to get new prescription(s)";
-
     } else {
         $drug_list = implode(';<br>', array_merge($groups['NOFILL_NOACTION'], $groups['NOFILL_ACTION']));
         $drug_list = str_replace('is being', 'was', $drug_list); //hacky way to change verb tense
@@ -551,7 +565,14 @@ function confirm_shipment_notice($groups)
     //New customer tell them it was delivered and followup with a call
     $salesforce = confirm_shipment_internal($groups, $days_ago+1);
 
-    confirm_shipment_event($groups['ALL'], $comms['email'], $comms['text'], $salesforce, $days_ago*24, 13);
+    confirm_shipment_event(
+        $groups['ALL'],
+        $comms['email'],
+        $comms['text'],
+        $salesforce,
+        $days_ago*24,
+        13
+    );
 }
 
 function confirm_shipment_internal($groups, $days_ago)

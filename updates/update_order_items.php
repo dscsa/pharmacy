@@ -24,41 +24,40 @@ use GoodPill\Utilities\Timer;
  */
 function update_order_items($changes) : void
 {
+    // Make sure we have some data
+    $change_counts = [];
+    foreach (array_keys($changes) as $change_type) {
+        $change_counts[$change_type] = count($changes[$change_type]);
+    }
 
-    $count_deleted  = count($changes['deleted']);
-    $count_created  = count($changes['created']);
-    $count_updated  = count($changes['updated']);
-    $orders_updated = [];
-
-    $msg = "$count_deleted deleted, $count_created created, $count_updated updated ";
-    GPLog::info(
-        "update_order_items: all changes. {$msg}",
-        [
-            'deleted_count' => $count_deleted,
-            'created_count' => $count_created,
-            'updated_count' => $count_updated
-        ]
-    );
-
-    CliLog::info("update_order_items: all changes. {$msg}");
-
-    if ($count_deleted + $count_created + $count_updated == 0) {
+    if (array_sum($change_counts) == 0) {
         return;
     }
 
+    GPLog::info(
+        "update_order_items: changes",
+        $change_counts
+    );
+
+    $orders_updated = [];
+
     GPLog::notice('data-update-order-items', $changes);
 
-    Timer::start('update.order.items.created');
-    foreach ($changes['created'] as $created) {
-        order_item_created($created, $orders_updated);
+    if (isset($changes['created'])) {
+        Timer::start('update.order.items.created');
+        foreach ($changes['created'] as $created) {
+            order_item_created($created, $orders_updated);
+        }
+        Timer::stop('update.order.items.created');
     }
-    Timer::stop('update.order.items.created');
 
-    Timer::start('update.order.items.deleted');
-    foreach ($changes['deleted'] as $deleted) {
-        order_item_deleted($deleted, $orders_updated);
+    if (isset($changes['deleted'])) {
+        Timer::start('update.order.items.deleted');
+        foreach ($changes['deleted'] as $deleted) {
+            order_item_deleted($deleted, $orders_updated);
+        }
+        Timer::stop('update.order.items.deleted');
     }
-    Timer::stop('update.order.items.deleted');
 
     if (! empty($orders_updated)) {
         //TODO Somehow bundle patients comms if we are adding/removing drugs on next
@@ -76,11 +75,13 @@ function update_order_items($changes) : void
         handle_adds_and_removes($orders_updated);
     }
 
-    Timer::start('update.order.items.updated');
-    foreach ($changes['updated'] as $updated) {
-        order_item_updated($updated);
+    if (isset($changes['updated'])) {
+        Timer::start('update.order.items.updated');
+        foreach ($changes['updated'] as $updated) {
+            order_item_updated($updated);
+        }
+        Timer::stop('update.order.items.updated');
     }
-    Timer::stop('update.order.items.updated');
 }
 
 
@@ -531,6 +532,11 @@ function deduplicate_order_items(array $item) : array
 {
     $goodpill_db = GoodPill\Storage\GoodPill::getConnection();
     $mssql       = new Mssql_Cp();
+
+    if (empty($item['rx_number'])) {
+        return $item;
+    }
+
 
     $item['count_lines'] = 1;
 

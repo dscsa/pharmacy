@@ -16,44 +16,40 @@ use GoodPill\Utilities\Timer;
  */
 function update_orders_wc(array $changes) : void
 {
-    GPLog::notice('data-update-orders-wc', $changes);
+    // Make sure we have some data
+    $change_counts = [];
+    foreach (array_keys($changes) as $change_type) {
+        $change_counts[$change_type] = count($changes[$change_type]);
+    }
 
-    $count_deleted = count($changes['deleted']);
-    $count_created = count($changes['created']);
-    $count_updated = count($changes['updated']);
-
-    $msg = "$count_deleted deleted, $count_created created, $count_updated updated ";
+    if (array_sum($change_counts) == 0) {
+       return;
+    }
 
     GPLog::info(
-        "update_orders_wc: all changes. {$msg}",
-        [
-          'deleted_count' => $count_deleted,
-          'created_count' => $count_created,
-          'updated_count' => $count_updated
-        ]
+        "update_orders_wc: changes",
+        $change_counts
     );
 
-    CliLog::info("WooCommerce Orders Updates {$msg}");
+    GPLog::notice('data-update-orders-wc', $changes);
 
-    if (! $count_deleted and ! $count_created and ! $count_updated) {
-        return;
+    if (isset($changes['created'])) {
+        Timer::start("update.orders.wc.created");
+        //This captures 2 USE CASES:
+        //1) A user/tech created an order in WC and we need to add it to Guardian
+        //2) An order is incorrectly saved in WC even though it should be gone (tech bug)
+
+        /*
+            Since CP Order runs before this AND Webform automatically adds Orders
+            into CP this loop should not have actual created orders.  They are all
+            orders that were deleted in CP and were overlooked by the cp_order
+            delete loop
+         */
+        foreach ($changes['created'] as $created) {
+            wc_order_created($created);
+        }
+        Timer::stop("update.orders.wc.created");
     }
-
-    Timer::start("update.orders.wc.created");
-    //This captures 2 USE CASES:
-    //1) A user/tech created an order in WC and we need to add it to Guardian
-    //2) An order is incorrectly saved in WC even though it should be gone (tech bug)
-
-    /*
-        Since CP Order runs before this AND Webform automatically adds Orders
-        into CP this loop should not have actual created orders.  They are all
-        orders that were deleted in CP and were overlooked by the cp_order
-        delete loop
-     */
-    foreach ($changes['created'] as $created) {
-        helper_try_catch_log('wc_order_created', $created);
-    }
-    Timer::stop("update.orders.wc.created");
 
     /*
         This captures 2 USE CASES:
@@ -63,17 +59,21 @@ function update_orders_wc(array $changes) : void
             2) An order is in CP but not in (never added to) WC, probably
             because of a tech bug.
      */
-    Timer::start("update.orders.wc.deleted");
-    foreach ($changes['deleted'] as $deleted) {
-        helper_try_catch_log('wc_order_deleted', $deleted);
+    if (isset($changes['deleted'])) {
+        Timer::start("update.orders.wc.deleted");
+        foreach ($changes['deleted'] as $deleted) {
+            wc_order_deleted($deleted);
+        }
+        Timer::stop("update.orders.wc.deleted");
     }
-    Timer::stop("update.orders.wc.deleted");
 
-    Timer::start("update.orders.wc.updated");
-    foreach ($changes['updated'] as $updated) {
-        helper_try_catch_log('wc_order_updated', $updated);
-    } // End Changes Loop
-    Timer::stop("update.orders.wc.updated");
+    if (isset($changes['updated'])) {
+        Timer::start("update.orders.wc.updated");
+        foreach ($changes['updated'] as $updated) {
+            wc_order_updated($updated);
+        } // End Changes Loop
+        Timer::stop("update.orders.wc.updated");
+    }
 }
 
 /*

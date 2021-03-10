@@ -15,40 +15,39 @@ use GoodPill\Utilities\Timer;
  */
 function update_drugs(array $changes) : void
 {
-    GPLog::notice('data-update-drugs', $changes);
 
-    $count_deleted = count($changes['deleted']);
-    $count_created = count($changes['created']);
-    $count_updated = count($changes['updated']);
+    // Make sure we have some data
+    $change_counts = [];
+    foreach (array_keys($changes) as $change_type) {
+        $change_counts[$change_type] = count($changes[$change_type]);
+    }
 
-    $msg = "$count_deleted deleted, $count_created created, $count_updated updated ";
-
-    GPLog::info(
-        "update_drugs: all changes. $msg",
-        [
-            'deleted_count' => $count_deleted,
-            'created_count' => $count_created,
-            'updated_count' => $count_updated
-        ]
-    );
-
-    CliLog::info("Drugs Updates: {$msg}");
-
-    if ($count_deleted + $count_created + $count_updated == 0) {
+    if (array_sum($change_counts) == 0) {
         return;
     }
 
-    Timer::start("update.drugs.created");
-    foreach ($changes['created'] as $i => $created) {
-        helper_try_catch_log('drug_created', $created);
-    }
-    Timer::start("update.drugs.created");
+    GPLog::info(
+        "update_drugs: changes",
+        $change_counts
+    );
 
-    Timer::start("update.drugs.updated");
-    foreach ($changes['updated'] as $i => $updated) {
-        helper_try_catch_log('drug_updated', $updated);
+    GPLog::notice('data-update-drugs', $changes);
+
+    if (isset($changes['created'])) {
+        Timer::start("update.drugs.created");
+        foreach ($changes['created'] as $i => $created) {
+            drug_created($created);
+        }
+        Timer::start("update.drugs.created");
     }
-    Timer::start("update.drugs.updated");
+
+    if (isset($changes['updated'])) {
+        Timer::start("update.drugs.updated");
+        foreach ($changes['updated'] as $i => $updated) {
+            drug_updated($updated);
+        }
+        Timer::start("update.drugs.updated");
+    }
 }
 
 /*

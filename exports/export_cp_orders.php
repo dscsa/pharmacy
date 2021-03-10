@@ -13,17 +13,31 @@ use GoodPill\Logging\{
 function export_cp_set_expected_by($item) {
 
   global $mssql;
-  $mssql = $mssql ?: new Mssql_Cp();
 
+  // this should happen if it does, throw an error and return.
+  if (empty($item['invoice_number'])) {
+      GPLog::critical(
+          'Trying to update CP Expected date, but missing invoice_nbr',
+          [ 'item' => $item ]
+      );
+      return;
+  }
+
+  $mssql           = $mssql ?: new Mssql_Cp();
   $pend_group_name = pend_group_name($item);
 
-  //Last part of order_date_added isn't "necessary" but CP doesn't display full timestamp in "date order added" field
-  //in the F9 queue.  If you know about this trick, you can find the timestamp in the expected by date.
+  /*
+
+    Last part of order_date_added isn't "necessary" but CP doesn't display full
+    timestamp in "date order added" field /in the F9 queue.  If you know about
+    this trick, you can find the timestamp in the expected by date.
+
+   */
   $expected_by = substr($pend_group_name, 0, 10).' '. substr($item['order_date_added'], -8);
 
-  $sql = "
-    UPDATE csom SET expected_by = '$expected_by' WHERE invoice_nbr = $item[invoice_number]
-  ";
+  $sql = "UPDATE csom
+            SET expected_by = '{$expected_by}'
+             WHERE invoice_nbr = {$item['invoice_number']}";
 
   GPLog::notice(
     "export_cp_set_expected_by: pend group name $pend_group_name $item[invoice_number]",

@@ -613,7 +613,7 @@ function is_item($patient_or_order)
 function is_not_offered($item)
 {
     $stock_level = @$item['stock_level_initial'] ?: $item['stock_level'];
-
+    
     if ( ! $item) {
         log_error("helper_days_and_message: $item[drug_name], is_not_offered:true, ERROR no item", ['item' => $item, 'stock_level' => $stock_level]);
         return true;
@@ -640,10 +640,14 @@ function is_not_offered($item)
 
 function is_refill_only($item)
 {
-    return in_array(@$item['stock_level_initial'] ?: $item['stock_level'], [
-    STOCK_LEVEL['OUT OF STOCK'],
-    STOCK_LEVEL['REFILL ONLY']
-  ]);
+    $stock_level = @$item['stock_level_initial'] ?: $item['stock_level'];
+    return in_array(
+        $stock_level,
+        [
+            STOCK_LEVEL['OUT OF STOCK'],
+            STOCK_LEVEL['REFILL ONLY']
+        ]
+    );
 }
 
 function message_text($message, $item)

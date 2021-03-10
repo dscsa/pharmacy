@@ -54,7 +54,10 @@ function gpShutdownHandler()
 {
     $lasterror  = error_get_last();
 
-    if (in_array($lasterror['type'], [E_ERROR, E_USER_ERROR, E_PARSE, E_COMPILE_ERROR])) {
+    if (
+        !empty($lasterror)
+        && in_array($lasterror['type'], [E_ERROR, E_USER_ERROR, E_PARSE, E_COMPILE_ERROR])
+    ) {
         gpErrorHandler(
             $lasterror['type'],
             $lasterror['message'],

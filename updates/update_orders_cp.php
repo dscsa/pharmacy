@@ -25,49 +25,48 @@ use GoodPill\Utilities\Timer;
  */
 function update_orders_cp(array $changes) : void
 {
-    $count_deleted = count($changes['deleted']);
-    $count_created = count($changes['created']);
-    $count_updated = count($changes['updated']);
+    // Make sure we have some data
+    $change_counts = [];
+    foreach (array_keys($changes) as $change_type) {
+        $change_counts[$change_type] = count($changes[$change_type]);
+    }
 
-    $msg = "$count_deleted deleted, $count_created created, $count_updated updated ";
+    if (array_sum($change_counts) == 0) {
+       return;
+    }
 
     GPLog::info(
-        "update_orders_cp: all changes. {$msg}",
-        [
-            'deleted_count' => $count_deleted,
-            'created_count' => $count_created,
-            'updated_count' => $count_updated
-        ]
+        "update_orders_cp: changes",
+        $change_counts
     );
-
-    CliLog::info($msg);
-
-    if ($count_deleted + $count_created + $count_updated == 0) {
-        return;
-    }
 
     GPLog::notice('data-update-orders-cp', $changes);
 
     $mysql = new Mysql_Wc();
-
-    Timer::start("update.patients.cp.created");
-    foreach ($changes['created'] as $created) {
-        helper_try_catch_log('cp_order_created', $created);
+    if (isset($changes['created'])) {
+        Timer::start("update.patients.cp.created");
+        foreach ($changes['created'] as $created) {
+            cp_order_created($created);
+        }
+        Timer::stop("update.patients.cp.created");
     }
-    Timer::stop("update.patients.cp.created");
 
-    Timer::start("update.patients.cp.deleted");
-    foreach ($changes['deleted'] as $deleted) {
-        helper_try_catch_log('cp_order_deleted', $deleted);
+    if (isset($changes['deleted'])) {
+        Timer::start("update.patients.cp.deleted");
+        foreach ($changes['deleted'] as $deleted) {
+            cp_order_deleted($deleted);
+        }
+        Timer::stop("update.patients.cp.deleted");
     }
-    Timer::stop("update.patients.cp.deleted");
 
-    Timer::start("update.patients.cp.updated");
-    foreach ($changes['updated'] as $i => $updated) {
-        helper_try_catch_log('cp_order_updated', $updated);
+    if (isset($changes['updated'])) {
+        Timer::start("update.patients.cp.updated");
+        foreach ($changes['updated'] as $i => $updated) {
+            cp_order_updated($updated);
+        }
+        Timer::stop("update.patients.cp.updated");
+        GPLog::resetSubroutineId();
     }
-    Timer::stop("update.patients.cp.updated");
-    GPLog::resetSubroutineId();
 }
 
 /*
@@ -248,13 +247,32 @@ function cp_order_created(array $created) : ?array
                 'order'           => $order
             ]
         );
-
-        if ($order[0]['count_items'] - $order[0]['count_to_remove']) {
+        // Care point will still attach an order item when it is surescript Denied
+        // This results in a negative number since we are removing an item
+        // but sure script sends an item_count of 0
+        if (
+            (
+                $order[0]['order_status'] == "Surescripts Authorization Denied"
+                && $order[0]['count_items'] - $order[0]['count_to_remove'] > 0
+            )
+            || (
+                $order[0]['order_status'] != "Surescripts Authorization Denied"
+                && $order[0]['count_items'] - $order[0]['count_to_remove'] != 0
+            )
+        ) {
             // Find the item that wasn't removed, but we aren't filling
             // These values are transient and
             // TODO Why is this happening
             GPLog::critical(
-                "update_orders_cp: created. canceling order, but is their a manually added item that we should keep?"
+                "update_orders_cp: created. canceling order, but is their a manually added item that we should keep?",
+                [
+                    'invoice_number'  => $order[0]['invoice_number'],
+                    'count_filled'    => $order[0]['count_filled'],
+                    'count_items'     => $order[0]['count_items'],
+                    'count_to_add'    => $order[0]['count_to_add'],
+                    'count_to_remove' => $order[0]['count_to_remove'],
+                    'order'           => $order
+                ]
             );
         }
 
@@ -544,11 +562,12 @@ function cp_order_updated(array $updated) : ?array
     }
 
     GPLog::notice(
-        "Order Changed.  Has it shipped or dispensed",
+        "Order Changed. Has it shipped or dispensed",
         [
             'State Changed' => $stage_change_cp,
             'Dispensed'     => ($updated['order_date_dispensed'] != $updated['old_order_date_dispensed']),
-            'Shipped'       => ($updated['order_date_shipped'] != $updated['old_order_date_shipped'])
+            'Shipped'       => ($updated['order_date_shipped'] != $updated['old_order_date_shipped']),
+            'invoice_number' => $updated['invoice_number']
         ]
     );
 

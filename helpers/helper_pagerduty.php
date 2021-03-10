@@ -151,6 +151,11 @@ function get_pd_event(
  */
 function pd_alert(TriggerEvent $event)
 {
+
+    if (ENVIRONMENT != 'PRODUCTION') {
+        return true;
+    }
+
     try {
         $responseCode = $event->send();
         return ($responseCode == 200);
