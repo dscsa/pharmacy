@@ -13,6 +13,7 @@ use GoodPill\Logging\{
 };
 
 use GoodPill\Utilities\Timer;
+use GoodPill\DataModels\GoodPillOrder;
 
 
 /**
@@ -116,6 +117,14 @@ function order_item_created(array $created, array &$orders_updated) : ?array
 
     $invoice_number = $created['invoice_number'];
 
+    $GPOrder = new GoodPillOrder(['invoice_number' => $invoice_number]);
+    if ($GPOrder->isShipped()) {
+        GPLog::alert(
+            "Trying to add an item to an order that has already shipped",
+            [ 'created' => $created]
+        );
+    }
+
     //This will add/remove and pend/unpend items from the order
     $item = load_full_item($created, $mysql);
 
@@ -217,6 +226,14 @@ function order_item_deleted(array $deleted, array &$orders_updated) : ?array
 
     $invoice_number = $deleted['invoice_number'];
 
+    $GPOrder = new GoodPillOrder(['invoice_number' => $invoice_number]);
+    if ($GPOrder->isShipped()) {
+        GPLog::alert(
+            "Trying to delete an item to an order that has already shipped",
+            [ 'deleted' => $deleted]
+        );
+    }
+
     $item = load_full_item($deleted, $mysql);
 
     GPLog::debug(
@@ -267,6 +284,14 @@ function order_item_updated(array $updated) : ?array
     GPLog::info("data-order-items-updated", ['updated' => $updated]);
 
     $changed = changed_fields($updated);
+
+    $GPOrder = new GoodPillOrder(['invoice_number' => $updated['invoice_number']]);
+    if ($GPOrder->isShipped()) {
+        GPLog::alert(
+            "Trying to change an item on an order that has already shipped",
+            [ 'updated' => $updated]
+        );
+    }
 
     GPLog::debug(
         "update_order_items: Order Item updated",

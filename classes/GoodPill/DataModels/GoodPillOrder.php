@@ -101,4 +101,22 @@ class GoodPillOrder extends GPModel
 
         return null;
     }
+
+    /**
+     * Has the order been marked as shipped
+     * @return bool true if there is a shipdate
+     */
+    public function isShipped() : bool
+    {
+        return ($this->loaded && empty($this->order_date_shipped));
+    }
+
+    /**
+     * Has the order
+     * @return bool [description]
+     */
+    public function isDispensed() : bool
+    {
+        return ($this->loaded && empty($this->order_date_dispensed));
+    }
 }
