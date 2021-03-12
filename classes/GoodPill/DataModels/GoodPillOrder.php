@@ -108,7 +108,7 @@ class GoodPillOrder extends GPModel
      */
     public function isShipped() : bool
     {
-        return ($this->loaded && empty($this->order_date_shipped));
+        return ($this->loaded && !empty($this->order_date_shipped));
     }
 
     /**
@@ -117,6 +117,6 @@ class GoodPillOrder extends GPModel
      */
     public function isDispensed() : bool
     {
-        return ($this->loaded && empty($this->order_date_dispensed));
+        return ($this->loaded && !empty($this->order_date_dispensed));
     }
 }
