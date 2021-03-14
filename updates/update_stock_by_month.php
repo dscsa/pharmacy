@@ -203,7 +203,7 @@ function update_stock_by_month($changes) {
     $salesforce   = [
       "subject"   => 'Duplicate GSNs in V2',
       "body"      => print_r($duplicate_gsns[0][0], true),
-      "assign"    => "Joseph",
+      "assign_to"    => "Joseph",
       "due_date"  => date('Y-m-d')
     ];
 
