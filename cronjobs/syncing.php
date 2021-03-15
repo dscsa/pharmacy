@@ -330,6 +330,12 @@ try {
             CliLog::notice('Nothing to Queue drugs.deleted');
         }
 
+        if ($has_changes = get_sync_request('drugs', ['updated'], $changes_to_drugs, $exec_id)) {
+            $changes_sqs_messages[] = $has_changes;
+        } else {
+            CliLog::notice('Nothing to Queue drugs.updated');
+        }
+
         if ($has_changes = get_sync_request('stock_by_month', ['created', 'deleted', 'updated'], $changes_to_stock_by_month, $exec_id)) {
             $changes_sqs_messages[] = $has_changes;
         } else {
