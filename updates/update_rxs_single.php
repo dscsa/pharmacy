@@ -548,7 +548,8 @@ function update_rxs_single($changes)
                 $salesforce = [
                   "subject"   => "Autofill turned $status for $updated[drug_name]",
                   "body"      => "$body $created",
-                  "contact"   => "$item[first_name] $item[last_name] $item[birth_date]"
+                  "contact"   => "$item[first_name] $item[last_name] $item[birth_date]",
+                  "assign_to" => null //required for Zapier to process
                 ];
 
                 $event_title = @$item['drug_name']." Autofill $status $salesforce[contact] $created";
