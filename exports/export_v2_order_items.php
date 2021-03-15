@@ -433,7 +433,7 @@ function get_item_pended_group($item, $include_picked = false)
 function pend_group_refill($item)
 {
     $pick_time = strtotime($item['order_date_added'].' +2 days'); //Used to be +3 days
-    $invoice   = "R$item[invoice_number]"; //N < R so new scripts will appear first on shopping list
+    $invoice   = "R{$item['invoice_number']}"; //N < R so new scripts will appear first on shopping list
     $pick_date = date('Y-m-d', $pick_time);
     return "$pick_date $invoice";
 }
@@ -441,15 +441,15 @@ function pend_group_refill($item)
 function pend_group_webform($item)
 {
     $pick_time = strtotime($item['order_date_added'].' +0 days'); //Used to be +1 days
-    $invoice   = "W$item[invoice_number]";
+    $invoice   = "W{$item['invoice_number']}";
     $pick_date = date('Y-m-d', $pick_time);
     return "$pick_date $invoice";
 }
 
 function pend_group_new_patient($item)
 {
-    $pick_time = strtotime($item['patient_date_added'].' -8 days');
-    $invoice   = "P$item[invoice_number]";
+    $pick_time = strtotime(@$item['patient_date_added'].' -8 days');
+    $invoice   = "P{$item['invoice_number']}";
     $pick_date = date('Y-m-d', $pick_time);
     return "$pick_date $invoice";
 }
@@ -458,7 +458,7 @@ function pend_group_new_patient($item)
 function pend_group_new_patient_old($item)
 {
     $pick_time = strtotime($item['patient_date_added'].' +0 days');
-    $invoice   = "P$item[invoice_number]";
+    $invoice   = "P{$item['invoice_number']}";
     $pick_date = date('Y-m-d', $pick_time);
     return "$pick_date $invoice";
 }
@@ -485,7 +485,7 @@ function pend_group_name($item)
     //Probably need to have each "app" be a different "CP user" so that we can look at item_added_by
     if (is_auto_refill($item)) {
         $pend_group_name = pend_group_refill($item);
-    } elseif (!isset($pend_group_name) && $item['refills_used'] > 0) {
+    } elseif (!isset($pend_group_name) && @$item['refills_used'] > 0) {
         $pend_group_name = pend_group_webform($item);
     } else {
         $pend_group_name = pend_group_new_patient($item);
