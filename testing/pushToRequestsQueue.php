@@ -26,41 +26,41 @@ try {
 
     // Drugs
     if ($has_changes = get_sync_request('drugs', ['created'], $changes_to_drugs, $exec_id)) {
-        $changes_sqs_messages[] = $has_changes;
+        //$changes_sqs_messages[] = $has_changes;
     } else {
         echo "Nothing to Queue drugs.created \n";
     }
 
     if ($has_changes = get_sync_request('drugs', ['deleted'], $changes_to_drugs, $exec_id)) {
-        $changes_sqs_messages[] = $has_changes;
+        //$changes_sqs_messages[] = $has_changes;
     } else {
         echo "Nothing to Queue drugs.deleted \n";
     }
 
     if ($has_changes = get_sync_request('stock_by_month', ['created', 'deleted', 'updated'], $changes_to_stock_by_month, $exec_id)) {
-        $changes_sqs_messages[] = $has_changes;
+        //$changes_sqs_messages[] = $has_changes;
     } else {
         echo "Nothing to Queue stock_by_month.all \n";
     }
 
     if ($has_changes = get_sync_request('patients_cp', ['updated'], $changes_to_patients_cp, $exec_id)) {
-        $changes_sqs_messages[] = $has_changes;
+        //$changes_sqs_messages[] = $has_changes;
     } else {
         echo "Nothing to Queue patients_cp.updated \n";
     }
 
     if ($has_changes = get_sync_request('patients_wc', ['created'], $changes_to_patients_wc, $exec_id)) {
-        $changes_sqs_messages[] = $has_changes;
+        //$changes_sqs_messages[] = $has_changes;
     } else {
         echo "Nothing to Queue patients_wc.created \n";
     }
     if ($has_changes = get_sync_request('patients_wc', ['deleted'], $changes_to_patients_wc, $exec_id)) {
-        $changes_sqs_messages[] = $has_changes;
+        //$changes_sqs_messages[] = $has_changes;
     } else {
         echo "Nothing to Queue patients_wc.deleted \n";
     }
     if ($has_changes = get_sync_request('patients_wc', ['updated'], $changes_to_patients_wc, $exec_id)) {
-        $changes_sqs_messages[] = $has_changes;
+        //$changes_sqs_messages[] = $has_changes;
     } else {
         echo "Nothing to Queue patients_wc.updated \n";
     }
@@ -80,17 +80,17 @@ try {
 
 
     if ($has_changes = get_sync_request('orders_cp', ['created'], $changes_to_orders_cp, $exec_id)) {
-        $changes_sqs_messages[] = $has_changes;
+        //$changes_sqs_messages[] = $has_changes;
     } else {
         echo "Nothing to Queue orders_cp.created \n";
     }
     if ($has_changes = get_sync_request('orders_cp', ['deleted'], $changes_to_orders_cp, $exec_id)) {
-        $changes_sqs_messages[] = $has_changes;
+        //$changes_sqs_messages[] = $has_changes;
     } else {
         echo "Nothing to Queue orders_cp.deleted \n";
     }
     if ($has_changes = get_sync_request('orders_cp', ['updated'], $changes_to_orders_cp, $exec_id)) {
-        $changes_sqs_messages[] = $has_changes;
+        //$changes_sqs_messages[] = $has_changes;
     } else {
         echo "Nothing to Queue orders_cp.updated \n";
     }
@@ -98,36 +98,36 @@ try {
 
     // Orders WC
     if ($has_changes = get_sync_request('orders_wc', ['created'], $changes_to_orders_wc, $exec_id)) {
-        $changes_sqs_messages[] = $has_changes;
+        //$changes_sqs_messages[] = $has_changes;
     } else {
         echo "Nothing to Queue orders_wc.created \n";
     }
     if ($has_changes = get_sync_request('orders_wc', ['deleted'], $changes_to_orders_wc, $exec_id)) {
-        $changes_sqs_messages[] = $has_changes;
+        //$changes_sqs_messages[] = $has_changes;
     } else {
         echo "Nothing to Queue orders_wc.deleted \n";
     }
     if ($has_changes = get_sync_request('orders_wc', ['updated'], $changes_to_orders_wc, $exec_id)) {
-        $changes_sqs_messages[] = $has_changes;
+        //$changes_sqs_messages[] = $has_changes;
     } else {
         echo "Nothing to Queue orders_wc.updated \n";
     }
 
     // Orders WC
     if ($has_changes = get_sync_request('order_items', ['created'], $changes_to_order_items, $exec_id)) {
-        $changes_sqs_messages[] = $has_changes;
+        //$changes_sqs_messages[] = $has_changes;
     } else {
         echo "Nothing to Queue order_items.created \n";
     }
 
     if ($has_changes = get_sync_request('order_items', ['deleted'], $changes_to_order_items, $exec_id)) {
-        $changes_sqs_messages[] = $has_changes;
+        //$changes_sqs_messages[] = $has_changes;
     } else {
         echo "Nothing to Queue order_items.deleted \n";
     }
 
     if ($has_changes = get_sync_request('order_items', ['updated'], $changes_to_order_items, $exec_id)) {
-        $changes_sqs_messages[] = $has_changes;
+        //$changes_sqs_messages[] = $has_changes;
         echo "Nothing to Queue order_items.updated \n";
     }
     echo "Sending ".count($changes_sqs_messages)." messages to the queue \n";
@@ -149,7 +149,6 @@ try {
   $syncq = new PharmacySyncQueue();
   $asyncQueue = new PharmacyAsyncQueue();
 
-  $complete = [];
   $results  = $syncq->receive([
     'WaitTimeSeconds' => 10,
   ]);
@@ -159,6 +158,7 @@ try {
   //  After it's been printed, immediately delete the message
   foreach($messages as $message) {
     $request = new PharmacySyncRequest($message);
+    $syncq->updateTimeout($request);
 
     switch ($request->changes_to) {
         case 'drugs':
@@ -167,19 +167,18 @@ try {
         case 'stock_by_month':
             print "Stock by Month Case \n";
             break;
-        case 'patients_cp':
-            print "Patients CP Case \n";
-            break;
         default:
           print "Default Case \n";
-          $asyncRequest = new PharmacyAsyncRequest($message);
-          $asyncRequest->group_id = $exec_id;
-          $asyncRequest->execution_id = $exec_id;
-          $asyncQueue->send($asyncRequest);
+          foreach (array_keys($request->changes) as $change_type) {
+            foreach($request->changes[$change_type] as $changes) {
+                $new_request = get_sync_request_single($request->changes_to, [$change_type], $changes, 'PASS_TO_NEXT_QUEUE');
+            }
+          }
+          //    Push to next Queue
+          //$asyncQueue->send($asyncRequest);
           break;
     }
 
-    $complete[] = $request;
     $syncq->delete($request);
     echo "Request: $request->execution_id - $request->changes_to was removed from the queue \n";
   }

@@ -51,4 +51,7 @@ writeLogToMock('data-update-stock-by-month');
 writeLogToMock('data-update-patients-cp');
 writeLogToMock('data-update-patients-wc');
 writeLogToMock('data-update-rxs-single');
+writeLogToMock('data-update-orders-cp');
+writeLogToMock('data-update-orders-wc');
+writeLogToMock('data-update-order-items');
 exit();
