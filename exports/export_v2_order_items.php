@@ -771,11 +771,12 @@ function get_v2_inventory($item, $limit)
     $min_days = $item['days_dispensed_default'];
     $stock    = $item['stock_level_initial'];
 
-    //Used to use +14 days rather than -14 days as a buffer for dispensing and shipping.
-  //But since lots of prepacks expiring I am going to let almost expired things be prepacked.
-  //Update on 2020-12-03, -14 days is causing issues when we are behind on filling (on 12/1/2020 a 90 day Rx was pended for exp 01/2021)
-  $days_adjustment = 0; //-14 //+14
-  $min_exp   = explode('-', date('Y-m', strtotime("+".($min_days+$days_adjustment)." days")));
+    // Used to use +14 days rather than -14 days as a buffer for dispensing and shipping.
+    // But since lots of prepacks expiring I am going to let almost expired things be prepacked.
+    // Update on 2020-12-03, -14 days is causing issues when we are behind on filling
+    // (on 12/1/2020 a 90 day Rx was pended for exp 01/2021)
+    $days_adjustment = 0; //-14 //+14
+    $min_exp   = explode('-', date('Y-m', strtotime("+".($min_days+$days_adjustment)." days")));
 
     $start_key = rawurlencode('["8889875187","month","'.$min_exp[0].'","'.$min_exp[1].'","'.$generic.'"]');
     $end_key   = rawurlencode('["8889875187","month","'.$min_exp[0].'","'.$min_exp[1].'","'.$generic.'",{}]');
@@ -986,6 +987,7 @@ function get_qty_needed($rows, $min_qty, $safety)
         $count_repacks = 0;
         $left          = $min_qty;
         $max_qty       = ($left * 1.25);
+        $max_qty = (floor($max_qty) < $min_qty)?:floor($max_qty);
 
         foreach ($inventory as $i => $option) {
             if ($i == 'prepack_qty') {
@@ -993,19 +995,22 @@ function get_qty_needed($rows, $min_qty, $safety)
             }
 
             // Put the option on the top of the pend list
-            array_unshift($pend, $option);
+            $will_exceed_max = ($option['qty']['to'] + $qty) > $max_qty;
+            if (!$will_exceed_max || $left > 0) {
+                array_unshift($pend, $option);
 
-            $usable = 1 - $safety;
-            if (strlen($pend[0]['bin']) == 3) {
-                $usable = 1;
-                $qty_repacks += $pend[0]['qty']['to'];
-                $count_repacks++;
+                $usable = 1 - $safety;
+
+                if (strlen($pend[0]['bin']) == 3) {
+                    $usable = 1;
+                    $qty_repacks += $pend[0]['qty']['to'];
+                    $count_repacks++;
+                }
+
+                $qty += $pend[0]['qty']['to'];
+                $left -= $pend[0]['qty']['to'] * $usable;
+                $list = pend_to_list($list, $pend);
             }
-
-            $qty += $pend[0]['qty']['to'];
-            $left -= $pend[0]['qty']['to'] * $usable;
-            $list = pend_to_list($list, $pend);
-
             /*
                 Shop for all matching medicine in the bin, its annoying and inefficient to pick some
                  and leave the others
@@ -1016,7 +1021,6 @@ function get_qty_needed($rows, $min_qty, $safety)
                 Update 3: Manufacturer bottles are anything over 60
                 Update 4: Quit Pending if we are over 50%% of the originaly pend request
             */
-
             $different_bin = ($pend[0]['bin'] != @$inventory[$i+1]['bin']);
             $is_prepack    = (strlen($pend[0]['bin']) == 3);
             $is_mfg_bottle = ($pend[0]['qty']['to'] >= 60);
