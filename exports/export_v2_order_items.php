@@ -968,16 +968,18 @@ function months_between($from, $to)
 
 function get_qty_needed($rows, $min_qty, $safety)
 {
+
     foreach ($rows as $row) {
         $ndc = $row['ndc'];
         $inventory = $row['inventory'];
 
-        $list  = [];
-        $pend  = [];
-        $qty = 0;
-        $qty_repacks = 0;
+        $list          = [];
+        $pend          = [];
+        $qty           = 0;
+        $qty_repacks   = 0;
         $count_repacks = 0;
-        $left = $min_qty;
+        $left          = $min_qty;
+        $max_qty       = ($left * 1.25);
 
         foreach ($inventory as $i => $option) {
             if ($i == 'prepack_qty') {
@@ -997,25 +999,40 @@ function get_qty_needed($rows, $min_qty, $safety)
             $left -= $pend[0]['qty']['to'] * $usable;
             $list = pend_to_list($list, $pend);
 
-            //Shop for all matching medicine in the bin, its annoying and inefficient to pick some and leave the others
-            //Update 1: Don't do the above if we are in a prepack bin, otherwise way will way overshop (eg Order #42107)
-            //Udpdate 2: Don't do if they are manufacturer bottles otherwise we get way too much
+            /*
+                Shop for all matching medicine in the bin, its annoying and inefficient to pick some
+                 and leave the others
+
+                Update 1: Don't do the above if we are in a prepack bin, otherwise way will way
+                overshop (eg Order #42107)
+                Update 2: Don't do if they are manufacturer bottles otherwise we get way too much
+                Update 3: Manufacturer bottles are anything over 60
+                Update 4: Quit Pending if we are over 50%% of the originaly pend request
+            */
             $different_bin = ($pend[0]['bin'] != @$inventory[$i+1]['bin']);
             $is_prepack    = (strlen($pend[0]['bin']) == 3);
-            $is_mfg_bottle = ($pend[0]['qty']['to'] >= 90);
+            $is_mfg_bottle = ($pend[0]['qty']['to'] >= 60);
+            $over_max      = $qty > $max_qty;
 
-            if ($left <= 0 and ($different_bin or $is_prepack or $is_mfg_bottle)) {
+            if (
+                $left <= 0
+                and (
+                    $over_max
+                    or $different_bin
+                    or $is_prepack
+                    or $is_mfg_bottle
+                )
+            ) {
                 usort($list, 'sort_list');
-
                 return [
-          'list' => $list,
-          'ndc' => $ndc,
-          'pend' => $pend,
-          'qty' => $qty,
-          'count' => count($list),
-          'qty_repacks' => $qty_repacks,
-          'count_repacks' => $count_repacks
-        ];
+                    'list'          => $list,
+                    'ndc'           => $ndc,
+                    'pend'          => $pend,
+                    'qty'           => $qty,
+                    'count'         => count($list),
+                    'qty_repacks'   => $qty_repacks,
+                    'count_repacks' => $count_repacks
+                ];
             }
         }
     }
