@@ -966,9 +966,15 @@ function months_between($from, $to)
     return $diff->m + ($diff->y * 12);
 }
 
+/**
+ * Get the quantity we are going to pend in the next step
+ * @param  array $rows    The items that were returned from v2
+ * @param  float $min_qty The minimum need to fill this rx
+ * @param  int   $safety  unknown????
+ * @return array The of the details needed to pend the items
+ */
 function get_qty_needed($rows, $min_qty, $safety)
 {
-
     foreach ($rows as $row) {
         $ndc = $row['ndc'];
         $inventory = $row['inventory'];
@@ -986,6 +992,7 @@ function get_qty_needed($rows, $min_qty, $safety)
                 continue;
             }
 
+            // Put the option on the top of the pend list
             array_unshift($pend, $option);
 
             $usable = 1 - $safety;
@@ -1009,10 +1016,12 @@ function get_qty_needed($rows, $min_qty, $safety)
                 Update 3: Manufacturer bottles are anything over 60
                 Update 4: Quit Pending if we are over 50%% of the originaly pend request
             */
+
             $different_bin = ($pend[0]['bin'] != @$inventory[$i+1]['bin']);
             $is_prepack    = (strlen($pend[0]['bin']) == 3);
             $is_mfg_bottle = ($pend[0]['qty']['to'] >= 60);
             $over_max      = $qty > $max_qty;
+            $unit_of_use   = ($min_qty < 5);
 
             if (
                 $left <= 0
@@ -1021,9 +1030,20 @@ function get_qty_needed($rows, $min_qty, $safety)
                     or $different_bin
                     or $is_prepack
                     or $is_mfg_bottle
+                    or $unit_of_use
                 )
             ) {
                 usort($list, 'sort_list');
+
+                GPLog::debug(
+                    "get_qty_needed:  Finding quantity to pend for {$option['drug']['generic']}",
+                    [
+                        'min_qty' => $min_qty,
+                        'max_qty' => $max_qty,
+                        'pend_qty' => $qty
+                    ]
+                );
+
                 return [
                     'list'          => $list,
                     'ndc'           => $ndc,
