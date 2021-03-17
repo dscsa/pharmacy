@@ -578,6 +578,10 @@ function order_rescheduled_notice($partial, $groups)
         "message" => $subject.'. '.$message
     ];
 
+    // TODO remove DEBUG
+    $email = DEBUG_EMAIL;
+    $text  = DEBUG_SMS;
+
     $email['subject'] = $subject;
     $email['message'] = implode("<br>\n", [
         'Hello,',
