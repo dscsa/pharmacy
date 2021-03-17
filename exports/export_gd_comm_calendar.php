@@ -521,6 +521,14 @@ function order_cancelled_notice($partial, $groups)
         );
     }
 
+    // If we find anything that has autofill enabled, we should send a reschedule
+    // instead of a cancel notification
+    foreach ($groups['ALL'] as $rx) {
+        if ($rx['rx_autofill']) {
+            return order_rescheduled_notice($partial, $groups);
+        }
+    }
+
     $subject = "Order #{$partial['invoice_number']} has been cancelled";
 
     if (is_webform_transfer($partial)) {
@@ -553,6 +561,82 @@ function order_cancelled_notice($partial, $groups)
     );
 
     order_cancelled_event($partial, $groups['ALL'], $email, $text, 15/60);
+}
+
+function order_rescheduled_notice($partial, $groups)
+{
+    $cancelled   = [];
+    $rescheduled = [];
+
+    foreach ($groups['ALL'] as $rx) {
+        if ($rx['rx_autofill']) {
+            $rescheduled[] = $rx;
+        } else {
+            $cancelled[] = $rx;
+        }
+    }
+
+    // Now sort the items based on the date
+    usort(
+        $rescheduled,
+        function ($a, $b) {
+            $a_refill = $a['refill_date_next'];
+            $b_refill = $b['refill_date_next'];
+
+            if ($a_refill == $b_refill) {
+                return 0;
+            }
+
+            return ($a_refill < $b_refill) ? -1 : 1;
+        }
+    );
+
+    // Create our Message
+    $cancelled_messages   = [];
+    $rescheduled_messages = [];
+
+    foreach ($cancelled as $rx) {
+        $cancelled_messages[] = "{$rx['drug_generic']} {$rx['rx_message_text']}";
+    }
+
+    foreach ($rescheduled as $rx) {
+        $refill_date = $rx['refill_date_next'];
+
+        if (!isset($rescheduled_messages[$refill_date])) {
+            $rescheduled_messages[$refill_date] = [];
+        }
+
+        $rescheduled_messages[$refill_date][] = $rx['drug_generic'];
+    }
+
+    $cancelled_string = implode(";<br>\n", $cancelled_messages);
+    $rescheduled_string = '';
+
+    foreach ($rescheduled_messages as $date => $items) {
+        $rescheduled_string .= "<b>{$date}</b><br>\n" . implode(";<br>\n", $items);
+    }
+
+    $subject = "Order #{$partial['invoice_number']} has been cancelled/rescheduled";
+    $message   = "<u>Good Pill is NOT filling:</u><br>\n{$cancelled_string};";
+    $message  .= "<u>Good Pill has rescheduled:</u><br>\n{$rescheduled_string}";
+    $message  .= "<br><br>If you believe this change was in error, call us (888) 987-5187";
+
+    $email = [ "email" => $groups['ALL'][0]['email']];
+    $text  = [ "sms"   => get_phones($groups['ALL']), "message" => $subject.'. '.$message ];
+
+    $email['subject'] = $subject;
+    $email['message'] = implode("<br>\n", [
+        'Hello,',
+        '',
+        $subject.'. '.$message,
+        '',
+        'Thanks!',
+        'The Good Pill Team',
+        '',
+        ''
+    ]);
+
+    order_rescheduled_event($partial, $groups['ALL'], $email, $text, 15/60);
 }
 
 function confirm_shipment_notice($groups)
