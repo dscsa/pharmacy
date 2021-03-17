@@ -119,6 +119,7 @@ for ($l = 0; $l < $executions; $l++) {
     $results  = $syncq->receive(['MaxNumberOfMessages' => 1]);
     $messages = $results->get('Messages');
     $complete = [];
+    $patientQueueBatch = [];
 
     //  Secondary Patient queue to send patient messages to
     $patientQueue = new PharmacyPatientQueue();
@@ -178,11 +179,10 @@ for ($l = 0; $l < $executions; $l++) {
                     case 'orders_wc':
                     case 'order_items':
                         foreach (array_keys($request->changes) as $change_type) {
-                          foreach($request->changes[$change_type] as $changes) {
-                              $new_request = get_sync_request_single($request->changes_to, $change_type, $changes, $request->execution_id);
-
-                              $patientQueue->send($new_request);
-                          }
+                            foreach($request->changes[$change_type] as $changes) {
+                                $new_request = get_sync_request_single($request->changes_to, $change_type, $changes, $request->execution_id);
+                                $patientQueueBatch[] = $new_request;
+                            }
                         }
                     break;
                 }
@@ -214,6 +214,12 @@ for ($l = 0; $l < $executions; $l++) {
 
             $complete[] = $request;
         }
+    }
+
+    if (count($changes_sqs_messages) > 0) {
+        $patientQueue->sendBatch($patientQueueBatch);
+    } else {
+        CliLog::warning('No changes to send to patient queue');
     }
 
     // Delete any complet messages

@@ -115,7 +115,7 @@ for ($l = 0; $l < $executions; $l++) {
     }
 
     // TODO Change this number to 10 when we start havnig multiple groups
-    $results  = $patientQueue->receive(['MaxNumberOfMessages' => 1]);
+    $results  = $patientQueue->receive(['MaxNumberOfMessages' => 10]);
     $messages = $results->get('Messages');
     $complete = [];
 
@@ -146,10 +146,9 @@ for ($l = 0; $l < $executions; $l++) {
             $changes = $request->changes;
 
             $log_message = sprintf(
-                "New sync for %s total %s in %s",
-                array_sum(array_map("count", $changes)),
-                implode(',', array_keys($changes)),
-                $request->changes_to
+                "Processing changes %s to %s ",
+                $request->changes_to,
+                $request->execution_id
             );
 
             if (isset($request->execution_id)) {
@@ -161,12 +160,6 @@ for ($l = 0; $l < $executions; $l++) {
 
             try {
                 switch ($request->changes_to) {
-                    case 'drugs':
-                        update_drugs($changes);
-                        break;
-                    case 'stock_by_month':
-                        update_stock_by_month($changes);
-                        break;
                     case 'patients_cp':
                         update_patients_cp($changes);
                         break;
