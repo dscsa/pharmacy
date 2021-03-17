@@ -145,7 +145,15 @@ function patient_pricing_text($item) {
 }
 
 function patient_drug_text($item) {
-  return @$item['drug_generic'] ?: $item['drug_name'];
+    if ( ! @$item['drug_generic']) {
+        return $item['drug_name'];
+    }
+
+    if ( ! @$item['drug_brand']) {
+        return $item['drug_generic'];
+    }
+
+    return $item['drug_generic']." ({$item['drug_brand']})";
 }
 
 function patient_payment_method($item) {
