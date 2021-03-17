@@ -2,6 +2,7 @@
 
 use GoodPill\AWS\SQS\PharmacySyncRequest;
 use GoodPill\DataModels\GoodPillPatient;
+use GoodPill\DataModels\GoodPillOrder;
 
 /**
  * Get a Pharmach sync request for queueing
@@ -37,11 +38,10 @@ function get_sync_request(
 
 function get_sync_request_single(
     string $changes_to,
-    array $change_types,
+    string $change_type,
     array $changes,
     string $execution = null
 ) : ?PharmacySyncRequest {
-    $patient = null;
 
     switch($changes_to) {
         case 'patients_cp':
@@ -56,30 +56,44 @@ function get_sync_request_single(
                 [
                     'patient_id_cp' => $changes['patient_id_cp'],
                     'patient_id_wc' => $changes['patient_id_wc'],
+                    'invoice_number' => $changes['invoice_number'],
                  ] as $k => $v
              ) {
-                if (isset($v)) {
+                if (isset($v) && $k === 'invoice_number') {
+                    $order = new GoodPillOrder(['invoice_number' => $changes['invoice_number']]);
+                    $patient = $order->getPatient();
+                }
+                if (isset($v) && ($k === 'patient_id_cp' || $k ==='patient_id_wc' )) {
                     $patient = new GoodPillPatient([$k => $v]);
                     break;
                 }
             }
 
-            if ($patient->isMatched()) {
+            if (isset($patient)) {
                 $group_id = $patient->last_name.'_'.$patient->first_name.'_'.$patient->birth_date;
             } else {
-                throw new \Exception("Cannot find matching patient");
+                $group_id = null;
             }
-
             break;
         default:
-            throw new \Exception("No change type detected");
             break;
     }
 
-    $syncing_request             = new PharmacySyncRequest();
-    $syncing_request->changes_to = $changes_to;
-    $syncing_request->changes    = $changes;
-    $syncing_request->group_id   = $group_id;
-    $syncing_request->execution_id = $execution;
-    return $syncing_request;
+    $foundGroupIdParts = array_filter(explode('_', $group_id), function ($element) {
+        return $element !== "";
+    });
+
+    if (isset($group_id) && count($foundGroupIdParts) === 3) {
+
+        $syncing_request             = new PharmacySyncRequest();
+        $syncing_request->changes_to = $changes_to;
+        $syncing_request->changes    = [$change_type => $changes];
+        $syncing_request->group_id   = $group_id;
+        $syncing_request->execution_id = $execution;
+        return $syncing_request;
+    } else {
+        //  Should log a critical error here
+        throw new \Exception("Could Not Find Full Patient ID");
+    }
+
 }

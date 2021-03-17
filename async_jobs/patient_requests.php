@@ -7,9 +7,8 @@ date_default_timezone_set('America/New_York');
 require_once 'vendor/autoload.php';
 
 use GoodPill\AWS\SQS\{
-    PharmacySyncQueue,
-    PharmacySyncRequest,
     PharmacyPatientQueue,
+    PharmacySyncRequest
 };
 
 use GoodPill\Logging\{
@@ -100,7 +99,7 @@ pcntl_signal(
  require_once 'updates/update_orders_cp.php';
 
 // Grab and item out of the queue
-$syncq = new PharmacySyncQueue();
+$patientQueue = new PharmacyPatientQueue();
 
 // TODO up this execution count so we aren't restarting the thread so often
 $executions = (ENVIRONMENT == 'PRODUCTION') ? 20 : 2;
@@ -109,19 +108,16 @@ $executions = (ENVIRONMENT == 'PRODUCTION') ? 20 : 2;
 for ($l = 0; $l < $executions; $l++) {
     CliLog::debug("All includes imported waiting for message");
 
-    if (file_exists('/tmp/block-sync.txt')) {
+    if (file_exists('/tmp/block-patient-queue.txt')) {
         sleep(30);
-        CliLog::error('Sync Job blocked by /tmp/block-sync.txt');
+        CliLog::error('Patient Sync Job blocked by /tmp/block-patient-queue.txt');
         contine;
     }
 
     // TODO Change this number to 10 when we start havnig multiple groups
-    $results  = $syncq->receive(['MaxNumberOfMessages' => 1]);
+    $results  = $patientQueue->receive(['MaxNumberOfMessages' => 1]);
     $messages = $results->get('Messages');
     $complete = [];
-
-    //  Secondary Patient queue to send patient messages to
-    $patientQueue = new PharmacyPatientQueue();
 
     // An array of messages that have
     // been proccessed and can be deleted
@@ -172,19 +168,23 @@ for ($l = 0; $l < $executions; $l++) {
                         update_stock_by_month($changes);
                         break;
                     case 'patients_cp':
+                        update_patients_cp($changes);
+                        break;
                     case 'patients_wc':
+                        update_patients_wc($changes);
+                        break;
                     case 'rxs_single':
+                        update_rxs_single($changes);
+                        break;
                     case 'orders_cp':
+                        update_orders_cp($changes);
+                        break;
                     case 'orders_wc':
+                        update_orders_wc($changes);
+                        break;
                     case 'order_items':
-                        foreach (array_keys($request->changes) as $change_type) {
-                          foreach($request->changes[$change_type] as $changes) {
-                              $new_request = get_sync_request_single($request->changes_to, $change_type, $changes, $request->execution_id);
-
-                              $patientQueue->send($new_request);
-                          }
-                        }
-                    break;
+                        update_order_items($changes);
+                        break;
                 }
 
                 /* Check to see if we've requeted to stop */
@@ -196,18 +196,18 @@ for ($l = 0; $l < $executions; $l++) {
                 }
             } catch (\Exception $e) {
                 // Log the error
-                $message = "SYNC JOB - ERROR ";
+                $message = "PATIENT SYNC JOB - ERROR ";
                 $message .= $e->getCode() . " " . $e->getMessage() ." ";
                 $message .= $e->getFile() . ":" . $e->getLine() . "\n";
                 $message .= $e->getTraceAsString();
 
                 GPLog::emergency(
                     $message . "
-                    Remove /tmp/block-sync.txt and restart supervisord to restart the process"
+                    Remove /tmp/block-patient-queue.txt and restart supervisord to restart the process"
                 );
 
                 // Create the block file
-                file_put_contents('/tmp/block-sync.txt', date('c'));
+                file_put_contents('/tmp/block-patient-queue.txt', date('c'));
 
                 break;
             }
@@ -228,12 +228,12 @@ for ($l = 0; $l < $executions; $l++) {
 
         if (!$syncq->deleteBatch($complete)) {
             GPLog::emergency(
-                "A Sync Message failed to delete.  This could result in stuck syncs.
-                 Remove /tmp/block-sync.txt and restart supervisord to restart the process"
+                "A Patient Message failed to delete.  This could result in stuck syncs.
+                 Remove /tmp/block-patient-queue.txt and restart supervisord to restart the process"
             );
 
             // Create the block file
-            file_put_contents('/tmp/block-sync.txt', date('c'));
+            file_put_contents('/tmp/block-patient-queue.txt', date('c'));
         }
     }
 

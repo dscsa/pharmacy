@@ -6,8 +6,7 @@ require_once 'testing/helpers.php';
 use GoodPill\AWS\SQS\{
     PharmacySyncQueue,
     PharmacySyncRequest,
-    PharmacyAsyncQueue,
-    PharmacyAsyncRequest,
+    PharmacyPatientQueue,
 };
 
 $changes_to_drugs          = getMock('data-update-drugs');
@@ -147,7 +146,7 @@ try {
 
 try {
   $syncq = new PharmacySyncQueue();
-  $asyncQueue = new PharmacyAsyncQueue();
+  $patientQueue = new PharmacyPatientQueue();
 
   $results  = $syncq->receive([
     'WaitTimeSeconds' => 10,
@@ -171,11 +170,11 @@ try {
           print "Default Case \n";
           foreach (array_keys($request->changes) as $change_type) {
             foreach($request->changes[$change_type] as $changes) {
-                $new_request = get_sync_request_single($request->changes_to, [$change_type], $changes, 'PASS_TO_NEXT_QUEUE');
+                $new_request = get_sync_request_single($request->changes_to, $change_type, $changes, 'PASS_TO_NEXT_QUEUE');
             }
           }
           //    Push to next Queue
-          //$asyncQueue->send($asyncRequest);
+          //$patientQueue->send($newRequest);
           break;
     }
 
