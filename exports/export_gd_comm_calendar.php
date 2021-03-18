@@ -438,20 +438,24 @@ function needs_form_notice($groups)
 
     $date = "Created:".date('Y-m-d H:i:s');
 
-    $salesforce = [
-      "subject"   => "Call Unregistered Patient",
-      "body"      => "Call Unregistered Patient
-      -If pt does not have a backup pharmacy in Salesforce, call them to register.
-      -Attempt 2 calls/voicemails over 2 days. Even if the phone number is invalid, attempt a 2nd call.
-      -After 2 failed attempts, reassign this task to .Flag Clinic/Provider Issue - Admin.
-      -Provider info: {$groups['ALL'][0]['provider_first_name']} {$groups['ALL'][0]['provider_last_name']}, {$groups['ALL'][0]['provider_clinic']}, {$groups['ALL'][0]['provider_phone']}
-      *** Once pt has registered, make sure an order has been created ***
-      $date
-      ",
-      "contact"   => "{$groups['ALL'][0]['first_name']} {$groups['ALL'][0]['last_name']} {$groups['ALL'][0]['birth_date']}",
-      "assign_to" => "Kiah", //".Register New Patient - Tech",
-      "due_date"  => substr(get_start_time($hours_to_wait[3], $hour_of_day[3]), 0, 10)
-  ];
+
+    $salesforce = '';
+
+    if (in_array($groups['ALL'][0]['patient_state'], ['TN', 'FL', 'NC', 'SC', 'AL', 'GA', NULL, '']))
+        $salesforce = [
+          "subject"   => "Call Unregistered Patient",
+          "body"      => "Call Unregistered Patient
+          -If pt does not have a backup pharmacy in Salesforce, call them to register.
+          -Attempt 2 calls/voicemails over 2 days. Even if the phone number is invalid, attempt a 2nd call.
+          -After 2 failed attempts, reassign this task to .Flag Clinic/Provider Issue - Admin.
+          -Provider info: {$groups['ALL'][0]['provider_first_name']} {$groups['ALL'][0]['provider_last_name']}, {$groups['ALL'][0]['provider_clinic']}, {$groups['ALL'][0]['provider_phone']}
+          *** Once pt has registered, make sure an order has been created ***
+          $date
+          ",
+          "contact"   => "{$groups['ALL'][0]['first_name']} {$groups['ALL'][0]['last_name']} {$groups['ALL'][0]['birth_date']}",
+          "assign_to" => ".Register New Patient - Tech",
+          "due_date"  => substr(get_start_time($hours_to_wait[3], $hour_of_day[3]), 0, 10)
+        ];
 
     log_notice("needs_form_notice is this right?", [$groups, $email, $salesforce]);
 
