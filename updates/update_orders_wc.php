@@ -277,6 +277,7 @@ function wc_order_deleted(array $deleted) : bool
             $item['rx_message_key'] === "ACTION PATIENT OFF AUTOFILL"
         ) {
             $skipPagerDutyAlert = true;
+            break;
         }
     }
 
