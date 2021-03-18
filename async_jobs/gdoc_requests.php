@@ -20,16 +20,16 @@ use GoodPill\Logging\{
 };
 
 /* Logic to give us a way to figure out if we should quit working */
-$stopRequested = false;
-
-pcntl_signal(
-    SIGTERM,
-    function ($signo, $signinfo) {
-        global $stopRequested, $log;
-        $stopRequested = true;
-        CliLog::warning("SIGTERM caught");
-    }
-);
+// $stopRequested = false;
+//
+// pcntl_signal(
+//     SIGTERM,
+//     function ($signo, $signinfo) {
+//         global $stopRequested, $log;
+//         $stopRequested = true;
+//         CliLog::warning("SIGTERM caught");
+//     }
+// );
 
 // Grab and item out of the queue
 $gdq = new GoogleAppQueue();
@@ -83,13 +83,13 @@ for ($l = 0; $l < $executions; $l++) {
             GPLog::debug($log_message);
             CliLog::notice($log_message);
 
-            /* Check to see if we've requeted to stop */
-            pcntl_signal_dispatch();
-
-            if ($stopRequested) {
-                CLiLog::warning('Finishing current Message then terminating');
-                break;
-            }
+            // /* Check to see if we've requeted to stop */
+            // pcntl_signal_dispatch();
+            //
+            // if ($stopRequested) {
+            //     CLiLog::warning('Finishing current Message then terminating');
+            //     break;
+            // }
         }
     }
 
@@ -111,8 +111,8 @@ for ($l = 0; $l < $executions; $l++) {
     unset($messages);
     unset($complete);
 
-    if ($stopRequested) {
-        CLiLog::warning('Terminating execution from SIGTERM request');
-        exit;
-    }
+    // if ($stopRequested) {
+    //     CLiLog::warning('Terminating execution from SIGTERM request');
+    //     exit;
+    // }
 }

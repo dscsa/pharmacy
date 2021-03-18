@@ -10,6 +10,8 @@ const DAYS_MIN    = 45;
 const DAYS_MAX    = 120;
 const DAYS_UNIT   = 15;
 
+const DEFAULT_COM_WAIT = 0;
+
 // Constent set to 27 so we don't refill February a month early
 const DAYS_EARLY  = 27;
 

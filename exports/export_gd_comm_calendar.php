@@ -200,7 +200,7 @@ function order_created_notice($groups)
     remove_drugs_from_refill_reminders($groups['ALL'][0]['first_name'], $groups['ALL'][0]['last_name'], $groups['ALL'][0]['birth_date'], $groups['FILLED']);
 
     //Wait 15 minutes to hopefully batch staggered surescripts and manual rx entry and cindy updates
-    order_created_event($groups, $email, $text, 15/60);
+    order_created_event($groups, $email, $text, DEFAULT_COM_WAIT);
 }
 
 function transfer_out_notice($item)
@@ -224,7 +224,7 @@ function transfer_out_notice($item)
     ]);
 
     //Wait 15 minutes to hopefully batch staggered surescripts and manual rx entry and cindy updates
-    transfer_out_event([$item], $email, $text, 15/60);
+    transfer_out_event([$item], $email, $text, DEFAULT_COM_WAIT);
 }
 
 function transfer_requested_notice($groups)
@@ -248,7 +248,7 @@ function transfer_requested_notice($groups)
   ]);
 
     //Wait 15 minutes to hopefully batch staggered surescripts and manual rx entry and cindy updates
-    transfer_requested_event($groups['ALL'], $email, $text, 15/60);
+    transfer_requested_event($groups['ALL'], $email, $text, DEFAULT_COM_WAIT);
 }
 
 /* Not Currently Used! What could we use order_hold_notice for?
@@ -344,7 +344,7 @@ function order_hold_notice($groups)
     GPLog::critical('order_hold_notice: unknown reason', get_defined_vars());
 
     //Wait 15 minutes to hopefully batch staggered surescripts and manual rx entry and cindy updates
-    order_hold_event($groups['ALL'], $email, $text, $salesforce, 15/60);
+    order_hold_event($groups['ALL'], $email, $text, $salesforce, DEFAULT_COM_WAIT);
     */
 }
 
@@ -387,7 +387,7 @@ function order_updated_notice($groups, $patient_updates)
   ]);
 
     //Wait 15 minutes to hopefully batch staggered surescripts and manual rx entry and cindy updates
-    order_updated_event($groups, $email, $text, 15/60);
+    order_updated_event($groups, $email, $text, DEFAULT_COM_WAIT);
 }
 
 function needs_form_notice($groups)
@@ -492,7 +492,7 @@ function no_rx_notice($partial, $groups)
   ]);
 
     //Wait 15 minutes to hopefully batch staggered surescripts and manual rx entry and cindy updates
-    no_rx_event($partial, $groups['ALL'], $email, $text, 15/60);
+    no_rx_event($partial, $groups['ALL'], $email, $text, DEFAULT_COM_WAIT);
 }
 
 function order_cancelled_notice($partial, $groups)
@@ -559,7 +559,7 @@ function order_cancelled_notice($partial, $groups)
         get_defined_vars()
     );
 
-    order_cancelled_event($partial, $groups['ALL'], $email, $text, 15/60);
+    order_cancelled_event($partial, $groups['ALL'], $email, $text, DEFAULT_COM_WAIT);
 }
 
 function order_rescheduled_notice($partial, $groups)
@@ -593,7 +593,7 @@ function order_rescheduled_notice($partial, $groups)
         ''
     ]);
 
-    order_rescheduled_event($partial, $groups['ALL'], $email, $text, 15/60);
+    order_rescheduled_event($partial, $groups['ALL'], $email, $text, DEFAULT_COM_WAIT);
 }
 
 function confirm_shipment_notice($groups)
