@@ -23,7 +23,7 @@ function email($email, $subject, $body)
 
 function log_to_cli($severity, $text, $file, $vars)
 {
-    // echo "$severity: $text. $file vars: $vars\n";
+    // echo "$severity: $text. $file vars: $vars\n"
 }
 
 /**
@@ -134,42 +134,6 @@ function utf8ize($d)
     return $d;
 }
 
-/**
- * Log an info.  Right now we are using This to store data in
- * the database and stackdriver.  Eventually we should be able to
- * strip that back to just stackdriver
- *
- * @param  string $text The Message for the alert
- * @param  array $vars  The context vars for the alert
- * @return void
- *
- * TODO Move this over so it uses logging levels instead of CLI switch
- */
-function log_info($text, $vars = '')
-{
-    global $argv;
-
-    global $gp_logger;
-
-    if (! in_array('log=info', $argv)) {
-        return;
-    }
-
-    $file   = get_file();
-
-    if (is_array($vars)) {
-        $log_context = $vars;
-    } else {
-        $log_context = ["vars" => $vars];
-    }
-
-    // Log it before we make a string of the vars
-    GPLog::info("{$text} : {$file}", $log_context);
-
-    $vars   = $vars ? vars_to_json($vars, $file) : '';
-
-    log_to_cli(date('Y-m-d H:i:s').' INFO', $text, $file, $vars);
-}
 
 function log_warning($text, $vars = '')
 {
@@ -193,41 +157,6 @@ function log_warning($text, $vars = '')
     log_to_cli(date('Y-m-d H:i:s').' INFO', $text, $file, $vars);
 }
 
-/**
- * Log an alert.  Right now we are using This to store data in
- * the database and email and stackdriver.  Eventually we should be able to
- * strip that back to just stackdriver
- *
- * @param  string $text The Message for the alert
- * @param  array $vars  The context vars for the alert
- * @return void
- *
- * TODO Move this over so it uses logging levels instead of CLI switch
- */
-function log_alert($text, $vars = '')
-{
-    echo "$text\n";
-
-    global $log_notices;
-    global $gp_logger;
-
-    $file   = get_file();
-
-    if (is_array($vars)) {
-        $log_context = $vars;
-    } else {
-        $log_context = ["vars" => $vars];
-    }
-
-    // Log it before we make a string of the vars
-    GPLog::critical("{$text} : {$file}", $log_context);
-
-    $vars   = $vars ? vars_to_json($vars, $file) : '';
-
-    $log_notices[] = date('Y-m-d H:i:s')." ERROR $text, file:$file, vars:$vars";
-
-    log_to_cli(date('Y-m-d H:i:s').' ERROR', $text, $file, $vars);
-}
 
 /**
  * Log an error.  Right now we are using This to store data in
@@ -268,45 +197,6 @@ function log_notices()
     global $log_notices;
     return implode(",
   ", $log_notices);
-}
-
-/**
- * Log a notice.  Right now we are using This to store data in
- * the database and email and stackdriver.  Eventually we should be able to
- * strip that back to just stackdriver
- *
- * @param  string $text The Message for the alert
- * @param  array $vars  The context vars for the alert
- * @return void
- *
- * TODO Move this over so it uses logging levels instead of CLI switch
- */
-function log_notice($text, $vars = '')
-{
-    global $argv;
-    global $log_notices;
-    global $gp_logger;
-
-    if (! in_array('log=notice', $argv) and ! in_array('log=info', $argv)) {
-        return;
-    }
-
-    $file   = get_file();
-
-    // Log it before we make a string of the vars
-    if (is_array($vars)) {
-        $log_context = $vars;
-    } else {
-        $log_context = ["vars" => $vars];
-    }
-
-    GPLog::notice("{$text} : {$file}", $log_context);
-
-    $vars   = $vars ? vars_to_json($vars, $file) : '';
-
-    $log_notices[] = date('Y-m-d H:i:s')." NOTICE $text, file:$file, vars:$vars";
-
-    log_to_cli(date('Y-m-d H:i:s').' NOTICE', $text, $file, $vars);
 }
 
 /**

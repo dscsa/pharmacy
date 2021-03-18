@@ -88,7 +88,6 @@ function add_wc_status_to_order($order) {
 
     if (isset($drug_names[$item['drug_name']])) {
       $order[$i]['drug_name'] .= ' ('.( (float) $item['sig_qty_per_day'] ).' per day)';
-      //log_notice("helper_full_order add_wc_status_to_order: appended sig_qty_per_day to duplicate drug ".$item['drug']." >>> ".$drug_names[$item['drug']], [$order, $item, $drug_names]);
     } else {
       $drug_names[$item['drug_name']] = $item['sig_qty_per_day'];
     }
@@ -164,7 +163,7 @@ function get_order_stage_wc($order) {
   */
 
   if ( ! $count_filled AND $order[0]['rx_message_key'] != 'ACTION NEEDS FORM')
-    log_notice('get_order_stage_wc: double check count_filled == 0', [
+    GPLog::notice('get_order_stage_wc: double check count_filled == 0', [
       'invoice_number' => $order[0]['invoice_number'],
       'order_stage_cp' => $order[0]['order_stage_cp'],
       'order_stage_wc' => $order[0]['order_stage_wc'],

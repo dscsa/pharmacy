@@ -1,4 +1,9 @@
 <?php
+use GoodPill\Logging\{
+    GPLog,
+    AuditLog,
+    CliLog
+};
 
 class Mssql
 {
@@ -76,7 +81,7 @@ class Mssql
             $results = $this->_getResults($stmt, $sql, $debug);
 
             if ($debug) {
-                log_info(count($results)." recordsets, the first with ".count($results[0])." rows in ".(microtime(true) - $starttime)." seconds", get_defined_vars());
+                GPLog::info(count($results)." recordsets, the first with ".count($results[0])." rows in ".(microtime(true) - $starttime)." seconds", get_defined_vars());
             }
 
             return $results;

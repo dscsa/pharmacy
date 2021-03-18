@@ -785,7 +785,7 @@ function get_v2_inventory($item, $limit)
 
     try {
         $res = v2_fetch($url);
-        log_info("WebForm make_pick_list fetch success.", ['url' => $url, 'item' => $item, 'res' => $res]);
+        GPLog::info("WebForm make_pick_list fetch success.", ['url' => $url, 'item' => $item, 'res' => $res]);
     } catch (Error $e) {
         GPLog::error("WebForm make_pick_list fetch failed.  Retrying $item[invoice_number]", ['url' => $url, 'item' => $item, 'res' => $res, 'error' => $e]);
         $res = v2_fetch($url);

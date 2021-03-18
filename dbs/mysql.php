@@ -1,7 +1,9 @@
 <?php
-use GoodPill\Logging\GPLog;
-use GoodPill\Logging\AuditLog;
-use GoodPill\Logging\CliLog;
+use GoodPill\Logging\{
+    GPLog,
+    AuditLog,
+    CliLog
+};
 
 class Mysql
 {
@@ -96,7 +98,7 @@ class Mysql
         $success = $this->run("SELECT * FROM $table")[0];
 
         if ($success) {
-            log_info("$table import was SUCCESSFUL", ['count' => count($vals), 'vals' => array_slice($vals, 0, 100, true), 'keys' => $keys]);
+            GPLog::info("$table import was SUCCESSFUL", ['count' => count($vals), 'vals' => array_slice($vals, 0, 100, true), 'keys' => $keys]);
             return $this->commit();
         }
 
@@ -141,7 +143,7 @@ class Mysql
             $results = $this->_getResults($stmt, $sql, $debug);
 
             if ($debug) {
-                log_info(count($results)." recordsets, the first with ".count($results[0])." rows in ".(microtime(true) - $starttime)." seconds", get_defined_vars());
+                GPLog::info(count($results)." recordsets, the first with ".count($results[0])." rows in ".(microtime(true) - $starttime)." seconds", get_defined_vars());
             }
 
             return $results;

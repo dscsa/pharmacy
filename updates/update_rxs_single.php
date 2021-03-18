@@ -11,6 +11,7 @@ use GoodPill\Logging\{
     AuditLog,
     CliLog
 };
+
 use GoodPill\Utilities\Timer;
 
 use GoodPill\DataModels\GoodPillRxSingle;
@@ -97,7 +98,7 @@ function update_rxs_single($changes)
                 $subject = "NEW {$created['rx_number']} still needs to be switched to a drug with a GSN";
                 $body    = "{$created['drug_name']} for $subject in CarePoint";
                 $assign  = ".Delay/Expedite Order - RPh";
-                log_notice($body, $created);
+                GPLog::notice($body, $created);
             }
 
             $salesforce = [
@@ -256,7 +257,7 @@ function update_rxs_single($changes)
                 $subject = "UPDATED {$updated['rx_number']} still needs to be switched to a drug with a GSN";
                 $body    = "{$updated['drug_name']} for $subject in CarePoint";
                 $assign  = ".Delay/Expedite Order - RPh";
-                log_notice($body, $updated);
+                GPLog::notice($body, $updated);
             }
 
             $salesforce = [

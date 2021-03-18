@@ -1,5 +1,11 @@
 <?php
 
+use GoodPill\Logging\{
+    GPLog,
+    AuditLog,
+    CliLog
+};
+
 ini_set('include_path', '/goodpill/webform');
 date_default_timezone_set('America/New_York');
 
@@ -791,7 +797,7 @@ if ($sig_index === false) {
 
   $done = "...sig testing complete...";
   print_r($done);
-  log_notice($done);
+  GPLog::notice($done);
 
 //sudo php /goodpill/webform/cronjobs/parsing.php sig 'Take 1 tab per day'
 } else if ($argv[$sig_index+1] != 'database') {
@@ -801,7 +807,7 @@ if ($sig_index === false) {
 
   $done = [$parsed, $sig];
   print_r($done);
-  log_notice("parsing test sig specified: $sig", $done);
+  GPLog::notice("parsing test sig specified: $sig", $done);
 
 //sudo php /goodpill/webform/cronjobs/parsing.php sig database
 } else {
@@ -809,8 +815,6 @@ if ($sig_index === false) {
   $mysql = new Mysql_Wc();
 
   $rxs = $mysql->run("SELECT * FROM gp_rxs_single WHERE sig_initial IS NULL OR sig_qty_per_day_default IS NULL LIMIT 1000")[0];
-
-  //log_notice("parsing test sig database rxs", $rxs);
 
   foreach ($rxs as $rx) {
 
@@ -822,7 +826,7 @@ if ($sig_index === false) {
       $done = "parsing test sig database CHANGE: $rx[rx_number] sig_qty_per_day_default $rx[sig_qty_per_day_default] >>> $parsed[qty_per_day], $rx[drug_name], $rx[sig_actual]";
 
     print_r([$done, $parsed]);
-    log_notice($done, $parsed);
+    GPLog::notice($done, $parsed);
 
     set_parsed_sig($rx['rx_number'], $parsed, $mysql);
   }

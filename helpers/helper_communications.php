@@ -123,7 +123,7 @@ function group_drugs($order, $mysql) {
     log_error("group_drugs: wrong count_nofill $count_nofill != ".$order[0]['count_nofill'], get_defined_vars());
   }
 
-  log_info('GROUP_DRUGS', get_defined_vars());
+  GPLog::info('GROUP_DRUGS', get_defined_vars());
 
   return $groups;
 }

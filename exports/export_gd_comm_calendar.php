@@ -73,7 +73,7 @@ function order_shipped_notice($groups)
         $email['attachments'] = [$groups['ALL'][0]['invoice_doc_id']];
     }
 
-    log_info('order_shipped_notice', get_defined_vars());
+    GPLog::info('order_shipped_notice', get_defined_vars());
 
     order_shipped_event($groups['ALL'], $email, $text);
 }
@@ -81,7 +81,7 @@ function order_shipped_notice($groups)
 function refill_reminder_notice($groups)
 {
     if ($groups['MIN_DAYS'] == 366 or (! count($groups['NO_REFILLS']) and ! count($groups['NO_AUTOFILL']))) {
-        log_notice("Not making a refill_reminder_notice", $groups);
+        GPLog::notice("Not making a refill_reminder_notice", $groups);
         return;
     }
 
@@ -453,7 +453,7 @@ function needs_form_notice($groups)
       "due_date"  => substr(get_start_time($hours_to_wait[3], $hour_of_day[3]), 0, 10)
   ];
 
-    log_notice("needs_form_notice is this right?", [$groups, $email, $salesforce]);
+    GPLog::notice("needs_form_notice is this right?", [$groups, $email, $salesforce]);
 
     $cancel = cancel_events_by_person($groups['ALL'][0]['first_name'], $groups['ALL'][0]['last_name'], $groups['ALL'][0]['birth_date'], 'needs_form_event', ['Needs Form']);
 

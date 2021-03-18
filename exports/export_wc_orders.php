@@ -219,7 +219,7 @@ function wc_update_order($invoice_number, $orderdata)
         $old_status = $wc_order['post_status'];
 
         if ($wc_order['post_status'] != $orderdata['post_status']) {
-            log_notice("wc_update_order: status change $old_status >>> $orderdata[post_status]");
+            GPLog::notice("wc_update_order: status change $old_status >>> $orderdata[post_status]");
             wc_insert_meta(
                 $invoice_number,
                 [
@@ -243,7 +243,7 @@ function export_wc_update_order_status($order)
         'post_status' => 'wc-' .  str_replace('wc-', '', $order[0]['order_stage_wc'])
      ];
 
-    log_notice(
+    GPLog::notice(
         'export_wc_update_order_status: wc_update_order',
         [
           'invoice_number' => $order[0]['invoice_number'],
@@ -257,7 +257,7 @@ function export_wc_update_order_status($order)
 
 function export_wc_cancel_order($invoice_number, $reason)
 {
-    log_notice(
+    GPLog::notice(
         'export_wc_cancel_order',
         [
           'invoice_number' => $invoice_number,
@@ -273,7 +273,7 @@ function export_wc_return_order($invoice_number)
     global $mysql;
     $mysql = $mysql ?: new Mysql_Wc();
 
-    log_notice(
+    GPLog::notice(
         'export_wc_return_order',
         ['invoice_number' => $invoice_number]
     );
@@ -682,7 +682,7 @@ function wc_fetch($path, $method = 'GET', $content = null, $retry = false)
         return ['error' => "no response from wc_fetch"];
     }
 
-    log_info("wc_fetch", ['url' => $url, 'json' => $json]);
+    GPLog::info("wc_fetch", ['url' => $url, 'json' => $json]);
 
     return $json;
 }

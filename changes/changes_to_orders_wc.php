@@ -1,5 +1,11 @@
 <?php
 
+use GoodPill\Logging\{
+    GPLog,
+    AuditLog,
+    CliLog
+};
+
 require_once 'dbs/mysql_wc.php';
 require_once 'helpers/helper_changes.php';
 
@@ -24,7 +30,6 @@ function changes_to_orders_wc($new) {
   SELECT      old.*    FROM      gp_orders_wc as new    RIGHT JOIN gp_orders as old ON      old.invoice_number = new.invoice_number    WHERE      new.invoice_number IS NULL
   */
   $get_deleted_sql = get_deleted_sql($new, $old, $id);
-  //log_notice('changes to order wc: get_deleted_sql', $get_deleted_sql);
   $deleted = $mysql->run($get_deleted_sql);
 
   /*
@@ -46,7 +51,7 @@ function changes_to_orders_wc($new) {
   //log_error('changes to order wc: set_updated_sql', $set_updated_sql);
   $mysql->run($set_updated_sql);
 
-  log_info('changes_to_orders_wc', [
+  GPLog::info('changes_to_orders_wc', [
     'get_deleted' => $get_deleted_sql,
     'get_created' => $get_created_sql,
     'get_updated' => $get_updated_sql,

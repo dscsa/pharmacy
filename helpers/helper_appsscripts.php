@@ -234,7 +234,7 @@ function watch_invoices()
             && ($order['payment_due_actual'] ?: $order['payment_due_default']) == $payment['due']
         ) {
             //Most likely invoice was correct and just moved
-            log_notice("watch_invoice $invoice_number", $log);
+            GPLog::notice("watch_invoice $invoice_number", $log);
             continue;
         }
 

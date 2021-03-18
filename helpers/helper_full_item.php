@@ -23,7 +23,7 @@ function load_full_item($partial, $mysql, $overwrite_rx_messages = false) {
     //use [item] to mock an order, this won't be quite as good because is_refill and sync_to_order
     //need the whole order in order to determine what to do but it will be directionally correct
     if ( ! @$partial['invoice_number']) {
-        log_notice('load_full_item: rx only, no invoice_number ', get_defined_vars());
+        GPLog::notice('load_full_item: rx only, no invoice_number ', get_defined_vars());
         return add_full_fields([$item], $mysql, $overwrite_rx_messages)[0];
     }
 
@@ -33,7 +33,7 @@ function load_full_item($partial, $mysql, $overwrite_rx_messages = false) {
     //use [item] to mock an order, this won't be quite as good because is_refill and sync_to_order
     //need the whole order in order to determine what to do but it will be directionally correct
     if ( ! $order) {
-      log_notice("load_full_item: rx only, order {$partial['invoice_number']} deleted ", get_defined_vars());
+      GPLog::notice("load_full_item: rx only, order {$partial['invoice_number']} deleted ", get_defined_vars());
       return add_full_fields([$item], $mysql, $overwrite_rx_messages)[0];
     }
 

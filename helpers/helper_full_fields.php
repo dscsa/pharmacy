@@ -27,7 +27,7 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
     foreach ($patient_or_order as $i => $dontuse) {
 
         if ( ! $patient_or_order[$i]['drug_name']) {
-          log_notice("helper_full_fields: skipping item/rx because no drug name. likely an empty order", ['patient_or_order' => $patient_or_order]);
+          GPLog::notice("helper_full_fields: skipping item/rx because no drug name. likely an empty order", ['patient_or_order' => $patient_or_order]);
           continue;
         }
 
@@ -259,7 +259,7 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
               export_gd_transfer_fax($patient_or_order[$i], 'helper full fields');
 
             if ($patient_or_order[$i]['sig_days'] and $patient_or_order[$i]['sig_days'] != 90) {
-              log_notice("helper_full_order: sig has days specified other than 90", $patient_or_order[$i]);
+              GPLog::notice("helper_full_order: sig has days specified other than 90", $patient_or_order[$i]);
             }
         }
 

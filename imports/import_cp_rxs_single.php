@@ -1,5 +1,11 @@
 <?php
 
+use GoodPill\Logging\{
+    GPLog,
+    AuditLog,
+    CliLog
+};
+
 require_once 'dbs/mssql_cp.php';
 require_once 'dbs/mysql_wc.php';
 require_once 'helpers/helper_imports.php';
@@ -102,11 +108,6 @@ function import_cp_rxs_single() {
       cprx.refills_orig IS NOT NULL
 
   ");
-
-  //log_error("gp_rxs_single_cp import start: ", ['count' => count($rxs[0]), 'vals' => array_slice($rxs[0], 0, 100, true)]);
-
-  //log_info("
-  //import_cp_rxs_single: rows ".count($rxs[0]));
 
   if ( ! count($rxs[0])) return log_error('gp_rxs_single_cp import no rows', ['count' => count($rxs[0]), 'vals' => array_slice($rxs[0], 0, 100, true)]);
 
