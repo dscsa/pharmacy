@@ -201,7 +201,7 @@ function get_order_stage_wc($order) {
 
   if ( ! $order[0]['order_date_dispensed'] AND $elapsed_time > 7*24*60*60) {
     email(SUPPORT_EMAIL, "Order is late. Follow up with patient?", $order);
-    log_warning('helper_full_order: order is '.floor($elapsed_time/60/60/24).' days old', $order[0]);
+    GPLog::warning('helper_full_order: order is '.floor($elapsed_time/60/60/24).' days old', $order[0]);
   }
 
   if ( ! $order[0]['order_date_shipped'] AND (is_webform_refill($order[0]) OR is_auto_refill($order[0])))

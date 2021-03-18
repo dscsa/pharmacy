@@ -111,7 +111,7 @@ function get_days_and_message($item, $patient_or_order)
             $event_title = "$item[invoice_number] $item[drug_name] Is High Stock But Was Transferred: $salesforce[contact] $created";
 
             create_event($event_title, [$salesforce]);
-            log_warning($event_title, get_defined_vars());
+            GPLog::warning($event_title, get_defined_vars());
         } elseif ($stock_level == STOCK_LEVEL['HIGH SUPPLY']) {
             GPLog::notice('HIGH STOCK ITEM WAS TRANSFERRED IN THE PAST', get_defined_vars());
         } else {
@@ -512,7 +512,7 @@ function set_days_and_message($item, $days, $message, $mysql) {
   ";
 
     if (is_null($item['rx_message_key']) or is_null($item['refills_dispensed_default'])) {
-        log_warning('set_days_and_message: is rx_message_keys_initial being set correctly? rx_message_key or refills_dispensed_default IS NULL', ['item' => $item, 'sql' => $order_item_sql]);
+        GPLog::warning('set_days_and_message: is rx_message_keys_initial being set correctly? rx_message_key or refills_dispensed_default IS NULL', ['item' => $item, 'sql' => $order_item_sql]);
     }
 
     $mysql->run($order_item_sql);
@@ -538,7 +538,7 @@ function refills_dispensed_default($item)
     }
 
     //No much info to go on.  We could throw an error or just go based on whether the drug is in the order or not
-    log_warning("CANNOT ASSESS refills_dispensed_default AT THIS POINT", $item);
+    GPLog::warning("CANNOT ASSESS refills_dispensed_default AT THIS POINT", $item);
     return $item['refills_total'] - ($item['item_date_added'] ? 1 : 0);
 }
 
@@ -703,11 +703,11 @@ function days_left_in_stock($item)
     }
 
     if ($stock_level == STOCK_LEVEL['HIGH SUPPLY'] and $item['sig_qty_per_day_default'] != round(1/30, 3)) {
-        log_warning("LOW STOCK ITEM IS MARKED HIGH SUPPLY $item[drug_generic] days_left_in_stock:$days_left_in_stock last_inventory:$item[last_inventory]", get_defined_vars());
+        GPLog::warning("LOW STOCK ITEM IS MARKED HIGH SUPPLY $item[drug_generic] days_left_in_stock:$days_left_in_stock last_inventory:$item[last_inventory]", get_defined_vars());
     }
 
     if ($item['refill_date_first'] and $stock_level == STOCK_LEVEL['OUT OF STOCK']) {
-        log_warning("REFILL ITEM IS MARKED OUT OF STOCK $item[drug_generic] days_left_in_stock:$days_left_in_stock last_inventory:$item[last_inventory]", get_defined_vars());
+        GPLog::warning("REFILL ITEM IS MARKED OUT OF STOCK $item[drug_generic] days_left_in_stock:$days_left_in_stock last_inventory:$item[last_inventory]", get_defined_vars());
     }
 
     return $item['sig_qty_per_day_default'] == round(1/30, 3) ? 60.6 : DAYS_MIN; //Dispensed 2 inhalers per time, since 1/30 is rounded to 3 decimals (.033), 2 month/.033 = 60.6 qty
@@ -735,7 +735,7 @@ function days_default($days_left_in_refills, $days_left_in_stock, $days_default,
     $remainder = $days % DAYS_UNIT;
 
     if (! $days) {
-        log_warning("DEFAULT DAYS IS 0! days:$days, days_default:$days_default, days_left_in_stock:$days_left_in_stock, days_left_in_refills:$days_left_in_refills", ['item' => $item]);
+        GPLog::warning("DEFAULT DAYS IS 0! days:$days, days_default:$days_default, days_left_in_stock:$days_left_in_stock, days_left_in_refills:$days_left_in_refills", ['item' => $item]);
     } elseif ($remainder) {
         GPLog::notice("DEFAULT DAYS IS NOT A MULTIPLE OF ".DAYS_UNIT."! days:$days, days_default:$days_default, days_left_in_stock:$days_left_in_stock, days_left_in_refills:$days_left_in_refills", ['item' => $item]);
     } else {

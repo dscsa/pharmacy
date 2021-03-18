@@ -115,7 +115,7 @@ function refill_reminder_notice($groups)
         ]
     );
 
-    log_warning("refill_reminder_notice is this right?", [$groups, $email]);
+    GPLog::warning("refill_reminder_notice is this right?", [$groups, $email]);
     refill_reminder_event($groups['ALL'], $email, $text, $groups['MIN_DAYS']*24, 12);
 }
 
@@ -284,7 +284,7 @@ function order_hold_notice($groups)
     //AUTOREFILL
     elseif (is_auto_refill($groups['ALL'][0])) {
         $trigger = 'Your Rx is due for a refill but';
-        log_warning('order_hold_notice: Not filling Auto Refill?', $groups);
+        GPLog::warning('order_hold_notice: Not filling Auto Refill?', $groups);
     }
     //TRANSFERS
     elseif (is_webform_transfer($groups['ALL'][0])) {
@@ -309,7 +309,7 @@ function order_hold_notice($groups)
     elseif ($groups['ALL'][0]['order_source'] == null and $groups['ALL'][0]['rx_source'] == 'Prescription') {
         $trigger = 'We got your Rx in the mail '.$groups['ALL'][0]['rx_source'].' but';
     } else {
-        log_warning('order_hold_notice: unknown order/rx_source', $groups);
+        GPLog::warning('order_hold_notice: unknown order/rx_source', $groups);
     }
 
     $email = [ "email" => $groups['ALL'][0]['email'] ];
@@ -360,7 +360,7 @@ function order_updated_notice($groups, $patient_updates)
     } elseif ($groups['ALL'][0]['count_filled']) {
         $message = '<br><br><u>Your new order will be:</u><br>'.implode(';<br>', $groups['FILLED_WITH_PRICES']).';';
     } else {
-        log_warning("order_updated_notice called but order_cancelled_notice should have been called instead", [$groups, $patient_updates]);
+        GPLog::warning("order_updated_notice called but order_cancelled_notice should have been called instead", [$groups, $patient_updates]);
         return order_cancelled_notice($groups['ALL'][0], $groups);
     }
 

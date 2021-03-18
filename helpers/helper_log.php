@@ -135,7 +135,7 @@ function utf8ize($d)
 }
 
 
-function log_warning($text, $vars = '')
+function GPLog::warning($text, $vars = '')
 {
     global $argv;
 

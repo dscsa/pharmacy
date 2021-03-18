@@ -93,7 +93,7 @@ function update_rxs_single($changes)
                 $subject = "NEW {$created['rx_number']} still needs GSN {$created['rx_gsn']} added to V2";
                 $body    = "{$created['drug_name']} for $subject";
                 $assign  = "Joseph";
-                log_warning($body, $created);
+                GPLog::warning($body, $created);
             } else {
                 $subject = "NEW {$created['rx_number']} still needs to be switched to a drug with a GSN";
                 $body    = "{$created['drug_name']} for $subject in CarePoint";
@@ -226,7 +226,7 @@ function update_rxs_single($changes)
       );
 
       if ($updated['refill_date_first'] AND ! $updated['rx_gsn']) {
-        log_warning("RX is missing GSN but refill RXs cannot be changed", $updated);
+        GPLog::warning("RX is missing GSN but refill RXs cannot be changed", $updated);
       }
 
       if ($updated['rx_gsn'] != $updated['old_rx_gsn']) {
@@ -251,7 +251,7 @@ function update_rxs_single($changes)
                 $subject = "UPDATED {$updated['rx_number']} still needs GSN {$updated['rx_gsn']} added to V2";
                 $body    = "{$updated['drug_name']} for $subject";
                 $assign  = "Joseph";
-                log_warning($body, $updated);
+                GPLog::warning($body, $updated);
 
             } else {
                 $subject = "UPDATED {$updated['rx_number']} still needs to be switched to a drug with a GSN";

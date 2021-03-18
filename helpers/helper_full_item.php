@@ -46,7 +46,7 @@ function load_full_item($partial, $mysql, $overwrite_rx_messages = false) {
             continue;
         }
 
-        log_warning("load_full_item: matching order and item found", [
+        GPLog::warning("load_full_item: matching order and item found", [
           'item' => $item,
           'full_item' => $full_item,
           'full_item not item' => array_diff_assoc($full_item, $item),
