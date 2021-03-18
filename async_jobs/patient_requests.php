@@ -44,6 +44,8 @@ if (ENVIRONMENT == 'PRODUCTION') {
 }
 
 /* Logic to give us a way to figure out if we should quit working */
+
+/*
 $stopRequested = false;
 pcntl_signal(
     SIGTERM,
@@ -53,6 +55,7 @@ pcntl_signal(
         CliLog::warning("SIGTERM caught");
     }
 );
+*/
 
 /*
   Export Functions - used to push aggregate data out and to notify
@@ -181,12 +184,14 @@ for ($l = 0; $l < $executions; $l++) {
                 }
 
                 /* Check to see if we've requeted to stop */
+                /*
                 pcntl_signal_dispatch();
 
                 if ($stopRequested) {
                     CLiLog::warning('Finishing current Message then terminating');
                     break;
                 }
+                */
             } catch (\Exception $e) {
                 // Log the error
                 $message = "PATIENT SYNC JOB - ERROR ";
@@ -235,8 +240,10 @@ for ($l = 0; $l < $executions; $l++) {
     unset($messages);
     unset($complete);
 
+    /*
     if ($stopRequested) {
         CLiLog::warning('Terminating execution from SIGTERM request');
         exit;
     }
+    */
 }
