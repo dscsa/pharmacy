@@ -43,18 +43,18 @@ try {
     }
 
     if ($has_changes = get_sync_request('patients_cp', ['updated'], $changes_to_patients_cp, $exec_id)) {
-        //$changes_sqs_messages[] = $has_changes;
+        $changes_sqs_messages[] = $has_changes;
     } else {
         echo "Nothing to Queue patients_cp.updated \n";
     }
 
     if ($has_changes = get_sync_request('patients_wc', ['created'], $changes_to_patients_wc, $exec_id)) {
-        //$changes_sqs_messages[] = $has_changes;
+        $changes_sqs_messages[] = $has_changes;
     } else {
         echo "Nothing to Queue patients_wc.created \n";
     }
     if ($has_changes = get_sync_request('patients_wc', ['deleted'], $changes_to_patients_wc, $exec_id)) {
-        //$changes_sqs_messages[] = $has_changes;
+        $changes_sqs_messages[] = $has_changes;
     } else {
         echo "Nothing to Queue patients_wc.deleted \n";
     }
@@ -79,17 +79,17 @@ try {
 
 
     if ($has_changes = get_sync_request('orders_cp', ['created'], $changes_to_orders_cp, $exec_id)) {
-        //$changes_sqs_messages[] = $has_changes;
+        $changes_sqs_messages[] = $has_changes;
     } else {
         echo "Nothing to Queue orders_cp.created \n";
     }
     if ($has_changes = get_sync_request('orders_cp', ['deleted'], $changes_to_orders_cp, $exec_id)) {
-        //$changes_sqs_messages[] = $has_changes;
+        $changes_sqs_messages[] = $has_changes;
     } else {
         echo "Nothing to Queue orders_cp.deleted \n";
     }
     if ($has_changes = get_sync_request('orders_cp', ['updated'], $changes_to_orders_cp, $exec_id)) {
-        //$changes_sqs_messages[] = $has_changes;
+        $changes_sqs_messages[] = $has_changes;
     } else {
         echo "Nothing to Queue orders_cp.updated \n";
     }
@@ -126,7 +126,7 @@ try {
     }
 
     if ($has_changes = get_sync_request('order_items', ['updated'], $changes_to_order_items, $exec_id)) {
-        //$changes_sqs_messages[] = $has_changes;
+        $changes_sqs_messages[] = $has_changes;
         echo "Nothing to Queue order_items.updated \n";
     }
     echo "Sending ".count($changes_sqs_messages)." messages to the queue \n";
@@ -171,6 +171,7 @@ try {
           foreach (array_keys($request->changes) as $change_type) {
             foreach($request->changes[$change_type] as $changes) {
                 $new_request = get_sync_request_single($request->changes_to, $change_type, $changes, 'PASS_TO_NEXT_QUEUE');
+                $patientQueueBatch[] = $new_request;
             }
           }
           //    Push to next Queue
@@ -181,6 +182,11 @@ try {
     $syncq->delete($request);
     echo "Request: $request->execution_id - $request->changes_to was removed from the queue \n";
   }
+  echo "Sending Batch To Patient Queue \n";
+
+
+  //print_r($patientQueueBatch);
+  $patientQueue->sendBatch($patientQueueBatch);
   //$syncq->deleteBatch($complete);
 } catch (\Exception $e) {
   $message = "PHP Uncaught Exception ";
