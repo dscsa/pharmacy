@@ -247,6 +247,43 @@ function order_cancelled_event($partial, $order, $email, $text, $hours_to_wait, 
     create_event($event_title, $comm_arr, $hours_to_wait, $hour_of_day);
 }
 
+function order_rescheduled_event(
+    $partial,
+    $order,
+    $email,
+    $text,
+    $hours_to_wait,
+    $hour_of_day = null
+) {
+    if ($order[0]['patient_inactive']) {
+        GPLog::warning(
+            'order_rescheduled_event rescheduled because patient inactive',
+            get_defined_vars()
+        );
+        return;
+    }
+
+    $patient_label = get_patient_label($order);
+    $event_title   = "{$partial['invoice_number']} Order Rescheduled: {$patient_label} Created:";
+    $event_title   .= date('Y-m-d H:i:s');
+
+    $cancel = cancel_events_by_order(
+        $partial['invoice_number'],
+        'order_rescheduled_event',
+        [
+            'Order Created',
+            'Order Updated',
+            'Order Dispensed'
+        ]
+    );
+
+    $comm_arr = new_comm_arr($patient_label, $email, $text);
+
+    GPLog::info('order_rescheduled_event', get_defined_vars());
+
+    create_event($event_title, $comm_arr, $hours_to_wait, $hour_of_day);
+}
+
 function confirm_shipment_event($order, $email, $text, $salesforce, $hours_to_wait, $hour_of_day = null)
 {
     if ($order[0]['patient_inactive']) {

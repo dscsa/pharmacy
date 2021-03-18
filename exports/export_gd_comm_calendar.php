@@ -521,6 +521,14 @@ function order_cancelled_notice($partial, $groups)
         );
     }
 
+    // If we find anything that has autofill enabled, we should send a reschedule
+    // instead of a cancel notification
+    foreach ($groups['ALL'] as $rx) {
+        if ($rx['rx_autofill']) {
+            return order_rescheduled_notice($partial, $groups);
+        }
+    }
+
     $subject = "Order #{$partial['invoice_number']} has been cancelled";
 
     if (is_webform_transfer($partial)) {
@@ -553,6 +561,40 @@ function order_cancelled_notice($partial, $groups)
     );
 
     order_cancelled_event($partial, $groups['ALL'], $email, $text, 15/60);
+}
+
+function order_rescheduled_notice($partial, $groups)
+{
+
+    $cancelled_string   = implode(";<br>\n", $groups['AUTOFILL_OFF']);
+    $rescheduled_string = implode(";<br>\n", $groups['AUTOFILL_ON']);
+    $subject            = "Order #{$partial['invoice_number']} has been cancelled/rescheduled";
+    $message            = "<u>Good Pill is NOT filling:</u><br>\n{$cancelled_string};<br>\n";
+    $message           .= "<u>Good Pill has rescheduled:</u><br>\n{$rescheduled_string}";
+    $message           .= "<br><br>\n\nIf you believe this change was in error, call us (888) 987-5187";
+    $email              = [ "email" => $groups['ALL'][0]['email']];
+    $text               = [
+        "sms"   => get_phones($groups['ALL']),
+        "message" => $subject.'. '.$message
+    ];
+
+    // TODO remove DEBUG
+    $email = DEBUG_EMAIL;
+    $text  = DEBUG_SMS;
+
+    $email['subject'] = $subject;
+    $email['message'] = implode("<br>\n", [
+        'Hello,',
+        '',
+        $subject.'. '.$message,
+        '',
+        'Thanks!',
+        'The Good Pill Team',
+        '',
+        ''
+    ]);
+
+    order_rescheduled_event($partial, $groups['ALL'], $email, $text, 15/60);
 }
 
 function confirm_shipment_notice($groups)
