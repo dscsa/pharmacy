@@ -121,7 +121,14 @@ function order_item_created(array $created, array &$orders_updated) : ?array
     if ($GPOrder->isShipped()) {
         GPLog::alert(
             "Trying to add an item to an order that has already shipped",
-            [ 'created' => $created]
+            [ 'created' => $created ]
+        );
+    }
+
+    if (!$GPOrder->loaded) {
+        GPLog::notice(
+            "We are trying to create an order item for an order that has been deleted or doesn't exist",
+            [ 'created' => $created ]
         );
     }
 

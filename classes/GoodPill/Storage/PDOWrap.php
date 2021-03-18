@@ -2,7 +2,7 @@
 
 namespace  GoodPill\Storage;
 
-use\PDO;
+use \PDO;
 
 /**
  * This class wraps the PDO object so we can catch a gone away error
