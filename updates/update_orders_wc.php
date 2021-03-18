@@ -269,16 +269,27 @@ function wc_order_deleted(array $deleted) : bool
         $deleted
     );
 
-    GPLog::critical(
-        "Order deleted from WC. Why?",
-        [
-            'source'  => 'WooCommerce',
-            'event'   => 'deleted',
-            'type'    => 'orders',
-            'deleted' => $deleted,
-            'order'   => $order
-        ]
-    );
+    $isRecentFill = false;
+
+    foreach($order as $item) {
+        if ($item['rx_message_key'] === "NO ACTION RECENT FILL") {
+            $isRecentFill = true;
+        }
+    }
+
+    if ($order[0]['order_status'] !== "Surescripts Authorization Denied" || !$isRecentFill) {
+        GPLog::critical(
+            "Order deleted from WC. Why?",
+            [
+                'source'  => 'WooCommerce',
+                'event'   => 'deleted',
+                'type'    => 'orders',
+                'deleted' => $deleted,
+                'order'   => $order
+            ]
+        );
+    }
+
 
     //NOTE the below will fail if the order is wc-cancelled.  because it will show up as deleted here
     //but if it was improperly cancelled and the cp order still exists then export_wc_create_order()
