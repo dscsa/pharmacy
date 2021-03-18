@@ -269,15 +269,18 @@ function wc_order_deleted(array $deleted) : bool
         $deleted
     );
 
-    $isRecentFill = false;
+    $skipPagerDutyAlert = false;
 
     foreach($order as $item) {
-        if ($item['rx_message_key'] === "NO ACTION RECENT FILL") {
-            $isRecentFill = true;
+        if (
+            $item['rx_message_key'] === "NO ACTION RECENT FILL" ||
+            $item['rx_message_key'] === "ACTION PATIENT OFF AUTOFILL"
+        ) {
+            $skipPagerDutyAlert = true;
         }
     }
 
-    if ($order[0]['order_status'] !== "Surescripts Authorization Denied" || !$isRecentFill) {
+    if ($order[0]['order_status'] !== "Surescripts Authorization Denied" || !$skipPagerDutyAlert) {
         GPLog::critical(
             "Order deleted from WC. Why?",
             [
