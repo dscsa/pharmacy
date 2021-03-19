@@ -3,6 +3,7 @@
 use GoodPill\AWS\SQS\PharmacySyncRequest;
 use GoodPill\DataModels\GoodPillPatient;
 use GoodPill\DataModels\GoodPillOrder;
+use GoodPill\Logging\GPLog;
 
 /**
  * Get a Pharmach sync request for queueing
