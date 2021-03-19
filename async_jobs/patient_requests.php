@@ -118,7 +118,7 @@ for ($l = 0; $l < $executions; $l++) {
     }
 
     // TODO Change this number to 10 when we start havnig multiple groups
-    $results  = $patientQueue->receive(['MaxNumberOfMessages' => 10]);
+    $results  = $patientQueue->receive(['MaxNumberOfMessages' => 3]);
     $messages = $results->get('Messages');
     $complete = [];
 
