@@ -162,6 +162,11 @@ for ($l = 0; $l < $executions; $l++) {
             CliLog::notice($log_message, $changes);
 
             try {
+                foreach($changes as $k => $v) {
+                    if(count($v) !== 1) {
+                        $changes[$k] = [$v];
+                    }
+                }
                 switch ($request->changes_to) {
                     case 'patients_cp':
                         update_patients_cp($changes);
