@@ -87,7 +87,7 @@ function get_sync_request_single(
 
         $syncing_request             = new PharmacySyncRequest();
         $syncing_request->changes_to = $changes_to;
-        $syncing_request->changes    = [$change_type => $changes];
+        $syncing_request->changes    = [$change_type => [$changes]];
         $syncing_request->group_id   = $group_id;
         $syncing_request->execution_id = $execution;
         return $syncing_request;
