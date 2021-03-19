@@ -72,7 +72,15 @@ function get_sync_request_single(
             if (isset($patient)) {
                 $group_id = $patient->last_name.'_'.$patient->first_name.'_'.$patient->birth_date;
             } else {
-                $group_id = null;
+                GPLog::warning(
+                    "Problem finding a patient group id",
+                    [
+                        'changes' => $changes,
+                        'changes_to' => $changes_to,
+                        'change_type' => $change_type,
+                     ]
+                );
+                $group_id = 'UNKNOWN_GROUP_ID';
             }
             break;
         default:
@@ -84,16 +92,20 @@ function get_sync_request_single(
     });
 
     if (isset($group_id) && count($foundGroupIdParts) === 3) {
-
-        $syncing_request             = new PharmacySyncRequest();
-        $syncing_request->changes_to = $changes_to;
-        $syncing_request->changes    = [$change_type => [$changes]];
-        $syncing_request->group_id   = $group_id;
-        $syncing_request->execution_id = $execution;
-        return $syncing_request;
+        $confirmedGroupId = $group_id;
     } else {
-        //  Should log a critical error here
-        throw new \Exception("Could Not Find Full Patient ID");
+        $confirmedGroupID = "UNKNOWN";
     }
-
+    GPLog::debug(
+        "Creating Patient Sync Request for group ID",
+        [
+            'group_id' => $confirmedGroupID,
+         ]
+    );
+    $syncing_request             = new PharmacySyncRequest();
+    $syncing_request->changes_to = $changes_to;
+    $syncing_request->changes    = [$change_type => [$changes]];
+    $syncing_request->group_id   = $confirmedGroupID;
+    $syncing_request->execution_id = $execution;
+    return $syncing_request;
 }
