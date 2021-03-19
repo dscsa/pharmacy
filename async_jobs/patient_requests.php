@@ -229,7 +229,7 @@ for ($l = 0; $l < $executions; $l++) {
         GPLog::debug($log_message);
         CliLog::notice($log_message);
 
-        if (!$syncq->deleteBatch($complete)) {
+        if (!$patientQueue->deleteBatch($complete)) {
             GPLog::emergency(
                 "A Patient Message failed to delete.  This could result in stuck syncs.
                  Remove /tmp/block-patient-queue.txt and restart supervisord to restart the process"
