@@ -44,7 +44,7 @@ function get_sync_request_single(
     string $execution = null
 ) : ?PharmacySyncRequest {
 
-    switch($changes_to) {
+    switch ($changes_to) {
         case 'patients_cp':
         case 'patients_wc':
             $group_id = $changes['last_name']."_".$changes['first_name']."_".$changes['birth_date'];
@@ -88,25 +88,21 @@ function get_sync_request_single(
             break;
     }
 
-    $foundGroupIdParts = array_filter(explode('_', $group_id), function ($element) {
-        return $element !== "";
-    });
-
-    if (isset($group_id) && count($foundGroupIdParts) === 3) {
-        $confirmedGroupId = $group_id;
-    } else {
-        $confirmedGroupID = "UNKNOWN";
+    if (!isset($group_id)) {
+        $group_id = 'UNKNOWN_GROUP_ID';
     }
+
     GPLog::debug(
         "Creating Patient Sync Request for group ID",
         [
-            'group_id' => $confirmedGroupID,
+            'group_id' => $group_id,
          ]
     );
-    $syncing_request             = new PharmacySyncRequest();
-    $syncing_request->changes_to = $changes_to;
-    $syncing_request->changes    = [$change_type => [$changes]];
-    $syncing_request->group_id   = $confirmedGroupID;
+
+    $syncing_request               = new PharmacySyncRequest();
+    $syncing_request->changes_to   = $changes_to;
+    $syncing_request->changes      = [$change_type => [$changes]];
+    $syncing_request->group_id     = $group_id;
     $syncing_request->execution_id = $execution;
     return $syncing_request;
 }
