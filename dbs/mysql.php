@@ -128,12 +128,16 @@ class Mysql
                 $message = mysqli_error($this->connection);
 
                 //Transaction (Process ID 67) was deadlocked on lock resources with another process and has been chosen as the deadlock victim. Rerun the transaction.
-                if (strpos($message, 'Rerun') !== false) {
+                if (
+                    strpos($message, 'Rerun') !== false
+                    || strpos($message, 'Deadlock found when trying to get lock') !== false
+                ) {
                     $this->run($sql, $debug); //Recursive
                 }
-
+                
+                //Character limit so this might not be logged
                 $this->logError(['SQL No Resource Meta', $stmt, $message, $debug]);
-                $this->logError(['SQL No Resource Query', $message, $sql]); //Character limit so this might not be logged
+                $this->logError(['SQL No Resource Query', $message, $sql]);
 
                 return;
             }
@@ -146,8 +150,8 @@ class Mysql
 
             return $results;
         } catch (Exception $e) {
-            $this->logError(['SQL Error Message', $e->getMessage(), $sql, $debug]);
-            $this->logError(['SQL Error Query', $sql]); //Character limit so this might not be logged
+            $this->logError(['Exception SQL Error Message', $e->getMessage(), $sql, $debug]);
+            $this->logError(['Exception SQL Error Query', $sql]); //Character limit so this might not be logged
         }
     }
 

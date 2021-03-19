@@ -53,24 +53,16 @@ function get_sync_request_single(
         case 'orders_cp':
         case 'orders_wc':
         case 'order_items':
-            foreach (
-                [
-                    'patient_id_cp' => $changes['patient_id_cp'],
-                    'patient_id_wc' => $changes['patient_id_wc'],
-                    'invoice_number' => $changes['invoice_number'],
-                 ] as $k => $v
-             ) {
-                if (isset($v) && $k === 'invoice_number') {
-                    $order = new GoodPillOrder(['invoice_number' => $changes['invoice_number']]);
-                    $patient = $order->getPatient();
-                }
-                if (isset($v) && ($k === 'patient_id_cp' || $k ==='patient_id_wc' )) {
-                    $patient = new GoodPillPatient([$k => $v]);
-                    break;
-                }
+            if (isset($changes['patient_id_cp'])) {
+                $patient = new GoodPillPatient(['patient_id_cp' => $changes['patient_id_cp']]);
+            } elseif (isset($changes['patient_id_wc'])) {
+                $patient = new GoodPillPatient(['patient_id_wc' => $changes['patient_id_wc']]);
+            } elseif (isset($changes['invoice_number'])) {
+                $order = new GoodPillOrder(['invoice_number' => $changes['invoice_number']]);
+                $patient = $order->getPatient();
             }
 
-            if (isset($patient)) {
+            if (isset($patient) && $patient->loaded) {
                 $group_id = $patient->last_name.'_'.$patient->first_name.'_'.$patient->birth_date;
             } else {
                 GPLog::warning(
