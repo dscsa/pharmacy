@@ -215,7 +215,7 @@ for ($l = 0; $l < $executions; $l++) {
         }
     }
 
-    if (count($changes_sqs_messages) > 0) {
+    if (count($patientQueueBatch) > 0) {
         $patientQueue->sendBatch($patientQueueBatch);
     } else {
         CliLog::warning('No changes to send to patient queue');
