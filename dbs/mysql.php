@@ -129,13 +129,33 @@ class Mysql
             if ($stmt === false) {
                 $message = mysqli_error($this->connection);
 
-                //Transaction (Process ID 67) was deadlocked on lock resources with another process and has been chosen as the deadlock victim. Rerun the transaction.
-                if (strpos($message, 'Rerun') !== false) {
-                    $this->run($sql, $debug); //Recursive
-                }
+                // Handle deadlocks and retry the command
+                if (
+                    strpos($message, 'Rerun') !== false
+                    || strpos($message, 'Deadlock found when trying to get lock') !== false
+                ) {
+                    GPLog::debug(
+                        'Retrying Query because of deadlock',
+                        [
+                            'stmt'    => $stmt,
+                            'message' => $message,
+                            'debug'   => $debug,
+                            'sql'     => $sql
+                        ]
+                    );
 
-                $this->logError(['SQL No Resource Meta', $stmt, $message, $debug]);
-                $this->logError(['SQL No Resource Query', $message, $sql]); //Character limit so this might not be logged
+                    $this->run($sql, $debug);
+                } else {
+                    GPLog::alert(
+                        'Query failed',
+                        [
+                            'stmt'    => $stmt,
+                            'message' => $message,
+                            'debug'   => $debug,
+                            'sql'     => $sql
+                        ]
+                    );
+                }
 
                 return;
             }
@@ -143,13 +163,26 @@ class Mysql
             $results = $this->_getResults($stmt, $sql, $debug);
 
             if ($debug) {
-                GPLog::info(count($results)." recordsets, the first with ".count($results[0])." rows in ".(microtime(true) - $starttime)." seconds", get_defined_vars());
+                GPLog::debug(
+                    sprintf(
+                        "%s recordsets, the first with %s rows in %s seconds",
+                        count($results),
+                        count($results[0]),
+                        (microtime(true) - $starttime)
+                    ),
+                    get_defined_vars()
+                );
             }
 
             return $results;
         } catch (Exception $e) {
-            $this->logError(['SQL Error Message', $e->getMessage(), $sql, $debug]);
-            $this->logError(['SQL Error Query', $sql]); //Character limit so this might not be logged
+            GPLog::alert(
+                'Exception Thrown during query',
+                [
+                    'message' => $e->getMessage(),
+                    'sql'     => $sql
+                ]
+            );
         }
     }
 
@@ -199,7 +232,8 @@ class Mysql
     }
 
 
-    public function testConnection() {
+    public function testConnection()
+    {
         if (!self::$static_conn_object->ping()) {
             $this->connect();
         }

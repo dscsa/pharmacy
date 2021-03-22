@@ -8,3 +8,5 @@ cli/full_env.php
 webform
 .phpintel/
 .DS_STORE
+testing/mocks/*
+testing/secrets

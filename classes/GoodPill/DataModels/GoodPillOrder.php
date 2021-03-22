@@ -108,7 +108,16 @@ class GoodPillOrder extends GPModel
      */
     public function isShipped() : bool
     {
-        return ($this->loaded && !empty($this->order_date_shipped));
+        // We add a 12 hour padding to the order_date_shipped incase they
+        // make changes before it leaves the office
+        return (
+            $this->loaded
+            && !empty($this->order_date_shipped)
+            && (
+                strtotime($this->order_date_shipped) + (60 * 60 * 12) > time()
+                || isset($this->tracking_number)
+            )
+        );
     }
 
     /**
