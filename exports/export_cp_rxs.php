@@ -28,7 +28,7 @@ function export_cp_set_rx_message($item, $message) {
       script_no IN ('$rx_numbers')
   ";
 
-  log_notice('export_cp_set_rx_message', [$sql1]);
+  GPLog::notice('export_cp_set_rx_message', [$sql1]);
 
   $mssql->run($sql1);
 

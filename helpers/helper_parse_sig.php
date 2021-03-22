@@ -1,5 +1,11 @@
 <?php
 
+use GoodPill\Logging\{
+    GPLog,
+    AuditLog,
+    CliLog
+};
+
 require_once 'helpers/helper_imports.php';
 
 function set_parsed_sig($rx_number, $parsed, $mysql) {
@@ -54,7 +60,7 @@ function get_parsed_sig($sig_actual, $drug_name, $correct = null) {
     $parsed['qty_per_day'] = 2/60;
   }
 
-  log_notice("parsed sig", $parsed);
+  GPLog::notice("parsed sig", $parsed);
 
   return $parsed;
 }
@@ -311,7 +317,6 @@ function qtys_per_time($durations, $drug_name, $correct) {
     }
 
     $qtys_per_time[$sig_part] = $sig_match[1]/$drug_match[1];
-    //log_notice("qtys_per_time: cleaning milligrams: $sig_part", ['sig_match' => $sig_match, 'drug_match' => $drug_match]);
   }
 
   if ($correct AND implode(',', $qtys_per_time) != $correct['qtys_per_time']) {

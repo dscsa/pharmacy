@@ -1,7 +1,9 @@
 <?php
-use GoodPill\Logging\GPLog;
-use GoodPill\Logging\AuditLog;
-use GoodPill\Logging\CliLog;
+use GoodPill\Logging\{
+    GPLog,
+    AuditLog,
+    CliLog
+};
 
 class Mysql
 {
@@ -96,7 +98,7 @@ class Mysql
         $success = $this->run("SELECT * FROM $table")[0];
 
         if ($success) {
-            log_info("$table import was SUCCESSFUL", ['count' => count($vals), 'vals' => array_slice($vals, 0, 100, true), 'keys' => $keys]);
+            GPLog::info("$table import was SUCCESSFUL", ['count' => count($vals), 'vals' => array_slice($vals, 0, 100, true), 'keys' => $keys]);
             return $this->commit();
         }
 
@@ -230,7 +232,8 @@ class Mysql
     }
 
 
-    public function testConnection() {
+    public function testConnection()
+    {
         if (!self::$static_conn_object->ping()) {
             $this->connect();
         }
