@@ -393,6 +393,11 @@ function update_rxs_single($changes)
         $delete_sql .= " WHERE patient_id_cp = {$patient_id_cp}";
     }
 
+    $test_sql = "SELECT * FROM gp_rxs_grouped";
+    if (isset($patient_id_cp)) {
+        $test_sql .= " WHERE patient_id_cp = {$patient_id_cp}";
+    }
+
     $mysql->transaction();
     $mysql->run($delete_sql);
 
@@ -401,7 +406,7 @@ function update_rxs_single($changes)
     log_timer('rx-singles-grouped', $group_timer, 1);
 
     // QUESTION Do we need to get everthing or would a LIMIT 1 be fine?
-    if ($mysql->run("SELECT * FROM gp_rxs_grouped")[0]) {
+    if ($mysql->run($test_sql)[0]) {
         $mysql->commit();
     } else {
         $mysql->rollback();
