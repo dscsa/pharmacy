@@ -134,30 +134,6 @@ function utf8ize($d)
     return $d;
 }
 
-
-function GPLog::warning($text, $vars = '')
-{
-    global $argv;
-
-    global $gp_logger;
-
-    $file   = get_file();
-
-    if (is_array($vars)) {
-        $log_context = $vars;
-    } else {
-        $log_context = ["vars" => $vars];
-    }
-
-    // Log it before we make a string of the vars
-    GPLog::warning("{$text} : {$file}", $log_context);
-
-    $vars   = $vars ? vars_to_json($vars, $file) : '';
-
-    log_to_cli(date('Y-m-d H:i:s').' INFO', $text, $file, $vars);
-}
-
-
 /**
  * Log an error.  Right now we are using This to store data in
  * the database and email and stackdriver.  Eventually we should be able to
