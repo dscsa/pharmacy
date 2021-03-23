@@ -151,7 +151,7 @@ for ($l = 0; $l < $executions; $l++) {
             $log_message = sprintf(
                 "Processing changes %s to %s ",
                 $request->changes_to,
-                $request->execution_id
+                $request->patient_id
             );
 
             if (isset($request->execution_id)) {

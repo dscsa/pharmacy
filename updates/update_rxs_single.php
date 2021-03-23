@@ -398,6 +398,17 @@ function update_rxs_single($changes)
         $test_sql .= " WHERE patient_id_cp = {$patient_id_cp}";
     }
 
+    if (isset($patient_id_cp)) {
+        GPLog::debug(
+            'Using patient_id_cp in where clause',
+            [
+                'group' => $sql,
+                'delete' => $delete_sql,
+                'test'   => $test_sql
+            ]
+        );
+    }
+
     $mysql->transaction();
     $mysql->run($delete_sql);
 
