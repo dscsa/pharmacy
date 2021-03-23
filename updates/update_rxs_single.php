@@ -26,6 +26,8 @@ function update_rxs_single($changes)
         return;
     }
 
+    unset($patient_id_cp);
+
     GPLog::info(
         "update_rxs_single: changes",
         $change_counts
@@ -43,6 +45,10 @@ function update_rxs_single($changes)
     $loop_timer = microtime(true);
     if (isset($changes['created'])) {
         foreach ($changes['created'] as $created) {
+            if ($change_counts == 1) {
+                $patient_id_cp = $created['patient_id_cp'];
+            }
+
             GPLog::$subroutine_id = "rxs-single-created1-".sha1(serialize($created));
 
             // Put the created into a log so if we need to we can reconstruct the process
@@ -202,6 +208,9 @@ function update_rxs_single($changes)
     $loop_timer = microtime(true);
 
     foreach ($changes['updated'] as $updated) {
+        if ($change_counts == 1) {
+            $patient_id_cp = $created['patient_id_cp'];
+        }
         GPLog::$subroutine_id = "rxs-single-updated1-".sha1(serialize($updated));
 
         // Put the created into a log so if we need to we can reconstruct the process
@@ -366,25 +375,37 @@ function update_rxs_single($changes)
       MAX(rx_date_expired) as rx_date_expired,
       NULLIF(MIN(COALESCE(rx_date_transferred, '0')), '0') as rx_date_transferred -- Only mark as transferred if ALL Rxs are transferred out
 
-  	FROM gp_rxs_single
+  	FROM gp_rxs_single ";
 
-  	GROUP BY
-      patient_id_cp,
-      COALESCE(drug_generic, drug_name),
-      COALESCE(sig_qty_per_day_actual, sig_qty_per_day_default)
-  ";
+    if (isset($patient_id_cp)) {
+        $sql .= " WHERE patient_id_cp = {$patient_id_cp}";
+    }
+
+    $sql .= " GROUP BY
+                  patient_id_cp,
+                  COALESCE(drug_generic, drug_name),
+                  COALESCE(sig_qty_per_day_actual, sig_qty_per_day_default)
+    ";
+
+    $delete_sql = "DELETE FROM gp_rxs_grouped";
+
+    if (isset($patient_id_cp)) {
+        $delete_sql .= " WHERE patient_id_cp = {$patient_id_cp}";
+    }
 
     $mysql->transaction();
-    $mysql->run("DELETE FROM gp_rxs_grouped");
+    $mysql->run($delete_sql);
 
     $group_timer = microtime(true);
     $mysql->run($sql);
     log_timer('rx-singles-grouped', $group_timer, 1);
 
     // QUESTION Do we need to get everthing or would a LIMIT 1 be fine?
-    $mysql->run("SELECT * FROM gp_rxs_grouped")[0]
-    ? $mysql->commit()
-    : $mysql->rollback();
+    if ($mysql->run("SELECT * FROM gp_rxs_grouped")[0]) {
+        $mysql->commit();
+    } else {
+        $mysql->rollback();
+    }
 
     //TODO should we put a UNIQUE contstaint on the rxs_grouped table for bestrx_number and rx_numbers, so that it fails hard
     $duplicate_gsns = $mysql->run("
