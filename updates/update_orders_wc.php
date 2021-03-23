@@ -269,19 +269,27 @@ function wc_order_deleted(array $deleted) : bool
         $deleted
     );
 
-    $skipPagerDutyAlert = false;
+    /*
+        Order is deleted and expected because count wasn't filled or order was denied
+        Sometimes items will have rx_message_key of "NO ACTION RECENT FILL" or "ACTION PATIENT OFF AUTOFILL"
+        but will have a count_filled > 0.
 
-    foreach($order as $item) {
-        if (
-            $item['rx_message_key'] === "NO ACTION RECENT FILL" ||
-            $item['rx_message_key'] === "ACTION PATIENT OFF AUTOFILL"
-        ) {
-            $skipPagerDutyAlert = true;
-            break;
-        }
-    }
+        @TODO - investigate reasons for count_filled > 0 when expected rx_message would not fill
+        @TODO - Eliminate order from being created in WC if authorization denied
+        @TODO - Confirm autofill/no action messages are coming from Patient Portal and validate orders before placed
+    */
 
-    if ($order[0]['order_status'] !== "Surescripts Authorization Denied" || !$skipPagerDutyAlert) {
+    if ($order[0]['order_status'] == "Surescripts Authorization Denied" || $deleted['count_filled'] == 0) {
+        GPLog::warning("Order Deleted", [
+            [
+                'source'  => 'WooCommerce',
+                'event'   => 'deleted',
+                'type'    => 'orders',
+                'deleted' => $deleted,
+                'order'   => $order
+            ]
+        ]);
+    } else {
         GPLog::critical(
             "Order deleted from WC. Why?",
             [
@@ -293,7 +301,6 @@ function wc_order_deleted(array $deleted) : bool
             ]
         );
     }
-
 
     //NOTE the below will fail if the order is wc-cancelled.  because it will show up as deleted here
     //but if it was improperly cancelled and the cp order still exists then export_wc_create_order()
