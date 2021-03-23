@@ -34,8 +34,12 @@ function import_cp_rxs_single() {
         THEN CONVERT(varchar, autofill_resume_date, 20)
         ELSE NULL END
       ) as refill_date_manual,
-      CONVERT(varchar, dispense_date + disp_days_supply, 20) as refill_date_default,
-
+      (CASE
+        WHEN dispense_date IS NULL
+            THEN start_date
+        ELSE CONVERT(varchar, dispense_date + disp_days_supply, 20)
+        END
+      ) as refill_date_default,
       script_status_cn as rx_status,
       ISNULL(IVRCmt, 'Entered') as rx_stage,
       input_source.name as rx_source,
