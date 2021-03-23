@@ -6,11 +6,9 @@ require_once 'exports/export_cp_rxs.php';
 require_once 'exports/export_gd_transfer_fax.php'; //is_will_transfer()
 require_once 'dbs/mysql_wc.php';
 
-use GoodPill\Logging\{
-    GPLog,
-    AuditLog,
-    CliLog
-};
+use GoodPill\Logging\GPLog;
+use GoodPill\Logging\AuditLog;
+use GoodPill\Logging\CliLog;
 
 use GoodPill\Utilities\Timer;
 
@@ -25,7 +23,7 @@ function update_rxs_single($changes)
     }
 
     if (array_sum($change_counts) == 0) {
-       return;
+        return;
     }
 
     GPLog::info(
@@ -43,160 +41,160 @@ function update_rxs_single($changes)
      * sure all sig_qty_per_days are properly set before we group by them
      */
     $loop_timer = microtime(true);
-    foreach ($changes['created'] as $created) {
+    if (isset($changes['created'])) {
+        foreach ($changes['created'] as $created) {
+            GPLog::$subroutine_id = "rxs-single-created1-".sha1(serialize($created));
 
-        GPLog::$subroutine_id = "rxs-single-created1-".sha1(serialize($created));
-
-        // Put the created into a log so if we need to we can reconstruct the process
-        GPLog::info('data-rxs-single-created', ['created' => $created]);
-
-
-        $patient = getPatientByRx($created['rx_number']);
-
-        AuditLog::log(
-            sprintf(
-                "New Rx# %s for %s created via carepoint",
-                $created['rx_number'],
-                $created['drug_name']
-            ),
-            $patient
-        );
-
-        GPLog::debug(
-            "update_rxs_single: rx created1. Set denormalized data needed for the rxs_grouped table",
-            [
-                  'created' => $created,
-                  'source'  => 'CarePoint',
-                  'type'    => 'rxs-single',
-                  'event'   => 'created1'
-              ]
-        );
+            // Put the created into a log so if we need to we can reconstruct the process
+            GPLog::info('data-rxs-single-created', ['created' => $created]);
 
 
+            $patient = getPatientByRx($created['rx_number']);
 
-        if ($created['rx_gsn'] AND is_gsn_in_v2($mysql, $created['rx_number'])) {
-            //compliment method, update_order_item_drug, doesn't need to be called because order_item will be new and won't need to be updated
-            update_rx_single_drug($mysql, $created['rx_number']);
+            AuditLog::log(
+                sprintf(
+                    "New Rx# %s for %s created via carepoint",
+                    $created['rx_number'],
+                    $created['drug_name']
+                ),
+                $patient
+            );
 
-            $rx_single = new GoodPillRxSingle(['rx_number' => $created['rx_number']]);
-            if (!$rx_single->loaded || !$rx_single->drug_gsns) {
-                GPLog::notice(
-                    "update_rxs_single: rx created but drug_gsns is empty",
-                    [ 'created'  => $created]
-                );
-            }
+            GPLog::debug(
+                "update_rxs_single: rx created1. Set denormalized data needed for the rxs_grouped table",
+                [
+                      'created' => $created,
+                      'source'  => 'CarePoint',
+                      'type'    => 'rxs-single',
+                      'event'   => 'created1'
+                  ]
+            );
 
-        } else {
-            $created_date = "Created:".date('Y-m-d H:i:s');
 
-            if ($created['rx_gsn']) {
-                $subject = "NEW {$created['rx_number']} still needs GSN {$created['rx_gsn']} added to V2";
-                $body    = "{$created['drug_name']} for $subject";
-                $assign  = "Joseph";
-                GPLog::warning($body, $created);
+
+            if ($created['rx_gsn'] and is_gsn_in_v2($mysql, $created['rx_number'])) {
+                // compliment method, update_order_item_drug, doesn't need to be called because
+                // order_item will be new and won't need to be updated
+                update_rx_single_drug($mysql, $created['rx_number']);
+
+                $rx_single = new GoodPillRxSingle(['rx_number' => $created['rx_number']]);
+                if (!$rx_single->loaded || !$rx_single->drug_gsns) {
+                    GPLog::notice(
+                        "update_rxs_single: rx created but drug_gsns is empty",
+                        [ 'created'  => $created]
+                    );
+                }
             } else {
-                $subject = "NEW {$created['rx_number']} still needs to be switched to a drug with a GSN";
-                $body    = "{$created['drug_name']} for $subject in CarePoint";
-                $assign  = ".Delay/Expedite Order - RPh";
-                GPLog::notice($body, $created);
+                $created_date = "Created:".date('Y-m-d H:i:s');
+
+                if ($created['rx_gsn']) {
+                    $subject = "NEW {$created['rx_number']} still needs GSN {$created['rx_gsn']} added to V2";
+                    $body    = "{$created['drug_name']} for $subject";
+                    $assign  = "Joseph";
+                    GPLog::warning($body, $created);
+                } else {
+                    $subject = "NEW {$created['rx_number']} still needs to be switched to a drug with a GSN";
+                    $body    = "{$created['drug_name']} for $subject in CarePoint";
+                    $assign  = ".Delay/Expedite Order - RPh";
+                    GPLog::notice($body, $created);
+                }
+
+                $salesforce = [
+                  "subject"   => $subject,
+                  "body"      => "$body $created_date",
+                  "contact"   => "{$patient['first_name']} {$patient['last_name']} {$patient['birth_date']}",
+                  "assign_to" => $assign,
+                  "due_date"  => date('Y-m-d')
+                ];
+
+                $event_title  = @$created['rx_number']." Missing GSN: {$salesforce['contact']} $created_date";
+
+                $message_as_string = implode('_', $salesforce);
+                $notification = new \GoodPill\Notifications\Salesforce(sha1($message_as_string), $message_as_string);
+
+                if (!$notification->isSent()) {
+                    GPLog::debug(
+                        $subject,
+                        [
+                            'created' => $created,
+                            'body'    => $body
+                        ]
+                    );
+
+                    create_event($event_title, [$salesforce]);
+                } else {
+                    GPLog::warning(
+                        "DUPLICATE Saleforce Message".$subject,
+                        [
+                            'created' => $created,
+                            'body'    => $body
+                        ]
+                    );
+                }
+
+                $notification->increment();
             }
 
-            $salesforce = [
-              "subject"   => $subject,
-              "body"      => "$body $created_date",
-              "contact"   => "{$patient['first_name']} {$patient['last_name']} {$patient['birth_date']}",
-              "assign_to" => $assign,
-              "due_date"  => date('Y-m-d')
-            ];
+            // Get the signature
+            $parsed = get_parsed_sig($created['sig_actual'], $created['drug_name']);
 
-            $event_title  = @$created['rx_number']." Missing GSN: {$salesforce['contact']} $created_date";
+            // If we have more than 8 a day, lets have a human verify the signature
+            if ($parsed['qty_per_day'] > MAX_QTY_PER_DAY) {
+                $created_date = "Created:".date('Y-m-d H:i:s');
+                $salesforce   = [
+                    "subject"   => "Verify qty pended for $created[drug_name] for Rx #$created[rx_number]",
+                    "body"      => "For Rx #$created[rx_number], $created[drug_name] with sig '$created[sig_actual]' was parsed as $parsed[qty_per_day] qty per day, which is very high. $created_date",
+                    "contact"   => "$patient[first_name] $patient[last_name] $patient[birth_date]",
+                    "assign_to" => ".DDx/Sig Issue - RPh",
+                    "due_date"  => date('Y-m-d')
+                ];
 
-            $message_as_string = implode('_', $salesforce);
-            $notification = new \GoodPill\Notifications\Salesforce(sha1($message_as_string), $message_as_string);
-
-            if (!$notification->isSent()) {
-                GPLog::debug(
-                    $subject,
-                    [
-                        'created' => $created,
-                        'body'    => $body
-                    ]
-                );
+                $event_title = "$item[invoice_number] Sig Parsing Error: $salesforce[contact] $created_date";
 
                 create_event($event_title, [$salesforce]);
-            } else {
+
                 GPLog::warning(
-                    "DUPLICATE Saleforce Message".$subject,
+                    $salesforce['body'],
                     [
-                        'created' => $created,
-                        'body'    => $body
+                      'salesforce' => $salesforce,
+                      'created' => $created,
+                      'parsed' => $parsed
                     ]
                 );
             }
 
-            $notification->increment();
+            if (!$parsed['qty_per_day']) {
+                $created_date = "Created:".date('Y-m-d H:i:s');
+                $salesforce   = [
+                    "subject"   => "Error: 0 or null dosage for {$created['drug_name']} in "
+                                   . "Order {$item['invoice_number']}. Verify qty pended for"
+                                   . "for Rx #{$created['rx_number']}",
+                    "body"      => "For Rx #{$created['rx_number']}, {$created['drug_name']} with "
+                                    . "sig '{$created['sig_actual']}' was parsed as 0 or NULL quantity."
+                                    . "  This will result in zero items pended. $created_date",
+                    "contact"   => "$patient[first_name] $patient[last_name] $patient[birth_date]",
+                    "assign_to" => ".Add/Remove - RPh",
+                    "due_date"  => date('Y-m-d')
+                ];
+
+                $event_title = "{$item['invoice_number']} 0 or null dosage Sig Parsing Error: {$salesforce['contact']} {$created_date}";
+
+                create_event($event_title, [$salesforce]);
+
+                GPLog::warning(
+                    $salesforce['body'],
+                    [
+                      'salesforce' => $salesforce,
+                      'created' => $created,
+                      'parsed' => $parsed
+                    ]
+                );
+            }
+
+            //TODO Eventually Save the Clean Script back into Guardian so that Cindy doesn't need to rewrite them
+            set_parsed_sig($created['rx_number'], $parsed, $mysql);
         }
-
-        // Get the signature
-        $parsed = get_parsed_sig($created['sig_actual'], $created['drug_name']);
-
-        // If we have more than 8 a day, lets have a human verify the signature
-        if ($parsed['qty_per_day'] > MAX_QTY_PER_DAY) {
-            $created_date = "Created:".date('Y-m-d H:i:s');
-            $salesforce   = [
-                "subject"   => "Verify qty pended for $created[drug_name] for Rx #$created[rx_number]",
-                "body"      => "For Rx #$created[rx_number], $created[drug_name] with sig '$created[sig_actual]' was parsed as $parsed[qty_per_day] qty per day, which is very high. $created_date",
-                "contact"   => "$patient[first_name] $patient[last_name] $patient[birth_date]",
-                "assign_to" => ".DDx/Sig Issue - RPh",
-                "due_date"  => date('Y-m-d')
-            ];
-
-            $event_title = "$item[invoice_number] Sig Parsing Error: $salesforce[contact] $created_date";
-
-            create_event($event_title, [$salesforce]);
-
-            GPLog::warning(
-                $salesforce['body'],
-                [
-                  'salesforce' => $salesforce,
-                  'created' => $created,
-                  'parsed' => $parsed
-                ]
-            );
-        }
-
-        if (!$parsed['qty_per_day']) {
-            $created_date = "Created:".date('Y-m-d H:i:s');
-            $salesforce   = [
-                "subject"   => "Error: 0 or null dosage for {$created['drug_name']} in "
-                               . "Order {$item['invoice_number']}. Verify qty pended for"
-                               . "for Rx #{$created['rx_number']}",
-                "body"      => "For Rx #{$created['rx_number']}, {$created['drug_name']} with "
-                                . "sig '{$created['sig_actual']}' was parsed as 0 or NULL quantity."
-                                . "  This will result in zero items pended. $created_date",
-                "contact"   => "$patient[first_name] $patient[last_name] $patient[birth_date]",
-                "assign_to" => ".Add/Remove - RPh",
-                "due_date"  => date('Y-m-d')
-            ];
-
-            $event_title = "{$item['invoice_number']} 0 or null dosage Sig Parsing Error: {$salesforce['contact']} {$created_date}";
-
-            create_event($event_title, [$salesforce]);
-
-            GPLog::warning(
-                $salesforce['body'],
-                [
-                  'salesforce' => $salesforce,
-                  'created' => $created,
-                  'parsed' => $parsed
-                ]
-            );
-        }
-
-        //TODO Eventually Save the Clean Script back into Guardian so that Cindy doesn't need to rewrite them
-        set_parsed_sig($created['rx_number'], $parsed, $mysql);
     }
-
 
     /* Finish Loop Created Loop  #1 */
 
@@ -204,18 +202,18 @@ function update_rxs_single($changes)
     $loop_timer = microtime(true);
 
     foreach ($changes['updated'] as $updated) {
-      GPLog::$subroutine_id = "rxs-single-updated1-".sha1(serialize($updated));
+        GPLog::$subroutine_id = "rxs-single-updated1-".sha1(serialize($updated));
 
-      // Put the created into a log so if we need to we can reconstruct the process
-      GPLog::info('data-rxs-single-updated', ['updated' => $updated]);
+        // Put the created into a log so if we need to we can reconstruct the process
+        GPLog::info('data-rxs-single-updated', ['updated' => $updated]);
 
-      $changed = changed_fields($updated);
+        $changed = changed_fields($updated);
 
-      $patient = getPatientByRx($updated['rx_number']);
+        $patient = getPatientByRx($updated['rx_number']);
 
-      GPLog::debug(
-          "update_rxs_single1: rx updated $updated[drug_name] $updated[rx_number]",
-          [
+        GPLog::debug(
+            "update_rxs_single1: rx updated $updated[drug_name] $updated[rx_number]",
+            [
               'updated' => $updated,
               'changed' => $changed,
               'patient' => $patient,
@@ -223,79 +221,75 @@ function update_rxs_single($changes)
               'type'    => 'rxs-single',
               'event'   => 'updated1'
           ]
-      );
+        );
 
-      if ($updated['refill_date_first'] AND ! $updated['rx_gsn']) {
-        GPLog::warning("RX is missing GSN but refill RXs cannot be changed", $updated);
-      }
+        if ($updated['refill_date_first'] and ! $updated['rx_gsn']) {
+            GPLog::warning("RX is missing GSN but refill RXs cannot be changed", $updated);
+        }
 
-      if ($updated['rx_gsn'] != $updated['old_rx_gsn']) {
-
-        GPLog::warning(
-          "update_rxs_single1 rx_gsn updated (before rxs_grouped)",
-          [
+        if ($updated['rx_gsn'] != $updated['old_rx_gsn']) {
+            GPLog::warning(
+                "update_rxs_single1 rx_gsn updated (before rxs_grouped)",
+                [
             'updated' => $updated,
             'changed' => $changed
           ]
-        );
+            );
 
-        if ($updated['rx_gsn'] AND is_gsn_in_v2($mysql, $updated['rx_number'])) {
-            //compliment method, update_order_item_drug, doesn't need to be called because order_item will be new and won't need to be updated
-            update_rx_single_drug($mysql, $updated['rx_number']);
-
-        } else {
-
-            $created_date = "Created:".date('Y-m-d H:i:s');
-
-            if ($updated['rx_gsn']) {
-                $subject = "UPDATED {$updated['rx_number']} still needs GSN {$updated['rx_gsn']} added to V2";
-                $body    = "{$updated['drug_name']} for $subject";
-                $assign  = "Joseph";
-                GPLog::warning($body, $updated);
-
+            if ($updated['rx_gsn'] and is_gsn_in_v2($mysql, $updated['rx_number'])) {
+                //compliment method, update_order_item_drug, doesn't need to be called because order_item will be new and won't need to be updated
+                update_rx_single_drug($mysql, $updated['rx_number']);
             } else {
-                $subject = "UPDATED {$updated['rx_number']} still needs to be switched to a drug with a GSN";
-                $body    = "{$updated['drug_name']} for $subject in CarePoint";
-                $assign  = ".Delay/Expedite Order - RPh";
-                GPLog::notice($body, $updated);
+                $created_date = "Created:".date('Y-m-d H:i:s');
+
+                if ($updated['rx_gsn']) {
+                    $subject = "UPDATED {$updated['rx_number']} still needs GSN {$updated['rx_gsn']} added to V2";
+                    $body    = "{$updated['drug_name']} for $subject";
+                    $assign  = "Joseph";
+                    GPLog::warning($body, $updated);
+                } else {
+                    $subject = "UPDATED {$updated['rx_number']} still needs to be switched to a drug with a GSN";
+                    $body    = "{$updated['drug_name']} for $subject in CarePoint";
+                    $assign  = ".Delay/Expedite Order - RPh";
+                    GPLog::notice($body, $updated);
+                }
+
+                $salesforce = [
+                  "subject"   => $subject,
+                  "body"      => "$body $created_date",
+                  "contact"   => "{$patient['first_name']} {$patient['last_name']} {$patient['birth_date']}",
+                  "assign_to" => $assign,
+                  "due_date"  => date('Y-m-d')
+                ];
+
+                $event_title = @$updated['rx_number']." Missing GSN: {$salesforce['contact']} $created_date";
+
+                $message_as_string = implode('_', $salesforce);
+                $notification = new \GoodPill\Notifications\Salesforce(sha1($message_as_string), $message_as_string);
+
+                if (!$notification->isSent()) {
+                    GPLog::debug(
+                        $subject,
+                        [
+                            'updated' => $updated,
+                            'body'    => $body
+                        ]
+                    );
+
+                    create_event($event_title, [$salesforce]);
+                } else {
+                    GPLog::warning(
+                        "DUPLICATE Saleforce Message".$subject,
+                        [
+                            'updated' => $updated,
+                            'body'    => $body
+                        ]
+                    );
+                }
+
+                $notification->increment();
             }
-
-            $salesforce = [
-              "subject"   => $subject,
-              "body"      => "$body $created_date",
-              "contact"   => "{$patient['first_name']} {$patient['last_name']} {$patient['birth_date']}",
-              "assign_to" => $assign,
-              "due_date"  => date('Y-m-d')
-            ];
-
-            $event_title = @$updated['rx_number']." Missing GSN: {$salesforce['contact']} $created_date";
-
-            $message_as_string = implode('_', $salesforce);
-            $notification = new \GoodPill\Notifications\Salesforce(sha1($message_as_string), $message_as_string);
-
-            if (!$notification->isSent()) {
-                GPLog::debug(
-                    $subject,
-                    [
-                        'updated' => $updated,
-                        'body'    => $body
-                    ]
-                );
-
-                create_event($event_title, [$salesforce]);
-            } else {
-                GPLog::warning(
-                    "DUPLICATE Saleforce Message".$subject,
-                    [
-                        'updated' => $updated,
-                        'body'    => $body
-                    ]
-                );
-            }
-
-            $notification->increment();
         }
-      }
     }
 
     /*
@@ -405,10 +399,10 @@ function update_rxs_single($changes)
     ")[0];
 
     if (isset($duplicate_gsns[0][0])) {
-      GPLog::critical(
-        "update_rxs_single: duplicate gsns detected",
-        ['duplicate_gsns' => $duplicate_gsns]
-      );
+        GPLog::critical(
+            "update_rxs_single: duplicate gsns detected",
+            ['duplicate_gsns' => $duplicate_gsns]
+        );
     }
 
     /*
@@ -420,34 +414,34 @@ function update_rxs_single($changes)
      * Run this After so that Rx_grouped is set when doing get_full_patient
      */
     $loop_timer = microtime(true);
-    foreach ($changes['created'] as $created) {
+    if (isset($changes['created'])) {
+        foreach ($changes['created'] as $created) {
+            GPLog::$subroutine_id = "rxs-single-created2-".sha1(serialize($created));
 
-        GPLog::$subroutine_id = "rxs-single-created2-".sha1(serialize($created));
+            $item = load_full_item($created, $mysql);
 
-        $item = load_full_item($created, $mysql);
-
-        GPLog::debug(
-            "update_rxs_single: rx created2",
-            [
-                'created' => $created,
-                'item'    => $item,
-                'source'  => 'CarePoint',
-                'type'    => 'rxs-single',
-                'event'   => 'created2'
-            ]
-        );
-
-        //TODO rather hackily editing calendar events, probably better to just delete and then recreate them
-        if ($item) {
-            remove_drugs_from_refill_reminders(
-                $item['first_name'],
-                $item['last_name'],
-                $item['birth_date'],
-                [$created['drug_name']]
+            GPLog::debug(
+                "update_rxs_single: rx created2",
+                [
+                    'created' => $created,
+                    'item'    => $item,
+                    'source'  => 'CarePoint',
+                    'type'    => 'rxs-single',
+                    'event'   => 'created2'
+                ]
             );
+
+            //TODO rather hackily editing calendar events, probably better to just delete and then recreate them
+            if ($item) {
+                remove_drugs_from_refill_reminders(
+                    $item['first_name'],
+                    $item['last_name'],
+                    $item['birth_date'],
+                    [$created['drug_name']]
+                );
+            }
         }
     }
-
     /* Finish Created Loop #2 */
 
     $sf_cache = [];
@@ -459,7 +453,6 @@ function update_rxs_single($changes)
     $loop_timer = microtime(true);
 
     foreach ($changes['updated'] as $updated) {
-
         GPLog::$subroutine_id = "rxs-single-updated2-".sha1(serialize($updated));
 
         $changed = changed_fields($updated);
@@ -572,8 +565,7 @@ function update_rxs_single($changes)
 
             $invoice_number = $item['invoice_number'];
 
-            if ($updated['old_rx_gsn'] == 0 AND $invoice_number) {
-
+            if ($updated['old_rx_gsn'] == 0 and $invoice_number) {
                 if (! isset($orders_updated[$invoice_number])) {
                     $orders_updated[$invoice_number] = [];
                 }
@@ -630,9 +622,7 @@ function update_rxs_single($changes)
     }
 
     if ($orders_updated) {
-
         foreach ($orders_updated as $invoice_number => $updates) {
-
             $order  = load_full_order(['invoice_number' => $invoice_number], $mysql);
             $groups = group_drugs($order, $mysql);
 
@@ -689,7 +679,7 @@ function update_rxs_single($changes)
 
     GPLog::resetSubroutineId();
 
-  //TODO if new Rx arrives and there is an active order where that Rx is not included because of "ACTION NO REFILLS" or "ACTION RX EXPIRED" or the like, then we should rerun the helper_days_and_message on the order_item
+    //TODO if new Rx arrives and there is an active order where that Rx is not included because of "ACTION NO REFILLS" or "ACTION RX EXPIRED" or the like, then we should rerun the helper_days_and_message on the order_item
 
   //TODO Implement rx_status logic that was in MSSQL Query and Save in Database
 
