@@ -77,7 +77,6 @@ function get_payment_default($order, $reason)
     $update['payment_date_autopay'] = 'NULL';
 
     if (@$order[0]['payment_method'] == PAYMENT_METHOD['COUPON']) {
-        $update['payment_fee_default'] = $update['payment_total_default'];
         $update['payment_due_default'] = 0;
     } elseif (@$order[0]['payment_method'] == PAYMENT_METHOD['AUTOPAY']) {
         $start = date('m/01', strtotime('+ 1 month'));
