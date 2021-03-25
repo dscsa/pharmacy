@@ -32,6 +32,7 @@ function export_v2_unpend_order($order, $mysql, $reason)
 
     // save a blank picklist for each item
     foreach ($order as $i => $item) {
+        GPLog::debug('Saving Pick List', ['item' => $item, 'list' => 0]);
         $order[$i] = save_pick_list($item, 0, $mysql);
     }
 
@@ -171,6 +172,7 @@ function v2_pend_item($item, $mysql, $reason)
 
     print_pick_list($item, $list);
     pend_pick_list($item, $list);
+    GPLog::debug('Saving Pick List', ['item' => $item, 'list' => $list ?: 0]);
     $item = save_pick_list($item, $list ?: 0, $mysql);
     return $item;
 }
@@ -237,6 +239,7 @@ function v2_unpend_item($item, $mysql, $reason)
     }
 
     unpend_pick_list($item);
+    GPLog::debug('Saving Pick List', ['item' => $item, 'list' => 0]);
     $item = save_pick_list($item, 0, $mysql);
     return $item;
 }
