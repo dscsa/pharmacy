@@ -79,15 +79,16 @@ class GPLog
             $context = [];
         }
 
+
+        $ids     = self::findCriticalId($context);
+        $pd_data = ['ids' => $ids];
+
         if (isset($context['pd_data'])) {
-            $pd_data = $context['pd_data'];
-        } else {
-            $pd_data = [];
+            $pd_data = array_merge($pd_date, $context['pd_data']);
         }
 
         self::alertPagerDuty($message, $method, $pd_data);
 
-        $ids                     = self::findCriticalId($context);
         $context                 = ["context" => $context];
         $context['ids']          = $ids;
         $context['execution_id'] = self::$exec_id;
