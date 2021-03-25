@@ -633,7 +633,10 @@ function confirm_shipment_internal($groups, $days_ago)
         	        JOIN gp_orders p ON o.patient_id_cp = p.patient_id_cp
                         AND p.invoice_number = :invoice_number
         	     WHERE o.invoice_number != :invoice_number
-        		       AND o.order_stage_cp = 'Shipped';"
+        		       AND (
+                            o.order_stage_cp = 'Shipped'
+                            or o.order_stage_cp = 'Dispensed'
+                        );"
     );
 
     $pdo->bindParam(':invoice_number', $groups['ALL'][0]['invoice_number'], \PDO::PARAM_INT);
@@ -645,13 +648,14 @@ function confirm_shipment_internal($groups, $days_ago)
         GPLog::critical(
             'Past Orders <> Refills Used',
             [
-        'past_order_count' => $results['past_order_count'],
-        'refills_used'     => $groups['ALL'][0]['refills_used'],
-        'invoice_number'   => $groups['ALL'][0]['invoice_number'],
-        'todo' => "TODO is this is a double check to see if past orders is 100% correlated with refills_used,
-         if not, we need to understand root cause of discrepancy and which one we want to use going foward
-         and to be consistent, remove the other property so that its not mis-used."
-     ]
+                'past_order_count' => $results['past_order_count'],
+                'groups'           => $groups,
+                'refills_used'     => $groups['ALL'][0]['refills_used'],
+                'invoice_number'   => $groups['ALL'][0]['invoice_number'],
+                'todo'             => "TODO is this is a double check to see if past orders is 100% correlated with refills_used,
+                 if not, we need to understand root cause of discrepancy and which one we want to use going foward
+                 and to be consistent, remove the other property so that its not mis-used."
+             ]
         );
     }
 
