@@ -47,7 +47,7 @@ function get_sync_request_single(
     switch ($changes_to) {
         case 'patients_cp':
         case 'patients_wc':
-            $group_id = $changes['last_name']."_".$changes['first_name']."_".$changes['birth_date'];
+            $group_id = $changes['first_name']."_".$changes['last_name']."_".$changes['birth_date'];
             break;
         case 'rxs_single':
         case 'orders_cp':
@@ -63,7 +63,7 @@ function get_sync_request_single(
             }
 
             if (isset($patient) && $patient->loaded) {
-                $group_id = $patient->last_name.'_'.$patient->first_name.'_'.$patient->birth_date;
+                $group_id = $patient->first_name.'_'.$patient->last_name.'_'.$patient->birth_date;
             } else {
                 GPLog::warning(
                     "Problem finding a patient group id",

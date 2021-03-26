@@ -161,7 +161,10 @@ for ($l = 0; $l < $executions; $l++) {
             }
 
             GPLog::debug($log_message, $changes);
-            CliLog::notice($log_message, $changes);
+            CliLog::notice(
+                $log_message,
+                ['changes_to' => $request->changes_to, 'change' => $changes]
+            );
 
             try {
                 switch ($request->changes_to) {
@@ -171,9 +174,47 @@ for ($l = 0; $l < $executions; $l++) {
                     case 'stock_by_month':
                         update_stock_by_month($changes);
                         break;
+
+                    case 'rxs_single':
+                        // This is an expensive operation, So instead of breaking it into one per
+                        // rx, we are going to split all the users
+
+
+                        // Order them by patient_id_cp
+                        $grouped_changes = [];
+                        foreach($changes as $type => $change_group) {
+                            foreach ($change_group as $change) {
+                                $patient_id_cp = $change['patient_id_cp'];
+                                if (!isset($grouped_changes[$patient_id_cp])) {
+                                    $grouped_changes[$patient_id_cp] = [];
+                                }
+
+                                if (!isset($grouped_changes[$patient_id_cp][$type])) {
+                                    $grouped_changes[$patient_id_cp][$type] = [];
+                                }
+
+                                $grouped_changes[$patient_id_cp][$type][] = $change;
+                            }
+                        }
+
+                        foreach ($grouped_changes as $patient_id_cp => $rx_changes) {
+                            $patient = new GoodPillPatient(['patient_id_cp' => $patient_id_cp]);
+                            if ($patient->loaded) {
+                                $group_id = $patient->first_name.'_'.$patient->last_name.'_'.$patient->birth_date;
+                            } else {
+                                $group_id = "UNKNOWN";
+                            }
+                            $syncing_request               = new PharmacySyncRequest();
+                            $syncing_request->changes_to   = $changes_to;
+                            $syncing_request->changes      = $rx_changes;
+                            $syncing_request->group_id     = sha1($group_id);
+                            $syncing_request->patient_id   = $group_id;
+                            $syncing_request->execution_id = GPLog::$execution_id;
+                            $patientQueueBatch[] = $syncing_request;
+                        }
+                        break;
                     case 'patients_cp':
                     case 'patients_wc':
-                    case 'rxs_single':
                     case 'orders_cp':
                     case 'orders_wc':
                     case 'order_items':
@@ -216,7 +257,8 @@ for ($l = 0; $l < $executions; $l++) {
     }
 
     if (count($patientQueueBatch) > 0) {
-        $patientQueue->sendBatch($patientQueueBatch);
+        var_dump($patientQueueBatch);
+        //$patientQueue->sendBatch($patientQueueBatch);
     } else {
         CliLog::warning('No changes to send to patient queue');
     }
