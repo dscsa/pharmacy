@@ -18,6 +18,8 @@ use GoodPill\Logging\{
     CliLog
 };
 
+use GoodPill\DataModels\GoodPillPatient;
+
 require_once 'keys.php';
 
 require_once 'dbs/mysql_wc.php';
