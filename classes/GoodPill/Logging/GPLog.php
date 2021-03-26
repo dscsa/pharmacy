@@ -145,6 +145,11 @@ class GPLog
 
         if (!is_null(self::$subroutine_id)) {
             $pd_data['subroutine_id'] = self::$subroutine_id;
+            $pd_data['event'] = substr(
+                self::$subroutine_id,
+                0,
+                strrpos(self::$subroutine_id, '-')
+            );
             $pd_query .= "\n" . 'jsonPayload.subroutine_id="' . self::$subroutine_id . '"';
         }
 
