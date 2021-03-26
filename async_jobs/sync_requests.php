@@ -259,8 +259,7 @@ for ($l = 0; $l < $executions; $l++) {
     }
 
     if (count($patientQueueBatch) > 0) {
-        var_dump($patientQueueBatch);
-        //$patientQueue->sendBatch($patientQueueBatch);
+        $patientQueue->sendBatch($patientQueueBatch);
     } else {
         CliLog::warning('No changes to send to patient queue');
     }
