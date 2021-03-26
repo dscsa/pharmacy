@@ -2,18 +2,18 @@
 
 CODE_DIR=/goodpill/webform
 RESTART_SERVICES=1
-WAIT_FOR_EMPTY=0
+WAIT_FOR_EMPTY=1
 
 while getopts ":sw" opt; do
   case ${opt} in
     s ) RESTART_SERVICES=0
       ;;
-    w ) WAIT_FOR_EMPTY=1;
+    w ) WAIT_FOR_EMPTY=0;
       ;;
     \? ) echo <<<EOF
 Usage: pa_updat.sh [-s] [-w] [-h]
     -s Do not restart the services after the code is pushed
-    -w Wait for the queus to empty befor pushing code
+    -w Do not Wait for the queus to empty befor pushing code
 EOF
       ;;
   esac
@@ -68,8 +68,8 @@ fi
 
 echo "Stopping services";
 #Restart the services
-sudo service crond start
-sudo service supervisord start
+sudo service crond stop
+sudo service supervisord stop
 
 echo "Pulling Latest Code";
 # Get the latest code
