@@ -162,8 +162,7 @@ for ($l = 0; $l < $executions; $l++) {
                 GPLog::$exec_id = $request->execution_id;
             }
 
-            GPLog::debug($log_message, $changes);
-            CliLog::notice(
+            GPLog::notice(
                 $log_message,
                 ['changes_to' => $request->changes_to, 'change' => $changes]
             );
@@ -261,7 +260,9 @@ for ($l = 0; $l < $executions; $l++) {
     if (count($patientQueueBatch) > 0) {
         $patientQueue->sendBatch($patientQueueBatch);
     } else {
-        CliLog::warning('No changes to send to patient queue');
+        if (count($complete) > 1) {
+            CliLog::warning('No changes to send to patient queue');
+        }
     }
 
     // Delete any complet messages
