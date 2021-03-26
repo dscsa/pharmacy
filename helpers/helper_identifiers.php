@@ -17,7 +17,7 @@ function getPatientByInvoice($invoice_number)
 
     $mysql = Goodpill::getConnection();
     $pdo   = $mysql->prepare(
-        "SELECT birth_date, first_name, last_name
+        "SELECT birth_date, first_name, last_name, p.patient_id_wc, p.patient_id_cp
             FROM gp_orders o
                 JOIN gp_patients p on o.patient_id_cp = p.patient_id_cp
             WHERE invoice_number = :invoice_number
@@ -43,7 +43,7 @@ function getPatientByRx($rx_number)
 {
     $mysql = Goodpill::getConnection();
     $pdo   = $mysql->prepare(
-        "SELECT birth_date, first_name, last_name
+        "SELECT birth_date, first_name, last_name, patient_id_wc, patient_id_cp
             FROM gp_rxs_single rx
                 JOIN gp_patients p on rx.patient_id_cp = p.patient_id_cp
             WHERE rx_number = :rx_number
@@ -69,7 +69,7 @@ function getPatientByCpId($patient_id_cp)
 {
     $mysql = Goodpill::getConnection();
     $pdo   = $mysql->prepare(
-        "SELECT birth_date, first_name, last_name
+        "SELECT birth_date, first_name, last_name, patient_id_wc, patient_id_cp
             FROM gp_patients
             WHERE patient_id_cp = :patient_id_cp
             LIMIT 1;"
@@ -94,7 +94,7 @@ function getPatientByWcId($patient_id_wc)
 {
     $mysql = Goodpill::getConnection();
     $pdo   = $mysql->prepare(
-        "SELECT birth_date, first_name, last_name
+        "SELECT birth_date, first_name, last_name, patient_id_wc, patient_id_cp
             FROM gp_patients
             WHERE patient_id_wc = :patient_id_wc
             LIMIT 1;"
