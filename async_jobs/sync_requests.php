@@ -211,7 +211,7 @@ for ($l = 0; $l < $executions; $l++) {
                             $syncing_request->changes      = $rx_changes;
                             $syncing_request->group_id     = sha1($group_id);
                             $syncing_request->patient_id   = $group_id;
-                            $syncing_request->execution_id = GPLog::$execution_id;
+                            $syncing_request->execution_id = GPLog::$exec_id;
                             $patientQueueBatch[] = $syncing_request;
                         }
                         break;
