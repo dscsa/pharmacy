@@ -207,11 +207,11 @@ for ($l = 0; $l < $executions; $l++) {
                                 $group_id = "UNKNOWN";
                             }
                             $syncing_request               = new PharmacySyncRequest();
-                            $syncing_request->changes_to   = $changes_to;
+                            $syncing_request->changes_to   = $request->changes_to;
                             $syncing_request->changes      = $rx_changes;
                             $syncing_request->group_id     = sha1($group_id);
                             $syncing_request->patient_id   = $group_id;
-                            $syncing_request->execution_id = GPLog::$exec_id;
+                            $syncing_request->execution_id = $request->execution_id;
                             $patientQueueBatch[] = $syncing_request;
                         }
                         break;
