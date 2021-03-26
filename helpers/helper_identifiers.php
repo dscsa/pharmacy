@@ -43,7 +43,7 @@ function getPatientByRx($rx_number)
 {
     $mysql = Goodpill::getConnection();
     $pdo   = $mysql->prepare(
-        "SELECT birth_date, first_name, last_name, rx.patient_id_wc, p.patient_id_cp
+        "SELECT birth_date, first_name, last_name, p.patient_id_wc, rx.patient_id_cp
             FROM gp_rxs_single rx
                 JOIN gp_patients p on rx.patient_id_cp = p.patient_id_cp
             WHERE rx_number = :rx_number
