@@ -148,19 +148,7 @@ function get_days_and_message($item, $patient_or_order)
 
     if ($no_transfer and ! $is_refill and $refill_only) {
 
-        $created = "Created:".date('Y-m-d H:i:s');
-
-        $salesforce = [
-            "subject"   => "$item[drug_name] will not be transferred automatically because it is >=20/month or backup pharmacy is listed as GoodPill",
-            "body"      => "Call patient to ask whether they want drug $item[drug_name] to be transferred out or not $created",
-            "contact"   => "$item[first_name] $item[last_name] $item[birth_date]",
-            "assign_to" => "Claire",
-            "due_date"  => date('Y-m-d')
-        ];
-
-        $event_title = "$item[invoice_number] $item[drug_name] Was NOT Transferred: $salesforce[contact] $created";
-
-        create_event($event_title, [$salesforce]);
+        no_transfer_out_notice($item);
 
         GPLog::info("CHECK BACK IF TRANSFER OUT IS NOT DESIRED", get_defined_vars());
         return [0, RX_MESSAGE['ACTION CHECK BACK']];
@@ -613,7 +601,7 @@ function is_item($patient_or_order)
 function is_not_offered($item)
 {
     $stock_level = @$item['stock_level_initial'] ?: $item['stock_level'];
-    
+
     if ( ! $item) {
         log_error("helper_days_and_message: $item[drug_name], is_not_offered:true, ERROR no item", ['item' => $item, 'stock_level' => $stock_level]);
         return true;
