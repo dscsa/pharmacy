@@ -668,8 +668,8 @@ function confirm_shipment_internal($groups, $days_ago)
 
     $salesforce = [
     "contact" => $groups['ALL'][0]['first_name'].' '.$groups['ALL'][0]['last_name'].' '.$groups['ALL'][0]['birth_date'],
-    "assign_to" => ".Confirm Delivery - Tech",
-    "due_date" => substr(get_start_time($days_ago*24), 0, 10),
+    //"assign_to" => ".Confirm Delivery - Tech",
+    //"due_date" => substr(get_start_time($days_ago*24), 0, 10),
     "subject" => $subject,
     "body" =>  implode('<br>', [
       'Hello,',
