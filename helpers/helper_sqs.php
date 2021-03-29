@@ -99,3 +99,55 @@ function get_sync_request_single(
     $syncing_request->execution_id = $execution;
     return $syncing_request;
 }
+
+/**
+ * Create a pharmacy sync request for an rxs_single change.
+ * @param $patient_id_cp
+ * @param string $changes_to
+ * @param array $changes
+ * @param string|null $execution
+ * @return PharmacySyncRequest|null
+ */
+function get_sync_request_rxs(
+    $patient_id_cp,
+    string $changes_to,
+    array $changes,
+    string $execution = null
+) : ?PharmacySyncRequest
+{
+    $group_id = find_group_id(['patient_id_cp' => $$patient_id_cp]);
+
+    $syncing_request               = new PharmacySyncRequest();
+    $syncing_request->changes_to   = $changes_to;
+    $syncing_request->changes      = $changes;
+    $syncing_request->group_id     = sha1($group_id);
+    $syncing_request->patient_id   = $group_id;
+    $syncing_request->execution_id = $execution;
+
+    return $syncing_request;
+}
+
+/**
+ * Helper to quickly find patient by id or invoice and create a group id
+ * @param array $ids
+ * @return string
+ */
+function find_group_id(array $ids) {
+    if (isset($ids['patient_id_cp'])) {
+        $patient = new GoodPillPatient(['patient_id_cp' => $ids['patient_id_cp']]);
+    } elseif (isset($ids['patient_id_wc'])) {
+        $patient = new GoodPillPatient(['patient_id_wc' => $ids['patient_id_wc']]);
+    } elseif (isset($ids['invoice_number'])) {
+        $order = new GoodPillOrder(['invoice_number' => $ids['invoice_number']]);
+        $patient = $order->getPatient();
+    }
+
+    if (isset($patient) && $patient->loaded) {
+        $group_id = $patient->first_name.'_'.$patient->last_name.'_'.$patient->birth_date;
+    } else {
+        GPLog::warning("Problem finding a patient group id", ['ids' => $ids]);
+        $group_id = 'UNKNOWN_GROUP_ID';
+    }
+
+    return $group_id;
+}
