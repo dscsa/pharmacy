@@ -82,14 +82,12 @@ class GPLog
 
         $ids     = self::findCriticalId($context);
 
-        $pd_data = [
-            'ids' => array_intersect_key(
-                $ids,
-                array_flip(
-                    ['patient_id_cp', 'patient_id_wc', 'invoice_number']
-                )
+        $pd_data = array_intersect_key(
+            $ids,
+            array_flip(
+                ['patient_id_cp', 'patient_id_wc', 'invoice_number']
             )
-        ];
+        );
 
         if (isset($context['pd_data'])) {
             $pd_data = array_merge($pd_date, $context['pd_data']);
