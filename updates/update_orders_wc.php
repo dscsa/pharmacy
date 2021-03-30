@@ -212,17 +212,21 @@ function wc_order_created(array $created) : bool
         return false;
     }
 
-    GPLog::critical(
-        "update_orders_wc: WooCommerce Order Created. Needs Manual Intervention!",
-        [
-            'invoice_number' => $created['invoice_number'],
-            'order_stage_wc' => $created['order_stage_wc'],
-            'source'         => 'WooCommerce',
-            'event'          => 'created',
-            'type'           => 'orders',
-            'created'        => $created
-        ]
-    );
+    //  6236 looks to be a test account that is sending bogus information through. In that situation we
+    //  dont need to be alerted
+    if ($created['patient_id_wc'] !== 6236) {
+        GPLog::critical(
+            "update_orders_wc: WooCommerce Order Created. Needs Manual Intervention!",
+            [
+                'invoice_number' => $created['invoice_number'],
+                'order_stage_wc' => $created['order_stage_wc'],
+                'source'         => 'WooCommerce',
+                'event'          => 'created',
+                'type'           => 'orders',
+                'created'        => $created
+            ]
+        );
+    }
 
     GPLog::resetSubroutineId();
     return true;
