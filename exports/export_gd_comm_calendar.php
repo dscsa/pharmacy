@@ -432,15 +432,38 @@ function order_updated_notice($groups, $patient_updates)
 function needs_form_notice($groups)
 {
 
-  ///It's depressing to get updates if nothing is being filled
+    $eligible_state = in_array($groups['ALL'][0]['patient_state'], ['TN', 'FL', 'NC', 'SC', 'AL', 'GA', NULL, '']);
+
+    $salesforce = '';
+
     if ($groups['NOFILL_ACTION']) {
         $subject = 'Welcome to Good Pill!  We are excited to fill your prescriptions.';
         $message = 'Your first order, #'.$groups['ALL'][0]['invoice_number'].", will cost $6, paid after you receive your medications. Please take 5mins to register so that we can fill the Rxs we got from your doctor as soon as possible. Once you register it will take 5-7 business days before you receive your order. You can register online at www.goodpill.org or by calling us at (888) 987-5187.<br><br><u>The drugs in your first order will be:</u><br>".implode(';<br>', $groups['NOFILL_ACTION']).';';
-    //log_error("NEEDS FORM NOTICE DOES NOT HAVE DRUGS LISTED", [$groups, $message, $subject]);
+
+        if ($eligible_state)
+            $salesforce = [
+              "subject"   => "Call to Register Patient",
+              "body"      => "Call to Register Patient
+              -If pt does not have a backup pharmacy in Salesforce, call them to register.
+              -Attempt 2 calls/voicemails over 2 days. Even if the phone number is invalid, attempt a 2nd call.
+              -After 2 failed attempts, reassign this task to .Flag Clinic/Provider Issue - Admin.
+              -Provider info: {$groups['ALL'][0]['provider_first_name']} {$groups['ALL'][0]['provider_last_name']}, {$groups['ALL'][0]['provider_clinic']}, {$groups['ALL'][0]['provider_phone']}
+              *** Once pt has registered, make sure an order has been created ***",
+              "assign_to" => ".Register New Patient - Tech"
+            ];
+        //log_error("NEEDS FORM NOTICE DOES NOT HAVE DRUGS LISTED", [$groups, $message, $subject]);
     } else {
         //log_error('NEEDS_FORM HOLD.  IS THIS EVER CALLED OR DOES IT GOTO ORDER_HOLD TEMPLATE', $groups);
         $subject = "Welcome to Good Pill. Unfortunately we can't complete your 1st Order";
-        $message = "We are very sorry for the inconvenience but we can't fill the Rx(s) in Order #".$groups['ALL'][0]['invoice_number']." that we received from your doctor. Please ask your local pharmacy to contact us to get the prescription OR register online or over the phone and let us know to which pharmacy we should transfer the Rx(s).<br><br><u>The drugs we could not fill are:</u><br>".implode(';<br>', $groups['NOFILL_NOACTION']).";<br><br>Because we rely on donated medicine, we can only fill medications that are listed here www.goodpill.org/gp-stock";
+        $message = "We are very sorry for the inconvenience but we can't fill the Rx(s) in Order #".$groups['ALL'][0]['invoice_number']." that we received from your doctor. Please let us know to which pharmacy we should transfer the Rx(s).<br><br><u>The drugs we could not fill are:</u><br>".implode(';<br>', $groups['NOFILL_NOACTION']).";<br><br>Because we rely on donated medicine, we can only fill medications that are listed here www.goodpill.org/gp-stock";
+
+        if ($eligible_state)
+            $salesforce = [
+              "subject"   => "Can't complete your 1st Order",
+              "body"      => "Can't complete your 1st Order
+              New Rx(s) of ".implode(';<br>', $groups['NOFILL_NOACTION'])." sent for unregistered patient. Please call patient to inform them that we are unable to fill these drugs and ask if they would like us to transfer their Rx(s) their local pharmacy. Because we rely on donated medicine, we can only fill medications that are listed on www.goodpill.org\n\nPlease inform the patient that since drug pricing differs by pharmacy, they will be charged their local pharmacy's price if the drug is transferred.",
+              "assign_to" => ".Unavailable Drug"
+            ];
     }
 
     $email = [ "email" => $groups['ALL'][0]['email'] ];
@@ -448,53 +471,40 @@ function needs_form_notice($groups)
 
     $email['subject'] = $subject;
     $email['message'] = implode('<br>', [
-    'Hello,',
-    '',
-    $subject.' '.$message,
-    '',
-    'Thanks!',
-    'The Good Pill Team',
-    '',
-    ''
-  ]);
+        'Hello,',
+        '',
+        $subject.' '.$message,
+        '',
+        'Thanks!',
+        'The Good Pill Team',
+        '',
+        ''
+    ]);
 
     //By basing on added at, we remove uncertainty of when script was run relative to the order being added
-  $hour_added = substr($groups['ALL'][0]['order_date_added'], 11, 2); //get hours
+    $hour_added = substr($groups['ALL'][0]['order_date_added'], 11, 2); //get hours
 
-  if ($hour_added < 10) {
+    if ($hour_added < 10) {
       //A if before 10am, the first one is at 10am, the next one is 5pm, then 10am tomorrow, then 5pm tomorrow
       $hours_to_wait = [0, 0, 24, 24, 24*7, 24*14];
       $hour_of_day   = [11, 17, 11, 17, 17, 17];
-  } elseif ($hour_added < 17) {
+    } elseif ($hour_added < 17) {
       //A if before 5pm, the first one is 10mins from now, the next one is 5pm, then 10am tomorrow, then 5pm tomorrow
       $hours_to_wait = [10/60, 0, 24, 24, 24*7, 24*14];
       $hour_of_day   = [0, 17, 11, 17, 17, 17];
-  } else {
+    } else {
       //B if after 5pm, the first one is 10am tomorrow, 5pm tomorrow, 10am the day after tomorrow, 5pm day after tomorrow.
       $hours_to_wait = [24, 24, 48, 48, 24*7, 24*14];
       $hour_of_day   = [11, 17, 11, 17, 17, 17];
-  }
+    }
 
     $date = "Created:".date('Y-m-d H:i:s');
 
-
-    $salesforce = '';
-
-    if (in_array($groups['ALL'][0]['patient_state'], ['TN', 'FL', 'NC', 'SC', 'AL', 'GA', NULL, '']))
-        $salesforce = [
-          "subject"   => "Call Unregistered Patient",
-          "body"      => "Call Unregistered Patient
-          -If pt does not have a backup pharmacy in Salesforce, call them to register.
-          -Attempt 2 calls/voicemails over 2 days. Even if the phone number is invalid, attempt a 2nd call.
-          -After 2 failed attempts, reassign this task to .Flag Clinic/Provider Issue - Admin.
-          -Provider info: {$groups['ALL'][0]['provider_first_name']} {$groups['ALL'][0]['provider_last_name']}, {$groups['ALL'][0]['provider_clinic']}, {$groups['ALL'][0]['provider_phone']}
-          *** Once pt has registered, make sure an order has been created ***
-          $date
-          ",
-          "contact"   => "{$groups['ALL'][0]['first_name']} {$groups['ALL'][0]['last_name']} {$groups['ALL'][0]['birth_date']}",
-          "assign_to" => ".Register New Patient - Tech",
-          "due_date"  => substr(get_start_time($hours_to_wait[3], $hour_of_day[3]), 0, 10)
-        ];
+    if ($salesforce) {
+        $salesforce["body"]    .= "\n\n$date";
+        $salesforce["contact"]  = "{$groups['ALL'][0]['first_name']} {$groups['ALL'][0]['last_name']} {$groups['ALL'][0]['birth_date']}";
+        $salesforce["due_date"] = substr(get_start_time($hours_to_wait[3], $hour_of_day[3]), 0, 10);
+    }
 
     GPLog::notice("needs_form_notice is this right?", [$groups, $email, $salesforce]);
 
