@@ -141,7 +141,7 @@ class GpPatient extends Model
      */
     public function isMatched()
     {
-        return ($this->loaded
+        return ($this->exists
                 && !empty($this->patient_id_cp)
                 && !empty($this->patient_id_wc));
     }

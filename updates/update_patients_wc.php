@@ -147,7 +147,7 @@ function wc_patient_created(array $created)
         return null;
     }
 
-    $is_match = is_patient_match($mysql, $created);
+    $is_match = is_patient_match($created);
 
     if ($is_match) {
         match_patient($mysql, $is_match['patient_id_cp'], $is_match['patient_id_wc']);
@@ -205,7 +205,7 @@ function wc_patient_updated(array $updated)
     }
 
     if (! $updated['patient_id_cp']) {
-        $is_match = is_patient_match($mysql, $updated);
+        $is_match = is_patient_match($updated);
 
         if ($is_match) {
             match_patient($mysql, $is_match['patient_id_cp'], $is_match['patient_id_wc']);
@@ -481,7 +481,7 @@ function wc_patient_updated(array $updated)
         || $updated['birth_date'] !== $updated['old_birth_date']
         || $updated['language'] !== $updated['old_language']
     ) {
-        $is_patient_match = is_patient_match($mysql, $updated);
+        $is_patient_match = is_patient_match($updated);
         if ($is_patient_match) {
             /*
                 If we find a match, we should push this over to carepoint.

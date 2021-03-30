@@ -1,27 +1,32 @@
 <?php
 require_once 'exports/export_wc_patients.php';
+require_once 'helpers/helper_laravel.php';
 
 use GoodPill\Logging\GPLog;
 use GoodPill\Logging\AuditLog;
 use GoodPill\Logging\CliLog;
-use GoodPill\DataModels\GoodPillPatient;
+use GoodPill\Models\GpPatient;
+
 
 //TODO Implement Full Matching Algorithm that's in Salesforce and CP's SP
-function is_patient_match($mysql, $patient)
+function is_patient_match($patient)
 {
+
+    $mysql = new Mysql_Wc();
+    
     // If there is a Carepoint Id or a WC_id
     // we should load the patient by them
     $patient_identifiers = [];
 
     if (!empty($patient['patient_id_cp'])) {
-        $patient_identifiers['patient_id_cp'] = $patient['patient_id_cp'];
+        $patient_identifiers[] = ['patient_id_cp', '=', $patient['patient_id_cp']];
     }
 
     if (!empty($patient['patient_id_wc'])) {
-        $patient_identifiers['patient_id_wc'] = $patient['patient_id_wc'];
+        $patient_identifiers[] = ['patient_id_wc', '=', $patient['patient_id_wc']];
     }
 
-    $gpPatient = new GoodPillPatient($patient_identifiers);
+    $gpPatient = GpPatient::where($patient_identifiers)->first();
 
     // We found an already mapped Patient, Lets stop looking
     // and return those details
