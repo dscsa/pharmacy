@@ -133,9 +133,9 @@ function wc_patient_created(array $created)
             $salesforce = [
                 "subject"   => "$created[first_name] $created[last_name] $created[birth_date] started registration but did not finish in time",
                 "body"      => "Patient's initial registration was deleted because it was not finised within $limit hours.  Please call them to register! $date",
-                "contact"   => "$created[first_name] $created[last_name] $created[birth_date]",
-                "assign_to" => ".Register New Patient - Tech",
-                "due_date"  => date('Y-m-d')
+                "contact"   => "$created[first_name] $created[last_name] $created[birth_date]"
+                //"assign_to" => ".Register New Patient - Tech",
+                //"due_date"  => date('Y-m-d')
             ];
 
             create_event($salesforce['subject'], [$salesforce]);

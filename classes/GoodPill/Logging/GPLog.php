@@ -79,15 +79,22 @@ class GPLog
             $context = [];
         }
 
+
+        $ids     = self::findCriticalId($context);
+
+        $pd_data = array_intersect_key(
+            $ids,
+            array_flip(
+                ['patient_id_cp', 'patient_id_wc', 'invoice_number']
+            )
+        );
+
         if (isset($context['pd_data'])) {
-            $pd_data = $context['pd_data'];
-        } else {
-            $pd_data = [];
+            $pd_data = array_merge($pd_date, $context['pd_data']);
         }
 
         self::alertPagerDuty($message, $method, $pd_data);
 
-        $ids                     = self::findCriticalId($context);
         $context                 = ["context" => $context];
         $context['ids']          = $ids;
         $context['execution_id'] = self::$exec_id;
@@ -136,6 +143,11 @@ class GPLog
 
         if (!is_null(self::$subroutine_id)) {
             $pd_data['subroutine_id'] = self::$subroutine_id;
+            $pd_data['event'] = substr(
+                self::$subroutine_id,
+                0,
+                strrpos(self::$subroutine_id, '-')
+            );
             $pd_query .= "\n" . 'jsonPayload.subroutine_id="' . self::$subroutine_id . '"';
         }
 

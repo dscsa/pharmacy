@@ -4,6 +4,12 @@ require_once 'dbs/mssql_cp.php';
 require_once 'dbs/mysql_wc.php';
 require_once 'helpers/helper_imports.php';
 
+use GoodPill\Logging\{
+    GPLog,
+    AuditLog,
+    CliLog
+};
+
 /**
  * Pull the patient details out of CarePoint
  *
@@ -77,10 +83,6 @@ function import_cp_patients() {
 
   if ( ! count($patients[0])) return log_error('No Cp Patients to Import', get_defined_vars());
 
-
-  //log_info("
-  //import_cp_patients: rows ".count($patients[0]));
-
   /**
    * This map uses  closure to format the data around the patient.  Most of it is
    * simple cleaning.
@@ -134,7 +136,7 @@ function import_cp_patients() {
         $row['payment_coupon']  = 'NULL';
       }
       else if (substr($billing_info[3], 0, 6) == "track_") {
-        log_info("Really Tracking Coupon???", get_defined_vars());
+        GPLog::info("Really Tracking Coupon???", get_defined_vars());
         $row['payment_coupon']  = 'NULL';
         $row['tracking_coupon'] = clean_val($billing_info[3]);
         assert_length($row, 'tracking_coupon', 5, 40); //with single quotes

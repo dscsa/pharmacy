@@ -14,6 +14,7 @@ use GoodPill\Logging\{
 //3) NOT FILLING ACTION
 //4) NOT FILLING NO ACTION
 //TODO Much Better if this was a set of methods on an Order Object.  Like order->count_filled(filled = true/false), order->items_action(action = true/false), order->items_in_order(in_order = true/false), order->items_filled(filled = true/false, template = "{{name}} {{price}} {{item_message_keys}}")
+
 function group_drugs($order, $mysql) {
 
   if ( ! $order) {
@@ -35,6 +36,8 @@ function group_drugs($order, $mysql) {
     "IN_ORDER" => [],
     "NO_REFILLS" => [],
     "NO_AUTOFILL" => [],
+    "AUTOFILL_ON" => [],
+    "AUTOFILL_OFF" => [],
     "MIN_DAYS" => 366 //Max Days of a Script
   ];
 
@@ -97,6 +100,12 @@ function group_drugs($order, $mysql) {
     if ($days AND ! $item['rx_autofill'])
       $groups['NO_AUTOFILL'][] = $item['drug'].$msg;
 
+    if ($item['rx_autofill']) {
+        $groups['AUTOFILL_ON'][] = $item['refill_date_next'].' - '.$item['drug'].$msg;
+    } else {
+        $groups['AUTOFILL_OFF'][] = $item['drug'].$msg;
+    }
+
     if ( ! @$item['refills_dispensed'] AND $days AND $days < $groups['MIN_DAYS'])
       $groups['MIN_DAYS'] = $days; //How many days before the first Rx to run out of refills
 
@@ -114,7 +123,7 @@ function group_drugs($order, $mysql) {
     log_error("group_drugs: wrong count_nofill $count_nofill != ".$order[0]['count_nofill'], get_defined_vars());
   }
 
-  log_info('GROUP_DRUGS', get_defined_vars());
+  GPLog::info('GROUP_DRUGS', get_defined_vars());
 
   return $groups;
 }
@@ -136,7 +145,15 @@ function patient_pricing_text($item) {
 }
 
 function patient_drug_text($item) {
-  return @$item['drug_generic'] ?: $item['drug_name'];
+    if ( ! @$item['drug_generic']) {
+        return $item['drug_name'];
+    }
+
+    if ( ! @$item['drug_brand']) {
+        return $item['drug_generic'];
+    }
+
+    return $item['drug_generic']." ({$item['drug_brand']})";
 }
 
 function patient_payment_method($item) {

@@ -7,9 +7,8 @@ date_default_timezone_set('America/New_York');
 require_once 'vendor/autoload.php';
 
 use GoodPill\AWS\SQS\{
-    PharmacySyncQueue,
-    PharmacySyncRequest,
     PharmacyPatientQueue,
+    PharmacySyncRequest
 };
 
 use GoodPill\Logging\{
@@ -17,8 +16,6 @@ use GoodPill\Logging\{
     AuditLog,
     CliLog
 };
-
-use GoodPill\DataModels\GoodPillPatient;
 
 require_once 'keys.php';
 
@@ -31,7 +28,7 @@ require_once 'helpers/helper_appsscripts.php';
 require_once 'helpers/helper_constants.php';
 require_once 'helpers/helper_cp_test.php';
 require_once 'helpers/helper_changes.php';
-require_once 'helpers/helper_sqs.php';
+
 
 // TODO Remove this once we have mssql duplicating the Database
 if (ENVIRONMENT == 'PRODUCTION') {
@@ -47,15 +44,18 @@ if (ENVIRONMENT == 'PRODUCTION') {
 }
 
 /* Logic to give us a way to figure out if we should quit working */
-// $stopRequested = false;
-// pcntl_signal(
-//     SIGTERM,
-//     function ($signo, $signinfo) {
-//         global $stopRequested, $log;
-//         $stopRequested = true;
-//         CliLog::warning("SIGTERM caught");
-//     }
-// );
+
+/*
+$stopRequested = false;
+pcntl_signal(
+    SIGTERM,
+    function ($signo, $signinfo) {
+        global $stopRequested, $log;
+        $stopRequested = true;
+        CliLog::warning("SIGTERM caught");
+    }
+);
+*/
 
 /*
   Export Functions - used to push aggregate data out and to notify
@@ -102,7 +102,7 @@ if (ENVIRONMENT == 'PRODUCTION') {
  require_once 'updates/update_orders_cp.php';
 
 // Grab and item out of the queue
-$syncq = new PharmacySyncQueue();
+$patientQueue = new PharmacyPatientQueue();
 
 // TODO up this execution count so we aren't restarting the thread so often
 $executions = (ENVIRONMENT == 'PRODUCTION') ? 20 : 2;
@@ -111,20 +111,16 @@ $executions = (ENVIRONMENT == 'PRODUCTION') ? 20 : 2;
 for ($l = 0; $l < $executions; $l++) {
     CliLog::debug("All includes imported waiting for message");
 
-    if (file_exists('/tmp/block-sync.txt')) {
+    if (file_exists('/tmp/block-patient-queue.txt')) {
         sleep(30);
-        CliLog::error('Sync Job blocked by /tmp/block-sync.txt');
+        CliLog::error('Patient Sync Job blocked by /tmp/block-patient-queue.txt');
         contine;
     }
 
     // TODO Change this number to 10 when we start havnig multiple groups
-    $results  = $syncq->receive(['MaxNumberOfMessages' => 1]);
+    $results  = $patientQueue->receive(['MaxNumberOfMessages' => 3]);
     $messages = $results->get('Messages');
     $complete = [];
-    $patientQueueBatch = [];
-
-    //  Secondary Patient queue to send patient messages to
-    $patientQueue = new PharmacyPatientQueue();
 
     // An array of messages that have
     // been proccessed and can be deleted
@@ -141,6 +137,7 @@ for ($l = 0; $l < $executions; $l++) {
         GPLog::debug($log_message);
         CliLog::debug($log_message);
         foreach ($messages as $message) {
+
             GPLog::debug(
                 'SQS Message Id',
                 [
@@ -152,116 +149,68 @@ for ($l = 0; $l < $executions; $l++) {
             $changes = $request->changes;
 
             $log_message = sprintf(
-                "New sync for %s total %s in %s",
-                array_sum(array_map("count", $changes)),
-                implode(',', array_keys($changes)),
-                $request->changes_to
+                "Processing changes %s to %s ",
+                $request->changes_to,
+                $request->patient_id
             );
 
             if (isset($request->execution_id)) {
                 GPLog::$exec_id = $request->execution_id;
             }
 
-            GPLog::notice(
-                $log_message,
-                ['changes_to' => $request->changes_to, 'change' => $changes]
-            );
+            GPLog::debug($log_message, $changes);
+            CliLog::notice($log_message, $changes);
 
             try {
                 switch ($request->changes_to) {
-                    case 'drugs':
-                        update_drugs($changes);
-                        break;
-                    case 'stock_by_month':
-                        update_stock_by_month($changes);
-                        break;
-
-                    case 'rxs_single':
-                        // This is an expensive operation, So instead of breaking it into one per
-                        // rx, we are going to split all the users
-
-
-                        // Order them by patient_id_cp
-                        $grouped_changes = [];
-                        foreach($changes as $type => $change_group) {
-                            foreach ($change_group as $change) {
-                                $patient_id_cp = $change['patient_id_cp'];
-                                if (!isset($grouped_changes[$patient_id_cp])) {
-                                    $grouped_changes[$patient_id_cp] = [];
-                                }
-
-                                if (!isset($grouped_changes[$patient_id_cp][$type])) {
-                                    $grouped_changes[$patient_id_cp][$type] = [];
-                                }
-
-                                $grouped_changes[$patient_id_cp][$type][] = $change;
-                            }
-                        }
-
-                        foreach ($grouped_changes as $patient_id_cp => $rx_changes) {
-                            $patient = new GoodPillPatient(['patient_id_cp' => $patient_id_cp]);
-                            if ($patient->loaded) {
-                                $group_id = $patient->first_name.'_'.$patient->last_name.'_'.$patient->birth_date;
-                            } else {
-                                $group_id = "UNKNOWN";
-                            }
-                            $syncing_request               = new PharmacySyncRequest();
-                            $syncing_request->changes_to   = $request->changes_to;
-                            $syncing_request->changes      = $rx_changes;
-                            $syncing_request->group_id     = sha1($group_id);
-                            $syncing_request->patient_id   = $group_id;
-                            $syncing_request->execution_id = $request->execution_id;
-                            $patientQueueBatch[] = $syncing_request;
-                        }
-                        break;
                     case 'patients_cp':
+                        update_patients_cp($changes);
+                        break;
                     case 'patients_wc':
+                        update_patients_wc($changes);
+                        break;
+                    case 'rxs_single':
+                        update_rxs_single($changes);
+                        break;
                     case 'orders_cp':
+                        update_orders_cp($changes);
+                        break;
                     case 'orders_wc':
+                        update_orders_wc($changes);
+                        break;
                     case 'order_items':
-                        foreach (array_keys($request->changes) as $change_type) {
-                            foreach($request->changes[$change_type] as $changes) {
-                                $new_request = get_sync_request_single($request->changes_to, $change_type, $changes, $request->execution_id);
-                                $patientQueueBatch[] = $new_request;
-                            }
-                        }
-                    break;
+                        update_order_items($changes);
+                        break;
                 }
 
                 /* Check to see if we've requeted to stop */
-                // pcntl_signal_dispatch();
-                //
-                // if ($stopRequested) {
-                //     CLiLog::warning('Finishing current Message then terminating');
-                //     break;
-                // }
+                /*
+                pcntl_signal_dispatch();
+
+                if ($stopRequested) {
+                    CLiLog::warning('Finishing current Message then terminating');
+                    break;
+                }
+                */
             } catch (\Exception $e) {
                 // Log the error
-                $message = "SYNC JOB - ERROR ";
+                $message = "PATIENT SYNC JOB - ERROR ";
                 $message .= $e->getCode() . " " . $e->getMessage() ." ";
                 $message .= $e->getFile() . ":" . $e->getLine() . "\n";
                 $message .= $e->getTraceAsString();
 
                 GPLog::emergency(
                     $message . "
-                    Remove /tmp/block-sync.txt and restart supervisord to restart the process"
+                    Remove /tmp/block-patient-queue.txt and restart supervisord to restart the process"
                 );
 
                 // Create the block file
-                file_put_contents('/tmp/block-sync.txt', date('c'));
+                file_put_contents('/tmp/block-patient-queue.txt', date('c'));
 
                 break;
             }
 
             $complete[] = $request;
-        }
-    }
-
-    if (count($patientQueueBatch) > 0) {
-        $patientQueue->sendBatch($patientQueueBatch);
-    } else {
-        if (count($complete) > 1) {
-            CliLog::warning('No changes to send to patient queue');
         }
     }
 
@@ -275,14 +224,14 @@ for ($l = 0; $l < $executions; $l++) {
         GPLog::debug($log_message);
         CliLog::notice($log_message);
 
-        if (!$syncq->deleteBatch($complete)) {
+        if (!$patientQueue->deleteBatch($complete)) {
             GPLog::emergency(
-                "A Sync Message failed to delete.  This could result in stuck syncs.
-                 Remove /tmp/block-sync.txt and restart supervisord to restart the process"
+                "A Patient Message failed to delete.  This could result in stuck syncs.
+                 Remove /tmp/block-patient-queue.txt and restart supervisord to restart the process"
             );
 
             // Create the block file
-            file_put_contents('/tmp/block-sync.txt', date('c'));
+            file_put_contents('/tmp/block-patient-queue.txt', date('c'));
         }
     }
 
@@ -291,8 +240,10 @@ for ($l = 0; $l < $executions; $l++) {
     unset($messages);
     unset($complete);
 
-    // if ($stopRequested) {
-    //     CLiLog::warning('Terminating execution from SIGTERM request');
-    //     exit;
-    // }
+    /*
+    if ($stopRequested) {
+        CLiLog::warning('Terminating execution from SIGTERM request');
+        exit;
+    }
+    */
 }

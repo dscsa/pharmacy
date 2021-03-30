@@ -121,7 +121,14 @@ function order_item_created(array $created, array &$orders_updated) : ?array
     if ($GPOrder->isShipped()) {
         GPLog::alert(
             "Trying to add an item to an order that has already shipped",
-            [ 'created' => $created]
+            [ 'created' => $created ]
+        );
+    }
+
+    if (!$GPOrder->loaded) {
+        GPLog::notice(
+            "We are trying to create an order item for an order that has been deleted or doesn't exist",
+            [ 'created' => $created ]
         );
     }
 
@@ -258,7 +265,40 @@ function order_item_deleted(array $deleted, array &$orders_updated) : ?array
 
         $orders_updated[$invoice_number]['removed'][] = array_merge($item, $deleted);
     }
+    if ($item['rx_autofill']) {
+        $groups['AUTOFILL_ON'][] = $item['refill_date_next'].' - '.$item['drug'].$msg;
+    } else {
+        $groups['AUTOFILL_OFF'][] = $item['drug'].$msg;
+    }
 
+    // If the next Refill date is null,
+    //      but the rx is autofill
+    //          and there are refills left
+    if (
+            is_null($item['refill_date_next'])
+            && $item['rx_autofill']
+            && $item['refills_total'] > 0
+    ) {
+        $salesforce = [
+            "subject"   => "Problem with next refill date",
+            "body"      => "{$item['drug_name']} was deleted from Order {$invoice_number}, but appears
+                            it should have been included.  This message is triggered when the Rx hasn't
+                            been scheduled for refill, but is set to auto fill and there are still
+                            refills remaining.  We should CALL the patient to confirm this item
+                            should not be included in the order.",
+            "contact"   => "{$item['first_name']} {$item['last_name']} {$item['birth_date']}",
+            "assign_to" => "Kiah",
+            "due_date"  => substr(get_start_time($hours_to_wait[3], $hour_of_day[3]), 0, 10)
+         ];
+
+         $patient_label = get_patient_label($item);
+         $event_title   = "Problem with refill {$item['drug_name']} from Order {$invoice_number}  Refill Error: Created:".date('Y-m-d H:i:s');
+         $comm_arr = new_comm_arr($patient_label, '', '', $salesforce);
+         create_event($event_title, $comm_arr);
+
+         AuditLog::log($salesforce['body'], $item);
+         GPLog::warning($event_title, ["item" => $item]);
+    }
     /*
         TODO Update Salesforce Order Total & Order Count & Order Invoice
         using REST API or a MYSQL Zapier Integration

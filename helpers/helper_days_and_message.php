@@ -111,11 +111,11 @@ function get_days_and_message($item, $patient_or_order)
             $event_title = "$item[invoice_number] $item[drug_name] Is High Stock But Was Transferred: $salesforce[contact] $created";
 
             create_event($event_title, [$salesforce]);
-            log_warning($event_title, get_defined_vars());
+            GPLog::warning($event_title, get_defined_vars());
         } elseif ($stock_level == STOCK_LEVEL['HIGH SUPPLY']) {
-            log_notice('HIGH STOCK ITEM WAS TRANSFERRED IN THE PAST', get_defined_vars());
+            GPLog::notice('HIGH STOCK ITEM WAS TRANSFERRED IN THE PAST', get_defined_vars());
         } else {
-            log_info("RX WAS ALREADY TRANSFERRED OUT", get_defined_vars());
+            GPLog::info("RX WAS ALREADY TRANSFERRED OUT", get_defined_vars());
         }
 
         return [0, RX_MESSAGE['NO ACTION WAS TRANSFERRED']];
@@ -125,7 +125,7 @@ function get_days_and_message($item, $patient_or_order)
       Expired Medications
      */
     if (!is_null($days_left_in_expiration) and $days_left_in_expiration < DAYS_BUFFER) {
-        log_info("DON'T FILL EXPIRED MEDICATIONS", get_defined_vars());
+        GPLog::info("DON'T FILL EXPIRED MEDICATIONS", get_defined_vars());
         return [0, RX_MESSAGE['ACTION EXPIRED']];
     }
 
@@ -142,52 +142,40 @@ function get_days_and_message($item, $patient_or_order)
       Don't fill drugs we no longer offer
      */
     if (! $is_refill and $not_offered) {
-        log_info("TRANSFER OUT NEW RXS THAT WE DONT CARRY", get_defined_vars());
+        GPLog::info("TRANSFER OUT NEW RXS THAT WE DONT CARRY", get_defined_vars());
         return [0, RX_MESSAGE['NO ACTION WILL TRANSFER']];
     }
 
     if ($no_transfer and ! $is_refill and $refill_only) {
 
-        $created = "Created:".date('Y-m-d H:i:s');
+        no_transfer_out_notice($item);
 
-        $salesforce = [
-            "subject"   => "$item[drug_name] will not be transferred automatically because it is >=20/month or backup pharmacy is listed as GoodPill",
-            "body"      => "Call patient to ask whether they want drug $item[drug_name] to be transferred out or not $created",
-            "contact"   => "$item[first_name] $item[last_name] $item[birth_date]",
-            "assign_to" => "Claire",
-            "due_date"  => date('Y-m-d')
-        ];
-
-        $event_title = "$item[invoice_number] $item[drug_name] Was NOT Transferred: $salesforce[contact] $created";
-
-        create_event($event_title, [$salesforce]);
-
-        log_info("CHECK BACK IF TRANSFER OUT IS NOT DESIRED", get_defined_vars());
+        GPLog::info("CHECK BACK IF TRANSFER OUT IS NOT DESIRED", get_defined_vars());
         return [0, RX_MESSAGE['ACTION CHECK BACK']];
     }
 
     if (! $no_transfer and ! $is_refill and $refill_only) {
-        log_info("TRANSFER OUT NEW RXS THAT WE CANT FILL", get_defined_vars());
+        GPLog::info("TRANSFER OUT NEW RXS THAT WE CANT FILL", get_defined_vars());
         return [0, RX_MESSAGE['NO ACTION WILL TRANSFER CHECK BACK']];
     }
 
     if (! @$item['rx_dispensed_id'] and $item['refills_total'] <= NO_REFILL) { //Unlike refills_dispensed_default/actual might not be set yet
-        log_info("DON'T FILL MEDICATIONS WITHOUT REFILLS", $item);
+        GPLog::info("DON'T FILL MEDICATIONS WITHOUT REFILLS", $item);
         return [0, RX_MESSAGE['ACTION NO REFILLS']];
     }
 
     if (! $item['pharmacy_name']) {
-        log_info("PATIENT NEEDS TO REGISTER", get_defined_vars());
+        GPLog::info("PATIENT NEEDS TO REGISTER", get_defined_vars());
         return [0, RX_MESSAGE['ACTION NEEDS FORM']];
     }
 
     if (! $item['patient_autofill'] and $added_manually) {
-        log_info("OVERRIDE PATIENT AUTOFILL OFF SINCE MANUALLY ADDED", get_defined_vars());
+        GPLog::info("OVERRIDE PATIENT AUTOFILL OFF SINCE MANUALLY ADDED", get_defined_vars());
         return [$days_default, RX_MESSAGE['NO ACTION PATIENT REQUESTED']];
     }
 
     if (! $item['patient_autofill'] and ! $is_webform) {
-        log_info("DON'T FILL IF PATIENT AUTOFILL IS OFF AND NOT MANUALLY ADDED AND NOT WEBFORM", get_defined_vars());
+        GPLog::info("DON'T FILL IF PATIENT AUTOFILL IS OFF AND NOT MANUALLY ADDED AND NOT WEBFORM", get_defined_vars());
         return [0, RX_MESSAGE['ACTION PATIENT OFF AUTOFILL']];
     }
 
@@ -196,11 +184,11 @@ function get_days_and_message($item, $patient_or_order)
     // If patient is off autofill, allow them to request via the webform.
         // But ignore refill authorization approved/denied message
         if (@$item['item_date_added'] and @$item['item_added_by'] != 'AUT') {
-            log_info("OVERRIDE PATIENT AUTOFILL OFF SINCE SELECT AS PART OF WEBFORM ORDER", get_defined_vars());
+            GPLog::info("OVERRIDE PATIENT AUTOFILL OFF SINCE SELECT AS PART OF WEBFORM ORDER", get_defined_vars());
             return [$days_default, RX_MESSAGE['NO ACTION PATIENT REQUESTED']];
         }
 
-        log_info("DON'T FILL IF PATIENT AUTOFILL IS OFF SINCE NOT SELECTED AS PART OF WEBFORM ORDER", get_defined_vars());
+        GPLog::info("DON'T FILL IF PATIENT AUTOFILL IS OFF SINCE NOT SELECTED AS PART OF WEBFORM ORDER", get_defined_vars());
         return [0, RX_MESSAGE['ACTION PATIENT OFF AUTOFILL']];
     }
 
@@ -223,29 +211,29 @@ function get_days_and_message($item, $patient_or_order)
     }
 
     if ($days_early > DAYS_EARLY*24*60*60 and $days_since < DAYS_EARLY*24*60*60 and ! $added_manually) {
-        log_info("DON'T REFILL IF FILLED WITHIN LAST ".DAYS_EARLY." DAYS UNLESS ADDED MANUALLY", get_defined_vars());
+        GPLog::info("DON'T REFILL IF FILLED WITHIN LAST ".DAYS_EARLY." DAYS UNLESS ADDED MANUALLY", get_defined_vars());
         return [0, RX_MESSAGE['NO ACTION RECENT FILL']];
     }
 
     if ($days_early > DAYS_EARLY*24*60*60 and ! $added_manually) {
-        log_info("DON'T REFILL IF NOT DUE IN OVER ".DAYS_EARLY." DAYS UNLESS ADDED MANUALLY", get_defined_vars());
+        GPLog::info("DON'T REFILL IF NOT DUE IN OVER ".DAYS_EARLY." DAYS UNLESS ADDED MANUALLY", get_defined_vars());
         return [0, RX_MESSAGE['NO ACTION NOT DUE']];
     }
 
     if (! $item['refill_date_first'] and $item['last_inventory'] < 2000 and ($item['sig_qty_per_day_default'] > 2.5*($item['qty_repack'] ?: 135)) and ! $added_manually) {
-        log_info("SIG SEEMS TO HAVE EXCESSIVE QTY", get_defined_vars());
+        GPLog::info("SIG SEEMS TO HAVE EXCESSIVE QTY", get_defined_vars());
         return [0, RX_MESSAGE['NO ACTION CHECK SIG']];
     }
 
     //If SureScript comes in AND only *rx* is off autofill, we assume patients wants it.
     //This is different when *patient* is off autofill, then we assume they don't want it unless added_manually
     if (! $item['rx_autofill'] and ! @$item['item_date_added']) {
-        log_info("DON'T FILL IF RX_AUTOFILL IS OFF AND NOT IN ORDER", get_defined_vars());
+        GPLog::info("DON'T FILL IF RX_AUTOFILL IS OFF AND NOT IN ORDER", get_defined_vars());
         return [0, RX_MESSAGE['ACTION RX OFF AUTOFILL']];
     }
 
     if ($is_duplicate_gsn and ! @$item['item_date_added']) {
-        log_info("NOT ADDING DRUG BECAUSE DUPLICATE GSN DETECTED", get_defined_vars());
+        GPLog::info("NOT ADDING DRUG BECAUSE DUPLICATE GSN DETECTED", get_defined_vars());
         return [0, RX_MESSAGE['NO ACTION DUPLICATE GSN']];
     }
 
@@ -256,40 +244,40 @@ function get_days_and_message($item, $patient_or_order)
             return [0, RX_MESSAGE['ACTION RX OFF AUTOFILL']];
         }
 
-        log_info("OVERRIDE RX AUTOFILL OFF", get_defined_vars());
+        GPLog::info("OVERRIDE RX AUTOFILL OFF", get_defined_vars());
         return [$days_default, RX_MESSAGE['NO ACTION RX REQUESTED']];
     }
 
     if (! $item['rx_autofill'] and @$item['item_date_added']) {
-        log_info("OVERRIDE RX AUTOFILL OFF", get_defined_vars());
+        GPLog::info("OVERRIDE RX AUTOFILL OFF", get_defined_vars());
         return [$days_default, RX_MESSAGE['NO ACTION RX REQUESTED']];
     }
 
     if ($is_refill and $not_offered) {
-        log_info("REFILLS SHOULD NOT HAVE A NOT OFFERED STATUS", get_defined_vars());
+        GPLog::info("REFILLS SHOULD NOT HAVE A NOT OFFERED STATUS", get_defined_vars());
         return [$days_default, RX_MESSAGE['NO ACTION NEW GSN']];
     }
 
     if ($is_syncable and ! $is_duplicate_gsn and sync_to_order_new_rx($item, $patient_or_order)) {
-        log_info('NO ACTION NEW RX SYNCED TO ORDER', get_defined_vars());
+        GPLog::info('NO ACTION NEW RX SYNCED TO ORDER', get_defined_vars());
         return [$days_default, RX_MESSAGE['NO ACTION NEW RX SYNCED TO ORDER']];
     }
 
     //TODO and check if added by this program otherwise false positives
     if ($is_syncable and ! $is_duplicate_gsn and sync_to_order_past_due($item, $patient_or_order)) {
-        log_info("WAS PAST DUE SO WAS SYNCED TO ORDER", get_defined_vars());
+        GPLog::info("WAS PAST DUE SO WAS SYNCED TO ORDER", get_defined_vars());
         return [$days_default, RX_MESSAGE['NO ACTION PAST DUE AND SYNC TO ORDER']];
     }
 
     //TODO CHECK IF THIS IS A GUARDIAN ERROR OR WHETHER WE ARE IMPORTING WRONG.  SEEMS THAT IF REFILL_DATE_FIRST IS SET, THEN REFILL_DATE_DEFAULT should be set
     if ($is_syncable and ! $is_duplicate_gsn and sync_to_order_no_next($item, $patient_or_order)) {
-        log_info("WAS MISSING REFILL_DATE_NEXT SO WAS SYNCED TO ORDER", get_defined_vars());
+        GPLog::info("WAS MISSING REFILL_DATE_NEXT SO WAS SYNCED TO ORDER", get_defined_vars());
         return [$days_default, RX_MESSAGE['NO ACTION NO NEXT AND SYNC TO ORDER']];
     }
 
     //TODO and check if added by this program otherwise false positives
     if ($is_syncable and ! $is_duplicate_gsn and sync_to_order_due_soon($item, $patient_or_order)) {
-        log_info("WAS DUE SOON SO WAS SYNCED TO ORDER", get_defined_vars());
+        GPLog::info("WAS DUE SOON SO WAS SYNCED TO ORDER", get_defined_vars());
         return [$days_default, RX_MESSAGE['NO ACTION DUE SOON AND SYNC TO ORDER']];
     }
 
@@ -299,7 +287,7 @@ function get_days_and_message($item, $patient_or_order)
 
     if ($stock_level == STOCK_LEVEL['OUT OF STOCK']) {
         if ($item['last_inventory'] > 750) {
-            log_notice("helper_days_and_message: 'out of stock' but inventory > 750", get_defined_vars());
+            GPLog::notice("helper_days_and_message: 'out of stock' but inventory > 750", get_defined_vars());
         } elseif ($is_refill and $days_default < DAYS_MIN) {
             $created = "Created:".date('Y-m-d H:i:s');
 
@@ -317,16 +305,16 @@ function get_days_and_message($item, $patient_or_order)
                 create_event($event_title, [$salesforce]);
             }
         } elseif ($is_refill) {
-            log_notice("WARN USERS IF REFILL RX IS LOW QTY", get_defined_vars());
+            GPLog::notice("WARN USERS IF REFILL RX IS LOW QTY", get_defined_vars());
         } else {
-            log_notice("WARN USERS IF NEW RX IS LOW QTY", get_defined_vars());
+            GPLog::notice("WARN USERS IF NEW RX IS LOW QTY", get_defined_vars());
         }
 
         return [$days_default, RX_MESSAGE['NO ACTION FILL OUT OF STOCK']];
     }
 
     if ($days_left_in_refills and $days_left_in_refills <= DAYS_MAX) {
-        log_notice("$days_left_in_refills < ".DAYS_MAX." OF DAYS LEFT IN REFILLS", get_defined_vars());
+        GPLog::notice("$days_left_in_refills < ".DAYS_MAX." OF DAYS LEFT IN REFILLS", get_defined_vars());
         return [$days_left_in_refills, RX_MESSAGE['ACTION LAST REFILL']];
     }
 
@@ -336,7 +324,7 @@ function get_days_and_message($item, $patient_or_order)
         $days_left_of_qty = $item['qty_left']/$item['sig_qty_per_day']; //Cap it at 180 days
         $days_left_of_qty_capped = min(180, $days_left_of_qty);
 
-        log_notice("RX IS ABOUT TO EXPIRE SO FILL IT FOR EVERYTHING LEFT", get_defined_vars());
+        GPLog::notice("RX IS ABOUT TO EXPIRE SO FILL IT FOR EVERYTHING LEFT", get_defined_vars());
         return [$days_left_of_qty_capped, RX_MESSAGE['ACTION EXPIRING']];
     }
 
@@ -344,7 +332,7 @@ function get_days_and_message($item, $patient_or_order)
         $days_left_in_exp_rounded = roundDaysUnit($days_left_in_expiration);
         $days_left_in_exp_rounded_buffered = $days_left_in_exp_rounded-10;
 
-        log_notice("RX WILL EXPIRE SOON SO FILL IT UNTIL RIGHT BEFORE EXPIRATION DATE", get_defined_vars());
+        GPLog::notice("RX WILL EXPIRE SOON SO FILL IT UNTIL RIGHT BEFORE EXPIRATION DATE", get_defined_vars());
         return [$days_left_in_exp_rounded_buffered, RX_MESSAGE['ACTION EXPIRING']];
     }
 
@@ -360,7 +348,7 @@ function get_days_and_message($item, $patient_or_order)
         return [$days_default, RX_MESSAGE['NO ACTION FILL HIGH SUPPLY']];
     }
 
-    log_info("NO SPECIAL RX_MESSAGE USING DEFAULTS", get_defined_vars());
+    GPLog::info("NO SPECIAL RX_MESSAGE USING DEFAULTS", get_defined_vars());
     return [$days_default, RX_MESSAGE['NO ACTION FILL UNKNOWN']];
     //TODO DON'T NO ACTION_PAST_DUE if ( ! drug.$InOrder AND drug.$DaysToRefill < 0)
   //TODO NO ACTION_LIVE_INVENTORY_ERROR if ( ! drug.$v2)
@@ -455,7 +443,7 @@ function set_days_and_message($item, $days, $message, $mysql) {
     //We only continue to update gp_order_items IF this is an order_item and not just an rx on the patient's profile
     //This gets called by rxs_single_created1 and rxs_single_created2 where this is not true
     if (! @$item['item_date_added'] or $days === $item['days_dispensed_default']) {
-        log_notice("set_days_and_message: for rx or item with no change in days, skipping saving of order_item fields", compact('item', 'days', 'message', 'new_rx_message_key', 'new_rx_message_text', 'rx_single_sql', 'rx_grouped_sql'));
+        GPLog::notice("set_days_and_message: for rx or item with no change in days, skipping saving of order_item fields", compact('item', 'days', 'message', 'new_rx_message_key', 'new_rx_message_text', 'rx_single_sql', 'rx_grouped_sql'));
         return $item;
     }
 
@@ -481,7 +469,7 @@ function set_days_and_message($item, $days, $message, $mysql) {
     $item['refills_dispensed_default'] = refills_dispensed_default($item);  //We want invoice to show refills after they are dispensed assuming we dispense items currently in order
 
     if ($item['days_dispensed_actual']) {
-        log_notice("set_days_and_message: but it has actual days. Why is this?", compact('item', 'days', 'message', 'new_rx_message_key', 'new_rx_message_text', 'rx_single_sql', 'rx_grouped_sql'));
+        GPLog::notice("set_days_and_message: but it has actual days. Why is this?", compact('item', 'days', 'message', 'new_rx_message_key', 'new_rx_message_text', 'rx_single_sql', 'rx_grouped_sql'));
     }
 
     $order_item_sql = "
@@ -512,12 +500,12 @@ function set_days_and_message($item, $days, $message, $mysql) {
   ";
 
     if (is_null($item['rx_message_key']) or is_null($item['refills_dispensed_default'])) {
-        log_warning('set_days_and_message: is rx_message_keys_initial being set correctly? rx_message_key or refills_dispensed_default IS NULL', ['item' => $item, 'sql' => $order_item_sql]);
+        GPLog::warning('set_days_and_message: is rx_message_keys_initial being set correctly? rx_message_key or refills_dispensed_default IS NULL', ['item' => $item, 'sql' => $order_item_sql]);
     }
 
     $mysql->run($order_item_sql);
 
-    log_notice("set_days_and_message: saved both rx and order_item fields", compact('item', 'order_item_sql', 'rx_single_sql', 'rx_grouped_sql'));
+    GPLog::notice("set_days_and_message: saved both rx and order_item fields", compact('item', 'order_item_sql', 'rx_single_sql', 'rx_grouped_sql'));
 
     return $item;
 }
@@ -538,7 +526,7 @@ function refills_dispensed_default($item)
     }
 
     //No much info to go on.  We could throw an error or just go based on whether the drug is in the order or not
-    log_warning("CANNOT ASSESS refills_dispensed_default AT THIS POINT", $item);
+    GPLog::warning("CANNOT ASSESS refills_dispensed_default AT THIS POINT", $item);
     return $item['refills_total'] - ($item['item_date_added'] ? 1 : 0);
 }
 
@@ -613,28 +601,28 @@ function is_item($patient_or_order)
 function is_not_offered($item)
 {
     $stock_level = @$item['stock_level_initial'] ?: $item['stock_level'];
-    
+
     if ( ! $item) {
         log_error("helper_days_and_message: $item[drug_name], is_not_offered:true, ERROR no item", ['item' => $item, 'stock_level' => $stock_level]);
         return true;
     }
 
     if (is_null($stock_level) AND $item['rx_gsn'] > 0) {
-        log_notice("helper_days_and_message: $item[drug_name], is_not_offered:true, stock level null", ['item' => $item, 'stock_level' => $stock_level]);
+        GPLog::notice("helper_days_and_message: $item[drug_name], is_not_offered:true, stock level null", ['item' => $item, 'stock_level' => $stock_level]);
         return true;
     }
 
     if ($stock_level == STOCK_LEVEL['NOT OFFERED']) {
-        log_notice("helper_days_and_message: $item[drug_name], is_not_offered:true, stock level $stock_level", ['item' => $item, 'stock_level' => $stock_level]);
+        GPLog::notice("helper_days_and_message: $item[drug_name], is_not_offered:true, stock level $stock_level", ['item' => $item, 'stock_level' => $stock_level]);
         return true;
     }
 
     if ($stock_level == STOCK_LEVEL['ORDER DRUG']) {
-        log_notice("helper_days_and_message: $item[drug_name], is_not_offered:true, stock level $stock_level", ['item' => $item, 'stock_level' => $stock_level]);
+        GPLog::notice("helper_days_and_message: $item[drug_name], is_not_offered:true, stock level $stock_level", ['item' => $item, 'stock_level' => $stock_level]);
         return true;
     }
 
-    log_notice("helper_days_and_message: $item[drug_name], is_not_offered:false, stock level $stock_level", ['item' => $item, 'stock_level' => $stock_level]);
+    GPLog::notice("helper_days_and_message: $item[drug_name], is_not_offered:false, stock level $stock_level", ['item' => $item, 'stock_level' => $stock_level]);
     return false;
 }
 
@@ -703,11 +691,11 @@ function days_left_in_stock($item)
     }
 
     if ($stock_level == STOCK_LEVEL['HIGH SUPPLY'] and $item['sig_qty_per_day_default'] != round(1/30, 3)) {
-        log_warning("LOW STOCK ITEM IS MARKED HIGH SUPPLY $item[drug_generic] days_left_in_stock:$days_left_in_stock last_inventory:$item[last_inventory]", get_defined_vars());
+        GPLog::warning("LOW STOCK ITEM IS MARKED HIGH SUPPLY $item[drug_generic] days_left_in_stock:$days_left_in_stock last_inventory:$item[last_inventory]", get_defined_vars());
     }
 
     if ($item['refill_date_first'] and $stock_level == STOCK_LEVEL['OUT OF STOCK']) {
-        log_warning("REFILL ITEM IS MARKED OUT OF STOCK $item[drug_generic] days_left_in_stock:$days_left_in_stock last_inventory:$item[last_inventory]", get_defined_vars());
+        GPLog::warning("REFILL ITEM IS MARKED OUT OF STOCK $item[drug_generic] days_left_in_stock:$days_left_in_stock last_inventory:$item[last_inventory]", get_defined_vars());
     }
 
     return $item['sig_qty_per_day_default'] == round(1/30, 3) ? 60.6 : DAYS_MIN; //Dispensed 2 inhalers per time, since 1/30 is rounded to 3 decimals (.033), 2 month/.033 = 60.6 qty
@@ -735,11 +723,11 @@ function days_default($days_left_in_refills, $days_left_in_stock, $days_default,
     $remainder = $days % DAYS_UNIT;
 
     if (! $days) {
-        log_warning("DEFAULT DAYS IS 0! days:$days, days_default:$days_default, days_left_in_stock:$days_left_in_stock, days_left_in_refills:$days_left_in_refills", ['item' => $item]);
+        GPLog::warning("DEFAULT DAYS IS 0! days:$days, days_default:$days_default, days_left_in_stock:$days_left_in_stock, days_left_in_refills:$days_left_in_refills", ['item' => $item]);
     } elseif ($remainder) {
-        log_notice("DEFAULT DAYS IS NOT A MULTIPLE OF ".DAYS_UNIT."! days:$days, days_default:$days_default, days_left_in_stock:$days_left_in_stock, days_left_in_refills:$days_left_in_refills", ['item' => $item]);
+        GPLog::notice("DEFAULT DAYS IS NOT A MULTIPLE OF ".DAYS_UNIT."! days:$days, days_default:$days_default, days_left_in_stock:$days_left_in_stock, days_left_in_refills:$days_left_in_refills", ['item' => $item]);
     } else {
-        log_info("days:$days, days_left_in_stock:$days_left_in_stock, days_left_in_refills:$days_left_in_refills", ['item' => $item]);
+        GPLog::info("days:$days, days_left_in_stock:$days_left_in_stock, days_left_in_refills:$days_left_in_refills", ['item' => $item]);
     }
 
     return $days;
@@ -775,7 +763,7 @@ function is_duplicate_gsn($item1, $patient_or_order)
     //Don't sync if an order with these instructions already exists in order
     foreach ($patient_or_order as $item2) {
         if ($item1 !== $item2 and @$item2['item_date_added'] and $item1['drug_gsns'] == $item2['drug_gsns']) {
-            log_notice("helper_days_and_message syncing item: matching drug_gsns so did not SYNC TO ORDER' $item1[invoice_number] $item1[drug_name] $item1[rx_message_key] refills last:$item1[refill_date_last] next:$item1[refill_date_next] total:$item1[refills_total] left:$item1[refills_left]", ['item1' => $item1, 'item2' => $item2]);
+            GPLog::notice("helper_days_and_message syncing item: matching drug_gsns so did not SYNC TO ORDER' $item1[invoice_number] $item1[drug_name] $item1[rx_message_key] refills last:$item1[refill_date_last] next:$item1[refill_date_next] total:$item1[refills_total] left:$item1[refills_left]", ['item1' => $item1, 'item2' => $item2]);
             return true;
         }
     }
