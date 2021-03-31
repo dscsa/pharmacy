@@ -81,7 +81,8 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
 
         }
 
-        //Overwrite refers to the rx_single and rx_grouped table not the order_items table which deliberitely keeps its initial values
+        // Overwrite refers to the rx_single and rx_grouped table not the order_items table which
+        // deliberitely keeps its initial values
         $overwrite = (
           $overwrite_rx_messages === true
           or strpos($patient_or_order[$i]['rx_numbers'], $overwrite_rx_messages) !== false
@@ -168,11 +169,16 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
               if ( ! is_patient($patient_or_order)) { //item or order
                 $items_to_remove[] = $patient_or_order[$i];
               } else {
-                GPLog::critical("Item needs to be removed but IS_PATIENT? This doesn't seem possible", [
-                  'days'    => $days,
-                  'message' => $message,
-                  'item'    => $patient_or_order[$i]
-                ]);
+                GPLog::notic(
+                    "Item needs to be removed but IS_PATIENT.  This happens when there is
+                    a patient change before the order change has been processed.  It should clear
+                    itself whenthe order processes",
+                    [
+                      'days'    => $days,
+                      'message' => $message,
+                      'item'    => $patient_or_order[$i]
+                    ]
+                );
               }
 
               GPLog::notice(

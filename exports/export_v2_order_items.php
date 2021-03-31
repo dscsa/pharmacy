@@ -1042,14 +1042,41 @@ function get_qty_needed($rows, $min_qty, $safety)
             ) {
                 usort($list, 'sort_list');
 
-                GPLog::debug(
-                    "get_qty_needed:  Finding quantity to pend for {$option['drug']['generic']}",
-                    [
-                        'min_qty' => $min_qty,
-                        'max_qty' => $max_qty,
-                        'pend_qty' => $qty
-                    ]
-                );
+                if (($min_qty/$max_qty) >= 2) {
+                    GPLog::critical(
+                        'get_qty_needed;  Pended Quantity > 2x the requested quantity.
+                        Verify picked items are correct.  After we have confirmed the qty
+                        has been accuratly created we can resolve the alert.  After 10 - 15 of these
+                        we can remove the alert completely.',
+                        [
+                            'left'          => $left,
+                            'over_max'      => $over_max,
+                            'different_bin' => $different_bin,
+                            'is_prepack'    => $is_prepack,
+                            'is_mfg_bottle' => $is_mfg_bottle,
+                            'unit_of_use'   => $unit_of_use,
+                            'list'          => $list,
+                            'ndc'           => $ndc,
+                            'pend'          => $pend,
+                            'qty'           => $qty,
+                            'min_qty'       => $min_qty,
+                            'max_qty'       => $max_qty,
+                            'pend_qty'      => $qty,
+                            'count'         => count($list),
+                            'qty_repacks'   => $qty_repacks,
+                            'count_repacks' => $count_repacks
+                        ]
+                    );
+                } else {
+                    GPLog::debug(
+                        "get_qty_needed:  Finding quantity to pend for {$option['drug']['generic']}",
+                        [
+                            'min_qty' => $min_qty,
+                            'max_qty' => $max_qty,
+                            'pend_qty' => $qty
+                        ]
+                    );
+                }
 
                 return [
                     'list'          => $list,
