@@ -41,7 +41,7 @@ function import_cp_rxs_single() {
         ELSE NULL END
       ) as refill_date_manual,
       (CASE
-        WHEN dispense_date IS NULL AND autofill_yn
+        WHEN dispense_date IS NULL
             THEN start_date
         ELSE CONVERT(varchar, dispense_date + disp_days_supply, 20)
         END
