@@ -229,11 +229,8 @@ function transfer_out_notice($item)
 
 function no_transfer_out_notice($item)
 {
-
-
-
     $subject = "Good Pill cannot fill one of your Rxs at this time";
-    $message = "Unfortunately, {$item['drug']} is not offered at this time. If you’d like to transfer your prescription to your local pharmacy, please have them give us a call at (888) 987-5187, M-F 10am-6pm.";
+    $message = "Unfortunately, {$item['drug_name']} is not offered at this time. If you would like to transfer your prescription to your local pharmacy, please have them give us a call at (888) 987-5187, M-F 10am-6pm.";
 
     $email = [ "email" => DEBUG_EMAIL ]; //$item['email']
     $text  = [ "sms" => DEBUG_PHONE, "message" => $message ]; //get_phones([item])
@@ -261,6 +258,8 @@ function no_transfer_out_notice($item)
             "due_date"  => date('Y-m-d')
         ];
     */
+
+    GPLog::notice("no_transfer_out_notice", [[$item], $email, $text, DEFAULT_COM_WAIT]);
 
     //Wait 15 minutes to hopefully batch staggered surescripts and manual rx entry and cindy updates
     no_transfer_out_event([$item], $email, $text, DEFAULT_COM_WAIT);
