@@ -1,9 +1,11 @@
 <?php
 
 use GoodPill\AWS\SQS\PharmacySyncRequest;
-use GoodPill\DataModels\GoodPillPatient;
-use GoodPill\DataModels\GoodPillOrder;
+use GoodPill\Models\GpPatient;
+use GoodPill\Models\GpOrder;
 use GoodPill\Logging\GPLog;
+
+require_once 'helpers/helper_laravel.php';
 
 /**
  * Get a Pharmach sync request for queueing
@@ -54,15 +56,15 @@ function get_sync_request_single(
         case 'orders_wc':
         case 'order_items':
             if (isset($changes['patient_id_cp'])) {
-                $patient = new GoodPillPatient(['patient_id_cp' => $changes['patient_id_cp']]);
+                $patient = GpPatient::where('patient_id_cp', '=', $changes['patient_id_cp'])->first();
             } elseif (isset($changes['patient_id_wc'])) {
-                $patient = new GoodPillPatient(['patient_id_wc' => $changes['patient_id_wc']]);
+                $patient = GpPatient::where('patient_id_wc', '=', $changes['patient_id_wc'])->first();
             } elseif (isset($changes['invoice_number'])) {
-                $order = new GoodPillOrder(['invoice_number' => $changes['invoice_number']]);
+                $order = GpOrder::where('invoice_number', '=', $changes['invoice_number'])->first();
                 $patient = $order->getPatient();
             }
 
-            if (isset($patient) && $patient->loaded) {
+            if (isset($patient) && $patient->exists) {
                 $group_id = $patient->first_name.'_'.$patient->last_name.'_'.$patient->birth_date;
             } else {
                 GPLog::warning(

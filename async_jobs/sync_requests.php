@@ -18,7 +18,7 @@ use GoodPill\Logging\{
     CliLog
 };
 
-use GoodPill\DataModels\GoodPillPatient;
+use GoodPill\Models\GpPatient;
 
 require_once 'keys.php';
 
@@ -199,12 +199,14 @@ for ($l = 0; $l < $executions; $l++) {
                         }
 
                         foreach ($grouped_changes as $patient_id_cp => $rx_changes) {
-                            $patient = new GoodPillPatient(['patient_id_cp' => $patient_id_cp]);
-                            if ($patient->loaded) {
+                            $patient = GpPatient::where('patient_id_cp', '=', $patient_id_cp);
+
+                            if ($patient->exists) {
                                 $group_id = $patient->first_name.'_'.$patient->last_name.'_'.$patient->birth_date;
                             } else {
                                 $group_id = "UNKNOWN";
                             }
+                            
                             $syncing_request               = new PharmacySyncRequest();
                             $syncing_request->changes_to   = $request->changes_to;
                             $syncing_request->changes      = $rx_changes;
