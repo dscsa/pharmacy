@@ -1,5 +1,7 @@
 <?php
 
+require_once 'keys.php';
+
 use Illuminate\Database\Capsule\Manager as Capsule;
 
 if (!isset($lv_model_capsule)

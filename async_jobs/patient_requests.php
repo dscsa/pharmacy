@@ -24,6 +24,7 @@ require_once 'dbs/mssql_cp.php';
 
 require_once 'helpers/helper_logger.php';
 require_once 'helpers/helper_log.php';
+require_once 'helpers/helper_laravel.php';
 require_once 'helpers/helper_appsscripts.php';
 require_once 'helpers/helper_constants.php';
 require_once 'helpers/helper_cp_test.php';
@@ -114,7 +115,7 @@ for ($l = 0; $l < $executions; $l++) {
     if (file_exists('/tmp/block-patient-queue.txt')) {
         sleep(30);
         CliLog::error('Patient Sync Job blocked by /tmp/block-patient-queue.txt');
-        contine;
+        continue;
     }
 
     // TODO Change this number to 10 when we start havnig multiple groups

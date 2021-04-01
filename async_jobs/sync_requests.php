@@ -32,6 +32,7 @@ require_once 'helpers/helper_constants.php';
 require_once 'helpers/helper_cp_test.php';
 require_once 'helpers/helper_changes.php';
 require_once 'helpers/helper_sqs.php';
+require_once 'helpers/helper_laravel.php';
 
 // TODO Remove this once we have mssql duplicating the Database
 if (ENVIRONMENT == 'PRODUCTION') {
@@ -114,7 +115,7 @@ for ($l = 0; $l < $executions; $l++) {
     if (file_exists('/tmp/block-sync.txt')) {
         sleep(30);
         CliLog::error('Sync Job blocked by /tmp/block-sync.txt');
-        contine;
+        continue;
     }
 
     // TODO Change this number to 10 when we start havnig multiple groups
