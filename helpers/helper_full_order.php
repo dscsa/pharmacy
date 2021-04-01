@@ -285,6 +285,7 @@ function get_current_orders($mysql, $conditions = []) {
     WHERE
       $where
       order_date_dispensed IS NULL
+    AND order_date_shipped IS NULL
     ORDER BY
       invoice_number ASC
   ";

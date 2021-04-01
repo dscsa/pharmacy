@@ -608,6 +608,7 @@ function cp_order_updated(array $updated) : ?array
             GPLog::notice($reason, [ 'order' => $order ]);
         }
 
+
         if ($updated['order_date_shipped'] != $updated['old_order_date_shipped']) {
             AuditLog::log(
                 sprintf(
@@ -624,6 +625,25 @@ function cp_order_updated(array $updated) : ?array
             export_wc_update_order_status($order); //Update status from prepare to shipped
             export_wc_update_order_metadata($order);
             send_shipped_order_communications($groups);
+        }
+
+        if ($updated['order_date_shipped'] && is_null($updated['order_date_dispensed']))
+        {
+            /**
+             * Adding to the log `Dispensed-Check` and `Shipped-Check` because for some reason these checks both returned false
+             * In that situation the above conditionals wouldn't execute and provide additional logging. Want to see
+             * if it is a repeated situation and figure out why these dates never differ from the old values
+             */
+            GPLog::critical(
+                "Order was shipped but not dispensed!",
+                [
+                    'State Changed' => $stage_change_cp,
+                    'Updated'       => $updated,
+                    'Dispensed-Check'     => ($updated['order_date_dispensed'] != $updated['old_order_date_dispensed']),
+                    'Shipped-Check'       => ($updated['order_date_shipped'] != $updated['old_order_date_shipped']),
+                    'invoice_number' => $updated['invoice_number']
+                ]
+            );
         }
 
         return null;
