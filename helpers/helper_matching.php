@@ -13,7 +13,7 @@ function is_patient_match($patient)
 {
 
     $mysql = new Mysql_Wc();
-    
+
     // If there is a Carepoint Id or a WC_id
     // we should load the patient by them
     $patient_identifiers = [];
@@ -30,7 +30,7 @@ function is_patient_match($patient)
 
     // We found an already mapped Patient, Lets stop looking
     // and return those details
-    if ($gpPatient->isMatched()) {
+    if ($gpPatient && $gpPatient->isMatched()) {
         GPLog::debug(
             "is_patient_match:  Found an existing matching patient based on the details provided",
             [

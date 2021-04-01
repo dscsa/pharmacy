@@ -64,7 +64,7 @@ function get_sync_request_single(
                 $patient = $order->getPatient();
             }
 
-            if (isset($patient) && $patient->exists) {
+            if ($patient && $patient->exists) {
                 $group_id = $patient->first_name.'_'.$patient->last_name.'_'.$patient->birth_date;
             } else {
                 GPLog::warning(
