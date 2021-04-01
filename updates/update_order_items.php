@@ -278,6 +278,7 @@ function order_item_deleted(array $deleted, array &$orders_updated) : ?array
             is_null($item['refill_date_next'])
             && $item['rx_autofill']
             && $item['refills_total'] > 0
+            && $item['refill_date_first'] //KW feedback that false positives for new drugs that are about to be transferred out
     ) {
         $salesforce = [
             "subject"   => "Problem with next refill date",
