@@ -533,7 +533,15 @@ function refills_dispensed_default($item)
 //TODO OR IT'S AN OTC
 function is_no_transfer($item)
 {
-    return $item['price_per_month'] >= 20 or $item['pharmacy_phone'] == "8889875187";
+    return is_high_price($item) or patient_no_transfer($item);
+}
+
+function is_high_price($item) {
+    return $item['price_per_month'] >= 20;
+}
+
+function patient_no_transfer($item) {
+    return $item['pharmacy_phone'] == "8889875187";
 }
 
 function is_syncable($item)

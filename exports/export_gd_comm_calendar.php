@@ -17,7 +17,7 @@ function order_dispensed_notice($groups)
         "subject" => 'Warning Order #'.$groups['ALL'][0]['invoice_number'].' dispensed but not shipped',
         "body" => "If shipped, please add tracking number to Guardian Order.  If not shipped, check comm-calendar and see if we need to inform patient that order was delayed or cancelled.",
         "contact" => $groups['ALL'][0]['first_name'].' '.$groups['ALL'][0]['last_name'].' '.$groups['ALL'][0]['birth_date'],
-        "assign_to" => ".Delay/Expedite Order - RPh",
+        "assign_to" => ".Expedite Order",
         "due_date" => date('Y-m-d')
     ];
 
@@ -208,8 +208,8 @@ function transfer_out_notice($item)
     $subject = "Good Pill transferred out your prescription.";
     $message = "{$item['drug']} was transferred to your backup pharmacy, {$item['pharmacy_name']} at {$item['pharmacy_address']}";
 
-    $email = [ "email" => DEBUG_EMAIL ]; //$item['email']
-    $text  = [ "sms" => DEBUG_PHONE, "message" => $subject.' '.$message ]; //get_phones([item])
+    $email = [ "email" => $item['email']];
+    $text  = [ "sms" => get_phones([$item]), "message" => $subject.' '.$message ];
 
     $email['subject'] = $subject;
     $email['message'] = implode('<br>', [
@@ -230,10 +230,24 @@ function transfer_out_notice($item)
 function no_transfer_out_notice($item)
 {
     $subject = "Good Pill cannot fill one of your Rxs at this time";
-    $message = "Unfortunately, {$item['drug_name']} is not offered at this time. If you would like to transfer your prescription to your local pharmacy, please have them give us a call at (888) 987-5187, M-F 10am-6pm.";
 
-    $email = [ "email" => DEBUG_EMAIL ]; //$item['email']
-    $text  = [ "sms" => DEBUG_PHONE, "message" => $message ]; //get_phones([item])
+    if (patient_no_transfer($item)) {
+
+        $message = "Unfortunately, {$item['drug']} is not offered at this time. Your account is set to NOT have your Rx(s) transferred out automatically. If you’d like to transfer your prescription to your local pharmacy, please have them give us a call at (888) 987-5187, M-F 10am-6pm.";
+
+    } else if (is_not_offered($item)) {
+
+        $message = "Unfortunately, {$item['drug']} is not offered at this time. If you’d like to transfer your prescription to your local pharmacy, please have them give us a call at (888) 987-5187, M-F 10am-6pm.";
+
+    } else {
+
+        $message = "Unfortunately, {$item['drug']} is not available for new patients at this time. Let us know if you would like to be added to our waitlist! Being on our waitlist means that we may reach out in the future if the medication becomes available."
+
+    }
+
+
+    $email = [ "email" => $item['email']];
+    $text  = [ "sms" => get_phones([$item]), "message" => $message ];
 
     $email['subject'] = $subject;
     $email['message'] = implode('<br>', [
@@ -258,8 +272,6 @@ function no_transfer_out_notice($item)
             "due_date"  => date('Y-m-d')
         ];
     */
-
-    GPLog::notice("no_transfer_out_notice", [[$item], $email, $text, DEFAULT_COM_WAIT]);
 
     //Wait 15 minutes to hopefully batch staggered surescripts and manual rx entry and cindy updates
     no_transfer_out_event([$item], $email, $text, DEFAULT_COM_WAIT);
@@ -448,7 +460,7 @@ function needs_form_notice($groups)
               -After 2 failed attempts, reassign this task to .Flag Clinic/Provider Issue - Admin.
               -Provider info: {$groups['ALL'][0]['provider_first_name']} {$groups['ALL'][0]['provider_last_name']}, {$groups['ALL'][0]['provider_clinic']}, {$groups['ALL'][0]['provider_phone']}
               *** Once pt has registered, make sure an order has been created ***",
-              "assign_to" => ".Register New Patient - Tech"
+              "assign_to" => ".Missing Contact Info"
             ];
         //log_error("NEEDS FORM NOTICE DOES NOT HAVE DRUGS LISTED", [$groups, $message, $subject]);
     } else {
@@ -716,7 +728,7 @@ function confirm_shipment_internal($groups, $days_ago)
 
     $salesforce = [
     "contact" => $groups['ALL'][0]['first_name'].' '.$groups['ALL'][0]['last_name'].' '.$groups['ALL'][0]['birth_date'],
-    //"assign_to" => ".Confirm Delivery - Tech",
+    //"assign_to" => ".Patient Call",
     //"due_date" => substr(get_start_time($days_ago*24), 0, 10),
     "subject" => $subject,
     "body" =>  implode('<br>', [
