@@ -10,12 +10,16 @@ use GoodPill\Logging\{
 //Simplify GDoc Invoice Logic by combining _actual
 function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
 {
-    $count_filled    = 0;
-    $items_to_add    = [];
-    $items_to_remove = [];
-    $update_payment  = ! @$patient_or_order[0]['payment_total_default']; //Default is to update payment for new orders
-    $is_order        = is_order($patient_or_order);
-    $is_new_order    = (is_order($patient_or_order) AND is_null($patient_or_order[0]['count_filled']));
+    $count_filled            = 0;
+    $items_to_add            = [];
+    $items_to_remove         = [];
+    $duplicate_items_removed = [];
+
+    //Default is to update payment for new orders
+    $update_payment          = ! @$patient_or_order[0]['payment_total_default'];
+    $is_order                = is_order($patient_or_order);
+    $is_new_order            = (is_order($patient_or_order)
+                                AND is_null($patient_or_order[0]['count_filled']));
 
     /*
      * Consolidate default and actual suffixes to avoid conditional overload in
@@ -77,6 +81,7 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
           foreach($duplicate_items as $i => $duplicate_item) {
               if ($i == 0) continue; //keep the oldest item
               export_cp_remove_items($duplicate_item['invoice_number'], [$duplicate_item]);
+              $duplicate_items_removed[] = $duplicate_item;
           }
 
         }
@@ -323,6 +328,7 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
         $patient_or_order[$i]['count_nofill']    = $count_nofill;
         $patient_or_order[$i]['count_filled']    = $count_filled;
         $patient_or_order[$i]['count_to_remove'] = count($items_to_remove);
+        $patient_or_order[$i]['count_duplicates_removed'] = count($duplicate_items_removed);
         $patient_or_order[$i]['count_to_add']    = count($items_to_add);
       }
 

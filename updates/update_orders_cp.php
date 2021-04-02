@@ -257,7 +257,7 @@ function cp_order_created(array $created) : ?array
             )
             || (
                 $order[0]['order_status'] != "Surescripts Authorization Denied"
-                && $order[0]['count_items'] - $order[0]['count_to_remove'] != 0
+                && $order[0]['count_items'] - $order[0]['count_to_remove'] - $order[0]['count_duplicates_removed']!= 0
             )
         ) {
             // Find the item that wasn't removed, but we aren't filling

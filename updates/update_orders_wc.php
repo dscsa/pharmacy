@@ -291,11 +291,8 @@ function wc_order_deleted(array $deleted) : bool
             ]
         ]);
     } else {
-
-        // Lets check to see if the order has been deleted
-        // from carepoint before we throw an error
-        $order = GpOrder::where('invoice_number', '=', $deleted['invoice_number'])->firstOrNew();
-        if (!$order->exists) {
+        if (!GpOrder::where('invoice_number', '=', $deleted['invoice_number'])->exists()) {
+            // Look to see if the order has been deleted from gp in general
             GPLog::critical(
                 "Order deleted from WC. Why?",
                 [
