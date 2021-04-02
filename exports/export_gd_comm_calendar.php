@@ -241,7 +241,7 @@ function no_transfer_out_notice($item)
 
     } else {
 
-        $message = "Unfortunately, {$item['drug']} is not available for new patients at this time. Let us know if you would like to be added to our waitlist! Being on our waitlist means that we may reach out in the future if the medication becomes available."
+        $message = "Unfortunately, {$item['drug']} is not available for new patients at this time. Let us know if you would like to be added to our waitlist! Being on our waitlist means that we may reach out in the future if the medication becomes available.";
 
     }
 
