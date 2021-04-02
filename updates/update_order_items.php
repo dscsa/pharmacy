@@ -287,7 +287,7 @@ function order_item_deleted(array $deleted, array &$orders_updated) : ?array
                             refills remaining.  We should CALL the patient to confirm this item
                             should not be included in the order.",
             "contact"   => "{$item['first_name']} {$item['last_name']} {$item['birth_date']}",
-            "assign_to" => "Kiah",
+            "assign_to" => ".Inventory Issue",
             "due_date"  => substr(get_start_time($hours_to_wait[3], $hour_of_day[3]), 0, 10)
          ];
 

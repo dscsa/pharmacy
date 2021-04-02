@@ -449,7 +449,7 @@ function needs_form_notice($groups)
               -After 2 failed attempts, reassign this task to .Flag Clinic/Provider Issue - Admin.
               -Provider info: {$groups['ALL'][0]['provider_first_name']} {$groups['ALL'][0]['provider_last_name']}, {$groups['ALL'][0]['provider_clinic']}, {$groups['ALL'][0]['provider_phone']}
               *** Once pt has registered, make sure an order has been created ***",
-              "assign_to" => ".Register New Patient - Tech"
+              "assign_to" => ".Missing Contact Info"
             ];
         //log_error("NEEDS FORM NOTICE DOES NOT HAVE DRUGS LISTED", [$groups, $message, $subject]);
     } else {
@@ -717,7 +717,7 @@ function confirm_shipment_internal($groups, $days_ago)
 
     $salesforce = [
     "contact" => $groups['ALL'][0]['first_name'].' '.$groups['ALL'][0]['last_name'].' '.$groups['ALL'][0]['birth_date'],
-    //"assign_to" => ".Confirm Delivery - Tech",
+    //"assign_to" => ".Patient Call",
     //"due_date" => substr(get_start_time($days_ago*24), 0, 10),
     "subject" => $subject,
     "body" =>  implode('<br>', [
