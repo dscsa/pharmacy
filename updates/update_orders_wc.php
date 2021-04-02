@@ -7,6 +7,7 @@ use GoodPill\Logging\GPLog;
 use GoodPill\Logging\AuditLog;
 use GoodPill\Logging\CliLog;
 use GoodPill\Utilities\Timer;
+use GoodPill\Models\GpOrder;
 
 /**
  * Proccess all the updates to WooCommerce Orders
@@ -290,16 +291,19 @@ function wc_order_deleted(array $deleted) : bool
             ]
         ]);
     } else {
-        GPLog::critical(
-            "Order deleted from WC. Why?",
-            [
-                'source'  => 'WooCommerce',
-                'event'   => 'deleted',
-                'type'    => 'orders',
-                'deleted' => $deleted,
-                'order'   => $order
-            ]
-        );
+        if (!GpOrder::where('invoice_number', '=', $deleted['invoice_number'])->exists()) {
+            // Look to see if the order has been deleted from gp in general
+            GPLog::critical(
+                "Order deleted from WC. Why?",
+                [
+                    'source'  => 'WooCommerce',
+                    'event'   => 'deleted',
+                    'type'    => 'orders',
+                    'deleted' => $deleted,
+                    'order'   => $order
+                ]
+            );
+        }
     }
 
     //NOTE the below will fail if the order is wc-cancelled.  because it will show up as deleted here
