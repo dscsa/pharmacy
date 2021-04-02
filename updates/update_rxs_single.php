@@ -45,9 +45,7 @@ function update_rxs_single($changes)
     $loop_timer = microtime(true);
     if (isset($changes['created'])) {
         foreach ($changes['created'] as $created) {
-            if ($change_counts == 1) {
-                $patient_id_cp = $created['patient_id_cp'];
-            }
+            $patient_id_cp = $created['patient_id_cp'];
 
             GPLog::$subroutine_id = "rxs-single-created1-".sha1(serialize($created));
 
@@ -208,9 +206,7 @@ function update_rxs_single($changes)
     $loop_timer = microtime(true);
 
     foreach ($changes['updated'] as $updated) {
-        if ($change_counts == 1) {
-            $patient_id_cp = $created['patient_id_cp'];
-        }
+        $patient_id_cp = $updated['patient_id_cp'];
         GPLog::$subroutine_id = "rxs-single-updated1-".sha1(serialize($updated));
 
         // Put the created into a log so if we need to we can reconstruct the process
@@ -362,13 +358,7 @@ function update_rxs_single($changes)
             END
         ),
         MAX(CASE WHEN refill_date_default > NOW() AND rx_autofill > 0 THEN refill_date_default ELSE NULL END)
-      )
-
-      MIN(CASE -- Max/Min here shouldn't make a difference since they should all be the same
-        WHEN refill_date_manual > NOW() -- expiring does not trigger an update in the rxs_single page current so we have to watch the field here
-        THEN refill_date_manual
-        ELSE NULL
-      END) as refill_date_manual,
+      ) as refill_date_manual,
 
       MAX(refill_date_default) as refill_date_default,
 
