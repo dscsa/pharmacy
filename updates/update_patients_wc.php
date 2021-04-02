@@ -134,7 +134,7 @@ function wc_patient_created(array $created)
                 "subject"   => "$created[first_name] $created[last_name] $created[birth_date] started registration but did not finish in time",
                 "body"      => "Patient's initial registration was deleted because it was not finised within $limit hours.  Please call them to register! $date",
                 "contact"   => "$created[first_name] $created[last_name] $created[birth_date]"
-                //"assign_to" => ".Register New Patient - Tech",
+                //"assign_to" => .Patient Call",
                 //"due_date"  => date('Y-m-d')
             ];
 
@@ -567,7 +567,7 @@ function wc_patient_updated(array $updated)
                 //                              Their WooCommerce id is {$updated['patient_id_wc']} and their
                 //                              Carepoint ID is {$updated['patient_id_cp']}",
                 //              "contact"   => "{$updated['first_name']} {$updated['last_name']} {$updated['birth_date']}",
-                //              "assign_to" => "Kiah",
+                //              "assign_to" => ".Update Name In Guardian",
                 //              "due_date"  => date('Y-m-d')
                 //          ]
                 //     ]

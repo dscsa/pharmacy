@@ -104,7 +104,7 @@ function get_days_and_message($item, $patient_or_order)
                 "subject"   => "$item[drug_name] was transferred recently although it's high stock",
                 "body"      => "Investigate why drug $item[drug_name] for Rx $item[rx_number] was transferred out on $item[rx_date_transferred] even though it's high stock $created",
                 "contact"   => "$item[first_name] $item[last_name] $item[birth_date]",
-                "assign_to" => ".Transfer Out - RPh",
+                "assign_to" => ".Waitlist",
                 "due_date"  => date('Y-m-d')
             ];
 
@@ -200,7 +200,7 @@ function get_days_and_message($item, $patient_or_order)
           "subject"   => "Investigate Early Refill",
           "body"      => "Confirm if/why needs $item[drug_name] in Order #".@$item['invoice_number']." even though it's over ".DAYS_EARLY." days before it's due. Add drug to order or contact patient to explain why we are not filling. $created",
           "contact"   => "$item[first_name] $item[last_name] $item[birth_date]",
-          "assign_to" => ".Add/Remove Drug - RPh",
+          "assign_to" => ".Testing",
           "due_date"  => date('Y-m-d')
         ];
 
@@ -295,7 +295,7 @@ function get_days_and_message($item, $patient_or_order)
                 "subject"   => "Refill for $item[drug_name] seems to be out-of-stock",
                 "body"      => "Refill for $item[drug_generic] $item[drug_gsns] ($item[drug_name]) in Order #$item[invoice_number] seems to be out-of-stock.  Is a substitution or purchase necessary? Details - days_left_in_stock:$days_left_in_stock, last_inventory:$item[last_inventory], sig:$item[sig_actual], $created",
                 "contact"   => "$item[first_name] $item[last_name] $item[birth_date]",
-                "assign_to" => "Joseph",
+                "assign_to" => ".Testing",
                 "due_date"  => date('Y-m-d')
             ];
 

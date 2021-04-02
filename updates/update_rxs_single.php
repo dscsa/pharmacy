@@ -96,12 +96,12 @@ function update_rxs_single($changes)
                 if ($created['rx_gsn']) {
                     $subject = "NEW {$created['rx_number']} still needs GSN {$created['rx_gsn']} added to V2";
                     $body    = "{$created['drug_name']} for $subject";
-                    $assign  = "Joseph";
+                    $assign  = ".Inventory Issue";
                     GPLog::warning($body, $created);
                 } else {
                     $subject = "NEW {$created['rx_number']} still needs to be switched to a drug with a GSN";
                     $body    = "{$created['drug_name']} for $subject in CarePoint";
-                    $assign  = ".Delay/Expedite Order - RPh";
+                    $assign  = ".Inventory Issue";
                     GPLog::notice($body, $created);
                 }
 
@@ -151,7 +151,7 @@ function update_rxs_single($changes)
                     "subject"   => "Verify qty pended for $created[drug_name] for Rx #$created[rx_number]",
                     "body"      => "For Rx #$created[rx_number], $created[drug_name] with sig '$created[sig_actual]' was parsed as $parsed[qty_per_day] qty per day, which is very high. $created_date",
                     "contact"   => "$patient[first_name] $patient[last_name] $patient[birth_date]",
-                    "assign_to" => ".DDx/Sig Issue - RPh",
+                    "assign_to" => ".DDx/Sig Issue",
                     "due_date"  => date('Y-m-d')
                 ];
 
@@ -173,13 +173,13 @@ function update_rxs_single($changes)
                 $created_date = "Created:".date('Y-m-d H:i:s');
                 $salesforce   = [
                     "subject"   => "Error: 0 or null dosage for {$created['drug_name']} in "
-                                   . "Order {$item['invoice_number']}. Verify qty pended for"
+                                   . "Order {$item['invoice_number']}. Verify qty pended "
                                    . "for Rx #{$created['rx_number']}",
                     "body"      => "For Rx #{$created['rx_number']}, {$created['drug_name']} with "
                                     . "sig '{$created['sig_actual']}' was parsed as 0 or NULL quantity."
                                     . "  This will result in zero items pended. $created_date",
                     "contact"   => "$patient[first_name] $patient[last_name] $patient[birth_date]",
-                    "assign_to" => ".Add/Remove - RPh",
+                    "assign_to" => ".Manually Add Drug To Order",
                     "due_date"  => date('Y-m-d')
                 ];
 
@@ -254,12 +254,12 @@ function update_rxs_single($changes)
                 if ($updated['rx_gsn']) {
                     $subject = "UPDATED {$updated['rx_number']} still needs GSN {$updated['rx_gsn']} added to V2";
                     $body    = "{$updated['drug_name']} for $subject";
-                    $assign  = "Joseph";
+                    $assign  = ".Inventory Issue";
                     GPLog::warning($body, $updated);
                 } else {
                     $subject = "UPDATED {$updated['rx_number']} still needs to be switched to a drug with a GSN";
                     $body    = "{$updated['drug_name']} for $subject in CarePoint";
-                    $assign  = ".Delay/Expedite Order - RPh";
+                    $assign  = ".Inventory Issue";
                     GPLog::notice($body, $updated);
                 }
 
@@ -352,6 +352,17 @@ function update_rxs_single($changes)
           THEN refill_date_default
           ELSE NULL
       END) as refill_date_next,
+
+      COALESCE(
+        MIN(
+            CASE -- Max/Min here shouldn't make a difference since they should all be the same
+                WHEN refill_date_manual > NOW() -- expiring does not trigger an update in the rxs_single page current so we have to watch the field here
+                THEN refill_date_manual
+                ELSE NULL
+            END
+        ),
+        MAX(CASE WHEN refill_date_default > NOW() AND rx_autofill > 0 THEN refill_date_default ELSE NULL END)
+      )
 
       MIN(CASE -- Max/Min here shouldn't make a difference since they should all be the same
         WHEN refill_date_manual > NOW() -- expiring does not trigger an update in the rxs_single page current so we have to watch the field here

@@ -759,7 +759,7 @@ function make_pick_list($item, $limit = 500)
         "body"      => "Determine if there is enough $item[drug_name] to pend for "
                        ."'{$item['sig_actual']}'. Tried & failed to pend a qty of ".$min_qty." $created",
         "contact"   => "$item[first_name] $item[last_name] $item[birth_date]",
-        "assign_to" => ".Add/Remove Drug - RPh",
+        "assign_to" => ".Manually Add Drug To Order",
         "due_date"  => date('Y-m-d')
     ];
 

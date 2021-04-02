@@ -113,7 +113,7 @@ function drug_updated(array $updated) : void
         $salesforce = [
             "subject"   => "Drug Price Change for $updated[drug_generic]",
             "body"      => "$updated[drug_generic] price $updated[old_price30] >>> $updated[price30], $updated[old_price90] >>> $updated[price90] $created",
-            "assign_to" => "Kiah",
+            "assign_to" => ".Testing",
             "due_date"  => date('Y-m-d')
         ];
         $event_title = @$item['drug_name']." Drug Price Change $created";
