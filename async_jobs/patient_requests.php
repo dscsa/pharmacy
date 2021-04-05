@@ -106,7 +106,7 @@ pcntl_signal(
 $patientQueue = new PharmacyPatientQueue();
 
 // TODO up this execution count so we aren't restarting the thread so often
-$executions = (ENVIRONMENT == 'PRODUCTION') ? 20 : 2;
+$executions = (ENVIRONMENT == 'PRODUCTION') ? 40 : 2;
 
 // Only loop so many times before we restart the script
 for ($l = 0; $l < $executions; $l++) {
@@ -119,7 +119,7 @@ for ($l = 0; $l < $executions; $l++) {
     }
 
     // TODO Change this number to 10 when we start havnig multiple groups
-    $results  = $patientQueue->receive(['MaxNumberOfMessages' => 3]);
+    $results  = $patientQueue->receive(['MaxNumberOfMessages' => 2]);
     $messages = $results->get('Messages');
     $complete = [];
 
