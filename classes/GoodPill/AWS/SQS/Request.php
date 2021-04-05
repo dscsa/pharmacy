@@ -297,8 +297,6 @@ abstract class Request
         $this->receipt_handle = $message['ReceiptHandle'];
         $this->message_id     = $message['MessageId'];
 
-        var_dump($message['Attributes']);
-
         if (isset($message['Attributes'])) {
             if (isset($message['Attributes']['MessageGroupId'])) {
                 $this->group_id = $message['Attributes']['MessageGroupId'];
