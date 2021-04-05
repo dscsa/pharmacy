@@ -322,7 +322,7 @@ function get_days_and_message($item, $patient_or_order)
     //to maximize the amount dispensed we dispense until 10 days before the expiration and then as much as we can for the last refill
     if ($days_left_in_expiration and $days_left_in_expiration < DAYS_MIN) {
         $days_left_of_qty = $item['qty_left']/$item['sig_qty_per_day']; //Cap it at 180 days
-        $days_left_of_qty_capped = min(180, $days_left_of_qty);
+        $days_left_of_qty_capped = min(DAYS_MAX, $days_left_of_qty);
 
         GPLog::notice("RX IS ABOUT TO EXPIRE SO FILL IT FOR EVERYTHING LEFT", get_defined_vars());
         return [$days_left_of_qty_capped, RX_MESSAGE['ACTION EXPIRING']];
