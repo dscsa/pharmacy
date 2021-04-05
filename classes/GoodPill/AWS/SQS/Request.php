@@ -65,7 +65,7 @@ abstract class Request
 
         if (is_array($initialize_date)) {
             $this->fromSQS($initialize_date);
-        } else if (is_string($initialize_date)) {
+        } elseif (is_string($initialize_date)) {
             $this->fromJSON($initialize_date);
         }
     }
@@ -99,7 +99,6 @@ abstract class Request
      */
     public function &__get($property)
     {
-
         if (is_callable(array($this, 'get' . ucfirst($property)))) {
             $func_name   ='get' . ucfirst($property);
             $func_return = $this->$func_name();
@@ -242,7 +241,6 @@ abstract class Request
      */
     public function fromArray($arrData)
     {
-
         foreach ($arrData as $strKey => $mixValue) {
             if (! in_array($strKey, $this->properties)) {
                 throw new \Exception("{$strKey} not an allowed property");
@@ -296,16 +294,19 @@ abstract class Request
      */
     public function fromSQS($message)
     {
-
         $this->receipt_handle = $message['ReceiptHandle'];
         $this->message_id     = $message['MessageId'];
 
-        if (isset($message['MessageGroupId'])) {
-             $this->group_id = $message['MessageGroupId'];
-        }
+        var_dump($message['Attributes']);
 
-        if (isset($message['SequenceNumber'])) {
-             $this->sequence_number = $message['SequenceNumber'];
+        if (isset($message['Attributes'])) {
+            if (isset($message['Attributes']['MessageGroupId'])) {
+                $this->group_id = $message['Attributes']['MessageGroupId'];
+            }
+
+            if (isset($message['Attributes']['SequenceNumber'])) {
+                $this->sequence_number = $message['Attributes']['SequenceNumber'];
+            }
         }
 
         if (md5($message['Body']) != $message['MD5OfBody']) {
