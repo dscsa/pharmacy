@@ -53,28 +53,60 @@ require_once "helpers/helper_full_order.php";
  */
 class GpOrder extends Model
 {
+    /**
+     * The Table for this data
+     * @var string
+     */
     protected $table = 'gp_orders';
+
+    /**
+     * The primary_key for this item
+     * @var string
+     */
     protected $primaryKey = 'invoice_number';
+
+    /**
+     * Does the database contining an incrementing field?
+     * @var boolean
+     */
     public $incrementing = false;
+
+    /**
+     * Does the database contining timestamp fields
+     * @var boolean
+     */
     public $timestamps = false;
 
-    protected $patient;
+    /**
+     * Which database should the model use
+     * @var string
+     */
+    protected $connection = 'mysql';
 
+
+    /**
+     * Fields that should be cast when they are set
+     * @var array
+     */
     protected $casts = [
-        'invoice_number' => 'int',
-        'patient_id_cp' => 'int',
-        'patient_id_wc' => 'int',
-        'count_items' => 'int',
-        'count_filled' => 'int',
-        'count_nofill' => 'int',
+        'invoice_number'        => 'int',
+        'patient_id_cp'         => 'int',
+        'patient_id_wc'         => 'int',
+        'count_items'           => 'int',
+        'count_filled'          => 'int',
+        'count_nofill'          => 'int',
         'payment_total_default' => 'int',
-        'payment_total_actual' => 'int',
-        'payment_fee_default' => 'int',
-        'payment_fee_actual' => 'int',
-        'payment_due_default' => 'int',
-        'payment_due_actual' => 'int'
+        'payment_total_actual'  => 'int',
+        'payment_fee_default'   => 'int',
+        'payment_fee_actual'    => 'int',
+        'payment_due_default'   => 'int',
+        'payment_due_actual'    => 'int'
     ];
 
+    /**
+     * Fields that hold dates
+     * @var array
+     */
     protected $dates = [
         'order_date_added',
         'order_date_changed',
@@ -84,6 +116,11 @@ class GpOrder extends Model
         'order_date_returned'
     ];
 
+    /**
+     * Fields that represent database fields and
+     * can be set via the fill method
+     * @var array
+     */
     protected $fillable = [
         'patient_id_cp',
         'patient_id_wc',
@@ -118,6 +155,12 @@ class GpOrder extends Model
         'coupon_lines',
         'order_note'
     ];
+
+    /**
+     * A holder for the patient from the order.
+     * @var GpPatient
+     */
+    protected $patient;
 
     /**
      * Get a patient based on the patient_id_cp
