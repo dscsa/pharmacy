@@ -19,6 +19,13 @@ use GoodPill\Logging\{
  */
 function get_days_and_message($item, $patient_or_order)
 {
+    GPLog::debug(
+        "Get Days And Message Input Parameters",
+        [
+            'item' => $item,
+            'patient_or_order'  => $patient_or_order,
+        ]
+    );
 
   // Is this an item we will transfer
     $no_transfer      = is_no_transfer($item);
@@ -154,7 +161,8 @@ function get_days_and_message($item, $patient_or_order)
         return [0, RX_MESSAGE['ACTION CHECK BACK']];
     }
 
-    if (! $no_transfer and ! $is_refill and $refill_only) {
+    // Don't return this if the item was manually added
+    if (! $no_transfer and ! $is_refill and $refill_only and ! $added_manually) {
         GPLog::info("TRANSFER OUT NEW RXS THAT WE CANT FILL", get_defined_vars());
         return [0, RX_MESSAGE['NO ACTION WILL TRANSFER CHECK BACK']];
     }
