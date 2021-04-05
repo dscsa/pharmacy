@@ -32,13 +32,28 @@ abstract class Request
     protected $group_id;
 
     /**
+     * If this message has come from a fifo queue,
+     * it will have the sequence number attacehd
+     * @var string
+     */
+    protected $sequence_number;
+
+    /**
      * dedupe_id
-     * @var [type]
+     * @var string
      */
     protected $dedup_id;
 
+    /**
+     * The handle from SQS
+     * @var [type]
+     */
     protected $receipt_handle;
 
+    /**
+     * The ID assigned by SQS
+     * @var string
+     */
     protected $message_id;
 
     /**
@@ -53,6 +68,24 @@ abstract class Request
         } else if (is_string($initialize_date)) {
             $this->fromJSON($initialize_date);
         }
+    }
+
+    /**
+     * Get the group id
+     * @return string
+     */
+    public function getGroupId()
+    {
+        return $this->group_id;
+    }
+
+    /**
+     * Get the sequence number created by aws
+     * @return string
+     */
+    public function getSequenceNumber()
+    {
+        return $this->sequence_number;
     }
 
     /**
@@ -266,6 +299,14 @@ abstract class Request
 
         $this->receipt_handle = $message['ReceiptHandle'];
         $this->message_id     = $message['MessageId'];
+
+        if (isset($message['MessageGroupId'])) {
+             $this->group_id = $message['MessageGroupId'];
+        }
+
+        if (isset($message['SequenceNumber'])) {
+             $this->sequence_number = $message['SequenceNumber'];
+        }
 
         if (md5($message['Body']) != $message['MD5OfBody']) {
             throw new \Exception('The message body is malformed');

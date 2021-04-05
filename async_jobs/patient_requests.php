@@ -150,9 +150,11 @@ for ($l = 0; $l < $executions; $l++) {
             $changes = $request->changes;
 
             $log_message = sprintf(
-                "Processing changes %s to %s ",
+                "Processing changes %s to %s in group %s item number %s",
                 $request->changes_to,
-                $request->patient_id
+                $request->patient_id,
+                $request->getGroupId(),
+                $request->getSequenceNumber()
             );
 
             if (isset($request->execution_id)) {
