@@ -1,17 +1,19 @@
 <?php
 
-use GoodPill\Logging\{
-    GPLog,
-    AuditLog,
-    CliLog
-};
+use GoodPill\AWS\SQS\GoogleAppQueue;
+use GoodPill\AWS\SQS\GoogleAppRequest\Calendar\Create;
+use GoodPill\AWS\SQS\GoogleAppRequest\Calendar\Delete;
+use GoodPill\Logging\GPLog;
+use GoodPill\Logging\AuditLog;
+use GoodPill\Logging\CliLog;
+use GoodPill\Storage\Goodpill;
 
-function order_dispensed_event($order, $salesforce, $hours_to_wait) {
-
-  if (@$order[0]['patient_inactive']) {
-    GPLog::warning('order_dispensed_event cancelled because patient inactive', get_defined_vars());
-    return;
-  }
+function order_dispensed_event($order, $salesforce, $hours_to_wait)
+{
+    if (@$order[0]['patient_inactive']) {
+        GPLog::warning('order_dispensed_event cancelled because patient inactive', get_defined_vars());
+        return;
+    }
 
     $patient_label = get_patient_label($order);
     $event_title   = $order[0]['invoice_number'].' Order Dispensed: '.$patient_label.'.  Created:'.date('Y-m-d H:i:s');
@@ -359,7 +361,7 @@ function new_comm_arr($patient_label, $email = '', $text = '', $salesforce = '')
 
         /* Make a copy using JSON */
         try {
-             //just in case we were sloppy with undefined
+            //just in case we were sloppy with undefined
             $json = preg_replace('/ undefined/', '', json_encode($text));
             $text = json_decode($json, true);
             $call = json_decode($json, true);
@@ -484,52 +486,57 @@ function get_patient_label($order)
  * @param  integer $hour_of_day   The safe hour of days to send
  * @return void
  */
-function create_event($event_title, $comm_arr, $hours_to_wait = 0, $hour_of_day = null)
-{
+function create_event(
+    $event_title,
+    $comm_arr,
+    $hours_to_wait = 0,
+    $hour_of_day = null,
+    $async = true
+) {
+
     $startTime = get_start_time($hours_to_wait, $hour_of_day);
 
-    $args = [
-    'method'      => 'createCalendarEvent',
-    'cal_id'      => GD_CAL_ID,
-    'start'       => $startTime,
-    'hours'       => 0.5,
-    'title'       => $event_title,
-    'description' => $comm_arr
-  ];
+    $create_event                = new Create();
+    $create_event->cal_id        = GD_CAL_ID;
+    $create_event->start         = $startTime;
+    $create_event->hours         = 0.5;
+    $create_event->title         = $event_title;
+    $create_event->description   = $comm_arr;
+    $create_event->group_id      = 'calendar-request';
 
-    $result = gdoc_post(GD_HELPER_URL, $args);
-
-  GPLog::debug(
-      "Communication Calendar event created: $event_title",
-      [
-          "message" => $args,
-          "result"  => $result,
-          "invoice_number" => substr($event_title, 0, stripos($event_title, ' '))
-      ]
-  );
-
-  // Debug Refill Reminders getting created with NO TITLE OR DESCRIPTION,
-  // just blank events
-  if ($hour_of_day == 12) {
-      GPLog::notice(
-          "DEBUG REFILL REMINDER create_event: $event_title",
-          [
-              "message" => $args,
-              "result"  => $result
-            ]
-        );
+    if ($async) {
+        $gdq = new GoogleAppQueue();
+        $gdq->send($create_event);
+        return true;
     }
+
+    $response = json_decode(gdoc_post(GD_HELPER_URL, $create_event->toArray()));
+
+    GPLog::debug(
+        "Communication Calendar event created: $event_title",
+        [
+            "message" => $create_event->toArray(),
+            "result"  => $response,
+            "invoice_number" => substr($event_title, 0, stripos($event_title, ' '))
+        ]
+    );
 }
 
-function cancel_events($ids)
+function cancel_events(array $ids, $async = true)
 {
-    $args = [
-    'method'      => 'removeCalendarEvents',
-    'cal_id'      => GD_CAL_ID,
-    'ids'         => $ids
-  ];
 
-    $result = gdoc_post(GD_HELPER_URL, $args);
+    $delete_events                = new Delete();
+    $delete_events->cal_id        = GD_CAL_ID;
+    $delete_events->ids           = $ids;
+    $delete_events->group_id      = 'calendar-request';
+
+    if ($async) {
+        $gdq = new GoogleAppQueue();
+        $gdq->send($delete_events);
+        return true;
+    }
+
+    $response = json_decode(gdoc_post(GD_HELPER_URL, $delete_events->toArray()));
 
     GPLog::notice('cancel_events', get_defined_vars());
 }

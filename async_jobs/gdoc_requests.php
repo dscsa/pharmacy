@@ -77,10 +77,10 @@ for ($l = 0; $l < $executions; $l++) {
                 $log_message .= "Success!";
                 $complete[] = $request;
             } else {
-                $log_message .= "FAILED - Message: {$request->error}";
+                $log_message .= "FAILED - Message: {$response->error}";
             }
 
-            GPLog::debug($log_message);
+            GPLog::debug($log_message, $request->toArray());
             CliLog::notice($log_message);
 
             // /* Check to see if we've requeted to stop */
