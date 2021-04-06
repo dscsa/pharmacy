@@ -46,7 +46,8 @@ are_queues_empty () {
     fi
 }
 
-
+echo "Stopping Cron";
+sudo service crond stop
 
 #Time to Work
 if [ $WAIT_FOR_EMPTY -eq 1 ]; then
@@ -62,13 +63,11 @@ if [ $WAIT_FOR_EMPTY -eq 1 ]; then
             fi
     done;
 
-    echo "Queues are moving to release";
+    echo "Queues are empty, moving to release";
     tput bel
 fi
 
-echo "Stopping services";
-#Restart the services
-sudo service crond stop
+echo "Stopping Supervisor";
 sudo service supervisord stop
 
 echo "Pulling Latest Code";
