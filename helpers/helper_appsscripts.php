@@ -96,7 +96,7 @@ function gdoc_post($url, $content)
         // We have some results so let's leave
         if ($results !== false && !empty($results)) {
             GPLog::debug(
-                'Google Doc Request Success: ' . $content['method'],
+                'Google Doc Request Returned: ' . $content['method'],
                 [
                     'data' => json_decode($json),
                     'url'  => $url,
