@@ -250,6 +250,9 @@ function cp_order_created(array $created) : ?array
         // Care point will still attach an order item when it is surescript Denied
         // This results in a negative number since we are removing an item
         // but sure script sends an item_count of 0
+
+        //  In a case where authorization was approved, an item was found to be duplicated in other orders
+        //  The duplicates were removed but the count was higher that the count items being filled from the original order
         if (
             (
                 $order[0]['order_status'] == "Surescripts Authorization Denied"
@@ -257,7 +260,7 @@ function cp_order_created(array $created) : ?array
             )
             || (
                 $order[0]['order_status'] != "Surescripts Authorization Denied"
-                && $order[0]['count_items'] - $order[0]['count_to_remove'] - $order[0]['count_duplicates_removed']!= 0
+                && $order[0]['count_items'] - $order[0]['count_to_remove'] - $order[0]['count_duplicates_removed'] > 0
             )
         ) {
             // Find the item that wasn't removed, but we aren't filling
