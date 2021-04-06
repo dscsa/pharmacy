@@ -93,7 +93,10 @@ class GPLog
             $pd_data = array_merge($pd_date, $context['pd_data']);
         }
 
-        self::alertPagerDuty($message, $method, $pd_data);
+        //  Check to see if the user is a test user and skip pager duty if so
+        if (strpos(strtolower($ids['first_name']), 'test') !== 0) {
+            self::alertPagerDuty($message, $method, $pd_data);
+        }
 
         $context                 = ["context" => $context];
         $context['ids']          = $ids;
@@ -174,8 +177,8 @@ class GPLog
      * @param  array $context Who Knows what it could be
      * @return array          Empty if we couldn't find anything
      */
-    protected static function findCriticalId($context) {
-
+    protected static function findCriticalId($context)
+    {
         foreach (
             [
                 @$context,
@@ -191,11 +194,23 @@ class GPLog
                 @$context['updated'][0],
                 @$context['partial'],
                 @$context['patient_or_order[i]']
-             ] as $possible
-         ) {
+            ] as $possible
+        ) {
             if (isset($possible['invoice_number'])) {
-                 $name_source = $possible;
-                 break;
+                $invoice_number = $possible['invoice_number'];
+            }
+            if (isset($possible['patient_id_cp'])) {
+                $patient_id_cp = $possible['patient_id_cp'];
+            }
+
+            if (isset($possible['patient_id_wc'])) {
+                $patient_id_wc = $possible['patient_id_wc'];
+            }
+
+            if (isset($invoice_number)
+                && isset($patient_id_cp)
+                && isset($patient_id_wc)) {
+                break;
             }
         }
 
@@ -204,27 +219,44 @@ class GPLog
             return [];
         }
 
-        $invoice_number = $name_source['invoice_number'];
-        $first_name     = @$name_source['first_name'];
-        $last_name      = @$name_source['last_name'];
-        $birth_date     = @$name_source['birth_date'];
-
         //If we have an invoice but not a patient, we want to get those details
-        if ( empty($birth_date) && !empty($invoice_number)) {
+        if (!empty($invoice_number)) {
             $patient = getPatientByInvoice($invoice_number);
 
             if (!empty($patient)) {
                 $first_name     = $patient['first_name'];
                 $last_name      = $patient['last_name'];
                 $birth_date     = $patient['birth_date'];
+                $patient_id_cp  = $patient['patient_id_cp'];
+                $patient_id_wc  = $patient['patient_id_wc'];
+            }
+        }
+
+        if (!isset($first_name)
+            || !isset($last_name)
+            || !isset($birth_date)) {
+            if (isset($patient_id_cp)) {
+                $patient = getPatientByCpId($patient_id_cp);
+            } elseif (isset($patient_id_wc)) {
+                $patient = getPatientByWcId($patient_id_wc);
+            }
+
+            if (!empty($patient)) {
+                $first_name     = $patient['first_name'];
+                $last_name      = $patient['last_name'];
+                $birth_date     = $patient['birth_date'];
+                $patient_id_cp  = $patient['patient_id_cp'];
+                $patient_id_wc  = $patient['patient_id_wc'];
             }
         }
 
         return [
-            'invoice_number' => $invoice_number,
-            'first_name'     => $first_name,
-            'last_name'      => $last_name,
-            'birth_date'     => $birth_date
+            'invoice_number' => @$invoice_number,
+            'first_name'     => @$first_name,
+            'last_name'      => @$last_name,
+            'birth_date'     => @$birth_date,
+            'patient_id_cp'  => @$patient_id_cp,
+            'patient_id_wc'  => @$patient_id_wc
         ];
     }
 
