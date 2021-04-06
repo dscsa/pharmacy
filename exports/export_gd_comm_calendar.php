@@ -233,15 +233,15 @@ function no_transfer_out_notice($item)
 
     if (patient_no_transfer($item)) {
 
-        $message = "Unfortunately, {$item['drug']} is not offered at this time. Your account is set to NOT have your Rx(s) transferred out automatically. If you’d like to transfer your prescription to your local pharmacy, please have them give us a call at (888) 987-5187, M-F 10am-6pm.";
+        $message = "Unfortunately, {$item['drug_name']} is not offered at this time. Your account is set to NOT have your Rx(s) transferred out automatically. If you’d like to transfer your prescription to your local pharmacy, please have them give us a call at (888) 987-5187, M-F 10am-6pm.";
 
     } else if (is_not_offered($item)) {
 
-        $message = "Unfortunately, {$item['drug']} is not offered at this time. If you’d like to transfer your prescription to your local pharmacy, please have them give us a call at (888) 987-5187, M-F 10am-6pm.";
+        $message = "Unfortunately, {$item['drug_name']} is not offered at this time. If you’d like to transfer your prescription to your local pharmacy, please have them give us a call at (888) 987-5187, M-F 10am-6pm.";
 
     } else {
 
-        $message = "Unfortunately, {$item['drug']} is not available for new patients at this time. Let us know if you would like to be added to our waitlist! Being on our waitlist means that we may reach out in the future if the medication becomes available.";
+        $message = "Unfortunately, {$item['drug_name']} is not available for new patients at this time. Let us know if you would like to be added to our waitlist! Being on our waitlist means that we may reach out in the future if the medication becomes available.";
 
     }
 
