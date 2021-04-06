@@ -10,6 +10,7 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 
+
 /**
  * Class GpPatient
  *
@@ -65,6 +66,9 @@ use Illuminate\Support\Facades\DB;
  */
 class GpPatient extends Model
 {
+    // Used the changable to track changes from the system
+    use \GoodPill\Models\ChangeableTrait;
+
     /**
      * The Table for this data
      * @var string
