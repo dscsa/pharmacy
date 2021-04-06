@@ -78,13 +78,6 @@ class GpOrder extends Model
     public $timestamps = false;
 
     /**
-     * Which database should the model use
-     * @var string
-     */
-    protected $connection = 'mysql';
-
-
-    /**
      * Fields that should be cast when they are set
      * @var array
      */

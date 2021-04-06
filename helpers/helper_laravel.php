@@ -16,7 +16,7 @@ if (!isset($lv_model_capsule)
             'username'  => MYSQL_WC_USER,
             'password'  => MYSQL_WC_PWD
         ],
-        'mysql'
+        'default'
     );
 
     $lv_model_capsule->addConnection(
