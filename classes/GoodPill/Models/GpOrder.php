@@ -150,24 +150,11 @@ class GpOrder extends Model
     ];
 
     /**
-     * A holder for the patient from the order.
-     * @var GpPatient
+     * Get the phone associated with the user.
      */
-    protected $patient;
-
-    /**
-     * Get a patient based on the patient_id_cp
-     * @return null|GoodPillPatient
-     */
-    public function getPatient() : ? GpPatient
+    public function patient()
     {
-        if ($this->patient instanceof GpPatient) {
-            return $this->patient;
-        }
-
-        $this->patient = GpPatient::where('patient_id_cp', '=', $this->patient_id_cp)->first();
-
-        return $this->patient;
+        return $this->belongsTo(GpPatient::class, 'patient_id_cp');
     }
 
     /**

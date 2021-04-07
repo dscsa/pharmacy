@@ -9,6 +9,7 @@ namespace Goodpill\Models;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
+use GoodPill\Models\GpOrder;
 
 
 /**
@@ -170,6 +171,11 @@ class GpPatient extends Model
         'patient_date_updated',
         'patient_inactive'
     ];
+
+    public function orders()
+    {
+        return $this->hasMany(GpOrder::class, 'patient_id_cp');
+    }
 
     /**
      * Test to see if the patient has both wc and cp ids
