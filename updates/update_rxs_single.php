@@ -478,6 +478,25 @@ function update_rxs_single($changes)
                     [$created['drug_name']]
                 );
             }
+
+            //  Check to see if newly created item already has item_date_added
+            //  If it's already set, update payment
+
+            if ($item && $item['item_date_added'] && $item['invoice_number']) {
+                $reason = "rxs-single-created2: Item created with date_added {$item['drug_name']}";
+                $order = get_full_order($mysql, $item['invoice_number']);
+
+                GPLog::debug(
+                    $reason,
+                    [
+                        'invoice_number'  => $item['invoice_number'],
+                        'item'    => $item,
+                        'order'    => $order
+                    ]
+                );
+
+                helper_update_payment($order, $reason, $mysql);
+            }
         }
     }
     /* Finish Created Loop #2 */
