@@ -10,6 +10,7 @@ use GoodPill\Logging\{
 };
 
 use GoodPill\Utilities\Timer;
+use GoodPill\Models\GpPatient;
 
 /**
  * Handle all the possible changes to Carepoint Patiemnts
@@ -37,9 +38,11 @@ function update_patients_cp(array $changes) : void
 
     GPLog::notice('data-update-patients-cp', $changes);
     if (isset($changes['updated'])) {
-        foreach ($changes['updated'] as $updated) {
+        Timer::start('update.patients.cp.updated');
+        foreach ($changes['updated'] as $i => $updated) {
             cp_patient_updated($updated);
         }
+        Timer::stop('update.patients.cp.updated');
     }
 
 
@@ -81,18 +84,15 @@ function cp_patient_updated(array $updated) : ?array
     $GpPatient = GpPatient::where('patient_id_cp', '=', $updated['patient_id_cp'])->first();
     $GpPatient->setChanges($updated);
 
-    if (!$GpPatient->hasChanged()) {
-        return $updated;
-    }
-
     $mysql   = new Mysql_Wc();
     $mssql   = new Mssql_Cp();
     $changed = changed_fields($updated);
 
-    //Patient regististration will change it from 0 -> 1)
+    // TODO Change this code to not call load_full_patient
+    // NOTE Patient regististration will change it from 0 -> 1)
     if ($GpPatient->hasChanged('patient_autofill')) {
-        // We are doing load full patient here specifcially to trigger the set_rx pices
-        //This updates & overwrites set_rx_messages
+        // Order hasn't shipped then handle
+        // This updates & overwrites set_rx_messages
         $patient = load_full_patient($updated, $mysql, true);
         $log_mesage = sprintf(
             "An %s patient autofill setting has changed to %s",
@@ -142,9 +142,8 @@ function cp_patient_updated(array $updated) : ?array
         AuditLog::log("Phone2 deleted for patient via CarePoint", $changed);
         //EXEC SirumWeb_AddUpdatePatHomePhone only inserts new phone numbers
         delete_cp_phone($mssql, $updated['patient_id_cp'], 9);
-    } elseif ($GpPatient->hasChanged('phone2')) {
+    } elseif ($updated['phone2'] !== $updated['old_phone2']) {
         $patient = find_patient($mysql, $updated)[0];
-
         GPLog::notice(
             "Phone2 updated in CarePoint",
             [
@@ -152,7 +151,6 @@ function cp_patient_updated(array $updated) : ?array
                 'patient' => $patient
              ]
         );
-
         AuditLog::log("Phone2 changed for patient via CarePoint", $patient);
         update_wc_phone2($mysql, $patient['patient_id_wc'], $updated['phone2']);
     }
@@ -160,7 +158,6 @@ function cp_patient_updated(array $updated) : ?array
     //  The primary phone number for the patient has changed
     if ($GpPatient->hasChanged('phone1')) {
         AuditLog::log("Phone1 changed for patient via CarePoint", $changed);
-
         GPLog::notice(
             "Phone1 updated in CP. Was this handled correctly?",
             ['updated' => $updated]
@@ -171,19 +168,18 @@ function cp_patient_updated(array $updated) : ?array
     if ($GpPatient->hasChanged('patient_inactive')) {
         $patient = find_patient($mysql, $updated)[0];
         AuditLog::log("Patient status changed to {$updated['patient_inactive']} via CarePoint", $patient);
-        // TODO $GpPatient->updateWcActiveStatus();
         update_wc_patient_active_status($mysql, $updated['patient_id_wc'], $updated['patient_inactive']);
         GPLog::notice("CP Patient Inactive Status Changed", ['updated' => $updated]);
     }
 
     if ($GpPatient->hasChanged('payment_method_default')
-         && $GpPatient->oldValue('old_payment_method_default') ==  PAYMENT_METHOD['AUTOPAY']) {
+        && $GpPatient->payment_method_default != PAYMENT_METHOD['AUTOPAY']) {
         AuditLog::log("Autopay has been disabled via CarePoint", $updated);
-        // TODO $GpPatient->cancelEvents('Autopay Reminder');
         cancel_events_by_person($updated['first_name'], $updated['last_name'], $updated['birth_date'], 'update_patients_wc: updated payment_method_default', ['Autopay Reminder']);
     }
 
-    if ($GpPatient->hasChanged('payment_card_last4')) {
+    if ($GpPatient->hasChanged('payment_method_default')
+        && isset($GpPatient->payment_card_last4)) {
         AuditLog::log("Patient has updated credit card details via CarePoint", $updated);
 
         GPLog::warning(
@@ -200,7 +196,6 @@ function cp_patient_updated(array $updated) : ?array
             ['updated' => $updated]
         );
 
-        //TODO $GpPatient->updateEvents('Autopay Reminder', 'payment_card_last4');
         update_last4_in_autopay_reminders(
             $updated['first_name'],
             $updated['last_name'],
@@ -216,7 +211,6 @@ function cp_patient_updated(array $updated) : ?array
         || $GpPatient->hasChanged('last_name')
         || $GpPatient->hasChanged('birth_date')
      ) {
-        // TODO $GpPatient->updateWcName();
         $patient = load_full_patient($updated, $mysql);
         if (isset($patient['patient_id_wc'])) {
             wc_update_patient($patient);
@@ -231,6 +225,7 @@ function cp_patient_updated(array $updated) : ?array
                 ),
                 $updated
             );
+        } else {
         }
     }
 
