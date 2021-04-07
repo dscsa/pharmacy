@@ -4,7 +4,7 @@
  * Created by Reliese Model.
  */
 
-namespace App\Models;
+namespace GoodPill\Models\WordPress;
 
 use Illuminate\Database\Eloquent\Model;
 

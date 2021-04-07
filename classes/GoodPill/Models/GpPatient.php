@@ -10,6 +10,11 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use GoodPill\Models\GpOrder;
+use GoodPill\Logging\GPLog;
+use GoodPill\Models\WordPress\WpUser;
+
+// Needed for cancel_events_by_person
+require_once 'helpers/helper_calendar.php';
 
 
 /**
@@ -110,7 +115,6 @@ class GpPatient extends Model
      * @var array
      */
     protected $dates = [
-        'birth_date',
         'payment_card_date_expired',
         'patient_date_added',
         'patient_date_registered',
@@ -172,9 +176,25 @@ class GpPatient extends Model
         'patient_inactive'
     ];
 
+    /*
+     * Relationships
+     */
     public function orders()
     {
-        return $this->hasMany(GpOrder::class, 'patient_id_cp');
+        return $this->hasMany(GpOrder::class, 'patient_id_cp')
+                    ->orderBy('invoice_number', 'desc');
+    }
+
+    public function wcUser()
+    {
+        return $this->hasOne(WpUser::class, 'ID', 'patient_id_wc');
+    }
+
+    /**
+     * Mutators
+     */
+    public function setLastName($value) {
+        $this->attributes['first_name'] = strtoupper($value);
     }
 
     /**
@@ -186,5 +206,103 @@ class GpPatient extends Model
         return ($this->exists
                 && !empty($this->patient_id_cp)
                 && !empty($this->patient_id_wc));
+    }
+
+    public function updateEvents(string $type, string $change, $value) {
+        switch ($type) {
+            case 'Autopay Reminder':
+                if ($change = 'last4') {
+                    update_last4_in_autopay_reminders(
+                        $this->first_name,
+                        $this->last_name,
+                        $this->birth_date,
+                        $value
+                    );
+                }
+                break;
+        }
+    }
+
+    public function cancelEvents(?array $events = [])
+    {
+        return cancel_events_by_person(
+            $this->first_name,
+            $this->last_name,
+            $this->birth_date,
+            'Log should be above',
+            $events
+        );
+    }
+
+    public function createEvent(
+        string $type,
+        array $event_body,
+        ?int $invoice = null,
+        ?float $hours_to_wait = 0
+    ) {
+
+        GPLog::debug(
+            sprintf(
+                "Createing an %s event for %s",
+                $type,
+                $this->getPatientLabel()
+            ),
+            [
+                'body' => $event_body,
+                'invoice_number' => $invoice_number,
+                'patient_id_cp' => $this->patient_id_cp
+            ]
+        );
+
+        $event_title = sprintf(
+            "%s %s: %s Created:%s",
+            $invoice,
+            $type,
+            $this->getPatientLabel(),
+            date('Y-m-d H:i:s')
+        );
+
+        create_event($event_title, $event_body, $hours_to_wait);
+    }
+
+    public function getPatientLabel()
+    {
+        return sprintf(
+            "%s %s %s",
+            $this->first_name,
+            $this->last_name,
+            $this->birth_date
+        );
+    }
+
+    public function updateWcActiveStatus()
+    {
+        GPLog::debug(
+            sprintf(
+                "Setting patient %s patient_inactive status to %s on WordPress User %s",
+                $this->patient_id_cp,
+                $this->patient_inactive,
+                $this->patient_id_wc
+            ),
+            ['patient_id_cp' => $this->patient_id_cp]
+        );
+
+        switch (strtolower($this->patient_inactive)) {
+            case 'inactive':
+                $wc_status = 'a:1:{s:8:"inactive";b:1;}';
+                break;
+            case 'deceased':
+                $wc_status = 'a:1:{s:8:"deceased";b:1;}';
+                break;
+            default:
+                $wc_status = 'a:1:{s:8:"customer";b:1;}';
+        }
+
+        $meta = $this->wcUser
+                     ->meta()
+                     ->firstOrNew(['meta_key' => 'wp_capabilities']);
+
+        $meta->meta_value = $wc_status;
+        return $meta->save();
     }
 }

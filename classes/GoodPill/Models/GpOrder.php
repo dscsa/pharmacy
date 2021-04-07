@@ -9,6 +9,7 @@ namespace GoodPill\Models;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use GoodPill\Models\GpPatient;
+use GoodPill\Models\GpOrderItem;
 
 require_once "helpers/helper_full_order.php";
 
@@ -155,6 +156,12 @@ class GpOrder extends Model
     public function patient()
     {
         return $this->belongsTo(GpPatient::class, 'patient_id_cp');
+    }
+
+    public function items()
+    {
+        return $this->hasMany(GpOrderItem::class, 'invoice_number')
+                    ->orderBy('invoice_number', 'desc');
     }
 
     /**

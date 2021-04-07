@@ -4,14 +4,16 @@
  * Created by Reliese Model.
  */
 
-namespace App\Models;
+namespace GoodPill\Models;
 
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 
+use GoodPill\Models\GpOrder;
+
 /**
  * Class GpOrderItem
- * 
+ *
  * @property int $invoice_number
  * @property string $drug_name
  * @property int $patient_id_cp
@@ -138,4 +140,9 @@ class GpOrderItem extends Model
 		'sync_to_date_min_days_stock',
 		'sync_to_date_min_days_stock_rxs'
 	];
+
+    public function order()
+    {
+        return $this->belongsTo(GpOrder::class, 'invoice_number');
+    }
 }

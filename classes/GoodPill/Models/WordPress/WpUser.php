@@ -4,14 +4,14 @@
  * Created by Reliese Model.
  */
 
-namespace App\Models;
+namespace GoodPill\Models\WordPress;
 
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
-
+use GoodPill\Models\WordPress\WpUserMeta;
 /**
  * Class WpUser
- * 
+ *
  * @property int $ID
  * @property string $user_login
  * @property string $user_pass
@@ -50,4 +50,8 @@ class WpUser extends Model
 		'user_status',
 		'display_name'
 	];
+
+    public function meta() {
+        return $this->hasMany(WpUserMeta::Class, 'user_id', 'ID');
+    }
 }

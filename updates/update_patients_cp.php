@@ -81,7 +81,7 @@ function cp_patient_updated(array $updated) : ?array
          ]
     );
 
-    $GpPatient = GpPatient::where('patient_id_cp', '=', $updated['patient_id_cp'])->first();
+    $GpPatient = GpPatient::where('patient_id_cp', $updated['patient_id_cp'])->first();
     $GpPatient->setChanges($updated);
 
     $mysql   = new Mysql_Wc();
@@ -136,46 +136,48 @@ function cp_patient_updated(array $updated) : ?array
                  'patient' => $patient
              ]
         );
-        update_wc_phone2($mysql, $patient['patient_id_wc'], null);
+
+        $GpPatient->updateWpMeta('phone', null);
+
     } elseif (@$updated['phone2']
                && $updated['phone2'] == $updated['phone1']) {
-        AuditLog::log("Phone2 deleted for patient via CarePoint", $changed);
-        //EXEC SirumWeb_AddUpdatePatHomePhone only inserts new phone numbers
+        AuditLog::log("Phone2 deleted for patient via CarePoint, Copying data to WooCommerce", $updated);
         delete_cp_phone($mssql, $updated['patient_id_cp'], 9);
     } elseif ($updated['phone2'] !== $updated['old_phone2']) {
         $patient = find_patient($mysql, $updated)[0];
         GPLog::notice(
-            "Phone2 updated in CarePoint",
-            [
-                'updated' => $updated,
-                'patient' => $patient
-             ]
+            "Phone2 updated in CarePoint, Copying data to WooCommerce",
+            ['patient_id_cp' => $gpPatient->patient_id_cp]
         );
         AuditLog::log("Phone2 changed for patient via CarePoint", $patient);
-        update_wc_phone2($mysql, $patient['patient_id_wc'], $updated['phone2']);
+
+        $GpPatient->updateWpMeta('billing_phone', null);
     }
 
     //  The primary phone number for the patient has changed
     if ($GpPatient->hasChanged('phone1')) {
-        AuditLog::log("Phone1 changed for patient via CarePoint", $changed);
+        AuditLog::log("Phone1 changed for patient via CarePoint, Copying data to WooCommerce", $updated);
         GPLog::notice(
-            "Phone1 updated in CP. Was this handled correctly?",
-            ['updated' => $updated]
+            "Phone1 updated in CP, Copying data to WooCommerce",
+            ['patient_id_cp' => $gpPatient->patient_id_cp]
         );
     }
 
     // The patient status has changed
     if ($GpPatient->hasChanged('patient_inactive')) {
-        $patient = find_patient($mysql, $updated)[0];
-        AuditLog::log("Patient status changed to {$updated['patient_inactive']} via CarePoint", $patient);
-        update_wc_patient_active_status($mysql, $updated['patient_id_wc'], $updated['patient_inactive']);
+        $GpPatient->setWcActiveStatus();
         GPLog::notice("CP Patient Inactive Status Changed", ['updated' => $updated]);
+        AuditLog::log(
+            "Patient status changed to {$updated['patient_inactive']} via CarePoint",
+            $patient
+        );
     }
 
     if ($GpPatient->hasChanged('payment_method_default')
         && $GpPatient->payment_method_default != PAYMENT_METHOD['AUTOPAY']) {
         AuditLog::log("Autopay has been disabled via CarePoint", $updated);
-        cancel_events_by_person($updated['first_name'], $updated['last_name'], $updated['birth_date'], 'update_patients_wc: updated payment_method_default', ['Autopay Reminder']);
+        GPLog::info("Canceling 'Autopay Reminders' because patient updated payment_method_default");
+        $gpPatient->cancelEvents(['Autopay Reminder']);
     }
 
     if ($GpPatient->hasChanged('payment_method_default')
@@ -184,8 +186,7 @@ function cp_patient_updated(array $updated) : ?array
 
         GPLog::warning(
             sprintf(
-                "update_patients_wc: updated card_last4.  Need to replace Card"
-                . "Last4 in Autopay Reminder %s %s >>> %s, %s >>> %s %s",
+                "Need to replace Card Last4 in Autopay Reminder %s %s >>> %s, %s >>> %s %s",
                 $updated['payment_method_default'],
                 $updated['old_payment_card_type'],
                 $updated['payment_card_type'],
@@ -196,15 +197,10 @@ function cp_patient_updated(array $updated) : ?array
             ['updated' => $updated]
         );
 
-        update_last4_in_autopay_reminders(
-            $updated['first_name'],
-            $updated['last_name'],
-            $updated['birth_date'],
-            $updated['payment_card_last4']
-        );
+        $GpPatient->updateEvents('Autopay Reminder', 'last4', $this->last4);
 
         // Probably by generalizing the code the currently removes drugs from the refill reminders.
-         // TODO Autopay Reminders (Remove Card, Card Expired, Card Changed, Order Paid Manually)
+        // TODO Autopay Reminders (Remove Card, Card Expired, Card Changed, Order Paid Manually)
     }
 
     if ($GpPatient->hasChanged('first_name')
@@ -213,11 +209,13 @@ function cp_patient_updated(array $updated) : ?array
      ) {
         $patient = load_full_patient($updated, $mysql);
         if (isset($patient['patient_id_wc'])) {
-            wc_update_patient($patient);
+            // NOTICE We intentionally no longer push these changes to woocommerce
+            // wc_update_patient($patient);
             AuditLog::log(
                 sprintf(
-                    "Patient identifying fields have been updated to First Name: %s, "
-                    . "Last name: %s, Birth Date: %s, Language %s",
+                    "Patient identifying fields have been updated in Carepoint First Name: %s,
+                    Last name: %s, Birth Date: %s, Language %s.  We no longer push these changes
+                    over to Woocommerce",
                     $updated['first_name'],
                     $updated['last_name'],
                     $updated['birth_date'],
@@ -225,7 +223,6 @@ function cp_patient_updated(array $updated) : ?array
                 ),
                 $updated
             );
-        } else {
         }
     }
 
