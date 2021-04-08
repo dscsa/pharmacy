@@ -136,26 +136,27 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
             $needs_repending = (@$patient_or_order[$i]['item_date_added'] AND $days_changed AND ! $needs_pending);
 
             $get_days_and_message = [
-              "overwrite_rx_messages"      => $overwrite_rx_messages,
-              'is_order'                   => $is_order,
-              'is_new_order'               => $is_new_order,
-              "rx_number"                  => $patient_or_order[$i]['rx_number'],
-              "item_added"                 => @$patient_or_order[$i]['item_date_added'].' '.@$patient_or_order[$i]['item_added_by'],
+                "overwrite_rx_messages" => $overwrite_rx_messages,
+                'is_order'              => $is_order,
+                'is_new_order'          => $is_new_order,
+                "rx_number"             => $patient_or_order[$i]['rx_number'],
+                "item_added"            => @$patient_or_order[$i]['item_date_added'] . ' ' . @$patient_or_order[$i]['item_added_by'],
 
-              "new_days_dispensed_default" => $days,
-              "old_days_dispensed_default" => @$patient_or_order[$i]['days_dispensed_default'], //Applicable for order but not for patient
+                "new_days_dispensed_default" => $days,
+                "old_days_dispensed_default" => @$patient_or_order[$i]['days_dispensed_default'], //Applicable for order but not for patient
 
-              "new_rx_message_text"        => "$message[EN] ($message[CP_CODE])",
-              "old_rx_message_text"        => $patient_or_order[$i]['rx_message_text'],
+                "new_rx_message_text" => "$message[EN] ($message[CP_CODE])",
+                "old_rx_message_text" => $patient_or_order[$i]['rx_message_text'],
 
-              "item"                       => $patient_or_order[$i],
-              'needs_adding'               => $needs_adding,
-              'needs_removing'             => $needs_removing,
-              "needs_pending"              => $needs_pending,
-              "needs_unpending"            => $needs_unpending,
-              "needs_repending"            => $needs_repending,
-              "days_changed"               => $days_changed,
-              "sync_to_date_days_before"   => @$patient_or_order[$i]['sync_to_date_days_before']
+                "item"                     => $patient_or_order[$i],
+                'needs_adding'             => $needs_adding,
+                'needs_removing'           => $needs_removing,
+                "needs_pending"            => $needs_pending,
+                "needs_unpending"          => $needs_unpending,
+                "needs_repending"          => $needs_repending,
+                "days_added"               => $days_added,
+                "days_changed"             => $days_changed,
+                "sync_to_date_days_before" => @$patient_or_order[$i]['sync_to_date_days_before']
             ];
 
              //54376 Sertraline. Probably should create a new order?
