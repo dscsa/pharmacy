@@ -61,7 +61,8 @@ function update_stock_by_month($changes) {
           IF(zscore > zhigh_threshold, 'ORDER DRUG', 'NOT OFFERED'),
 
           IF(
-            last_inventory < last_inv_low_threshold,
+            -- 2 weeks inventory is not enough for expensive meds, let's try 3 months (x6)
+            last_inventory < last_inv_low_threshold * IF(price_per_month = 20, 6, 1),
             'OUT OF STOCK',
 
             IF(
@@ -69,7 +70,8 @@ function update_stock_by_month($changes) {
               IF(total_dispensed_actual > last_inventory/10 OR last_inventory < 1000, 'REFILL ONLY', 'ONE TIME'),
 
               IF(
-               last_inventory < last_inv_high_threshold OR zscore < zhigh_threshold,
+               -- 2 weeks inventory is not enough for expensive meds, let's try 3 months (x6)
+               last_inventory < last_inv_high_threshold * IF(price_per_month = 20, 6, 1) OR zscore < zhigh_threshold,
                 'LOW SUPPLY',
               	'HIGH SUPPLY'
               )
@@ -203,7 +205,7 @@ function update_stock_by_month($changes) {
     $salesforce   = [
       "subject"   => 'Duplicate GSNs in V2',
       "body"      => print_r($duplicate_gsns[0][0], true),
-      "assign_to"    => "Joseph",
+      "assign_to"    => ".Inventory Issue",
       "due_date"  => date('Y-m-d')
     ];
 

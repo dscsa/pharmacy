@@ -119,7 +119,15 @@ for ($l = 0; $l < $executions; $l++) {
     }
 
     // TODO Change this number to 10 when we start havnig multiple groups
-    $results  = $syncq->receive(['MaxNumberOfMessages' => 1]);
+    $results  = $syncq->receive(
+        [
+            'MaxNumberOfMessages' => 1,
+            'AttributeNames' => [
+                'MessageGroupId',
+                'SequenceNumber'
+            ]
+        ]
+    );
     $messages = $results->get('Messages');
     $complete = [];
     $patientQueueBatch = [];

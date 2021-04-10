@@ -174,7 +174,7 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
               if ( ! is_patient($patient_or_order)) { //item or order
                 $items_to_remove[] = $patient_or_order[$i];
               } else {
-                GPLog::notic(
+                GPLog::notice(
                     "Item needs to be removed but IS_PATIENT.  This happens when there is
                     a patient change before the order change has been processed.  It should clear
                     itself whenthe order processes",
