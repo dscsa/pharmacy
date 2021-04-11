@@ -374,8 +374,9 @@ function order_item_updated(array $updated) : ?array
         $item = deduplicate_order_items($item);
     }
 
-    if ($item['days_dispensed_actual']) {
-        GPLog::debug("Freezing Item as because it's dispensed and updated", $item);
+
+    if ($item['qty_dispensed_default']) {
+        GPLog::debug("Freezing Item because it's dispensed and updated", $item);
 
         $item = set_item_invoice_data($item, $mysql);
 
@@ -388,6 +389,25 @@ function order_item_updated(array $updated) : ?array
             ),
             $updated
         );
+
+        //Rph may have forgotten to enter days on 2nd dispensing screen
+        if ( ! $item['days_dispensed_actual']) {
+
+            $salesforce = [
+                "subject"   => "Dispensed Rx does not have Days Supply set",
+                "body"      => "{Rx $item['rx_number']} for $item['drug_name']} was dispensed in Order {$item['invoice_number']} but appears to be missing its Days Supply",
+                "contact"   => "{$item['first_name']} {$item['last_name']} {$item['birth_date']}",
+                "assign_to" => ".DDx/Sig Issue",
+                "due_date"  => date('Y-m-d')
+            ];
+
+            $patient_label = get_patient_label($item);
+            $event_title   = "Rx $item['rx_number']} Missing Days Supply Created:".date('Y-m-d H:i:s');
+            $comm_arr = new_comm_arr($patient_label, '', '', $salesforce);
+            create_event($event_title, $comm_arr);
+
+            return $updated;
+        }
 
         //! $updated['order_date_dispensed'] otherwise triggered twice, once one
         //! stage: Printed/Processed and again on stage:Dispensed
