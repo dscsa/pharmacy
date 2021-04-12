@@ -214,11 +214,8 @@ class GPLog
             }
         }
 
-        // No need to continute.  There isn't a source of data
-        if (!isset($invoice_number)
-            && !isset($patient_id_cp)
-            && !isset($patient_id_wc)) {
-        } {
+        // No need to continue.  There isn't a source of data
+        if (!isset($invoice_number) && !isset($patient_id_cp) && !isset($patient_id_wc)) {
             return [];
         }
 
@@ -338,5 +335,51 @@ class GPLog
         }
 
         return self::$logger;
+    }
+
+    /**
+     * Test parameters for constructing a log
+     *
+     * @param  string $method  A message for the log entry
+     * @param  mixed  $args    Any context that needs to be passed into the log
+     * @return void
+     */
+    public static function testing($message, $data)
+    {
+        print_r($message);
+
+        if (is_array($data)) {
+            $context = @$data;
+        } else {
+            $context = [];
+        }
+
+
+        $ids     = self::findCriticalId($context);
+
+        $pd_data = array_intersect_key(
+            $ids,
+            array_flip(
+                ['patient_id_cp', 'patient_id_wc', 'invoice_number']
+            )
+        );
+
+        if (isset($context['pd_data'])) {
+            $pd_data = array_merge($pd_data, $context['pd_data']);
+        }
+
+        //  Check to see if the user is a test user and skip pager duty if so
+        if (strpos(strtolower(@$ids['first_name']), 'test') !== 0) {
+            echo "Pass To Pager Duty \n";
+        }
+
+        $context                 = ["context" => $context];
+        $context['ids']          = $ids;
+
+        if (!is_null(self::$subroutine_id)) {
+            $context['subroutine_id'] = self::$subroutine_id;
+        }
+
+        var_dump($context);
     }
 }
