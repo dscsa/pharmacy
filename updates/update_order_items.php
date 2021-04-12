@@ -266,9 +266,9 @@ function order_item_deleted(array $deleted, array &$orders_updated) : ?array
         $orders_updated[$invoice_number]['removed'][] = array_merge($item, $deleted);
     }
     if ($item['rx_autofill']) {
-        $groups['AUTOFILL_ON'][] = $item['refill_date_next'].' - '.$item['drug'].$msg;
+        $groups['AUTOFILL_ON'][] = $item['refill_date_next'].' - '.$item['drug'];
     } else {
-        $groups['AUTOFILL_OFF'][] = $item['drug'].$msg;
+        $groups['AUTOFILL_OFF'][] = $item['drug'];
     }
 
     // If the next Refill date is null,
@@ -276,7 +276,7 @@ function order_item_deleted(array $deleted, array &$orders_updated) : ?array
     //          and there are refills left
     if (
             is_null($item['refill_date_next'])
-            && $item['rx_autofill']
+            && @$item['rx_autofill']
             && $item['refills_total'] > 0
             && $item['refill_date_first'] //KW feedback that false positives for new drugs that are about to be transferred out
     ) {
@@ -397,7 +397,7 @@ function order_item_updated(array $updated) : ?array
             $invoice_number = $item['invoice_number'];
             $salesforce = [
                 "subject"   => "Dispensed Rx does not have Days Supply set",
-                "body"      => "{Rx $rx_number} for $drug_name} was dispensed in Order {$invoice_number} but appears to be missing its Days Supply",
+                "body"      => "Rx {$rx_number} for {$drug_name} was dispensed in Order {$invoice_number} but appears to be missing its Days Supply",
                 "contact"   => "{$item['first_name']} {$item['last_name']} {$item['birth_date']}",
                 "assign_to" => ".DDx/Sig Issue",
                 "due_date"  => date('Y-m-d')
