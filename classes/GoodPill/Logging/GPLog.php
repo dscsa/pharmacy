@@ -215,7 +215,10 @@ class GPLog
         }
 
         // No need to continute.  There isn't a source of data
-        if (!isset($name_source)) {
+        if (!isset($invoice_number)
+            && !isset($patient_id_cp)
+            && !isset($patient_id_wc)) {
+        } {
             return [];
         }
 
