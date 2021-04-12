@@ -9,6 +9,7 @@ namespace Goodpill\Models;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
+use GoodPill\Models\GpOrder;
 
 /**
  * Class GpPatient
@@ -74,7 +75,7 @@ class GpPatient extends Model
 		'patient_id_cp' => 'int',
 		'patient_id_wc' => 'int',
 		'patient_autofill' => 'int',
-		'refills_used' => 'float'
+		'refills_used' => 'float',
 	];
 
 	protected $dates = [
@@ -144,5 +145,15 @@ class GpPatient extends Model
         return ($this->exists
                 && !empty($this->patient_id_cp)
                 && !empty($this->patient_id_wc));
+    }
+
+    public function orders() {
+        return $this
+            ->hasMany(GpOrder::class, 'patient_id_cp')
+            ->orderBy('invoice_number', 'desc');
+    }
+
+    public function getBirthDateAttribute($val) {
+        return $val;
     }
 }
