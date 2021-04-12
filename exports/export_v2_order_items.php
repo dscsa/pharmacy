@@ -32,8 +32,15 @@ function export_v2_unpend_order($order, $mysql, $reason)
 
     // save a blank picklist for each item
     foreach ($order as $i => $item) {
-        GPLog::debug('Saving Pick List', ['item' => $item, 'list' => 0]);
-        $order[$i] = save_pick_list($item, 0, $mysql);
+        if ($item['rx_number']) {
+            GPLog::debug('Saving Pick List', ['item' => $item, 'list' => 0]);
+            $order[$i] = save_pick_list($item, 0, $mysql);
+        } else {
+            GPLog::warning(
+                'Trying to pend an item that does not exist',
+                ['item' => $item, 'list' => 0]
+            );
+        }
     }
 
     return $order;
