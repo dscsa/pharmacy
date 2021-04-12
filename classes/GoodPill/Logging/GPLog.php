@@ -90,11 +90,11 @@ class GPLog
         );
 
         if (isset($context['pd_data'])) {
-            $pd_data = array_merge($pd_date, $context['pd_data']);
+            $pd_data = array_merge($pd_data, $context['pd_data']);
         }
 
         //  Check to see if the user is a test user and skip pager duty if so
-        if (strpos(strtolower($ids['first_name']), 'test') !== 0) {
+        if (strpos(strtolower(@$ids['first_name']), 'test') !== 0) {
             self::alertPagerDuty($message, $method, $pd_data);
         }
 
