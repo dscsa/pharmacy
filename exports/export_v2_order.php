@@ -90,25 +90,17 @@ function find_order_pend_group(int $invoice_number, ?array $pend_params = null) 
             !empty($results)
             && @$results[0]['next'][0]['pended']
         ) {
-            if ($type != 'expected') {
-                GPLog::debug(
-                    'Drugs pended under unexpected pend group',
-                    [
-                        'expected' => $possible_pend_groups['expected'],
-                        'found_as' => $group
-                    ]
-                );
-            }
             // This order has already been picked, we need to quit trying
             if (@$results[0]['next'][0]['picked']) {
                 GPLog::critical("We are trying to unpend a picked order: {$group}");
                 return null;
             }
             GPLog::debug(
-                "Pend Group with pended RX found for #{$invoice_nuber}",
+                "Pend Group with pended RX found for #{$invoice_number}",
                 [
                     'invoice_number'   => $invoice_number,
-                    'valid_pend_group' => $group
+                    'valid_pend_group' => $group,
+                    'v2_result'        => $results[0]['next'][0]['pended'],
                 ]
             );
             return $group;
