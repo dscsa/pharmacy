@@ -104,12 +104,14 @@ function get_days_and_message($item, $patient_or_order)
     if ($item['rx_transfer']) {
         if (!$item['rx_date_transferred']) {
             log_error("rx_transfer is set, but rx_date_transferred is not", get_defined_vars());
-        } elseif ($stock_level == STOCK_LEVEL['HIGH SUPPLY'] and strtotime($item['rx_date_transferred']) > strtotime('-2 day')) {
+        } elseif ($stock_level == STOCK_LEVEL['HIGH SUPPLY'] and strtotime($item['rx_date_transferred']) > strtotime('-'.DAYS_UNIT.' day')) {
             $created = "Created:".date('Y-m-d H:i:s');
 
             $salesforce = [
                 "subject"   => "$item[drug_name] was transferred recently although it's high stock",
-                "body"      => "Investigate why drug $item[drug_name] for Rx $item[rx_number] was transferred out on $item[rx_date_transferred] even though it's high stock $created",
+                "body"      => "Investigate why drug $item[drug_name] for Rx $item[rx_number] was transferred out on $item[rx_date_transferred] even though it's high stock. ".
+                               "If the patient doesn't want or is no longer eligible for this medicine (e.g moved out of state or requested transfer), simply state the reason. ".
+                               "If the patient wants and is eligible for this medicine, assign this call to '.Transfer In' so that we can call the patient and ask if they want us to fill it going forward $created",
                 "contact"   => "$item[first_name] $item[last_name] $item[birth_date]",
                 "assign_to" => ".Waitlist",
                 "due_date"  => date('Y-m-d')
