@@ -404,7 +404,7 @@ function order_item_updated(array $updated) : ?array
             ];
 
             $patient_label = get_patient_label($item);
-            $event_title   = "{Rx $rx_number} Missing Days Supply Created:".date('Y-m-d H:i:s');
+            $event_title   = "Rx {$rx_number} Missing Days Supply Created:".date('Y-m-d H:i:s');
             $comm_arr = new_comm_arr($patient_label, '', '', $salesforce);
             create_event($event_title, $comm_arr);
 
