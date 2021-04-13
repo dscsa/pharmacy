@@ -41,7 +41,8 @@ function is_patient_match($patient)
         );
         return [
             'patient_id_cp' => $gpPatient->patient_id_cp,
-            'patient_id_wc' => $gpPatient->patient_id_wc
+            'patient_id_wc' => $gpPatient->patient_id_wc,
+            'new'           => false
         ];
     }
 
@@ -62,7 +63,8 @@ function is_patient_match($patient)
 
         return [
             'patient_id_cp' => $patient_cp[0]['patient_id_cp'],
-            'patient_id_wc' => $patient_wc[0]['patient_id_wc']
+            'patient_id_wc' => $patient_wc[0]['patient_id_wc'],
+            'new'           => true
         ];
     }
 
@@ -110,7 +112,8 @@ function is_patient_match($patient)
 
         return [
             'patient_id_cp' => $patient_cp[0]['patient_id_cp'],
-            'patient_id_wc' => $patient_wc[0]['patient_id_wc']
+            'patient_id_wc' => $patient_wc[0]['patient_id_wc'],
+            'new'           => true
         ];
     }
 
@@ -229,19 +232,46 @@ function find_patient($mysql, $patient, $table = 'gp_patients')
  * Create the association between the wp and the cp patient
  * this will overwrite a current association if it exists
  *
- * @param  Mysql_Wc $mysql         The GP Mysql Connection
  * @param  array    $patient       The patient data
  * @param  int      $patient_id_cp The CP id for the patient
+ * @param  bool     $force_match   Delete any previous WC matches and force this match
  * @return void
  */
-function match_patient($mysql, $patient_id_cp, $patient_id_wc)
+function match_patient($patient_id_cp, $patient_id_wc, $force_match = false)
 {
+
+    $mysql = new Mysql_Wc();
+
     // See if there is already a patient with the cp_id in WooCommerce.
     // If there is, we need to log an alert and skip this step.
     // Update the patientes table
     $patient_match = is_patient_matched_in_wc($patient_id_cp);
 
-    if (!$patient_match) {
+    if ($patient_match && @$patient_match['patient_id_wc'] != $patient_id_wc) {
+        // If we are forcing this match, delete the other meta and log it
+        if ($force_match) {
+            $mysql = GoodPill\Storage\Goodpill::getConnection();
+            $pdo   = $mysql->prepare(
+                "DELETE
+                     FROM wp_usermeta
+                     WHERE meta_key = 'patient_id_cp'
+                        AND meta_value = :patient_id_cp"
+            );
+            $pdo->bindValue(':patient_id_cp', $patient_id_cp, \PDO::PARAM_INT);
+            $pdo->execute();
+        } else {
+            return GPLog::critical(
+                "Attempted to match a CP patient that was already matched in WC meta",
+                [
+                    'patient_id_cp' => $patient_id_cp,
+                    'proposed_patient_id_wc' => $patient_id_wc,
+                    'existing_wc_meta_patient_id' => @$patient_match['patient_id_wc']
+                ]
+            );
+        }
+    }
+
+    if (!$patient_match || $force_match) {
         $sql = "UPDATE
           gp_patients
         SET
@@ -253,8 +283,19 @@ function match_patient($mysql, $patient_id_cp, $patient_id_wc)
 
         $mysql->run($sql);
 
-        GPLog::notice("helper_matching: match_patient() matched patient_id_cp:$patient_id_cp
-                         with patient_id_wc:$patient_id_wc");
+        GPLog::notice(
+            sprintf(
+                "Matched patient_id_cp:%s with patient_id_wc:%s %s",
+                $patient_id_cp,
+                $patient_id_wc,
+                ($force_match) ? 'WITH FORCE' : ''
+            ),
+            [
+                'patient_id_cp' => $patient_id_cp,
+                'patient_id_wc' => $patient_id_wc,
+                'force_match'   => $force_match
+            ]
+        );
 
         // Insert the patient_id_cp if it deosnt' already exist
         wc_upsert_patient_meta(
@@ -262,15 +303,6 @@ function match_patient($mysql, $patient_id_cp, $patient_id_wc)
             $patient_id_wc,
             'patient_id_cp',
             $patient_id_cp
-        );
-    } elseif (@$patient_match['patient_id_wc'] != $patient_id_wc) {
-        GPLog::critical(
-            "Attempted to match a CP patient that was already matched in WC",
-            [
-                'patient_id_cp' => $patient_id_cp,
-                'patient_id_wc' => $patient_id_wc,
-                'proposed_patient_id_wc' => @$patient_match['patient_id_wc']
-            ]
         );
     }
 }
