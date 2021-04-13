@@ -271,6 +271,35 @@ function order_item_deleted(array $deleted, array &$orders_updated) : ?array
         $groups['AUTOFILL_OFF'][] = $item['drug'];
     }
 
+    //  Create event task
+    //  Item is being deleted when set to autofill but the refill date is in the past
+    if (
+        strtotime($item['refill_date_default']) < time() &&
+        $item['rx_autofill'] &&
+        (is_null($item['refill_date_manual']) || strtotime($item['refill_date_manual']) < time())
+    ) {
+        $subject = 'Item is being deleted with a refill set to fill';
+        $body = $item['refills_total'] > 0 ?
+            "When would you like {$item['drug_name']} filled or should we take it off autofill" :
+            "Are you still taking {$item['drug_name']}? If so, would you like us to request refills from your doctor";
+
+
+        $salesforce = [
+            "subject"   => $subject,
+            "body"      => $body,
+            "contact"   => "{$item['first_name']} {$item['last_name']} {$item['birth_date']}",
+            "assign_to" => ".Testing"
+        ];
+
+        $patient_label = get_patient_label($item);
+        $event_title   = "Problem with refill {$item['drug_name']} from Order {$invoice_number}  Refill Error: Created:".date('Y-m-d H:i:s');
+        $comm_arr = new_comm_arr($patient_label, '', '', $salesforce);
+        create_event($event_title, $comm_arr);
+
+        AuditLog::log($salesforce['body'], $item);
+        GPLog::warning($event_title, ["item" => $item]);
+    }
+
     // If the next Refill date is null,
     //      but the rx is autofill
     //          and there are refills left
