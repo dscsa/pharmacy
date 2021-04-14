@@ -149,4 +149,9 @@ class GpOrder extends Model
 
         return null;
     }
+
+    public function patient()
+    {
+        return $this->belongsTo(GpPatient::class, 'patient_id_cp');
+    }
 }

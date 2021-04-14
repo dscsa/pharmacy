@@ -4,7 +4,7 @@
  * Created by Reliese Model.
  */
 
-namespace App\Models;
+namespace GoodPill\Models;
 
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
@@ -138,4 +138,14 @@ class GpOrderItem extends Model
 		'sync_to_date_min_days_stock',
 		'sync_to_date_min_days_stock_rxs'
 	];
+
+    public function order()
+    {
+        return $this->belongsTo(GpOrder::class, 'invoice_number');
+    }
+
+    public function patient()
+    {
+        return $this->belongsTo(GpPatient::class, 'patient_id_cp');
+    }
 }
