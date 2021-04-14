@@ -245,10 +245,12 @@ class GPLog
 
         //  Found an rx number, hopefully from rxs_single. Try to find details
         if (!empty($rx_number)) {
-            $found = GpOrderItem::with(['patient:patient_id_cp,patient_id_wc,first_name,last_name,birth_date', 'order:invoice_number'])
+            $found = GpOrderItem::with([
+                'patient:patient_id_cp,patient_id_wc,first_name,last_name,birth_date',  //  select fields for patient
+                'order:invoice_number'  //   select fields for order
+            ])
                 ->where('rx_number', $rx_number)
                 ->first();
-            print_r($found->order->invoice_number);
 
             if ($found->order) {
                 $invoice_number = $found->order->invoice_number;
