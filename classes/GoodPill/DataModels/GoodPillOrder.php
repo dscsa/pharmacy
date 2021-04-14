@@ -115,7 +115,12 @@ class GoodPillOrder extends GPModel
             && !empty($this->order_date_shipped)
             && (
                 strtotime($this->order_date_shipped) + (60 * 60 * 12) > time()
-                || isset($this->tracking_number)
+                || (
+                    isset($this->tracking_number)
+                    // Add a 10 minute window just so things that happen on
+                    // the same sync execution don't throw an error
+                    && strtotime($this->order_date_shipped) + (60 * 10) > time()
+                )
             )
         );
     }
