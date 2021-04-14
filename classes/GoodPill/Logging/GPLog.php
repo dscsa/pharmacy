@@ -241,10 +241,8 @@ class GPLog
                 $patient_id_cp  = $patient['patient_id_cp'];
                 $patient_id_wc  = $patient['patient_id_wc'];
             }
-        }
-
-        //  Found an rx number, hopefully from rxs_single. Try to find details
-        if (!empty($rx_number)) {
+        } elseif (!empty($rx_number)) {
+            //  Found an rx number, hopefully from rxs_single. Try to find details
             $found = GpOrderItem::with([
                 'patient:patient_id_cp,patient_id_wc,first_name,last_name,birth_date',  //  select fields for patient
                 'order:invoice_number'  //   select fields for order
@@ -252,10 +250,10 @@ class GPLog
                 ->where('rx_number', $rx_number)
                 ->first();
 
-            if ($found->order) {
+            if ($found && $found->order) {
                 $invoice_number = $found->order->invoice_number;
             }
-            if ($found->patient) {
+            if ($found && $found->patient) {
                 $first_name     = $found->patient->first_name;
                 $last_name      = $found->patient->last_name;
                 $birth_date     = $found->patient->birth_date;
