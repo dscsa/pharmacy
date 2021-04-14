@@ -121,7 +121,8 @@ class GpOrder extends Model
 
     /**
      * Get a patient based on the patient_id_cp
-     * @return null|GoodPillPatient
+     *
+     * @return \GoodPill\Models\GpPatient|null
      */
     public function getPatient() : ? GpPatient
     {
