@@ -375,7 +375,7 @@ function order_item_updated(array $updated) : ?array
     }
 
 
-    if ($item['qty_dispensed_default']) {
+    if ($item['qty_dispensed_actual']) {
         GPLog::debug("Freezing Item because it's dispensed and updated", $item);
 
         $item = set_item_invoice_data($item, $mysql);
