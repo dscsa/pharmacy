@@ -5,9 +5,11 @@ namespace GoodPill\Logging;
 use Google\Cloud\Logging\LoggingClient;
 use Monolog\Logger;
 use Monolog\Handler\StreamHandler;
+use GoodPill\Models\GpOrderItem;
 
 require_once 'helpers/helper_pagerduty.php';
 require_once 'helpers/helper_identifiers.php';
+require_once 'helpers/helper_laravel.php';
 
 /**
  * This is a simple logger that maintains a single instance of the cloud $logger
@@ -207,6 +209,10 @@ class GPLog
                 $patient_id_wc = $possible['patient_id_wc'];
             }
 
+            if (isset($possible['rx_number'])) {
+                $rx_number = $possible['rx_number'];
+            }
+
             if (isset($invoice_number)
                 && isset($patient_id_cp)
                 && isset($patient_id_wc)) {
@@ -215,7 +221,12 @@ class GPLog
         }
 
         // No need to continue.  There isn't a source of data
-        if (!isset($invoice_number) && !isset($patient_id_cp) && !isset($patient_id_wc)) {
+        if (
+            !isset($invoice_number) &&
+            !isset($patient_id_cp) &&
+            !isset($patient_id_wc) &&
+            !isset($rx_number)
+        ) {
             return [];
         }
 
@@ -230,6 +241,36 @@ class GPLog
                 $patient_id_cp  = $patient['patient_id_cp'];
                 $patient_id_wc  = $patient['patient_id_wc'];
             }
+        }
+
+        //  Found an rx number, hopefully from rxs_single. Try to find details
+        if (!empty($rx_number)) {
+            $found = GpOrderItem::with([
+                'patient:patient_id_cp,patient_id_wc,first_name,last_name,birth_date',  //  select fields for patient
+                'order:invoice_number'  //   select fields for order
+            ])
+                ->where('rx_number', $rx_number)
+                ->first();
+
+            if ($found->order) {
+                $invoice_number = $found->order->invoice_number;
+            }
+            if ($found->patient) {
+                $first_name     = $found->patient->first_name;
+                $last_name      = $found->patient->last_name;
+                $birth_date     = $found->patient->birth_date;
+                $patient_id_cp  = $found->patient->patient_id_cp;
+                $patient_id_wc  = $found->patient->patient_id_wc;
+            }
+
+            return [
+                'invoice_number' => @$invoice_number,
+                'first_name'     => @$first_name,
+                'last_name'      => @$last_name,
+                'birth_date'     => @$birth_date,
+                'patient_id_cp'  => @$patient_id_cp,
+                'patient_id_wc'  => @$patient_id_wc
+            ];
         }
 
         if (!isset($first_name)
