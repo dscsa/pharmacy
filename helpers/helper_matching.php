@@ -128,15 +128,15 @@ function is_patient_match($patient)
     } elseif (count($patient_cp) > 1) {
         $message = "We Found too many Carepoint patients AND";
     } else {
-        $message = "Found the Carepoint patients AND";
+        $message = "Found the Carepoint patient AND";
     }
 
     if (count($patient_wc) == 0) {
-        $message = "We didn't find a matching WooCommerce patient.";
+        $message .= " We didn't find a matching WooCommerce patient.";
     } elseif (count($patient_wc) > 1) {
-        $message = "We found too many WooCommerce patients.";
+        $message .= " We found too many WooCommerce patients.";
     } else {
-        $message = "We found the carepoint WooCommerce.";
+        $message .= " We found the WooCommerce patient.";
     }
 
     //TODO Auto Delete Duplicate Patient AND Send Comm of their login and password
@@ -145,11 +145,8 @@ function is_patient_match($patient)
         sprintf(
             "Couldn't find a Carepoint and WooCommerce Match. %s
             Most frequently this is a false message because the carepoint
-            user hasn't been imported yet %s %s %s",
-            $message,
-            @$patient[0]['first_name'],
-            @$patient[0]['last_name'],
-            @$patient[0]['birth_date']
+            user hasn't been imported yet",
+            $message
         ),
         $alert
     );
