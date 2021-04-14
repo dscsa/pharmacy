@@ -13,7 +13,6 @@ use GoodPill\Models\GpOrder;
 use GoodPill\Logging\GPLog;
 
 //  @TODO - Confirm salesforce format for message
-//  @TODO - Schedule Cron
 
 $three_days_ago = Carbon::now()->subDays(3)->toDateTimeString();
 $thirty_days_ago = Carbon::now()->subDays(30)->toDateTimeString();
