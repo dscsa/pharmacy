@@ -15,6 +15,7 @@ use GoodPill\Models\WordPress\WpUser;
 
 // Needed for cancel_events_by_person
 require_once 'helpers/helper_calendar.php';
+require_once "helpers/helper_full_patient.php";
 
 
 /**
@@ -208,7 +209,15 @@ class GpPatient extends Model
                 && !empty($this->patient_id_wc));
     }
 
-    public function updateEvents(string $type, string $change, $value) {
+    /**
+     * Update Comm Calendar event
+     * @param  string $type   The type of event
+     * @param  string $change What we are changing
+     * @param  mixed  $value  The new value
+     * @return void
+     */
+    public function updateEvents(string $type, string $change, $value) : void
+    {
         switch ($type) {
             case 'Autopay Reminder':
                 if ($change = 'last4') {
@@ -223,7 +232,12 @@ class GpPatient extends Model
         }
     }
 
-    public function cancelEvents(?array $events = [])
+    /**
+     * Cancel the comm calendar events
+     * @param  array  $events The type of events to Cancel
+     * @return void
+     */
+    public function cancelEvents(?array $events = []) : void
     {
         return cancel_events_by_person(
             $this->first_name,
@@ -234,12 +248,20 @@ class GpPatient extends Model
         );
     }
 
+    /**
+     * Create a comm calendar event tied to this user
+     * @param  string  $type          The type of event
+     * @param  array   $event_body    The body of the event.  This should be a comm_array
+     * @param  integer $invoice       (Optional) The invoice Number
+     * @param  integer $hours_to_wait (Optional) How long to wait before to send it
+     * @return void
+     */
     public function createEvent(
         string $type,
         array $event_body,
         ?int $invoice = null,
         ?float $hours_to_wait = 0
-    ) {
+    ) : void {
 
         GPLog::debug(
             sprintf(
@@ -265,6 +287,10 @@ class GpPatient extends Model
         create_event($event_title, $event_body, $hours_to_wait);
     }
 
+    /**
+     * print the patient label.
+     * @return string
+     */
     public function getPatientLabel()
     {
         return sprintf(
@@ -275,6 +301,12 @@ class GpPatient extends Model
         );
     }
 
+
+    /**
+     * Update the Active status for the user.  Active status is an item that is set in woocomerce
+     * to identify an active, inactive or deceased user
+     * @return boolean
+     */
     public function updateWcActiveStatus()
     {
         GPLog::debug(
@@ -304,5 +336,32 @@ class GpPatient extends Model
 
         $meta->meta_value = $wc_status;
         return $meta->save();
+    }
+
+    /**
+     * Will recalculate the RX messages.  Current does this be getting the legacy patient
+     * with overwrite set to true.  Does not return the full patient
+     *
+     * @todo Modify the logic to actually handle the individual RX without using the
+     *       legacy functions
+     *
+     * @return void
+     */
+    public function recalculateRxMessages()
+    {
+        $this->getLegacyPatient(true);
+    }
+
+    public function getLegacyPatient($overwrite_rx_messages = false)
+    {
+        if ($this->exists) {
+            return load_full_patient(
+                ['patient_id_cp' => $this->patient_id_cp],
+                (new \Mysql_Wc()),
+                $overwrite_rx_messages
+            );
+        }
+
+        return null;
     }
 }
