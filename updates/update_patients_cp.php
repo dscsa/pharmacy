@@ -144,8 +144,8 @@ function cp_patient_updated(array $updated) : ?array
 
     } elseif ($GpPatient->phone2 == $GpPatient->phone1) {
         AuditLog::log("Phone2 deleted for patient via CarePoint, Copying data to WooCommerce", $updated);
-        //TODO
-        delete_cp_phone($mssql, $updated['patient_id_cp'], 9);
+        $GpPatient->deletePhoneFromCarepoint(9);
+
     } elseif ($GpPatient->hasFieldChanged('phone2')) {
         GPLog::notice(
             "Phone2 updated in CarePoint, Copying data to WooCommerce",

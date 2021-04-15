@@ -14,9 +14,11 @@ use GoodPill\Logging\GPLog;
 use GoodPill\Models\WordPress\WpUser;
 
 // Needed for cancel_events_by_person
-require_once 'helpers/helper_calendar.php';
+require_once "helpers/helper_calendar.php";
 require_once "helpers/helper_full_patient.php";
-
+require_once "exports/export_cp_patient";
+require_once "dbs/mssql_cp.php";
+require_once "dbs/myssql_wc.php";
 
 /**
  * Class GpPatient
@@ -237,7 +239,7 @@ class GpPatient extends Model
      * @param  array  $events The type of events to Cancel
      * @return void
      */
-    public function cancelEvents(?array $events = []) : void
+    public function cancelEvents(?array $events = [])
     {
         return cancel_events_by_person(
             $this->first_name,
@@ -338,6 +340,19 @@ class GpPatient extends Model
         return $meta->save();
     }
 
+    public function deletePhoneFromCarepoint($phone_type)
+    {
+        if ($this->exists) {
+            return delete_cp_phone(
+                new Mssql_Cp(),
+                $this->patient_id_cp,
+                $phone_type
+            );
+        }
+
+        return null;
+    }
+
     /**
      * Will recalculate the RX messages.  Current does this be getting the legacy patient
      * with overwrite set to true.  Does not return the full patient
@@ -352,6 +367,11 @@ class GpPatient extends Model
         $this->getLegacyPatient(true);
     }
 
+    /**
+     * Get a full version of the legacy patient data structure
+     * @param  boolean $overwrite_rx_messages Should the RX messages be updated
+     * @return array
+     */
     public function getLegacyPatient($overwrite_rx_messages = false)
     {
         if ($this->exists) {
