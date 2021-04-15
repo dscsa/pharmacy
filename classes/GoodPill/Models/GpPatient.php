@@ -153,7 +153,8 @@ class GpPatient extends Model
             ->orderBy('invoice_number', 'desc');
     }
 
-    public function getBirthDateAttribute($val) {
-        return $val;
+    public function getBirthDateFormattedAttribute() {
+        return $this->birth_date->format('Y-m-d');
     }
 }
+

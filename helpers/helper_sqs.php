@@ -138,12 +138,11 @@ function findGroupId(array $data): string {
         $patient = GpPatient::where('patient_id_wc', $patient_id_wc)
             ->first(['first_name', 'last_name', 'birth_date']);
     } elseif ($invoice_number) {
-        $patient = GpOrder::find($data['invoice_number'])->patient;
+        $order = GpOrder::with('patient:patient_id_cp,first_name,last_name,birth_date')->find($data['invoice_number'], ['patient_id_cp']);
+        $patient = $order->patient;
     }
-
     if ($patient) {
-        $group_id = $patient->first_name.'_'.$patient->last_name.'_'.$patient->birth_date;
-        return $group_id;
+        return $patient->first_name.'_'.$patient->last_name.'_'.$patient->birth_date_formatted;
     } else {
         return 'UNKNOWN_GROUP_ID';
     }
