@@ -272,16 +272,16 @@ function order_item_deleted(array $deleted, array &$orders_updated) : ?array
     }
 
     //  Create event task
-    //  Item is being deleted when set to autofill but the refill date is in the past
+    //  Item is being deleted when set to autofill but the refill date is invalid (null or in the past)
     if (
-        strtotime($item['refill_date_default']) < time() &&
         $item['rx_autofill'] &&
+        (strtotime($item['refill_date_next']) < time() || is_null($item['refill_date_next'])) &&
         (is_null($item['refill_date_manual']) || strtotime($item['refill_date_manual']) < time())
     ) {
         $subject = 'Item is being deleted with a refill set to fill';
         $body = $item['refills_total'] > 0 ?
-            "When would you like {$item['drug_name']} filled or should we take it off autofill" :
-            "Are you still taking {$item['drug_name']}? If so, would you like us to request refills from your doctor";
+            "When would you like {$item['drug_name']} on Order {$invoice_number} to be filled or should we take it off autofill" :
+            "Are you still taking {$item['drug_name']} on Order {$invoice_number}? If so, would you like us to request refills from your doctor";
 
 
         $salesforce = [
@@ -296,7 +296,7 @@ function order_item_deleted(array $deleted, array &$orders_updated) : ?array
         $comm_arr = new_comm_arr($patient_label, '', '', $salesforce);
         create_event($event_title, $comm_arr);
 
-        AuditLog::log($salesforce['body'], $item);
+        AuditLog::log("Rx# {$item['rx_number']} is being deleted but is set to autofill and an invalid refill date", $item);
         GPLog::warning($event_title, ["item" => $item]);
     }
 
