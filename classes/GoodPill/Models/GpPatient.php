@@ -16,9 +16,9 @@ use GoodPill\Models\WordPress\WpUser;
 // Needed for cancel_events_by_person
 require_once "helpers/helper_calendar.php";
 require_once "helpers/helper_full_patient.php";
-require_once "exports/export_cp_patient";
+require_once "exports/export_cp_patients.php";
 require_once "dbs/mssql_cp.php";
-require_once "dbs/myssql_wc.php";
+require_once "dbs/mysql_wc.php";
 
 /**
  * Class GpPatient
