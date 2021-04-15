@@ -103,6 +103,18 @@ class Queue
     }
 
     /**
+     * Set the queue name and fetch the correect URL from AWS
+     *
+     * @param      string $queue_name The name of the queue
+     *
+     * @return     void
+     */
+    public function getQueueName()
+    {
+        return $this->queue_name;
+    }
+
+    /**
      * Delete multiple messages
      *
      * @param  array|string $receipt_handles   A single RecieptHandle or an array of Reciept handles
