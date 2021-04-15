@@ -271,42 +271,14 @@ function order_item_deleted(array $deleted, array &$orders_updated) : ?array
         $groups['AUTOFILL_OFF'][] = $item['drug'];
     }
 
-    //  Create event task
-    //  Item is being deleted when set to autofill but the refill date is invalid (null or in the past)
-    if (
-        $item['rx_autofill'] &&
-        (strtotime($item['refill_date_next']) < time() || is_null($item['refill_date_next'])) &&
-        (is_null($item['refill_date_manual']) || strtotime($item['refill_date_manual']) < time())
-    ) {
-        $subject = 'Item is being deleted with a refill set to fill';
-        $body = $item['refills_total'] > 0 ?
-            "When would you like {$item['drug_name']} on Order {$invoice_number} to be filled or should we take it off autofill" :
-            "Are you still taking {$item['drug_name']} on Order {$invoice_number}? If so, would you like us to request refills from your doctor";
-
-
-        $salesforce = [
-            "subject"   => $subject,
-            "body"      => $body,
-            "contact"   => "{$item['first_name']} {$item['last_name']} {$item['birth_date']}",
-            "assign_to" => ".Testing"
-        ];
-
-        $patient_label = get_patient_label($item);
-        $event_title   = "Problem with refill {$item['drug_name']} from Order {$invoice_number}  Refill Error: Created:".date('Y-m-d H:i:s');
-        $comm_arr = new_comm_arr($patient_label, '', '', $salesforce);
-        create_event($event_title, $comm_arr);
-
-        AuditLog::log("Rx# {$item['rx_number']} is being deleted but is set to autofill and an invalid refill date", $item);
-        GPLog::warning($event_title, ["item" => $item]);
-    }
-
     // If the next Refill date is null,
     //      but the rx is autofill
     //          and there are refills left
     if (
-            is_null($item['refill_date_next'])
+            is_null($item['refill_date_default'])
             && @$item['rx_autofill']
             && $item['refills_total'] > 0
+            && (is_null($item['refill_date_manual']) || strtotime($item['refill_date_manual']) < time())
             && $item['refill_date_first'] //KW feedback that false positives for new drugs that are about to be transferred out
     ) {
         $salesforce = [
@@ -318,7 +290,7 @@ function order_item_deleted(array $deleted, array &$orders_updated) : ?array
                             should not be included in the order.",
             "contact"   => "{$item['first_name']} {$item['last_name']} {$item['birth_date']}",
             "assign_to" => ".Inventory Issue",
-            "due_date"  => substr(get_start_time($hours_to_wait[3], $hour_of_day[3]), 0, 10)
+            "due_date"  => date('Y-m-d')
          ];
 
          $patient_label = get_patient_label($item);
