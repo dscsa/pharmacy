@@ -250,6 +250,9 @@ function cp_order_created(array $created) : ?array
         // Care point will still attach an order item when it is surescript Denied
         // This results in a negative number since we are removing an item
         // but sure script sends an item_count of 0
+
+        //  In a case where authorization was approved, an item was found to be duplicated in other orders
+        //  The duplicates were removed but the count was higher that the count items being filled from the original order
         if (
             (
                 $order[0]['order_status'] == "Surescripts Authorization Denied"
@@ -257,7 +260,7 @@ function cp_order_created(array $created) : ?array
             )
             || (
                 $order[0]['order_status'] != "Surescripts Authorization Denied"
-                && $order[0]['count_items'] - $order[0]['count_to_remove'] - $order[0]['count_duplicates_removed']!= 0
+                && $order[0]['count_items'] - $order[0]['count_to_remove'] - $order[0]['count_duplicates_removed'] > 0
             )
         ) {
             // Find the item that wasn't removed, but we aren't filling
@@ -266,12 +269,14 @@ function cp_order_created(array $created) : ?array
             GPLog::critical(
                 "update_orders_cp: created. canceling order, but is their a manually added item that we should keep?",
                 [
-                    'invoice_number'  => $order[0]['invoice_number'],
-                    'count_filled'    => $order[0]['count_filled'],
-                    'count_items'     => $order[0]['count_items'],
-                    'count_to_add'    => $order[0]['count_to_add'],
-                    'count_to_remove' => $order[0]['count_to_remove'],
-                    'order'           => $order
+                    'invoice_number'           => $order[0]['invoice_number'],
+                    'count_filled'             => $order[0]['count_filled'],
+                    'count_items'              => $order[0]['count_items'],
+                    'count_to_add'             => $order[0]['count_to_add'],
+                    'count_to_remove'          => $order[0]['count_to_remove'],
+                    'count_duplicates_removed' => $order[0]['count_duplicates_removed'],
+                    'order_status'             => $order[0]['order_status'],
+                    'order'                    => $order
                 ]
             );
         }

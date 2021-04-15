@@ -32,13 +32,28 @@ abstract class Request
     protected $group_id;
 
     /**
+     * If this message has come from a fifo queue,
+     * it will have the sequence number attacehd
+     * @var string
+     */
+    protected $sequence_number;
+
+    /**
      * dedupe_id
-     * @var [type]
+     * @var string
      */
     protected $dedup_id;
 
+    /**
+     * The handle from SQS
+     * @var [type]
+     */
     protected $receipt_handle;
 
+    /**
+     * The ID assigned by SQS
+     * @var string
+     */
     protected $message_id;
 
     /**
@@ -50,9 +65,27 @@ abstract class Request
 
         if (is_array($initialize_date)) {
             $this->fromSQS($initialize_date);
-        } else if (is_string($initialize_date)) {
+        } elseif (is_string($initialize_date)) {
             $this->fromJSON($initialize_date);
         }
+    }
+
+    /**
+     * Get the group id
+     * @return string
+     */
+    public function getGroupId()
+    {
+        return $this->group_id;
+    }
+
+    /**
+     * Get the sequence number created by aws
+     * @return string
+     */
+    public function getSequenceNumber()
+    {
+        return $this->sequence_number;
     }
 
     /**
@@ -66,7 +99,6 @@ abstract class Request
      */
     public function &__get($property)
     {
-
         if (is_callable(array($this, 'get' . ucfirst($property)))) {
             $func_name   ='get' . ucfirst($property);
             $func_return = $this->$func_name();
@@ -209,7 +241,6 @@ abstract class Request
      */
     public function fromArray($arrData)
     {
-
         foreach ($arrData as $strKey => $mixValue) {
             if (! in_array($strKey, $this->properties)) {
                 throw new \Exception("{$strKey} not an allowed property");
@@ -263,9 +294,18 @@ abstract class Request
      */
     public function fromSQS($message)
     {
-
         $this->receipt_handle = $message['ReceiptHandle'];
         $this->message_id     = $message['MessageId'];
+
+        if (isset($message['Attributes'])) {
+            if (isset($message['Attributes']['MessageGroupId'])) {
+                $this->group_id = $message['Attributes']['MessageGroupId'];
+            }
+
+            if (isset($message['Attributes']['SequenceNumber'])) {
+                $this->sequence_number = $message['Attributes']['SequenceNumber'];
+            }
+        }
 
         if (md5($message['Body']) != $message['MD5OfBody']) {
             throw new \Exception('The message body is malformed');

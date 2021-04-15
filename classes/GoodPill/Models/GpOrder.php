@@ -151,7 +151,9 @@ class GpOrder extends Model
     ];
 
     /**
-     * Get the phone associated with the user.
+     * Get a patient based on the patient_id_cp
+     *
+     * @return \GoodPill\Models\GpPatient|null
      */
     public function patient()
     {
@@ -178,5 +180,16 @@ class GpOrder extends Model
         }
 
         return null;
+    }
+
+    /**
+     * Relationship to a patient entity
+     * foreignKey - patient_id_cp
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function patient()
+    {
+        return $this->belongsTo(GpPatient::class, 'patient_id_cp');
     }
 }

@@ -233,15 +233,15 @@ function no_transfer_out_notice($item)
 
     if (patient_no_transfer($item)) {
 
-        $message = "Unfortunately, {$item['drug']} is not offered at this time. Your account is set to NOT have your Rx(s) transferred out automatically. If you’d like to transfer your prescription to your local pharmacy, please have them give us a call at (888) 987-5187, M-F 10am-6pm.";
+        $message = "Unfortunately, {$item['drug_name']} is not offered at this time. Your account is set to NOT have your Rx(s) transferred out automatically. If you’d like to transfer your prescription(s) to your local pharmacy, please have them give us a call at (888) 987-5187, M-F 10am-6pm. Please note your local pharmacy will charge its usual price for this prescription, not the Good Pill price";
 
-    } else if (is_not_offered($item)) {
+    } else if (is_not_offered($item)) { //High Drug price that is not offered (and patient has backup pharmacy) NOTE Not sure if this will ever trigger because currently drug needs to be Ordered to have a price
 
-        $message = "Unfortunately, {$item['drug']} is not offered at this time. If you’d like to transfer your prescription to your local pharmacy, please have them give us a call at (888) 987-5187, M-F 10am-6pm.";
+        $message = "Unfortunately, {$item['drug_name']} is not offered at this time. We didn't transfer the prescription automatically because of its high cost. If you’d like to transfer your prescription to your local pharmacy, please let us know (M-F 10am-6pm), and we will be happy to transfer them. Please note your local pharmacy will charge its usual price for this prescription, not the Good Pill price";
 
-    } else {
+    } else { //High Drug price that is offered but is Out of Stock or Refill Only (and patient has backup pharmacy)
 
-        $message = "Unfortunately, {$item['drug']} is not available for new patients at this time. Let us know if you would like to be added to our waitlist! Being on our waitlist means that we may reach out in the future if the medication becomes available.";
+        $message = "Unfortunately, {$item['drug_name']} is not available for new patients at this time. We didn't transfer the prescription automatically because of its high cost. Let us know if you would like to be added to our waitlist! Being on our waitlist means that we may reach out in the future if the medication becomes available.  If you’d like to transfer your prescription to your local pharmacy, please let us know (M-F 10am-6pm) and we will be happy to transfer them. Please note your local pharmacy will charge its usual price for this prescription, not the Good Pill price";
 
     }
 

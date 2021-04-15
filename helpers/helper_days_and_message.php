@@ -19,6 +19,13 @@ use GoodPill\Logging\{
  */
 function get_days_and_message($item, $patient_or_order)
 {
+    GPLog::debug(
+        "Get Days And Message Input Parameters",
+        [
+            'item' => $item,
+            'patient_or_order'  => $patient_or_order,
+        ]
+    );
 
   // Is this an item we will transfer
     $no_transfer      = is_no_transfer($item);
@@ -97,12 +104,14 @@ function get_days_and_message($item, $patient_or_order)
     if ($item['rx_transfer']) {
         if (!$item['rx_date_transferred']) {
             log_error("rx_transfer is set, but rx_date_transferred is not", get_defined_vars());
-        } elseif ($stock_level == STOCK_LEVEL['HIGH SUPPLY'] and strtotime($item['rx_date_transferred']) > strtotime('-2 day')) {
+        } elseif ($stock_level == STOCK_LEVEL['HIGH SUPPLY'] and strtotime($item['rx_date_transferred']) > strtotime('-'.DAYS_UNIT.' day')) {
             $created = "Created:".date('Y-m-d H:i:s');
 
             $salesforce = [
                 "subject"   => "$item[drug_name] was transferred recently although it's high stock",
-                "body"      => "Investigate why drug $item[drug_name] for Rx $item[rx_number] was transferred out on $item[rx_date_transferred] even though it's high stock $created",
+                "body"      => "Investigate why drug $item[drug_name] for Rx $item[rx_number] was transferred out on $item[rx_date_transferred] even though it's high stock. ".
+                               "If the patient doesn't want or is no longer eligible for this medicine (e.g moved out of state or requested transfer), simply state the reason. ".
+                               "If the patient wants and is eligible for this medicine, assign this call to '.Transfer In' so that we can call the patient and ask if they want us to fill it going forward $created",
                 "contact"   => "$item[first_name] $item[last_name] $item[birth_date]",
                 "assign_to" => ".Waitlist",
                 "due_date"  => date('Y-m-d')
@@ -154,7 +163,8 @@ function get_days_and_message($item, $patient_or_order)
         return [0, RX_MESSAGE['ACTION CHECK BACK']];
     }
 
-    if (! $no_transfer and ! $is_refill and $refill_only) {
+    // Don't return this if the item was manually added
+    if (! $no_transfer and ! $is_refill and $refill_only and ! $added_manually) {
         GPLog::info("TRANSFER OUT NEW RXS THAT WE CANT FILL", get_defined_vars());
         return [0, RX_MESSAGE['NO ACTION WILL TRANSFER CHECK BACK']];
     }
@@ -321,8 +331,8 @@ function get_days_and_message($item, $patient_or_order)
     //Since last refill check already ran, this means we have more days left in refill that we have in the expiration
     //to maximize the amount dispensed we dispense until 10 days before the expiration and then as much as we can for the last refill
     if ($days_left_in_expiration and $days_left_in_expiration < DAYS_MIN) {
-        $days_left_of_qty = $item['qty_left']/$item['sig_qty_per_day']; //Cap it at 180 days
-        $days_left_of_qty_capped = min(180, $days_left_of_qty);
+        $days_left_of_qty = $item['qty_left']/$item['sig_qty_per_day'];
+        $days_left_of_qty_capped = min(DAYS_MAX, $days_left_of_qty);
 
         GPLog::notice("RX IS ABOUT TO EXPIRE SO FILL IT FOR EVERYTHING LEFT", get_defined_vars());
         return [$days_left_of_qty_capped, RX_MESSAGE['ACTION EXPIRING']];

@@ -106,7 +106,7 @@ pcntl_signal(
 $patientQueue = new PharmacyPatientQueue();
 
 // TODO up this execution count so we aren't restarting the thread so often
-$executions = (ENVIRONMENT == 'PRODUCTION') ? 20 : 2;
+$executions = (ENVIRONMENT == 'PRODUCTION') ? 40 : 2;
 
 // Only loop so many times before we restart the script
 for ($l = 0; $l < $executions; $l++) {
@@ -119,7 +119,15 @@ for ($l = 0; $l < $executions; $l++) {
     }
 
     // TODO Change this number to 10 when we start havnig multiple groups
-    $results  = $patientQueue->receive(['MaxNumberOfMessages' => 3]);
+    $results  = $patientQueue->receive(
+        [
+            'MaxNumberOfMessages' => 2,
+            'AttributeNames' => [
+                'MessageGroupId',
+                'SequenceNumber'
+            ]
+        ]
+    );
     $messages = $results->get('Messages');
     $complete = [];
 
@@ -150,9 +158,11 @@ for ($l = 0; $l < $executions; $l++) {
             $changes = $request->changes;
 
             $log_message = sprintf(
-                "Processing changes %s to %s ",
+                "Processing changes %s to %s in group %s item number %s",
                 $request->changes_to,
-                $request->patient_id
+                $request->patient_id,
+                $request->getGroupId(),
+                $request->getSequenceNumber()
             );
 
             if (isset($request->execution_id)) {

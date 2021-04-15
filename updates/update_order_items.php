@@ -266,9 +266,9 @@ function order_item_deleted(array $deleted, array &$orders_updated) : ?array
         $orders_updated[$invoice_number]['removed'][] = array_merge($item, $deleted);
     }
     if ($item['rx_autofill']) {
-        $groups['AUTOFILL_ON'][] = $item['refill_date_next'].' - '.$item['drug'].$msg;
+        $groups['AUTOFILL_ON'][] = $item['refill_date_next'].' - '.$item['drug'];
     } else {
-        $groups['AUTOFILL_OFF'][] = $item['drug'].$msg;
+        $groups['AUTOFILL_OFF'][] = $item['drug'];
     }
 
     // If the next Refill date is null,
@@ -276,7 +276,7 @@ function order_item_deleted(array $deleted, array &$orders_updated) : ?array
     //          and there are refills left
     if (
             is_null($item['refill_date_next'])
-            && $item['rx_autofill']
+            && @$item['rx_autofill']
             && $item['refills_total'] > 0
             && $item['refill_date_first'] //KW feedback that false positives for new drugs that are about to be transferred out
     ) {
@@ -374,8 +374,9 @@ function order_item_updated(array $updated) : ?array
         $item = deduplicate_order_items($item);
     }
 
-    if ($item['days_dispensed_actual']) {
-        GPLog::debug("Freezing Item as because it's dispensed and updated", $item);
+
+    if ($item['qty_dispensed_actual']) {
+        GPLog::debug("Freezing Item because it's dispensed and updated", $item);
 
         $item = set_item_invoice_data($item, $mysql);
 
@@ -388,6 +389,27 @@ function order_item_updated(array $updated) : ?array
             ),
             $updated
         );
+
+        //Rph may have forgotten to enter days on 2nd dispensing screen
+        if ( ! $item['days_dispensed_actual']) {
+            $drug_name = $item['drug_name'];
+            $rx_number = $item['rx_number'];
+            $invoice_number = $item['invoice_number'];
+            $salesforce = [
+                "subject"   => "Dispensed Rx does not have Days Supply set",
+                "body"      => "Rx {$rx_number} for {$drug_name} was dispensed in Order {$invoice_number} but appears to be missing its Days Supply",
+                "contact"   => "{$item['first_name']} {$item['last_name']} {$item['birth_date']}",
+                "assign_to" => ".DDx/Sig Issue",
+                "due_date"  => date('Y-m-d')
+            ];
+
+            $patient_label = get_patient_label($item);
+            $event_title   = "Rx {$rx_number} Missing Days Supply Created:".date('Y-m-d H:i:s');
+            $comm_arr = new_comm_arr($patient_label, '', '', $salesforce);
+            create_event($event_title, $comm_arr);
+
+            return $updated;
+        }
 
         //! $updated['order_date_dispensed'] otherwise triggered twice, once one
         //! stage: Printed/Processed and again on stage:Dispensed
