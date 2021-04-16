@@ -79,7 +79,6 @@ class GpPatient extends Model
 	];
 
 	protected $dates = [
-		'birth_date',
 		'payment_card_date_expired',
 		'patient_date_added',
 		'patient_date_registered',
@@ -151,10 +150,6 @@ class GpPatient extends Model
         return $this
             ->hasMany(GpOrder::class, 'patient_id_cp')
             ->orderBy('invoice_number', 'desc');
-    }
-
-    public function getBirthDateFormattedAttribute() {
-        return $this->birth_date->format('Y-m-d');
     }
 }
 

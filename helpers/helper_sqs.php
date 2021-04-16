@@ -142,7 +142,7 @@ function findGroupId(array $data): string {
         $patient = $order->patient;
     }
     if ($patient) {
-        return $patient->first_name.'_'.$patient->last_name.'_'.$patient->birth_date_formatted;
+        return $patient->first_name.'_'.$patient->last_name.'_'.$patient->birth_date;
     } else {
         return 'UNKNOWN_GROUP_ID';
     }
