@@ -125,12 +125,19 @@ function get_sync_request_rxs(
  * @return string
  */
 function findGroupId(array $data): string {
+
+    $defaults = [
+        'patient_id_cp' => null,
+        'patient_id_wc' => null,
+        'invoice_number' => null,
+    ];
     [
         'patient_id_cp'  => $patient_id_cp,
         'patient_id_wc'  => $patient_id_wc,
         'invoice_number' => $invoice_number,
-    ] = $data;
+    ] = $data + $defaults;
 
+    $patient = null;
     if ($patient_id_cp) {
         $patient = GpPatient::find($patient_id_cp)
             ->first(['first_name', 'last_name', 'birth_date']);
