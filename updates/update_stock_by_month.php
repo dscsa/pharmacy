@@ -77,6 +77,7 @@ function update_stock_by_month($changes) {
         total_dispensed_default,
         stddev_dispensed_default,
         month_interval,
+        default_rxs_min,
 
     -- Second 'Select' Fields
 
@@ -117,8 +118,6 @@ function update_stock_by_month($changes) {
         SELECT
 
         *,
-
-        -- YIKES!!! ORDER MATTERS HERE BECAUSE OF THE INSERT
 
         -- Drugs that are recently ordered and never dispensed should not be labeled out of stock
         -- Drugs that are being dispensed but have less than 2 week of inventory on hand should be out of stock AND at least default_rxs_min/2*repack_qty
@@ -172,6 +171,8 @@ function update_stock_by_month($changes) {
 
            $default_rxs_min*COALESCE(MAX(gp_drugs.qty_repack), 135) as total_dispensed_default,
            $default_rxs_min*COALESCE(MAX(gp_drugs.qty_repack), 135)/POWER($month_interval, .5) as stddev_dispensed_default,
+
+           $default_rxs_min as default_rxs_min,
            $month_interval as month_interval
 
            FROM
