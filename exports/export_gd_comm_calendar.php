@@ -279,7 +279,7 @@ function no_transfer_out_notice($item)
 
 function transfer_requested_notice($groups)
 {
-    $subject = 'Good Pill recieved your transfer request for Order #'.$groups['ALL'][0]['invoice_number'].'.';
+    $subject = 'Good Pill received your transfer request for Order #'.$groups['ALL'][0]['invoice_number'].'.';
     $message = 'We will notify you once we have contacted your pharmacy, '.$groups['ALL'][0]['pharmacy_name'].' '.$groups['ALL'][0]['pharmacy_address'].', and let you know whether the transfer was successful or not;';
 
     $email = [ "email" => $groups['ALL'][0]['email'] ];
