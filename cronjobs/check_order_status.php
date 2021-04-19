@@ -17,9 +17,6 @@ use GoodPill\Logging\GPLog;
 $three_days_ago = Carbon::now()->subDays(3)->toDateTimeString();
 $thirty_days_ago = Carbon::now()->subDays(30)->toDateTimeString();
 
-
-echo "Three Days Ago: $three_days_ago";
-
 $shipped_orders = GpOrder::where('order_status', 'Shipped')
     ->whereNull('tracking_number')
     ->where('order_date_shipped', '<=', $three_days_ago)->get();
@@ -64,7 +61,6 @@ if ($dispensed_orders->count() > 0) {
     foreach ($dispensed_orders as $order) {
         $dispensed_body .= $order['invoice_number'].'<br>';
     }
-    echo $dispensed_body;
 
     $salesforce = [
         "subject"   => $dispensed_subject,
