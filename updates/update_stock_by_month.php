@@ -51,9 +51,44 @@ function update_stock_by_month($changes) {
     INSERT INTO gp_stock_live
     SELECT
 
-      * ,
+    -- First 'Select' Fields
+        drug_generic,
+        drug_brand,
+        drug_gsns,
+        message_display,
 
-      IF(
+        price_per_month,
+        drug_ordered,
+        qty_repack,
+
+        months_inventory,
+        avg_inventory,
+        last_inventory,
+
+        months_entered,
+        stddev_entered,
+        total_entered,
+
+        months_dispensed,
+
+        stddev_dispensed_actual,
+        total_dispensed_actual,
+
+        total_dispensed_default,
+        stddev_dispensed_default,
+        month_interval,
+
+    -- Second 'Select' Fields
+
+        last_inv_low_threshold,
+        last_inv_high_threshold,
+        last_inv_onetime_threshold,
+
+        zlow_threshold,
+        zhigh_threshold,
+        zscore,
+
+    IF(
         zlow_threshold IS NULL OR zhigh_threshold IS NULL,
         'PRICE ERROR',
         IF(
@@ -61,24 +96,22 @@ function update_stock_by_month($changes) {
           IF(zscore > zhigh_threshold, 'ORDER DRUG', 'NOT OFFERED'),
 
           IF(
-            -- 2 weeks inventory is not enough for expensive meds, let's try 3 months (x6)
-            last_inventory < last_inv_low_threshold * IF(price_per_month = 20, 6, 1),
+            last_inventory < last_inv_low_threshold,
             'OUT OF STOCK',
 
             IF(
               zscore < zlow_threshold,
-              IF(total_dispensed_actual > last_inventory/10 OR last_inventory < 1000, 'REFILL ONLY', 'ONE TIME'),
+              IF(total_dispensed_actual > last_inv_onetime_threshold, 'REFILL ONLY', 'ONE TIME'),
 
               IF(
-               -- 2 weeks inventory is not enough for expensive meds, let's try 3 months (x6)
-               last_inventory < last_inv_high_threshold * IF(price_per_month = 20, 6, 1) OR zscore < zhigh_threshold,
+               last_inventory < last_inv_high_threshold OR zscore < zhigh_threshold,
                 'LOW SUPPLY',
               	'HIGH SUPPLY'
               )
             )
           )
         )
-      ) as stock_level
+    ) as stock_level
 
       FROM (
         SELECT
@@ -89,11 +122,16 @@ function update_stock_by_month($changes) {
 
         -- Drugs that are recently ordered and never dispensed should not be labeled out of stock
         -- Drugs that are being dispensed but have less than 2 week of inventory on hand should be out of stock AND at least default_rxs_min/2*repack_qty
-        IF(total_dispensed_actual > 0, GREATEST(total_dispensed_actual/$month_interval/2, COALESCE(total_dispensed_default/2, 0)), 0) as last_inv_low_threshold,
+        -- 2 weeks inventory is not enough for expensive meds, let's try 6 weeks (x3)
+        IF(total_dispensed_actual > 0, GREATEST(total_dispensed_actual/month_interval/2, COALESCE(total_dispensed_default/2, 0)), 0) * IF(price_per_month = 20, 3, 1) as last_inv_low_threshold,
 
         -- if we are already dispensing, we want 4 weeks (1 month) of inventory on hand before listing high supply
         -- if we are not already dispensing, we want 2 prescriptions of inventory on hand before listing high supply
-        GREATEST(COALESCE(total_dispensed_actual/$month_interval, 0), COALESCE(total_dispensed_default, 0)) as last_inv_high_threshold,
+        -- 2 weeks inventory is not enough for expensive meds, let's try 3 months (x3)
+        GREATEST(COALESCE(total_dispensed_actual/month_interval, 0), COALESCE(total_dispensed_default, 0)) * IF(price_per_month = 20, 3, 1) as last_inv_high_threshold,
+
+        -- Let's make some 'Refill Only' medications 'One Time' fills so they don't sit on the shelf forever
+        last_inventory/10 OR last_inventory < 1000 as last_inv_onetime_threshold,
 
         -- zscore >= 0.25 -- 60% Confidence will be in stock for this 4 month interval.  Since we have inventory for previous 4 months we think the chance of stock out is about 40%^2
         -- zscore >= 0.52 -- 70% Confidence will be in stock for this 4 month interval.  Since we have inventory for previous 4 months we think the chance of stock out is about 30%^2
@@ -105,7 +143,7 @@ function update_stock_by_month($changes) {
         IF(price_per_month = 20, 2.33, IF(price_per_month = 8, 1.64, IF(price_per_month = 2, 0.52, NULL))) as zhigh_threshold,
 
         -- https://www.dummies.com/education/math/statistics/creating-a-confidence-interval-for-the-difference-of-two-means-with-known-standard-deviations/
-        (total_entered/$month_interval - COALESCE(total_dispensed_actual, total_dispensed_default)/$month_interval)/POWER(POWER(stddev_entered, 2)/$month_interval+POWER(COALESCE(stddev_dispensed_actual, stddev_dispensed_default), 2)/$month_interval, .5) as zscore
+        (total_entered/month_interval - COALESCE(total_dispensed_actual, total_dispensed_default)/month_interval)/POWER(POWER(stddev_entered, 2)/month_interval+POWER(COALESCE(stddev_dispensed_actual, stddev_dispensed_default), 2)/month_interval, .5) as zscore
 
         FROM (
           SELECT
@@ -133,7 +171,8 @@ function update_stock_by_month($changes) {
            IF(SUM(dispensed_sum) > 0, SUM(dispensed_sum), NULL) as total_dispensed_actual,
 
            $default_rxs_min*COALESCE(MAX(gp_drugs.qty_repack), 135) as total_dispensed_default,
-           $default_rxs_min*COALESCE(MAX(gp_drugs.qty_repack), 135)/POWER($month_interval, .5) as stddev_dispensed_default
+           $default_rxs_min*COALESCE(MAX(gp_drugs.qty_repack), 135)/POWER($month_interval, .5) as stddev_dispensed_default,
+           $month_interval as month_interval
 
            FROM
             gp_stock_by_month
@@ -172,6 +211,10 @@ function update_stock_by_month($changes) {
       gp_stock_by_month.total_dispensed_actual = gp_stock_live.total_dispensed_actual,
       gp_stock_by_month.total_dispensed_default = gp_stock_live.total_dispensed_default,
       gp_stock_by_month.stddev_dispensed_default = gp_stock_live.stddev_dispensed_default,
+      gp_stock_by_month.month_interval = gp_stock_live.month_interval,
+      gp_stock_by_month.last_inv_low_threshold = gp_stock_live.last_inv_low_threshold,
+      gp_stock_by_month.last_inv_high_threshold = gp_stock_live.last_inv_high_threshold,
+      gp_stock_by_month.last_inv_onetime_threshold = gp_stock_live.last_inv_onetime_threshold,
       gp_stock_by_month.zlow_threshold = gp_stock_live.zlow_threshold,
       gp_stock_by_month.zhigh_threshold = gp_stock_live.zhigh_threshold,
       gp_stock_by_month.zscore = gp_stock_live.zscore,
