@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use GoodPill\Models\GpOrder;
 use GoodPill\Logging\GPLog;
+use GoodPill\Logging\CliLog;
 use GoodPill\Models\WordPress\WpUser;
 
 // Needed for cancel_events_by_person
@@ -224,12 +225,21 @@ class GpPatient extends Model
         switch ($type) {
             case 'Autopay Reminder':
                 if ($change = 'last4') {
-                    update_last4_in_autopay_reminders(
-                        $this->first_name,
-                        $this->last_name,
-                        $this->birth_date,
-                        $value
-                    );
+                    if (!defined('DEBUG_CODE')) {
+                        // update_last4_in_autopay_reminders(
+                        //     $this->first_name,
+                        //     $this->last_name,
+                        //     $this->birth_date,
+                        //     $value
+                        // );
+                    } else {
+                        CliLog::info("update_last4_in_autopay_reminders(
+                            {$this->first_name},
+                            {$this->last_name},
+                            {$this->birth_date},
+                            {$value}
+                        )");
+                    }
                 }
                 break;
         }
@@ -240,15 +250,25 @@ class GpPatient extends Model
      * @param  array  $events The type of events to Cancel
      * @return void
      */
-    public function cancelEvents(?array $events = [])
+    public function cancelEvents(?array $events = []) : void
     {
-        return cancel_events_by_person(
-            $this->first_name,
-            $this->last_name,
-            $this->birth_date,
-            'Log should be above',
-            $events
-        );
+        if (!defined('DEBUG_CODE')) {
+            // cancel_events_by_person(
+            //     $this->first_name,
+            //     $this->last_name,
+            //     $this->birth_date,
+            //     'Log should be above',
+            //     $events
+            // );
+        } else {
+            CliLog::info("cancel_events_by_person(
+                {$this->first_name},
+                {$this->last_name},
+                {$this->birth_date},
+                'Log should be above',
+                {$events}
+            );");
+        }
     }
 
     /**
@@ -286,8 +306,11 @@ class GpPatient extends Model
             $this->getPatientLabel(),
             date('Y-m-d H:i:s')
         );
-
-        create_event($event_title, $event_body, $hours_to_wait);
+        if (!defined('DEBUG_CODE')) {
+            //create_event($event_title, $event_body, $hours_to_wait);
+        } else {
+            CliLog::info("create_event({$event_title}, {$event_body}, {$hours_to_wait});");
+        }
     }
 
     /**
@@ -310,7 +333,7 @@ class GpPatient extends Model
      * to identify an active, inactive or deceased user
      * @return boolean
      */
-    public function updateWcActiveStatus()
+    public function updateWcActiveStatus() : bool
     {
         GPLog::debug(
             sprintf(
@@ -333,22 +356,60 @@ class GpPatient extends Model
                 $wc_status = 'a:1:{s:8:"customer";b:1;}';
         }
 
-        $meta = $this->wcUser
-                     ->meta()
-                     ->firstOrNew(['meta_key' => 'wp_capabilities']);
-
-        $meta->meta_value = $wc_status;
-        return $meta->save();
+        return $this->updateWpMeta('wp_capabilities', $wc_status);
     }
 
-    public function deletePhoneFromCarepoint($phone_type)
+    /**
+     * Upsert a meta value in WooCommerce
+     *
+     * @param  string $key   The meta key
+     * @param  mixed  $value The value to store
+     * @return boolean
+     */
+    public function updateWpMeta(string $key, $value) : bool
+    {
+        try {
+            $meta = $this->wcUser
+                         ->meta()
+                         ->firstOrNew(['meta_key' => $key]);
+
+            $meta->meta_value = $value;
+
+            if (!defined('DEBUG_CODE')) {
+                //return $meta->save();
+            } else {
+                CliLog::info('return $meta->save();');
+                return true;
+            }
+        } catch (\Exception $e) {
+            return false;
+        }
+    }
+
+    /**
+     * Delete a phone number from Carepoint
+     *
+     * @todo this needs to be converted to OO based when a carepoint object is created
+     *
+     * @param  int $phone_type One of the applicable phone number type IDS in carepoint
+     * @return mixed
+     */
+    public function deletePhoneFromCarepoint(int $phone_type)
     {
         if ($this->exists) {
-            return delete_cp_phone(
-                new Mssql_Cp(),
-                $this->patient_id_cp,
-                $phone_type
-            );
+            if (!defined('DEBUG_CODE')) {
+                // return delete_cp_phone(
+                //     new Mssql_Cp(),
+                //     $this->patient_id_cp,
+                //     $phone_type
+                // );
+            } else {
+                return CliLog::info("return delete_cp_phone(
+                    new Mssql_Cp(),
+                    {$this->patient_id_cp},
+                    {$phone_type}
+                );");
+            }
         }
 
         return null;
@@ -376,11 +437,19 @@ class GpPatient extends Model
     public function getLegacyPatient($overwrite_rx_messages = false)
     {
         if ($this->exists) {
-            return load_full_patient(
-                ['patient_id_cp' => $this->patient_id_cp],
-                (new \Mysql_Wc()),
-                $overwrite_rx_messages
-            );
+            if (!defined('DEBUG_CODE')) {
+                // return load_full_patient(
+                //     ['patient_id_cp' => $this->patient_id_cp],
+                //     (new \Mysql_Wc()),
+                //     $overwrite_rx_messages
+                // );
+            } else {
+                return CliLog::info("return load_full_patient(
+                    ['patient_id_cp' => {$this->patient_id_cp}],
+                    (new \Mysql_Wc()),
+                    {$overwrite_rx_messages}
+                );");
+            }
         }
 
         return null;

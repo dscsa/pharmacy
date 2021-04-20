@@ -82,7 +82,7 @@ trait ChangeableTrait
             return false;
         }
 
-        return $this->gp_changes[$field] != $this->gp_changes["old_{$field}"];
+        return $this->gp_changes[$field] !== $this->gp_changes["old_{$field}"];
     }
 
     /**
@@ -105,7 +105,7 @@ trait ChangeableTrait
         );
 
         foreach ($field_keys as $key) {
-            if ($this->hasChanged($key)) {
+            if ($this->hasFieldChanged($key)) {
                 $changed_fields[] = $key;
             }
         }
@@ -131,5 +131,22 @@ trait ChangeableTrait
     public function newValue(string $field)
     {
         return $this->gp_changes[$field];
+    }
+
+    /**
+     * Get the changes formatted as a list of chagnes with $old_value >>> $new_value
+     * @return array
+     */
+    public function getChangeStrings() : array
+    {
+        $changed_fields = $this->listChangedFields();
+        $changes = [];
+        foreach ($changed_fields as $field) {
+            $old_value = (!is_null($this->oldValue($field))) ? $this->oldValue($field) : 'NULL';
+            $new_value = (!is_null($this->newValue($field))) ? $this->newValue($field) : 'NULL';
+            $changes[$field] = "'{$old_value}' >>> '{$new_value}'";
+        }
+
+        return $changes;
     }
 }
