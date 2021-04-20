@@ -226,12 +226,12 @@ class GpPatient extends Model
             case 'Autopay Reminder':
                 if ($change = 'last4') {
                     if (!defined('DEBUG_CODE')) {
-                        // update_last4_in_autopay_reminders(
-                        //     $this->first_name,
-                        //     $this->last_name,
-                        //     $this->birth_date,
-                        //     $value
-                        // );
+                        update_last4_in_autopay_reminders(
+                            $this->first_name,
+                            $this->last_name,
+                            $this->birth_date,
+                            $value
+                        );
                     } else {
                         CliLog::info("update_last4_in_autopay_reminders(
                             {$this->first_name},
@@ -253,13 +253,13 @@ class GpPatient extends Model
     public function cancelEvents(?array $events = []) : void
     {
         if (!defined('DEBUG_CODE')) {
-            // cancel_events_by_person(
-            //     $this->first_name,
-            //     $this->last_name,
-            //     $this->birth_date,
-            //     'Log should be above',
-            //     $events
-            // );
+            cancel_events_by_person(
+                $this->first_name,
+                $this->last_name,
+                $this->birth_date,
+                'Log should be above',
+                $events
+            );
         } else {
             CliLog::info("cancel_events_by_person(
                 {$this->first_name},
@@ -307,7 +307,7 @@ class GpPatient extends Model
             date('Y-m-d H:i:s')
         );
         if (!defined('DEBUG_CODE')) {
-            //create_event($event_title, $event_body, $hours_to_wait);
+            create_event($event_title, $event_body, $hours_to_wait);
         } else {
             CliLog::info("create_event({$event_title}, {$event_body}, {$hours_to_wait});");
         }
@@ -376,7 +376,7 @@ class GpPatient extends Model
             $meta->meta_value = $value;
 
             if (!defined('DEBUG_CODE')) {
-                //return $meta->save();
+                return $meta->save();
             } else {
                 CliLog::info('return $meta->save();');
                 return true;
@@ -398,11 +398,11 @@ class GpPatient extends Model
     {
         if ($this->exists) {
             if (!defined('DEBUG_CODE')) {
-                // return delete_cp_phone(
-                //     new Mssql_Cp(),
-                //     $this->patient_id_cp,
-                //     $phone_type
-                // );
+                return delete_cp_phone(
+                    new Mssql_Cp(),
+                    $this->patient_id_cp,
+                    $phone_type
+                );
             } else {
                 return CliLog::info("return delete_cp_phone(
                     new Mssql_Cp(),
@@ -438,11 +438,11 @@ class GpPatient extends Model
     {
         if ($this->exists) {
             if (!defined('DEBUG_CODE')) {
-                // return load_full_patient(
-                //     ['patient_id_cp' => $this->patient_id_cp],
-                //     (new \Mysql_Wc()),
-                //     $overwrite_rx_messages
-                // );
+                return load_full_patient(
+                    ['patient_id_cp' => $this->patient_id_cp],
+                    (new \Mysql_Wc()),
+                    $overwrite_rx_messages
+                );
             } else {
                 return CliLog::info("return load_full_patient(
                     ['patient_id_cp' => {$this->patient_id_cp}],
