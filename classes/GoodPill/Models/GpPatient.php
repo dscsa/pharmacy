@@ -196,7 +196,8 @@ class GpPatient extends Model
     /**
      * Mutators
      */
-    public function setLastName($value) {
+    public function setLastName($value)
+    {
         $this->attributes['first_name'] = strtoupper($value);
     }
 

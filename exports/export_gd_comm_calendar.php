@@ -279,7 +279,7 @@ function no_transfer_out_notice($item)
 
 function transfer_requested_notice($groups)
 {
-    $subject = 'Good Pill recieved your transfer request for Order #'.$groups['ALL'][0]['invoice_number'].'.';
+    $subject = 'Good Pill received your transfer request for Order #'.$groups['ALL'][0]['invoice_number'].'.';
     $message = 'We will notify you once we have contacted your pharmacy, '.$groups['ALL'][0]['pharmacy_name'].' '.$groups['ALL'][0]['pharmacy_address'].', and let you know whether the transfer was successful or not;';
 
     $email = [ "email" => $groups['ALL'][0]['email'] ];
@@ -542,9 +542,9 @@ function no_rx_notice($partial, $groups)
     : "We haven't gotten any Rxs from your doctor yet but will notify you as soon as we do.";
 
     $email = [ "email" => DEBUG_EMAIL]; //$groups['ALL'][0]['email'] ];
-  $text  = [ "sms"   => DEBUG_SMS, "message" => $subject.'. '.$message ]; //get_phones($groups['ALL'])
+    $text  = [ "sms"   => DEBUG_PHONE, "message" => $subject.'. '.$message ]; //get_phones($groups['ALL'])
 
-  $email['subject'] = $subject;
+    $email['subject'] = $subject;
     $email['message']  = implode('<br>', [
     'Hello,',
     '',
@@ -635,15 +635,8 @@ function order_rescheduled_notice($partial, $groups)
     $message            = "<u>Good Pill is NOT filling:</u><br>\n{$cancelled_string};<br>\n";
     $message           .= "<u>Good Pill has rescheduled:</u><br>\n{$rescheduled_string}";
     $message           .= "<br><br>\n\nIf you believe this change was in error, call us (888) 987-5187";
-    // $email              = [ "email" => $groups['ALL'][0]['email']];
-    // $text               = [
-    //     "sms"   => get_phones($groups['ALL']),
-    //     "message" => $subject.'. '.$message
-    // ];
-
-    // TODO remove DEBUG
-    $email = DEBUG_EMAIL;
-    $text  = DEBUG_SMS;
+    $email = [ "email" => DEBUG_EMAIL]; //$groups['ALL'][0]['email'] ];
+    $text  = [ "sms"   => DEBUG_PHONE, "message" => $subject.'. '.$message ]; //get_phones($groups['ALL'])
 
     $email['subject'] = $subject;
     $email['message'] = implode("<br>\n", [
