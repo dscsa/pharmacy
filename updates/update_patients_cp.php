@@ -30,7 +30,6 @@ function update_patients_cp(array $changes) : void
             0
         ) == 0
     ) {
-        echo "No changes";
         return;
     }
 

@@ -150,10 +150,10 @@ class GpOrder extends Model
         'order_note'
     ];
 
-    /**
-     * Get a patient based on the patient_id_cp
+    /*
      *
-     * @return \GoodPill\Models\GpPatient|null
+     * Relationships
+     *
      */
     public function patient()
     {
@@ -180,16 +180,5 @@ class GpOrder extends Model
         }
 
         return null;
-    }
-
-    /**
-     * Relationship to a patient entity
-     * foreignKey - patient_id_cp
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
-     */
-    public function patient()
-    {
-        return $this->belongsTo(GpPatient::class, 'patient_id_cp');
     }
 }
