@@ -764,16 +764,17 @@ function days_default($days_left_in_refills, $days_left_in_stock, $days_default,
 //tell them it is out of stock just because the sig changed
 function is_refill($item1, $patient_or_order)
 {
-    $refill_date_first = null;
     foreach ($patient_or_order as $item2) {
-        if ($item1['drug_generic'] == $item2['drug_generic']) {
-            $refill_date_first = $refill_date_first ?: $item2['refill_date_first'];
+        if (
+            $item1['drug_generic'] == $item2['drug_generic']
+            && @$item2['refill_date_first']
+        ) {
+            return true;
         }
     }
 
-    return !!$refill_date_first;
+    return false;
 }
-
 
 //Don't sync if an order with these instructions already exists in order
 function is_duplicate_gsn($item1, $patient_or_order)

@@ -213,9 +213,11 @@ class GPLog
                 $rx_number = $possible['rx_number'];
             }
 
-            if (isset($invoice_number)
+            if (
+                isset($invoice_number)
                 && isset($patient_id_cp)
-                && isset($patient_id_wc)) {
+                && isset($patient_id_wc)
+            ) {
                 break;
             }
         }
@@ -271,9 +273,11 @@ class GPLog
             ];
         }
 
-        if (!isset($first_name)
+        if (
+            !isset($first_name)
             || !isset($last_name)
-            || !isset($birth_date)) {
+            || !isset($birth_date)
+        ) {
             if (isset($patient_id_cp)) {
                 $patient = getPatientByCpId($patient_id_cp);
             } elseif (isset($patient_id_wc)) {
