@@ -244,21 +244,48 @@ function match_patient($patient_id_cp, $patient_id_wc, $force_match = false)
 
     // See if there is already a patient with the cp_id in WooCommerce.
     // If there is, we need to log an alert and skip this step.
-    // Update the patientes table
+    // Update the patients table
     $patient_match = is_patient_matched_in_wc($patient_id_cp);
+
 
     if ($patient_match && @$patient_match['patient_id_wc'] != $patient_id_wc) {
         // If we are forcing this match, delete the other meta and log it
         if ($force_match) {
-            $mysql = GoodPill\Storage\Goodpill::getConnection();
-            $pdo   = $mysql->prepare(
-                "DELETE
-                     FROM wp_usermeta
-                     WHERE meta_key = 'patient_id_cp'
-                        AND meta_value = :patient_id_cp"
+            //  Add the old patient_id_cp
+            wc_upsert_patient_meta(
+                $mysql,
+                $patient_id_wc,
+                'old_patient_id_cp',
+                $patient_id_cp
             );
-            $pdo->bindValue(':patient_id_cp', $patient_id_cp, \PDO::PARAM_INT);
-            $pdo->execute();
+
+            //  Update the current patient_id_cp to the new value
+            wc_upsert_patient_meta(
+                $mysql,
+                $patient_id_wc,
+                'patient_id_cp',
+                $patient_match['patient_id_cp']
+            );
+
+            $subject = "Forced Patient Match";
+            $body = "patient_id_cp $patient_id_cp was updated to {$patient_match['patient_id_cp']}. Are there any invoices that need to be updated?";
+            $salesforce = [
+                "subject"   => $subject,
+                "body"      => $body,
+                "assign_to" => '.Testing',
+            ];
+
+            $message_as_string = implode('_', $salesforce);
+            $notification = new \GoodPill\Notifications\Salesforce(sha1($message_as_string), $message_as_string);
+
+            if (!$notification->isSent()) {
+                GPLog::debug($subject, ['body' => $body]);
+
+                create_event($body, [$salesforce]);
+            } else {
+                GPLog::warning("DUPLICATE Saleforce Message".$subject, ['body' => $body]);
+            }
+
         } else {
             return GPLog::critical(
                 "Attempted to match a CP patient that was already matched in WC meta",
@@ -272,6 +299,7 @@ function match_patient($patient_id_cp, $patient_id_wc, $force_match = false)
     }
 
     if (!$patient_match || $force_match) {
+
         $sql = "UPDATE
           gp_patients
         SET
@@ -297,7 +325,7 @@ function match_patient($patient_id_cp, $patient_id_wc, $force_match = false)
             ]
         );
 
-        // Insert the patient_id_cp if it deosnt' already exist
+        // Insert the patient_id_cp if it doesn't already exist
         wc_upsert_patient_meta(
             $mysql,
             $patient_id_wc,
