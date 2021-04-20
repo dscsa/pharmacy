@@ -23,6 +23,7 @@ class ComposerStaticInit54659efd329fa3a958f5cddec29d1420
         '60799491728b879e74601d83e38b2cad' => __DIR__ . '/..' . '/illuminate/collections/helpers.php',
         'a1105708a18b76903365ca1c4aa61b02' => __DIR__ . '/..' . '/symfony/translation/Resources/functions.php',
         '72579e7bd17821bb1321b87411366eae' => __DIR__ . '/..' . '/illuminate/support/helpers.php',
+        'be01b9b16925dcb22165c40b46681ac6' => __DIR__ . '/..' . '/wp-cli/php-cli-tools/lib/cli/cli.php',
     );
 
     public static $prefixLengthsPsr4 = array (
@@ -297,6 +298,13 @@ class ComposerStaticInit54659efd329fa3a958f5cddec29d1420
     );
 
     public static $prefixesPsr0 = array (
+        'c' => 
+        array (
+            'cli' => 
+            array (
+                0 => __DIR__ . '/..' . '/wp-cli/php-cli-tools/lib',
+            ),
+        ),
         'R' => 
         array (
             'Rize\\UriTemplate' => 
