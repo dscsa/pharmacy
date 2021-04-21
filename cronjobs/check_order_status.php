@@ -27,6 +27,15 @@ $dispensed_orders = GpOrder::where('order_status', 'Dispensed')
     ->get(['invoice_number']);
 
 
+echo "Running check_order_status cron \n";
+
+$count_shipped_orders = $shipped_orders->count();
+$count_dispensed_orders = $dispensed_orders->count();
+
+echo "There are $count_shipped_orders orders that need tracking numbers \n";
+echo "There are $count_dispensed_orders orders that are dispensed but not shipped \n";
+
+
 if ($shipped_orders->count() > 0) {
     $shipped_subject = 'Orders Shipped Missing Tracking Numbers';
     $shipped_body = 'The following orders are to be shipped but are missing tracking numbers after 3 days<br>';
@@ -81,3 +90,4 @@ if ($dispensed_orders->count() > 0) {
 
     $notification->increment();
 }
+echo "Finished check_order_status cron";
