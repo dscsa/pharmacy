@@ -199,7 +199,7 @@ class GpPatient extends Model
      */
     public function setLastName($value)
     {
-        $this->attributes['first_name'] = strtoupper($value);
+        $this->attributes['last_name'] = strtoupper($value);
     }
 
     /**
