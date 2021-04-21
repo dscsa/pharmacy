@@ -66,11 +66,15 @@ function get_full_order($mysql, $invoice_number) {
 
   $order = $mysql->run($sql.$where)[0];
 
+  GPLog::debug('data-get-full-order: Order prior to add_full_fields with where', ['order' => $order]);
+
   if ($order AND @$order[0]['invoice_number'])
     return $order;
 
   // Just get the order regardless of old Rx
   $order = $mysql->run($sql)[0];
+
+  GPLog::debug('data-get-full-order: Order prior to add_full_fields without where', ['order' => $order]);
 
   if ($order AND @$order[0]['invoice_number'])
     return $order;

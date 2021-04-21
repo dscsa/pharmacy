@@ -289,7 +289,8 @@ function order_rescheduled_event(
         [
             'Order Created',
             'Order Updated',
-            'Order Dispensed'
+            'Order Dispensed',
+            'Order Rescheduled'
         ]
     );
 

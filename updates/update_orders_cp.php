@@ -269,12 +269,14 @@ function cp_order_created(array $created) : ?array
             GPLog::critical(
                 "update_orders_cp: created. canceling order, but is their a manually added item that we should keep?",
                 [
-                    'invoice_number'  => $order[0]['invoice_number'],
-                    'count_filled'    => $order[0]['count_filled'],
-                    'count_items'     => $order[0]['count_items'],
-                    'count_to_add'    => $order[0]['count_to_add'],
-                    'count_to_remove' => $order[0]['count_to_remove'],
-                    'order'           => $order
+                    'invoice_number'           => $order[0]['invoice_number'],
+                    'count_filled'             => $order[0]['count_filled'],
+                    'count_items'              => $order[0]['count_items'],
+                    'count_to_add'             => $order[0]['count_to_add'],
+                    'count_to_remove'          => $order[0]['count_to_remove'],
+                    'count_duplicates_removed' => $order[0]['count_duplicates_removed'],
+                    'order_status'             => $order[0]['order_status'],
+                    'order'                    => $order
                 ]
             );
         }

@@ -275,9 +275,10 @@ function order_item_deleted(array $deleted, array &$orders_updated) : ?array
     //      but the rx is autofill
     //          and there are refills left
     if (
-            is_null($item['refill_date_next'])
+            is_null($item['refill_date_default'])
             && @$item['rx_autofill']
             && $item['refills_total'] > 0
+            && (is_null($item['refill_date_manual']) || strtotime($item['refill_date_manual']) < time())
             && $item['refill_date_first'] //KW feedback that false positives for new drugs that are about to be transferred out
     ) {
         $salesforce = [
@@ -289,7 +290,7 @@ function order_item_deleted(array $deleted, array &$orders_updated) : ?array
                             should not be included in the order.",
             "contact"   => "{$item['first_name']} {$item['last_name']} {$item['birth_date']}",
             "assign_to" => ".Inventory Issue",
-            "due_date"  => substr(get_start_time($hours_to_wait[3], $hour_of_day[3]), 0, 10)
+            "due_date"  => date('Y-m-d')
          ];
 
          $patient_label = get_patient_label($item);
@@ -375,7 +376,7 @@ function order_item_updated(array $updated) : ?array
     }
 
 
-    if ($item['qty_dispensed_default']) {
+    if ($item['qty_dispensed_actual']) {
         GPLog::debug("Freezing Item because it's dispensed and updated", $item);
 
         $item = set_item_invoice_data($item, $mysql);

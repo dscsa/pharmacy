@@ -9,6 +9,17 @@ namespace Goodpill\Models;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
+use GoodPill\Models\GpOrder;
+use GoodPill\Logging\GPLog;
+use GoodPill\Logging\CliLog;
+use GoodPill\Models\WordPress\WpUser;
+
+// Needed for cancel_events_by_person
+require_once "helpers/helper_calendar.php";
+require_once "helpers/helper_full_patient.php";
+require_once "exports/export_cp_patients.php";
+require_once "dbs/mssql_cp.php";
+require_once "dbs/mysql_wc.php";
 
 /**
  * Class GpPatient
@@ -65,75 +76,131 @@ use Illuminate\Support\Facades\DB;
  */
 class GpPatient extends Model
 {
-	protected $table = 'gp_patients';
-	protected $primaryKey = 'patient_id_cp';
-	public $incrementing = false;
-	public $timestamps = false;
+    // Used the changable to track changes from the system
+    use \GoodPill\Models\ChangeableTrait;
 
-	protected $casts = [
-		'patient_id_cp' => 'int',
-		'patient_id_wc' => 'int',
-		'patient_autofill' => 'int',
-		'refills_used' => 'float'
-	];
+    /**
+     * The Table for this data
+     * @var string
+     */
+    protected $table = 'gp_patients';
 
-	protected $dates = [
-		'birth_date',
-		'payment_card_date_expired',
-		'patient_date_added',
-		'patient_date_registered',
-		'patient_date_changed',
-		'patient_date_updated'
-	];
+    /**
+     * The primary_key for this item
+     * @var string
+     */
+    protected $primaryKey = 'patient_id_cp';
 
-	protected $fillable = [
-		'patient_id_wc',
-		'first_name',
-		'last_name',
-		'birth_date',
-		'patient_note',
-		'phone1',
-		'phone2',
-		'email',
-		'patient_autofill',
-		'pharmacy_name',
-		'pharmacy_npi',
-		'pharmacy_fax',
-		'pharmacy_phone',
-		'pharmacy_address',
-		'payment_card_type',
-		'payment_card_last4',
-		'payment_card_date_expired',
-		'payment_method_default',
-		'payment_coupon',
-		'tracking_coupon',
-		'patient_address1',
-		'patient_address2',
-		'patient_city',
-		'patient_state',
-		'patient_zip',
-		'refills_used',
-		'language',
-		'allergies_none',
-		'allergies_cephalosporins',
-		'allergies_sulfa',
-		'allergies_aspirin',
-		'allergies_penicillin',
-		'allergies_erythromycin',
-		'allergies_codeine',
-		'allergies_nsaids',
-		'allergies_salicylates',
-		'allergies_azithromycin',
-		'allergies_amoxicillin',
-		'allergies_tetracycline',
-		'allergies_other',
-		'medications_other',
-		'patient_date_added',
-		'patient_date_registered',
-		'patient_date_changed',
-		'patient_date_updated',
-		'patient_inactive'
-	];
+    /**
+     * Does the database contining an incrementing field?
+     * @var boolean
+     */
+    public $incrementing = false;
+
+    /**
+     * Does the database contining timestamp fields
+     * @var boolean
+     */
+    public $timestamps = false;
+
+    /**
+     * Fields that should be cast when they are set
+     * @var array
+     */
+    protected $casts = [
+        'patient_id_cp'    => 'int',
+        'patient_id_wc'    => 'int',
+        'patient_autofill' => 'int',
+        'refills_used'     => 'float'
+    ];
+
+    /**
+     * Fields that hold dates
+     * @var array
+     */
+    protected $dates = [
+        'payment_card_date_expired',
+        'patient_date_added',
+        'patient_date_registered',
+        'patient_date_changed',
+        'patient_date_updated'
+    ];
+
+    /**
+     * Fields that represent database fields and
+     * can be set via the fill method
+     * @var array
+     */
+    protected $fillable = [
+        'patient_id_wc',
+        'first_name',
+        'last_name',
+        'birth_date',
+        'patient_note',
+        'phone1',
+        'phone2',
+        'email',
+        'patient_autofill',
+        'pharmacy_name',
+        'pharmacy_npi',
+        'pharmacy_fax',
+        'pharmacy_phone',
+        'pharmacy_address',
+        'payment_card_type',
+        'payment_card_last4',
+        'payment_card_date_expired',
+        'payment_method_default',
+        'payment_coupon',
+        'tracking_coupon',
+        'patient_address1',
+        'patient_address2',
+        'patient_city',
+        'patient_state',
+        'patient_zip',
+        'refills_used',
+        'language',
+        'allergies_none',
+        'allergies_cephalosporins',
+        'allergies_sulfa',
+        'allergies_aspirin',
+        'allergies_penicillin',
+        'allergies_erythromycin',
+        'allergies_codeine',
+        'allergies_nsaids',
+        'allergies_salicylates',
+        'allergies_azithromycin',
+        'allergies_amoxicillin',
+        'allergies_tetracycline',
+        'allergies_other',
+        'medications_other',
+        'patient_date_added',
+        'patient_date_registered',
+        'patient_date_changed',
+        'patient_date_updated',
+        'patient_inactive'
+    ];
+
+    /*
+     * Relationships
+     */
+    public function orders()
+    {
+        return $this->hasMany(GpOrder::class, 'patient_id_cp')
+                    ->orderBy('invoice_number', 'desc');
+    }
+
+    public function wcUser()
+    {
+        return $this->hasOne(WpUser::class, 'ID', 'patient_id_wc');
+    }
+
+    /**
+     * Mutators
+     */
+    public function setLastName($value)
+    {
+        $this->attributes['first_name'] = strtoupper($value);
+    }
 
     /**
      * Test to see if the patient has both wc and cp ids
@@ -144,5 +211,247 @@ class GpPatient extends Model
         return ($this->exists
                 && !empty($this->patient_id_cp)
                 && !empty($this->patient_id_wc));
+    }
+
+    /**
+     * Update Comm Calendar event
+     * @param  string $type   The type of event
+     * @param  string $change What we are changing
+     * @param  mixed  $value  The new value
+     * @return void
+     */
+    public function updateEvents(string $type, string $change, $value) : void
+    {
+        switch ($type) {
+            case 'Autopay Reminder':
+                if ($change = 'last4') {
+                    if (!defined('DEBUG_CODE')) {
+                        update_last4_in_autopay_reminders(
+                            $this->first_name,
+                            $this->last_name,
+                            $this->birth_date,
+                            $value
+                        );
+                    } else {
+                        CliLog::info("update_last4_in_autopay_reminders(
+                            {$this->first_name},
+                            {$this->last_name},
+                            {$this->birth_date},
+                            {$value}
+                        )");
+                    }
+                }
+                break;
+        }
+    }
+
+    /**
+     * Cancel the comm calendar events
+     * @param  array  $events The type of events to Cancel
+     * @return void
+     */
+    public function cancelEvents(?array $events = []) : void
+    {
+        if (!defined('DEBUG_CODE')) {
+            cancel_events_by_person(
+                $this->first_name,
+                $this->last_name,
+                $this->birth_date,
+                'Log should be above',
+                $events
+            );
+        } else {
+            CliLog::info("cancel_events_by_person(
+                {$this->first_name},
+                {$this->last_name},
+                {$this->birth_date},
+                'Log should be above',
+                {$events}
+            );");
+        }
+    }
+
+    /**
+     * Create a comm calendar event tied to this user
+     * @param  string  $type          The type of event
+     * @param  array   $event_body    The body of the event.  This should be a comm_array
+     * @param  integer $invoice       (Optional) The invoice Number
+     * @param  integer $hours_to_wait (Optional) How long to wait before to send it
+     * @return void
+     */
+    public function createEvent(
+        string $type,
+        array $event_body,
+        ?int $invoice = null,
+        ?float $hours_to_wait = 0
+    ) : void {
+
+        GPLog::debug(
+            sprintf(
+                "Createing an %s event for %s",
+                $type,
+                $this->getPatientLabel()
+            ),
+            [
+                'body' => $event_body,
+                'invoice_number' => $invoice_number,
+                'patient_id_cp' => $this->patient_id_cp
+            ]
+        );
+
+        $event_title = sprintf(
+            "%s %s: %s Created:%s",
+            $invoice,
+            $type,
+            $this->getPatientLabel(),
+            date('Y-m-d H:i:s')
+        );
+        if (!defined('DEBUG_CODE')) {
+            create_event($event_title, $event_body, $hours_to_wait);
+        } else {
+            CliLog::info("create_event({$event_title}, {$event_body}, {$hours_to_wait});");
+        }
+    }
+
+    /**
+     * print the patient label.
+     * @return string
+     */
+    public function getPatientLabel()
+    {
+        return sprintf(
+            "%s %s %s",
+            $this->first_name,
+            $this->last_name,
+            $this->birth_date
+        );
+    }
+
+
+    /**
+     * Update the Active status for the user.  Active status is an item that is set in woocomerce
+     * to identify an active, inactive or deceased user
+     * @return boolean
+     */
+    public function updateWcActiveStatus() : bool
+    {
+        GPLog::debug(
+            sprintf(
+                "Setting patient %s patient_inactive status to %s on WordPress User %s",
+                $this->patient_id_cp,
+                $this->patient_inactive,
+                $this->patient_id_wc
+            ),
+            ['patient_id_cp' => $this->patient_id_cp]
+        );
+
+        switch (strtolower($this->patient_inactive)) {
+            case 'inactive':
+                $wc_status = 'a:1:{s:8:"inactive";b:1;}';
+                break;
+            case 'deceased':
+                $wc_status = 'a:1:{s:8:"deceased";b:1;}';
+                break;
+            default:
+                $wc_status = 'a:1:{s:8:"customer";b:1;}';
+        }
+
+        return $this->updateWpMeta('wp_capabilities', $wc_status);
+    }
+
+    /**
+     * Upsert a meta value in WooCommerce
+     *
+     * @param  string $key   The meta key
+     * @param  mixed  $value The value to store
+     * @return boolean
+     */
+    public function updateWpMeta(string $key, $value) : bool
+    {
+        try {
+            $meta = $this->wcUser
+                         ->meta()
+                         ->firstOrNew(['meta_key' => $key]);
+
+            $meta->meta_value = $value;
+
+            if (!defined('DEBUG_CODE')) {
+                return $meta->save();
+            } else {
+                CliLog::info('return $meta->save();');
+                return true;
+            }
+        } catch (\Exception $e) {
+            return false;
+        }
+    }
+
+    /**
+     * Delete a phone number from Carepoint
+     *
+     * @todo this needs to be converted to OO based when a carepoint object is created
+     *
+     * @param  int $phone_type One of the applicable phone number type IDS in carepoint
+     * @return mixed
+     */
+    public function deletePhoneFromCarepoint(int $phone_type)
+    {
+        if ($this->exists) {
+            if (!defined('DEBUG_CODE')) {
+                return delete_cp_phone(
+                    new Mssql_Cp(),
+                    $this->patient_id_cp,
+                    $phone_type
+                );
+            } else {
+                return CliLog::info("return delete_cp_phone(
+                    new Mssql_Cp(),
+                    {$this->patient_id_cp},
+                    {$phone_type}
+                );");
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Will recalculate the RX messages.  Current does this be getting the legacy patient
+     * with overwrite set to true.  Does not return the full patient
+     *
+     * @todo Modify the logic to actually handle the individual RX without using the
+     *       legacy functions
+     *
+     * @return void
+     */
+    public function recalculateRxMessages()
+    {
+        $this->getLegacyPatient(true);
+    }
+
+    /**
+     * Get a full version of the legacy patient data structure
+     * @param  boolean $overwrite_rx_messages Should the RX messages be updated
+     * @return array
+     */
+    public function getLegacyPatient($overwrite_rx_messages = false)
+    {
+        if ($this->exists) {
+            if (!defined('DEBUG_CODE')) {
+                return load_full_patient(
+                    ['patient_id_cp' => $this->patient_id_cp],
+                    (new \Mysql_Wc()),
+                    $overwrite_rx_messages
+                );
+            } else {
+                return CliLog::info("return load_full_patient(
+                    ['patient_id_cp' => {$this->patient_id_cp}],
+                    (new \Mysql_Wc()),
+                    {$overwrite_rx_messages}
+                );");
+            }
+        }
+
+        return null;
     }
 }

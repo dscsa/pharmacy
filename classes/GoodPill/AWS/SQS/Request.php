@@ -57,6 +57,14 @@ abstract class Request
     protected $message_id;
 
     /**
+     * Don't check the properties for validity.  Set this to false for an easy
+     * way to force a message creation
+     */
+    public $check_property = true;
+
+    public $allow_duplicate = false;
+
+    /**
      * I'm not dead yet.  I feel happy.
      */
     public function __construct($initialize_date = null)
@@ -133,8 +141,8 @@ abstract class Request
             return $this->$func_name($value);
         }
 
-        // Check to see if the property is a persistable field
-        if (! in_array($property, $this->properties)) {
+        //Check to see if the property is a persistable field
+        if ($this->check_property && !in_array($property, $this->properties)) {
             throw new \Exception("{$property} not an allowed property");
         }
 
@@ -148,11 +156,10 @@ abstract class Request
      */
     public function __isset($property)
     {
-        if (in_array($property, $this->properties)) {
-            if (isset($this->data) && isset($this->data[$property])) {
-                return isset($this->data[$property]);
-            }
+        if (isset($this->data) && isset($this->data[$property])) {
+            return isset($this->data[$property]);
         }
+
         return false;
     }
 
@@ -242,7 +249,7 @@ abstract class Request
     public function fromArray($arrData)
     {
         foreach ($arrData as $strKey => $mixValue) {
-            if (! in_array($strKey, $this->properties)) {
+            if ($this->check_property && !in_array($strKey, $this->properties)) {
                 throw new \Exception("{$strKey} not an allowed property");
             }
 
@@ -270,7 +277,7 @@ abstract class Request
      */
     public function toSQS()
     {
-        if (isset($this->message_id)) {
+        if (!$this->allow_duplicate && isset($this->message_id)) {
             throw new \Exception('This message has already been sent to SQS');
         }
 
