@@ -175,7 +175,7 @@ function cp_patient_updated(array $updated) : ?array
             $gpPatient->attributesToArray()
         );
 
-        $gpPatient->setWcActiveStatus();
+        $gpPatient->updateWcActiveStatus();
     }
 
     if (
