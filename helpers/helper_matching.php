@@ -251,6 +251,20 @@ function match_patient($patient_id_cp, $patient_id_wc, $force_match = false)
     if ($patient_match && @$patient_match['patient_id_wc'] != $patient_id_wc) {
         // If we are forcing this match, delete the other meta and log it
         if ($force_match) {
+            //  A patient with a $patient_id_cp has a patient_id_wc that is not what we want.
+            //  Delete any patient_id_cp entries in the meta
+            //  Create 2 metas for the old patient_id_cp and one for the new patient_id_cp
+            //  Old patient_id_cp is from the original `$patient_match`
+            //  New patient_id_cp is the id we pass into the function `patient_id_cp`
+            $mysql = GoodPill\Storage\Goodpill::getConnection();
+            $pdo   = $mysql->prepare(
+                "DELETE
+                     FROM wp_usermeta
+                     WHERE meta_key = 'patient_id_cp'
+                        AND meta_value = :patient_id_cp");
+            $pdo->bindValue(':patient_id_cp', $patient_id_cp, \PDO::PARAM_INT);
+            $pdo->execute();
+
             //  Add the old patient_id_cp
             wc_upsert_patient_meta(
                 $mysql,
@@ -274,6 +288,9 @@ function match_patient($patient_id_cp, $patient_id_wc, $force_match = false)
                     'old_patient_id_cp' => $patient_id_cp,
                 ]
             );
+
+            //  Add more information
+            //  Get the patient's info to construct a label
             $subject = "Forced Patient Match";
             $body = "patient_id_cp {$patient_match['patient_id_cp']} was updated to $patient_id_cp. Are there any invoices that need to be updated?";
             $salesforce = [
@@ -327,7 +344,7 @@ function match_patient($patient_id_cp, $patient_id_wc, $force_match = false)
             ),
             [
                 'patient_id_cp' => $patient_id_cp,
-                'patient_id_cp' => $patient_id_wc,
+                'patient_id_wc' => $patient_id_wc,
                 'force_match'   => $force_match
             ]
         );
