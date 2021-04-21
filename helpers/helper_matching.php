@@ -256,7 +256,8 @@ function match_patient($patient_id_cp, $patient_id_wc, $force_match = false)
                 $mysql,
                 $patient_id_wc,
                 'old_patient_id_cp',
-                $patient_id_cp
+                $patient_match['patient_id_cp']
+
             );
 
             //  Update the current patient_id_cp to the new value
@@ -264,11 +265,17 @@ function match_patient($patient_id_cp, $patient_id_wc, $force_match = false)
                 $mysql,
                 $patient_id_wc,
                 'patient_id_cp',
-                $patient_match['patient_id_cp']
+                $patient_id_cp
             );
 
+            GPLog::warning("A patient CP ID was force updated from {$patient_match['patient_id_wc']} to $patient_id_cp. There may be invoices to update",
+                [
+                    'patient_id_cp' => @$patient_match['patient_id_wc'],
+                    'old_patient_id_cp' => $patient_id_cp,
+                ]
+            );
             $subject = "Forced Patient Match";
-            $body = "patient_id_cp $patient_id_cp was updated to {$patient_match['patient_id_cp']}. Are there any invoices that need to be updated?";
+            $body = "patient_id_cp {$patient_match['patient_id_cp']} was updated to $patient_id_cp. Are there any invoices that need to be updated?";
             $salesforce = [
                 "subject"   => $subject,
                 "body"      => $body,
@@ -320,7 +327,7 @@ function match_patient($patient_id_cp, $patient_id_wc, $force_match = false)
             ),
             [
                 'patient_id_cp' => $patient_id_cp,
-                'patient_id_wc' => $patient_id_wc,
+                'patient_id_cp' => $patient_id_wc,
                 'force_match'   => $force_match
             ]
         );
