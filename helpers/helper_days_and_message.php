@@ -566,10 +566,11 @@ function is_syncable($item)
  *   The item has a item_date_added and a refil_date_manual
  * @param  array  $item  The item to check
  * @return boolean
+ * NOTE: This function is not very accurate, just a heuristic right now.  We need more detailed user information in Guardian to know exactly WHO added something, not default Guardian Users (e.g HL7)
  */
 function is_added_manually($item)
 {
-    return in_array(@$item['item_added_by'], ADDED_MANUALLY) or (@$item['item_date_added'] and $item['refill_date_manual']);
+    return in_array(@$item['item_added_by'], ADDED_MANUALLY) or (@$item['item_date_added'] and $item['refill_date_manual'] and is_auto_refill($item));
 }
 /**
  * Did the item come from a webform transfer, surefill or refill
