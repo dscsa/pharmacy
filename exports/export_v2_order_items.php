@@ -1035,16 +1035,21 @@ function get_qty_needed($rows, $min_qty, $safety)
             $is_prepack    = (strlen($pend[0]['bin']) == 3);
             $is_mfg_bottle = ($pend[0]['qty']['to'] >= 60);
             $over_max      = $qty > $max_qty;
+            $min_met      = ($qty >= $min_qty);
             $unit_of_use   = ($min_qty < 5);
 
             if (
-                $left <= 0
-                and (
-                    $over_max
-                    or $different_bin
-                    or $is_prepack
-                    or $is_mfg_bottle
-                    or $unit_of_use
+                (
+                    $left <= 0
+                    && (
+                        $over_max
+                        || $different_bin
+                        || $is_prepack
+                        || $is_mfg_bottle
+                        || $unit_of_use
+                    )
+                ) || (
+                    $is_mfg_bottle && $min_met
                 )
             ) {
                 usort($list, 'sort_list');
