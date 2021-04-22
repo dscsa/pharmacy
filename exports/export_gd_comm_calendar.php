@@ -241,7 +241,7 @@ function no_transfer_out_notice($item)
 
     } else { //High Drug price that is offered but is Out of Stock or Refill Only (and patient has backup pharmacy)
 
-        $message = "Unfortunately, {$item['drug_name']} is not available for new patients at this time. We didn't transfer the prescription automatically because of its high cost. Let us know if you would like to be added to our waitlist! Being on our waitlist means that we may reach out in the future if the medication becomes available.  If you’d like to transfer your prescription to your local pharmacy, please let us know (M-F 10am-6pm) and we will be happy to transfer them. Please note your local pharmacy will charge its usual price for this prescription, not the Good Pill price";
+        $message = "Because we rely on donated medicine, we’re not able to onboard patients for {$item['drug_name']} at this time. We didn't transfer the prescription automatically because of its high cost. Let us know if you would like to be added to our waitlist! Being on our waitlist means that we may reach out in the future if the medication becomes available.  If you’d like to transfer your prescription to your local pharmacy, please let us know (M-F 10am-6pm) and we will be happy to transfer them. Please note your local pharmacy will charge its usual price for this prescription, not the Good Pill price";
 
     }
 
