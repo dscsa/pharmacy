@@ -645,13 +645,13 @@ function search_events_by_order($invoice_number, $past = false, $types = [])
     $types = implode('|', $types);
 
     $args = [
-    'method'       => 'searchCalendarEvents',
-    'cal_id'       => GD_CAL_ID,
-    'hours'        => DAYS_STD*24,
-    'past'         => $past,
-    'word_search'  => "$invoice_number",
-    'regex_search' => "/($types)/i"
-  ];
+        'method'       => 'searchCalendarEvents',
+        'cal_id'       => GD_CAL_ID,
+        'hours'        => DAYS_STD*24,
+        'past'         => $past,
+        'word_search'  => "$invoice_number",
+        'regex_search' => "/($types)/i"
+    ];
 
     $result = gdoc_post(GD_HELPER_URL, $args);
 
