@@ -1021,6 +1021,7 @@ function get_qty_needed($rows, $min_qty, $safety)
                 $left -= $pend[0]['qty']['to'] * $usable;
                 $list = pend_to_list($list, $pend);
             }
+
             /*
                 Shop for all matching medicine in the bin, its annoying and inefficient to pick some
                  and leave the others
@@ -1037,6 +1038,34 @@ function get_qty_needed($rows, $min_qty, $safety)
             $over_max      = $qty > $max_qty;
             $min_met      = ($qty >= $min_qty);
             $unit_of_use   = ($min_qty < 5);
+
+            GPLog::debug(
+                "get_qty_needed;  {$ndc} SHOULD CONTINUE PENDING?",
+                [
+                    'left'          => $left,
+                    'over_max'      => $over_max,
+                    'different_bin' => $different_bin,
+                    'is_prepack'    => $is_prepack,
+                    'is_mfg_bottle' => $is_mfg_bottle,
+                    'unit_of_use'   => $unit_of_use,
+                    'ndc'           => $ndc,
+                    'qty'           => $qty,
+                    'min_qty'       => $min_qty,
+                    'max_qty'       => $max_qty,
+                    'min_met'       => $min_met,
+                    'stop_condition_1' => (
+                        $left <= 0
+                        && (
+                            $over_max
+                            || $different_bin
+                            || $is_prepack
+                            || $is_mfg_bottle
+                            || $unit_of_use
+                        )
+                    ),
+                    'stop_condition_2' => $is_mfg_bottle && $min_met
+                ]
+            );
 
             if (
                 (
