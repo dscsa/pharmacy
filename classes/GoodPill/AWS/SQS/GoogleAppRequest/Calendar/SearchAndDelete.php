@@ -13,12 +13,15 @@ class SearchAndDelete extends HelperRequest
         'cal_id',
         'word_search',
         'hours',
-        'regex_search'
+        'regex_search',
+        'method',
+        'type'
     ];
 
     protected $required = [
         'cal_id',
         'word_search',
+        'method'
     ];
 
     /**

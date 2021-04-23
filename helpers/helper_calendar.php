@@ -762,13 +762,15 @@ function cancel_events_by_person($first_name, $last_name, $birth_date, $caller, 
         return;
     }
 
+    $types = implode('|', $types);
+
     $search_and_delete = new SearchAndDelete();
     $search_and_delete->cal_id = GD_CAL_ID;
     $search_and_delete->hours = DAYS_STD*24;
     $search_and_delete->word_search = "{$last_name} {$birth_date}";
 
     //first name is partial which is not currently supported by gcal natively
-    $search_and_delete->regex_search = "/({$types}).+{$first}/i";
+    $search_and_delete->regex_search = "/({$types}).+{$first_name}/i";
     $search_and_delete->group_id = 'calendar-request';
 
     $gdq = new GoogleAppQueue();
@@ -779,8 +781,7 @@ function cancel_events_by_person($first_name, $last_name, $birth_date, $caller, 
 
 function cancel_events_by_order($invoice_number, $caller, $types = [])
 {
-
-    $events = search_events_by_order($invoice_number, false, $types);
+    $types = implode('|', $types);
 
     $search_and_delete = new SearchAndDelete();
     $search_and_delete->cal_id = GD_CAL_ID;
