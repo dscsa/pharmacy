@@ -292,7 +292,7 @@ function get_days_and_message($item, $patient_or_order)
     }
 
     if ($stock_level == STOCK_LEVEL['ONE TIME']) {
-        return [$days_default, RX_MESSAGE['NO ACTION FILL ONE TIME']];
+        return [0, RX_MESSAGE['NO ACTION FILL ONE TIME']]; //Replace 0 with $days_default once we figure out ONE-TIME dispensing workflow
     }
 
     if ($stock_level == STOCK_LEVEL['OUT OF STOCK']) {
