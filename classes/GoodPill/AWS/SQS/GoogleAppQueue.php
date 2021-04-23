@@ -9,6 +9,6 @@ class GoogleAppQueue extends Queue
 {
     public function __construct()
     {
-        parent::__construct("gdoc_requests_dlq.fifo");
+        parent::__construct(SQS_GDOC);
     }
 }
