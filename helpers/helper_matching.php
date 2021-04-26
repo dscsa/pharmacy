@@ -336,54 +336,45 @@ function is_patient_matched_in_wc($patient_id_cp)
 function force_match(int $patient_id_cp, int $patient_id_wc) : array
 {
     $invalidated_patients = [];
-    $metas = WpUserMeta::where('meta_key', 'patient_id_cp')->where('meta_value', $patient_id_cp)->get();
-    //  If there are meta keys found, loop through them to check that they are valid
+    $metas = WpUserMeta::where('meta_key', 'patient_id_cp')
+        ->where('meta_value', $patient_id_cp)
+        ->where('user_id', '!=', $patient_id_wc)
+        ->get();
+
     if ($metas->count() > 0)
     {
+        //  These metas are not matched to the wc id we want, mark those users as invalid
         $metas->each(function ($meta) use ($patient_id_wc, &$invalidated_patients) {
-            //  If the CP id is not matched to the wc id we want, mark those users as invalid
+            //  Rewrite this meta key first
+            $meta->meta_key = 'patient_id_cp_old';
+            $meta->save();
 
-            if ($meta->user_id !== $patient_id_wc) {
-                //  Rewrite this meta key first
-                $meta->meta_key = 'patient_id_cp_old';
-                $meta->save();
+            //  Find the existing patient and set them to `inactive`
+            $patient_to_invalidate = GpPatientsWc::where('patient_id_wc', $meta->user_id)->first();
 
-                //  Find the existing patient and set them to `inactive`
-                $patient_to_invalidate = GpPatientsWc::where('patient_id_wc', $meta->user_id)->first();
+            $invalidated_patients[] = [
+                'patient_id_cp' => $patient_to_invalidate->patient_id_cp,
+                'patient_id_wc' => $patient_to_invalidate->patient_id_wc,
+                'patient' => $patient_to_invalidate->getPatientLabel()
+            ];
 
-                $invalidated_patients[] = [
-                    'patient_id_cp' => $patient_to_invalidate->patient_id_cp,
-                    'patient_id_wc' => $patient_to_invalidate->patient_id_wc,
-                    'patient' => $patient_to_invalidate->getPatientLabel()
-                ];
+            $patient_to_invalidate->patient_inactive = 'Inactive';
+            $patient_to_invalidate->save();
 
-                $patient_to_invalidate->patient_inactive = 'Inactive';
-                $patient_to_invalidate->save();
-                //$patient_to_mark->updateWcActiveStatus();
+            //  This should be used for updating the active status?
+            //$patient_to_mark->updateWcActiveStatus();
 
-            }
         });
     }
-    //  Check to see if there were no meta keys and none of the returned keys match the cp_id we want to set
-    //  Insert the patient_id_cp into the meta table
 
-    if (
-        $metas
-            ->where('meta_key', 'patient_id_cp')
-            ->where('meta_value', $patient_id_cp)
-            ->where('user_id', $patient_id_wc)
-            ->count() === 0 ||
-        $metas->count() === 0
-    )
-    {
+    //  Check for the patient_id_cp or insert it into the meta table
+    WpUserMeta::firstOrCreate([
+        'user_id'    => $patient_id_wc,
+        'meta_key'   => 'patient_id_cp',
+        'meta_value' => $patient_id_cp,
+    ]);
 
-        WpUserMeta::create([
-            'user_id'    => $patient_id_wc,
-            'meta_key'   => 'patient_id_cp',
-            'meta_value' => $patient_id_cp,
-        ]);
 
-    }
     //  Doing a mass update could create an issue where two records get the same patient_id_cp primary key
     //  Instead opting to grab the first record returned and update that
 
