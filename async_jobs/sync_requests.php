@@ -184,11 +184,11 @@ for ($l = 0; $l < $executions; $l++) {
                     case 'stock_by_month':
                         update_stock_by_month($changes);
                         break;
-
+                        
+                    case 'order_items':
                     case 'rxs_single':
                         // This is an expensive operation, So instead of breaking it into one per
                         // rx, we are going to split all the users
-
 
                         // Order them by patient_id_cp
                         $grouped_changes = [];
@@ -229,7 +229,6 @@ for ($l = 0; $l < $executions; $l++) {
                     case 'patients_wc':
                     case 'orders_cp':
                     case 'orders_wc':
-                    case 'order_items':
                         foreach (array_keys($request->changes) as $change_type) {
                             foreach($request->changes[$change_type] as $changes) {
                                 $new_request = get_sync_request_single($request->changes_to, $change_type, $changes, $request->execution_id);
