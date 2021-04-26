@@ -6,6 +6,8 @@ use GoodPill\Logging\GPLog;
 use GoodPill\Logging\AuditLog;
 use GoodPill\Logging\CliLog;
 use GoodPill\Models\GpPatient;
+use Goodpill\Models\GpPatientsWc;
+use GoodPill\Models\WordPress\WpUserMeta;
 
 
 //TODO Implement Full Matching Algorithm that's in Salesforce and CP's SP
@@ -236,123 +238,60 @@ function find_patient($mysql, $patient, $table = 'gp_patients')
  */
 function match_patient($patient_id_cp, $patient_id_wc, $force_match = false)
 {
-
-    $mysql = new Mysql_Wc();
-
     // See if there is already a patient with the cp_id in WooCommerce.
-    // If there is, we need to log an alert and skip this step.
-    // Update the patients table
     $patient_match = is_patient_matched_in_wc($patient_id_cp);
 
 
-    if ($patient_match && @$patient_match['patient_id_wc'] != $patient_id_wc) {
+    if ($patient_match && @$patient_match['patient_id_wc'] != $patient_id_wc && !$force_match) {
         // If we are forcing this match, delete the other meta and log it
-        if ($force_match) {
-            //  A patient with a $patient_id_cp has a patient_id_wc that is not what we want.
-            //  Delete any patient_id_cp entries in the meta
-            //  Create 2 metas for the old patient_id_cp and one for the new patient_id_cp
-            //  Old patient_id_cp is from the original `$patient_match`
-            //  New patient_id_cp is the id we pass into the function `patient_id_cp`
-            $mysql = GoodPill\Storage\Goodpill::getConnection();
-            $pdo   = $mysql->prepare(
-                "DELETE
-                     FROM wp_usermeta
-                     WHERE meta_key = 'patient_id_cp'
-                        AND meta_value = :patient_id_cp");
-            $pdo->bindValue(':patient_id_cp', $patient_id_cp, \PDO::PARAM_INT);
-            $pdo->execute();
-
-            //  Add the old patient_id_cp
-            wc_upsert_patient_meta(
-                $mysql,
-                $patient_id_wc,
-                'old_patient_id_cp',
-                $patient_match['patient_id_cp']
-
-            );
-
-            //  Update the current patient_id_cp to the new value
-            wc_upsert_patient_meta(
-                $mysql,
-                $patient_id_wc,
-                'patient_id_cp',
-                $patient_id_cp
-            );
-
-            GPLog::warning("A patient CP ID was force updated from {$patient_match['patient_id_wc']} to $patient_id_cp. There may be invoices to update",
-                [
-                    'patient_id_cp' => @$patient_match['patient_id_wc'],
-                    'old_patient_id_cp' => $patient_id_cp,
-                ]
-            );
-
-            //  Add more information
-            //  Get the patient's info to construct a label
-            $subject = "Forced Patient Match";
-            $body = "patient_id_cp {$patient_match['patient_id_cp']} was updated to $patient_id_cp. Are there any invoices that need to be updated?";
-            $salesforce = [
-                "subject"   => $subject,
-                "body"      => $body,
-                "assign_to" => '.Testing',
-            ];
-
-            $message_as_string = implode('_', $salesforce);
-            $notification = new \GoodPill\Notifications\Salesforce(sha1($message_as_string), $message_as_string);
-
-            if (!$notification->isSent()) {
-                GPLog::debug($subject, ['body' => $body]);
-
-                create_event($body, [$salesforce]);
-            } else {
-                GPLog::warning("DUPLICATE Saleforce Message".$subject, ['body' => $body]);
-            }
-
-        } else {
-            return GPLog::critical(
-                "Attempted to match a CP patient that was already matched in WC meta",
-                [
-                    'patient_id_cp' => $patient_id_cp,
-                    'proposed_patient_id_wc' => $patient_id_wc,
-                    'existing_wc_meta_patient_id' => @$patient_match['patient_id_wc']
-                ]
-            );
-        }
-    }
-
-    if (!$patient_match || $force_match) {
-
-        $sql = "UPDATE
-          gp_patients
-        SET
-          patient_id_cp = '{$patient_id_cp}',
-          patient_id_wc = '{$patient_id_wc}'
-        WHERE
-          patient_id_cp = '{$patient_id_cp}' OR
-          patient_id_wc = '{$patient_id_wc}'";
-
-        $mysql->run($sql);
-
-        GPLog::notice(
-            sprintf(
-                "Matched patient_id_cp:%s with patient_id_wc:%s %s",
-                $patient_id_cp,
-                $patient_id_wc,
-                ($force_match) ? 'WITH FORCE' : ''
-            ),
+        return GPLog::critical(
+            "Attempted to match a CP patient that was already matched in WC meta",
             [
                 'patient_id_cp' => $patient_id_cp,
-                'patient_id_wc' => $patient_id_wc,
-                'force_match'   => $force_match
+                'proposed_patient_id_wc' => $patient_id_wc,
+                'existing_wc_meta_patient_id' => @$patient_match['patient_id_wc']
             ]
         );
 
-        // Insert the patient_id_cp if it doesn't already exist
-        wc_upsert_patient_meta(
-            $mysql,
-            $patient_id_wc,
-            'patient_id_cp',
-            $patient_id_cp
+    }
+
+    if (!$patient_match || $force_match) {
+        $forced_match_data = force_match($patient_id_cp, $patient_id_wc);
+
+        GPLog::warning(
+            "{$forced_match_data['patient_label']} was force updated with patient_id_cp: {$forced_match_data['patient_id_cp']} and patient_id_wc: {$forced_match_data['patient_id_wc']}. There may be invoices to update",
+            [
+                'patient_id_cp'               => @$patient_match['patient_id_wc'],
+                'old_patient_id_cp'           => $patient_id_cp,
+                'patients_marked_as_inactive' => $forced_match_data['invalidated_patients'],
+                'forced_data'                 => $forced_match_data,
+            ]
         );
+
+        //  Add more information
+        //  Get the patient's info to construct a label
+        $subject = "Forced Patient Match";
+        $body = "{$forced_match_data['patient_label']} was force updated with patient_id_cp: {$forced_match_data['patient_id_cp']} and patient_id_wc: {$forced_match_data['patient_id_wc']}. There may be invoices to update";
+        $body .= "The patients that were marked inactive are : ";
+        foreach($forced_match_data['invalidated_patients'] as $inactive_patient) {
+            $body .= "{$inactive_patient['patient_id_wc']}, ";
+        }
+        $salesforce = [
+            "subject"   => $subject,
+            "body"      => $body,
+            "assign_to" => '.Testing',
+        ];
+
+        $message_as_string = implode('_', $salesforce);
+        $notification = new \GoodPill\Notifications\Salesforce(sha1($message_as_string), $message_as_string);
+
+        if (!$notification->isSent()) {
+            GPLog::debug($subject, ['body' => $body]);
+
+            create_event($body, [$salesforce]);
+        } else {
+            GPLog::warning("DUPLICATE Saleforce Message".$subject, ['body' => $body]);
+        }
     }
 }
 
@@ -383,4 +322,85 @@ function is_patient_matched_in_wc($patient_id_cp)
     }
 
     return false;
+}
+
+/**
+ * Force updates a patient to specified cp and wc id
+ * Will find any invalid meta keys and mark those users as invalid
+ * Will insert a `patient_id_cp` meta key for the user if one cannot be found
+ *
+ * @param int $patient_id_cp
+ * @param int $patient_id_wc
+ * @return array
+ */
+function force_match(int $patient_id_cp, int $patient_id_wc) : array
+{
+    $invalidated_patients = [];
+    $metas = WpUserMeta::where('meta_key', 'patient_id_cp')->where('meta_value', $patient_id_cp)->get();
+    //  If there are meta keys found, loop through them to check that they are valid
+    if ($metas->count() > 0)
+    {
+        $metas->each(function ($meta) use ($patient_id_wc, &$invalidated_patients) {
+            //  If the CP id is not matched to the wc id we want, mark those users as invalid
+
+            if ($meta->user_id !== $patient_id_wc) {
+                //  Rewrite this meta key first
+                $meta->meta_key = 'patient_id_cp_old';
+                $meta->save();
+
+                //  Find the existing patient and set them to `inactive`
+                $patient_to_invalidate = GpPatientsWc::where('patient_id_wc', $meta->user_id)->first();
+
+                $invalidated_patients[] = [
+                    'patient_id_cp' => $patient_to_invalidate->patient_id_cp,
+                    'patient_id_wc' => $patient_to_invalidate->patient_id_wc,
+                    'patient' => $patient_to_invalidate->getPatientLabel()
+                ];
+
+                $patient_to_invalidate->patient_inactive = 'Inactive';
+                $patient_to_invalidate->save();
+                //$patient_to_mark->updateWcActiveStatus();
+
+            }
+        });
+    }
+    //  Check to see if there were no meta keys and none of the returned keys match the cp_id we want to set
+    //  Insert the patient_id_cp into the meta table
+
+    if (
+        $metas
+            ->where('meta_key', 'patient_id_cp')
+            ->where('meta_value', $patient_id_cp)
+            ->where('user_id', $patient_id_wc)
+            ->count() === 0 ||
+        $metas->count() === 0
+    )
+    {
+
+        WpUserMeta::create([
+            'user_id'    => $patient_id_wc,
+            'meta_key'   => 'patient_id_cp',
+            'meta_value' => $patient_id_cp,
+        ]);
+
+    }
+    //  Doing a mass update could create an issue where two records get the same patient_id_cp primary key
+    //  Instead opting to grab the first record returned and update that
+
+    $patient_to_update = GpPatient::where('patient_id_cp', $patient_id_cp)
+        ->orWhere('patient_id_wc', $patient_id_wc)
+        ->first();
+
+    $patient_to_update->patient_id_cp = $patient_id_cp;
+    $patient_to_update->patient_id_wc = $patient_id_wc;
+    $patient_to_update->save();
+
+
+    return [
+        'patient_label' => $patient_to_update->getPatientLabel(),
+        'patient_id_cp' => $patient_to_update->patient_id_cp,
+        'patient_id_wc' => $patient_to_update->patient_id_wc,
+        'invalidated_patients' => $invalidated_patients,
+    ];
+
 }

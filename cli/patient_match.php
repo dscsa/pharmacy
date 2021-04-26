@@ -18,24 +18,6 @@ require_once 'helpers/helper_full_patient.php';
 require_once 'helpers/helper_matching.php';
 require_once 'keys.php';
 
-error_reporting(E_ERROR);
-
-function special_match($patient_id_cp, $patient_id_wc, $force_match = false) {
-    $patient_match = is_patient_matched_in_wc($patient_id_cp);
-    print_r($patient_match);
-
-    if ($patient_match && @$patient_match['patient_id_wc'] != $patient_id_wc) {
-        if ($force_match) {
-            echo "We must force \n";
-            $patient = GpPatient::find($patient_id_cp);
-            $old_patient = GpPatient::find($patient_match['$patient_id_cp']);
-
-            echo "$patient->last_name \n";
-            echo "$old_patient->last_name \n";
-        }
-    }
-}
-
 
 function printHelp() {
     echo <<<EOF
@@ -49,7 +31,7 @@ EOF;
 
 $args   = getopt("c:w:h", array());
 
-if (!args['c'] || !$args['w']) {
+if (!$args['c'] || !$args['w']) {
     echo "You must enter a carepoint and woo commerce id\n";
     return;
 }
@@ -58,10 +40,9 @@ if (isset($args['h'])) {
 }
 echo "Start Patient Update \n";
 
-//special_match($args['c'], $args['w'], true);
+$results = force_match($args['c'], $args['w']);
 
-$data = is_patient_matched_in_wc($args['c']);
-print_r($data);
-echo "patient_id_cp:{$args['c']}, patient_id_wc:{$args['w']} was successfully updated \n";
+echo "Start Patient Update \n";
+print_r($results);
 
 

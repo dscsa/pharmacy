@@ -4,11 +4,13 @@
  * Created by Reliese Model.
  */
 
-namespace App\Models;
+namespace Goodpill\Models;
 
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 
+require_once "dbs/mssql_cp.php";
+require_once "dbs/mysql_wc.php";
 /**
  * Class GpPatientsWc
  * 
@@ -122,4 +124,18 @@ class GpPatientsWc extends Model
 		'patient_date_updated',
 		'patient_inactive'
 	];
+
+    /**
+     * print the patient label.
+     * @return string
+     */
+    public function getPatientLabel()
+    {
+        return sprintf(
+            "%s %s %s",
+            $this->first_name,
+            $this->last_name,
+            $this->birth_date
+        );
+    }
 }

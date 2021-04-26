@@ -8,6 +8,8 @@ namespace GoodPill\Models\WordPress;
 
 use Illuminate\Database\Eloquent\Model;
 
+require_once "dbs/mssql_cp.php";
+require_once "dbs/mysql_wc.php";
 /**
  * Class WpUsermetum
  *
