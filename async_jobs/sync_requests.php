@@ -171,6 +171,10 @@ for ($l = 0; $l < $executions; $l++) {
                 GPLog::$exec_id = $request->execution_id;
             }
 
+            if (isset($request->subroutine_id)) {
+                GPLog::$subroutine_id = $request->subroutine_id;
+            }
+
             GPLog::notice(
                 $log_message,
                 ['changes_to' => $request->changes_to, 'change' => $changes]
@@ -184,7 +188,7 @@ for ($l = 0; $l < $executions; $l++) {
                     case 'stock_by_month':
                         update_stock_by_month($changes);
                         break;
-                        
+
                     case 'order_items':
                     case 'rxs_single':
                         // This is an expensive operation, So instead of breaking it into one per

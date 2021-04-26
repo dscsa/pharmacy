@@ -169,6 +169,10 @@ for ($l = 0; $l < $executions; $l++) {
                 GPLog::$exec_id = $request->execution_id;
             }
 
+            if (isset($request->subroutine_id)) {
+                GPLog::$subroutine_id = $request->subroutine_id;
+            }
+
             GPLog::debug($log_message, $changes);
             CliLog::notice($log_message, $changes);
 

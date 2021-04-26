@@ -68,6 +68,10 @@ for ($l = 0; $l < $executions; $l++) {
                 GPLog::$exec_id = $request->execution_id;
             }
 
+            if (isset($request->subroutine_id)) {
+                GPLog::$subroutine_id = $request->subroutine_id;
+            }
+
             // Figure out the type of message
             if ($request instanceof HelperRequest) {
                 $url = GD_HELPER_URL;
