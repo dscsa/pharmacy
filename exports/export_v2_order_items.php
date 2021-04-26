@@ -1049,7 +1049,7 @@ function get_qty_needed($rows, $min_qty, $safety)
             ) {
                 usort($list, 'sort_list');
 
-                if (($min_qty/$max_qty) >= 2) {
+                if (($qty/$min_qty) >= 2) {
                     GPLog::critical(
                         'get_qty_needed;  Pended Quantity > 2x the requested quantity.
                         Verify picked items are correct.  After we have confirmed the qty
