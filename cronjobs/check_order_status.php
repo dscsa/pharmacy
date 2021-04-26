@@ -11,6 +11,7 @@ require_once 'keys.php';
 use Carbon\Carbon;
 use GoodPill\Models\GpOrder;
 use GoodPill\Logging\GPLog;
+use GoodPill\Logging\CliLog;
 
 //  @TODO - Confirm salesforce format for message
 
@@ -26,15 +27,14 @@ $dispensed_orders = GpOrder::where('order_status', 'Dispensed')
     ->where('order_date_dispensed', '>', $thirty_days_ago)
     ->get(['invoice_number']);
 
-
+CliLog::notice('Running check_order_status cron');
 echo "Running check_order_status cron \n";
 
 $count_shipped_orders = $shipped_orders->count();
 $count_dispensed_orders = $dispensed_orders->count();
 
-echo "There are $count_shipped_orders orders that need tracking numbers \n";
-echo "There are $count_dispensed_orders orders that are dispensed but not shipped \n";
-
+CliLog::notice("There are $count_shipped_orders orders that need tracking numbers");
+CliLog::notice("There are $count_dispensed_orders orders that are dispensed but not shipped");
 
 if ($shipped_orders->count() > 0) {
     $shipped_subject = 'Orders Shipped Missing Tracking Numbers';
@@ -51,6 +51,8 @@ if ($shipped_orders->count() > 0) {
 
     $message_as_string = implode('_', $salesforce);
     $notification = new \GoodPill\Notifications\Salesforce(sha1($message_as_string), $message_as_string);
+    CliLog::notice("Send debug message for shipped order");
+
     echo sprintf("%s - Send debug message for shipped orders", date('Y-m-d h:i:s'));
 
     if (!$notification->isSent()) {
