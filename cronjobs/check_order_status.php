@@ -51,6 +51,7 @@ if ($shipped_orders->count() > 0) {
 
     $message_as_string = implode('_', $salesforce);
     $notification = new \GoodPill\Notifications\Salesforce(sha1($message_as_string), $message_as_string);
+    echo sprintf("%s - Send debug message for shipped orders", date('Y-m-d h:i:s'));
 
     if (!$notification->isSent()) {
         GPLog::debug($shipped_subject, ['body' => $shipped_body]);
@@ -79,7 +80,7 @@ if ($dispensed_orders->count() > 0) {
 
     $message_as_string = implode('_', $salesforce);
     $notification = new \GoodPill\Notifications\Salesforce(sha1($message_as_string), $message_as_string);
-
+    echo sprintf("%s - Send debug message for dispensed orders", date('Y-m-d h:i:s'));
     if (!$notification->isSent()) {
         GPLog::debug($dispensed_subject, ['body' => $dispensed_body]);
 
