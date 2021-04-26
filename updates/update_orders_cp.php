@@ -271,17 +271,19 @@ function cp_order_created(array $created) : ?array
             $order_to_find = $order[0]['invoice_number'];
             $mssql = new Mssql_Cp();
             $mssql_results = $mssql->run("
-                select c.rx_id, c.add_date, c.chg_date, rx.drug_name, rx.sig_code, rx.sig_text
+                select o.liCount as item_count, c.rx_id, c.add_date, c.chg_date, rx.drug_name, rx.sig_code, rx.sig_text
                 from csomline c
                 join cprx rx on rx.rx_id = c.rx_id
-                WHERE order_id = '$order_to_find'"
+                join csom o on o.order_id = c.order_id
+                WHERE c.order_id = '$order_to_find'"
             );
 
             GPLog::critical(
                 "update_orders_cp: created. canceling order, but is their a manually added item that we should keep?",
                 [
                     'invoice_number'           => $order[0]['invoice_number'],
-                    'count_in_cp'              => count(@$mssql_results[0]),
+                    'count_items_cp'           => count(@$mssql_results[0]),
+                    'count_on_order_cp'        => @$mssql_results[0][0]['item_count'],
                     'items_in_cp'              => @$mssql_results[0],
                     'count_filled'             => $order[0]['count_filled'],
                     'count_items'              => $order[0]['count_items'],
