@@ -270,13 +270,19 @@ function cp_order_created(array $created) : ?array
             //  Check Carepoint directly to see how many items are in the order
             $order_to_find = $order[0]['invoice_number'];
             $mssql = new Mssql_Cp();
-            $mssql_results = $mssql->run("select COUNT(*) as count_items FROM csomline WHERE order_id = '{$order_to_find}'");
+            $mssql_results = $mssql->run("
+                select c.rx_id, c.add_date, c.chg_date, rx.drug_name, rx.sig_code, rx.sig_text
+                from csomline c
+                join cprx rx on rx.rx_id = c.rx_id
+                WHERE order_id = '$order_to_find'"
+            );
 
             GPLog::critical(
                 "update_orders_cp: created. canceling order, but is their a manually added item that we should keep?",
                 [
                     'invoice_number'           => $order[0]['invoice_number'],
-                    'count_in_cp'              => @$mssql_results[0][0]['count_items'],
+                    'count_in_cp'              => count(@$mssql_results[0]),
+                    'items_in_cp'              => @$mssql_results[0],
                     'count_filled'             => $order[0]['count_filled'],
                     'count_items'              => $order[0]['count_items'],
                     'count_to_add'             => $order[0]['count_to_add'],
