@@ -3,6 +3,7 @@
 use GoodPill\AWS\SQS\GoogleAppQueue;
 use GoodPill\AWS\SQS\GoogleAppRequest\Calendar\Create;
 use GoodPill\AWS\SQS\GoogleAppRequest\Calendar\Delete;
+use GoodPill\AWS\SQS\GoogleAppRequest\Calendar\SearchAndDelete;
 use GoodPill\Logging\GPLog;
 use GoodPill\Logging\AuditLog;
 use GoodPill\Logging\CliLog;
@@ -645,13 +646,13 @@ function search_events_by_order($invoice_number, $past = false, $types = [])
     $types = implode('|', $types);
 
     $args = [
-    'method'       => 'searchCalendarEvents',
-    'cal_id'       => GD_CAL_ID,
-    'hours'        => DAYS_STD*24,
-    'past'         => $past,
-    'word_search'  => "$invoice_number",
-    'regex_search' => "/($types)/i"
-  ];
+        'method'       => 'searchCalendarEvents',
+        'cal_id'       => GD_CAL_ID,
+        'hours'        => DAYS_STD*24,
+        'past'         => $past,
+        'word_search'  => "$invoice_number",
+        'regex_search' => "/($types)/i"
+      ];
 
     $result = gdoc_post(GD_HELPER_URL, $args);
 
@@ -761,81 +762,38 @@ function cancel_events_by_person($first_name, $last_name, $birth_date, $caller, 
         return;
     }
 
-    $cancel = [];
-    $titles = [];
-    $events = search_events_by_person($first_name, $last_name, $birth_date, false, $types);
+    $types = implode('|', $types);
 
-    if (! is_array($events)) {
-        $events = [];
-    }
+    $search_and_delete = new SearchAndDelete();
+    $search_and_delete->cal_id = GD_CAL_ID;
+    $search_and_delete->hours = DAYS_STD*24;
+    $search_and_delete->word_search = "{$last_name} {$birth_date}";
 
-    foreach ($events as $event) {
-        $cancel[] = $event['id'];
-        $titles[] = $event['title'];
-    }
+    //first name is partial which is not currently supported by gcal natively
+    $search_and_delete->regex_search = "/({$types}).+{$first_name}/i";
+    $search_and_delete->group_id = 'calendar-request';
 
-    if ($cancel) {
-        GPLog::notice(
-            "cancel_events_by_person: $first_name $last_name $birth_date has events",
-            [
-                'titles' => $titles,
-                'first_name' => $first_name,
-                'last_name' => $last_name,
-                'birth_date' => $birth_date,
-                'caller' => $caller,
-                'types' => $types
-            ]
-        );
+    $gdq = new GoogleAppQueue();
+    $gdq->send($search_and_delete);
 
-        cancel_events($cancel);
-    } else {
-        GPLog::notice(
-            "cancel_events_by_person:  $first_name $last_name $birth_date no events",
-            [
-                'titles' => $titles,
-                'first_name' => $first_name,
-                'last_name' => $last_name,
-                'birth_date' => $birth_date,
-                'caller' => $caller,
-                'types' => $types
-            ]
-        );
-    }
-
-    return $cancel;
+    return true;
 }
 
 function cancel_events_by_order($invoice_number, $caller, $types = [])
 {
-    if (! LIVE_MODE) {
-        return;
-    }
+    $types = implode('|', $types);
 
-    $cancel = [];
-    $titles = [];
-    $events = search_events_by_order($invoice_number, false, $types);
+    $search_and_delete = new SearchAndDelete();
+    $search_and_delete->cal_id = GD_CAL_ID;
+    $search_and_delete->hours = DAYS_STD*24;
+    $search_and_delete->word_search = "{$invoice_number}";
 
-    if (! is_array($events)) {
-        $events = [];
-    }
+    //first name is partial which is not currently supported by gcal natively
+    $search_and_delete->regex_search = "/({$types})/i";
+    $search_and_delete->group_id = 'calendar-request';
 
-    foreach ($events as $event) {
-        $cancel[] = $event['id'];
-        $titles[] = $event['title'];
-    }
+    $gdq = new GoogleAppQueue();
+    $gdq->send($search_and_delete);
 
-    if ($cancel) {
-        GPLog::notice(
-            "cancel_events_by_order: order $invoice_number has events",
-            ['titles' => $titles, 'invoice_number' => $invoice_number, 'caller' => $caller, 'types' => $types]
-        );
-        cancel_events($cancel);
-    } else {
-        GPLog::notice(
-            "cancel_events_by_order: order $invoice_number no events",
-            ['titles' => $titles, 'invoice_number' => $invoice_number, 'caller' => $caller, 'types' => $types]
-        );
-    }
-
-    return $cancel;
+    return true;
 }
