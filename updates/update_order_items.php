@@ -6,15 +6,12 @@ require_once 'exports/export_cp_order_items.php';
 require_once 'exports/export_v2_order_items.php';
 require_once 'exports/export_gd_transfer_fax.php';
 
-use GoodPill\Logging\{
-    GPLog,
-    AuditLog,
-    CliLog
-};
+use GoodPill\Logging\GPLog;
+use GoodPill\Logging\AuditLog;
+use GoodPill\Logging\CliLog;
 
-use GoodPill\Utilities\Timer;
 use GoodPill\DataModels\GoodPillOrder;
-
+use GoodPill\Models\GpOrder;
 
 /**
  * Handle all the possible Item updates.  it will go through each type of change
@@ -45,19 +42,15 @@ function update_order_items($changes) : void
     GPLog::notice('data-update-order-items', $changes);
 
     if (isset($changes['created'])) {
-        Timer::start('update.order.items.created');
         foreach ($changes['created'] as $created) {
             order_item_created($created, $orders_updated);
         }
-        Timer::stop('update.order.items.created');
     }
 
     if (isset($changes['deleted'])) {
-        Timer::start('update.order.items.deleted');
         foreach ($changes['deleted'] as $deleted) {
             order_item_deleted($deleted, $orders_updated);
         }
-        Timer::stop('update.order.items.deleted');
     }
 
     if (! empty($orders_updated)) {
@@ -77,11 +70,9 @@ function update_order_items($changes) : void
     }
 
     if (isset($changes['updated'])) {
-        Timer::start('update.order.items.updated');
         foreach ($changes['updated'] as $updated) {
             order_item_updated($updated);
         }
-        Timer::stop('update.order.items.updated');
     }
 }
 
@@ -117,15 +108,15 @@ function order_item_created(array $created, array &$orders_updated) : ?array
 
     $invoice_number = $created['invoice_number'];
 
-    $GPOrder = new GoodPillOrder(['invoice_number' => $invoice_number]);
-    if ($GPOrder->isShipped()) {
+    $GPOrder = GpOrder::where('invoice_number', $invoice_number)->first();
+    if ($GPOrder && $GPOrder->isShipped()) {
         GPLog::alert(
             "Trying to add an item to an order that has already shipped",
             [ 'created' => $created ]
         );
     }
 
-    if (!$GPOrder->loaded) {
+    if (!$GPOrder) {
         GPLog::notice(
             "We are trying to create an order item for an order that has been deleted or doesn't exist",
             [ 'created' => $created ]
@@ -233,8 +224,8 @@ function order_item_deleted(array $deleted, array &$orders_updated) : ?array
 
     $invoice_number = $deleted['invoice_number'];
 
-    $GPOrder = new GoodPillOrder(['invoice_number' => $invoice_number]);
-    if ($GPOrder->isShipped()) {
+    $GPOrder = GpOrder::where('invoice_number', $invoice_number)->first();
+    if ($GPOrder && $GPOrder->isShipped()) {
         GPLog::alert(
             "Trying to delete an item to an order that has already shipped",
             [ 'deleted' => $deleted]
@@ -255,7 +246,9 @@ function order_item_deleted(array $deleted, array &$orders_updated) : ?array
     );
 
     //This item was going to be filled, and the whole order was not deleted
-    if ($deleted['days_dispensed_default'] > 0 and @$item['order_date_added']) {
+    if (
+        $deleted['days_dispensed_default'] > 0 && $GPOrder
+    ) {
         if (! isset($orders_updated[$invoice_number])) {
             $orders_updated[$invoice_number] = [
                 'added'   => [],
@@ -293,13 +286,13 @@ function order_item_deleted(array $deleted, array &$orders_updated) : ?array
             "due_date"  => date('Y-m-d')
          ];
 
-         $patient_label = get_patient_label($item);
-         $event_title   = "Problem with refill {$item['drug_name']} from Order {$invoice_number}  Refill Error: Created:".date('Y-m-d H:i:s');
-         $comm_arr = new_comm_arr($patient_label, '', '', $salesforce);
-         create_event($event_title, $comm_arr);
+        $patient_label = get_patient_label($item);
+        $event_title   = "Problem with refill {$item['drug_name']} from Order {$invoice_number}  Refill Error: Created:".date('Y-m-d H:i:s');
+        $comm_arr = new_comm_arr($patient_label, '', '', $salesforce);
+        create_event($event_title, $comm_arr);
 
-         AuditLog::log($salesforce['body'], $item);
-         GPLog::warning($event_title, ["item" => $item]);
+        AuditLog::log($salesforce['body'], $item);
+        GPLog::warning($event_title, ["item" => $item]);
     }
     /*
         TODO Update Salesforce Order Total & Order Count & Order Invoice
@@ -327,8 +320,8 @@ function order_item_updated(array $updated) : ?array
 
     $changed = changed_fields($updated);
 
-    $GPOrder = new GoodPillOrder(['invoice_number' => $updated['invoice_number']]);
-    if ($GPOrder->isShipped()) {
+    $GPOrder = GpOrder::where('invoice_number', $invoice_number)->first();
+    if ($GPOrder && $GPOrder->isShipped()) {
         GPLog::alert(
             "Trying to change an item on an order that has already shipped",
             [ 'updated' => $updated]
@@ -392,7 +385,7 @@ function order_item_updated(array $updated) : ?array
         );
 
         //Rph may have forgotten to enter days on 2nd dispensing screen
-        if ( ! $item['days_dispensed_actual']) {
+        if (! $item['days_dispensed_actual']) {
             $drug_name = $item['drug_name'];
             $rx_number = $item['rx_number'];
             $invoice_number = $item['invoice_number'];
@@ -549,11 +542,11 @@ function handle_adds_and_removes(array $orders_updated) : void
         // at same time so we need to remove the intersection
         $added_deduped    = array_diff($add_item_names, $remove_item_names);
 
-         /*
-            something might have been removed as a duplicate, but we don't want
-            to say it was "removed" if drug is still in the order so we remove
-            all FILLED (rather than just the added)
-         */
+        /*
+           something might have been removed as a duplicate, but we don't want
+           to say it was "removed" if drug is still in the order so we remove
+           all FILLED (rather than just the added)
+        */
         $removed_deduped  = array_diff($remove_item_names, $groups['FILLED']);
 
         GPLog::warning(

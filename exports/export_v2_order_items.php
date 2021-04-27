@@ -1053,7 +1053,7 @@ function get_qty_needed($rows, $min_qty, $safety)
                     'min_qty'       => $min_qty,
                     'max_qty'       => $max_qty,
                     'min_met'       => $min_met,
-                    'stop_condition_1' => (
+                    'stop_condition_1' => (int) (
                         $left <= 0
                         && (
                             $over_max
@@ -1063,7 +1063,7 @@ function get_qty_needed($rows, $min_qty, $safety)
                             || $unit_of_use
                         )
                     ),
-                    'stop_condition_2' => $is_mfg_bottle && $min_met
+                    'stop_condition_2' => (int) $is_mfg_bottle && $min_met
                 ]
             );
 
@@ -1084,7 +1084,7 @@ function get_qty_needed($rows, $min_qty, $safety)
                 usort($list, 'sort_list');
 
                 if (($qty/$min_qty) >= 2) {
-                    GPLog::critical(
+                    GPLog::warning(
                         'get_qty_needed;  Pended Quantity > 2x the requested quantity.
                         Verify picked items are correct.  After we have confirmed the qty
                         has been accuratly created we can resolve the alert.  After 10 - 15 of these
