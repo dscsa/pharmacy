@@ -40,9 +40,10 @@ if (isset($args['h'])) {
 }
 echo "Start Patient Update \n";
 
+$meta_updates = inactivate_wc_users($args['c'], $args['w']);
 $results = force_match($args['c'], $args['w']);
 
-echo "Start Patient Update \n";
+print_r($meta_updates);
 print_r($results);
 
 
