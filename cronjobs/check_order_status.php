@@ -7,6 +7,7 @@ date_default_timezone_set('America/New_York');
 require_once 'vendor/autoload.php';
 require_once 'helpers/helper_laravel.php';
 require_once 'keys.php';
+require_once 'helpers/helper_calendar.php';
 
 use Carbon\Carbon;
 use GoodPill\Models\GpOrder;
