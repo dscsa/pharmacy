@@ -1,7 +1,5 @@
 <?php
 
-use Goodpill\Models\GpPatient;
-
 ini_set('memory_limit', '1024M');
 ini_set('include_path', '/goodpill/webform');
 date_default_timezone_set('America/New_York');
@@ -21,15 +19,16 @@ require_once 'keys.php';
 
 function printHelp() {
     echo <<<EOF
-php patient_match.php -p 123
+php patient_match.php -c 123 -w 40
     -c            the cp patient id to update to
     -w            the wc patient id to update
+    -f            force this match and clear out any meta keys and inactivate users
 
 EOF;
     exit;
 }
 
-$args   = getopt("c:w:h", array());
+$args   = getopt("c:w:fh", array());
 
 if (!$args['c'] || !$args['w']) {
     echo "You must enter a carepoint and woo commerce id\n";
@@ -40,10 +39,13 @@ if (isset($args['h'])) {
 }
 echo "Start Patient Update \n";
 
-$meta_updates = inactivate_wc_users($args['c'], $args['w']);
+if (isset($args['f'])) {
+    //  $meta_updates = inactivate_wc_users($args['c'], $args['w']);
+    //print_r($meta_updates);
+}
+/*
 $results = force_match($args['c'], $args['w']);
-
-print_r($meta_updates);
 print_r($results);
+*/
 
 
