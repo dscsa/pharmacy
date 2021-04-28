@@ -1,8 +1,8 @@
 <?php
 
-namespace GoodPill\Models;
+namespace GoodPill\Traits;
 
-trait ChangeableTrait
+trait Changeable
 {
     protected $gp_changes;
 

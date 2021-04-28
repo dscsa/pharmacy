@@ -361,6 +361,13 @@ class ComposerStaticInit54659efd329fa3a958f5cddec29d1420
                 0 => __DIR__ . '/..' . '/adilbaig/pagerduty/src',
             ),
         ),
+        'M' => 
+        array (
+            'Mustache' => 
+            array (
+                0 => __DIR__ . '/..' . '/mustache/mustache/src',
+            ),
+        ),
     );
 
     public static $classMap = array (

@@ -10,6 +10,7 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use GoodPill\Models\GpPatient;
 use GoodPill\Models\GpOrderItem;
+use GoodPill\Events\Order\Shipped;
 
 require_once "helpers/helper_full_order.php";
 
@@ -155,16 +156,106 @@ class GpOrder extends Model
      * Relationships
      *
      */
+
+     /**
+      * Link to the GpPatient object on the patient_id_cp
+      * @return Collection
+      */
     public function patient()
     {
         return $this->belongsTo(GpPatient::class, 'patient_id_cp');
     }
 
+    /**
+     * Link the the GpOrderItems object on the invoice_number and sort newest to oldest
+     * @return Collection
+     */
     public function items()
     {
         return $this->hasMany(GpOrderItem::class, 'invoice_number')
                     ->orderBy('invoice_number', 'desc');
     }
+
+    public function getItems(?bool $filled = null)
+    {
+        if (is_null($filled)) {
+            return $this->items();
+        }
+
+        if ($filled) {
+            return $this->items()->whereNotNull('rx_dispensed_id');
+        }
+
+        return $this->items()->whereNull('rx_dispensed_id');
+    }
+
+    /*
+     * Condition Methods:  These methods are all meant to be conditional and should
+     *  all return booleans.  The methods should be named with appropriate descriptive verbs
+     *  ie: isShipped()
+     *      hasItems()
+     */
+
+     /**
+      * Has the order been marked as shipped
+      *  An order will be considered shipped if it
+      *     Exist in the Database
+      *     AND Has a Shipped Date in the database
+      *     AND (
+      *         The Shipped Date is more than 12 hours Ago
+      *         OR (
+      *             There is a tracking number
+      *             AND the Shipped Date is more than 10 minutes ago
+      *         )
+      *      )
+      *
+      * @return bool true if there is a shipdate
+      */
+    public function isShipped() : bool
+    {
+         // We add a 12 hour padding to the order_date_shipped incase they
+         // make changes before it leaves the office
+         return (
+             $this->exists
+             && !empty($this->order_date_shipped)
+             && (
+                 strtotime($this->order_date_shipped) + (60 * 60 * 12) > time()
+                 || (
+                     isset($this->tracking_number)
+                     // Add a 10 minute window just so things that happen on
+                     // the same sync execution don't throw an error
+                     && strtotime($this->order_date_shipped) + (60 * 10) > time()
+                 )
+             )
+         );
+     }
+
+     /**
+      * Has the order been dispensed
+      * An order will be considered dispensed if it
+      *     Exists in the Database
+      *     AND There is a dispensed date for the order
+      * @return bool [description]
+      */
+     public function isDispensed() : bool
+     {
+         return ($this->exists && !empty($this->order_date_dispensed));
+     }
+
+
+    /*
+     * Other Methods
+     */
+
+    public function markShipped($ship_date, $tracking_number) {
+        // See if carepoint has a shipping record,
+        // If it does, check to make sure the shipping record matches the details provided,
+        // If not update the shipping record
+
+        // Create Calendar Events
+        // Create Events
+    }
+
 
     /**
      * Get to old order array

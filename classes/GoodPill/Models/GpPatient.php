@@ -77,7 +77,7 @@ require_once "dbs/mysql_wc.php";
 class GpPatient extends Model
 {
     // Used the changable to track changes from the system
-    use \GoodPill\Models\ChangeableTrait;
+    use \GoodPill\Traits\Changeable;
 
     /**
      * The Table for this data

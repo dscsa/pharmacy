@@ -1,0 +1,27 @@
+{{!
+    Sample of data
+    {
+        "first_name": "Ben",
+        "last_name": "Brown",
+        "invoice_number": 12345,
+        "tracking_number": "1234123124123",
+        "tracking_link": "http://www.gmail.com",
+        "invoice_link": "http://www.gmail.com",
+        "count_filled": 1,
+        "multiple_filled": true,
+        "filled": {
+            "rxs": [
+                {"name": "drug 1"},
+                {"name": "drug 2"}
+            ]
+        },
+        "no_fill": {
+            "rxs": [
+                {"name": "no drug 1"},
+                {"name": "no drug 2"}
+            ]
+        }
+    }
+}}
+
+Good Pill shipped your order of {{count_filled}} item{{#multiple_filled}}s{{/multiple_filled}} and it should arrive in 3-5 days.
