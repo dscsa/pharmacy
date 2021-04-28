@@ -47,7 +47,7 @@ function order_shipped_event($order, $email, $text)
     create_event($event_title, $comm_arr, 10/60);
 }
 
-function refill_reminder_event($order, $email, $text, $hours_to_wait, $hour_of_day = null)
+function refill_reminder_event($order, $email, $text, $hours_to_wait, $time_of_day = null)
 {
     if ($order[0]['patient_inactive']) {
         GPLog::warning('refill_reminder_event cancelled because patient inactive', get_defined_vars());
@@ -63,10 +63,10 @@ function refill_reminder_event($order, $email, $text, $hours_to_wait, $hour_of_d
 
     GPLog::warning('refill_reminder_event', get_defined_vars()); //$cancel
 
-    create_event($event_title, $comm_arr, $hours_to_wait, $hour_of_day);
+    create_event($event_title, $comm_arr, $hours_to_wait, $time_of_day);
 }
 
-function autopay_reminder_event($order, $email, $text, $hours_to_wait, $hour_of_day = null)
+function autopay_reminder_event($order, $email, $text, $hours_to_wait, $time_of_day = null)
 {
     if ($order[0]['patient_inactive']) {
         GPLog::warning('autopay_reminder_event cancelled because patient inactive', get_defined_vars());
@@ -82,7 +82,7 @@ function autopay_reminder_event($order, $email, $text, $hours_to_wait, $hour_of_
 
     GPLog::notice('autopay_reminder_event', get_defined_vars());
 
-    //create_event($event_title, $comm_arr, $hours_to_wait, $hour_of_day);
+    //create_event($event_title, $comm_arr, $hours_to_wait, $time_of_day);
 }
 
 function order_created_event($groups, $email, $text, $hours_to_wait)
@@ -201,7 +201,7 @@ function order_updated_event($groups, $email, $text, $hours_to_wait)
     create_event($event_title, $comm_arr, $hours_to_wait);
 }
 
-function needs_form_event($order, $email, $text, $salesforce, $hours_to_wait, $hour_of_day = 0)
+function needs_form_event($order, $email, $text, $salesforce, $hours_to_wait, $time_of_day = 0)
 {
     if ($order[0]['patient_inactive']) {
         GPLog::warning('needs_form_event cancelled because patient inactive', get_defined_vars());
@@ -215,10 +215,10 @@ function needs_form_event($order, $email, $text, $salesforce, $hours_to_wait, $h
 
     GPLog::info('needs_form_event', get_defined_vars());
 
-    create_event($event_title, $comm_arr, $hours_to_wait, $hour_of_day);
+    create_event($event_title, $comm_arr, $hours_to_wait, $time_of_day);
 }
 
-function no_rx_event($partial, $order, $email, $text, $hours_to_wait, $hour_of_day = null)
+function no_rx_event($partial, $order, $email, $text, $hours_to_wait, $time_of_day = null)
 {
     if ($order[0]['patient_inactive']) {
         GPLog::warning('no_rx_event cancelled because patient inactive', get_defined_vars());
@@ -234,10 +234,10 @@ function no_rx_event($partial, $order, $email, $text, $hours_to_wait, $hour_of_d
 
     GPLog::info('no_rx_event', get_defined_vars());
 
-    create_event($event_title, $comm_arr, $hours_to_wait, $hour_of_day);
+    create_event($event_title, $comm_arr, $hours_to_wait, $time_of_day);
 }
 
-function order_cancelled_event($partial, $order, $email, $text, $hours_to_wait, $hour_of_day  = null)
+function order_cancelled_event($partial, $order, $email, $text, $hours_to_wait, $time_of_day  = null)
 {
     if ($order[0]['patient_inactive']) {
         GPLog::warning('order_cancelled_event cancelled because patient inactive', get_defined_vars());
@@ -261,7 +261,7 @@ function order_cancelled_event($partial, $order, $email, $text, $hours_to_wait, 
 
     GPLog::info('order_cancelled_event', get_defined_vars());
 
-    create_event($event_title, $comm_arr, $hours_to_wait, $hour_of_day);
+    create_event($event_title, $comm_arr, $hours_to_wait, $time_of_day);
 }
 
 function order_rescheduled_event(
@@ -270,7 +270,7 @@ function order_rescheduled_event(
     $email,
     $text,
     $hours_to_wait,
-    $hour_of_day = null
+    $time_of_day = null
 ) {
     if ($order[0]['patient_inactive']) {
         GPLog::warning(
@@ -299,10 +299,10 @@ function order_rescheduled_event(
 
     GPLog::info('order_rescheduled_event', get_defined_vars());
 
-    create_event($event_title, $comm_arr, $hours_to_wait, $hour_of_day);
+    create_event($event_title, $comm_arr, $hours_to_wait, $time_of_day);
 }
 
-function confirm_shipment_event($order, $email, $text, $salesforce, $hours_to_wait, $hour_of_day = null)
+function confirm_shipment_event($order, $email, $text, $salesforce, $hours_to_wait, $time_of_day = null)
 {
     if ($order[0]['patient_inactive']) {
         GPLog::warning('confirm_shipment_event cancelled because patient inactive', get_defined_vars());
@@ -332,7 +332,7 @@ function confirm_shipment_event($order, $email, $text, $salesforce, $hours_to_wa
 
     GPLog::info('confirm_shipment_event INACTIVE', get_defined_vars());
 
-    create_event($event_title, $comm_arr, $hours_to_wait, $hour_of_day);
+    create_event($event_title, $comm_arr, $hours_to_wait, $time_of_day);
 }
 
 function new_comm_arr($patient_label, $email = '', $text = '', $salesforce = '')
@@ -485,18 +485,18 @@ function get_patient_label($order)
  * @param  string  $event_title   The ttitle of the event
  * @param  array   $comm_arr      The array to put on the calendar
  * @param  integer $hours_to_wait The number of hours to wait for the alert
- * @param  integer $hour_of_day   The safe hour of days to send
+ * @param  hh:mm   $time_of_day   Eastern time in 24 hours to send message.  eg '14:30' to send at 2:30pm ET
  * @return void
  */
 function create_event(
     $event_title,
     $comm_arr,
     $hours_to_wait = 0,
-    $hour_of_day = null,
+    $time_of_day = null,
     $async = true
 ) {
 
-    $startTime = get_start_time($hours_to_wait, $hour_of_day);
+    $startTime = get_start_time($hours_to_wait, $time_of_day);
 
     $create_event                = new Create();
     $create_event->cal_id        = GD_CAL_ID;
@@ -600,7 +600,7 @@ function get_phones($order)
 }
 
 //Return a copy of the date (or now) with the 24-hour set
-function get_start_time($hours_to_wait, $hour_of_day = null)
+function get_start_time($hours_to_wait, $time_of_day = null)
 {
 
   //PHP Issue of strtotime() with fractions https://stackoverflow.com/questions/11086022/can-strtotime-handle-fractions so convert to minutes and round
@@ -608,8 +608,8 @@ function get_start_time($hours_to_wait, $hour_of_day = null)
 
     $start = date('Y-m-d\TH:i:s', strtotime("+$minutes_to_wait minutes"));
 
-    if ($hour_of_day) {
-        $start = substr($start, 0, 11)."$hour_of_day:00:00";
+    if ($time_of_day) {
+        $start = substr($start, 0, 11)."$time_of_day:00";
     }
 
     return $start;
