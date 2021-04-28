@@ -40,6 +40,7 @@ function helper_update_payment($order, $reason, $mysql)
             ]
         );
         set_payment_default($order, $mysql);
+        //  Should this also be set to use the total instead of payment_due_default ?
         export_wc_update_order_payment($order[0]['invoice_number'], $order[0]['payment_fee_default'], $order[0]['payment_due_default']);
         return $order;
     }

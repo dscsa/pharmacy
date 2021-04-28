@@ -412,7 +412,12 @@ function export_wc_create_order($order, $reason)
     export_wc_update_order_status($order);
     export_wc_update_order_metadata($order, 'wc_insert_meta');
     export_wc_update_order_address($order, 'wc_insert_meta');
-    $due_to_send = $first_item['order_source'] == 'Auto Refill v2' ? $first_item['payment_fee_default'] : $first_item['payment_due_default'];
+
+    $due_to_send = (
+        $first_item['order_source'] == 'Auto Refill v2' ||
+        $first_item['payment_coupon'] ||
+        $first_item['payment_method'] == PAYMENT_METHOD['AUTOPAY']
+    ) ? $first_item['payment_fee_default'] : $first_item['payment_due_default'];
 
     export_wc_update_order_payment(
         $invoice_number,
@@ -486,7 +491,12 @@ function export_wc_update_order($order)
     export_wc_update_order_status($order);
     export_wc_update_order_metadata($order);
     export_wc_update_order_address($order);
-    $due_to_send = $order[0]['order_source'] == 'Auto Refill v2' ? $order[0]['payment_fee_default'] : $order[0]['payment_due_default'];
+
+    $due_to_send = (
+        $order[0]['order_source'] == 'Auto Refill v2' ||
+        $order[0]['payment_coupon'] ||
+        $order[0]['payment_method'] == PAYMENT_METHOD['AUTOPAY']
+    ) ? $order[0]['payment_fee_default'] : $order[0]['payment_due_default'];
     export_wc_update_order_payment(
         $order[0]['invoice_number'],
         $order[0]['payment_fee_default'],
@@ -609,7 +619,7 @@ function export_wc_update_order_payment($invoice_number, $payment_fee, $payment_
                 "invoice"     => $invoice_number,
                 "payment_fee" => $payment_fee,
                 "payment_due" => $payment_due,
-                "url"         => $url,
+                "url"         => $urlToFetch,
                 "response"    => $response
             ]
         );
@@ -624,7 +634,7 @@ function export_wc_update_order_payment($invoice_number, $payment_fee, $payment_
                 "invoice"     => $invoice_number,
                 "payment_fee" => $payment_fee,
                 "payment_due" => $payment_due,
-                "url"         => $url,
+                "url"         => $urlToFetch,
                 "response"    => $response
             ]
         );
