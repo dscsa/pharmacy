@@ -140,7 +140,7 @@ class SigParser {
         //echo "5 $sig";
         //Alternative frequency numerator wordings
         $sig = preg_replace('/(?<!all )(other|otra)\\b/i', '2', $sig); //Exclude: Take 4mg 1 time per week, Wed; 2mg all other days or as directed.
-        $sig = preg_replace('/\\bonce\\b/i', '1 time', $sig);
+        // $sig = preg_replace('/\\bonce\\b/i', '1 time', $sig);
         $sig = preg_replace('/\\btwice\\b/i', '2 times', $sig);
         $sig = preg_replace('/\\bhourly\\b/i', 'per hour', $sig);
         $sig = preg_replace('/\\bdaily\\b/i', 'per day', $sig);
@@ -205,10 +205,10 @@ class SigParser {
         return trim($sig);
     }
 
-    private function filter_attributes($sections, $type) {
+    private function filter_attributes($sections, $type, $score_tol) {
         $attrs = [];
         foreach ($sections as $attr) {
-            if ($attr["Attribute"]["Type"] == $type AND $attr["Attribute"]["Score"] > 0.7) {
+            if ($attr["Attribute"]["Type"] == $type AND $attr["Attribute"]["Score"] > $score_tol) {
                 $attrs[] = $attr["Attribute"]["Text"];
             }
         }
@@ -217,14 +217,20 @@ class SigParser {
     }
 
     private function postprocessing($sections) {
-        $dosages = $this->filter_attributes($sections, "DOSAGE");
-        $durations = $this->filter_attributes($sections, "DURATION");
-        $frequencies = $this->filter_attributes($sections, "FREQUENCY");
+        $dosages = $this->filter_attributes($sections, "DOSAGE", 0.5);
+        $durations = $this->filter_attributes($sections, "DURATION", 0.6);
+        $frequencies = $this->filter_attributes($sections, "FREQUENCY", 0.6);
 
         $freq = $this->parse_frequencies($frequencies);
         $dose = $this->parse_dosages($dosages);
         $dur = $this->parse_durations($durations);
-        return $dose * $freq * $dur;
+
+        $parsed = [
+            'sig_unit' => $dose['sig_unit'],
+            'sig_qty' => $dose['sig_qty'] * $freq,
+            'sig_days' => $dur
+        ];
+        return $parsed;
     }
 
     private function parse_frequencies($frequencies) {
@@ -263,33 +269,38 @@ class SigParser {
         return $total_freq;
     }
 
+    /**
+     * Parses the dosages of a sig
+     *
+     * @param  Array $dosages Strings to parse. Only get the first "valid one".
+     *
+     * @return Array    With keys "sig_qty" and "sig_unit"
+     */
     private function parse_dosages($dosages) {
-        if (count($dosages) == 0) {
-            return 1;
-        }
-
-        $total_dose = 0;
+        $parsed = [
+            "sig_qty" => 1,
+            "sig_unit" => ""
+        ];
         foreach ($dosages as $dose) {
             // NOTE: Gets the LAST number from a particular dosage.
             // "1 to 2 capsules" => 2.
-            preg_match('/(\d+)(?!.*\d)/i', $dose, $match);
+            preg_match('/(\d+)(?!.*\d)(.*)/i', $dose, $match);
+
             if ($match AND $match[1]) {
-                $total_dose += (int)$match[1];
+                $parsed["sig_qty"] = (int)$match[1];
+                $parsed["sig_unit"] = trim($match[2]);
 
                 // If sig has multiple doses, give presedence to the first one.
                 // ["1 capsule", "40mg", "60mg"] will only count the 1 capsule.
                 break;
             }
         }
-        if ($total_dose == 0) {
-            return 1;
-        }
-        return $total_dose;
+        return $parsed;
     }
 
     private function parse_durations($durations) {
         if (count($durations) == 0) {
-            return 1;
+            return 0;
         }
 
         $total_duration = 1;
@@ -299,10 +310,10 @@ class SigParser {
                 $total_duration *= (int)$match[1];
             }
         }
-        if ($total_duration == 0) {
-            return 1;
+        if ($total_duration == 1) {
+            return 0;
         }
-        return $total_duration / 30;
+        return $total_duration;
     }
 }
 
@@ -313,51 +324,174 @@ $correct_pairs = [
     // TODO: Ambiguous? qty_per_day should be daily dose over the course of a month?
     // "Take 1 capsule(s) 3 times a day by oral route with meals for 7 days." => 3,
     // "1 capsule by mouth every day for 7 days then continue on with 60mg capsuled" => 1,
-    // "take 10 tablets (40MG total)  by ORAL route   every day for  4 days only" => 1.3300000,
+    // "take 10 tablets (40MG total)  by ORAL route   every day for  4 days only" => , 4, 10 // sig_qty, sig_days
 
     // TODO: "Multiple sigs" in one (then, commas, punctuation, etc)
     // "1 tablet 2 hours before bedtime, may increase by 1 tablet per week to 4 tablets per night" => 4,
 
     // TODO: Check for repeated wording in "multiple sigs"
-    // "1 tablet by mouth daily; TAKE ONE TABLET BY MOUTH ONCE DAILY" => 1
+    // "1 tablet by mouth daily; TAKE ONE TABLET BY MOUTH ONCE DAILY" => 1,
 
-    "Take 1 tablet (12.5 mg) by mouth per day in the morning" => 1,
-    "1 capsule by mouth 30 minutes after the same meal each day" => 1,
-    "1 capsule by mouth every day (Start after finishing 30mg capsules first)" => 1,
-    "1 capsule by mouth twice a day" => 2,
-    "1 capsule once daily 30 minutes after the same meal each day" => 1,
-    "1 tablet (5 mg total) by PEG Tube route 2 (two) times a day" => 2,
-    "1 tablet by mouth  every morning" => 1,
-    "1 tablet by mouth at bedtime" => 1,
-    "1 tablet by mouth at bedtime as directed" => 1,
-    "1 tablet by mouth at bedtime as needed" => 1,
-    "1 tablet by mouth at bedtime mood" => 1,
-    "1 tablet by mouth daily" => 1,
-    "1 tablet by mouth day" => 1,
-    "1 tablet by mouth every 8 hours" => 3,
-    "Take 5 tablets by mouth once  at bedtime" => 5,
+    "Take 1 capsule(s) 3 times a day by oral route with meals for 7 days." => [
+        "sig_qty" => 3,
+        "sig_days" => 7,
+        "sig_unit" => "capsule"
+    ],
+    "1 capsule by mouth every day for 7 days then continue on with 60mg capsuled" => [
+        "sig_qty" => 1,
+        "sig_days" => 7,
+        "sig_unit" => "capsule"
+    ],
+    "take 10 tablets (40MG total)  by ORAL route   every day for  4 days only" => [
+        "sig_qty" => 10,
+        "sig_days" => 4,
+        "sig_unit" => "tablets"
+    ],
+    "Take 1 tablet (12.5 mg) by mouth per day in the morning" => [
+        "sig_qty" => 1,
+        "sig_days" => 0,
+        "sig_unit" => "tablet"
+    ],
+    "1 capsule by mouth 30 minutes after the same meal each day" => [
+        "sig_qty" => 1,
+        "sig_days" => 0,
+        "sig_unit" => "capsule",
+    ],
+    "1 capsule by mouth every day (Start after finishing 30mg capsules first)" => [
+        "sig_qty" => 1,
+        "sig_days" => 0,
+        "sig_unit" => "capsule"
+    ],
+    "1 capsule by mouth twice a day" => [
+        "sig_qty" => 2,
+        "sig_days" => 0,
+        "sig_unit" => "capsule"
+    ],
+    "1 capsule once daily 30 minutes after the same meal each day" => [
+        "sig_qty" => 1,
+        "sig_days" => 0,
+        "sig_unit" => "capsule"
+    ],
+    "1 tablet (5 mg total) by PEG Tube route 2 (two) times a day" => [
+        "sig_qty" => 2,
+        "sig_days" => 0,
+        "sig_unit" => "tablet"
+    ],
+    "1 tablet by mouth  every morning" => [
+        "sig_qty" => 1,
+        "sig_days" => 0,
+        "sig_unit" => "tablet"
+    ],
+    "1 tablet by mouth at bedtime" => [
+        "sig_qty" => 1,
+        "sig_days" => 0,
+        "sig_unit" => "tablet"
+    ],
+    "1 tablet by mouth at bedtime as directed" => [
+        "sig_qty" => 1,
+        "sig_days" => 0,
+        "sig_unit" => "tablet"
+    ],
+    "1 tablet by mouth at bedtime as needed" => [
+        "sig_qty" => 1,
+        "sig_days" => 0,
+        "sig_unit" => "tablet"
+    ],
+    "1 tablet by mouth at bedtime mood" => [
+        "sig_qty" => 1,
+        "sig_days" => 0,
+        "sig_unit" => "tablet"
+    ],
+    "1 tablet by mouth daily" => [
+        "sig_qty" => 1,
+        "sig_days" => 0,
+        "sig_unit" => "tablet"
+    ],
+    "1 tablet by mouth day" => [
+        "sig_qty" => 1,
+        "sig_days" => 0,
+        "sig_unit" => "tablet"
+    ],
+    "1 tablet by mouth every 8 hours" => [
+        "sig_qty" => 3,
+        "sig_days" => 0,
+        "sig_unit" => "tablet"
+    ],
+    "Take 5 tablets by mouth once  at bedtime" => [
+        "sig_qty" => 5,
+        "sig_days" => 0,
+        "sig_unit" => "tablets"
+    ],
     
     // Fails in current parser
-    "1 tablet by mouth every 8 hours as needed for Blood Pressure greater than 140/90" => 3,
-    "Take  1 TO 2 capsules by mouth 3 times a day as needed FOR NERVE PAINS" => 6,
-    "Take 1 capsule once a day take along with 40mg for total of 60mg" => 1,
-    "1 capsule as needed every 6 hrs Orally 30 day(s)" => 4,
-    "1 tablet every 6 to 8 hours as needed Orally 30 day(s)" => 3,  // Or 4?
-    "Take 1 tablet by mouth every night as needed sleep" => 1,
-    "Take 1 tablet (800 mg) by oral route 3 times per day with food as needed for pain" => 3,
-    "Take 1 tablet by mouth 3 times a day as needed" => 3,
+    "1 tablet by mouth every 8 hours as needed for Blood Pressure greater than 140/90" => [
+        "sig_qty" => 3,
+        "sig_days" => 0,
+        "sig_unit" => "tablet"
+    ],
+    "Take  1 TO 2 capsules by mouth 3 times a day as needed FOR NERVE PAINS" => [
+        "sig_qty" => 6,
+        "sig_days" => 0,
+        "sig_unit" => "capsules"
+    ],
+    // Outlier?
+    // "Take 1 capsule once a day take along with 40mg for total of 60mg" => [
+    //     "sig_qty" => 1,
+    //     "sig_days" => 0,
+    //     "sig_unit" => "capsule"
+    // ],
+    "1 capsule as needed every 6 hrs Orally 30 day(s)" => [
+        "sig_qty" => 4,
+        "sig_days" => 30,
+        "sig_unit" => "capsule"
+    ],
+    "1 tablet every 6 to 8 hours as needed Orally 30 day(s)" => [
+        "sig_qty" => 3,     // or 4?
+        "sig_days" => 30,
+        "sig_unit" => "tablet"
+    ],
+    "Take 1 tablet by mouth every night as needed sleep" => [
+        "sig_qty" => 1,
+        "sig_days" => 0,
+        "sig_unit" => "tablet"
+    ],
+    "Take 1 tablet (800 mg) by oral route 3 times per day with food as needed for pain" => [
+        "sig_qty" => 3,
+        "sig_days" => 0,
+        "sig_unit" => "tablet"
+    ],
+    "Take 1 tablet by mouth 3 times a day as needed" => [
+        "sig_qty" => 3,
+        "sig_days" => 0,
+        "sig_unit" => "tablet"
+    ],
 
-    // TODO: The first one has qty_per_day in ml, the second one is in units
-    "Use 1 vial via nebulizer every 6 hours" => 12,
-    "Take 20 mEq by mouth 2 (two) times a day." => 2,
+    // TODO: For now taking the unit which is in the sig itself
+    // Unless it's vials, in which case parse it to ml.
+    "Use 1 vial via nebulizer every 6 hours" => [
+        "sig_qty" => 12,
+        "sig_days" => 0,
+        "sig_unit" => "ml"
+    ],
+    "Take 20 mEq by mouth 2 (two) times a day." => [
+        "sig_qty" => 40,
+        "sig_days" => 0,
+        "sig_unit" => "mEq"
+    ],
+    "Inhale 2 puff(s) every 4 hours by inhalation route." => [
+        "sig_qty" => 12,
+        "sig_days" => 0,
+        "sig_unit" => "puff"
+    ]
 
 ];
 
-foreach($correct_pairs as $text => $qty) {
+foreach($correct_pairs as $text => $expected) {
     $result = $parser->parse($text);
 
-    // TODO: Accept error at the moment is 0.01
-    assert(abs($parser->parse($text) - $qty) < 0.01, "Expected ".$qty.", got ".$result." for ".$text."\n");
+    foreach ($expected as $key => $val) {
+        assert($expected[$key] == $result[$key], "For $key expected ".$expected[$key].", got ".$result[$key].". \n\tSig: $text\n");
+    }
 }
 
 ?>
