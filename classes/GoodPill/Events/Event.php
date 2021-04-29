@@ -8,11 +8,6 @@ use GoodPill\Events\SmsComm;
 
 abstract class Event
 {
-    /**
-     * The title to use for the event
-     * @var string
-     */
-    public $title;
 
     /**
      * The type of event to publish
@@ -52,15 +47,7 @@ abstract class Event
     {
 
         // Make sure we can creat a title.
-        if (
-            !isset($this->title)
-            && (
-                !isset($this->type)
-                && !isset($this->patient_label)
-            )
-        ) {
-            throw new \Exception('You have to provide a title or a type and patient label');
-        }
+        $title = $this->getTitle();
 
         $comm_array = [];
 
@@ -76,18 +63,29 @@ abstract class Event
             $comm_array['salesforce'] = $salesforce->delivery();
         }
 
-        if (!isset($this->title)) {
-            $this->title = sprintf(
-                '%s %s: %s. Created: %s',
-                $this->invoice_number,
-                $this->type,
-                $this->patient_label,
-                date('Y-m-d H:i:s')
-            );
-        }
+
 
         // TODO Replace this with a new object based Event
-        create_event($this->title, $comm_array, $this->hours_to_wait, $this->hour_of_day);
+        create_event($title, $comm_array, $this->hours_to_wait, $this->hour_of_day);
+    }
+
+    /**
+     * Get the title for the event.
+     * @return string
+     */
+    public function getTitle()
+    {
+        if (!isset($this->type) && !isset($this->patient_label)) {
+            throw new \Exception('You have to provide a title or a type and patient label');
+        }
+
+        return sprintf(
+            '%s %s: %s. Created: %s',
+            $this->invoice_number,
+            $this->type,
+            $this->patient_label,
+            date('Y-m-d H:i:s')
+        );
     }
 
     /**

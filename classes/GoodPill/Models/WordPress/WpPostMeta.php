@@ -1,10 +1,6 @@
 <?php
 
-/**
- * Created by Reliese Model.
- */
-
-namespace App\Models;
+namespace GoodPill\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
@@ -20,17 +16,17 @@ use Illuminate\Database\Eloquent\Model;
  */
 class WpPostMeta extends Model
 {
-	protected $table = 'wp_postmeta';
-	protected $primaryKey = 'meta_id';
-	public $timestamps = false;
+    protected $table = 'wp_postmeta';
+    protected $primaryKey = 'meta_id';
+    public $timestamps = false;
 
-	protected $casts = [
-		'post_id' => 'int'
-	];
+    protected $casts = [
+        'post_id' => 'int'
+    ];
 
-	protected $fillable = [
-		'post_id',
-		'meta_key',
-		'meta_value'
-	];
+    protected $fillable = [
+        'post_id',
+        'meta_key',
+        'meta_value'
+    ];
 }

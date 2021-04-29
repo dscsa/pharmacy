@@ -2,7 +2,10 @@
 
 namespace GoodPill\Traits;
 
-trait Changeable
+/**
+ * Trait for Goodpill Objects that can have a changeset based on the import methods
+ */
+trait IsChangeable
 {
     protected $gp_changes;
 

@@ -2,7 +2,11 @@
 
 namespace GoodPill\Traits;
 
-trait ArrayModelStorage
+/**
+ * Trait that creates an array based storage model for quick data definition and validation of required elements
+ * Mostly used for sloppy models that can be buil quickly.
+ */
+trait UsesArrayModelStorage
 {
     /**
      * An array to store data locally to the instance but not

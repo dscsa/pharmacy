@@ -124,6 +124,9 @@ class Shipped extends Event
         return $this->order_data;
     }
 
+    /**
+     * [publish description]
+     */
     public function publish() : void
     {
         $patient = $this->order->patient;

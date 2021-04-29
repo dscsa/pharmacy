@@ -1,17 +1,13 @@
 <?php
 
-/**
- * Created by Reliese Model.
- */
-
-namespace App\Models;
+namespace GoodPill\Models;
 
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 
 /**
  * Class GpOrderItemsCp
- * 
+ *
  * @property int $invoice_number
  * @property string|null $drug_name
  * @property int $patient_id_cp

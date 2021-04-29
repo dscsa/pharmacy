@@ -1,15 +1,12 @@
 <?php
 
-/**
- * Created by Reliese Model.
- */
-
 namespace GoodPill\Models;
 
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use GoodPill\Models\GpPatient;
 use GoodPill\Models\GpOrderItem;
+use GoodPill\Models\Carepoint\CpOrderShipment;
 use GoodPill\Events\Order\Shipped as ShippedEvent;
 
 require_once "helpers/helper_full_order.php";
@@ -236,16 +233,26 @@ class GpOrder extends Model
 
     public function markShipped($ship_date, $tracking_number)
     {
+
+        $shipment = CpOrderShipment::where('order_id', $this->getOrderId())->firstOrNew();
+
+        var_dump($shipment);
+
         // See if carepoint has a shipping record,
         // If it does, check to make sure the shipping record matches the details provided,
         // If not update the shipping record
-        $shipped = new ShippedEvent($this);
-        $shipped->publish();
+
+        // $shipped = new ShippedEvent($this);
+        // $shipped->publish();
     }
 
     /**
      * Getters : Retrieve and format data outside of the raw db info
      */
+
+    public function getOrderId() {
+        return ($this->invoice_number - 2);
+    }
 
     /**
      * Get the tracking url for the order

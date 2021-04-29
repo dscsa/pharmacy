@@ -13,7 +13,7 @@ use Psr\Http\Message\ResponseInterface;
  */
 class ResponseMessage
 {
-    use \GoodPill\Traits\ArrayModelStorage;
+    use \GoodPill\Traits\UsesArrayModelStorage;
 
     /**
      * Don't mind me just watching

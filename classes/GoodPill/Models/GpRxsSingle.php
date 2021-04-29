@@ -1,9 +1,5 @@
 <?php
 
-/**
- * Created by Reliese Model.
- */
-
 namespace GoodPill\Models;
 
 use Carbon\Carbon;
