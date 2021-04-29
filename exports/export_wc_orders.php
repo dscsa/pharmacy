@@ -363,7 +363,24 @@ function export_wc_create_order($order, $reason)
 
     //This creates order and adds invoice number to metadata
     //We do this through REST API because direct database calls seemed messy
-    $url = "patient/$first_name $last_name $birth_date/order/$invoice_number";
+
+    //  The url used to be constructed by patient identifiers, now instead it should pass the wc_id
+    //$url = "patient/$first_name $last_name $birth_date/order/$invoice_number";
+    $patient_id_wc = $first_item['patient_id_wc'];
+    if (!isset($patient_id_wc))
+    {
+        GPLog::warning(
+            'export_wc_create_order: No woocoomerce id found for a patient. This should cause problems for creating an order for the patient',
+            [
+                'invoice_number' => $invoice_number,
+                'first_item' => $first_item,
+                'first_name' => $first_name,
+                'last_name' => $last_name,
+            ]
+        );
+    }
+
+    $url = "/patient/$patient_id_wc/order/$invoice_number";
     $res = wc_fetch($url);
 
     //if order is set, then its just a this order already exists error
