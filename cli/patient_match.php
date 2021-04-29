@@ -1,5 +1,7 @@
 <?php
 
+use GoodPill\Logging\CliLog;
+
 ini_set('memory_limit', '1024M');
 ini_set('include_path', '/goodpill/webform');
 date_default_timezone_set('America/New_York');
@@ -37,15 +39,11 @@ if (!$args['c'] || !$args['w']) {
 if (isset($args['h'])) {
     printHelp();
 }
-echo "Start Patient Update \n";
+CliLog::notice("Start Patient Update with cp_id: {$args['c']} && wc_id: {$args['w']}");
+$force = isset($args['f']);
 
-if (isset($args['f'])) {
-    //  $meta_updates = inactivate_wc_users($args['c'], $args['w']);
-    //print_r($meta_updates);
-}
-/*
-$results = force_match($args['c'], $args['w']);
-print_r($results);
-*/
+match_patient($args['c'], $args['w'], $force);
+CliLog::notice('Patient has been force matched');
+
 
 
