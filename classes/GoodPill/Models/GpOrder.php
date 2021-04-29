@@ -172,7 +172,7 @@ class GpOrder extends Model
      */
     public function items()
     {
-        return $this->hasMany(GpOrderItem::class, 'invoice_number')
+        return $this->hasMany(GpOrderItem::class, 'invoice_number', 'invoice_number')
                     ->orderBy('invoice_number', 'desc');
     }
 

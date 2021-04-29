@@ -55,21 +55,46 @@ class Shipped extends CalendarEvent
     public function getOrderData()
     {
         if (!isset($this->order_data)) {
+            $order = $this->order;
+
             $data = [
-                "first_name"      => $this->order->patient->first_name,
-                "last_name"       => $this->order->patient->last_name,
-                "invoice_number"  => $this->order->invoice_number,
-                "count_filled"    => $this->order->count_filled,
-                "multiple_filled" => (int) ($this->order->count_filled > 1),
-                "tracking_number" => $this->order->tracking_number
+                "first_name"      => $order->patient->first_name,
+                "last_name"       => $order->patient->last_name,
+                "invoice_number"  => $order->invoice_number,
+                "count_filled"    => $order->count_filled,
+                "multiple_filled" => (int) ($order->count_filled > 1),
+                "tracking_number" => $order->tracking_number
             ];
 
-            $filled_items = $this->order->getItems(true);
-            $non_filled_items = $this->order->getItems(false);
+            if ($order->count_filled > 0) {
+                $rxs = [];
 
-            var_dump($filled_items);
+                $filled_items = $this->order->getItems(true);
 
-            $this->order_data = (object) $data;
+                $filled_items->each(
+                    function ($order_item) use (&$rxs) {
+                        $rxs[] = ["name" => $order_item->getDrugName()];
+                    }
+                );
+
+                $data['filled'] = ['rxs' => $rxs];
+            }
+
+            if ($order->count_nofill) {
+                $rxs = [];
+
+                $nofill_items = $this->order->getItems(false);
+
+                $nofill_items->each(
+                    function ($order_item) use (&$rxs) {
+                        $rxs[] = ["name" => $order_item->getDrugName()];
+                    }
+                );
+
+                $data['no_fill'] = ['rxs' => $rxs];
+            }
+
+            $this->order_data = $data;
         }
 
         return $this->order_data;
