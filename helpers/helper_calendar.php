@@ -8,6 +8,8 @@ use GoodPill\Logging\AuditLog;
 use GoodPill\Logging\CliLog;
 use GoodPill\Storage\Goodpill;
 
+require_once "helpers/helper_appsscripts.php";
+
 function order_dispensed_event($order, $salesforce, $hours_to_wait)
 {
     if (@$order[0]['patient_inactive']) {
