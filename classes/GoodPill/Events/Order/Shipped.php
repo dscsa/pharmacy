@@ -22,6 +22,8 @@ class Shipped extends Event
      */
     protected $order_data;
 
+    public $type = 'Order Shipped';
+
     /**
      * Make it so
      * @param GpOrder $order (Optional)  Will preset the order if passed
@@ -122,35 +124,48 @@ class Shipped extends Event
         return $this->order_data;
     }
 
-
-    public function getEmail() : EmailComm {
-
-    }
-
-    public function getSms() : SmsComm
+    public function publish() : void
     {
+        $patient = $this->order->patient;
 
+        $patient->cancelEvents(
+            [
+                'Order Shipped',
+                'Order Dispensed',
+                'Order Cancelled',
+                'Needs Form'
+            ]
+        );
+
+        $patient->createEvent($this);
     }
 
-    public function getSalesforce() : SalesforceComm {
-
-    }
-
-
-    public function renderEmail()
+    public function getEmail() : ?EmailComm
     {
-        return $this->render('email.mustache');
+        $email          = new EmailComm();
+        $email->subject = $this->render('email_subject');
+        $email->message = $this->render('email');
+        $email->email   = $this->order->patient->email;
+        return $email;
     }
 
-    public function renderEmailSubject()
+    public function getSms() : ?SmsComm
     {
-        return $this->render('email_subject.mustache');
+        $patient = $this->order->patient;
+        $sms          = new SmsComm();
+        $sms->sms     = $patient->getPhonesAsString();
+        $sms->message = $this->render('sms');
+        return $sms;
     }
 
-
-    public function renderSms()
+    public function getSalesforce() : ?SalesforceComm
     {
-        return $this->render('sms.mustache');
+        $patient = $this->order->patient;
+        $salesforce          = new SalesforceComm();
+        $salesforce->contact  = $patient->getPatientLabel();
+        $salesforce->subject = "Auto Email/Text " . $this->render('email_subject');
+        $salesforce->body    = $this->render('sms');
+        return $salesforce;
     }
 
     /**
@@ -163,7 +178,7 @@ class Shipped extends Event
         $m = new \Mustache_Engine(array('entity_flags' => ENT_QUOTES));
 
         return $m->render(
-            file_get_contents("templates/Order/Shipped/". $template),
+            file_get_contents("templates/Order/Shipped/". $template . '.mustache'),
             $this->getOrderData()
         );
     }

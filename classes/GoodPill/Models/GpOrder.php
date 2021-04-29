@@ -163,7 +163,7 @@ class GpOrder extends Model
      */
     public function patient()
     {
-        return $this->belongsTo(GpPatient::class, 'patient_id_cp');
+        return $this->belongsTo(GpPatient::class, 'patient_id_cp', 'patient_id_cp');
     }
 
     /**

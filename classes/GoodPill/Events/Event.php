@@ -2,7 +2,6 @@
 
 namespace GoodPill\Events;
 
-use GoodPill\Events\ComCalEntry;
 use GoodPill\Events\SalesforceComm;
 use GoodPill\Events\EmailComm;
 use GoodPill\Events\SmsComm;
@@ -10,19 +9,105 @@ use GoodPill\Events\SmsComm;
 abstract class Event
 {
     /**
+     * The title to use for the event
+     * @var string
+     */
+    public $title;
+
+    /**
+     * The type of event to publish
+     * @var string
+     */
+    public $type;
+
+    /**
+     * The invoice number to associate to the event
+     * @var int
+     */
+    public $invoice_number = '';
+
+    /**
+     * The Patient Labe to associate with the event
+     * @var string
+     */
+    public $patient_label  = '';
+
+    /**
+     * How many hours to wait before sending the messages
+     * @var float
+     */
+    public $hours_to_wait = 0;
+
+    /**
+     * The hour of the day to send the messages
+     * @var int
+     */
+    public $hour_of_day = null;
+
+    /**
      * Create a comm calendar entry then post it to the calendar
      * @return void
      */
     public function publishEvent()
     {
-        // If we have an email address create the email
-        // If we have an SMS, create the SMS
-        // Create the Salesforce event from the SMS or the Email
-        // Remove any other shipping events from the calendar
-        // Create the new event
+
+        // Make sure we can creat a title.
+        if (
+            !isset($this->title)
+            && (
+                !isset($this->type)
+                && !isset($this->patient_label)
+            )
+        ) {
+            throw new \Exception('You have to provide a title or a type and patient label');
+        }
+
+        $comm_array = [];
+
+        if ($email = $this->getEmail()) {
+            $comm_array['email'] = $email->delivery();
+        }
+
+        if ($sms = $this->getSms()) {
+            $comm_array['sms'] = $sms->delivery();
+        }
+
+        if ($salesforce = $this->getSalesforce()) {
+            $comm_array['salesforce'] = $salesforce->delivery();
+        }
+
+        if (!isset($this->title)) {
+            $this->title = sprintf(
+                '%s %s: %s. Created: %s',
+                $this->invoice_number,
+                $this->type,
+                $this->patient_label,
+                date('Y-m-d H:i:s')
+            );
+        }
+
+        // TODO Replace this with a new object based Event
+        create_event($this->title, $comm_array, $this->hours_to_wait, $this->hour_of_day);
     }
 
-    abstract public function getSms() : SmsComm;
-    abstract public function getEmail() : EmailComm;
-    abstract public function getSalesforce() : SalesforceComm;
+    /**
+     * This should be implmeneted on the specific event types. It will be called to start
+     * the publish property.  I could be as simple as a wrapper for the publishEvent method
+     */
+    abstract public function publish() : void;
+
+    /**
+     * Is used to fomat and retrieve the SmsComm
+     */
+    abstract public function getSms() : ?SmsComm;
+
+    /**
+     * Is used to fomat and retrieve the EmailComm
+     */
+    abstract public function getEmail() : ?EmailComm;
+
+    /**
+     * Is used to fomat and retrieve the SalesforceComm
+     */
+    abstract public function getSalesforce() : ?SalesforceComm;
 }

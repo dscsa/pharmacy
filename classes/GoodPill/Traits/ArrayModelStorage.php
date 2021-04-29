@@ -9,7 +9,7 @@ trait ArrayModelStorage
      * attempting to save it.
      * @var array
      */
-    protected $data = [];
+    protected $stored_data = [];
 
     /**
      * The name of all allowed properties
@@ -46,11 +46,11 @@ trait ArrayModelStorage
             return $func_return;
         }
 
-        if (!isset($this->data[$property])) {
-            $this->data[$property] = null;
+        if (!isset($this->stored_data[$property])) {
+            $this->stored_data[$property] = null;
         }
 
-        return $this->data[$property];
+        return $this->stored_data[$property];
     }
 
     /**
@@ -79,7 +79,7 @@ trait ArrayModelStorage
             throw new \Exception("{$property} not an allowed property");
         }
 
-        return $this->data[$property] = $value;
+        return $this->stored_data[$property] = $value;
     }
 
     /**
@@ -89,8 +89,8 @@ trait ArrayModelStorage
      */
     public function __isset($property)
     {
-        if (isset($this->data) && isset($this->data[$property])) {
-            return isset($this->data[$property]);
+        if (isset($this->stored_data) && isset($this->stored_data[$property])) {
+            return isset($this->stored_data[$property]);
         }
 
         return false;
@@ -107,9 +107,9 @@ trait ArrayModelStorage
     public function toArray($fields = [])
     {
         if (empty($fields) || !is_array($fields)) {
-            return $this->data;
+            return $this->stored_data;
         } else {
-            return array_intersect_key($this->data, array_flip($fields));
+            return array_intersect_key($this->stored_data, array_flip($fields));
         }
     }
 
@@ -126,7 +126,7 @@ trait ArrayModelStorage
             throw new \Exception('Missing required fields');
         }
 
-        return json_encode($this->data);
+        return json_encode($this->stored_data);
     }
 
     /**
@@ -136,7 +136,7 @@ trait ArrayModelStorage
     protected function requiredFiledsComplete()
     {
         foreach ($this->required as $strRequiredField) {
-            if (! isset($this->data[$strRequiredField])) {
+            if (! isset($this->stored_data[$strRequiredField])) {
                 throw new \Exception($strRequiredField . 'Missing required fields');
                 return false;
             }
@@ -172,7 +172,7 @@ trait ArrayModelStorage
                 throw new \Exception("{$strKey} not an allowed property");
             }
 
-            $this->data[$strKey] = $mixValue;
+            $this->stored_data[$strKey] = $mixValue;
         }
     }
 }

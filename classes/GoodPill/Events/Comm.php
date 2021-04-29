@@ -2,7 +2,9 @@
 
 namespace GoodPill\Events;
 
-interface Comm
+abstract class Comm
 {
-    public function delivery();
+    use \GoodPill\Traits\ArrayModelStorage;
+
+    abstract public function delivery() : array;
 }
