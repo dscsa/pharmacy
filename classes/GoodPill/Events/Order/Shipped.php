@@ -93,7 +93,7 @@ class Shipped extends Event
             if ($order->count_filled > 0) {
                 $rxs = [];
 
-                $filled_items = $this->order->getItems(true);
+                $filled_items = $this->order->getFilledItems();
 
                 $filled_items->each(
                     function ($order_item) use (&$rxs) {
@@ -107,7 +107,7 @@ class Shipped extends Event
             if ($order->count_nofill) {
                 $rxs = [];
 
-                $nofill_items = $this->order->getItems(false);
+                $nofill_items = $this->order->getFilledItems(false);
 
                 $nofill_items->each(
                     function ($order_item) use (&$rxs) {

@@ -10,7 +10,7 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use GoodPill\Models\GpPatient;
 use GoodPill\Models\GpOrderItem;
-use GoodPill\Events\Order\Shipped;
+use GoodPill\Events\Order\Shipped as ShippedEvent;
 
 require_once "helpers/helper_full_order.php";
 
@@ -239,9 +239,8 @@ class GpOrder extends Model
         // See if carepoint has a shipping record,
         // If it does, check to make sure the shipping record matches the details provided,
         // If not update the shipping record
-
-        // Create Calendar Events
-        // Create Events
+        $shipped = new ShippedEvent($this);
+        $shipped->publish();
     }
 
     /**
@@ -295,21 +294,16 @@ class GpOrder extends Model
 
     /**
      * User the relationship to get filled and unfilled items for the order
-     * @param  bool $filled (Optional) if null get all items. If a bool, return
-     *      filled or not filled items
+     * @param  bool $filled (Optional)  If a bool, return filled or not filled items
      * @return Collection
      */
-    public function getItems(?bool $filled = null)
+    public function getFilledItems(bool $filled = true)
     {
-        if (is_null($filled)) {
-            return $this->items();
-        }
-
         if ($filled) {
             return $this->items()->whereNotNull('rx_dispensed_id');
+        } else {
+            return $this->items()->whereNull('rx_dispensed_id');
         }
-
-        return $this->items()->whereNull('rx_dispensed_id');
     }
 
     /**

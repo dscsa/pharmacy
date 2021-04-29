@@ -20,6 +20,7 @@ $app->get(
         $message = new ResponseMessage();
         $order   = GpOrder::where('invoice_number', $args['invoice_number'])->first();
 
+        // Does the order Exist
         if (!$order) {
             $message->status = 'failure';
             $message->desc   = 'Order Not Found';
@@ -27,12 +28,15 @@ $app->get(
             return $message->sendResponse($response);
         }
 
+        // We can't ship an order that is already shipped
         if ($order->isShipped()) {
             $message->status = 'failure';
             $message->desc   = 'Order already marked as shipped';
             $message->status_code = 400;
             return $message->sendResponse($response);
         }
+
+        //$order->markShipped($shipDate, $trackingNumber)
 
         $message->status = 'success';
         return $message->sendResponse($response);
