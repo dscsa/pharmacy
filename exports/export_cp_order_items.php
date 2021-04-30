@@ -17,11 +17,11 @@ function export_cp_remove_items($invoice_number, $items = [])
 
     $order_id   = $invoice_number - 2; //TODO SUPER HACKY
     //  @todo - insert this current_datetime into the deleted table
-    //  @todo - determine which user_id to update with pharmacy user in deleted table. Is there a preference?
+    //  Omitting updating the `chg_date` field in the deleted table. Unsure if it will overwrite with the current timestamp
     //  $current_datetime = date('Y-m-d H:i:s');
     $sql_to_insert_deleted = "
-        INSERT into csomline_deleted (line_id, order_id, rx_id, rxdisp_id, line_state_cn, line_status_cn, hold_yn, add_user_id, add_date, chg_user_id, chg_date)
-        SELECT line_id, order_id, rx_id, rxdisp_id, line_state_cn, line_status_cn, hold_yn, add_user_id, add_date, chg_user_id, chg_date FROM csomline
+        INSERT into csomline_deleted (line_id, order_id, rx_id, rxdisp_id, line_state_cn, line_status_cn, hold_yn, add_user_id, add_date, chg_user_id)
+        SELECT line_id, order_id, rx_id, rxdisp_id, line_state_cn, line_status_cn, hold_yn, add_user_id, add_date, 1311 FROM csomline
         WHERE csomline.order_id = '{$order_id}'
         AND rxdisp_id = 0";
 
