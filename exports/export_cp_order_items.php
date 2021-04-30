@@ -16,16 +16,6 @@ function export_cp_remove_items($invoice_number, $items = [])
     $mssql = $mssql ?: new Mssql_Cp();
 
     $order_id   = $invoice_number - 2; //TODO SUPER HACKY
-    //  @todo - insert this current_datetime into the deleted table
-    //  Omitting updating the `chg_date` field in the deleted table. Unsure if it will overwrite with the current timestamp
-    //  $current_datetime = date('Y-m-d H:i:s');
-    $sql_to_insert_deleted = "
-        INSERT into csomline_deleted (line_id, order_id, rx_id, rxdisp_id, line_state_cn, line_status_cn, hold_yn, add_user_id, add_date, chg_user_id)
-        SELECT line_id, order_id, rx_id, rxdisp_id, line_state_cn, line_status_cn, hold_yn, add_user_id, add_date, 1311 FROM csomline
-        WHERE csomline.order_id = '{$order_id}'
-        AND rxdisp_id = 0";
-
-
     $sql = "DELETE csomline
                 FROM csomline
                     JOIN cprx ON cprx.rx_id = csomline.rx_id
@@ -33,6 +23,12 @@ function export_cp_remove_items($invoice_number, $items = [])
                     -- if the rxdisp_id is set on the line, you have to
                     -- call CpOmVoidDispense first.
                     AND rxdisp_id = 0";
+
+    $sql_to_update_deleted = "
+        UPDATE csomline_deleted 
+        SET chg_user_id = 1311
+        WHERE csomline.order_id = '{$order_id}'
+        AND rxdisp_id = 0";
 
     $rx_numbers = [];
     $order_cmts = [];
@@ -47,13 +43,16 @@ function export_cp_remove_items($invoice_number, $items = [])
         $sql .= "
       AND script_no IN ('".implode("', '", $rx_numbers)."')
     ";
+        $sql_to_update_deleted .= "
+            AND script_no IN ('".implode("', '", $rx_numbers)."')
+        ";
         $order_cmts = implode(', ', $order_cmts);
     } else {
         $order_cmts = "all drugs";
     }
-    $delete_response = $mssql->run($sql_to_insert_deleted);
-    $res = $mssql->run($sql);
 
+    $res = $mssql->run($sql);
+    $delete_response = $mssql->run($sql_to_update_deleted);
     $date = date('y-m-d H:i');
     //Removing CK said too overwhelming
     //export_cp_append_order_note($mssql, $invoice_number, "$date auto removed: $order_cmts");
@@ -61,12 +60,13 @@ function export_cp_remove_items($invoice_number, $items = [])
     GPLog::debug(
         "export_cp_remove_items: $invoice_number",
         [
-            'invoice_number'                    => $invoice_number,
-            'rx_numbers'                        => $rx_numbers,
-            'items'                             => $items,
-            'sql'                               => $sql,
-            'res'                               => $res,
-            'response_from_csom_deleted_insert' => $delete_response
+            'invoice_number'               => $invoice_number,
+            'rx_numbers'                   => $rx_numbers,
+            'items'                        => $items,
+            'sql'                          => $sql,
+            'res'                          => $res,
+            'sql_to_update_deleted_line'   => $sql_to_update_deleted,
+            'response_from_update_deleted' => $delete_response
         ]
     );
 
