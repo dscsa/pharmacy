@@ -155,6 +155,9 @@ function preprocessing($sig) {
     $sig = preg_replace('/\\bInject [.\d]+ *ml?\\b/i', 'Inject 1', $sig); //Inject 0.4 mL (40 mg total) under the skin daily for 18 days.
     $sig = preg_replace('/\\b\d+ units?(.*?subcutan)|\\b(subcutan.*?)\d+ units?\\b/i', 'Inject 1 $1$2', $sig); // "15 units at bedtime 1 time per day Subcutaneous 90 days":
 
+    // Delete everything after the first ocurrance of "total of"
+    $sig = strpos($sig, "total of") ? substr($sig, 0, strpos($sig, "total of")) : $sig;
+
     //Cleanup
     $sig = preg_replace('/  +/i', ' ', $sig); //Remove double spaces for aesthetics
 
