@@ -126,7 +126,7 @@ trait UsesArrayModelStorage
 
         // Check to make sure all the required fields have a value.  Throw an
         // exception if a value is missing
-        if (! $this->requiredFiledsComplete()) {
+        if (! $this->requiredFieldsComplete()) {
             throw new \Exception('Missing required fields');
         }
 
@@ -137,7 +137,7 @@ trait UsesArrayModelStorage
      * Check to see if the required fields have been completed
      * @return bool True if all required fields are complete
      */
-    protected function requiredFiledsComplete()
+    protected function requiredFieldsComplete()
     {
         foreach ($this->required as $strRequiredField) {
             if (! isset($this->stored_data[$strRequiredField])) {

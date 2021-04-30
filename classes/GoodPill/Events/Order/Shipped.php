@@ -33,6 +33,8 @@ class Shipped extends Event
         if (!is_null($order)) {
             $this->setOrder($order);
         }
+
+        var_dump(isset($this->order));
     }
 
     /**
@@ -125,10 +127,17 @@ class Shipped extends Event
     }
 
     /**
-     * [publish description]
+     * Publish the events
+     * Cancel the any events that are not longer needed and push this event to the com calendar
      */
     public function publish() : void
     {
+
+        // Can't send notfications if the order doesn't exist
+        if (!$this->order) {
+            return;
+        }
+
         $patient = $this->order->patient;
 
         $patient->cancelEvents(
@@ -145,6 +154,13 @@ class Shipped extends Event
 
     public function getEmail() : ?EmailComm
     {
+
+
+        // if we don't have an email address we can't send an email
+        if (empty($this->order->patient->email)) {
+            return null;
+        }
+
         $email          = new EmailComm();
         $email->subject = $this->render('email_subject');
         $email->message = $this->render('email');
@@ -154,6 +170,11 @@ class Shipped extends Event
 
     public function getSms() : ?SmsComm
     {
+        // if we don't have an sms numbers
+        if (empty($this->order->patient->getPhonesAsString())) {
+            return null;
+        }
+
         $patient = $this->order->patient;
         $sms          = new SmsComm();
         $sms->sms     = $patient->getPhonesAsString();
@@ -163,9 +184,9 @@ class Shipped extends Event
 
     public function getSalesforce() : ?SalesforceComm
     {
-        $patient = $this->order->patient;
+        $patient             = $this->order->patient;
         $salesforce          = new SalesforceComm();
-        $salesforce->contact  = $patient->getPatientLabel();
+        $salesforce->contact = $patient->getPatientLabel();
         $salesforce->subject = "Auto Email/Text " . $this->render('email_subject');
         $salesforce->body    = $this->render('sms');
         return $salesforce;
@@ -181,7 +202,7 @@ class Shipped extends Event
         $m = new \Mustache_Engine(array('entity_flags' => ENT_QUOTES));
 
         return $m->render(
-            file_get_contents("templates/Order/Shipped/". $template . '.mustache'),
+            file_get_contents("/goodpill/webform/templates/Order/Shipped/". $template . '.mustache'),
             $this->getOrderData()
         );
     }

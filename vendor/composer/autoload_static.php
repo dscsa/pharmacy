@@ -127,7 +127,8 @@ class ComposerStaticInit54659efd329fa3a958f5cddec29d1420
         'Tuupola\\Middleware\\' => 
         array (
             0 => __DIR__ . '/..' . '/tuupola/callable-handler/src',
-            1 => __DIR__ . '/..' . '/tuupola/slim-jwt-auth/src',
+            1 => __DIR__ . '/..' . '/tuupola/slim-basic-auth/src',
+            2 => __DIR__ . '/..' . '/tuupola/slim-jwt-auth/src',
         ),
         'Tuupola\\Http\\Factory\\' => 
         array (

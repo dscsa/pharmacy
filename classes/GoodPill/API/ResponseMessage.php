@@ -41,7 +41,7 @@ class ResponseMessage
      */
     public function setStatusCode(int $status_code)
     {
-        $this->data['status_code'] = $status_code;
+        $this->status_code = $status_code;
     }
 
     /**
@@ -56,7 +56,7 @@ class ResponseMessage
             throw new \Exception('Status can only be success or failure');
         }
 
-        $this->data['status'] = $status;
+        $this->stored_data['status'] = $status;
     }
 
     /**

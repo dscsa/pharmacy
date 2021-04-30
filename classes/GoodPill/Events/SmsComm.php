@@ -25,7 +25,7 @@ class SmsComm extends Comm
     {
 
         // Make sure all the required fields are complete
-        if (! $this->requiredFiledsComplete()) {
+        if (! $this->requiredFieldsComplete()) {
             throw new \Exception('Missing required fields');
         }
 

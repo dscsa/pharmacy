@@ -231,27 +231,37 @@ class GpOrder extends Model
      * Other Methods
      */
 
-    public function markShipped($ship_date, $tracking_number)
+    public function markShipped($ship_date, $tracking_number) : bool
     {
+        if ($this->isShipped()) {
+            return false;
+        }
+        $shipment = new CpOrderShipment();
+        $shipment->ship_date = $ship_date;
+        $shipment->TrackingNumber = $tracking_number;
+        $shipment->order_id = $this->getOrderId();
 
-        $shipment = CpOrderShipment::where('order_id', $this->getOrderId())->firstOrNew();
+        // TODO uncomment when you aren't terrified.
+        //$shipment->save();
 
-        var_dump($shipment);
+        $this->order_date_shipped = $ship_date;
+        $this->tracking_number = $tracking_number;
+        $this->save();
 
-        // See if carepoint has a shipping record,
-        // If it does, check to make sure the shipping record matches the details provided,
-        // If not update the shipping record
-
-        // $shipped = new ShippedEvent($this);
-        // $shipped->publish();
+        $shipped = new ShippedEvent($this);
+        $shipped->publish();
     }
 
     /**
      * Getters : Retrieve and format data outside of the raw db info
      */
 
+    /**
+     * The order number is not the same as the invoice_number.  Lets subtract 2
+     * @return int
+     */
     public function getOrderId() {
-        return ($this->invoice_number - 2);
+        return $this->invoice_number - 2;
     }
 
     /**
@@ -259,13 +269,13 @@ class GpOrder extends Model
      * @param  boolean $short (Optional) Should we use the url shortener
      * @return string
      */
-    public function getTrackingUrl(bool $short = false) : string
+    public function getTrackingUrl(bool $short = false) : ?string
     {
         if (strlen($this->tracking_number) == 22) {
             $tracking_url = 'https://tools.usps.com/go/TrackConfirmAction?tLabels=';
         } elseif (
             strlen($this->tracking_number) == 15
-            || strlen($$this->tracking_number) == 12
+            || strlen($this->tracking_number) == 12
         ) { //Ground or Express
             $tracking_url = 'https://www.fedex.com/apps/fedextrack/?tracknumbers=';
         } else {
@@ -274,7 +284,7 @@ class GpOrder extends Model
 
         $tracking_url .= $this->tracking_number;
 
-        if ($short) {
+        if ($short && strlen($tracking_url) > 20) {
             $links = short_links([ 'tracking_url'  => $tracking_url ]);
             $tracking_url = $links['tracking_url'];
         }
