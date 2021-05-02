@@ -456,6 +456,11 @@ function pend_group_webform($item)
     return "$pick_date $invoice";
 }
 
+//New Patient Date (designated with a "P") is based on patient_date_added,
+//which is the lesser of Rxs received and registration date, because both of these
+//events would create the patient if it did not already exist.  This date is good
+//for v2 shopping priority, but it's unfair to be the expected_by date for the Rphs
+//so for the expected_by date we will replace it with the greater of Rxs received and registration
 function pend_group_new_patient($item)
 {
     $pick_time = strtotime(@$item['patient_date_added'].' -8 days');
