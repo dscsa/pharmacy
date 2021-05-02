@@ -72,7 +72,6 @@ function find_order_pend_group(int $invoice_number, ?array $pend_params = null) 
         'refill'          => pend_group_refill($order_based),
         'webform'         => pend_group_webform($order_based),
         'new_patient'     => pend_group_new_patient($patient_based),
-        'new_patient_old' => pend_group_new_patient_old($patient_based),
         'manual'          => pend_group_manual($order_based)
     ];
 
