@@ -139,8 +139,7 @@ function findGroupId(array $data): string {
 
     $patient = null;
     if ($patient_id_cp) {
-        $patient = GpPatient::find($patient_id_cp)
-            ->first(['first_name', 'last_name', 'birth_date']);
+        $patient = GpPatient::find($patient_id_cp, ['first_name', 'last_name', 'birth_date']);
     } elseif ($patient_id_wc) {
         $patient = GpPatient::where('patient_id_wc', $patient_id_wc)
             ->first(['first_name', 'last_name', 'birth_date']);

@@ -413,17 +413,12 @@ try {
         }
 
 
-        // Orders WC
-        if ($has_changes = get_sync_request('order_items', ['created'], $changes_to_order_items, $exec_id)) {
+        // We need to group the created and deleted items into a single execution so we can combine
+        // The messaging in the next step
+        if ($has_changes = get_sync_request('order_items', ['created', 'deleted'], $changes_to_order_items, $exec_id)) {
             $changes_sqs_messages[] = $has_changes;
         } else {
             CliLog::notice('Nothing to Queue order_items.created');
-        }
-
-        if ($has_changes = get_sync_request('order_items', ['deleted'], $changes_to_order_items, $exec_id)) {
-            $changes_sqs_messages[] = $has_changes;
-        } else {
-            CliLog::notice('Nothing to Queue order_items.deleted');
         }
 
         if ($has_changes = get_sync_request('order_items', ['updated'], $changes_to_order_items, $exec_id)) {

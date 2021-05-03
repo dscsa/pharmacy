@@ -2,6 +2,8 @@
 
 namespace  GoodPill\AWS\SQS;
 
+use GoodPill\Logging\GPLog;
+
 abstract class Request
 {
 
@@ -59,9 +61,15 @@ abstract class Request
     /**
      * Don't check the properties for validity.  Set this to false for an easy
      * way to force a message creation
+     *
+     * @var boolean
      */
     public $check_property = true;
 
+    /**
+     * Allow duplicate occurances of this mesage to be sent to the Queue
+     * @var boolean
+     */
     public $allow_duplicate = false;
 
     /**
@@ -69,6 +77,20 @@ abstract class Request
      */
     public function __construct($initialize_date = null)
     {
+
+        if (!in_array('execution_id', $this->properties)) {
+            $this->properties[] = 'execution_id';
+            $this->execution_id = GPLog::$exec_id;
+        }
+
+        if (!in_array('subroutine_id', $this->properties)) {
+            $this->properties[] = 'subroutine_id';
+            if (!is_null(GPLog::$subroutine_id)) {
+                $this->subroutine_id = GPLog::$subroutine_id;
+            }
+        }
+
+
         $this->dedup_id = uniqid();
 
         if (is_array($initialize_date)) {

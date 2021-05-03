@@ -1021,6 +1021,7 @@ function get_qty_needed($rows, $min_qty, $safety)
                 $left -= $pend[0]['qty']['to'] * $usable;
                 $list = pend_to_list($list, $pend);
             }
+
             /*
                 Shop for all matching medicine in the bin, its annoying and inefficient to pick some
                  and leave the others
@@ -1035,22 +1036,55 @@ function get_qty_needed($rows, $min_qty, $safety)
             $is_prepack    = (strlen($pend[0]['bin']) == 3);
             $is_mfg_bottle = ($pend[0]['qty']['to'] >= 60);
             $over_max      = $qty > $max_qty;
+            $min_met      = ($qty >= $min_qty);
             $unit_of_use   = ($min_qty < 5);
 
+            GPLog::debug(
+                "get_qty_needed;  {$ndc} SHOULD CONTINUE PENDING?",
+                [
+                    'left'          => $left,
+                    'over_max'      => $over_max,
+                    'different_bin' => $different_bin,
+                    'is_prepack'    => $is_prepack,
+                    'is_mfg_bottle' => $is_mfg_bottle,
+                    'unit_of_use'   => $unit_of_use,
+                    'ndc'           => $ndc,
+                    'qty'           => $qty,
+                    'min_qty'       => $min_qty,
+                    'max_qty'       => $max_qty,
+                    'min_met'       => $min_met,
+                    'stop_condition_1' => (int) (
+                        $left <= 0
+                        && (
+                            $over_max
+                            || $different_bin
+                            || $is_prepack
+                            || $is_mfg_bottle
+                            || $unit_of_use
+                        )
+                    ),
+                    'stop_condition_2' => (int) $is_mfg_bottle && $min_met
+                ]
+            );
+
             if (
-                $left <= 0
-                and (
-                    $over_max
-                    or $different_bin
-                    or $is_prepack
-                    or $is_mfg_bottle
-                    or $unit_of_use
+                (
+                    $left <= 0
+                    && (
+                        $over_max
+                        || $different_bin
+                        || $is_prepack
+                        || $is_mfg_bottle
+                        || $unit_of_use
+                    )
+                ) || (
+                    $is_mfg_bottle && $min_met
                 )
             ) {
                 usort($list, 'sort_list');
 
                 if (($qty/$min_qty) >= 2) {
-                    GPLog::critical(
+                    GPLog::warning(
                         'get_qty_needed;  Pended Quantity > 2x the requested quantity.
                         Verify picked items are correct.  After we have confirmed the qty
                         has been accuratly created we can resolve the alert.  After 10 - 15 of these

@@ -292,7 +292,7 @@ function get_days_and_message($item, $patient_or_order)
     }
 
     if ($stock_level == STOCK_LEVEL['ONE TIME']) {
-        return [$days_default, RX_MESSAGE['NO ACTION FILL ONE TIME']];
+        return [0, RX_MESSAGE['NO ACTION FILL ONE TIME']]; //Replace 0 with $days_default once we figure out ONE-TIME dispensing workflow
     }
 
     if ($stock_level == STOCK_LEVEL['OUT OF STOCK']) {
@@ -563,13 +563,19 @@ function is_syncable($item)
  * Was the item manually added via Webform or CarePoint
  *   Returns true if ADDED_MANUALLY valuse are in the item_added_by array
  *     OR
- *   The item has a item_date_added and a refil_date_manual
+ *   The item has a refill_date_manual and triggered the pharmacy app (or the autofill stored procedure) to add the item at a later date.
+ *   We consider this manuall added because the patient or staff "manually" entered this date into the patient portal, but the
+ *   addition happened to be "async" - it was added later rather than at that exact moment.  But since it was a direct action per a person,
+ *   just like ADDED_MANUALLY, we want to honor that person's intention if possible.
+ *
+ *  NOTE: This function is not very accurate, just a heuristic right now.  We need more detailed user information in Guardian to know exactly WHO added something, not default Guardian Users (e.g HL7)
  * @param  array  $item  The item to check
  * @return boolean
+ *
  */
 function is_added_manually($item)
 {
-    return in_array(@$item['item_added_by'], ADDED_MANUALLY) or (@$item['item_date_added'] and $item['refill_date_manual']);
+    return in_array(@$item['item_added_by'], ADDED_MANUALLY) or (@$item['item_date_added'] and $item['refill_date_manual'] and is_auto_refill($item));
 }
 /**
  * Did the item come from a webform transfer, surefill or refill

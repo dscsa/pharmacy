@@ -363,7 +363,24 @@ function export_wc_create_order($order, $reason)
 
     //This creates order and adds invoice number to metadata
     //We do this through REST API because direct database calls seemed messy
-    $url = "patient/$first_name $last_name $birth_date/order/$invoice_number";
+
+    //  The url used to be constructed by patient identifiers, now instead it should pass the wc_id
+    //$url = "patient/$first_name $last_name $birth_date/order/$invoice_number";
+    $patient_id_wc = $first_item['patient_id_wc'];
+    if (!isset($patient_id_wc))
+    {
+        GPLog::warning(
+            'export_wc_create_order: No woocoomerce id found for a patient. This should cause problems for creating an order for the patient',
+            [
+                'invoice_number' => $invoice_number,
+                'first_item' => $first_item,
+                'first_name' => $first_name,
+                'last_name' => $last_name,
+            ]
+        );
+    }
+
+    $url = "/patient/$patient_id_wc/order/$invoice_number";
     $res = wc_fetch($url);
 
     //if order is set, then its just a this order already exists error
@@ -412,7 +429,12 @@ function export_wc_create_order($order, $reason)
     export_wc_update_order_status($order);
     export_wc_update_order_metadata($order, 'wc_insert_meta');
     export_wc_update_order_address($order, 'wc_insert_meta');
-    $due_to_send = $first_item['order_source'] == 'Auto Refill v2' ? $first_item['payment_fee_default'] : $first_item['payment_due_default'];
+
+    $due_to_send = (
+        $first_item['order_source'] == 'Auto Refill v2' ||
+        $first_item['payment_coupon'] ||
+        $first_item['payment_method'] == PAYMENT_METHOD['AUTOPAY']
+    ) ? $first_item['payment_fee_default'] : $first_item['payment_due_default'];
 
     export_wc_update_order_payment(
         $invoice_number,
@@ -486,7 +508,12 @@ function export_wc_update_order($order)
     export_wc_update_order_status($order);
     export_wc_update_order_metadata($order);
     export_wc_update_order_address($order);
-    $due_to_send = $order[0]['order_source'] == 'Auto Refill v2' ? $order[0]['payment_fee_default'] : $order[0]['payment_due_default'];
+
+    $due_to_send = (
+        $order[0]['order_source'] == 'Auto Refill v2' ||
+        $order[0]['payment_coupon'] ||
+        $order[0]['payment_method'] == PAYMENT_METHOD['AUTOPAY']
+    ) ? $order[0]['payment_fee_default'] : $order[0]['payment_due_default'];
     export_wc_update_order_payment(
         $order[0]['invoice_number'],
         $order[0]['payment_fee_default'],
@@ -609,7 +636,7 @@ function export_wc_update_order_payment($invoice_number, $payment_fee, $payment_
                 "invoice"     => $invoice_number,
                 "payment_fee" => $payment_fee,
                 "payment_due" => $payment_due,
-                "url"         => $url,
+                "url"         => $urlToFetch,
                 "response"    => $response
             ]
         );
@@ -624,7 +651,7 @@ function export_wc_update_order_payment($invoice_number, $payment_fee, $payment_
                 "invoice"     => $invoice_number,
                 "payment_fee" => $payment_fee,
                 "payment_due" => $payment_due,
-                "url"         => $url,
+                "url"         => $urlToFetch,
                 "response"    => $response
             ]
         );
