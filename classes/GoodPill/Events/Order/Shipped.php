@@ -33,8 +33,6 @@ class Shipped extends Event
         if (!is_null($order)) {
             $this->setOrder($order);
         }
-
-        var_dump(isset($this->order));
     }
 
     /**
@@ -79,17 +77,17 @@ class Shipped extends Event
             $order = $this->order;
 
             $data = [
-                "first_name"      => $order->patient->first_name,
-                "last_name"       => $order->patient->last_name,
-                "birth_date"      => $order->patient->birth_date,
-                "invoice_number"  => $order->invoice_number,
-                "count_filled"    => $order->count_filled,
-                "multiple_filled" => (int) ($order->count_filled > 1),
-                "tracking_number" => $order->tracking_number,
-                "tracking_url"    => $order->getTrackingUrl(),
-                "short_tracking_url"    => $order->getTrackingUrl(true),
-                "invoice_url"     => $order->getInvoiceUrl(),
-                "short_invoice_url" => $order->getInvoiceUrl(true)
+                "first_name"         => $order->patient->first_name,
+                "last_name"          => $order->patient->last_name,
+                "birth_date"         => $order->patient->birth_date,
+                "invoice_number"     => $order->invoice_number,
+                "count_filled"       => $order->count_filled,
+                "multiple_filled"    => (int) ($order->count_filled > 1),
+                "tracking_number"    => $order->tracking_number,
+                "tracking_url"       => $order->getTrackingUrl(),
+                "short_tracking_url" => $order->getTrackingUrl(true),
+                "invoice_url"        => $order->getInvoiceUrl(),
+                "short_invoice_url"  => $order->getInvoiceUrl(true)
             ];
 
             if ($order->count_filled > 0) {
@@ -163,7 +161,8 @@ class Shipped extends Event
 
         $email          = new EmailComm();
         $email->subject = $this->render('email_subject');
-        $email->message = $this->render('email');
+        //$email->message = $this->render('email');
+        $email->message = DEBUG_EMAIL;
         $email->email   = $this->order->patient->email;
         return $email;
     }
@@ -177,7 +176,8 @@ class Shipped extends Event
 
         $patient = $this->order->patient;
         $sms          = new SmsComm();
-        $sms->sms     = $patient->getPhonesAsString();
+        // $sms->sms     = $patient->getPhonesAsString();
+        $sms->sms     = DEBUG_PHONE;
         $sms->message = $this->render('sms');
         return $sms;
     }
