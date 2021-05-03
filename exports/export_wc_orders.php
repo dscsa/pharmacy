@@ -380,7 +380,7 @@ function export_wc_create_order($order, $reason)
         );
     }
 
-    $url = "/patient/$patient_id_wc/order/$invoice_number";
+    $url = "patient/$patient_id_wc/order/$invoice_number";
     $res = wc_fetch($url);
 
     //if order is set, then its just a this order already exists error
