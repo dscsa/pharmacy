@@ -320,6 +320,8 @@ function order_item_updated(array $updated) : ?array
 
     $changed = changed_fields($updated);
 
+    $invoice_number = $updated['invoice_number'];
+
     $GPOrder = GpOrder::where('invoice_number', $invoice_number)->first();
     if ($GPOrder && $GPOrder->isShipped()) {
         GPLog::alert(
