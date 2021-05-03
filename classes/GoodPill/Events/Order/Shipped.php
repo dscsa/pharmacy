@@ -150,10 +150,12 @@ class Shipped extends Event
         $patient->createEvent($this);
     }
 
+    /**
+     * Get the email portion of a communication
+     * @return EmailComm
+     */
     public function getEmail() : ?EmailComm
     {
-
-
         // if we don't have an email address we can't send an email
         if (empty($this->order->patient->email)) {
             return null;
@@ -161,12 +163,16 @@ class Shipped extends Event
 
         $email          = new EmailComm();
         $email->subject = $this->render('email_subject');
-        //$email->message = $this->render('email');
-        $email->message = DEBUG_EMAIL;
-        $email->email   = $this->order->patient->email;
+        $email->message = $this->render('email');
+        $email->email = BEN_EMAIL;
+        //$email->email   = $this->order->patient->email;
         return $email;
     }
 
+    /**
+     * Generate the SMS part of the communication Event
+     * @return SmsComm
+     */
     public function getSms() : ?SmsComm
     {
         // if we don't have an sms numbers
@@ -177,11 +183,15 @@ class Shipped extends Event
         $patient = $this->order->patient;
         $sms          = new SmsComm();
         // $sms->sms     = $patient->getPhonesAsString();
-        $sms->sms     = DEBUG_PHONE;
+        $sms->sms     = BEN_PHONE;
         $sms->message = $this->render('sms');
         return $sms;
     }
 
+    /**
+     * Generate the Salesforce portion of the Communication event
+     * @return SalesforceComm
+     */
     public function getSalesforce() : ?SalesforceComm
     {
         $patient             = $this->order->patient;

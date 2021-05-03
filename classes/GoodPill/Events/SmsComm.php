@@ -18,7 +18,7 @@ class SmsComm extends Comm
     ];
 
     /**
-     * Create a Comm Calendar compatible Delivery message
+     * Create a Comm Calendar compatible SMS message
      * @return array
      */
     public function delivery() : array

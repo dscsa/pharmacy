@@ -6,6 +6,10 @@ use GoodPill\Events\SalesforceComm;
 use GoodPill\Events\EmailComm;
 use GoodPill\Events\SmsComm;
 
+/**
+ * Events are things that happen in the system.  They are most frequently related to patients
+ * doing things or order status chances
+ */
 abstract class Event
 {
 

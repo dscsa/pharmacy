@@ -4,6 +4,9 @@ namespace GoodPill\Events;
 
 use GoodPill\Events\Comm;
 
+/**
+ * This class is used to gereate a Comms compatible salesforce message
+ */
 class SalesforceComm extends Comm
 {
     protected $properties = [
