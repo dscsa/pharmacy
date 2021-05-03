@@ -85,10 +85,11 @@ class SigParser {
         $increase = "(may|can) increase(.*?\/ *(month|week))?";
         $sentence = "(?<=[a-z ])[.;\/] *(?=\w)";  //Sentence ending in . ; or / e.g. "Take 1 tablet by mouth once daily / take 1/2 tablet on sundays"
         $then     = " then[ ,]+";
+        $commas   = ",";
         $and_at   = " & +at ";
         $and_verb = " &[ ,]+(?=\d|use +|take +|inhale +|chew +|inject +|oral +)";
 
-        $durations_regex = "/($increase|$sentence|$then|$and_at|$and_verb)/i";
+        $durations_regex = "/($increase|$sentence|$then|$commas|$and_at|$and_verb)/i";
 
         $splits = preg_split($durations_regex, $text, -1, PREG_SPLIT_DELIM_CAPTURE);
 
@@ -137,7 +138,7 @@ class SigParser {
         }
 
         // If the last split didn't have a duration, set $final_days to DAYS_STD
-        if ($dur != $parsed_dur) {
+        if ($dur != $parsed_dur OR $final_days == 0) {
             $final_days = DAYS_STD;
         }
         return [
@@ -148,7 +149,7 @@ class SigParser {
     }
 
     private function parse_frequencies($split) {
-        $frequencies = $this->filter_attributes($split, "FREQUENCY", 0.6);
+        $frequencies = $this->filter_attributes($split, "FREQUENCY", 0.7);
         if (count($frequencies) == 0) {
             return 1;
         }
@@ -157,12 +158,20 @@ class SigParser {
         foreach ($frequencies as $freq) {
             // NOTE: Gets the LAST number from a particular frequency.
             // "1 to 2 days" => 2.
+
+            // Hours match
             preg_match('/(\d+)(?!.*\d)(.*)hour/i', $freq, $match);
             if ($match AND $match[1]) {
-                $total_freq *= 24 / (float)$match[1];
+                // If it's "every N hours before X", don't normalize it to 24hrs
+                if (preg_match('/before/i', $freq)) {
+                    $total_freq *= (float)$match[1];
+                } else {
+                    $total_freq *= 24 / (float)$match[1];
+                }
                 continue;
             }
 
+            // Weeks match
             preg_match('/(\d+)(?!.*\d)(.*) week/i', $freq, $match);
             if ($match AND $match[1]) {
                 $total_freq *= (float)$match[1] / 7;
@@ -193,16 +202,20 @@ class SigParser {
             $weight = $this->filter_attributes($attributes_drug, "DOSAGE", 0.5)[0];
         }
 
-        // Get the LAST number and its unit
-        // "2.5MG/3ML" => "3" "ML"
-        preg_match('/((?:\d*\.)?\d+)(?!.*((?:\d*\.)?\d+))(.*)/i', $weight, $match);
-        if ($match) {
-            $weight_unit = $match[3];
-            $weight_value = (float) $match[1];
-            // Special case: If the unit is ML, don't normalize it
-            if (preg_match('/ml/i', $weight_unit)) {
-                $weight_value = 1;
-                $unit = 'ml';
+        $equivalences = [];
+        foreach (preg_split('/\//', $weight, -1) as $eq) {
+            preg_match('/((?:\d*\.)?\d+)(?!.*((?:\d*\.)?\d+))(.*)/i', $eq, $match);
+            if (!$match) {
+                continue;
+            }
+            $equivalences[$match[3]] = (float) $match[1];
+        }
+
+        // If the unit is ML, don't normalize it and assign the unit as ML.
+        if (array_key_exists('ML', $equivalences)) {
+            $unit = 'ML';
+            foreach ($equivalences as $unit => $value) {
+                $equivalences[$unit] = $equivalences[$unit] / $equivalences['ML'];
             }
         }
 
@@ -220,22 +233,32 @@ class SigParser {
                 $sig_qty = (float) $match[1];
                 $sig_unit = trim($match[3]);
 
-                if ($weight_unit AND preg_match('/'.$weight_unit.'/i', $sig_unit)) {
-                    $parsed['sig_qty'] += $sig_qty / $weight_value;
-                } else {
+                $found = false;
+                // If the unit matches, normalize it with the weight value.
+                foreach ($equivalences as $unit => $value) {
+                    if ($unit AND preg_match('/'.$unit.'/i', $sig_unit)) {
+                        $parsed['sig_qty'] += $sig_qty / $value;
+                        $found = true;
+                        break;
+                    }
+                }
+                if (!$found) {
                     $parsed['sig_qty'] += $sig_qty;
                 }
-
+                // If no sig unit was assigned, give it the unit of the first dose
                 if (!$parsed['sig_unit']) {
                     $parsed['sig_unit'] = $sig_unit;
                 }
             }
         }
+        if ($parsed["sig_qty"] == 0) {
+            $parsed["sig_qty"] = 1;
+        }
         return $parsed;
     }
 
     private function parse_durations($split) {
-        $durations = $this->filter_attributes($split, "DURATION", 0.6);
+        $durations = $this->filter_attributes($split, "DURATION", 0.3);
         if (count($durations) == 0) {
             return 0;
         }

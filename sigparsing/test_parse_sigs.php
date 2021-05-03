@@ -8,7 +8,15 @@ $correct_pairs = [
 
     // TODO: Check for repeated wording in "multiple sigs"
     // "1 tablet by mouth daily; TAKE ONE TABLET BY MOUTH ONCE DAILY" => 1,
-
+    
+    "Take 1 tab 5 xdaily on week 1 ,1 tab 4 xdaily on week 2, 1 tab 3 xdaily on week 3, 1 tab 2 xdaily on week 4, then 1 tab daily on week 5" => [
+        "drug_name" => "PREDNISONE 10MG TAB",
+        "expected" => [
+            "sig_qty" => 5*7 + 4*7 + 3*7 + 2*7 + 1*7,
+            "sig_days" => 35,
+            "sig_unit" => "TAB"
+        ]
+    ],
     "Take 7.5mg three days per week (M,W,F) and 5mg four days per week OR as directed per Coumadin Clinic." => [
         "drug_name" => "WARFARIN SODIUM 5MG TAB",
         "expected" => [
@@ -194,15 +202,15 @@ $correct_pairs = [
             "sig_unit" => "capsules"
         ]
     ],
-    // Outlier?
-    "Take 1 capsule once a day take along with 40mg for total of 60mg" => [
-        "drug_name" => "PROZAC 20MG PULVULE",
-        "expected" => [
-            "sig_qty" => 3 * DAYS_STD,
-            "sig_days" => DAYS_STD,
-            "sig_unit" => "capsule"
-        ]
-    ],
+    // Outlier for sig_unit
+    // "Take 1 capsule once a day take along with 40mg for total of 60mg" => [
+    //     "drug_name" => "PROZAC 20MG PULVULE",
+    //     "expected" => [
+    //         "sig_qty" => 3 * DAYS_STD,
+    //         "sig_days" => DAYS_STD,
+    //         "sig_unit" => "PULVULE"
+    //     ]
+    // ],
     "1 capsule as needed every 6 hrs Orally 30 day(s)" => [
         "expected" => [
             "sig_qty" => 120,
@@ -246,14 +254,15 @@ $correct_pairs = [
         "expected" => [
             "sig_qty" => 12 * DAYS_STD,
             "sig_days" => DAYS_STD,
-            "sig_unit" => "ml"
+            "sig_unit" => "ML"
         ]
     ],
     "Take 20 mEq by mouth 2 (two) times a day." => [
+        "drug_name" => "POTASSIUM CL ER 20MEQ TAB",
         "expected" => [
-            "sig_qty" => 40 * DAYS_STD,
+            "sig_qty" => 2 * DAYS_STD,
             "sig_days" => DAYS_STD,
-            "sig_unit" => "mEq"
+            "sig_unit" => "TAB"
         ]
     ],
     "Inhale 2 puff(s) every 4 hours by inhalation route." => [
@@ -263,8 +272,8 @@ $correct_pairs = [
             "sig_unit" => "puff"
         ]
     ]
-
 ];
+
 
 foreach($correct_pairs as $text => $props) {
     $result = $parser->parse($text, $props['drug_name']);
@@ -278,6 +287,30 @@ foreach($correct_pairs as $text => $props) {
             assert($expected[$key] == $result[$key], $msg);
         }
     }
+}
+
+
+$host = "mysql-sirum-dw";
+$port = "3306";
+$username = "smartpill_dw";
+$password = "password";
+$database = "goodpill";
+
+mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
+$conn = mysqli_connect($host, $username, $password, $database);
+
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
+}
+
+$sigs = mysqli_query($conn, "SELECT rx_number, sig_actual, drug_name FROM gp_rxs_single_sampled");
+printf("Select returned %d rows.\n", $sigs->num_rows);
+foreach ($sigs as $sig) {
+    $parsed = $parser->parse($sig["sig_actual"], $sig["drug_name"]);
+    $sig_qty_per_day = $parsed["sig_qty"] / $parsed["sig_days"];
+
+    $query = "UPDATE gp_rxs_single_sampled SET sig_qty_per_day_new=$sig_qty_per_day, sig_unit=\"$parsed[sig_unit]\" WHERE rx_number=$sig[rx_number]\n";
+    mysqli_query($conn, $query);
 }
 
 ?>

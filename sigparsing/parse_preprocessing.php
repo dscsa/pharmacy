@@ -15,6 +15,8 @@ function preprocessing($sig) {
     //Interpretting as 93 qty per day. Not sure if its best to just get rid of it here or fix the issue further down
     $sig = preg_replace('/ 90 days?$/i', '', $sig); //TAKE 1 CAPSULE(S) 3 TIMES A DAY BY ORAL ROUTE AS NEEDED. 90 days
 
+    $sig = preg_replace('/xdaily/i', ' times per day', $sig);
+
     //echo "1 $sig";
 
     //Spanish
@@ -96,7 +98,7 @@ function preprocessing($sig) {
     //echo "5 $sig";
     //Alternative frequency numerator wordings
     $sig = preg_replace('/(?<!all )(other|otra)\\b/i', '2', $sig); //Exclude: Take 4mg 1 time per week, Wed; 2mg all other days or as directed.
-    // $sig = preg_replace('/\\bonce\\b/i', '1 time', $sig);
+    $sig = preg_replace('/\\bonce\\b/i', '1 time', $sig);
     $sig = preg_replace('/\\btwice\\b/i', '2 times', $sig);
     $sig = preg_replace('/\\bhourly\\b/i', 'per hour', $sig);
     $sig = preg_replace('/\\bdaily\\b/i', 'per day', $sig);
@@ -157,6 +159,9 @@ function preprocessing($sig) {
 
     // Delete everything after the first ocurrance of "total of"
     $sig = strpos($sig, "total of") ? substr($sig, 0, strpos($sig, "total of")) : $sig;
+
+    // Delete everything after the first ocurrance of "max"
+    $sig = strpos($sig, " max ") ? substr($sig, 0, strpos($sig, " max ")) : $sig;
 
     //Cleanup
     $sig = preg_replace('/  +/i', ' ', $sig); //Remove double spaces for aesthetics
