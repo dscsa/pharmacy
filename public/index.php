@@ -106,7 +106,7 @@ $app->post(
 );
 
 $app->post(
-    '/auth/renew',
+    '/auth/refresh',
     function (Request $request, Response $response, $args) {
         $message = new ResponseMessage();
 
