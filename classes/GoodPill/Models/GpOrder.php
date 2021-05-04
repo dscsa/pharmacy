@@ -107,6 +107,7 @@ class GpOrder extends Model
         'order_date_updated',
         'order_date_dispensed',
         'order_date_shipped',
+        'order_date_delivered',
         'order_date_returned'
     ];
 
@@ -137,6 +138,7 @@ class GpOrder extends Model
         'order_date_updated',
         'order_date_dispensed',
         'order_date_shipped',
+        'order_date_delivered',
         'order_date_returned',
         'payment_total_default',
         'payment_total_actual',

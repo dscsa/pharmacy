@@ -9,8 +9,6 @@ require_once 'exports/export_gd_transfer_fax.php';
 use GoodPill\Logging\GPLog;
 use GoodPill\Logging\AuditLog;
 use GoodPill\Logging\CliLog;
-
-use GoodPill\DataModels\GoodPillOrder;
 use GoodPill\Models\GpOrder;
 
 /**

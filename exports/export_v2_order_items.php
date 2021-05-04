@@ -6,7 +6,7 @@ use GoodPill\Logging\{
     CLiLog
 };
 
-use \GoodPill\DataModels\GoodPillOrder;
+use \GoodPill\Models\GpOrder;
 use \GoodPill\DataModels\GoodPillPendGroup;
 
 require_once 'exports/export_cp_orders.php';
@@ -56,8 +56,8 @@ function v2_pend_item($item, $mysql, $reason)
 {
     // Make sure there is an order before we Pend.  If there isn't one skip the
     // pend and put in an alert.
-    $gp_order = new GoodPillOrder(['invoice_number' => $item['invoice_number']]);
-    if (!$gp_order->loaded) {
+    $gp_order = GpOrder::where('invoice_number', $item['invoice_number']);
+    if (is_null($gp_order)) {
         AuditLog::log(
             sprintf(
                 "ABORTED PEND Attempted to pend %s for Rx#%s on Invoice #%s. This
@@ -405,6 +405,7 @@ function get_item_pended_group($item, $include_picked = false)
         'refill'          => pend_group_refill($item),
         'webform'         => pend_group_webform($item),
         'new_patient'     => pend_group_new_patient($item),
+        'new_patient_old' => pend_group_new_patient_old($item),
         'manual'          => pend_group_manual($item)
     ];
 
@@ -455,14 +456,18 @@ function pend_group_webform($item)
     return "$pick_date $invoice";
 }
 
-//New Patient Date (designated with a "P") is based on patient_date_added,
-//which is the lesser of Rxs received and registration date, because both of these
-//events would create the patient if it did not already exist.  This date is good
-//for v2 shopping priority, but it's unfair to be the expected_by date for the Rphs
-//so for the expected_by date we will replace it with the greater of Rxs received and registration
 function pend_group_new_patient($item)
 {
     $pick_time = strtotime(@$item['patient_date_added'].' -8 days');
+    $invoice   = "P{$item['invoice_number']}";
+    $pick_date = date('Y-m-d', $pick_time);
+    return "$pick_date $invoice";
+}
+
+//This can be deleted once 2021-01-12 P55855 is dispensed
+function pend_group_new_patient_old($item)
+{
+    $pick_time = strtotime($item['patient_date_added'].' +0 days');
     $invoice   = "P{$item['invoice_number']}";
     $pick_date = date('Y-m-d', $pick_time);
     return "$pick_date $invoice";
@@ -473,7 +478,7 @@ function pend_group_manual($item)
     return $item['invoice_number'];
 }
 
-function pend_group_name($item)
+    function pend_group_name($item)
 {
 
     // See if there is already a pend group for this order
@@ -555,13 +560,7 @@ function pend_pick_list($item, $list)
     $pend_group_name = pend_group_name($item);
     $qty             = round($item['qty_dispensed_default']);
 
-    GPLog::debug(
-        "Pending item: {$item['rx_number']} - {$pend_group_name}:{$item['drug_generic']} - $qty",
-        [
-            'invoice_number' => $item['invoice_number'],
-            'rx_number'      => $item['rx_number']
-        ]
-    );
+    CliLog::debug("pending item {$pend_group_name}:{$item['drug_generic']} - $qty");
 
     $pend_url = "/account/8889875187/pend/$pend_group_name?repackQty=$qty";
 
