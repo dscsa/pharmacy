@@ -7,7 +7,7 @@ use GoodPill\Logging\{
     CliLog
 };
 
-use GoodPill\DataModels\GoodPillOrder;
+use GoodPill\Models\GpOrder;
 
 function wc_get_post($invoice_number, $wc_order_key = null, $suppress_error = false)
 {
@@ -30,8 +30,8 @@ function wc_get_post($invoice_number, $wc_order_key = null, $suppress_error = fa
 
     if (! $suppress_error) {
         // Make sure this order hasn't been deleted before we yell about it
-        $order = new GoodPillOrder(['invoice_number' => $invoice_number]);
-        if ($order->loaded) {
+        $order = GpOrder::where('invoice_number', $invoice_number);
+        if ($order) {
             GPLog::error(
                 "Order $invoice_number doesn't seem to exist in wp_posts",
                 [
@@ -185,9 +185,8 @@ function wc_update_order($invoice_number, $orderdata)
 
     if (! $wc_order['post_id']) {
         // Make sure the order still exists before yelling about it
-        $order = new GoodPillOrder(['invoice_number' => $invoice_number]);
-
-        if ($order->loaded) {
+        $order = GpOrder::where('invoice_number', $invoice_number);
+        if ($order) {
             GPLog::critical(
                 "export_wc_orders: wc_update_order FAILED! Order $invoice_number has no WC POST_ID",
                 [
@@ -380,7 +379,7 @@ function export_wc_create_order($order, $reason)
         );
     }
 
-    $url = "/patient/$patient_id_wc/order/$invoice_number";
+    $url = "patient/$patient_id_wc/order/$invoice_number";
     $res = wc_fetch($url);
 
     //if order is set, then its just a this order already exists error

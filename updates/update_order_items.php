@@ -9,8 +9,6 @@ require_once 'exports/export_gd_transfer_fax.php';
 use GoodPill\Logging\GPLog;
 use GoodPill\Logging\AuditLog;
 use GoodPill\Logging\CliLog;
-
-use GoodPill\DataModels\GoodPillOrder;
 use GoodPill\Models\GpOrder;
 
 /**
@@ -319,6 +317,8 @@ function order_item_updated(array $updated) : ?array
     GPLog::info("data-order-items-updated", ['updated' => $updated]);
 
     $changed = changed_fields($updated);
+
+    $invoice_number = $updated['invoice_number'];
 
     $GPOrder = GpOrder::where('invoice_number', $invoice_number)->first();
     if ($GPOrder && $GPOrder->isShipped()) {
@@ -655,6 +655,7 @@ function deduplicate_order_items(array $item) : array
 
     foreach ($res2 as $duplicate) {
         $mssql->run("DELETE FROM csomline WHERE line_id = {$duplicate['line_id']}");
+        $mssql->run("UPDATE CsOmLine_Deleted SET chg_user_id = 1311 WHERE line_id = {$duplicate['line_id']}");
     }
 
     GPLog::notice(

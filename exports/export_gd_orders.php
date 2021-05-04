@@ -12,7 +12,7 @@ use GoodPill\AWS\SQS\GoogleAppRequest\Invoice\{
 use GoodPill\Storage\Goodpill;
 
 use GoodPill\AWS\SQS\GoogleAppQueue;
-use GoodPill\DataModels\GoodPillOrder;
+use GoodPill\Models\GpOrder;
 use GoodPill\Logging\{
     GPLog,
     AuditLog,
@@ -179,10 +179,10 @@ function export_gd_update_invoice($order, $reason, $mysql, $try2 = false)
 function export_gd_create_invoice(int $invoice_number, ?bool $async = true) : ?string
 {
     // If there is a current invoice, delete it before moving on
-    $order = new GoodPillOrder(['invoice_number' => $invoice_number]);
+    $order = GpOrder::where('invoice_number', $invoice_number)->first();
 
     // No order so nothing to do
-    if (!$order->loaded) {
+    if (!$order) {
         return null;
     }
 
@@ -239,7 +239,7 @@ function export_gd_create_invoice(int $invoice_number, ?bool $async = true) : ?s
 function export_gd_complete_invoice(int $invoice_number, ?bool $async = true) : bool
 {
     // Get full orders
-    $order = new GoodPillOrder(['invoice_number' => $invoice_number]);
+    $order = GpOrder::where('invoice_number', $invoice_number)->first();
     $legacy_order = $order->getLegacyOrder();
 
     $complete_request                = new Complete();
@@ -430,9 +430,9 @@ function findInvoiceDocId($likely_invoice_number)
     // invoice_number and not a doc_id.  We want the doc ID so we should get it
     if (is_numeric($likely_invoice_number) && strlen($likely_invoice_number) < 10000000) {
         // Go get the doc ID using a simple model
-        $order = new GoodPillOrder(['invoice_number' => $likely_invoice_number]);
+        $order = GpOrder::where('invoice_number', $likely_invoice_number)->firstOrNew();
 
-        if ($order->loaded
+        if ($order->exists
             && isset($order->invoice_doc_id)) {
                 return $order->invoice_doc_id;
         } else {

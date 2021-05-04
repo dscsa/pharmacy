@@ -6,7 +6,7 @@ use GoodPill\Logging\{
     CLiLog
 };
 
-use \GoodPill\DataModels\GoodPillOrder;
+use \GoodPill\Models\GpOrder;
 use \GoodPill\DataModels\GoodPillPendGroup;
 
 require_once 'exports/export_cp_orders.php';
@@ -56,8 +56,8 @@ function v2_pend_item($item, $mysql, $reason)
 {
     // Make sure there is an order before we Pend.  If there isn't one skip the
     // pend and put in an alert.
-    $gp_order = new GoodPillOrder(['invoice_number' => $item['invoice_number']]);
-    if (!$gp_order->loaded) {
+    $gp_order = GpOrder::where('invoice_number', $item['invoice_number']);
+    if (is_null($gp_order)) {
         AuditLog::log(
             sprintf(
                 "ABORTED PEND Attempted to pend %s for Rx#%s on Invoice #%s. This
@@ -478,7 +478,7 @@ function pend_group_manual($item)
     return $item['invoice_number'];
 }
 
-function pend_group_name($item)
+    function pend_group_name($item)
 {
 
     // See if there is already a pend group for this order
