@@ -555,7 +555,13 @@ function pend_pick_list($item, $list)
     $pend_group_name = pend_group_name($item);
     $qty             = round($item['qty_dispensed_default']);
 
-    CliLog::debug("pending item {$pend_group_name}:{$item['drug_generic']} - $qty");
+    GPLog::debug(
+        "Pending item: {$item['rx_number']} - {$pend_group_name}:{$item['drug_generic']} - $qty",
+        [
+            'invoice_number' => $item['invoice_number'],
+            'rx_number'      => $item['rx_number']
+        ]
+    );
 
     $pend_url = "/account/8889875187/pend/$pend_group_name?repackQty=$qty";
 
