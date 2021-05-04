@@ -102,7 +102,7 @@ function update_stock_by_month($changes) {
 
             IF(
               zscore < zlow_threshold,
-              IF(total_dispensed_actual > last_inv_onetime_threshold, 'REFILL ONLY', 'ONE TIME'),
+              IF(COALESCE(total_dispensed_actual, 0) >= last_inv_onetime_threshold, 'REFILL ONLY', 'ONE TIME'),
 
               IF(
                last_inventory < last_inv_high_threshold OR zscore < zhigh_threshold,
