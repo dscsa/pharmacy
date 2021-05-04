@@ -84,12 +84,37 @@ $app->post(
 
         $message->status = 'success';
         return $message->sendResponse($response);
+    }
+);
 
-        //return $message->sendResponse($response);
-        //$response->getBody()->write(json_encode(['success' => true]));
-        //return $response->withHeader('Content-Type', 'application/json');
-        //$response->getBody()->write("Hello world!");
-        //return $response;
+$app->post(
+    '/order/{invoice_number}/delivered',
+    function (Request $request, Response $response, $args) {
+        $message = new ResponseMessage();
+        $order   = GpOrder::where('invoice_number', $args['invoice_number'])->first();
+
+        // Does the order Exist
+        if (!$order) {
+            $message->status = 'failure';
+            $message->desc   = 'Order Not Found';
+            $message->status_code = 400;
+            return $message->sendResponse($response);
+        }
+
+        // We can't ship an order that is already shipped
+        if ($order->isDelivered()) {
+            $message->status = 'failure';
+            $message->desc   = 'Order already marked as delivered';
+            $message->status_code = 400;
+            return $message->sendResponse($response);
+        }
+
+        $request_data = (object) $request->getParsedBody();
+
+        $order->markDelivered($request_data->delivered_date, $request_data->tracking_number);
+
+        $message->status = 'success';
+        return $message->sendResponse($response);
     }
 );
 

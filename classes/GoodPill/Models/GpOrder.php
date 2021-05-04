@@ -8,6 +8,7 @@ use GoodPill\Models\GpPatient;
 use GoodPill\Models\GpOrderItem;
 use GoodPill\Models\Carepoint\CpOrderShipment;
 use GoodPill\Events\Order\Shipped as ShippedEvent;
+use GoodPill\Events\Order\Delivered as DeliveredEvent;
 
 require_once "helpers/helper_full_order.php";
 
@@ -135,6 +136,7 @@ class GpOrder extends Model
         'order_date_updated',
         'order_date_dispensed',
         'order_date_shipped',
+        'order_date_delivered',
         'order_date_returned',
         'payment_total_default',
         'payment_total_actual',
@@ -193,7 +195,7 @@ class GpOrder extends Model
      *         )
      *      )
      *
-     * @return bool true if there is a shipdate
+     * @return bool
      */
     public function isShipped() : bool
     {
@@ -215,11 +217,26 @@ class GpOrder extends Model
     }
 
     /**
+     * Has the order been marked delivered
+     *      An order will be considered delivered if it order_date_delivered is not empty
+     * @return bool
+     */
+    public function isDelivered() : bool
+    {
+        // We add a 12 hour padding to the order_date_shipped incase they
+        // make changes before it leaves the office
+        return (
+             $this->exists
+             && !empty($this->order_date_delivered)
+         );
+    }
+
+    /**
      * Has the order been dispensed
      * An order will be considered dispensed if it
      *     Exists in the Database
      *     AND There is a dispensed date for the order
-     * @return bool [description]
+     * @return bool
      */
     public function isDispensed() : bool
     {
@@ -231,11 +248,19 @@ class GpOrder extends Model
      * Other Methods
      */
 
+    /**
+     * Update the order as shipped
+     * @param  string $ship_date       A stringtotime compatible utc date
+     * @param  string $tracking_number The tracking number for the shipment
+     * @return bool                    Was the shipment updatedated
+     */
     public function markShipped($ship_date, $tracking_number) : bool
     {
         if ($this->isShipped()) {
             return false;
         }
+
+        $ship_date = date(strtotime($ship_date));
         $shipment = new CpOrderShipment();
         $shipment->ship_date = $ship_date;
         $shipment->TrackingNumber = $tracking_number;
@@ -249,6 +274,38 @@ class GpOrder extends Model
         $this->save();
 
         $shipped = new ShippedEvent($this);
+        $shipped->publish();
+    }
+
+    /**
+     * Update the order as delivered
+     * @param  string delivered_date   A stringtotime compatible utc date
+     * @param  string $tracking_number The tracking number for the shipment
+     * @return bool                    Was the shipment updated
+     */
+    public function markDelivered($delivery_date, $tracking_number) : bool
+    {
+        if ($this->isDelivered()) {
+            return false;
+        }
+
+        $shipment = CpOrderShipment()::where('order_id', $this->getOrderId())
+                                     ->where('TrackingNumber', $this->tracking_number)
+                                     ->firstOrNew();
+        if (!$shipment->exists) {
+            $shipment->ship_date = date(strtotime('-3 day', strtotime($ship_date)));
+            $shipment->TrackingNumber = $tracking_number;
+        }
+
+        $shipment->DeliveredDate = date(strtotime($delivery_date));
+
+        // TODO uncomment when you aren't terrified.
+        //$shipment->save();
+
+        $this->order_date_delivered = $ship_date;
+        $this->save();
+
+        $shipped = new DeliverdEvent($this);
         $shipped->publish();
     }
 
