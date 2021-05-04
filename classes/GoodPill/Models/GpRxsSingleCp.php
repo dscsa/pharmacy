@@ -4,14 +4,14 @@
  * Created by Reliese Model.
  */
 
-namespace App\Models;
+namespace GoodPill\Models;
 
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 
 /**
  * Class GpRxsSingleCp
- * 
+ *
  * @property int $rx_number
  * @property int $patient_id_cp
  * @property string $drug_name
