@@ -657,6 +657,7 @@ function deduplicate_order_items(array $item) : array
 
     foreach ($res2 as $duplicate) {
         $mssql->run("DELETE FROM csomline WHERE line_id = {$duplicate['line_id']}");
+        $mssql->run("UPDATE CsOmLine_Deleted SET chg_user_id = 1311 WHERE line_id = {$duplicate['line_id']}");
     }
 
     GPLog::notice(
