@@ -49,24 +49,22 @@ abstract class Event
      */
     public function publishEvent()
     {
-
         // Make sure we can creat a title.
         $title = $this->getTitle();
 
         $comm_array = [];
 
         if ($email = $this->getEmail()) {
-            $comm_array['email'] = $email->delivery();
+            $comm_array[] = $email->delivery();
         }
 
         if ($sms = $this->getSms()) {
-            $comm_array['sms'] = $sms->delivery();
+            $comm_array[] = $sms->delivery();
         }
 
         if ($salesforce = $this->getSalesforce()) {
-            $comm_array['salesforce'] = $salesforce->delivery();
+            $comm_array[] = $salesforce->delivery();
         }
-
 
         // TODO Replace this with a new object based Event
         create_event($title, $comm_array, $this->hours_to_wait, $this->hour_of_day);

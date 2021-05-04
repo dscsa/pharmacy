@@ -15,16 +15,17 @@ use Illuminate\Database\Eloquent\Model;
  */
 class CpOrderShipment extends Model
 {
-
-    // TODO right now we are making this immutable, but we may want to come back and and make it
-    // a composite key based on order_id and tracking_number.
-    use \GoodPill\Traits\IsImmutable;
-
     /**
      * The Table for this data
      * @var string
      */
     protected $table = 'CsOmShipUpdate';
+
+    /**
+     * Using order_id as the primary key field
+     * @var int
+     */
+    protected $primaryKey = 'order_id';
 
     /**
      * [protected description]
@@ -50,6 +51,12 @@ class CpOrderShipment extends Model
      */
     protected $casts = [
         'order_id' => 'int',
+    ];
+
+    protected $dates = [
+        'ship_date',
+        'ShipmentDate',
+        'DeliveredDate'
     ];
 
     /**

@@ -260,21 +260,20 @@ class GpOrder extends Model
             return false;
         }
 
-        $ship_date = date(strtotime($ship_date));
-        $shipment = new CpOrderShipment();
-        $shipment->ship_date = $ship_date;
+        // Model should cast to date
+        $shipment                 = CpOrderShipment::firstOrCreate(['order_id' => $this->getOrderId()]);
+        $shipment->ship_date      = $ship_date;
         $shipment->TrackingNumber = $tracking_number;
-        $shipment->order_id = $this->getOrderId();
-
-        // TODO uncomment when you aren't terrified.
-        //$shipment->save();
+        $shipment->save();
 
         $this->order_date_shipped = $ship_date;
-        $this->tracking_number = $tracking_number;
+        $this->tracking_number    = $tracking_number;
         $this->save();
 
         $shipped = new ShippedEvent($this);
         $shipped->publish();
+
+        return true;
     }
 
     /**
@@ -289,24 +288,24 @@ class GpOrder extends Model
             return false;
         }
 
-        $shipment = CpOrderShipment()::where('order_id', $this->getOrderId())
-                                     ->where('TrackingNumber', $this->tracking_number)
-                                     ->firstOrNew();
+        $shipment = CpOrderShipment::where('order_id', $this->getOrderId())->firstOrNew();
+
         if (!$shipment->exists) {
-            $shipment->ship_date = date(strtotime('-3 day', strtotime($ship_date)));
+            $shipment->ship_date = date(strtotime('-3 day', strtotime($delivery_date)));
             $shipment->TrackingNumber = $tracking_number;
         }
 
-        $shipment->DeliveredDate = date(strtotime($delivery_date));
+        // Model should cast to date
+        $shipment->DeliveredDate = $delivery_date;
+        $shipment->save();
 
-        // TODO uncomment when you aren't terrified.
-        //$shipment->save();
-
-        $this->order_date_delivered = $ship_date;
+        $this->order_date_delivered = $delivery_date;
         $this->save();
 
-        $shipped = new DeliverdEvent($this);
+        $shipped = new DeliveredEvent($this);
         $shipped->publish();
+
+        return true;
     }
 
     /**
