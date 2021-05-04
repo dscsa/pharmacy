@@ -42,7 +42,7 @@ function export_cp_set_expected_by($item) {
         this trick, you can find the timestamp in Guardian's expected by date.
         */
         $expected_by  = substr($pend_group_name, 0, 10);
-        $expected_by .= substr($item['order_date_added'], -8);
+        $expected_by .= substr($item['order_date_added'], -9); //timestamp with leading space
   }
 
 
