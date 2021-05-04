@@ -81,8 +81,35 @@ function get_days_and_message($item, $patient_or_order)
 
     //rx-created2 can call here and be too early even though it is not an order, we still need to catch it here
     $date_added = @$item['order_date_added'] ?: $item['rx_date_written'];
-    $days_early = strtotime($item['refill_date_next']) - strtotime($date_added);
+    $days_early_next = strtotime($item['refill_date_next']) - strtotime($date_added);
+    $days_early_default = strtotime($item['refill_date_default']) - strtotime($date_added);
     $days_since = strtotime($date_added) - strtotime($item['refill_date_last']);
+
+    GPLog::debug(
+        "Get Days And Message All Parameters",
+        [
+            'item' => $item,
+            'patient_or_order' => $patient_or_order,
+            'no_transfer' => $no_transfer,
+            'added_manually' => $added_manually,
+            'is_webform' => $is_webform,
+            'not_offered' => $not_offered,
+            'is_refill' => $is_refill,
+            'refill_only' => $refill_only,
+            'is_duplicate_gsn' => $is_duplicate_gsn,
+            'is_syncable' => $is_syncable,
+            'stock_level' => $stock_level,
+            'is_order' => $is_order,
+            'days_left_in_expiration' => $days_left_in_expiration,
+            'days_left_in_refills' => $days_left_in_refills,
+            'days_left_in_stock' => $days_left_in_stock,
+            'days_default' => $days_default,
+            'date_added' => $date_added,
+            'days_early_next' => $days_early_next,
+            'days_early_default' => $days_early_default,
+            'days_since' => $days_since
+        ]
+    );
 
     /*
       There was some error parsint the Rx
@@ -203,7 +230,7 @@ function get_days_and_message($item, $patient_or_order)
     }
 
     //Patient set their refill date_manual earlier than they should have. TODO ensure webform validation doesn't allow this
-    if (@$item['item_date_added'] AND $item['refill_date_manual'] AND (strtotime($item['refill_date_default']) - strtotime($date_added)) > DAYS_EARLY*24*60*60 AND ! $added_manually) {
+    if (@$item['item_date_added'] AND $item['refill_date_manual'] AND $days_early_default > DAYS_EARLY*24*60*60 AND ! $added_manually) {
         $created = "Created:".date('Y-m-d H:i:s');
 
         $salesforce = [
@@ -220,12 +247,12 @@ function get_days_and_message($item, $patient_or_order)
         return [0, RX_MESSAGE['NO ACTION NOT DUE']];
     }
 
-    if ($days_early > DAYS_EARLY*24*60*60 and $days_since < DAYS_EARLY*24*60*60 and ! $added_manually) {
+    if ($days_early_next > DAYS_EARLY*24*60*60 and $days_since < DAYS_EARLY*24*60*60 and ! $added_manually) {
         GPLog::info("DON'T REFILL IF FILLED WITHIN LAST ".DAYS_EARLY." DAYS UNLESS ADDED MANUALLY", get_defined_vars());
         return [0, RX_MESSAGE['NO ACTION RECENT FILL']];
     }
 
-    if ($days_early > DAYS_EARLY*24*60*60 and ! $added_manually) {
+    if ($days_early_next > DAYS_EARLY*24*60*60 and ! $added_manually) {
         GPLog::info("DON'T REFILL IF NOT DUE IN OVER ".DAYS_EARLY." DAYS UNLESS ADDED MANUALLY", get_defined_vars());
         return [0, RX_MESSAGE['NO ACTION NOT DUE']];
     }
@@ -250,7 +277,7 @@ function get_days_and_message($item, $patient_or_order)
     if (! $item['rx_autofill'] and @$item['item_date_added']) {
 
     //39652 don't refill surescripts early if rx is off autofill.  This means refill_date_next is null but refill_date_default may have a value
-        if ((strtotime($item['refill_date_default']) - strtotime($item['order_date_added'])) > DAYS_EARLY*24*60*60 and ! $added_manually) {
+        if ($days_early_default > DAYS_EARLY*24*60*60 and ! $added_manually) {
             return [0, RX_MESSAGE['ACTION RX OFF AUTOFILL']];
         }
 
