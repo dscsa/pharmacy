@@ -9,6 +9,6 @@ class GoogleCalendarQueue extends Queue
 {
     public function __construct()
     {
-        parent::__construct(SQS_GDOC);
+        parent::__construct(SQS_GDOC_CAL);
     }
 }
