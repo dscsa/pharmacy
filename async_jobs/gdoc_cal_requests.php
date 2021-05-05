@@ -42,6 +42,8 @@ for ($l = 0; $l < $executions; $l++) {
     $messages = $results->get('Messages');
     $complete = [];
 
+    $loop_start = time();
+
     // An array of messages that have
     // been proccessed and can be deleted
     // If we've got something to work with, go for it
@@ -84,15 +86,21 @@ for ($l = 0; $l < $executions; $l++) {
             if (@$response->results == 'success') {
                 $log_message .= "Success!";
                 $complete[] = $request;
+                GPLog::debug($log_message, $request->toArray());
+                CliLog::notice($log_message);
             } else {
-                $log_message .= "FAILED Waiting 60 seconds before next message - Message: {$response->error}";
+                $log_message .= "FAILED - Message: {$response->error}";
+                GPLog::debug($log_message, $request->toArray());
+                CliLog::notice($log_message);
                 // When we get a failed message, we are going to wait 60
                 // seconds before we try it again
-                sleep(60 * 5);
+                if (strpos(strtolower($response->error), 'please try again later') !== false) {
+                    CliLog::notice("We failed and we are going to wait 5 minutes.  Then we will grab messages and try again");
+                    sleep(60 * 4);
+                    break;
+                }
             }
-
-            GPLog::debug($log_message, $request->toArray());
-            CliLog::notice($log_message);
+            sleep(2);
 
             // /* Check to see if we've requeted to stop */
             // pcntl_signal_dispatch();
@@ -122,8 +130,15 @@ for ($l = 0; $l < $executions; $l++) {
     unset($messages);
     unset($complete);
 
-    // Wait 60 seconds for every 5 requests
-    sleep(60);
+    // we want to do 5 reqeusts every 60 seconds.  If it's taken less than 60 seconds
+    // to complete these 5 mesages, we want to sleep until it's been 60 seconds
+    $elapsed = time() - $loop_start;
+    $sleep_time = 60 - $elapsed;
+
+    if ($sleep_time > 0) {
+        CliLog::notice("Waiting {$sleep_time} seconds before we grab more items");
+        sleep($sleep_time);
+    }
 
     // if ($stopRequested) {
     //     CLiLog::warning('Terminating execution from SIGTERM request');
