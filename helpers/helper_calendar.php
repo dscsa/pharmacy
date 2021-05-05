@@ -1,6 +1,6 @@
 <?php
 
-use GoodPill\AWS\SQS\GoogleAppQueue;
+use GoodPill\AWS\SQS\GoogleCalendarQueue;
 use GoodPill\AWS\SQS\GoogleAppRequest\Calendar\Create;
 use GoodPill\AWS\SQS\GoogleAppRequest\Calendar\Delete;
 use GoodPill\AWS\SQS\GoogleAppRequest\Calendar\SearchAndDelete;
@@ -509,7 +509,7 @@ function create_event(
     $create_event->group_id      = 'calendar-request';
 
     if ($async) {
-        $gdq = new GoogleAppQueue();
+        $gdq = new GoogleCalendarQueue();
         $gdq->send($create_event);
         return true;
     }
@@ -535,7 +535,7 @@ function cancel_events(array $ids, $async = true)
     $delete_events->group_id      = 'calendar-request';
 
     if ($async) {
-        $gdq = new GoogleAppQueue();
+        $gdq = new GoogleCalendarQueue();
         $gdq->send($delete_events);
         return true;
     }
@@ -775,7 +775,7 @@ function cancel_events_by_person($first_name, $last_name, $birth_date, $caller, 
     $search_and_delete->regex_search = "/({$types}).+{$first_name}/i";
     $search_and_delete->group_id = 'calendar-request';
 
-    $gdq = new GoogleAppQueue();
+    $gdq = new GoogleCalendarQueue();
     $gdq->send($search_and_delete);
 
     return true;
@@ -794,7 +794,7 @@ function cancel_events_by_order($invoice_number, $caller, $types = [])
     $search_and_delete->regex_search = "/({$types})/i";
     $search_and_delete->group_id = 'calendar-request';
 
-    $gdq = new GoogleAppQueue();
+    $gdq = new GoogleCalendarQueue();
     $gdq->send($search_and_delete);
 
     return true;
