@@ -88,7 +88,7 @@ for ($l = 0; $l < $executions; $l++) {
                 $log_message .= "FAILED Waiting 60 seconds before next message - Message: {$response->error}";
                 // When we get a failed message, we are going to wait 60
                 // seconds before we try it again
-                sleep(60);
+                sleep(60 * 5);
             }
 
             GPLog::debug($log_message, $request->toArray());
@@ -122,8 +122,8 @@ for ($l = 0; $l < $executions; $l++) {
     unset($messages);
     unset($complete);
 
-    // Wait 5 seconds for every 5 requests
-    sleep(5);
+    // Wait 60 seconds for every 5 requests
+    sleep(60);
 
     // if ($stopRequested) {
     //     CLiLog::warning('Terminating execution from SIGTERM request');
