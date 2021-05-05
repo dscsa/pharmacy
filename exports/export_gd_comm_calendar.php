@@ -8,6 +8,9 @@ use GoodPill\Logging\{
     CliLog
 };
 
+use GoodPill\Models\GpOrder;
+use GoodPill\Events\Order\Shipped;
+
 //Internal communication warning an order was shipped but not dispensed.  Gets erased when/if order is shipped
 function order_dispensed_notice($groups)
 {
