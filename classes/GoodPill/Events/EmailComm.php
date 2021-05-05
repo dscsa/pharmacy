@@ -12,7 +12,8 @@ class EmailComm extends Comm
         'email',
         'subject',
         'bcc',
-        'from'
+        'from',
+        'attachments'
     ];
 
     protected $required = [
@@ -21,6 +22,16 @@ class EmailComm extends Comm
         'subject',
         'from'
     ];
+
+
+    /**
+     * Make sure the attachments are an array
+     * @param array $attachments An array of google doc ids
+     */
+    public function setAttachments(array $attachments)
+    {
+        $this->stored_data['attachments'] = $attachments;
+    }
 
     /**
      * Create a Comm Calendar compatible Email message

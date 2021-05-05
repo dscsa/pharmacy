@@ -161,10 +161,11 @@ class Shipped extends Event
             return null;
         }
 
-        $email          = new EmailComm();
-        $email->subject = $this->render('email_subject');
-        $email->message = $this->render('email');
-        $email->email = BEN_EMAIL;
+        $email              = new EmailComm();
+        $email->subject     = $this->render('email_subject');
+        $email->message     = $this->render('email');
+        $email->attachments = [$this->order->invoice_doc_id];
+        $email->email       = BEN_EMAIL;
         //$email->email   = $this->order->patient->email;
         return $email;
     }
