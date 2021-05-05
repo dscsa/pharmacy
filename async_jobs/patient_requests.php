@@ -220,7 +220,7 @@ for ($l = 0; $l < $executions; $l++) {
                 );
 
                 // Create the block file
-                file_put_contents('/tmp/block-patient-queue.txt', date('c'));
+                file_put_contents('/tmp/block-patient-queue.txt', $message);
 
                 break;
             }
