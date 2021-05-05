@@ -395,27 +395,4 @@ class GpOrder extends Model
 
         return null;
     }
-
-    /**
-     * Has the order been marked as shipped
-     * @return bool true if there is a shipdate
-     */
-    public function isShipped() : bool
-    {
-        // We add a 12 hour padding to the order_date_shipped incase they
-        // make changes before it leaves the office
-        return (
-            $this->loaded
-            && !empty($this->order_date_shipped)
-            && (
-                strtotime($this->order_date_shipped) + (60 * 60 * 12) > time()
-                || (
-                    isset($this->tracking_number)
-                    // Add a 10 minute window just so things that happen on
-                    // the same sync execution don't throw an error
-                    && strtotime($this->order_date_shipped) + (60 * 10) > time()
-                )
-            )
-        );
-    }
 }
