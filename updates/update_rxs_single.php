@@ -12,7 +12,7 @@ use GoodPill\Logging\CliLog;
 
 use GoodPill\Utilities\Timer;
 
-use GoodPill\DataModels\GoodPillRxSingle;
+use GoodPill\Models\GpRxsSingle;
 
 function update_rxs_single($changes)
 {
@@ -81,8 +81,8 @@ function update_rxs_single($changes)
                 // order_item will be new and won't need to be updated
                 update_rx_single_drug($mysql, $created['rx_number']);
 
-                $rx_single = new GoodPillRxSingle(['rx_number' => $created['rx_number']]);
-                if (!$rx_single->loaded || !$rx_single->drug_gsns) {
+                $rx_single = GpRxsSingle::where('rx_number', $created['rx_number']);
+                if (is_null($rx_single) || !$rx_single->drug_gsns) {
                     GPLog::notice(
                         "update_rxs_single: rx created but drug_gsns is empty",
                         [ 'created'  => $created]

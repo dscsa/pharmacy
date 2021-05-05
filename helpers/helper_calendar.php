@@ -9,6 +9,8 @@ use GoodPill\Logging\AuditLog;
 use GoodPill\Logging\CliLog;
 use GoodPill\Storage\Goodpill;
 
+require_once "helpers/helper_appsscripts.php";
+
 function order_dispensed_event($order, $salesforce, $hours_to_wait)
 {
     if (@$order[0]['patient_inactive']) {
@@ -652,7 +654,7 @@ function search_events_by_order($invoice_number, $past = false, $types = [])
         'past'         => $past,
         'word_search'  => "$invoice_number",
         'regex_search' => "/($types)/i"
-      ];
+    ];
 
     $result = gdoc_post(GD_HELPER_URL, $args);
 

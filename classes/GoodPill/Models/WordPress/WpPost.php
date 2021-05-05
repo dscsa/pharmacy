@@ -1,17 +1,13 @@
 <?php
 
-/**
- * Created by Reliese Model.
- */
-
-namespace App\Models;
+namespace GoodPill\Models;
 
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 
 /**
  * Class WpPost
- * 
+ *
  * @property int $ID
  * @property int $post_author
  * @property Carbon $post_date
@@ -40,50 +36,50 @@ use Illuminate\Database\Eloquent\Model;
  */
 class WpPost extends Model
 {
-	protected $table = 'wp_posts';
-	protected $primaryKey = 'ID';
-	public $timestamps = false;
+    protected $table = 'wp_posts';
+    protected $primaryKey = 'ID';
+    public $timestamps = false;
 
-	protected $casts = [
-		'post_author' => 'int',
-		'post_parent' => 'int',
-		'menu_order' => 'int',
-		'comment_count' => 'int'
-	];
+    protected $casts = [
+        'post_author' => 'int',
+        'post_parent' => 'int',
+        'menu_order' => 'int',
+        'comment_count' => 'int'
+    ];
 
-	protected $dates = [
-		'post_date',
-		'post_date_gmt',
-		'post_modified',
-		'post_modified_gmt'
-	];
+    protected $dates = [
+        'post_date',
+        'post_date_gmt',
+        'post_modified',
+        'post_modified_gmt'
+    ];
 
-	protected $hidden = [
-		'post_password'
-	];
+    protected $hidden = [
+        'post_password'
+    ];
 
-	protected $fillable = [
-		'post_author',
-		'post_date',
-		'post_date_gmt',
-		'post_content',
-		'post_title',
-		'post_excerpt',
-		'post_status',
-		'comment_status',
-		'ping_status',
-		'post_password',
-		'post_name',
-		'to_ping',
-		'pinged',
-		'post_modified',
-		'post_modified_gmt',
-		'post_content_filtered',
-		'post_parent',
-		'guid',
-		'menu_order',
-		'post_type',
-		'post_mime_type',
-		'comment_count'
-	];
+    protected $fillable = [
+        'post_author',
+        'post_date',
+        'post_date_gmt',
+        'post_content',
+        'post_title',
+        'post_excerpt',
+        'post_status',
+        'comment_status',
+        'ping_status',
+        'post_password',
+        'post_name',
+        'to_ping',
+        'pinged',
+        'post_modified',
+        'post_modified_gmt',
+        'post_content_filtered',
+        'post_parent',
+        'guid',
+        'menu_order',
+        'post_type',
+        'post_mime_type',
+        'comment_count'
+    ];
 }

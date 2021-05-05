@@ -1,0 +1,60 @@
+{{!
+    Sample of data
+    {
+        "first_name": "Ben",
+        "last_name": "Brown",
+        "birth_date": "1999-09-09",
+        "dispensed_date": "04-09-2021",
+        "shipped_date": "04-09-2021",
+        "invoice_number": 12345,
+        "tracking_number": "1234123124123",
+        "tracking_url": "http://www.gmail.com",
+        "short_tracking_url": "http://www.gmail.com",
+        "invoice_url": "http://www.gmail.com",
+        "short_invoice_url": "http://www.gmail.com",
+        "count_filled": 1,
+        "multiple_filled": true,
+        "filled": {
+            "rxs": [
+                {"name": "drug 1"},
+                {"name": "drug 2"}
+            ]
+        },
+        "no_fill": {
+            "rxs": [
+                {"name": "no drug 1"},
+                {"name": "no drug 2"}
+            ]
+        }
+    }
+}}
+<html>
+    <body>
+        <p>Hello {{first_name}},</p>
+        <p>Thanks for choosing Good Pill Pharmacy. Good Pill shipped your order of {{count_filled}} item{{#multiple_filled}}s{{/multiple_filled}} and it should arrive in 3-5 days.</p>
+        <p>Your receipt for Order #{{invoice_number}} is attached. Your tracking number is <a href="{{tracking_url}}">{{tracking_number}}</a>.</p>
+        <p>Use this link to request delivery notifications and/or provide the courier specific delivery instructions.</p>
+        {{#filled}}
+        <p>
+            <u>These Rxs are on the way:</u>
+            <ul>
+                {{#rxs}}
+                    <li>{{name}}</li>
+                {{/rxs}}
+            </ul>
+        </p>
+        {{/filled}}
+        <p>Thanks!<br>
+        The Good Pill Team</p>
+        {{#nofill}}
+        <p>
+        <u>We cannot fill these Rxs without your help:</u>
+        <ul>
+            {{#rxs}}
+                <li>{{name}}</li>
+            {{/rxs}}
+        </ul>
+        <p>
+        {{/nofill}}
+    </body>
+</html>

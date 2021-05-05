@@ -1,9 +1,5 @@
 <?php
 
-/**
- * Created by Reliese Model.
- */
-
 namespace GoodPill\Models\WordPress;
 
 use Illuminate\Database\Eloquent\Model;
