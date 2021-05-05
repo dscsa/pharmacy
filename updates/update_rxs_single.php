@@ -81,7 +81,7 @@ function update_rxs_single($changes)
                 // order_item will be new and won't need to be updated
                 update_rx_single_drug($mysql, $created['rx_number']);
 
-                $rx_single = GpRxsSingle::where('rx_number', $created['rx_number']);
+                $rx_single = GpRxsSingle::where('rx_number', $created['rx_number'])->frist();
                 if (is_null($rx_single) || !$rx_single->drug_gsns) {
                     GPLog::notice(
                         "update_rxs_single: rx created but drug_gsns is empty",
