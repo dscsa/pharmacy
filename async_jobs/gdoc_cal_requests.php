@@ -41,7 +41,7 @@ $executions = (ENVIRONMENT == 'PRODUCTION') ? 10000 : 2;
 for ($l = 0; $l < $executions; $l++) {
     $results  = $gdq->receive(['MaxNumberOfMessages' => 2]);
     $messages = $results->get('Messages');
-    $complete = []
+    $complete = [];
     $loop_start = time();
 
     // An array of messages that have
