@@ -2,7 +2,7 @@
 
 namespace GoodPill\Events\Order;
 
-use GoodPill\Events\OrderEvent;
+use GoodPill\Events\Order\OrderEvent;
 use GoodPill\Events\SalesforceComm;
 use GoodPill\Events\EmailComm;
 use GoodPill\Events\SmsComm;
