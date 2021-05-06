@@ -8,19 +8,19 @@ use GoodPill\Events\EmailComm;
 use GoodPill\Events\SmsComm;
 use GoodPill\Models\GpOrder;
 
-class Shipped extends OrderEvent
+class Cancelled extends OrderEvent
 {
     /**
      * The name of the event type
      * @var string
      */
-    public $type = 'Order Shipped';
+    public $type = 'Order Cancelled';
 
     /**
      * The path to the templates
      * @var string
      */
-    protected $template_path = 'Order/Shipped';
+    protected $template_path = 'Order/Cancelled';
 
     /**
      * Publish the events
@@ -37,8 +37,6 @@ class Shipped extends OrderEvent
 
         $patient->cancelEvents(
             [
-                'Order Shipped',
-                'Order Dispensed',
                 'Order Cancelled',
                 'Needs Form'
             ]
