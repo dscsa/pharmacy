@@ -8,7 +8,7 @@ use GoodPill\Events\EmailComm;
 use GoodPill\Events\SmsComm;
 use GoodPill\Models\GpOrder;
 
-class Shipped extends Event
+class Delivered extends Event
 {
     /**
      * Hold the order for this event
@@ -22,7 +22,7 @@ class Shipped extends Event
      */
     protected $order_data;
 
-    public $type = 'Order Shipped';
+    public $type = 'Order Delivered';
 
     /**
      * Make it so
@@ -212,7 +212,7 @@ class Shipped extends Event
         $m = new \Mustache_Engine(array('entity_flags' => ENT_QUOTES));
 
         return $m->render(
-            file_get_contents("/goodpill/webform/templates/Order/Shipped/". $template . '.mustache'),
+            file_get_contents("/goodpill/webform/templates/Order/Delivered/". $template . '.mustache'),
             $this->getOrderData()
         );
     }

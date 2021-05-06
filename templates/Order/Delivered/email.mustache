@@ -28,31 +28,28 @@
         }
     }
 }}
-<html>
-    <body>
-        <p>Hello {{first_name}},</p>
-        <p>Your Good Pill order of {{count_filled}} item{{#multiple_filled}}s{{/multiple_filled}} has been delivered.</p>
-        {{#filled}}
-        <p>
-            <u>This order includes:</u>
-            <ul>
-                {{#rxs}}
-                    <li>{{name}}</li>
-                {{/rxs}}
-            </ul>
-        </p>
-        {{/filled}}
-        <p>Thanks!<br>
-        The Good Pill Team</p>
-        {{#nofill}}
-        <p>
-        <u>We could not fill these items:</u>
-        <ul>
-            {{#rxs}}
-                <li>{{name}}</li>
-            {{/rxs}}
-        </ul>
-        <p>
-        {{/nofill}}
-    </body>
-</html>
+
+<p>Hello {{first_name}},</p>
+<p>Your Good Pill order of {{count_filled}} item{{#multiple_filled}}s{{/multiple_filled}} has been delivered.</p>
+{{#filled}}
+<p>
+    <u>This order includes:</u>
+    <ul>
+        {{#rxs}}
+            <li>{{name}}</li>
+        {{/rxs}}
+    </ul>
+</p>
+{{/filled}}
+<p>Thanks!<br>
+The Good Pill Team</p>
+{{#nofill}}
+<p>
+<u>We could not fill these items:</u>
+<ul>
+    {{#rxs}}
+        <li>{{name}}</li>
+    {{/rxs}}
+</ul>
+</p>
+{{/nofill}}

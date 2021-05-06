@@ -22,6 +22,11 @@ class SalesforceComm extends Comm
         'body',
     ];
 
+    public function __construct() {
+        $this->stored_data['assign_to'] = null;
+        $this->stored_data['due_date'] = null;
+    }
+
     /**
      * Create a Comm Calendar compatible Delivery message
      * @return array

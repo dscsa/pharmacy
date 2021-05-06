@@ -39,7 +39,7 @@ $executions = (ENVIRONMENT == 'PRODUCTION') ? 10000 : 2;
 
 // Only loop so many times before we restart the script
 for ($l = 0; $l < $executions; $l++) {
-    $results  = $gdq->receive(['MaxNumberOfMessages' => 2]);
+    $results  = $gdq->receive(['MaxNumberOfMessages' => 5]);
     $messages = $results->get('Messages');
     $complete = [];
     $loop_start = time();
@@ -98,8 +98,7 @@ for ($l = 0; $l < $executions; $l++) {
                 // When we get a failed message, we are going to wait 60
                 // seconds before we try it again
                 if (strpos(strtolower($response->error), 'please try again later') !== false) {
-                    CliLog::notice("We failed and we are going to wait 15 minutes.  Then we will grab messages and try again");
-                    sleep(60 * 15);
+                    CliLog::emergency("Google Calendar API has hit creation threshold");
                     break;
                 }
             }
@@ -131,16 +130,6 @@ for ($l = 0; $l < $executions; $l++) {
     unset($response);
     unset($messages);
     unset($complete);
-
-    // we want to do 2 reqeusts every 30 seconds.  If it's taken less than 60 seconds
-    // to complete these 5 mesages, we want to sleep until it's been 60 seconds
-    $elapsed = time() - $loop_start;
-    $sleep_time = 30 - $elapsed;
-
-    if ($sleep_time > 0) {
-        CliLog::notice("Waiting {$sleep_time} seconds before we grab more items");
-        sleep($sleep_time);
-    }
 
     // if ($stopRequested) {
     //     CLiLog::warning('Terminating execution from SIGTERM request');

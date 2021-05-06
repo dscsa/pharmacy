@@ -28,33 +28,30 @@
         }
     }
 }}
-<html>
-    <body>
-        <p>Hello {{first_name}},</p>
-        <p>Thanks for choosing Good Pill Pharmacy. Good Pill shipped your order of {{count_filled}} item{{#multiple_filled}}s{{/multiple_filled}} and it should arrive in 3-5 days.</p>
-        <p>Your receipt for Order #{{invoice_number}} is attached. Your tracking number is <a href="{{tracking_url}}">{{tracking_number}}</a>.</p>
-        <p>Use this link to request delivery notifications and/or provide the courier specific delivery instructions.</p>
-        {{#filled}}
-        <p>
-            <u>These Rxs are on the way:</u>
-            <ul>
-                {{#rxs}}
-                    <li>{{name}}</li>
-                {{/rxs}}
-            </ul>
-        </p>
-        {{/filled}}
-        <p>Thanks!<br>
-        The Good Pill Team</p>
-        {{#nofill}}
-        <p>
-        <u>We cannot fill these Rxs without your help:</u>
-        <ul>
-            {{#rxs}}
-                <li>{{name}}</li>
-            {{/rxs}}
-        </ul>
-        <p>
-        {{/nofill}}
-    </body>
-</html>
+
+<p>Hello {{first_name}},</p>
+<p>Thanks for choosing Good Pill Pharmacy. Good Pill shipped your order of {{count_filled}} item{{#multiple_filled}}s{{/multiple_filled}} and it should arrive in 3-5 days.</p>
+<p>Your receipt for Order #{{invoice_number}} is attached. Your tracking number is <a href="{{tracking_url}}">{{tracking_number}}</a>.</p>
+<p>Use this link to request delivery notifications and/or provide the courier specific delivery instructions.</p>
+{{#filled}}
+<p>
+    <u>These Rxs are on the way:</u>
+    <ul>
+        {{#rxs}}
+            <li>{{name}}</li>
+        {{/rxs}}
+    </ul>
+</p>
+{{/filled}}
+<p>Thanks!<br>
+The Good Pill Team</p>
+{{#nofill}}
+<p>
+<u>We cannot fill these Rxs without your help:</u>
+<ul>
+    {{#rxs}}
+        <li>{{name}}</li>
+    {{/rxs}}
+</ul>
+</p>
+{{/nofill}}
