@@ -203,6 +203,21 @@ class Delivered extends Event
     }
 
     /**
+     * Get the title for the event.
+     * @return string
+     */
+    public function getTitle()
+    {
+        return sprintf(
+            '%s %s: %s. Created: %s',
+            $this->order->invoice_number,
+            $this->type,
+            $this->order->patient->getPatientLabel(),
+            date('Y-m-d H:i:s')
+        );
+    }
+
+    /**
      * Render a template using the order data
      * @param  string $template The template name to render
      * @return string

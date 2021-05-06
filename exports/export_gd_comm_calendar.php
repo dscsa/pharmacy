@@ -36,8 +36,8 @@ function order_shipped_notice($groups)
     $gpOrder = GpOrder::where('invoice_number', $groups['ALL'][0]['invoice_number'])->first();
 
     if ($gpOrder) {
-        $shipping_event = new Shipped($gpOrder);
-        $shipping_event->publishEvent();
+        // $shipping_event = new Shipped($gpOrder);
+        // $shipping_event->publishEvent();
     }
 
     $subject   = 'Good Pill shipped order '.($groups['ALL'][0]['count_filled'] ? 'of '.$groups['ALL'][0]['count_filled'].' items ' : '').'and it should arrive in 3-5 days.';

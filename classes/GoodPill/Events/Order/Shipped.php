@@ -33,6 +33,8 @@ class Shipped extends Event
         if (!is_null($order)) {
             $this->setOrder($order);
         }
+
+
     }
 
     /**
@@ -201,6 +203,21 @@ class Shipped extends Event
         $salesforce->subject = "Auto Email/Text " . $this->render('email_subject');
         $salesforce->body    = $this->render('sms');
         return $salesforce;
+    }
+
+    /**
+     * Get the title for the event.
+     * @return string
+     */
+    public function getTitle()
+    {
+        return sprintf(
+            '%s %s: %s. Created: %s',
+            $this->order->invoice_number,
+            $this->type,
+            $this->order->patient->getPatientLabel(),
+            date('Y-m-d H:i:s')
+        );
     }
 
     /**
