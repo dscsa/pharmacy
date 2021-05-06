@@ -71,8 +71,8 @@ $correct_pairs = [
     "1 capsule by mouth every day for 7 days then continue on with 60mg capsuled" => [
         "drug_name" => "DULOXETINE DR 30MG CAP",
         "expected" => [
-            "sig_qty" => 7 + 2 * (DAYS_STD - 7),
-            "sig_days" => DAYS_STD,
+            "sig_qty" => 7, // We asume that the 60mg is another drug, so it doesn't count for the final qty
+            "sig_days" => 7, // Only count the days for "this" drug
             "sig_unit" => "CAP"
         ]
     ],
@@ -207,8 +207,8 @@ $correct_pairs = [
     //     "drug_name" => "PROZAC 20MG PULVULE",
     //     "expected" => [
     //         "sig_qty" => 3 * DAYS_STD,
-    //         "sig_days" => DAYS_STD,
     //         "sig_unit" => "PULVULE"
+    //         "sig_days" => DAYS_STD,
     //     ]
     // ],
     "1 capsule as needed every 6 hrs Orally 30 day(s)" => [
@@ -220,7 +220,7 @@ $correct_pairs = [
     ],
     "1 tablet every 6 to 8 hours as needed Orally 30 day(s)" => [
         "expected" => [
-            "sig_qty" => 90,     // or 120?
+            "sig_qty" => 90, // Taking the max value for dosages and frequencies gives the best results
             "sig_days" => 30,
             "sig_unit" => "tablet"
         ]
@@ -265,14 +265,16 @@ $correct_pairs = [
             "sig_unit" => "TAB"
         ]
     ],
-    "Inhale 2 puff(s) every 4 hours by inhalation route." => [
-        "expected" => [
-            "sig_qty" => 12 * DAYS_STD,
-            "sig_days" => DAYS_STD,
-            "sig_unit" => "puff"
-        ]
-    ]
+    // Puffs/inhalators can last much longer
+    // "Inhale 2 puff(s) every 4 hours by inhalation route." => [
+    //     "expected" => [
+    //         "sig_qty" => 12 * DAYS_STD,
+    //         "sig_days" => DAYS_STD,
+    //         "sig_unit" => "puff"
+    //     ]
+    // ]
 ];
+
 
 
 foreach($correct_pairs as $text => $props) {

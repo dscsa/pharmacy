@@ -2,6 +2,34 @@
 
 function preprocessing($sig) {
     //Cleanup
+    $sig = preprocessing_cleanup($sig);
+
+    //Spanish
+    $sig = preg_replace('/\\btomar\\b/i', 'take', $sig);
+    $sig = preg_replace('/\\bcada\\b/i', 'each', $sig);
+    $sig = preg_replace('/\\bhoras\\b/i', 'hours', $sig);
+
+    //Abreviations
+    $sig = preg_replace('/\\bhrs\\b/i', 'hours', $sig);
+    $sig = preg_replace('/\\b(prn|at onset|when)\\b/i', 'as needed', $sig);
+    $sig = preg_replace('/\\bdays per week\\b/i', 'times per week', $sig);
+
+    $sig = preprocessing_number_substitution($sig);
+
+    $sig = preprocessing_duration_substitution($sig);
+
+    $sig = preprocessing_alternative_units($sig);
+
+    $sig = preprocessing_alternative_wording($sig);
+
+    //Cleanup
+    $sig = preg_replace('/  +/i', ' ', $sig); //Remove double spaces for aesthetics
+
+    return trim($sig);
+}
+
+function preprocessing_cleanup($sig) {
+    //Cleanup
     $sig = preg_replace('/\(.*?\)/', '', $sig); //get rid of parenthesis // "Take 1 capsule (300 mg total) by mouth 3 (three) times daily."
     $sig = preg_replace('/\\\/', '', $sig);   //get rid of backslashes and single quotes (latter for sql savings errors)
     $sig = preg_replace('/\\band\\b/i', '&', $sig);   // & is easier tp search in regex than "and"
@@ -17,19 +45,13 @@ function preprocessing($sig) {
 
     $sig = preg_replace('/xdaily/i', ' times per day', $sig);
 
-    //echo "1 $sig";
+    // Split with commas "then" so that durations/frequencies/dosages are recognized separately by AWS CH 
+    $sig = preg_replace('/(?<!,) then /i', ', then ', $sig);
 
-    //Spanish
-    $sig = preg_replace('/\\btomar\\b/i', 'take', $sig);
-    $sig = preg_replace('/\\bcada\\b/i', 'each', $sig);
-    $sig = preg_replace('/\\bhoras\\b/i', 'hours', $sig);
+    return $sig;
+}
 
-    //Abreviations
-    $sig = preg_replace('/\\bhrs\\b/i', 'hours', $sig);
-    $sig = preg_replace('/\\b(prn|at onset|when)\\b/i', 'as needed', $sig);
-    $sig = preg_replace('/\\bdays per week\\b/i', 'times per week', $sig);
-
-    //echo "2 $sig";
+function preprocessing_number_substitution($sig) {
     //Substitute Integers
     $sig = preg_replace('/\\b(one|uno)\\b/i', '1', $sig); // \\b is for space or start of line
     $sig = preg_replace('/\\b(two|dos)\\b/i', '2', $sig); // \\b is for space or start of line
@@ -52,37 +74,37 @@ function preprocessing($sig) {
     $sig = preg_replace('/\\b(eighty|ochenta)\\b/i', '80', $sig); // \\b is for space or start of line
     $sig = preg_replace('/\\b(ninety|noventa)\\b/i', '90', $sig); // \\b is for space or start of line
 
-    //echo "3 $sig";
-    //Substitute fractions
-    $sig = preg_replace('/\\b(\d+) (& )?(\.5|1\/2|1-half|1 half)\\b/i', '$1.5', $sig); //Take 1 1/2 tablets
+    $sig = preg_replace('/\\b(\d+)?(& )?(\.5|1\/2|1-half|1 half)\\b/i', '$1.5', $sig); //Take 1 1/2 tablets
     $sig = preg_replace('/(^| )(\.5|1\/2|1-half|1 half|half a)\\b/i', ' 0.5', $sig);
+
 
     //Take First (Min?) of Numeric Ranges, except 0.5 to 1 in which case we use 1
     $sig = preg_replace('/\\b0.5 *(or|to|-) *1\\b/i', '1', $sig); //Special case of the below where we want to round up rather than down
     // $sig = preg_replace('/\\b([0-9]*\.[0-9]+|[1-9][0-9]*) *(or|to|-) *([0-9]*\.[0-9]+|[1-9][0-9]*)\\b/i', '$1', $sig); //Take 1 or 2 every 3 or 4 hours. Let's convert that to Take 1 every 3 hours (no global flag).  //Take 1 capsule by mouth twice a day as needed Take one or two twice a day as needed for anxiety
 
-    //echo "4 $sig";
-    //Duration
+    return $sig;
+}
+
+function _replace_time_interval($sig, $word, $time_in_days) {
+    for ($x = 1; $x <= 15; $x++) {
+        $regex = '/\\bfor '.$x.' '.$word.'?|'.$word.'? \d+/i';
+        $replace = 'for '.$time_in_days*$x.' days';
+        $sig = preg_replace($regex, $replace, $sig);
+    }
+    return $sig;
+}
+
+function preprocessing_duration_substitution($sig) {
+
     $sig = preg_replace('/\\bx ?(\d+)\\b/i', 'for $1', $sig); // X7 Days == for 7 days
 
     $sig = preg_replace('/\\bon the (first|second|third|fourth|fifth|sixth|seventh) day/i', 'for 1 days', $sig);
     $sig = preg_replace('/\\bfor 1 dose/i', 'for 1 days', $sig);
-    $sig = preg_replace('/\\bfor 1 months?|months? \d+/i', 'for 30 days', $sig);
-    $sig = preg_replace('/\\bfor 2 months?/i', 'for 60 days', $sig);
-    $sig = preg_replace('/\\bfor 3 months?/i', 'for 90 days', $sig);
-    $sig = preg_replace('/\\bfor 1 weeks?|weeks? \d+/i', 'for 7 days', $sig);
-    $sig = preg_replace('/\\bfor 1 weeks?/i', 'for 7 days', $sig);
-    $sig = preg_replace('/\\bfor 2 weeks?/i', 'for 14 days', $sig);
-    $sig = preg_replace('/\\bfor 3 weeks?/i', 'for 21 days', $sig);
-    $sig = preg_replace('/\\bfor 4 weeks?/i', 'for 28 days', $sig);
-    $sig = preg_replace('/\\bfor 5 weeks?/i', 'for 35 days', $sig);
-    $sig = preg_replace('/\\bfor 6 weeks?/i', 'for 42 days', $sig);
-    $sig = preg_replace('/\\bfor 7 weeks?/i', 'for 49 days', $sig);
-    $sig = preg_replace('/\\bfor 8 weeks?/i', 'for 56 days', $sig);
-    $sig = preg_replace('/\\bfor 9 weeks?/i', 'for 63 days', $sig);
-    $sig = preg_replace('/\\bfor 10 weeks?/i', 'for 70 days', $sig);
-    $sig = preg_replace('/\\bfor 11 weeks?/i', 'for 77 days', $sig);
-    $sig = preg_replace('/\\bfor 12 weeks?/i', 'for 84 days', $sig);
+
+    // Normalizes the intervals to days. "for 3 months" => "for 90 days"
+    $sig = _replace_time_interval($sig, "doses", 1);
+    $sig = _replace_time_interval($sig, "months", 30);
+    $sig = _replace_time_interval($sig, "weeks", 7);
 
     //Get rid of superflous "durations" e.g 'Take 1 tablet by mouth 2 times a day. Do not crush or chew.' -> 'Take 1 tablet by mouth 2 times a day do not crush or chew.'
     //TODO probably need to add a lot more of these.  Eg ". For 90 days."
@@ -90,10 +112,6 @@ function preprocessing($sig) {
 
     //Frequency Denominator
     $sig = preg_replace('/\\bq\\b/i', 'every', $sig); //take 1 tablet by oral route q 12 hrs
-    $sig = preg_replace('/ *24 hours?/i', ' 1 day', $sig);
-    $sig = preg_replace('/ *48 hours?/i', ' 2 days', $sig);
-    $sig = preg_replace('/ *72 hours?/i', ' 3 days', $sig);
-    $sig = preg_replace('/ *96 hours?/i', ' 4 days', $sig);
 
     //echo "5 $sig";
     //Alternative frequency numerator wordings
@@ -112,8 +130,6 @@ function preprocessing($sig) {
 
     //echo "6 $sig";
 
-    $sig = preg_replace('/\\bmonthly\\b/i', 'per month', $sig);
-    $sig = preg_replace('/\\bmonthly\\b/i', 'per month', $sig);
     $sig = preg_replace('/\\bmonthly\\b/i', 'per month', $sig);
 
     $sig = preg_replace('/\\b(breakfast|mornings?)[, &]*(dinner|night|evenings?)\\b/i', '2 times per day', $sig);
@@ -136,18 +152,30 @@ function preprocessing($sig) {
     $sig = preg_replace('/\\b(q2.*?h)\\b/i', 'every 2 hours', $sig);
     $sig = preg_replace('/\\b(q1.*?h|every hour)\\b/i', 'every 1 hours', $sig);
 
-    //Alternate units of measure
+    return $sig;
+}
+
+function preprocessing_alternative_units($sig) {
     $sig = preg_replace('/\\b4,?000ml\\b/i', '1', $sig); //We count Polyethylene Gylcol (PEG) as 1 unit not 4000ml.  TODO Maybe replace this rule with a more generalized rule?
-    $sig = preg_replace('/\\b1 vial\\b/i', '3ml', $sig); // vials for inhalation are 2.5 or 3ml, so use 3ml to be conservative
-    $sig = preg_replace('/\\b2 vials?\\b/i', '6ml', $sig); // vials for inhalation are 2.5 or 3ml, so use 3ml to be conservative
-    $sig = preg_replace('/\\b3 vials?\\b/i', '9ml', $sig); // vials for inhalation are 2.5 or 3ml, so use 3ml to be conservative
-    $sig = preg_replace('/\\b4 vials?\\b/i', '12ml', $sig); // vials for inhalation are 2.5 or 3ml, so use 3ml to be conservative
-    $sig = preg_replace('/\\b5 vials?\\b/i', '15ml', $sig); // vials for inhalation are 2.5 or 3ml, so use 3ml to be conservative
-    $sig = preg_replace('/\\b6 vials?\\b/i', '18ml', $sig); // vials for inhalation are 2.5 or 3ml, so use 3ml to be conservative
+    $sig = preg_replace('/\\b1 vial\\b/i', '3ml', $sig);
+    $sig = preg_replace('/\\b2 vials?\\b/i', '6ml', $sig);
+    $sig = preg_replace('/\\b3 vials?\\b/i', '9ml', $sig);
+    $sig = preg_replace('/\\b4 vials?\\b/i', '12ml', $sig);
+    $sig = preg_replace('/\\b5 vials?\\b/i', '15ml', $sig);
+    $sig = preg_replace('/\\b6 vials?\\b/i', '18ml', $sig);
+    
+    return $sig;
+}
 
-    //echo "9 $sig";
+function _delete_all_after($sig, $regexp) {
+    preg_match($regexp, $sig, $match, PREG_OFFSET_CAPTURE);
+    if ($match) {
+        $sig = substr($sig, 0, $match[0][1]);
+    }
+    return $sig;
+}
 
-    //Alternative Wordings
+function preprocessing_alternative_wording($sig) {
     $sig = preg_replace('/\\bin (an|\d) hours?/i', '', $sig); //Don't catch "in an hour" from "Take 2 tablets by mouth as needed of gout & 1 more in an hour as needed"
     $sig = preg_replace('/\\bin \d+ minutes?/i', '', $sig);   //Don't use "in 10 minutes" for the frequency
     $sig = preg_replace('/\\b(an|\d) hours? later/i', '', $sig); //Don't catch "in an hour" from "Take 2 tablets by mouth as needed of gout & 1 more in an hour as needed"
@@ -158,14 +186,26 @@ function preprocessing($sig) {
     $sig = preg_replace('/\\b\d+ units?(.*?subcutan)|\\b(subcutan.*?)\d+ units?\\b/i', 'Inject 1 $1$2', $sig); // "15 units at bedtime 1 time per day Subcutaneous 90 days":
 
     // Delete everything after the first ocurrance of "total of"
-    $sig = strpos($sig, "total of") ? substr($sig, 0, strpos($sig, "total of")) : $sig;
+    $sig = _delete_all_after($sig, '/total of/i');
 
     // Delete everything after the first ocurrance of "max"
-    $sig = strpos($sig, " max ") ? substr($sig, 0, strpos($sig, " max ")) : $sig;
+    $sig = _delete_all_after($sig, '/ max/i');
 
-    //Cleanup
-    $sig = preg_replace('/  +/i', ' ', $sig); //Remove double spaces for aesthetics
+    // Delete everything after the first ocurrance of "may repeat"
+    $sig = _delete_all_after($sig, '/may repeat /i');
 
-    return trim($sig);
+    // Delete everything after the first ocurrance of "hold" (it's usually about another sig/prescription)
+    $sig = _delete_all_after($sig, '/hold /i');
+
+    // Delete everything after the first ocurrance of "with" and a number
+    $sig = _delete_all_after($sig, '/ with.?(\d)/i');
+
+    // Delete everything after the first ocurrance of "up to" (to ignore both total allowed per day and increases in dosages)
+    $sig = _delete_all_after($sig, '/ up.?to/i');
+
+    $sig = preg_replace('/\\bPlace \\b/i', 'Take ', $sig);
+
+    return $sig;
 }
+
 ?>

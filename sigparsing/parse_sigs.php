@@ -7,15 +7,19 @@ require 'parse_preprocessing.php';
 use Aws\ComprehendMedical\ComprehendMedicalClient;
 use Aws\Credentials\Credentials;
 
-const CH_TEST_FILE = "aws-ch-res/responses.json";
-
 class SigParser {
 
-    private $defaultsigs;
+    private static $defaultsigs = array();
+    private static $save_test_results = true;
+    private static $ch_test_file = "aws-ch-res/responses.json";
     private $client;
 
+    /**
+     * If static::$save_test_results is true, it loads the AWS CH API results from 
+     * the file static::$ch_test_file. Useful for testing and limiting
+     * the ammunt of requests.
+     */
     function __construct() {
-        $this->defaultsigs = array();
         $credentials = new Credentials($_ENV['AWS_ACCESS_KEY'], $_ENV['AWS_SECRET_KEY']);
         $this->client = new ComprehendMedicalClient([
             'credentials' => $credentials,
@@ -23,23 +27,33 @@ class SigParser {
             'version' => '2018-10-30'
         ]);
 
-        if (file_exists(CH_TEST_FILE)) {
-            $res = file_get_contents(CH_TEST_FILE);
-            $this->defaultsigs = json_decode(file_get_contents(CH_TEST_FILE), true);
+        if (static::$save_test_results AND file_exists(static::$ch_test_file)) {
+            $res = file_get_contents(static::$ch_test_file);
+            static::$defaultsigs = json_decode($res, true);
         }
     }
 
-    function parse($text, $drugname = '') {
-        $text = preprocessing($text);
-        $attributes = $this->get_attributes($text);
+    /**
+     * Given a sig and a drugname, returns the sig attributes.
+     * @return Array    With keys "sig_qty", "sig_days" and "sig_unit"
+     */
+    function parse($sig, $drugname = '') {
+        $sig = preprocessing($sig);
+        $attributes = $this->get_attributes($sig);
         $attributes_drug = $this->get_attributes($drugname);
-        return $this->postprocessing($attributes, $attributes_drug, $text);
+        return $this->postprocessing($attributes, $attributes_drug, $sig);
     }
 
+
+    /**
+     * Given a text, returns the AWS CH Attributes of the text, both mapped and unmapped.
+     * See: https://docs.aws.amazon.com/aws-sdk-php/v3/api/api-comprehendmedical-2018-10-30.html#shape-attribute
+     * @return Array    of AWS Attributes
+     */
     private function get_attributes($text) {
         if (empty($text)) {
             return array();
-        }        
+        }
         $sections = $this->request_attributes($text);
         $attributes = [];
         foreach ($sections['Entities'] as $entity) {
@@ -55,17 +69,35 @@ class SigParser {
         return $attributes;     
     }
 
+    /**
+     * Given a text, returns its AWS CH result.
+     * If static::$save_test_results is true, it saves the result in
+     * the file static::$ch_test_file.
+     */
     private function request_attributes($text) {
-        if (array_key_exists($text, $this->defaultsigs)) {
-            return $this->defaultsigs[$text];
+        if (static::$save_test_results AND array_key_exists($text, static::$defaultsigs)) {
+            return static::$defaultsigs[$text];
         }
         printf("Requesting DetectEntitiesV2 for ".$text."\n");
-        $result = $this->client->detectEntitiesV2(['Text' => $text]);
-        $this->defaultsigs[$text] = $result->toArray();
-        file_put_contents(CH_TEST_FILE, json_encode($this->defaultsigs));
-        return $this->defaultsigs[$text];
+        $result = $this->client->detectEntitiesV2(['Text' => $text])->toArray();
+
+        if (static::$save_test_results) {
+            static::$defaultsigs[$text] = $result;
+            file_put_contents(static::$ch_test_file, json_encode(static::$defaultsigs));
+        }
+        return static::$defaultsigs[$text];
     }
 
+    /**
+     * Filters the Attributes by "Type" and which have a minimum "Score" of $score_tol.
+     * Usual "Types" may include "DOSAGE", "DURATION", "FREQUENCY", "FORM", etc.
+     * The score is assigned by the NLP of AWS, being a value between [0, 1] representing
+     * how sure it is by the categorization.
+     * 
+     * @param  Array $sections of AWS CH Attributes
+     * @param  Array $type of Attributes to filter by
+     * @param  Array $score_tol minimum score necesary to include it in the results
+     */
     private function filter_attributes($sections, $type, $score_tol) {
         $attrs = [];
         foreach ($sections as $attr) {
@@ -81,6 +113,17 @@ class SigParser {
         return $attr1['EndOffset'] - $attr2['EndOffset'];
     }
 
+    /**
+     * Splits the array of $sections into more arrays, in order to "recognize"
+     * multiple sigs. For example, for the text:
+     * "Take 4 tablets by mouth 3 times a day with meal and 2 tablets twice a day with snacks"
+     * 
+     * It should return the attributes splitted by "and" like this:
+     * [[4 tablets, 3 times a day], [2 tablets, twice a day]]
+     * 
+     * @param  Array $sections of AWS CH Attributes
+     * @param  Array $text The original sig that was sent to the AWS CH API
+     */
     private function split_sections($sections, $text) {
         $increase = "(may|can) increase(.*?\/ *(month|week))?";
         $sentence = "(?<=[a-z ])[.;\/] *(?=\w)";  //Sentence ending in . ; or / e.g. "Take 1 tablet by mouth once daily / take 1/2 tablet on sundays"
@@ -141,6 +184,7 @@ class SigParser {
         if ($dur != $parsed_dur OR $final_days == 0) {
             $final_days = DAYS_STD;
         }
+
         return [
             'sig_unit' => $valid_unit,
             'sig_qty' => $final_qty,
@@ -157,13 +201,14 @@ class SigParser {
         $total_freq = 1;
         foreach ($frequencies as $freq) {
             // NOTE: Gets the LAST number from a particular frequency.
+            // Because it gives better results
             // "1 to 2 days" => 2.
 
             // Hours match
             preg_match('/(\d+)(?!.*\d)(.*)hour/i', $freq, $match);
             if ($match AND $match[1]) {
                 // If it's "every N hours before X", don't normalize it to 24hrs
-                if (preg_match('/before/i', $freq)) {
+                if (preg_match('/(before|prior)/i', $freq)) {
                     $total_freq *= (float)$match[1];
                 } else {
                     $total_freq *= 24 / (float)$match[1];
@@ -178,6 +223,13 @@ class SigParser {
                 continue;
             }
 
+            // Minutes match. It's usually under context so it's not always "Take X every 30 minutes"
+            // For that reason, it skips the minutes if it matches
+            preg_match('/(\d+)(?!.*\d)(.*)Minute/i', $freq, $match);
+            if ($match AND $match[1]) {
+                continue;
+            }
+
             preg_match('/(\d+)(?!.*\d)(.*)/i', $freq, $match);
             if ($match AND $match[1]) {
                 $total_freq *= (float)$match[1];
@@ -187,13 +239,6 @@ class SigParser {
         return $total_freq;
     }
 
-    /**
-     * Parses the dosages of a sig
-     *
-     * @param  Array $dosages Strings to parse. Only get the first "valid one".
-     *
-     * @return Array    With keys "sig_qty" and "sig_unit"
-     */
     private function parse_dosages($split, $attributes_drug) {
         $dosages = $this->filter_attributes($split, "DOSAGE", 0.5);
         $unit = $this->filter_attributes($attributes_drug, "FORM", 0.5)[0];
@@ -202,7 +247,11 @@ class SigParser {
             $weight = $this->filter_attributes($attributes_drug, "DOSAGE", 0.5)[0];
         }
 
-        $equivalences = [];
+        // Array to transform the dosage unit, normalizing the whole sig.
+        $equivalences = [
+            // Two inhalers should be enough to cover for 90 days, so it's normalized that way.
+            'puff' => DAYS_STD * 2
+        ];
         foreach (preg_split('/\//', $weight, -1) as $eq) {
             preg_match('/((?:\d*\.)?\d+)(?!.*((?:\d*\.)?\d+))(.*)/i', $eq, $match);
             if (!$match) {
@@ -225,7 +274,7 @@ class SigParser {
         ];
 
         foreach ($dosages as $dose) {
-            // Gets the LAST number from a particular dosage.
+            // Gets ALL numbers from a particular dosage.
             // "1 to 2 capsules" => 2.
             preg_match('/((?:\d*\.)?\d+)(?!.*((?:\d*\.)?\d+))(.*)/i', $dose, $match);
 
@@ -236,7 +285,7 @@ class SigParser {
                 $found = false;
                 // If the unit matches, normalize it with the weight value.
                 foreach ($equivalences as $unit => $value) {
-                    if ($unit AND preg_match('/'.$unit.'/i', $sig_unit)) {
+                    if ($unit AND preg_match('/'.preg_quote($unit).'/i', $sig_unit)) {
                         $parsed['sig_qty'] += $sig_qty / $value;
                         $found = true;
                         break;
@@ -268,6 +317,16 @@ class SigParser {
             preg_match('/(\d+)(.*)day/i', $dur, $match);
             if ($match AND $match[1]) {
                 $total_duration *= (int)$match[1];
+            }
+
+            preg_match('/(\d+)(.*)week/i', $dur, $match);
+            if ($match AND $match[1]) {
+                $total_duration *= 7 * (int)$match[1];
+            }
+
+            preg_match('/(\d+)(.*)month/i', $dur, $match);
+            if ($match AND $match[1]) {
+                $total_duration *= 30 * (int)$match[1];
             }
         }
         if ($total_duration == 1) {
