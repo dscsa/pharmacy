@@ -11,9 +11,18 @@
         "slim/psr7": "^1.3",
         "tuupola/slim-jwt-auth": "^3.5",
         "mustache/mustache": "^2.13",
-        "tuupola/slim-basic-auth": "^3.3"
+        "tuupola/slim-basic-auth": "^3.3",
+        "google/apiclient": "^2.7"
     },
     "autoload": {
        "psr-4": {"GoodPill\\": "classes/GoodPill"}
-     }
+    },
+    "scripts": {
+        "post-update-cmd": "Google\\Task\\Composer::cleanup"
+    },
+    "extra": {
+        "google/apiclient-services": [
+            "Calendar"
+        ]
+    }
 }
