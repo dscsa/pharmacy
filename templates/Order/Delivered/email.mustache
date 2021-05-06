@@ -30,10 +30,10 @@
 }}
 
 <p>Hello {{first_name}},</p>
-<p>Your Good Pill order of {{count_filled}} item{{#multiple_filled}}s{{/multiple_filled}} has been delivered.</p>
+<p>Thanks for choosing Good Pill Pharmacy. Your order of {{count_filled}} item{{#multiple_filled}}s{{/multiple_filled}} has been delivered.</p>
 {{#filled}}
 <p>
-    <u>This order includes:</u>
+    <u>These Rxs were included:</u>
     <ul>
         {{#rxs}}
             <li>{{name}}</li>
@@ -45,7 +45,7 @@
 The Good Pill Team</p>
 {{#nofill}}
 <p>
-<u>We could not fill these items:</u>
+<u>We could not fill these Rxs:</u>
 <ul>
     {{#rxs}}
         <li>{{name}}</li>
