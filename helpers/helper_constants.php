@@ -24,6 +24,7 @@ const ADDED_MANUALLY = [
   "WEBFORM"
 ];
 
+const CAREPOINT_AUTOMATION_USER = 1311;
 const PAYMENT_TOTAL_NEW_PATIENT = 6;
 
 const PICK_LIST_FOLDER_NAME         = 'Pick Lists';
