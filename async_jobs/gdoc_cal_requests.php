@@ -88,9 +88,6 @@ for ($l = 0; $l < $executions; $l++) {
                 $complete[] = $request;
                 GPLog::debug($log_message, $request->toArray());
                 CliLog::notice($log_message);
-                if ($request instanceof Create) {
-                    sleep(10);
-                }
             } else {
                 $log_message .= "FAILED - Message: {$response->error}";
                 GPLog::debug($log_message, $request->toArray());
