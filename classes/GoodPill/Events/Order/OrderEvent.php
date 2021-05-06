@@ -7,7 +7,6 @@ use GoodPill\Events\SalesforceComm;
 use GoodPill\Events\EmailComm;
 use GoodPill\Events\SmsComm;
 use GoodPill\Models\GpOrder;
-use GoodPill\Events\Event;
 
 abstract class OrderEvent extends Event
 {
@@ -27,13 +26,13 @@ abstract class OrderEvent extends Event
      * The type of event.  This is used for the event title
      * @var string
      */
-    protected abstract $type;
+    public $type;
 
     /**
      * Should be defined by Child class
      * @var string
      */
-    protected abstract $template_path;
+    protected $template_path;
 
     /**
      * Make it so
