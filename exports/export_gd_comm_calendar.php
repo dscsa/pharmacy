@@ -201,7 +201,7 @@ function order_created_notice($groups)
             '',
             $subject.' We will notify you again once it ships. '.$message.$drug_list,
             '',
-            ($count >= $groups['ALL'][0]['count_nofill']) ? 'Thanks for choosing Good Pill!' : 'Apologies for any inconvenience,',
+            'Thanks for choosing Good Pill!',
             'The Good Pill Team',
             '',
             $suffix
