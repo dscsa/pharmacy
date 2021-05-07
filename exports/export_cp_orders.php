@@ -125,7 +125,7 @@ function export_cp_append_order_note($mssql, $invoice_number, $note) {
 
     $sql = "
       UPDATE csom 
-      SET comments = RIGHT(CONCAT(comments, CHAR(10), '$note'), 255)
+      SET comments = RIGHT(CONCAT(comments, CHAR(10), '$note'), 255),
           chg_user_id = '{$cp_automation_user}'
       
       WHERE invoice_nbr = $invoice_number -- chg_user_id = @user_id, chg_date = @today
