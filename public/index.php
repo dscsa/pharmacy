@@ -56,8 +56,15 @@ $app->add(new Tuupola\Middleware\HttpBasicAuthentication([
 
 $app->addBodyParsingMiddleware();
 
+$app->get(
+    '/v1/order/{invoice_number}/reprint'
+    function (Request $request, Response $response, $args) {
+        $order =
+    }
+);
+
 $app->post(
-    '/order/{invoice_number}/shipped',
+    '/v1/order/{invoice_number}/shipped',
     function (Request $request, Response $response, $args) {
         $message = new ResponseMessage();
         $order   = GpOrder::where('invoice_number', $args['invoice_number'])->first();
@@ -88,7 +95,7 @@ $app->post(
 );
 
 $app->post(
-    '/order/{invoice_number}/delivered',
+    '/v1/order/{invoice_number}/delivered',
     function (Request $request, Response $response, $args) {
         $message = new ResponseMessage();
         $order   = GpOrder::where('invoice_number', $args['invoice_number'])->first();
@@ -119,7 +126,7 @@ $app->post(
 );
 
 $app->post(
-    '/auth',
+    '/v1/auth',
     function (Request $request, Response $response, $args) {
         $message = new ResponseMessage();
         $message->status = 'success';
@@ -131,7 +138,7 @@ $app->post(
 );
 
 $app->post(
-    '/auth/refresh',
+    '/v1/auth/refresh',
     function (Request $request, Response $response, $args) {
         $message = new ResponseMessage();
 
