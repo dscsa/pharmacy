@@ -395,4 +395,110 @@ class GpOrder extends Model
 
         return null;
     }
+
+    public function printInvoice() : bool
+    {
+        if (empty($this->invoice_doc_id)) {
+            $this->createInvoice();
+            $this->publishInvoice();
+        }
+
+        $print_request             = new Move();
+        $print_request->fileId     = $this->invoice_doc_id;
+        $print_request->folderId   = GD_FOLDER_IDS[INVOICE_PUBLISHED_FOLDER_NAME];
+        $print_request->group_id   = "invoice-{$this->invoice_number}";
+
+        $gdq = new GoogleAppQueue();
+        return $gdq->send($print_request);
+    }
+
+    public function createInvoice() : bool
+    {
+        // No order so nothing to do
+        if (!$this->exists) {
+            return null;
+        }
+
+        //
+        if (isset($this->invoice_doc_id)) {
+            $this->deleteInvoice();
+        }
+
+        $args = [
+            'method'   => 'v2/createInvoice',
+            'templateId' => INVOICE_TEMPLATE_ID,
+            'fileName' => "Invoice #{$this->invoice_number}",
+            'folderId' => GD_FOLDER_IDS[INVOICE_PENDING_FOLDER_NAME],
+        ];
+
+        $response = json_decode(gdoc_post(GD_MERGE_URL, $args));
+        $results  = $response->results;
+
+        if ($response->results == 'success') {
+            $invoice_doc_id = $response->doc_id;
+            $this->invoice_doc_id = $response->doc_id;
+            $this->save();
+
+            // Queue up the task to complete the invoice
+            $legacy_order = $this->getLegacyOrder();
+            $complete_request                = new Complete();
+            $complete_request->fileId        = $this->invoice_doc_id;
+            $complete_request->group_id      = "invoice-{$this->invoice_number}";
+            $complete_request->orderData  = $legacy_order;
+
+            $gdq = new GoogleAppQueue();
+            $gdq->send($complete_request);
+            return true;
+        }
+
+        // We failed to get an id, so we should handle that
+        return false;
+    }
+
+    public function deleteInvoice() : bool
+    {
+        if (!isset($this->invoice_doc_id)) {
+            return false;
+        }
+
+        $delete_request            = new Delete();
+        $delete_request->fileId    = $invoice_doc_id;
+        $delete_request->group_id  = "invoice-{$invoice_number}";
+
+        $gdq = new GoogleAppQueue();
+        return $gdq->send($delete_request);
+    }
+
+    public function publishInvoice() : bool
+    {
+        // Check to see if the file we have exists, and it is in the correct place
+        // and not trashed
+        if (!empty($this->invoice_doc_id)) {
+            $meta = gdoc_details($this->invoice_doc_id);
+        }
+
+        if (!$this->invoiceHasPrinted()) {
+            $this->createInvoice();
+        }
+
+        $publish_request             = new Publish();
+        $publish_request->fileId     = $this->invoice_doc_id;
+        $publish_request->group_id   = "invoice-{$this->invoice_number}";
+
+        $gdq = new GoogleAppQueue();
+        $gdq->send($publish_request);
+    }
+
+    public function invoiceHasPrinted() : bool
+    {
+        if (!empty($this->invoice_doc_id)) {
+            $meta = gdoc_details($this->invoice_doc_id);
+        }
+
+        return (
+            isset($meta)
+            && !$meta->trashed
+            && $meta->parent->name != INVOICE_PENDING_FOLDER_NAME
+        );
+    }
 }
