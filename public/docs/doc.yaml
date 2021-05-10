@@ -165,64 +165,64 @@ paths:
                     type: string
                     default: failure
 
-/order/{invoice_number}/delivered:
-  post:
-    summary: Mark an invoice as deliverd
-    description: Used to mark and invoice as delivered.  Will update the invoice and send appropriate communications to the patient.
-    security:
-      - BearerAuth: []
-    parameters:
-      - in: path
-        name: invoice_number
-        schema:
-          type: integer
-        required: true
-        description: The invoice we are attempting to update.  This is invoice_number not order number.
-    requestBody:
-      required: true
-      content:
-        application/json:
+  /order/{invoice_number}/delivered:
+    post:
+      summary: Mark an invoice as delivered
+      description: Used to mark and invoice as delivered.  Will update the invoice and send appropriate communications to the patient.
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: invoice_number
           schema:
-            type: object
-            properties:
-              deliverd_date:
-                type: integer
-                format: date
-                description: An EST based date for when the package was shipped
-              tracking_number:
-                type: string
-                description: The tracking number for the label created for the shipment
-    responses:
-      '200':
-        description: The order was updated and patient notifications were setn
+            type: integer
+          required: true
+          description: The invoice we are attempting to update.  This is invoice_number not order number.
+      requestBody:
+        required: true
         content:
           application/json:
             schema:
               type: object
               properties:
-                status:
+                deliverd_date:
+                  type: integer
+                  format: date
+                  description: An EST based date for when the package was shipped
+                tracking_number:
                   type: string
-                  default: success
-      '400':
-        description: There was a problem with the request.  Please see the desc property for more details
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                status:
-                  type: string
-                  default: failure
-                desc:
-                  type: string
+                  description: The tracking number for the label created for the shipment
+      responses:
+        '200':
+          description: The order was updated and patient notifications were setn
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    default: success
+        '400':
+          description: There was a problem with the request.  Please see the desc property for more details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    default: failure
+                  desc:
+                    type: string
 
-      '401':
-        description: Authentication failed
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                status:
-                  type: string
-                  default: failure
+        '401':
+          description: Authentication failed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    default: failure
