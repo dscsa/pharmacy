@@ -13,6 +13,7 @@ class SigParser {
     private static $save_test_results = true;
     private static $ch_test_file = "aws-ch-res/responses.json";
     private $client;
+    private $scores;
 
     /**
      * If static::$save_test_results is true, it loads the AWS CH API results from 
@@ -38,6 +39,7 @@ class SigParser {
      * @return Array    With keys "sig_qty", "sig_days" and "sig_unit"
      */
     function parse($sig, $drugname = '') {
+        $this->scores = array();
         $sig = preprocessing($sig);
         $attributes = $this->get_attributes($sig);
         $attributes_drug = $this->get_attributes($drugname);
@@ -66,7 +68,7 @@ class SigParser {
         foreach ($sections['UnmappedAttributes'] as $attr) {
             $attributes[] = $attr['Attribute'];
         }
-        return $attributes;     
+        return $attributes;
     }
 
     /**
@@ -98,11 +100,15 @@ class SigParser {
      * @param  Array $type of Attributes to filter by
      * @param  Array $score_tol minimum score necesary to include it in the results
      */
-    private function filter_attributes($sections, $type, $score_tol) {
+    private function filter_attributes($sections, $type, $save_scores = true, $score_tol = 0) {
         $attrs = [];
+        $score_tol = (float) $score_tol;
         foreach ($sections as $attr) {
             if ($attr["Type"] == $type AND $attr["Score"] > $score_tol) {
                 $attrs[] = $attr["Text"];
+                if ($save_scores) {
+                    $this->scores[] = $attr["Score"];
+                }
             }
         }
 
@@ -185,21 +191,28 @@ class SigParser {
             $final_days = DAYS_STD;
         }
 
+        $score = empty($this->scores) ? 0 : array_product($this->scores);
         return [
             'sig_unit' => $valid_unit,
             'sig_qty' => $final_qty,
-            'sig_days' => $final_days
+            'sig_days' => $final_days,
+            'sig_conf_score' => $score
         ];
     }
 
     private function parse_frequencies($split) {
-        $frequencies = $this->filter_attributes($split, "FREQUENCY", 0.7);
+        $frequencies = $this->filter_attributes($split, "FREQUENCY");
         if (count($frequencies) == 0) {
             return 1;
         }
 
         $total_freq = 1;
         foreach ($frequencies as $freq) {
+            // If "as needed" or "as directed" matches, reduce the confidence score
+            if (preg_match('/as needed/i', $freq, $match)) {
+                $this->scores[] = 0.8;
+            }
+
             // NOTE: Gets the LAST number from a particular frequency.
             // Because it gives better results
             // "1 to 2 days" => 2.
@@ -232,29 +245,36 @@ class SigParser {
 
             preg_match('/(\d+)(?!.*\d)(.*)/i', $freq, $match);
             if ($match AND $match[1]) {
-                $total_freq *= (float)$match[1];
-                continue;
+                // If the frequency starts with "every", invert it. "every 2 days" should be freq=0.5
+                if (preg_match('/^every/i', $freq)) {
+                    $total_freq *= 1 / (float)$match[1];
+                } else {
+                    $total_freq *= (float)$match[1];
+                }
             }
+
         }
         return $total_freq;
     }
 
     private function parse_dosages($split, $attributes_drug) {
-        $dosages = $this->filter_attributes($split, "DOSAGE", 0.5);
-        $unit = $this->filter_attributes($attributes_drug, "FORM", 0.5)[0];
-        $weight = $this->filter_attributes($attributes_drug, "STRENGTH", 0.5)[0];
+        $dosages = $this->filter_attributes($split, "DOSAGE");
+        $unit = $this->filter_attributes($attributes_drug, "FORM", false)[0];
+        $weight = $this->filter_attributes($attributes_drug, "STRENGTH", false)[0];
         if (!$weight) {
-            $weight = $this->filter_attributes($attributes_drug, "DOSAGE", 0.5)[0];
+            $weight = $this->filter_attributes($attributes_drug, "DOSAGE", false)[0];
         }
 
         // Array to transform the dosage unit, normalizing the whole sig.
         $equivalences = [
             // Two inhalers should be enough to cover for 90 days, so it's normalized that way.
-            'puff' => DAYS_STD * 2
+            'puff' => DAYS_STD * 2,
+            'spray' => DAYS_STD * 2,
+            $unit => 1
         ];
         foreach (preg_split('/\//', $weight, -1) as $eq) {
             preg_match('/((?:\d*\.)?\d+)(?!.*((?:\d*\.)?\d+))(.*)/i', $eq, $match);
-            if (!$match) {
+            if (!$match OR array_key_exists($match[3], $equivalences)) {
                 continue;
             }
             $equivalences[$match[3]] = (float) $match[1];
@@ -282,32 +302,39 @@ class SigParser {
                 $sig_qty = (float) $match[1];
                 $sig_unit = trim($match[3]);
 
-                $found = false;
+                $found_unit = false;
                 // If the unit matches, normalize it with the weight value.
                 foreach ($equivalences as $unit => $value) {
                     if ($unit AND preg_match('/'.preg_quote($unit).'/i', $sig_unit)) {
                         $parsed['sig_qty'] += $sig_qty / $value;
-                        $found = true;
+                        $found_unit = true;
                         break;
                     }
                 }
-                if (!$found) {
+                // If no unit was found, assign the qty as is but decrease the total confidence score
+                if (!$found_unit) {
                     $parsed['sig_qty'] += $sig_qty;
+                    $this->scores[] = 0.1;
                 }
                 // If no sig unit was assigned, give it the unit of the first dose
+                // but also decrease the total confidence score
                 if (!$parsed['sig_unit']) {
                     $parsed['sig_unit'] = $sig_unit;
+                    $this->scores[] = 0.1;
                 }
             }
         }
+
+        // If no dosage was found, return 1 and decrease the total confidence score
         if ($parsed["sig_qty"] == 0) {
             $parsed["sig_qty"] = 1;
+            $this->scores[] = 0.5;
         }
         return $parsed;
     }
 
     private function parse_durations($split) {
-        $durations = $this->filter_attributes($split, "DURATION", 0.3);
+        $durations = $this->filter_attributes($split, "DURATION");
         if (count($durations) == 0) {
             return 0;
         }

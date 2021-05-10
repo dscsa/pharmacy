@@ -122,9 +122,10 @@ function preprocessing_duration_substitution($sig) {
     $sig = preg_replace('/\\bdaily\\b/i', 'per day', $sig);
     $sig = preg_replace('/\\bweekly\\b/i', 'per week', $sig);
     $sig = preg_replace('/\\bmonthly\\b/i', 'per month', $sig);
+    // $sig = preg_replace('/\\bevery other\\b/i', 'each 2', $sig);
 
     $sig = preg_replace('/\\b(\d) days? a week\\b/i', '$1 times per week', $sig);
-    $sig = preg_replace('/\\bon (tuesdays?|tu?e?s?)[, &]*(thursdays?|th?u?r?s?)\\b/i', '2 times per week', $sig);
+    $sig = preg_replace('/\\bon (tuesdays?|tu?e?s?|sundays?|saturdays?)[, &]*(thursdays?|th?u?r?s?|sundays?|saturdays?)\\b/i', '2 times per week', $sig);
     $sig = preg_replace('/\\bon (mondays?|mo?n?)[, &]*(wednesdays?|we?d?)[, &]*(fridays?|fr?i?)\\b/i', '3 times per week', $sig);
     $sig = preg_replace('/\\bon (sundays?|sun|mondays?|mon|tuesdays?|tues?|wednesdays?|wed|thursdays?|thur?s?|fridays?|fri|saturdays?|sat)\\b/i', '1 time per week', $sig);
 
@@ -132,7 +133,7 @@ function preprocessing_duration_substitution($sig) {
 
     $sig = preg_replace('/\\bmonthly\\b/i', 'per month', $sig);
 
-    $sig = preg_replace('/\\b(breakfast|mornings?)[, &]*(dinner|night|evenings?)\\b/i', '2 times per day', $sig);
+    $sig = preg_replace('/\\b(breakfast|mornings?)[, & @]*(dinner|night|evenings?|noon)\\b/i', '2 times per day', $sig);
     $sig = preg_replace('/\\b(1 (in|at) )?\d* ?(am|pm)[, &]*(1 (in|at) )?\d* ?(am|pm)\\b/i', '2 times per day', $sig); // Take 1 tablet by mouth twice a day 1 in am and 1 at 3pm was causing issues
     $sig = preg_replace('/\\b(in|at) \d\d\d\d?[, &]*(in|at)?\d\d\d\d?\\b/i', '2 times per day', $sig); //'Take 2 tablets by mouth twice a day at 0800 and 1700'
     $sig = preg_replace('/\\b(with)?in (a )?\d+ (minutes?|days?|weeks?|months?)\\b|/i', '', $sig); // Remove "in 5 days|hours|weeks" so that we don't confuse frequencies

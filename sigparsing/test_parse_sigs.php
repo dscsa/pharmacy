@@ -276,6 +276,9 @@ $correct_pairs = [
 ];
 
 
+printf(preprocessing("Take 2 capsules by mouth once daily  30 minutes before morning meal")."\n");
+exit();
+
 
 foreach($correct_pairs as $text => $props) {
     $result = $parser->parse($text, $props['drug_name']);
@@ -311,8 +314,13 @@ foreach ($sigs as $sig) {
     $parsed = $parser->parse($sig["sig_actual"], $sig["drug_name"]);
     $sig_qty_per_day = $parsed["sig_qty"] / $parsed["sig_days"];
 
-    $query = "UPDATE gp_rxs_single_sampled SET sig_qty_per_day_new=$sig_qty_per_day, sig_unit=\"$parsed[sig_unit]\" WHERE rx_number=$sig[rx_number]\n";
+    $query = "UPDATE gp_rxs_single_sampled SET 
+                    sig_qty_per_day_new=$sig_qty_per_day, 
+                    sig_unit=\"$parsed[sig_unit]\",
+                    sig_conf_score=$parsed[sig_conf_score]
+              WHERE rx_number=$sig[rx_number]\n";
     mysqli_query($conn, $query);
 }
+
 
 ?>
