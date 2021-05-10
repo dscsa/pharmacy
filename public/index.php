@@ -43,7 +43,7 @@ $app->add(
 //BasicAuth Middleware
 $app->add(new Tuupola\Middleware\HttpBasicAuthentication([
     "path" => "/v1/auth",
-    "ignore" => "/v1/auth/renew",
+    "ignore" => "/v1/auth/refresh",
     "realm" => "Protected",
     "users" => API_USERS,
     'error' => function ($response, $arguments) {
