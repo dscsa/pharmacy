@@ -1,6 +1,6 @@
 <?php
 
-use \GoodPill\DataModels\GoodPillOrder;
+use \GoodPill\Models\GpOrder;
 use \GoodPill\DataModels\GoodPillPendGroup;
 use \GoodPill\Logging\GPLog;
 
@@ -56,7 +56,7 @@ function find_order_pend_group(int $invoice_number, ?array $pend_params = null) 
             'patient_date_added' => @$pend_params['patient_date_added']
         ];
     } else {
-        $order = new GoodPillOrder(['invoice_number' => $invoice_number]);
+        $order = GpOrder::where('invoice_number', $invoice_number)->first();
         $order_based = [
             'invoice_number'   => $order->invoice_number,
             'order_date_added' => $order->order_date_added

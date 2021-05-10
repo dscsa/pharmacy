@@ -73,8 +73,13 @@ sudo service supervisord stop
 echo "Pulling Latest Code";
 # Get the latest code
 cd $CODE_DIR
-sudo git pull
 
+#Put the results into a log file then print the most recent run
+git tag prod-$(date +'%Y-%m-%d-%H%m%S')
+echo "###########" >> /var/log/pharmacy.update.log; 
+date >> /var/log/pharmacy.update.log; 
+sudo git pull &>> /var/log/pharmacy.update.log; 
+awk -v RS='(^|\n)###########\n' 'END{printf "%s", $0}' /var/log/pharmacy.update.log
 
 echo "Updating Configs";
 # Move the configs

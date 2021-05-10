@@ -27,6 +27,7 @@ function export_cp_remove_items($invoice_number, $items = [])
     $sql_to_update_deleted = "
         UPDATE CsOmLine_Deleted 
         SET chg_user_id = 1311
+        JOIN cprx ON cprx.rx_id = CsOmLine_Deleted.rx_id
         WHERE CsOmLine_Deleted.order_id = '{$order_id}'
         AND rxdisp_id = 0";
 

@@ -689,6 +689,17 @@ function is_refill_only($item)
     );
 }
 
+function is_one_time($item)
+{
+    $stock_level = @$item['stock_level_initial'] ?: $item['stock_level'];
+    return in_array(
+        $stock_level,
+        [
+            STOCK_LEVEL['ONE TIME']
+        ]
+    );
+}
+
 function message_text($message, $item)
 {
     return str_replace(array_keys($item), array_values($item), $message[$item['language']]);

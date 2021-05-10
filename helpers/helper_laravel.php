@@ -21,13 +21,13 @@ if (!isset($lv_model_capsule)
 
     $lv_model_capsule->addConnection(
         [
-            'driver'    => 'mssql',
+            'driver'    => 'sqlsrv',
             'host'      => MSSQL_CP_IP,
-            'database'  => 'cph',
+            'database'  => 'cph_development',
             'username'  => MSSQL_CP_USER,
             'password'  => MSSQL_CP_PWD
         ],
-        'mssql'
+        'carepoint'
     );
 
     // Make this Capsule instance available globally via static methods... (optional)
