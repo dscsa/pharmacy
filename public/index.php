@@ -57,9 +57,8 @@ $app->add(new Tuupola\Middleware\HttpBasicAuthentication([
 $app->addBodyParsingMiddleware();
 
 $app->get(
-    '/v1/order/{invoice_number}/reprint'
+    '/v1/order/{invoice_number}/reprint',
     function (Request $request, Response $response, $args) {
-        $order =
     }
 );
 
