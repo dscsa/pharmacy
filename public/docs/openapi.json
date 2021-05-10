@@ -2,11 +2,11 @@
   "openapi" : "3.0.0",
   "info" : {
     "title" : "GoodPill Pharmacy Automation",
-    "description" : "Integrate Pharmacy User tools into the exisitng Pharmacy Automation app",
+    "description" : "Integrate Pharmacy User tools into the exisitng Pharmacy Automation app. For the majority of the API, you will need to use a token for your request.  This token should be sent as a Authorizaion Bearer token.  To get the initial token set, use basic authentication for the /v1/auth endpoint.  That will return a short-lived auth token and a longer-lived refresh token.  The refresh token can be used to retrieve a new auth token without needing to use the basic authentication method.",
     "version" : "0.0.1"
   },
   "servers" : [ {
-    "url" : "http://gppa.goodpill.org/v1",
+    "url" : "https://gppa.goodpill.org/v1",
     "description" : "The production API"
   } ],
   "tags" : [ {
