@@ -27,7 +27,7 @@ $app = AppFactory::create();
 $app->add(
     new Tuupola\Middleware\JwtAuthentication([
         "path" => "/",
-        "ignore" => ["/auth"],
+        "ignore" => ["/v1/auth"],
         "secure" => false,
         "secret" => JWT_PUB,
         "algorithm" => ["RS256"],
@@ -42,8 +42,8 @@ $app->add(
 
 //BasicAuth Middleware
 $app->add(new Tuupola\Middleware\HttpBasicAuthentication([
-    "path" => "/auth",
-    "ignore" => "/auth/renew",
+    "path" => "/v1/auth",
+    "ignore" => "/v1/auth/renew",
     "realm" => "Protected",
     "users" => API_USERS,
     'error' => function ($response, $arguments) {
