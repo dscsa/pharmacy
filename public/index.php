@@ -61,6 +61,28 @@ $app->addBodyParsingMiddleware();
 $app->get(
     "/{$api_version}/order/{invoice_number}/print",
     function (Request $request, Response $response, $args) {
+        $message = new ResponseMessage();
+        $order   = GpOrder::where('invoice_number', $args['invoice_number'])->first();
+
+        // Does the order Exist
+        if (!$order) {
+            $message->status = 'failure';
+            $message->desc   = 'Order Not Found';
+            $message->status_code = 400;
+            return $message->sendResponse($response);
+        }
+        $params = $request->getQueryParams();
+        // Should we update the invoice?
+        if (isset($params['update'])) {
+            $order->updateInvoice();
+        }
+
+        $order->publishInvoice();
+        $order->printInvoice();
+
+        $message->status = 'success';
+        $message->desc   = "Invoice #{$args['invoice_number']} has been queud to print";
+        return $message->sendResponse($response);
     }
 );
 

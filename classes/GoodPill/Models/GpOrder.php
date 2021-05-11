@@ -9,47 +9,17 @@ use GoodPill\Models\GpOrderItem;
 use GoodPill\Models\Carepoint\CpOrderShipment;
 use GoodPill\Events\Order\Shipped as ShippedEvent;
 use GoodPill\Events\Order\Delivered as DeliveredEvent;
+use GoodPill\AWS\SQS\GoogleAppRequest\Invoice\Move;
+use GoodPill\AWS\SQS\GoogleAppRequest\Invoice\Complete;
+use GoodPill\AWS\SQS\GoogleAppRequest\Invoice\Publish;
+use GoodPill\AWS\SQS\GoogleAppRequest\Invoice\Delete;
+use GoodPill\AWS\SQS\GoogleAppQueue;
 
 require_once "helpers/helper_full_order.php";
+require_once "helpers/helper_appsscripts.php";
 
 /**
  * Class GpOrder
- *
- * @property int $invoice_number
- * @property int|null $patient_id_cp
- * @property int|null $patient_id_wc
- * @property int $count_items
- * @property int|null $count_filled
- * @property int|null $count_nofill
- * @property string|null $order_source
- * @property string|null $order_stage_cp
- * @property string|null $order_stage_wc
- * @property string|null $order_status
- * @property string|null $invoice_doc_id
- * @property string|null $order_address1
- * @property string|null $order_address2
- * @property string|null $order_city
- * @property string|null $order_state
- * @property string|null $order_zip
- * @property string|null $tracking_number
- * @property Carbon|null $order_date_added
- * @property Carbon|null $order_date_changed
- * @property Carbon $order_date_updated
- * @property Carbon|null $order_date_dispensed
- * @property Carbon|null $order_date_shipped
- * @property Carbon|null $order_date_returned
- * @property int|null $payment_total_default
- * @property int|null $payment_total_actual
- * @property int|null $payment_fee_default
- * @property int|null $payment_fee_actual
- * @property int|null $payment_due_default
- * @property int|null $payment_due_actual
- * @property string|null $payment_date_autopay
- * @property string|null $payment_method_actual
- * @property string|null $coupon_lines
- * @property string|null $order_note
- *
- * @package App\Models
  */
 class GpOrder extends Model
 {
@@ -196,7 +166,7 @@ class GpOrder extends Model
      *         )
      *      )
      *
-     * @return bool
+     * @return boolean
      */
     public function isShipped() : bool
     {
@@ -220,7 +190,7 @@ class GpOrder extends Model
     /**
      * Has the order been marked delivered
      *      An order will be considered delivered if it order_date_delivered is not empty
-     * @return bool
+     * @return boolean
      */
     public function isDelivered() : bool
     {
@@ -237,7 +207,7 @@ class GpOrder extends Model
      * An order will be considered dispensed if it
      *     Exists in the Database
      *     AND There is a dispensed date for the order
-     * @return bool
+     * @return boolean
      */
     public function isDispensed() : bool
     {
@@ -251,11 +221,11 @@ class GpOrder extends Model
 
     /**
      * Update the order as shipped
-     * @param  string $ship_date       A stringtotime compatible utc date
-     * @param  string $tracking_number The tracking number for the shipment
-     * @return bool                    Was the shipment updatedated
+     * @param  string $ship_date       A stringtotime compatible utc date.
+     * @param  string $tracking_number The tracking number for the shipment.
+     * @return boolean                    Was the shipment updatedated.
      */
-    public function markShipped($ship_date, $tracking_number) : bool
+    public function markShipped(string $ship_date, string $tracking_number) : bool
     {
         if ($this->isShipped()) {
             return false;
@@ -279,11 +249,11 @@ class GpOrder extends Model
 
     /**
      * Update the order as delivered
-     * @param  string delivered_date   A stringtotime compatible utc date
-     * @param  string $tracking_number The tracking number for the shipment
-     * @return bool                    Was the shipment updated
+     * @param  string $delivery_date   A stringtotime compatible utc date.
+     * @param  string $tracking_number The tracking number for the shipment.
+     * @return boolean                  Was the shipment updated
      */
-    public function markDelivered($delivery_date, $tracking_number) : bool
+    public function markDelivered(string $delivery_date, string $tracking_number) : bool
     {
         if ($this->isDelivered()) {
             return false;
@@ -311,11 +281,11 @@ class GpOrder extends Model
 
     /**
      * Update the order as delivered
-     * @param  string delivered_date   A stringtotime compatible utc date
-     * @param  string $tracking_number The tracking number for the shipment
-     * @return bool                    Was the shipment updated
+     * @param  string $status_date     A stringtotime compatible utc date.
+     * @param  string $tracking_number The tracking number for the shipment.
+     * @return boolean                    Was the shipment updated.
      */
-    public function markReturned($status_date, $tracking_number) : bool
+    public function markReturned(string $status_date, string $tracking_number) : bool
     {
         if ($this->isDelivered()) {
             return false;
@@ -344,7 +314,7 @@ class GpOrder extends Model
 
     /**
      * The order number is not the same as the invoice_number.  Lets subtract 2
-     * @return int
+     * @return integer
      */
     public function getOrderId()
     {
@@ -353,7 +323,7 @@ class GpOrder extends Model
 
     /**
      * Get the tracking url for the order
-     * @param  boolean $short (Optional) Should we use the url shortener
+     * @param  boolean $short Optional Should we use the url shortener.
      * @return string
      */
     public function getTrackingUrl(bool $short = false) : ?string
@@ -381,7 +351,7 @@ class GpOrder extends Model
 
     /**
      * Get a url to view the invoice
-     * @param  boolean $short (Optional) Should we use a shortner service
+     * @param  boolean $short Optional Should we use a shortner service.
      * @return string
      */
     public function getInvoiceUrl(bool $short = false) : string
@@ -398,7 +368,7 @@ class GpOrder extends Model
 
     /**
      * User the relationship to get filled and unfilled items for the order
-     * @param  bool $filled (Optional)  If a bool, return filled or not filled items
+     * @param boolean $filled Optional If a bool, return filled or not filled items.
      * @return Collection
      */
     public function getFilledItems(bool $filled = true)
@@ -424,5 +394,133 @@ class GpOrder extends Model
         }
 
         return null;
+    }
+
+    /**
+     * Create an invoice request for printing.  Moves the invoice into the print folder so the
+     * autoprint can finish printing the file
+     * @return boolean true if the request was queued.
+     */
+    public function printInvoice() : bool
+    {
+        if (empty($this->invoice_doc_id)) {
+            $this->createInvoice();
+            $this->publishInvoice();
+        }
+
+        $print_request             = new Move();
+        $print_request->fileId     = $this->invoice_doc_id;
+        $print_request->folderId   = GD_FOLDER_IDS[INVOICE_PUBLISHED_FOLDER_NAME];
+        $print_request->group_id   = "invoice-{$this->invoice_number}";
+
+        $gdq = new GoogleAppQueue();
+        return (bool) $gdq->send($print_request);
+    }
+
+    /**
+     * Create an invoice by sending the invoice detail to the appscript
+     * @return boolean True if the invoice was created.
+     */
+    public function createInvoice() : bool
+    {
+        // No order so nothing to do
+        if (!$this->exists) {
+            return null;
+        }
+
+        //
+        if (isset($this->invoice_doc_id)) {
+            $this->deleteInvoice();
+        }
+
+        $args = [
+            'method'   => 'v2/createInvoice',
+            'templateId' => INVOICE_TEMPLATE_ID,
+            'fileName' => "Invoice #{$this->invoice_number}",
+            'folderId' => GD_FOLDER_IDS[INVOICE_PENDING_FOLDER_NAME],
+        ];
+
+        $response = json_decode(gdoc_post(GD_MERGE_URL, $args));
+        $results  = $response->results;
+
+        if ($response->results == 'success') {
+            $invoice_doc_id = $response->doc_id;
+            $this->invoice_doc_id = $response->doc_id;
+            $this->save();
+
+            // Queue up the task to complete the invoice
+            $legacy_order = $this->getLegacyOrder();
+            $complete_request                = new Complete();
+            $complete_request->fileId        = $this->invoice_doc_id;
+            $complete_request->group_id      = "invoice-{$this->invoice_number}";
+            $complete_request->orderData  = $legacy_order;
+
+            $gdq = new GoogleAppQueue();
+            $gdq->send($complete_request);
+            return true;
+        }
+
+        // We failed to get an id, so we should handle that
+        return false;
+    }
+
+    /**
+     * Queue up a request to delete an invoice
+     * @return boolean Was the request queued
+     */
+    public function deleteInvoice() : bool
+    {
+
+        if (empty($this->invoice_doc_id)) {
+            return false;
+        }
+
+
+
+        $delete_request            = new Delete();
+        $delete_request->fileId    = $this->invoice_doc_id;
+        $delete_request->group_id  = "invoice-{$this->invoice_number}";
+
+        $this->invoice_doc_id = null;
+        $this->save();
+
+        $gdq = new GoogleAppQueue();
+        return (bool) $gdq->send($delete_request);
+    }
+
+    /**
+     * Publish an invoice so it can be viewed publically
+     * @return boolean Did the request get sent
+     */
+    public function publishInvoice() : bool
+    {
+
+        if (!$this->invoiceHasPrinted()) {
+            $this->createInvoice();
+        }
+
+        $publish_request             = new Publish();
+        $publish_request->fileId     = $this->invoice_doc_id;
+        $publish_request->group_id   = "invoice-{$this->invoice_number}";
+
+        $gdq = new GoogleAppQueue();
+        return (bool) $gdq->send($publish_request);
+    }
+
+    /**
+     * Check to see if the invoice has actually printed
+     * @return boolean True if the invoice exists, is not trashed, and is not in the pending folder.
+     */
+    public function invoiceHasPrinted() : bool
+    {
+        if (!empty($this->invoice_doc_id)) {
+            $meta = gdoc_details($this->invoice_doc_id);
+        }
+
+        return (
+            isset($meta)
+            && !$meta->trashed
+            && $meta->parent->name != INVOICE_PENDING_FOLDER_NAME
+        );
     }
 }
