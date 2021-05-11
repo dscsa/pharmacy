@@ -310,6 +310,35 @@ class GpOrder extends Model
     }
 
     /**
+     * Update the order as delivered
+     * @param  string delivered_date   A stringtotime compatible utc date
+     * @param  string $tracking_number The tracking number for the shipment
+     * @return bool                    Was the shipment updated
+     */
+    public function markReturned($status_date, $tracking_number) : bool
+    {
+        if ($this->isDelivered()) {
+            return false;
+        }
+
+        $shipment = CpOrderShipment::where('order_id', $this->getOrderId())->firstOrNew();
+
+        if (!$shipment->exists) {
+            $shipment->ship_date = date(strtotime('-3 day', strtotime($status_date)));
+            $shipment->TrackingNumber = $tracking_number;
+            $shipment->save();
+        }
+
+        $this->order_date_returned = $delivery_date;
+        $this->save();
+
+        $shipped = new DeliveredEvent($this);
+        $shipped->publish();
+
+        return true;
+    }
+
+    /**
      * Getters : Retrieve and format data outside of the raw db info
      */
 

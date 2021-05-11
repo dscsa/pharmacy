@@ -19,6 +19,8 @@ require_once 'helpers/helper_calendar.php';
 require_once 'helpers/helper_changes.php';
 require_once 'helpers/helper_log.php';
 
+$api_version = 'v1';
+
 $app = AppFactory::create();
 
 // Token Middleware
@@ -27,7 +29,7 @@ $app = AppFactory::create();
 $app->add(
     new Tuupola\Middleware\JwtAuthentication([
         "path" => "/",
-        "ignore" => ["/v1/auth"],
+        "ignore" => ["/{$api_version}/auth"],
         "secure" => false,
         "secret" => JWT_PUB,
         "algorithm" => ["RS256"],
@@ -42,8 +44,8 @@ $app->add(
 
 //BasicAuth Middleware
 $app->add(new Tuupola\Middleware\HttpBasicAuthentication([
-    "path" => "/v1/auth",
-    "ignore" => "/v1/auth/refresh",
+    "path" => "/{$api_version}/auth",
+    "ignore" => "/{$api_version}/auth/refresh",
     "realm" => "Protected",
     "users" => API_USERS,
     'error' => function ($response, $arguments) {
@@ -57,13 +59,13 @@ $app->add(new Tuupola\Middleware\HttpBasicAuthentication([
 $app->addBodyParsingMiddleware();
 
 $app->get(
-    '/v1/order/{invoice_number}/reprint',
+    "/{$api_version}/order/{invoice_number}/reprint",
     function (Request $request, Response $response, $args) {
     }
 );
 
 $app->post(
-    '/v1/order/{invoice_number}/shipped',
+    "/{$api_version}/order/{invoice_number}/status",
     function (Request $request, Response $response, $args) {
         $message = new ResponseMessage();
         $order   = GpOrder::where('invoice_number', $args['invoice_number'])->first();
@@ -76,17 +78,34 @@ $app->post(
             return $message->sendResponse($response);
         }
 
-        // We can't ship an order that is already shipped
-        if ($order->isShipped()) {
-            $message->status = 'failure';
-            $message->desc   = 'Order already marked as shipped';
-            $message->status_code = 400;
-            return $message->sendResponse($response);
-        }
-
         $request_data = (object) $request->getParsedBody();
-
-        $order->markShipped($request_data->ship_date, $request_data->tracking_number);
+        
+        switch ($request_data->tracking_status->status) {
+            case 'UNKNOWN':
+                break;
+            case 'PRE_TRANSIT':
+                $order->markShipped(
+                    $request_data->tracking_status->status_date,
+                    $request_data->tracking_number
+                );
+                break;
+            case 'TRANSIT':
+                break;
+            case 'DELIVERED':
+                $order->markDelivered(
+                    $request_data->tracking_status->status_date,
+                    $request_data->tracking_number
+                );
+                break;
+            case 'RETURNED':
+                $order->markReturned(
+                    $request_data->tracking_status->status_date,
+                    $request_data->tracking_number
+                );
+                break;
+            case 'FAILURE':
+                break;
+        }
 
         $message->status = 'success';
         return $message->sendResponse($response);
@@ -103,14 +122,6 @@ $app->post(
         if (!$order) {
             $message->status = 'failure';
             $message->desc   = 'Order Not Found';
-            $message->status_code = 400;
-            return $message->sendResponse($response);
-        }
-
-        // We can't ship an order that is already shipped
-        if ($order->isDelivered()) {
-            $message->status = 'failure';
-            $message->desc   = 'Order already marked as delivered';
             $message->status_code = 400;
             return $message->sendResponse($response);
         }
