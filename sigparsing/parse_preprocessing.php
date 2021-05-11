@@ -99,7 +99,6 @@ function preprocessing_duration_substitution($sig) {
     $sig = preg_replace('/\\bx ?(\d+)\\b/i', 'for $1', $sig); // X7 Days == for 7 days
 
     $sig = preg_replace('/\\bon the (first|second|third|fourth|fifth|sixth|seventh) day/i', 'for 1 days', $sig);
-    $sig = preg_replace('/\\bfor 1 dose/i', 'for 1 days', $sig);
 
     // Normalizes the intervals to days. "for 3 months" => "for 90 days"
     $sig = _replace_time_interval($sig, "doses", 1);
