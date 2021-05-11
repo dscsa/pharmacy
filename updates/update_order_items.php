@@ -533,8 +533,15 @@ function handle_adds_and_removes(array $orders_updated) : void
         }
 
         foreach ($updates['removed'] as $item) {
-            $items[$item['drug']] = $item;
-            $remove_item_names[] = $item['drug'];
+            if (isset($item['drug'])) {
+                $items[$item['drug']] = $item;
+                $remove_item_names[] = $item['drug'];
+            } else {
+                //  Something is going wrong with load_full_order/load_full_item and the data is not returned
+                //  If the drug property isn't set, fetch the item model and construct the drug name
+
+            }
+
         }
 
         // an rx_number was swapped (e.g best_rx_number used instead) same

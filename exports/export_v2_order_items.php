@@ -235,6 +235,8 @@ function v2_unpend_item($item, $mysql, $reason)
             ),
             $item
         );
+
+        //  This is where the original PG alert was firing from
     }
 
     unpend_pick_list($item);
