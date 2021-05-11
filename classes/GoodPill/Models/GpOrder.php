@@ -346,7 +346,8 @@ class GpOrder extends Model
      * The order number is not the same as the invoice_number.  Lets subtract 2
      * @return int
      */
-    public function getOrderId() {
+    public function getOrderId()
+    {
         return $this->invoice_number - 2;
     }
 

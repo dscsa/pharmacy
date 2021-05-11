@@ -59,7 +59,7 @@ $app->add(new Tuupola\Middleware\HttpBasicAuthentication([
 $app->addBodyParsingMiddleware();
 
 $app->get(
-    "/{$api_version}/order/{invoice_number}/reprint",
+    "/{$api_version}/order/{invoice_number}/print",
     function (Request $request, Response $response, $args) {
     }
 );
@@ -79,10 +79,10 @@ $app->post(
         }
 
         $request_data = (object) $request->getParsedBody();
-        
+
         switch ($request_data->tracking_status->status) {
             case 'UNKNOWN':
-                break;
+            case 'CREATED':
             case 'PRE_TRANSIT':
                 $order->markShipped(
                     $request_data->tracking_status->status_date,
@@ -112,28 +112,6 @@ $app->post(
     }
 );
 
-$app->post(
-    '/v1/order/{invoice_number}/delivered',
-    function (Request $request, Response $response, $args) {
-        $message = new ResponseMessage();
-        $order   = GpOrder::where('invoice_number', $args['invoice_number'])->first();
-
-        // Does the order Exist
-        if (!$order) {
-            $message->status = 'failure';
-            $message->desc   = 'Order Not Found';
-            $message->status_code = 400;
-            return $message->sendResponse($response);
-        }
-
-        $request_data = (object) $request->getParsedBody();
-
-        $order->markDelivered($request_data->delivered_date, $request_data->tracking_number);
-
-        $message->status = 'success';
-        return $message->sendResponse($response);
-    }
-);
 
 $app->post(
     '/v1/auth',
