@@ -6,6 +6,7 @@ use GoodPill\API\TokenSet;
 use Slim\Factory\AppFactory;
 use GoodPill\Models\GpOrder;
 use Firebase\JWT\JWT;
+use GoodPill\Models\Utility\UtiNonce;
 
 ini_set('memory_limit', '1024M');
 ini_set('include_path', '/goodpill/webform');
@@ -36,6 +37,7 @@ $app->add(
         'error' => function ($response, $arguments) {
             $message = new ResponseMessage();
             $message->status = 'failure';
+            $message->desc = 'Failed Token';
             $message->status_code = 401;
             return $message->sendResponse($response);
         }
@@ -51,6 +53,7 @@ $app->add(new Tuupola\Middleware\HttpBasicAuthentication([
     'error' => function ($response, $arguments) {
         $message = new ResponseMessage();
         $message->status = 'failure';
+        $message->desc = 'Failed Authentication';
         $message->status_code = 401;
         return $message->sendResponse($response);
     }
@@ -134,9 +137,8 @@ $app->post(
     }
 );
 
-
 $app->post(
-    '/v1/auth',
+    "/{$api_version}/auth",
     function (Request $request, Response $response, $args) {
         $message = new ResponseMessage();
         $message->status = 'success';
@@ -148,22 +150,33 @@ $app->post(
 );
 
 $app->post(
-    '/v1/auth/refresh',
+    "/{$api_version}/auth/refresh",
     function (Request $request, Response $response, $args) {
         $message = new ResponseMessage();
-
-        $token = $request->getHeader("Authorization");
-        $token = substr(array_pop($token), 7);
+        $token   = $request->getHeader("Authorization");
+        $token   = substr(array_pop($token), 7);
         $decoded = JWT::decode($token, JWT_PUB, ['RS256']);
-
-        if (@$token['refresh']) {
-            $message->status = 'success';
-            $message->data = TokenSet::generate(['vendor'=>'stratosphere']);
-            return $message->sendResponse($response);
-        }
 
         $message->status = 'failure';
         $message->status_code = 401;
+
+        if (!@$decoded->refresh) {
+            $message->desc = "Invalid refresh token";
+            return $message->sendResponse($response);
+        }
+
+        $nonce = UtiNonce::where('token', @$decoded->nonce)->first();
+
+        if (is_null($nonce)) {
+            $message->desc = "Invalid nonce";
+            return $message->sendResponse($response);
+        }
+
+        // Delete the old nonce so it's no longer valid
+        $nonce->delete();
+
+        $message->status = 'success';
+        $message->data = TokenSet::generate(['vendor'=>'stratosphere']);
         return $message->sendResponse($response);
     }
 );
