@@ -312,8 +312,8 @@ class GpPatient extends Model
     /**
      * Upsert a meta value in WooCommerce
      *
-     * @param  string $key   The meta key
-     * @param  mixed  $value The value to store
+     * @param  string $key   The meta key.
+     * @param  mixed  $value The value to store.
      * @return boolean
      */
     public function updateWpMeta(string $key, $value) : bool
@@ -326,7 +326,6 @@ class GpPatient extends Model
             $meta->meta_value = $value;
 
             return $meta->save();
-
         } catch (\Exception $e) {
             return false;
         }
@@ -337,7 +336,7 @@ class GpPatient extends Model
      *
      * @todo this needs to be converted to OO based when a carepoint object is created
      *
-     * @param  int $phone_type One of the applicable phone number type IDS in carepoint
+     * @param  integer $phone_type One of the applicable phone number type IDS in carepoint.
      * @return mixed
      */
     public function deletePhoneFromCarepoint(int $phone_type)
@@ -386,10 +385,10 @@ class GpPatient extends Model
 
     /**
      * Get a full version of the legacy patient data structure
-     * @param  boolean $overwrite_rx_messages Should the RX messages be updated
+     * @param  boolean $overwrite_rx_messages Should the RX messages be updated.
      * @return array
      */
-    public function getLegacyPatient($overwrite_rx_messages = false)
+    public function getLegacyPatient(bool $overwrite_rx_messages = false)
     {
         if ($this->exists) {
             return load_full_patient(

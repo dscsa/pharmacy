@@ -6,6 +6,7 @@ use GoodPill\API\TokenSet;
 use Slim\Factory\AppFactory;
 use GoodPill\Models\GpOrder;
 use Firebase\JWT\JWT;
+use GoodPill\Models\Utility\UtiNonce;
 
 ini_set('memory_limit', '1024M');
 ini_set('include_path', '/goodpill/webform');
@@ -19,6 +20,8 @@ require_once 'helpers/helper_calendar.php';
 require_once 'helpers/helper_changes.php';
 require_once 'helpers/helper_log.php';
 
+$api_version = 'v1';
+
 $app = AppFactory::create();
 
 // Token Middleware
@@ -27,13 +30,14 @@ $app = AppFactory::create();
 $app->add(
     new Tuupola\Middleware\JwtAuthentication([
         "path" => "/",
-        "ignore" => ["/v1/auth"],
+        "ignore" => ["/{$api_version}/auth"],
         "secure" => false,
         "secret" => JWT_PUB,
         "algorithm" => ["RS256"],
         'error' => function ($response, $arguments) {
             $message = new ResponseMessage();
             $message->status = 'failure';
+            $message->desc = 'Failed Token';
             $message->status_code = 401;
             return $message->sendResponse($response);
         }
@@ -42,13 +46,14 @@ $app->add(
 
 //BasicAuth Middleware
 $app->add(new Tuupola\Middleware\HttpBasicAuthentication([
-    "path" => "/v1/auth",
-    "ignore" => "/v1/auth/refresh",
+    "path" => "/{$api_version}/auth",
+    "ignore" => "/{$api_version}/auth/refresh",
     "realm" => "Protected",
     "users" => API_USERS,
     'error' => function ($response, $arguments) {
         $message = new ResponseMessage();
         $message->status = 'failure';
+        $message->desc = 'Failed Authentication';
         $message->status_code = 401;
         return $message->sendResponse($response);
     }
@@ -57,13 +62,35 @@ $app->add(new Tuupola\Middleware\HttpBasicAuthentication([
 $app->addBodyParsingMiddleware();
 
 $app->get(
-    '/v1/order/{invoice_number}/reprint',
+    "/{$api_version}/order/{invoice_number}/print",
     function (Request $request, Response $response, $args) {
+        $message = new ResponseMessage();
+        $order   = GpOrder::where('invoice_number', $args['invoice_number'])->first();
+
+        // Does the order Exist
+        if (!$order) {
+            $message->status = 'failure';
+            $message->desc   = 'Order Not Found';
+            $message->status_code = 400;
+            return $message->sendResponse($response);
+        }
+        $params = $request->getQueryParams();
+        // Should we update the invoice?
+        if (isset($params['update'])) {
+            $order->updateInvoice();
+        }
+
+        $order->publishInvoice();
+        $order->printInvoice();
+
+        $message->status = 'success';
+        $message->desc   = "Invoice #{$args['invoice_number']} has been queud to print";
+        return $message->sendResponse($response);
     }
 );
 
 $app->post(
-    '/v1/order/{invoice_number}/shipped',
+    "/{$api_version}/order/{invoice_number}/status",
     function (Request $request, Response $response, $args) {
         $message = new ResponseMessage();
         $order   = GpOrder::where('invoice_number', $args['invoice_number'])->first();
@@ -76,17 +103,34 @@ $app->post(
             return $message->sendResponse($response);
         }
 
-        // We can't ship an order that is already shipped
-        if ($order->isShipped()) {
-            $message->status = 'failure';
-            $message->desc   = 'Order already marked as shipped';
-            $message->status_code = 400;
-            return $message->sendResponse($response);
-        }
-
         $request_data = (object) $request->getParsedBody();
 
-        $order->markShipped($request_data->ship_date, $request_data->tracking_number);
+        switch ($request_data->tracking_status->status) {
+            case 'UNKNOWN':
+            case 'CREATED':
+            case 'PRE_TRANSIT':
+                $order->markShipped(
+                    $request_data->tracking_status->status_date,
+                    $request_data->tracking_number
+                );
+                break;
+            case 'TRANSIT':
+                break;
+            case 'DELIVERED':
+                $order->markDelivered(
+                    $request_data->tracking_status->status_date,
+                    $request_data->tracking_number
+                );
+                break;
+            case 'RETURNED':
+                $order->markReturned(
+                    $request_data->tracking_status->status_date,
+                    $request_data->tracking_number
+                );
+                break;
+            case 'FAILURE':
+                break;
+        }
 
         $message->status = 'success';
         return $message->sendResponse($response);
@@ -94,38 +138,7 @@ $app->post(
 );
 
 $app->post(
-    '/v1/order/{invoice_number}/delivered',
-    function (Request $request, Response $response, $args) {
-        $message = new ResponseMessage();
-        $order   = GpOrder::where('invoice_number', $args['invoice_number'])->first();
-
-        // Does the order Exist
-        if (!$order) {
-            $message->status = 'failure';
-            $message->desc   = 'Order Not Found';
-            $message->status_code = 400;
-            return $message->sendResponse($response);
-        }
-
-        // We can't ship an order that is already shipped
-        if ($order->isDelivered()) {
-            $message->status = 'failure';
-            $message->desc   = 'Order already marked as delivered';
-            $message->status_code = 400;
-            return $message->sendResponse($response);
-        }
-
-        $request_data = (object) $request->getParsedBody();
-
-        $order->markDelivered($request_data->delivered_date, $request_data->tracking_number);
-
-        $message->status = 'success';
-        return $message->sendResponse($response);
-    }
-);
-
-$app->post(
-    '/v1/auth',
+    "/{$api_version}/auth",
     function (Request $request, Response $response, $args) {
         $message = new ResponseMessage();
         $message->status = 'success';
@@ -137,22 +150,33 @@ $app->post(
 );
 
 $app->post(
-    '/v1/auth/refresh',
+    "/{$api_version}/auth/refresh",
     function (Request $request, Response $response, $args) {
         $message = new ResponseMessage();
-
-        $token = $request->getHeader("Authorization");
-        $token = substr(array_pop($token), 7);
+        $token   = $request->getHeader("Authorization");
+        $token   = substr(array_pop($token), 7);
         $decoded = JWT::decode($token, JWT_PUB, ['RS256']);
-
-        if (@$token['refresh']) {
-            $message->status = 'success';
-            $message->data = TokenSet::generate(['vendor'=>'stratosphere']);
-            return $message->sendResponse($response);
-        }
 
         $message->status = 'failure';
         $message->status_code = 401;
+
+        if (!@$decoded->refresh) {
+            $message->desc = "Invalid refresh token";
+            return $message->sendResponse($response);
+        }
+
+        $nonce = UtiNonce::where('token', @$decoded->nonce)->first();
+
+        if (is_null($nonce)) {
+            $message->desc = "Invalid nonce";
+            return $message->sendResponse($response);
+        }
+
+        // Delete the old nonce so it's no longer valid
+        $nonce->delete();
+
+        $message->status = 'success';
+        $message->data = TokenSet::generate(['vendor'=>'stratosphere']);
         return $message->sendResponse($response);
     }
 );

@@ -200,6 +200,10 @@ class GpOrderItem extends Model
         return $this->hasOne(GpRxsSingle::class, 'rx_number', 'rx_number');
     }
 
+    /**
+     * Get a user friendly drug name. This is used mostly for communications to the patient
+     * @return string
+     */
     public function getDrugName()
     {
         $rxs = $this->rxs;

@@ -8,6 +8,7 @@ namespace GoodPill\API;
 
 use Firebase\JWT\JWT;
 use Psr\Http\Message\ResponseInterface;
+use GoodPill\Models\Utility\UtiNonce;
 
 /**
  * A simple class to allow a structed format to the API response message
@@ -30,14 +31,16 @@ class TokenSet
 
         // TODO create a real nonce
 
-        $nonce = \uniqid();
+        $nonce = new UtiNonce();
+        $nonce->generate();
+        $nonce->save();
 
         $refresh = JWT::encode(
             array_merge(
                 [
                     "exp" => strtotime('+30 day'),
                     "type"         => "auth",
-                    'nonce' => $nonce,
+                    'nonce' => $nonce->token,
                     'refresh' => 1
                 ],
                 $data
