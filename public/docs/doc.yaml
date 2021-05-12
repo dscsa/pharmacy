@@ -17,6 +17,8 @@ components:
 servers:
   - url: https://gppa.goodpill.org/v1
     description: The production API
+  - url: https://gppa-dev.goodpill.org/v1
+    description: The development API
 
 tags:
     - name: Authentication
@@ -103,10 +105,10 @@ paths:
                     type: string
                     default: failure
 
-  /order/{invoice_number}/shipped:
+  /order/{invoice_number}/tracking:
     post:
-      summary: Mark an invoice as shipped
-      description: Used to mark and invoice as shippend.  Will update the invoice and send appropriate communications to the patient.
+      summary: Update the shipping status of an order
+      description: Endpoint will store shipping and tracking data about an order.  It will send appropriate messages to the patient.
       security:
         - BearerAuth: []
       parameters:
@@ -123,75 +125,23 @@ paths:
             schema:
               type: object
               properties:
-                ship_date:
-                  type: integer
-                  format: date
-                  description: An EST based date for when the package was shipped
+                eta:
+                  type: string
+                  format: date-time
+                  description: An EST based date for when the package should be delivered
                 tracking_number:
                   type: string
                   description: The tracking number for the label created for the shipment
-      responses:
-        '200':
-          description: The order was updated and patient notifications were setn
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    default: success
-        '400':
-          description: There was a problem with the request.  Please see the desc property for more details
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    default: failure
-                  desc:
-                    type: string
-
-        '401':
-          description: Authentication failed
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    default: failure
-
-  /order/{invoice_number}/delivered:
-    post:
-      summary: Mark an invoice as delivered
-      description: Used to mark and invoice as delivered.  Will update the invoice and send appropriate communications to the patient.
-      security:
-        - BearerAuth: []
-      parameters:
-        - in: path
-          name: invoice_number
-          schema:
-            type: integer
-          required: true
-          description: The invoice we are attempting to update.  This is invoice_number not order number.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                deliverd_date:
-                  type: integer
-                  format: date
-                  description: An EST based date for when the package was shipped
-                tracking_number:
-                  type: string
-                  description: The tracking number for the label created for the shipment
+                tracking_status:
+                  type: object
+                  properties:
+                      status_date:
+                          type: string
+                          format: date-time
+                          description: An EST based date for when the status change happened
+                      status:
+                          type: string
+                          enum: [ CREATED, UNKNOWN, PRE_TRANSIT, TRANSIT, DELIVERED, RETURNED, FAILURE ]
       responses:
         '200':
           description: The order was updated and patient notifications were setn
