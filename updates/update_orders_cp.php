@@ -628,30 +628,6 @@ function cp_order_updated(array $updated) : ?array
             GPLog::notice($reason, [ 'order' => $order ]);
         }
 
-        /*
-         * Check to verify that all of the items in the order have an rx_dispensed_id
-         * If they do not then there is a problem and we should investigate the order further
-         */
-        $invalid_order_items = [];
-
-        foreach($order as $item) {
-            if (empty($item['rx_dispensed_id'] || is_null('rx_dispensed_id'))) {
-                $invalid_order_items[] = $item;
-            }
-        }
-
-        if (count($invalid_order_items) > 0) {
-            GPLog::critical(
-                "Order has items that are missing an rx_dispensed_id",
-                [
-                    'State Changed'                  => $stage_change_cp,
-                    'Updated'                        => $updated,
-                    'invoice_number'                 => $updated['invoice_number'],
-                    'items_missing_rx_dispensed_ids' => $invalid_order_items
-                ]
-            );
-        }
-
 
         if ($updated['order_date_shipped'] != $updated['old_order_date_shipped']) {
             AuditLog::log(
@@ -663,6 +639,30 @@ function cp_order_updated(array $updated) : ?array
                 ),
                 $updated
             );
+
+            /*
+            * Check to verify that all of the items in the order have an rx_dispensed_id
+            * If they do not then there is a problem and we should investigate the order further
+            */
+            $invalid_order_items = [];
+
+            foreach($order as $item) {
+                if (empty($item['rx_dispensed_id'] || is_null('rx_dispensed_id'))) {
+                    $invalid_order_items[] = $item;
+                }
+            }
+
+            if (count($invalid_order_items) > 0) {
+                GPLog::critical(
+                    "Order has items that are missing an rx_dispensed_id",
+                    [
+                        'State Changed'                  => $stage_change_cp,
+                        'Updated'                        => $updated,
+                        'invoice_number'                 => $updated['invoice_number'],
+                        'items_missing_rx_dispensed_ids' => $invalid_order_items
+                    ]
+                );
+            }
 
             GPLog::notice("Updated Order Shipped Started", [ 'order' => $order ]);
             $order = export_v2_unpend_order($order, $mysql, "Order Shipped");
