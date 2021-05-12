@@ -24,6 +24,8 @@ $api_version = 'v1';
 
 $app = AppFactory::create();
 
+error_reporting(E_ERROR);
+
 // Token Middleware
 // NOTE This code is left here intentinoally.  It is fully functional, and just needs to be
 // NOTE uncommented when we are ready to swith to tokens
@@ -48,6 +50,7 @@ $app->add(
 $app->add(new Tuupola\Middleware\HttpBasicAuthentication([
     "path" => "/{$api_version}/auth",
     "ignore" => "/{$api_version}/auth/refresh",
+    "secure" => false,
     "realm" => "Protected",
     "users" => API_USERS,
     'error' => function ($response, $arguments) {
@@ -105,12 +108,12 @@ $app->post(
 
         $request_data = (object) $request->getParsedBody();
 
-        switch ($request_data->tracking_status->status) {
+        switch ($request_data->tracking_status['status']) {
             case 'UNKNOWN':
             case 'CREATED':
             case 'PRE_TRANSIT':
                 $order->markShipped(
-                    $request_data->tracking_status->status_date,
+                    $request_data->tracking_status['status_date'],
                     $request_data->tracking_number
                 );
                 break;
@@ -118,13 +121,13 @@ $app->post(
                 break;
             case 'DELIVERED':
                 $order->markDelivered(
-                    $request_data->tracking_status->status_date,
+                    $request_data->tracking_status['status_date'],
                     $request_data->tracking_number
                 );
                 break;
             case 'RETURNED':
                 $order->markReturned(
-                    $request_data->tracking_status->status_date,
+                    $request_data->tracking_status['status_date'],
                     $request_data->tracking_number
                 );
                 break;
