@@ -24,7 +24,7 @@ $api_version = 'v1';
 
 $app = AppFactory::create();
 
-error_reporting(E_ERROR);
+//error_reporting(E_ERROR);
 
 // Token Middleware
 // NOTE This code is left here intentinoally.  It is fully functional, and just needs to be
@@ -93,7 +93,7 @@ $app->get(
 );
 
 $app->post(
-    "/{$api_version}/order/{invoice_number}/status",
+    "/{$api_version}/order/{invoice_number}/tracking",
     function (Request $request, Response $response, $args) {
         $message = new ResponseMessage();
         $order   = GpOrder::where('invoice_number', $args['invoice_number'])->first();
@@ -133,6 +133,39 @@ $app->post(
                 break;
             case 'FAILURE':
                 break;
+        }
+
+        $message->status = 'success';
+        return $message->sendResponse($response);
+    }
+);
+
+$app->get(
+    "/{$api_version}/order/{invoice_number}/tracking",
+    function (Request $request, Response $response, $args) {
+        $message = new ResponseMessage();
+        $order   = GpOrder::where('invoice_number', $args['invoice_number'])->first();
+
+        // Does the order Exist
+        if (!$order) {
+            $message->status = 'failure';
+            $message->desc   = 'Order Not Found';
+            $message->status_code = 400;
+            return $message->sendResponse($response);
+        }
+
+        $shipment = $order->shipment();
+
+        if ($shipment->exists) {
+            $message->desc = "Order Shipped";
+            $message->data = (object) [
+                'invoice_number'  => $order->invoice_number,
+                'tracking_number' => $shipment->TrackingNumber,
+                'shipped_date'    => $shipment->ship_date,
+                'delivered_date'  => $shipment->DeliveredDate
+            ];
+        } else {
+            $message->desc = "Order not shipped";
         }
 
         $message->status = 'success';

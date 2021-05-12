@@ -146,6 +146,15 @@ class GpOrder extends Model
                     ->orderBy('invoice_number', 'desc');
     }
 
+    /**
+     * Get the shipment for this item
+     * @return CpOrderShipment
+     */
+    public function shipment()
+    {
+        return CpOrderShipment::where('order_id', $this->getOrderId())->firstOrNew();
+    }
+
     /*
      * Condition Methods:  These methods are all meant to be conditional and should
      *  all return booleans.  The methods should be named with appropriate descriptive verbs
@@ -231,6 +240,8 @@ class GpOrder extends Model
             return false;
         }
 
+        $ship_date = strtotime($ship_date);
+
         // Model should cast to date
         $shipment                 = CpOrderShipment::firstOrCreate(['order_id' => $this->getOrderId()]);
         $shipment->ship_date      = $ship_date;
@@ -249,28 +260,32 @@ class GpOrder extends Model
 
     /**
      * Update the order as delivered
-     * @param  string $delivery_date   A stringtotime compatible utc date.
+     * @param  string $delivered_date   A stringtotime compatible utc date.
      * @param  string $tracking_number The tracking number for the shipment.
      * @return boolean                  Was the shipment updated
      */
-    public function markDelivered(string $delivery_date, string $tracking_number) : bool
+    public function markDelivered(string $delivered_date, string $tracking_number) : bool
     {
         if ($this->isDelivered()) {
-            return false;
+            //return false;
         }
 
         $shipment = CpOrderShipment::where('order_id', $this->getOrderId())->firstOrNew();
 
+        $delivered_date = strtotime($delivered_date);
+
         if (!$shipment->exists) {
-            $shipment->ship_date = date(strtotime('-3 day', strtotime($delivery_date)));
+            $shipment->ship_date = date(strtotime('-3 day', $delivered_date));
             $shipment->TrackingNumber = $tracking_number;
         }
 
+
+
         // Model should cast to date
-        $shipment->DeliveredDate = $delivery_date;
+        $shipment->DeliveredDate = $delivered_date;
         $shipment->save();
 
-        $this->order_date_delivered = $delivery_date;
+        $this->order_date_delivered = $delivered_date;
         $this->save();
 
         $shipped = new DeliveredEvent($this);
@@ -293,16 +308,18 @@ class GpOrder extends Model
 
         $shipment = CpOrderShipment::where('order_id', $this->getOrderId())->firstOrNew();
 
+        $status_date = strtotime($status_date);
+
         if (!$shipment->exists) {
-            $shipment->ship_date = date(strtotime('-3 day', strtotime($status_date)));
+            $shipment->ship_date = date(strtotime('-3 day', $status_date));
             $shipment->TrackingNumber = $tracking_number;
             $shipment->save();
         }
 
-        $this->order_date_returned = $delivery_date;
+        $this->order_date_returned = $status_date;
         $this->save();
 
-        $shipped = new DeliveredEvent($this);
+        $shipped = new ReturnedEvent($this);
         $shipped->publish();
 
         return true;
@@ -474,8 +491,6 @@ class GpOrder extends Model
         if (empty($this->invoice_doc_id)) {
             return false;
         }
-
-
 
         $delete_request            = new Delete();
         $delete_request->fileId    = $this->invoice_doc_id;

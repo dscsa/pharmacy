@@ -85,13 +85,13 @@
       }
     },
     "/order/{invoice_number}/tracking" : {
-      "post" : {
-        "summary" : "Update the shipping status of an order",
-        "description" : "Endpoint will store shipping and tracking data about an order.  It will send appropriate messages to the patient.",
+      "get" : {
+        "summary" : "View the tracking data",
+        "description" : "Will show you any details on the tracking of an order",
         "parameters" : [ {
           "name" : "invoice_number",
           "in" : "path",
-          "description" : "The invoice we are attempting to update.  This is invoice_number not order number.",
+          "description" : "The invoice we are attempting to view.  This is invoice_number not order number.",
           "required" : true,
           "style" : "simple",
           "explode" : false,
@@ -99,16 +99,6 @@
             "type" : "integer"
           }
         } ],
-        "requestBody" : {
-          "content" : {
-            "application/json" : {
-              "schema" : {
-                "$ref" : "#/components/schemas/body"
-              }
-            }
-          },
-          "required" : true
-        },
         "responses" : {
           "200" : {
             "description" : "The order was updated and patient notifications were setn",
@@ -144,17 +134,103 @@
         "security" : [ {
           "BearerAuth" : [ ]
         } ]
+      },
+      "post" : {
+        "summary" : "Update the shipping status of an order",
+        "description" : "Endpoint will store shipping and tracking data about an order.  It will send appropriate messages to the patient.",
+        "parameters" : [ {
+          "name" : "invoice_number",
+          "in" : "path",
+          "description" : "The invoice we are attempting to update.  This is invoice_number not order number.",
+          "required" : true,
+          "style" : "simple",
+          "explode" : false,
+          "schema" : {
+            "type" : "integer"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/body"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "The order was updated and patient notifications were setn",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/inline_response_200_2"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "There was a problem with the request.  Please see the desc property for more details",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/inline_response_400"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Authentication failed",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/inline_response_401"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "BearerAuth" : [ ]
+        } ]
       }
     }
   },
   "components" : {
     "schemas" : {
+      "inline_response_200_1_data" : {
+        "type" : "object",
+        "properties" : {
+          "delivered_date" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "shipped_date" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "tracking_number" : {
+            "type" : "string"
+          },
+          "invoice_number" : {
+            "type" : "int"
+          }
+        }
+      },
       "inline_response_200_1" : {
         "type" : "object",
         "properties" : {
           "status" : {
             "type" : "string",
             "default" : "success"
+          },
+          "desc" : {
+            "type" : "string",
+            "enum" : [ "Order not shipped", "Order Shipped" ]
+          },
+          "data" : {
+            "$ref" : "#/components/schemas/inline_response_200_1_data"
           }
         }
       },
@@ -167,6 +243,15 @@
           },
           "data" : {
             "$ref" : "#/components/schemas/inline_response_200_data"
+          }
+        }
+      },
+      "inline_response_200_2" : {
+        "type" : "object",
+        "properties" : {
+          "status" : {
+            "type" : "string",
+            "default" : "success"
           }
         }
       },

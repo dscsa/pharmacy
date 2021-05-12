@@ -141,7 +141,14 @@ paths:
                           description: An EST based date for when the status change happened
                       status:
                           type: string
-                          enum: [ CREATED, UNKNOWN, PRE_TRANSIT, TRANSIT, DELIVERED, RETURNED, FAILURE ]
+                          enum:
+                            - CREATED
+                            - UNKNOWN
+                            - PRE_TRANSIT
+                            - TRANSIT
+                            - DELIVERED
+                            - RETURNED
+                            - FAILURE
       responses:
         '200':
           description: The order was updated and patient notifications were setn
@@ -153,6 +160,70 @@ paths:
                   status:
                     type: string
                     default: success
+        '400':
+          description: There was a problem with the request.  Please see the desc property for more details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    default: failure
+                  desc:
+                    type: string
+
+        '401':
+          description: Authentication failed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    default: failure
+    get:
+      summary: View the tracking data
+      description: Will show you any details on the tracking of an order
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: invoice_number
+          schema:
+            type: integer
+          required: true
+          description: The invoice we are attempting to view.  This is invoice_number not order number.
+      responses:
+        '200':
+          description: The order was updated and patient notifications were setn
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    default: success
+                  desc:
+                      type: string
+                      enum:
+                          - Order not shipped
+                          - Order Shipped
+                  data:
+                      type: object
+                      properties:
+                          delivered_date:
+                              type: string
+                              format: date-time
+                          shipped_date:
+                            type: string
+                            format: date-time
+                          tracking_number:
+                            type: string
+                          invoice_number:
+                            type: int
         '400':
           description: There was a problem with the request.  Please see the desc property for more details
           content:
