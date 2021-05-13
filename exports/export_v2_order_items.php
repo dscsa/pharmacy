@@ -902,15 +902,8 @@ function sort_inventory($inventory, $long_exp)
             return 1;
         }
 
-        //Priortize prepacks over other stock
         $aPack = strlen($a['bin']) == 3;
         $bPack = strlen($b['bin']) == 3;
-        if ($aPack and ! $bPack) {
-            return -1;
-        }
-        if ($bPack and ! $aPack) {
-            return 1;
-        }
 
         // Let's shop for non-prepacks that are closest (but not less than) to
         // our min prepack exp date in order to avoid waste
@@ -926,6 +919,16 @@ function sort_inventory($inventory, $long_exp)
             (isset($inventory['prepack_exp']) ? $inventory['prepack_exp'] : $long_exp),
             substr($b['exp']['to'], 0, 10)
         );
+
+        //Priortize non-purchased prepacks over other stock
+        //Assume Purchased is <12month expiration - 3mos from days supply = ~ 9mos between
+        if ($aPack and $aMonths < 9 and ! $bPack) {
+            return -1;
+        }
+
+        if ($bPack and $bMonths < 9 and ! $aPack) {
+            return 1;
+        }
 
         // Deprioritize anything with a closer exp date than the min prepack exp
         // date.  This - by definition - can only be non-prepack stock
