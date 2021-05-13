@@ -49,7 +49,7 @@ abstract class Event
      */
     public function publishEvent()
     {
-        // Make sure we can creat a title.
+        // Make sure we can create a title.
         $title = $this->getTitle();
 
         $comm_array = [];
@@ -90,23 +90,23 @@ abstract class Event
     }
 
     /**
-     * This should be implmeneted on the specific event types. It will be called to start
-     * the publish property.  I could be as simple as a wrapper for the publishEvent method
+     * This should be implemented on the specific event types. It will be called to start
+     * the publish property.  It could be as simple as a wrapper for the publishEvent method
      */
     abstract public function publish() : void;
 
     /**
-     * Is used to fomat and retrieve the SmsComm
+     * Is used to format and retrieve the SmsComm
      */
     abstract public function getSms() : ?SmsComm;
 
     /**
-     * Is used to fomat and retrieve the EmailComm
+     * Is used to format and retrieve the EmailComm
      */
     abstract public function getEmail() : ?EmailComm;
 
     /**
-     * Is used to fomat and retrieve the SalesforceComm
+     * Is used to format and retrieve the SalesforceComm
      */
     abstract public function getSalesforce() : ?SalesforceComm;
 }

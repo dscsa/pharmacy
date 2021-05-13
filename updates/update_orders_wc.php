@@ -8,6 +8,7 @@ use GoodPill\Logging\AuditLog;
 use GoodPill\Logging\CliLog;
 use GoodPill\Utilities\Timer;
 use GoodPill\Models\GpOrder;
+use GoodPill\Events\Order\Completed as CompletedEvent;
 
 /**
  * Proccess all the updates to WooCommerce Orders
@@ -375,6 +376,82 @@ function wc_order_updated(array $updated) : bool
         ),
         $updated
     );
+
+    $stage = $updated['wc_order_stage_wc'];
+
+    $completed_order = GpOrder::find($updated['invoice_number']);
+
+    if ($stage === 'wc-done-card-pay') {
+        //  Do card pay
+        $shipped = new CompletedEvent($completed_order, 'paid-by-card');
+
+        GPLog::notice(
+            "WC Order: Sending paid-by-card communication",
+            [
+                'invoice_number'   => $updated['invoice_number'],
+                'stage'            => $updated['order_stage_wc'],
+                'shipped_response' => $shipped
+            ]
+        );
+    } elseif ($stage === 'wc-done-mail-pay') {
+        //  Do mail pay
+        $shipped = new CompletedEvent($completed_order, 'paid-by-mail');
+
+        GPLog::notice(
+            "WC Order: Sending paid-by-mail communication",
+            [
+                'invoice_number'   => $updated['invoice_number'],
+                'stage'            => $updated['order_stage_wc'],
+                'shipped_response' => $shipped
+            ]
+        );
+    } elseif ($stage === 'wc-done-auto-pay') {
+        //  Do auto pay
+        $shipped = new CompletedEvent($completed_order, 'paid-by-autopay');
+
+        GPLog::notice(
+            "WC Order: Sending paid-by-autopay communication",
+            [
+                'invoice_number'   => $updated['invoice_number'],
+                'stage'            => $updated['order_stage_wc'],
+                'shipped_response' => $shipped
+            ]
+        );
+    } elseif ($stage === 'wc-late-card-missing') {
+        $shipped = new CompletedEvent($completed_order, 'paid-by-autopay');
+
+        GPLog::notice(
+            "WC Order: Sending late-payment-card-missing communication",
+            [
+                'invoice_number'   => $updated['invoice_number'],
+                'stage'            => $updated['order_stage_wc'],
+                'shipped_response' => $shipped
+            ]
+        );
+    } elseif ($stage === 'wc-late-card-expired') {
+        $shipped = new CompletedEvent($completed_order, 'paid-by-autopay');
+
+        GPLog::notice(
+            "WC Order: Sending late-payment-card-expired communication",
+            [
+                'invoice_number'   => $updated['invoice_number'],
+                'stage'            => $updated['order_stage_wc'],
+                'shipped_response' => $shipped
+            ]
+        );
+    } elseif ($stage === 'wc-late-card-failed') {
+        $shipped = new CompletedEvent($completed_order, 'paid-by-autopay');
+
+        GPLog::notice(
+            "WC Order: Sending late-payment-card-failed communication",
+            [
+                'invoice_number'   => $updated['invoice_number'],
+                'stage'            => $updated['order_stage_wc'],
+                'shipped_response' => $shipped
+            ]
+        );
+    }
+
 
     if ($updated['order_stage_wc'] != $updated['old_order_stage_wc'] and
       ! (
