@@ -18,6 +18,9 @@
   }, {
     "name" : "Orders",
     "description" : "Working with orders"
+  }, {
+    "name" : "Invoices",
+    "description" : "Working with order invoices"
   } ],
   "paths" : {
     "/auth" : {
@@ -25,6 +28,7 @@
         "tags" : [ "Authentication" ],
         "summary" : "Generates a set of authentication tokens",
         "description" : "Used to generate the 2 primary tokens needed to access the api.  If you are successful, you will receive a auth and refresh token.  The auth token is used for all basic requests and has a 10 minute lifespan.  The refresh token is a single use token that has a 30 day lifespan.  It can only be used to request a new auth token.",
+        "operationId" : "Get Auth Token",
         "responses" : {
           "200" : {
             "description" : "The authentication tokens needed",
@@ -57,6 +61,7 @@
         "tags" : [ "Authentication" ],
         "summary" : "Get a fresh token set without username/password",
         "description" : "Use a refresh token to generate an entire new set of authentication tokens.",
+        "operationId" : "Refresh Tokens",
         "responses" : {
           "200" : {
             "description" : "The authentication tokens needed",
@@ -86,8 +91,10 @@
     },
     "/order/{invoice_number}/tracking" : {
       "get" : {
+        "tags" : [ "Orders" ],
         "summary" : "View the tracking data",
         "description" : "Will show you any details on the tracking of an order",
+        "operationId" : "Get Order Tracking",
         "parameters" : [ {
           "name" : "invoice_number",
           "in" : "path",
@@ -136,8 +143,10 @@
         } ]
       },
       "post" : {
+        "tags" : [ "Orders" ],
         "summary" : "Update the shipping status of an order",
         "description" : "Endpoint will store shipping and tracking data about an order.  It will send appropriate messages to the patient.",
+        "operationId" : "Update Order Tracking",
         "parameters" : [ {
           "name" : "invoice_number",
           "in" : "path",
@@ -196,8 +205,10 @@
         } ]
       },
       "delete" : {
+        "tags" : [ "Orders" ],
         "summary" : "Delete the tracking data",
         "description" : "Will delete the tracking data from the system",
+        "operationId" : "Delete Order Tracking",
         "parameters" : [ {
           "name" : "invoice_number",
           "in" : "path",
@@ -216,6 +227,60 @@
               "application/json" : {
                 "schema" : {
                   "$ref" : "#/components/schemas/inline_response_200_2"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "There was a problem with the request.  Please see the desc property for more details",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/inline_response_400"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Authentication failed",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/inline_response_401"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "BearerAuth" : [ ]
+        } ]
+      }
+    },
+    "/order/{invoice_number}/invoice/print" : {
+      "get" : {
+        "tags" : [ "Orders", "Invoices" ],
+        "summary" : "Print the Invoice",
+        "description" : "Enpoint will queue and the invoice for printing.",
+        "operationId" : "Print Order Invoice",
+        "parameters" : [ {
+          "name" : "update",
+          "in" : "query",
+          "description" : "If update is greater than 1, the invoice will be deleted and regenrated",
+          "required" : true,
+          "style" : "form",
+          "explode" : true,
+          "schema" : {
+            "type" : "integer"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "The order was queued for printing",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/inline_response_200_3"
                 }
               }
             }
@@ -302,6 +367,19 @@
           "status" : {
             "type" : "string",
             "default" : "success"
+          }
+        }
+      },
+      "inline_response_200_3" : {
+        "type" : "object",
+        "properties" : {
+          "status" : {
+            "type" : "string",
+            "default" : "success"
+          },
+          "desc" : {
+            "type" : "string",
+            "default" : "Invoice"
           }
         }
       },

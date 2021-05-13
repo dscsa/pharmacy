@@ -65,7 +65,7 @@ $app->add(new Tuupola\Middleware\HttpBasicAuthentication([
 $app->addBodyParsingMiddleware();
 
 $app->get(
-    "/{$api_version}/order/{invoice_number}/print",
+    "/{$api_version}/order/{invoice_number}/invoice/print",
     function (Request $request, Response $response, $args) {
         $message = new ResponseMessage();
         $order   = GpOrder::where('invoice_number', $args['invoice_number'])->first();
@@ -78,6 +78,7 @@ $app->get(
             return $message->sendResponse($response);
         }
         $params = $request->getQueryParams();
+
         // Should we update the invoice?
         if (isset($params['update'])) {
             $order->updateInvoice();

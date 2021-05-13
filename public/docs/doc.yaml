@@ -25,6 +25,8 @@ tags:
       description: Authenticate with goodpill
     - name: Orders
       description: Working with orders
+    - name: Invoices
+      description: Working with order invoices
 
 paths:
   /auth:
@@ -33,6 +35,7 @@ paths:
       - Authentication
       summary: Generates a set of authentication tokens
       description: Used to generate the 2 primary tokens needed to access the api.  If you are successful, you will receive a auth and refresh token.  The auth token is used for all basic requests and has a 10 minute lifespan.  The refresh token is a single use token that has a 30 day lifespan.  It can only be used to request a new auth token.
+      operationId: Get Auth Token
       security:
         - BasicAuth: []
       responses:
@@ -72,6 +75,7 @@ paths:
       - Authentication
       summary: Get a fresh token set without username/password
       description: Use a refresh token to generate an entire new set of authentication tokens.
+      operationId: Refresh Tokens
       security:
         - BearerAuth: []
       responses:
@@ -109,8 +113,11 @@ paths:
     post:
       summary: Update the shipping status of an order
       description: Endpoint will store shipping and tracking data about an order.  It will send appropriate messages to the patient.
+      operationId: Update Order Tracking
       security:
         - BearerAuth: []
+      tags:
+        - Orders
       parameters:
         - in: path
           name: invoice_number
@@ -186,8 +193,11 @@ paths:
     get:
       summary: View the tracking data
       description: Will show you any details on the tracking of an order
+      operationId: Get Order Tracking
       security:
         - BearerAuth: []
+      tags:
+        - Orders
       parameters:
         - in: path
           name: invoice_number
@@ -250,8 +260,11 @@ paths:
     delete:
       summary: Delete the tracking data
       description: Will delete the tracking data from the system
+      operationId: Delete Order Tracking
       security:
         - BearerAuth: []
+      tags:
+        - Orders
       parameters:
         - in: path
           name: invoice_number
@@ -283,6 +296,60 @@ paths:
                   desc:
                     type: string
 
+        '401':
+          description: Authentication failed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    default: failure
+
+  /order/{invoice_number}/invoice/print:
+    get:
+      summary: Print the Invoice
+      description: Enpoint will queue and the invoice for printing.
+      operationId: Print Order Invoice
+      security:
+        - BearerAuth: []
+      tags:
+        - Orders
+        - Invoices
+      parameters:
+        - in: query
+          name: update
+          schema:
+            type: integer
+          required: true
+          description: If update is greater than 1, the invoice will be deleted and regenrated
+      responses:
+        '200':
+          description: The order was queued for printing
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    default: success
+                  desc:
+                    type: string
+                    default: Invoice #{$args['invoice_number']} has been queud to print
+        '400':
+          description: There was a problem with the request.  Please see the desc property for more details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    default: failure
+                  desc:
+                    type: string
         '401':
           description: Authentication failed
           content:
