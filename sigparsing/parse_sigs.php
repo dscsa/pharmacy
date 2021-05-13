@@ -39,11 +39,60 @@ class SigParser {
      * @return Array    With keys "sig_qty", "sig_days" and "sig_unit"
      */
     function parse($sig, $drugname = '') {
+        if ($this->early_return($sig, $drugname, $result)) {
+            return $result;
+        }
+
         $this->scores = array();
         $sig = preprocessing($sig);
         $attributes = $this->get_attributes($sig);
         $attributes_drug = $this->get_attributes($drugname);
         return $this->postprocessing($attributes, $attributes_drug, $sig);
+    }
+
+
+    /**
+     * Before starting to parse the sig and the drugname with the 
+     * three steps (pre/aws-ch-api/post), determine if there's a simpler
+     * result that can be returned. For example, if it's inhalers
+     * it can always return sig_qty = 3/90.
+     * 
+     * @return bool    true if the parser should do an early return filling &$result,
+     *              and false otherwise
+     */
+    function early_return($sig, $drugname, &$result) {
+
+        // If its an inhaler, spray, cream, gel or eye drops, return a fixed value.
+        $fixed_drugnames_values = [
+            '/ (CREAM|INH|INHALER|SPR|SPRAY)$/i' => 3/90,
+            '/ (GEL)$/i' => 1,
+            '/(EYE DROP)/i' => 0.1,
+        ];
+        foreach ($fixed_drugnames_values as $regex => $qty_per_day) {
+            if (preg_match($regex, $drugname, $match)) {
+                $result = [
+                    'sig_unit' => trim($match[1]),
+                    'sig_qty' => $qty_per_day * DAYS_STD,
+                    'sig_days' => DAYS_STD,
+                    'sig_conf_score' => 0.7
+                ];
+                return true;
+            }
+        }
+
+        // If the dose has a maximum, return that result.
+        // e.g. "Take 2 per day, max of 3 if needed" => "Take 3 if needed"
+        $splits = preg_split('/(max (of)?|may go up to|may increase to|may gradually increase to)/i', $sig);
+        if (count($splits) > 1) {
+            // Get the first word of the sig + everything after the split
+            $sig = explode(' ',trim($sig))[0].' '.$splits[1];
+            $result = $this->parse($sig, $drugname);
+
+            // Only return the new result if it obtained a result from AWS
+            return $result['sig_conf_score'] > 0;
+        }
+
+        return false;
     }
 
 
@@ -64,7 +113,7 @@ class SigParser {
                     $attributes[] = $attr;
                 }
             }
-        }   
+        }
         foreach ($sections['UnmappedAttributes'] as $attr) {
             $attributes[] = $attr['Attribute'];
         }
@@ -136,9 +185,10 @@ class SigParser {
         $then     = " then[ ,]+";
         $commas   = ",";
         $and_at   = " & +at ";
+        $and_may   = " & +may ";
         $and_verb = " &[ ,]+(?=\d|use +|take +|inhale +|chew +|inject +|oral +)";
 
-        $durations_regex = "/($increase|$sentence|$then|$commas|$and_at|$and_verb)/i";
+        $durations_regex = "/($increase|$sentence|$then|$commas|$and_at|$and_verb|$and_may)/i";
 
         $splits = preg_split($durations_regex, $text, -1, PREG_SPLIT_DELIM_CAPTURE);
 
@@ -209,8 +259,8 @@ class SigParser {
         $total_freq = 1;
         foreach ($frequencies as $freq) {
             // If "as needed" or "as directed" matches, reduce the confidence score
-            if (preg_match('/as needed/i', $freq, $match)) {
-                $this->scores[] = 0.8;
+            if (preg_match('/(as needed|if needed)/i', $freq, $match)) {
+                $this->scores[] = 0.75;
             }
 
             // NOTE: Gets the LAST number from a particular frequency.
@@ -221,9 +271,8 @@ class SigParser {
             preg_match('/(\d+)(?!.*\d)(.*)hour/i', $freq, $match);
             if ($match AND $match[1]) {
                 // If it's "every N hours before X", don't normalize it to 24hrs
-                if (preg_match('/(before|prior)/i', $freq)) {
-                    $total_freq *= (float)$match[1];
-                } else {
+                if (!preg_match('/(before|prior|about|after|period)/i', $freq)) {
+                    // $total_freq *= (float)$match[1];
                     $total_freq *= 24 / (float)$match[1];
                 }
                 continue;
@@ -314,13 +363,12 @@ class SigParser {
                 // If no unit was found, assign the qty as is but decrease the total confidence score
                 if (!$found_unit) {
                     $parsed['sig_qty'] += $sig_qty;
-                    $this->scores[] = 0.1;
+                    $this->scores[] = 0.8;
                 }
                 // If no sig unit was assigned, give it the unit of the first dose
-                // but also decrease the total confidence score
                 if (!$parsed['sig_unit']) {
                     $parsed['sig_unit'] = $sig_unit;
-                    $this->scores[] = 0.1;
+                    $this->scores[] = 0.8;
                 }
             }
         }
@@ -339,27 +387,27 @@ class SigParser {
             return 0;
         }
 
-        $total_duration = 1;
+        $total_duration = [];
         foreach ($durations as $dur) {
             preg_match('/(\d+)(.*)day/i', $dur, $match);
             if ($match AND $match[1]) {
-                $total_duration *= (int)$match[1];
+                $total_duration[] = (int)$match[1];
             }
 
             preg_match('/(\d+)(.*)week/i', $dur, $match);
             if ($match AND $match[1]) {
-                $total_duration *= 7 * (int)$match[1];
+                $total_duration[] = 7 * (int)$match[1];
             }
 
             preg_match('/(\d+)(.*)month/i', $dur, $match);
             if ($match AND $match[1]) {
-                $total_duration *= 30 * (int)$match[1];
+                $total_duration[] = 30 * (int)$match[1];
             }
         }
-        if ($total_duration == 1) {
+        if (count($total_duration) == 0) {
             return 0;
         }
-        return $total_duration;
+        return array_product($total_duration);
     }
 }
 

@@ -276,9 +276,6 @@ $correct_pairs = [
 ];
 
 
-printf(preprocessing("Take 2 capsules by mouth once daily  30 minutes before morning meal")."\n");
-exit();
-
 
 foreach($correct_pairs as $text => $props) {
     $result = $parser->parse($text, $props['drug_name']);

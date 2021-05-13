@@ -124,9 +124,9 @@ function preprocessing_duration_substitution($sig) {
     // $sig = preg_replace('/\\bevery other\\b/i', 'each 2', $sig);
 
     $sig = preg_replace('/\\b(\d) days? a week\\b/i', '$1 times per week', $sig);
-    $sig = preg_replace('/\\bon (tuesdays?|tu?e?s?|sundays?|saturdays?)[, &]*(thursdays?|th?u?r?s?|sundays?|saturdays?)\\b/i', '2 times per week', $sig);
-    $sig = preg_replace('/\\bon (mondays?|mo?n?)[, &]*(wednesdays?|we?d?)[, &]*(fridays?|fr?i?)\\b/i', '3 times per week', $sig);
-    $sig = preg_replace('/\\bon (sundays?|sun|mondays?|mon|tuesdays?|tues?|wednesdays?|wed|thursdays?|thur?s?|fridays?|fri|saturdays?|sat)\\b/i', '1 time per week', $sig);
+    $sig = preg_replace('/\\b(tuesdays?|tu?e?s?|sundays?|saturdays?|sat)[, &]*(thursdays?|th?u?r?s?|sundays?|saturdays?)\\b/i', '2 times per week', $sig);
+    $sig = preg_replace('/\\b(mondays?|mo?n?)[, &]*(wednesdays?|we?d?)[, &]*(fridays?|fr?i?)\\b/i', '3 times per week', $sig);
+    $sig = preg_replace('/\\b(sundays?|sun|mondays?|mon|tuesdays?|tues?|wednesdays?|wed|thursdays?|thur?s?|fridays?|fri|saturdays?|sat)\\b/i', '1 time per week', $sig);
 
     //echo "6 $sig";
 
@@ -152,6 +152,7 @@ function preprocessing_duration_substitution($sig) {
     $sig = preg_replace('/\\b(q2.*?h)\\b/i', 'every 2 hours', $sig);
     $sig = preg_replace('/\\b(q1.*?h|every hour)\\b/i', 'every 1 hours', $sig);
 
+    $sig = preg_replace('/on day \d+/i', 'for 1 day', $sig);
     return $sig;
 }
 
