@@ -23,7 +23,7 @@ if (!isset($lv_model_capsule)
         [
             'driver'    => 'sqlsrv',
             'host'      => MSSQL_CP_IP,
-            'database'  => 'cph',
+            'database'  => MSSQL_CP_DB,
             'username'  => MSSQL_CP_USER,
             'password'  => MSSQL_CP_PWD
         ],

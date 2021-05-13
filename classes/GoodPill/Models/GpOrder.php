@@ -14,6 +14,7 @@ use GoodPill\AWS\SQS\GoogleAppRequest\Invoice\Complete;
 use GoodPill\AWS\SQS\GoogleAppRequest\Invoice\Publish;
 use GoodPill\AWS\SQS\GoogleAppRequest\Invoice\Delete;
 use GoodPill\AWS\SQS\GoogleAppQueue;
+use GoodPill\Logging\GPLog;
 
 require_once "helpers/helper_full_order.php";
 require_once "helpers/helper_appsscripts.php";
@@ -228,6 +229,38 @@ class GpOrder extends Model
      * Other Methods
      */
 
+
+     /**
+      * Delete the previous shipping data
+      * @return boolean Was the shipment deleted.
+      */
+     public function deleteShipment() : bool
+     {
+         if (!$this->isShipped()) {
+             return false;
+         }
+
+
+         // Model should cast to date
+         $shipment = $this->shipment();
+         $shipment->delete();
+
+         $this->order_date_shipped = null;
+         $this->tracking_number    = null;
+         $this->save();
+
+         GPLog::debug(
+             sprintf(
+                 "The shipping label for %s with tracking number %s has been DELETED",
+                 $this->invoice_number,
+                 $shipment->TrackingNumber
+             ),
+             [ "invoice_number" => $this->invoice_number ]
+         );
+
+         return true;
+     }
+
     /**
      * Update the order as shipped
      * @param  string $ship_date       A stringtotime compatible utc date.
@@ -247,6 +280,15 @@ class GpOrder extends Model
         $shipment->ship_date      = $ship_date;
         $shipment->TrackingNumber = $tracking_number;
         $shipment->save();
+
+        GPLog::debug(
+            sprintf(
+                "A shipping label for %s with tracking number %s has been created",
+                $this->invoice_number,
+                $shipment->TrackingNumber
+            ),
+            [ "invoice_number" => $this->invoice_number ]
+        );
 
         $this->order_date_shipped = $ship_date;
         $this->tracking_number    = $tracking_number;
@@ -279,14 +321,21 @@ class GpOrder extends Model
             $shipment->TrackingNumber = $tracking_number;
         }
 
-
-
         // Model should cast to date
         $shipment->DeliveredDate = $delivered_date;
         $shipment->save();
 
         $this->order_date_delivered = $delivered_date;
         $this->save();
+
+        GPLog::debug(
+            sprintf(
+                "The shipment for %s with tracking number %s has been delivered",
+                $this->invoice_number,
+                $shipment->TrackingNumber
+            ),
+            [ "invoice_number" => $this->invoice_number ]
+        );
 
         $shipped = new DeliveredEvent($this);
         $shipped->publish();
@@ -318,6 +367,15 @@ class GpOrder extends Model
 
         $this->order_date_returned = $status_date;
         $this->save();
+
+        GPLog::debug(
+            sprintf(
+                "The shipment for %s with tracking number %s has been RETURNED",
+                $this->invoice_number,
+                $shipment->TrackingNumber
+            ),
+            [ "invoice_number" => $this->invoice_number ]
+        );
 
         $shipped = new ReturnedEvent($this);
         $shipped->publish();

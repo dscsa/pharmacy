@@ -194,6 +194,56 @@
         "security" : [ {
           "BearerAuth" : [ ]
         } ]
+      },
+      "delete" : {
+        "summary" : "Delete the tracking data",
+        "description" : "Will delete the tracking data from the system",
+        "parameters" : [ {
+          "name" : "invoice_number",
+          "in" : "path",
+          "description" : "The invoice we are attempting to view.  This is invoice_number not order number.",
+          "required" : true,
+          "style" : "simple",
+          "explode" : false,
+          "schema" : {
+            "type" : "integer"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "The order was deleted",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/inline_response_200_2"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "There was a problem with the request.  Please see the desc property for more details",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/inline_response_400"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Authentication failed",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/inline_response_401"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "BearerAuth" : [ ]
+        } ]
       }
     }
   },

@@ -173,7 +173,28 @@ $app->get(
     }
 );
 
-$app->post(
+$app->delete(
+    "/{$api_version}/order/{invoice_number}/tracking",
+    function (Request $request, Response $response, $args) {
+        $message = new ResponseMessage();
+        $order   = GpOrder::where('invoice_number', $args['invoice_number'])->first();
+
+        // Does the order Exist
+        if (!$order) {
+            $message->status = 'failure';
+            $message->desc   = 'Order Not Found';
+            $message->status_code = 400;
+            return $message->sendResponse($response);
+        }
+
+        $order->deleteShipment();
+
+        $message->status = 'success';
+        return $message->sendResponse($response);
+    }
+);
+
+$app->get(
     "/{$api_version}/auth",
     function (Request $request, Response $response, $args) {
         $message = new ResponseMessage();
@@ -185,7 +206,7 @@ $app->post(
     }
 );
 
-$app->post(
+$app->get(
     "/{$api_version}/auth/refresh",
     function (Request $request, Response $response, $args) {
         $message = new ResponseMessage();

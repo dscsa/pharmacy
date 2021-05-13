@@ -247,3 +247,49 @@ paths:
                   status:
                     type: string
                     default: failure
+    delete:
+      summary: Delete the tracking data
+      description: Will delete the tracking data from the system
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: invoice_number
+          schema:
+            type: integer
+          required: true
+          description: The invoice we are attempting to view.  This is invoice_number not order number.
+      responses:
+        '200':
+          description: The order was deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    default: success
+        '400':
+          description: There was a problem with the request.  Please see the desc property for more details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    default: failure
+                  desc:
+                    type: string
+
+        '401':
+          description: Authentication failed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    default: failure
