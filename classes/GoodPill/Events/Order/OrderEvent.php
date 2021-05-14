@@ -79,9 +79,9 @@ abstract class OrderEvent extends Event
      *             ]
      *         }
      *    }
-     * @return stdClass
+     * @return array
      */
-    public function getOrderData()
+    public function getOrderData(): array
     {
         if (!isset($this->order_data)) {
             $order = $this->order;

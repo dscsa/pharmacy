@@ -7,6 +7,9 @@
         "dispensed_date": "04-09-2021",
         "shipped_date": "04-09-2021",
         "invoice_number": 12345,
+        "is_card_pay" : true,
+        "is_mail_pay: false,
+        "is_auto_pay" : false,
         "tracking_number": "1234123124123",
         "tracking_url": "http://www.gmail.com",
         "short_tracking_url": "http://www.gmail.com",
@@ -30,7 +33,17 @@
 }}
 
 <p>Hello {{first_name}},</p>
-<p>Thanks for choosing Good Pill Pharmacy. Your mail payment for order {{invoice_number}} has been received.</p>
+{{#is_card_pay}}
+    <p>Thanks for choosing Good Pill Pharmacy. Your card payment for order {{invoice_number}} has been processed.</p>
+{{/is_card_pay}}
+
+{{#is_mail_pay}}
+    <p>Thanks for choosing Good Pill Pharmacy. Your mail payment for order {{invoice_number}} has been processed.</p>
+{{/is_mail_pay}}
+
+{{#is_auto_pay}}
+    <p>Thanks for choosing Good Pill Pharmacy. Your auto-payment for order {{invoice_number}} has been processed.</p>
+{{/is_auto_pay}}
 
 <p>Thanks!<br>
     The Good Pill Team</p>

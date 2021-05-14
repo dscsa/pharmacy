@@ -8,11 +8,12 @@ use GoodPill\Logging\AuditLog;
 use GoodPill\Logging\CliLog;
 use GoodPill\Utilities\Timer;
 use GoodPill\Models\GpOrder;
-use GoodPill\Events\Order\Completed as CompletedEvent;
+use GoodPill\Events\Order\Paid as PaidEvent;
+use GoodPill\Events\Order\PayFailed as PayFailedEvent;
 
 /**
- * Proccess all the updates to WooCommerce Orders
- * @param  array $changes  An array of arrays with deledted, created, and
+ * Process all the updates to WooCommerce Orders
+ * @param  array $changes  An array of arrays with deleted, created, and
  *      updated elements
  * @return void
  */
@@ -379,77 +380,48 @@ function wc_order_updated(array $updated) : bool
 
     $stage = $updated['wc_order_stage_wc'];
 
-    $completed_order = GpOrder::find($updated['invoice_number']);
+    $paid_order = GpOrder::find($updated['invoice_number']);
 
-    if ($stage === 'wc-done-card-pay') {
-        //  Do card pay
-        $shipped = new CompletedEvent($completed_order, 'paid-by-card');
+    if (
+        (
+            $stage === 'wc-done-card-pay' ||
+            $stage === 'wc-done-mail-pay' ||
+            $stage === 'wc-done-auto-pay'
+        ) &&
+        $stage !== $updated['old_order_stage_wc']
+    ) {
+        $paid = new PaidEvent($paid_order);
 
         GPLog::notice(
-            "WC Order: Sending paid-by-card communication",
+            "WC Order: Sending Paid Event communication",
             [
                 'invoice_number'   => $updated['invoice_number'],
                 'stage'            => $updated['order_stage_wc'],
-                'shipped_response' => $shipped
             ]
         );
-    } elseif ($stage === 'wc-done-mail-pay') {
-        //  Do mail pay
-        $shipped = new CompletedEvent($completed_order, 'paid-by-mail');
+
+        $paid->publish();
+    }
+
+    if (
+        (
+            $stage === 'wc-late-card-missing' ||
+            $stage === 'wc-late-card-failed' ||
+            $stage === 'wc-late-card-expired'
+        ) &&
+        $stage !== $updated['old_order_stage_wc']
+    ) {
+        $paid = new PayFailedEvent($paid_order);
 
         GPLog::notice(
-            "WC Order: Sending paid-by-mail communication",
+            "WC Order: Sending Pay Failed Event communication",
             [
                 'invoice_number'   => $updated['invoice_number'],
                 'stage'            => $updated['order_stage_wc'],
-                'shipped_response' => $shipped
             ]
         );
-    } elseif ($stage === 'wc-done-auto-pay') {
-        //  Do auto pay
-        $shipped = new CompletedEvent($completed_order, 'paid-by-autopay');
 
-        GPLog::notice(
-            "WC Order: Sending paid-by-autopay communication",
-            [
-                'invoice_number'   => $updated['invoice_number'],
-                'stage'            => $updated['order_stage_wc'],
-                'shipped_response' => $shipped
-            ]
-        );
-    } elseif ($stage === 'wc-late-card-missing') {
-        $shipped = new CompletedEvent($completed_order, 'paid-by-autopay');
-
-        GPLog::notice(
-            "WC Order: Sending late-payment-card-missing communication",
-            [
-                'invoice_number'   => $updated['invoice_number'],
-                'stage'            => $updated['order_stage_wc'],
-                'shipped_response' => $shipped
-            ]
-        );
-    } elseif ($stage === 'wc-late-card-expired') {
-        $shipped = new CompletedEvent($completed_order, 'paid-by-autopay');
-
-        GPLog::notice(
-            "WC Order: Sending late-payment-card-expired communication",
-            [
-                'invoice_number'   => $updated['invoice_number'],
-                'stage'            => $updated['order_stage_wc'],
-                'shipped_response' => $shipped
-            ]
-        );
-    } elseif ($stage === 'wc-late-card-failed') {
-        $shipped = new CompletedEvent($completed_order, 'paid-by-autopay');
-
-        GPLog::notice(
-            "WC Order: Sending late-payment-card-failed communication",
-            [
-                'invoice_number'   => $updated['invoice_number'],
-                'stage'            => $updated['order_stage_wc'],
-                'shipped_response' => $shipped
-            ]
-        );
+        $paid->publish();
     }
 
 
