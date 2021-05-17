@@ -8,6 +8,9 @@ use GoodPill\Logging\{
     CliLog
 };
 
+use GoodPill\Models\GpOrder;
+use GoodPill\Events\Order\Shipped;
+
 //Internal communication warning an order was shipped but not dispensed.  Gets erased when/if order is shipped
 function order_dispensed_notice($groups)
 {
@@ -28,6 +31,15 @@ function order_dispensed_notice($groups)
 //by building commication arrays based on github.com/dscsa/communication-calendar
 function order_shipped_notice($groups)
 {
+
+    // Create the event and send it as a test case
+    $gpOrder = GpOrder::where('invoice_number', $groups['ALL'][0]['invoice_number'])->first();
+
+    if ($gpOrder) {
+        // $shipping_event = new Shipped($gpOrder);
+        // $shipping_event->publishEvent();
+    }
+
     $subject   = 'Good Pill shipped order '.($groups['ALL'][0]['count_filled'] ? 'of '.$groups['ALL'][0]['count_filled'].' items ' : '').'and it should arrive in 3-5 days.';
     $message   = '';
 
@@ -116,7 +128,7 @@ function refill_reminder_notice($groups)
     );
 
     GPLog::warning("refill_reminder_notice is this right?", [$groups, $email]);
-    refill_reminder_event($groups['ALL'], $email, $text, $groups['MIN_DAYS']*24, 12);
+    refill_reminder_event($groups['ALL'], $email, $text, $groups['MIN_DAYS']*24, '11:00');
 }
 
 //Called from Webform so that we didn't have to repeat conditional logic
@@ -149,7 +161,7 @@ function autopay_reminder_notice($groups)
     $next_month = strtotime('first day of +1 months');
     $time_wait  = $next_month - time();
 
-    autopay_reminder_event($groups['ALL'], $email, $text, $time_wait/60/60, 14);
+    autopay_reminder_event($groups['ALL'], $email, $text, $time_wait/60/60, '14:00');
 }
 
 //We are coording patient communication via sms, calls, emails, & faxes
@@ -189,7 +201,7 @@ function order_created_notice($groups)
             '',
             $subject.' We will notify you again once it ships. '.$message.$drug_list,
             '',
-            ($count >= $groups['ALL'][0]['count_nofill']) ? 'Thanks for choosing Good Pill!' : 'Apologies for any inconvenience,',
+            'Thanks for choosing Good Pill!',
             'The Good Pill Team',
             '',
             $suffix
@@ -462,35 +474,35 @@ function needs_form_notice($groups)
               *** Once pt has registered, make sure an order has been created ***",
               "assign_to" => ".Missing Contact Info"
             ];
+
+        $email = [ "email" => $groups['ALL'][0]['email'] ];
+        $text  = [ "sms"   => get_phones($groups['ALL']), "message" => $subject.' '.$message ];
+
+        $email['subject'] = $subject;
+        $email['message'] = implode('<br>', [
+            'Hello,',
+            '',
+            $subject.' '.$message,
+            '',
+            'Thanks!',
+            'The Good Pill Team',
+            '',
+            ''
+        ]);
         //log_error("NEEDS FORM NOTICE DOES NOT HAVE DRUGS LISTED", [$groups, $message, $subject]);
     } else {
         //log_error('NEEDS_FORM HOLD.  IS THIS EVER CALLED OR DOES IT GOTO ORDER_HOLD TEMPLATE', $groups);
-        $subject = "Welcome to Good Pill. Unfortunately we can't complete your 1st Order";
-        $message = "We are very sorry for the inconvenience but we can't fill the Rx(s) in Order #".$groups['ALL'][0]['invoice_number']." that we received from your doctor. Please let us know to which pharmacy we should transfer the Rx(s).<br><br><u>The drugs we could not fill are:</u><br>".implode(';<br>', $groups['NOFILL_NOACTION']).";<br><br>Because we rely on donated medicine, we can only fill medications that are listed here www.goodpill.org/gp-stock";
+        $email = null;
+        $text = null;
 
         if ($eligible_state)
             $salesforce = [
               "subject"   => "Can't complete your 1st Order",
               "body"      => "Can't complete your 1st Order
-              New Rx(s) of ".implode(';<br>', $groups['NOFILL_NOACTION'])." sent for unregistered patient. Please call patient to inform them that we are unable to fill these drugs and ask if they would like us to transfer their Rx(s) their local pharmacy. Because we rely on donated medicine, we can only fill medications that are listed on www.goodpill.org\n\nPlease inform the patient that since drug pricing differs by pharmacy, they will be charged their local pharmacy's price if the drug is transferred.",
-              "assign_to" => ".Unavailable Drug"
+              New Rx(s) of ".implode(';<br>', $groups['NOFILL_NOACTION'])." sent for unregistered patient. Please see if we these items are on our clinical formulary and if so, fill order and purchase meds if necessary.  If not, create task to call patient to inform them that we are unable to fill these drugs and ask if they would like us to transfer their Rx(s) their local pharmacy. Because we rely on donated medicine, we can only fill medications that are listed on www.goodpill.org\n\nPlease inform the patient that since drug pricing differs by pharmacy, they will be charged their local pharmacy's price if the drug is transferred.",
+              "assign_to" => ".Inventory Issue"
             ];
     }
-
-    $email = [ "email" => $groups['ALL'][0]['email'] ];
-    $text  = [ "sms"   => get_phones($groups['ALL']), "message" => $subject.' '.$message ];
-
-    $email['subject'] = $subject;
-    $email['message'] = implode('<br>', [
-        'Hello,',
-        '',
-        $subject.' '.$message,
-        '',
-        'Thanks!',
-        'The Good Pill Team',
-        '',
-        ''
-    ]);
 
     //By basing on added at, we remove uncertainty of when script was run relative to the order being added
     $hour_added = substr($groups['ALL'][0]['order_date_added'], 11, 2); //get hours
@@ -498,15 +510,15 @@ function needs_form_notice($groups)
     if ($hour_added < 10) {
       //A if before 10am, the first one is at 10am, the next one is 5pm, then 10am tomorrow, then 5pm tomorrow
       $hours_to_wait = [0, 0, 24, 24, 24*7, 24*14];
-      $hour_of_day   = [11, 17, 11, 17, 17, 17];
+      $hour_of_day   = ['11:00', '17:00', '11:00', '17:00', '17:00', '17:00'];
     } elseif ($hour_added < 17) {
       //A if before 5pm, the first one is 10mins from now, the next one is 5pm, then 10am tomorrow, then 5pm tomorrow
       $hours_to_wait = [10/60, 0, 24, 24, 24*7, 24*14];
-      $hour_of_day   = [0, 17, 11, 17, 17, 17];
+      $hour_of_day   = [0, '17:00', '11:00', '17:00', '17:00', '17:00'];
     } else {
       //B if after 5pm, the first one is 10am tomorrow, 5pm tomorrow, 10am the day after tomorrow, 5pm day after tomorrow.
       $hours_to_wait = [24, 24, 48, 48, 24*7, 24*14];
-      $hour_of_day   = [11, 17, 11, 17, 17, 17];
+      $hour_of_day   = ['11:00', '17:00', '11:00', '17:00', '17:00', '17:00'];
     }
 
     $date = "Created:".date('Y-m-d H:i:s');
@@ -631,9 +643,20 @@ function order_rescheduled_notice($partial, $groups)
 
     $cancelled_string   = implode(";<br>\n", $groups['AUTOFILL_OFF']);
     $rescheduled_string = implode(";<br>\n", $groups['AUTOFILL_ON']);
-    $subject            = "Order #{$partial['invoice_number']} has been cancelled/rescheduled";
-    $message            = "<u>Good Pill is NOT filling:</u><br>\n{$cancelled_string};<br>\n";
-    $message           .= "<u>Good Pill has rescheduled:</u><br>\n{$rescheduled_string}";
+    $subject            = "Order #{$partial['invoice_number']} has been ";
+    $message            = "";
+
+    if ($rescheduled_string) {
+        $subject       .= "rescheduled";
+        $message       .= "<u>The Rxs below were rescheduled to:</u><br>\n{$rescheduled_string}";
+    } else {
+        $subject       .= "cancelled";
+    }
+
+    if ($cancelled_string) {
+        $message       .= "<u>Good Pill is NOT filling:</u><br>\n{$cancelled_string};<br>\n";
+    }
+
     $message           .= "<br><br>\n\nIf you believe this change was in error, call us (888) 987-5187";
     $email = [ "email" => DEBUG_EMAIL]; //$groups['ALL'][0]['email'] ];
     $text  = [ "sms"   => DEBUG_PHONE, "message" => $subject.'. '.$message ]; //get_phones($groups['ALL'])
@@ -669,7 +692,7 @@ function confirm_shipment_notice($groups)
         $comms['text'],
         $salesforce,
         $days_ago*24,
-        13
+        '11:30'
     );
 }
 

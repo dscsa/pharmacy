@@ -40,7 +40,17 @@ function helper_update_payment($order, $reason, $mysql)
             ]
         );
         set_payment_default($order, $mysql);
-        export_wc_update_order_payment($order[0]['invoice_number'], $order[0]['payment_fee_default'], $order[0]['payment_due_default']);
+        $due_to_send = (
+            $order[0]['order_source'] == 'Auto Refill v2' ||
+            $order[0]['payment_coupon'] ||
+            $order[0]['payment_method'] == PAYMENT_METHOD['AUTOPAY']
+        ) ? $order[0]['payment_fee_default'] : $order[0]['payment_due_default'];
+
+        export_wc_update_order_payment(
+            $order[0]['invoice_number'],
+            $order[0]['payment_fee_default'],
+            $due_to_send
+        );
         return $order;
     }
 

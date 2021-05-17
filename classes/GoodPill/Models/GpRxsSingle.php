@@ -1,17 +1,13 @@
 <?php
 
-/**
- * Created by Reliese Model.
- */
-
-namespace App\Models;
+namespace GoodPill\Models;
 
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 
 /**
  * Class GpRxsSingle
- * 
+ *
  * @property int $rx_number
  * @property int $patient_id_cp
  * @property string|null $drug_generic
@@ -59,78 +55,111 @@ use Illuminate\Database\Eloquent\Model;
  */
 class GpRxsSingle extends Model
 {
-	protected $table = 'gp_rxs_single';
-	protected $primaryKey = 'rx_number';
-	public $incrementing = false;
-	public $timestamps = false;
+    /**
+     * The Table for this data
+     * @var string
+     */
+    protected $table = 'gp_rxs_single';
 
-	protected $casts = [
-		'rx_number' => 'int',
-		'patient_id_cp' => 'int',
-		'rx_gsn' => 'int',
-		'refills_left' => 'float',
-		'refills_original' => 'float',
-		'qty_left' => 'float',
-		'qty_original' => 'float',
-		'sig_qty' => 'float',
-		'sig_days' => 'int',
-		'sig_qty_per_day_default' => 'float',
-		'sig_qty_per_day_actual' => 'float',
-		'rx_autofill' => 'int',
-		'rx_status' => 'int'
-	];
+    /**
+     * The primary_key for this item
+     * @var string
+     */
+    protected $primaryKey = 'rx_number';
 
-	protected $dates = [
-		'refill_date_first',
-		'refill_date_last',
-		'refill_date_manual',
-		'refill_date_default',
-		'rx_date_transferred',
-		'rx_date_changed',
-		'rx_date_expired'
-	];
+    /**
+     * Does the database contining an incrementing field?
+     * @var boolean
+     */
+    public $incrementing = false;
 
-	protected $fillable = [
-		'patient_id_cp',
-		'drug_generic',
-		'drug_brand',
-		'drug_name',
-		'rx_message_key',
-		'rx_message_text',
-		'rx_gsn',
-		'drug_gsns',
-		'refills_left',
-		'refills_original',
-		'qty_left',
-		'qty_original',
-		'sig_actual',
-		'sig_initial',
-		'sig_clean',
-		'sig_qty',
-		'sig_days',
-		'sig_qty_per_day_default',
-		'sig_qty_per_day_actual',
-		'sig_durations',
-		'sig_qtys_per_time',
-		'sig_frequencies',
-		'sig_frequency_numerators',
-		'sig_frequency_denominators',
-		'rx_autofill',
-		'refill_date_first',
-		'refill_date_last',
-		'refill_date_manual',
-		'refill_date_default',
-		'rx_status',
-		'rx_stage',
-		'rx_source',
-		'rx_transfer',
-		'rx_date_transferred',
-		'provider_npi',
-		'provider_first_name',
-		'provider_last_name',
-		'provider_clinic',
-		'provider_phone',
-		'rx_date_changed',
-		'rx_date_expired'
-	];
+    /**
+     * Does the database contining timestamp fields
+     * @var boolean
+     */
+    public $timestamps = false;
+
+    /**
+     * Fields that should be cast when they are set
+     * @var array
+     */
+    protected $casts = [
+        'rx_number' => 'int',
+        'patient_id_cp' => 'int',
+        'rx_gsn' => 'int',
+        'refills_left' => 'float',
+        'refills_original' => 'float',
+        'qty_left' => 'float',
+        'qty_original' => 'float',
+        'sig_qty' => 'float',
+        'sig_days' => 'int',
+        'sig_qty_per_day_default' => 'float',
+        'sig_qty_per_day_actual' => 'float',
+        'rx_autofill' => 'int',
+        'rx_status' => 'int'
+    ];
+
+    /**
+     * Fields that should be dates when they are set
+     * @var array
+     */
+    protected $dates = [
+        'refill_date_first',
+        'refill_date_last',
+        'refill_date_manual',
+        'refill_date_default',
+        'rx_date_transferred',
+        'rx_date_changed',
+        'rx_date_expired'
+    ];
+
+
+    /**
+     * Fields that represent database fields and
+     * can be set via the fill method
+     * @var array
+     */
+    protected $fillable = [
+        'patient_id_cp',
+        'drug_generic',
+        'drug_brand',
+        'drug_name',
+        'rx_message_key',
+        'rx_message_text',
+        'rx_gsn',
+        'drug_gsns',
+        'refills_left',
+        'refills_original',
+        'qty_left',
+        'qty_original',
+        'sig_actual',
+        'sig_initial',
+        'sig_clean',
+        'sig_qty',
+        'sig_days',
+        'sig_qty_per_day_default',
+        'sig_qty_per_day_actual',
+        'sig_durations',
+        'sig_qtys_per_time',
+        'sig_frequencies',
+        'sig_frequency_numerators',
+        'sig_frequency_denominators',
+        'rx_autofill',
+        'refill_date_first',
+        'refill_date_last',
+        'refill_date_manual',
+        'refill_date_default',
+        'rx_status',
+        'rx_stage',
+        'rx_source',
+        'rx_transfer',
+        'rx_date_transferred',
+        'provider_npi',
+        'provider_first_name',
+        'provider_last_name',
+        'provider_clinic',
+        'provider_phone',
+        'rx_date_changed',
+        'rx_date_expired'
+    ];
 }

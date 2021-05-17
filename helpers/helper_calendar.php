@@ -1,12 +1,15 @@
 <?php
 
-use GoodPill\AWS\SQS\GoogleAppQueue;
+use GoodPill\AWS\SQS\GoogleCalendarQueue;
 use GoodPill\AWS\SQS\GoogleAppRequest\Calendar\Create;
 use GoodPill\AWS\SQS\GoogleAppRequest\Calendar\Delete;
+use GoodPill\AWS\SQS\GoogleAppRequest\Calendar\SearchAndDelete;
 use GoodPill\Logging\GPLog;
 use GoodPill\Logging\AuditLog;
 use GoodPill\Logging\CliLog;
 use GoodPill\Storage\Goodpill;
+
+require_once "helpers/helper_appsscripts.php";
 
 function order_dispensed_event($order, $salesforce, $hours_to_wait)
 {
@@ -46,7 +49,7 @@ function order_shipped_event($order, $email, $text)
     create_event($event_title, $comm_arr, 10/60);
 }
 
-function refill_reminder_event($order, $email, $text, $hours_to_wait, $hour_of_day = null)
+function refill_reminder_event($order, $email, $text, $hours_to_wait, $time_of_day = null)
 {
     if ($order[0]['patient_inactive']) {
         GPLog::warning('refill_reminder_event cancelled because patient inactive', get_defined_vars());
@@ -62,10 +65,10 @@ function refill_reminder_event($order, $email, $text, $hours_to_wait, $hour_of_d
 
     GPLog::warning('refill_reminder_event', get_defined_vars()); //$cancel
 
-    create_event($event_title, $comm_arr, $hours_to_wait, $hour_of_day);
+    create_event($event_title, $comm_arr, $hours_to_wait, $time_of_day);
 }
 
-function autopay_reminder_event($order, $email, $text, $hours_to_wait, $hour_of_day = null)
+function autopay_reminder_event($order, $email, $text, $hours_to_wait, $time_of_day = null)
 {
     if ($order[0]['patient_inactive']) {
         GPLog::warning('autopay_reminder_event cancelled because patient inactive', get_defined_vars());
@@ -81,7 +84,7 @@ function autopay_reminder_event($order, $email, $text, $hours_to_wait, $hour_of_
 
     GPLog::notice('autopay_reminder_event', get_defined_vars());
 
-    //create_event($event_title, $comm_arr, $hours_to_wait, $hour_of_day);
+    //create_event($event_title, $comm_arr, $hours_to_wait, $time_of_day);
 }
 
 function order_created_event($groups, $email, $text, $hours_to_wait)
@@ -200,7 +203,7 @@ function order_updated_event($groups, $email, $text, $hours_to_wait)
     create_event($event_title, $comm_arr, $hours_to_wait);
 }
 
-function needs_form_event($order, $email, $text, $salesforce, $hours_to_wait, $hour_of_day = 0)
+function needs_form_event($order, $email, $text, $salesforce, $hours_to_wait, $time_of_day = 0)
 {
     if ($order[0]['patient_inactive']) {
         GPLog::warning('needs_form_event cancelled because patient inactive', get_defined_vars());
@@ -214,10 +217,10 @@ function needs_form_event($order, $email, $text, $salesforce, $hours_to_wait, $h
 
     GPLog::info('needs_form_event', get_defined_vars());
 
-    create_event($event_title, $comm_arr, $hours_to_wait, $hour_of_day);
+    create_event($event_title, $comm_arr, $hours_to_wait, $time_of_day);
 }
 
-function no_rx_event($partial, $order, $email, $text, $hours_to_wait, $hour_of_day = null)
+function no_rx_event($partial, $order, $email, $text, $hours_to_wait, $time_of_day = null)
 {
     if ($order[0]['patient_inactive']) {
         GPLog::warning('no_rx_event cancelled because patient inactive', get_defined_vars());
@@ -233,10 +236,10 @@ function no_rx_event($partial, $order, $email, $text, $hours_to_wait, $hour_of_d
 
     GPLog::info('no_rx_event', get_defined_vars());
 
-    create_event($event_title, $comm_arr, $hours_to_wait, $hour_of_day);
+    create_event($event_title, $comm_arr, $hours_to_wait, $time_of_day);
 }
 
-function order_cancelled_event($partial, $order, $email, $text, $hours_to_wait, $hour_of_day  = null)
+function order_cancelled_event($partial, $order, $email, $text, $hours_to_wait, $time_of_day  = null)
 {
     if ($order[0]['patient_inactive']) {
         GPLog::warning('order_cancelled_event cancelled because patient inactive', get_defined_vars());
@@ -260,7 +263,7 @@ function order_cancelled_event($partial, $order, $email, $text, $hours_to_wait, 
 
     GPLog::info('order_cancelled_event', get_defined_vars());
 
-    create_event($event_title, $comm_arr, $hours_to_wait, $hour_of_day);
+    create_event($event_title, $comm_arr, $hours_to_wait, $time_of_day);
 }
 
 function order_rescheduled_event(
@@ -269,7 +272,7 @@ function order_rescheduled_event(
     $email,
     $text,
     $hours_to_wait,
-    $hour_of_day = null
+    $time_of_day = null
 ) {
     if ($order[0]['patient_inactive']) {
         GPLog::warning(
@@ -298,10 +301,10 @@ function order_rescheduled_event(
 
     GPLog::info('order_rescheduled_event', get_defined_vars());
 
-    create_event($event_title, $comm_arr, $hours_to_wait, $hour_of_day);
+    create_event($event_title, $comm_arr, $hours_to_wait, $time_of_day);
 }
 
-function confirm_shipment_event($order, $email, $text, $salesforce, $hours_to_wait, $hour_of_day = null)
+function confirm_shipment_event($order, $email, $text, $salesforce, $hours_to_wait, $time_of_day = null)
 {
     if ($order[0]['patient_inactive']) {
         GPLog::warning('confirm_shipment_event cancelled because patient inactive', get_defined_vars());
@@ -331,7 +334,7 @@ function confirm_shipment_event($order, $email, $text, $salesforce, $hours_to_wa
 
     GPLog::info('confirm_shipment_event INACTIVE', get_defined_vars());
 
-    create_event($event_title, $comm_arr, $hours_to_wait, $hour_of_day);
+    create_event($event_title, $comm_arr, $hours_to_wait, $time_of_day);
 }
 
 function new_comm_arr($patient_label, $email = '', $text = '', $salesforce = '')
@@ -484,18 +487,18 @@ function get_patient_label($order)
  * @param  string  $event_title   The ttitle of the event
  * @param  array   $comm_arr      The array to put on the calendar
  * @param  integer $hours_to_wait The number of hours to wait for the alert
- * @param  integer $hour_of_day   The safe hour of days to send
+ * @param  hh:mm   $time_of_day   Eastern time in 24 hours to send message.  eg '14:30' to send at 2:30pm ET
  * @return void
  */
 function create_event(
     $event_title,
     $comm_arr,
     $hours_to_wait = 0,
-    $hour_of_day = null,
+    $time_of_day = null,
     $async = true
 ) {
 
-    $startTime = get_start_time($hours_to_wait, $hour_of_day);
+    $startTime = get_start_time($hours_to_wait, $time_of_day);
 
     $create_event                = new Create();
     $create_event->cal_id        = GD_CAL_ID;
@@ -506,7 +509,7 @@ function create_event(
     $create_event->group_id      = 'calendar-request';
 
     if ($async) {
-        $gdq = new GoogleAppQueue();
+        $gdq = new GoogleCalendarQueue();
         $gdq->send($create_event);
         return true;
     }
@@ -532,7 +535,7 @@ function cancel_events(array $ids, $async = true)
     $delete_events->group_id      = 'calendar-request';
 
     if ($async) {
-        $gdq = new GoogleAppQueue();
+        $gdq = new GoogleCalendarQueue();
         $gdq->send($delete_events);
         return true;
     }
@@ -599,7 +602,7 @@ function get_phones($order)
 }
 
 //Return a copy of the date (or now) with the 24-hour set
-function get_start_time($hours_to_wait, $hour_of_day = null)
+function get_start_time($hours_to_wait, $time_of_day = null)
 {
 
   //PHP Issue of strtotime() with fractions https://stackoverflow.com/questions/11086022/can-strtotime-handle-fractions so convert to minutes and round
@@ -607,8 +610,8 @@ function get_start_time($hours_to_wait, $hour_of_day = null)
 
     $start = date('Y-m-d\TH:i:s', strtotime("+$minutes_to_wait minutes"));
 
-    if ($hour_of_day) {
-        $start = substr($start, 0, 11)."$hour_of_day:00:00";
+    if ($time_of_day) {
+        $start = substr($start, 0, 11)."$time_of_day:00";
     }
 
     return $start;
@@ -645,13 +648,13 @@ function search_events_by_order($invoice_number, $past = false, $types = [])
     $types = implode('|', $types);
 
     $args = [
-    'method'       => 'searchCalendarEvents',
-    'cal_id'       => GD_CAL_ID,
-    'hours'        => DAYS_STD*24,
-    'past'         => $past,
-    'word_search'  => "$invoice_number",
-    'regex_search' => "/($types)/i"
-  ];
+        'method'       => 'searchCalendarEvents',
+        'cal_id'       => GD_CAL_ID,
+        'hours'        => DAYS_STD*24,
+        'past'         => $past,
+        'word_search'  => "$invoice_number",
+        'regex_search' => "/($types)/i"
+    ];
 
     $result = gdoc_post(GD_HELPER_URL, $args);
 
@@ -761,81 +764,38 @@ function cancel_events_by_person($first_name, $last_name, $birth_date, $caller, 
         return;
     }
 
-    $cancel = [];
-    $titles = [];
-    $events = search_events_by_person($first_name, $last_name, $birth_date, false, $types);
+    $types = implode('|', $types);
 
-    if (! is_array($events)) {
-        $events = [];
-    }
+    $search_and_delete = new SearchAndDelete();
+    $search_and_delete->cal_id = GD_CAL_ID;
+    $search_and_delete->hours = DAYS_STD*24;
+    $search_and_delete->word_search = "{$last_name} {$birth_date}";
 
-    foreach ($events as $event) {
-        $cancel[] = $event['id'];
-        $titles[] = $event['title'];
-    }
+    //first name is partial which is not currently supported by gcal natively
+    $search_and_delete->regex_search = "/({$types}).+{$first_name}/i";
+    $search_and_delete->group_id = 'calendar-request';
 
-    if ($cancel) {
-        GPLog::notice(
-            "cancel_events_by_person: $first_name $last_name $birth_date has events",
-            [
-                'titles' => $titles,
-                'first_name' => $first_name,
-                'last_name' => $last_name,
-                'birth_date' => $birth_date,
-                'caller' => $caller,
-                'types' => $types
-            ]
-        );
+    $gdq = new GoogleCalendarQueue();
+    $gdq->send($search_and_delete);
 
-        cancel_events($cancel);
-    } else {
-        GPLog::notice(
-            "cancel_events_by_person:  $first_name $last_name $birth_date no events",
-            [
-                'titles' => $titles,
-                'first_name' => $first_name,
-                'last_name' => $last_name,
-                'birth_date' => $birth_date,
-                'caller' => $caller,
-                'types' => $types
-            ]
-        );
-    }
-
-    return $cancel;
+    return true;
 }
 
 function cancel_events_by_order($invoice_number, $caller, $types = [])
 {
-    if (! LIVE_MODE) {
-        return;
-    }
+    $types = implode('|', $types);
 
-    $cancel = [];
-    $titles = [];
-    $events = search_events_by_order($invoice_number, false, $types);
+    $search_and_delete = new SearchAndDelete();
+    $search_and_delete->cal_id = GD_CAL_ID;
+    $search_and_delete->hours = DAYS_STD*24;
+    $search_and_delete->word_search = "{$invoice_number}";
 
-    if (! is_array($events)) {
-        $events = [];
-    }
+    //first name is partial which is not currently supported by gcal natively
+    $search_and_delete->regex_search = "/({$types})/i";
+    $search_and_delete->group_id = 'calendar-request';
 
-    foreach ($events as $event) {
-        $cancel[] = $event['id'];
-        $titles[] = $event['title'];
-    }
+    $gdq = new GoogleCalendarQueue();
+    $gdq->send($search_and_delete);
 
-    if ($cancel) {
-        GPLog::notice(
-            "cancel_events_by_order: order $invoice_number has events",
-            ['titles' => $titles, 'invoice_number' => $invoice_number, 'caller' => $caller, 'types' => $types]
-        );
-        cancel_events($cancel);
-    } else {
-        GPLog::notice(
-            "cancel_events_by_order: order $invoice_number no events",
-            ['titles' => $titles, 'invoice_number' => $invoice_number, 'caller' => $caller, 'types' => $types]
-        );
-    }
-
-    return $cancel;
+    return true;
 }

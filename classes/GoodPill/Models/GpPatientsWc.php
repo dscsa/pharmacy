@@ -1,17 +1,13 @@
 <?php
 
-/**
- * Created by Reliese Model.
- */
-
-namespace Goodpill\Models;
+namespace GoodPill\Models;
 
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 
 /**
  * Class GpPatientsWc
- * 
+ *
  * @property int|null $patient_id_cp
  * @property int $patient_id_wc
  * @property string|null $first_name

@@ -266,10 +266,25 @@ function cp_order_created(array $created) : ?array
             // Find the item that wasn't removed, but we aren't filling
             // These values are transient and
             // TODO Why is this happening
+
+            //  Check Carepoint directly to see how many items are in the order
+            $order_to_find = $order[0]['invoice_number'];
+            $mssql = new Mssql_Cp();
+            $mssql_results = $mssql->run("
+                select o.liCount as item_count, c.rx_id, c.add_date, c.chg_date, rx.drug_name, rx.sig_code, rx.sig_text
+                from csomline c
+                join cprx rx on rx.rx_id = c.rx_id
+                join csom o on o.order_id = c.order_id
+                WHERE c.order_id = '$order_to_find'"
+            );
+
             GPLog::critical(
                 "update_orders_cp: created. canceling order, but is their a manually added item that we should keep?",
                 [
                     'invoice_number'           => $order[0]['invoice_number'],
+                    'count_items_cp'           => count(@$mssql_results[0]),
+                    'count_on_order_cp'        => @$mssql_results[0][0]['item_count'],
+                    'items_in_cp'              => @$mssql_results[0],
                     'count_filled'             => $order[0]['count_filled'],
                     'count_items'              => $order[0]['count_items'],
                     'count_to_add'             => $order[0]['count_to_add'],
@@ -625,6 +640,30 @@ function cp_order_updated(array $updated) : ?array
                 $updated
             );
 
+            /*
+            * Check to verify that all of the items in the order have an rx_dispensed_id
+            * If they do not then there is a problem and we should investigate the order further
+            */
+            $invalid_order_items = [];
+
+            foreach($order as $item) {
+                if (empty($item['rx_dispensed_id'] || is_null('rx_dispensed_id'))) {
+                    $invalid_order_items[] = $item;
+                }
+            }
+
+            if (count($invalid_order_items) > 0) {
+                GPLog::critical(
+                    "Order has items that are missing an rx_dispensed_id",
+                    [
+                        'State Changed'                  => $stage_change_cp,
+                        'Updated'                        => $updated,
+                        'invoice_number'                 => $updated['invoice_number'],
+                        'items_missing_rx_dispensed_ids' => $invalid_order_items
+                    ]
+                );
+            }
+
             GPLog::notice("Updated Order Shipped Started", [ 'order' => $order ]);
             $order = export_v2_unpend_order($order, $mysql, "Order Shipped");
             export_wc_update_order_status($order); //Update status from prepare to shipped
@@ -642,11 +681,11 @@ function cp_order_updated(array $updated) : ?array
             GPLog::critical(
                 "Order was shipped but not dispensed!",
                 [
-                    'State Changed' => $stage_change_cp,
-                    'Updated'       => $updated,
-                    'Dispensed-Check'     => ($updated['order_date_dispensed'] != $updated['old_order_date_dispensed']),
-                    'Shipped-Check'       => ($updated['order_date_shipped'] != $updated['old_order_date_shipped']),
-                    'invoice_number' => $updated['invoice_number']
+                    'State Changed'   => $stage_change_cp,
+                    'Updated'         => $updated,
+                    'Dispensed-Check' => ($updated['order_date_dispensed'] != $updated['old_order_date_dispensed']),
+                    'Shipped-Check'   => ($updated['order_date_shipped'] != $updated['old_order_date_shipped']),
+                    'invoice_number'  => $updated['invoice_number']
                 ]
             );
         }

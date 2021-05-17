@@ -169,6 +169,10 @@ for ($l = 0; $l < $executions; $l++) {
                 GPLog::$exec_id = $request->execution_id;
             }
 
+            if (isset($request->subroutine_id)) {
+                GPLog::$subroutine_id = $request->subroutine_id;
+            }
+
             GPLog::debug($log_message, $changes);
             CliLog::notice($log_message, $changes);
 
@@ -216,7 +220,7 @@ for ($l = 0; $l < $executions; $l++) {
                 );
 
                 // Create the block file
-                file_put_contents('/tmp/block-patient-queue.txt', date('c'));
+                file_put_contents('/tmp/block-patient-queue.txt', $message);
 
                 break;
             }

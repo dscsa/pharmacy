@@ -2,6 +2,8 @@
 
 namespace  GoodPill\AWS\SQS;
 
+use GoodPill\Logging\GPLog;
+
 abstract class Request
 {
 
@@ -59,9 +61,15 @@ abstract class Request
     /**
      * Don't check the properties for validity.  Set this to false for an easy
      * way to force a message creation
+     *
+     * @var boolean
      */
     public $check_property = true;
 
+    /**
+     * Allow duplicate occurances of this mesage to be sent to the Queue
+     * @var boolean
+     */
     public $allow_duplicate = false;
 
     /**
@@ -69,6 +77,20 @@ abstract class Request
      */
     public function __construct($initialize_date = null)
     {
+
+        if (!in_array('execution_id', $this->properties)) {
+            $this->properties[] = 'execution_id';
+            $this->execution_id = GPLog::$exec_id;
+        }
+
+        if (!in_array('subroutine_id', $this->properties)) {
+            $this->properties[] = 'subroutine_id';
+            if (!is_null(GPLog::$subroutine_id)) {
+                $this->subroutine_id = GPLog::$subroutine_id;
+            }
+        }
+
+
         $this->dedup_id = uniqid();
 
         if (is_array($initialize_date)) {
@@ -189,7 +211,7 @@ abstract class Request
 
         // Check to make sure all the required fields have a value.  Throw an
         // exception if a value is missing
-        if (! $this->requiredFiledsComplete()) {
+        if (! $this->requiredFieldsComplete()) {
             throw new \Exception('Missing required fields');
         }
 
@@ -204,7 +226,7 @@ abstract class Request
      * Check to see if the required fields have been completed
      * @return bool True if all required fields are complete
      */
-    protected function requiredFiledsComplete()
+    protected function requiredFieldsComplete()
     {
         foreach ($this->required as $strRequiredField) {
             if (! isset($this->data[$strRequiredField])) {

@@ -1,15 +1,13 @@
 <?php
 
-/**
- * Created by Reliese Model.
- */
-
 namespace GoodPill\Models;
 
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 
 use GoodPill\Models\GpOrder;
+use GoodPill\Models\GpPatient;
+use GoodPill\Models\GpRxsSingle;
 
 /**
  * Class GpOrderItem
@@ -60,38 +58,60 @@ use GoodPill\Models\GpOrder;
  */
 class GpOrderItem extends Model
 {
+    /**
+     * The Table for this data
+     * @var string
+     */
     protected $table = 'gp_order_items';
+
+    /**
+     * Does the database contining an incrementing field?
+     * @var boolean
+     */
     public $incrementing = false;
+
+    /**
+     * Does the database contining timestamp fields
+     * @var boolean
+     */
     public $timestamps = false;
 
+    /**
+     * Fields that should be cast when they are set
+     * @var array
+     */
     protected $casts = [
-        'invoice_number' => 'int',
-        'patient_id_cp' => 'int',
-        'rx_number' => 'int',
-        'rx_dispensed_id' => 'int',
-        'patient_autofill_initial' => 'int',
-        'rx_autofill_initial' => 'int',
-        'zscore_initial' => 'float',
-        'refills_dispensed_default' => 'float',
-        'refills_dispensed_actual' => 'float',
-        'days_dispensed_default' => 'int',
-        'days_dispensed_actual' => 'int',
-        'qty_dispensed_default' => 'float',
-        'qty_dispensed_actual' => 'float',
-        'price_dispensed_default' => 'float',
-        'price_dispensed_actual' => 'float',
-        'qty_pended_total' => 'float',
-        'qty_pended_repacks' => 'float',
-        'count_pended_total' => 'int',
-        'count_pended_repacks' => 'int',
-        'count_lines' => 'int',
-        'sync_to_date_days_before' => 'float',
-        'sync_to_date_days_change' => 'float',
+        'invoice_number'                => 'int',
+        'patient_id_cp'                 => 'int',
+        'rx_number'                     => 'int',
+        'rx_dispensed_id'               => 'int',
+        'patient_autofill_initial'      => 'int',
+        'rx_autofill_initial'           => 'int',
+        'zscore_initial'                => 'float',
+        'refills_dispensed_default'     => 'float',
+        'refills_dispensed_actual'      => 'float',
+        'days_dispensed_default'        => 'int',
+        'days_dispensed_actual'         => 'int',
+        'qty_dispensed_default'         => 'float',
+        'qty_dispensed_actual'          => 'float',
+        'price_dispensed_default'       => 'float',
+        'price_dispensed_actual'        => 'float',
+        'qty_pended_total'              => 'float',
+        'qty_pended_repacks'            => 'float',
+        'count_pended_total'            => 'int',
+        'count_pended_repacks'          => 'int',
+        'count_lines'                   => 'int',
+        'sync_to_date_days_before'      => 'float',
+        'sync_to_date_days_change'      => 'float',
         'sync_to_date_max_days_default' => 'float',
         'sync_to_date_min_days_refills' => 'float',
-        'sync_to_date_min_days_stock' => 'float'
+        'sync_to_date_min_days_stock'   => 'float'
     ];
 
+    /**
+     * Fields that should be dates
+     * @var array
+     */
     protected $dates = [
         'item_date_added',
         'refill_date_last',
@@ -99,6 +119,12 @@ class GpOrderItem extends Model
         'refill_date_default'
     ];
 
+
+    /**
+     * Fields that represent database fields and
+     * can be set via the fill method
+     * @var array
+     */
     protected $fillable = [
         'drug_name',
         'patient_id_cp',
@@ -161,5 +187,35 @@ class GpOrderItem extends Model
     public function patient()
     {
         return $this->belongsTo(GpPatient::class, 'patient_id_cp');
+    }
+
+    /**
+     * Relationship to a Single Rx
+     * foreignKey - rx_number
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     */
+    public function rxs()
+    {
+        return $this->hasOne(GpRxsSingle::class, 'rx_number', 'rx_number');
+    }
+
+    /**
+     * Get a user friendly drug name. This is used mostly for communications to the patient
+     * @return string
+     */
+    public function getDrugName()
+    {
+        $rxs = $this->rxs;
+
+        if (!$rxs->drug_generic) {
+            return $rxs->drug_name;
+        }
+
+        if (!$rxs->drug_brand) {
+            return $rxs->drug_generic;
+        }
+
+        return "{$rxs->drug_generic} ({$rxs->drug_brand})";
     }
 }
