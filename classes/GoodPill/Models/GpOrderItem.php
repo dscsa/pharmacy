@@ -279,4 +279,16 @@ class GpOrderItem extends Model
         $legacy_item = $this->getLegacyData();
         return v2_pend_item($legacy_item, $reason);
     }
+
+    public function getRefillsDispensedAttribute()
+    {
+        if ($this->refills_dispensed_actual)
+            return round($this->refills_dispensed_actual, 2);
+
+        if ($this->refills_dispensed_default)
+            return round($this->refills_dispensed_default, 2);
+
+        if ($this->refills_total)
+            return round($this->refills_total, 2);
+    }
 }

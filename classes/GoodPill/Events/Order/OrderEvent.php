@@ -36,8 +36,9 @@ abstract class OrderEvent extends Event
 
     /**
      * Make it so
-     * @param GpOrder $order (Optional)  Will preset the order if passed
+     * @param GpOrder|null $order (Optional)  Will preset the order if passed
      */
+
     public function __construct(?GpOrder $order = null)
     {
         if (!is_null($order)) {

@@ -7,6 +7,20 @@
         "dispensed_date": "04-09-2021",
         "shipped_date": "04-09-2021",
         "invoice_number": 12345,
+        "has_no_refills": true,
+        "no_refills": [
+            'Drug name 1',
+            'Drug name 2',
+        ],
+        "no_autofill": [
+            'Drug name 1',
+            'Drug name 2',
+        ],
+        "has_no_autofill": true,
+        "no_autofill": [
+            'Drug name 1',
+            'Drug name 2',
+        ],
         "tracking_number": "1234123124123",
         "tracking_url": "http://www.gmail.com",
         "short_tracking_url": "http://www.gmail.com",
@@ -31,31 +45,28 @@
 
 <p>Hello,</p>
 
-<p>Order #{{invoice_number}} has been {{#autofill_on}}rescheduled{{/autofill_on}}{{#autofill_off}}cancelled{{/autofill_off}}</p>
-
-{{#autofill_on}}
+<p>A friendly reminder that Good Pill cannot refill these Rxs without your help.</p>
+{{#has_no_refills}}
     <p>
-        <u>The Rxs below were rescheduled to:</u>
-        <ul>
-            {{#rxs}}
-                <li>{{name}}</li>
-            {{/rxs}}
-        </ul>
+        <u>We need a new Rx for the following:</u>
+    <ul>
+        {{#no_refills}}
+            <li>{{.}}</li>
+        {{/no_refills}}
+    </ul>
     </p>
-{{/autofill_on}}
+{{/has_no_refills}}
 
-{{#autofill_off}}
+{{#has_no_autofill}}
     <p>
-        <u>Good Pill is NOT filling:</u>
-        <ul>
-            {{#rxs}}
-                <li>{{name}}</li>
-            {{/rxs}}
-        </ul>
+        <u>These Rxs will NOT be filled automatically and must be requested 2 weeks in advance:</u>
+    <ul>
+        {{#no_autofill}}
+            <li>{{.}}</li>
+        {{/no_autofill}}
+    </ul>
     </p>
-{{/autofill_off}}
+{{/has_no_autofill}}
 
-<p>If you believe this change was in error, call us (888) 987-5187</p>
 <p>Thanks!<br>
-The Good Pill Team</p>
-
+    The Good Pill Team</p>

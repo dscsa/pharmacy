@@ -28,11 +28,6 @@
         }
     }
 }}
-Good Pill shipped your order of {{count_filled}} item{{#multiple_filled}}s{{/multiple_filled}} and it should arrive in 3-5 days.
-{{#filled}}
-These Rxs are on the way:
-    {{#rxs}}
-        {{name}}
-    {{/rxs}}
-{{/filled}}
-View it at {{short_invoice_url}}. Track it at {{short_tracking_url}}.
+Order #{{invoice_number}} has been {{#autofill_on}}rescheduled{{/autofill_on}}{{#autofill_off}}cancelled{{/autofill_off}}.
+
+

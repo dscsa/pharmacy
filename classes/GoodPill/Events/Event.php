@@ -26,7 +26,7 @@ abstract class Event
     public $invoice_number = '';
 
     /**
-     * The Patient Labe to associate with the event
+     * The Patient Label to associate with the event
      * @var string
      */
     public $patient_label  = '';
@@ -67,8 +67,10 @@ abstract class Event
         }
 
         print_r($comm_array);
+        echo $this->hours_to_wait."\n";
+        echo $this->time_of_day;
         // TODO Replace this with a new object based Event
-        //create_event($title, $comm_array, $this->hours_to_wait, $this->hour_of_day);
+        //create_event($title, $comm_array, $this->hours_to_wait, $this->time_of_day);
     }
 
     /**

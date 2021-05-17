@@ -29,27 +29,4 @@
     }
 }}
 
-<p>Hello,</p>
-
-<p>Order #{{invoice_number}} has been cancelled.
-    {{#is_webform_transfer}}
-        Good Pill attempted to transfer prescriptions from {{pharmacy_name}} but they did not have an Rx for the requested drugs with refills remaining.  Could you please let us know your doctor's name and phone number so that we can reach out to them to get new prescription(s)
-    {{/is_webform_transfer}}
-</p>
-{{^is_webform_transfer}}
-    <p>
-        <u>Good Pill is NOT filling:</u>
-        {{#rxs_no_fill}}
-            <ul>
-                {{#rxs}}
-                    <li>{{name}}</li>
-                {{/rxs}}
-            </ul>
-        {{/rxs_no_fill}}
-    </p>
-{{/is_webform_transfer}}
-<p>If you believe this cancellation was in error, call us (888) 987-5187</p>
-
-<p>Thanks!<br>
-The Good Pill Team</p>
-
+Good Pill cannot fill one of your Rxs at this time
