@@ -380,7 +380,8 @@ function wc_order_updated(array $updated) : bool
 
     $stage = $updated['wc_order_stage_wc'];
 
-    $paid_order = GpOrder::find($updated['invoice_number']);
+    //  This will be used by the pay and pay failed events
+    //$paid_order = GpOrder::find($updated['invoice_number']);
 
     if (
         (
@@ -390,7 +391,7 @@ function wc_order_updated(array $updated) : bool
         ) &&
         $stage !== $updated['old_order_stage_wc']
     ) {
-        $paid = new PaidEvent($paid_order);
+
 
         GPLog::notice(
             "WC Order: Sending Paid Event communication",
@@ -399,8 +400,9 @@ function wc_order_updated(array $updated) : bool
                 'stage'            => $updated['order_stage_wc'],
             ]
         );
-
-        $paid->publish();
+        //  @TODO - Activate Paid Event
+        //$paid = new PaidEvent($paid_order);
+        //$paid->publish();
     }
 
     if (
@@ -411,7 +413,6 @@ function wc_order_updated(array $updated) : bool
         ) &&
         $stage !== $updated['old_order_stage_wc']
     ) {
-        $paid = new PayFailedEvent($paid_order);
 
         GPLog::notice(
             "WC Order: Sending Pay Failed Event communication",
@@ -420,8 +421,9 @@ function wc_order_updated(array $updated) : bool
                 'stage'            => $updated['order_stage_wc'],
             ]
         );
-
-        $paid->publish();
+        //  @TODO - Activate PayFailedEvent
+        //$paid = new PayFailedEvent($paid_order);
+        //$paid->publish();
     }
 
 

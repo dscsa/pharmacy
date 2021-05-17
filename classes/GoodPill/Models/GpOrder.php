@@ -454,9 +454,9 @@ class GpOrder extends Model
             ),
             [ "invoice_number" => $this->invoice_number ]
         );
-
-        $shipped = new ReturnedEvent($this);
-        $shipped->publish();
+        //  @TODO - Created a returned event
+        //$shipped = new ReturnedEvent($this);
+        //$shipped->publish();
 
         return true;
     }
