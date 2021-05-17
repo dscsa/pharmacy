@@ -10,6 +10,7 @@ use GoodPill\Logging\GPLog;
 use GoodPill\Logging\AuditLog;
 use GoodPill\Logging\CliLog;
 use GoodPill\Models\GpOrder;
+use GoodPill\Models\GpOrderItem;
 
 /**
  * Handle all the possible Item updates.  it will go through each type of change
@@ -533,8 +534,26 @@ function handle_adds_and_removes(array $orders_updated) : void
         }
 
         foreach ($updates['removed'] as $item) {
-            $items[$item['drug']] = $item;
-            $remove_item_names[] = $item['drug'];
+            if (isset($item['drug'])) {
+                $items[$item['drug']] = $item;
+                $remove_item_names[] = $item['drug'];
+            } else {
+                //  Something is going wrong with load_full_order/load_full_item and the data is not returned
+                //  If the drug property isn't set, fetch the item model and construct the drug name
+                $model_item = GpOrderItem::where('rx_number', $item['rx_number'])->first();
+                $items[$model_item->getDrugName()] = $model_item;
+                $remove_item_names[] = $model_item->getDrugName();
+
+                GPLog::warning(
+                    'handle_adds_and_removes: Removing items but item data is missing',
+                    [
+                        'item' => $item,
+                        'updates_removed' => $updates['removed'],
+                        'model_item' => $model_item->toJson(),
+                    ]
+                );
+            }
+
         }
 
         // an rx_number was swapped (e.g best_rx_number used instead) same
