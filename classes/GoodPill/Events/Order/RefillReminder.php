@@ -22,8 +22,6 @@ class RefillReminder extends OrderEvent
      */
     protected $template_path = 'Order/Refill_reminder';
 
-    private $groups = [];
-
     /**
      * RefillReminder constructor.
      * @param $GpOrder
@@ -36,10 +34,6 @@ class RefillReminder extends OrderEvent
         $this->groups = $groups;
         $this->hours_to_wait = $hours_to_wait;
         $this->time_of_day = $time_of_day;
-    }
-
-    public function setGroups() {
-        if (!$this->groups || $sd);
     }
 
     /**

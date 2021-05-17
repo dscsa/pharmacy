@@ -68,4 +68,3 @@ class PayFailed extends OrderEvent
 
     }
 }
-<?php
