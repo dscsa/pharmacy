@@ -555,7 +555,7 @@ function handle_adds_and_removes(array $orders_updated) : void
                     );
                 } else {
                     GPLog::warning(
-                        'handle_adds_and_removes: Removing items but item or Model data exists',
+                        'handle_adds_and_removes: Removing items but item and model data exists',
                         [
                             'item' => $item,
                             'updates_removed' => $updates['removed'],
