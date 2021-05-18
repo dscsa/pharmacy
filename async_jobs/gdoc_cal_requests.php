@@ -5,6 +5,7 @@ require_once 'vendor/autoload.php';
 require_once 'helpers/helper_appsscripts.php';
 require_once 'helpers/helper_log.php';
 require_once 'keys.php';
+require_once 'helpers/helper_error_handler.php';
 
 use GoodPill\AWS\SQS\{
     GoogleAppRequest\BaseRequest,

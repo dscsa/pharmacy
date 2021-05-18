@@ -33,6 +33,7 @@ require_once 'helpers/helper_cp_test.php';
 require_once 'helpers/helper_changes.php';
 require_once 'helpers/helper_sqs.php';
 require_once 'helpers/helper_laravel.php';
+require_once 'helpers/helper_error_handler.php';
 
 // TODO Remove this once we have mssql duplicating the Database
 if (ENVIRONMENT == 'PRODUCTION') {
