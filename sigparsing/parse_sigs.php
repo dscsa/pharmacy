@@ -74,7 +74,7 @@ class SigParser {
                     'sig_unit' => trim($match[1]),
                     'sig_qty' => $qty_per_day * DAYS_STD,
                     'sig_days' => DAYS_STD,
-                    'sig_conf_score' => 0.7
+                    'sig_conf_score' => 0.01
                 ];
                 return true;
             }
@@ -196,6 +196,7 @@ class SigParser {
         $subsections = [];
         $offset_len = 0;
         $splits_idx = 0;
+        $attrs_len = 0;
         foreach ($sections as $section) {
             while ($section["EndOffset"] > $offset_len AND $splits_idx < count($splits)) {
                 $offset_len += strlen($splits[$splits_idx]);
@@ -205,7 +206,10 @@ class SigParser {
                 $subsections[$splits_idx - 1] = [];
             }
             $subsections[$splits_idx - 1][] = $section;
+            $attrs_len += strlen($section['Text']);
         }
+
+        $this->scores[] = $attrs_len / strlen($text);
         return $subsections;
     }
 
@@ -259,8 +263,8 @@ class SigParser {
         $total_freq = 1;
         foreach ($frequencies as $freq) {
             // If "as needed" or "as directed" matches, reduce the confidence score
-            if (preg_match('/(as needed|if needed)/i', $freq, $match)) {
-                $this->scores[] = 0.75;
+            if (preg_match('/(as needed|if needed|as directed)/i', $freq, $match)) {
+                // $this->scores[] = 0.8;
             }
 
             // NOTE: Gets the LAST number from a particular frequency.
@@ -275,14 +279,14 @@ class SigParser {
                     // $total_freq *= (float)$match[1];
                     $total_freq *= 24 / (float)$match[1];
                 }
-                continue;
+                break; // Use breaks to only register a single frequency per section
             }
 
             // Weeks match
             preg_match('/(\d+)(?!.*\d)(.*) week/i', $freq, $match);
             if ($match AND $match[1]) {
                 $total_freq *= (float)$match[1] / 7;
-                continue;
+                break;
             }
 
             // Minutes match. It's usually under context so it's not always "Take X every 30 minutes"
@@ -300,6 +304,7 @@ class SigParser {
                 } else {
                     $total_freq *= (float)$match[1];
                 }
+                break;
             }
 
         }
@@ -363,12 +368,12 @@ class SigParser {
                 // If no unit was found, assign the qty as is but decrease the total confidence score
                 if (!$found_unit) {
                     $parsed['sig_qty'] += $sig_qty;
-                    $this->scores[] = 0.8;
+                    // $this->scores[] = 0.8;
                 }
                 // If no sig unit was assigned, give it the unit of the first dose
                 if (!$parsed['sig_unit']) {
                     $parsed['sig_unit'] = $sig_unit;
-                    $this->scores[] = 0.8;
+                    // $this->scores[] = 0.8;
                 }
             }
         }
@@ -376,7 +381,7 @@ class SigParser {
         // If no dosage was found, return 1 and decrease the total confidence score
         if ($parsed["sig_qty"] == 0) {
             $parsed["sig_qty"] = 1;
-            $this->scores[] = 0.5;
+            // $this->scores[] = 0.5;
         }
         return $parsed;
     }

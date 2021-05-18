@@ -74,7 +74,8 @@ function preprocessing_number_substitution($sig) {
     $sig = preg_replace('/\\b(eighty|ochenta)\\b/i', '80', $sig); // \\b is for space or start of line
     $sig = preg_replace('/\\b(ninety|noventa)\\b/i', '90', $sig); // \\b is for space or start of line
 
-    $sig = preg_replace('/\\b(\d+)?(& )?(\.5|1\/2|1-half|1 half)\\b/i', '$1.5', $sig); //Take 1 1/2 tablets
+    $sig = preg_replace('/\\b(\d+)?( ?& ?)?(\.5|1\/2|1-half|1 half)\\b/i', '$1.5', $sig); //Take 1 1/2 tablets
+    $sig = preg_replace('/(\d+) .5\\b/i', '$1.5', $sig);
     $sig = preg_replace('/(^| )(\.5|1\/2|1-half|1 half|half a)\\b/i', ' 0.5', $sig);
 
 
@@ -153,6 +154,9 @@ function preprocessing_duration_substitution($sig) {
     $sig = preg_replace('/\\b(q1.*?h|every hour)\\b/i', 'every 1 hours', $sig);
 
     $sig = preg_replace('/on day \d+/i', 'for 1 day', $sig);
+
+    //Remove wording like "X minutes before" so that its not picked up as a frequency
+    $sig = preg_replace('/\d+ (minutes?|hours?) (before|prior|about|after|period)/i', '', $sig);
     return $sig;
 }
 
