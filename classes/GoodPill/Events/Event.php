@@ -66,9 +66,6 @@ abstract class Event
             $comm_array[] = $salesforce->delivery();
         }
 
-        print_r($comm_array);
-        echo $this->hours_to_wait."\n";
-        echo $this->time_of_day;
         // TODO Replace this with a new object based Event
         //create_event($title, $comm_array, $this->hours_to_wait, $this->time_of_day);
     }

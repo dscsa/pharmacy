@@ -42,23 +42,6 @@ class RefillReminder extends OrderEvent
      */
     public function publish(): void
     {
-        print_r($this->time_of_day);
-        print_r('we should just execute and finish');
-
         $this->publishEvent();
-        /*
-        // Can't send notifications if the order doesn't exist
-        if (!$this->order) {
-            return;
-        }
-        //  Order cancel events
-        //  Refill Reminder
-
-        $this->order->cancelEvents([
-            'Refill Reminder'
-        ]);
-
-        //$patient->createEvent($this);
-        */
     }
 }
