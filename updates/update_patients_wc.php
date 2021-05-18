@@ -150,7 +150,7 @@ function wc_patient_created(array $created)
     $is_match = is_patient_match($created);
 
     if ($is_match) {
-        match_patient($mysql, $is_match['patient_id_cp'], $is_match['patient_id_wc']);
+        match_patient($is_match['patient_id_cp'], $is_match['patient_id_wc']);
     }
 
     GPLog::resetSubroutineId();
@@ -205,10 +205,17 @@ function wc_patient_updated(array $updated)
     }
 
     if (! $updated['patient_id_cp']) {
+        // See if this user is already matched to a patien
         $is_match = is_patient_match($updated);
 
+        // we are passing !$is_match['new'] because we want to force
+        // the match if they are matched in the gp_tables
         if ($is_match) {
-            match_patient($mysql, $is_match['patient_id_cp'], $is_match['patient_id_wc']);
+            match_patient(
+                $is_match['patient_id_cp'],
+                $is_match['patient_id_wc'],
+                !$is_match['new']
+            );
         }
 
         return null;
