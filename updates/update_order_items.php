@@ -325,7 +325,10 @@ function order_item_updated(array $updated) : ?array
     if ($GPOrder && $GPOrder->isShipped()) {
         GPLog::alert(
             "Trying to change an item on an order that has already shipped",
-            [ 'updated' => $updated]
+            [
+                'updated' => $updated,
+                'GpOrder' => $GPOrder->toJSON()
+            ]
         );
     }
 
