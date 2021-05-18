@@ -273,7 +273,6 @@ class GpOrder extends Model
                 $orderShipData->ship_state_cd = $this->order_state;
                 $orderShipData->ship_zip = $this->order_zip;
                 $orderShipData->save();
-                echo "saving shipment";
             }
         }
 
