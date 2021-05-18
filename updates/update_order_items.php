@@ -541,17 +541,28 @@ function handle_adds_and_removes(array $orders_updated) : void
                 //  Something is going wrong with load_full_order/load_full_item and the data is not returned
                 //  If the drug property isn't set, fetch the item model and construct the drug name
                 $model_item = GpOrderItem::where('rx_number', $item['rx_number'])->first();
-                $items[$model_item->getDrugName()] = $model_item;
-                $remove_item_names[] = $model_item->getDrugName();
+                if ($model_item) {
+                    $items[$model_item->getDrugName()] = $model_item;
+                    $remove_item_names[] = $model_item->getDrugName();
 
-                GPLog::warning(
-                    'handle_adds_and_removes: Removing items but item data is missing',
-                    [
-                        'item' => $item,
-                        'updates_removed' => $updates['removed'],
-                        'model_item' => $model_item->toJson(),
-                    ]
-                );
+                    GPLog::warning(
+                        'handle_adds_and_removes: Removing items but item data is missing',
+                        [
+                            'item' => $item,
+                            'updates_removed' => $updates['removed'],
+                            'model_item' => $model_item->toJson(),
+                        ]
+                    );
+                } else {
+                    GPLog::warning(
+                        'handle_adds_and_removes: Removing items but item and model data exists',
+                        [
+                            'item' => $item,
+                            'updates_removed' => $updates['removed'],
+                            'model_item' => $model_item->toJson(),
+                        ]
+                    );
+                }
             }
 
         }
