@@ -559,7 +559,6 @@ function handle_adds_and_removes(array $orders_updated) : void
                         [
                             'item' => $item,
                             'updates_removed' => $updates['removed'],
-                            'model_item' => $model_item->toJson(),
                         ]
                     );
                 }
