@@ -537,9 +537,21 @@ class GpOrder extends Model
         }
     }
 
-    public function getNoRefilledItems()
+    /**
+     * Return calculated refills_dispensed column for an item
+     * @TODO - DOES NOT CURRENTLY WORK
+     * @TODO - Is it possible to query the computed property this way?
+     * @param bool $refill - optional true to get
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function getRefilledItems(bool $refill = true)
     {
-        return $this->items()->whereNull('refills_dispensed');
+        if ($refill) {
+            return $this->items()->where('refills_dispensed', '>', 0);
+        } else {
+            return $this->items()->whereNull('refills_dispensed');
+        }
+
     }
 
     /**
