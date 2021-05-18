@@ -6,7 +6,8 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use GoodPill\Models\GpPatient;
 use GoodPill\Models\GpOrderItem;
-use GoodPill\Models\Carepoint\CpOrderShipment;
+use GoodPill\Models\Carepoint\CpCsomShipUpdate;
+use GoodPill\Models\Carepoint\CpCsomShip;
 use GoodPill\Events\Order\Shipped as ShippedEvent;
 use GoodPill\Events\Order\Delivered as DeliveredEvent;
 use GoodPill\AWS\SQS\GoogleAppRequest\Invoice\Move;
@@ -149,11 +150,20 @@ class GpOrder extends Model
 
     /**
      * Get the shipment for this item
-     * @return CpOrderShipment
+     * @return CpCsomShipUpdate
      */
-    public function shipment()
+    public function getShipUpdate()
     {
-        return CpOrderShipment::where('order_id', $this->getOrderId())->firstOrNew();
+        return CpCsomShipUpdate::where('order_id', $this->order_id)->firstOrNew();
+    }
+
+    /**
+     * Get the shipment for this item
+     * @return CpCsomShipUpdate
+     */
+    public function getShipment()
+    {
+        return CpCsomShip::where('order_id', $this->order_id)->first();
     }
 
     /*
@@ -229,37 +239,90 @@ class GpOrder extends Model
      * Other Methods
      */
 
+    /**
+     * Override the save function so it sends data into Carepoint automatically
+     *
+     * @param  array $options Parent signature match.
+     * @return void
+     */
+    public function save(array $options = [])
+    {
+        // Save the data first, so that getChanges will actually show what was changed.
+        $changes = $this->getDirty();
+        $results = parent::save($options);
 
-     /**
-      * Delete the previous shipping data
-      * @return boolean Was the shipment deleted.
-      */
-     public function deleteShipment() : bool
-     {
-         if (!$this->isShipped()) {
-             return false;
-         }
+        // If there is an update the the shipping address,
+        // We Need to strore it in Carepoint
+        if (!empty(
+            array_intersect(
+                [
+                    'order_address1',
+                    'order_address2',
+                    'order_city',
+                    'order_state',
+                    'order_zip'
+                ],
+                array_keys($changes)
+            )
+        )) {
+            $orderShipData = $this->getShipment();
+            if (!is_null($orderShipData)) {
+                $orderShipData->ship_addr1 = $this->order_address1;
+                $orderShipData->ship_addr2 = $this->order_address2;
+                $orderShipData->ship_city = $this->order_city;
+                $orderShipData->ship_state_cd = $this->order_state;
+                $orderShipData->ship_zip = $this->order_zip;
+                $orderShipData->save();
+                echo "saving shipment";
+            }
+        }
 
+        return $results;
+    }
 
-         // Model should cast to date
-         $shipment = $this->shipment();
-         $shipment->delete();
+    /**
+     * Delete the previous shipping data
+     * @return boolean Was the shipment deleted.
+     */
+    public function deleteShipment() : bool
+    {
+        if (!$this->isShipped()) {
+            return false;
+        }
+        // Model should cast to date
+        $shipUpdate = $this->getShipUpdate();
 
-         $this->order_date_shipped = null;
-         $this->tracking_number    = null;
-         $this->save();
+        GPLog::debug(
+            sprintf(
+                "The shipping label for %s with tracking number %s has been DELETED",
+                $this->invoice_number,
+                $shipUpdate->TrackingNumber
+            ),
+            [ "invoice_number" => $this->invoice_number ]
+        );
 
-         GPLog::debug(
-             sprintf(
-                 "The shipping label for %s with tracking number %s has been DELETED",
-                 $this->invoice_number,
-                 $shipment->TrackingNumber
-             ),
-             [ "invoice_number" => $this->invoice_number ]
-         );
+        $shipUpdate->delete();
 
-         return true;
-     }
+        $shipment = $this->getShipment();
+        if (!is_null($shipment)) {
+            $shipment->delete();
+        }
+
+        $this->order_date_shipped = null;
+        $this->tracking_number    = null;
+        $this->save();
+
+        GPLog::debug(
+            sprintf(
+                "The shipping label for %s with tracking number %s has been DELETED",
+                $this->invoice_number,
+                $shipUpdate->TrackingNumber
+            ),
+            [ "invoice_number" => $this->invoice_number ]
+        );
+
+        return true;
+    }
 
     /**
      * Update the order as shipped
@@ -276,16 +339,21 @@ class GpOrder extends Model
         $ship_date = strtotime($ship_date);
 
         // Model should cast to date
-        $shipment                 = CpOrderShipment::firstOrCreate(['order_id' => $this->getOrderId()]);
-        $shipment->ship_date      = $ship_date;
-        $shipment->TrackingNumber = $tracking_number;
-        $shipment->save();
+        $ship_update                 = $this->getShipUpdate();
+
+        if (!$ship_update->exists) {
+            $ship_update->order_id = $this->order_id;
+        }
+
+        $ship_update->ship_date      = $ship_date;
+        $ship_update->TrackingNumber = $tracking_number;
+        $ship_update->save();
 
         GPLog::debug(
             sprintf(
                 "A shipping label for %s with tracking number %s has been created",
                 $this->invoice_number,
-                $shipment->TrackingNumber
+                $ship_update->TrackingNumber
             ),
             [ "invoice_number" => $this->invoice_number ]
         );
@@ -312,18 +380,18 @@ class GpOrder extends Model
             //return false;
         }
 
-        $shipment = CpOrderShipment::where('order_id', $this->getOrderId())->firstOrNew();
+        $ship_update = $this->getShipUpdate();
 
         $delivered_date = strtotime($delivered_date);
 
-        if (!$shipment->exists) {
-            $shipment->ship_date = date(strtotime('-3 day', $delivered_date));
-            $shipment->TrackingNumber = $tracking_number;
+        if (!$ship_update->exists) {
+            $ship_update->ship_date = date(strtotime('-3 day', $delivered_date));
+            $ship_update->TrackingNumber = $tracking_number;
         }
 
         // Model should cast to date
-        $shipment->DeliveredDate = $delivered_date;
-        $shipment->save();
+        $ship_update->DeliveredDate = $delivered_date;
+        $ship_update->save();
 
         $this->order_date_delivered = $delivered_date;
         $this->save();
@@ -332,7 +400,7 @@ class GpOrder extends Model
             sprintf(
                 "The shipment for %s with tracking number %s has been delivered",
                 $this->invoice_number,
-                $shipment->TrackingNumber
+                $ship_update->TrackingNumber
             ),
             [ "invoice_number" => $this->invoice_number ]
         );
@@ -355,14 +423,14 @@ class GpOrder extends Model
             return false;
         }
 
-        $shipment = CpOrderShipment::where('order_id', $this->getOrderId())->firstOrNew();
+        $ship_update = $this->getShipUpdate();
 
         $status_date = strtotime($status_date);
 
-        if (!$shipment->exists) {
-            $shipment->ship_date = date(strtotime('-3 day', $status_date));
-            $shipment->TrackingNumber = $tracking_number;
-            $shipment->save();
+        if (!$ship_update->exists) {
+            $ship_update->ship_date = date(strtotime('-3 day', $status_date));
+            $ship_update->TrackingNumber = $tracking_number;
+            $ship_update->save();
         }
 
         $this->order_date_returned = $status_date;
@@ -372,7 +440,7 @@ class GpOrder extends Model
             sprintf(
                 "The shipment for %s with tracking number %s has been RETURNED",
                 $this->invoice_number,
-                $shipment->TrackingNumber
+                $ship_update->TrackingNumber
             ),
             [ "invoice_number" => $this->invoice_number ]
         );
@@ -393,6 +461,10 @@ class GpOrder extends Model
      */
     public function getOrderId()
     {
+        return $this->invoice_number - 2;
+    }
+
+    public function getOrderIdAttribute() {
         return $this->invoice_number - 2;
     }
 
@@ -545,7 +617,6 @@ class GpOrder extends Model
      */
     public function deleteInvoice() : bool
     {
-
         if (empty($this->invoice_doc_id)) {
             return false;
         }
@@ -567,7 +638,6 @@ class GpOrder extends Model
      */
     public function publishInvoice() : bool
     {
-
         if (!$this->invoiceHasPrinted()) {
             $this->createInvoice();
         }
