@@ -9,6 +9,10 @@ use GoodPill\Models\GpOrder;
 use GoodPill\Models\GpPatient;
 use GoodPill\Models\GpRxsSingle;
 
+require_once "helpers/helper_full_item.php";
+require_once "helpers/helper_appsscripts.php";
+require_once "exports/export_v2_order_items.php";
+
 /**
  * Class GpOrderItem
  *
@@ -217,5 +221,43 @@ class GpOrderItem extends Model
         }
 
         return "{$rxs->drug_generic} ({$rxs->drug_brand})";
+    }
+
+    /**
+     * Get the traditional item data
+     * @return array
+     */
+    public function getLegacyData()
+    {
+        if ($this->exists) {
+            return load_full_item(
+                ['rx_number' => $this->rx_number ],
+                (new \Mysql_Wc())
+            );
+        }
+
+        return null;
+    }
+
+    /**
+     * Pend the item in V2
+     * @param  string $reason Optional. The reason we are pending the Item.
+     * @return array
+     */
+    public function pend(string $reason = '') : ?array
+    {
+        $legacy_item = $this->getLegacyData();
+        return v2_pend_item($legacy_item, $reason);
+    }
+
+    /**
+     * Unpend the item in V2
+     * @param  string $reason Optional. The reason we are unpending the Item.
+     * @return array
+     */
+    public function unpend(string $reason = '') : ?array
+    {
+        $legacy_item = $this->getLegacyData();
+        return v2_pend_item($legacy_item, $reason);
     }
 }

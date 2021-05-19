@@ -156,6 +156,16 @@ class GpOrder extends Model
         return CpOrderShipment::where('order_id', $this->getOrderId())->firstOrNew();
     }
 
+    /**
+     * Link to the GpPatient object on the patient_id_cp
+     * @return Collection
+     */
+    public function pend_group()
+    {
+        return $this->hasOne(GpPendGroup::class, 'invoice_number', 'invoice_number');
+    }
+
+
     /*
      * Condition Methods:  These methods are all meant to be conditional and should
      *  all return booleans.  The methods should be named with appropriate descriptive verbs

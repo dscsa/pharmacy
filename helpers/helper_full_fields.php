@@ -234,7 +234,6 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
               );
               $patient_or_order[$i] = v2_pend_item(
                   $patient_or_order[$i],
-                  $mysql,
                   "Rx has been added to an order and scheduled for dispensing");
             }
 
@@ -247,15 +246,14 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
                   ]);
               $patient_or_order[$i] = v2_unpend_item(
                   $patient_or_order[$i],
-                  $mysql,
                   "Item dispensed or refills have expired"
               );
             }
 
             if ($needs_repending) {
               GPLog::notice("helper_full_fields: needs repending", ['get_days_and_message' => $get_days_and_message, 'item' => $patient_or_order[$i]]);
-              $patient_or_order[$i] = v2_unpend_item($patient_or_order[$i], $mysql, "helper_full_fields needs_repending");
-              $patient_or_order[$i] = v2_pend_item($patient_or_order[$i], $mysql, "helper_full_fields needs_repending");
+              $patient_or_order[$i] = v2_unpend_item($patient_or_order[$i], "helper_full_fields needs_repending");
+              $patient_or_order[$i] = v2_pend_item($patient_or_order[$i], "helper_full_fields needs_repending");
             }
 
             if ($days_added) {
