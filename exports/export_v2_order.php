@@ -19,7 +19,7 @@ function v2_unpend_order_by_invoice(int $invoice_number, ?array $pend_params = n
             // Remove the Pendgroup record incase we need to pend i as a new group
             $pend_group = GpPendGroup::where('invoice_number', $item['invoice_number'])->first();
 
-            if (!is_null($pend_group)) {
+            if ($pend_group) {
                 $pend_group->delete();
             }
 
