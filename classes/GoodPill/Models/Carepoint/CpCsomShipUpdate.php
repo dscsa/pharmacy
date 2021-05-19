@@ -13,7 +13,7 @@ use Illuminate\Database\Eloquent\Model;
  *
  * @package App\Models
  */
-class CpOrderShipment extends Model
+class CpCsomShipUpdate extends Model
 {
     /**
      * The Table for this data

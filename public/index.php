@@ -110,14 +110,33 @@ $app->post(
         $request_data = (object) $request->getParsedBody();
 
         switch ($request_data->tracking_status['status']) {
-            case 'UNKNOWN':
             case 'CREATED':
-            case 'PRE_TRANSIT':
+            // We have to mark it shipped before we update the address in the database.
+            // This will create the neccessary data in Carepoint
                 $order->markShipped(
                     $request_data->tracking_status['status_date'],
                     $request_data->tracking_number
                 );
+
+                // If the address is provided, we need to update the shipping details
+                if (isset($request_data->address_to)) {
+                    // Update the shipping information on the package
+                    $order->order_address1 = $request_data->address_to['street1'];
+
+                    if (isset($request_data->address_to['street2'])) {
+                        $order->order_address2 = $request_data->address_to['street2'];
+                    }
+
+                    $order->order_city = $request_data->address_to['city'];
+                    $order->order_state = $request_data->address_to['state'];
+                    $order->order_zip = $request_data->address_to['zip'];
+
+                    // Will push shipping details to CarePoint
+                    $order->save();
+                }
                 break;
+            case 'UNKNOWN':
+            case 'PRE_TRANSIT':
             case 'TRANSIT':
                 break;
             case 'DELIVERED':
@@ -155,7 +174,7 @@ $app->get(
             return $message->sendResponse($response);
         }
 
-        $shipment = $order->shipment();
+        $shipment = $order->getShipUpdate();
 
         if ($shipment->exists) {
             $message->desc = "Order Shipped";
