@@ -10,7 +10,7 @@ use Aws\Credentials\Credentials;
 class SigParser {
 
     private static $defaultsigs = array();
-    private static $save_test_results = true;
+    private static $save_test_results = false;
     private static $ch_test_file = "aws-ch-res/responses.json";
     private $client;
     private $scores;
@@ -74,7 +74,7 @@ class SigParser {
                     'sig_unit' => trim($match[1]),
                     'sig_qty' => $qty_per_day * DAYS_STD,
                     'sig_days' => DAYS_STD,
-                    'sig_conf_score' => 0.01
+                    'sig_conf_score' => 1
                 ];
                 return true;
             }
@@ -126,17 +126,19 @@ class SigParser {
      * the file static::$ch_test_file.
      */
     private function request_attributes($text) {
-        if (static::$save_test_results AND array_key_exists($text, static::$defaultsigs)) {
-            return static::$defaultsigs[$text];
+        if (static::$save_test_results) {
+            if (array_key_exists($text, static::$defaultsigs)) {
+                return static::$defaultsigs[$text];
+            }
+            printf("Requesting DetectEntitiesV2 for ".$text."\n");
         }
-        printf("Requesting DetectEntitiesV2 for ".$text."\n");
         $result = $this->client->detectEntitiesV2(['Text' => $text])->toArray();
 
         if (static::$save_test_results) {
             static::$defaultsigs[$text] = $result;
             file_put_contents(static::$ch_test_file, json_encode(static::$defaultsigs));
         }
-        return static::$defaultsigs[$text];
+        return $result;
     }
 
     /**
@@ -262,7 +264,7 @@ class SigParser {
 
         $total_freq = 1;
         foreach ($frequencies as $freq) {
-            // If "as needed" or "as directed" matches, reduce the confidence score
+            // If "as needed" or "as directed" matches, reduce the confidence score?
             if (preg_match('/(as needed|if needed|as directed)/i', $freq, $match)) {
                 // $this->scores[] = 0.8;
             }
@@ -365,7 +367,7 @@ class SigParser {
                         break;
                     }
                 }
-                // If no unit was found, assign the qty as is but decrease the total confidence score
+                // If no unit was found, assign the qty as is but decrease the total confidence score?
                 if (!$found_unit) {
                     $parsed['sig_qty'] += $sig_qty;
                     // $this->scores[] = 0.8;
@@ -378,7 +380,7 @@ class SigParser {
             }
         }
 
-        // If no dosage was found, return 1 and decrease the total confidence score
+        // If no dosage was found, return 1 and decrease the total confidence score?
         if ($parsed["sig_qty"] == 0) {
             $parsed["sig_qty"] = 1;
             // $this->scores[] = 0.5;
