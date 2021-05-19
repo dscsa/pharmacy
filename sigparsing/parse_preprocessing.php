@@ -202,6 +202,9 @@ function preprocessing_alternative_wording($sig) {
     // Delete everything after the first ocurrance of "hold" (it's usually about another sig/prescription)
     $sig = _delete_all_after($sig, '/hold /i');
 
+    // Delete everything after the first ocurrance of "combination" (it's usually about another sig/prescription)
+    $sig = _delete_all_after($sig, '/combination/i');
+
     // Delete everything after the first ocurrance of "with" and a number
     $sig = _delete_all_after($sig, '/ with.?(\d)/i');
 
