@@ -8,10 +8,12 @@ use GoodPill\Logging\AuditLog;
 use GoodPill\Logging\CliLog;
 use GoodPill\Utilities\Timer;
 use GoodPill\Models\GpOrder;
+use GoodPill\Events\Order\Paid as PaidEvent;
+use GoodPill\Events\Order\PayFailed as PayFailedEvent;
 
 /**
- * Proccess all the updates to WooCommerce Orders
- * @param  array $changes  An array of arrays with deledted, created, and
+ * Process all the updates to WooCommerce Orders
+ * @param  array $changes  An array of arrays with deleted, created, and
  *      updated elements
  * @return void
  */
@@ -375,6 +377,55 @@ function wc_order_updated(array $updated) : bool
         ),
         $updated
     );
+
+    $stage = $updated['wc_order_stage_wc'];
+
+    //  This will be used by the pay and pay failed events
+    //$paid_order = GpOrder::find($updated['invoice_number']);
+
+    if (
+        (
+            $stage === 'wc-done-card-pay' ||
+            $stage === 'wc-done-mail-pay' ||
+            $stage === 'wc-done-auto-pay'
+        ) &&
+        $stage !== $updated['old_order_stage_wc']
+    ) {
+
+
+        GPLog::notice(
+            "WC Order: Sending Paid Event communication",
+            [
+                'invoice_number'   => $updated['invoice_number'],
+                'stage'            => $updated['order_stage_wc'],
+            ]
+        );
+        //  @TODO - Activate Paid Event
+        //$paid = new PaidEvent($paid_order);
+        //$paid->publish();
+    }
+
+    if (
+        (
+            $stage === 'wc-late-card-missing' ||
+            $stage === 'wc-late-card-failed' ||
+            $stage === 'wc-late-card-expired'
+        ) &&
+        $stage !== $updated['old_order_stage_wc']
+    ) {
+
+        GPLog::notice(
+            "WC Order: Sending Pay Failed Event communication",
+            [
+                'invoice_number'   => $updated['invoice_number'],
+                'stage'            => $updated['order_stage_wc'],
+            ]
+        );
+        //  @TODO - Activate PayFailedEvent
+        //$paid = new PayFailedEvent($paid_order);
+        //$paid->publish();
+    }
+
 
     if ($updated['order_stage_wc'] != $updated['old_order_stage_wc'] and
       ! (

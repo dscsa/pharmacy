@@ -38,14 +38,14 @@ class GpOrder extends Model
     protected $primaryKey = 'invoice_number';
 
     /**
-     * Does the database contining an incrementing field?
-     * @var boolean
+     * Does the database contain an incrementing field?
+     * @var bool
      */
     public $incrementing = false;
 
     /**
-     * Does the database contining timestamp fields
-     * @var boolean
+     * Does the database contain timestamp fields
+     * @var bool
      */
     public $timestamps = false;
 
@@ -196,7 +196,7 @@ class GpOrder extends Model
      *         )
      *      )
      *
-     * @return boolean
+     * @return bool
      */
     public function isShipped() : bool
     {
@@ -220,7 +220,7 @@ class GpOrder extends Model
     /**
      * Has the order been marked delivered
      *      An order will be considered delivered if it order_date_delivered is not empty
-     * @return boolean
+     * @return bool
      */
     public function isDelivered() : bool
     {
@@ -237,7 +237,7 @@ class GpOrder extends Model
      * An order will be considered dispensed if it
      *     Exists in the Database
      *     AND There is a dispensed date for the order
-     * @return boolean
+     * @return bool
      */
     public function isDispensed() : bool
     {
@@ -337,7 +337,7 @@ class GpOrder extends Model
      * Update the order as shipped
      * @param  string $ship_date       A stringtotime compatible utc date.
      * @param  string $tracking_number The tracking number for the shipment.
-     * @return boolean                    Was the shipment updatedated.
+     * @return bool                    Was the shipment updated.
      */
     public function markShipped(string $ship_date, string $tracking_number) : bool
     {
@@ -381,7 +381,7 @@ class GpOrder extends Model
      * Update the order as delivered
      * @param  string $delivered_date   A stringtotime compatible utc date.
      * @param  string $tracking_number The tracking number for the shipment.
-     * @return boolean                  Was the shipment updated
+     * @return bool                  Was the shipment updated
      */
     public function markDelivered(string $delivered_date, string $tracking_number) : bool
     {
@@ -424,7 +424,7 @@ class GpOrder extends Model
      * Update the order as delivered
      * @param  string $status_date     A stringtotime compatible utc date.
      * @param  string $tracking_number The tracking number for the shipment.
-     * @return boolean                    Was the shipment updated.
+     * @return bool                    Was the shipment updated.
      */
     public function markReturned(string $status_date, string $tracking_number) : bool
     {
@@ -443,6 +443,7 @@ class GpOrder extends Model
         }
 
         $this->order_date_returned = $status_date;
+
         $this->save();
 
         GPLog::debug(
@@ -453,9 +454,9 @@ class GpOrder extends Model
             ),
             [ "invoice_number" => $this->invoice_number ]
         );
-
-        $shipped = new ReturnedEvent($this);
-        $shipped->publish();
+        //  @TODO - Created a returned event
+        //$shipped = new ReturnedEvent($this);
+        //$shipped->publish();
 
         return true;
     }
@@ -479,7 +480,7 @@ class GpOrder extends Model
 
     /**
      * Get the tracking url for the order
-     * @param  boolean $short Optional Should we use the url shortener.
+     * @param  bool $short Optional Should we use the url shortener.
      * @return string
      */
     public function getTrackingUrl(bool $short = false) : ?string
@@ -507,7 +508,7 @@ class GpOrder extends Model
 
     /**
      * Get a url to view the invoice
-     * @param  boolean $short Optional Should we use a shortner service.
+     * @param  bool $short Optional Should we use a shortener service.
      * @return string
      */
     public function getInvoiceUrl(bool $short = false) : string
@@ -524,8 +525,8 @@ class GpOrder extends Model
 
     /**
      * User the relationship to get filled and unfilled items for the order
-     * @param boolean $filled Optional If a bool, return filled or not filled items.
-     * @return Collection
+     * @param bool $filled Optional If a bool, return filled or not filled items.
+     * @return mixed
      */
     public function getFilledItems(bool $filled = true)
     {
@@ -534,6 +535,23 @@ class GpOrder extends Model
         } else {
             return $this->items()->whereNull('rx_dispensed_id');
         }
+    }
+
+    /**
+     * Return calculated refills_dispensed column for an item
+     * @TODO - DOES NOT CURRENTLY WORK
+     * @TODO - Is it possible to query the computed property this way?
+     * @param bool $refill - optional true to get
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function getRefilledItems(bool $refill = true)
+    {
+        if ($refill) {
+            return $this->items()->where('refills_dispensed', '>', 0);
+        } else {
+            return $this->items()->whereNull('refills_dispensed');
+        }
+
     }
 
     /**
@@ -673,6 +691,20 @@ class GpOrder extends Model
             isset($meta)
             && !$meta->trashed
             && $meta->parent->name != INVOICE_PENDING_FOLDER_NAME
+        );
+    }
+
+    /**
+     * Cancel the comm calendar events
+     * @param  array  $events The type of events to Cancel
+     * @return void
+     */
+    public function cancelEvents(?array $events = []) : void
+    {
+        cancel_events_by_order(
+            $this->invoice_number,
+            'log should be above',
+            $events
         );
     }
 }
