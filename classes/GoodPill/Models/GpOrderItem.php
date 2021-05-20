@@ -200,6 +200,25 @@ class GpOrderItem extends Model
         return $this->hasOne(GpRxsSingle::class, 'rx_number', 'rx_number');
     }
 
+    /*
+      Accessors
+     */
+
+    /**
+     * Get access to the rx drug_name.  We use this here to rollup between brand and generic
+     * @return string
+     */
+    public function getDrugGenericAttribute() : ?string
+    {
+        $rxs = $this->rxs;
+
+        if (!$rxs->drug_generic) {
+            return $rxs->drug_name;
+        }
+
+        return $rxs->drug_generic;
+    }
+
     /**
      * Get a user friendly drug name. This is used mostly for communications to the patient
      * @return string
