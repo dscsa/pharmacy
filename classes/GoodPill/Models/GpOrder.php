@@ -131,7 +131,7 @@ class GpOrder extends Model
 
     /**
      * Link to the GpPatient object on the patient_id_cp
-     * @return Collection
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function patient()
     {
@@ -140,7 +140,7 @@ class GpOrder extends Model
 
     /**
      * Link the the GpOrderItems object on the invoice_number and sort newest to oldest
-     * @return Collection
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
     public function items()
     {
@@ -165,6 +165,16 @@ class GpOrder extends Model
     {
         return CpCsomShip::where('order_id', $this->order_id)->first();
     }
+
+    /**
+     * Link to the GpPatient object on the patient_id_cp
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     */
+    public function pend_group()
+    {
+        return $this->hasOne(GpPendGroup::class, 'invoice_number', 'invoice_number');
+    }
+
 
     /*
      * Condition Methods:  These methods are all meant to be conditional and should

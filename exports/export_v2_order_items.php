@@ -7,7 +7,7 @@ use GoodPill\Logging\{
 };
 
 use \GoodPill\Models\GpOrder;
-use \GoodPill\DataModels\GoodPillPendGroup;
+use \GoodPill\Models\GpPendGroup;
 
 require_once 'exports/export_cp_orders.php';
 
@@ -52,8 +52,10 @@ function export_v2_unpend_order($order, $mysql, $reason)
  * @param  string $reason The reason we are pending the item
  * @return $item
  */
-function v2_pend_item($item, $mysql, $reason)
+function v2_pend_item($item, $reason = null)
 {
+    $mysql = new Mysql_Wc();
+
     // Make sure there is an order before we Pend.  If there isn't one skip the
     // pend and put in an alert.
     $gp_order = GpOrder::where('invoice_number', $item['invoice_number']);
@@ -83,7 +85,11 @@ function v2_pend_item($item, $mysql, $reason)
         return $item;
     }
 
-    // Abort the pend if we are missing a key field
+    // Abort
+    // if we don't know how many days to dispense
+    // or the item has already been marked dispensed
+    // or we don't have any left in inventory
+    // or the item has already been pended
     if (!$item['days_dispensed_default']
       or $item['rx_dispensed_id']
       or is_null($item['last_inventory'])
@@ -93,7 +99,7 @@ function v2_pend_item($item, $mysql, $reason)
                 "ABORTED PEND Attempted to pend %s for Rx#%s on Invoice #%s for
                 the following reasons: Missing days dispensed default - %s,
                 The Rx hasn't been assigned - %s, There isn't inventory - %s,
-                The number of doses is invalid - %s",
+                The Item is already Pended - %s",
                 @$item['drug_name'],
                 @$item['rx_number'],
                 @$item['invoice_number'],
@@ -191,8 +197,11 @@ function v2_pend_item($item, $mysql, $reason)
  * @param  string $reason The reason we are pending the item
  * @return void
  */
-function v2_unpend_item($item, $mysql, $reason)
+function v2_unpend_item($item, $reason = '')
 {
+
+    $mysql = new Mysql_Wc();
+
     GPLog::notice(
         sprintf(
             "v2_unpend_item: Invoice: %s Drug: %s Reason: %s Rx# %s",
@@ -472,15 +481,13 @@ function pend_group_manual($item)
     return $item['invoice_number'];
 }
 
-    function pend_group_name($item)
+function pend_group_name($item)
 {
 
     // See if there is already a pend group for this order
-    $pend_group = new GoodPillPendGroup(
-        ['invoice_number' => $item['invoice_number']]
-    );
+    $pend_group = GpPendGroup::where('invoice_number', $item['invoice_number'])->firstOrNew();
 
-    if ($pend_group->loaded) {
+    if ($pend_group->exists) {
         return $pend_group->pend_group;
     }
 
@@ -497,7 +504,7 @@ function pend_group_manual($item)
 
     $pend_group->invoice_number = $item['invoice_number'];
     $pend_group->pend_group = $pend_group_name;
-    $pend_group->create();
+    $pend_group->save();
 
     return $pend_group_name;
 }

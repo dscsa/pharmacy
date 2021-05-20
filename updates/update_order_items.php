@@ -620,12 +620,6 @@ function handle_adds_and_removes(array $orders_updated) : void
                 ),
                 $item
             );
-
-            $item = v2_unpend_item(
-                array_merge($item),
-                $mysql,
-                "order-item-deleted and order still exists"
-            );
         }
 
         send_updated_order_communications($groups, $added_deduped, $removed_deduped);
@@ -634,7 +628,7 @@ function handle_adds_and_removes(array $orders_updated) : void
 
 /**
  * Remove any duplicate items that are attached to an order
- * @param  array $item  The item we are working to clear
+ * @param  array $item The item we are working to clear.
  * @return array        The item and any modifications
  *
  * @todo switch the mssql to a pdo bind param command
