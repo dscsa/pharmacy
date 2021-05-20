@@ -1,0 +1,362 @@
+openapi: 3.0.0
+info:
+  title: GoodPill Pharmacy Automation
+  description: Integrate Pharmacy User tools into the exisitng Pharmacy Automation app. For the majority of the API, you will need to use a token for your request.  This token should be sent as a Authorizaion Bearer token.  To get the initial token set, use basic authentication for the /v1/auth endpoint.  That will return a short-lived auth token and a longer-lived refresh token.  The refresh token can be used to retrieve a new auth token without needing to use the basic authentication method.
+  version: 0.0.1
+
+components:
+  securitySchemes:
+    BasicAuth:
+      type: http
+      scheme: basic
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+servers:
+  - url: https://gppa.goodpill.org/v1
+    description: The production API
+  - url: https://gppa-dev.goodpill.org/v1
+    description: The development API
+
+tags:
+    - name: Authentication
+      description: Authenticate with goodpill
+    - name: Orders
+      description: Working with orders
+    - name: Invoices
+      description: Working with order invoices
+
+paths:
+  /auth:
+    get:
+      tags:
+      - Authentication
+      summary: Generates a set of authentication tokens
+      description: Used to generate the 2 primary tokens needed to access the api.  If you are successful, you will receive a auth and refresh token.  The auth token is used for all basic requests and has a 10 minute lifespan.  The refresh token is a single use token that has a 30 day lifespan.  It can only be used to request a new auth token.
+      operationId: Get Auth Token
+      security:
+        - BasicAuth: []
+      responses:
+        '200':    # status code
+          description: The authentication tokens needed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    default: success
+                  data:
+                    type: object
+                    properties:
+                      auth:
+                        type: string
+                        description: The Authentication token.  This should be passed for all future data calls.  The auth token has a 10 minute TTL
+                      refresh:
+                        type: string
+                        description: This is a single use token that is only good to create a new token set.  The refresh token has a 30 day TTL
+        '401':
+          description: Authentication failed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    default: failure
+
+  /auth/refresh:
+    get:
+      tags:
+      - Authentication
+      summary: Get a fresh token set without username/password
+      description: Use a refresh token to generate an entire new set of authentication tokens.
+      operationId: Refresh Tokens
+      security:
+        - BearerAuth: []
+      responses:
+        '200':    # status code
+          description: The authentication tokens needed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    default: success
+                  data:
+                    type: object
+                    properties:
+                      auth:
+                        type: string
+                        description: The Authentication token.  This should be passed for all future data calls.  The auth token has a 10 minute TTL
+                      refresh:
+                        type: string
+                        description: This is a single use token that is only good to create a new token set.  The refresh token has a 30 day TTL
+        '401':
+          description: Authentication failed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    default: failure
+
+  /order/{invoice_number}/tracking:
+    post:
+      summary: Update the shipping status of an order
+      description: Endpoint will store shipping and tracking data about an order.  It will send appropriate messages to the patient.
+      operationId: Update Order Tracking
+      security:
+        - BearerAuth: []
+      tags:
+        - Orders
+      parameters:
+        - in: path
+          name: invoice_number
+          schema:
+            type: integer
+          required: true
+          description: The invoice we are attempting to update.  This is invoice_number not order number.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                eta:
+                  type: string
+                  format: date-time
+                  description: An EST based date for when the package should be delivered
+                tracking_number:
+                  type: string
+                  description: The tracking number for the label created for the shipment
+                tracking_status:
+                  type: object
+                  properties:
+                      status_date:
+                          type: string
+                          format: date-time
+                          description: An EST based date for when the status change happened
+                      status:
+                          type: string
+                          enum:
+                            - CREATED
+                            - UNKNOWN
+                            - PRE_TRANSIT
+                            - TRANSIT
+                            - DELIVERED
+                            - RETURNED
+                            - FAILURE
+      responses:
+        '200':
+          description: The order was updated and patient notifications were setn
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    default: success
+        '400':
+          description: There was a problem with the request.  Please see the desc property for more details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    default: failure
+                  desc:
+                    type: string
+
+        '401':
+          description: Authentication failed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    default: failure
+    get:
+      summary: View the tracking data
+      description: Will show you any details on the tracking of an order
+      operationId: Get Order Tracking
+      security:
+        - BearerAuth: []
+      tags:
+        - Orders
+      parameters:
+        - in: path
+          name: invoice_number
+          schema:
+            type: integer
+          required: true
+          description: The invoice we are attempting to view.  This is invoice_number not order number.
+      responses:
+        '200':
+          description: The order was updated and patient notifications were setn
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    default: success
+                  desc:
+                      type: string
+                      enum:
+                          - Order not shipped
+                          - Order Shipped
+                  data:
+                      type: object
+                      properties:
+                          delivered_date:
+                              type: string
+                              format: date-time
+                          shipped_date:
+                            type: string
+                            format: date-time
+                          tracking_number:
+                            type: string
+                          invoice_number:
+                            type: int
+        '400':
+          description: There was a problem with the request.  Please see the desc property for more details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    default: failure
+                  desc:
+                    type: string
+
+        '401':
+          description: Authentication failed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    default: failure
+    delete:
+      summary: Delete the tracking data
+      description: Will delete the tracking data from the system
+      operationId: Delete Order Tracking
+      security:
+        - BearerAuth: []
+      tags:
+        - Orders
+      parameters:
+        - in: path
+          name: invoice_number
+          schema:
+            type: integer
+          required: true
+          description: The invoice we are attempting to view.  This is invoice_number not order number.
+      responses:
+        '200':
+          description: The order was deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    default: success
+        '400':
+          description: There was a problem with the request.  Please see the desc property for more details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    default: failure
+                  desc:
+                    type: string
+
+        '401':
+          description: Authentication failed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    default: failure
+
+  /order/{invoice_number}/invoice/print:
+    get:
+      summary: Print the Invoice
+      description: Enpoint will queue and the invoice for printing.
+      operationId: Print Order Invoice
+      security:
+        - BearerAuth: []
+      tags:
+        - Orders
+        - Invoices
+      parameters:
+        - in: query
+          name: update
+          schema:
+            type: integer
+          required: true
+          description: If update is greater than 1, the invoice will be deleted and regenrated
+      responses:
+        '200':
+          description: The order was queued for printing
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    default: success
+                  desc:
+                    type: string
+                    default: Invoice #{$args['invoice_number']} has been queud to print
+        '400':
+          description: There was a problem with the request.  Please see the desc property for more details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    default: failure
+                  desc:
+                    type: string
+        '401':
+          description: Authentication failed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    default: failure

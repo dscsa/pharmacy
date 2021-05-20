@@ -5,6 +5,7 @@ require_once 'vendor/autoload.php';
 require_once 'helpers/helper_appsscripts.php';
 require_once 'helpers/helper_log.php';
 require_once 'keys.php';
+require_once 'helpers/helper_error_handler.php';
 
 use GoodPill\AWS\SQS\{
     GoogleAppRequest\BaseRequest,
@@ -63,6 +64,14 @@ for ($l = 0; $l < $executions; $l++) {
                 $request->type,
                 $request->fileId
             );
+
+            if (isset($request->execution_id)) {
+                GPLog::$exec_id = $request->execution_id;
+            }
+
+            if (isset($request->subroutine_id)) {
+                GPLog::$subroutine_id = $request->subroutine_id;
+            }
 
             // Figure out the type of message
             if ($request instanceof HelperRequest) {

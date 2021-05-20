@@ -1,10 +1,6 @@
 <?php
 
-/**
- * Created by Reliese Model.
- */
-
-namespace Goodpill\Models;
+namespace GoodPill\Models;
 
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
@@ -13,6 +9,7 @@ use GoodPill\Models\GpOrder;
 use GoodPill\Logging\GPLog;
 use GoodPill\Logging\CliLog;
 use GoodPill\Models\WordPress\WpUser;
+use GoodPill\Events\Event;
 
 // Needed for cancel_events_by_person
 require_once "helpers/helper_calendar.php";
@@ -77,7 +74,7 @@ require_once "dbs/mysql_wc.php";
 class GpPatient extends Model
 {
     // Used the changable to track changes from the system
-    use \GoodPill\Models\ChangeableTrait;
+    use \GoodPill\Traits\IsChangeable;
 
     /**
      * The Table for this data
@@ -185,7 +182,7 @@ class GpPatient extends Model
      */
     public function orders()
     {
-        return $this->hasMany(GpOrder::class, 'patient_id_cp')
+        return $this->hasMany(GpOrder::class, 'patient_id_cp', 'patient_id_cp')
                     ->orderBy('invoice_number', 'desc');
     }
 
@@ -225,21 +222,12 @@ class GpPatient extends Model
         switch ($type) {
             case 'Autopay Reminder':
                 if ($change = 'last4') {
-                    if (!defined('DEBUG_CODE')) {
-                        update_last4_in_autopay_reminders(
-                            $this->first_name,
-                            $this->last_name,
-                            $this->birth_date,
-                            $value
-                        );
-                    } else {
-                        CliLog::info("update_last4_in_autopay_reminders(
-                            {$this->first_name},
-                            {$this->last_name},
-                            {$this->birth_date},
-                            {$value}
-                        )");
-                    }
+                    update_last4_in_autopay_reminders(
+                        $this->first_name,
+                        $this->last_name,
+                        $this->birth_date,
+                        $value
+                    );
                 }
                 break;
         }
@@ -252,23 +240,13 @@ class GpPatient extends Model
      */
     public function cancelEvents(?array $events = []) : void
     {
-        if (!defined('DEBUG_CODE')) {
-            cancel_events_by_person(
-                $this->first_name,
-                $this->last_name,
-                $this->birth_date,
-                'Log should be above',
-                $events
-            );
-        } else {
-            CliLog::info("cancel_events_by_person(
-                {$this->first_name},
-                {$this->last_name},
-                {$this->birth_date},
-                'Log should be above',
-                {$events}
-            );");
-        }
+        cancel_events_by_person(
+            $this->first_name,
+            $this->last_name,
+            $this->birth_date,
+            'Log should be above',
+            $events
+        );
     }
 
     /**
@@ -279,38 +257,10 @@ class GpPatient extends Model
      * @param  integer $hours_to_wait (Optional) How long to wait before to send it
      * @return void
      */
-    public function createEvent(
-        string $type,
-        array $event_body,
-        ?int $invoice = null,
-        ?float $hours_to_wait = 0
-    ) : void {
-
-        GPLog::debug(
-            sprintf(
-                "Createing an %s event for %s",
-                $type,
-                $this->getPatientLabel()
-            ),
-            [
-                'body' => $event_body,
-                'invoice_number' => $invoice_number,
-                'patient_id_cp' => $this->patient_id_cp
-            ]
-        );
-
-        $event_title = sprintf(
-            "%s %s: %s Created:%s",
-            $invoice,
-            $type,
-            $this->getPatientLabel(),
-            date('Y-m-d H:i:s')
-        );
-        if (!defined('DEBUG_CODE')) {
-            create_event($event_title, $event_body, $hours_to_wait);
-        } else {
-            CliLog::info("create_event({$event_title}, {$event_body}, {$hours_to_wait});");
-        }
+    public function createEvent(Event $event) : void
+    {
+        $event->patient_label = $this->getPatientLabel();
+        $event->publishEvent();
     }
 
     /**
@@ -362,8 +312,8 @@ class GpPatient extends Model
     /**
      * Upsert a meta value in WooCommerce
      *
-     * @param  string $key   The meta key
-     * @param  mixed  $value The value to store
+     * @param  string $key   The meta key.
+     * @param  mixed  $value The value to store.
      * @return boolean
      */
     public function updateWpMeta(string $key, $value) : bool
@@ -375,12 +325,7 @@ class GpPatient extends Model
 
             $meta->meta_value = $value;
 
-            if (!defined('DEBUG_CODE')) {
-                return $meta->save();
-            } else {
-                CliLog::info('return $meta->save();');
-                return true;
-            }
+            return $meta->save();
         } catch (\Exception $e) {
             return false;
         }
@@ -391,25 +336,17 @@ class GpPatient extends Model
      *
      * @todo this needs to be converted to OO based when a carepoint object is created
      *
-     * @param  int $phone_type One of the applicable phone number type IDS in carepoint
+     * @param  integer $phone_type One of the applicable phone number type IDS in carepoint.
      * @return mixed
      */
     public function deletePhoneFromCarepoint(int $phone_type)
     {
         if ($this->exists) {
-            if (!defined('DEBUG_CODE')) {
-                return delete_cp_phone(
-                    new Mssql_Cp(),
-                    $this->patient_id_cp,
-                    $phone_type
-                );
-            } else {
-                return CliLog::info("return delete_cp_phone(
-                    new Mssql_Cp(),
-                    {$this->patient_id_cp},
-                    {$phone_type}
-                );");
-            }
+            return delete_cp_phone(
+                new Mssql_Cp(),
+                $this->patient_id_cp,
+                $phone_type
+            );
         }
 
         return null;
@@ -430,26 +367,35 @@ class GpPatient extends Model
     }
 
     /**
+     * Create a comma seperated string of available phone numbers
+     * @return string
+     */
+    public function getPhonesAsString() : string
+    {
+        return implode(
+            ',',
+            array_filter(
+                [
+                    $this->phone1,
+                    $this->phone2
+                ]
+            )
+        );
+    }
+
+    /**
      * Get a full version of the legacy patient data structure
-     * @param  boolean $overwrite_rx_messages Should the RX messages be updated
+     * @param  boolean $overwrite_rx_messages Should the RX messages be updated.
      * @return array
      */
-    public function getLegacyPatient($overwrite_rx_messages = false)
+    public function getLegacyPatient(bool $overwrite_rx_messages = false)
     {
         if ($this->exists) {
-            if (!defined('DEBUG_CODE')) {
-                return load_full_patient(
-                    ['patient_id_cp' => $this->patient_id_cp],
-                    (new \Mysql_Wc()),
-                    $overwrite_rx_messages
-                );
-            } else {
-                return CliLog::info("return load_full_patient(
-                    ['patient_id_cp' => {$this->patient_id_cp}],
-                    (new \Mysql_Wc()),
-                    {$overwrite_rx_messages}
-                );");
-            }
+            return load_full_patient(
+                ['patient_id_cp' => $this->patient_id_cp],
+                (new \Mysql_Wc()),
+                $overwrite_rx_messages
+            );
         }
 
         return null;

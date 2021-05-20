@@ -1,7 +1,7 @@
 <?php
 
-use \GoodPill\DataModels\GoodPillOrder;
-use \GoodPill\DataModels\GoodPillPendGroup;
+use \GoodPill\Models\GpOrder;
+use \GoodPill\Models\GpPendGroup;
 use \GoodPill\Logging\GPLog;
 
 function v2_unpend_order_by_invoice(int $invoice_number, ?array $pend_params = null) : bool
@@ -17,11 +17,9 @@ function v2_unpend_order_by_invoice(int $invoice_number, ?array $pend_params = n
             );
 
             // Remove the Pendgroup record incase we need to pend i as a new group
-            $pend_group = new GoodPillPendGroup(
-                ['invoice_number' => $invoice_number]
-            );
+            $pend_group = GpPendGroup::where('invoice_number', $item['invoice_number'])->first();
 
-            if ($pend_group->loaded) {
+            if ($pend_group) {
                 $pend_group->delete();
             }
 
@@ -56,7 +54,7 @@ function find_order_pend_group(int $invoice_number, ?array $pend_params = null) 
             'patient_date_added' => @$pend_params['patient_date_added']
         ];
     } else {
-        $order = new GoodPillOrder(['invoice_number' => $invoice_number]);
+        $order = GpOrder::where('invoice_number', $invoice_number)->first();
         $order_based = [
             'invoice_number'   => $order->invoice_number,
             'order_date_added' => $order->order_date_added
@@ -72,7 +70,6 @@ function find_order_pend_group(int $invoice_number, ?array $pend_params = null) 
         'refill'          => pend_group_refill($order_based),
         'webform'         => pend_group_webform($order_based),
         'new_patient'     => pend_group_new_patient($patient_based),
-        'new_patient_old' => pend_group_new_patient_old($patient_based),
         'manual'          => pend_group_manual($order_based)
     ];
 

@@ -1,17 +1,13 @@
 <?php
 
-/**
- * Created by Reliese Model.
- */
-
-namespace App\Models;
+namespace GoodPill\Models;
 
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 
 /**
  * Class GpStockByMonth
- * 
+ *
  * @property string $drug_generic
  * @property Carbon $month
  * @property string|null $stock_level
@@ -75,7 +71,10 @@ use Illuminate\Database\Eloquent\Model;
  */
 class GpStockByMonth extends Model
 {
-	protected $table = 'gp_stock_by_month';
+    use \GoodPill\Traits\HasCompositePrimaryKey;
+
+    protected $primaryKey = ['drug_generic', 'month'];
+    protected $table = 'gp_stock_by_month';
 	public $incrementing = false;
 	public $timestamps = false;
 

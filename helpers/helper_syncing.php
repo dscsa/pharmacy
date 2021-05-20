@@ -14,8 +14,9 @@ function sync_to_order_new_rx($item, $patient_or_order) {
 
   $not_offered  = is_not_offered($item);
   $refill_only  = is_refill_only($item);
+  $one_time     = is_one_time($item);
   $has_refills  = ($item['refills_total'] > NO_REFILL);
-  $eligible     = ($has_refills AND $item['rx_autofill'] AND ! $not_offered AND ! $refill_only AND ! $item['refill_date_next']);
+  $eligible     = ($has_refills AND $item['rx_autofill'] AND ! $not_offered AND ! $refill_only AND ! $one_time AND ! $item['refill_date_next']);
 
   GPLog::debug(
       "sync_to_order_new_rx: $item[invoice_number] $item[drug_generic] ".($eligible ? 'Syncing' : 'Not Syncing'),
@@ -196,8 +197,8 @@ function sync_to_date($order, $mysql) {
 
     $mysql->run($sql);
 
-    $order[$i] = v2_unpend_item($order[$i], $mysql, "unpend for sync_to_date");
-    $order[$i] = v2_pend_item($order[$i], $mysql,  "pend for sync_to_date");
+    $order[$i] = v2_unpend_item($order[$i], "unpend for sync_to_date");
+    $order[$i] = v2_pend_item($order[$i], "pend for sync_to_date");
 
     $order[$i]['days_dispensed'] = $order[$i]['days_dispensed_default']  = $new_days_default;
     $order[$i] = export_cp_set_rx_message($order[$i], RX_MESSAGE['NO ACTION SYNC TO DATE'], $mysql);

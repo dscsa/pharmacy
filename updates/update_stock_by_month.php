@@ -102,7 +102,7 @@ function update_stock_by_month($changes) {
 
             IF(
               zscore < zlow_threshold,
-              IF(total_dispensed_actual > last_inv_onetime_threshold, 'REFILL ONLY', 'ONE TIME'),
+              IF(COALESCE(total_dispensed_actual, 0) >= last_inv_onetime_threshold, 'REFILL ONLY', 'ONE TIME'),
 
               IF(
                last_inventory < last_inv_high_threshold OR zscore < zhigh_threshold,
@@ -130,7 +130,7 @@ function update_stock_by_month($changes) {
         GREATEST(COALESCE(total_dispensed_actual/month_interval, 0), COALESCE(total_dispensed_default, 0)) * IF(price_per_month = 20, 3, 1) as last_inv_high_threshold,
 
         -- Let's make some 'Refill Only' medications 'One Time' fills so they don't sit on the shelf forever
-        last_inventory/10 OR last_inventory < 1000 as last_inv_onetime_threshold,
+        IF(last_inventory < 1000, 0, last_inventory/10) as last_inv_onetime_threshold,
 
         -- zscore >= 0.25 -- 60% Confidence will be in stock for this 4 month interval.  Since we have inventory for previous 4 months we think the chance of stock out is about 40%^2
         -- zscore >= 0.52 -- 70% Confidence will be in stock for this 4 month interval.  Since we have inventory for previous 4 months we think the chance of stock out is about 30%^2

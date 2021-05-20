@@ -6,8 +6,8 @@ use GoodPill\Logging\{
     CLiLog
 };
 
-use \GoodPill\DataModels\GoodPillOrder;
-use \GoodPill\DataModels\GoodPillPendGroup;
+use \GoodPill\Models\GpOrder;
+use \GoodPill\Models\GpPendGroup;
 
 require_once 'exports/export_cp_orders.php';
 
@@ -52,12 +52,14 @@ function export_v2_unpend_order($order, $mysql, $reason)
  * @param  string $reason The reason we are pending the item
  * @return $item
  */
-function v2_pend_item($item, $mysql, $reason)
+function v2_pend_item($item, $reason = null)
 {
+    $mysql = new Mysql_Wc();
+
     // Make sure there is an order before we Pend.  If there isn't one skip the
     // pend and put in an alert.
-    $gp_order = new GoodPillOrder(['invoice_number' => $item['invoice_number']]);
-    if (!$gp_order->loaded) {
+    $gp_order = GpOrder::where('invoice_number', $item['invoice_number']);
+    if (is_null($gp_order)) {
         AuditLog::log(
             sprintf(
                 "ABORTED PEND Attempted to pend %s for Rx#%s on Invoice #%s. This
@@ -83,7 +85,11 @@ function v2_pend_item($item, $mysql, $reason)
         return $item;
     }
 
-    // Abort the pend if we are missing a key field
+    // Abort
+    // if we don't know how many days to dispense
+    // or the item has already been marked dispensed
+    // or we don't have any left in inventory
+    // or the item has already been pended
     if (!$item['days_dispensed_default']
       or $item['rx_dispensed_id']
       or is_null($item['last_inventory'])
@@ -93,7 +99,7 @@ function v2_pend_item($item, $mysql, $reason)
                 "ABORTED PEND Attempted to pend %s for Rx#%s on Invoice #%s for
                 the following reasons: Missing days dispensed default - %s,
                 The Rx hasn't been assigned - %s, There isn't inventory - %s,
-                The number of doses is invalid - %s",
+                The Item is already Pended - %s",
                 @$item['drug_name'],
                 @$item['rx_number'],
                 @$item['invoice_number'],
@@ -191,8 +197,11 @@ function v2_pend_item($item, $mysql, $reason)
  * @param  string $reason The reason we are pending the item
  * @return void
  */
-function v2_unpend_item($item, $mysql, $reason)
+function v2_unpend_item($item, $reason = '')
 {
+
+    $mysql = new Mysql_Wc();
+
     GPLog::notice(
         sprintf(
             "v2_unpend_item: Invoice: %s Drug: %s Reason: %s Rx# %s",
@@ -235,14 +244,8 @@ function v2_unpend_item($item, $mysql, $reason)
             ),
             $item
         );
-        GPLog::critical(
-            "v2_unpend_item: NO INVOICE NUMBER, ORDER DATE ADDED, OR PATIENT DATE ADDED! "
-                . @$item['invoice_number'] . " " . @$item['drug_name'] . " $reason "
-                . @$item['rx_number'] . ". rx_dispensed_id:" . @$item['rx_dispensed_id']
-                . " last_inventory:" . @$item['last_inventory'] . " count_pended_total:"
-                . @$item['count_pended_total'],
-            ['item' => $item]
-        );
+
+        //  This is where the original PG alert was firing from
     }
 
     unpend_pick_list($item);
@@ -482,11 +485,9 @@ function pend_group_name($item)
 {
 
     // See if there is already a pend group for this order
-    $pend_group = new GoodPillPendGroup(
-        ['invoice_number' => $item['invoice_number']]
-    );
+    $pend_group = GpPendGroup::where('invoice_number', $item['invoice_number'])->firstOrNew();
 
-    if ($pend_group->loaded) {
+    if ($pend_group->exists) {
         return $pend_group->pend_group;
     }
 
@@ -503,7 +504,7 @@ function pend_group_name($item)
 
     $pend_group->invoice_number = $item['invoice_number'];
     $pend_group->pend_group = $pend_group_name;
-    $pend_group->create();
+    $pend_group->save();
 
     return $pend_group_name;
 }
@@ -688,8 +689,13 @@ function make_pick_list($item, $limit = 500)
     GPLog::notice(
         "make_pick_list: $item[invoice_number] " .@ $item['drug_name']
             . " " . @$item['rx_number'],
-        [ 'item' => $item ]
-    ); //We don't need full shopping list cluttering logs
+        [
+            'item' => $item,
+            'sorted_ndc' => $sorted_ndcs,
+            'long_exp' => $long_exp,
+            'list' => $list
+        ]
+    );
 
     if ($list) {
         $list['partial_fill'] = '';
@@ -910,15 +916,8 @@ function sort_inventory($inventory, $long_exp)
             return 1;
         }
 
-        //Priortize prepacks over other stock
         $aPack = strlen($a['bin']) == 3;
         $bPack = strlen($b['bin']) == 3;
-        if ($aPack and ! $bPack) {
-            return -1;
-        }
-        if ($bPack and ! $aPack) {
-            return 1;
-        }
 
         // Let's shop for non-prepacks that are closest (but not less than) to
         // our min prepack exp date in order to avoid waste
@@ -934,6 +933,16 @@ function sort_inventory($inventory, $long_exp)
             (isset($inventory['prepack_exp']) ? $inventory['prepack_exp'] : $long_exp),
             substr($b['exp']['to'], 0, 10)
         );
+
+        //Priortize non-purchased prepacks over other stock
+        //Assume Purchased is <12month expiration - 3mos from days supply = ~ 9mos between
+        if ($aPack and $aMonths < 9 and ! $bPack) {
+            return -1;
+        }
+
+        if ($bPack and $bMonths < 9 and ! $aPack) {
+            return 1;
+        }
 
         // Deprioritize anything with a closer exp date than the min prepack exp
         // date.  This - by definition - can only be non-prepack stock
@@ -1021,6 +1030,7 @@ function get_qty_needed($rows, $min_qty, $safety)
                 $left -= $pend[0]['qty']['to'] * $usable;
                 $list = pend_to_list($list, $pend);
             }
+
             /*
                 Shop for all matching medicine in the bin, its annoying and inefficient to pick some
                  and leave the others
@@ -1037,6 +1047,34 @@ function get_qty_needed($rows, $min_qty, $safety)
             $over_max      = $qty > $max_qty;
             $min_met      = ($qty >= $min_qty);
             $unit_of_use   = ($min_qty < 5);
+
+            GPLog::debug(
+                "get_qty_needed;  {$ndc} SHOULD CONTINUE PENDING?",
+                [
+                    'left'          => $left,
+                    'over_max'      => $over_max,
+                    'different_bin' => $different_bin,
+                    'is_prepack'    => $is_prepack,
+                    'is_mfg_bottle' => $is_mfg_bottle,
+                    'unit_of_use'   => $unit_of_use,
+                    'ndc'           => $ndc,
+                    'qty'           => $qty,
+                    'min_qty'       => $min_qty,
+                    'max_qty'       => $max_qty,
+                    'min_met'       => $min_met,
+                    'stop_condition_1' => (int) (
+                        $left <= 0
+                        && (
+                            $over_max
+                            || $different_bin
+                            || $is_prepack
+                            || $is_mfg_bottle
+                            || $unit_of_use
+                        )
+                    ),
+                    'stop_condition_2' => (int) $is_mfg_bottle && $min_met
+                ]
+            );
 
             if (
                 (
@@ -1055,7 +1093,7 @@ function get_qty_needed($rows, $min_qty, $safety)
                 usort($list, 'sort_list');
 
                 if (($qty/$min_qty) >= 2) {
-                    GPLog::critical(
+                    GPLog::warning(
                         'get_qty_needed;  Pended Quantity > 2x the requested quantity.
                         Verify picked items are correct.  After we have confirmed the qty
                         has been accuratly created we can resolve the alert.  After 10 - 15 of these

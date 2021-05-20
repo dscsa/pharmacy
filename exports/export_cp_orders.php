@@ -10,11 +10,13 @@ use GoodPill\Logging\{
     CliLog
 };
 
+
 function export_cp_set_expected_by($item) {
 
   global $mssql;
+  $cp_automation_user = CAREPOINT_AUTOMATION_USER;
 
-  // this should happen if it does, throw an error and return.
+    // this should happen if it does, throw an error and return.
   if (empty($item['invoice_number'])) {
       GPLog::critical(
           'Trying to update CP Expected date, but missing invoice_nbr',
@@ -26,18 +28,29 @@ function export_cp_set_expected_by($item) {
   $mssql           = $mssql ?: new Mssql_Cp();
   $pend_group_name = pend_group_name($item);
 
-  /*
+  //New Patient Date (designated with a "P") is based on patient_date_added,
+  //which is the lesser of Rxs received and registration date, because both of these
+  //events would create the patient if it did not already exist.  This date is good
+  //for v2 shopping priority, but it's unfair to be the expected_by date for the Rphs
+  //so for the expected_by date we will replace it with the greater of Rxs received and registration
+  if (strpos($pend_group_name, 'P') !== false) {
 
-    Last part of order_date_added isn't "necessary" but CP doesn't display full
-    timestamp in "date order added" field /in the F9 queue.  If you know about
-    this trick, you can find the timestamp in the expected by date.
+        $expected_by = $item['order_date_added'];
 
-   */
-  $expected_by = substr($pend_group_name, 0, 10).' '. substr($item['order_date_added'], -8);
+  } else {
+        /*
+        Last part of order_date_added isn't "necessary" because CP doesn't display full
+        timestamp in "date order added" field /in the F9 queue.  If you know about
+        this trick, you can find the timestamp in Guardian's expected by date.
+        */
+        $expected_by  = substr($pend_group_name, 0, 10);
+        $expected_by .= substr($item['order_date_added'], -9); //timestamp with leading space
+  }
 
   $sql = "UPDATE csom
-            SET expected_by = '{$expected_by}'
-             WHERE invoice_nbr = {$item['invoice_number']}";
+          SET expected_by = '{$expected_by}',
+              chg_user_id = '{$cp_automation_user}'
+          WHERE invoice_nbr = {$item['invoice_number']}";
 
   GPLog::notice(
     "export_cp_set_expected_by: pend group name $pend_group_name $item[invoice_number]",
@@ -56,8 +69,9 @@ function export_cp_remove_order($invoice_number, $reason) {
 
   global $mssql;
   $mssql = $mssql ?: new Mssql_Cp();
+  $cp_automation_user = CAREPOINT_AUTOMATION_USER;
 
-  GPLog::notice(
+    GPLog::notice(
     "export_cp_remove_order: Order deleting $invoice_number",
     [
       'invoice_number'  => $invoice_number,
@@ -70,7 +84,10 @@ function export_cp_remove_order($invoice_number, $reason) {
   if ( ! $new_count_items) { //if no items were dispensed yet, archive order
 
     $sql = "
-      UPDATE csom SET status_cn = 3 WHERE invoice_nbr = $invoice_number -- chg_user_id = @user_id, chg_date = @today
+      UPDATE csom 
+      SET status_cn = 3,
+          chg_user_id = '{$cp_automation_user}'
+      WHERE invoice_nbr = $invoice_number -- chg_user_id = @user_id, chg_date = @today
     ";
 
     $res = $mssql->run($sql);
@@ -104,9 +121,14 @@ function export_cp_remove_order($invoice_number, $reason) {
 }
 
 function export_cp_append_order_note($mssql, $invoice_number, $note) {
+    $cp_automation_user = CAREPOINT_AUTOMATION_USER;
 
     $sql = "
-      UPDATE csom SET comments = RIGHT(CONCAT(comments, CHAR(10), '$note'), 255) WHERE invoice_nbr = $invoice_number -- chg_user_id = @user_id, chg_date = @today
+      UPDATE csom 
+      SET comments = RIGHT(CONCAT(comments, CHAR(10), '$note'), 255),
+          chg_user_id = '{$cp_automation_user}'
+      
+      WHERE invoice_nbr = $invoice_number -- chg_user_id = @user_id, chg_date = @today
     ";
 
     $res = $mssql->run($sql);

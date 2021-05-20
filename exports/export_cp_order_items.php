@@ -16,7 +16,6 @@ function export_cp_remove_items($invoice_number, $items = [])
     $mssql = $mssql ?: new Mssql_Cp();
 
     $order_id   = $invoice_number - 2; //TODO SUPER HACKY
-
     $sql = "DELETE csomline
                 FROM csomline
                     JOIN cprx ON cprx.rx_id = csomline.rx_id
@@ -24,6 +23,14 @@ function export_cp_remove_items($invoice_number, $items = [])
                     -- if the rxdisp_id is set on the line, you have to
                     -- call CpOmVoidDispense first.
                     AND rxdisp_id = 0";
+
+    $sql_to_update_deleted = "
+        UPDATE CsOmLine_Deleted 
+        SET chg_user_id = 1311
+        FROM CsOmLine_Deleted
+        JOIN cprx ON cprx.rx_id = CsOmLine_Deleted.rx_id
+        WHERE CsOmLine_Deleted.order_id = '{$order_id}'
+        AND rxdisp_id = 0";
 
     $rx_numbers = [];
     $order_cmts = [];
@@ -38,13 +45,16 @@ function export_cp_remove_items($invoice_number, $items = [])
         $sql .= "
       AND script_no IN ('".implode("', '", $rx_numbers)."')
     ";
+        $sql_to_update_deleted .= "
+            AND script_no IN ('".implode("', '", $rx_numbers)."')
+        ";
         $order_cmts = implode(', ', $order_cmts);
     } else {
         $order_cmts = "all drugs";
     }
 
     $res = $mssql->run($sql);
-
+    $delete_response = $mssql->run($sql_to_update_deleted);
     $date = date('y-m-d H:i');
     //Removing CK said too overwhelming
     //export_cp_append_order_note($mssql, $invoice_number, "$date auto removed: $order_cmts");
@@ -52,11 +62,13 @@ function export_cp_remove_items($invoice_number, $items = [])
     GPLog::debug(
         "export_cp_remove_items: $invoice_number",
         [
-          'invoice_number'  => $invoice_number,
-          'rx_numbers'      => $rx_numbers,
-          'items'           => $items,
-          'sql'             => $sql,
-          'res'             => $res
+            'invoice_number'               => $invoice_number,
+            'rx_numbers'                   => $rx_numbers,
+            'items'                        => $items,
+            'sql'                          => $sql,
+            'res'                          => $res,
+            'sql_to_update_deleted_line'   => $sql_to_update_deleted,
+            'response_from_update_deleted' => $delete_response
         ]
     );
 
