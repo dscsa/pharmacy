@@ -205,6 +205,31 @@ class GpOrderItem extends Model
     }
 
     /*
+        Conditionals
+     */
+
+    /**
+     * Query v2 to see if there is already a drug pended for this order
+     * @return boolean [description]
+     */
+    public function isPended() : bool
+    {
+        $order = $this->order;
+        $pend_group = $order->pend_group;
+
+        if (!$pend_group) {
+            return false;
+        }
+
+        $drug_generic = urlencode($this->drug_generic);
+
+        $pend_url = "/account/8889875187/pend/{$pend_group->pend_group}/{$drug_generic}";
+        $results  = v2_fetch($pend_url, 'GET');
+
+        return (!empty($results) && @$results[0]['next'][0]['pended']);
+    }
+
+    /*
       Accessors
      */
 
@@ -261,12 +286,13 @@ class GpOrderItem extends Model
     /**
      * Pend the item in V2
      * @param  string $reason Optional. The reason we are pending the Item.
+     * @param  boolean $force Optional. Force the pend to happen even if we think it is pended in goodpill
      * @return array
      */
-    public function pend(string $reason = '') : ?array
+    public function pend(string $reason = '', bool $force = false) : ?array
     {
         $legacy_item = $this->getLegacyData();
-        return v2_pend_item($legacy_item, $reason);
+        return v2_pend_item($legacy_item, $reason, $force);
     }
 
     /**
@@ -279,4 +305,6 @@ class GpOrderItem extends Model
         $legacy_item = $this->getLegacyData();
         return v2_pend_item($legacy_item, $reason);
     }
+
+
 }
