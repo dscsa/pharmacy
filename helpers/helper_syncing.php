@@ -197,8 +197,8 @@ function sync_to_date($order, $mysql) {
 
     $mysql->run($sql);
 
-    $order[$i] = v2_unpend_item($order[$i], $mysql, "unpend for sync_to_date");
-    $order[$i] = v2_pend_item($order[$i], $mysql,  "pend for sync_to_date");
+    $order[$i] = v2_unpend_item($order[$i], "unpend for sync_to_date");
+    $order[$i] = v2_pend_item($order[$i], "pend for sync_to_date");
 
     $order[$i]['days_dispensed'] = $order[$i]['days_dispensed_default']  = $new_days_default;
     $order[$i] = export_cp_set_rx_message($order[$i], RX_MESSAGE['NO ACTION SYNC TO DATE'], $mysql);

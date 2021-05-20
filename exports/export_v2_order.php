@@ -1,7 +1,7 @@
 <?php
 
 use \GoodPill\Models\GpOrder;
-use \GoodPill\DataModels\GoodPillPendGroup;
+use \GoodPill\Models\GpPendGroup;
 use \GoodPill\Logging\GPLog;
 
 function v2_unpend_order_by_invoice(int $invoice_number, ?array $pend_params = null) : bool
@@ -17,11 +17,9 @@ function v2_unpend_order_by_invoice(int $invoice_number, ?array $pend_params = n
             );
 
             // Remove the Pendgroup record incase we need to pend i as a new group
-            $pend_group = new GoodPillPendGroup(
-                ['invoice_number' => $invoice_number]
-            );
+            $pend_group = GpPendGroup::where('invoice_number', $item['invoice_number'])->first();
 
-            if ($pend_group->loaded) {
+            if ($pend_group) {
                 $pend_group->delete();
             }
 
