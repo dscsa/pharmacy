@@ -1,0 +1,57 @@
+{{!
+    Sample of data
+    {
+        "first_name": "Ben",
+        "last_name": "Brown",
+        "birth_date": "1999-09-09",
+        "dispensed_date": "04-09-2021",
+        "shipped_date": "04-09-2021",
+        "invoice_number": 12345,
+        "tracking_number": "1234123124123",
+        "tracking_url": "http://www.gmail.com",
+        "short_tracking_url": "http://www.gmail.com",
+        "invoice_url": "http://www.gmail.com",
+        "short_invoice_url": "http://www.gmail.com",
+        "count_filled": 1,
+        "multiple_filled": true,
+        "filled": {
+            "rxs": [
+                {"name": "drug 1"},
+                {"name": "drug 2"}
+            ]
+        },
+        "no_fill": {
+            "rxs": [
+                {"name": "no drug 1"},
+                {"name": "no drug 2"}
+            ]
+        }
+    }
+}}
+
+<p>Hello {{first_name}},</p>
+<p>Good Pill is starting to prepare {{count}} items for Order #{{invoice_number}}. We will notify you again once it ships.</p>
+<p>If your address has recently changed please let us know right away.</p>
+{{^refills_used}}
+    <p>Your first order will only be $6 total for all of your medications.</p>
+{{/refills_used}}
+
+
+{{#rxs_to_fill}}
+<p>
+    <u>These Rxs will be included once we confirm their availability:</u>
+    <ul>
+        {{#rxs}}
+            <li>{{name}}</li>
+        {{/rxs}}
+    </ul>
+</p>
+{{/rxs_to_fill}}
+<p>Thanks for choosing Good Pill!<br>
+The Good Pill Team</p>
+
+<p>Note: if this is correct, there is no need to do anything.<br>
+    If you want to change or delay this order, please let us know as soon as<br>
+    possible. If delaying, please specify the date on which you want it filled,<br>
+    otherwise if you don't, we will delay it 3 weeks by default.</p>
+

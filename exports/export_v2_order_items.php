@@ -93,7 +93,7 @@ function v2_pend_item($item, $reason = null, $repend = false)
     if (!$item['days_dispensed_default']
       or $item['rx_dispensed_id']
       or is_null($item['last_inventory'])
-      or (@$item['count_pended_total'] > 0 && !$repend) {
+      or (@$item['count_pended_total'] > 0 && !$repend)) {
         AuditLog::log(
             sprintf(
                 "ABORTED PEND Attempted to pend %s for Rx#%s on Invoice #%s for

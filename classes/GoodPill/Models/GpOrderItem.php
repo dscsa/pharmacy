@@ -306,5 +306,22 @@ class GpOrderItem extends Model
         return v2_pend_item($legacy_item, $reason);
     }
 
-
+    /**
+     * Computed property to get the `refills_dispensed` field
+     * @TODO - Figure out if this field can be queried directly
+     * @TODO - Original function could return empty/null?
+     * @return float|null
+     */
+    public function getRefillsDispensedAttribute() : ?float
+    {
+        if ($this->refills_dispensed_actual) {
+            return round($this->refills_dispensed_actual, 2);
+        } elseif ($this->refills_dispensed_default) {
+            return round($this->refills_dispensed_default, 2);
+        } elseif ($this->refills_total) {
+            return round($this->refills_total, 2);
+        } else {
+            return null;
+        }
+    }
 }
