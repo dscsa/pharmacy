@@ -682,8 +682,13 @@ function make_pick_list($item, $limit = 500)
     GPLog::notice(
         "make_pick_list: $item[invoice_number] " .@ $item['drug_name']
             . " " . @$item['rx_number'],
-        [ 'item' => $item ]
-    ); //We don't need full shopping list cluttering logs
+        [
+            'item' => $item,
+            'sorted_ndc' => $sorted_ndcs,
+            'long_exp' => $long_exp,
+            'list' => $list
+        ]
+    );
 
     if ($list) {
         $list['partial_fill'] = '';
