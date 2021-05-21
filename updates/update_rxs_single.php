@@ -74,15 +74,11 @@ function update_rxs_single($changes)
                   ]
             );
 
+            $rx_single = GpRxsSingle::where('rx_number', $created['rx_number'])->first();
+            $rx_single->setChanges($created);
 
-
-            if ($created['rx_gsn'] and is_gsn_in_v2($mysql, $created['rx_number'])) {
-                // compliment method, update_order_item_drug, doesn't need to be called because
-                // order_item will be new and won't need to be updated
-                update_rx_single_drug($mysql, $created['rx_number']);
-
-                $rx_single = GpRxsSingle::where('rx_number', $created['rx_number'])->first();
-                if (is_null($rx_single) || !$rx_single->drug_gsns) {
+            if ($rx_single->needsGsnUpdate() && $rx_single->isInFormulary()) {
+                if (!$rx_single->updateDrugGsns()) {
                     GPLog::notice(
                         "update_rxs_single: rx created but drug_gsns is empty",
                         [ 'created'  => $created]
@@ -232,23 +228,27 @@ function update_rxs_single($changes)
             GPLog::warning("RX is missing GSN but refill RXs cannot be changed", $updated);
         }
 
-        if ($updated['rx_gsn'] != $updated['old_rx_gsn']) {
+        $rx_single = GpRxsSingle::where('rx_number', $updated['rx_number'])->first();
+        $rx_single->setChanges($updated);
+
+        if (
+            $rx_single->needsGsnUpdate();
+        ) {
             GPLog::warning(
                 "update_rxs_single1 rx_gsn updated (before rxs_grouped)",
                 [
-            'updated' => $updated,
-            'changed' => $changed
-          ]
+                    'updated' => $updated,
+                    'changed' => $changed
+                ]
             );
 
-            if ($updated['rx_gsn'] and is_gsn_in_v2($mysql, $updated['rx_number'])) {
-                //compliment method, update_order_item_drug, doesn't need to be called because order_item will be new and won't need to be updated
-                update_rx_single_drug($mysql, $updated['rx_number']);
+            if ($rx_single->isInFormulary()) {
+                $rx_single->updateDrugGsns();
             } else {
                 $created_date = "Created:".date('Y-m-d H:i:s');
 
-                if ($updated['rx_gsn']) {
-                    $subject = "UPDATED {$updated['rx_number']} still needs GSN {$updated['rx_gsn']} added to V2";
+                if (!empty($rx_single)) {
+                    $subject = "UPDATED {$rx_single->rx_number} still needs GSN {$rx_single->rx_gsn} added to V2";
                     $body    = "{$updated['drug_name']} for $subject";
                     $assign  = ".Inventory Issue";
                     GPLog::warning($body, $updated);

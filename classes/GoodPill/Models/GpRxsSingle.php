@@ -5,6 +5,7 @@ namespace GoodPill\Models;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use GoodPill\Models\GpDrugs;
+use GoodPill\Models\GpPatient;
 
 /**
  * Class GpRxsSingle
@@ -168,6 +169,15 @@ class GpRxsSingle extends Model
     ];
 
     /**
+     * Link to the GpPatient object on the patient_id_cp
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function patient()
+    {
+        return $this->belongsTo(GpPatient::class, 'patient_id_cp', 'patient_id_cp');
+    }
+
+    /**
      * Get the drug that is associated with this RX
      * @return GpDrug|null
      */
@@ -198,8 +208,11 @@ class GpRxsSingle extends Model
     public function needsGsnUpdate() : bool
     {
         return (
-            ($this->hasGpChanges() && $this->hasFieldChanged('rx_gsn'))
-            || empty($this->drug_gsns)
+            !empty($this->rx_gsn)
+            && (
+                ($this->hasGpChanges() && $this->hasFieldChanged('rx_gsn'))
+                || empty($this->drug_gsns)
+            )
         );
     }
 
@@ -213,14 +226,34 @@ class GpRxsSingle extends Model
             return false;
         }
 
-        $drug               = $this->drug;
-        $this->drug_generic = $drug->drug_generic;
-        $this->drug_brand   = $drug->drug_brand;
-        $this->drug_gsns    = $drug->drug_gsns;
+        $drug = $this->drug;
 
-        $this->save();
+        if ($drug) {
+            GPLog::warning(
+                "GpRxSingle::updateDrugGsns() drug found and updating",
+                [
+                    "rx_number"     => $this->rx_number,
+                    "patient_id_cp" => $this->patient_id_cp
+                ]
+            );
 
-        return true;
+            $this->drug_generic = $drug->drug_generic;
+            $this->drug_brand   = $drug->drug_brand;
+            $this->drug_gsns    = $drug->drug_gsns;
+            $this->save();
+        } else {
+            GPLog::warning(
+                "GpRxSingle::updateDrugGsns() drug not found",
+                [
+                    "rx_number"     => $this->rx_number,
+                    "patient_id_cp" => $this->patient_id_cp,
+                    "rx_gsn"        => $this->rx_gsn
+                ]
+            );
+        }
+
+        // If we don't need to update the drug_gsns then the operatino was a success
+        return (!$rx_single->needsGsnUpdate());
     }
 
 
