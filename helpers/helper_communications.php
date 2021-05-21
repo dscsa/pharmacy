@@ -47,6 +47,14 @@ function group_drugs($order, $mysql) {
 
     if ( ! @$item['drug_name']) continue; //Might be an empty order
 
+    //Per Kiah in https://app.asana.com/0/534557523548031/1200166790889777/f
+    //Out of refills AND rx_autofill off is basically like a voided Rx.  We don't
+    //want to include it in any of our communications.
+    if (
+        ! $item['rx_autofill'] AND
+        $item['rx_message_key'] == 'ACTION NO REFILLS'
+    ) continue;
+
     $days = @$item['days_dispensed'];
     $fill = $days ? 'FILLED_' : 'NOFILL_';
 
