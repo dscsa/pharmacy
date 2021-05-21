@@ -2,8 +2,6 @@
 
 require 'parse_sigs.php';
 
-$parser = new SigParser();
-
 $correct_pairs = [
 
     // TODO: Check for repeated wording in "multiple sigs"
@@ -275,6 +273,7 @@ $correct_pairs = [
     // ]
 ];
 
+$parser = new SigParser("aws-ch-res/responses.json");
 
 
 foreach($correct_pairs as $text => $props) {

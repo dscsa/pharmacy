@@ -7,36 +7,74 @@ require 'parse_preprocessing.php';
 use Aws\ComprehendMedical\ComprehendMedicalClient;
 use Aws\Credentials\Credentials;
 
+/**
+ * A class for parsing attributes of sigs with their drug name,
+ * using the AWS Comprehend Medical API.
+ */
 class SigParser {
 
+    /**
+     * Used for testing purposes only. An array to cache AWS CH results,
+     * where the key of each element is the text and the value the result of the AWS call.
+     * @var array
+     */
     private static $defaultsigs = array();
-    private static $save_test_results = false;
-    private static $ch_test_file = "aws-ch-res/responses.json";
+
+    /**
+     * Points to a JSON with the same structure as $defaultsigs.
+     * It should only be provided to the class while testing.
+     * @var string
+     */
+    private $ch_test_file;
+
+    /**
+     * true if $ch_test_file was provided.
+     * @var boolean
+     */
+    private $save_test_results;
+
+    /**
+     * AWS Comprehend Medical client
+     * @var ComprehendMedicalClient
+     */
     private $client;
+
+    /**
+     * array of floats between 0 to 1, used to determine the sig score
+     * by the end of the parsing.
+     * It is reset everytime the parse() function is called.
+     * @var array<int>
+     */
     private $scores;
 
     /**
-     * If static::$save_test_results is true, it loads the AWS CH API results from 
-     * the file static::$ch_test_file. Useful for testing and limiting
-     * the ammunt of requests.
+     * If $ch_test_file was provided, the class will store and load the AWS CH results into it,
+     * to prevent multiple requests while testing.
+     * @param string $ch_test_file path to the json file
      */
-    function __construct() {
+    function __construct($ch_test_file = '') {
         $credentials = new Credentials($_ENV['AWS_ACCESS_KEY'], $_ENV['AWS_SECRET_KEY']);
         $this->client = new ComprehendMedicalClient([
             'credentials' => $credentials,
             'region' => 'us-west-2',
             'version' => '2018-10-30'
         ]);
+        $this->save_test_results = strlen($ch_test_file) > 0;
+        $this->ch_test_file = $ch_test_file;
 
-        if (static::$save_test_results AND file_exists(static::$ch_test_file)) {
-            $res = file_get_contents(static::$ch_test_file);
+        if ($this->save_test_results AND file_exists($this->ch_test_file)) {
+            $res = file_get_contents($this->ch_test_file);
             static::$defaultsigs = json_decode($res, true);
         }
     }
 
+
     /**
-     * Given a sig and a drugname, returns the sig attributes.
-     * @return Array    With keys "sig_qty", "sig_days" and "sig_unit"
+     * Given a sig and a drugname, returns the parsed sig attributes.
+     *
+     * @param string $sig
+     * @param string $drugname
+     * @return array<string,mixed> ['sig_unit', 'sig_days', 'sig_qty', 'sig_conf_score']
      */
     function parse($sig, $drugname = '') {
         if ($this->early_return($sig, $drugname, $result)) {
@@ -57,10 +95,12 @@ class SigParser {
      * result that can be returned. For example, if it's inhalers
      * it can always return sig_qty = 3/90.
      * 
-     * @return bool    true if the parser should do an early return filling &$result,
-     *              and false otherwise
+     * @param string               $sig
+     * @param string               $drugname
+     * @param array<string,mixed>  &$result
+     * @return bool
      */
-    function early_return($sig, $drugname, &$result) {
+    private function early_return($sig, $drugname, &$result) {
 
         // If its an inhaler, spray, cream, gel or eye drops, return a fixed value.
         $fixed_drugnames_values = [
@@ -98,8 +138,10 @@ class SigParser {
 
     /**
      * Given a text, returns the AWS CH Attributes of the text, both mapped and unmapped.
-     * See: https://docs.aws.amazon.com/aws-sdk-php/v3/api/api-comprehendmedical-2018-10-30.html#shape-attribute
-     * @return Array    of AWS Attributes
+     * @param string $text
+     * @return array<Attribute>
+     * 
+     * @link https://docs.aws.amazon.com/aws-sdk-php/v3/api/api-comprehendmedical-2018-10-30.html#shape-attribute AWS CH Attribute Shape
      */
     private function get_attributes($text) {
         if (empty($text)) {
@@ -120,13 +162,17 @@ class SigParser {
         return $attributes;
     }
 
+
     /**
-     * Given a text, returns its AWS CH result.
-     * If static::$save_test_results is true, it saves the result in
-     * the file static::$ch_test_file.
+     * Given a text, returns its full AWS CH result.
+     * If $this->save_test_results is true, it saves the result in
+     * the file $this->ch_test_file.
+     *
+     * @param string $text
+     * @return array
      */
     private function request_attributes($text) {
-        if (static::$save_test_results) {
+        if ($this->save_test_results) {
             if (array_key_exists($text, static::$defaultsigs)) {
                 return static::$defaultsigs[$text];
             }
@@ -134,12 +180,13 @@ class SigParser {
         }
         $result = $this->client->detectEntitiesV2(['Text' => $text])->toArray();
 
-        if (static::$save_test_results) {
+        if ($this->save_test_results) {
             static::$defaultsigs[$text] = $result;
-            file_put_contents(static::$ch_test_file, json_encode(static::$defaultsigs));
+            file_put_contents($this->ch_test_file, json_encode(static::$defaultsigs));
         }
         return $result;
     }
+
 
     /**
      * Filters the Attributes by "Type" and which have a minimum "Score" of $score_tol.
@@ -147,9 +194,11 @@ class SigParser {
      * The score is assigned by the NLP of AWS, being a value between [0, 1] representing
      * how sure it is by the categorization.
      * 
-     * @param  Array $sections of AWS CH Attributes
-     * @param  Array $type of Attributes to filter by
-     * @param  Array $score_tol minimum score necesary to include it in the results
+     * @param  array<Attribute> $sections of AWS CH Attributes
+     * @param  string           $type of Attributes to filter by
+     * @param  bool             $save_score if true, adds filtered attributes to $this->scores.
+     * @param  float            $score_tol minimum score necesary to include it in the results
+     * @return array
      */
     private function filter_attributes($sections, $type, $save_scores = true, $score_tol = 0) {
         $attrs = [];
@@ -166,20 +215,33 @@ class SigParser {
         return $attrs;
     }
 
+
+    /**
+     * Compares two AWS CH attributes by their 'EndOffset' value
+     *
+     * @param Attribute $attr1
+     * @param Attribute $attr2
+     * @return int
+     */
     private function cmp_attrs($attr1, $attr2) {
         return $attr1['EndOffset'] - $attr2['EndOffset'];
     }
 
+
     /**
      * Splits the array of $sections into more arrays, in order to "recognize"
-     * multiple sigs. For example, for the text:
+     * multiple sigs. 
+     * 
+     * For example, for the text:
      * "Take 4 tablets by mouth 3 times a day with meal and 2 tablets twice a day with snacks"
      * 
      * It should return the attributes splitted by "and" like this:
-     * [[4 tablets, 3 times a day], [2 tablets, twice a day]]
      * 
-     * @param  Array $sections of AWS CH Attributes
-     * @param  Array $text The original sig that was sent to the AWS CH API
+     * [[4 tablets, 3 times a day], [2 tablets, twice a day]]
+     *
+     * @param  array<Attribute> $sections of AWS CH Attributes
+     * @param  string           $text The original sig that was sent to the AWS CH API
+     * @return array<array<Attribute>>
      */
     private function split_sections($sections, $text) {
         $increase = "(may|can) increase(.*?\/ *(month|week))?";
@@ -194,7 +256,7 @@ class SigParser {
 
         $splits = preg_split($durations_regex, $text, -1, PREG_SPLIT_DELIM_CAPTURE);
 
-        usort($sections, Array('SigParser', 'cmp_attrs'));
+        usort($sections, array('SigParser', 'cmp_attrs'));
         $subsections = [];
         $offset_len = 0;
         $splits_idx = 0;
@@ -215,6 +277,16 @@ class SigParser {
         return $subsections;
     }
 
+
+    /**
+     * Postprocessing stage, parses the $attributes and $attributes_drug arrays 
+     * given by the AWS CH API.
+     *
+     * @param array<Attribute>  $attributes      AWS CH result array for the sig
+     * @param array<Attribute>  $attributes_drug AWS CH result array for the drug_name
+     * @param string            $text            The original sig to be parsed. Used for splitting the attributes.
+     * @return array
+     */
     private function postprocessing($attributes, $attributes_drug, $text) {
         $splits = $this->split_sections($attributes, $text);
         $final_qty = 0;
@@ -256,6 +328,14 @@ class SigParser {
         ];
     }
 
+
+    /**
+     * Given an array of AWS CH Attributes, it filters the frequencies and returns
+     * an array, taking into account the time interval of each frequency.
+     *
+     * @param array<Attribute> $split AWS CH Attribute array of the sig
+     * @return int             The result of the parsed frequencies. If no frequency attr was found, returns 1.
+     */
     private function parse_frequencies($split) {
         $frequencies = $this->filter_attributes($split, "FREQUENCY");
         if (count($frequencies) == 0) {
@@ -313,6 +393,15 @@ class SigParser {
         return $total_freq;
     }
 
+
+    /**
+     * Given an array of AWS CH Attributes, it filters the dosages and returns
+     * an array, taking into account the unit and value of each dosage.
+     * 
+     * @param array<Attribute> $split           AWS CH Attribute array of the sig
+     * @param array<Attribute> $attributes_drug AWS CH Attribute array of the drug
+     * @return array<string|mixed> ['sig_qty', 'sig_unit']. If no dosage was found, 'sig_qty' => 1.
+     */
     private function parse_dosages($split, $attributes_drug) {
         $dosages = $this->filter_attributes($split, "DOSAGE");
         $unit = $this->filter_attributes($attributes_drug, "FORM", false)[0];
@@ -321,7 +410,7 @@ class SigParser {
             $weight = $this->filter_attributes($attributes_drug, "DOSAGE", false)[0];
         }
 
-        // Array to transform the dosage unit, normalizing the whole sig.
+        // array to transform the dosage unit, normalizing the whole sig.
         $equivalences = [
             // Two inhalers should be enough to cover for 90 days, so it's normalized that way.
             'puff' => DAYS_STD * 2,
@@ -388,6 +477,14 @@ class SigParser {
         return $parsed;
     }
 
+
+    /**
+     * Given an array of AWS CH Attributes, it filters the durations and returns
+     * an integer, taking into account the time period of each one.
+     * 
+     * @param array<Attribute> $split AWS CH Attribute array of the sig
+     * @return int  The result of the parsed durations. If no duration attr was found, returns 0.
+     */
     private function parse_durations($split) {
         $durations = $this->filter_attributes($split, "DURATION");
         if (count($durations) == 0) {
