@@ -31,6 +31,15 @@ trait IsChangeable
     }
 
     /**
+     * True if changes have been set
+     * @return array
+     */
+    public function hasGpChanges()
+    {
+        return isset($this->gp_changes);
+    }
+
+    /**
      * Take an array of fields and look to see if any of the array of fields has changed.
      * @param  array  $fields (optional) All the possible fields to check. If array is empty, we look
      *       to see if any field has changed
