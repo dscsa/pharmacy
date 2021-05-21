@@ -52,7 +52,7 @@ function export_v2_unpend_order($order, $mysql, $reason)
  * @param  string $reason The reason we are pending the item
  * @return $item
  */
-function v2_pend_item($item, $reason = null)
+function v2_pend_item($item, $reason = null, $repend = false)
 {
     $mysql = new Mysql_Wc();
 
@@ -89,11 +89,11 @@ function v2_pend_item($item, $reason = null)
     // if we don't know how many days to dispense
     // or the item has already been marked dispensed
     // or we don't have any left in inventory
-    // or the item has already been pended
+    // or the item has already been pended and the request is not a repend
     if (!$item['days_dispensed_default']
       or $item['rx_dispensed_id']
       or is_null($item['last_inventory'])
-      or @$item['count_pended_total'] > 0) {
+      or (@$item['count_pended_total'] > 0 && !$repend)) {
         AuditLog::log(
             sprintf(
                 "ABORTED PEND Attempted to pend %s for Rx#%s on Invoice #%s for
@@ -413,7 +413,8 @@ function get_item_pended_group($item, $include_picked = false)
     ];
 
     foreach ($possible_pend_groups as $type => $group) {
-        $pend_url = "/account/8889875187/pend/{$group}/{$item['drug_generic']}";
+        $drug_generic = urlencode($item['drug_generic']);
+        $pend_url = "/account/8889875187/pend/{$group}/{$drug_generic}";
         $results  = v2_fetch($pend_url, 'GET');
         if (!empty($results) &&
             @$results[0]['next'][0]['pended']) {
@@ -632,7 +633,8 @@ function unpend_pick_list($item)
         );
         do { // Keep doing until we can't find a pended items
             $loop_count = (isset($loop_count) ? ++$loop_count : 1);
-            if ($results = v2_fetch("/account/8889875187/pend/{$pend_group}/{$item['drug_generic']}", 'DELETE')) {
+            $drug_generic = urlencode($item['drug_generic']);
+            if ($results = v2_fetch("/account/8889875187/pend/{$pend_group}/{$drug_generic}", 'DELETE')) {
                 CLiLog::info(
                     sprintf(
                         "succesfully unpended item %s in %s, unpend attempt #%s",

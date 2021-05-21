@@ -175,9 +175,21 @@ class GpOrder extends Model
         return $this->hasOne(GpPendGroup::class, 'invoice_number', 'invoice_number');
     }
 
+    /*
+        ACCESSORS
+    */
+
+    /**
+     * Expose the order_id since we don't store it
+     * @return integer
+     */
+    public function getOrderIdAttribute() : int
+    {
+         return $this->invoice_number - 2;
+    }
 
     /*
-     * Condition Methods:  These methods are all meant to be conditional and should
+     * CONDITIONALs:  These methods are all meant to be conditional and should
      *  all return booleans.  The methods should be named with appropriate descriptive verbs
      *  ie: isShipped()
      *      hasItems()
@@ -288,6 +300,10 @@ class GpOrder extends Model
 
         return $results;
     }
+
+    /*
+        SHIPPING RELATED
+     */
 
     /**
      * Delete the previous shipping data
@@ -474,10 +490,6 @@ class GpOrder extends Model
         return $this->invoice_number - 2;
     }
 
-    public function getOrderIdAttribute() {
-        return $this->invoice_number - 2;
-    }
-
     /**
      * Get the tracking url for the order
      * @param  bool $short Optional Should we use the url shortener.
@@ -569,6 +581,10 @@ class GpOrder extends Model
 
         return null;
     }
+
+    /*
+        INVOICE RELATED METHODS
+     */
 
     /**
      * Create an invoice request for printing.  Moves the invoice into the print folder so the
@@ -692,6 +708,38 @@ class GpOrder extends Model
             && !$meta->trashed
             && $meta->parent->name != INVOICE_PENDING_FOLDER_NAME
         );
+    }
+
+    /*
+        PENDING
+     */
+
+    /**
+     * Loop through all the order items.  If the item isn't pended, pend it
+     * @return void
+     */
+    public function pendOrder()
+    {
+        $items = $this->items();
+        $items->each(function ($item) {
+            if (!$item->isPended()) {
+                $item->pendItem('Full Order Pended', true);
+            }
+        });
+    }
+
+    /**
+     * Loop through all the order items.  If the item isn't pended, pend it
+     * @return void
+     */
+    public function unpendOrder()
+    {
+        $items = $this->items;
+        $items->each(function ($items) {
+            if ($item->isPended()) {
+                $item->unpendItem();
+            }
+        });
     }
 
     /**
