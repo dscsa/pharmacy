@@ -215,13 +215,13 @@ function update_rxs_single($changes)
         GPLog::debug(
             "update_rxs_single1: rx updated $updated[drug_name] $updated[rx_number]",
             [
-              'updated' => $updated,
-              'changed' => $changed,
-              'patient' => $patient,
-              'source'  => 'CarePoint',
-              'type'    => 'rxs-single',
-              'event'   => 'updated1'
-          ]
+                'updated' => $updated,
+                'changed' => $changed,
+                'patient' => $patient,
+                'source'  => 'CarePoint',
+                'type'    => 'rxs-single',
+                'event'   => 'updated1'
+            ]
         );
 
         if ($updated['refill_date_first'] and ! $updated['rx_gsn']) {
@@ -232,7 +232,7 @@ function update_rxs_single($changes)
         $rx_single->setChanges($updated);
 
         if (
-            $rx_single->needsGsnUpdate();
+            $rx_single->needsGsnUpdate()
         ) {
             GPLog::warning(
                 "update_rxs_single1 rx_gsn updated (before rxs_grouped)",
