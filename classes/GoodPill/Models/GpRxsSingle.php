@@ -254,7 +254,7 @@ class GpRxsSingle extends Model
         }
 
         // If we don't need to update the drug_gsns then the operatino was a success
-        return (!$rx_single->needsGsnUpdate());
+        return (!$this->needsGsnUpdate());
     }
 
 
