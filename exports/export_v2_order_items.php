@@ -691,6 +691,7 @@ function make_pick_list($item, $limit = 500)
             . " " . @$item['rx_number'],
         [
             'item' => $item,
+            'unsorted_ndc' => $unsorted_ndcs,
             'sorted_ndc' => $sorted_ndcs,
             'long_exp' => $long_exp,
             'list' => $list
