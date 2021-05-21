@@ -4,6 +4,8 @@ namespace GoodPill\Models;
 
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
+use GoodPill\Models\GpDrugs;
+use GoodPill\Models\GpPatient;
 
 /**
  * Class GpRxsSingle
@@ -55,6 +57,9 @@ use Illuminate\Database\Eloquent\Model;
  */
 class GpRxsSingle extends Model
 {
+
+    use \GoodPill\Traits\IsChangeable;
+
     /**
      * The Table for this data
      * @var string
@@ -162,4 +167,94 @@ class GpRxsSingle extends Model
         'rx_date_changed',
         'rx_date_expired'
     ];
+
+    /**
+     * Link to the GpPatient object on the patient_id_cp
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function patient()
+    {
+        return $this->belongsTo(GpPatient::class, 'patient_id_cp', 'patient_id_cp');
+    }
+
+    /**
+     * Get the drug that is associated with this RX
+     * @return GpDrug|null
+     */
+    public function getDrugAttribute() : ?GpDrugs
+    {
+
+        if (!$this->rx_gsn) {
+            return null;
+        }
+
+        return GpDrugs::where('drug_gsns', 'like', "%,{$this->rx_gsn},%")->first();
+    }
+
+    /**
+     * Tries to load the drug attribute.  If it's not null then we have the drug
+     * @return boolean True if we can load the drug via rx_gsn
+     */
+    public function isInFormulary() : bool
+    {
+        $drug = $this->drug;
+        return (!is_null($drug));
+    }
+
+    /**
+     * Does the item need to have it's drug_gsns updated
+     * @return boolean True if the rx_gsn has changed or the drug_gsns field is empty
+     */
+    public function needsGsnUpdate() : bool
+    {
+        return (
+            !empty($this->rx_gsn)
+            && (
+                ($this->hasGpChanges() && $this->hasFieldChanged('rx_gsn'))
+                || empty($this->drug_gsns)
+            )
+        );
+    }
+
+    /**
+     * Get the drug and copy the fields to the RX object
+     * @return boolean True if the data was updated, False if the drug isn't in v2
+     */
+    public function updateDrugGsns() : bool
+    {
+        if (!$this->isInFormulary()) {
+            return false;
+        }
+
+        $drug = $this->drug;
+
+        if ($drug) {
+            GPLog::warning(
+                "GpRxSingle::updateDrugGsns() drug found and updating",
+                [
+                    "rx_number"     => $this->rx_number,
+                    "patient_id_cp" => $this->patient_id_cp
+                ]
+            );
+
+            $this->drug_generic = $drug->drug_generic;
+            $this->drug_brand   = $drug->drug_brand;
+            $this->drug_gsns    = $drug->drug_gsns;
+            $this->save();
+        } else {
+            GPLog::warning(
+                "GpRxSingle::updateDrugGsns() drug not found",
+                [
+                    "rx_number"     => $this->rx_number,
+                    "patient_id_cp" => $this->patient_id_cp,
+                    "rx_gsn"        => $this->rx_gsn
+                ]
+            );
+        }
+
+        // If we don't need to update the drug_gsns then the operatino was a success
+        return (!$rx_single->needsGsnUpdate());
+    }
+
+
 }
