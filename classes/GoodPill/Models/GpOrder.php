@@ -718,12 +718,12 @@ class GpOrder extends Model
      * Loop through all the order items.  If the item isn't pended, pend it
      * @return void
      */
-    public function pend()
+    public function pendOrder()
     {
         $items = $this->items();
         $items->each(function ($item) {
             if (!$item->isPended()) {
-                $item->pend('Full Order Pended', true);
+                $item->pendItem('Full Order Pended', true);
             }
         });
     }
@@ -732,12 +732,12 @@ class GpOrder extends Model
      * Loop through all the order items.  If the item isn't pended, pend it
      * @return void
      */
-    public function unpend()
+    public function unpendOrder()
     {
         $items = $this->items;
         $items->each(function ($items) {
             if ($item->isPended()) {
-                $item->unpend();
+                $item->unpendItem();
             }
         });
     }

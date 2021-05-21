@@ -289,7 +289,7 @@ class GpOrderItem extends Model
      * @param  boolean $force Optional. Force the pend to happen even if we think it is pended in goodpill
      * @return array
      */
-    public function pend(string $reason = '', bool $force = false) : ?array
+    public function pendItem(string $reason = '', bool $force = false) : ?array
     {
         $legacy_item = $this->getLegacyData();
         return v2_pend_item($legacy_item, $reason, $force);
@@ -300,7 +300,7 @@ class GpOrderItem extends Model
      * @param  string $reason Optional. The reason we are unpending the Item.
      * @return array
      */
-    public function unpend(string $reason = '') : ?array
+    public function unpendItem(string $reason = '') : ?array
     {
         $legacy_item = $this->getLegacyData();
         return v2_pend_item($legacy_item, $reason);
