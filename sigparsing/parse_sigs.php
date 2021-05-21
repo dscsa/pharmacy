@@ -74,7 +74,7 @@ class SigParser {
      *
      * @param string $sig
      * @param string $drugname
-     * @return array<string,mixed> ['sig_unit', 'sig_days', 'sig_qty', 'sig_conf_score']
+     * @return array<string,mixed> ['sig_unit', 'sig_days', 'sig_qty', 'sig_conf_score', 'frequencies', 'dosages', 'durations']
      */
     function parse($sig, $drugname = '') {
         if ($this->early_return($sig, $drugname, $result)) {
@@ -293,6 +293,9 @@ class SigParser {
         $final_days = 0;
         $valid_unit = "";
         $last_sig_qty = 1;
+        $all_freq = array();
+        $all_dose = array();
+        $all_dur = array();
 
         foreach ($splits as $split) {
             $freq = $this->parse_frequencies($split);
@@ -303,6 +306,10 @@ class SigParser {
             $dur = ($parsed_dur ? $parsed_dur : (DAYS_STD - $final_days));
 
             $valid_unit = (strlen($valid_unit) > 0 ? $valid_unit : $dose['sig_unit']);
+
+            $all_freq[] = $freq;
+            $all_dose[] = $dose['sig_qty'];
+            $all_dur[] = $dur;
 
             // If a unit of a split doesn't match, use the last_sig_qty.
             // TODO: Could be solved by parsing the drug name.
@@ -324,7 +331,10 @@ class SigParser {
             'sig_unit' => $valid_unit,
             'sig_qty' => $final_qty,
             'sig_days' => $final_days,
-            'sig_conf_score' => $score
+            'sig_conf_score' => $score,
+            'frequencies' => implode(',', $all_freq),
+            'dosages' => implode(',', $all_dose),
+            'durations' => implode(',', $all_dur),
         ];
     }
 
