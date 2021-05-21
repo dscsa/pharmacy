@@ -6,6 +6,7 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use GoodPill\Models\GpDrugs;
 use GoodPill\Models\GpPatient;
+use GoodPill\Logging\GPLog;
 
 /**
  * Class GpRxsSingle
