@@ -858,10 +858,13 @@ function group_by_ndc($rows, $item)
         if (strlen($row['doc']['bin']) == 3) {
             $ndcs[$ndc]['prepack_qty'] += $row['doc']['qty']['to'];
 
-            if (! isset($ndcs[$ndc]['prepack_exp']) or $row['doc']['exp']['to'] < $ndcs[$ndc]['prepack_exp']) {
+            if ( ! $ndcs[$ndc]['prepack_exp'] or $row['doc']['exp']['to'] < $ndcs[$ndc]['prepack_exp']) {
                 $ndcs[$ndc]['prepack_exp'] = $row['doc']['exp']['to'];
             }
         }
+
+        if ($ndcs[$ndc]['prepack_qty'] > 0 AND ! $ndcs[$ndc]['prepack_exp'])
+            GPLog::error('Prepack has a quantity but no expiration!?', $ndc, $row, $ndcs);
 
         $ndcs[$ndc]['rows'][] = $row['doc'];
     }
