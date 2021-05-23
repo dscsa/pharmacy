@@ -861,6 +861,8 @@ function group_by_ndc($rows, $item)
 
             if ( ! $ndcs[$ndc]['prepack_exp'] or $row['doc']['exp']['to'] < $ndcs[$ndc]['prepack_exp']) {
                 $ndcs[$ndc]['prepack_exp'] = $row['doc']['exp']['to'];
+            } else {
+                GPLog::error('Prepack but not setting expiration', $ndcs[$ndc]['prepack_exp'], $row['doc']['exp']['to'], $ndcs[$ndc]['prepack_exp'], $ndc, $row, $ndcs);
             }
         }
 
