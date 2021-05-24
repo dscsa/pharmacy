@@ -19,6 +19,10 @@ const NO_REFILL   = 0.1;
 const DAYS_BUFFER = 4; //TODO Port of Autofill Script and use this constant
 const MAX_QTY_PER_DAY = 8;
 
+//Priortize non-purchased prepacks over other stock
+//Assume Purchased is <12month expiration - 3mos from days supply = ~ 9mos between (but this is pretty arbitrary)
+const IS_MFG_EXPIRATION = 9;
+
 const ADDED_MANUALLY = [
   "MANUAL",
   "WEBFORM"

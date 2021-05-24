@@ -856,7 +856,9 @@ function group_by_ndc($rows, $item)
         $ndcs[$ndc]['rows'] = isset($ndcs[$ndc]['rows']) ? $ndcs[$ndc]['rows'] : [];
         $ndcs[$ndc]['prepack_qty'] = isset($ndcs[$ndc]['prepack_qty']) ? $ndcs[$ndc]['prepack_qty'] : 0; //Hacky to set property on an array
 
-        if (strlen($row['doc']['bin']) == 3) {
+        $not_purchased_stock = (months_between(date('Y-m-d'), $row['doc']['qty']['to']) < IS_MFG_EXPIRATION);
+
+        if (strlen($row['doc']['bin']) == 3 AND $not_purchased_stock) {
             $ndcs[$ndc]['prepack_qty'] += $row['doc']['qty']['to'];
 
             if ( ! @$ndcs[$ndc]['prepack_exp'] or $row['doc']['exp']['to'] < @$ndcs[$ndc]['prepack_exp']) {
@@ -945,11 +947,11 @@ function sort_inventory($inventory, $long_exp)
 
         //Priortize non-purchased prepacks over other stock
         //Assume Purchased is <12month expiration - 3mos from days supply = ~ 9mos between
-        if ($aPack and $aMonths < 9 and ! $bPack) {
+        if ($aPack and $aMonths < IS_MFG_EXPIRATION and ! $bPack) {
             return -1;
         }
 
-        if ($bPack and $bMonths < 9 and ! $aPack) {
+        if ($bPack and $bMonths < IS_MFG_EXPIRATION and ! $aPack) {
             return 1;
         }
 
