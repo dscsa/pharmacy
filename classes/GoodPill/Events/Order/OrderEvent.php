@@ -130,12 +130,8 @@ abstract class OrderEvent extends Event
             }
 
             /*************** Refill Reminder Data ******************/
-            $refills = $this->order->getItemsWithNoRefills();
+            $refill = $this->order->getItemsWithNoRefills();
             $autofill = $this->order->getItemsWithNoAutofills();
-
-            $data['has_no_refills'] = $refills->count() > 0 ? true : false;
-            $data['has_no_autofill'] = $autofill->count() > 0 ? true : false;
-
 
             if ($autofill->count() > 0) {
                 $rxs = [];
@@ -147,16 +143,15 @@ abstract class OrderEvent extends Event
                $data['no_autofill'] = ['rxs' => $rxs];
             }
 
-            if ($refills->count() > 0) {
+            if ($refill->count() > 0) {
                 $rxs = [];
 
-                $refills->each(function($item) use (&$rxs) {
+                $refill->each(function($item) use (&$rxs) {
                     $rxs[] = ["name" => $item->getDrugName().' - '.$item->rxs->rx_message_text];
                 });
 
-                $data['no_refills'] = ['rxs' => $rxs];
+                $data['no_refill'] = ['rxs' => $rxs];
             }
-            $data['test'] = 'a random string';
             $this->order_data = $data;
         }
 
@@ -173,13 +168,13 @@ abstract class OrderEvent extends Event
         if (empty($this->order->patient->email)) {
             return null;
         }
-
         $email              = new EmailComm();
         $email->subject     = $this->render('email_subject');
         $email->message     = $this->render('email');
         $email->attachments = [$this->order->invoice_doc_id];
         $email->email       = DEBUG_EMAIL;
         //$email->email   = $this->order->patient->email;
+
         return $email;
     }
 

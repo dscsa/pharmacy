@@ -101,7 +101,7 @@ function refill_reminder_notice($groups)
     $gpOrder = GpOrder::where('invoice_number', $groups['ALL'][0]['invoice_number'])->first();
 
     if ($gpOrder) {
-        // $shipping_event = new RefillReminder($gpOrder);
+        // $shipping_event = new RefillReminder($gpOrder, $groups['MIN_DAYS']*24, '11:00');
         // $shipping_event->publishEvent();
     }
     */

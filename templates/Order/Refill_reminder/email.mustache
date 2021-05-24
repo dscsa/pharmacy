@@ -39,6 +39,18 @@
                 {"name": "no drug 1"},
                 {"name": "no drug 2"}
             ]
+        },
+        "no_refill": {
+            "rxs: [
+                {"name": "drug 1"},
+                {"name": "drug 2"}
+            ]
+        },
+        "no_autofill": {
+            "rxs: [
+                {"name": "drug 1 - reason description"},
+                {"name": "drug 2 - reason"}
+            ]
         }
     }
 }}
@@ -46,7 +58,7 @@
 <p>Hello,</p>
 
 <p>A friendly reminder that Good Pill cannot refill these Rxs without your help.</p>
-{{# no_refills}}
+{{# no_refill}}
     <p>
         <u>We need a new Rx for the following:</u>
     <ul>
@@ -55,7 +67,7 @@
         {{/ rxs }}
     </ul>
     </p>
-{{/ no_refills}}
+{{/ no_refill}}
 
 {{# no_autofill}}
     <p>

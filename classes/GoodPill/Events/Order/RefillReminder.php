@@ -28,20 +28,30 @@ class RefillReminder extends OrderEvent
      * @param int $hours_to_wait
      * @param string $time_of_day
      */
-    public function __construct($GpOrder, $groups, $hours_to_wait = 30, $time_of_day = '11:00')
+    public function __construct($GpOrder, $hours_to_wait = 30, $time_of_day = '11:00')
     {
         parent::__construct($GpOrder);
-        $this->groups = $groups;
         $this->hours_to_wait = $hours_to_wait;
         $this->time_of_day = $time_of_day;
     }
 
     /**
+     * Generate the Salesforce portion of the Communication event
+     * Return null event because this only needs sms and email
+     * @return SalesforceComm
+     */
+    public function getSalesforce() : ?SalesforceComm
+    {
+        return null;
+    }
+    /**
      * Publish the events
-     * Cancel the any events that are not longer needed and push this event to the com calendar
+     * Cancel the any events that are not longer needed and push this event to the comm calendar
      */
     public function publish(): void
     {
+        //  @TODO Uncomment this out when going live
+        //  $this->order->cancelEvents(['Refill Reminder']);
         $this->publishEvent();
     }
 }

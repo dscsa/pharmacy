@@ -40,12 +40,46 @@
                 {"name": "no drug 2"}
             ]
         }
+        "no_refill": {
+            "rxs: [
+                {"name": "drug 1"},
+                {"name": "drug 2"}
+            ]
+        },
+        "no_autofill": {
+            "rxs: [
+                {"name": "drug 1 - reason description"},
+                {"name": "drug 2 - reason"}
+            ]
+        }
     }
 }}
 
 <p>Hello,</p>
 
 <p>A friendly reminder that Good Pill cannot refill these Rxs without your help.</p>
+
+{{# no_refill}}
+    <p>
+        <u>We need a new Rx for the following:</u>
+    <ul>
+        {{# rxs }}
+            <li>{{ name }}</li>
+        {{/ rxs }}
+    </ul>
+    </p>
+{{/ no_refill}}
+
+{{# no_autofill}}
+    <p>
+        <u>These Rxs will NOT be filled automatically and must be requested 2 weeks in advance:</u>
+    <ul>
+        {{# rxs }}
+            <li>{{ name }}</li>
+        {{/ rxs }}
+    </ul>
+    </p>
+{{/ no_autofill}}
 
 
 <p>Thanks!<br>

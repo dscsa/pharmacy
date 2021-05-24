@@ -17,6 +17,7 @@ use GoodPill\AWS\SQS\GoogleAppRequest\Invoice\Delete;
 use GoodPill\AWS\SQS\GoogleAppQueue;
 use GoodPill\Logging\GPLog;
 
+require_once "helpers/helper_calendar.php";
 require_once "helpers/helper_full_order.php";
 require_once "helpers/helper_appsscripts.php";
 
