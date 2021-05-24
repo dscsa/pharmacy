@@ -129,6 +129,34 @@ abstract class OrderEvent extends Event
                 $data['no_fill'] = ['rxs' => $rxs];
             }
 
+            /*************** Refill Reminder Data ******************/
+            $refills = $this->order->getItemsWithNoRefills();
+            $autofill = $this->order->getItemsWithNoAutofills();
+
+            $data['has_no_refills'] = $refills->count() > 0 ? true : false;
+            $data['has_no_autofill'] = $autofill->count() > 0 ? true : false;
+
+
+            if ($autofill->count() > 0) {
+                $rxs = [];
+
+                $autofill->each(function($item) use (&$rxs) {
+                    $rxs[] = ["name" => $item->getDrugName().' - '.$item->rxs->rx_message_text];
+                });
+
+               $data['no_autofill'] = ['rxs' => $rxs];
+            }
+
+            if ($refills->count() > 0) {
+                $rxs = [];
+
+                $refills->each(function($item) use (&$rxs) {
+                    $rxs[] = ["name" => $item->getDrugName().' - '.$item->rxs->rx_message_text];
+                });
+
+                $data['no_refills'] = ['rxs' => $rxs];
+            }
+            $data['test'] = 'a random string';
             $this->order_data = $data;
         }
 
@@ -213,7 +241,6 @@ abstract class OrderEvent extends Event
         $m = new \Mustache_Engine(array('entity_flags' => ENT_QUOTES));
 
         $template_path = TEMPLATE_DIR . "{$this->template_path}/{$template}.mustache";
-
         return $m->render(
             file_get_contents($template_path),
             $this->getOrderData()

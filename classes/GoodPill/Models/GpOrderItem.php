@@ -308,8 +308,8 @@ class GpOrderItem extends Model
 
     /**
      * Computed property to get the `refills_dispensed` field
-     * @TODO - Figure out if this field can be queried directly
-     * @TODO - Original function could return empty/null?
+     *
+     * Should this return null by default or 0?
      * @return float|null
      */
     public function getRefillsDispensedAttribute() : ?float
@@ -323,5 +323,14 @@ class GpOrderItem extends Model
         } else {
             return null;
         }
+    }
+
+    /**
+     * Get the days dispensed computed attribute
+     * @return float
+     */
+    public function getDaysDispensedAttribute() : float
+    {
+        return $this->days_dispensed_actual ?: $this->days_dispensed_default;
     }
 }

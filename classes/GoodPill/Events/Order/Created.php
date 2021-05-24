@@ -28,7 +28,7 @@ class Created extends OrderEvent
      */
     public function publish() : void
     {
-        // Can't send notfications if the order doesn't exist
+        // Can't send notifications if the order doesn't exist
         if (!$this->order) {
             return;
         }

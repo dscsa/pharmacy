@@ -10,6 +10,7 @@ use GoodPill\Logging\{
 
 use GoodPill\Models\GpOrder;
 use GoodPill\Events\Order\Shipped;
+use GoodPill\Events\Order\RefillReminder;
 
 //Internal communication warning an order was shipped but not dispensed.  Gets erased when/if order is shipped
 function order_dispensed_notice($groups)
@@ -96,7 +97,14 @@ function refill_reminder_notice($groups)
         GPLog::notice("Not making a refill_reminder_notice", $groups);
         return;
     }
+    /*
+    $gpOrder = GpOrder::where('invoice_number', $groups['ALL'][0]['invoice_number'])->first();
 
+    if ($gpOrder) {
+        // $shipping_event = new RefillReminder($gpOrder);
+        // $shipping_event->publishEvent();
+    }
+    */
     $subject  = 'Good Pill cannot refill these Rxs without your help.';
     $message  = '';
 

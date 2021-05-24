@@ -46,27 +46,7 @@
 <p>Hello,</p>
 
 <p>A friendly reminder that Good Pill cannot refill these Rxs without your help.</p>
-{{#has_no_refills}}
-    <p>
-        <u>We need a new Rx for the following:</u>
-    <ul>
-        {{#no_refills}}
-            <li>{{.}}</li>
-        {{/no_refills}}
-    </ul>
-    </p>
-{{/has_no_refills}}
 
-{{#has_no_autofill}}
-    <p>
-        <u>These Rxs will NOT be filled automatically and must be requested 2 weeks in advance:</u>
-    <ul>
-        {{#no_autofill}}
-            <li>{{.}}</li>
-        {{/no_autofill}}
-    </ul>
-    </p>
-{{/has_no_autofill}}
 
 <p>Thanks!<br>
     The Good Pill Team</p>
