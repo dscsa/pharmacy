@@ -885,7 +885,7 @@ function sort_by_ndc($ndcs, $long_exp)
         $sorted_ndcs[] = [
             'ndc'         => $ndc,
             'prepack_qty' => $val['prepack_qty'],
-            'prepack_exp' => $val['prepack_exp'],
+            'prepack_exp' => @$val['prepack_exp'],
             'inventory'   => sort_inventory($val['rows'], $long_exp)
         ];
     }
@@ -896,11 +896,11 @@ function sort_by_ndc($ndcs, $long_exp)
             GPLog::error('ERROR: sort_by_ndc but prepack_qty is not set', get_defined_vars());
         } else {
         //Return shortest prepack expiration date, if a tie use one with greater quantity
-            if (@$a['prepack_exp'] > @$b['prepack_exp']) {
+            if ($a['prepack_exp'] > $b['prepack_exp']) {
                 return 1;
             }
 
-            if (@$a['prepack_exp'] < @$b['prepack_exp']) {
+            if ($a['prepack_exp'] < $b['prepack_exp']) {
                 return -1;
             }
 
