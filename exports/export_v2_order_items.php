@@ -883,6 +883,7 @@ function sort_by_ndc($ndcs, $long_exp)
         $sorted_ndcs[] = [
             'ndc'         => $ndc,
             'prepack_qty' => $val['prepack_qty'],
+            'prepack_exp' => $val['prepack_exp'],
             'inventory'   => sort_inventory($val['rows'], $long_exp)
         ];
     }
