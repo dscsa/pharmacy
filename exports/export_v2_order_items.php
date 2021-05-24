@@ -895,16 +895,41 @@ function sort_by_ndc($ndcs, $long_exp)
         if (! isset($a['prepack_qty']) or ! isset($b['prepack_qty'])) {
             GPLog::error('ERROR: sort_by_ndc but prepack_qty is not set', get_defined_vars());
         } else {
-        //Return shortest prepack expiration date, if a tie use one with greater quantity
+           //Return shortest non-null prepack expiration date (these exclude IS_MFG_EXPIRATION),
+           //if a tie use one with greater prepack quantity, if tie choose one with more items
+
+           //Descending NULL
+           if ($a['prepack_exp'] != null AND $b['prepack_exp'] == null) {
+               return -1;
+           }
+
+           //Descending NULL
+           if ($a['prepack_exp'] == null AND $b['prepack_exp'] != null) {
+               return 1;
+           }
+
+           //Ascending EXP
+           if  ($a['prepack_exp'] < $b['prepack_exp']) {
+               return -1;
+           }
+
+            //Ascending EXP
             if ($a['prepack_exp'] > $b['prepack_exp']) {
                 return 1;
             }
 
-            if ($a['prepack_exp'] < $b['prepack_exp']) {
+            //Descending Qty
+            if ($a['prepack_qty'] > $b['prepack_qty']) {
                 return -1;
             }
 
-            return $b['prepack_qty'] - $a['prepack_qty'];
+            //Descending Qty
+            if ($a['prepack_qty'] < $b['prepack_qty']) {
+                return 1;
+            }
+
+            //Descending Item Count
+            return count($b['inventory']) - count($a['inventory']);
         }
     });
 
