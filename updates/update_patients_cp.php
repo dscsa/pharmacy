@@ -211,13 +211,7 @@ function cp_patient_updated(array $updated) : ?array
         // TODO Autopay Reminders (Remove Card, Card Expired, Card Changed, Order Paid Manually)
     }
 
-    if ($gpPatient->hasAnyFieldChanged(
-        [
-            'first_name',
-            'last_name',
-            'birth_date'
-        ]
-    )) {
+    if ($gpPatient->hasLabelChanged()) {
         if (isset($gpPatient->patient_id_wc)) {
             // NOTICE We intentionally no longer push these changes to woocommerce
             // wc_update_patient($patient);
@@ -234,6 +228,20 @@ function cp_patient_updated(array $updated) : ?array
                 $updated
             );
         }
+
+        // Put the new items into the wp meta
+        $gpPatient->updateWpMeta('cp_first_name', $gpPatient->first_name);
+        $gpPatient->updateWpMeta('cp_last_name', $gpPatient->last_name);
+        $gpPatient->updateWpMeta('cp_birth_date', $gpPatient->birth_date);
+
+        // Create a salesforce Event
+        $LabelChangedEvent = new CarepointLabelChanged();
+        $LabelChangedEvent->setAdditionalData([
+            $gpPatient->oldValue('first_name'),
+            $gpPatient->oldValue('last_name'),
+            $gpPatient->oldValue('birth_date'),
+        ]);
+        $LabelChangedEvent->publish();
     }
 
     GPLog::resetSubroutineId();
