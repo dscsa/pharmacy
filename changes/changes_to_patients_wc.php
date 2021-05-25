@@ -33,7 +33,7 @@ function changes_to_patients_wc($new) {
     NOT old.patient_id_wc <=> new.patient_id_wc OR
     NOT (old.first_name <=> new.first_name AND patient_date_update > DATE_SUB(INTERVAL 10 MINUTE)) OR
     NOT (REPLACE(old.last_name, '*', '') <=> new.last_name AND patient_date_update > DATE_SUB(INTERVAL 10 MINUTE)) OR
-    NOT (old.birth_date <=> new.birth_date AND AND patient_date_update > DATE_SUB(INTERVAL 10 MINUTE)) OR
+    NOT (old.birth_date <=> new.birth_date AND patient_date_update > DATE_SUB(INTERVAL 10 MINUTE)) OR
     NOT old.patient_inactive <=> new.patient_inactive OR
     NOT old.patient_date_registered <=> new.patient_date_registered OR
     NOT old.medications_other <=> new.medications_other OR
