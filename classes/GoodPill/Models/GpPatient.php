@@ -196,15 +196,13 @@ class GpPatient extends Model
      */
     public function needsAddressUpdate() : bool
     {
-        if (!$this->hasAnyFieldChanged()) {
-            return false;
-        }
-
-        return (
-            $this->hasFieldChanged('patient_address1')
-            || $this->hasFieldChanged('patient_address2')
-            || $this->hasFieldChanged('patient_state')
-            || $this->hasFieldChanged('patient_zip')
+        return $this->hasAnyFieldChanged(
+            [
+                'patient_address1',
+                'patient_address2',
+                'patient_state',
+                'patient_zip'
+            ]
         );
     }
 
@@ -242,14 +240,12 @@ class GpPatient extends Model
      */
     public function hasLabelChanged() : bool
     {
-        if (!$this->hasAnyFieldChanged()) {
-            return false;
-        }
-
-        return (
-            $this->hasFieldChanged('first_name')
-            || $this->hasFieldChanged('last_name')
-            || $this->hasFieldChanged('birth_date')
+        return $this->hasAnyFieldChanged(
+            [
+                'first_name',
+                'last_name',
+                'birth_date'
+            ]
         );
     }
 

@@ -14,8 +14,8 @@ use GoodPill\Models\GpPatient;
 
 /**
  * Handle all the possible changes to Carepoint Patiemnts
- * @param  array $changes  An array of arrays with deledted, created, and
- *      updated elements
+ * @param  array $changes An array of arrays with deledted, created, and
+ *      updated elements.
  * @return void
  */
 function update_patients_cp(array $changes) : void
@@ -59,7 +59,7 @@ function update_patients_cp(array $changes) : void
 
 /**
  * Handle and updated cp patients
- * @param  array $updated  The data that is updated
+ * @param  array $updated The data that is updated.
  * @return null|array      The updated data or null if returned early
  *
  */

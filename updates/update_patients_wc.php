@@ -244,7 +244,7 @@ function wc_patient_updated(array $updated)
         upsert_patient_cp($mssql, "EXEC SirumWeb_AddUpdatePatEmail '$updated[patient_id_cp]', '$updated[email]'");
     }
 
-    if ($gpPatient->needsAddressUpdate()) {
+    if ($gpPatient->hasAddressChanged()) {
         if ($gpPatient->newAddressInvalid()) {
             AuditLog::log(
                 sprintf(
