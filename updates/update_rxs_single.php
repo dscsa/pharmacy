@@ -501,7 +501,7 @@ function update_rxs_single($changes)
             $patient = load_full_patient($created, $mysql);
 
             //Added from Fax/Call so order was not automatically created
-            if ($patient && ! $item['invoice_number']) {
+            if ($patient && ! $item['invoice_number'] && ! $patient[0]['pharmacy_name']) {
                 $groups = group_drugs($patient, $mysql);
                 GPLog::warn('Adam testing Needs Form Notice for Rx Created without Order', [
                     'patient' => $patient,
