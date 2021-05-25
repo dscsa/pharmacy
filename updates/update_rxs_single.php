@@ -497,6 +497,19 @@ function update_rxs_single($changes)
 
                 helper_update_payment($order, $reason, $mysql);
             }
+
+            $patient = load_full_patient($created, $mysql);
+
+            //Added from Fax/Call so order was not automatically created
+            if ($patient && ! $item['invoice_number']) {
+                $groups = group_drugs($patient, $mysql);
+                GPLog::warn('Adam testing Needs Form Notice for Rx Created without Order', [
+                    'patient' => $patient,
+                    'groups' => $groups,
+                    'item' => $item
+                ]);
+                //needs_form_notice($groups);
+            }
         }
     }
     /* Finish Created Loop #2 */
