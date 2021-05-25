@@ -9,7 +9,23 @@ function where_to_set_clause($where_clause) {
 }
 
 function where_to_select_clause($where_clause) {
-  return str_replace([' COLLATE latin1_general_cs', 'NOT ', '<=> new.', ' OR'], ['', '', 'as old_', ','], $where_clause);
+  return str_replace(
+      [ ') OR -- DONOTREMOVECOMMENT',
+        '(new.patient_date_updated > DATE_SUB(NOW(), INTERVAL 10 MINUTE) AND',
+        ' COLLATE latin1_general_cs',
+        'NOT ',
+        '<=> new.',
+        ' OR'],
+      [
+          ',',
+          '',
+          '',
+          '',
+          'as old_',
+          ','
+      ],
+      $where_clause
+  );
 }
 
 function join_clause(&$id) {
