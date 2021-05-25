@@ -22,7 +22,7 @@ function import_wc_patients() {
     user_email as email,
     RIGHT(user_login, 10) as birth_date,
     MAX(user_registered) as patient_date_registered,
-    MAX(CASE WHEN wp_usermeta.meta_key = 'last_update' THEN FROM_UNIXTIME(wp_usermeta.meta_value) ELSE NULL) as patient_date_updated,
+    MAX(CASE WHEN wp_usermeta.meta_key = 'last_update' THEN FROM_UNIXTIME(wp_usermeta.meta_value) ELSE NULL END) as patient_date_updated,
     MAX(CASE
       WHEN wp_usermeta.meta_key = 'wp_capabilities' AND wp_usermeta.meta_value = 'a:1:{s:8:\"customer\";b:1;}' THEN NULL
       WHEN wp_usermeta.meta_key = 'wp_capabilities' AND wp_usermeta.meta_value = 'a:1:{s:8:\"inactive\";b:1;}' THEN 'Inactive'
