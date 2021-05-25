@@ -518,6 +518,12 @@ function wc_patient_updated(array $updated)
             );
 
             // Store this in the comment on the patient
+            $cpPatient              = $gpPatient->cpPat;
+            $gpComments             = $cpPatient->getGpComments();
+            $gpComments->first_name = $updated['first_name'];
+            $gpComments->last_name  = $updated['last_name'];
+            $gpComments->birth_date = $updated['birth_date'];
+            $cpPatient->setGpComments($gpComments);
         }
     } // END If key fields have changes
 

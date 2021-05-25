@@ -3,6 +3,7 @@
 namespace GoodPill\Models\Carepoint;
 
 use Illuminate\Database\Eloquent\Model;
+use GoodPill\Utilities\GpComments;
 
 /**
  * Class CpRX
