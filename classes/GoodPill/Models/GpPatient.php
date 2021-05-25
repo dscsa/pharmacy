@@ -260,6 +260,18 @@ class GpPatient extends Model
         );
     }
 
+    public function hasLabelChanged() {
+        if (!$this->hasAnyFieldChanged()) {
+            return false;
+        }
+
+        return (
+            $this->hasFieldChanged('first_name')
+            || $this->hasFieldChanged('last_name')
+            || $this->hasFieldChanged('birth_date')
+        );
+    }
+
     /**
      * Update Comm Calendar event
      * @param  string $type   The type of event.

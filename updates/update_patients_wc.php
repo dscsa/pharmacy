@@ -488,12 +488,7 @@ function wc_patient_updated(array $updated)
             "Patient Set Incorrectly",
             ['changed' => $changed, 'updated' => $updated]
         );
-    } elseif (
-        ($updated['first_name'] !== $updated['old_first_name']
-        || $updated['last_name'] !== $updated['old_last_name']
-        || $updated['birth_date'] !== $updated['old_birth_date']
-        || $updated['language'] !== $updated['old_language']) && $updated['']
-    ) {
+    } elseif ($gpPatient->hasLabelChanged()) {
         $is_patient_match = is_patient_match($updated);
         if ($is_patient_match) {
             /*
@@ -511,8 +506,9 @@ function wc_patient_updated(array $updated)
 
             AuditLog::log(
                 sprintf(
-                    "Patient has updated identifying fields to
-                     First Name: %s, Last name: %s, Birth Date: %s, Language %s",
+                    "Patient has updated WooCommerce identifying fields to
+                     First Name: %s, Last name: %s, Birth Date: %s, Language %s.
+                     This patients will have mismatched profiles mmoving forward",
                     $updated['first_name'],
                     $updated['last_name'],
                     $updated['birth_date'],
@@ -520,82 +516,8 @@ function wc_patient_updated(array $updated)
                 ),
                 $updated
             );
-            //Important for a "'" in names
-            $first_name = escape_db_values($updated['first_name']);
-            $last_name  = escape_db_values($updated['last_name']);
 
-            $sp = "EXEC SirumWeb_AddUpdatePatient '$first_name', '$last_name', '$updated[birth_date]', '$updated[phone1]', '$updated[language]'";
-            GPLog::notice(
-                "Patient Name/Identity Updated.  If called repeatedly
-                there is likely a two matching CP users",
-                [ 'sp' => $sp, 'changed' => $changed ]
-            );
-
-            upsert_patient_cp($mssql, $sp);
-        } elseif (
-            $updated['patient_id_cp']
-            && $updated['patient_id_wc']
-        ) {
-            // This user has previously been matched, so we are going to
-            // copy data from CP to WC
-            $gpdb = GoodPill::getConnection();
-            $pdo = $gpdb->prepare(
-                "SELECT first_name,
-                        last_name,
-                        birth_date,
-                        :patient_id_wc as patient_id_wc
-                    FROM gp_patients_cp
-                    WHERE patient_id_cp = :patient_id_cp
-                "
-            );
-
-            $pdo->bindParam(':patient_id_cp', $updated['patient_id_cp'], \PDO::PARAM_STR);
-            $pdo->bindParam(':patient_id_wc', $updated['patient_id_wc'], \PDO::PARAM_STR);
-            $pdo->execute();
-
-            if ($cp_patient = $pdo->fetch()) {
-                GPLog::notice(
-                    "Forced Carepoint details onto WooCommerce user",
-                    [
-                        'updated'          => $updated,
-                        'changed'          => $changed,
-                        'cp_patient'       => $cp_patient,
-                        'is_patient_match' => $is_patient_match
-                      ]
-                );
-
-                wc_update_patient($cp_patient);
-                // $subject = "Changed patient name to match details from CarePoint";
-                // create_event(
-                //     $subject,
-                //     [
-                //          [
-                //              "subject"   => $subject,
-                //              "body"      => "We found a WooCommerce user that had previous been matched to Carepoint.
-                //                              Their WooCommerce identifiers didn't match, so we updated WooCommerce
-                //                              with the details from Carepoint.  Their previous WooCommerce username was:
-                //                              {$updated['old_first_name']} {$updated['old_last_name']} {$updated['old_birth_date']}.
-                //                              Their new WooCommerce username was:
-                //                              {$updated['first_name']} {$updated['last_name']} {$updated['birth_date']}.
-                //                              Their WooCommerce id is {$updated['patient_id_wc']} and their
-                //                              Carepoint ID is {$updated['patient_id_cp']}",
-                //              "contact"   => "{$updated['first_name']} {$updated['last_name']} {$updated['birth_date']}",
-                //              "assign_to" => ".Update Name In Guardian",
-                //              "due_date"  => date('Y-m-d')
-                //          ]
-                //     ]
-                // );
-            }
-        } else {
-            $msg = "update_patients_wc: patient name changed but now count(matches) !== 1";
-            GPLog::critical(
-                $msg,
-                [
-                    'updated'          => $updated,
-                    'changed'          => $changed,
-                    'is_patient_match' => $is_patient_match
-                  ]
-            );
+            // Store this in the comment on the patient
         }
     } // END If key fields have changes
 
