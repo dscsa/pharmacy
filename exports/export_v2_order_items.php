@@ -856,20 +856,22 @@ function group_by_ndc($rows, $item)
         $ndcs[$ndc]['rows'] = isset($ndcs[$ndc]['rows']) ? $ndcs[$ndc]['rows'] : [];
         $ndcs[$ndc]['prepack_qty'] = isset($ndcs[$ndc]['prepack_qty']) ? $ndcs[$ndc]['prepack_qty'] : 0; //Hacky to set property on an array
 
-        $not_purchased_stock = (months_between(date('Y-m-d'), $row['doc']['qty']['to']) < IS_MFG_EXPIRATION);
+        $months_until_exp    = months_between($item['item_date_added'], $row['doc']['qty']['to']);
+        $not_purchased_stock = ($months_until_exp < IS_MFG_EXPIRATION);
 
         if (strlen($row['doc']['bin']) == 3 AND $not_purchased_stock) {
             $ndcs[$ndc]['prepack_qty'] += $row['doc']['qty']['to'];
 
             if ( ! @$ndcs[$ndc]['prepack_exp'] or $row['doc']['exp']['to'] < @$ndcs[$ndc]['prepack_exp']) {
+                GPLog::warn('group_by_ndc: Prepack and setting expiration', [$item['item_date_added'], $row['doc']['qty']['to'], $months_until_exp, $not_purchased_stock, $ndcs[$ndc]['prepack_exp'], $row['doc']['exp']['to'], $ndcs[$ndc]['prepack_exp'], $ndc, $row, $ndcs]);
                 $ndcs[$ndc]['prepack_exp'] = $row['doc']['exp']['to'];
             } else {
-                GPLog::error('Prepack but not setting expiration', $ndcs[$ndc]['prepack_exp'], $row['doc']['exp']['to'], $ndcs[$ndc]['prepack_exp'], $ndc, $row, $ndcs);
+                GPLog::error('group_by_ndc: Prepack but not setting expiration', [$item['item_date_added'], $row['doc']['qty']['to'], $months_until_exp, $not_purchased_stock, $ndcs[$ndc]['prepack_exp'], $row['doc']['exp']['to'], $ndcs[$ndc]['prepack_exp'], $ndc, $row, $ndcs]);
             }
         }
 
         if ($ndcs[$ndc]['prepack_qty'] > 0 AND ! $ndcs[$ndc]['prepack_exp'])
-            GPLog::error('Prepack has a quantity but no expiration!?', $ndc, $row, $ndcs);
+            GPLog::error('Prepack has a quantity but no expiration!?', [$ndc, $row, $ndcs]);
 
         $ndcs[$ndc]['rows'][] = $row['doc'];
     }
