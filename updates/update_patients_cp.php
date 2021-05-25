@@ -84,7 +84,7 @@ function cp_patient_updated(array $updated) : ?array
         return $updated;
     }
 
-    $gpPatient->setChanges($updated);
+    $gpPatient->setGpChanges($updated);
 
     GPLog::debug("Readable Patient Changes", ['changes' => $gpPatient->getChangeStrings()]);
 
@@ -202,7 +202,7 @@ function cp_patient_updated(array $updated) : ?array
                 $updated['payment_card_last4'],
                 $updated['payment_card_date_expired']
             ),
-            ['updated' => $gpPatient->getChanges()]
+            ['updated' => $gpPatient->getGpChanges()]
         );
 
         $gpPatient->updateEvents('Autopay Reminder', 'last4', $gpPatient->payment_card_last4);

@@ -199,6 +199,11 @@ class GpPatient extends Model
         $this->attributes['last_name'] = strtoupper($value);
     }
 
+
+    /*
+        Conditionals
+     */
+
     /**
      * Test to see if the patient has both wc and cp ids
      * @return boolean
@@ -211,10 +216,55 @@ class GpPatient extends Model
     }
 
     /**
+     * Has the addres changed
+     * @return boolean  True if some of the address fields are different
+     */
+    public function needsAddressUpdate() {
+        if (!$this->hasAnyFieldChanged()) {
+            return false;
+        }
+
+        return (
+            $this->hasFieldChanged('patient_address1')
+            || $this->hasFieldChanged('patient_address2')
+            || $this->hasFieldChanged('patient_state')
+            || $this->hasFieldChanged('patient_zip')
+        );
+    }
+
+    /**
+     * Is the new address valid?
+     * @return boolean  True if the zip is the wrong length, the state is the wrong length or any of
+     */
+    public function newAddressInvalid()
+    {
+        if (!$this->hasAnyFieldChanged()) {
+            return false;
+        }
+
+        return (
+            empty($this->patient_address1)
+            || empty($this->patient_city)
+            || (
+                empty($this->patient_address2)
+                && !empty($this->oldValue('patient_address2'))
+            )
+            || (
+                strlen($this->patient_state) != 2
+                && strlen($this->oldValue('patient_state')) == 2
+            )
+            || (
+                strlen($this->patient_zip) != 5
+                && strlen($this->oldValue('patient_zip')) == 5
+            )
+        );
+    }
+
+    /**
      * Update Comm Calendar event
-     * @param  string $type   The type of event
-     * @param  string $change What we are changing
-     * @param  mixed  $value  The new value
+     * @param  string $type   The type of event.
+     * @param  string $change What we are changing.
+     * @param  mixed  $value  The new value.
      * @return void
      */
     public function updateEvents(string $type, string $change, $value) : void
