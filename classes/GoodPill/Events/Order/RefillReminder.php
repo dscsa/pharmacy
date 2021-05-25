@@ -44,6 +44,7 @@ class RefillReminder extends OrderEvent
     {
         return null;
     }
+
     /**
      * Publish the events
      * Cancel the any events that are not longer needed and push this event to the comm calendar
