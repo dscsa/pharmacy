@@ -31,9 +31,9 @@ function changes_to_patients_wc($new) {
   $id    = "patient_id_wc";
   $where = "
     NOT old.patient_id_wc <=> new.patient_id_wc OR
-    NOT old.first_name <=> new.first_name OR
-    NOT REPLACE(old.last_name, '*', '') <=> new.last_name OR
-    NOT old.birth_date <=> new.birth_date OR
+    NOT (old.first_name <=> new.first_name AND patient_date_update > DATE_SUB(INTERVAL 10 MINUTE)) OR
+    NOT (REPLACE(old.last_name, '*', '') <=> new.last_name AND patient_date_update > DATE_SUB(INTERVAL 10 MINUTE)) OR
+    NOT (old.birth_date <=> new.birth_date AND AND patient_date_update > DATE_SUB(INTERVAL 10 MINUTE)) OR
     NOT old.patient_inactive <=> new.patient_inactive OR
     NOT old.patient_date_registered <=> new.patient_date_registered OR
     NOT old.medications_other <=> new.medications_other OR
@@ -59,7 +59,6 @@ function changes_to_patients_wc($new) {
     NOT old.patient_state <=> new.patient_state OR
     NOT old.patient_zip <=> new.patient_zip OR
     NOT old.language <=> new.language OR
-
     NOT old.allergies_none <=> new.allergies_none OR
     NOT old.allergies_tetracycline <=> new.allergies_tetracycline OR
     NOT old.allergies_cephalosporins <=> new.allergies_cephalosporins OR
