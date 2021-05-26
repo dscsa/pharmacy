@@ -214,19 +214,7 @@ class GpOrderItem extends Model
      */
     public function isPended() : bool
     {
-        $order = $this->order;
-        $pend_group = $order->pend_group;
-
-        if (!$pend_group) {
-            return false;
-        }
-
-        $drug_generic = urlencode($this->drug_generic);
-
-        $pend_url = "/account/8889875187/pend/{$pend_group->pend_group}/{$drug_generic}";
-        $results  = v2_fetch($pend_url, 'GET');
-
-        return (!empty($results) && @$results[0]['next'][0]['pended']);
+        return (!empty($this->getPickList()));
     }
 
     /*
@@ -304,6 +292,47 @@ class GpOrderItem extends Model
     {
         $legacy_item = $this->getLegacyData();
         return v2_pend_item($legacy_item, $reason);
+    }
+
+    /**
+     * Query v2 to see if there is already a drug pended for this order
+     * @return boolean [description]
+     */
+    public function getPickList() : ?array
+    {
+        $order = $this->order;
+        $pend_group = $order->pend_group;
+
+        if (!$pend_group) {
+            return false;
+        }
+
+        $drug_generic = rawurlencode($this->drug_generic);
+
+        $pend_url = "/account/8889875187/pend/{$pend_group->pend_group}/{$drug_generic}";
+        $results  = v2_fetch($pend_url, 'GET');
+
+        if (!empty($results)) {
+            return $results[0]['next'][0]['pended'];
+        }
+
+        return null;
+    }
+
+    /**
+     * Select NDC
+     */
+    public function selectNdc() : bool
+    {
+        $pick_list = $this->getPickList();
+
+        if (empty($pick_list)) {
+            return false;
+        }
+
+
+        // Load the NDC object and search to see if I can find the correct one
+        // If I find one, update the RX to have the newly found NDC
     }
 
     /**
