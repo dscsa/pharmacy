@@ -221,7 +221,7 @@ class GpOrderItem extends Model
             return false;
         }
 
-        $drug_generic = urlencode($this->drug_generic);
+        $drug_generic = rawurlencode($this->drug_generic);
 
         $pend_url = "/account/8889875187/pend/{$pend_group->pend_group}/{$drug_generic}";
         $results  = v2_fetch($pend_url, 'GET');

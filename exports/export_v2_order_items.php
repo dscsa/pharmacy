@@ -413,7 +413,7 @@ function get_item_pended_group($item, $include_picked = false)
     ];
 
     foreach ($possible_pend_groups as $type => $group) {
-        $drug_generic = urlencode($item['drug_generic']);
+        $drug_generic = rawurlencode($item['drug_generic']);
         $pend_url = "/account/8889875187/pend/{$group}/{$drug_generic}";
         $results  = v2_fetch($pend_url, 'GET');
         if (!empty($results) &&
@@ -633,7 +633,7 @@ function unpend_pick_list($item)
         );
         do { // Keep doing until we can't find a pended items
             $loop_count = (isset($loop_count) ? ++$loop_count : 1);
-            $drug_generic = urlencode($item['drug_generic']);
+            $drug_generic = rawurlencode($item['drug_generic']);
             if ($results = v2_fetch("/account/8889875187/pend/{$pend_group}/{$drug_generic}", 'DELETE')) {
                 CLiLog::info(
                     sprintf(
