@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use GoodPill\Models\GpOrder;
 use GoodPill\Models\GpPatient;
 use GoodPill\Models\GpRxsSingle;
+use GoodPill\Models\v2\PickListItem;
 
 require_once "helpers/helper_full_item.php";
 require_once "helpers/helper_appsscripts.php";
@@ -171,6 +172,8 @@ class GpOrderItem extends Model
         'sync_to_date_min_days_stock_rxs'
     ];
 
+    protected $pick_list;
+
     /**
      * Relationship to an order entity
      * foreignKey - invoice_number
@@ -214,7 +217,12 @@ class GpOrderItem extends Model
      */
     public function isPended() : bool
     {
-        return (!empty($this->getPickList()));
+        return ($this->getPickList()->isPended());
+    }
+
+    public function isPicked() : bool
+    {
+        return ($this->getPickList()->isPicked());
     }
 
     /*
@@ -298,25 +306,20 @@ class GpOrderItem extends Model
      * Query v2 to see if there is already a drug pended for this order
      * @return boolean [description]
      */
-    public function getPickList() : ?array
+    public function getPickList() : ?PickListItem
     {
         $order = $this->order;
         $pend_group = $order->pend_group;
 
         if (!$pend_group) {
-            return false;
+            return null;
         }
 
-        $drug_generic = rawurlencode($this->drug_generic);
-
-        $pend_url = "/account/8889875187/pend/{$pend_group->pend_group}/{$drug_generic}";
-        $results  = v2_fetch($pend_url, 'GET');
-
-        if (!empty($results)) {
-            return $results[0]['next'][0]['pended'];
+        if (empty($this->pick_list)) {
+            $this->pick_list = new PickListItem($pend_group, $this->drug_generic);
         }
 
-        return null;
+        return $this->pick_list;
     }
 
     /**
@@ -325,6 +328,8 @@ class GpOrderItem extends Model
     public function selectNdc() : bool
     {
         $pick_list = $this->getPickList();
+
+        var_dump($pick_list);
 
         if (empty($pick_list)) {
             return false;
