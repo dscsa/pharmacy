@@ -38,13 +38,24 @@ class Created extends OrderEvent
      */
     public function publish() : void
     {
+        $rxs = [];
+
+        $this->order->items->each(function($item) use (&$rxs) {
+            $rxs[] = [
+                "name" => $item->getDrugName().' - '.$item->rxs->rx_message_text,
+                "price_dispensed" => $item->price_dispensed,
+                "days_dispensed" => $item->days_dispensed,
+            ];
+        });
+        $this->order_data['ordered_items'] = $rxs;
+
         // Can't send notifications if the order doesn't exist
         if (!$this->order) {
             return;
         }
 
-        $patient = $this->order->patient;
-        $this->publishEvent();
+        //$patient = $this->order->patient;
+        //$this->publishEvent();
         /*
         $patient->cancelEvents(
             [
@@ -55,5 +66,6 @@ class Created extends OrderEvent
 
         $patient->createEvent($this);
         */
+        $this->publishEvent();
     }
 }

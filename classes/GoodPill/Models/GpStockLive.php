@@ -87,4 +87,5 @@ class GpStockLive extends Model
         'months_inventory',
         'stock_level'
     ];
+
 }

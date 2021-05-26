@@ -335,21 +335,33 @@ class GpOrderItem extends Model
         return $this->days_dispensed_actual ?: $this->days_dispensed_default;
     }
 
+    /**
+     * Get the price dispensed computed attribute
+     * @return float
+     */
     public function getPriceDispensedAttribute(): float
     {
-        $price_per_month = $this->price_per_month;
+        //  Need to get the price_per_month from stock live table
+        if ($this->rxs->stock) {
+            $price_per_month = $this->rxs->stock->price_per_month;
+        } else {
+            $price_per_month = 0;
+        }
+
         $price = ceil($this->days_dispensed * $price_per_month / 30);
 
-        if ($price > 0) {
+        if ($price > 80) {
+            /*
             GPLog::debug(
-                sprintf(
-                    "Setting patient %s patient_inactive status to %s on WordPress User %s",
-                    $this->patient_id_cp,
-                    $this->patient_inactive,
-                    $this->patient_id_wc
-                ),
-                ['patient_id_cp' => $this->patient_id_cp]
+                'GpOrderItem: price_dispensed is too high',
+                [
+                    'invoice_number' =>  $this->invoice_number,
+                    'drug_name' => $this->drug_name,
+                    'rx_number' => $this->rx_number,
+                ]
             );
+            */
         }
+        return $price;
     }
 }

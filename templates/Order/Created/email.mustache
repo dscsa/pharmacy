@@ -37,16 +37,16 @@
 {{/refills_used}}
 
 
-{{#filled}}
+{{#ordered_items}}
 <p>
     <u>These Rxs will be included once we confirm their availability:</u>
     <ul>
         {{#rxs}}
-            <li>{{name}}</li>
+            <li>{{name}}, {{price_dispensed}} for {{days_dispensed}} days</li>
         {{/rxs}}
     </ul>
 </p>
-{{/filled}}
+{{/ordered_items}}
 <p>Thanks for choosing Good Pill!<br>
 The Good Pill Team</p>
 
