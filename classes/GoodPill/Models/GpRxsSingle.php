@@ -179,12 +179,23 @@ class GpRxsSingle extends Model
     }
 
     /**
+     * Loads the GpRxsGrouped data into an rxs single item
+     * Because there is no traditional relationship that laravel can make, we have to pseudo-load the data
+     * When inspecting an order item, if you fetch the rxs for that item you would need to call this function
+     * to apply the grouped model into the rxs object
+     *
+     */
+    public function grouped()
+    {
+        $this->grouped = GpRxsGrouped::where('rx_numbers', 'like', "%{$this->rx_number},")->first();
+    }
+
+    /**
      * Get the drug that is associated with this RX
-     * @return GpDrug|null
+     * @return \GoodPill\Models\GpDrugs|null
      */
     public function getDrugAttribute() : ?GpDrugs
     {
-
         if (!$this->rx_gsn) {
             return null;
         }
