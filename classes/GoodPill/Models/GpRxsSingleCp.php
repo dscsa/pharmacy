@@ -46,7 +46,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property Carbon $rx_date_changed
  * @property Carbon $rx_date_expired
  *
- * @package App\Models
+ * @package GoodPill\Models
  */
 class GpRxsSingleCp extends Model
 {

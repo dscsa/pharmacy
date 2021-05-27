@@ -8,7 +8,8 @@ use Illuminate\Database\Eloquent\Model;
 use GoodPill\Models\GpOrder;
 use GoodPill\Models\GpPatient;
 use GoodPill\Models\GpRxsSingle;
-use GoodPill\Models\v2\PickListItem;
+use GoodPill\Models\v2\PickListDrug;
+use GoodPill\Models\Carepoint\CpFdrNdc;
 
 require_once "helpers/helper_full_item.php";
 require_once "helpers/helper_appsscripts.php";
@@ -174,6 +175,10 @@ class GpOrderItem extends Model
 
     protected $pick_list;
 
+    /*
+        ## RELATIONSHIPS
+     */
+
     /**
      * Relationship to an order entity
      * foreignKey - invoice_number
@@ -208,7 +213,7 @@ class GpOrderItem extends Model
     }
 
     /*
-        Conditionals
+        ## CONDITIONALS
      */
 
     /**
@@ -220,13 +225,17 @@ class GpOrderItem extends Model
         return ($this->getPickList()->isPended());
     }
 
+    /**
+     * Has the picklist been picked
+     * @return bool True if all of the item on the picklist are picked
+     */
     public function isPicked() : bool
     {
         return ($this->getPickList()->isPicked());
     }
 
     /*
-      Accessors
+        ## ACCESSORS
      */
 
     /**
@@ -280,9 +289,34 @@ class GpOrderItem extends Model
     }
 
     /**
+     * Computed property to get the `refills_dispensed` field
+     * @TODO - Figure out if this field can be queried directly
+     * @TODO - Original function could return empty/null?
+     * @return float|null
+     */
+    public function getRefillsDispensedAttribute() : ?float
+    {
+        if ($this->refills_dispensed_actual) {
+            return round($this->refills_dispensed_actual, 2);
+        } elseif ($this->refills_dispensed_default) {
+            return round($this->refills_dispensed_default, 2);
+        } elseif ($this->refills_total) {
+            return round($this->refills_total, 2);
+        } else {
+            return null;
+        }
+    }
+
+
+    /*
+        ## PENDING RELATED
+     */
+
+    /**
      * Pend the item in V2
-     * @param  string $reason Optional. The reason we are pending the Item.
-     * @param  boolean $force Optional. Force the pend to happen even if we think it is pended in goodpill
+     * @param  string  $reason Optional. The reason we are pending the Item.
+     * @param  boolean $force  Optional. Force the pend to happen even if we think
+     *      it is pended in goodpill.
      * @return array
      */
     public function pendItem(string $reason = '', bool $force = false) : ?array
@@ -306,7 +340,7 @@ class GpOrderItem extends Model
      * Query v2 to see if there is already a drug pended for this order
      * @return boolean [description]
      */
-    public function getPickList() : ?PickListItem
+    public function getPickList() : ?PickListDrug
     {
         $order = $this->order;
         $pend_group = $order->pend_group;
@@ -316,46 +350,132 @@ class GpOrderItem extends Model
         }
 
         if (empty($this->pick_list)) {
-            $this->pick_list = new PickListItem($pend_group, $this->drug_generic);
+            $this->pick_list = new PickListDrug($pend_group, $this->drug_generic);
         }
 
         return $this->pick_list;
     }
 
     /**
-     * Select NDC
+     * Look for a matching NDC in carepoint and update the RX with the new NDC
+     * @param  null|string $ndc  If null, we will attempt to get the NDC for the pended data.
+     * @param  null|string $gsns If null, we will use the gsn from the pended data.  If there isn't
+     *      any pended data, we will use the gsns from the rxs.
+     * @return boolean True if a ndc was found and the RX was updated
      */
-    public function selectNdc() : bool
+    public function updateCPWithNDC(?string $ndc = null, ?string $gsns = null) : bool
     {
-        $pick_list = $this->getPickList();
+        $found_ndc = $this->searchCpNdcs($ndc, $gsns);
 
-        var_dump($pick_list);
+        // We have an ndc so lets load the RX and lets update the comment
+        if ($found_ndc) {
+            $cprx = CpRx::where('script_no', $this->rx_number)->first();
+            if ($cprx) {
+                // Get the comments to see if there is an og_ndc.
+                $gpComments = new GpComments($cprx->cmt);
 
-        if (empty($pick_list)) {
-            return false;
+                // If there isn't move the current NDC to the og_ndc comment
+                if (!isset($gpComments->og_ndc)) {
+                    $gpComments->og_ndc = $cprx->ndc;
+                    $cprx->cmt = $gpComments->toString();
+                }
+
+                // Update the current NDC
+                $cprx->ndc = $found_ndc->ndc;
+
+                // Save the CpRx
+                $cprx->save();
+                return true;
+            }
         }
-
 
         // Load the NDC object and search to see if I can find the correct one
         // If I find one, update the RX to have the newly found NDC
+        return false;
     }
 
     /**
-     * Computed property to get the `refills_dispensed` field
-     * @TODO - Figure out if this field can be queried directly
-     * @TODO - Original function could return empty/null?
-     * @return float|null
+     * Attempt to find a matching ndc in carepoint
+     * @param  null|string $ndc  If null, we will attempt to get the NDC for the pended data.
+     * @param  null|string $gsns If null, we will use the gsn from the pended data.  If there isn't
+     *      any pended data, we will use the gsns from the rxs.
+     * @return null|CpFdrNdc
      */
-    public function getRefillsDispensedAttribute() : ?float
+    public function searchCpNdcs(?string $ndc = null, ?string $gsns = null) : ?CpFdrNdc
     {
-        if ($this->refills_dispensed_actual) {
-            return round($this->refills_dispensed_actual, 2);
-        } elseif ($this->refills_dispensed_default) {
-            return round($this->refills_dispensed_default, 2);
-        } elseif ($this->refills_total) {
-            return round($this->refills_total, 2);
-        } else {
+        if (is_null($ndc)) {
+            if (!$this->isPended()) {
+                return null;
+            }
+
+            // Get the ndc or quit
+            $ndc = $this->getPickList()->getNdc();
+
+            if (is_null($ndc)) {
+                return null;
+            }
+        }
+
+        if (is_null($gsns)) {
+            if ($this->isPended()) {
+                $gsns = $this->getPickList()->getGsns();
+            } else {
+                $gsns = $this->rxs->drug_gsns;
+            }
+        }
+
+        $ndc_parts = explode('-', $ndc);
+
+        // If se don't have enough parts we should leave
+        if (count($ndc_parts) < 2) {
             return null;
         }
+
+        $ndc_parts[0] = str_pad($ndc_parts[0], 5, '0', STR_PAD_LEFT);
+        $ndc_parts[1] = str_pad($ndc_parts[1], 4, '0', STR_PAD_LEFT);
+
+        /*
+            Get the various NDC's we want to use in the query
+         */
+
+        $ndcs_to_test = [];
+
+        // Striaght Proper padding
+        $ndcs_to_test[] = str_pad($ndc_parts[0], 5, '0', STR_PAD_LEFT)
+                        . str_pad($ndc_parts[1], 4, '0', STR_PAD_LEFT)
+                        . '%';
+
+        // Failing that try padding the first and adding a 0 to the front and shifting the 5th
+        // digit off the middle 4 + gcn.  If that is a match, update
+        $ndcs_to_test[] = str_pad($ndc_parts[0], 5, '0', STR_PAD_LEFT)
+                        . substr(
+                            str_pad($ndc_parts[1], 5, '0', STR_PAD_RIGHT),
+                            0,
+                            4
+                        )
+                        . '%';
+
+        // Failing that try the first 5 padded + the gcn.  Take the matches and loop through to see
+        // if we can find an appropriate match based on the items found.
+        $ndcs_to_test[] = str_pad($ndc_parts[0], 5, '0', STR_PAD_LEFT)
+                        . '%';
+
+        /*
+            Loop through all the possible NDCS until we find a possible match
+         */
+
+        foreach ($ndcs_to_test as $test_ndc) {
+            $possible_ndcs = CpFdrNdc::where('ndc', 'like', $test_ndc)
+                ->whereIn('gcn_seqno', explode(',', $gsns))
+                ->orderBy('ndc', 'asc')
+                ->get();
+
+            // We've found some NDC's so lets just grab the first one
+            if ($possible_ndcs->count() > 0) {
+                return $possible_ndcs->first();
+            }
+        }
+
+        return null;
     }
 }

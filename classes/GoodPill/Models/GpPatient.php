@@ -19,57 +19,8 @@ require_once "dbs/mssql_cp.php";
 require_once "dbs/mysql_wc.php";
 
 /**
- * Class GpPatient
- *
- * @property int $patient_id_cp
- * @property int|null $patient_id_wc
- * @property string $first_name
- * @property string $last_name
- * @property Carbon $birth_date
- * @property string|null $patient_note
- * @property string|null $phone1
- * @property string|null $phone2
- * @property string|null $email
- * @property int|null $patient_autofill
- * @property string|null $pharmacy_name
- * @property string|null $pharmacy_npi
- * @property string|null $pharmacy_fax
- * @property string|null $pharmacy_phone
- * @property string|null $pharmacy_address
- * @property string|null $payment_card_type
- * @property string|null $payment_card_last4
- * @property Carbon|null $payment_card_date_expired
- * @property string|null $payment_method_default
- * @property string|null $payment_coupon
- * @property string|null $tracking_coupon
- * @property string|null $patient_address1
- * @property string|null $patient_address2
- * @property string|null $patient_city
- * @property string|null $patient_state
- * @property string|null $patient_zip
- * @property float|null $refills_used
- * @property string $language
- * @property string|null $allergies_none
- * @property string|null $allergies_cephalosporins
- * @property string|null $allergies_sulfa
- * @property string|null $allergies_aspirin
- * @property string|null $allergies_penicillin
- * @property string|null $allergies_erythromycin
- * @property string|null $allergies_codeine
- * @property string|null $allergies_nsaids
- * @property string|null $allergies_salicylates
- * @property string|null $allergies_azithromycin
- * @property string|null $allergies_amoxicillin
- * @property string|null $allergies_tetracycline
- * @property string|null $allergies_other
- * @property string|null $medications_other
- * @property Carbon $patient_date_added
- * @property Carbon|null $patient_date_registered
- * @property Carbon|null $patient_date_changed
- * @property Carbon $patient_date_updated
- * @property string|null $patient_inactive
- *
- * @package App\Models
+ * Class GpPatient  This is the central point of accessing patient data.  It should be used to
+ * get specific data from Carepoint, Goodpill and Wordpress tables
  */
 class GpPatient extends Model
 {
@@ -180,30 +131,59 @@ class GpPatient extends Model
     /*
      * Relationships
      */
+
+    /**
+     * Relationship to the goodpill.gp_orders table
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
     public function orders()
     {
         return $this->hasMany(GpOrder::class, 'patient_id_cp', 'patient_id_cp')
                     ->orderBy('invoice_number', 'desc');
     }
 
+    /**
+     * Relationship to the goodpill.wp_users table
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     */
     public function wcUser()
     {
         return $this->hasOne(WpUser::class, 'ID', 'patient_id_wc');
     }
 
     /**
+     * Relationship to the cph.cppat table
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     */
+    public function cpPat()
+    {
+        return $this->hasOne(CpPat::class, 'pat_id', 'patient_id_cp');
+    }
+
+    /*
      * Mutators
      */
-    public function setLastName($value)
+
+    /**
+     * Make sure the last name is always UPPERCASE
+     * @param string $name The last name of the patient.
+     * @return void
+     */
+    public function setLastName(string $name) : void
     {
-        $this->attributes['last_name'] = strtoupper($value);
+        $this->attributes['last_name'] = strtoupper($name);
     }
+
+
+    /*
+        Conditionals
+     */
 
     /**
      * Test to see if the patient has both wc and cp ids
      * @return boolean
      */
-    public function isMatched()
+    public function isMatched() : bool
     {
         return ($this->exists
                 && !empty($this->patient_id_cp)
@@ -211,10 +191,69 @@ class GpPatient extends Model
     }
 
     /**
+     * Has the addres changed
+     * @return boolean  True if some of the address fields are different
+     */
+    public function hasAddressChanged() : bool
+    {
+        return $this->hasAnyFieldChanged(
+            [
+                'patient_address1',
+                'patient_address2',
+                'patient_state',
+                'patient_zip'
+            ]
+        );
+    }
+
+    /**
+     * Is the new address valid?
+     * @return boolean  True if the zip is the wrong length, the state is the wrong length or any of
+     */
+    public function newAddressInvalid() : bool
+    {
+        if (!$this->hasAnyFieldChanged()) {
+            return false;
+        }
+
+        return (
+            empty($this->patient_address1)
+            || empty($this->patient_city)
+            || (
+                empty($this->patient_address2)
+                && !empty($this->oldValue('patient_address2'))
+            )
+            || (
+                strlen($this->patient_state) != 2
+                && strlen($this->oldValue('patient_state')) == 2
+            )
+            || (
+                strlen($this->patient_zip) != 5
+                && strlen($this->oldValue('patient_zip')) == 5
+            )
+        );
+    }
+
+    /**
+     * Has one of the fields that make up the patient label been changed
+     * @return boolean
+     */
+    public function hasLabelChanged() : bool
+    {
+        return $this->hasAnyFieldChanged(
+            [
+                'first_name',
+                'last_name',
+                'birth_date'
+            ]
+        );
+    }
+
+    /**
      * Update Comm Calendar event
-     * @param  string $type   The type of event
-     * @param  string $change What we are changing
-     * @param  mixed  $value  The new value
+     * @param  string $type   The type of event.
+     * @param  string $change What we are changing.
+     * @param  mixed  $value  The new value.
      * @return void
      */
     public function updateEvents(string $type, string $change, $value) : void
@@ -235,7 +274,7 @@ class GpPatient extends Model
 
     /**
      * Cancel the comm calendar events
-     * @param  array  $events The type of events to Cancel
+     * @param  array $events The type of events to Cancel.
      * @return void
      */
     public function cancelEvents(?array $events = []) : void
@@ -251,10 +290,7 @@ class GpPatient extends Model
 
     /**
      * Create a comm calendar event tied to this user
-     * @param  string  $type          The type of event
-     * @param  array   $event_body    The body of the event.  This should be a comm_array
-     * @param  integer $invoice       (Optional) The invoice Number
-     * @param  integer $hours_to_wait (Optional) How long to wait before to send it
+     * @param  GoodPill\Events\Event $event An object of the event class.
      * @return void
      */
     public function createEvent(Event $event) : void
@@ -267,7 +303,7 @@ class GpPatient extends Model
      * print the patient label.
      * @return string
      */
-    public function getPatientLabel()
+    public function getPatientLabel() : string
     {
         return sprintf(
             "%s %s %s",
