@@ -330,7 +330,7 @@ class GpOrderItem extends Model
      * Get the days dispensed computed attribute
      * @return float
      */
-    public function getDaysDispensedAttribute(): float
+    public function getDaysDispensedAttribute() : float
     {
         return $this->days_dispensed_actual ?: $this->days_dispensed_default;
     }
@@ -339,7 +339,7 @@ class GpOrderItem extends Model
      * Get the price dispensed computed attribute
      * @return float
      */
-    public function getPriceDispensedAttribute(): float
+    public function getPriceDispensedAttribute() : float
     {
         //  Need to get the price_per_month from stock live table
         if ($this->rxs->stock) {
@@ -349,9 +349,10 @@ class GpOrderItem extends Model
         }
 
         $price = ceil($this->days_dispensed * $price_per_month / 30);
-
+        /*
+         * removing until time to go live
         if ($price > 80) {
-            /*
+
             GPLog::debug(
                 'GpOrderItem: price_dispensed is too high',
                 [
@@ -360,8 +361,8 @@ class GpOrderItem extends Model
                     'rx_number' => $this->rx_number,
                 ]
             );
-            */
         }
+        */
         return $price;
     }
 }

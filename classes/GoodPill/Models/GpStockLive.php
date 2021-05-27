@@ -38,11 +38,33 @@ use Illuminate\Database\Eloquent\Model;
 class GpStockLive extends Model
 {
 
+    /**
+     * The primary_key for this item
+     * @var string
+     */
     protected $primaryKey = 'drug_generic';
+    /**
+     * The Table for this data
+     * @var string
+     */
     protected $table = 'gp_stock_live';
+
+    /**
+     * Does the database contain an incrementing field
+     * @var bool
+     */
     public $incrementing = false;
+
+    /**
+     * Does the database contain timestamp fields
+     * @var bool
+     */
     public $timestamps = false;
 
+    /**
+     * Fields that should be cast when they are set
+     * @var array
+     */
     protected $casts = [
         'avg_inventory' => 'float',
         'drug_ordered' => 'int',
@@ -62,6 +84,11 @@ class GpStockLive extends Model
         'zscore' => 'float',
     ];
 
+    /**
+     * Fields that represent database fields and
+     * can be set via the fill method
+     * @var array
+     */
     protected $fillable = [
         'avg_inventory',
         'last_inv_high_threshold',

@@ -152,6 +152,22 @@ abstract class OrderEvent extends Event
 
                 $data['no_refill'] = ['rxs' => $rxs];
             }
+
+            /********************* Order Created Data *****************/
+            $rxs = [];
+
+            if ($this->order->items->count() > 0)
+            {
+                $this->order->items->each(function($item) use (&$rxs) {
+                    $rxs[] = [
+                        "name" => $item->getDrugName().' - '.$item->rxs->rx_message_text,
+                        "price_dispensed" => $item->price_dispensed,
+                        "days_dispensed" => $item->days_dispensed,
+                    ];
+                });
+                $this->order_data['ordered_items'] = $rxs;
+            }
+
             $this->order_data = $data;
         }
 

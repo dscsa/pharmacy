@@ -98,6 +98,7 @@ function refill_reminder_notice($groups)
         return;
     }
     /*
+     * Commentend out until ready to make live
     $gpOrder = GpOrder::where('invoice_number', $groups['ALL'][0]['invoice_number'])->first();
 
     if ($gpOrder) {
