@@ -52,10 +52,10 @@ class SigParser {
      * @param string $ch_test_file path to the json test file
      */
     function __construct($ch_test_file = '') {
-        $credentials = new Credentials($_ENV['AWS_ACCESS_KEY'], $_ENV['AWS_SECRET_KEY']);
+        $credentials = new Credentials(AWS_KEY, AWS_SECRET);
         $this->client = new ComprehendMedicalClient([
             'credentials' => $credentials,
-            'region' => 'us-west-2',
+            'region' => AWS_REGION,
             'version' => '2018-10-30'
         ]);
         $this->save_test_results = strlen($ch_test_file) > 0;
@@ -102,12 +102,8 @@ class SigParser {
     private function early_return($sig, $drugname, &$result) {
 
         // If its an inhaler, spray, cream, gel or eye drops, return a fixed value.
-        $fixed_drugnames_values = [
-            '/ (CREAM|INH|INHALER|SPR|SPRAY)$/i' => 3/90,
-            '/ (GEL)$/i' => 1,
-            '/(EYE DROP)/i' => 0.1,
-        ];
-        foreach ($fixed_drugnames_values as $regex => $qty_per_day) {
+        // See helper_constants.php
+        foreach (SIG_PARSER_FIXED_DRUGNAMES as $regex => $qty_per_day) {
             if (preg_match($regex, $drugname, $match)) {
                 $result = [
                     'sig_unit' => trim($match[1]),
