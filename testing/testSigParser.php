@@ -1,6 +1,13 @@
 <?php
 
-require 'parse_sigs.php';
+ini_set('memory_limit', '512M');
+ini_set('include_path', '/goodpill/webform');
+date_default_timezone_set('America/New_York');
+
+require_once 'vendor/autoload.php';
+require_once 'helpers/helper_laravel.php';
+
+use GoodPill\Utilities\SigParser;
 
 $correct_pairs = [
 
@@ -263,6 +270,14 @@ $correct_pairs = [
             "sig_unit" => "TAB"
         ]
     ],
+    "Take 1 to 3 tablets by mouth  weekly as directed as needed" => [
+        "drug_name" => "FUROSEMIDE 20MG TAB",
+        "expected" => [
+            "sig_qty" => 3 / 7 * DAYS_STD,
+            "sig_days" => DAYS_STD,
+            "sig_unit" => "TAB"
+        ]
+    ]
     // Puffs/inhalators can last much longer
     // "Inhale 2 puff(s) every 4 hours by inhalation route." => [
     //     "expected" => [
@@ -273,7 +288,7 @@ $correct_pairs = [
     // ]
 ];
 
-$parser = new SigParser("aws-ch-res/responses.json");
+$parser = new SigParser("aws-ch-responses.json");
 
 
 foreach($correct_pairs as $text => $props) {
@@ -288,34 +303,6 @@ foreach($correct_pairs as $text => $props) {
             assert($expected[$key] == $result[$key], $msg);
         }
     }
-}
-
-
-$host = "mysql-sirum-dw";
-$port = "3306";
-$username = "smartpill_dw";
-$password = "password";
-$database = "goodpill";
-
-mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
-$conn = mysqli_connect($host, $username, $password, $database);
-
-if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
-}
-
-$sigs = mysqli_query($conn, "SELECT rx_number, sig_actual, drug_name FROM gp_rxs_single_sampled");
-printf("Select returned %d rows.\n", $sigs->num_rows);
-foreach ($sigs as $sig) {
-    $parsed = $parser->parse($sig["sig_actual"], $sig["drug_name"]);
-    $sig_qty_per_day = $parsed["sig_qty"] / $parsed["sig_days"];
-
-    $query = "UPDATE gp_rxs_single_sampled SET 
-                    sig_qty_per_day_new=$sig_qty_per_day, 
-                    sig_unit=\"$parsed[sig_unit]\",
-                    sig_conf_score=$parsed[sig_conf_score]
-              WHERE rx_number=$sig[rx_number]\n";
-    mysqli_query($conn, $query);
 }
 
 
