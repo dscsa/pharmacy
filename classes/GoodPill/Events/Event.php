@@ -66,7 +66,7 @@ abstract class Event
             $comm_array[] = $salesforce->delivery();
         }
         //  Debug for checking comms array
-        print_r($comm_array);
+        //print_r($comm_array);
         // TODO Replace this with a new object based Event
         //create_event($title, $comm_array, $this->hours_to_wait, $this->time_of_day);
     }
