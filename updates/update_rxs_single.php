@@ -497,6 +497,19 @@ function update_rxs_single($changes)
 
                 helper_update_payment($order, $reason, $mysql);
             }
+
+            //Added from Fax/Call so order was not automatically created which is what would normally trigger a needs form notice
+            //but since order:created subroutine will not be called we need to send out the needs form notice here instead
+            if ( ! $item['invoice_number'] && ! $item['pharmacy_name']) {
+                $patient = load_full_patient($created, $mysql);
+                $groups = group_drugs($patient, $mysql);
+                GPLog::warn('Adam testing Needs Form Notice for Rx Created without Order', [
+                    'patient' => $patient,
+                    'groups' => $groups,
+                    'item' => $item
+                ]);
+                //needs_form_notice($groups);
+            }
         }
     }
     /* Finish Created Loop #2 */
