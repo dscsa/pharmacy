@@ -187,7 +187,7 @@ class GpRxsSingle extends Model
      */
     public function grouped()
     {
-        $this->grouped = GpRxsGrouped::where('rx_numbers', 'like', "%{$this->rx_number},")->first();
+        $this->grouped = GpRxsGrouped::where('rx_numbers', 'like', "%,{$this->rx_number},%")->first();
     }
 
     /**
