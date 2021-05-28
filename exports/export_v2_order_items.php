@@ -8,6 +8,7 @@ use GoodPill\Logging\{
 
 use \GoodPill\Models\GpOrder;
 use \GoodPill\Models\GpPendGroup;
+use \GoodPill\Models\v2\PickListDrug;
 
 require_once 'exports/export_cp_orders.php';
 
@@ -571,6 +572,22 @@ function pend_pick_list($item, $list)
 
     if (isset($res) && $list['pend'][0]['_rev'] != $res[0]['rev']) {
         GPLog::debug("pend_pick_list: SUCCESS!! {$item['invoice_number']} {$item['drug_name']} {$item['rx_number']}");
+        // We successfully Pended a picklist
+        $gpOrderItem = GpOrderItem::where('invoice_number', $item['invoice_number'])
+            ->where('rx_number', $item['rx_number'])
+            ->first();
+
+        if ($gpOrderItem) {
+            $pickList_object = new PickListDrug();
+            $pickList_object->setPicklist($list);
+            $gpOrderItem->setPickList($pickList_object);
+            $gpOrderItem->updateCPWithNDC();
+        } else {
+            GPLog::warning(
+                'Could not load the order item, so Carepoint NDC can not be updated',
+                ['item' => $item]
+            );
+        }
         return true;
     }
 

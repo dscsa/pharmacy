@@ -7,6 +7,10 @@ namespace GoodPill\Traits;
  */
 trait IsChangeable
 {
+    /**
+     * An array to hold the various changes that can be applied to this object
+     * @var array
+     */
     protected $gp_changes;
 
     /**
@@ -14,7 +18,8 @@ trait IsChangeable
      * have a std field_name that contains the new value and the same name prefixed with the
      * world old_ that contains the old value
      *
-     * @param array $changes The changes array
+     * @param array $changes The changes array.
+     * @return void
      */
     public function setChanges(array $changes) : void
     {
@@ -41,8 +46,8 @@ trait IsChangeable
 
     /**
      * Take an array of fields and look to see if any of the array of fields has changed.
-     * @param  array  $fields (optional) All the possible fields to check. If array is empty, we look
-     *       to see if any field has changed
+     * @param  array $fields Optional. All the possible fields to check. If array is empty, we look
+     *       to see if any field has changed.
      * @return boolean  true if any field in the $fields array has changed
      */
     public function hasAnyFieldChanged(?array $fields = []) : bool
@@ -63,7 +68,7 @@ trait IsChangeable
 
     /**
      * Take an array of fields and look to see if All of the fields has changed.
-     * @param  array   $fields All the fields to check
+     * @param  array $fields All the fields to check.
      * @return boolean True if all of the specified fields have changed
      */
     public function haveAllFieldsChanged(array $fields) : bool
@@ -79,8 +84,9 @@ trait IsChangeable
 
     /**
      * Checks to see if a single field has changed
-     * @param  string $field The field name to check
-     * @return bool   True if the old value doesn't match the new value
+     * @param  string $field The field name to check.
+     * @return boolean   True if the old value doesn't match the new value
+     * @throws Exception You can not check for field changes if you haven't set the changes.
      */
     public function hasFieldChanged(string $field = null) : bool
     {
@@ -127,7 +133,7 @@ trait IsChangeable
 
     /**
      * Return the old value for a change
-     * @param  string $field The field we want to look for
+     * @param  string $field The field we want to look for.
      * @return mixed
      */
     public function oldValue(string $field)
@@ -137,7 +143,7 @@ trait IsChangeable
 
     /**
      * Return the new value for the field
-     * @param  string $field The field we want to look for
+     * @param  string $field The field we want to look for.
      * @return mixed
      */
     public function newValue(string $field)

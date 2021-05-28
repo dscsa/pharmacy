@@ -17,53 +17,12 @@ require_once "exports/export_v2_order_items.php";
 
 /**
  * Class GpOrderItem
- *
- * @property int $invoice_number
- * @property string $drug_name
- * @property int $patient_id_cp
- * @property int $rx_number
- * @property string|null $groups
- * @property int|null $rx_dispensed_id
- * @property string|null $stock_level_initial
- * @property string|null $rx_message_keys_initial
- * @property int|null $patient_autofill_initial
- * @property int|null $rx_autofill_initial
- * @property string|null $rx_numbers_initial
- * @property float|null $zscore_initial
- * @property float|null $refills_dispensed_default
- * @property float|null $refills_dispensed_actual
- * @property int|null $days_dispensed_default
- * @property int|null $days_dispensed_actual
- * @property float|null $qty_dispensed_default
- * @property float|null $qty_dispensed_actual
- * @property float|null $price_dispensed_default
- * @property float|null $price_dispensed_actual
- * @property float|null $qty_pended_total
- * @property float|null $qty_pended_repacks
- * @property int|null $count_pended_total
- * @property int|null $count_pended_repacks
- * @property int $count_lines
- * @property string|null $item_message_keys
- * @property string|null $item_message_text
- * @property string|null $item_type
- * @property string $item_added_by
- * @property Carbon|null $item_date_added
- * @property Carbon|null $refill_date_last
- * @property Carbon|null $refill_date_manual
- * @property Carbon|null $refill_date_default
- * @property float|null $sync_to_date_days_before
- * @property float|null $sync_to_date_days_change
- * @property float|null $sync_to_date_max_days_default
- * @property string|null $sync_to_date_max_days_default_rxs
- * @property float|null $sync_to_date_min_days_refills
- * @property string|null $sync_to_date_min_days_refills_rxs
- * @property float|null $sync_to_date_min_days_stock
- * @property string|null $sync_to_date_min_days_stock_rxs
- *
- * @package App\Models
  */
 class GpOrderItem extends Model
 {
+
+    use \GoodPill\Traits\HasCompositePrimaryKey;
+
     /**
      * The Table for this data
      * @var string
@@ -173,7 +132,17 @@ class GpOrderItem extends Model
         'sync_to_date_min_days_stock_rxs'
     ];
 
+    /**
+     * Property to hold the picklist so it isn't constantly retrieved
+     * @var PickListDrug
+     */
     protected $pick_list;
+
+    /**
+     * The primary key fields
+     * @var array
+     */
+    protected $primaryKey = ['rx_number', 'invoice_number'];
 
     /*
         ## RELATIONSHIPS
