@@ -863,7 +863,7 @@ function group_by_ndc($rows, $item)
             $ndcs[$ndc]['prepack_qty'] += $row['doc']['qty']['to'];
 
             if ( ! @$ndcs[$ndc]['prepack_exp'] or $row['doc']['exp']['to'] < @$ndcs[$ndc]['prepack_exp']) {
-                GPLog::warn('group_by_ndc: Prepack and setting expiration', [
+                GPLog::warning('group_by_ndc: Prepack and setting expiration', [
                     'item_date_added' => $item['item_date_added'],
                     'qty' => $row['doc']['qty']['to'],
                     'months_until_exp' => $months_until_exp,
