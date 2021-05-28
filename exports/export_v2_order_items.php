@@ -856,7 +856,7 @@ function group_by_ndc($rows, $item)
         $ndcs[$ndc]['rows'] = isset($ndcs[$ndc]['rows']) ? $ndcs[$ndc]['rows'] : [];
         $ndcs[$ndc]['prepack_qty'] = isset($ndcs[$ndc]['prepack_qty']) ? $ndcs[$ndc]['prepack_qty'] : 0; //Hacky to set property on an array
 
-        $months_until_exp    = months_between($item['item_date_added'], $row['doc']['qty']['to']);
+        $months_until_exp    = months_between($item['item_date_added'], $row['doc']['exp']['to']);
         $not_purchased_stock = ($months_until_exp < IS_MFG_EXPIRATION);
 
         if (strlen($row['doc']['bin']) == 3 AND $not_purchased_stock) {
