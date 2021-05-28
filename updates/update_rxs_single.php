@@ -11,8 +11,8 @@ use GoodPill\Logging\AuditLog;
 use GoodPill\Logging\CliLog;
 
 use GoodPill\Utilities\Timer;
-
 use GoodPill\Models\GpRxsSingle;
+use GoodPill\SigParser\SigParser;
 
 function update_rxs_single($changes)
 {
@@ -142,6 +142,18 @@ function update_rxs_single($changes)
                 New Experimental Parser - Logging only for now
              */
 
+            $parser = new SigParser("aws-ch-responses.json");
+            $exp_parsed = $sigParser->parse($created['sig_actual'], $created['drug_name']);
+
+            GPLog::info(
+                'BETA: Sig Parsing Test',
+                [
+                    'sig' => $created['sig_actual'],
+                    'drug' => $created['drug_name'],
+                    'parsed' => $parsed,
+                    'exp_parsed' => $exp_parsed
+                ]
+            );
 
             // If we have more than 8 a day, lets have a human verify the signature
             if ($parsed['qty_per_day'] > MAX_QTY_PER_DAY) {
