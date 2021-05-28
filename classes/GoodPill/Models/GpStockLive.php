@@ -5,36 +5,6 @@ namespace GoodPill\Models;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 
-/**
- * Class GpStockLive
- *
- * @property float|null $avg_inventory
- * @property float|null $last_inv_high_threshold
- * @property float|null $last_inv_low_threshold
- * @property float|null $last_inventory
- * @property float|null $price_per_month
- * @property float|null $stddev_dispensed_actual
- * @property float|null $stddev_dispensed_default
- * @property float|null $stddev_entered
- * @property float|null $total_dispensed_actual
- * @property float|null $total_dispensed_default
- * @property float|null $total_entered
- * @property float|null $zhigh_threshold
- * @property float|null $zlow_threshold
- * @property float|null $zscore
- * @property int|null $drug_ordered
- * @property int|null $qty_repack
- * @property string $drug_generic
- * @property string|null $drug_brand
- * @property string|null $drug_gsns
- * @property string|null $message_display
- * @property string|null $months_dispensed
- * @property string|null $months_entered
- * @property string|null $months_inventory
- * @property string|null $stock_level
- *
- * @package App\Models
- */
 class GpStockLive extends Model
 {
 

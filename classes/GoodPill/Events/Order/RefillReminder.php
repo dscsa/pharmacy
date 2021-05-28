@@ -28,7 +28,7 @@ class RefillReminder extends OrderEvent
      * @param int $hours_to_wait
      * @param string $time_of_day
      */
-    public function __construct($GpOrder, $hours_to_wait = 30, $time_of_day = '11:00')
+    public function __construct(GpOrder $GpOrder, int $hours_to_wait = 30, string $time_of_day = '11:00')
     {
         parent::__construct($GpOrder);
         $this->hours_to_wait = $hours_to_wait;
