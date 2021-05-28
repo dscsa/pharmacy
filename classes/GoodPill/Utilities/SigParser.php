@@ -4,13 +4,15 @@ namespace GoodPill\Utilities;
 
 use Aws\ComprehendMedical\ComprehendMedicalClient;
 use Aws\Credentials\Credentials;
+use GoodPill\Logging\CliLog;
 
 
 /**
  * A class for parsing attributes of sigs with their drug name,
  * using the AWS Comprehend Medical API.
  */
-class SigParser {
+class SigParser
+{
 
     /**
      * Used for testing purposes only. An array to cache AWS CH results,
@@ -27,7 +29,7 @@ class SigParser {
     private $ch_test_file;
 
     /**
-     * true if $ch_test_file was provided.
+     * True if $ch_test_file was provided.
      * @var boolean
      */
     private $save_test_results;
@@ -55,7 +57,7 @@ class SigParser {
         $credentials = new Credentials(AWS_KEY, AWS_SECRET);
         $this->client = new ComprehendMedicalClient([
             'credentials' => $credentials,
-            'region' => AWS_REGION,
+            'region' => 'us-west-2',
             'version' => '2018-10-30'
         ]);
         $this->save_test_results = strlen($ch_test_file) > 0;
@@ -171,7 +173,7 @@ class SigParser {
             if (array_key_exists($text, static::$defaultsigs)) {
                 return static::$defaultsigs[$text];
             }
-            printf("Requesting DetectEntitiesV2 for ".$text."\n");
+            CLiLog::debug("Requesting DetectEntitiesV2 for ".$text."\n");
         }
         $result = $this->client->detectEntitiesV2(['Text' => $text])->toArray();
 

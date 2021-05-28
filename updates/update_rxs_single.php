@@ -142,8 +142,8 @@ function update_rxs_single($changes)
                 New Experimental Parser - Logging only for now
              */
 
-            // $parser = new SigParser("aws-ch-responses.json");
-            // $exp_parsed = $parser->parse($created['sig_actual'], $created['drug_name']);
+            $parser = new SigParser("/tmp/aws-ch-responses.json");
+            $exp_parsed = $parser->parse($created['sig_actual'], $created['drug_name']);
 
             GPLog::info(
                 'BETA: Sig Parsing Test',
