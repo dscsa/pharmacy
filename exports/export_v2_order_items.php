@@ -582,7 +582,7 @@ function pend_pick_list($item, $list)
             $pickList_object = new PickListDrug();
             $pickList_object->setPicklist($list);
             $gpOrderItem->setPickList($pickList_object);
-            $gpOrderItem->updateCPWithNDC();
+            $gpOrderItem->doUpdateCpWithNdc();
         } else {
             GPLog::warning(
                 'Could not load the order item, so Carepoint NDC can not be updated',

@@ -159,4 +159,70 @@ class CpFdrNdc extends Model
         "ln60",
         "id"
     ];
+
+    /**
+     * Look for a Carepoint NDC based on the GSN and NDC passed
+     * @param  string $ndc  This will most frequently be an ndc seperated by '-'.
+     * @param  array  $gsns This should be an array of the possible GCNs(GSNs)
+     * @return null|CpFdrNdc  It will be the first one that matches
+     */
+    public static function doFindByNdcAndGsns(string $ndc, array $gsns) : ?CpFdrNdc
+    {
+        $ndcs_to_test = [];
+        // If se don't have enough parts we should leave
+        if (count($ndc_parts) >= 2) {
+            return null;
+        }
+
+
+        /*
+            Get the various NDC's we want to use in the query
+         */
+        if (strpos('-', $ndc) !== false) {
+            $ndc_parts = explode('-', $ndc);
+            $ndc_parts[0] = str_pad($ndc_parts[0], 5, '0', STR_PAD_LEFT);
+            $ndc_parts[1] = str_pad($ndc_parts[1], 4, '0', STR_PAD_LEFT);
+
+            // Striaght Proper padding
+            $ndcs_to_test[] = str_pad($ndc_parts[0], 5, '0', STR_PAD_LEFT)
+                            . str_pad($ndc_parts[1], 4, '0', STR_PAD_LEFT)
+                            . '%';
+
+            // Failing that try padding the first and adding a 0 to the front and shifting the 5th
+            // digit off the middle 4 + gcn.  If that is a match, update
+            $ndcs_to_test[] = str_pad($ndc_parts[0], 5, '0', STR_PAD_LEFT)
+                            . substr(
+                                str_pad($ndc_parts[1], 5, '0', STR_PAD_RIGHT),
+                                0,
+                                4
+                            )
+                            . '%';
+
+            // Failing that try the first 5 padded + the gcn.  Take the matches and loop through to see
+            // if we can find an appropriate match based on the items found.
+            $ndcs_to_test[] = str_pad($ndc_parts[0], 5, '0', STR_PAD_LEFT)
+                            . '%';
+        } else {
+            $ndcs_to_test[] = $ndc;
+            $ndcs_to_test[] = $ndc . '%';
+        }
+
+        /*
+            Loop through all the possible NDCS until we find a possible match
+         */
+
+        foreach ($ndcs_to_test as $test_ndc) {
+            $possible_ndcs = CpFdrNdc::where('ndc', 'like', $test_ndc)
+                ->whereIn('gcn_seqno', $gsns)
+                ->orderBy('ndc', 'asc')
+                ->get();
+
+            // We've found some NDC's so lets just grab the first one
+            if ($possible_ndcs->count() > 0) {
+                return $possible_ndcs->first();
+            }
+        }
+
+        return null;
+    }
 }

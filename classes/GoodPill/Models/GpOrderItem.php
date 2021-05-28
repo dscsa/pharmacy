@@ -288,7 +288,7 @@ class GpOrderItem extends Model
      *      it is pended in goodpill.
      * @return array
      */
-    public function pendItem(string $reason = '', bool $force = false) : ?array
+    public function doPendItem(string $reason = '', bool $force = false) : ?array
     {
         $legacy_item = $this->getLegacyData();
         return v2_pend_item($legacy_item, $reason, $force);
@@ -299,15 +299,16 @@ class GpOrderItem extends Model
      * @param  string $reason Optional. The reason we are unpending the Item.
      * @return array
      */
-    public function unpendItem(string $reason = '') : ?array
+    public function doUnpendItem(string $reason = '') : ?array
     {
         $legacy_item = $this->getLegacyData();
         return v2_pend_item($legacy_item, $reason);
     }
 
     /**
-     * Query v2 to see if there is already a drug pended for this order
-     * @return boolean [description]
+     * Query v2 to see if there is already a drug pended for this order.  If one is found, then we
+     * will use it instead of getting one from v2
+     * @return null|GoodPill\Models\v2\PickListDrug
      */
     public function getPickList() : ?PickListDrug
     {
@@ -326,13 +327,26 @@ class GpOrderItem extends Model
     }
 
     /**
+     * A convenient way for setting the pickelist on an item.  This is here to overcome the
+     * shortcomings of v2.  V2 fails to load on certain URLS, so this allows us to pass in the
+     * calculated picklist
+     *
+     * @param GoodPil\Models\v2\PickListDrug $pick_list A fully loaded picklist to be used for decisions.
+     * @return void
+     */
+    public function setPickList(PickListDrug $pick_list)
+    {
+        $this->pick_list = $pick_list;
+    }
+
+    /**
      * Look for a matching NDC in carepoint and update the RX with the new NDC
      * @param  null|string $ndc  If null, we will attempt to get the NDC for the pended data.
      * @param  null|string $gsns If null, we will use the gsn from the pended data.  If there isn't
      *      any pended data, we will use the gsns from the rxs.
      * @return boolean True if a ndc was found and the RX was updated
      */
-    public function updateCPWithNDC(?string $ndc = null, ?string $gsns = null) : bool
+    public function doUpdateCpWithNdc(?string $ndc = null, ?string $gsns = null) : bool
     {
         $found_ndc = $this->searchCpNdcs($ndc, $gsns);
 
@@ -364,13 +378,15 @@ class GpOrderItem extends Model
     }
 
     /**
-     * Attempt to find a matching ndc in carepoint
-     * @param  null|string $ndc  If null, we will attempt to get the NDC for the pended data.
+     * Attempt to find a matching ndc in carepoint.  If no NDC or GSN is passed in it will Attempt
+     *      to find reasonable replacements for the values.
+     * @param  null|string $ndc  If null, we will attempt to get the NDC for the pended data.  If the
+     *      item is not pended and $ndc is NULL we will assume there is no NDC to search for and return null.
      * @param  null|string $gsns If null, we will use the gsn from the pended data.  If there isn't
      *      any pended data, we will use the gsns from the rxs.
-     * @return null|CpFdrNdc
+     * @return null|GoodPill\Models\Carepoint\CpFdrNdc
      */
-    public function searchCpNdcs(?string $ndc = null, ?string $gsns = null) : ?CpFdrNdc
+    public function doSearchCpNdcs(?string $ndc = null, ?string $gsns = null) : ?CpFdrNdc
     {
         if (is_null($ndc)) {
             if (!$this->isPended()) {
@@ -393,58 +409,8 @@ class GpOrderItem extends Model
             }
         }
 
-        $ndc_parts = explode('-', $ndc);
+        $gsns = explode(',', $gsns);
 
-        // If se don't have enough parts we should leave
-        if (count($ndc_parts) < 2) {
-            return null;
-        }
-
-        $ndc_parts[0] = str_pad($ndc_parts[0], 5, '0', STR_PAD_LEFT);
-        $ndc_parts[1] = str_pad($ndc_parts[1], 4, '0', STR_PAD_LEFT);
-
-        /*
-            Get the various NDC's we want to use in the query
-         */
-
-        $ndcs_to_test = [];
-
-        // Striaght Proper padding
-        $ndcs_to_test[] = str_pad($ndc_parts[0], 5, '0', STR_PAD_LEFT)
-                        . str_pad($ndc_parts[1], 4, '0', STR_PAD_LEFT)
-                        . '%';
-
-        // Failing that try padding the first and adding a 0 to the front and shifting the 5th
-        // digit off the middle 4 + gcn.  If that is a match, update
-        $ndcs_to_test[] = str_pad($ndc_parts[0], 5, '0', STR_PAD_LEFT)
-                        . substr(
-                            str_pad($ndc_parts[1], 5, '0', STR_PAD_RIGHT),
-                            0,
-                            4
-                        )
-                        . '%';
-
-        // Failing that try the first 5 padded + the gcn.  Take the matches and loop through to see
-        // if we can find an appropriate match based on the items found.
-        $ndcs_to_test[] = str_pad($ndc_parts[0], 5, '0', STR_PAD_LEFT)
-                        . '%';
-
-        /*
-            Loop through all the possible NDCS until we find a possible match
-         */
-
-        foreach ($ndcs_to_test as $test_ndc) {
-            $possible_ndcs = CpFdrNdc::where('ndc', 'like', $test_ndc)
-                ->whereIn('gcn_seqno', explode(',', $gsns))
-                ->orderBy('ndc', 'asc')
-                ->get();
-
-            // We've found some NDC's so lets just grab the first one
-            if ($possible_ndcs->count() > 0) {
-                return $possible_ndcs->first();
-            }
-        }
-
-        return null;
+        return CpFdrNdc::doFindByNdcAndGsns($ndc, $gsns);
     }
 }

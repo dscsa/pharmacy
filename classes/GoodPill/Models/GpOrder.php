@@ -774,7 +774,7 @@ class GpOrder extends Model
         $items = $this->items();
         $items->each(function ($item) {
             if (!$item->isPended()) {
-                $item->pendItem('Full Order Pended', true);
+                $item->doPendItem('Full Order Pended', true);
             }
         });
     }
@@ -788,7 +788,7 @@ class GpOrder extends Model
         $items = $this->items;
         $items->each(function ($items) {
             if ($item->isPended()) {
-                $item->unpendItem();
+                $item->doUnpendItem();
             }
         });
     }
