@@ -12,7 +12,7 @@ use GoodPill\Logging\CliLog;
 
 use GoodPill\Utilities\Timer;
 use GoodPill\Models\GpRxsSingle;
-use GoodPill\SigParser\SigParser;
+use GoodPill\utilities\SigParser;
 
 function update_rxs_single($changes)
 {
