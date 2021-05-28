@@ -23,18 +23,29 @@ class Created extends OrderEvent
     protected $template_path = 'Order/Created';
 
     /**
+     * Generate the Salesforce portion of the Communication event
+     * Return null event because this only needs sms and email
+     * @return SalesforceComm
+     */
+    public function getSalesforce() : ?SalesforceComm
+    {
+        return null;
+    }
+
+    /**
      * Publish the events
      * Cancel the any events that are not longer needed and push this event to the com calendar
      */
     public function publish() : void
     {
-        // Can't send notfications if the order doesn't exist
+        // Can't send notifications if the order doesn't exist
         if (!$this->order) {
             return;
         }
 
-        $patient = $this->order->patient;
-
+        //$patient = $this->order->patient;
+        //$this->publishEvent();
+        /*
         $patient->cancelEvents(
             [
                 'Order Updated',
@@ -43,5 +54,7 @@ class Created extends OrderEvent
         );
 
         $patient->createEvent($this);
+        */
+        $this->publishEvent();
     }
 }
