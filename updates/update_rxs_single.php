@@ -138,6 +138,11 @@ function update_rxs_single($changes)
             // Get the signature
             $parsed = get_parsed_sig($created['sig_actual'], $created['drug_name']);
 
+            /*
+                New Experimental Parser - Logging only for now
+             */
+
+
             // If we have more than 8 a day, lets have a human verify the signature
             if ($parsed['qty_per_day'] > MAX_QTY_PER_DAY) {
                 $created_date = "Created:".date('Y-m-d H:i:s');
@@ -503,7 +508,7 @@ function update_rxs_single($changes)
             if ( ! $item['invoice_number'] && ! $item['pharmacy_name']) {
                 $patient = load_full_patient($created, $mysql);
                 $groups = group_drugs($patient, $mysql);
-                GPLog::warn('Adam testing Needs Form Notice for Rx Created without Order', [
+                GPLog::warning('Adam testing Needs Form Notice for Rx Created without Order', [
                     'patient' => $patient,
                     'groups' => $groups,
                     'item' => $item
