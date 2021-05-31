@@ -26,7 +26,7 @@ function export_cp_remove_items($invoice_number, $items = [])
                     AND rxdisp_id = 0";
 
     $sql_to_update_deleted = "
-        UPDATE CsOmLine_Deleted 
+        UPDATE CsOmLine_Deleted
         SET chg_user_id = {$cp_automation_user}
         FROM CsOmLine_Deleted
         JOIN cprx ON cprx.rx_id = CsOmLine_Deleted.rx_id
@@ -191,7 +191,7 @@ function export_cp_add_items($invoice_number, $items)
             return;
         }
 
-        GPLog::notice("{$log['subject']}, so adding to ${invoice_number} instead", $log);
+        GPLog::notice("{$log['subject']}, so adding to {$invoice_number} instead", $log);
     }
 
     $sql  = "SirumWeb_AddItemsToOrder '{$invoice_number}', '{$rx_numbers}'";
