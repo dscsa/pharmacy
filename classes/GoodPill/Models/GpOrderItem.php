@@ -360,11 +360,20 @@ class GpOrderItem extends Model
                 // If there isn't move the current NDC to the og_ndc comment
                 if (!isset($gpComments->og_ndc)) {
                     $gpComments->og_ndc = $cprx->ndc;
-                    $cprx->cmt = $gpComments->toString();
                 }
 
+                if (isset($gpComments->selected_ndcs)) {
+                    $ndcs = $gpComments->selected_ndcs;
+                    $ndcs[] = $found_ndc->ndc;
+                    $gpComments->selected_ndcs = $ndcs;
+                } else {
+                    $gpComments->selected_ndcs = [$found_ndc->ndc];
+                }
+
+                $cprx->cmt = $gpComments->toString();
+
                 // Update the current NDC
-                $cprx->ndc = $found_ndc->ndc;
+                // @TODO Uncomment when ready $cprx->ndc = $found_ndc->ndc;
 
                 // Save the CpRx
                 $cprx->save();
