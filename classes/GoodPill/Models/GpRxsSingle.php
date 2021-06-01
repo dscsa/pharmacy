@@ -179,6 +179,15 @@ class GpRxsSingle extends Model
     }
 
     /**
+     * Relationship to a stock item
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     */
+    public function stock()
+    {
+        return $this->hasOne(GpStockLive::class, 'drug_generic', 'drug_generic');
+    }
+
+    /**
      * Loads the GpRxsGrouped data into an rxs single item
      * Because there is no traditional relationship that laravel can make, we have to pseudo-load the data
      * When inspecting an order item, if you fetch the rxs for that item you would need to call this function
@@ -267,6 +276,4 @@ class GpRxsSingle extends Model
         // If we don't need to update the drug_gsns then the operatino was a success
         return (!$this->needsGsnUpdate());
     }
-
-
 }

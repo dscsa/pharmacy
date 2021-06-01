@@ -3,6 +3,7 @@
 namespace GoodPill\Models;
 
 use Carbon\Carbon;
+use GoodPill\Logging\GPLog;
 use Illuminate\Database\Eloquent\Model;
 
 use GoodPill\Models\GpOrder;
@@ -237,7 +238,7 @@ class GpOrderItem extends Model
      * Get access to the rx drug_name.  We use this here to rollup between brand and generic
      * @return string
      */
-    public function getDrugGenericAttribute() : ?string
+    public function getDrugGenericAttribute(): ?string
     {
         $rxs = $this->rxs;
 
@@ -275,7 +276,7 @@ class GpOrderItem extends Model
     {
         if ($this->exists) {
             return load_full_item(
-                ['rx_number' => $this->rx_number ],
+                ['rx_number' => $this->rx_number],
                 (new \Mysql_Wc())
             );
         }
@@ -297,7 +298,7 @@ class GpOrderItem extends Model
 
     /**
      * Unpend the item in V2
-     * @param  string $reason Optional. The reason we are unpending the Item.
+     * @param string $reason Optional. The reason we are unpending the Item.
      * @return array
      */
     public function unpendItem(string $reason = '') : ?array
@@ -308,8 +309,8 @@ class GpOrderItem extends Model
 
     /**
      * Computed property to get the `refills_dispensed` field
-     * @TODO - Figure out if this field can be queried directly
-     * @TODO - Original function could return empty/null?
+     *
+     * Should this return null by default or 0?
      * @return float|null
      */
     public function getRefillsDispensedAttribute() : ?float
@@ -323,5 +324,45 @@ class GpOrderItem extends Model
         } else {
             return null;
         }
+    }
+
+    /**
+     * Get the days dispensed computed attribute
+     * @return float
+     */
+    public function getDaysDispensedAttribute() : float
+    {
+        return $this->days_dispensed_actual ?: $this->days_dispensed_default;
+    }
+
+    /**
+     * Get the price dispensed computed attribute
+     * @return float
+     */
+    public function getPriceDispensedAttribute() : float
+    {
+        //  Need to get the price_per_month from stock live table
+        if ($this->rxs->stock) {
+            $price_per_month = $this->rxs->stock->price_per_month;
+        } else {
+            $price_per_month = 0;
+        }
+
+        $price = ceil($this->days_dispensed * $price_per_month / 30);
+        /*
+         * removing until time to go live
+        if ($price > 80) {
+
+            GPLog::debug(
+                'GpOrderItem: price_dispensed is too high',
+                [
+                    'invoice_number' =>  $this->invoice_number,
+                    'drug_name' => $this->drug_name,
+                    'rx_number' => $this->rx_number,
+                ]
+            );
+        }
+        */
+        return $price;
     }
 }
