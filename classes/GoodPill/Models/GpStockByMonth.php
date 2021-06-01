@@ -67,7 +67,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property float $dispensed_max
  * @property float $dispensed_sumsqr
  *
- * @package App\Models
+ * @package GoodPill\Models
  */
 class GpStockByMonth extends Model
 {

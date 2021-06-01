@@ -40,13 +40,13 @@ class GpOrder extends Model
 
     /**
      * Does the database contain an incrementing field?
-     * @var bool
+     * @var boolean
      */
     public $incrementing = false;
 
     /**
      * Does the database contain timestamp fields
-     * @var bool
+     * @var boolean
      */
     public $timestamps = false;
 
@@ -209,7 +209,7 @@ class GpOrder extends Model
      *         )
      *      )
      *
-     * @return bool
+     * @return boolean
      */
     public function isShipped() : bool
     {
@@ -233,7 +233,7 @@ class GpOrder extends Model
     /**
      * Has the order been marked delivered
      *      An order will be considered delivered if it order_date_delivered is not empty
-     * @return bool
+     * @return boolean
      */
     public function isDelivered() : bool
     {
@@ -250,11 +250,50 @@ class GpOrder extends Model
      * An order will be considered dispensed if it
      *     Exists in the Database
      *     AND There is a dispensed date for the order
-     * @return bool
+     * @return boolean
      */
     public function isDispensed() : bool
     {
         return ($this->exists && !empty($this->order_date_dispensed));
+    }
+
+    /**
+     * Does the Order come from the PatientPortal
+     * @return boolean True If the order was create by a patient request on the patient portal
+     */
+    public function isWebform() : bool
+    {
+        return isWebformErx() || isWebformTransfer() or isWebforRefill();
+    }
+
+    /**
+     * Is the item a Transfer that originated from the Webform
+     * @return boolean True if the patient requested the transfer via the patient portal
+     */
+    public function isWebformTransfer() : bool
+    {
+        return !empty($this->order_source)
+               && in_array($this->order_source, ['Webform Transfer', 'Transfer /w Note']);
+    }
+
+    /**
+     * Is the item an ERX that originated from the webform
+     * @return boolean True if the patient requested an order but is waiting on the dr to send the RX
+     */
+    public function isWebformErx()
+    {
+        return !empty($this->order_source)
+               && in_array($this->order_source, ['Webform eRx', 'eRx /w Note']);
+    }
+
+    /**
+     * Is the item a refill that originated from the webform
+     * @return boolean True if the patient reqeusted a new order from an existing rx
+     */
+    public function isWebforRefill() : bool
+    {
+        return !empty($this->order_source)
+               && in_array($this->order_source, ['Webform Refill', 'Refill w/ Note']);
     }
 
 
@@ -266,7 +305,7 @@ class GpOrder extends Model
      * Override the save function so it sends data into Carepoint automatically
      *
      * @param  array $options Parent signature match.
-     * @return void
+     * @return boolean
      */
     public function save(array $options = [])
     {
@@ -754,6 +793,18 @@ class GpOrder extends Model
         PENDING
      */
 
+    public function isPended() {
+        $items = $this->items();
+        if ($items) {
+            foreach ($items as $item) {
+                return $item->isPended();
+            }
+
+            return false;
+        }
+
+    }
+
     /**
      * Loop through all the order items.  If the item isn't pended, pend it
      * @return void
@@ -763,7 +814,7 @@ class GpOrder extends Model
         $items = $this->items();
         $items->each(function ($item) {
             if (!$item->isPended()) {
-                $item->pendItem('Full Order Pended', true);
+                $item->doPendItem('Full Order Pended', true);
             }
         });
     }
@@ -793,7 +844,7 @@ class GpOrder extends Model
         $items = $this->items;
         $items->each(function ($items) {
             if ($item->isPended()) {
-                $item->unpendItem();
+                $item->doUnpendItem();
             }
         });
     }
