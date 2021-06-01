@@ -145,10 +145,7 @@ function update_rxs_single($changes)
             $parser = new SigParser("/tmp/aws-ch-responses.json");
             $exp_parsed = $parser->parse($created['sig_actual'], $created['drug_name']);
 
-            if (
-                $parsed['siq_qty'] != $exp_parsed['sig_qty']
-                || $parsed['qty_per_day'] != ($exp_parsed['sig_qty']/$exp_parsed['sig_days'])
-            ) {
+            if ($parsed['siq_qty'] != $exp_parsed['sig_qty']) {
                 GPLog::warning(
                     'BETA: Sig Parsing Test - Quantity does not match',
                     [
