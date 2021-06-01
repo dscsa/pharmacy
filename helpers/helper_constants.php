@@ -258,4 +258,5 @@ const SIG_PARSER_FIXED_DRUGNAMES = [
   '/ (CREAM|INH|INHALER|SPR|SPRAY)$/i' => 3/90,
   '/ (GEL)$/i' => 1,
   '/(EYE DROP)/i' => 0.1,
+  '/OINTMENT/i' => 0.7
 ];
