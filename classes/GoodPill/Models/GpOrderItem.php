@@ -10,6 +10,9 @@ use GoodPill\Models\GpPatient;
 use GoodPill\Models\GpRxsSingle;
 use GoodPill\Models\v2\PickListDrug;
 use GoodPill\Models\Carepoint\CpFdrNdc;
+use GoodPill\Models\Carepoint\CpRx;
+use GoodPill\Utilities\GpComments;
+use GoodPill\Logging\GPLog;
 
 require_once "helpers/helper_full_item.php";
 require_once "helpers/helper_appsscripts.php";
@@ -242,22 +245,6 @@ class GpOrderItem extends Model
     }
 
     /**
-     * Get the traditional item data
-     * @return array
-     */
-    public function getLegacyData()
-    {
-        if ($this->exists) {
-            return load_full_item(
-                ['rx_number' => $this->rx_number ],
-                (new \Mysql_Wc())
-            );
-        }
-
-        return null;
-    }
-
-    /**
      * Computed property to get the `refills_dispensed` field
      * @TODO - Figure out if this field can be queried directly
      * @TODO - Original function could return empty/null?
@@ -315,14 +302,15 @@ class GpOrderItem extends Model
         $order = $this->order;
         $pend_group = $order->pend_group;
 
+        if (isset($this->pick_list)) {
+            return $this->pick_list;
+        }
+
         if (!$pend_group) {
             return null;
         }
 
-        if (empty($this->pick_list)) {
-            $this->pick_list = new PickListDrug($pend_group, $this->drug_generic);
-        }
-
+        $this->pick_list = new PickListDrug($pend_group, $this->drug_generic);
         return $this->pick_list;
     }
 
@@ -348,7 +336,7 @@ class GpOrderItem extends Model
      */
     public function doUpdateCpWithNdc(?string $ndc = null, ?string $gsns = null) : bool
     {
-        $found_ndc = $this->searchCpNdcs($ndc, $gsns);
+        $found_ndc = $this->doSearchCpNdcs($ndc, $gsns);
 
         // We have an ndc so lets load the RX and lets update the comment
         if ($found_ndc) {
@@ -357,23 +345,36 @@ class GpOrderItem extends Model
                 // Get the comments to see if there is an og_ndc.
                 $gpComments = new GpComments($cprx->cmt);
 
-                // If there isn't move the current NDC to the og_ndc comment
+                // // If there isn't move the current NDC to the og_ndc comment
                 if (!isset($gpComments->og_ndc)) {
                     $gpComments->og_ndc = $cprx->ndc;
                 }
 
-                if (isset($gpComments->selected_ndcs)) {
-                    $ndcs = $gpComments->selected_ndcs;
-                    $ndcs[] = $found_ndc->ndc;
-                    $gpComments->selected_ndcs = $ndcs;
-                } else {
+
+                if (!isset($gpComments->selected_ndcs)) {
+                    $gpComments->selected_ndcs = [];
+                }
+
+                if ($found_ndc->ndc != $cprx->ndc) {
+                    $ndcs                      = $gpComments->selected_ndcs;
+                    $ndcs[]                    = $found_ndc->ndc;
                     $gpComments->selected_ndcs = [$found_ndc->ndc];
                 }
 
                 $cprx->cmt = $gpComments->toString();
 
                 // Update the current NDC
-                // @TODO Uncomment when ready $cprx->ndc = $found_ndc->ndc;
+                if ($cprx->ndc != $found_ndc->ndc) {
+                     // $cprx->ndc = $found_ndc->ndc
+                    GPLog::warning(
+                        "We are changing the NDC for RX {$this->rx_number}",
+                        [
+                            "item" => $this->toArray(),
+                            "old_ndc" => $cprx->ndc,
+                            "new_ndc" => $found_ndc->ndc
+                        ]
+                    );
+                }
 
                 // Save the CpRx
                 $cprx->save();
@@ -421,5 +422,41 @@ class GpOrderItem extends Model
         $gsns = explode(',', $gsns);
 
         return CpFdrNdc::doFindByNdcAndGsns($ndc, $gsns);
+    }
+
+
+    /*
+
+        LEGACY DATA
+
+        Work with legacy data structures
+     */
+
+
+    /**
+     * Create a legacyPicklist item
+     * @return array
+     */
+    public function doMakeLegacyPickList()
+    {
+        $item_legacy = $this->getLegacyData();
+        $list = make_pick_list($item_legacy);
+        return $list;
+    }
+
+    /**
+     * Get the traditional item data
+     * @return array
+     */
+    public function getLegacyData()
+    {
+        if ($this->exists) {
+            return load_full_item(
+                ['rx_number' => $this->rx_number ],
+                (new \Mysql_Wc())
+            );
+        }
+
+        return null;
     }
 }

@@ -22,17 +22,13 @@ class GpComments
     protected $seperator = "gppa:content";
 
     /**
-     * Should we force properties to be defined?
-     * @var boolean
-     */
-    public $check_property = false;
-
-    /**
      * Create the comment object, parse the string if it is passed in
      * @param string $comment Should be a string that contains data seperaed by the $seperator.
      */
     public function __construct(string $comment = null)
     {
+        $this->check_property = false;
+
         if (!is_null($comment)) {
             $this->parseComment($comment);
         }
@@ -47,9 +43,9 @@ class GpComments
     {
         $matches   = [];
         $has_match = preg_match($this->getPattern(), $comment, $matches);
+        $this->raw_comment = $comment;
 
         if ($has_match) {
-            $this->raw_comment = $comment;
             $this->fromJSON($matches[1]);
             return true;
         }
@@ -82,7 +78,7 @@ class GpComments
      * Strip the comment pattern off a string
      * @return string The stripped toString
      */
-    protected function stripCommentString() : string
+    public function stripCommentString() : string
     {
         return preg_replace($this->getPattern(), '', $this->raw_comment);
     }

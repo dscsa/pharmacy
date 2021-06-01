@@ -27,13 +27,21 @@ class PickListDrug
     public $drug_generic;
 
     /**
+     * An override property so we can skip looking at v2
+     * @var bool
+     */
+    protected $is_pended_override = null;
+
+    /**
      * Lets get ready to rumble
      * @param GpPendGroup $pend_group   This should be the pendgroup we are attempting to fetch.
      * @param string      $drug_generic The generic name of the drug.
      */
-    public function __construct(GpPendGroup $pend_group, string $drug_generic)
+    public function __construct(?GpPendGroup $pend_group = null, ?string $drug_generic = null)
     {
-        $this->fetch($pend_group, $drug_generic);
+        if (!is_null($pend_group) && !is_null($drug_generic)) {
+            $this->fetch($pend_group, $drug_generic);
+        }
     }
 
     /**
@@ -78,6 +86,19 @@ class PickListDrug
     }
 
     /**
+     * A method for setting the list as pended.  This is really only used when we generated
+     * the list manually, and pended it, but don't want to call v2 to confirm
+     *
+     * @param bool $is_pended Should the list be marked as pended.
+     *
+     * @return bool
+     */
+    public function setIsPended($is_pended = false)
+    {
+        $this->is_pended_override = $is_pended;
+    }
+
+    /**
      * Get the names of all the next states
      * @return array
      */
@@ -104,6 +125,11 @@ class PickListDrug
      */
     public function isPended() : bool
     {
+
+        if (!is_null($this->is_pended_override)) {
+            return $this->is_pended_override;
+        }
+
         if (empty($this->pick_list)) {
             return false;
         }

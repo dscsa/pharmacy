@@ -579,9 +579,15 @@ function pend_pick_list($item, $list)
             ->first();
 
         if ($gpOrderItem) {
+            // Create a picklist Object fromthe list we created
             $pickList_object = new PickListDrug();
-            $pickList_object->setPicklist($list);
+            $pickList_object->setPicklist($list['pend']);
+            $pickList_object->setIsPended(true);
+
+            // Attache the pickelist to the order so we don't have to call v2
             $gpOrderItem->setPickList($pickList_object);
+
+            // Update Carepoint with the NDC we picked.
             $gpOrderItem->doUpdateCpWithNdc();
         } else {
             GPLog::warning(
@@ -589,6 +595,7 @@ function pend_pick_list($item, $list)
                 ['item' => $item]
             );
         }
+
         return true;
     }
 
