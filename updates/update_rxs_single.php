@@ -11,8 +11,8 @@ use GoodPill\Logging\AuditLog;
 use GoodPill\Logging\CliLog;
 
 use GoodPill\Utilities\Timer;
-
 use GoodPill\Models\GpRxsSingle;
+use GoodPill\Utilities\SigParser;
 
 function update_rxs_single($changes)
 {
@@ -137,6 +137,23 @@ function update_rxs_single($changes)
 
             // Get the signature
             $parsed = get_parsed_sig($created['sig_actual'], $created['drug_name']);
+
+            /*
+                New Experimental Parser - Logging only for now
+             */
+
+            $parser = new SigParser("/tmp/aws-ch-responses.json");
+            $exp_parsed = $parser->parse($created['sig_actual'], $created['drug_name']);
+
+            GPLog::info(
+                'BETA: Sig Parsing Test',
+                [
+                    'sig' => $created['sig_actual'],
+                    'drug' => $created['drug_name'],
+                    'parsed' => $parsed,
+                    'exp_parsed' => $exp_parsed
+                ]
+            );
 
             // If we have more than 8 a day, lets have a human verify the signature
             if ($parsed['qty_per_day'] > MAX_QTY_PER_DAY) {
@@ -496,6 +513,19 @@ function update_rxs_single($changes)
                 );
 
                 helper_update_payment($order, $reason, $mysql);
+            }
+
+            //Added from Fax/Call so order was not automatically created which is what would normally trigger a needs form notice
+            //but since order:created subroutine will not be called we need to send out the needs form notice here instead
+            if ( ! $item['invoice_number'] && ! $item['pharmacy_name']) {
+                $patient = load_full_patient($created, $mysql);
+                $groups = group_drugs($patient, $mysql);
+                GPLog::warning('Adam testing Needs Form Notice for Rx Created without Order', [
+                    'patient' => $patient,
+                    'groups' => $groups,
+                    'item' => $item
+                ]);
+                //needs_form_notice($groups);
             }
         }
     }

@@ -17,6 +17,7 @@ use GoodPill\AWS\SQS\GoogleAppRequest\Invoice\Delete;
 use GoodPill\AWS\SQS\GoogleAppQueue;
 use GoodPill\Logging\GPLog;
 
+require_once "helpers/helper_calendar.php";
 require_once "helpers/helper_full_order.php";
 require_once "helpers/helper_appsscripts.php";
 
@@ -590,22 +591,61 @@ class GpOrder extends Model
 
     /**
      * Return calculated refills_dispensed column for an item
-     * @TODO - DOES NOT CURRENTLY WORK
-     * @TODO - Is it possible to query the computed property this way?
+     * Equivalent method - $groups['NO_REFILLS']
+     *
+     * if refills_dispensed attribute can return null, should we check for both null and 0?
+     * if refills_dispensed attribute defaults to 0, we only need to check for 0
      * @param bool $refill - optional true to get
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     * @return mixed
      */
-    public function getRefilledItems(bool $refill = true)
+    public function getItemsWithNoRefills()
     {
-        if ($refill) {
-            return $this->items()->where('refills_dispensed', '>', 0);
-        } else {
-            return $this->items()->whereNull('refills_dispensed');
-        }
+        $collection = $this->items->filter(function($item) {
+            if (
+                //  This first condition may only need to be a check for 0?
+                ($item->refills_dispensed = 0 || is_null($item->refills_dispensed)) &&
+                is_null($item->rxs->rx_transfer)
+            ) {
+                return $item;
+            }
+        });
 
+        return $collection;
     }
 
     /**
+     * Returns items that wont be autofilled
+     * Equivalent method - $groups['NO_AUTOFILL']
+     *
+     * @return mixed
+     */
+    public function getItemsWithNoAutofills()
+    {
+        $collection = $this->items->filter(function ($item) {
+            if ($item->rxs->rx_autofill === 0 && $item->days_dispensed) {
+                return $item;
+            }
+        });
+
+        return $collection;
+    }
+
+    /**
+     * Returns whether the item is being filled
+     * Equivalent method = $groups['FILLED']
+     * @return mixed
+     */
+    public function filledItems() {
+        $collection = $this->items->filter(function ($item) {
+            if ($item->rxs->days_dispensed) {
+                return $item;
+            }
+        });
+
+        return $collection;
+    }
+
+    /**ß
      * Get to old order array
      * @return null|array
      */
@@ -777,6 +817,22 @@ class GpOrder extends Model
                 $item->doPendItem('Full Order Pended', true);
             }
         });
+    }
+
+    public function isPended($deep_scan = true) {
+        $items = $this->items;
+
+        if ($items->count() == 0) return true;
+
+        foreach ($items as $item) {
+            $is_pended = $item->isPended();
+            if ($deep_scan && !$is_pended) return false;
+            if (!$deep_scan) return $is_pended;
+        }
+
+        // If we deep scanned and reached this point, then we never found an unpended item
+        // so the entire order is pended.
+        return (true);
     }
 
     /**

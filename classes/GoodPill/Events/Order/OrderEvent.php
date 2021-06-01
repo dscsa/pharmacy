@@ -129,6 +129,45 @@ abstract class OrderEvent extends Event
                 $data['no_fill'] = ['rxs' => $rxs];
             }
 
+            /*************** Refill Reminder Data ******************/
+            $refill = $this->order->getItemsWithNoRefills();
+            $autofill = $this->order->getItemsWithNoAutofills();
+
+            if ($autofill->count() > 0) {
+                $rxs = [];
+
+                $autofill->each(function($item) use (&$rxs) {
+                    $rxs[] = ["name" => $item->getDrugName().' - '.$item->rxs->rx_message_text];
+                });
+
+               $data['no_autofill'] = ['rxs' => $rxs];
+            }
+
+            if ($refill->count() > 0) {
+                $rxs = [];
+
+                $refill->each(function($item) use (&$rxs) {
+                    $rxs[] = ["name" => $item->getDrugName().' - '.$item->rxs->rx_message_text];
+                });
+
+                $data['no_refill'] = ['rxs' => $rxs];
+            }
+
+            /********************* Order Created Data *****************/
+            $rxs = [];
+
+            if ($this->order->items->count() > 0)
+            {
+                $this->order->items->each(function($item) use (&$rxs) {
+                    $rxs[] = [
+                        "name" => $item->getDrugName().' - '.$item->rxs->rx_message_text,
+                        "price_dispensed" => $item->price_dispensed,
+                        "days_dispensed" => $item->days_dispensed,
+                    ];
+                });
+                $this->order_data['ordered_items'] = $rxs;
+            }
+
             $this->order_data = $data;
         }
 
@@ -145,13 +184,13 @@ abstract class OrderEvent extends Event
         if (empty($this->order->patient->email)) {
             return null;
         }
-
         $email              = new EmailComm();
         $email->subject     = $this->render('email_subject');
         $email->message     = $this->render('email');
         $email->attachments = [$this->order->invoice_doc_id];
         $email->email       = DEBUG_EMAIL;
         //$email->email   = $this->order->patient->email;
+
         return $email;
     }
 
@@ -213,7 +252,6 @@ abstract class OrderEvent extends Event
         $m = new \Mustache_Engine(array('entity_flags' => ENT_QUOTES));
 
         $template_path = TEMPLATE_DIR . "{$this->template_path}/{$template}.mustache";
-
         return $m->render(
             file_get_contents($template_path),
             $this->getOrderData()

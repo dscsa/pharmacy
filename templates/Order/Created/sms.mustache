@@ -28,11 +28,21 @@
         }
     }
 }}
-Good Pill shipped your order of {{count_filled}} item{{#multiple_filled}}s{{/multiple_filled}} and it should arrive in 3-5 days.
-{{#filled}}
-These Rxs are on the way:
-    {{#rxs}}
-        {{name}}
-    {{/rxs}}
-{{/filled}}
-View it at {{short_invoice_url}}. Track it at {{short_tracking_url}}.
+Good Pill is starting to prepare {{count_filled}} items for Order #{{invoice_number}}.
+<p>Good Pill is starting to prepare {{count_filled}} items for Order #{{invoice_number}}. We will notify you again once it ships.</p>
+<p>If your address has recently changed please let us know right away.</p>
+{{^refills_used}}
+    <p>Your first order will only be $6 total for all of your medications.</p>
+{{/refills_used}}
+
+
+{{#ordered_items}}
+    <p>
+        <u>These Rxs will be included once we confirm their availability:</u>
+    <ul>
+        {{#rxs}}
+            <li>{{name}}</li>
+        {{/rxs}}
+    </ul>
+    </p>
+{{/ordered_items}}
