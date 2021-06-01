@@ -260,3 +260,5 @@ const SIG_PARSER_FIXED_DRUGNAMES = [
   '/(EYE DROP)/i' => 0.1,
   '/OINTMENT/i' => 0.7
 ];
+
+const SIG_PARSER_CONF_SCORE_CUTOFF = 0.20;

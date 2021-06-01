@@ -374,6 +374,14 @@ class SigParser {
         }
 
         $score = empty($this->scores) ? 0 : array_product($this->scores);
+
+        // TODO: Remove once sig_conf_score is checked in the UI
+        // Set the qty_per_day to 1 if sig_conf_score is less than a fixed threshold
+        if ($score < SIG_PARSER_CONF_SCORE_CUTOFF) {
+            $final_days = DAYS_STD;
+            $final_qty = DAYS_STD;
+        }
+
         return [
             'sig_unit' => $valid_unit,
             'sig_qty' => $final_qty,
