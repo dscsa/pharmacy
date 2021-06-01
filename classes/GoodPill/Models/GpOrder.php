@@ -728,6 +728,22 @@ class GpOrder extends Model
         });
     }
 
+    public function isPended($deep_scan = true) {
+        $items = $this->items;
+
+        if ($items->count() == 0) return true;
+
+        foreach ($items as $item) {
+            $is_pended = $item->isPended();
+            if ($deep_scan && !$is_pended) return false;
+            if (!$deep_scan) return $is_pended;
+        }
+
+        // If we deep scanned and reached this point, then we never found an unpended item
+        // so the entire order is pended.
+        return (true);
+    }
+
     /**
      * Loop through all the order items.  If the item isn't pended, pend it
      * @return void
