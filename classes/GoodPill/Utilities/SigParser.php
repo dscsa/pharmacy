@@ -175,13 +175,25 @@ class SigParser
             }
             CLiLog::debug("Requesting DetectEntitiesV2 for ".$text."\n");
         }
-        $result = $this->client->detectEntitiesV2(['Text' => $text])->toArray();
 
-        if ($this->save_test_results) {
-            static::$defaultsigs[$text] = $result;
-            file_put_contents($this->ch_test_file, json_encode(static::$defaultsigs));
-        }
-        return $result;
+        // Try atleast 3 times before we give up.
+        do {
+            $tries = (isset($tries)) ? $tries + 1 : 1;
+            try {
+                $result = $this->client->detectEntitiesV2(['Text' => $text])->toArray();
+
+                if ($this->save_test_results) {
+                    static::$defaultsigs[$text] = $result;
+                    file_put_contents($this->ch_test_file, json_encode(static::$defaultsigs));
+                }
+
+                return $result;
+            } catch (\Exception $e) {
+                sleep(1);
+            }
+        } while (!isset($result) && $tries < 3);
+
+        return [];
     }
 
 
