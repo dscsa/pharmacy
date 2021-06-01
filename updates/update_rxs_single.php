@@ -145,15 +145,30 @@ function update_rxs_single($changes)
             $parser = new SigParser("/tmp/aws-ch-responses.json");
             $exp_parsed = $parser->parse($created['sig_actual'], $created['drug_name']);
 
-            GPLog::info(
-                'BETA: Sig Parsing Test',
-                [
-                    'sig' => $created['sig_actual'],
-                    'drug' => $created['drug_name'],
-                    'parsed' => $parsed,
-                    'exp_parsed' => $exp_parsed
-                ]
-            );
+            if (
+                $parsed['siq_qty'] != $exp_parsed['sig_qty']
+                || $parsed['qty_per_day'] != ($exp_parsed['sig_qty']/$exp_parsed['sig_days'])
+            ) {
+                GPLog::warning(
+                    'BETA: Sig Parsing Test - Quantity does not match',
+                    [
+                        'sig' => $created['sig_actual'],
+                        'drug' => $created['drug_name'],
+                        'parsed' => $parsed,
+                        'exp_parsed' => $exp_parsed
+                    ]
+                );
+            } else {
+                GPLog::info(
+                    'BETA: Sig Parsing Test',
+                    [
+                        'sig' => $created['sig_actual'],
+                        'drug' => $created['drug_name'],
+                        'parsed' => $parsed,
+                        'exp_parsed' => $exp_parsed
+                    ]
+                );
+            }
 
             // If we have more than 8 a day, lets have a human verify the signature
             if ($parsed['qty_per_day'] > MAX_QTY_PER_DAY) {
