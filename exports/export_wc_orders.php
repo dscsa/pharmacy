@@ -435,6 +435,18 @@ function export_wc_create_order($order, $reason)
         $first_item['payment_method'] == PAYMENT_METHOD['AUTOPAY']
     ) ? $first_item['payment_fee_default'] : $first_item['payment_due_default'];
 
+    GpLog::debug(
+        'export_wc_create_order: due_to_send',
+        [
+            'first_item' => $first_item,
+            'order_source' => $first_item['order_source'],
+            'payment_coupon' => $first_item['order_source'],
+            'payment_method' => $first_item['order_source'],
+            'payment_fee_default' => $first_item['order_source'],
+            'payment_due_default' => $first_item['order_source'],
+            'due_to_send' => $due_to_send,
+        ]
+    );
     export_wc_update_order_payment(
         $invoice_number,
         $first_item['payment_fee_default'],
@@ -513,6 +525,19 @@ function export_wc_update_order($order)
         $order[0]['payment_coupon'] ||
         $order[0]['payment_method'] == PAYMENT_METHOD['AUTOPAY']
     ) ? $order[0]['payment_fee_default'] : $order[0]['payment_due_default'];
+
+    GpLog::debug(
+        'export_wc_update_order: due_to_send',
+        [
+            'order' =>  $order[0],
+            'order_source' =>  $order[0]['order_source'],
+            'payment_coupon' =>  $order[0]['order_source'],
+            'payment_method' =>  $order[0]['order_source'],
+            'payment_fee_default' =>  $order[0]['order_source'],
+            'payment_due_default' =>  $order[0]['order_source'],
+            'due_to_send' => $due_to_send,
+        ]
+    );
     export_wc_update_order_payment(
         $order[0]['invoice_number'],
         $order[0]['payment_fee_default'],

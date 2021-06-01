@@ -6,7 +6,7 @@ use GoodPill\Logging\GPLog;
 use GoodPill\Logging\AuditLog;
 use GoodPill\Logging\CliLog;
 use GoodPill\Models\GpPatient;
-use Goodpill\Models\GpPatientsWc;
+use GoodPill\Models\GpPatientsWc;
 use GoodPill\Models\WordPress\WpUserMeta;
 
 

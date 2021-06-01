@@ -47,6 +47,14 @@ function group_drugs($order, $mysql) {
 
     if ( ! @$item['drug_name']) continue; //Might be an empty order
 
+    //Per Kiah in https://app.asana.com/0/534557523548031/1200166790889777/f
+    //Out of refills AND rx_autofill off is basically like a voided Rx.  We don't
+    //want to include it in any of our communications.
+    if (
+        ! $item['rx_autofill'] AND
+        $item['rx_message_key'] == 'ACTION NO REFILLS'
+    ) continue;
+
     $days = @$item['days_dispensed'];
     $fill = $days ? 'FILLED_' : 'NOFILL_';
 
@@ -60,7 +68,7 @@ function group_drugs($order, $mysql) {
     $price = patient_pricing_text($item);
     $msg   = patient_message_text($item);
 
-    $groups[$fill.$action][] = $item['drug'].$msg;
+    $groups[$fill.$action][] = @$item['drug'].$msg;
 
     if (@$item['item_date_added'])
       $groups['IN_ORDER'][] = $item['drug'].$msg;
@@ -95,13 +103,13 @@ function group_drugs($order, $mysql) {
     }
 
     if ( ! @$item['refills_dispensed'] AND ! $item['rx_transfer'])
-      $groups['NO_REFILLS'][] = $item['drug'].$msg;
+      $groups['NO_REFILLS'][] = @$item['drug'].$msg;
 
     if ($days AND ! $item['rx_autofill'])
       $groups['NO_AUTOFILL'][] = $item['drug'].$msg;
 
     if ($item['rx_autofill']) {
-        $groups['AUTOFILL_ON'][] = $item['refill_date_next'].' - '.$item['drug'].$msg;
+        $groups['AUTOFILL_ON'][] = $item['refill_date_next'].' - '.@$item['drug'].$msg;
     } else {
         $groups['AUTOFILL_OFF'][] = $item['drug'].$msg;
     }

@@ -1,0 +1,55 @@
+{{!
+    Sample of data
+    {
+        "first_name": "Ben",
+        "last_name": "Brown",
+        "birth_date": "1999-09-09",
+        "dispensed_date": "04-09-2021",
+        "shipped_date": "04-09-2021",
+        "invoice_number": 12345,
+        "tracking_number": "1234123124123",
+        "tracking_url": "http://www.gmail.com",
+        "short_tracking_url": "http://www.gmail.com",
+        "invoice_url": "http://www.gmail.com",
+        "short_invoice_url": "http://www.gmail.com",
+        "count_filled": 1,
+        "multiple_filled": true,
+        "filled": {
+            "rxs": [
+                {"name": "drug 1"},
+                {"name": "drug 2"}
+            ]
+        },
+        "no_fill": {
+            "rxs": [
+                {"name": "no drug 1"},
+                {"name": "no drug 2"}
+            ]
+        }
+    }
+}}
+
+<p>Hello,</p>
+
+<p>Order #{{invoice_number}} has been cancelled.
+    {{#is_webform_transfer}}
+        Good Pill attempted to transfer prescriptions from {{pharmacy_name}} but they did not have an Rx for the requested drugs with refills remaining.  Could you please let us know your doctor's name and phone number so that we can reach out to them to get new prescription(s)
+    {{/is_webform_transfer}}
+</p>
+{{^is_webform_transfer}}
+    <p>
+        <u>Good Pill is NOT filling:</u>
+        {{#rxs_no_fill}}
+            <ul>
+                {{#rxs}}
+                    <li>{{name}}</li>
+                {{/rxs}}
+            </ul>
+        {{/rxs_no_fill}}
+    </p>
+{{/is_webform_transfer}}
+<p>If you believe this cancellation was in error, call us (888) 987-5187</p>
+
+<p>Thanks!<br>
+The Good Pill Team</p>
+

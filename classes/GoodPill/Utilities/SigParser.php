@@ -4,13 +4,15 @@ namespace GoodPill\Utilities;
 
 use Aws\ComprehendMedical\ComprehendMedicalClient;
 use Aws\Credentials\Credentials;
+use GoodPill\Logging\CliLog;
 
 
 /**
  * A class for parsing attributes of sigs with their drug name,
  * using the AWS Comprehend Medical API.
  */
-class SigParser {
+class SigParser
+{
 
     /**
      * Used for testing purposes only. An array to cache AWS CH results,
@@ -27,7 +29,7 @@ class SigParser {
     private $ch_test_file;
 
     /**
-     * true if $ch_test_file was provided.
+     * True if $ch_test_file was provided.
      * @var boolean
      */
     private $save_test_results;
@@ -55,7 +57,7 @@ class SigParser {
         $credentials = new Credentials(AWS_KEY, AWS_SECRET);
         $this->client = new ComprehendMedicalClient([
             'credentials' => $credentials,
-            'region' => AWS_REGION,
+            'region' => 'us-west-2',
             'version' => '2018-10-30'
         ]);
         $this->save_test_results = strlen($ch_test_file) > 0;
@@ -89,11 +91,11 @@ class SigParser {
 
 
     /**
-     * Before starting to parse the sig and the drugname with the 
+     * Before starting to parse the sig and the drugname with the
      * three steps (pre/aws-ch-api/post), determine if there's a simpler
      * result that can be returned. For example, if it's inhalers
      * it can always return sig_qty = 3/90.
-     * 
+     *
      * @param string               $sig
      * @param string               $drugname
      * @param array<string,mixed>  &$result
@@ -144,7 +146,7 @@ class SigParser {
      * Given a text, returns the AWS CH Attributes of the text, both mapped and unmapped.
      * @param string $text
      * @return array<Attribute>
-     * 
+     *
      * @link https://docs.aws.amazon.com/aws-sdk-php/v3/api/api-comprehendmedical-2018-10-30.html#shape-attribute AWS CH Attribute Shape
      */
     private function get_attributes($text) {
@@ -180,15 +182,27 @@ class SigParser {
             if (array_key_exists($text, static::$defaultsigs)) {
                 return static::$defaultsigs[$text];
             }
-            printf("Requesting DetectEntitiesV2 for ".$text."\n");
+            CLiLog::debug("Requesting DetectEntitiesV2 for ".$text."\n");
         }
-        $result = $this->client->detectEntitiesV2(['Text' => $text])->toArray();
 
-        if ($this->save_test_results) {
-            static::$defaultsigs[$text] = $result;
-            file_put_contents($this->ch_test_file, json_encode(static::$defaultsigs));
-        }
-        return $result;
+        // Try atleast 3 times before we give up.
+        do {
+            $tries = (isset($tries)) ? $tries + 1 : 1;
+            try {
+                $result = $this->client->detectEntitiesV2(['Text' => $text])->toArray();
+
+                if ($this->save_test_results) {
+                    static::$defaultsigs[$text] = $result;
+                    file_put_contents($this->ch_test_file, json_encode(static::$defaultsigs));
+                }
+
+                return $result;
+            } catch (\Exception $e) {
+                sleep(1);
+            }
+        } while (!isset($result) && $tries < 3);
+
+        return [];
     }
 
 
@@ -197,7 +211,7 @@ class SigParser {
      * Usual "Types" may include "DOSAGE", "DURATION", "FREQUENCY", "FORM", etc.
      * The score is assigned by the NLP of AWS, being a value between [0, 1] representing
      * how sure it is by the categorization.
-     * 
+     *
      * @param  array<Attribute> $sections of AWS CH Attributes
      * @param  string           $type of Attributes to filter by
      * @param  bool             $save_score if true, adds filtered attributes to $this->scores.
@@ -248,13 +262,13 @@ class SigParser {
 
     /**
      * Splits the array of $sections into more arrays, in order to "recognize"
-     * multiple sigs. 
-     * 
+     * multiple sigs.
+     *
      * For example, for the text:
      * "Take 4 tablets by mouth 3 times a day with meal and 2 tablets twice a day with snacks"
-     * 
+     *
      * It should return the attributes splitted by "and" like this:
-     * 
+     *
      * [[4 tablets, 3 times a day], [2 tablets, twice a day]]
      *
      * @param  array<Attribute> $sections of AWS CH Attributes
@@ -306,7 +320,7 @@ class SigParser {
 
 
     /**
-     * Postprocessing stage, parses the $attributes and $attributes_drug arrays 
+     * Postprocessing stage, parses the $attributes and $attributes_drug arrays
      * given by the AWS CH API.
      *
      * @param array<Attribute>  $attributes      AWS CH result array for the sig
@@ -433,7 +447,7 @@ class SigParser {
             if (preg_match('/(hour|hr)/i', $freq, $match) AND !preg_match('/(before|prior|about|after|period|at)/i', $freq)) {
                 $new_freq = 24 / $new_freq;
             }
-            
+
             // Weeks match
             else if (preg_match('/week/i', $freq, $match)) {
                 $new_freq = $new_freq / 7;
@@ -445,7 +459,7 @@ class SigParser {
             }
 
             $total_freq *= $new_freq;
-            
+
             if ($new_freq != 1) {
                 break;
             }
@@ -458,7 +472,7 @@ class SigParser {
     /**
      * Given an array of AWS CH Attributes, it filters the dosages and returns
      * an array, taking into account the unit and value of each dosage.
-     * 
+     *
      * @param array<Attribute> $split           AWS CH Attribute array of the sig
      * @param array<Attribute> $attributes_drug AWS CH Attribute array of the drug
      * @param boolean          &$found_dosage   set to true if at least one dosage was found
@@ -556,7 +570,7 @@ class SigParser {
     /**
      * Given an array of AWS CH Attributes, it filters the durations and returns
      * an integer, taking into account the time period of each one.
-     * 
+     *
      * @param array<Attribute> $split AWS CH Attribute array of the sig
      * @return int  The result of the parsed durations. If no duration attr was found, returns 0.
      */
@@ -602,31 +616,31 @@ class SigParser {
     function preprocessing($sig) {
         //Cleanup
         $sig = $this->preprocessing_cleanup($sig);
-    
+
         //Spanish
         $sig = preg_replace('/\\btomar\\b/i', 'take', $sig);
         $sig = preg_replace('/\\bcada\\b/i', 'each', $sig);
         $sig = preg_replace('/\\bhoras\\b/i', 'hours', $sig);
-    
+
         //Abreviations
         $sig = preg_replace('/\\bhrs\\b/i', 'hours', $sig);
         $sig = preg_replace('/\\b(prn|at onset|when)\\b/i', 'as needed', $sig);
         $sig = preg_replace('/\\bdays per week\\b/i', 'times per week', $sig);
-    
+
         $sig = $this->preprocessing_number_substitution($sig);
-    
+
         $sig = $this->preprocessing_duration_substitution($sig);
-    
+
         $sig = $this->preprocessing_alternative_units($sig);
-    
+
         $sig = $this->preprocessing_alternative_wording($sig);
-    
+
         //Cleanup
         $sig = preg_replace('/  +/i', ' ', $sig); //Remove double spaces for aesthetics
-    
+
         return trim($sig);
     }
-    
+
     private function preprocessing_cleanup($sig) {
         //Cleanup
         $sig = preg_replace('/\(.*?\)/', '', $sig); //get rid of parenthesis // "Take 1 capsule (300 mg total) by mouth 3 (three) times daily."
@@ -635,21 +649,21 @@ class SigParser {
         $sig = preg_replace('/\\bDr\./i', '', $sig);   // The period in Dr. will mess up our split for durations
         $sig = preg_replace('/\\bthen call 911/i', '', $sig); //"then call 911" is not a duration
         $sig = preg_replace('/\\bas directed/i', '', $sig); //< Diriection. As Directed was triggering a 2nd duration
-    
+
         $sig = preg_replace('/ +(mc?g)\\b| +(ml)\\b/i', '$1$2', $sig);   //get rid of extra spaces
         $sig = preg_replace('/[\w ]*replaces[\w ]*/i', '$1', $sig); //Take 2 tablets (250 mcg total) by mouth daily. This medication REPLACES Levothyroxine 112 mcg",
-    
+
         //Interpretting as 93 qty per day. Not sure if its best to just get rid of it here or fix the issue further down
         $sig = preg_replace('/ 90 days?$/i', '', $sig); //TAKE 1 CAPSULE(S) 3 TIMES A DAY BY ORAL ROUTE AS NEEDED. 90 days
-    
+
         $sig = preg_replace('/xdaily/i', ' times per day', $sig);
-    
-        // Split with commas "then" so that durations/frequencies/dosages are recognized separately by AWS CH 
+
+        // Split with commas "then" so that durations/frequencies/dosages are recognized separately by AWS CH
         $sig = preg_replace('/(?<!,) then /i', ', then ', $sig);
-    
+
         return $sig;
     }
-    
+
     private function preprocessing_number_substitution($sig) {
         //Substitute Integers
         $sig = preg_replace('/\\b(one|uno)\\b/i', '1', $sig); // \\b is for space or start of line
@@ -676,15 +690,15 @@ class SigParser {
         $sig = preg_replace('/\\b(\d+)?( ?& ?)?(\.5|-?1 ?\/2|1-half|1 half)\\b/i', '$1.5', $sig); //Take 1 1/2 tablets
         $sig = preg_replace('/(\d+) .5\\b/i', '$1.5', $sig);
         $sig = preg_replace('/(^| )(\.5|1\/2|1-half|1 half|half a)\\b/i', ' 0.5', $sig);
-    
-    
+
+
         //Take First (Min?) of Numeric Ranges, except 0.5 to 1 in which case we use 1
         $sig = preg_replace('/\\b0.5 *(or|to|-) *1\\b/i', '1', $sig); //Special case of the below where we want to round up rather than down
         // $sig = preg_replace('/\\b([0-9]*\.[0-9]+|[1-9][0-9]*) *(or|to|-) *([0-9]*\.[0-9]+|[1-9][0-9]*)\\b/i', '$1', $sig); //Take 1 or 2 every 3 or 4 hours. Let's convert that to Take 1 every 3 hours (no global flag).  //Take 1 capsule by mouth twice a day as needed Take one or two twice a day as needed for anxiety
-    
+
         return $sig;
     }
-    
+
     private function _replace_time_interval($sig, $word, $time_in_days) {
         for ($x = 1; $x <= 15; $x++) {
             $regex = '/\\bfor '.$x.' '.$word.'?|'.$word.'? \d+/i';
@@ -693,25 +707,25 @@ class SigParser {
         }
         return $sig;
     }
-    
+
     private function preprocessing_duration_substitution($sig) {
-    
+
         $sig = preg_replace('/\\bx ?(\d+)\\b/i', 'for $1', $sig); // X7 Days == for 7 days
-    
+
         $sig = preg_replace('/\\bon the (first|second|third|fourth|fifth|sixth|seventh) day/i', 'for 1 days', $sig);
-    
+
         // Normalizes the intervals to days. "for 3 months" => "for 90 days"
         $sig = $this->_replace_time_interval($sig, "doses", 1);
         $sig = $this->_replace_time_interval($sig, "months", 30);
         $sig = $this->_replace_time_interval($sig, "weeks", 7);
-    
+
         //Get rid of superflous "durations" e.g 'Take 1 tablet by mouth 2 times a day. Do not crush or chew.' -> 'Take 1 tablet by mouth 2 times a day do not crush or chew.'
         //TODO probably need to add a lot more of these.  Eg ". For 90 days."
         $sig = preg_replace('/\\b[.;\/] *(?=do not)/i', ' ', $sig);
-    
+
         //Frequency Denominator
         $sig = preg_replace('/\\bq\\b/i', 'every', $sig); //take 1 tablet by oral route q 12 hrs
-    
+
         //echo "5 $sig";
         //Alternative frequency numerator wordings
         $sig = preg_replace('/(?<!all )(other|otra)\\b/i', '2', $sig); //Exclude: Take 4mg 1 time per week, Wed; 2mg all other days or as directed.
@@ -722,17 +736,17 @@ class SigParser {
         $sig = preg_replace('/\\bweekly\\b/i', 'per week', $sig);
         $sig = preg_replace('/\\bmonthly\\b/i', 'per month', $sig);
         // $sig = preg_replace('/\\bevery other\\b/i', 'each 2', $sig);
-    
+
         $weekdays = 'mondays?|mon|tuesdays?|tues?|wed|wednesdays?|thursdays?|thur?s?|fridays?|fri|saturdays?|sat|sundays?|sun';
         $sig = preg_replace('/\\b(\d) days? a week\\b/i', '$1 times per week', $sig);
         $sig = preg_replace('/\\b('.$weekdays.')[, &]*('.$weekdays.')[, &]*('.$weekdays.')\\b/i', '3 times per week', $sig);
         $sig = preg_replace('/\\b('.$weekdays.')[, &]*('.$weekdays.')\\b/i', '2 times per week', $sig);
         $sig = preg_replace('/\\b('.$weekdays.')\\b/i', '1 time per week', $sig);
-    
+
         //echo "6 $sig";
-    
+
         $sig = preg_replace('/\\bmonthly\\b/i', 'per month', $sig);
-    
+
         $sig = preg_replace('/\\b(breakfast|mornings?)[, & @]*(dinner|night|evenings?|noon)\\b/i', '2 times per day', $sig);
         $sig = preg_replace('/\\b(1 (in|at) )?\d* ?(am|pm)[, &]*(1 (in|at) )?\d* ?(am|pm)\\b/i', '2 times per day', $sig); // Take 1 tablet by mouth twice a day 1 in am and 1 at 3pm was causing issues
         $sig = preg_replace('/\\b(in|at) \d\d\d\d?[, &]*(in|at)?\d\d\d\d?\\b/i', '2 times per day', $sig); //'Take 2 tablets by mouth twice a day at 0800 and 1700'
@@ -746,7 +760,7 @@ class SigParser {
         // $sig = preg_replace('/\\b('.$time_of_day.')/i', '$1, ', $sig);
 
         // $sig = preg_replace('/\\bevery +5 +min\w*/i', '3 times per day', $sig); //Nitroglycerin
-    
+
         //echo "7 $sig";
         //Latin and Appreviations
         $sig = preg_replace('/\\bSUB-Q\\b/i', 'subcutaneous', $sig);
@@ -761,14 +775,14 @@ class SigParser {
         $sig = preg_replace('/\\b(q3.*?h)\\b/i', 'every 3 hours', $sig);
         $sig = preg_replace('/\\b(q2.*?h)\\b/i', 'every 2 hours', $sig);
         $sig = preg_replace('/\\b(q1.*?h|every hour)\\b/i', 'every 1 hours', $sig);
-    
+
         $sig = preg_replace('/on day \d+/i', 'for 1 day', $sig);
-    
+
         //Remove wording like "X minutes before" so that its not picked up as a frequency
         $sig = preg_replace('/\d+ (minutes?|hours?) (before|prior|about|after|period)/i', '', $sig);
         return $sig;
     }
-    
+
     private function preprocessing_alternative_units($sig) {
         $sig = preg_replace('/\\b4,?000ml\\b/i', '1', $sig); //We count Polyethylene Gylcol (PEG) as 1 unit not 4000ml.  TODO Maybe replace this rule with a more generalized rule?
         $sig = preg_replace('/\\b1 vial\\b/i', '3ml', $sig);
@@ -777,10 +791,10 @@ class SigParser {
         $sig = preg_replace('/\\b4 vials?\\b/i', '12ml', $sig);
         $sig = preg_replace('/\\b5 vials?\\b/i', '15ml', $sig);
         $sig = preg_replace('/\\b6 vials?\\b/i', '18ml', $sig);
-        
+
         return $sig;
     }
-    
+
     private function _delete_all_after($sig, $regexp) {
         preg_match($regexp, $sig, $match, PREG_OFFSET_CAPTURE);
         if ($match) {
@@ -788,20 +802,20 @@ class SigParser {
         }
         return $sig;
     }
-    
+
     private function preprocessing_alternative_wording($sig) {
         $sig = preg_replace('/\\bin (an|\d) hours?/i', '', $sig); //Don't catch "in an hour" from "Take 2 tablets by mouth as needed of gout & 1 more in an hour as needed"
         $sig = preg_replace('/\\bin \d+ minutes?/i', '', $sig);   //Don't use "in 10 minutes" for the frequency
         $sig = preg_replace('/\\b(an|\d) hours? later/i', '', $sig); //Don't catch "in an hour" from "Take 2 tablets by mouth as needed of gout & 1 more in an hour as needed"
         $sig = preg_replace('/\\b\d+ minutes? later/i', '', $sig);   //Don't use "in 10 minutes" for the frequency
-    
+
         $sig = preg_replace('/\\bInject \d+ units?\\b/i', 'Inject 1', $sig); //INJECT 18 UNITS
         $sig = preg_replace('/\\bInject [.\d]+ *ml?\\b/i', 'Inject 1', $sig); //Inject 0.4 mL (40 mg total) under the skin daily for 18 days.
         $sig = preg_replace('/\\b\d+ units?(.*?subcutan)|\\b(subcutan.*?)\d+ units?\\b/i', 'Inject 1 $1$2', $sig); // "15 units at bedtime 1 time per day Subcutaneous 90 days":
-    
+
         // Delete everything after the first ocurrance of "total of"
         $sig = $this->_delete_all_after($sig, '/total of/i');
-    
+
         // Delete everything after the first ocurrance of "max"
         $sig = $this->_delete_all_after($sig, '/ max/i');
     
@@ -810,16 +824,16 @@ class SigParser {
     
         // Delete everything after the first ocurrance of "may repeat"
         $sig = $this->_delete_all_after($sig, '/may repeat /i');
-    
+
         // Delete everything after the first ocurrance of "hold" (it's usually about another sig/prescription)
         $sig = $this->_delete_all_after($sig, '/hold /i');
-    
+
         // Delete everything after the first ocurrance of "combination" (it's usually about another sig/prescription)
         $sig = $this->_delete_all_after($sig, '/combination/i');
-    
+
         // Delete everything after the first ocurrance of "with" and a number
         $sig = $this->_delete_all_after($sig, '/ with.?(\d)/i');
-    
+
         // Delete everything after the first ocurrance of "up to" (to ignore both total allowed per day and increases in dosages)
         $sig = $this->_delete_all_after($sig, '/ up.?to/i');
     
@@ -836,7 +850,7 @@ class SigParser {
         $sig = preg_replace('/\\b(\d+) (ORAL|per|\d+)\\b/i', '$1 unit $2', $sig);
     
         return $sig;
-    }    
+    }
 }
 
 ?>

@@ -14,6 +14,7 @@ function export_cp_remove_items($invoice_number, $items = [])
 {
     global $mssql;
     $mssql = $mssql ?: new Mssql_Cp();
+    $cp_automation_user = CAREPOINT_AUTOMATION_USER;
 
     $order_id   = $invoice_number - 2; //TODO SUPER HACKY
     $sql = "DELETE csomline
@@ -26,7 +27,7 @@ function export_cp_remove_items($invoice_number, $items = [])
 
     $sql_to_update_deleted = "
         UPDATE CsOmLine_Deleted 
-        SET chg_user_id = 1311
+        SET chg_user_id = {$cp_automation_user}
         FROM CsOmLine_Deleted
         JOIN cprx ON cprx.rx_id = CsOmLine_Deleted.rx_id
         WHERE CsOmLine_Deleted.order_id = '{$order_id}'
@@ -80,6 +81,7 @@ function export_cp_remove_items($invoice_number, $items = [])
 function export_cp_recount_items($invoice_number, $mssql)
 {
     $order_id = $invoice_number - 2; //TODO SUPER HACKY
+    $cp_automation_user = CAREPOINT_AUTOMATION_USER;
 
     $sql1 = "SELECT COUNT(*) as count_items
                 FROM csomline
@@ -88,7 +90,8 @@ function export_cp_recount_items($invoice_number, $mssql)
     $new_count_items = (int) $mssql->run($sql1)[0][0]['count_items'];
 
     $sql2 = "UPDATE csom
-                SET csom.liCount = {$new_count_items}
+                SET csom.liCount = {$new_count_items},
+                    csom.chg_user_id = {$cp_automation_user}
                 WHERE order_id = '{$order_id}'";
 
     $res = $mssql->run($sql2);
@@ -112,6 +115,7 @@ function export_cp_add_items($invoice_number, $items)
 {
     $rx_numbers = [];
     $order_cmts = [];
+
 
     //rx_number only set AFTER its added.  We need to choose which to add, so use best.
     foreach ($items as $item) {

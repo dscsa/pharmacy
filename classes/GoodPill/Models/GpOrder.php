@@ -17,6 +17,7 @@ use GoodPill\AWS\SQS\GoogleAppRequest\Invoice\Delete;
 use GoodPill\AWS\SQS\GoogleAppQueue;
 use GoodPill\Logging\GPLog;
 
+require_once "helpers/helper_calendar.php";
 require_once "helpers/helper_full_order.php";
 require_once "helpers/helper_appsscripts.php";
 
@@ -38,13 +39,13 @@ class GpOrder extends Model
     protected $primaryKey = 'invoice_number';
 
     /**
-     * Does the database contining an incrementing field?
+     * Does the database contain an incrementing field?
      * @var boolean
      */
     public $incrementing = false;
 
     /**
-     * Does the database contining timestamp fields
+     * Does the database contain timestamp fields
      * @var boolean
      */
     public $timestamps = false;
@@ -175,9 +176,21 @@ class GpOrder extends Model
         return $this->hasOne(GpPendGroup::class, 'invoice_number', 'invoice_number');
     }
 
+    /*
+        ACCESSORS
+    */
+
+    /**
+     * Expose the order_id since we don't store it
+     * @return integer
+     */
+    public function getOrderIdAttribute() : int
+    {
+         return $this->invoice_number - 2;
+    }
 
     /*
-     * Condition Methods:  These methods are all meant to be conditional and should
+     * CONDITIONALs:  These methods are all meant to be conditional and should
      *  all return booleans.  The methods should be named with appropriate descriptive verbs
      *  ie: isShipped()
      *      hasItems()
@@ -244,6 +257,45 @@ class GpOrder extends Model
         return ($this->exists && !empty($this->order_date_dispensed));
     }
 
+    /**
+     * Does the Order come from the PatientPortal
+     * @return boolean True If the order was create by a patient request on the patient portal
+     */
+    public function isWebform() : bool
+    {
+        return isWebformErx() || isWebformTransfer() or isWebforRefill();
+    }
+
+    /**
+     * Is the item a Transfer that originated from the Webform
+     * @return boolean True if the patient requested the transfer via the patient portal
+     */
+    public function isWebformTransfer() : bool
+    {
+        return !empty($this->order_source)
+               && in_array($this->order_source, ['Webform Transfer', 'Transfer /w Note']);
+    }
+
+    /**
+     * Is the item an ERX that originated from the webform
+     * @return boolean True if the patient requested an order but is waiting on the dr to send the RX
+     */
+    public function isWebformErx()
+    {
+        return !empty($this->order_source)
+               && in_array($this->order_source, ['Webform eRx', 'eRx /w Note']);
+    }
+
+    /**
+     * Is the item a refill that originated from the webform
+     * @return boolean True if the patient reqeusted a new order from an existing rx
+     */
+    public function isWebforRefill() : bool
+    {
+        return !empty($this->order_source)
+               && in_array($this->order_source, ['Webform Refill', 'Refill w/ Note']);
+    }
+
 
     /*
      * Other Methods
@@ -253,7 +305,7 @@ class GpOrder extends Model
      * Override the save function so it sends data into Carepoint automatically
      *
      * @param  array $options Parent signature match.
-     * @return void
+     * @return boolean
      */
     public function save(array $options = [])
     {
@@ -288,6 +340,10 @@ class GpOrder extends Model
 
         return $results;
     }
+
+    /*
+        SHIPPING RELATED
+     */
 
     /**
      * Delete the previous shipping data
@@ -337,7 +393,7 @@ class GpOrder extends Model
      * Update the order as shipped
      * @param  string $ship_date       A stringtotime compatible utc date.
      * @param  string $tracking_number The tracking number for the shipment.
-     * @return boolean                    Was the shipment updatedated.
+     * @return bool                    Was the shipment updated.
      */
     public function markShipped(string $ship_date, string $tracking_number) : bool
     {
@@ -381,7 +437,7 @@ class GpOrder extends Model
      * Update the order as delivered
      * @param  string $delivered_date   A stringtotime compatible utc date.
      * @param  string $tracking_number The tracking number for the shipment.
-     * @return boolean                  Was the shipment updated
+     * @return bool                  Was the shipment updated
      */
     public function markDelivered(string $delivered_date, string $tracking_number) : bool
     {
@@ -424,7 +480,7 @@ class GpOrder extends Model
      * Update the order as delivered
      * @param  string $status_date     A stringtotime compatible utc date.
      * @param  string $tracking_number The tracking number for the shipment.
-     * @return boolean                    Was the shipment updated.
+     * @return bool                    Was the shipment updated.
      */
     public function markReturned(string $status_date, string $tracking_number) : bool
     {
@@ -443,6 +499,7 @@ class GpOrder extends Model
         }
 
         $this->order_date_returned = $status_date;
+
         $this->save();
 
         GPLog::debug(
@@ -453,9 +510,9 @@ class GpOrder extends Model
             ),
             [ "invoice_number" => $this->invoice_number ]
         );
-
-        $shipped = new ReturnedEvent($this);
-        $shipped->publish();
+        //  @TODO - Created a returned event
+        //$shipped = new ReturnedEvent($this);
+        //$shipped->publish();
 
         return true;
     }
@@ -473,13 +530,9 @@ class GpOrder extends Model
         return $this->invoice_number - 2;
     }
 
-    public function getOrderIdAttribute() {
-        return $this->invoice_number - 2;
-    }
-
     /**
      * Get the tracking url for the order
-     * @param  boolean $short Optional Should we use the url shortener.
+     * @param  bool $short Optional Should we use the url shortener.
      * @return string
      */
     public function getTrackingUrl(bool $short = false) : ?string
@@ -507,7 +560,7 @@ class GpOrder extends Model
 
     /**
      * Get a url to view the invoice
-     * @param  boolean $short Optional Should we use a shortner service.
+     * @param  bool $short Optional Should we use a shortener service.
      * @return string
      */
     public function getInvoiceUrl(bool $short = false) : string
@@ -524,8 +577,8 @@ class GpOrder extends Model
 
     /**
      * User the relationship to get filled and unfilled items for the order
-     * @param boolean $filled Optional If a bool, return filled or not filled items.
-     * @return Collection
+     * @param bool $filled Optional If a bool, return filled or not filled items.
+     * @return mixed
      */
     public function getFilledItems(bool $filled = true)
     {
@@ -537,6 +590,62 @@ class GpOrder extends Model
     }
 
     /**
+     * Return calculated refills_dispensed column for an item
+     * Equivalent method - $groups['NO_REFILLS']
+     *
+     * if refills_dispensed attribute can return null, should we check for both null and 0?
+     * if refills_dispensed attribute defaults to 0, we only need to check for 0
+     * @param bool $refill - optional true to get
+     * @return mixed
+     */
+    public function getItemsWithNoRefills()
+    {
+        $collection = $this->items->filter(function($item) {
+            if (
+                //  This first condition may only need to be a check for 0?
+                ($item->refills_dispensed = 0 || is_null($item->refills_dispensed)) &&
+                is_null($item->rxs->rx_transfer)
+            ) {
+                return $item;
+            }
+        });
+
+        return $collection;
+    }
+
+    /**
+     * Returns items that wont be autofilled
+     * Equivalent method - $groups['NO_AUTOFILL']
+     *
+     * @return mixed
+     */
+    public function getItemsWithNoAutofills()
+    {
+        $collection = $this->items->filter(function ($item) {
+            if ($item->rxs->rx_autofill === 0 && $item->days_dispensed) {
+                return $item;
+            }
+        });
+
+        return $collection;
+    }
+
+    /**
+     * Returns whether the item is being filled
+     * Equivalent method = $groups['FILLED']
+     * @return mixed
+     */
+    public function filledItems() {
+        $collection = $this->items->filter(function ($item) {
+            if ($item->rxs->days_dispensed) {
+                return $item;
+            }
+        });
+
+        return $collection;
+    }
+
+    /**ß
      * Get to old order array
      * @return null|array
      */
@@ -551,6 +660,10 @@ class GpOrder extends Model
 
         return null;
     }
+
+    /*
+        INVOICE RELATED METHODS
+     */
 
     /**
      * Create an invoice request for printing.  Moves the invoice into the print folder so the
@@ -673,6 +786,80 @@ class GpOrder extends Model
             isset($meta)
             && !$meta->trashed
             && $meta->parent->name != INVOICE_PENDING_FOLDER_NAME
+        );
+    }
+
+    /*
+        PENDING
+     */
+
+    public function isPended() {
+        $items = $this->items();
+        if ($items) {
+            foreach ($items as $item) {
+                return $item->isPended();
+            }
+
+            return false;
+        }
+
+    }
+
+    /**
+     * Loop through all the order items.  If the item isn't pended, pend it
+     * @return void
+     */
+    public function pendOrder()
+    {
+        $items = $this->items();
+        $items->each(function ($item) {
+            if (!$item->isPended()) {
+                $item->doPendItem('Full Order Pended', true);
+            }
+        });
+    }
+
+    public function isPended($deep_scan = true) {
+        $items = $this->items;
+
+        if ($items->count() == 0) return true;
+
+        foreach ($items as $item) {
+            $is_pended = $item->isPended();
+            if ($deep_scan && !$is_pended) return false;
+            if (!$deep_scan) return $is_pended;
+        }
+
+        // If we deep scanned and reached this point, then we never found an unpended item
+        // so the entire order is pended.
+        return (true);
+    }
+
+    /**
+     * Loop through all the order items.  If the item isn't pended, pend it
+     * @return void
+     */
+    public function unpendOrder()
+    {
+        $items = $this->items;
+        $items->each(function ($items) {
+            if ($item->isPended()) {
+                $item->doUnpendItem();
+            }
+        });
+    }
+
+    /**
+     * Cancel the comm calendar events
+     * @param  array  $events The type of events to Cancel
+     * @return void
+     */
+    public function cancelEvents(?array $events = []) : void
+    {
+        cancel_events_by_order(
+            $this->invoice_number,
+            'log should be above',
+            $events
         );
     }
 }
