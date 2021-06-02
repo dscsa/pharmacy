@@ -13,7 +13,6 @@ use GoodPill\Models\v2\PickListDrug;
 use GoodPill\Models\Carepoint\CpFdrNdc;
 use GoodPill\Models\Carepoint\CpRx;
 use GoodPill\Utilities\GpComments;
-use GoodPill\Logging\GPLog;
 
 require_once "helpers/helper_full_item.php";
 require_once "helpers/helper_appsscripts.php";
