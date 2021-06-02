@@ -8,6 +8,7 @@ use GoodPill\Logging\{
 
 use \GoodPill\Models\GpOrder;
 use \GoodPill\Models\GpPendGroup;
+use \GoodPill\Models\v2\PickListDrug;
 
 require_once 'exports/export_cp_orders.php';
 
@@ -46,13 +47,16 @@ function export_v2_unpend_order($order, $mysql, $reason)
     return $order;
 }
 /**
- * Pend an item in V2 for picking
- * @param  array $item   The item details to be picked
- * @param  Mysql_Wc $mysql  Mysql Object
- * @param  string $reason The reason we are pending the item
- * @return $item
+ * Create a picklist for a specific order item and pend that picklist in v2.  This function will
+ *      calculate the neccessary quantity then select the inventory to pend for that quantity.
+ *
+ * @param  array       $item   A Legacy Item array that represents a single order item.
+ * @param  null|string $reason Optional. descriptoion of the reason we are pending the order.
+ * @param  boolean     $repend Optional.  Passing true will force the item to be unpended and
+ *      then repended.
+ * @return array The original item including any modifications that may have been made.
  */
-function v2_pend_item($item, $reason = null, $repend = false)
+function v2_pend_item(array $item, ?string $reason = null, bool $repend = false) : array
 {
     $mysql = new Mysql_Wc();
 
@@ -191,15 +195,13 @@ function v2_pend_item($item, $reason = null, $repend = false)
 }
 
 /**
- * UnPend(remove) an item in V2 for picking
- * @param  array $item   The item details to be picked
- * @param  Mysql_Wc $mysql  Mysql Object
- * @param  string $reason The reason we are pending the item
- * @return void
+ * Clear a picklist for a specific order item
+ * @param  array  $item   A legacy data array that represents a single order item.
+ * @param  string $reason Optional.  The reason we are unpending the item.
+ * @return array The original item and any new modifications made as a result of the unpend
  */
-function v2_unpend_item($item, $reason = '')
+function v2_unpend_item(array $item, string $reason = '') : array
 {
-
     $mysql = new Mysql_Wc();
 
     GPLog::notice(
@@ -571,6 +573,29 @@ function pend_pick_list($item, $list)
 
     if (isset($res) && $list['pend'][0]['_rev'] != $res[0]['rev']) {
         GPLog::debug("pend_pick_list: SUCCESS!! {$item['invoice_number']} {$item['drug_name']} {$item['rx_number']}");
+        // We successfully Pended a picklist
+        $gpOrderItem = GpOrderItem::where('invoice_number', $item['invoice_number'])
+            ->where('rx_number', $item['rx_number'])
+            ->first();
+
+        if ($gpOrderItem) {
+            // Create a picklist Object fromthe list we created
+            $pickList_object = new PickListDrug();
+            $pickList_object->setPicklist($list['pend']);
+            $pickList_object->setIsPended(true);
+
+            // Attache the pickelist to the order so we don't have to call v2
+            $gpOrderItem->setPickList($pickList_object);
+
+            // Update Carepoint with the NDC we picked.
+            $gpOrderItem->doUpdateCpWithNdc();
+        } else {
+            GPLog::warning(
+                'Could not load the order item, so Carepoint NDC can not be updated',
+                ['item' => $item]
+            );
+        }
+
         return true;
     }
 
