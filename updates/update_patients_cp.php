@@ -33,6 +33,14 @@ function update_patients_cp(array $changes) : void
         return;
     }
 
+    GPLog::notice('data-create-patients-cp', $changes);
+
+    if (isset($changes['created'])) {
+        foreach ($changes['created'] as $i => $created) {
+            cp_patient_created($created);
+        }
+    }
+
     GPLog::notice('data-update-patients-cp', $changes);
 
     if (isset($changes['updated'])) {
@@ -56,6 +64,53 @@ function update_patients_cp(array $changes) : void
     Change Handlers
 
  */
+
+ /**
+  * Handle and created cp patients
+  * @param  array $created  The data that is created
+  * @return null|array      The created data or null if returned early
+  *
+  */
+ function cp_patient_created(array $created) : ?array
+ {
+    GPLog::$subroutine_id = "patients-cp-created-v2-".sha1(serialize($created));
+    GPLog::info("data-patients-cp-created", ['created' => $created]);
+    GPLog::debug(
+        "update_patients_cp: Carepoint PATIENT Created",
+        [
+            'created' => $created,
+            'source'  => 'CarePoint',
+            'type'    => 'patients',
+            'event'   => 'created'
+        ]
+    );
+
+    $gpPatient = GpPatient::where('patient_id_cp', $created['patient_id_cp'])->first();
+
+    if (!$gpPatient) {
+        GPLog::error("Could not find patient", ['created' => $created]);
+        return $created;
+    }
+
+    //TODO See if this call can replace the needs_form_notice() call
+    //in both orders_created_cp and rxs_single_created2.  Or if not replace
+    //then these three calls can all have slightly different wording
+    if ( ! $gpPatient->pharmacy_name) {
+
+        GPLog::warning('Needs Form Notice for CP Patient Created without WC Registration (Pharmacy Name)', [
+            'patient' => $gpPatient->attributesToArray(),
+            'created' => $created,
+            'changed' => $gpPatient->getChangeStrings()
+        ]);
+
+        //TODO IF THIS WORKS MAKE THE CODE BELOW WORK WITH PATIENT MODEL
+        //$groups = group_drugs($order, $mysql);
+        //needs_form_notice($groups);
+    }
+
+    GPLog::resetSubroutineId();
+    return $created;
+}
 
 /**
  * Handle and updated cp patients
@@ -81,7 +136,7 @@ function cp_patient_updated(array $updated) : ?array
 
     if (!$gpPatient) {
         GPLog::error("Could not find patient", ['update' => $updated]);
-        return $updated;
+        return $updated; //TODO inconsistent return value according to doc block
     }
 
     $gpPatient->setChanges($updated);
