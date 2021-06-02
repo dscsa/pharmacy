@@ -7,6 +7,7 @@ use GoodPill\Logging\{
 };
 
 use \GoodPill\Models\GpOrder;
+use \GoodPill\Models\GpOrderItem;
 use \GoodPill\Models\GpPendGroup;
 use \GoodPill\Models\v2\PickListDrug;
 
