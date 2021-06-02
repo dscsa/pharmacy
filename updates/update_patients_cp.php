@@ -235,12 +235,13 @@ function cp_patient_updated(array $updated) : ?array
         $gpPatient->updateWpMeta('cp_birth_date', $gpPatient->birth_date);
 
         // Create a salesforce Event
-        $LabelChangedEvent = new CarepointLabelChanged();
+        $LabelChangedEvent = new CarepointLabelChanged($gpPatient);
         $LabelChangedEvent->setAdditionalData([
-            $gpPatient->oldValue('first_name'),
-            $gpPatient->oldValue('last_name'),
-            $gpPatient->oldValue('birth_date'),
+            'first_name' => $gpPatient->oldValue('first_name'),
+            'last_name'  => $gpPatient->oldValue('last_name'),
+            'birth_date' => $gpPatient->oldValue('birth_date')
         ]);
+
         $LabelChangedEvent->publish();
     }
 
