@@ -480,6 +480,9 @@ function update_rxs_single($changes)
      *
      * Run this After so that Rx_grouped is set when doing get_full_patient
      */
+
+    $rxs_created2 = [];
+
     $loop_timer = microtime(true);
     if (isset($changes['created'])) {
         foreach ($changes['created'] as $created) {
@@ -529,16 +532,28 @@ function update_rxs_single($changes)
 
             //Added from Fax/Call so order was not automatically created which is what would normally trigger a needs form notice
             //but since order:created subroutine will not be called we need to send out the needs form notice here instead
-            if ( ! $item['invoice_number'] && ! $item['pharmacy_name']) {
-                $patient = load_full_patient($created, $mysql);
-                $groups = group_drugs($patient, $mysql);
-                GPLog::warning('Adam testing Needs Form Notice for Rx Created without Order', [
-                    'patient' => $patient,
-                    'groups' => $groups,
-                    'item' => $item
-                ]);
-                //needs_form_notice($groups);
+            //group by unique patient so that we don't create/delete lots of needs_form_notices for each Rx that was created
+            if ($item && ! $item['invoice_number'] && ! $item['pharmacy_name']) {
+
+                $unique_patient_id = "{$item['first_name']} {$item['last_name']} {$item['birth_date']}";
+                $rxs_created2[$unique_patient_id] = $item;
             }
+        }
+    }
+
+    if ($rxs_created2) {
+        foreach ($rxs_created2 as $unique_patient_id => $item) {
+            $patient = load_full_patient($created, $mysql);
+            $groups = group_drugs($order, $mysql);
+
+            GPLog::warning('Needs Form Notice for Rx Created without Order', [
+                'unique_patient_id' => $unique_patient_id,
+                'patient' => $patient,
+                'groups' => $groups,
+                'item' => $item
+            ]);
+
+            needs_form_notice($groups);
         }
     }
     /* Finish Created Loop #2 */
