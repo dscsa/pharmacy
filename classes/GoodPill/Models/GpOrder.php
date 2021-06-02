@@ -17,6 +17,7 @@ use GoodPill\AWS\SQS\GoogleAppRequest\Invoice\Delete;
 use GoodPill\AWS\SQS\GoogleAppQueue;
 use GoodPill\Logging\GPLog;
 
+require_once "helpers/helper_calendar.php";
 require_once "helpers/helper_full_order.php";
 require_once "helpers/helper_appsscripts.php";
 
@@ -39,13 +40,13 @@ class GpOrder extends Model
 
     /**
      * Does the database contain an incrementing field?
-     * @var bool
+     * @var boolean
      */
     public $incrementing = false;
 
     /**
      * Does the database contain timestamp fields
-     * @var bool
+     * @var boolean
      */
     public $timestamps = false;
 
@@ -208,7 +209,7 @@ class GpOrder extends Model
      *         )
      *      )
      *
-     * @return bool
+     * @return boolean
      */
     public function isShipped() : bool
     {
@@ -232,7 +233,7 @@ class GpOrder extends Model
     /**
      * Has the order been marked delivered
      *      An order will be considered delivered if it order_date_delivered is not empty
-     * @return bool
+     * @return boolean
      */
     public function isDelivered() : bool
     {
@@ -249,11 +250,50 @@ class GpOrder extends Model
      * An order will be considered dispensed if it
      *     Exists in the Database
      *     AND There is a dispensed date for the order
-     * @return bool
+     * @return boolean
      */
     public function isDispensed() : bool
     {
         return ($this->exists && !empty($this->order_date_dispensed));
+    }
+
+    /**
+     * Does the Order come from the PatientPortal
+     * @return boolean True If the order was create by a patient request on the patient portal
+     */
+    public function isWebform() : bool
+    {
+        return isWebformErx() || isWebformTransfer() or isWebforRefill();
+    }
+
+    /**
+     * Is the item a Transfer that originated from the Webform
+     * @return boolean True if the patient requested the transfer via the patient portal
+     */
+    public function isWebformTransfer() : bool
+    {
+        return !empty($this->order_source)
+               && in_array($this->order_source, ['Webform Transfer', 'Transfer /w Note']);
+    }
+
+    /**
+     * Is the item an ERX that originated from the webform
+     * @return boolean True if the patient requested an order but is waiting on the dr to send the RX
+     */
+    public function isWebformErx()
+    {
+        return !empty($this->order_source)
+               && in_array($this->order_source, ['Webform eRx', 'eRx /w Note']);
+    }
+
+    /**
+     * Is the item a refill that originated from the webform
+     * @return boolean True if the patient reqeusted a new order from an existing rx
+     */
+    public function isWebforRefill() : bool
+    {
+        return !empty($this->order_source)
+               && in_array($this->order_source, ['Webform Refill', 'Refill w/ Note']);
     }
 
 
@@ -265,7 +305,7 @@ class GpOrder extends Model
      * Override the save function so it sends data into Carepoint automatically
      *
      * @param  array $options Parent signature match.
-     * @return void
+     * @return boolean
      */
     public function save(array $options = [])
     {
@@ -551,22 +591,61 @@ class GpOrder extends Model
 
     /**
      * Return calculated refills_dispensed column for an item
-     * @TODO - DOES NOT CURRENTLY WORK
-     * @TODO - Is it possible to query the computed property this way?
+     * Equivalent method - $groups['NO_REFILLS']
+     *
+     * if refills_dispensed attribute can return null, should we check for both null and 0?
+     * if refills_dispensed attribute defaults to 0, we only need to check for 0
      * @param bool $refill - optional true to get
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     * @return mixed
      */
-    public function getRefilledItems(bool $refill = true)
+    public function getItemsWithNoRefills()
     {
-        if ($refill) {
-            return $this->items()->where('refills_dispensed', '>', 0);
-        } else {
-            return $this->items()->whereNull('refills_dispensed');
-        }
+        $collection = $this->items->filter(function($item) {
+            if (
+                //  This first condition may only need to be a check for 0?
+                ($item->refills_dispensed = 0 || is_null($item->refills_dispensed)) &&
+                is_null($item->rxs->rx_transfer)
+            ) {
+                return $item;
+            }
+        });
 
+        return $collection;
     }
 
     /**
+     * Returns items that wont be autofilled
+     * Equivalent method - $groups['NO_AUTOFILL']
+     *
+     * @return mixed
+     */
+    public function getItemsWithNoAutofills()
+    {
+        $collection = $this->items->filter(function ($item) {
+            if ($item->rxs->rx_autofill === 0 && $item->days_dispensed) {
+                return $item;
+            }
+        });
+
+        return $collection;
+    }
+
+    /**
+     * Returns whether the item is being filled
+     * Equivalent method = $groups['FILLED']
+     * @return mixed
+     */
+    public function filledItems() {
+        $collection = $this->items->filter(function ($item) {
+            if ($item->rxs->days_dispensed) {
+                return $item;
+            }
+        });
+
+        return $collection;
+    }
+
+    /**ß
      * Get to old order array
      * @return null|array
      */
@@ -716,14 +795,46 @@ class GpOrder extends Model
 
     /**
      * Loop through all the order items.  If the item isn't pended, pend it
+     * @param boolean $deep_scan Determine if we check every item or assume the first item
+     *  represents the entire order.
+     * @return boolean
+     */
+    public function isPended(bool $deep_scan = true) : bool
+    {
+        $items = $this->items;
+
+        // If there are no items, then nothing can be pended.
+        if ($items->count() == 0) {
+            return false;
+        }
+
+        foreach ($items as $item) {
+            $is_pended = $item->isPended();
+
+            if ($deep_scan && !$is_pended) {
+                return false;
+            }
+
+            if (!$deep_scan) {
+                return $is_pended;
+            }
+        }
+
+        // If we deep scanned and reached this point, then we never found an unpended item
+        // so the entire order is pended.
+        return (true);
+    }
+
+    /**
+     * Loop through all the order items.  If the item is pended, un pend it
      * @return void
      */
-    public function pendOrder()
+    public function unpendOrder()
     {
-        $items = $this->items();
-        $items->each(function ($item) {
-            if (!$item->isPended()) {
-                $item->pendItem('Full Order Pended', true);
+        $items = $this->items;
+        $items->each(function ($items) {
+            if ($item->isPended()) {
+                $item->doUnpendItem();
             }
         });
     }
@@ -732,12 +843,12 @@ class GpOrder extends Model
      * Loop through all the order items.  If the item isn't pended, pend it
      * @return void
      */
-    public function unpendOrder()
+    public function pendOrder()
     {
         $items = $this->items;
         $items->each(function ($items) {
-            if ($item->isPended()) {
-                $item->unpendItem();
+            if (!$item->isPended()) {
+                $item->pendItem();
             }
         });
     }

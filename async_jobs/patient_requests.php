@@ -215,7 +215,7 @@ for ($l = 0; $l < $executions; $l++) {
                 $message .= $e->getFile() . ":" . $e->getLine() . "\n";
                 $message .= $e->getTraceAsString();
 
-                GPLog::emergency(
+                GPLog::alert(
                     $message . "
                     Remove /tmp/block-patient-queue.txt and restart supervisord to restart the process"
                 );

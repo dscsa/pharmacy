@@ -257,3 +257,9 @@ const RX_MESSAGE = [
     'CP_CODE' => 107,
   ],
 ];
+
+const SIG_PARSER_FIXED_DRUGNAMES = [
+  '/ (CREAM|INH|INHALER|SPR|SPRAY)$/i' => 3/90,
+  '/ (GEL)$/i' => 1,
+  '/(EYE DROP)/i' => 0.1,
+];

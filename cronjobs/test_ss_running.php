@@ -51,9 +51,9 @@ $trans = $pdo->fetch();
 
 // If the Id's are the same, check the timestamp
 if ($last_ss->ss_id == $trans['ss_trans_id']) {
-    $offset = '12';
+    $offset = '18';
     if (date('N') >= 6) {
-        $offset = '36';
+        $offset = '48';
     }
     if (strtotime("+{$offset} hour", $last_ss->time) < time()) {
         pd_guardian("There have not been any new surescript transactions in more than {$offset} hours", 'ss-not-running');

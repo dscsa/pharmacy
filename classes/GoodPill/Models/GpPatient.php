@@ -194,7 +194,11 @@ class GpPatient extends Model
      * Has the addres changed
      * @return boolean  True if some of the address fields are different
      */
+<<<<<<< HEAD
     public function needsAddressUpdate() : bool
+=======
+    public function hasAddressChanged() : bool
+>>>>>>> origin/main
     {
         return $this->hasAnyFieldChanged(
             [

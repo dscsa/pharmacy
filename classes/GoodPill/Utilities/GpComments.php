@@ -43,9 +43,9 @@ class GpComments
     {
         $matches   = [];
         $has_match = preg_match($this->getPattern(), $comment, $matches);
+        $this->raw_comment = $comment;
 
         if ($has_match) {
-            $this->raw_comment = $comment;
             $this->fromJSON($matches[1]);
             return true;
         }
