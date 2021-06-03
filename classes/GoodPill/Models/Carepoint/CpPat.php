@@ -215,7 +215,9 @@ class CpPat extends Model
 
     /**
      * Use a GpComments object to update the comments on the patien
-     * @param GoodPill\Utilities\GpComments $comments [description]
+     * @param GoodPill\Utilities\GpComments $comments Should be the data we are wanting to store as a
+     *  GoodPill Comment data structure.
+     *  @return void
      */
     public function setGpComments(GpComments $comments) : void
     {
