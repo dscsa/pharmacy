@@ -224,7 +224,7 @@ function wc_patient_updated(array $updated)
 
     // Since we've already been matched, we can grab the patient and use them
 
-    $gpPatient = GpPatient::where('patient_id_cp', $updated['patient_id_cp'])->first();
+    $gpPatient = GpPatient::where('patient_id_wc', $updated['patient_id_wc'])->first();
     $gpPatient->setGpChanges($updated);
 
     if ($gpPatient->hasFieldChanged('patient_inactive')) {
