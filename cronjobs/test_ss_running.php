@@ -37,7 +37,7 @@ class GrxMaster
 if (file_exists('/tmp/last_ss_id.json')) {
     $last_ss = json_decode(file_get_contents('/tmp/last_ss_id.json'));
 } else {
-    $last_ss = [
+    $last_ss = (object) [
         'ss_id' => null,
         'time' => null
     ];

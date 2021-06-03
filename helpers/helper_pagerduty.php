@@ -12,18 +12,21 @@ const GUARDIAN_API_KEY = '34ee14abee6345fea5dd390fa062b526';
 
 /**
  * Send an alert to just Adam
- * @param  string $message The message to display
+ * @param  string $message The message to display.
  * @param  string $id      A human readable id.  This id will be used to group
- *      messages, so it should unique for individual alerts
- * @param  array  $data    (Optional) A small batch of additional details to
- *      be attached to the event
- * @param  int    $level   (Optional) One of the leves available in the
- *      TriggerEvent class
+ *      messages, so it should unique for individual alerts.
+ * @param  array  $data    Optional A small batch of additional details to
+ *      be attached to the event.
+ * @param  int    $level   Optional One of the leves available in the
+ *      TriggerEvent class.
  * @return boolean  True if the message was succesfully sent
  */
-function pd_alert_adam($message, $id, $data = [], $level = TriggerEvent::ERROR)
-{
-
+function pd_alert_adam(
+    string $message,
+    string $id,
+    ?array $data = [],
+    ?int $level = TriggerEvent::ERROR
+) : bool {
     $event = get_pd_event(
         $message,
         $id,
@@ -37,14 +40,14 @@ function pd_alert_adam($message, $id, $data = [], $level = TriggerEvent::ERROR)
 
 /**
  * Send an alert to the low urgency message service
- * @param  string $message The message to display
+ * @param  string $message The message to display.
  * @param  string $id      A human readable id.  This id will be used to group
- *      messages, so it should unique for individual alerts
- * @param  array  $data    (Optional) A small batch of additional details to
- *      be attached to the event
- * @return boolean  True if the message was succesfully sent
+ *      messages, so it should unique for individual alerts.
+ * @param  array  $data    Optional. A small batch of additional details to
+ *      be attached to the event.
+ * @return boolean  True if the message was succesfully sent.
  */
-function pd_low_priority($message, $id, $data = [])
+function pd_low_priority(string $message, string $id, ?array $data = []) : bool
 {
 
     $event = get_pd_event(
@@ -59,14 +62,14 @@ function pd_low_priority($message, $id, $data = [])
 
 /**
  * Send an alert to the high urgency message service
- * @param  string $message The message to display
+ * @param  string $message The message to display.
  * @param  string $id      A human readable id.  This id will be used to group
- *      messages, so it should unique for individual alerts
- * @param  array  $data    (Optional) A small batch of additional details to
- *      be attached to the event
- * @return boolean  True if the message was succesfully sent
+ *      messages, so it should unique for individual alerts.
+ * @param  array  $data    Optional A small batch of additional details to
+ *      be attached to the event.
+ * @return boolean  True if the message was succesfully sent.
  */
-function pd_high_priority($message, $id, $data = [])
+function pd_high_priority(string $message, string $id, ?array $data = []) : bool
 {
     $event = get_pd_event(
         $message,
@@ -80,20 +83,21 @@ function pd_high_priority($message, $id, $data = [])
 
 /**
  * Send an alert to the high urgency message service
- * @param  string $message The message to display
+ * @param  string $message The message to display.
  * @param  string $id      A human readable id.  This id will be used to group
- *      messages, so it should unique for individual alerts
- * @param  array  $data    (Optional) A small batch of additional details to
- *      be attached to the event
+ *      messages, so it should unique for individual alerts.
+ * @param  array  $data    Optional. A small batch of additional details to
+ *      be attached to the event.
  * @return boolean  True if the message was succesfully sent
  */
-function pd_guardian($message, $id, $data = [])
+function pd_guardian(string $message, string $id, ?array $data = []) : bool
 {
     $event = get_pd_event(
         $message,
         $id,
         GUARDIAN_API_KEY,
-        $data
+        $data,
+        $id
     );
 
     return pd_alert($event);
@@ -101,24 +105,25 @@ function pd_guardian($message, $id, $data = [])
 
 /**
  * Send an alert to the high urgency message service
- * @param  string $message The message to display
+ * @param  string $message The message to display.
  * @param  string $id      A human readable id.  This id will be used to group
- *      messages, so it should unique for individual alerts
- * @param  array  $data    (Optional) A small batch of additional details to
- *      be attached to the event
- * @param  string $deDup   (Optional) A key used to identify this event so
- *      duplicates will not trigger multiple alarms
- * @param  int    $level   (Optional) On of the leves specified on the TriggerEvent Class
- * @return TriggerEvent  A populated trigger event
+ *      messages, so it should unique for individual alerts.
+ * @param  string $pdKey   The Pagerduty key for a specific service.
+ * @param  array  $data    Optional. A small batch of additional details to
+ *      be attached to the event.
+ * @param  string $deDup   Optional. A key used to identify this event so
+ *      duplicates will not trigger multiple alarms.
+ * @param  int    $level   Optional. One of the levels specified on the TriggerEvent Class
+ * @return TriggerEvent  A populated trigger event.
  */
 function get_pd_event(
-    $message,
-    $id,
-    $pdKey,
-    $data = [],
-    $deDup = null,
-    $level = TriggerEvent::ERROR
-) {
+    string $message,
+    string $id,
+    string $pdKey,
+    ?array $data = [],
+    ?string $deDup = null,
+    ?int $level = TriggerEvent::ERROR
+) : TriggerEvent {
 
     $event = new TriggerEvent(
         $pdKey,
@@ -146,10 +151,10 @@ function get_pd_event(
 
 /**
  * Send an alert to pagerduty
- * @param  TriggerEvent $event The pagerduty event
+ * @param  TriggerEvent $event The pagerduty event to send.
  * @return boolean  True if the message was succesfully sent
  */
-function pd_alert(TriggerEvent $event)
+function pd_alert(TriggerEvent $event) : bool
 {
 
     if (ENVIRONMENT != 'PRODUCTION') {
@@ -162,5 +167,4 @@ function pd_alert(TriggerEvent $event)
     } catch (PagerDutyException $exception) {
         return false;
     }
-
 }
