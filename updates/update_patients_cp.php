@@ -14,8 +14,8 @@ use GoodPill\Models\GpPatient;
 
 /**
  * Handle all the possible changes to Carepoint Patiemnts
- * @param  array $changes  An array of arrays with deledted, created, and
- *      updated elements
+ * @param  array $changes An array of arrays with deledted, created, and
+ *      updated elements.
  * @return void
  */
 function update_patients_cp(array $changes) : void
@@ -114,7 +114,7 @@ function update_patients_cp(array $changes) : void
 
 /**
  * Handle and updated cp patients
- * @param  array $updated  The data that is updated
+ * @param  array $updated The data that is updated.
  * @return null|array      The updated data or null if returned early
  *
  */
@@ -139,7 +139,7 @@ function cp_patient_updated(array $updated) : ?array
         return $updated; //TODO inconsistent return value according to doc block
     }
 
-    $gpPatient->setChanges($updated);
+    $gpPatient->setGpChanges($updated);
 
     GPLog::debug("Readable Patient Changes", ['changes' => $gpPatient->getChangeStrings()]);
 
@@ -257,7 +257,7 @@ function cp_patient_updated(array $updated) : ?array
                 $updated['payment_card_last4'],
                 $updated['payment_card_date_expired']
             ),
-            ['updated' => $gpPatient->getChanges()]
+            ['updated' => $gpPatient->getGpChanges()]
         );
 
         $gpPatient->updateEvents('Autopay Reminder', 'last4', $gpPatient->payment_card_last4);
@@ -266,13 +266,7 @@ function cp_patient_updated(array $updated) : ?array
         // TODO Autopay Reminders (Remove Card, Card Expired, Card Changed, Order Paid Manually)
     }
 
-    if ($gpPatient->hasAnyFieldChanged(
-        [
-            'first_name',
-            'last_name',
-            'birth_date'
-        ]
-    )) {
+    if ($gpPatient->hasLabelChanged()) {
         if (isset($gpPatient->patient_id_wc)) {
             // NOTICE We intentionally no longer push these changes to woocommerce
             // wc_update_patient($patient);
@@ -289,6 +283,21 @@ function cp_patient_updated(array $updated) : ?array
                 $updated
             );
         }
+
+        // Put the new items into the wp meta
+        $gpPatient->updateWpMeta('cp_first_name', $gpPatient->first_name);
+        $gpPatient->updateWpMeta('cp_last_name', $gpPatient->last_name);
+        $gpPatient->updateWpMeta('cp_birth_date', $gpPatient->birth_date);
+
+        // Create a salesforce Event
+        $LabelChangedEvent = new CarepointLabelChanged($gpPatient);
+        $LabelChangedEvent->setAdditionalData([
+            'first_name' => $gpPatient->oldValue('first_name'),
+            'last_name'  => $gpPatient->oldValue('last_name'),
+            'birth_date' => $gpPatient->oldValue('birth_date')
+        ]);
+
+        $LabelChangedEvent->publish();
     }
 
     GPLog::resetSubroutineId();

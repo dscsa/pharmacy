@@ -75,7 +75,7 @@ function update_rxs_single($changes)
             );
 
             $rx_single = GpRxsSingle::where('rx_number', $created['rx_number'])->first();
-            $rx_single->setChanges($created);
+            $rx_single->setGpChanges($created);
 
             if ($rx_single->needsGsnUpdate() && $rx_single->isInFormulary()) {
                 if (!$rx_single->updateDrugGsns()) {
@@ -258,7 +258,7 @@ function update_rxs_single($changes)
         }
 
         $rx_single = GpRxsSingle::where('rx_number', $updated['rx_number'])->first();
-        $rx_single->setChanges($updated);
+        $rx_single->setGpChanges($updated);
 
         if (
             $rx_single->needsGsnUpdate()
