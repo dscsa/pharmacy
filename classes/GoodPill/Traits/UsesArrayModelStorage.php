@@ -168,7 +168,7 @@ trait UsesArrayModelStorage
      */
     public function fromJSON(string $strJSON) : bool
     {
-        $arrJSONData = json_decode($strJSON);
+        $arrJSONData = (array) json_decode($strJSON);
         return $this->fromArray($arrJSONData);
     }
 
