@@ -382,10 +382,10 @@ class SigParser
             $final_days = DAYS_STD;
         }
 
-        // Reduce confidence score if the qty_per_day exceeds 6
+        // Reduce confidence score if the qty_per_day exceeds SIG_PARSER_EXCESS_QTY_PER_DAY
         $qty_per_day = $final_qty / $final_days;
-        if ($qty_per_day > 6) {
-            $this->scores[] = 6 / $qty_per_day;
+        if ($qty_per_day > SIG_PARSER_EXCESS_QTY_PER_DAY) {
+            $this->scores[] = SIG_PARSER_EXCESS_QTY_PER_DAY / $qty_per_day;
         }
 
         $score = empty($this->scores) ? 0 : array_product($this->scores);
