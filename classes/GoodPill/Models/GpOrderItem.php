@@ -367,7 +367,7 @@ class GpOrderItem extends Model
                 if ($cprx->ndc != $found_ndc->ndc) {
                      // $cprx->ndc = $found_ndc->ndc
                     GPLog::warning(
-                        "We are changing the NDC for RX {$this->rx_number}",
+                        "doUpdateCpWithNdc: We are changing the NDC for RX {$this->rx_number}",
                         [
                             "item" => $this->toArray(),
                             "old_ndc" => $cprx->ndc,
@@ -381,6 +381,13 @@ class GpOrderItem extends Model
                 return true;
             }
         }
+
+        GPLog::warning(
+            "doUpdateCpWithNdc: Could not find an NDC for RX# {$this->rx_number}",
+            [
+                "item" => $this->toArray()
+            ]
+        );
 
         // Load the NDC object and search to see if I can find the correct one
         // If I find one, update the RX to have the newly found NDC
