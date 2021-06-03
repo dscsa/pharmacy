@@ -164,12 +164,12 @@ trait UsesArrayModelStorage
     /**
      * Take a json string and load the data
      * @param  string $strJSON A JSON encoded string to load.
-     * @return boolean Was it a success
+     * @return void
      */
-    public function fromJSON(string $strJSON) : bool
+    public function fromJSON(string $strJSON) : void
     {
         $arrJSONData = (array) json_decode($strJSON);
-        return $this->fromArray($arrJSONData);
+        $this->fromArray($arrJSONData);
     }
 
 
