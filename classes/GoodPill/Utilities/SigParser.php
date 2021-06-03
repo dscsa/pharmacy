@@ -82,11 +82,17 @@ class SigParser
             return $result;
         }
 
-        $this->scores = array();
-        $sig = $this->preprocessing($sig);
-        $attributes = $this->get_attributes($sig);
-        $attributes_drug = $this->get_attributes($drugname);
-        return $this->postprocessing($attributes, $attributes_drug, $sig);
+        try {
+            $this->scores = array();
+            $sig = $this->preprocessing($sig);
+            $attributes = $this->get_attributes($sig);
+            $attributes_drug = $this->get_attributes($drugname);
+            return $this->postprocessing($attributes, $attributes_drug, $sig);
+        } catch (\Exception $e) {
+            CLiLog::warning("Unable to parse \"$sig\": ".$e->getMessage()."\n");
+            CLiLog::debug("$e\n");
+            return SIG_PARSER_ERROR_RETURN;
+        }
     }
 
 
@@ -103,12 +109,7 @@ class SigParser
      */
     private function early_return($sig, $drugname, &$result) {
         if (empty($sig)) {
-            $result = [
-                'sig_unit' => 0,
-                'sig_qty' => 0,
-                'sig_days' => DAYS_STD,
-                'sig_conf_score' => 0
-            ];
+            $result = SIG_PARSER_ERROR_RETURN;
             return true;
         }
 
@@ -135,7 +136,7 @@ class SigParser
             $result = $this->parse($sig, $drugname);
 
             // Only return the new result if it obtained a result from AWS
-            return $result['sig_conf_score'] > 0;
+            return $result AND $result['sig_conf_score'] > 0;
         }
 
         return false;
@@ -202,7 +203,7 @@ class SigParser
             }
         } while (!isset($result) && $tries < 3);
 
-        return [];
+        return ['Entities' => [], 'UnmappedAttributes' => []];
     }
 
 
