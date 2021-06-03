@@ -13,6 +13,7 @@ use GoodPill\Logging\{
 };
 
 use GoodPill\Storage\Goodpill;
+use GoodPill\Models\GpPatient;
 use GoodPill\Utilities\Timer;
 
 
