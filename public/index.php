@@ -21,12 +21,12 @@ require_once 'helpers/helper_calendar.php';
 require_once 'helpers/helper_changes.php';
 require_once 'helpers/helper_log.php';
 
+GPLog::$application_id = 'gppa-api';
+GPLog::resetLogger();
 
 $api_version = 'v1';
 
 $app = AppFactory::create();
-
-//error_reporting(E_ERROR);
 
 // Logging all route details
 $app->add(new GoodPill\API\RouteLogger());

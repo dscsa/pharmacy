@@ -40,7 +40,7 @@ use Psr\Http\Message\ServerRequestInterface;
  * Rule to decide by request path whether the request should be authenticated or not.
  */
 
-final class RequestPathRule
+final class RequestPathRule implements RuleInterface
 {
     /**
      * Stores all the options passed to the rule
