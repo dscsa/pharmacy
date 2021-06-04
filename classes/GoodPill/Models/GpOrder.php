@@ -351,24 +351,8 @@ class GpOrder extends Model
      */
     public function deleteShipment() : bool
     {
-        if (!$this->isShipped()) {
-            return false;
-        }
-        // Model should cast to date
-        $shipUpdate = $this->getShipUpdate();
-
-        GPLog::debug(
-            sprintf(
-                "The shipping label for %s with tracking number %s has been DELETED",
-                $this->invoice_number,
-                $shipUpdate->TrackingNumber
-            ),
-            [ "invoice_number" => $this->invoice_number ]
-        );
-
-        $shipUpdate->delete();
-
         $shipment = $this->getShipment();
+
         if (!is_null($shipment)) {
             $shipment->delete();
         }
