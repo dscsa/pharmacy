@@ -17,8 +17,11 @@ class RouteLogger
      */
     public function __invoke($request, $handler)
     {
+
+        $path = $request->getUri()->getPath();
+        
         GPLog::debug(
-            'Proccessing Request for:',
+            "Proccessing Request for: {$path}",
             [
                 'attributes' => $request->getAttributes(),
                 'body'       => $request->getParsedBody(),
