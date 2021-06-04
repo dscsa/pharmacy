@@ -7,6 +7,7 @@ use Slim\Factory\AppFactory;
 use GoodPill\Models\GpOrder;
 use Firebase\JWT\JWT;
 use GoodPill\Models\Utility\UtiNonce;
+use GoodPill\Logging\GPLog;
 
 ini_set('memory_limit', '1024M');
 ini_set('include_path', '/goodpill/webform');
@@ -20,11 +21,15 @@ require_once 'helpers/helper_calendar.php';
 require_once 'helpers/helper_changes.php';
 require_once 'helpers/helper_log.php';
 
+
 $api_version = 'v1';
 
 $app = AppFactory::create();
 
 //error_reporting(E_ERROR);
+
+// Logging all route details
+$app->add(new GoodPill\API\RouteLogger());
 
 // Token Middleware
 // NOTE This code is left here intentinoally.  It is fully functional, and just needs to be
@@ -120,16 +125,25 @@ $app->post(
 
                 // If the address is provided, we need to update the shipping details
                 if (isset($request_data->address_to)) {
+
                     // Update the shipping information on the package
-                    $order->order_address1 = $request_data->address_to['street1'];
+                    if (!empty($request_data->address_to['street1'])) {
+                        $order->order_address1 = $request_data->address_to['street1'];
+                    }
 
                     if (isset($request_data->address_to['street2'])) {
                         $order->order_address2 = $request_data->address_to['street2'];
                     }
 
-                    $order->order_city = $request_data->address_to['city'];
-                    $order->order_state = $request_data->address_to['state'];
-                    $order->order_zip = $request_data->address_to['zip'];
+                    if (!empty($request_data->address_to['city'])) {
+                        $order->order_city = $request_data->address_to['city'];
+                    }
+                    if (!empty($request_data->address_to['state'])) {
+                        $order->order_state = $request_data->address_to['state'];
+                    }
+                    if (!empty($request_data->address_to['zip'])) {
+                        $order->order_zip = $request_data->address_to['zip'];
+                    }
 
                     // Will push shipping details to CarePoint
                     $order->save();

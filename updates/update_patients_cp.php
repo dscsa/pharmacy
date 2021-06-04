@@ -11,6 +11,8 @@ use GoodPill\Logging\{
 
 use GoodPill\Utilities\Timer;
 use GoodPill\Models\GpPatient;
+use GoodPill\Events\Patient\CarepointLabelChanged;
+
 
 /**
  * Handle all the possible changes to Carepoint Patiemnts
