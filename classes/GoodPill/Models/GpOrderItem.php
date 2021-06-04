@@ -260,6 +260,28 @@ class GpOrderItem extends Model
 
         return false;
     }
+
+    /**
+     *
+     * @return bool
+     */
+    public function shouldSyncToOrderPastDue() : bool
+    {
+        if (!$this->item_date_added)
+        {
+            $has_refills = ($this->refills_total > NO_REFILL);
+
+            $is_refill = $this->refill_date_first;
+
+            $eligible = (
+                $has_refills &&
+                $this->refill_date_next &&
+                (strtotime($this->refill_date_next) - strtotime($this->order_date_added)) < 0
+            );
+            return $eligible;
+        }
+        return false;
+    }
     /*
         ## ACCESSORS
      */
