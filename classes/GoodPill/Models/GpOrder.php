@@ -365,7 +365,7 @@ class GpOrder extends Model
             sprintf(
                 "The shipping label for %s with tracking number %s has been DELETED",
                 $this->invoice_number,
-                $shipUpdate->TrackingNumber
+                $shipment->TrackingNumber
             ),
             [ "invoice_number" => $this->invoice_number ]
         );
