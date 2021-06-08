@@ -78,7 +78,7 @@ class GpComments
      * Strip the comment pattern off a string
      * @return string The stripped toString
      */
-    public function stripCommentString() : string
+    protected function stripCommentString() : string
     {
         return preg_replace($this->getPattern(), '', $this->raw_comment);
     }

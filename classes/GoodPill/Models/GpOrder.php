@@ -351,40 +351,24 @@ class GpOrder extends Model
      */
     public function deleteShipment() : bool
     {
-        if (!$this->isShipped()) {
-            return false;
-        }
-        // Model should cast to date
-        $shipUpdate = $this->getShipUpdate();
+        $shipment = $this->getShipUpdate();
 
-        GPLog::debug(
-            sprintf(
-                "The shipping label for %s with tracking number %s has been DELETED",
-                $this->invoice_number,
-                $shipUpdate->TrackingNumber
-            ),
-            [ "invoice_number" => $this->invoice_number ]
-        );
-
-        $shipUpdate->delete();
-
-        $shipment = $this->getShipment();
         if (!is_null($shipment)) {
             $shipment->delete();
+
+            GPLog::debug(
+                sprintf(
+                    "The shipping label for %s with tracking number %s has been DELETED",
+                    $this->invoice_number,
+                    $shipment->TrackingNumber
+                ),
+                [ "invoice_number" => $this->invoice_number ]
+            );
         }
 
         $this->order_date_shipped = null;
         $this->tracking_number    = null;
         $this->save();
-
-        GPLog::debug(
-            sprintf(
-                "The shipping label for %s with tracking number %s has been DELETED",
-                $this->invoice_number,
-                $shipUpdate->TrackingNumber
-            ),
-            [ "invoice_number" => $this->invoice_number ]
-        );
 
         return true;
     }
@@ -793,41 +777,31 @@ class GpOrder extends Model
         PENDING
      */
 
-    public function isPended() {
-        $items = $this->items();
-        if ($items) {
-            foreach ($items as $item) {
-                return $item->isPended();
-            }
+    /**
+     * Loop through all the order items.  If the item isn't pended, pend it
+     * @param boolean $deep_scan Determine if we check every item or assume the first item
+     *  represents the entire order.
+     * @return boolean
+     */
+    public function isPended(bool $deep_scan = true) : bool
+    {
+        $items = $this->items;
 
+        // If there are no items, then nothing can be pended.
+        if ($items->count() == 0) {
             return false;
         }
 
-    }
-
-    /**
-     * Loop through all the order items.  If the item isn't pended, pend it
-     * @return void
-     */
-    public function pendOrder()
-    {
-        $items = $this->items();
-        $items->each(function ($item) {
-            if (!$item->isPended()) {
-                $item->doPendItem('Full Order Pended', true);
-            }
-        });
-    }
-
-    public function isPended($deep_scan = true) {
-        $items = $this->items;
-
-        if ($items->count() == 0) return true;
-
         foreach ($items as $item) {
             $is_pended = $item->isPended();
-            if ($deep_scan && !$is_pended) return false;
-            if (!$deep_scan) return $is_pended;
+
+            if ($deep_scan && !$is_pended) {
+                return false;
+            }
+
+            if (!$deep_scan) {
+                return $is_pended;
+            }
         }
 
         // If we deep scanned and reached this point, then we never found an unpended item
@@ -836,7 +810,7 @@ class GpOrder extends Model
     }
 
     /**
-     * Loop through all the order items.  If the item isn't pended, pend it
+     * Loop through all the order items.  If the item is pended, un pend it
      * @return void
      */
     public function unpendOrder()
@@ -845,6 +819,20 @@ class GpOrder extends Model
         $items->each(function ($items) {
             if ($item->isPended()) {
                 $item->doUnpendItem();
+            }
+        });
+    }
+
+    /**
+     * Loop through all the order items.  If the item isn't pended, pend it
+     * @return void
+     */
+    public function pendOrder()
+    {
+        $items = $this->items;
+        $items->each(function ($items) {
+            if (!$item->isPended()) {
+                $item->pendItem();
             }
         });
     }

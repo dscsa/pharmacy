@@ -11,11 +11,13 @@ use GoodPill\Logging\{
 
 use GoodPill\Utilities\Timer;
 use GoodPill\Models\GpPatient;
+use GoodPill\Events\Patient\CarepointLabelChanged;
+
 
 /**
  * Handle all the possible changes to Carepoint Patiemnts
- * @param  array $changes  An array of arrays with deledted, created, and
- *      updated elements
+ * @param  array $changes An array of arrays with deledted, created, and
+ *      updated elements.
  * @return void
  */
 function update_patients_cp(array $changes) : void
@@ -31,6 +33,14 @@ function update_patients_cp(array $changes) : void
         ) == 0
     ) {
         return;
+    }
+
+    GPLog::notice('data-create-patients-cp', $changes);
+
+    if (isset($changes['created'])) {
+        foreach ($changes['created'] as $i => $created) {
+            cp_patient_created($created);
+        }
     }
 
     GPLog::notice('data-update-patients-cp', $changes);
@@ -57,9 +67,56 @@ function update_patients_cp(array $changes) : void
 
  */
 
+ /**
+  * Handle and created cp patients
+  * @param  array $created  The data that is created
+  * @return null|array      The created data or null if returned early
+  *
+  */
+ function cp_patient_created(array $created) : ?array
+ {
+    GPLog::$subroutine_id = "patients-cp-created-v2-".sha1(serialize($created));
+    GPLog::info("data-patients-cp-created", ['created' => $created]);
+    GPLog::debug(
+        "update_patients_cp: Carepoint PATIENT Created",
+        [
+            'created' => $created,
+            'source'  => 'CarePoint',
+            'type'    => 'patients',
+            'event'   => 'created'
+        ]
+    );
+
+    $gpPatient = GpPatient::where('patient_id_cp', $created['patient_id_cp'])->first();
+
+    if (!$gpPatient) {
+        GPLog::error("Could not find patient", ['created' => $created]);
+        return $created;
+    }
+
+    //TODO See if this call can replace the needs_form_notice() call
+    //in both orders_created_cp and rxs_single_created2.  Or if not replace
+    //then these three calls can all have slightly different wording
+    if ( ! $gpPatient->pharmacy_name) {
+
+        GPLog::warning('Needs Form Notice for CP Patient Created without WC Registration (Pharmacy Name)', [
+            'patient' => $gpPatient->attributesToArray(),
+            'created' => $created,
+            'changed' => $gpPatient->getChangeStrings()
+        ]);
+
+        //TODO IF THIS WORKS MAKE THE CODE BELOW WORK WITH PATIENT MODEL
+        //$groups = group_drugs($order, $mysql);
+        //needs_form_notice($groups);
+    }
+
+    GPLog::resetSubroutineId();
+    return $created;
+}
+
 /**
  * Handle and updated cp patients
- * @param  array $updated  The data that is updated
+ * @param  array $updated The data that is updated.
  * @return null|array      The updated data or null if returned early
  *
  */
@@ -81,10 +138,10 @@ function cp_patient_updated(array $updated) : ?array
 
     if (!$gpPatient) {
         GPLog::error("Could not find patient", ['update' => $updated]);
-        return $updated;
+        return $updated; //TODO inconsistent return value according to doc block
     }
 
-    $gpPatient->setChanges($updated);
+    $gpPatient->setGpChanges($updated);
 
     GPLog::debug("Readable Patient Changes", ['changes' => $gpPatient->getChangeStrings()]);
 
@@ -202,7 +259,7 @@ function cp_patient_updated(array $updated) : ?array
                 $updated['payment_card_last4'],
                 $updated['payment_card_date_expired']
             ),
-            ['updated' => $gpPatient->getChanges()]
+            ['updated' => $gpPatient->getGpChanges()]
         );
 
         $gpPatient->updateEvents('Autopay Reminder', 'last4', $gpPatient->payment_card_last4);
@@ -211,13 +268,7 @@ function cp_patient_updated(array $updated) : ?array
         // TODO Autopay Reminders (Remove Card, Card Expired, Card Changed, Order Paid Manually)
     }
 
-    if ($gpPatient->hasAnyFieldChanged(
-        [
-            'first_name',
-            'last_name',
-            'birth_date'
-        ]
-    )) {
+    if ($gpPatient->hasLabelChanged()) {
         if (isset($gpPatient->patient_id_wc)) {
             // NOTICE We intentionally no longer push these changes to woocommerce
             // wc_update_patient($patient);
@@ -234,6 +285,21 @@ function cp_patient_updated(array $updated) : ?array
                 $updated
             );
         }
+
+        // Put the new items into the wp meta
+        $gpPatient->updateWpMeta('cp_first_name', $gpPatient->first_name);
+        $gpPatient->updateWpMeta('cp_last_name', $gpPatient->last_name);
+        $gpPatient->updateWpMeta('cp_birth_date', $gpPatient->birth_date);
+
+        // Create a salesforce Event
+        $LabelChangedEvent = new CarepointLabelChanged($gpPatient);
+        $LabelChangedEvent->setAdditionalData([
+            'first_name' => $gpPatient->oldValue('first_name'),
+            'last_name'  => $gpPatient->oldValue('last_name'),
+            'birth_date' => $gpPatient->oldValue('birth_date')
+        ]);
+
+        $LabelChangedEvent->publish();
     }
 
     GPLog::resetSubroutineId();

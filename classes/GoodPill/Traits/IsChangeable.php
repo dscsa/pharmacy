@@ -21,16 +21,20 @@ trait IsChangeable
      * @param array $changes The changes array.
      * @return void
      */
-    public function setChanges(array $changes) : void
+    public function setGpChanges(array $changes) : void
     {
         $this->gp_changes = $changes;
+
+        // Apply These changes to the object, we aren't storing them and eventually this should
+        // be replaced by the eloquent fields
+        $this->fill($changes);
     }
 
     /**
      * Retrieve the data in the gp_changes array
      * @return array
      */
-    public function getChanges()
+    public function getGpChanges()
     {
         return $this->gp_changes;
     }

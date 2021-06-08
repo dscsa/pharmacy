@@ -13,6 +13,7 @@ use GoodPill\Logging\{
 };
 
 use GoodPill\Storage\Goodpill;
+use GoodPill\Models\GpPatient;
 use GoodPill\Utilities\Timer;
 
 
@@ -221,7 +222,12 @@ function wc_patient_updated(array $updated)
         return null;
     }
 
-    if ($updated['patient_inactive'] !== $updated['old_patient_inactive']) {
+    // Since we've already been matched, we can grab the patient and use them
+
+    $gpPatient = GpPatient::where('patient_id_wc', $updated['patient_id_wc'])->first();
+    $gpPatient->setGpChanges($updated);
+
+    if ($gpPatient->hasFieldChanged('patient_inactive')) {
         $patient = find_patient($mysql, $updated)[0];
 
         AuditLog::log(
@@ -235,92 +241,93 @@ function wc_patient_updated(array $updated)
         GPLog::notice("WC Patient Inactive Status Changed", ['updated' => $updated]);
     }
 
-    if ($updated['email'] !== $updated['old_email']) {
+    if ($gpPatient->hasFieldChanged('email')) {
         upsert_patient_cp($mssql, "EXEC SirumWeb_AddUpdatePatEmail '$updated[patient_id_cp]', '$updated[email]'");
     }
 
-    if ((! $updated['patient_address1'] and $updated['old_patient_address1']) or
-        (! $updated['patient_address2'] and $updated['old_patient_address2']) or
-        (! $updated['patient_city'] and $updated['old_patient_city']) or
-        (strlen($updated['patient_state']) != 2 and strlen($updated['old_patient_state']) == 2) or
-        (strlen($updated['patient_zip']) != 5 and strlen($updated['old_patient_zip']) == 5)
-    ) {
-        AuditLog::log(
-            sprintf(
-                "Patient address has been updated via Patient Portal.  %s %s, %s, %s  %s",
-                $updated['patient_address1'],
-                $updated['patient_address2'],
-                $updated['patient_city'],
-                $updated['patient_state'],
-                $updated['patient_zip']
-            ),
-            $updated
-        );
-
-        GPLog::notice(
-            "update_patients_wc: adding address. $updated[first_name] $updated[last_name] $updated[birth_date]",
-            ['changed' => $changed, 'updated' => $updated]
-        );
-
-        wc_upsert_patient_meta($mysql, $updated['patient_id_wc'], 'patient_address1', $updated['old_patient_address1']);
-        wc_upsert_patient_meta($mysql, $updated['patient_id_wc'], 'patient_address2', $updated['old_patient_address2']);
-        wc_upsert_patient_meta($mysql, $updated['patient_id_wc'], 'patient_city', $updated['old_patient_city']);
-        wc_upsert_patient_meta($mysql, $updated['patient_id_wc'], 'patient_state', $updated['old_patient_state']);
-        wc_upsert_patient_meta($mysql, $updated['patient_id_wc'], 'patient_zip', $updated['old_patient_zip']);
-    } elseif ($updated['patient_address1'] !== $updated['old_patient_address1'] or
-        $updated['patient_address2'] !== $updated['old_patient_address2'] or
-        $updated['patient_city'] !== $updated['old_patient_city'] or
-        (strlen($updated['patient_state']) == 2 and $updated['patient_state'] !== $updated['old_patient_state']) or
-        (strlen($updated['patient_zip']) == 5 and $updated['patient_zip'] !== $updated['old_patient_zip'])
-    ) {
-        $address1 = escape_db_values($updated['patient_address1']);
-        $address2 = escape_db_values($updated['patient_address2']);
-        $city = escape_db_values($updated['patient_city']);
-
-        $address3 = 'NULL';
-        if ($updated['patient_state'] != 'GA') {
+    if ($gpPatient->hasAddressChanged()) {
+        if ($gpPatient->newAddressInvalid()) {
             AuditLog::log(
                 sprintf(
-                    "!!!!WARNING!!!! Address changed to different state  %s",
-                    $updated['patient_state']
+                    "Patient address has been updated via Patient Portal.  %s %s, %s, %s  %s",
+                    $updated['patient_address1'],
+                    $updated['patient_address2'],
+                    $updated['patient_city'],
+                    $updated['patient_state'],
+                    $updated['patient_zip']
                 ),
                 $updated
             );
-            GPLog::warning(
-                "update_patients_wc: updated address-mismatch.
-                $updated[first_name] $updated[last_name] $updated[birth_date]",
-                [ 'updated' => $updated ]
+
+            GPLog::notice(
+                "update_patients_wc: adding address. $updated[first_name] $updated[last_name] $updated[birth_date]",
+                ['changed' => $changed, 'updated' => $updated]
             );
-            $address3 = "'!!!! WARNING NON-GEORGIA ADDRESS !!!!'";
-        }
 
-        $sql = "EXEC SirumWeb_AddUpdatePatHomeAddr '$updated[patient_id_cp]', '$address1', '$address2', $address3, '$city', '$updated[patient_state]', '$updated[patient_zip]', 'US'";
+            $gpPatient->updateWpMeta('patient_address1', $updated['old_patient_address1']);
+            $gpPatient->updateWpMeta('patient_address2', $updated['old_patient_address2']);
+            $gpPatient->updateWpMeta('patient_city', $updated['old_patient_city']);
+            $gpPatient->updateWpMeta('patient_state', $updated['old_patient_state']);
+            $gpPatient->updateWpMeta('patient_zip', $updated['old_patient_zip']);
+        } else {
+            $address1 = escape_db_values($updated['patient_address1']);
+            $address2 = escape_db_values($updated['patient_address2']);
+            $city = escape_db_values($updated['patient_city']);
 
-        AuditLog::log(
-            sprintf(
-                "Patient address has been updated via Patient Portal.  %s %s, %s, %s  %s",
-                $updated['patient_address1'],
-                $updated['patient_address2'],
-                $updated['patient_city'],
+            $address3 = 'NULL';
+            if ($updated['patient_state'] != 'GA') {
+                AuditLog::log(
+                    sprintf(
+                        "!!!!WARNING!!!! Address changed to different state  %s",
+                        $updated['patient_state']
+                    ),
+                    $updated
+                );
+                GPLog::warning(
+                    "update_patients_wc: updated address-mismatch.
+                    $updated[first_name] $updated[last_name] $updated[birth_date]",
+                    [ 'updated' => $updated ]
+                );
+                $address3 = "'!!!! WARNING NON-GEORGIA ADDRESS !!!!'";
+            }
+
+            $sql = sprintf(
+                "EXEC SirumWeb_AddUpdatePatHomeAddr '%s', '%s', '%s', %s, '%s', '%s', '%s', 'US'",
+                $updated['patient_id_cp'],
+                $address1,
+                $address2,
+                $address3,
+                $city,
                 $updated['patient_state'],
                 $updated['patient_zip']
-            ),
-            $updated
-        );
+            );
 
-        GPLog::notice(
-            "update_patients_wc: updated address-mismatch. $updated[first_name]
-            $updated[last_name] $updated[birth_date]",
-            [
-                'sql'     => $sql,
-                'changed' => $changed,
-                'updated' => $updated
-            ]
-        );
-        upsert_patient_cp($mssql, $sql);
+            AuditLog::log(
+                sprintf(
+                    "Patient address has been updated via Patient Portal.  %s %s, %s, %s  %s",
+                    $updated['patient_address1'],
+                    $updated['patient_address2'],
+                    $updated['patient_city'],
+                    $updated['patient_state'],
+                    $updated['patient_zip']
+                ),
+                $updated
+            );
+
+            GPLog::notice(
+                "update_patients_wc: updated address-mismatch. $updated[first_name]
+                $updated[last_name] $updated[birth_date]",
+                [
+                    'sql'     => $sql,
+                    'changed' => $changed,
+                    'updated' => $updated
+                ]
+            );
+            upsert_patient_cp($mssql, $sql);
+        }
     }
 
-    if ($updated['patient_date_registered'] != $updated['old_patient_date_registered']) {
+    if ($gpPatient->hasFieldChanged('patient_date_registered')) {
         $sql = "UPDATE gp_patients
                     SET patient_date_registered = '{$updated['patient_date_registered']}'
                     WHERE patient_id_wc = {$updated['patient_id_wc']}";
@@ -482,12 +489,7 @@ function wc_patient_updated(array $updated)
             "Patient Set Incorrectly",
             ['changed' => $changed, 'updated' => $updated]
         );
-    } elseif (
-        $updated['first_name'] !== $updated['old_first_name']
-        || $updated['last_name'] !== $updated['old_last_name']
-        || $updated['birth_date'] !== $updated['old_birth_date']
-        || $updated['language'] !== $updated['old_language']
-    ) {
+    } elseif ($gpPatient->hasLabelChanged()) {
         $is_patient_match = is_patient_match($updated);
         if ($is_patient_match) {
             /*
@@ -505,8 +507,9 @@ function wc_patient_updated(array $updated)
 
             AuditLog::log(
                 sprintf(
-                    "Patient has updated identifying fields to
-                     First Name: %s, Last name: %s, Birth Date: %s, Language %s",
+                    "Patient has updated WooCommerce identifying fields to
+                     First Name: %s, Last name: %s, Birth Date: %s, Language %s.
+                     This patients will have mismatched profiles mmoving forward",
                     $updated['first_name'],
                     $updated['last_name'],
                     $updated['birth_date'],
@@ -514,82 +517,14 @@ function wc_patient_updated(array $updated)
                 ),
                 $updated
             );
-            //Important for a "'" in names
-            $first_name = escape_db_values($updated['first_name']);
-            $last_name  = escape_db_values($updated['last_name']);
 
-            $sp = "EXEC SirumWeb_AddUpdatePatient '$first_name', '$last_name', '$updated[birth_date]', '$updated[phone1]', '$updated[language]'";
-            GPLog::notice(
-                "Patient Name/Identity Updated.  If called repeatedly
-                there is likely a two matching CP users",
-                [ 'sp' => $sp, 'changed' => $changed ]
-            );
-
-            upsert_patient_cp($mssql, $sp);
-        } elseif (
-            $updated['patient_id_cp']
-            && $updated['patient_id_wc']
-        ) {
-            // This user has previously been matched, so we are going to
-            // copy data from CP to WC
-            $gpdb = GoodPill::getConnection();
-            $pdo = $gpdb->prepare(
-                "SELECT first_name,
-                        last_name,
-                        birth_date,
-                        :patient_id_wc as patient_id_wc
-                    FROM gp_patients_cp
-                    WHERE patient_id_cp = :patient_id_cp
-                "
-            );
-
-            $pdo->bindParam(':patient_id_cp', $updated['patient_id_cp'], \PDO::PARAM_STR);
-            $pdo->bindParam(':patient_id_wc', $updated['patient_id_wc'], \PDO::PARAM_STR);
-            $pdo->execute();
-
-            if ($cp_patient = $pdo->fetch()) {
-                GPLog::notice(
-                    "Forced Carepoint details onto WooCommerce user",
-                    [
-                        'updated'          => $updated,
-                        'changed'          => $changed,
-                        'cp_patient'       => $cp_patient,
-                        'is_patient_match' => $is_patient_match
-                      ]
-                );
-
-                wc_update_patient($cp_patient);
-                // $subject = "Changed patient name to match details from CarePoint";
-                // create_event(
-                //     $subject,
-                //     [
-                //          [
-                //              "subject"   => $subject,
-                //              "body"      => "We found a WooCommerce user that had previous been matched to Carepoint.
-                //                              Their WooCommerce identifiers didn't match, so we updated WooCommerce
-                //                              with the details from Carepoint.  Their previous WooCommerce username was:
-                //                              {$updated['old_first_name']} {$updated['old_last_name']} {$updated['old_birth_date']}.
-                //                              Their new WooCommerce username was:
-                //                              {$updated['first_name']} {$updated['last_name']} {$updated['birth_date']}.
-                //                              Their WooCommerce id is {$updated['patient_id_wc']} and their
-                //                              Carepoint ID is {$updated['patient_id_cp']}",
-                //              "contact"   => "{$updated['first_name']} {$updated['last_name']} {$updated['birth_date']}",
-                //              "assign_to" => ".Update Name In Guardian",
-                //              "due_date"  => date('Y-m-d')
-                //          ]
-                //     ]
-                // );
-            }
-        } else {
-            $msg = "update_patients_wc: patient name changed but now count(matches) !== 1";
-            GPLog::critical(
-                $msg,
-                [
-                    'updated'          => $updated,
-                    'changed'          => $changed,
-                    'is_patient_match' => $is_patient_match
-                  ]
-            );
+            // Store this in the comment on the patient
+            $cpPatient              = $gpPatient->cpPat;
+            $gpComments             = $cpPatient->getGpComments();
+            $gpComments->first_name = $updated['first_name'];
+            $gpComments->last_name  = $updated['last_name'];
+            $gpComments->birth_date = $updated['birth_date'];
+            $cpPatient->setGpComments($gpComments);
         }
     } // END If key fields have changes
 
