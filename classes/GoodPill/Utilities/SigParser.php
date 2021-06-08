@@ -4,7 +4,7 @@ namespace GoodPill\Utilities;
 
 use Aws\ComprehendMedical\ComprehendMedicalClient;
 use Aws\Credentials\Credentials;
-use GoodPill\Logging\CliLog;
+use GoodPill\Logging\GPLog;
 
 
 /**
@@ -57,7 +57,7 @@ class SigParser
         $credentials = new Credentials(AWS_KEY, AWS_SECRET);
         $this->client = new ComprehendMedicalClient([
             'credentials' => $credentials,
-            'region' => 'us-west-2',
+            'region' => SIG_PARSER_AWS_COMPREHEND_REGION,
             'version' => '2018-10-30'
         ]);
         $this->save_test_results = strlen($ch_test_file) > 0;
@@ -76,22 +76,31 @@ class SigParser
      * @param string $sig
      * @param string $drugname
      * @return array<string,mixed> ['sig_unit', 'sig_days', 'sig_qty', 'sig_conf_score', 'frequencies', 'dosages', 'durations', 'preprocessing', 'scores']
+     * 
+     * @throws SigParserAWSComprehendException if an error ocurred while requesting to AWS Comprehend Medical
+     * @throws SigParserMalformedInputException if the input sig, after preprocessing, is empty
+     * @throws SigParserUnexpectedException any other unexpected error. logs the result
      */
     function parse($sig, $drugname = '') {
         if ($this->early_return($sig, $drugname, $result)) {
             return $result;
         }
 
+        $this->scores = array();
+        $sig_pre = $this->preprocessing($sig);
+        if (empty($sig_pre)) {
+            throw new SigParserMalformedInputException();
+        }
+
+        $attributes = $this->get_attributes($sig_pre);
+        $attributes_drug = $this->get_attributes($drugname);
+
         try {
-            $this->scores = array();
-            $sig = $this->preprocessing($sig);
-            $attributes = $this->get_attributes($sig);
-            $attributes_drug = $this->get_attributes($drugname);
-            return $this->postprocessing($attributes, $attributes_drug, $sig);
+            return $this->postprocessing($attributes, $attributes_drug, $sig_pre);
         } catch (\Exception $e) {
-            CLiLog::warning("Unable to parse \"$sig\": ".$e->getMessage()."\n");
-            CLiLog::debug("$e\n");
-            return SIG_PARSER_ERROR_RETURN;
+            GPLog::warning("Unexpected error while parsing \"$sig_pre\": ".$e->getMessage()."\n");
+            GPLog::debug("$e\n");
+            throw new SigParserUnexpectedException();
         }
     }
 
@@ -108,11 +117,6 @@ class SigParser
      * @return bool
      */
     private function early_return($sig, $drugname, &$result) {
-        if (empty($sig)) {
-            $result = SIG_PARSER_ERROR_RETURN;
-            return true;
-        }
-
         // If its an inhaler, spray, cream, gel or eye drops, return a fixed value.
         // See helper_constants.php
         foreach (SIG_PARSER_FIXED_DRUGNAMES as $regex => $qty_per_day) {
@@ -183,27 +187,41 @@ class SigParser
             if (array_key_exists($text, static::$defaultsigs)) {
                 return static::$defaultsigs[$text];
             }
-            CLiLog::debug("Requesting DetectEntitiesV2 for ".$text."\n");
+            GPLog::debug("Requesting DetectEntitiesV2 for ".$text."\n");
         }
 
         // Try atleast 3 times before we give up.
+        $exp = null;
         do {
             $tries = (isset($tries)) ? $tries + 1 : 1;
             try {
-                $result = $this->client->detectEntitiesV2(['Text' => $text])->toArray();
+                $result = $this->client->detectEntitiesV2(['Text' => $text]);
+
+                if (!isset($result['Entities'])
+                    OR !gettype($result['Entities']) == 'array'
+                    OR !isset($result['UnmappedAttributes'])
+                    OR !gettype($result['UnmappedAttributes']) == 'array'
+                ) {
+                    continue;
+                }
 
                 if ($this->save_test_results) {
-                    static::$defaultsigs[$text] = $result;
+                    static::$defaultsigs[$text] = $result->toArray();
                     file_put_contents($this->ch_test_file, json_encode(static::$defaultsigs));
                 }
 
                 return $result;
             } catch (\Exception $e) {
+                $exp = $e;
                 sleep(1);
             }
         } while (!isset($result) && $tries < 3);
 
-        return ['Entities' => [], 'UnmappedAttributes' => []];
+        if ($exp) {
+            throw new SigParserAWSComprehendException($exp->getMessage());
+        } else {
+            throw new SigParserAWSComprehendException('Malformed output result');
+        }
     }
 
 
@@ -852,6 +870,31 @@ class SigParser
     
         return $sig;
     }
+}
+
+
+/**
+ * Exception thrown when the AWS Comprehend Medical request fails
+ */
+class SigParserAWSComprehendException extends \Exception
+{
+
+}
+
+/**
+ * Exception thrown when the sig to parsed is invalid
+ */
+class SigParserMalformedInputException extends \Exception
+{
+
+}
+
+/**
+ * Exception thrown when an unexpected error ocurred
+ */
+class SigParserUnexpectedException extends \Exception
+{
+
 }
 
 ?>
