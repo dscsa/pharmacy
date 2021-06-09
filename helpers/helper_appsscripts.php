@@ -96,7 +96,7 @@ function gdoc_post($url, $content)
         $last_error = json_last_error();
 
         GPLog::debug(
-            'Google Doc Request: decoded JSON',
+            'Google Doc Request: decoded JSON'. $content['method'],
             [
                 'data'    => $decoded,
                 'url'     => $url,
