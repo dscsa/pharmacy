@@ -353,7 +353,14 @@ function inactivate_wc_users(int $patient_id_cp, int $patient_id_wc) : array
         ->where('meta_value', $patient_id_cp)
         ->where('user_id', '!=', $patient_id_wc)
         ->get();
-
+    GPLog::debug(
+        "Inactivate_wc_users: Meta Keys",
+        [
+            'patient_id_cp' => $patient_id_cp,
+            'patient_id_wc' => $patient_id_wc,
+            'metas' => $metas
+        ]
+    );
     if ($metas->count() > 0)
     {
         //  These metas are not matched to the wc id we want, mark those users as invalid
@@ -365,18 +372,27 @@ function inactivate_wc_users(int $patient_id_cp, int $patient_id_wc) : array
             //  Find the existing patient and set them to `inactive`
             $patient_to_invalidate = GpPatientsWc::where('patient_id_wc', $meta->user_id)->first();
 
-            $invalidated_patients[] = [
-                'patient_id_cp' => $patient_to_invalidate->patient_id_cp,
-                'patient_id_wc' => $patient_to_invalidate->patient_id_wc,
-                'patient' => $patient_to_invalidate->getPatientLabel()
-            ];
+            GPLog::debug(
+                "Inactivate_wc_users: GpPatientWc Found for {$meta->user_id}",
+                [
+                    'patient_to_invalidate' => $patient_to_invalidate,
+                    'meta' => $meta,
+                ]
+            );
+            if ($patient_to_invalidate)
+            {
+                $invalidated_patients[] = [
+                    'patient_id_cp' => $patient_to_invalidate->patient_id_cp,
+                    'patient_id_wc' => $patient_to_invalidate->patient_id_wc,
+                    'patient' => $patient_to_invalidate->getPatientLabel()
+                ];
 
-            $patient_to_invalidate->patient_inactive = 'Inactive';
-            $patient_to_invalidate->save();
+                $patient_to_invalidate->patient_inactive = 'Inactive';
+                $patient_to_invalidate->save();
 
-            //  This should be used for updating the active status?
-            //$patient_to_mark->updateWcActiveStatus();
-
+                //  This should be used for updating the active status?
+                //$patient_to_mark->updateWcActiveStatus();
+            }
         });
     }
 
