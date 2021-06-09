@@ -125,7 +125,12 @@ class SigParser
                     'sig_unit' => trim($match[1]),
                     'sig_qty' => $qty_per_day * DAYS_STD,
                     'sig_days' => DAYS_STD,
-                    'sig_conf_score' => 1
+                    'sig_conf_score' => 1,
+                    'frequencies' => '',
+                    'dosages' => '',
+                    'durations' => '',
+                    'scores' => '',
+                    'preprocessing' => $sig
                 ];
                 return true;
             }
@@ -244,7 +249,7 @@ class SigParser
             if ($attr["Type"] == $type AND $attr["Score"] > $score_tol) {
                 $attrs[] = $attr["Text"];
                 if ($save_scores) {
-                    $this->scores[] = $attr["Score"];
+                    $this->scores[] = round($attr["Score"], 3);
                 }
             }
         }
@@ -333,7 +338,7 @@ class SigParser
         usort($subsections, array('GoodPill\Utilities\SigParser', 'cmp_sections_by_durations'));
 
         // Reduce the confidence score based on unmapped attributes
-        $this->scores[] = $attrs_len / strlen($text);
+        $this->scores[] = round($attrs_len / strlen($text), 3);
         return $subsections;
     }
 
@@ -403,7 +408,7 @@ class SigParser
         // Reduce confidence score if the qty_per_day exceeds SIG_PARSER_EXCESS_QTY_PER_DAY
         $qty_per_day = $final_qty / $final_days;
         if ($qty_per_day > SIG_PARSER_EXCESS_QTY_PER_DAY) {
-            $this->scores[] = SIG_PARSER_EXCESS_QTY_PER_DAY / $qty_per_day;
+            $this->scores[] = round(SIG_PARSER_EXCESS_QTY_PER_DAY / $qty_per_day, 3);
         }
 
         $score = empty($this->scores) ? 0 : array_product($this->scores);
