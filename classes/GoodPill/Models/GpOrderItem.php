@@ -184,9 +184,32 @@ class GpOrderItem extends Model
         return $this->hasOne(GpRxsSingle::class, 'rx_number', 'rx_number');
     }
 
+    /**
+     * Loads the GpRxsGrouped data into an rxs single item
+     * Because there is no traditional relationship that laravel can make, we have to pseudo-load the data
+     * When inspecting an order item, if you fetch the rxs for that item you would need to call this function
+     * to apply the grouped model into the rxs object
+     *
+     * Duplicate logic of GpRxsSingle - grouped()
+     *
+     */
+    public function grouped()
+    {
+        $this->grouped = GpRxsGrouped::where('rx_numbers', 'like', "%,{$this->rx_number},%")->first();
+    }
+
     /*
         ## CONDITIONALS
      */
+
+    /**
+     * Checks that item has refills available
+     * @return bool
+     */
+    public function hasRefills() : bool
+    {
+        return $this->grouped->refills_total > NO_REFILL;
+    }
 
     /**
      * Query v2 to see if there is already a drug pended for this order
@@ -261,20 +284,68 @@ class GpOrderItem extends Model
         return false;
     }
 
+    public function isHighPrice() : bool
+    {
+        $price_per_month = $this->rxs->stock->price_per_month;
+
+        return $price_per_month >= 20;
+    }
+
+    public function isNoTransfer() : bool
+    {
+        return $this->isHighPrice() || $this->patient->pharmacy_phone === '8889875187';
+    }
+
+    public function isWebformRefill() : bool
+    {
+
+    }
+
+    //  This needs to be renamed
+    //  @TODO - Rename this, part of the syncable functional grouping
+    public function isSyncable() : bool
+    {
+        return ($this->is_order && !$this->item_date_added && !$this->order->order_date_dispensed);
+    }
+
     /**
-     *
+     * Add the item to the order if it's a new rx found
+     * @return bool
+     */
+    public function shouldSyncToOrderNewRx() : bool
+    {
+        if (!$this->item_date_added)
+        {
+            $is_not_offered = $this->isNotOffered();
+            $is_refill_only = $this->isRefillOnly();
+            $is_one_time = $this->isOneTime();
+            $has_refills  = $this->hasRefills();
+
+            $eligible     = (
+                $has_refills &&
+                $this->rx_autofill &&
+                ! $is_not_offered &&
+                ! $is_refill_only &&
+                ! $is_one_time &&
+                ! $this->refill_date_next
+            );
+
+            return $eligible;
+        }
+
+        return false;
+    }
+    /**
+     * Determine if the item should be included in current order after it's past due
+     * Item could have refills to use but the refill_date_next is before the date that the item was added
      * @return bool
      */
     public function shouldSyncToOrderPastDue() : bool
     {
         if (!$this->item_date_added)
         {
-            $has_refills = ($this->refills_total > NO_REFILL);
-
-            $is_refill = $this->refill_date_first;
-
             $eligible = (
-                $has_refills &&
+                $this->hasRefills() &&
                 $this->refill_date_next &&
                 (strtotime($this->refill_date_next) - strtotime($this->order_date_added)) < 0
             );
@@ -282,6 +353,55 @@ class GpOrderItem extends Model
         }
         return false;
     }
+
+    /**
+     * Determine if the the item should be included in the current order without a refill_date_next
+     * Item could have no refill_date_next but have current refills to use
+     * @return bool
+     */
+    public function shouldSyncToOrderNoNext() : bool
+    {
+        if (!$this->item_date_added) {
+            /*
+             * //Unlink others don't use is_refill (which checks all matching drugs / ignoring sig_qty_per day differences).
+             * This might be an Rx the pharmacists are intentionally not activating.
+             * See the 2x "Bumetanide 1mg" in Order 52129
+             */
+            $is_refill = $this->refill_date_first;
+
+            $eligible = (
+                $this->hasRefills() &&
+                $is_refill &&
+                !$this->refill_date_next
+            );
+
+            return $eligible;
+        }
+        return false;
+
+    }
+
+    /**
+     * Determine if the item is due soon and should be included to current order
+     * Checks DAYS_EARLY = 27 converted to seconds
+     * @return bool
+     */
+    public function shouldSyncToOrderDueSoon() : bool
+    {
+        if (!$this->item_date_added) {
+            $timeToNextRefill = strtotime($this->refill_date_next)  - strtotime($this->order_date_added);
+            $eligible = (
+                $this->hasRefills() &&
+                $this->refill_date_next &&
+                $timeToNextRefill <= DAYS_EARLY*24*60*60
+            );
+
+            return $eligible;
+        }
+
+        return false;
+    }
+
     /*
         ## ACCESSORS
      */
@@ -376,6 +496,36 @@ class GpOrderItem extends Model
         }
 
         return "{$rxs->drug_generic} ({$rxs->drug_brand})";
+    }
+
+    /**
+     * Calculate the new refills_dispensed_default field for the gp_order_item
+     *
+     * This seems to only be used to save back to gp_order_items table in `helper_days_and_message`
+     * This may work best as a mutator
+     * @return float|int|mixed
+     */
+    public function calculateRefillsDispensedDefault()
+    {
+        //  Not sure if decimal 0.00 evaluates to falsy in PHP
+        if ($this->qty_total <= 0)
+        {
+            return 0;
+        }
+
+        if ($this->refill_date_first)
+        {
+            $countOfRefills = $this->refills_total - ($this->days_dispensed_default === 0 ? 0 : 1);
+            return max(0, $countOfRefills);
+        }
+
+        //  6028507 if Cindy hasn't adjusted the days/qty yet we need to calculate it ourselves
+        if ($this->qty_dispensed_default)
+        {
+            return $this->refills_total * (1 - $this->qty_dispensed_default/$this->qty_total);
+        }
+
+        return $this->refills_total - ($this->item_date_added ? 1 : 0);
     }
 
     /*
