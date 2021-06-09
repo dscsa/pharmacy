@@ -92,10 +92,24 @@ function gdoc_post($url, $content)
 
     for ($try = 1; $try <=3; $try++) {
         $results = @file_get_contents($url.'?GD_KEY='.GD_KEY, false, $context);
+        $decoded = json_decode($results);
+        $last_error = json_last_error();
+
+        GPLog::debug(
+            'Google Doc Request: decoded JSON',
+            [
+                'data'    => $decoded,
+                'url'     => $url,
+                'try'     => $try,
+                'results' => $results,
+                'opts' => $opts,
+                'context' => $context,
+            ]
+        );
 
         // We have some results so let's leave
-        if ($results !== false && !empty($results) && isJson($results)) {
-            
+        if ($results !== false && !empty($results) && $last_error === JSON_ERROR_NONE) {
+
             GPLog::debug(
                 'Google Doc Request Returned: ' . $content['method'],
                 [
