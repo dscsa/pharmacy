@@ -201,32 +201,30 @@ class SigParser
             $tries = (isset($tries)) ? $tries + 1 : 1;
             try {
                 $result = $this->client->detectEntitiesV2(['Text' => $text]);
-
-                if (!isset($result['Entities'])
-                    OR !gettype($result['Entities']) == 'array'
-                    OR !isset($result['UnmappedAttributes'])
-                    OR !gettype($result['UnmappedAttributes']) == 'array'
-                ) {
-                    continue;
-                }
-
-                if ($this->save_test_results) {
-                    static::$defaultsigs[$text] = $result->toArray();
-                    file_put_contents($this->ch_test_file, json_encode(static::$defaultsigs));
-                }
-
-                return $result;
             } catch (\Exception $e) {
                 $exp = $e;
                 sleep(1);
+                continue;
             }
+
+            if (isset($result['Entities'])
+                OR !gettype($result['Entities']) == 'array'
+                OR !isset($result['UnmappedAttributes'])
+                OR !gettype($result['UnmappedAttributes']) == 'array'
+                OR !$exp
+            ) {
+                throw new SigParserAWSComprehendException('Malformed output result');
+            }
+
+            if ($this->save_test_results) {
+                static::$defaultsigs[$text] = $result->toArray();
+                file_put_contents($this->ch_test_file, json_encode(static::$defaultsigs));
+            }
+
+            return $result;
         } while (!isset($result) && $tries < 3);
 
-        if ($exp) {
-            throw new SigParserAWSComprehendException($exp->getMessage());
-        } else {
-            throw new SigParserAWSComprehendException('Malformed output result');
-        }
+        throw new SigParserAWSComprehendException($exp ? $exp->getMessage() : 'Malformed output result');
     }
 
 
