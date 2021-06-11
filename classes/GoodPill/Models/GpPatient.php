@@ -3,6 +3,7 @@
 namespace GoodPill\Models;
 
 use Carbon\Carbon;
+use GoodPill\Models\Carepoint\CpPat;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use GoodPill\Models\GpOrder;
