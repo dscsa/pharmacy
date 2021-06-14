@@ -99,4 +99,82 @@ class GpRxsGrouped extends Model
      * @var array
      */
     protected $fillable = [];
+
+    /**
+     * Checks that item has refills available
+     * @return bool
+     */
+    public function hasRefills() : bool
+    {
+        return $this->refills_total > NO_REFILL;
+    }
+
+    /*
+     * The following functions do not currently work
+     *
+     * Should these syncing functions be on a grouped entity?
+     * RxsGrouped would need duplicated logic from what is on GpOrderItem
+     *
+     */
+    /**
+     * Determine by the stock level if the item is offered or not
+     * @return bool
+     */
+    public function isNotOffered() : bool
+    {
+        $rxs = $this->rxs;
+        $stock = $rxs->stock;
+
+        $rx_gsn = $rxs->rx_gsn;
+        $drug_name = $rxs->drug_name;
+        //  This should always be set, `stock_level` isn't null in the database for any items currently
+        $stock_level = $this->stock_level_initial ?: $stock->stock_level;
+
+        GPLog::debug(
+            "Stock Level for order #{$this->invoice_number}, rx #{$this->rx_number}: {$stock}",
+            [
+                'item' => $this->toJSON(),
+                'stock_level' => $stock_level,
+                'drug_name' => $drug_name,
+                'rx_gsn' => $rx_gsn,
+            ]
+        );
+        if (
+            $rx_gsn > 0 ||
+            $stock_level == STOCK_LEVEL['NOT OFFERED'] ||
+            $stock_level == STOCK_LEVEL['ORDER DRUG']
+        ) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Add the item to an order if it's a new rx found
+     * @return bool
+     */
+    public function shouldSyncToOrderNewRx() : bool
+    {
+        if (!$this->item_date_added)
+        {
+            $is_not_offered = $this->isNotOffered();
+            $is_refill_only = $this->isRefillOnly();
+            $is_one_time = $this->isOneTime();
+            $has_refills  = $this->hasRefills();
+
+            $eligible     = (
+                $has_refills &&
+                $this->rx_autofill &&
+                ! $is_not_offered &&
+                ! $is_refill_only &&
+                ! $is_one_time &&
+                ! $this->refill_date_next
+            );
+
+            return $eligible;
+        }
+
+        return false;
+    }
 }

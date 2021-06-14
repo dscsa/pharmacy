@@ -236,8 +236,8 @@ class GpOrderItem extends Model
     function isAddedManually($item)
     {
         return
-            in_array($this->item_added_by, ADDED_MANUALLY) or
-            ($this->item_date_added and $this->refill_date_manual and $this->order->is_auto_refill());
+            in_array($this->item_added_by, ADDED_MANUALLY) ||
+            ($this->item_date_added && $this->refill_date_manual && $this->order->is_auto_refill());
     }
 
     /**
@@ -294,11 +294,6 @@ class GpOrderItem extends Model
     public function isNoTransfer() : bool
     {
         return $this->isHighPrice() || $this->patient->pharmacy_phone === '8889875187';
-    }
-
-    public function isWebformRefill() : bool
-    {
-
     }
 
     //  This needs to be renamed
