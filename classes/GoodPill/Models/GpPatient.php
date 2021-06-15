@@ -3,6 +3,7 @@
 namespace GoodPill\Models;
 
 use Carbon\Carbon;
+use GoodPill\Models\Carepoint\CpPat;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use GoodPill\Models\GpOrder;
@@ -354,17 +355,16 @@ class GpPatient extends Model
      */
     public function updateWpMeta(string $key, $value) : bool
     {
-        try {
-            $meta = $this->wcUser
-                         ->meta()
-                         ->firstOrNew(['meta_key' => $key]);
 
+        $wcuser = $this->wcUser;
+
+        if ($wcuser) {
+            $meta = $wcuser->meta()->firstOrNew(['meta_key' => $key]);
             $meta->meta_value = $value;
-
             return $meta->save();
-        } catch (\Exception $e) {
-            return false;
         }
+
+        return false;
     }
 
     /**
