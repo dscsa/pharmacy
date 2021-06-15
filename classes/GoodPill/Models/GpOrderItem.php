@@ -457,7 +457,7 @@ class GpOrderItem extends Model
 
                 // Update the current NDC
                 if ($cprx->ndc != $found_ndc->ndc) {
-                     // $cprx->ndc = $found_ndc->ndc
+                    $cprx->ndc = $found_ndc->ndc
                     GPLog::warning(
                         "doUpdateCpWithNdc: We are changing the NDC for RX {$this->rx_number}",
                         [
