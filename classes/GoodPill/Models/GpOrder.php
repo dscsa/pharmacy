@@ -160,7 +160,7 @@ class GpOrder extends Model
 
     /**
      * Get the shipment for this item
-     * @return CpCsomShipUpdate
+     * @return CpCsomShip
      */
     public function getShipment()
     {
@@ -366,6 +366,11 @@ class GpOrder extends Model
             );
         }
 
+        // Create or update the CsomShipRecord
+        $shipment                 = $this->getShipment();
+        $shipment->tracking_code  = null;
+        $shipment->save();
+
         $this->order_date_shipped = null;
         $this->tracking_number    = null;
         $this->save();
@@ -387,7 +392,7 @@ class GpOrder extends Model
 
         $ship_date = strtotime($ship_date);
 
-        // Model should cast to date
+        // Create or update the CsomShipUpdate Record
         $ship_update                 = $this->getShipUpdate();
 
         if (!$ship_update->exists) {
@@ -397,6 +402,11 @@ class GpOrder extends Model
         $ship_update->ship_date      = $ship_date;
         $ship_update->TrackingNumber = $tracking_number;
         $ship_update->save();
+
+        // Create or update the CsomShipRecord
+        $shipment                 = $this->getShipment();
+        $shipment->tracking_code  = $tracking_number;
+        $shipment->save();
 
         GPLog::debug(
             sprintf(
