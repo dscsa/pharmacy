@@ -207,11 +207,10 @@ class SigParser
                 continue;
             }
 
-            if (isset($result['Entities'])
+            if (!isset($result['Entities'])
                 OR !gettype($result['Entities']) == 'array'
                 OR !isset($result['UnmappedAttributes'])
                 OR !gettype($result['UnmappedAttributes']) == 'array'
-                OR !$exp
             ) {
                 throw new SigParserAWSComprehendException('Malformed output result');
             }
