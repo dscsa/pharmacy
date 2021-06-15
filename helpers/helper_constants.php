@@ -262,4 +262,11 @@ const SIG_PARSER_FIXED_DRUGNAMES = [
   '/ (CREAM|INH|INHALER|SPR|SPRAY)$/i' => 3/90,
   '/ (GEL)$/i' => 1,
   '/(EYE DROP)/i' => 0.1,
+  '/OINTMENT/i' => 0.7
 ];
+
+const SIG_PARSER_CONF_SCORE_CUTOFF = 0.20;
+
+const SIG_PARSER_EXCESS_QTY_PER_DAY = 6;
+
+const SIG_PARSER_AWS_COMPREHEND_REGION = 'us-west-2';

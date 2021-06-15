@@ -277,6 +277,14 @@ $correct_pairs = [
             "sig_days" => DAYS_STD,
             "sig_unit" => "TAB"
         ]
+    ],
+    "1 oral daily" => [
+        "drug_name" => "FUROSEMIDE 20MG TAB",
+        "expected" => [
+            "sig_qty" => DAYS_STD,
+            "sig_days" => DAYS_STD,
+            "sig_unit" => "TAB"
+        ]
     ]
     // Puffs/inhalators can last much longer
     // "Inhale 2 puff(s) every 4 hours by inhalation route." => [
