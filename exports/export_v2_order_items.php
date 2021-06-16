@@ -1072,15 +1072,56 @@ function months_between($from, $to)
 
 /**
  * Get the quantity we are going to pend in the next step
- * @param  array $rows    The items that were returned from v2
- * @param  float $min_qty The minimum need to fill this rx
- * @param  int   $safety  unknown????
+ * @param  array $rows    The items that were returned from v2.
+ * @param  int   $min_qty The minimum need to fill this rx.
+ * @param  float $safety  Unknown????.
  * @return array The of the details needed to pend the items
  */
-function get_qty_needed($rows, $min_qty, $safety)
+function get_qty_needed(array $rows, int $min_qty, float $safety)
 {
+    // Get an array of the NDCs and the total quantity available
+    $ndc_quantities = array_map(
+        function ($row) {
+            return [
+                'ndc' => $row['ndc'],
+                'qty_available' => array_sum(
+                    array_column(
+                        array_column($row['inventory'], 'qty'),
+                        'to'
+                    )
+                )
+            ];
+        },
+        $rows
+    );
+
+    // filter out NDCs that don't have enough quantity to fill the order
+    $available_ndcs = array_values(
+        array_filter(
+            $ndc_quantities,
+            function ($row) use ($min_qty) {
+                return $row['qty_available'] > $min_qty;
+            }
+        )
+    );
+
+    // If we don't have any NDCs then we should quit
+    if (count($available_ndcs) == 0) {
+        return;
+    }
+
+    // Grab the first NDC and use it.
+    $selected_ndc = $available_ndcs[0]['ndc'];
+
+    // Pick the appropriate NDC and then pend
     foreach ($rows as $row) {
         $ndc = $row['ndc'];
+
+        // If this isn't the NDC we selected, then skip it
+        if ($ndc != $selected_ndc) {
+            continue;
+        }
+
         $inventory = $row['inventory'];
 
         $list          = [];
