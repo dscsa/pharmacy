@@ -296,6 +296,59 @@ class GpOrderItem extends Model
         return $this->isHighPrice() || $this->patient->pharmacy_phone === '8889875187';
     }
 
+    function is_webform($item)
+    {
+        return
+            $this->is_webform_transfer($item) ||
+            $this->is_webform_erx($item) ||
+            $this->is_webform_refill($item);
+    }
+
+    function is_webform_transfer()
+    {
+        return in_array($this->order_source, ['Webform Transfer', 'Transfer /w Note']);
+    }
+
+    function is_webform_erx()
+    {
+        return in_array($this->order_source, ['Webform eRx', 'eRx /w Note']);
+    }
+
+    function is_webform_refill()
+    {
+        return in_array($this->order_source, ['Webform Refill', 'Refill w/ Note']);
+    }
+
+    public function isRefillOnly()
+    {
+        $rxs = $this->rxs;
+        $stock = $rxs->stock;
+
+        $stock_level = $this->stock_level_initial ?: $stock->stock_level;
+        return in_array(
+            $stock_level,
+            [
+                STOCK_LEVEL['OUT OF STOCK'],
+                STOCK_LEVEL['REFILL ONLY']
+            ]
+        );
+    }
+
+    public function isOneTime()
+    {
+        $rxs = $this->rxs;
+        $stock = $rxs->stock;
+
+        $stock_level = $this->stock_level_initial ?: $stock->stock_level;
+        return in_array(
+            $stock_level,
+            [
+                STOCK_LEVEL['ONE TIME']
+            ]
+        );
+    }
+
+
     //  This needs to be renamed
     //  @TODO - Rename this, part of the syncable functional grouping
     public function isSyncable() : bool
@@ -491,6 +544,38 @@ class GpOrderItem extends Model
         }
 
         return "{$rxs->drug_generic} ({$rxs->drug_brand})";
+    }
+
+    /**
+     * Gets the days left before an rx expires
+     * Calls instance of order items grouped method
+     * @return float|int|null
+     */
+    public function getDaysLeftBeforeExpiration()
+    {
+        $grouped = $this->grouped;
+        return $grouped->getDaysLeftBeforeExpiration();
+    }
+
+    /**
+     * Determines the number of days left for the current refill
+     * @return mixed
+     */
+    public function getDaysLeftInRefills()
+    {
+        $grouped = $this->grouped;
+        return $grouped->getDaysLeftInRefills();
+    }
+
+    /**
+     * Determines the number of days left in stock
+     * Returns either 60.6 or `DAYS_MIN` of 45
+     * @return float|int|void
+     */
+    public function getDaysLeftInStock()
+    {
+        $grouped = $this->grouped;
+        return $grouped->getDaysLeftInRefills();
     }
 
     /**
