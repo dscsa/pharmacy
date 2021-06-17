@@ -4,7 +4,7 @@ namespace GoodPill\Utilities;
 
 use Aws\ComprehendMedical\ComprehendMedicalClient;
 use Aws\Credentials\Credentials;
-use GoodPill\Logging\CliLog;
+use GoodPill\Logging\GPLog;
 
 
 /**
@@ -57,7 +57,7 @@ class SigParser
         $credentials = new Credentials(AWS_KEY, AWS_SECRET);
         $this->client = new ComprehendMedicalClient([
             'credentials' => $credentials,
-            'region' => 'us-west-2',
+            'region' => SIG_PARSER_AWS_COMPREHEND_REGION,
             'version' => '2018-10-30'
         ]);
         $this->save_test_results = strlen($ch_test_file) > 0;
@@ -75,7 +75,11 @@ class SigParser
      *
      * @param string $sig
      * @param string $drugname
-     * @return array<string,mixed> ['sig_unit', 'sig_days', 'sig_qty', 'sig_conf_score', 'frequencies', 'dosages', 'durations']
+     * @return array<string,mixed> ['sig_unit', 'sig_days', 'sig_qty', 'sig_conf_score', 'frequencies', 'dosages', 'durations', 'preprocessing', 'scores']
+     * 
+     * @throws SigParserAWSComprehendException if an error ocurred while requesting to AWS Comprehend Medical
+     * @throws SigParserMalformedInputException if the input sig, after preprocessing, is empty
+     * @throws SigParserUnexpectedException any other unexpected error. logs the result
      */
     function parse($sig, $drugname = '') {
         if ($this->early_return($sig, $drugname, $result)) {
@@ -83,10 +87,21 @@ class SigParser
         }
 
         $this->scores = array();
-        $sig = $this->preprocessing($sig);
-        $attributes = $this->get_attributes($sig);
+        $sig_pre = $this->preprocessing($sig);
+        if (empty($sig_pre)) {
+            throw new SigParserMalformedInputException();
+        }
+
+        $attributes = $this->get_attributes($sig_pre);
         $attributes_drug = $this->get_attributes($drugname);
-        return $this->postprocessing($attributes, $attributes_drug, $sig);
+
+        try {
+            return $this->postprocessing($attributes, $attributes_drug, $sig_pre);
+        } catch (\Exception $e) {
+            GPLog::warning("Unexpected error while parsing \"$sig_pre\": ".$e->getMessage()."\n");
+            GPLog::debug("$e\n");
+            throw new SigParserUnexpectedException();
+        }
     }
 
 
@@ -102,7 +117,6 @@ class SigParser
      * @return bool
      */
     private function early_return($sig, $drugname, &$result) {
-
         // If its an inhaler, spray, cream, gel or eye drops, return a fixed value.
         // See helper_constants.php
         foreach (SIG_PARSER_FIXED_DRUGNAMES as $regex => $qty_per_day) {
@@ -111,7 +125,12 @@ class SigParser
                     'sig_unit' => trim($match[1]),
                     'sig_qty' => $qty_per_day * DAYS_STD,
                     'sig_days' => DAYS_STD,
-                    'sig_conf_score' => 1
+                    'sig_conf_score' => 1,
+                    'frequencies' => '',
+                    'dosages' => '',
+                    'durations' => '',
+                    'scores' => '',
+                    'preprocessing' => $sig
                 ];
                 return true;
             }
@@ -119,14 +138,14 @@ class SigParser
 
         // If the dose has a maximum, return that result.
         // e.g. "Take 2 per day, max of 3 if needed" => "Take 3 if needed"
-        $splits = preg_split('/(max (of)?|may go up to|may increase to|may gradually increase to)/i', $sig);
+        $splits = preg_split('/(max (of)?|may go up to|may increase(.*)to|may gradually increase(.*)to)/i', $sig);
         if (count($splits) > 1) {
             // Get the first word of the sig + everything after the split
             $sig = explode(' ',trim($sig))[0].' '.$splits[1];
             $result = $this->parse($sig, $drugname);
 
             // Only return the new result if it obtained a result from AWS
-            return $result['sig_conf_score'] > 0;
+            return $result AND $result['sig_conf_score'] > 0;
         }
 
         return false;
@@ -173,27 +192,38 @@ class SigParser
             if (array_key_exists($text, static::$defaultsigs)) {
                 return static::$defaultsigs[$text];
             }
-            CLiLog::debug("Requesting DetectEntitiesV2 for ".$text."\n");
+            GPLog::debug("Requesting DetectEntitiesV2 for ".$text."\n");
         }
 
         // Try atleast 3 times before we give up.
+        $exp = null;
         do {
             $tries = (isset($tries)) ? $tries + 1 : 1;
             try {
-                $result = $this->client->detectEntitiesV2(['Text' => $text])->toArray();
-
-                if ($this->save_test_results) {
-                    static::$defaultsigs[$text] = $result;
-                    file_put_contents($this->ch_test_file, json_encode(static::$defaultsigs));
-                }
-
-                return $result;
+                $result = $this->client->detectEntitiesV2(['Text' => $text]);
             } catch (\Exception $e) {
+                $exp = $e;
                 sleep(1);
+                continue;
             }
+
+            if (!isset($result['Entities'])
+                OR !gettype($result['Entities']) == 'array'
+                OR !isset($result['UnmappedAttributes'])
+                OR !gettype($result['UnmappedAttributes']) == 'array'
+            ) {
+                throw new SigParserAWSComprehendException('Malformed output result');
+            }
+
+            if ($this->save_test_results) {
+                static::$defaultsigs[$text] = $result->toArray();
+                file_put_contents($this->ch_test_file, json_encode(static::$defaultsigs));
+            }
+
+            return $result;
         } while (!isset($result) && $tries < 3);
 
-        return [];
+        throw new SigParserAWSComprehendException($exp ? $exp->getMessage() : 'Malformed output result');
     }
 
 
@@ -216,7 +246,7 @@ class SigParser
             if ($attr["Type"] == $type AND $attr["Score"] > $score_tol) {
                 $attrs[] = $attr["Text"];
                 if ($save_scores) {
-                    $this->scores[] = $attr["Score"];
+                    $this->scores[] = round($attr["Score"], 3);
                 }
             }
         }
@@ -232,8 +262,22 @@ class SigParser
      * @param Attribute $attr2
      * @return int
      */
-    private function cmp_attrs($attr1, $attr2) {
+    private function cmp_attrs_by_offset($attr1, $attr2) {
         return $attr1['EndOffset'] - $attr2['EndOffset'];
+    }
+
+    /**
+     * Compares two arrays of AWS CH attributes by how many durations
+     * they have.
+     *
+     * @param Attribute $attr1
+     * @param Attribute $attr2
+     * @return int
+     */
+    private function cmp_sections_by_durations($sect1, $sect2) {
+        $count1 = DAYS_STD - sizeof($this->filter_attributes($sect1, "DURATION"));
+        $count2 = DAYS_STD - sizeof($this->filter_attributes($sect2, "DURATION"));
+        return $count1 - $count2;
     }
 
 
@@ -265,7 +309,7 @@ class SigParser
 
         $splits = preg_split($durations_regex, $text, -1, PREG_SPLIT_DELIM_CAPTURE);
 
-        usort($sections, array('GoodPill\Utilities\SigParser', 'cmp_attrs'));
+        usort($sections, array('GoodPill\Utilities\SigParser', 'cmp_attrs_by_offset'));
         $subsections = [];
         $offset_len = 0;
         $splits_idx = 0;
@@ -278,12 +322,20 @@ class SigParser
             if (!array_key_exists($splits_idx - 1, $subsections)) {
                 $subsections[$splits_idx - 1] = [];
             }
-            $subsections[$splits_idx - 1][] = $section;
             $attrs_len += strlen($section['Text']);
+
+            // Only add relevant types
+            if (in_array($section['Type'], ['FREQUENCY', 'DOSAGE', 'DURATION'])) {
+                $subsections[$splits_idx - 1][] = $section;
+            }
         }
 
+        // To fix some sigs which specify a duration only after the second split,
+        // sort the subsections by the duration count (descending).
+        usort($subsections, array('GoodPill\Utilities\SigParser', 'cmp_sections_by_durations'));
+
         // Reduce the confidence score based on unmapped attributes
-        $this->scores[] = $attrs_len / strlen($text);
+        $this->scores[] = round($attrs_len / strlen($text), 3);
         return $subsections;
     }
 
@@ -308,26 +360,40 @@ class SigParser
         $all_dur = array();
 
         foreach ($splits as $split) {
-            $freq = $this->parse_frequencies($split);
-            $dose = $this->parse_dosages($split, $attributes_drug);
+            $freq = $this->parse_frequencies($split, $found_freq);
+            $dose = $this->parse_dosages($split, $attributes_drug, $found_dosage);
             $parsed_dur = $this->parse_durations($split);
+
+            // If no frequency or dosage was found in the split, ignore it
+            if (!$found_freq AND !$found_dosage) {
+                continue;
+            }
 
             $final_days += $parsed_dur;
             $dur = ($parsed_dur ? $parsed_dur : (DAYS_STD - $final_days));
 
             $valid_unit = (strlen($valid_unit) > 0 ? $valid_unit : $dose['sig_unit']);
 
-            $all_freq[] = $freq;
-            $all_dose[] = $dose['sig_qty'];
-            $all_dur[] = $dur;
-
             // If a unit of a split doesn't match, use the last_sig_qty.
-            // TODO: Could be solved by parsing the drug name.
             $similarity = 0;
             similar_text($valid_unit, $dose['sig_unit'], $similarity);
             if ($similarity > 60) {
                 $last_sig_qty = $dose['sig_qty'];
             }
+
+            if ($freq == $dose['sig_qty'] AND $split[0]['Type'] == 'FREQUENCY') {
+                $freq = 1;
+            }
+
+            // Check for repeated splits (same freq, dose and duration as last split).
+            if (end($all_freq) == $freq AND end($all_dose) == $dose['sig_qty'] AND end($all_dur) == $dur) {
+                continue;
+            }
+
+            $all_freq[] = $freq;
+            $all_dose[] = $dose['sig_qty'];
+            $all_dur[] = $dur;
+
             $final_qty += $last_sig_qty * $freq * $dur;
         }
 
@@ -336,7 +402,21 @@ class SigParser
             $final_days = DAYS_STD;
         }
 
+        // Reduce confidence score if the qty_per_day exceeds SIG_PARSER_EXCESS_QTY_PER_DAY
+        $qty_per_day = $final_qty / $final_days;
+        if ($qty_per_day > SIG_PARSER_EXCESS_QTY_PER_DAY) {
+            $this->scores[] = round(SIG_PARSER_EXCESS_QTY_PER_DAY / $qty_per_day, 3);
+        }
+
         $score = empty($this->scores) ? 0 : array_product($this->scores);
+
+        // TODO: Remove once sig_conf_score is checked in the UI
+        // Set the qty_per_day to 1 if sig_conf_score is less than a fixed threshold
+        if ($score < SIG_PARSER_CONF_SCORE_CUTOFF) {
+            $final_days = DAYS_STD;
+            $final_qty = DAYS_STD;
+        }
+
         return [
             'sig_unit' => $valid_unit,
             'sig_qty' => $final_qty,
@@ -345,6 +425,8 @@ class SigParser
             'frequencies' => implode(',', $all_freq),
             'dosages' => implode(',', $all_dose),
             'durations' => implode(',', $all_dur),
+            'scores' => implode(',', $this->scores),
+            'preprocessing' => $text
         ];
     }
 
@@ -353,12 +435,14 @@ class SigParser
      * Given an array of AWS CH Attributes, it filters the frequencies and returns
      * an array, taking into account the time interval of each frequency.
      *
-     * @param array<Attribute> $split AWS CH Attribute array of the sig
+     * @param array<Attribute> $split         AWS CH Attribute array of the sig
+     * @param boolean          &$found_freq   set to true if at least one dosage was found
      * @return int             The result of the parsed frequencies. If no frequency attr was found, returns 1.
      */
-    private function parse_frequencies($split) {
+    private function parse_frequencies($split, &$found_freq) {
         $frequencies = $this->filter_attributes($split, "FREQUENCY");
         if (count($frequencies) == 0) {
+            $found_freq = false;
             return 1;
         }
 
@@ -391,7 +475,7 @@ class SigParser
             }
 
             // If the frequency starts with "every", invert it. "every 2 days" should be freq=0.5
-            else if (preg_match('/every/i', $freq, $match)) {
+            else if (preg_match('/^every/i', $freq, $match)) {
                 $new_freq = 1 / $new_freq;
             }
 
@@ -401,6 +485,7 @@ class SigParser
                 break;
             }
         }
+        $found_freq = true;
         return $total_freq;
     }
 
@@ -411,10 +496,16 @@ class SigParser
      *
      * @param array<Attribute> $split           AWS CH Attribute array of the sig
      * @param array<Attribute> $attributes_drug AWS CH Attribute array of the drug
+     * @param boolean          &$found_dosage   set to true if at least one dosage was found
      * @return array<string|mixed> ['sig_qty', 'sig_unit']. If no dosage was found, 'sig_qty' => 1.
      */
-    private function parse_dosages($split, $attributes_drug) {
+    private function parse_dosages($split, $attributes_drug, &$found_dosage) {
         $dosages = $this->filter_attributes($split, "DOSAGE");
+        if (count($dosages) == 0) {
+            $found_dosage = false;
+            return 1;
+        }
+
         $unit = $this->filter_attributes($attributes_drug, "FORM", false)[0];
         $weight = $this->filter_attributes($attributes_drug, "STRENGTH", false)[0];
         if (!$weight) {
@@ -433,7 +524,11 @@ class SigParser
             if (!$match OR array_key_exists($match[3], $equivalences)) {
                 continue;
             }
-            $equivalences[$match[3]] = (float) $match[1];
+            $new_unit = trim($match[3]);
+            if (in_array($new_unit, ['TAB', 'CAP'])) {
+                continue;
+            }
+            $equivalences[trim($match[3])] = (float) $match[1];
         }
 
         // If the unit is ML, don't normalize it and assign the unit as ML.
@@ -461,7 +556,7 @@ class SigParser
                 $found_unit = false;
                 // If the unit matches, normalize it with the weight value.
                 foreach ($equivalences as $unit => $value) {
-                    if ($unit AND preg_match('/'.preg_quote($unit).'/i', $sig_unit)) {
+                    if ($unit AND preg_match('/'.preg_quote($unit).'/i', $sig_unit) AND $value) {
                         $parsed['sig_qty'] += $sig_qty / $value;
                         $found_unit = true;
                         break;
@@ -477,6 +572,9 @@ class SigParser
                     $parsed['sig_unit'] = $sig_unit;
                     // $this->scores[] = 0.8;
                 }
+
+                // Take only the first dosage
+                break;
             }
         }
 
@@ -485,6 +583,7 @@ class SigParser
             $parsed["sig_qty"] = 1;
             // $this->scores[] = 0.5;
         }
+        $found_dosage = true;
         return $parsed;
     }
 
@@ -608,8 +707,8 @@ class SigParser
         $sig = preg_replace('/\\b(seventy|setenta)\\b/i', '70', $sig); // \\b is for space or start of line
         $sig = preg_replace('/\\b(eighty|ochenta)\\b/i', '80', $sig); // \\b is for space or start of line
         $sig = preg_replace('/\\b(ninety|noventa)\\b/i', '90', $sig); // \\b is for space or start of line
-
-        $sig = preg_replace('/\\b(\d+)?( ?& ?)?(\.5|1\/2|1-half|1 half)\\b/i', '$1.5', $sig); //Take 1 1/2 tablets
+    
+        $sig = preg_replace('/\\b(\d+)?( ?& ?)?(\.5|-?1 ?\/2|1-half|1 half)\\b/i', '$1.5', $sig); //Take 1 1/2 tablets
         $sig = preg_replace('/(\d+) .5\\b/i', '$1.5', $sig);
         $sig = preg_replace('/(^| )(\.5|1\/2|1-half|1 half|half a)\\b/i', ' 0.5', $sig);
 
@@ -673,6 +772,13 @@ class SigParser
         $sig = preg_replace('/\\b(1 (in|at) )?\d* ?(am|pm)[, &]*(1 (in|at) )?\d* ?(am|pm)\\b/i', '2 times per day', $sig); // Take 1 tablet by mouth twice a day 1 in am and 1 at 3pm was causing issues
         $sig = preg_replace('/\\b(in|at) \d\d\d\d?[, &]*(in|at)?\d\d\d\d?\\b/i', '2 times per day', $sig); //'Take 2 tablets by mouth twice a day at 0800 and 1700'
         $sig = preg_replace('/\\b(with)?in (a )?\d+ (minutes?|days?|weeks?|months?)\\b|/i', '', $sig); // Remove "in 5 days|hours|weeks" so that we don't confuse frequencies
+        $sig = preg_replace('/\\b(\d+ (in |at )??(am|pm|noon|p|mn|hr))(,| )/i', '', $sig);
+
+        $time_of_day = 'evenings? |mornings? |afternoon |noon |night ';
+        $sig = preg_replace('/\\b(every|in the) ('.$time_of_day.')[, &]*('.$time_of_day.')[, &]*('.$time_of_day.')/i', '3 times per day ', $sig);
+        $sig = preg_replace('/\\b(every|in the) ('.$time_of_day.')[, &]*('.$time_of_day.')/i', '2 times per day ', $sig);
+        $sig = preg_replace('/\\b(every|in the) ('.$time_of_day.')/i', '1 time per day ', $sig);
+        // $sig = preg_replace('/\\b('.$time_of_day.')/i', '$1, ', $sig);
 
         // $sig = preg_replace('/\\bevery +5 +min\w*/i', '3 times per day', $sig); //Nitroglycerin
 
@@ -681,6 +787,7 @@ class SigParser
         $sig = preg_replace('/\\bSUB-Q\\b/i', 'subcutaneous', $sig);
         $sig = preg_replace('/\\bBID\\b/i', '2 times per day', $sig);
         $sig = preg_replace('/\\bTID\\b/i', '3 times per day', $sig);
+        $sig = preg_replace('/\\bQID\\b/i', '4 times per day', $sig);
         $sig = preg_replace('/\\b(QAM|QPM)\\b/i', '1 time per day', $sig);
         $sig = preg_replace('/\\b(q12.*?h)\\b/i', 'every 12 hours', $sig);
         $sig = preg_replace('/\\b(q8.*?h)\\b/i', 'every 8 hours', $sig);
@@ -732,7 +839,10 @@ class SigParser
 
         // Delete everything after the first ocurrance of "max"
         $sig = $this->_delete_all_after($sig, '/ max/i');
-
+    
+        // Delete everything after the first ocurrance of "total"
+        $sig = $this->_delete_all_after($sig, '/ total/i');
+    
         // Delete everything after the first ocurrance of "may repeat"
         $sig = $this->_delete_all_after($sig, '/may repeat /i');
 
@@ -747,11 +857,46 @@ class SigParser
 
         // Delete everything after the first ocurrance of "up to" (to ignore both total allowed per day and increases in dosages)
         $sig = $this->_delete_all_after($sig, '/ up.?to/i');
+    
+        // Delete everything after the first ocurrance of "extra" (to ignore extra dosages)
+        $sig = $this->_delete_all_after($sig, '/ extra (\d+)/i');
 
-        $sig = preg_replace('/\\bPlace \\b/i', 'Take ', $sig);
+        // Delete everything after the first ocurrance of ", as needed" (to prevent additional splits)
+        $sig = $this->_delete_all_after($sig, '/, ?(as )?(needed|directed)/i');
 
+        // Insert the word "take" so that AWS CH gives a result
+        $sig = preg_replace('/\\b^(\d+)\\b/i', 'Take $1', $sig);
+
+        // Insert the word "unit" so that AWS CH gives a result
+        $sig = preg_replace('/\\b(\d+) (ORAL|per|\d+)\\b/i', '$1 unit $2', $sig);
+    
         return $sig;
     }
+}
+
+
+/**
+ * Exception thrown when the AWS Comprehend Medical request fails
+ */
+class SigParserAWSComprehendException extends \Exception
+{
+
+}
+
+/**
+ * Exception thrown when the sig to parsed is invalid
+ */
+class SigParserMalformedInputException extends \Exception
+{
+
+}
+
+/**
+ * Exception thrown when an unexpected error ocurred
+ */
+class SigParserUnexpectedException extends \Exception
+{
+
 }
 
 ?>

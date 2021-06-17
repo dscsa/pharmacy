@@ -114,6 +114,13 @@ $app->post(
 
         $request_data = (object) $request->getParsedBody();
 
+        if (!@$request_data || !@$request_data->tracking_status) {
+            $message->status = 'failure';
+            $message->desc   = 'Request body missing or malformed';
+            $message->status_code = 400;
+            return $message->sendResponse($response);
+        }
+
         switch ($request_data->tracking_status['status']) {
             case 'CREATED':
             // We have to mark it shipped before we update the address in the database.

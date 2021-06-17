@@ -174,7 +174,7 @@ function update_mismatched_rxs_and_items($mysql, $partial)
                 FROM gp_rxs_single
                 LEFT JOIN gp_order_items ON gp_rxs_single.rx_number = gp_order_items.rx_number
                 WHERE
-                  drug_generic != '{$partial['drug_generic']}' -- gsn was moved not just added
+                  NOT drug_generic <=> '{$partial['drug_generic']}' -- gsn was moved not just added
                   AND rx_gsn IN ($drug_gsns)
                   AND rx_dispensed_id IS NULL";
 
@@ -285,6 +285,9 @@ function update_order_item_drug($mysql, $rx_number)
 
     //overwrite == true should force rx_messages, days_dispensed_default, and
     //price_dispensed_default to all be recalculated
+    // TODO we will need to replace this as we migrate away from the load full fields.
+    // TODO Instead we should get the order_item for the Drug and update it.  If there isn't
+    // TODO an order item we should see if we need to add the rx to an order and sync it
     $item = load_full_item(['rx_number' => $rx_number], $mysql, true);
 
     GPLog::debug(
