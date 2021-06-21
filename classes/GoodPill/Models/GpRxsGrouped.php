@@ -204,33 +204,52 @@ class GpRxsGrouped extends Model
     }
 
     /**
+     * GpRxsGrouped
+     * @TODO - Decide what to do with this and corresponding item function
+     *
      * Determine by the stock level if the item is offered or not
-     * @TODO - Logic for this if grouped, ignore rx_gsn?
      * @return bool
      */
     public function isNotOffered() : bool
     {
         $rxs = $this->rxs;
-        $stock_level = $this->stock->stock_level;
+        $stock = $this->stock;
 
         $rx_gsn = $rxs->rx_gsn;
         $drug_name = $rxs->drug_name;
 
-        GPLog::debug(
-            "Stock Level for order #{$this->invoice_number}, rx #{$this->rx_number}: {$stock}",
-            [
-                'item' => $this->toJSON(),
-                'stock_level' => $stock_level,
-                'drug_name' => $drug_name,
-                'rx_gsn' => $rx_gsn,
-            ]
-        );
+        //  For a GpRxsGrouped, it may not relate to an order item,
+        // default to the stock_level set on GpStockLive
+        $stock_level = $stock->stock_level;
+
+
         if (
             $rx_gsn > 0 ||
             $stock_level == STOCK_LEVEL['NOT OFFERED'] ||
             $stock_level == STOCK_LEVEL['ORDER DRUG']
         ) {
             return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Checks if this item happens to already be in an order under same name
+     * matches drug_generic rather than rx_number
+     *
+     * @param GpOrder $order
+     * @return bool
+     */
+    function isRefill(GpOrder $order) : bool
+    {
+        foreach ($order->items as $orderItem) {
+            if (
+                $this->drug_generic == $orderItem->drug_generic
+                && $orderItem->refill_date_first
+            ) {
+                return true;
+            }
         }
 
         return false;
@@ -252,6 +271,12 @@ class GpRxsGrouped extends Model
         );
     }
 
+    /**
+     * Check stock level to see if this a one-time fill
+     * @TODO - Decide what to do with this and corresponding item function
+     *
+     * @return bool
+     */
     public function isOneTime() : bool
     {
         $stock_level = $this->stock->stock_level;
@@ -264,30 +289,10 @@ class GpRxsGrouped extends Model
     }
 
     /**
-     * Checks if this item happens to already be in an order under same name
-     * matches drug_generic rather than rx_number
-     * @TODO clarify with Adam what this means
-     * @param GpOrder $order
-     * @return bool
-     */
-    function isRefill(GpOrder $order) : bool
-    {
-        foreach ($order->items as $orderItem) {
-            if (
-                $this->drug_generic == $orderItem->drug_generic
-                && $orderItem->refill_date_first
-            ) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /**
      * Determines if the rx was ever parsed
      * This is based on there being on sig_qty_per_day_default
      * Rxs single will have mismatched refills original vs refills left
+     *
      * @return bool
      */
     public function isNotRxParsed() : bool
@@ -301,17 +306,6 @@ class GpRxsGrouped extends Model
         return false;
     }
 
-    /**
-     * Determine if the item can be synced to the order
-     * @TODO what does it really mean to be syncable
-     * @return bool
-     */
-    public function isSyncable() : bool
-    {
-       // is_order
-        //! item_date_added
-        //! order_date_dispensed
-    }
     /**
      * Add the item to an order if it's a new rx found
      * @return bool

@@ -50,7 +50,7 @@ function get_days_and_message($item, GpOrder $order) {
         $is_item = false;
         $is_patient = false;
 
-        $is_not_offered = $item->is_not_offered();
+        $is_not_offered = $item->isNotOffered();
         $is_in_order = $item->isInOrder($order);
         $is_added_manually = false;
         $is_webform = false;

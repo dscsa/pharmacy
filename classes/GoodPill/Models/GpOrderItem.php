@@ -247,10 +247,13 @@ class GpOrderItem extends Model
      */
     public function isAutoRefill(): bool
     {
-        return in_array($this->order_source, ['Auto Refill v2', 'O Refills']);
+        return in_array($this->order->order_source, ['Auto Refill v2', 'O Refills']);
     }
 
     /**
+     * GpOrderItem
+     * @TODO - Decide what to do with this and corresponding grouped function
+     *
      * Determine by the stock level if the item is offered or not
      * @return bool
      */
@@ -261,18 +264,10 @@ class GpOrderItem extends Model
 
         $rx_gsn = $rxs->rx_gsn;
         $drug_name = $rxs->drug_name;
-        //  This should always be set, `stock_level` isn't null in the database for any items currently
+
+        //  For a GpOrderItem, a stock_level_initial exists, so this check is used
         $stock_level = $this->stock_level_initial ?: $stock->stock_level;
 
-        GPLog::debug(
-            "Stock Level for order #{$this->invoice_number}, rx #{$this->rx_number}: {$stock}",
-            [
-                'item' => $this->toJSON(),
-                'stock_level' => $stock_level,
-                'drug_name' => $drug_name,
-                'rx_gsn' => $rx_gsn,
-            ]
-        );
         if (
             $rx_gsn > 0 ||
             $stock_level == STOCK_LEVEL['NOT OFFERED'] ||
@@ -334,6 +329,11 @@ class GpOrderItem extends Model
         );
     }
 
+    /**
+     * Check stock level to see if this a one-time fill
+     * @TODO - Decide what to do with this and corresponding grouped function
+     * @return bool
+     */
     public function isOneTime()
     {
         $rxs = $this->rxs;
@@ -346,14 +346,6 @@ class GpOrderItem extends Model
                 STOCK_LEVEL['ONE TIME']
             ]
         );
-    }
-
-
-    //  This needs to be renamed
-    //  @TODO - Rename this, part of the syncable functional grouping
-    public function isSyncable() : bool
-    {
-        return ($this->is_order && !$this->item_date_added && !$this->order->order_date_dispensed);
     }
 
     /**
