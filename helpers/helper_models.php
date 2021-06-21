@@ -32,6 +32,9 @@ $grouped->each(function($item) use ($order) {
 
 
 function get_days_and_message($item, GpOrder $order) {
+    // @TODO move to instances
+    //  Right now we need to check $item for many conditions and then
+    //  instanciate a model based off the different criteria
 
     echo "$item->drug_name - $item->rx_number from top \n";
     if ($item instanceof GpOrderItem) {
