@@ -1130,9 +1130,6 @@ function get_qty_needed(array $rows, int $min_qty, float $safety)
         ]
     );
 
-    // Grab the first NDC and use it.
-    $selected_ndc = array_key_first($available_ndcs);
-
     // Pick the appropriate NDC and then pend
     foreach ($rows as $row) {
         $ndc  = $row['ndc'];
@@ -1156,8 +1153,8 @@ function get_qty_needed(array $rows, int $min_qty, float $safety)
                 );
             }
 
-            $min_safe_qty = $min_qty * (1 + $safety);
             $selected_ndc = $ndc;
+            $min_safe_qty = $min_qty * (1 + $safety);
             $list          = [];
             $pend          = [];
             $qty           = 0;

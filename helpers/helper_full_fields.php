@@ -90,7 +90,10 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
         // deliberitely keeps its initial values
         $overwrite = (
           $overwrite_rx_messages === true
-          or strpos($patient_or_order[$i]['rx_numbers'], $overwrite_rx_messages) !== false
+          or (
+              is_string($overwrite_rx_messages)
+              && strpos($patient_or_order[$i]['rx_numbers'], $overwrite_rx_messages) !== false
+          )
         );
 
         $set_days_and_msgs  = (
