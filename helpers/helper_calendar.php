@@ -840,11 +840,15 @@ function cancel_events_by_order($invoice_number, $caller, $types = [])
  * @param int $patient_id_cp
  * @return string
  */
-function getPatientLanguage(int $patient_id_cp) {
-    $patient = GpPatient::find($patient_id_cp);
+function getPatientLanguage(int $patient_id_cp = null) {
+    if ($patient_id_cp) {
+        $patient = GpPatient::find($patient_id_cp);
+    } else {
+        $patient = null;
+    }
 
     if ($patient) {
-        return $patient->language === 'ES' ?: 'EN';
+        return $patient->language === 'ES' ? 'ES': 'EN';
     } else {
         return 'EN';
     }
