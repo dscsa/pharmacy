@@ -79,7 +79,7 @@ function drug_created(array $created) : void
 
     if ($created['drug_gsns']) {
         update_mismatched_rxs_and_items($mysql, $created);
-        update_field_rxs_single($mysql, $updated, 'drug_gsns'); //Now that everything is matched, we can update all rxs_single to the new gsn
+        update_field_rxs_single($mysql, $created, 'drug_gsns'); //Now that everything is matched, we can update all rxs_single to the new gsn
     }
 
     GPLog::resetSubroutineId();
