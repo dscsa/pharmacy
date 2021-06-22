@@ -424,20 +424,20 @@ function cp_order_deleted(array $deleted) : ?array
         );
 
         GPLog::warning(
-            'update_orders_cp deleted: their appears to be a replacement',
+            'update_orders_cp deleted: there appears to be a replacement',
             [
                 'deleted'     => $deleted,
                 'replacement' => $replacement,
-                'groups'      => $groups,
-                'patient'     => $patient
             ]
         );
 
         // TODO:BEN Add an if here to see if we even have a wp to delete
+        // wc_get_post automatically checks wp_posts: Jesse
         export_wc_delete_order(
             $deleted['invoice_number'],
             "update_orders_cp: cp order deleted but replacement"
         );
+
 
         return null;
     }
@@ -467,7 +467,9 @@ function cp_order_deleted(array $deleted) : ?array
             $deleted['invoice_number'],
             "update_orders_cp: cp order manually cancelled $reason"
         );
+
         // We passed in $deleted because there is not $order to make $groups
+        // @TODO There is no $groups variable here, is this ok to do??
         order_cancelled_notice($deleted, $groups);
     } elseif (is_webform($deleted)) {
         AuditLog::log(

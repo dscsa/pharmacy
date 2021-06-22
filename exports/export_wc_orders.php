@@ -30,7 +30,7 @@ function wc_get_post($invoice_number, $wc_order_key = null, $suppress_error = fa
 
     if (! $suppress_error) {
         // Make sure this order hasn't been deleted before we yell about it
-        $order = GpOrder::where('invoice_number', $invoice_number);
+        $order = GpOrder::find($invoice_number);
         if ($order) {
             GPLog::error(
                 "Order $invoice_number doesn't seem to exist in wp_posts",
@@ -298,14 +298,6 @@ function export_wc_delete_order($invoice_number, $reason)
             ['invoice_number' => $invoice_number, 'reason' => $reason ]
         );
 
-        GPLog::critical(
-            "export_wc_delete_order: post id is missing, need to review, check context",
-            [
-                'invoice_number' => $invoice_number,
-                'reason'         => $reason,
-                'details'        => 'Related to clickup task https://app.clickup.com/t/xt7p0c. Assign to Jesse'
-            ]
-        );
         return false;
     }
 
