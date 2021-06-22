@@ -437,8 +437,7 @@ function cp_order_deleted(array $deleted) : ?array
             $deleted['invoice_number'],
             "update_orders_cp: cp order deleted but replacement"
         );
-
-
+        
         return null;
     }
 
