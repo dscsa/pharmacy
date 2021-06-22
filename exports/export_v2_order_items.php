@@ -1080,58 +1080,95 @@ function months_between($from, $to)
 function get_qty_needed(array $rows, int $min_qty, float $safety)
 {
     // Get an array of the NDCs and the total quantity available
-    $ndc_quantities = array_map(
-        function ($row) {
-            return [
-                'ndc' => $row['ndc'],
-                'qty_available' => array_sum(
-                    array_column(
-                        array_column($row['inventory'], 'qty'),
-                        'to'
+    $ndc_quantities = array_column(
+        array_map(
+            function ($row) {
+                return [
+                    'ndc' => $row['ndc'],
+                    'qty_available' => array_sum(
+                        array_column(
+                            array_column($row['inventory'], 'qty'),
+                            'to'
+                        )
                     )
-                )
-            ];
-        },
-        $rows
+                ];
+            },
+            $rows
+        ),
+        'qty_available',
+        'ndc'
     );
 
     // filter out NDCs that don't have enough quantity to fill the order
-    $available_ndcs = array_values(
-        array_filter(
-            $ndc_quantities,
-            function ($row) use ($min_qty) {
-                return $row['qty_available'] > $min_qty;
-            }
-        )
+    // Then create an array with the NDC as the key and the qty_available as the value
+    $available_ndcs = array_filter(
+        $ndc_quantities,
+        function ($qty) use ($min_qty) {
+            return $qty >= $min_qty;
+        }
     );
 
     // If we don't have any NDCs then we should quit
     if (count($available_ndcs) == 0) {
+        GPLog::critical(
+            "It appears there are not any NDCs with a quantity great enough to fill this RX.  Is This Accurate?",
+            [
+                'ndc_quantities'     => $ndc_quantities,
+                'available_ndcs'     => $available_ndcs,
+                'requested_quantity' => $min_qty
+            ]
+        );
         return;
     }
 
+    GPLog::debug(
+        "There appears to be an ndc that has enough quantity to complete this request",
+        [
+            'ndc_quantities'     => $ndc_quantities,
+            'available_ndcs'     => $available_ndcs,
+            'requested_quantity' => $min_qty
+        ]
+    );
+
     // Grab the first NDC and use it.
-    $selected_ndc = $available_ndcs[0]['ndc'];
+    $selected_ndc = array_key_first($available_ndcs);
 
     // Pick the appropriate NDC and then pend
     foreach ($rows as $row) {
-        $ndc = $row['ndc'];
+        $ndc  = $row['ndc'];
 
-        // If this isn't the NDC we selected, then skip it
-        if ($ndc != $selected_ndc) {
-            continue;
+        // Either this is our first NDC or the NDC has changed.
+        // Either way we need to define all the variables
+        if (!isset($selected_ndc) || $ndc != $selected_ndc) {
+            // If we already have a selected NDC, then we need to note there wasn't enough quantity
+            if (isset($selected_ndc)) {
+                GPLog::debug(
+                    "{$selected_ndc} did not have enought stock ({$ndc_quantities[$selected_ndc]})
+                    to meet the request of between {$min_safe_qty} and {$max_qty}",
+                    [
+                        'available_ndcs' => $available_ndcs,
+                        'ndc_quantities' => $ndc_quantities,
+                        'max_qty' => $max_qty,
+                        'min_qty' => $min_qty,
+                        'min_safe_qty' => $min_safe_qty,
+                        'left' => $left
+                    ]
+                );
+            }
+
+            $min_safe_qty = $min_qty * (1 + $safety);
+            $selected_ndc = $ndc;
+            $list          = [];
+            $pend          = [];
+            $qty           = 0;
+            $qty_repacks   = 0;
+            $count_repacks = 0;
+            $left          = $min_qty;
+            $max_qty       = ($left * 1.25);
+            $max_qty       = (floor($max_qty) < $min_qty) ? $min_qty : floor($max_qty);
         }
 
         $inventory = $row['inventory'];
-
-        $list          = [];
-        $pend          = [];
-        $qty           = 0;
-        $qty_repacks   = 0;
-        $count_repacks = 0;
-        $left          = $min_qty;
-        $max_qty       = ($left * 1.25);
-        $max_qty = (floor($max_qty) < $min_qty)?:floor($max_qty);
 
         foreach ($inventory as $i => $option) {
             if ($i == 'prepack_qty') {

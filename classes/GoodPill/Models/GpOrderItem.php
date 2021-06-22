@@ -558,4 +558,18 @@ class GpOrderItem extends Model
 
         return null;
     }
+
+    /**
+     * Get a legacy picklist item
+     * @return array A legacy picklist array.
+     *
+     * @todo We need to change this so we use the getPickList and that PickList
+     * @todo will make a new picklist for pending.
+     */
+    public function getLegacyPickList()
+    {
+        return make_pick_list(
+            $this->getLegacyData()
+        );
+    }
 }
