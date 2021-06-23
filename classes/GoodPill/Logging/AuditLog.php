@@ -45,12 +45,7 @@ class AuditLog
             self::getLogger();
         }
 
-        //If we have an invoice but not a patient, we want to get those details
-        if (@$orderitem_or_patient['invoice_number']
-            && !@$orderitem_or_patient['birth_date']) {
-
-        }
-
+        /* Set the values based on what we should have */
         $context = [
             'birth_date' => @$orderitem_or_patient['birth_date'],
             'last_name'  => @$orderitem_or_patient['last_name'],
@@ -61,8 +56,6 @@ class AuditLog
         if (@$orderitem_or_patient['invoice_number']) {
             $context['invoice_number'] = @$orderitem_or_patient['invoice_number'];
         }
-
-
 
         //If we have an invoice but not a patient, we want to get those details
         if (empty($context['birth_date']) &&
