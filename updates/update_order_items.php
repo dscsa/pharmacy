@@ -355,7 +355,6 @@ function order_item_updated(array $updated) : ?array
         );
         return null;
     }
-    log_timer('order-items-updated', $loop_timer, $count_updated);
 
     if ($updated['count_lines'] > 1) {
         GPLog::warning(
