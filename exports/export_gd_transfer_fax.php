@@ -2,6 +2,7 @@
 
 require_once 'helpers/helper_appsscripts.php';
 
+use GoodPill\Notifications\Salesforce;
 use GoodPill\Logging\{
     GPLog,
     AuditLog,
@@ -20,8 +21,38 @@ function export_gd_transfer_fax($item, $source)
     }
 
     if ( ! $item['pharmacy_name']) {
-      //If we don't have Pharmacy Fax, still send it and Rph can look it up. But if no pharmacy_name than an unregistered user so we don't know where to send it
-      return GPLog::notice("WebForm export_gd_transfer_fax NOT SENT, NOT REGISTERED $item[invoice_number] $item[drug_name] $source", get_defined_vars());
+        //If we don't have Pharmacy Fax, still send it and Rph can look it up. But if no pharmacy_name than an unregistered user so we don't know where to send it
+
+        //  Check to see if there is an invoice number
+        //  This can trigger on a rxs_single subroutine and might not be for an order yet
+        if (isset($item['invoice_number'])) {
+            $subject = 'Transfer Fax Error';
+            $body = sprintf(
+                "Problem with sending a transfer fax for order # %s,
+            they do not have a pharmacy set to send to. This user probably has not registered in the
+            patient portal yet and needs to be followed up with",
+                @$item['invoice_number'],
+            );
+            $salesforce = [
+                "subject"   => $subject,
+                "body"      => $body,
+                "assign_to" => '.Testing',
+            ];
+
+            $message_as_string = implode('_', $salesforce);
+            $notification = new Salesforce(sha1($message_as_string), $message_as_string);
+
+            if (!$notification->isSent()) {
+                create_event($subject, [$salesforce]);
+            } else {
+                GPLog::warning("DUPLICATE Saleforce Message: ".$subject, ['body' => $body]);
+            }
+
+            $notification->increment();
+            return GPLog::warning("WebForm export_gd_transfer_fax NOT SENT, NOT REGISTERED $item[invoice_number] $item[drug_name] $source", get_defined_vars());
+        }
+
+        return GPLog::notice("WebForm export_gd_transfer_fax NOT SENT, NOT REGISTERED $item[invoice_number] $item[drug_name] $source", get_defined_vars());
     }
 
     $to = '8882987726'; //$item['pharmacy_fax'] ?: '8882987726';
