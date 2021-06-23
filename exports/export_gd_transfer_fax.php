@@ -25,7 +25,7 @@ function export_gd_transfer_fax($item, $source)
 
         //  Check to see if there is an invoice number
         //  This can trigger on a rxs_single subroutine and might not be for an order yet
-        if (@$item['invoice_number']) {
+        if (isset($item['invoice_number'])) {
             $subject = 'Transfer Fax Error';
             $body = sprintf(
                 "Problem with sending a transfer fax for order # %s,
@@ -43,8 +43,6 @@ function export_gd_transfer_fax($item, $source)
             $notification = new Salesforce(sha1($message_as_string), $message_as_string);
 
             if (!$notification->isSent()) {
-                GPLog::debug($subject, ['body' => $body]);
-
                 create_event($subject, [$salesforce]);
             } else {
                 GPLog::warning("DUPLICATE Saleforce Message: ".$subject, ['body' => $body]);
@@ -52,9 +50,9 @@ function export_gd_transfer_fax($item, $source)
 
             $notification->increment();
             return GPLog::warning("WebForm export_gd_transfer_fax NOT SENT, NOT REGISTERED $item[invoice_number] $item[drug_name] $source", get_defined_vars());
-        } else {
-            return GPLog::notice("WebForm export_gd_transfer_fax NOT SENT, NOT REGISTERED $item[invoice_number] $item[drug_name] $source", get_defined_vars());
         }
+
+        return GPLog::notice("WebForm export_gd_transfer_fax NOT SENT, NOT REGISTERED $item[invoice_number] $item[drug_name] $source", get_defined_vars());
     }
 
     $to = '8882987726'; //$item['pharmacy_fax'] ?: '8882987726';
