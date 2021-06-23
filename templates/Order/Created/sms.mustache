@@ -1,0 +1,48 @@
+{{!
+    Sample of data
+    {
+        "first_name": "Ben",
+        "last_name": "Brown",
+        "birth_date": "1999-09-09",
+        "dispensed_date": "04-09-2021",
+        "shipped_date": "04-09-2021",
+        "invoice_number": 12345,
+        "tracking_number": "1234123124123",
+        "tracking_url": "http://www.gmail.com",
+        "short_tracking_url": "http://www.gmail.com",
+        "invoice_url": "http://www.gmail.com",
+        "short_invoice_url": "http://www.gmail.com",
+        "count_filled": 1,
+        "multiple_filled": true,
+        "filled": {
+            "rxs": [
+                {"name": "drug 1"},
+                {"name": "drug 2"}
+            ]
+        },
+        "no_fill": {
+            "rxs": [
+                {"name": "no drug 1"},
+                {"name": "no drug 2"}
+            ]
+        }
+    }
+}}
+Good Pill is starting to prepare {{count_filled}} items for Order #{{invoice_number}}.
+<p>Good Pill is starting to prepare {{count_filled}} items for Order #{{invoice_number}}. We will notify you again once it ships.</p>
+<p>If your address has recently changed please let us know right away.</p>
+{{^refills_used}}
+    <p>Your first order will only be $6 total for all of your medications.</p>
+{{/refills_used}}
+
+
+{{#ordered_items}}
+    <p>
+        <u>These Rxs will be included once we confirm their availability:</u>
+    <ul>
+        {{#rxs}}
+            <li>{{name}}</li>
+        {{/rxs}}
+    </ul>
+    </p>
+{{/ordered_items}}

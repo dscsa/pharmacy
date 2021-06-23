@@ -7,10 +7,13 @@ use GoodPill\Logging\GPLog;
 use GoodPill\Logging\AuditLog;
 use GoodPill\Logging\CliLog;
 use GoodPill\Utilities\Timer;
+use GoodPill\Models\GpOrder;
+use GoodPill\Events\Order\Paid as PaidEvent;
+use GoodPill\Events\Order\PayFailed as PayFailedEvent;
 
 /**
- * Proccess all the updates to WooCommerce Orders
- * @param  array $changes  An array of arrays with deledted, created, and
+ * Process all the updates to WooCommerce Orders
+ * @param  array $changes  An array of arrays with deleted, created, and
  *      updated elements
  * @return void
  */
@@ -46,7 +49,7 @@ function update_orders_wc(array $changes) : void
             delete loop
          */
         foreach ($changes['created'] as $created) {
-            helper_try_catch_log('wc_order_created', $created);
+            wc_order_created($created);
         }
         Timer::stop("update.orders.wc.created");
     }
@@ -62,7 +65,7 @@ function update_orders_wc(array $changes) : void
     if (isset($changes['deleted'])) {
         Timer::start("update.orders.wc.deleted");
         foreach ($changes['deleted'] as $deleted) {
-            helper_try_catch_log('wc_order_deleted', $deleted);
+            wc_order_deleted($deleted);
         }
         Timer::stop("update.orders.wc.deleted");
     }
@@ -70,7 +73,7 @@ function update_orders_wc(array $changes) : void
     if (isset($changes['updated'])) {
         Timer::start("update.orders.wc.updated");
         foreach ($changes['updated'] as $updated) {
-            helper_try_catch_log('wc_order_updated', $updated);
+            wc_order_updated($updated);
         } // End Changes Loop
         Timer::stop("update.orders.wc.updated");
     }
@@ -269,16 +272,41 @@ function wc_order_deleted(array $deleted) : bool
         $deleted
     );
 
-    GPLog::critical(
-        "Order deleted from WC. Why?",
-        [
-            'source'  => 'WooCommerce',
-            'event'   => 'deleted',
-            'type'    => 'orders',
-            'deleted' => $deleted,
-            'order'   => $order
-        ]
-    );
+    /*
+        Order is deleted and expected because count wasn't filled or order was denied
+        Sometimes items will have rx_message_key of "NO ACTION RECENT FILL" or "ACTION PATIENT OFF AUTOFILL"
+        but will have a count_filled > 0.
+
+        @TODO - investigate reasons for count_filled > 0 when expected rx_message would not fill
+        @TODO - Eliminate order from being created in WC if authorization denied
+        @TODO - Confirm autofill/no action messages are coming from Patient Portal and validate orders before placed
+    */
+
+    if ($order[0]['order_status'] == "Surescripts Authorization Denied" || $deleted['count_filled'] == 0) {
+        GPLog::warning("Order Deleted", [
+            [
+                'source'  => 'WooCommerce',
+                'event'   => 'deleted',
+                'type'    => 'orders',
+                'deleted' => $deleted,
+                'order'   => $order
+            ]
+        ]);
+    } else {
+        if (!GpOrder::where('invoice_number', '=', $deleted['invoice_number'])->exists()) {
+            // Look to see if the order has been deleted from gp in general
+            GPLog::critical(
+                "Order deleted from WC. Why?",
+                [
+                    'source'  => 'WooCommerce',
+                    'event'   => 'deleted',
+                    'type'    => 'orders',
+                    'deleted' => $deleted,
+                    'order'   => $order
+                ]
+            );
+        }
+    }
 
     //NOTE the below will fail if the order is wc-cancelled.  because it will show up as deleted here
     //but if it was improperly cancelled and the cp order still exists then export_wc_create_order()
@@ -349,6 +377,55 @@ function wc_order_updated(array $updated) : bool
         ),
         $updated
     );
+
+    $stage = $updated['wc_order_stage_wc'];
+
+    //  This will be used by the pay and pay failed events
+    //$paid_order = GpOrder::find($updated['invoice_number']);
+
+    if (
+        (
+            $stage === 'wc-done-card-pay' ||
+            $stage === 'wc-done-mail-pay' ||
+            $stage === 'wc-done-auto-pay'
+        ) &&
+        $stage !== $updated['old_order_stage_wc']
+    ) {
+
+
+        GPLog::notice(
+            "WC Order: Sending Paid Event communication",
+            [
+                'invoice_number'   => $updated['invoice_number'],
+                'stage'            => $updated['order_stage_wc'],
+            ]
+        );
+        //  @TODO - Activate Paid Event
+        //$paid = new PaidEvent($paid_order);
+        //$paid->publish();
+    }
+
+    if (
+        (
+            $stage === 'wc-late-card-missing' ||
+            $stage === 'wc-late-card-failed' ||
+            $stage === 'wc-late-card-expired'
+        ) &&
+        $stage !== $updated['old_order_stage_wc']
+    ) {
+
+        GPLog::notice(
+            "WC Order: Sending Pay Failed Event communication",
+            [
+                'invoice_number'   => $updated['invoice_number'],
+                'stage'            => $updated['order_stage_wc'],
+            ]
+        );
+        //  @TODO - Activate PayFailedEvent
+        //$paid = new PayFailedEvent($paid_order);
+        //$paid->publish();
+    }
+
 
     if ($updated['order_stage_wc'] != $updated['old_order_stage_wc'] and
       ! (

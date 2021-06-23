@@ -6,7 +6,10 @@ use GoodPill\Logging\{
     CLiLog
 };
 
-use \GoodPill\DataModels\GoodPillOrder;
+use \GoodPill\Models\GpOrder;
+use \GoodPill\Models\GpOrderItem;
+use \GoodPill\Models\GpPendGroup;
+use \GoodPill\Models\v2\PickListDrug;
 
 require_once 'exports/export_cp_orders.php';
 
@@ -31,24 +34,37 @@ function export_v2_unpend_order($order, $mysql, $reason)
 
     // save a blank picklist for each item
     foreach ($order as $i => $item) {
-        $order[$i] = save_pick_list($item, 0, $mysql);
+        if ($item['rx_number']) {
+            GPLog::debug('Saving Pick List', ['item' => $item, 'list' => 0]);
+            $order[$i] = save_pick_list($item, 0, $mysql);
+        } else {
+            GPLog::warning(
+                'Trying to pend an item that does not exist',
+                ['item' => $item, 'list' => 0]
+            );
+        }
     }
 
     return $order;
 }
 /**
- * Pend an item in V2 for picking
- * @param  array $item   The item details to be picked
- * @param  Mysql_Wc $mysql  Mysql Object
- * @param  string $reason The reason we are pending the item
- * @return $item
+ * Create a picklist for a specific order item and pend that picklist in v2.  This function will
+ *      calculate the neccessary quantity then select the inventory to pend for that quantity.
+ *
+ * @param  array       $item   A Legacy Item array that represents a single order item.
+ * @param  null|string $reason Optional. descriptoion of the reason we are pending the order.
+ * @param  boolean     $repend Optional.  Passing true will force the item to be unpended and
+ *      then repended.
+ * @return array The original item including any modifications that may have been made.
  */
-function v2_pend_item($item, $mysql, $reason)
+function v2_pend_item(array $item, ?string $reason = null, bool $repend = false) : array
 {
+    $mysql = new Mysql_Wc();
+
     // Make sure there is an order before we Pend.  If there isn't one skip the
     // pend and put in an alert.
-    $gp_order = new GoodPillOrder(['invoice_number' => $item['invoice_number']]);
-    if (!$gp_order->loaded) {
+    $gp_order = GpOrder::where('invoice_number', $item['invoice_number']);
+    if (is_null($gp_order)) {
         AuditLog::log(
             sprintf(
                 "ABORTED PEND Attempted to pend %s for Rx#%s on Invoice #%s. This
@@ -74,17 +90,21 @@ function v2_pend_item($item, $mysql, $reason)
         return $item;
     }
 
-    // Abort the pend if we are missing a key field
+    // Abort
+    // if we don't know how many days to dispense
+    // or the item has already been marked dispensed
+    // or we don't have any left in inventory
+    // or the item has already been pended and the request is not a repend
     if (!$item['days_dispensed_default']
       or $item['rx_dispensed_id']
       or is_null($item['last_inventory'])
-      or @$item['count_pended_total'] > 0) {
+      or (@$item['count_pended_total'] > 0 && !$repend)) {
         AuditLog::log(
             sprintf(
                 "ABORTED PEND Attempted to pend %s for Rx#%s on Invoice #%s for
                 the following reasons: Missing days dispensed default - %s,
                 The Rx hasn't been assigned - %s, There isn't inventory - %s,
-                The number of doses is invalid - %s",
+                The Item is already Pended - %s",
                 @$item['drug_name'],
                 @$item['rx_number'],
                 @$item['invoice_number'],
@@ -170,19 +190,21 @@ function v2_pend_item($item, $mysql, $reason)
 
     print_pick_list($item, $list);
     pend_pick_list($item, $list);
+    GPLog::debug('Saving Pick List', ['item' => $item, 'list' => $list ?: 0]);
     $item = save_pick_list($item, $list ?: 0, $mysql);
     return $item;
 }
 
 /**
- * UnPend(remove) an item in V2 for picking
- * @param  array $item   The item details to be picked
- * @param  Mysql_Wc $mysql  Mysql Object
- * @param  string $reason The reason we are pending the item
- * @return void
+ * Clear a picklist for a specific order item
+ * @param  array  $item   A legacy data array that represents a single order item.
+ * @param  string $reason Optional.  The reason we are unpending the item.
+ * @return array The original item and any new modifications made as a result of the unpend
  */
-function v2_unpend_item($item, $mysql, $reason)
+function v2_unpend_item(array $item, string $reason = '') : array
 {
+    $mysql = new Mysql_Wc();
+
     GPLog::notice(
         sprintf(
             "v2_unpend_item: Invoice: %s Drug: %s Reason: %s Rx# %s",
@@ -225,17 +247,12 @@ function v2_unpend_item($item, $mysql, $reason)
             ),
             $item
         );
-        GPLog::critical(
-            "v2_unpend_item: NO INVOICE NUMBER, ORDER DATE ADDED, OR PATIENT DATE ADDED! "
-                . @$item['invoice_number'] . " " . @$item['drug_name'] . " $reason "
-                . @$item['rx_number'] . ". rx_dispensed_id:" . @$item['rx_dispensed_id']
-                . " last_inventory:" . @$item['last_inventory'] . " count_pended_total:"
-                . @$item['count_pended_total'],
-            ['item' => $item]
-        );
+
+        //  This is where the original PG alert was firing from
     }
 
     unpend_pick_list($item);
+    GPLog::debug('Saving Pick List', ['item' => $item, 'list' => 0]);
     $item = save_pick_list($item, 0, $mysql);
     return $item;
 }
@@ -390,6 +407,7 @@ function print_pick_list($item, $list)
 function get_item_pended_group($item, $include_picked = false)
 {
     $possible_pend_groups = [
+        'expected'        => pend_group_name($item),
         'refill'          => pend_group_refill($item),
         'webform'         => pend_group_webform($item),
         'new_patient'     => pend_group_new_patient($item),
@@ -398,10 +416,21 @@ function get_item_pended_group($item, $include_picked = false)
     ];
 
     foreach ($possible_pend_groups as $type => $group) {
-        $pend_url = "/account/8889875187/pend/{$group}/{$item['drug_generic']}";
+        $drug_generic = rawurlencode($item['drug_generic']);
+        $pend_url = "/account/8889875187/pend/{$group}/{$drug_generic}";
         $results  = v2_fetch($pend_url, 'GET');
         if (!empty($results) &&
             @$results[0]['next'][0]['pended']) {
+            if ($type != 'expected') {
+                GPLog::debug(
+                    'Drugs pended under unexpected pend group',
+                    [
+                        'expected' => $possible_pend_groups['expected'],
+                        'found_as' => $group
+                    ]
+                );
+            }
+
             return $group;
         }
     }
@@ -421,7 +450,7 @@ function get_item_pended_group($item, $include_picked = false)
 function pend_group_refill($item)
 {
     $pick_time = strtotime($item['order_date_added'].' +2 days'); //Used to be +3 days
-    $invoice   = "R$item[invoice_number]"; //N < R so new scripts will appear first on shopping list
+    $invoice   = "R{$item['invoice_number']}"; //N < R so new scripts will appear first on shopping list
     $pick_date = date('Y-m-d', $pick_time);
     return "$pick_date $invoice";
 }
@@ -429,15 +458,15 @@ function pend_group_refill($item)
 function pend_group_webform($item)
 {
     $pick_time = strtotime($item['order_date_added'].' +0 days'); //Used to be +1 days
-    $invoice   = "W$item[invoice_number]";
+    $invoice   = "W{$item['invoice_number']}";
     $pick_date = date('Y-m-d', $pick_time);
     return "$pick_date $invoice";
 }
 
 function pend_group_new_patient($item)
 {
-    $pick_time = strtotime($item['patient_date_added'].' -8 days');
-    $invoice   = "P$item[invoice_number]";
+    $pick_time = strtotime(@$item['patient_date_added'].' -8 days');
+    $invoice   = "P{$item['invoice_number']}";
     $pick_date = date('Y-m-d', $pick_time);
     return "$pick_date $invoice";
 }
@@ -446,7 +475,7 @@ function pend_group_new_patient($item)
 function pend_group_new_patient_old($item)
 {
     $pick_time = strtotime($item['patient_date_added'].' +0 days');
-    $invoice   = "P$item[invoice_number]";
+    $invoice   = "P{$item['invoice_number']}";
     $pick_date = date('Y-m-d', $pick_time);
     return "$pick_date $invoice";
 }
@@ -458,18 +487,30 @@ function pend_group_manual($item)
 
 function pend_group_name($item)
 {
+
+    // See if there is already a pend group for this order
+    $pend_group = GpPendGroup::where('invoice_number', $item['invoice_number'])->firstOrNew();
+
+    if ($pend_group->exists) {
+        return $pend_group->pend_group;
+    }
+
     //TODO need a different flag here because "Auto Refill v2" can be overwritten by "Webform XXX"
     //We need a flag that won't change otherwise items can be pended under different pending groups
     //Probably need to have each "app" be a different "CP user" so that we can look at item_added_by
     if (is_auto_refill($item)) {
-        return pend_group_refill($item);
+        $pend_group_name = pend_group_refill($item);
+    } elseif (!isset($pend_group_name) && @$item['refills_used'] > 0) {
+        $pend_group_name = pend_group_webform($item);
+    } else {
+        $pend_group_name = pend_group_new_patient($item);
     }
 
-    if ($item['refills_used'] > 0) {
-        return pend_group_webform($item);
-    }
+    $pend_group->invoice_number = $item['invoice_number'];
+    $pend_group->pend_group = $pend_group_name;
+    $pend_group->save();
 
-    return pend_group_new_patient($item);
+    return $pend_group_name;
 }
 
 /**
@@ -520,6 +561,7 @@ function pend_pick_list($item, $list)
         return false;
     }
 
+    // TODO PEND
     $pend_group_name = pend_group_name($item);
     $qty             = round($item['qty_dispensed_default']);
 
@@ -532,6 +574,29 @@ function pend_pick_list($item, $list)
 
     if (isset($res) && $list['pend'][0]['_rev'] != $res[0]['rev']) {
         GPLog::debug("pend_pick_list: SUCCESS!! {$item['invoice_number']} {$item['drug_name']} {$item['rx_number']}");
+        // We successfully Pended a picklist
+        $gpOrderItem = GpOrderItem::where('invoice_number', $item['invoice_number'])
+            ->where('rx_number', $item['rx_number'])
+            ->first();
+
+        if ($gpOrderItem) {
+            // Create a picklist Object fromthe list we created
+            $pickList_object = new PickListDrug();
+            $pickList_object->setPicklist($list['pend']);
+            $pickList_object->setIsPended(true);
+
+            // Attache the pickelist to the order so we don't have to call v2
+            $gpOrderItem->setPickList($pickList_object);
+
+            // Update Carepoint with the NDC we picked.
+            $gpOrderItem->doUpdateCpWithNdc();
+        } else {
+            GPLog::warning(
+                'Could not load the order item, so Carepoint NDC can not be updated',
+                ['item' => $item]
+            );
+        }
+
         return true;
     }
 
@@ -560,6 +625,8 @@ function pend_pick_list($item, $list)
 function unpend_pick_list($item)
 {
 
+    // TODO PEND
+    //
     // If we don't have specific pendgroups, then go get some
     $pend_group = get_item_pended_group($item);
 
@@ -590,9 +657,10 @@ function unpend_pick_list($item)
                 $pend_group
             )
         );
-        do { // Keep doing until we can't find a pended item
+        do { // Keep doing until we can't find a pended items
             $loop_count = (isset($loop_count) ? ++$loop_count : 1);
-            if ($results = v2_fetch("/account/8889875187/pend/{$pend_group}/{$item['drug_generic']}", 'DELETE')) {
+            $drug_generic = rawurlencode($item['drug_generic']);
+            if ($results = v2_fetch("/account/8889875187/pend/{$pend_group}/{$drug_generic}", 'DELETE')) {
                 CLiLog::info(
                     sprintf(
                         "succesfully unpended item %s in %s, unpend attempt #%s",
@@ -612,7 +680,7 @@ function unpend_pick_list($item)
                 );
                 break;
             }
-        } while ($pend_group = get_item_pended_group($item) && $loop_count <= 5);
+        } while (($pend_group = get_item_pended_group($item)) && $loop_count <= 5);
     }
 
     //Delete gdoc pick list
@@ -649,8 +717,14 @@ function make_pick_list($item, $limit = 500)
     GPLog::notice(
         "make_pick_list: $item[invoice_number] " .@ $item['drug_name']
             . " " . @$item['rx_number'],
-        [ 'item' => $item ]
-    ); //We don't need full shopping list cluttering logs
+        [
+            'item' => $item,
+            'unsorted_ndcs' => $unsorted_ndcs,
+            'sorted_ndcs' => $sorted_ndcs,
+            'long_exp' => $long_exp,
+            'list' => $list
+        ]
+    );
 
     if ($list) {
         $list['partial_fill'] = '';
@@ -727,7 +801,7 @@ function make_pick_list($item, $limit = 500)
         "body"      => "Determine if there is enough $item[drug_name] to pend for "
                        ."'{$item['sig_actual']}'. Tried & failed to pend a qty of ".$min_qty." $created",
         "contact"   => "$item[first_name] $item[last_name] $item[birth_date]",
-        "assign_to" => ".Add/Remove Drug - RPh",
+        "assign_to" => ".Manually Add Drug To Order",
         "due_date"  => date('Y-m-d')
     ];
 
@@ -742,11 +816,12 @@ function get_v2_inventory($item, $limit)
     $min_days = $item['days_dispensed_default'];
     $stock    = $item['stock_level_initial'];
 
-    //Used to use +14 days rather than -14 days as a buffer for dispensing and shipping.
-  //But since lots of prepacks expiring I am going to let almost expired things be prepacked.
-  //Update on 2020-12-03, -14 days is causing issues when we are behind on filling (on 12/1/2020 a 90 day Rx was pended for exp 01/2021)
-  $days_adjustment = 0; //-14 //+14
-  $min_exp   = explode('-', date('Y-m', strtotime("+".($min_days+$days_adjustment)." days")));
+    // Used to use +14 days rather than -14 days as a buffer for dispensing and shipping.
+    // But since lots of prepacks expiring I am going to let almost expired things be prepacked.
+    // Update on 2020-12-03, -14 days is causing issues when we are behind on filling
+    // (on 12/1/2020 a 90 day Rx was pended for exp 01/2021)
+    $days_adjustment = 0; //-14 //+14
+    $min_exp   = explode('-', date('Y-m', strtotime("+".($min_days+$days_adjustment)." days")));
 
     $start_key = rawurlencode('["8889875187","month","'.$min_exp[0].'","'.$min_exp[1].'","'.$generic.'"]');
     $end_key   = rawurlencode('["8889875187","month","'.$min_exp[0].'","'.$min_exp[1].'","'.$generic.'",{}]');
@@ -755,7 +830,7 @@ function get_v2_inventory($item, $limit)
 
     try {
         $res = v2_fetch($url);
-        log_info("WebForm make_pick_list fetch success.", ['url' => $url, 'item' => $item, 'res' => $res]);
+        GPLog::info("WebForm make_pick_list fetch success.", ['url' => $url, 'item' => $item, 'res' => $res]);
     } catch (Error $e) {
         GPLog::error("WebForm make_pick_list fetch failed.  Retrying $item[invoice_number]", ['url' => $url, 'item' => $item, 'res' => $res, 'error' => $e]);
         $res = v2_fetch($url);
@@ -807,13 +882,42 @@ function group_by_ndc($rows, $item)
         $ndcs[$ndc]['rows'] = isset($ndcs[$ndc]['rows']) ? $ndcs[$ndc]['rows'] : [];
         $ndcs[$ndc]['prepack_qty'] = isset($ndcs[$ndc]['prepack_qty']) ? $ndcs[$ndc]['prepack_qty'] : 0; //Hacky to set property on an array
 
-        if (strlen($row['doc']['bin']) == 3) {
+        $months_until_exp    = months_between($item['item_date_added'], $row['doc']['exp']['to']);
+        $not_purchased_stock = ($months_until_exp < IS_MFG_EXPIRATION);
+
+        if (strlen($row['doc']['bin']) == 3 AND $not_purchased_stock) {
             $ndcs[$ndc]['prepack_qty'] += $row['doc']['qty']['to'];
 
-            if (! isset($ndcs[$ndc]['prepack_exp']) or $row['doc']['exp']['to'] < $ndcs[$ndc]['prepack_exp']) {
+            if ( ! @$ndcs[$ndc]['prepack_exp'] or $row['doc']['exp']['to'] < @$ndcs[$ndc]['prepack_exp']) {
+                GPLog::warning('group_by_ndc: Prepack and setting expiration', [
+                    'item_date_added'     => $item['item_date_added'],
+                    'qty'                 => $row['doc']['qty']['to'],
+                    'months_until_exp'    => $months_until_exp,
+                    'not_purchased_stock' => $not_purchased_stock,
+                    'prepack_exp'         => @$ndcs[$ndc]['prepack_exp'],
+                    'exp'                 => $row['doc']['exp']['to'],
+                    'ndc'                 => $ndc,
+                    'row'                 => $row,
+                    'ndcs'                => $ndcs
+                ]);
                 $ndcs[$ndc]['prepack_exp'] = $row['doc']['exp']['to'];
+            } else {
+                GPLog::error('group_by_ndc: Prepack but not setting expiration', [
+                    'item_date_added' => $item['item_date_added'],
+                    'qty' => $row['doc']['qty']['to'],
+                    'months_until_exp' => $months_until_exp,
+                    'not_purchased_stock' => $not_purchased_stock,
+                    'prepack_exp' => $ndcs[$ndc]['prepack_exp'],
+                    'exp' => $row['doc']['exp']['to'],
+                    'ndc' => $ndc,
+                    'row' => $row,
+                    'ndcs' => $ndcs
+                ]);
             }
         }
+
+        if ($ndcs[$ndc]['prepack_qty'] > 0 AND ! $ndcs[$ndc]['prepack_exp'])
+            GPLog::error('Prepack has a quantity but no expiration!?', [$ndc, $row, $ndcs]);
 
         $ndcs[$ndc]['rows'][] = $row['doc'];
     }
@@ -829,6 +933,7 @@ function sort_by_ndc($ndcs, $long_exp)
         $sorted_ndcs[] = [
             'ndc'         => $ndc,
             'prepack_qty' => $val['prepack_qty'],
+            'prepack_exp' => @$val['prepack_exp'],
             'inventory'   => sort_inventory($val['rows'], $long_exp)
         ];
     }
@@ -838,16 +943,41 @@ function sort_by_ndc($ndcs, $long_exp)
         if (! isset($a['prepack_qty']) or ! isset($b['prepack_qty'])) {
             GPLog::error('ERROR: sort_by_ndc but prepack_qty is not set', get_defined_vars());
         } else {
-        //Return shortest prepack expiration date, if a tie use one with greater quantity
-            if (@$a['prepack_exp'] > @$b['prepack_exp']) {
+           //Return shortest non-null prepack expiration date (these exclude IS_MFG_EXPIRATION),
+           //if a tie use one with greater prepack quantity, if tie choose one with more items
+
+           //Descending NULL
+           if ($a['prepack_exp'] != null AND $b['prepack_exp'] == null) {
+               return -1;
+           }
+
+           //Descending NULL
+           if ($a['prepack_exp'] == null AND $b['prepack_exp'] != null) {
+               return 1;
+           }
+
+           //Ascending EXP
+           if  ($a['prepack_exp'] < $b['prepack_exp']) {
+               return -1;
+           }
+
+            //Ascending EXP
+            if ($a['prepack_exp'] > $b['prepack_exp']) {
                 return 1;
             }
 
-            if (@$a['prepack_exp'] < @$b['prepack_exp']) {
+            //Descending Qty
+            if ($a['prepack_qty'] > $b['prepack_qty']) {
                 return -1;
             }
 
-            return $b['prepack_qty'] - $a['prepack_qty'];
+            //Descending Qty
+            if ($a['prepack_qty'] < $b['prepack_qty']) {
+                return 1;
+            }
+
+            //Descending Item Count
+            return count($b['inventory']) - count($a['inventory']);
         }
     });
 
@@ -870,15 +1000,8 @@ function sort_inventory($inventory, $long_exp)
             return 1;
         }
 
-        //Priortize prepacks over other stock
         $aPack = strlen($a['bin']) == 3;
         $bPack = strlen($b['bin']) == 3;
-        if ($aPack and ! $bPack) {
-            return -1;
-        }
-        if ($bPack and ! $aPack) {
-            return 1;
-        }
 
         // Let's shop for non-prepacks that are closest (but not less than) to
         // our min prepack exp date in order to avoid waste
@@ -894,6 +1017,16 @@ function sort_inventory($inventory, $long_exp)
             (isset($inventory['prepack_exp']) ? $inventory['prepack_exp'] : $long_exp),
             substr($b['exp']['to'], 0, 10)
         );
+
+        //Priortize non-purchased prepacks over other stock
+        //Assume Purchased is <12month expiration - 3mos from days supply = ~ 9mos between
+        if ($aPack and $aMonths < IS_MFG_EXPIRATION and ! $bPack) {
+            return -1;
+        }
+
+        if ($bPack and $bMonths < IS_MFG_EXPIRATION and ! $aPack) {
+            return 1;
+        }
 
         // Deprioritize anything with a closer exp date than the min prepack exp
         // date.  This - by definition - can only be non-prepack stock
@@ -937,56 +1070,232 @@ function months_between($from, $to)
     return $diff->m + ($diff->y * 12);
 }
 
-function get_qty_needed($rows, $min_qty, $safety)
+/**
+ * Get the quantity we are going to pend in the next step
+ * @param  array $rows    The items that were returned from v2.
+ * @param  int   $min_qty The minimum need to fill this rx.
+ * @param  float $safety  Unknown????.
+ * @return array The of the details needed to pend the items
+ */
+function get_qty_needed(array $rows, int $min_qty, float $safety)
 {
-    foreach ($rows as $row) {
-        $ndc = $row['ndc'];
-        $inventory = $row['inventory'];
+    // Get an array of the NDCs and the total quantity available
+    $ndc_quantities = array_column(
+        array_map(
+            function ($row) {
+                return [
+                    'ndc' => $row['ndc'],
+                    'qty_available' => array_sum(
+                        array_column(
+                            array_column($row['inventory'], 'qty'),
+                            'to'
+                        )
+                    )
+                ];
+            },
+            $rows
+        ),
+        'qty_available',
+        'ndc'
+    );
 
-        $list  = [];
-        $pend  = [];
-        $qty = 0;
-        $qty_repacks = 0;
-        $count_repacks = 0;
-        $left = $min_qty;
+    // filter out NDCs that don't have enough quantity to fill the order
+    // Then create an array with the NDC as the key and the qty_available as the value
+    $available_ndcs = array_filter(
+        $ndc_quantities,
+        function ($qty) use ($min_qty) {
+            return $qty >= $min_qty;
+        }
+    );
+
+    // If we don't have any NDCs then we should quit
+    if (count($available_ndcs) == 0) {
+        GPLog::critical(
+            "It appears there are not any NDCs with a quantity great enough to fill this RX.  Is This Accurate?",
+            [
+                'ndc_quantities'     => $ndc_quantities,
+                'available_ndcs'     => $available_ndcs,
+                'requested_quantity' => $min_qty
+            ]
+        );
+        return;
+    }
+
+    GPLog::debug(
+        "There appears to be an ndc that has enough quantity to complete this request",
+        [
+            'ndc_quantities'     => $ndc_quantities,
+            'available_ndcs'     => $available_ndcs,
+            'requested_quantity' => $min_qty
+        ]
+    );
+
+    // Pick the appropriate NDC and then pend
+    foreach ($rows as $row) {
+        $ndc  = $row['ndc'];
+
+        // Either this is our first NDC or the NDC has changed.
+        // Either way we need to define all the variables
+        if (!isset($selected_ndc) || $ndc != $selected_ndc) {
+            // If we already have a selected NDC, then we need to note there wasn't enough quantity
+            if (isset($selected_ndc)) {
+                GPLog::debug(
+                    "{$selected_ndc} did not have enought stock ({$ndc_quantities[$selected_ndc]})
+                    to meet the request of between {$min_safe_qty} and {$max_qty}",
+                    [
+                        'available_ndcs' => $available_ndcs,
+                        'ndc_quantities' => $ndc_quantities,
+                        'max_qty' => $max_qty,
+                        'min_qty' => $min_qty,
+                        'min_safe_qty' => $min_safe_qty,
+                        'left' => $left
+                    ]
+                );
+            }
+
+            $selected_ndc = $ndc;
+            $min_safe_qty = $min_qty * (1 + $safety);
+            $list          = [];
+            $pend          = [];
+            $qty           = 0;
+            $qty_repacks   = 0;
+            $count_repacks = 0;
+            $left          = $min_qty;
+            $max_qty       = ($left * 1.25);
+            $max_qty       = (floor($max_qty) < $min_qty) ? $min_qty : floor($max_qty);
+        }
+
+        $inventory = $row['inventory'];
 
         foreach ($inventory as $i => $option) {
             if ($i == 'prepack_qty') {
                 continue;
             }
 
-            array_unshift($pend, $option);
+            // Put the option on the top of the pend list
+            $will_exceed_max = ($option['qty']['to'] + $qty) > $max_qty;
+            if (!$will_exceed_max || $left > 0) {
+                array_unshift($pend, $option);
 
-            $usable = 1 - $safety;
-            if (strlen($pend[0]['bin']) == 3) {
-                $usable = 1;
-                $qty_repacks += $pend[0]['qty']['to'];
-                $count_repacks++;
+                $usable = 1 - $safety;
+
+                if (strlen($pend[0]['bin']) == 3) {
+                    $usable = 1;
+                    $qty_repacks += $pend[0]['qty']['to'];
+                    $count_repacks++;
+                }
+
+                $qty += $pend[0]['qty']['to'];
+                $left -= $pend[0]['qty']['to'] * $usable;
+                $list = pend_to_list($list, $pend);
             }
 
-            $qty += $pend[0]['qty']['to'];
-            $left -= $pend[0]['qty']['to'] * $usable;
-            $list = pend_to_list($list, $pend);
+            /*
+                Shop for all matching medicine in the bin, its annoying and inefficient to pick some
+                 and leave the others
 
-            //Shop for all matching medicine in the bin, its annoying and inefficient to pick some and leave the others
-            //Update 1: Don't do the above if we are in a prepack bin, otherwise way will way overshop (eg Order #42107)
-            //Udpdate 2: Don't do if they are manufacturer bottles otherwise we get way too much
+                Update 1: Don't do the above if we are in a prepack bin, otherwise way will way
+                overshop (eg Order #42107)
+                Update 2: Don't do if they are manufacturer bottles otherwise we get way too much
+                Update 3: Manufacturer bottles are anything over 60
+                Update 4: Quit Pending if we are over 50%% of the originaly pend request
+            */
             $different_bin = ($pend[0]['bin'] != @$inventory[$i+1]['bin']);
             $is_prepack    = (strlen($pend[0]['bin']) == 3);
-            $is_mfg_bottle = ($pend[0]['qty']['to'] >= 90);
+            $is_mfg_bottle = ($pend[0]['qty']['to'] >= 60);
+            $over_max      = $qty > $max_qty;
+            $min_met      = ($qty >= $min_qty);
+            $unit_of_use   = ($min_qty < 5);
 
-            if ($left <= 0 and ($different_bin or $is_prepack or $is_mfg_bottle)) {
+            GPLog::debug(
+                "get_qty_needed;  {$ndc} SHOULD CONTINUE PENDING?",
+                [
+                    'left'          => $left,
+                    'over_max'      => $over_max,
+                    'different_bin' => $different_bin,
+                    'is_prepack'    => $is_prepack,
+                    'is_mfg_bottle' => $is_mfg_bottle,
+                    'unit_of_use'   => $unit_of_use,
+                    'ndc'           => $ndc,
+                    'qty'           => $qty,
+                    'min_qty'       => $min_qty,
+                    'max_qty'       => $max_qty,
+                    'min_met'       => $min_met,
+                    'stop_condition_1' => (int) (
+                        $left <= 0
+                        && (
+                            $over_max
+                            || $different_bin
+                            || $is_prepack
+                            || $is_mfg_bottle
+                            || $unit_of_use
+                        )
+                    ),
+                    'stop_condition_2' => (int) $is_mfg_bottle && $min_met
+                ]
+            );
+
+            if (
+                (
+                    $left <= 0
+                    && (
+                        $over_max
+                        || $different_bin
+                        || $is_prepack
+                        || $is_mfg_bottle
+                        || $unit_of_use
+                    )
+                ) || (
+                    $is_mfg_bottle && $min_met
+                )
+            ) {
                 usort($list, 'sort_list');
 
+                if (($qty/$min_qty) >= 2) {
+                    GPLog::warning(
+                        'get_qty_needed;  Pended Quantity > 2x the requested quantity.
+                        Verify picked items are correct.  After we have confirmed the qty
+                        has been accuratly created we can resolve the alert.  After 10 - 15 of these
+                        we can remove the alert completely.',
+                        [
+                            'left'          => $left,
+                            'over_max'      => $over_max,
+                            'different_bin' => $different_bin,
+                            'is_prepack'    => $is_prepack,
+                            'is_mfg_bottle' => $is_mfg_bottle,
+                            'unit_of_use'   => $unit_of_use,
+                            'list'          => $list,
+                            'ndc'           => $ndc,
+                            'pend'          => $pend,
+                            'qty'           => $qty,
+                            'min_qty'       => $min_qty,
+                            'max_qty'       => $max_qty,
+                            'pend_qty'      => $qty,
+                            'count'         => count($list),
+                            'qty_repacks'   => $qty_repacks,
+                            'count_repacks' => $count_repacks
+                        ]
+                    );
+                } else {
+                    GPLog::debug(
+                        "get_qty_needed:  Finding quantity to pend for {$option['drug']['generic']}",
+                        [
+                            'min_qty' => $min_qty,
+                            'max_qty' => $max_qty,
+                            'pend_qty' => $qty
+                        ]
+                    );
+                }
+
                 return [
-          'list' => $list,
-          'ndc' => $ndc,
-          'pend' => $pend,
-          'qty' => $qty,
-          'count' => count($list),
-          'qty_repacks' => $qty_repacks,
-          'count_repacks' => $count_repacks
-        ];
+                    'list'          => $list,
+                    'ndc'           => $ndc,
+                    'pend'          => $pend,
+                    'qty'           => $qty,
+                    'count'         => count($list),
+                    'qty_repacks'   => $qty_repacks,
+                    'count_repacks' => $count_repacks
+                ];
             }
         }
     }

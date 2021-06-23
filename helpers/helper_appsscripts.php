@@ -34,7 +34,7 @@ function gdoc_details($fileId)
         // We have some results so let's leave
         if ($results !== false && !empty($results)) {
             GPLog::debug(
-                'Google Doc Request Success:',
+                'Google Doc Details Request Success',
                 [
                     'url'  => $url,
                     'results' => $results,
@@ -92,11 +92,26 @@ function gdoc_post($url, $content)
 
     for ($try = 1; $try <=3; $try++) {
         $results = @file_get_contents($url.'?GD_KEY='.GD_KEY, false, $context);
+        $decoded = json_decode($results);
+        $last_error = json_last_error();
+
+        GPLog::debug(
+            'Google Doc Request: decoded JSON'. $content['method'],
+            [
+                'data'    => $decoded,
+                'url'     => $url,
+                'try'     => $try,
+                'results' => $results,
+                'opts' => $opts,
+                'context' => $context,
+            ]
+        );
 
         // We have some results so let's leave
-        if ($results !== false && !empty($results)) {
+        if ($results !== false && !empty($results) && $last_error === JSON_ERROR_NONE) {
+
             GPLog::debug(
-                'Google Doc Request Success:',
+                'Google Doc Request Returned: ' . $content['method'],
                 [
                     'data' => json_decode($json),
                     'url'  => $url,
@@ -234,7 +249,7 @@ function watch_invoices()
             && ($order['payment_due_actual'] ?: $order['payment_due_default']) == $payment['due']
         ) {
             //Most likely invoice was correct and just moved
-            log_notice("watch_invoice $invoice_number", $log);
+            GPLog::notice("watch_invoice $invoice_number", $log);
             continue;
         }
 

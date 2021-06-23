@@ -1,0 +1,46 @@
+{{!
+    Sample of data
+    {
+        "first_name": "Ben",
+        "last_name": "Brown",
+        "birth_date": "1999-09-09",
+        "dispensed_date": "04-09-2021",
+        "shipped_date": "04-09-2021",
+        "invoice_number": 12345,
+        "tracking_number": "1234123124123",
+        "tracking_url": "http://www.gmail.com",
+        "short_tracking_url": "http://www.gmail.com",
+        "invoice_url": "http://www.gmail.com",
+        "short_invoice_url": "http://www.gmail.com",
+        "count_filled": 1,
+        "multiple_filled": true,
+        "filled": {
+            "rxs": [
+                {"name": "drug 1"},
+                {"name": "drug 2"}
+            ]
+        },
+        "no_fill": {
+            "rxs": [
+                {"name": "no drug 1"},
+                {"name": "no drug 2"}
+            ]
+        }
+    }
+}}
+
+<p>Hello,</p>
+<p>
+    Good Pill received Order #{{invoice_number}} but is waiting for your prescriptions <br>
+    {{#is_webform_transfer}}
+        We will attempt to transfer the Rxs you requested from your pharmacy.
+    {{/is_webform_transfer}}
+
+    {{^is_webform_transfer}}
+        We haven't gotten any Rxs from your doctor yet but will notify you as soon as we do.
+    {{/is_webform_transfer}}
+
+</p>
+
+<p>Thanks!<br>
+    The Good Pill Team</p>

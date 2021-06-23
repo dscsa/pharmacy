@@ -1,5 +1,12 @@
 <?php
 
+use GoodPill\Logging\{
+    GPLog,
+    AuditLog,
+    CliLog
+};
+
+
 require_once 'dbs/mysql_wc.php';
 require_once 'helpers/helper_imports.php';
 require_once 'helpers/helper_v2.php';
@@ -16,9 +23,6 @@ function import_v2_drugs() {
 
   $o = $order['ordered'];
   $d = $order['default'];
-
-  //log_info("
-  //import_v2_drugs: rows ".count($drugs['rows']));
 
   $vals = [];
   foreach($drugs['rows'] as $row) {

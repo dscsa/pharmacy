@@ -1,5 +1,11 @@
 <?php
 
+use GoodPill\Logging\{
+    GPLog,
+    AuditLog,
+    CliLog
+};
+
 require_once 'dbs/mssql_cp.php';
 require_once 'dbs/mysql_wc.php';
 require_once 'helpers/helper_imports.php';
@@ -34,8 +40,12 @@ function import_cp_rxs_single() {
         THEN CONVERT(varchar, autofill_resume_date, 20)
         ELSE NULL END
       ) as refill_date_manual,
-      CONVERT(varchar, dispense_date + disp_days_supply, 20) as refill_date_default,
-
+      (CASE
+        WHEN dispense_date IS NULL
+            THEN start_date
+        ELSE CONVERT(varchar, dispense_date + disp_days_supply, 20)
+        END
+      ) as refill_date_default,
       script_status_cn as rx_status,
       ISNULL(IVRCmt, 'Entered') as rx_stage,
       input_source.name as rx_source,
@@ -102,11 +112,6 @@ function import_cp_rxs_single() {
       cprx.refills_orig IS NOT NULL
 
   ");
-
-  //log_error("gp_rxs_single_cp import start: ", ['count' => count($rxs[0]), 'vals' => array_slice($rxs[0], 0, 100, true)]);
-
-  //log_info("
-  //import_cp_rxs_single: rows ".count($rxs[0]));
 
   if ( ! count($rxs[0])) return log_error('gp_rxs_single_cp import no rows', ['count' => count($rxs[0]), 'vals' => array_slice($rxs[0], 0, 100, true)]);
 

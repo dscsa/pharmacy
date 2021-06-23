@@ -6,14 +6,11 @@ require_once 'exports/export_cp_order_items.php';
 require_once 'exports/export_v2_order_items.php';
 require_once 'exports/export_gd_transfer_fax.php';
 
-use GoodPill\Logging\{
-    GPLog,
-    AuditLog,
-    CliLog
-};
-
-use GoodPill\Utilities\Timer;
-
+use GoodPill\Logging\GPLog;
+use GoodPill\Logging\AuditLog;
+use GoodPill\Logging\CliLog;
+use GoodPill\Models\GpOrder;
+use GoodPill\Models\GpOrderItem;
 
 /**
  * Handle all the possible Item updates.  it will go through each type of change
@@ -44,19 +41,15 @@ function update_order_items($changes) : void
     GPLog::notice('data-update-order-items', $changes);
 
     if (isset($changes['created'])) {
-        Timer::start('update.order.items.created');
         foreach ($changes['created'] as $created) {
             order_item_created($created, $orders_updated);
         }
-        Timer::stop('update.order.items.created');
     }
 
     if (isset($changes['deleted'])) {
-        Timer::start('update.order.items.deleted');
         foreach ($changes['deleted'] as $deleted) {
             order_item_deleted($deleted, $orders_updated);
         }
-        Timer::stop('update.order.items.deleted');
     }
 
     if (! empty($orders_updated)) {
@@ -76,11 +69,9 @@ function update_order_items($changes) : void
     }
 
     if (isset($changes['updated'])) {
-        Timer::start('update.order.items.updated');
         foreach ($changes['updated'] as $updated) {
             order_item_updated($updated);
         }
-        Timer::stop('update.order.items.updated');
     }
 }
 
@@ -115,6 +106,21 @@ function order_item_created(array $created, array &$orders_updated) : ?array
     GPLog::info("data-order-items-created", ['created' => $created]);
 
     $invoice_number = $created['invoice_number'];
+
+    $GPOrder = GpOrder::where('invoice_number', $invoice_number)->first();
+    if ($GPOrder && $GPOrder->isShipped()) {
+        GPLog::alert(
+            "Trying to add an item to an order that has already shipped",
+            [ 'created' => $created ]
+        );
+    }
+
+    if (!$GPOrder) {
+        GPLog::notice(
+            "We are trying to create an order item for an order that has been deleted or doesn't exist",
+            [ 'created' => $created ]
+        );
+    }
 
     //This will add/remove and pend/unpend items from the order
     $item = load_full_item($created, $mysql);
@@ -217,6 +223,14 @@ function order_item_deleted(array $deleted, array &$orders_updated) : ?array
 
     $invoice_number = $deleted['invoice_number'];
 
+    $GPOrder = GpOrder::where('invoice_number', $invoice_number)->first();
+    if ($GPOrder && $GPOrder->isShipped()) {
+        GPLog::alert(
+            "Trying to delete an item to an order that has already shipped",
+            [ 'deleted' => $deleted]
+        );
+    }
+
     $item = load_full_item($deleted, $mysql);
 
     GPLog::debug(
@@ -231,7 +245,9 @@ function order_item_deleted(array $deleted, array &$orders_updated) : ?array
     );
 
     //This item was going to be filled, and the whole order was not deleted
-    if ($deleted['days_dispensed_default'] > 0 and @$item['order_date_added']) {
+    if (
+        $deleted['days_dispensed_default'] > 0 && $GPOrder
+    ) {
         if (! isset($orders_updated[$invoice_number])) {
             $orders_updated[$invoice_number] = [
                 'added'   => [],
@@ -241,7 +257,42 @@ function order_item_deleted(array $deleted, array &$orders_updated) : ?array
 
         $orders_updated[$invoice_number]['removed'][] = array_merge($item, $deleted);
     }
+    if ($item['rx_autofill']) {
+        $groups['AUTOFILL_ON'][] = $item['refill_date_next'].' - '.$item['drug'];
+    } else {
+        $groups['AUTOFILL_OFF'][] = $item['drug'];
+    }
 
+    // If the next Refill date is null,
+    //      but the rx is autofill
+    //          and there are refills left
+    if (
+            is_null($item['refill_date_default'])
+            && @$item['rx_autofill']
+            && $item['refills_total'] > 0
+            && (is_null($item['refill_date_manual']) || strtotime($item['refill_date_manual']) < time())
+            && $item['refill_date_first'] //KW feedback that false positives for new drugs that are about to be transferred out
+    ) {
+        $salesforce = [
+            "subject"   => "Problem with next refill date",
+            "body"      => "{$item['drug_name']} was deleted from Order {$invoice_number}, but appears
+                            it should have been included.  This message is triggered when the Rx hasn't
+                            been scheduled for refill, but is set to auto fill and there are still
+                            refills remaining.  We should CALL the patient to confirm this item
+                            should not be included in the order.",
+            "contact"   => "{$item['first_name']} {$item['last_name']} {$item['birth_date']}",
+            "assign_to" => ".Inventory Issue",
+            "due_date"  => date('Y-m-d')
+         ];
+
+        $patient_label = get_patient_label($item);
+        $event_title   = "Problem with refill {$item['drug_name']} from Order {$invoice_number}  Refill Error: Created:".date('Y-m-d H:i:s');
+        $comm_arr = new_comm_arr($patient_label, '', '', $salesforce);
+        create_event($event_title, $comm_arr);
+
+        AuditLog::log($salesforce['body'], $item);
+        GPLog::warning($event_title, ["item" => $item]);
+    }
     /*
         TODO Update Salesforce Order Total & Order Count & Order Invoice
         using REST API or a MYSQL Zapier Integration
@@ -267,6 +318,19 @@ function order_item_updated(array $updated) : ?array
     GPLog::info("data-order-items-updated", ['updated' => $updated]);
 
     $changed = changed_fields($updated);
+
+    $invoice_number = $updated['invoice_number'];
+
+    $GPOrder = GpOrder::where('invoice_number', $invoice_number)->first();
+    if ($GPOrder && $GPOrder->isShipped()) {
+        GPLog::alert(
+            "Trying to change an item on an order that has already shipped",
+            [
+                'updated' => $updated,
+                'GpOrder' => $GPOrder->toJSON()
+            ]
+        );
+    }
 
     GPLog::debug(
         "update_order_items: Order Item updated",
@@ -309,8 +373,9 @@ function order_item_updated(array $updated) : ?array
         $item = deduplicate_order_items($item);
     }
 
-    if ($item['days_dispensed_actual']) {
-        GPLog::debug("Freezing Item as because it's dispensed and updated", $item);
+
+    if ($item['qty_dispensed_actual']) {
+        GPLog::debug("Freezing Item because it's dispensed and updated", $item);
 
         $item = set_item_invoice_data($item, $mysql);
 
@@ -323,6 +388,27 @@ function order_item_updated(array $updated) : ?array
             ),
             $updated
         );
+
+        //Rph may have forgotten to enter days on 2nd dispensing screen
+        if (! $item['days_dispensed_actual']) {
+            $drug_name = $item['drug_name'];
+            $rx_number = $item['rx_number'];
+            $invoice_number = $item['invoice_number'];
+            $salesforce = [
+                "subject"   => "Dispensed Rx does not have Days Supply set",
+                "body"      => "Rx {$rx_number} for {$drug_name} was dispensed in Order {$invoice_number} but appears to be missing its Days Supply",
+                "contact"   => "{$item['first_name']} {$item['last_name']} {$item['birth_date']}",
+                "assign_to" => ".DDx/Sig Issue",
+                "due_date"  => date('Y-m-d')
+            ];
+
+            $patient_label = get_patient_label($item);
+            $event_title   = "Rx {$rx_number} Missing Days Supply Created:".date('Y-m-d H:i:s');
+            $comm_arr = new_comm_arr($patient_label, '', '', $salesforce);
+            create_event($event_title, $comm_arr);
+
+            return $updated;
+        }
 
         //! $updated['order_date_dispensed'] otherwise triggered twice, once one
         //! stage: Printed/Processed and again on stage:Dispensed
@@ -452,8 +538,36 @@ function handle_adds_and_removes(array $orders_updated) : void
         }
 
         foreach ($updates['removed'] as $item) {
-            $items[$item['drug']] = $item;
-            $remove_item_names[] = $item['drug'];
+            if (isset($item['drug'])) {
+                $items[$item['drug']] = $item;
+                $remove_item_names[] = $item['drug'];
+            } else {
+                //  Something is going wrong with load_full_order/load_full_item and the data is not returned
+                //  If the drug property isn't set, fetch the item model and construct the drug name
+                $model_item = GpOrderItem::where('rx_number', $item['rx_number'])->first();
+                if ($model_item) {
+                    $items[$model_item->getDrugName()] = $model_item;
+                    $remove_item_names[] = $model_item->getDrugName();
+
+                    GPLog::warning(
+                        'handle_adds_and_removes: Removing items but item data is missing',
+                        [
+                            'item' => $item,
+                            'updates_removed' => $updates['removed'],
+                            'model_item' => $model_item->toJson(),
+                        ]
+                    );
+                } else {
+                    GPLog::warning(
+                        'handle_adds_and_removes: Removing items but item and model data exists',
+                        [
+                            'item' => $item,
+                            'updates_removed' => $updates['removed'],
+                        ]
+                    );
+                }
+            }
+
         }
 
         // an rx_number was swapped (e.g best_rx_number used instead) same
@@ -461,11 +575,11 @@ function handle_adds_and_removes(array $orders_updated) : void
         // at same time so we need to remove the intersection
         $added_deduped    = array_diff($add_item_names, $remove_item_names);
 
-         /*
-            something might have been removed as a duplicate, but we don't want
-            to say it was "removed" if drug is still in the order so we remove
-            all FILLED (rather than just the added)
-         */
+        /*
+           something might have been removed as a duplicate, but we don't want
+           to say it was "removed" if drug is still in the order so we remove
+           all FILLED (rather than just the added)
+        */
         $removed_deduped  = array_diff($remove_item_names, $groups['FILLED']);
 
         GPLog::warning(
@@ -510,12 +624,6 @@ function handle_adds_and_removes(array $orders_updated) : void
                 ),
                 $item
             );
-
-            $item = v2_unpend_item(
-                array_merge($item),
-                $mysql,
-                "order-item-deleted and order still exists"
-            );
         }
 
         send_updated_order_communications($groups, $added_deduped, $removed_deduped);
@@ -524,7 +632,7 @@ function handle_adds_and_removes(array $orders_updated) : void
 
 /**
  * Remove any duplicate items that are attached to an order
- * @param  array $item  The item we are working to clear
+ * @param  array $item The item we are working to clear.
  * @return array        The item and any modifications
  *
  * @todo switch the mssql to a pdo bind param command
@@ -574,6 +682,7 @@ function deduplicate_order_items(array $item) : array
 
     foreach ($res2 as $duplicate) {
         $mssql->run("DELETE FROM csomline WHERE line_id = {$duplicate['line_id']}");
+        $mssql->run("UPDATE CsOmLine_Deleted SET chg_user_id = 1311 WHERE line_id = {$duplicate['line_id']}");
     }
 
     GPLog::notice(

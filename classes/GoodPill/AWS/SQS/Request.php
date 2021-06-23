@@ -2,6 +2,8 @@
 
 namespace  GoodPill\AWS\SQS;
 
+use GoodPill\Logging\GPLog;
+
 abstract class Request
 {
 
@@ -32,27 +34,88 @@ abstract class Request
     protected $group_id;
 
     /**
+     * If this message has come from a fifo queue,
+     * it will have the sequence number attacehd
+     * @var string
+     */
+    protected $sequence_number;
+
+    /**
      * dedupe_id
-     * @var [type]
+     * @var string
      */
     protected $dedup_id;
 
+    /**
+     * The handle from SQS
+     * @var [type]
+     */
     protected $receipt_handle;
 
+    /**
+     * The ID assigned by SQS
+     * @var string
+     */
     protected $message_id;
+
+    /**
+     * Don't check the properties for validity.  Set this to false for an easy
+     * way to force a message creation
+     *
+     * @var boolean
+     */
+    public $check_property = true;
+
+    /**
+     * Allow duplicate occurances of this mesage to be sent to the Queue
+     * @var boolean
+     */
+    public $allow_duplicate = false;
 
     /**
      * I'm not dead yet.  I feel happy.
      */
     public function __construct($initialize_date = null)
     {
+
+        if (!in_array('execution_id', $this->properties)) {
+            $this->properties[] = 'execution_id';
+            $this->execution_id = GPLog::$exec_id;
+        }
+
+        if (!in_array('subroutine_id', $this->properties)) {
+            $this->properties[] = 'subroutine_id';
+            if (!is_null(GPLog::$subroutine_id)) {
+                $this->subroutine_id = GPLog::$subroutine_id;
+            }
+        }
+
+
         $this->dedup_id = uniqid();
 
         if (is_array($initialize_date)) {
             $this->fromSQS($initialize_date);
-        } else if (is_string($initialize_date)) {
+        } elseif (is_string($initialize_date)) {
             $this->fromJSON($initialize_date);
         }
+    }
+
+    /**
+     * Get the group id
+     * @return string
+     */
+    public function getGroupId()
+    {
+        return $this->group_id;
+    }
+
+    /**
+     * Get the sequence number created by aws
+     * @return string
+     */
+    public function getSequenceNumber()
+    {
+        return $this->sequence_number;
     }
 
     /**
@@ -66,7 +129,6 @@ abstract class Request
      */
     public function &__get($property)
     {
-
         if (is_callable(array($this, 'get' . ucfirst($property)))) {
             $func_name   ='get' . ucfirst($property);
             $func_return = $this->$func_name();
@@ -101,8 +163,8 @@ abstract class Request
             return $this->$func_name($value);
         }
 
-        // Check to see if the property is a persistable field
-        if (! in_array($property, $this->properties)) {
+        //Check to see if the property is a persistable field
+        if ($this->check_property && !in_array($property, $this->properties)) {
             throw new \Exception("{$property} not an allowed property");
         }
 
@@ -116,11 +178,10 @@ abstract class Request
      */
     public function __isset($property)
     {
-        if (in_array($property, $this->properties)) {
-            if (isset($this->data) && isset($this->data[$property])) {
-                return isset($this->data[$property]);
-            }
+        if (isset($this->data) && isset($this->data[$property])) {
+            return isset($this->data[$property]);
         }
+
         return false;
     }
 
@@ -150,7 +211,7 @@ abstract class Request
 
         // Check to make sure all the required fields have a value.  Throw an
         // exception if a value is missing
-        if (! $this->requiredFiledsComplete()) {
+        if (! $this->requiredFieldsComplete()) {
             throw new \Exception('Missing required fields');
         }
 
@@ -165,7 +226,7 @@ abstract class Request
      * Check to see if the required fields have been completed
      * @return bool True if all required fields are complete
      */
-    protected function requiredFiledsComplete()
+    protected function requiredFieldsComplete()
     {
         foreach ($this->required as $strRequiredField) {
             if (! isset($this->data[$strRequiredField])) {
@@ -209,9 +270,8 @@ abstract class Request
      */
     public function fromArray($arrData)
     {
-
         foreach ($arrData as $strKey => $mixValue) {
-            if (! in_array($strKey, $this->properties)) {
+            if ($this->check_property && !in_array($strKey, $this->properties)) {
                 throw new \Exception("{$strKey} not an allowed property");
             }
 
@@ -239,7 +299,7 @@ abstract class Request
      */
     public function toSQS()
     {
-        if (isset($this->message_id)) {
+        if (!$this->allow_duplicate && isset($this->message_id)) {
             throw new \Exception('This message has already been sent to SQS');
         }
 
@@ -263,9 +323,18 @@ abstract class Request
      */
     public function fromSQS($message)
     {
-
         $this->receipt_handle = $message['ReceiptHandle'];
         $this->message_id     = $message['MessageId'];
+
+        if (isset($message['Attributes'])) {
+            if (isset($message['Attributes']['MessageGroupId'])) {
+                $this->group_id = $message['Attributes']['MessageGroupId'];
+            }
+
+            if (isset($message['Attributes']['SequenceNumber'])) {
+                $this->sequence_number = $message['Attributes']['SequenceNumber'];
+            }
+        }
 
         if (md5($message['Body']) != $message['MD5OfBody']) {
             throw new \Exception('The message body is malformed');

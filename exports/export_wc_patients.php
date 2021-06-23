@@ -47,6 +47,19 @@ function wc_delete_patient($mysql, $patient_id_wc) {
 }
 
 /**
+ * removes the * from patient ID fields
+ * @param  array $patient Array that contains ID fields
+ * @return array          Patient with the * stripped
+ */
+function wc_sanitize_ids(array $patient) : array
+{
+    $patient['first_name'] = str_replace('*', '', $patient['first_name']);
+    $patient['last_name']  = str_replace('*', '', $patient['last_name']);
+    $patient['birth_date'] = str_replace('*', '', $patient['birth_date']);
+    return $patient;
+}
+
+/**
  * Update woocommerce with patient changes from CarePoint
  *
  * @param  array $patient  The data for the patient.  Needs to include firstname,
@@ -54,11 +67,13 @@ function wc_delete_patient($mysql, $patient_id_wc) {
  *
  * @return boolean
  */
-function wc_update_patient($patient) {
+function wc_update_patient(array $patient) {
 
     if ( ! $patient['patient_id_wc']) {
         return false;
     }
+
+    $patient = wc_sanitize_ids($patient);
 
     $goodpilldb = GoodPill\Storage\Goodpill::getConnection();
 

@@ -98,7 +98,6 @@ function add_sig_differences($patient) {
 
     if (isset($drug_names[$item['drug']])) {
       $patient[$i]['drug'] .= ' ('.( (float) $item['sig_qty_per_day'] ).' per day)';
-      //log_notice("helper_full_patient add_sig_differences: appended sig_qty_per_day to duplicate drug ".$item['drug']." >>> ".$drug_names[$item['drug']], [$order, $item, $drug_names]);
     } else {
       $drug_names[$item['drug']] = $item['sig_qty_per_day'];
     }

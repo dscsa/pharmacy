@@ -23,7 +23,7 @@ function update_drugs(array $changes) : void
     }
 
     if (array_sum($change_counts) == 0) {
-       return;
+        return;
     }
 
     GPLog::info(
@@ -36,7 +36,7 @@ function update_drugs(array $changes) : void
     if (isset($changes['created'])) {
         Timer::start("update.drugs.created");
         foreach ($changes['created'] as $i => $created) {
-            helper_try_catch_log('drug_created', $created);
+            drug_created($created);
         }
         Timer::start("update.drugs.created");
     }
@@ -44,7 +44,7 @@ function update_drugs(array $changes) : void
     if (isset($changes['updated'])) {
         Timer::start("update.drugs.updated");
         foreach ($changes['updated'] as $i => $updated) {
-            helper_try_catch_log('drug_updated', $updated);
+            drug_updated($updated);
         }
         Timer::start("update.drugs.updated");
     }
@@ -76,9 +76,10 @@ function drug_created(array $created) : void
     );
 
     $mysql = new Mysql_Wc();
+
     if ($created['drug_gsns']) {
         update_mismatched_rxs_and_items($mysql, $created);
-        update_field_rxs_single($mysql, $updated, 'drug_gsns'); //Now that everything is matched, we can update all rxs_single to the new gsn
+        update_field_rxs_single($mysql, $created, 'drug_gsns'); //Now that everything is matched, we can update all rxs_single to the new gsn
     }
 
     GPLog::resetSubroutineId();
@@ -112,7 +113,7 @@ function drug_updated(array $updated) : void
         $salesforce = [
             "subject"   => "Drug Price Change for $updated[drug_generic]",
             "body"      => "$updated[drug_generic] price $updated[old_price30] >>> $updated[price30], $updated[old_price90] >>> $updated[price90] $created",
-            "assign_to" => "Kiah",
+            "assign_to" => ".Testing",
             "due_date"  => date('Y-m-d')
         ];
         $event_title = @$item['drug_name']." Drug Price Change $created";
@@ -173,13 +174,13 @@ function update_mismatched_rxs_and_items($mysql, $partial)
                 FROM gp_rxs_single
                 LEFT JOIN gp_order_items ON gp_rxs_single.rx_number = gp_order_items.rx_number
                 WHERE
-                  drug_generic != '{$partial['drug_generic']}' -- gsn was moved not just added
+                  NOT drug_generic <=> '{$partial['drug_generic']}' -- gsn was moved not just added
                   AND rx_gsn IN ($drug_gsns)
                   AND rx_dispensed_id IS NULL";
 
     $rxs = $mysql->run($sql)[0];
 
-    if (! $rxs) {
+    if (!$rxs) {
         return GPLog::warning(
             "update_mismatched_rxs_and_items_by_drug_gsns: no rxs_single or order_items to update",
             [
@@ -195,7 +196,7 @@ function update_mismatched_rxs_and_items($mysql, $partial)
     //have the wrong price,
     //have the wrong initial stock level,
     //have the wrong days (due to the above), etc
-    GPLog::critical(
+    GPLog::warning(
         "update_mismatched_rxs_and_items_by_drug_gsns: updating rxs_single(s) and undispensed order_item(s)",
         [
             'partial' => $partial,
@@ -284,6 +285,9 @@ function update_order_item_drug($mysql, $rx_number)
 
     //overwrite == true should force rx_messages, days_dispensed_default, and
     //price_dispensed_default to all be recalculated
+    // TODO we will need to replace this as we migrate away from the load full fields.
+    // TODO Instead we should get the order_item for the Drug and update it.  If there isn't
+    // TODO an order item we should see if we need to add the rx to an order and sync it
     $item = load_full_item(['rx_number' => $rx_number], $mysql, true);
 
     GPLog::debug(

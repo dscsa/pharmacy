@@ -14,6 +14,7 @@ use GoodPill\Logging\{
 //3) NOT FILLING ACTION
 //4) NOT FILLING NO ACTION
 //TODO Much Better if this was a set of methods on an Order Object.  Like order->count_filled(filled = true/false), order->items_action(action = true/false), order->items_in_order(in_order = true/false), order->items_filled(filled = true/false, template = "{{name}} {{price}} {{item_message_keys}}")
+
 function group_drugs($order, $mysql) {
 
   if ( ! $order) {
@@ -35,6 +36,8 @@ function group_drugs($order, $mysql) {
     "IN_ORDER" => [],
     "NO_REFILLS" => [],
     "NO_AUTOFILL" => [],
+    "AUTOFILL_ON" => [],
+    "AUTOFILL_OFF" => [],
     "MIN_DAYS" => 366 //Max Days of a Script
   ];
 
@@ -43,6 +46,14 @@ function group_drugs($order, $mysql) {
     $groups['ALL'][] = $item; //Want patient contact_info even if an emoty order
 
     if ( ! @$item['drug_name']) continue; //Might be an empty order
+
+    //Per Kiah in https://app.asana.com/0/534557523548031/1200166790889777/f
+    //Out of refills AND rx_autofill off is basically like a voided Rx.  We don't
+    //want to include it in any of our communications.
+    if (
+        ! $item['rx_autofill'] AND
+        $item['rx_message_key'] == 'ACTION NO REFILLS'
+    ) continue;
 
     $days = @$item['days_dispensed'];
     $fill = $days ? 'FILLED_' : 'NOFILL_';
@@ -57,7 +68,7 @@ function group_drugs($order, $mysql) {
     $price = patient_pricing_text($item);
     $msg   = patient_message_text($item);
 
-    $groups[$fill.$action][] = $item['drug'].$msg;
+    $groups[$fill.$action][] = @$item['drug'].$msg;
 
     if (@$item['item_date_added'])
       $groups['IN_ORDER'][] = $item['drug'].$msg;
@@ -92,10 +103,16 @@ function group_drugs($order, $mysql) {
     }
 
     if ( ! @$item['refills_dispensed'] AND ! $item['rx_transfer'])
-      $groups['NO_REFILLS'][] = $item['drug'].$msg;
+      $groups['NO_REFILLS'][] = @$item['drug'].$msg;
 
     if ($days AND ! $item['rx_autofill'])
       $groups['NO_AUTOFILL'][] = $item['drug'].$msg;
+
+    if ($item['rx_autofill']) {
+        $groups['AUTOFILL_ON'][] = $item['refill_date_next'].' - '.@$item['drug'].$msg;
+    } else {
+        $groups['AUTOFILL_OFF'][] = $item['drug'].$msg;
+    }
 
     if ( ! @$item['refills_dispensed'] AND $days AND $days < $groups['MIN_DAYS'])
       $groups['MIN_DAYS'] = $days; //How many days before the first Rx to run out of refills
@@ -114,7 +131,7 @@ function group_drugs($order, $mysql) {
     log_error("group_drugs: wrong count_nofill $count_nofill != ".$order[0]['count_nofill'], get_defined_vars());
   }
 
-  log_info('GROUP_DRUGS', get_defined_vars());
+  GPLog::info('GROUP_DRUGS', get_defined_vars());
 
   return $groups;
 }
@@ -136,14 +153,15 @@ function patient_pricing_text($item) {
 }
 
 function patient_drug_text($item) {
-
-    if ( ! @$item['drug_generic'])
+    if ( ! @$item['drug_generic']) {
         return $item['drug_name'];
+    }
 
-    if ( ! @$item['drug_brand'])
+    if ( ! @$item['drug_brand']) {
         return $item['drug_generic'];
+    }
 
-  return $item['drug_generic']." ({$item['drug_brand']})";
+    return $item['drug_generic']." ({$item['drug_brand']})";
 }
 
 function patient_payment_method($item) {

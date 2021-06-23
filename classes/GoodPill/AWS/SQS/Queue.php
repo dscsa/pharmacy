@@ -103,6 +103,18 @@ class Queue
     }
 
     /**
+     * Set the queue name and fetch the correect URL from AWS
+     *
+     * @param      string $queue_name The name of the queue
+     *
+     * @return     void
+     */
+    public function getQueueName()
+    {
+        return $this->queue_name;
+    }
+
+    /**
      * Delete multiple messages
      *
      * @param  array|string $receipt_handles   A single RecieptHandle or an array of Reciept handles
@@ -143,10 +155,11 @@ class Queue
      * @return null
      */
     public function delete(Request $request) {
+        $message = $request->toSQSDelete();
         return $this->sqs_client->deleteMessage(
             [
-                'QueueUrl' 	    => $this->queue_url,
-                'ReceiptHandle' => $request->receipt_handle
+                'QueueUrl'      => $this->queue_url,
+                'ReceiptHandle' => $message["ReceiptHandle"]
             ]
         );
     }
@@ -279,5 +292,24 @@ class Queue
     {
         $results  = $this->sqs_client->getQueueUrl(['QueueName' => $this->queue_name]);
         $this->queue_url  = $results->get('QueueUrl');
+    }
+
+    /**
+     * Extend the timeoutVisibility of a request in the queue
+     *
+     * @param      \GoodPill\AWS\SQS\Request  $request   The request
+     * @param      integer                    $extended  The amount of time to extend the message visibility
+     *
+     * @return     array                     empty array
+     */
+    public function updateTimeout(Request $request, $extended = 30) {
+        $message = $request->toSQSDelete();
+        $params = [
+            'QueueUrl' => $this->queue_url,
+            'ReceiptHandle' => $message['ReceiptHandle'],
+            'VisibilityTimeout' => $extended,
+        ];
+
+        return $this->sqs_client->ChangeMessageVisibility($params);
     }
 }

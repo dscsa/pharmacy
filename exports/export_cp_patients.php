@@ -23,19 +23,21 @@ function export_cp_patient_save_medications_other($mssql, $patient, $live = fals
       WHERE pat_id = $patient[patient_id_cp]
     ";
     */
+    $cp_automation_user = CAREPOINT_AUTOMATION_USER;
 
     $sql = "
     UPDATE cppat
     SET cmt =
       SUBSTRING(cmt, 0, ISNULL(NULLIF(CHARINDEX(CHAR(10)+'___', cmt), 0), 9999))+
       CHAR(10)+'______________________________________________'+CHAR(13)+
-      '$medications_other'
+      '$medications_other',
+      chg_user_id = {$cp_automation_user}
     WHERE pat_id = {$patient['patient_id_cp']}
   ";
 
-    echo "\n$sql";
-    echo "\nOld:{$patient['old_medications_other']}";
-    echo "\nNew:{$patient['medications_other']}";
+    // echo "\n$sql";
+    // echo "\nOld:{$patient['old_medications_other']}";
+    // echo "\nNew:{$patient['medications_other']}";
 
     //$res1 = $mssql->run("$select");
     $mssql->run($sql);
@@ -47,6 +49,7 @@ function export_cp_patient_save_medications_other($mssql, $patient, $live = fals
 
 function update_cp_patient_active_status($mssql, $patient_id_cp, $inactive)
 {
+    $cp_automation_user = CAREPOINT_AUTOMATION_USER;
     if (! $patient_id_cp) {
         return;
     }
@@ -66,8 +69,9 @@ function update_cp_patient_active_status($mssql, $patient_id_cp, $inactive)
 
     $sql = "UPDATE cppat
             SET
-              pat_status_cn = $cp_val,
-              cmt = CONCAT(cmt, ' $cp_key by Pharmacy App on $date')
+                pat_status_cn = $cp_val,
+                cmt = CONCAT(cmt, ' $cp_key by Pharmacy App on $date'),
+                chg_user_id = {$cp_automation_user}
             WHERE
               pat_id = $patient_id_cp";
 

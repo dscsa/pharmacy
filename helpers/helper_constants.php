@@ -9,29 +9,27 @@ const DAYS_STD    = 90;
 const DAYS_MIN    = 45;
 const DAYS_MAX    = 120;
 const DAYS_UNIT   = 15;
-const DAYS_EARLY  = 28;
+
+const DEFAULT_COM_WAIT = 0;
+
+// Constent set to 27 so we don't refill February a month early
+const DAYS_EARLY  = 27;
+
 const NO_REFILL   = 0.1;
 const DAYS_BUFFER = 4; //TODO Port of Autofill Script and use this constant
 const MAX_QTY_PER_DAY = 8;
+
+//Priortize non-purchased prepacks over other stock
+//Assume Purchased is <12month expiration - 3mos from days supply = ~ 9mos between (but this is pretty arbitrary)
+const IS_MFG_EXPIRATION = 9;
 
 const ADDED_MANUALLY = [
   "MANUAL",
   "WEBFORM"
 ];
 
+const CAREPOINT_AUTOMATION_USER = 1311;
 const PAYMENT_TOTAL_NEW_PATIENT = 6;
-
-const PICK_LIST_FOLDER_NAME         = 'Pick Lists';
-const INVOICE_PUBLISHED_FOLDER_NAME = 'Published';
-const INVOICE_PENDING_FOLDER_NAME   = 'Pending';
-const TRANSFER_OUT_FOLDER_NAME      = 'Transfer Outs';
-
-const GD_FOLDER_IDS = [
-    PICK_LIST_FOLDER_NAME         => '1PcDYKM_Ky-9zWmCNuBnTka3uCKjU3A0q',
-    INVOICE_PUBLISHED_FOLDER_NAME => '1PngKqOhRJ2Dt75lX-U0EreXTOzaQf1Bg',
-    INVOICE_PENDING_FOLDER_NAME   => '1ZSog-fJ7HhWJfXU_rmsJaMCiNb2VlFfG',
-    TRANSFER_OUT_FOLDER_NAME      => '1Lda6GkjIsEzTc1fwES6EbGcOHCJvlIZz'
-];
 
 const INVOICE_TEMPLATE_ID = '1SFW3_J1f3dVahFddqsz2YZY_G1I5dFDA8nVj6KKVfTg';
 
@@ -259,3 +257,16 @@ const RX_MESSAGE = [
     'CP_CODE' => 107,
   ],
 ];
+
+const SIG_PARSER_FIXED_DRUGNAMES = [
+  '/ (CREAM|INH|INHALER|SPR|SPRAY)$/i' => 3/90,
+  '/ (GEL)$/i' => 3/90,     # Talk with Cindy on June 16th: should be 3 units for 90 days?
+  '/(EYE DROP)/i' => 3/90,
+  '/OINTMENT/i' => 3/90
+];
+
+const SIG_PARSER_CONF_SCORE_CUTOFF = 0.20;
+
+const SIG_PARSER_EXCESS_QTY_PER_DAY = 6;
+
+const SIG_PARSER_AWS_COMPREHEND_REGION = 'us-west-2';

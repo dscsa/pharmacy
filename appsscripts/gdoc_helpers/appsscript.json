@@ -1,20 +1,23 @@
 {
   "timeZone": "America/New_York",
   "dependencies": {
-    "enabledAdvancedServices": [{
-      "userSymbol": "Drive",
-      "serviceId": "drive",
-      "version": "v2"
-    }, {
-      "userSymbol": "Tasks",
-      "serviceId": "tasks",
-      "version": "v1"
-    }]
+    "enabledAdvancedServices": [
+      {
+        "userSymbol": "Drive",
+        "serviceId": "drive",
+        "version": "v2"
+      },
+      {
+        "userSymbol": "Tasks",
+        "serviceId": "tasks",
+        "version": "v1"
+      }
+    ]
   },
   "webapp": {
-    "access": "ANYONE_ANONYMOUS",
-    "executeAs": "USER_DEPLOYING"
+    "executeAs": "USER_DEPLOYING",
+    "access": "ANYONE_ANONYMOUS"
   },
   "exceptionLogging": "STACKDRIVER",
-  "runtimeVersion": "V8"
+  "runtimeVersion": "DEPRECATED_ES5"
 }

@@ -5,9 +5,11 @@ namespace GoodPill\Logging;
 use Google\Cloud\Logging\LoggingClient;
 use Monolog\Logger;
 use Monolog\Handler\StreamHandler;
+use GoodPill\Models\GpOrderItem;
 
 require_once 'helpers/helper_pagerduty.php';
 require_once 'helpers/helper_identifiers.php';
+require_once 'helpers/helper_laravel.php';
 
 /**
  * This is a simple logger that maintains a single instance of the cloud $logger
@@ -79,15 +81,25 @@ class GPLog
             $context = [];
         }
 
+
+        $ids     = self::findCriticalId($context);
+
+        $pd_data = array_intersect_key(
+            $ids,
+            array_flip(
+                ['patient_id_cp', 'patient_id_wc', 'invoice_number']
+            )
+        );
+
         if (isset($context['pd_data'])) {
-            $pd_data = $context['pd_data'];
-        } else {
-            $pd_data = [];
+            $pd_data = array_merge($pd_data, $context['pd_data']);
         }
 
-        self::alertPagerDuty($message, $method, $pd_data);
+        //  Check to see if the user is a test user and skip pager duty if so
+        if (strpos(strtolower(@$ids['first_name']), 'test') !== 0) {
+            self::alertPagerDuty($message, $method, $pd_data);
+        }
 
-        $ids                     = self::findCriticalId($context);
         $context                 = ["context" => $context];
         $context['ids']          = $ids;
         $context['execution_id'] = self::$exec_id;
@@ -136,6 +148,11 @@ class GPLog
 
         if (!is_null(self::$subroutine_id)) {
             $pd_data['subroutine_id'] = self::$subroutine_id;
+            $pd_data['event'] = substr(
+                self::$subroutine_id,
+                0,
+                strrpos(self::$subroutine_id, '-')
+            );
             $pd_query .= "\n" . 'jsonPayload.subroutine_id="' . self::$subroutine_id . '"';
         }
 
@@ -162,8 +179,8 @@ class GPLog
      * @param  array $context Who Knows what it could be
      * @return array          Empty if we couldn't find anything
      */
-    protected static function findCriticalId($context) {
-
+    protected static function findCriticalId($context)
+    {
         foreach (
             [
                 @$context,
@@ -179,40 +196,110 @@ class GPLog
                 @$context['updated'][0],
                 @$context['partial'],
                 @$context['patient_or_order[i]']
-             ] as $possible
-         ) {
+            ] as $possible
+        ) {
             if (isset($possible['invoice_number'])) {
-                 $name_source = $possible;
-                 break;
+                $invoice_number = $possible['invoice_number'];
+            }
+            if (isset($possible['patient_id_cp'])) {
+                $patient_id_cp = $possible['patient_id_cp'];
+            }
+
+            if (isset($possible['patient_id_wc'])) {
+                $patient_id_wc = $possible['patient_id_wc'];
+            }
+
+            if (isset($possible['rx_number'])) {
+                $rx_number = $possible['rx_number'];
+            }
+
+            if (
+                isset($invoice_number)
+                && isset($patient_id_cp)
+                && isset($patient_id_wc)
+            ) {
+                break;
             }
         }
 
-        // No need to continute.  There isn't a source of data
-        if (!isset($name_source)) {
+        // No need to continue.  There isn't a source of data
+        if (
+            !isset($invoice_number) &&
+            !isset($patient_id_cp) &&
+            !isset($patient_id_wc) &&
+            !isset($rx_number)
+        ) {
             return [];
         }
 
-        $invoice_number = $name_source['invoice_number'];
-        $first_name     = @$name_source['first_name'];
-        $last_name      = @$name_source['last_name'];
-        $birth_date     = @$name_source['birth_date'];
-
         //If we have an invoice but not a patient, we want to get those details
-        if ( empty($birth_date) && !empty($invoice_number)) {
+        if (!empty($invoice_number)) {
             $patient = getPatientByInvoice($invoice_number);
 
             if (!empty($patient)) {
                 $first_name     = $patient['first_name'];
                 $last_name      = $patient['last_name'];
                 $birth_date     = $patient['birth_date'];
+                $patient_id_cp  = $patient['patient_id_cp'];
+                $patient_id_wc  = $patient['patient_id_wc'];
+            }
+        } elseif (!empty($rx_number)) {
+            //  Found an rx number, hopefully from rxs_single. Try to find details
+            $found = GpOrderItem::with([
+                'patient:patient_id_cp,patient_id_wc,first_name,last_name,birth_date',  //  select fields for patient
+                'order:invoice_number'  //   select fields for order
+            ])
+                ->where('rx_number', $rx_number)
+                ->first();
+
+            if ($found && $found->order) {
+                $invoice_number = $found->order->invoice_number;
+            }
+            if ($found && $found->patient) {
+                $first_name     = $found->patient->first_name;
+                $last_name      = $found->patient->last_name;
+                $birth_date     = $found->patient->birth_date;
+                $patient_id_cp  = $found->patient->patient_id_cp;
+                $patient_id_wc  = $found->patient->patient_id_wc;
+            }
+
+            return [
+                'invoice_number' => @$invoice_number,
+                'first_name'     => @$first_name,
+                'last_name'      => @$last_name,
+                'birth_date'     => @$birth_date,
+                'patient_id_cp'  => @$patient_id_cp,
+                'patient_id_wc'  => @$patient_id_wc
+            ];
+        }
+
+        if (
+            !isset($first_name)
+            || !isset($last_name)
+            || !isset($birth_date)
+        ) {
+            if (isset($patient_id_cp)) {
+                $patient = getPatientByCpId($patient_id_cp);
+            } elseif (isset($patient_id_wc)) {
+                $patient = getPatientByWcId($patient_id_wc);
+            }
+
+            if (!empty($patient)) {
+                $first_name     = $patient['first_name'];
+                $last_name      = $patient['last_name'];
+                $birth_date     = $patient['birth_date'];
+                $patient_id_cp  = $patient['patient_id_cp'];
+                $patient_id_wc  = $patient['patient_id_wc'];
             }
         }
 
         return [
-            'invoice_number' => $invoice_number,
-            'first_name'     => $first_name,
-            'last_name'      => $last_name,
-            'birth_date'     => $birth_date
+            'invoice_number' => @$invoice_number,
+            'first_name'     => @$first_name,
+            'last_name'      => @$last_name,
+            'birth_date'     => @$birth_date,
+            'patient_id_cp'  => @$patient_id_cp,
+            'patient_id_wc'  => @$patient_id_wc
         ];
     }
 

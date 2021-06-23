@@ -14,8 +14,9 @@ function sync_to_order_new_rx($item, $patient_or_order) {
 
   $not_offered  = is_not_offered($item);
   $refill_only  = is_refill_only($item);
+  $one_time     = is_one_time($item);
   $has_refills  = ($item['refills_total'] > NO_REFILL);
-  $eligible     = ($has_refills AND $item['rx_autofill'] AND ! $not_offered AND ! $refill_only AND ! $item['refill_date_next']);
+  $eligible     = ($has_refills AND $item['rx_autofill'] AND ! $not_offered AND ! $refill_only AND ! $one_time AND ! $item['refill_date_next']);
 
   GPLog::debug(
       "sync_to_order_new_rx: $item[invoice_number] $item[drug_generic] ".($eligible ? 'Syncing' : 'Not Syncing'),
@@ -102,7 +103,7 @@ function sync_to_date($order, $mysql) {
 
     //Abort if any item in the order is already dispensed
     if ($item['rx_dispensed_id']) {
-      log_notice("sync_to_date: not syncing, already dispensed", ['item' => $item]);
+      GPLog::notice("sync_to_date: not syncing, already dispensed", ['item' => $item]);
       return $order;
     }
 
@@ -130,7 +131,7 @@ function sync_to_date($order, $mysql) {
 
   $new_days_default = min($max_days_default, $min_days_refills, $min_days_stock);
 
-  log_notice($new_days_default == DAYS_STD ? "sync_to_date: not syncing, days_std" : "sync_to_date: syncing", [
+  GPLog::notice($new_days_default == DAYS_STD ? "sync_to_date: not syncing, days_std" : "sync_to_date: syncing", [
     'invoice_number'       => $order[0]['invoice_number'],
     'new_days_default'     => $new_days_default,
     'max_days_default'     => $max_days_default,
@@ -196,13 +197,13 @@ function sync_to_date($order, $mysql) {
 
     $mysql->run($sql);
 
-    $order[$i] = v2_unpend_item($order[$i], $mysql, "unpend for sync_to_date");
-    $order[$i] = v2_pend_item($order[$i], $mysql,  "pend for sync_to_date");
+    $order[$i] = v2_unpend_item($order[$i], "unpend for sync_to_date");
+    $order[$i] = v2_pend_item($order[$i], "pend for sync_to_date");
 
     $order[$i]['days_dispensed'] = $order[$i]['days_dispensed_default']  = $new_days_default;
     $order[$i] = export_cp_set_rx_message($order[$i], RX_MESSAGE['NO ACTION SYNC TO DATE'], $mysql);
 
-    log_notice('helper_syncing: sync_to_date and repended in v2', ['order[i]' => $order[$i], 'sql' => $sql]);
+    GPLog::notice('helper_syncing: sync_to_date and repended in v2', ['order[i]' => $order[$i], 'sql' => $sql]);
   }
 
   return $order;

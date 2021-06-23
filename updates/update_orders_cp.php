@@ -46,7 +46,7 @@ function update_orders_cp(array $changes) : void
     if (isset($changes['created'])) {
         Timer::start("update.patients.cp.created");
         foreach ($changes['created'] as $created) {
-            helper_try_catch_log('cp_order_created', $created);
+            cp_order_created($created);
         }
         Timer::stop("update.patients.cp.created");
     }
@@ -54,7 +54,7 @@ function update_orders_cp(array $changes) : void
     if (isset($changes['deleted'])) {
         Timer::start("update.patients.cp.deleted");
         foreach ($changes['deleted'] as $deleted) {
-            helper_try_catch_log('cp_order_deleted', $deleted);
+            cp_order_deleted($deleted);
         }
         Timer::stop("update.patients.cp.deleted");
     }
@@ -62,7 +62,7 @@ function update_orders_cp(array $changes) : void
     if (isset($changes['updated'])) {
         Timer::start("update.patients.cp.updated");
         foreach ($changes['updated'] as $i => $updated) {
-            helper_try_catch_log('cp_order_updated', $updated);
+            cp_order_updated($updated);
         }
         Timer::stop("update.patients.cp.updated");
         GPLog::resetSubroutineId();
@@ -247,13 +247,52 @@ function cp_order_created(array $created) : ?array
                 'order'           => $order
             ]
         );
+        // Care point will still attach an order item when it is surescript Denied
+        // This results in a negative number since we are removing an item
+        // but sure script sends an item_count of 0
 
-        if ($order[0]['count_items'] - $order[0]['count_to_remove']) {
+        //  In a case where authorization was approved, an item was found to be duplicated in other orders
+        //  The duplicates were removed but the count was higher that the count items being filled from the original order
+        if (
+            (
+                $order[0]['order_status'] == "Surescripts Authorization Denied"
+                && $order[0]['count_items'] - $order[0]['count_to_remove'] > 0
+            )
+            || (
+                $order[0]['order_status'] != "Surescripts Authorization Denied"
+                && $order[0]['count_items'] - $order[0]['count_to_remove'] - $order[0]['count_duplicates_removed'] > 0
+            )
+        ) {
             // Find the item that wasn't removed, but we aren't filling
             // These values are transient and
             // TODO Why is this happening
+
+            //  Check Carepoint directly to see how many items are in the order
+            $order_to_find = $order[0]['invoice_number'];
+            $mssql = new Mssql_Cp();
+            $mssql_results = $mssql->run("
+                select o.liCount as item_count, c.rx_id, c.add_date, c.chg_date, rx.drug_name, rx.sig_code, rx.sig_text
+                from csomline c
+                join cprx rx on rx.rx_id = c.rx_id
+                join csom o on o.order_id = c.order_id
+                WHERE c.order_id = '$order_to_find'"
+            );
+
             GPLog::critical(
-                "update_orders_cp: created. canceling order, but is their a manually added item that we should keep?"
+                "update_orders_cp: created. canceling order, but is their a manually added item that we should keep?",
+                [
+                    'invoice_number'           => $order[0]['invoice_number'],
+                    'count_items_cp'           => count(@$mssql_results[0]),
+                    'count_on_order_cp'        => @$mssql_results[0][0]['item_count'],
+                    'items_in_cp'              => @$mssql_results[0],
+                    'count_filled'             => $order[0]['count_filled'],
+                    'count_items'              => $order[0]['count_items'],
+                    'count_to_add'             => $order[0]['count_to_add'],
+                    'count_to_remove'          => $order[0]['count_to_remove'],
+                    'count_duplicates_removed' => $order[0]['count_duplicates_removed'],
+                    'order_status'             => $order[0]['order_status'],
+                    'order'                    => $order
+                ]
             );
         }
 
@@ -385,21 +424,20 @@ function cp_order_deleted(array $deleted) : ?array
         );
 
         GPLog::warning(
-            'update_orders_cp deleted: their appears to be a replacement',
+            'update_orders_cp deleted: there appears to be a replacement',
             [
                 'deleted'     => $deleted,
                 'replacement' => $replacement,
-                'groups'      => $groups,
-                'patient'     => $patient
             ]
         );
 
         // TODO:BEN Add an if here to see if we even have a wp to delete
+        // wc_get_post automatically checks wp_posts: Jesse
         export_wc_delete_order(
             $deleted['invoice_number'],
             "update_orders_cp: cp order deleted but replacement"
         );
-
+        
         return null;
     }
 
@@ -428,7 +466,9 @@ function cp_order_deleted(array $deleted) : ?array
             $deleted['invoice_number'],
             "update_orders_cp: cp order manually cancelled $reason"
         );
+
         // We passed in $deleted because there is not $order to make $groups
+        // @TODO There is no $groups variable here, is this ok to do??
         order_cancelled_notice($deleted, $groups);
     } elseif (is_webform($deleted)) {
         AuditLog::log(
@@ -589,6 +629,7 @@ function cp_order_updated(array $updated) : ?array
             GPLog::notice($reason, [ 'order' => $order ]);
         }
 
+
         if ($updated['order_date_shipped'] != $updated['old_order_date_shipped']) {
             AuditLog::log(
                 sprintf(
@@ -600,11 +641,54 @@ function cp_order_updated(array $updated) : ?array
                 $updated
             );
 
+            /*
+            * Check to verify that all of the items in the order have an rx_dispensed_id
+            * If they do not then there is a problem and we should investigate the order further
+            */
+            $invalid_order_items = [];
+
+            foreach($order as $item) {
+                if (empty($item['rx_dispensed_id'] || is_null('rx_dispensed_id'))) {
+                    $invalid_order_items[] = $item;
+                }
+            }
+
+            if (count($invalid_order_items) > 0) {
+                GPLog::critical(
+                    "Order has items that are missing an rx_dispensed_id",
+                    [
+                        'State Changed'                  => $stage_change_cp,
+                        'Updated'                        => $updated,
+                        'invoice_number'                 => $updated['invoice_number'],
+                        'items_missing_rx_dispensed_ids' => $invalid_order_items
+                    ]
+                );
+            }
+
             GPLog::notice("Updated Order Shipped Started", [ 'order' => $order ]);
             $order = export_v2_unpend_order($order, $mysql, "Order Shipped");
             export_wc_update_order_status($order); //Update status from prepare to shipped
             export_wc_update_order_metadata($order);
             send_shipped_order_communications($groups);
+        }
+
+        if ($updated['order_date_shipped'] && is_null($updated['order_date_dispensed']))
+        {
+            /**
+             * Adding to the log `Dispensed-Check` and `Shipped-Check` because for some reason these checks both returned false
+             * In that situation the above conditionals wouldn't execute and provide additional logging. Want to see
+             * if it is a repeated situation and figure out why these dates never differ from the old values
+             */
+            GPLog::critical(
+                "Order was shipped but not dispensed!",
+                [
+                    'State Changed'   => $stage_change_cp,
+                    'Updated'         => $updated,
+                    'Dispensed-Check' => ($updated['order_date_dispensed'] != $updated['old_order_date_dispensed']),
+                    'Shipped-Check'   => ($updated['order_date_shipped'] != $updated['old_order_date_shipped']),
+                    'invoice_number'  => $updated['invoice_number']
+                ]
+            );
         }
 
         return null;

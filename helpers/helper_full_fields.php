@@ -10,12 +10,16 @@ use GoodPill\Logging\{
 //Simplify GDoc Invoice Logic by combining _actual
 function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
 {
-    $count_filled    = 0;
-    $items_to_add    = [];
-    $items_to_remove = [];
-    $update_payment  = ! @$patient_or_order[0]['payment_total_default']; //Default is to update payment for new orders
-    $is_order        = is_order($patient_or_order);
-    $is_new_order    = (is_order($patient_or_order) AND is_null($patient_or_order[0]['count_filled']));
+    $count_filled            = 0;
+    $items_to_add            = [];
+    $items_to_remove         = [];
+    $duplicate_items_removed = [];
+
+    //Default is to update payment for new orders
+    $update_payment          = ! @$patient_or_order[0]['payment_total_default'];
+    $is_order                = is_order($patient_or_order);
+    $is_new_order            = (is_order($patient_or_order)
+                                AND is_null($patient_or_order[0]['count_filled']));
 
     /*
      * Consolidate default and actual suffixes to avoid conditional overload in
@@ -27,7 +31,7 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
     foreach ($patient_or_order as $i => $dontuse) {
 
         if ( ! $patient_or_order[$i]['drug_name']) {
-          log_notice("helper_full_fields: skipping item/rx because no drug name. likely an empty order", ['patient_or_order' => $patient_or_order]);
+          GPLog::notice("helper_full_fields: skipping item/rx because no drug name. likely an empty order", ['patient_or_order' => $patient_or_order]);
           continue;
         }
 
@@ -77,14 +81,19 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
           foreach($duplicate_items as $i => $duplicate_item) {
               if ($i == 0) continue; //keep the oldest item
               export_cp_remove_items($duplicate_item['invoice_number'], [$duplicate_item]);
+              $duplicate_items_removed[] = $duplicate_item;
           }
 
         }
 
-        //Overwrite refers to the rx_single and rx_grouped table not the order_items table which deliberitely keeps its initial values
+        // Overwrite refers to the rx_single and rx_grouped table not the order_items table which
+        // deliberitely keeps its initial values
         $overwrite = (
           $overwrite_rx_messages === true
-          or strpos($patient_or_order[$i]['rx_numbers'], $overwrite_rx_messages) !== false
+          or (
+              is_string($overwrite_rx_messages)
+              && strpos($patient_or_order[$i]['rx_numbers'], $overwrite_rx_messages) !== false
+          )
         );
 
         $set_days_and_msgs  = (
@@ -130,26 +139,27 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
             $needs_repending = (@$patient_or_order[$i]['item_date_added'] AND $days_changed AND ! $needs_pending);
 
             $get_days_and_message = [
-              "overwrite_rx_messages"      => $overwrite_rx_messages,
-              'is_order'                   => $is_order,
-              'is_new_order'               => $is_new_order,
-              "rx_number"                  => $patient_or_order[$i]['rx_number'],
-              "item_added"                 => @$patient_or_order[$i]['item_date_added'].' '.@$patient_or_order[$i]['item_added_by'],
+                "overwrite_rx_messages" => $overwrite_rx_messages,
+                'is_order'              => $is_order,
+                'is_new_order'          => $is_new_order,
+                "rx_number"             => $patient_or_order[$i]['rx_number'],
+                "item_added"            => @$patient_or_order[$i]['item_date_added'] . ' ' . @$patient_or_order[$i]['item_added_by'],
 
-              "new_days_dispensed_default" => $days,
-              "old_days_dispensed_default" => @$patient_or_order[$i]['days_dispensed_default'], //Applicable for order but not for patient
+                "new_days_dispensed_default" => $days,
+                "old_days_dispensed_default" => @$patient_or_order[$i]['days_dispensed_default'], //Applicable for order but not for patient
 
-              "new_rx_message_text"        => "$message[EN] ($message[CP_CODE])",
-              "old_rx_message_text"        => $patient_or_order[$i]['rx_message_text'],
+                "new_rx_message_text" => "$message[EN] ($message[CP_CODE])",
+                "old_rx_message_text" => $patient_or_order[$i]['rx_message_text'],
 
-              "item"                       => $patient_or_order[$i],
-              'needs_adding'               => $needs_adding,
-              'needs_removing'             => $needs_removing,
-              "needs_pending"              => $needs_pending,
-              "needs_unpending"            => $needs_unpending,
-              "needs_repending"            => $needs_repending,
-              "days_changed"               => $days_changed,
-              "sync_to_date_days_before"   => @$patient_or_order[$i]['sync_to_date_days_before']
+                "item"                     => $patient_or_order[$i],
+                'needs_adding'             => $needs_adding,
+                'needs_removing'           => $needs_removing,
+                "needs_pending"            => $needs_pending,
+                "needs_unpending"          => $needs_unpending,
+                "needs_repending"          => $needs_repending,
+                "days_added"               => $days_added,
+                "days_changed"             => $days_changed,
+                "sync_to_date_days_before" => @$patient_or_order[$i]['sync_to_date_days_before']
             ];
 
              //54376 Sertraline. Probably should create a new order?
@@ -168,11 +178,16 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
               if ( ! is_patient($patient_or_order)) { //item or order
                 $items_to_remove[] = $patient_or_order[$i];
               } else {
-                GPLog::critical("Item needs to be removed but IS_PATIENT? This doesn't seem possible", [
-                  'days'    => $days,
-                  'message' => $message,
-                  'item'    => $patient_or_order[$i]
-                ]);
+                GPLog::notice(
+                    "Item needs to be removed but IS_PATIENT.  This happens when there is
+                    a patient change before the order change has been processed.  It should clear
+                    itself whenthe order processes",
+                    [
+                      'days'    => $days,
+                      'message' => $message,
+                      'item'    => $patient_or_order[$i]
+                    ]
+                );
               }
 
               GPLog::notice(
@@ -222,7 +237,6 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
               );
               $patient_or_order[$i] = v2_pend_item(
                   $patient_or_order[$i],
-                  $mysql,
                   "Rx has been added to an order and scheduled for dispensing");
             }
 
@@ -235,15 +249,14 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
                   ]);
               $patient_or_order[$i] = v2_unpend_item(
                   $patient_or_order[$i],
-                  $mysql,
                   "Item dispensed or refills have expired"
               );
             }
 
             if ($needs_repending) {
               GPLog::notice("helper_full_fields: needs repending", ['get_days_and_message' => $get_days_and_message, 'item' => $patient_or_order[$i]]);
-              $patient_or_order[$i] = v2_unpend_item($patient_or_order[$i], $mysql, "helper_full_fields needs_repending");
-              $patient_or_order[$i] = v2_pend_item($patient_or_order[$i], $mysql, "helper_full_fields needs_repending");
+              $patient_or_order[$i] = v2_unpend_item($patient_or_order[$i], "helper_full_fields needs_repending");
+              $patient_or_order[$i] = v2_pend_item($patient_or_order[$i], "helper_full_fields needs_repending");
             }
 
             if ($days_added) {
@@ -259,7 +272,7 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
               export_gd_transfer_fax($patient_or_order[$i], 'helper full fields');
 
             if ($patient_or_order[$i]['sig_days'] and $patient_or_order[$i]['sig_days'] != 90) {
-              log_notice("helper_full_order: sig has days specified other than 90", $patient_or_order[$i]);
+              GPLog::notice("helper_full_order: sig has days specified other than 90", $patient_or_order[$i]);
             }
         }
 
@@ -317,6 +330,7 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
         $patient_or_order[$i]['count_nofill']    = $count_nofill;
         $patient_or_order[$i]['count_filled']    = $count_filled;
         $patient_or_order[$i]['count_to_remove'] = count($items_to_remove);
+        $patient_or_order[$i]['count_duplicates_removed'] = count($duplicate_items_removed);
         $patient_or_order[$i]['count_to_add']    = count($items_to_add);
       }
 

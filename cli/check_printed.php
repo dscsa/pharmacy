@@ -6,6 +6,7 @@ date_default_timezone_set('America/New_York');
 
 require_once 'vendor/autoload.php';
 require_once 'helpers/helper_pagerduty.php';
+require_once 'helpers/helper_appsscripts.php';
 require_once 'keys.php';
 
 $args   = getopt("s:e:hnqvr", array());

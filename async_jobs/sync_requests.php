@@ -1,11 +1,15 @@
 <?php
 
+ini_set('memory_limit', '512M');
 ini_set('include_path', '/goodpill/webform');
+date_default_timezone_set('America/New_York');
+
 require_once 'vendor/autoload.php';
 
 use GoodPill\AWS\SQS\{
     PharmacySyncQueue,
-    PharmacySyncRequest
+    PharmacySyncRequest,
+    PharmacyPatientQueue,
 };
 
 use GoodPill\Logging\{
@@ -13,6 +17,8 @@ use GoodPill\Logging\{
     AuditLog,
     CliLog
 };
+
+use GoodPill\Models\GpPatient;
 
 require_once 'keys.php';
 
@@ -25,7 +31,9 @@ require_once 'helpers/helper_appsscripts.php';
 require_once 'helpers/helper_constants.php';
 require_once 'helpers/helper_cp_test.php';
 require_once 'helpers/helper_changes.php';
-
+require_once 'helpers/helper_sqs.php';
+require_once 'helpers/helper_laravel.php';
+require_once 'helpers/helper_error_handler.php';
 
 // TODO Remove this once we have mssql duplicating the Database
 if (ENVIRONMENT == 'PRODUCTION') {
@@ -41,15 +49,15 @@ if (ENVIRONMENT == 'PRODUCTION') {
 }
 
 /* Logic to give us a way to figure out if we should quit working */
-$stopRequested = false;
-pcntl_signal(
-    SIGTERM,
-    function ($signo, $signinfo) {
-        global $stopRequested, $log;
-        $stopRequested = true;
-        CliLog::warning("SIGTERM caught");
-    }
-);
+// $stopRequested = false;
+// pcntl_signal(
+//     SIGTERM,
+//     function ($signo, $signinfo) {
+//         global $stopRequested, $log;
+//         $stopRequested = true;
+//         CliLog::warning("SIGTERM caught");
+//     }
+// );
 
 /*
   Export Functions - used to push aggregate data out and to notify
@@ -108,13 +116,25 @@ for ($l = 0; $l < $executions; $l++) {
     if (file_exists('/tmp/block-sync.txt')) {
         sleep(30);
         CliLog::error('Sync Job blocked by /tmp/block-sync.txt');
-        contine;
+        continue;
     }
 
     // TODO Change this number to 10 when we start havnig multiple groups
-    $results  = $syncq->receive(['MaxNumberOfMessages' => 1]);
+    $results  = $syncq->receive(
+        [
+            'MaxNumberOfMessages' => 1,
+            'AttributeNames' => [
+                'MessageGroupId',
+                'SequenceNumber'
+            ]
+        ]
+    );
     $messages = $results->get('Messages');
     $complete = [];
+    $patientQueueBatch = [];
+
+    //  Secondary Patient queue to send patient messages to
+    $patientQueue = new PharmacyPatientQueue();
 
     // An array of messages that have
     // been proccessed and can be deleted
@@ -131,6 +151,13 @@ for ($l = 0; $l < $executions; $l++) {
         GPLog::debug($log_message);
         CliLog::debug($log_message);
         foreach ($messages as $message) {
+            GPLog::debug(
+                'SQS Message Id',
+                [
+                    'Id'            => $message['MessageId'],
+                    'ReceiptHandle' => $message['ReceiptHandle']
+                ]
+            );
             $request = new PharmacySyncRequest($message);
             $changes = $request->changes;
 
@@ -141,8 +168,18 @@ for ($l = 0; $l < $executions; $l++) {
                 $request->changes_to
             );
 
-            GPLog::debug($log_message, $changes);
-            CliLog::notice($log_message, $changes);
+            if (isset($request->execution_id)) {
+                GPLog::$exec_id = $request->execution_id;
+            }
+
+            if (isset($request->subroutine_id)) {
+                GPLog::$subroutine_id = $request->subroutine_id;
+            }
+
+            GPLog::notice(
+                $log_message,
+                ['changes_to' => $request->changes_to, 'change' => $changes]
+            );
 
             try {
                 switch ($request->changes_to) {
@@ -152,33 +189,67 @@ for ($l = 0; $l < $executions; $l++) {
                     case 'stock_by_month':
                         update_stock_by_month($changes);
                         break;
-                    case 'patients_cp':
-                        update_patients_cp($changes);
-                        break;
-                    case 'patients_wc':
-                        update_patients_wc($changes);
-                        break;
-                    case 'rxs_single':
-                        update_rxs_single($changes);
-                        break;
-                    case 'orders_cp':
-                        update_orders_cp($changes);
-                        break;
-                    case 'orders_wc':
-                        update_orders_wc($changes);
-                        break;
+
                     case 'order_items':
-                        update_order_items($changes);
+                    case 'rxs_single':
+                        // This is an expensive operation, So instead of breaking it into one per
+                        // rx, we are going to split all the users
+
+                        // Order them by patient_id_cp
+                        $grouped_changes = [];
+                        foreach($changes as $type => $change_group) {
+                            foreach ($change_group as $change) {
+                                $patient_id_cp = $change['patient_id_cp'];
+                                if (!isset($grouped_changes[$patient_id_cp])) {
+                                    $grouped_changes[$patient_id_cp] = [];
+                                }
+
+                                if (!isset($grouped_changes[$patient_id_cp][$type])) {
+                                    $grouped_changes[$patient_id_cp][$type] = [];
+                                }
+
+                                $grouped_changes[$patient_id_cp][$type][] = $change;
+                            }
+                        }
+
+                        foreach ($grouped_changes as $patient_id_cp => $rx_changes) {
+                            $patient = GpPatient::where('patient_id_cp', '=', $patient_id_cp)->first();
+
+                            if ($patient && $patient->exists) {
+                                $group_id = $patient->first_name.'_'.$patient->last_name.'_'.$patient->birth_date;
+                            } else {
+                                $group_id = "UNKNOWN";
+                            }
+
+                            $syncing_request               = new PharmacySyncRequest();
+                            $syncing_request->changes_to   = $request->changes_to;
+                            $syncing_request->changes      = $rx_changes;
+                            $syncing_request->group_id     = sha1($group_id);
+                            $syncing_request->patient_id   = $group_id;
+                            $syncing_request->execution_id = $request->execution_id;
+                            $patientQueueBatch[] = $syncing_request;
+                        }
                         break;
+                    case 'patients_cp':
+                    case 'patients_wc':
+                    case 'orders_cp':
+                    case 'orders_wc':
+                        foreach (array_keys($request->changes) as $change_type) {
+                            foreach($request->changes[$change_type] as $changes) {
+                                $new_request = get_sync_request_single($request->changes_to, $change_type, $changes, $request->execution_id);
+                                $patientQueueBatch[] = $new_request;
+                            }
+                        }
+                    break;
                 }
 
                 /* Check to see if we've requeted to stop */
-                pcntl_signal_dispatch();
-
-                if ($stopRequested) {
-                    CLiLog::warning('Finishing current Message then terminating');
-                    break;
-                }
+                // pcntl_signal_dispatch();
+                //
+                // if ($stopRequested) {
+                //     CLiLog::warning('Finishing current Message then terminating');
+                //     break;
+                // }
             } catch (\Exception $e) {
                 // Log the error
                 $message = "SYNC JOB - ERROR ";
@@ -198,6 +269,14 @@ for ($l = 0; $l < $executions; $l++) {
             }
 
             $complete[] = $request;
+        }
+    }
+
+    if (count($patientQueueBatch) > 0) {
+        $patientQueue->sendBatch($patientQueueBatch);
+    } else {
+        if (count($complete) > 1) {
+            CliLog::warning('No changes to send to patient queue');
         }
     }
 
@@ -227,8 +306,8 @@ for ($l = 0; $l < $executions; $l++) {
     unset($messages);
     unset($complete);
 
-    if ($stopRequested) {
-        CLiLog::warning('Terminating execution from SIGTERM request');
-        exit;
-    }
+    // if ($stopRequested) {
+    //     CLiLog::warning('Terminating execution from SIGTERM request');
+    //     exit;
+    // }
 }

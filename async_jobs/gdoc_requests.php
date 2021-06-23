@@ -5,6 +5,7 @@ require_once 'vendor/autoload.php';
 require_once 'helpers/helper_appsscripts.php';
 require_once 'helpers/helper_log.php';
 require_once 'keys.php';
+require_once 'helpers/helper_error_handler.php';
 
 use GoodPill\AWS\SQS\{
     GoogleAppRequest\BaseRequest,
@@ -20,16 +21,16 @@ use GoodPill\Logging\{
 };
 
 /* Logic to give us a way to figure out if we should quit working */
-$stopRequested = false;
-
-pcntl_signal(
-    SIGTERM,
-    function ($signo, $signinfo) {
-        global $stopRequested, $log;
-        $stopRequested = true;
-        CliLog::warning("SIGTERM caught");
-    }
-);
+// $stopRequested = false;
+//
+// pcntl_signal(
+//     SIGTERM,
+//     function ($signo, $signinfo) {
+//         global $stopRequested, $log;
+//         $stopRequested = true;
+//         CliLog::warning("SIGTERM caught");
+//     }
+// );
 
 // Grab and item out of the queue
 $gdq = new GoogleAppQueue();
@@ -64,6 +65,14 @@ for ($l = 0; $l < $executions; $l++) {
                 $request->fileId
             );
 
+            if (isset($request->execution_id)) {
+                GPLog::$exec_id = $request->execution_id;
+            }
+
+            if (isset($request->subroutine_id)) {
+                GPLog::$subroutine_id = $request->subroutine_id;
+            }
+
             // Figure out the type of message
             if ($request instanceof HelperRequest) {
                 $url = GD_HELPER_URL;
@@ -77,19 +86,19 @@ for ($l = 0; $l < $executions; $l++) {
                 $log_message .= "Success!";
                 $complete[] = $request;
             } else {
-                $log_message .= "FAILED - Message: {$request->error}";
+                $log_message .= "FAILED - Message: {$response->error}";
             }
 
-            GPLog::debug($log_message);
+            GPLog::debug($log_message, $request->toArray());
             CliLog::notice($log_message);
 
-            /* Check to see if we've requeted to stop */
-            pcntl_signal_dispatch();
-
-            if ($stopRequested) {
-                CLiLog::warning('Finishing current Message then terminating');
-                break;
-            }
+            // /* Check to see if we've requeted to stop */
+            // pcntl_signal_dispatch();
+            //
+            // if ($stopRequested) {
+            //     CLiLog::warning('Finishing current Message then terminating');
+            //     break;
+            // }
         }
     }
 
@@ -111,8 +120,8 @@ for ($l = 0; $l < $executions; $l++) {
     unset($messages);
     unset($complete);
 
-    if ($stopRequested) {
-        CLiLog::warning('Terminating execution from SIGTERM request');
-        exit;
-    }
+    // if ($stopRequested) {
+    //     CLiLog::warning('Terminating execution from SIGTERM request');
+    //     exit;
+    // }
 }

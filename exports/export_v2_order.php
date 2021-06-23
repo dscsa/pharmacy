@@ -1,6 +1,7 @@
 <?php
 
-use \GoodPill\DataModels\GoodPillOrder;
+use \GoodPill\Models\GpOrder;
+use \GoodPill\Models\GpPendGroup;
 use \GoodPill\Logging\GPLog;
 
 function v2_unpend_order_by_invoice(int $invoice_number, ?array $pend_params = null) : bool
@@ -14,6 +15,14 @@ function v2_unpend_order_by_invoice(int $invoice_number, ?array $pend_params = n
                 "succesfully unpended all items from {$pend_group}",
                 ['invoice_number' => $invoice_number]
             );
+
+            // Remove the Pendgroup record incase we need to pend i as a new group
+            $pend_group = GpPendGroup::where('invoice_number', $item['invoice_number'])->first();
+
+            if ($pend_group) {
+                $pend_group->delete();
+            }
+
             return true;
         }
 
@@ -45,7 +54,7 @@ function find_order_pend_group(int $invoice_number, ?array $pend_params = null) 
             'patient_date_added' => @$pend_params['patient_date_added']
         ];
     } else {
-        $order = new GoodPillOrder(['invoice_number' => $invoice_number]);
+        $order = GpOrder::where('invoice_number', $invoice_number)->first();
         $order_based = [
             'invoice_number'   => $order->invoice_number,
             'order_date_added' => $order->order_date_added
@@ -61,7 +70,6 @@ function find_order_pend_group(int $invoice_number, ?array $pend_params = null) 
         'refill'          => pend_group_refill($order_based),
         'webform'         => pend_group_webform($order_based),
         'new_patient'     => pend_group_new_patient($patient_based),
-        'new_patient_old' => pend_group_new_patient_old($patient_based),
         'manual'          => pend_group_manual($order_based)
     ];
 
@@ -81,14 +89,15 @@ function find_order_pend_group(int $invoice_number, ?array $pend_params = null) 
         ) {
             // This order has already been picked, we need to quit trying
             if (@$results[0]['next'][0]['picked']) {
-                GPLog::critical("We are trying to unpend a picked order: {$group}");
+                GPLog::warning("We are trying to unpend a picked order: {$group}");
                 return null;
             }
             GPLog::debug(
-                "Pend Group with pended RX found for #{$invoice_nuber}",
+                "Pend Group with pended RX found for #{$invoice_number}",
                 [
                     'invoice_number'   => $invoice_number,
-                    'valid_pend_group' => $group
+                    'valid_pend_group' => $group,
+                    'v2_result'        => $results[0]['next'][0]['pended'],
                 ]
             );
             return $group;

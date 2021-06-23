@@ -7,7 +7,7 @@ use \PDO;
 /**
  * Class for Database Access
  */
-class Goodpill
+class Carepoint
 {
   /**
    * PDO object to hold goodpill database.  Placed in this class so we

@@ -27,18 +27,22 @@ function doPost(e) {
 
     try {
 
+        Log('doPost', e)
+
         if (e.parameter.GD_KEY != GD_KEY)
             return console.error('web_app post wrong password', e)
 
         if (!e.postData || !e.postData.contents)
-            return console.error('web_app post not post data', e)
+            return console.error('web_app post not post data', e, e.postData,  e.postData && e.postData.contents)
 
         var response
         var contents = JSON.parse(e.postData.contents)
 
-        if (contents.method.includes('v2')) {
+        if ( ~ contents.method.indexOf('v2')) {
+            Log('doPost v2 route', contents, e)
             response = v2_routes(contents);
         } else {
+            Log('doPost v1 route', contents, e)
             response = v1_routes(contents);
         }
 
@@ -96,14 +100,24 @@ function v1_routes(contents) {
 function v2_routes(contents) {
     switch (contents.method) {
         case 'v2/removeFile':
-            return removeFile_v2(contents.fileId);
+          return removeFile_v2(contents.fileId);
         case 'v2/moveFile':
-            return moveFile_v2(contents.fileId, contents.folderId);
+          return moveFile_v2(contents.fileId, contents.folderId);
         case 'v2/publishFile':
-            return publishFile_v2(contents.fileId);
+          return publishFile_v2(contents.fileId);
         case 'v2/fileDetails':
-            return moveFile(contents);
+          return moveFile(contents);
+        case 'v2/createEvent':
+          return createEvent_v2(contents.hours, contents.start, contents.cal_id, contents.title, contents.description);
+        case 'v2/removeEvents':
+          return removeEvents_v2(contents.cal_id, contents.ids);
+        case 'v2/searchAndDeleteEvents':
+          return searchAndDeleteEvents_v2(contents.cal_id, contents.word_search, contents.hours, contents.regex_search);
         default:
-            console.log('Could not find a match in v2 route', contents);
+          console.log('Could not find a match in v2 route', contents);
+          return {
+            "results":"error",
+            "error":"could not find " + contents.method
+          }
     }
 }

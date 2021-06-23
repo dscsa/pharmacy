@@ -70,7 +70,7 @@ class Notification extends GPModel
      * @throws Exception The token and the hash fields have to
      *    be set prior to calling create
      */
-    public function create()
+    public function create() : bool
     {
 
         if (!isset($this->token) || !isset($this->hash)) {
@@ -133,8 +133,8 @@ class Notification extends GPModel
 
         $hash = $this->hash;
 
-        $pdo->bindParam(':attempted_sends', $this->attempted_sends, PDO::PARAM_STR);
-        $pdo->bindParam(':hash', $hash, PDO::PARAM_STR);
+        $pdo->bindValue(':attempted_sends', $this->attempted_sends, PDO::PARAM_STR);
+        $pdo->bindValue(':hash', $hash, PDO::PARAM_STR);
         $pdo->execute();
     }
 
