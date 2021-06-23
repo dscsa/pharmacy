@@ -220,8 +220,32 @@ function update_rxs_single($changes)
                 );
             }
 
-            //TODO Eventually Save the Clean Script back into Guardian so that Cindy doesn't need to rewrite them
-            set_parsed_sig($created['rx_number'], $parsed, $mysql);
+            // save all the parsed sig information
+
+            // Old Sig parsing details
+            $rx_single->sig_initial                = $parsed['sig_actual'];
+            $rx_single->sig_clean                  = $parsed['sig_clean'];
+            $rx_single->sig_qty                    = $parsed['sig_qty'];
+            $rx_single->sig_days                   = ($parsed['sig_days'] ?: NULL);
+            $rx_single->sig_days                   = $parsed['qty_per_day'];
+            $rx_single->sig_durations              = ',' .implode(',', $parsed['durations']).',';
+            $rx_single->sig_qtys_per_time          = ',' .implode(',', $parsed['qtys_per_time']).',';
+            $rx_single->sig_frequencies            = ',' .implode(',', $parsed['frequencies']).',';
+            $rx_single->sig_frequency_numerators   = ',' .implode(',', $parsed['frequency_numerators']).',';
+            $rx_single->sig_frequency_denominators = ',' .implode(',', $parsed['frequency_denominators']). ',';
+
+            // New Sig parsing details
+            $rx_single->sig_v2_qty         = $exp_parsed['sig_qty'];
+            $rx_single->sig_v2_days        = $exp_parsed['sig_days'];
+            $rx_single->sig_v2_qty_per_day = $exp_parsed['sig_qty']/$exp_parsed['sig_days'];
+            $rx_single->sig_v2_unit        = $exp_parsed['sig_unit'];
+            $rx_single->sig_v2_conf_score  = $exp_parsed['sig_conf_score'];
+            $rx_single->sig_v2_dosages     = $exp_parsed['dosages'];
+            $rx_single->sig_v2_scores      = $exp_parsed['scores'];
+            $rx_single->sig_v2_frequencies = $exp_parsed['frequencies'];
+            $rx_single->sig_v2_durations   = $exp_parsed['durations'];
+
+            $rx_single->save();
         }
     }
 
