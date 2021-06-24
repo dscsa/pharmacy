@@ -285,6 +285,22 @@ $correct_pairs = [
             "sig_days" => DAYS_STD,
             "sig_unit" => "TAB"
         ]
+    ],
+    "Take 1 tablet by mouth 3 times a day as needed for dizziness or nausea for up to 10 days." => [
+        "drug_name" => "FUROSEMIDE 20MG TAB",
+        "expected" => [
+            "sig_qty" => 30,
+            "sig_days" => 10,
+            "sig_unit" => "TAB"
+        ]
+    ],
+    "Place 1 tablet under the tongue every 6  hours as needed for nausea or vomiting for up to 7 days." => [
+        "drug_name" => "FUROSEMIDE 20MG TAB",
+        "expected" => [
+            "sig_qty" => 28,
+            "sig_days" => 7,
+            "sig_unit" => "TAB"
+        ]
     ]
     // Puffs/inhalators can last much longer
     // "Inhale 2 puff(s) every 4 hours by inhalation route." => [
