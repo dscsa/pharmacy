@@ -232,6 +232,8 @@ function update_rxs_single($changes)
 
 
             // Old Sig parsing details
+            $rx_single->sig_v1_qty                 = $parsed['sig_qty'];
+            $rx_single->sig_v1_days                = $parsed['sig_days'];
             $rx_single->sig_initial                = $parsed['sig_actual'];
             $rx_single->sig_clean                  = $parsed['sig_clean'];
             $rx_single->sig_durations              = ',' .implode(',', $parsed['durations']).',';
