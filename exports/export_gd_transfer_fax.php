@@ -31,7 +31,7 @@ function export_gd_transfer_fax($item, $source)
                 "Problem with sending a transfer fax for order # %s,
             they do not have a pharmacy set to send to. This user probably has not registered in the
             patient portal yet and needs to be followed up with",
-                @$item['invoice_number'],
+                @$item['invoice_number']
             );
             $salesforce = [
                 "subject"   => $subject,
