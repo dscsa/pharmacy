@@ -227,7 +227,7 @@ function update_rxs_single($changes)
             $rx_single->sig_clean                  = $parsed['sig_clean'];
             $rx_single->sig_qty                    = $parsed['sig_qty'];
             $rx_single->sig_days                   = ($parsed['sig_days'] ?: NULL);
-            $rx_single->sig_days                   = $parsed['qty_per_day'];
+            $rx_single->qty_per_day                = $parsed['qty_per_day'];
             $rx_single->sig_durations              = ',' .implode(',', $parsed['durations']).',';
             $rx_single->sig_qtys_per_time          = ',' .implode(',', $parsed['qtys_per_time']).',';
             $rx_single->sig_frequencies            = ',' .implode(',', $parsed['frequencies']).',';
