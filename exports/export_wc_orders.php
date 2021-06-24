@@ -337,6 +337,14 @@ function export_wc_create_order($order, $reason)
 
     $first_item     = $order[0];
 
+    if (empty($first_item['patient_id_wc'])) {
+        GPLog::warning(
+            "export_wc_create_order: aborting create WC order because no WC user can be found.",
+            [ 'order' => $order ]
+        );
+        return;
+    }
+
     $invoice_number = $first_item['invoice_number'];
     $first_name     = str_replace(["'", '*'], ['',''], $first_item['first_name']); //Ignore Cindy's internal marking
     $last_name      = str_replace(["'", '*'], ['',''], $first_item['last_name']); //Ignore Cindy's internal marking
