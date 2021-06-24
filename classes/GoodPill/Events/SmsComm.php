@@ -86,9 +86,11 @@ class SmsComm extends Comm
                          . 'length="2" /> Again our phone number is 8,,,,8,,,,8 <Pause />9,,,,8,,,,7'
                          . ' <Pause />5,,,,1,,,,8,,,,7. <Pause />';
 
-        $this->fallbacks = [
-            'message' => $fallback_message,
-            'call' => $this->sms
+        $this->fallbacks = (array) [
+            [
+                'message' => $fallback_message,
+                'call' => $this->sms
+            ]
         ];
 
         return $this->toArray();
