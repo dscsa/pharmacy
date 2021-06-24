@@ -7,6 +7,7 @@ use GoodPill\AWS\SQS\GoogleAppRequest\Calendar\SearchAndDelete;
 use GoodPill\Logging\GPLog;
 use GoodPill\Logging\AuditLog;
 use GoodPill\Logging\CliLog;
+use GoodPill\Models\GpPatient;
 use GoodPill\Storage\Goodpill;
 
 require_once "helpers/helper_appsscripts.php";
@@ -19,11 +20,13 @@ function order_dispensed_event($order, $salesforce, $hours_to_wait)
     }
 
     $patient_label = get_patient_label($order);
+    $language = getPatientLanguage($order[0]['patient_id_cp']);
+
     $event_title   = $order[0]['invoice_number'].' Order Dispensed: '.$patient_label.'.  Created:'.date('Y-m-d H:i:s');
 
     $cancel = cancel_events_by_person($order[0]['first_name'], $order[0]['last_name'], $order[0]['birth_date'], 'order_dispensed_event', ['Order Dispensed', 'Order Cancelled', 'Needs Form']);
 
-    $comm_arr = new_comm_arr($patient_label, '', '', $salesforce);
+    $comm_arr = new_comm_arr($patient_label, '', '', $salesforce, $language);
 
     GPLog::info('order_dispensed_event', get_defined_vars());
 
@@ -38,11 +41,12 @@ function order_shipped_event($order, $email, $text)
     }
 
     $patient_label = get_patient_label($order);
+    $language = getPatientLanguage($order[0]['patient_id_cp']);
     $event_title   = $order[0]['invoice_number'].' Order Shipped: '.$patient_label.'.  Created:'.date('Y-m-d H:i:s');
 
     $cancel = cancel_events_by_person($order[0]['first_name'], $order[0]['last_name'], $order[0]['birth_date'], 'order_shipped_event', ['Order Shipped', 'Order Dispensed', 'Order Cancelled', 'Needs Form']);
 
-    $comm_arr = new_comm_arr($patient_label, $email, $text);
+    $comm_arr = new_comm_arr($patient_label, $email, $text, '', $language);
 
     GPLog::info('order_shipped_event', get_defined_vars());
 
@@ -57,11 +61,13 @@ function refill_reminder_event($order, $email, $text, $hours_to_wait, $time_of_d
     }
 
     $patient_label = get_patient_label($order);
+    $language = getPatientLanguage($order[0]['patient_id_cp']);
+
     $event_title   = $order[0]['invoice_number'].' Refill Reminder: '.$patient_label.'.  Created:'.date('Y-m-d H:i:s');
 
     $cancel = cancel_events_by_order($order[0]['invoice_number'], 'refill_reminder_event', ['Refill Reminder']);
 
-    $comm_arr = new_comm_arr($patient_label, $email, $text);
+    $comm_arr = new_comm_arr($patient_label, $email, $text, '', $language);
 
     GPLog::warning('refill_reminder_event', get_defined_vars()); //$cancel
 
@@ -76,11 +82,13 @@ function autopay_reminder_event($order, $email, $text, $hours_to_wait, $time_of_
     }
 
     $patient_label = get_patient_label($order);
+    $language = getPatientLanguage($order[0]['patient_id_cp']);
+
     $event_title   = $order[0]['invoice_number'].' Autopay Reminder: '.$patient_label.'.  Created:'.date('Y-m-d H:i:s');
 
     $cancel = cancel_events_by_person($order[0]['first_name'], $order[0]['last_name'], $order[0]['birth_date'], 'autopay_reminder_event', ['Autopay Reminder']);
 
-    $comm_arr = new_comm_arr($patient_label, $email, $text);
+    $comm_arr = new_comm_arr($patient_label, $email, $text, '', $language);
 
     GPLog::notice('autopay_reminder_event', get_defined_vars());
 
@@ -99,11 +107,13 @@ function order_created_event($groups, $email, $text, $hours_to_wait)
     $count = count($groups['FILLED']) + count($groups['ADDED']);
 
     $patient_label = get_patient_label($order);
+    $language = getPatientLanguage($order[0]['patient_id_cp']);
+
     $event_title   = "{$order[0]['invoice_number']}. Order Created: $count items. $patient_label.  Created:".date('Y-m-d H:i:s');
 
     $cancel = cancel_events_by_person($order[0]['first_name'], $order[0]['last_name'], $order[0]['birth_date'], 'order_created_event', ['Order Created', 'Transfer Requested', 'Order Updated', 'Order Cancelled', 'Order Hold', 'No Rx', 'Needs Form']);
 
-    $comm_arr = new_comm_arr($patient_label, $email, $text);
+    $comm_arr = new_comm_arr($patient_label, $email, $text, '', $language);
 
     GPLog::info('order_created_event', get_defined_vars());
 
@@ -118,11 +128,13 @@ function transfer_requested_event($order, $email, $text, $hours_to_wait)
     }
 
     $patient_label = get_patient_label($order);
+    $language = getPatientLanguage($order[0]['patient_id_cp']);
+
     $event_title   = $order[0]['invoice_number'].' Transfer Requested: '.$patient_label.'.  Created:'.date('Y-m-d H:i:s');
 
     $cancel = cancel_events_by_person($order[0]['first_name'], $order[0]['last_name'], $order[0]['birth_date'], 'transfer_requested_event', ['Order Created', 'Transfer Requested', 'Order Updated', 'Order Hold', 'No Rx']);
 
-    $comm_arr = new_comm_arr($patient_label, $email, $text);
+    $comm_arr = new_comm_arr($patient_label, $email, $text, '', $language);
 
     GPLog::info('transfer_requested_event', get_defined_vars());
 
@@ -132,11 +144,13 @@ function transfer_requested_event($order, $email, $text, $hours_to_wait)
 function transfer_out_event($order, $email, $text, $hours_to_wait)
 {
     $patient_label = get_patient_label($order);
+    $language = getPatientLanguage($order[0]['patient_id_cp']);
+
     $event_title   = $order[0]['invoice_number'].' Transfer Out: '.$patient_label.'.  Created:'.date('Y-m-d H:i:s');
 
     //$cancel = cancel_events_by_person($order[0]['first_name'], $order[0]['last_name'], $order[0]['birth_date'], 'transfer_out_event', []);
 
-    $comm_arr = new_comm_arr($patient_label, $email, $text);
+    $comm_arr = new_comm_arr($patient_label, $email, $text, '', $language);
 
     GPLog::info('transfer_out_event', get_defined_vars());
 
@@ -146,11 +160,13 @@ function transfer_out_event($order, $email, $text, $hours_to_wait)
 function no_transfer_out_event($order, $email, $text, $hours_to_wait)
 {
     $patient_label = get_patient_label($order);
+    $language = getPatientLanguage($order[0]['patient_id_cp']);
+
     $event_title   = $order[0]['invoice_number'].' NO Transfer Out: '.$patient_label.'.  Created:'.date('Y-m-d H:i:s');
 
     //$cancel = cancel_events_by_person($order[0]['first_name'], $order[0]['last_name'], $order[0]['birth_date'], 'transfer_out_event', []);
 
-    $comm_arr = new_comm_arr($patient_label, $email, $text);
+    $comm_arr = new_comm_arr($patient_label, $email, $text, '', $language);
 
     GPLog::info('no_transfer_out_event', get_defined_vars());
 
@@ -169,11 +185,13 @@ function order_hold_event($order, $email, $text, $salesforce, $hours_to_wait)
     }
 
     $patient_label = get_patient_label($order);
+    $language = getPatientLanguage($order[0]['patient_id_cp']);
+
     $event_title   = $order[0]['invoice_number'].' Order Hold: '.$patient_label.'.  Created:'.date('Y-m-d H:i:s');
 
     $cancel = cancel_events_by_person($order[0]['first_name'], $order[0]['last_name'], $order[0]['birth_date'], 'order_hold_event', ['Order Created', 'Transfer Requested', 'Order Updated', 'Order Hold', 'No Rx']);
 
-    $comm_arr = new_comm_arr($patient_label, $email, $text, $salesforce);
+    $comm_arr = new_comm_arr($patient_label, $email, $text, $salesforce, $language);
 
     GPLog::warning('order_hold_event', get_defined_vars());
 
@@ -192,11 +210,13 @@ function order_updated_event($groups, $email, $text, $hours_to_wait)
     $count = count($groups['FILLED']) + count($groups['ADDED']);
 
     $patient_label = get_patient_label($order);
+    $language = getPatientLanguage($order[0]['patient_id_cp']);
+
     $event_title   = "{$order[0]['invoice_number']} Order Updated: $count items. $patient_label.  Created:".date('Y-m-d H:i:s');
 
     //$cancel = cancel_events_by_person($order[0]['first_name'], $order[0]['last_name'], $order[0]['birth_date'], 'order_updated_event', ['Transfer Requested', 'Order Updated', 'Order Hold', 'No Rx', 'Needs Form', 'Order Cancelled']);
 
-    $comm_arr = new_comm_arr($patient_label, $email, $text);
+    $comm_arr = new_comm_arr($patient_label, $email, $text, '', $language);
 
     GPLog::info('order_updated_event', get_defined_vars());
 
@@ -211,9 +231,11 @@ function needs_form_event($order, $email, $text, $salesforce, $hours_to_wait, $t
     }
 
     $patient_label = get_patient_label($order);
+    $language = getPatientLanguage($order[0]['patient_id_cp']);
+
     $event_title   = $order[0]['invoice_number'].' Needs Form: '.$patient_label.'.  Created:'.date('Y-m-d H:i:s');
 
-    $comm_arr = new_comm_arr($patient_label, $email, $text, $salesforce);
+    $comm_arr = new_comm_arr($patient_label, $email, $text, $salesforce, $language);
 
     GPLog::info('needs_form_event', get_defined_vars());
 
@@ -228,11 +250,13 @@ function no_rx_event($partial, $order, $email, $text, $hours_to_wait, $time_of_d
     }
 
     $patient_label = get_patient_label($order);
+    $language = getPatientLanguage($order[0]['patient_id_cp']);
+
     $event_title   = $partial['invoice_number'].' No Rx: '.$patient_label.'. Created:'.date('Y-m-d H:i:s');
 
     $cancel = cancel_events_by_person($order[0]['first_name'], $order[0]['last_name'], $order[0]['birth_date'], 'no_rx_event', ['No Rx']);
 
-    $comm_arr = new_comm_arr($patient_label, $email, $text);
+    $comm_arr = new_comm_arr($patient_label, $email, $text, '', $language);
 
     GPLog::info('no_rx_event', get_defined_vars());
 
@@ -247,6 +271,8 @@ function order_cancelled_event($partial, $order, $email, $text, $hours_to_wait, 
     }
 
     $patient_label = get_patient_label($order);
+    $language = getPatientLanguage($order[0]['patient_id_cp']);
+
     $event_title   = $partial['invoice_number'].' Order Cancelled: '.$patient_label.'. Created:'.date('Y-m-d H:i:s');
 
     $cancel = cancel_events_by_order(
@@ -259,7 +285,7 @@ function order_cancelled_event($partial, $order, $email, $text, $hours_to_wait, 
         ]
     );
 
-    $comm_arr = new_comm_arr($patient_label, $email, $text);
+    $comm_arr = new_comm_arr($patient_label, $email, $text, '', $language);
 
     GPLog::info('order_cancelled_event', get_defined_vars());
 
@@ -283,6 +309,8 @@ function order_rescheduled_event(
     }
 
     $patient_label = get_patient_label($order);
+    $language = getPatientLanguage($order[0]['patient_id_cp']);
+
     $event_title   = "{$partial['invoice_number']} Order Rescheduled: {$patient_label} Created:";
     $event_title   .= date('Y-m-d H:i:s');
 
@@ -297,7 +325,7 @@ function order_rescheduled_event(
         ]
     );
 
-    $comm_arr = new_comm_arr($patient_label, $email, $text);
+    $comm_arr = new_comm_arr($patient_label, $email, $text, '', $language);
 
     GPLog::info('order_rescheduled_event', get_defined_vars());
 
@@ -312,6 +340,8 @@ function confirm_shipment_event($order, $email, $text, $salesforce, $hours_to_wa
     }
 
     $patient_label = get_patient_label($order);
+    $language = getPatientLanguage($order[0]['patient_id_cp']);
+
     $event_title   = $order[0]['invoice_number'].' Confirm Shipment: '.$patient_label.'.  Created:'.date('Y-m-d H:i:s');
 
     $cancel = cancel_events_by_order(
@@ -330,14 +360,14 @@ function confirm_shipment_event($order, $email, $text, $salesforce, $hours_to_wa
         ]
     );
 
-    $comm_arr = new_comm_arr($patient_label, $email, $text, $salesforce);
+    $comm_arr = new_comm_arr($patient_label, $email, $text, $salesforce, $language);
 
     GPLog::info('confirm_shipment_event INACTIVE', get_defined_vars());
 
     create_event($event_title, $comm_arr, $hours_to_wait, $time_of_day);
 }
 
-function new_comm_arr($patient_label, $email = '', $text = '', $salesforce = '')
+function new_comm_arr($patient_label, $email = '', $text = '', $salesforce = '', $language = 'EN')
 {
     $comm_arr = [];
     $auto     = [];
@@ -353,6 +383,7 @@ function new_comm_arr($patient_label, $email = '', $text = '', $salesforce = '')
         $auto[] = "Email";
         $email['bcc']  = DEBUG_EMAIL;
         $email['from'] = 'Good Pill Pharmacy < support@goodpill.org >'; //spaces inside <> are so that google cal doesn't get rid of "HTML" if user edits description
+        $email['language'] = $language;
         $comm_arr[] = $email;
     }
 
@@ -374,6 +405,7 @@ function new_comm_arr($patient_label, $email = '', $text = '', $salesforce = '')
         }
 
         $text['message'] = format_text($text['message']);
+        $text['language'] = $language;
 
         if (! @$text['fallbacks']) { //Default to a call fallback if SMS fails
 
@@ -798,4 +830,26 @@ function cancel_events_by_order($invoice_number, $caller, $types = [])
     $gdq->send($search_and_delete);
 
     return true;
+}
+
+/**
+ * Finds a patients preferred language
+ * Used for specifically for translations with comms calendar
+ *
+ * Defaults to english if nothing found
+ * @param int $patient_id_cp
+ * @return string
+ */
+function getPatientLanguage(int $patient_id_cp = null) {
+    if ($patient_id_cp) {
+        $patient = GpPatient::find($patient_id_cp);
+    } else {
+        $patient = null;
+    }
+
+    if ($patient) {
+        return $patient->language === 'ES' ? 'ES': 'EN';
+    } else {
+        return 'EN';
+    }
 }
