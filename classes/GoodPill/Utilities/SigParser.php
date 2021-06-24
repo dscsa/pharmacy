@@ -841,13 +841,13 @@ class SigParser
         $sig = preg_replace('/\\b\d+ units?(.*?subcutan)|\\b(subcutan.*?)\d+ units?\\b/i', 'Inject 1 $1$2', $sig); // "15 units at bedtime 1 time per day Subcutaneous 90 days":
 
         // Delete everything after the first ocurrance of "total of"
-        $sig = $this->_delete_all_after($sig, '/total of/i', '/day/i');
+        $sig = $this->_delete_all_after($sig, '/total of/i', '/(day|week)/i');
 
         // Delete everything after the first ocurrance of "max"
-        $sig = $this->_delete_all_after($sig, '/ max/i', '/day/i');
+        $sig = $this->_delete_all_after($sig, '/ max/i', '/(day|week)/i');
     
         // Delete everything after the first ocurrance of "total"
-        $sig = $this->_delete_all_after($sig, '/ total/i', '/day/i');
+        $sig = $this->_delete_all_after($sig, '/ total/i', '/(day|week)/i');
     
         // Delete everything after the first ocurrance of "may repeat"
         $sig = $this->_delete_all_after($sig, '/may repeat /i');
@@ -862,13 +862,13 @@ class SigParser
         $sig = $this->_delete_all_after($sig, '/ with.?(\d)/i');
 
         // Delete everything after the first ocurrance of "up to" (to ignore both total allowed per day and increases in dosages)
-        $sig = $this->_delete_all_after($sig, '/ up.?to/i', '/day/i');
+        $sig = $this->_delete_all_after($sig, '/ up.?to/i', '/(day|week)/i');
     
         // Delete everything after the first ocurrance of "extra" (to ignore extra dosages)
         $sig = $this->_delete_all_after($sig, '/ extra (\d+)/i');
 
         // Delete everything after the first ocurrance of ", as needed" (to prevent additional splits)
-        $sig = $this->_delete_all_after($sig, '/, ?(as )?(needed|directed)/i', '/day/i');
+        $sig = $this->_delete_all_after($sig, '/, ?(as )?(needed|directed)/i', '/(day|week)/i');
 
         // Insert the word "unit" so that AWS CH gives a result
         $sig = preg_replace('/\\b(\d+) (ORAL|per|\d+|as directed|as needed)\\b/i', '$1 unit $2', $sig);
