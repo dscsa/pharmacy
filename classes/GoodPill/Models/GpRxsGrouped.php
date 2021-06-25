@@ -112,6 +112,7 @@ class GpRxsGrouped extends Model implements \DaysMessageInterface
     {
         return $this->belongsTo(GpPatient::class, 'patient_id_cp', 'patient_id_cp');
     }
+
     /**
      * Relationship to Gp Stock Live
      * @return \Illuminate\Database\Eloquent\Relations\HasOne
@@ -130,6 +131,7 @@ class GpRxsGrouped extends Model implements \DaysMessageInterface
     {
         return $this->hasOne(GpRxsSingle::class, 'rx_number', 'best_rxs_number');
     }
+
     /**
      * Checks to see if the grouped item is in an order
      * @param $rx_number
@@ -196,6 +198,7 @@ class GpRxsGrouped extends Model implements \DaysMessageInterface
     {
         return false;
     }
+
     /**
      * Checks that item has refills available
      * @return bool
@@ -454,34 +457,6 @@ class GpRxsGrouped extends Model implements \DaysMessageInterface
         //$remainder = $days % DAYS_UNIT;
 
         return $days;
-    }
-
-    /**
-     * Add the item to an order if it's a new rx found
-     * @return bool
-     */
-    public function shouldSyncToOrderNewRx() : bool
-    {
-        if (!$this->item_date_added)
-        {
-            $is_not_offered = $this->isNotOffered();
-            $is_refill_only = $this->isRefillOnly();
-            $is_one_time = $this->isOneTime();
-            $has_refills  = $this->hasRefills();
-
-            $eligible     = (
-                $has_refills &&
-                $this->rx_autofill &&
-                ! $is_not_offered &&
-                ! $is_refill_only &&
-                ! $is_one_time &&
-                ! $this->refill_date_next
-            );
-
-            return $eligible;
-        }
-
-        return false;
     }
 
     /**
