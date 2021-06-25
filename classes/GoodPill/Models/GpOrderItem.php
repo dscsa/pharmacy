@@ -208,7 +208,8 @@ class GpOrderItem extends Model implements \DaysMessageInterface
      */
     public function hasRefills() : bool
     {
-        return $this->grouped->refills_total > NO_REFILL;
+        $grouped = $this->grouped;
+        return $grouped->hasRefills();
     }
 
     /**
@@ -267,7 +268,7 @@ class GpOrderItem extends Model implements \DaysMessageInterface
         $stock = $rxs->stock;
 
         $rx_gsn = $rxs->rx_gsn;
-        $drug_name = $rxs->drug_name;
+        $drug_name = $rxs->drug_name; // this used to be used for logging purposes
 
         //  For a GpOrderItem, a stock_level_initial exists, so this check is used
         $stock_level = $this->stock_level_initial ?: $stock->stock_level;
@@ -283,6 +284,10 @@ class GpOrderItem extends Model implements \DaysMessageInterface
         return false;
     }
 
+    /**
+     * Checks to see if the stock price is high
+     * @return bool
+     */
     public function isHighPrice() : bool
     {
         $price_per_month = $this->rxs->stock->price_per_month;
@@ -290,6 +295,13 @@ class GpOrderItem extends Model implements \DaysMessageInterface
         return $price_per_month >= 20;
     }
 
+    /**
+     * Determines if we should not transfer out items
+     * This function is worded poorly. Should really be called 'shouldTransfer'
+     * Checks for a high price or to see if the patient's backup pharmacy is us
+     *
+     * @return bool
+     */
     public function isNoTransfer() : bool
     {
         return $this->isHighPrice() || $this->patient->pharmacy_phone === '8889875187';
@@ -308,22 +320,35 @@ class GpOrderItem extends Model implements \DaysMessageInterface
             $this->isWebformRefill();
     }
 
+    /**
+     * Checks of this is a webform transfer
+     * @return bool
+     */
     public function isWebformTransfer()
     {
         return in_array($this->order_source, ['Webform Transfer', 'Transfer /w Note']);
     }
 
+    /**
+     * Checks of this is a webform exr (surescripts)
+     * @return bool
+     */
     public function isWebformErx()
     {
         return in_array($this->order_source, ['Webform eRx', 'eRx /w Note']);
     }
 
+    /**
+     * Checks of this is a webform refill
+     * @return bool
+     */
     public function isWebformRefill()
     {
         return in_array($this->order_source, ['Webform Refill', 'Refill w/ Note']);
     }
 
     /**
+     * Determine if this is a refill that we should try to fill
      * @return bool
      */
     public function isRefillOnly() : bool
@@ -446,7 +471,7 @@ class GpOrderItem extends Model implements \DaysMessageInterface
 
         $price = ceil($this->days_dispensed * $price_per_month / 30);
         /*
-         * removing until time to go live
+         * Should this log continue to be here/do we care about this?
         if ($price > 80) {
 
             GPLog::debug(
