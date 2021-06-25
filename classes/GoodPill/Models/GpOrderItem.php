@@ -4,9 +4,9 @@ namespace GoodPill\Models;
 
 use Carbon\Carbon;
 use GoodPill\Logging\GPLog;
+use GoodPill\Models\GpOrder;
 use Illuminate\Database\Eloquent\Model;
 
-use GoodPill\Models\GpOrder;
 use GoodPill\Models\GpPatient;
 use GoodPill\Models\GpRxsSingle;
 use GoodPill\Models\v2\PickListDrug;
@@ -21,7 +21,7 @@ require_once "exports/export_v2_order_items.php";
 /**
  * Class GpOrderItem
  */
-class GpOrderItem extends Model
+class GpOrderItem extends Model implements \DaysMessageInterface
 {
 
     use \GoodPill\Traits\HasCompositePrimaryKey;
@@ -233,11 +233,15 @@ class GpOrderItem extends Model
      * Determine if the item was manually added
      * @return bool
      */
-    function isAddedManually($item)
+    function isAddedManually() : bool
     {
         return
             in_array($this->item_added_by, ADDED_MANUALLY) ||
-            ($this->item_date_added && $this->refill_date_manual && $this->order->is_auto_refill());
+            (
+                $this->item_date_added &&
+                $this->refill_date_manual &&
+                $this->order->is_auto_refill()
+            );
     }
 
     /**
@@ -291,30 +295,38 @@ class GpOrderItem extends Model
         return $this->isHighPrice() || $this->patient->pharmacy_phone === '8889875187';
     }
 
-    function is_webform($item)
+    /**
+     * Check if the item came from a webform transfer of some kind
+     *
+     * @return bool
+     */
+    public function isWebform() : bool
     {
         return
-            $this->is_webform_transfer($item) ||
-            $this->is_webform_erx($item) ||
-            $this->is_webform_refill($item);
+            $this->isWebformTransfer() ||
+            $this->isWebformErx() ||
+            $this->isWebformRefill();
     }
 
-    function is_webform_transfer()
+    public function isWebformTransfer()
     {
         return in_array($this->order_source, ['Webform Transfer', 'Transfer /w Note']);
     }
 
-    function is_webform_erx()
+    public function isWebformErx()
     {
         return in_array($this->order_source, ['Webform eRx', 'eRx /w Note']);
     }
 
-    function is_webform_refill()
+    public function isWebformRefill()
     {
         return in_array($this->order_source, ['Webform Refill', 'Refill w/ Note']);
     }
 
-    public function isRefillOnly()
+    /**
+     * @return bool
+     */
+    public function isRefillOnly() : bool
     {
         $rxs = $this->rxs;
         $stock = $rxs->stock;
@@ -334,7 +346,7 @@ class GpOrderItem extends Model
      * @TODO - Decide what to do with this and corresponding grouped function
      * @return bool
      */
-    public function isOneTime()
+    public function isOneTime() : bool
     {
         $rxs = $this->rxs;
         $stock = $rxs->stock;
@@ -346,6 +358,49 @@ class GpOrderItem extends Model
                 STOCK_LEVEL['ONE TIME']
             ]
         );
+    }
+
+    /**
+     * Checks if this item happens to already be in an order under same name
+     * matches drug_generic rather than rx_number
+     *
+     * @param GpOrder $order
+     * @return bool
+     */
+    function isRefill(GpOrder $order) : bool
+    {
+        foreach ($order->items as $orderItem) {
+            if (
+                $this->drug_generic == $orderItem->drug_generic
+                && $orderItem->refill_date_first
+            ) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Was the rx properly parsed
+     * @return bool
+     */
+    public function isNotRxParsed() : bool
+    {
+        $grouped = $this->grouped;
+        return $grouped->isNotRxParsed();
+    }
+
+    /**
+     * Checks if the current item is already in the order
+     * This may not be needed for order item
+     * @param GpOrder $order
+     * @return bool
+     */
+    public function isDuplicateGsn(GpOrder $order) : bool
+    {
+        //  @TODO - Write this
+        return true;
     }
 
     /**
@@ -518,6 +573,51 @@ class GpOrderItem extends Model
         }
     }
 
+    /**
+     * Gets the date that the prescription was originally written
+     * @return false|int
+     */
+    public function getRxDateWrittenAttribute()
+    {
+        return  strtotime($this->rxs->rx_date_expired . ' -1 year');
+    }
+
+    /**
+     * The date that the item was added to the order or prescription written
+     * @return mixed
+     */
+    public function getDateAddedAttribute()
+    {
+        return $this->order->order_date_added ?: $this->rx_date_written;
+    }
+
+    /**
+     * Calculated earliest number of days when the item can be filled
+     * @return false|int
+     */
+    public function getDaysEarlyNextAttribute()
+    {
+        return strtotime($this->refill_date_next) - strtotime($this->date_added);
+    }
+
+    /**
+     * Calculated default days when an item can be due for another fill
+     * @return false|int
+     */
+    public function getDaysEarlyDefaultAttribute()
+    {
+        return strtotime($this->refill_date_default) - strtotime($this->date_added);
+    }
+
+    /**
+     * Calculated days since an item was last filled
+     * @return false|int
+     */
+    public function getDaysSinceAttribute()
+    {
+        return strtotime($this->date_added) - strtotime($this->rxs->refill_date_last);
+    }
+
 
     /**
      * Get a user friendly drug name. This is used mostly for communications to the patient
@@ -568,6 +668,31 @@ class GpOrderItem extends Model
     {
         $grouped = $this->grouped;
         return $grouped->getDaysLeftInRefills();
+    }
+
+    /**
+     * Determines the number of default days to return for days_and_messages
+     *
+     * This is the MIN of ($days_left_in_refills, $days_left_in_stock). If either
+     * value is 0, Use the DAY_STD in its place
+     *
+     * This is really more $days_to_fill.  It's not the default, but it's what
+     * we've determined as the max amount we can fill
+     * @return mixed
+     */
+    public function getDaysDefault()
+    {
+        $days_left_in_refills = $this->getDaysLeftInRefills();
+        $days_left_in_stock = $this->getDaysLeftInStock();
+
+        $days = min(
+            $days_left_in_refills ?: DAYS_STD,
+            $days_left_in_stock ?: DAYS_STD
+        );
+        //  This is used for generating logs. Skipping logging from class methods
+        //$remainder = $days % DAYS_UNIT;
+
+        return $days;
     }
 
     /**

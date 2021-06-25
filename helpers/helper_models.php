@@ -4,15 +4,6 @@ use GoodPill\Models\GpOrder;
 use GoodPill\Models\GpOrderItem;
 use GoodPill\Models\GpRxsGrouped;
 use GoodPill\Models\GpRxsSingle;
-
-/**
- * This is only for helper functions specifically using models
- * Ideally, every single method will take a model or item as input
- * and return something as the output to be used
- *
- * No data should be set on a model from a function
- */
-
 /**
 
 Scaffolding test code to simulate load_full_order and passing in data
@@ -69,7 +60,7 @@ function get_days_and_message($item, GpOrder $order) {
     $days_left_before_expiration = $item->getDaysLeftBeforeExpiration();
     $days_left_in_refills = $item->getDaysLeftInRefills();
     $days_left_in_stock = $item->getDaysLeftInStock();
-    $days_default = $item->days_default();
+    $days_default = $item->getDaysDefault();
 
     $is_not_rx_parsed = $item->isNotRxParsed();
 

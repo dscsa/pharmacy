@@ -35,7 +35,7 @@ use GoodPill\Logging\GPLog;
  *
  * @package App\Models
  */
-class GpRxsGrouped extends Model
+class GpRxsGrouped extends Model implements \DaysMessageInterface
 {
 
     /**
@@ -137,18 +137,18 @@ class GpRxsGrouped extends Model
      */
     public function findRxNumber($rx_number) : bool
     {
-        //echo "$rx_number passed \n";
-        //echo "Grouped Items: $this->rx_numbers \n";
-        $needle = ",$rx_number,";
-        //echo "$needle \n";
         $found = strpos($this->rx_numbers,",$rx_number,");
         if ($found === false) {
             return false;
-        } else {
-            //echo "We found $rx_number in grouped";
-            return true;
         }
+
+        return true;
     }
+
+
+    /*
+        ## CONDITIONALS
+     */
 
     /**
      * Checks an order to see if the grouped item already exists in it
@@ -171,6 +171,30 @@ class GpRxsGrouped extends Model
         } else {
             return false;
         }
+    }
+
+    /**
+     * Checks of item was manually added to order
+     * Returns false because an rxs grouped has no order
+     *
+     * @return bool
+     */
+    public function isAddedManually(): bool
+    {
+        return false;
+    }
+
+    /**
+     * Check if the item came from a webform transfer of some kind
+     *
+     * This is false because an rxs_grouped is not tied to an order
+     * Would be better to have a check to see if is in order and then use
+     * the order_item's `isWebform` method instead
+     * @return bool
+     */
+    public function isWebform() : bool
+    {
+        return false;
     }
     /**
      * Checks that item has refills available
@@ -307,60 +331,6 @@ class GpRxsGrouped extends Model
     }
 
     /**
-     * Add the item to an order if it's a new rx found
-     * @return bool
-     */
-    public function shouldSyncToOrderNewRx() : bool
-    {
-        if (!$this->item_date_added)
-        {
-            $is_not_offered = $this->isNotOffered();
-            $is_refill_only = $this->isRefillOnly();
-            $is_one_time = $this->isOneTime();
-            $has_refills  = $this->hasRefills();
-
-            $eligible     = (
-                $has_refills &&
-                $this->rx_autofill &&
-                ! $is_not_offered &&
-                ! $is_refill_only &&
-                ! $is_one_time &&
-                ! $this->refill_date_next
-            );
-
-            return $eligible;
-        }
-
-        return false;
-    }
-
-    public function getRxDateWrittenAttribute()
-    {
-        return  strtotime($this->rx_date_expired . ' -1 year');
-    }
-
-    //  currently an alias
-    public function getDateAddedAttribute()
-    {
-        return $this->rx_date_written;
-    }
-
-    public function getDaysEarlyNextAttribute()
-    {
-        return strtotime($this->refill_date_next) - strtotime($this->date_added);
-    }
-
-    public function getDaysEarlyDefaultAttribute()
-    {
-        return strtotime($this->refill_date_default) - strtotime($this->date_added);
-    }
-
-    public function getDaysSinceAttribute()
-    {
-        return strtotime($this->date_added) - strtotime($this->refill_date_last);
-    }
-
-    /**
      * Gets the days left before an rx expires
      * @return float|int|null
      */
@@ -394,6 +364,18 @@ class GpRxsGrouped extends Model
             return false;
         }
 
+        return true;
+    }
+
+    /**
+     * Checks if the current item is already in the order
+     * This may not be needed for order item
+     * @param GpOrder $order
+     * @return bool
+     */
+    public function isDuplicateGsn(GpOrder $order) : bool
+    {
+        //  @TODO - Write this
         return true;
     }
 
@@ -472,6 +454,79 @@ class GpRxsGrouped extends Model
         //$remainder = $days % DAYS_UNIT;
 
         return $days;
+    }
+
+    /**
+     * Add the item to an order if it's a new rx found
+     * @return bool
+     */
+    public function shouldSyncToOrderNewRx() : bool
+    {
+        if (!$this->item_date_added)
+        {
+            $is_not_offered = $this->isNotOffered();
+            $is_refill_only = $this->isRefillOnly();
+            $is_one_time = $this->isOneTime();
+            $has_refills  = $this->hasRefills();
+
+            $eligible     = (
+                $has_refills &&
+                $this->rx_autofill &&
+                ! $is_not_offered &&
+                ! $is_refill_only &&
+                ! $is_one_time &&
+                ! $this->refill_date_next
+            );
+
+            return $eligible;
+        }
+
+        return false;
+    }
+
+    /**
+     * Gets the date that the prescription was originally written
+     * @return false|int
+     */
+    public function getRxDateWrittenAttribute()
+    {
+        return  strtotime($this->rx_date_expired . ' -1 year');
+    }
+
+    /**
+     * Alias for rx_date_written when called on an rxs_grouped entity
+     * @return mixed
+     */
+    public function getDateAddedAttribute()
+    {
+        return $this->rx_date_written;
+    }
+
+    /**
+     * Calculated earliest number of days when the item can be filled
+     * @return false|int
+     */
+    public function getDaysEarlyNextAttribute()
+    {
+        return strtotime($this->refill_date_next) - strtotime($this->date_added);
+    }
+
+    /**
+     * Calculated default days when an item can be due for another fill
+     * @return false|int
+     */
+    public function getDaysEarlyDefaultAttribute()
+    {
+        return strtotime($this->refill_date_default) - strtotime($this->date_added);
+    }
+
+    /**
+     * Calculated days since an item was last filled
+     * @return false|int
+     */
+    public function getDaysSinceAttribute()
+    {
+        return strtotime($this->date_added) - strtotime($this->refill_date_last);
     }
 
     /**
