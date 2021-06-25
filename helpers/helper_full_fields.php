@@ -136,7 +136,10 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
                     ->first();
                 DaysMessageHelper::getDaysAndMessage($item);
             } else {
-                $item = GpRxsGrouped::find();
+                //  This specifically is matching on `rx_numbers`
+                //  This is because the assumption is that $patient_or_order already has it's grouped data on the item
+                //  and we are just refetching the same thing as a GpRxsGrouped item
+                $item = GpRxsGrouped::where('rx_numbers', $patient_or_order[$i]['rx_numbers'])->first();
                 DaysMessageHelper::getDaysAndMessage($item);
             }
 
