@@ -1110,7 +1110,7 @@ function get_qty_needed(array $rows, int $min_qty, float $safety)
 
     // If we don't have any NDCs then we should quit
     if (count($available_ndcs) == 0) {
-        GPLog::critical(
+        GPLog::notice(
             "It appears there are not any NDCs with a quantity great enough to fill this RX.  Is This Accurate?",
             [
                 'ndc_quantities'     => $ndc_quantities,
