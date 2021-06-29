@@ -148,7 +148,7 @@ function update_rxs_single($changes)
             // Old Parser
             $sig_qty     = $exp_parsed['sig_qty'];
             $sig_days    = ($exp_parsed['sig_days']) ? : null;
-            $sig_qty_day = ($exp_parsed['sig_days']) ? ($sig_qty/$sig_days) : null;
+            $sig_qty_per_day = ($exp_parsed['sig_days']) ? ($sig_qty/$sig_days) : null;
 
             if ($parsed['sig_qty'] != $exp_parsed['sig_qty']) {
                 GPLog::warning(
@@ -173,7 +173,7 @@ function update_rxs_single($changes)
             }
 
             // If we have more than 8 a day, lets have a human verify the signature
-            if ($sig_qty_day > MAX_QTY_PER_DAY) {
+            if ($sig_qty_per_day > MAX_QTY_PER_DAY) {
                 $created_date = "Created:".date('Y-m-d H:i:s');
                 $salesforce   = [
                     "subject"   => "Verify qty pended for $created[drug_name] for Rx #$created[rx_number]",
@@ -197,7 +197,7 @@ function update_rxs_single($changes)
                 );
             }
 
-            if (!$sig_qty_day) {
+            if (!$sig_qty_per_day) {
                 $created_date = "Created:".date('Y-m-d H:i:s');
                 $salesforce   = [
                     "subject"   => "Error: 0 or null dosage for {$created['drug_name']} in "
@@ -228,12 +228,13 @@ function update_rxs_single($changes)
             // save all the parsed sig information
             $rx_single->sig_qty                    = $sig_qty;
             $rx_single->sig_days                   = $sig_days;
-            $rx_single->sig_qty_per_day_default    = $qty_per_day;
+            $rx_single->sig_qty_per_day_default    = $sig_qty_per_day;
 
 
             // Old Sig parsing details
             $rx_single->sig_v1_qty                 = $parsed['sig_qty'];
             $rx_single->sig_v1_days                = $parsed['sig_days'];
+            $rx_single->sig_v1_qty_per_day         = $parsed['qty_per_day'];
             $rx_single->sig_initial                = $parsed['sig_actual'];
             $rx_single->sig_clean                  = $parsed['sig_clean'];
             $rx_single->sig_durations              = ',' .implode(',', $parsed['durations']).',';
@@ -355,6 +356,13 @@ function update_rxs_single($changes)
 
                 $notification->increment();
             }
+        }
+    }
+
+    if (isset($changes['deleted'])) {
+        foreach ($changes['deleted'] as $deleted) {
+            // Find order items that are in an non dispense_date order
+            // Remove the order item
         }
     }
 
