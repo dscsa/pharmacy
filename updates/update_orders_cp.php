@@ -9,6 +9,8 @@ require_once 'exports/export_cp_orders.php';
 require_once 'exports/export_v2_order.php';
 require_once 'helpers/helper_try_catch_log.php';
 
+use GoodPill\Models\Carepoint\CpCsomShip;
+use GoodPill\Models\GpPatient;
 use GoodPill\Logging\{
     GPLog,
     AuditLog,
@@ -335,6 +337,37 @@ function cp_order_created(array $created) : ?array
     if (is_webform_transfer($order[0])) {
         return null; // order hold notice not necessary for transfers
     }
+
+    //  Check csom_ship of the order to make sure it has an address
+    //  If there is a blank shipping address line 1, use the patient's address
+    //  @TODO - Should we have a check for patient existing?
+    $order_id = $order[0]['invoice_number'] - 2;
+    $patient_id = $order[0]['patient_id_cp'];
+
+    $orderShippingAddress = CpCsomShip::where('order_id', $order_id)->firstOrNew();
+    $patient = GpPatient::find($patient_id);
+
+    if (
+        $orderShippingAddress->ship_addr1 === '' ||
+        is_null($orderShippingAddress->ship_addr1)
+    ) {
+        GPLog::critical(
+            "update_orders_cp: Shipping address was found to be empty. Updating with the patient's address, manually verify this is correct",
+            [
+                'invoice_number' => $order[0]['invoice_number'],
+                'order_id'       => $order_id,
+                'order'          => $order,
+                'patient'        => $patient,
+            ]
+        );
+        $orderShippingAddress->ship_addr1 = $patient->patient_address_1;
+        $orderShippingAddress->ship_addr2 = $patient->patient_address_2;
+        $orderShippingAddress->ship_city = $patient->patient_city;
+        $orderShippingAddress->ship_state_cd = $patient->ptient_state;
+        $orderShippingAddress->ship_zip = $patient->patient_zip;
+        $orderShippingAddress->save();
+    }
+
 
     //Needs to be called before "$groups" is set
     $order  = sync_to_date($order, $mysql);
