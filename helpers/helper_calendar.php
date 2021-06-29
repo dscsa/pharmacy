@@ -372,6 +372,7 @@ function new_comm_arr($patient_label, $email = '', $text = '', $salesforce = '',
     $comm_arr = [];
     $auto     = [];
     $auto_salesforce = false;
+    $translated_language = strtoupper($language);
 
     if (! LIVE_MODE) {
         return $comm_arr;
@@ -383,8 +384,9 @@ function new_comm_arr($patient_label, $email = '', $text = '', $salesforce = '',
         $auto[] = "Email";
         $email['bcc']  = DEBUG_EMAIL;
         $email['from'] = 'Good Pill Pharmacy < support@goodpill.org >'; //spaces inside <> are so that google cal doesn't get rid of "HTML" if user edits description
-        if (strtoupper($language) !== 'EN') {
-            $email['language'] = $language;
+
+        if ($translated_language !== 'EN') {
+            $email['language'] = $translated_language;
         }
         $comm_arr[] = $email;
     }
@@ -407,8 +409,9 @@ function new_comm_arr($patient_label, $email = '', $text = '', $salesforce = '',
         }
 
         $text['message'] = format_text($text['message']);
-        if (strtoupper($language) !== 'EN') {
-            $text['language'] = $language;
+
+        if ($translated_language !== 'EN') {
+            $text['language'] = $translated_language;
         }
 
         if (! @$text['fallbacks']) { //Default to a call fallback if SMS fails
