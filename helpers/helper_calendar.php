@@ -407,7 +407,7 @@ function new_comm_arr($patient_label, $email = '', $text = '', $salesforce = '',
         }
 
         $text['message'] = format_text($text['message']);
-        if (strtoupper($language)) {
+        if (strtoupper($language) !== 'EN') {
             $text['language'] = $language;
         }
 
