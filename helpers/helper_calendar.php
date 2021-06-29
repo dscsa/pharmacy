@@ -367,12 +367,11 @@ function confirm_shipment_event($order, $email, $text, $salesforce, $hours_to_wa
     create_event($event_title, $comm_arr, $hours_to_wait, $time_of_day);
 }
 
-function new_comm_arr($patient_label, $email = '', $text = '', $salesforce = '', $language = 'en')
+function new_comm_arr($patient_label, $email = '', $text = '', $salesforce = '', $language = 'EN')
 {
     $comm_arr = [];
     $auto     = [];
     $auto_salesforce = false;
-    $translation_language = strtolower($language);
 
     if (! LIVE_MODE) {
         return $comm_arr;
@@ -384,8 +383,8 @@ function new_comm_arr($patient_label, $email = '', $text = '', $salesforce = '',
         $auto[] = "Email";
         $email['bcc']  = DEBUG_EMAIL;
         $email['from'] = 'Good Pill Pharmacy < support@goodpill.org >'; //spaces inside <> are so that google cal doesn't get rid of "HTML" if user edits description
-        if ($translation_language !== 'en') {
-            $email['language'] = $translation_language;
+        if (strtoupper($language) !== 'EN') {
+            $email['language'] = $language;
         }
         $comm_arr[] = $email;
     }
@@ -408,8 +407,8 @@ function new_comm_arr($patient_label, $email = '', $text = '', $salesforce = '',
         }
 
         $text['message'] = format_text($text['message']);
-        if ($translation_language !== 'en') {
-            $text['language'] = $translation_language;
+        if (strtoupper($language)) {
+            $text['language'] = $language;
         }
 
         if (! @$text['fallbacks']) { //Default to a call fallback if SMS fails
