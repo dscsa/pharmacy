@@ -383,7 +383,7 @@ function new_comm_arr($patient_label, $email = '', $text = '', $salesforce = '',
         $auto[] = "Email";
         $email['bcc']  = DEBUG_EMAIL;
         $email['from'] = 'Good Pill Pharmacy < support@goodpill.org >'; //spaces inside <> are so that google cal doesn't get rid of "HTML" if user edits description
-        if ($language === 'es' || $language === 'ES') {
+        if ($language !== 'en' && $language !== 'EN') {
             $email['language'] = $language;
         }
         $comm_arr[] = $email;
