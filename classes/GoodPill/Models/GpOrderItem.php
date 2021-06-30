@@ -12,6 +12,7 @@ use GoodPill\Models\GpRxsSingle;
 use GoodPill\Models\v2\PickListDrug;
 use GoodPill\Models\Carepoint\CpFdrNdc;
 use GoodPill\Models\Carepoint\CpRx;
+use GoodPill\Models\Carepoint\CsomLine;
 use GoodPill\Utilities\GpComments;
 
 require_once "helpers/helper_full_item.php";
@@ -530,6 +531,23 @@ class GpOrderItem extends Model
         $gsns = explode(',', $gsns);
 
         return CpFdrNdc::doFindByNdcAndGsns($ndc, $gsns);
+    }
+
+    /**
+     * Get the CsOmLine item from carepoint
+     * @return null|GoodPill\Models\Carepoint\CsomLine
+     */
+    public function getCsomLine() : ?CsomLine
+    {
+        // Need to get the CpRx first, then we can get the line from That
+        $cprx = $this->rsx()->getCpRx();
+        if ($cprx) {
+            return CsomLine::where('order_id', $this->order->order_id)
+                ->where('rx_id', $cprx->rx_id)
+                ->first();
+        }
+
+        return null;
     }
 
 

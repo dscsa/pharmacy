@@ -6,6 +6,7 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use GoodPill\Models\GpDrugs;
 use GoodPill\Models\GpPatient;
+use GoodPill\Models\Carepoint\CpRx;
 use GoodPill\Logging\GPLog;
 
 /**
@@ -151,6 +152,15 @@ class GpRxsSingle extends Model
     public function stock()
     {
         return $this->hasOne(GpStockLive::class, 'drug_generic', 'drug_generic');
+    }
+
+    /**
+     * Just a convenience method for accessing the carepoint CpRx object
+     * @return null|GoodPill\Models\Carepoint\CpRx
+     */
+    public function getCpRx()
+    {
+        return CpRx::where('script_no', $this->rx_number)->first();
     }
 
     /**
