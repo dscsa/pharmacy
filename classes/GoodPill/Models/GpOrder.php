@@ -301,6 +301,17 @@ class GpOrder extends Model
      * Other Methods
      */
 
+    /*
+        Work with Items
+     */
+
+    public function doRemoveItem(GpOrderItem $order_item) {
+        // Get the CsomLine for the item
+        $cpOrderLine = $order_item->getCsomLine();
+        // Delete the CsomLine for the item
+        // Delete the item
+    }
+
     /**
      * Override the save function so it sends data into Carepoint automatically
      *

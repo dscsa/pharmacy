@@ -207,6 +207,15 @@ class GpOrderItem extends Model
     }
 
     /**
+     * Query v2 to see if there is already a drug pended for this order
+     * @return boolean
+     */
+    public function isDispensed() : bool
+    {
+        return (!empty($this->rx_dispensed_id));
+    }
+
+    /**
      * Determine if the item was manually added
      * @return bool
      */
