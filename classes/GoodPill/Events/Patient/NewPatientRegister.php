@@ -113,6 +113,7 @@ class NewPatientRegister extends Event
         }
 
         if (! is_null($this->groups)) {
+            $data['invoice_number'] = $this->groups['ALL'][0]['invoice_number'];
             $data['groups'] = $this->groups;
             $data['provider'] = [
                 'provider_first_name' => $this->groups['ALL'][0]['provider_first_name'],
@@ -213,10 +214,13 @@ class NewPatientRegister extends Event
         if (!$this->patient) {
             return;
         }
+        //  Should not need to ever call the `Needs Form` event again since all usage is replaced
+        //  With this event
         $this->patient->cancelEvents([
             'Needs Form',
             'Patient Registration'
         ]);
+
         $this->patient_label = $this->patient->getPatientLabel();
         $this->publishEvent();
     }
