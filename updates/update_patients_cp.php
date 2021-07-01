@@ -3,6 +3,7 @@
 require_once 'helpers/helper_full_patient.php';
 require_once 'helpers/helper_try_catch_log.php';
 
+use GoodPill\Events\Patient\NewPatientRegister;
 use GoodPill\Logging\{
     GPLog,
     AuditLog,
@@ -108,6 +109,8 @@ function update_patients_cp(array $changes) : void
         //TODO IF THIS WORKS MAKE THE CODE BELOW WORK WITH PATIENT MODEL
         //$groups = group_drugs($order, $mysql);
         //needs_form_notice($groups);
+        $register_event = new NewPatientRegister($gpPatient);
+        $register_event->publish();
     }
 
     GPLog::resetSubroutineId();

@@ -9,6 +9,8 @@ require_once 'exports/export_cp_orders.php';
 require_once 'exports/export_v2_order.php';
 require_once 'helpers/helper_try_catch_log.php';
 
+use GoodPill\Events\Patient\RegistrationReminder;
+use GoodPill\Models\GpPatient;
 use GoodPill\Logging\{
     GPLog,
     AuditLog,
@@ -303,9 +305,20 @@ function cp_order_created(array $created) : ?array
            should trigger the deleted loop on next run, which should unpend
            But it seemed that this didn't happen for Order 53684
          */
-        if (! $order[0]['pharmacy_name']) {
+        $gpPatient = GpPatient::find($order[0]['patient_id_cp']);
+
+        if (
+            !$order[0]['pharmacy_name'] &&
+            (strtotime("-30 days") > strtotime($gpPatient->patient_date_added)) &&
+            $gpPatient
+        ) {
             $reason = 'Needs Registration';
             $groups = group_drugs($order, $mysql);
+
+
+            $reminder_event = new RegistrationReminder($gpPatient, $groups);
+            $reminder_event->publish();
+
             needs_form_notice($groups);
         } elseif ($order[0]['order_status'] == "Surescripts Authorization Approved") {
             $reason = "Surescripts Approved {$order[0]['drug_generic']} {$order[0]['rx_number']} {$order[0]['rx_message_key']}";

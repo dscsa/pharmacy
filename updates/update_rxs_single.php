@@ -6,10 +6,12 @@ require_once 'exports/export_cp_rxs.php';
 require_once 'exports/export_gd_transfer_fax.php'; //is_will_transfer()
 require_once 'dbs/mysql_wc.php';
 
+use GoodPill\Events\Patient\RegistrationReminder;
 use GoodPill\Logging\GPLog;
 use GoodPill\Logging\AuditLog;
 use GoodPill\Logging\CliLog;
 
+use GoodPill\Models\GpPatient;
 use GoodPill\Utilities\Timer;
 use GoodPill\Models\GpRxsSingle;
 use GoodPill\Utilities\SigParser;
@@ -575,17 +577,29 @@ function update_rxs_single($changes)
 
     if ($rxs_created2) {
         foreach ($rxs_created2 as $unique_patient_id => $item) {
+            //  Does a check need to be made here?
             $patient = load_full_patient($created, $mysql);
-            $groups = group_drugs($order, $mysql);
 
-            GPLog::warning('Needs Form Notice for Rx Created without Order', [
-                'unique_patient_id' => $unique_patient_id,
-                'patient' => $patient,
-                'groups' => $groups,
-                'item' => $item
-            ]);
+            //  Can a patient from load_full_patient be used in group_drugs?
+            $groups = group_drugs($patient, $mysql);
+            $gpPatient = GpPatient::find($patient[0]['patient_id_cp']);
 
-            needs_form_notice($groups);
+            if (
+                !$patient[0]['pharmacy_name'] &&
+                (strtotime("-30 days") > strtotime($gpPatient->patient_date_added)) &&
+                $gpPatient)
+            ) {
+                $reminder_event = new RegistrationReminder($gpPatient, $groups);
+                $reminder_event->publish();
+
+                GPLog::warning('Needs Form Notice for Rx Created without Order', [
+                    'unique_patient_id' => $unique_patient_id,
+                    'patient' => $patient,
+                    'groups' => $groups,
+                    'item' => $item
+                ]);
+            }
+
         }
     }
     /* Finish Created Loop #2 */
