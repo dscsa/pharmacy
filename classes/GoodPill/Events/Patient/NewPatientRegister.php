@@ -55,7 +55,7 @@ class NewPatientRegister extends Event
      */
     public function __construct(?GpPatient $patient = null, $groups = null)
     {
-        $this->type = 'New Patient Register';
+        $this->type = 'Patient Registration';
         $this->groups = $groups;
 
         if (!is_null($patient)) {
@@ -213,6 +213,10 @@ class NewPatientRegister extends Event
         if (!$this->patient) {
             return;
         }
+        $this->patient->cancelEvents([
+            'Needs Form',
+            'Patient Registration'
+        ]);
         $this->patient_label = $this->patient->getPatientLabel();
         $this->publishEvent();
     }
