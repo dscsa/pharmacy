@@ -32,11 +32,31 @@ trait IsChangeable
 
     /**
      * Retrieve the data in the gp_changes array
+     * @param bool $create_if_empty If the gpChanges array hasn't been set, then we will use the
+     *      tracked_fields array and create an array of changes.
      * @return array
      */
-    public function getGpChanges()
+    public function getGpChanges($create_if_empty = false)
     {
-        return $this->gp_changes;
+        if (!$create_if_empty || $this->hasGpChanges()) {
+            return $this->gp_changes;
+        }
+
+        if (!isset($this->tracked_fields)) {
+            throw new \Exception('You cannot create a changes array unles $tracked_fields is set');
+        }
+
+        $changes       = [];
+        $dirty_changes = $this->getDirty();
+
+        foreach ($this->tracked_fields as $field) {
+            $changes[$field] = $this->{$field};
+            if (isset($dirty_changes[$field])) {
+                $changes["old_{$field}"] = $dirty_changes[$field];
+            }
+        }
+
+        return $changes;
     }
 
     /**

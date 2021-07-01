@@ -63,4 +63,19 @@ class PharmacySyncRequest extends Request
             )
         );
     }
+
+    /**
+     * Picke the appropriate queue and send the data there
+     * @return \AWS\Sqs\SqsResults
+     */
+    public function sendToQueue()
+    {
+        if (isset($this->patient_id)) {
+            $queue = new PharmacyPatientQueue();
+        } else {
+            $queue = new PharmacySyncQueue();
+        }
+
+        return $queue->send($this);
+    }
 }

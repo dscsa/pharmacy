@@ -5,16 +5,16 @@ namespace GoodPill\Traits;
 /**
  * Trait to make it impossible to delete an object
  */
-trait IsNotDeleteable
+trait IsNotDeletable
 {
     /**
      * Override the save function so that if the object came out of the database,
      * we can't change it anymore
-     * @param  array  $options Array of options compatible with Eloquent/Model::save()
-     * @return bool
+     * @throws Exception if trying to access delete
+     * @return void
      */
-    public function delete()
-    {
-        throw new \Exception('This object cannot be deleted');
-    }
+     public function delete()
+     {
+         throw new Exception('Cannot directly delete this object,  Deletes must be handled by accessors');
+     }
 }

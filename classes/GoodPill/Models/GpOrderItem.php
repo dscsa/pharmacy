@@ -26,6 +26,8 @@ class GpOrderItem extends Model
 {
 
     use \GoodPill\Traits\HasCompositePrimaryKey;
+    use \GoodPill\Traits\IsChangeable;
+    use \GoodPill\Traits\IsNotDeletable;
 
     /**
      * The Table for this data
@@ -134,6 +136,20 @@ class GpOrderItem extends Model
         'sync_to_date_min_days_refills_rxs',
         'sync_to_date_min_days_stock',
         'sync_to_date_min_days_stock_rxs'
+    ];
+
+    /**
+     * Any changes to these fields should trigger a change event in the queue
+     * @var array
+     */
+    protected $tracked_fields = [
+        'invoice_number',
+        'rx_number',
+        'rx_dispensed_id',
+        'qty_dispensed_actual',
+        'days_dispensed_actual',
+        'count_lines',
+        'item_added_by'
     ];
 
     /**
@@ -550,6 +566,61 @@ class GpOrderItem extends Model
         return null;
     }
 
+    /*
+
+        DELETE Functions
+
+     */
+
+    /**
+     * Just delete the order line from carepoint and let the sync handle everything else
+     * @return null|bool
+     */
+    protected function doSoftDelete()
+    {
+        // Get the CSOMLINE and delete it
+        $csom_line = $this->getCsomLine();
+        return $csom_line->delete();
+
+        // We don't do a ->delete() here because we want to allow the sycing to
+        // handle everything else
+    }
+
+    /**
+     * Do everything a delete should do.
+     *     - Remove the line item from the carepoint order
+     *     - Unpend the item from V2
+     *     - Delete the item from the gp_order_items table
+     *     - Create a queue entry for the change.
+     * @return null|bool  Based on the rules of Model::delete()
+     */
+    protected function doHardDelete()
+    {
+        // Delte the order Item from carepoint
+        $this->doSoftDelete();
+
+        // Unpend the item
+        $this->doUnpendItem();
+
+        // Create a change event for this item
+        $changes  = $this->getGpChanges(true);
+        $patient  = $this->patient();
+        $group_id = $patient->first_name.'_'.$patient->last_name.'_'.$patient->birth_date;
+
+        // Delete this item from the database
+        $results = parent::delete();
+
+        // Create a Queue entry for the deleted item
+        $syncing_request               = new PharmacySyncRequest();
+        $syncing_request->changes_to   = 'order_items';
+        $syncing_request->changes      = ['deleted' => [$changes]];
+        $syncing_request->group_id     = sha1($group_id);
+        $syncing_request->patient_id   = $group_id;
+        $syncing_request->execution_id = GPLog::$exec_id;
+        $sync_request->sendToQueue();
+
+        return $results;
+    }
 
     /*
 
