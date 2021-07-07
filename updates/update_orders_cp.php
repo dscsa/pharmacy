@@ -145,6 +145,7 @@ function cp_order_created(array $created) : ?array
             )
         );
 
+        //  There is a deletion that happens inside this merge_orders function
         export_cp_merge_orders(
             $created['invoice_number'],
             $duplicate[0]['invoice_number']
@@ -392,6 +393,17 @@ function cp_order_deleted(array $deleted) : ?array
             'deleted'        => $deleted
         ]
     );
+
+    if (
+        $deleted &&
+        isset($deleted['order_source']) &&
+        $deleted['order_source'] === 'Manually Protected'
+        )
+    {
+        GPLog::info("update_orders_cp: Blocking deletion of {$deleted['invoice_number']}. It is protected");
+        return null;
+    }
+
 
     export_cp_remove_items($deleted['invoice_number']);
     export_gd_delete_invoice($deleted['invoice_number']);
@@ -744,6 +756,14 @@ function cp_order_updated(array $updated) : ?array
             ]
         );
 
+        if (
+            isset($order[0]['order_source']) &&
+            $order[0]['order_source'] === 'Manually Protected'
+        )
+        {
+            GPLog::info("update_orders_cp: Blocking deletion of {$order[0]['invoice_number']}. It is protected");
+            return null;
+        }
         /*
             TODO Why do we need to explicitly unpend?  Deleting an order in
             CP should trigger the deleted loop on next run, which should unpend
