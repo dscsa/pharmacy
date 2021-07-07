@@ -3,6 +3,7 @@
 namespace GoodPill\Events;
 
 use GoodPill\Events\Comm;
+use GoodPill\Models\GpPatient;
 
 class EmailComm extends Comm
 {
@@ -13,7 +14,8 @@ class EmailComm extends Comm
         'subject',
         'bcc',
         'from',
-        'attachments'
+        'attachments',
+        'language'
     ];
 
     protected $required = [
@@ -31,6 +33,19 @@ class EmailComm extends Comm
     public function setAttachments(array $attachments)
     {
         $this->stored_data['attachments'] = $attachments;
+    }
+
+    /**
+     * Sets the language for the email to be translated to
+     * @param GpPatient $gpPatient
+     */
+    public function setLanguage(GpPatient $gpPatient)
+    {
+        $patient_language = strtoupper($gpPatient->language);
+
+        if ($patient_language && $patient_language !== 'EN') {
+            $this->stored_data['language'] = $patient_language;
+        }
     }
 
     /**

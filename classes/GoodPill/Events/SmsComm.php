@@ -3,19 +3,34 @@
 namespace GoodPill\Events;
 
 use GoodPill\Events\Comm;
+use GoodPill\Models\GpPatient;
 
 class SmsComm extends Comm
 {
     protected $properties = [
         'message',
         'sms',
-        'fallbacks'
+        'fallbacks',
+        'language'
     ];
 
     protected $required = [
         'message',
         'sms',
     ];
+
+    /**
+     * Sets the language for the text to be translated to
+     * @param GpPatient $gpPatient
+     */
+    public function setLanguage(GpPatient $gpPatient)
+    {
+        $patient_language = strtoupper($gpPatient->language);
+
+        if ($patient_language && $patient_language !== 'EN') {
+            $this->stored_data['language'] = $patient_language;
+        }
+    }
 
     /**
      * Create a Comm Calendar compatible SMS message
