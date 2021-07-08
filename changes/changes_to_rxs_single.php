@@ -99,31 +99,30 @@ function changes_to_rxs_single($new) {
   $mysql->run(set_updated_sql($new, $old, $id, $where));
 
   return [
-    'deleted' => find_voided_rxs(), //$deleted[0],
+    'deleted' => find_voided_rxs(),
     'created' => $created[0],
     'updated' => $updated[0]
   ];
 }
 
-
 function find_voided_rxs() : array
 {
     $deleted = [];
 
-    // Get the voided RXS
-    $voided_rxs = CpRX::where('status_cn', 3)
+    $voided_rxs = CpRx::where('status_cn', 3)
         ->where('chg_date', '>', date('Y-m-d', strtotime('-20 minutes')))
+        ->where('script_no', 6022377)
         ->get();
 
-    foreach ($voided_rxs as $voided_cp_rx) {
-        $gpRx = $voided_cp_rx->getGpRxSingle();
-        if ($gpRx) {
-            $voided = $gpRx->getGpChangesArray();
+    foreach ($voided_rxs as $voided_rx) {
+        $gpRxSingle = $voided_rx->getGpRxsSingle();
+        if ($gpRxSingle) {
+            $voided = $gpRxSingle->getGpChangesArray();
             $voided['state'] = 'voided';
             $deleted[] = $voided;
-            $gpRx->delete();
+            $gpRxSingle->doCompleteDelete();
         }
     }
 
-    return $delted;
+    return $deleted;
 }
