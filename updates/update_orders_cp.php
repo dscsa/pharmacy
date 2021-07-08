@@ -146,10 +146,16 @@ function cp_order_created(array $created) : ?array
         );
 
         //  There is a deletion that happens inside this merge_orders function
-        export_cp_merge_orders(
-            $created['invoice_number'],
-            $duplicate[0]['invoice_number']
-        );
+        if (
+            isset($created['order_source']) &&
+            $created['order_source'] === 'Manually Protected'
+        )
+        {
+            export_cp_merge_orders(
+                $created['invoice_number'],
+                $duplicate[0]['invoice_number']
+            );
+        }
 
         if (is_webform($created)) {
             export_wc_cancel_order(
@@ -323,7 +329,11 @@ function cp_order_created(array $created) : ?array
         }
 
         $order  = export_v2_unpend_order($order, $mysql, $reason);
-        export_cp_remove_order($order[0]['invoice_number'], $reason);
+
+        if ($order[0]['order_source'] !== 'Manually Protected')
+        {
+            export_cp_remove_order($order[0]['invoice_number'], $reason);
+        }
 
         if (is_webform($order[0])) {
             export_wc_cancel_order($order[0]['invoice_number'], $reason);
@@ -394,18 +404,11 @@ function cp_order_deleted(array $deleted) : ?array
         ]
     );
 
-    if (
-        $deleted &&
-        isset($deleted['order_source']) &&
-        $deleted['order_source'] === 'Manually Protected'
-        )
+    if ($deleted['order_source'] !== 'Manually Protected')
     {
-        GPLog::info("update_orders_cp: Blocking deletion of {$deleted['invoice_number']}. It is protected");
-        return null;
+        export_cp_remove_items($deleted['invoice_number']);
     }
 
-
-    export_cp_remove_items($deleted['invoice_number']);
     export_gd_delete_invoice($deleted['invoice_number']);
 
     GPLog::info(
@@ -735,10 +738,16 @@ function cp_order_updated(array $updated) : ?array
     // count_items in addition to count_filled because it might be a manually
     //  added item, that we are not filling but that the pharmacist is using
     //  as a placeholder/reminder e.g 54732
-    if ($order[0]['count_items'] == 0
+
+    //  Adding `Manually Protected` check here. This will skip over many side effects
+    //  Better to add a check just around `export_cp_remove_order`?
+    if (
+        $order[0]['count_items'] == 0
         && $order[0]['count_filled'] == 0
         && $order[0]['count_to_add'] == 0
-        && !is_webform_transfer($order[0])) {
+        && !is_webform_transfer($order[0])
+        && $order[0]['order_source'] !== 'Manually Protected'
+    ) {
         AuditLog::log(
             sprintf(
                 "Order %s has no Rx to fill so it will be cancelled",
@@ -756,14 +765,6 @@ function cp_order_updated(array $updated) : ?array
             ]
         );
 
-        if (
-            isset($order[0]['order_source']) &&
-            $order[0]['order_source'] === 'Manually Protected'
-        )
-        {
-            GPLog::info("update_orders_cp: Blocking deletion of {$order[0]['invoice_number']}. It is protected");
-            return null;
-        }
         /*
             TODO Why do we need to explicitly unpend?  Deleting an order in
             CP should trigger the deleted loop on next run, which should unpend

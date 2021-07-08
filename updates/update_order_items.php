@@ -109,11 +109,6 @@ function order_item_created(array $created, array &$orders_updated) : ?array
 
     $GPOrder = GpOrder::where('invoice_number', $invoice_number)->first();
 
-    if ($GPOrder->order_source === 'Manually Protected')
-    {
-        GPLog::info("order_item_created: Blocking item creation for {$GPOrder->invoice_number}. It is protected");
-        return false;
-    }
     if ($GPOrder && $GPOrder->isShipped()) {
         GPLog::alert(
             "Trying to add an item to an order that has already shipped",
@@ -230,12 +225,6 @@ function order_item_deleted(array $deleted, array &$orders_updated) : ?array
     $invoice_number = $deleted['invoice_number'];
 
     $GPOrder = GpOrder::where('invoice_number', $invoice_number)->first();
-
-    if ($GPOrder->order_source === 'Manually Protected')
-    {
-        GPLog::info("order_item_deleted: Blocking item deletion for {$GPOrder->invoice_number}. It is protected");
-        return false;
-    }
 
     if ($GPOrder && $GPOrder->isShipped()) {
         GPLog::alert(
