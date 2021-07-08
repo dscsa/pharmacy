@@ -147,8 +147,7 @@ function cp_order_created(array $created) : ?array
 
         //  There is a deletion that happens inside this merge_orders function
         if (
-            isset($created['order_source']) &&
-            $created['order_source'] === 'Manually Protected'
+            $created['order_source'] !== 'Manually Protected'
         )
         {
             export_cp_merge_orders(
