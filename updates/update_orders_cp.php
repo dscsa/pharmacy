@@ -106,12 +106,15 @@ function cp_order_created(array $created) : ?array
         return null;
     }
 
-    if (count($duplicate) > 1
+    if (
+        count($duplicate) > 1
         && $duplicate[0]['invoice_number'] != $created['invoice_number']
         && (
           ! is_webform($created)
           || is_webform($duplicate[0])
-        )) {
+        )
+        && $created['order_source'] !== 'Manually Protected'
+    ) {
         GPLog::warning(
             sprintf(
                 "Created Carepoint Order Seems to be a duplicate %s >>> %s",
@@ -146,15 +149,10 @@ function cp_order_created(array $created) : ?array
         );
 
         //  There is a deletion that happens inside this merge_orders function
-        if (
-            $created['order_source'] !== 'Manually Protected'
-        )
-        {
-            export_cp_merge_orders(
-                $created['invoice_number'],
-                $duplicate[0]['invoice_number']
-            );
-        }
+        export_cp_merge_orders(
+            $created['invoice_number'],
+            $duplicate[0]['invoice_number']
+        );
 
         if (is_webform($created)) {
             export_wc_cancel_order(
