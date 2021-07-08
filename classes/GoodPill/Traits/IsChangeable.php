@@ -50,9 +50,19 @@ trait IsChangeable
         $dirty_changes = $this->getDirty();
 
         foreach ($this->tracked_fields as $field) {
-            $changes[$field] = $this->{$field};
+
+            $value = $this->{$field};
+            if (is_object($value)) {
+                $value = (string) $value;
+            }
+
+            $changes[$field] = $value;
             if (isset($dirty_changes[$field])) {
-                $changes["old_{$field}"] = $dirty_changes[$field];
+                $old_value = $dirty_changes[$field];
+                if (is_object($value)) {
+                    $old_value = (string) $old_value;
+                }
+                $changes["old_{$field}"] = $old_value;
             }
         }
 

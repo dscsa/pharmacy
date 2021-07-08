@@ -191,6 +191,6 @@ class CpRx extends Model
      * @return null|GoodPill\Models\GpRxsSingle
      */
     public function getGpRxsSingle() {
-        return GpRxsSingle::where('rx_number', $this->script_no);
+        return GpRxsSingle::where('rx_number', $this->script_no)->first();
     }
 }

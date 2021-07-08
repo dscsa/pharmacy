@@ -8,7 +8,7 @@ use GoodPill\Models\GpDrugs;
 use GoodPill\Models\GpPatient;
 use GoodPill\Models\Carepoint\CpRx;
 use GoodPill\Logging\GPLog;
-use GoodPill\AWS\SQS\Request\PharmacySyncRequest;
+use GoodPill\AWS\SQS\PharmacySyncRequest;
 
 /**
  * Class GpRxsSingle
@@ -231,17 +231,20 @@ class GpRxsSingle extends Model
 
     /**
      * Delete the RX and cascade into other locations.
-     *      - Remove any undispensed Order Items from CarePoint\
+     *      - Remove any undispensed Order Items from CarePoint
      *      - Delete the RX from gp_rxs_single
      *      - Create a RX deleted event
      * @return null|bool
      */
     public function doCompleteDelete() : ?bool
     {
+        $results = null;
+
         // See if there are any order items that are not filled
-        $pending_order_items = GpOrderItem::where('rx_number', $this->script_no)
+        $pending_order_items = GpOrderItem::where('rx_number', $this->rx_number)
             ->where('patient_id_cp', $this->patient_id_cp)
-            ->find();
+            ->where ('rx_dispensed_id', null)
+            ->get();
 
         foreach($pending_order_items as $order_item) {
             // A soft delete will simply delete the item from the order in carepoint and then let the
@@ -252,19 +255,25 @@ class GpRxsSingle extends Model
         //TODO: This is too much duplicate code.  The group ID and the sha1 of the groupid should
         //TODO: moved.  group id should be GpPatient and sha1 should be in PharmacySyncRequest
         $changes  = $this->getGpChanges(true);
-        $patient  = $this->patient();
-        $group_id = $patient->first_name.'_'.$patient->last_name.'_'.$patient->birth_date;
+        $patient  = $this->patient;
 
-        // Delete this item from the database
-        $results = parent::delete();
+        // Can't create a patient request if we don't have a patient
+        if ($patient) {
+            $group_id = $patient->first_name.'_'.$patient->last_name.'_'.$patient->birth_date;
 
-        $syncing_request               = new PharmacySyncRequest();
-        $syncing_request->changes_to   = 'rxs_single';
-        $syncing_request->changes      = ['deleted' => [$changes]];
-        $syncing_request->group_id     = sha1($group_id);
-        $syncing_request->patient_id   = $group_id;
-        $syncing_request->execution_id = GPLog::$exec_id;
-        $sync_request->sendToQueue();
+            GPLog::debug('Deleting RxSingle for GoodPill Database', [$this->toArray()]);
+            // Delete this item from the database
+            $results = parent::delete();
+
+            //
+            $sync_request               = new PharmacySyncRequest();
+            $sync_request->changes_to   = 'rxs_single';
+            $sync_request->changes      = ['deleted' => [$changes]];
+            $sync_request->group_id     = sha1($group_id);
+            $sync_request->patient_id   = $group_id;
+            $sync_request->execution_id = GPLog::$exec_id;
+            $sync_request->sendToQueue();
+        }
 
         return $results;
     }

@@ -259,11 +259,11 @@ class GpOrderItem extends Model
      */
     public function isNotOffered() : bool
     {
-        $rxs = $this->rxs;
-        $stock = $rxs->stock;
-
-        $rx_gsn = $rxs->rx_gsn;
+        $rxs       = $this->rxs;
+        $stock     = $rxs->stock;
+        $rx_gsn    = $rxs->rx_gsn;
         $drug_name = $rxs->drug_name;
+
         //  This should always be set, `stock_level` isn't null in the database for any items currently
         $stock_level = $this->stock_level_initial ?: $stock->stock_level;
 
@@ -406,6 +406,11 @@ class GpOrderItem extends Model
      */
     public function doUnpendItem(string $reason = '') : ?array
     {
+        GPLog::debug(
+            'Unpending item from V2',
+            ['item' => $this->toArray()]
+        );
+
         $legacy_item = $this->getLegacyData();
         return v2_pend_item($legacy_item, $reason);
     }
@@ -556,7 +561,8 @@ class GpOrderItem extends Model
     public function getCsomLine() : ?CsomLine
     {
         // Need to get the CpRx first, then we can get the line from That
-        $cprx = $this->rsx()->getCpRx();
+        $cprx  = $this->rxs->getCpRx();
+
         if ($cprx) {
             return CsomLine::where('order_id', $this->order->order_id)
                 ->where('rx_id', $cprx->rx_id)
@@ -576,14 +582,28 @@ class GpOrderItem extends Model
      * Just delete the order line from carepoint and let the sync handle everything else
      * @return null|bool
      */
-    protected function doSoftDelete()
+    public function doSoftDelete()
     {
         // Get the CSOMLINE and delete it
         $csom_line = $this->getCsomLine();
+
+        if (!$csom_line) {
+            return null;
+        }
+
+        GPLog::debug(
+            'Deleting item from Carepoint order',
+            [
+                'item' => $this->toArray(),
+                'CsOmLine' => $csom_line->toArray()
+            ]
+        );
+
+        // WARNING: We don't do a GPOrderItem::delete() here because we want to allow the sycing to
+        // WARNING: handle everything else
         return $csom_line->delete();
 
-        // We don't do a ->delete() here because we want to allow the sycing to
-        // handle everything else
+
     }
 
     /**
@@ -623,7 +643,6 @@ class GpOrderItem extends Model
     }
 
     /*
-
         LEGACY DATA
 
         Work with legacy data structures
