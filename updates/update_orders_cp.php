@@ -169,6 +169,16 @@ function cp_order_created(array $created) : ?array
         return null;
     }
 
+    //  If we skipped the duplicate order check, check to see if it's protected and log if so
+    if ($created['order_source'] === 'Manually Protected')
+    {
+        GPLog::warning('cp_order_updated: Manually Protected, skip export_cp_remove_order',
+            [
+                'invoice_number' => $created['invoice_number'],
+                'created' => $created
+            ]
+        );
+    }
     // Overwrite Rx Messages everytime a new order created otherwise
     // same message would stay for the life of the Rx
     $order = load_full_order($created, $mysql, true);
@@ -330,6 +340,13 @@ function cp_order_created(array $created) : ?array
         if ($order[0]['order_source'] !== 'Manually Protected')
         {
             export_cp_remove_order($order[0]['invoice_number'], $reason);
+        } else {
+            GPLog::warning('cp_order_created: Manually Protected, skip export_cp_remove_order',
+                [
+                    'invoice_number' => $order[0]['invoice_number'],
+                    'order' => $order
+                ]
+            );
         }
 
         if (is_webform($order[0])) {
@@ -404,6 +421,13 @@ function cp_order_deleted(array $deleted) : ?array
     if ($deleted['order_source'] !== 'Manually Protected')
     {
         export_cp_remove_items($deleted['invoice_number']);
+    } else {
+        GPLog::warning('cp_order_deleted: Manually Protected, skip export_cp_remove_items',
+            [
+                'invoice_number' => $deleted['invoice_number'],
+                'deleted' => $deleted
+            ]
+        );
     }
 
     export_gd_delete_invoice($deleted['invoice_number']);
@@ -779,6 +803,17 @@ function cp_order_updated(array $updated) : ?array
         }
 
         return null;
+    }
+
+    //  If we skipped the conditional above, check for manually protected and log if true
+    if ($order[0]['order_source'] === 'Manually Protected')
+    {
+        GPLog::warning('cp_order_updated: Manually Protected, skip export_cp_remove_order',
+            [
+                'invoice_number' => $order[0]['invoice_number'],
+                'order' => $order
+            ]
+        );
     }
 
     //Address Changes
