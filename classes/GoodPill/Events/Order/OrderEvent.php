@@ -191,6 +191,8 @@ abstract class OrderEvent extends Event
         $email->email       = DEBUG_EMAIL;
         //$email->email   = $this->order->patient->email;
 
+        $email->setLanguage($this->order->patient);
+
         return $email;
     }
 
@@ -210,6 +212,8 @@ abstract class OrderEvent extends Event
         // $sms->sms     = $patient->getPhonesAsString();
         $sms->sms     = DEBUG_PHONE;
         $sms->message = $this->render('sms');
+        $sms->setLanguage($patient);
+
         return $sms;
     }
 
