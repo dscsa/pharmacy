@@ -182,7 +182,7 @@ function update_mismatched_rxs_and_items($mysql, $partial)
 
     if (!$rxs) {
         return GPLog::warning(
-            "update_mismatched_rxs_and_items_by_drug_gsns: no rxs_single or order_items to update",
+            "GSN UPDATE update_mismatched_rxs_and_items_by_drug_gsns: no rxs_single or order_items to update",
             [
               'partial' => $partial,
               'sql' => $sql,
@@ -247,7 +247,7 @@ function update_rx_single_drug($mysql, $rx_number)
       gp_rxs_single.rx_number = '$rx_number'
     ";
 
-    GPLog::warning("update_drugs: update_rx_single_drug (saving v2 drug names in gp_rxs_single)", [
+    GPLog::warning("GSN UPDATE update_drugs: update_rx_single_drug (saving v2 drug names in gp_rxs_single)", [
         'sql_rxs_single'  => $sql_rxs_single,
         'rx_number'       => $rx_number
     ]);
@@ -274,7 +274,7 @@ function update_order_item_drug($mysql, $rx_number)
                               AND rx_dispensed_id IS NULL";
 
     GPLog::debug(
-        "update_order_item_drug: updated gp_order_item BEFORE",
+        "GSN UPDATE update_order_item_drug: updated gp_order_item BEFORE",
         [
             'sql_order_items' => $sql_order_items,
             'rx_number'       => $rx_number
@@ -291,7 +291,7 @@ function update_order_item_drug($mysql, $rx_number)
     $item = load_full_item(['rx_number' => $rx_number], $mysql, true);
 
     GPLog::debug(
-        "update_order_item_drug: updated gp_order_item AFTER",
+        "GSN UPDATE update_order_item_drug: updated gp_order_item AFTER",
         [
             'sql_order_items' => $sql_order_items,
             'rx_number'       => $rx_number,
