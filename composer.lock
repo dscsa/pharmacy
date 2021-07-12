@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "92b900ec1b22e9beb912349092f5ae34",
+    "content-hash": "3315763f7a2d3e43c423237880ffa31a",
     "packages": [
         {
             "name": "adilbaig/pagerduty",
@@ -1693,6 +1693,53 @@
                 }
             ],
             "time": "2020-09-11T19:18:05+00:00"
+        },
+        {
+            "name": "printnode/printnode-php",
+            "version": "dev-master",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/PrintNode/PrintNode-PHP.git",
+                "reference": "d5b95f24fc234e3161df09e87e3de538dad22078"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/PrintNode/PrintNode-PHP/zipball/d5b95f24fc234e3161df09e87e3de538dad22078",
+                "reference": "d5b95f24fc234e3161df09e87e3de538dad22078",
+                "shasum": ""
+            },
+            "require": {
+                "ext-curl": "*",
+                "php": ">=5.3.2"
+            },
+            "default-branch": true,
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "PrintNode\\": "src/PrintNode"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "authors": [
+                {
+                    "name": "Contributors",
+                    "email": "support@printnode.com",
+                    "homepage": "https://www.printnode.com"
+                }
+            ],
+            "description": "Connect any printer to your application with PrintNode Client and easy to use JSON API",
+            "homepage": "https://github.com/PrintNode/PrintNode-PHP",
+            "keywords": [
+                "PrintNode",
+                "api",
+                "php",
+                "printing"
+            ],
+            "support": {
+                "issues": "https://github.com/PrintNode/PrintNode-PHP/issues",
+                "source": "https://github.com/PrintNode/PrintNode-PHP/tree/master"
+            },
+            "time": "2021-03-04T17:11:43+00:00"
         },
         {
             "name": "psr/cache",
@@ -3665,10 +3712,12 @@
     "packages-dev": [],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": [],
+    "stability-flags": {
+        "printnode/printnode-php": 20
+    },
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": [],
     "platform-dev": [],
-    "plugin-api-version": "1.1.0"
+    "plugin-api-version": "2.1.0"
 }

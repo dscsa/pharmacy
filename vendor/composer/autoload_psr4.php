@@ -29,6 +29,7 @@ return array(
     'Psr\\Http\\Client\\' => array($vendorDir . '/psr/http-client/src'),
     'Psr\\Container\\' => array($vendorDir . '/psr/container/src'),
     'Psr\\Cache\\' => array($vendorDir . '/psr/cache/src'),
+    'PrintNode\\' => array($vendorDir . '/printnode/printnode-php/src/PrintNode'),
     'Predis\\' => array($vendorDir . '/predis/predis/src'),
     'Monolog\\' => array($vendorDir . '/monolog/monolog/src/Monolog'),
     'JmesPath\\' => array($vendorDir . '/mtdowling/jmespath.php/src'),
