@@ -6,7 +6,8 @@ require_once 'exports/export_cp_rxs.php';
 require_once 'exports/export_gd_transfer_fax.php'; //is_will_transfer()
 require_once 'dbs/mysql_wc.php';
 
-use GoodPill\Events\Patient\RegistrationReminder;
+use GoodPill\Events\Patient\RegistrationReminderOrder;
+use GoodPill\Events\Patient\RegistrationReminderRx;
 use GoodPill\Logging\GPLog;
 use GoodPill\Logging\AuditLog;
 use GoodPill\Logging\CliLog;
@@ -589,7 +590,7 @@ function update_rxs_single($changes)
                 (strtotime("-30 days") > strtotime($gpPatient->patient_date_added)) &&
                 $gpPatient)
             ) {
-                $reminder_event = new RegistrationReminder($gpPatient, $groups);
+                $reminder_event = new RegistrationReminderRx($gpPatient, $groups);
                 $reminder_event->publish();
 
                 GPLog::warning('Needs Form Notice for Rx Created without Order', [

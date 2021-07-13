@@ -3,7 +3,7 @@
 require_once 'helpers/helper_full_patient.php';
 require_once 'helpers/helper_try_catch_log.php';
 
-use GoodPill\Events\Patient\NewPatientRegister;
+use GoodPill\Events\Patient\RegistrationReminderNewPatient;
 use GoodPill\Logging\{
     GPLog,
     AuditLog,
@@ -107,7 +107,7 @@ function update_patients_cp(array $changes) : void
             'changed' => $gpPatient->getChangeStrings()
         ]);
 
-        $register_event = new NewPatientRegister($gpPatient);
+        $register_event = new RegistrationReminderNewPatient($gpPatient);
         $register_event->publish();
     }
 

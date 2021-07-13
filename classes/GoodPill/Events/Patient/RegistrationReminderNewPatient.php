@@ -6,18 +6,25 @@ use GoodPill\Events\Event;
 use GoodPill\Events\SalesforceComm;
 use GoodPill\Events\EmailComm;
 use GoodPill\Events\SmsComm;
+use GoodPill\Models\GpOrder;
 use GoodPill\Models\GpPatient;
 
 /**
  * A Class to define the event when a CarepointPatientLabel has changed
  */
-class NewPatientRegister extends Event
+class RegistrationReminderNewPatient extends Event
 {
     /**
      * Hold the patient for this event
      * @var GoodPill\Models\GpPatient
      */
     protected $patient;
+
+    /**
+     * The order needed for the event
+     * @var \GoodPill\Models\GpOrder
+     */
+    protected $order;
 
     /**
      * Hold the patient data that is used to render the messages
@@ -47,22 +54,27 @@ class NewPatientRegister extends Event
      * Should be defined by Child class
      * @var string
      */
-    protected $template_path = 'Patient/NewPatientRegister';
+    protected $template_path = 'Patient/RegistrationReminderNewPatient';
 
     /**
      * Make it so
      * @param GpPatient|null $patient Optional. Will preset the patient if passed.
      */
-    public function __construct(?GpPatient $patient = null, $groups = null)
+    public function __construct(?GpPatient $patient = null)
     {
         $this->type = 'Patient Registration';
-        $this->groups = $groups;
 
         if (!is_null($patient)) {
             $this->setPatient($patient);
         }
 
-        $hour_added = substr($groups['ALL'][0]['order_date_added'], 11, 2);
+        $order = $patient->orders()->first();
+        if (!is_null($order)) {
+            $this->setOrder($order);
+        }
+
+        $hour_added = substr($order->order_date_added, 11, 2);
+
 
         if ($hour_added < 10) {
             //A if before 10am, the first one is at 10am, the next one is 5pm, then 10am tomorrow, then 5pm tomorrow
@@ -89,6 +101,11 @@ class NewPatientRegister extends Event
         $this->patient = $patient;
     }
 
+    public function setOrder(GpOrder $order) : void
+    {
+        $this->order = $order;
+    }
+
     /**
      * An array of data to add to the data available to the templates
      * @param array $data Anything you would like to add.
@@ -112,16 +129,13 @@ class NewPatientRegister extends Event
             $data['additional'] = $this->additional_data;
         }
 
-        if (! is_null($this->groups)) {
-            $data['invoice_number'] = $this->groups['ALL'][0]['invoice_number'];
+        if (! is_null($this->order)) {
+            $data['invoice_number'] = $this->order->invoice_number;
             $data['groups'] = $this->groups;
-            $data['provider'] = [
-                'provider_first_name' => $this->groups['ALL'][0]['provider_first_name'],
-                'provider_last_name' => $this->groups['ALL'][0]['provider_last_name'],
-                'provider_clinic' => $this->groups['ALL'][0]['provider_clinic'],
-                'provider_phone' => $this->groups['ALL'][0]['provider_phone']
-            ];
-            $data['order_items'] = $this->groups['NOFILL_ACTION'];
+            $data['provider'] = $this->order->getProvider();
+
+            //  Filter only to NOFILL ACTION items
+            $data['order_items'] = $this->order->getNoFillActionItems();
         }
 
         return $data;

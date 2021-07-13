@@ -9,7 +9,7 @@ require_once 'exports/export_cp_orders.php';
 require_once 'exports/export_v2_order.php';
 require_once 'helpers/helper_try_catch_log.php';
 
-use GoodPill\Events\Patient\RegistrationReminder;
+use GoodPill\Events\Patient\RegistrationReminderOrder;
 use GoodPill\Models\GpPatient;
 use GoodPill\Logging\{
     GPLog,
@@ -316,7 +316,7 @@ function cp_order_created(array $created) : ?array
             $groups = group_drugs($order, $mysql);
 
 
-            $reminder_event = new RegistrationReminder($gpPatient, $groups);
+            $reminder_event = new RegistrationReminderOrder($gpPatient, $groups);
             $reminder_event->publish();
 
             needs_form_notice($groups);
