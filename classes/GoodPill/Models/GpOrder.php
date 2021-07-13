@@ -17,6 +17,7 @@ use GoodPill\AWS\SQS\GoogleAppRequest\Invoice\Delete;
 use GoodPill\AWS\SQS\GoogleAppQueue;
 use GoodPill\Logging\GPLog;
 use GoodPill\API\ShippingClient;
+use GoodPill\API\PrintNode;
 
 
 require_once "helpers/helper_calendar.php";
@@ -658,7 +659,7 @@ class GpOrder extends Model
     }
 
     /*
-        INVOICE RELATED METHODS
+        INVOICE/SHIPPING RELATED METHODS
      */
 
     /**
@@ -829,6 +830,11 @@ class GpOrder extends Model
         );
     }
 
+    /**
+     * Use the new v2 endpoing to get meta data that include rendered and published data
+     * @param  boolean $include_invoice Should the base64 encoded data be included with the return
+     * @return object|null  
+     */
     public function getInvoiceMeta(bool $include_invoice = false) : ?object
     {
         if (empty($this->invoice_doc_id)) {
@@ -847,6 +853,87 @@ class GpOrder extends Model
         $response = json_decode(gdoc_post(GD_HELPER_URL, $args));
 
         return $response;
+    }
+
+    /**
+     * Create a shipping label for an order
+     * @return object
+     */
+    public function createShippingLable() {
+        $shippingApi = new ShippingClient();
+        return $shippingApi->createLabel($this);
+    }
+
+    /**
+     * Delete and refund any existing shipping label
+     * @return object
+     */
+    public function deleteShippingLabel() {
+        $shippingApi = new ShippingClient();
+        return $shippingApi->deleteLabel($this);
+    }
+
+    /**
+     * Generate the Shipping label for the order
+     * @todo add logic to check the priority of the order and generate either fedex or usps
+     *
+     * @param  boolean $return_base64_data Should the return valud be base64data or a filepath.
+     *
+     * @return string Either the data base64 encodede or a path to the actual file
+     */
+    protected function getShippingLabel($return_base64_data = false) {
+        $shippingApi = new ShippingClient();
+        return $shippingApi->getLabel($this, $return_base64_data);
+
+    }
+
+    /**
+     * Create and print all the items need to ship.  Currently that is the invoice
+     *     and the shipping label.  These will be sent to printnode at the same time.
+     *
+     * @return array The printjob id for the label and the shipping label.
+     */
+    public function printShippingMaterials() {
+
+        // Check to see if the label is published.  If it isn't published, then publish it.
+        if ($this->invoice_doc_id) {
+            $meta = $this->getInvoiceMeta(true);
+        }
+
+        if (!$meta->published) {
+            GPLog::debug("Publishing invoice for order{$this->invoice_number}");
+            $publish_results = $this->publishInvoice(true);
+            $meta = $publish_results->meta;
+        }
+
+        $invoice_data   = $meta->pdf;
+
+        // Get the shipping label.  If one isn't available, create a new one.
+        $shipping_label = $this->getShippingLabel(true);
+
+        if (!$shipping_label) {
+            GPLog::debug("Creating shipping label for order {$this->invoice_number}");
+            $this->createShippingLabel();
+            $shipping_label = $this->getShippingLabel();
+        }
+
+        $printnode = new PrintNode();
+
+        $print_jobs = [];
+
+        $print_jobs['label'] = $printnode->printPdf(
+            $shipping_label,
+            'label',
+            "Shipping Label {$this->invoice_number}"
+        );
+
+        $print_jobs['invoice'] = $printnode->printPdf(
+            $invoice_data,
+            'invoice',
+            "Invoice {$this->invoice_number}"
+        );
+
+        return $print_jobs;
     }
 
     /*
@@ -925,29 +1012,5 @@ class GpOrder extends Model
             'log should be above',
             $events
         );
-    }
-
-
-    public function createShippingLable() {
-        $shippingApi = new ShippingClient();
-        return $shippingApi->createLabel($order);
-    }
-
-    public function deleteShippingLabel() {
-        $shippingApi = new ShippingClient();
-        return $shippingApi->deleteLabel($order);
-    }
-
-    public function printShippingLable() {
-        $shippingApi = new ShippingClient();
-        $label =  $shippingApi->getLabel($order);
-
-        // If there is a lable, we want to print it via print node
-        if ($label) {
-            $printNode = new PrintNode();
-            $printNode->printUrl($printer, $bin, $url);
-        }
-
-        return false;
     }
 }

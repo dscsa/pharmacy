@@ -5,8 +5,11 @@ namespace GoodPill\API;
 use PrintNode\Credentials\ApiKey;
 use PrintNode\Client;
 use PrintNode\Entity\PrintJob;
-
-class PrintNode {
+/**
+ * A convenince class to reduce the effort needed to print a document to print node
+ */
+class PrintNode
+{
 
     /**
      * The API key to access printnode.com
