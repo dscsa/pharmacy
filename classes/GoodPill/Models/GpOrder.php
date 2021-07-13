@@ -16,6 +16,8 @@ use GoodPill\AWS\SQS\GoogleAppRequest\Invoice\Publish;
 use GoodPill\AWS\SQS\GoogleAppRequest\Invoice\Delete;
 use GoodPill\AWS\SQS\GoogleAppQueue;
 use GoodPill\Logging\GPLog;
+use GoodPill\API\ShippingClient;
+
 
 require_once "helpers/helper_calendar.php";
 require_once "helpers/helper_full_order.php";
@@ -664,27 +666,34 @@ class GpOrder extends Model
      * autoprint can finish printing the file
      * @return boolean true if the request was queued.
      */
-    public function printInvoice() : bool
+    public function printInvoice($async = true) : bool
     {
         if (empty($this->invoice_doc_id)) {
-            $this->createInvoice();
-            $this->publishInvoice();
+            $this->createInvoice($async);
+            $data = $this->publishInvoice($async, !$async);
+            if (!$async) {
+                $invoice_data = $data->pdf;
+            }
         }
 
-        $print_request             = new Move();
-        $print_request->fileId     = $this->invoice_doc_id;
-        $print_request->folderId   = GD_FOLDER_IDS[INVOICE_PUBLISHED_FOLDER_NAME];
-        $print_request->group_id   = "invoice-{$this->invoice_number}";
+        if ($async) {
+            $print_request             = new Move();
+            $print_request->fileId     = $this->invoice_doc_id;
+            $print_request->folderId   = GD_FOLDER_IDS[INVOICE_PUBLISHED_FOLDER_NAME];
+            $print_request->group_id   = "invoice-{$this->invoice_number}";
 
-        $gdq = new GoogleAppQueue();
-        return (bool) $gdq->send($print_request);
+            $gdq = new GoogleAppQueue();
+            return (bool) $gdq->send($print_request);
+        }
+
+        // @todo need to print via the printNode class
     }
 
     /**
      * Create an invoice by sending the invoice detail to the appscript
-     * @return boolean True if the invoice was created.
+     * @return boolean if $async is false return the response from the microservice.
      */
-    public function createInvoice() : bool
+    public function createInvoice(bool $async = true)
     {
         // No order so nothing to do
         if (!$this->exists) {
@@ -718,9 +727,20 @@ class GpOrder extends Model
             $complete_request->group_id      = "invoice-{$this->invoice_number}";
             $complete_request->orderData  = $legacy_order;
 
-            $gdq = new GoogleAppQueue();
-            $gdq->send($complete_request);
-            return true;
+            if ($async) {
+                $gdq = new GoogleAppQueue();
+                $gdq->send($complete_request);
+                return true;
+            }
+
+            $response = json_decode(
+                gdoc_post(
+                    GD_MERGE_URL,
+                    $complete_request->toArray()
+                )
+            );
+
+            return $response;
         }
 
         // We failed to get an id, so we should handle that
@@ -729,9 +749,9 @@ class GpOrder extends Model
 
     /**
      * Queue up a request to delete an invoice
-     * @return boolean Was the request queued
+     * @return mixed if $async is false, return the response from the microservice
      */
-    public function deleteInvoice() : bool
+    public function deleteInvoice($async = true)
     {
         if (empty($this->invoice_doc_id)) {
             return false;
@@ -744,26 +764,52 @@ class GpOrder extends Model
         $this->invoice_doc_id = null;
         $this->save();
 
-        $gdq = new GoogleAppQueue();
-        return (bool) $gdq->send($delete_request);
+        if ($async) {
+            $gdq = new GoogleAppQueue();
+            return (bool) $gdq->send($delete_request);
+            return true;
+        }
+
+        $response = json_decode(
+            gdoc_post(
+                GD_HELPER_URL,
+                $delete_request->toArray()
+            )
+        );
+
+        return $response;
     }
 
     /**
      * Publish an invoice so it can be viewed publically
      * @return boolean Did the request get sent
      */
-    public function publishInvoice() : bool
+    public function publishInvoice(bool $async = true, bool $retrieve_file = false)
     {
+
+        // @todo We shouldn't check for printed here.  We should instead check that
+        // the document is complete
         if (!$this->invoiceHasPrinted()) {
-            $this->createInvoice();
+            $this->createInvoice($async);
         }
 
         $publish_request             = new Publish();
         $publish_request->fileId     = $this->invoice_doc_id;
         $publish_request->group_id   = "invoice-{$this->invoice_number}";
 
-        $gdq = new GoogleAppQueue();
-        return (bool) $gdq->send($publish_request);
+        if ($async) {
+            $gdq = new GoogleAppQueue();
+            return (bool) $gdq->send($publish_request);
+        }
+
+        $response = json_decode(
+            gdoc_post(
+                GD_MERGE_URL,
+                $publish_request->toArray()
+            )
+        );
+
+        return $response;
     }
 
     /**
@@ -773,7 +819,7 @@ class GpOrder extends Model
     public function invoiceHasPrinted() : bool
     {
         if (!empty($this->invoice_doc_id)) {
-            $meta = gdoc_details($this->invoice_doc_id);
+            $meta = $this->getInvoiceMeta();
         }
 
         return (
@@ -781,6 +827,26 @@ class GpOrder extends Model
             && !$meta->trashed
             && $meta->parent->name != INVOICE_PENDING_FOLDER_NAME
         );
+    }
+
+    public function getInvoiceMeta(bool $include_invoice = false) : ?object
+    {
+        if (empty($this->invoice_doc_id)) {
+            return null;
+        }
+
+        $args = [
+            'method'   => 'v2/fileDetails',
+            'fileId' => $this->invoice_doc_id,
+        ];
+
+        if ($include_invoice) {
+            $args['includeFile'] = 1;
+        }
+
+        $response = json_decode(gdoc_post(GD_HELPER_URL, $args));
+
+        return $response;
     }
 
     /*
@@ -859,5 +925,29 @@ class GpOrder extends Model
             'log should be above',
             $events
         );
+    }
+
+
+    public function createShippingLable() {
+        $shippingApi = new ShippingClient();
+        return $shippingApi->createLabel($order);
+    }
+
+    public function deleteShippingLabel() {
+        $shippingApi = new ShippingClient();
+        return $shippingApi->deleteLabel($order);
+    }
+
+    public function printShippingLable() {
+        $shippingApi = new ShippingClient();
+        $label =  $shippingApi->getLabel($order);
+
+        // If there is a lable, we want to print it via print node
+        if ($label) {
+            $printNode = new PrintNode();
+            $printNode->printUrl($printer, $bin, $url);
+        }
+
+        return false;
     }
 }
