@@ -16,6 +16,7 @@ use GoodPill\AWS\SQS\GoogleAppRequest\Invoice\Publish;
 use GoodPill\AWS\SQS\GoogleAppRequest\Invoice\Delete;
 use GoodPill\AWS\SQS\GoogleAppQueue;
 use GoodPill\Logging\GPLog;
+use Illuminate\Support\Collection;
 
 require_once "helpers/helper_calendar.php";
 require_once "helpers/helper_full_order.php";
@@ -583,6 +584,12 @@ class GpOrder extends Model
         }
     }
 
+    /******** Groups Items *************
+     * These methods are used to for determining which items will have this state
+     * They are primarily used for sending out patient or order communications
+     * They should not be used for determining existing states for items, only future
+     * /
+
     /**
      * Return calculated refills_dispensed column for an item
      * Equivalent method - $groups['NO_REFILLS']
@@ -592,12 +599,15 @@ class GpOrder extends Model
      * @param bool $refill - optional true to get
      * @return mixed
      */
-    public function getItemsWithNoRefills()
+    public function getItemsInGroupWithNoRefills()
     {
         $collection = $this->items->filter(function($item) {
             if (
                 //  This first condition may only need to be a check for 0?
-                ($item->refills_dispensed = 0 || is_null($item->refills_dispensed)) &&
+                (
+                    $item->refills_dispensed === 0 ||
+                    is_null($item->refills_dispensed)
+                ) &&
                 is_null($item->rxs->rx_transfer)
             ) {
                 return $item;
@@ -613,7 +623,7 @@ class GpOrder extends Model
      *
      * @return mixed
      */
-    public function getItemsWithNoAutofills()
+    public function getItemsInGroupWithNoAutofills()
     {
         $collection = $this->items->filter(function ($item) {
             if ($item->rxs->rx_autofill === 0 && $item->days_dispensed) {
@@ -629,9 +639,9 @@ class GpOrder extends Model
      * Equivalent method = $groups['FILLED']
      * @return mixed
      */
-    public function filledItems() {
+    public function getItemsInGroupToBeFilled() : Collection {
         $collection = $this->items->filter(function ($item) {
-            if ($item->rxs->days_dispensed) {
+            if ($item->days_dispensed) {
                 return $item;
             }
         });
@@ -639,7 +649,31 @@ class GpOrder extends Model
         return $collection;
     }
 
-    /**ß
+    /**
+     * Find the earliest item's days before it runs out of refills
+     * Returns the minimum days dispensed of the items in an order
+     *
+     * Analogous to `$groups['MIN_DAYS']`
+     * @return int
+     */
+    public function getDaysBeforeOutOfRefills() : int
+    {
+        $daysUntilOutOfRefills = $this->items()->reduce(function ($carry, $item) {
+            $days = $item->days_dispensed;
+            $refills_dispensed = $item->refills_dispensed;
+            if (
+                !$refills_dispensed &&
+                $days &&
+                $days < $carry
+            ) {
+                return $days;
+            }
+        }, 366);
+
+        return $daysUntilOutOfRefills;
+    }
+
+    /**
      * Get to old order array
      * @return null|array
      */
