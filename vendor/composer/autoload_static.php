@@ -62,6 +62,7 @@ class ComposerStaticInit54659efd329fa3a958f5cddec29d1420
             'Psr\\Http\\Client\\' => 16,
             'Psr\\Container\\' => 14,
             'Psr\\Cache\\' => 10,
+            'PrintNode\\' => 10,
             'Predis\\' => 7,
         ),
         'M' => 
@@ -215,6 +216,10 @@ class ComposerStaticInit54659efd329fa3a958f5cddec29d1420
         'Psr\\Cache\\' => 
         array (
             0 => __DIR__ . '/..' . '/psr/cache/src',
+        ),
+        'PrintNode\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/printnode/printnode-php/src/PrintNode',
         ),
         'Predis\\' => 
         array (
@@ -373,6 +378,7 @@ class ComposerStaticInit54659efd329fa3a958f5cddec29d1420
 
     public static $classMap = array (
         'Attribute' => __DIR__ . '/..' . '/symfony/polyfill-php80/Resources/stubs/Attribute.php',
+        'Composer\\InstalledVersions' => __DIR__ . '/..' . '/composer/InstalledVersions.php',
         'GPBMetadata\\GrpcGcp' => __DIR__ . '/..' . '/google/grpc-gcp/src/generated/GPBMetadata/GrpcGcp.php',
         'Grpc\\Gcp\\AffinityConfig' => __DIR__ . '/..' . '/google/grpc-gcp/src/generated/Grpc/Gcp/AffinityConfig.php',
         'Grpc\\Gcp\\AffinityConfig_Command' => __DIR__ . '/..' . '/google/grpc-gcp/src/generated/Grpc/Gcp/AffinityConfig_Command.php',

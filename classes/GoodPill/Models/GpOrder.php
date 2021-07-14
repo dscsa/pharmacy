@@ -16,6 +16,10 @@ use GoodPill\AWS\SQS\GoogleAppRequest\Invoice\Publish;
 use GoodPill\AWS\SQS\GoogleAppRequest\Invoice\Delete;
 use GoodPill\AWS\SQS\GoogleAppQueue;
 use GoodPill\Logging\GPLog;
+use GoodPill\Logging\GPLog;
+use GoodPill\API\ShippingClient;
+use GoodPill\API\PrintNode;
+
 
 require_once "helpers/helper_calendar.php";
 require_once "helpers/helper_full_order.php";
@@ -656,35 +660,50 @@ class GpOrder extends Model
     }
 
     /*
-        INVOICE RELATED METHODS
+        INVOICE/SHIPPING RELATED METHODS
      */
 
     /**
      * Create an invoice request for printing.  Moves the invoice into the print folder so the
      * autoprint can finish printing the file
+     *
+     * @param bool $async Should the method wait on the call and return the results or should
+     *      The request be handled by a queue.
+     *
      * @return boolean true if the request was queued.
      */
-    public function printInvoice() : bool
+    public function printInvoice($async = true) : bool
     {
         if (empty($this->invoice_doc_id)) {
-            $this->createInvoice();
-            $this->publishInvoice();
+            $this->createInvoice($async);
+            $data = $this->publishInvoice($async, !$async);
+            if (!$async) {
+                $invoice_data = $data->pdf;
+            }
         }
 
-        $print_request             = new Move();
-        $print_request->fileId     = $this->invoice_doc_id;
-        $print_request->folderId   = GD_FOLDER_IDS[INVOICE_PUBLISHED_FOLDER_NAME];
-        $print_request->group_id   = "invoice-{$this->invoice_number}";
+        if ($async) {
+            $print_request             = new Move();
+            $print_request->fileId     = $this->invoice_doc_id;
+            $print_request->folderId   = GD_FOLDER_IDS[INVOICE_PUBLISHED_FOLDER_NAME];
+            $print_request->group_id   = "invoice-{$this->invoice_number}";
 
-        $gdq = new GoogleAppQueue();
-        return (bool) $gdq->send($print_request);
+            $gdq = new GoogleAppQueue();
+            return (bool) $gdq->send($print_request);
+        }
+
+        // @todo need to print via the printNode class
     }
 
     /**
      * Create an invoice by sending the invoice detail to the appscript
-     * @return boolean True if the invoice was created.
+     *
+     * @param bool $async Should the method wait on the call and return the results or should
+     *      The request be handled by a queue.
+     *
+     * @return boolean if $async is false return the response from the microservice.
      */
-    public function createInvoice() : bool
+    public function createInvoice(bool $async = true)
     {
         // No order so nothing to do
         if (!$this->exists) {
@@ -693,6 +712,7 @@ class GpOrder extends Model
 
         //
         if (isset($this->invoice_doc_id)) {
+            GPLog::debug("Old invoice doc {$this->invoice_doc_id} Needs to be deleted");
             $this->deleteInvoice();
         }
 
@@ -706,7 +726,9 @@ class GpOrder extends Model
         $response = json_decode(gdoc_post(GD_MERGE_URL, $args));
         $results  = $response->results;
 
+        GPLog::debug("Creating Invoice {$this->invoice_number}");
         if ($response->results == 'success') {
+            GPLog::debug("Invoice  {$this->invoice_number} Created, Needs Completion");
             $invoice_doc_id = $response->doc_id;
             $this->invoice_doc_id = $response->doc_id;
             $this->save();
@@ -718,9 +740,21 @@ class GpOrder extends Model
             $complete_request->group_id      = "invoice-{$this->invoice_number}";
             $complete_request->orderData  = $legacy_order;
 
-            $gdq = new GoogleAppQueue();
-            $gdq->send($complete_request);
-            return true;
+            if ($async) {
+                $gdq = new GoogleAppQueue();
+                $gdq->send($complete_request);
+                return true;
+            }
+
+            GPLog::debug("Completing Invoice {$this->invoice_number} and waiting on results");
+            $response = json_decode(
+                gdoc_post(
+                    GD_MERGE_URL,
+                    $complete_request->toArray()
+                )
+            );
+
+            return $response;
         }
 
         // We failed to get an id, so we should handle that
@@ -729,10 +763,16 @@ class GpOrder extends Model
 
     /**
      * Queue up a request to delete an invoice
-     * @return boolean Was the request queued
+     *
+     * @param bool $async Should the method wait on the call and return the results or should
+     *      The request be handled by a queue.
+     *
+     * @return mixed if $async is false, return the response from the microservice
      */
-    public function deleteInvoice() : bool
+    public function deleteInvoice($async = true)
     {
+        GPLog::debug("Deleting Invoice Doc {$this->invoice_doc_id} for invoice {$this->invoice_number}");
+
         if (empty($this->invoice_doc_id)) {
             return false;
         }
@@ -744,26 +784,60 @@ class GpOrder extends Model
         $this->invoice_doc_id = null;
         $this->save();
 
-        $gdq = new GoogleAppQueue();
-        return (bool) $gdq->send($delete_request);
+        if ($async) {
+            $gdq = new GoogleAppQueue();
+            return (bool) $gdq->send($delete_request);
+            return true;
+        }
+
+        $response = json_decode(
+            gdoc_post(
+                GD_HELPER_URL,
+                $delete_request->toArray()
+            )
+        );
+
+        return $response;
     }
 
     /**
      * Publish an invoice so it can be viewed publically
      * @return boolean Did the request get sent
      */
-    public function publishInvoice() : bool
+    public function publishInvoice(bool $async = true, bool $retrieve_file = false)
     {
+
+
+        GPLog::debug("Publishing Invoice {$this->invoice_number}");
+        // @todo We shouldn't check for printed here.  We should instead check that
+        // the document is complete
         if (!$this->invoiceHasPrinted()) {
-            $this->createInvoice();
+            GPLog::debug("Invoice {$this->invoice_number} needs to be created");
+            $this->createInvoice($async);
         }
 
         $publish_request             = new Publish();
         $publish_request->fileId     = $this->invoice_doc_id;
         $publish_request->group_id   = "invoice-{$this->invoice_number}";
 
-        $gdq = new GoogleAppQueue();
-        return (bool) $gdq->send($publish_request);
+        if ($retrieve_file) {
+            $publish_request->includeFile = 1;
+        }
+
+        if ($async) {
+            $gdq = new GoogleAppQueue();
+            return (bool) $gdq->send($publish_request);
+        }
+
+        GPLog::notice("Publishing Invoice  {$this->invoice_number} and waiting for results");
+        $response = json_decode(
+            gdoc_post(
+                GD_HELPER_URL,
+                $publish_request->toArray()
+            )
+        );
+
+        return $response;
     }
 
     /**
@@ -773,14 +847,124 @@ class GpOrder extends Model
     public function invoiceHasPrinted() : bool
     {
         if (!empty($this->invoice_doc_id)) {
-            $meta = gdoc_details($this->invoice_doc_id);
+            $meta = $this->getInvoiceMeta();
         }
 
         return (
             isset($meta)
+            && !isset($meta->error)
             && !$meta->trashed
             && $meta->parent->name != INVOICE_PENDING_FOLDER_NAME
         );
+    }
+
+    /**
+     * Use the new v2 endpoing to get meta data that include rendered and published data
+     * @param  boolean $include_invoice Should the base64 encoded data be included with the return
+     * @return object|null
+     */
+    public function getInvoiceMeta(bool $include_invoice = false) : ?object
+    {
+        if (empty($this->invoice_doc_id)) {
+            return null;
+        }
+
+        $args = [
+            'method'   => 'v2/fileDetails',
+            'fileId' => $this->invoice_doc_id,
+        ];
+
+        if ($include_invoice) {
+            $args['includeFile'] = 1;
+        }
+
+        $response = json_decode(gdoc_post(GD_HELPER_URL, $args));
+
+        return $response;
+    }
+
+    /**
+     * Create a shipping label for an order
+     * @return object
+     */
+    public function createShippingLabel() {
+        $shippingApi = new ShippingClient();
+        return $shippingApi->createLabel($this);
+    }
+
+    /**
+     * Delete and refund any existing shipping label
+     * @return object
+     */
+    public function deleteShippingLabel() {
+        $shippingApi = new ShippingClient();
+        return $shippingApi->deleteLabel($this);
+    }
+
+    /**
+     * Generate the Shipping label for the order
+     * @todo add logic to check the priority of the order and generate either fedex or usps
+     *
+     * @param  boolean $return_base64_data Should the return valud be base64data or a filepath.
+     *
+     * @return string Either the data base64 encodede or a path to the actual file
+     */
+    protected function getShippingLabel($return_base64_data = false) {
+        $shippingApi = new ShippingClient();
+        return $shippingApi->getLabel($this, $return_base64_data);
+
+    }
+
+    /**
+     * Create and print all the items need to ship.  Currently that is the invoice
+     *     and the shipping label.  These will be sent to printnode at the same time.
+     *
+     * @return array The printjob id for the label and the shipping label.
+     */
+    public function printShippingMaterials() {
+
+        // Check to see if the label is published.  If it isn't published, then publish it.
+        if ($this->invoice_doc_id) {
+            $meta = $this->getInvoiceMeta(true);
+        }
+
+        if (
+            !isset($meta)
+            || isset($meta->error)
+            || !$meta->published
+        ) {
+            GPLog::debug("Publishing invoice for order {$this->invoice_number}");
+            $publish_results = $this->publishInvoice(false, true);
+            $meta = $publish_results->meta;
+        }
+
+        // Get the shipping label.  If one isn't available, create a new one.
+        $invoice_data   = $meta->pdf;
+        $shipping_label = $this->getShippingLabel(true);
+
+        if (!$shipping_label) {
+            GPLog::debug("Creating shipping label for order {$this->invoice_number}");
+            $this->createShippingLabel();
+            $shipping_label = $this->getShippingLabel(true);
+        }
+
+        $printnode = new PrintNode();
+
+        $print_jobs = [];
+
+        $print_jobs['label'] = $printnode->printPdf(
+            $shipping_label,
+            'label',
+            "Shipping Label {$this->invoice_number}"
+        );
+
+        $print_jobs['invoice'] = $printnode->printPdf(
+            $invoice_data,
+            'invoice',
+            "Invoice {$this->invoice_number}"
+        );
+
+        return $print_jobs;
     }
 
     /*
