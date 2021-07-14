@@ -5,6 +5,8 @@ namespace GoodPill\API;
 use PrintNode\Credentials\ApiKey;
 use PrintNode\Client;
 use PrintNode\Entity\PrintJob;
+use GoodPill\Logging\GPLog;
+
 /**
  * A convenince class to reduce the effort needed to print a document to print node
  */
@@ -40,6 +42,9 @@ class PrintNode
         string $job_title,
         ?string $printer = null
     ) : int {
+
+        GPLog::debug("Sending {$job_title} to printnode for printing");
+
         switch (strtolower($type)) {
             case 'label':
                 $options = [

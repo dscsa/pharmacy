@@ -12,7 +12,8 @@ class Publish extends HelperRequest
     protected $properties = [
         'type',
         'method',
-        'fileId'
+        'fileId',
+        'includeFile'
     ];
 
     protected $required = [

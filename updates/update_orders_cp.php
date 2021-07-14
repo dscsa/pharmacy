@@ -437,7 +437,7 @@ function cp_order_deleted(array $deleted) : ?array
             $deleted['invoice_number'],
             "update_orders_cp: cp order deleted but replacement"
         );
-        
+
         return null;
     }
 
@@ -610,22 +610,14 @@ function cp_order_updated(array $updated) : ?array
             );
             $reason = "update_orders_cp updated: Updated Order Dispensed ".$updated['invoice_number'];
             $order = helper_update_payment($order, $reason, $mysql);
-            $invoice_doc_id = export_gd_create_invoice($order[0]["invoice_number"]);
-
-            // If we have an invoice, lets finish printing it
-            if ($invoice_doc_id) {
-                // We didn't get a new doc_id so we need to run away
-                for ($i = 0; $i < count($order); $i++) {
-                    $order[$i]['invoice_doc_id'] = $invoice_doc_id;
-                }
-
-                $order = export_gd_publish_invoice($order);
-                export_gd_print_invoice($order[0]['invoice_number']);
-            } else {
-                GPLog::error("Failed to generate a google invoice for {$order[0]['invoice_number']}");
-            }
-
             send_dispensed_order_communications($groups);
+
+            // When the order is dispensed, we should actually print all the shipping information
+            // This will print the invoice, the shipping label and notify the patient the order
+            // has been shipped
+            $order = GpOrder::find($order['invoice_number']);
+            $order->printShippingMaterials();
+
             GPLog::notice($reason, [ 'order' => $order ]);
         }
 
@@ -667,9 +659,8 @@ function cp_order_updated(array $updated) : ?array
 
             GPLog::notice("Updated Order Shipped Started", [ 'order' => $order ]);
             $order = export_v2_unpend_order($order, $mysql, "Order Shipped");
-            export_wc_update_order_status($order); //Update status from prepare to shipped
+            export_wc_update_order_status($order);
             export_wc_update_order_metadata($order);
-            send_shipped_order_communications($groups);
         }
 
         if ($updated['order_date_shipped'] && is_null($updated['order_date_dispensed']))

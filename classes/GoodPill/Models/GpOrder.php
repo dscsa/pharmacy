@@ -16,6 +16,7 @@ use GoodPill\AWS\SQS\GoogleAppRequest\Invoice\Publish;
 use GoodPill\AWS\SQS\GoogleAppRequest\Invoice\Delete;
 use GoodPill\AWS\SQS\GoogleAppQueue;
 use GoodPill\Logging\GPLog;
+use GoodPill\Logging\GPLog;
 use GoodPill\API\ShippingClient;
 use GoodPill\API\PrintNode;
 
@@ -665,6 +666,10 @@ class GpOrder extends Model
     /**
      * Create an invoice request for printing.  Moves the invoice into the print folder so the
      * autoprint can finish printing the file
+     *
+     * @param bool $async Should the method wait on the call and return the results or should
+     *      The request be handled by a queue.
+     *
      * @return boolean true if the request was queued.
      */
     public function printInvoice($async = true) : bool
@@ -692,6 +697,10 @@ class GpOrder extends Model
 
     /**
      * Create an invoice by sending the invoice detail to the appscript
+     *
+     * @param bool $async Should the method wait on the call and return the results or should
+     *      The request be handled by a queue.
+     *
      * @return boolean if $async is false return the response from the microservice.
      */
     public function createInvoice(bool $async = true)
@@ -703,6 +712,7 @@ class GpOrder extends Model
 
         //
         if (isset($this->invoice_doc_id)) {
+            GPLog::debug("Old invoice doc {$this->invoice_doc_id} Needs to be deleted");
             $this->deleteInvoice();
         }
 
@@ -716,7 +726,9 @@ class GpOrder extends Model
         $response = json_decode(gdoc_post(GD_MERGE_URL, $args));
         $results  = $response->results;
 
+        GPLog::debug("Creating Invoice {$this->invoice_number}");
         if ($response->results == 'success') {
+            GPLog::debug("Invoice  {$this->invoice_number} Created, Needs Completion");
             $invoice_doc_id = $response->doc_id;
             $this->invoice_doc_id = $response->doc_id;
             $this->save();
@@ -734,6 +746,7 @@ class GpOrder extends Model
                 return true;
             }
 
+            GPLog::debug("Completing Invoice {$this->invoice_number} and waiting on results");
             $response = json_decode(
                 gdoc_post(
                     GD_MERGE_URL,
@@ -750,10 +763,16 @@ class GpOrder extends Model
 
     /**
      * Queue up a request to delete an invoice
+     *
+     * @param bool $async Should the method wait on the call and return the results or should
+     *      The request be handled by a queue.
+     *
      * @return mixed if $async is false, return the response from the microservice
      */
     public function deleteInvoice($async = true)
     {
+        GPLog::debug("Deleting Invoice Doc {$this->invoice_doc_id} for invoice {$this->invoice_number}");
+
         if (empty($this->invoice_doc_id)) {
             return false;
         }
@@ -788,9 +807,12 @@ class GpOrder extends Model
     public function publishInvoice(bool $async = true, bool $retrieve_file = false)
     {
 
+
+        GPLog::debug("Publishing Invoice {$this->invoice_number}");
         // @todo We shouldn't check for printed here.  We should instead check that
         // the document is complete
         if (!$this->invoiceHasPrinted()) {
+            GPLog::debug("Invoice {$this->invoice_number} needs to be created");
             $this->createInvoice($async);
         }
 
@@ -798,14 +820,19 @@ class GpOrder extends Model
         $publish_request->fileId     = $this->invoice_doc_id;
         $publish_request->group_id   = "invoice-{$this->invoice_number}";
 
+        if ($retrieve_file) {
+            $publish_request->includeFile = 1;
+        }
+
         if ($async) {
             $gdq = new GoogleAppQueue();
             return (bool) $gdq->send($publish_request);
         }
 
+        GPLog::notice("Publishing Invoice  {$this->invoice_number} and waiting for results");
         $response = json_decode(
             gdoc_post(
-                GD_MERGE_URL,
+                GD_HELPER_URL,
                 $publish_request->toArray()
             )
         );
@@ -825,6 +852,7 @@ class GpOrder extends Model
 
         return (
             isset($meta)
+            && !isset($meta->error)
             && !$meta->trashed
             && $meta->parent->name != INVOICE_PENDING_FOLDER_NAME
         );
@@ -833,7 +861,7 @@ class GpOrder extends Model
     /**
      * Use the new v2 endpoing to get meta data that include rendered and published data
      * @param  boolean $include_invoice Should the base64 encoded data be included with the return
-     * @return object|null  
+     * @return object|null
      */
     public function getInvoiceMeta(bool $include_invoice = false) : ?object
     {
@@ -859,7 +887,7 @@ class GpOrder extends Model
      * Create a shipping label for an order
      * @return object
      */
-    public function createShippingLable() {
+    public function createShippingLabel() {
         $shippingApi = new ShippingClient();
         return $shippingApi->createLabel($this);
     }
@@ -900,21 +928,24 @@ class GpOrder extends Model
             $meta = $this->getInvoiceMeta(true);
         }
 
-        if (!$meta->published) {
-            GPLog::debug("Publishing invoice for order{$this->invoice_number}");
-            $publish_results = $this->publishInvoice(true);
+        if (
+            !isset($meta)
+            || isset($meta->error)
+            || !$meta->published
+        ) {
+            GPLog::debug("Publishing invoice for order {$this->invoice_number}");
+            $publish_results = $this->publishInvoice(false, true);
             $meta = $publish_results->meta;
         }
 
-        $invoice_data   = $meta->pdf;
-
         // Get the shipping label.  If one isn't available, create a new one.
+        $invoice_data   = $meta->pdf;
         $shipping_label = $this->getShippingLabel(true);
 
         if (!$shipping_label) {
             GPLog::debug("Creating shipping label for order {$this->invoice_number}");
             $this->createShippingLabel();
-            $shipping_label = $this->getShippingLabel();
+            $shipping_label = $this->getShippingLabel(true);
         }
 
         $printnode = new PrintNode();

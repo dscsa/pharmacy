@@ -35,6 +35,8 @@ class ShippingClient
      */
     public function createLabel(GpOrder $order)
     {
+        GPLog::debug("Creating shipping label for invoice {$order->invoice_number}");
+
         $endpoint = "order_label/{$order->invoice_number}";
         $label_details = $this->callApi($endpoint, 'POST', ['label_file_type' => 'PDF']);
 
@@ -52,6 +54,8 @@ class ShippingClient
      */
     public function deleteLabel(GpOrder $order)
     {
+        GPLog::debug("Deleteing shipping label for invoice {$order->invoice_number}");
+
         $endpoint      = "order_label/{$order->invoice_number}";
         $label_details = $this->callApi($endpoint, 'DELETE');
 
@@ -71,6 +75,8 @@ class ShippingClient
      * @return string|false
      */
     public function getLabel(GpOrder $order, $as_data = false) {
+        GPLog::debug("Downloading shipping label for invoice {$order->invoice_number}");
+
         $endpoint   = "order_label/{$order->invoice_number}/download";
         $label_data = $this->callApi($endpoint, 'GET');
 
