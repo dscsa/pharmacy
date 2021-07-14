@@ -267,9 +267,7 @@ function update_rx_single_drug($mysql, $rx_number)
     $mysql->run($sql_rxs_single);
 }
 
-function update_order_item_drug($mysql, $rx_number)
-
-
+function update_order_item_drug($mysql, $rx_number) {
     if ( ! $rx_number) {
         GPLog::error(
             "update_drugs: update_order_item_drug aborted because no rx_number passed",
