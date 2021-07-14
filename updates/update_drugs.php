@@ -170,13 +170,13 @@ function update_mismatched_rxs_and_items($mysql, $partial)
     // Strip all the  empty blanks off
     $drug_gsns = trim($drug_gsns, ',');
 
-    $sql = "SELECT *
-                FROM gp_rxs_single
-                LEFT JOIN gp_order_items ON gp_rxs_single.rx_number = gp_order_items.rx_number
-                WHERE
-                  NOT drug_generic <=> '{$partial['drug_generic']}' -- gsn was moved not just added
-                  AND rx_gsn IN ($drug_gsns)
-                  AND rx_dispensed_id IS NULL";
+    $sql = "SELECT gp_order_items.*, gp_rxs_single.* -- specify order otherwise order_items.rx_number being null overwrites the rxs_single.rx_number
+            FROM gp_rxs_single
+            LEFT JOIN gp_order_items ON gp_rxs_single.rx_number = gp_order_items.rx_number
+            WHERE
+              NOT drug_generic <=> '{$partial['drug_generic']}' -- gsn was moved not just added
+              AND rx_gsn IN ($drug_gsns)
+              AND rx_dispensed_id IS NULL";
 
     $rxs = $mysql->run($sql)[0];
 
@@ -235,6 +235,18 @@ function is_gsn_in_v2($mysql, $rx_number)
 
 function update_rx_single_drug($mysql, $rx_number)
 {
+
+    if ( ! $rx_number) {
+    	GPLog::error(
+    		"update_drugs: update_rx_single_drug aborted because no rx_number passed",
+    		[
+    			'rx_number' => $rx_number
+    		]
+    	);
+
+    	return;
+    }
+
     $sql_rxs_single = "
     UPDATE gp_rxs_single
     JOIN gp_drugs ON
@@ -256,7 +268,18 @@ function update_rx_single_drug($mysql, $rx_number)
 }
 
 function update_order_item_drug($mysql, $rx_number)
-{
+
+
+    if ( ! $rx_number) {
+        GPLog::error(
+            "update_drugs: update_order_item_drug aborted because no rx_number passed",
+            [
+                'rx_number' => $rx_number
+            ]
+        );
+
+        return;
+    }
 
     /*
         Hacky but we want to FORCE $needs_repending = true in helper_full_fields
