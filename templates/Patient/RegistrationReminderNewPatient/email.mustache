@@ -1,0 +1,13 @@
+<p>Welcome to Good Pill!  We are excited to fill your prescriptions.</p>
+<p>Your first order #{{invoice_number}} will cost $6, paid after you receive your medications.<br>
+    Please take 5 minutes to register so that we can fill the Rxs we got from your doctor as soon as possible. <br>
+    Once you register it will take 5-7 business days before you receive your order. <br>
+    You can register online at www.goodpill.org or by calling us at (888) 987-5187.
+</p>
+<p>The drugs in your first order will be</p>
+<ul>
+    {{#order_items}}
+        <li>{{.}}</li>
+    {{/order_items}}
+</ul>
+

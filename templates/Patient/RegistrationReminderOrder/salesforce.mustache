@@ -1,0 +1,21 @@
+<p>Call to Register Patient</p>
+
+<ul>
+    <li>
+        If pt does not have a backup pharmacy in Salesforce, call them to register.
+    </li>
+    <li>
+        Attempt 2 calls/voicemails over 2 days. Even if the phone number is invalid, attempt a 2nd call.
+    </li>
+    <li>
+        After 2 failed attempts, reassign this task to .Flag Clinic/Provider Issue - Admin.
+    </li>
+</ul>
+
+<p>Provider Info:</p>
+{{#provider}}
+    {{provider_first_name}}<br>
+    {{provider_last_name}}<br>
+    {{provider_clinic}}<br>
+    {{provider_phone}}<br>
+{{/provider}}

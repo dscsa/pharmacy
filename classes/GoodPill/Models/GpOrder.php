@@ -655,6 +655,66 @@ class GpOrder extends Model
         return null;
     }
 
+    /**
+     * Returns a collection of the provider's information for an order
+     * Finds by fetching the first item in the order and returning the provider from the rxs
+     *
+     * @return \Illuminate\Support\Collection
+     */
+    public function getProvider() : \Illuminate\Support\Collection
+    {
+        $first_item = $this->items()->first();
+        $first_rx = $first_item->rxs;
+        return collect([
+            'provider_first_name' => $first_rx->provider_first_name,
+            'provider_last_name' => $first_rx->provider_last_name,
+            'provider_clinic' => $first_rx->provider_clinic,
+            'provider_phone' => $first_rx->provider_phone,
+        ]);
+    }
+
+    /**
+     * Gets all of the nofilled action items for an order
+     *
+     * @return \Illuminate\Support\Collection
+     */
+    public function getNoFillActionItems() : \Illuminate\Support\Collection
+    {
+        $nofill_items = $this->getFilledItems(false); // Pass false to get nofill items
+
+        $collection = collect();
+        $nofill_items->each(function($item) use ($collection) {
+            $action_position = strpos($item->rx_message_keys_initial, 'ACTION');
+            if ($action_position !== false && $action_position === 0) {
+                $collection->push($item);
+            }
+        });
+
+
+        return $collection;
+    }
+
+    /**
+     * Gets all of the nofilled no_action items for an order
+     *
+     * @return \Illuminate\Support\Collection
+     */
+    public function getNoFillNoActionItems() : \Illuminate\Support\Collection
+    {
+        $nofill_items = $this->getFilledItems(false); // Pass false to get nofill items
+
+        $collection = collect();
+        $nofill_items->each(function($item) use ($collection) {
+            $noaction_position = strpos($item->rx_message_keys_initial, 'NO ACTION');
+            if ($noaction_position !== false && $noaction_position === 0) {
+                $collection->push($item);
+            }
+        });
+
+
+        return $collection;
+    }
+
     /*
         INVOICE RELATED METHODS
      */

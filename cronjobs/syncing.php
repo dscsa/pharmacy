@@ -394,6 +394,13 @@ try {
             CliLog::notice('Nothing to Queue orders_cp.updated');
         }
 
+        //  Process patients_cp.created after orders
+        if ($has_changes = get_sync_request('patients_cp', ['created'], $changes_to_patients_cp, $exec_id)) {
+            $changes_sqs_messages[] = $has_changes;
+        } else {
+            CliLog::notice('Nothing to Queue patients_cp.created');
+        }
+
 
         // Orders WC
         if ($has_changes = get_sync_request('orders_wc', ['created'], $changes_to_orders_wc, $exec_id)) {

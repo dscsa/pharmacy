@@ -3,6 +3,7 @@
 require_once 'helpers/helper_full_patient.php';
 require_once 'helpers/helper_try_catch_log.php';
 
+use GoodPill\Events\Patient\RegistrationReminderNewPatient;
 use GoodPill\Logging\{
     GPLog,
     AuditLog,
@@ -94,20 +95,20 @@ function update_patients_cp(array $changes) : void
         return $created;
     }
 
-    //TODO See if this call can replace the needs_form_notice() call
-    //in both orders_created_cp and rxs_single_created2.  Or if not replace
-    //then these three calls can all have slightly different wording
     if ( ! $gpPatient->pharmacy_name) {
+        $mysql = new Mysql_Wc();
+        $patient_data = $gpPatient->getLegacyPatient();
 
+        //  @TODO - can group_drugs be used with a `load_full_patient` object?
+        $groups = group_drugs($patient_data, $mysql);
         GPLog::warning('Needs Form Notice for CP Patient Created without WC Registration (Pharmacy Name)', [
             'patient' => $gpPatient->attributesToArray(),
             'created' => $created,
             'changed' => $gpPatient->getChangeStrings()
         ]);
 
-        //TODO IF THIS WORKS MAKE THE CODE BELOW WORK WITH PATIENT MODEL
-        //$groups = group_drugs($order, $mysql);
-        //needs_form_notice($groups);
+        $register_event = new RegistrationReminderNewPatient($gpPatient);
+        $register_event->publish();
     }
 
     GPLog::resetSubroutineId();
