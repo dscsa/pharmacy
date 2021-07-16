@@ -170,19 +170,19 @@ function update_mismatched_rxs_and_items($mysql, $partial)
     // Strip all the  empty blanks off
     $drug_gsns = trim($drug_gsns, ',');
 
-    $sql = "SELECT *
-                FROM gp_rxs_single
-                LEFT JOIN gp_order_items ON gp_rxs_single.rx_number = gp_order_items.rx_number
-                WHERE
-                  NOT drug_generic <=> '{$partial['drug_generic']}' -- gsn was moved not just added
-                  AND rx_gsn IN ($drug_gsns)
-                  AND rx_dispensed_id IS NULL";
+    $sql = "SELECT gp_order_items.*, gp_rxs_single.* -- specify order otherwise order_items.rx_number being null overwrites the rxs_single.rx_number
+            FROM gp_rxs_single
+            LEFT JOIN gp_order_items ON gp_rxs_single.rx_number = gp_order_items.rx_number
+            WHERE
+              NOT drug_generic <=> '{$partial['drug_generic']}' -- gsn was moved not just added
+              AND rx_gsn IN ($drug_gsns)
+              AND rx_dispensed_id IS NULL";
 
     $rxs = $mysql->run($sql)[0];
 
     if (!$rxs) {
         return GPLog::warning(
-            "update_mismatched_rxs_and_items_by_drug_gsns: no rxs_single or order_items to update",
+            "GSN UPDATE update_mismatched_rxs_and_items_by_drug_gsns: no rxs_single or order_items to update",
             [
               'partial' => $partial,
               'sql' => $sql,
@@ -235,6 +235,18 @@ function is_gsn_in_v2($mysql, $rx_number)
 
 function update_rx_single_drug($mysql, $rx_number)
 {
+
+    if ( ! $rx_number) {
+    	GPLog::error(
+    		"update_drugs: update_rx_single_drug aborted because no rx_number passed",
+    		[
+    			'rx_number' => $rx_number
+    		]
+    	);
+
+    	return;
+    }
+
     $sql_rxs_single = "
     UPDATE gp_rxs_single
     JOIN gp_drugs ON
@@ -247,7 +259,7 @@ function update_rx_single_drug($mysql, $rx_number)
       gp_rxs_single.rx_number = '$rx_number'
     ";
 
-    GPLog::warning("update_drugs: update_rx_single_drug (saving v2 drug names in gp_rxs_single)", [
+    GPLog::warning("GSN UPDATE update_drugs: update_rx_single_drug (saving v2 drug names in gp_rxs_single)", [
         'sql_rxs_single'  => $sql_rxs_single,
         'rx_number'       => $rx_number
     ]);
@@ -255,8 +267,17 @@ function update_rx_single_drug($mysql, $rx_number)
     $mysql->run($sql_rxs_single);
 }
 
-function update_order_item_drug($mysql, $rx_number)
-{
+function update_order_item_drug($mysql, $rx_number) {
+    if ( ! $rx_number) {
+        GPLog::error(
+            "update_drugs: update_order_item_drug aborted because no rx_number passed",
+            [
+                'rx_number' => $rx_number
+            ]
+        );
+
+        return;
+    }
 
     /*
         Hacky but we want to FORCE $needs_repending = true in helper_full_fields
@@ -274,7 +295,7 @@ function update_order_item_drug($mysql, $rx_number)
                               AND rx_dispensed_id IS NULL";
 
     GPLog::debug(
-        "update_order_item_drug: updated gp_order_item BEFORE",
+        "GSN UPDATE update_order_item_drug: updated gp_order_item BEFORE",
         [
             'sql_order_items' => $sql_order_items,
             'rx_number'       => $rx_number
@@ -291,7 +312,7 @@ function update_order_item_drug($mysql, $rx_number)
     $item = load_full_item(['rx_number' => $rx_number], $mysql, true);
 
     GPLog::debug(
-        "update_order_item_drug: updated gp_order_item AFTER",
+        "GSN UPDATE update_order_item_drug: updated gp_order_item AFTER",
         [
             'sql_order_items' => $sql_order_items,
             'rx_number'       => $rx_number,

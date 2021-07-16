@@ -99,6 +99,7 @@ class GpRxsSingle extends Model
         'sig_qty',
         'sig_v1_qty',
         'sig_v1_days',
+        'sig_v1_qty_per_day',
         'sig_days',
         'sig_qty_per_day_default',
         'sig_qty_per_day_actual',
