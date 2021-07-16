@@ -614,12 +614,6 @@ class GpOrder extends Model
         }
     }
 
-    /******** Groups Items *************
-     * These methods are used to for determining which items will have this state
-     * They are primarily used for sending out patient or order communications
-     * They should not be used for determining existing states for items, only future
-     * /
-
     /**
      * Return calculated refills_dispensed column for an item
      * Equivalent method - $groups['NO_REFILLS']
