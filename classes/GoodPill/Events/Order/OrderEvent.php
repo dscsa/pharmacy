@@ -130,8 +130,8 @@ abstract class OrderEvent extends Event
             }
 
             /*************** Refill Reminder Data ******************/
-            $no_refills = $this->order->getItemsInGroupWithNoRefills();
-            $no_autofill = $this->order->getItemsInGroupWithNoAutofills();
+            $no_refills = $this->order->getItemsWithNoRefills();
+            $no_autofill = $this->order->getItemsWithNoAutofills();
 
             if ($no_autofill->count() > 0) {
                 $rxs = [];
