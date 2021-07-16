@@ -570,54 +570,65 @@ function pend_pick_list($item, $list)
 
     $pend_url = "/account/8889875187/pend/$pend_group_name?repackQty=$qty";
 
-    //Pend after all forseeable errors are accounted for.
-    $res = v2_fetch($pend_url, 'POST', $list['pend']);
+    $pend_attempts_total = 2;
+    $pend_attempts = 0;
 
-    if (isset($res) && $list['pend'][0]['_rev'] != $res[0]['rev']) {
-        GPLog::debug("pend_pick_list: SUCCESS!! {$item['invoice_number']} {$item['drug_name']} {$item['rx_number']}");
-        // We successfully Pended a picklist
-        $gpOrderItem = GpOrderItem::where('invoice_number', $item['invoice_number'])
-            ->where('rx_number', $item['rx_number'])
-            ->first();
+    do {
+        $res = v2_fetch($pend_url, 'POST', $list['pend']);
 
-        if ($gpOrderItem) {
-            // Create a picklist Object fromthe list we created
-            $pickList_object = new PickListDrug();
-            $pickList_object->setPicklist($list['pend']);
-            $pickList_object->setIsPended(true);
+        if (isset($res) && $list['pend'][0]['_rev'] != $res[0]['rev']) {
+            GPLog::debug("pend_pick_list: SUCCESS!! {$item['invoice_number']} {$item['drug_name']} {$item['rx_number']}");
+            // We successfully Pended a picklist
+            $gpOrderItem = GpOrderItem::where('invoice_number', $item['invoice_number'])
+                ->where('rx_number', $item['rx_number'])
+                ->first();
 
-            // Attache the pickelist to the order so we don't have to call v2
-            $gpOrderItem->setPickList($pickList_object);
+            if ($gpOrderItem) {
+                // Create a picklist Object fromthe list we created
+                $pickList_object = new PickListDrug();
+                $pickList_object->setPickList($list['pend']);
+                $pickList_object->setIsPended(true);
 
-            // Update Carepoint with the NDC we picked.
-            $gpOrderItem->doUpdateCpWithNdc();
-        } else {
-            GPLog::warning(
-                'Could not load the order item, so Carepoint NDC can not be updated',
-                ['item' => $item]
-            );
+                // Attache the pickelist to the order so we don't have to call v2
+                $gpOrderItem->setPickList($pickList_object);
+
+                // Update Carepoint with the NDC we picked.
+                $gpOrderItem->doUpdateCpWithNdc();
+            } else {
+                GPLog::warning(
+                    'Could not load the order item, so Carepoint NDC can not be updated',
+                    ['item' => $item]
+                );
+            }
+
+            return true;
         }
 
-        return true;
-    }
+        $pend_attempts++;
+    } while ($pend_attempts < $pend_attempts_total);
+    //  Retried twice, pending issue so log a warning and send a salesforce message to followup on
+
+    $invoice_number = $item['invoice_number'] ?? 'NO INVOICE';
+    $drug_name = $item['drug_name'] ?? 'NO DRUG NAME';
+    $rx_number = $item['rx_number'] ?? 'NO RX NUMBER';
 
     AuditLog::log(
         sprintf(
             "PEND Failed %s for %s failed to pend.   %s.  Please manually pend if needed.",
-            @$item['drug_name'],
-            @$item['invoice_number'],
+            $drug_name,
+            $invoice_number,
             $pended_group
         ),
         $item
     );
 
-    GPLog::warning(
-        "pend_pick_list: FAILURE!! {$item['invoice_number']} {$item['drug_name']} {$item['rx_number']}",
-        [
-            "item" => $item,
-            "v2_results" => $res
-        ]
-    );
+    GPLog::warning($subject, [
+        'res' => $res,
+        'pend_url' => $pend_url,
+        'pend_group_name' => $pend_group_name,
+        'item' => $item,
+        'list' => $list,
+    ]);
 
     $gpOrderItem = GpOrderItem::where('invoice_number', $item['invoice_number'])
         ->where('rx_number', $item['rx_number'])
@@ -625,6 +636,7 @@ function pend_pick_list($item, $list)
 
     $failed_pend_event = new PendingFailed($gpOrderItem);
     $failed_pend_event->publish();
+
 
     return false;
 }
