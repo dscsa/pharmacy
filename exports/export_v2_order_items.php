@@ -10,6 +10,7 @@ use \GoodPill\Models\GpOrder;
 use \GoodPill\Models\GpOrderItem;
 use \GoodPill\Models\GpPendGroup;
 use \GoodPill\Models\v2\PickListDrug;
+use \GoodPill\Events\OrderItem\PendingFailed;
 
 require_once 'exports/export_cp_orders.php';
 
@@ -610,7 +611,21 @@ function pend_pick_list($item, $list)
         $item
     );
 
-    GPLog::warning("pend_pick_list: FAILURE!! {$item['invoice_number']} {$item['drug_name']} {$item['rx_number']}");
+    GPLog::warning(
+        "pend_pick_list: FAILURE!! {$item['invoice_number']} {$item['drug_name']} {$item['rx_number']}",
+        [
+            "item" => $item,
+            "v2_results" => $res
+        ]
+    );
+
+    $gpOrderItem = GpOrderItem::where('invoice_number', $item['invoice_number'])
+        ->where('rx_number', $item['rx_number'])
+        ->first();
+
+    $failed_pend_event = new PendingFailed($gpOrderItem);
+    $failed_pend_event->publish();
+
     return false;
 }
 
