@@ -3,6 +3,7 @@
 namespace GoodPill\Models\Carepoint;
 
 use Illuminate\Database\Eloquent\Model;
+use GoodPill\Models\GpRxsSingle;
 
 /**
  * Class CpRX
@@ -183,4 +184,13 @@ class CpRx extends Model
         'promo_cn',
         'csr_treatment_type_cn'
     ];
+
+
+    /**
+     * Find the gpRxSingle for this CpRx
+     * @return null|GoodPill\Models\GpRxsSingle
+     */
+    public function getGpRxsSingle() {
+        return GpRxsSingle::where('rx_number', $this->script_no)->first();
+    }
 }

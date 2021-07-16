@@ -6,7 +6,9 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use GoodPill\Models\GpDrugs;
 use GoodPill\Models\GpPatient;
+use GoodPill\Models\Carepoint\CpRx;
 use GoodPill\Logging\GPLog;
+use GoodPill\AWS\SQS\PharmacySyncRequest;
 
 /**
  * Class GpRxsSingle
@@ -15,6 +17,7 @@ class GpRxsSingle extends Model
 {
 
     use \GoodPill\Traits\IsChangeable;
+    use \GoodPill\Traits\IsNotDeletable;
 
     /**
      * The Table for this data
@@ -137,6 +140,45 @@ class GpRxsSingle extends Model
     ];
 
     /**
+     * Any changes to these fields should trigger a change event in the queue
+     * @var array
+     */
+    protected $tracked_fields = [
+        'rx_number',
+        'patient_id_cp',
+        'drug_name',
+        'rx_gsn',
+        'refills_left',
+        'refills_original',
+        'qty_left',
+        'qty_original',
+        'sig_actual',
+        'sig_clean',
+        'sig_qty_per_day_deafult',
+        'sig_qty_per_time',
+        'sig_frequency',
+        'sig_frequency_numerator',
+        'sig_frequency_denominator',
+        'rx_autofill',
+        'refill_date_first',
+        'refill_date_last',
+        'refill_date_manual',
+        'refill_date_default',
+        'rx_status',
+        'rx_stage',
+        'rx_source',
+        'rx_transfer',
+        'rx_date_transferred',
+        'provider_npi',
+        'provider_first_name',
+        'provider_last_name',
+        'provider_clinic',
+        'provider_phone',
+        'rx_date_changed',
+        'rx_date_expired'
+    ];
+
+    /**
      * Link to the GpPatient object on the patient_id_cp
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
@@ -177,6 +219,64 @@ class GpRxsSingle extends Model
         }
 
         return GpDrugs::where('drug_gsns', 'like', "%,{$this->rx_gsn},%")->first();
+    }
+
+    /**
+     * Just a convenience method for accessing the carepoint CpRx object
+     * @return null|GoodPill\Models\Carepoint\CpRx
+     */
+    public function getCpRx()
+    {
+        return CpRx::where('script_no', $this->rx_number)->first();
+    }
+
+    /**
+     * Delete the RX and cascade into other locations.
+     *      - Remove any undispensed Order Items from CarePoint
+     *      - Delete the RX from gp_rxs_single
+     *      - Create a RX deleted event
+     * @return null|bool
+     */
+    public function doCompleteDelete() : ?bool
+    {
+        $results = null;
+
+        // See if there are any order items that are not filled
+        $pending_order_items = GpOrderItem::where('rx_number', $this->rx_number)
+            ->where('patient_id_cp', $this->patient_id_cp)
+            ->where ('rx_dispensed_id', null)
+            ->get();
+
+        foreach($pending_order_items as $order_item) {
+            // A soft delete will simply delete the item from the order in carepoint and then let the
+            // delete event happen naturally at the next sync
+            $order_item->doSoftDelete();
+        }
+
+        //TODO: This is too much duplicate code.  The group ID and the sha1 of the groupid should
+        //TODO: moved.  group id should be GpPatient and sha1 should be in PharmacySyncRequest
+        $changes  = $this->getGpChanges(true);
+        $patient  = $this->patient;
+
+        // Can't create a patient request if we don't have a patient
+        if ($patient) {
+            $group_id = $patient->first_name.'_'.$patient->last_name.'_'.$patient->birth_date;
+
+            GPLog::debug('Deleting RxSingle for GoodPill Database', [$this->toArray()]);
+            // Delete this item from the database
+            $results = parent::delete();
+
+            //
+            $sync_request               = new PharmacySyncRequest();
+            $sync_request->changes_to   = 'rxs_single';
+            $sync_request->changes      = ['deleted' => [$changes]];
+            $sync_request->group_id     = sha1($group_id);
+            $sync_request->patient_id   = $group_id;
+            $sync_request->execution_id = GPLog::$exec_id;
+            $sync_request->sendToQueue();
+        }
+
+        return $results;
     }
 
     /**

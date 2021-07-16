@@ -12,6 +12,7 @@ use GoodPill\Models\GpRxsSingle;
 use GoodPill\Models\v2\PickListDrug;
 use GoodPill\Models\Carepoint\CpFdrNdc;
 use GoodPill\Models\Carepoint\CpRx;
+use GoodPill\Models\Carepoint\CsomLine;
 use GoodPill\Utilities\GpComments;
 
 require_once "helpers/helper_full_item.php";
@@ -25,6 +26,8 @@ class GpOrderItem extends Model
 {
 
     use \GoodPill\Traits\HasCompositePrimaryKey;
+    use \GoodPill\Traits\IsChangeable;
+    use \GoodPill\Traits\IsNotDeletable;
 
     /**
      * The Table for this data
@@ -136,6 +139,20 @@ class GpOrderItem extends Model
     ];
 
     /**
+     * Any changes to these fields should trigger a change event in the queue
+     * @var array
+     */
+    protected $tracked_fields = [
+        'invoice_number',
+        'rx_number',
+        'rx_dispensed_id',
+        'qty_dispensed_actual',
+        'days_dispensed_actual',
+        'count_lines',
+        'item_added_by'
+    ];
+
+    /**
      * Property to hold the picklist so it isn't constantly retrieved
      * @var PickListDrug
      */
@@ -207,6 +224,15 @@ class GpOrderItem extends Model
     }
 
     /**
+     * Query v2 to see if there is already a drug pended for this order
+     * @return boolean
+     */
+    public function isDispensed() : bool
+    {
+        return (!empty($this->rx_dispensed_id));
+    }
+
+    /**
      * Determine if the item was manually added
      * @return bool
      */
@@ -233,11 +259,11 @@ class GpOrderItem extends Model
      */
     public function isNotOffered() : bool
     {
-        $rxs = $this->rxs;
-        $stock = $rxs->stock;
-
-        $rx_gsn = $rxs->rx_gsn;
+        $rxs       = $this->rxs;
+        $stock     = $rxs->stock;
+        $rx_gsn    = $rxs->rx_gsn;
         $drug_name = $rxs->drug_name;
+
         //  This should always be set, `stock_level` isn't null in the database for any items currently
         $stock_level = $this->stock_level_initial ?: $stock->stock_level;
 
@@ -380,6 +406,11 @@ class GpOrderItem extends Model
      */
     public function doUnpendItem(string $reason = '') : ?array
     {
+        GPLog::debug(
+            'Unpending item from V2',
+            ['item' => $this->toArray()]
+        );
+
         $legacy_item = $this->getLegacyData();
         return v2_pend_item($legacy_item, $reason);
     }
@@ -523,9 +554,95 @@ class GpOrderItem extends Model
         return CpFdrNdc::doFindByNdcAndGsns($ndc, $gsns);
     }
 
+    /**
+     * Get the CsOmLine item from carepoint
+     * @return null|GoodPill\Models\Carepoint\CsomLine
+     */
+    public function getCsomLine() : ?CsomLine
+    {
+        // Need to get the CpRx first, then we can get the line from That
+        $cprx  = $this->rxs->getCpRx();
+
+        if ($cprx) {
+            return CsomLine::where('order_id', $this->order->order_id)
+                ->where('rx_id', $cprx->rx_id)
+                ->first();
+        }
+
+        return null;
+    }
 
     /*
 
+        DELETE Functions
+
+     */
+
+    /**
+     * Just delete the order line from carepoint and let the sync handle everything else
+     * @return null|bool
+     */
+    public function doSoftDelete()
+    {
+        // Get the CSOMLINE and delete it
+        $csom_line = $this->getCsomLine();
+
+        if (!$csom_line) {
+            return null;
+        }
+
+        GPLog::debug(
+            'Deleting item from Carepoint order',
+            [
+                'item' => $this->toArray(),
+                'CsOmLine' => $csom_line->toArray()
+            ]
+        );
+
+        // WARNING: We don't do a GPOrderItem::delete() here because we want to allow the sycing to
+        // WARNING: handle everything else
+        return $csom_line->delete();
+
+
+    }
+
+    /**
+     * Do everything a delete should do.
+     *     - Remove the line item from the carepoint order
+     *     - Unpend the item from V2
+     *     - Delete the item from the gp_order_items table
+     *     - Create a queue entry for the change.
+     * @return null|bool  Based on the rules of Model::delete()
+     */
+    protected function doHardDelete()
+    {
+        // Delte the order Item from carepoint
+        $this->doSoftDelete();
+
+        // Unpend the item
+        $this->doUnpendItem();
+
+        // Create a change event for this item
+        $changes  = $this->getGpChanges(true);
+        $patient  = $this->patient();
+        $group_id = $patient->first_name.'_'.$patient->last_name.'_'.$patient->birth_date;
+
+        // Delete this item from the database
+        $results = parent::delete();
+
+        // Create a Queue entry for the deleted item
+        $syncing_request               = new PharmacySyncRequest();
+        $syncing_request->changes_to   = 'order_items';
+        $syncing_request->changes      = ['deleted' => [$changes]];
+        $syncing_request->group_id     = sha1($group_id);
+        $syncing_request->patient_id   = $group_id;
+        $syncing_request->execution_id = GPLog::$exec_id;
+        $sync_request->sendToQueue();
+
+        return $results;
+    }
+
+    /*
         LEGACY DATA
 
         Work with legacy data structures
