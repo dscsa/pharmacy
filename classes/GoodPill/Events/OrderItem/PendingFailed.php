@@ -126,11 +126,11 @@ class PendingFailed extends Event
         $salesforce->contact   = $this->patient->getPatientLabel();
         $salesforce->subject   = "Order Item failed to properly pend";
         $salesforce->body      = $this->render('salesforce');
-        $salesforce->assign_to = '.Testing';
+        $salesforce->assign_to = '.Inventory Issue';
 
         $notification = new Salesforce(
-            sha1(implode(',', $salesforce)),
-            implode(',', $salesforce)
+            sha1(implode(',', $salesforce->toArray())),
+            implode(',', $salesforce->toArray())
         );
 
         if ($notification->isSent()) {
