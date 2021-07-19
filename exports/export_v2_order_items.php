@@ -576,7 +576,7 @@ function pend_pick_list($item, $list)
     do {
         $res = v2_fetch($pend_url, 'POST', $list['pend']);
 
-        if (isset($res) && $list['pend'][0]['_rev'] != $res[0]['rev']) {
+        if (isset($res) && isset($res['pend']) && $list['pend'][0]['_rev'] != $res[0]['rev']) {
             GPLog::debug("pend_pick_list: SUCCESS!! {$item['invoice_number']} {$item['drug_name']} {$item['rx_number']}");
             // We successfully Pended a picklist
             $gpOrderItem = GpOrderItem::where('invoice_number', $item['invoice_number'])
