@@ -80,8 +80,22 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
 
           foreach($duplicate_items as $i => $duplicate_item) {
               if ($i == 0) continue; //keep the oldest item
-              export_cp_remove_items($duplicate_item['invoice_number'], [$duplicate_item]);
-              $duplicate_items_removed[] = $duplicate_item;
+
+              if (
+                  isset($duplicate_item['order_source']) &&
+                  $duplicate_item['order_source'] === 'Manually Protected'
+              )
+              {
+                  GPLog::critical(
+                      "helper_full_fields: Manually Preventing items from being removed. Investigate",
+                      [
+                          'duplicate_item' => $duplicate_item
+                      ]
+                  );
+              } else {
+                  export_cp_remove_items($duplicate_item['invoice_number'], [$duplicate_item]);
+                  $duplicate_items_removed[] = $duplicate_item;
+              }
           }
 
         }
@@ -313,11 +327,41 @@ function add_full_fields($patient_or_order, $mysql, $overwrite_rx_messages)
     } //END LARGE FOR LOOP
 
     if ($items_to_remove) { //WARNING EMPTY OR NULL ARRAY WOULD REMOVE ALL ITEMS
-      export_cp_remove_items($patient_or_order[0]['invoice_number'], $items_to_remove);
+        if (
+            isset($patient_or_order[0]['order_source']) &&
+            $patient_or_order[0]['order_source'] === 'Manually Protected'
+        )
+        {
+            GPLog::critical(
+                "helper_full_fields: Manually Preventing items from being removed. Investigate",
+                [
+                    'patient_or_order'           => $patient_or_order,
+                    'order_source' => $patient_or_order[0]['order_source'],
+                ]
+            );
+        } else {
+            export_cp_remove_items($patient_or_order[0]['invoice_number'], $items_to_remove);
+        }
+
     }
 
     if ($items_to_add) {
-      export_cp_add_items($patient_or_order[0]['invoice_number'], $items_to_add);
+        if (
+            isset($patient_or_order[0]['order_source']) &&
+            $patient_or_order[0]['order_source'] === 'Manually Protected'
+        )
+        {
+            GPLog::critical(
+                "helper_full_fields: Manually Preventing items from being added. Investigate",
+                [
+                    'patient_or_order'           => $patient_or_order,
+                    'order_source' => $patient_or_order[0]['order_source'],
+                ]
+            );
+        } else {
+            export_cp_add_items($patient_or_order[0]['invoice_number'], $items_to_add);
+        }
+
     }
 
     if ($is_order) {

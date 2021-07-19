@@ -255,7 +255,9 @@ function update_rxs_single($changes)
                 "RX Single updated with new sig details",
                 array_filter(
                     $rx_single->toArray(),
-                    fn ($key) => strpos($key, 'sig_') !== false,
+                    function ($key) {
+                        return strpos($key, 'sig_') !== false;
+                    },
                     ARRAY_FILTER_USE_KEY
                 )
             );
