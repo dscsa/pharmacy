@@ -103,9 +103,11 @@ function refill_reminder_notice($groups)
             'MIN_DAYS' => $groups['MIN_DAYS'],
             'days' => $days,
         ]);
-        //  @TODO - Make live
-        // $event = new RefillReminder($gpOrder, $groups['MIN_DAYS']*24, '11:00');
-        // $event->publishEvent();
+
+        $event = new RefillReminder($gpOrder);
+        $event->publishEvent();
+
+        return; //  Returning here to skip everything below in the function
     }
 
     if ($groups['MIN_DAYS'] == 366 or (! count($groups['NO_REFILLS']) and ! count($groups['NO_AUTOFILL']))) {

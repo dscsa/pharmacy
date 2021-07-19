@@ -197,8 +197,8 @@ abstract class OrderEvent extends Event
         $email->subject     = $this->render('email_subject');
         $email->message     = $this->render('email');
         $email->attachments = [$this->order->invoice_doc_id];
-        $email->email       = DEBUG_EMAIL;
-        //$email->email   = $this->order->patient->email;
+        //$email->email       = DEBUG_EMAIL;
+        $email->email   = $this->order->patient->email;
 
         return $email;
     }
@@ -216,8 +216,8 @@ abstract class OrderEvent extends Event
 
         $patient = $this->order->patient;
         $sms          = new SmsComm();
-        // $sms->sms     = $patient->getPhonesAsString();
-        $sms->sms     = DEBUG_PHONE;
+        $sms->sms     = $patient->getPhonesAsString();
+        //$sms->sms     = DEBUG_PHONE;
         $sms->message = $this->render('sms');
         return $sms;
     }

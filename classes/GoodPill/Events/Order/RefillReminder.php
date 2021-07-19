@@ -50,7 +50,7 @@ class RefillReminder extends OrderEvent
     public function publish(): void
     {
         //  @TODO Uncomment this out when going live
-        //  $this->order->cancelEvents(['Refill Reminder']);
+        $this->order->cancelEvents(['Refill Reminder']);
         $this->publishEvent();
     }
 }
