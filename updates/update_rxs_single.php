@@ -88,7 +88,7 @@ function update_rxs_single($changes)
                 $created_date = "Created:".date('Y-m-d H:i:s');
 
                 if ($created['rx_gsn']) {
-                    $subject = "NEW {$created['rx_number']} still needs GSN {$created['rx_gsn']} added to V2";
+                    $subject = "NEW {$created['rx_number']} still needs GSN {$created['rx_gsn']} added to V2 or, if drug doesn't exist in v2, reassign this task to call patient";
                     $body    = "{$created['drug_name']} for $subject";
                     $assign  = ".Inventory Issue";
                     GPLog::warning($body, $created);
@@ -310,7 +310,7 @@ function update_rxs_single($changes)
                 $created_date = "Created:".date('Y-m-d H:i:s');
 
                 if (!empty($rx_single)) {
-                    $subject = "UPDATED {$rx_single->rx_number} still needs GSN {$rx_single->rx_gsn} added to V2";
+                    $subject = "UPDATED {$rx_single->rx_number} still needs GSN {$rx_single->rx_gsn} added to V2, if drug doesn't exist in v2, reassign this task to call patient";
                     $body    = "{$updated['drug_name']} for $subject";
                     $assign  = ".Inventory Issue";
                     GPLog::warning($body, $updated);
