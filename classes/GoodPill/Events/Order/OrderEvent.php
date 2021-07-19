@@ -130,24 +130,33 @@ abstract class OrderEvent extends Event
             }
 
             /*************** Refill Reminder Data ******************/
-            $refill = $this->order->getItemsWithNoRefills();
-            $autofill = $this->order->getItemsWithNoAutofills();
+            $no_refills = $this->order->getItemsWithNoRefills();
+            $no_autofill = $this->order->getItemsWithNoAutofills();
 
-            if ($autofill->count() > 0) {
+            if ($no_autofill->count() > 0) {
                 $rxs = [];
 
-                $autofill->each(function($item) use (&$rxs) {
-                    $rxs[] = ["name" => $item->getDrugName().' - '.$item->rxs->rx_message_text];
+                $no_autofill->each(function($item) use (&$rxs) {
+                    $rxs[] = [
+                        'name' => $item->getDrugName(),
+                        'patient_message_text' => $item->getPatientMessageText(),
+                        'rx_number' => $item->rx_number,
+
+                    ];
                 });
 
                $data['no_autofill'] = ['rxs' => $rxs];
             }
 
-            if ($refill->count() > 0) {
+            if ($no_refills->count() > 0) {
                 $rxs = [];
 
-                $refill->each(function($item) use (&$rxs) {
-                    $rxs[] = ["name" => $item->getDrugName().' - '.$item->rxs->rx_message_text];
+                $no_refills->each(function($item) use (&$rxs) {
+                    $rxs[] = [
+                        'name' => $item->getDrugName(),
+                        'patient_message_text' => $item->getPatientMessageText(),
+                        'rx_number' => $item->rx_number,
+                    ];
                 });
 
                 $data['no_refill'] = ['rxs' => $rxs];
@@ -188,8 +197,8 @@ abstract class OrderEvent extends Event
         $email->subject     = $this->render('email_subject');
         $email->message     = $this->render('email');
         $email->attachments = [$this->order->invoice_doc_id];
-        $email->email       = DEBUG_EMAIL;
-        //$email->email   = $this->order->patient->email;
+        //$email->email       = DEBUG_EMAIL;
+        $email->email   = $this->order->patient->email;
 
         $email->setLanguage($this->order->patient);
 
@@ -209,8 +218,8 @@ abstract class OrderEvent extends Event
 
         $patient = $this->order->patient;
         $sms          = new SmsComm();
-        // $sms->sms     = $patient->getPhonesAsString();
-        $sms->sms     = DEBUG_PHONE;
+        $sms->sms     = $patient->getPhonesAsString();
+        //$sms->sms     = DEBUG_PHONE;
         $sms->message = $this->render('sms');
         $sms->setLanguage($patient);
 
