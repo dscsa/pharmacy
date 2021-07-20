@@ -183,7 +183,7 @@ class GpRxsSingle extends Model
      * Tries to load the drug attribute.  If it's not null then we have the drug
      * @return boolean True if we can load the drug via rx_gsn
      */
-    public function isInFormulary() : bool
+    public function isGsnInInventory() : bool
     {
         $drug = $this->drug;
         return (!is_null($drug));
@@ -210,12 +210,13 @@ class GpRxsSingle extends Model
      */
     public function updateDrugGsns() : bool
     {
-        if (!$this->isInFormulary()) {
+        if (!$this->isGsnInInventory()) {
             return false;
         }
 
         $drug = $this->drug;
-
+        // Doesn't this provide the same check as `isGsnInInventory`?
+        //  @TODO refactor to if/else `isGsnInInventory` or update rxsSingle
         if ($drug) {
             GPLog::warning(
                 "GpRxSingle::updateDrugGsns() drug found and updating",

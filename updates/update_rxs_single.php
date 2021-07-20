@@ -77,7 +77,7 @@ function update_rxs_single($changes)
             $rx_single = GpRxsSingle::where('rx_number', $created['rx_number'])->first();
             $rx_single->setGpChanges($created);
 
-            if ($rx_single->needsGsnUpdate() && $rx_single->isInFormulary()) {
+            if ($rx_single->needsGsnUpdate() && $rx_single->isGsnInInventory()) {
                 if (!$rx_single->updateDrugGsns()) {
                     GPLog::notice(
                         "update_rxs_single: rx created but drug_gsns is empty",
@@ -310,7 +310,7 @@ function update_rxs_single($changes)
                 ]
             );
 
-            if ($rx_single->isInFormulary()) {
+            if ($rx_single->isGsnInInventory()) {
                 $rx_single->updateDrugGsns();
             } else {
                 $created_date = "Created:".date('Y-m-d H:i:s');
