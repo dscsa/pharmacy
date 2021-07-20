@@ -169,17 +169,14 @@ class CpFdrNdc extends Model
     public static function doFindByNdcAndGsns(string $ndc, array $gsns) : ?CpFdrNdc
     {
         $ndcs_to_test = [];
-        // If se don't have enough parts we should leave
-        if (count($ndc_parts) >= 2) {
-            return null;
-        }
 
+        $ndc_parts = explode('-', $ndc);
 
         /*
             Get the various NDC's we want to use in the query
-         */
-        if (strpos('-', $ndc) >= 0) {
-            $ndc_parts = explode('-', $ndc);
+        */
+        if (count($ndc_parts) >= 2) {
+
             $ndc_parts[0] = str_pad($ndc_parts[0], 5, '0', STR_PAD_LEFT);
             $ndc_parts[1] = str_pad($ndc_parts[1], 4, '0', STR_PAD_LEFT);
 
