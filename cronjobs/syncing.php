@@ -429,7 +429,10 @@ try {
 
         if (count($changes_sqs_messages) > 0) {
             $changeq = new PharmacySyncQueue();
-            $changeq->sendBatch($changes_sqs_messages);
+            foreach($changes_sqs_messages as $change) {
+                GPLog::debug('Syncing Change Set', $change->toArray());
+                $changeq->send($change);
+            }
         } else {
             CliLog::warning('No changes to Queue');
         }
