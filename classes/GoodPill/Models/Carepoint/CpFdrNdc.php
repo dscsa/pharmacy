@@ -170,12 +170,12 @@ class CpFdrNdc extends Model
     {
         $ndcs_to_test = [];
 
+        $ndc_parts = explode('-', $ndc);
+
         /*
             Get the various NDC's we want to use in the query
-         */
-        if (strpos('-', $ndc) !== false) {
-
-            $ndc_parts = explode('-', $ndc);
+        */
+        if (count($ndc_parts) >= 2) {
 
             $ndc_parts[0] = str_pad($ndc_parts[0], 5, '0', STR_PAD_LEFT);
             $ndc_parts[1] = str_pad($ndc_parts[1], 4, '0', STR_PAD_LEFT);
