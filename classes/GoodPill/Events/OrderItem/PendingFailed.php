@@ -84,7 +84,7 @@ class PendingFailed extends Event
      */
     public function getDataArray() : array
     {
-        $order_item = $this->$order_item;
+        $order_item = $this->order_item;
         $data       = $order_item->toArray();
 
         if (!empty($this->additional_data)) {

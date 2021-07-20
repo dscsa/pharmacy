@@ -612,13 +612,15 @@ function pend_pick_list($item, $list)
     $drug_name = $item['drug_name'] ?? 'NO DRUG NAME';
     $rx_number = $item['rx_number'] ?? 'NO RX NUMBER';
 
+    $subject = sprintf(
+        "PEND Failed %s for %s failed to pend.   %s.  Please manually pend if needed.",
+        $drug_name,
+        $invoice_number,
+        $pended_group
+    );
+
     AuditLog::log(
-        sprintf(
-            "PEND Failed %s for %s failed to pend.   %s.  Please manually pend if needed.",
-            $drug_name,
-            $invoice_number,
-            $pended_group
-        ),
+        $subject,
         $item
     );
 
@@ -1227,9 +1229,9 @@ function get_qty_needed(array $rows, int $min_qty, float $safety)
                 Update 3: Manufacturer bottles are anything over 60
                 Update 4: Quit Pending if we are over 50%% of the originaly pend request
             */
-            $different_bin = ($pend[0]['bin'] != @$inventory[$i+1]['bin']);
+            $different_bin = (@$pend[0]['bin'] != @$inventory[$i+1]['bin']);
             $is_prepack    = (strlen($pend[0]['bin']) == 3);
-            $is_mfg_bottle = ($pend[0]['qty']['to'] >= 60);
+            $is_mfg_bottle = (@$pend[0]['qty']['to'] >= 60);
             $over_max      = $qty > $max_qty;
             $min_met      = ($qty >= $min_qty);
             $unit_of_use   = ($min_qty < 5);
@@ -1278,7 +1280,7 @@ function get_qty_needed(array $rows, int $min_qty, float $safety)
             ) {
                 usort($list, 'sort_list');
 
-                if (($qty/$min_qty) >= 2) {
+                if ($min_qty > 0 && ($qty/$min_qty) >= 2) {
                     GPLog::warning(
                         'get_qty_needed;  Pended Quantity > 2x the requested quantity.
                         Verify picked items are correct.  After we have confirmed the qty
