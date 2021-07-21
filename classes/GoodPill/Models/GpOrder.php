@@ -591,7 +591,7 @@ class GpOrder extends Model
             if (
                 //  This first condition may only need to be a check for 0?
                 ($item->refills_dispensed = 0 || is_null($item->refills_dispensed)) &&
-                is_null($item->rxs->rx_transfer)
+                is_null($item->rx->rx_transfer)
             ) {
                 return $item;
             }
@@ -609,7 +609,7 @@ class GpOrder extends Model
     public function getItemsWithNoAutofills()
     {
         $collection = $this->items->filter(function ($item) {
-            if ($item->rxs->rx_autofill === 0 && $item->days_dispensed) {
+            if ($item->rx->rx_autofill === 0 && $item->days_dispensed) {
                 return $item;
             }
         });
@@ -624,7 +624,7 @@ class GpOrder extends Model
      */
     public function filledItems() {
         $collection = $this->items->filter(function ($item) {
-            if ($item->rxs->days_dispensed) {
+            if ($item->rx->days_dispensed) {
                 return $item;
             }
         });
