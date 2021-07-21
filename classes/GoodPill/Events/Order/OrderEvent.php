@@ -137,7 +137,7 @@ abstract class OrderEvent extends Event
                 $rxs = [];
 
                 $autofill->each(function($item) use (&$rxs) {
-                    $rxs[] = ["name" => $item->getDrugName().' - '.$item->rxs->rx_message_text];
+                    $rxs[] = ["name" => $item->getDrugName().' - '.$item->rx->rx_message_text];
                 });
 
                $data['no_autofill'] = ['rxs' => $rxs];
@@ -147,7 +147,7 @@ abstract class OrderEvent extends Event
                 $rxs = [];
 
                 $refill->each(function($item) use (&$rxs) {
-                    $rxs[] = ["name" => $item->getDrugName().' - '.$item->rxs->rx_message_text];
+                    $rxs[] = ["name" => $item->getDrugName().' - '.$item->rx->rx_message_text];
                 });
 
                 $data['no_refill'] = ['rxs' => $rxs];
@@ -160,7 +160,7 @@ abstract class OrderEvent extends Event
             {
                 $this->order->items->each(function($item) use (&$rxs) {
                     $rxs[] = [
-                        "name" => $item->getDrugName().' - '.$item->rxs->rx_message_text,
+                        "name" => $item->getDrugName().' - '.$item->rx->rx_message_text,
                         "price_dispensed" => $item->price_dispensed,
                         "days_dispensed" => $item->days_dispensed,
                     ];

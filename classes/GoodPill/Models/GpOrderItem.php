@@ -179,7 +179,7 @@ class GpOrderItem extends Model
      *
      * @return \Illuminate\Database\Eloquent\Relations\HasOne
      */
-    public function rxs()
+    public function rx()
     {
         return $this->hasOne(GpRxsSingle::class, 'rx_number', 'rx_number');
     }
@@ -233,11 +233,11 @@ class GpOrderItem extends Model
      */
     public function isNotOffered() : bool
     {
-        $rxs = $this->rxs;
-        $stock = $rxs->stock;
+        $rx = $this->rx;
+        $stock = $rx->stock;
 
-        $rx_gsn = $rxs->rx_gsn;
-        $drug_name = $rxs->drug_name;
+        $rx_gsn = $rx->rx_gsn;
+        $drug_name = $rx->drug_name;
         //  This should always be set, `stock_level` isn't null in the database for any items currently
         $stock_level = $this->stock_level_initial ?: $stock->stock_level;
 
@@ -270,13 +270,13 @@ class GpOrderItem extends Model
      */
     public function getDrugGenericAttribute(): ?string
     {
-        $rxs = $this->rxs;
+        $rx = $this->rx;
 
-        if (!$rxs->drug_generic) {
-            return $rxs->drug_name;
+        if (!$rx->drug_generic) {
+            return $rx->drug_name;
         }
 
-        return $rxs->drug_generic;
+        return $rx->drug_generic;
     }
 
     /**
@@ -295,8 +295,8 @@ class GpOrderItem extends Model
     public function getPriceDispensedAttribute() : float
     {
         //  Need to get the price_per_month from stock live table
-        if ($this->rxs->stock) {
-            $price_per_month = $this->rxs->stock->price_per_month;
+        if ($this->rx->stock) {
+            $price_per_month = $this->rx->stock->price_per_month;
         } else {
             $price_per_month = 0;
         }
@@ -343,17 +343,17 @@ class GpOrderItem extends Model
      */
     public function getDrugName()
     {
-        $rxs = $this->rxs;
+        $rx = $this->rx;
 
-        if (!$rxs->drug_generic) {
-            return $rxs->drug_name;
+        if (!$rx->drug_generic) {
+            return $rx->drug_name;
         }
 
-        if (!$rxs->drug_brand) {
-            return $rxs->drug_generic;
+        if (!$rx->drug_brand) {
+            return $rx->drug_generic;
         }
 
-        return "{$rxs->drug_generic} ({$rxs->drug_brand})";
+        return "{$rx->drug_generic} ({$rx->drug_brand})";
     }
 
     /*
@@ -423,7 +423,7 @@ class GpOrderItem extends Model
      * Look for a matching NDC in carepoint and update the RX with the new NDC
      * @param  null|string $ndc  If null, we will attempt to get the NDC for the pended data.
      * @param  null|string $gsns If null, we will use the gsn from the pended data.  If there isn't
-     *      any pended data, we will use the gsns from the rxs.
+     *      any pended data, we will use the gsns from the rx.
      * @return boolean True if a ndc was found and the RX was updated
      */
     public function doUpdateCpWithNdc(?string $ndc = null, ?string $gsns = null) : bool
@@ -514,7 +514,7 @@ class GpOrderItem extends Model
             if ($this->isPended()) {
                 $gsns = $this->getPickList()->getGsns();
             } else {
-                $gsns = $this->rxs->drug_gsns;
+                $gsns = $this->rx->drug_gsns;
             }
         }
 
